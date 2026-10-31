@@ -228,9 +228,6 @@ const SceneModel& InfrastructurePanel::model() const {
 	return m_document ? m_document->model() : emptyScene();
 }
 
-SceneModel& InfrastructurePanel::mutableModel() {
-	return m_document->mutableModel();
-}
 
 void InfrastructurePanel::showStatus(const QString& text, int timeoutMs) {
 	emit statusMessage(text, timeoutMs);
@@ -490,14 +487,18 @@ void InfrastructurePanel::moveSection(int offset) {
 		currentFacet()->moveSection(*this, offset);
 }
 
-void InfrastructurePanel::entityChanged(const QString& label) {
-	entityEdited(label);
+bool InfrastructurePanel::edit(const QString& label, const std::function<void(SceneModel&)>& apply) {
+	if (!editInPlace(label, apply))
+		return false;
 	refreshTable();
+	return true;
 }
 
-void InfrastructurePanel::entityEdited(const QString& label) {
-	m_document->markChanged(SceneDocument::Infrastructure, label);
+bool InfrastructurePanel::editInPlace(const QString& label, const std::function<void(SceneModel&)>& apply) {
+	if (!m_document || !m_document->edit(SceneDocument::Infrastructure, label, apply))
+		return false;
 	emit changed();
+	return true;
 }
 
 void InfrastructurePanel::refuseEdit(const QString& message) {

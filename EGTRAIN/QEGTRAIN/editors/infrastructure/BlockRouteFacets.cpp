@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <functional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -74,45 +75,56 @@ public:
 		const int index = modelIndex(panel, row);
 		if (index < 0)
 			return;
-		std::vector<SceneBlock>& blocks = panel.mutableModel().blocks;
-		SceneBlock& block = blocks[static_cast<std::size_t>(index)];
+		const std::vector<SceneBlock>& blocks = panel.model().blocks;
+		const std::size_t place = static_cast<std::size_t>(index);
 		const QString value = panel.table()->item(row, column)->text().trimmed();
-		Edit edit = Edit::Unchanged;
 		if (column == 0) {
+			const std::string oldId = blocks[place].id;
 			const std::string newId = value.toStdString();
-			if (block.id != newId) {
-				if (idCanReplaceRow(blocks, index, newId)) {
-					const std::string oldId = block.id;
-					block.id = newId;
-					sceneRewriteBlockReferences(panel.mutableModel(), oldId, newId);
-					panel.setSelectionId(value);
-					edit = Edit::Changed;
-				} else {
-					edit = Edit::UnsafeId;
-				}
+			if (oldId == newId)
+				return;
+			if (!idCanReplaceRow(blocks, index, newId)) {
+				panel.refuseEdit(QStringLiteral("IDs must be unique and not empty"));
+				return;
 			}
-		} else if (column == 1) {
-			// The block moves to another track, and the filter shows that track from now on.
-			edit = setText(value, block.trackId);
-			if (edit == Edit::Changed) {
-				panel.refreshBlockTrackFilter();
-				const QSignalBlocker blocker(panel.blockTrackFilterCombo());
-				panel.blockTrackFilterCombo()->setCurrentIndex(panel.blockTrackFilterCombo()->findData(value));
-			}
-		} else if (column == 2) {
-			edit = setNumber(value, block.lengthKm);
+			panel.setSelectionId(value);
+			panel.edit(QStringLiteral("Rename block"), [place, &oldId, &newId](SceneModel& model) {
+				model.blocks[place].id = newId;
+				sceneRewriteBlockReferences(model, oldId, newId);
+			});
+			return;
 		}
-		if (edit == Edit::Changed)
-			panel.entityChanged(column == 0 ? QStringLiteral("Rename block") : QStringLiteral("Edit block"));
-		else if (edit == Edit::UnsafeId)
-			panel.refuseEdit(QStringLiteral("IDs must be unique and not empty"));
-		else if (edit == Edit::Refused)
+		SceneBlock edited = blocks[place];
+		Edit edit = Edit::Unchanged;
+		if (column == 1)
+			edit = setText(value, edited.trackId);
+		else if (column == 2)
+			edit = setNumber(value, edited.lengthKm);
+		if (edit == Edit::Refused) {
 			panel.refuseEdit();
+			return;
+		}
+		if (edit != Edit::Changed)
+			return;
+		const auto apply = [place, &edited](SceneModel& model) { model.blocks[place] = edited; };
+		if (column == 2) {
+			panel.edit(QStringLiteral("Edit block"), apply);
+			return;
+		}
+		// The block moves to another track, and the filter shows that track from now on.
+		if (!panel.editInPlace(QStringLiteral("Edit block"), apply))
+			return;
+		panel.refreshBlockTrackFilter();
+		{
+			const QSignalBlocker blocker(panel.blockTrackFilterCombo());
+			panel.blockTrackFilterCombo()->setCurrentIndex(panel.blockTrackFilterCombo()->findData(value));
+		}
+		panel.refreshTable();
 	}
 
 	// A block goes at the end of the model, on the track that the filter names, which must be a track of the scene.
 	void add(InfrastructurePanel& panel) override {
-		SceneModel& model = panel.mutableModel();
+		const SceneModel& model = panel.model();
 		const std::string selectedTrack = panel.blockTrackFilterCombo()->currentData().toString().toStdString();
 		const auto track = std::find_if(model.tracks.begin(), model.tracks.end(),
 			[&selectedTrack](const SceneTrack& candidate) { return candidate.id == selectedTrack; });
@@ -121,24 +133,22 @@ public:
 			return;
 		}
 		const std::string id = sceneUniqueInfrastructureId(model, "block", "blocks");
-		model.blocks.push_back({id, track->id, 1.0});
+		const SceneBlock block{id, track->id, 1.0};
 		panel.setSelectionId(QString::fromStdString(id));
-		panel.entityChanged(QStringLiteral("Add block"));
+		panel.edit(QStringLiteral("Add block"), [&block](SceneModel& edited) { edited.blocks.push_back(block); });
 	}
 
 	void remove(InfrastructurePanel& panel) override {
 		const int index = modelIndex(panel, panel.table()->currentRow());
 		if (index < 0)
 			return;
-		std::vector<SceneBlock>& blocks = panel.mutableModel().blocks;
-		const std::string id = blocks[static_cast<std::size_t>(index)].id;
+		const std::string id = panel.model().blocks[static_cast<std::size_t>(index)].id;
 		if (id.empty())
 			return;
 		if (!panel.confirmDelete(QString::fromStdString(id), sceneDirectDeleteConsumers(panel.model(), "blocks", id)))
 			return;
-		blocks.erase(blocks.begin() + index);
 		panel.setSelectionId(QString());
-		panel.entityChanged(QStringLiteral("Delete block"));
+		panel.edit(QStringLiteral("Delete block"), [index](SceneModel& model) { model.blocks.erase(model.blocks.begin() + index); });
 	}
 
 	// The new block takes the place of the selected one, on its track.
@@ -146,12 +156,11 @@ public:
 		const int index = modelIndex(panel, panel.table()->currentRow());
 		if (index < 0)
 			return;
-		SceneModel& model = panel.mutableModel();
-		const std::string trackId = model.blocks[static_cast<std::size_t>(index)].trackId;
-		const std::string id = sceneUniqueInfrastructureId(model, "block", "blocks");
-		model.blocks.insert(model.blocks.begin() + index, {id, trackId, 1.0});
-		panel.setSelectionId(QString::fromStdString(id));
-		panel.entityChanged(QStringLiteral("Insert block"));
+		const SceneModel& model = panel.model();
+		const SceneBlock block{sceneUniqueInfrastructureId(model, "block", "blocks"), model.blocks[static_cast<std::size_t>(index)].trackId, 1.0};
+		panel.setSelectionId(QString::fromStdString(block.id));
+		panel.edit(QStringLiteral("Insert block"),
+			[index, &block](SceneModel& edited) { edited.blocks.insert(edited.blocks.begin() + index, block); });
 	}
 
 	// The selected block swaps its place with its neighbour on the track.
@@ -161,10 +170,10 @@ public:
 		const int neighbor = modelIndex(panel, row + offset);
 		if (index < 0 || neighbor < 0)
 			return;
-		std::vector<SceneBlock>& blocks = panel.mutableModel().blocks;
-		std::swap(blocks[static_cast<std::size_t>(index)], blocks[static_cast<std::size_t>(neighbor)]);
-		panel.setSelectionId(QString::fromStdString(blocks[static_cast<std::size_t>(neighbor)].id));
-		panel.entityChanged(QStringLiteral("Move block"));
+		const std::size_t from = static_cast<std::size_t>(index);
+		const std::size_t to = static_cast<std::size_t>(neighbor);
+		panel.setSelectionId(QString::fromStdString(panel.model().blocks[from].id));
+		panel.edit(QStringLiteral("Move block"), [from, to](SceneModel& model) { std::swap(model.blocks[from], model.blocks[to]); });
 	}
 
 private:
@@ -184,38 +193,39 @@ public:
 	Capabilities capabilities() const override { return RouteSections; }
 
 	void addSection(InfrastructurePanel& panel) override {
-		SceneRoute* route = selectedRoute(panel);
+		const int routeRow = selectedRoute(panel);
 		const QComboBox* catalog = panel.routeSectionCatalogCombo();
-		if (!route || catalog->currentIndex() < 0)
+		if (routeRow < 0 || catalog->currentIndex() < 0)
 			return;
 		const std::string section = catalog->currentData().toString().toStdString();
 		if (section.empty())
 			return;
-		route->blocks.push_back(section);
-		changeSections(panel, *route, QStringLiteral("Add route section"));
-		panel.routeSectionListWidget()->setCurrentRow(panel.routeSectionListWidget()->count() - 1);
+		if (changeSections(panel, routeRow, QStringLiteral("Add route section"),
+				[&section](std::vector<std::string>& sections) { sections.push_back(section); }))
+			panel.routeSectionListWidget()->setCurrentRow(panel.routeSectionListWidget()->count() - 1);
 	}
 
 	void removeSection(InfrastructurePanel& panel) override {
-		SceneRoute* route = selectedRoute(panel);
+		const int routeRow = selectedRoute(panel);
 		const int sectionRow = panel.routeSectionListWidget()->currentRow();
-		if (!route || sectionRow < 0 || sectionRow >= static_cast<int>(route->blocks.size()))
+		if (routeRow < 0 || sectionRow < 0 || sectionRow >= sectionCount(panel, routeRow))
 			return;
-		route->blocks.erase(route->blocks.begin() + sectionRow);
-		changeSections(panel, *route, QStringLiteral("Remove route section"));
-		panel.routeSectionListWidget()->setCurrentRow(std::min(sectionRow, panel.routeSectionListWidget()->count() - 1));
+		if (changeSections(panel, routeRow, QStringLiteral("Remove route section"),
+				[sectionRow](std::vector<std::string>& sections) { sections.erase(sections.begin() + sectionRow); }))
+			panel.routeSectionListWidget()->setCurrentRow(std::min(sectionRow, panel.routeSectionListWidget()->count() - 1));
 	}
 
 	void moveSection(InfrastructurePanel& panel, int offset) override {
-		SceneRoute* route = selectedRoute(panel);
+		const int routeRow = selectedRoute(panel);
 		const int sectionRow = panel.routeSectionListWidget()->currentRow();
 		const int targetRow = sectionRow + offset;
-		const int count = route ? static_cast<int>(route->blocks.size()) : 0;
-		if (!route || sectionRow < 0 || sectionRow >= count || targetRow < 0 || targetRow >= count)
+		const int count = routeRow < 0 ? 0 : sectionCount(panel, routeRow);
+		if (routeRow < 0 || sectionRow < 0 || sectionRow >= count || targetRow < 0 || targetRow >= count)
 			return;
-		std::swap(route->blocks[static_cast<std::size_t>(sectionRow)], route->blocks[static_cast<std::size_t>(targetRow)]);
-		changeSections(panel, *route, QStringLiteral("Move route section"));
-		panel.routeSectionListWidget()->setCurrentRow(targetRow);
+		if (changeSections(panel, routeRow, QStringLiteral("Move route section"), [sectionRow, targetRow](std::vector<std::string>& sections) {
+				std::swap(sections[static_cast<std::size_t>(sectionRow)], sections[static_cast<std::size_t>(targetRow)]);
+			}))
+			panel.routeSectionListWidget()->setCurrentRow(targetRow);
 	}
 
 private:
@@ -244,18 +254,24 @@ private:
 		sceneRewriteRouteReferences(model, oldId, newId);
 	}
 
-	// The route in the selected row, or null.
-	static SceneRoute* selectedRoute(InfrastructurePanel& panel) {
-		std::vector<SceneRoute>& routes = panel.mutableModel().routes;
+	// The selected row when it is a route, or -1.
+	static int selectedRoute(const InfrastructurePanel& panel) {
 		const int row = panel.table()->currentRow();
-		return row >= 0 && row < static_cast<int>(routes.size()) ? &routes[static_cast<std::size_t>(row)] : nullptr;
+		return row >= 0 && row < static_cast<int>(panel.model().routes.size()) ? row : -1;
 	}
 
-	// The sections of `route` have changed. The table lists the routes again, which fills the list of sections.
-	static void changeSections(InfrastructurePanel& panel, const SceneRoute& route, const QString& label) {
-		panel.setSelectionId(QString::fromStdString(route.id));
-		panel.entityEdited(label);
-		panel.refreshTable();
+	// The number of sections of the route in `routeRow`.
+	static int sectionCount(const InfrastructurePanel& panel, int routeRow) {
+		return static_cast<int>(panel.model().routes[static_cast<std::size_t>(routeRow)].blocks.size());
+	}
+
+	// Changes the sections of the route in `routeRow` with `change`. The table lists the routes again, which fills the list
+	// of sections. False when the scene is not open for edits.
+	static bool changeSections(InfrastructurePanel& panel, int routeRow, const QString& label,
+		const std::function<void(std::vector<std::string>&)>& change) {
+		const std::size_t index = static_cast<std::size_t>(routeRow);
+		panel.setSelectionId(QString::fromStdString(panel.model().routes[index].id));
+		return panel.edit(label, [index, &change](SceneModel& model) { change(model.routes[index].blocks); });
 	}
 };
 

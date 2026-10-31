@@ -3594,7 +3594,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		const QString review = w.m_runController->runReviewText(true);
 		if (editedRow >= 0) {
 			incidentPanel(w)->listWidget()->setCurrentRow(editedRow);
-			SceneIncident* incident = &w.selectedScenario()->incidents[static_cast<std::size_t>(editedRow)];
+			// The check gives the incident scopes that a loaded scene can hold and the panel does not offer.
+			const std::string selectedId = w.selectedScenario()->id;
+			std::vector<SceneScenario>& scenarios = w.m_document->mutableModel().scenarios;
+			const auto selected = std::find_if(scenarios.begin(), scenarios.end(),
+				[&selectedId](const SceneScenario& scenario) { return scenario.id == selectedId; });
+			SceneIncident* incident = &selected->incidents[static_cast<std::size_t>(editedRow)];
 			const SceneIncident saved = *incident;
 			incident->hasOccurrence = false;
 			incident->occurrence = 1;

@@ -1,6 +1,9 @@
 #include "editors/InfrastructurePanel.h"
+#include "editors/infrastructure/BlockRouteFacets.h"
+#include "editors/infrastructure/SignalFacets.h"
 
 #include "scene/SectionInventory.h"
+#include "scene/SignallingLevel.h"
 
 #include "support/FakePrompts.h"
 
@@ -85,17 +88,18 @@ public:
 			panel.refuseEdit("Rejected");
 			return;
 		}
-		if (m_kind == Kind::Tracks) {
-			panel.mutableModel().tracks[static_cast<std::size_t>(row)].id = text.toStdString();
+		if (m_kind == Kind::Tracks)
 			panel.setSelectionId(text);
-		}
-		panel.entityChanged("Edit entity");
+		panel.edit("Edit entity", [this, row, &text](SceneModel& model) {
+			if (m_kind == Kind::Tracks)
+				model.tracks[static_cast<std::size_t>(row)].id = text.toStdString();
+		});
 	}
 	void add(InfrastructurePanel& panel) override {
 		++addCount;
-		panel.mutableModel().tracks.push_back({"T" + std::to_string(panel.model().tracks.size() + 1)});
-		panel.setSelectionId(QString::fromStdString(panel.model().tracks.back().id));
-		panel.entityChanged("Add entity");
+		const std::string id = "T" + std::to_string(panel.model().tracks.size() + 1);
+		panel.setSelectionId(QString::fromStdString(id));
+		panel.edit("Add entity", [&id](SceneModel& model) { model.tracks.push_back({id}); });
 	}
 	void remove(InfrastructurePanel& panel) override {
 		++removeCount;
@@ -103,9 +107,8 @@ public:
 		const QString id = QString::fromStdString(panel.model().tracks[static_cast<std::size_t>(row)].id);
 		if (!panel.confirmDelete(id, id == "T1" ? std::vector<std::string>({"block b1"}) : std::vector<std::string>()))
 			return;
-		panel.mutableModel().tracks.erase(panel.mutableModel().tracks.begin() + row);
 		panel.setSelectionId(QString());
-		panel.entityChanged("Delete entity");
+		panel.edit("Delete entity", [row](SceneModel& model) { model.tracks.erase(model.tracks.begin() + row); });
 	}
 	void commitPendingEdits(InfrastructurePanel&) override { ++pendingCount; }
 
@@ -136,7 +139,9 @@ public:
 	QString selectionId(const QTableWidget& table, int row) const override {
 		return table.item(row, 0)->text() + "+" + table.item(row, 1)->text();
 	}
-	void commitCell(InfrastructurePanel& panel, int, int) override { panel.entityChanged("Edit platform"); }
+	void commitCell(InfrastructurePanel& panel, int, int) override {
+		panel.edit("Edit platform", [](SceneModel&) {});
+	}
 	void add(InfrastructurePanel&) override {}
 	void remove(InfrastructurePanel&) override {}
 };
@@ -300,6 +305,7 @@ private slots:
 	void filtersAndMovesBlocks();
 	void showsRouteSections();
 	void controlsFollowCapabilities();
+	void facetsWriteNothingWhileClosedForEdits();
 	void laysOutControls();
 	void dropsEditorsOnFacetChange();
 	void returnAndAddLeaveNoEditor();
@@ -430,18 +436,18 @@ void TestInfrastructurePanel::showsSceneAndSelectsRows() {
 	QVERIFY(!document.isDirty());
 
 	// a facet that moves with its entity
-	panel.mutableModel().tracks = {{"T3"}, {"T2"}, {"T1"}};
+	document.mutableModel().tracks = {{"T3"}, {"T2"}, {"T1"}};
 	panel.refresh();
 	// A refresh keeps the entity that is selected.
 	QCOMPARE(firstColumn(panel.table()), QStringList({"T3", "T2", "T1"}));
 	QCOMPARE(panel.table()->currentRow(), 1);
 	QCOMPARE(panel.selectionId(), "T2");
-	panel.mutableModel().tracks = {{"T3"}, {"T1"}, {"T2"}};
+	document.mutableModel().tracks = {{"T3"}, {"T1"}, {"T2"}};
 	panel.refresh();
 	// A refresh selects the entity again where it has moved to.
 	QCOMPARE(panel.table()->currentRow(), 2);
 	QCOMPARE(panel.selectionId(), "T2");
-	panel.mutableModel().tracks = {{"T3"}, {"T1"}};
+	document.mutableModel().tracks = {{"T3"}, {"T1"}};
 	panel.refresh();
 	// A refresh selects the row at the same position when the entity is gone.
 	QCOMPARE(panel.table()->currentRow(), 1);
@@ -451,7 +457,7 @@ void TestInfrastructurePanel::showsSceneAndSelectsRows() {
 	QCOMPARE(panel.table()->currentRow(), -1);
 	QVERIFY(panel.selectionId().isEmpty());
 	QCOMPARE(events.lastSelection(), Selection("tracks", QString()));
-	panel.mutableModel().tracks = {{"T1"}, {"T2"}};
+	document.mutableModel().tracks = {{"T1"}, {"T2"}};
 	panel.refresh();
 
 	// a facet that names its entities by two cells
@@ -461,7 +467,7 @@ void TestInfrastructurePanel::showsSceneAndSelectsRows() {
 	QCOMPARE(firstColumn(panel.table()), QStringList({"S1", "S1"}));
 	QCOMPARE(panel.selectionId(), "S1+P2");
 	QCOMPARE(events.lastSelection(), Selection("platforms", "S1+P2"));
-	panel.mutableModel().stations[0].platforms = {{"P0", {}}, {"P1", {"n11"}}, {"P2", {"n12"}}};
+	document.mutableModel().stations[0].platforms = {{"P0", {}}, {"P1", {"n11"}}, {"P2", {"n12"}}};
 	panel.refresh();
 	// The selection of a platform follows its station and its id.
 	QCOMPARE(panel.table()->currentRow(), 2);
@@ -482,12 +488,12 @@ void TestInfrastructurePanel::showsSceneAndSelectsRows() {
 	QVERIFY(!document.isDirty());
 
 	// the sentence follows what the scene has: the panel hands over its tracks, nodes and stations and its editability
-	panel.mutableModel().nodes = {{"n1", "T1", 0.0, 0.0}};
+	document.mutableModel().nodes = {{"n1", "T1", 0.0, 0.0}};
 	chooseFacet(panel, "arcs");
 	// An empty arcs table asks for nodes while the scene has fewer than two.
 	QCOMPARE(panel.table()->rowCount(), 0);
 	QVERIFY(panel.guidanceLabel()->text().contains("at least two nodes"));
-	panel.mutableModel().nodes = {{"n1", "T1", 0.0, 0.0}, {"n2", "T1", 1.0, 0.0}};
+	document.mutableModel().nodes = {{"n1", "T1", 0.0, 0.0}, {"n2", "T1", 1.0, 0.0}};
 	panel.refresh();
 	QVERIFY2(panel.guidanceLabel()->text().startsWith("No arcs yet. Add one, then"), "an empty arcs table does not ask for nodes that exist");
 	document.setEditable(false);
@@ -495,7 +501,7 @@ void TestInfrastructurePanel::showsSceneAndSelectsRows() {
 	// An empty table says why Add is off while a run uses the scene.
 	QCOMPARE(panel.guidanceLabel()->text(), "No arcs yet. Stop the run to edit.");
 	document.setEditable(true);
-	panel.mutableModel().nodes.clear();
+	document.mutableModel().nodes.clear();
 	panel.refresh();
 
 	// pending edits go to the facet that is chosen
@@ -730,14 +736,14 @@ void TestInfrastructurePanel::filtersAndMovesBlocks() {
 	panel.blockTrackFilterCombo()->setCurrentIndex(0);
 
 	// no blocks on the track
-	panel.mutableModel().tracks.push_back({"T3"});
+	document.mutableModel().tracks.push_back({"T3"});
 	panel.refreshBlockTrackFilter();
 	panel.blockTrackFilterCombo()->setCurrentIndex(panel.blockTrackFilterCombo()->findData("T3"));
 	// A track without blocks is explained.
 	QCOMPARE(panel.table()->rowCount(), 0);
 	QCOMPARE(panel.guidanceLabel()->text(), "No blocks on this track. Choose another track or add a block.");
 	QVERIFY(panel.addButton()->isEnabled());
-	panel.mutableModel().tracks.pop_back();
+	document.mutableModel().tracks.pop_back();
 
 	// the filter belongs to blocks
 	chooseFacet(panel, "tracks");
@@ -889,6 +895,74 @@ void TestInfrastructurePanel::controlsFollowCapabilities() {
 	QCOMPARE(bare->addSectionCount, 0);
 	QCOMPARE(bare->removeSectionCount, 0);
 	QVERIFY(bare->sectionMoves.empty());
+}
+
+// The combos in the table and the route sections of the real facets write nothing while the scene is closed for edits,
+// even when they are reached past the panel's checks: the model, the revision and the undo history stay as they were.
+void TestInfrastructurePanel::facetsWriteNothingWhileClosedForEdits() {
+	SceneDocument document;
+	InfrastructurePanel panel;
+	for (std::unique_ptr<InfrastructureFacet>& facet : makeBlockRouteFacets())
+		panel.setFacet(std::move(facet));
+	for (std::unique_ptr<InfrastructureFacet>& facet : makeSignalFacets())
+		panel.setFacet(std::move(facet));
+	panel.setDocument(&document);
+	SceneModel scene = infrastructureScene();
+	scene.blockDependencies = {{"@b1@", "@b2@"}};
+	SceneSignal signal;
+	signal.id = "sig1";
+	sceneSignals(scene) = {signal};
+	scene.signallingAreas = {{"area1", 0.0, 2.0, kSignallingLevelUnset, {}}};
+	document.replace(scene, false);
+	Events events(panel, document);
+	const quint64 revision = document.revision();
+	document.setEditable(false);
+	const auto combo = [&panel](const char* facet, int column) {
+		chooseFacet(panel, facet);
+		panel.refresh();
+		return qobject_cast<QComboBox*>(panel.table()->cellWidget(0, column));
+	};
+
+	QComboBox* dependency = combo("block_dependencies", 0);
+	QVERIFY(dependency);
+	QCOMPARE(dependency->currentData().toString(), "@b1@");
+	dependency->setCurrentIndex(dependency->findData("@b2@"));
+	QComboBox* protectedSection = combo("signals", 1);
+	QVERIFY(protectedSection);
+	protectedSection->setCurrentIndex(protectedSection->findData("@b1@"));
+	QComboBox* system = combo("signalling_areas", 3);
+	QVERIFY(system);
+	system->setCurrentIndex(1);
+	QComboBox* track = combo("signalling_areas", 4);
+	QVERIFY(track);
+	track->setCurrentIndex(track->findData("T1"));
+	chooseFacet(panel, "routes");
+	panel.refresh();
+	panel.table()->setCurrentCell(0, 0);
+	InfrastructureFacet* routes = panel.facet("routes");
+	QVERIFY(routes);
+	QVERIFY(panel.routeSectionCatalogCombo()->currentIndex() >= 0);
+	routes->addSection(panel);
+	panel.routeSectionListWidget()->setCurrentRow(0);
+	routes->removeSection(panel);
+	routes->moveSection(panel, 1);
+
+	const SceneModel& model = document.model();
+	QCOMPARE(model.blockDependencies[0].block, "@b1@");
+	QCOMPARE(sceneSignals(model)[0].protectedSection, std::string());
+	QCOMPARE(model.signallingAreas[0].level, kSignallingLevelUnset);
+	QCOMPARE(model.signallingAreas[0].trackId, std::string());
+	QCOMPARE(model.routes[0].blocks, std::vector<std::string>({"b1", "b2"}));
+	QCOMPARE(document.revision(), revision);
+	QVERIFY(!document.isDirty());
+	QVERIFY2(events.log.empty(), "no edit is told, so the window records no undo step");
+
+	document.setEditable(true);
+	panel.refresh();
+	panel.table()->setCurrentCell(0, 0);
+	routes->addSection(panel);
+	QVERIFY2(model.routes[0].blocks.size() == 3, "the same call changes the route once the scene is open for edits");
+	QCOMPARE(events.log, edit);
 }
 
 // The layout: the combo on top, the buttons under the table, and the sections of a route below it in a splitter.

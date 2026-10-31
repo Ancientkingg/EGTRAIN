@@ -2289,18 +2289,8 @@ int MainWindow::totalServiceOccurrences() const {
 	return m_document->isLoaded() ? sceneTotalOccurrences(m_document->model(), serviceOccurrenceDuration()) : 0;
 }
 
-SceneScenario* MainWindow::selectedScenario() {
-	return m_document->isLoaded() ? m_runSelection.selectedScenario(m_document->mutableModel()) : nullptr;
-}
-
 const SceneScenario* MainWindow::selectedScenario() const {
 	return m_document->isLoaded() ? m_runSelection.selectedScenario(m_document->model()) : nullptr;
-}
-
-std::vector<SceneIncident>& MainWindow::selectedScenarioIncidents() {
-	static std::vector<SceneIncident> empty;
-	SceneScenario* scenario = selectedScenario();
-	return scenario ? scenario->incidents : empty;
 }
 
 const std::vector<SceneIncident>& MainWindow::selectedScenarioIncidents() const {

@@ -515,8 +515,6 @@ private:
 	void setIncidentTargetPick(bool picking);
 	// While picking, gives the selected incident the target of what was just selected on the network view.
 	void pickIncidentTarget();
-	SceneScenario* selectedScenario();
-	std::vector<SceneIncident>& selectedScenarioIncidents();
 	void refreshRunResultsSummary();
 
 	void handleStartupTimingPaint(const QString& kind, int generation, qint64 elapsedNanoseconds);

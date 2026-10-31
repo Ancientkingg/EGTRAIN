@@ -7,6 +7,7 @@
 #include <QString>
 #include <QStringList>
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
@@ -89,16 +90,16 @@ public:
 	QTableWidget* table() const { return m_table; }
 	/// The model of the document; an empty scene without one.
 	const SceneModel& model() const;
-	/// The model of the document for an edit by a facet. The panel must have a document.
-	SceneModel& mutableModel();
 	/// Shows a message in the status line of the window for `timeoutMs` milliseconds, through statusMessage().
 	void showStatus(const QString& text, int timeoutMs = 4000);
-	/// A facet has changed the model: marks the document changed under `label`, tells changed() and lists the entities again.
-	void entityChanged(const QString& label);
-	/// A facet has changed the model through a widget in the table, which lists the entities again only by being
-	/// replaced: marks the document changed under `label` and tells changed(). The facet lists the entities again when
-	/// it needs to.
-	void entityEdited(const QString& label);
+	/// Changes the infrastructure of the document with `apply` as one edit under `label` (SceneDocument::edit), tells
+	/// changed() and lists the entities again. While the document is not open for edits nothing changes, nothing is told
+	/// and the result is false. A facet decides before the call whether there is a change, so that an edit that changes
+	/// nothing adds no undo step.
+	bool edit(const QString& label, const std::function<void(SceneModel&)>& apply);
+	/// The same for a widget in the table that has changed, without listing the entities again, which would replace the
+	/// widget while it tells of the change. The facet lists the entities again when it needs to.
+	bool editInPlace(const QString& label, const std::function<void(SceneModel&)>& apply);
 	/// A facet has refused an edit and left the model as it was. Shows `message` when there is one, and lists the
 	/// entities again so that the table shows the model.
 	void refuseEdit(const QString& message = {});
