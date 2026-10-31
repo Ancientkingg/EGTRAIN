@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <iterator>
 #include <optional>
 #include <utility>
 
@@ -72,24 +73,31 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 	// The coordinates of an unmapped envelope belong to the route of its own train, so they are left out.
 	const auto envelopeRow = [&optional, &scale](const BlockingTimeDiagramSegment& s, bool mapped) {
 		const auto coordinate = [mapped](double value) { return mapped ? csv::formatDouble(value) : std::string(); };
-		return std::vector<std::string>{s.trainName,
-			s.blockId,
-			csv::formatDouble(s.startTime),
-			csv::formatDouble(s.endTime),
-			coordinate(s.midPositionKm),
-			blockingSegmentTypeName(s),
-			std::string(),
-			std::string(),
-			std::string(),
-			coordinate(s.startPositionKm), coordinate(s.endPositionKm),
-			csv::formatDouble(s.originalStartTime), csv::formatDouble(s.originalEndTime),
-			optional(s.startApproachTime), optional(s.startRunTime), optional(s.endRunTime),
-			optional(s.endClearTime), optional(s.setupTime), optional(s.sightReactionTime),
-			optional(s.releaseTime), optional(s.runTimeMargin),
-			mapped ? std::string("calculated blocking envelope") : std::string(kUnmappedEnvelopeLayer),
-			mapped && s.referenceSection > 0 ? std::to_string(s.referenceSection) : std::string(),
-			coordinate(scale.geoAt(s.midPositionKm)),
-			coordinate(scale.geoAt(s.startPositionKm, s.endPositionKm)), coordinate(scale.geoAt(s.endPositionKm, s.startPositionKm))};
+		std::vector<std::string> row(BlockingTimeCsv::kColumnCount);
+		row[BlockingTimeCsv::kTrain] = s.trainName;
+		row[BlockingTimeCsv::kBlock] = s.blockId;
+		row[BlockingTimeCsv::kOccupationStart] = csv::formatDouble(s.startTime);
+		row[BlockingTimeCsv::kOccupationEnd] = csv::formatDouble(s.endTime);
+		row[BlockingTimeCsv::kPosition] = coordinate(s.midPositionKm);
+		row[BlockingTimeCsv::kSegmentType] = blockingSegmentTypeName(s);
+		row[BlockingTimeCsv::kStartX] = coordinate(s.startPositionKm);
+		row[BlockingTimeCsv::kEndX] = coordinate(s.endPositionKm);
+		row[BlockingTimeCsv::kOriginalStart] = csv::formatDouble(s.originalStartTime);
+		row[BlockingTimeCsv::kOriginalEnd] = csv::formatDouble(s.originalEndTime);
+		row[BlockingTimeCsv::kOriginalApproach] = optional(s.startApproachTime);
+		row[BlockingTimeCsv::kOriginalRunStart] = optional(s.startRunTime);
+		row[BlockingTimeCsv::kOriginalRunEnd] = optional(s.endRunTime);
+		row[BlockingTimeCsv::kOriginalClearance] = optional(s.endClearTime);
+		row[BlockingTimeCsv::kSetup] = optional(s.setupTime);
+		row[BlockingTimeCsv::kSightReaction] = optional(s.sightReactionTime);
+		row[BlockingTimeCsv::kRelease] = optional(s.releaseTime);
+		row[BlockingTimeCsv::kRunMargin] = optional(s.runTimeMargin);
+		row[BlockingTimeCsv::kLayer] = mapped ? std::string("calculated blocking envelope") : std::string(kUnmappedEnvelopeLayer);
+		row[BlockingTimeCsv::kReferenceSection] = mapped && s.referenceSection > 0 ? std::to_string(s.referenceSection) : std::string();
+		row[BlockingTimeCsv::kGeoPosition] = coordinate(scale.geoAt(s.midPositionKm));
+		row[BlockingTimeCsv::kStartGeoX] = coordinate(scale.geoAt(s.startPositionKm, s.endPositionKm));
+		row[BlockingTimeCsv::kEndGeoX] = coordinate(scale.geoAt(s.endPositionKm, s.startPositionKm));
+		return row;
 	};
 	std::vector<std::vector<std::string>> rows;
 	for (const BlockingTimeDiagramSegment& s : segments) {
@@ -100,16 +108,16 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 	for (const BlockingTimePlannedReference& reference : plannedReferences) {
 		if (!trainInVisibleSet(visibleTrainIds, reference.trainName))
 			continue;
-		rows.push_back({reference.trainName,
-			std::string(),
-			std::string(),
-			std::string(),
-			csv::formatDouble(reference.positionKm),
-			"planned reference",
-			reference.eventType,
-			reference.stationName,
-			csv::formatDouble(reference.time), "", "", "", "", "", "", "", "", "", "", "", "", "planned station event", "",
-			csv::formatDouble(scale.geoAt(reference.positionKm))});
+		std::vector<std::string> row(BlockingTimeCsv::kColumnCount);
+		row[BlockingTimeCsv::kTrain] = reference.trainName;
+		row[BlockingTimeCsv::kPosition] = csv::formatDouble(reference.positionKm);
+		row[BlockingTimeCsv::kSegmentType] = "planned reference";
+		row[BlockingTimeCsv::kPlannedReference] = reference.eventType;
+		row[BlockingTimeCsv::kStation] = reference.stationName;
+		row[BlockingTimeCsv::kPlannedTime] = csv::formatDouble(reference.time);
+		row[BlockingTimeCsv::kLayer] = "planned station event";
+		row[BlockingTimeCsv::kGeoPosition] = csv::formatDouble(scale.geoAt(reference.positionKm));
+		rows.push_back(std::move(row));
 	}
 	for (const auto& row : trajectories)
 		if (!row.empty() && trainInVisibleSet(visibleTrainIds, row.front())) rows.push_back(row);
@@ -194,13 +202,41 @@ std::string capacityAnalysisCsv(const CapacityAnalysisResult& result, const QStr
 	if (!result.analyzable || result.cycleEndIdentity.empty() || !std::isfinite(result.cycleTime)
 		|| result.cycleTime < 0.0 || !std::isfinite(result.cyclePercentage))
 		return std::string();
-	const std::vector<std::string> header = {
+	enum Column : std::size_t {
+		kRecordType,
+		kLeader,
+		kFollower,
+		kIdentity,
+		kOperatingCode,
+		kOriginalReference,
+		kScheduledReference,
+		kCompressedReference,
+		kShift,
+		kScheduledHeadway,
+		kMinimumHeadway,
+		kBuffer,
+		kBlock,
+		kLeaderOffset,
+		kFollowerOffset,
+		kCandidateHeadway,
+		kGap,
+		kCycleTime,
+		kPeriod,
+		kCyclePercentage,
+		kSection,
+		kReferenceLabel,
+		kReferenceSource,
+		kNotes,
+		kColumnCount
+	};
+	const char* const names[] = {
 		"Record type", "Leader", "Follower", "Identity", "Operating code", "Original reference[s]",
 		"Scheduled reference[s]", "Compressed reference[s]", "Shift[s]", "Scheduled headway[s]",
 		"Minimum headway[s]", "Buffer[s]", "Block", "Leader offset[s]", "Follower offset[s]",
 		"Candidate headway[s]", "Gap[s]", "Cycle time[s]", "Period[s]", "Cycle / period [%]",
 		"Section", "Reference label", "Reference source", "Notes"};
-	constexpr std::size_t kColumnCount = 24;
+	static_assert(std::size(names) == kColumnCount, "one header name for each column");
+	const std::vector<std::string> header(std::begin(names), std::end(names));
 	std::vector<std::vector<std::string>> rows;
 	const auto referenceSource = [&result](const std::string& identity) {
 		for (std::size_t index = 0; index < result.trainIdentities.size(); ++index)
@@ -215,49 +251,49 @@ std::string capacityAnalysisCsv(const CapacityAnalysisResult& result, const QStr
 		return std::string();
 	};
 	std::vector<std::string> summary(kColumnCount);
-	summary[0] = "summary";
-	summary[1] = result.firstIdentity;
-	summary[2] = result.cycleEndIdentity;
-	summary[17] = csv::formatDouble(result.cycleTime);
-	summary[18] = csv::formatDouble(result.periodSeconds);
-	summary[19] = csv::formatDouble(result.cyclePercentage);
-	summary[20] = sectionLabel.toStdString();
-	summary[21] = referenceLabel(result.firstIdentity) + " -> " + referenceLabel(result.cycleEndIdentity);
-	summary[22] = referenceSource(result.firstIdentity) + " -> " + referenceSource(result.cycleEndIdentity);
-	summary[23] = "explicit cycle start and next-period closing occurrence";
+	summary[kRecordType] = "summary";
+	summary[kLeader] = result.firstIdentity;
+	summary[kFollower] = result.cycleEndIdentity;
+	summary[kCycleTime] = csv::formatDouble(result.cycleTime);
+	summary[kPeriod] = csv::formatDouble(result.periodSeconds);
+	summary[kCyclePercentage] = csv::formatDouble(result.cyclePercentage);
+	summary[kSection] = sectionLabel.toStdString();
+	summary[kReferenceLabel] = referenceLabel(result.firstIdentity) + " -> " + referenceLabel(result.cycleEndIdentity);
+	summary[kReferenceSource] = referenceSource(result.firstIdentity) + " -> " + referenceSource(result.cycleEndIdentity);
+	summary[kNotes] = "explicit cycle start and next-period closing occurrence";
 	rows.push_back(std::move(summary));
 	for (const auto& pair : result.allPairs) {
 		if (pair.governingEvidence.empty()) {
 			std::vector<std::string> record(kColumnCount);
-			record[0] = "pair";
-			record[1] = pair.leaderIdentity;
-			record[2] = pair.followerIdentity;
-			record[9] = csv::formatDouble(pair.scheduledHeadway);
-			record[10] = csv::formatDouble(pair.minimumHeadway);
-			record[11] = csv::formatDouble(pair.buffer);
-			record[20] = sectionLabel.toStdString();
-			record[21] = referenceLabel(pair.leaderIdentity) + " -> " + referenceLabel(pair.followerIdentity);
-			record[22] = referenceSource(pair.leaderIdentity) + " -> " + referenceSource(pair.followerIdentity);
-			record[23] = pair.adjacent ? "no shared constraint" : "nonadjacent; no shared constraint";
+			record[kRecordType] = "pair";
+			record[kLeader] = pair.leaderIdentity;
+			record[kFollower] = pair.followerIdentity;
+			record[kScheduledHeadway] = csv::formatDouble(pair.scheduledHeadway);
+			record[kMinimumHeadway] = csv::formatDouble(pair.minimumHeadway);
+			record[kBuffer] = csv::formatDouble(pair.buffer);
+			record[kSection] = sectionLabel.toStdString();
+			record[kReferenceLabel] = referenceLabel(pair.leaderIdentity) + " -> " + referenceLabel(pair.followerIdentity);
+			record[kReferenceSource] = referenceSource(pair.leaderIdentity) + " -> " + referenceSource(pair.followerIdentity);
+			record[kNotes] = pair.adjacent ? "no shared constraint" : "nonadjacent; no shared constraint";
 			rows.push_back(std::move(record));
 			continue;
 		}
 		for (const auto& evidence : pair.governingEvidence) {
 			std::vector<std::string> record(kColumnCount);
-			record[0] = "pair";
-			record[1] = pair.leaderIdentity;
-			record[2] = pair.followerIdentity;
-			record[9] = csv::formatDouble(pair.scheduledHeadway);
-			record[10] = csv::formatDouble(pair.minimumHeadway);
-			record[11] = csv::formatDouble(pair.buffer);
-			record[12] = evidence.leaderBlockId + " / " + evidence.followerBlockId;
-			record[13] = csv::formatDouble(evidence.leaderOffset);
-			record[14] = csv::formatDouble(evidence.followerOffset);
-			record[15] = csv::formatDouble(evidence.candidateHeadway);
-			record[20] = sectionLabel.toStdString();
-			record[21] = referenceLabel(pair.leaderIdentity) + " -> " + referenceLabel(pair.followerIdentity);
-			record[22] = referenceSource(pair.leaderIdentity) + " -> " + referenceSource(pair.followerIdentity);
-			record[23] = pair.adjacent ? "governing resource" : "nonadjacent ordered constraint; governing resource";
+			record[kRecordType] = "pair";
+			record[kLeader] = pair.leaderIdentity;
+			record[kFollower] = pair.followerIdentity;
+			record[kScheduledHeadway] = csv::formatDouble(pair.scheduledHeadway);
+			record[kMinimumHeadway] = csv::formatDouble(pair.minimumHeadway);
+			record[kBuffer] = csv::formatDouble(pair.buffer);
+			record[kBlock] = evidence.leaderBlockId + " / " + evidence.followerBlockId;
+			record[kLeaderOffset] = csv::formatDouble(evidence.leaderOffset);
+			record[kFollowerOffset] = csv::formatDouble(evidence.followerOffset);
+			record[kCandidateHeadway] = csv::formatDouble(evidence.candidateHeadway);
+			record[kSection] = sectionLabel.toStdString();
+			record[kReferenceLabel] = referenceLabel(pair.leaderIdentity) + " -> " + referenceLabel(pair.followerIdentity);
+			record[kReferenceSource] = referenceSource(pair.leaderIdentity) + " -> " + referenceSource(pair.followerIdentity);
+			record[kNotes] = pair.adjacent ? "governing resource" : "nonadjacent ordered constraint; governing resource";
 			rows.push_back(std::move(record));
 		}
 	}
@@ -265,19 +301,19 @@ std::string capacityAnalysisCsv(const CapacityAnalysisResult& result, const QStr
 		const auto appendCompressionRecord = [&](const CapacityCompressionEvidence* governing) {
 			const std::string predecessor = governing ? governing->predecessorIdentity : std::string();
 			std::vector<std::string> record(kColumnCount);
-			record[0] = "compression";
-			record[1] = predecessor;
-			record[3] = row.identity;
-			record[4] = row.operatingCode;
-			record[5] = csv::formatDouble(row.originalReference);
-			record[6] = csv::formatDouble(row.scheduledReference);
-			record[7] = csv::formatDouble(row.compressedReference);
-			record[8] = csv::formatDouble(row.shift);
-			record[12] = governing ? capacityEvidenceText(governing->governingEvidence) : std::string();
-			record[20] = sectionLabel.toStdString();
-			record[21] = referenceLabel(row.identity);
-			record[22] = referenceSource(row.identity);
-			record[23] = "governing predecessor=" + predecessor;
+			record[kRecordType] = "compression";
+			record[kLeader] = predecessor;
+			record[kIdentity] = row.identity;
+			record[kOperatingCode] = row.operatingCode;
+			record[kOriginalReference] = csv::formatDouble(row.originalReference);
+			record[kScheduledReference] = csv::formatDouble(row.scheduledReference);
+			record[kCompressedReference] = csv::formatDouble(row.compressedReference);
+			record[kShift] = csv::formatDouble(row.shift);
+			record[kBlock] = governing ? capacityEvidenceText(governing->governingEvidence) : std::string();
+			record[kSection] = sectionLabel.toStdString();
+			record[kReferenceLabel] = referenceLabel(row.identity);
+			record[kReferenceSource] = referenceSource(row.identity);
+			record[kNotes] = "governing predecessor=" + predecessor;
 			rows.push_back(std::move(record));
 		};
 		if (row.governingPredecessors.empty())
@@ -288,15 +324,15 @@ std::string capacityAnalysisCsv(const CapacityAnalysisResult& result, const QStr
 	}
 	for (const auto& critical : result.criticalBlocks) {
 		std::vector<std::string> record(kColumnCount);
-		record[0] = "critical";
-		record[1] = critical.leaderIdentity;
-		record[2] = critical.followerIdentity;
-		record[12] = critical.leaderBlockId + " / " + critical.followerBlockId;
-		record[16] = csv::formatDouble(critical.gap);
-		record[20] = sectionLabel.toStdString();
-		record[21] = referenceLabel(critical.leaderIdentity) + " -> " + referenceLabel(critical.followerIdentity);
-		record[22] = referenceSource(critical.leaderIdentity) + " -> " + referenceSource(critical.followerIdentity);
-		record[23] = "capacity critical block";
+		record[kRecordType] = "critical";
+		record[kLeader] = critical.leaderIdentity;
+		record[kFollower] = critical.followerIdentity;
+		record[kBlock] = critical.leaderBlockId + " / " + critical.followerBlockId;
+		record[kGap] = csv::formatDouble(critical.gap);
+		record[kSection] = sectionLabel.toStdString();
+		record[kReferenceLabel] = referenceLabel(critical.leaderIdentity) + " -> " + referenceLabel(critical.followerIdentity);
+		record[kReferenceSource] = referenceSource(critical.leaderIdentity) + " -> " + referenceSource(critical.followerIdentity);
+		record[kNotes] = "capacity critical block";
 		rows.push_back(std::move(record));
 	}
 	return csv::makeDocument(header, rows);

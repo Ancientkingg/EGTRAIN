@@ -2062,7 +2062,7 @@ void TestCompletedRun::compressesDiagram() {
 	QCOMPARE(diagram->trajectoryRows[1][8], f(701.0));
 	// the export rows of the samples have the geo X of their position
 	QCOMPARE(diagram->trajectoryRows.size(), std::size_t(2));
-	QCOMPARE(diagram->trajectoryRows[0].size(), std::size_t(24));
+	QCOMPARE(diagram->trajectoryRows[0].size(), blockingTimeCsvHeader().size());
 	QCOMPARE(diagram->trajectoryRows[0][23], f(36.0));
 	QCOMPARE(diagram->trajectoryRows[1][23], f(35.0));
 	// the time axis spans the compressed envelopes, 500 s to 900 s, with a margin of 5 %

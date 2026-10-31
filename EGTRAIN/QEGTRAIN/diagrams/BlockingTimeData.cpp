@@ -68,9 +68,14 @@ void addRecordedTrajectories(BlockingTimeDiagramData& diagram, const CompletedRu
 					open = true;
 				}
 				diagram.trajectories.back().points.emplace_back(*x, seconds);
-				diagram.trajectoryRows.push_back({trainId, "", "", "", csv::formatDouble(*x),
-					"recorded sample", "", "", csv::formatDouble(seconds), "", "", "", "", "", "", "", "", "", "", "", "", "recorded trajectory",
-					"", csv::formatDouble(scale.geoAt(*x))});
+				std::vector<std::string> row(BlockingTimeCsv::kColumnCount);
+				row[BlockingTimeCsv::kTrain] = trainId;
+				row[BlockingTimeCsv::kPosition] = csv::formatDouble(*x);
+				row[BlockingTimeCsv::kSegmentType] = "recorded sample";
+				row[BlockingTimeCsv::kPlannedTime] = csv::formatDouble(seconds);
+				row[BlockingTimeCsv::kLayer] = "recorded trajectory";
+				row[BlockingTimeCsv::kGeoPosition] = csv::formatDouble(scale.geoAt(*x));
+				diagram.trajectoryRows.push_back(std::move(row));
 			}
 		}
 	}

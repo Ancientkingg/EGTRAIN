@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iterator>
 #include <sstream>
 
 namespace {
@@ -13,18 +14,6 @@ namespace {
 constexpr double kBlockSectionToleranceKm = 1e-6;
 // A section no longer than this has no extent.
 constexpr double kBlockSectionMinimumLengthKm = 1e-9;
-
-// Positions of the columns of the blocking-time export.
-constexpr std::size_t kColumnBlock = 1;
-constexpr std::size_t kColumnPosition = 4;
-constexpr std::size_t kColumnSegmentType = 5;
-constexpr std::size_t kColumnStartX = 9;
-constexpr std::size_t kColumnEndX = 10;
-constexpr std::size_t kColumnLayer = 21;
-constexpr std::size_t kColumnReferenceSection = 22;
-constexpr std::size_t kColumnGeoPosition = 23;
-constexpr std::size_t kColumnStartGeoX = 24;
-constexpr std::size_t kColumnEndGeoX = 25;
 
 bool hasValue(const std::string& value) {
 	return !value.empty() && value != "None";
@@ -418,11 +407,13 @@ std::string blockSectionCapacityScopeIssue(const std::vector<BlockSectionExtent>
 }
 
 const std::vector<std::string>& blockingTimeCsvHeader() {
-	static const std::vector<std::string> header = {"Train", "Block", "Occupation start[s]", "Occupation end[s]",
+	const char* const names[] = {"Train", "Block", "Occupation start[s]", "Occupation end[s]",
 		"Position[km]", "Segment type", "Planned reference", "Station", "Planned time[s]", "Start X[km]", "End X[km]",
 		"Original start[s]", "Original end[s]", "Original approach[s]", "Original run start[s]", "Original run end[s]",
 		"Original clearance[s]", "Setup[s]", "Sight reaction[s]", "Release[s]", "Run margin[s]", "Layer", "Reference section",
 		"Geo position[km]", "Start geo X[km]", "End geo X[km]"};
+	static_assert(std::size(names) == BlockingTimeCsv::kColumnCount, "one header name for each column");
+	static const std::vector<std::string> header(std::begin(names), std::end(names));
 	return header;
 }
 
@@ -430,20 +421,20 @@ std::vector<std::vector<std::string>> blockSectionCsvRows(const std::vector<Bloc
 	std::vector<std::vector<std::string>> rows;
 	rows.reserve(extents.size());
 	for (const BlockSectionExtent& extent : extents) {
-		std::vector<std::string> row(blockingTimeCsvHeader().size());
-		row[kColumnBlock] = extent.id;
-		row[kColumnSegmentType] = kBlockSectionSegmentType;
-		row[kColumnReferenceSection] = std::to_string(extent.order);
+		std::vector<std::string> row(BlockingTimeCsv::kColumnCount);
+		row[BlockingTimeCsv::kBlock] = extent.id;
+		row[BlockingTimeCsv::kSegmentType] = kBlockSectionSegmentType;
+		row[BlockingTimeCsv::kReferenceSection] = std::to_string(extent.order);
 		if (extent.geometryValid) {
-			row[kColumnPosition] = csv::formatDouble((extent.startKm + extent.endKm) / 2.0);
-			row[kColumnStartX] = csv::formatDouble(extent.startKm);
-			row[kColumnEndX] = csv::formatDouble(extent.endKm);
-			row[kColumnGeoPosition] = csv::formatDouble((extent.geoStartKm + extent.geoEndKm) / 2.0);
-			row[kColumnStartGeoX] = csv::formatDouble(extent.geoStartKm);
-			row[kColumnEndGeoX] = csv::formatDouble(extent.geoEndKm);
-			row[kColumnLayer] = kBlockSectionLayer;
+			row[BlockingTimeCsv::kPosition] = csv::formatDouble((extent.startKm + extent.endKm) / 2.0);
+			row[BlockingTimeCsv::kStartX] = csv::formatDouble(extent.startKm);
+			row[BlockingTimeCsv::kEndX] = csv::formatDouble(extent.endKm);
+			row[BlockingTimeCsv::kGeoPosition] = csv::formatDouble((extent.geoStartKm + extent.geoEndKm) / 2.0);
+			row[BlockingTimeCsv::kStartGeoX] = csv::formatDouble(extent.geoStartKm);
+			row[BlockingTimeCsv::kEndGeoX] = csv::formatDouble(extent.geoEndKm);
+			row[BlockingTimeCsv::kLayer] = kBlockSectionLayer;
 		} else {
-			row[kColumnLayer] = kBlockSectionMissingLayer;
+			row[BlockingTimeCsv::kLayer] = kBlockSectionMissingLayer;
 		}
 		rows.push_back(std::move(row));
 	}
