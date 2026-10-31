@@ -1,8 +1,8 @@
 #include "diagrams/DiagramWindow.h"
+#include "diagrams/BlockSectionOverlay.h"
 #include "diagrams/ResultFrame.h"
 #include "diagrams/TrainColors.h"
 #include "diagrams/TrainKeyList.h"
-#include "scene/SectionLabels.h"
 #include "util/TimeFormat.h"
 #include "widgets/DialogLayout.h"
 #include "widgets/PlainToolTip.h"
@@ -14,7 +14,6 @@
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
 #include <QTextDocument>
-#include <QSet>
 #include <QFontMetricsF>
 #include <QWheelEvent>
 #include <QNativeGestureEvent>
@@ -168,437 +167,6 @@ void widenToRoundTicks(QValueAxis* axis) {
 			return;
 		}
 	}
-}
-
-// The look of the section strip and of the break marks of the position axis.
-const QColor kStripFill(238, 242, 245);
-const QColor kStripRule(201, 211, 219);
-const QColor kStripRowRule(221, 228, 233);
-const QColor kStripText(63, 77, 86);
-const QColor kStripStrongText(36, 49, 58);
-const QColor kStationBar(91, 104, 113);
-const QColor kSwitchHatch(160, 172, 180);
-const QColor kCriticalBar(227, 162, 26);
-const QColor kConflictBar(158, 27, 27);
-constexpr double kStripLabelGap = 6;   // between two ids in a row of the strip
-constexpr double kStripMarkHeight = 3; // the bars of a station, a critical block and a conflict
-constexpr double kStripGap = 4;		   // below the strip
-constexpr double kBreakMarkReach = 7;  // how near the pointer must be to a break mark for its hover
-
-// The layer under the series of a chart that `paint` draws in, inside the plot. QChart stacks its grid at 2, its axes at 3
-// and its series at 4.
-class UnderSeriesLayer : public QGraphicsObject {
-public:
-	UnderSeriesLayer(QChart* chart, QObject* owner, const QString& name, std::function<void(QPainter*)> paint)
-		: QGraphicsObject(chart), m_chart(chart), m_paint(std::move(paint)) {
-		QObject::setParent(owner);
-		setObjectName(name);
-		setAcceptedMouseButtons(Qt::NoButton);
-		setZValue(3.5);
-		connect(chart, &QChart::plotAreaChanged, this, [this] {
-			prepareGeometryChange();
-			update();
-		});
-	}
-	QRectF boundingRect() const override { return m_chart->plotArea(); }
-	void paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) override { m_paint(painter); }
-
-private:
-	QChart* m_chart;
-	std::function<void(QPainter*)> m_paint;
-};
-
-// One chart-owned item, outside the train series/filter identity space. Geometry is mapped from the live distance axis,
-// which may be the position axis; font sizes and the strip stay in chart pixels. It draws the strip of the sections above
-// the plot and the break marks of the position axis on the bottom edge of the plot over the series, and the boundaries of
-// the sections in the plot under the series, in a layer of its own.
-class BlockSectionOverlay : public QGraphicsObject {
-public:
-	BlockSectionOverlay(QChart* chart, std::vector<BlockSectionExtent> sections, std::vector<BlockSectionMarks> marks,
-		int routeSectionCount, const QString& route, const SceneSectionLabels* labels, const QFont& font, const QPalette& palette)
-		: QGraphicsObject(chart), m_chart(chart), m_sections(std::move(sections)), m_marks(std::move(marks)),
-		  m_route(route), m_font(font), m_strongFont(font), m_palette(palette) {
-		m_strongFont.setBold(true);
-		m_marks.resize(m_sections.size());
-		// For the tests: how many sections the strip marks as station sections.
-		setProperty("stationSections", static_cast<int>(std::count_if(m_marks.begin(), m_marks.end(), [](const BlockSectionMarks& marks) { return marks.station; })));
-		m_routeSectionCount = routeSectionCount > 0 ? routeSectionCount : static_cast<int>(m_sections.size());
-		// Only the labels of the shown sections are kept, so the overlay does not hold those of the whole scene.
-		if (labels)
-			for (const BlockSectionExtent& section : m_sections)
-				m_labels.byReference.emplace(section.id, labels->label(section.id));
-		if (const auto bounds = blockSectionBounds(m_sections)) {
-			m_fullLow = bounds->first;
-			m_fullHigh = bounds->second;
-		}
-		QObject::setParent(chart);
-		setObjectName("blockSectionOverlay");
-		setAcceptedMouseButtons(Qt::NoButton);
-		setZValue(100);
-		setProperty("sectionCount", static_cast<int>(m_sections.size()));
-		m_notice = m_sections.empty() ? "No section boundaries for this route" : QString::fromStdString(blockSectionGeometryNote(m_sections));
-		setProperty("geometryNotice", m_notice);
-		m_boundaries = new UnderSeriesLayer(chart, this, QStringLiteral("blockBoundaryLines"), [this](QPainter* painter) { paintBoundaries(painter); });
-		connect(chart, &QChart::plotAreaChanged, this, [this] {
-			prepareGeometryChange();
-			m_bounds = m_chart->boundingRect();
-			// Zooming can change the width of the axis labels and with it that of the plot, which must not change the rows.
-			if (m_chart->size() != m_rowsChartSize) chooseRows();
-			update();
-		});
-		m_bounds = chart->boundingRect();
-		chooseRows();
-		watchAxes();
-	}
-	QRectF boundingRect() const override { return m_bounds; }
-	void watchAxes() {
-		for (auto* axis : m_chart->axes()) {
-			if (auto* value = qobject_cast<QValueAxis*>(axis)) {
-				// Time-axis replacement changes chart layout as well as ranges.
-				if (m_axes.contains(value)) continue;
-				m_axes.insert(value);
-				connect(value, &QValueAxis::rangeChanged, this, [this] { refresh(); });
-				connect(value, &QAbstractAxis::reverseChanged, this, [this] { refresh(); });
-				connect(value, &QObject::destroyed, this, [this, value] { m_axes.remove(value); });
-			}
-		}
-		refresh();
-	}
-	// Paints the strip and the layer of the boundaries again.
-	void refresh() {
-		update();
-		m_boundaries->update();
-	}
-	// The range of the distance axis at the full view of the chart, which decides the rows of the strip.
-	void setFullRange(double low, double high) {
-		m_fullLow = low;
-		m_fullHigh = high;
-		chooseRows();
-		refresh();
-	}
-	// The jumps of the position axis, each drawn as a break mark; none without a position axis.
-	void setJumps(std::vector<PositionScale::Jump> jumps) {
-		m_jumps = std::move(jumps);
-		update();
-	}
-	// Called when the strip takes another number of rows, which changes the height that it needs above the plot.
-	void setRowsChanged(std::function<void()> changed) { m_rowsChanged = std::move(changed); }
-	// The height above the plot: the strip, then the notice.
-	double headerHeight() const { return stripHeight() + noticeHeight(); }
-	bool drawsBoundaries() const {
-		return std::any_of(m_sections.begin(), m_sections.end(), [](const BlockSectionExtent& section) { return section.geometryValid; });
-	}
-	// The rows of the Key for what the overlay draws: a cell with the bar of a station section, a hatched cell of a switch
-	// section and the dotted line of a boundary, each while the strip draws one.
-	QVector<DiagramKeyEntry> keyEntries() const {
-		bool station = false, switchSection = false;
-		for (std::size_t i = 0; i < m_sections.size(); ++i)
-			if (m_sections[i].geometryValid) {
-				station = station || m_marks[i].station;
-				switchSection = switchSection || m_sections[i].isSwitch;
-			}
-		QVector<DiagramKeyEntry> entries;
-		if (station) entries.push_back({QStringLiteral("Station section"), DiagramKeyEntry::Shape::Cell, QPen(kStationBar), QBrush(), kStripFill});
-		if (switchSection)
-			entries.push_back({QStringLiteral("Switch section"), DiagramKeyEntry::Shape::Cell, QPen(Qt::NoPen),
-				QBrush(kSwitchHatch, Qt::BDiagPattern), kStripFill});
-		if (drawsBoundaries()) entries.push_back({QStringLiteral("Block boundary"), DiagramKeyEntry::Shape::Tick, boundaryPen(), QBrush()});
-		return entries;
-	}
-	QString inspect(const QPointF& point, bool headerOnly) const {
-		const auto* axis = distanceAxis();
-		const QRectF plot = m_chart->plotArea();
-		if (axis)
-			for (const PositionScale::Jump& jump : m_jumps) {
-				const double x = pixelX(jump.routeKm, axis);
-				if (x >= plot.left() && x <= plot.right() && std::abs(point.x() - x) <= kBreakMarkReach
-					&& std::abs(point.y() - plot.bottom()) <= kBreakMarkReach)
-					return QString("Position jumps\n%1 km continues at %2 km").arg(jump.geoBeforeKm, 0, 'f', 3).arg(jump.geoAfterKm, 0, 'f', 3);
-			}
-		const QRectF header = headerRect();
-		if (!plot.contains(point) && !header.contains(point)) return {};
-		const bool inStrip = !m_sections.empty() && header.contains(point) && point.y() < header.top() + stripHeight();
-		const bool inNotice = header.contains(point) && !m_notice.isEmpty() && !inStrip;
-		if (headerOnly && !inStrip && !inNotice) return {};
-		QStringList details;
-		const BlockSectionExtent* labelHit = nullptr;
-		if (inStrip)
-			for (const auto& label : renderedLabels())
-				if (label.rect.contains(point)) {
-					labelHit = label.section;
-					break;
-				}
-		if (axis)
-			for (std::size_t i = 0; i < m_sections.size(); ++i) {
-				const BlockSectionExtent& section = m_sections[i];
-				if (!section.geometryValid) continue;
-				const double start = pixelX(section.startKm, axis), end = pixelX(section.endKm, axis);
-				// A visible label wins over neighbouring cells; coincident occurrences remain inspectable.
-				const bool labelMatches = labelHit && section.lowerKm() == labelHit->lowerKm() && section.upperKm() == labelHit->upperKm();
-				if ((inStrip && (labelHit ? labelMatches : point.x() >= std::min(start, end) - 3 && point.x() <= std::max(start, end) + 3))
-					|| (!headerOnly && plot.contains(point) && std::min(std::abs(point.x() - start), std::abs(point.x() - end)) <= 4))
-					details << sectionDetails(i);
-			}
-		if (inNotice) {
-			details << m_notice;
-			for (const auto& section : m_sections)
-				if (!section.geometryValid)
-					details << QString("Section %1, %2: %3").arg(section.order).arg(shortId(section), QString::fromStdString(section.issue));
-		}
-		return details.join('\n');
-	}
-	// The dotted boundaries of the sections in the plot, under the series.
-	void paintBoundaries(QPainter* painter) const {
-		const QRectF plot = m_chart->plotArea();
-		const auto* axis = distanceAxis();
-		if (!axis) return;
-		painter->save();
-		painter->setClipRect(plot);
-		painter->setPen(boundaryPen());
-		for (const auto& section : m_sections) {
-			if (!section.geometryValid) continue;
-			for (double position : {section.startKm, section.endKm}) {
-				const double x = pixelX(position, axis);
-				painter->drawLine(QPointF(x, plot.top()), QPointF(x, plot.bottom()));
-			}
-		}
-		painter->restore();
-	}
-	void paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) override {
-		const QRectF plot = m_chart->plotArea();
-		const auto* axis = distanceAxis();
-		painter->save();
-		const QRectF header = headerRect();
-		painter->setClipRect(header);
-		painter->fillRect(header, m_palette.brush(QPalette::Base));
-		const QRectF strip(header.left(), header.top(), header.width(), stripHeight() - kStripGap);
-		if (!m_sections.empty()) painter->fillRect(strip, kStripFill);
-		if (axis)
-			for (std::size_t i = 0; i < m_sections.size(); ++i) {
-				const BlockSectionExtent& section = m_sections[i];
-				if (!section.geometryValid) continue;
-				const double start = pixelX(section.startKm, axis), end = pixelX(section.endKm, axis);
-				const double left = std::max(plot.left(), std::min(start, end));
-				const double right = std::min(plot.right(), std::max(start, end));
-				if (right <= left) continue;
-				const QRectF cell(left, strip.top(), right - left, strip.height());
-				if (section.isSwitch) painter->fillRect(cell, QBrush(kSwitchHatch, Qt::BDiagPattern));
-				if (m_marks[i].station) painter->fillRect(QRectF(left, strip.top(), right - left, kStripMarkHeight), kStationBar);
-				if (m_marks[i].critical)
-					painter->fillRect(QRectF(left, strip.bottom() - kStripMarkHeight, right - left, kStripMarkHeight), kCriticalBar);
-				if (m_marks[i].conflict)
-					painter->fillRect(QRectF(left, strip.bottom() - kStripMarkHeight, right - left, kStripMarkHeight), kConflictBar);
-				painter->setPen(QPen(kStripRule, 1));
-				for (double x : {start, end})
-					if (x >= plot.left() && x <= plot.right()) painter->drawLine(QPointF(x, strip.top()), QPointF(x, strip.bottom()));
-			}
-		if (m_rows > 1 && !m_sections.empty()) {
-			painter->setPen(QPen(kStripRowRule, 1));
-			painter->drawLine(QPointF(strip.left(), strip.top() + rowHeight()), QPointF(strip.right(), strip.top() + rowHeight()));
-		}
-		const std::vector<Label> labels = renderedLabels();
-		QStringList shown;
-		for (const auto& label : labels) {
-			shown << label.text;
-			painter->setFont(label.strong ? m_strongFont : m_font);
-			painter->setPen(label.strong ? kStripStrongText : kStripText);
-			painter->drawText(label.rect, Qt::AlignCenter, label.text);
-		}
-		setProperty("stripLabels", shown);
-		painter->setFont(m_font);
-		painter->setPen(QPen(m_palette.color(QPalette::Text), 1));
-		const QFontMetricsF metrics(m_font);
-		if (!m_notice.isEmpty()) {
-			const QRectF notice(plot.left(), header.top() + stripHeight(), plot.width(), noticeHeight());
-			painter->fillRect(notice, m_palette.brush(QPalette::Base));
-			painter->drawText(notice.adjusted(4, 0, -4, 0), Qt::AlignVCenter | Qt::AlignLeft,
-				metrics.elidedText(m_notice, Qt::ElideRight, plot.width() - 8));
-		}
-		// The break marks interrupt the bottom edge of the plot, so they paint over the axis line.
-		if (axis && !m_jumps.empty()) {
-			painter->setClipRect(QRectF(plot.left() - kBreakMarkReach, plot.bottom() - kBreakMarkReach, plot.width() + 2 * kBreakMarkReach,
-				2 * kBreakMarkReach));
-			QColor line = m_palette.color(QPalette::WindowText);
-			line.setAlpha(160);
-			for (const PositionScale::Jump& jump : m_jumps) {
-				const double x = pixelX(jump.routeKm, axis);
-				if (x < plot.left() || x > plot.right()) continue;
-				const double y = plot.bottom();
-				painter->fillRect(QRectF(x - 4, y - 6, 8, 12), m_palette.brush(QPalette::Base));
-				painter->setPen(QPen(line, 1.3));
-				painter->drawLine(QPointF(x - 5, y + 5), QPointF(x - 1, y - 5));
-				painter->drawLine(QPointF(x + 1, y + 5), QPointF(x + 5, y - 5));
-			}
-		}
-		painter->restore();
-	}
-private:
-	struct Label {
-		const BlockSectionExtent* section;
-		QRectF rect;
-		QString text;
-		bool strong; // a critical or conflict section, drawn in bold
-	};
-	// The dotted line of a section boundary in the plot.
-	QPen boundaryPen() const {
-		QColor stroke = m_palette.color(QPalette::Text);
-		stroke.setAlpha(100);
-		return QPen(stroke, 1, Qt::DotLine);
-	}
-	// The short id that the strip shows.
-	static QString shortId(const BlockSectionExtent& section) {
-		return QString::fromStdString(shortBlockId(section.id));
-	}
-	// The hover of a section, one fact per line: the id, the label, the kind, the marks, its place in the route, the geo
-	// extent and the route distance.
-	QString sectionDetails(std::size_t index) const {
-		const BlockSectionExtent& section = m_sections[index];
-		const BlockSectionMarks& marks = m_marks[index];
-		const QString id = shortId(section);
-		QStringList lines{id};
-		// A section without a label of its own gets none.
-		if (const std::string label = readableSectionLabel(section.id, m_labels); !label.empty() && label != id.toStdString())
-			lines << QString::fromStdString(label);
-		lines << (section.isSwitch && marks.station ? QStringLiteral("Switch section at a station")
-				: section.isSwitch					? QStringLiteral("Switch section")
-				: marks.station						? QStringLiteral("Station section")
-													: QStringLiteral("Block section"));
-		if (marks.critical) lines << QStringLiteral("Critical block");
-		if (marks.conflict) lines << QStringLiteral("Conflict");
-		lines << QString("Section %1 of %2").arg(section.order).arg(m_routeSectionCount);
-		lines << QString("Position %1 to %2 km").arg(section.geoStartKm, 0, 'f', 3).arg(section.geoEndKm, 0, 'f', 3);
-		lines << QString("%1 to %2 km along %3").arg(section.startKm, 0, 'f', 3).arg(section.endKm, 0, 'f', 3).arg(m_route);
-		return lines.join('\n');
-	}
-	QRectF headerRect() const {
-		const QRectF plot = m_chart->plotArea();
-		return QRectF(plot.left(), plot.top() - headerHeight(), plot.width(), headerHeight());
-	}
-	// The ids that the strip shows for the distance range low to high across the plot, in `rows` rows from the top of
-	// the strip. Each id is centred in the part of its cell that lies in the plot and kept inside the plot, and goes in the
-	// first row where it keeps clear of the ids placed there. The ids are placed in route order when that names every
-	// section. Otherwise the ids of critical and conflict sections are placed first, then those of the first and last
-	// section, of switch sections and of station sections, then the others in route order, and an id that keeps clear in
-	// no row is left out. `candidates` gets the number of ids that could be shown.
-	std::vector<Label> placedLabels(double low, double high, bool reverse, int rows, std::size_t* candidates = nullptr) const {
-		std::vector<Label> placed;
-		if (candidates) *candidates = 0;
-		const QRectF plot = m_chart->plotArea();
-		if (plot.width() <= 8 || !(high > low)) return placed;
-		const auto xAt = [&](double km) {
-			const double fraction = (km - low) / (high - low);
-			return plot.left() + (reverse ? 1 - fraction : fraction) * plot.width();
-		};
-		struct Candidate {
-			int priority;
-			std::size_t index;
-			double centre;
-			double width;
-		};
-		std::vector<Candidate> found;
-		std::size_t first = m_sections.size(), last = 0;
-		for (std::size_t i = 0; i < m_sections.size(); ++i)
-			if (m_sections[i].geometryValid) {
-				first = std::min(first, i);
-				last = i;
-			}
-		for (std::size_t i = 0; i < m_sections.size(); ++i) {
-			const BlockSectionExtent& section = m_sections[i];
-			if (!section.geometryValid) continue;
-			const double left = std::max(plot.left(), std::min(xAt(section.startKm), xAt(section.endKm)));
-			const double right = std::min(plot.right(), std::max(xAt(section.startKm), xAt(section.endKm)));
-			if (right <= left) continue;
-			const bool strong = m_marks[i].critical || m_marks[i].conflict;
-			const double width = QFontMetricsF(strong ? m_strongFont : m_font).horizontalAdvance(shortId(section));
-			if (width > plot.width()) continue;
-			int priority = 4;
-			if (strong) priority = 0;
-			else if (i == first || i == last) priority = 1;
-			else if (section.isSwitch) priority = 2;
-			else if (m_marks[i].station) priority = 3;
-			found.push_back({priority, i, std::clamp((left + right) / 2, plot.left() + width / 2, plot.right() - width / 2), width});
-		}
-		if (candidates) *candidates = found.size();
-		const double top = headerRect().top();
-		const auto place = [&] {
-			placed.clear();
-			std::vector<std::vector<std::pair<double, double>>> taken(static_cast<std::size_t>(std::max(1, rows)));
-			for (const Candidate& candidate : found) {
-				const double from = candidate.centre - candidate.width / 2, to = candidate.centre + candidate.width / 2;
-				for (std::size_t row = 0; row < taken.size(); ++row) {
-					const bool clear = std::all_of(taken[row].begin(), taken[row].end(), [&](const std::pair<double, double>& other) {
-						return to + kStripLabelGap <= other.first || from - kStripLabelGap >= other.second;
-					});
-					if (!clear) continue;
-					taken[row].emplace_back(from, to);
-					const BlockSectionExtent& section = m_sections[candidate.index];
-					placed.push_back({&section, QRectF(from, top + static_cast<double>(row) * rowHeight(), candidate.width, rowHeight()),
-						shortId(section), m_marks[candidate.index].critical || m_marks[candidate.index].conflict});
-					break;
-				}
-			}
-		};
-		place();
-		if (placed.size() == found.size()) return placed;
-		std::stable_sort(found.begin(), found.end(), [](const Candidate& a, const Candidate& b) { return a.priority < b.priority; });
-		place();
-		return placed;
-	}
-	// Painting and inspection use the same live screen-space rectangles.
-	std::vector<Label> renderedLabels() const {
-		const auto* axis = distanceAxis();
-		return axis ? placedLabels(axis->min(), axis->max(), axis->isReverse(), m_rows) : std::vector<Label>();
-	}
-	// One row when every id fits at the full view of the chart, else two, so that zooming keeps the rows. A new size of
-	// the chart chooses again.
-	void chooseRows() {
-		const auto* axis = distanceAxis();
-		std::size_t candidates = 0;
-		const std::size_t fitting = axis ? placedLabels(m_fullLow, m_fullHigh, axis->isReverse(), 1, &candidates).size() : 0;
-		const int rows = fitting < candidates ? 2 : 1;
-		m_rowsChartSize = m_chart->size();
-		setProperty("stripRows", rows);
-		if (rows != m_rows) {
-			prepareGeometryChange();
-			m_rows = rows;
-			if (m_rowsChanged) m_rowsChanged();
-		}
-		setProperty("stripHeight", stripHeight());
-		setProperty("headerHeight", headerHeight());
-	}
-	QValueAxis* distanceAxis() const {
-		const auto axes = m_chart->axes(Qt::Horizontal);
-		return axes.isEmpty() ? nullptr : qobject_cast<QValueAxis*>(axes.first());
-	}
-	double rowHeight() const { return QFontMetricsF(m_font).height() + 6; }
-	double stripHeight() const { return m_sections.empty() ? 0.0 : static_cast<double>(m_rows) * rowHeight() + kStripGap; }
-	double noticeHeight() const { return m_notice.isEmpty() ? 0.0 : QFontMetricsF(m_font).height() + 10; }
-	double pixelX(double km, const QValueAxis* axis) const {
-		const QRectF plot = m_chart->plotArea();
-		const double fraction = (km - axis->min()) / (axis->max() - axis->min());
-		return plot.left() + (axis->isReverse() ? 1 - fraction : fraction) * plot.width();
-	}
-	QChart* m_chart;
-	std::vector<BlockSectionExtent> m_sections;
-	std::vector<BlockSectionMarks> m_marks; ///< One per section
-	int m_routeSectionCount = 0;
-	SceneSectionLabels m_labels; ///< Of the sections of m_sections; empty without labels
-	QString m_route, m_notice;
-	QFont m_font, m_strongFont;
-	QPalette m_palette;
-	QRectF m_bounds;
-	QSet<QValueAxis*> m_axes;
-	double m_fullLow = 0.0, m_fullHigh = 0.0;
-	int m_rows = 1;
-	QSizeF m_rowsChartSize; ///< The size of the chart when the rows were chosen
-	std::vector<PositionScale::Jump> m_jumps;
-	std::function<void()> m_rowsChanged;
-	UnderSeriesLayer* m_boundaries = nullptr; ///< A child of the overlay
-};
-
-// The window header cannot name the file-local overlay type, so it keeps the item as a QGraphicsObject.
-BlockSectionOverlay* sectionOverlayOf(const QPointer<QGraphicsObject>& overlay) {
-	return static_cast<BlockSectionOverlay*>(overlay.data());
 }
 
 // A dark outline around the selected blocking time, 1.5 px outside its box as the chart maps the box at the moment, and
@@ -1135,7 +703,7 @@ QVector<DiagramKeyEntry> DiagramWindow::keyEntries() const {
 		const auto simulated = entryNamed(QStringLiteral("Simulated"));
 		if (simulated != entries.end() && simulated->shape == DiagramKeyEntry::Shape::Line) entries.erase(simulated);
 	}
-	if (const auto* overlay = sectionOverlayOf(m_sectionOverlay)) entries << overlay->keyEntries();
+	if (const auto* overlay = m_sectionOverlay.data()) entries << overlay->keyEntries();
 	std::stable_sort(entries.begin(), entries.end(), [](const DiagramKeyEntry& a, const DiagramKeyEntry& b) {
 		const auto rank = [](const QString& name) {
 			const auto index = kKeyOrder.indexOf(name);
@@ -1381,7 +949,7 @@ void DiagramWindow::setBlockSections(std::vector<BlockSectionExtent> sections, c
 
 // The invisible top legend takes the height of the strip and its notice.
 void DiagramWindow::reserveStripRoom() {
-	const auto* overlay = sectionOverlayOf(m_sectionOverlay);
+	const auto* overlay = m_sectionOverlay.data();
 	QChart* chart = m_view ? m_view->chart() : nullptr;
 	if (!overlay || !chart) return;
 	auto* legend = chart->legend();
@@ -1439,7 +1007,7 @@ void DiagramWindow::applyTimeAxis() {
 		m_numericAxis = nullptr;
 		m_clockAxis = nullptr;
 	}
-	if (auto* overlay = sectionOverlayOf(m_sectionOverlay)) overlay->watchAxes();
+	if (auto* overlay = m_sectionOverlay.data()) overlay->watchAxes();
 	if (!m_timeAxis) return;
 	const auto timeAxes = chart->axes(m_timeOrientation);
 	if (timeAxes.isEmpty())
@@ -1513,7 +1081,7 @@ void DiagramWindow::applyTimeAxis() {
 	// The plot is laid out when it is shown and whenever it changes size, and an axis must not change in the middle of that.
 	connect(chart, &QChart::plotAreaChanged, clock, [clock, updateLabels] { updateLabels(clock->min(), clock->max()); }, Qt::QueuedConnection);
 	updateLabels(min, max);
-	if (auto* overlay = sectionOverlayOf(m_sectionOverlay)) overlay->watchAxes();
+	if (auto* overlay = m_sectionOverlay.data()) overlay->watchAxes();
 }
 
 void DiagramWindow::setPositionAxis(PositionScale scale) {
@@ -1527,7 +1095,7 @@ void DiagramWindow::setPositionAxis(PositionScale scale) {
 void DiagramWindow::applyPositionAxis() {
 	QChart* chart = m_view ? m_view->chart() : nullptr;
 	if (!chart) return;
-	auto* overlay = sectionOverlayOf(m_sectionOverlay);
+	auto* overlay = m_sectionOverlay.data();
 	if (m_positionAxis && m_positionNumericAxis) restoreNumericAxis(chart, m_positionAxis, m_positionNumericAxis, m_fullBounds);
 	m_positionAxis = nullptr;
 	m_positionNumericAxis = nullptr;
@@ -2055,7 +1623,7 @@ DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 	QChart* chart = m_view ? m_view->chart() : nullptr;
 	if (!chart) return hit;
 	const QPointF cursor = chart->mapFromScene(m_view->mapToScene(position));
-	if (const auto* overlay = sectionOverlayOf(m_sectionOverlay)) {
+	if (const auto* overlay = m_sectionOverlay.data()) {
 		const QString text = overlay->inspect(cursor, true);
 		if (!text.isEmpty()) {
 			hit.lines = text.split('\n');
@@ -2149,7 +1717,7 @@ DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 		sampleIndex = line ? lineIndex : filledIndex;
 	}
 	if (!selected) {
-		if (const auto* overlay = sectionOverlayOf(m_sectionOverlay)) {
+		if (const auto* overlay = m_sectionOverlay.data()) {
 			const QString text = overlay->inspect(cursor, false);
 			if (!text.isEmpty()) hit.lines = text.split('\n');
 		}

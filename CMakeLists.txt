@@ -380,6 +380,7 @@ add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/AreaCapacityWindow.cpp
     ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp
     ${SRC_DIR}/diagrams/BlockingTimeScope.cpp
+    ${SRC_DIR}/diagrams/BlockSectionOverlay.cpp
     ${SRC_DIR}/diagrams/CapacityAnalysis.cpp
     ${SRC_DIR}/diagrams/CapacityScope.cpp
     ${SRC_DIR}/diagrams/CapacityWindow.cpp

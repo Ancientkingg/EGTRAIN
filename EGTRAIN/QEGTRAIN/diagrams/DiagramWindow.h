@@ -28,6 +28,7 @@
 #include <functional>
 #include <vector>
 
+class BlockSectionOverlay;
 class QGraphicsObject;
 class QKeyEvent;
 class QLabel;
@@ -279,7 +280,7 @@ private:
 	bool m_timeAxis = false;
 	Qt::Orientation m_timeOrientation = Qt::Horizontal;
 	QPointer<QLabel> m_tooltip;
-	QPointer<QGraphicsObject> m_sectionOverlay;
+	QPointer<BlockSectionOverlay> m_sectionOverlay;
 	QPointer<QGraphicsObject> m_selectionOutline; // around the selected blocking time
 	QPointer<QGraphicsObject> m_emptyNote;		  // the text of a chart without series
 	QString m_emptyText;
