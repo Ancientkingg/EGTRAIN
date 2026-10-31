@@ -131,7 +131,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_section.html#a77b88e06692841ba49559d22a25a09f9" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_section.html#a77b88e06692841ba49559d22a25a09f9" target="_top" xlink:title="An empty section with code 270, state Green and no signalling level (kSignallingLevelUnset)....">
 <polygon fill="white" stroke="#666666" points="540,-72.12 446,-72.12 446,-51.38 540,-51.38 540,-72.12"/>
 <text xml:space="preserve" text-anchor="middle" x="493" y="-58.62" font-family="Helvetica,sans-Serif" font-size="10.00">Section::Section</text>
 </a>

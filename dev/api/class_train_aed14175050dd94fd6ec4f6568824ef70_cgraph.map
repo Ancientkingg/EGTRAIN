@@ -1,0 +1,14 @@
+<map id="Train::serviceStopStep" name="Train::serviceStopStep">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,120,171,148"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a6cca849cac9ee24c1670648f588bd5b1" title="True when the aspect of the block section is restrictive: red, or red&#45;red at level 5." alt="" coords="225,29,410,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,117,160,92,218,66,240,61,236,63,220,71,163,96,115,122"/>
+<area shape="rect" id="Node000004" href="$class_train.html#a84f34505ebfd5f1fc6262171d58013cb" title="Records time_seconds * timestep as the arrival (s) at the first stop named CurrentServiceStop that ha..." alt="" coords="219,81,416,126"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="170,120,205,117,201,120,172,125"/>
+<area shape="rect" id="Node000005" href="$class_train.html#a6d00800a06e2e8d77d3503fcf918b65d" title="Sets Eq[time_seconds] to the number of branch." alt="" coords="240,149,394,177"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="171,142,227,151,222,152,171,147"/>
+<area shape="rect" id="Node000006" href="$class_train.html#a94dccc7e1bd2b58dde2acd5b75f2895d" title="Adds the energy of step t to instant_train_energy_consumption and returns the total in MJ." alt="" coords="246,201,388,246"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="123,146,220,186,238,195,233,195,218,191,122,151"/>
+<area shape="rect" id="Node000003" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="464,29,553,57"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="410,41,451,43,446,44,411,46"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="475,28,470,20,474,11,488,5,509,3,531,5,545,14,540,14,530,10,509,8,489,10,478,15,475,20,480,30"/>
+</map>

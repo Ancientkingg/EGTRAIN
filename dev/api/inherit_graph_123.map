@@ -1,5 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,5,136,33"/>
-<area shape="rect" id="Node000001" href="$class_compact_double_spin_box.html" title=" " alt="" coords="184,5,362,33"/>
-<area shape="poly" id="edge28_Node000000_Node000001" title=" " alt="" coords="151,17,186,19,181,19,151,22"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,32,116,60"/>
+<area shape="rect" id="Node000001" href="$class_console_widget.html" title=" " alt="" coords="167,5,286,33"/>
+<area shape="poly" id="edge26_Node000000_Node000001" title=" " alt="" coords="131,32,169,28,164,30,132,37"/>
+<area shape="rect" id="Node000002" href="$class_info_dock_widget.html" title="The dock of the inspector, which tells when the user closes it." alt="" coords="164,57,289,85"/>
+<area shape="poly" id="edge27_Node000000_Node000002" title=" " alt="" coords="131,54,166,61,160,62,131,59"/>
 </map>

@@ -153,7 +153,9 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A connection between two tracks, such as a switch.  <a href="class_connections.html#details">More...</a><br /></td></tr>
 <tr class="memitem:StationPlatform" id="r_StationPlatform"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_station_platform.html">StationPlatform</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A station platform: its size, capacity and waiting passengers.  <a href="class_station_platform.html#details">More...</a><br /></td></tr>
+<tr class="memitem:DelayStats" id="r_DelayStats"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_delay_stats.html">DelayStats</a></td></tr>
 <tr class="memitem:Stations" id="r_Stations"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_stations.html">Stations</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A station, with the delay statistics of the trains that stop there.  <a href="class_stations.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -172,6 +174,8 @@ Variables</h2></td></tr>
 <tr class="memdesc:a5f3d96dcde4e6535720ee603ca6b452f"><td class="mdescLeft">&#160;</td><td class="mdescRight">See kMaxTrackLines.  <br /></td></tr>
 <tr class="memitem:a52eed63d46d1afcb96c62cd5085e34f8" id="r_a52eed63d46d1afcb96c62cd5085e34f8"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a52eed63d46d1afcb96c62cd5085e34f8">kMaxStations</a> = static_cast&lt;int&gt;(<a class="el" href="namespace_runtime_limits.html#a0304a10581d6a40196185bdc8263e4ea">RuntimeLimits::kNativeMaxStations</a>)</td></tr>
 <tr class="memdesc:a52eed63d46d1afcb96c62cd5085e34f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">See kMaxTrackLines.  <br /></td></tr>
+<tr class="memitem:ac31a38342ab7cf8f97b4c5064aa9a28c" id="r_ac31a38342ab7cf8f97b4c5064aa9a28c"><td class="memItemLeft">constexpr char&#160;</td><td class="memItemRight"><a class="el" href="#ac31a38342ab7cf8f97b4c5064aa9a28c">kFinalStationName</a> [] = &quot;Final_Station&quot;</td></tr>
+<tr class="memdesc:ac31a38342ab7cf8f97b4c5064aa9a28c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The name that the station statistics files give to the statistics at the last stop of every train, <a class="el" href="struct_simulation_run.html#a240b06ba30d3240b5f528b573ca64947" title="Delay statistics at the final stop of every train, which the files show under kFinalStationName.">SimulationRun::finalStation</a>.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="ad132837730a71e818c60f574c8b7c44f" name="ad132837730a71e818c60f574c8b7c44f"></a>
@@ -232,6 +236,30 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <a name="doc-var-members" id="doc-var-members"></a><h2 id="header-doc-var-members" class="groupheader">Variable Documentation</h2>
+<a id="ac31a38342ab7cf8f97b4c5064aa9a28c" name="ac31a38342ab7cf8f97b4c5064aa9a28c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac31a38342ab7cf8f97b4c5064aa9a28c">&#9670;&#160;</a></span>kFinalStationName</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">char kFinalStationName[] = &quot;Final_Station&quot;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The name that the station statistics files give to the statistics at the last stop of every train, <a class="el" href="struct_simulation_run.html#a240b06ba30d3240b5f528b573ca64947" title="Delay statistics at the final stop of every train, which the files show under kFinalStationName.">SimulationRun::finalStation</a>. </p>
+
+</div>
+</div>
 <a id="a5f3d96dcde4e6535720ee603ca6b452f" name="a5f3d96dcde4e6535720ee603ca6b452f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5f3d96dcde4e6535720ee603ca6b452f">&#9670;&#160;</a></span>kMaxConnections</h2>
 

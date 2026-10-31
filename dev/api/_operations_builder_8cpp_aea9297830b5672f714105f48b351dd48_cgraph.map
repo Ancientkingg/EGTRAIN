@@ -1,21 +1,19 @@
 <map id="resetNativeOperationsState" name="resetNativeOperationsState">
-<area shape="rect" id="Node000001" title="The reset between scene runs, which is the same as preparing a new run." alt="" coords="5,117,208,145"/>
-<area shape="poly" id="edge10_Node000001_Node000001" title=" " alt="" coords="62,117,55,108,61,99,78,93,107,91,137,93,155,101,149,103,136,98,106,96,79,98,64,103,61,108,67,116"/>
-<area shape="rect" id="Node000002" href="$_operations_builder_8cpp.html#ace6c56d9374dcbbf72c1b3ff79719a17" title=" " alt="" coords="256,117,475,145"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="207,129,242,130,237,132,209,134"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="325,116,318,108,324,99,340,93,365,91,393,93,410,102,404,102,392,98,365,96,341,98,327,103,324,108,330,117"/>
-<area shape="rect" id="Node000003" href="$struct_simulation_run.html#aab0058f6d06c3e08780cda9bb84c4fca" title="Returns every member except the infrastructure to the state of a new run." alt="" coords="523,117,680,145"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="475,129,510,131,505,132,476,134"/>
+<area shape="rect" id="Node000001" title="The reset between scene runs, which is the same as preparing a new run." alt="" coords="5,88,208,116"/>
+<area shape="poly" id="edge9_Node000001_Node000001" title=" " alt="" coords="62,88,55,79,61,69,78,63,107,61,137,64,155,72,149,73,136,69,106,67,79,69,64,73,61,79,67,87"/>
+<area shape="rect" id="Node000002" href="$_operations_builder_8cpp.html#ace6c56d9374dcbbf72c1b3ff79719a17" title=" " alt="" coords="256,88,475,116"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="207,99,243,101,237,103,208,104"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="325,87,318,79,324,69,340,63,365,61,393,64,410,73,404,73,392,69,365,67,341,69,327,73,324,79,330,88"/>
+<area shape="rect" id="Node000003" href="$struct_simulation_run.html#aab0058f6d06c3e08780cda9bb84c4fca" title="Returns every member except the infrastructure to the state of a new run." alt="" coords="523,88,680,116"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="475,99,510,102,505,102,476,104"/>
 <area shape="rect" id="Node000004" href="$class_passenger_index.html#aad565a2ead3849944d78b63abe0102c2" title="Empties the index." alt="" coords="778,5,942,33"/>
-<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="618,115,665,79,695,60,727,43,761,35,766,33,729,48,698,64,668,83,620,119"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="630,85,675,64,727,43,761,37,766,36,729,48,677,69,632,90"/>
 <area shape="rect" id="Node000005" href="$class_platform_index.html#ad7fc8710e599a5d0a1cc03a49378f8a6" title="Empties the index." alt="" coords="783,57,937,85"/>
-<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="651,114,728,94,771,87,765,88,729,99,652,119"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="680,90,771,82,765,82,681,95"/>
 <area shape="rect" id="Node000006" href="$class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" title="Sets the numbers to 0 and GUI to true. A caseStudy above 0 is chosen with set_case." alt="" coords="790,109,930,154"/>
-<area shape="poly" id="edge6_Node000003_Node000006" title=" " alt="" coords="681,129,777,131,772,131,681,134"/>
+<area shape="poly" id="edge6_Node000003_Node000006" title=" " alt="" coords="681,108,777,121,772,122,681,113"/>
 <area shape="rect" id="Node000008" href="$class_number_generator.html#ab9ff0d6a4b1de6790ad6cdfca2078149" title=" " alt="" coords="728,177,992,205"/>
-<area shape="poly" id="edge8_Node000003_Node000008" title=" " alt="" coords="652,143,729,163,767,174,762,174,728,168,651,148"/>
-<area shape="rect" id="Node000009" href="$class_stations.html#a4e0f8fc4709bd680154b7be896ca2350" title="Sets the statistics to &#45;1, totalArrivalDelay and the coordinates to 0." alt="" coords="792,229,928,257"/>
-<area shape="poly" id="edge9_Node000003_Node000009" title=" " alt="" coords="620,143,668,179,698,198,729,214,780,232,774,231,727,219,695,203,665,183,618,148"/>
+<area shape="poly" id="edge8_Node000003_Node000008" title=" " alt="" coords="627,114,674,139,729,163,755,173,750,173,727,168,671,144,626,119"/>
 <area shape="rect" id="Node000007" href="$class_initial_parameters.html#af0cffe214c1366a11fab292eaf4fd48d" title=" " alt="" coords="1040,109,1180,154"/>
 <area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="930,129,1027,131,1021,131,930,134"/>
 </map>

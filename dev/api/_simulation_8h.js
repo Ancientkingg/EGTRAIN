@@ -1,10 +1,13 @@
 var _simulation_8h =
 [
     [ "WaitingAtPlatform", "struct_waiting_at_platform.html", "struct_waiting_at_platform" ],
+    [ "TrainMovementOrder", "struct_train_movement_order.html", "struct_train_movement_order" ],
     [ "calculateArrivalDelayAllTrains", "_simulation_8h.html#a0060579c0a65d168687a876f2eceaf91", null ],
+    [ "calculateDelayStatsAtFinalStops", "_simulation_8h.html#a69919fdb940ac9a50f8868e90836c05c", null ],
     [ "calculateDelayStatsAtStation", "_simulation_8h.html#a6f41337418b750a16b567c9743d56af4", null ],
     [ "calculateDelayStatsForAllStations", "_simulation_8h.html#a75c1f37717d0a65fa5d4c32b1fe986e9", null ],
     [ "calculatePosAndNegArrivalDelayAllTrains", "_simulation_8h.html#a3a3691886ef68820ee91158d907f1870", null ],
+    [ "calculatePosAndNegDelayStatsAtFinalStops", "_simulation_8h.html#a9fb6513dfde6b060cf900649c9a91268", null ],
     [ "calculatePosAndNegDelayStatsAtStation", "_simulation_8h.html#aa73169ed81cf031ff28e7be4e2d3fa79", null ],
     [ "calculatePosAndNegDelayStatsForAllStations", "_simulation_8h.html#a1bd6d9c667729e1683b9f5d5cf9de1f9", null ],
     [ "checkJourneyStartForAllPassengers", "_simulation_8h.html#a48c3bfa1f47a7ab120c90d52a59d391b", null ],
@@ -15,6 +18,8 @@ var _simulation_8h =
     [ "passengersWaitingAtPlatform", "_simulation_8h.html#a45dfaee208572f4ff9811d233a99e36d", null ],
     [ "Print_Computing_Times", "_simulation_8h.html#a039ec093c9a75c91ec01450e0fa945aa", null ],
     [ "PrintTrainPathDiagram", "_simulation_8h.html#a317b30e94608a53979ab08725343dba1", null ],
+    [ "runSimulationPostprocessing", "_simulation_8h.html#ae0be230753d4b1eaf8c3ced9570a7ca1", null ],
+    [ "runSimulationStep", "_simulation_8h.html#a2f9847a91525ccfe48448803e6ebba24", null ],
     [ "Simulate_Train_Passenger_Interactions", "_simulation_8h.html#aa48f0d1207dcbdc3be10ffdcd196c32c", null ],
     [ "Update_List_Passengers_Waiting_At_ALL_Platforms", "_simulation_8h.html#ab5bb7fca0dc9fe41b724f27d88e65ec6", null ]
 ];

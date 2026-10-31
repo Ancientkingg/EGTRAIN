@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['x_0',['X',['../class_signal_item.html#ac45bc3dbbbd01724617d3f687a53b773',1,'SignalItem::X'],['../class_node.html#a74c32024d5d9eac789cdbcc0a70238a4',1,'Node::X'],['../class_station_platform.html#acb0539b723154583582fa24acbc10bfb',1,'StationPlatform::X']]],
+  ['x_0',['X',['../class_signal_item.html#ac45bc3dbbbd01724617d3f687a53b773',1,'SignalItem::X'],['../class_node.html#a74c32024d5d9eac789cdbcc0a70238a4',1,'Node::X'],['../class_station_platform.html#acb0539b723154583582fa24acbc10bfb',1,'StationPlatform::X'],['../class_stations.html#a775035ec233fcd9146de3f68ae1a3935',1,'Stations::X']]],
   ['x_1',['x',['../struct_track_preview_point.html#ae499c02de775764cdd91fd2db40808f4',1,'TrackPreviewPoint::x'],['../struct_track_preview_station.html#ae52a2cb4f94442c7fa2ed69ddb9c133b',1,'TrackPreviewStation::x']]],
   ['x_5fof_5fend_5fnode_2',['x_of_end_node',['../class_route.html#add7d36c25f9a5163e672487ab3c56c1a',1,'Route']]],
   ['x_5fof_5fstart_5fnode_3',['x_of_start_node',['../class_route.html#a9e15bcd7e981b973094949b5849374fd',1,'Route']]],

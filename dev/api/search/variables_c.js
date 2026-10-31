@@ -39,13 +39,13 @@ var searchData=
   ['massperwagonaxle_36',['massPerWagonAxle',['../class_train.html#a5adf1755d4e8ac4f0b26d91c4e236736',1,'Train']]],
   ['matches_37',['matches',['../struct_legacy_input.html#a98facabd4203b79f9704d68c7145629d',1,'LegacyInput']]],
   ['max_38',['max',['../struct_scene_value_range.html#aab2bf9b52904f13f99d162856ea6f275',1,'SceneValueRange']]],
-  ['max_5fcons_5fdelay_39',['Max_Cons_Delay',['../class_stations.html#a5f70e3d02b8988548a5765cf3be20731',1,'Stations']]],
+  ['max_5fcons_5fdelay_39',['Max_Cons_Delay',['../struct_delay_stats.html#af0d9a9f75b644121c48587cda288a204',1,'DelayStats']]],
   ['max_5fdeceleration_5fms2_40',['max_deceleration_ms2',['../struct_scene_train_physical.html#a3b1a88e0652b9efad5fb01e3888b3283',1,'SceneTrainPhysical']]],
   ['max_5fn_5freg_41',['Max_N_Reg',['../_rolling_stock_8h.html#aa7521653f8bbc95f20a5edb74a0de58f',1,'RollingStock.h']]],
   ['max_5fonboard_5fpassengers_42',['MAX_OnBoard_Passengers',['../class_train.html#a62cafe5bc37059c476c5571e52eedc8b',1,'Train']]],
   ['max_5fpassenger_5fvolume_43',['Max_Passenger_Volume',['../class_station_platform.html#aba6c14e1323da3fb4334bbd5b83f0783',1,'StationPlatform']]],
   ['max_5fspeed_5fms_44',['max_speed_ms',['../struct_scene_train_physical.html#a4b0ba7249032650243c12dc34679ec70',1,'SceneTrainPhysical']]],
-  ['max_5ftotaldelay_45',['Max_TotalDelay',['../class_stations.html#a071ff516facc0c745fb313434aec08ae',1,'Stations']]],
+  ['max_5ftotaldelay_45',['Max_TotalDelay',['../struct_delay_stats.html#a92ca7b6a895b35e78edf0d69ccfaa26e',1,'DelayStats']]],
   ['max_5ftrain_5fdecelaration_46',['max_train_decelaration',['../class_train.html#a026ae2d312345ddc4c2965b1150f70fc',1,'Train']]],
   ['max_5ftrain_5fspeed_47',['max_train_speed',['../class_train.html#a9be8284d19dad9ac2aae3a2ce6be696e',1,'Train']]],
   ['maxbytes_48',['maxBytes',['../struct_scene_history_limits.html#abfb8ad9be0bf34b343c4052b64c8d86c',1,'SceneHistoryLimits']]],
@@ -69,5 +69,7 @@ var searchData=
   ['mode_66',['mode',['../struct_train_colour_plan.html#a8bbe40bf6a066854905b599cd92c9782',1,'TrainColourPlan']]],
   ['modified_67',['modified',['../struct_recovery_source.html#a91f5483f32f816e0632fd0f8e8950200',1,'RecoverySource']]],
   ['modifiedscenarioids_68',['modifiedScenarioIds',['../struct_scene_history_entry.html#abaf1b912a17144af2fee23c4200fe025',1,'SceneHistoryEntry']]],
-  ['mutex_69',['mutex',['../struct_live_server_state.html#ab64886055bee4e92758efc1bd7168a3b',1,'LiveServerState::mutex'],['../structtelemetry_1_1_telemetry_sender_1_1_shared.html#aa63f290307d7e98bbd864a44baefa633',1,'telemetry::TelemetrySender::Shared::mutex']]]
+  ['moved_69',['moved',['../struct_train_1_1_authority_target.html#a667406cb6f90c29457ee0d5ce93c9201',1,'Train::AuthorityTarget']]],
+  ['movementorder_70',['movementOrder',['../struct_train_movement_order.html#ae455a106997a817cecbb3ef927ff461c',1,'TrainMovementOrder']]],
+  ['mutex_71',['mutex',['../struct_live_server_state.html#ab64886055bee4e92758efc1bd7168a3b',1,'LiveServerState::mutex'],['../structtelemetry_1_1_telemetry_sender_1_1_shared.html#aa63f290307d7e98bbd864a44baefa633',1,'telemetry::TelemetrySender::Shared::mutex']]]
 ];

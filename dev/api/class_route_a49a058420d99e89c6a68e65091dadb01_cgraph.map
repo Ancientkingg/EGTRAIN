@@ -12,6 +12,6 @@
 <area shape="rect" id="Node000003" href="$_section_inventory_8cpp.html#a27f18250734df7f228d6cc0fdb9b6ad6" title="True when the chainage ranges [start, end) in kilometres overlap and the two section ids share a bloc..." alt="" coords="580,29,745,57"/>
 <area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="487,41,567,43,562,44,488,46"/>
 <area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="619,28,613,20,618,11,635,5,663,3,692,5,710,14,704,14,691,10,663,8,636,10,622,15,618,20,625,29"/>
-<area shape="rect" id="Node000006" href="$class_section.html#a77b88e06692841ba49559d22a25a09f9" title=" " alt="" coords="600,168,725,196"/>
+<area shape="rect" id="Node000006" href="$class_section.html#a77b88e06692841ba49559d22a25a09f9" title="An empty section with code 270, state Green and no signalling level (kSignallingLevelUnset)...." alt="" coords="600,168,725,196"/>
 <area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="515,179,587,182,581,182,516,184"/>
 </map>

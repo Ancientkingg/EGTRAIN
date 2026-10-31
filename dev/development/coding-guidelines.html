@@ -648,7 +648,7 @@ the pointers known to be non-owning. <code class="docutils literal notranslate">
 tree and a fixture, and <code class="docutils literal notranslate"><span class="pre">test_raii_contract</span></code> checks that the delay statistics in
 <code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp</span></code> use <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> instead of <code class="docutils literal notranslate"><span class="pre">new</span> <span class="pre">double[]</span></code>, that the retired
 <code class="docutils literal notranslate"><span class="pre">setupEgtrain</span></code> and <code class="docutils literal notranslate"><span class="pre">prepareSimulation</span></code> stay out of <code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp</span></code> and that
-<code class="docutils literal notranslate"><span class="pre">runSimulation</span></code> writes each train trajectory file once, as its last stage, and leaves
+<code class="docutils literal notranslate"><span class="pre">runSimulationPostprocessing</span></code> writes each train trajectory file once, as its last stage, and leaves
 <code class="docutils literal notranslate"><span class="pre">BlockingTimes.txt</span></code> to <code class="docutils literal notranslate"><span class="pre">ComputeBlockingTimesInMixedSignallingForAllTrains</span></code>. When
 <code class="docutils literal notranslate"><span class="pre">test_raii_contract</span></code> fails, remove the raw allocation, the restored path or the repeated
 write instead of editing the test; when <code class="docutils literal notranslate"><span class="pre">test_ownership_inventory</span></code> fails after a pointer in

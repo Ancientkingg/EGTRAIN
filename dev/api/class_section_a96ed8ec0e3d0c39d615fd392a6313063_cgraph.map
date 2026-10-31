@@ -1,5 +1,5 @@
 <map id="Section::operator==" name="Section::operator==">
 <area shape="rect" id="Node000001" title="True when the ID, the size, the length, the start node, the shared node list, the arcs,..." alt="" coords="5,5,160,33"/>
-<area shape="rect" id="Node000002" href="$class_section.html#a77b88e06692841ba49559d22a25a09f9" title=" " alt="" coords="208,5,333,33"/>
+<area shape="rect" id="Node000002" href="$class_section.html#a77b88e06692841ba49559d22a25a09f9" title="An empty section with code 270, state Green and no signalling level (kSignallingLevelUnset)...." alt="" coords="208,5,333,33"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,17,195,19,190,19,160,22"/>
 </map>

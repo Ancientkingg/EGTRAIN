@@ -129,7 +129,6 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ab8981747428c3b97e00a9c962283b0cc" id="r_ab8981747428c3b97e00a9c962283b0cc"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ab8981747428c3b97e00a9c962283b0cc">ID</a></td></tr>
 <tr class="memdesc:ab8981747428c3b97e00a9c962283b0cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the scene route; "None" until built.  <br /></td></tr>
 <tr class="memitem:adfb7dbb4e284038e84d03957793b5eab" id="r_adfb7dbb4e284038e84d03957793b5eab"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#adfb7dbb4e284038e84d03957793b5eab">N_Block_Sections</a></td></tr>
-<tr class="memdesc:adfb7dbb4e284038e84d03957793b5eab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of block sections composing the route.  <br /></td></tr>
 <tr class="memitem:a015c2115a0874a24a151816195114e79" id="r_a015c2115a0874a24a151816195114e79"><td class="memItemLeft">std::vector&lt; <a class="el" href="class_section.html">Section</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a015c2115a0874a24a151816195114e79">sequence_of_block_sections</a></td></tr>
 <tr class="memdesc:a015c2115a0874a24a151816195114e79"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sequence of block sections, N_Block_Sections elements once the route is built.  <br /></td></tr>
 <tr class="memitem:a9e15bcd7e981b973094949b5849374fd" id="r_a9e15bcd7e981b973094949b5849374fd"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a9e15bcd7e981b973094949b5849374fd">x_of_start_node</a></td></tr>
@@ -344,8 +343,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Number of block sections composing the route. </p>
+<p>Number of block sections composing the route </p>
 
 </div>
 </div>
@@ -393,6 +391,7 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Sequence of block sections, N_Block_Sections elements once the route is built. </p>
+<p>The copies belong to this route: the activation writes their signal state along it, and a train reads the copies of its own route. The copies of a section on two routes can differ (see <a class="el" href="class_section.html">Section</a>). </p>
 
 </div>
 </div>

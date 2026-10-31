@@ -261,7 +261,7 @@ the pointers known to be non-owning. `test_ownership_inventory` runs the scanner
 tree and a fixture, and `test_raii_contract` checks that the delay statistics in
 `simulation/Simulation.cpp` use `std::vector` instead of `new double[]`, that the retired
 `setupEgtrain` and `prepareSimulation` stay out of `app/DispatchController.cpp` and that
-`runSimulation` writes each train trajectory file once, as its last stage, and leaves
+`runSimulationPostprocessing` writes each train trajectory file once, as its last stage, and leaves
 `BlockingTimes.txt` to `ComputeBlockingTimesInMixedSignallingForAllTrains`. When
 `test_raii_contract` fails, remove the raw allocation, the restored path or the repeated
 write instead of editing the test; when `test_ownership_inventory` fails after a pointer in

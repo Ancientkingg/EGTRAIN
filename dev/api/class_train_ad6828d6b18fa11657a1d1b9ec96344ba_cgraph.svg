@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_train.html#a875f0eaa5ed019bfe9e9ec44486874e8" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_train.html#ab553565de7c84273948c643313b78d11" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="371.38,-278.12 215.12,-278.12 215.12,-244.62 371.38,-244.62 371.38,-278.12"/>
 <text xml:space="preserve" text-anchor="start" x="223.12" y="-264.62" font-family="Helvetica,sans-Serif" font-size="10.00">Train::ComputeBlockingTime</text>
 <text xml:space="preserve" text-anchor="middle" x="293.25" y="-251.88" font-family="Helvetica,sans-Serif" font-size="10.00">ForSingleLocation</text>

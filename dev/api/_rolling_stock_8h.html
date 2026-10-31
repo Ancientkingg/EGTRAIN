@@ -142,11 +142,41 @@ Classes</h2></td></tr>
 <tr class="memitem:BlockingTimeList" id="r_BlockingTimeList"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_blocking_time_list.html">BlockingTimeList</a></td></tr>
 <tr class="memitem:Train" id="r_Train"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_train.html">Train</a></td></tr>
 <tr class="memitem:Train_3A_3ABrakingArcCursor" id="r_Train_3A_3ABrakingArcCursor"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_train_1_1_braking_arc_cursor.html">Train::BrakingArcCursor</a></td></tr>
+<tr class="memitem:Train_3A_3AAuthorityTarget" id="r_Train_3A_3AAuthorityTarget"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_train_1_1_authority_target.html">Train::AuthorityTarget</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An end of authority as a braking target: where the train has to meet which speed.  <a href="struct_train_1_1_authority_target.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-typedef-members" class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:ad3908848dc3f7bfe83edaa7a99358aae" id="r_ad3908848dc3f7bfe83edaa7a99358aae"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#ad3908848dc3f7bfe83edaa7a99358aae">Regional</a> = <a class="el" href="class_train.html">Train</a></td></tr>
 <tr class="memdesc:ad3908848dc3f7bfe83edaa7a99358aae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Another name for <a class="el" href="class_train.html">Train</a>, which the tests use.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-enum-members" class="groupheader"><a id="enum-members" name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:a42eb24b9fabf18008862f9854d5f9f23" id="r_a42eb24b9fabf18008862f9854d5f9f23"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#a42eb24b9fabf18008862f9854d5f9f23">BlockingTimeMethod</a> { <a class="el" href="#a42eb24b9fabf18008862f9854d5f9f23ae593276964d46c43e5b707325fb12b6b">Conventional</a>
+, <a class="el" href="#a42eb24b9fabf18008862f9854d5f9f23ad0f7c1621ac48b259c8470740c5740b6">Etcs2</a>
+ }</td></tr>
+<tr class="memdesc:a42eb24b9fabf18008862f9854d5f9f23"><td class="mdescLeft">&#160;</td><td class="mdescRight">The rule that finds the start of the approach to a block section at a fixed-block level.  <a href="#a42eb24b9fabf18008862f9854d5f9f23">More...</a><br /></td></tr>
+<tr class="memitem:a6212850430c9d87a2b2518f5ea118b1c" id="r_a6212850430c9d87a2b2518f5ea118b1c"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#a6212850430c9d87a2b2518f5ea118b1c">TrajectoryBranch</a> : int { <br />
+&#160;&#160;<a class="el" href="#a6212850430c9d87a2b2518f5ea118b1ca6adf97f83acf6453d4a6a4b1070f3754">None</a> = 0
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1caa552e259a7aec237bbe28b9039dc3395">Accelerate</a> = 1
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1cab20c4d284dd357db8fbbaafb988e13d4">BreakdownHold</a> = 5
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1cadefd350ad0b49abff488bf765d88fd1c">ServiceStop</a> = 5
+, <br />
+&#160;&#160;<a class="el" href="#a6212850430c9d87a2b2518f5ea118b1caa6a03564ddef59a9143ead8337442599">AtSignal</a> = 6
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1cab4137253e38d50243b9983114c671d69">Cruise</a> = 12
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1caacf1eecdb435968564b91440b492bdc1">FollowBrakingPlan</a> = 52
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1ca30f24e3655a0f1cdece58bc4ae770369">ReplanBraking</a> = 53
+, <br />
+&#160;&#160;<a class="el" href="#a6212850430c9d87a2b2518f5ea118b1ca5c54a90f5da8ca2c819c84d61233f40d">FullBraking</a> = 54
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1ca7fdb44155ce84e4e75ab2bc727941569">NewBrakingCurve</a> = 55
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1ca567d1f086adad2c2d5230c30a6df3baa">HoldAtAuthority</a> = 323
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1cabd87b3f095051c0fc45cbcb2b27469a4">LeaveTrainOrder</a> = 532
+, <br />
+&#160;&#160;<a class="el" href="#a6212850430c9d87a2b2518f5ea118b1ca6590ee3e83154e0ce18465e1a23b695f">HoldAtTrainOrder</a> = 534
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1cafbe5d659b57aaf62112649227941cf0f">ZeroSpeedLimit</a> = 958
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1ca1ac2ab2ca8a2934d62cfc1d15e6d65bd">FollowLeader</a> = 1002
+<br />
+ }</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -193,6 +223,92 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
+<a id="a42eb24b9fabf18008862f9854d5f9f23" name="a42eb24b9fabf18008862f9854d5f9f23"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a42eb24b9fabf18008862f9854d5f9f23">&#9670;&#160;</a></span>BlockingTimeMethod</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="#a42eb24b9fabf18008862f9854d5f9f23">BlockingTimeMethod</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel strong">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The rule that finds the start of the approach to a block section at a fixed-block level. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a42eb24b9fabf18008862f9854d5f9f23ae593276964d46c43e5b707325fb12b6b" name="a42eb24b9fabf18008862f9854d5f9f23ae593276964d46c43e5b707325fb12b6b"></a>Conventional&#160;</td><td class="fielddoc"><p>Level 0: the approach starts when the head enters the section before. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a42eb24b9fabf18008862f9854d5f9f23ad0f7c1621ac48b259c8470740c5740b6" name="a42eb24b9fabf18008862f9854d5f9f23ad0f7c1621ac48b259c8470740c5740b6"></a>Etcs2&#160;</td><td class="fielddoc"><p>Level 2: the approach starts when the braking distance of the train first reaches the start of the section. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a id="a6212850430c9d87a2b2518f5ea118b1c" name="a6212850430c9d87a2b2518f5ea118b1c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6212850430c9d87a2b2518f5ea118b1c">&#9670;&#160;</a></span>TrajectoryBranch</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1c">TrajectoryBranch</a> : int</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel strong">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The branch of <a class="el" href="class_train.html#a09e55bf615f21184e4a57367932d4a61">Train::trajectoryComputationIncludingMovingBlock</a>, or of the braking step that it calls, that produced the sample of a step. <a class="el" href="class_train.html#a0dda948744adbdb34c8f8624cf92d2d8">Train::Eq</a> holds the number of each value, and the numbers do not change. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1ca6adf97f83acf6453d4a6a4b1070f3754" name="a6212850430c9d87a2b2518f5ea118b1ca6adf97f83acf6453d4a6a4b1070f3754"></a>None&#160;</td><td class="fielddoc"><p>No branch: a step before the train enters, and from End_Time + 2 on. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1caa552e259a7aec237bbe28b9039dc3395" name="a6212850430c9d87a2b2518f5ea118b1caa552e259a7aec237bbe28b9039dc3395"></a>Accelerate&#160;</td><td class="fielddoc"><p>Accelerates towards the speed limit. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1cab20c4d284dd357db8fbbaafb988e13d4" name="a6212850430c9d87a2b2518f5ea118b1cab20c4d284dd357db8fbbaafb988e13d4"></a>BreakdownHold&#160;</td><td class="fielddoc"><p>Stands still for a breakdown incident. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1cadefd350ad0b49abff488bf765d88fd1c" name="a6212850430c9d87a2b2518f5ea118b1cadefd350ad0b49abff488bf765d88fd1c"></a>ServiceStop&#160;</td><td class="fielddoc"><p>Stands at a service stop, or leaves it; the same number as BreakdownHold. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1caa6a03564ddef59a9143ead8337442599" name="a6212850430c9d87a2b2518f5ea118b1caa6a03564ddef59a9143ead8337442599"></a>AtSignal&#160;</td><td class="fielddoc"><p>Stands at the end of an arc: held by a red signal or an end of authority there, or leaving. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1cab4137253e38d50243b9983114c671d69" name="a6212850430c9d87a2b2518f5ea118b1cab4137253e38d50243b9983114c671d69"></a>Cruise&#160;</td><td class="fielddoc"><p>Holds its speed at the speed limit. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1caacf1eecdb435968564b91440b492bdc1" name="a6212850430c9d87a2b2518f5ea118b1caacf1eecdb435968564b91440b492bdc1"></a>FollowBrakingPlan&#160;</td><td class="fielddoc"><p>Takes the next state of the stored braking plan. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1ca30f24e3655a0f1cdece58bc4ae770369" name="a6212850430c9d87a2b2518f5ea118b1ca30f24e3655a0f1cdece58bc4ae770369"></a>ReplanBraking&#160;</td><td class="fielddoc"><p>Brakes on a plan made in this step on the braking curve that it already had. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1ca5c54a90f5da8ca2c819c84d61233f40d" name="a6212850430c9d87a2b2518f5ea118b1ca5c54a90f5da8ca2c819c84d61233f40d"></a>FullBraking&#160;</td><td class="fielddoc"><p>Brakes with the full braking force. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1ca7fdb44155ce84e4e75ab2bc727941569" name="a6212850430c9d87a2b2518f5ea118b1ca7fdb44155ce84e4e75ab2bc727941569"></a>NewBrakingCurve&#160;</td><td class="fielddoc"><p>Brakes on a plan made in this step on a new braking curve, for a new target or a first braking step. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1ca567d1f086adad2c2d5230c30a6df3baa" name="a6212850430c9d87a2b2518f5ea118b1ca567d1f086adad2c2d5230c30a6df3baa"></a>HoldAtAuthority&#160;</td><td class="fielddoc"><p>Stands at an end of authority. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1cabd87b3f095051c0fc45cbcb2b27469a4" name="a6212850430c9d87a2b2518f5ea118b1cabd87b3f095051c0fc45cbcb2b27469a4"></a>LeaveTrainOrder&#160;</td><td class="fielddoc"><p>Leaves a node with a train order. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1ca6590ee3e83154e0ce18465e1a23b695f" name="a6212850430c9d87a2b2518f5ea118b1ca6590ee3e83154e0ce18465e1a23b695f"></a>HoldAtTrainOrder&#160;</td><td class="fielddoc"><p>Stands at a node with a train order. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1cafbe5d659b57aaf62112649227941cf0f" name="a6212850430c9d87a2b2518f5ea118b1cafbe5d659b57aaf62112649227941cf0f"></a>ZeroSpeedLimit&#160;</td><td class="fielddoc"><p>Stands on an arc whose speed limit is 0. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1ca1ac2ab2ca8a2934d62cfc1d15e6d65bd" name="a6212850430c9d87a2b2518f5ea118b1ca1ac2ab2ca8a2934d62cfc1d15e6d65bd"></a>FollowLeader&#160;</td><td class="fielddoc"><p>Follows the leader of its virtual coupling. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="aecaefd86ea2ed1c4c1fd7f0e0777dfbf" name="aecaefd86ea2ed1c4c1fd7f0e0777dfbf"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aecaefd86ea2ed1c4c1fd7f0e0777dfbf">&#9670;&#160;</a></span>buildOperationsFromScene()</h2>
@@ -226,7 +342,7 @@ Variables</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_aecaefd86ea2ed1c4c1fd7f0e0777dfbf_cgraph.svg" width="1055" height="1106"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_aecaefd86ea2ed1c4c1fd7f0e0777dfbf_cgraph.svg" width="1040" height="664"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -432,7 +548,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_ace6c56d9374dcbbf72c1b3ff79719a17_cgraph.svg" width="935" height="263"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_ace6c56d9374dcbbf72c1b3ff79719a17_cgraph.svg" width="935" height="211"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -570,7 +686,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_aea9297830b5672f714105f48b351dd48_cgraph.svg" width="1186" height="263"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_aea9297830b5672f714105f48b351dd48_cgraph.svg" width="1186" height="211"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

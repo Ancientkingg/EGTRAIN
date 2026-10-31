@@ -1,5 +1,5 @@
 <map id="Stations" name="Stations">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,80,109"/>
-<area shape="rect" id="Node000002" href="$class_node.html" title=" " alt="" coords="15,5,70,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="44,47,45,81,40,80,41,51"/>
+<area shape="rect" id="Node000001" title="A station, with the delay statistics of the trains that stop there." alt="" coords="14,81,89,109"/>
+<area shape="rect" id="Node000002" href="$struct_delay_stats.html" title=" " alt="" coords="5,5,98,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="53,47,54,81,49,80,50,51"/>
 </map>

@@ -114,11 +114,12 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_simulation_8h
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="_rolling_stock_8h_source.html">simulation/RollingStock.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_passengers_8h_source.html">simulation/Passengers.h</a>&quot;</code><br />
+<code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for Simulation.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_simulation_8h__incl.svg" width="2632" height="492"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_simulation_8h__incl.svg" width="2740" height="492"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
@@ -132,6 +133,7 @@ This graph shows which files directly or indirectly include this file:</div>
 Classes</h2></td></tr>
 <tr class="memitem:WaitingAtPlatform" id="r_WaitingAtPlatform"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_waiting_at_platform.html">WaitingAtPlatform</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The passengers waiting at one platform.  <a href="struct_waiting_at_platform.html#details">More...</a><br /></td></tr>
+<tr class="memitem:TrainMovementOrder" id="r_TrainMovementOrder"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_train_movement_order.html">TrainMovementOrder</a></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -140,7 +142,11 @@ Functions</h2></td></tr>
 <tr class="memitem:a0060579c0a65d168687a876f2eceaf91" id="r_a0060579c0a65d168687a876f2eceaf91"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0060579c0a65d168687a876f2eceaf91">calculateArrivalDelayAllTrains</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
 <tr class="memitem:a3a3691886ef68820ee91158d907f1870" id="r_a3a3691886ef68820ee91158d907f1870"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3a3691886ef68820ee91158d907f1870">calculatePosAndNegArrivalDelayAllTrains</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
 <tr class="memitem:a6f41337418b750a16b567c9743d56af4" id="r_a6f41337418b750a16b567c9743d56af4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6f41337418b750a16b567c9743d56af4">calculateDelayStatsAtStation</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, <a class="el" href="class_stations.html">Stations</a> &amp;S)</td></tr>
+<tr class="memitem:a69919fdb940ac9a50f8868e90836c05c" id="r_a69919fdb940ac9a50f8868e90836c05c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a69919fdb940ac9a50f8868e90836c05c">calculateDelayStatsAtFinalStops</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
+<tr class="memdesc:a69919fdb940ac9a50f8868e90836c05c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fills run.finalStation with the statistics of calculateDelayStatsAtStation over the last stop of every train.  <br /></td></tr>
 <tr class="memitem:aa73169ed81cf031ff28e7be4e2d3fa79" id="r_aa73169ed81cf031ff28e7be4e2d3fa79"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa73169ed81cf031ff28e7be4e2d3fa79">calculatePosAndNegDelayStatsAtStation</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, <a class="el" href="class_stations.html">Stations</a> &amp;S)</td></tr>
+<tr class="memitem:a9fb6513dfde6b060cf900649c9a91268" id="r_a9fb6513dfde6b060cf900649c9a91268"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9fb6513dfde6b060cf900649c9a91268">calculatePosAndNegDelayStatsAtFinalStops</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
+<tr class="memdesc:a9fb6513dfde6b060cf900649c9a91268"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fills run.finalStation with the statistics of calculatePosAndNegDelayStatsAtStation over the last stop of every train.  <br /></td></tr>
 <tr class="memitem:a049cdf2f7b762611e3384fa27a309cc7" id="r_a049cdf2f7b762611e3384fa27a309cc7"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a049cdf2f7b762611e3384fa27a309cc7">Compute_Input_Delays</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
 <tr class="memitem:a75c1f37717d0a65fa5d4c32b1fe986e9" id="r_a75c1f37717d0a65fa5d4c32b1fe986e9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a75c1f37717d0a65fa5d4c32b1fe986e9">calculateDelayStatsForAllStations</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
 <tr class="memdesc:a75c1f37717d0a65fa5d4c32b1fe986e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">calculateDelayStatsAtStation for every station of run.infra.stations.  <br /></td></tr>
@@ -156,6 +162,8 @@ Functions</h2></td></tr>
 <tr class="memitem:ab5bb7fca0dc9fe41b724f27d88e65ec6" id="r_ab5bb7fca0dc9fe41b724f27d88e65ec6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab5bb7fca0dc9fe41b724f27d88e65ec6">Update_List_Passengers_Waiting_At_ALL_Platforms</a> (std::list&lt; <a class="el" href="class_station_platform.html">StationPlatform</a> &gt; &amp;ALL_PLAT, const std::list&lt; <a class="el" href="class_passenger.html">Passenger</a> &gt; &amp;ALL_PAX)</td></tr>
 <tr class="memdesc:ab5bb7fca0dc9fe41b724f27d88e65ec6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the number and the list of the waiting passengers of every platform, in one pass over the passengers.  <br /></td></tr>
 <tr class="memitem:aa48f0d1207dcbdc3be10ffdcd196c32c" id="r_aa48f0d1207dcbdc3be10ffdcd196c32c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa48f0d1207dcbdc3be10ffdcd196c32c">Simulate_Train_Passenger_Interactions</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, int t, int SimulationStartingTime, <a class="el" href="class_train.html">Train</a> &amp;T, std::list&lt; <a class="el" href="class_passenger.html">Passenger</a> &gt; &amp;ALLPAX, const std::list&lt; <a class="el" href="class_station_platform.html">StationPlatform</a> &gt; &amp;ALLPLATFORMS)</td></tr>
+<tr class="memitem:a2f9847a91525ccfe48448803e6ebba24" id="r_a2f9847a91525ccfe48448803e6ebba24"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2f9847a91525ccfe48448803e6ebba24">runSimulationStep</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, int t, <a class="el" href="struct_train_movement_order.html">TrainMovementOrder</a> &amp;order)</td></tr>
+<tr class="memitem:ae0be230753d4b1eaf8c3ced9570a7ca1" id="r_ae0be230753d4b1eaf8c3ced9570a7ca1"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ae0be230753d4b1eaf8c3ced9570a7ca1">runSimulationPostprocessing</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, const std::function&lt; bool()&gt; &amp;stopRequested)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="a0060579c0a65d168687a876f2eceaf91" name="a0060579c0a65d168687a876f2eceaf91"></a>
@@ -181,6 +189,30 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a69919fdb940ac9a50f8868e90836c05c" name="a69919fdb940ac9a50f8868e90836c05c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a69919fdb940ac9a50f8868e90836c05c">&#9670;&#160;</a></span>calculateDelayStatsAtFinalStops()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void calculateDelayStatsAtFinalStops </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>run</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Fills run.finalStation with the statistics of calculateDelayStatsAtStation over the last stop of every train. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_simulation_8h_a69919fdb940ac9a50f8868e90836c05c_cgraph.svg" width="207" height="80"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a6f41337418b750a16b567c9743d56af4" name="a6f41337418b750a16b567c9743d56af4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6f41337418b750a16b567c9743d56af4">&#9670;&#160;</a></span>calculateDelayStatsAtStation()</h2>
 
@@ -199,7 +231,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Fills the delay statistics of station S from the trains with an arrival delay there, in seconds; the average and standard deviation count only delayed trains, and the 3 and 5 minute counts compare with 180 and 300 s. The station "Final_Station" takes the last stop of every train. </p>
+<p>Fills the delay statistics of station S from the trains with an arrival delay there, in seconds; the average and standard deviation count only delayed trains, and the 3 and 5 minute counts compare with 180 and 300 s. A station named kFinalStationName takes the last stop of every train. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -251,6 +283,30 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_simulation_8h_a3a3691886ef68820ee91158d907f1870_cgraph.svg" width="208" height="80"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a9fb6513dfde6b060cf900649c9a91268" name="a9fb6513dfde6b060cf900649c9a91268"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9fb6513dfde6b060cf900649c9a91268">&#9670;&#160;</a></span>calculatePosAndNegDelayStatsAtFinalStops()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void calculatePosAndNegDelayStatsAtFinalStops </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>run</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Fills run.finalStation with the statistics of calculatePosAndNegDelayStatsAtStation over the last stop of every train. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_simulation_8h_a9fb6513dfde6b060cf900649c9a91268_cgraph.svg" width="236" height="80"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -541,6 +597,66 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_simulation_8h_a317b30e94608a53979ab08725343dba1_cgraph.svg" width="1188" height="155"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ae0be230753d4b1eaf8c3ced9570a7ca1" name="ae0be230753d4b1eaf8c3ced9570a7ca1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae0be230753d4b1eaf8c3ced9570a7ca1">&#9670;&#160;</a></span>runSimulationPostprocessing()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool runSimulationPostprocessing </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>run</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::function&lt; bool()&gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>stopRequested</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Runs the stages that follow the steps of run, in this order: the energy totals and their two files, the sort of the recorded events of the infrastructure, the timetable points, the delays of the trains with the statistics of the stations and the input delays, the station delay file Stats_Stations.txt, the passenger delay file JourneyDelays.txt, the positive and negative delays with their station delay file Pos&amp;Neg_Stats_Stations.txt, the computing times, the blocking times, the path diagram with settings.exportDetailedTrajectories, the timetable points file and, with that setting too, the file of each train. The folders TrainTrajectories and PassengerStatus of the output folder must exist; the folder TEMP is made here, and a failure to make it throws std::runtime_error.</p>
+<p>stopRequested is called after the energy stage, after the sort, before the blocking times, before the files of the trains and before the file of each train, and the stages end there when it returns true. The caller checks for a stop before this function. Returns true when every stage ran and false when a stop ended them. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_simulation_8h_ae0be230753d4b1eaf8c3ced9570a7ca1_cgraph.svg" width="1300" height="1483"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a2f9847a91525ccfe48448803e6ebba24" name="a2f9847a91525ccfe48448803e6ebba24"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2f9847a91525ccfe48448803e6ebba24">&#9670;&#160;</a></span>runSimulationStep()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void runSimulationStep </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>run</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>t</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="struct_train_movement_order.html">TrainMovementOrder</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>order</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Runs step t of run, in seconds from the start of the run. The passengers whose journey starts enter the network and, with settings.PAX_GUI, the waiting lists of the platforms are refreshed. Every train then moves, in the order of the trains of the run except that the trains that are due and still waiting to enter take those places in the order in which they are due, so the one due first enters first. The trains and passengers interact, the signalling routines set the sections and the authorities for the next step, and the processor time of the step is added to run.compTimeEgtrain. order belongs to the run and keeps its due order for every step. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_simulation_8h_a2f9847a91525ccfe48448803e6ebba24_cgraph.svg" width="2283" height="903"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

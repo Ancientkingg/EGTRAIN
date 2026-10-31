@@ -8,6 +8,7 @@ var hierarchy =
     [ "AreaCapacityResult", "struct_area_capacity_result.html", null ],
     [ "AreaCapacityScope", "struct_area_capacity_scope.html", null ],
     [ "AreaCapacityTrain", "struct_area_capacity_train.html", null ],
+    [ "Train::AuthorityTarget", "struct_train_1_1_authority_target.html", null ],
     [ "BaselineCall", "struct_baseline_call.html", null ],
     [ "BaselineOccurrence", "struct_baseline_occurrence.html", null ],
     [ "BaselineTotals", "struct_baseline_totals.html", null ],
@@ -58,6 +59,9 @@ var hierarchy =
     [ "DelayRunSnapshot", "struct_delay_run_snapshot.html", null ],
     [ "DelayShare", "struct_delay_share.html", null ],
     [ "DelayStatistics", "struct_delay_statistics.html", null ],
+    [ "DelayStats", "struct_delay_stats.html", [
+      [ "Stations", "class_stations.html", null ]
+    ] ],
     [ "DelaySummary", "struct_delay_summary.html", null ],
     [ "telemetry::DiagnosticRecord", "structtelemetry_1_1_diagnostic_record.html", null ],
     [ "TelemetryConsent::DiagnosticsObservation", "struct_telemetry_consent_1_1_diagnostics_observation.html", null ],
@@ -133,9 +137,7 @@ var hierarchy =
     [ "NetworkLegendEntry", "struct_network_legend_entry.html", null ],
     [ "NetworkLegendTrain", "struct_network_legend_train.html", null ],
     [ "NetworkPresenter", "class_network_presenter.html", null ],
-    [ "Node", "class_node.html", [
-      [ "Stations", "class_stations.html", null ]
-    ] ],
+    [ "Node", "class_node.html", null ],
     [ "NumberGenerator", "class_number_generator.html", null ],
     [ "SceneSession::OpenedScene", "struct_scene_session_1_1_opened_scene.html", null ],
     [ "telemetry::OperationObservation", "classtelemetry_1_1_operation_observation.html", null ],
@@ -444,6 +446,7 @@ var hierarchy =
     [ "TrainColourInput", "struct_train_colour_input.html", null ],
     [ "TrainColourPlan", "struct_train_colour_plan.html", null ],
     [ "TrainEvent", "class_train_event.html", null ],
+    [ "TrainMovementOrder", "struct_train_movement_order.html", null ],
     [ "TrainRunResult", "struct_train_run_result.html", null ],
     [ "TrainVisual", "struct_train_visual.html", null ],
     [ "TrajectoryEndTimeOverride", "class_trajectory_end_time_override.html", null ],

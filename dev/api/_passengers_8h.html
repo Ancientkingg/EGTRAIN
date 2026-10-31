@@ -142,8 +142,32 @@ Classes</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:a9620ad62556a6ddcc8630e5a9b905b7c" id="r_a9620ad62556a6ddcc8630e5a9b905b7c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9620ad62556a6ddcc8630e5a9b905b7c">printCurrentPassengerStatus</a> (int t, int StartSimulationTime, const std::list&lt; <a class="el" href="class_passenger.html">Passenger</a> &gt; &amp;ALLPAX, std::string MainFolder)</td></tr>
 <tr class="memitem:a565441fdbbfece800f5915b740b3e118" id="r_a565441fdbbfece800f5915b740b3e118"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a565441fdbbfece800f5915b740b3e118">printPassengerTotalJourneyDelay</a> (const std::list&lt; <a class="el" href="class_passenger.html">Passenger</a> &gt; &amp;ALLPAX, std::string MainFolder)</td></tr>
+<tr class="memitem:a9903ee716fb94bfa8c368c07c852e685" id="r_a9903ee716fb94bfa8c368c07c852e685"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a9903ee716fb94bfa8c368c07c852e685">platformNumber</a> (const std::string &amp;platformId)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="a9903ee716fb94bfa8c368c07c852e685" name="a9903ee716fb94bfa8c368c07c852e685"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9903ee716fb94bfa8c368c07c852e685">&#9670;&#160;</a></span>platformNumber()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int platformNumber </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>platformId</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The number of a platform, which the walking time of a transfer compares: the first "Platform_" in platformId is cut out and what is left is read as a number with atof and truncated. "Platform_4" gives 4 and "2" gives 2. An ID that does not then start with a number, such as "None", "P1" or "B.platform.1", gives 0. An ID read as NaN, infinity or a value outside int also gives 0, such as "Nantes.platform.1", "INF.platform.2" or "Platform_1e30". </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_passengers_8h_a9903ee716fb94bfa8c368c07c852e685_cgraph.svg" width="318" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a9620ad62556a6ddcc8630e5a9b905b7c" name="a9620ad62556a6ddcc8630e5a9b905b7c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9620ad62556a6ddcc8630e5a9b905b7c">&#9670;&#160;</a></span>printCurrentPassengerStatus()</h2>
 

@@ -1,11 +1,9 @@
 <map id="SimulationRun::resetInfrastructure" name="SimulationRun::resetInfrastructure">
-<area shape="rect" id="Node000001" title="Returns the infrastructure to the state of a new run." alt="" coords="5,57,251,85"/>
-<area shape="rect" id="Node000002" href="$struct_run_infrastructure.html#ab02b49f237201f2f52c106335b33a17c" title="Returns every member to the state of a new object." alt="" coords="299,49,441,94"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="251,69,286,71,281,72,251,74"/>
+<area shape="rect" id="Node000001" title="Returns the infrastructure to the state of a new run." alt="" coords="5,32,251,60"/>
+<area shape="rect" id="Node000002" href="$struct_run_infrastructure.html#ab02b49f237201f2f52c106335b33a17c" title="Returns every member to the state of a new object." alt="" coords="299,24,441,68"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="251,43,286,46,280,46,251,48"/>
 <area shape="rect" id="Node000003" href="$class_block_set.html#ae8900f58f7303f7e02a1588e640aeb3f" title=" " alt="" coords="512,5,655,33"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="441,51,506,38,511,37,442,56"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="441,34,494,30,499,30,442,40"/>
 <area shape="rect" id="Node000004" href="$class_connections.html#ac88d39f818e8a52e8c630cb388ed520c" title="Sets the numbers to 0 and speedlimit to 16.667 m/s." alt="" coords="489,57,678,85"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="441,69,476,71,471,71,442,74"/>
-<area shape="rect" id="Node000005" href="$class_stations.html#a4e0f8fc4709bd680154b7be896ca2350" title="Sets the statistics to &#45;1, totalArrivalDelay and the coordinates to 0." alt="" coords="516,109,651,137"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="442,86,512,105,506,105,441,91"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="442,52,476,58,471,58,441,57"/>
 </map>

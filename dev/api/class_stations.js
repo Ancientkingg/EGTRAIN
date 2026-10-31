@@ -1,30 +1,19 @@
 var class_stations =
 [
-    [ "Stations", "class_stations.html#a4e0f8fc4709bd680154b7be896ca2350", null ],
-    [ "Av_Arrival_Delay", "class_stations.html#af8ece16482a6e3ff222e68ce36fd09f6", null ],
     [ "corridors", "class_stations.html#a9ff06b777f35ef27c7a4fb9aa1f9f5c5", null ],
     [ "graphX", "class_stations.html#a02c0f36d291e32c6f9cfe86acc5b288f", null ],
     [ "graphY", "class_stations.html#a4175e4445181c9382f8deb4831c28057", null ],
     [ "latitude", "class_stations.html#a03313d5cb0703543c305e3d5bea49792", null ],
     [ "longitude", "class_stations.html#a673376dec31658b8c951dcc1b1727737", null ],
-    [ "Max_Cons_Delay", "class_stations.html#a5f70e3d02b8988548a5765cf3be20731", null ],
-    [ "Max_TotalDelay", "class_stations.html#a071ff516facc0c745fb313434aec08ae", null ],
-    [ "N_Delayed_Arr", "class_stations.html#a0baf947c370b514191fe297f68b4a109", null ],
-    [ "N_Delayed_Arr_3min", "class_stations.html#ab43d3d40f64a1a92f649a294d0214257", null ],
-    [ "N_Delayed_Arr_5min", "class_stations.html#a2abb54e2b7966299944db252614d59b7", null ],
     [ "N_StationPlatforms", "class_stations.html#a68b0c53f2c9f39f8c5a9a2ce74bdfeef", null ],
-    [ "N_Stopped_Trains", "class_stations.html#a6a61125768c787bd58dc8fff627d4f9d", null ],
-    [ "Perc_Delayed_T", "class_stations.html#a3b4d7b92659264ac1e2cf512a3760d75", null ],
-    [ "Perc_Delayed_T_3min", "class_stations.html#a573b563c37692eb6b61b80a46c074e13", null ],
-    [ "Perc_Delayed_T_5min", "class_stations.html#a462a56fe41a2cf892b98e22602bae0f5", null ],
     [ "regions", "class_stations.html#a6dca759fee373e9660cb270a912011af", null ],
     [ "regionX", "class_stations.html#a495f105e8f5839e209e6b4bc23a2f982", null ],
     [ "shiftX", "class_stations.html#a01f5a81d69c1c53a3a9dcc750ce4fc75", null ],
     [ "shiftY", "class_stations.html#a7938f3cb8b89624c06dbeaee036c7a20", null ],
     [ "signalDeltaX", "class_stations.html#aaddce61db44fa90afbfd6716e262b052", null ],
     [ "signalDeltaY", "class_stations.html#af5d3dd951faa6955d821e732ed5f3ed0", null ],
+    [ "stationName", "class_stations.html#a1599933911002c71f282224a6f26cb3d", null ],
     [ "StationPlatformIDs", "class_stations.html#aaeb5af7063c0aabe4589f1b3efbe8caa", null ],
-    [ "Std_Arrival_Delay", "class_stations.html#aaa22f3694eb5138d740cbc1c51edc226", null ],
-    [ "Tot_Consec_Delay", "class_stations.html#ad479d375665b3d90b711177e177d4cf2", null ],
-    [ "totalArrivalDelay", "class_stations.html#a6bec6ecb59929cc1194e1cc81261fe46", null ]
+    [ "X", "class_stations.html#a775035ec233fcd9146de3f68ae1a3935", null ],
+    [ "Y", "class_stations.html#acc9e00430f7f638f91c27813ea8a22ab", null ]
 ];

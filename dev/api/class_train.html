@@ -117,15 +117,19 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_train.ht
 <div class="dynheader">
 Collaboration diagram for Train:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train__coll__graph.svg" width="967" height="670"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train__coll__graph.svg" width="967" height="680"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:BrakingArcCursor" id="r_BrakingArcCursor"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_train_1_1_braking_arc_cursor.html">BrakingArcCursor</a></td></tr>
+<tr class="memitem:AuthorityTarget" id="r_AuthorityTarget"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_train_1_1_authority_target.html">AuthorityTarget</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An end of authority as a braking target: where the train has to meet which speed.  <a href="struct_train_1_1_authority_target.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:a6d00800a06e2e8d77d3503fcf918b65d" id="r_a6d00800a06e2e8d77d3503fcf918b65d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6d00800a06e2e8d77d3503fcf918b65d">setStepBranch</a> (int time_seconds, <a class="el" href="_rolling_stock_8h.html#a6212850430c9d87a2b2518f5ea118b1c">TrajectoryBranch</a> branch)</td></tr>
+<tr class="memdesc:a6d00800a06e2e8d77d3503fcf918b65d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets Eq[time_seconds] to the number of branch.  <br /></td></tr>
 <tr class="memitem:aa05ce5a8ff68dea76d457f4ff2d0d1ba" id="r_aa05ce5a8ff68dea76d457f4ff2d0d1ba"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aa05ce5a8ff68dea76d457f4ff2d0d1ba">Train</a> ()</td></tr>
 <tr class="memdesc:aa05ce5a8ff68dea76d457f4ff2d0d1ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the default values. The vectors stay empty until setTrainVectorSizesFromInput.  <br /></td></tr>
 <tr class="memitem:aab13668e235554b116f7a32d2ea894db" id="r_aab13668e235554b116f7a32d2ea894db"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aab13668e235554b116f7a32d2ea894db">cacheStationPositions</a> ()</td></tr>
@@ -176,6 +180,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a54fc076df66c661dccd1a701273efd19" id="r_a54fc076df66c661dccd1a701273efd19"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a54fc076df66c661dccd1a701273efd19">needsSingleTrackReservation</a> (double head, double speed, double entry, <a class="el" href="class_section.html">Section</a> *sections, int count)</td></tr>
 <tr class="memitem:a384f38f04a720e0a4f01338d6465ac84" id="r_a384f38f04a720e0a4f01338d6465ac84"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a384f38f04a720e0a4f01338d6465ac84">cachedBrakingSuccessor</a> (int previousInstant, const <a class="el" href="class_arc.html">Arc</a> &amp;arc, double target, double targetSpeed)</td></tr>
 <tr class="memitem:ad8b349c94f8a0f31bdff97899672573d" id="r_ad8b349c94f8a0f31bdff97899672573d"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad8b349c94f8a0f31bdff97899672573d">europeanVitalComputerWithListsImproved</a> (double S, double V, int PreviousInstant, <a class="el" href="class_section.html">Section</a> *BS, int Blocks, bool &amp;continueCached)</td></tr>
+<tr class="memitem:a93dc18f9c8625c62958099e9dda4931b" id="r_a93dc18f9c8625c62958099e9dda4931b"><td class="memItemLeft"><a class="el" href="struct_train_1_1_authority_target.html">AuthorityTarget</a>&#160;</td><td class="memItemRight"><a class="el" href="#a93dc18f9c8625c62958099e9dda4931b">authorityTarget</a> (const <a class="el" href="class_movement_authority.html">MovementAuthority</a> &amp;authority, <a class="el" href="class_section.html">Section</a> *BS, int Blocks, int section, double S, double V)</td></tr>
+<tr class="memitem:a0b81efa472d1b11149ad5cf4d2588f60" id="r_a0b81efa472d1b11149ad5cf4d2588f60"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0b81efa472d1b11149ad5cf4d2588f60">closestEndOfAuthority</a> (double S, double V, <a class="el" href="class_section.html">Section</a> *BS, int Blocks, int first, int last, <a class="el" href="class_node.html">Node</a> &amp;closest, double &amp;closestSpeed, std::list&lt; <a class="el" href="class_node.html">Node</a> &gt; &amp;decouplingPoints)</td></tr>
 <tr class="memitem:adda58a2a6872fa9512e72cbec2abb7e0" id="r_adda58a2a6872fa9512e72cbec2abb7e0"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#adda58a2a6872fa9512e72cbec2abb7e0">DrawBrakingCurve</a> (double V1, double V2, double X0, <a class="el" href="class_section.html">Section</a> *BS, int Blocks)</td></tr>
 <tr class="memitem:a632ba10791abd58a3febb922e8d60ae6" id="r_a632ba10791abd58a3febb922e8d60ae6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a632ba10791abd58a3febb922e8d60ae6">planBraking</a> (double head, double speed, const <a class="el" href="class_arc.html">Arc</a> &amp;arc, <a class="el" href="class_section.html">Section</a> *sections, int count)</td></tr>
 <tr class="memitem:a1af634b7447d29cd8696899f0d900f03" id="r_a1af634b7447d29cd8696899f0d900f03"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1af634b7447d29cd8696899f0d900f03">brakingStep</a> (int time_seconds, const <a class="el" href="class_arc.html">Arc</a> &amp;As, <a class="el" href="class_section.html">Section</a> *BS, int Blocks)</td></tr>
@@ -194,11 +200,17 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:af83706fc0c810785c1570b044d91a7d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Records the incident behind a signal failure authority.  <br /></td></tr>
 <tr class="memitem:a301604736506a528db15b8e4a1bd32e4" id="r_a301604736506a528db15b8e4a1bd32e4"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a301604736506a528db15b8e4a1bd32e4">effectiveIncidentSpeedLimit</a> (double candidate, int timestepIndex)</td></tr>
 <tr class="memitem:a09e55bf615f21184e4a57367932d4a61" id="r_a09e55bf615f21184e4a57367932d4a61"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a09e55bf615f21184e4a57367932d4a61">trajectoryComputationIncludingMovingBlock</a> (int time_seconds, double signalCode1, double signalCode2, double signalCode3)</td></tr>
+<tr class="memitem:a19a311bd618465ee5dd5cbc262cbbb10" id="r_a19a311bd618465ee5dd5cbc262cbbb10"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a19a311bd618465ee5dd5cbc262cbbb10">locateHead</a> (int time_seconds, <a class="el" href="class_arc.html">Arc</a> &amp;As, int &amp;BsIndex, int &amp;AsIndex)</td></tr>
+<tr class="memitem:ad4766ff2604c653a5807b0cd508a2c4e" id="r_ad4766ff2604c653a5807b0cd508a2c4e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad4766ff2604c653a5807b0cd508a2c4e">accelerationCandidate</a> (int time_seconds, const <a class="el" href="class_arc.html">Arc</a> &amp;As, double V_lim, double &amp;candidateSpeed, double &amp;candidateHead)</td></tr>
+<tr class="memitem:aba4681c554914fde095d9d4e490cbfff" id="r_aba4681c554914fde095d9d4e490cbfff"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aba4681c554914fde095d9d4e490cbfff">leaveRouteAtEnd</a> (int time_seconds)</td></tr>
+<tr class="memitem:a8450b5fe823c45a22d0c6d37700292d4" id="r_a8450b5fe823c45a22d0c6d37700292d4"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a8450b5fe823c45a22d0c6d37700292d4">updateVirtualCoupling</a> (int time_seconds, const <a class="el" href="class_movement_authority.html">MovementAuthority</a> *liveLeader, double leaderHead, double head)</td></tr>
+<tr class="memitem:ab2922c9d716b3ca81675de3700e2dad4" id="r_ab2922c9d716b3ca81675de3700e2dad4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab2922c9d716b3ca81675de3700e2dad4">standingTrainStep</a> (int time_seconds, const <a class="el" href="class_arc.html">Arc</a> &amp;As, double head, bool mustBrake, bool stationAtEndOfAs, double V_lim)</td></tr>
+<tr class="memitem:aed14175050dd94fd6ec4f6568824ef70" id="r_aed14175050dd94fd6ec4f6568824ef70"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aed14175050dd94fd6ec4f6568824ef70">serviceStopStep</a> (int time_seconds, const <a class="el" href="class_arc.html">Arc</a> &amp;As, double head, bool authorityHold)</td></tr>
 <tr class="memitem:a4b084c4974815396a1675e0ebab3350e" id="r_a4b084c4974815396a1675e0ebab3350e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4b084c4974815396a1675e0ebab3350e">computeArrivalAndDepartureAtLocation</a> (double LocationPosition, <a class="el" href="class_train_event.html">TrainEvent</a> &amp;PassingPoint)</td></tr>
 <tr class="memitem:a0f2a4c491a15ae2c8f1e4401f58dd5b0" id="r_a0f2a4c491a15ae2c8f1e4401f58dd5b0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0f2a4c491a15ae2c8f1e4401f58dd5b0">ComputeTimetablingPoints</a> ()</td></tr>
 <tr class="memitem:a788c9e9175a97051d8b5cf0322a9b756" id="r_a788c9e9175a97051d8b5cf0322a9b756"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a788c9e9175a97051d8b5cf0322a9b756">Det_Section_Occupied_By_Train</a> (int i, <a class="el" href="class_section.html">Section</a> *BS, int Blocks)</td></tr>
 <tr class="memitem:a5f35386ac7d65c9b6ed1dc85932f1cdf" id="r_a5f35386ac7d65c9b6ed1dc85932f1cdf"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5f35386ac7d65c9b6ed1dc85932f1cdf">ReportPositionToRBC</a> (int i, <a class="el" href="class_section.html">Section</a> *BS, int N_BS, double ETCS3SafetyMargin)</td></tr>
-<tr class="memitem:a875f0eaa5ed019bfe9e9ec44486874e8" id="r_a875f0eaa5ed019bfe9e9ec44486874e8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a875f0eaa5ed019bfe9e9ec44486874e8">ComputeBlockingTimeForSingleLocation</a> (int IndexCurrentBS, std::string SignallingType, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double AbsoluteRTSupplement, double PercentageRTSupplement)</td></tr>
+<tr class="memitem:ab553565de7c84273948c643313b78d11" id="r_ab553565de7c84273948c643313b78d11"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab553565de7c84273948c643313b78d11">ComputeBlockingTimeForSingleLocation</a> (int IndexCurrentBS, <a class="el" href="_rolling_stock_8h.html#a42eb24b9fabf18008862f9854d5f9f23">BlockingTimeMethod</a> method, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double AbsoluteRTSupplement, double PercentageRTSupplement)</td></tr>
 <tr class="memitem:a20daa1ddd39245f4bca371639115a2ce" id="r_a20daa1ddd39245f4bca371639115a2ce"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a20daa1ddd39245f4bca371639115a2ce">ComputeBlockTime_ETCSLevel_3_ForSection</a> (int IndexCurrentBS, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsoluteRTSupplement, double PercentRTSupplement)</td></tr>
 <tr class="memdesc:a20daa1ddd39245f4bca371639115a2ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to Compute the Blocking Times in ETCS level 3 (EntryTime is the time the train actually enters the network in the simulation).  <br /></td></tr>
 <tr class="memitem:a5d3788a334ff231b4e9fa35a96a5cb4a" id="r_a5d3788a334ff231b4e9fa35a96a5cb4a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5d3788a334ff231b4e9fa35a96a5cb4a">ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved</a> (int IndexCurrentBS, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsoluteRTSupplement, double PercentRTSupplement)</td></tr>
@@ -334,9 +346,13 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:ae62187e622e40bf7377ba442ba4e9aaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index on the route of the section of each stop; -1 when the stop is not on the route.  <br /></td></tr>
 <tr class="memitem:aa66798ef720a2c5edebfd4a7dd622343" id="r_aa66798ef720a2c5edebfd4a7dd622343"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aa66798ef720a2c5edebfd4a7dd622343">stationArc</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>] = {}</td></tr>
 <tr class="memdesc:aa66798ef720a2c5edebfd4a7dd622343"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index of the arc of each stop within its section; -1 when not on the route.  <br /></td></tr>
+<tr class="memitem:a88432893996154985b5453c72737a644" id="r_a88432893996154985b5453c72737a644"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a88432893996154985b5453c72737a644">stationPlatformNumber</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>] = {}</td></tr>
+<tr class="memdesc:a88432893996154985b5453c72737a644"><td class="mdescLeft">&#160;</td><td class="mdescRight">platformNumber of the platform of each stop, which the operations builder sets.  <br /></td></tr>
 <tr class="memitem:a33ecab227d3ecbbd569baf008f1be225" id="r_a33ecab227d3ecbbd569baf008f1be225"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a33ecab227d3ecbbd569baf008f1be225">StoppedForServiceStop</a> = false</td></tr>
 <tr class="memitem:a1e01c361493c68afc15196290b299657" id="r_a1e01c361493c68afc15196290b299657"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a1e01c361493c68afc15196290b299657">CurrentServiceStop</a></td></tr>
 <tr class="memitem:a444331fe0663a0bb2f747c3ecbc1dbff" id="r_a444331fe0663a0bb2f747c3ecbc1dbff"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a444331fe0663a0bb2f747c3ecbc1dbff">CurrentServiceStopPlatform</a></td></tr>
+<tr class="memitem:a980aaac0bfc49967610e204823156d2d" id="r_a980aaac0bfc49967610e204823156d2d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a980aaac0bfc49967610e204823156d2d">currentServiceStopPlatformNumber</a> = 0</td></tr>
+<tr class="memdesc:a980aaac0bfc49967610e204823156d2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">platformNumber of that platform; 0 when CurrentServiceStopPlatform is "None".  <br /></td></tr>
 <tr class="memitem:aad612a588d062345c19c4eb14c687773" id="r_aad612a588d062345c19c4eb14c687773"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aad612a588d062345c19c4eb14c687773">StationArrivals</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>]</td></tr>
 <tr class="memdesc:aad612a588d062345c19c4eb14c687773"><td class="mdescLeft">&#160;</td><td class="mdescRight">Arrival at each stop in seconds from the start of the run; -1 when the train did not arrive there.  <br /></td></tr>
 <tr class="memitem:af45865f59875c0fa5b9252ef7be963dc" id="r_af45865f59875c0fa5b9252ef7be963dc"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#af45865f59875c0fa5b9252ef7be963dc">StationArrivalNames</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>]</td></tr>
@@ -465,6 +481,48 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a id="ad4766ff2604c653a5807b0cd508a2c4e" name="ad4766ff2604c653a5807b0cd508a2c4e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad4766ff2604c653a5807b0cd508a2c4e">&#9670;&#160;</a></span>accelerationCandidate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Train::accelerationCandidate </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>time_seconds</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_arc.html">Arc</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>As</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>V_lim</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double &amp;</td>          <td class="paramname"><span class="paramname"><em>candidateSpeed</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double &amp;</td>          <td class="paramname"><span class="paramname"><em>candidateHead</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The speed (m/s) and head (m) after step time_seconds of a train that accelerates on arc As with the surplus of its traction over the resistances, its speed capped at V_lim (m/s); candidateSpeed and candidateHead receive them. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_ad4766ff2604c653a5807b0cd508a2c4e_cgraph.svg" width="662" height="211"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a9919b5df2c04fa5c9be99f738d5471f3" name="a9919b5df2c04fa5c9be99f738d5471f3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9919b5df2c04fa5c9be99f738d5471f3">&#9670;&#160;</a></span>AccelerationTimeFollowingMode()</h2>
 
@@ -540,6 +598,53 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Position in metres of the authority on the route of this train, for an authority on section. </p>
+
+</div>
+</div>
+<a id="a93dc18f9c8625c62958099e9dda4931b" name="a93dc18f9c8625c62958099e9dda4931b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a93dc18f9c8625c62958099e9dda4931b">&#9670;&#160;</a></span>authorityTarget()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_train_1_1_authority_target.html">Train::AuthorityTarget</a> Train::authorityTarget </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_movement_authority.html">MovementAuthority</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>authority</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="class_section.html">Section</a> *</td>          <td class="paramname"><span class="paramname"><em>BS</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>Blocks</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>section</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>S</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>V</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The target that authority, on section BS[section] of the Blocks sections of the route, sets for the train at S (m) and V (m/s). The speed is 0 for a signal failure and on ETCS Level 3. With virtual coupling it is 0 for an occupied diverging switch the train does not share and for a train ahead that runs the other way or does not go on to the next section of this route, and otherwise the speed of the train ahead; an end of a train in the same direction that is not its tail ahead of S sets no target. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a93dc18f9c8625c62958099e9dda4931b_cgraph.svg" width="1410" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -770,7 +875,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a1af634b7447d29cd8696899f0d900f03_cgraph.svg" width="1370" height="774"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a1af634b7447d29cd8696899f0d900f03_cgraph.svg" width="1370" height="775"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -873,7 +978,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Fills stationBlockSection and stationArc: for each stop, the index of the route section and of the arc whose end node is the station, or -1. Called after <a class="el" href="class_stations.html">Stations</a> or the route change, so that a step does not search the route for the stations. </p>
+<p>Fills stationBlockSection and stationArc: for each stop, the index of the route section and of the arc whose end node is the station, or -1. Called after <a class="el" href="class_stations.html" title="A station, with the delay statistics of the trains that stop there.">Stations</a> or the route change, so that a step does not search the route for the stations. </p>
 
 </div>
 </div>
@@ -990,6 +1095,68 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a0b81efa472d1b11149ad5cf4d2588f60" name="a0b81efa472d1b11149ad5cf4d2588f60"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0b81efa472d1b11149ad5cf4d2588f60">&#9670;&#160;</a></span>closestEndOfAuthority()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Train::closestEndOfAuthority </td>
+          <td>(</td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>S</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>V</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="class_section.html">Section</a> *</td>          <td class="paramname"><span class="paramname"><em>BS</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>Blocks</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>first</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>last</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="class_node.html">Node</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>closest</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double &amp;</td>          <td class="paramname"><span class="paramname"><em>closestSpeed</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::list&lt; <a class="el" href="class_node.html">Node</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>decouplingPoints</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Finds, on the sections BS[first] to BS[last] of the Blocks sections of the route, the end of authority where the train at S (m) and V (m/s) has to start braking the earliest. closest receives it as a signalled braking target and closestSpeed its speed (m/s); both keep their values when there is none. Sets Last_Received_MA and, for a target where the train can couple, Predicted_MA_To_CoupleAt. In following mode, decouplingPoints receives the points where the train decouples from its leader. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a0b81efa472d1b11149ad5cf4d2588f60_cgraph.svg" width="1663" height="451"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="ad16806b65057677a073571752ae4789a" name="ad16806b65057677a073571752ae4789a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad16806b65057677a073571752ae4789a">&#9670;&#160;</a></span>Compute_Pos_And_Neg_Arrival_Delays_At_Stations()</h2>
 
@@ -1054,8 +1221,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a875f0eaa5ed019bfe9e9ec44486874e8" name="a875f0eaa5ed019bfe9e9ec44486874e8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a875f0eaa5ed019bfe9e9ec44486874e8">&#9670;&#160;</a></span>ComputeBlockingTimeForSingleLocation()</h2>
+<a id="ab553565de7c84273948c643313b78d11" name="ab553565de7c84273948c643313b78d11"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab553565de7c84273948c643313b78d11">&#9670;&#160;</a></span>ComputeBlockingTimeForSingleLocation()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1068,7 +1235,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::string</td>          <td class="paramname"><span class="paramname"><em>SignallingType</em></span>, </td>
+          <td class="paramtype"><a class="el" href="_rolling_stock_8h.html#a42eb24b9fabf18008862f9854d5f9f23">BlockingTimeMethod</a></td>          <td class="paramname"><span class="paramname"><em>method</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1102,7 +1269,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Appends the blocking time of route section IndexCurrentBS at a fixed-block level; SignallingType "Conventional" or "ETCS2" picks the approach rule. Times are simulation steps (s) found by searching from step EntryTime + 1; setup, release and sight and reaction times are seconds. AbsoluteRTSupplement (s) or PercentageRTSupplement (%) is the running time supplement. </p>
+<p>Appends the blocking time of route section IndexCurrentBS at a fixed-block level; method picks the approach rule. Times are simulation steps (s) found by searching from step EntryTime + 1; setup, release and sight and reaction times are seconds. AbsoluteRTSupplement (s) or PercentageRTSupplement (%) is the running time supplement. </p>
 
 </div>
 </div>
@@ -1144,7 +1311,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Computes the blocking times of the route section by section with the rule of the section's level: per section at levels 0 ("Conventional") and 2 ("ETCS2"), per infrastructure element at levels 3 and 4. Sections at level 1, level 5 or no level get none. The search starts at Det_Run_Start_Time; the arguments are those of ComputeBlockingTimeForSingleLocation, SafetyMargin in m. </p>
+<p>Computes the blocking times of the route section by section with the rule of the section's level: per section at levels 0 (<a class="el" href="_rolling_stock_8h.html#a42eb24b9fabf18008862f9854d5f9f23ae593276964d46c43e5b707325fb12b6b" title="Level 0: the approach starts when the head enters the section before.">BlockingTimeMethod::Conventional</a>) and 2 (<a class="el" href="_rolling_stock_8h.html#a42eb24b9fabf18008862f9854d5f9f23ad0f7c1621ac48b259c8470740c5740b6" title="Level 2: the approach starts when the braking distance of the train first reaches the start of the se...">BlockingTimeMethod::Etcs2</a>), per infrastructure element at levels 3 and 4. Sections at level 1, level 5 or no level get none. The search starts at Det_Run_Start_Time; the arguments are those of ComputeBlockingTimeForSingleLocation, SafetyMargin in m. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1718,7 +1885,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_ad8b349c94f8a0f31bdff97899672573d_cgraph.svg" width="1466" height="555"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_ad8b349c94f8a0f31bdff97899672573d_cgraph.svg" width="1927" height="431"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1745,7 +1912,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a9ed1da2ac786a644ff5e8fd001c8d4e1_cgraph.svg" width="598" height="211"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a9ed1da2ac786a644ff5e8fd001c8d4e1_cgraph.svg" width="626" height="211"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1962,6 +2129,66 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>A leader that reports no movement authority any more cannot be followed. Its last one would keep this train in following mode, with the leader's last speed and acceleration as its target. </p>
+
+</div>
+</div>
+<a id="aba4681c554914fde095d9d4e490cbfff" name="aba4681c554914fde095d9d4e490cbfff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aba4681c554914fde095d9d4e490cbfff">&#9670;&#160;</a></span>leaveRouteAtEnd()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Train::leaveRouteAtEnd </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>time_seconds</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Takes the train off its route in step time_seconds, once its head was at the end of the route in the step before: sets End_Time and OutOfSimulation, writes -9999 as its position and power, and releases the last section of the route. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_aba4681c554914fde095d9d4e490cbfff_cgraph.svg" width="722" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a19a311bd618465ee5dd5cbc262cbbb10" name="a19a311bd618465ee5dd5cbc262cbbb10"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a19a311bd618465ee5dd5cbc262cbbb10">&#9670;&#160;</a></span>locateHead()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Train::locateHead </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>time_seconds</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="class_arc.html">Arc</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>As</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int &amp;</td>          <td class="paramname"><span class="paramname"><em>BsIndex</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int &amp;</td>          <td class="paramname"><span class="paramname"><em>AsIndex</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Finds where the head of the train was at the end of step time_seconds - 1: Bs and its index BsIndex on the route, and As and its index AsIndex in Bs, which keep their values when nothing is found. Sets instant_block_section_occupied[time_seconds]. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a19a311bd618465ee5dd5cbc262cbbb10_cgraph.svg" width="408" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -2537,6 +2764,74 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="aed14175050dd94fd6ec4f6568824ef70" name="aed14175050dd94fd6ec4f6568824ef70"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aed14175050dd94fd6ec4f6568824ef70">&#9670;&#160;</a></span>serviceStopStep()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Train::serviceStopStep </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>time_seconds</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_arc.html">Arc</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>As</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>head</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>authorityHold</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Step time_seconds of a train that stands at the stop at the end of arc As with its head at head (m). It records the arrival and counts the dwell, and it leaves once the dwell time and the planned departure have passed and no restrictive aspect or red signal holds it there. authorityHold, an end of authority that holds the train, keeps it at head. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_aed14175050dd94fd6ec4f6568824ef70_cgraph.svg" width="559" height="251"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a6d00800a06e2e8d77d3503fcf918b65d" name="a6d00800a06e2e8d77d3503fcf918b65d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6d00800a06e2e8d77d3503fcf918b65d">&#9670;&#160;</a></span>setStepBranch()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Train::setStepBranch </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>time_seconds</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="_rolling_stock_8h.html#a6212850430c9d87a2b2518f5ea118b1c">TrajectoryBranch</a></td>          <td class="paramname"><span class="paramname"><em>branch</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Sets Eq[time_seconds] to the number of branch. </p>
+
+</div>
+</div>
 <a id="a1be5fcc56d9f6ff038fb56cb2d50bebc" name="a1be5fcc56d9f6ff038fb56cb2d50bebc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1be5fcc56d9f6ff038fb56cb2d50bebc">&#9670;&#160;</a></span>setTrainVectorSizesFromInput()</h2>
 
@@ -2580,6 +2875,53 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>instantaneous speed in km/h at GUI time t, mirroring trainXPosition index mapping; 0 outside the samples </p>
+
+</div>
+</div>
+<a id="ab2922c9d716b3ca81675de3700e2dad4" name="ab2922c9d716b3ca81675de3700e2dad4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab2922c9d716b3ca81675de3700e2dad4">&#9670;&#160;</a></span>standingTrainStep()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Train::standingTrainStep </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>time_seconds</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_arc.html">Arc</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>As</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>head</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>mustBrake</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>stationAtEndOfAs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>V_lim</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Step time_seconds of a train that stood still in the step before, with its head at head (m) on arc As. It stays at, or leaves, a stop (serviceStopStep), a node with a train order, a signal or an end of authority, and it stays on an arc whose speed limit V_lim is 0. mustBrake is the braking decision of the step, and stationAtEndOfAs is true when As ends at a platform or at a stop of this train. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_ab2922c9d716b3ca81675de3700e2dad4_cgraph.svg" width="783" height="251"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -2852,7 +3194,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a09e55bf615f21184e4a57367932d4a61_cgraph.svg" width="2242" height="2015"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a09e55bf615f21184e4a57367932d4a61_cgraph.svg" width="1699" height="2216"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -2881,6 +3223,38 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Number of trajectory samples, one per step. </p>
+
+</div>
+</div>
+<a id="a8450b5fe823c45a22d0c6d37700292d4" name="a8450b5fe823c45a22d0c6d37700292d4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8450b5fe823c45a22d0c6d37700292d4">&#9670;&#160;</a></span>updateVirtualCoupling()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Train::updateVirtualCoupling </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>time_seconds</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_movement_authority.html">MovementAuthority</a> *</td>          <td class="paramname"><span class="paramname"><em>liveLeader</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>leaderHead</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>head</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The virtual coupling of step time_seconds, once the speed and position of the step are set. The train couples to liveLeader, the leader that currentFollowingAuthority found, when it is within 30 m of the predicted coupling point at nearly the speed of the leader; a decoupling at diverging routes ends once its authority has come; and in following mode the step is counted, and an unintentional decoupling starts (IsInUnintentionalDecoupling) when the leader at leaderHead (m) is more than 30 m ahead of head (m). Returns true when the train was in following mode with no decoupling under way at the start of the call, the case in which the step may follow the leader; that holds for the step in which the decoupling starts too. </p>
 
 </div>
 </div>
@@ -3201,6 +3575,22 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a980aaac0bfc49967610e204823156d2d" name="a980aaac0bfc49967610e204823156d2d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a980aaac0bfc49967610e204823156d2d">&#9670;&#160;</a></span>currentServiceStopPlatformNumber</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int Train::currentServiceStopPlatformNumber = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>platformNumber of that platform; 0 when CurrentServiceStopPlatform is "None". </p>
+
+</div>
+</div>
 <a id="aa6124e479707b630cf57f85cf43a85e0" name="aa6124e479707b630cf57f85cf43a85e0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa6124e479707b630cf57f85cf43a85e0">&#9670;&#160;</a></span>departure_time</h2>
 
@@ -3351,7 +3741,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Label of the branch of the step that produced each sample: 1 accelerate, 12 cruise, 5 breakdown hold or station dwell, 6 at a signal, 52, 53 and 55 braking from a stored or a new plan, 54 full braking, 323 hold at an authority, 532 and 534 checkpoint release and hold, 958 zero speed limit, 1002 following a leader; 0 on other steps before entry and from End_Time + 2 on. </p>
+<p>The branch of the step that produced each sample, as the number of its <a class="el" href="_rolling_stock_8h.html#a6212850430c9d87a2b2518f5ea118b1c">TrajectoryBranch</a>; 0 (<a class="el" href="_rolling_stock_8h.html#a6212850430c9d87a2b2518f5ea118b1ca6adf97f83acf6453d4a6a4b1070f3754" title="No branch: a step before the train enters, and from End_Time + 2 on.">TrajectoryBranch::None</a>) on other steps before entry and from End_Time + 2 on. </p>
 
 </div>
 </div>
@@ -4262,6 +4652,22 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Disturbance of the dwell at each stop in seconds; 0, since nothing sets it. </p>
+
+</div>
+</div>
+<a id="a88432893996154985b5453c72737a644" name="a88432893996154985b5453c72737a644"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a88432893996154985b5453c72737a644">&#9670;&#160;</a></span>stationPlatformNumber</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int Train::stationPlatformNumber[<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>] = {}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>platformNumber of the platform of each stop, which the operations builder sets. </p>
 
 </div>
 </div>

@@ -123,6 +123,7 @@ Collaboration diagram for Section:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a77b88e06692841ba49559d22a25a09f9" id="r_a77b88e06692841ba49559d22a25a09f9"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a77b88e06692841ba49559d22a25a09f9">Section</a> ()</td></tr>
+<tr class="memdesc:a77b88e06692841ba49559d22a25a09f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">An empty section with code 270, state Green and no signalling level (kSignallingLevelUnset). The track line IDs are -1.  <br /></td></tr>
 <tr class="memitem:a19c7ad148d4216503ad2749e7e752622" id="r_a19c7ad148d4216503ad2749e7e752622"><td class="memItemLeft"><a class="el" href="class_section.html">Section</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a19c7ad148d4216503ad2749e7e752622">operator=</a> (const <a class="el" href="class_section.html">Section</a> &amp;ob2)</td></tr>
 <tr class="memitem:a96ed8ec0e3d0c39d615fd392a6313063" id="r_a96ed8ec0e3d0c39d615fd392a6313063"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a96ed8ec0e3d0c39d615fd392a6313063">operator==</a> (const <a class="el" href="class_section.html">Section</a> &amp;ob2) const</td></tr>
 <tr class="memdesc:a96ed8ec0e3d0c39d615fd392a6313063"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the ID, the size, the length, the start node, the shared node list, the arcs, exit_speed, code and state are equal.  <br /></td></tr>
@@ -163,12 +164,6 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a796e3151577c489713252155beca6aab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Position of the start node in metres in scene coordinates, which a reversed copy keeps.  <br /></td></tr>
 <tr class="memitem:a3b639e030b9852d376f8ddbaa18642c6" id="r_a3b639e030b9852d376f8ddbaa18642c6"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a3b639e030b9852d376f8ddbaa18642c6">GeoXEndNode</a></td></tr>
 <tr class="memitem:a4e6995dd49ac78126dc9f146494e157a" id="r_a4e6995dd49ac78126dc9f146494e157a"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4e6995dd49ac78126dc9f146494e157a">SignallingLevel</a></td></tr>
-<tr class="memitem:a0f7120a64107979ea2bbfa4c6155de12" id="r_a0f7120a64107979ea2bbfa4c6155de12"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a0f7120a64107979ea2bbfa4c6155de12">ETCS3BrakingPoints</a> [40]</td></tr>
-<tr class="memdesc:a0f7120a64107979ea2bbfa4c6155de12"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set to -1 by the constructor and never given another value.  <br /></td></tr>
-<tr class="memitem:a2082b9f4303a94f3ec855710c8168327" id="r_a2082b9f4303a94f3ec855710c8168327"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a2082b9f4303a94f3ec855710c8168327">ETCS3BrakingPointsTrainID</a> [40]</td></tr>
-<tr class="memdesc:a2082b9f4303a94f3ec855710c8168327"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set to "None" by the constructor and never given another value.  <br /></td></tr>
-<tr class="memitem:ac45652a2bc2cb2b7d49753f819e953e7" id="r_ac45652a2bc2cb2b7d49753f819e953e7"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ac45652a2bc2cb2b7d49753f819e953e7">N_ETCS3BrakingPoints</a></td></tr>
-<tr class="memdesc:ac45652a2bc2cb2b7d49753f819e953e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set to 0 by the constructor and never given another value.  <br /></td></tr>
 <tr class="memitem:ab310417a0f133ec4f2f35b51afa53abf" id="r_ab310417a0f133ec4f2f35b51afa53abf"><td class="memItemLeft"><a class="el" href="_signalling_8h.html#a6d9c8de9a24500df39f2c275d892df2a">SignalState</a>&#160;</td><td class="memItemRight"><a class="el" href="#ab310417a0f133ec4f2f35b51afa53abf">state</a></td></tr>
 <tr class="memdesc:ab310417a0f133ec4f2f35b51afa53abf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main signal aspect; Green by default.  <br /></td></tr>
 <tr class="memitem:a7e338f7e8c60d49b5e3f545b3c985969" id="r_a7e338f7e8c60d49b5e3f545b3c985969"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a7e338f7e8c60d49b5e3f545b3c985969">Occupied</a></td></tr>
@@ -184,7 +179,8 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a72a2b9fd2907d90c94fa7b9506bf9656"><td class="mdescLeft">&#160;</td><td class="mdescRight">Track detection sections of the section; they point into <a class="el" href="struct_run_infrastructure.html#a2c629868c25cd1060430eaff9cb94832" title="The track detection sections. The block sections point into this list.">RunInfrastructure::detectionSections</a>.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A block section. <a class="el" href="struct_run_infrastructure.html#adae988434608bc4db91b9e04c11123bd" title="The block sections of the network, sized once per scene by the builder.">RunInfrastructure::sections</a> holds the sections of the scene and the sections derived at switches, and a <a class="el" href="class_route.html">Route</a> holds copies of them, reversed for a reversed route. X values are kilometres. </p>
+<div class="textblock"><p>A block section. <a class="el" href="struct_run_infrastructure.html#adae988434608bc4db91b9e04c11123bd" title="The block sections of the network, sized once per scene by the builder.">RunInfrastructure::sections</a> holds the sections of the scene and the sections derived at switches, and a <a class="el" href="class_route.html">Route</a> holds copies of them, reversed for a reversed route. X values are kilometres.</p>
+<p>Each route copy has its own code, state, exit_speed and, on each arc, speedInBraking and signalSpeedLimit, because the activation writes them along that route: the aspects come from the occupied sections ahead on the route, and the speed at the end of a section from its next section on the route. Copies of one section in one direction can therefore differ where their routes part ahead, and the window shows the most restrictive code (<a class="el" href="class_gui_signal_state_list.html">GuiSignalStateList</a>). </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a77b88e06692841ba49559d22a25a09f9" name="a77b88e06692841ba49559d22a25a09f9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a77b88e06692841ba49559d22a25a09f9">&#9670;&#160;</a></span>Section()</h2>
@@ -200,7 +196,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>An empty section with code 270, state Green and no signalling level (kSignallingLevelUnset). The track line IDs and the ETCS3 braking points are -1. </p>
+
+<p>An empty section with code 270, state Green and no signalling level (kSignallingLevelUnset). The track line IDs are -1. </p>
 
 </div>
 </div>
@@ -254,7 +251,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Copies the members, but the three arrays only up to their counts (total_arcs, N_ConnectedBS and N_ETCS3BrakingPoints): the entries after those keep their values. The copy constructor copies every entry. The node list stays shared. </p>
+<p>Copies the members, but the two arrays only up to their counts (total_arcs and N_ConnectedBS): the entries after those keep their values. The copy constructor copies every entry. The node list stays shared. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -368,38 +365,6 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>End node. </p>
-
-</div>
-</div>
-<a id="a0f7120a64107979ea2bbfa4c6155de12" name="a0f7120a64107979ea2bbfa4c6155de12"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0f7120a64107979ea2bbfa4c6155de12">&#9670;&#160;</a></span>ETCS3BrakingPoints</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double Section::ETCS3BrakingPoints[40]</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Set to -1 by the constructor and never given another value. </p>
-
-</div>
-</div>
-<a id="a2082b9f4303a94f3ec855710c8168327" name="a2082b9f4303a94f3ec855710c8168327"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2082b9f4303a94f3ec855710c8168327">&#9670;&#160;</a></span>ETCS3BrakingPointsTrainID</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::string Section::ETCS3BrakingPointsTrainID[40]</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Set to "None" by the constructor and never given another value. </p>
 
 </div>
 </div>
@@ -526,22 +491,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Number of used entries of IDConnectedBS. </p>
-
-</div>
-</div>
-<a id="ac45652a2bc2cb2b7d49753f819e953e7" name="ac45652a2bc2cb2b7d49753f819e953e7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac45652a2bc2cb2b7d49753f819e953e7">&#9670;&#160;</a></span>N_ETCS3BrakingPoints</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int Section::N_ETCS3BrakingPoints</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Set to 0 by the constructor and never given another value. </p>
 
 </div>
 </div>

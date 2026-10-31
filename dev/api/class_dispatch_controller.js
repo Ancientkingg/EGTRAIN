@@ -26,5 +26,5 @@ var class_dispatch_controller =
     [ "stopLive", "class_dispatch_controller.html#ab1624ac972383e5f2d1aea51544f7699", null ],
     [ "takeReplayCandidate", "class_dispatch_controller.html#ae26ebb03ac460fe3fc1dcf139eee8328", null ],
     [ "takeSimulationSnapshot", "class_dispatch_controller.html#a17f1138c6661bae0d67ecd96e4858054", null ],
-    [ "Train_Simulation_Mixed_Signalling_With_Passengers", "class_dispatch_controller.html#abaea92389147b6df5588c56ecda23491", null ]
+    [ "Train_Simulation_Mixed_Signalling_With_Passengers", "class_dispatch_controller.html#a3a9e80e3e66281ea2a8bcf3f073e2fb0", null ]
 ];

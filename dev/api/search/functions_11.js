@@ -196,8 +196,10 @@ var searchData=
   ['runscene_193',['runScene',['../class_run_controller.html#ae95580dfc5edc30afa6c8030bca9e56c',1,'RunController']]],
   ['runsettled_194',['runSettled',['../class_run_controller_1_1_host.html#a7a881b11ef464a031fc29c59dd78c146',1,'RunController::Host']]],
   ['runsimulation_195',['runSimulation',['../class_dispatch_controller.html#adfb494be209a1122219b5d24128a4ec2',1,'DispatchController']]],
-  ['runstarting_196',['runStarting',['../class_run_controller_1_1_host.html#a5b3ffb9c9c48d6e979b2f509b89fd40f',1,'RunController::Host']]],
-  ['runtimediagnostics_197',['runtimeDiagnostics',['../class_run_controller.html#ad8ce71397d0ff2f57be3e623f578c813',1,'RunController']]],
-  ['runtimestatus_198',['runtimeStatus',['../class_run_controller.html#aff05c374c7559899a2cfdeb04739507b',1,'RunController']]],
-  ['runtool_199',['runTool',['../_scene_tool_8cpp.html#a9a6cadca8ce86a763a1147ce5fc20615',1,'SceneTool.cpp']]]
+  ['runsimulationpostprocessing_196',['runSimulationPostprocessing',['../_simulation_8cpp.html#ae0be230753d4b1eaf8c3ced9570a7ca1',1,'runSimulationPostprocessing(SimulationRun &amp;run, const std::function&lt; bool()&gt; &amp;stopRequested):&#160;Simulation.cpp'],['../_simulation_8h.html#ae0be230753d4b1eaf8c3ced9570a7ca1',1,'runSimulationPostprocessing(SimulationRun &amp;run, const std::function&lt; bool()&gt; &amp;stopRequested):&#160;Simulation.cpp']]],
+  ['runsimulationstep_197',['runSimulationStep',['../_simulation_8cpp.html#a2f9847a91525ccfe48448803e6ebba24',1,'runSimulationStep(SimulationRun &amp;run, int t, TrainMovementOrder &amp;order):&#160;Simulation.cpp'],['../_simulation_8h.html#a2f9847a91525ccfe48448803e6ebba24',1,'runSimulationStep(SimulationRun &amp;run, int t, TrainMovementOrder &amp;order):&#160;Simulation.cpp']]],
+  ['runstarting_198',['runStarting',['../class_run_controller_1_1_host.html#a5b3ffb9c9c48d6e979b2f509b89fd40f',1,'RunController::Host']]],
+  ['runtimediagnostics_199',['runtimeDiagnostics',['../class_run_controller.html#ad8ce71397d0ff2f57be3e623f578c813',1,'RunController']]],
+  ['runtimestatus_200',['runtimeStatus',['../class_run_controller.html#aff05c374c7559899a2cfdeb04739507b',1,'RunController']]],
+  ['runtool_201',['runTool',['../_scene_tool_8cpp.html#a9a6cadca8ce86a763a1147ce5fc20615',1,'SceneTool.cpp']]]
 ];

@@ -1,0 +1,12 @@
+<map id="Train::leaveRouteAtEnd" name="Train::leaveRouteAtEnd">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,68,178,96"/>
+<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a1879caea5b0b1060ede297772916eea1" title=" " alt="" coords="226,68,442,96"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,79,213,81,207,82,178,84"/>
+<area shape="poly" id="edge6_Node000002_Node000002" title=" " alt="" coords="292,67,286,59,291,49,307,43,334,41,362,44,379,53,374,53,361,49,334,47,309,49,295,53,291,59,297,68"/>
+<area shape="rect" id="Node000003" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="558,29,648,57"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="434,65,546,51,541,52,435,70"/>
+<area shape="rect" id="Node000004" href="$_signalling_8cpp.html#ae8e290910dab299b27108b5b6cf61fe9" title=" " alt="" coords="490,105,716,133"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="439,94,486,103,481,103,439,99"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="557,28,550,20,556,11,574,5,603,3,635,5,653,14,648,14,633,10,603,8,575,10,559,15,555,20,562,30"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="557,104,550,96,556,87,574,81,603,79,635,81,653,90,648,90,633,86,603,84,575,86,559,91,555,96,562,106"/>
+</map>
