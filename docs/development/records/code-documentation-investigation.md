@@ -40,7 +40,7 @@ What the counts show:
 
 ## What each folder does and who calls it
 
-"Used by" is the set of other folders, tests excluded, that include a header of the folder, found by searching for `#include "<folder>/` in the source. The numbers are counts of include lines. The descriptions come from [Source layout](../architecture/source-layout.md), which lists every file.
+"Used by" is the set of other folders, tests excluded, that include a header of the folder, found by searching for `#include "<folder>/` in the source. The numbers are counts of include lines. The descriptions come from [Source layout](../../architecture/source-layout.md), which lists every file.
 
 | Folder | What it does | Main classes | Used by |
 | --- | --- | --- | --- |
@@ -65,11 +65,11 @@ Some includes run from a lower folder into `app/` or `diagrams/`, and they will 
 - `app/DispatchController.h` from `simulation/SimulationWorker.cpp:2`, which is built in the same library;
 - `diagrams/RunResults.h` from `simulation/Simulation.cpp:2`.
 
-`DialogFolders.h` and `GuiSimulationSnapshot.h` have no source file, and `energyMJKWh` is an inline function, so the libraries still link one way as [Source layout](../architecture/source-layout.md#libraries) says.
+`DialogFolders.h` and `GuiSimulationSnapshot.h` have no source file, and `energyMJKWh` is an inline function, so the libraries still link one way as [Source layout](../../architecture/source-layout.md#libraries) says.
 
 ## The legacy simulation core
 
-The folder is `simulation/`. Existing pages that explain a part: [Signalling levels](../guides/signalling-levels.md) (the step, the codes, every level), [Scene model](../architecture/scene-model.md) and [Scene schema](../guides/scene-schema.md) (the input, units of the input keys, dwell rule), [External state sharing](../architecture/external-sharing.md) (the live stream) and [Run output](../guides/run-output.md) (the files). No page describes the data structures or the equations of motion.
+The folder is `simulation/`. Existing pages that explain a part: [Signalling levels](../../guides/signalling-levels.md) (the step, the codes, every level), [Scene model](../../architecture/scene-model.md) and [Scene schema](../../guides/scene-schema.md) (the input, units of the input keys, dwell rule), [External state sharing](../../architecture/external-sharing.md) (the live stream) and [Run output](../../guides/run-output.md) (the files). No page describes the data structures or the equations of motion.
 
 ### Files
 
@@ -99,7 +99,7 @@ The folder is `simulation/`. Existing pages that explain a part: [Signalling lev
 
 ### From scene to run
 
-`DispatchController::prepareScene` (`app/DispatchController.cpp:223`) validates the scene and builds a run apart from the live one with `buildInfrastructureAndSignallingFromScene` and `buildOperationsFromScene` (lines 280 and 294; declared at `simulation/Signalling.h:19` and `simulation/RollingStock.h:45`), then swaps it in with `SimulationRun::adopt` (line 336; `simulation/SimulationRun.h:136` to `140`). [Getting started](getting-started.md#from-open-to-saved) step 4 shows the path from the window. The vectors of a train get one slot per step, `ceil(duration / timestep)` (`simulation/builders/OperationsBuilder.cpp:979`).
+`DispatchController::prepareScene` (`app/DispatchController.cpp:223`) validates the scene and builds a run apart from the live one with `buildInfrastructureAndSignallingFromScene` and `buildOperationsFromScene` (lines 280 and 294; declared at `simulation/Signalling.h:19` and `simulation/RollingStock.h:45`), then swaps it in with `SimulationRun::adopt` (line 336; `simulation/SimulationRun.h:136` to `140`). [Getting started](../getting-started.md#from-open-to-saved) step 4 shows the path from the window. The vectors of a train get one slot per step, `ceil(duration / timestep)` (`simulation/builders/OperationsBuilder.cpp:979`).
 
 ### The time step loop
 
@@ -109,7 +109,7 @@ The folder is `simulation/`. Existing pages that explain a part: [Signalling lev
 2. Passengers whose journey starts at `t + startingSimulationTime` enter the network (`checkJourneyStartForAllPassengers`, line 698). With the passenger view on, every platform's waiting list is refreshed (line 704).
 3. Every train moves, in the order of the run except that trains that are due and still waiting take the places of the others in order of due time (lines 715 to 725). Each calls `trajectoryComputationIncludingMovingBlock(t, ...)`, then records its station passages and its arrival or departure at the ends of its route (lines 726 to 733).
 4. For every train, `Simulate_Train_Passenger_Interactions` lets passengers alight and board and may lengthen the stop (line 744).
-5. The signalling for the next step: `etcsMa` is cleared, then `Occupy_Block_Sections_Of_Route`, `Apply_Signal_Failures_Mixed_Signalling`, `Apply_Single_Track_Authorities_Mixed_Signalling`, `ReportAllTrainPositionsToRBC` (margin 50 m), `protectStationAreas`, `releaseMixedSignallingSystem`, `activateMixedSignallingSystem` and `unlockDoubleSwitches` run, and the occupied and connected lists are cleared (lines 792 to 816). [Signalling levels](../guides/signalling-levels.md#what-happens-in-a-step) explains each.
+5. The signalling for the next step: `etcsMa` is cleared, then `Occupy_Block_Sections_Of_Route`, `Apply_Signal_Failures_Mixed_Signalling`, `Apply_Single_Track_Authorities_Mixed_Signalling`, `ReportAllTrainPositionsToRBC` (margin 50 m), `protectStationAreas`, `releaseMixedSignallingSystem`, `activateMixedSignallingSystem` and `unlockDoubleSwitches` run, and the occupied and connected lists are cleared (lines 792 to 816). [Signalling levels](../../guides/signalling-levels.md#what-happens-in-a-step) explains each.
 6. `publishSimulationSnapshot(t)` hands the step to the window (line 823).
 
 After the loop the passenger status file is written (line 832). `runSimulation` (`app/DispatchController.cpp:532`) sets every `departure_time` to `scheduled_departure_time` before the loop (line 571) and then runs the stages after the steps: energy totals (580), timetable points (604), delay statistics (607 to 622), blocking times (632), and the optional per-train files (645 to 652). Between the stages it checks for a stop request.
@@ -129,11 +129,11 @@ After the loop the passenger status file is written (line 832). `runSimulation` 
 
 ### Signalling levels
 
-The model has levels 0 to 5 and "no level" (`scene/SignallingLevel.h:5` to `16`). Levels 0, 1, 2 and 5 are fixed block: after each step the sections behind an occupied one get a code (270, 180, 75, 751 or 0), a state and a signal speed limit (`simulation/Signalling.cpp:2744` to `2835`). Levels 3 and 4 are moving block: positions go to a radio block centre (`ReportPositionToRBC`, `simulation/RollingStockOccupation.cpp:93`) and become movement authorities that the train brakes for. Level 4 adds following a leader. The codes, each level, mixed routes, areas and known limits are in [Signalling levels](../guides/signalling-levels.md); none of it is repeated here.
+The model has levels 0 to 5 and "no level" (`scene/SignallingLevel.h:5` to `16`). Levels 0, 1, 2 and 5 are fixed block: after each step the sections behind an occupied one get a code (270, 180, 75, 751 or 0), a state and a signal speed limit (`simulation/Signalling.cpp:2744` to `2835`). Levels 3 and 4 are moving block: positions go to a radio block centre (`ReportPositionToRBC`, `simulation/RollingStockOccupation.cpp:93`) and become movement authorities that the train brakes for. Level 4 adds following a leader. The codes, each level, mixed routes, areas and known limits are in [Signalling levels](../../guides/signalling-levels.md); none of it is repeated here.
 
 ### Braking and traction
 
-- Tractive effort is a quadratic of speed per speed band, `c0 + c1 v + c2 v^2`, scaled by the service performance percentage (`simulation/RollingStockDynamics.cpp:6` to `16`). The band limits are the first two numbers of each traction curve row ([Scene schema](../guides/scene-schema.md#rolling_stockjson)).
+- Tractive effort is a quadratic of speed per speed band, `c0 + c1 v + c2 v^2`, scaled by the service performance percentage (`simulation/RollingStockDynamics.cpp:6` to `16`). The band limits are the first two numbers of each traction curve row ([Scene schema](../../guides/scene-schema.md#rolling_stockjson)).
 - Resistance is the sum of a traction unit term, a wagon term (Sauthoff, `simulation/RollingStock.h:304`), a gradient term `g m G` and a curvature term `g m 700 / (R 1000)` (`simulation/RollingStockDynamics.cpp:28` to `58`).
 - Acceleration uses `v' = v + (F - R) / (m k) dt`, where `k` is `massFactor`, capped at the speed limit (`simulation/RollingStockTrajectory.cpp:439` to `448`).
 - Braking effort ramps with the jerk: `m k min(jerk t, a_max)` (`simulation/RollingStockDynamics.cpp:18` to `26`). A braking step with full force decelerates by `a_max + R / (m k)` (`simulation/RollingStockBraking.cpp:855` to `863`).
@@ -142,14 +142,14 @@ The model has levels 0 to 5 and "no level" (`scene/SignallingLevel.h:5` to `16`)
 
 ### Dwell and passengers
 
-- A train that stands at a station arc counts from `stop`. It leaves when `t - stop > StopTime`, `t > ScheduledDepartures[s]` and no authority holds it, and at a stop with an order to respect also when the aspect is not restrictive, and at a platform at the end of a block also when the signal is not red (`simulation/RollingStockTrajectory.cpp:698` to `762`). The dwell rule is in [Scene schema](../guides/scene-schema.md#servicesjson).
+- A train that stands at a station arc counts from `stop`. It leaves when `t - stop > StopTime`, `t > ScheduledDepartures[s]` and no authority holds it, and at a stop with an order to respect also when the aspect is not restrictive, and at a platform at the end of a block also when the signal is not red (`simulation/RollingStockTrajectory.cpp:698` to `762`). The dwell rule is in [Scene schema](../../guides/scene-schema.md#servicesjson).
 - Passengers alight if they are on this train and their arrival station is the stop, then board in the order of the platform's waiting list, which is sorted by the actual departure time of the trip each passenger waits for (`simulation/Simulation.h:47` to `49`), while the train has room. Capacity is 300 for the unit and 300 for each wagon (`simulation/RollingStock.cpp:100` to `103`). A transfer to a platform two or more numbers away adds 30 seconds per number of difference (`simulation/Simulation.cpp:449` to `457`).
 - When a stop has its first step, the passenger-dependent dwell replaces `StopTime` if it is longer (`simulation/Simulation.cpp:543` to `558`). The model is the one named in the comment at `simulation/RollingStock.cpp:112` (Fernandez et al. 2007, extending Gibson et al. 1989), with eight parameters set in `simulation/builders/OperationsBuilder.cpp:253`. Congestion flags switch on at platform occupancy above 0.65 and train occupancy above 0.7 (`simulation/RollingStock.cpp:121`, `127`).
 - A passenger who cannot board only produces a log line (`simulation/Simulation.cpp:531` to `535`).
 
 ### Global state the code depends on
 
-The routines take the run as a parameter, and `Train::run_` points at it ([Source layout](../architecture/source-layout.md#completed-run-data)). Process-wide state remains in these places:
+The routines take the run as a parameter, and `Train::run_` points at it ([Source layout](../../architecture/source-layout.md#completed-run-data)). Process-wide state remains in these places:
 
 | State | Defined | Used for |
 | --- | --- | --- |
@@ -166,7 +166,7 @@ The routines take the run as a parameter, and `Train::run_` points at it ([Sourc
 
 | Convention | Source |
 | --- | --- |
-| A step index `t` is seconds from the start of the run. Vectors of a train are indexed by it and `timestep` is 1 s. `departure_time`, `StationArrivals` and `ScheduledDepartures` are in the same seconds. They are relative to the base time of the scene ([Scene schema](../guides/scene-schema.md#servicesjson)) | `simulation/Infrastructure.h:24` to `25`, `simulation/builders/OperationsBuilder.cpp:979` |
+| A step index `t` is seconds from the start of the run. Vectors of a train are indexed by it and `timestep` is 1 s. `departure_time`, `StationArrivals` and `ScheduledDepartures` are in the same seconds. They are relative to the base time of the scene ([Scene schema](../../guides/scene-schema.md#servicesjson)) | `simulation/Infrastructure.h:24` to `25`, `simulation/builders/OperationsBuilder.cpp:979` |
 | Passenger times are seconds since midnight: the step plus `startingSimulationTime` | `simulation/Simulation.cpp:277`, `docs/guides/scene-schema.md` (journey windows) |
 | `Node::X` and `Node::Y` are kilometres, and a position in metres is `X * 1000` | `simulation/builders/InfrastructureBuilder.cpp:679` (`xKm`), `simulation/RollingStockTrajectory.cpp:326` (`Start_Node_X * 1000`), `simulation/Infrastructure.cpp:77` |
 | `instant_spatial_position[t]` is the head position in metres along the route, and -9999 after the train has left | `simulation/RollingStockTrajectory.cpp:679` |
@@ -176,7 +176,7 @@ The routines take the run as a parameter, and `Train::run_` points at it ([Sourc
 | `Arc::curvature` holds the radius of curvature in metres (`curvature_radius_m`), and 0 means straight | `simulation/builders/InfrastructureBuilder.cpp:691`, `simulation/RollingStockDynamics.cpp:46` to `51` |
 | Speeds are m/s inside the simulation and km/h at the edges (`configuredMaximumSpeedKmh`, `speedKmhAt`). Forces are N, power W, energy vectors MJ, text outputs kWh with the factor 0.27778 | `simulation/RollingStock.h:183` to `185`, `555`, `diagrams/RunResults.h:146` to `147` |
 | Mass is kg. `massFactor` multiplies the mass in the equation of motion. `massPerWagonAxle` holds the total mass of the wagons, not a mass per axle | `simulation/builders/OperationsBuilder.cpp:237`, `simulation/RollingStockTrajectory.cpp:442` |
-| `Section::code` 270, 180, 75, 751 and 0 are aspect codes: 270 green, 180 yellow, 75 red, 751 red-red, and 0 on an occupied or failed section | [Signalling levels](../guides/signalling-levels.md#codes-and-what-they-do-to-a-following-train) |
+| `Section::code` 270, 180, 75, 751 and 0 are aspect codes: 270 green, 180 yellow, 75 red, 751 red-red, and 0 on an occupied or failed section | [Signalling levels](../../guides/signalling-levels.md#codes-and-what-they-do-to-a-following-train) |
 | A signalling level is 0 to 5, and -99999999 means none | `scene/SignallingLevel.h:16` |
 | `Route::reversed_direction` is true when the train runs against the direction in which the route is defined. Positions on a reversed route are measured from the other end, and outputs subtract them from `OriginalRefReversedRoute` | `simulation/Signalling.h:287` to `289`, `simulation/RollingStockTrajectory.cpp:141` to `148` |
 | A stopped train is parked 0.0001 m short of the stop point and released at 0.0001 m/s and 0.0001 m past it. A train within 4 m of the end of an arc counts as standing at it | `simulation/RollingStock.h:153` to `166`, `simulation/RollingStockTrajectory.cpp:699`, `730` to `731` |
@@ -206,7 +206,7 @@ The routines take the run as a parameter, and `Train::run_` points at it ([Sourc
 | `simulation/RollingStock.h:191` | "the departure time in the initial timetable not the actual scheduled_departure_time" names the member it describes |
 | `simulation/RollingStock.h:274` to `275` | "from dispatching tool". Nothing in the repository sets `dispLineID` or `arrivalPlatform`; they stay at -1, and are only written to output files (`simulation/RollingStock.cpp:568`, `606`) compared (`693`) and copied into `reservedPlatform` (`750`) |
 | `simulation/RollingStock.h:263`, `268` to `270` | `numOverlaps`, `ConflictingTrains`, `N_ConflictingTrains` and `ETCS3StoppingPoint` have comments but no use beyond their initial values (`simulation/RollingStock.cpp:67`, `72`, `81`) |
-| `simulation/Simulation.h:32`, `simulation/Simulation.cpp:262` | "computing time of ROMA and EGTRAIN for each combination RI-PH". `compTimeRoma` is never set outside the tests, so the column is always 0 (`simulation/Simulation.cpp:269`). [Run output](../guides/run-output.md) lists the column |
+| `simulation/Simulation.h:32`, `simulation/Simulation.cpp:262` | "computing time of ROMA and EGTRAIN for each combination RI-PH". `compTimeRoma` is never set outside the tests, so the column is always 0 (`simulation/Simulation.cpp:269`). [Run output](../../guides/run-output.md) lists the column |
 | `simulation/Simulation.cpp:450` | "probably needs also to be added the overall simulation starting time" is on a line that adds it |
 | `simulation/Simulation.cpp:525` | "break the loop over the journey once the active one has been found" sits after the closing brace of the `if`, so the loop that records the waiting time of a boarding passenger ends after the first journey whether or not it is the active one |
 | `simulation/Simulation.cpp:534` | "Call Route Choice Function TO BE ADDED": the only marker of unfinished work in the source |
@@ -221,14 +221,14 @@ The code and its tests do not settle these. Each needs an answer from the owner 
 
 1. Where do the constants of `traction_unit_resistences` (4.2, 0.72, 4.17, 3.6) and `wagons_resistances` (1.9, 4.8, 2.7, 4.17, 10) come from? The header names "Modified Strahl" and "Sauthoff" (`simulation/RollingStock.h:300` to `305`) but no source or unit (`simulation/RollingStockDynamics.cpp:28` to `38`).
 2. What is the formula `g m 700 / (R 1000)` for curvature resistance, and is `R` meant in metres, as the builder stores it (`simulation/RollingStockDynamics.cpp:50`)?
-3. Which unit do the speed bounds of a traction curve row have? The code compares them with m/s (`simulation/RollingStockDynamics.cpp:9`) and the validator gives them the range of `max_speed_ms` (`scene/SceneFields.h:57` to `59`), but the schema does not say ([Scene schema](../guides/scene-schema.md#rolling_stockjson)).
+3. Which unit do the speed bounds of a traction curve row have? The code compares them with m/s (`simulation/RollingStockDynamics.cpp:9`) and the validator gives them the range of `max_speed_ms` (`scene/SceneFields.h:57` to `59`), but the schema does not say ([Scene schema](../../guides/scene-schema.md#rolling_stockjson)).
 4. Where do the eight dwell parameters `7, 0.32, 18.23, 0.564, 4.838, 22.24, 0.04, 0.562` come from, and which is which (`simulation/builders/OperationsBuilder.cpp:253`)?
 5. Is `changeTrainDepartureTimesForHourlyTimetabling` needed? It runs at the end of every build (`simulation/builders/OperationsBuilder.cpp:1112`) and spaces departures over one hour, but `runSimulation` sets every `departure_time` back to `scheduled_departure_time` before the first step (`app/DispatchController.cpp:571`). Does anything read `departure_time` in between?
-6. What are ROMA and "RI-PH"? Both appear in output and comments (`simulation/Simulation.cpp:262` to `269`) and in [Scene migration matrix](../guides/v1-scene-migration-matrix.md) as inactive, but are explained nowhere.
+6. What are ROMA and "RI-PH"? Both appear in output and comments (`simulation/Simulation.cpp:262` to `269`) and in [Scene migration matrix](../../guides/v1-scene-migration-matrix.md) as inactive, but are explained nowhere.
 7. What is the platform booking for the stations "Alm", "Asd" and "Asdz" meant to do now that `arrivalPlatform` is never set (`simulation/RollingStock.cpp:681` to `696`, `750`)? Both sides of the comparison are -1.
 8. Is it intended that the waiting time of a boarding passenger is recorded only when the active journey is the passenger's first (`simulation/Simulation.cpp:525`)? The alighting loop breaks inside the match (line 469).
 9. Why does `ComputeEnergyConsumptionForAllTrains` use fixed efficiencies of 0.8 and 0.7? Its own comment says they belong to the substation and the train (`simulation/Simulation.cpp:188`).
-10. Where do the 4 m standing window, the 30 m and 0.278 m/s coupling limits and the look-ahead of eight sections come from? [Signalling levels](../guides/signalling-levels.md#what-is-not-established) already lists the coupling limits as constants of the model.
+10. Where do the 4 m standing window, the 30 m and 0.278 m/s coupling limits and the look-ahead of eight sections come from? [Signalling levels](../../guides/signalling-levels.md#what-is-not-established) already lists the coupling limits as constants of the model.
 11. Can `Train::direction` go? It is assigned at `simulation/builders/OperationsBuilder.cpp:225` and never read; the code uses `Route::reversed_direction` instead.
 12. Which `Eq` values besides 54 does anything outside the tests rely on, and can the model's author confirm their meanings in the conventions table? They were read from the assignments, not from a description.
 
@@ -240,13 +240,13 @@ One task per subsystem. The order follows the dependencies: the scene data every
 2. `util/`: `Log.h`, `TimeFormat.h`, `SpeedFormat.h`, `CsvWriter.h`, `TrajectoryUtil.h`, `PlaybackProfiler.h`, and the wrong comment in `timeutil.hpp`. Small, and most other folders use it.
 3. `simulation/` entry points: `SimulationRun.h`, `InitialParameters.h`, `RunControl.h`, `SimulationWorker.h`, `NumberGenerator.h`, the builders' public functions, and `app/DispatchController.h`. Run lifetime, the global state table, threads.
 4. `simulation/` data types: `Infrastructure.h`, `Signalling.h` (types only), `RollingStock.h` (members of `Train`), `Passengers.h`. Units, sentinels, string values, fixed capacities, and the stale comments of the previous section.
-5. `simulation/` behaviour: the functions of `Signalling.cpp`, `RollingStock*.cpp` and `Simulation.cpp`, in this order: the step functions, braking, occupation and blocking times. Link to [Signalling levels](../guides/signalling-levels.md) instead of restating it. Remove or explain the commented-out blocks. Depends on the answers to the open questions.
+5. `simulation/` behaviour: the functions of `Signalling.cpp`, `RollingStock*.cpp` and `Simulation.cpp`, in this order: the step functions, braking, occupation and blocking times. Link to [Signalling levels](../../guides/signalling-levels.md) instead of restating it. Remove or explain the commented-out blocks. Depends on the answers to the open questions.
 6. `diagrams/`: `CompletedRunData.h`, `RunResults.h`, `RunExports.h`, `DelayAnalysis.h`, the capacity classes. Which numbers are seconds, metres or kWh in each row.
 7. `app/`: `RunController`, `SceneSession`, `ResultViews`, `GuiSimulationSnapshot`, `GuiReplayHistory`, `RunSelection`, and the public part of `MainWindow.h`.
 8. `editors/`: `SceneDocument`, `SceneEditorPanel`, `InfrastructureFacet` and the facet bases, then the panel classes.
 9. `graphics/`: `NetworkPresenter.h`, `RuntimeGeometrySource.h`, `NetworkScene.h`, `NetworkView.h`, then `graphics/items/`.
 10. `widgets/`: the dock widgets and dialogs, then the small controls.
-11. `io/`: `LiveFrame.h`, `LiveCommand.h`, `LiveServer.h`. Link to [External state sharing](../architecture/external-sharing.md) and `docs/live/frame-v1.schema.json`.
+11. `io/`: `LiveFrame.h`, `LiveCommand.h`, `LiveServer.h`. Link to [External state sharing](../../architecture/external-sharing.md) and `docs/live/frame-v1.schema.json`.
 12. `recovery/`: `RecoveryStore.h`, `RecoveryController.h`, `RecoveryPrompt.h`.
 13. `update/`: `UpdateChecker.h`, `SelfUpdater.h`, `HttpTransport.h`, `UpdatePreparation.h`, `Distribution.h`, `ReleaseInfo.h`.
-14. `telemetry/`: `TelemetryConsent.h`, `TelemetryQueue.h`, `TelemetrySender.h`, `TelemetryEvent.h`. Link to the [telemetry contract](../telemetry/README.md).
+14. `telemetry/`: `TelemetryConsent.h`, `TelemetryQueue.h`, `TelemetrySender.h`, `TelemetryEvent.h`. Link to the [telemetry contract](../../telemetry/README.md).

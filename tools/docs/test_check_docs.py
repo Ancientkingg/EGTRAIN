@@ -10,6 +10,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+import check_docs
 from check_docs import Finding, ToolError, check, check_captures, format_finding, main as run_main, tracked_files
 
 LANDING = "docs/README.md"
@@ -189,6 +190,11 @@ class KindTests(TreeTestCase):
     def test_menu_path_with_one_wrong_part_is_reported(self):
         findings = self.manual_names("Choose **File > Open Case Folder**.")
         self.assertEqual([f.message for f in findings], ["not a string of the application: Open Case Folder"])
+
+    def test_listed_manual_term_is_accepted_and_an_unlisted_one_is_reported(self):
+        with mock.patch.object(check_docs, "MANUAL_TERMS", {"Signal aspect"}):
+            findings = self.manual_names("Read the **Signal aspect** and the **Rnu**.")
+        self.assertEqual([f.message for f in findings], ["not a string of the application: Rnu"])
 
     def test_list_heading_and_key_are_not_ui_names(self):
         self.assertEqual(self.manual_names("- **Not a name.** **Nor this:** text", "", "Press **Ctrl+F** or **Esc**."), [])

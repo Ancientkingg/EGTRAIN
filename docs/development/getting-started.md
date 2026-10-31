@@ -241,9 +241,10 @@ which has no Qt dependency and builds quickly. It starts from the finished build
 5. Format the file if you keep the change (`python3 tools/format.py --fix`), or drop it with
    `git restore EGTRAIN/QEGTRAIN/tests/test_timeformat.cpp`.
 
-For a validation rule, follow the same steps with `tests/test_scenevalidator.cpp`: build a model that
-breaks the rule and check the diagnostic with `hasCodeAndSeverity`. A new test needs an `egtrain_add_test`
-entry with its labels in `EGTRAIN/QEGTRAIN/tests/CMakeLists.txt`; [Tests](coding-guidelines.md#tests) shows how.
+For a validation rule, follow the same steps in a new slot of `tests/test_scenevalidator.cpp`: build a
+model that breaks the rule and check the diagnostic with `hasCodeAndSeverity`. A new test needs an
+`egtrain_add_test` entry with its labels in `EGTRAIN/QEGTRAIN/tests/CMakeLists.txt`;
+[Tests](coding-guidelines.md#tests) shows how.
 
 ## Where output goes
 

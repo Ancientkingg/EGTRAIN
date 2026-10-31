@@ -34,7 +34,7 @@ nested ZIP entries are excluded; see
 Required keys:
 
 - `schema_version`: integer `1`.
-- `name`: non-empty string.
+- `name`: string, which may be empty.
 
 Optional keys:
 
@@ -79,10 +79,10 @@ empty or omitted on input and are emitted by the writer.
 
 ## `stations.json`
 
-The root key is `stations`. Each station has required string `id` and `name`,
-optional numeric `position_km`, and optional `platforms`. A platform has an
-`id`, an optional `nodes` array of node IDs, and optional positive finite
-`length_m` and `width_m` values. Missing dimensions retain the V1 compatibility
+The root key is `stations`. Each station has required string `id` and `name`
+(`name` may be empty), optional numeric `position_km`, and optional
+`platforms`. A platform has an `id`, an optional `nodes` array of node IDs,
+and optional positive finite `length_m` and `width_m` values. Missing dimensions retain the V1 compatibility
 defaults of 100 m by 2.5 m. The passenger runtime derives integer platform
 capacity from the effective dimensions and rejects values that produce less
 than one passenger or exceed its integer capacity field.
@@ -342,8 +342,9 @@ physical running-time predictions.
 ## `scenarios.json`
 
 The preferred root keys are `default_scenario_id` and `scenarios`. The default
-ID selects one named scenario. Each scenario has required `id`, `name`, and
-`incidents` array; it may have `description` and `entrance_delays`.
+ID selects one named scenario. Each scenario has required `id`, `name` (which
+may be empty), and `incidents` array; it may have `description` and
+`entrance_delays`.
 
 Each incident is concrete input with `id`, `type` (`signal_failure` or
 `train_breakdown`), `target`, and finite non-negative `start_seconds`.
@@ -646,6 +647,15 @@ In particular, a timetable
 sentinel of `-1` means the corresponding planned arrival or departure is
 absent; the importer neither synthesizes a result nor changes an inconsistent
 source time.
+
+A legacy file that cannot be opened, or is not valid UTF-16, is reported as
+unreadable (`scene.import.read`) or missing. For most files that is a warning:
+the file counts as skipped and none of its rows is imported. For `Stations.txt`
+and the train, train data, traction, timetable and route files of the trains, it
+is an error, and an import with an error writes no case. The two passenger files
+count only together: when one of them is missing, the other is skipped with the
+warning `scene.import.passengers`, and when both exist but one cannot be read,
+that is an error. A number written as `nan` or `inf` counts as malformed.
 
 A `TrackLines/AreasCaseStudy.txt` is reported in `import_report` and in a
 warning, but its rows are not converted: add the signalling areas in
