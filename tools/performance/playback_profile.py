@@ -92,6 +92,12 @@ BOOLEAN_KEYS = {"passenger_gui", "clean_stop"}
 FLOAT_KEYS = {"target_zoom", "actual_zoom"}
 STRING_KEYS = (RUN_KEYS | AGGREGATE_KEYS | COMPLETION_KEYS) - INTEGER_KEYS - BOOLEAN_KEYS - FLOAT_KEYS
 OPTIONAL_PATHS = {"gui/train_motion/step"}
+# Drawn only while the passenger display is on, which the window turns off for a scene without passengers.
+PASSENGER_PATHS = {
+    "gui/snapshot_delivery/render_frame/platforms",
+    "gui/snapshot_delivery/render_frame/passenger_icons",
+    "gui/snapshot_delivery/render_frame/train_passenger_info",
+}
 MANDATORY_PATHS = PATHS - OPTIONAL_PATHS
 
 
@@ -194,8 +200,6 @@ def validate_trial(records: list[dict], *, trial: int, view: str, duration_ms: i
         raise ValueError("Qt platform does not match the request")
     if run["build_type"] not in {"Debug", "Release", "RelWithDebInfo", "MinSizeRel"}:
         raise ValueError("unknown build type")
-    if not run["passenger_gui"]:
-        raise ValueError("recorded playback modes mismatch")
     if not structural:
         if platform.system() != "Darwin" or run["platform"] != "macOS" or run["qt_platform"] != "cocoa":
             raise ValueError("recorded evidence requires native macOS Cocoa")
@@ -205,8 +209,9 @@ def validate_trial(records: list[dict], *, trial: int, view: str, duration_ms: i
     aggregate_paths = [record["path"] for record in aggregates]
     aggregates_by_path = {record["path"]: record for record in aggregates}
     path_set = set(aggregate_paths)
-    if (len(aggregate_paths) != len(path_set) or not path_set <= PATHS
-            or not MANDATORY_PATHS <= path_set):
+    allowed = PATHS if run["passenger_gui"] else PATHS - PASSENGER_PATHS
+    if (len(aggregate_paths) != len(path_set) or not path_set <= allowed
+            or not (MANDATORY_PATHS & allowed) <= path_set):
         raise ValueError("missing, unknown, or duplicate aggregate path")
     for aggregate in aggregates:
         if (aggregate["lane"], aggregate["parent"]) != PARENTS[aggregate["path"]]:
@@ -408,6 +413,9 @@ def main() -> None:
     with (output / "records.jsonl").open("w", encoding="utf-8") as handle:
         for record in all_records:
             handle.write(json.dumps(record, separators=(",", ":"), sort_keys=True) + "\n")
+    passenger_gui = {record["passenger_gui"] for record in all_records if record["type"] == "run"}
+    if len(passenger_gui) != 1:
+        raise SystemExit("the trials disagree on the passenger display")
     summary = summarize(self_by_trial, structural=args.structural_test)
     (output / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     lines = [
@@ -416,7 +424,7 @@ def main() -> None:
         f"Evidence status: {summary['evidence_status']}",
         f"Platform/build: {platform.system()} / records validated per trial",
         f"Settings: scenario={args.scenario}, views={','.join(args.views)}, duration={args.duration:g}s, "
-        f"delay={args.step_delay}ms, trials={args.trials}, passenger GUI on, horizon=8000",
+        f"delay={args.step_delay}ms, trials={args.trials}, passenger GUI {'on' if passenger_gui.pop() else 'off'}, horizon=8000",
         "Reproduce: tools/performance/playback_profile.py --app <release-app> --scene <copenhagen-scene> "
         "--scenario default --views fit dense --duration 30 --step-delay 250 --trials 3 --output <new-output-dir>",
         "Decision rule: a path qualifies when it is its lane's largest self-time path in at least 2/3 "

@@ -9,14 +9,14 @@ import playback_profile as profile
 SIGNALLING_SOURCE = profile.REPO_ROOT / "EGTRAIN" / "QEGTRAIN" / "simulation" / "Signalling.cpp"
 
 
-def records(*, paints=1, structural=True):
+def records(*, paints=1, structural=True, passenger_gui=True):
     host = {"Darwin": "macOS", "Linux": "Linux", "Windows": "Windows"}[profile.platform.system()]
     run = {
         "type": "run", "schema": 1, "trial": 1, "view": "fit", "platform": host,
         "architecture": "arm64", "qt_platform": "offscreen", "build_type": "Debug",
         "case": "Copenhagen", "requested_scenario": "default", "scenario": "baseline",
         "default_scenario": "baseline", "target_zoom": 1.0, "actual_zoom": 1.0,
-        "duration_ms": 50, "delay_ms": 0, "passenger_gui": True, "horizon": 8000, "clock": "steady_clock_ns",
+        "duration_ms": 50, "delay_ms": 0, "passenger_gui": passenger_gui, "horizon": 8000, "clock": "steady_clock_ns",
         "scope": "post_startup_playback", "mode": "structural" if structural else "recorded",
     }
     totals = {
@@ -45,7 +45,7 @@ def records(*, paints=1, structural=True):
         "type": "aggregate", "path": path, "lane": profile.PARENTS[path][0],
         "parent": profile.PARENTS[path][1], "calls": 10, "total_ns": total,
         "min_ns": 1 if total >= 10 else 0, "median_ns": 2, "p95_ns": min(10, total), "max_ns": min(10, total),
-    } for path, total in totals.items()]
+    } for path, total in totals.items() if passenger_gui or path not in profile.PASSENGER_PATHS]
     completion = {
         "type": "completion", "observed_ns": 50_000_000, "start_timestep": 1, "end_timestep": 2,
         "timesteps": 2, "deliveries": 1, "rendered_updates": 1, "paints": paints,
@@ -99,6 +99,17 @@ class PlaybackProfileTests(unittest.TestCase):
         self.assertEqual(len(row["trial_self_totals"]), 3)
         self.assertFalse(row["trial_self_totals"][2]["observed"])
         self.assertFalse(row["trial_self_totals"][2]["meets_decision_rule"])
+
+    def test_passenger_paths_follow_the_passenger_display(self):
+        profile.validate_trial(records(passenger_gui=False), trial=1, view="fit", duration_ms=50,
+                               delay_ms=0, structural=True)
+        for path in profile.PASSENGER_PATHS:
+            with self.subTest(path=path):
+                bad = records(passenger_gui=False)
+                bad.insert(-1, next(record for record in records() if record.get("path") == path))
+                with self.assertRaisesRegex(ValueError, "missing, unknown, or duplicate"):
+                    profile.validate_trial(bad, trial=1, view="fit", duration_ms=50,
+                                           delay_ms=0, structural=True)
 
     def test_each_missing_mandatory_path_is_rejected(self):
         for missing in profile.MANDATORY_PATHS:
