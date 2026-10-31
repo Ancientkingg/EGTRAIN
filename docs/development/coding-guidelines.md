@@ -244,12 +244,15 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   The infrastructure and the routes are `SimulationRun::infra`, a `RunInfrastructure`: the
   tracks, connections and stations (`blockSets`, `connections` and `stations`, vectors with
   a fixed number of elements that nothing resizes), the block sections, the detection sections,
-  the single-track data, with the zones that `singleTrackZone` derives from it, and the routes.
+  the single-track data, with the zones that `singleTrackZone` derives from it, and the routes,
+  with a number for each section ID by which the signalling step finds the occupied sections.
   The scene builder replaces them and the previous ones
   stay until then, so `resetInfrastructure()` is a separate call, and a build that fails puts the
   earlier infrastructure back as it was. The canvas keeps `Node*`, `Arc*` and `Connections*` into
   the arrays, so `MainWindow` removes its items before a reset or a build. A new member of the
-  infrastructure needs a line in `RunInfrastructure::reset()`.
+  infrastructure needs a line in `RunInfrastructure::reset()`. `setUpRoutesFromScene` numbers the
+  section IDs of the routes with `RunInfrastructure::numberRouteSections()`, and code that changes
+  the routes afterwards, as some tests do, calls it again.
   `SimulationRun::trains` is the `std::vector<Train>` of the run, created with the
   number of trains of the scene; `Max_N_Reg` is
   only the limit that validation and the editor enforce on that number. A `Train` keeps

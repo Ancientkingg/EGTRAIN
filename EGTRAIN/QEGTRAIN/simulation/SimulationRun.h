@@ -11,6 +11,7 @@
 #include <list>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 #include <vector>
 
 /// The infrastructure and the routes that the scene builder makes: the tracks, connections and stations of the network, its block
@@ -68,7 +69,16 @@ struct RunInfrastructure {
 	std::vector<Route> routes;
 	/// Number of routes.
 	int numRoutes = 0;
+	/// A number for each distinct section ID of the routes, counted from 0, so that the signalling step marks the occupied and
+	/// connected sections by number and reads the marks of each route by number. numberRouteSections() fills it.
+	std::unordered_map<std::string, int> sectionIdNumbers;
+	/// For each route, the number of the ID of each of its sections. numberRouteSections() fills it.
+	std::vector<std::vector<int>> routeSectionNumbers;
 
+	/// Numbers the section IDs of the routes again. setUpRoutesFromScene calls it once the routes are built. Code that changes the
+	/// routes or the ID of a route section afterwards calls it before the next signalling step, so the numbers never describe other
+	/// routes.
+	void numberRouteSections();
 	/// Returns every member to the state of a new object.
 	void reset();
 };

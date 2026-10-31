@@ -65,7 +65,8 @@ std::string arrayText(const std::vector<Element>& elements, Used used) {
 
 Description describeInfrastructure(const RunInfrastructure& infrastructure) {
 	const auto& [tracks, links, stationArray, trackCount, linkCount, stationCount, sections, blockCount, detectionSections, infraEvents,
-		exceedPlan, limits, held, reservations, zones, zoneLimits, zoneRoutes, routeZone, zonesDerived, boundaries, routes, routeCount] = infrastructure;
+		exceedPlan, limits, held, reservations, zones, zoneLimits, zoneRoutes, routeZone, zonesDerived, boundaries, routes, routeCount,
+		sectionIdNumbers, routeSectionNumbers] = infrastructure;
 	return {{"infra.blockSets", arrayText(tracks, [](const BlockSet& track) { return !track.sceneTrackId.empty() || !track.N.empty(); })},
 		{"infra.connections", arrayText(links, [](const Connections& link) { return !link.ID.empty(); })},
 		{"infra.stations", arrayText(stationArray, [](const Stations& station) { return !station.stationName.empty(); })},
@@ -87,7 +88,9 @@ Description describeInfrastructure(const RunInfrastructure& infrastructure) {
 		{"infra.singleTrackZonesDerived", std::to_string(zonesDerived)},
 		{"infra.stationBoundaries", std::to_string(boundaries.size())},
 		{"infra.routes", std::to_string(routes.size())},
-		{"infra.numRoutes", std::to_string(routeCount)}};
+		{"infra.numRoutes", std::to_string(routeCount)},
+		{"infra.sectionIdNumbers", std::to_string(sectionIdNumbers.size())},
+		{"infra.routeSectionNumbers", std::to_string(routeSectionNumbers.size())}};
 }
 
 Description describe(const SimulationRun& run) {
@@ -225,6 +228,8 @@ void fill(SimulationRun& run) {
 	infrastructure.stationBoundaries.emplace_back(&infrastructure.sections[0], false, nullptr);
 	infrastructure.routes.resize(1);
 	infrastructure.numRoutes = 1;
+	infrastructure.sectionIdNumbers.emplace("1-B0", 0);
+	infrastructure.routeSectionNumbers.push_back({0});
 }
 
 // The files a run wrote, by path below its output folder, with their content.

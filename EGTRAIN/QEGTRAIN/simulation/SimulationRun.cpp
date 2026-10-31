@@ -31,6 +31,22 @@ void RunInfrastructure::reset() {
 	stationBoundaries.clear();
 	routes.clear();
 	numRoutes = 0;
+	sectionIdNumbers.clear();
+	routeSectionNumbers.clear();
+}
+
+void RunInfrastructure::numberRouteSections() {
+	sectionIdNumbers.clear();
+	routeSectionNumbers.assign(routes.size(), {});
+	for (std::size_t r = 0; r < routes.size(); ++r) {
+		const Route& route = routes[r];
+		std::vector<int>& numbers = routeSectionNumbers[r];
+		numbers.reserve(static_cast<std::size_t>(route.N_Block_Sections));
+		for (int h = 0; h < route.N_Block_Sections; ++h) {
+			const int next = static_cast<int>(sectionIdNumbers.size());
+			numbers.push_back(sectionIdNumbers.try_emplace(route.sequence_of_block_sections[h].ID, next).first->second);
+		}
+	}
 }
 
 void SimulationRun::reset() {

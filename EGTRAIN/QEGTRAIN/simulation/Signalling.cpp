@@ -10,8 +10,8 @@
 #include <cstddef>
 #include <cstdlib>
 #include <iterator>
+#include <list>
 #include <memory>
-#include <string_view>
 #include <unordered_set>
 #include <utility>
 
@@ -2666,13 +2666,23 @@ void releaseBlocksMixedSignalling(Section* BS, int Blocks, const char* connected
 /***********************************************************************************************************************************************************************************************************/
 
 namespace {
-// Sets flags[h] to 1 when the ID of section h of the route is in ids, otherwise to 0.
-void setIdFlags(const Route& route, const std::unordered_set<std::string_view>& ids, std::vector<char>& flags) {
-	flags.assign(route.N_Block_Sections, 0);
-	if (ids.empty())
-		return;
-	for (int h = 0; h < route.N_Block_Sections; h++)
-		flags[h] = ids.count(route.sequence_of_block_sections[h].ID) != 0 ? 1 : 0;
+// Sets marks[n] to value for the number n of each ID in [first, last) (RunInfrastructure::sectionIdNumbers). An ID that no route
+// section has gets no mark.
+void markSectionIds(const RunInfrastructure& infra, std::list<std::string>::const_iterator first,
+	std::list<std::string>::const_iterator last, std::vector<char>& marks, char value) {
+	for (; first != last; ++first) {
+		const auto number = infra.sectionIdNumbers.find(*first);
+		if (number != infra.sectionIdNumbers.end())
+			marks[static_cast<std::size_t>(number->second)] = value;
+	}
+}
+
+// Sets flags[h] to the mark of the ID of section h of route routeIndex.
+void setRouteFlags(const RunInfrastructure& infra, int routeIndex, const std::vector<char>& marks, std::vector<char>& flags) {
+	const std::vector<int>& numbers = infra.routeSectionNumbers[static_cast<std::size_t>(routeIndex)];
+	flags.resize(numbers.size());
+	for (std::size_t h = 0; h < numbers.size(); ++h)
+		flags[h] = marks[static_cast<std::size_t>(numbers[h])];
 }
 
 // The bit of routeLevelMask for a level.
@@ -2699,10 +2709,10 @@ void activateMixedSignallingSystem(SimulationRun& run) {
 }
 
 void activateMixedSignallingSystem(SimulationRun& run, double redSpeed1, double redSpeed2) {
-	// The set holds views of the entries of BlocksOccupied, so the entries a route adds leave the set before they leave the list.
-	std::unordered_set<std::string_view> occupiedIds;
-	occupiedIds.reserve(run.blocksOccupied.size());
-	occupiedIds.insert(run.blocksOccupied.begin(), run.blocksOccupied.end());
+	// One mark for each numbered section ID, set while the ID is in BlocksOccupied. The entries that a route adds are marked
+	// for that route only.
+	std::vector<char> occupiedIds(run.infra.sectionIdNumbers.size(), 0);
+	markSectionIds(run.infra, run.blocksOccupied.begin(), run.blocksOccupied.end(), occupiedIds, 1);
 	std::vector<char> occupied;
 	for (int i = 0; i < run.infra.numRoutes; i++) {
 		// the sections of a single-track section held by a train of the other direction are occupied for this route only
@@ -2713,8 +2723,8 @@ void activateMixedSignallingSystem(SimulationRun& run, double redSpeed1, double 
 		// behind an occupied section of that level, so a route without a section of the level skips it.
 		const unsigned levels = routeLevelMask(route);
 		if (levels != 0) {
-			occupiedIds.insert(firstAdded, run.blocksOccupied.end());
-			setIdFlags(route, occupiedIds, occupied);
+			markSectionIds(run.infra, firstAdded, run.blocksOccupied.end(), occupiedIds, 1);
+			setRouteFlags(run.infra, i, occupiedIds, occupied);
 			// A train must be able to leave both halves before it enters a crossover. Walk forwards so this
 			// route-local occupancy does not propagate recursively through adjacent crossover chains.
 			for (int b = 0; b + 2 < route.N_Block_Sections; ++b) {
@@ -2724,8 +2734,7 @@ void activateMixedSignallingSystem(SimulationRun& run, double redSpeed1, double 
 					&& first.end_node.virtualSignal && second.start_node.virtualSignal && occupied[b + 2])
 					occupied[b] = 1;
 			}
-			for (auto added = firstAdded; added != run.blocksOccupied.end(); ++added)
-				occupiedIds.erase(*added);
+			markSectionIds(run.infra, firstAdded, run.blocksOccupied.end(), occupiedIds, 0);
 		}
 		// Set all the speed limits coming from the Infrastructure
 		setInfraSpeedLimits(route.sequence_of_block_sections.data(), route.N_Block_Sections);
@@ -2775,13 +2784,12 @@ void releaseMixedSignallingSystem(SimulationRun& run) {
 		"worker/playback_step/compute/infrastructure_signalling_cleanup");
 	if (run.blocksConnected.empty())
 		return;
-	// The set holds views of the entries of BlocksConnected.
-	std::unordered_set<std::string_view> connectedIds;
-	connectedIds.reserve(run.blocksConnected.size());
-	connectedIds.insert(run.blocksConnected.begin(), run.blocksConnected.end());
+	// One mark for each numbered section ID that is in BlocksConnected.
+	std::vector<char> connectedIds(run.infra.sectionIdNumbers.size(), 0);
+	markSectionIds(run.infra, run.blocksConnected.begin(), run.blocksConnected.end(), connectedIds, 1);
 	std::vector<char> connected;
 	for (int t = 0; t < run.infra.numRoutes; t++) {
-		setIdFlags(run.infra.routes[t], connectedIds, connected);
+		setRouteFlags(run.infra, t, connectedIds, connected);
 		releaseBlocksMixedSignalling(run.infra.routes[t].sequence_of_block_sections.data(), run.infra.routes[t].N_Block_Sections, connected.data());
 	}
 }

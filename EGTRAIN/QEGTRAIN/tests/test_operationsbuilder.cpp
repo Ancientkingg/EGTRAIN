@@ -133,6 +133,7 @@ private slots:
 	void unsetLevelTakesNoChainOfLevel0();
 	void trainStorageHoldsLastBuild();
 	void singleTrackLocks();
+	void signallingFindsSectionsById();
 	void rollingStockMessages();
 	void aspectIsRestrictive_data();
 	void aspectIsRestrictive();
@@ -4309,6 +4310,7 @@ static std::vector<Section> borderAspects(int west, int east, int tail) {
 	defaultRun().infra.routes[0].N_Block_Sections = 8;
 	defaultRun().infra.routes[0].sequence_of_block_sections = std::move(sections);
 	defaultRun().infra.numRoutes = 1;
+	defaultRun().infra.numberRouteSections();
 	defaultRun().blocksOccupied = {defaultRun().infra.routes[0].sequence_of_block_sections[tail].ID,
 		defaultRun().infra.routes[0].sequence_of_block_sections[tail + 1].ID};
 	activateMixedSignallingSystem(defaultRun());
@@ -4316,6 +4318,7 @@ static std::vector<Section> borderAspects(int west, int east, int tail) {
 	defaultRun().blocksOccupied = savedOccupied;
 	defaultRun().infra.numRoutes = savedRouteCount;
 	defaultRun().infra.routes.swap(savedRoutes);
+	defaultRun().infra.numberRouteSections();
 	return sections;
 }
 
@@ -4532,6 +4535,7 @@ void TestOperationsBuilder::singleTrackLocks() {
 		defaultRun().infra.numRoutes = savedRouteCount;
 		resetSingleTrackLocks(defaultRun());
 		defaultRun().infra.routes.swap(savedRoutes);
+		defaultRun().infra.numberRouteSections();
 	});
 	defaultRun().signallingDelay = 0.0;
 
@@ -4552,6 +4556,7 @@ void TestOperationsBuilder::singleTrackLocks() {
 			arc.gradient = arc.curvature = 0.0;
 		}
 	}
+	defaultRun().infra.numberRouteSections();
 	defaultRun().infra.singleTrackLimits.clear();
 	defaultRun().infra.singleTrackLimits.emplace_back("lock.1", "lock.4", "lock.0", "lock.5");
 	resetSingleTrackLocks(defaultRun());
@@ -5012,6 +5017,113 @@ void TestOperationsBuilder::singleTrackLocks() {
 	QVERIFY(singleTrackZone(defaultRun(), 0, 1).intervals.empty());
 	QCOMPARE(singleTrackZone(defaultRun(), 0, 0).intervals.size(), std::size_t(3));
 	resetSingleTrackLocks(defaultRun());
+}
+
+static bool listHas(const std::list<std::string>& ids, const std::string& id) {
+	return std::find(ids.begin(), ids.end(), id) != ids.end();
+}
+
+// True when every route section has the number of its ID and different IDs have different numbers.
+static bool numbersFollowIds(const RunInfrastructure& infra) {
+	if (infra.routeSectionNumbers.size() != infra.routes.size())
+		return false;
+	std::vector<std::string> idOfNumber(infra.sectionIdNumbers.size());
+	for (const auto& [id, number] : infra.sectionIdNumbers) {
+		const auto index = static_cast<std::size_t>(number);
+		if (number < 0 || index >= idOfNumber.size() || !idOfNumber[index].empty())
+			return false;
+		idOfNumber[index] = id;
+	}
+	for (std::size_t r = 0; r < infra.routes.size(); ++r) {
+		const Route& route = infra.routes[r];
+		const std::vector<int>& numbers = infra.routeSectionNumbers[r];
+		if (numbers.size() != static_cast<std::size_t>(route.N_Block_Sections))
+			return false;
+		for (std::size_t h = 0; h < numbers.size(); ++h) {
+			const auto index = static_cast<std::size_t>(numbers[h]);
+			if (numbers[h] < 0 || index >= idOfNumber.size() || idOfNumber[index] != route.sequence_of_block_sections[h].ID)
+				return false;
+		}
+	}
+	return true;
+}
+
+// The signalling step finds the occupied and the connected sections of each route by the number of their ID. Two routes share
+// a section with a third, and the route against the holder of a single-track limit treats the zone as occupied for itself only.
+// Each route sees exactly the sections whose ID is in the lists, as a comparison of the IDs gives them.
+void TestOperationsBuilder::signallingFindsSectionsById() {
+	// The builder numbers the routes that it builds.
+	const auto built = std::make_unique<SimulationRun>();
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(*built, throughScene())));
+	QVERIFY(!built->infra.routes.empty());
+	QVERIFY(numbersFollowIds(built->infra));
+
+	// Sections of level 3, where the activation gives code 0 to the sections that the route sees as occupied and nothing else.
+	const auto makeRoute = [](const std::vector<std::string>& ids, bool reversed) {
+		Route route;
+		route.N_Block_Sections = static_cast<int>(ids.size());
+		route.reversed_direction = reversed;
+		route.sequence_of_block_sections = boundarySections(route.N_Block_Sections);
+		for (std::size_t b = 0; b < ids.size(); ++b) {
+			Section& section = route.sequence_of_block_sections[b];
+			section.ID = ids[b];
+			section.SignallingLevel = 3;
+			section.code = 270;
+		}
+		return route;
+	};
+	const auto run = std::make_unique<SimulationRun>();
+	RunInfrastructure& infra = run->infra;
+	// Route 1 runs against the holder of the limit over z1 and z2, route 2 after it runs with the holder.
+	infra.routes = {makeRoute({"a", "shared", "b"}, false), makeRoute({"shared", "z1", "z2", "c"}, true),
+		makeRoute({"d", "z1", "z2", "shared", "e"}, false)};
+	infra.numRoutes = 3;
+	infra.numberRouteSections();
+	QVERIFY(numbersFollowIds(infra));
+	// One number for an ID that several routes have.
+	QCOMPARE(infra.sectionIdNumbers.size(), std::size_t(8));
+	QCOMPARE(infra.routeSectionNumbers[1][0], infra.routeSectionNumbers[0][1]);
+	QCOMPARE(infra.routeSectionNumbers[2][3], infra.routeSectionNumbers[0][1]);
+	infra.singleTrackLimits.emplace_back("z1", "z2", "z1", "z2");
+	resetSingleTrackLocks(*run);
+	infra.singleTrackHeld = {1};
+
+	// A train of route 0 occupies the shared section. An ID that no route has changes nothing.
+	const std::list<std::string> occupied = {"shared", "elsewhere"};
+	run->blocksOccupied = occupied;
+	activateMixedSignallingSystem(*run);
+	// The sections that route 1 added for itself are gone from the list again.
+	QVERIFY(run->blocksOccupied == occupied);
+	for (int r = 0; r < infra.numRoutes; ++r) {
+		const Route& route = infra.routes[r];
+		const std::vector<std::string>& zone = singleTrackZone(*run, 0, r).sectionIDs;
+		for (int h = 0; h < route.N_Block_Sections; ++h) {
+			const std::string& id = route.sequence_of_block_sections[h].ID;
+			const bool expected = listHas(occupied, id)
+				|| (route.reversed_direction && std::find(zone.begin(), zone.end(), id) != zone.end());
+			QVERIFY2((route.sequence_of_block_sections[h].code == 0) == expected,
+				("route " + std::to_string(r) + " sees " + id + (expected ? " as occupied" : " as free")).c_str());
+		}
+	}
+
+	// The release clears a connected section and the four sections before it on every route that has it.
+	for (Route& route : infra.routes)
+		for (Section& section : route.sequence_of_block_sections)
+			section.code = 5;
+	const std::list<std::string> connected = {"shared", "elsewhere"};
+	run->blocksConnected = connected;
+	releaseMixedSignallingSystem(*run);
+	QVERIFY(run->blocksConnected == connected);
+	for (int r = 0; r < infra.numRoutes; ++r) {
+		const Route& route = infra.routes[r];
+		for (int h = 0; h < route.N_Block_Sections; ++h) {
+			bool expected = false;
+			for (int k = h; k < route.N_Block_Sections && k <= h + 4; ++k)
+				expected = expected || listHas(connected, route.sequence_of_block_sections[k].ID);
+			QVERIFY2((route.sequence_of_block_sections[h].code == 270) == expected,
+				("route " + std::to_string(r) + " releases " + route.sequence_of_block_sections[h].ID + ": " + (expected ? "yes" : "no")).c_str());
+		}
+	}
 }
 
 // The messages of the rolling stock, passenger and run settings code are messages of the logging core. A sink collects them, because
