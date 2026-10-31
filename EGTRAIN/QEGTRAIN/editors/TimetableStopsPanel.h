@@ -46,8 +46,9 @@ public:
 	/// Moves the selected stop one place later.
 	void moveStopDown();
 	/// Opens the dialog of the stop in this row of the table. A negative row adds a stop at `insertIndex`, or at the end
-	/// when that is negative. An accepted dialog changes the service only while the scene can be edited and the service
-	/// is the same as when the dialog opened; otherwise it changes nothing.
+	/// when that is negative. Before the dialog copies the service, the panel emits commitPendingEditsRequested(). An
+	/// accepted dialog changes the service only while the scene can be edited and the service is the same as when the
+	/// dialog opened; otherwise it changes nothing.
 	void editStop(int row, int insertIndex = -1);
 
 	/// The stops: station, stop platform, minimum dwell in seconds, planned arrival and planned departure.
@@ -72,6 +73,10 @@ public:
 Q_SIGNALS:
 	/// The table shows the stops again, so what depends on the timetable of the services is out of date.
 	void timetableRefreshed();
+	/// The text that is still being typed in the other panels has to be taken into the document now, because the stop
+	/// dialog is about to copy the service. Otherwise that text is taken when the dialog takes the focus, and a change of
+	/// the service that it makes keeps the stop of the dialog out.
+	void commitPendingEditsRequested();
 
 protected:
 	/// Lists the stops again when the case settings or the infrastructure change.

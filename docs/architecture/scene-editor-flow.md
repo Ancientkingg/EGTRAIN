@@ -190,7 +190,11 @@ saveable, with a reason beside the platform selector. Route edits never delete
 or silently retarget stops.
 
 Clicking or keyboard-activating a timetable row opens a copied-stop dialog.
-Accept validates the focused fields and commits once; Cancel changes nothing,
+Before the panel copies the service, it emits `commitPendingEditsRequested`, and
+the window takes the text that is still being typed in the other panels. On
+macOS a button does not take the focus, so a composition id typed without Enter
+would otherwise be taken when the dialog takes the focus, and its change of the
+service would keep the stop of the dialog out. Accept validates the focused fields and commits once; Cancel changes nothing,
 including when adding a stop. An accepted dialog changes nothing either when the
 scene was replaced or closed for edits, or the service changed, while it was
 open. The matrix and dialog offer Elapsed/Clock time

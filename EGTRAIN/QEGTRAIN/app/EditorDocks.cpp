@@ -373,6 +373,8 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	QObject::connect(m_servicePanel, &ServicePanel::selectedServiceChanged, m_timetableStopsPanel,
 		&TimetableStopsPanel::setServiceId);
 	QObject::connect(m_timetableStopsPanel, &TimetableStopsPanel::changed, m_window, [this] { m_host.refreshValidationPanel(); });
+	QObject::connect(m_timetableStopsPanel, &TimetableStopsPanel::commitPendingEditsRequested, m_window,
+		[this] { m_host.commitPendingEditorValues(); });
 	QObject::connect(m_servicePanel, &ServicePanel::changed, m_window, [this] { m_host.refreshValidationPanel(); });
 	m_servicePanel->setDocument(m_document);
 	m_timetableStopsPanel->setDocument(m_document);

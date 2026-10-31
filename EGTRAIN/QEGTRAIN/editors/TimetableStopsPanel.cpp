@@ -311,8 +311,13 @@ void TimetableStopsPanel::updateActions() {
 }
 
 void TimetableStopsPanel::editStop(int row, int insertIndex) {
+	if (!canEdit())
+		return;
+	// On macOS a button does not take the focus, so a field of another panel can still hold typed text when Add Stop is
+	// clicked. The window takes that text now, before the copy. It can rename the service, which is looked up after it.
+	emit commitPendingEditsRequested();
 	const int serviceIndex = serviceRow();
-	if (!canEdit() || serviceIndex < 0)
+	if (serviceIndex < 0)
 		return;
 	const SceneModel& model = m_document->model();
 	// The service as the dialog opens. The dialog works on copies, and its stop enters the service only while the service

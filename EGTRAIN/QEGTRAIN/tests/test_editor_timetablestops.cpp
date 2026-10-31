@@ -326,6 +326,8 @@ private slots:
 	void addAppliesNothingToReplacedScene();
 	void editAppliesNothingWhenServiceChanged();
 	void editAppliesAfterChangeOutsideServices();
+	void takesPendingTextBeforeCopyingService();
+	void addAppliesNothingWhenStopNoLongerFits();
 	void leavesNoEmptyBandInFormOfMacOs();
 };
 
@@ -1510,6 +1512,72 @@ void TestTimetableStopsPanel::editAppliesAfterChangeOutsideServices() {
 	QCOMPARE(f.events.log, editLog);
 	QCOMPARE(f.document.lastChangeLabel(), "Edit timetable stop");
 	QCOMPARE(f.panel.table()->currentRow(), 1);
+}
+
+// The text that another panel still holds is taken before the dialog copies the service. Here it renames the
+// composition of the service, as the composition panel does with a typed id. Without the request the field would give
+// its text up only when the dialog takes the focus, and that change of the service would keep the stop of the dialog out.
+void TestTimetableStopsPanel::takesPendingTextBeforeCopyingService() {
+	StopsFixture f;
+	f.panel.setServiceId("service-1");
+	bool pending = true;
+	const auto takePendingText = [&f, &pending] {
+		if (!pending)
+			return;
+		pending = false;
+		QVERIFY(f.document.edit(SceneDocument::Compositions | SceneDocument::Services, "Rename composition",
+			[](SceneModel& model) { model.services[0].composition = "composition-2"; }));
+	};
+	int requests = 0;
+	QObject::connect(&f.panel, &TimetableStopsPanel::commitPendingEditsRequested, &f.panel, [&] {
+		++requests;
+		takePendingText();
+	});
+	const DialogRun run = runDialog(
+		f.panel,
+		[&](QDialog& dialog) {
+			// The field that kept the focus loses it to the dialog.
+			takePendingText();
+			edit(dialog, "stopEditorDwellEdit")->setText("45");
+			f.events.log.clear();
+			click(dialog, "stopEditorAcceptButton");
+		},
+		[&] { f.panel.editStop(1); });
+	QVERIFY(run.opened);
+	QVERIFY(run.accepted);
+	QCOMPARE(f.document.model().services[0].composition, "composition-2");
+	QCOMPARE_EQ(f.document.model().services[0].stops[1].dwellSeconds, 45.0);
+	QCOMPARE(f.events.log, editLog);
+	QCOMPARE(f.document.lastChangeLabel(), "Edit timetable stop");
+	QCOMPARE(requests, 1);
+}
+
+// An added stop that the infrastructure no longer takes after a change while the dialog was open stays out of the
+// service, although the service is the one that the dialog opened on.
+void TestTimetableStopsPanel::addAppliesNothingWhenStopNoLongerFits() {
+	StopsFixture f;
+	f.panel.setServiceId("service-1");
+	quint64 revision = 0;
+	const DialogRun run = runDialog(
+		f.panel,
+		[&](QDialog& dialog) {
+			QCOMPARE(combo(dialog, "stopEditorStationCombo")->currentData().toString(), "station-d");
+			QComboBox* platform = combo(dialog, "stopEditorPlatformCombo");
+			platform->setCurrentIndex(platform->findData("platform-d"));
+			edit(dialog, "stopEditorDwellEdit")->setText("20");
+			QVERIFY(f.document.edit(SceneDocument::Infrastructure, "Delete station", [](SceneModel& model) { model.stations.pop_back(); }));
+			f.document.markSaved();
+			revision = f.document.revision();
+			f.events.log.clear();
+			click(dialog, "stopEditorAcceptButton");
+		},
+		[&] { f.panel.addStop(); });
+	QVERIFY(run.opened);
+	QVERIFY(run.accepted);
+	QCOMPARE(stationsOf(f.document.model().services[0]), std::vector<std::string>({"station-a", "station-b", "station-c"}));
+	QCOMPARE(f.document.revision(), revision);
+	QVERIFY(!f.document.isDirty());
+	QVERIFY(f.events.log.empty());
 }
 
 // With the form of macOS the messages of the stop dialog still take the width of their column, so that no row of the
