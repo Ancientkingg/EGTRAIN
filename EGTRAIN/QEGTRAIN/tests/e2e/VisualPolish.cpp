@@ -98,9 +98,10 @@ constexpr qreal kSignalDetailZoom = 8.0;
 // docks, the speed controls, the map key, the selection cues, the signal heads, the layer toggles, the context menus, the
 // Follow selector with its camera, the station squares and the colours of the services. It waits for trains on the canvas
 // (QEGTRAIN_AUTOSTART), and for trains of a coloured and of another service when the services have colours, which
-// renderSnapshot reports through the frameRendered hook on every live frame. QEGTRAIN_E2E_*_SCREENSHOT name the files for
-// pictures of the view. It then stops the run, prints E2E_VISUAL_POLISH_OK and exits with 0, or prints the failures and
-// exits with 2.
+// renderSnapshot reports through the frameRendered hook on every live frame. Before it clicks a train it pauses the run and
+// stops the delivery of its frames, so that the trains it checks stay on the canvas. QEGTRAIN_E2E_*_SCREENSHOT name the
+// files for pictures of the view. It then stops the run, prints E2E_VISUAL_POLISH_OK and exits with 0, or prints the
+// failures and exits with 2.
 void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	if (scenarioStarted)
 		return;
@@ -853,6 +854,18 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		}
 		return true;
 	};
+	// The checks from here on need trains that stay on the canvas, but the run goes on in its thread and takes a train
+	// off the network when its service ends. So the run is paused and its frames are no longer delivered. A delivery
+	// queued before the disconnect still comes, and the render limit can hold its frame back for a moment; both happen
+	// here, before a train is chosen. The run stays paused for the rest of the scenario.
+	if (w.m_runController->m_worker)
+		w.m_runController->m_worker->requestPause();
+	QObject::disconnect(&simulation, &DispatchController::snapshotAvailable, &w, &MainWindow::waitForUpdates);
+	QCoreApplication::sendPostedEvents(&w, QEvent::MetaCall);
+	QElapsedTimer heldFrameWait;
+	heldFrameWait.start();
+	while (w.m_trailingRenderTimer && w.m_trailingRenderTimer->isActive() && heldFrameWait.elapsed() < 1000)
+		QApplication::processEvents(QEventLoop::AllEvents, 20);
 	if (!w.scene || !w.networkView) {
 		ok = false;
 		failures << "cannot click a train without a scene and viewport";
@@ -1177,10 +1190,11 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	} else {
 		// Checkbox slots run synchronously. Do not deliver unrelated simulation
 		// frames between the ownership counts for this layer-only assertion.
+		// The clicked train is on the canvas; the first train of the run may have left the network.
 		const int initialItems = w.scene ? w.scene->items().size() : 0;
-		const bool initialTrainVisible = !w.m_presenter->runTrains().isEmpty() && w.m_presenter->runTrains().first()->isVisible();
+		const bool initialTrainVisible = selectedTrain && selectedTrain->isVisible();
 		trainLayer->setChecked(!trainLayer->isChecked());
-		if (w.m_presenter->runTrains().isEmpty() || w.m_presenter->runTrains().first()->isVisible() == initialTrainVisible) {
+		if (!selectedTrain || selectedTrain->isVisible() == initialTrainVisible) {
 			ok = false;
 			failures << "train layer toggle is not functional";
 		}
@@ -1373,9 +1387,6 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			failures << "no non-free track intersects default viewport";
 		}
 	}
-	if (w.m_runController->m_worker)
-		w.m_runController->m_worker->requestPause();
-
 	// Capture the readable default view before changing follow or zoom state.
 	if (w.networkView) {
 		for (int i = 0; i < 100; ++i)
