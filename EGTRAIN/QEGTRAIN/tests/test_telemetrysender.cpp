@@ -143,6 +143,45 @@ static TelemetryContext loopbackContext() {
 	context.endpoint = QStringLiteral("https://127.0.0.1:1/collect");
 	return context;
 }
+
+// Holds the worker at the start of a pump, before it takes the pending requests. The test takes in events and changes
+// consent there, and it may read the queue files. beforeFlagsRead calls atPump().
+class PumpHold {
+public:
+	void atPump() {
+		if (!m_armed.exchange(false)) return;
+		m_reached.release();
+		RECORD_VERIFY(m_resume.tryAcquire(1, 3000));
+	}
+	// Makes the next pump hold. Arm before a release, so that the pump after the held one cannot slip through.
+	void arm() { m_armed = true; }
+	// Waits until the worker holds in the armed pump.
+	bool reached() { return m_reached.tryAcquire(1, 3000); }
+	// Lets the held pump go on.
+	void release() { m_resume.release(); }
+	// Waits until the worker holds at the start of its next pump.
+	bool holdNext() {
+		arm();
+		return reached();
+	}
+	// Lets the held pump run to its end and waits until the worker holds at the start of the next one.
+	bool nextPump() {
+		arm();
+		release();
+		return reached();
+	}
+private:
+	Semaphore m_reached, m_resume;
+	std::atomic<bool> m_armed{false};
+};
+
+// The options of a sender with a still clock, so that nothing is sent and no poll runs unless a test asks for one.
+static telemetry::TelemetrySender::TestOptions stillClockOptions(const QString& settingsFile) {
+	telemetry::TelemetrySender::TestOptions options;
+	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
+	options.monotonicMs = [] { return 0; };
+	return options;
+}
 #endif
 
 class TestTelemetrySender : public QObject {
@@ -183,6 +222,17 @@ private slots:
 	void retirementWithQueuedWork();
 	void splitRetainsIds();
 	void retryAfterAndRetirement();
+	void revocationDropsTheWholeRing();
+	void contendedRevocationRefusesUntokenedEvents();
+	void revocationDuringRefreshKeepsCategoryClosed();
+	void revocationDuringDrain();
+	void otherStampDropsTheRing();
+	void otherCategoryRevokedBeforeRequest();
+	void consentForAnotherReceiver();
+	void unreadableConsent();
+	void workerFailureRefusesOldTokens();
+	void nonWaitingCallsUnderContention();
+	void ringTakes128Events();
 #endif
 
 private:
@@ -1558,6 +1608,374 @@ void TestTelemetrySender::retryAfterAndRetirement() {
 	}
 	restarted.stop();
 	QCOMPARE(posts->load(), 3);
+}
+
+void TestTelemetrySender::revocationDropsTheWholeRing() {
+	// The pump that takes a revocation empties the ring, so an event of the other category goes too.
+	QTemporaryDir directory;
+	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
+	const QString storage = directory.filePath(QStringLiteral("queue"));
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, true));
+	Semaphore polled, exited;
+	PumpHold pump;
+	auto options = stillClockOptions(settingsFile);
+	options.afterPoll = [&] { polled.release(); };
+	options.beforeFlagsRead = [&] { pump.atPump(); };
+	options.onWorkerExit = [&] { exited.release(); };
+	telemetry::TelemetrySender sender(m_context, m_metadata, storage, options);
+	QVERIFY(polled.tryAcquire(1, 3000));
+	QVERIFY(pump.holdNext());
+	QVERIFY(sender.tryEnqueue({}));
+	QVERIFY(consent.save(true, false));
+	sender.invalidateConsent(false, true);
+	QVERIFY(pump.nextPump());
+	QVERIFY(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
+	sender.stop();
+	pump.release();
+	QVERIFY(exited.tryAcquire(1, 3000));
+	QVERIFY(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
+}
+
+void TestTelemetrySender::contendedRevocationRefusesUntokenedEvents() {
+	// A revocation that cannot take the ingress lock still refuses an event without a token before the next pump.
+	QTemporaryDir directory;
+	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, true));
+	Semaphore polled, proceed, exited, captured, unlock;
+	auto options = stillClockOptions(settingsFile);
+	options.afterPoll = [&] {
+		polled.release();
+		RECORD_VERIFY(proceed.tryAcquire(1, 3000));
+	};
+	options.afterOperationCaptureLocked = [&] {
+		captured.release();
+		RECORD_VERIFY(unlock.tryAcquire(1, 3000));
+	};
+	options.onWorkerExit = [&] { exited.release(); };
+	telemetry::TelemetrySender sender(m_context, m_metadata, directory.filePath(QStringLiteral("queue")), options);
+	QVERIFY(polled.tryAcquire(1, 3000));
+	telemetry::TelemetryEventInput usage, diagnostic;
+	usage.name = telemetry::Name::SceneOpened;
+	diagnostic.name = telemetry::Name::OperationFailed;
+	std::thread producer([&] { sender.captureOperation(); });
+	QVERIFY(captured.tryAcquire(1, 3000));
+	sender.invalidateConsent(true, false);
+	unlock.release();
+	producer.join();
+	QVERIFY(!sender.tryEnqueue(usage));
+	// The lock is free again: the other category still takes an event.
+	QVERIFY(sender.tryEnqueue(diagnostic));
+	sender.stop();
+	proceed.release();
+	QVERIFY(exited.tryAcquire(1, 3000));
+}
+
+void TestTelemetrySender::revocationDuringRefreshKeepsCategoryClosed() {
+	// The diagnostics read of a running refresh follows the revocation. It does not open the category again.
+	QTemporaryDir directory;
+	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, true));
+	Semaphore polled, between, resume, exited;
+	PumpHold pump;
+	std::atomic<bool> holdRefresh{false};
+	auto options = stillClockOptions(settingsFile);
+	options.afterPoll = [&] { polled.release(); };
+	options.beforeFlagsRead = [&] { pump.atPump(); };
+	options.betweenObservations = [&] {
+		if (!holdRefresh.exchange(false)) return;
+		between.release();
+		RECORD_VERIFY(resume.tryAcquire(1, 3000));
+	};
+	options.onWorkerExit = [&] { exited.release(); };
+	telemetry::TelemetrySender sender(m_context, m_metadata, directory.filePath(QStringLiteral("queue")), options);
+	QVERIFY(polled.tryAcquire(1, 3000));
+	QVERIFY(pump.holdNext());
+	telemetry::TelemetryEventInput diagnostic;
+	diagnostic.name = telemetry::Name::OperationFailed;
+	holdRefresh = true;
+	sender.requestConsentRefresh();
+	pump.arm();
+	pump.release();
+	QVERIFY(between.tryAcquire(1, 3000));
+	sender.invalidateConsent(false, true);
+	resume.release();
+	QVERIFY(pump.reached());
+	QVERIFY(!sender.tryEnqueue(diagnostic));
+	QVERIFY(!sender.tryEnqueue(diagnostic, sender.captureOperation()));
+	sender.stop();
+	pump.release();
+	QVERIFY(exited.tryAcquire(1, 3000));
+}
+
+void TestTelemetrySender::revocationDuringDrain() {
+	// A revocation during the refresh of the first waiting event leaves the later ones of that category out of the
+	// queue, and the next pump removes what was stored. Usage stays saved on, so only the revocation stops them.
+	QTemporaryDir directory;
+	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
+	const QString storage = directory.filePath(QStringLiteral("queue"));
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, true));
+	Semaphore polled, between, resume, exited;
+	PumpHold pump;
+	std::atomic<bool> holdRefresh{false};
+	auto options = stillClockOptions(settingsFile);
+	options.afterPoll = [&] { polled.release(); };
+	options.beforeFlagsRead = [&] { pump.atPump(); };
+	options.betweenObservations = [&] {
+		if (!holdRefresh.exchange(false)) return;
+		between.release();
+		RECORD_VERIFY(resume.tryAcquire(1, 3000));
+	};
+	options.onWorkerExit = [&] { exited.release(); };
+	telemetry::TelemetrySender sender(m_context, m_metadata, storage, options);
+	QVERIFY(polled.tryAcquire(1, 3000));
+	QVERIFY(pump.holdNext());
+	for (int i = 0; i < 3; ++i) QVERIFY(sender.tryEnqueue({}));
+	holdRefresh = true;
+	pump.arm();
+	pump.release();
+	QVERIFY(between.tryAcquire(1, 3000));
+	sender.invalidateConsent(true, false);
+	resume.release();
+	QVERIFY(pump.reached());
+	QCOMPARE_LE(readDurableEvents(storage + QStringLiteral("/usage.json")).size(), 1);
+	QVERIFY(pump.nextPump());
+	QVERIFY(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
+	sender.stop();
+	pump.release();
+	QVERIFY(exited.tryAcquire(1, 3000));
+}
+
+void TestTelemetrySender::otherStampDropsTheRing() {
+	// A diagnostics generation that another instance moved on drops the waiting usage event as well.
+	QTemporaryDir directory;
+	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
+	const QString storage = directory.filePath(QStringLiteral("queue"));
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, true));
+	Semaphore polled, exited;
+	PumpHold pump;
+	auto options = stillClockOptions(settingsFile);
+	options.afterPoll = [&] { polled.release(); };
+	options.beforeFlagsRead = [&] { pump.atPump(); };
+	options.onWorkerExit = [&] { exited.release(); };
+	telemetry::TelemetrySender sender(m_context, m_metadata, storage, options);
+	QVERIFY(polled.tryAcquire(1, 3000));
+	QVERIFY(pump.holdNext());
+	QVERIFY(sender.tryEnqueue({}));
+	QSettings other(settingsFile, QSettings::IniFormat);
+	TelemetryConsent otherConsent(other, m_context);
+	QVERIFY(otherConsent.save(true, false));
+	QVERIFY(otherConsent.save(true, true));
+	sender.requestConsentRefresh();
+	QVERIFY(pump.nextPump());
+	QVERIFY(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
+	sender.stop();
+	pump.release();
+	QVERIFY(exited.tryAcquire(1, 3000));
+	QVERIFY(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
+}
+
+void TestTelemetrySender::otherCategoryRevokedBeforeRequest() {
+	// A revocation of diagnostics after the reservation of a usage batch also stops that request.
+	QTemporaryDir directory;
+	const QString settingsFile = directory.path() + QStringLiteral("/consent.ini");
+	const QString storage = directory.path() + QStringLiteral("/queue");
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, true));
+	auto clock = std::make_shared<std::atomic<qint64>>(0);
+	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
+	Semaphore reserved, proceed, settled, exited;
+	std::atomic<int> posts{0};
+	telemetry::TelemetrySender::TestOptions options;
+	options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
+	options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
+	options.monotonicMs = [clock] { return clock->load(); };
+	options.afterReservation = [&] {
+		QTimer::singleShot(0, [&] { settled.release(); });
+		reserved.release();
+		RECORD_VERIFY(proceed.tryAcquire(1, 3000));
+	};
+	options.onWorkerExit = [&] { exited.release(); };
+	options.post = [&](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray&) {
+		++posts;
+		return new ScriptedReply(request, 202, &manager);
+	};
+	telemetry::TelemetrySender sender(m_context, m_metadata, storage, options);
+	QVERIFY(waitForGate(sender, {}));
+	*clock = 60001;
+	QVERIFY(reserved.tryAcquire(1, 3000));
+	QVERIFY(consent.save(true, false));
+	sender.invalidateConsent(false, true);
+	proceed.release();
+	QVERIFY(settled.tryAcquire(1, 3000));
+	QCOMPARE(posts.load(), 0);
+	sender.stop();
+	QVERIFY(exited.tryAcquire(1, 3000));
+	QCOMPARE(posts.load(), 0);
+	QCOMPARE(readDurableEvents(storage + QStringLiteral("/usage.json")).size(), 1);
+}
+
+void TestTelemetrySender::consentForAnotherReceiver() {
+	// Choices saved for another receiver purge everything stored for this one, and the worker exits without a stop.
+	QTemporaryDir directory;
+	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
+	const QString storage = directory.filePath(QStringLiteral("queue"));
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, true));
+	Semaphore polled, exited;
+	PumpHold pump;
+	auto options = stillClockOptions(settingsFile);
+	options.afterPoll = [&] { polled.release(); };
+	options.beforeFlagsRead = [&] { pump.atPump(); };
+	options.onWorkerExit = [&] { exited.release(); };
+	telemetry::TelemetrySender sender(m_context, m_metadata, storage, options);
+	QVERIFY(polled.tryAcquire(1, 3000));
+	QVERIFY(pump.holdNext());
+	telemetry::TelemetryEventInput diagnostic;
+	diagnostic.name = telemetry::Name::OperationFailed;
+	QVERIFY(sender.tryEnqueue({}));
+	QVERIFY(sender.tryEnqueue(diagnostic));
+	QVERIFY(pump.nextPump());
+	QCOMPARE(readDurableEvents(storage + QStringLiteral("/usage.json")).size(), 1);
+	QCOMPARE(readDurableEvents(storage + QStringLiteral("/diagnostics.json")).size(), 1);
+	TelemetryContext otherReceiver = m_context;
+	otherReceiver.endpoint = QStringLiteral("https://127.0.0.1:2/collect");
+	QSettings other(settingsFile, QSettings::IniFormat);
+	TelemetryConsent otherConsent(other, otherReceiver);
+	QVERIFY(otherConsent.save(true, true));
+	sender.requestConsentRefresh();
+	pump.release();
+	QVERIFY(exited.tryAcquire(1, 3000));
+	QVERIFY(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
+	QVERIFY(readDurableEvents(storage + QStringLiteral("/diagnostics.json")).isEmpty());
+	QVERIFY(!sender.tryEnqueue({}));
+	sender.stop();
+}
+
+void TestTelemetrySender::unreadableConsent() {
+	// A consent value that cannot be read ends the worker without a purge: nothing shows that consent changed.
+	QTemporaryDir directory;
+	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
+	const QString storage = directory.filePath(QStringLiteral("queue"));
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, false));
+	Semaphore polled, exited;
+	PumpHold pump;
+	auto options = stillClockOptions(settingsFile);
+	options.afterPoll = [&] { polled.release(); };
+	options.beforeFlagsRead = [&] { pump.atPump(); };
+	options.onWorkerExit = [&] { exited.release(); };
+	telemetry::TelemetrySender sender(m_context, m_metadata, storage, options);
+	QVERIFY(polled.tryAcquire(1, 3000));
+	QVERIFY(pump.holdNext());
+	QVERIFY(sender.tryEnqueue({}));
+	QVERIFY(pump.nextPump());
+	QCOMPARE(readDurableEvents(storage + QStringLiteral("/usage.json")).size(), 1);
+	settings.setValue(QStringLiteral("telemetry/consentV1"), QByteArrayLiteral("not json"));
+	settings.sync();
+	sender.requestConsentRefresh();
+	pump.release();
+	QVERIFY(exited.tryAcquire(1, 3000));
+	QCOMPARE(readDurableEvents(storage + QStringLiteral("/usage.json")).size(), 1);
+	QVERIFY(!sender.tryEnqueue({}));
+	sender.stop();
+}
+
+void TestTelemetrySender::workerFailureRefusesOldTokens() {
+	// An exception that leaves the first pump skips close(), so the gates stay as they were. Nothing is taken in after
+	// it, also not with a token from before.
+	QTemporaryDir directory;
+	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, false));
+	Semaphore polled, proceed, exited;
+	auto options = stillClockOptions(settingsFile);
+	options.afterPoll = [&] {
+		polled.release();
+		RECORD_VERIFY(proceed.tryAcquire(1, 3000));
+		throw std::bad_alloc();
+	};
+	options.onWorkerExit = [&] { exited.release(); };
+	telemetry::TelemetrySender sender(m_context, m_metadata, directory.filePath(QStringLiteral("queue")), options);
+	QVERIFY(polled.tryAcquire(1, 3000));
+	const auto token = sender.captureOperation();
+	QVERIFY(sender.tryEnqueue({}, token));
+	proceed.release();
+	QVERIFY(exited.tryAcquire(1, 3000));
+	QVERIFY(!sender.tryEnqueue({}, token));
+	QVERIFY(!sender.tryEnqueue({}));
+	QVERIFY(!sender.tryEnqueue({}, sender.captureOperation()));
+}
+
+void TestTelemetrySender::nonWaitingCallsUnderContention() {
+	// None of these calls waits for the ingress lock: one that did would outlast the hold in the hook, which records a
+	// failure. The token taken under the lock is refused afterwards.
+	QTemporaryDir directory;
+	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, true));
+	Semaphore polled, proceed, exited, captured, unlock;
+	auto options = stillClockOptions(settingsFile);
+	options.afterPoll = [&] {
+		polled.release();
+		RECORD_VERIFY(proceed.tryAcquire(1, 3000));
+	};
+	options.afterOperationCaptureLocked = [&] {
+		captured.release();
+		RECORD_VERIFY(unlock.tryAcquire(1, 3000));
+	};
+	options.onWorkerExit = [&] { exited.release(); };
+	telemetry::TelemetrySender sender(m_context, m_metadata, directory.filePath(QStringLiteral("queue")), options);
+	QVERIFY(polled.tryAcquire(1, 3000));
+	telemetry::TelemetrySender::OperationToken contended;
+	std::thread producer([&] { contended = sender.captureOperation(); });
+	QVERIFY(captured.tryAcquire(1, 3000));
+	sender.requestConsentRefresh();
+	sender.invalidateReceiver();
+	sender.stop();
+	unlock.release();
+	producer.join();
+	QVERIFY(!sender.tryEnqueue({}, contended));
+	QVERIFY(!sender.tryEnqueue({}));
+	proceed.release();
+	QVERIFY(exited.tryAcquire(1, 3000));
+}
+
+void TestTelemetrySender::ringTakes128Events() {
+	QTemporaryDir directory;
+	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, false));
+	Semaphore polled, exited;
+	PumpHold pump;
+	auto options = stillClockOptions(settingsFile);
+	options.afterPoll = [&] { polled.release(); };
+	options.beforeFlagsRead = [&] { pump.atPump(); };
+	options.onWorkerExit = [&] { exited.release(); };
+	telemetry::TelemetrySender sender(m_context, m_metadata, directory.filePath(QStringLiteral("queue")), options);
+	QVERIFY(polled.tryAcquire(1, 3000));
+	QVERIFY(pump.holdNext());
+	for (int i = 0; i < 128; ++i) QVERIFY(sender.tryEnqueue({}));
+	QVERIFY(!sender.tryEnqueue({}));
+	// A stop pump closes without storing, so the worker reads no consent for each of the 128 events.
+	sender.stop();
+	pump.release();
+	QVERIFY(exited.tryAcquire(1, 3000));
 }
 #endif
 
