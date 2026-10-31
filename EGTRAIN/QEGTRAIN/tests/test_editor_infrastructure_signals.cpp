@@ -108,7 +108,6 @@ struct Fixture {
 	InfrastructurePanel panel;
 	FakePrompts prompts;
 	Log log;
-	QStringList entities;
 	SceneDocument::ChangeKinds kinds;
 	QStringList messages;
 
@@ -124,10 +123,6 @@ struct Fixture {
 			kinds = changedKinds;
 		});
 		QObject::connect(&panel, &InfrastructurePanel::changed, &panel, [this] { log.push_back("panelChanged"); });
-		QObject::connect(&panel, &InfrastructurePanel::entitiesChanged, &panel, [this](const QString& facet) {
-			log.push_back("entitiesChanged");
-			entities << facet;
-		});
 		QObject::connect(&panel, &InfrastructurePanel::statusMessage, &panel, [this](const QString& text, int) { messages << text; });
 	}
 
@@ -156,19 +151,9 @@ struct Fixture {
 	}
 	// Chooses the item of the combo that has this data.
 	void choose(QComboBox* box, const QVariant& data) { box->setCurrentIndex(box->findData(data)); }
-	// True when the document has been changed once, under this label, and the panel has said so, and the table was listed
-	// again for the entities of this facet.
-	bool changedOnce(const char* label, const char* facet) {
-		const bool once = log == Log({"documentChanged", "panelChanged", "entitiesChanged"}) && entities == QStringList({facet})
-			&& kinds == SceneDocument::Infrastructure && document.lastChangeLabel() == label && document.isDirty();
-		log.clear();
-		entities.clear();
-		return once;
-	}
-	// True when the document has been changed once under this label by a widget of the table, so that the facet is not told
-	// that its entities changed.
-	bool editedOnce(const char* label) {
-		const bool once = log == Log({"documentChanged", "panelChanged"}) && entities.isEmpty() && kinds == SceneDocument::Infrastructure
+	// True when the document has been changed once, under this label, and the panel has said so.
+	bool changedOnce(const char* label) {
+		const bool once = log == Log({"documentChanged", "panelChanged"}) && kinds == SceneDocument::Infrastructure
 			&& document.lastChangeLabel() == label && document.isDirty();
 		log.clear();
 		return once;
@@ -278,12 +263,12 @@ void TestSignalFacets::editsSignals() {
 	f.chooseBlock(1, "block-a2");
 	// A section is chosen, which marks the document once and leaves the combo in the table.
 	QCOMPARE(sceneSignals(f.model())[1].protectedSection, sectionOf(f.model(), "block-a2"));
-	QVERIFY(f.editedOnce("Edit signal"));
+	QVERIFY(f.changedOnce("Edit signal"));
 	QCOMPARE(f.combo(1, 1), second);
 	f.choose(second, QString());
 	// Choosing none unbinds the signal.
 	QVERIFY(sceneSignals(f.model())[1].protectedSection.empty());
-	QVERIFY(f.editedOnce("Edit signal"));
+	QVERIFY(f.changedOnce("Edit signal"));
 	// the combo shows none while the model already has the section that is chosen
 	sceneSignals(f.edit())[1].protectedSection = sectionOf(f.model(), "block-a2");
 	f.chooseBlock(1, "block-a2");
@@ -300,7 +285,7 @@ void TestSignalFacets::editsSignals() {
 	// A renamed signal keeps its section.
 	QCOMPARE(sceneSignals(model)[0].protectedSection, sectionOf(model, "block-a1"));
 	// A rename marks the document once, and the renamed signal stays selected.
-	QVERIFY(f.changedOnce("Rename signal", "signals"));
+	QVERIFY(f.changedOnce("Rename signal"));
 	QCOMPARE(f.panel.selectionId(), "signal-x");
 	QCOMPARE(f.table()->currentRow(), 0);
 	f.type(0, 0, " signal-x ");
@@ -342,7 +327,7 @@ void TestSignalFacets::addsAndDeletesSignals() {
 	QCOMPARE(sceneSignals(f.model()).size(), std::size_t(3));
 	QCOMPARE(sceneSignals(f.model())[2].id, "signal");
 	QVERIFY(sceneSignals(f.model())[2].protectedSection.empty());
-	QVERIFY(f.changedOnce("Add signal", "signals"));
+	QVERIFY(f.changedOnce("Add signal"));
 	QCOMPARE(f.panel.selectionId(), "signal");
 	QCOMPARE(f.table()->currentRow(), 2);
 	// The new signal is listed unbound.
@@ -351,7 +336,7 @@ void TestSignalFacets::addsAndDeletesSignals() {
 	// Another signal gets the next free id.
 	QCOMPARE(sceneSignals(f.model()).size(), std::size_t(4));
 	QCOMPARE(sceneSignals(f.model())[3].id, "signal_2");
-	QVERIFY(f.changedOnce("Add signal", "signals"));
+	QVERIFY(f.changedOnce("Add signal"));
 
 	// delete
 	f.select(0);
@@ -375,7 +360,7 @@ void TestSignalFacets::addsAndDeletesSignals() {
 	// A signal that no incident targets is deleted when the user answers yes, and the next row is selected.
 	QCOMPARE(sceneSignals(f.model()).size(), std::size_t(3));
 	QCOMPARE(sceneSignals(f.model())[1].id, "signal");
-	QVERIFY(f.changedOnce("Delete signal", "signals"));
+	QVERIFY(f.changedOnce("Delete signal"));
 	QCOMPARE(f.panel.selectionId(), "signal");
 }
 
@@ -427,11 +412,11 @@ void TestSignalFacets::editsAreas() {
 	f.type(0, 1, "0.25");
 	// The start of an area is edited.
 	QCOMPARE_EQ(f.model().signallingAreas[0].startKm, 0.25);
-	QVERIFY(f.changedOnce("Edit signalling area", "signalling_areas"));
+	QVERIFY(f.changedOnce("Edit signalling area"));
 	f.type(0, 2, " 1.75 ");
 	// The end of an area is edited.
 	QCOMPARE_EQ(f.model().signallingAreas[0].endKm, 1.75);
-	QVERIFY(f.changedOnce("Edit signalling area", "signalling_areas"));
+	QVERIFY(f.changedOnce("Edit signalling area"));
 	f.type(0, 1, " 0.25 ");
 	QVERIFY2(f.untouched(), "a value that is the same changes nothing");
 	f.type(0, 2, "far");
@@ -446,7 +431,7 @@ void TestSignalFacets::editsAreas() {
 	// A rename marks the document once, and the renamed area stays selected.
 	QCOMPARE(f.model().signallingAreas[1].id, "area-x");
 	QCOMPARE(f.model().signallingAreas[1].level, 2);
-	QVERIFY(f.changedOnce("Rename signalling area", "signalling_areas"));
+	QVERIFY(f.changedOnce("Rename signalling area"));
 	QCOMPARE(f.panel.selectionId(), "area-x");
 	QCOMPARE(f.table()->currentRow(), 1);
 	f.type(1, 0, "area-1");
@@ -469,7 +454,7 @@ void TestSignalFacets::editsAreaCombos() {
 	f.choose(system, 4);
 	// Another system is chosen, which marks the document once and leaves the combo in the table.
 	QCOMPARE(f.model().signallingAreas[0].level, 4);
-	QVERIFY(f.editedOnce("Edit signalling area"));
+	QVERIFY(f.changedOnce("Edit signalling area"));
 	QCOMPARE(f.combo(0, 3), system);
 	// the combo shows another system than the model has
 	f.edit().signallingAreas[0].level = 5;
@@ -481,12 +466,12 @@ void TestSignalFacets::editsAreaCombos() {
 	f.choose(track, "track-b");
 	// Another track is chosen, which marks the document once and leaves the combo in the table.
 	QCOMPARE(f.model().signallingAreas[0].trackId, "track-b");
-	QVERIFY(f.editedOnce("Edit signalling area"));
+	QVERIFY(f.changedOnce("Edit signalling area"));
 	QCOMPARE(f.combo(0, 4), track);
 	f.choose(track, QString());
 	// All tracks can be chosen.
 	QVERIFY(f.model().signallingAreas[0].trackId.empty());
-	QVERIFY(f.editedOnce("Edit signalling area"));
+	QVERIFY(f.changedOnce("Edit signalling area"));
 	// the combo shows another track than the model has
 	f.edit().signallingAreas[0].trackId = "track-b";
 	f.choose(track, "track-b");
@@ -518,7 +503,7 @@ void TestSignalFacets::showsAreaPlaceholders() {
 	QCOMPARE(f.model().signallingAreas[0].level, 1);
 	QCOMPARE(unchosen->count(), 6);
 	QCOMPARE(unchosen->currentData().toInt(), 1);
-	QVERIFY(f.editedOnce("Edit signalling area"));
+	QVERIFY(f.changedOnce("Edit signalling area"));
 
 	// a level that is no system is shown as it is stored
 	QComboBox* odd = f.combo(1, 3);
@@ -530,7 +515,7 @@ void TestSignalFacets::showsAreaPlaceholders() {
 	// Choosing a system takes that item away.
 	QCOMPARE(f.model().signallingAreas[1].level, 3);
 	QCOMPARE(odd->count(), 6);
-	QVERIFY(f.editedOnce("Edit signalling area"));
+	QVERIFY(f.changedOnce("Edit signalling area"));
 
 	// a track that the scene does not have is shown on top, until a track is chosen
 	QComboBox* nowhere = f.combo(1, 4);
@@ -543,7 +528,7 @@ void TestSignalFacets::showsAreaPlaceholders() {
 	QCOMPARE(f.model().signallingAreas[1].trackId, "track-a");
 	QCOMPARE(nowhere->count(), 3);
 	QCOMPARE(nowhere->currentData().toString(), "track-a");
-	QVERIFY(f.editedOnce("Edit signalling area"));
+	QVERIFY(f.changedOnce("Edit signalling area"));
 }
 
 void TestSignalFacets::wheelLeavesAreaCombo_data() {
@@ -586,7 +571,7 @@ void TestSignalFacets::addsAndDeletesAreas() {
 	QCOMPARE_EQ(added.endKm, 2.0);
 	QCOMPARE(added.level, kSignallingLevelUnset);
 	QVERIFY(added.trackId.empty());
-	QVERIFY(f.changedOnce("Add signalling area", "signalling_areas"));
+	QVERIFY(f.changedOnce("Add signalling area"));
 	QCOMPARE(f.panel.selectionId(), "signalling-area");
 	QCOMPARE(f.table()->currentRow(), 2);
 	// The new area asks for a system and applies to all tracks.
@@ -596,7 +581,7 @@ void TestSignalFacets::addsAndDeletesAreas() {
 	// Another area gets the next free id.
 	QCOMPARE(f.model().signallingAreas.size(), std::size_t(4));
 	QCOMPARE(f.model().signallingAreas[3].id, "signalling-area_2");
-	QVERIFY(f.changedOnce("Add signalling area", "signalling_areas"));
+	QVERIFY(f.changedOnce("Add signalling area"));
 
 	// nothing refers to an area, so the user is only asked
 	f.select(0);
@@ -612,7 +597,7 @@ void TestSignalFacets::addsAndDeletesAreas() {
 	// An area is deleted when the user answers yes, and the next row is selected.
 	QCOMPARE(f.model().signallingAreas.size(), std::size_t(3));
 	QCOMPARE(f.model().signallingAreas[0].id, "area-2");
-	QVERIFY(f.changedOnce("Delete signalling area", "signalling_areas"));
+	QVERIFY(f.changedOnce("Delete signalling area"));
 	QCOMPARE(f.panel.selectionId(), "area-2");
 }
 

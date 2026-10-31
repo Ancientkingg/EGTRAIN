@@ -199,6 +199,7 @@ private slots:
 	void renamesAddsAndDeletesServices();
 	void closesFieldsWhileRunUsesScene();
 	void refusesEditsWhileRunUsesScene();
+	void followsOtherPartsOfScene();
 	void showsAnotherScene();
 	void detachedPanelIgnoresDocument();
 	void fieldsAreOneForm();
@@ -878,6 +879,30 @@ void TestServicePanel::refusesEditsWhileRunUsesScene() {
 	QVERIFY(f.document.edit(SceneDocument::Compositions | SceneDocument::Services, "Open", rename));
 	QVERIFY(f.document.model().name == "edited");
 	QCOMPARE(f.document.lastChangeLabel(), "Open");
+}
+
+// The panel shows again what another editor changes: the routes, the compositions and the duration of the case.
+void TestServicePanel::followsOtherPartsOfScene() {
+	ServiceFixture f;
+	ServicePanel& panel = f.panel;
+	panel.listWidget()->setCurrentRow(1);
+	const int routes = panel.routeCombo()->count();
+	QVERIFY(f.document.edit(SceneDocument::Infrastructure, "Add route", [](SceneModel& model) {
+		SceneRoute route;
+		route.id = "r3";
+		model.routes.push_back(route);
+	}));
+	QCOMPARE(panel.routeCombo()->count(), routes + 1);
+	QVERIFY(f.document.edit(SceneDocument::Compositions, "Add composition", [](SceneModel& model) {
+		SceneComposition composition;
+		composition.id = "c3";
+		model.compositions.push_back(composition);
+	}));
+	QVERIFY(panel.compositionCombo()->findText("c3") >= 0);
+	const int occurrences = panel.occurrenceTable()->rowCount();
+	QVERIFY(f.document.edit(SceneDocument::CaseSettings, "Edit case settings",
+		[](SceneModel& model) { model.settings.durationSeconds = 7200.0; }));
+	QVERIFY(panel.occurrenceTable()->rowCount() > occurrences);
 }
 
 // Another scene replaces unfinished text without an edit.

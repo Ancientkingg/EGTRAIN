@@ -72,8 +72,6 @@ struct Events {
 			log.push_back("documentChanged");
 			kinds = changedKinds;
 		});
-		QObject::connect(&panel, &TrainUnitPanel::trainUnitsChanged, &panel, [this] { log.push_back("unitsChanged"); });
-		QObject::connect(&panel, &TrainUnitPanel::sourceReferencesChanged, &panel, [this] { log.push_back("sourcesChanged"); });
 		QObject::connect(&panel, &TrainUnitPanel::changed, &panel, [this] { log.push_back("panelChanged"); });
 		QObject::connect(&panel, &TrainUnitPanel::unitRenamed, &panel, [this](const QString& oldId, const QString& newId) {
 			log.push_back("unitRenamed");
@@ -490,7 +488,7 @@ void TestTrainUnitPanel::editsRenamesAddsAndDeletesUnits() {
 	// A source reference is written to the document and reported.
 	QCOMPARE(document.model().trainUnits[0].sourceDataFile, "new.data");
 	QCOMPARE(document.model().trainUnits[0].sourceTractionFile, "u.traction");
-	QCOMPARE(events.log, Log({"documentChanged", "sourcesChanged", "panelChanged"}));
+	QCOMPARE(events.log, Log({"documentChanged", "panelChanged"}));
 	events.log.clear();
 	emit panel.sourceTractionEdit()->editingFinished();
 	QVERIFY2(events.log.empty(), "leaving a source field without changing it does not touch the document");
@@ -517,7 +515,7 @@ void TestTrainUnitPanel::editsRenamesAddsAndDeletesUnits() {
 	QVERIFY2(document.model().compositions[0].units == std::vector<std::string>({"u1_renamed", "u2", "u1_renamed"}),
 		"a rename rewrites the compositions that use the unit");
 	// A rename reports the unit ids and the changed units after the document is marked changed.
-	QCOMPARE(events.log, Log({"documentChanged", "unitRenamed", "unitsChanged", "panelChanged"}));
+	QCOMPARE(events.log, Log({"documentChanged", "unitRenamed", "panelChanged"}));
 	QCOMPARE(events.renamed, QStringList({"u1", "u1_renamed"}));
 	QVERIFY(events.kinds.testFlag(SceneDocument::TrainUnits));
 	QVERIFY(events.kinds.testFlag(SceneDocument::Compositions));
@@ -558,7 +556,7 @@ void TestTrainUnitPanel::editsRenamesAddsAndDeletesUnits() {
 	QCOMPARE(items(panel.listWidget()), QStringList({"u1_pending", "u2", "new_train_unit"}));
 	QCOMPARE(panel.listWidget()->currentRow(), 2);
 	QCOMPARE(panel.idEdit()->text(), "new_train_unit");
-	QCOMPARE(events.log, Log({"documentChanged", "unitsChanged", "panelChanged"}));
+	QCOMPARE(events.log, Log({"documentChanged", "panelChanged"}));
 	QCOMPARE(events.kinds, SceneDocument::ChangeKinds(SceneDocument::TrainUnits));
 	events.log.clear();
 	panel.listWidget()->setCurrentRow(0);
@@ -567,7 +565,7 @@ void TestTrainUnitPanel::editsRenamesAddsAndDeletesUnits() {
 	QCOMPARE(items(panel.listWidget()), QStringList({"u1_pending", "u1_pending_copy", "u2", "new_train_unit"}));
 	QCOMPARE(panel.listWidget()->currentRow(), 1);
 	QCOMPARE_EQ(document.model().trainUnits[1].physical.length_m, 106.0);
-	QCOMPARE(events.log, Log({"documentChanged", "unitsChanged", "panelChanged"}));
+	QCOMPARE(events.log, Log({"documentChanged", "panelChanged"}));
 	// A unit is selected by its id.
 	QVERIFY(panel.selectUnit("u2"));
 	QCOMPARE(panel.selectedUnit(), &document.model().trainUnits[2]);
@@ -599,7 +597,7 @@ void TestTrainUnitPanel::editsRenamesAddsAndDeletesUnits() {
 	// Answering Yes deletes the unit and reports it.
 	QCOMPARE(items(panel.listWidget()), QStringList({"u1_pending", "u1_pending_copy", "u2"}));
 	QCOMPARE(panel.listWidget()->currentRow(), 2);
-	QCOMPARE(events.log, Log({"documentChanged", "unitDeleted", "unitsChanged", "panelChanged"}));
+	QCOMPARE(events.log, Log({"documentChanged", "unitDeleted", "panelChanged"}));
 	QCOMPARE(events.deleted, QStringList({"new_train_unit"}));
 
 	// The units stay editable while the document is closed for edits.
@@ -608,7 +606,7 @@ void TestTrainUnitPanel::editsRenamesAddsAndDeletesUnits() {
 	panel.addUnit();
 	// Units can be edited while the document is closed for edits.
 	QCOMPARE(document.model().trainUnits.size(), std::size_t(4));
-	QCOMPARE(events.log.size(), std::size_t(3));
+	QCOMPARE(events.log.size(), std::size_t(2));
 }
 
 // Another scene replaces unfinished text without an edit.

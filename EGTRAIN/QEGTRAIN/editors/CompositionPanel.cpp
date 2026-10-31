@@ -117,6 +117,14 @@ int CompositionPanel::selectedRow() const {
 	return row;
 }
 
+void CompositionPanel::documentChanged(SceneDocument::ChangeKinds kinds) {
+	if (!kinds.testFlag(SceneDocument::TrainUnits))
+		return;
+	const int unitRow = m_unitsListWidget->currentRow();
+	refresh();
+	m_unitsListWidget->setCurrentRow(unitRow);
+}
+
 void CompositionPanel::refresh() {
 	const bool loaded = hasScene();
 	{
@@ -219,7 +227,6 @@ void CompositionPanel::addComposition() {
 		return;
 
 	refresh();
-	emit compositionIdsChanged();
 	emit changed();
 
 	m_listWidget->setCurrentRow(static_cast<int>(m_document->model().compositions.size()) - 1);
@@ -237,7 +244,6 @@ void CompositionPanel::duplicateComposition() {
 		return;
 
 	refresh();
-	emit compositionIdsChanged();
 	emit changed();
 
 	m_listWidget->setCurrentRow(row + 1);
@@ -267,7 +273,6 @@ void CompositionPanel::deleteComposition() {
 		return;
 
 	refresh();
-	emit compositionIdsChanged();
 	emit changed();
 }
 
@@ -300,7 +305,6 @@ void CompositionPanel::commitIdEdit() {
 		}))
 		return;
 
-	emit compositionIdsChanged();
 	emit changed();
 }
 

@@ -76,7 +76,9 @@ ScenarioPanel::ScenarioPanel(QWidget* parent) : SceneEditorPanel(parent) {
 }
 
 void ScenarioPanel::documentChanged(SceneDocument::ChangeKinds kinds) {
-	if (kinds.testFlag(SceneDocument::Scenarios))
+	if (kinds.testFlag(SceneDocument::Infrastructure))
+		refresh();
+	else if (kinds.testFlag(SceneDocument::Scenarios))
 		updatePresentation();
 }
 

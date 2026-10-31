@@ -78,11 +78,12 @@ public:
 	QPushButton* plotTractionButton() const { return m_plotTractionButton; }
 
 Q_SIGNALS:
-	/// A composition has been added, duplicated, deleted or renamed. Other lists of composition ids are out of date.
-	/// Emitted after the document is marked changed and before changed().
-	void compositionIdsChanged();
 	/// The plot of the traction curve of this train unit is wanted.
 	void tractionPlotRequested(const QString& unitId);
+
+protected:
+	/// Shows the units again when the rolling stock changes, with the same unit selected.
+	void documentChanged(SceneDocument::ChangeKinds kinds) override;
 
 private:
 	// The selected composition, or -1.

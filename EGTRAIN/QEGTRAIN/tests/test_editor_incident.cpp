@@ -1058,6 +1058,10 @@ void TestIncidentPanel::picksTargetOnNetworkView() {
 	pick->click();
 	panel.refresh();
 	QVERIFY2(!panel.isPickingTarget(), "showing the incidents again, as after another scene or scenario, ends picking");
+	pick->click();
+	QVERIFY(f.document.edit(SceneDocument::Infrastructure, "Edit track", [](SceneModel&) {}));
+	QVERIFY2(!panel.isPickingTarget(), "an infrastructure edit can take away what can be picked, so it ends picking");
+	f.events.log.clear();
 	panel.show();
 	pick->click();
 	panel.hide();

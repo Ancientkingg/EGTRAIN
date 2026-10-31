@@ -107,11 +107,6 @@ public:
 	QLabel* sourceStatusLabel(bool traction) const { return traction ? m_sourceTractionStatusLabel : m_sourceDataStatusLabel; }
 
 Q_SIGNALS:
-	/// A unit has been added, duplicated, deleted or renamed. The compositions list units by id.
-	/// Emitted after the document is marked changed and before changed().
-	void trainUnitsChanged();
-	/// The references to the source files of the shown unit have changed.
-	void sourceReferencesChanged();
 	/// The unit has got another id. Emitted after the document is marked changed.
 	void unitRenamed(const QString& oldId, const QString& newId);
 	/// The unit is gone from the model. Emitted after the document is marked changed.

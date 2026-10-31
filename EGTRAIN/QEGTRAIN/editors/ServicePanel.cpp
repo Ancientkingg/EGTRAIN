@@ -288,6 +288,17 @@ int ServicePanel::selectedRow() const {
 	return row;
 }
 
+void ServicePanel::documentChanged(SceneDocument::ChangeKinds kinds) {
+	if (kinds.testFlag(SceneDocument::Infrastructure)) {
+		refresh();
+		return;
+	}
+	if (kinds.testFlag(SceneDocument::Compositions))
+		updateDetail();
+	if (kinds.testFlag(SceneDocument::CaseSettings))
+		refreshOccurrencePreview();
+}
+
 const SceneService* ServicePanel::selectedService() const {
 	const int row = selectedRow();
 	return row < 0 ? nullptr : &m_document->model().services[static_cast<std::size_t>(row)];

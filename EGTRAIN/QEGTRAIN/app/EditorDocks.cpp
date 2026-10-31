@@ -99,11 +99,7 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	QObject::connect(m_document, &SceneDocument::replaced, m_caseSettingsDock, [this] { m_caseSettingsDock->setEnabled(true); });
 	QObject::connect(m_caseSettingsPanel, &CaseSettingsPanel::baseTimeChanged, m_window,
 		[this](const QString& baseTime) { m_host.setStartOffset(baseTimeToSeconds(baseTime.toStdString())); });
-	QObject::connect(m_caseSettingsPanel, &CaseSettingsPanel::changed, m_window, [this] {
-		m_host.refreshValidationPanel();
-		m_servicePanel->refreshOccurrencePreview();
-		m_timetableStopsPanel->refresh();
-	});
+	QObject::connect(m_caseSettingsPanel, &CaseSettingsPanel::changed, m_window, [this] { m_host.refreshValidationPanel(); });
 
 	// Infrastructure editor: one small facet selector and a table keep all
 	// canonical infrastructure fields visible without introducing a second model.
@@ -129,12 +125,6 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	QObject::connect(m_infrastructurePanel, &InfrastructurePanel::selectionChanged, m_window,
 		[this]() { m_host.infrastructureSelectionChanged(); });
 	QObject::connect(m_infrastructurePanel, &InfrastructurePanel::changed, m_window, [this] { m_host.refreshValidationPanel(); });
-	QObject::connect(m_infrastructurePanel, &InfrastructurePanel::entitiesChanged, m_window, [this](const QString& facet) {
-		if (facet == QStringLiteral("stations") || facet == QStringLiteral("platforms") || facet == QStringLiteral("routes"))
-			m_servicePanel->refresh();
-		if (facet == QStringLiteral("blocks") || facet == QStringLiteral("signals"))
-			m_host.refreshIncidentPanel();
-	});
 	QObject::connect(m_infrastructurePanel, &InfrastructurePanel::statusMessage, m_window,
 		[this](const QString& text, int timeoutMs) { m_window->statusBar()->showMessage(text, timeoutMs); });
 	QObject::connect(m_infrastructureDock, &QDockWidget::visibilityChanged, m_window,
@@ -170,7 +160,6 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	QObject::connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::reloaded, m_window,
 		[this](const QStringList& tractionUnitIds) {
 			m_trainUnitPanel->refresh();
-			m_compositionPanel->refresh();
 			m_host.refreshValidationPanel();
 			for (const QString& unitId : tractionUnitIds)
 				m_host.refreshInputTractionDiagrams(unitId.toStdString());
@@ -216,13 +205,8 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	m_host.registerEditorDock(m_compositionDock);
 	m_compositionPanel->setPrompts(prompts);
 	m_compositionPanel->setDocument(m_document);
-	QObject::connect(m_compositionPanel, &CompositionPanel::compositionIdsChanged, m_window,
-		[this] { m_servicePanel->updateDetail(); });
 	QObject::connect(m_compositionPanel, &CompositionPanel::changed, m_window, [this] { m_host.refreshValidationPanel(); });
 	QObject::connect(m_compositionPanel, &CompositionPanel::tractionPlotRequested, m_window, plotUnitTraction);
-	QObject::connect(m_trainUnitPanel, &TrainUnitPanel::trainUnitsChanged, m_compositionPanel, &CompositionPanel::refresh);
-	QObject::connect(m_trainUnitPanel, &TrainUnitPanel::sourceReferencesChanged, m_compositionPanel,
-		&CompositionPanel::refreshUnitDetails);
 
 	// service editor: dockable panel for the service-level fields, with the timetable (stops)
 	// of the selected service below them. Tabbed alongside Compositions.

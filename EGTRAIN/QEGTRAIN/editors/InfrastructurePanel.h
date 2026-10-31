@@ -92,8 +92,7 @@ public:
 	SceneModel& mutableModel();
 	/// Shows a message in the status line of the window for `timeoutMs` milliseconds, through statusMessage().
 	void showStatus(const QString& text, int timeoutMs = 4000);
-	/// A facet has changed the model: marks the document changed under `label`, tells changed() and entitiesChanged(), and
-	/// lists the entities again.
+	/// A facet has changed the model: marks the document changed under `label`, tells changed() and lists the entities again.
 	void entityChanged(const QString& label);
 	/// A facet has changed the model through a widget in the table, which lists the entities again only by being
 	/// replaced: marks the document changed under `label` and tells changed(). The facet lists the entities again when
@@ -151,8 +150,6 @@ Q_SIGNALS:
 	/// been filled again. `facet` is the key of the chosen facet and `id` the id of the selected entity, empty when no
 	/// row is selected.
 	void selectionChanged(const QString& facet, const QString& id);
-	/// A facet has changed the entities of its kind and listed them again. `facet` is its key.
-	void entitiesChanged(const QString& facet);
 	/// A message for the status line, shown for `timeoutMs` milliseconds.
 	void statusMessage(const QString& text, int timeoutMs);
 

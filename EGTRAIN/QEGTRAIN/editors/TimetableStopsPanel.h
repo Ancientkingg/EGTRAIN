@@ -72,6 +72,10 @@ Q_SIGNALS:
 	/// The table shows the stops again, so what depends on the timetable of the services is out of date.
 	void timetableRefreshed();
 
+protected:
+	/// Lists the stops again when the case settings or the infrastructure change.
+	void documentChanged(SceneDocument::ChangeKinds kinds) override;
+
 private:
 	// Fits the columns again when the table is resized or its font changes.
 	bool eventFilter(QObject* watched, QEvent* event) override;

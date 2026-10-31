@@ -272,6 +272,7 @@ private slots:
 	void clockTimesStayWhole();
 	void showsStopsOfService();
 	void showsClockTimes();
+	void followsCaseSettings();
 	void movesStops();
 	void removesStopsAndFollowsService();
 	void closesWhileRunUsesScene();
@@ -286,6 +287,15 @@ private slots:
 	void showsLongNames();
 	void leavesNoEmptyBandInFormOfMacOs();
 };
+
+// The planned times follow the base time of the case.
+void TestTimetableStopsPanel::followsCaseSettings() {
+	StopsFixture f;
+	f.panel.setServiceId("service-1");
+	QCOMPARE(f.panel.timeBaseLabel()->text(), "Seconds after 08:00:00");
+	QVERIFY(f.document.edit(SceneDocument::CaseSettings, "Edit case settings", [](SceneModel& model) { model.baseTime = "09:00:00"; }));
+	QCOMPARE(f.panel.timeBaseLabel()->text(), "Seconds after 09:00:00");
+}
 
 void TestTimetableStopsPanel::showsNothingWithoutScene() {
 	TimetableStopsPanel panel;

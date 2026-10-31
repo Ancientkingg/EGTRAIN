@@ -103,7 +103,6 @@ struct Fixture {
 	InfrastructurePanel panel;
 	FakePrompts prompts;
 	Log log;
-	QStringList entities;
 	SceneDocument::ChangeKinds kinds;
 	QStringList messages;
 
@@ -119,10 +118,6 @@ struct Fixture {
 			kinds = changedKinds;
 		});
 		QObject::connect(&panel, &InfrastructurePanel::changed, &panel, [this] { log.push_back("panelChanged"); });
-		QObject::connect(&panel, &InfrastructurePanel::entitiesChanged, &panel, [this](const QString& facet) {
-			log.push_back("entitiesChanged");
-			entities << facet;
-		});
 		QObject::connect(&panel, &InfrastructurePanel::statusMessage, &panel,
 			[this](const QString& text, int) { messages << text; });
 	}
@@ -167,19 +162,9 @@ struct Fixture {
 		box->setCurrentIndex(box->findData(QString::fromStdString(sectionOf(model(), blockId))));
 	}
 	QString chosen(int row, int column) { return combo(row, column)->currentData().toString(); }
-	// True when the document has been changed once, under this label, and the panel has said so, and the table was listed
-	// again for the entities of this facet.
-	bool changedOnce(const char* label, const char* facet) {
-		const bool once = log == Log({"documentChanged", "panelChanged", "entitiesChanged"}) && entities == QStringList({facet})
-			&& kinds == SceneDocument::Infrastructure && document.lastChangeLabel() == label && document.isDirty();
-		log.clear();
-		entities.clear();
-		return once;
-	}
-	// True when the document has been changed once under this label by a widget of the table, so that the facet is not told
-	// that its entities changed.
-	bool editedOnce(const char* label) {
-		const bool once = log == Log({"documentChanged", "panelChanged"}) && entities.isEmpty() && kinds == SceneDocument::Infrastructure
+	// True when the document has been changed once, under this label, and the panel has said so.
+	bool changedOnce(const char* label) {
+		const bool once = log == Log({"documentChanged", "panelChanged"}) && kinds == SceneDocument::Infrastructure
 			&& document.lastChangeLabel() == label && document.isDirty();
 		log.clear();
 		return once;
@@ -281,7 +266,7 @@ void TestBlockRouteFacets::editsBlocks() {
 	// The length of a block is edited.
 	QCOMPARE_EQ(f.model().blocks[0].lengthKm, 2.5);
 	QCOMPARE(f.cell(0, 2), "2.5");
-	QVERIFY(f.changedOnce("Edit block", "blocks"));
+	QVERIFY(f.changedOnce("Edit block"));
 	for (const char* refused : {"abc", "", "inf", "nan"}) {
 		f.type(0, 2, refused);
 		// A length that is no finite number is refused, without a message, and the table shows the model again.
@@ -297,7 +282,7 @@ void TestBlockRouteFacets::editsBlocks() {
 	f.type(1, 1, "track-b");
 	// The track of a block is edited.
 	QCOMPARE(f.model().blocks[1].trackId, "track-b");
-	QVERIFY(f.changedOnce("Edit block", "blocks"));
+	QVERIFY(f.changedOnce("Edit block"));
 	// The filter follows the block to its track.
 	QCOMPARE(f.panel.blockTrackFilterCombo()->currentData().toString(), "track-b");
 	QCOMPARE(f.firstColumn(), QStringList({"block-a2", "block-b1", "block-b2"}));
@@ -329,7 +314,7 @@ void TestBlockRouteFacets::editsBlocks() {
 	QCOMPARE(model.singleTrackRestrictions[0].protectedStartBlock, sectionOf(model, "block-b1"));
 	QCOMPARE(model.stationBoundaries[0].exitBlock, sectionOf(model, "block-a2"));
 	// A rename marks the document once, and the renamed block stays selected.
-	QVERIFY(f.changedOnce("Rename block", "blocks"));
+	QVERIFY(f.changedOnce("Rename block"));
 	QCOMPARE(f.panel.selectionId(), "block-x");
 	QCOMPARE(f.table()->currentRow(), 0);
 
@@ -357,7 +342,7 @@ void TestBlockRouteFacets::addsBlocks() {
 	QCOMPARE(added.id, "block");
 	QCOMPARE(added.trackId, "track-a");
 	QCOMPARE_EQ(added.lengthKm, 1.0);
-	QVERIFY(f.changedOnce("Add block", "blocks"));
+	QVERIFY(f.changedOnce("Add block"));
 	QCOMPARE(f.panel.selectionId(), "block");
 	QCOMPARE(f.table()->currentRow(), 2);
 	QCOMPARE(f.firstColumn(), QStringList({"block-a1", "block-a2", "block"}));
@@ -365,7 +350,7 @@ void TestBlockRouteFacets::addsBlocks() {
 	// The id of the next block is new too.
 	QCOMPARE(f.model().blocks.size(), std::size_t(6));
 	QCOMPARE(f.model().blocks.back().id, "block_2");
-	QVERIFY(f.changedOnce("Add block", "blocks"));
+	QVERIFY(f.changedOnce("Add block"));
 
 	// a track that the scene does not have
 	f.edit().blocks.push_back(block("block-ghost", "ghost"));
@@ -406,7 +391,7 @@ void TestBlockRouteFacets::insertsAndMovesBlocks() {
 	QCOMPARE_EQ(blocks[1].lengthKm, 1.0);
 	QCOMPARE(blocks[2].id, "block-a2");
 	// An insert marks the document once, and the new block is selected.
-	QVERIFY(f.changedOnce("Insert block", "blocks"));
+	QVERIFY(f.changedOnce("Insert block"));
 	QCOMPARE(f.panel.selectionId(), "block");
 	QCOMPARE(f.table()->currentRow(), 1);
 	QCOMPARE(f.firstColumn(), QStringList({"block-a1", "block", "block-a2"}));
@@ -419,7 +404,7 @@ void TestBlockRouteFacets::insertsAndMovesBlocks() {
 	// A block moves down, and stays selected.
 	QCOMPARE(blocks[1].id, "block-a2");
 	QCOMPARE(blocks[2].id, "block");
-	QVERIFY(f.changedOnce("Move block", "blocks"));
+	QVERIFY(f.changedOnce("Move block"));
 	QCOMPARE(f.panel.selectionId(), "block");
 	QCOMPARE(f.table()->currentRow(), 2);
 	QCOMPARE(f.firstColumn(), QStringList({"block-a1", "block-a2", "block"}));
@@ -437,7 +422,6 @@ void TestBlockRouteFacets::insertsAndMovesBlocks() {
 	QCOMPARE(f.document.lastChangeLabel(), "Move block");
 	QCOMPARE(f.table()->currentRow(), 0);
 	f.log.clear();
-	f.entities.clear();
 	QVERIFY2(!f.panel.moveBlockUpButton()->isEnabled(), "the first block cannot move up");
 	f.panel.moveEntity(-1);
 	// A move past the start changes nothing.
@@ -473,7 +457,6 @@ void TestBlockRouteFacets::deletesBlocks() {
 	// a block that nothing uses
 	f.panel.addButton()->click();
 	f.log.clear();
-	f.entities.clear();
 	// The new block is selected.
 	QCOMPARE(f.panel.selectionId(), "block");
 	f.panel.deleteButton()->click();
@@ -487,7 +470,7 @@ void TestBlockRouteFacets::deletesBlocks() {
 	// A block that nothing uses is deleted when the user answers yes.
 	QCOMPARE(f.prompts.confirmCount, 2);
 	QCOMPARE(f.model().blocks.size(), std::size_t(4));
-	QVERIFY(f.changedOnce("Delete block", "blocks"));
+	QVERIFY(f.changedOnce("Delete block"));
 	QCOMPARE(f.panel.selectionId(), "block-a2");
 }
 
@@ -508,15 +491,15 @@ void TestBlockRouteFacets::editsRoutes() {
 	// The flag of a route is edited.
 	QVERIFY(f.model().routes[0].hasCorridor);
 	QCOMPARE(f.cell(0, 2), "true");
-	QVERIFY(f.changedOnce("Edit route", "routes"));
+	QVERIFY(f.changedOnce("Edit route"));
 	f.type(0, 3, "north");
 	// The corridor of a route is edited.
 	QCOMPARE(f.model().routes[0].corridor, "north");
-	QVERIFY(f.changedOnce("Edit route", "routes"));
+	QVERIFY(f.changedOnce("Edit route"));
 	f.type(0, 4, "true");
 	// The direction of a route is edited.
 	QVERIFY(f.model().routes[0].reversed);
-	QVERIFY(f.changedOnce("Edit route", "routes"));
+	QVERIFY(f.changedOnce("Edit route"));
 	f.type(0, 4, "maybe");
 	// A flag that is neither true nor false is refused and the table shows the model again.
 	QVERIFY(f.untouched());
@@ -534,7 +517,7 @@ void TestBlockRouteFacets::editsRoutes() {
 	QCOMPARE(f.model().routes[0].id, "route-x");
 	QCOMPARE(f.model().services[0].route, "route-x");
 	QCOMPARE(f.model().routes[1].id, "route-2");
-	QVERIFY(f.changedOnce("Rename route", "routes"));
+	QVERIFY(f.changedOnce("Rename route"));
 	QCOMPARE(f.panel.selectionId(), "route-x");
 	QCOMPARE(f.table()->currentRow(), 0);
 	f.type(0, 0, "route-2");
@@ -553,7 +536,7 @@ void TestBlockRouteFacets::editsRoutes() {
 	QVERIFY(!added.hasCorridor);
 	QVERIFY(added.corridor.empty());
 	QVERIFY(!added.reversed);
-	QVERIFY(f.changedOnce("Add route", "routes"));
+	QVERIFY(f.changedOnce("Add route"));
 	QCOMPARE(f.panel.selectionId(), "route");
 	QCOMPARE(f.table()->currentRow(), 2);
 	QCOMPARE(f.cell(2, 1), "-");
@@ -572,7 +555,7 @@ void TestBlockRouteFacets::editsRoutes() {
 	// A route that nothing uses is deleted when the user answers yes.
 	QCOMPARE(f.prompts.confirmQuestion, "Delete route 'route'?");
 	QCOMPARE(f.model().routes.size(), std::size_t(2));
-	QVERIFY(f.changedOnce("Delete route", "routes"));
+	QVERIFY(f.changedOnce("Delete route"));
 }
 
 // The texts of the sections in the list of the panel.
@@ -608,7 +591,6 @@ void TestBlockRouteFacets::editsRouteSections() {
 	QCOMPARE(f.cell(0, 1), "3 sections");
 	// A section marks the document once, and tells no more than that the route has changed.
 	QCOMPARE(f.log, Log({"documentChanged", "panelChanged"}));
-	QVERIFY(f.entities.isEmpty());
 	QCOMPARE(f.kinds, SceneDocument::ChangeKinds(SceneDocument::Infrastructure));
 	QCOMPARE(f.document.lastChangeLabel(), "Add route section");
 	QCOMPARE(f.panel.selectionId(), "route-1");
@@ -704,12 +686,12 @@ void TestBlockRouteFacets::editsDependencies() {
 	// Another block is chosen, which marks the document once and leaves the combo in the table.
 	QCOMPARE(f.model().blockDependencies[0].block, sectionOf(f.model(), "block-b1"));
 	QCOMPARE(f.model().blockDependencies[0].dependsOn, a2);
-	QVERIFY(f.editedOnce("Edit block dependency"));
+	QVERIFY(f.changedOnce("Edit block dependency"));
 	QCOMPARE(f.combo(0, 0), first);
 	f.choose(0, 1, "block-a1");
 	// The block it depends on is chosen.
 	QCOMPARE(f.model().blockDependencies[0].dependsOn, a1);
-	QVERIFY(f.editedOnce("Edit block dependency"));
+	QVERIFY(f.changedOnce("Edit block dependency"));
 	f.choose(0, 1, "block-a1");
 	QVERIFY2(f.untouched(), "choosing the block that is chosen changes nothing");
 
@@ -719,7 +701,7 @@ void TestBlockRouteFacets::editsDependencies() {
 	QCOMPARE(f.model().blockDependencies.size(), std::size_t(2));
 	QVERIFY(f.model().blockDependencies[1].block.empty());
 	QVERIFY(f.model().blockDependencies[1].dependsOn.empty());
-	QVERIFY(f.changedOnce("Add block dependency", "block_dependencies"));
+	QVERIFY(f.changedOnce("Add block dependency"));
 	QCOMPARE(f.table()->currentRow(), 1);
 	QVERIFY(f.panel.selectionId().isEmpty());
 	// An empty block shows as none.
@@ -738,7 +720,7 @@ void TestBlockRouteFacets::editsDependencies() {
 	f.panel.deleteButton()->click();
 	// A dependency is deleted when the user answers yes.
 	QCOMPARE(f.model().blockDependencies.size(), std::size_t(1));
-	QVERIFY(f.changedOnce("Delete block dependency", "block_dependencies"));
+	QVERIFY(f.changedOnce("Delete block dependency"));
 	f.select(0);
 	f.panel.deleteButton()->click();
 	// A dependency is named by its block.
@@ -767,19 +749,19 @@ void TestBlockRouteFacets::editsRestrictions() {
 	f.choose(0, 0, "block-b2");
 	// The start is chosen.
 	QCOMPARE(restriction.startBlock, sectionOf(f.model(), "block-b2"));
-	QVERIFY(f.editedOnce("Edit single-track restriction"));
+	QVERIFY(f.changedOnce("Edit single-track restriction"));
 	f.choose(0, 1, "block-b1");
 	// The end is chosen.
 	QCOMPARE(restriction.endBlock, sectionOf(f.model(), "block-b1"));
-	QVERIFY(f.editedOnce("Edit single-track restriction"));
+	QVERIFY(f.changedOnce("Edit single-track restriction"));
 	f.choose(0, 2, "block-a2");
 	// The protected start is chosen.
 	QCOMPARE(restriction.protectedStartBlock, sectionOf(f.model(), "block-a2"));
-	QVERIFY(f.editedOnce("Edit single-track restriction"));
+	QVERIFY(f.changedOnce("Edit single-track restriction"));
 	f.choose(0, 3, "block-a1");
 	// The protected end is chosen.
 	QCOMPARE(restriction.protectedEndBlock, sectionOf(f.model(), "block-a1"));
-	QVERIFY(f.editedOnce("Edit single-track restriction"));
+	QVERIFY(f.changedOnce("Edit single-track restriction"));
 	// Each combo writes its own block.
 	QCOMPARE(restriction.startBlock, sectionOf(f.model(), "block-b2"));
 	QCOMPARE(restriction.endBlock, sectionOf(f.model(), "block-b1"));
@@ -789,14 +771,14 @@ void TestBlockRouteFacets::editsRestrictions() {
 	// A restriction is added empty, and its row is selected.
 	QCOMPARE(f.model().singleTrackRestrictions.size(), std::size_t(2));
 	QVERIFY(f.model().singleTrackRestrictions[1].startBlock.empty());
-	QVERIFY(f.changedOnce("Add single-track restriction", "single_track_restrictions"));
+	QVERIFY(f.changedOnce("Add single-track restriction"));
 	QCOMPARE(f.table()->currentRow(), 1);
 	f.prompts.confirmAnswer = true;
 	f.panel.deleteButton()->click();
 	// A restriction is deleted when the user answers yes.
 	QCOMPARE(f.prompts.confirmQuestion, "Delete single-track restriction 'incomplete row'?");
 	QCOMPARE(f.model().singleTrackRestrictions.size(), std::size_t(1));
-	QVERIFY(f.changedOnce("Delete single-track restriction", "single_track_restrictions"));
+	QVERIFY(f.changedOnce("Delete single-track restriction"));
 	f.select(0);
 	f.panel.deleteButton()->click();
 	// A restriction is named by its start.

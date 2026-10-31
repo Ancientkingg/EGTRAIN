@@ -224,7 +224,9 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 void IncidentPanel::documentChanged(SceneDocument::ChangeKinds kinds) {
 	// The occurrences that a breakdown can have as its target depend on the duration of the case and on the services, and
 	// the signals and blocks of a signal failure on the infrastructure.
-	if (kinds & (SceneDocument::CaseSettings | SceneDocument::Infrastructure | SceneDocument::Services))
+	if (kinds.testFlag(SceneDocument::Infrastructure))
+		refresh();
+	else if (kinds & (SceneDocument::CaseSettings | SceneDocument::Services))
 		refreshTargets();
 }
 

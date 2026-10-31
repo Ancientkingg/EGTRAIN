@@ -57,8 +57,8 @@ public:
 	/// The scene. It is an empty model until the first replace().
 	const SceneModel& model() const { return m_model; }
 	/// The scene for a write that is not an edit by a panel: data that the application derives or reloads, and the infrastructure
-	/// facets, which check canEdit() themselves. A panel edits through edit(). A caller that changes what the user authored calls
-	/// markChanged() afterwards.
+	/// facets, which only a table and buttons that a run closes can reach. A panel edits through edit(). A caller that changes
+	/// what the user authored calls markChanged() afterwards.
 	SceneModel& mutableModel() { return m_model; }
 
 	/// False until the first replace().

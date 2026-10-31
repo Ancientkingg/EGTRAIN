@@ -116,6 +116,10 @@ Q_SIGNALS:
 	/// A message for the status bar, which it shows for `timeoutMs` milliseconds.
 	void statusMessage(const QString& text, int timeoutMs);
 
+protected:
+	/// Shows the passengers again when the case settings, the infrastructure or the services change.
+	void documentChanged(SceneDocument::ChangeKinds kinds) override;
+
 private:
 	// The row of the selected passenger, or -1 when the list has no selection.
 	int selectedPassengerRow() const;

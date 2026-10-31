@@ -142,7 +142,8 @@ Q_SIGNALS:
 protected:
 	/// Ends picking, unless the window system hid the panel, as when the window is minimized.
 	void hideEvent(QHideEvent* event) override;
-	/// Shows the choices of targets again when the case settings, the infrastructure or the services change.
+	/// Shows the choices of targets again when the case settings or the services change, and the incidents with them when the
+	/// infrastructure changes.
 	void documentChanged(SceneDocument::ChangeKinds kinds) override;
 
 private:

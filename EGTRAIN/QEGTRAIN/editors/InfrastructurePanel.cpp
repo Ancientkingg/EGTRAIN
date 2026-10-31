@@ -494,7 +494,6 @@ void InfrastructurePanel::moveSection(int offset) {
 
 void InfrastructurePanel::entityChanged(const QString& label) {
 	entityEdited(label);
-	emit entitiesChanged(facetKey());
 	refreshTable();
 }
 

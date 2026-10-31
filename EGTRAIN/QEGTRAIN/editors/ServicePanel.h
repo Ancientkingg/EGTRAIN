@@ -159,6 +159,11 @@ Q_SIGNALS:
 	/// selected, or the id or the route of the selected one has changed.
 	void selectedServiceChanged(const QString& serviceId);
 
+protected:
+	/// Shows the choices of the fields again when the infrastructure or the compositions change, and the occurrences when the
+	/// case settings change.
+	void documentChanged(SceneDocument::ChangeKinds kinds) override;
+
 private:
 	// The selected service, or -1.
 	int selectedRow() const;

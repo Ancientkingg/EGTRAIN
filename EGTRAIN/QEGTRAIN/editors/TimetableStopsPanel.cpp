@@ -198,6 +198,12 @@ TimetableStopsPanel::TimetableStopsPanel(QWidget* parent) : SceneEditorPanel(par
 	TimetableStopsPanel::refresh();
 }
 
+void TimetableStopsPanel::documentChanged(SceneDocument::ChangeKinds kinds) {
+	// The base time sets the planned times, and the infrastructure decides where a stop is on its route.
+	if (kinds & (SceneDocument::CaseSettings | SceneDocument::Infrastructure))
+		refresh();
+}
+
 void TimetableStopsPanel::setServiceId(const QString& serviceId) {
 	m_serviceId = serviceId.toStdString();
 	refresh();

@@ -104,7 +104,8 @@ Q_SIGNALS:
 	void statusMessage(const QString& text, int timeoutMs);
 
 protected:
-	/// Writes the labels of the list again when scenarios are edited.
+	/// Writes the labels of the list again when scenarios are edited, and shows the scenarios again when the infrastructure
+	/// changes.
 	void documentChanged(SceneDocument::ChangeKinds kinds) override;
 
 private:

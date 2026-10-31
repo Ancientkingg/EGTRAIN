@@ -421,7 +421,6 @@ void TrainUnitPanel::addUnit() {
 		return;
 
 	refresh();
-	emit trainUnitsChanged();
 	emit changed();
 
 	m_listWidget->setCurrentRow(static_cast<int>(m_document->model().trainUnits.size()) - 1);
@@ -439,7 +438,6 @@ void TrainUnitPanel::duplicateUnit() {
 		return;
 
 	refresh();
-	emit trainUnitsChanged();
 	emit changed();
 
 	m_listWidget->setCurrentRow(row + 1);
@@ -471,7 +469,6 @@ void TrainUnitPanel::deleteUnit() {
 
 	emit unitDeleted(QString::fromStdString(id));
 	refresh();
-	emit trainUnitsChanged();
 	emit changed();
 }
 
@@ -508,7 +505,6 @@ void TrainUnitPanel::commitIdEdit() {
 		return;
 
 	emit unitRenamed(QString::fromStdString(oldId), QString::fromStdString(newId));
-	emit trainUnitsChanged();
 	emit changed();
 }
 
@@ -528,7 +524,6 @@ void TrainUnitPanel::commitSources() {
 		}))
 		return;
 
-	emit sourceReferencesChanged();
 	emit changed();
 }
 

@@ -340,6 +340,12 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	PassengerPanel::refresh();
 }
 
+void PassengerPanel::documentChanged(SceneDocument::ChangeKinds kinds) {
+	// The case duration sets the occurrences of a service, and journeys and legs name stations and services.
+	if (kinds & (SceneDocument::CaseSettings | SceneDocument::Infrastructure | SceneDocument::Services))
+		refresh();
+}
+
 void PassengerPanel::setDiagnostics(const std::vector<SceneDiagnostic>* diagnostics) {
 	m_diagnostics = diagnostics;
 }

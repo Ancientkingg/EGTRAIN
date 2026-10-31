@@ -69,7 +69,6 @@ struct Events {
 			log.push_back("documentChanged");
 			kinds = changedKinds;
 		});
-		QObject::connect(&panel, &CompositionPanel::compositionIdsChanged, &panel, [this] { log.push_back("idsChanged"); });
 		QObject::connect(&panel, &CompositionPanel::changed, &panel, [this] { log.push_back("panelChanged"); });
 		QObject::connect(&panel, &CompositionPanel::tractionPlotRequested, &panel,
 			[this](const QString& unitId) { plotted << unitId; });
@@ -79,7 +78,7 @@ struct Events {
 using Log = std::vector<std::string>;
 
 static const Log edit({"documentChanged", "panelChanged"});
-static const Log editIds({"documentChanged", "idsChanged", "panelChanged"});
+static const Log editIds({"documentChanged", "panelChanged"});
 
 // Closes each message box that opens while `action` runs, and returns how many did.
 static int messageBoxesDuring(const std::function<void()>& action) {
@@ -141,6 +140,7 @@ private slots:
 	void renamesAddsAndDeletesCompositions();
 	void editsUnits();
 	void editableDuringRun();
+	void followsRollingStock();
 	void showsAnotherScene();
 	void detachedPanelIgnoresDocument();
 	void keepsSelectionOfReorderedScene();
@@ -152,6 +152,23 @@ private slots:
 	void reportsUndefinedUnitAsError();
 	void showsMessagesThroughPrompts();
 };
+
+// The units of a composition follow the rolling stock, with the same unit selected.
+void TestCompositionPanel::followsRollingStock() {
+	CompositionFixture f;
+	CompositionPanel& panel = f.panel;
+	panel.listWidget()->setCurrentRow(0);
+	panel.unitsListWidget()->setCurrentRow(1);
+	QVERIFY(f.document.edit(SceneDocument::TrainUnits | SceneDocument::Compositions, "Rename rolling stock unit", [](SceneModel& model) {
+		model.trainUnits[1].id = "renamed";
+		model.compositions[0].units[1] = "renamed";
+	}));
+	QCOMPARE(panel.unitsListWidget()->currentItem()->text(), "renamed");
+	QVERIFY(f.document.edit(SceneDocument::TrainUnits, "Edit rolling stock unit sources",
+		[](SceneModel& model) { model.trainUnits[1].sourceDataFile = "u2.xml"; }));
+	QCOMPARE(panel.unitsListWidget()->currentRow(), 1);
+	QCOMPARE(panel.unitSourceDataLabel()->text(), "u2.xml");
+}
 
 void TestCompositionPanel::showsNothingWithoutScene() {
 	CompositionPanel panel;
