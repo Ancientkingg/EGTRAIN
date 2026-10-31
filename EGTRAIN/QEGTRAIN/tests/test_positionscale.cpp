@@ -3,7 +3,7 @@
 
 #include "diagrams/BlockingTimeDiagram.h"
 #include "diagrams/PositionScale.h"
-#include "diagrams/RunExports.h"
+#include "diagrams/RunCsv.h"
 
 #include <QStringList>
 #include <QTest>
@@ -271,6 +271,11 @@ void TestPositionScale::fillsExportColumns() {
 	QVERIFY(nearField(rows[5][25], 18.298));
 	QVERIFY(nearField(rows[6][24], 30.569));
 	QVERIFY(nearField(rows[6][25], 31.271));
+	// A trajectory row that is shorter than the header is padded to its width.
+	const auto padded = csvRows(buildBlockingTimeCsv({"T"}, {}, {}, {{"T", "", "", "", "18.5"}}));
+	QCOMPARE(padded.size(), std::size_t(2));
+	QCOMPARE(padded[1].size(), std::size_t(26));
+	QCOMPARE(padded[1][4], "18.5");
 }
 
 QTEST_APPLESS_MAIN(TestPositionScale)

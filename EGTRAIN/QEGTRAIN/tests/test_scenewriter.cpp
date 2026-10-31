@@ -1,3 +1,4 @@
+#include "scene/LoadedDataSummary.h"
 #include "scene/SceneModel.h"
 #include "scene/SceneWriter.h"
 #include "scene/SignallingLevel.h"
@@ -714,6 +715,7 @@ private slots:
 	void roundTripsServiceColour();
 	void missingAppVersionIsValid();
 	void summarisesLoadedData();
+	void summarisesLoadedDataStatuses();
 	void savesBaselineScenarioWithoutScenarios();
 	void readsHistoricalAliases();
 	void insertsStopIntoCommittedService();
@@ -1419,7 +1421,7 @@ void TestSceneWriter::summarisesLoadedData() {
 	QVERIFY2(saveScene(authoredScene(), temp.path.string()).success(), "complete canonical scene saves");
 	SceneModel reloaded;
 	QVERIFY2(loadHasNoErrors(temp.path, reloaded), "canonical scene reloads without structural errors");
-	refreshLoadedDataSummary(reloaded);
+	const std::vector<SceneLoadedData> summary = buildLoadedDataSummary(reloaded, reloaded.sourceFiles, {});
 	const auto findCategory = [](const std::vector<SceneLoadedData>& rows,
 								  const std::string& category) -> const SceneLoadedData* {
 		for (const auto& row : rows) {
@@ -1428,12 +1430,12 @@ void TestSceneWriter::summarisesLoadedData() {
 		}
 		return nullptr;
 	};
-	const SceneLoadedData* rolling = findCategory(reloaded.loadedData, "rolling_stock");
+	const SceneLoadedData* rolling = findCategory(summary, "rolling_stock");
 	const SceneLoadedData* units = rolling ? findCategory(rolling->children, "train_units") : nullptr;
 	// Loaded category reports parsed canonical data.
 	if (rolling == nullptr)
 		QFAIL("there is no rolling_stock row");
-	QCOMPARE(rolling->status, "Parsed");
+	QCOMPARE(rolling->status, SceneLoadedStatus::Parsed);
 	// Loaded train-unit row owns its editor target, data, curve, and provenance.
 	if (units == nullptr)
 		QFAIL("there is no train_units row");
@@ -1443,7 +1445,7 @@ void TestSceneWriter::summarisesLoadedData() {
 	QVERIFY(findCategory(units->children.front().children, "train_unit_parameters"));
 	QVERIFY(findCategory(units->children.front().children, "tractive_effort_curve"));
 	QVERIFY(findCategory(units->children.front().children, "import_provenance"));
-	const SceneLoadedData* infrastructure = findCategory(reloaded.loadedData, "infrastructure");
+	const SceneLoadedData* infrastructure = findCategory(summary, "infrastructure");
 	// Infrastructure summary resolves to the existing network view.
 	if (infrastructure == nullptr)
 		QFAIL("there is no infrastructure row");
@@ -1460,8 +1462,8 @@ void TestSceneWriter::summarisesLoadedData() {
 		other.name = "Solo";
 		twins.scenarios = {first, second, other};
 		twins.defaultScenarioId = "twin_a";
-		refreshLoadedDataSummary(twins);
-		const SceneLoadedData* scenarioRows = findCategory(twins.loadedData, "scenarios");
+		const std::vector<SceneLoadedData> twinSummary = buildLoadedDataSummary(twins, twins.sourceFiles, {});
+		const SceneLoadedData* scenarioRows = findCategory(twinSummary, "scenarios");
 		const SceneLoadedData* available = scenarioRows ? findCategory(scenarioRows->children, "available_scenarios") : nullptr;
 		std::vector<std::string> labels;
 		if (available)
@@ -1476,29 +1478,109 @@ void TestSceneWriter::summarisesLoadedData() {
 	withoutOptional.sourceFiles.erase("passengers.json");
 	withoutOptional.scenarios.clear();
 	withoutOptional.passengers.clear();
-	refreshLoadedDataSummary(withoutOptional);
-	const SceneLoadedData* scenariosRow = findCategory(withoutOptional.loadedData, "scenarios");
-	const SceneLoadedData* passengersRow = findCategory(withoutOptional.loadedData, "passengers");
+	const std::vector<SceneLoadedData> optionalSummary = buildLoadedDataSummary(withoutOptional, withoutOptional.sourceFiles, {});
+	const SceneLoadedData* scenariosRow = findCategory(optionalSummary, "scenarios");
+	const SceneLoadedData* passengersRow = findCategory(optionalSummary, "passengers");
 	// Absent optional scene inputs are labelled explicitly.
 	if (scenariosRow == nullptr)
 		QFAIL("there is no scenarios row");
-	QCOMPARE(scenariosRow->status, "Missing optional");
+	QCOMPARE(scenariosRow->status, SceneLoadedStatus::MissingOptional);
 	if (passengersRow == nullptr)
 		QFAIL("there is no passengers row");
-	QCOMPARE(passengersRow->status, "Missing optional");
+	QCOMPARE(passengersRow->status, SceneLoadedStatus::MissingOptional);
 	QVERIFY2(withoutOptional.scenarios.empty(), "loaded-data refresh does not create canonical input");
 
 	SceneDiagnostic rollingWarning;
 	rollingWarning.severity = SceneSeverity::Warning;
 	rollingWarning.file = "rolling_stock.json";
-	refreshLoadedDataDiagnostics(reloaded, {rollingWarning});
-	rolling = findCategory(reloaded.loadedData, "rolling_stock");
+	const std::vector<SceneLoadedData> warned = buildLoadedDataSummary(reloaded, reloaded.sourceFiles, {rollingWarning});
+	rolling = findCategory(warned, "rolling_stock");
 	// Validation warning is visible on its loaded-data category.
 	if (rolling == nullptr)
 		QFAIL("there is no rolling_stock row");
-	QCOMPARE(rolling->status, "Warning");
+	QCOMPARE(rolling->status, SceneLoadedStatus::Warning);
 	QVERIFY(!rolling->children.empty());
-	QCOMPARE(rolling->children.back().status, "Warning");
+	QCOMPARE(rolling->children.back().status, SceneLoadedStatus::Warning);
+}
+
+// The Loaded Data summary of a small scene without passengers.json and with one warning gives each row its status.
+void TestSceneWriter::summarisesLoadedDataStatuses() {
+	SceneModel scene;
+	scene.schemaVersion = 1;
+	scene.sourceFiles = {"scene.json", "infrastructure.json", "stations.json", "signalling.json", "rolling_stock.json",
+		"services.json", "scenarios.json"};
+	scene.tracks.push_back({"track-1"});
+	SceneTrainUnit unit;
+	unit.id = "unit-1";
+	unit.tractionCurve.push_back({0.0, 100.0, 0.0, 0.0, 0.0});
+	scene.trainUnits.push_back(unit);
+	SceneService service;
+	service.id = "service-1";
+	scene.services.push_back(service);
+	scene.scenarios.push_back(makeBaselineScenario());
+	scene.defaultScenarioId = scene.scenarios[0].id;
+	SceneDiagnostic warning;
+	warning.severity = SceneSeverity::Warning;
+	warning.code = "scene.test.warning";
+	warning.file = "services.json";
+
+	const std::vector<SceneLoadedData> summary = buildLoadedDataSummary(scene, scene.sourceFiles, {warning});
+	// A missing row fails the test, because the default status Parsed would pass the checks that expect it.
+	const auto row = [](const std::vector<SceneLoadedData>& rows, const std::string& category) -> const SceneLoadedData& {
+		static const SceneLoadedData none;
+		for (const auto& item : rows)
+			if (item.category == category)
+				return item;
+		QTest::qFail(("no row " + category).c_str(), __FILE__, __LINE__);
+		return none;
+	};
+	QCOMPARE(summary.size(), std::size_t(8));
+	// A present file is Parsed, its source file Loaded, and a validation row without diagnostics Ready.
+	const SceneLoadedData& sceneRow = row(summary, "scene");
+	QCOMPARE(sceneRow.status, SceneLoadedStatus::Parsed);
+	QCOMPARE(row(sceneRow.children, "source_file").status, SceneLoadedStatus::Loaded);
+	QCOMPARE(row(sceneRow.children, "parsed_objects").status, SceneLoadedStatus::Parsed);
+	QCOMPARE(row(sceneRow.children, "validation").status, SceneLoadedStatus::Ready);
+	QCOMPARE(row(sceneRow.children, "validation").parsedCount, 0);
+	// A scene without an import report has it as a missing optional part.
+	QCOMPARE(row(sceneRow.children, "import_report").status, SceneLoadedStatus::MissingOptional);
+	QCOMPARE(row(summary, "infrastructure").status, SceneLoadedStatus::Parsed);
+	QCOMPARE(row(row(summary, "infrastructure").children, "tracks").parsedCount, 1);
+	// The warning of services.json marks the timetable row and its validation row.
+	const SceneLoadedData& timetable = row(summary, "timetable");
+	QCOMPARE(timetable.status, SceneLoadedStatus::Warning);
+	QCOMPARE(timetable.children.back().category, "validation");
+	QCOMPARE(timetable.children.back().status, SceneLoadedStatus::Warning);
+	QCOMPARE(timetable.children.back().parsedCount, 1);
+	QCOMPARE(row(timetable.children, "services").status, SceneLoadedStatus::Parsed);
+	// A unit without physical values has them Invalid; its traction curve can be plotted.
+	const SceneLoadedData& unitRow = row(row(row(summary, "rolling_stock").children, "train_units").children, "unit-1");
+	QCOMPARE(unitRow.targetType, "train_unit");
+	QCOMPARE(row(unitRow.children, "train_unit_parameters").status, SceneLoadedStatus::Invalid);
+	const SceneLoadedData& curve = row(unitRow.children, "tractive_effort_curve");
+	QCOMPARE(curve.status, SceneLoadedStatus::Parsed);
+	QCOMPARE(row(curve.children, "Plot traction curve").status, SceneLoadedStatus::Ready);
+	QCOMPARE(row(unitRow.children, "import_provenance").status, SceneLoadedStatus::MissingOptional);
+	QCOMPARE(row(summary, "scenarios").status, SceneLoadedStatus::Parsed);
+	// The missing optional passengers.json, and its source file and objects.
+	const SceneLoadedData& passengers = row(summary, "passengers");
+	QCOMPARE(passengers.status, SceneLoadedStatus::MissingOptional);
+	QCOMPARE(row(passengers.children, "source_file").status, SceneLoadedStatus::MissingOptional);
+	QCOMPARE(row(passengers.children, "parsed_objects").status, SceneLoadedStatus::MissingOptional);
+	QCOMPARE(row(passengers.children, "validation").status, SceneLoadedStatus::Ready);
+
+	// A required file that is missing is Invalid, and an error of its file makes its row Invalid too.
+	std::set<std::string> withoutSignalling = scene.sourceFiles;
+	withoutSignalling.erase("signalling.json");
+	SceneDiagnostic error = warning;
+	error.severity = SceneSeverity::Error;
+	error.file = "stations.json";
+	const std::vector<SceneLoadedData> broken = buildLoadedDataSummary(scene, withoutSignalling, {error});
+	QCOMPARE(row(broken, "signalling").status, SceneLoadedStatus::Invalid);
+	QCOMPARE(row(row(broken, "signalling").children, "source_file").status, SceneLoadedStatus::Invalid);
+	QCOMPARE(row(broken, "stations").status, SceneLoadedStatus::Invalid);
+	QCOMPARE(row(broken, "stations").children.back().status, SceneLoadedStatus::Invalid);
+	QCOMPARE(row(broken, "timetable").status, SceneLoadedStatus::Parsed);
 }
 
 // A scene without scenarios is written with the baseline scenario.

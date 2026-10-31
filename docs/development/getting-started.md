@@ -133,7 +133,7 @@ of folders, the libraries and the renames.
 | Loading, validating, saving, bundling, importing and exporting scenes | `scene/` (`SceneModel`, `SceneBundle`, `SceneValidator`, `SceneWriter`, `SceneImporter`, `SceneExporter`) |
 | Turning a scene into a runnable simulation | `simulation/builders/` (`InfrastructureBuilder`, `OperationsBuilder`) and `app/DispatchController.cpp` |
 | The simulation itself: trains, signalling, dynamics | `simulation/` |
-| Results, charts, analysis windows, CSV export | `diagrams/` (`CompletedRunCapture`, `RunResults`, `RunExports`) |
+| Results, charts, analysis windows, CSV export | `diagrams/` (`CompletedRunCapture`, `RunResults`, `RunCsv`, `BlockingTimeData`, `RouteDiagramData`) |
 | The network canvas | `graphics/` and `graphics/items/` |
 | Dock widgets, dialogs, small controls | `widgets/` |
 | Logging, time and number formatting | `util/` |

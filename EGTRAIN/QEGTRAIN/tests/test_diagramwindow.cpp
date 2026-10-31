@@ -2,6 +2,7 @@
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/PositionScale.h"
 #include "diagrams/RouteDiagramCoordinates.h"
+#include "diagrams/SeriesMeta.h"
 #include "diagrams/TrainColors.h"
 #include "diagrams/TrainFilterButton.h"
 #include "diagrams/TrainKeyList.h"
@@ -70,6 +71,21 @@
 #include <iostream>
 #include <limits>
 #include <tuple>
+
+// Sets one field of the description of a series.
+template <typename Field, typename Value>
+static void setMeta(QAbstractSeries* series, Field SeriesMeta::* field, const Value& value) {
+	SeriesMeta meta = seriesMeta(series);
+	meta.*field = value;
+	describeSeries(series, meta);
+}
+
+// Describes the axis with only AxisMeta::exactRange set, so that setChart keeps its range.
+static void keepExactRange(QAbstractAxis* axis) {
+	AxisMeta meta;
+	meta.exactRange = true;
+	describeAxis(axis, meta);
+}
 
 // Runs the event loop until `done` is true, for at most about a second.
 static bool waitFor(const std::function<bool()>& done) {
@@ -494,7 +510,7 @@ void TestDiagramWindow::leavesTrainKeysToList() {
 	for (const char* id : {"A", "B", "C"}) {
 		auto* series = new QLineSeries;
 		series->setName(QString("Train %1").arg(id));
-		series->setProperty("trainId", id);
+		setMeta(series, &SeriesMeta::trainId, id);
 		series->append(10, 10);
 		series->append(60, 60);
 		chart->addSeries(series);
@@ -584,14 +600,14 @@ static ColoredChart makeColoredChart() {
 		built.dashedPen[train] = QPen(base[train], 2.0, Qt::DashLine);
 		auto* solid = new QLineSeries;
 		solid->setName("Train " + id + " (simulated)");
-		solid->setProperty("trainId", id);
+		setMeta(solid, &SeriesMeta::trainId, id);
 		solid->setPen(built.solidPen[train]);
 		solid->append(10, 10 + offset);
 		solid->append(60, 20 + offset);
 		auto* dashed = new QLineSeries;
 		dashed->setName("Train " + id + " (planned)");
-		dashed->setProperty("trainId", id);
-		dashed->setProperty("planned", true);
+		setMeta(dashed, &SeriesMeta::trainId, id);
+		setMeta(dashed, &SeriesMeta::planned, true);
 		dashed->setPen(built.dashedPen[train]);
 		dashed->append(10, 25 + offset);
 		dashed->append(60, 30 + offset);
@@ -608,7 +624,7 @@ static ColoredChart makeColoredChart() {
 	lower->append(70, 40);
 	lower->append(90, 40);
 	built.fill = new QAreaSeries(upper, lower);
-	built.fill->setProperty("trainId", "A");
+	setMeta(built.fill, &SeriesMeta::trainId, "A");
 	built.fillBrush = QBrush(QColor(200, 40, 40, 65));
 	built.fillPen = QPen(QColor(200, 40, 40), 1.5);
 	built.fill->setBrush(built.fillBrush);
@@ -654,14 +670,14 @@ static void addBlockingBox(QChart* chart, const QString& id, BlockingTimeKind ki
 	upper->append(left, end);
 	upper->append(right, end);
 	auto* fill = new QAreaSeries(upper, lower);
-	fill->setProperty("trainId", id);
+	setMeta(fill, &SeriesMeta::trainId, id);
 	auto* outline = new QLineSeries;
 	outline->setName(id);
-	outline->setProperty("trainId", id);
-	outline->setProperty("inspectionFilled", true);
+	setMeta(outline, &SeriesMeta::trainId, id);
+	setMeta(outline, &SeriesMeta::inspectionFilled, true);
 	styleBlockingTime(fill, outline, kind);
-	outline->setProperty("inspectionInterval",
-		QString("Block: %1\nBlocked %2 to %3 s").arg(outline->property("keyKind").toString()).arg(start).arg(end));
+	setMeta(outline, &SeriesMeta::inspectionInterval,
+		QString("Block: %1\nBlocked %2 to %3 s").arg(seriesMeta(outline).keyKind.value_or(QString())).arg(start).arg(end));
 	for (const QPointF& point : {QPointF(left, start), QPointF(right, start), QPointF(right, end), QPointF(left, end), QPointF(left, start)})
 		outline->append(point);
 	chart->addSeries(fill);
@@ -679,7 +695,7 @@ static void clickChart(QChartView* view, const QPointF& value, QAbstractSeries* 
 
 // The colour rule paints the trains of a window: two trains take the first two colours of the palette in the order of
 // the chart, and the colour that the case gives a service wins over the palette. A series keeps the width and dash
-// pattern of its builder and an area series the alpha of its fill; a series whose "ownColour" property is set keeps its
+// pattern of its builder and an area series the alpha of its fill; a series with SeriesMeta::ownColour keeps its
 // colours, and so does a chart of rolling stock input. The line samples of the Trains list follow, light grey for a
 // hidden train.
 void TestDiagramWindow::coloursTrains() {
@@ -740,11 +756,11 @@ void TestDiagramWindow::coloursTrains() {
 	}
 
 	// Without colours of the case, and with an unknown train or an invalid colour, the palette colours the trains. A series
-	// whose ownColour property is set keeps its colours.
+	// with SeriesMeta::ownColour keeps its colours.
 	DiagramWindow window("Own colours");
 	const ColoredChart built = makeColoredChart();
-	built.fill->setProperty("ownColour", true);
-	built.dashed[1]->setProperty("ownColour", true);
+	setMeta(built.fill, &SeriesMeta::ownColour, true);
+	setMeta(built.dashed[1], &SeriesMeta::ownColour, true);
 	window.setChart(built.chart);
 	window.setTrainColors({{"Z", green}, {"A", QColor()}});
 	TrainKeyList* list = trainListOf(window);
@@ -755,7 +771,7 @@ void TestDiagramWindow::coloursTrains() {
 		QFAIL("an unknown train id and an invalid colour leave the colours of the palette");
 	QCOMPARE(swatchAt(list, 0), blue);
 	QCOMPARE(swatchAt(list, 1), pink);
-	// a series whose ownColour property is set keeps the colours of its builder
+	// a series with SeriesMeta::ownColour keeps the colours of its builder
 	QCOMPARE(built.fill->pen(), built.fillPen);
 	QCOMPARE(built.fill->brush(), built.fillBrush);
 	QCOMPARE(built.dashed[1]->pen(), built.dashedPen[1]);
@@ -978,7 +994,7 @@ static QChart* makeNamedChart(const QStringList& names) {
 // The chart of makeNamedChart with the series at plannedIndex marked planned.
 static QChart* makePlannedChart(const QStringList& names, int plannedIndex) {
 	QChart* chart = makeNamedChart(names);
-	chart->series()[plannedIndex]->setProperty("planned", true);
+	setMeta(chart->series()[plannedIndex], &SeriesMeta::planned, true);
 	return chart;
 }
 
@@ -1008,13 +1024,13 @@ static QChart* buttonTestChart() {
 	auto* chart = new QChart;
 	auto* a = new QLineSeries;
 	a->setName("Train A");
-	a->setProperty("trainId", "A");
+	setMeta(a, &SeriesMeta::trainId, "A");
 	a->append(20, 30);
 	a->append(40, 50);
 	chart->addSeries(a);
 	auto* b = new QLineSeries;
 	b->setName("Train B");
-	b->setProperty("trainId", "B");
+	setMeta(b, &SeriesMeta::trainId, "B");
 	b->append(70, 20);
 	b->append(80, 30);
 	chart->addSeries(b);
@@ -1162,19 +1178,19 @@ void TestDiagramWindow::drawsPhysicalSections() {
 	chart->setTitle("Physical sections title");
 	auto* first = new QLineSeries;
 	first->setName("A envelope");
-	first->setProperty("trainId", "A");
+	setMeta(first, &SeriesMeta::trainId, "A");
 	first->append(2, 0);
 	first->append(2, 100);
 	chart->addSeries(first);
 	auto* second = new QLineSeries;
 	second->setName("B envelope");
-	second->setProperty("trainId", "B");
+	setMeta(second, &SeriesMeta::trainId, "B");
 	second->append(7, 0);
 	second->append(7, 100);
 	chart->addSeries(second);
 	auto* early = new QScatterSeries;
 	early->setName("A early recorded sample");
-	early->setProperty("trainId", "A");
+	setMeta(early, &SeriesMeta::trainId, "A");
 	early->setColor(Qt::red);
 	early->setBorderColor(Qt::red);
 	early->append(2.5, 1);
@@ -1392,7 +1408,6 @@ void TestDiagramWindow::drawsPhysicalSections() {
 	crowdedLabels.byReference = {{"@section-n0@", "T 0.000 to 0.250 km"}};
 	window.setBlockSections(buildBlockSectionExtents(narrowSections), "crowded", &crowdedLabels);
 	QApplication::processEvents();
-	view->grab(); // paints the strip, which records its labels
 	hover(QPointF(plot.left() + labelWidth - 2, headerPoint(0, 0).y() + 5));
 	const auto* crowdedStrip = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
 	// the strip names a section by its id, and the hover by its id and label
@@ -1641,7 +1656,7 @@ static QStringList elidedTexts(const QStringList& texts) {
 static QChart* routeChartWithStations(const QStringList& names, QCategoryAxis** stationAxis, std::vector<StationTick>* ticks) {
 	auto* chart = new QChart;
 	auto* series = new QLineSeries;
-	series->setProperty("trainId", "A");
+	setMeta(series, &SeriesMeta::trainId, "A");
 	series->setName("A (arrival)");
 	series->append(0.0, 10);
 	series->append(9.5 * names.size(), 3000);
@@ -1804,7 +1819,7 @@ void TestDiagramWindow::namesBusyStationsFirst() {
 }
 
 // The Key lists the kinds of mark of the shown series, each with the pen and brush of its series, in a fixed order: the
-// kind of a series is its "keyKind" property, else its layer, else planned or simulated. Simulated is left out while it
+// kind of a series is its keyKind, else its layer, else planned or simulated. Simulated is left out while it
 // is the only kind of line, and the Key hides while it has no row.
 // A dashed line with a dot keeps a gap on each side of the dot, so that its sample does not read as a solid line.
 void TestDiagramWindow::drawsKeySamples() {
@@ -1864,10 +1879,10 @@ void TestDiagramWindow::listsKindsInKey() {
 	QCOMPARE(qobject_cast<QXYSeries*>(namedPlanned->series()[0])->pen().style(), Qt::SolidLine);
 	QCOMPARE(qobject_cast<QXYSeries*>(namedPlanned->series()[1])->pen().style(), Qt::SolidLine);
 	QChart* plannedByProperty = makeNamedChart({"Train A", "Train A"});
-	plannedByProperty->series()[0]->setProperty("planned", true);
+	setMeta(plannedByProperty->series()[0], &SeriesMeta::planned, true);
 	window.setChart(plannedByProperty);
 	const auto* plannedLine = qobject_cast<QXYSeries*>(plannedByProperty->series()[0]);
-	// a series whose planned property is set is planned without the word in its name, and drawn dashed
+	// a series with SeriesMeta::planned is planned without the word in its name, and drawn dashed
 	QCOMPARE(legendKinds(window), QStringList({"Planned", "Simulated"}));
 	QCOMPARE(plannedLine->pen().style(), Qt::DashLine);
 	const QVector<DiagramKeyEntry> planned = key->entries();
@@ -1878,8 +1893,8 @@ void TestDiagramWindow::listsKindsInKey() {
 	QCOMPARE(planned[0].pen.color(), window.palette().color(QPalette::WindowText));
 	QCOMPARE(planned[1].pen.style(), Qt::SolidLine);
 	QChart* layered = makePlannedChart({"A", "A (planned reference)", "A again"}, 1);
-	layered->series()[0]->setProperty("layer", "blocking time");
-	layered->series()[2]->setProperty("layer", "simulated");
+	setMeta(layered->series()[0], &SeriesMeta::layer, "blocking time");
+	setMeta(layered->series()[2], &SeriesMeta::layer, "simulated");
 	window.setChart(layered);
 	// the layer of a series names its kind
 	QCOMPARE(legendKinds(window), QStringList({"Blocking time", "Planned", "Simulated"}));
@@ -1894,23 +1909,23 @@ void TestDiagramWindow::listsKindsInKey() {
 	addBlockingBox(blocking, "B", BlockingTimeKind::CriticalBlock, 3, 4, 30, 60);
 	auto* plannedRun = new QLineSeries;
 	plannedRun->setName("A");
-	plannedRun->setProperty("trainId", "A");
-	plannedRun->setProperty("planned", true);
+	setMeta(plannedRun, &SeriesMeta::trainId, "A");
+	setMeta(plannedRun, &SeriesMeta::planned, true);
 	plannedRun->setPointsVisible(true);
 	plannedRun->append(1, 10);
 	plannedRun->append(4, 70);
 	blocking->addSeries(plannedRun);
 	auto* run = new QLineSeries;
 	run->setName("A");
-	run->setProperty("trainId", "A");
-	run->setProperty("layer", "simulated");
+	setMeta(run, &SeriesMeta::trainId, "A");
+	setMeta(run, &SeriesMeta::layer, "simulated");
 	run->append(1, 15);
 	run->append(4, 75);
 	blocking->addSeries(run);
 	auto* hidden = new QLineSeries;
 	hidden->setName("helper");
-	hidden->setProperty("trainId", "A");
-	hidden->setProperty("keyKind", QString());
+	setMeta(hidden, &SeriesMeta::trainId, "A");
+	setMeta(hidden, &SeriesMeta::keyKind, QString());
 	hidden->append(1, 1);
 	hidden->append(2, 2);
 	blocking->addSeries(hidden);
@@ -1943,25 +1958,25 @@ void TestDiagramWindow::listsKindsInKey() {
 	auto* paths = new QChart;
 	auto* events = new QLineSeries;
 	events->setName("A (simulated arrival)");
-	events->setProperty("trainId", "A");
-	events->setProperty("keyMarker", "Stop");
+	setMeta(events, &SeriesMeta::trainId, "A");
+	setMeta(events, &SeriesMeta::keyMarker, "Stop");
 	events->setPointsVisible(true);
 	events->append(1, 10);
 	events->append(3, 30);
 	paths->addSeries(events);
 	auto* dwell = new QLineSeries;
 	dwell->setName("A (simulated dwell)");
-	dwell->setProperty("trainId", "A");
-	dwell->setProperty("keyKind", "Dwell");
-	dwell->setProperty("keyUpright", true);
+	setMeta(dwell, &SeriesMeta::trainId, "A");
+	setMeta(dwell, &SeriesMeta::keyKind, "Dwell");
+	setMeta(dwell, &SeriesMeta::keyUpright, true);
 	dwell->append(3, 30);
 	dwell->append(3, 40);
 	paths->addSeries(dwell);
 	auto* plannedEvents = new QLineSeries;
 	plannedEvents->setName("A (planned arrival)");
-	plannedEvents->setProperty("trainId", "A");
-	plannedEvents->setProperty("planned", true);
-	plannedEvents->setProperty("keyMarker", "Stop");
+	setMeta(plannedEvents, &SeriesMeta::trainId, "A");
+	setMeta(plannedEvents, &SeriesMeta::planned, true);
+	setMeta(plannedEvents, &SeriesMeta::keyMarker, "Stop");
 	plannedEvents->setPointsVisible(true);
 	plannedEvents->append(1, 12);
 	plannedEvents->append(3, 32);
@@ -2336,7 +2351,7 @@ void TestDiagramWindow::selectsTrainsAndBoxes() {
 	addBlockingBox(chart, longId, BlockingTimeKind::Conflict, 5, 7, 30, 70);
 	auto* run = new QLineSeries;
 	run->setName("B run");
-	run->setProperty("trainId", "B");
+	setMeta(run, &SeriesMeta::trainId, "B");
 	run->append(9, 5);
 	run->append(9, 95);
 	chart->addSeries(run);
@@ -2379,7 +2394,6 @@ void TestDiagramWindow::selectsTrainsAndBoxes() {
 
 	click(QPointF(3, 40), outlineA);
 	auto* outline = chart->findChild<QGraphicsObject*>("diagramSelectionOutline");
-	view->grab();
 	const QRectF box(chart->mapToPosition(QPointF(2, 60), outlineA), chart->mapToPosition(QPointF(4, 20), outlineA));
 	const QRectF drawn = outline ? outline->property("outline").toRectF() : QRectF();
 	// a click inside a blocking time draws an outline just around its box
@@ -2388,6 +2402,32 @@ void TestDiagramWindow::selectsTrainsAndBoxes() {
 	QVERIFY(outline->isVisible());
 	QVERIFY(drawn.contains(box.normalized()));
 	QVERIFY(std::abs(drawn.width() - box.normalized().width() - 3) < 0.5);
+	// The outline paints along the edge of its rectangle, which lies inside the plot: there a grab with the outline hidden
+	// differs from one with it shown.
+	QVERIFY(chart->plotArea().contains(drawn));
+	const QImage withOutline = view->grab().toImage();
+	outline->hide();
+	const QImage withoutOutline = view->grab().toImage();
+	outline->show();
+	const qreal ratio = withOutline.devicePixelRatio();
+	const auto changedAt = [&](double atX, double atY) {
+		const QPoint at = view->mapFromScene(chart->mapToScene(QPointF(atX, atY)));
+		const QPoint pixel(qRound(at.x() * ratio), qRound(at.y() * ratio));
+		return withOutline.rect().contains(pixel) && withOutline.pixel(pixel) != withoutOutline.pixel(pixel);
+	};
+	const int across = qFloor(drawn.width()), down = qFloor(drawn.height());
+	int edgePoints = 0, changed = 0;
+	for (int step = 0; step <= across; ++step)
+		for (const double edgeY : {drawn.top(), drawn.bottom()}) {
+			++edgePoints;
+			if (changedAt(drawn.left() + step, edgeY)) ++changed;
+		}
+	for (int step = 0; step <= down; ++step)
+		for (const double edgeX : {drawn.left(), drawn.right()}) {
+			++edgePoints;
+			if (changedAt(edgeX, drawn.top() + step)) ++changed;
+		}
+	QVERIFY2(changed > edgePoints / 2, qPrintable(QString("the outline paints along its edge: %1 of %2 points").arg(changed).arg(edgePoints)));
 	QVERIFY2(title->text() == "A", qPrintable("Selected shows the lines of the blocking time, one fact per line, and its train is selected: " + lines->text()));
 	QVERIFY2(lines->text().split('\n').contains("Block: Blocking time"), qPrintable("Selected shows the lines of the blocking time, one fact per line, and its train is selected: " + lines->text()));
 	QVERIFY2(lines->text().split('\n').contains("Blocked 20 to 60 s"), qPrintable("Selected shows the lines of the blocking time, one fact per line, and its train is selected: " + lines->text()));
@@ -2446,7 +2486,7 @@ void TestDiagramWindow::selectsTrainsAndBoxes() {
 void TestDiagramWindow::exportsTrainColumn() {
 	DiagramWindow window("Export column");
 	auto* chart = makePlannedChart({"A", "B", "C", "A (planned)"}, 3);
-	for (int i = 0; i < 4; ++i) chart->series()[i]->setProperty("trainId", QString(QChar('A' + (i % 3))));
+	for (int i = 0; i < 4; ++i) setMeta(chart->series()[i], &SeriesMeta::trainId, QString(QChar('A' + (i % 3))));
 	window.setChart(chart);
 	window.setTrainColors({{"A", QColor(200, 0, 0)}, {"B", QColor(0, 160, 0)}, {"C", QColor(0, 0, 220)}});
 	window.setMaximumSize(1200, 750);
@@ -3167,8 +3207,9 @@ void TestDiagramWindow::readsValueUnderPointer() {
 	const QString speedAtTime = pointAt(QPointF(3, 40));
 	QVERIFY2(QRegularExpression(QStringLiteral("^\\d+\\.\\d+ km/h at 08:00:0[234]$")).match(speedAtTime).hasMatch(), qPrintable("with the clock along the bottom the readout gives the speed at the clock time: " + speedAtTime));
 
-	// A distance axis with "readoutStation" gives the station at the nearest position that a shown series has a sample at,
-	// as the Delays chart has it: Charlie at 6 km is named at 5.1 km, not Foxtrot at 5 km, where no train has a delay.
+	// A distance axis with AxisMeta::readoutStation gives the station at the nearest position that a shown series has a
+	// sample at, as the Delays chart has it: Charlie at 6 km is named at 5.1 km, not Foxtrot at 5 km, where no train has a
+	// delay.
 	DiagramWindow delays("Delays");
 	auto* delayChart = new QChart;
 	auto* delay = new QLineSeries;
@@ -3185,7 +3226,9 @@ void TestDiagramWindow::readsValueUnderPointer() {
 	delayChart->createDefaultAxes();
 	auto* distance = qobject_cast<QValueAxis*>(delayChart->axes(Qt::Horizontal).first());
 	distance->setTitleText("Distance (km)");
-	distance->setProperty("readoutStation", true);
+	AxisMeta distanceMeta;
+	distanceMeta.readoutStation = true;
+	describeAxis(distance, distanceMeta);
 	delayChart->axes(Qt::Vertical).first()->setTitleText("Arrival delay (min)");
 	auto* stationAxis = new QCategoryAxis;
 	stationAxis->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
@@ -3410,7 +3453,7 @@ static QChart* showBlockingWindow(DiagramWindow& window, const std::vector<Block
 	auto* chart = new QChart;
 	auto* box = new QLineSeries;
 	box->setName("T1 envelope");
-	box->setProperty("trainId", "T1");
+	setMeta(box, &SeriesMeta::trainId, "T1");
 	box->append(bounds.first, 600);
 	box->append(bounds.second, 1800);
 	chart->addSeries(box);
@@ -3419,7 +3462,7 @@ static QChart* showBlockingWindow(DiagramWindow& window, const std::vector<Block
 	auto* y = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
 	x->setTitleText("Distance (km)");
 	x->setRange(bounds.first, bounds.second);
-	x->setProperty("exactRange", true);
+	keepExactRange(x);
 	y->setTitleText("Time (s)");
 	y->setRange(0, 3600);
 	y->setReverse(true);
@@ -3623,7 +3666,7 @@ void TestDiagramWindow::spansSectionsExactly() {
 		QChart* chart = makeNamedChart({"A"});
 		auto* x = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
 		x->setRange(0, 12);
-		if (exact) x->setProperty("exactRange", true);
+		if (exact) keepExactRange(x);
 		window.setChart(chart);
 		return std::make_tuple(x->min(), x->max(), x->tickType() == QValueAxis::TicksDynamic && x->tickInterval() > 1.99 && x->tickInterval() <= 2);
 	};
@@ -3667,7 +3710,6 @@ void TestDiagramWindow::namesSectionsInStrip() {
 		QChart* chart = showBlockingWindow(window, extents, width, height);
 		*idPx = QFontMetricsF(window.font()).horizontalAdvance("70-B0") + 6;
 		auto* view = window.findChild<QChartView*>();
-		(void)view->grab(); // paints the strip, which records its ids
 		const auto* overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
 		const auto bounds = blockSectionBounds(extents).value();
 		*cellPx = 0.3 * chart->plotArea().width() / (bounds.second - bounds.first);
@@ -3732,7 +3774,6 @@ void TestDiagramWindow::namesSectionsInStrip() {
 	{
 		DiagramWindow window("Blocking time");
 		QChart* chart = showBlockingWindow(window, crowded, 1200, 750, crowdedMarks);
-		(void)window.findChild<QChartView*>()->grab();
 		const QStringList ids = chart->findChild<QGraphicsObject*>("blockSectionOverlay")->property("stripLabels").toStringList();
 		QVERIFY2(ids.contains("third-B0"), qPrintable("the strip keeps the critical, first and last ids: " + ids.join(", ")));
 		QVERIFY2(ids.contains("first-B0"), qPrintable("the strip keeps the critical, first and last ids: " + ids.join(", ")));
@@ -3756,7 +3797,6 @@ void TestDiagramWindow::namesSectionsInStrip() {
 		}
 		DiagramWindow window("Blocking time");
 		QChart* chart = showBlockingWindow(window, chainOf(0.75 * (chainIdWidth + 6) * 10 / plotWidth), 1200, 750);
-		(void)window.findChild<QChartView*>()->grab();
 		const auto* overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
 		const QStringList ids = overlay->property("stripLabels").toStringList();
 		QVERIFY2(overlay->property("stripRows").toInt() == 2, qPrintable("two rows name the five sections in route order: " + ids.join(", ")));
@@ -3886,15 +3926,15 @@ void TestDiagramWindow::fadesPlannedMarkers() {
 	auto* chart = new QChart;
 	auto* planned = new QLineSeries;
 	planned->setName("A (planned)");
-	planned->setProperty("trainId", "A");
-	planned->setProperty("planned", true);
+	setMeta(planned, &SeriesMeta::trainId, "A");
+	setMeta(planned, &SeriesMeta::planned, true);
 	planned->setPointsVisible(true);
 	planned->append(0, 10);
 	planned->append(100, 20);
 	chart->addSeries(planned);
 	auto* other = new QLineSeries;
 	other->setName("B");
-	other->setProperty("trainId", "B");
+	setMeta(other, &SeriesMeta::trainId, "B");
 	other->append(0, 50);
 	other->append(100, 50);
 	chart->addSeries(other);
@@ -3971,24 +4011,24 @@ void TestDiagramWindow::saysChartIsEmpty() {
 }
 
 // Inside a blocking box a click selects a line only within 4 px of it: a click on or very near the line selects its
-// train, one further away in the box outlines the box, which names itself by its "inspectionTitle". The selected train
-// is drawn over the others: its series go last in the chart and keep their axes. A click just outside the box, near its
-// outline, selects the box by its title too, with its own lines only and without an outline.
+// train, one further away in the box outlines the box, which names itself by its SeriesMeta::inspectionTitle. The
+// selected train is drawn over the others: its series go last in the chart and keep their axes. A click just outside the
+// box, near its outline, selects the box by its title too, with its own lines only and without an outline.
 void TestDiagramWindow::selectsLinesInsideBoxes() {
 	DiagramWindow window("Box precedence");
 	auto* chart = new QChart;
 	addBlockingBox(chart, "A", BlockingTimeKind::Ordinary, 0, 10, 20, 80);
 	auto* outline = qobject_cast<QXYSeries*>(chart->series().last());
-	outline->setProperty("inspectionTitle", "A on 3-B0");
+	setMeta(outline, &SeriesMeta::inspectionTitle, "A on 3-B0");
 	auto* through = new QLineSeries;
 	through->setName("B");
-	through->setProperty("trainId", "B");
+	setMeta(through, &SeriesMeta::trainId, "B");
 	through->append(0, 50);
 	through->append(10, 50);
 	chart->addSeries(through);
 	auto* other = new QLineSeries;
 	other->setName("C");
-	other->setProperty("trainId", "C");
+	setMeta(other, &SeriesMeta::trainId, "C");
 	other->append(0, 90);
 	other->append(10, 95);
 	chart->addSeries(other);
@@ -4066,14 +4106,14 @@ struct NavigationWindow {
 
 	NavigationWindow() {
 		series->setName("Train A (planned arrival)");
-		series->setProperty("trainId", "A");
-		series->setProperty("planned", true);
-		series->setProperty("inspectionPoints", QStringList{"Station: Delft | Call: 1 | Simulated arrival", "Station: Leiden | Call: 2 | Simulated arrival"});
+		setMeta(series, &SeriesMeta::trainId, "A");
+		setMeta(series, &SeriesMeta::planned, true);
+		setMeta(series, &SeriesMeta::inspectionPoints, QStringList{"Station: Delft | Call: 1 | Simulated arrival", "Station: Leiden | Call: 2 | Simulated arrival"});
 		series->append(20, 30);
 		series->append(40, 50);
 		chart->addSeries(series);
 		other->setName("Train B");
-		other->setProperty("trainId", "B");
+		setMeta(other, &SeriesMeta::trainId, "B");
 		other->append(70, 20);
 		other->append(80, 30);
 		chart->addSeries(other);
@@ -4349,8 +4389,8 @@ void TestDiagramWindow::inspectsShapesOfNumericChart() {
 
 	auto* rectangle = new QLineSeries;
 	rectangle->setName("Block occupation");
-	rectangle->setProperty("inspectionInterval", "Resource: B12 | Type: block | Start: 20 s | End: 60 s");
-	rectangle->setProperty("inspectionFilled", true);
+	setMeta(rectangle, &SeriesMeta::inspectionInterval, "Resource: B12 | Type: block | Start: 20 s | End: 60 s");
+	setMeta(rectangle, &SeriesMeta::inspectionFilled, true);
 	rectangle->append(20, 100);
 	rectangle->append(60, 100);
 	rectangle->append(60, 200);
@@ -4367,7 +4407,7 @@ void TestDiagramWindow::inspectsShapesOfNumericChart() {
 	events->setName("Arrival");
 	events->append(100, 300);
 	events->append(140, 400);
-	events->setProperty("inspectionPoints", QStringList{"Station: Delft | Arrival", "Station: Leiden | Departure"});
+	setMeta(events, &SeriesMeta::inspectionPoints, QStringList{"Station: Delft | Arrival", "Station: Leiden | Departure"});
 	emptyChart->addSeries(events);
 	events->attachAxis(emptyX);
 	events->attachAxis(emptyY);
@@ -4378,7 +4418,7 @@ void TestDiagramWindow::inspectsShapesOfNumericChart() {
 	QVERIFY(emptyTooltip->isVisible());
 	QVERIFY(emptyTooltip->text().contains("Delft"));
 	QVERIFY(!emptyTooltip->text().contains("Leiden"));
-	rectangle->setProperty("inspectionFilled", false);
+	setMeta(rectangle, &SeriesMeta::inspectionFilled, false);
 	moveTo(emptyView, QPointF(40, 150), rectangle);
 	QVERIFY2(!emptyTooltip->isVisible(), "closed outline without fill does not claim interior");
 	// Samples just below the plot must not count as visible strokes.
@@ -4456,7 +4496,7 @@ void TestDiagramWindow::keepsRouteEventsVisible() {
 	auto* routeChart = new QChart;
 	auto* singleEvent = new QLineSeries;
 	singleEvent->setName("A (planned arrival)");
-	singleEvent->setProperty("trainId", "A");
+	setMeta(singleEvent, &SeriesMeta::trainId, "A");
 	singleEvent->setPointsVisible(true);
 	singleEvent->append(-2, 30);
 	routeChart->addSeries(singleEvent);
@@ -4507,33 +4547,33 @@ void TestDiagramWindow::inspectsEnvelopes() {
 	upper->append(2, 20);
 	auto* area = new QAreaSeries(upper, lower);
 	area->setName("A envelope");
-	area->setProperty("trainId", "A");
+	setMeta(area, &SeriesMeta::trainId, "A");
 	area->setBrush(QColor(60, 100, 200, 65));
 	stairChart->addSeries(area);
 	auto* outline = new QLineSeries;
 	outline->setName("A envelope");
-	outline->setProperty("trainId", "A");
-	outline->setProperty("inspectionFilled", true);
-	outline->setProperty("inspectionInterval", "Calculated blocking envelope");
+	setMeta(outline, &SeriesMeta::trainId, "A");
+	setMeta(outline, &SeriesMeta::inspectionFilled, true);
+	setMeta(outline, &SeriesMeta::inspectionInterval, "Calculated blocking envelope");
 	for (const QPointF& p : {QPointF(1, 10), QPointF(2, 10), QPointF(2, 20), QPointF(1, 20), QPointF(1, 10)})
 		outline->append(p);
 	stairChart->addSeries(outline);
 	auto* actual = new QLineSeries;
 	actual->setName("A recorded trajectory");
-	actual->setProperty("trainId", "A");
+	setMeta(actual, &SeriesMeta::trainId, "A");
 	actual->append(1.2, 14);
 	actual->append(1.8, 16);
 	stairChart->addSeries(actual);
 	auto* overlap = new QLineSeries;
 	overlap->setName("B envelope");
-	overlap->setProperty("trainId", "B");
-	overlap->setProperty("inspectionFilled", true);
+	setMeta(overlap, &SeriesMeta::trainId, "B");
+	setMeta(overlap, &SeriesMeta::inspectionFilled, true);
 	for (const QPointF& p : {QPointF(1, 10), QPointF(2, 10), QPointF(2, 20), QPointF(1, 20), QPointF(1, 10)})
 		overlap->append(p);
 	stairChart->addSeries(overlap);
 	auto* otherActual = new QScatterSeries;
 	otherActual->setName("B recorded trajectory");
-	otherActual->setProperty("trainId", "B");
+	setMeta(otherActual, &SeriesMeta::trainId, "B");
 	otherActual->append(1.7, 18);
 	stairChart->addSeries(otherActual);
 	stairChart->createDefaultAxes();

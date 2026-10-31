@@ -1,7 +1,7 @@
 // The scene model has a member named "signals", so its header comes before any Qt header.
 #include "scene/SceneModel.h"
 
-#include "diagrams/RunExports.h"
+#include "diagrams/ResultFrame.h"
 #include "diagrams/TimetableTableWindow.h"
 #include "diagrams/TrainColors.h"
 #include "diagrams/TrainFilterButton.h"
@@ -17,6 +17,7 @@
 #include <QFontMetrics>
 #include <QHeaderView>
 #include <QHelpEvent>
+#include <QImage>
 #include <QScreen>
 #include <QLabel>
 #include <QLineEdit>

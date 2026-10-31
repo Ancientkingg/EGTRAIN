@@ -160,6 +160,7 @@ target_link_libraries(egtrain_util PRIVATE nlohmann_json::nlohmann_json)
 
 # No Qt: scene_tool links this library.
 add_library(egtrain_scene STATIC
+    ${SRC_DIR}/scene/LoadedDataSummary.cpp
     ${SRC_DIR}/scene/SceneBundle.cpp
     ${SRC_DIR}/scene/SceneCompatibility.cpp
     ${SRC_DIR}/scene/SceneDiagnostic.cpp
@@ -174,6 +175,7 @@ add_library(egtrain_scene STATIC
     ${SRC_DIR}/scene/SceneValidator.cpp
     ${SRC_DIR}/scene/SceneWriter.cpp
     ${SRC_DIR}/scene/SectionInventory.cpp
+    ${SRC_DIR}/scene/SectionReference.cpp
     ${SRC_DIR}/scene/StopInsertion.cpp
     ${SRC_DIR}/scene/TrackPreview.cpp)
 target_link_libraries(egtrain_scene
@@ -376,11 +378,14 @@ target_link_libraries(egtrain_dispatch
 add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/AreaCapacity.cpp
     ${SRC_DIR}/diagrams/AreaCapacityWindow.cpp
+    ${SRC_DIR}/diagrams/BlockingTimeData.cpp
     ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp
     ${SRC_DIR}/diagrams/BlockingTimeScope.cpp
+    ${SRC_DIR}/diagrams/BlockSectionOverlay.cpp
     ${SRC_DIR}/diagrams/CapacityAnalysis.cpp
     ${SRC_DIR}/diagrams/CapacityScope.cpp
     ${SRC_DIR}/diagrams/CapacityWindow.cpp
+    ${SRC_DIR}/diagrams/ChartTicks.cpp
     ${SRC_DIR}/diagrams/CompletedRunCapture.cpp
     ${SRC_DIR}/diagrams/DelayAnalysis.cpp
     ${SRC_DIR}/diagrams/DelayAnalysisWindow.cpp
@@ -388,10 +393,13 @@ add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
     ${SRC_DIR}/diagrams/PositionScale.cpp
     ${SRC_DIR}/diagrams/ResultFrame.cpp
+    ${SRC_DIR}/diagrams/RouteCharts.cpp
     ${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp
+    ${SRC_DIR}/diagrams/RouteDiagramData.cpp
     ${SRC_DIR}/diagrams/RouteReferenceChoice.cpp
-    ${SRC_DIR}/diagrams/RunExports.cpp
+    ${SRC_DIR}/diagrams/RunCsv.cpp
     ${SRC_DIR}/diagrams/RunResults.cpp
+    ${SRC_DIR}/diagrams/SeriesMeta.cpp
     ${SRC_DIR}/diagrams/TimetableTableWindow.cpp
     ${SRC_DIR}/diagrams/TractionCurve.cpp
     ${SRC_DIR}/diagrams/TrainColors.cpp

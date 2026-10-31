@@ -52,8 +52,16 @@ Each key of the scene files is written in one place and read in one place.
 `SceneWriter.cpp` has an encoder for each file (`encodeSceneMetadata`,
 `encodeInfrastructure`, `encodeStations`, `encodeSignalling`,
 `encodeRollingStock`, `encodeServices`, `encodeScenarios`, `encodeViews` and
-`encodePassengers`), and `loadScene` in `SceneModel.cpp` and
-`SceneFieldReader.cpp` read the files. The importer fills a [`SceneModel`] and
+`encodePassengers`), and `SceneFieldReader.cpp` has a decoder for each file
+(`decodeSceneMetadata`, `decodeInfrastructure`, `decodeStations`,
+`decodeViews`, `decodeSignalling`, `decodeRollingStock`, `decodeServices`,
+`decodeScenarios`, `decodeHistoricalIncidents` for `incidents.json` and
+`decodePassengers`). `loadScene` in `SceneModel.cpp` reads and parses the
+files, gives each file its own `SceneFieldReader` and calls the decoders in that
+order. It also makes the checks that span files: it decodes `views.json` after
+the tracks and stations that the views name, and `incidents.json` only when the
+case has no `scenarios.json`; with both files it warns that `incidents.json` is
+ignored. The importer fills a [`SceneModel`] and
 hands it to `replaceSceneDirectory`, which writes, loads back and publishes it
 as `saveScene` does, so an imported scene has the form of a saved one. Unlike a
 save, it replaces a folder at the destination with everything in it and keeps
@@ -76,8 +84,13 @@ and the builders check against, are in `scene/RuntimeLimits.h`.
 
 `SceneModel` owns the canonical values, not a second flat copy of legacy
 incidents. Incidents belong to a [`SceneScenario`]; the selected scenario is
-identified by `default_scenario_id`. Runtime `loadedData` and `sourceFiles` are
-derived, non-serialized summaries. Loaded-data navigation targets point only to
+identified by `default_scenario_id`. `sourceFiles`, the scene files present at
+load or save, is derived and not saved. The Loaded Data tree is not part of the
+model: `buildLoadedDataSummary` in `scene/LoadedDataSummary.h` derives its rows
+from the model, its source files and the diagnostics of validation, and
+`ValidationPanel` builds them again each time it writes the tree. Each row has a
+`SceneLoadedStatus`, which the tree shows as `OK`, `Not present`, `Warning` or
+`Invalid`. Loaded-data navigation targets point only to
 existing editors and are not part of the canonical schema. `import_report` is
 the persisted conversion summary, with
 one row containing `category`, optional `source_file`, `source_count`,
@@ -202,6 +215,15 @@ platform, signal, route, train unit, composition or service, so that a delete ca
 that list. The `sceneRewrite...References` functions rewrite every reference to an entity after a
 rename; the caller renames the entity itself. The `sceneUnique...Id` functions return the base id
 when it is free and otherwise the first of `base_2`, `base_3` and so on.
+
+`scene/SectionReference` reads a section reference, a block id or several joined by `/` such as
+the two endpoints of a switch transition `@71-B0@-21.235000/@0-B1@-21.252000`.
+`parseSectionReferencePart` splits one part into its block id and the offset of an endpoint. The
+validator, the editors' reference rules, the importer's check of known blocks and the route token checks
+of the importer and the exporter read references with it, so they agree on which parts name a block and
+which routes hold a switch transition. Two readers keep their own rules: `mapLegacyBlockReference` in the
+exporter, and the overlap rule of `SectionInventory` (`sectionReferences`, `nativeSectionTokens`).
+`nativeRuntimeBlockId` gives the runtime id of a block section.
 
 Scheduled entry uses explicit entry time first, otherwise the first finite
 planned departure, otherwise zero, plus the repeat offset. The editor's

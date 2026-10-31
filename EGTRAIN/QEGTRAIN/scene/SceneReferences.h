@@ -17,7 +17,7 @@ std::vector<std::string> sceneDirectDeleteConsumers(const SceneModel& model, con
 	const std::string& id, const std::string& scope = {});
 
 /// A section reference names one block or connection, optionally wrapped as `@id@...`, or several of them joined
-/// by '/'. This returns the ids in it.
+/// by '/'. This returns the ids in it, from parseSectionReferencePart; a part that names no block adds none.
 std::vector<std::string> sceneBlockReferenceComponents(const std::string& reference);
 /// `reference` with every component `oldId` replaced by `newId`.
 std::string sceneRewriteBlockReference(const std::string& reference, const std::string& oldId,

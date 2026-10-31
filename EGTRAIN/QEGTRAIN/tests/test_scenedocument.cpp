@@ -186,18 +186,12 @@ void TestSceneDocument::assignAuthoredSceneKeepsDerivedParts() {
 	live.description = "live description";
 	live.savedWithAppVersion = "live version";
 	live.sourceFiles = {"live.json"};
-	SceneLoadedData liveData;
-	liveData.category = "live data";
-	live.loadedData = {liveData};
 	live.services.resize(1);
 	live.services[0].id = "live service";
 
 	SceneModel snapshot = namedScene("snapshot");
 	snapshot.savedWithAppVersion = "snapshot version";
 	snapshot.sourceFiles = {"snapshot.json", "other.json"};
-	SceneLoadedData snapshotData;
-	snapshotData.category = "snapshot data";
-	snapshot.loadedData = {snapshotData, snapshotData};
 	snapshot.baseTime = "08:00:00";
 	snapshot.defaultScenarioId = "scenario";
 	snapshot.scenarios.resize(1);
@@ -220,11 +214,9 @@ void TestSceneDocument::assignAuthoredSceneKeepsDerivedParts() {
 	QCOMPARE(live.passengers[1].id, "passenger");
 	QCOMPARE(live.importReport.size(), std::size_t(1));
 	QCOMPARE(live.importReport[0].category, "report");
-	// assignAuthoredScene keeps the loaded data, the source files and the saving version of the scene.
+	// assignAuthoredScene keeps the source files and the saving version of the scene.
 	QCOMPARE(live.savedWithAppVersion, "live version");
 	QCOMPARE(live.sourceFiles, std::set<std::string>{"live.json"});
-	QCOMPARE(live.loadedData.size(), std::size_t(1));
-	QCOMPARE(live.loadedData[0].category, "live data");
 }
 
 void TestSceneDocument::restoreKeepsDerivedParts() {

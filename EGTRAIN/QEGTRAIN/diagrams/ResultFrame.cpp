@@ -9,6 +9,7 @@
 #include "widgets/ElidedLabel.h"
 #include "widgets/PlainToolTip.h"
 
+#include <QAbstractItemModel>
 #include <QBuffer>
 #include <QByteArray>
 #include <QColor>
@@ -21,6 +22,7 @@
 #include <QFont>
 #include <QFrame>
 #include <QHBoxLayout>
+#include <QHeaderView>
 #include <QIcon>
 #include <QImage>
 #include <QLabel>
@@ -29,13 +31,14 @@
 #include <QPen>
 #include <QSaveFile>
 #include <QSplitter>
+#include <QStyle>
+#include <QTableView>
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QtCharts/QAbstractAxis>
 #include <QtCharts/QChart>
 
 #include <algorithm>
-#include <cmath>
 #include <initializer_list>
 #include <utility>
 
@@ -341,14 +344,6 @@ void styleResultChart(QChart* chart, const QPalette& palette) {
 	}
 }
 
-double roundTickStep(double span, int steps) {
-	const double power = std::pow(10.0, std::floor(std::log10(span / steps)));
-	double step = power;
-	for (const double factor : {2.0, 5.0, 10.0})
-		if (span / step > steps) step = factor * power;
-	return step;
-}
-
 QString saveExportInteractive(QWidget* parent, telemetry::ExportKind kind, const QString& title, const QString& suggestedName,
 	const telemetry::OperationObservation& operation, const std::function<std::optional<std::string>()>& bytes,
 	const ExportWriter& write) {
@@ -384,6 +379,38 @@ std::optional<std::string> pngBytes(const QImage& image) {
 	if (!buffer.open(QIODevice::WriteOnly) || !image.save(&buffer, "PNG"))
 		return std::nullopt;
 	return std::string(png.constData(), static_cast<std::size_t>(png.size()));
+}
+
+QImage fullTableImage(const QTableView& table) {
+	// A copy of the view on the same model with the sections of the table at their sizes but no scroll bars, so that
+	// the width of the dock and the scrolling do not matter.
+	QTableView full;
+	full.setModel(table.model());
+	full.setFont(table.font());
+	full.setPalette(table.palette());
+	full.setAlternatingRowColors(table.alternatingRowColors());
+	full.setShowGrid(table.showGrid());
+	full.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	full.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	full.horizontalHeader()->setStretchLastSection(false);
+	full.horizontalHeader()->setFixedHeight(table.horizontalHeader()->height());
+	full.verticalHeader()->setFixedWidth(table.verticalHeader()->width());
+	for (int column = 0; column < table.model()->columnCount(); ++column)
+		full.setColumnWidth(column, table.columnWidth(column));
+	for (int row = 0; row < table.model()->rowCount(); ++row)
+		full.setRowHeight(row, table.rowHeight(row));
+	// A header paints its text in the font of its viewport. Under the application style sheet the first polish leaves that
+	// viewport the application font when headers have a font of their own, such as the smaller one of macOS, and the text
+	// then overflows the widths measured with the header font. Polishing the headers again gives their viewports that font.
+	full.ensurePolished();
+	for (QHeaderView* header : {full.horizontalHeader(), full.verticalHeader()}) {
+		full.style()->unpolish(header);
+		full.style()->polish(header);
+	}
+	const int frame = 2 * full.frameWidth();
+	full.resize(full.verticalHeader()->width() + full.horizontalHeader()->length() + frame,
+		full.horizontalHeader()->height() + full.verticalHeader()->length() + frame);
+	return full.grab().toImage();
 }
 
 ExportWriter runProvenanceWriter(RunProvenance provenance) {

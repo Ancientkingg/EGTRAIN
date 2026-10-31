@@ -16,6 +16,7 @@ class RunController;
 struct BlockingTimeDiagramData;
 struct CompletedRunData;
 struct SceneModel;
+enum class TrajectoryChart;
 namespace telemetry {
 class OperationObservation;
 } // namespace telemetry
@@ -41,14 +42,6 @@ inline constexpr const char* kBlockingTime = "Blocking time";						 ///< The blo
 inline constexpr const char* kCapacity = "Capacity";								 ///< The capacity analysis of a section.
 inline constexpr const char* kCapacityByArea = "Capacity by area";					 ///< The capacity analysis by area.
 } // namespace ResultViewName
-
-/// The charts of the trajectories of the trains.
-enum class TrajectoryChart {
-	SpeedDistance,		   ///< ResultViewName::kSpeedDistance: speed against distance.
-	SpeedTime,			   ///< ResultViewName::kSpeedTime: speed against time.
-	TimeDistance,		   ///< ResultViewName::kTimeDistance: distance against time.
-	TractiveEffortDistance ///< ResultViewName::kTractiveEffortDistance: simulated tractive effort against distance.
-};
 
 /// The windows that show the completed run: the per-train charts, the route and timetable diagrams, the delay charts, the
 /// blocking-time diagram, and the capacity analyses. Each slot opens one window over the main window and reads the run of

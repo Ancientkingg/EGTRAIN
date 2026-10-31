@@ -3,7 +3,7 @@
 #include "diagrams/BlockingTimeDiagram.h"
 #include "diagrams/CapacityScope.h"
 #include "diagrams/ResultFrame.h"
-#include "diagrams/RunExports.h"
+#include "diagrams/RunCsv.h"
 #include "util/CsvWriter.h"
 
 #include <QDialogButtonBox>

@@ -71,8 +71,10 @@ public:
 		bool required = true) const;
 	// Always optional. Reports nothing for an absent key or for an item that is not an object.
 	bool boolField(const nlohmann::json& object, const char* key, const std::string& path, bool& output) const;
-	// Reports an error with its own code, for a check that is not about the type of one field.
-	void report(const char* code, const std::string& message, const std::string& path) const;
+	// Reports a problem with its own code, for a check that is not about the type of one field. It is an error unless
+	// severity says otherwise.
+	void report(const char* code, const std::string& message, const std::string& path,
+		SceneSeverity severity = SceneSeverity::Error) const;
 
 private:
 	std::string_view file_;
@@ -95,6 +97,33 @@ SceneSignallingArea decodeSignallingArea(const SceneFieldReader& reader, const n
 // Whether an input file must not carry this key because it names a simulation result.
 bool isSimulationResultField(const std::string& name);
 
-// Reads passengers.json. The reader must belong to that file and use kSceneFileFieldCodes. A journey needs both planned
-// windows, a leg without an occurrence has occurrence 1, and a simulation result in the input is an error.
-std::vector<ScenePassenger> decodePassengers(const SceneFieldReader& reader, const nlohmann::json& root);
+// The decoders of the scene files, one for each file. SceneWriter.cpp has an encoder for each file that it writes.
+// loadScene calls them in the order of this list. Each reads the root object of its file into scene, and its reader must
+// belong to that file and use kSceneFileFieldCodes. The reader reports each field that is absent or invalid, in the
+// order of the file.
+
+/// Reads scene.json: the schema version, the name, the description, the base time, the units, the simulation settings and
+/// the import report.
+void decodeSceneMetadata(const SceneFieldReader& reader, const nlohmann::json& root, SceneModel& scene);
+/// Reads infrastructure.json: the tracks, nodes, arcs, blocks and connections.
+void decodeInfrastructure(const SceneFieldReader& reader, const nlohmann::json& root, SceneModel& scene);
+/// Reads stations.json: the stations and their platforms.
+void decodeStations(const SceneFieldReader& reader, const nlohmann::json& root, SceneModel& scene);
+/// Reads views.json. A display row that is invalid, or that names a track or a station that scene does not have, is
+/// skipped with a warning, so the tracks and the stations must be read first.
+void decodeViews(const SceneFieldReader& reader, const nlohmann::json& root, SceneModel& scene);
+/// Reads signalling.json: the signals, signalling areas, routes, block dependencies, single-track restrictions and station
+/// boundaries.
+void decodeSignalling(const SceneFieldReader& reader, const nlohmann::json& root, SceneModel& scene);
+/// Reads rolling_stock.json: the train units and the compositions.
+void decodeRollingStock(const SceneFieldReader& reader, const nlohmann::json& root, SceneModel& scene);
+/// Reads services.json. A simulation result in a stop is an error.
+void decodeServices(const SceneFieldReader& reader, const nlohmann::json& root, SceneModel& scene);
+/// Reads scenarios.json: the default scenario id and the scenarios.
+void decodeScenarios(const SceneFieldReader& reader, const nlohmann::json& root, SceneModel& scene);
+/// Reads incidents.json, the historical incidents file of a case without scenarios.json, into the default scenario of
+/// scene.
+void decodeHistoricalIncidents(const SceneFieldReader& reader, const nlohmann::json& root, SceneModel& scene);
+/// Reads passengers.json. A journey needs both planned windows, a leg without an occurrence has occurrence 1, and a
+/// simulation result in the input is an error.
+void decodePassengers(const SceneFieldReader& reader, const nlohmann::json& root, SceneModel& scene);

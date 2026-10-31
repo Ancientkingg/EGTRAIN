@@ -2,6 +2,7 @@
 #include "scene/RuntimeLimits.h"
 #include "scene/SceneFields.h"
 #include "scene/SectionInventory.h"
+#include "scene/SectionReference.h"
 #include "scene/SignallingLevel.h"
 
 #include <algorithm>
@@ -53,28 +54,14 @@ struct DiagnosticBuilder {
 	}
 };
 
-std::string basicBlockId(const std::string& token) {
-	if (!token.empty() && token.front() == '@') {
-		const std::size_t end = token.find('@', 1);
-		if (end != std::string::npos)
-			return token.substr(1, end - 1);
-	}
-	const std::size_t position = token.find('@');
-	return position == std::string::npos ? token : token.substr(0, position);
-}
-
+// The block ids of the parts of a route token. A part that names no block gives an empty id, which no block has.
 std::vector<std::string> routeComponents(const std::string& token) {
 	std::vector<std::string> components;
-	std::size_t begin = 0;
-	while (begin <= token.size()) {
-		const std::size_t slash = token.find('/', begin);
-		const std::string part = token.substr(begin,
-			slash == std::string::npos ? std::string::npos : slash - begin);
-		if (!part.empty())
-			components.push_back(basicBlockId(part));
-		if (slash == std::string::npos)
-			break;
-		begin = slash + 1;
+	for (const std::string& part : sectionReferenceParts(token)) {
+		if (part.empty())
+			continue;
+		const std::optional<SectionReferencePart> parsed = parseSectionReferencePart(part);
+		components.push_back(parsed ? parsed->blockId : std::string());
 	}
 	return components;
 }
@@ -87,12 +74,6 @@ using RuntimeLimits::kNativeMaxRouteBlocks;
 using RuntimeLimits::kNativeMaxSectionArcs;
 using RuntimeLimits::kNativeMaxStations;
 using RuntimeLimits::kNativeMaxTracks;
-
-std::string nativeRuntimeBlockId(const std::string& id) {
-	if (id.empty() || id.front() == '@' || id.find('/') != std::string::npos)
-		return id;
-	return "@" + id + "@";
-}
 
 bool hasId(const std::unordered_set<std::string>& ids, const std::string& id) {
 	return !id.empty() && ids.find(id) != ids.end();

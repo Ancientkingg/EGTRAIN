@@ -8,6 +8,7 @@
 #include "scene/Utf8Path.h"
 #include <nlohmann/json.hpp>
 #include "scene/SectionInventory.h"
+#include "scene/SectionReference.h"
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -186,37 +187,6 @@ static std::string sanitizeFilename(const std::string& name) {
 		}
 	}
 	return res;
-}
-
-static bool isPositionedRouteEndpoint(const std::string& token) {
-	size_t first = token.find('@');
-	size_t last = token.rfind('@');
-	if (first != 0 || last == std::string::npos || first == last
-		|| last + 2 >= token.length() || token[last + 1] != '-')
-		return false;
-	std::string position = token.substr(last + 2);
-	size_t i = 0;
-	if (position[i] == '+' || position[i] == '-')
-		i++;
-	bool sawDigit = false;
-	bool sawDot = false;
-	for (; i < position.length(); ++i) {
-		if (std::isdigit(static_cast<unsigned char>(position[i]))) {
-			sawDigit = true;
-		} else if (position[i] == '.' && !sawDot) {
-			sawDot = true;
-		} else {
-			return false;
-		}
-	}
-	return sawDigit;
-}
-
-static bool isSwitchTransitionRouteEntry(const std::string& entry) {
-	size_t slash = entry.find('/');
-	if (slash == std::string::npos || entry.find('/', slash + 1) != std::string::npos)
-		return false;
-	return isPositionedRouteEndpoint(entry.substr(0, slash)) && isPositionedRouteEndpoint(entry.substr(slash + 1));
 }
 
 static std::string formatNumber(double val) {
@@ -584,7 +554,7 @@ static std::string legacyStationName(const SceneModel& scene, const std::string&
 }
 
 static std::string legacyBoundaryToken(const std::string& token) {
-	if (token.empty() || (token.front() == '@' && token.back() == '@') || isSwitchTransitionRouteEntry(token))
+	if (token.empty() || (token.front() == '@' && token.back() == '@') || isSwitchTransitionReference(token))
 		return token;
 	return "@" + token + "@";
 }
@@ -1384,7 +1354,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		}
 		for (const auto& b : r.blocks) {
 			const std::string mapped = mapLegacyBlockReference(b, legacyBlockIds);
-			if (isSwitchTransitionRouteEntry(b)) {
+			if (isSwitchTransitionReference(b)) {
 				rf << mapped << "\n";
 			} else {
 				rf << "@" << mapped << "@\n";

@@ -119,6 +119,7 @@
 #include "diagrams/DiagramWindow.h"
 #include "simulation/SimulationRun.h"
 #include "diagrams/RunResults.h"
+#include "diagrams/SeriesMeta.h"
 #include "util/PlaybackProfiler.h"
 #include "diagrams/TractionCurve.h"
 #include "editors/CaseSettingsPanel.h"
@@ -334,7 +335,7 @@ struct StartupIdentity {
 	std::string baseTime;
 	std::string defaultScenarioId;
 	SceneSimulationSettings settings;
-	std::array<std::size_t, 22> collectionSizes{};
+	std::array<std::size_t, 21> collectionSizes{};
 	std::string inputSnapshot;
 	bool set = false;
 };
@@ -348,7 +349,7 @@ StartupIdentity startupIdentity(const QString& path, const SceneModel& model,
 	const std::string& inputSnapshot = {}) {
 	return {QFileInfo(path).absoluteFilePath(), model.schemaVersion, model.name, model.baseTime,
 		model.defaultScenarioId, model.settings,
-		{model.loadedData.size(), model.sourceFiles.size(), model.importReport.size(),
+		{model.sourceFiles.size(), model.importReport.size(),
 			model.tracks.size(), model.trackViews.size(), model.nodes.size(), model.arcs.size(),
 			model.blocks.size(), model.connections.size(), model.stations.size(),
 			model.stationViews.size(), model.signals.size(), model.signallingAreas.size(),
@@ -410,7 +411,9 @@ QChart* buildInputTractionChart(const SceneTrainUnit& unit) {
 	QChart* chart = new QChart();
 	QLineSeries* series = new QLineSeries();
 	series->setName(QString::fromStdString(unit.id));
-	series->setProperty("trainId", QString::fromStdString(unit.id));
+	SeriesMeta meta;
+	meta.trainId = QString::fromStdString(unit.id);
+	describeSeries(series, meta);
 	for (const auto& point : samples)
 		series->append(point.first * 3.6, point.second / 1000.0);
 	series->setPointsVisible(samples.size() == 1);

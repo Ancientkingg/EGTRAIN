@@ -23,12 +23,20 @@ constexpr int kFileColumn = 3;
 constexpr int kPathColumn = 4;
 
 // What the status column says for a status of the loaded data: one word for data without a problem.
-QString loadedStatusText(const std::string& status) {
-	if (status == "Parsed" || status == "Loaded" || status == "Ready")
-		return QStringLiteral("OK");
-	if (status == "Missing optional")
-		return QStringLiteral("Not present");
-	return QString::fromStdString(status);
+QString loadedStatusText(SceneLoadedStatus status) {
+	switch (status) {
+		case SceneLoadedStatus::Parsed:
+		case SceneLoadedStatus::Loaded:
+		case SceneLoadedStatus::Ready:
+			return QStringLiteral("OK");
+		case SceneLoadedStatus::Warning:
+			return QStringLiteral("Warning");
+		case SceneLoadedStatus::Invalid:
+			return QStringLiteral("Invalid");
+		case SceneLoadedStatus::MissingOptional:
+			return QStringLiteral("Not present");
+	}
+	return {};
 }
 
 // The severity of a diagnostic on screen, with a capital: "Error", "Warning" or "Info".
@@ -242,25 +250,25 @@ void ValidationPanel::refresh() {
 void ValidationPanel::refreshLoadedData() {
 	m_tree->clear();
 	m_treeAdvanced.reset();
+	m_loadedData.clear();
 	if (!m_document || !m_document->isLoaded())
 		return;
 	const bool advanced = advancedDetails();
 	m_treeAdvanced = advanced;
 
 	const LoadedDataContext context = m_loadedDataContext ? m_loadedDataContext() : LoadedDataContext();
-	SceneModel& model = m_document->mutableModel();
-	refreshLoadedDataSummary(model);
-	refreshLoadedDataDiagnostics(model, *m_diagnostics);
+	const SceneModel& model = m_document->model();
+	m_loadedData = buildLoadedDataSummary(model, model.sourceFiles, *m_diagnostics);
 	auto addRow = [](QTreeWidgetItem* owner, const QString& category, const QString& source,
 					  const QString& count, const QString& status) {
 		return new QTreeWidgetItem(owner, QStringList{category, source, count, status});
 	};
 	const SceneDiagnosticCounts validationCounts = countDiagnostics(*m_diagnostics);
 	const SceneDiagnosticCounts runtimeCounts = countDiagnostics(context.runtimeDiagnostics);
-	const bool dataInvalid = std::any_of(model.loadedData.begin(), model.loadedData.end(),
-		[](const SceneLoadedData& row) { return row.status == "Invalid"; });
-	const bool dataWarning = std::any_of(model.loadedData.begin(), model.loadedData.end(),
-		[](const SceneLoadedData& row) { return row.status == "Warning"; });
+	const bool dataInvalid = std::any_of(m_loadedData.begin(), m_loadedData.end(),
+		[](const SceneLoadedData& row) { return row.status == SceneLoadedStatus::Invalid; });
+	const bool dataWarning = std::any_of(m_loadedData.begin(), m_loadedData.end(),
+		[](const SceneLoadedData& row) { return row.status == SceneLoadedStatus::Warning; });
 	const QString caseStatus = validationCounts.errors > 0 || runtimeCounts.errors > 0 || dataInvalid
 		? QStringLiteral("Invalid")
 		: (validationCounts.warnings > 0 || runtimeCounts.warnings > 0 || dataWarning
@@ -293,7 +301,7 @@ void ValidationPanel::refreshLoadedData() {
 				QStringLiteral("OK"));
 		}
 	}
-	for (const auto& item : model.loadedData) {
+	for (const auto& item : m_loadedData) {
 		addLoadedDataTreeItem(m_tree, caseRoot, item, advanced);
 	}
 	const QString runStatus = runStatusText(context.runtimeStatus);

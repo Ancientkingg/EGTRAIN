@@ -2,6 +2,7 @@
 #include "scene/SceneModel.h"
 #include "scene/SceneReferences.h"
 #include "scene/SectionInventory.h"
+#include "scene/SectionReference.h"
 
 // The Qt headers come before the undef: Qt defines `signals`, and the scene model has a member of that name.
 #include <QTest>
@@ -9,6 +10,7 @@
 #undef signals
 #endif
 
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -197,6 +199,9 @@ class TestSceneReferences : public QObject {
 	Q_OBJECT
 
 private slots:
+	void parsesSectionReferencePart_data();
+	void parsesSectionReferencePart();
+	void findsSwitchTransitions();
 	void listsBlockReferenceComponents();
 	void rewritesBlockReference();
 	void renamesTrack();
@@ -221,6 +226,73 @@ private slots:
 	void findsTrainUnitById();
 };
 
+void TestSceneReferences::parsesSectionReferencePart_data() {
+	QTest::addColumn<QString>("part");
+	QTest::addColumn<bool>("parsed");
+	QTest::addColumn<QString>("blockId");
+	QTest::addColumn<QString>("offset");
+	QTest::addColumn<int>("kind");
+	const int block = static_cast<int>(SectionReferenceKind::Block);
+	const int endpoint = static_cast<int>(SectionReferenceKind::Endpoint);
+	const int other = static_cast<int>(SectionReferenceKind::Other);
+	QTest::newRow("bare block") << "0-B0" << true << "0-B0" << "" << block;
+	QTest::newRow("wrapped block") << "@0-B0@" << true << "0-B0" << "" << block;
+	// The runtime writes a coordinate after a '-', so a negative one has two.
+	QTest::newRow("signed offset") << "@0-B0@-12.5" << true << "0-B0" << "-12.5" << endpoint;
+	QTest::newRow("negative offset") << "@0-B0@--1.5" << true << "0-B0" << "--1.5" << endpoint;
+	QTest::newRow("separated plus") << "@0-B0@-+1" << true << "0-B0" << "-+1" << endpoint;
+	// The legacy importer has always read an offset without the '-'.
+	QTest::newRow("unsigned offset") << "@0-B0@5" << true << "0-B0" << "5" << endpoint;
+	QTest::newRow("plus offset") << "@0-B0@+5" << true << "0-B0" << "+5" << endpoint;
+	QTest::newRow("leading dot") << "@0-B0@-.5" << true << "0-B0" << "-.5" << endpoint;
+	QTest::newRow("no digit") << "@0-B0@-" << true << "0-B0" << "" << other;
+	QTest::newRow("three signs") << "@0-B0@---5" << true << "0-B0" << "" << other;
+	QTest::newRow("two dots") << "@0-B0@-1.2.3" << true << "0-B0" << "" << other;
+	QTest::newRow("text") << "@0-B0@x" << true << "0-B0" << "" << other;
+	// The id ends at the second '@', so what follows is not an offset.
+	QTest::newRow("third at sign") << "@0-B0@x@5" << true << "0-B0" << "" << other;
+	QTest::newRow("bare with at sign") << "0-B0@5" << true << "0-B0" << "" << other;
+	QTest::newRow("empty") << "" << false << "" << "" << block;
+	QTest::newRow("unclosed") << "@0-B0" << false << "" << "" << block;
+	QTest::newRow("at sign") << "@" << false << "" << "" << block;
+	QTest::newRow("empty wrapped id") << "@@-5" << false << "" << "" << block;
+}
+
+void TestSceneReferences::parsesSectionReferencePart() {
+	QFETCH(QString, part);
+	QFETCH(bool, parsed);
+	QFETCH(QString, blockId);
+	QFETCH(QString, offset);
+	QFETCH(int, kind);
+	const std::optional<SectionReferencePart> result = parseSectionReferencePart(part.toStdString());
+	// The part parses exactly when it names a block.
+	QCOMPARE(result.has_value(), parsed);
+	if (!result)
+		return;
+	QCOMPARE(QString::fromStdString(result->blockId), blockId);
+	QCOMPARE(QString::fromStdString(result->offset), offset);
+	QCOMPARE(static_cast<int>(result->kind), kind);
+}
+
+void TestSceneReferences::findsSwitchTransitions() {
+	// Two endpoints joined by one '/' are a switch transition, in each offset form.
+	QVERIFY(isSwitchTransitionReference("@0-B0@-1.5/@1-B1@-2"));
+	QVERIFY(isSwitchTransitionReference("@0-B0@--1.5/@1-B1@-2"));
+	QVERIFY(isSwitchTransitionReference("@0-B0@5/@1-B1@+6"));
+	// A block, one endpoint, three endpoints or a part that is not an endpoint are not.
+	QVERIFY(!isSwitchTransitionReference("@0-B0@"));
+	QVERIFY(!isSwitchTransitionReference("@0-B0@-1"));
+	QVERIFY(!isSwitchTransitionReference("@0-B0@-1/@1-B1@-2/@2-B2@-3"));
+	QVERIFY(!isSwitchTransitionReference("@0-B0@-1/1-B1"));
+	QVERIFY(!isSwitchTransitionReference("@0-B0@x@-1/@1-B1@-2"));
+	QVERIFY(!isSwitchTransitionReference("/@1-B1@-2"));
+	// A bare block id is wrapped for the runtime; a wrapped or joined reference is kept.
+	QCOMPARE(nativeRuntimeBlockId("0-B0"), "@0-B0@");
+	QCOMPARE(nativeRuntimeBlockId("@0-B0@"), "@0-B0@");
+	QCOMPARE(nativeRuntimeBlockId("0-B0/1-B1"), "0-B0/1-B1");
+	QCOMPARE(nativeRuntimeBlockId(""), "");
+}
+
 void TestSceneReferences::listsBlockReferenceComponents() {
 	// A plain reference has one component.
 	QCOMPARE(sceneBlockReferenceComponents("block-a1"), Names({"block-a1"}));
@@ -230,6 +302,8 @@ void TestSceneReferences::listsBlockReferenceComponents() {
 	QCOMPARE(sceneBlockReferenceComponents("@block-a2@-1.000000/@block-b2@-2.000000"), Names({"block-a2", "block-b2"}));
 	// An empty reference has no component.
 	QCOMPARE(sceneBlockReferenceComponents(""), Names());
+	// A part that opens an '@' and does not close it names no block.
+	QCOMPARE(sceneBlockReferenceComponents("@block-a1/block-b1"), Names({"block-b1"}));
 }
 
 void TestSceneReferences::rewritesBlockReference() {
@@ -244,6 +318,8 @@ void TestSceneReferences::rewritesBlockReference() {
 		"@block-a2@-1.000000/@renamed@-2.000000");
 	// A longer id that starts with the old id is kept.
 	QCOMPARE(sceneRewriteBlockReference("block-a1x", "block-a1", "renamed"), "block-a1x");
+	// A part that names no block is kept.
+	QCOMPARE(sceneRewriteBlockReference("@block-a1/block-b1", "block-a1", "renamed"), "@block-a1/block-b1");
 }
 
 void TestSceneReferences::renamesTrack() {

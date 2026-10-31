@@ -2174,7 +2174,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			const QList<QAbstractSeries*> drawn = view && problem.isEmpty() ? view->chart()->series() : QList<QAbstractSeries*>();
 			for (const QAbstractSeries* series : drawn) {
 				const auto* line = qobject_cast<const QXYSeries*>(series);
-				const QStringList contexts = series->property("inspectionPoints").toStringList();
+				const QStringList contexts = seriesMeta(series).inspectionPoints;
 				for (qsizetype index = 0; line && index < line->count(); ++index) {
 					const auto station = stations.find(line->at(index).x());
 					const QString context = contexts.value(index);
@@ -2472,7 +2472,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		double latestEnvelope = -std::numeric_limits<double>::infinity();
 		for (QAbstractSeries* series : compressedView->chart()->series())
 			if (const auto* envelope = qobject_cast<const QXYSeries*>(series);
-				envelope && envelope->property("layer").toString() == QStringLiteral("blocking time"))
+				envelope && seriesMeta(envelope).layer == QStringLiteral("blocking time"))
 				for (const QPointF& point : envelope->points()) {
 					earliestEnvelope = std::min(earliestEnvelope, point.y());
 					latestEnvelope = std::max(latestEnvelope, point.y());
@@ -2500,14 +2500,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		int simulatedTimeLines = 0;
 		int positionLines = 0;
 		for (QAbstractSeries* series : compressedView->chart()->series()) {
-			const QString title = series->property("inspectionTitle").toString();
-			if (title.contains(QLatin1Char('@')) || series->property("inspectionInterval").toString().contains(QLatin1Char('@'))
-				|| (series->property("layer").toString() == QStringLiteral("blocking time") && !title.contains(QStringLiteral(" on ")))) {
+			const QString title = seriesMeta(series).inspectionTitle;
+			if (title.contains(QLatin1Char('@')) || seriesMeta(series).inspectionInterval.contains(QLatin1Char('@'))
+				|| (seriesMeta(series).layer == QStringLiteral("blocking time") && !title.contains(QStringLiteral(" on ")))) {
 				fail(QStringLiteral("a compressed block hover is not named as the strip names it: ") + title + QStringLiteral(" / ")
-					+ series->property("inspectionInterval").toString());
+					+ seriesMeta(series).inspectionInterval);
 				return;
 			}
-			for (const QString& line : series->property("inspectionInterval").toString().split('\n')) {
+			for (const QString& line : seriesMeta(series).inspectionInterval.split('\n')) {
 				if (line.startsWith(QStringLiteral("Position ")) && line.endsWith(QStringLiteral(" km"))) ++positionLines;
 				if (!line.contains(QStringLiteral("learance to "))) continue;
 				if (!line.startsWith(QStringLiteral("Simulated clearance to "))) {
@@ -2551,14 +2551,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		bool criticalKept = true;
 		for (QAbstractSeries* series : compressedView->chart()->series()) {
 			const auto* outline = qobject_cast<const QXYSeries*>(series);
-			if (!outline || !outline->property("inspectionFilled").toBool()) continue;
-			const QString kind = outline->property("keyKind").toString();
+			if (!outline || !seriesMeta(outline).inspectionFilled) continue;
+			const QString kind = seriesMeta(outline).keyKind.value_or(QString());
 			const QRgb colour = outline->pen().color().rgb();
 			if (kind == QStringLiteral("Critical block")) {
 				++criticalOutlines;
 				criticalKept &= colour == qRgb(0x8f, 0x62, 0x00);
 			} else if (kind == QStringLiteral("Blocking time")) {
-				const QString train = outline->property("trainId").toString();
+				const QString train = seriesMeta(outline).trainId;
 				oneColourEach &= palette.contains(colour) && outlineColours.value(train, colour) == colour;
 				outlineColours.insert(train, colour);
 			}

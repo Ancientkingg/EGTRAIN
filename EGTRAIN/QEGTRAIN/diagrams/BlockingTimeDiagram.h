@@ -2,6 +2,7 @@
 #define BLOCKINGTIMEDIAGRAM_H
 
 #include <algorithm>
+#include <cstddef>
 #include <limits>
 #include <string>
 #include <optional>
@@ -192,6 +193,40 @@ std::string blockSectionCapacityScopeIssue(const std::vector<BlockSectionExtent>
 // Names of the columns of the blocking-time export, in order. A compression never moves the times named "Original", and
 // the last three columns give the positions as geo X through the PositionScale of the sections of the export.
 const std::vector<std::string>& blockingTimeCsvHeader();
+
+/// The columns of the blocking-time export.
+namespace BlockingTimeCsv {
+/// The position of each column in a row, in the order of the names of blockingTimeCsvHeader().
+enum Column : std::size_t {
+	kTrain,				///< "Train"
+	kBlock,				///< "Block"
+	kOccupationStart,	///< "Occupation start[s]"
+	kOccupationEnd,		///< "Occupation end[s]"
+	kPosition,			///< "Position[km]"
+	kSegmentType,		///< "Segment type"
+	kPlannedReference,	///< "Planned reference"
+	kStation,			///< "Station"
+	kPlannedTime,		///< "Planned time[s]"
+	kStartX,			///< "Start X[km]"
+	kEndX,				///< "End X[km]"
+	kOriginalStart,		///< "Original start[s]"
+	kOriginalEnd,		///< "Original end[s]"
+	kOriginalApproach,	///< "Original approach[s]"
+	kOriginalRunStart,	///< "Original run start[s]"
+	kOriginalRunEnd,	///< "Original run end[s]"
+	kOriginalClearance, ///< "Original clearance[s]"
+	kSetup,				///< "Setup[s]"
+	kSightReaction,		///< "Sight reaction[s]"
+	kRelease,			///< "Release[s]"
+	kRunMargin,			///< "Run margin[s]"
+	kLayer,				///< "Layer"
+	kReferenceSection,	///< "Reference section"
+	kGeoPosition,		///< "Geo position[km]"
+	kStartGeoX,			///< "Start geo X[km]"
+	kEndGeoX,			///< "End geo X[km]"
+	kColumnCount		///< The number of columns
+};
+} // namespace BlockingTimeCsv
 
 inline constexpr char kBlockSectionSegmentType[] = "block section";
 inline constexpr char kBlockSectionLayer[] = "block section extent";

@@ -71,8 +71,7 @@ stay within them.
 `test_scenedocument` checks `SceneDocument` without a window: the signals, the
 revision and the unsaved state of `replace`, `markChanged`, `markSaved` and
 `restore`, and that `assignAuthoredScene` takes every authored part of a
-snapshot and keeps the loaded data, the source files and the version that saved
-the scene.
+snapshot and keeps the source files and the version that saved the scene.
 
 Each panel of `editors/` has a test, `test_editor_<panel>`, such as `test_editor_casesettings` and
 `test_editor_service` (labels `unit` and `gui`, run with the `offscreen` platform). It puts the panel over a

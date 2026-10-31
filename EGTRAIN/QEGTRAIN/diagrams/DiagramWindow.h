@@ -3,8 +3,10 @@
 
 #include <QDialog>
 #include "diagrams/BlockingTimeDiagram.h"
+#include "diagrams/ChartTicks.h"
 #include "diagrams/DiagramKey.h"
 #include "diagrams/PositionScale.h"
+#include "diagrams/SeriesMeta.h"
 #include "telemetry/TelemetryOperation.h"
 #include <QHash>
 #include <QPen>
@@ -27,6 +29,7 @@
 #include <functional>
 #include <vector>
 
+class BlockSectionOverlay;
 class QGraphicsObject;
 class QKeyEvent;
 class QLabel;
@@ -34,14 +37,6 @@ class QPainter;
 class QPushButton;
 class ResultFrame;
 class TrainKeyList;
-
-/// A station along the distance axis of a route chart: its position on that axis, the plain-text labels it can
-/// have, from the longest to the shortest, and the number of calls that the chart shows there.
-struct StationTick {
-	double position = 0.0; ///< On the distance axis, in the unit of that axis
-	QStringList spellings; ///< Plain-text labels, longest first
-	int calls = 0;		   ///< Calls of the trains of the chart at the station
-};
 
 /// A column that an exported figure draws at the right of the chart, such as the trains and the key of the chart.
 struct FigureColumn {
@@ -57,27 +52,24 @@ struct FigureColumn {
 /// under the pointer. The chart has hover and click identification and rubber-band zoom, and exports a PNG and,
 /// optionally, a CSV.
 ///
-/// The Key lists each kind of mark that a shown series draws, with the pen and brush of the series: the "keyKind" property
-/// of a series names its kind, and an empty one leaves the series out; without it the "layer" property names the kind,
-/// else the series is Planned or Simulated. A closed outline whose "inspectionFilled" property is set is a box, filled
-/// with the brush of an area series of the same kind; another series is a line in the text colour, since its colour
-/// belongs to its train, with a dot when it shows its points, and upright when its "keyUpright" property is true, as for a
-/// dwell. The "keyMarker" property of a series that shows its points names a kind of its own for its points, such as
-/// "Stop". The chart draws the points of a planned series as open circles and those of another series as dots, and the
-/// Key draws them alike: a planned line with an open circle, a kind of points as a dot while a series that is not planned
-/// has them. Simulated is left out while it is the only kind of line. The section strip adds Station section, Switch
-/// section and Block boundary. The Key follows the trains that are shown. A box takes the pen of the "keyPen" property
-/// of its outline when the outline has one, so that it looks alike for every train. A chart of rolling stock input
-/// lists its series by name, in their own colours.
+/// A chart builder tells the window about a series with describeSeries (SeriesMeta) and about an axis with describeAxis
+/// (AxisMeta). The Key lists each kind of mark that a shown series draws, with the pen and brush of the series: keyKind
+/// names its kind, and an empty one leaves the series out; without it layer names the kind, else the series is Planned or
+/// Simulated. A closed outline with inspectionFilled is a box, filled with the brush of an area series of the same kind;
+/// another series is a line in the text colour, since its colour belongs to its train, with a dot when it shows its
+/// points, and upright with keyUpright, as for a dwell. The keyMarker of a series that shows its points names a kind of
+/// its own for its points, such as "Stop". The chart draws the points of a planned series as open circles and those of
+/// another series as dots, and the Key draws them alike: a planned line with an open circle, a kind of points as a dot
+/// while a series that is not planned has them. Simulated is left out while it is the only kind of line. The section strip
+/// adds Station section, Switch section and Block boundary. The Key follows the trains that are shown. A box takes the keyPen of its outline when the
+/// outline has one, so that it looks alike for every train. A chart of rolling stock input lists its series by name, in
+/// their own colours.
 ///
-/// Series are grouped by the dynamic property "trainId" when the caller sets it
-/// (the same train can own several series, such as planned and simulated lines);
-/// series without that property are grouped by their own name.
-/// Optional inspection metadata: "inspectionPoints" is a QStringList with one
-/// plain-text context entry per appended point (including empty entries).
-/// "inspectionInterval" is plain-text context shared by a line segment;
-/// "inspectionFilled" explicitly opts a closed QLineSeries into interior hits, and
-/// "inspectionTitle" is the first line of such a box, such as "IC1723-2 on 12-B0".
+/// Series are grouped by trainId when the caller sets it (the same train can own several series, such as planned and
+/// simulated lines); series without one are grouped by their own name.
+/// Optional inspection metadata: inspectionPoints has one plain-text context entry per appended point (including empty
+/// entries). inspectionInterval is plain-text context shared by a line segment; inspectionFilled explicitly opts a closed
+/// QLineSeries into interior hits, and inspectionTitle is the first line of such a box, such as "IC1723-2 on 12-B0".
 /// Inside a box a click selects a line only within 4 px of it, and otherwise the box.
 /// A line hit always reports its nearest actual plotted sample, not an
 /// interpolated value at the cursor.
@@ -87,8 +79,8 @@ struct FigureColumn {
 /// or fewer (setTrainServices), else grey with the selected train in the first colour of the palette. The colour of a
 /// service in the case wins over the palette (setTrainColors). Showing, hiding and selecting trains apply the rule again
 /// and keep which trains are checked. A series takes the colour of its train in its pen, and an area series also in its
-/// brush, with the alpha of the brush kept; widths and dash patterns stay as the chart builder set them. A series whose
-/// "ownColour" property is true keeps the colours of its builder, as do the series of a chart of rolling stock input.
+/// brush, with the alpha of the brush kept; widths and dash patterns stay as the chart builder set them. A series with
+/// ownColour keeps the colours of its builder, as do the series of a chart of rolling stock input.
 /// The line sample of a train in the Trains list has its colour, and that of a hidden train is light grey. The selected
 /// train is drawn over the other trains.
 ///
@@ -101,10 +93,10 @@ public:
 	explicit DiagramWindow(const QString& title, QWidget* parent = nullptr);
 	/// Shows the chart and takes ownership of it. The chart loses its title, since the window title and the exported
 	/// figure name the chart. Numeric axes that keep the ticks Qt gives them get ticks on round values, and their range
-	/// widens to the first round tick past each end; a range that starts at zero keeps that start. An axis whose
-	/// "exactRange" property is true keeps its range and still gets round ticks. A series is planned when its "planned"
-	/// property is true, whatever its name; a planned series is drawn dashed. A line narrower than 2 px is drawn 2 px wide,
-	/// and the outline of a box ("inspectionFilled") keeps its width. A new chart ends the selection.
+	/// widens to the first round tick past each end; a range that starts at zero keeps that start. An axis with
+	/// AxisMeta::exactRange keeps its range and still gets round ticks. A series is planned by SeriesMeta::planned, whatever
+	/// its name; a planned series is drawn dashed. A line narrower than 2 px is drawn 2 px wide, and the outline of a box
+	/// (SeriesMeta::inspectionFilled) keeps its width. A new chart ends the selection.
 	void setChart(QChart* chart);
 	/// Sets the window title to `heading`, shows `context` in one line in the header, elided at the right, and `warning`
 	/// above the chart with the look of a warning of the table windows, which the exported figure keeps; an empty text
@@ -175,8 +167,8 @@ public:
 	/// range. The window gives it the stations that are in its range and whose labels fit above the plot side by
 	/// side, each with the longest spelling that fits, so the chart never has to shorten a label. When not all of them
 	/// fit, the stations with the most calls are named first. A resize or a zoom chooses again. The labels are plain
-	/// text; the chart reads them as rich text, so they are escaped. When the distance axis has the dynamic property
-	/// "readoutStation", the readout names by its shortest spelling the station at the nearest position where a shown
+	/// text; the chart reads them as rich text, so they are escaped. When the distance axis has
+	/// AxisMeta::readoutStation, the readout names by its shortest spelling the station at the nearest position where a shown
 	/// series has a sample, as in "2.5 min at Treviglio", and gives only the value of the left axis when no shown series
 	/// has one.
 	void setStationAxis(QCategoryAxis* axis, std::vector<StationTick> stations);
@@ -234,10 +226,9 @@ private:
 	void applyChartStyle(QChart* chart);
 	void applyTimeAxis();
 	void applyPositionAxis();
-	void schedulePositionLayout();
 	void layoutPositionAxis();
 	void reserveStripRoom();
-	void scheduleStationLayout();
+	void queueLayout(bool& pending, void (DiagramWindow::*layout)());
 	void layoutStationAxis();
 	QString elidedAxisTextAt(const QPointF& chartPosition) const;
 	ChartHit hitAt(const QPoint& viewportPosition) const;
@@ -281,7 +272,7 @@ private:
 	bool m_timeAxis = false;
 	Qt::Orientation m_timeOrientation = Qt::Horizontal;
 	QPointer<QLabel> m_tooltip;
-	QPointer<QGraphicsObject> m_sectionOverlay;
+	QPointer<BlockSectionOverlay> m_sectionOverlay;
 	QPointer<QGraphicsObject> m_selectionOutline; // around the selected blocking time
 	QPointer<QGraphicsObject> m_emptyNote;		  // the text of a chart without series
 	QString m_emptyText;

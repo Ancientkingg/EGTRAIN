@@ -2,7 +2,7 @@
 
 #include "diagrams/CapacityWindow.h"
 #include "diagrams/ResultFrame.h"
-#include "diagrams/RunExports.h"
+#include "diagrams/RunCsv.h"
 #include "util/CsvWriter.h"
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/DialogLayout.h"

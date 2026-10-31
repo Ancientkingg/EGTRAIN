@@ -278,12 +278,19 @@ private slots:
 	void markedConversionKeepsTrackFolders();
 	void marksCopenhagenDoubleSwitches_data();
 	void marksCopenhagenDoubleSwitches();
+	void selectsKnownCase_data();
+	void selectsKnownCase();
+	void readsRouteBlockTokens_data();
+	void readsRouteBlockTokens();
+	void warnsAboutBoundaryPartWithoutBlock();
+	void keepsJoinedBoundaryBlocks();
 	void importsUnicodeNames();
 	void lastExportDecidesRoutesAndIncidents();
 	void reportsOddSizedUtf16Files();
 	void skipsNonFiniteNumbers();
 	void reportsFilesThatCannotBeOpened();
 	void reportsFolderThatCannotBeRead();
+	void reportsMalformedSceneFiles();
 	void reportsMalformedScenarioItems();
 	void reportsMalformedPassengers();
 };
@@ -1154,6 +1161,150 @@ void TestSceneImporter::marksCopenhagenDoubleSwitches() {
 	QVERIFY(reimportedViews["tracks"] == views["tracks"]);
 }
 
+void TestSceneImporter::selectsKnownCase_data() {
+	QTest::addColumn<QString>("folder");
+	QTest::addColumn<QString>("name");
+	QTest::addColumn<QString>("baseTime");
+	QTest::addColumn<double>("duration");
+	QTest::addColumn<bool>("doubleSwitches");
+	QTest::addColumn<bool>("arcFix");
+	QTest::newRow("folder of Netherlands") << "Input_EGTRAIN_Netherlands" << "Other" << "06:28:20" << 8000.0 << false << false;
+	QTest::newRow("name of Netherlands") << "legacy" << "Netherlands" << "06:28:20" << 8000.0 << false << false;
+	QTest::newRow("folder of Paimpol") << "Input_EGTRAIN_Paimpol" << "Other" << "07:10:40" << 9000.0 << false << true;
+	QTest::newRow("name of Paimpol") << "legacy" << "Paimpol" << "07:10:40" << 9000.0 << false << true;
+	QTest::newRow("folder of the alternative journeys") << "Input_EGTRAIN_Paimpol - AlternativeJourneys" << "Other" << "07:10:40" << 9000.0 << false << true;
+	QTest::newRow("name of the alternative journeys") << "legacy" << "Paimpol alternative journeys" << "07:10:40" << 9000.0 << false << false;
+	QTest::newRow("folder that starts as Paimpol") << "Input_EGTRAIN_Paimpol_copy" << "Other" << "" << 0.0 << false << true;
+	QTest::newRow("folder of Copenhagen") << "Input_EGTRAIN_Copenhagen" << "Other" << "06:28:20" << 8000.0 << true << false;
+	QTest::newRow("name of Copenhagen") << "legacy" << "Copenhagen" << "06:28:20" << 8000.0 << true << false;
+	QTest::newRow("folder of Banedanmark") << "Input_EGTRAIN_Banedanmark" << "Other" << "06:28:20" << 8000.0 << true << false;
+	QTest::newRow("name of Banedanmark") << "legacy" << "banedanmark" << "06:28:20" << 8000.0 << true << false;
+	QTest::newRow("folder of Milano Brescia") << "INPUT_EGTRAIN_MILANO_BRESCIA" << "Other" << "06:28:20" << 4000.0 << false << false;
+	QTest::newRow("name of Brescia") << "legacy" << "Brescia" << "06:28:20" << 4000.0 << false << false;
+	QTest::newRow("name of Milano Brescia") << "legacy" << "Milano_Brescia" << "06:28:20" << 4000.0 << false << false;
+	QTest::newRow("folder of Assignment") << "Input_EGTRAIN_Assignment" << "Other" << "07:00:00" << 10000.0 << false << false;
+	QTest::newRow("name of Assignment") << "legacy" << "Assignment" << "07:00:00" << 10000.0 << false << false;
+	QTest::newRow("folder of one and name of another") << "Input_EGTRAIN_Paimpol" << "Copenhagen" << "07:10:40" << 9000.0 << true << true;
+	QTest::newRow("folder that starts as Paimpol and name of Copenhagen") << "Input_EGTRAIN_Paimpol_copy" << "Copenhagen" << "06:28:20" << 8000.0 << true << true;
+	QTest::newRow("folder of Netherlands and name of Assignment") << "Input_EGTRAIN_Netherlands" << "Assignment" << "06:28:20" << 8000.0 << false << false;
+	QTest::newRow("folder of Copenhagen and name of Brescia") << "Input_EGTRAIN_Copenhagen" << "Brescia" << "06:28:20" << 8000.0 << true << false;
+	QTest::newRow("folder of Assignment and name of Brescia") << "Input_EGTRAIN_Assignment" << "Brescia" << "06:28:20" << 4000.0 << false << false;
+	QTest::newRow("unknown folder and name") << "legacy" << "Other" << "" << 0.0 << false << false;
+}
+
+// A folder name or a typed name selects a case, whatever the other one says, and a case that neither selects gets
+// nothing. Both rows apply to a folder of one case under the name of another: the earlier of them in the table that has
+// a base time gives the base time and the duration, and both give their fixes.
+void TestSceneImporter::selectsKnownCase() {
+	QFETCH(QString, folder);
+	QFETCH(QString, name);
+	QFETCH(QString, baseTime);
+	QFETCH(double, duration);
+	QFETCH(bool, doubleSwitches);
+	QFETCH(bool, arcFix);
+	TempDir root, output;
+	const fs::path legacy = fs::path(root.dir) / folder.toStdString();
+	writeSyntheticLegacyCase(legacy);
+	fs::remove(legacy / "EGTRAINInitialParameters.json");
+	writeText(legacy / "TrackLines/B9/NodiCumPari.txt", "1 0 9\n2 0.01 9\n3 0.02 9\n4 0.03 9\n");
+	writeText(legacy / "GUI/caseStudyTrackData.txt", "9\t0\t0\n");
+	const SceneImportResult result = importLegacyScene(legacy.u8string(), output.dir, name.toStdString());
+	QVERIFY(result.wroteScene);
+	json scene, views, infrastructure;
+	QVERIFY(readJson(fs::path(output.dir) / "scene.json", scene));
+	QVERIFY(readJson(fs::path(output.dir) / "views.json", views));
+	QVERIFY(readJson(fs::path(output.dir) / "infrastructure.json", infrastructure));
+	QCOMPARE(QString::fromStdString(scene.value("base_time", std::string())), baseTime);
+	QCOMPARE(scene.value("/simulation_settings/duration_seconds"_json_pointer, 0.0), duration);
+	QCOMPARE(views["tracks"][0].value("double_switch", false), doubleSwitches);
+	QCOMPARE(infrastructure["arcs"].back()["from"] == "B4.node.9", arcFix);
+}
+
+void TestSceneImporter::readsRouteBlockTokens_data() {
+	QTest::addColumn<QString>("token");
+	QTest::addColumn<bool>("malformed");
+	QTest::newRow("signed") << "@0-B0@-0.5/@0-B1@-0.5" << false;
+	QTest::newRow("unsigned") << "@0-B0@0.5/@0-B1@0.5" << false;
+	QTest::newRow("plus") << "@0-B0@+0.5/@0-B1@-0.5" << false;
+	QTest::newRow("negative") << "@0-B0@--0.5/@0-B1@-0.5" << false;
+	QTest::newRow("separated plus") << "@0-B0@-+0.5/@0-B1@-0.5" << false;
+	QTest::newRow("third at sign") << "@0-B0@x@0.5/@0-B1@0.5" << true;
+	QTest::newRow("no offset") << "@0-B0@-/@0-B1@-" << true;
+	QTest::newRow("three endpoints") << "@0-B0@-1/@0-B1@-1/@0-B2@-1" << true;
+}
+
+// A route row is a block between '@' or a switch transition, whose two endpoints have an offset in any of the forms
+// that the runtime writes or the legacy files hold. Any other row is reported and kept as it is.
+void TestSceneImporter::readsRouteBlockTokens() {
+	QFETCH(QString, token);
+	QFETCH(bool, malformed);
+	TempDir legacyDir, output;
+	const fs::path legacy(legacyDir.dir);
+	writeSmallLegacyCase(legacy);
+	writeText(legacy / "Routes/Route0.txt", "@0-B0@\n" + token.toStdString() + "\n");
+	const SceneImportResult result = importLegacyScene(legacyDir.dir, output.dir, "Route Tokens");
+	bool reported = false;
+	for (const auto& diagnostic : result.diagnostics) {
+		if (diagnostic.message == "Malformed route block token at row 1")
+			reported = true;
+	}
+	json signalling;
+	QVERIFY(readJson(fs::path(output.dir) / "signalling.json", signalling));
+	QCOMPARE(reported, malformed);
+	QCOMPARE(QString::fromStdString(signalling["routes"][0]["blocks"][1].get<std::string>()), token);
+}
+
+// Each part of a joined station boundary must name a known block; an empty one between '@' names none.
+void TestSceneImporter::warnsAboutBoundaryPartWithoutBlock() {
+	TempDir legacyDir, output;
+	const fs::path legacy(legacyDir.dir);
+	writeSyntheticLegacyCase(legacy);
+	writeText(legacy / "GUI/stationBoundarySections.txt", "@0-B0@/@0-B1@\t@0-B1@/@@\t1\n");
+	const SceneImportResult result = importLegacyScene(legacyDir.dir, output.dir, "Boundary Parts");
+	std::vector<std::string> references;
+	for (const auto& diagnostic : result.diagnostics) {
+		if (diagnostic.code == "scene.import.ref" && diagnostic.message.rfind("Station boundary", 0) == 0)
+			references.push_back(diagnostic.message);
+	}
+	QVERIFY(result.success());
+	QCOMPARE(references, std::vector<std::string>{"Station boundary refers to unknown exit block @0-B1@/@@"});
+}
+
+// A station boundary and a single-track restriction keep blocks joined by '/' as the legacy file has them, and a single
+// block without its '@'. An export writes the rows of the legacy files again.
+void TestSceneImporter::keepsJoinedBoundaryBlocks() {
+	TempDir legacyDir, output, exported;
+	const fs::path legacy(legacyDir.dir);
+	writeSyntheticLegacyCase(legacy);
+	// Its passenger legs name a service that the export cannot write.
+	fs::remove_all(legacy / "Passengers");
+	const std::string restrictionRow = "@0-B0@/@0-B1@\t@0-B0@\t@0-B0@\t@0-B1@";
+	const std::string boundaryRow = "@0-B0@/@0-B1@\t@0-B0@\t1";
+	writeText(legacy / "GUI/singleTrackLimits.txt", restrictionRow + "\n");
+	writeText(legacy / "GUI/stationBoundarySections.txt", boundaryRow + "\n");
+	const SceneImportResult result = importLegacyScene(legacyDir.dir, output.dir, "Joined Blocks");
+	QVERIFY(result.success());
+	std::vector<std::string> references;
+	for (const auto& diagnostic : result.diagnostics) {
+		if (diagnostic.code == "scene.import.ref")
+			references.push_back(diagnostic.message);
+	}
+	QCOMPARE(references, std::vector<std::string>());
+	json signalling;
+	QVERIFY(readJson(fs::path(output.dir) / "signalling.json", signalling));
+	const json& restriction = signalling["single_track_restrictions"][0];
+	const json& boundary = signalling["station_boundaries"][0];
+	QCOMPARE(QString::fromStdString(restriction["start_block"].get<std::string>()), QStringLiteral("@0-B0@/@0-B1@"));
+	QCOMPARE(QString::fromStdString(restriction["end_block"].get<std::string>()), QStringLiteral("0-B0"));
+	QCOMPARE(QString::fromStdString(boundary["entrance_block"].get<std::string>()), QStringLiteral("@0-B0@/@0-B1@"));
+	QCOMPARE(QString::fromStdString(boundary["exit_block"].get<std::string>()), QStringLiteral("0-B0"));
+	QVERIFY(exportLegacyScene(output.dir, exported.dir).success());
+	QCOMPARE(QString::fromStdString(readBytes(fs::path(exported.dir) / "GUI/singleTrackLimits.txt")),
+		QString::fromStdString(restrictionRow + "\n"));
+	QCOMPARE(QString::fromStdString(readBytes(fs::path(exported.dir) / "GUI/stationBoundarySections.txt")),
+		QString::fromStdString(boundaryRow + "\n"));
+}
+
 // Legacy data with Unicode names: the case folder, the files that the manifest and the train file name, and the scene
 // destination.
 void TestSceneImporter::importsUnicodeNames() {
@@ -1357,6 +1508,57 @@ void TestSceneImporter::reportsFolderThatCannotBeRead() {
 			"Passenger import from a folder that cannot be read reports the missing files");
 	}
 #endif
+}
+
+// Problems of whole files and of the fields that the loader checks itself, in a copy of the synthetic import.
+void TestSceneImporter::reportsMalformedSceneFiles() {
+	const SyntheticImport synthetic;
+	const std::string& output = synthetic.output.dir;
+	TempDir copyRoot;
+	const fs::path copy = fs::path(copyRoot.dir) / "scene";
+	// Loads a fresh copy of the scene in which change has altered the files.
+	const auto loadChanged = [&](const std::function<void(const fs::path&)>& change) {
+		fs::remove_all(copy);
+		fs::copy(output, copy, fs::copy_options::recursive);
+		change(copy);
+		return loadScene(copy.string());
+	};
+
+	SceneLoadResult loaded = loadChanged([](const fs::path& scene) { fs::remove(scene / "rolling_stock.json"); });
+	// A required file that is absent is reported under its name.
+	QCOMPARE(errorsIn(loaded.diagnostics, "rolling_stock.json"),
+		std::vector<std::string>{"scene.file.missing : Required file is missing"});
+	loaded = loadChanged([](const fs::path& scene) { writeText(scene / "views.json", "[]"); });
+	// A file whose root is not an object is reported.
+	QCOMPARE(errorsIn(loaded.diagnostics, "views.json"),
+		std::vector<std::string>{"scene.section.missing : Root element must be an object"});
+
+	loaded = loadMutated(output, "scene.json", [](json& value) {
+		value.erase("schema_version");
+		value["units"] = {{"distance", "km"}, {"time", "s"}, {"speed", 5}};
+	});
+	// A scene file without a version and with units other than metres, seconds and metres per second is reported.
+	QCOMPARE(errorsIn(loaded.diagnostics, "scene.json"),
+		std::vector<std::string>({"scene.version.missing schema_version: Missing schema_version",
+			"scene.units.unsupported units.distance: Unsupported distance unit",
+			"scene.units.unsupported units.speed: Unsupported speed unit"}));
+	loaded = loadMutated(output, "scene.json", [](json& value) { value["units"] = 7; });
+	// Units that are not an object are reported.
+	QCOMPARE(errorsIn(loaded.diagnostics, "scene.json"),
+		std::vector<std::string>{"scene.field.missing units: units must be an object"});
+
+	loaded = loadMutated(output, "services.json", [](json& value) {
+		value["services"][0]["stops"][0]["actual_arrival_seconds"] = 1;
+	});
+	// A simulation result in a service stop is reported.
+	QCOMPARE(errorsIn(loaded.diagnostics, "services.json"),
+		std::vector<std::string>{"scene.timetable.results services[0].stops[0].actual_arrival_seconds: Service stop input must not contain simulation-result fields"});
+
+	loaded = loadChanged([](const fs::path& scene) { writeText(scene / "incidents.json", "{"); });
+	// incidents.json next to scenarios.json is ignored with a warning, so its content is not read.
+	QVERIFY(hasDiag(loaded.diagnostics, "scene.compatibility.incidents_ignored", SceneSeverity::Warning));
+	QVERIFY(hasDiagAt(loaded.diagnostics, "incidents.json", ""));
+	QVERIFY(errorsIn(loaded.diagnostics, "incidents.json").empty());
 }
 
 // Malformed incidents and entrance delays, read from scenarios.json and from the legacy incidents.json. The directory

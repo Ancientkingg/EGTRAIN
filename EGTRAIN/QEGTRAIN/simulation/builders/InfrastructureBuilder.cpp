@@ -1,6 +1,7 @@
 #include "scene/RuntimeLimits.h"
 #include "scene/SceneModel.h"
 #include "scene/SectionInventory.h"
+#include "scene/SectionReference.h"
 #include "simulation/Passengers.h"
 #include "simulation/Signalling.h"
 #include "simulation/SimulationRun.h"
@@ -102,12 +103,6 @@ struct NativeDiagnosticAdder {
 		diagnostics.push_back(diagnostic);
 	}
 };
-
-std::string nativeRuntimeBlockId(const std::string& id) {
-	if (id.empty() || id.front() == '@' || id.find('/') != std::string::npos)
-		return id;
-	return "@" + id + "@";
-}
 
 std::vector<std::string> nativeBlockReferenceComponents(const std::string& reference) {
 	std::vector<std::string> result;
