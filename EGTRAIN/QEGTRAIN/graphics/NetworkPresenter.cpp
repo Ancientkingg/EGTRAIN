@@ -21,6 +21,7 @@
 #include "graphics/SignalGeometry.h"
 #include "graphics/VisualPolish.h"
 #include "graphics/items/ConnectionItem.h"
+#include "graphics/items/HighlightEffect.h"
 #include "graphics/items/NodeItem.h"
 #include "graphics/items/PassengerItem.h"
 #include "graphics/items/PlatformItem.h"
@@ -31,6 +32,7 @@
 #include "graphics/items/TrainBadgeItem.h"
 #include "graphics/items/TrainBodyItem.h"
 #include "graphics/items/TrainItemGroup.h"
+#include "graphics/items/VirtualArcItem.h"
 #include "scene/SceneReferences.h"
 #include "util/PlaybackProfiler.h"
 #include "util/SpeedFormat.h"
@@ -393,6 +395,161 @@ void NetworkPresenter::resetPreviewFit() {
 	m_previewFitBounds = QRectF();
 	m_previewHasSelectedTrack = false;
 	m_previewHasSignals = false;
+}
+
+void NetworkPresenter::restorePreviewFit(const PreviewFit& fit) {
+	m_previewFitBounds = fit.bounds;
+	m_previewZoomFocus = fit.zoomFocus;
+}
+
+bool NetworkPresenter::hasContent() const {
+	return !allTrains.isEmpty() || !allArcs.isEmpty() || !allSignals.isEmpty() || !allPlatforms.isEmpty()
+		|| !m_stationOverlays.isEmpty() || !m_stationDecorations.isEmpty() || !m_signalDecorations.isEmpty()
+		|| !m_vcMessageItems.isEmpty() || trainsMoving() || !m_tracksBySectionId.empty()
+		|| !m_tracksByOccupiedArc.empty() || !m_activeTrackItems.empty();
+}
+
+void NetworkPresenter::setStationLayerVisible(bool visible) {
+	m_stationLayerVisible = visible;
+	for (auto* item : std::as_const(m_stationDecorations))
+		if (item)
+			item->setVisible(visible);
+	for (auto* label : std::as_const(m_stationLabels))
+		if (label)
+			label->setVisible(visible && m_stationNamesVisible);
+}
+
+void NetworkPresenter::setStationNamesVisible(bool visible) {
+	m_stationNamesVisible = visible;
+	for (auto* overlay : std::as_const(m_stationOverlays))
+		if (overlay)
+			overlay->setNameVisible(visible);
+	for (auto* label : std::as_const(m_stationLabels))
+		if (label)
+			label->setVisible(visible && m_stationLayerVisible);
+}
+
+void NetworkPresenter::setTrainLayerVisible(bool visible, const std::function<bool(const TrainItemGroup&)>& present) {
+	m_trainLayerVisible = visible;
+	for (auto* train : std::as_const(allTrains))
+		if (train)
+			train->setVisible(visible && present(*train));
+	for (auto it = m_trainBadges.cbegin(); it != m_trainBadges.cend(); ++it) {
+		if (!it.value())
+			continue;
+		auto trainIt = std::find_if(allTrains.cbegin(), allTrains.cend(),
+			[it](const TrainItemGroup* train) { return train && train->index == it.key(); });
+		it.value()->setVisible(visible && trainIt != allTrains.cend() && present(**trainIt));
+	}
+}
+
+void NetworkPresenter::setTrainSpeedLabelsVisible(bool visible) {
+	m_trainSpeedLabelsVisible = visible;
+	for (auto* badge : std::as_const(m_trainBadges))
+		if (badge)
+			badge->setSpeedVisible(visible);
+}
+
+void NetworkPresenter::setSignalLayerVisible(bool visible) {
+	m_signalLayerVisible = visible;
+}
+
+void NetworkPresenter::setPassengerLayerVisible(bool visible) {
+	m_passengerLayerVisible = visible;
+	applyPlatformVisibility();
+	if (trainPaxInfoItem)
+		trainPaxInfoItem->setVisible(visible);
+}
+
+void NetworkPresenter::updateViewOverlays(const std::function<bool(const StationOverlayItem*)>& selected,
+	const StationOverlayItem* followed) {
+	if (!m_view)
+		return;
+	for (auto* overlay : std::as_const(m_stationOverlays)) {
+		if (!overlay)
+			continue;
+		overlay->setSelected(selected(overlay));
+		overlay->setVisible(m_stationLayerVisible);
+		overlay->setFollowed(overlay == followed);
+	}
+	const qreal viewScale = std::abs(m_view->transform().m11());
+	if (effect)
+		effect->setViewScale(viewScale);
+	// The station marks give way to the station squares and the platform bars once the tracks of a station are far
+	// enough apart on screen.
+	const bool nearLook = m_stationTrackSpacing * viewScale >= StationOverlayItem::NearTrackSpacingPixels;
+	setStationNearLook(nearLook);
+	for (auto* overlay : std::as_const(m_stationOverlays))
+		if (overlay)
+			overlay->applyViewScale(viewScale, nearLook);
+	for (TrainItemGroup* train : std::as_const(allTrains))
+		if (train)
+			train->applyViewScale(viewScale);
+	StationOverlayItem::resolveNameCollisions(m_stationOverlays, m_view->viewportTransform());
+	for (auto* overlay : std::as_const(m_stationOverlays))
+		if (overlay && overlay->nameItem())
+			overlay->nameItem()->setVisible(m_stationLayerVisible && m_stationNamesVisible
+				&& !overlay->isNameHiddenByCollision());
+}
+
+// Keep every authored signal at its own anchor, including opposing heads.
+// The decoration list also owns the posts and bases in preview and playback.
+void NetworkPresenter::updateSignalCues() {
+	for (QGraphicsItem* item : std::as_const(m_signalDecorations)) {
+		if (!item)
+			continue;
+		const bool visible = m_signalLayerVisible && item->data(kSignalBaseVisibleRole).toBool();
+		auto* signal = qgraphicsitem_cast<SignalItem*>(item);
+		if (signal) {
+			signal->setGroupedSignals({});
+			if (item->data(kSignalAnchorRole).isValid())
+				signal->setPos(item->data(kSignalAnchorRole).toPointF());
+		}
+		item->setVisible(visible);
+	}
+}
+
+void NetworkPresenter::updateTrainBadges() {
+	if (!m_view)
+		return;
+	for (auto it = m_trainBadges.cbegin(); it != m_trainBadges.cend(); ++it) {
+		if (!it.value())
+			continue;
+		const bool promoted = m_host->isTrainOverlayPromoted(it.key());
+		it.value()->setPromoted(promoted);
+		it.value()->setPresentation(
+			TrainBadgeItem::presentationForZoom(m_view->zoomRatio(), promoted));
+	}
+}
+
+void NetworkPresenter::setHighlight(QGraphicsItem* item) {
+	if (!effect) {
+		effect = new HighlightEffect(Qt::blue, 1);
+	}
+	item->setGraphicsEffect(effect);
+}
+
+void NetworkPresenter::clearHighlight() {
+	if (effect) {
+		delete effect;
+		effect = nullptr;
+	}
+}
+
+SignalItem* NetworkPresenter::inspectedSignal() const {
+	return m_inspectedSignal && m_signalDecorations.contains(m_inspectedSignal) ? m_inspectedSignal : nullptr;
+}
+
+void NetworkPresenter::setInspectedSignal(SignalItem* signal) {
+	m_inspectedSignal = signal;
+}
+
+void NetworkPresenter::clearSelectedTrain() {
+	trainPaxItem = nullptr;
+}
+
+void NetworkPresenter::clearSelectedPassengerIcon() {
+	paxIconItem = nullptr;
 }
 
 QList<NetworkPresenter::FindTarget> NetworkPresenter::findTargets() const {
@@ -1051,6 +1208,149 @@ QPointF NetworkPresenter::stationArtworkOffset(const TrackPreviewLine& line,
 		return offset * presentationScale();
 	const qreal scale = stationNamedYOffset(name) != 0.0 ? line.levelSpacing / track_separation : presentationScale();
 	return offset * scale - QPointF(0.0, line.displayOffset);
+}
+
+void NetworkPresenter::bindStationOverlaySources() {
+	if (!m_scene)
+		return;
+	QList<StationNodeItem*> stationNodes;
+	for (QGraphicsItem* item : m_scene->items()) {
+		auto* station = qgraphicsitem_cast<StationNodeItem*>(item);
+		if (station && station->node)
+			stationNodes.append(station);
+	}
+	QList<QList<StationNodeItem*>> assignments;
+	assignments.reserve(m_stationOverlays.size());
+	for (int index = 0; index < m_stationOverlays.size(); ++index)
+		assignments.append(QList<StationNodeItem*>());
+	for (auto* station : stationNodes) {
+		const QString stationName = QString::fromStdString(station->node->stationName);
+		const QPointF stationCenter = station->sceneBoundingRect().center();
+		int nearestIndex = -1;
+		qreal nearestDistance = std::numeric_limits<qreal>::max();
+		for (int index = 0; index < m_stationOverlays.size(); ++index) {
+			const auto* overlay = m_stationOverlays.at(index);
+			if (!overlay || overlay->stationName() != stationName)
+				continue;
+			const QPointF delta = stationCenter - overlay->stableAnchor();
+			const qreal distance = delta.x() * delta.x() + delta.y() * delta.y();
+			bool nearer = nearestIndex < 0 || distance < nearestDistance;
+			if (!nearer && distance == nearestDistance) {
+				const QPointF currentAnchor = m_stationOverlays.at(nearestIndex)->stableAnchor();
+				const QPointF candidateAnchor = overlay->stableAnchor();
+				nearer = candidateAnchor.x() < currentAnchor.x()
+					|| (candidateAnchor.x() == currentAnchor.x()
+						&& candidateAnchor.y() < currentAnchor.y());
+			}
+			if (nearer) {
+				nearestIndex = index;
+				nearestDistance = distance;
+			}
+		}
+		if (nearestIndex >= 0)
+			assignments[nearestIndex].append(station);
+	}
+
+	for (int index = 0; index < m_stationOverlays.size(); ++index) {
+		auto* overlay = m_stationOverlays.at(index);
+		if (!overlay)
+			continue;
+		auto& assigned = assignments[index];
+		std::sort(assigned.begin(), assigned.end(), [overlay](const auto* left, const auto* right) {
+			const QPointF leftDelta = left->sceneBoundingRect().center() - overlay->stableAnchor();
+			const QPointF rightDelta = right->sceneBoundingRect().center() - overlay->stableAnchor();
+			const qreal leftDistance = leftDelta.x() * leftDelta.x() + leftDelta.y() * leftDelta.y();
+			const qreal rightDistance = rightDelta.x() * rightDelta.x() + rightDelta.y() * rightDelta.y();
+			if (leftDistance != rightDistance)
+				return leftDistance < rightDistance;
+			if (left->track != right->track)
+				return left->track < right->track;
+			return left->node->ID < right->node->ID;
+		});
+		QList<StationOverlayItem::SourceIdentity> identities;
+		for (const auto* station : assigned)
+			identities.append({station->node->ID, station->track});
+		overlay->setSourceIdentities(identities);
+		// The scene-sized artwork belongs to the real semantic station node.
+		// It can be picked at its painted location, not at a stale screen-space
+		// collision slot owned by the decorative overlay.
+		if (QGraphicsPixmapItem* picture = m_stationPictures.value(overlay, nullptr)) {
+			const QPointF scenePosition = picture->scenePos();
+			StationNodeItem* target = assigned.isEmpty() ? nullptr : assigned.first();
+			picture->setParentItem(target);
+			picture->setPos(target ? target->mapFromScene(scenePosition) : scenePosition);
+			if (target)
+				target->setZValue(StationMarkItem::HostZValue);
+			// The mark and its area are placed by the assigned station squares, and the area covers their platform bars.
+			QList<QPointF> centres;
+			for (const auto* station : assigned)
+				centres.append(station->sceneBoundingRect().center());
+			overlay->setNodeCentres(centres);
+			QList<QPolygonF> bars;
+			for (const auto* platform : std::as_const(allPlatforms))
+				for (const auto* station : assigned)
+					if (platform && platform->node == station->node)
+						bars.append(platform->mapToScene(platform->rect()));
+			overlay->setPlatformBars(bars);
+		}
+	}
+	measureStationTrackSpacing();
+}
+
+void NetworkPresenter::updateStationOverlayDegrees() {
+	if (!m_scene)
+		return;
+	const auto atEndpoint = [](const QPointF& point, const QPointF& endpoint) {
+		return QLineF(point, endpoint).length() <= 1e-4;
+	};
+	const auto segmentDegree = [&](QGraphicsItem* item, const QLineF& line, const QPointF& point) {
+		const QPointF first = item->mapToScene(line.p1());
+		const QPointF second = item->mapToScene(line.p2());
+		return (atEndpoint(point, first) || atEndpoint(point, second)) ? 1 : 0;
+	};
+	QList<StationNodeItem*> stationNodes;
+	QList<QGraphicsItem*> edges;
+	for (QGraphicsItem* item : m_scene->items()) {
+		if (!item || !item->isVisible())
+			continue;
+		if (auto* station = qgraphicsitem_cast<StationNodeItem*>(item)) {
+			if (station->node)
+				stationNodes.append(station);
+		} else if (qgraphicsitem_cast<TrackLineItem*>(item)
+			|| qgraphicsitem_cast<ConnectionItem*>(item)) {
+			edges.append(item);
+		}
+	}
+
+	for (auto* overlay : std::as_const(m_stationOverlays)) {
+		if (!overlay)
+			continue;
+		int highestDegree = 0;
+		bool hasInterchange = false;
+		bool hasEndpoint = false;
+		for (auto* station : stationNodes) {
+			const bool assigned = overlay->hasSourceIdentity()
+				? overlay->matchesSourceIdentity(station->node->ID, station->track)
+				: QString::fromStdString(station->node->stationName) == overlay->stationName();
+			if (!assigned)
+				continue;
+			const QPointF point = station->sceneBoundingRect().center();
+			int degree = 0;
+			for (auto* edge : edges) {
+				if (auto* track = qgraphicsitem_cast<TrackLineItem*>(edge)) {
+					degree += segmentDegree(track, track->line(), point);
+					if (auto* virtualArc = dynamic_cast<VirtualArcItem*>(track))
+						degree += segmentDegree(virtualArc, virtualArc->secondPaintedLine(), point);
+				} else if (auto* connection = qgraphicsitem_cast<ConnectionItem*>(edge)) {
+					degree += segmentDegree(connection, connection->line(), point);
+				}
+			}
+			highestDegree = std::max(highestDegree, degree);
+			hasInterchange = hasInterchange || degree >= 3;
+			hasEndpoint = hasEndpoint || degree == 1;
+		}
+		overlay->setNetworkDegree(highestDegree, hasInterchange, hasEndpoint);
+	}
 }
 
 void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {

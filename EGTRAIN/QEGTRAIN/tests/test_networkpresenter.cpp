@@ -2,6 +2,7 @@
 #include "scene/SceneModel.h"
 
 #include "graphics/NetworkPresenter.h"
+#include "tests/NetworkPresenterTestAccess.h"
 
 #include "simulation/GuiSimulationSnapshot.h"
 #include "graphics/NetworkScene.h"
@@ -86,54 +87,53 @@ static void waitFor(Condition condition) {
 static void fill(NetworkPresenter& presenter, QGraphicsScene& scene) {
 	auto* train = new TrainItemGroup;
 	scene.addItem(train);
-	presenter.allTrains.push_back(train);
-	presenter.trainPaxItem = train;
+	PresenterAccess::allTrains(presenter).push_back(train);
+	PresenterAccess::trainPaxItem(presenter) = train;
 	auto* badge = new TrainBadgeItem;
 	scene.addItem(badge);
-	presenter.m_trainBadges.insert(0, badge);
+	PresenterAccess::trainBadges(presenter).insert(0, badge);
 
 	auto* signal = new SignalItem(QRectF(0, 0, 4, 4));
 	scene.addItem(signal);
-	presenter.allSignals.push_back(signal);
-	presenter.m_signalsByAheadId["section"].push_back(signal);
-	presenter.m_inspectedSignal = signal;
+	PresenterAccess::allSignals(presenter).push_back(signal);
+	PresenterAccess::signalsByAheadId(presenter)["section"].push_back(signal);
+	presenter.setInspectedSignal(signal);
 	auto* signalDecoration = scene.addLine(0, 0, 5, 5);
-	presenter.m_signalDecorations.push_back(signalDecoration);
+	PresenterAccess::signalDecorations(presenter).push_back(signalDecoration);
 
 	auto* track = new TrackLineItem(QLineF(0, 0, 10, 0));
 	scene.addItem(track);
-	presenter.allArcs.push_back(track);
-	presenter.m_tracksBySectionId["section"].push_back(track);
-	presenter.m_tracksByOccupiedArc[{0, 0.0}] = track;
-	presenter.m_activeTrackItems.insert(track);
+	PresenterAccess::allArcs(presenter).push_back(track);
+	PresenterAccess::tracksBySectionId(presenter)["section"].push_back(track);
+	PresenterAccess::tracksByOccupiedArc(presenter)[{0, 0.0}] = track;
+	PresenterAccess::activeTrackItems(presenter).insert(track);
 
 	auto* platform = new PlatformItem(QRectF(0, 0, 8, 2));
 	scene.addItem(platform);
-	presenter.allPlatforms.push_back(platform);
+	PresenterAccess::allPlatforms(presenter).push_back(platform);
 	auto* overlay = new StationOverlayItem(QStringLiteral("Station"), QPointF(3, 3), classifyStation());
 	scene.addItem(overlay);
-	presenter.m_stationOverlays.push_back(overlay);
-	presenter.m_stationDecorations.push_back(overlay);
+	PresenterAccess::stationOverlays(presenter).push_back(overlay);
+	PresenterAccess::stationDecorations(presenter).push_back(overlay);
 	auto* picture = scene.addPixmap(QPixmap(4, 4));
-	presenter.m_stationPictures.insert(overlay, picture);
-	presenter.m_stationLabels.push_back(scene.addText(QStringLiteral("Station")));
+	PresenterAccess::stationPictures(presenter).insert(overlay, picture);
+	PresenterAccess::stationLabels(presenter).push_back(scene.addText(QStringLiteral("Station")));
 
 	auto* message = new QGraphicsItemGroup;
 	scene.addItem(message);
-	presenter.m_vcMessageItems.insert(0, message);
+	PresenterAccess::vcMessageItems(presenter).insert(0, message);
 
 	auto* trainInfo = new QGraphicsItemGroup;
 	scene.addItem(trainInfo);
-	presenter.trainPaxInfoItem = trainInfo;
+	PresenterAccess::trainPaxInfoItem(presenter) = trainInfo;
 	auto* passenger = new PassengerItem(QPixmap(2, 2));
 	scene.addItem(passenger);
-	presenter.paxIconItem = passenger;
+	PresenterAccess::paxIconItem(presenter) = passenger;
 	auto* passengerInfo = new QGraphicsItemGroup;
 	scene.addItem(passengerInfo);
-	presenter.paxIconInfoItem = passengerInfo;
+	PresenterAccess::paxIconInfoItem(presenter) = passengerInfo;
 
-	presenter.effect = new HighlightEffect(Qt::blue, 1);
-	badge->setGraphicsEffect(presenter.effect);
+	presenter.setHighlight(badge);
 }
 
 // Two tracks of a line with a connection at one end and three stations.
@@ -226,16 +226,16 @@ static bool barsAlong(QGraphicsScene& scene, const TrackPreviewLine& line, int c
 }
 
 static bool registriesEmpty(const NetworkPresenter& presenter) {
-	return presenter.allTrains.isEmpty() && presenter.m_trainBadges.isEmpty() && presenter.allSignals.isEmpty()
-		&& presenter.m_signalsByAheadId.empty() && presenter.m_signalDecorations.isEmpty() && presenter.allArcs.isEmpty()
-		&& presenter.m_tracksBySectionId.empty() && presenter.m_tracksByOccupiedArc.empty() && presenter.m_activeTrackItems.empty()
-		&& presenter.allPlatforms.isEmpty() && presenter.m_stationOverlays.isEmpty() && presenter.m_stationDecorations.isEmpty()
-		&& presenter.m_stationLabels.isEmpty() && presenter.m_stationPictures.isEmpty() && presenter.m_vcMessageItems.isEmpty();
+	return presenter.runTrains().isEmpty() && PresenterAccess::trainBadges(presenter).isEmpty() && presenter.runSignals().isEmpty()
+		&& PresenterAccess::signalsByAheadId(presenter).empty() && PresenterAccess::signalDecorations(presenter).isEmpty() && PresenterAccess::allArcs(presenter).isEmpty()
+		&& PresenterAccess::tracksBySectionId(presenter).empty() && PresenterAccess::tracksByOccupiedArc(presenter).empty() && PresenterAccess::activeTrackItems(presenter).empty()
+		&& PresenterAccess::allPlatforms(presenter).isEmpty() && presenter.stationOverlays().isEmpty() && PresenterAccess::stationDecorations(presenter).isEmpty()
+		&& PresenterAccess::stationLabels(presenter).isEmpty() && PresenterAccess::stationPictures(presenter).isEmpty() && PresenterAccess::vcMessageItems(presenter).isEmpty();
 }
 
 static bool pointersNull(const NetworkPresenter& presenter) {
-	return !presenter.m_inspectedSignal && !presenter.trainPaxItem && !presenter.trainPaxInfoItem
-		&& !presenter.paxIconItem && !presenter.paxIconInfoItem && !presenter.effect;
+	return !presenter.inspectedSignal() && !presenter.selectedTrain() && !PresenterAccess::trainPaxInfoItem(presenter)
+		&& !PresenterAccess::paxIconItem(presenter) && !PresenterAccess::paxIconInfoItem(presenter) && !presenter.hasHighlight();
 }
 
 // The preview model with a station of each class. Ut gets three connection ends, and a station placed by position has
@@ -277,7 +277,7 @@ struct PreviewFixture {
 
 	// The platform bars among the station decorations that are shown or hidden.
 	qsizetype bars(bool visible) const {
-		return std::count_if(presenter.m_stationDecorations.cbegin(), presenter.m_stationDecorations.cend(),
+		return std::count_if(PresenterAccess::stationDecorations(presenter).cbegin(), PresenterAccess::stationDecorations(presenter).cend(),
 			[visible](QGraphicsItem* item) { return qgraphicsitem_cast<PlatformItem*>(item) && item->isVisible() == visible; });
 	}
 };
@@ -345,7 +345,7 @@ void TestNetworkPresenter::clearWorksAfterSceneIsGone() {
 
 void TestNetworkPresenter::clearWorksWithoutScene() {
 	NetworkPresenter presenter(nullptr, nullptr);
-	presenter.m_trainBadges.insert(0, nullptr);
+	PresenterAccess::trainBadges(presenter).insert(0, nullptr);
 	presenter.clear();
 	QVERIFY2(registriesEmpty(presenter), "clear works without a scene");
 }
@@ -361,10 +361,10 @@ void TestNetworkPresenter::previewCyclesDrawSameItems() {
 		QCOMPARE(outcome.trackLines, 2);
 		QVERIFY(outcome.fitted);
 		// The preview fills the registries and keeps the preview it drew.
-		QVERIFY(!presenter.m_stationOverlays.isEmpty());
-		QVERIFY(!presenter.m_signalDecorations.isEmpty());
-		QVERIFY(presenter.m_previewHasSignals);
-		QVERIFY(!presenter.m_previewFitBounds.isEmpty());
+		QVERIFY(!presenter.stationOverlays().isEmpty());
+		QVERIFY(!PresenterAccess::signalDecorations(presenter).isEmpty());
+		QVERIFY(presenter.previewHasSignals());
+		QVERIFY(!presenter.previewFit().bounds.isEmpty());
 		QVERIFY(presenter.trackLine("B0"));
 		QVERIFY(!presenter.trackLine("none"));
 		if (cycle == 0)
@@ -383,7 +383,7 @@ void TestNetworkPresenter::previewCyclesDrawSameItems() {
 void TestNetworkPresenter::previewMarksSelectedTrack() {
 	PreviewFixture f;
 	f.presenter.showPreview(f.model, f.options);
-	QVERIFY2(f.presenter.m_previewHasSelectedTrack, "a selected track is marked");
+	QVERIFY2(f.presenter.previewHasSelectedTrack(), "a selected track is marked");
 }
 
 // The preview draws the platform bars without being asked, among the station decorations, hidden in the far look and
@@ -395,7 +395,7 @@ void TestNetworkPresenter::previewDrawsPlatformBars() {
 	// The preview draws the platform bars, hidden in the far look.
 	QCOMPARE_GT(f.bars(false), 0);
 	QCOMPARE(f.bars(true), qsizetype(0));
-	presenter.setStationNearLook(true);
+	PresenterAccess::setStationNearLook(presenter, true);
 	// The platform bars show in the near look.
 	QCOMPARE_GT(f.bars(true), 0);
 	QCOMPARE(f.bars(false), qsizetype(0));
@@ -464,8 +464,8 @@ void TestNetworkPresenter::stationMarksFollowClass() {
 	NetworkPresenter& presenter = f.presenter;
 	presenter.showPreview(classesModel());
 	QStringList marks;
-	for (StationOverlayItem* overlay : presenter.m_stationOverlays) {
-		const auto* picture = static_cast<const StationMarkItem*>(presenter.m_stationPictures.value(overlay, nullptr));
+	for (StationOverlayItem* overlay : presenter.stationOverlays()) {
+		const auto* picture = static_cast<const StationMarkItem*>(PresenterAccess::stationPictures(presenter).value(overlay, nullptr));
 		if (picture && picture->stationClass() == overlay->visual().cls)
 			marks << overlay->stationName() + "=" + QString::number(static_cast<int>(overlay->visual().cls));
 	}
@@ -481,9 +481,9 @@ void TestNetworkPresenter::stationMarksGetSquareCentres() {
 	NetworkPresenter& presenter = f.presenter;
 	const SceneModel classes = classesModel();
 	presenter.showPreview(classes);
-	bool centred = !presenter.m_stationOverlays.isEmpty();
-	for (StationOverlayItem* overlay : presenter.m_stationOverlays) {
-		const auto* mark = dynamic_cast<const StationMarkItem*>(presenter.m_stationPictures.value(overlay, nullptr));
+	bool centred = !presenter.stationOverlays().isEmpty();
+	for (StationOverlayItem* overlay : presenter.stationOverlays()) {
+		const auto* mark = dynamic_cast<const StationMarkItem*>(PresenterAccess::stationPictures(presenter).value(overlay, nullptr));
 		const auto station = std::find_if(classes.stations.cbegin(), classes.stations.cend(), [overlay](const SceneStation& candidate) {
 			return QString::fromStdString(candidate.id) == overlay->data(PreviewGraphics::Id).toString();
 		});
@@ -517,7 +517,7 @@ void TestNetworkPresenter::haltsKeepSizeOnScreenInNearLook() {
 	NetworkPresenter& presenter = f.presenter;
 	presenter.showPreview(classesModel());
 	const auto overlayNamed = [&presenter](const QString& name) -> StationOverlayItem* {
-		for (StationOverlayItem* overlay : presenter.m_stationOverlays)
+		for (StationOverlayItem* overlay : presenter.stationOverlays())
 			if (overlay->stationName() == name)
 				return overlay;
 		return nullptr;
@@ -569,7 +569,7 @@ void TestNetworkPresenter::previewHeadNamesSection() {
 	sceneSignals(model).push_back({"sig1", "@B0.block.2@"});
 	presenter.showPreview(model);
 	QStringList heads;
-	for (QGraphicsItem* item : presenter.m_signalDecorations)
+	for (QGraphicsItem* item : PresenterAccess::signalDecorations(presenter))
 		if (const auto* head = qgraphicsitem_cast<SignalItem*>(item))
 			heads << head->inspectionIdentity() + " | " + QString::fromStdString(head->sectionAheadId + " | " + head->sectionAheadLabel);
 	heads.removeDuplicates();
@@ -612,8 +612,8 @@ void TestNetworkPresenter::stationPicturesCountFromLevelZero() {
 	// The bottom centre of the picture of each station, by name.
 	const auto pictureAnchors = [&presenter]() {
 		QMap<QString, QPointF> anchors;
-		for (StationOverlayItem* overlay : presenter.m_stationOverlays)
-			if (const QGraphicsPixmapItem* picture = presenter.m_stationPictures.value(overlay, nullptr))
+		for (StationOverlayItem* overlay : presenter.stationOverlays())
+			if (const QGraphicsPixmapItem* picture = PresenterAccess::stationPictures(presenter).value(overlay, nullptr))
 				anchors.insert(overlay->stationName(),
 					picture->mapToScene(QPointF(presenter.station_size / 2.0, presenter.station_size)));
 		return anchors;
@@ -680,13 +680,13 @@ void TestNetworkPresenter::paintsOnlyTracksThatChangeState() {
 	const std::vector<CountingTrack*> tracks{prepared, occupied, blocked, bothStates};
 	for (CountingTrack* track : tracks) {
 		scene.addItem(track);
-		presenter.allArcs.push_back(track);
+		PresenterAccess::allArcs(presenter).push_back(track);
 	}
-	presenter.m_tracksBySectionId["prepared"] = {prepared, bothStates};
-	presenter.m_tracksBySectionId["blocked"] = {blocked};
-	presenter.m_tracksByOccupiedArc[{0, 0.0}] = occupied;
-	presenter.m_tracksByOccupiedArc[{1, 0.0}] = blocked;
-	presenter.m_tracksByOccupiedArc[{2, 0.0}] = bothStates;
+	PresenterAccess::tracksBySectionId(presenter)["prepared"] = {prepared, bothStates};
+	PresenterAccess::tracksBySectionId(presenter)["blocked"] = {blocked};
+	PresenterAccess::tracksByOccupiedArc(presenter)[{0, 0.0}] = occupied;
+	PresenterAccess::tracksByOccupiedArc(presenter)[{1, 0.0}] = blocked;
+	PresenterAccess::tracksByOccupiedArc(presenter)[{2, 0.0}] = bothStates;
 
 	QGraphicsView view(&scene);
 	view.resize(300, 400);
@@ -717,7 +717,7 @@ void TestNetworkPresenter::paintsOnlyTracksThatChangeState() {
 	QVERIFY(!prepared->isOccupied());
 	QVERIFY(!blocked->isOccupied());
 	// The track lines that show a state are the active ones.
-	QCOMPARE(presenter.m_activeTrackItems.size(), std::size_t(4));
+	QCOMPARE(PresenterAccess::activeTrackItems(presenter).size(), std::size_t(4));
 	waitFor([&]() { return paintedCount([](int paints) { return paints > 0; }) == 4; });
 	// The view paints the track lines that changed state.
 	QCOMPARE(paintedCount([](int paints) { return paints > 0; }), std::ptrdiff_t(4));
@@ -742,8 +742,8 @@ void TestNetworkPresenter::paintsOnlyTracksThatChangeState() {
 	QVERIFY(bothStates->isOccupied());
 	QVERIFY(!occupied->isOccupied());
 	// A track line that is free again is no longer active.
-	QCOMPARE(presenter.m_activeTrackItems.size(), std::size_t(3));
-	QVERIFY(!presenter.m_activeTrackItems.count(occupied));
+	QCOMPARE(PresenterAccess::activeTrackItems(presenter).size(), std::size_t(3));
+	QVERIFY(!PresenterAccess::activeTrackItems(presenter).count(occupied));
 	waitFor([occupied]() { return occupied->paints > 0; });
 	// Only the track lines that changed state are painted.
 	QCOMPARE_GT(occupied->paints, 0);
@@ -753,7 +753,7 @@ void TestNetworkPresenter::paintsOnlyTracksThatChangeState() {
 
 	presenter.clearOperationalTrackStates();
 	// Every track line is free after they are cleared.
-	QVERIFY(presenter.m_activeTrackItems.empty());
+	QVERIFY(PresenterAccess::activeTrackItems(presenter).empty());
 	QCOMPARE(prepared->operationalState(), TrackOperationalState::Free);
 	QCOMPARE(bothStates->operationalState(), TrackOperationalState::Free);
 	view.hide();

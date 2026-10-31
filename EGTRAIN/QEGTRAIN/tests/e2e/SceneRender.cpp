@@ -45,7 +45,7 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 		}
 	}
 	const bool hasPassengers = !w.m_document->model().passengers.empty();
-	if (!w.m_runController->m_worker && w.m_presenter->allTrains.isEmpty()) {
+	if (!w.m_runController->m_worker && w.m_presenter->runTrains().isEmpty()) {
 		// Before the first run Follow is off and its tooltip says why.
 		const bool services = !w.m_document->mutableModel().services.empty();
 		const QString reason = services ? QStringLiteral("Run the case first, then you can follow a train.")
@@ -93,7 +93,7 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 		}
 	}
 
-	if (w.m_presenter->allTrains.isEmpty() && scenarioAttempts < 40) {
+	if (w.m_presenter->runTrains().isEmpty() && scenarioAttempts < 40) {
 		++scenarioAttempts;
 		QTimer::singleShot(500, &w, [&w] { MainWindowTestAccess::runSceneRender(w); });
 		return;
@@ -103,7 +103,7 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 	bool ok = true;
 	QStringList failures;
 
-	if (w.m_presenter->allTrains.isEmpty()) {
+	if (w.m_presenter->runTrains().isEmpty()) {
 		ok = false;
 		failures << "no train items rendered";
 	}
@@ -116,7 +116,7 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 	// The platform bars are drawn with or without passengers and show with the stations in the near look. The counters
 	// and icons on them are the passenger items of a run with passengers, which show only where the bars show and which
 	// View > Passengers turns off and on.
-	const QList<PlatformItem*>& platforms = w.m_presenter->allPlatforms;
+	const QList<PlatformItem*>& platforms = PresenterAccess::allPlatforms(*w.m_presenter);
 	const auto barsShown = [&platforms](bool shown) {
 		return !platforms.isEmpty() && std::all_of(platforms.cbegin(), platforms.cend(), [shown](const PlatformItem* platform) {
 			return platform->isVisible() == shown;
@@ -142,7 +142,7 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 	w.m_stationLayerCheck->setChecked(true);
 	const bool farHidden = barsShown(false) && passengersHidden();
 	// Zoomed in until the tracks at the stations are far enough apart for the near look.
-	const qreal spacing = w.m_presenter->m_stationTrackSpacing * std::abs(w.networkView->transform().m11());
+	const qreal spacing = PresenterAccess::stationTrackSpacing(*w.m_presenter) * std::abs(w.networkView->transform().m11());
 	if (spacing > 0.0)
 		w.networkView->zoomBy(1.05 * StationOverlayItem::NearTrackSpacingPixels / spacing);
 	w.updateViewportOverlays();

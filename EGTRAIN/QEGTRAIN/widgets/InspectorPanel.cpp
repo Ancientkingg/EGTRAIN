@@ -14,7 +14,6 @@
 #include "graphics/NetworkPresenter.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/items/ConnectionItem.h"
-#include "graphics/items/HighlightEffect.h"
 #include "graphics/items/NodeItem.h"
 #include "graphics/items/PassengerItem.h"
 #include "graphics/items/SignalItem.h"
@@ -284,15 +283,16 @@ void InspectorPanel::clearSelectedTrain() {
 }
 
 void InspectorPanel::refreshInspectedSignal() {
-	if (m_signallingInfoWidget && m_signallingInfoWidget->isVisible() && m_signallingGroupDetails
-		&& m_presenter->m_inspectedSignal && m_presenter->m_signalDecorations.contains(m_presenter->m_inspectedSignal)) {
-		const QString details = m_presenter->m_inspectedSignal->toolTip();
+	if (!m_signallingInfoWidget || !m_signallingInfoWidget->isVisible() || !m_signallingGroupDetails)
+		return;
+	if (const SignalItem* signal = m_presenter->inspectedSignal()) {
+		const QString details = signal->toolTip();
 		if (m_signallingGroupDetails->toPlainText() != details) {
 			const int scroll = m_signallingGroupDetails->verticalScrollBar()->value();
 			m_signallingGroupDetails->setPlainText(details);
 			m_signallingGroupDetails->verticalScrollBar()->setValue(scroll);
 		}
-		m_signallingAspectText->setText(signalAspectLabel(m_presenter->m_inspectedSignal));
+		m_signallingAspectText->setText(signalAspectLabel(signal));
 	}
 }
 
@@ -302,7 +302,7 @@ void InspectorPanel::handleCloseInfoDockWidget() {
 	m_previewSelectedStationId.clear();
 	m_previewSelectionKind.clear();
 	m_previewSelectionId.clear();
-	m_presenter->m_inspectedSignal = nullptr;
+	m_presenter->setInspectedSignal(nullptr);
 	// Only a preview item marks the fields that need a run.
 	for (auto* field : m_infoDockWidget->findChildren<QLineEdit*>())
 		field->setPlaceholderText(QString());
@@ -311,7 +311,7 @@ void InspectorPanel::handleCloseInfoDockWidget() {
 	m_selectedStationNodeId = 0.0;
 	m_selectedStationTrack = -1;
 	m_selectedTrainIndex = -1;
-	for (auto* overlay : m_presenter->m_stationOverlays)
+	for (auto* overlay : m_presenter->stationOverlays())
 		if (overlay)
 			overlay->setSelected(false);
 
@@ -323,14 +323,11 @@ void InspectorPanel::handleCloseInfoDockWidget() {
 	m_trainInfoWidget->hide();
 	m_incidentButton->hide();
 	m_presenter->removeTrainPaxInfoIcon();
-	m_presenter->trainPaxItem = nullptr; // Explicitly dismissed or replaced train inspection.
+	m_presenter->clearSelectedTrain(); // Explicitly dismissed or replaced train inspection.
 	m_presenter->removePaxInfoIcon();
 
 	// remove highlight
-	if (m_presenter->effect) {
-		delete m_presenter->effect;
-		m_presenter->effect = nullptr;
-	}
+	m_presenter->clearHighlight();
 	m_host.inspectionChanged();
 }
 
@@ -402,7 +399,7 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 		if (kind == "station") {
 			if (!station)
 				return;
-			for (const auto& anchor : m_presenter->m_cachedTrackPreview.stations)
+			for (const auto& anchor : m_presenter->trackPreview().stations)
 				if (anchor.id == id)
 					for (const auto& candidate : model.nodes)
 						if (!anchor.nodeId.empty() && candidate.id == anchor.nodeId)
@@ -529,10 +526,7 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 	m_previewSelectionId = text(id);
 
 	// effect on clicked item
-	if (!m_presenter->effect) {
-		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
-	}
-	item->setGraphicsEffect(m_presenter->effect);
+	m_presenter->setHighlight(item);
 	m_host.inspectionChanged();
 	// Do not recolor boundary dots/squares or neutral signal heads on inspection.
 }
@@ -567,10 +561,7 @@ void InspectorPanel::displayNodeInfo(NodeItem* nodeItem) {
 	m_nodeInfoWidget->show();
 
 	// effect on clicked item
-	if (!m_presenter->effect) {
-		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
-	}
-	nodeItem->setGraphicsEffect(m_presenter->effect);
+	m_presenter->setHighlight(nodeItem);
 }
 
 // shows station Node info on dock widget
@@ -582,7 +573,7 @@ void InspectorPanel::displayStationNodeInfo(StationNodeItem* stationItem) {
 	m_hasSelectedStationIdentity = true;
 	m_selectedStationNodeId = stationItem->node->ID;
 	m_selectedStationTrack = stationItem->track;
-	for (auto* overlay : m_presenter->m_stationOverlays)
+	for (auto* overlay : m_presenter->stationOverlays())
 		if (overlay)
 			overlay->setSelected(overlay->hasSourceIdentity()
 					? overlay->matchesSourceIdentity(m_selectedStationNodeId, m_selectedStationTrack)
@@ -626,10 +617,7 @@ void InspectorPanel::displayStationNodeInfo(StationNodeItem* stationItem) {
 	m_nodeInfoWidget->show();
 
 	// effect on clicked item
-	if (!m_presenter->effect) {
-		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
-	}
-	stationItem->setGraphicsEffect(m_presenter->effect);
+	m_presenter->setHighlight(stationItem);
 }
 
 // shows Arc info on dock widget
@@ -677,7 +665,7 @@ void InspectorPanel::displayArcInfo(TrackLineItem* line) {
 	const auto sectionTouchesArc = [&startSection, &endSection](const std::string& sectionId) {
 		return !sectionId.empty() && (sectionId == startSection || sectionId == endSection);
 	};
-	for (auto* candidate : m_presenter->allSignals) {
+	for (auto* candidate : m_presenter->runSignals()) {
 		if (!candidate || candidate->trackID != line->track)
 			continue;
 		const bool positionMatches = candidate->X >= arcStart - 1e-9 && candidate->X <= arcEnd + 1e-9;
@@ -708,10 +696,7 @@ void InspectorPanel::displayArcInfo(TrackLineItem* line) {
 	m_arcInfoWidget->show();
 
 	// effect on clicked item
-	if (!m_presenter->effect) {
-		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
-	}
-	line->setGraphicsEffect(m_presenter->effect);
+	m_presenter->setHighlight(line);
 }
 
 // shows connection info on dock widget
@@ -740,10 +725,7 @@ void InspectorPanel::displayConnectionInfo(ConnectionItem* line) {
 	m_connectionInfoWidget->show();
 
 	// effect on clicked item
-	if (!m_presenter->effect) {
-		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
-	}
-	line->setGraphicsEffect(m_presenter->effect);
+	m_presenter->setHighlight(line);
 }
 
 // shows signalling info on dock widget
@@ -751,7 +733,7 @@ void InspectorPanel::displaySignallingInfo(SignalItem* signal) {
 	if (!signal)
 		return;
 	handleCloseInfoDockWidget();
-	m_presenter->m_inspectedSignal = signal;
+	m_presenter->setInspectedSignal(signal);
 
 	// update signalling info displayed on widget
 	setTrackText(m_signallingTrackIDText, *m_presenter, {signal->trackID});
@@ -789,10 +771,7 @@ void InspectorPanel::displaySignallingInfo(SignalItem* signal) {
 	m_signallingInfoWidget->show();
 
 	// effect on clicked item
-	if (!m_presenter->effect) {
-		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
-	}
-	signal->setGraphicsEffect(m_presenter->effect);
+	m_presenter->setHighlight(signal);
 	m_host.signalInspected();
 }
 
@@ -820,7 +799,7 @@ void InspectorPanel::displayTrainDetails(TrainBodyItem* trainItem, bool changeFo
 	m_presenter->removePaxInfoIcon();
 
 	// show pax info only while its layer is enabled
-	if (m_host.passengerGui() && m_presenter->m_passengerLayerVisible)
+	if (m_host.passengerGui() && m_presenter->passengerLayerVisible())
 		m_presenter->paintTrainPassengerInfo(groupItem);
 
 	// show widget
@@ -832,11 +811,8 @@ void InspectorPanel::displayTrainDetails(TrainBodyItem* trainItem, bool changeFo
 	m_host.inspectionChanged();
 
 	// effect on clicked item
-	if (!m_presenter->effect) {
-		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
-	}
 	if (trainItem->parentItem()) {
-		trainItem->parentItem()->setGraphicsEffect(m_presenter->effect);
+		m_presenter->setHighlight(trainItem->parentItem());
 	} // effect on entire train
 }
 
@@ -864,10 +840,7 @@ void InspectorPanel::displayPassengerInfo(PassengerItem* paxItem) {
 	m_presenter->paintPassengerInfoIcon(paxItem, m_host.passengerState(paxItem->passengerId), m_host.replayActive());
 
 	// effect on clicked item
-	if (!m_presenter->effect) {
-		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
-	}
-	paxItem->setGraphicsEffect(m_presenter->effect);
+	m_presenter->setHighlight(paxItem);
 }
 
 void InspectorPanel::handleDisableHighlight() {

@@ -209,7 +209,9 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   gets its parent item when it is created (`graphics/items/SignalItem.cpp`). Pointers to
   scene items held elsewhere only observe them: `NetworkPresenter::clear` calls
   `scene->clear()`, which deletes the items, then clears the lists that point at them
-  (`graphics/NetworkPresenter.cpp`, documented in `graphics/NetworkPresenter.h`).
+  (`graphics/NetworkPresenter.cpp`, documented in `graphics/NetworkPresenter.h`). Those lists are
+  private: only the presenter fills them, and the window and the inspector use its const getters
+  and named actions such as `setHighlight`.
 - Everything else: `std::vector` for collections and arrays, `std::unique_ptr` for one owned
   object that is not a QObject. `SceneModel` holds its entity lists in `std::vector` members,
   `widgets/ConsoleWidget.h` owns a `std::unique_ptr<ConsoleStreambuf>`, and
@@ -419,6 +421,9 @@ it, and the table in `tests/e2e/E2ERunner.cpp` starts a scenario from its `QEGTR
 A scenario reaches an editor panel or its dock through the getters of `MainWindowTestAccess`, such as
 `servicePanel(w)` and `serviceDock(w)`, and the fields of a panel through the accessors of the panel
 (`servicePanel(w)->idEdit()`). Do not copy such a pointer into a member of the window for a scenario.
+A scenario and a test of the canvas read the presenter through its const getters. `NetworkPresenterTestAccess`
+(`tests/NetworkPresenterTestAccess.h`) is the friend of `NetworkPresenter` for a value that no product code
+reads and for a test that puts items in a registry itself.
 `PostRun.cpp` holds the autostart and the checks that follow a run, which the window calls through
 the hooks of `MainWindowTestHooks` and the signals of `RunController` and `RunResultsDock`, and `Dialogs.cpp` answers the dialogs that the window opens. A source
 that a build without tests compiles must not name a `QEGTRAIN_E2E_` variable, print an `E2E_` marker or

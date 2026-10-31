@@ -2,6 +2,7 @@
 #include "scene/SceneModel.h"
 
 #include "graphics/NetworkPresenter.h"
+#include "tests/NetworkPresenterTestAccess.h"
 
 #include "simulation/GuiSimulationSnapshot.h"
 #include "graphics/FollowCamera.h"
@@ -197,9 +198,9 @@ static bool near(double left, double right) {
 
 // The body of the train is the rectangle of 100 m along the track and twice 0.1 of the track separation across it.
 static bool bodyAt(const NetworkPresenter& presenter, double headKm) {
-	if (presenter.allTrains.size() != 1 || !presenter.allTrains[0]->trainPolygonItemList)
+	if (presenter.runTrains().size() != 1 || !presenter.runTrains()[0]->trainPolygonItemList)
 		return false;
-	const QPolygonF polygon = presenter.allTrains[0]->trainPolygonItemList->at(0)->polygon();
+	const QPolygonF polygon = presenter.runTrains()[0]->trainPolygonItemList->at(0)->polygon();
 	const double head = headKm * 1000.0;
 	const double tail = head - 100.0;
 	const double half = 0.10 * presenter.track_separation;
@@ -427,7 +428,7 @@ static std::vector<std::string> paintedIcons(QGraphicsScene& scene) {
 // order in which a rebuild of all the icons would add them.
 static std::vector<std::string> expectedIcons(const NetworkPresenter& presenter) {
 	std::vector<std::string> ids;
-	for (const PlatformItem* platform : presenter.allPlatforms)
+	for (const PlatformItem* platform : PresenterAccess::allPlatforms(presenter))
 		for (const PassengerItem* icon : platform->passengerIcons)
 			ids.push_back(icon->passengerId);
 	return ids;
@@ -466,14 +467,14 @@ using Ids = std::vector<std::string>;
 
 // Whether the presenter holds no item and points to none, the way a new presenter does.
 static bool presenterEmpty(const NetworkPresenter& presenter) {
-	return presenter.allTrains.isEmpty() && presenter.m_trainBadges.isEmpty() && !presenter.trainsMoving()
-		&& presenter.allSignals.isEmpty() && presenter.m_signalsByAheadId.empty() && presenter.m_signalDecorations.isEmpty()
-		&& presenter.allArcs.isEmpty() && presenter.m_tracksBySectionId.empty()
-		&& presenter.m_tracksByOccupiedArc.empty() && presenter.m_activeTrackItems.empty() && presenter.allPlatforms.isEmpty()
-		&& presenter.m_stationOverlays.isEmpty() && presenter.m_stationDecorations.isEmpty() && presenter.m_stationLabels.isEmpty()
-		&& presenter.m_stationPictures.isEmpty() && presenter.m_vcMessageItems.isEmpty() && !presenter.m_inspectedSignal
-		&& !presenter.trainPaxItem && !presenter.trainPaxInfoItem && !presenter.paxIconItem && !presenter.paxIconInfoItem
-		&& !presenter.effect;
+	return presenter.runTrains().isEmpty() && PresenterAccess::trainBadges(presenter).isEmpty() && !presenter.trainsMoving()
+		&& presenter.runSignals().isEmpty() && PresenterAccess::signalsByAheadId(presenter).empty() && PresenterAccess::signalDecorations(presenter).isEmpty()
+		&& PresenterAccess::allArcs(presenter).isEmpty() && PresenterAccess::tracksBySectionId(presenter).empty()
+		&& PresenterAccess::tracksByOccupiedArc(presenter).empty() && PresenterAccess::activeTrackItems(presenter).empty() && PresenterAccess::allPlatforms(presenter).isEmpty()
+		&& presenter.stationOverlays().isEmpty() && PresenterAccess::stationDecorations(presenter).isEmpty() && PresenterAccess::stationLabels(presenter).isEmpty()
+		&& PresenterAccess::stationPictures(presenter).isEmpty() && PresenterAccess::vcMessageItems(presenter).isEmpty() && !presenter.inspectedSignal()
+		&& !presenter.selectedTrain() && !PresenterAccess::trainPaxInfoItem(presenter) && !PresenterAccess::paxIconItem(presenter) && !PresenterAccess::paxIconInfoItem(presenter)
+		&& !presenter.hasHighlight();
 }
 
 // A presenter that draws the run of a FakeGeometry on a scene of its own.
@@ -520,7 +521,7 @@ struct MotionFixture : RunFixture {
 
 	// The x of the head of the train as it is drawn; not a number when its body has no shape.
 	double drawnHead() const {
-		const TrainBodyItem* body = presenter.allTrains[0]->trainPolygonItemList->at(0);
+		const TrainBodyItem* body = presenter.runTrains()[0]->trainPolygonItemList->at(0);
 		const QPolygonF polygon = body->polygon();
 		return polygon.isEmpty() ? std::numeric_limits<double>::quiet_NaN() : body->mapToScene(polygon.first()).x();
 	}
@@ -588,18 +589,18 @@ void TestRuntimeCanvas::drawsGeometryOfSource() {
 		source->passengers = cycle > 0;
 		presenter.showRuntime(model);
 		// The run draws both arcs and both stations of the source.
-		QCOMPARE(presenter.allArcs.size(), qsizetype(2));
-		QCOMPARE(presenter.m_stationOverlays.size(), qsizetype(2));
+		QCOMPARE(PresenterAccess::allArcs(presenter).size(), qsizetype(2));
+		QCOMPARE(presenter.stationOverlays().size(), qsizetype(2));
 		// The run draws one signal with a head for each direction at the border of the block sections.
-		QCOMPARE(presenter.allSignals.size(), qsizetype(2));
-		QCOMPARE(presenter.m_signalDecorations.size(), qsizetype(6));
+		QCOMPARE(presenter.runSignals().size(), qsizetype(2));
+		QCOMPARE(PresenterAccess::signalDecorations(presenter).size(), qsizetype(6));
 		// The signals are indexed by the section ahead of them.
-		QCOMPARE(presenter.m_signalsByAheadId.size(), std::size_t(2));
-		QCOMPARE(presenter.m_signalsByAheadId.count("s0"), std::size_t(1));
-		QCOMPARE(presenter.m_signalsByAheadId.count("s1"), std::size_t(1));
+		QCOMPARE(PresenterAccess::signalsByAheadId(presenter).size(), std::size_t(2));
+		QCOMPARE(PresenterAccess::signalsByAheadId(presenter).count("s0"), std::size_t(1));
+		QCOMPARE(PresenterAccess::signalsByAheadId(presenter).count("s1"), std::size_t(1));
 		// The run draws the platform with or without passengers.
-		QCOMPARE(presenter.allPlatforms.size(), qsizetype(1));
-		PlatformItem* const platform = presenter.allPlatforms.value(0);
+		QCOMPARE(PresenterAccess::allPlatforms(presenter).size(), qsizetype(1));
+		PlatformItem* const platform = PresenterAccess::allPlatforms(presenter).value(0);
 		// The counter and the details of the platform come only with the passengers. The platform takes its details from
 		// the source and has a counter only in a run with passengers.
 		if (platform == nullptr)
@@ -623,22 +624,22 @@ void TestRuntimeCanvas::drawsGeometryOfSource() {
 		// The platform and its counter are hidden in the far look.
 		QVERIFY(!platform->isVisible());
 		QVERIFY(!counterShown());
-		presenter.setStationNearLook(true);
+		PresenterAccess::setStationNearLook(presenter, true);
 		// The platform shows in the near look.
 		QVERIFY(platform->isVisible());
 		QVERIFY(!counterShown());
-		presenter.m_stationLayerVisible = false;
-		presenter.setStationNearLook(true);
+		PresenterAccess::stationLayerVisible(presenter) = false;
+		PresenterAccess::setStationNearLook(presenter, true);
 		QVERIFY2(!platform->isVisible(), "the platform hides with the stations");
-		presenter.m_stationLayerVisible = true;
+		PresenterAccess::stationLayerVisible(presenter) = true;
 
 		presenter.paintTrain(trainAt(7.5), model, false);
 		// The train and its badge are added.
-		QCOMPARE(presenter.allTrains.size(), qsizetype(1));
-		QVERIFY(presenter.m_trainBadges.contains(0));
+		QCOMPARE(presenter.runTrains().size(), qsizetype(1));
+		QVERIFY(PresenterAccess::trainBadges(presenter).contains(0));
 		QVERIFY2(bodyAt(presenter, 7.5), "the body of the train lies on the track line of the source");
 		// The body follows the train.
-		QVERIFY(presenter.getTrainPolygonItemList(presenter.allTrains[0]->trainPolygonItemList, trainAt(8.0)));
+		QVERIFY(presenter.getTrainPolygonItemList(presenter.runTrains()[0]->trainPolygonItemList, trainAt(8.0)));
 		QVERIFY(bodyAt(presenter, 8.0));
 		QPolygonF none;
 		GuiTrainState lost = trainAt(7.5);
@@ -655,13 +656,13 @@ void TestRuntimeCanvas::drawsGeometryOfSource() {
 		presenter.clear();
 		// Clear leaves nothing of the run.
 		QVERIFY(scene.items().isEmpty());
-		QVERIFY(presenter.allArcs.isEmpty());
-		QVERIFY(presenter.allSignals.isEmpty());
-		QVERIFY(presenter.m_signalsByAheadId.empty());
-		QVERIFY(presenter.allTrains.isEmpty());
-		QVERIFY(presenter.m_trainBadges.isEmpty());
-		QVERIFY(presenter.allPlatforms.isEmpty());
-		QVERIFY(presenter.m_stationOverlays.isEmpty());
+		QVERIFY(PresenterAccess::allArcs(presenter).isEmpty());
+		QVERIFY(presenter.runSignals().isEmpty());
+		QVERIFY(PresenterAccess::signalsByAheadId(presenter).empty());
+		QVERIFY(presenter.runTrains().isEmpty());
+		QVERIFY(PresenterAccess::trainBadges(presenter).isEmpty());
+		QVERIFY(PresenterAccess::allPlatforms(presenter).isEmpty());
+		QVERIFY(presenter.stationOverlays().isEmpty());
 	}
 }
 
@@ -676,8 +677,8 @@ void TestRuntimeCanvas::virtualStationGetsNoPlatformBar() {
 	middle.stationPlatformId = "P2";
 	presenter.showRuntime(f.model);
 	// A virtual station gets no platform bar.
-	QCOMPARE(presenter.allPlatforms.size(), qsizetype(1));
-	QCOMPARE(presenter.allPlatforms.value(0)->node, &source->track(0).member[1].endNode);
+	QCOMPARE(PresenterAccess::allPlatforms(presenter).size(), qsizetype(1));
+	QCOMPARE(PresenterAccess::allPlatforms(presenter).value(0)->node, &source->track(0).member[1].endNode);
 	presenter.clear();
 }
 
@@ -692,9 +693,9 @@ void TestRuntimeCanvas::applyShowsStepsOfRun() {
 	presenter.setFrameHost(&host);
 	qint64 now = 0;
 	presenter.setClock([&now]() { return now; });
-	SignalItem* const head = presenter.m_signalsByAheadId["s0"].front();
-	TrackLineItem* const track = presenter.m_tracksByOccupiedArc.at({0, 0.0});
-	PlatformItem* const platform = presenter.allPlatforms.value(0);
+	SignalItem* const head = PresenterAccess::signalsByAheadId(presenter)["s0"].front();
+	TrackLineItem* const track = PresenterAccess::tracksByOccupiedArc(presenter).at({0, 0.0});
+	PlatformItem* const platform = PresenterAccess::allPlatforms(presenter).value(0);
 	const auto platformText = [platform]() { return platform->textIcon->toPlainText(); };
 
 	GuiSimulationSnapshot snapshot;
@@ -708,14 +709,14 @@ void TestRuntimeCanvas::applyShowsStepsOfRun() {
 	// A live step reports the signals, then each train, then the end of the trains to the host.
 	QCOMPARE(host.take(), Calls({"signals", "willUpdate 0", "added 0 first", "trains added"}));
 	// A train of the step that is not on the canvas is added.
-	QCOMPARE(presenter.allTrains.size(), qsizetype(1));
+	QCOMPARE(presenter.runTrains().size(), qsizetype(1));
 	QVERIFY(bodyAt(presenter, 7.5));
 	// The head of a signal shows the state of its section.
 	QCOMPARE(head->aspectCode(), 75);
 	// A head without a state shows nothing.
-	QCOMPARE(presenter.allSignals.size(), qsizetype(2));
-	QCOMPARE_NE(presenter.allSignals[0], presenter.allSignals[1]);
-	QCOMPARE((presenter.allSignals[0] == head ? presenter.allSignals[1] : presenter.allSignals[0])->aspectCode(),
+	QCOMPARE(presenter.runSignals().size(), qsizetype(2));
+	QCOMPARE_NE(presenter.runSignals()[0], presenter.runSignals()[1]);
+	QCOMPARE((presenter.runSignals()[0] == head ? presenter.runSignals()[1] : presenter.runSignals()[0])->aspectCode(),
 		kGuiSignalUnavailable);
 	// The track of an occupied arc shows as occupied.
 	QCOMPARE(track->operationalState(), TrackOperationalState::Occupied);
@@ -730,7 +731,7 @@ void TestRuntimeCanvas::applyShowsStepsOfRun() {
 	// The passengers on a hidden platform bar are hidden.
 	QVERIFY(!platform->isVisible());
 	QVERIFY(iconsShown(false));
-	presenter.setStationNearLook(true);
+	PresenterAccess::setStationNearLook(presenter, true);
 	// They show with the bar in the near look.
 	QVERIFY(platform->isVisible());
 	QVERIFY(iconsShown(true));
@@ -738,34 +739,34 @@ void TestRuntimeCanvas::applyShowsStepsOfRun() {
 	PassengerItem* const selected = platform->passengerIcons[0];
 	presenter.paintPassengerInfoIcon(selected, passengerStateIn(&snapshot, selected->passengerId), false);
 	// The details of a selected passenger show.
-	if (presenter.paxIconInfoItem == nullptr)
+	if (PresenterAccess::paxIconInfoItem(presenter) == nullptr)
 		QFAIL("the details of the selected passenger are not drawn");
-	QVERIFY(presenter.paxIconInfoItem->isVisible());
-	presenter.paxIconInfoItem->setData(0, QStringLiteral("kept"));
-	presenter.setStationNearLook(false);
+	QVERIFY(PresenterAccess::paxIconInfoItem(presenter)->isVisible());
+	PresenterAccess::paxIconInfoItem(presenter)->setData(0, QStringLiteral("kept"));
+	PresenterAccess::setStationNearLook(presenter, false);
 	presenter.updatePaxIconInfo(&snapshot, NetworkPresenter::Playback::Live);
 	// They hide with the icon in the far look. Painting the details again keeps their group.
-	if (presenter.paxIconInfoItem == nullptr)
+	if (PresenterAccess::paxIconInfoItem(presenter) == nullptr)
 		QFAIL("the details of the selected passenger are gone after the step");
-	QVERIFY(!presenter.paxIconInfoItem->isVisible());
-	QCOMPARE(presenter.paxIconInfoItem->data(0), QVariant(QStringLiteral("kept")));
-	presenter.setStationNearLook(true);
-	QVERIFY2(presenter.paxIconInfoItem->isVisible(), "they show again with the icon");
+	QVERIFY(!PresenterAccess::paxIconInfoItem(presenter)->isVisible());
+	QCOMPARE(PresenterAccess::paxIconInfoItem(presenter)->data(0), QVariant(QStringLiteral("kept")));
+	PresenterAccess::setStationNearLook(presenter, true);
+	QVERIFY2(PresenterAccess::paxIconInfoItem(presenter)->isVisible(), "they show again with the icon");
 	presenter.removePaxInfoIcon();
-	presenter.paxIconItem = nullptr;
-	presenter.m_passengerLayerVisible = false;
-	presenter.applyPlatformVisibility();
+	presenter.clearSelectedPassengerIcon();
+	PresenterAccess::passengerLayerVisible(presenter) = false;
+	PresenterAccess::applyPlatformVisibility(presenter);
 	// The passenger layer hides them and not the bar.
 	QVERIFY(platform->isVisible());
 	QVERIFY(iconsShown(false));
-	presenter.m_passengerLayerVisible = true;
-	presenter.m_stationLayerVisible = false;
-	presenter.applyPlatformVisibility();
+	PresenterAccess::passengerLayerVisible(presenter) = true;
+	PresenterAccess::stationLayerVisible(presenter) = false;
+	PresenterAccess::applyPlatformVisibility(presenter);
 	// The station layer hides the bar and its passengers.
 	QVERIFY(!platform->isVisible());
 	QVERIFY(iconsShown(false));
-	presenter.m_stationLayerVisible = true;
-	presenter.setStationNearLook(false);
+	PresenterAccess::stationLayerVisible(presenter) = true;
+	PresenterAccess::setStationNearLook(presenter, false);
 
 	snapshot.timestep = 11;
 	snapshot.trains = {trainAt(8.0)};
@@ -786,30 +787,30 @@ void TestRuntimeCanvas::applyShowsStepsOfRun() {
 	QCOMPARE(platform->passengerIcons.size(), qsizetype(1));
 	QCOMPARE(platformText(), "1 of 40 passengers");
 	// The message of a virtual coupling shows above the train.
-	QVERIFY(presenter.m_vcMessageItems.contains(0));
-	QVERIFY(presenter.m_vcMessageItems[0]->isVisible());
+	QVERIFY(PresenterAccess::vcMessageItems(presenter).contains(0));
+	QVERIFY(PresenterAccess::vcMessageItems(presenter)[0]->isVisible());
 	// It shows by itself, so it stays under the station names, and over the train and its speed. The message of a virtual
 	// coupling is stacked over the train and its speed and under the station names.
-	QVERIFY(presenter.m_vcMessageItems.contains(0));
-	if (presenter.m_trainBadges.value(0) == nullptr)
+	QVERIFY(PresenterAccess::vcMessageItems(presenter).contains(0));
+	if (PresenterAccess::trainBadges(presenter).value(0) == nullptr)
 		QFAIL("the train has no badge");
-	QCOMPARE_LT(presenter.m_vcMessageItems[0]->zValue(), StationNameItem::NameZValue);
-	QCOMPARE_GT(presenter.m_vcMessageItems[0]->zValue(), presenter.m_trainBadges.value(0)->zValue());
-	QCOMPARE_GT(presenter.m_trainBadges.value(0)->zValue(), presenter.allTrains[0]->zValue());
+	QCOMPARE_LT(PresenterAccess::vcMessageItems(presenter)[0]->zValue(), StationNameItem::NameZValue);
+	QCOMPARE_GT(PresenterAccess::vcMessageItems(presenter)[0]->zValue(), PresenterAccess::trainBadges(presenter).value(0)->zValue());
+	QCOMPARE_GT(PresenterAccess::trainBadges(presenter).value(0)->zValue(), presenter.runTrains()[0]->zValue());
 	// The host decides whether the badge of a train is promoted.
-	QVERIFY(presenter.m_trainBadges.value(0)->isPromoted());
+	QVERIFY(PresenterAccess::trainBadges(presenter).value(0)->isPromoted());
 	// A live train glides to its new place, from where it was drawn.
 	QVERIFY(presenter.trainMoving(0));
 	QVERIFY(bodyAt(presenter, 7.5));
 	// The badge goes to the centre of the train and the callouts to its front, as it is drawn at each step.
-	presenter.paintTrainPassengerInfo(presenter.allTrains[0]);
+	presenter.paintTrainPassengerInfo(presenter.runTrains()[0]);
 	const auto onTrain = [&presenter](double headKm) {
 		const auto at = [](const QGraphicsItem* item, const QPointF& point) {
 			return item && QLineF(item->pos(), point).length() < 1e-6;
 		};
 		const QPointF front(headKm * 1000.0, 0.0);
-		return bodyAt(presenter, headKm) && at(presenter.m_trainBadges.value(0), presenter.allTrains[0]->sceneBoundingRect().center())
-			&& at(presenter.m_vcMessageItems.value(0), front) && at(presenter.trainPaxInfoItem, front);
+		return bodyAt(presenter, headKm) && at(PresenterAccess::trainBadges(presenter).value(0), presenter.runTrains()[0]->sceneBoundingRect().center())
+			&& at(PresenterAccess::vcMessageItems(presenter).value(0), front) && at(PresenterAccess::trainPaxInfoItem(presenter), front);
 	};
 	bool withTrain = onTrain(7.5);
 	// half way through the glide of 500 ms, five times the interval between the two updates
@@ -821,7 +822,7 @@ void TestRuntimeCanvas::applyShowsStepsOfRun() {
 	withTrain &= onTrain(8.0) && !presenter.trainMoving(0);
 	QVERIFY2(withTrain, "the badge, the message of a virtual coupling and the passengers on board move with the train");
 	presenter.removeTrainPaxInfoIcon();
-	presenter.trainPaxItem = nullptr;
+	presenter.clearSelectedTrain();
 
 	snapshot.timestep = 12;
 	snapshot.trains = {trainAt(8.5)};
@@ -833,21 +834,21 @@ void TestRuntimeCanvas::applyShowsStepsOfRun() {
 	QVERIFY(!presenter.trainsMoving());
 	QVERIFY(bodyAt(presenter, 8.5));
 	// A message that the step does not carry is hidden.
-	QVERIFY(presenter.m_vcMessageItems.contains(0));
-	QVERIFY(!presenter.m_vcMessageItems[0]->isVisible());
+	QVERIFY(PresenterAccess::vcMessageItems(presenter).contains(0));
+	QVERIFY(!PresenterAccess::vcMessageItems(presenter)[0]->isVisible());
 
 	snapshot.trains[0].outOfSimulation = true;
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	// A train that has left is hidden.
 	QCOMPARE(host.take(), Calls({"signals", "willUpdate 0", "hidden 0", "trains"}));
-	QVERIFY2(!presenter.allTrains[0]->isVisible(), "the item of a train that has left is not shown");
+	QVERIFY2(!presenter.runTrains()[0]->isVisible(), "the item of a train that has left is not shown");
 
 	snapshot.trains = {trainAt(7.5)};
 	presenter.setFrameHost(nullptr);
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	// A presenter without a host still shows the step.
 	QVERIFY(host.take().empty());
-	QVERIFY(presenter.allTrains[0]->isVisible());
+	QVERIFY(presenter.runTrains()[0]->isVisible());
 	QVERIFY(bodyAt(presenter, 7.5));
 
 	snapshot.trains = {trainAt(8.0)};
@@ -871,24 +872,24 @@ void TestRuntimeCanvas::trainOnUndrawnTrackShowsNoPassengers() {
 	snapshot.timestep = 10;
 	snapshot.trains = {trainAt(7.5)};
 	presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
-	TrainItemGroup* const train = presenter.allTrains.value(0);
+	TrainItemGroup* const train = presenter.runTrains().value(0);
 	if (train == nullptr)
 		QFAIL("the step draws no train");
 	presenter.paintTrainPassengerInfo(train);
 	// A selected train shows its passengers on board.
-	QCOMPARE(presenter.trainPaxItem, train);
-	QVERIFY(presenter.trainPaxInfoItem);
+	QCOMPARE(presenter.selectedTrain(), train);
+	QVERIFY(PresenterAccess::trainPaxInfoItem(presenter));
 	snapshot.timestep = 11;
 	snapshot.trains[0].routeIndex = 2;
 	presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
 	// A selected train on a track that is not drawn shows no passengers on board.
 	QVERIFY(!train->isVisible());
-	QCOMPARE(presenter.trainPaxItem, train);
-	QVERIFY(!presenter.trainPaxInfoItem);
+	QCOMPARE(presenter.selectedTrain(), train);
+	QVERIFY(!PresenterAccess::trainPaxInfoItem(presenter));
 	presenter.paintTrainPassengerInfo(train);
 	// A train on a track that is not drawn shows no passengers on board when it is selected.
-	QCOMPARE(presenter.trainPaxItem, train);
-	QVERIFY(!presenter.trainPaxInfoItem);
+	QCOMPARE(presenter.selectedTrain(), train);
+	QVERIFY(!PresenterAccess::trainPaxInfoItem(presenter));
 	presenter.clear();
 }
 
@@ -904,28 +905,28 @@ void TestRuntimeCanvas::passengersOnBoardKeepTheirGroup() {
 	snapshot.trains[0].currentOnboardPassengers = 3;
 	snapshot.trains[0].maxOnboardPassengers = 40;
 	presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
-	TrainItemGroup* const train = presenter.allTrains.value(0);
+	TrainItemGroup* const train = presenter.runTrains().value(0);
 	if (train == nullptr)
 		QFAIL("the step draws no train");
 	presenter.paintTrainPassengerInfo(train);
 	const auto calloutText = [&presenter]() {
-		if (presenter.trainPaxInfoItem)
-			for (QGraphicsItem* child : presenter.trainPaxInfoItem->childItems())
+		if (PresenterAccess::trainPaxInfoItem(presenter))
+			for (QGraphicsItem* child : PresenterAccess::trainPaxInfoItem(presenter)->childItems())
 				if (const auto* text = qgraphicsitem_cast<QGraphicsTextItem*>(child))
 					return text->toPlainText();
 		return QString();
 	};
 	// A selected train shows its passengers on board.
 	QCOMPARE(calloutText(), QStringLiteral("3 of 40 on board"));
-	if (presenter.trainPaxInfoItem)
-		presenter.trainPaxInfoItem->setData(0, QStringLiteral("kept"));
+	if (PresenterAccess::trainPaxInfoItem(presenter))
+		PresenterAccess::trainPaxInfoItem(presenter)->setData(0, QStringLiteral("kept"));
 	snapshot.timestep = 11;
 	snapshot.trains[0].currentOnboardPassengers = 5;
 	presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
 	// The next step keeps the group and gives it the new number of passengers.
-	QVERIFY(presenter.trainPaxInfoItem);
-	QCOMPARE(presenter.trainPaxInfoItem->data(0), QVariant(QStringLiteral("kept")));
-	QVERIFY(presenter.trainPaxInfoItem->isVisible());
+	QVERIFY(PresenterAccess::trainPaxInfoItem(presenter));
+	QCOMPARE(PresenterAccess::trainPaxInfoItem(presenter)->data(0), QVariant(QStringLiteral("kept")));
+	QVERIFY(PresenterAccess::trainPaxInfoItem(presenter)->isVisible());
 	QCOMPARE(calloutText(), QStringLiteral("5 of 40 on board"));
 	presenter.clear();
 }
@@ -936,7 +937,7 @@ void TestRuntimeCanvas::headTooltipFollowsAspect() {
 	NetworkPresenter& presenter = f.presenter;
 	f.source->passengers = true;
 	presenter.showRuntime(f.model);
-	SignalItem* const head = presenter.m_signalsByAheadId["s0"].front();
+	SignalItem* const head = PresenterAccess::signalsByAheadId(presenter)["s0"].front();
 	const auto tip = [head](const QString& state) {
 		return QStringLiteral("%1, facing %2\n%3")
 			.arg(state, head->reversedDirection ? QStringLiteral("left") : QStringLiteral("right"), head->inspectionIdentity());
@@ -973,22 +974,22 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	source->track(0).member[0].endNode.stationPlatformId = "P2";
 	presenter.showRuntime(f.model);
 	// The platforms and their passengers show in the near look.
-	presenter.setStationNearLook(true);
-	presenter.pax_pixmap_scaled = QPixmap(10, 10);
-	const qreal iconSize = presenter.pax_pixmap_scaled.width() * presenter.presentationScale();
+	PresenterAccess::setStationNearLook(presenter, true);
+	PresenterAccess::passengerPixmap(presenter) = QPixmap(10, 10);
+	const qreal iconSize = PresenterAccess::passengerPixmap(presenter).width() * presenter.presentationScale();
 	// The run draws both platforms.
-	QCOMPARE(presenter.allPlatforms.size(), qsizetype(2));
+	QCOMPARE(PresenterAccess::allPlatforms(presenter).size(), qsizetype(2));
 
 	GuiSimulationSnapshot snapshot;
 	snapshot.timestep = 10;
 	snapshot.trains = {trainAt(7.5)};
 	snapshot.trains[0].occupiedArcs = {GuiOccupiedArc{0, 0.0}};
-	SignalItem* const head = presenter.m_signalsByAheadId["s0"].front();
+	SignalItem* const head = PresenterAccess::signalsByAheadId(presenter)["s0"].front();
 	snapshot.signalStates = {GuiSignalState{"s0", 75, head->reversedDirection, 3, false}};
 	// listed in the opposite order of the platforms on the canvas
 	snapshot.platforms = {GuiPlatformState{"B", "P1", 40, {"p1", "p2", "p3"}}, GuiPlatformState{"B", "P2", 30, {"q1", "q2"}}};
-	PlatformItem* const endPlatform = presenter.allPlatforms.value(1);
-	PlatformItem* const middlePlatform = presenter.allPlatforms.value(0);
+	PlatformItem* const endPlatform = PresenterAccess::allPlatforms(presenter).value(1);
+	PlatformItem* const middlePlatform = PresenterAccess::allPlatforms(presenter).value(0);
 	// The platforms are in the order of the line.
 	QCOMPARE(endPlatform->platformId, "P1");
 	QCOMPARE(middlePlatform->platformId, "P2");
@@ -1017,7 +1018,7 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	// a passenger boards: only its icon goes and the others close up
 	PassengerItem* const firstIcon = endPlatform->passengerIcons[0];
 	PassengerItem* const lastIcon = endPlatform->passengerIcons[2];
-	presenter.paxIconItem = firstIcon;
+	PresenterAccess::paxIconItem(presenter) = firstIcon;
 	snapshot.timestep = 11;
 	snapshot.platforms[0].passengerIds = {"p1", "p3"};
 	marked = markItems(scene);
@@ -1034,7 +1035,7 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	QVERIFY(iconAt(*endPlatform, 0, 2, iconSize));
 	QVERIFY(iconAt(*endPlatform, 1, 2, iconSize));
 	// The selected icon stays selected while its passenger is there.
-	QCOMPARE(presenter.paxIconItem, firstIcon);
+	QCOMPARE(PresenterAccess::paxIconItem(presenter), firstIcon);
 	// A change is announced.
 	QCOMPARE_GT(changes.take(), 0);
 
@@ -1084,7 +1085,7 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	// nothing of the passengers is drawn while their layer is hidden, and the layer shows the step that is current when it is shown
 	const QString middleText = middlePlatform->textIcon->toPlainText();
 	const QString endText = endPlatform->textIcon->toPlainText();
-	presenter.m_passengerLayerVisible = false;
+	PresenterAccess::passengerLayerVisible(presenter) = false;
 	snapshot.timestep = 15;
 	snapshot.platforms = {GuiPlatformState{"B", "P1", 40, {"p9"}}, GuiPlatformState{"B", "P2", 30, {}}};
 	marked = markItems(scene);
@@ -1098,7 +1099,7 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	// A hidden layer keeps the icons of the earlier step.
 	QCOMPARE(iconIds(*endPlatform).size(), std::size_t(4));
 	QCOMPARE(iconIds(*middlePlatform).size(), std::size_t(2));
-	presenter.m_passengerLayerVisible = true;
+	PresenterAccess::passengerLayerVisible(presenter) = true;
 	presenter.updatePaxIconInfo(&snapshot, NetworkPresenter::Playback::Live);
 	// The layer that is shown again has the icons of the current step.
 	QCOMPARE(iconIds(*endPlatform), Ids({"p9"}));
@@ -1107,7 +1108,7 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	QCOMPARE(endPlatform->textIcon->toPlainText(), "1 of 40 passengers");
 	QCOMPARE(middlePlatform->textIcon->toPlainText(), "0 of 30 passengers");
 	// The selected icon is forgotten when its passenger has left.
-	QCOMPARE(presenter.paxIconItem, nullptr);
+	QCOMPARE(PresenterAccess::paxIconItem(presenter), nullptr);
 	// No icon of a passenger who left is left on the canvas.
 	QCOMPARE(paintedIcons(scene), Ids({"p9"}));
 	marked = markItems(scene);
@@ -1595,13 +1596,13 @@ void TestRuntimeCanvas::glideStartsAtSectionEnd() {
 	MotionFixture f;
 	NetworkPresenter& presenter = f.presenter;
 	f.update(5.05);
-	const double boundary = drawnMiddle(*presenter.allTrains[0]).x();
+	const double boundary = drawnMiddle(*presenter.runTrains()[0]).x();
 	f.now += 100;
 	f.update(5.15);
-	bool boundaryGlide = presenter.trainMoving(0) && near(boundary, 5000.0) && near(drawnMiddle(*presenter.allTrains[0]).x(), boundary);
+	bool boundaryGlide = presenter.trainMoving(0) && near(boundary, 5000.0) && near(drawnMiddle(*presenter.runTrains()[0]).x(), boundary);
 	f.now += 50;
 	presenter.stepTrains();
-	boundaryGlide &= near(drawnMiddle(*presenter.allTrains[0]).x(), 5000.0 + 100.0 / 10.0);
+	boundaryGlide &= near(drawnMiddle(*presenter.runTrains()[0]).x(), 5000.0 + 100.0 / 10.0);
 	QVERIFY2(boundaryGlide, "a glide that starts at the end of a section starts where the train is drawn");
 }
 
@@ -1620,7 +1621,7 @@ void TestRuntimeCanvas::steadyRhythmGivesEvenSpeed() {
 		presenter.stepTrains();
 		if (tick % 20 == 0)
 			f.update(1.0 + 0.04 * (tick / 20.0));
-		const double middle = drawnMiddle(*presenter.allTrains[0]).x();
+		const double middle = drawnMiddle(*presenter.runTrains()[0]).x();
 		if (tick > 100)
 			steps.push_back(middle - previous);
 		previous = middle;
@@ -1638,7 +1639,7 @@ void TestRuntimeCanvas::irregularGapsNeverMoveTrainBack() {
 	NetworkPresenter& presenter = f.presenter;
 	f.update(1.0);
 	bool onward = true;
-	double previous = drawnMiddle(*presenter.allTrains[0]).x();
+	double previous = drawnMiddle(*presenter.runTrains()[0]).x();
 	double headKm = 1.0;
 	for (const int gap : {100, 60, 250, 30, 170, 90, 400, 40, 120, 200, 20, 300}) {
 		for (int ms = 10; ms <= gap; ms += 10) {
@@ -1649,7 +1650,7 @@ void TestRuntimeCanvas::irregularGapsNeverMoveTrainBack() {
 			} else {
 				presenter.stepTrains();
 			}
-			const double middle = drawnMiddle(*presenter.allTrains[0]).x();
+			const double middle = drawnMiddle(*presenter.runTrains()[0]).x();
 			onward &= middle >= previous - 1e-9;
 			previous = middle;
 		}
@@ -1837,7 +1838,7 @@ void TestRuntimeCanvas::stoppingTrainReachesItsPlace() {
 		f.update(1.0 + 0.01 * step);
 	}
 	const double place = stopKm * 1000.0;
-	const auto body = [&presenter]() { return presenter.allTrains[0]->trainPolygonItemList->at(0)->polygon(); };
+	const auto body = [&presenter]() { return presenter.runTrains()[0]->trainPolygonItemList->at(0)->polygon(); };
 	const auto sameBody = [](const QPolygonF& left, const QPolygonF& right) {
 		return std::equal(left.begin(), left.end(), right.begin(), right.end(),
 			[](const QPointF& a, const QPointF& b) { return a.x() == b.x() && a.y() == b.y(); });
@@ -1886,7 +1887,7 @@ void TestRuntimeCanvas::newRouteOrDirectionPlacesTrainAtOnce() {
 	const bool glidesFirst = presenter.trainMoving(0);
 	now += 40;
 	send(5.2, 1, false);
-	const bool newRoute = !presenter.trainMoving(0) && near(drawnMiddle(*presenter.allTrains[0]).x(), 5150.0);
+	const bool newRoute = !presenter.trainMoving(0) && near(drawnMiddle(*presenter.runTrains()[0]).x(), 5150.0);
 	now += 40;
 	send(5.3, 1, false);
 	const bool glidesOnIt = presenter.trainMoving(0);
@@ -1897,7 +1898,7 @@ void TestRuntimeCanvas::newRouteOrDirectionPlacesTrainAtOnce() {
 	QVERIFY(newRoute);
 	QVERIFY(glidesOnIt);
 	QVERIFY(!presenter.trainMoving(0));
-	QVERIFY(near(drawnMiddle(*presenter.allTrains[0]).x(), 5350.0));
+	QVERIFY(near(drawnMiddle(*presenter.runTrains()[0]).x(), 5350.0));
 }
 
 // A followed train at a constant simulated speed whose updates come unevenly, 20, 60, 25 and 55 ms apart, moves the view
@@ -1994,7 +1995,7 @@ void TestRuntimeCanvas::findsTrainsByIndex() {
 	snapshot.trains = {train(3, 2.5), train(1, 5.5), train(2, 7.5)};
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	// Each train of the snapshot is added.
-	QCOMPARE(presenter.allTrains.size(), qsizetype(3));
+	QCOMPARE(presenter.runTrains().size(), qsizetype(3));
 
 	snapshot.timestep = 11;
 	snapshot.trains = {train(2, 8.5), train(3, 3.5), train(1, 6.5)};
@@ -2004,13 +2005,13 @@ void TestRuntimeCanvas::findsTrainsByIndex() {
 	now = 1000;
 	presenter.stepTrains();
 	const auto headOf = [&presenter](int index) {
-		for (const TrainItemGroup* group : presenter.allTrains)
+		for (const TrainItemGroup* group : presenter.runTrains())
 			if (group->index == index)
 				return group->trainPolygonItemList->at(0)->polygon()[0].x();
 		return -1.0;
 	};
 	// Each train of the snapshot is moved and none is added twice.
-	QCOMPARE(presenter.allTrains.size(), qsizetype(3));
+	QCOMPARE(presenter.runTrains().size(), qsizetype(3));
 	QVERIFY(near(headOf(3), 3500.0));
 	QVERIFY(near(headOf(1), 6500.0));
 	QVERIFY(near(headOf(2), 8500.0));
@@ -2028,7 +2029,7 @@ void TestRuntimeCanvas::roundsLeaveNothingBehind() {
 	QGraphicsScene& scene = f.scene;
 	NetworkPresenter& presenter = f.presenter;
 	FakeGeometry* const source = f.source;
-	presenter.pax_pixmap_scaled = QPixmap(10, 10);
+	PresenterAccess::passengerPixmap(presenter) = QPixmap(10, 10);
 	// The canvas is empty before the first round.
 	QVERIFY(presenterEmpty(presenter));
 	QVERIFY(scene.items().isEmpty());
@@ -2036,7 +2037,7 @@ void TestRuntimeCanvas::roundsLeaveNothingBehind() {
 	for (int round = 0; round < 20; ++round) {
 		source->passengers = round % 2 == 1;
 		presenter.showRuntime(f.model);
-		SignalItem* const head = presenter.m_signalsByAheadId["s0"].front();
+		SignalItem* const head = PresenterAccess::signalsByAheadId(presenter)["s0"].front();
 
 		GuiSimulationSnapshot snapshot;
 		snapshot.timestep = 10;
@@ -2051,13 +2052,12 @@ void TestRuntimeCanvas::roundsLeaveNothingBehind() {
 		presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 
 		// a selection of a train, a signal and a passenger
-		TrainItemGroup* const train = presenter.allTrains.value(0);
+		TrainItemGroup* const train = presenter.runTrains().value(0);
 		presenter.paintTrainPassengerInfo(train);
-		presenter.m_inspectedSignal = head;
-		presenter.effect = new HighlightEffect(Qt::blue, 1);
-		train->setGraphicsEffect(presenter.effect);
+		presenter.setInspectedSignal(head);
+		presenter.setHighlight(train);
 		if (source->passengers) {
-			PassengerItem* const icon = presenter.allPlatforms.value(0)->passengerIcons.value(0);
+			PassengerItem* const icon = PresenterAccess::allPlatforms(presenter).value(0)->passengerIcons.value(0);
 			presenter.paintPassengerInfoIcon(icon, passengerStateIn(&snapshot, icon->passengerId), false);
 		}
 
@@ -2087,13 +2087,13 @@ void TestRuntimeCanvas::roundsLeaveNothingBehind() {
 			presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
 		}
 		// A round holds one train and one badge, whatever the earlier rounds drew.
-		QCOMPARE(presenter.allTrains.size(), qsizetype(1));
-		QCOMPARE(presenter.m_trainBadges.size(), qsizetype(1));
+		QCOMPARE(presenter.runTrains().size(), qsizetype(1));
+		QCOMPARE(PresenterAccess::trainBadges(presenter).size(), qsizetype(1));
 		// The selection is on the canvas before it is cleared.
-		QVERIFY(presenter.trainPaxInfoItem);
-		QVERIFY(presenter.m_inspectedSignal);
-		QVERIFY(presenter.effect);
-		QVERIFY(!source->passengers || presenter.paxIconInfoItem);
+		QVERIFY(PresenterAccess::trainPaxInfoItem(presenter));
+		QVERIFY(presenter.inspectedSignal());
+		QVERIFY(presenter.hasHighlight());
+		QVERIFY(!source->passengers || PresenterAccess::paxIconInfoItem(presenter));
 		itemsAtEnd[round % 2] = round < 2 ? scene.items().size() : itemsAtEnd[round % 2];
 		// A round draws as many items as the first round of its kind.
 		QCOMPARE(scene.items().size(), itemsAtEnd[round % 2]);
@@ -2122,7 +2122,7 @@ void TestRuntimeCanvas::headsUseSceneLabels() {
 	labelled.blocks = {{"s0", "T", 5.0}, {"s1", "T", 5.0}};
 	labelPresenter.showRuntime(labelled);
 	const SignalItem* forward = nullptr;
-	for (const SignalItem* head : labelPresenter.allSignals)
+	for (const SignalItem* head : labelPresenter.runSignals())
 		if (!head->reversedDirection)
 			forward = head;
 	// The presenter gives the id in the scene of a track line of the run.
@@ -2184,14 +2184,14 @@ void TestRuntimeCanvas::doubleSwitchDrawsMiddleArc() {
 	SceneModel switchModel;
 	switchPresenter.showRuntime(switchModel);
 	// A run draws the three arcs of a track of four nodes and the dot at its end.
-	QCOMPARE(switchPresenter.allArcs.size(), qsizetype(3));
+	QCOMPARE(PresenterAccess::allArcs(switchPresenter).size(), qsizetype(3));
 	QCOMPARE(dots(), 1);
 	switchPresenter.clear();
 	switchModel.trackViews = {{"B0", 0, 0, true, true}};
 	switchPresenter.showRuntime(switchModel);
 	// A run draws the middle arc of a double switch and no node dot.
-	QCOMPARE(switchPresenter.allArcs.size(), qsizetype(1));
-	QCOMPARE(switchPresenter.allArcs[0]->arc, &track.member[1]);
+	QCOMPARE(PresenterAccess::allArcs(switchPresenter).size(), qsizetype(1));
+	QCOMPARE(PresenterAccess::allArcs(switchPresenter)[0]->arc, &track.member[1]);
 	QCOMPARE(dots(), 0);
 	switchPresenter.clear();
 }
@@ -2203,21 +2203,21 @@ void TestRuntimeCanvas::platformLiesAlongDiagonalTrack() {
 	NetworkPresenter& presenter = f.presenter;
 	FakeGeometry* const source = f.source;
 	// The passenger icons are 10 pixels wide.
-	presenter.pax_pixmap_scaled = QPixmap(10, 10);
+	PresenterAccess::passengerPixmap(presenter) = QPixmap(10, 10);
 	source->passengers = true;
 	source->station(1).Y = 5.0;
 	source->track(0).member[0].endNode.stationName = "B";
 	source->track(0).member[0].endNode.stationPlatformId = "P2";
 	presenter.showRuntime(f.model);
 	// The platforms and their passengers show in the near look.
-	presenter.setStationNearLook(true);
+	PresenterAccess::setStationNearLook(presenter, true);
 	const Arc& lastArc = source->track(0).member[1];
 	const QLineF unit =
 		QLineF(lastArc.startNode.graphX, lastArc.startNode.graphY, lastArc.endNode.graphX, lastArc.endNode.graphY).unitVector();
 	const QPointF direction(unit.dx(), unit.dy());
 	const qreal size = presenter.station_node_size * presenter.presentationScale();
-	PlatformItem* const middlePlatform = presenter.allPlatforms.value(0);
-	PlatformItem* const endPlatform = presenter.allPlatforms.value(1);
+	PlatformItem* const middlePlatform = PresenterAccess::allPlatforms(presenter).value(0);
+	PlatformItem* const endPlatform = PresenterAccess::allPlatforms(presenter).value(1);
 	// A platform lies along its diagonal track, on the upper side.
 	QCOMPARE_GT(direction.y(), 0.1);
 	if (middlePlatform == nullptr || endPlatform == nullptr)
@@ -2229,7 +2229,7 @@ void TestRuntimeCanvas::platformLiesAlongDiagonalTrack() {
 	snapshot.timestep = 10;
 	snapshot.platforms = {GuiPlatformState{"B", "P1", 40, {"p1", "p2", "p3"}}, GuiPlatformState{"B", "P2", 30, {"q1", "q2"}}};
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
-	const qreal iconSize = presenter.pax_pixmap_scaled.width() * presenter.presentationScale();
+	const qreal iconSize = PresenterAccess::passengerPixmap(presenter).width() * presenter.presentationScale();
 	bool upright = middlePlatform && endPlatform && middlePlatform->passengerIcons.size() == 2
 		&& endPlatform->passengerIcons.size() == 3;
 	for (const PlatformItem* platform : {middlePlatform, endPlatform}) {
@@ -2261,8 +2261,8 @@ void TestRuntimeCanvas::levelWithoutStationGeometryIsDrawnHigher() {
 	track.graphID = 1;
 	track.region = 1; // no station is in this region
 	presenter.showRuntime(f.model);
-	bool above = presenter.allArcs.size() == 2;
-	for (const TrackLineItem* arc : presenter.allArcs)
+	bool above = PresenterAccess::allArcs(presenter).size() == 2;
+	for (const TrackLineItem* arc : PresenterAccess::allArcs(presenter))
 		above = above && near(arc->line().y1(), -presenter.track_separation) && near(arc->line().y2(), -presenter.track_separation);
 	QVERIFY2(above, "a track line on level 1 without station geometry is drawn above level 0");
 	presenter.clear();
@@ -2294,8 +2294,8 @@ void TestRuntimeCanvas::runPutsPicturesWherePreviewDoes() {
 	// The bottom centre of the picture of each station, by name.
 	const auto pictureAnchors = [&levelPresenter]() {
 		QMap<QString, QPointF> anchors;
-		for (StationOverlayItem* overlay : levelPresenter.m_stationOverlays)
-			if (const QGraphicsPixmapItem* picture = levelPresenter.m_stationPictures.value(overlay, nullptr))
+		for (StationOverlayItem* overlay : levelPresenter.stationOverlays())
+			if (const QGraphicsPixmapItem* picture = PresenterAccess::stationPictures(levelPresenter).value(overlay, nullptr))
 				anchors.insert(overlay->stationName(),
 					picture->mapToScene(QPointF(levelPresenter.station_size / 2.0, levelPresenter.station_size)));
 		return anchors;

@@ -528,8 +528,6 @@ private:
 	void renderSnapshot(bool historical);
 	bool replayTrainHasPosition(int trainIndex) const;
 
-	void bindStationOverlaySources();
-	void updateStationOverlayDegrees();
 
 	// InspectorPanel::Host: what the inspector dock asks of the window. passengerGui is the passenger display of the
 	// prepared run; RunController::nextRunShowsPassengers is that of the next run.

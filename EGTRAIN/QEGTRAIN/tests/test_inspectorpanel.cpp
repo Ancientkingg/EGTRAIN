@@ -5,6 +5,7 @@
 
 #include "simulation/GuiSimulationSnapshot.h"
 #include "graphics/NetworkPresenter.h"
+#include "tests/NetworkPresenterTestAccess.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/RuntimeGeometrySource.h"
 #include "graphics/VisualPolish.h"
@@ -191,7 +192,7 @@ struct PanelFixture {
 
 	// Puts a signal head of the run on the canvas and in the signal layer, and selects it.
 	void inspectSignal(SignalItem& signal) {
-		presenter.m_signalDecorations.append(&signal);
+		PresenterAccess::signalDecorations(presenter).append(&signal);
 		scene.addItem(&signal);
 		panel.displaySignallingInfo(&signal);
 	}
@@ -310,7 +311,7 @@ void TestInspectorPanel::inspectsPreviewSignal() {
 	head.sectionId = "@b1@";
 	head.sectionLabel = "T1 0.000 to 1.000 km";
 	head.label = "sig1 (T1 0.000 to 1.000 km)";
-	f.presenter.m_cachedTrackPreview.previewSignals.push_back(head);
+	PresenterAccess::trackPreview(f.presenter).previewSignals.push_back(head);
 	sceneSignals(f.host.model).push_back({"sig1", "@b1@"});
 	f.panel.displayPreviewInfo(signalPreview);
 	// A selected signal head of the preview is known by the section it stands at.
@@ -347,7 +348,7 @@ void TestInspectorPanel::clearsPreviewInspection() {
 	QVERIFY(!f.panel.dock()->isVisible());
 	QVERIFY(formHidden(f.panel, "Arc"));
 	QVERIFY(arcPreview->graphicsEffect() == nullptr);
-	QVERIFY(!f.presenter.effect);
+	QVERIFY(!f.presenter.hasHighlight());
 	// Clearing the highlight forgets the selected item of the preview.
 	QVERIFY(f.panel.previewSelectionKind().isEmpty());
 	QVERIFY(f.panel.previewSelectionId().isEmpty());
@@ -636,7 +637,7 @@ void TestInspectorPanel::listsSectionsOfArcSignals() {
 	runArc.arc = &arcData;
 	runArc.track = 2;
 	f.scene.addItem(&runArc);
-	f.presenter.allSignals.append(&signal);
+	PresenterAccess::allSignals(f.presenter).append(&signal);
 	f.panel.displayArcInfo(&runArc);
 	// An arc of a run names its track by its id in the scene.
 	QCOMPARE(f.panel.dock()->windowTitle(), "Arc 3");

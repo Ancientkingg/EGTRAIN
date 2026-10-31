@@ -389,11 +389,11 @@ void MainWindowTestAccess::checkSignalHeads(MainWindow& w) {
 		std::fprintf(stderr, "E2E_SIGNAL_HEADS_FAIL: %s\n", qPrintable(why));
 		QCoreApplication::exit(2);
 	};
-	if (!signalHeadsShow(w.m_presenter->allSignals, *w.m_snapshot))
+	if (!signalHeadsShow(w.m_presenter->runSignals(), *w.m_snapshot))
 		return fail(QStringLiteral("heads do not show the snapshot of step %1").arg(w.m_snapshot->timestep));
 	bool anyFailed = false;
 	bool anyBlocked = false;
-	if (!signalFailuresAreBlocked(w.m_presenter->allSignals, *w.m_snapshot, anyFailed, anyBlocked))
+	if (!signalFailuresAreBlocked(w.m_presenter->runSignals(), *w.m_snapshot, anyFailed, anyBlocked))
 		return fail(QStringLiteral("a failed head stands on a section that is not blocked at step %1").arg(w.m_snapshot->timestep));
 	++state.renders;
 	state.failedRenders += anyFailed ? 1 : 0;
@@ -406,7 +406,7 @@ void MainWindowTestAccess::checkSignalHeads(MainWindow& w) {
 		SignalHeadsState& pause = signalHeadsState();
 		const int requested = pause.pauseSteps[pause.nextPause];
 		if (!w.m_snapshot || !w.m_lastRenderedSnapshot || w.m_lastRenderedSnapshot != w.m_snapshot
-			|| !signalHeadsShow(w.m_presenter->allSignals, *w.m_snapshot))
+			|| !signalHeadsShow(w.m_presenter->runSignals(), *w.m_snapshot))
 			return fail(QStringLiteral("paused after step %1: the canvas shows step %2, the last delivered snapshot is step %3")
 					.arg(requested)
 					.arg(w.m_lastRenderedSnapshot ? w.m_lastRenderedSnapshot->timestep : -1)
@@ -732,7 +732,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 	const bool clean = w.m_runController->state() == RunController::RunState::Completed && w.m_snapshot
 		&& (operationalCompletions == 0
 			|| w.m_snapshot != operationalFirstFrame)
-		&& std::all_of(w.m_presenter->allArcs.cbegin(), w.m_presenter->allArcs.cend(), [](const TrackLineItem* track) {
+		&& std::all_of(PresenterAccess::allArcs(*w.m_presenter).cbegin(), PresenterAccess::allArcs(*w.m_presenter).cend(), [](const TrackLineItem* track) {
 			   return !track || track->operationalState() == TrackOperationalState::Free;
 		   });
 	if (!clean || ++operationalCompletions > 2) {
@@ -823,7 +823,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		if (w.m_snapshot != frame) return false;
 		for (const auto& state : frame->trains) {
 			TrainItemGroup* item = w.resolveTrainItem(state.index);
-			TrainBadgeItem* badge = w.m_presenter->m_trainBadges.value(state.index, nullptr);
+			TrainBadgeItem* badge = PresenterAccess::trainBadges(*w.m_presenter).value(state.index, nullptr);
 			if (!guiReplayTrainHasPosition(state, frame->timestep)) {
 				if ((item && item->isVisible()) || (badge && badge->isVisible())) return false;
 				continue;
@@ -841,16 +841,16 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			if (drawable && (!item->isVisible() || !badge || !badge->isVisible())) return false;
 		}
 		for (const auto& signal : frame->signalStates) {
-			auto it = w.m_presenter->m_signalsByAheadId.find(signal.sectionId);
-			if (it == w.m_presenter->m_signalsByAheadId.end()) continue;
+			auto it = PresenterAccess::signalsByAheadId(*w.m_presenter).find(signal.sectionId);
+			if (it == PresenterAccess::signalsByAheadId(*w.m_presenter).end()) continue;
 			for (const auto* item : it->second)
 				if (item && item->reversedDirection == signal.reversedDirection
 					&& (item->aspectCode() != guiSignalDisplayCode(signal)
 						|| item->failed() != signal.failed)) return false;
 		}
 		for (const auto& section : frame->sectionStates) {
-			auto it = w.m_presenter->m_tracksBySectionId.find(section.sectionId);
-			if (it == w.m_presenter->m_tracksBySectionId.end()) continue;
+			auto it = PresenterAccess::tracksBySectionId(*w.m_presenter).find(section.sectionId);
+			if (it == PresenterAccess::tracksBySectionId(*w.m_presenter).end()) continue;
 			for (auto* track : it->second)
 				if (track && section.blocked && track->operationalState() != TrackOperationalState::Blocked)
 					return false;
@@ -986,7 +986,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		w.setFollowTrain(followedIndex);
 		const bool waiting = stillFollowing() && w.m_followStatusLabel->text() == name + " enters at " + scheduled
 			&& w.m_followTrainCombo->itemText(followedRow) == name + " (scheduled " + scheduled + ")"
-			&& std::none_of(w.m_presenter->m_stationOverlays.cbegin(), w.m_presenter->m_stationOverlays.cend(),
+			&& std::none_of(w.m_presenter->stationOverlays().cbegin(), w.m_presenter->stationOverlays().cend(),
 				[](const StationOverlayItem* overlay) { return overlay && overlay->isFollowed(); });
 		w.seekReplay(enterTime - 1);
 		if (!waiting || !stillFollowing() || sentence() != notEntered + "Follow starts when it enters."
@@ -1034,7 +1034,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		// The Trains layer off: the sentence and the list say so, the station emphasis goes, and the view stays
 		// where the user put it, also when the time moves on. On again: the view returns to the train.
 		const auto stationEmphasised = [&w]() {
-			return std::any_of(w.m_presenter->m_stationOverlays.cbegin(), w.m_presenter->m_stationOverlays.cend(),
+			return std::any_of(w.m_presenter->stationOverlays().cbegin(), w.m_presenter->stationOverlays().cend(),
 				[](const StationOverlayItem* overlay) { return overlay && overlay->isFollowed(); });
 		};
 		const bool emphasisBefore = stationEmphasised();
@@ -1116,8 +1116,8 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 	w.m_trainLayerCheck->setChecked(false);
 	w.m_trainLayerCheck->setChecked(true);
 	if (auto* item = w.resolveTrainItem(future->index); !item || item->isVisible()
-		|| !w.m_presenter->m_trainBadges.value(future->index)
-		|| w.m_presenter->m_trainBadges.value(future->index)->isVisible()) {
+		|| !PresenterAccess::trainBadges(*w.m_presenter).value(future->index)
+		|| PresenterAccess::trainBadges(*w.m_presenter).value(future->index)->isVisible()) {
 		std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: layer restored future train or lost fixture\n");
 		QCoreApplication::exit(2);
 		return;
@@ -1181,15 +1181,15 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		return;
 	}
 	if (initial_variables.PAX_GUI) {
-		if (w.m_presenter->trainPaxItem != w.resolveTrainItem(activeIndex) || !w.m_presenter->trainPaxInfoItem
-			|| !w.m_presenter->trainPaxInfoItem->isVisible()) {
+		if (w.m_presenter->selectedTrain() != w.resolveTrainItem(activeIndex) || !PresenterAccess::trainPaxInfoItem(*w.m_presenter)
+			|| !PresenterAccess::trainPaxInfoItem(*w.m_presenter)->isVisible()) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no passenger inspection fixture\n");
 			QCoreApplication::exit(2);
 			return;
 		}
 		w.m_inspector->handleCloseInfoDockWidget();
 		w.seekReplay(activeFrame->timestep + GuiReplayHistory::cadenceSeconds);
-		if (w.m_presenter->trainPaxItem || w.m_presenter->trainPaxInfoItem) {
+		if (w.m_presenter->selectedTrain() || PresenterAccess::trainPaxInfoItem(*w.m_presenter)) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: closed passenger inspection returned\n");
 			QCoreApplication::exit(2);
 			return;
@@ -1204,13 +1204,13 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		w.m_inspector->displayTrainDetails(futureBody, false);
 		TrainItemGroup* futureTarget = w.resolveTrainItem(future->index);
 		w.seekReplay(future->departureTime - 1);
-		if (w.m_presenter->trainPaxItem != futureTarget || w.m_presenter->trainPaxInfoItem) {
+		if (w.m_presenter->selectedTrain() != futureTarget || PresenterAccess::trainPaxInfoItem(*w.m_presenter)) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: temporary absence lost target\n");
 			QCoreApplication::exit(2);
 			return;
 		}
 		w.seekReplay(future->departureTime + GuiReplayHistory::cadenceSeconds);
-		if (w.m_presenter->trainPaxItem != futureTarget || !w.m_presenter->trainPaxInfoItem || !w.m_presenter->trainPaxInfoItem->isVisible()) {
+		if (w.m_presenter->selectedTrain() != futureTarget || !PresenterAccess::trainPaxInfoItem(*w.m_presenter) || !PresenterAccess::trainPaxInfoItem(*w.m_presenter)->isVisible()) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: passenger inspection did not return\n");
 			QCoreApplication::exit(2);
 			return;
@@ -1218,7 +1218,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		w.m_passengerLayerCheck->setChecked(false);
 		w.seekReplay(future->departureTime - 1);
 		w.seekReplay(future->departureTime + GuiReplayHistory::cadenceSeconds);
-		if (w.m_presenter->trainPaxItem != futureTarget || w.m_presenter->trainPaxInfoItem) {
+		if (w.m_presenter->selectedTrain() != futureTarget || PresenterAccess::trainPaxInfoItem(*w.m_presenter)) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: disabled passenger layer repainted overlay\n");
 			QCoreApplication::exit(2);
 			return;
@@ -1232,7 +1232,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		return;
 	}
 	StationOverlayItem* stationSelection = nullptr;
-	for (auto* overlay : w.m_presenter->m_stationOverlays)
+	for (auto* overlay : w.m_presenter->stationOverlays())
 		if (overlay && overlay->hasSourceIdentity()
 			&& w.resolveStationNodeItem(overlay->sourceNodeId(), overlay->sourceTrack())) {
 			stationSelection = overlay;
@@ -1248,13 +1248,13 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 	w.seekReplay(first);
 	if (!stationSelection->isSelected() || !w.m_inspector->m_hasSelectedStationIdentity
 		|| !w.m_inspector->dock()->isVisible()
-		|| (initial_variables.PAX_GUI && (w.m_presenter->trainPaxItem || w.m_presenter->trainPaxInfoItem))) {
+		|| (initial_variables.PAX_GUI && (w.m_presenter->selectedTrain() || PresenterAccess::trainPaxInfoItem(*w.m_presenter)))) {
 		std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: station selection lost\n");
 		QCoreApplication::exit(2);
 		return;
 	}
 	SignalItem* signalSelection = nullptr;
-	for (auto* decoration : w.m_presenter->m_signalDecorations)
+	for (auto* decoration : PresenterAccess::signalDecorations(*w.m_presenter))
 		if (auto* signal = qgraphicsitem_cast<SignalItem*>(decoration);
 			signal && signal->isVisible() && signal->groupedSignalCount() == 0) {
 			signalSelection = signal;
@@ -1271,14 +1271,14 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 	const bool timerDelivered = QMetaObject::invokeMethod(w.m_replayTimer, "timeout");
 	w.m_replayTimer->stop();
 	const QString inspectedAspect = signalAspectLabel(signalSelection);
-	if (!timerDelivered || w.m_presenter->m_inspectedSignal != signalSelection
+	if (!timerDelivered || w.m_presenter->inspectedSignal() != signalSelection
 		|| !w.m_inspector->m_signallingInfoWidget->isVisible() || !signalSelection->graphicsEffect()
-		|| (initial_variables.PAX_GUI && (w.m_presenter->trainPaxItem || w.m_presenter->trainPaxInfoItem))
+		|| (initial_variables.PAX_GUI && (w.m_presenter->selectedTrain() || PresenterAccess::trainPaxInfoItem(*w.m_presenter)))
 		|| w.m_inspector->m_signallingGroupDetails->toPlainText().isEmpty()
 		|| w.m_inspector->m_signallingAspectText->text() != inspectedAspect
 		|| !coherent(w.m_completedReplay.atOrBefore(w.m_replayRequestedTime))) {
 		std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: signal inspection lost on seek/play (timer=%d selected=%d visible=%d effect=%d details=%d coherent=%d)\n",
-			timerDelivered, w.m_presenter->m_inspectedSignal == signalSelection, w.m_inspector->m_signallingInfoWidget->isVisible(),
+			timerDelivered, w.m_presenter->inspectedSignal() == signalSelection, w.m_inspector->m_signallingInfoWidget->isVisible(),
 			signalSelection->graphicsEffect() != nullptr, !w.m_inspector->m_signallingGroupDetails->toPlainText().isEmpty(),
 			coherent(w.m_completedReplay.atOrBefore(w.m_replayRequestedTime)));
 		QCoreApplication::exit(2);
@@ -1353,7 +1353,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		w.m_replayTimer->start();
 		scenarioPanel(w)->selectScenario(static_cast<int>(w.m_document->mutableModel().scenarios.size()) - 1);
 		if (w.m_replayTimer->isActive() || !w.m_completedReplay.empty() || w.m_snapshot
-			|| !w.m_showingTrackPreview || !w.m_presenter->allTrains.isEmpty() || !w.m_presenter->m_activeTrackItems.empty()
+			|| !w.m_showingTrackPreview || !w.m_presenter->runTrains().isEmpty() || !PresenterAccess::activeTrackItems(*w.m_presenter).empty()
 			|| w.m_followTrainIndex >= 0 || w.m_followCamera->hasTarget() || w.m_followCamera->running() || w.m_replayBar->isVisible()) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: scenario retained historical graphics\n");
 			QCoreApplication::exit(2);
@@ -1372,7 +1372,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		std::fflush(stdout);
 		QMetaObject::invokeMethod(&w, "waitForUpdates", Qt::QueuedConnection);
 		w.m_replayTimer->start();
-		if (!w.openSceneDirectory(scenePath) || w.m_snapshot || w.m_runController->m_worker || !w.m_presenter->allArcs.isEmpty()
+		if (!w.openSceneDirectory(scenePath) || w.m_snapshot || w.m_runController->m_worker || !PresenterAccess::allArcs(*w.m_presenter).isEmpty()
 			|| w.m_replayTimer->isActive() || !w.m_completedReplay.empty()) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: case teardown\n");
 			QCoreApplication::exit(2);
@@ -1444,15 +1444,15 @@ bool MainWindowTestAccess::checkReplayWholeRun(MainWindow& w, int middle, QStrin
 				.arg(shown->timestep));
 	// At Fit the first visible train is at least the minimum size on screen, in the first frame that shows a train.
 	const auto firstVisible = [&w] {
-		return std::find_if(w.m_presenter->allTrains.cbegin(), w.m_presenter->allTrains.cend(),
+		return std::find_if(w.m_presenter->runTrains().cbegin(), w.m_presenter->runTrains().cend(),
 			[](const TrainItemGroup* item) { return item && item->isVisible() && item->trainPolygonItemList; });
 	};
-	for (int time = 0; time <= last && firstVisible() == w.m_presenter->allTrains.cend(); time += GuiReplayHistory::cadenceSeconds)
+	for (int time = 0; time <= last && firstVisible() == w.m_presenter->runTrains().cend(); time += GuiReplayHistory::cadenceSeconds)
 		w.seekReplay(time);
 	w.fitView();
 	const QString sceneName = QString::fromStdString(w.m_document->model().name);
 	const auto train = firstVisible();
-	if (train == w.m_presenter->allTrains.cend())
+	if (train == w.m_presenter->runTrains().cend())
 		return fail(QStringLiteral("%1: no train is visible at Fit in any frame").arg(sceneName));
 	for (const TrainBodyItem* body : *(*train)->trainPolygonItemList) {
 		if (!body || body->polygon().isEmpty())
@@ -1774,12 +1774,12 @@ void MainWindowTestAccess::runReplaySignals(MainWindow& w) {
 	};
 	if (live.failed)
 		return;
-	if (w.m_completedReplay.empty() || w.m_presenter->allSignals.isEmpty() || !w.m_snapshot)
+	if (w.m_completedReplay.empty() || w.m_presenter->runSignals().isEmpty() || !w.m_snapshot)
 		return fail(QStringLiteral("no replay or no signal heads"));
 	if (live.nextPause < live.pauseSteps.size())
 		return fail(QStringLiteral("the run ended before the pause at step %1").arg(live.pauseSteps[live.nextPause]));
 	const auto finalFrame = w.m_snapshot;
-	if (!signalHeadsShow(w.m_presenter->allSignals, *finalFrame))
+	if (!signalHeadsShow(w.m_presenter->runSignals(), *finalFrame))
 		return fail(QStringLiteral("heads do not show the final live frame"));
 	std::set<int> frames;
 	std::map<const SignalItem*, bool> restricted;
@@ -1792,14 +1792,14 @@ void MainWindowTestAccess::runReplaySignals(MainWindow& w) {
 			const auto frame = w.m_completedReplay.atOrBefore(time);
 			bool anyFailed = false;
 			bool anyBlocked = false;
-			if (!frame || w.m_snapshot != frame || !signalHeadsShow(w.m_presenter->allSignals, *frame))
+			if (!frame || w.m_snapshot != frame || !signalHeadsShow(w.m_presenter->runSignals(), *frame))
 				return fail(QStringLiteral("heads do not show the replay frame of second %1").arg(time));
-			if (!signalFailuresAreBlocked(w.m_presenter->allSignals, *frame, anyFailed, anyBlocked))
+			if (!signalFailuresAreBlocked(w.m_presenter->runSignals(), *frame, anyFailed, anyBlocked))
 				return fail(QStringLiteral("a failed head stands on a section that is not blocked in second %1").arg(time));
 			++seeks;
-			differFromFinal += signalHeadsShow(w.m_presenter->allSignals, *finalFrame) ? 0 : 1;
+			differFromFinal += signalHeadsShow(w.m_presenter->runSignals(), *finalFrame) ? 0 : 1;
 			if (!backwards) {
-				for (const SignalItem* head : w.m_presenter->allSignals) {
+				for (const SignalItem* head : w.m_presenter->runSignals()) {
 					const SignalCueKind cue = classifySignalCue(head->aspectCode());
 					if (head->failed() || cue == SignalCueKind::Stop || cue == SignalCueKind::Caution)
 						restricted[head] = true;
@@ -1811,7 +1811,7 @@ void MainWindowTestAccess::runReplaySignals(MainWindow& w) {
 			} else if (frames.insert(frame->timestep).second) {
 				failedFrames += anyFailed ? 1 : 0;
 				blockedFrames += anyBlocked ? 1 : 0;
-				for (const SignalItem* head : w.m_presenter->allSignals) {
+				for (const SignalItem* head : w.m_presenter->runSignals()) {
 					const SignalCueKind cue = classifySignalCue(head->aspectCode());
 					failedHeads += head->failed() ? 1 : 0;
 					stops += !head->failed() && cue == SignalCueKind::Stop;

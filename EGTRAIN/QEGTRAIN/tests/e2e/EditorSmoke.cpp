@@ -512,21 +512,20 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			// simulate a clicked-item highlight; the scene owns the effect, so a
 			// reopen must also reset the cached pointer or the next click reuses
 			// a deleted effect
-			if (w.scene && !w.m_presenter->effect) {
+			if (w.scene && !w.m_presenter->hasHighlight()) {
 				QGraphicsItem* highlightCarrier = w.scene->addRect(QRectF(0, 0, 1, 1));
-				w.m_presenter->effect = new HighlightEffect(Qt::blue, 1);
-				highlightCarrier->setGraphicsEffect(w.m_presenter->effect);
+				w.m_presenter->setHighlight(highlightCarrier);
 			}
 			bool reopened = w.openSceneDirectory(scenePath);
 			if (!reopened || !w.m_document->isLoaded() || QDir(w.m_session->m_sceneDir).absolutePath() != QDir(scenePath).absolutePath()) {
 				ok = false;
 				failures << "scene: scene did not reopen";
 			}
-			if (w.m_presenter->effect != nullptr) {
+			if (w.m_presenter->hasHighlight()) {
 				ok = false;
 				failures << "scene: highlight effect not reset on reopen";
 			}
-			if (!w.m_presenter->allTrains.isEmpty() || !w.m_presenter->allArcs.isEmpty()) {
+			if (!w.m_presenter->runTrains().isEmpty() || !PresenterAccess::allArcs(*w.m_presenter).isEmpty()) {
 				ok = false;
 				failures << "scene: legacy scene state not cleared";
 			}
@@ -537,16 +536,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					ok = false;
 					failures << "scene: alternate scene did not open";
 				}
-				if (!w.m_presenter->allTrains.isEmpty() || !w.m_presenter->allArcs.isEmpty()) {
+				if (!w.m_presenter->runTrains().isEmpty() || !PresenterAccess::allArcs(*w.m_presenter).isEmpty()) {
 					ok = false;
 					failures << "scene: legacy scene state not cleared on alternate";
 				}
-				if (infrastructurePanel(w)->table()->currentRow() != -1 || w.m_presenter->m_previewHasSelectedTrack || w.m_document->isDirty()) {
+				if (infrastructurePanel(w)->table()->currentRow() != -1 || w.m_presenter->previewHasSelectedTrack() || w.m_document->isDirty()) {
 					ok = false;
 					failures << "scene: newly opened case has an implicit infrastructure selection";
 				}
 				w.refreshInfrastructurePanel();
-				if (infrastructurePanel(w)->table()->currentRow() != -1 || w.m_presenter->m_previewHasSelectedTrack || w.m_document->isDirty()) {
+				if (infrastructurePanel(w)->table()->currentRow() != -1 || w.m_presenter->previewHasSelectedTrack() || w.m_document->isDirty()) {
 					ok = false;
 					failures << "scene: a refresh selected a row that nobody selected";
 				}
@@ -554,7 +553,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				infrastructurePanel(w)->table()->setCurrentCell(0, 0);
 				const QString explicitlySelectedTrack = infrastructurePanel(w)->selectionId();
 				w.refreshInfrastructurePanel();
-				if (explicitlySelectedTrack.isEmpty() || !w.m_presenter->m_previewHasSelectedTrack || w.m_document->isDirty()
+				if (explicitlySelectedTrack.isEmpty() || !w.m_presenter->previewHasSelectedTrack() || w.m_document->isDirty()
 					|| infrastructurePanel(w)->selectionId() != explicitlySelectedTrack) {
 					ok = false;
 					failures << "scene: explicit track selection was lost or dirtied the scene";
@@ -564,7 +563,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					ok = false;
 					failures << "scene: scene did not reopen after alternate";
 				}
-				if (w.m_presenter->m_previewHasSelectedTrack || w.m_document->isDirty()) {
+				if (w.m_presenter->previewHasSelectedTrack() || w.m_document->isDirty()) {
 					ok = false;
 					failures << "scene: explicit selection leaked into another case";
 				}
@@ -5401,7 +5400,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (ok && w.m_document->model().passengers.empty() && QFileInfo(passengerPath).isDir()) {
 			const bool choiceBefore = QSettings().value(kShowPassengersKey).toBool();
 			const auto platformBars = [&w] {
-				const QList<QGraphicsItem*>& items = w.m_presenter->m_stationDecorations;
+				const QList<QGraphicsItem*>& items = PresenterAccess::stationDecorations(*w.m_presenter);
 				return std::count_if(items.cbegin(), items.cend(),
 					[](QGraphicsItem* item) { return qgraphicsitem_cast<PlatformItem*>(item) != nullptr; });
 			};
@@ -5740,7 +5739,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		expect(!w.m_undoAction->isEnabled() && !w.m_redoAction->isEnabled() && w.m_document->revision() == revision,
 			"Undo or Redo worked while a run used the scene");
 		// The menu and the inspector of a signal say why they add no incident while the run goes.
-		SignalItem* runSignal = w.m_presenter->allSignals.value(0);
+		SignalItem* runSignal = w.m_presenter->runSignals().value(0);
 		{
 			QAction* entry = runSignal ? incidentEntry(runSignal, "Add signal failure") : nullptr;
 			expect(entry && !entry->isEnabled() && entry->toolTip() == "Not available while the case runs",

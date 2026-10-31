@@ -504,7 +504,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 	});
 	steps.push_back([&w] {
 		const TrainBodyItem* body = nullptr;
-		for (const TrainItemGroup* train : w.m_presenter->allTrains)
+		for (const TrainItemGroup* train : w.m_presenter->runTrains())
 			if (train && train->isVisible() && train->trainPolygonItemList
 				&& QString::fromStdString(train->trainDescription).contains(QStringLiteral("ALL-STOPS")))
 				for (const TrainBodyItem* candidate : *train->trainPolygonItemList)

@@ -242,8 +242,8 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			marker("E2E_FOLLOW_NO_SERVICES_OK");
 		if (diagnosticsOk && itemCount >= 2 && bounds.width() >= 10.0 && visible.intersects(bounds))
 			marker("E2E_TRACK_PREVIEW_OPEN_OK");
-		const bool previewHasSignalGlyph = std::any_of(w.m_presenter->m_signalDecorations.cbegin(),
-			w.m_presenter->m_signalDecorations.cend(), [](QGraphicsItem* item) {
+		const bool previewHasSignalGlyph = std::any_of(PresenterAccess::signalDecorations(*w.m_presenter).cbegin(),
+			PresenterAccess::signalDecorations(*w.m_presenter).cend(), [](QGraphicsItem* item) {
 				return item && qgraphicsitem_cast<SignalItem*>(item) != nullptr;
 			});
 		const QVector<NetworkLegendEntry> legendEntries = w.m_networkLegendWidget
@@ -258,7 +258,7 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 		if (previewHasSignalGlyph && w.networkView) {
 			w.updateViewportOverlays();
 			const QTransform transform = w.networkView->viewportTransform();
-			for (QGraphicsItem* item : w.m_presenter->m_signalDecorations) {
+			for (QGraphicsItem* item : PresenterAccess::signalDecorations(*w.m_presenter)) {
 				auto* signal = item ? qgraphicsitem_cast<SignalItem*>(item) : nullptr;
 				if (!signal || !signal->isVisible() || !item->data(kSignalAnchorRole).isValid())
 					continue;
@@ -272,8 +272,8 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			const bool layerWasChecked = w.m_signalLayerCheck->isChecked();
 			w.m_signalLayerCheck->setChecked(false);
 			QApplication::processEvents();
-			const bool hidden = std::none_of(w.m_presenter->m_signalDecorations.cbegin(),
-				w.m_presenter->m_signalDecorations.cend(), [](QGraphicsItem* item) {
+			const bool hidden = std::none_of(PresenterAccess::signalDecorations(*w.m_presenter).cbegin(),
+				PresenterAccess::signalDecorations(*w.m_presenter).cend(), [](QGraphicsItem* item) {
 					return item && qgraphicsitem_cast<SignalItem*>(item) != nullptr && item->isVisible();
 				});
 			w.m_signalLayerCheck->setChecked(layerWasChecked);
@@ -513,7 +513,7 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			w.renderTrackPreview(identified);
 			w.updateViewportOverlays();
 			// The tooltip names the section by its label; the id stays in the details of the inspector.
-			const auto found = std::find_if(w.m_presenter->m_signalDecorations.cbegin(), w.m_presenter->m_signalDecorations.cend(),
+			const auto found = std::find_if(PresenterAccess::signalDecorations(*w.m_presenter).cbegin(), PresenterAccess::signalDecorations(*w.m_presenter).cend(),
 				[&](QGraphicsItem* item) {
 					auto* signal = item ? qgraphicsitem_cast<SignalItem*>(item) : nullptr;
 					return signal && signal->isVisible()
@@ -522,12 +522,12 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 						&& !sectionLabel.isEmpty() && signal->toolTip().contains(QStringLiteral("section ") + sectionLabel);
 				});
 			QString menuTitle;
-			if (found != w.m_presenter->m_signalDecorations.cend()) {
+			if (found != PresenterAccess::signalDecorations(*w.m_presenter).cend()) {
 				w.showSceneContextMenu(*found, QPointF(), QPoint(), false);
 				menuTitle = w.m_sceneContextMenu ? w.m_sceneContextMenu->title() : QString();
 				w.closeSceneContextMenu();
 			}
-			if (found == w.m_presenter->m_signalDecorations.cend())
+			if (found == PresenterAccess::signalDecorations(*w.m_presenter).cend())
 				fail("signals", "authored preview signal ID and boundary are not inspectable");
 			else if (menuTitle != QStringLiteral("Preview: E2E_SIGNAL_PREVIEW_360 (%1)").arg(sectionLabel))
 				fail("signals", "the menu of an authored preview signal is called " + menuTitle);
@@ -571,7 +571,7 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			const auto* lineItem = dynamic_cast<const QGraphicsLineItem*>(target);
 			clickAt(lineItem ? target->mapToScene(lineItem->line().pointAt(0.5)) : target->sceneBoundingRect().center());
 			++clicked;
-			SelectionCueItem* cue = w.m_presenter->effect ? w.m_presenter->effect->cue() : nullptr;
+			SelectionCueItem* cue = PresenterAccess::effect(*w.m_presenter) ? PresenterAccess::effect(*w.m_presenter)->cue() : nullptr;
 			if (!cue || !cue->isVisible() || cueCount() != 1 || !w.m_inspector->dock()->isVisible()) {
 				cuesOk = false;
 				fail("selection", QString("a click on a preview %1 gives no single cue").arg(kind));
@@ -579,7 +579,7 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 		}
 		const QRectF bounds = w.networkView->topologyBounds();
 		clickAt(bounds.bottomRight() + QPointF(bounds.width() + 1000.0, bounds.height() + 1000.0));
-		if (cueCount() != 0 || w.m_presenter->effect) {
+		if (cueCount() != 0 || PresenterAccess::effect(*w.m_presenter)) {
 			cuesOk = false;
 			fail("selection", "a click on empty preview canvas left a cue");
 		}

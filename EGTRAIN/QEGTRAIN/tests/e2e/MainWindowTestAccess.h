@@ -3,6 +3,7 @@
 #include "app/EditorDocks.h"
 #include "app/MainWindow.h"
 #include "editors/SceneDocument.h"
+#include "tests/NetworkPresenterTestAccess.h"
 #include <QString>
 #include <QStringList>
 #include <functional>
