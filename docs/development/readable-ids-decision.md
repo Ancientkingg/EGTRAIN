@@ -29,9 +29,9 @@ On Paimpol:
 | --- | --- | --- |
 | Track | `B0` | `B` and the number of the legacy folder (`importTracks` in `scene/SceneImporter.cpp`) |
 | Node, arc | `B0.node.1`, `B0.arc.100` | the track and the first column of `NodiCumPari.txt` or `ArchiCumPari.txt` (`importTrackNodes`, `importTrackArcs`) |
-| Block | `0-B0`, `71-B0` | the row of `BlockCumPari.txt`, counted from 0, and the track (`:1205`) |
+| Block | `0-B0`, `71-B0` | the row of `BlockCumPari.txt`, counted from 0, and the track (`importTrackBlocks`) |
 | Block section | `@0-B0@` | the block id between `@` signs (`nativeRuntimeBlockId` in `scene/SectionReference.cpp`) |
-| Switch section | `@71-B0@-21.235000/@0-B1@-21.252000` | the two blocks that hold the nodes of a connection, each followed by `-` and the kilometre of its node as printf `%f` writes it (`:169` to `:177`, `:363` to `:377`) |
+| Switch section | `@71-B0@-21.235000/@0-B1@-21.252000` | the two blocks that hold the nodes of a connection, each followed by `-` and the kilometre of its node as printf `%f` writes it (`formatSceneSectionCoordinate` and `buildSceneSectionInventory` in `scene/SectionInventory.cpp`) |
 | Signal head | the id of the section it protects | no committed scene has a signal, so every head uses its section id (`graphics/NetworkPresenter.cpp:666`) |
 
 The `-` before a kilometre is a separator, not a minus sign. `@71-B0@-21.235000/@0-B1@-21.252000` is block 71 of track B0 up to the node at 21.235 km, then block 0 of track B1 from 21.252 km. A block that the editor adds is called `block`, `block_2` and so on (`editors/infrastructure/BlockRouteFacets.cpp:121`, `:149`), so not every block id holds a number.
@@ -40,7 +40,7 @@ The run numbers its tracks by their place in the list of track ids sorted as tex
 
 ### The ids are data
 
-- The run splits section ids on `@` and `/` and takes the parts by position: `simulation/Signalling.cpp:633` to `:660`, `diagrams/BlockingTimeDiagram.cpp:31` to `:46` and `nativeSectionTokens` in `scene/SectionInventory.cpp`. The importer, the exporter, the validator and the editors read route tokens with one parser (`parseSectionReferencePart` in `scene/SectionReference.cpp`). A search of the product sources outside `tests/` for the literals `'@'` and `"@"` finds 70 lines in 9 files, 41 of them in `Signalling.cpp`.
+- The run splits section ids on `@` and `/` and takes the parts by position: `simulation/Signalling.cpp:633` to `:660`, `diagrams/BlockingTimeDiagram.cpp:31` to `:46` and `nativeSectionTokens` in `scene/SectionInventory.cpp`. The importer, the exporter, the validator and the editors read route tokens with one parser (`parseSectionReferencePart` in `scene/SectionReference.cpp`). A search of the product sources outside `tests/` for the literals `'@'` and `"@"` finds 73 lines in 10 files, 41 of them in `Signalling.cpp`.
 - Scene files hold both forms. Paimpol `route0` lists `0-B0` to `70-B0` and then `@71-B0@-21.235000/@0-B1@-21.252000`. The six committed scenes hold 25,730 block-id occurrences.
 - 127 of the 134 files in `tests/characterization/expected` contain a block or section id, 2,338 in all (`grep -lE '[0-9]+-B[0-9]+'`). The CSV exports, `BlockingTimes.txt` and `section_id` in the live frame (`io/LiveFrame.cpp:54`) contain them too.
 

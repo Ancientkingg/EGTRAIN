@@ -219,9 +219,11 @@ when it is free and otherwise the first of `base_2`, `base_3` and so on.
 `scene/SectionReference` reads a section reference, a block id or several joined by `/` such as
 the two endpoints of a switch transition `@71-B0@-21.235000/@0-B1@-21.252000`.
 `parseSectionReferencePart` splits one part into its block id and the offset of an endpoint. The
-importer, the exporter, the validator, `SectionInventory` and the editors' reference rules all read
-references with it, so they agree on which parts name a block and which routes hold a switch
-transition. `nativeRuntimeBlockId` gives the runtime id of a block section.
+validator, the editors' reference rules, the importer's check of known blocks and the route token checks
+of the importer and the exporter read references with it, so they agree on which parts name a block and
+which routes hold a switch transition. Two readers keep their own rules: `mapLegacyBlockReference` in the
+exporter, and the overlap rule of `SectionInventory` (`sectionReferences`, `nativeSectionTokens`).
+`nativeRuntimeBlockId` gives the runtime id of a block section.
 
 Scheduled entry uses explicit entry time first, otherwise the first finite
 planned departure, otherwise zero, plus the repeat offset. The editor's
