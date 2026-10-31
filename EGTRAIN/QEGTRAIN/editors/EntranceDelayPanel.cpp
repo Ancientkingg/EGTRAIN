@@ -94,43 +94,10 @@ EntranceDelayPanel::EntranceDelayPanel(QWidget* parent) : SceneEditorPanel(paren
 	EntranceDelayPanel::refresh();
 }
 
-void EntranceDelayPanel::setDocument(SceneDocument* document) {
-	QObject::disconnect(m_replacedConnection);
-	QObject::disconnect(m_changedConnection);
-	m_document = document;
-	if (m_document) {
-		m_replacedConnection = connect(m_document, &SceneDocument::replaced, this, &EntranceDelayPanel::refresh);
-		// The case duration sets the occurrences of a service, and the timetable sets the stations where a train can be held.
-		m_changedConnection = connect(m_document, &SceneDocument::changed, this, [this](SceneDocument::ChangeKinds kinds) {
-			if (kinds & (SceneDocument::CaseSettings | SceneDocument::Infrastructure | SceneDocument::Services))
-				refresh();
-		});
-	}
-	refresh();
-}
-
-void EntranceDelayPanel::setPrompts(UserPrompts* prompts) {
-	m_prompts = prompts ? prompts : &m_ownPrompts;
-}
-
-void EntranceDelayPanel::setRunSelection(RunSelection* selection) {
-	m_runSelection = selection ? selection : &m_ownRunSelection;
-}
-
-void EntranceDelayPanel::setOccurrenceDuration(std::function<double()> duration) {
-	m_occurrenceDuration = std::move(duration);
-}
-
-bool EntranceDelayPanel::hasScene() const {
-	return m_document && m_document->isLoaded();
-}
-
-bool EntranceDelayPanel::canEdit() const {
-	return hasScene() && m_document->isEditable();
-}
-
-double EntranceDelayPanel::occurrenceDuration() const {
-	return m_occurrenceDuration ? m_occurrenceDuration() : m_document->model().settings.durationSeconds;
+void EntranceDelayPanel::documentChanged(SceneDocument::ChangeKinds kinds) {
+	// The case duration sets the occurrences of a service, and the timetable sets the stations where a train can be held.
+	if (kinds & (SceneDocument::CaseSettings | SceneDocument::Infrastructure | SceneDocument::Services))
+		refresh();
 }
 
 const SceneScenario* EntranceDelayPanel::scenario() const {
@@ -191,9 +158,7 @@ void EntranceDelayPanel::refresh() {
 				m_listWidget->addItem(QString("%1 at %2: %3 s").arg(train, station, seconds));
 			}
 		}
-		const int rowCount = m_listWidget->count();
-		const int rowToSelect = rowCount <= 0 ? -1 : (previousRow < 0 ? 0 : std::min(previousRow, rowCount - 1));
-		m_listWidget->setCurrentRow(rowToSelect);
+		restoreListSelection(m_listWidget, QString(), previousRow);
 		m_listWidget->setEnabled(canEdit());
 	}
 	m_addButton->setEnabled(canEdit() && selected != nullptr);

@@ -110,22 +110,6 @@ CompositionPanel::CompositionPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	CompositionPanel::refresh();
 }
 
-void CompositionPanel::setDocument(SceneDocument* document) {
-	QObject::disconnect(m_replacedConnection);
-	m_document = document;
-	if (m_document)
-		m_replacedConnection = connect(m_document, &SceneDocument::replaced, this, &CompositionPanel::refresh);
-	refresh();
-}
-
-void CompositionPanel::setPrompts(UserPrompts* prompts) {
-	m_prompts = prompts ? prompts : &m_ownPrompts;
-}
-
-bool CompositionPanel::hasScene() const {
-	return m_document && m_document->isLoaded();
-}
-
 int CompositionPanel::selectedRow() const {
 	const int row = m_listWidget->currentRow();
 	if (!hasScene() || row < 0 || row >= static_cast<int>(m_document->model().compositions.size()))
@@ -144,19 +128,7 @@ void CompositionPanel::refresh() {
 			for (const auto& composition : m_document->model().compositions)
 				m_listWidget->addItem(QString::fromStdString(composition.id));
 		}
-		const int rowCount = m_listWidget->count();
-		int rowToSelect = -1;
-		if (rowCount > 0) {
-			if (previousRow < 0)
-				rowToSelect = 0;
-			else if (previousRow >= rowCount)
-				rowToSelect = rowCount - 1; // keep selection near a deleted last row
-			else
-				rowToSelect = previousRow;
-		}
-		if (const int sameComposition = rowOfEntry(m_listWidget, previousId, previousRow); sameComposition >= 0)
-			rowToSelect = sameComposition;
-		m_listWidget->setCurrentRow(rowToSelect);
+		restoreListSelection(m_listWidget, previousId, previousRow);
 		m_listWidget->setEnabled(loaded);
 	}
 	m_addButton->setEnabled(loaded);

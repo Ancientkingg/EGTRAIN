@@ -108,10 +108,6 @@ void populateServiceCombo(QComboBox* combo, const SceneModel& sceneModel, const 
 }
 
 // The row that stays selected when a list is rebuilt with `count` entries.
-int rowAfterRebuild(int previousRow, int count) {
-	return count == 0 ? -1 : (previousRow < 0 ? 0 : std::min(previousRow, count - 1));
-}
-
 // The most lines of one callout. The rest is counted, and the tooltip of the callout lists all of them.
 constexpr int MaxDiagnosticLines = 5;
 
@@ -344,24 +340,8 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	PassengerPanel::refresh();
 }
 
-void PassengerPanel::setDocument(SceneDocument* document) {
-	QObject::disconnect(m_replacedConnection);
-	m_document = document;
-	if (m_document)
-		m_replacedConnection = connect(m_document, &SceneDocument::replaced, this, &PassengerPanel::refresh);
-	refresh();
-}
-
-void PassengerPanel::setPrompts(UserPrompts* prompts) {
-	m_prompts = prompts ? prompts : &m_defaultPrompts;
-}
-
 void PassengerPanel::setDiagnostics(const std::vector<SceneDiagnostic>* diagnostics) {
 	m_diagnostics = diagnostics;
-}
-
-void PassengerPanel::setOccurrenceDuration(std::function<double()> duration) {
-	m_occurrenceDuration = std::move(duration);
 }
 
 void PassengerPanel::setImportFolderChooser(std::function<QString()> chooser) {
@@ -372,14 +352,6 @@ void PassengerPanel::clearImportResult() {
 	m_importResultTable->setRowCount(0);
 }
 
-bool PassengerPanel::canEdit() const {
-	return m_document && m_document->isLoaded() && m_document->isEditable();
-}
-
-double PassengerPanel::occurrenceDuration() const {
-	return m_occurrenceDuration ? m_occurrenceDuration() : m_document->model().settings.durationSeconds;
-}
-
 int PassengerPanel::selectedPassengerRow() const {
 	// Ctrl+click on the selected entry clears the selection and keeps the current row.
 	const QListWidgetItem* current = m_passengerList->currentItem();
@@ -387,7 +359,7 @@ int PassengerPanel::selectedPassengerRow() const {
 }
 
 ScenePassenger* PassengerPanel::selectedPassenger() {
-	if (!m_document || !m_document->isLoaded())
+	if (!hasScene())
 		return nullptr;
 	auto& passengers = m_document->mutableModel().passengers;
 	const int row = selectedPassengerRow();
@@ -411,7 +383,7 @@ ScenePassengerLeg* PassengerPanel::selectedPassengerLeg() {
 }
 
 void PassengerPanel::refresh() {
-	const bool loaded = m_document && m_document->isLoaded();
+	const bool loaded = hasScene();
 	const bool editable = canEdit();
 	{
 		const int previousRow = m_passengerList->currentRow();
@@ -423,8 +395,7 @@ void PassengerPanel::refresh() {
 			for (const auto& passenger : m_document->model().passengers)
 				m_passengerList->addItem(QString::fromStdString(passenger.id));
 		}
-		const int samePassenger = rowOfEntry(m_passengerList, previousId, previousRow);
-		m_passengerList->setCurrentRow(samePassenger >= 0 ? samePassenger : rowAfterRebuild(previousRow, m_passengerList->count()));
+		restoreListSelection(m_passengerList, previousId, previousRow);
 		if (selectionCleared)
 			m_passengerList->clearSelection();
 		m_passengerList->setEnabled(editable);
@@ -458,7 +429,7 @@ void PassengerPanel::updatePassengerDetail() {
 				m_journeyList->addItem(label);
 			}
 		}
-		m_journeyList->setCurrentRow(rowAfterRebuild(previousRow, m_journeyList->count()));
+		restoreListSelection(m_journeyList, QString(), previousRow);
 		m_journeyList->setEnabled(enabled);
 	}
 	m_addJourneyButton->setEnabled(enabled);
@@ -514,7 +485,7 @@ void PassengerPanel::updateJourneyDetail() {
 			for (const auto& leg : journey->legs)
 				m_legList->addItem(QString::fromStdString(leg.id));
 		}
-		m_legList->setCurrentRow(rowAfterRebuild(previousRow, m_legList->count()));
+		restoreListSelection(m_legList, QString(), previousRow);
 		m_legList->setEnabled(enabled);
 	}
 	{

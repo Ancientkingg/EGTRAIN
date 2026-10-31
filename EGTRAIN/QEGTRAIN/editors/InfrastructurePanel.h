@@ -3,9 +3,7 @@
 
 #include "editors/SceneEditorPanel.h"
 #include "editors/infrastructure/InfrastructureFacet.h"
-#include "widgets/UserPrompts.h"
 
-#include <QPointer>
 #include <QString>
 #include <QStringList>
 
@@ -37,12 +35,6 @@ public:
 	/// Makes the widgets, without facets and empty until a loaded document is set.
 	explicit InfrastructurePanel(QWidget* parent = nullptr);
 
-	/// The panel shows the scene of this document. It is not refreshed when the document is replaced, because the window
-	/// draws the track preview at that time: call refresh() when the scene has been set up.
-	void setDocument(SceneDocument* document) override;
-	/// The messages and questions go through these prompts. The panel uses its own until it is given others; null
-	/// brings its own back. The prompts must outlive the panel.
-	void setPrompts(UserPrompts* prompts);
 	/// The panel takes the facet, which takes the place of the one with the same key. The key must be one of
 	/// facetKeys(). Null is ignored.
 	void setFacet(std::unique_ptr<InfrastructureFacet> facet);
@@ -98,10 +90,6 @@ public:
 	const SceneModel& model() const;
 	/// The model of the document for an edit by a facet. The panel must have a document.
 	SceneModel& mutableModel();
-	/// True when a scene is loaded.
-	bool hasScene() const;
-	/// False while no scene is loaded or a run uses it.
-	bool canEdit() const;
 	/// Shows a message in the status line of the window for `timeoutMs` milliseconds, through statusMessage().
 	void showStatus(const QString& text, int timeoutMs = 4000);
 	/// A facet has changed the model: marks the document changed under `label`, tells changed() and entitiesChanged(), and
@@ -168,14 +156,16 @@ Q_SIGNALS:
 	/// A message for the status line, shown for `timeoutMs` milliseconds.
 	void statusMessage(const QString& text, int timeoutMs);
 
+protected:
+	/// Does nothing: the window draws the track preview when the document is replaced, and calls refresh() when the scene
+	/// has been set up.
+	void documentReplaced() override {}
+
 private:
 	// Shows the section catalog and the sections of the selected route, while routes are listed.
 	void refreshRouteSectionPanel();
 	InfrastructureFacet* currentFacet() const;
 
-	QPointer<SceneDocument> m_document;
-	UserPrompts m_ownPrompts;
-	UserPrompts* m_prompts = &m_ownPrompts;
 	std::map<QString, std::unique_ptr<InfrastructureFacet>> m_facets;
 	QString m_selectionId;
 	std::vector<int> m_blockRowModelIndices;

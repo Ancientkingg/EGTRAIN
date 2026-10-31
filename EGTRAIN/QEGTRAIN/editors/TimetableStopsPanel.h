@@ -2,10 +2,7 @@
 #define TIMETABLESTOPSPANEL_H
 
 #include "editors/SceneEditorPanel.h"
-#include "widgets/UserPrompts.h"
 
-#include <QMetaObject>
-#include <QPointer>
 #include <QString>
 
 #include <string>
@@ -30,11 +27,6 @@ public:
 	/// Makes the widgets, empty until a loaded document and a service are set.
 	explicit TimetableStopsPanel(QWidget* parent = nullptr);
 
-	/// Refreshes when the document is replaced.
-	void setDocument(SceneDocument* document) override;
-	/// The messages go through these prompts. The panel uses its own until it is given others; null brings its own back.
-	/// The prompts must outlive the panel.
-	void setPrompts(UserPrompts* prompts);
 	/// Shows the stops of the service with this id, or none when the id is empty or no service has it.
 	void setServiceId(const QString& serviceId);
 	/// Lists the stops of the service again.
@@ -83,19 +75,12 @@ Q_SIGNALS:
 private:
 	// Fits the columns again when the table is resized or its font changes.
 	bool eventFilter(QObject* watched, QEvent* event) override;
-	bool hasScene() const;
-	// False while a run uses the scene.
-	bool canEdit() const;
 	// The position of the shown service in the model, or -1.
 	int serviceRow() const;
 	void updateActions();
 	// Gives the columns widths that add up to the width of the table, without a horizontal scroll bar.
 	void fitColumns();
 
-	QPointer<SceneDocument> m_document;
-	QMetaObject::Connection m_replacedConnection;
-	UserPrompts m_ownPrompts;
-	UserPrompts* m_prompts = &m_ownPrompts;
 	std::string m_serviceId;
 	// Whether the planned times are shown as clock times rather than as elapsed seconds.
 	bool m_clockMode = false;

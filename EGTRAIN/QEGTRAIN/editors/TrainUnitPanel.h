@@ -2,10 +2,7 @@
 #define TRAINUNITPANEL_H
 
 #include "editors/SceneEditorPanel.h"
-#include "widgets/UserPrompts.h"
 
-#include <QMetaObject>
-#include <QPointer>
 #include <QString>
 
 #include <array>
@@ -36,11 +33,6 @@ public:
 	/// Makes the widgets, empty until a loaded document is set.
 	explicit TrainUnitPanel(QWidget* parent = nullptr);
 
-	/// Refreshes when the document is replaced.
-	void setDocument(SceneDocument* document) override;
-	/// The messages and questions go through these prompts. The panel uses its own until it is given others; null
-	/// brings its own back. The prompts must outlive the panel.
-	void setPrompts(UserPrompts* prompts);
 	/// Lists the units again and shows the selected one.
 	void refresh() override;
 	/// Takes the id, the source references, the number field that has focus and the open editor of the traction curve into
@@ -137,16 +129,11 @@ Q_SIGNALS:
 	void sourceRetryRequested(bool traction);
 
 private:
-	bool hasScene() const;
 	// The row of the shown unit, or -1.
 	int selectedRow() const;
 	void updateDetail();
 	void refreshTractionTable();
 
-	QPointer<SceneDocument> m_document;
-	QMetaObject::Connection m_replacedConnection;
-	UserPrompts m_ownPrompts;
-	UserPrompts* m_prompts = &m_ownPrompts;
 	QListWidget* m_listWidget = nullptr;
 	QLineEdit* m_idEdit = nullptr;
 	QLabel* m_emptyStateLabel = nullptr;

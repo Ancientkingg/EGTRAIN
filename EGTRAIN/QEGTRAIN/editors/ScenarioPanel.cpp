@@ -75,26 +75,9 @@ ScenarioPanel::ScenarioPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	ScenarioPanel::refresh();
 }
 
-void ScenarioPanel::setDocument(SceneDocument* document) {
-	QObject::disconnect(m_replacedConnection);
-	QObject::disconnect(m_changedConnection);
-	m_document = document;
-	if (m_document) {
-		m_replacedConnection = connect(m_document, &SceneDocument::replaced, this, &ScenarioPanel::refresh);
-		m_changedConnection = connect(m_document, &SceneDocument::changed, this, [this](SceneDocument::ChangeKinds kinds) {
-			if (kinds.testFlag(SceneDocument::Scenarios))
-				updatePresentation();
-		});
-	}
-	refresh();
-}
-
-void ScenarioPanel::setPrompts(UserPrompts* prompts) {
-	m_prompts = prompts ? prompts : &m_ownPrompts;
-}
-
-void ScenarioPanel::setRunSelection(RunSelection* selection) {
-	m_runSelection = selection ? selection : &m_ownRunSelection;
+void ScenarioPanel::documentChanged(SceneDocument::ChangeKinds kinds) {
+	if (kinds.testFlag(SceneDocument::Scenarios))
+		updatePresentation();
 }
 
 void ScenarioPanel::setDiagnostics(const std::vector<SceneDiagnostic>* diagnostics) {
@@ -115,14 +98,6 @@ void ScenarioPanel::setExportFileChooser(std::function<QString(const QString& su
 
 void ScenarioPanel::setExportObserver(std::function<ExportFailureReport()> begin) {
 	m_exportObserver = std::move(begin);
-}
-
-bool ScenarioPanel::hasScene() const {
-	return m_document && m_document->isLoaded();
-}
-
-bool ScenarioPanel::canEdit() const {
-	return hasScene() && m_document->isEditable();
 }
 
 const SceneScenario* ScenarioPanel::selectedScenario() const {

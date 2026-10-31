@@ -46,50 +46,42 @@ CaseSettingsPanel::~CaseSettingsPanel() {
 		field->disconnect(this);
 }
 
-void CaseSettingsPanel::setDocument(SceneDocument* document) {
-	QObject::disconnect(m_replacedConnection);
-	m_document = document;
-	if (m_document)
-		m_replacedConnection = connect(m_document, &SceneDocument::replaced, this, &CaseSettingsPanel::refresh);
-	refresh();
-}
-
 void CaseSettingsPanel::refresh() {
-	const bool hasScene = m_document && m_document->isLoaded();
+	const bool loaded = hasScene();
 	const SceneModel empty;
-	const SceneModel& model = hasScene ? m_document->model() : empty;
+	const SceneModel& model = loaded ? m_document->model() : empty;
 	{
 		const QSignalBlocker blocker(m_nameEdit);
 		m_nameEdit->setText(QString::fromStdString(model.name));
 		// The field shows the start of a text that is longer than the field.
 		m_nameEdit->setCursorPosition(0);
-		m_nameEdit->setEnabled(hasScene);
+		m_nameEdit->setEnabled(loaded);
 	}
 	{
 		const QSignalBlocker blocker(m_descriptionEdit);
 		m_descriptionEdit->setText(QString::fromStdString(model.description));
 		m_descriptionEdit->setCursorPosition(0);
-		m_descriptionEdit->setEnabled(hasScene);
+		m_descriptionEdit->setEnabled(loaded);
 	}
 	{
 		const QSignalBlocker blocker(m_baseTimeEdit);
 		m_baseTimeEdit->setText(QString::fromStdString(model.baseTime));
-		m_baseTimeEdit->setEnabled(hasScene);
+		m_baseTimeEdit->setEnabled(loaded);
 	}
 	{
 		const QSignalBlocker blocker(m_durationSecondsEdit);
 		m_durationSecondsEdit->setValue(model.settings.durationSeconds);
-		m_durationSecondsEdit->setEnabled(hasScene);
+		m_durationSecondsEdit->setEnabled(loaded);
 	}
 	{
 		const QSignalBlocker blocker(m_bufferSecondsEdit);
 		m_bufferSecondsEdit->setValue(model.settings.bufferTimeSeconds);
-		m_bufferSecondsEdit->setEnabled(hasScene);
+		m_bufferSecondsEdit->setEnabled(loaded);
 	}
 	{
 		const QSignalBlocker blocker(m_recoveryPercentEdit);
 		m_recoveryPercentEdit->setValue(model.settings.recoveryTimePercent);
-		m_recoveryPercentEdit->setEnabled(hasScene);
+		m_recoveryPercentEdit->setEnabled(loaded);
 	}
 }
 
@@ -103,7 +95,7 @@ void CaseSettingsPanel::commitPendingEditors() {
 }
 
 void CaseSettingsPanel::commit() {
-	if (!m_document || !m_document->isLoaded())
+	if (!hasScene())
 		return;
 	SceneModel& model = m_document->mutableModel();
 	const std::string name = m_nameEdit->text().toStdString();

@@ -188,15 +188,6 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	InfrastructurePanel::refresh(false);
 }
 
-void InfrastructurePanel::setDocument(SceneDocument* document) {
-	m_document = document;
-	refresh(false);
-}
-
-void InfrastructurePanel::setPrompts(UserPrompts* prompts) {
-	m_prompts = prompts ? prompts : &m_ownPrompts;
-}
-
 void InfrastructurePanel::setFacet(std::unique_ptr<InfrastructureFacet> facet) {
 	if (!facet)
 		return;
@@ -234,14 +225,6 @@ const SceneModel& InfrastructurePanel::model() const {
 
 SceneModel& InfrastructurePanel::mutableModel() {
 	return m_document->mutableModel();
-}
-
-bool InfrastructurePanel::hasScene() const {
-	return m_document && m_document->isLoaded();
-}
-
-bool InfrastructurePanel::canEdit() const {
-	return hasScene() && m_document->isEditable();
 }
 
 void InfrastructurePanel::showStatus(const QString& text, int timeoutMs) {
@@ -442,10 +425,7 @@ void InfrastructurePanel::refreshRouteSectionPanel() {
 				}
 			}
 		}
-		const int row = m_routeSectionListWidget->count() == 0
-			? -1
-			: std::min(std::max(previousListRow, 0), m_routeSectionListWidget->count() - 1);
-		m_routeSectionListWidget->setCurrentRow(row);
+		restoreListSelection(m_routeSectionListWidget, QString(), previousListRow);
 	}
 	m_routeSectionListWidget->setEnabled(editable && hasRoute);
 	const int selectedRow = m_routeSectionListWidget->currentRow();

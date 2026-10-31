@@ -263,22 +263,6 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	refresh();
 }
 
-void TrainUnitPanel::setDocument(SceneDocument* document) {
-	QObject::disconnect(m_replacedConnection);
-	m_document = document;
-	if (m_document)
-		m_replacedConnection = connect(m_document, &SceneDocument::replaced, this, &TrainUnitPanel::refresh);
-	refresh();
-}
-
-void TrainUnitPanel::setPrompts(UserPrompts* prompts) {
-	m_prompts = prompts ? prompts : &m_ownPrompts;
-}
-
-bool TrainUnitPanel::hasScene() const {
-	return m_document && m_document->isLoaded();
-}
-
 int TrainUnitPanel::selectedRow() const {
 	const int row = m_listWidget->currentRow();
 	if (!hasScene() || row < 0 || row >= static_cast<int>(m_document->model().trainUnits.size()))
@@ -302,13 +286,7 @@ void TrainUnitPanel::refresh() {
 			for (const auto& unit : m_document->model().trainUnits)
 				m_listWidget->addItem(QString::fromStdString(unit.id));
 		}
-		const int rowCount = m_listWidget->count();
-		int rowToSelect = -1;
-		if (rowCount > 0)
-			rowToSelect = previousRow < 0 ? 0 : std::min(previousRow, rowCount - 1);
-		if (const int sameUnit = rowOfEntry(m_listWidget, previousId, previousRow); sameUnit >= 0)
-			rowToSelect = sameUnit;
-		m_listWidget->setCurrentRow(rowToSelect);
+		restoreListSelection(m_listWidget, previousId, previousRow);
 		m_listWidget->setEnabled(loaded);
 	}
 	m_addButton->setEnabled(loaded);

@@ -198,29 +198,9 @@ TimetableStopsPanel::TimetableStopsPanel(QWidget* parent) : SceneEditorPanel(par
 	TimetableStopsPanel::refresh();
 }
 
-void TimetableStopsPanel::setDocument(SceneDocument* document) {
-	QObject::disconnect(m_replacedConnection);
-	m_document = document;
-	if (m_document)
-		m_replacedConnection = connect(m_document, &SceneDocument::replaced, this, &TimetableStopsPanel::refresh);
-	refresh();
-}
-
-void TimetableStopsPanel::setPrompts(UserPrompts* prompts) {
-	m_prompts = prompts ? prompts : &m_ownPrompts;
-}
-
 void TimetableStopsPanel::setServiceId(const QString& serviceId) {
 	m_serviceId = serviceId.toStdString();
 	refresh();
-}
-
-bool TimetableStopsPanel::hasScene() const {
-	return m_document && m_document->isLoaded();
-}
-
-bool TimetableStopsPanel::canEdit() const {
-	return hasScene() && m_document->isEditable();
 }
 
 int TimetableStopsPanel::serviceRow() const {

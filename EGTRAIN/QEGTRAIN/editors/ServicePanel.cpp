@@ -36,7 +36,6 @@
 #include <cmath>
 #include <limits>
 #include <string>
-#include <utility>
 
 namespace {
 
@@ -278,36 +277,8 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	ServicePanel::refresh();
 }
 
-void ServicePanel::setDocument(SceneDocument* document) {
-	QObject::disconnect(m_replacedConnection);
-	m_document = document;
-	if (m_document)
-		m_replacedConnection = connect(m_document, &SceneDocument::replaced, this, &ServicePanel::refresh);
-	refresh();
-}
-
-void ServicePanel::setPrompts(UserPrompts* prompts) {
-	m_prompts = prompts ? prompts : &m_ownPrompts;
-}
-
-void ServicePanel::setRunSelection(RunSelection* selection) {
-	m_runSelection = selection ? selection : &m_ownRunSelection;
-}
-
-void ServicePanel::setOccurrenceDuration(std::function<double()> duration) {
-	m_occurrenceDuration = std::move(duration);
-}
-
 void ServicePanel::setTimetableWidget(QWidget* widget) {
 	m_timetableLayout->addWidget(widget);
-}
-
-bool ServicePanel::hasScene() const {
-	return m_document && m_document->isLoaded();
-}
-
-bool ServicePanel::canEdit() const {
-	return hasScene() && m_document->isEditable();
 }
 
 int ServicePanel::selectedRow() const {
@@ -315,10 +286,6 @@ int ServicePanel::selectedRow() const {
 	if (!hasScene() || row < 0 || row >= static_cast<int>(m_document->model().services.size()))
 		return -1;
 	return row;
-}
-
-double ServicePanel::occurrenceDuration() const {
-	return m_occurrenceDuration ? m_occurrenceDuration() : m_document->model().settings.durationSeconds;
 }
 
 void ServicePanel::refresh() {
@@ -332,19 +299,7 @@ void ServicePanel::refresh() {
 			for (const auto& service : m_document->model().services)
 				m_listWidget->addItem(QString::fromStdString(service.id));
 		}
-		const int rowCount = m_listWidget->count();
-		int rowToSelect = -1;
-		if (rowCount > 0) {
-			if (previousRow < 0)
-				rowToSelect = 0;
-			else if (previousRow >= rowCount)
-				rowToSelect = rowCount - 1; // keep selection near a deleted last row
-			else
-				rowToSelect = previousRow;
-		}
-		if (const int sameService = rowOfEntry(m_listWidget, previousId, previousRow); sameService >= 0)
-			rowToSelect = sameService;
-		m_listWidget->setCurrentRow(rowToSelect);
+		restoreListSelection(m_listWidget, previousId, previousRow);
 		m_listWidget->setEnabled(editable);
 	}
 	m_addButton->setEnabled(editable);

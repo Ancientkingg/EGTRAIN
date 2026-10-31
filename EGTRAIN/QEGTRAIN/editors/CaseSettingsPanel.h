@@ -3,8 +3,6 @@
 
 #include "editors/SceneEditorPanel.h"
 
-#include <QMetaObject>
-#include <QPointer>
 #include <QString>
 
 class QDoubleSpinBox;
@@ -21,8 +19,6 @@ public:
 	/// Lets go of the fields first, so that a field that loses the focus later in the teardown edits nothing.
 	~CaseSettingsPanel() override;
 
-	/// Refreshes when the document is replaced.
-	void setDocument(SceneDocument* document) override;
 	void refresh() override;
 	/// Commits the text fields and the number field with the focus.
 	void commitPendingEditors() override;
@@ -51,8 +47,6 @@ Q_SIGNALS:
 	void baseTimeChanged(const QString& baseTime);
 
 private:
-	QPointer<SceneDocument> m_document;
-	QMetaObject::Connection m_replacedConnection;
 	QLineEdit* m_nameEdit = nullptr;
 	QLineEdit* m_descriptionEdit = nullptr;
 	QLineEdit* m_baseTimeEdit = nullptr;

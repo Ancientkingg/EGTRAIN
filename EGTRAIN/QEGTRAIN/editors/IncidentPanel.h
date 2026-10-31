@@ -2,12 +2,7 @@
 #define INCIDENTPANEL_H
 
 #include "editors/SceneEditorPanel.h"
-// After SceneEditorPanel.h, which includes the scene model the way RunSelection.h needs it.
-#include "app/RunSelection.h"
-#include "widgets/UserPrompts.h"
 
-#include <QMetaObject>
-#include <QPointer>
 #include <QString>
 
 #include <functional>
@@ -43,18 +38,6 @@ public:
 	/// Makes the widgets, empty until a loaded document is set.
 	explicit IncidentPanel(QWidget* parent = nullptr);
 
-	/// Refreshes when the document is replaced, and shows the choices of targets again when the case settings, the
-	/// infrastructure or the services change.
-	void setDocument(SceneDocument* document) override;
-	/// The messages and questions go through these prompts. The panel uses its own until it is given others; null
-	/// brings its own back. The prompts must outlive the panel.
-	void setPrompts(UserPrompts* prompts);
-	/// The scenario that is shown and the scenarios that are edited are kept here. The panel uses its own until it is
-	/// given another; null brings its own back. The selection must outlive the panel.
-	void setRunSelection(RunSelection* selection);
-	/// Gives the time in seconds over which the occurrences of a service are counted. Without one the duration of the
-	/// scene settings is used.
-	void setOccurrenceDuration(std::function<double()> duration);
 	/// Gives the target that addIncident() gives a new incident. It is asked before the incident is added. A target that the
 	/// combo does not offer, or none, leaves the new incident a signal failure without a target.
 	void setDefaultTarget(std::function<IncidentTarget()> target);
@@ -160,12 +143,10 @@ Q_SIGNALS:
 protected:
 	/// Ends picking, unless the window system hid the panel, as when the window is minimized.
 	void hideEvent(QHideEvent* event) override;
+	/// Shows the choices of targets again when the case settings, the infrastructure or the services change.
+	void documentChanged(SceneDocument::ChangeKinds kinds) override;
 
 private:
-	bool hasScene() const;
-	// False while a run uses the scene.
-	bool canEdit() const;
-	double occurrenceDuration() const;
 	// Gives the incident another type: a signal failure loses what only a breakdown has, and a target that is not valid for
 	// the type is dropped.
 	void changeType(SceneIncident& incident, const std::string& type) const;
@@ -181,14 +162,6 @@ private:
 	// The scene must be editable and have the selected scenario.
 	void appendIncident(const IncidentTarget& target);
 
-	QPointer<SceneDocument> m_document;
-	QMetaObject::Connection m_replacedConnection;
-	QMetaObject::Connection m_changedConnection;
-	UserPrompts m_ownPrompts;
-	UserPrompts* m_prompts = &m_ownPrompts;
-	RunSelection m_ownRunSelection;
-	RunSelection* m_runSelection = &m_ownRunSelection;
-	std::function<double()> m_occurrenceDuration;
 	std::function<IncidentTarget()> m_defaultTarget;
 
 	QListWidget* m_listWidget = nullptr;

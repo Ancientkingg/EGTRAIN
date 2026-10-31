@@ -2,15 +2,8 @@
 #define SERVICEPANEL_H
 
 #include "editors/SceneEditorPanel.h"
-// After SceneEditorPanel.h, which includes the scene model the way RunSelection.h needs it.
-#include "app/RunSelection.h"
-#include "widgets/UserPrompts.h"
 
-#include <QMetaObject>
-#include <QPointer>
 #include <QString>
-
-#include <functional>
 
 class ColorChoiceButton;
 class QCheckBox;
@@ -37,17 +30,6 @@ public:
 	/// Makes the widgets, empty until a loaded document is set.
 	explicit ServicePanel(QWidget* parent = nullptr);
 
-	/// Refreshes when the document is replaced.
-	void setDocument(SceneDocument* document) override;
-	/// The messages and questions go through these prompts. The panel uses its own until it is given others; null
-	/// brings its own back. The prompts must outlive the panel.
-	void setPrompts(UserPrompts* prompts);
-	/// The occurrences that the next run leaves out are kept here. The panel uses its own until it is given another;
-	/// null brings its own back. The selection must outlive the panel.
-	void setRunSelection(RunSelection* selection);
-	/// Gives the time in seconds over which the occurrences of a service are counted. Without one the duration of the
-	/// scene settings is used.
-	void setOccurrenceDuration(std::function<double()> duration);
 	/// Puts the timetable of the selected service on the Timetable tab. The widget becomes a child of the panel.
 	void setTimetableWidget(QWidget* widget);
 	/// Lists the services again and shows the selected one.
@@ -176,21 +158,10 @@ Q_SIGNALS:
 	void selectedServiceChanged(const QString& serviceId);
 
 private:
-	bool hasScene() const;
-	// False while a run uses the scene.
-	bool canEdit() const;
 	// The selected service, or -1.
 	int selectedRow() const;
-	double occurrenceDuration() const;
 	void updateOccurrenceSelection(QTableWidgetItem* item);
 
-	QPointer<SceneDocument> m_document;
-	QMetaObject::Connection m_replacedConnection;
-	UserPrompts m_ownPrompts;
-	UserPrompts* m_prompts = &m_ownPrompts;
-	RunSelection m_ownRunSelection;
-	RunSelection* m_runSelection = &m_ownRunSelection;
-	std::function<double()> m_occurrenceDuration;
 	bool m_updatingOccurrencePreview = false;
 
 	QListWidget* m_listWidget = nullptr;

@@ -2,15 +2,8 @@
 #define ENTRANCEDELAYPANEL_H
 
 #include "editors/SceneEditorPanel.h"
-// After SceneEditorPanel.h, which includes the scene model the way RunSelection.h needs it.
-#include "app/RunSelection.h"
-#include "widgets/UserPrompts.h"
 
-#include <QMetaObject>
-#include <QPointer>
 #include <QString>
-
-#include <functional>
 
 class QComboBox;
 class QDoubleSpinBox;
@@ -31,17 +24,6 @@ public:
 	/// Makes the widgets, empty until a loaded document is set.
 	explicit EntranceDelayPanel(QWidget* parent = nullptr);
 
-	/// Refreshes when the document is replaced, and when the case settings, the infrastructure or the services change.
-	void setDocument(SceneDocument* document) override;
-	/// The messages and questions go through these prompts. The panel uses its own until it is given others; null
-	/// brings its own back. The prompts must outlive the panel.
-	void setPrompts(UserPrompts* prompts);
-	/// The scenario that is shown and the scenarios that are edited are kept here. The panel uses its own until it is
-	/// given another; null brings its own back. The selection must outlive the panel.
-	void setRunSelection(RunSelection* selection);
-	/// Gives the time in seconds over which the occurrences of a service are counted. Without one the duration of the
-	/// scene settings is used.
-	void setOccurrenceDuration(std::function<double()> duration);
 	/// Lists the delays of the selected scenario again and keeps the selected row where it still exists.
 	void refresh() override;
 	/// Takes the occurrence and the delay that are being edited into the document.
@@ -93,11 +75,11 @@ public:
 	/// The button of deleteEntranceDelay().
 	QPushButton* deleteButton() const { return m_deleteButton; }
 
+protected:
+	/// Refreshes when the case settings, the infrastructure or the services change.
+	void documentChanged(SceneDocument::ChangeKinds kinds) override;
+
 private:
-	bool hasScene() const;
-	// False while a run uses the scene.
-	bool canEdit() const;
-	double occurrenceDuration() const;
 	// The selected scenario. The second form adds the baseline scenario to a scene that has none, and is null unless the
 	// scene can be edited.
 	const SceneScenario* scenario() const;
@@ -106,15 +88,6 @@ private:
 	const SceneEntranceDelay* shownDelay() const;
 	// Records that the selected scenario is edited and tells the document.
 	void markEdited(const QString& label);
-
-	QPointer<SceneDocument> m_document;
-	QMetaObject::Connection m_replacedConnection;
-	QMetaObject::Connection m_changedConnection;
-	UserPrompts m_ownPrompts;
-	UserPrompts* m_prompts = &m_ownPrompts;
-	RunSelection m_ownRunSelection;
-	RunSelection* m_runSelection = &m_ownRunSelection;
-	std::function<double()> m_occurrenceDuration;
 
 	QListWidget* m_listWidget = nullptr;
 	QPushButton* m_addButton = nullptr;

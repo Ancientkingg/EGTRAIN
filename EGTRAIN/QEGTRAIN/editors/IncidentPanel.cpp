@@ -221,48 +221,15 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	IncidentPanel::refresh();
 }
 
-void IncidentPanel::setDocument(SceneDocument* document) {
-	QObject::disconnect(m_replacedConnection);
-	QObject::disconnect(m_changedConnection);
-	m_document = document;
-	if (m_document) {
-		m_replacedConnection = connect(m_document, &SceneDocument::replaced, this, &IncidentPanel::refresh);
-		// The occurrences that a breakdown can have as its target depend on the duration of the case and on the services,
-		// and the signals and blocks of a signal failure on the infrastructure.
-		m_changedConnection = connect(m_document, &SceneDocument::changed, this, [this](SceneDocument::ChangeKinds kinds) {
-			if (kinds & (SceneDocument::CaseSettings | SceneDocument::Infrastructure | SceneDocument::Services))
-				refreshTargets();
-		});
-	}
-	refresh();
-}
-
-void IncidentPanel::setPrompts(UserPrompts* prompts) {
-	m_prompts = prompts ? prompts : &m_ownPrompts;
-}
-
-void IncidentPanel::setRunSelection(RunSelection* selection) {
-	m_runSelection = selection ? selection : &m_ownRunSelection;
-}
-
-void IncidentPanel::setOccurrenceDuration(std::function<double()> duration) {
-	m_occurrenceDuration = std::move(duration);
+void IncidentPanel::documentChanged(SceneDocument::ChangeKinds kinds) {
+	// The occurrences that a breakdown can have as its target depend on the duration of the case and on the services, and
+	// the signals and blocks of a signal failure on the infrastructure.
+	if (kinds & (SceneDocument::CaseSettings | SceneDocument::Infrastructure | SceneDocument::Services))
+		refreshTargets();
 }
 
 void IncidentPanel::setDefaultTarget(std::function<IncidentTarget()> target) {
 	m_defaultTarget = std::move(target);
-}
-
-bool IncidentPanel::hasScene() const {
-	return m_document && m_document->isLoaded();
-}
-
-bool IncidentPanel::canEdit() const {
-	return hasScene() && m_document->isEditable();
-}
-
-double IncidentPanel::occurrenceDuration() const {
-	return m_occurrenceDuration ? m_occurrenceDuration() : m_document->model().settings.durationSeconds;
 }
 
 bool IncidentPanel::offersTarget(const IncidentTarget& target) const {
@@ -348,17 +315,7 @@ void IncidentPanel::refresh() {
 			for (const auto& incident : incidents)
 				m_listWidget->addItem(rowLabel(incident));
 		}
-		const int rowCount = m_listWidget->count();
-		int rowToSelect = -1;
-		if (rowCount > 0) {
-			if (previousRow < 0)
-				rowToSelect = 0;
-			else if (previousRow >= rowCount)
-				rowToSelect = rowCount - 1; // keep selection near a deleted last row
-			else
-				rowToSelect = previousRow;
-		}
-		m_listWidget->setCurrentRow(rowToSelect);
+		restoreListSelection(m_listWidget, QString(), previousRow);
 		m_listWidget->setEnabled(canEdit());
 	}
 	m_addButton->setEnabled(canEdit());
