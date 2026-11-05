@@ -10,6 +10,7 @@ Runs the application with a stream and reads it with live_client:
     that of a run without a stream; a request that the server rejects changes nothing;
   * a client that leaves in the middle of a run and a run that nobody follows, both with that output too;
   * a headless run of a scene that repeats its services, so that the trains of a service are told apart by their occurrence;
+  * a headless run that a client stops: exit code 3, the reason on standard error and no TrainServicePathDiagram.txt;
   * a client that joins after the run has ended, and a run that is stopped (window runs);
   * with --second-run, a second run in the same process (scripted window run);
   * the options that are refused, and the refusal of the removed -TSM and -RC options.
@@ -290,6 +291,32 @@ def repeated_services_run(app: Path, client: Path, temp: Path) -> None:
     print("PASS the trains of a repeated service differ in their occurrence")
 
 
+def stopped_headless_run(app: Path, client: Path, temp: Path) -> None:
+    """A client stops a headless run at its hello. The run ends as cancelled, the application exits with 3 and gives the reason on
+    standard error, and the run writes no TrainServicePathDiagram.txt for its partial run."""
+    run = App(app, temp / "stopped", "Paimpol", ["-h", str(COMMAND_HORIZON), "--live", "0", "--live-commands", "--live-every", str(EVERY)])
+    try:
+        code, summaries, errors = run_client(client, run.endpoint_file(), ["--runs", "1", "--stop-after-states", "0"])
+        expect(code == 0 and len(summaries) == 1, "the client found a problem (exit %d):\n%s" % (code, errors))
+        summary = summaries[0]
+        reply = summary["command"]
+        expect(reply and reply["status"] == "accepted", "the server did not accept stop: %s" % summary)
+        expect(summary["status"] == "cancelled" and summary["steps_finished"] is not None and summary["steps_finished"] < COMMAND_HORIZON,
+               "the stopped run did not end as cancelled before its last step: %s" % summary)
+        code = run.wait()
+        errors = run.stderr_path.read_text(encoding="utf-8", errors="replace")
+        expect(code == 3 and "ERROR: The run was stopped before it completed." in errors,
+               "the stopped run: exit %d, expected 3 with the reason on standard error:\n%s" % (code, errors[-2000:]))
+        expect("End of Simulation" not in run.stdout_path.read_text(encoding="utf-8", errors="replace"),
+               "the stopped run printed End of Simulation")
+        folders = run.result_folders()
+        expect(len(folders) == 1 and not (folders[0] / "TrainTrajectories" / "TrainServicePathDiagram.txt").exists(),
+               "the stopped run wrote TrainServicePathDiagram.txt: %s" % folders)
+    finally:
+        run.stop()
+    print("PASS a headless run that a client stops exits with 3, gives the reason and writes no TrainServicePathDiagram.txt")
+
+
 def completed_run(app: Path, client: Path, temp: Path) -> None:
     """A window run with a stream: a client that comes after the run has ended gets the hello and no state."""
     run = App(app, temp / "completed", "Paimpol", ["-h", "300", "--live", "0", "--live-commands", "--live-every", "50"], window=True,
@@ -390,6 +417,7 @@ def main() -> None:
         disconnect_run(app, client, temp, reference)
         unwatched_run(app, temp, reference)
         repeated_services_run(app, client, temp)
+        stopped_headless_run(app, client, temp)
         completed_run(app, client, temp)
         cancelled_run(app, client, temp)
         if arguments.second_run:

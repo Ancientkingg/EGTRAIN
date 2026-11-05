@@ -62,9 +62,10 @@ ALLOWED = {
     #         reads, the two statements of the --help text, and the line "End of Simulation" that
     #         scripts read.
     #   cerr: the errors of the options, the error of an unknown option, the
-    #         diagnostics of a scene, the endpoint of the live stream and the problems that
-    #         installConsoleLogging returns.
-    "app/main.cpp": {"cout": 8, "cerr": 14},
+    #         diagnostics of a scene, the endpoint of the live stream, the problems that
+    #         installConsoleLogging returns and the reason that a run without a window failed
+    #         or was stopped.
+    "app/main.cpp": {"cout": 8, "cerr": 15},
     # Marker lines of the profiling switches and of scripted runs. Each starts with a fixed word,
     # so no logging rule may hide it and no level or category may come in front of it.
     #   QEGTRAIN_NATIVE_DETAIL: the stage times of the preparation of a scene, written with

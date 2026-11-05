@@ -1,6 +1,6 @@
 // A small client of the live stream (docs/architecture/external-sharing.md, docs/development/live-sharing.md).
 //
-//   live_client ENDPOINT_FILE [--runs N] [--max-states N] [--timeout SECONDS] [--set-delay-ms MS]
+//   live_client ENDPOINT_FILE [--runs N] [--max-states N] [--timeout SECONDS] [--set-delay-ms MS] [--stop-after-states N]
 //
 // ENDPOINT_FILE is the live-endpoint.json that QEGTRAIN writes to its output folder when it starts with
 // --live. The client subscribes to the state endpoint of the file and reads frames until N runs have
@@ -13,7 +13,8 @@
 //
 // With --set-delay-ms the client also sends one set_delay_ms request, as soon as it has the hello of a
 // run, and reports the reply of the server and the event that the run publishes for it. The file has to
-// name a command endpoint.
+// name a command endpoint. With --stop-after-states the client sends one stop request once it has the hello
+// of a run and has read N state frames (0: at the hello), and reports its reply in the same way.
 //
 // For every run that it sees the client checks what the contract promises: the version, a constant
 // run id, a seq that increases, steps that increase, the shape of each train, and a time axis that
@@ -24,7 +25,7 @@
 //   missed (frames missing in seq), positions (train entries with a position), moving (train entries
 //   with a speed above 0), state_bytes, signal_frames (state frames with the signal list),
 //   steps_finished (the step of that event, or null), status (of run_finished, or null),
-//   command (the reply to the request that --set-delay-ms sent in this run: its id, status "accepted"
+//   command (the reply to the request that --set-delay-ms or --stop-after-states sent in this run: its id, status "accepted"
 //   or "rejected" and, when rejected, the reason; null when none was sent), applied and rejected (the
 //   command events of the run: command_id, cmd, step and, for rejected, reason)
 //
@@ -377,6 +378,8 @@ struct Options {
 	int timeoutSeconds = kDefaultTimeoutSeconds;
 	// The delay of the set_delay_ms request to send, or -1 for none.
 	int delayMs = -1;
+	// The number of state frames after which to send a stop request, or -1 for none.
+	int stopAfterStates = -1;
 };
 
 bool readNumber(const char* text, int low, int& value) {
@@ -404,6 +407,8 @@ bool readOptions(int argc, char** argv, Options& options) {
 			continue;
 		if (name == "--set-delay-ms" && readNumber(argv[i + 1], 0, options.delayMs))
 			continue;
+		if (name == "--stop-after-states" && readNumber(argv[i + 1], 0, options.stopAfterStates))
+			continue;
 		return false;
 	}
 	return true;
@@ -413,7 +418,7 @@ bool readOptions(int argc, char** argv, Options& options) {
 int main(int argc, char** argv) {
 	Options options;
 	if (!readOptions(argc, argv, options)) {
-		std::cerr << "usage: live_client ENDPOINT_FILE [--runs N] [--max-states N] [--timeout SECONDS] [--set-delay-ms MS]\n";
+		std::cerr << "usage: live_client ENDPOINT_FILE [--runs N] [--max-states N] [--timeout SECONDS] [--set-delay-ms MS] [--stop-after-states N]\n";
 		return 2;
 	}
 	const Clock::time_point deadline = Clock::now() + std::chrono::seconds(options.timeoutSeconds);
@@ -440,6 +445,7 @@ int main(int argc, char** argv) {
 	Clock::time_point lastDescribe = Clock::now() - std::chrono::seconds(1);
 	bool timedOut = false;
 	bool commandSent = false;
+	bool stopSent = false;
 	for (;;) {
 		if (options.delayMs >= 0 && !commandSent && reader.sawHello()) {
 			commandSent = true;
@@ -448,6 +454,14 @@ int main(int argc, char** argv) {
 			if (reply.is_null())
 				problems.push_back(endpoints->command.empty() ? "set_delay_ms needs the command endpoint: start the application with --live-commands"
 															  : "no reply to set_delay_ms");
+			reader.setCommandReply(reply);
+		}
+		if (options.stopAfterStates >= 0 && !stopSent && reader.sawHello() && reader.statesRead() >= options.stopAfterStates) {
+			stopSent = true;
+			const json reply = endpoints->command.empty() ? json(nullptr) : ask(context, *endpoints, "stop", "stop");
+			if (reply.is_null())
+				problems.push_back(endpoints->command.empty() ? "stop needs the command endpoint: start the application with --live-commands"
+															  : "no reply to stop");
 			reader.setCommandReply(reply);
 		}
 		const bool done = options.runs == 0 ? reader.sawHello() : reader.finishedRuns() >= options.runs;

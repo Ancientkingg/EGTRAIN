@@ -413,6 +413,9 @@ static SceneRequest readSceneRequest(bool sceneOption, bool showBox) {
 	return request;
 }
 
+// The exit code of a run without a window that a stop ended before it completed.
+constexpr int kExitRunStopped = 3;
+
 static int runMain(int argc, char* argv[]) {
 	beginStartupTiming();
 	const std::string loggingProblems = installConsoleLogging();
@@ -623,13 +626,21 @@ static int runMain(int argc, char* argv[]) {
 	// No window reads the snapshots of this run.
 	simulation.setSnapshotsEnabled(false);
 	simulation.runSimulation();
-	if (simulation.run().numTrains <= 0 || !simulation.lastRunError().empty())
+	if (simulation.run().numTrains <= 0)
 		return 1;
+	// Only a run that completed writes its service path diagram. A failed or stopped run gives its reason on standard
+	// error, where scripts find it, and ends with exit code 1 or kExitRunStopped.
+	std::string failure = simulation.lastRunError();
+	const bool completed = failure.empty() && simulation.lastRunCompleted();
+	if (completed)
+		failure = simulation.printLastTrainServicePathDiagram();
+	if (!completed || !failure.empty()) {
+		std::cerr << "ERROR: " << (failure.empty() ? std::string("The run was stopped before it completed.") : failure) << '\n';
+		return failure.empty() ? kExitRunStopped : 1;
+	}
 	// The line that scripts read for a completed run, without a newline. It does not go through the logging core,
 	// so no logging rule hides it.
-	if (simulation.lastRunCompleted())
-		std::cout << "\n End of Simulation";
-	simulation.printLastTrainServicePathDiagram();
+	std::cout << "\n End of Simulation";
 	return 0;
 }
 
