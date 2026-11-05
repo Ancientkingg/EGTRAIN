@@ -278,7 +278,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Reads the record at path and removes the file, whether or not it could be read. Returns the record only when it is valid and names the installed version (applied) or a newer one (rolled-back and not-applied); any other record is stale. The helper replaces an applied record when it puts the previous version back, so an applied record that names another version is out of date. Nothing is done unless path is a regular file, and a file of more than 4096 bytes is not a record. A file that cannot be removed does not stop the record from being returned. </p>
+<p>Reads the record at path and removes the file, whether or not it could be read. Returns the record only when it is valid and names the installed version (applied) or a newer one (rolled-back and not-applied); any other record is stale. The helper replaces an applied record when it puts the previous version back, so an applied record that names another version is out of date. A not-applied record that names the installed version, which the helper leaves when the failed new version stays in place, is stale as well, so nothing is shown for it. Nothing is done unless path is a regular file, and a file of more than 4096 bytes is not a record. A file that cannot be removed does not stop the record from being returned. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

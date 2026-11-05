@@ -213,7 +213,7 @@ A train is named by `service_id` and `occurrence` together, for the whole run.
 | Where | What | What happens |
 | --- | --- | --- |
 | Start | A `--live` option that is not valid. | The start stops with exit code 1. |
-| Start | The port is in use, or the endpoint file cannot be written. | The start stops with exit code 2 and the reason on standard error, before a run begins. |
+| Start | The port is in use, or the endpoint file cannot be written or, with commands, cannot be made readable by its owner only. | The start stops with exit code 2 and the reason on standard error, before a run begins. |
 | Reply | The server rejects the request with `bad_json`, `too_large`, `bad_version`, `bad_argument`, `bad_token`, `unknown_command` or `queue_full`. | The reply has `status` `rejected` and the `reason`. Nothing is queued and the run does not see it. [Requests](#requests) gives the order of the checks. |
 | Reply | `describe` when no run has begun. | `rejected` with `no_active_run`. |
 | Event | An accepted command was waiting when the steps of the run ended. | `rejected` with `run_ended`. |
@@ -244,7 +244,7 @@ Both sockets listen on the loopback address, and there is no host option. A publ
 {"v": 1, "state": "tcp://127.0.0.1:40123", "command": "tcp://127.0.0.1:40124", "token": "0123456789abcdef0123456789abcdef"}
 ```
 
-`command` and `token` are `null` without commands. The token is 128 random bits made at every start, in 32 hexadecimal digits. Where the platform supports it, only the owner of the file can read it. `stop` removes the file. `start` fails, and holds nothing, when the port is not valid or is in use, or when the file cannot be written.
+`command` and `token` are `null` without commands. The token is 128 random bits made at every start, in 32 hexadecimal digits. On macOS and Linux the file is created new at every start, readable by its owner only. On a file system that keeps a wider mode, a file with the token is not written and `start` fails; a file without the token is written, with a warning in `io.zmq`. On Windows the file has the permissions of the output folder. `stop` removes the file. `start` fails, and holds nothing, when the port is not valid or is in use, or when the file cannot be written.
 
 ### Threading
 

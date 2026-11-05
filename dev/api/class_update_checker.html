@@ -226,7 +226,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Fetches <a class="el" href="#a93fd2added1cd3bdf26be8c0b4ca2575" title="The release list of the GitHub API, at most 100 releases.">releasesUrl()</a> and emits <a class="el" href="#aff7ad6ee2f6c676cc13133ef6cd2d939" title="The check started by check() ended.">finished()</a> once, also when the request fails or times out or the release list is larger than 8 MiB. A check that is still running is cancelled without a result. </p>
+<p>Fetches <a class="el" href="#a93fd2added1cd3bdf26be8c0b4ca2575" title="The release list of the GitHub API, at most 100 releases.">releasesUrl()</a> and emits <a class="el" href="#aff7ad6ee2f6c676cc13133ef6cd2d939" title="The check started by check() ended.">finished()</a> once, also when the request fails, the release list is larger than 8 MiB or no data arrives for the timeout: from the start of the check, or from the last data that arrived. A check that is still running is cancelled without a result. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
