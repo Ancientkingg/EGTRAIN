@@ -46,7 +46,7 @@ Normal mode keeps the network view and the editors uncluttered. **View > Advance
 A bundled case is read-only in practice: EGTRAIN never saves into the installation. Make your own copy before you edit.
 
 1. Choose **File > Save As...**.
-2. Choose a folder of your own and a file name. EGTRAIN adds `.egscene` when you leave it off. The dialog starts in the folder of your open case, or in your Documents folder for a bundled case.
+2. Choose a folder of your own and a file name. EGTRAIN adds `.egscene` when you leave it off, and asks before that name replaces a file. The dialog starts in the folder of your open case, or in your Documents folder for a bundled case.
 3. Save.
 
 You should see `Case saved` in the status bar. Your file is now the open case, and it appears in **File > Recent Cases**. The original is unchanged. The file holds the inputs of the case and no results, replay or delay baseline.
@@ -169,7 +169,7 @@ You need a run that reached its end. Until then the result commands are disabled
 3. **Timetable graph**, **Train paths** and **Delays** first ask for a reference route, and **Blocking time** asks for its scope. **Capacity** needs at least two trains on the chosen blocks: choose a route, a From block and a To block, which default to the whole route, and check the trains. All the trains on these blocks are checked at first.
 4. In a chart window, **Fit** in the header returns to the full chart. The panel at the right has **Trains**, which filters the trains, and **CSV...** and **PNG...**, which save the data and the picture of the visible trains. After a CSV export, the status bar of the main window names the saved file for a few seconds. Hover, click, zoom and pan are described in [Inspecting diagrams](diagram-navigation.md).
 
-The buttons **Export CSV...** and **Export PNG...** in the dock save the summary table as `run_summary.csv` and `run_summary.png`. Each export asks for a path, adds the extension when you leave it off and writes a second file, `<name>.provenance.json`, that records the run. Exports are not written to the output folder, and they are not part of the case. An export dialog starts in your Documents folder, or in your home folder when there is none. A window keeps the run it was opened for, so a later run does not change it. Creating or opening another case closes the result windows. If the write fails, the message **Export failed** names the path.
+The buttons **Export CSV...** and **Export PNG...** in the dock save the summary table as `run_summary.csv` and `run_summary.png`. Each export asks for a path, adds the extension when you leave it off (and asks before that name replaces a file) and writes a second file, `<name>.provenance.json`, that records the run. Exports are not written to the output folder, and they are not part of the case. An export dialog starts in your Documents folder, or in your home folder when there is none. A window keeps the run it was opened for, so a later run does not change it. Creating or opening another case closes the result windows. If the write fails, the message **Export failed** names the path.
 
 Delay figures are explained in [How delays are calculated](delay-analysis.md), capacity in [How capacity is analysed](capacity-analysis.md) and the text files of a run in [Run output](run-output.md).
 

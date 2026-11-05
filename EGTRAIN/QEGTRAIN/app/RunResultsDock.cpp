@@ -10,12 +10,13 @@
 #include "util/TimeFormat.h"
 #include "widgets/DialogLayout.h"
 #include "widgets/EditorLayout.h"
+#include "widgets/SaveSuffix.h"
+#include "widgets/UserPrompts.h"
 #include <QAction>
 #include <QApplication>
 #include <QBuffer>
 #include <QDockWidget>
 #include <QFileDialog>
-#include <QFileInfo>
 #include <QGraphicsView>
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -111,8 +112,10 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 		QString path = QFileDialog::getSaveFileName(m_window, "Export Table", dialog_folders::suggestedPath("run_summary.png"), "PNG Image (*.png)");
 		if (path.isEmpty())
 			return;
-		if (QFileInfo(path).suffix().compare("png", Qt::CaseInsensitive) != 0)
-			path += ".png";
+		UserPrompts prompts;
+		path = savePathWithSuffix(m_window, prompts, "Export Table", path, "png");
+		if (path.isEmpty())
+			return;
 		QByteArray data;
 		QBuffer buffer(&data);
 		if (!buffer.open(QIODevice::WriteOnly) || !fullTableImage(*m_table).save(&buffer, "PNG")) {

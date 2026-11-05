@@ -8,6 +8,8 @@
 #include "widgets/EditorLayout.h"
 #include "widgets/ElidedLabel.h"
 #include "widgets/PlainToolTip.h"
+#include "widgets/SaveSuffix.h"
+#include "widgets/UserPrompts.h"
 
 #include <QAbstractItemModel>
 #include <QBuffer>
@@ -18,7 +20,6 @@
 #include <QEvent>
 #include <QFile>
 #include <QFileDialog>
-#include <QFileInfo>
 #include <QFont>
 #include <QFrame>
 #include <QHBoxLayout>
@@ -356,8 +357,10 @@ QString saveExportInteractive(QWidget* parent, telemetry::ExportKind kind, const
 		image ? QStringLiteral("PNG Image (*.png)") : QStringLiteral("CSV File (*.csv)"));
 	if (path.isEmpty())
 		return QString(); // cancelled: no file is written
-	if (QFileInfo(path).suffix().compare(QLatin1String(suffix), Qt::CaseInsensitive) != 0)
-		path += QLatin1Char('.') + QLatin1String(suffix);
+	UserPrompts prompts;
+	path = savePathWithSuffix(parent, prompts, title, path, QLatin1String(suffix));
+	if (path.isEmpty())
+		return QString(); // the file of that name is kept
 	const std::optional<std::string> content = bytes();
 	if (!content) {
 		operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);

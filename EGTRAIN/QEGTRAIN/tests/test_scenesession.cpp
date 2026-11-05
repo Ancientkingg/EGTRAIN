@@ -91,6 +91,13 @@ bool writeFolderCase(const QString& path, const std::string& name) {
 	return saveScene(scene, path.toStdString()).success();
 }
 
+// A new case named `name`, as a bundle at `path`.
+bool writeBundleCase(const QString& path, const std::string& name) {
+	SceneModel scene = makeNewSceneModel();
+	scene.name = name;
+	return saveSceneBundle(scene, path.toStdString()).success();
+}
+
 // The name of the case in the scene folder or bundle at `path`, or an empty string when it cannot be read.
 std::string caseName(const QString& path) {
 	const SceneLoadResult loaded = loadScenePath(path.toStdString());
@@ -138,6 +145,7 @@ private slots:
 	void importAsksBeforeReplacingCase();
 	void saveAsFolderAsksBeforeReplacingCase();
 	void saveAsFolderKeepsViewsOfFailedSave();
+	void saveAsAsksBeforeSuffixReplacesFile();
 
 private:
 	QTemporaryDir m_settingsDir;
@@ -302,6 +310,41 @@ void TestSceneSession::saveAsFolderKeepsViewsOfFailedSave() {
 	// The save failed and said so, and the target keeps its own views.json.
 	QCOMPARE(f.prompts.errorTitle, "Cannot Save Case");
 	QCOMPARE(readFile(dir.filePath("Locked/Target/views.json")), QByteArray("{\"own\": true}\n"));
+}
+
+// The save dialog has seen only the name without .egscene, so Save As asks before the name with it replaces a file.
+void TestSceneSession::saveAsAsksBeforeSuffixReplacesFile() {
+	QTemporaryDir root;
+	QVERIFY(root.isValid());
+	const QDir dir(root.path());
+	QVERIFY(writeFolderCase(dir.filePath("Mine"), "My case"));
+	QVERIFY(writeBundleCase(dir.filePath("Other.egscene"), "Other case"));
+	const QByteArray before = readFile(dir.filePath("Other.egscene"));
+	Fixture f;
+	QVERIFY(f.session->openSceneDirectory(dir.filePath("Mine")));
+	const QString mine = f.session->sceneDir();
+
+	answerFileDialog(dir.filePath("Other"));
+	f.session->saveSceneAs();
+	// The question names the file, and No writes nothing.
+	QCOMPARE(f.prompts.confirmCount, 1);
+	QCOMPARE(f.prompts.confirmTitle, "Save Case As");
+	QCOMPARE(f.prompts.confirmQuestion, "Other.egscene already exists. Replace it?");
+	QCOMPARE(readFile(dir.filePath("Other.egscene")), before);
+	QCOMPARE(f.session->sceneDir(), mine);
+
+	f.prompts.confirmAnswer = true;
+	answerFileDialog(dir.filePath("Other"));
+	f.session->saveSceneAs();
+	// Yes replaces the file, which becomes the case of the session.
+	QCOMPARE(caseName(dir.filePath("Other.egscene")), "My case");
+	QCOMPARE(QFileInfo(f.session->sceneDir()).canonicalFilePath(), QFileInfo(dir.filePath("Other.egscene")).canonicalFilePath());
+
+	answerFileDialog(dir.filePath("New"));
+	f.session->saveSceneAs();
+	// A name whose file does not exist yet is saved without a question.
+	QCOMPARE(f.prompts.confirmCount, 2);
+	QVERIFY(QFileInfo::exists(dir.filePath("New.egscene")));
 }
 
 QTEST_MAIN(TestSceneSession)

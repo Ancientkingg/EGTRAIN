@@ -16,6 +16,7 @@
 #include "scene/SceneWriter.h"
 #include "widgets/CaseChooserDialog.h"
 #include "widgets/DisplayPath.h"
+#include "widgets/SaveSuffix.h"
 #include "widgets/SettingsDialog.h"
 #include "widgets/UserPrompts.h"
 #include <QAction>
@@ -441,8 +442,9 @@ bool SceneSession::saveSceneAsToBundle(const telemetry::OperationObservation& op
 		"EGTRAIN Case (*.egscene)");
 	if (targetPath.isEmpty())
 		return false;
-	if (!targetPath.endsWith(".egscene", Qt::CaseInsensitive))
-		targetPath += ".egscene";
+	targetPath = savePathWithSuffix(m_window, *m_prompts, "Save Case As", targetPath, "egscene");
+	if (targetPath.isEmpty())
+		return false;
 	targetPath = QDir::cleanPath(QFileInfo(targetPath).absoluteFilePath());
 	if (isInstalledScenePath(targetPath, QCoreApplication::applicationDirPath())) {
 		operation.exportFinished(telemetry::ExportKind::SceneBundle, false, false, telemetry::Error::InvalidInput);
