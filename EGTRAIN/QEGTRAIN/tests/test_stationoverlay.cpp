@@ -193,6 +193,9 @@ private slots:
 	void markAtPlaceOfFirstNode();
 	void farMarkStandsOnHull_data();
 	void farMarkStandsOnHull();
+	void centredMarkSitsOnFootprint_data();
+	void centredMarkSitsOnFootprint();
+	void markStyleChangePlacesMarkAgain();
 	void nameAvoidsTracks();
 	void spotsOfDiagonalStation();
 	void nameAbovePinInNearLook();
@@ -783,6 +786,95 @@ void TestStationOverlay::farMarkStandsOnHull() {
 	const MarkRig rig = addMarkRig(scene, "Shape", centres);
 	rig.overlay->applyViewScale(0.1, false);
 	QVERIFY(samePoint(frameAnchorInScene(rig), foot));
+}
+
+void TestStationOverlay::centredMarkSitsOnFootprint_data() {
+	QTest::addColumn<int>("style");
+	QTest::addColumn<QList<QPointF>>("centres");
+	QTest::addColumn<QPointF>("centre");
+	const std::pair<StationMarkStyle, const char*> styles[] = {{StationMarkStyle::RingAndBar, "ring and bar"},
+		{StationMarkStyle::ClassMarks, "class mark"}, {StationMarkStyle::PlainDot, "plain dot"}};
+	for (const auto& [style, name] : styles) {
+		const int value = static_cast<int>(style);
+		QTest::addRow("a %s on one node", name) << value << QList<QPointF>{QPointF(0.0, 0.0)} << QPointF(0.0, 0.0);
+		QTest::addRow("a %s on the middle of a row of nodes", name)
+			<< value << QList<QPointF>{QPointF(0.0, 0.0), QPointF(40.0, 0.0), QPointF(80.0, 0.0)} << QPointF(40.0, 0.0);
+		QTest::addRow("a %s on the middle of a stack of nodes", name)
+			<< value << QList<QPointF>{QPointF(0.0, 40.0), QPointF(0.0, 0.0)} << QPointF(0.0, 20.0);
+		QTest::addRow("a %s on the middle of the box of a triangle of nodes", name)
+			<< value << QList<QPointF>{QPointF(0.0, 0.0), QPointF(0.0, 40.0), QPointF(40.0, 40.0)} << QPointF(20.0, 20.0);
+	}
+}
+
+// A station takes the style of the station marks of its NetworkScene. The mark of a centred style has the centre of its
+// frame on the centre of the footprint of the squares, and its name sits under it, clear of the mark, or above it when a
+// track crosses the spot under it. A click on the mark picks the station, a click in a corner of its frame does not.
+void TestStationOverlay::centredMarkSitsOnFootprint() {
+	QFETCH(int, style);
+	QFETCH(QList<QPointF>, centres);
+	QFETCH(QPointF, centre);
+	const auto markStyle = static_cast<StationMarkStyle>(style);
+	NetworkScene scene(nullptr);
+	scene.setStationMarkStyle(markStyle);
+	QGraphicsView view(&scene);
+	view.resize(400, 300);
+	const QTransform far = QTransform::fromScale(0.1, 0.1);
+	view.setTransform(far);
+	const MarkRig rig = addMarkRig(scene, "Centred", centres);
+	// The station takes the style of its scene.
+	QCOMPARE(rig.overlay->markStyle(), markStyle);
+	QCOMPARE(rig.mark->style(), markStyle);
+	rig.overlay->applyViewScale(0.1, false);
+	StationOverlayItem::resolveNameCollisions({rig.overlay}, far);
+	// The mark is centred on the footprint of the squares.
+	QVERIFY(samePoint(rig.mark->mapToScene(QPointF(15.0, 15.0)), centre));
+	// Its name sits under it, centred on it.
+	const QRectF mark = rig.mark->mapRectToScene(rig.mark->boundingRect());
+	const QRectF under = rig.name->sceneBoundingRect();
+	QCOMPARE_GT(under.top(), mark.bottom());
+	QCOMPARE_LT(std::abs(under.center().x() - centre.x()), 1e-6);
+	// A name whose spot under the mark crosses a track goes above the mark.
+	scene.addItem(new TrackLineItem(QLineF(-2000.0, under.center().y(), 2000.0, under.center().y())));
+	rig.overlay->applyViewScale(0.2, false);
+	rig.overlay->applyViewScale(0.1, false);
+	StationOverlayItem::resolveNameCollisions({rig.overlay}, far);
+	QCOMPARE_LT(rig.name->sceneBoundingRect().bottom(), mark.top());
+	// A click on the mark, a fifth of its frame above the centre, picks the station; a click in a corner of the frame,
+	// beside the mark, picks nothing.
+	const StationNodeItem* picked = nullptr;
+	QObject::connect(&scene, &NetworkScene::MousePressedOnStationNode, [&](StationNodeItem* item) { picked = item; });
+	sendLeftClick(scene, view, rig.mark->mapToScene(QPointF(15.0, 9.0)));
+	QVERIFY2(picked == rig.node, "a click on the mark picks its station");
+	picked = nullptr;
+	sendLeftClick(scene, view, rig.mark->mapToScene(QPointF(1.0, 1.0)));
+	QVERIFY2(!picked, "a click in a corner of the frame of the mark picks nothing");
+}
+
+// A new style of the station marks of the scene applies to the stations that show: the next applyViewScale(), at the same
+// view scale, places the mark by the anchor of the style, with its name, and back.
+void TestStationOverlay::markStyleChangePlacesMarkAgain() {
+	NetworkScene scene(nullptr);
+	const MarkRig rig = addMarkRig(scene, "Switch", {QPointF(0.0, 0.0)});
+	QCOMPARE(rig.overlay->markStyle(), StationMarkStyle::MapPin);
+	rig.overlay->applyViewScale(0.1, false);
+	QVERIFY(samePoint(frameAnchorInScene(rig), QPointF(0.0, 0.0)));
+	const QRectF pinName = rig.name->sceneBoundingRect();
+	const QRectF pinBounds = rig.mark->mapRectToScene(rig.mark->boundingRect());
+	scene.setStationMarkStyle(StationMarkStyle::PlainDot);
+	// The station and its mark take the new style.
+	QCOMPARE(rig.overlay->markStyle(), StationMarkStyle::PlainDot);
+	QCOMPARE(rig.mark->style(), StationMarkStyle::PlainDot);
+	rig.overlay->applyViewScale(0.1, false);
+	// The dot is centred on the node, and its name sits lower, under the dot.
+	QVERIFY(samePoint(rig.mark->mapToScene(QPointF(15.0, 15.0)), QPointF(0.0, 0.0)));
+	QCOMPARE_GT(rig.name->sceneBoundingRect().top(), rig.mark->mapRectToScene(rig.mark->boundingRect()).bottom());
+	QCOMPARE_GT(rig.name->sceneBoundingRect().top(), pinName.top());
+	// Back to the map pin, the pin and its name return to their places.
+	scene.setStationMarkStyle(StationMarkStyle::MapPin);
+	rig.overlay->applyViewScale(0.1, false);
+	QVERIFY(samePoint(frameAnchorInScene(rig), QPointF(0.0, 0.0)));
+	QCOMPARE(rig.name->sceneBoundingRect(), pinName);
+	QCOMPARE(rig.mark->mapRectToScene(rig.mark->boundingRect()), pinBounds);
 }
 
 // A name whose text under the squares crosses a visible track line goes above the mark, then right of the squares,

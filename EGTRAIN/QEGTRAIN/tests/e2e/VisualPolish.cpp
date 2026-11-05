@@ -71,6 +71,8 @@
 #include <QSet>
 #include <QSize>
 #include <QStatusBar>
+#include <QStyle>
+#include <QStyleOption>
 #include <QString>
 #include <QStringList>
 #include <QThread>
@@ -93,6 +95,11 @@ namespace {
 constexpr qreal kSignalDetailZoom = 8.0;
 
 } // namespace
+
+// Exported by Qt Gui and declared by QtTest: a mouse event that goes through the window system, so that the widget
+// under the point takes it, as with a click of the mouse.
+Q_GUI_EXPORT void qt_handleMouseEvent(QWindow* window, const QPointF& local, const QPointF& global, Qt::MouseButtons state,
+	Qt::MouseButton button, QEvent::Type type, Qt::KeyboardModifiers mods, int timestamp);
 
 // Checks the controls and the look of a live run on the canvas: the command bar with its Tab order, sizes and icons, the
 // docks, the speed controls, the map key, the selection cues, the signal heads, the layer toggles, the context menus, the
@@ -1169,6 +1176,43 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	const auto layerToggle = [&w](const char* objectName) {
 		return w.findChild<QCheckBox*>(objectName);
 	};
+	// The box of a check box where its style puts it, in the coordinates of the check box.
+	const auto boxRect = [](const QCheckBox* box) {
+		QStyleOptionButton option;
+		option.initFrom(box);
+		option.text = box->text();
+		option.state |= box->isChecked() ? QStyle::State_On : QStyle::State_Off;
+		return box->style()->subElementRect(QStyle::SE_CheckBoxIndicator, &option, box);
+	};
+	// Toggles a layer check box with a click on the centre of its box, delivered as a click of the mouse to the widget
+	// under that point. A box that does not toggle is a failure that names the widget under the point, and it is then
+	// toggled directly, so that the checks of its layer still run.
+	int clickTime = 0;
+	const auto toggleFromBox = [&w, &ok, &failures, &clickTime, &boxRect](QCheckBox* box) {
+		if (auto* area = w.findChild<QScrollArea*>(QStringLiteral("caseLayersScroll")))
+			area->ensureWidgetVisible(box);
+		const QPoint centre = boxRect(box).center();
+		QWidget* top = box->window();
+		const QWidget* under = top->childAt(box->mapTo(top, centre));
+		const bool before = box->isChecked();
+		if (QWindow* window = top->windowHandle()) {
+			const QPointF global = box->mapToGlobal(QPointF(centre));
+			const QPointF local = window->mapFromGlobal(global);
+			// A second apart, so that no press counts as a double click.
+			qt_handleMouseEvent(window, local, global, Qt::LeftButton, Qt::LeftButton, QEvent::MouseButtonPress,
+				Qt::NoModifier, clickTime += 1000);
+			qt_handleMouseEvent(window, local, global, Qt::NoButton, Qt::LeftButton, QEvent::MouseButtonRelease,
+				Qt::NoModifier, clickTime += 1000);
+		}
+		if (box->isChecked() == before) {
+			ok = false;
+			failures << QString("a click on the centre (%1, %2) of the box of %3 did not toggle it; the widget there is %4")
+							.arg(centre.x())
+							.arg(centre.y())
+							.arg(box->text(), under ? QString::fromLatin1(under->metaObject()->className()) + " " + under->objectName() : QStringLiteral("none"));
+			box->setChecked(!before);
+		}
+	};
 	QCheckBox* stationLayer = layerToggle("layerStationsPlatforms");
 	QCheckBox* stationNames = layerToggle("layerStationNames");
 	QCheckBox* trainLayer = layerToggle("layerTrains");
@@ -1188,17 +1232,34 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		ok = false;
 		failures << "required layer controls are missing";
 	} else {
+		// macOS draws the box of a check box at its top left, whatever margin a style sheet gives the check box, while
+		// the click rect moves with that margin. So every layer box has its box at the same place in its check box, and
+		// the two secondary layers are indented by the layout, 16 pixels under their parent layer.
+		for (const QCheckBox* box : {stationNames, trainLayer, trainSpeedLabels, signalLayer, passengerLayer})
+			if (boxRect(box) != boxRect(stationLayer)) {
+				ok = false;
+				failures << QString("the box of %1 is not at the place of the box of the other layers").arg(box->text());
+			}
+		const auto indent = [](const QWidget* box, const QWidget* parentLayer) {
+			return box->mapToGlobal(QPoint()).x() - parentLayer->mapToGlobal(QPoint()).x();
+		};
+		if (indent(stationNames, stationLayer) != 16 || indent(trainSpeedLabels, trainLayer) != 16) {
+			ok = false;
+			failures << QString("the secondary layers are indented by %1 and %2 pixels instead of 16")
+							.arg(indent(stationNames, stationLayer))
+							.arg(indent(trainSpeedLabels, trainLayer));
+		}
 		// Checkbox slots run synchronously. Do not deliver unrelated simulation
 		// frames between the ownership counts for this layer-only assertion.
 		// The clicked train is on the canvas; the first train of the run may have left the network.
 		const int initialItems = w.scene ? w.scene->items().size() : 0;
 		const bool initialTrainVisible = selectedTrain && selectedTrain->isVisible();
-		trainLayer->setChecked(!trainLayer->isChecked());
+		toggleFromBox(trainLayer);
 		if (!selectedTrain || selectedTrain->isVisible() == initialTrainVisible) {
 			ok = false;
 			failures << "train layer toggle is not functional";
 		}
-		trainLayer->setChecked(!trainLayer->isChecked());
+		toggleFromBox(trainLayer);
 		if (w.scene && w.scene->items().size() != initialItems) {
 			ok = false;
 			failures << "train layer toggle changed scene ownership";
@@ -1211,13 +1272,15 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			initiallyVisible.reserve(items.size());
 			for (auto* item : items)
 				initiallyVisible.push_back(item && item->isVisible());
-			layer->setChecked(false);
+			if (initiallyChecked)
+				toggleFromBox(layer);
 			QApplication::processEvents();
 			if (std::any_of(items.cbegin(), items.cend(), [](auto* item) { return item && item->isVisible(); })) {
 				ok = false;
 				failures << QString("%1 layer did not hide its items").arg(name);
 			}
-			layer->setChecked(initiallyChecked);
+			if (layer->isChecked() != initiallyChecked)
+				toggleFromBox(layer);
 			QApplication::processEvents();
 			bool restored = true;
 			int index = 0;
@@ -1239,13 +1302,13 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		} else {
 			StationOverlayItem* station = w.m_presenter->stationOverlays().first();
 			const bool stationVisible = station && station->isVisible();
-			stationNames->setChecked(false);
+			toggleFromBox(stationNames);
 			QApplication::processEvents();
 			if (!station || station->isLabelVisible() || station->isVisible() != stationVisible) {
 				ok = false;
 				failures << "station-name toggle changed the station object";
 			}
-			stationNames->setChecked(true);
+			toggleFromBox(stationNames);
 		}
 		if (PresenterAccess::trainBadges(*w.m_presenter).isEmpty()) {
 			ok = false;
@@ -1253,13 +1316,13 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		} else {
 			TrainBadgeItem* badge = PresenterAccess::trainBadges(*w.m_presenter).first();
 			const bool badgeVisible = badge && badge->isVisible();
-			trainSpeedLabels->setChecked(false);
+			toggleFromBox(trainSpeedLabels);
 			QApplication::processEvents();
 			if (!badge || badge->isSpeedVisible() || badge->isVisible() != badgeVisible) {
 				ok = false;
 				failures << "train speed-label toggle changed the train object";
 			}
-			trainSpeedLabels->setChecked(true);
+			toggleFromBox(trainSpeedLabels);
 		}
 		checkItemLayer(signalLayer, PresenterAccess::signalDecorations(*w.m_presenter), "signal groups");
 		QList<QGraphicsItem*> passengerItems;

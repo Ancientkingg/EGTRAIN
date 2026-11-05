@@ -199,10 +199,10 @@ Closing the window, **New Case...**, the open commands and **Import Legacy Case.
 **Edit > Settings...** opens the window **Settings**. On macOS the entry is in the **EGTRAIN** menu (Command+,). The window holds the settings that apply to every case:
 
 - **General**: the recent cases that **File > Recent Cases** and **Open a Case** offer, and **Clear Recent Cases**.
-- **Display**: **Show passengers**, the same switch as **View > Passengers**, and **Show advanced details**, the same as **View > Advanced Details**.
+- **Display**: **Show passengers**, the same switch as **View > Passengers**, **Show advanced details**, the same as **View > Advanced Details**, and **Station marks**, the look of the stations on the canvas and in the map key: **Map pin**, a pin that stands on the station, or **Ring and bar**, **Class marks** or **Plain dot**, which sit on the station. Plain dot tells the station classes apart by size only.
 - **Updates and privacy**: **Automatically check for updates**, the same as the Help entry, and the two choices of **Help > Privacy & diagnostics...**. A build that collects nothing shows them disabled.
 
-**OK** saves the changes, and the menu entries show them at once. **Restore Defaults** clears the recent cases and turns every switch off; EGTRAIN then asks about automatic update checks again at the next start. It too takes effect with **OK**. The settings of the open case, such as its base time and duration, are in **Case Settings**.
+**OK** saves the changes, and the menu entries, the canvas and the map key show them at once. **Restore Defaults** clears the recent cases, turns every switch off and sets **Station marks** to **Map pin**; EGTRAIN then asks about automatic update checks again at the next start. It too takes effect with **OK**. The settings of the open case, such as its base time and duration, are in **Case Settings**.
 
 ## If EGTRAIN closes unexpectedly
 

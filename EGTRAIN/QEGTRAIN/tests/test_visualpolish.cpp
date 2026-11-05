@@ -146,6 +146,43 @@ static QString pinColours(const QImage& image) {
 	return colours;
 }
 
+// The colour class of a pixel of a station mark: W light, B the blue of a major station, D dark as the halo, T
+// transparent, ? anything else such as an edge that antialiasing blends.
+static char markPixelClass(const QImage& image, const QPoint& point) {
+	const QColor colour = image.pixelColor(point);
+	if (colour.alpha() == 0)
+		return 'T';
+	if (colour.alpha() < 255)
+		return '?';
+	if (colour.lightness() > 200)
+		return 'W';
+	if (colour.lightness() < 50)
+		return 'D';
+	return colour.blue() > colour.red() + 80 ? 'B' : '?';
+}
+
+// The classes of the pixels of image at points, in their order.
+static QByteArray markPixelClasses(const QImage& image, const QList<QPoint>& points) {
+	QByteArray row;
+	for (const QPoint& point : points)
+		row.append(markPixelClass(image, point));
+	return row;
+}
+
+// The WCAG contrast ratio of two colours, from 1 to 21.
+static double contrastRatio(const QColor& first, const QColor& second) {
+	const auto luminance = [](const QColor& colour) {
+		const auto channel = [](double value) {
+			value /= 255.0;
+			return value <= 0.03928 ? value / 12.92 : std::pow((value + 0.055) / 1.055, 2.4);
+		};
+		return 0.2126 * channel(colour.red()) + 0.7152 * channel(colour.green()) + 0.0722 * channel(colour.blue());
+	};
+	const double a = luminance(first);
+	const double b = luminance(second);
+	return (std::max(a, b) + 0.05) / (std::min(a, b) + 0.05);
+}
+
 // The colours, line styles, icons and marks with which the network view shows tracks, signals, trains and stations.
 class TestVisualPolish : public QObject {
 	Q_OBJECT
@@ -162,6 +199,11 @@ private slots:
 	void stationClasses();
 	void stationPins_data();
 	void stationPins();
+	void stationMarkStyles_data();
+	void stationMarkStyles();
+	void stationMarksReadableAtSmallestSize();
+	void ringAndBarFillsMajorDisc();
+	void stationMarksFillTheirArea();
 	void stationMenuIcons_data();
 	void stationMenuIcons();
 	void stationSquares();
@@ -373,86 +415,259 @@ void TestVisualPolish::stationPins() {
 	QFETCH(int, cls);
 	QFETCH(qreal, size);
 	QFETCH(QByteArray, expected);
-	// The colour class of a pixel of a mark painted white with a black halo: W white, B the blue of a major station, D the
-	// halo, T transparent, ? anything else such as an edge that antialiasing blends.
-	const auto pixelClass = [](const QImage& image, int x, int y) {
-		const QColor colour = image.pixelColor(x, y);
-		if (colour.alpha() == 0)
-			return 'T';
-		if (colour.alpha() < 255)
-			return '?';
-		if (colour.lightness() > 200)
-			return 'W';
-		if (colour.lightness() < 50)
-			return 'D';
-		return colour.blue() > colour.red() + 80 ? 'B' : '?';
-	};
-	const auto probeRow = [&pixelClass](const QImage& image, const QList<QPoint>& points) {
-		QByteArray row;
-		for (const QPoint& point : points)
-			row.append(pixelClass(image, point.x(), point.y()));
-		return row;
-	};
 	const int head = qRound(72.0 - 0.78 * 48.0 * size);
 	const int radius = qRound(0.3 * 48.0 * size);
 	QImage mark(64, 80, QImage::Format_ARGB32_Premultiplied);
 	mark.fill(Qt::transparent);
 	{
 		QPainter painter(&mark);
-		paintStationMark(&painter, QRectF(8.0, 24.0, 48.0, 48.0), static_cast<StationClass>(cls), Qt::white, Qt::black, 4.0);
+		paintStationMark(&painter, QRectF(8.0, 24.0, 48.0, 48.0), static_cast<StationClass>(cls), StationMarkStyle::MapPin,
+			Qt::white, Qt::black, 4.0);
 	}
 	const QList<QPoint> pinPoints{{32, head}, {32, head + radius * 7 / 10}, {33 - radius, head},
 		{32, head - radius - 2}, {32, 74}, {24, 74}, {40, 74}, {32, 78}};
-	QCOMPARE(probeRow(mark, pinPoints), expected);
+	QCOMPARE(markPixelClasses(mark, pinPoints), expected);
+	// A pin stands on the station with its tip.
+	QCOMPARE(stationMarkAnchor(QRectF(8.0, 24.0, 48.0, 48.0), StationMarkStyle::MapPin), QPointF(32.0, 72.0));
+}
+
+// The marks of the centred styles in the frame (8, 24, 48, 48) with a halo of 4, so at twice the pixel size, centred on
+// (32, 48). The probes of each style go out from the centre; see the comment of each row.
+void TestVisualPolish::stationMarkStyles_data() {
+	QTest::addColumn<int>("style");
+	QTest::addColumn<int>("cls");
+	QTest::addColumn<QList<QPoint>>("points");
+	QTest::addColumn<QByteArray>("expected");
+	const auto row = [](const char* name, StationMarkStyle style, StationClass cls, const QList<QPoint>& points,
+						 const char* expected) {
+		QTest::newRow(name) << static_cast<int>(style) << static_cast<int>(cls) << points << QByteArray(expected);
+	};
+	// Ring and bar, outer radius 17.3 and ring width 5.8: the centre, 9 above it in the hole of a ring, 14 above it on the
+	// ring, and 24 left of it on the bar, which is 49 long and 10 high.
+	const QList<QPoint> ring{{32, 48}, {32, 39}, {32, 34}, {8, 48}};
+	row("ring and bar, major station: a blue disc with the bar", StationMarkStyle::RingAndBar, StationClass::Major, ring, "BBWB");
+	row("ring and bar, station: a ring with the bar", StationMarkStyle::RingAndBar, StationClass::Station, ring, "BDWB");
+	row("ring and bar, halt: a ring without the bar", StationMarkStyle::RingAndBar, StationClass::Halt, ring, "TDWT");
+	// Class marks: the centre, 8 above it, 16 left of it and 22 above it. The bar of a major station is 15.4 wide and 38.4
+	// high, the disc of a station has a radius of 16.8 and the ring of a halt a hole of radius 9.1.
+	const QList<QPoint> marks{{32, 48}, {32, 40}, {16, 48}, {32, 26}};
+	row("class marks, major station: an upright bar", StationMarkStyle::ClassMarks, StationClass::Major, marks, "WWTD");
+	row("class marks, station: a disc", StationMarkStyle::ClassMarks, StationClass::Station, marks, "WWWT");
+	row("class marks, halt: a ring", StationMarkStyle::ClassMarks, StationClass::Halt, marks, "TDWT");
+	// Plain dot, of radius 9.6, 13.4 and 17.3: the centre and 11, 15 and 19 above it.
+	const QList<QPoint> dots{{32, 48}, {32, 37}, {32, 33}, {32, 29}};
+	row("plain dot, major station: the largest dot", StationMarkStyle::PlainDot, StationClass::Major, dots, "WWWD");
+	row("plain dot, station: a smaller dot", StationMarkStyle::PlainDot, StationClass::Station, dots, "WWDT");
+	row("plain dot, halt: the smallest dot", StationMarkStyle::PlainDot, StationClass::Halt, dots, "WDTT");
+}
+
+// The marks of the other styles are centred on the station, in the light colour of the marks with a dark halo, and a
+// blue bar and the blue disc of a major station in a ring and bar. None is red or green. The click target is the mark
+// with the hole of a ring, and not the corners of the frame.
+void TestVisualPolish::stationMarkStyles() {
+	QFETCH(int, style);
+	QFETCH(int, cls);
+	QFETCH(QList<QPoint>, points);
+	QFETCH(QByteArray, expected);
+	const auto markStyle = static_cast<StationMarkStyle>(style);
+	const auto stationClass = static_cast<StationClass>(cls);
+	const QRectF frame(8.0, 24.0, 48.0, 48.0);
+	QImage mark(64, 96, QImage::Format_ARGB32_Premultiplied);
+	mark.fill(Qt::transparent);
+	{
+		QPainter painter(&mark);
+		paintStationMark(&painter, frame, stationClass, markStyle, stationMarkFill(), canvasColor(), 4.0);
+	}
+	QCOMPARE(markPixelClasses(mark, points), expected);
+	// No pixel of a mark is red or green.
+	int redOrGreen = 0;
+	for (int y = 0; y < mark.height(); ++y)
+		for (int x = 0; x < mark.width(); ++x) {
+			const QColor colour = mark.pixelColor(x, y);
+			const int r = colour.red(), g = colour.green(), b = colour.blue();
+			redOrGreen += colour.alpha() > 0 && ((r > g + 40 && r > b + 40) || (g > r + 40 && g > b + 40));
+		}
+	QCOMPARE(redOrGreen, 0);
+	// The mark is centred on the station, and what it paints too.
+	QCOMPARE(stationMarkAnchor(frame, markStyle), frame.center());
+	const QRectF bounds = stationMarkBounds(frame, stationClass, markStyle, 4.0);
+	QCOMPARE_LT(QLineF(bounds.center(), frame.center()).length(), 1e-9);
+	// The click target holds the centre, also of a ring, and lies inside the bounds; a corner of the frame is no part of it.
+	const QPainterPath shape = stationMarkShape(frame, stationClass, markStyle, 4.0);
+	QVERIFY(shape.contains(frame.center()));
+	QVERIFY(!shape.contains(frame.topLeft() + QPointF(2.0, 2.0)));
+	QVERIFY(bounds.contains(shape.boundingRect()));
+}
+
+// In a ring and bar a major station is a filled disc and a station a ring, both crossed by the bar. At the smallest size
+// on the canvas, a frame of 24 pixels with a halo of 2, on the canvas and on the light panel of the map key, the inside
+// of the ring above and below the bar is a fill for a major station that stands out by 3:1 from the background and from
+// what the ring of a station shows there.
+void TestVisualPolish::ringAndBarFillsMajorDisc() {
+	const QRectF frame(8.0, 16.0, 24.0, 24.0);
+	for (const QColor& background : {canvasColor(), QColor(239, 239, 239)}) {
+		// The pixels halfway between the bar, 0.105 of the frame from the centre, and the inner edge of the ring at 0.24.
+		QList<QColor> major;
+		QList<QColor> station;
+		for (const StationClass cls : {StationClass::Major, StationClass::Station}) {
+			QImage image(40, 56, QImage::Format_ARGB32_Premultiplied);
+			image.fill(background);
+			{
+				QPainter painter(&image);
+				paintStationMark(&painter, frame, cls, StationMarkStyle::RingAndBar, stationMarkFill(), canvasColor(), 2.0);
+			}
+			for (const qreal offset : {-0.1725, 0.1725}) {
+				const QPointF point = frame.center() + QPointF(0.0, offset * frame.height());
+				(cls == StationClass::Major ? major : station)
+					.append(image.pixelColor(static_cast<int>(point.x()), static_cast<int>(point.y())));
+			}
+		}
+		for (qsizetype index = 0; index < major.size(); ++index) {
+			const QString what = QStringLiteral("on %1, %2 the bar: major %3, station %4")
+									 .arg(background.name(), index == 0 ? QStringLiteral("above") : QStringLiteral("below"),
+										 major.at(index).name(), station.at(index).name());
+			QVERIFY2(contrastRatio(major.at(index), background) >= 3.0, qPrintable(what));
+			QVERIFY2(contrastRatio(major.at(index), station.at(index)) >= 3.0, qPrintable(what));
+		}
+	}
+}
+
+// In a swatch of the map key and in a menu icon, the mark of a major station with its halo is as tall or as wide as the
+// area, so the marks are as large as fits, and the mark of every class fits inside the area.
+void TestVisualPolish::stationMarksFillTheirArea() {
+	const std::pair<QRectF, qreal> areas[] = {{QRectF(1.0, 1.0, 44.0, 16.0), 1.0}, {QRectF(0.0, 0.0, 32.0, 32.0), 2.0}};
+	for (const StationMarkStyle style : {StationMarkStyle::MapPin, StationMarkStyle::RingAndBar, StationMarkStyle::ClassMarks,
+			 StationMarkStyle::PlainDot})
+		for (const auto& [area, halo] : areas)
+			for (const StationClass cls : {StationClass::Halt, StationClass::Station, StationClass::Major}) {
+				const QRectF painted = stationMarkBounds(stationMarkFrameIn(area, cls, style, halo), cls, style, halo);
+				const QString what = QStringLiteral("style %1, class %2, area %3 by %4: %5 by %6 painted")
+										 .arg(static_cast<int>(style))
+										 .arg(static_cast<int>(cls))
+										 .arg(area.width())
+										 .arg(area.height())
+										 .arg(painted.width())
+										 .arg(painted.height());
+				QVERIFY2(area.adjusted(-1e-9, -1e-9, 1e-9, 1e-9).contains(painted), qPrintable(what));
+				const bool fills = std::abs(painted.height() - area.height()) < 1e-9
+					|| std::abs(painted.width() - area.width()) < 1e-9;
+				if (cls == StationClass::Major)
+					QVERIFY2(fills, qPrintable(what));
+			}
+}
+
+// At the smallest size of a mark on the canvas, a frame of 24 pixels with a halo of 2, the light or blue part of the mark
+// of every class in every style is at least 8 pixels wide, and the three classes look different.
+void TestVisualPolish::stationMarksReadableAtSmallestSize() {
+	for (const StationMarkStyle style : {StationMarkStyle::MapPin, StationMarkStyle::RingAndBar, StationMarkStyle::ClassMarks,
+			 StationMarkStyle::PlainDot}) {
+		QList<QImage> images;
+		for (const StationClass cls : {StationClass::Halt, StationClass::Station, StationClass::Major}) {
+			QImage image(40, 48, QImage::Format_ARGB32_Premultiplied);
+			image.fill(canvasColor());
+			{
+				QPainter painter(&image);
+				paintStationMark(&painter, QRectF(8.0, 16.0, 24.0, 24.0), cls, style, stationMarkFill(), canvasColor(), 2.0);
+			}
+			int left = image.width();
+			int right = -1;
+			for (int y = 0; y < image.height(); ++y)
+				for (int x = 0; x < image.width(); ++x)
+					if (const QColor colour = image.pixelColor(x, y); colour.lightness() > 120) {
+						left = std::min(left, x);
+						right = std::max(right, x);
+					}
+			const QString what = QStringLiteral("style %1, class %2").arg(static_cast<int>(style)).arg(static_cast<int>(cls));
+			QVERIFY2(right - left + 1 >= 8, qPrintable(what));
+			images.append(image);
+		}
+		// Any two classes differ in at least 20 pixels.
+		for (qsizetype first = 0; first < images.size(); ++first)
+			for (qsizetype second = first + 1; second < images.size(); ++second) {
+				int differing = 0;
+				for (int y = 0; y < images.at(first).height(); ++y)
+					for (int x = 0; x < images.at(first).width(); ++x) {
+						const QColor a = images.at(first).pixelColor(x, y);
+						const QColor b = images.at(second).pixelColor(x, y);
+						differing += std::abs(a.lightness() - b.lightness()) > 60 || std::abs(a.blue() - b.blue()) > 60;
+					}
+				QVERIFY2(differing >= 20, qPrintable(QStringLiteral("style %1").arg(static_cast<int>(style))));
+			}
+	}
 }
 
 void TestVisualPolish::stationMenuIcons_data() {
+	QTest::addColumn<int>("styleValue");
 	QTest::addColumn<int>("classValue");
-	QTest::newRow("major station") << static_cast<int>(StationClass::Major);
-	QTest::newRow("station") << static_cast<int>(StationClass::Station);
-	QTest::newRow("halt") << static_cast<int>(StationClass::Halt);
+	QTest::addColumn<bool>("blue");
+	const std::pair<StationMarkStyle, const char*> styles[] = {{StationMarkStyle::MapPin, "map pin"},
+		{StationMarkStyle::RingAndBar, "ring and bar"}, {StationMarkStyle::ClassMarks, "class marks"},
+		{StationMarkStyle::PlainDot, "plain dot"}};
+	const std::pair<StationClass, const char*> classes[] = {{StationClass::Major, "major station"},
+		{StationClass::Station, "station"}, {StationClass::Halt, "halt"}};
+	for (const auto& [style, styleName] : styles)
+		for (const auto& [cls, className] : classes) {
+			// Blue is the pin of a major station and the bar and the disc of a ring and bar.
+			const bool blue = (style == StationMarkStyle::MapPin && cls == StationClass::Major)
+				|| (style == StationMarkStyle::RingAndBar && cls != StationClass::Halt);
+			QTest::addRow("%s, %s", styleName, className) << static_cast<int>(style) << static_cast<int>(cls) << blue;
+		}
 }
 
-// The menu icon fits the whole pin with its halo and centres it: the outer columns stay empty, and the outer rows hold
-// at most the dark halo, so that a pin cut at its top or its tip shows there. Only the pin of a major station is blue.
-// At 32 pixels it has the colours of the pin of its class on the canvas.
+// The menu icon fits the whole mark with its halo and centres it: the outer rows and columns hold at most the dark halo,
+// so that a mark cut at an edge shows there, and the outer columns of a pin, which is taller than wide, stay empty.
+// Blue shows only on the pin of a major station and on the bar and the disc of a ring and bar. At 32 pixels it has the
+// colours of the mark of its class and style on the canvas.
 void TestVisualPolish::stationMenuIcons() {
+	QFETCH(int, styleValue);
 	QFETCH(int, classValue);
+	QFETCH(bool, blue);
+	const auto style = static_cast<StationMarkStyle>(styleValue);
 	const auto cls = static_cast<StationClass>(classValue);
 	for (const int size : {16, 32}) {
-		const QImage icon = stationMarkIcon(cls).pixmap(QSize(size, size)).toImage();
+		const QImage icon = stationMarkIcon(cls, style).pixmap(QSize(size, size)).toImage();
 		const QRectF area(0.0, 0.0, size, size);
-		const QRectF painted = stationMarkBounds(stationMarkFrameIn(area, cls, size / 16.0), cls, size / 16.0);
-		// Next to nothing, or dark as the halo: the pins are light or blue where they meet the halo.
+		const QRectF painted = stationMarkBounds(stationMarkFrameIn(area, cls, style, size / 16.0), cls, style, size / 16.0);
+		// Next to nothing, or dark as the halo: the marks are light or blue where they meet the halo.
 		const auto halo = [](const QColor& colour) { return colour.alpha() <= 8 || colour.value() < 96; };
-		bool edgesEmpty = icon.width() == size && icon.height() == size;
-		bool blue = false;
-		for (int y = 0; y < icon.height(); ++y) {
-			edgesEmpty = edgesEmpty && icon.pixelColor(0, y).alpha() == 0
-				&& icon.pixelColor(icon.width() - 1, y).alpha() == 0;
+		bool edgesHalo = icon.width() == size && icon.height() == size;
+		bool columnsEmpty = edgesHalo;
+		bool anyBlue = false;
+		for (int y = 0; y < icon.height(); ++y)
 			for (int x = 0; x < icon.width(); ++x) {
-				blue = blue || icon.pixelColor(x, y) == QColor(80, 120, 210);
-				if (y == 0 || y == icon.height() - 1)
-					edgesEmpty = edgesEmpty && halo(icon.pixelColor(x, y));
+				const QColor colour = icon.pixelColor(x, y);
+				anyBlue = anyBlue || colour == QColor(80, 120, 210);
+				const bool column = x == 0 || x == icon.width() - 1;
+				if (column || y == 0 || y == icon.height() - 1)
+					edgesHalo = edgesHalo && halo(colour);
+				if (column)
+					columnsEmpty = columnsEmpty && colour.alpha() == 0;
 			}
-		}
-		// The menu icon shows the whole pin, centred, blue only for a major station.
-		QVERIFY2(edgesEmpty, qPrintable(QStringLiteral("at %1 pixels").arg(size)));
-		QCOMPARE(blue, cls == StationClass::Major);
-		QVERIFY2(area.adjusted(-0.01, -0.01, 0.01, 0.01).contains(painted), qPrintable(QStringLiteral("at %1 pixels").arg(size)));
+		// The menu icon shows the whole mark, centred, blue only on a major pin and on a ring and bar with its bar.
+		const QString at = QStringLiteral("at %1 pixels").arg(size);
+		QVERIFY2(edgesHalo, qPrintable(at));
+		if (style == StationMarkStyle::MapPin)
+			QVERIFY2(columnsEmpty, qPrintable(at));
+		QCOMPARE(anyBlue, blue);
+		QVERIFY2(area.adjusted(-0.01, -0.01, 0.01, 0.01).contains(painted), qPrintable(at));
 		QCOMPARE_LT(QLineF(painted.center(), area.center()).length(), 0.01);
 	}
-	StationMarkItem canvasPin(cls, 60);
+	StationMarkItem canvasMark(cls, 60);
+	canvasMark.setStyle(style);
 	QImage canvas(100, 100, QImage::Format_ARGB32_Premultiplied);
 	canvas.fill(Qt::transparent);
 	{
 		QPainter painter(&canvas);
 		painter.translate(20.0, 20.0);
-		canvasPin.paint(&painter, nullptr, nullptr);
+		canvasMark.paint(&painter, nullptr, nullptr);
 	}
-	const QImage icon = stationMarkIcon(cls).pixmap(QSize(32, 32)).toImage();
-	// The menu icon has the colours of the pin of its class on the canvas.
-	QCOMPARE(pinColours(icon), pinColours(canvas));
+	const QImage icon = stationMarkIcon(cls, style).pixmap(QSize(32, 32)).toImage();
+	// The menu icon has the colours of the mark of its class on the canvas. The main colour of a pin is the same too; that
+	// of a thin ring depends on the width of the halo, which does not grow with the mark.
+	if (style == StationMarkStyle::MapPin)
+		QCOMPARE(pinColours(icon), pinColours(canvas));
+	else
+		QCOMPARE(pinColours(icon).section(QLatin1Char(' '), 1), pinColours(canvas).section(QLatin1Char(' '), 1));
 }
 
 void TestVisualPolish::stationSquares() {

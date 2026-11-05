@@ -245,7 +245,6 @@ QTreeView::indicator:checked:disabled {
 
 QCheckBox[secondaryLayerToggle="true"] {
     color: #5b6871;
-    margin-left: 16px;
 }
 
 QCheckBox:disabled {

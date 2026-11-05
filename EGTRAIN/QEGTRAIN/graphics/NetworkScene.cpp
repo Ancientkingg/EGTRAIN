@@ -1,5 +1,7 @@
 #include "graphics/NetworkScene.h"
 
+#include "graphics/items/StationOverlayItem.h"
+
 #include <QApplication>
 #include <QGraphicsView>
 #include <QPainterPath>
@@ -34,6 +36,13 @@ NetworkScene::NetworkScene(QObject* parent)
 }
 
 NetworkScene::~NetworkScene() {
+}
+
+void NetworkScene::setStationMarkStyle(StationMarkStyle style) {
+	m_stationMarkStyle = style;
+	for (QGraphicsItem* item : items())
+		if (auto* station = qgraphicsitem_cast<StationOverlayItem*>(item))
+			station->setMarkStyle(style);
 }
 
 QTransform NetworkScene::viewTransformFor(QWidget* widget) const {

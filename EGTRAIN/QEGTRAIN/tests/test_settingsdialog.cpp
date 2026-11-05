@@ -1,5 +1,6 @@
 #include "widgets/SettingsDialog.h"
 
+#include "graphics/VisualPolish.h"
 #include "telemetry/TelemetryConsent.h"
 #include "update/UpdateSettings.h"
 #include "widgets/DisplayPath.h"
@@ -7,6 +8,7 @@
 #include <QAbstractScrollArea>
 #include <QApplication>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QDialogButtonBox>
 #include <QListWidget>
 #include <QPushButton>
@@ -46,6 +48,7 @@ class TestSettingsDialog : public QObject {
 
 private slots:
 	void savesSettingsAndRestoresDefaults();
+	void savesStationMarkStyle();
 	void elidesLongRecentPath();
 };
 
@@ -114,6 +117,69 @@ void TestSettingsDialog::savesSettingsAndRestoresDefaults() {
 		QVERIFY(!consent.usageEnabled());
 		QVERIFY(!consent.diagnosticsEnabled());
 	}
+}
+
+// Station marks in the Display section offers the four styles. A missing or unknown setting shows as Map pin, the window
+// saves the chosen style for the next start, and Restore Defaults sets Map pin again.
+void TestSettingsDialog::savesStationMarkStyle() {
+	QTemporaryDir dir;
+	QVERIFY(dir.isValid());
+	const QString file = dir.filePath(QStringLiteral("settings.ini"));
+	const TelemetryContext context = telemetryContext();
+	const auto marks = [](const SettingsDialog& dialog) {
+		return dialog.findChild<QComboBox*>(QStringLiteral("settingsStationMarks"));
+	};
+	{
+		QSettings settings(file, QSettings::IniFormat);
+		// Without the setting the station marks are map pins.
+		QCOMPARE(readStationMarkStyle(settings), StationMarkStyle::MapPin);
+		settings.setValue(kStationMarkStyleKey, QStringLiteral("roundel"));
+		// An unknown style is a map pin too.
+		QCOMPARE(readStationMarkStyle(settings), StationMarkStyle::MapPin);
+		TelemetryConsent consent(settings, context);
+		SettingsDialog dialog(settings, consent);
+		const QComboBox* box = marks(dialog);
+		if (box == nullptr)
+			QFAIL("the window has no Station marks");
+		QStringList styles;
+		for (int index = 0; index < box->count(); ++index)
+			styles << box->itemText(index);
+		// The four styles are offered, and the window shows a map pin for the unknown style.
+		QCOMPARE(styles, QStringList({"Map pin", "Ring and bar", "Class marks", "Plain dot"}));
+		QCOMPARE(box->currentText(), QStringLiteral("Map pin"));
+	}
+	const std::pair<const char*, StationMarkStyle> choices[] = {{"Ring and bar", StationMarkStyle::RingAndBar},
+		{"Class marks", StationMarkStyle::ClassMarks}, {"Plain dot", StationMarkStyle::PlainDot},
+		{"Map pin", StationMarkStyle::MapPin}};
+	for (const auto& [text, style] : choices) {
+		{
+			QSettings settings(file, QSettings::IniFormat);
+			TelemetryConsent consent(settings, context);
+			SettingsDialog dialog(settings, consent);
+			marks(dialog)->setCurrentText(QString::fromLatin1(text));
+			dialog.accept();
+		}
+		QSettings settings(file, QSettings::IniFormat);
+		// The chosen style is saved.
+		QCOMPARE(readStationMarkStyle(settings), style);
+		TelemetryConsent consent(settings, context);
+		SettingsDialog dialog(settings, consent);
+		// And the window shows it when it opens again.
+		QCOMPARE(marks(dialog)->currentText(), QString::fromLatin1(text));
+	}
+	{
+		QSettings settings(file, QSettings::IniFormat);
+		settings.setValue(kStationMarkStyleKey, QStringLiteral("plainDot"));
+		TelemetryConsent consent(settings, context);
+		SettingsDialog dialog(settings, consent);
+		QCOMPARE(marks(dialog)->currentText(), QStringLiteral("Plain dot"));
+		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::RestoreDefaults)->click();
+		// Restore Defaults sets Map pin, which OK saves.
+		QCOMPARE(marks(dialog)->currentText(), QStringLiteral("Map pin"));
+		dialog.accept();
+	}
+	QSettings settings(file, QSettings::IniFormat);
+	QCOMPARE(readStationMarkStyle(settings), StationMarkStyle::MapPin);
 }
 
 // A recent path wider than the window shows with its middle elided and the whole path as its tooltip, and nothing

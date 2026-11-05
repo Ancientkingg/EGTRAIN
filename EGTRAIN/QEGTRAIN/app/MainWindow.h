@@ -341,6 +341,8 @@ private:
 	void setupWindowIcon();
 	void setupToolBar();
 	void setupLayersDock();
+	// Draws the station marks of the canvas and the map key in the style that settings holds; Settings applies it again.
+	void applyStationMarkStyle(const QSettings& settings);
 	void setupFollowControls();
 	void setupToolBarActions();
 	void setupToolBarButtons();

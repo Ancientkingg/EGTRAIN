@@ -39,6 +39,19 @@ enum class SignalCueKind { Neutral, ///< Any other aspect code: the head is unav
 enum class StationClass { Halt, ///< No platform.
 	Station,					///< At least one platform.
 	Major /**< Three or more connections at its node. */ };
+/// The style of the station marks on the canvas, in the map key and in the menu icons, which the user chooses in the
+/// Settings window. Every style avoids red and green.
+enum class StationMarkStyle {
+	/// A map pin that stands on the station, its class told by size and colour: the default.
+	MapPin,
+	/// Centred on the station: a ring for a halt, crossed by a blue bar for a station, and a disc filled blue within the
+	/// ring with the bar for a major station.
+	RingAndBar,
+	/// Centred on the station: a ring for a halt, a disc for a station and an upright bar for a major station.
+	ClassMarks,
+	/// Centred on the station: a dot, larger for a station and larger again for a major station.
+	PlainDot
+};
 
 /// The look of a track line.
 struct TrackVisual {
@@ -111,22 +124,32 @@ SignalVisual classifySignalAspect(int code);
 SignalCueKind classifySignalCue(int code);
 /// The look of a station node: Major with three or more connections, Station with a platform id, Halt otherwise.
 StationVisual classifyStation(bool hasPlatformId = false, int connectionCount = 0);
-/// Paints the mark of a station class, a map pin with its tip on the bottom centre of frame: a circle of radius 0.3 k
-/// of the side of frame whose centre is 0.78 k of it above the tip, and the two tangents from the tip to the circle. k is
-/// 1 for a station, a pin in fill with a disc of 0.4 of its radius in the halo colour at the centre of the circle; 0.8
-/// for a halt, a pin in the halo colour with an edge of 0.8 haloWidth and a disc of 0.38 of its radius in fill; and 1.15
-/// for a major station, a blue (80, 120, 210) pin with an edge of 0.6 haloWidth and a disc of 0.42 of its radius in
-/// fill. A halo of haloWidth, in the units of the painter, surrounds the mark.
-void paintStationMark(QPainter* painter, const QRectF& frame, StationClass cls, const QColor& fill,
+/// Paints the mark of a station class in style in frame, with a halo of haloWidth, in the units of the painter, around it.
+/// The marks of a map pin have their tip on the bottom centre of frame: a circle of radius 0.3 k of the side of frame
+/// whose centre is 0.78 k of it above the tip, and the two tangents from the tip to the circle. k is 1 for a station, a
+/// pin in fill with a disc of 0.4 of its radius in the halo colour at the centre of the circle; 0.8 for a halt, a pin in
+/// the halo colour with an edge of 0.8 haloWidth and a disc of 0.38 of its radius in fill; and 1.15 for a major station,
+/// a blue (80, 120, 210) pin with an edge of 0.6 haloWidth and a disc of 0.42 of its radius in fill. The marks of the
+/// other styles are centred in frame, in fill. Ring and bar: a ring of outer radius 0.36 and width 0.12 of the side for a
+/// halt; the ring for a station, and for a major station the ring filled with a blue (80, 120, 210) disc, each crossed by
+/// a blue bar 1.02 of the side long and 0.21 high with an edge of 0.75 haloWidth in the halo colour. Class marks: a ring
+/// of radius 0.35 of the side and width 0.16 of it, or haloWidth when that is more, for a halt; a disc of that radius for
+/// a station; and an upright bar 0.32 of the side wide and 0.8 high with rounded corners for a major station. Plain dot:
+/// a dot 0.4 of the side across for a halt, 0.56 for a station and 0.72 for a major station.
+void paintStationMark(QPainter* painter, const QRectF& frame, StationClass cls, StationMarkStyle style, const QColor& fill,
 	const QColor& halo, qreal haloWidth);
+/// The point of frame that stands on the station: the tip of a map pin on the bottom centre of frame, and the centre of
+/// frame for the other styles.
+QPointF stationMarkAnchor(const QRectF& frame, StationMarkStyle style);
 /// The area that paintStationMark() paints, its halo included. The pin of a station or a major station reaches past
-/// the top of frame, and the halo of every pin past its bottom.
-QRectF stationMarkBounds(const QRectF& frame, StationClass cls, qreal haloWidth);
-/// The pin that paintStationMark() paints in frame, its edge included and its halo not.
-QPainterPath stationMarkShape(const QRectF& frame, StationClass cls, qreal haloWidth);
-/// The largest square frame in which paintStationMark() paints the pin of a major station inside area, halo included,
-/// with what it paints for cls centred in area. The pins of the smaller classes keep their smaller size.
-QRectF stationMarkFrameIn(const QRectF& area, StationClass cls, qreal haloWidth);
+/// the top of frame, the halo of every pin past its bottom, and the bar of a ring and bar past its sides.
+QRectF stationMarkBounds(const QRectF& frame, StationClass cls, StationMarkStyle style, qreal haloWidth);
+/// The mark that paintStationMark() paints in frame, the click target: its edges and the hole of a ring included, its
+/// halo not.
+QPainterPath stationMarkShape(const QRectF& frame, StationClass cls, StationMarkStyle style, qreal haloWidth);
+/// The largest square frame in which paintStationMark() paints the mark of every station class of style inside area,
+/// halo included, with what it paints for cls centred in area. The marks of the smaller classes keep their smaller size.
+QRectF stationMarkFrameIn(const QRectF& area, StationClass cls, StationMarkStyle style, qreal haloWidth);
 /// The footprint of a station on its squares at centres for a mark frame of side units, which places the mark and the
 /// name of the station: the box of the centres widened by 0.255 side for a station and 0.265 side for a major station,
 /// and the first centre widened by 0.15 side for a halt; empty without centres.
@@ -136,14 +159,14 @@ QRectF stationFootprintRect(const QList<QPointF>& centres, StationClass cls, qre
 QPainterPath stationAreaShape(const QList<QPointF>& centres, qreal width);
 /// The fill of the area of a station: the blue of the pin of a major station at an alpha of 56 of 255.
 QColor stationAreaColor();
-/// The background of the network canvas, RGB (16, 26, 34). The station pins and names take it as their halo.
+/// The background of the network canvas, RGB (16, 26, 34). The station marks and names take it as their halo.
 QColor canvasColor();
-/// The light colour of the station pins, RGB (232, 238, 242): the pin of a station, and the edge and the dot of the
-/// other pins.
+/// The light colour of the station marks, RGB (232, 238, 242): the pin of a station, the edge and the dot of the other
+/// pins, and the marks of the other styles but their blue parts.
 QColor stationMarkFill();
-/// The mark at 16 and 32 pixels in the colours of the canvas: stationMarkFill() with a halo in canvasColor(), which
-/// outlines the light pin on a light surface.
-QIcon stationMarkIcon(StationClass cls);
+/// The mark of style at 16 and 32 pixels in the colours of the canvas: stationMarkFill() with a halo in canvasColor(),
+/// which outlines the light mark on a light surface.
+QIcon stationMarkIcon(StationClass cls, StationMarkStyle style);
 /// The playback speed for a delay of delayMs milliseconds per simulated second, as a factor of real time:
 /// 1000 / delayMs with an "x", whole from 10x and with one decimal below. "Fastest" for a delay of 0 or less.
 QString simulationSpeedLabel(int delayMs);
