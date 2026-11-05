@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -215,6 +216,7 @@ class TestLiveServer : public QObject {
 private slots:
 	void cleanup();
 	void lifecycle();
+	void earlierReaderSeesNoToken();
 	void order();
 	void dropPolicy();
 	void slowSubscriber();
@@ -308,6 +310,37 @@ void TestLiveServer::lifecycle() {
 	problem = startServer(server, outputDirectory, true);
 	QVERIFY2(problem.empty(), problem.c_str());
 	QVERIFY2(readEndpoints(outputDirectory).token != endpoints.token, "every start has its own token");
+}
+
+// A reader that opened the endpoint file of an earlier start keeps reading that file: the token of a new start goes
+// into a new file that only its owner can read.
+void TestLiveServer::earlierReaderSeesNoToken() {
+#ifdef _WIN32
+	QSKIP("Windows does not remove a file that is open.");
+#else
+	const fs::path outputDirectory = m_directory.sub("earlier-reader");
+	const fs::path file = outputDirectory / "live-endpoint.json";
+	QVERIFY(fs::create_directories(outputDirectory));
+	{
+		std::ofstream earlier(file, std::ios::binary);
+		earlier << "earlier\n";
+	}
+	fs::permissions(file, fs::perms::owner_read | fs::perms::owner_write | fs::perms::group_read | fs::perms::others_read);
+	std::ifstream reader(file, std::ios::binary);
+	QVERIFY2(reader.is_open(), "another user opens the earlier file");
+	LiveServer server;
+	const std::string problem = startServer(server, outputDirectory, true);
+	QVERIFY2(problem.empty(), problem.c_str());
+	const Endpoints endpoints = readEndpoints(outputDirectory);
+	// The new file holds the token.
+	QCOMPARE(endpoints.token.size(), std::size_t(32));
+	const std::string seen((std::istreambuf_iterator<char>(reader)), std::istreambuf_iterator<char>());
+	QVERIFY2(seen.find(endpoints.token) == std::string::npos,
+		("the reader of the earlier file does not see the token: " + seen).c_str());
+	const fs::perms others = fs::perms::group_all | fs::perms::others_all;
+	QVERIFY2((fs::status(file).permissions() & others) == fs::perms::none, "only the owner can read the new file");
+	server.stop();
+#endif
 }
 
 // A state, an event and a state again reach the subscriber in the order of the pushes.

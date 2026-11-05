@@ -98,7 +98,7 @@ The visual polish smoke also had a use after free: it added a temporary `SignalI
 | Run ends without results and was not stopped | Run Results says "Failed" and the status bar says "Simulation ended without results" | No |
 | Run output files cannot be written | Nothing: `ofstream::open` is not checked (for example `simulation/Simulation.cpp`), and the run reports success | One line for one file (`RollingStock.cpp`) |
 | Result export fails | "Export failed" warning with the path, without the reason from the OS | No |
-| Live stream cannot start | "Cannot Start EGTRAIN" box, exit 2 (`main.cpp`) | Standard error |
+| Live stream cannot start | "Cannot Start EGTRAIN" box, exit 2 (`main.cpp`). With `--live-commands` also when the endpoint file on macOS or Linux would be readable by other users, as on a file system without POSIX modes; without commands such a file is written with a warning in `io.zmq` (`io/LiveServer.cpp`). | Standard error |
 | Manual update check fails | Warning box with the network error, or "The update check timed out." when no data arrived for 10 s (`update/UpdateChecker.cpp`) | No |
 | Automatic update check fails | Nothing visible (`qWarning`, `app/UpdateTelemetryController.cpp`) | Dock, category `app.ui` |
 | Update cannot be installed | The update helper starts the installation in place and leaves a `not-applied` record whose `reason=` line names the step that failed (`abandonUpdate` in `update/UpdateHelper.cpp`): the old EGTRAIN did not end within 5 minutes, a check before the renames failed, a rename failed, or the new version failed to start and could not be moved aside. A previous version that runs then shows "The update to EGTRAIN <version> could not be applied." | No |

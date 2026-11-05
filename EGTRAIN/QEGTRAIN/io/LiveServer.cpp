@@ -8,6 +8,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <cstdio>
 #include <cstring>
 #include <deque>
 #include <exception>
@@ -21,6 +22,12 @@
 #include <string_view>
 #include <thread>
 #include <utility>
+
+#if !defined(_WIN32)
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
 
 using nlohmann::json;
 namespace fs = std::filesystem;
@@ -62,22 +69,54 @@ struct IoStarted {
 	std::string commandEndpoint;
 };
 
-// Creates the file before it holds the token and lets only its owner read it.
-bool writeEndpointFile(const fs::path& file, const json& content, std::string& error) {
+// Writes the endpoints. On macOS and Linux the file is created new, readable and writable by its owner only,
+// and written through the descriptor that created it, so no reader that opened an earlier file sees the token.
+// A file system without POSIX modes, such as FAT or a network share, can give the file a wider mode: then a
+// file that would hold the token is removed and the start fails, and one without a token is written with a
+// warning. On Windows the file has the permissions of its folder.
+bool writeEndpointFile(const fs::path& file, const json& content, [[maybe_unused]] bool holdsToken, std::string& error) {
+	const std::string text = content.dump(2) + "\n";
+#if defined(_WIN32)
 	std::ofstream out(file, std::ios::binary | std::ios::trunc);
-	if (!out) {
-		error = "cannot write " + file.string();
-		return false;
-	}
-	std::error_code ignored;
-	fs::permissions(file, fs::perms::owner_read | fs::perms::owner_write, fs::perm_options::replace, ignored);
-	out << content.dump(2) << "\n";
+	out << text;
 	out.close();
 	if (!out) {
 		error = "cannot write " + file.string();
 		return false;
 	}
 	return true;
+#else
+	std::error_code ignored;
+	fs::remove(file, ignored);
+	const int descriptor = ::open(file.c_str(), O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, S_IRUSR | S_IWUSR);
+	if (descriptor < 0) {
+		error = "cannot write " + file.string();
+		return false;
+	}
+	struct stat status{};
+	const bool ownerOnly = fstat(descriptor, &status) == 0 && (status.st_mode & (S_IRWXG | S_IRWXO)) == 0;
+	if (!ownerOnly && holdsToken) {
+		::close(descriptor);
+		fs::remove(file, ignored);
+		error = "cannot make " + file.string() + " readable by its owner only, so the command token is not written";
+		return false;
+	}
+	if (!ownerOnly) {
+		EG_LOG(IoZmq, Warning) << "Live server: other users can read " << file.string() << "\n";
+	}
+	FILE* stream = fdopen(descriptor, "w");
+	if (stream == nullptr) {
+		::close(descriptor);
+		error = "cannot write " + file.string();
+		return false;
+	}
+	const bool written = std::fwrite(text.data(), 1, text.size(), stream) == text.size();
+	if (std::fclose(stream) != 0 || !written) {
+		error = "cannot write " + file.string();
+		return false;
+	}
+	return true;
+#endif
 }
 } // namespace
 
@@ -358,7 +397,7 @@ bool LiveServer::start(int port, bool commandsEnabled, const fs::path& outputDir
 		std::error_code directoryError;
 		fs::create_directories(outputDirectory, directoryError);
 		m_state->endpointFile = outputDirectory / kEndpointFileName;
-		if (!writeEndpointFile(m_state->endpointFile, endpoints, message)) {
+		if (!writeEndpointFile(m_state->endpointFile, endpoints, commandsEnabled, message)) {
 			stop();
 			return false;
 		}
