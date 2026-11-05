@@ -299,9 +299,13 @@ private:
 			release(m_connection);
 		}
 
+		// The length in the header of an encoded body is that of the encoded bytes, not of the decoded ones that the
+		// reads give, so it is used only for a body without an encoding.
 		DWORD length = 0;
 		DWORD lengthBytes = static_cast<DWORD>(sizeof(length));
-		const bool hasLength = WinHttpQueryHeaders(handle, WINHTTP_QUERY_CONTENT_LENGTH | WINHTTP_QUERY_FLAG_NUMBER, nullptr, &length, &lengthBytes, nullptr) != FALSE;
+		const bool encoded = !headerText(handle, WINHTTP_QUERY_CONTENT_ENCODING).isEmpty();
+		const bool hasLength = !encoded
+			&& WinHttpQueryHeaders(handle, WINHTTP_QUERY_CONTENT_LENGTH | WINHTTP_QUERY_FLAG_NUMBER, nullptr, &length, &lengthBytes, nullptr) != FALSE;
 		{
 			std::lock_guard<std::mutex> lock(m_mutex);
 			m_status = static_cast<int>(status);
@@ -379,6 +383,10 @@ private:
 		// The redirects are followed here, where each address is checked.
 		DWORD policy = WINHTTP_OPTION_REDIRECT_POLICY_NEVER;
 		WinHttpSetOption(opened, WINHTTP_OPTION_REDIRECT_POLICY, &policy, static_cast<DWORD>(sizeof(policy)));
+		// WinHTTP asks for a gzip or deflate body and hands it over decoded. Windows before 8.1 refuses the
+		// option and gets the body as it is.
+		DWORD decompression = WINHTTP_DECOMPRESSION_FLAG_ALL;
+		WinHttpSetOption(opened, WINHTTP_OPTION_DECOMPRESSION, &decompression, static_cast<DWORD>(sizeof(decompression)));
 
 		const bool extraRoot = m_isPost && !request.extraRootPem.isEmpty();
 		if (m_isPost) {
