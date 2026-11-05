@@ -10,6 +10,7 @@ var struct_network_legend_entry =
     [ "signalCue", "struct_network_legend_entry.html#a7327f2f12c8d2951ccfc4dd08a791d9c", null ],
     [ "signalLook", "struct_network_legend_entry.html#a5009593f44cade2fc4766b621553dfac", null ],
     [ "stationClass", "struct_network_legend_entry.html#ab9470604e1a7803124e2a0f61f183886", null ],
+    [ "stationMarkStyle", "struct_network_legend_entry.html#afd272328d5bfac107c0e35792ee05cab", null ],
     [ "toolTip", "struct_network_legend_entry.html#ab0c6c369e67e715a8695ed2188b79eda", null ],
     [ "trackState", "struct_network_legend_entry.html#a8ea4d15f1e3cdb1eb972c61b71f45622", null ]
 ];

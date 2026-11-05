@@ -154,7 +154,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a32f2b6aafc312e362999911786ebfc86" id="r_a32f2b6aafc312e362999911786ebfc86"><td class="memItemLeft">QPainterPath&#160;</td><td class="memItemRight"><a class="el" href="#a32f2b6aafc312e362999911786ebfc86">shape</a> () const override</td></tr>
 <tr class="memdesc:a32f2b6aafc312e362999911786ebfc86"><td class="mdescLeft">&#160;</td><td class="mdescRight">The visible mark and label; empty for a scene decoration.  <br /></td></tr>
 <tr class="memitem:aa87b17b4f8f7983bc0686a5582da3bbe" id="r_aa87b17b4f8f7983bc0686a5582da3bbe"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa87b17b4f8f7983bc0686a5582da3bbe">paint</a> (QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget=nullptr) override</td></tr>
-<tr class="memdesc:aa87b17b4f8f7983bc0686a5582da3bbe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the mark and the label; a scene decoration draws nothing.  <br /></td></tr>
+<tr class="memdesc:aa87b17b4f8f7983bc0686a5582da3bbe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the mark in its style and the label; a scene decoration draws nothing.  <br /></td></tr>
 <tr class="memitem:ace69d78b53944fd3e27b15aa21bc31aa" id="r_ace69d78b53944fd3e27b15aa21bc31aa"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ace69d78b53944fd3e27b15aa21bc31aa">stationName</a> () const</td></tr>
 <tr class="memdesc:ace69d78b53944fd3e27b15aa21bc31aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">The name of the station as given.  <br /></td></tr>
 <tr class="memitem:a2938530f83ee8d29fe5a90ab2c880fcd" id="r_a2938530f83ee8d29fe5a90ab2c880fcd"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a2938530f83ee8d29fe5a90ab2c880fcd">displayName</a> () const</td></tr>
@@ -192,6 +192,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a7ebb5ae6b99a0b375729da99ba995b48"><td class="mdescLeft">&#160;</td><td class="mdescRight">Marks the station as followed; the window marks the station nearest to the followed train.  <br /></td></tr>
 <tr class="memitem:a3d7bca99fb07700aa7762a0fead80045" id="r_a3d7bca99fb07700aa7762a0fead80045"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3d7bca99fb07700aa7762a0fead80045">isFollowed</a> () const</td></tr>
 <tr class="memdesc:a3d7bca99fb07700aa7762a0fead80045"><td class="mdescLeft">&#160;</td><td class="mdescRight">The station is marked as followed.  <br /></td></tr>
+<tr class="memitem:a3d10da72c16b968ddc699f00d4c19bfe" id="r_a3d10da72c16b968ddc699f00d4c19bfe"><td class="memItemLeft"><a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a>&#160;</td><td class="memItemRight"><a class="el" href="#a3d10da72c16b968ddc699f00d4c19bfe">markStyle</a> () const</td></tr>
+<tr class="memdesc:a3d10da72c16b968ddc699f00d4c19bfe"><td class="mdescLeft">&#160;</td><td class="mdescRight">The style of the station mark; <a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8a38f03d45e9b45580235ad8c79f777451" title="A map pin that stands on the station, its class told by size and colour: the default.">StationMarkStyle::MapPin</a> until <a class="el" href="#af0d1e73b44e265290627d3881a43027a">setMarkStyle()</a> or <a class="el" href="#aa2ff92888b98e93a94532d6504053e0b">attachArtwork()</a> sets another.  <br /></td></tr>
+<tr class="memitem:af0d1e73b44e265290627d3881a43027a" id="r_af0d1e73b44e265290627d3881a43027a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af0d1e73b44e265290627d3881a43027a">setMarkStyle</a> (<a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a> style)</td></tr>
 <tr class="memitem:aff36f243253eb0582da8df9b1d42ebb5" id="r_aff36f243253eb0582da8df9b1d42ebb5"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aff36f243253eb0582da8df9b1d42ebb5">degree</a> () const</td></tr>
 <tr class="memdesc:aff36f243253eb0582da8df9b1d42ebb5"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of connections at the station.  <br /></td></tr>
 <tr class="memitem:a7a7c813886508eb8d1c610cfc4f64dbf" id="r_a7a7c813886508eb8d1c610cfc4f64dbf"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7a7c813886508eb8d1c610cfc4f64dbf">setNetworkDegree</a> (int degree, bool interchange, bool endpoint)</td></tr>
@@ -385,7 +388,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Scales the attached items for the view scale (logical pixels per scene unit). A station mark stands with the bottom centre of its frame on the top edge of the convex hull of its node centres, or on its anchor without them, at the x of the centre of the footprint of its squares (<a class="el" href="_visual_polish_8cpp.html#aa164be426ade64b2fd1bebe183b15674">stationFootprintRect()</a>): a station or major station on the top centre of their box for a single centre, a row or a stack, a halt on its first square, and a diagonal station on its own area. It stands there in both looks and draws nothing in the near look, which a mark without node centres does not take: it keeps its pin as the only thing to see and click, and there the pin and the name keep their smallest size on screen, MinPictogramPixels and MinNamePixels, at every zoom. Its name sits under the footprint in both looks, so that mark and name share their x. The area of the station is shown while the mark is visible: in the far look the hull of its node centres widened by AreaMarginPixels on screen, and in the near look the hull of its node centres and platform bars widened by as much. A plain picture keeps the far look and, like its name, its artwork point. </p>
+<p>Scales the attached items for the view scale (logical pixels per scene unit). A map pin stands with the bottom centre of its frame on the top edge of the convex hull of its node centres, or on its anchor without them, at the x of the centre of the footprint of its squares (<a class="el" href="_visual_polish_8cpp.html#aa164be426ade64b2fd1bebe183b15674">stationFootprintRect()</a>): a station or major station on the top centre of their box for a single centre, a row or a stack, a halt on its first square, and a diagonal station on its own area. The marks of the other styles have the centre of their frame on the centre of the footprint (<a class="el" href="_visual_polish_8cpp.html#a94e97a943567e4c2a8138b4997f66343">stationMarkAnchor()</a>). A mark stays there in both looks and draws nothing in the near look, which a mark without node centres does not take: it keeps its mark as the only thing to see and click, and there the mark and the name keep their smallest size on screen, MinPictogramPixels and MinNamePixels, at every zoom. Its name sits under the footprint in both looks, and under the mark of a centred style where that reaches lower, so that mark and name share their x. The area of the station is shown while the mark is visible: in the far look the hull of its node centres widened by AreaMarginPixels on screen, and in the near look the hull of its node centres and platform bars widened by as much. A plain picture keeps the far look and, like its name, its artwork point. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -444,7 +447,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Links the scene-space pictogram and name of this station. The items stay owned by the scene; both are enlarged about their anchor (bottom centre of the pictogram, top centre of the name) through their item transform, which stays the identity at their scene size. For a station mark the transform also moves these anchors to the station nodes (<a class="el" href="#ab81a4d7493651a4531ff135dbc18e4fb">applyViewScale()</a>). Attach the items to their parents before the first applyViewScale: the transform moves scenePos() of an enlarged item. More platforms rank a station higher when names collide. For a <a class="el" href="class_station_mark_item.html">StationMarkItem</a> that is in a scene it also adds the area of the station to the scene, a path item at AreaZValue in <a class="el" href="_visual_polish_8cpp.html#ad15b0a7441e0e9f52022e4a3a89d81d8" title="The fill of the area of a station: the blue of the pin of a major station at an alpha of 56 of 255.">stationAreaColor()</a> that takes no mouse input. </p>
+<p>Links the scene-space pictogram and name of this station. The items stay owned by the scene; both are enlarged about their anchor (bottom centre of the pictogram or the <a class="el" href="_visual_polish_8cpp.html#a94e97a943567e4c2a8138b4997f66343">stationMarkAnchor()</a> of a station mark, top centre of the name) through their item transform, which stays the identity at their scene size. For a station mark the transform also moves these anchors to the station nodes (<a class="el" href="#ab81a4d7493651a4531ff135dbc18e4fb">applyViewScale()</a>). Attach the items to their parents before the first applyViewScale: the transform moves scenePos() of an enlarged item. More platforms rank a station higher when names collide. For a <a class="el" href="class_station_mark_item.html">StationMarkItem</a> that is in a scene it also adds the area of the station to the scene, a path item at AreaZValue in <a class="el" href="_visual_polish_8cpp.html#ad15b0a7441e0e9f52022e4a3a89d81d8" title="The fill of the area of a station: the blue of the pin of a major station at an alpha of 56 of 255.">stationAreaColor()</a> that takes no mouse input, and, in a <a class="el" href="class_network_scene.html">NetworkScene</a>, takes the style of the station marks of that scene (<a class="el" href="#af0d1e73b44e265290627d3881a43027a">setMarkStyle()</a>). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -786,6 +789,33 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a3d10da72c16b968ddc699f00d4c19bfe" name="a3d10da72c16b968ddc699f00d4c19bfe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3d10da72c16b968ddc699f00d4c19bfe">&#9670;&#160;</a></span>markStyle()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a> StationOverlayItem::markStyle </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The style of the station mark; <a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8a38f03d45e9b45580235ad8c79f777451" title="A map pin that stands on the station, its class told by size and colour: the default.">StationMarkStyle::MapPin</a> until <a class="el" href="#af0d1e73b44e265290627d3881a43027a">setMarkStyle()</a> or <a class="el" href="#aa2ff92888b98e93a94532d6504053e0b">attachArtwork()</a> sets another. </p>
+
+</div>
+</div>
 <a id="a45218fc521b91ed42ddc09a1c2cfad1f" name="a45218fc521b91ed42ddc09a1c2cfad1f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a45218fc521b91ed42ddc09a1c2cfad1f">&#9670;&#160;</a></span>matchesSourceIdentity()</h2>
 
@@ -895,7 +925,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>Draws the mark and the label; a scene decoration draws nothing. </p>
+<p>Draws the mark in its style and the label; a scene decoration draws nothing. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -918,7 +948,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The area in scene coordinates of the pin of a station mark at the applied view scale, its halo included, and of the footprint of its squares, the same in either look; the scene bounds of a plain picture. </p>
+<p>The area in scene coordinates of the far mark of a station mark at the applied view scale, its halo included, and of the footprint of its squares, the same in either look; the scene bounds of a plain picture. </p>
 
 </div>
 </div>
@@ -1137,7 +1167,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Places the names of station marks and hides the attached names that overlap, on screen, the name of a higher-priority station or that cover part of the drawn pictogram of any other station: a visible plain picture, the pictogram rect of a visible mark that draws its pin, and the footprint of the squares of a visible mark in the near look. A name goes under the footprint of the squares of its station, or, where its text there crosses a visible track line or the pictogram of another station, shown or hidden, to the first of these spots that crosses neither: above the pin, right of the footprint, left of it, and above a frame on the top of the box of the node centres at the x of the footprint; without one it stays under the footprint. A mark that draws nothing in the near look has no pin and no frame there, so its name goes above the footprint instead of above the pin and has no last spot. A name is placed again only after <a class="el" href="#ab81a4d7493651a4531ff135dbc18e4fb">applyViewScale()</a> moved it. Selected and followed stations keep their name. Pictograms stay visible. sceneToViewport is the viewport transform of the view. </p>
+<p>Places the names of station marks and hides the attached names that overlap, on screen, the name of a higher-priority station or that cover part of the drawn pictogram of any other station: a visible plain picture, the pictogram rect of a visible mark that draws its pin, and the footprint of the squares of a visible mark in the near look. A name goes under the footprint of the squares of its station, or, where its text there crosses a visible track line or the pictogram of another station, shown or hidden, to the first of these spots that crosses neither: above the pin, right of the footprint, left of it, and above a frame on the top of the box of the node centres at the x of the footprint; without one it stays under the footprint. A mark that draws nothing in the near look has no pin and no frame there, so its name goes above the footprint instead of above the pin and has no last spot. A mark of a centred style has no such frame either, and its name keeps clear of the footprint and of the far mark in both looks. A name is placed again only after <a class="el" href="#ab81a4d7493651a4531ff135dbc18e4fb">applyViewScale()</a> moved it. Selected and followed stations keep their name. Pictograms stay visible. sceneToViewport is the viewport transform of the view. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1162,6 +1192,24 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Marks the station as followed; the window marks the station nearest to the followed train. </p>
+
+</div>
+</div>
+<a id="af0d1e73b44e265290627d3881a43027a" name="af0d1e73b44e265290627d3881a43027a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af0d1e73b44e265290627d3881a43027a">&#9670;&#160;</a></span>setMarkStyle()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void StationOverlayItem::setMarkStyle </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a></td>          <td class="paramname"><span class="paramname"><em>style</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Draws the mark in style, also the attached station mark, which the next <a class="el" href="#ab81a4d7493651a4531ff135dbc18e4fb">applyViewScale()</a> places by the anchor of style, with its name. </p>
 
 </div>
 </div>

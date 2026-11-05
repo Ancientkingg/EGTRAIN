@@ -113,6 +113,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_settings_dial
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="_settings_dialog_8h_source.html">widgets/SettingsDialog.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_visual_polish_8h_source.html">graphics/VisualPolish.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_telemetry_consent_8h_source.html">telemetry/TelemetryConsent.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_update_settings_8h_source.html">update/UpdateSettings.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_dialog_layout_8h_source.html">widgets/DialogLayout.h</a>&quot;</code><br />
@@ -120,8 +121,10 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_settings_dial
 <code>#include &quot;<a class="el" href="_narrow_row_delegate_8h_source.html">widgets/NarrowRowDelegate.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_plain_tool_tip_8h_source.html">widgets/PlainToolTip.h</a>&quot;</code><br />
 <code>#include &lt;QCheckBox&gt;</code><br />
+<code>#include &lt;QComboBox&gt;</code><br />
 <code>#include &lt;QDialogButtonBox&gt;</code><br />
 <code>#include &lt;QGroupBox&gt;</code><br />
+<code>#include &lt;QHBoxLayout&gt;</code><br />
 <code>#include &lt;QLabel&gt;</code><br />
 <code>#include &lt;QListWidget&gt;</code><br />
 <code>#include &lt;QPushButton&gt;</code><br />
@@ -130,9 +133,40 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_settings_dial
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for SettingsDialog.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_settings_dialog_8cpp__incl.svg" width="4035" height="266"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_settings_dialog_8cpp__incl.svg" width="4616" height="266"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-</div></div><!-- contents -->
+</div><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ae7e36497083e6adf5057c690e115296d" id="r_ae7e36497083e6adf5057c690e115296d"><td class="memItemLeft"><a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a>&#160;</td><td class="memItemRight"><a class="el" href="#ae7e36497083e6adf5057c690e115296d">readStationMarkStyle</a> (const QSettings &amp;settings)</td></tr>
+<tr class="memdesc:ae7e36497083e6adf5057c690e115296d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The station mark style that settings holds under kStationMarkStyleKey; Map pin for a missing or unknown value.  <br /></td></tr>
+</table>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="ae7e36497083e6adf5057c690e115296d" name="ae7e36497083e6adf5057c690e115296d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7e36497083e6adf5057c690e115296d">&#9670;&#160;</a></span>readStationMarkStyle()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a> readStationMarkStyle </td>
+          <td>(</td>
+          <td class="paramtype">const QSettings &amp;</td>          <td class="paramname"><span class="paramname"><em>settings</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The station mark style that settings holds under kStationMarkStyleKey; Map pin for a missing or unknown value. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_settings_dialog_8cpp_ae7e36497083e6adf5057c690e115296d_cgraph.svg" width="174" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+</div><!-- contents -->
 </div><!-- doc-content -->
 <div id="page-nav" class="page-nav-panel">
 <div id="page-nav-resize-handle"></div>

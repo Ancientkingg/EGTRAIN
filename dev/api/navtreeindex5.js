@@ -233,10 +233,13 @@ var NAVTREEINDEX5 =
 "_service_panel_8h.html":[3,0,3,23],
 "_service_panel_8h_source.html":[3,0,3,23],
 "_settings_dialog_8cpp.html":[3,0,12,29],
+"_settings_dialog_8cpp.html#ae7e36497083e6adf5057c690e115296d":[3,0,12,29,0],
 "_settings_dialog_8h.html":[3,0,12,30],
-"_settings_dialog_8h.html#ab6690b7ce3c1f479cb09a41231b2e2f3":[3,0,12,30,3],
-"_settings_dialog_8h.html#ad6a1aa38a132f0fdf9682c8b0d8e823e":[3,0,12,30,2],
-"_settings_dialog_8h.html#aedd4b44325c46f7e0605147971411ad0":[3,0,12,30,1],
+"_settings_dialog_8h.html#a40e0c7ec9e882963d2b2a1ba2716f722":[3,0,12,30,5],
+"_settings_dialog_8h.html#ab6690b7ce3c1f479cb09a41231b2e2f3":[3,0,12,30,4],
+"_settings_dialog_8h.html#ad6a1aa38a132f0fdf9682c8b0d8e823e":[3,0,12,30,3],
+"_settings_dialog_8h.html#ae7e36497083e6adf5057c690e115296d":[3,0,12,30,1],
+"_settings_dialog_8h.html#aedd4b44325c46f7e0605147971411ad0":[3,0,12,30,2],
 "_settings_dialog_8h_source.html":[3,0,12,30],
 "_signal_facets_8cpp.html":[3,0,3,0,7],
 "_signal_facets_8cpp.html#a02416d03c980d78e7b4c3bbabe37f908":[3,0,3,0,7,0],
@@ -246,8 +249,5 @@ var NAVTREEINDEX5 =
 "_signal_geometry_8h.html":[3,0,4,11],
 "_signal_geometry_8h.html#a8424034fe73c7e9b00bb09d1bd01bb7b":[3,0,4,11,1],
 "_signal_geometry_8h_source.html":[3,0,4,11],
-"_signal_item_8cpp.html":[3,0,4,0,14],
-"_signal_item_8cpp.html#a5973ce3c0f3fa3092a7e97a99b576e47":[3,0,4,0,14,0],
-"_signal_item_8h.html":[3,0,4,0,15],
-"_signal_item_8h.html#a5973ce3c0f3fa3092a7e97a99b576e47":[3,0,4,0,15,1]
+"_signal_item_8cpp.html":[3,0,4,0,14]
 };

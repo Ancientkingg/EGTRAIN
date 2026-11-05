@@ -160,6 +160,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ad398083cffb7cd26400eaee28d7e6358" id="r_ad398083cffb7cd26400eaee28d7e6358"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad398083cffb7cd26400eaee28d7e6358">contextMenuEvent</a> (QGraphicsSceneContextMenuEvent *event) override</td></tr>
 <tr class="memdesc:ad398083cffb7cd26400eaee28d7e6358"><td class="mdescLeft">&#160;</td><td class="mdescRight">Emits <a class="el" href="#a30830e690c649b9447bed87be1cc9b13">ContextMenuRequested()</a> with the item that a left click at the same point would select, or null.  <br /></td></tr>
 <tr class="memitem:ad316fbfe52b5958b0a80b66f12b84fe9" id="r_ad316fbfe52b5958b0a80b66f12b84fe9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad316fbfe52b5958b0a80b66f12b84fe9">select</a> (QGraphicsItem *item)</td></tr>
+<tr class="memitem:af1ea4dbb4704f7f5aaaf9d4ecb715e4e" id="r_af1ea4dbb4704f7f5aaaf9d4ecb715e4e"><td class="memItemLeft"><a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a>&#160;</td><td class="memItemRight"><a class="el" href="#af1ea4dbb4704f7f5aaaf9d4ecb715e4e">stationMarkStyle</a> () const</td></tr>
+<tr class="memdesc:af1ea4dbb4704f7f5aaaf9d4ecb715e4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The style of the station marks of the scene; <a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8a38f03d45e9b45580235ad8c79f777451" title="A map pin that stands on the station, its class told by size and colour: the default.">StationMarkStyle::MapPin</a> until <a class="el" href="#a3cc8510fbba8b2c1f57edf5883538d87">setStationMarkStyle()</a>.  <br /></td></tr>
+<tr class="memitem:a3cc8510fbba8b2c1f57edf5883538d87" id="r_a3cc8510fbba8b2c1f57edf5883538d87"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3cc8510fbba8b2c1f57edf5883538d87">setStationMarkStyle</a> (<a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a> style)</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The scene of the network canvas. It picks the item under a click by what it stands for rather than by the stacking order alone, and tells the window what was clicked through its signals. </p>
@@ -634,6 +637,51 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_scene_ad316fbfe52b5958b0a80b66f12b84fe9_cgraph.svg" width="439" height="542"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a3cc8510fbba8b2c1f57edf5883538d87" name="a3cc8510fbba8b2c1f57edf5883538d87"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3cc8510fbba8b2c1f57edf5883538d87">&#9670;&#160;</a></span>setStationMarkStyle()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkScene::setStationMarkStyle </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a></td>          <td class="paramname"><span class="paramname"><em>style</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Draws the station marks of the scene in style, and those that stations attach later (<a class="el" href="class_station_overlay_item.html#aa2ff92888b98e93a94532d6504053e0b">StationOverlayItem::attachArtwork()</a>). The next view scale that the stations apply places them by the anchor of style. </p>
+
+</div>
+</div>
+<a id="af1ea4dbb4704f7f5aaaf9d4ecb715e4e" name="af1ea4dbb4704f7f5aaaf9d4ecb715e4e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af1ea4dbb4704f7f5aaaf9d4ecb715e4e">&#9670;&#160;</a></span>stationMarkStyle()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a> NetworkScene::stationMarkStyle </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The style of the station marks of the scene; <a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8a38f03d45e9b45580235ad8c79f777451" title="A map pin that stands on the station, its class told by size and colour: the default.">StationMarkStyle::MapPin</a> until <a class="el" href="#a3cc8510fbba8b2c1f57edf5883538d87">setStationMarkStyle()</a>. </p>
 
 </div>
 </div>

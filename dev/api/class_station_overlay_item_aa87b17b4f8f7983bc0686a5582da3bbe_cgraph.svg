@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title="Draws the mark and the label; a scene decoration draws nothing.">
+<g id="a_Node000001"><a xlink:title="Draws the mark in its style and the label; a scene decoration draws nothing.">
 <polygon fill="#999999" stroke="#666666" points="111.25,-141.12 0,-141.12 0,-107.62 111.25,-107.62 111.25,-141.12"/>
 <text xml:space="preserve" text-anchor="start" x="8" y="-127.62" font-family="Helvetica,sans-Serif" font-size="10.00">StationOverlayItem</text>
 <text xml:space="preserve" text-anchor="middle" x="55.62" y="-114.88" font-family="Helvetica,sans-Serif" font-size="10.00">::paint</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_visual_polish_8cpp.html#a2e7d09af69daec1cb464c65129b19737" target="_top" xlink:title="The background of the network canvas, RGB (16, 26, 34). The station pins and names take it as their h...">
+<g id="a_Node000002"><a xlink:href="_visual_polish_8cpp.html#a2e7d09af69daec1cb464c65129b19737" target="_top" xlink:title="The background of the network canvas, RGB (16, 26, 34). The station marks and names take it as their ...">
 <polygon fill="white" stroke="#666666" points="242.38,-242.75 166.38,-242.75 166.38,-222 242.38,-222 242.38,-242.75"/>
 <text xml:space="preserve" text-anchor="middle" x="204.38" y="-229.25" font-family="Helvetica,sans-Serif" font-size="10.00">canvasColor</text>
 </a>
@@ -58,7 +58,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_visual_polish_8cpp.html#acd5376d75de6b86816b9fbc03adf30cc" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_visual_polish_8cpp.html#a4d5203c8f6abefdd07da3cfa205ebcd3" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="254.38,-134.75 154.38,-134.75 154.38,-114 254.38,-114 254.38,-134.75"/>
 <text xml:space="preserve" text-anchor="middle" x="204.38" y="-121.25" font-family="Helvetica,sans-Serif" font-size="10.00">paintStationMark</text>
 </a>
@@ -94,7 +94,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="_visual_polish_8cpp.html#a2420ddd0ca6f0c9af6acb01c987d2ed4" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="_visual_polish_8cpp.html#a3cad1c71ca22ff81187f1c11478d0afe" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="261.5,-20.75 147.25,-20.75 147.25,0 261.5,0 261.5,-20.75"/>
 <text xml:space="preserve" text-anchor="middle" x="204.38" y="-7.25" font-family="Helvetica,sans-Serif" font-size="10.00">stationMarkFrameIn</text>
 </a>
@@ -148,7 +148,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="_visual_polish_8cpp.html#ab5821bb5e3b802765eef37c3ccc25547" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="_visual_polish_8cpp.html#a7e15855ab30e624b125dbe6e396125a7" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="408,-20.75 297.5,-20.75 297.5,0 408,0 408,-20.75"/>
 <text xml:space="preserve" text-anchor="middle" x="352.75" y="-7.25" font-family="Helvetica,sans-Serif" font-size="10.00">stationMarkBounds</text>
 </a>

@@ -16,5 +16,7 @@ var class_network_scene =
     [ "MousePressedOnTrain", "class_network_scene.html#a3bbba62c662c2c16ef7146065d9843f0", null ],
     [ "mousePressEvent", "class_network_scene.html#a0c21e51250f170e52667c7b12879e096", null ],
     [ "mouseReleaseEvent", "class_network_scene.html#a16d457a6149a2ea75664b319999c7b40", null ],
-    [ "select", "class_network_scene.html#ad316fbfe52b5958b0a80b66f12b84fe9", null ]
+    [ "select", "class_network_scene.html#ad316fbfe52b5958b0a80b66f12b84fe9", null ],
+    [ "setStationMarkStyle", "class_network_scene.html#a3cc8510fbba8b2c1f57edf5883538d87", null ],
+    [ "stationMarkStyle", "class_network_scene.html#af1ea4dbb4704f7f5aaaf9d4ecb715e4e", null ]
 ];

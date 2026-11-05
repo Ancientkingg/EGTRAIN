@@ -16,5 +16,6 @@ var searchData=
   ['signalstate_13',['SignalState',['../_signalling_8h.html#a6d9c8de9a24500df39f2c275d892df2a',1,'Signalling.h']]],
   ['stagedpublishstep_14',['StagedPublishStep',['../_staged_directory_8h.html#a26c0867a7cae8d3d23a5cd02ea2cc421',1,'StagedDirectory.h']]],
   ['stationclass_15',['StationClass',['../_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cb',1,'VisualPolish.h']]],
-  ['stopdraftfield_16',['StopDraftField',['../_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217',1,'StopEditorDialog.h']]]
+  ['stationmarkstyle_16',['StationMarkStyle',['../_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8',1,'VisualPolish.h']]],
+  ['stopdraftfield_17',['StopDraftField',['../_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217',1,'StopEditorDialog.h']]]
 ];

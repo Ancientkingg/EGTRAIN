@@ -29,7 +29,7 @@ var dir_bbeb46f115ff865f6db21b043311d5ef =
     [ "NetworkLegendWidget.h", "_network_legend_widget_8h.html", "_network_legend_widget_8h" ],
     [ "PlainToolTip.h", "_plain_tool_tip_8h.html", "_plain_tool_tip_8h" ],
     [ "SaveSuffix.h", "_save_suffix_8h.html", "_save_suffix_8h" ],
-    [ "SettingsDialog.cpp", "_settings_dialog_8cpp.html", null ],
+    [ "SettingsDialog.cpp", "_settings_dialog_8cpp.html", "_settings_dialog_8cpp" ],
     [ "SettingsDialog.h", "_settings_dialog_8h.html", "_settings_dialog_8h" ],
     [ "TimeProgressBar.cpp", "_time_progress_bar_8cpp.html", null ],
     [ "TimeProgressBar.h", "_time_progress_bar_8h.html", "_time_progress_bar_8h" ],

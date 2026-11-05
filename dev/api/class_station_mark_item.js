@@ -8,7 +8,9 @@ var class_station_mark_item =
     [ "paint", "class_station_mark_item.html#a51e5cc26746108189c9ba95cb8d9d553", null ],
     [ "setNearLook", "class_station_mark_item.html#a009395815ddf5906deae81c8b3f57454", null ],
     [ "setNodeCentres", "class_station_mark_item.html#acaa98b359a446752b2fffb8ad03d5f97", null ],
+    [ "setStyle", "class_station_mark_item.html#a02fa95557761d44882fffb6af87cbac8", null ],
     [ "shape", "class_station_mark_item.html#a0f8acfca1223fcb12a7d1f6f8ec55f04", null ],
     [ "stationClass", "class_station_mark_item.html#a0df86e58f5d6f2dde336ba2e5d9b3d48", null ],
+    [ "style", "class_station_mark_item.html#acfa99202c346ecfcabad5603dd456a62", null ],
     [ "HostZValue", "class_station_mark_item.html#a30d5c791c1e29cc9362c62b77f9c5368", null ]
 ];

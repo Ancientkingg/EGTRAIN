@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_visual_polish_8cpp.html#a2e7d09af69daec1cb464c65129b19737" target="_top" xlink:title="The background of the network canvas, RGB (16, 26, 34). The station pins and names take it as their h...">
+<g id="a_Node000002"><a xlink:href="_visual_polish_8cpp.html#a2e7d09af69daec1cb464c65129b19737" target="_top" xlink:title="The background of the network canvas, RGB (16, 26, 34). The station marks and names take it as their ...">
 <polygon fill="white" stroke="#666666" points="225.88,-191.75 149.88,-191.75 149.88,-171 225.88,-171 225.88,-191.75"/>
 <text xml:space="preserve" text-anchor="middle" x="187.88" y="-178.25" font-family="Helvetica,sans-Serif" font-size="10.00">canvasColor</text>
 </a>
@@ -47,7 +47,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_visual_polish_8cpp.html#acd5376d75de6b86816b9fbc03adf30cc" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_visual_polish_8cpp.html#a4d5203c8f6abefdd07da3cfa205ebcd3" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="237.88,-134.75 137.88,-134.75 137.88,-114 237.88,-114 237.88,-134.75"/>
 <text xml:space="preserve" text-anchor="middle" x="187.88" y="-121.25" font-family="Helvetica,sans-Serif" font-size="10.00">paintStationMark</text>
 </a>
@@ -83,7 +83,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="_visual_polish_8cpp.html#a2420ddd0ca6f0c9af6acb01c987d2ed4" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="_visual_polish_8cpp.html#a3cad1c71ca22ff81187f1c11478d0afe" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="245,-20.75 130.75,-20.75 130.75,0 245,0 245,-20.75"/>
 <text xml:space="preserve" text-anchor="middle" x="187.88" y="-7.25" font-family="Helvetica,sans-Serif" font-size="10.00">stationMarkFrameIn</text>
 </a>
@@ -137,7 +137,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="_visual_polish_8cpp.html#ab5821bb5e3b802765eef37c3ccc25547" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="_visual_polish_8cpp.html#a7e15855ab30e624b125dbe6e396125a7" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="391.5,-20.75 281,-20.75 281,0 391.5,0 391.5,-20.75"/>
 <text xml:space="preserve" text-anchor="middle" x="336.25" y="-7.25" font-family="Helvetica,sans-Serif" font-size="10.00">stationMarkBounds</text>
 </a>

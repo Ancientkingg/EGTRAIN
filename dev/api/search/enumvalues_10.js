@@ -15,10 +15,11 @@ var searchData=
   ['retired_12',['Retired',['../classtelemetry_1_1_telemetry_queue.html#a5fdcf89146509911ce754826df9b6c94ad109ac74df282488efd1dd7621a847d2',1,'telemetry::TelemetryQueue']]],
   ['reversed_13',['Reversed',['../namespace_preview_graphics.html#ab5c908dfa3c9a1a5664ac8a95369fa1faa26e318c6234ce9afa072ebabccd5f17',1,'PreviewGraphics']]],
   ['right_14',['Right',['../class_station_overlay_item.html#a0af9fa9f950f04263d448e47806e9f2fa92b09c7c48c520c3c55e497875da437c',1,'StationOverlayItem']]],
-  ['rolledback_15',['RolledBack',['../_update_record_8h.html#a47d839c793e341182c4d3564973b669aae01daed8f2af5888e53470aff7955d86',1,'UpdateRecord.h']]],
-  ['rounded_16',['Rounded',['../_visual_polish_8h.html#a70e426fbeec6dc2d32748df8f51efe8dabef2481eda40bd121482f1814d72314f',1,'VisualPolish.h']]],
-  ['routesections_17',['RouteSections',['../class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9a4bbe5408bbda88213b08d905933cdead',1,'InfrastructureFacet']]],
-  ['runcancelled_18',['RunCancelled',['../_live_frame_8h.html#a76abc5d45797d7b6e6b2ab4f6cba4103acbd7126922b56a907458b36a32b21fb9',1,'LiveFrame.h']]],
-  ['runcompleted_19',['RunCompleted',['../_live_frame_8h.html#a76abc5d45797d7b6e6b2ab4f6cba4103a78d9705ad9b50b50ddbfb9e14b361631',1,'LiveFrame.h']]],
-  ['running_20',['Running',['../class_run_controller.html#aa596c97788b0451bfd5d7b9967b13837a5bda814c4aedb126839228f1a3d92f09',1,'RunController::Running'],['../class_run_controller.html#a84d8e766e5645acf304a2da6c186d9e9a5bda814c4aedb126839228f1a3d92f09',1,'RunController::Running'],['../_follow_availability_8h.html#a99616537dc446631038d188e66fb7c64a5bda814c4aedb126839228f1a3d92f09',1,'Running:&#160;FollowAvailability.h']]]
+  ['ringandbar_15',['RingAndBar',['../_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8a0e1a540410740081f5f1e87388bfd316',1,'VisualPolish.h']]],
+  ['rolledback_16',['RolledBack',['../_update_record_8h.html#a47d839c793e341182c4d3564973b669aae01daed8f2af5888e53470aff7955d86',1,'UpdateRecord.h']]],
+  ['rounded_17',['Rounded',['../_visual_polish_8h.html#a70e426fbeec6dc2d32748df8f51efe8dabef2481eda40bd121482f1814d72314f',1,'VisualPolish.h']]],
+  ['routesections_18',['RouteSections',['../class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9a4bbe5408bbda88213b08d905933cdead',1,'InfrastructureFacet']]],
+  ['runcancelled_19',['RunCancelled',['../_live_frame_8h.html#a76abc5d45797d7b6e6b2ab4f6cba4103acbd7126922b56a907458b36a32b21fb9',1,'LiveFrame.h']]],
+  ['runcompleted_20',['RunCompleted',['../_live_frame_8h.html#a76abc5d45797d7b6e6b2ab4f6cba4103a78d9705ad9b50b50ddbfb9e14b361631',1,'LiveFrame.h']]],
+  ['running_21',['Running',['../class_run_controller.html#aa596c97788b0451bfd5d7b9967b13837a5bda814c4aedb126839228f1a3d92f09',1,'RunController::Running'],['../class_run_controller.html#a84d8e766e5645acf304a2da6c186d9e9a5bda814c4aedb126839228f1a3d92f09',1,'RunController::Running'],['../_follow_availability_8h.html#a99616537dc446631038d188e66fb7c64a5bda814c4aedb126839228f1a3d92f09',1,'Running:&#160;FollowAvailability.h']]]
 ];

@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_visual_polish_8cpp.html#a2e7d09af69daec1cb464c65129b19737" target="_top" xlink:title="The background of the network canvas, RGB (16, 26, 34). The station pins and names take it as their h...">
+<g id="a_Node000002"><a xlink:href="_visual_polish_8cpp.html#a2e7d09af69daec1cb464c65129b19737" target="_top" xlink:title="The background of the network canvas, RGB (16, 26, 34). The station marks and names take it as their ...">
 <polygon fill="white" stroke="#666666" points="276.88,-59.75 200.88,-59.75 200.88,-39 276.88,-39 276.88,-59.75"/>
 <text xml:space="preserve" text-anchor="middle" x="238.88" y="-46.25" font-family="Helvetica,sans-Serif" font-size="10.00">canvasColor</text>
 </a>

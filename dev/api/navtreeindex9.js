@@ -1,5 +1,15 @@
 var NAVTREEINDEX9 =
 {
+"class_composition_panel.html#ab1e12b259116cc85cf32a312ff2539af":[2,0,56,8],
+"class_composition_panel.html#ab28258935fa9e59a90af0412c971dae4":[2,0,56,15],
+"class_composition_panel.html#ac3ad4dbf7beae8e7820eea6e776e10cc":[2,0,56,13],
+"class_composition_panel.html#ae5e75caf952af762387269c23b7a0adc":[2,0,56,0],
+"class_composition_panel.html#ae92a1cc7bb3f44699ded4605fc97aaf5":[2,0,56,2],
+"class_composition_panel.html#aece14237c82d0f060f86cb8a4d6af613":[2,0,56,24],
+"class_composition_panel.html#af0924ca8ebda14134dc62de9ab0dbc18":[2,0,56,7],
+"class_composition_panel.html#af1db8d10e8438da8c3099df41c87b4c9":[2,0,56,23],
+"class_composition_panel.html#afa6ece843725100b4a04402a748b43ff":[2,0,56,5],
+"class_composition_panel.html#afb0634402936f82d4a0714491a07fcbe":[2,0,56,17],
 "class_connection_item.html":[2,0,57],
 "class_connection_item.html#a1d75b5dc89305fb7060a43d6137338b2":[2,0,57,6],
 "class_connection_item.html#a2bb8d306c9e03384c91c871c81f161a8":[2,0,57,1],
@@ -239,15 +249,5 @@ var NAVTREEINDEX9 =
 "class_gui_replay_history.html#ae9a7813ad6b22bca029ed20e2e41d7c4":[2,0,97,1],
 "class_gui_signal_state_list.html":[2,0,100],
 "class_gui_signal_state_list.html#a0795d26a31606d478d08663f16add619":[2,0,100,1],
-"class_gui_signal_state_list.html#a084b6026f322fc993dddce0b2adde0e0":[2,0,100,0],
-"class_gui_signal_state_list.html#adebe1681fb55ca4be54f561d2ca1210f":[2,0,100,2],
-"class_gui_simulation_snapshot_mailbox.html":[2,0,102],
-"class_gui_simulation_snapshot_mailbox.html#a5ce88a8283dc58030aa1326142951732":[2,0,102,0],
-"class_gui_simulation_snapshot_mailbox.html#a919f0ffcfb5b2b6257864063eac7b0fc":[2,0,102,1],
-"class_highlight_effect.html":[2,0,105],
-"class_highlight_effect.html#a25cde3863d7af3d21332004d5b8390eb":[2,0,105,2],
-"class_highlight_effect.html#a285319f59e726bb03f1c3e38072fe26a":[2,0,105,3],
-"class_highlight_effect.html#a97666fa98f04e6ae5674f4b49aa72cbd":[2,0,105,1],
-"class_highlight_effect.html#aa9fbd4b690c75a9369b5ff1c6f2186f3":[2,0,105,4],
-"class_highlight_effect.html#accad7ba1a7c9535817745dc29dae66a5":[2,0,105,5]
+"class_gui_signal_state_list.html#a084b6026f322fc993dddce0b2adde0e0":[2,0,100,0]
 };

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title="Paints the pin of the class over the pixmap with a halo of 2 logical pixels; nothing in the near look...">
+<g id="a_Node000001"><a xlink:title=" ">
 <polygon fill="#999999" stroke="#666666" points="128.5,-77.75 0,-77.75 0,-57 128.5,-57 128.5,-77.75"/>
 <text xml:space="preserve" text-anchor="middle" x="64.25" y="-64.25" font-family="Helvetica,sans-Serif" font-size="10.00">StationMarkItem::paint</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_visual_polish_8cpp.html#a2e7d09af69daec1cb464c65129b19737" target="_top" xlink:title="The background of the network canvas, RGB (16, 26, 34). The station pins and names take it as their h...">
+<g id="a_Node000002"><a xlink:href="_visual_polish_8cpp.html#a2e7d09af69daec1cb464c65129b19737" target="_top" xlink:title="The background of the network canvas, RGB (16, 26, 34). The station marks and names take it as their ...">
 <polygon fill="white" stroke="#666666" points="252.5,-134.75 176.5,-134.75 176.5,-114 252.5,-114 252.5,-134.75"/>
 <text xml:space="preserve" text-anchor="middle" x="214.5" y="-121.25" font-family="Helvetica,sans-Serif" font-size="10.00">canvasColor</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_visual_polish_8cpp.html#acd5376d75de6b86816b9fbc03adf30cc" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_visual_polish_8cpp.html#a4d5203c8f6abefdd07da3cfa205ebcd3" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="264.5,-77.75 164.5,-77.75 164.5,-57 264.5,-57 264.5,-77.75"/>
 <text xml:space="preserve" text-anchor="middle" x="214.5" y="-64.25" font-family="Helvetica,sans-Serif" font-size="10.00">paintStationMark</text>
 </a>
