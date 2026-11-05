@@ -1,5 +1,8 @@
 var NAVTREEINDEX7 =
 {
+"_stop_insertion_8h_source.html":[3,0,7,40],
+"_telemetry_consent_8cpp.html":[3,0,9,0],
+"_telemetry_consent_8cpp.html#a2fea8ce192c8ca8b406f940dbe1e8508":[3,0,9,0,0],
 "_telemetry_consent_8cpp.html#a473b5066033d9c8516ae49ecc58bf15c":[3,0,9,0,1],
 "_telemetry_consent_8h.html":[3,0,9,1],
 "_telemetry_consent_8h.html#a2fea8ce192c8ca8b406f940dbe1e8508":[3,0,9,1,4],
@@ -32,9 +35,9 @@ var NAVTREEINDEX7 =
 "_time_format_8h.html#abfecdb21c2afbc9681bb64649bc5bdc2":[3,0,11,10,1],
 "_time_format_8h.html#ae37221af5c7e50cf7e842f24fd601c04":[3,0,11,10,2],
 "_time_format_8h_source.html":[3,0,11,10],
-"_time_progress_bar_8cpp.html":[3,0,12,30],
-"_time_progress_bar_8h.html":[3,0,12,31],
-"_time_progress_bar_8h_source.html":[3,0,12,31],
+"_time_progress_bar_8cpp.html":[3,0,12,31],
+"_time_progress_bar_8h.html":[3,0,12,32],
+"_time_progress_bar_8h_source.html":[3,0,12,32],
 "_timetable_stops_panel_8cpp.html":[3,0,3,26],
 "_timetable_stops_panel_8h.html":[3,0,3,27],
 "_timetable_stops_panel_8h_source.html":[3,0,3,27],
@@ -210,8 +213,8 @@ var NAVTREEINDEX7 =
 "_update_timing_8h.html#a5cb6d76a9276d58455f5f4af04477631":[3,0,10,19,1],
 "_update_timing_8h.html#af8a23ed84e7d41acad546ee1a2d60b00":[3,0,10,19,0],
 "_update_timing_8h_source.html":[3,0,10,19],
-"_user_prompts_8h.html":[3,0,12,32],
-"_user_prompts_8h_source.html":[3,0,12,32],
+"_user_prompts_8h.html":[3,0,12,33],
+"_user_prompts_8h_source.html":[3,0,12,33],
 "_utf8_path_8h.html":[3,0,7,43],
 "_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36":[3,0,7,43,0],
 "_utf8_path_8h_source.html":[3,0,7,43],
@@ -246,8 +249,5 @@ var NAVTREEINDEX7 =
 "_visual_polish_8cpp.html#a9544660681942022e65ce6f609cf583a":[3,0,4,13,5],
 "_visual_polish_8cpp.html#a9d91a4372e0f0f446b48ea6c6ea4aace":[3,0,4,13,3],
 "_visual_polish_8cpp.html#aa164be426ade64b2fd1bebe183b15674":[3,0,4,13,17],
-"_visual_polish_8cpp.html#aad6e3639cb92ebdb855e80911a082344":[3,0,4,13,16],
-"_visual_polish_8cpp.html#ab5821bb5e3b802765eef37c3ccc25547":[3,0,4,13,18],
-"_visual_polish_8cpp.html#ac90f4bc2aaf513636a1b81df1096bc61":[3,0,4,13,1],
-"_visual_polish_8cpp.html#acd5376d75de6b86816b9fbc03adf30cc":[3,0,4,13,12]
+"_visual_polish_8cpp.html#aad6e3639cb92ebdb855e80911a082344":[3,0,4,13,16]
 };

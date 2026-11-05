@@ -782,6 +782,18 @@ egtrain_add_test(test_scenesavepolicy
 	LIBS Qt::Core
 	LABELS scene-v1 unit)
 
+# SceneSession over a SceneDocument with a host of its own instead of the window. The session maps scene diagnostics to
+# telemetry errors with a function of UpdateTelemetryController.cpp, which needs the other two sources.
+egtrain_add_test(test_scenesession
+	SOURCES
+		${SRC_DIR}/tests/test_scenesession.cpp
+		${SRC_DIR}/app/SceneSession.cpp
+		${SRC_DIR}/app/UpdateTelemetryController.cpp
+		${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
+		${SRC_DIR}/update/SelfUpdater.cpp
+	LIBS egtrain_editors egtrain_telemetry egtrain_update egtrain_scene egtrain_util Qt::Widgets Qt::Network
+	LABELS scene-v1 unit gui)
+
 egtrain_add_test(test_dialogfolders
 	SOURCES ${SRC_DIR}/tests/test_dialogfolders.cpp
 	LIBS Qt::Core

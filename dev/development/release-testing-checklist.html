@@ -474,7 +474,7 @@ a run on a GitHub Ubuntu runner with a virtual display. The job does not cover
 dragging a bundle from a file manager (row R2), a real desktop session, the
 questions that a desktop environment asks at the first start, the file dialog
 of a desktop environment (the job uses the dialog of Qt) and the rows R1 and R3
-to R12.</p></li>
+to R13.</p></li>
 <li><p>Each package job also runs the update helper tests
 (<code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">-R</span> <span class="pre">'^test_update(helper|preparation)$'</span></code>, step <strong>Verify update helper
 transaction</strong>).</p></li>
@@ -715,6 +715,11 @@ text, which is the same on every platform.</p>
 <tr class="row-odd"><td><p>R12 Bundle of the previous release</p></td>
 <td><p>Download one <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle from the assets of the latest stable release before the candidate, for example <code class="docutils literal notranslate"><span class="pre">Paimpol.egscene</span></code>. Open it in the application under test with <strong>File &gt; Open Case…</strong> and run a short simulation as in step 6.</p></td>
 <td><p>The bundle opens without a version message, and the simulation runs to its end. Record the tag of the release. A message that the scene is older, newer or unsupported is a finding, unless the candidate deliberately drops support for that format.</p></td>
+<td><p>All</p></td>
+</tr>
+<tr class="row-even"><td><p>R13 Replace a case on disk</p></td>
+<td><p>Save the working copy into a new folder with <strong>File &gt; Save As Folder…</strong>; that folder is then the open case. Change a scenario value, change <code class="docutils literal notranslate"><span class="pre">scene.json</span></code> of that folder in a text editor, and choose <strong>File &gt; Save</strong>. Then save into a second new folder with <strong>File &gt; Save As Folder…</strong>, and choose <strong>File &gt; Save As Folder…</strong> again with the first folder. With a legacy case folder at hand, choose <strong>File &gt; Import Legacy Case…</strong> and a destination folder that holds other files.</p></td>
+<td><p><strong>Case Changed on Disk</strong> asks before Save replaces the changed folder, and No keeps the edit and the file on disk. <strong>Save Case As Folder</strong> asks before it replaces the case in the first folder. The import offers a new folder inside the destination and leaves the other files alone. Record each text.</p></td>
 <td><p>All</p></td>
 </tr>
 </tbody>

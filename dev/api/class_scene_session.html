@@ -165,6 +165,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ac7d1218838357cf581eadee9fce08e1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Replaces the messages of the last validation.  <br /></td></tr>
 <tr class="memitem:a779fdbb73b48ea2878e21932bf326f5a" id="r_a779fdbb73b48ea2878e21932bf326f5a"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; *&#160;</td><td class="memItemRight"><a class="el" href="#a779fdbb73b48ea2878e21932bf326f5a">mutableDiagnostics</a> ()</td></tr>
 <tr class="memdesc:a779fdbb73b48ea2878e21932bf326f5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The vector itself, which the validation panel writes to when it validates.  <br /></td></tr>
+<tr class="memitem:a86eaa9224508fb95402499fc797ec7f9" id="r_a86eaa9224508fb95402499fc797ec7f9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a86eaa9224508fb95402499fc797ec7f9">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
 <tr class="memitem:a27664be0e1ed7029970bda1dd5572ca6" id="r_a27664be0e1ed7029970bda1dd5572ca6"><td class="memItemLeft">QMenu *&#160;</td><td class="memItemRight"><a class="el" href="#a27664be0e1ed7029970bda1dd5572ca6">recentScenesMenu</a> () const</td></tr>
 <tr class="memdesc:a27664be0e1ed7029970bda1dd5572ca6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The Recent Cases menu, which the window puts in its File menu. Its parent is the window.  <br /></td></tr>
 <tr class="memitem:abf37e45a81e8b8f2938a83397cdea400" id="r_abf37e45a81e8b8f2938a83397cdea400"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abf37e45a81e8b8f2938a83397cdea400">addRecentScene</a> (const QString &amp;path)</td></tr>
@@ -272,11 +273,6 @@ Friends</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>The session is a child of <span class="tt">window</span> and creates the Recent Cases menu as a child of it. It does not own <span class="tt">document</span> or <span class="tt">host</span>, which have to outlive it. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_a82824bf98da67392e83337e6a10ef32d_cgraph.svg" width="476" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 
 </div>
 </div>
@@ -300,7 +296,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_aa3359961354f2c769c5c08f45d54fd0f_cgraph.svg" width="1470" height="3072"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_aa3359961354f2c769c5c08f45d54fd0f_cgraph.svg" width="1470" height="2918"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -422,11 +418,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Imports the legacy case in <span class="tt">sourceDir</span> as a scene folder in <span class="tt">destinationDir</span> and opens it. The two folders must not contain each other. Does nothing when either is empty. </p>
+<p>Imports the legacy case in <span class="tt">sourceDir</span> as a scene folder in <span class="tt">destinationDir</span> and opens it. The two folders must not contain each other. Does nothing when either is empty. A destination that holds a scene.json is replaced only when the user agrees. A destination that holds other files is left as it is: the user may import into a new folder inside it, named after the case, which must not exist or be empty. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_a48e567be090858725ab284f23dcc4cf2_cgraph.svg" width="1232" height="3146"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_a48e567be090858725ab284f23dcc4cf2_cgraph.svg" width="1232" height="2996"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -481,7 +477,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_a1670c6348436d746a13f02d8a1c488ba_cgraph.svg" width="2422" height="1784"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_a1670c6348436d746a13f02d8a1c488ba_cgraph.svg" width="2446" height="1523"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -532,7 +528,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_a35547a44d88a477d33d9a819d5421fbb_cgraph.svg" width="2654" height="2030"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_a35547a44d88a477d33d9a819d5421fbb_cgraph.svg" width="2678" height="1499"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -782,7 +778,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_a726e22823b12ddb37d82b5cb70a3bc1d_cgraph.svg" width="2671" height="2030"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_a726e22823b12ddb37d82b5cb70a3bc1d_cgraph.svg" width="2695" height="1499"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -832,7 +828,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_ad789e2f74a0b509076306e3eede54c80_cgraph.svg" width="2343" height="1611"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_ad789e2f74a0b509076306e3eede54c80_cgraph.svg" width="2367" height="1419"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -870,11 +866,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Saves the scene to a folder that the user chooses. A scene that came from a folder takes its views.json along. Returns whether the scene was saved. </p>
+<p>Saves the scene to a folder that the user chooses. A folder that holds another case, or other files, is written to only when the user agrees. Returns whether the scene was saved. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_a278c0c5e43c8aea7f5c58a410ac09a7c_cgraph.svg" width="2016" height="1866"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_a278c0c5e43c8aea7f5c58a410ac09a7c_cgraph.svg" width="2016" height="1379"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -893,11 +889,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Saves the scene where it came from. A scene without a location, or one inside the installation, is saved as a bundle that the user chooses. Returns whether the scene was saved. </p>
+<p>Saves the scene where it came from. A scene without a location, or one inside the installation, is saved as a bundle that the user chooses. When the scene files on disk, or the bundle file, differ in size or modification time from what was last opened or saved, or a scene file was added or removed, the save goes on only when the user agrees to replace them. Returns whether the scene was saved. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_a205a27ef46c6c6a132d0fd9c790afd14_cgraph.svg" width="2139" height="1611"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_a205a27ef46c6c6a132d0fd9c790afd14_cgraph.svg" width="2163" height="1419"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1125,6 +1121,32 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_ac7d1218838357cf581eadee9fce08e1c_cgraph.svg" width="466" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a86eaa9224508fb95402499fc797ec7f9" name="a86eaa9224508fb95402499fc797ec7f9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a86eaa9224508fb95402499fc797ec7f9">&#9670;&#160;</a></span>setPrompts()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SceneSession::setPrompts </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_user_prompts.html">UserPrompts</a> *</td>          <td class="paramname"><span class="paramname"><em>prompts</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The prompts that ask the questions of the session and show its errors. Null puts back the prompts of the session itself, which write an error to stderr instead of showing it while <a class="el" href="class_scene_session_1_1_host.html#ad2174182245a3ec59a56c981a97b19f8" title="A scripted run has no user to answer a dialog.">Host::dialogsSuppressed()</a> is true. A test sets prompts that answer without a dialog. The prompts are not owned and have to outlive their use. </p>
 
 </div>
 </div>

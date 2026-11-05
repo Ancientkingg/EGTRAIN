@@ -40,6 +40,7 @@ var class_scene_session =
     [ "sceneSaved", "class_scene_session.html#a46ac127a9562f058d7aa6e46be229dfa", null ],
     [ "sceneWillBeReplaced", "class_scene_session.html#ae75784a18bbc20a29e1147b671060dc4", null ],
     [ "setDiagnostics", "class_scene_session.html#ac7d1218838357cf581eadee9fce08e1c", null ],
+    [ "setPrompts", "class_scene_session.html#a86eaa9224508fb95402499fc797ec7f9", null ],
     [ "updateSceneWindowTitle", "class_scene_session.html#a696a34730801868a898ff582a634700d", null ],
     [ "MainWindowTestAccess", "class_scene_session.html#a07d58747d59f49d1ff6b222687ecbf39", null ]
 ];

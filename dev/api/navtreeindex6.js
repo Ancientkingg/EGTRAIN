@@ -1,5 +1,8 @@
 var NAVTREEINDEX6 =
 {
+"_signal_item_roles_8h.html":[3,0,4,12],
+"_signal_item_roles_8h.html#a3655f423ec7bb0c4dc618cdc1c08b1b6":[3,0,4,12,3],
+"_signal_item_roles_8h.html#aa133f3e3e693051e679fa0ae6b2b12ac":[3,0,4,12,0],
 "_signal_item_roles_8h.html#ad3d8a9e4c600d8f9e7640a0a694133e0":[3,0,4,12,2],
 "_signal_item_roles_8h.html#aef4451f94bc9e42e2c0052d4cd6d58dd":[3,0,4,12,1],
 "_signal_item_roles_8h_source.html":[3,0,4,12],
@@ -246,8 +249,5 @@ var NAVTREEINDEX6 =
 "_stop_insertion_8h.html#a71eb8d337510c030ea159de93d76a296":[3,0,7,40,2],
 "_stop_insertion_8h.html#a82f3e1cc6adcb725a590578e8fb1e18a":[3,0,7,40,3],
 "_stop_insertion_8h.html#aae8ae02ee8c37ce93108e5fae52bf3ea":[3,0,7,40,4],
-"_stop_insertion_8h.html#ad83550cbe065ba3ce8e55ec06fc255b1":[3,0,7,40,5],
-"_stop_insertion_8h_source.html":[3,0,7,40],
-"_telemetry_consent_8cpp.html":[3,0,9,0],
-"_telemetry_consent_8cpp.html#a2fea8ce192c8ca8b406f940dbe1e8508":[3,0,9,0,0]
+"_stop_insertion_8h.html#ad83550cbe065ba3ce8e55ec06fc255b1":[3,0,7,40,5]
 };

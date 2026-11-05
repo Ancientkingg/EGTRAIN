@@ -433,12 +433,14 @@ egtrain_target_warnings(egtrain_dispatch)
 #   egtrain_sim                     legacy code with 104 warning lines, see #453, #454 and #482
 #   QEGTRAIN                        98 warning lines, 41 of them in app/MainWindow.cpp and the rest
 #                                   from the simulation headers, until the window is split up;
-#                                   app/main.cpp, app/GuardedApplication.cpp, app/UpdateTelemetryController.cpp,
-#                                   update/SelfUpdater.cpp, update/UpdateNotices.cpp, telemetry/TelemetryConsentDialog.cpp
-#                                   and widgets/SettingsDialog.cpp build here too; test_selfupdater builds SelfUpdater.cpp
-#                                   with the flags, test_updatetelemetrycontroller builds UpdateTelemetryController.cpp
-#                                   with them, test_guardedapplication builds GuardedApplication.cpp with them and
-#                                   test_settingsdialog builds SettingsDialog.cpp with them
+#                                   app/main.cpp, app/GuardedApplication.cpp, app/SceneSession.cpp,
+#                                   app/UpdateTelemetryController.cpp, update/SelfUpdater.cpp, update/UpdateNotices.cpp,
+#                                   telemetry/TelemetryConsentDialog.cpp and widgets/SettingsDialog.cpp build here too;
+#                                   test_selfupdater builds SelfUpdater.cpp with the flags, test_updatetelemetrycontroller
+#                                   builds UpdateTelemetryController.cpp with them, test_guardedapplication builds
+#                                   GuardedApplication.cpp with them, test_settingsdialog builds SettingsDialog.cpp with
+#                                   them and test_scenesession builds SceneSession.cpp, UpdateTelemetryController.cpp,
+#                                   TelemetryConsentDialog.cpp and SelfUpdater.cpp with them
 # The test executables are strict. EGTRAIN/QEGTRAIN/tests/CMakeLists.txt makes the headers below SRC_DIR system headers
 # for the tests that include the simulation headers, so the warnings of those headers do not count there.
 
