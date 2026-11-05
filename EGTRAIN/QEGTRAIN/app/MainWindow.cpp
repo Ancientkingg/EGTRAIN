@@ -761,8 +761,8 @@ void MainWindow::setupFileMenu() {
 	m_newSceneAction = new QAction("New Case...", this);
 	m_newSceneAction->setObjectName("actionNewCaseStudy");
 	m_newSceneAction->setShortcut(QKeySequence::New);
-	// Every way of opening a case goes through the chooser, which lists the bundled and recent cases and offers a case
-	// file, a case folder, a new case and a legacy import. The toolbar button Open Case shows the same action.
+	// Open Case... shows the chooser, which lists the bundled and recent cases and offers a case file, a case folder, a
+	// new case and a legacy import. The toolbar button Open Case shows the same action.
 	m_openCaseAction = new QAction("Open Case...", this);
 	m_openCaseAction->setObjectName("actionOpenCase");
 	m_openCaseAction->setShortcut(QKeySequence::Open);
@@ -3210,7 +3210,7 @@ void MainWindow::showEvent(QShowEvent* e) {
 		return;
 	}
 	// A file that the system opens arrives from the relay that main created, from a second process or,
-	// on macOS, as an open event. It takes the steps of File > Open Case... A modal dialog, such as
+	// on macOS, as an open event. It takes the steps of Open Case File... in Open a Case. A modal dialog, such as
 	// the first-run questions or the question about unsaved changes, holds it back until the dialog has
 	// closed.
 	auto* relay = findChild<OpenRequestRelay*>(QString(), Qt::FindDirectChildrenOnly);
