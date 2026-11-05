@@ -2,7 +2,7 @@
 
 A run writes text files to its output folder ([Output folder](command-line.md#output-folder)), and the paths below are relative to that folder.
 
-A file that cannot be written, for example because the folder is read-only or another program holds the file open, ends the run with the error `Cannot write <path>: <reason>`. The window then shows **Simulation Failed**, and a run without a window prints `ERROR: Cannot write <path>: <reason>` on standard error and exits with code 1. The files written before that one stay in the folder.
+A file that cannot be written, for example because the folder is read-only or another program holds the file open, ends the run with the error `Cannot write <path>: <reason>`. The window then shows **Simulation Failed**, except for `TrainTrajectories/TrainServicePathDiagram.txt` (see its row in the table), and a run without a window prints `ERROR: Cannot write <path>: <reason>` on standard error and exits with code 1. The files written before that one stay in the folder. Preparation removes only `TrainServicePathDiagram.txt`, so the other files that the run did not reach still hold what an earlier run in the same folder wrote, if there was one.
 
 | File | Written | Content |
 | --- | --- | --- |
