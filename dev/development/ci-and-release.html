@@ -345,7 +345,13 @@ The result check is named <code class="docutils literal notranslate"><span class
 <li><p>The documentation workflow (<code class="docutils literal notranslate"><span class="pre">docs.yml</span></code>) builds the <a class="reference internal" href="testing.html#documentation-site"><span class="std std-ref">documentation site</span></a>
 for every pull request, fails a pull request that adds undocumented classes or members to the
 files it changes, and publishes the site to <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code>: <code class="docutils literal notranslate"><span class="pre">dev/</span></code> from <code class="docutils literal notranslate"><span class="pre">main</span></code>, and <code class="docutils literal notranslate"><span class="pre">&lt;version&gt;/</span></code>
-and <code class="docutils literal notranslate"><span class="pre">latest/</span></code> after a successful release.</p></li>
+and <code class="docutils literal notranslate"><span class="pre">latest/</span></code> after a successful release. Each publish also writes the home page at the root of
+<code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> with <code class="docutils literal notranslate"><span class="pre">tools/docs/home_page.py</span></code>, from <code class="docutils literal notranslate"><span class="pre">docs/site/</span></code> of <code class="docutils literal notranslate"><span class="pre">main</span></code>: the downloads of the
+newest published version, links to its guides and C++ reference, and the list of versions.
+<code class="docutils literal notranslate"><span class="pre">test_ci_workflow</span></code>, which the documentation workflow also runs, checks that the downloads are
+the files that <code class="docutils literal notranslate"><span class="pre">tools/release/build_release_assets.py</span></code> names. The page links the names of <code class="docutils literal notranslate"><span class="pre">main</span></code>
+with the newest published version, so a renamed package breaks its download link until the next
+release: merge a rename together with a release.</p></li>
 <li><p>A pull request to <code class="docutils literal notranslate"><span class="pre">main</span></code> that changes a packaging input also runs the
 package check (<code class="docutils literal notranslate"><span class="pre">package-check.yml</span></code>). The inputs are the workflow files
 <code class="docutils literal notranslate"><span class="pre">package-check.yml</span></code>, <code class="docutils literal notranslate"><span class="pre">package.yml</span></code> and <code class="docutils literal notranslate"><span class="pre">release.yml</span></code>, the setup action in <code class="docutils literal notranslate"><span class="pre">.github/actions/</span></code>, <code class="docutils literal notranslate"><span class="pre">tools/release/</span></code>, the
