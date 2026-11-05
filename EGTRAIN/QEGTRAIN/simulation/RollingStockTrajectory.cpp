@@ -1,5 +1,6 @@
 #include "simulation/RollingStock.h"
 #include "scene/SignallingLevel.h"
+#include "simulation/RunOutputFile.h"
 #include "simulation/SimulationRun.h"
 #include "util/Log.h"
 
@@ -135,8 +136,7 @@ void Train::leaveFollowingModeWhenLeaderIsGone(int time_seconds) {
 void Train::PrintTrajectory() {
 	string path;
 	path = path + run_->settings.OutputMainFolder + "/TEMP/Traj_Train_" + trainDescription + ".txt";
-	ofstream trainout;
-	trainout.open((char*)path.c_str(), ios::binary);
+	ofstream trainout = openRunOutputFile(path, ios::binary);
 	trainout << "Time[s]\tSpeed[m/s]\tPosition[m]\tTail_Position[m]\tPower_Cons[kW]\tBX[m]\tinstant_train_energy_consumption[KWh]\tBlock" << "\n";
 	const auto segments = validTrajectorySegments(instant_spatial_position, earliestActiveTrajectoryIndex, End_Time);
 	bool firstSegment = true;
@@ -165,7 +165,7 @@ void Train::PrintTrajectory() {
 			}
 		}
 	}
-	trainout.close();
+	closeRunOutputFile(trainout, path);
 }
 
 string Train::DetermineOccupiedTDS(int timeinstant, bool IsRouteReversed) {

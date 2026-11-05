@@ -18,6 +18,7 @@
 #include <cmath>
 #include <limits>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -135,6 +136,7 @@ private slots:
 	void describesOccurrences();
 	void recordsRunProvenance();
 	void exportsTrajectoryTail();
+	void trajectoryWithoutFolderFails();
 };
 
 void TestRunResults::allocatesActiveEnd() {
@@ -975,6 +977,33 @@ void TestRunResults::exportsTrajectoryTail() {
 			previousPosition = position;
 		}
 	}
+}
+
+// A trajectory file that cannot be written ends the export with the path of the file.
+void TestRunResults::trajectoryWithoutFolderFails() {
+	const auto savedRoutes = defaultRun().infra.routes;
+	const std::string savedOutputFolder = defaultRun().settings.OutputMainFolder;
+	const auto restore = qScopeGuard([&]() {
+		defaultRun().infra.routes = savedRoutes;
+		defaultRun().settings.OutputMainFolder = savedOutputFolder;
+	});
+	QTemporaryDir temp;
+	defaultRun().settings.OutputMainFolder = temp.path().toStdString();
+	defaultRun().infra.routes.clear();
+	defaultRun().infra.routes.resize(1);
+	auto train = std::make_unique<Train>();
+	train->run_ = &defaultRun();
+	train->trainDescription = "no-folder-1";
+	train->indexOfRoute = 0;
+	train->setTrainVectorSizesFromInput(2);
+	std::string error;
+	try {
+		train->PrintTrajectory();
+	} catch (const std::runtime_error& thrown) {
+		error = thrown.what();
+	}
+	const std::string expected = "Cannot write " + temp.path().toStdString() + "/TEMP/Traj_Train_no-folder-1.txt: ";
+	QVERIFY2(error.rfind(expected, 0) == 0, error.c_str());
 }
 
 QTEST_APPLESS_MAIN(TestRunResults)

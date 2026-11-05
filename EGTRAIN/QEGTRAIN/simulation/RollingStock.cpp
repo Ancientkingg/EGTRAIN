@@ -1,6 +1,7 @@
 #include "simulation/RollingStock.h"
 #include "scene/SceneModel.h"
 #include "scene/SignallingLevel.h"
+#include "simulation/RunOutputFile.h"
 #include "simulation/SimulationRun.h"
 #include "util/Log.h"
 #include "util/timeutil.hpp"
@@ -380,8 +381,7 @@ void updateSingleTrackLocks(SimulationRun& run, int step) {
 void PrintTimetablePoints(SimulationRun& run, string MainFolder) {
 	string FileName;
 	FileName = FileName + MainFolder + "/TimetablePoints.txt";
-	ofstream OutputFile;
-	OutputFile.open((char*)FileName.c_str(), ios::binary);
+	ofstream OutputFile = openRunOutputFile(FileName, ios::binary);
 
 	for (int i = 0; i < run.numTrains; i++) {
 		OutputFile << run.trains[i].trainDescription << " " << run.trains[i].type << "\n";
@@ -423,14 +423,14 @@ void PrintTimetablePoints(SimulationRun& run, string MainFolder) {
 		}
 		OutputFile << "\n";
 	}
+	closeRunOutputFile(OutputFile, FileName);
 }
 
 // Function to Print out the blocking times of all the Trains
 void PrintTrainBlockingTimes(SimulationRun& run, string MainFolder) {
 	string FileName;
 	FileName = FileName + MainFolder + "/BlockingTimes.txt";
-	ofstream OutputFile;
-	OutputFile.open((char*)FileName.c_str(), ios::binary);
+	ofstream OutputFile = openRunOutputFile(FileName, ios::binary);
 
 	for (int i = 0; i < run.numTrains; i++) {
 		OutputFile << run.trains[i].trainDescription << "\n";
@@ -462,6 +462,7 @@ void PrintTrainBlockingTimes(SimulationRun& run, string MainFolder) {
 		}
 		OutputFile << "\n";
 	}
+	closeRunOutputFile(OutputFile, FileName);
 }
 
 // Function to report the position of the trains in ETCS Level 3
@@ -515,14 +516,13 @@ void Train::checkTrainArrDep(int t) {
 // print train service path diagram (append to file)
 void Train::printTrainServicePathDiagram(std::string FolderName, int nextServiceRouteID) {
 	std::string FileName = FolderName + "/TrainServicePathDiagram.txt";
-	std::ofstream FileOutput;
 
 	// avoid different corridor for initial service (entering station for the first time)
 	if (nextServiceRouteID != -1 && run_->infra.routes[indexOfRoute].corridor != run_->infra.routes[nextServiceRouteID].corridor && run_->infra.routes[indexOfRoute].reversed_direction == run_->infra.routes[nextServiceRouteID].reversed_direction) {
 		indexOfRoute = nextServiceRouteID;
 	}
 
-	FileOutput.open((char*)FileName.c_str(), std::ios::binary | std::ios::app); // append
+	std::ofstream FileOutput = openRunOutputFile(FileName, std::ios::binary | std::ios::app); // append
 
 	FileOutput << trainDescription << "\t" << -1 << "\t" << run_->infra.routes[indexOfRoute].reversed_direction << "\t" << run_->infra.routes[indexOfRoute].corridor << "\t";
 
@@ -549,7 +549,7 @@ void Train::printTrainServicePathDiagram(std::string FolderName, int nextService
 	}
 	FileOutput << std::endl;
 
-	FileOutput.close();
+	closeRunOutputFile(FileOutput, FileName);
 }
 
 // computes train X position (works with routes crossing different regions)

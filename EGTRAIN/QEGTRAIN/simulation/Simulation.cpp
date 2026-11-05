@@ -1,5 +1,6 @@
 #include "simulation/Simulation.h"
 #include "diagrams/RunResults.h"
+#include "simulation/RunOutputFile.h"
 #include "simulation/SimulationRun.h"
 #include "util/Log.h"
 #include "util/PlaybackProfiler.h"
@@ -206,10 +207,9 @@ void ComputeEnergyConsumptionForAllTrains(Train* Trains, int numTrains) {
 void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, string OutputFolder) {
 	double TotalEnergyConsumed = 0, TotalEnergyConsWithRegBraking = 0, TotalEnergySubstationRequest = 0, TotalEnergySubstRequestWithRegBraking = 0;
 
-	ofstream OutputPerTrain;
 	string OutputPerTrainFileName;
 	OutputPerTrainFileName = OutputPerTrainFileName + OutputFolder + "/EnergyConsumptionPerTrain.txt";
-	OutputPerTrain.open((char*)OutputPerTrainFileName.c_str(), ios::binary);
+	ofstream OutputPerTrain = openRunOutputFile(OutputPerTrainFileName, ios::binary);
 	OutputPerTrain << "TrainID TotEnergyConsumed[KWh] TotEnergyConsumedWithRegen[KWh] TotEnergyRequestAtSubst[KWh] TotEnergyRequestAtSubstWithRegen[KWh]\n";
 
 	for (int i = 0; i < numTrains; i++) {
@@ -222,16 +222,15 @@ void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, string Outp
 		TotalEnergySubstRequestWithRegBraking = TotalEnergySubstRequestWithRegBraking + Trains[i].TotalEnergySubstRequestWithRegBrak;
 	}
 	// close the output file
-	OutputPerTrain.close();
+	closeRunOutputFile(OutputPerTrain, OutputPerTrainFileName);
 	// Printing the results aggregated over the entire network
-	ofstream Output;
 	string OutputFileName;
 	OutputFileName = OutputFileName + OutputFolder + "/TotalEnergyConsumption.txt";
-	Output.open((char*)OutputFileName.c_str(), ios::binary);
+	ofstream Output = openRunOutputFile(OutputFileName, ios::binary);
 
 	Output << "TotalEnergyConsumed[KWh] TotalEnergyConsumedWithRegenerativeBraking[KWh] TotalEnergyRequestAtSubst[KWh] TotalEnergyRequestAtSubstWithRegBraking\n";
 	Output << energyMJKWh(TotalEnergyConsumed) << " " << energyMJKWh(TotalEnergyConsWithRegBraking) << " " << energyMJKWh(TotalEnergySubstationRequest) << " " << energyMJKWh(TotalEnergySubstRequestWithRegBraking) << "\n";
-	Output.close();
+	closeRunOutputFile(Output, OutputFileName);
 }
 
 // Function to Compute the Arrival and Departure times of at all the timetabling points along their own route
@@ -245,8 +244,7 @@ void Compute_TimetablingPoints_For_All_Trains(Train* Trains, int numTrains) {
 void PrintTrainPathDiagram(const SimulationRun& run, Train* S, int N_S, string FolderName) {
 	string FileName;
 	FileName = FolderName + "/TrainPathDiagram.txt";
-	ofstream FileOutput;
-	FileOutput.open((char*)FileName.c_str(), ios::binary);
+	ofstream FileOutput = openRunOutputFile(FileName, ios::binary);
 	FileOutput << "Train/Time ";
 	for (int t = 0; t < run.settings.times; t++) {
 		FileOutput << t * timestep << " ";
@@ -269,18 +267,17 @@ void PrintTrainPathDiagram(const SimulationRun& run, Train* S, int N_S, string F
 		FileOutput << "\n";
 	}
 
-	FileOutput.close();
+	closeRunOutputFile(FileOutput, FileName);
 }
 
 // Function to print the files with the computing time of ROMA and EGTRAIN for each combination RI-PH
 void Print_Computing_Times(const SimulationRun& run, string FolderName) {
 	string FileName;
 	FileName = FileName + FolderName + "/Computing_Times.txt";
-	ofstream Comp_Times;
-	Comp_Times.open((char*)FileName.c_str());
+	ofstream Comp_Times = openRunOutputFile(FileName);
 	Comp_Times << "TOT_Comp_Time_EGTRAIN[s]" << " " << "TOT_Comp_Time_ROMA" << " " << "TOT_COMP_TIME" << "\n";
 	Comp_Times << run.compTimeEgtrain << " " << run.compTimeRoma << " " << run.compTimeEgtrain + run.compTimeRoma << "\n";
-	Comp_Times.close();
+	closeRunOutputFile(Comp_Times, FileName);
 }
 
 // Function to check the start of the Journey (hence check their entrance on the network) for all simulated passengers
@@ -747,7 +744,7 @@ bool runSimulationPostprocessing(SimulationRun& run, const std::function<bool()>
 	if (settings.exportDetailedTrajectories) {
 		const std::string temporaryFolder = settings.OutputMainFolder + "/TEMP";
 		std::error_code error;
-		std::filesystem::create_directories(temporaryFolder, error);
+		std::filesystem::create_directories(pathFromUtf8(temporaryFolder), error);
 		if (error)
 			throw std::runtime_error("Cannot create the folder " + temporaryFolder + ": " + error.message());
 		for (int i = 0; i < run.numTrains; i++) {

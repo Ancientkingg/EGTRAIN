@@ -29,7 +29,8 @@ How EGTRAIN handles failure: which exceptions are caught and which escape, the f
 
 | Check | Diagnostic | What the user sees |
 | --- | --- | --- |
-| The output folder of a run and its subfolders (`ensureDirectory` in `prepareScene`) | `run.output.folder`: "Cannot create the output folder <path>: <reason>" | Window: **Cannot Run Case** with that text, Run Results status "Failed", the case stays open. Without a window: the diagnostic on standard error and exit code 1. |
+| The output folder of a run and its subfolders (`prepareRunOutput` in `prepareScene`) | `run.output.folder`: "Cannot create the output folder <path>: <reason>" | Window: **Cannot Run Case** with that text, Run Results status "Failed", the case stays open. Without a window: the diagnostic on standard error and exit code 1. |
+| `TrainTrajectories/TrainServicePathDiagram.txt` of an earlier run, which the run would append to (`prepareRunOutput`) | `run.output.file`: "Cannot write <path>: <reason>" when it cannot be removed | As for `run.output.folder`. |
 | `<output>/TEMP` of a run with `--detailed-trajectories` | none; the run throws "Cannot create the folder <path>: <reason>", which `runSimulation` catches | The run fails as below. |
 | The scene folder in `loadScene` (`scene/SceneModel.cpp`) | `scene.dir.unreadable`: "Cannot read the case folder: <reason>"; a path that does not exist or is not a folder keeps `scene.dir.missing` | Window: **Cannot Open Case**. At the start, headless and in `scene_tool validate`, `pack` and `export`: the diagnostic and exit code 1. |
 | The legacy folder of an import and its passenger files (`scene/SceneImporter.cpp`) | `scene.import.missing` with the reason; passenger files that cannot be checked count as absent | **Cannot Import Legacy Case**, or `scene_tool import` exits with 1. |
@@ -96,7 +97,7 @@ The visual polish smoke also had a use after free: it added a temporary `SignalI
 | Run stopped by an exception | "Simulation Failed" box; status bar "Simulation failed"; Run Results status "Failed" | Yes |
 | Run with zero trains | Nothing visible: one error line in the Log dock (`DispatchController.cpp`) | Dock |
 | Run ends without results and was not stopped | Run Results says "Failed" and the status bar says "Simulation ended without results" | No |
-| Run output files cannot be written | Nothing: `ofstream::open` is not checked (for example `simulation/Simulation.cpp`), and the run reports success | One line for one file (`RollingStock.cpp`) |
+| Run output files cannot be written | The run fails as a run stopped by an exception, with "Cannot write <path>: <reason>": every writer opens and closes its file with `simulation/RunOutputFile.h`. A failure to write `TrainServicePathDiagram.txt`, which is written after the run, is only logged | Yes |
 | Result export fails | "Export failed" warning with the path, without the reason from the OS | No |
 | Live stream cannot start | "Cannot Start EGTRAIN" box, exit 2 (`main.cpp`) | Standard error |
 | Manual update check fails | Warning box with the network error | No |

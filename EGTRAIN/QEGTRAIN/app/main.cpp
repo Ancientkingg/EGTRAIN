@@ -11,6 +11,7 @@
 #include "scene/SceneBundle.h"
 #include "scene/SceneCompatibility.h"
 #include "scene/SceneValidator.h"
+#include "scene/Utf8Path.h"
 #include "simulation/SimulationRun.h"
 #if EGTRAIN_BUILD_TESTS
 #include "tests/e2e/E2ERunner.h"
@@ -327,7 +328,7 @@ static bool startLiveStream(const std::string& outputFolder, bool showBox) {
 	if (initial_variables.livePort < 0)
 		return true;
 	std::string error;
-	if (!simulation.startLive(initial_variables.livePort, initial_variables.liveEvery, initial_variables.liveCommands, outputFolder, &error)) {
+	if (!simulation.startLive(initial_variables.livePort, initial_variables.liveEvery, initial_variables.liveCommands, pathFromUtf8(outputFolder), &error)) {
 		const QString message = QStringLiteral("Cannot start the live stream: %1").arg(QString::fromStdString(error));
 		std::cerr << "ERROR: " << message.toStdString() << '\n';
 		if (showBox && !updatesSuppressedByEnvironment())

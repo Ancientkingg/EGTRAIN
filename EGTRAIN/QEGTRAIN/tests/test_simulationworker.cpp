@@ -35,6 +35,8 @@
 namespace {
 
 constexpr int kHorizonSeconds = 300;
+// A run that writes the service path diagram: a few hundred seconds after the first terminal arrival at 1659 s.
+constexpr int kArrivalHorizonSeconds = 2000;
 constexpr int kStopAtSnapshot = 10;
 
 // Written by the energy stage, before the first stop check after the loop.
@@ -289,6 +291,11 @@ private slots:
 	void exceptionInSlotFailsRun();
 	void blockedTempFolderFailsRun();
 	void blockedOutputFolderFailsPreparation();
+	void blockedResultFileFailsRun_data();
+	void blockedResultFileFailsRun();
+	void blockedServicePathDiagramFailsPreparation();
+	void blockedServicePathDiagramIsReported();
+	void nonAsciiOutputFolder();
 	void folderChosenDuringRun();
 
 private:
@@ -662,8 +669,6 @@ void TestSimulationWorker::queuedStopWithoutWorker() {
 
 void TestSimulationWorker::reusedOutputFolder() {
 	QTemporaryDir output;
-	// Allow a few hundred seconds after the first terminal arrival at 1659 s.
-	constexpr int kArrivalHorizonSeconds = 2000;
 	const char* const files[] = {"TrainTrajectories/TrainServicePathDiagram.txt"};
 	QByteArray firstContents[std::size(files)];
 	const auto readOutput = [&](const char* name, bool& opened) {
@@ -768,6 +773,82 @@ void TestSimulationWorker::blockedOutputFolderFailsPreparation() {
 					 return diagnostic.code == "run.output.folder" && diagnostic.severity == SceneSeverity::Error;
 				 }),
 		"blocked output folder: the preparation reports run.output.folder");
+}
+
+void TestSimulationWorker::blockedResultFileFailsRun_data() {
+	QTest::addColumn<QString>("file");
+	QTest::addColumn<bool>("detailed");
+	for (const char* file : {"EnergyConsumptionPerTrain.txt", "TotalEnergyConsumption.txt", "PassengerStatus/PassengerStatus.txt",
+			 "PassengerStatus/JourneyDelays.txt", "TrainTrajectories/Stats_Stations.txt", "TrainTrajectories/Pos&Neg_Stats_Stations.txt",
+			 "TrainTrajectories/Computing_Times.txt", "TrainTrajectories/BlockingTimes.txt", "TrainTrajectories/TimetablePoints.txt"})
+		QTest::newRow(file) << QString::fromUtf8(file) << false;
+	QTest::newRow("TrainTrajectories/TrainPathDiagram.txt") << QStringLiteral("TrainTrajectories/TrainPathDiagram.txt") << true;
+}
+
+// A result file that cannot be written, here because a folder has its name, fails the run with the path of the file.
+void TestSimulationWorker::blockedResultFileFailsRun() {
+	QFETCH(QString, file);
+	QFETCH(bool, detailed);
+	QTemporaryDir output;
+	QVERIFY2(QDir().mkpath(output.filePath(file)), "a folder takes the place of the file");
+	initial_variables.exportDetailedTrajectories = detailed;
+	const auto restoreDetail = qScopeGuard([] { initial_variables.exportDetailedTrajectories = false; });
+	RunObservation observed;
+	runScene(m_scene, output.path(), StopAt::Never, observed);
+	QVERIFY(observed.prepared);
+	QCOMPARE(observed.failed.load(), 1);
+	QVERIFY(!observed.completed);
+	const std::string expected = "Cannot write " + output.path().toStdString() + "/" + file.toStdString() + ": ";
+	QVERIFY2(observed.error.rfind(expected, 0) == 0, observed.error.c_str());
+}
+
+// The file that a run appends to cannot be removed, here because it is a folder that holds a file: the preparation fails and
+// names it, so the run does not append to the file of an earlier run.
+void TestSimulationWorker::blockedServicePathDiagramFailsPreparation() {
+	QTemporaryDir output;
+	const QString diagram = output.filePath("TrainTrajectories/TrainServicePathDiagram.txt");
+	QVERIFY2(QDir().mkpath(diagram + "/kept"), "a folder that holds a folder takes the place of the file");
+	simulation.setNextRunOutputFolder(output.path().toStdString());
+	const auto forgetFolder = qScopeGuard([] { simulation.setNextRunOutputFolder({}); });
+	const std::vector<SceneDiagnostic> diagnostics = simulation.prepareScene(m_scene);
+	const auto failure = std::find_if(diagnostics.begin(), diagnostics.end(),
+		[](const SceneDiagnostic& diagnostic) { return diagnostic.code == "run.output.file"; });
+	if (failure == diagnostics.end())
+		QFAIL("the preparation reports no run.output.file");
+	QVERIFY(failure->severity == SceneSeverity::Error);
+	QVERIFY2(failure->message.rfind("Cannot write " + diagram.toStdString() + ": ", 0) == 0, failure->message.c_str());
+}
+
+// The service path diagram that cannot be written after a completed run is reported, not dropped.
+void TestSimulationWorker::blockedServicePathDiagramIsReported() {
+	QTemporaryDir output;
+	simulation.setSnapshotsEnabled(false);
+	const auto enableSnapshots = qScopeGuard([] { simulation.setSnapshotsEnabled(true); });
+	RunObservation observed;
+	runScene(m_scene, output.path(), StopAt::Never, observed, QString(), kArrivalHorizonSeconds);
+	QVERIFY(observed.prepared);
+	QVERIFY(observed.completed);
+	const QString diagram = output.filePath("TrainTrajectories/TrainServicePathDiagram.txt");
+	QVERIFY2(QDir().mkpath(diagram), "a folder takes the place of the file");
+	const std::string error = simulation.printLastTrainServicePathDiagram();
+	QVERIFY2(error.rfind("Cannot write " + diagram.toStdString() + ": ", 0) == 0, error.c_str());
+}
+
+// A run writes into a folder whose name is not ASCII. The output folder is a UTF-8 string, which Windows reads in the system
+// code page unless the path is made from UTF-8.
+void TestSimulationWorker::nonAsciiOutputFolder() {
+	QTemporaryDir parent;
+	const QString folder = parent.filePath(QStringLiteral("Zo\u00eb Malm\u00f6 \u6771\u4eac"));
+	simulation.setSnapshotsEnabled(false);
+	const auto enableSnapshots = qScopeGuard([] { simulation.setSnapshotsEnabled(true); });
+	RunObservation observed;
+	runScene(m_scene, folder, StopAt::Never, observed, QString(), kArrivalHorizonSeconds);
+	QVERIFY(observed.prepared);
+	QCOMPARE(observed.error, std::string());
+	QVERIFY(observed.completed);
+	QCOMPARE(simulation.printLastTrainServicePathDiagram(), std::string());
+	for (const char* file : {kEnergyFile, kLateFiles[0], kLateFiles[1], "TrainTrajectories/TrainServicePathDiagram.txt"})
+		QVERIFY2(QFileInfo::exists(folder + "/" + QString::fromUtf8(file)), file);
 }
 
 // Last, because the chosen folder stays in the controller for later runs.

@@ -713,6 +713,7 @@ public:
 
 	/// Writes Traj_Train_<trainDescription>.txt to the TEMP folder of the output: for every valid step the time (s), speed (m/s), head
 	/// and tail position (m), power (kW), braking point (m), energy (kWh) and section. A reversed route writes original coordinates.
+	/// Throws std::runtime_error when the file cannot be written (simulation/RunOutputFile.h).
 	void PrintTrajectory();
 
 	/// Does nothing.
@@ -859,7 +860,8 @@ public:
 
 	/// Appends a row to FolderName/TrainServicePathDiagram.txt: the train, -1 (the column of a line ID that nothing sets),
 	/// direction, corridor and its head position (m, original coordinates) in every step, empty where it does not run.
-	/// nextServiceRouteID is a route index or -1.
+	/// nextServiceRouteID is a route index or -1. Throws std::runtime_error when the file cannot be written
+	/// (simulation/RunOutputFile.h).
 	void printTrainServicePathDiagram(std::string FolderName, int nextServiceRouteID);
 
 	/// The geographic position (km) in step t of the head, or of the point wagon * train_length / (number_of_wagons + 1) behind it;
@@ -906,11 +908,12 @@ void Occupy_Block_Sections_Of_Route(SimulationRun& run, int i);
 void ReportAllTrainPositionsToRBC(SimulationRun& run, int i, double ETCS3SafetyMargin);
 
 /// Writes MainFolder/BlockingTimes.txt: per train, its description and its first N_BlockTimeComplete blocking times (positions m,
-/// times s).
+/// times s). Throws std::runtime_error when the file cannot be written (simulation/RunOutputFile.h).
 void PrintTrainBlockingTimes(SimulationRun& run, std::string MainFolder);
 
 /// Writes MainFolder/TimetablePoints.txt: for each train its description and type, then rows of the location names, the positions
-/// (twice), the arrival times and the departure times of its timetable points.
+/// (twice), the arrival times and the departure times of its timetable points. Throws std::runtime_error when the file cannot
+/// be written (simulation/RunOutputFile.h).
 void PrintTimetablePoints(SimulationRun& run, std::string MainFolder);
 
 /// Computes the blocking times of every train (Train::ComputeBlockingTimesInMixedSignallingAreas, same arguments) and writes

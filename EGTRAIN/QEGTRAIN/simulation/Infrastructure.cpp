@@ -1,4 +1,5 @@
 #include "simulation/Infrastructure.h"
+#include "simulation/RunOutputFile.h"
 #include "simulation/SimulationRun.h"
 #include <cstdio>
 #include <cfloat>
@@ -83,13 +84,12 @@ bool orderPassengerListOnPlatform(pair<string, double>& A, pair<string, double>&
 
 
 void Print_Station_Delay_Stats(const SimulationRun& run, string Name_StationDelay, string kindofdelay) {
-	ofstream FileOutput;
 	string FileOutName;
 	if (kindofdelay == "pos")
 		FileOutName = FileOutName + Name_StationDelay + "/Stats_Stations.txt";
 	else if (kindofdelay == "pos&neg")
 		FileOutName = FileOutName + Name_StationDelay + "/Pos&Neg_Stats_Stations.txt";
-	FileOutput.open((char*)FileOutName.c_str());
+	ofstream FileOutput = openRunOutputFile(FileOutName);
 	FileOutput << "StName" << " " << "Av_Delay" << " " << "Std_Delay" << " " << "Total_Delay" << " " << "Max_Tot_Delay" << " " << "Cum_Cons_Delay" << " " << "Max_Cons_Delay" << " " << "Perc_Delayed" << " " << "Perc_Delayed_3min" << " " << "Perc_Delayed_5min" << " " << "N_StopTrains" << " " << "N_DelTrains" << "\n";
 	// Print first the amount of Entrance delay and disturbances to dwell times in input
 	FileOutput << "Ent_Del+DwT_Dist" << " " << run.totalInputDelays.Av_Arrival_Delay << " " << run.totalInputDelays.Std_Arrival_Delay << " " << run.totalInputDelays.totalArrivalDelay << " " << run.totalInputDelays.Max_TotalDelay << " " << "N/D" << " " << "N/D" << " " << run.totalInputDelays.Perc_Delayed_T << " " << run.totalInputDelays.Perc_Delayed_T_3min << " " << run.totalInputDelays.Perc_Delayed_T_5min << " " << run.totalInputDelays.N_Stopped_Trains << " " << run.totalInputDelays.N_Delayed_Arr << "\n";
@@ -144,5 +144,5 @@ void Print_Station_Delay_Stats(const SimulationRun& run, string Name_StationDela
 	// Printing the Final_Delay fittitious station
 	FileOutput << kFinalStationName << " " << run.finalStation.Av_Arrival_Delay << " " << run.finalStation.Std_Arrival_Delay << " " << run.finalStation.totalArrivalDelay << " " << run.finalStation.Max_TotalDelay << " " << run.finalStation.Tot_Consec_Delay << " " << run.finalStation.Max_Cons_Delay << " " << run.finalStation.Perc_Delayed_T << " " << run.finalStation.Perc_Delayed_T_3min << " " << run.finalStation.Perc_Delayed_T_5min << " " << run.finalStation.N_Stopped_Trains << " " << run.finalStation.N_Delayed_Arr << "\n";
 
-	FileOutput.close();
+	closeRunOutputFile(FileOutput, FileOutName);
 }
