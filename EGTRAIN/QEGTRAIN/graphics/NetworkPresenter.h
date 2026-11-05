@@ -594,8 +594,8 @@ private:
 	};
 	// A train that is drawn on its route: the state of its last update, and its glide from fromHead, the position of its
 	// head along the route in metres at the time fromMs, to the head of that state at toMs. It is drawn with its head at
-	// drawnHead, from drawn, the state of the last update with the positions of the wagons there. drawnMs is the time of
-	// the last step if that step drew the train and no update came since, and otherwise the oldest time.
+	// drawnHead, from drawn, the state of the last update with its head moved to drawnHead. drawnMs is the time of the
+	// last step if that step drew the train and no update came since, and otherwise the oldest time.
 	struct TrainMotion {
 		GuiTrainState newest;
 		GuiTrainState drawn;

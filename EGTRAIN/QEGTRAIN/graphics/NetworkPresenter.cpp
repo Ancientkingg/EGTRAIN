@@ -208,20 +208,6 @@ constexpr std::size_t kMeasuredIntervals = 8;
 // that a frame that follows an update shows no more motion than another.
 constexpr int kMotionStepMs = 16;
 
-// The X in kilometres of the point at the position q along a route, in metres, as the simulation finds the end of a
-// wagon (trainXPositionOf()): on the first section of the route that holds it, or -1 where it is on none.
-double routeXAt(const Route& route, bool reversed, double q) {
-	const int sections = std::min(route.N_Block_Sections, static_cast<int>(route.sequence_of_block_sections.size()));
-	for (int i = 0; i < sections; ++i) {
-		const Section& section = route.sequence_of_block_sections[static_cast<std::size_t>(i)];
-		if (q >= section.start_node.X * 1000 && q < section.end_node.X * 1000) {
-			const double portion = q - section.start_node.X * 1000;
-			return (reversed ? section.GeoXBegNode - portion : section.GeoXBegNode + portion) / 1000;
-		}
-	}
-	return -1.0;
-}
-
 // The middle of the front of a train as it is drawn, in scene coordinates, where its callouts start. Returns false while
 // its head has no shape.
 bool trainFront(const TrainItemGroup& train, QPointF& front) {
@@ -2765,10 +2751,10 @@ void NetworkPresenter::startGlide(TrainMotion& motion, const GuiTrainState& stat
 	motion.toMs = now + glideMs;
 }
 
-// Draws a train with its head at head along its route: at the place of its last update with the positions of the wagons
-// there, and elsewhere with every end of a wagon at its distance from the head along the route, found as the simulation
-// finds it, -1 where it is on no section of the route. The badge goes to the centre of the train, as trainCenter()
-// finds it, and the callouts to the front of the train. Tells whether a body has a shape.
+// Draws a train with its head at head along its route, from the state of its last update with the head moved there:
+// every wagon of that update at its distance from the head along the drawn route (getTrainPolygon()). The badge goes to
+// the centre of the train, as trainCenter() finds it, and the callouts to the front of the train. Tells whether a body
+// has a shape.
 bool NetworkPresenter::drawTrain(TrainItemGroup& trainItem, TrainMotion& motion, double head) {
 	const GuiTrainState& newest = motion.newest;
 	const GuiTrainState* state = &newest;
@@ -2779,16 +2765,8 @@ bool NetworkPresenter::drawTrain(TrainItemGroup& trainItem, TrainMotion& motion,
 		drawn.wagonCount = newest.wagonCount;
 		drawn.length = newest.length;
 		drawn.routeAxisPosition = head;
-		const Route* route = m_source ? m_source->route(newest.routeIndex) : nullptr;
-		const std::size_t wagons = static_cast<std::size_t>(std::max(newest.wagonCount + 1, 0));
-		const double wagonLength = newest.length / (newest.wagonCount + 1);
-		drawn.wagonHeadPositions.resize(wagons);
-		drawn.wagonTailPositions.resize(wagons);
-		for (std::size_t wagon = 0; wagon < wagons; ++wagon) {
-			const double front = head - static_cast<double>(wagon) * wagonLength;
-			drawn.wagonHeadPositions[wagon] = route ? routeXAt(*route, newest.reversedDirection, front) : -1.0;
-			drawn.wagonTailPositions[wagon] = route ? routeXAt(*route, newest.reversedDirection, front - wagonLength) : -1.0;
-		}
+		drawn.wagonHeadPositions = newest.wagonHeadPositions;
+		drawn.wagonTailPositions = newest.wagonTailPositions;
 		state = &drawn;
 	}
 	motion.drawnHead = head;
