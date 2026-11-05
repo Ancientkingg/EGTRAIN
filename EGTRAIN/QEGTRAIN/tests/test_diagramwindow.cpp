@@ -10,7 +10,9 @@
 #include "widgets/DisplayPath.h"
 #include "widgets/PlainToolTip.h"
 
+#include <QAbstractButton>
 #include <QApplication>
+#include <QByteArray>
 #include <QClipboard>
 #include <QGraphicsLayout>
 #include <QGraphicsObject>
@@ -230,6 +232,7 @@ private slots:
 	void drawsOneVerticalAxis();
 	void reportsSavedCsv();
 	void asksForFileOfItsKind();
+	void asksBeforeSuffixReplacesFile();
 	void laysOutHeader();
 	void showsPanelSections();
 	void readsValueUnderPointer();
@@ -2788,6 +2791,67 @@ void TestDiagramWindow::asksForFileOfItsKind() {
 	QVERIFY2(png.filters == QStringList("PNG Image (*.png)"), qPrintable("PNG... asks for a PNG image: " + png.title + ", " + png.filters.join(", ") + ", " + png.suggested));
 	QVERIFY2(png.suggested == "diagram.png", qPrintable("PNG... asks for a PNG image: " + png.title + ", " + png.filters.join(", ") + ", " + png.suggested));
 	QVERIFY2(png.warnings == QStringList("Could not save the image to:\n" + display_path::format(pngPath)), qPrintable("an image that cannot be written is named as the person reads it: " + png.warnings.join(" | ")));
+}
+
+// Clicks CSV..., types `name` into the save dialog and answers the question that follows with `answer`. Returns the text
+// of that question, or an empty string when none was asked.
+static QString answerReplaceQuestion(QPushButton* button, const QString& folder, const QString& name,
+	QMessageBox::StandardButton answer) {
+	QString question;
+	bool named = false;
+	QTimer timer;
+	QObject::connect(&timer, &QTimer::timeout, [&] {
+		if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+			question = box->text();
+			if (QAbstractButton* clicked = box->button(answer))
+				clicked->click();
+			else
+				box->reject();
+			return;
+		}
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* dialog = qobject_cast<QFileDialog*>(widget); dialog && dialog->isVisible() && !named) {
+				named = true;
+				dialog->setDirectory(folder);
+				if (auto* field = dialog->findChild<QLineEdit*>("fileNameEdit"))
+					field->setText(name);
+				// Through QDialog, as QFileDialog::accept is protected.
+				static_cast<QDialog*>(dialog)->accept();
+			}
+	});
+	timer.start(0);
+	button->click();
+	return question;
+}
+
+// The save dialog has seen only the name without .csv, so CSV... asks before the name with .csv replaces a file. No keeps
+// the file and Yes replaces it.
+void TestDiagramWindow::asksBeforeSuffixReplacesFile() {
+	QTemporaryDir directory;
+	QVERIFY(directory.isValid());
+	DiagramWindow window("Replace question");
+	window.setChart(buttonTestChart());
+	window.setCsvProvider([](const QStringList&) { return std::string("Train\nA\n"); }, QString());
+	window.show();
+	QPushButton* csvButton = buttonNamed(window, "CSV...");
+	if (csvButton == nullptr)
+		QFAIL("the window has a CSV export");
+	const QString existing = QDir(directory.path()).filePath("data.csv");
+	QFile file(existing);
+	QVERIFY(file.open(QIODevice::WriteOnly));
+	QCOMPARE(file.write("kept"), qint64(4));
+	file.close();
+	const QString declined = answerReplaceQuestion(csvButton, directory.path(), "data", QMessageBox::No);
+	// the question names the file, and No writes nothing
+	QCOMPARE(declined, "data.csv already exists. Replace it?");
+	QVERIFY(file.open(QIODevice::ReadOnly));
+	QCOMPARE(file.readAll(), QByteArray("kept"));
+	file.close();
+	const QString accepted = answerReplaceQuestion(csvButton, directory.path(), "data", QMessageBox::Yes);
+	// Yes replaces the file with the data of the window
+	QCOMPARE(accepted, declined);
+	QVERIFY(file.open(QIODevice::ReadOnly));
+	QCOMPARE(file.readAll(), QByteArray("Train\nA\n"));
 }
 
 // A route id of 300 characters is cut short in the title of an axis; the pointer on the title shows all of it.

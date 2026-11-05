@@ -7,6 +7,7 @@
 #include "scene/SceneIds.h"
 #include "scene/SceneReferences.h"
 #include "scene/SceneWriter.h"
+#include "widgets/SaveSuffix.h"
 
 #include <QDir>
 #include <QFileDialog>
@@ -348,8 +349,9 @@ void ScenarioPanel::exportScenario() {
 		: QFileDialog::getSaveFileName(this, "Export Scenario", dialog_folders::suggestedPath(suggestedName), "Scenario JSON (*.json)");
 	if (path.isEmpty())
 		return;
-	if (!path.endsWith(".json", Qt::CaseInsensitive))
-		path += ".json";
+	path = savePathWithSuffix(this, *m_prompts, "Export Scenario", path, "json");
+	if (path.isEmpty())
+		return;
 	const SceneSaveResult result = saveScenarioJson(*scenario, path.toStdString());
 	if (!result.success()) {
 		if (reportFailure)

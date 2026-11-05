@@ -65,7 +65,8 @@ public:
 	/// Reads a scenario JSON file and appends it; an id that the scene already has, of the scenario or of an incident,
 	/// is made unique.
 	void importScenario();
-	/// Writes the selected scenario to a scenario JSON file.
+	/// Writes the selected scenario to a scenario JSON file. A name without .json gets it, and when a file of that name
+	/// exists the prompts ask whether to replace it (savePathWithSuffix).
 	void exportScenario();
 	/// Takes the id from the field. An empty or used id is dropped and the field shows the old id again.
 	void commitIdEdit();

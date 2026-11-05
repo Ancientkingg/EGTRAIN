@@ -3,6 +3,7 @@
 
 #include "scene/SceneDiagnostic.h"
 #include "telemetry/TelemetryOperation.h"
+#include "widgets/UserPrompts.h"
 
 #include <QObject>
 #include <QPointer>
@@ -105,6 +106,11 @@ public:
 	/// The vector itself, which the validation panel writes to when it validates.
 	std::vector<SceneDiagnostic>* mutableDiagnostics() { return &m_sceneDiagnostics; }
 
+	/// The prompts that ask the questions of the session and show its errors. Null puts back the prompts of the session
+	/// itself, which write an error to stderr instead of showing it while Host::dialogsSuppressed() is true. A test sets
+	/// prompts that answer without a dialog. The prompts are not owned and have to outlive their use.
+	void setPrompts(UserPrompts* prompts) { m_prompts = prompts ? prompts : &m_ownPrompts; }
+
 	/// The Recent Cases menu, which the window puts in its File menu. Its parent is the window.
 	QMenu* recentScenesMenu() const;
 	/// The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear once.
@@ -138,7 +144,9 @@ public:
 	/// first four lines, the most serious first, then the number of lines left out. Empty when there are no diagnostics.
 	static QString legacyImportSummary(const std::vector<SceneDiagnostic>& diagnostics);
 	/// Imports the legacy case in `sourceDir` as a scene folder in `destinationDir` and opens it. The two folders must
-	/// not contain each other. Does nothing when either is empty.
+	/// not contain each other. Does nothing when either is empty. A destination that holds a scene.json is replaced only
+	/// when the user agrees. A destination that holds other files is left as it is: the user may import into a new folder
+	/// inside it, named after the case, which must not exist or be empty.
 	void importLegacyCase(const QString& sourceDir, const QString& destinationDir,
 		const telemetry::OperationObservation& operation);
 
@@ -147,10 +155,12 @@ public:
 	/// Save As: saves the scene to a bundle that the user chooses.
 	void saveSceneAs();
 	/// Saves the scene where it came from. A scene without a location, or one inside the installation, is saved as a
-	/// bundle that the user chooses. Returns whether the scene was saved.
+	/// bundle that the user chooses. When the scene files on disk, or the bundle file, differ in size or modification
+	/// time from what was last opened or saved, or a scene file was added or removed, the save goes on only when the user
+	/// agrees to replace them. Returns whether the scene was saved.
 	bool saveSceneToCurrentDir();
-	/// Saves the scene to a folder that the user chooses. A scene that came from a folder takes its views.json along.
-	/// Returns whether the scene was saved.
+	/// Saves the scene to a folder that the user chooses. A folder that holds another case, or other files, is written
+	/// to only when the user agrees. Returns whether the scene was saved.
 	bool saveSceneAsToDirectory();
 	/// Asks whether to save unsaved changes. Returns false when the user cancels or the save fails.
 	bool maybeSaveScene();
@@ -184,14 +194,31 @@ private:
 	bool saveSceneAsToBundle();
 	bool saveSceneAsToBundle(const telemetry::OperationObservation& operation);
 	QString saveSceneAsStartPath() const;
-	bool copyScenePassthroughFiles(const QString& targetDir, const telemetry::OperationObservation& operation);
+	bool prepareSaveFolder(const QString& targetDir, const telemetry::OperationObservation& operation);
 	void showError(const QString& title, const QString& message, bool warningIcon = false);
+
+	// A file of the scene on disk: absent, or present with its size and the time it was last modified.
+	struct DiskFile {
+		QString name;
+		bool exists = false;
+		qint64 size = 0;
+		qint64 modifiedMs = 0;
+		bool operator==(const DiskFile& other) const {
+			return name == other.name && exists == other.exists && size == other.size && modifiedMs == other.modifiedMs;
+		}
+	};
+	// The files of the scene at `path` as they are now: every scene file of a folder, or the bundle file.
+	static std::vector<DiskFile> diskFiles(const QString& path, bool bundle);
 
 	QMainWindow* m_window;
 	SceneDocument* m_document;
 	Host& m_host;
 	QPointer<QMenu> m_recentScenesMenu;
+	UserPrompts m_ownPrompts;
+	UserPrompts* m_prompts = &m_ownPrompts;
 	QString m_sceneDir;
+	// The files of the scene as it was last opened or saved; empty for a scene that has no file.
+	std::vector<DiskFile> m_savedFiles;
 	std::string m_savedSceneSha256;
 	bool m_sceneIsBundle = false;
 	std::optional<int> m_sceneBundleVersion;

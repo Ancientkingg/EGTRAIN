@@ -46,15 +46,15 @@ Normal mode keeps the network view and the editors uncluttered. **View > Advance
 A bundled case is read-only in practice: EGTRAIN never saves into the installation. Make your own copy before you edit.
 
 1. Choose **File > Save As...**.
-2. Choose a folder of your own and a file name. EGTRAIN adds `.egscene` when you leave it off. The dialog starts in the folder of your open case, or in your Documents folder for a bundled case.
+2. Choose a folder of your own and a file name. EGTRAIN adds `.egscene` when you leave it off, and asks before that name replaces a file. The dialog starts in the folder of your open case, or in your Documents folder for a bundled case.
 3. Save.
 
 You should see `Case saved` in the status bar. Your file is now the open case, and it appears in **File > Recent Cases**. The original is unchanged. The file holds the inputs of the case and no results, replay or delay baseline.
 
 Other ways to save:
 
-- **File > Save** (Ctrl+S) writes the case back to the bundle or case folder it came from. For a bundled case, and for a new case that has no file yet, it asks for a new `.egscene` file instead, as **Save As...** does, and Cancel keeps the edit. A case folder outside the installation, such as one in a source checkout, is saved in place.
-- **File > Save As Folder...** writes the case as a folder of JSON files, which you can edit by hand. If the folder you choose is not empty and holds no `scene.json`, EGTRAIN asks `The folder is not empty. Save the case there anyway?`. A folder that already holds a `scene.json` is written over without a question; other files in it are kept.
+- **File > Save** (Ctrl+S) writes the case back to the bundle or case folder it came from. For a bundled case, and for a new case that has no file yet, it asks for a new `.egscene` file instead, as **Save As...** does, and Cancel keeps the edit. A case folder outside the installation, such as one in a source checkout, is saved in place. If the files of the case changed on disk since you opened or last saved it, for example by a hand edit or another EGTRAIN window, the question **Case Changed on Disk** asks whether to replace the case on disk with your version. No cancels the save and keeps your edits; **Save As...** then keeps both versions.
+- **File > Save As Folder...** writes the case as a folder of JSON files, which you can edit by hand. If the folder you choose is not empty and holds no `scene.json`, EGTRAIN asks `The folder is not empty. Save the case there anyway?`. If it holds another case, EGTRAIN asks whether to replace that case. Either way other files in the folder are kept, and the folder of the open case is saved again without a question.
 - A destination inside the installation is refused with **Cannot Save Case**: `Bundled cases cannot be overwritten. Choose a location outside the EGTRAIN installation.`
 
 To check a saved case, open it again from **File > Recent Cases**. The three save commands are enabled whenever a case is open, also during a run.
@@ -93,7 +93,7 @@ You can save a case that has errors. Warnings do not stop a run, but read them: 
 
 After an edit the case is unsaved. EGTRAIN then asks (`Save the changes to <case name>?`) before it replaces the case, which happens when you open another case, choose **New Case...**, load a legacy case or close the window. On Windows and Linux the box is titled **Unsaved Case** and offers **Save**, **Discard** and **Cancel**. On macOS it is a sheet without a title that offers **Save**, **Cancel** and **Don't Save**, which does what **Discard** does.
 
-- **Save** saves the case first. For a bundled case or a new case it asks for a new `.egscene` file, and if you cancel that dialog, the open or close is cancelled too.
+- **Save** saves the case first. For a bundled case or a new case it asks for a new `.egscene` file, and if you cancel that dialog, the open or close is cancelled too. The same holds when you answer No to **Case Changed on Disk**.
 - **Discard** (**Don't Save** on macOS) drops the edits.
 - **Cancel** keeps the case and its edits.
 
@@ -169,7 +169,7 @@ You need a run that reached its end. Until then the result commands are disabled
 3. **Timetable graph**, **Train paths** and **Delays** first ask for a reference route, and **Blocking time** asks for its scope. **Capacity** needs at least two trains on the chosen blocks: choose a route, a From block and a To block, which default to the whole route, and check the trains. All the trains on these blocks are checked at first.
 4. In a chart window, **Fit** in the header returns to the full chart. The panel at the right has **Trains**, which filters the trains, and **CSV...** and **PNG...**, which save the data and the picture of the visible trains. After a CSV export, the status bar of the main window names the saved file for a few seconds. Hover, click, zoom and pan are described in [Inspecting diagrams](diagram-navigation.md).
 
-The buttons **Export CSV...** and **Export PNG...** in the dock save the summary table as `run_summary.csv` and `run_summary.png`. Each export asks for a path, adds the extension when you leave it off and writes a second file, `<name>.provenance.json`, that records the run. Exports are not written to the output folder, and they are not part of the case. An export dialog starts in your Documents folder, or in your home folder when there is none. A window keeps the run it was opened for, so a later run does not change it. Creating or opening another case closes the result windows. If the write fails, the message **Export failed** names the path.
+The buttons **Export CSV...** and **Export PNG...** in the dock save the summary table as `run_summary.csv` and `run_summary.png`. Each export asks for a path, adds the extension when you leave it off (and asks before that name replaces a file) and writes a second file, `<name>.provenance.json`, that records the run. Exports are not written to the output folder, and they are not part of the case. An export dialog starts in your Documents folder, or in your home folder when there is none. A window keeps the run it was opened for, so a later run does not change it. Creating or opening another case closes the result windows. If the write fails, the message **Export failed** names the path.
 
 Delay figures are explained in [How delays are calculated](delay-analysis.md), capacity in [How capacity is analysed](capacity-analysis.md) and the text files of a run in [Run output](run-output.md).
 
@@ -178,7 +178,7 @@ Delay figures are explained in [How delays are calculated](delay-analysis.md), c
 A legacy case is the input folder of earlier versions. EGTRAIN converts it into a new case folder and leaves the source unchanged.
 
 1. Choose **File > Import Legacy Case...**, or **Other ways to open... > Import Legacy Case...** in **Open a Case**. Both go straight to the folder dialogs.
-2. Select the legacy case folder in **Select Legacy Case Folder**, then a destination in **Select Case Destination**. The destination must already exist, so create an empty folder for it first (the folder dialog has a button for a new folder); a name that does not exist gives `Directory not found`. It must be separate from the source and outside it, or **Cannot Import Legacy Case** says so. If the open case has unsaved edits, EGTRAIN asks about them after you have chosen both folders and before it imports.
+2. Select the legacy case folder in **Select Legacy Case Folder**, then a destination in **Select Case Destination**. The destination must already exist; a name that does not exist gives `Directory not found`. An empty folder takes the case (the folder dialog has a button for a new folder). A folder that holds other files is left alone: EGTRAIN offers to import into a new folder inside it, named after the legacy folder, and if a folder of that name already holds files, **Cannot Import Legacy Case** says so and nothing is written. A folder that holds another case (a `scene.json`) is replaced, with everything in it, only if you answer Yes. The destination must be separate from the source and outside it, or **Cannot Import Legacy Case** says so. If the open case has unsaved edits, EGTRAIN asks about them after you have chosen both folders and before it imports.
 3. If the import reports errors, warnings or notes, the box **Legacy Case Imported** counts them, for example `Import: 1 error, 2 warnings`, and lists the first findings. An import without findings shows no box. The converted case then opens. `scene_tool export` writes the base time and the simulation settings to `EGTRAINInitialParameters.json`, and the import reads that file. A legacy case without it whose name is not a known case has no base time and no duration: the case reports two validation errors and cannot run until you set both in **Editors > Case Settings**. The details are in `import_report` in `scene.json`, and the dock **Loaded Data** shows the counts.
 
 From a terminal:

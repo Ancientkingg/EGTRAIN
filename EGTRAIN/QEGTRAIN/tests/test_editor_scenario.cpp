@@ -5,6 +5,7 @@
 #include "support/FakePrompts.h"
 
 #include <QApplication>
+#include <QByteArray>
 #include <QDir>
 #include <QFile>
 #include <QFontMetrics>
@@ -136,6 +137,7 @@ private slots:
 	void pendingEditsAddNoScenario();
 	void importGetsFreeIds();
 	void importChecksOnlyImportedScenario();
+	void asksBeforeExportReplacesFile();
 };
 
 void TestScenarioPanel::showsNothingWithoutScene() {
@@ -803,6 +805,46 @@ void TestScenarioPanel::importChecksOnlyImportedScenario() {
 	QCOMPARE(prepared.errors[0].message, "Train breakdown refers to unknown service");
 	QCOMPARE(prepared.errors[0].path, "scenarios[2].incidents[1].target");
 	QCOMPARE(prepared.scenario.id, "new");
+}
+
+// A name without .json gets it after the file chooser, which has not seen that name, so the panel asks before it replaces
+// a file of that name. No keeps the file.
+void TestScenarioPanel::asksBeforeExportReplacesFile() {
+	ScenarioFixture f;
+	QTemporaryDir directory;
+	QVERIFY(directory.isValid());
+	const QString existing = directory.filePath("export.json");
+	QFile file(existing);
+	QVERIFY(file.open(QIODevice::WriteOnly));
+	QCOMPARE(file.write("kept"), qint64(4));
+	file.close();
+	QString chosen = directory.filePath("export");
+	f.panel.setExportFileChooser([&chosen](const QString&) { return chosen; });
+	f.panel.listWidget()->setCurrentRow(1);
+
+	f.panel.exportScenario();
+	// The panel asks about export.json, and No writes nothing.
+	QCOMPARE(f.prompts.confirmCount, 1);
+	QCOMPARE(f.prompts.confirmTitle, "Export Scenario");
+	QCOMPARE(f.prompts.confirmQuestion, "export.json already exists. Replace it?");
+	QVERIFY(file.open(QIODevice::ReadOnly));
+	QCOMPARE(file.readAll(), QByteArray("kept"));
+	file.close();
+	QVERIFY(f.events.status.isEmpty());
+
+	f.prompts.confirmAnswer = true;
+	f.panel.exportScenario();
+	// Yes replaces the file with the scenario.
+	QCOMPARE(f.prompts.confirmCount, 2);
+	const ScenarioLoadResult replaced = loadScenarioJson(existing.toStdString());
+	QVERIFY(replaced.success());
+	QCOMPARE(replaced.scenario.id, "alt");
+
+	chosen = directory.filePath("other");
+	f.panel.exportScenario();
+	// A name whose file does not exist yet is written without a question.
+	QCOMPARE(f.prompts.confirmCount, 2);
+	QVERIFY(QFile::exists(directory.filePath("other.json")));
 }
 
 QTEST_MAIN(TestScenarioPanel)
