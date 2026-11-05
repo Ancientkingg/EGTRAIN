@@ -48,14 +48,17 @@ struct OutputFolderRun {
 
 constexpr int kPollMs = 100;
 constexpr int kMaxPolls = 100;
+// Long enough for a train of Paimpol to enter, so that the run writes a row into TrainServicePathDiagram.txt.
+constexpr double kDiagramRunSeconds = 600.0;
 
 } // namespace
 
 // The folder that a run writes to follows the scene that the window holds. It creates a new case and opens a
 // second scene in the window, renames that scene in Case Settings and runs it, then picks a folder as Choose
 // Output Folder does and opens a third scene, which must leave that folder in force. Then a run whose output folder is
-// a file and a run that an exception ends must fail and leave the third scene open and editable. QEGTRAIN_OUTPUT_DIR
-// names the base folder. It prints E2E_OUTPUT_FOLDER_OK and exits with 0, or prints the failures and exits with 2.
+// a file and a run that an exception ends must fail and leave the third scene open and editable, and a run whose
+// TrainServicePathDiagram.txt cannot be written must say so in the status bar. QEGTRAIN_OUTPUT_DIR names the base
+// folder. It prints E2E_OUTPUT_FOLDER_OK and exits with 0, or prints the failures and exits with 2.
 void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 	if (scenarioStarted)
 		return;
@@ -157,7 +160,8 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 	// The rename is not saved. Opening the next scene must not ask about it.
 	w.m_document->setDirty(false);
 
-	// Stops the run of the third scene, then runs it into the two failures.
+	// Stops the run of the third scene, then runs it into the two failures and into a completed run whose service path
+	// diagram cannot be written.
 	const auto checkFailedRuns = [&w, run, fail]() {
 		const auto runEnded = [&w]() {
 			for (int i = 0; i < kMaxPolls && w.m_runController->m_worker; ++i) {
@@ -201,6 +205,22 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 			fail(QStringLiteral("a run that an exception ended did not fail with the case usable"));
 		else if (w.statusBar()->currentMessage() != QStringLiteral("Simulation failed"))
 			fail(QStringLiteral("a run that an exception ended shows the status \"%1\"").arg(w.statusBar()->currentMessage()));
+
+		// A folder of the name of the diagram, made once the run has begun, keeps the diagram from being written.
+		const QString diagram = run->chosen + QStringLiteral("/TrainTrajectories/TrainServicePathDiagram.txt");
+		const auto blocked = QObject::connect(&simulation, &DispatchController::executionBegan, &simulation, [diagram] { QDir().mkpath(diagram); }, Qt::DirectConnection);
+		initial_variables.times = kDiagramRunSeconds;
+		initial_variables.durationOverride = true;
+		w.m_runController->runScene();
+		const bool diagramRunStarted = w.m_runController->m_worker;
+		const bool diagramRunEnded = runEnded();
+		QObject::disconnect(blocked);
+		initial_variables.durationOverride = false;
+		const QString unwritten = QStringLiteral("Simulation complete, but TrainServicePathDiagram.txt could not be written");
+		if (!diagramRunStarted || !diagramRunEnded || w.m_runController->state() != RunController::RunState::Completed)
+			fail(QStringLiteral("the run whose service path diagram cannot be written did not complete"));
+		else if (w.statusBar()->currentMessage() != unwritten)
+			fail(QStringLiteral("a run whose service path diagram cannot be written shows the status \"%1\"").arg(w.statusBar()->currentMessage()));
 	};
 
 	// The third scene opens once the run has stopped. The folder that was chosen stays in force.
