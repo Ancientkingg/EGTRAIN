@@ -61,7 +61,7 @@ The cost is four pinned Python packages and Doxygen, against none for plain Mark
 ## Hosting
 
 - The sources are Markdown in `docs/` and comments in the code. The output is static HTML with relative links that opens from disk.
-- Only the publish job depends on GitHub Pages. It builds each release tag into `<version>/`, keeps `latest/`, and writes a root page that lists the versions.
+- Only the publish job depends on GitHub Pages. It builds each release tag into `<version>/`, keeps `latest/`, and writes the home page of the site at the root from `docs/site/`, with the downloads of the newest published version and the list of versions.
 - Moving to another host needs a new publish step and, for each old path, a stub page that redirects with a meta refresh.
 - The app's `.qch` is built from the same tag, so the manual in the app matches its version (`EGTRAIN_VERSION` in `CMakeLists.txt`).
 - Without the `.qch`, as in a build without Sphinx, the app opens the same section of the published guides in the web browser. That needs a network and loses the in-app contents and search.
