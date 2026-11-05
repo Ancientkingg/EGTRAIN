@@ -348,7 +348,6 @@ void TestRouteCharts::describesABlockInItsHover() {
 	segment.startTime = 100.4;
 	segment.endTime = 159.5;
 	segment.setupTime = 2;
-	segment.referenceNote = "Part of section 4\nof route0";
 	// 07:10:40 at the start of the run.
 	addBlockingTimeSeries(&chart, {segment}, false, 25840);
 	QAbstractSeries* outline = chart.series().last();

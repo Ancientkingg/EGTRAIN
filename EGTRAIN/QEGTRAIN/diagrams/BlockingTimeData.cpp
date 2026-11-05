@@ -185,8 +185,7 @@ std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRu
 	result.segments = projectBlockingSegments(scoped, maps.byTrain, result.omitted, &result.unmapped);
 	const auto allExtents = buildBlockSectionExtents(referenceRoute.blocks);
 	result.extents = scopedBlockSectionExtents(allExtents, scope.sectionIndices);
-	result.routeSectionCount = static_cast<int>(allExtents.size());
-	matchBlockingSegmentsToSections(result.segments, allExtents, result.referencePath.id);
+	matchBlockingSegmentsToSections(result.segments, allExtents);
 	if (!scope.sectionIndices.empty())
 		result.segments.erase(std::remove_if(result.segments.begin(), result.segments.end(),
 								  [&result](const auto& segment) { return !blockingSegmentInSections(segment, result.extents); }),
@@ -239,7 +238,6 @@ std::optional<BlockingTimeDiagramData> compressedBlockingTimeDiagramData(const C
 	diagram.segments = projectBlockingSegments(shifted, maps.byTrain, diagram.omitted, &diagram.unmapped);
 	const auto allExtents = buildBlockSectionExtents(route.blocks);
 	diagram.extents = scopedBlockSectionExtents(allExtents, scope.sectionIndices);
-	diagram.routeSectionCount = static_cast<int>(allExtents.size());
 	// Every analysed occupation shares a resource with a block of the scope, so one that the route of its train does not
 	// project is drawn on the blocks of the scope that share a resource with it.
 	std::vector<BlockingTimeDiagramSegment> unplaced;
@@ -252,7 +250,7 @@ std::optional<BlockingTimeDiagramData> compressedBlockingTimeDiagramData(const C
 		}
 	}
 	diagram.unmapped = std::move(unplaced);
-	matchBlockingSegmentsToSections(diagram.segments, allExtents, diagram.referencePath.id);
+	matchBlockingSegmentsToSections(diagram.segments, allExtents);
 	// The samples move as the occupations do, the shift that restoreCompressedOriginalTimes takes back. Those of the first
 	// train one period later are the samples of the first train, so they move from its profile reference.
 	std::map<std::string, double> shifts;

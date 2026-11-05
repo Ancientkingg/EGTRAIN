@@ -19,11 +19,6 @@ bool hasValue(const std::string& value) {
 	return !value.empty() && value != "None";
 }
 
-// A section of the reference route that shares a block with the envelope of another section.
-std::string referenceSectionNote(const BlockSectionExtent& extent, std::size_t count) {
-	return "Section " + std::to_string(extent.order) + " of " + std::to_string(count) + ": " + shortBlockId(extent.id);
-}
-
 bool overlaps(const BlockingTimeDiagramInput& a, const BlockingTimeDiagramInput& b) {
 	return std::max(a.startOccTime, b.startOccTime)
 		< std::min(a.endOccTime, b.endOccTime) - kBlockingTimeToleranceSeconds;
@@ -298,10 +293,9 @@ std::vector<BlockSectionExtent> buildBlockSectionExtents(const std::vector<Block
 }
 
 void matchBlockingSegmentsToSections(std::vector<BlockingTimeDiagramSegment>& segments,
-	const std::vector<BlockSectionExtent>& extents, const std::string& referenceRouteId) {
+	const std::vector<BlockSectionExtent>& extents) {
 	for (BlockingTimeDiagramSegment& segment : segments) {
 		segment.referenceSection = 0;
-		segment.referenceNote.clear();
 		if (extents.empty() || segment.startPositionKm == segment.endPositionKm) continue;
 		const double lower = std::min(segment.startPositionKm, segment.endPositionKm);
 		const double upper = std::max(segment.startPositionKm, segment.endPositionKm);
@@ -316,16 +310,7 @@ void matchBlockingSegmentsToSections(std::vector<BlockingTimeDiagramSegment>& se
 				shared.push_back(&extent);
 		}
 		const auto& candidates = exact.empty() ? shared : exact;
-		if (candidates.size() == 1) {
-			segment.referenceSection = candidates.front()->order;
-			// The hover names the block, so a block that is the section needs no note.
-			if (exact.empty()) segment.referenceNote = referenceSectionNote(*candidates.front(), extents.size());
-		} else if (candidates.size() > 1) {
-			segment.referenceNote = "Matches several sections of " + referenceRouteId;
-			for (const auto* candidate : candidates) segment.referenceNote += "\n" + referenceSectionNote(*candidate, extents.size());
-		} else {
-			segment.referenceNote = "Not on " + referenceRouteId;
-		}
+		if (candidates.size() == 1) segment.referenceSection = candidates.front()->order;
 	}
 }
 

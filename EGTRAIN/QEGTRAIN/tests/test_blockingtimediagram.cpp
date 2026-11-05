@@ -303,84 +303,71 @@ void TestBlockingTimeDiagram::keepsNegativeSection() {
 void TestBlockingTimeDiagram::matchesSectionOfRoute() {
 	const std::vector<BlockSectionExtent> route = buildBlockSectionExtents({{"@0-B0@", 0.0, 2.0}, {"@1-B0@", 2.0, 4.0}, {"@2-B0@", 4.0, 6.0}});
 	std::vector<BlockingTimeDiagramSegment> same = {envelope("@2-B0@", 4.0, 6.0)};
-	matchBlockingSegmentsToSections(same, route, "route0");
-	// same id and interval gives the section and no note, as the hover names the block
+	matchBlockingSegmentsToSections(same, route);
+	// same id and interval gives the section
 	QCOMPARE(same[0].referenceSection, 3);
-	QVERIFY(same[0].referenceNote.empty());
 
 	std::vector<BlockingTimeDiagramSegment> opposite = {envelope("@1-B0@", 4.0, 2.0)};
-	matchBlockingSegmentsToSections(opposite, route, "route0");
+	matchBlockingSegmentsToSections(opposite, route);
 	// an envelope from high X to low X matches the same section
 	QCOMPARE(opposite[0].referenceSection, 2);
-	QVERIFY(opposite[0].referenceNote.empty());
 
 	std::vector<BlockingTimeDiagramSegment> otherId = {envelope("@9-B0@", 2.0, 4.0)};
-	matchBlockingSegmentsToSections(otherId, route, "route0");
+	matchBlockingSegmentsToSections(otherId, route);
 	// the same interval with another id is not a section of the route
 	QCOMPARE(otherId[0].referenceSection, 0);
-	QCOMPARE(otherId[0].referenceNote, "Not on route0");
 
 	std::vector<BlockingTimeDiagramSegment> point = {envelope("@1-B0@", 3.0, 3.0)};
-	matchBlockingSegmentsToSections(point, route, "route0");
+	matchBlockingSegmentsToSections(point, route);
 	// a zero-length record is a location and stays unevaluated
 	QCOMPARE(point[0].referenceSection, 0);
-	QVERIFY(point[0].referenceNote.empty());
 
 	std::vector<BlockingTimeDiagramSegment> none = {envelope("@1-B0@", 2.0, 4.0)};
-	matchBlockingSegmentsToSections(none, {}, "route0");
+	matchBlockingSegmentsToSections(none, {});
 	// no sections evaluate nothing
 	QCOMPARE(none[0].referenceSection, 0);
-	QVERIFY(none[0].referenceNote.empty());
 
 	same[0].startPositionKm = same[0].endPositionKm;
-	matchBlockingSegmentsToSections(same, route, "route0");
+	matchBlockingSegmentsToSections(same, route);
 	// point rematch clears stale section metadata
 	QCOMPARE(same[0].referenceSection, 0);
-	QVERIFY(same[0].referenceNote.empty());
 }
 
 void TestBlockingTimeDiagram::matchesRepeatedId() {
 	const auto twice = buildBlockSectionExtents({{"@x@", 0.0, 1.0}, {"@x@", 5.0, 6.0}});
 	std::vector<BlockingTimeDiagramSegment> second = {envelope("@x@", 5.0, 6.0)};
-	matchBlockingSegmentsToSections(second, twice, "route0");
+	matchBlockingSegmentsToSections(second, twice);
 	// a repeated id matches the occurrence with the equal interval
 	QCOMPARE(second[0].referenceSection, 2);
-	QVERIFY(second[0].referenceNote.empty());
 	std::vector<BlockingTimeDiagramSegment> overlapping = {envelope("@x@", 0.5, 1.5), envelope("@x@", 5.5, 8.0)};
-	matchBlockingSegmentsToSections(overlapping, twice, "route0");
+	matchBlockingSegmentsToSections(overlapping, twice);
 	// an envelope of the same id between the intervals shares a block with the first section it overlaps
 	QCOMPARE(overlapping[0].referenceSection, 1);
-	QCOMPARE(overlapping[0].referenceNote, "Section 1 of 2: x");
 	QCOMPARE(overlapping[1].referenceSection, 2);
-	QCOMPARE(overlapping[1].referenceNote, "Section 2 of 2: x");
 
 	const auto duplicated = buildBlockSectionExtents({{"@d@", 0.0, 1.0}, {"@d@", 0.0, 1.0}});
 	std::vector<BlockingTimeDiagramSegment> first = {envelope("@d@", 0.0, 1.0)};
-	matchBlockingSegmentsToSections(first, duplicated, "route0");
-	// coincident occurrences are retained but cannot identify one envelope occurrence, and the note names them one per line
+	matchBlockingSegmentsToSections(first, duplicated);
+	// coincident occurrences are retained but cannot identify one envelope occurrence
 	QCOMPARE(first[0].referenceSection, 0);
-	QCOMPARE(first[0].referenceNote, "Matches several sections of route0\nSection 1 of 2: d\nSection 2 of 2: d");
 	QCOMPARE(duplicated.size(), std::size_t(2));
 	std::vector<BlockingTimeDiagramSegment> sharedMany = {envelope("@d@", 0.2, 0.8)};
-	matchBlockingSegmentsToSections(sharedMany, duplicated, "route0");
+	matchBlockingSegmentsToSections(sharedMany, duplicated);
 	// shared-resource overlap with several occurrences is ambiguous
 	QCOMPARE(sharedMany[0].referenceSection, 0);
-	QCOMPARE(sharedMany[0].referenceNote.find("Matches several sections"), std::size_t(0));
-	matchBlockingSegmentsToSections(second, {}, "route0");
+	matchBlockingSegmentsToSections(second, {});
 	// empty route rematch clears stale section metadata
 	QCOMPARE(second[0].referenceSection, 0);
-	QVERIFY(second[0].referenceNote.empty());
 }
 
 void TestBlockingTimeDiagram::matchesCompositeSection() {
 	const auto composite = buildBlockSectionExtents({{"@3-B157@-59.120000/@34-B88@-59.130000", 10.0, 10.5}});
 	std::vector<BlockingTimeDiagramSegment> plain = {envelope("@34-B88@", 10.0, 10.5)};
-	matchBlockingSegmentsToSections(plain, composite, "route32");
+	matchBlockingSegmentsToSections(plain, composite);
 	// a plain id matches the composite section that holds its block
 	QCOMPARE(plain[0].referenceSection, 1);
-	QCOMPARE(plain[0].referenceNote, "Section 1 of 1: 3-B157/34-B88");
 	std::vector<BlockingTimeDiagramSegment> apart = {envelope("@34-B88@", 11.0, 12.0)};
-	matchBlockingSegmentsToSections(apart, composite, "route32");
+	matchBlockingSegmentsToSections(apart, composite);
 	// a shared block without an overlapping interval is not matched
 	QCOMPARE(apart[0].referenceSection, 0);
 }
@@ -389,10 +376,9 @@ void TestBlockingTimeDiagram::matchesCompositeSection() {
 void TestBlockingTimeDiagram::skipsSectionWithoutGeometry() {
 	const auto unusable = buildBlockSectionExtents({{"@t@", 0.0, 5e-10}});
 	std::vector<BlockingTimeDiagramSegment> tiny = {envelope("@t@", 0.0, 5e-10)};
-	matchBlockingSegmentsToSections(tiny, unusable, "route0");
+	matchBlockingSegmentsToSections(tiny, unusable);
 	// a section without geometry is not a candidate
 	QCOMPARE(tiny[0].referenceSection, 0);
-	QCOMPARE(tiny[0].referenceNote, "Not on route0");
 }
 
 // The geo X of the ends and the switch flag pass through as the route holds them. Without the geo X of an end the

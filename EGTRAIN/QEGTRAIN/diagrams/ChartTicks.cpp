@@ -4,12 +4,7 @@
 
 #include <algorithm>
 #include <cmath>
-
-namespace {
-
-constexpr double kStripLabelGap = 6; // between two ids in a row of the strip
-
-} // namespace
+#include <cstddef>
 
 double roundTickStep(double span, int steps) {
 	const double power = std::pow(10.0, std::floor(std::log10(span / steps)));
@@ -183,64 +178,4 @@ std::vector<std::pair<double, QString>> clockTicks(double low, double high, doub
 	}
 	std::sort(ticks.begin(), ticks.end());
 	return ticks;
-}
-
-std::vector<StripLabel> placedStripLabels(const std::vector<BlockSectionExtent>& sections, const std::vector<BlockSectionMarks>& marks,
-	const QRectF& plot, double top, double rowHeight, int rows, const std::function<double(double km)>& xAt,
-	const std::function<double(const BlockSectionExtent& section, bool strong)>& idWidth, std::size_t* candidates) {
-	std::vector<StripLabel> placed;
-	if (candidates) *candidates = 0;
-	if (plot.width() <= 8) return placed;
-	struct Candidate {
-		int priority;
-		std::size_t index;
-		double centre;
-		double width;
-		bool strong;
-	};
-	std::vector<Candidate> found;
-	std::size_t first = sections.size(), last = 0;
-	for (std::size_t i = 0; i < sections.size(); ++i)
-		if (sections[i].geometryValid) {
-			first = std::min(first, i);
-			last = i;
-		}
-	for (std::size_t i = 0; i < sections.size(); ++i) {
-		const BlockSectionExtent& section = sections[i];
-		if (!section.geometryValid) continue;
-		const double left = std::max(plot.left(), std::min(xAt(section.startKm), xAt(section.endKm)));
-		const double right = std::min(plot.right(), std::max(xAt(section.startKm), xAt(section.endKm)));
-		if (right <= left) continue;
-		const bool strong = marks[i].critical || marks[i].conflict;
-		const double width = idWidth(section, strong);
-		if (width > plot.width()) continue;
-		int priority = 4;
-		if (strong) priority = 0;
-		else if (i == first || i == last) priority = 1;
-		else if (section.isSwitch) priority = 2;
-		else if (marks[i].station) priority = 3;
-		found.push_back({priority, i, std::clamp((left + right) / 2, plot.left() + width / 2, plot.right() - width / 2), width, strong});
-	}
-	if (candidates) *candidates = found.size();
-	const auto place = [&] {
-		placed.clear();
-		std::vector<std::vector<std::pair<double, double>>> taken(static_cast<std::size_t>(std::max(1, rows)));
-		for (const Candidate& candidate : found) {
-			const double from = candidate.centre - candidate.width / 2, to = candidate.centre + candidate.width / 2;
-			for (std::size_t row = 0; row < taken.size(); ++row) {
-				const bool clear = std::all_of(taken[row].begin(), taken[row].end(), [&](const std::pair<double, double>& other) {
-					return to + kStripLabelGap <= other.first || from - kStripLabelGap >= other.second;
-				});
-				if (!clear) continue;
-				taken[row].emplace_back(from, to);
-				placed.push_back({candidate.index, QRectF(from, top + static_cast<double>(row) * rowHeight, candidate.width, rowHeight), candidate.strong});
-				break;
-			}
-		}
-	};
-	place();
-	if (placed.size() == found.size()) return placed;
-	std::stable_sort(found.begin(), found.end(), [](const Candidate& a, const Candidate& b) { return a.priority < b.priority; });
-	place();
-	return placed;
 }

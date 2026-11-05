@@ -57,9 +57,6 @@ struct BlockingTimeDiagramSegment {
 	bool capacityCritical = false;
 	// Order of the matched section of the reference route, 0 for none.
 	int referenceSection = 0;
-	// What the hover says about the section of the reference route; empty when the block is that section, or when it
-	// was not matched to the sections.
-	std::string referenceNote;
 };
 
 struct CapacityCompressionRow;
@@ -153,12 +150,11 @@ struct BlockSectionExtent {
 // an end takes its route distance as geo X at both ends.
 std::vector<BlockSectionExtent> buildBlockSectionExtents(const std::vector<BlockSectionInput>& inputs);
 
-// Exact id/interval matches take precedence over overlapping shared resources. Several candidates
-// are ambiguous, never first-match. Every call clears stale fields, including locations/empty routes.
-// An exact match sets the section and no note. The notes name a section by its short id (shortBlockId), as the section
-// strip does, one section per line.
+// Sets the reference section of each segment. Exact id/interval matches take precedence over overlapping shared
+// resources. Several candidates are ambiguous and give 0, never the first match. Every call clears the stale section,
+// also for locations and empty routes.
 void matchBlockingSegmentsToSections(std::vector<BlockingTimeDiagramSegment>& segments,
-	const std::vector<BlockSectionExtent>& extents, const std::string& referenceRouteId);
+	const std::vector<BlockSectionExtent>& extents);
 
 /// What the section strip of a blocking-time chart marks on a section, besides a switch section (BlockSectionExtent::isSwitch).
 struct BlockSectionMarks {
