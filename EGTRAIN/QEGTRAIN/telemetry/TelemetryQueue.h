@@ -94,8 +94,8 @@ public:
 	/// True while this object holds owner.lock and no storage operation has failed.
 	bool healthy() const { return m_owner && !m_failed; }
 #ifdef EGTRAIN_TELEMETRY_TEST_HOOK
-	/// Test hook: the next attempts tries to write a file fail as a storage failure would. A failed write is
-	/// tried twice, so 2 make one storage operation fail.
+	/// Test hook: the next attempts file writes fail as a storage failure would. A failed write is tried
+	/// twice, so 2 makes one storage operation fail.
 	void failNextWritesForTesting(int attempts) { m_failingWrites = attempts; }
 #endif
 	/// Releases owner.lock and drops the events held in memory. The files stay.

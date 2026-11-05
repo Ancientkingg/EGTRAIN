@@ -65,12 +65,12 @@ public:
 	/// the PUB socket on 127.0.0.1, 0 to 65535; 0 takes a free port. The REP socket, with commandsEnabled,
 	/// always takes a free port. The endpoints are written to live-endpoint.json in outputDirectory, which
 	/// is created when it is missing; with commands, the file also holds the token that every request has
-	/// to carry. On macOS and Linux the file is new at every start and created readable by its owner only; a
-	/// file system that keeps a wider mode gets the file without a token, with a warning in io.zmq, and never
-	/// the token. On Windows the file has the permissions of outputDirectory. Returns false with the reason in
-	/// *error when the server is running already, the port is not valid or in use, or the file cannot be
-	/// written, also when it would hold the token and its mode is wider; error may be null. A server that
-	/// failed to start holds nothing.
+	/// to carry. On macOS and Linux the file is new at every start and created readable by its owner only. On
+	/// a file system that keeps a wider mode, the file is written with a warning in io.zmq when it holds no
+	/// token; with commands, start() fails and no file is left. On Windows the file has the permissions of
+	/// outputDirectory. Returns false with the reason in *error when the server is running already, the port
+	/// is not valid or in use, or the file cannot be written; error may be null. A server that failed to start
+	/// holds nothing.
 	bool start(int port, bool commandsEnabled, const std::filesystem::path& outputDirectory, std::string* error = nullptr);
 
 	/// Sends the frames that are waiting, closes the sockets, ends the I/O thread and removes
