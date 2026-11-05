@@ -10,6 +10,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QFormLayout>
+#include <QGridLayout>
 #include <QHeaderView>
 #include <QImage>
 #include <QKeyEvent>
@@ -421,6 +422,7 @@ private slots:
 	void messageBoxDefaultLooksLikeDialogDefault();
 	void runReviewDefaultLooksLikeDialogDefault();
 	void detailsToggleShowsFocusLikeButton();
+	void detailsToggleReturnsToCollapsedSize();
 	void menuButtonsHaveRoomForArrow();
 	void defaultButtonShowsText_data();
 	void defaultButtonShowsText();
@@ -1280,6 +1282,64 @@ void TestDialogLayout::detailsToggleShowsFocusLikeButton() {
 	QVERIFY2(button->hasFocus(), qPrintable(message));
 	QVERIFY2(toggleBorder == buttonBorder, qPrintable(message));
 	QVERIFY2(buttonBorder.first == 2, qPrintable(message));
+}
+
+// A dialog with facts and a details toggle, as the run review has: showing the details makes the dialog taller, and hiding
+// them returns it to the size it had before, with the facts where they were.
+void TestDialogLayout::detailsToggleReturnsToCollapsedSize() {
+	QDialog dialog;
+	auto* body = new QWidget;
+	auto* layout = new QVBoxLayout(body);
+	auto* facts = new QGridLayout;
+	auto* firstFact = new QLabel(QStringLiteral("Trains"), body);
+	facts->addWidget(firstFact, 0, 0);
+	facts->addWidget(new QLabel(QStringLiteral("2"), body), 0, 1);
+	facts->addWidget(new QLabel(QStringLiteral("Duration"), body), 1, 0);
+	facts->addWidget(new QLabel(QStringLiteral("2:30:00, until 09:40:40"), body), 1, 1);
+	layout->addLayout(facts);
+	auto* toggle = new QToolButton(body);
+	toggle->setText(QStringLiteral("Run details"));
+	toggle->setCheckable(true);
+	toggle->setArrowType(Qt::RightArrow);
+	auto* details = new QLabel(QStringLiteral("Run occurrences on a long railway line. ").repeated(30), body);
+	details->setWordWrap(true);
+	details->hide();
+	DialogLayout::connectDetailsToggle(dialog, toggle, details);
+	layout->addWidget(toggle);
+	layout->addWidget(details);
+	DialogLayout::install(dialog, QStringLiteral("Run simulation"), QStringLiteral("Case / scenario"), body,
+		new QDialogButtonBox(QDialogButtonBox::Cancel), QRect(0, 0, 1280, 800));
+	dialog.show();
+	QApplication::processEvents();
+	const QSize collapsed = dialog.size();
+	const QPoint factPosition = firstFact->mapTo(&dialog, QPoint());
+
+	toggle->click();
+	QApplication::processEvents();
+	const QSize expanded = dialog.size();
+	// Showing the details makes the dialog taller.
+	QVERIFY(details->isVisible());
+	QCOMPARE(toggle->arrowType(), Qt::DownArrow);
+	QCOMPARE_GT(expanded.height(), collapsed.height());
+	toggle->click();
+	QApplication::processEvents();
+	// Hiding the details returns the dialog to its size before, with the first fact where it was.
+	QVERIFY(!details->isVisible());
+	QCOMPARE(toggle->arrowType(), Qt::RightArrow);
+	QCOMPARE(dialog.size(), collapsed);
+	QCOMPARE(firstFact->mapTo(&dialog, QPoint()), factPosition);
+
+	// Details hidden and shown again before the events run keep the size that the dialog had before they first showed, and
+	// the dialog returns to it when they hide.
+	toggle->click();
+	QApplication::processEvents();
+	toggle->click();
+	toggle->click();
+	QApplication::processEvents();
+	QCOMPARE(dialog.size(), expanded);
+	toggle->click();
+	QApplication::processEvents();
+	QCOMPARE(dialog.size(), collapsed);
 }
 
 // A button that opens a menu, such as Trains and Open result view..., keeps room beside its text for the arrow. Open result

@@ -19,6 +19,8 @@
 #include <QVBoxLayout>
 #include <QtGlobal>
 
+#include <memory>
+
 #include "widgets/FocusWheel.h"
 
 /// The common layout of the dialogs: the window title, an optional context line, a body that scrolls and a footer of
@@ -204,6 +206,29 @@ inline void fitWidthToContent(QDialog& dialog) {
 		+ scroll->widget()->sizeHint().width() + scroll->verticalScrollBar()->sizeHint().width();
 	const int width = qMin(dialog.maximumWidth(), qMax(dialog.width(), needed));
 	dialog.resize(width, qMin(dialog.maximumHeight(), qMax(dialog.height(), detail::heightForContent(dialog, width))));
+}
+
+/// Shows details while the checkable toggle is checked and hides them while it is not, with the arrow of toggle pointing
+/// down or right. Once the layout has made room for the details, the dialog grows to show them as fitWidthToContent
+/// makes it, and once it has hidden them again, the dialog returns to the size it had before they showed. Call it for a
+/// dialog that install lays out, with toggle and details in its body.
+inline void connectDetailsToggle(QDialog& dialog, QToolButton* toggle, QWidget* details) {
+	// The size of the dialog before the details showed, until the dialog has returned to it.
+	auto collapsed = std::make_shared<QSize>();
+	QObject::connect(toggle, &QToolButton::toggled, &dialog, [&dialog, toggle, details, collapsed](bool shown) {
+		toggle->setArrowType(shown ? Qt::DownArrow : Qt::RightArrow);
+		details->setVisible(shown);
+		if (shown && !collapsed->isValid())
+			*collapsed = dialog.size();
+		QTimer::singleShot(0, &dialog, [&dialog, toggle, collapsed] {
+			if (toggle->isChecked()) {
+				fitWidthToContent(dialog);
+			} else if (collapsed->isValid()) {
+				dialog.resize(*collapsed);
+				*collapsed = QSize();
+			}
+		});
+	});
 }
 
 /// How serious an inline message is. Each value selects one callout of the stylesheet.

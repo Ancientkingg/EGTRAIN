@@ -300,6 +300,8 @@ bool RunController::showRunReview() {
 	auto* facts = new QGridLayout();
 	facts->setHorizontalSpacing(20);
 	facts->setVerticalSpacing(8);
+	// The values take the width that the dialog has beyond the facts, so that each name stays next to its value.
+	facts->setColumnStretch(1, 1);
 	const auto addFact = [&](const QString& label, const QString& value) {
 		auto* name = new QLabel(label, body);
 		name->setObjectName("runReviewFactLabel");
@@ -365,13 +367,7 @@ bool RunController::showRunReview() {
 	details->setToolTip(QStringLiteral("An occurrence is in the run period when it enters from 0 up to %1 s.")
 			.arg(QString::number(duration, 'g', 12)));
 	details->hide();
-	connect(detailsToggle, &QToolButton::toggled, &review, [&review, detailsToggle, details](bool shown) {
-		detailsToggle->setArrowType(shown ? Qt::DownArrow : Qt::RightArrow);
-		details->setVisible(shown);
-		// The dialog grows for the details once the layout has made room for them.
-		if (shown)
-			QTimer::singleShot(0, &review, [&review] { DialogLayout::fitWidthToContent(review); });
-	});
+	DialogLayout::connectDetailsToggle(review, detailsToggle, details);
 	layout->addWidget(detailsToggle);
 	layout->addWidget(details);
 
@@ -397,6 +393,8 @@ bool RunController::showRunReview() {
 			review.accept();
 		});
 	}
+	// A dialog taller than the body, such as one that the user made larger, keeps the body together at the top.
+	layout->addStretch();
 	auto* buttons = new QDialogButtonBox(&review);
 	buttons->setObjectName("runReviewButtons");
 	buttons->addButton(QDialogButtonBox::Cancel)->setObjectName("runReviewCancelButton");
