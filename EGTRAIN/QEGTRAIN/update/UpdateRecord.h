@@ -11,13 +11,15 @@
 
 /// The record that the update helper leaves after it replaced the installation, or tried to. The helper
 /// writes it in update/UpdateHelper.cpp, which holds the same format. A text file in updateRecordPath() of
-/// three lines, each ended by a line feed:
+/// three lines, each ended by a line feed, and a fourth for not-applied:
 ///   outcome=applied, rolled-back or not-applied
 ///   version=X.Y.Z
 ///   time=YYYY-MM-DDTHH:MM:SSZ
 /// applied: the new version is in place; the helper writes this before it starts that version.
 /// rolled-back: the new version failed to start and the previous installation was put back.
-/// not-applied: the installation could not be renamed, so the previous installation was never replaced.
+/// not-applied: the update ended otherwise. Mostly the previous installation was never replaced; it is also
+/// written when the new version failed to start and the previous one could not be put back. A fourth line,
+/// reason=, names the step that failed (update/UpdateHelper.cpp lists them); the reader ignores it.
 /// The version is the one that was to be installed and the time is the UTC time of the write. Versions
 /// up to 1.0.4 know no applied record: their takeUpdateRecord removes it and returns nothing.
 /// In installer mode the helper runs the installer of an installer-managed copy instead and leaves

@@ -101,6 +101,7 @@ The visual polish smoke also had a use after free: it added a temporary `SignalI
 | Live stream cannot start | "Cannot Start EGTRAIN" box, exit 2 (`main.cpp`) | Standard error |
 | Manual update check fails | Warning box with the network error, or "The update check timed out." when no data arrived for 10 s (`update/UpdateChecker.cpp`) | No |
 | Automatic update check fails | Nothing visible (`qWarning`, `app/UpdateTelemetryController.cpp`) | Dock, category `app.ui` |
+| Update cannot be installed | The update helper starts the installation in place and leaves a `not-applied` record whose `reason=` line names the step that failed (`abandonUpdate` in `update/UpdateHelper.cpp`): the old EGTRAIN did not end within 5 minutes, a check before the renames failed, a rename failed, or the new version failed to start and could not be moved aside. A previous version that runs then shows "The update to EGTRAIN <version> could not be applied." | No |
 | Telemetry send or consent fails | Nothing, by design; a consent save error shows in the dialog | No |
 | Autosave fails | Status bar "Autosave unavailable: ..." once per scene, overwritten by the next status message; during a pick of an incident target it waits until the pick ends (`app/MainWindow.cpp`) | No |
 | A recovery copy cannot be removed | Status bar for 8 s (`MainWindow.cpp`) | No |

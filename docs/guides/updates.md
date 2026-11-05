@@ -68,10 +68,13 @@ When the new version cannot be started, the update helper puts the previous
 version back, removes the staging folder and starts it again. That version then tells you once which version
 could not be started. Automatic checks do not offer that version again, a newer
 version is offered as usual, and **Help > Check for Updates...** still offers it.
+If the helper cannot move the new version aside to do that, the new version stays
+installed and the helper starts it once more.
 
 The helper tries again for a few seconds when it cannot rename the installation,
 because on Windows a file of the application that just ended can stay locked for a
-short time. If the files still cannot be replaced, the previous version stays
+short time. If the files still cannot be replaced, or EGTRAIN does not close within
+five minutes after **Update and Restart**, the previous version stays
 installed and starts again, and the helper removes the staging folder (on
 Windows the helper itself stays until the next start removes it). That
 version then tells you once that the update to the new version could not be
