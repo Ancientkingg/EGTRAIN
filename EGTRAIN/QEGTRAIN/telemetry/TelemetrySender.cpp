@@ -280,7 +280,11 @@ public:
 	qint64 deadline = 0;
 	qint64 nextPoll = 0, nextOwnership = 0;
 	bool owner = false, disabled = false;
+	/// True while the worker waits for a consent change after a storage failure; see closeAfterFailure().
+	bool waiting = false;
 	QString stamp[2];
+	/// The consent of both categories when the worker began to wait, as readConsent() read it.
+	QString consentAtFailure[2];
 	quint64 mappedEpoch[2] = {0, 0};
 	bool observed[2] = {false, false};
 	bool sessionAttempted = false;
@@ -300,7 +304,8 @@ public:
 #endif
 		return utcNow();
 	}
-	void close() {
+	/// Closes the gates, empties the ring and abandons a running request. The queue stays as it is.
+	void closeIngress() {
 		{
 			QMutexLocker lock(&s->mutex);
 			s->gate[0] = s->gate[1] = false;
@@ -312,8 +317,11 @@ public:
 			reply->deleteLater();
 			reply = nullptr;
 		}
-		queue.close();
 		owner = false;
+	}
+	void close() {
+		closeIngress();
+		queue.close();
 	}
 	// Closes for the rest of the run. Nothing opens the categories again, so the worker leaves its loop and exits.
 	void disable() {
@@ -321,6 +329,31 @@ public:
 		disabled = true;
 		tick.stop();
 		loop.quit();
+	}
+	/// Reads the consent of both categories: the installation ID and the diagnostics generation, empty for a category
+	/// that is off. False when it cannot be read for this receiver and terms.
+	bool readConsent(QString (&values)[2]) {
+		if (!settings) settings.reset(new QSettings);
+		if (!consent) consent.reset(new TelemetryConsent(*settings, s->context));
+		using Status = TelemetryConsent::ObservationStatus;
+		const auto usage = consent->observeUsage();
+		const auto diagnostics = consent->observeDiagnostics();
+		if ((usage.status != Status::Enabled && usage.status != Status::Disabled)
+			|| (diagnostics.status != Status::Enabled && diagnostics.status != Status::Disabled)) return false;
+		values[0] = usage.installationId;
+		values[1] = diagnostics.status == Status::Enabled ? QString::number(diagnostics.generation) : QString();
+		return true;
+	}
+	/// Closes after the queue refused to open or a queue operation failed. When only a file write or a space check
+	/// failed, the worker keeps the queue, and with it owner.lock, and waits until the consent of either category
+	/// changes (see pump()). Otherwise it closes for the rest of the run.
+	void closeAfterFailure() {
+		if (!queue.storageFailed() || !readConsent(consentAtFailure)) {
+			disable();
+			return;
+		}
+		closeIngress();
+		waiting = true;
 	}
 	void failClosed() noexcept {
 		s->stop.store(true, std::memory_order_release);
@@ -367,7 +400,7 @@ public:
 				const Category category = i ? Category::Diagnostics : Category::Usage;
 				const bool purged = value.isEmpty() ? queue.purgeCategory(category) : queue.purgeOtherStamps(category, value);
 				if (!purged) {
-					disable();
+					closeAfterFailure();
 					return;
 				}
 				if (reply && active.token.category == (i ? Category::Diagnostics : Category::Usage)) { reply->abort(); }
@@ -403,7 +436,7 @@ public:
 			QMutexLocker lock(&s->mutex);
 			if (!s->admits(0, epoch, refusingFlags(0)) || stamp[0] != selectedStamp) return;
 		}
-		if (!queue.enqueueUsage({event, selectedStamp}, now()) && !queue.healthy()) disable();
+		if (!queue.enqueueUsage({event, selectedStamp}, now()) && !queue.healthy()) closeAfterFailure();
 	}
 	bool authorized(int index, const QString& selectedStamp, quint64 epoch) {
 		refresh(); // Read-only cross-process consent observation after all storage operations.
@@ -420,7 +453,7 @@ public:
 		if (diagnosticLimit > 0) state.diagnosticsBatchLimit = diagnosticLimit;
 		state.nextEligibleUtc = now().addMSecs(delay);
 		if (!queue.commitRetry(state, now())) {
-			disable();
+			closeAfterFailure();
 			return false;
 		}
 		deadline = monotonic() + delay;
@@ -460,7 +493,7 @@ public:
 		if (active.token.stamp != stamp[index]) return;
 		if ((status == 202 && (!failed || oversized) && !timedOut) || status == 400 || status == 422) {
 			if (!queue.discardBatch(active.token)) {
-				disable();
+				closeAfterFailure();
 				return;
 			}
 			reserve(60000, 0);
@@ -469,7 +502,7 @@ public:
 			const int limit = index ? previous.diagnosticsBatchLimit : previous.usageBatchLimit;
 			if (active.token.ids.size() == 1) {
 				if (!queue.discardBatch(active.token)) {
-					disable();
+					closeAfterFailure();
 					return;
 				}
 			}
@@ -489,7 +522,7 @@ public:
 	}
 	void send() {
 		if (!owner || reply || !queue.prune(now())) {
-			if (!queue.healthy()) disable();
+			if (!queue.healthy()) closeAfterFailure();
 			return;
 		}
 		const QDateTime eligible = queue.retryState().nextEligibleUtc;
@@ -618,7 +651,8 @@ public:
 						? !queue.purgeEndpointData()
 						: (flags & kUsageRevoked && !queue.purgeCategory(Category::Usage))
 							|| (flags & kDiagnosticsRevoked && !queue.purgeCategory(Category::Diagnostics)))) {
-				disable();
+				if (flags & kReceiverChanged) disable();
+				else closeAfterFailure();
 				return;
 			}
 			if (flags & kReceiverChanged) {
@@ -628,6 +662,24 @@ public:
 		}
 		if (disabled) return; // The abort above handles the response at once, which can disable the worker.
 		const qint64 time = monotonic();
+		if (waiting) {
+			// After a storage failure consent is read once a second and when a refresh is asked for. A change of either
+			// category removes the disabled marker of that failure, and the queue opens again below.
+			if (time < nextPoll && !(flags & kRefreshRequested)) return;
+			nextPoll = time + 1000;
+			QString current[2];
+			if (!readConsent(current)) {
+				disable();
+				return;
+			}
+			if (current[0] == consentAtFailure[0] && current[1] == consentAtFailure[1]) return;
+			if (!queue.clearStorageFailure()) {
+				disable();
+				return;
+			}
+			waiting = false;
+			nextOwnership = time;
+		}
 		if (!owner) {
 			if (time < nextOwnership) return;
 			nextOwnership = time + 60000;
@@ -651,7 +703,7 @@ public:
 			if (s->tests.afterOwnershipAttempt) s->tests.afterOwnershipAttempt(result == TelemetryQueue::OpenResult::Owner);
 #endif
 			if (result == TelemetryQueue::OpenResult::Disabled || result == TelemetryQueue::OpenResult::Retired) {
-				disable();
+				closeAfterFailure();
 				return;
 			}
 			owner = result == TelemetryQueue::OpenResult::Owner;
@@ -672,7 +724,7 @@ public:
 			nextPoll = time + 1000;
 			refresh();
 			if (owner && !queue.prune(now())) {
-				disable();
+				closeAfterFailure();
 				return;
 			}
 #ifdef EGTRAIN_SENDER_TEST_HOOK
@@ -704,7 +756,7 @@ public:
 			if (!event.occurredAt.isValid()) continue;
 			const bool ok = index ? queue.enqueueDiagnostic({event, stamp[index].toInt()}, now()) : queue.enqueueUsage({event, stamp[index]}, now());
 			if (!ok && !queue.healthy()) {
-				disable();
+				closeAfterFailure();
 				return;
 			}
 		}

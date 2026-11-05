@@ -25,6 +25,16 @@ static bool writeObject(const QString& path, const QJsonObject& object) {
 	QSaveFile file(path);
 	return file.open(QIODevice::WriteOnly) && file.write(QJsonDocument(object).toJson(QJsonDocument::Compact)) > 0 && file.commit();
 }
+// The bytes of the file at path; empty when it cannot be read.
+static QByteArray fileBytes(const QString& path) {
+	QFile file(path);
+	return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray();
+}
+// Replaces the file at path with bytes.
+static bool writeBytes(const QString& path, const QByteArray& bytes) {
+	QFile file(path);
+	return file.open(QIODevice::WriteOnly | QIODevice::Truncate) && file.write(bytes) == bytes.size();
+}
 
 namespace {
 const auto kNow = QDateTime::fromString(QStringLiteral("2026-04-01T12:00:00Z"), Qt::ISODate);
@@ -47,6 +57,10 @@ private slots:
 	void disabledRecovery_data();
 	void disabledRecovery();
 	void retriesFailedWrite();
+	void clearsStorageFailure_data();
+	void clearsStorageFailure();
+	void keepsOtherMarkers_data();
+	void keepsOtherMarkers();
 	void temporaryBudget();
 	void controlTimestampTypes_data();
 	void controlTimestampTypes();
@@ -144,6 +158,117 @@ void TestTelemetryQueue::retriesFailedWrite() {
 	QCOMPARE(queue.open(directory.path(), kEndpointA, QStringLiteral("1"), kNow), TelemetryQueue::OpenResult::Owner);
 	QCOMPARE(queue.prepareBatch(Category::Usage, kId, kMetadata, kNow).token.ids, QVector<QString>{usage.id});
 	queue.close();
+}
+
+void TestTelemetryQueue::clearsStorageFailure_data() {
+	QTest::addColumn<bool>("reopened");
+	QTest::newRow("failed queue") << false;
+	QTest::newRow("marker found by open") << true;
+}
+
+// A write that fails twice leaves a storage marker. clearStorageFailure(), which the sender calls after a consent change,
+// removes it with the queued events and keeps the retirement ledger, and the next open() gives a working queue.
+void TestTelemetryQueue::clearsStorageFailure() {
+	QFETCH(bool, reopened);
+	QTemporaryDir directory;
+	const QString control = directory.filePath(QStringLiteral("control.json"));
+	const QString marker = directory.filePath(QStringLiteral("disabled"));
+	TelemetryQueue queue;
+	QCOMPARE(queue.open(directory.path(), kEndpointB, QStringLiteral("1"), kNow), TelemetryQueue::OpenResult::Owner);
+	QVERIFY(queue.retireExactEndpoint(kEndpointB));
+	queue.close();
+	QCOMPARE(queue.open(directory.path(), kEndpointA, QStringLiteral("1"), kNow), TelemetryQueue::OpenResult::Owner);
+	QVERIFY(queue.enqueueUsage({createEvent({}, kNow), kId}, kNow));
+	QVERIFY(queue.enqueueDiagnostic({createEvent(diagnosticsInput(), kNow), 1}, kNow));
+	const QByteArray ledger = fileBytes(control);
+	queue.failNextWritesForTesting(2);
+	QVERIFY(!queue.enqueueUsage({createEvent({}, kNow), kId}, kNow));
+	QCOMPARE(fileBytes(marker), QByteArray("disabled\nstorage\n"));
+	if (reopened) {
+		queue.close();
+		QCOMPARE(queue.open(directory.path(), kEndpointA, QStringLiteral("1"), kNow), TelemetryQueue::OpenResult::Disabled);
+	}
+	QVERIFY(queue.storageFailed());
+	QVERIFY2(queue.clearStorageFailure(), "the marker of a failed write is removed");
+	QVERIFY(!QFile::exists(marker));
+	QVERIFY(!QFile::exists(directory.filePath(QStringLiteral("usage.json"))));
+	QVERIFY(!QFile::exists(directory.filePath(QStringLiteral("diagnostics.json"))));
+	QCOMPARE(fileBytes(control), ledger);
+	// The queue keeps its state until it is opened again.
+	QVERIFY(!queue.healthy());
+	QVERIFY(!queue.enqueueUsage({createEvent({}, kNow), kId}, kNow));
+	queue.close();
+	QCOMPARE(queue.open(directory.path(), kEndpointA, QStringLiteral("1"), kNow), TelemetryQueue::OpenResult::Owner);
+	QVERIFY(queue.isRetired(kEndpointB));
+	QVERIFY(queue.prepareBatch(Category::Usage, kId, kMetadata, kNow).bytes.isEmpty());
+	const auto usage = createEvent({}, kNow);
+	QVERIFY(queue.enqueueUsage({usage, kId}, kNow));
+	QCOMPARE(queue.prepareBatch(Category::Usage, kId, kMetadata, kNow).token.ids, QVector<QString>{usage.id});
+	queue.close();
+}
+
+void TestTelemetryQueue::keepsOtherMarkers_data() {
+	QTest::addColumn<int>("cause");
+	QTest::addColumn<QByteArray>("marker");
+	QTest::newRow("retirement not recorded") << 0 << QByteArray("disabled\nretirement\n");
+	QTest::newRow("full retirement ledger") << 1 << QByteArray("disabled\nretirement\n");
+	QTest::newRow("damaged ledger") << 2 << QByteArray("disabled\nledger\n");
+	QTest::newRow("missing ledger") << 3 << QByteArray("disabled\nledger\n");
+	QTest::newRow("marker without a reason") << 4 << QByteArray("disabled\n");
+	QTest::newRow("storage marker and missing ledger") << 5 << QByteArray("disabled\nstorage\n");
+}
+
+// Every marker but a storage one, and a storage one next to category data without control.json, stays after a consent
+// change, and control.json stays as it was.
+void TestTelemetryQueue::keepsOtherMarkers() {
+	QFETCH(int, cause);
+	QFETCH(QByteArray, marker);
+	QTemporaryDir directory;
+	const QString control = directory.filePath(QStringLiteral("control.json"));
+	const QString usage = directory.filePath(QStringLiteral("usage.json"));
+	const QString markerPath = directory.filePath(QStringLiteral("disabled"));
+	TelemetryQueue queue;
+	QCOMPARE(queue.open(directory.path(), kEndpointA, QStringLiteral("1"), kNow), TelemetryQueue::OpenResult::Owner);
+	QVERIFY(queue.enqueueUsage({createEvent({}, kNow), kId}, kNow));
+	if (cause == 0) {
+		// The write of a retirement after a 410 response fails.
+		queue.failNextWritesForTesting(2);
+		QVERIFY(!queue.retireExactEndpoint(kEndpointA));
+	} else if (cause == 1) {
+		for (int i = 0; i < 16; ++i) {
+			const QString endpoint = QStringLiteral("https://example.test/") + QString::number(i);
+			queue.close();
+			QCOMPARE(queue.open(directory.path(), endpoint, QStringLiteral("1"), kNow), TelemetryQueue::OpenResult::Owner);
+			QVERIFY(queue.retireExactEndpoint(endpoint));
+		}
+		queue.close();
+		QCOMPARE(queue.open(directory.path(), kEndpointB, QStringLiteral("1"), kNow), TelemetryQueue::OpenResult::Owner);
+		QVERIFY(!queue.retireExactEndpoint(kEndpointB));
+	} else {
+		if (cause == 5) {
+			queue.failNextWritesForTesting(2);
+			QVERIFY(!queue.enqueueUsage({createEvent({}, kNow), kId}, kNow));
+		}
+		queue.close();
+		if (cause == 2) QVERIFY(writeBytes(control, "{"));
+		if (cause == 3 || cause == 5) QVERIFY(QFile::remove(control));
+		if (cause == 4) QVERIFY(writeBytes(markerPath, "disabled\n"));
+		QCOMPARE(queue.open(directory.path(), kEndpointA, QStringLiteral("1"), kNow), TelemetryQueue::OpenResult::Disabled);
+	}
+	QCOMPARE(fileBytes(markerPath), marker);
+	const bool ledgerExists = QFile::exists(control);
+	const QByteArray ledger = fileBytes(control);
+	QVERIFY(!queue.storageFailed());
+	QVERIFY2(!queue.clearStorageFailure(), "only the marker of a failed write or space check is removed");
+	queue.close();
+	QCOMPARE(queue.open(directory.path(), kEndpointA, QStringLiteral("1"), kNow), TelemetryQueue::OpenResult::Disabled);
+	QVERIFY(!queue.clearStorageFailure());
+	queue.close();
+	QCOMPARE(fileBytes(markerPath), marker);
+	QCOMPARE(QFile::exists(control), ledgerExists);
+	QCOMPARE(fileBytes(control), ledger);
+	// Category data without a ledger stays next to a storage marker.
+	if (cause == 5) QVERIFY(QFile::exists(usage));
 }
 
 void TestTelemetryQueue::temporaryBudget() {
