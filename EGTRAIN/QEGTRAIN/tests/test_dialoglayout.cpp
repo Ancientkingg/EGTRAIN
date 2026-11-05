@@ -1,4 +1,5 @@
 #include "widgets/DialogLayout.h"
+#include "widgets/WidgetStyle.h"
 
 #include <QApplication>
 #include <QAction>
@@ -10,6 +11,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QFormLayout>
+#include <QGridLayout>
 #include <QHeaderView>
 #include <QImage>
 #include <QKeyEvent>
@@ -17,6 +19,7 @@
 #include <QListWidget>
 #include <QMenu>
 #include <QMessageBox>
+#include <QPainter>
 #include <QProxyStyle>
 #include <QPushButton>
 #include <QScopeGuard>
@@ -24,6 +27,7 @@
 #include <QStyleFactory>
 #include <QTableWidget>
 #include <QTest>
+#include <QTreeWidget>
 
 #include <algorithm>
 #include <cstdlib>
@@ -353,6 +357,22 @@ private:
 	QDialogButtonBox::ButtonLayout m_layout;
 };
 
+// The colour in which SpillingCheckStyle paints the check box of an item.
+constexpr QRgb kBaseStyleCheck = 0xff30c030;
+
+// Fusion whose check box of an item view fills a square 3 px larger on each side than its rectangle, as a native check box
+// can be larger than the rectangle that the style gives it.
+class SpillingCheckStyle : public QProxyStyle {
+public:
+	SpillingCheckStyle() : QProxyStyle(QStringLiteral("Fusion")) {}
+	void drawPrimitive(PrimitiveElement element, const QStyleOption* option, QPainter* painter, const QWidget* widget) const override {
+		if (element == PE_IndicatorItemViewItemCheck)
+			painter->fillRect(option->rect.adjusted(-3, -3, 3, 3), QColor(kBaseStyleCheck));
+		else
+			QProxyStyle::drawPrimitive(element, option, painter, widget);
+	}
+};
+
 // The width in pixels and the colour of the left border of widget, half way down.
 std::pair<int, QRgb> leftBorder(QWidget* widget) {
 	const QImage image = widget->grab().toImage();
@@ -387,6 +407,7 @@ private slots:
 	void messageAfterOpen();
 	void fitWidthToContentGrowsHeight();
 	void itemViewIndicatorsAreVisible();
+	void itemViewsDrawOneCheckBox();
 	void inlineMessagesTakeTheirRole();
 	void panelMessagesLookAsSetAfterShow_data();
 	void panelMessagesLookAsSetAfterShow();
@@ -402,6 +423,8 @@ private slots:
 	void messageBoxDefaultLooksLikeDialogDefault();
 	void runReviewDefaultLooksLikeDialogDefault();
 	void detailsToggleShowsFocusLikeButton();
+	void detailsToggleReturnsToCollapsedSize();
+	void detailsToggleKeepsResizedWidth();
 	void menuButtonsHaveRoomForArrow();
 	void defaultButtonShowsText_data();
 	void defaultButtonShowsText();
@@ -417,7 +440,8 @@ void TestDialogLayout::initTestCase() {
 	QString styleSheet = QString::fromUtf8(qss.readAll());
 	styleSheet.replace(QStringLiteral(":/icons/"),
 		QFileInfo(qss).absolutePath() + QStringLiteral("/../icons/"));
-	qApp->setStyleSheet(styleSheet);
+	// As main applies it, under the Fusion style of the offscreen platform.
+	qApp->setStyleSheet(applicationStyleSheet(styleSheet, QApplication::style()->name()));
 }
 
 void TestDialogLayout::longDialogStaysOnScreen_data() {
@@ -794,6 +818,59 @@ void TestDialogLayout::itemViewIndicatorsAreVisible() {
 	if (QTest::currentTestFailed())
 		return;
 	checkIndicators(tableImage, tableRow(0), tableRow(1), tableRow(3), tableRow(2), "table item indicators are not clearly visible");
+}
+
+// A list, table or tree item shows the check box of the style sheet only, also under a widget style whose own check box is
+// larger than its rectangle: no pixel of that box shows in a plain, alternate, checked, disabled or selected row.
+void TestDialogLayout::itemViewsDrawOneCheckBox() {
+	SpillingCheckStyle style;
+	QListWidget list;
+	QTableWidget table(5, 1);
+	table.horizontalHeader()->hide();
+	table.verticalHeader()->hide();
+	QTreeWidget tree;
+	tree.setHeaderHidden(true);
+	// Rows 2 to 4 are checked, row 3 is disabled and row 4 is selected.
+	const auto flags = [](Qt::ItemFlags itemFlags, int row) {
+		itemFlags |= Qt::ItemIsUserCheckable;
+		return row == 3 ? itemFlags & ~Qt::ItemIsEnabled : itemFlags;
+	};
+	for (int row = 0; row < 5; ++row) {
+		const Qt::CheckState state = row >= 2 ? Qt::Checked : Qt::Unchecked;
+		auto* listItem = new QListWidgetItem(&list);
+		listItem->setFlags(flags(listItem->flags(), row));
+		listItem->setCheckState(state);
+		auto* tableItem = new QTableWidgetItem;
+		tableItem->setFlags(flags(tableItem->flags(), row));
+		tableItem->setCheckState(state);
+		table.setItem(row, 0, tableItem);
+		auto* treeItem = new QTreeWidgetItem(&tree);
+		treeItem->setFlags(flags(treeItem->flags(), row));
+		treeItem->setCheckState(0, state);
+	}
+	list.setCurrentRow(4);
+	table.setCurrentCell(4, 0);
+	tree.setCurrentItem(tree.topLevelItem(4));
+	QAbstractItemView* const views[] = {&list, &table, &tree};
+	for (QAbstractItemView* view : views) {
+		view->setStyle(&style);
+		view->setAlternatingRowColors(true);
+		view->resize(200, 160);
+		view->show();
+	}
+	QApplication::processEvents();
+
+	for (QAbstractItemView* view : views) {
+		const QImage image = view->viewport()->grab().toImage();
+		int shown = 0;
+		for (int y = 0; y < image.height(); ++y)
+			for (int x = 0; x < image.width(); ++x)
+				shown += image.pixel(x, y) == kBaseStyleCheck ? 1 : 0;
+		const QString message = QStringLiteral("%1 pixels of the check box of the widget style show in the %2")
+									.arg(shown)
+									.arg(QLatin1String(view->metaObject()->className()));
+		QVERIFY2(shown == 0, qPrintable(message));
+	}
 }
 
 void TestDialogLayout::inlineMessagesTakeTheirRole() {
@@ -1208,6 +1285,119 @@ void TestDialogLayout::detailsToggleShowsFocusLikeButton() {
 	QVERIFY2(button->hasFocus(), qPrintable(message));
 	QVERIFY2(toggleBorder == buttonBorder, qPrintable(message));
 	QVERIFY2(buttonBorder.first == 2, qPrintable(message));
+}
+
+// A dialog with facts and a details toggle, as the run review has: showing the details makes the dialog taller, and hiding
+// them returns it to the size it had before, with the facts where they were.
+void TestDialogLayout::detailsToggleReturnsToCollapsedSize() {
+	QDialog dialog;
+	auto* body = new QWidget;
+	auto* layout = new QVBoxLayout(body);
+	auto* facts = new QGridLayout;
+	auto* firstFact = new QLabel(QStringLiteral("Trains"), body);
+	facts->addWidget(firstFact, 0, 0);
+	facts->addWidget(new QLabel(QStringLiteral("2"), body), 0, 1);
+	facts->addWidget(new QLabel(QStringLiteral("Duration"), body), 1, 0);
+	facts->addWidget(new QLabel(QStringLiteral("2:30:00, until 09:40:40"), body), 1, 1);
+	layout->addLayout(facts);
+	auto* toggle = new QToolButton(body);
+	toggle->setText(QStringLiteral("Run details"));
+	toggle->setCheckable(true);
+	toggle->setArrowType(Qt::RightArrow);
+	auto* details = new QLabel(QStringLiteral("Run occurrences on a long railway line. ").repeated(30), body);
+	details->setWordWrap(true);
+	details->hide();
+	DialogLayout::connectDetailsToggle(dialog, toggle, details);
+	layout->addWidget(toggle);
+	layout->addWidget(details);
+	DialogLayout::install(dialog, QStringLiteral("Run simulation"), QStringLiteral("Case / scenario"), body,
+		new QDialogButtonBox(QDialogButtonBox::Cancel), QRect(0, 0, 1280, 800));
+	dialog.show();
+	QApplication::processEvents();
+	const QSize collapsed = dialog.size();
+	const QPoint factPosition = firstFact->mapTo(&dialog, QPoint());
+
+	toggle->click();
+	QApplication::processEvents();
+	const QSize expanded = dialog.size();
+	// Showing the details makes the dialog taller.
+	QVERIFY(details->isVisible());
+	QCOMPARE(toggle->arrowType(), Qt::DownArrow);
+	QCOMPARE_GT(expanded.height(), collapsed.height());
+	toggle->click();
+	QApplication::processEvents();
+	// Hiding the details returns the dialog to its size before, with the first fact where it was.
+	QVERIFY(!details->isVisible());
+	QCOMPARE(toggle->arrowType(), Qt::RightArrow);
+	QCOMPARE(dialog.size(), collapsed);
+	QCOMPARE(firstFact->mapTo(&dialog, QPoint()), factPosition);
+
+	// Details hidden and shown again before the events run keep the size that the dialog had before they first showed, and
+	// the dialog returns to it when they hide.
+	toggle->click();
+	QApplication::processEvents();
+	toggle->click();
+	toggle->click();
+	QApplication::processEvents();
+	QCOMPARE(dialog.size(), expanded);
+	toggle->click();
+	QApplication::processEvents();
+	QCOMPARE(dialog.size(), collapsed);
+}
+
+// A dialog that the user resizes while its details show keeps the width that the user gave it when they hide, and gives
+// back the height that the details added, down to the height it had before they showed.
+void TestDialogLayout::detailsToggleKeepsResizedWidth() {
+	QDialog dialog;
+	auto* body = new QWidget;
+	auto* layout = new QVBoxLayout(body);
+	layout->addWidget(new QLabel(QStringLiteral("Trains 2"), body));
+	auto* toggle = new QToolButton(body);
+	toggle->setText(QStringLiteral("Run details"));
+	toggle->setCheckable(true);
+	auto* details = new QLabel(QStringLiteral("Run occurrences on a long railway line. ").repeated(30), body);
+	details->setWordWrap(true);
+	details->hide();
+	DialogLayout::connectDetailsToggle(dialog, toggle, details);
+	layout->addWidget(toggle);
+	layout->addWidget(details);
+	DialogLayout::install(dialog, QStringLiteral("Run simulation"), QStringLiteral("Case / scenario"), body,
+		new QDialogButtonBox(QDialogButtonBox::Cancel), QRect(0, 0, 1280, 800));
+	dialog.show();
+	QApplication::processEvents();
+	const int collapsedHeight = dialog.height();
+	// Shows the details, resizes the dialog by change from the size it grew to, and hides the details. Returns the size it
+	// grew to and the size it had before the details hid.
+	const auto resizeWhileShown = [&](QSize change) {
+		toggle->click();
+		QApplication::processEvents();
+		const QSize grown = dialog.size();
+		dialog.resize(grown + change);
+		QApplication::processEvents();
+		const QSize resized = dialog.size();
+		toggle->click();
+		QApplication::processEvents();
+		return std::make_pair(grown, resized);
+	};
+
+	// Wider: the dialog keeps the new width and its height from before.
+	const auto [expanded, wider] = resizeWhileShown(QSize(100, 0));
+	QCOMPARE_GT(expanded.height(), collapsedHeight);
+	QCOMPARE(wider, expanded + QSize(100, 0));
+	QCOMPARE(dialog.size(), QSize(wider.width(), collapsedHeight));
+
+	// Taller by 40 px: the dialog keeps its width and 40 px of the height.
+	const auto [tallExpanded, taller] = resizeWhileShown(QSize(0, 40));
+	QCOMPARE(taller, tallExpanded + QSize(0, 40));
+	QCOMPARE(dialog.size(), QSize(taller.width(), collapsedHeight + 40));
+
+	// Wider and 10 px shorter: giving back all the height that the details added would make the dialog 10 px shorter than
+	// before they showed, so it keeps that height.
+	const int heightBefore = dialog.height();
+	const auto [shortExpanded, shorter] = resizeWhileShown(QSize(50, -10));
+	QCOMPARE(shorter, shortExpanded + QSize(50, -10));
+	QCOMPARE_GT(shorter.height(), heightBefore);
+	QCOMPARE(dialog.size(), QSize(shorter.width(), heightBefore));
 }
 
 // A button that opens a menu, such as Trains and Open result view..., keeps room beside its text for the arrow. Open result

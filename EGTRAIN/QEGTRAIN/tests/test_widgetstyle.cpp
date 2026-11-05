@@ -9,8 +9,10 @@
 #include <QScopeGuard>
 #include <QStringList>
 #include <QStyle>
+#include <QStyleFactory>
 #include <QTest>
 
+#include <memory>
 #include <vector>
 
 // widgetStyleChosen reads only its arguments and the environment, so it gives the same answer after the application
@@ -33,6 +35,8 @@ private slots:
 	void commandLine();
 	void styleOverride();
 	void windows11BecomesWindowsVista();
+	void itemRuleFollowsStyle_data();
+	void itemRuleFollowsStyle();
 };
 
 void TestWidgetStyle::commandLine_data() {
@@ -74,6 +78,35 @@ void TestWidgetStyle::windows11BecomesWindowsVista() {
 	const QString expected = windows11 ? QStringLiteral("windowsvista") : first;
 	QVERIFY2(QApplication::style()->name().compare(expected, Qt::CaseInsensitive) == 0,
 		qPrintable(QStringLiteral("the style %1 became %2 instead of %3").arg(first, QApplication::style()->name(), expected)));
+}
+
+void TestWidgetStyle::itemRuleFollowsStyle_data() {
+	QTest::addColumn<QString>("style");
+	QTest::addColumn<bool>("itemRule");
+	// The name of the style that QStyleFactory makes for key, or key where that style is not available, as windowsvista
+	// and windows11 outside Windows.
+	const auto name = [](const QString& key) {
+		const std::unique_ptr<QStyle> style(QStyleFactory::create(key));
+		return style ? style->name() : key;
+	};
+	QTest::newRow("Fusion") << name(QStringLiteral("Fusion")) << true;
+	QTest::newRow("macOS") << QStringLiteral("macos") << true;
+	QTest::newRow("windowsvista") << name(QStringLiteral("windowsvista")) << false;
+	QTest::newRow("windows11") << name(QStringLiteral("windows11")) << false;
+	QTest::newRow("Windows") << name(QStringLiteral("Windows")) << false;
+}
+
+// Under Fusion and the macOS style the style sheet ends with the rule that has it draw each item of a list, table or tree;
+// under windowsvista, windows11 and the other styles it stays as it is.
+void TestWidgetStyle::itemRuleFollowsStyle() {
+	QFETCH(QString, style);
+	QFETCH(bool, itemRule);
+	const QString sheet = QStringLiteral("QTableView {\n    gridline-color: #e3eaee;\n}\n");
+	const QString applied = applicationStyleSheet(sheet, style);
+	if (itemRule)
+		QCOMPARE(applied, sheet + QStringLiteral("\nQListWidget::item, QTableView::item, QTreeView::item {\n    image: none;\n}\n"));
+	else
+		QCOMPARE(applied, sheet);
 }
 
 QTEST_MAIN(TestWidgetStyle)
