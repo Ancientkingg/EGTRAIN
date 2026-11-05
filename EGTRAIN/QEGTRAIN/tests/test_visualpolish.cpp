@@ -169,6 +169,20 @@ static QByteArray markPixelClasses(const QImage& image, const QList<QPoint>& poi
 	return row;
 }
 
+// The WCAG contrast ratio of two colours, from 1 to 21.
+static double contrastRatio(const QColor& first, const QColor& second) {
+	const auto luminance = [](const QColor& colour) {
+		const auto channel = [](double value) {
+			value /= 255.0;
+			return value <= 0.03928 ? value / 12.92 : std::pow((value + 0.055) / 1.055, 2.4);
+		};
+		return 0.2126 * channel(colour.red()) + 0.7152 * channel(colour.green()) + 0.0722 * channel(colour.blue());
+	};
+	const double a = luminance(first);
+	const double b = luminance(second);
+	return (std::max(a, b) + 0.05) / (std::min(a, b) + 0.05);
+}
+
 // The colours, line styles, icons and marks with which the network view shows tracks, signals, trains and stations.
 class TestVisualPolish : public QObject {
 	Q_OBJECT
@@ -188,6 +202,7 @@ private slots:
 	void stationMarkStyles_data();
 	void stationMarkStyles();
 	void stationMarksReadableAtSmallestSize();
+	void ringAndBarFillsMajorDisc();
 	void stationMenuIcons_data();
 	void stationMenuIcons();
 	void stationSquares();
@@ -429,7 +444,7 @@ void TestVisualPolish::stationMarkStyles_data() {
 	// Ring and bar, outer radius 17.3 and ring width 5.8: the centre, 9 above it in the hole of a ring, 14 above it on the
 	// ring, and 24 left of it on the bar, which is 49 long and 10 high.
 	const QList<QPoint> ring{{32, 48}, {32, 39}, {32, 34}, {8, 48}};
-	row("ring and bar, major station: a disc with the bar", StationMarkStyle::RingAndBar, StationClass::Major, ring, "BWWB");
+	row("ring and bar, major station: a blue disc with the bar", StationMarkStyle::RingAndBar, StationClass::Major, ring, "BBWB");
 	row("ring and bar, station: a ring with the bar", StationMarkStyle::RingAndBar, StationClass::Station, ring, "BDWB");
 	row("ring and bar, halt: a ring without the bar", StationMarkStyle::RingAndBar, StationClass::Halt, ring, "TDWT");
 	// Class marks: the centre, 8 above it, 16 left of it and 22 above it. The bar of a major station is 15.4 wide and 38.4
@@ -446,8 +461,8 @@ void TestVisualPolish::stationMarkStyles_data() {
 }
 
 // The marks of the other styles are centred on the station, in the light colour of the marks with a dark halo, and a
-// blue bar in a ring and bar. None is red or green. The click target is the mark with the hole of a ring, and not the
-// corners of the frame.
+// blue bar and the blue disc of a major station in a ring and bar. None is red or green. The click target is the mark
+// with the hole of a ring, and not the corners of the frame.
 void TestVisualPolish::stationMarkStyles() {
 	QFETCH(int, style);
 	QFETCH(int, cls);
@@ -481,6 +496,39 @@ void TestVisualPolish::stationMarkStyles() {
 	QVERIFY(shape.contains(frame.center()));
 	QVERIFY(!shape.contains(frame.topLeft() + QPointF(2.0, 2.0)));
 	QVERIFY(bounds.contains(shape.boundingRect()));
+}
+
+// In a ring and bar a major station is a filled disc and a station a ring, both crossed by the bar. At the smallest size
+// on the canvas, a frame of 24 pixels with a halo of 2, on the canvas and on the light panel of the map key, the inside
+// of the ring above and below the bar is a fill for a major station that stands out by 3:1 from the background and from
+// what the ring of a station shows there.
+void TestVisualPolish::ringAndBarFillsMajorDisc() {
+	const QRectF frame(8.0, 16.0, 24.0, 24.0);
+	for (const QColor& background : {canvasColor(), QColor(239, 239, 239)}) {
+		// The pixels halfway between the bar, 0.105 of the frame from the centre, and the inner edge of the ring at 0.24.
+		QList<QColor> major;
+		QList<QColor> station;
+		for (const StationClass cls : {StationClass::Major, StationClass::Station}) {
+			QImage image(40, 56, QImage::Format_ARGB32_Premultiplied);
+			image.fill(background);
+			{
+				QPainter painter(&image);
+				paintStationMark(&painter, frame, cls, StationMarkStyle::RingAndBar, stationMarkFill(), canvasColor(), 2.0);
+			}
+			for (const qreal offset : {-0.1725, 0.1725}) {
+				const QPointF point = frame.center() + QPointF(0.0, offset * frame.height());
+				(cls == StationClass::Major ? major : station)
+					.append(image.pixelColor(static_cast<int>(point.x()), static_cast<int>(point.y())));
+			}
+		}
+		for (qsizetype index = 0; index < major.size(); ++index) {
+			const QString what = QStringLiteral("on %1, %2 the bar: major %3, station %4")
+									 .arg(background.name(), index == 0 ? QStringLiteral("above") : QStringLiteral("below"),
+										 major.at(index).name(), station.at(index).name());
+			QVERIFY2(contrastRatio(major.at(index), background) >= 3.0, qPrintable(what));
+			QVERIFY2(contrastRatio(major.at(index), station.at(index)) >= 3.0, qPrintable(what));
+		}
+	}
 }
 
 // At the smallest size of a mark on the canvas, a frame of 24 pixels with a halo of 2, the light or blue part of the mark
@@ -534,7 +582,7 @@ void TestVisualPolish::stationMenuIcons_data() {
 		{StationClass::Station, "station"}, {StationClass::Halt, "halt"}};
 	for (const auto& [style, styleName] : styles)
 		for (const auto& [cls, className] : classes) {
-			// Blue is the pin of a major station and the bar of a ring and bar.
+			// Blue is the pin of a major station and the bar and the disc of a ring and bar.
 			const bool blue = (style == StationMarkStyle::MapPin && cls == StationClass::Major)
 				|| (style == StationMarkStyle::RingAndBar && cls != StationClass::Halt);
 			QTest::addRow("%s, %s", styleName, className) << static_cast<int>(style) << static_cast<int>(cls) << blue;
@@ -543,8 +591,8 @@ void TestVisualPolish::stationMenuIcons_data() {
 
 // The menu icon fits the whole mark with its halo and centres it: the outer rows and columns hold at most the dark halo,
 // so that a mark cut at an edge shows there, and the outer columns of a pin, which is taller than wide, stay empty.
-// Blue shows only on the pin of a major station and on the bar of a ring and bar. At 32 pixels it has the colours of the
-// mark of its class and style on the canvas.
+// Blue shows only on the pin of a major station and on the bar and the disc of a ring and bar. At 32 pixels it has the
+// colours of the mark of its class and style on the canvas.
 void TestVisualPolish::stationMenuIcons() {
 	QFETCH(int, styleValue);
 	QFETCH(int, classValue);
@@ -570,7 +618,7 @@ void TestVisualPolish::stationMenuIcons() {
 				if (column)
 					columnsEmpty = columnsEmpty && colour.alpha() == 0;
 			}
-		// The menu icon shows the whole mark, centred, blue only on a major pin and a bar.
+		// The menu icon shows the whole mark, centred, blue only on a major pin and on a ring and bar with its bar.
 		const QString at = QStringLiteral("at %1 pixels").arg(size);
 		QVERIFY2(edgesHalo, qPrintable(at));
 		if (style == StationMarkStyle::MapPin)

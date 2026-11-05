@@ -99,17 +99,21 @@ QList<MarkPart> pinParts(const QRectF& frame, StationClass cls, const QColor& fi
 	return {{body, fill}, {disc(head, 0.4 * r), halo}};
 }
 
-// The parts of the ring and bar centred in frame: a ring, or a disc for a major station, crossed by a blue bar for a
-// station and a major station. The edge of the bar, under it, sets it off from the ring.
+// The parts of the ring and bar centred in frame: a ring, or for a major station a disc whose inside within the ring is
+// blue, which stands out on the canvas and on a light panel, crossed by a blue bar for a station and a major station.
+// The edge of the bar, under it, sets it off from the ring and the disc.
 QList<MarkPart> ringAndBarParts(const QRectF& frame, StationClass cls, const QColor& fill, const QColor& halo,
 	qreal haloWidth) {
 	const qreal side = std::min(frame.width(), frame.height());
 	const QPointF centre = frame.center();
 	const qreal outer = 0.36 * side;
+	const qreal inner = outer - 0.12 * side;
 	QPainterPath ring = disc(centre, outer);
 	if (cls != StationClass::Major)
-		ring.addEllipse(centre, outer - 0.12 * side, outer - 0.12 * side);
+		ring.addEllipse(centre, inner, inner);
 	QList<MarkPart> parts{{ring, fill}};
+	if (cls == StationClass::Major)
+		parts.append({disc(centre, inner), kStationMarkAccent});
 	if (cls != StationClass::Halt) {
 		QRectF bar(0.0, 0.0, 1.02 * side, 0.21 * side);
 		bar.moveCenter(centre);
