@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QLatin1String>
+#include <QString>
 #include <QStyle>
 #include <QStyleFactory>
 
@@ -30,4 +31,20 @@ inline void preferWindowsVistaStyle(bool styleChosen) {
 		return;
 	if (QStyle* vista = QStyleFactory::create(QStringLiteral("windowsvista")))
 		QApplication::setStyle(vista);
+}
+
+/// The application style sheet sheet as EGTRAIN applies it under the widget style named styleName (QStyle::name()).
+/// Under the macOS style and Fusion it ends with a rule that has the style sheet draw each item of a list, table or tree
+/// whole; under any other style, windowsvista and windows11 among them, it is sheet.
+inline QString applicationStyleSheet(const QString& sheet, const QString& styleName) {
+	// The style sheet draws an item whole only when a rule for the item draws something. For any other item it draws only
+	// the check box and leaves the rest of the item to the widget style, which draws its own check box as well, and that
+	// box shows wherever it is larger than the styled one, as under the macOS style. An empty image is such a rule and
+	// paints nothing itself; a background would also become the colour behind the focus frame of the item. Other styles
+	// keep drawing their items: windowsvista and windows11, for example, draw a hover highlight on an item, and the style
+	// sheet draws none.
+	if (styleName.compare(QLatin1String("macos"), Qt::CaseInsensitive) != 0
+		&& styleName.compare(QLatin1String("fusion"), Qt::CaseInsensitive) != 0)
+		return sheet;
+	return sheet + QStringLiteral("\nQListWidget::item, QTableView::item, QTreeView::item {\n    image: none;\n}\n");
 }

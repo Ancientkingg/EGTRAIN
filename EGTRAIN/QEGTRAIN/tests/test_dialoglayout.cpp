@@ -1,4 +1,5 @@
 #include "widgets/DialogLayout.h"
+#include "widgets/WidgetStyle.h"
 
 #include <QApplication>
 #include <QAction>
@@ -438,7 +439,8 @@ void TestDialogLayout::initTestCase() {
 	QString styleSheet = QString::fromUtf8(qss.readAll());
 	styleSheet.replace(QStringLiteral(":/icons/"),
 		QFileInfo(qss).absolutePath() + QStringLiteral("/../icons/"));
-	qApp->setStyleSheet(styleSheet);
+	// As main applies it, under the Fusion style of the offscreen platform.
+	qApp->setStyleSheet(applicationStyleSheet(styleSheet, QApplication::style()->name()));
 }
 
 void TestDialogLayout::longDialogStaysOnScreen_data() {

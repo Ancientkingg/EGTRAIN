@@ -494,7 +494,7 @@ static int runMain(int argc, char* argv[]) {
 		// Before the first message box, so that a scene that cannot be opened is reported in the look of the window.
 		QFile theme(QStringLiteral(":/styles/egtrain.qss"));
 		if (theme.open(QIODevice::ReadOnly | QIODevice::Text))
-			application.setStyleSheet(QString::fromUtf8(theme.readAll()));
+			application.setStyleSheet(applicationStyleSheet(QString::fromUtf8(theme.readAll()), QApplication::style()->name()));
 		installCrashHandler(crashNoteFolder());
 		if (!onlyKnownOptions(argc, argv))
 			return 1;
