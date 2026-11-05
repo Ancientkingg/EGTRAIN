@@ -424,6 +424,7 @@ private slots:
 	void runReviewDefaultLooksLikeDialogDefault();
 	void detailsToggleShowsFocusLikeButton();
 	void detailsToggleReturnsToCollapsedSize();
+	void detailsToggleKeepsResizedWidth();
 	void menuButtonsHaveRoomForArrow();
 	void defaultButtonShowsText_data();
 	void defaultButtonShowsText();
@@ -1342,6 +1343,61 @@ void TestDialogLayout::detailsToggleReturnsToCollapsedSize() {
 	toggle->click();
 	QApplication::processEvents();
 	QCOMPARE(dialog.size(), collapsed);
+}
+
+// A dialog that the user resizes while its details show keeps the width that the user gave it when they hide, and gives
+// back the height that the details added, down to the height it had before they showed.
+void TestDialogLayout::detailsToggleKeepsResizedWidth() {
+	QDialog dialog;
+	auto* body = new QWidget;
+	auto* layout = new QVBoxLayout(body);
+	layout->addWidget(new QLabel(QStringLiteral("Trains 2"), body));
+	auto* toggle = new QToolButton(body);
+	toggle->setText(QStringLiteral("Run details"));
+	toggle->setCheckable(true);
+	auto* details = new QLabel(QStringLiteral("Run occurrences on a long railway line. ").repeated(30), body);
+	details->setWordWrap(true);
+	details->hide();
+	DialogLayout::connectDetailsToggle(dialog, toggle, details);
+	layout->addWidget(toggle);
+	layout->addWidget(details);
+	DialogLayout::install(dialog, QStringLiteral("Run simulation"), QStringLiteral("Case / scenario"), body,
+		new QDialogButtonBox(QDialogButtonBox::Cancel), QRect(0, 0, 1280, 800));
+	dialog.show();
+	QApplication::processEvents();
+	const int collapsedHeight = dialog.height();
+	// Shows the details, resizes the dialog by change from the size it grew to, and hides the details. Returns the size it
+	// grew to and the size it had before the details hid.
+	const auto resizeWhileShown = [&](QSize change) {
+		toggle->click();
+		QApplication::processEvents();
+		const QSize grown = dialog.size();
+		dialog.resize(grown + change);
+		QApplication::processEvents();
+		const QSize resized = dialog.size();
+		toggle->click();
+		QApplication::processEvents();
+		return std::make_pair(grown, resized);
+	};
+
+	// Wider: the dialog keeps the new width and its height from before.
+	const auto [expanded, wider] = resizeWhileShown(QSize(100, 0));
+	QCOMPARE_GT(expanded.height(), collapsedHeight);
+	QCOMPARE(wider, expanded + QSize(100, 0));
+	QCOMPARE(dialog.size(), QSize(wider.width(), collapsedHeight));
+
+	// Taller by 40 px: the dialog keeps its width and 40 px of the height.
+	const auto [tallExpanded, taller] = resizeWhileShown(QSize(0, 40));
+	QCOMPARE(taller, tallExpanded + QSize(0, 40));
+	QCOMPARE(dialog.size(), QSize(taller.width(), collapsedHeight + 40));
+
+	// Wider and 10 px shorter: giving back all the height that the details added would make the dialog 10 px shorter than
+	// before they showed, so it keeps that height.
+	const int heightBefore = dialog.height();
+	const auto [shortExpanded, shorter] = resizeWhileShown(QSize(50, -10));
+	QCOMPARE(shorter, shortExpanded + QSize(50, -10));
+	QCOMPARE_GT(shorter.height(), heightBefore);
+	QCOMPARE(dialog.size(), QSize(shorter.width(), heightBefore));
 }
 
 // A button that opens a menu, such as Trains and Open result view..., keeps room beside its text for the arrow. Open result
