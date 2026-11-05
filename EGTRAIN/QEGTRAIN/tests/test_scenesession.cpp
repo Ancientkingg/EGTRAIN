@@ -321,7 +321,7 @@ void TestSceneSession::saveAsFolderAsksBeforeReplacingCase() {
 void TestSceneSession::saveAsFolderKeepsViewsOfFailedSave() {
 #ifdef Q_OS_WIN
 	QSKIP("Windows has no folder that its owner cannot write to");
-#endif
+#else
 	QTemporaryDir root;
 	QVERIFY(root.isValid());
 	const QDir dir(root.path());
@@ -344,6 +344,7 @@ void TestSceneSession::saveAsFolderKeepsViewsOfFailedSave() {
 	// The save failed and said so, and the target keeps its own views.json.
 	QCOMPARE(f.prompts.errorTitle, "Cannot Save Case");
 	QCOMPARE(readFile(dir.filePath("Locked/Target/views.json")), QByteArray("{\"own\": true}\n"));
+#endif
 }
 
 void TestSceneSession::saveAsksWhenFolderChangedOnDisk() {
