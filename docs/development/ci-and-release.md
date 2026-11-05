@@ -38,7 +38,13 @@ scripts that build, sign and check the release packages.
 - The documentation workflow (`docs.yml`) builds the [documentation site](testing.md#documentation-site)
   for every pull request, fails a pull request that adds undocumented classes or members to the
   files it changes, and publishes the site to `gh-pages`: `dev/` from `main`, and `<version>/`
-  and `latest/` after a successful release.
+  and `latest/` after a successful release. Each publish also writes the home page at the root of
+  `gh-pages` with `tools/docs/home_page.py`, from `docs/site/` of `main`: the downloads of the
+  newest published version, links to its guides and C++ reference, and the list of versions.
+  `test_ci_workflow`, which the documentation workflow also runs, checks that the downloads are
+  the files that `tools/release/build_release_assets.py` names. The page links the names of `main`
+  with the newest published version, so a renamed package breaks its download link until the next
+  release: merge a rename together with a release.
 - A pull request to `main` that changes a packaging input also runs the
   package check (`package-check.yml`). The inputs are the workflow files
   `package-check.yml`, `package.yml` and `release.yml`, the setup action in `.github/actions/`, `tools/release/`, the

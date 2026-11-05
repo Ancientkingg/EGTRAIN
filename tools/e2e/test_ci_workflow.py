@@ -3,13 +3,14 @@
 
 The first checks hold for every workflow: the result jobs that main requires, the changed-files filter, time limits,
 permissions, concurrency, credentials, the calls of the reusable package workflow and the files that the workflows name.
-The later ones are the properties of the build, package and release jobs that docs/development describes. Steps are
-found by what they run, not by their names.
+The later ones are the properties of the build, package and release jobs and of the home page of the documentation site
+that docs/development describes. Steps are found by what they run, not by their names.
 """
 import json
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from unittest import mock
 
@@ -1075,6 +1076,45 @@ def check_packages(checks: Checks, package: dict, package_text: str, package_che
     )
 
 
+def check_home_page(checks: Checks, docs: dict, build_release_assets, home_page) -> None:
+    """The home page at the root of gh-pages: the publish job writes it with tools/docs/home_page.py after it has updated
+    the version folders, the page offers the packages and scene bundles that the release script names, and the script
+    fills in the newest version folder and keeps the other files of the root."""
+    expect = checks.expect
+    publish = runs(docs["jobs"]["publish"])
+    positions = [publish.find(command) for command in ("cp -R site pages/latest\n", "python3 tools/docs/home_page.py pages\n", "git -C pages add -A\n")]
+    expect(-1 not in positions and positions == sorted(positions), "docs.yml: the publish job writes the home page after latest/ and before it commits")
+    page = home_page.PAGE.read_text(encoding="utf-8")
+    names = [template for _key, template, _directory in build_release_assets.PACKAGES]
+    names += [scene + build_release_assets.SCENE_SUFFIX for scene in build_release_assets.SCENES]
+    offered = re.findall(r'href="([^"]*/releases/[^"]*download/[^"]*)"', page)
+    released = [f"https://github.com/Ancientkingg/EGTRAIN/releases/download/v{{version}}/{name}" for name in names]
+    expect(sorted(offered) == sorted(released),
+           f"docs/site/index.html links each package and scene bundle of build_release_assets.py once: {sorted(set(offered) ^ set(released))}")
+    with tempfile.TemporaryDirectory() as folder:
+        pages = Path(folder)
+        for name in ("dev", "latest", "1.0.4", "1.0.10", "assets"):
+            (pages / name).mkdir()
+        (pages / "assets/old.css").write_text("", encoding="utf-8")
+        (pages / "CNAME").write_text("egtrain.example.org\n", encoding="utf-8")
+        home_page.write_home_page(pages)
+        text = (pages / "index.html").read_text(encoding="utf-8")
+        listed = [text.find(f'<li><a href="{name}/">') for name in ("latest", "dev", "1.0.10", "1.0.4")]
+        expect("/releases/download/v1.0.10/EGTRAIN-1.0.10-macOS-arm64.dmg" in text and "{" not in text
+               and -1 not in listed and listed == sorted(listed),
+               "tools/docs/home_page.py offers the newest version and lists latest/, dev/ and the versions, newest first")
+        expect((pages / "CNAME").read_text(encoding="utf-8") == "egtrain.example.org\n"
+               and sorted(path.name for path in (pages / "assets").iterdir()) == sorted(path.name for path in home_page.ASSETS),
+               "tools/docs/home_page.py keeps the CNAME file and replaces assets/")
+    with tempfile.TemporaryDirectory() as folder:
+        pages = Path(folder)
+        (pages / "dev").mkdir()
+        home_page.write_home_page(pages)
+        text = (pages / "index.html").read_text(encoding="utf-8")
+        expect('<li><a href="dev/">' in text and "{" not in text and "latest/" not in text and "/download/" not in text,
+               "tools/docs/home_page.py leaves out the downloads and latest/ when no version is published")
+
+
 def check_scripts(checks: Checks, tests_cmake: str) -> None:
     """The release scripts that no CTest runs on every platform: the signature check, the installer smoke and the
     notarization. No workflow and no script turns Gatekeeper off."""
@@ -1180,8 +1220,10 @@ def main() -> None:
     # Other tests import this file, so these imports are here and not at module level.
     sys.path.insert(0, str(ROOT / "tools/release"))
     sys.path.insert(0, str(ROOT / "tools/ci"))
+    sys.path.insert(0, str(ROOT / "tools/docs"))
     import build_release_assets
     import changed_files
+    import home_page
     import make_dmg
 
     paths = sorted((ROOT / ".github/workflows").glob("*.yml"))
@@ -1224,6 +1266,7 @@ def main() -> None:
     check_format_and_tidy(checks, workflows["format.yml"], workflows["tidy.yml"])
     check_release(checks, workflows["release.yml"], release_text, workflows["package-check.yml"], changed_files.RULES, sources)
     check_packages(checks, workflows["package.yml"], texts["package.yml"], workflows["package-check.yml"], build_release_assets, make_dmg)
+    check_home_page(checks, workflows["docs.yml"], build_release_assets, home_page)
     check_scripts(checks, tests_cmake)
     check_ctest(checks, cmake_lists, tests_cmake)
     checks.finish()

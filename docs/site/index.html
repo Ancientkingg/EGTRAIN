@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="EGTRAIN is a desktop application for microscopic railway simulation.">
+  <title>EGTRAIN</title>
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <header class="top">
+    <div class="bar">
+      <a class="brand" href="./">EGTRAIN</a>
+      <nav aria-label="Sections">
+        <a href="#download">Download</a>
+        <a href="#documentation">Documentation</a>
+        <a href="https://github.com/Ancientkingg/EGTRAIN">GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <h1>EGTRAIN is a desktop application for microscopic railway simulation.</h1>
+    <figure>
+      <img src="assets/readme-main-window.png" width="1200" height="750" alt="The main window with a run of Milano_Brescia paused at 06:45:40 at 100x, zoomed in on Treviglio, with trains and their speed labels, the dock Case and Layers with its map key, and Paused in the status bar">
+      <figcaption>A run of Milano_Brescia in the main window, paused with the trains around Treviglio in view.</figcaption>
+    </figure>
+
+    <section id="download">
+      <h2>Download<!-- release --> EGTRAIN {version}<!-- /release --></h2>
+      <!-- release -->
+      <ul class="downloads">
+        <li><a class="download" href="https://github.com/Ancientkingg/EGTRAIN/releases/download/v{version}/EGTRAIN-{version}-macOS-arm64.dmg">
+          <span class="system">macOS</span>
+          <span class="detail">Disk image for Apple silicon Macs with macOS 26 or later</span>
+          <code>EGTRAIN-{version}-macOS-arm64.dmg</code>
+        </a></li>
+        <li><a class="download" href="https://github.com/Ancientkingg/EGTRAIN/releases/download/v{version}/EGTRAIN-Setup-{version}-x64.exe">
+          <span class="system">Windows installer</span>
+          <span class="detail">Installer for 64-bit Windows</span>
+          <code>EGTRAIN-Setup-{version}-x64.exe</code>
+        </a></li>
+        <li><a class="download" href="https://github.com/Ancientkingg/EGTRAIN/releases/download/v{version}/EGTRAIN-Portable-{version}-x64.zip">
+          <span class="system">Windows portable archive</span>
+          <span class="detail">Zip archive for 64-bit Windows that you unzip and run without installing</span>
+          <code>EGTRAIN-Portable-{version}-x64.zip</code>
+        </a></li>
+        <li><a class="download" href="https://github.com/Ancientkingg/EGTRAIN/releases/download/v{version}/QEGTRAIN-linux-x86_64.AppImage">
+          <span class="system">Linux</span>
+          <span class="detail">AppImage for 64-bit Linux with glibc 2.38 or later, as on Ubuntu 24.04</span>
+          <code>QEGTRAIN-linux-x86_64.AppImage</code>
+        </a></li>
+      </ul>
+      <p><a href="latest/guides/install.html">Installing EGTRAIN</a> has the steps for each system, including what to do when macOS or Windows warns before the first start.</p>
+      <!-- /release -->
+      <p>Every version and its files are on the <a href="https://github.com/Ancientkingg/EGTRAIN/releases">releases page</a>.</p>
+    </section>
+    <!-- release -->
+
+    <section id="cases">
+      <h2>Bundled cases</h2>
+      <p>The packages contain six cases. Each is also a separate <code>.egscene</code> file that EGTRAIN opens. <a href="latest/guides/case-studies.html">Bundled cases</a> describes them.</p>
+      <ul class="cases">
+        <li><a href="https://github.com/Ancientkingg/EGTRAIN/releases/download/v{version}/Netherlands.egscene">Netherlands.egscene</a></li>
+        <li><a href="https://github.com/Ancientkingg/EGTRAIN/releases/download/v{version}/Paimpol.egscene">Paimpol.egscene</a></li>
+        <li><a href="https://github.com/Ancientkingg/EGTRAIN/releases/download/v{version}/Copenhagen.egscene">Copenhagen.egscene</a></li>
+        <li><a href="https://github.com/Ancientkingg/EGTRAIN/releases/download/v{version}/Milano_Brescia.egscene">Milano_Brescia.egscene</a></li>
+        <li><a href="https://github.com/Ancientkingg/EGTRAIN/releases/download/v{version}/Assignment_Gvc_Gdg_Ut.egscene">Assignment_Gvc_Gdg_Ut.egscene</a></li>
+        <li><a href="https://github.com/Ancientkingg/EGTRAIN/releases/download/v{version}/Amsterdam_Hilversum_Student.egscene">Amsterdam_Hilversum_Student.egscene</a></li>
+      </ul>
+    </section>
+    <!-- /release -->
+
+    <section id="documentation">
+      <h2>Documentation</h2>
+      <!-- release -->
+      <ul class="guides">
+        <li><a href="latest/">User guides</a>: installing EGTRAIN, running cases and editing them</li>
+        <li><a href="latest/development/getting-started.html">Developer pages</a>: building from source, testing and the structure of the code</li>
+        <li><a href="latest/api/index.html">C++ reference</a>: the classes and functions of the source code</li>
+      </ul>
+      <!-- /release -->
+      <p>Each version has its user guides, developer pages and C++ reference:</p>
+      <ul class="versions">
+{versions}
+      </ul>
+    </section>
+  </main>
+  <footer>
+    <p>Source code, issues and credits are on <a href="https://github.com/Ancientkingg/EGTRAIN">GitHub</a>. The source code is licensed under the GNU General Public License, version 3 only.</p>
+  </footer>
+</body>
+</html>
