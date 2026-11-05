@@ -201,8 +201,8 @@ static bool readWholeNumberOf(const char* option, const char* text, int low, int
 	return false;
 }
 
-// Reads a finite decimal number of low or more from the text of option. When the text is none, it prints on standard error
-// that option requires `requirement` and returns false.
+// Reads a finite decimal number of low or more from the text of option. When the text is none, is not such a number or is
+// below low, it prints on standard error that option requires `requirement` and returns false.
 static bool readDecimalNumberOf(const char* option, const char* text, double low, double& value, const char* requirement) {
 	bool valid = false;
 	const double number = text ? QString::fromLocal8Bit(text).toDouble(&valid) : 0.0;
