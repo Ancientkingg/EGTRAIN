@@ -2252,6 +2252,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("the blocking-time header does not lead with the run: ") + contextOf(blocking));
 			return;
 		}
+		// The header ends with the period in hours and minutes, without seconds.
+		if (!QRegularExpression(QStringLiteral(", \\d\\d:\\d\\d to \\d\\d:\\d\\d$")).match(contextOf(blocking)).hasMatch()) {
+			fail(QStringLiteral("the blocking-time header does not end with the period in hours and minutes: ") + contextOf(blocking));
+			return;
+		}
 		QPushButton* summaryCsv = w.findChild<QPushButton*>("resultView_ExportCSV");
 		QPushButton* summaryPng = w.findChild<QPushButton*>("resultView_ExportPNG");
 		if (!summaryCsv || !summaryPng) {
