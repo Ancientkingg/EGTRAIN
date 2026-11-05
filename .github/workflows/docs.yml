@@ -57,6 +57,7 @@ jobs:
         run: |
           python tools/docs/test_check_undocumented.py
           python tools/docs/check_docs.py
+          python tools/e2e/test_ci_workflow.py
 
       - name: Build the site
         run: |
