@@ -18,6 +18,7 @@
 #include <cmath>
 #include <limits>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -135,6 +136,9 @@ private slots:
 	void describesOccurrences();
 	void recordsRunProvenance();
 	void exportsTrajectoryTail();
+	void namesTrajectoryFile_data();
+	void namesTrajectoryFile();
+	void trajectoryWithoutFolderFails();
 };
 
 void TestRunResults::allocatesActiveEnd() {
@@ -975,6 +979,67 @@ void TestRunResults::exportsTrajectoryTail() {
 			previousPosition = position;
 		}
 	}
+}
+
+void TestRunResults::namesTrajectoryFile_data() {
+	QTest::addColumn<QString>("description");
+	QTest::addColumn<QString>("fileName");
+	QTest::newRow("plain") << "Guin-Paim-EXPRESS-1-1" << "Traj_Train_Guin-Paim-EXPRESS-1-1.txt";
+	QTest::newRow("not ASCII") << QStringLiteral("Malm\u00f6-1") << QStringLiteral("Traj_Train_Malm\u00f6-1.txt");
+	QTest::newRow("slash") << "IC 3000/3100-1" << "Traj_Train_IC 3000_3100-1.txt";
+	QTest::newRow("characters Windows rejects") << "a<b>c:d\"e\\f|g?h*i\tj-2" << "Traj_Train_a_b_c_d_e_f_g_h_i_j-2.txt";
+}
+
+// The file of a train is named after its description, with '_' for each character that a file name cannot hold.
+void TestRunResults::namesTrajectoryFile() {
+	QFETCH(QString, description);
+	QFETCH(QString, fileName);
+	const auto savedRoutes = defaultRun().infra.routes;
+	const std::string savedOutputFolder = defaultRun().settings.OutputMainFolder;
+	const auto restore = qScopeGuard([&]() {
+		defaultRun().infra.routes = savedRoutes;
+		defaultRun().settings.OutputMainFolder = savedOutputFolder;
+	});
+	QTemporaryDir temp;
+	QVERIFY(QDir().mkpath(temp.filePath("TEMP")));
+	defaultRun().settings.OutputMainFolder = temp.path().toStdString();
+	defaultRun().infra.routes.clear();
+	defaultRun().infra.routes.resize(1);
+	auto train = std::make_unique<Train>();
+	train->run_ = &defaultRun();
+	train->trainDescription = description.toStdString();
+	train->indexOfRoute = 0;
+	train->setTrainVectorSizesFromInput(2);
+	train->earliestActiveTrajectoryIndex = 0;
+	train->PrintTrajectory();
+	QCOMPARE(QDir(temp.filePath("TEMP")).entryList(QDir::Files), QStringList{fileName});
+}
+
+// A trajectory file that cannot be written ends the export with the path of the file.
+void TestRunResults::trajectoryWithoutFolderFails() {
+	const auto savedRoutes = defaultRun().infra.routes;
+	const std::string savedOutputFolder = defaultRun().settings.OutputMainFolder;
+	const auto restore = qScopeGuard([&]() {
+		defaultRun().infra.routes = savedRoutes;
+		defaultRun().settings.OutputMainFolder = savedOutputFolder;
+	});
+	QTemporaryDir temp;
+	defaultRun().settings.OutputMainFolder = temp.path().toStdString();
+	defaultRun().infra.routes.clear();
+	defaultRun().infra.routes.resize(1);
+	auto train = std::make_unique<Train>();
+	train->run_ = &defaultRun();
+	train->trainDescription = "no-folder-1";
+	train->indexOfRoute = 0;
+	train->setTrainVectorSizesFromInput(2);
+	std::string error;
+	try {
+		train->PrintTrajectory();
+	} catch (const std::runtime_error& thrown) {
+		error = thrown.what();
+	}
+	const std::string expected = "Cannot write " + temp.path().toStdString() + "/TEMP/Traj_Train_no-folder-1.txt: ";
+	QVERIFY2(error.rfind(expected, 0) == 0, error.c_str());
 }
 
 QTEST_APPLESS_MAIN(TestRunResults)

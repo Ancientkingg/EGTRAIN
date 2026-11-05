@@ -53,8 +53,8 @@ public:
 	/// selectedScenarioId names the scenario whose incidents and delays apply; empty takes the default scenario of the scene,
 	/// or its first. selectedOccurrences lists the service occurrences that run; empty runs them all. The run takes a copy of
 	/// initial_variables as its settings, writes to its output folder, which is made if needed, and starts without the files
-	/// that a run appends to. Returns the diagnostics of the validation and the builders, and the error run.output.folder
-	/// when the output folder cannot be made.
+	/// that a run appends to. Returns the diagnostics of the validation and the builders, the error run.output.folder
+	/// when the output folder cannot be made, and the error run.output.file when such a file cannot be removed.
 	std::vector<SceneDiagnostic> prepareScene(const SceneModel& scene,
 		const std::string& selectedScenarioId = {},
 		const SceneRunSelection& selectedOccurrences = {});
@@ -73,8 +73,9 @@ public:
 	/// Runs the prepared run on the calling thread: the steps, then the energy, the timetable points, the delay statistics,
 	/// the blocking times and the output files. A stop is checked between these stages and ends the run there. A run without
 	/// trains is not run: it emits executionRejected and logs an error. The control of the run is that of
-	/// SimulationWorker::active(), or a new one when there is no worker. An exception ends the run: its text goes to
-	/// lastRunError() and the log, and executionFailed is emitted. The function itself does not throw.
+	/// SimulationWorker::active(), or a new one when there is no worker. An exception ends the run, also an output file that
+	/// cannot be written ("Cannot write <path>: <reason>"): its text goes to lastRunError() and the log, and executionFailed is
+	/// emitted. The function itself does not throw.
 	void runSimulation();
 
 	/// The steps of a run, t from 0 while t < settings.times, each in seconds from the start of the run. Before a step the control
@@ -83,9 +84,10 @@ public:
 	void Train_Simulation_Mixed_Signalling_With_Passengers();
 
 	/// Appends the service path diagram of each train that departs before the end of the run to
-	/// TrainTrajectories/TrainServicePathDiagram.txt in the output folder of the run. The window calls it after a run that was not
-	/// stopped, and main after its run.
-	void printLastTrainServicePathDiagram();
+	/// TrainTrajectories/TrainServicePathDiagram.txt in the output folder of the run. The window calls it after a run that was
+	/// neither stopped nor failed, and main after a run that completed. Returns "Cannot write <path>: <reason>", which also goes
+	/// to the log, when the file cannot be written, and an empty string otherwise.
+	std::string printLastTrainServicePathDiagram();
 
 	/// Takes the newest snapshot that a step published, or nullptr when none waits. The GUI thread calls it after
 	/// snapshotAvailable.

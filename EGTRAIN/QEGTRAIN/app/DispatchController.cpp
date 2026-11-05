@@ -3,6 +3,7 @@
 #include "io/LiveFrame.h"
 #include "io/LiveServer.h"
 #include "scene/SceneValidator.h"
+#include "scene/Utf8Path.h"
 #include "simulation/Simulation.h"
 #include "simulation/SimulationRun.h"
 #include "simulation/SimulationWorker.h"
@@ -31,17 +32,39 @@ constexpr int kExitedPassengerShownSeconds = 5;
 // A snapshot holds the virtual coupling messages of this many seconds before its step.
 constexpr int kVirtualCouplingMessageSeconds = 40;
 
-// Makes the folder and the folders above it. Returns the reason when that fails.
+// Makes the folder at the UTF-8 path and the folders above it. Returns the reason when that fails.
 std::error_code ensureDirectory(const string& path) {
 	std::error_code error;
-	std::filesystem::create_directories(path, error);
+	std::filesystem::create_directories(pathFromUtf8(path), error);
 	return error;
 }
 
-// Remove an existing file without reporting a failure.
-void removeRunOutput(const string& path) {
+// Removes the file at the UTF-8 path when it exists. Returns the reason when that fails.
+std::error_code removeRunOutput(const string& path) {
 	std::error_code error;
-	std::filesystem::remove(path, error);
+	std::filesystem::remove(pathFromUtf8(path), error);
+	return error;
+}
+
+// Makes the output folder of a run and its subfolders, and removes the file that Train::printTrainServicePathDiagram
+// appends to, so each run starts without it. Returns the error when one of them fails.
+std::optional<SceneDiagnostic> prepareRunOutput(const string& outputFolder) {
+	SceneDiagnostic diagnostic;
+	for (const char* subfolder : {"", "/TrainTrajectories", "/PassengerStatus", "/TrainTrajectories/RoutesGenerated"}) {
+		const std::string folder = outputFolder + subfolder;
+		if (const std::error_code error = ensureDirectory(folder)) {
+			diagnostic.code = "run.output.folder";
+			diagnostic.message = "Cannot create the output folder " + folder + ": " + error.message();
+			return diagnostic;
+		}
+	}
+	const std::string servicePathDiagram = outputFolder + "/TrainTrajectories/TrainServicePathDiagram.txt";
+	if (const std::error_code error = removeRunOutput(servicePathDiagram)) {
+		diagnostic.code = "run.output.file";
+		diagnostic.message = "Cannot write " + servicePathDiagram + ": " + error.message();
+		return diagnostic;
+	}
+	return std::nullopt;
 }
 
 // The step range of a signal failure in the simulation (see
@@ -308,20 +331,12 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 		initial_variables.OutputMainFolder = nextRunOutputFolder_;
 	if (initial_variables.OutputMainFolder.empty())
 		initial_variables.OutputMainFolder = "Output";
-	for (const char* subfolder : {"", "/TrainTrajectories", "/PassengerStatus", "/TrainTrajectories/RoutesGenerated"}) {
-		const std::string folder = initial_variables.OutputMainFolder + subfolder;
-		if (const std::error_code error = ensureDirectory(folder)) {
-			SceneDiagnostic diagnostic;
-			diagnostic.code = "run.output.folder";
-			diagnostic.message = "Cannot create the output folder " + folder + ": " + error.message();
-			diagnostics.push_back(std::move(diagnostic));
-			resetState();
-			reportDetail("output_directory_failure");
-			return diagnostics;
-		}
+	if (std::optional<SceneDiagnostic> failure = prepareRunOutput(initial_variables.OutputMainFolder)) {
+		diagnostics.push_back(std::move(*failure));
+		resetState();
+		reportDetail("output_directory_failure");
+		return diagnostics;
 	}
-	// Train::printTrainServicePathDiagram appends, so each run starts without its file.
-	removeRunOutput(initial_variables.OutputMainFolder + "/TrainTrajectories/TrainServicePathDiagram.txt");
 	// The run reads its settings from this copy.
 	staged->settings = initial_variables;
 	mutableRun().adopt(std::move(*staged));
@@ -607,19 +622,25 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers() {
 		printCurrentPassengerStatus(lastStep, settings.startingSimulationTime, run.passengers, settings.OutputMainFolder + "/PassengerStatus");
 }
 
-void DispatchController::printLastTrainServicePathDiagram() {
+std::string DispatchController::printLastTrainServicePathDiagram() {
 	SimulationRun& run = mutableRun();
 	const InitialParameters& settings = run.settings;
-	// print last services
-	for (int i = 0; i < run.numTrains; i++) {
-		// print only trains running during simulation (departure_time >= settings.times indicate that trains were not used, e.g. if only sprinters were used, IC are not printed)
-		if (run.trains[i].departure_time < settings.times) {
-			if (!run.trains[i].OutOfSimulation) {
-				TrajectoryEndTimeOverride temporaryEnd(run.trains[i].End_Time, settings.times - 1);
-				run.trains[i].printTrainServicePathDiagram(settings.OutputMainFolder + "/TrainTrajectories", -1); // -1 indicates no next service
-			} else {
-				run.trains[i].printTrainServicePathDiagram(settings.OutputMainFolder + "/TrainTrajectories", -1);
+	try {
+		// print last services
+		for (int i = 0; i < run.numTrains; i++) {
+			// print only trains running during simulation (departure_time >= settings.times indicate that trains were not used, e.g. if only sprinters were used, IC are not printed)
+			if (run.trains[i].departure_time < settings.times) {
+				if (!run.trains[i].OutOfSimulation) {
+					TrajectoryEndTimeOverride temporaryEnd(run.trains[i].End_Time, settings.times - 1);
+					run.trains[i].printTrainServicePathDiagram(settings.OutputMainFolder + "/TrainTrajectories", -1); // -1 indicates no next service
+				} else {
+					run.trains[i].printTrainServicePathDiagram(settings.OutputMainFolder + "/TrainTrajectories", -1);
+				}
 			}
 		}
+	} catch (const std::exception& error) {
+		EG_LOG(AppRun, Error) << error.what() << '\n';
+		return error.what();
 	}
+	return {};
 }

@@ -220,10 +220,11 @@ copy of the package ([CI and release](ci-and-release.md)).
 ### Windows headless runs
 
 QEGTRAIN is a GUI-subsystem program on Windows (`WIN32_EXECUTABLE`). With `-g 0` it opens no window and reports only
-through redirected output handles and its exit code (0 on success, 1 for bad arguments or scene errors). Started from
-a terminal it prints nothing, and `& QEGTRAIN.exe` in PowerShell does not wait for it. Start it from a program that
-creates the process and reads the pipes, such as `tools/e2e/headless_scene_smoke.py`, or from PowerShell with
-`Start-Process`; the two output files must differ:
+through redirected output handles and its exit code (0 for a completed run, 1 for bad arguments, scene errors or a
+failed run, 2 when the live stream cannot start, 3 for a run that a live client stopped, 70 for an internal error; see
+[Exit codes](../guides/command-line.md#exit-codes)). Started from a terminal it prints nothing, and `& QEGTRAIN.exe`
+in PowerShell does not wait for it. Start it from a program that creates the process and reads the pipes, such as
+`tools/e2e/headless_scene_smoke.py`, or from PowerShell with `Start-Process`; the two output files must differ:
 
 ```powershell
 $dir = Resolve-Path .\build\Release

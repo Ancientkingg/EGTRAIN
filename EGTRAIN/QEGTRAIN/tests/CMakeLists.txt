@@ -1203,7 +1203,7 @@ egtrain_add_test(test_headless_scene_smoke
 	LABELS integration
 	TIMEOUT 150)
 
-# The same two runs on each scene of tests/fixtures/scene-versions that is meant to run.
+# The same three runs on each scene of tests/fixtures/scene-versions that is meant to run.
 egtrain_add_test(test_scene_version_run_main-82.1
 	COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/headless_scene_smoke.py
 		$<TARGET_FILE:QEGTRAIN> ${SRC_DIR}/tests/fixtures/scene-versions/main-82.1-Paimpol.egscene 300

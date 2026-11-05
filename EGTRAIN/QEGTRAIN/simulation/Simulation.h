@@ -43,12 +43,14 @@ void calculateDelayStatsForAllStations(SimulationRun& run);
 void calculatePosAndNegDelayStatsForAllStations(SimulationRun& run);
 
 /// Writes FolderName/Computing_Times.txt with run.compTimeEgtrain (processor time of the steps, s), run.compTimeRoma and their sum.
-/// Nothing outside the tests sets compTimeRoma, so its column is 0.
+/// Nothing outside the tests sets compTimeRoma, so its column is 0. Throws std::runtime_error when the file cannot be written
+/// (simulation/RunOutputFile.h).
 void Print_Computing_Times(const SimulationRun& run, std::string FolderName);
 
 
 /// Writes FolderName/TrainPathDiagram.txt: a row of the step times (s), then for each of the N_S trains of S a row of its head
-/// position (m, original coordinates) in every step, -9999 where it does not run.
+/// position (m, original coordinates) in every step, -9999 where it does not run. Throws std::runtime_error when the file cannot
+/// be written (simulation/RunOutputFile.h).
 void PrintTrainPathDiagram(const SimulationRun& run, Train* S, int N_S, std::string FolderName);
 
 /// Sets the energy totals (MJ) of each of the numTrains trains whose energy samples are complete, with a substation efficiency of 0.8
@@ -56,7 +58,7 @@ void PrintTrainPathDiagram(const SimulationRun& run, Train* S, int N_S, std::str
 void ComputeEnergyConsumptionForAllTrains(Train* Trains, int numTrains);
 
 /// Writes EnergyConsumptionPerTrain.txt and TotalEnergyConsumption.txt to OutputFolder: the energy totals of each train and of all
-/// trains, converted from MJ to kWh.
+/// trains, converted from MJ to kWh. Throws std::runtime_error when a file cannot be written (simulation/RunOutputFile.h).
 void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, std::string OutputFolder);
 
 /// Lets every passenger of SIMUL_PAX whose next journey starts by t + StartingSimulationTime (seconds since midnight) enter the
@@ -107,8 +109,8 @@ void runSimulationStep(SimulationRun& run, int t, TrainMovementOrder& order);
 /// delays, the station delay file Stats_Stations.txt, the passenger delay file JourneyDelays.txt, the positive and negative delays
 /// with their station delay file Pos&Neg_Stats_Stations.txt, the computing times, the blocking times, the path diagram with
 /// settings.exportDetailedTrajectories, the timetable points file and, with that setting too, the file of each train. The folders
-/// TrainTrajectories and PassengerStatus of the output folder must exist; the folder TEMP is made here, and a failure to make it
-/// throws std::runtime_error.
+/// TrainTrajectories and PassengerStatus of the output folder must exist; the folder TEMP is made here. A failure to make it or
+/// to write a file throws std::runtime_error.
 ///
 /// stopRequested is called after the energy stage, after the sort, before the blocking times, before the files of the trains and
 /// before the file of each train, and the stages end there when it returns true. The caller checks for a stop before this

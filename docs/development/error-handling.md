@@ -17,7 +17,7 @@ How EGTRAIN handles failure: which exceptions are caught and which escape, the f
 | Simulation run | `DispatchController::runSimulation` (`app/DispatchController.cpp`), around the stages in `runSimulationStages` | The run ends as failed. See [What happens when one is caught](#what-happens-when-one-is-caught). |
 | Run preparation and scene reading in the window | `RunController::runScene` around `prepareScene`, `SceneSession::openSceneDirectory` around `readScene` | Becomes `run.prepare.exception` ("Cannot prepare the run: <what>") or `scene.read.exception` ("Cannot read the case: <what>"). |
 | Window events | `GuardedApplication::notify` | Logged as `Unexpected error in <class> (event <type>): <what>` in `app.ui`, and the event counts as not handled. Not on macOS. |
-| Process entry | `main` in `app/main.cpp` and in `scene/SceneTool.cpp` | Exit code 70 with an `app.ui` error line, or exit code 1 with `error: <what>`. |
+| Process entry | `main` in `app/main.cpp` and in `scene/SceneTool.cpp` | Exit code 70 with an `app.ui` error line, for an exception of any type, or exit code 1 with `error: <what>`. |
 | Telemetry | `telemetry/TelemetrySender.cpp` (`catch (...)` around every operation and the timer pump), `app/UpdateTelemetryController.cpp`, `app/RunController.cpp` | Fails closed and silently, by design. |
 | Recovery copies | `recovery/RecoveryController.cpp` (thread start and worker loop), `recovery/RecoveryStore.cpp` | Turned into a "Cannot write the recovery copy" outcome. |
 | Live stream | `io/LiveServer.cpp` (per operation and the thread body), `io/LiveCommand.cpp` (parses with exceptions off), `io/ExternalState.cpp` | Logged; the stream stops. |
@@ -29,7 +29,8 @@ How EGTRAIN handles failure: which exceptions are caught and which escape, the f
 
 | Check | Diagnostic | What the user sees |
 | --- | --- | --- |
-| The output folder of a run and its subfolders (`ensureDirectory` in `prepareScene`) | `run.output.folder`: "Cannot create the output folder <path>: <reason>" | Window: **Cannot Run Case** with that text, Run Results status "Failed", the case stays open. Without a window: the diagnostic on standard error and exit code 1. |
+| The output folder of a run and its subfolders (`prepareRunOutput` in `prepareScene`) | `run.output.folder`: "Cannot create the output folder <path>: <reason>" | Window: **Cannot Run Case** with that text, Run Results status "Failed", the case stays open. Without a window: the diagnostic on standard error and exit code 1. |
+| `TrainTrajectories/TrainServicePathDiagram.txt` of an earlier run, which the run would append to (`prepareRunOutput`) | `run.output.file`: "Cannot write <path>: <reason>" when it cannot be removed | As for `run.output.folder`. |
 | `<output>/TEMP` of a run with `--detailed-trajectories` | none; the run throws "Cannot create the folder <path>: <reason>", which `runSimulation` catches | The run fails as below. |
 | The scene folder in `loadScene` (`scene/SceneModel.cpp`) | `scene.dir.unreadable`: "Cannot read the case folder: <reason>"; a path that does not exist or is not a folder keeps `scene.dir.missing` | Window: **Cannot Open Case**. At the start, headless and in `scene_tool validate`, `pack` and `export`: the diagnostic and exit code 1. |
 | The legacy folder of an import and its passenger files (`scene/SceneImporter.cpp`) | `scene.import.missing` with the reason; passenger files that cannot be checked count as absent | **Cannot Import Legacy Case**, or `scene_tool import` exits with 1. |
@@ -47,7 +48,7 @@ How EGTRAIN handles failure: which exceptions are caught and which escape, the f
 
 | Where it is thrown | Outcome |
 | --- | --- |
-| A run, on the simulation `QThread` or with `-g 0` | `runSimulation` returns normally, so `SimulationWorker::simulationFinished` is still emitted. `lastRunError()` holds the text, `app.run` logs "The run stopped because of an error: <what>", and the live stream gets `run_cancelled` once the run has sent its hello frame, because contract version 1 has no event for a failed run. The window shows **Simulation Failed** ("The run stopped because of an error:" and the reason), the status bar says "Simulation failed", Run Results says "Failed" and the case stays open and editable. Without a window the exit code is 1. |
+| A run, on the simulation `QThread` or with `-g 0` | `runSimulation` returns normally, so `SimulationWorker::simulationFinished` is still emitted. `lastRunError()` holds the text, `app.run` logs "The run stopped because of an error: <what>", and the live stream gets `run_cancelled` once the run has sent its hello frame, because contract version 1 has no event for a failed run. The window shows **Simulation Failed** ("The run stopped because of an error:" and the reason), the status bar says "Simulation failed", Run Results says "Failed" and the case stays open and editable. Without a window `main` prints `ERROR: <what>` on standard error and exits with 1. |
 | A slot or event handler on the GUI thread | Linux and Windows: `GuardedApplication` logs it, the event counts as not handled, and an **Unexpected Error** box says that the case is still open and should be saved. Further exceptions while that box waits or is open are only logged. What the slot had done before the throw is not undone. macOS: `std::terminate` at the throw, because an exception cannot pass the frames of QtWidgets. |
 | Startup, before `application.exec()` | `main` logs "EGTRAIN stopped because of an unexpected error: <what>" in `app.ui` and exits with 70. |
 | `scene_tool` | `error: <what>` on standard error and exit code 1. |
@@ -99,9 +100,10 @@ The visual polish smoke also had a use after free: it added a temporary `SignalI
 | Legacy import fails | Status bar "Legacy import failed" and a box with the summary | Yes |
 | Run refused by validation or preparation, also when the output folder cannot be created or the preparation throws | "Cannot Run Case" box with the first diagnostic; Run Results status "Failed" | Yes |
 | Run stopped by an exception | "Simulation Failed" box; status bar "Simulation failed"; Run Results status "Failed" | Yes |
+| Run without a window stopped by a live client | `ERROR: The run was stopped before it completed.` on standard error, exit code 3 (`main.cpp`); no `TrainServicePathDiagram.txt` is written | Standard error |
 | Run with zero trains | Nothing visible: one error line in the Log dock (`DispatchController.cpp`) | Dock |
 | Run ends without results and was not stopped | Run Results says "Failed" and the status bar says "Simulation ended without results" | No |
-| Run output files cannot be written | Nothing: `ofstream::open` is not checked (for example `simulation/Simulation.cpp`), and the run reports success | One line for one file (`RollingStock.cpp`) |
+| Run output files cannot be written | The run fails as a run stopped by an exception, with "Cannot write <path>: <reason>": every writer opens and closes its file with `simulation/RunOutputFile.h`. `TrainServicePathDiagram.txt` is written after the run: without a window its failure gives exit code 1, and the window only logs it | Yes |
 | Result export fails | "Export failed" warning with the path, without the reason from the OS | No |
 | Live stream cannot start | "Cannot Start EGTRAIN" box, exit 2 (`main.cpp`). With `--live-commands` also when the endpoint file on macOS or Linux would be readable by other users, as on a file system without POSIX modes; without commands such a file is written with a warning in `io.zmq` (`io/LiveServer.cpp`). | Standard error |
 | Manual update check fails | Warning box with the network error, or "The update check timed out." when no data arrived for 10 s (`update/UpdateChecker.cpp`) | No |

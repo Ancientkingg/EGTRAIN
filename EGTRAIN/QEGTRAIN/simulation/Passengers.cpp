@@ -1,4 +1,5 @@
 #include "simulation/Passengers.h"
+#include "simulation/RunOutputFile.h"
 #include <algorithm>
 #include <limits>
 
@@ -58,8 +59,7 @@ void printCurrentPassengerStatus(int t, int StartSimulationTime, const list<Pass
 	string FileName;
 
 	FileName = FileName + MainFolder + "/PassengerStatus.txt";
-	ofstream OutputFile;
-	OutputFile.open((char*)FileName.c_str(), ios::binary);
+	ofstream OutputFile = openRunOutputFile(FileName, ios::binary);
 
 	OutputFile << "Time PaxID IsInNetwork JourneyID TripID CurrentStatus CurrentWaitingStationID CurrentWaitingPlatformID CurrentWaitingTrain CurrentBoardedTrain CurrentArrivalStation\n";
 
@@ -70,7 +70,7 @@ void printCurrentPassengerStatus(int t, int StartSimulationTime, const list<Pass
 			}
 		}
 	}
-	OutputFile.close();
+	closeRunOutputFile(OutputFile, FileName);
 }
 
 // Function to print the delay of all completed journeys for all passengers.
@@ -78,8 +78,7 @@ void printPassengerTotalJourneyDelay(const list<Passenger>& ALLPAX, string MainF
 	string FileName;
 
 	FileName = FileName + MainFolder + "/JourneyDelays.txt";
-	ofstream OutputFile;
-	OutputFile.open((char*)FileName.c_str(), ios::binary);
+	ofstream OutputFile = openRunOutputFile(FileName, ios::binary);
 
 	OutputFile << "PaxID JourneyID TotalArrivalDelay[s]\n";
 
@@ -95,7 +94,7 @@ void printPassengerTotalJourneyDelay(const list<Passenger>& ALLPAX, string MainF
 			}
 		}
 	}
-	OutputFile.close();
+	closeRunOutputFile(OutputFile, FileName);
 }
 
 int platformNumber(const string& platformId) {

@@ -181,8 +181,12 @@ private:
 	std::unordered_map<std::string, std::unordered_map<std::string, const StationPlatform*>> byId_;
 };
 
+/// Writes MainFolder/PassengerStatus.txt: the passengers in the network at step t, with the time t + StartSimulationTime (s).
+/// Throws std::runtime_error when the file cannot be written (simulation/RunOutputFile.h).
 void printCurrentPassengerStatus(int t, int StartSimulationTime, const std::list<Passenger>& ALLPAX, std::string MainFolder);
 
+/// Writes MainFolder/JourneyDelays.txt: the total arrival delay (s) of every journey of every passenger. Throws
+/// std::runtime_error when the file cannot be written (simulation/RunOutputFile.h).
 void printPassengerTotalJourneyDelay(const std::list<Passenger>& ALLPAX, std::string MainFolder);
 
 /// The number of a platform, which the walking time of a transfer compares: the first "Platform_" in platformId is cut out and what is

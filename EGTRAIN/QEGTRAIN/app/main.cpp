@@ -11,6 +11,7 @@
 #include "scene/SceneBundle.h"
 #include "scene/SceneCompatibility.h"
 #include "scene/SceneValidator.h"
+#include "scene/Utf8Path.h"
 #include "simulation/SimulationRun.h"
 #if EGTRAIN_BUILD_TESTS
 #include "tests/e2e/E2ERunner.h"
@@ -327,7 +328,7 @@ static bool startLiveStream(const std::string& outputFolder, bool showBox) {
 	if (initial_variables.livePort < 0)
 		return true;
 	std::string error;
-	if (!simulation.startLive(initial_variables.livePort, initial_variables.liveEvery, initial_variables.liveCommands, outputFolder, &error)) {
+	if (!simulation.startLive(initial_variables.livePort, initial_variables.liveEvery, initial_variables.liveCommands, pathFromUtf8(outputFolder), &error)) {
 		const QString message = QStringLiteral("Cannot start the live stream: %1").arg(QString::fromStdString(error));
 		std::cerr << "ERROR: " << message.toStdString() << '\n';
 		if (showBox && !updatesSuppressedByEnvironment())
@@ -411,6 +412,9 @@ static SceneRequest readSceneRequest(bool sceneOption, bool showBox) {
 	request.positional = true;
 	return request;
 }
+
+// The exit code of a run without a window that a stop ended before it completed.
+constexpr int kExitRunStopped = 3;
 
 static int runMain(int argc, char* argv[]) {
 	beginStartupTiming();
@@ -622,24 +626,34 @@ static int runMain(int argc, char* argv[]) {
 	// No window reads the snapshots of this run.
 	simulation.setSnapshotsEnabled(false);
 	simulation.runSimulation();
-	if (simulation.run().numTrains <= 0 || !simulation.lastRunError().empty())
+	if (simulation.run().numTrains <= 0)
 		return 1;
+	// Only a run that completed writes its service path diagram. A failed or stopped run gives its reason on standard
+	// error, where scripts find it, and ends with exit code 1 or kExitRunStopped.
+	std::string failure = simulation.lastRunError();
+	const bool completed = failure.empty() && simulation.lastRunCompleted();
+	if (completed)
+		failure = simulation.printLastTrainServicePathDiagram();
+	if (!completed || !failure.empty()) {
+		std::cerr << "ERROR: " << (failure.empty() ? std::string("The run was stopped before it completed.") : failure) << '\n';
+		return failure.empty() ? kExitRunStopped : 1;
+	}
 	// The line that scripts read for a completed run, without a newline. It does not go through the logging core,
 	// so no logging rule hides it.
-	if (simulation.lastRunCompleted())
-		std::cout << "\n End of Simulation";
-	simulation.printLastTrainServicePathDiagram();
+	std::cout << "\n End of Simulation";
 	return 0;
 }
 
-// An exception that nothing else catches, for example at startup before the event loop runs, is logged and ends the
-// program with exit code 70.
+// An exception that nothing else catches, of any type, for example at startup before the event loop runs, is logged and
+// ends the program with exit code 70.
 int main(int argc, char* argv[]) {
 	try {
 		return runMain(argc, argv);
 	} catch (const std::exception& error) {
 		EG_LOG(AppUi, Error) << "EGTRAIN stopped because of an unexpected error: " << error.what() << '\n';
-		eglog::flush();
-		return 70;
+	} catch (...) {
+		EG_LOG(AppUi, Error) << "EGTRAIN stopped because of an unexpected error: unknown error\n";
 	}
+	eglog::flush();
+	return 70;
 }
