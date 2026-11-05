@@ -1,4 +1,3 @@
-#include "diagrams/PositionScale.h"
 #include "diagrams/RouteCharts.h"
 #include "diagrams/SeriesMeta.h"
 
@@ -127,14 +126,15 @@ private slots:
 	void countsCallsAtNearestStation_data();
 	void countsCallsAtNearestStation();
 	void listsBlockingComponents();
-	void listsOneEndOfARun();
-	void compressedChartTimesAreSimulated();
+	void leavesOutAPartWithOneEnd();
+	void compressedHoverHasTheSameLines();
 	void showsOneLegendEntryPerTrainAndType();
 	void boxHasFillAndClosedOutline();
 	void blockOfNoWidthHasNoFill();
 	void chartOwnsEveryLineOfABox();
 	void describesABlockInItsHover();
-	void keepsWholeTimesOfMovedBlock();
+	void namesTheKindOfABlockInItsHover();
+	void givesOnlyTheShownTimesOfAMovedBlock();
 	void drawsCriticalBlockOnlyInCompressedChart();
 	void trajectoryChartPerKind_data();
 	void trajectoryChartPerKind();
@@ -244,38 +244,46 @@ void TestRouteCharts::countsCallsAtNearestStation() {
 void TestRouteCharts::listsBlockingComponents() {
 	BlockingTimeDiagramSegment segment;
 	// A part that is not available has no line.
-	QCOMPARE(blockingComponentLines(segment, false), QStringList());
+	QCOMPARE(blockingComponentLines(segment), QStringList());
 	segment.startApproachTime = 10;
 	segment.startRunTime = 12;
 	segment.endRunTime = 30;
-	segment.endClearTime = 33;
+	segment.endClearTime = 33.5;
 	segment.setupTime = 2;
 	segment.sightReactionTime = 9;
 	segment.releaseTime = 1;
 	segment.runTimeMargin = 0;
-	QCOMPARE(blockingComponentLines(segment, false),
-		QStringList({"Approach from 10 s", "Run 12 to 30 s", "Clearance to 33 s", "Setup 2 s", "Sight and reaction 9 s",
-			"Release 1 s", "Run margin 0 s"}));
+	// The approach, run and clearance last from one time of the run to the next.
+	QCOMPARE(blockingComponentLines(segment),
+		QStringList({"Approach 2 s", "Run 18 s", "Clearance 3.5 s", "Setup 2 s", "Sight and reaction 9 s", "Release 1 s",
+			"Run margin 0 s"}));
 }
 
-void TestRouteCharts::listsOneEndOfARun() {
+void TestRouteCharts::leavesOutAPartWithOneEnd() {
 	BlockingTimeDiagramSegment segment;
 	segment.startRunTime = 12;
-	QCOMPARE(blockingComponentLines(segment, false), QStringList({"Run from 12 s"}));
-	segment.startRunTime = -1;
-	segment.endRunTime = 30;
-	QCOMPARE(blockingComponentLines(segment, false), QStringList({"Run to 30 s"}));
-}
-
-void TestRouteCharts::compressedChartTimesAreSimulated() {
-	BlockingTimeDiagramSegment segment;
-	segment.startApproachTime = 10;
-	segment.startRunTime = 12;
-	segment.endRunTime = 30;
+	QCOMPARE(blockingComponentLines(segment), QStringList());
 	segment.endClearTime = 33;
+	QCOMPARE(blockingComponentLines(segment), QStringList());
+	segment.startApproachTime = 10;
+	QCOMPARE(blockingComponentLines(segment), QStringList({"Approach 2 s"}));
+}
+
+void TestRouteCharts::compressedHoverHasTheSameLines() {
+	BlockingTimeDiagramSegment segment = blockOf("A", 1, 2);
+	segment.startApproachTime = 100;
+	segment.startRunTime = 112;
+	segment.endRunTime = 130;
+	segment.endClearTime = 133;
 	segment.setupTime = 2;
-	QCOMPARE(blockingComponentLines(segment, true),
-		QStringList({"Simulated approach from 10 s", "Simulated run 12 to 30 s", "Simulated clearance to 33 s", "Setup 2 s"}));
+	QChart normal, compressed;
+	addBlockingTimeSeries(&normal, {segment}, false, 0);
+	addBlockingTimeSeries(&compressed, {segment}, true, 0);
+	// The parts are durations, which a compression leaves as they are, so they need no "Simulated".
+	const QString interval = seriesMeta(compressed.series().last()).inspectionInterval;
+	QCOMPARE(interval, seriesMeta(normal.series().last()).inspectionInterval);
+	QCOMPARE(interval.split('\n'),
+		QStringList({"Blocked 00:01:40 to 00:02:40", "", "Approach 12 s", "Run 18 s", "Clearance 3 s", "Setup 2 s"}));
 }
 
 void TestRouteCharts::showsOneLegendEntryPerTrainAndType() {
@@ -283,14 +291,14 @@ void TestRouteCharts::showsOneLegendEntryPerTrainAndType() {
 	addBlockingTimeSeries(&chart,
 		{blockOf("A", 0, 1), blockOf("A", 1, 2), blockOf("A", 2, 3, BlockingTimeSegmentStyle::Critical), blockOf("B", 0, 1),
 			blockOf("B", 1, 1)},
-		false, {}, PositionScale());
+		false, 0);
 	// A, A with a conflict, and B. The fills have no entry of their own.
 	QCOMPARE(shownLegendEntries(chart), 3);
 }
 
 void TestRouteCharts::boxHasFillAndClosedOutline() {
 	QChart chart;
-	addBlockingTimeSeries(&chart, {blockOf("A", 4, 1)}, false, {}, PositionScale());
+	addBlockingTimeSeries(&chart, {blockOf("A", 4, 1)}, false, 0);
 	QCOMPARE(chart.series().size(), 2);
 	auto* fill = qobject_cast<QAreaSeries*>(chart.series()[0]);
 	if (fill == nullptr) QFAIL("the first series is not the fill");
@@ -309,7 +317,7 @@ void TestRouteCharts::boxHasFillAndClosedOutline() {
 
 void TestRouteCharts::blockOfNoWidthHasNoFill() {
 	QChart chart;
-	addBlockingTimeSeries(&chart, {blockOf("A", 2, 2)}, false, {}, PositionScale());
+	addBlockingTimeSeries(&chart, {blockOf("A", 2, 2)}, false, 0);
 	QCOMPARE(chart.series().size(), 1);
 	QAbstractSeries* outline = chart.series()[0];
 	QVERIFY(qobject_cast<QLineSeries*>(outline) != nullptr);
@@ -320,7 +328,7 @@ void TestRouteCharts::blockOfNoWidthHasNoFill() {
 
 void TestRouteCharts::chartOwnsEveryLineOfABox() {
 	auto* chart = new QChart();
-	addBlockingTimeSeries(chart, {blockOf("A", 0, 1)}, false, {}, PositionScale());
+	addBlockingTimeSeries(chart, {blockOf("A", 0, 1)}, false, 0);
 	auto* fill = qobject_cast<QAreaSeries*>(chart->series()[0]);
 	if (fill == nullptr) QFAIL("the first series is not the fill");
 	const QPointer<QLineSeries> lower = fill->lowerSeries();
@@ -336,45 +344,61 @@ void TestRouteCharts::chartOwnsEveryLineOfABox() {
 void TestRouteCharts::describesABlockInItsHover() {
 	QChart chart;
 	BlockingTimeDiagramSegment segment = blockOf("A", 1, 2, BlockingTimeSegmentStyle::CriticalStation);
+	segment.blockId = "@3-B0@";
+	segment.startTime = 100.4;
+	segment.endTime = 159.5;
 	segment.setupTime = 2;
 	segment.referenceNote = "Part of section 4\nof route0";
-	BlockSectionExtent extent;
-	extent.id = "3-B0";
-	extent.startKm = 0;
-	extent.endKm = 4;
-	extent.geometryValid = true;
-	extent.geoStartKm = 10;
-	extent.geoEndKm = 14;
-	SceneSectionLabels labels;
-	labels.byReference["3-B0"] = "Delft yard";
-	addBlockingTimeSeries(&chart, {segment}, false, labels, PositionScale({extent}));
+	// 07:10:40 at the start of the run.
+	addBlockingTimeSeries(&chart, {segment}, false, 25840);
 	QAbstractSeries* outline = chart.series().last();
 	QCOMPARE(seriesMeta(outline).inspectionTitle, QStringLiteral("A on 3-B0"));
+	// The train on the block, the blocked interval in clock time to the nearest second and the kind; the parts of the
+	// blocking time follow an empty line, for Selected. The label, position and notes of the block are not in the hover.
 	QCOMPARE(seriesMeta(outline).inspectionInterval.split('\n'),
-		QStringList({"Conflict at a station", "Delft yard", "Position 11.000 to 12.000 km", "Blocked 100 to 160 s", "Setup 2 s",
-			"Part of section 4", "of route0"}));
+		QStringList({"Blocked 07:12:20 to 07:13:20", "Conflict at a station", "", "Setup 2 s"}));
 }
 
-void TestRouteCharts::keepsWholeTimesOfMovedBlock() {
+void TestRouteCharts::namesTheKindOfABlockInItsHover() {
+	const auto hoverOf = [](BlockingTimeSegmentStyle style, bool compressed, bool critical) {
+		BlockingTimeDiagramSegment segment = blockOf("A", 1, 2, style);
+		segment.capacityCritical = critical;
+		QChart chart;
+		addBlockingTimeSeries(&chart, {segment}, compressed, 0);
+		return seriesMeta(chart.series().last()).inspectionInterval.split('\n');
+	};
+	// An ordinary block has no line for its kind, so its hover has two lines with the title.
+	QCOMPARE(hoverOf(BlockingTimeSegmentStyle::Default, false, false), QStringList({"Blocked 00:01:40 to 00:02:40"}));
+	QCOMPARE(hoverOf(BlockingTimeSegmentStyle::Default, false, true), QStringList({"Blocked 00:01:40 to 00:02:40"}));
+	QCOMPARE(hoverOf(BlockingTimeSegmentStyle::Station, false, false).value(1), QStringLiteral("Station block"));
+	QCOMPARE(hoverOf(BlockingTimeSegmentStyle::Switch, false, false).value(1), QStringLiteral("Switch block"));
+	QCOMPARE(hoverOf(BlockingTimeSegmentStyle::SwitchStation, false, false).value(1), QStringLiteral("Switch block at a station"));
+	QCOMPARE(hoverOf(BlockingTimeSegmentStyle::Critical, false, false).value(1), QStringLiteral("Conflict"));
+	// A critical block of a compressed chart is named as such, also at a station.
+	QCOMPARE(hoverOf(BlockingTimeSegmentStyle::Station, true, true), QStringList({"Blocked 00:01:40 to 00:02:40", "Critical block"}));
+}
+
+void TestRouteCharts::givesOnlyTheShownTimesOfAMovedBlock() {
 	BlockingTimeDiagramSegment segment = blockOf("A", 1, 2);
 	segment.originalStartTime = 40;
 	segment.originalEndTime = 90;
 	QChart normal, compressed;
-	addBlockingTimeSeries(&normal, {segment}, false, {}, PositionScale());
-	addBlockingTimeSeries(&compressed, {segment}, true, {}, PositionScale());
-	QVERIFY(seriesMeta(normal.series().last()).inspectionInterval.contains("Whole 40 to 90 s"));
-	QVERIFY(seriesMeta(compressed.series().last()).inspectionInterval.contains("Simulated 40 to 90 s"));
+	addBlockingTimeSeries(&normal, {segment}, false, 0);
+	addBlockingTimeSeries(&compressed, {segment}, true, 0);
+	// The times before the compression or the cut of the period are in the export, not in the hover.
+	QCOMPARE(seriesMeta(normal.series().last()).inspectionInterval, QStringLiteral("Blocked 00:01:40 to 00:02:40"));
+	QCOMPARE(seriesMeta(compressed.series().last()).inspectionInterval, QStringLiteral("Blocked 00:01:40 to 00:02:40"));
 }
 
 void TestRouteCharts::drawsCriticalBlockOnlyInCompressedChart() {
 	BlockingTimeDiagramSegment segment = blockOf("A", 1, 2);
 	segment.capacityCritical = true;
 	QChart normal, compressed;
-	addBlockingTimeSeries(&normal, {segment}, false, {}, PositionScale());
-	addBlockingTimeSeries(&compressed, {segment}, true, {}, PositionScale());
+	addBlockingTimeSeries(&normal, {segment}, false, 0);
+	addBlockingTimeSeries(&compressed, {segment}, true, 0);
 	QCOMPARE(seriesMeta(normal.series().last()).keyKind.value_or(QString()), QStringLiteral("Blocking time"));
 	QCOMPARE(seriesMeta(compressed.series().last()).keyKind.value_or(QString()), QStringLiteral("Critical block"));
-	QCOMPARE(seriesMeta(compressed.series().last()).inspectionInterval.split('\n').first(), QStringLiteral("Critical block"));
+	QCOMPARE(seriesMeta(compressed.series().last()).inspectionInterval.split('\n').value(1), QStringLiteral("Critical block"));
 }
 
 void TestRouteCharts::trajectoryChartPerKind_data() {
@@ -564,7 +588,7 @@ void TestRouteCharts::blockingChartHasPlannedAndSimulatedLines() {
 	stop.eventType = "arrival";
 	data.plannedLines = {{edge, stop}, {stop}};
 	data.trajectories = {{"A", {{1, 60}}}, {"B", {{1, 60}, {2, 70}}}};
-	const std::unique_ptr<QChart> chart(buildBlockingTimeChart(data, true, {}, PositionScale()));
+	const std::unique_ptr<QChart> chart(buildBlockingTimeChart(data, true, 0));
 	QCOMPARE(chart->series().size(), 4);
 	auto* planned = qobject_cast<QLineSeries*>(chart->series()[0]);
 	auto* isolated = qobject_cast<QLineSeries*>(chart->series()[2]);
@@ -574,15 +598,15 @@ void TestRouteCharts::blockingChartHasPlannedAndSimulatedLines() {
 	QCOMPARE(planned->pen().style(), Qt::DashLine);
 	QVERIFY(planned->pointsVisible());
 	QCOMPARE(seriesMeta(planned).inspectionPoints,
-		QStringList({"Planned time at the section edge", "Delft, planned arrival"}));
+		QStringList({"Planned", "Delft, planned arrival"}));
 	QCOMPARE(seriesMeta(simulated).layer, QStringLiteral("simulated"));
 	QCOMPARE(simulated->pen().style(), Qt::SolidLine);
-	QCOMPARE(seriesMeta(simulated).inspectionInterval, QStringLiteral("Shifted with the train's blocking times"));
+	QVERIFY(seriesMeta(simulated).inspectionInterval.isEmpty());
 	QVERIFY(isolated->pointsVisible());
 	QVERIFY(!simulated->pointsVisible());
 	// The second line of a train has no entry of its own.
 	QCOMPARE(shownLegendEntries(*chart), 3);
-	const std::unique_ptr<QChart> uncompressed(buildBlockingTimeChart(data, false, {}, PositionScale()));
+	const std::unique_ptr<QChart> uncompressed(buildBlockingTimeChart(data, false, 0));
 	QVERIFY(seriesMeta(uncompressed->series()[3]).inspectionInterval.isEmpty());
 }
 
@@ -596,7 +620,7 @@ void TestRouteCharts::blockingChartSpansItsSections() {
 	extent.geometryValid = true;
 	data.extents = {extent};
 	data.segments = {blockOf("A", 3, 4)};
-	const std::unique_ptr<QChart> chart(buildBlockingTimeChart(data, false, {}, PositionScale()));
+	const std::unique_ptr<QChart> chart(buildBlockingTimeChart(data, false, 0));
 	QValueAxis* distance = distanceAxis(*chart);
 	QCOMPARE(distance->titleText(), QStringLiteral("Distance (km)"));
 	QCOMPARE(distance->min(), 2.5);

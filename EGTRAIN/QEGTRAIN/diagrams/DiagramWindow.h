@@ -61,15 +61,16 @@ struct FigureColumn {
 /// its own for its points, such as "Stop". The chart draws the points of a planned series as open circles and those of
 /// another series as dots, and the Key draws them alike: a planned line with an open circle, a kind of points as a dot
 /// while a series that is not planned has them. Simulated is left out while it is the only kind of line. The section strip
-/// adds Station section, Switch section and Block boundary. The Key follows the trains that are shown. A box takes the keyPen of its outline when the
-/// outline has one, so that it looks alike for every train. A chart of rolling stock input lists its series by name, in
-/// their own colours.
+/// adds Station section and Switch section. The Key follows the trains that are shown. A box takes the keyPen of its
+/// outline when the outline has one, so that it looks alike for every train. A chart of rolling stock input lists its
+/// series by name, in their own colours.
 ///
 /// Series are grouped by trainId when the caller sets it (the same train can own several series, such as planned and
 /// simulated lines); series without one are grouped by their own name.
 /// Optional inspection metadata: inspectionPoints has one plain-text context entry per appended point (including empty
-/// entries). inspectionInterval is plain-text context shared by a line segment; inspectionFilled explicitly opts a closed
-/// QLineSeries into interior hits, and inspectionTitle is the first line of such a box, such as "IC1723-2 on 12-B0".
+/// entries). inspectionInterval is plain-text context shared by a line segment; its lines after an empty line are details
+/// that only Selected shows, such as the parts of a blocking time. inspectionFilled explicitly opts a closed QLineSeries
+/// into interior hits, and inspectionTitle is the first line of such a box, such as "IC1723-2 on 12-B0".
 /// Inside a box a click selects a line only within 4 px of it, and otherwise the box.
 /// A line hit always reports its nearest actual plotted sample, not an
 /// interpolated value at the cursor.
@@ -101,9 +102,9 @@ public:
 	/// Sets the window title to `heading`, shows `context` in one line in the header, elided at the right, and `warning`
 	/// above the chart with the look of a warning of the table windows, which the exported figure keeps; an empty text
 	/// hides its label. The tooltip of the context has the whole context, with `contextToolTip` on the lines below it when
-	/// given.
-	void setPresentation(const QString& heading, const QString& context,
-		const QString& warning = QString(), const QString& contextToolTip = QString());
+	/// given. `warningToolTip` is the tooltip of the warning, such as the reason for it; empty for none.
+	void setPresentation(const QString& heading, const QString& context, const QString& warning = QString(),
+		const QString& contextToolTip = QString(), const QString& warningToolTip = QString());
 	/// The line that the plot shows while the chart has no series, such as "No arrival delays at stations of route8";
 	/// empty for none. Set before or after setChart.
 	void setEmptyText(const QString& text);
@@ -154,15 +155,11 @@ public:
 		const QString& suggestedFileName, const QStringList& trainIds = {});
 	/// Draws the block sections of the reference route over the chart, with positions in km. Set after setChart. A
 	/// chart-owned physical layer, not train series, with its entries in the Key. Chart replacement clears it. The strip
-	/// above the plot names each section by its short id (shortBlockId), centred in its cell, in one row
-	/// when every id fits at the full view of the chart and otherwise in two, where an id that collides in the first row
-	/// tries the second. When the ids in route order leave one out, those of critical and conflict sections, the first and
-	/// last section, then switch and station sections are placed first. A switch section is hatched, and `marks`, one per
-	/// section or empty, add a dark top bar for a station, an amber bar for a critical block and a red one for a conflict.
-	/// The hover of a cell or a boundary gives the id, the label from `labels`, the kind, "Section N of M" with M
-	/// `routeSectionCount` (the number of sections when 0), the geo extent and the route distance.
-	void setBlockSections(std::vector<BlockSectionExtent> sections, const QString& referenceRouteId,
-		const SceneSectionLabels* labels = nullptr, std::vector<BlockSectionMarks> marks = {}, int routeSectionCount = 0);
+	/// above the plot has a cell for each section, without text. A switch section is hatched, and `marks`, one per section
+	/// or empty, add a dark top bar for a station, an amber bar for a critical block and a red one for a conflict. The
+	/// hover of a cell or a boundary gives the short id of the section (shortBlockId) and, on the next line, its geo
+	/// extent, such as "Position 21.010 to 21.450 km".
+	void setBlockSections(std::vector<BlockSectionExtent> sections, std::vector<BlockSectionMarks> marks = {});
 	/// Set after setChart. `axis` is a category axis of the chart that runs along the distance axis and has its own
 	/// range. The window gives it the stations that are in its range and whose labels fit above the plot side by
 	/// side, each with the longest spelling that fits, so the chart never has to shorten a label. When not all of them
@@ -221,6 +218,7 @@ private:
 		QXYSeries* series = nullptr; // the series of the sample, or null
 		bool inside = false;		 // the point lies inside the filled outline `series`, not on a line
 		QStringList lines;			 // one fact per line; empty where the chart shows nothing
+		QStringList details;		 // what Selected shows below the lines, such as the parts of a blocking time
 	};
 
 	void applyChartStyle(QChart* chart);
@@ -298,7 +296,7 @@ private:
 	bool m_positionLayoutPending = false;
 	QString m_pinnedTrainId;		   // the selected train, or the train of the selected blocking time
 	QPointer<QXYSeries> m_selectedBox; // the outline of the selected blocking time; null while a train is selected
-	QStringList m_selectedLines;	   // what Selected shows: the tooltip lines of the click
+	QStringList m_selectedLines;	   // what Selected shows: the tooltip lines of the click and their details
 	std::function<std::string(const QStringList&)> m_csvProvider;
 	QString m_csvSuggestedName;
 	QString m_figureFileName;

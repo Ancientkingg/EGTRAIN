@@ -441,32 +441,46 @@ std::vector<std::vector<std::string>> blockSectionCsvRows(const std::vector<Bloc
 	return rows;
 }
 
-std::string blockSectionGeometryNote(const std::vector<BlockSectionExtent>& extents) {
-	constexpr std::size_t kListedIds = 3;
-	std::vector<std::string> ids;
-	for (const BlockSectionExtent& extent : extents)
-		if (!extent.geometryValid)
-			ids.push_back(shortBlockId(extent.id));
-	if (ids.empty())
-		return std::string();
-	std::string note = "Sections not drawn (no valid length): ";
-	for (std::size_t i = 0; i < ids.size() && i < kListedIds; ++i)
-		note += (i > 0 ? ", " : "") + ids[i];
-	if (ids.size() > kListedIds)
-		note += " and " + std::to_string(ids.size() - kListedIds) + " more";
-	return note;
+namespace {
+
+// "2 blocks", "1 stop" or "2 blocks and 1 stop"; empty for none.
+std::string countOf(int blocks, int stops) {
+	const auto count = [](int number, const char* one, const char* many) {
+		return number <= 0 ? std::string() : std::to_string(number) + " " + (number == 1 ? one : many);
+	};
+	const std::string blockText = count(blocks, "block", "blocks"), stopText = count(stops, "stop", "stops");
+	return blockText.empty() || stopText.empty() ? blockText + stopText : blockText + " and " + stopText;
 }
 
-std::string blockingTimeNote(int omitted, bool nothingPlotted, bool unplaced, const std::string& routeId) {
-	std::vector<std::string> parts;
-	if (omitted == 1)
-		parts.push_back("1 block or stop could not be placed on " + routeId + " and is not shown.");
-	else if (omitted > 1)
-		parts.push_back(std::to_string(omitted) + " blocks or stops could not be placed on " + routeId + " and are not shown.");
-	if (nothingPlotted)
-		parts.push_back(unplaced ? "No blocking times could be placed on " + routeId + "."
-								 : std::string("No complete blocking times in this section and period."));
-	std::string note;
-	for (const std::string& part : parts) note += (note.empty() ? "" : " ") + part;
+} // namespace
+
+BlockingTimeNote blockingTimeNote(int omittedBlocks, int omittedStops, bool nothingPlotted,
+	const std::vector<BlockSectionExtent>& sections, const std::string& routeId) {
+	std::vector<std::pair<std::string, std::string>> parts;
+	if (const std::string omitted = countOf(omittedBlocks, omittedStops); !omitted.empty())
+		parts.emplace_back(omitted + " not shown", omitted + " could not be placed on " + routeId + ".");
+	if (nothingPlotted && omittedBlocks <= 0)
+		parts.emplace_back("No blocking times", "No complete blocking times in this section and period.");
+	if (sections.empty()) {
+		parts.emplace_back("No block sections", routeId + " has no block sections.");
+	} else {
+		constexpr std::size_t kListedIds = 3;
+		std::vector<std::string> ids;
+		for (const BlockSectionExtent& extent : sections)
+			if (!extent.geometryValid) ids.push_back(shortBlockId(extent.id));
+		if (!ids.empty()) {
+			std::string listed;
+			for (std::size_t i = 0; i < ids.size() && i < kListedIds; ++i) listed += (i > 0 ? ", " : "") + ids[i];
+			if (ids.size() > kListedIds) listed += " and " + std::to_string(ids.size() - kListedIds) + " more";
+			const bool one = ids.size() == 1;
+			parts.emplace_back(std::to_string(ids.size()) + (one ? " section not drawn" : " sections not drawn"),
+				std::to_string(ids.size()) + (one ? " section has" : " sections have") + " no valid length: " + listed + ".");
+		}
+	}
+	BlockingTimeNote note;
+	for (const auto& [text, reason] : parts) {
+		note.text += (note.text.empty() ? "" : " \u00b7 ") + text;
+		note.reason += (note.reason.empty() ? "" : "\n") + reason;
+	}
 	return note;
 }

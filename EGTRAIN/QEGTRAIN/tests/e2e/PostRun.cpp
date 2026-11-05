@@ -605,11 +605,10 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 					&& position->min() == range.first && position->max() == range.second && stations > 0;
 				ok &= positionOk;
 				std::fprintf(positionOk ? stdout : stderr,
-					"E2E_BLOCKING_AXIS %s %g to %g, sections %g to %g, %d labels, strip %d rows, %d ids, %d station sections\n",
+					"E2E_BLOCKING_AXIS %s %g to %g, sections %g to %g, %d labels, strip %d cells, %d station sections\n",
 					position ? position->titleText().toStdString().c_str() : "no position axis", position ? position->min() : 0.0,
 					position ? position->max() : 0.0, range.first, range.second, position ? position->count() : 0,
-					strip ? strip->property("stripRows").toInt() : 0, strip ? static_cast<int>(strip->property("stripLabels").toStringList().size()) : 0,
-					stations);
+					strip ? strip->property("sectionCount").toInt() : 0, stations);
 				ok &= list->visibleTrainIds().isEmpty();
 				for (const QString& id : list->trainIds()) ok &= !id.startsWith("Key:");
 				blocking->close();

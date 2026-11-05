@@ -467,7 +467,7 @@ void TestBlockingTimeDiagram::writesSectionRows() {
 	QVERIFY2(blockSectionCsvRows({}).empty(), "no sections give no rows");
 }
 
-// Note of the sections without geometry.
+// The note above the chart names the sections that the strip does not draw, and its tooltip says why.
 void TestBlockingTimeDiagram::notesSectionsWithoutGeometry() {
 	const auto sections = [](int count, int invalid) {
 		std::vector<BlockSectionInput> inputs;
@@ -475,34 +475,48 @@ void TestBlockingTimeDiagram::notesSectionsWithoutGeometry() {
 			inputs.push_back({"@s" + std::to_string(i) + "@", static_cast<double>(i), i < invalid ? static_cast<double>(i) : i + 1.0});
 		return buildBlockSectionExtents(inputs);
 	};
+	const auto noteOf = [](const std::vector<BlockSectionExtent>& extents) { return blockingTimeNote(0, 0, false, extents, "route0"); };
 	// usable extents give no note
-	QVERIFY(blockSectionGeometryNote(sections(4, 0)).empty());
-	QVERIFY(blockSectionGeometryNote({}).empty());
-	// one section without geometry is named by its short id
-	QCOMPARE(blockSectionGeometryNote(sections(4, 1)), "Sections not drawn (no valid length): s0");
+	QVERIFY(noteOf(sections(4, 0)).text.empty());
+	QVERIFY(noteOf(sections(4, 0)).reason.empty());
+	// a route without sections has no strip, which the note says
+	QCOMPARE(noteOf({}).text, "No block sections");
+	QCOMPARE(noteOf({}).reason, "route0 has no block sections.");
+	// one section without geometry is counted, and the tooltip names it by its short id
+	QCOMPARE(noteOf(sections(4, 1)).text, "1 section not drawn");
+	QCOMPARE(noteOf(sections(4, 1)).reason, "1 section has no valid length: s0.");
 	// three sections without geometry are all named
-	QCOMPARE(blockSectionGeometryNote(sections(4, 3)), "Sections not drawn (no valid length): s0, s1, s2");
+	QCOMPARE(noteOf(sections(4, 3)).text, "3 sections not drawn");
+	QCOMPARE(noteOf(sections(4, 3)).reason, "3 sections have no valid length: s0, s1, s2.");
 	// more than three sections without geometry end with the number left out
-	QCOMPARE(blockSectionGeometryNote(sections(5, 4)), "Sections not drawn (no valid length): s0, s1, s2 and 1 more");
+	QCOMPARE(noteOf(sections(5, 4)).reason, "4 sections have no valid length: s0, s1, s2 and 1 more.");
 	const double nan = std::numeric_limits<double>::quiet_NaN();
 	const auto mixed = buildBlockSectionExtents({{"@a@", 0.0, 1.0}, {"@b@", 1.0, 1.0}, {"@c@", 1.0, 2.0}, {"@d@", 2.0, nan}});
-	// the note lists the sections without geometry in route order and no others
-	QCOMPARE(blockSectionGeometryNote(mixed), "Sections not drawn (no valid length): b, d");
+	// the tooltip lists the sections without geometry in route order and no others
+	QCOMPARE(noteOf(mixed).reason, "2 sections have no valid length: b, d.");
 }
 
-// The note above the chart has only the parts that apply, and no count of 0.
+// The note above the chart is short, with the reason in its tooltip, and has only the parts that apply.
 void TestBlockingTimeDiagram::notesBlocksNotShown() {
-	QVERIFY2(blockingTimeNote(0, false, false, "route0").empty(), "nothing missing gives no note");
-	QVERIFY2(blockingTimeNote(0, false, true, "route0").empty(), "blocks that were not placed say nothing while the chart has some");
-	// one block or stop that is not shown is said in the singular
-	QCOMPARE(blockingTimeNote(1, false, true, "route0"), "1 block or stop could not be placed on route0 and is not shown.");
-	// the count of the blocks or stops that are not shown
-	QCOMPARE(blockingTimeNote(3, false, true, "route0"), "3 blocks or stops could not be placed on route0 and are not shown.");
+	const auto drawn = buildBlockSectionExtents({{"@a@", 0.0, 1.0}});
+	QVERIFY2(blockingTimeNote(0, 0, false, drawn, "route0").text.empty(), "nothing missing gives no note");
+	// one block that is not shown is said in the singular
+	QCOMPARE(blockingTimeNote(1, 0, false, drawn, "route0").text, "1 block not shown");
+	QCOMPARE(blockingTimeNote(1, 0, false, drawn, "route0").reason, "1 block could not be placed on route0.");
+	// blocks and stops are counted apart
+	QCOMPARE(blockingTimeNote(2, 0, false, drawn, "route0").text, "2 blocks not shown");
+	QCOMPARE(blockingTimeNote(0, 3, false, drawn, "route0").text, "3 stops not shown");
+	QCOMPARE(blockingTimeNote(2, 1, false, drawn, "route0").text, "2 blocks and 1 stop not shown");
+	QCOMPARE(blockingTimeNote(2, 1, false, drawn, "route0").reason, "2 blocks and 1 stop could not be placed on route0.");
 	// an empty chart without blocks that were not placed has nothing in its section and period
-	QCOMPARE(blockingTimeNote(0, true, false, "route0"), "No complete blocking times in this section and period.");
-	// an empty chart whose blocks were not placed says so after the count
-	QCOMPARE(blockingTimeNote(2, true, true, "route0"),
-		"2 blocks or stops could not be placed on route0 and are not shown. No blocking times could be placed on route0.");
+	QCOMPARE(blockingTimeNote(0, 0, true, drawn, "route0").text, "No blocking times");
+	QCOMPARE(blockingTimeNote(0, 0, true, drawn, "route0").reason, "No complete blocking times in this section and period.");
+	// an empty chart whose blocks were not placed says only that they are not shown
+	QCOMPARE(blockingTimeNote(2, 0, true, drawn, "route0").text, "2 blocks not shown");
+	// the parts are joined, one reason per line
+	const BlockingTimeNote both = blockingTimeNote(2, 0, false, {}, "route0");
+	QCOMPARE(both.text, "2 blocks not shown \u00b7 No block sections");
+	QCOMPARE(both.reason, "2 blocks could not be placed on route0.\nroute0 has no block sections.");
 }
 
 void TestBlockingTimeDiagram::scopesRepeatedSection() {

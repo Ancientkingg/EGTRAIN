@@ -2504,38 +2504,39 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					.arg(latestEnvelope));
 			return;
 		}
-		// A moved block keeps its simulated approach, run and clearance times, so its hover says so, one time per line. The
-		// hover also gives the position of the block's own ends, and names the train on the block without internal ids.
-		int simulatedTimeLines = 0;
-		int positionLines = 0;
+		// The hover of a block names the train on the block without internal ids, then has at most two lines: when it was
+		// blocked, in clock time, and the kind of a block that is not an ordinary one. The parts of the blocking time follow
+		// an empty line, for Selected only, as durations, which the compression leaves as they are.
+		const QRegularExpression blockedLine(QStringLiteral("^Blocked \\d\\d:\\d\\d:\\d\\d to \\d\\d:\\d\\d:\\d\\d$"));
+		const QRegularExpression clearanceLine(QStringLiteral("^Clearance \\d+(\\.\\d+)? s$"));
+		int clearanceLines = 0;
 		for (QAbstractSeries* series : compressedView->chart()->series()) {
-			const QString title = seriesMeta(series).inspectionTitle;
-			if (title.contains(QLatin1Char('@')) || seriesMeta(series).inspectionInterval.contains(QLatin1Char('@'))
-				|| (seriesMeta(series).layer == QStringLiteral("blocking time") && !title.contains(QStringLiteral(" on ")))) {
+			const SeriesMeta meta = seriesMeta(series);
+			const QString title = meta.inspectionTitle;
+			if (title.contains(QLatin1Char('@')) || meta.inspectionInterval.contains(QLatin1Char('@'))
+				|| (meta.layer == QStringLiteral("blocking time") && !title.contains(QStringLiteral(" on ")))) {
 				fail(QStringLiteral("a compressed block hover is not named as the strip names it: ") + title + QStringLiteral(" / ")
-					+ seriesMeta(series).inspectionInterval);
+					+ meta.inspectionInterval);
 				return;
 			}
-			for (const QString& line : seriesMeta(series).inspectionInterval.split('\n')) {
-				if (line.startsWith(QStringLiteral("Position ")) && line.endsWith(QStringLiteral(" km"))) ++positionLines;
-				if (!line.contains(QStringLiteral("learance to "))) continue;
-				if (!line.startsWith(QStringLiteral("Simulated clearance to "))) {
-					fail(QStringLiteral("a compressed block gives its times without saying they are simulated: ") + line);
-					return;
-				}
-				++simulatedTimeLines;
+			if (meta.layer != QStringLiteral("blocking time")) continue;
+			const QStringList lines = meta.inspectionInterval.split('\n');
+			const auto details = std::find(lines.begin(), lines.end(), QString());
+			const QStringList hover(lines.begin(), details);
+			if (hover.isEmpty() || hover.size() > 2 || !blockedLine.match(hover.first()).hasMatch()) {
+				fail(QStringLiteral("a compressed block hover has more than three lines or no clock times: ") + title
+					+ QStringLiteral(" / ") + meta.inspectionInterval);
+				return;
 			}
+			for (auto line = details; line != lines.end(); ++line)
+				if (clearanceLine.match(*line).hasMatch()) ++clearanceLines;
 		}
-		if (simulatedTimeLines == 0) {
-			fail(QStringLiteral("no compressed block hover gives the simulated times"));
-			return;
-		}
-		if (positionLines == 0) {
-			fail(QStringLiteral("no compressed block hover gives the position of the block"));
+		if (clearanceLines == 0) {
+			fail(QStringLiteral("no compressed block gives its clearance for Selected"));
 			return;
 		}
 		// The Key of the panel explains the blocks: critical blocks on the compressed chart only, and no conflict there,
-		// as it moves its trains apart until their blocks only touch.
+		// as it moves its trains apart until their blocks only touch. The boundaries of the sections need no entry.
 		const auto keyKindsOf = [](const QWidget* window) {
 			const QObject* key = window ? window->findChild<QObject*>(QStringLiteral("diagramKey")) : nullptr;
 			return key ? key->property("kinds").toStringList() : QStringList();
@@ -2543,11 +2544,22 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		const QStringList blockingKinds = keyKindsOf(blockingAgain);
 		const QStringList compressedKinds = keyKindsOf(compressedView ? compressedView->window() : nullptr);
 		const auto has = [](const QStringList& kinds, const char* kind) { return kinds.contains(QLatin1String(kind)); };
-		if (!has(blockingKinds, "Blocking time") || !has(blockingKinds, "Block boundary") || has(blockingKinds, "Critical block")
+		if (!has(blockingKinds, "Blocking time") || has(blockingKinds, "Block boundary") || has(blockingKinds, "Critical block")
 			|| !has(compressedKinds, "Blocking time") || !has(compressedKinds, "Critical block") || has(compressedKinds, "Conflict")) {
 			fail(QStringLiteral("the Keys do not explain the blocks of each chart: ") + blockingKinds.join(QStringLiteral(", "))
 				+ QStringLiteral(" / ") + compressedKinds.join(QStringLiteral(", ")));
 			return;
+		}
+		// The tooltips of the header and its buttons are one line each.
+		for (const QWidget* window : {static_cast<const QWidget*>(blockingAgain), static_cast<const QWidget*>(compressed)}) {
+			QStringList tips;
+			for (const QToolButton* button : window->findChildren<QToolButton*>()) tips << button->toolTip();
+			if (const ResultFrame* frame = window->findChild<ResultFrame*>()) tips << frame->contextLabel()->toolTip();
+			for (const QString& tip : tips)
+				if (tip.contains(QLatin1Char('\n')) || tip.contains(QStringLiteral("<br"))) {
+					fail(QStringLiteral("a tooltip of the ") + window->windowTitle() + QStringLiteral(" header has more than one line: ") + tip);
+					return;
+				}
 		}
 		// The outline of a blocking time takes the colour of its train from the palette, one colour for each train of the run,
 		// and the first train one period later has the colour of the first train. A critical block keeps its amber-brown
