@@ -98,6 +98,13 @@ int errorDiagnosticCount(const std::vector<SceneDiagnostic>& diagnostics) {
 	return count;
 }
 
+// Whether the folder `path` holds anything that an import, which replaces the folder with everything in it, would
+// delete. Hidden files count. A .DS_Store, which Finder leaves in a folder that it has shown, holds no work.
+bool holdsFiles(const QString& path) {
+	const QStringList entries = QDir(path).entryList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System);
+	return std::any_of(entries.begin(), entries.end(), [](const QString& entry) { return entry != QLatin1String(".DS_Store"); });
+}
+
 } // namespace
 
 QString firstDiagnosticMessage(const std::vector<SceneDiagnostic>& diagnostics) {
@@ -107,13 +114,13 @@ QString firstDiagnosticMessage(const std::vector<SceneDiagnostic>& diagnostics) 
 
 SceneSession::SceneSession(QMainWindow* window, SceneDocument* document, Host& host)
 	: QObject(window), m_window(window), m_document(document), m_host(host),
-	  m_recentScenesMenu(new QMenu("Recent Cases", window)) {
+	  m_recentScenesMenu(new QMenu("Recent Cases", window)), m_ownPrompts([this] { return m_host.dialogsSuppressed(); }) {
 	// A case can be deleted while the menu is closed, so the entries are checked again as the menu opens.
 	connect(m_recentScenesMenu, &QMenu::aboutToShow, this, &SceneSession::refreshRecentSceneAvailability);
 }
 
 void SceneSession::showError(const QString& title, const QString& message, bool warningIcon) {
-	UserPrompts([this] { return m_host.dialogsSuppressed(); }).showError(m_window, title, message, warningIcon);
+	m_prompts->showError(m_window, title, message, warningIcon);
 }
 
 void SceneSession::dragEnter(QDragEnterEvent* event) {
@@ -471,8 +478,7 @@ bool SceneSession::saveSceneAsToDirectory() {
 		bool isNonEmpty = !targetDir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).isEmpty();
 		bool hasSceneJson = QFileInfo(targetDir.filePath("scene.json")).exists();
 		if (isNonEmpty && !hasSceneJson) {
-			if (!UserPrompts([this] { return m_host.dialogsSuppressed(); })
-					.confirm(m_window, "Save Case As Folder", "The folder is not empty. Save the case there anyway?"))
+			if (!m_prompts->confirm(m_window, "Save Case As Folder", "The folder is not empty. Save the case there anyway?"))
 				return false;
 		}
 	}
@@ -736,6 +742,30 @@ void SceneSession::importLegacyCase(const QString& sourceDir, const QString& des
 		return;
 	}
 
+	const QString sceneName = QFileInfo(sourcePath).fileName().isEmpty()
+		? QString("Imported Legacy Case")
+		: QFileInfo(sourcePath).fileName();
+	// The import replaces the folder that it writes with everything in it.
+	QString sceneDir = destinationPath;
+	if (QFileInfo(QDir(destinationPath).filePath("scene.json")).exists()) {
+		if (!m_prompts->confirm(m_window, "Import Legacy Case",
+				QString("%1 holds another case. Replace that case and everything else in the folder with the imported one?")
+					.arg(display_path::format(destinationPath))))
+			return;
+	} else if (holdsFiles(destinationPath)) {
+		if (!m_prompts->confirm(m_window, "Import Legacy Case",
+				QString("%1 is not empty. Import the case into a new folder %2 inside it?")
+					.arg(display_path::format(destinationPath), sceneName)))
+			return;
+		sceneDir = QDir(destinationPath).filePath(sceneName);
+		const QFileInfo caseFolder(sceneDir);
+		if (caseFolder.exists() && (!caseFolder.isDir() || holdsFiles(sceneDir))) {
+			showError("Cannot Import Legacy Case",
+				QString("%1 already exists and is not empty. Choose another destination.").arg(display_path::format(sceneDir)));
+			return;
+		}
+	}
+
 	if (!maybeSaveScene())
 		return;
 
@@ -746,10 +776,7 @@ void SceneSession::importLegacyCase(const QString& sourceDir, const QString& des
 		m_window->statusBar()->showMessage("Legacy import failed", 8000);
 	};
 
-	const QString sceneName = QFileInfo(sourcePath).fileName().isEmpty()
-		? QString("Imported Legacy Case")
-		: QFileInfo(sourcePath).fileName();
-	SceneImportResult importResult = importLegacyScene(sourcePath.toStdString(), destinationPath.toStdString(),
+	SceneImportResult importResult = importLegacyScene(sourcePath.toStdString(), sceneDir.toStdString(),
 		sceneName.toStdString());
 	if (!importResult.success()) {
 		importFailed();
@@ -757,7 +784,7 @@ void SceneSession::importLegacyCase(const QString& sourceDir, const QString& des
 		return;
 	}
 
-	SceneLoadResult loadResult = loadScene(destinationPath.toStdString());
+	SceneLoadResult loadResult = loadScene(sceneDir.toStdString());
 	std::vector<SceneDiagnostic> diagnostics = importResult.diagnostics;
 	diagnostics.insert(diagnostics.end(), loadResult.diagnostics.begin(), loadResult.diagnostics.end());
 	if (errorDiagnosticCount(loadResult.diagnostics) > 0) {
@@ -772,7 +799,7 @@ void SceneSession::importLegacyCase(const QString& sourceDir, const QString& des
 	const QString summary = legacyImportSummary(diagnostics);
 	if (!summary.isEmpty())
 		showError("Legacy Case Imported", summary, true);
-	if (m_host.afterRunStopped([this, destinationPath, operation] { openSceneDirectory(destinationPath, operation); }))
+	if (m_host.afterRunStopped([this, sceneDir, operation] { openSceneDirectory(sceneDir, operation); }))
 		return;
-	openSceneDirectory(destinationPath, operation);
+	openSceneDirectory(sceneDir, operation);
 }

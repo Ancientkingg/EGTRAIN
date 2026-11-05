@@ -3,6 +3,7 @@
 
 #include "scene/SceneDiagnostic.h"
 #include "telemetry/TelemetryOperation.h"
+#include "widgets/UserPrompts.h"
 
 #include <QObject>
 #include <QPointer>
@@ -105,6 +106,11 @@ public:
 	/// The vector itself, which the validation panel writes to when it validates.
 	std::vector<SceneDiagnostic>* mutableDiagnostics() { return &m_sceneDiagnostics; }
 
+	/// The prompts that ask the questions of the session and show its errors. Null puts back the prompts of the session
+	/// itself, which write an error to stderr instead of showing it while Host::dialogsSuppressed() is true. A test sets
+	/// prompts that answer without a dialog. The prompts are not owned and have to outlive their use.
+	void setPrompts(UserPrompts* prompts) { m_prompts = prompts ? prompts : &m_ownPrompts; }
+
 	/// The Recent Cases menu, which the window puts in its File menu. Its parent is the window.
 	QMenu* recentScenesMenu() const;
 	/// The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear once.
@@ -138,7 +144,9 @@ public:
 	/// first four lines, the most serious first, then the number of lines left out. Empty when there are no diagnostics.
 	static QString legacyImportSummary(const std::vector<SceneDiagnostic>& diagnostics);
 	/// Imports the legacy case in `sourceDir` as a scene folder in `destinationDir` and opens it. The two folders must
-	/// not contain each other. Does nothing when either is empty.
+	/// not contain each other. Does nothing when either is empty. A destination that holds a scene.json is replaced only
+	/// when the user agrees. A destination that holds other files is left as it is: the user may import into a new folder
+	/// inside it, named after the case, which must not exist or be empty.
 	void importLegacyCase(const QString& sourceDir, const QString& destinationDir,
 		const telemetry::OperationObservation& operation);
 
@@ -191,6 +199,8 @@ private:
 	SceneDocument* m_document;
 	Host& m_host;
 	QPointer<QMenu> m_recentScenesMenu;
+	UserPrompts m_ownPrompts;
+	UserPrompts* m_prompts = &m_ownPrompts;
 	QString m_sceneDir;
 	std::string m_savedSceneSha256;
 	bool m_sceneIsBundle = false;
