@@ -53,9 +53,9 @@ RouteChart buildRouteDiagramChart(const RouteDiagramData& diagram, const RouteDi
 
 /// The blocking-time chart: the blocks, the planned lines and the simulated lines of `diagram`, over the route distance
 /// exactly over the sections of the scope and the time range of the diagram. `compressed` is for the compressed diagram of
-/// a capacity result. `scale` gives the geo X in the hover of a block.
-QChart* buildBlockingTimeChart(const BlockingTimeDiagramData& diagram, bool compressed, const SceneSectionLabels& labels,
-	const PositionScale& scale);
+/// a capacity result. `startOffsetSeconds`, the clock time of second 0 in seconds since midnight, gives the clock times
+/// in the hover of a block.
+QChart* buildBlockingTimeChart(const BlockingTimeDiagramData& diagram, bool compressed, long long startOffsetSeconds);
 
 /// The axes of a chart along a reference route: the distance along the bottom, spanning the route exactly, and the
 /// stations above the plot, both attached to every series. Gives the station axis and its ticks for
@@ -64,16 +64,19 @@ QChart* buildBlockingTimeChart(const BlockingTimeDiagramData& diagram, bool comp
 QCategoryAxis* addRouteAxes(QChart* chart, const RouteDiagramPath& referencePath, std::vector<StationTick>& stationTicks,
 	const std::vector<double>& callPositions);
 
-/// "Approach from 10 s", "Run 12 to 30 s", "Clearance to 33 s", "Setup 2 s", "Sight and reaction 9 s", "Release 1 s" and
-/// "Run margin 0 s" for the hover of a block, one per line, without the parts that are not available. In a compressed
-/// chart, whose blocks move and whose times do not, each time starts with "Simulated".
-QStringList blockingComponentLines(const BlockingTimeDiagramSegment& segment, bool compressed);
+/// The parts of the blocking time of a block, one per line: "Approach 12 s", "Run 18 s", "Clearance 3 s", "Setup 2 s",
+/// "Sight and reaction 9 s", "Release 1 s" and "Run margin 0 s". The approach lasts from its start to the start of the
+/// run, the run to its end and the clearance from there to the end of the clearance. A part that the run did not record
+/// has no line. The parts are durations, so a compression, which moves the block, leaves them as they are.
+QStringList blockingComponentLines(const BlockingTimeDiagramSegment& segment);
 
 /// Adds a filled box and its outline for each of `segments`, and only the outline of a block of no width. The legend keeps
 /// one marker per train and type of block, and none for a fill. `useCapacityCriticalStyle` draws the capacity-critical
-/// blocks of a compressed chart.
+/// blocks of a compressed chart. The hover of a block names the train and the block by its short id (shortBlockId), then
+/// gives the blocked interval in clock time from `startOffsetSeconds` and the kind of a block that is not an ordinary
+/// one. After an empty line follow the parts of the blocking time (blockingComponentLines), which only Selected shows.
 void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramSegment>& segments,
-	bool useCapacityCriticalStyle, const SceneSectionLabels& labels, const PositionScale& scale);
+	bool useCapacityCriticalStyle, long long startOffsetSeconds);
 
 /// Real identities retained in the immutable export, including trains with no projectable series.
 QStringList blockingTimeTrainIds(const std::vector<BlockingTimeDiagramSegment>& segments,

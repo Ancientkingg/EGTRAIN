@@ -55,36 +55,6 @@ QStringList clockLabels(double low, double high, double pixelsPerSecond, long lo
 	return describe(clockTicks(low, high, clockTickInterval(low, high), startOffset, pixelsPerSecond, sevenPerCharacter));
 }
 
-BlockSectionExtent extent(const std::string& id, double startKm, double endKm, bool isSwitch = false) {
-	BlockSectionExtent section;
-	section.id = id;
-	section.startKm = startKm;
-	section.endKm = endKm;
-	section.geometryValid = true;
-	section.isSwitch = isSwitch;
-	return section;
-}
-
-// A plot of 400 px from the left edge of the chart at 10 px per km, with rows of 10 px from the top of the chart. An id is
-// 7 px per character, and 8 in bold.
-std::vector<StripLabel> stripLabels(const std::vector<BlockSectionExtent>& sections, const std::vector<BlockSectionMarks>& marks, int rows,
-	std::size_t* candidates = nullptr, double plotWidth = 400) {
-	return placedStripLabels(sections, marks, QRectF(0, 20, plotWidth, 100), 0, 10, rows, [](double km) { return km * 10; }, [](const BlockSectionExtent& section, bool strong) { return (strong ? 8.0 : 7.0) * static_cast<double>(section.id.size()); }, candidates);
-}
-
-QList<std::size_t> sectionsOf(const std::vector<StripLabel>& labels) {
-	QList<std::size_t> indices;
-	for (const StripLabel& label : labels) indices << label.section;
-	return indices;
-}
-
-// Six cells of 4 km from 10 km, whose ids of eight characters, 56 px, overlap their neighbours and clear the next one.
-std::vector<BlockSectionExtent> overlappingIds() {
-	std::vector<BlockSectionExtent> sections;
-	for (int i = 0; i < 6; ++i) sections.push_back(extent("section" + std::to_string(i), 10 + 4 * i, 14 + 4 * i));
-	return sections;
-}
-
 } // namespace
 
 class TestChartTicks : public QObject {
@@ -117,16 +87,6 @@ private slots:
 	void withoutTheRunStartEveryRoundTickStays();
 	void ticksBeforeTheRunStartComeFirst();
 	void shortStepsKeepTheirSeconds();
-
-	void placesIdsInRouteOrderInOneRow();
-	void alternatesBetweenTwoRows();
-	void keepsAGapBetweenIds();
-	void priorityOrderWhenNotAllFit();
-	void switchesThenStationsComeNext();
-	void leavesOutAnIdWiderThanThePlot();
-	void centresAnIdInTheVisiblePartOfItsCell();
-	void sectionsWithoutGeometryCountForNothing();
-	void aNarrowPlotShowsNoIds();
 };
 
 void TestChartTicks::roundTickStepsCutToThirtyOneBits() {
@@ -341,113 +301,6 @@ void TestChartTicks::ticksBeforeTheRunStartComeFirst() {
 void TestChartTicks::shortStepsKeepTheirSeconds() {
 	// 120 s in steps of 30 s, under a minute apart, so whole minutes keep their seconds too.
 	QCOMPARE(clockLabels(0, 120, 10), QStringList({"0 07:10:40", "20 07:11:00", "50 07:11:30", "80 07:12:00", "110 07:12:30"}));
-}
-
-void TestChartTicks::placesIdsInRouteOrderInOneRow() {
-	std::vector<BlockSectionMarks> marks(4);
-	marks[3].critical = true; // when every id fits, a critical section keeps its place
-	std::size_t candidates = 0;
-	const auto labels = stripLabels({extent("A0", 0, 10), extent("A1", 10, 20), extent("A2", 20, 30), extent("A3", 30, 40)}, marks, 1, &candidates);
-	QCOMPARE(sectionsOf(labels), QList<std::size_t>({0, 1, 2, 3}));
-	QCOMPARE(candidates, std::size_t(4));
-	QCOMPARE(labels[0].rect, QRectF(43, 0, 14, 10));
-	QCOMPARE(labels[1].rect, QRectF(143, 0, 14, 10));
-	QVERIFY(!labels[0].strong);
-	QVERIFY(labels[3].strong);
-	QCOMPARE(labels[3].rect, QRectF(342, 0, 16, 10)); // in bold, 8 px per character
-}
-
-void TestChartTicks::alternatesBetweenTwoRows() {
-	const auto labels = stripLabels(overlappingIds(), std::vector<BlockSectionMarks>(6), 2);
-	QCOMPARE(sectionsOf(labels), QList<std::size_t>({0, 1, 2, 3, 4, 5}));
-	const QList<double> tops{labels[0].rect.top(), labels[1].rect.top(), labels[2].rect.top(), labels[3].rect.top(), labels[4].rect.top(), labels[5].rect.top()};
-	QCOMPARE(tops, QList<double>({0, 10, 0, 10, 0, 10}));
-}
-
-void TestChartTicks::keepsAGapBetweenIds() {
-	const std::vector<BlockSectionMarks> marks(2);
-	// Ids of 14 px, centred at 50 and 70 px, lie the 6 px apart that a row needs.
-	const auto apart = stripLabels({extent("A0", 4, 6), extent("A1", 6, 8)}, marks, 2);
-	QCOMPARE(apart[1].rect, QRectF(63, 0, 14, 10));
-	// One pixel nearer, the second id goes to the next row.
-	const auto closer = stripLabels({extent("A0", 4, 6), extent("A1", 6, 7.8)}, marks, 2);
-	QCOMPARE(closer[1].rect, QRectF(62, 10, 14, 10));
-}
-
-void TestChartTicks::priorityOrderWhenNotAllFit() {
-	std::vector<BlockSectionExtent> sections = overlappingIds();
-	sections[3].isSwitch = true;
-	std::vector<BlockSectionMarks> marks(6);
-	marks[1].critical = true;
-	marks[2].station = true;
-	std::size_t candidates = 0;
-	// The order is 1 (critical), 0 and 5 (first and last), 3 (switch), 2 (station) and 4. Section 0 collides with 1, section 3
-	// clears 1 and 5, and 2 and 4 find no room.
-	const auto labels = stripLabels(sections, marks, 1, &candidates);
-	QCOMPARE(sectionsOf(labels), QList<std::size_t>({1, 5, 3}));
-	QCOMPARE(candidates, std::size_t(6));
-	QVERIFY(labels[0].strong);
-}
-
-void TestChartTicks::switchesThenStationsComeNext() {
-	// The ids of 0 and 5 are placed first as the first and last section, and 2 and 3 then compete for the room between them.
-	std::vector<BlockSectionExtent> sections = overlappingIds();
-	std::vector<BlockSectionMarks> marks(6);
-	sections[3].isSwitch = true;
-	marks[2].station = true;
-	QCOMPARE(sectionsOf(stripLabels(sections, marks, 1)), QList<std::size_t>({0, 5, 3}));
-	// A station section goes before a section with neither.
-	sections[3].isSwitch = false;
-	marks[2].station = false;
-	marks[3].station = true;
-	QCOMPARE(sectionsOf(stripLabels(sections, marks, 1)), QList<std::size_t>({0, 5, 3}));
-	// With neither, route order decides.
-	marks[3].station = false;
-	QCOMPARE(sectionsOf(stripLabels(sections, marks, 1)), QList<std::size_t>({0, 5, 2}));
-}
-
-void TestChartTicks::leavesOutAnIdWiderThanThePlot() {
-	std::size_t candidates = 0;
-	// Twenty characters are 140 px in a plot of 100 px.
-	const auto labels = stripLabels({extent(std::string(20, 'w'), 0, 5), extent("B", 5, 10)}, std::vector<BlockSectionMarks>(2), 1, &candidates, 100);
-	QCOMPARE(sectionsOf(labels), QList<std::size_t>({1}));
-	QCOMPARE(candidates, std::size_t(1));
-}
-
-void TestChartTicks::centresAnIdInTheVisiblePartOfItsCell() {
-	// A cell from -10 to 10 km shows 0 to 100 px, and a cell of 2 px at the left edge keeps its id of 14 px in the plot.
-	const auto wide = stripLabels({extent("A", -10, 10)}, std::vector<BlockSectionMarks>(1), 1);
-	QCOMPARE(wide[0].rect, QRectF(46.5, 0, 7, 10));
-	const auto edge = stripLabels({extent("AB", 0, 0.2)}, std::vector<BlockSectionMarks>(1), 1);
-	QCOMPARE(edge[0].rect, QRectF(0, 0, 14, 10));
-	// A cell past the plot has no id, and an end below the start counts the same.
-	QVERIFY(stripLabels({extent("A", 50, 60)}, std::vector<BlockSectionMarks>(1), 1).empty());
-	const auto reversed = stripLabels({extent("A", 10, 0)}, std::vector<BlockSectionMarks>(1), 1);
-	QCOMPARE(reversed[0].rect, QRectF(46.5, 0, 7, 10));
-}
-
-void TestChartTicks::sectionsWithoutGeometryCountForNothing() {
-	std::vector<BlockSectionExtent> sections = overlappingIds();
-	BlockSectionExtent missing = extent("missing", 0, 40);
-	missing.geometryValid = false;
-	sections.insert(sections.begin(), missing);
-	sections.push_back(missing);
-	std::vector<BlockSectionMarks> marks(sections.size());
-	// After the critical section 3 come 1 and 6, the first and last with geometry, and then no other id clears them. If the
-	// sections without geometry counted as first and last, 5 would come before 6 and take its place.
-	marks[3].critical = true;
-	std::size_t candidates = 0;
-	const auto labels = stripLabels(sections, marks, 1, &candidates);
-	QCOMPARE(candidates, std::size_t(6));
-	QCOMPARE(sectionsOf(labels), QList<std::size_t>({3, 1, 6}));
-}
-
-void TestChartTicks::aNarrowPlotShowsNoIds() {
-	std::size_t candidates = 9;
-	QVERIFY(stripLabels({extent("A", 0, 1)}, std::vector<BlockSectionMarks>(1), 1, &candidates, 8).empty());
-	QCOMPARE(candidates, std::size_t(0));
-	QVERIFY(!stripLabels({extent("A", 0, 1)}, std::vector<BlockSectionMarks>(1), 1, &candidates, 8.5).empty());
-	QCOMPARE(candidates, std::size_t(1));
 }
 
 QTEST_APPLESS_MAIN(TestChartTicks)

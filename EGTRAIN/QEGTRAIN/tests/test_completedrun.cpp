@@ -152,7 +152,7 @@ std::string describe(const BlockingTimeDiagramSegment& s) {
 		 << num(s.originalEndTime);
 	for (double t : {s.startApproachTime, s.startRunTime, s.endRunTime, s.endClearTime, s.setupTime, s.sightReactionTime, s.releaseTime, s.runTimeMargin})
 		text << '|' << num(t);
-	text << '|' << static_cast<int>(s.style) << '|' << s.capacityCritical << '|' << s.referenceSection << '|' << s.referenceNote;
+	text << '|' << static_cast<int>(s.style) << '|' << s.capacityCritical << '|' << s.referenceSection;
 	return text.str();
 }
 
@@ -1666,9 +1666,6 @@ void TestCompletedRun::keepsRepeatedResourceApart() {
 	QCOMPARE(diagram->extents.size(), std::size_t(1));
 	QCOMPARE(diagram->extents[0].id, "X");
 	QCOMPARE_EQ(diagram->extents[0].startKm, 0.0);
-	// the strip counts the sections of the whole route
-	QVERIFY(diagram);
-	QCOMPARE(diagram->routeSectionCount, 3);
 	scope.sectionIndices = {2};
 	diagram = blockingTimeDiagramData(data, scope);
 	// the last section keeps the second envelope of X
@@ -2052,9 +2049,6 @@ void TestCompletedRun::compressesDiagram() {
 	QCOMPARE(diagram->segments.size(), std::size_t(4));
 	QVERIFY(diagram->plannedReferences.empty());
 	QVERIFY(diagram->plannedLines.empty());
-	// the compressed strip counts the sections of the whole route
-	QVERIFY(diagram);
-	QCOMPARE(diagram->routeSectionCount, 2);
 	const auto followerOnC = std::find_if(diagram->segments.begin(), diagram->segments.end(),
 		[](const BlockingTimeDiagramSegment& segment) { return segment.trainName == "b" && segment.blockId == "C"; });
 	// b moves by 100 s and touches a on C

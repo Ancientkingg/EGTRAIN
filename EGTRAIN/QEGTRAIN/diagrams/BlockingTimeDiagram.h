@@ -57,9 +57,6 @@ struct BlockingTimeDiagramSegment {
 	bool capacityCritical = false;
 	// Order of the matched section of the reference route, 0 for none.
 	int referenceSection = 0;
-	// What the hover says about the section of the reference route; empty when the block is that section, or when it
-	// was not matched to the sections.
-	std::string referenceNote;
 };
 
 struct CapacityCompressionRow;
@@ -84,8 +81,8 @@ std::vector<BlockingTimeDiagramSegment> buildBlockingTimeDiagramSegments(
 /// signs, such as "71-B0" and "0-B1" for "@71-B0@-21.235000/@0-B1@-21.252000", or the id itself without such a field.
 /// Empty for an empty id.
 std::vector<std::string> comparableBlockTokens(const std::string& blockId);
-/// The short form of a block id that the section strip shows: its comparable tokens joined with "/", such as "71-B0/0-B1",
-/// or the id itself when it has no short form.
+/// The short form of a block id that the hovers of the blocking-time charts show: its comparable tokens joined with "/",
+/// such as "71-B0/0-B1", or the id itself when it has no short form.
 std::string shortBlockId(const std::string& blockId);
 /// The label of a section for user text, without internal ids: the label that `labels` give `reference`, with an id in
 /// round brackets at its end in its short form (shortBlockId), or the short form of `reference` when the labels name no
@@ -153,12 +150,11 @@ struct BlockSectionExtent {
 // an end takes its route distance as geo X at both ends.
 std::vector<BlockSectionExtent> buildBlockSectionExtents(const std::vector<BlockSectionInput>& inputs);
 
-// Exact id/interval matches take precedence over overlapping shared resources. Several candidates
-// are ambiguous, never first-match. Every call clears stale fields, including locations/empty routes.
-// An exact match sets the section and no note. The notes name a section by its short id (shortBlockId), as the section
-// strip does, one section per line.
+// Sets the reference section of each segment. Exact id/interval matches take precedence over overlapping shared
+// resources. Several candidates are ambiguous and give 0, never the first match. Every call clears the stale section,
+// also for locations and empty routes.
 void matchBlockingSegmentsToSections(std::vector<BlockingTimeDiagramSegment>& segments,
-	const std::vector<BlockSectionExtent>& extents, const std::string& referenceRouteId);
+	const std::vector<BlockSectionExtent>& extents);
 
 /// What the section strip of a blocking-time chart marks on a section, besides a switch section (BlockSectionExtent::isSwitch).
 struct BlockSectionMarks {
@@ -236,13 +232,17 @@ inline constexpr char kUnmappedEnvelopeLayer[] = "unmapped blocking envelope";
 // One row of the blocking-time export for each extent, as wide as the header.
 std::vector<std::vector<std::string>> blockSectionCsvRows(const std::vector<BlockSectionExtent>& extents);
 
-// The notice of the section strip that lists the sections without a usable extent; empty when every extent is usable.
-// A section is named by its short id (shortBlockId), as the section strip does.
-std::string blockSectionGeometryNote(const std::vector<BlockSectionExtent>& extents);
+/// The note above a blocking-time chart: what the chart leaves out in a few words, and why, for its tooltip.
+struct BlockingTimeNote {
+	std::string text;	///< The parts that apply, joined by " · ", such as "2 blocks not shown"; empty when nothing is missing
+	std::string reason; ///< One sentence for each part, one per line, such as "2 blocks could not be placed on route0."
+};
 
-// The note above a blocking-time chart: what it leaves out, from the parts that apply. `omitted` blocks or stops could
-// not be placed on the route `routeId`; `nothingPlotted` adds that the chart is empty, which `unplaced` blames on blocks
-// that could not be placed. Empty when nothing is missing.
-std::string blockingTimeNote(int omitted, bool nothingPlotted, bool unplaced, const std::string& routeId);
+/// The note of a chart from the parts that apply: `omittedBlocks` blocks and `omittedStops` stops that could not be placed
+/// on the route `routeId`, "No blocking times" for a chart with `nothingPlotted` and no block left out, and the sections
+/// of `sections` without a usable extent, named in the reason by their short ids (shortBlockId), or the route without
+/// sections when `sections` is empty.
+BlockingTimeNote blockingTimeNote(int omittedBlocks, int omittedStops, bool nothingPlotted,
+	const std::vector<BlockSectionExtent>& sections, const std::string& routeId);
 
 #endif // BLOCKINGTIMEDIAGRAM_H

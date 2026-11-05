@@ -124,6 +124,9 @@ QImage plannedMarker(const QPen& pen, const QColor& fill = Qt::white) {
 // emphasised line of 3.5 px and room for the pointer. Further from the line the click is on the box.
 constexpr double kLineOverBox = 4;
 
+// The outline of a selected blocking time.
+const QColor kSelectionOutline(36, 49, 58);
+
 // The nearest sample found so far of one kind of hit. A candidate replaces it only when strictly closer, so of samples as
 // near as each other the first stays.
 struct NearestSample {
@@ -184,7 +187,7 @@ public:
 		painter->save();
 		painter->setClipRect(m_chart->plotArea());
 		painter->setRenderHint(QPainter::Antialiasing);
-		painter->setPen(QPen(kStripStrongText, 2));
+		painter->setPen(QPen(kSelectionOutline, 2));
 		painter->setBrush(Qt::NoBrush);
 		painter->drawRoundedRect(outlineRect(), 1, 1);
 		painter->restore();
@@ -237,7 +240,7 @@ private:
 // The order of the kinds in the Key; a kind that is not listed comes after these, in the order of the series.
 const QStringList kKeyOrder{QStringLiteral("Blocking time"), QStringLiteral("Critical block"), QStringLiteral("Conflict"),
 	QStringLiteral("Planned"), QStringLiteral("Simulated"), QStringLiteral("Stop"), QStringLiteral("Dwell"),
-	QStringLiteral("Station section"), QStringLiteral("Switch section"), QStringLiteral("Block boundary")};
+	QStringLiteral("Station section"), QStringLiteral("Switch section")};
 
 // Removes `axis` from `chart` with what it drew. QChart hides the items of a removed axis only when it deletes them, on
 // the next turn of the event loop, and until then they follow the visibility of the axis. So the axis hides first, and
@@ -375,19 +378,12 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 
 	m_frame = new ResultFrame(m_view, "diagram", this);
 	m_contextLabel = m_frame->contextLabel();
-	// The header buttons. The wheel zooms with Control or Command held; the tooltip names the key that the platform uses.
-#ifdef Q_OS_MACOS
-	const QString wheelZoom = QStringLiteral("Pinch or Command-scroll to zoom at the pointer");
-#else
-	const QString wheelZoom = QStringLiteral("Pinch or Ctrl-scroll to zoom at the pointer");
-#endif
+	// The header buttons, each with its name and key as tooltip.
 	QToolButton* zoomOut = m_frame->addHeaderButton("diagramZoomOut", "Zoom Out", ":/icons/zoom-out.svg", "Zoom out (-)");
 	connect(zoomOut, &QToolButton::clicked, this, [zoomAtCentre] { zoomAtCentre(1 / 1.2); });
-	QToolButton* zoomIn = m_frame->addHeaderButton("diagramZoomIn", "Zoom In", ":/icons/zoom-in.svg",
-		"Zoom in (+)\nDrag a rectangle to zoom into it\n" + wheelZoom);
+	QToolButton* zoomIn = m_frame->addHeaderButton("diagramZoomIn", "Zoom In", ":/icons/zoom-in.svg", "Zoom in (+)");
 	connect(zoomIn, &QToolButton::clicked, this, [zoomAtCentre] { zoomAtCentre(1.2); });
-	QToolButton* fit = m_frame->addHeaderButton("diagramFit", "Fit", ":/icons/fit.svg",
-		"Show the whole chart (Home or 0)\nScroll or the arrow keys to pan");
+	QToolButton* fit = m_frame->addHeaderButton("diagramFit", "Fit", ":/icons/fit.svg", "Fit (0)");
 	connect(fit, &QToolButton::clicked, this, &DiagramWindow::resetZoom);
 
 	// A warning, such as a curve cut off at 0 kN, has the look of a warning of the table windows, inside the margins of
@@ -487,9 +483,10 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 }
 
 void DiagramWindow::setPresentation(const QString& heading, const QString& context,
-	const QString& warning, const QString& contextToolTip) {
+	const QString& warning, const QString& contextToolTip, const QString& warningToolTip) {
 	setWindowTitle(heading);
 	DialogLayout::setStatus(m_warningLabel, DialogLayout::Severity::Warning, warning);
+	m_warningLabel->setToolTip(plainToolTip(warningToolTip));
 	m_warningArea->setVisible(!warning.isEmpty());
 	m_frame->setContext(context, contextToolTip);
 }
@@ -818,23 +815,13 @@ QString DiagramWindow::elidedAxisTextAt(const QPointF& chartPosition) const {
 	return {};
 }
 
-void DiagramWindow::setBlockSections(std::vector<BlockSectionExtent> sections, const QString& referenceRouteId,
-	const SceneSectionLabels* labels, std::vector<BlockSectionMarks> marks, int routeSectionCount) {
+void DiagramWindow::setBlockSections(std::vector<BlockSectionExtent> sections, std::vector<BlockSectionMarks> marks) {
 	clearTooltip();
 	delete m_sectionOverlay.data();
 	auto* chart = m_view->chart();
-	auto* overlay = new BlockSectionOverlay(chart, std::move(sections), std::move(marks), routeSectionCount, referenceRouteId,
-		labels, font(), palette());
+	auto* overlay = new BlockSectionOverlay(chart, std::move(sections), std::move(marks), font(), palette());
 	m_sectionOverlay = overlay;
-	// The strip chooses its rows at the full view of the chart.
-	const auto horizontal = chart->axes(Qt::Horizontal);
-	if (auto* distance = horizontal.isEmpty() ? nullptr : qobject_cast<QValueAxis*>(horizontal.first())) {
-		const auto full = m_fullBounds.value(distance, {distance->min(), distance->max()});
-		overlay->setFullRange(full.first, full.second);
-	}
 	if (m_positionAxis) overlay->setJumps(m_positionScale.jumps());
-	// A new row count changes the room the strip needs, which the chart may not take while it lays itself out.
-	overlay->setRowsChanged([this] { QMetaObject::invokeMethod(this, [this] { reserveStripRoom(); }, Qt::QueuedConnection); });
 	// QChart lays a top legend out above the plot area, so an invisible legend as tall as the strip moves the plot
 	// down and leaves the strip its room.
 	auto* legend = chart->legend();
@@ -846,7 +833,7 @@ void DiagramWindow::setBlockSections(std::vector<BlockSectionExtent> sections, c
 	refreshKey();
 }
 
-// The invisible top legend takes the height of the strip and its notice.
+// The invisible top legend takes the height of the strip.
 void DiagramWindow::reserveStripRoom() {
 	const auto* overlay = m_sectionOverlay.data();
 	QChart* chart = m_view ? m_view->chart() : nullptr;
@@ -1109,7 +1096,7 @@ void DiagramWindow::select(const ChartHit& hit) {
 	if (!hit.series || !chart) return;
 	const QString trainId = groupIdForSeries(hit.series);
 	m_pinnedTrainId = trainId;
-	m_selectedLines = hit.lines;
+	m_selectedLines = hit.lines + hit.details;
 	m_selectedBox = hit.inside ? hit.series : nullptr;
 	delete m_selectionOutline.data();
 	if (m_selectedBox) m_selectionOutline = new SelectionOutline(chart, m_selectedBox);
@@ -1149,7 +1136,8 @@ void DiagramWindow::clearPin() {
 	applyColourPlan();
 }
 
-// Selected shows the lines of the click, the first in bold, while something is selected in a chart with trains.
+// Selected shows the lines of the click and the details of a box, the first line in bold, while something is selected in a
+// chart with trains.
 void DiagramWindow::refreshSelected() {
 	if (!m_pinTitle || !m_pinLabel) return;
 	m_pinTitle->setText(withBreakOpportunities(m_selectedLines.value(0)));
@@ -1482,7 +1470,8 @@ void DiagramWindow::clearTooltip() {
 // What the chart shows at a point, without showing it: the hover of the section strip, the whole text of a shortened
 // axis title, inside a box the nearest sample of a shown line within kLineOverBox px, else the box, outside the boxes the
 // nearest sample of a shown line within 10 px, else the hover of a section boundary. A sample gives its values, a box its
-// title, or else its name, and its context lines only.
+// title, or else its name, and its context lines only. The lines of inspectionInterval after an empty line are details
+// for Selected.
 DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 	ChartHit hit;
 	QChart* chart = m_view ? m_view->chart() : nullptr;
@@ -1563,8 +1552,10 @@ DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 	const QStringList& contexts = meta.inspectionPoints;
 	if (selected.index >= 0 && selected.index < contexts.size() && !contexts[selected.index].isEmpty())
 		hit.lines << contexts[selected.index].split('\n');
-	const QString& interval = meta.inspectionInterval;
-	if (!interval.isEmpty()) hit.lines << interval.split('\n');
+	const QStringList interval = meta.inspectionInterval.isEmpty() ? QStringList() : meta.inspectionInterval.split('\n');
+	const auto details = std::find(interval.begin(), interval.end(), QString());
+	hit.lines << QStringList(interval.begin(), details);
+	if (details != interval.end()) hit.details = QStringList(details + 1, interval.end());
 	return hit;
 }
 
@@ -1579,10 +1570,18 @@ DiagramWindow::ChartHit DiagramWindow::inspectAt(const QPoint& position) {
 	return hit;
 }
 
+// The tooltip takes the width of its widest line, up to 480 px and the width of the window, and wraps only a text wider
+// than that. A label that wraps its words would narrow a text of a few lines to half that width.
 void DiagramWindow::showTooltip(const QPoint& position) {
-	m_tooltip->setWordWrap(true);
-	m_tooltip->setMaximumWidth(std::max(100, std::min(480, width() - 24)));
+	const int widest = std::max(100, std::min(480, width() - 24));
+	m_tooltip->setWordWrap(false);
+	m_tooltip->setMaximumWidth(QWIDGETSIZE_MAX);
 	m_tooltip->adjustSize();
+	m_tooltip->setMaximumWidth(widest);
+	if (m_tooltip->sizeHint().width() > widest) {
+		m_tooltip->setWordWrap(true);
+		m_tooltip->resize(widest, m_tooltip->heightForWidth(widest));
+	}
 	QPoint local = m_view->viewport()->mapTo(this, position) + QPoint(16, 20);
 	if (local.x() + m_tooltip->width() > width()) local.setX(local.x() - m_tooltip->width() - 32);
 	if (local.y() + m_tooltip->height() > height()) local.setY(local.y() - m_tooltip->height() - 40);

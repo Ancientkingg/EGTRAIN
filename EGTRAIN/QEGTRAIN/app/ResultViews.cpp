@@ -28,6 +28,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QScreen>
+#include <algorithm>
 #include <functional>
 #include <iterator>
 #include <memory>
@@ -273,22 +274,22 @@ void ResultViews::showBlockingTimeDiagram() {
 	std::optional<BlockingTimeDiagramData> diagram = blockingTimeDiagramData(*run, scope);
 	if (!diagram)
 		return;
-	// The route and blocks as the Capacity window names its section: "route0 (A), blocks 36 to 72".
+	// The route and blocks as the Capacity window names its section, then the period in hours and minutes:
+	// "route0 (A), blocks 36 to 72, 08:00 to 09:00".
 	CapacityAnalysisScope blocks;
 	blocks.routeIndex = scope.routeIndex;
 	blocks.blockIds = scope.blockIds;
 	blocks.sectionIndices = scope.sectionIndices;
 	const QString route = run->hasRoute(scope.routeIndex) ? capacityScopeTextFrom(*run, blocks) : QStringLiteral("All routes");
+	const auto clock = [&run](double seconds) {
+		return QString::fromStdString(formatSimTime(static_cast<long long>(seconds), run->settings.startOffsetSeconds)).left(5);
+	};
 	showBlockingTimeWindow(run, std::make_shared<const BlockingTimeDiagramData>(std::move(*diagram)), false,
-		QString("%1, %2 to %3")
-			.arg(route, QString::fromStdString(formatSimTime(static_cast<long long>(scope.startTime), run->settings.startOffsetSeconds)),
-				QString::fromStdString(formatSimTime(static_cast<long long>(scope.endTime), run->settings.startOffsetSeconds))),
-		capacityScopeBlocksText(*run, blocks));
+		QString("%1, %2 to %3").arg(route, clock(scope.startTime), clock(scope.endTime)));
 }
 
 void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRunData>& run,
-	const std::shared_ptr<const BlockingTimeDiagramData>& data, bool compressed, const QString& context,
-	const QString& contextToolTip) {
+	const std::shared_ptr<const BlockingTimeDiagramData>& data, bool compressed, const QString& context) {
 	const QString title = compressed ? QStringLiteral("Compressed blocking time") : QString(ResultViewName::kBlockingTime);
 	const BlockingTimeDiagramData& diagram = *data;
 	const RouteDiagramPath& referencePath = diagram.referencePath;
@@ -299,7 +300,7 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 	const auto& plottedPlanned = diagram.plannedLines;
 
 	const PositionScale scale(extents);
-	QChart* chart = buildBlockingTimeChart(diagram, compressed, run->sectionLabels, scale);
+	QChart* chart = buildBlockingTimeChart(diagram, compressed, run->settings.startOffsetSeconds);
 
 	DiagramWindow* win = new DiagramWindow(title, m_window);
 	win->setProperty("manualSection", compressed ? QStringLiteral("capacity") : QStringLiteral("blocking-time"));
@@ -309,8 +310,7 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 	std::vector<double> stationKm;
 	for (const RouteDiagramNode& node : referencePath.nodes)
 		if (!node.stationId.empty()) stationKm.push_back(node.positionKm);
-	win->setBlockSections(extents, QString::fromStdString(referencePath.id), &run->sectionLabels,
-		blockSectionMarks(extents, segments, stationKm, compressed), diagram.routeSectionCount);
+	win->setBlockSections(extents, blockSectionMarks(extents, segments, stationKm, compressed));
 	win->setPositionAxis(scale);
 	// The outlines and lines take the colours of the trains; critical blocks and conflicts keep their own. A repeated
 	// train is a copy of its train, which gives it the colour of that train, and it has the service of its train; a train
@@ -328,9 +328,13 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 	win->setTrainColors(trainColorsForRun(run->results, m_host.sceneModel()));
 	win->setTrainServices(services);
 	const bool nothingPlotted = segments.empty() && plottedPlanned.empty() && diagram.trajectories.empty();
-	// The header names the run before the scope of the chart.
+	// The header names the run before the scope of the chart. The note says in a few words what the chart leaves out,
+	// with the reason in its tooltip; the blocks of `unmapped` are those of diagram.omitted that are not stops.
+	const int unplacedBlocks = static_cast<int>(unmapped.size());
+	const BlockingTimeNote note =
+		blockingTimeNote(unplacedBlocks, std::max(0, diagram.omitted - unplacedBlocks), nothingPlotted, extents, referencePath.id);
 	win->setPresentation(title, completedRunContext(run->provenance) + QStringLiteral(" \u00b7 ") + context,
-		QString::fromStdString(blockingTimeNote(diagram.omitted, nothingPlotted, !unmapped.empty(), referencePath.id)), contextToolTip);
+		QString::fromStdString(note.text), QString(), QString::fromStdString(note.reason));
 	// The window shares the diagram with its export, which makes the rows when it runs.
 	const auto scopedCsv = [data](const QStringList& visibleTrainIds) {
 		return buildBlockingTimeCsv(visibleTrainIds, data->segments, data->plannedReferences, data->trajectories, data->extents,
@@ -416,17 +420,13 @@ void ResultViews::showCapacityAnalysis() {
 				return writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, provenance);
 			});
 	});
-	connect(dialog->diagramButton(), &QPushButton::clicked, dialog, [this, run, scope, result, sectionText, sectionTip]() {
+	connect(dialog->diagramButton(), &QPushButton::clicked, dialog, [this, run, scope, result, sectionText]() {
 		std::optional<BlockingTimeDiagramData> diagram = compressedBlockingTimeDiagramData(*run, scope, result);
 		if (!diagram)
 			return;
-		// The header has the key figures of the Capacity window; the tooltip names the trains of the cycle.
+		// The header has the key figures of the Capacity window.
 		showBlockingTimeWindow(run, std::make_shared<const BlockingTimeDiagramData>(std::move(*diagram)), true,
-			sectionText + QStringLiteral(" \u00b7 ") + capacityCycleText(result),
-			QStringList({QString("Cycle from %1 to %2").arg(QString::fromStdString(result.firstIdentity), QString::fromStdString(result.cycleEndIdentity)),
-							sectionTip})
-				.join('\n')
-				.trimmed());
+			sectionText + QStringLiteral(" \u00b7 ") + capacityCycleText(result));
 	});
 	showWindow(dialog);
 }

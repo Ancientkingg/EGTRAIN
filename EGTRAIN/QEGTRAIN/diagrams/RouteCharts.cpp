@@ -1,8 +1,7 @@
 #include "diagrams/RouteCharts.h"
-#include "diagrams/PositionScale.h"
 #include "diagrams/SeriesMeta.h"
 #include "diagrams/TrainColors.h"
-#include "scene/SectionLabels.h"
+#include "util/TimeFormat.h"
 #include "util/TrajectoryUtil.h"
 #include <QPen>
 #include <QtCharts/QAreaSeries>
@@ -57,6 +56,12 @@ SeriesMeta metaOfTrain(const QString& trainId) {
 void appendInspectedPoint(QLineSeries* series, SeriesMeta& meta, double x, double y, const QString& context) {
 	series->append(x, y);
 	meta.inspectionPoints.append(context);
+}
+
+// A time of the run as the clock reads it, in whole seconds rounded down as the readout of the window gives it, such as
+// "07:52:30".
+QString clockText(double seconds, long long startOffsetSeconds) {
+	return QString::fromStdString(formatSimTime(static_cast<long long>(std::floor(seconds)), startOffsetSeconds));
 }
 
 } // namespace
@@ -189,14 +194,13 @@ RouteChart buildRouteDiagramChart(const RouteDiagramData& diagram, const RouteDi
 	return {chart, stationAxis, std::move(stationTicks), referenceRouteText(referencePath.id, end < origin)};
 }
 
-QChart* buildBlockingTimeChart(const BlockingTimeDiagramData& diagram, bool compressed, const SceneSectionLabels& labels,
-	const PositionScale& scale) {
+QChart* buildBlockingTimeChart(const BlockingTimeDiagramData& diagram, bool compressed, long long startOffsetSeconds) {
 	const RouteDiagramPath& referencePath = diagram.referencePath;
 	const auto& plottedPlanned = diagram.plannedLines;
 
 	QChart* chart = new QChart();
 
-	addBlockingTimeSeries(chart, diagram.segments, compressed, labels, scale);
+	addBlockingTimeSeries(chart, diagram.segments, compressed, startOffsetSeconds);
 
 	// The window paints the planned and the simulated lines in the colour of the train: planned dashed, simulated solid.
 	std::set<std::string> plannedTrains;
@@ -212,7 +216,7 @@ QChart* buildBlockingTimeChart(const BlockingTimeDiagramData& diagram, bool comp
 		for (const auto& reference : group)
 			appendInspectedPoint(series, meta, reference.positionKm, reference.time,
 				reference.stationName.empty()
-					? "Planned time at the section edge"
+					? "Planned"
 					: QString("%1, planned %2").arg(QString::fromStdString(reference.stationName), QString::fromStdString(reference.eventType)));
 		describeSeries(series, meta);
 		chart->addSeries(series);
@@ -225,7 +229,6 @@ QChart* buildBlockingTimeChart(const BlockingTimeDiagramData& diagram, bool comp
 		line->setName(QString::fromStdString(trajectory.trainId));
 		SeriesMeta meta = metaOfTrain(QString::fromStdString(trajectory.trainId));
 		meta.layer = QStringLiteral("simulated");
-		if (compressed) meta.inspectionInterval = QStringLiteral("Shifted with the train's blocking times");
 		describeSeries(line, meta);
 		line->setPen(QPen(QColor(20, 35, 45), 2.0));
 		line->setPointsVisible(trajectory.points.size() == 1);
@@ -292,30 +295,22 @@ QCategoryAxis* addRouteAxes(QChart* chart, const RouteDiagramPath& referencePath
 	return stationAxis;
 }
 
-QStringList blockingComponentLines(const BlockingTimeDiagramSegment& segment, bool compressed) {
+QStringList blockingComponentLines(const BlockingTimeDiagramSegment& segment) {
 	const auto known = [](double value) { return value >= 0; };
-	const auto seconds = [](double value) { return QString::number(value); };
-	QStringList times;
-	if (known(segment.startApproachTime)) times << "approach from " + seconds(segment.startApproachTime) + " s";
-	if (known(segment.startRunTime) && known(segment.endRunTime))
-		times << QString("run %1 to %2 s").arg(seconds(segment.startRunTime), seconds(segment.endRunTime));
-	else if (known(segment.startRunTime))
-		times << "run from " + seconds(segment.startRunTime) + " s";
-	else if (known(segment.endRunTime))
-		times << "run to " + seconds(segment.endRunTime) + " s";
-	if (known(segment.endClearTime)) times << "clearance to " + seconds(segment.endClearTime) + " s";
+	// A part between two times of the run, which needs both.
+	const auto between = [&known](double from, double to) { return known(from) && known(to) ? to - from : -1.0; };
+	const std::pair<double, const char*> parts[] = {{between(segment.startApproachTime, segment.startRunTime), "Approach"},
+		{between(segment.startRunTime, segment.endRunTime), "Run"}, {between(segment.endRunTime, segment.endClearTime), "Clearance"},
+		{segment.setupTime, "Setup"}, {segment.sightReactionTime, "Sight and reaction"}, {segment.releaseTime, "Release"},
+		{segment.runTimeMargin, "Run margin"}};
 	QStringList lines;
-	for (const QString& time : times) lines << (compressed ? "Simulated " + time : time);
-	const std::pair<double, const char*> parts[] = {{segment.setupTime, "setup"}, {segment.sightReactionTime, "sight and reaction"},
-		{segment.releaseTime, "release"}, {segment.runTimeMargin, "run margin"}};
 	for (const auto& part : parts)
-		if (known(part.first)) lines << QString("%1 %2 s").arg(part.second, seconds(part.first));
-	for (QString& line : lines) line[0] = line[0].toUpper();
+		if (known(part.first)) lines << QString("%1 %2 s").arg(part.second, QString::number(part.first));
 	return lines;
 }
 
 void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramSegment>& segments,
-	bool useCapacityCriticalStyle, const SceneSectionLabels& labels, const PositionScale& scale) {
+	bool useCapacityCriticalStyle, long long startOffsetSeconds) {
 	// The kind of a block, which gives its look: a critical block of a compressed chart, a conflict, or a blocking time.
 	// A station or switch block looks like any other; its hover names its type.
 	const auto kindFor = [useCapacityCriticalStyle](const BlockingTimeDiagramSegment& segment) {
@@ -370,25 +365,13 @@ void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramS
 		SeriesMeta meta = metaOfTrain(name);
 		meta.layer = QString::fromLatin1(kBlockingTimeLayer);
 		meta.inspectionFilled = left != right;
-		// The train on the block by its short id, as the section strip names it, then one fact per line: the kind, the label
-		// of the block, where and when it was blocked, how that time is made up and the section of the reference route.
-		const QString blockText = QString::fromStdString(shortBlockId(segment.blockId));
-		meta.inspectionTitle = name + " on " + blockText;
-		QStringList lines;
+		// The train on the block by its short id, when the block was blocked as the time axis reads it and the kind of a
+		// block that is not an ordinary one. The parts of the blocking time follow an empty line, for Selected only.
+		meta.inspectionTitle = name + " on " + QString::fromStdString(shortBlockId(segment.blockId));
+		QStringList lines{QString("Blocked %1 to %2")
+				.arg(clockText(segment.startTime, startOffsetSeconds), clockText(segment.endTime, startOffsetSeconds))};
 		if (const QString kind = kindText(segment); !kind.isEmpty()) lines << kind;
-		if (const QString label = QString::fromStdString(readableSectionLabel(segment.blockId, labels)); label != blockText) lines << label;
-		// The geo X of the block's own ends, also where they stick out of the sections of the chart.
-		if (!scale.empty())
-			lines << QString("Position %1 to %2 km")
-						 .arg(scale.geoAt(segment.startPositionKm, segment.endPositionKm), 0, 'f', 3)
-						 .arg(scale.geoAt(segment.endPositionKm, segment.startPositionKm), 0, 'f', 3);
-		lines << QString("Blocked %1 to %2 s").arg(QString::number(segment.startTime), QString::number(segment.endTime));
-		if (std::abs(segment.originalStartTime - segment.startTime) > kBlockingTimeToleranceSeconds
-			|| std::abs(segment.originalEndTime - segment.endTime) > kBlockingTimeToleranceSeconds)
-			lines << QString(useCapacityCriticalStyle ? "Simulated %1 to %2 s" : "Whole %1 to %2 s")
-						 .arg(QString::number(segment.originalStartTime), QString::number(segment.originalEndTime));
-		lines << blockingComponentLines(segment, useCapacityCriticalStyle);
-		if (!segment.referenceNote.empty()) lines << QString::fromStdString(segment.referenceNote).split('\n');
+		if (const QStringList parts = blockingComponentLines(segment); !parts.isEmpty()) lines << QString() << parts;
 		meta.inspectionInterval = lines.join('\n');
 		describeSeries(outline, meta);
 		styleBlockingTime(fill, outline, kindFor(segment));

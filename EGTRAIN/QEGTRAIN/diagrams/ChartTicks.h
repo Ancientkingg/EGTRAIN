@@ -1,13 +1,10 @@
 #ifndef CHARTTICKS_H
 #define CHARTTICKS_H
 
-#include "diagrams/BlockingTimeDiagram.h"
-
 #include <QRectF>
 #include <QString>
 #include <QStringList>
 
-#include <cstddef>
 #include <functional>
 #include <optional>
 #include <utility>
@@ -80,24 +77,5 @@ double clockTickInterval(double low, double high);
 /// every other tick reads HH:MM:SS.
 std::vector<std::pair<double, QString>> clockTicks(double low, double high, double interval, long long startOffset, double pixelsPerSecond,
 	const ChartTextWidth& labelRoom);
-
-/// An id that the section strip shows.
-struct StripLabel {
-	std::size_t section = 0; ///< Index of the section
-	QRectF rect;			 ///< Where the id goes, in pixels of the chart
-	bool strong = false;	 ///< A critical or conflict section, drawn in bold
-};
-
-/// The ids that the strip shows across `plot`, in `rows` rows of `rowHeight` from `top`. `marks` has one entry per section,
-/// `xAt` gives the pixel of a distance along the route, and `idWidth` the width of the id of a section, in bold when
-/// `strong`. A plot of 8 px or less shows none. Each id is centred in the part of its cell that lies in the plot and kept
-/// inside the plot, and goes in the first row where it keeps clear of the ids placed there. The ids are placed in route
-/// order when that names every section. Otherwise the ids of critical and conflict sections are placed first, then those
-/// of the first and last section, of switch sections and of station sections, then the others in route order, and an id
-/// that keeps clear in no row is left out. The result has the order of placing. `candidates` gets the number of ids that
-/// could be shown.
-std::vector<StripLabel> placedStripLabels(const std::vector<BlockSectionExtent>& sections, const std::vector<BlockSectionMarks>& marks,
-	const QRectF& plot, double top, double rowHeight, int rows, const std::function<double(double km)>& xAt,
-	const std::function<double(const BlockSectionExtent& section, bool strong)>& idWidth, std::size_t* candidates = nullptr);
 
 #endif // CHARTTICKS_H

@@ -303,84 +303,71 @@ void TestBlockingTimeDiagram::keepsNegativeSection() {
 void TestBlockingTimeDiagram::matchesSectionOfRoute() {
 	const std::vector<BlockSectionExtent> route = buildBlockSectionExtents({{"@0-B0@", 0.0, 2.0}, {"@1-B0@", 2.0, 4.0}, {"@2-B0@", 4.0, 6.0}});
 	std::vector<BlockingTimeDiagramSegment> same = {envelope("@2-B0@", 4.0, 6.0)};
-	matchBlockingSegmentsToSections(same, route, "route0");
-	// same id and interval gives the section and no note, as the hover names the block
+	matchBlockingSegmentsToSections(same, route);
+	// same id and interval gives the section
 	QCOMPARE(same[0].referenceSection, 3);
-	QVERIFY(same[0].referenceNote.empty());
 
 	std::vector<BlockingTimeDiagramSegment> opposite = {envelope("@1-B0@", 4.0, 2.0)};
-	matchBlockingSegmentsToSections(opposite, route, "route0");
+	matchBlockingSegmentsToSections(opposite, route);
 	// an envelope from high X to low X matches the same section
 	QCOMPARE(opposite[0].referenceSection, 2);
-	QVERIFY(opposite[0].referenceNote.empty());
 
 	std::vector<BlockingTimeDiagramSegment> otherId = {envelope("@9-B0@", 2.0, 4.0)};
-	matchBlockingSegmentsToSections(otherId, route, "route0");
+	matchBlockingSegmentsToSections(otherId, route);
 	// the same interval with another id is not a section of the route
 	QCOMPARE(otherId[0].referenceSection, 0);
-	QCOMPARE(otherId[0].referenceNote, "Not on route0");
 
 	std::vector<BlockingTimeDiagramSegment> point = {envelope("@1-B0@", 3.0, 3.0)};
-	matchBlockingSegmentsToSections(point, route, "route0");
+	matchBlockingSegmentsToSections(point, route);
 	// a zero-length record is a location and stays unevaluated
 	QCOMPARE(point[0].referenceSection, 0);
-	QVERIFY(point[0].referenceNote.empty());
 
 	std::vector<BlockingTimeDiagramSegment> none = {envelope("@1-B0@", 2.0, 4.0)};
-	matchBlockingSegmentsToSections(none, {}, "route0");
+	matchBlockingSegmentsToSections(none, {});
 	// no sections evaluate nothing
 	QCOMPARE(none[0].referenceSection, 0);
-	QVERIFY(none[0].referenceNote.empty());
 
 	same[0].startPositionKm = same[0].endPositionKm;
-	matchBlockingSegmentsToSections(same, route, "route0");
+	matchBlockingSegmentsToSections(same, route);
 	// point rematch clears stale section metadata
 	QCOMPARE(same[0].referenceSection, 0);
-	QVERIFY(same[0].referenceNote.empty());
 }
 
 void TestBlockingTimeDiagram::matchesRepeatedId() {
 	const auto twice = buildBlockSectionExtents({{"@x@", 0.0, 1.0}, {"@x@", 5.0, 6.0}});
 	std::vector<BlockingTimeDiagramSegment> second = {envelope("@x@", 5.0, 6.0)};
-	matchBlockingSegmentsToSections(second, twice, "route0");
+	matchBlockingSegmentsToSections(second, twice);
 	// a repeated id matches the occurrence with the equal interval
 	QCOMPARE(second[0].referenceSection, 2);
-	QVERIFY(second[0].referenceNote.empty());
 	std::vector<BlockingTimeDiagramSegment> overlapping = {envelope("@x@", 0.5, 1.5), envelope("@x@", 5.5, 8.0)};
-	matchBlockingSegmentsToSections(overlapping, twice, "route0");
+	matchBlockingSegmentsToSections(overlapping, twice);
 	// an envelope of the same id between the intervals shares a block with the first section it overlaps
 	QCOMPARE(overlapping[0].referenceSection, 1);
-	QCOMPARE(overlapping[0].referenceNote, "Section 1 of 2: x");
 	QCOMPARE(overlapping[1].referenceSection, 2);
-	QCOMPARE(overlapping[1].referenceNote, "Section 2 of 2: x");
 
 	const auto duplicated = buildBlockSectionExtents({{"@d@", 0.0, 1.0}, {"@d@", 0.0, 1.0}});
 	std::vector<BlockingTimeDiagramSegment> first = {envelope("@d@", 0.0, 1.0)};
-	matchBlockingSegmentsToSections(first, duplicated, "route0");
-	// coincident occurrences are retained but cannot identify one envelope occurrence, and the note names them one per line
+	matchBlockingSegmentsToSections(first, duplicated);
+	// coincident occurrences are retained but cannot identify one envelope occurrence
 	QCOMPARE(first[0].referenceSection, 0);
-	QCOMPARE(first[0].referenceNote, "Matches several sections of route0\nSection 1 of 2: d\nSection 2 of 2: d");
 	QCOMPARE(duplicated.size(), std::size_t(2));
 	std::vector<BlockingTimeDiagramSegment> sharedMany = {envelope("@d@", 0.2, 0.8)};
-	matchBlockingSegmentsToSections(sharedMany, duplicated, "route0");
+	matchBlockingSegmentsToSections(sharedMany, duplicated);
 	// shared-resource overlap with several occurrences is ambiguous
 	QCOMPARE(sharedMany[0].referenceSection, 0);
-	QCOMPARE(sharedMany[0].referenceNote.find("Matches several sections"), std::size_t(0));
-	matchBlockingSegmentsToSections(second, {}, "route0");
+	matchBlockingSegmentsToSections(second, {});
 	// empty route rematch clears stale section metadata
 	QCOMPARE(second[0].referenceSection, 0);
-	QVERIFY(second[0].referenceNote.empty());
 }
 
 void TestBlockingTimeDiagram::matchesCompositeSection() {
 	const auto composite = buildBlockSectionExtents({{"@3-B157@-59.120000/@34-B88@-59.130000", 10.0, 10.5}});
 	std::vector<BlockingTimeDiagramSegment> plain = {envelope("@34-B88@", 10.0, 10.5)};
-	matchBlockingSegmentsToSections(plain, composite, "route32");
+	matchBlockingSegmentsToSections(plain, composite);
 	// a plain id matches the composite section that holds its block
 	QCOMPARE(plain[0].referenceSection, 1);
-	QCOMPARE(plain[0].referenceNote, "Section 1 of 1: 3-B157/34-B88");
 	std::vector<BlockingTimeDiagramSegment> apart = {envelope("@34-B88@", 11.0, 12.0)};
-	matchBlockingSegmentsToSections(apart, composite, "route32");
+	matchBlockingSegmentsToSections(apart, composite);
 	// a shared block without an overlapping interval is not matched
 	QCOMPARE(apart[0].referenceSection, 0);
 }
@@ -389,10 +376,9 @@ void TestBlockingTimeDiagram::matchesCompositeSection() {
 void TestBlockingTimeDiagram::skipsSectionWithoutGeometry() {
 	const auto unusable = buildBlockSectionExtents({{"@t@", 0.0, 5e-10}});
 	std::vector<BlockingTimeDiagramSegment> tiny = {envelope("@t@", 0.0, 5e-10)};
-	matchBlockingSegmentsToSections(tiny, unusable, "route0");
+	matchBlockingSegmentsToSections(tiny, unusable);
 	// a section without geometry is not a candidate
 	QCOMPARE(tiny[0].referenceSection, 0);
-	QCOMPARE(tiny[0].referenceNote, "Not on route0");
 }
 
 // The geo X of the ends and the switch flag pass through as the route holds them. Without the geo X of an end the
@@ -467,7 +453,7 @@ void TestBlockingTimeDiagram::writesSectionRows() {
 	QVERIFY2(blockSectionCsvRows({}).empty(), "no sections give no rows");
 }
 
-// Note of the sections without geometry.
+// The note above the chart names the sections that the strip does not draw, and its tooltip says why.
 void TestBlockingTimeDiagram::notesSectionsWithoutGeometry() {
 	const auto sections = [](int count, int invalid) {
 		std::vector<BlockSectionInput> inputs;
@@ -475,34 +461,48 @@ void TestBlockingTimeDiagram::notesSectionsWithoutGeometry() {
 			inputs.push_back({"@s" + std::to_string(i) + "@", static_cast<double>(i), i < invalid ? static_cast<double>(i) : i + 1.0});
 		return buildBlockSectionExtents(inputs);
 	};
+	const auto noteOf = [](const std::vector<BlockSectionExtent>& extents) { return blockingTimeNote(0, 0, false, extents, "route0"); };
 	// usable extents give no note
-	QVERIFY(blockSectionGeometryNote(sections(4, 0)).empty());
-	QVERIFY(blockSectionGeometryNote({}).empty());
-	// one section without geometry is named by its short id
-	QCOMPARE(blockSectionGeometryNote(sections(4, 1)), "Sections not drawn (no valid length): s0");
+	QVERIFY(noteOf(sections(4, 0)).text.empty());
+	QVERIFY(noteOf(sections(4, 0)).reason.empty());
+	// a route without sections has no strip, which the note says
+	QCOMPARE(noteOf({}).text, "No block sections");
+	QCOMPARE(noteOf({}).reason, "route0 has no block sections.");
+	// one section without geometry is counted, and the tooltip names it by its short id
+	QCOMPARE(noteOf(sections(4, 1)).text, "1 section not drawn");
+	QCOMPARE(noteOf(sections(4, 1)).reason, "1 section has no valid length: s0.");
 	// three sections without geometry are all named
-	QCOMPARE(blockSectionGeometryNote(sections(4, 3)), "Sections not drawn (no valid length): s0, s1, s2");
+	QCOMPARE(noteOf(sections(4, 3)).text, "3 sections not drawn");
+	QCOMPARE(noteOf(sections(4, 3)).reason, "3 sections have no valid length: s0, s1, s2.");
 	// more than three sections without geometry end with the number left out
-	QCOMPARE(blockSectionGeometryNote(sections(5, 4)), "Sections not drawn (no valid length): s0, s1, s2 and 1 more");
+	QCOMPARE(noteOf(sections(5, 4)).reason, "4 sections have no valid length: s0, s1, s2 and 1 more.");
 	const double nan = std::numeric_limits<double>::quiet_NaN();
 	const auto mixed = buildBlockSectionExtents({{"@a@", 0.0, 1.0}, {"@b@", 1.0, 1.0}, {"@c@", 1.0, 2.0}, {"@d@", 2.0, nan}});
-	// the note lists the sections without geometry in route order and no others
-	QCOMPARE(blockSectionGeometryNote(mixed), "Sections not drawn (no valid length): b, d");
+	// the tooltip lists the sections without geometry in route order and no others
+	QCOMPARE(noteOf(mixed).reason, "2 sections have no valid length: b, d.");
 }
 
-// The note above the chart has only the parts that apply, and no count of 0.
+// The note above the chart is short, with the reason in its tooltip, and has only the parts that apply.
 void TestBlockingTimeDiagram::notesBlocksNotShown() {
-	QVERIFY2(blockingTimeNote(0, false, false, "route0").empty(), "nothing missing gives no note");
-	QVERIFY2(blockingTimeNote(0, false, true, "route0").empty(), "blocks that were not placed say nothing while the chart has some");
-	// one block or stop that is not shown is said in the singular
-	QCOMPARE(blockingTimeNote(1, false, true, "route0"), "1 block or stop could not be placed on route0 and is not shown.");
-	// the count of the blocks or stops that are not shown
-	QCOMPARE(blockingTimeNote(3, false, true, "route0"), "3 blocks or stops could not be placed on route0 and are not shown.");
+	const auto drawn = buildBlockSectionExtents({{"@a@", 0.0, 1.0}});
+	QVERIFY2(blockingTimeNote(0, 0, false, drawn, "route0").text.empty(), "nothing missing gives no note");
+	// one block that is not shown is said in the singular
+	QCOMPARE(blockingTimeNote(1, 0, false, drawn, "route0").text, "1 block not shown");
+	QCOMPARE(blockingTimeNote(1, 0, false, drawn, "route0").reason, "1 block could not be placed on route0.");
+	// blocks and stops are counted apart
+	QCOMPARE(blockingTimeNote(2, 0, false, drawn, "route0").text, "2 blocks not shown");
+	QCOMPARE(blockingTimeNote(0, 3, false, drawn, "route0").text, "3 stops not shown");
+	QCOMPARE(blockingTimeNote(2, 1, false, drawn, "route0").text, "2 blocks and 1 stop not shown");
+	QCOMPARE(blockingTimeNote(2, 1, false, drawn, "route0").reason, "2 blocks and 1 stop could not be placed on route0.");
 	// an empty chart without blocks that were not placed has nothing in its section and period
-	QCOMPARE(blockingTimeNote(0, true, false, "route0"), "No complete blocking times in this section and period.");
-	// an empty chart whose blocks were not placed says so after the count
-	QCOMPARE(blockingTimeNote(2, true, true, "route0"),
-		"2 blocks or stops could not be placed on route0 and are not shown. No blocking times could be placed on route0.");
+	QCOMPARE(blockingTimeNote(0, 0, true, drawn, "route0").text, "No blocking times");
+	QCOMPARE(blockingTimeNote(0, 0, true, drawn, "route0").reason, "No complete blocking times in this section and period.");
+	// an empty chart whose blocks were not placed says only that they are not shown
+	QCOMPARE(blockingTimeNote(2, 0, true, drawn, "route0").text, "2 blocks not shown");
+	// the parts are joined, one reason per line
+	const BlockingTimeNote both = blockingTimeNote(2, 0, false, {}, "route0");
+	QCOMPARE(both.text, "2 blocks not shown \u00b7 No block sections");
+	QCOMPARE(both.reason, "2 blocks could not be placed on route0.\nroute0 has no block sections.");
 }
 
 void TestBlockingTimeDiagram::scopesRepeatedSection() {

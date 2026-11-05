@@ -218,6 +218,7 @@ private slots:
 	void checksTrainGroups();
 	void ordersTrainRows();
 	void selectsTrainsAndBoxes();
+	void showsTheDetailsOfABoxInSelected();
 	void exportsTrainColumn();
 	void startsNoButtonOnEnter();
 	void showsRunContext();
@@ -241,7 +242,7 @@ private slots:
 	void readsGeoPosition();
 	void marksPositionBreak();
 	void spansSectionsExactly();
-	void namesSectionsInStrip();
+	void marksSectionsInStrip();
 	void readsClockMinutes();
 	void exportKeepsWindowInFront();
 	void fadesPlannedMarkers();
@@ -1206,22 +1207,22 @@ void TestDiagramWindow::drawsPhysicalSections() {
 	y->setRange(0, 100);
 	y->setReverse(true);
 	window.setChart(chart);
-	window.setBlockSections(buildBlockSectionExtents({{"@missing<&>@", 4, 4}}), "reference<&>");
+	window.setBlockSections(buildBlockSectionExtents({{"@missing<&>@", 4, 4}}));
 	QVERIFY2(legendKinds(window).isEmpty(), "sections without geometry draw no boundaries and get no Key row");
 	const std::string authored = "@repeat<&>" + std::string(80, 'X') + "@";
 	auto extents = buildBlockSectionExtents({{authored, 1, 3}, {authored, 1, 3}, {"@reverse@", 8, 5}, {"@missing<&>@", 4, 4}});
-	window.setBlockSections(extents, "reference<&>");
-	// the Key names the drawn section boundaries
-	QCOMPARE(legendKinds(window), QStringList({"Block boundary"}));
+	window.setBlockSections(extents);
+	// the drawn section boundaries need no row in the Key
+	QCOMPARE(legendKinds(window), QStringList());
 	DiagramWindow sectionsOnly("Physical sections only");
 	auto* empty = new QChart;
 	auto* km = new QValueAxis;
 	km->setRange(0, 10);
 	empty->addAxis(km, Qt::AlignBottom);
 	sectionsOnly.setChart(empty);
-	sectionsOnly.setBlockSections(extents, "reference<&>");
-	// a chart with only section boundaries names them in the Key
-	QCOMPARE(legendKinds(sectionsOnly), QStringList({"Block boundary"}));
+	sectionsOnly.setBlockSections(extents);
+	// a chart with only section boundaries has no Key
+	QCOMPARE(legendKinds(sectionsOnly), QStringList());
 	// Wide enough beside the panel that the label of the long section at 1 to 3 km ends before the section at 5 to 8 km.
 	window.setMaximumSize(1200, 640);
 	window.resize(1200, 640);
@@ -1260,9 +1261,8 @@ void TestDiagramWindow::drawsPhysicalSections() {
 	// section hover retains full escaped/plain text and both coincident occurrence identities
 	QVERIFY(tooltip->isVisible());
 	QCOMPARE(tooltip->textFormat(), Qt::PlainText);
-	QVERIFY(tooltip->text().startsWith(shortAuthored + "\nBlock section\nSection 1 of 4\nPosition 1.000 to 3.000 km\n"));
-	QVERIFY(tooltip->text().contains("Section 2 of 4"));
-	QVERIFY(tooltip->text().contains("1.000 to 3.000 km along reference<&>"));
+	// a section is two lines, its short id and its position
+	QCOMPARE(tooltip->text(), shortAuthored + "\nPosition 1.000 to 3.000 km\n" + shortAuthored + "\nPosition 1.000 to 3.000 km");
 	QString selected;
 	QObject::connect(&window, &DiagramWindow::trainSelected, [&selected](const QString& id) { selected = id; });
 	const auto click = [&](const QPoint& position) {
@@ -1276,13 +1276,13 @@ void TestDiagramWindow::drawsPhysicalSections() {
 	// a click on the section strip inspects the section and selects no train
 	QVERIFY(selected.isEmpty());
 	QVERIFY(tooltip->isVisible());
-	QVERIFY(tooltip->text().contains("km along reference<&>"));
+	QVERIFY(tooltip->text().startsWith(shortAuthored + "\nPosition 1.000 to 3.000 km"));
 	// A boundary inside the plot, away from every sample: the dotted line is inspected but belongs to no train.
 	click(view->mapFromScene(chart->mapToScene(chartPoint(8, chart->plotArea().height() / 2))));
 	// a click on a physical boundary inside the plot inspects the section and selects no train
 	QVERIFY(selected.isEmpty());
 	QVERIFY(tooltip->isVisible());
-	QVERIFY(tooltip->text().startsWith("reverse\nBlock section\nSection 3 of 4"));
+	QCOMPARE(tooltip->text(), QStringLiteral("reverse\nPosition 8.000 to 5.000 km"));
 	// The same click path selects a train when it lands on its series, so the checks above can fail.
 	click(view->mapFromScene(chart->mapToScene(chart->mapToPosition(QPointF(2, 50), first))));
 	// a click on a train series selects it while the section layer is present
@@ -1306,8 +1306,8 @@ void TestDiagramWindow::drawsPhysicalSections() {
 			}
 		return inspected && redPixels > 10;
 	};
-	// The strip and the geometry notice paint only in the band that ends at the plot area. Compare a grab with and without the
-	// overlay there, and look for the dark notice text in the lower row of the band.
+	// The strip paints only in the band that ends at the plot area, and without text. Compare a grab with and without the
+	// overlay there, and look for dark text in the band.
 	const QImage withOverlay = view->grab().toImage();
 	overlay->hide();
 	const QImage withoutOverlay = view->grab().toImage();
@@ -1327,11 +1327,11 @@ void TestDiagramWindow::drawsPhysicalSections() {
 		return count;
 	};
 	const double bandTop = headerPoint(0, 0).y();
-	const double rowHeight = overlay->property("stripHeight").toDouble();
-	// the strip and the geometry notice text paint in the band above the plot and not over the title
+	// the strip paints in the band above the plot and not over the title
 	QCOMPARE(bandPixels(0, bandTop - 2, false), 0);
-	QVERIFY(bandPixels(bandTop, bandTop + rowHeight, false) > 0);
-	QVERIFY(bandPixels(bandTop + rowHeight, chart->plotArea().top(), true) > 10);
+	QVERIFY(bandPixels(bandTop, chart->plotArea().top(), false) > 0);
+	// the strip names no section
+	QCOMPARE(bandPixels(bandTop, chart->plotArea().top(), true), 0);
 	// The window header names the chart, so the chart draws no title of its own: with the overlay hidden nothing dark paints
 	// above the middle of the plot, although the chart came with a title.
 	const auto titleExtent = [&](double limitY) {
@@ -1375,7 +1375,7 @@ void TestDiagramWindow::drawsPhysicalSections() {
 	QApplication::processEvents();
 	for (const QString& id : list->trainIds()) list->setTrainVisible(id, false);
 	hover(headerPoint(2, 5));
-	// hiding every train retains section labels and inspection
+	// hiding every train retains the strip and its inspection
 	QVERIFY(!first->isVisible());
 	QVERIFY(!second->isVisible());
 	QVERIFY(tooltip->isVisible());
@@ -1383,42 +1383,13 @@ void TestDiagramWindow::drawsPhysicalSections() {
 	std::vector<BlockSectionInput> narrowSections;
 	for (int index = 0; index < 40; ++index)
 		narrowSections.push_back({"@section-n" + std::to_string(index) + "@", index * 0.25, (index + 1) * 0.25});
-	window.setBlockSections(buildBlockSectionExtents(narrowSections), "crowded");
+	window.setBlockSections(buildBlockSectionExtents(narrowSections));
 	QApplication::processEvents();
-	const QImage crowded = view->grab().toImage();
-	const QRectF plot = chart->plotArea();
-	const QPoint topLeft = view->mapFromScene(chart->mapToScene(headerPoint(0, 0)));
-	const qreal ratio = crowded.devicePixelRatio();
-	int textPixels = 0;
-	for (int dy = 1; dy < QFontMetricsF(window.font()).height() + 3; ++dy)
-		for (int dx = 2; dx < plot.width() - 2; ++dx) {
-			const QPoint pixel(qRound((topLeft.x() + dx) * ratio), qRound((topLeft.y() + dy) * ratio));
-			if (!crowded.rect().contains(pixel)) continue;
-			const QColor color = crowded.pixelColor(pixel);
-			if (color.red() + color.green() + color.blue() < 400) ++textPixels;
-		}
-	QVERIFY2(textPixels > 10, "crowded extents thin labels rather than eliding every ID at fit");
-	const double labelWidth = QFontMetricsF(window.font()).horizontalAdvance("section-n0");
-	const QPointF expandedLabel(plot.left() + labelWidth - 2, headerPoint(0, 0).y() + 5);
-	QVERIFY2(expandedLabel.x() > chartPoint(0.25, 0).x() + 3, "crowded label test reaches visible text beyond its physical interval");
-	hover(expandedLabel);
-	// expanded visible label reports its full ID rather than the neighbouring physical interval
+	// a narrow cell names its own section, not a neighbour
+	hover(headerPoint(0.375, 5));
 	QVERIFY(tooltip->isVisible());
-	QVERIFY(tooltip->text().startsWith("section-n0\n"));
-	QVERIFY(!tooltip->text().contains("section-n1"));
-	// With labels the strip still shows the id, and the hover gives the label on the line after the id.
-	SceneSectionLabels crowdedLabels;
-	crowdedLabels.byReference = {{"@section-n0@", "T 0.000 to 0.250 km"}};
-	window.setBlockSections(buildBlockSectionExtents(narrowSections), "crowded", &crowdedLabels);
-	QApplication::processEvents();
-	hover(QPointF(plot.left() + labelWidth - 2, headerPoint(0, 0).y() + 5));
-	const auto* crowdedStrip = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
-	// the strip names a section by its id, and the hover by its id and label
-	QVERIFY(crowdedStrip->property("stripLabels").toStringList().contains("section-n0"));
-	QVERIFY(tooltip->isVisible());
-	QVERIFY(tooltip->text().startsWith("section-n0\nT 0.000 to 0.250 km\nBlock section\nSection 1 of 40\n"
-									   "Position 0.000 to 0.250 km\n0.000 to 0.250 km along crowded"));
-	window.setBlockSections(extents, "reference<&>");
+	QCOMPARE(tooltip->text(), QStringLiteral("section-n1\nPosition 0.250 to 0.500 km"));
+	window.setBlockSections(extents);
 	overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
 	// The boundaries lie in a layer of the chart under the series: QChart stacks its series at 4.
 	auto* boundaries = chart->findChild<QGraphicsObject*>("blockBoundaryLines");
@@ -1451,7 +1422,7 @@ void TestDiagramWindow::drawsPhysicalSections() {
 	hover(headerPoint(2, 5));
 	// header inspection follows zoom
 	QVERIFY(tooltip->isVisible());
-	QVERIFY(tooltip->text().contains("km along reference<&>"));
+	QVERIFY(tooltip->text().startsWith(shortAuthored + "\nPosition 1.000 to 3.000 km"));
 	wheel(view, QPoint(-10, -8), {});
 	window.resize(window.width() - 80, window.height() - 50);
 	QApplication::processEvents();
@@ -1473,14 +1444,10 @@ void TestDiagramWindow::drawsPhysicalSections() {
 	hover(chartPoint(8, 60));
 	// a section towards decreasing X reports its directed ends in hover
 	QVERIFY(tooltip->isVisible());
-	QVERIFY(tooltip->text().startsWith("reverse\n"));
-	QVERIFY(tooltip->text().contains("Position 8.000 to 5.000 km"));
-	QVERIFY(tooltip->text().contains("8.000 to 5.000 km along reference<&>"));
-	hover(headerPoint(2, overlay->property("stripHeight").toDouble() + 5));
-	// missing geometry has an in-chart notice with full hover reason
-	QVERIFY(tooltip->text().contains("missing<&>: zero length"));
-	QVERIFY(!tooltip->text().contains("@missing"));
-	QVERIFY(!overlay->property("geometryNotice").toString().isEmpty());
+	QCOMPARE(tooltip->text(), QStringLiteral("reverse\nPosition 8.000 to 5.000 km"));
+	hover(headerPoint(4, 5));
+	// a section without geometry has no cell, so the strip there has no hover; the note above the chart names it
+	QVERIFY(!tooltip->isVisible());
 	QPointer<QGraphicsObject> old = overlay;
 	auto* only = new QChart;
 	auto* onlyX = new QValueAxis;
@@ -1495,7 +1462,7 @@ void TestDiagramWindow::drawsPhysicalSections() {
 	QVERIFY(!tooltip->isVisible());
 	x = onlyX;
 	chart = only;
-	window.setBlockSections(extents, "section-only");
+	window.setBlockSections(extents);
 	window.setTimeAxisY(true);
 	QApplication::processEvents();
 	hover(headerPoint(2, 5));
@@ -1527,12 +1494,12 @@ void TestDiagramWindow::drawsPhysicalSections() {
 	// removing the provider removes its checked CSV-only identity from the filter
 	QVERIFY(list->visibleTrainIds().isEmpty());
 	QVERIFY(list->trainIds().isEmpty());
-	window.setBlockSections({}, "no-geometry");
+	window.setBlockSections({});
 	QApplication::processEvents();
-	hover(headerPoint(2, 5));
-	// empty section geometry is explicitly reported inside chart
-	QVERIFY(tooltip->isVisible());
-	QVERIFY(tooltip->text().contains("No section boundaries for this route"));
+	// a chart without sections has no strip; the note above the chart says so
+	QCOMPARE(chart->findChild<QGraphicsObject*>("blockSectionOverlay")->property("headerHeight").toDouble(), 0.0);
+	hover(chartPoint(2, 5));
+	QVERIFY(!tooltip->isVisible());
 }
 
 // The text that the tooltip of `widget` shows once the pointer rests on it.
@@ -2342,6 +2309,42 @@ void TestDiagramWindow::ordersTrainRows() {
 	QCOMPARE(rowNamed(&grouped, "S9827")->child(0)->text(0), "S9827-4");
 }
 
+// The lines of a box after an empty line, such as the parts of a blocking time, are left out of its hover and shown in
+// Selected after the lines of the hover. The hover is as wide as its widest line.
+void TestDiagramWindow::showsTheDetailsOfABoxInSelected() {
+	DiagramWindow window("Details");
+	auto* chart = new QChart;
+	addBlockingBox(chart, "A", BlockingTimeKind::Ordinary, 2, 8, 20, 80);
+	auto* outline = qobject_cast<QXYSeries*>(chart->series().last());
+	const QString title = QStringLiteral("Guin-Paim-ALL-STOPS-1-1 on 3-B4/35-B0");
+	setMeta(outline, &SeriesMeta::inspectionTitle, title);
+	setMeta(outline, &SeriesMeta::inspectionInterval, "Blocked 07:00:20 to 07:01:20\nConflict\n\nApproach 2 s\nRun 18 s");
+	chart->createDefaultAxes();
+	for (auto* axis : chart->axes()) qobject_cast<QValueAxis*>(axis)->setRange(0, 100);
+	chart->axes(Qt::Horizontal).first()->setRange(0, 10);
+	window.setChart(chart);
+	window.setMaximumSize(1200, 750);
+	window.resize(1200, 750);
+	window.show();
+	QApplication::processEvents();
+	auto* view = window.findChild<QChartView*>();
+	const auto* tooltip = window.findChild<QLabel*>("diagramTooltip");
+	if (view == nullptr || tooltip == nullptr)
+		QFAIL("the window has its chart and tooltip");
+	moveTo(view, QPointF(5, 50), outline);
+	// the hover has the three lines of the box, and is as wide as its widest line, so the title stays on one line
+	QVERIFY(tooltip->isVisible());
+	QCOMPARE(tooltip->text(), title + "\nBlocked 07:00:20 to 07:01:20\nConflict");
+	const int titleWidth = tooltip->fontMetrics().horizontalAdvance(title);
+	QVERIFY2(tooltip->contentsRect().width() - 2 * tooltip->margin() >= titleWidth,
+		qPrintable(QString("the tooltip is %1 px wide for a title of %2 px").arg(tooltip->contentsRect().width() - 2 * tooltip->margin()).arg(titleWidth)));
+	clickChart(view, QPointF(5, 50), outline);
+	QApplication::processEvents();
+	// Selected adds the details below them
+	QCOMPARE(window.findChild<QLabel*>("diagramSelectedTitle")->text(), title);
+	QCOMPARE(window.findChild<QLabel*>("diagramPinLabel")->text(), "Blocked 07:00:20 to 07:01:20\nConflict\nApproach 2 s\nRun 18 s");
+}
+
 // A click on a line selects its train: Selected shows the lines of its tooltip, the line is emphasised and its row
 // highlighted. A click inside a blocking time selects that box: an outline marks it, Selected shows its lines and the
 // chart keeps its look. Clear, Escape, hiding the train and a new chart end the selection, and the exported figure leaves
@@ -2932,10 +2935,10 @@ void TestDiagramWindow::laysOutHeader() {
 	QToolButton* zoomIn = buttons[1];
 	QToolButton* fit = buttons[2];
 	QToolButton* toggle = buttons[3];
-	// the tooltips of the header buttons name the keys, one fact a line
+	// the tooltips of the header buttons are one line each, the name and the key
 	QCOMPARE(zoomOut->toolTip(), "Zoom out (-)");
-	QVERIFY(zoomIn->toolTip().startsWith("Zoom in (+)\nDrag a rectangle to zoom into it\n"));
-	QCOMPARE(fit->toolTip(), "Show the whole chart (Home or 0)\nScroll or the arrow keys to pan");
+	QCOMPARE(zoomIn->toolTip(), "Zoom in (+)");
+	QCOMPARE(fit->toolTip(), "Fit (0)");
 	QCOMPARE(toggle->toolTip(), "Show or hide the panel");
 	// the window has no help line and no Reset zoom button
 	QVERIFY(!window.findChild<QLabel*>("diagramNavigationHelp"));
@@ -3512,7 +3515,7 @@ static std::vector<BlockSectionExtent> paimpolSections(int first) {
 // A window built as the blocking-time windows are: one envelope across the sections, the distance axis exactly over the
 // sections, the strip, the position axis and the clock downward from 07:00:00.
 static QChart* showBlockingWindow(DiagramWindow& window, const std::vector<BlockSectionExtent>& extents, int width, int height,
-	std::vector<BlockSectionMarks> marks = {}, int routeSectionCount = 0, const SceneSectionLabels* labels = nullptr) {
+	std::vector<BlockSectionMarks> marks = {}) {
 	const auto bounds = blockSectionBounds(extents).value_or(std::make_pair(0.0, 1.0));
 	auto* chart = new QChart;
 	auto* box = new QLineSeries;
@@ -3531,7 +3534,7 @@ static QChart* showBlockingWindow(DiagramWindow& window, const std::vector<Block
 	y->setRange(0, 3600);
 	y->setReverse(true);
 	window.setChart(chart);
-	window.setBlockSections(extents, "route0", labels, std::move(marks), routeSectionCount);
+	window.setBlockSections(extents, std::move(marks));
 	window.setPositionAxis(PositionScale(extents));
 	window.setTimeAxisY(true, 7 * 3600);
 	window.setMaximumSize(width, height);
@@ -3763,108 +3766,46 @@ void TestDiagramWindow::spansSectionsExactly() {
 	QCOMPARE_EQ(axis->max(), 12);
 }
 
-// The strip names each section by its short id, in one row when every id fits at the full view and in two otherwise, so
-// zooming keeps the rows. It marks station, switch, critical and conflict sections, and keeps the ids of critical, first
-// and last sections where two rows cannot name every section. The hover has one fact per line.
-void TestDiagramWindow::namesSectionsInStrip() {
-	// The rows and the ids of the strip in a window of this size, the width of a cell of 300 m and that of the id 70-B0 with
-	// the gap between two ids; with `zoomedRows`, also the rows once zoomed in.
-	const auto rowsAt = [](const std::vector<BlockSectionExtent>& extents, int width, int height, double* cellPx, double* idPx, QStringList* shown, int* zoomedRows = nullptr) {
+// The strip has a cell for each section, without text, and marks station, switch, critical and conflict sections. The
+// hover of a cell names its section and gives its position, in two lines.
+void TestDiagramWindow::marksSectionsInStrip() {
+	// Paimpol route0, sections 36 to 72, in windows 1200 px and 1728 px wide.
+	const auto paimpol = paimpolSections(36);
+	for (const auto& [width, height] : {std::make_pair(1200, 750), std::make_pair(1728, 1000)}) {
 		DiagramWindow window("Blocking time");
-		QChart* chart = showBlockingWindow(window, extents, width, height);
-		*idPx = QFontMetricsF(window.font()).horizontalAdvance("70-B0") + 6;
+		QChart* chart = showBlockingWindow(window, paimpol, width, height);
 		auto* view = window.findChild<QChartView*>();
-		const auto* overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
-		const auto bounds = blockSectionBounds(extents).value();
-		*cellPx = 0.3 * chart->plotArea().width() / (bounds.second - bounds.first);
-		*shown = overlay->property("stripLabels").toStringList();
-		const int rows = overlay->property("stripRows").toInt();
-		if (zoomedRows) {
-			for (int step = 0; step < 4; ++step) wheel(view, {}, {0, 120}, Qt::ControlModifier);
-			settle();
-			*zoomedRows = overlay->property("stripRows").toInt();
-		}
-		return rows;
-	};
-	// Paimpol route0, sections 50 to 72: 22 blocks of 300 m and the switch section 71-B0/0-B1.
-	const auto partOfPaimpol = paimpolSections(50);
-	double wideCell = 0, narrowCell = 0, idWidth = 0;
-	QStringList wideIds, narrowIds;
-	int wideZoomed = 0, narrowZoomed = 0;
-	const int wideRows = rowsAt(partOfPaimpol, 1600, 900, &wideCell, &idWidth, &wideIds, &wideZoomed);
-	const int narrowRows = rowsAt(partOfPaimpol, 900, 700, &narrowCell, &idWidth, &narrowIds, &narrowZoomed);
-	QVERIFY2(wideCell > idWidth, "every id fits in its cell at 1600 px and not at 900 px");
-	QVERIFY2(narrowCell < idWidth, "every id fits in its cell at 1600 px and not at 900 px");
-	QVERIFY2(wideRows == 1, qPrintable(QString("at 1600 px one row names every section: %1 rows, %2 ids").arg(wideRows).arg(wideIds.size())));
-	QVERIFY2(wideZoomed == 1, qPrintable(QString("at 1600 px one row names every section: %1 rows, %2 ids").arg(wideRows).arg(wideIds.size())));
-	QVERIFY2(wideIds.size() == 23, qPrintable(QString("at 1600 px one row names every section: %1 rows, %2 ids").arg(wideRows).arg(wideIds.size())));
-	QVERIFY2(wideIds.contains("71-B0/0-B1"), qPrintable(QString("at 1600 px one row names every section: %1 rows, %2 ids").arg(wideRows).arg(wideIds.size())));
-	QVERIFY2(wideIds.contains("49-B0"), qPrintable(QString("at 1600 px one row names every section: %1 rows, %2 ids").arg(wideRows).arg(wideIds.size())));
-	QVERIFY2(narrowRows == 2, qPrintable(QString("at 900 px the ids take two rows, also zoomed in: %1 rows, %2 ids").arg(narrowRows).arg(narrowIds.size())));
-	QVERIFY2(narrowZoomed == 2, qPrintable(QString("at 900 px the ids take two rows, also zoomed in: %1 rows, %2 ids").arg(narrowRows).arg(narrowIds.size())));
-	QVERIFY2(narrowIds.size() > 12, qPrintable(QString("at 900 px the ids take two rows, also zoomed in: %1 rows, %2 ids").arg(narrowRows).arg(narrowIds.size())));
-	QVERIFY2(narrowIds.contains("71-B0/0-B1"), qPrintable(QString("at 900 px the ids take two rows, also zoomed in: %1 rows, %2 ids").arg(narrowRows).arg(narrowIds.size())));
-	// The strip is set before the window has its size, and chooses its rows again once it has: the room above the plot
-	// follows the rows.
-	for (const auto& [width, height, expectedRows] : {std::make_tuple(1600, 900, 1), std::make_tuple(900, 700, 2)}) {
-		DiagramWindow window("Blocking time");
-		QChart* chart = showBlockingWindow(window, partOfPaimpol, width, height);
 		const auto* overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
 		const double header = overlay->property("headerHeight").toDouble();
 		const QLegend* legend = chart->legend();
-		QVERIFY2(overlay->property("stripRows").toInt() == expectedRows, qPrintable(QString("the room above the plot follows the rows at %1 px: strip %2 px, room %3 px").arg(width).arg(header).arg(legend->minimumHeight())));
-		QVERIFY2(legend->minimumHeight() == std::ceil(header), qPrintable(QString("the room above the plot follows the rows at %1 px: strip %2 px, room %3 px").arg(width).arg(header).arg(legend->minimumHeight())));
-		QVERIFY2(chart->plotArea().top() - header >= legend->geometry().top() - 0.5, qPrintable(QString("the room above the plot follows the rows at %1 px: strip %2 px, room %3 px").arg(width).arg(header).arg(legend->minimumHeight())));
+		// the room above the plot is as high as the strip
+		QVERIFY2(legend->minimumHeight() == std::ceil(header), qPrintable(QString("the room above the plot at %1 px: strip %2 px, room %3 px").arg(width).arg(header).arg(legend->minimumHeight())));
+		QVERIFY2(chart->plotArea().top() - header >= legend->geometry().top() - 0.5, qPrintable(QString("the room above the plot at %1 px: strip %2 px, room %3 px").arg(width).arg(header).arg(legend->minimumHeight())));
+		// nothing dark paints in the strip: it names no section
+		const QImage image = view->grab().toImage();
+		const qreal ratio = image.devicePixelRatio();
+		const QRectF plot = chart->plotArea();
+		const QPoint from = view->mapFromScene(chart->mapToScene(QPointF(plot.left() + 2, plot.top() - header + 1)));
+		const QPoint to = view->mapFromScene(chart->mapToScene(QPointF(plot.right() - 2, plot.top() - 1)));
+		int dark = 0;
+		for (int row = qRound(from.y() * ratio); row < qRound(to.y() * ratio); ++row)
+			for (int column = qRound(from.x() * ratio); column < qRound(to.x() * ratio); ++column) {
+				const QColor color = image.pixelColor(column, row);
+				if (color.red() + color.green() + color.blue() < 400) ++dark;
+			}
+		QVERIFY2(dark == 0, qPrintable(QString("the strip at %1 px has %2 dark pixels").arg(width).arg(dark)));
 	}
-	// Paimpol route0, sections 36 to 72, in windows 1200 px and 1728 px wide: two rows that name most of the 37 sections,
-	// with the first and the last.
-	const auto paimpol = paimpolSections(36);
-	for (const auto& [width, height, least] : {std::make_tuple(1200, 750, 20), std::make_tuple(1728, 1000, 30)}) {
-		double cell = 0, id = 0;
-		QStringList ids;
-		const int rows = rowsAt(paimpol, width, height, &cell, &id, &ids);
-		std::cout << "strip of Paimpol sections 36 to 72 at " << width << " px: " << rows << " rows, " << ids.size() << " of 37 ids\n";
-		QVERIFY2(rows == 2, qPrintable(QString("the strip of 37 sections at %1 px names %2, with the first and the last").arg(width).arg(ids.size())));
-		QVERIFY2(ids.size() >= least, qPrintable(QString("the strip of 37 sections at %1 px names %2, with the first and the last").arg(width).arg(ids.size())));
-		QVERIFY2(ids.size() <= 37, qPrintable(QString("the strip of 37 sections at %1 px names %2, with the first and the last").arg(width).arg(ids.size())));
-		QVERIFY2(ids.contains("35-B0"), qPrintable(QString("the strip of 37 sections at %1 px names %2, with the first and the last").arg(width).arg(ids.size())));
-		QVERIFY2(ids.contains("71-B0/0-B1"), qPrintable(QString("the strip of 37 sections at %1 px names %2, with the first and the last").arg(width).arg(ids.size())));
-	}
-	// Where two rows cannot name every section, the id of a critical section goes first: of three sections at one spot the
-	// first and the critical one are named, the second is not.
-	auto crowded = buildBlockSectionExtents({{"@first-B0@", 0, 0.01}, {"@second-B0@", 0.01, 0.02}, {"@third-B0@", 0.02, 0.03}, {"@last-B0@", 0.03, 10}});
-	std::vector<BlockSectionMarks> crowdedMarks(4);
-	crowdedMarks[2].critical = true;
+	// A cell narrower than a pixel has a hover beside it too.
 	{
 		DiagramWindow window("Blocking time");
-		QChart* chart = showBlockingWindow(window, crowded, 1200, 750, crowdedMarks);
-		const QStringList ids = chart->findChild<QGraphicsObject*>("blockSectionOverlay")->property("stripLabels").toStringList();
-		QVERIFY2(ids.contains("third-B0"), qPrintable("the strip keeps the critical, first and last ids: " + ids.join(", ")));
-		QVERIFY2(ids.contains("first-B0"), qPrintable("the strip keeps the critical, first and last ids: " + ids.join(", ")));
-		QVERIFY2(ids.contains("last-B0"), qPrintable("the strip keeps the critical, first and last ids: " + ids.join(", ")));
-		QVERIFY2(!ids.contains("second-B0"), qPrintable("the strip keeps the critical, first and last ids: " + ids.join(", ")));
-	}
-	// Where two rows name every section in route order, the strip keeps that order. The ids of the first four sections
-	// overlap their neighbours only, so they alternate between the rows. Placing the first section and the switch section
-	// 14-B0 first would put both in the top row and leave no room for 13-B0.
-	{
-		const auto chainOf = [](double cellKm) {
-			return buildBlockSectionExtents({{"@11-B0@", 0, cellKm}, {"@12-B0@", cellKm, 2 * cellKm}, {"@13-B0@", 2 * cellKm, 3 * cellKm},
-				{"@14-B0@", 3 * cellKm, 4 * cellKm, std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), true},
-				{"@15-B0@", 4 * cellKm, 10}});
-		};
-		double plotWidth = 0, chainIdWidth = 0;
-		{
-			DiagramWindow window("Blocking time");
-			plotWidth = showBlockingWindow(window, chainOf(0.3), 1200, 750)->plotArea().width();
-			chainIdWidth = QFontMetricsF(window.font()).horizontalAdvance("13-B0");
-		}
-		DiagramWindow window("Blocking time");
-		QChart* chart = showBlockingWindow(window, chainOf(0.75 * (chainIdWidth + 6) * 10 / plotWidth), 1200, 750);
-		const auto* overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
-		const QStringList ids = overlay->property("stripLabels").toStringList();
-		QVERIFY2(overlay->property("stripRows").toInt() == 2, qPrintable("two rows name the five sections in route order: " + ids.join(", ")));
-		QVERIFY2(ids.size() == 5, qPrintable("two rows name the five sections in route order: " + ids.join(", ")));
+		QChart* chart = showBlockingWindow(window, buildBlockSectionExtents({{"@a-B0@", 0, 4}, {"@narrow-B0@", 5, 5.001}, {"@b-B0@", 6, 10}}), 1200, 750);
+		auto* view = window.findChild<QChartView*>();
+		const QRectF plot = chart->plotArea();
+		const double top = plot.top() - chart->findChild<QGraphicsObject*>("blockSectionOverlay")->property("headerHeight").toDouble();
+		hoverChart(view, QPointF(plot.left() + 5.0005 / 10 * plot.width() + 2, top + 6));
+		auto* tooltip = window.findChild<QLabel*>("diagramTooltip");
+		QVERIFY(tooltip->isVisible());
+		QCOMPARE(tooltip->text(), QStringLiteral("narrow-B0\nPosition 5.000 to 5.001 km"));
 	}
 
 	// The marks: a station, a switch, a critical block, a conflict and a plain block, 1 km each.
@@ -3875,16 +3816,15 @@ void TestDiagramWindow::namesSectionsInStrip() {
 	marks[0].station = true;
 	marks[2].critical = true;
 	marks[3].conflict = true;
-	SceneSectionLabels labels;
-	labels.byReference = {{"@12-B0@", "B0 2.000 to 3.000 km"}};
 	DiagramWindow window("Blocking time");
-	QChart* chart = showBlockingWindow(window, marked, 1200, 750, marks, 125, &labels);
+	QChart* chart = showBlockingWindow(window, marked, 1200, 750, marks);
 	auto* view = window.findChild<QChartView*>();
 	const auto* overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
 	const QImage image = view->grab().toImage();
 	const QRectF plot = chart->plotArea();
 	const double top = plot.top() - overlay->property("headerHeight").toDouble();
-	const double bottom = top + overlay->property("stripHeight").toDouble() - 4;
+	// The strip ends 4 px above the plot.
+	const double bottom = plot.top() - 4;
 	const auto colourAt = [&](double km, double y) {
 		const QPoint at = view->mapFromScene(chart->mapToScene(QPointF(plot.left() + km / 5 * plot.width(), y)));
 		return image.pixelColor(qRound(at.x() * image.devicePixelRatio()), qRound(at.y() * image.devicePixelRatio()));
@@ -3910,15 +3850,14 @@ void TestDiagramWindow::namesSectionsInStrip() {
 	// a switch section is hatched
 	QVERIFY(hatched > 20);
 	QCOMPARE(plainHatched, 0);
-	hoverChart(view, QPointF(plot.left() + 2.5 / 5 * plot.width(), top + 6));
+	// the Key explains the station and switch cells
+	QCOMPARE(legendKinds(window), QStringList({"Station section", "Switch section"}));
 	auto* tooltip = window.findChild<QLabel*>("diagramTooltip");
-	QVERIFY2(tooltip->text() == "12-B0\nB0 2.000 to 3.000 km\nBlock section\nCritical block\nSection 43 of 125\nPosition 2.000 to 3.000 km\n"
-								"2.000 to 3.000 km along route0",
-		qPrintable("the hover of a section has its id, label, kind, marks, place and extents: " + tooltip->text()));
-	hoverChart(view, QPointF(plot.left() + 1.5 / 5 * plot.width(), top + 6));
-	QVERIFY2(tooltip->text().startsWith("11-B0/0-B1\nSwitch section\nSection 42 of 125\n"), qPrintable("a switch section: " + tooltip->text()));
-	hoverChart(view, QPointF(plot.left() + 0.5 / 5 * plot.width(), top + 6));
-	QVERIFY2(tooltip->text().startsWith("10-B0\nStation section\n"), qPrintable("a station section: " + tooltip->text()));
+	for (const auto& [km, expected] : {std::make_pair(2.5, "12-B0\nPosition 2.000 to 3.000 km"),
+			 std::make_pair(1.5, "11-B0/0-B1\nPosition 1.000 to 2.000 km"), std::make_pair(0.5, "10-B0\nPosition 0.000 to 1.000 km")}) {
+		hoverChart(view, QPointF(plot.left() + km / 5 * plot.width(), top + 6));
+		QVERIFY2(tooltip->text() == QString::fromLatin1(expected), qPrintable("the hover of a cell has the id and the position: " + tooltip->text()));
+	}
 }
 
 // The clock axis is titled "Time (hh:mm)" and reads HH:MM on whole minutes. Ticks less than a minute apart keep their
@@ -4717,8 +4656,7 @@ void TestDiagramWindow::presentsInputCurve() {
 	const QString longContext = "Reference: " + QString(1500, QLatin1Char('R'))
 		+ " | Case: " + QString(1500, QLatin1Char('C'));
 	for (const QString& warning : {scientificWarning,
-			 QStringLiteral("2 blocks or stops could not be placed on route0 and are not shown."),
-			 QStringLiteral("2 blocks or stops could not be placed on route0 and are not shown. No blocking times could be placed on route0.")}) {
+			 QStringLiteral("2 blocks not shown"), QStringLiteral("2 blocks and 1 stop not shown \u00b7 3 sections not drawn")}) {
 		input.setPresentation("Scientific interpretation", longContext, warning);
 		QApplication::processEvents();
 		const auto* label = input.findChild<QLabel*>("diagramWarning");
@@ -4743,6 +4681,12 @@ void TestDiagramWindow::presentsInputCurve() {
 		QVERIFY(input.width() <= 640);
 		QVERIFY(input.height() <= input.maximumHeight());
 	}
+	// the reason for a short warning is in its tooltip, as typed
+	input.setPresentation("Blocking time", longContext, "2 blocks not shown", QString(), "2 blocks could not be placed on <route0>.");
+	QApplication::processEvents();
+	QCOMPARE(shownTip(input.findChild<QLabel*>("diagramWarning")), "2 blocks could not be placed on <route0>.");
+	input.setPresentation("Blocking time", longContext, "2 blocks not shown");
+	QVERIFY2(input.findChild<QLabel*>("diagramWarning")->toolTip().isEmpty(), "a warning without a reason has no tooltip");
 	input.setPresentation("No warning", longContext);
 	QVERIFY2(input.findChild<QLabel*>("diagramWarning")->isHidden(), "absent warning uses no strip");
 }
