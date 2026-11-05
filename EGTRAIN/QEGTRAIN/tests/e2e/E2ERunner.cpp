@@ -246,7 +246,7 @@ bool configureProcess() {
 	if (qEnvironmentVariableIsSet(kVisualPolish))
 		mainWindowTestHooks().frameRendered = &MainWindowTestAccess::visualPolishFrame;
 	mainWindowTestHooks().snapshotDelivered = &MainWindowTestAccess::snapshotDelivered;
-	mainWindowTestHooks().snapshotDrawn = &MainWindowTestAccess::checkSignalHeads;
+	mainWindowTestHooks().snapshotDrawn = &MainWindowTestAccess::snapshotDrawn;
 	mainWindowTestHooks().runFinished = &MainWindowTestAccess::runFinished;
 	mainWindowTestHooks().routeDiagramBuilt = &MainWindowTestAccess::routeDiagramBuilt;
 	// A script that answers the run review needs it to open although dialogs are suppressed.

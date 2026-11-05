@@ -3649,7 +3649,7 @@ void MainWindow::trainHidden(int trainIndex) {
 
 bool MainWindow::trainAdded(int trainIndex, bool firstLiveTrain) {
 	TrainItemGroup* newTrain = resolveTrainItem(trainIndex);
-	if (firstLiveTrain && newTrain && newTrain->isVisible())
+	if (firstLiveTrain && newTrain && newTrain->isVisible() && !networkView->atFit())
 		centerSceneItem(newTrain);
 	if (m_followTrainIndex != trainIndex)
 		return false;
