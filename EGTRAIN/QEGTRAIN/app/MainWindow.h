@@ -103,7 +103,8 @@ struct UpdateCheckResult;
 
 /// The folder for crash notes, or an empty string when this run keeps none. QEGTRAIN_CRASH_DIR names a folder for any
 /// run. Otherwise a scripted run and a run on the offscreen or minimal platform keep none, so that they never meet the
-/// notes of a user, and a normal run keeps them in AppLocalDataLocation/Crashes. Call it once the application exists.
+/// notes of a user, a test run with settings of its own keeps them in Crashes in its settings folder, and a normal run
+/// keeps them in AppLocalDataLocation/Crashes. Call it once the application exists.
 QString crashNoteFolder();
 /// Records the scene at `path`, as `loaded` read it, as the scene that startup timing expects. Does nothing when
 /// startup timing is off.

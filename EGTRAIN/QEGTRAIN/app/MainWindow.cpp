@@ -386,9 +386,10 @@ bool e2eDialogsSuppressed() {
 		|| mainWindowTestHooks().dialogsSuppressed;
 }
 
-// The folder that the environment variable names, else the subfolder name of AppLocalDataLocation, or an empty string
-// when this run keeps none. A run that has no user to answer a question keeps files only in the folder that the variable
-// names, so that it never meets the files of a user.
+// The folder that the environment variable names, else the subfolder name of the folder of a test run with settings of
+// its own or of AppLocalDataLocation, or an empty string when this run keeps none. A run that has no user to answer a
+// question keeps files only in the folder that the variable names, and a test run keeps them next to its settings, so
+// that neither meets the files of a user.
 QString runDataFolder(const char* variable, const char* name) {
 	const QString named = qEnvironmentVariable(variable);
 	if (!named.isEmpty())
@@ -396,6 +397,9 @@ QString runDataFolder(const char* variable, const char* name) {
 	const QString platform = QGuiApplication::platformName();
 	if (e2eDialogsSuppressed() || platform == QLatin1String("offscreen") || platform == QLatin1String("minimal"))
 		return {};
+	const QString testFolder = mainWindowTestHooks().runDataFolder;
+	if (!testFolder.isEmpty())
+		return QDir(testFolder).filePath(QLatin1String(name));
 	const QString data = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
 	return data.isEmpty() ? QString() : QDir(data).filePath(QLatin1String(name));
 }

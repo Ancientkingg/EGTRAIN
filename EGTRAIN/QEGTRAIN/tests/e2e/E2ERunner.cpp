@@ -229,6 +229,8 @@ bool configureProcess() {
 		const QString absoluteSettingsDir = QDir(settingsDir).absolutePath();
 		QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, absoluteSettingsDir);
 		QSettings::setPath(QSettings::IniFormat, QSettings::SystemScope, absoluteSettingsDir);
+		// A run with a window on a screen keeps its recovery copies and crash notes there too, away from those of the user.
+		mainWindowTestHooks().runDataFolder = absoluteSettingsDir;
 	}
 	const QString openRequestAt = qEnvironmentVariable(kOpenRequestAt);
 	if (!openRequestAt.isEmpty() && openRequestAt != QLatin1String("launch") && openRequestAt != QLatin1String("startup")
