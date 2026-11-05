@@ -904,10 +904,18 @@ void MainWindow::setupLayersDock() {
 	m_presenter->setPassengerLayerVisible(m_passengerChoice);
 	connect(m_passengerLayerCheck, &QCheckBox::toggled, m_showPassengersAction, &QAction::setChecked);
 	connect(m_showPassengersAction, &QAction::toggled, m_passengerLayerCheck, &QCheckBox::setChecked);
+	// The secondary layers stand 16 pixels in under their parent layer. The indent is in the layout: macOS draws the box
+	// of a check box at its left edge, so a margin from the style sheet moves the click rect off the box.
+	const auto addIndented = [caseLayersLayout](QWidget* widget) {
+		auto* indent = new QVBoxLayout;
+		indent->setContentsMargins(16, 0, 0, 0);
+		indent->addWidget(widget);
+		caseLayersLayout->addLayout(indent);
+	};
 	caseLayersLayout->addWidget(m_stationLayerCheck);
-	caseLayersLayout->addWidget(m_stationNamesCheck);
+	addIndented(m_stationNamesCheck);
 	caseLayersLayout->addWidget(m_trainLayerCheck);
-	caseLayersLayout->addWidget(m_trainSpeedLabelsCheck);
+	addIndented(m_trainSpeedLabelsCheck);
 	caseLayersLayout->addWidget(m_signalLayerCheck);
 	caseLayersLayout->addWidget(m_passengerLayerCheck);
 	m_networkLegendWidget = new NetworkLegendWidget(caseLayersWidget);
