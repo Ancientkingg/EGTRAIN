@@ -32,7 +32,8 @@ struct PreparedBatch {
 /// events give way first when a category is full; going over the directory limit is a storage
 /// failure. An event expires seven days after it occurred. All times are UTC.
 ///
-/// One worker owns this object and all methods. An unsuccessful storage operation fails closed; the
+/// One worker owns this object and all methods. A file write that fails is tried once more after 100 ms.
+/// An unsuccessful storage operation, including a write that fails twice, fails closed; the
 /// caller must close ingress and abandon outstanding RAM work. It also tries to leave a disabled
 /// marker file, after which every later open() that takes owner.lock discards the queued events
 /// and returns Disabled.
@@ -93,8 +94,9 @@ public:
 	/// True while this object holds owner.lock and no storage operation has failed.
 	bool healthy() const { return m_owner && !m_failed; }
 #ifdef EGTRAIN_TELEMETRY_TEST_HOOK
-	/// Test hook: the next file write fails as a storage failure would.
-	void failNextWriteForTesting() { m_failNextWrite = true; }
+	/// Test hook: the next attempts tries to write a file fail as a storage failure would. A failed write is
+	/// tried twice, so 2 make one storage operation fail.
+	void failNextWritesForTesting(int attempts) { m_failingWrites = attempts; }
 #endif
 	/// Releases owner.lock and drops the events held in memory. The files stay.
 	void close();
@@ -122,7 +124,7 @@ private:
 	QDateTime m_lastSeen, m_lastCheckpoint;
 	bool m_owner = false, m_failed = false;
 #ifdef EGTRAIN_TELEMETRY_TEST_HOOK
-	bool m_failNextWrite = false;
+	int m_failingWrites = 0;
 #endif
 };
 }

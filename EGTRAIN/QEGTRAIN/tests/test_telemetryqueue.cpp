@@ -46,6 +46,7 @@ class TestTelemetryQueue : public QObject {
 private slots:
 	void disabledRecovery_data();
 	void disabledRecovery();
+	void retriesFailedWrite();
 	void temporaryBudget();
 	void controlTimestampTypes_data();
 	void controlTimestampTypes();
@@ -106,7 +107,7 @@ void TestTelemetryQueue::disabledRecovery() {
 	}
 	QJsonObject retainedControl;
 	QVERIFY(readObject(control, retainedControl));
-	queue.failNextWriteForTesting();
+	queue.failNextWritesForTesting(2);
 	QVERIFY(!queue.enqueueUsage({createEvent({}, now), id}, now));
 	TelemetryQueue follower;
 	QCOMPARE(follower.open(directory.path(), endpoint, QStringLiteral("1"), now.addDays(8)), TelemetryQueue::OpenResult::Follower);
@@ -123,6 +124,26 @@ void TestTelemetryQueue::disabledRecovery() {
 	QCOMPARE(controlAfter, retainedControl);
 	queue.close();
 	QCOMPARE(queue.open(directory.path(), endpoint, QStringLiteral("1"), now.addDays(9)), TelemetryQueue::OpenResult::Disabled);
+}
+
+// A write that fails once is tried again: the event is stored, the queue stays healthy and no disabled marker is left.
+void TestTelemetryQueue::retriesFailedWrite() {
+	QTemporaryDir directory;
+	TelemetryQueue queue;
+	QCOMPARE(queue.open(directory.path(), kEndpointA, QStringLiteral("1"), kNow), TelemetryQueue::OpenResult::Owner);
+	const auto usage = createEvent({}, kNow);
+	queue.failNextWritesForTesting(1);
+	QVERIFY2(queue.enqueueUsage({usage, kId}, kNow), "a write that fails once is stored at the second attempt");
+	QVERIFY(queue.healthy());
+	QVERIFY(!QFile::exists(directory.filePath(QStringLiteral("disabled"))));
+	QJsonObject stored;
+	QVERIFY(readObject(directory.filePath(QStringLiteral("usage.json")), stored));
+	QCOMPARE(stored.value(QStringLiteral("events")).toArray().size(), 1);
+	queue.close();
+	// The queue opens again with the event.
+	QCOMPARE(queue.open(directory.path(), kEndpointA, QStringLiteral("1"), kNow), TelemetryQueue::OpenResult::Owner);
+	QCOMPARE(queue.prepareBatch(Category::Usage, kId, kMetadata, kNow).token.ids, QVector<QString>{usage.id});
+	queue.close();
 }
 
 void TestTelemetryQueue::temporaryBudget() {
@@ -656,7 +677,7 @@ void TestTelemetryQueue::interruptedWrite() {
 	QCOMPARE(queue.open(interrupted.path(), kEndpointA, QStringLiteral("1"), kNow), TelemetryQueue::OpenResult::Owner);
 	QCOMPARE(queue.prepareBatch(Category::Usage, kId, kMetadata, kNow).token.ids.first(), usage.id);
 #ifdef EGTRAIN_TELEMETRY_TEST_HOOK
-	queue.failNextWriteForTesting();
+	queue.failNextWritesForTesting(2);
 	QVERIFY(!queue.enqueueUsage({createEvent({}, kNow), kId}, kNow));
 	QVERIFY(!queue.healthy());
 #endif

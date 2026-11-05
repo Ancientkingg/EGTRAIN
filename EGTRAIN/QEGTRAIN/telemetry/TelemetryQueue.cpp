@@ -12,6 +12,8 @@
 #include <QUuid>
 #include <climits>
 #include <algorithm>
+#include <chrono>
+#include <thread>
 
 namespace telemetry {
 namespace {
@@ -79,17 +81,25 @@ bool TelemetryQueue::fail() {
 bool TelemetryQueue::replace(const QString& file, const QByteArray& data, qint64 limit) {
 	// QSaveFile's temporary payload coexists with the old file and any orphan leftovers.
 	if (!m_owner || m_failed || data.size() > limit || !checkSpace(data.size())) return fail();
+	const auto write = [this, &file, &data]() {
 #ifdef EGTRAIN_TELEMETRY_TEST_HOOK
-	if (m_failNextWrite) {
-		m_failNextWrite = false;
-		return fail();
-	}
+		if (m_failingWrites > 0) {
+			--m_failingWrites;
+			return false;
+		}
 #endif
-	QSaveFile output(m_dir + QLatin1Char('/') + file);
-	output.setDirectWriteFallback(false);
-	if (!output.open(QIODevice::WriteOnly) || !output.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner)
-		|| output.write(data) != data.size() || !output.commit() || !checkSpace()) return fail();
-	return true;
+		QSaveFile output(m_dir + QLatin1Char('/') + file);
+		output.setDirectWriteFallback(false);
+		return output.open(QIODevice::WriteOnly) && output.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner)
+			&& output.write(data) == data.size() && output.commit();
+	};
+	// A scanner that holds the file or a disk that is full for a moment fails one write, so a failed write is
+	// tried once more before the queue fails closed. A failed QSaveFile leaves no temporary file behind.
+	if (!write()) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		if (!write()) return fail();
+	}
+	return checkSpace() || fail();
 }
 bool TelemetryQueue::loadControl() {
 	QFile file(m_dir + QStringLiteral("/control.json"));
