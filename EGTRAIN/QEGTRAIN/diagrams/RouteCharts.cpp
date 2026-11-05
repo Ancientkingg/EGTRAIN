@@ -58,9 +58,10 @@ void appendInspectedPoint(QLineSeries* series, SeriesMeta& meta, double x, doubl
 	meta.inspectionPoints.append(context);
 }
 
-// A time of the run as the clock reads it, to the nearest second, such as "07:52:30".
+// A time of the run as the clock reads it, in whole seconds rounded down as the readout of the window gives it, such as
+// "07:52:30".
 QString clockText(double seconds, long long startOffsetSeconds) {
-	return QString::fromStdString(formatSimTime(std::llround(seconds), startOffsetSeconds));
+	return QString::fromStdString(formatSimTime(static_cast<long long>(std::floor(seconds)), startOffsetSeconds));
 }
 
 } // namespace

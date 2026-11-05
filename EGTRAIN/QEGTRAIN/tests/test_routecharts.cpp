@@ -352,10 +352,11 @@ void TestRouteCharts::describesABlockInItsHover() {
 	addBlockingTimeSeries(&chart, {segment}, false, 25840);
 	QAbstractSeries* outline = chart.series().last();
 	QCOMPARE(seriesMeta(outline).inspectionTitle, QStringLiteral("A on 3-B0"));
-	// The train on the block, the blocked interval in clock time to the nearest second and the kind; the parts of the
-	// blocking time follow an empty line, for Selected. The label, position and notes of the block are not in the hover.
+	// The train on the block, the blocked interval in clock time and the kind; the parts of the blocking time follow an
+	// empty line, for Selected. The label and position of the block are not in the hover. The times are rounded down to
+	// the second, as the readout gives them, so 159.5 s reads 07:13:19.
 	QCOMPARE(seriesMeta(outline).inspectionInterval.split('\n'),
-		QStringList({"Blocked 07:12:20 to 07:13:20", "Conflict at a station", "", "Setup 2 s"}));
+		QStringList({"Blocked 07:12:20 to 07:13:19", "Conflict at a station", "", "Setup 2 s"}));
 }
 
 void TestRouteCharts::namesTheKindOfABlockInItsHover() {
