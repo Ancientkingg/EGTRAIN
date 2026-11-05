@@ -84,9 +84,9 @@ public:
 	void Train_Simulation_Mixed_Signalling_With_Passengers();
 
 	/// Appends the service path diagram of each train that departs before the end of the run to
-	/// TrainTrajectories/TrainServicePathDiagram.txt in the output folder of the run. The window calls it after a run that was not
-	/// stopped, and main after a run that completed. Returns "Cannot write <path>: <reason>", which also goes to the log, when the
-	/// file cannot be written, and an empty string otherwise.
+	/// TrainTrajectories/TrainServicePathDiagram.txt in the output folder of the run. The window calls it after a run that was
+	/// neither stopped nor failed, and main after a run that completed. Returns "Cannot write <path>: <reason>", which also goes
+	/// to the log, when the file cannot be written, and an empty string otherwise.
 	std::string printLastTrainServicePathDiagram();
 
 	/// Takes the newest snapshot that a step published, or nullptr when none waits. The GUI thread calls it after
