@@ -2706,7 +2706,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					std::fprintf(stdout, "E2E_FOLLOW_CAMERA_ZOOM_OK\n");
 					std::fflush(stdout);
 				}
-				// Fit left no scroll range. Zoom in again so that the view can move.
+				// At Fit the follow camera does not move the view. Zoom in again so that it can.
 				w.networkView->zoomBy(6.0);
 				w.setFollowTrain(selectedTrain->index);
 
