@@ -341,9 +341,8 @@ system that builds it, so CI builds and tests on 24.04 and not on <code class="d
 </ul>
 <p>CI installs Qt 6.8.3 with the Qt Charts module through <code class="docutils literal notranslate"><span class="pre">jurplel/install-qt-action</span></code>, which runs
 <a class="reference external" href="https://aqtinstall.readthedocs.io/en/latest/getting_started.html">aqtinstall</a>. The same
-installer works on a developer machine; the <a class="reference external" href="https://www.qt.io/download-qt-installer-oss">Qt online installer</a>
-is the other way (choose Qt 6.8.3 with the Qt Charts module). Homebrew’s <code class="docutils literal notranslate"><span class="pre">qt</span></code> formula follows the
-newest Qt release, not the 6.8.3 of CI.</p>
+installer works on a developer machine; the <a class="reference internal" href="#qt-online-installer">Qt online installer</a> is the other
+way. Homebrew’s <code class="docutils literal notranslate"><span class="pre">qt</span></code> formula follows the newest Qt release, not the 6.8.3 of CI.</p>
 <p>aqtinstall goes into a virtual environment, because the Python of Ubuntu 24.04 and of Homebrew does not
 take packages from <code class="docutils literal notranslate"><span class="pre">pip</span></code> directly. On Windows the commands are in <code class="docutils literal notranslate"><span class="pre">~\aqt-venv\Scripts</span></code> instead of
 <code class="docutils literal notranslate"><span class="pre">~/aqt-venv/bin</span></code>.</p>
@@ -355,6 +354,25 @@ take packages from <code class="docutils literal notranslate"><span class="pre">
 ~/aqt-venv/bin/aqt<span class="w"> </span>install-qt<span class="w"> </span>windows<span class="w"> </span>desktop<span class="w"> </span><span class="m">6</span>.8.3<span class="w"> </span>win64_msvc2022_64<span class="w"> </span>-m<span class="w"> </span>qtcharts<span class="w"> </span>-O<span class="w"> </span>C:<span class="se">\Q</span>t<span class="w">  </span><span class="c1"># Windows: C:\Qt\6.8.3\msvc2022_64</span>
 </pre></div>
 </div>
+<section id="qt-online-installer">
+<h3>Qt online installer<a class="headerlink" href="#qt-online-installer" title="Link to this heading">¶</a></h3>
+<p>The <a class="reference external" href="https://www.qt.io/development/download-qt-installer-oss">Qt online installer</a> installs the same Qt. On Windows,
+these choices give the Qt that the Windows presets expect:</p>
+<ol class="arabic simple">
+<li><p>Sign in with a Qt account when the installer asks for one. A free account is enough.</p></li>
+<li><p>Set the installation folder to <code class="docutils literal notranslate"><span class="pre">C:\Qt</span></code>, so that Qt ends up in <code class="docutils literal notranslate"><span class="pre">C:\Qt\6.8.3\msvc2022_64</span></code>, where the presets look.
+For Qt in another folder, see the <code class="docutils literal notranslate"><span class="pre">CMakeUserPresets.json</span></code> example under <a class="reference internal" href="#visual-studio">Visual Studio</a>.</p></li>
+<li><p>Choose <strong>Custom installation</strong> instead of the default installation.</p></li>
+<li><p>Qt 6.8.3 is an older release, so the list may not show it at first. Tick <strong>Archive</strong> in the filter on the right
+and click <strong>Filter</strong>.</p></li>
+<li><p>Under <strong>Qt &gt; Qt 6.8.3</strong>, tick <strong>MSVC 2022 64-bit</strong> and, under <strong>Additional Libraries</strong>, <strong>Qt Charts</strong>. Leave
+everything else unticked: EGTRAIN needs no MinGW, Android or WebAssembly build and no other additional library.
+The other modules it uses (Svg, Network and Help, and Test for the tests) and the tools that build the manual come
+with <strong>MSVC 2022 64-bit</strong>.</p></li>
+</ol>
+<p>On macOS and Linux, tick the desktop component of that system in step 5 instead of <strong>MSVC 2022 64-bit</strong>, and pass its
+folder in <code class="docutils literal notranslate"><span class="pre">CMAKE_PREFIX_PATH</span></code> as in <a class="reference internal" href="#configure">Configure</a>.</p>
+</section>
 </section>
 <section id="configure">
 <h2>Configure<a class="headerlink" href="#configure" title="Link to this heading">¶</a></h2>
@@ -440,7 +458,7 @@ uses the presets:</p>
 <li><p>Install Visual Studio 2022 or newer with the <strong>Desktop development with C++</strong> workload. Its default components
 include the C++ CMake tools and the vcpkg package manager.</p></li>
 <li><p>Install Git for Windows and Python 3.9 or newer. Install Qt 6.8.3 <code class="docutils literal notranslate"><span class="pre">msvc2022_64</span></code> with Qt Charts into <code class="docutils literal notranslate"><span class="pre">C:\Qt</span></code>, with
-aqtinstall or the Qt online installer as in <a class="reference internal" href="#requirements">Requirements</a>.</p></li>
+aqtinstall as in <a class="reference internal" href="#requirements">Requirements</a> or with the <a class="reference internal" href="#qt-online-installer">Qt online installer</a>.</p></li>
 <li><p>Open the repository folder with <strong>File &gt; Open &gt; Folder</strong>. Visual Studio then configures the <code class="docutils literal notranslate"><span class="pre">x64-debug</span></code> preset. The
 first configure on a machine also builds the vcpkg libraries and takes longer.</p></li>
 <li><p>For a Release build, pick <code class="docutils literal notranslate"><span class="pre">x64-release</span></code> in the configuration list of the toolbar.</p></li>
@@ -629,7 +647,7 @@ against <code class="docutils literal notranslate"><span class="pre">CMakeLists.
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">not</span> <span class="pre">find</span> <span class="pre">a</span> <span class="pre">package</span> <span class="pre">configuration</span> <span class="pre">file</span> <span class="pre">provided</span> <span class="pre">by</span> <span class="pre">&quot;Qt6Charts&quot;</span></code> (or <code class="docutils literal notranslate"><span class="pre">Qt6Svg</span></code>), followed by the message above</p></td>
 <td><p>The module is not installed</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">-m</span> <span class="pre">qtcharts</span></code> for aqtinstall or the Qt Charts module in the Qt online installer; <code class="docutils literal notranslate"><span class="pre">qt6-charts-dev</span> <span class="pre">qt6-svg-dev</span></code> with the Qt of Ubuntu</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-m</span> <span class="pre">qtcharts</span></code> for aqtinstall or Qt Charts in the <a class="reference internal" href="#qt-online-installer">Qt online installer</a>; <code class="docutils literal notranslate"><span class="pre">qt6-charts-dev</span> <span class="pre">qt6-svg-dev</span></code> with the Qt of Ubuntu</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">not</span> <span class="pre">find</span> <span class="pre">a</span> <span class="pre">package</span> <span class="pre">configuration</span> <span class="pre">file</span> <span class="pre">provided</span> <span class="pre">by</span> <span class="pre">&quot;cppzmq&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;nlohmann_json&quot;</span></code></p></td>
 <td><p>The package is not installed, or on Windows vcpkg is not given to CMake</p></td>
@@ -745,7 +763,10 @@ against <code class="docutils literal notranslate"><span class="pre">CMakeLists.
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Build from source</a><ul>
-<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#requirements">Requirements</a><ul>
+<li><a class="reference internal" href="#qt-online-installer">Qt online installer</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#configure">Configure</a><ul>
 <li><a class="reference internal" href="#visual-studio">Visual Studio</a></li>
 </ul>

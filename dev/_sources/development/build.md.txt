@@ -36,9 +36,8 @@ Supported toolchains, as used by CI:
 
 CI installs Qt 6.8.3 with the Qt Charts module through `jurplel/install-qt-action`, which runs
 [aqtinstall](https://aqtinstall.readthedocs.io/en/latest/getting_started.html). The same
-installer works on a developer machine; the [Qt online installer](https://www.qt.io/download-qt-installer-oss)
-is the other way (choose Qt 6.8.3 with the Qt Charts module). Homebrew's `qt` formula follows the
-newest Qt release, not the 6.8.3 of CI.
+installer works on a developer machine; the [Qt online installer](#qt-online-installer) is the other
+way. Homebrew's `qt` formula follows the newest Qt release, not the 6.8.3 of CI.
 
 aqtinstall goes into a virtual environment, because the Python of Ubuntu 24.04 and of Homebrew does not
 take packages from `pip` directly. On Windows the commands are in `~\aqt-venv\Scripts` instead of
@@ -52,6 +51,25 @@ python3 -m venv ~/aqt-venv
 ~/aqt-venv/bin/aqt install-qt linux_arm64 desktop 6.8.3 linux_gcc_arm64 -m qtcharts -O "$HOME/Qt"  # arm64 Linux: ~/Qt/6.8.3/gcc_arm64
 ~/aqt-venv/bin/aqt install-qt windows desktop 6.8.3 win64_msvc2022_64 -m qtcharts -O C:\Qt  # Windows: C:\Qt\6.8.3\msvc2022_64
 ```
+
+### Qt online installer
+
+The [Qt online installer](https://www.qt.io/development/download-qt-installer-oss) installs the same Qt. On Windows,
+these choices give the Qt that the Windows presets expect:
+
+1. Sign in with a Qt account when the installer asks for one. A free account is enough.
+2. Set the installation folder to `C:\Qt`, so that Qt ends up in `C:\Qt\6.8.3\msvc2022_64`, where the presets look.
+   For Qt in another folder, see the `CMakeUserPresets.json` example under [Visual Studio](#visual-studio).
+3. Choose **Custom installation** instead of the default installation.
+4. Qt 6.8.3 is an older release, so the list may not show it at first. Tick **Archive** in the filter on the right
+   and click **Filter**.
+5. Under **Qt > Qt 6.8.3**, tick **MSVC 2022 64-bit** and, under **Additional Libraries**, **Qt Charts**. Leave
+   everything else unticked: EGTRAIN needs no MinGW, Android or WebAssembly build and no other additional library.
+   The other modules it uses (Svg, Network and Help, and Test for the tests) and the tools that build the manual come
+   with **MSVC 2022 64-bit**.
+
+On macOS and Linux, tick the desktop component of that system in step 5 instead of **MSVC 2022 64-bit**, and pass its
+folder in `CMAKE_PREFIX_PATH` as in [Configure](#configure).
 
 ## Configure
 
@@ -159,7 +177,7 @@ uses the presets:
 1. Install Visual Studio 2022 or newer with the **Desktop development with C++** workload. Its default components
    include the C++ CMake tools and the vcpkg package manager.
 2. Install Git for Windows and Python 3.9 or newer. Install Qt 6.8.3 `msvc2022_64` with Qt Charts into `C:\Qt`, with
-   aqtinstall or the Qt online installer as in [Requirements](#requirements).
+   aqtinstall as in [Requirements](#requirements) or with the [Qt online installer](#qt-online-installer).
 3. Open the repository folder with **File > Open > Folder**. Visual Studio then configures the `x64-debug` preset. The
    first configure on a machine also builds the vcpkg libraries and takes longer.
 4. For a Release build, pick `x64-release` in the configuration list of the toolbar.
@@ -350,7 +368,7 @@ against `CMakeLists.txt` and the scripts but not run.
 | Symptom | Cause | Fix |
 | --- | --- | --- |
 | `EGTRAIN needs Qt 6 with the Charts, Svg and Help modules` | CMake does not look in the folder of Qt 6, or found only Qt 5 | Add the Qt 6 folder to `CMAKE_PREFIX_PATH`, for example `~/Qt/6.8.3/macos` or `C:/Qt/6.8.3/msvc2022_64`. CMake keeps the Qt it found first, so after a wrong first configure delete the `build` folder and configure again |
-| `Could not find a package configuration file provided by "Qt6Charts"` (or `Qt6Svg`), followed by the message above | The module is not installed | `-m qtcharts` for aqtinstall or the Qt Charts module in the Qt online installer; `qt6-charts-dev qt6-svg-dev` with the Qt of Ubuntu |
+| `Could not find a package configuration file provided by "Qt6Charts"` (or `Qt6Svg`), followed by the message above | The module is not installed | `-m qtcharts` for aqtinstall or Qt Charts in the [Qt online installer](#qt-online-installer); `qt6-charts-dev qt6-svg-dev` with the Qt of Ubuntu |
 | `Could not find a package configuration file provided by "cppzmq"` or `"nlohmann_json"` | The package is not installed, or on Windows vcpkg is not given to CMake | Install it as in [Configure](#configure). On Windows use a preset, or pass `CMAKE_TOOLCHAIN_FILE` and `VCPKG_TARGET_TRIPLET=x64-windows` |
 | `Could not find toolchain file: "/scripts/buildsystems/vcpkg.cmake"` | `VCPKG_ROOT` is not set: the shell is not a Developer PowerShell, or Visual Studio lacks the vcpkg package manager | Use an x64 Developer PowerShell, and add the vcpkg package manager in the Visual Studio Installer |
 | `Could NOT find Python3` | No Python 3.9 or newer was found: it is missing from `PATH`, or the one found is older (CMake then names the version it found). Only a configure with `-DEGTRAIN_BUILD_TESTS=ON` looks for it | Install Python 3.9 or newer, or pass `-DPython3_EXECUTABLE=<path>` |
