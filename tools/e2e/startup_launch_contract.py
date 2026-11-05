@@ -370,7 +370,8 @@ def assert_invalid_numbers_stop_the_start(app: Path) -> None:
         root = Path(root_name)
         # The first value of an option is the one that counts, so the value that is not valid comes first. -pax is read
         # only with the window, and the start stops before the window opens. A value outside the range that a case allows
-        # for it stops the start as well.
+        # for it stops the start as well. A duration whose trains would need more than 4 GiB is refused when the run is
+        # prepared, and the error names -h, not the duration of the case.
         cases = [
             (["-n", "2x"], "ERROR: Unknown bundled case id"),
             (["-h", "abc"], "ERROR: -h requires a whole number of 1 or more seconds."),
@@ -385,12 +386,13 @@ def assert_invalid_numbers_stop_the_start(app: Path) -> None:
             (["-g", "2"], "ERROR: -g requires 0 or 1."),
             (["-pax", "on", "-g", "1"], "ERROR: -pax requires 0 or 1."),
             (["-pax", "7", "-g", "1"], "ERROR: -pax requires 0 or 1."),
+            (["-n", "2", "-h", "3000000"], "error [scene.native.memory.limit]: The run needs about "),
         ]
         for index, (args, message) in enumerate(cases):
             label = f"{' '.join(args)} launch"
             returncode, output = run_app(app, [*args, *HEADLESS_OPTIONS], root / f"run-{index}", label,
                                          extra_env={"QEGTRAIN_AUTOSTART": "1"})
-            if returncode != 1 or message not in output:
+            if returncode != 1 or message not in output or "settings.duration_seconds" in output:
                 raise SystemExit(f"{label} exited with {returncode}, expected 1 and {message!r}\n{tail(output)}")
         # A case that does not load in a scripted window launch is reported on standard error, without a message box that
         # nobody would close.

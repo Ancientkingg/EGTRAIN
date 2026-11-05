@@ -42,7 +42,7 @@ How EGTRAIN handles failure: which exceptions are caught and which escape, the f
 | --- | --- | --- | --- |
 | `scene/SceneExporter.cpp` `fs::exists`/`is_directory` without `error_code` | `scene_tool export` only | main | `scene_tool`'s `main`: exit code 1 |
 | Range-for over `fs::directory_iterator(dir, ec)`: the increment still throws (`SceneImporter.cpp`, `SceneExporter.cpp`) | import and export; needs an I/O error during a listing | GUI or main | `GuardedApplication` (not on macOS) or `scene_tool`'s `main` |
-| `std::bad_alloc` | Train vectors sized `ceil(duration / timestep)` (`simulation/builders/OperationsBuilder.cpp`, `simulation/RollingStock.cpp`), built on the GUI thread; the scene validator checks only that the duration is positive and finite | GUI, or main without a window | `RunController::runScene`: **Cannot Run Case**; without a window, `main`: exit code 70 |
+| `std::bad_alloc` | Any allocation of a run preparation except the train vectors sized `ceil(duration / timestep)`: `buildOperationsFromScene` (`simulation/builders/OperationsBuilder.cpp`) refuses a run whose train vectors would take more than 4 GiB before it allocates them, and catches a `std::bad_alloc` while it allocates them (see [Recoverable failures](#recoverable-failures)) | GUI, or main without a window | `RunController::runScene`: **Cannot Run Case**; without a window, `main`: exit code 70 |
 
 ### What happens when one is caught
 
@@ -99,6 +99,8 @@ The visual polish smoke also had a use after free: it added a temporary `SignalI
 | Legacy import into a folder that holds other files | The folder is left as it is; a question offers a new folder inside it, named after the case. If that folder exists and holds files, "Cannot Import Legacy Case" says so and nothing is written | The error: yes |
 | Legacy import fails | Status bar "Legacy import failed" and a box with the summary | Yes |
 | Run refused by validation or preparation, also when the output folder cannot be created or the preparation throws | "Cannot Run Case" box with the first diagnostic; Run Results status "Failed" | Yes |
+| Run whose train vectors, one value of each for every step, would take more than 4 GiB, estimated from the number of trains, the steps and the bytes of a train per step (`kTrainBytesPerStep` in `simulation/builders/OperationsBuilder.cpp`) | Refused before they are allocated with `scene.native.memory.limit`, which gives the estimate, the number of trains and the duration: "Cannot Run Case" in the window, the diagnostic on standard error and exit 1 without a window. A duration from `-h` is named as `-h`, not as `settings.duration_seconds`. It is not a scene validation error, so `scene_tool validate` and Save accept the case | Yes |
+| Train vectors of a run that do not fit in the free memory (`std::bad_alloc` in `buildOperationsFromScene`) | `scene.native.memory.free`, "The run needs more memory than is free for <trains> over <duration>", shown as in the row above; the trains of the run and `initial_variables` stay as they were | Yes |
 | Run stopped by an exception | "Simulation Failed" box; status bar "Simulation failed"; Run Results status "Failed" | Yes |
 | Run without a window stopped by a live client | `ERROR: The run was stopped before it completed.` on standard error, exit code 3 (`main.cpp`); no `TrainServicePathDiagram.txt` is written | Standard error |
 | Run with zero trains | Nothing visible: one error line in the Log dock (`DispatchController.cpp`) | Dock |
