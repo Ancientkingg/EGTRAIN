@@ -40,7 +40,7 @@ QString number(double value) {
 	return QString::fromStdString(csv::formatDouble(value));
 }
 
-// A block by its short id, as the section strip names it.
+// A block by its short id (shortBlockId), as the hovers of the blocking-time charts name it.
 QString blockText(const std::string& id) {
 	return QString::fromStdString(shortBlockId(id));
 }
@@ -162,7 +162,7 @@ CapacityWindow::CapacityWindow(const CapacityAnalysisResult& result, const QStri
 	auto* share = new ResultFigure("capacityShare", figures);
 	share->setFigure(QString::number(result.cyclePercentage, 'f', 1) + "%", "of " + capacityPeriodText(result.periodSeconds));
 	// The blocks of the leaders where two trains touch after the compression, each once, in the order of the tab, by their
-	// short ids as the section strip names them; the tooltip gives the label of each.
+	// short ids (shortBlockId); the tooltip gives the label of each.
 	QStringList criticalIds;
 	QStringList criticalShortIds;
 	QStringList criticalTips;

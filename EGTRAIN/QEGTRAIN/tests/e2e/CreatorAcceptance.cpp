@@ -2515,7 +2515,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			const QString title = meta.inspectionTitle;
 			if (title.contains(QLatin1Char('@')) || meta.inspectionInterval.contains(QLatin1Char('@'))
 				|| (meta.layer == QStringLiteral("blocking time") && !title.contains(QStringLiteral(" on ")))) {
-				fail(QStringLiteral("a compressed block hover is not named as the strip names it: ") + title + QStringLiteral(" / ")
+				fail(QStringLiteral("a compressed block hover is not named by its short block id: ") + title + QStringLiteral(" / ")
 					+ meta.inspectionInterval);
 				return;
 			}

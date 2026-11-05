@@ -2309,12 +2309,8 @@ void TestDiagramWindow::ordersTrainRows() {
 	QCOMPARE(rowNamed(&grouped, "S9827")->child(0)->text(0), "S9827-4");
 }
 
-// A click on a line selects its train: Selected shows the lines of its tooltip, the line is emphasised and its row
-// highlighted. A click inside a blocking time selects that box: an outline marks it, Selected shows its lines and the
-// chart keeps its look. Clear, Escape, hiding the train and a new chart end the selection, and the exported figure leaves
-// the outline out.
 // The lines of a box after an empty line, such as the parts of a blocking time, are left out of its hover and shown in
-// Selected after the lines of the hover.
+// Selected after the lines of the hover. The hover is as wide as its widest line.
 void TestDiagramWindow::showsTheDetailsOfABoxInSelected() {
 	DiagramWindow window("Details");
 	auto* chart = new QChart;
@@ -2349,6 +2345,10 @@ void TestDiagramWindow::showsTheDetailsOfABoxInSelected() {
 	QCOMPARE(window.findChild<QLabel*>("diagramPinLabel")->text(), "Blocked 07:00:20 to 07:01:20\nConflict\nApproach 2 s\nRun 18 s");
 }
 
+// A click on a line selects its train: Selected shows the lines of its tooltip, the line is emphasised and its row
+// highlighted. A click inside a blocking time selects that box: an outline marks it, Selected shows its lines and the
+// chart keeps its look. Clear, Escape, hiding the train and a new chart end the selection, and the exported figure leaves
+// the outline out.
 void TestDiagramWindow::selectsTrainsAndBoxes() {
 	DiagramWindow window("Selection");
 	auto* chart = new QChart;
