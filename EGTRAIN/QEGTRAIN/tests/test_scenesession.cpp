@@ -8,14 +8,20 @@
 
 #include <QApplication>
 #include <QByteArray>
+#include <QDialog>
 #include <QDir>
 #include <QFile>
+#include <QFileDevice>
+#include <QFileDialog>
 #include <QFileInfo>
+#include <QLineEdit>
 #include <QMainWindow>
+#include <QScopeGuard>
 #include <QSettings>
 #include <QString>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QTimer>
 
 #include <functional>
 #include <string>
@@ -91,6 +97,34 @@ std::string caseName(const QString& path) {
 	return loaded.scene.name;
 }
 
+// Answers the next file dialog: a folder dialog with the folder `path`, a save dialog with the name of `path` typed into
+// its name field in the folder of `path`.
+void answerFileDialog(const QString& path) {
+	auto* timer = new QTimer;
+	timer->setInterval(10);
+	QObject::connect(timer, &QTimer::timeout, timer, [timer, path] {
+		for (QWidget* widget : QApplication::topLevelWidgets()) {
+			auto* dialog = qobject_cast<QFileDialog*>(widget);
+			if (dialog == nullptr || !dialog->isVisible())
+				continue;
+			timer->stop();
+			timer->deleteLater();
+			if (dialog->fileMode() == QFileDialog::Directory) {
+				dialog->setDirectory(path);
+				static_cast<QDialog*>(dialog)->done(QDialog::Accepted);
+				return;
+			}
+			dialog->setDirectory(QFileInfo(path).absolutePath());
+			if (auto* name = dialog->findChild<QLineEdit*>("fileNameEdit"))
+				name->setText(QFileInfo(path).fileName());
+			// Through QDialog, as QFileDialog::accept is protected.
+			static_cast<QDialog*>(dialog)->accept();
+			return;
+		}
+	});
+	timer->start();
+}
+
 } // namespace
 
 class TestSceneSession : public QObject {
@@ -102,6 +136,8 @@ private slots:
 	void importKeepsFolderWithOtherFiles();
 	void importStopsAtFolderOfThatName();
 	void importAsksBeforeReplacingCase();
+	void saveAsFolderAsksBeforeReplacingCase();
+	void saveAsFolderKeepsViewsOfFailedSave();
 
 private:
 	QTemporaryDir m_settingsDir;
@@ -203,6 +239,69 @@ void TestSceneSession::importAsksBeforeReplacingCase() {
 	// Yes replaces the folder with the imported case.
 	QCOMPARE(caseName(dir.filePath("Other")), "Line");
 	QVERIFY(!QFileInfo::exists(dir.filePath("Other/notes.txt")));
+}
+
+void TestSceneSession::saveAsFolderAsksBeforeReplacingCase() {
+	QTemporaryDir root;
+	QVERIFY(root.isValid());
+	const QDir dir(root.path());
+	QVERIFY(writeFolderCase(dir.filePath("Mine"), "My case"));
+	QVERIFY(writeFolderCase(dir.filePath("Other"), "Other case"));
+	const QByteArray before = readFile(dir.filePath("Other/scene.json"));
+	Fixture f;
+	QVERIFY(f.session->openSceneDirectory(dir.filePath("Mine")));
+	const QString mine = f.session->sceneDir();
+
+	answerFileDialog(dir.filePath("Other"));
+	// Another case is replaced only after a question, and No keeps it.
+	QVERIFY(!f.session->saveSceneAsToDirectory());
+	QCOMPARE(f.prompts.confirmCount, 1);
+	QCOMPARE(f.prompts.confirmTitle, "Save Case As Folder");
+	QVERIFY2(f.prompts.confirmQuestion.contains("holds another case. Replace that case with this one?"),
+		qPrintable(f.prompts.confirmQuestion));
+	QCOMPARE(readFile(dir.filePath("Other/scene.json")), before);
+	QCOMPARE(f.session->sceneDir(), mine);
+
+	f.prompts.confirmAnswer = true;
+	answerFileDialog(dir.filePath("Other"));
+	// Yes writes the case there, and the folder becomes the case of the session.
+	QVERIFY(f.session->saveSceneAsToDirectory());
+	QCOMPARE(caseName(dir.filePath("Other")), "My case");
+	QCOMPARE(QFileInfo(f.session->sceneDir()).canonicalFilePath(), QFileInfo(dir.filePath("Other")).canonicalFilePath());
+
+	answerFileDialog(dir.filePath("Other"));
+	// The folder of the open case is saved again without a question.
+	QVERIFY(f.session->saveSceneAsToDirectory());
+	QCOMPARE(f.prompts.confirmCount, 2);
+}
+
+// The save writes views.json from the model, so a save that fails leaves the views.json of the chosen folder alone.
+void TestSceneSession::saveAsFolderKeepsViewsOfFailedSave() {
+#ifdef Q_OS_WIN
+	QSKIP("Windows has no folder that its owner cannot write to");
+#endif
+	QTemporaryDir root;
+	QVERIFY(root.isValid());
+	const QDir dir(root.path());
+	QVERIFY(writeFolderCase(dir.filePath("Mine"), "My case"));
+	QVERIFY(writeFile(dir.filePath("Locked/Target/views.json"), "{\"own\": true}\n"));
+	Fixture f;
+	QVERIFY(f.session->openSceneDirectory(dir.filePath("Mine")));
+	QVERIFY(writeFile(dir.filePath("Mine/views.json"), "{\"mine\": true}\n"));
+	// The save stages the case next to the target, which a folder that cannot be written to refuses.
+	const QString locked = dir.filePath("Locked");
+	const QFileDevice::Permissions permissions = QFile::permissions(locked);
+	QVERIFY(QFile::setPermissions(locked, QFileDevice::ReadOwner | QFileDevice::ExeOwner));
+	const auto restore = qScopeGuard([locked, permissions] { QFile::setPermissions(locked, permissions); });
+	if (QFile(QDir(locked).filePath("probe")).open(QIODevice::WriteOnly))
+		QSKIP("this process can write into a folder without write permission");
+
+	f.prompts.confirmAnswer = true;
+	answerFileDialog(dir.filePath("Locked/Target"));
+	QVERIFY(!f.session->saveSceneAsToDirectory());
+	// The save failed and said so, and the target keeps its own views.json.
+	QCOMPARE(f.prompts.errorTitle, "Cannot Save Case");
+	QCOMPARE(readFile(dir.filePath("Locked/Target/views.json")), QByteArray("{\"own\": true}\n"));
 }
 
 QTEST_MAIN(TestSceneSession)

@@ -24,7 +24,6 @@
 #include <QDir>
 #include <QDragEnterEvent>
 #include <QDropEvent>
-#include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QHash>
@@ -103,6 +102,12 @@ int errorDiagnosticCount(const std::vector<SceneDiagnostic>& diagnostics) {
 bool holdsFiles(const QString& path) {
 	const QStringList entries = QDir(path).entryList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System);
 	return std::any_of(entries.begin(), entries.end(), [](const QString& entry) { return entry != QLatin1String(".DS_Store"); });
+}
+
+// The canonical form of `path`, or its clean absolute form when it does not exist.
+QString resolvedFolder(const QString& path) {
+	const QString canonical = QFileInfo(path).canonicalFilePath();
+	return canonical.isEmpty() ? QDir::cleanPath(QFileInfo(path).absoluteFilePath()) : canonical;
 }
 
 } // namespace
@@ -477,13 +482,18 @@ bool SceneSession::saveSceneAsToDirectory() {
 	if (targetDir.exists()) {
 		bool isNonEmpty = !targetDir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).isEmpty();
 		bool hasSceneJson = QFileInfo(targetDir.filePath("scene.json")).exists();
-		if (isNonEmpty && !hasSceneJson) {
+		const bool currentFolder = !m_sceneIsBundle && !m_sceneDir.isEmpty() && resolvedFolder(m_sceneDir) == resolvedFolder(targetPath);
+		if (hasSceneJson && !currentFolder) {
+			if (!m_prompts->confirm(m_window, "Save Case As Folder",
+					QString("%1 holds another case. Replace that case with this one?").arg(display_path::format(targetPath))))
+				return false;
+		} else if (isNonEmpty && !hasSceneJson) {
 			if (!m_prompts->confirm(m_window, "Save Case As Folder", "The folder is not empty. Save the case there anyway?"))
 				return false;
 		}
 	}
 
-	if (!copyScenePassthroughFiles(targetPath, operation))
+	if (!prepareSaveFolder(targetPath, operation))
 		return false;
 
 	auto result = ::saveScene(m_document->model(), targetPath.toStdString());
@@ -497,7 +507,9 @@ bool SceneSession::saveSceneAsToDirectory() {
 	return finishSceneSave(result, operation, std::nullopt);
 }
 
-bool SceneSession::copyScenePassthroughFiles(const QString& targetDir, const telemetry::OperationObservation& operation) {
+// Creates the folder `targetDir` for a scene that came from a folder, and refuses a folder inside that one. The save
+// writes every scene file, views.json included, from the model.
+bool SceneSession::prepareSaveFolder(const QString& targetDir, const telemetry::OperationObservation& operation) {
 	if (m_sceneDir.isEmpty() || m_sceneIsBundle || !QFileInfo(m_sceneDir).isDir())
 		return true;
 
@@ -513,26 +525,10 @@ bool SceneSession::copyScenePassthroughFiles(const QString& targetDir, const tel
 
 	QString sourceCanonical = QDir(sourcePath).canonicalPath();
 	QString targetCanonical = QDir(targetPath).canonicalPath();
-	if (!sourceCanonical.isEmpty() && sourceCanonical == targetCanonical)
-		return true;
 	if (!sourceCanonical.isEmpty() && targetCanonical.startsWith(sourceCanonical + "/")) {
 		showError("Cannot Save Case", "Choose a folder outside the current case folder.");
 		return false;
 	}
-
-	QDir sourceDir(sourcePath);
-
-	QString sourceViews = sourceDir.filePath("views.json");
-	if (QFileInfo(sourceViews).exists()) {
-		QString targetViews = target.filePath("views.json");
-		QFile::remove(targetViews);
-		if (!QFile::copy(sourceViews, targetViews)) {
-			operation.failure(telemetry::Operation::Export, telemetry::Error::IoFailure);
-			showError("Cannot Save Case", "Cannot copy views.json.");
-			return false;
-		}
-	}
-
 	return true;
 }
 

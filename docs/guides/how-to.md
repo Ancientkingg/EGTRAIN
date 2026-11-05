@@ -54,7 +54,7 @@ You should see `Case saved` in the status bar. Your file is now the open case, a
 Other ways to save:
 
 - **File > Save** (Ctrl+S) writes the case back to the bundle or case folder it came from. For a bundled case, and for a new case that has no file yet, it asks for a new `.egscene` file instead, as **Save As...** does, and Cancel keeps the edit. A case folder outside the installation, such as one in a source checkout, is saved in place.
-- **File > Save As Folder...** writes the case as a folder of JSON files, which you can edit by hand. If the folder you choose is not empty and holds no `scene.json`, EGTRAIN asks `The folder is not empty. Save the case there anyway?`. A folder that already holds a `scene.json` is written over without a question; other files in it are kept.
+- **File > Save As Folder...** writes the case as a folder of JSON files, which you can edit by hand. If the folder you choose is not empty and holds no `scene.json`, EGTRAIN asks `The folder is not empty. Save the case there anyway?`. If it holds another case, EGTRAIN asks whether to replace that case. Either way other files in the folder are kept, and the folder of the open case is saved again without a question.
 - A destination inside the installation is refused with **Cannot Save Case**: `Bundled cases cannot be overwritten. Choose a location outside the EGTRAIN installation.`
 
 To check a saved case, open it again from **File > Recent Cases**. The three save commands are enabled whenever a case is open, also during a run.

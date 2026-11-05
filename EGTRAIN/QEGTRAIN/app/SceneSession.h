@@ -157,8 +157,8 @@ public:
 	/// Saves the scene where it came from. A scene without a location, or one inside the installation, is saved as a
 	/// bundle that the user chooses. Returns whether the scene was saved.
 	bool saveSceneToCurrentDir();
-	/// Saves the scene to a folder that the user chooses. A scene that came from a folder takes its views.json along.
-	/// Returns whether the scene was saved.
+	/// Saves the scene to a folder that the user chooses. A folder that holds another case, or other files, is written
+	/// to only when the user agrees. Returns whether the scene was saved.
 	bool saveSceneAsToDirectory();
 	/// Asks whether to save unsaved changes. Returns false when the user cancels or the save fails.
 	bool maybeSaveScene();
@@ -192,7 +192,7 @@ private:
 	bool saveSceneAsToBundle();
 	bool saveSceneAsToBundle(const telemetry::OperationObservation& operation);
 	QString saveSceneAsStartPath() const;
-	bool copyScenePassthroughFiles(const QString& targetDir, const telemetry::OperationObservation& operation);
+	bool prepareSaveFolder(const QString& targetDir, const telemetry::OperationObservation& operation);
 	void showError(const QString& title, const QString& message, bool warningIcon = false);
 
 	QMainWindow* m_window;
