@@ -2626,11 +2626,12 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				}
 
 				// A pan of the user and a resize of the window do not switch Follow off. The next frame leaves the view where
-				// the user left it, and a catch-up brings the view back to the train, also while the train stands.
+				// the user left it, and a catch-up brings the view back to the train, also while the train stands. In the frame
+				// after the pan the train stands where it is drawn, so that the view is the whole pan away from it: a frame
+				// that put the train back along its route could bring it to within a few pixels of the panned view.
 				panViewAway(w.networkView);
 				const QPointF cameraPannedAway = viewCentre();
-				w.m_snapshot = movedSnapshot;
-				updateTrainPosition(w, movedSnapshot->timestep);
+				updateTrainPosition(w, interruptedSnapshot->timestep);
 				const qreal panDistance = offTrain();
 				const bool panKept = panDistance > 20.0 && pixelsBetween(cameraPannedAway, viewCentre()) <= 1.0 && w.m_followCamera->running();
 				// The check measures in whole pixels and a catch-up eases in, so its first tick can move the view by less
@@ -2640,8 +2641,6 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				const qreal panDistanceAfterTick = offTrain();
 				finishCatchUp();
 				const bool panGlided = panKept && panDistanceAfterTick < panDistance && !w.m_followCamera->running() && offTrain() <= onTrainPixels;
-				w.m_snapshot = interruptedSnapshot;
-				updateTrainPosition(w, interruptedSnapshot->timestep);
 				const QSize viewportBeforeResize = w.networkView->viewport()->size();
 				w.resize(1100, 760);
 				QApplication::processEvents();
