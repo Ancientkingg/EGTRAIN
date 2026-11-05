@@ -1,10 +1,12 @@
 <map id="NetworkView::zoomBy" name="NetworkView::zoomBy">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,24,174,52"/>
-<area shape="rect" id="Node000002" href="$class_network_view.html#af1efa7710811d8837e43eff52971cd3a" title="The largest zoom ratio." alt="" coords="499,17,719,61"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,21,221,10,336,3,451,10,486,16,481,16,451,15,336,8,222,15,153,26"/>
-<area shape="rect" id="Node000003" href="$class_network_view.html#ac759eb59c9af28946b90f56ced8205ac" title="The centre or the scale of the view changed." alt="" coords="222,24,451,52"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,35,209,37,203,38,175,40"/>
-<area shape="rect" id="Node000004" href="$class_network_view.html#a0d88c5bd66451f6986a8ad733995e521" title="The view scale divided by fittedScale(): 1 at Fit, at most maximumZoomRatio()." alt="" coords="244,76,429,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="159,50,255,71,250,73,159,55"/>
-<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="414,73,481,63,486,62,415,78"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,174,109"/>
+<area shape="rect" id="Node000002" href="$class_network_view.html#a1b99ce091ab7e0b2f4426af03fbd59c3" title=" " alt="" coords="225,5,448,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,78,221,49,270,37,265,39,222,54,133,83"/>
+<area shape="rect" id="Node000003" href="$class_network_view.html#af1efa7710811d8837e43eff52971cd3a" title="The largest zoom ratio." alt="" coords="499,100,719,144"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,89,305,87,451,93,486,99,481,99,451,98,305,92,175,94"/>
+<area shape="rect" id="Node000004" href="$class_network_view.html#ac759eb59c9af28946b90f56ced8205ac" title="The centre or the scale of the view changed." alt="" coords="222,107,451,134"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="174,101,209,107,204,108,174,106"/>
+<area shape="rect" id="Node000005" href="$class_network_view.html#a0d88c5bd66451f6986a8ad733995e521" title="The view scale divided by fittedScale(): 1 at Fit, at most maximumZoomRatio()." alt="" coords="244,159,429,186"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="125,107,222,143,255,154,250,154,221,148,124,112"/>
+<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="414,155,481,145,486,145,415,161"/>
 </map>

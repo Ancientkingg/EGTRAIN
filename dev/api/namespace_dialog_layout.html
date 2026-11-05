@@ -129,6 +129,7 @@ Enumerations</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:a7a942aba131ce624950e8ec35254d874" id="r_a7a942aba131ce624950e8ec35254d874"><td class="memItemLeft">QScrollArea *&#160;</td><td class="memItemRight"><a class="el" href="#a7a942aba131ce624950e8ec35254d874">install</a> (QDialog &amp;dialog, const QString &amp;heading, const QString &amp;context, QWidget *body, QDialogButtonBox *actions, QRect availableGeometry=QRect())</td></tr>
 <tr class="memitem:a2268772ffb8c91c5faa4f07bb00e16a4" id="r_a2268772ffb8c91c5faa4f07bb00e16a4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2268772ffb8c91c5faa4f07bb00e16a4">fitWidthToContent</a> (QDialog &amp;dialog)</td></tr>
+<tr class="memitem:ae6c77f452ebc5fba1eafdb06fb5f8d80" id="r_ae6c77f452ebc5fba1eafdb06fb5f8d80"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae6c77f452ebc5fba1eafdb06fb5f8d80">connectDetailsToggle</a> (QDialog &amp;dialog, QToolButton *toggle, QWidget *details)</td></tr>
 <tr class="memitem:a66a7d42bda10000c79c85ab652f8805e" id="r_a66a7d42bda10000c79c85ab652f8805e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a66a7d42bda10000c79c85ab652f8805e">setStatus</a> (QLabel *label, <a class="el" href="#a66c5d627c7f907afb94351db6a62f658">Severity</a> severity, const QString &amp;text)</td></tr>
 <tr class="memitem:a7c0f80509740d24f8a6e1bcc1353129e" id="r_a7c0f80509740d24f8a6e1bcc1353129e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7c0f80509740d24f8a6e1bcc1353129e">setHelp</a> (QLabel *label, const QString &amp;text)</td></tr>
 </table>
@@ -167,6 +168,46 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="ae6c77f452ebc5fba1eafdb06fb5f8d80" name="ae6c77f452ebc5fba1eafdb06fb5f8d80"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae6c77f452ebc5fba1eafdb06fb5f8d80">&#9670;&#160;</a></span>connectDetailsToggle()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DialogLayout::connectDetailsToggle </td>
+          <td>(</td>
+          <td class="paramtype">QDialog &amp;</td>          <td class="paramname"><span class="paramname"><em>dialog</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">QToolButton *</td>          <td class="paramname"><span class="paramname"><em>toggle</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">QWidget *</td>          <td class="paramname"><span class="paramname"><em>details</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Shows details while the checkable toggle is checked and hides them while it is not, with the arrow of toggle pointing down or right. Once the layout has made room for the details, the dialog grows to show them as fitWidthToContent makes it. Once it has hidden them again, the dialog returns to the size it had before they showed, or, when its size changed while they showed, as when the user resized it, keeps its width and gives back the height that the details added, down to the height it had before they showed. Call it for a dialog that install lays out, with toggle and details in its body. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="namespace_dialog_layout_ae6c77f452ebc5fba1eafdb06fb5f8d80_cgraph.svg" width="652" height="80"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a2268772ffb8c91c5faa4f07bb00e16a4" name="a2268772ffb8c91c5faa4f07bb00e16a4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2268772ffb8c91c5faa4f07bb00e16a4">&#9670;&#160;</a></span>fitWidthToContent()</h2>
 

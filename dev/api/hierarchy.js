@@ -19,6 +19,7 @@ var hierarchy =
     [ "BlockingTimeDiagramInput", "struct_blocking_time_diagram_input.html", null ],
     [ "BlockingTimeDiagramSegment", "struct_blocking_time_diagram_segment.html", null ],
     [ "BlockingTimeList", "class_blocking_time_list.html", null ],
+    [ "BlockingTimeNote", "struct_blocking_time_note.html", null ],
     [ "BlockingTimePlannedReference", "struct_blocking_time_planned_reference.html", null ],
     [ "BlockingTimes", "class_blocking_times.html", null ],
     [ "BlockingTimeScope", "struct_blocking_time_scope.html", null ],
@@ -454,7 +455,6 @@ var hierarchy =
       [ "ConsoleStreambuf", "class_console_streambuf.html", null ]
     ] ],
     [ "PositionScale::Stretch", "struct_position_scale_1_1_stretch.html", null ],
-    [ "StripLabel", "struct_strip_label.html", null ],
     [ "TDS", "class_t_d_s.html", null ],
     [ "TelemetryContext", "struct_telemetry_context.html", null ],
     [ "telemetry::TelemetryEvent", "structtelemetry_1_1_telemetry_event.html", null ],

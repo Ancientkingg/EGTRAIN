@@ -13,7 +13,7 @@ var searchData=
   ['temp_10',['temp',['../class_train.html#a7a645c0416337b21b0212cf2a994f2f4',1,'Train']]],
   ['terminateatdestination_11',['terminateAtDestination',['../struct_scene_incident.html#ae7b1e0101cd6893fbdffe1768f3ca4ad',1,'SceneIncident::terminateAtDestination'],['../struct_simulation_incident.html#a4fcc432a1f08de8a7bb62ce20db70268',1,'SimulationIncident::terminateAtDestination']]],
   ['termsversion_12',['termsVersion',['../struct_telemetry_context.html#a22b706866b465ae928bc77acc31f9503',1,'TelemetryContext']]],
-  ['text_13',['text',['../struct_incident_target_choice.html#a5295cc3626648e5f4657a7b04d3e9a26',1,'IncidentTargetChoice::text'],['../struct_update_record_text.html#a604e2a89f3c258d21a368d2e2c5a0784',1,'UpdateRecordText::text']]],
+  ['text_13',['text',['../struct_blocking_time_note.html#afdf9477630202b35167647c3b17649e4',1,'BlockingTimeNote::text'],['../struct_incident_target_choice.html#a5295cc3626648e5f4657a7b04d3e9a26',1,'IncidentTargetChoice::text'],['../struct_update_record_text.html#a604e2a89f3c258d21a368d2e2c5a0784',1,'UpdateRecordText::text']]],
   ['texticon_14',['textIcon',['../class_platform_item.html#a0a2fc66619a1005fe5a98bc716c59e87',1,'PlatformItem']]],
   ['thread_15',['thread',['../struct_live_server_state.html#a671bdcb49d19cbe9807f6c0c7cd26bc4',1,'LiveServerState']]],
   ['thresholdseconds_16',['thresholdSeconds',['../struct_delay_share.html#a711ad7bf44907033fb8ec3190064526e',1,'DelayShare']]],

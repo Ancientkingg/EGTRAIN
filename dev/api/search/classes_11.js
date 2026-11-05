@@ -124,6 +124,5 @@ var searchData=
   ['stopdraftcheck_121',['StopDraftCheck',['../struct_stop_draft_check.html',1,'']]],
   ['stopdraftfields_122',['StopDraftFields',['../struct_stop_draft_fields.html',1,'']]],
   ['stopeditordialog_123',['StopEditorDialog',['../class_stop_editor_dialog.html',1,'']]],
-  ['stretch_124',['Stretch',['../struct_position_scale_1_1_stretch.html',1,'PositionScale']]],
-  ['striplabel_125',['StripLabel',['../struct_strip_label.html',1,'']]]
+  ['stretch_124',['Stretch',['../struct_position_scale_1_1_stretch.html',1,'PositionScale']]]
 ];

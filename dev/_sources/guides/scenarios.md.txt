@@ -81,7 +81,8 @@ Fastest that is about two minutes of simulated time, so its occupied track and i
 signals, which show the newest state, can run ahead of it. When the train stops, or the run is
 paused, the train reaches its last position and stops there.
 The followed train stays in the middle of the view: the view moves with the train at
-every step of its glide. A train that has just appeared, that runs backwards, or that
+every step of its glide. At Fit the view stays where it is; zoom in to follow the train.
+A train that has just appeared, that runs backwards, or that
 has moved further than the visible area since the last update moves to its new position
 at once. In the replay of a completed
 run the trains and the view move at once at every seek and every step of the playback,

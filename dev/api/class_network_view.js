@@ -3,6 +3,7 @@ var class_network_view =
     [ "NetworkView", "class_network_view.html#ad3da1ea558773cd3e524312203d57a3b", null ],
     [ "~NetworkView", "class_network_view.html#a5067c0d6a7ec31ad71a99bac553c9aad", null ],
     [ "armTimingPaint", "class_network_view.html#aae84faaa3bcf8d62a6422a798e4dd96c", null ],
+    [ "atFit", "class_network_view.html#a1d13e39500ce44511bf5e4713b79c77f", null ],
     [ "centerOn", "class_network_view.html#a7476713caf7e3df9d643ead6abc26cd1", null ],
     [ "centerOn", "class_network_view.html#ad2058481034183e0dc4f6de02c2d1f57", null ],
     [ "centerOnExactly", "class_network_view.html#a1b99ce091ab7e0b2f4426af03fbd59c3", null ],

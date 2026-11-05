@@ -135,7 +135,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a02013e3da2fd785a63557a6f6db43d58" id="r_a02013e3da2fd785a63557a6f6db43d58"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a02013e3da2fd785a63557a6f6db43d58">DiagramWindow</a> (const QString &amp;title, QWidget *parent=nullptr)</td></tr>
 <tr class="memdesc:a02013e3da2fd785a63557a6f6db43d58"><td class="mdescLeft">&#160;</td><td class="mdescRight">An empty window with the given title.  <br /></td></tr>
 <tr class="memitem:a6a0470e83e6f726a252b1b7b308842df" id="r_a6a0470e83e6f726a252b1b7b308842df"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6a0470e83e6f726a252b1b7b308842df">setChart</a> (QChart *chart)</td></tr>
-<tr class="memitem:a60cb3e3e03a095be4ab508fa8697f55f" id="r_a60cb3e3e03a095be4ab508fa8697f55f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a60cb3e3e03a095be4ab508fa8697f55f">setPresentation</a> (const QString &amp;heading, const QString &amp;context, const QString &amp;warning=QString(), const QString &amp;contextToolTip=QString())</td></tr>
+<tr class="memitem:af2b5b84e34779dd55124b2c3912ba03f" id="r_af2b5b84e34779dd55124b2c3912ba03f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af2b5b84e34779dd55124b2c3912ba03f">setPresentation</a> (const QString &amp;heading, const QString &amp;context, const QString &amp;warning=QString(), const QString &amp;contextToolTip=QString(), const QString &amp;warningToolTip=QString())</td></tr>
 <tr class="memitem:a98360c09269fbf789e109c49b3f55c42" id="r_a98360c09269fbf789e109c49b3f55c42"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a98360c09269fbf789e109c49b3f55c42">setEmptyText</a> (const QString &amp;text)</td></tr>
 <tr class="memitem:a4183a86daf571701f350bd059208d997" id="r_a4183a86daf571701f350bd059208d997"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4183a86daf571701f350bd059208d997">setFigureFileName</a> (const QString &amp;fileName)</td></tr>
 <tr class="memdesc:a4183a86daf571701f350bd059208d997"><td class="mdescLeft">&#160;</td><td class="mdescRight">The file name that the PNG export suggests, such as "delays.png", in the place of the name of the CSV.  <br /></td></tr>
@@ -150,7 +150,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a6d991a03ac97993a7dc5fc9b8a67f281"><td class="mdescLeft">&#160;</td><td class="mdescRight">As setTimeAxisY, for the X axis.  <br /></td></tr>
 <tr class="memitem:a793d3c53f037ce0694f78db0295866fd" id="r_a793d3c53f037ce0694f78db0295866fd"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a793d3c53f037ce0694f78db0295866fd">setPositionAxis</a> (<a class="el" href="class_position_scale.html">PositionScale</a> scale)</td></tr>
 <tr class="memitem:aec15f7fbe7dff817ea556595a326c71d" id="r_aec15f7fbe7dff817ea556595a326c71d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aec15f7fbe7dff817ea556595a326c71d">setCsvProvider</a> (std::function&lt; std::string(const QStringList &amp;visibleTrainIds)&gt; provider, const QString &amp;suggestedFileName, const QStringList &amp;trainIds={})</td></tr>
-<tr class="memitem:a96fc99c6db7318229f03cb98fa7afec2" id="r_a96fc99c6db7318229f03cb98fa7afec2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a96fc99c6db7318229f03cb98fa7afec2">setBlockSections</a> (std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; sections, const QString &amp;referenceRouteId, const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> *labels=nullptr, std::vector&lt; <a class="el" href="struct_block_section_marks.html">BlockSectionMarks</a> &gt; marks={}, int routeSectionCount=0)</td></tr>
+<tr class="memitem:a19621f9b0021d5f4a43a09a3b07ba7a4" id="r_a19621f9b0021d5f4a43a09a3b07ba7a4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a19621f9b0021d5f4a43a09a3b07ba7a4">setBlockSections</a> (std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; sections, std::vector&lt; <a class="el" href="struct_block_section_marks.html">BlockSectionMarks</a> &gt; marks={})</td></tr>
 <tr class="memitem:a20f5084ae1945ad5ee9818d4958ef95a" id="r_a20f5084ae1945ad5ee9818d4958ef95a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a20f5084ae1945ad5ee9818d4958ef95a">setStationAxis</a> (QCategoryAxis *axis, std::vector&lt; <a class="el" href="struct_station_tick.html">StationTick</a> &gt; stations)</td></tr>
 <tr class="memitem:aeaf1a8a285ed78422cb00c04f7cc8a83" id="r_aeaf1a8a285ed78422cb00c04f7cc8a83"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aeaf1a8a285ed78422cb00c04f7cc8a83">csvContent</a> () const</td></tr>
 <tr class="memdesc:aeaf1a8a285ed78422cb00c04f7cc8a83"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same provider/filter snapshot that the CSV export writes, without opening a file dialog.  <br /></td></tr>
@@ -168,8 +168,8 @@ Protected Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Reusable non-modal window that shows a chart in a <a class="el" href="class_result_frame.html">ResultFrame</a>: a header row with the context and the zoom, fit and panel buttons over the chart, and a panel beside it with the sections Trains (the train filter and colour key in one list, a <a class="el" href="class_train_key_list.html">TrainKeyList</a>), Key (the kinds of mark in view, a <a class="el" href="class_diagram_key.html">DiagramKey</a>), Selected and Export, and a readout of the value under the pointer. The chart has hover and click identification and rubber-band zoom, and exports a PNG and, optionally, a CSV.</p>
-<p>A chart builder tells the window about a series with describeSeries (<a class="el" href="struct_series_meta.html">SeriesMeta</a>) and about an axis with describeAxis (<a class="el" href="struct_axis_meta.html" title="What a chart builder tells DiagramWindow about an axis.">AxisMeta</a>). The Key lists each kind of mark that a shown series draws, with the pen and brush of the series: keyKind names its kind, and an empty one leaves the series out; without it layer names the kind, else the series is Planned or Simulated. A closed outline with inspectionFilled is a box, filled with the brush of an area series of the same kind; another series is a line in the text colour, since its colour belongs to its train, with a dot when it shows its points, and upright with keyUpright, as for a dwell. The keyMarker of a series that shows its points names a kind of its own for its points, such as "Stop". The chart draws the points of a planned series as open circles and those of another series as dots, and the Key draws them alike: a planned line with an open circle, a kind of points as a dot while a series that is not planned has them. Simulated is left out while it is the only kind of line. The section strip adds Station section, Switch section and Block boundary. The Key follows the trains that are shown. A box takes the keyPen of its outline when the outline has one, so that it looks alike for every train. A chart of rolling stock input lists its series by name, in their own colours.</p>
-<p>Series are grouped by trainId when the caller sets it (the same train can own several series, such as planned and simulated lines); series without one are grouped by their own name. Optional inspection metadata: inspectionPoints has one plain-text context entry per appended point (including empty entries). inspectionInterval is plain-text context shared by a line segment; inspectionFilled explicitly opts a closed QLineSeries into interior hits, and inspectionTitle is the first line of such a box, such as "IC1723-2 on 12-B0". Inside a box a click selects a line only within 4 px of it, and otherwise the box. A line hit always reports its nearest actual plotted sample, not an interpolated value at the cursor.</p>
+<p>A chart builder tells the window about a series with describeSeries (<a class="el" href="struct_series_meta.html">SeriesMeta</a>) and about an axis with describeAxis (<a class="el" href="struct_axis_meta.html" title="What a chart builder tells DiagramWindow about an axis.">AxisMeta</a>). The Key lists each kind of mark that a shown series draws, with the pen and brush of the series: keyKind names its kind, and an empty one leaves the series out; without it layer names the kind, else the series is Planned or Simulated. A closed outline with inspectionFilled is a box, filled with the brush of an area series of the same kind; another series is a line in the text colour, since its colour belongs to its train, with a dot when it shows its points, and upright with keyUpright, as for a dwell. The keyMarker of a series that shows its points names a kind of its own for its points, such as "Stop". The chart draws the points of a planned series as open circles and those of another series as dots, and the Key draws them alike: a planned line with an open circle, a kind of points as a dot while a series that is not planned has them. Simulated is left out while it is the only kind of line. The section strip adds Station section and Switch section. The Key follows the trains that are shown. A box takes the keyPen of its outline when the outline has one, so that it looks alike for every train. A chart of rolling stock input lists its series by name, in their own colours.</p>
+<p>Series are grouped by trainId when the caller sets it (the same train can own several series, such as planned and simulated lines); series without one are grouped by their own name. Optional inspection metadata: inspectionPoints has one plain-text context entry per appended point (including empty entries). inspectionInterval is plain-text context shared by a line segment; its lines after an empty line are details that only Selected shows, such as the parts of a blocking time. inspectionFilled explicitly opts a closed QLineSeries into interior hits, and inspectionTitle is the first line of such a box, such as "IC1723-2 on 12-B0". Inside a box a click selects a line only within 4 px of it, and otherwise the box. A line hit always reports its nearest actual plotted sample, not an interpolated value at the cursor.</p>
 <p>One colour rule paints the trains, by the trains that the Trains list shows (trainColourPlan): a colour of the palette for each train while six trains or fewer are shown, else one for each service while those trains run in six services or fewer (setTrainServices), else grey with the selected train in the first colour of the palette. The colour of a service in the case wins over the palette (setTrainColors). Showing, hiding and selecting trains apply the rule again and keep which trains are checked. A series takes the colour of its train in its pen, and an area series also in its brush, with the alpha of the brush kept; widths and dash patterns stay as the chart builder set them. A series with ownColour keeps the colours of its builder, as do the series of a chart of rolling stock input. The line sample of a train in the Trains list has its colour, and that of a hidden train is light grey. The selected train is drawn over the other trains.</p>
 <p>A chart without series shows the text of setEmptyText in the middle of its plot, and the panel leaves out the sections that have nothing to show, Trains included. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
@@ -359,8 +359,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a96fc99c6db7318229f03cb98fa7afec2" name="a96fc99c6db7318229f03cb98fa7afec2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a96fc99c6db7318229f03cb98fa7afec2">&#9670;&#160;</a></span>setBlockSections()</h2>
+<a id="a19621f9b0021d5f4a43a09a3b07ba7a4" name="a19621f9b0021d5f4a43a09a3b07ba7a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a19621f9b0021d5f4a43a09a3b07ba7a4">&#9670;&#160;</a></span>setBlockSections()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -373,30 +373,15 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>referenceRouteId</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> *</td>          <td class="paramname"><span class="paramname"><em>labels</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::vector&lt; <a class="el" href="struct_block_section_marks.html">BlockSectionMarks</a> &gt;</td>          <td class="paramname"><span class="paramname"><em>marks</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>routeSectionCount</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>&#160;)</td>
+          <td class="paramtype">std::vector&lt; <a class="el" href="struct_block_section_marks.html">BlockSectionMarks</a> &gt;</td>          <td class="paramname"><span class="paramname"><em>marks</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Draws the block sections of the reference route over the chart, with positions in km. Set after setChart. A chart-owned physical layer, not train series, with its entries in the Key. Chart replacement clears it. The strip above the plot names each section by its short id (shortBlockId), centred in its cell, in one row when every id fits at the full view of the chart and otherwise in two, where an id that collides in the first row tries the second. When the ids in route order leave one out, those of critical and conflict sections, the first and last section, then switch and station sections are placed first. A switch section is hatched, and <span class="tt">marks</span>, one per section or empty, add a dark top bar for a station, an amber bar for a critical block and a red one for a conflict. The hover of a cell or a boundary gives the id, the label from <span class="tt">labels</span>, the kind, "Section N of M" with M <span class="tt">routeSectionCount</span> (the number of sections when 0), the geo extent and the route distance. </p>
+<p>Draws the block sections of the reference route over the chart, with positions in km. Set after setChart. A chart-owned physical layer, not train series, with its entries in the Key. Chart replacement clears it. The strip above the plot has a cell for each section, without text. A switch section is hatched, and <span class="tt">marks</span>, one per section or empty, add a dark top bar for a station, an amber bar for a critical block and a red one for a conflict. The hover of a cell or a boundary gives the short id of the section (shortBlockId) and, on the next line, its geo extent, such as "Position 21.010 to 21.450 km". </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a96fc99c6db7318229f03cb98fa7afec2_cgraph.svg" width="1096" height="276"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a19621f9b0021d5f4a43a09a3b07ba7a4_cgraph.svg" width="675" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -506,8 +491,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a60cb3e3e03a095be4ab508fa8697f55f" name="a60cb3e3e03a095be4ab508fa8697f55f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a60cb3e3e03a095be4ab508fa8697f55f">&#9670;&#160;</a></span>setPresentation()</h2>
+<a id="af2b5b84e34779dd55124b2c3912ba03f" name="af2b5b84e34779dd55124b2c3912ba03f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af2b5b84e34779dd55124b2c3912ba03f">&#9670;&#160;</a></span>setPresentation()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -530,15 +515,20 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>contextToolTip</em></span><span class="paramdefsep"> = </span><span class="paramdefval">QString()</span>&#160;)</td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>contextToolTip</em></span><span class="paramdefsep"> = </span><span class="paramdefval">QString()</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>warningToolTip</em></span><span class="paramdefsep"> = </span><span class="paramdefval">QString()</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Sets the window title to <span class="tt">heading</span>, shows <span class="tt">context</span> in one line in the header, elided at the right, and <span class="tt">warning</span> above the chart with the look of a warning of the table windows, which the exported figure keeps; an empty text hides its label. The tooltip of the context has the whole context, with <span class="tt">contextToolTip</span> on the lines below it when given. </p>
+<p>Sets the window title to <span class="tt">heading</span>, shows <span class="tt">context</span> in one line in the header, elided at the right, and <span class="tt">warning</span> above the chart with the look of a warning of the table windows, which the exported figure keeps; an empty text hides its label. The tooltip of the context has the whole context, with <span class="tt">contextToolTip</span> on the lines below it when given. <span class="tt">warningToolTip</span> is the tooltip of the warning, such as the reason for it; empty for none. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a60cb3e3e03a095be4ab508fa8697f55f_cgraph.svg" width="1103" height="80"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_af2b5b84e34779dd55124b2c3912ba03f_cgraph.svg" width="1126" height="155"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

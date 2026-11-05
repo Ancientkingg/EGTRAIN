@@ -9,6 +9,5 @@ var searchData=
   ['keypressevent_6',['keyPressEvent',['../class_diagram_window.html#abe3380e3fe58e9421d64ea14fbef3939',1,'DiagramWindow']]],
   ['knowncasefor_7',['knownCaseFor',['../_scene_importer_8cpp.html#a5ed2f60461204687c8f367478c596269',1,'SceneImporter.cpp']]],
   ['kselectioncuecolor_8',['kSelectionCueColor',['../_selection_cue_item_8h.html#a5142e94c12ed77db36a0e5458bc76b82',1,'SelectionCueItem.h']]],
-  ['kstriprule_9',['kStripRule',['../_block_section_overlay_8h.html#a9796191b875e40a5fd884326a8606815',1,'BlockSectionOverlay.h']]],
-  ['kstripstrongtext_10',['kStripStrongText',['../_block_section_overlay_8h.html#a9a98645c5a48cdaeff8084b3fee7956c',1,'BlockSectionOverlay.h']]]
+  ['kstriprule_9',['kStripRule',['../_block_section_overlay_8h.html#a9796191b875e40a5fd884326a8606815',1,'BlockSectionOverlay.h']]]
 ];

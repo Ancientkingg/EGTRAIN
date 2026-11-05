@@ -135,7 +135,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a9030ce6e08973b6c398a131c6928fc24" id="r_a9030ce6e08973b6c398a131c6928fc24"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a9030ce6e08973b6c398a131c6928fc24">FollowCamera</a> (<a class="el" href="class_network_view.html">NetworkView</a> *view, QObject *parent=nullptr)</td></tr>
 <tr class="memitem:aa35304c51c3b9e4b934050ed6af628f8" id="r_aa35304c51c3b9e4b934050ed6af628f8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa35304c51c3b9e4b934050ed6af628f8">follow</a> (const QPointF &amp;target, bool snap)</td></tr>
 <tr class="memitem:a36eac3c89c8c676f93cc33a1f7bca0f5" id="r_a36eac3c89c8c676f93cc33a1f7bca0f5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a36eac3c89c8c676f93cc33a1f7bca0f5">settle</a> ()</td></tr>
-<tr class="memdesc:a36eac3c89c8c676f93cc33a1f7bca0f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the view to the target at once and ends a catch-up.  <br /></td></tr>
+<tr class="memdesc:a36eac3c89c8c676f93cc33a1f7bca0f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the view to the target at once, except at Fit, and ends a catch-up.  <br /></td></tr>
 <tr class="memitem:a90668ade85e90015e042c15ad3c765e4" id="r_a90668ade85e90015e042c15ad3c765e4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a90668ade85e90015e042c15ad3c765e4">stop</a> ()</td></tr>
 <tr class="memdesc:a90668ade85e90015e042c15ad3c765e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forgets the target and ends a catch-up.  <br /></td></tr>
 <tr class="memitem:a388b88dfd824d48b7d1209d158e6e907" id="r_a388b88dfd824d48b7d1209d158e6e907"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a388b88dfd824d48b7d1209d158e6e907">tick</a> ()</td></tr>
@@ -157,7 +157,7 @@ Static Public Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Keeps the centre of a <a class="el" href="class_network_view.html">NetworkView</a> on a target scene position. It owns neither a train nor a snapshot: the caller passes positions in and the controller moves the view.</p>
-<p>Every target moves the view to it at once, to a fraction of a pixel. The window passes the position at which a followed train is drawn at every step of its motion, so the view moves with the train in the same frame. The first target after <a class="el" href="#a90668ade85e90015e042c15ad3c765e4" title="Forgets the target and ends a catch-up.">stop()</a>, a snap and a target further away than 1.5 times the larger side of the visible scene are a cut, which also ends a catch-up. Where the edge of the scene holds an axis of the view, the view stays at the edge on that axis.</p>
+<p>Every target moves the view to it at once, to a fraction of a pixel. The window passes the position at which a followed train is drawn at every step of its motion, so the view moves with the train in the same frame. The first target after <a class="el" href="#a90668ade85e90015e042c15ad3c765e4" title="Forgets the target and ends a catch-up.">stop()</a>, a snap and a target further away than 1.5 times the larger side of the visible scene are a cut, which also ends a catch-up. The view can centre on every point of the network, also at its edge. On an axis where a target lies beyond the edge of the network, the view stays at the edge. At Fit the controller does not move the view; only the user does.</p>
 <p>While the user moves the view (<a class="el" href="class_network_view.html#a628d8b4c2dd8b78da0e5061078fc7083">NetworkView::interacting()</a>), holding a drag, scrolling or pinching, the controller does not move it: it keeps the target and ends a catch-up, and a snap meanwhile cuts at the first target after. It adopts the centre after a pan, a zoom or a resize by the user, and also after a drag in which the view did not move. Otherwise the first target after the user has finished starts a catch-up: the view keeps the distance from the target that the user left and closes it over catchUpMs, easing in and out, with a timer of its own so that a catch-up also ends while the target stands still. Without a new target, as in a paused run, the view stays where the user left it. </p>
 </div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
 <a id="a7708afbc07564d2a4ac15fa15c99d0d2" name="a7708afbc07564d2a4ac15fa15c99d0d2"></a>
@@ -231,7 +231,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Sets the position to follow, in scene coordinates, and moves the view there, part of the way during a catch-up. A snap, the first target after <a class="el" href="#a90668ade85e90015e042c15ad3c765e4" title="Forgets the target and ends a catch-up.">stop()</a> and a target further away than 1.5 times the larger side of the visible scene cut to the target. While the user moves the view, the view stays where it is. </p>
+<p>Sets the position to follow, in scene coordinates, and moves the view there, part of the way during a catch-up. A snap, the first target after <a class="el" href="#a90668ade85e90015e042c15ad3c765e4" title="Forgets the target and ends a catch-up.">stop()</a> and a target further away than 1.5 times the larger side of the visible scene cut to the target. While the user moves the view, and at Fit, the view stays where it is. </p>
 
 </div>
 </div>
@@ -349,7 +349,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Moves the view to the target at once and ends a catch-up. </p>
+<p>Moves the view to the target at once, except at Fit, and ends a catch-up. </p>
 
 </div>
 </div>

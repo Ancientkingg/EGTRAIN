@@ -116,10 +116,11 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_chart_ticks_8
 <code>#include &quot;<a class="el" href="_time_format_8h_source.html">util/TimeFormat.h</a>&quot;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;cmath&gt;</code><br />
+<code>#include &lt;cstddef&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for ChartTicks.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_chart_ticks_8cpp__incl.svg" width="1099" height="266"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_chart_ticks_8cpp__incl.svg" width="988" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -132,7 +133,6 @@ Functions</h2></td></tr>
 <tr class="memitem:a32c2ef92d43ac0efc38584338ca806c6" id="r_a32c2ef92d43ac0efc38584338ca806c6"><td class="memItemLeft">std::vector&lt; std::pair&lt; double, QString &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a32c2ef92d43ac0efc38584338ca806c6">labelledStations</a> (const std::vector&lt; <a class="el" href="struct_station_tick.html">StationTick</a> &gt; &amp;stations, double low, double high, bool reverse, const QRectF &amp;plot, double labelsLeft, double chartWidth, const <a class="el" href="_chart_ticks_8h.html#ad6384da42745178acccc37f8faebcb37">ChartTextWidth</a> &amp;textWidth, const std::function&lt; QString(const QString &amp;text, double width)&gt; &amp;elide)</td></tr>
 <tr class="memitem:a8ffaff190b4fd94b394bcf75c685c101" id="r_a8ffaff190b4fd94b394bcf75c685c101"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a8ffaff190b4fd94b394bcf75c685c101">clockTickInterval</a> (double low, double high)</td></tr>
 <tr class="memitem:ac75281b436c6edc755c30c6e98c43b6f" id="r_ac75281b436c6edc755c30c6e98c43b6f"><td class="memItemLeft">std::vector&lt; std::pair&lt; double, QString &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac75281b436c6edc755c30c6e98c43b6f">clockTicks</a> (double low, double high, double interval, long long startOffset, double pixelsPerSecond, const <a class="el" href="_chart_ticks_8h.html#ad6384da42745178acccc37f8faebcb37">ChartTextWidth</a> &amp;labelRoom)</td></tr>
-<tr class="memitem:a67724ec003d598f610b1d39de97579a6" id="r_a67724ec003d598f610b1d39de97579a6"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_strip_label.html">StripLabel</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a67724ec003d598f610b1d39de97579a6">placedStripLabels</a> (const std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; &amp;sections, const std::vector&lt; <a class="el" href="struct_block_section_marks.html">BlockSectionMarks</a> &gt; &amp;marks, const QRectF &amp;plot, double top, double rowHeight, int rows, const std::function&lt; double(double km)&gt; &amp;xAt, const std::function&lt; double(const <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &amp;section, bool strong)&gt; &amp;idWidth, std::size_t *candidates)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="a8ffaff190b4fd94b394bcf75c685c101" name="a8ffaff190b4fd94b394bcf75c685c101"></a>
@@ -267,68 +267,6 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_chart_ticks_8cpp_a32c2ef92d43ac0efc38584338ca806c6_cgraph.svg" width="138" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a67724ec003d598f610b1d39de97579a6" name="a67724ec003d598f610b1d39de97579a6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a67724ec003d598f610b1d39de97579a6">&#9670;&#160;</a></span>placedStripLabels()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt; <a class="el" href="struct_strip_label.html">StripLabel</a> &gt; placedStripLabels </td>
-          <td>(</td>
-          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>sections</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_block_section_marks.html">BlockSectionMarks</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>marks</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const QRectF &amp;</td>          <td class="paramname"><span class="paramname"><em>plot</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>top</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>rowHeight</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>rows</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::function&lt; double(double km)&gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>xAt</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::function&lt; double(const <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &amp;section, bool strong)&gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>idWidth</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::size_t *</td>          <td class="paramname"><span class="paramname"><em>candidates</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>The ids that the strip shows across <span class="tt">plot</span>, in <span class="tt">rows</span> rows of <span class="tt">rowHeight</span> from <span class="tt">top</span>. <span class="tt">marks</span> has one entry per section, <span class="tt">xAt</span> gives the pixel of a distance along the route, and <span class="tt">idWidth</span> the width of the id of a section, in bold when <span class="tt">strong</span>. A plot of 8 px or less shows none. Each id is centred in the part of its cell that lies in the plot and kept inside the plot, and goes in the first row where it keeps clear of the ids placed there. The ids are placed in route order when that names every section. Otherwise the ids of critical and conflict sections are placed first, then those of the first and last section, of switch sections and of station sections, then the others in route order, and an id that keeps clear in no row is left out. The result has the order of placing. <span class="tt">candidates</span> gets the number of ids that could be shown. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_chart_ticks_8cpp_a67724ec003d598f610b1d39de97579a6_cgraph.svg" width="147" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

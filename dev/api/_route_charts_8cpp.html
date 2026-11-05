@@ -113,10 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_route_charts_
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="_route_charts_8h_source.html">diagrams/RouteCharts.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_position_scale_8h_source.html">diagrams/PositionScale.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_series_meta_8h_source.html">diagrams/SeriesMeta.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_train_colors_8h_source.html">diagrams/TrainColors.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_section_labels_8h_source.html">scene/SectionLabels.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_time_format_8h_source.html">util/TimeFormat.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_trajectory_util_8h_source.html">util/TrajectoryUtil.h</a>&quot;</code><br />
 <code>#include &lt;QPen&gt;</code><br />
 <code>#include &lt;QtCharts/QAreaSeries&gt;</code><br />
@@ -132,7 +131,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_route_charts_
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for RouteCharts.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_route_charts_8cpp__incl.svg" width="6190" height="568"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_route_charts_8cpp__incl.svg" width="6112" height="568"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -140,16 +139,16 @@ Functions</h2></td></tr>
 <tr class="memitem:aa94f9d298cae23ccb972beaf893a1a15" id="r_aa94f9d298cae23ccb972beaf893a1a15"><td class="memItemLeft"><a class="el" href="struct_trajectory_chart_result.html">TrajectoryChartResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa94f9d298cae23ccb972beaf893a1a15">buildTrajectoryChart</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;run, <a class="el" href="_route_charts_8h.html#a0fa81893835a3036bb374d3a404d58a5">TrajectoryChart</a> kind)</td></tr>
 <tr class="memitem:aba34c21388c0cd3a1a3ee8965f97c7dd" id="r_aba34c21388c0cd3a1a3ee8965f97c7dd"><td class="memItemLeft"><a class="el" href="struct_route_chart.html">RouteChart</a>&#160;</td><td class="memItemRight"><a class="el" href="#aba34c21388c0cd3a1a3ee8965f97c7dd">buildDelayChart</a> (const <a class="el" href="struct_delay_diagram_data.html">DelayDiagramData</a> &amp;diagram)</td></tr>
 <tr class="memitem:a895491176fcb27699920824b1ba450bb" id="r_a895491176fcb27699920824b1ba450bb"><td class="memItemLeft"><a class="el" href="struct_route_chart.html">RouteChart</a>&#160;</td><td class="memItemRight"><a class="el" href="#a895491176fcb27699920824b1ba450bb">buildRouteDiagramChart</a> (const <a class="el" href="struct_route_diagram_data.html">RouteDiagramData</a> &amp;diagram, const <a class="el" href="struct_route_diagram_data.html">RouteDiagramData</a> &amp;calls, double horizonSeconds)</td></tr>
-<tr class="memitem:a15dd1e747cb7c2352a56893cb52aa333" id="r_a15dd1e747cb7c2352a56893cb52aa333"><td class="memItemLeft">QChart *&#160;</td><td class="memItemRight"><a class="el" href="#a15dd1e747cb7c2352a56893cb52aa333">buildBlockingTimeChart</a> (const <a class="el" href="struct_blocking_time_diagram_data.html">BlockingTimeDiagramData</a> &amp;diagram, bool compressed, const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> &amp;labels, const <a class="el" href="class_position_scale.html">PositionScale</a> &amp;scale)</td></tr>
+<tr class="memitem:a227ea7d50e1d8e5137cd106c3072d26d" id="r_a227ea7d50e1d8e5137cd106c3072d26d"><td class="memItemLeft">QChart *&#160;</td><td class="memItemRight"><a class="el" href="#a227ea7d50e1d8e5137cd106c3072d26d">buildBlockingTimeChart</a> (const <a class="el" href="struct_blocking_time_diagram_data.html">BlockingTimeDiagramData</a> &amp;diagram, bool compressed, long long startOffsetSeconds)</td></tr>
 <tr class="memitem:a39493943e9bb003ef5adf6f98862370f" id="r_a39493943e9bb003ef5adf6f98862370f"><td class="memItemLeft">QCategoryAxis *&#160;</td><td class="memItemRight"><a class="el" href="#a39493943e9bb003ef5adf6f98862370f">addRouteAxes</a> (QChart *chart, const <a class="el" href="struct_route_diagram_path.html">RouteDiagramPath</a> &amp;referencePath, std::vector&lt; <a class="el" href="struct_station_tick.html">StationTick</a> &gt; &amp;stationTicks, const std::vector&lt; double &gt; &amp;callPositions)</td></tr>
-<tr class="memitem:a1cd4157effe36ecb5f80b0797348c15e" id="r_a1cd4157effe36ecb5f80b0797348c15e"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#a1cd4157effe36ecb5f80b0797348c15e">blockingComponentLines</a> (const <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &amp;segment, bool compressed)</td></tr>
-<tr class="memitem:aae3cf8c316a9d1527f2c42b452c7f586" id="r_aae3cf8c316a9d1527f2c42b452c7f586"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aae3cf8c316a9d1527f2c42b452c7f586">addBlockingTimeSeries</a> (QChart *chart, const std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt; &amp;segments, bool useCapacityCriticalStyle, const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> &amp;labels, const <a class="el" href="class_position_scale.html">PositionScale</a> &amp;scale)</td></tr>
+<tr class="memitem:a452a7bdf79b2ff6126ef0fa81dac935f" id="r_a452a7bdf79b2ff6126ef0fa81dac935f"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#a452a7bdf79b2ff6126ef0fa81dac935f">blockingComponentLines</a> (const <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &amp;segment)</td></tr>
+<tr class="memitem:aea40b5f7b0848e0a8536207b3b6db6c0" id="r_aea40b5f7b0848e0a8536207b3b6db6c0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aea40b5f7b0848e0a8536207b3b6db6c0">addBlockingTimeSeries</a> (QChart *chart, const std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt; &amp;segments, bool useCapacityCriticalStyle, long long startOffsetSeconds)</td></tr>
 <tr class="memitem:a9faa82c2abd5dd8ad45bd9f1b4975a4d" id="r_a9faa82c2abd5dd8ad45bd9f1b4975a4d"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#a9faa82c2abd5dd8ad45bd9f1b4975a4d">blockingTimeTrainIds</a> (const std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt; &amp;segments, const std::vector&lt; <a class="el" href="struct_blocking_time_planned_reference.html">BlockingTimePlannedReference</a> &gt; &amp;references, const std::vector&lt; std::vector&lt; std::string &gt; &gt; &amp;trajectories, const std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt; &amp;unmapped)</td></tr>
 <tr class="memdesc:a9faa82c2abd5dd8ad45bd9f1b4975a4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Real identities retained in the immutable export, including trains with no projectable series.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
-<a id="aae3cf8c316a9d1527f2c42b452c7f586" name="aae3cf8c316a9d1527f2c42b452c7f586"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aae3cf8c316a9d1527f2c42b452c7f586">&#9670;&#160;</a></span>addBlockingTimeSeries()</h2>
+<a id="aea40b5f7b0848e0a8536207b3b6db6c0" name="aea40b5f7b0848e0a8536207b3b6db6c0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea40b5f7b0848e0a8536207b3b6db6c0">&#9670;&#160;</a></span>addBlockingTimeSeries()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -172,20 +171,15 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>labels</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="class_position_scale.html">PositionScale</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scale</em></span>&#160;)</td>
+          <td class="paramtype">long long</td>          <td class="paramname"><span class="paramname"><em>startOffsetSeconds</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Adds a filled box and its outline for each of <span class="tt">segments</span>, and only the outline of a block of no width. The legend keeps one marker per train and type of block, and none for a fill. <span class="tt">useCapacityCriticalStyle</span> draws the capacity-critical blocks of a compressed chart. </p>
+<p>Adds a filled box and its outline for each of <span class="tt">segments</span>, and only the outline of a block of no width. The legend keeps one marker per train and type of block, and none for a fill. <span class="tt">useCapacityCriticalStyle</span> draws the capacity-critical blocks of a compressed chart. The hover of a block names the train and the block by its short id (shortBlockId), then gives the blocked interval in clock time from <span class="tt">startOffsetSeconds</span> and the kind of a block that is not an ordinary one. After an empty line follow the parts of the blocking time (blockingComponentLines), which only Selected shows. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_route_charts_8cpp_aae3cf8c316a9d1527f2c42b452c7f586_cgraph.svg" width="862" height="520"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_route_charts_8cpp_aea40b5f7b0848e0a8536207b3b6db6c0_cgraph.svg" width="663" height="354"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -227,8 +221,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a1cd4157effe36ecb5f80b0797348c15e" name="a1cd4157effe36ecb5f80b0797348c15e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1cd4157effe36ecb5f80b0797348c15e">&#9670;&#160;</a></span>blockingComponentLines()</h2>
+<a id="a452a7bdf79b2ff6126ef0fa81dac935f" name="a452a7bdf79b2ff6126ef0fa81dac935f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a452a7bdf79b2ff6126ef0fa81dac935f">&#9670;&#160;</a></span>blockingComponentLines()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -236,20 +230,16 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">QStringList blockingComponentLines </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>segment</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype">const <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>segment</em></span></td><td>)</td>
           <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>compressed</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>"Approach from 10 s", "Run 12 to 30 s", "Clearance to 33 s", "Setup 2 s", "Sight and reaction 9 s", "Release 1 s" and "Run margin 0 s" for the hover of a block, one per line, without the parts that are not available. In a compressed chart, whose blocks move and whose times do not, each time starts with "Simulated". </p>
+<p>The parts of the blocking time of a block, one per line: "Approach 12 s", "Run 18 s", "Clearance 3 s", "Setup 2 s", "Sight and reaction 9 s", "Release 1 s" and "Run margin 0 s". The approach lasts from its start to the start of the run, the run to its end and the clearance from there to the end of the clearance. A part that the run did not record has no line. The parts are durations, so a compression, which moves the block, leaves them as they are. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_route_charts_8cpp_a1cd4157effe36ecb5f80b0797348c15e_cgraph.svg" width="196" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_route_charts_8cpp_a452a7bdf79b2ff6126ef0fa81dac935f_cgraph.svg" width="196" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -292,8 +282,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a15dd1e747cb7c2352a56893cb52aa333" name="a15dd1e747cb7c2352a56893cb52aa333"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a15dd1e747cb7c2352a56893cb52aa333">&#9670;&#160;</a></span>buildBlockingTimeChart()</h2>
+<a id="a227ea7d50e1d8e5137cd106c3072d26d" name="a227ea7d50e1d8e5137cd106c3072d26d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a227ea7d50e1d8e5137cd106c3072d26d">&#9670;&#160;</a></span>buildBlockingTimeChart()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -311,20 +301,15 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>labels</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="class_position_scale.html">PositionScale</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scale</em></span>&#160;)</td>
+          <td class="paramtype">long long</td>          <td class="paramname"><span class="paramname"><em>startOffsetSeconds</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The blocking-time chart: the blocks, the planned lines and the simulated lines of <span class="tt">diagram</span>, over the route distance exactly over the sections of the scope and the time range of the diagram. <span class="tt">compressed</span> is for the compressed diagram of a capacity result. <span class="tt">scale</span> gives the geo X in the hover of a block. </p>
+<p>The blocking-time chart: the blocks, the planned lines and the simulated lines of <span class="tt">diagram</span>, over the route distance exactly over the sections of the scope and the time range of the diagram. <span class="tt">compressed</span> is for the compressed diagram of a capacity result. <span class="tt">startOffsetSeconds</span>, the clock time of second 0 in seconds since midnight, gives the clock times in the hover of a block. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_route_charts_8cpp_a15dd1e747cb7c2352a56893cb52aa333_cgraph.svg" width="1087" height="619"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_route_charts_8cpp_a227ea7d50e1d8e5137cd106c3072d26d_cgraph.svg" width="888" height="451"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

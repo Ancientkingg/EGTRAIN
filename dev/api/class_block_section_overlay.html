@@ -127,36 +127,25 @@ Collaboration diagram for BlockSectionOverlay:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aaf14f50d83bd29aa7c6c7553e4978b28" id="r_aaf14f50d83bd29aa7c6c7553e4978b28"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aaf14f50d83bd29aa7c6c7553e4978b28">BlockSectionOverlay</a> (QChart *chart, std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; sections, std::vector&lt; <a class="el" href="struct_block_section_marks.html">BlockSectionMarks</a> &gt; marks, int routeSectionCount, const QString &amp;route, const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> *labels, const QFont &amp;font, const QPalette &amp;palette)</td></tr>
+<tr class="memitem:a2d0b1d5b39d55b0b70d118789b5575a4" id="r_a2d0b1d5b39d55b0b70d118789b5575a4"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a2d0b1d5b39d55b0b70d118789b5575a4">BlockSectionOverlay</a> (QChart *chart, std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; sections, std::vector&lt; <a class="el" href="struct_block_section_marks.html">BlockSectionMarks</a> &gt; marks, const QFont &amp;font, const QPalette &amp;palette)</td></tr>
 <tr class="memitem:af2e4c29348f8bac3e64287e5f0e0cdbb" id="r_af2e4c29348f8bac3e64287e5f0e0cdbb"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#af2e4c29348f8bac3e64287e5f0e0cdbb">boundingRect</a> () const override</td></tr>
 <tr class="memdesc:af2e4c29348f8bac3e64287e5f0e0cdbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The whole chart.  <br /></td></tr>
 <tr class="memitem:a4c63445940353db95ce8dcff05399970" id="r_a4c63445940353db95ce8dcff05399970"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4c63445940353db95ce8dcff05399970">watchAxes</a> ()</td></tr>
 <tr class="memdesc:a4c63445940353db95ce8dcff05399970"><td class="mdescLeft">&#160;</td><td class="mdescRight">Follows the numeric axes that the chart has now, which replacing a time or position axis changes.  <br /></td></tr>
-<tr class="memitem:a238e4df2e9434d58275c4a0087c2b43d" id="r_a238e4df2e9434d58275c4a0087c2b43d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a238e4df2e9434d58275c4a0087c2b43d">setFullRange</a> (double low, double high)</td></tr>
-<tr class="memdesc:a238e4df2e9434d58275c4a0087c2b43d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The range of the distance axis at the full view of the chart, which decides the rows of the strip.  <br /></td></tr>
 <tr class="memitem:a5c78b1c0c85fd0e9a501f0620993f188" id="r_a5c78b1c0c85fd0e9a501f0620993f188"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5c78b1c0c85fd0e9a501f0620993f188">setJumps</a> (std::vector&lt; <a class="el" href="struct_position_scale_1_1_jump.html">PositionScale::Jump</a> &gt; jumps)</td></tr>
 <tr class="memdesc:a5c78b1c0c85fd0e9a501f0620993f188"><td class="mdescLeft">&#160;</td><td class="mdescRight">The jumps of the position axis, each drawn as a break mark; none without a position axis.  <br /></td></tr>
-<tr class="memitem:ab078f2c8d83d249099291329e2c619d5" id="r_ab078f2c8d83d249099291329e2c619d5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab078f2c8d83d249099291329e2c619d5">setRowsChanged</a> (std::function&lt; void()&gt; changed)</td></tr>
-<tr class="memdesc:ab078f2c8d83d249099291329e2c619d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called when the strip takes another number of rows, which changes the height that it needs above the plot.  <br /></td></tr>
 <tr class="memitem:a980aed9f30731b373e7294b257de706c" id="r_a980aed9f30731b373e7294b257de706c"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a980aed9f30731b373e7294b257de706c">headerHeight</a> () const</td></tr>
-<tr class="memdesc:a980aed9f30731b373e7294b257de706c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The height above the plot: the strip, then the notice.  <br /></td></tr>
+<tr class="memdesc:a980aed9f30731b373e7294b257de706c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The height above the plot that the strip takes; 0 without sections.  <br /></td></tr>
 <tr class="memitem:a074e84f86970580dfe59769ffa85b9fa" id="r_a074e84f86970580dfe59769ffa85b9fa"><td class="memItemLeft">QVector&lt; <a class="el" href="struct_diagram_key_entry.html">DiagramKeyEntry</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a074e84f86970580dfe59769ffa85b9fa">keyEntries</a> () const</td></tr>
-<tr class="memitem:a92491787ec799fe31422f4cd1d8176f8" id="r_a92491787ec799fe31422f4cd1d8176f8"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#a92491787ec799fe31422f4cd1d8176f8">stripLabels</a> () const</td></tr>
-<tr class="memdesc:a92491787ec799fe31422f4cd1d8176f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The ids that the strip draws as the chart is now, in the order that it draws them.  <br /></td></tr>
 <tr class="memitem:a4341ed7061ce5946dfb84e5bee07ba8b" id="r_a4341ed7061ce5946dfb84e5bee07ba8b"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a4341ed7061ce5946dfb84e5bee07ba8b">inspect</a> (const QPointF &amp;point, bool headerOnly) const</td></tr>
 <tr class="memitem:a08c390a508861db30d83e359ca36038b" id="r_a08c390a508861db30d83e359ca36038b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a08c390a508861db30d83e359ca36038b">paint</a> (QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override</td></tr>
-<tr class="memdesc:a08c390a508861db30d83e359ca36038b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the strip, the notice and the break marks.  <br /></td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 id="header-properties" class="groupheader"><a id="properties" name="properties"></a>
-Properties</h2></td></tr>
-<tr class="memitem:a2a6ad5f3e8134b3e28fd80bf28072b34" id="r_a2a6ad5f3e8134b3e28fd80bf28072b34"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#a2a6ad5f3e8134b3e28fd80bf28072b34">stripLabels</a></td></tr>
-<tr class="memdesc:a2a6ad5f3e8134b3e28fd80bf28072b34"><td class="mdescLeft">&#160;</td><td class="mdescRight">The ids that the strip draws as the chart is now, read by the tests.  <br /></td></tr>
+<tr class="memdesc:a08c390a508861db30d83e359ca36038b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the strip and the break marks.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>One chart-owned item, outside the train series/filter identity space. Geometry is mapped from the live distance axis, which may be the position axis; font sizes and the strip stay in chart pixels. It draws the strip of the sections above the plot and the break marks of the position axis on the bottom edge of the plot over the series, and the boundaries of the sections in the plot under the series, in a layer of its own. </p>
+<div class="textblock"><p>One chart-owned item, outside the train series/filter identity space. Geometry is mapped from the live distance axis, which may be the position axis; the height of the strip stays in chart pixels. It draws the strip of the sections above the plot and the break marks of the position axis on the bottom edge of the plot over the series, and the boundaries of the sections in the plot under the series, in a layer of its own. The strip is one row of cells without text, one cell for each section with a usable extent. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="aaf14f50d83bd29aa7c6c7553e4978b28" name="aaf14f50d83bd29aa7c6c7553e4978b28"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaf14f50d83bd29aa7c6c7553e4978b28">&#9670;&#160;</a></span>BlockSectionOverlay()</h2>
+<a id="a2d0b1d5b39d55b0b70d118789b5575a4" name="a2d0b1d5b39d55b0b70d118789b5575a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2d0b1d5b39d55b0b70d118789b5575a4">&#9670;&#160;</a></span>BlockSectionOverlay()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -179,21 +168,6 @@ Properties</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>routeSectionCount</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>route</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> *</td>          <td class="paramname"><span class="paramname"><em>labels</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">const QFont &amp;</td>          <td class="paramname"><span class="paramname"><em>font</em></span>, </td>
         </tr>
         <tr>
@@ -203,11 +177,11 @@ Properties</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The overlay of <span class="tt">sections</span> on <span class="tt">chart</span>, which owns it. <span class="tt">marks</span> has one entry per section or none, <span class="tt">routeSectionCount</span> is the M of "Section N of M" (the number of sections when 0), <span class="tt">route</span> is the route that the hover names, and <span class="tt">labels</span> may be null. </p>
+<p>The overlay of <span class="tt">sections</span> on <span class="tt">chart</span>, which owns it. <span class="tt">marks</span> has one entry per section or none. The strip is one line of <span class="tt">font</span> high, with a little room. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_block_section_overlay_aaf14f50d83bd29aa7c6c7553e4978b28_cgraph.svg" width="800" height="276"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_block_section_overlay_a2d0b1d5b39d55b0b70d118789b5575a4_cgraph.svg" width="380" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -263,7 +237,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>The height above the plot: the strip, then the notice. </p>
+<p>The height above the plot that the strip takes; 0 without sections. </p>
 
 </div>
 </div>
@@ -285,12 +259,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The hover at <span class="tt">point</span> in chart pixels, one fact per line: a break mark, the sections and the notice in the header and, without <span class="tt">headerOnly</span>, the boundaries in the plot. Empty where the overlay shows nothing. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_block_section_overlay_a4341ed7061ce5946dfb84e5bee07ba8b_cgraph.svg" width="363" height="126"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
+<p>The hover at <span class="tt">point</span> in chart pixels: a break mark, the section of the cell of the strip under the pointer, or the nearest within 3 px, and without <span class="tt">headerOnly</span> the sections of the boundaries in the plot. A section is two lines: its short id (shortBlockId) and its geo extent, such as "Position 21.010 to 21.450 km". Coincident sections are all listed. Empty where the overlay shows nothing. </p>
 
 </div>
 </div>
@@ -308,7 +277,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The rows of the Key for what the overlay draws: a cell with the bar of a station section, a hatched cell of a switch section and the dotted line of a boundary, each while the strip draws one. </p>
+<p>The rows of the Key for what the overlay draws: a cell with the bar of a station section and a hatched cell of a switch section, each while the strip draws one. </p>
 
 </div>
 </div>
@@ -344,35 +313,12 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>Draws the strip, the notice and the break marks. </p>
+<p>Draws the strip and the break marks. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_block_section_overlay_a08c390a508861db30d83e359ca36038b_cgraph.svg" width="344" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_block_section_overlay_a08c390a508861db30d83e359ca36038b_cgraph.svg" width="304" height="71"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-
-</div>
-</div>
-<a id="a238e4df2e9434d58275c4a0087c2b43d" name="a238e4df2e9434d58275c4a0087c2b43d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a238e4df2e9434d58275c4a0087c2b43d">&#9670;&#160;</a></span>setFullRange()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void BlockSectionOverlay::setFullRange </td>
-          <td>(</td>
-          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>low</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>high</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The range of the distance axis at the full view of the chart, which decides the rows of the strip. </p>
 
 </div>
 </div>
@@ -395,52 +341,6 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ab078f2c8d83d249099291329e2c619d5" name="ab078f2c8d83d249099291329e2c619d5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab078f2c8d83d249099291329e2c619d5">&#9670;&#160;</a></span>setRowsChanged()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void BlockSectionOverlay::setRowsChanged </td>
-          <td>(</td>
-          <td class="paramtype">std::function&lt; void()&gt;</td>          <td class="paramname"><span class="paramname"><em>changed</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Called when the strip takes another number of rows, which changes the height that it needs above the plot. </p>
-
-</div>
-</div>
-<a id="a92491787ec799fe31422f4cd1d8176f8" name="a92491787ec799fe31422f4cd1d8176f8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a92491787ec799fe31422f4cd1d8176f8">&#9670;&#160;</a></span>stripLabels()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QStringList BlockSectionOverlay::stripLabels </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The ids that the strip draws as the chart is now, in the order that it draws them. </p>
-
-</div>
-</div>
 <a id="a4c63445940353db95ce8dcff05399970" name="a4c63445940353db95ce8dcff05399970"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4c63445940353db95ce8dcff05399970">&#9670;&#160;</a></span>watchAxes()</h2>
 
@@ -457,31 +357,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Follows the numeric axes that the chart has now, which replacing a time or position axis changes. </p>
-
-</div>
-</div>
-<a name="doc-property-members" id="doc-property-members"></a><h2 id="header-doc-property-members" class="groupheader">Property Documentation</h2>
-<a id="a2a6ad5f3e8134b3e28fd80bf28072b34" name="a2a6ad5f3e8134b3e28fd80bf28072b34"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2a6ad5f3e8134b3e28fd80bf28072b34">&#9670;&#160;</a></span>stripLabels</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">QStringList BlockSectionOverlay::stripLabels</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel read">read</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>The ids that the strip draws as the chart is now, read by the tests. </p>
 
 </div>
 </div>

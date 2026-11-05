@@ -1,0 +1,7 @@
+<map id="DiagramWindow::setBlockSections" name="DiagramWindow::setBlockSections">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,14,253,42"/>
+<area shape="rect" id="Node000002" href="$class_block_section_overlay.html#a2d0b1d5b39d55b0b70d118789b5575a4" title=" " alt="" coords="301,5,465,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="253,25,288,28,282,28,253,30"/>
+<area shape="rect" id="Node000003" href="$class_block_section_overlay.html#a4c63445940353db95ce8dcff05399970" title="Follows the numeric axes that the chart has now, which replacing a time or position axis changes." alt="" coords="513,5,669,50"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="465,25,500,28,494,28,466,30"/>
+</map>

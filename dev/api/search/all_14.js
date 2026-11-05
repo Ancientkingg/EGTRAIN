@@ -60,7 +60,7 @@ var searchData=
   ['terminateatdestinationcheck_57',['terminateAtDestinationCheck',['../class_incident_panel.html#a3cbc4644d85aa597dbb68fcbc689948d',1,'IncidentPanel']]],
   ['terminationoutcome_58',['terminationOutcome',['../_main_window_support_8h.html#ad4059325da798fcb49e8aae68e7b0503',1,'MainWindowSupport.h']]],
   ['termsversion_59',['termsVersion',['../struct_telemetry_context.html#a22b706866b465ae928bc77acc31f9503',1,'TelemetryContext']]],
-  ['text_60',['text',['../struct_incident_target_choice.html#a5295cc3626648e5f4657a7b04d3e9a26',1,'IncidentTargetChoice::text'],['../struct_update_record_text.html#a604e2a89f3c258d21a368d2e2c5a0784',1,'UpdateRecordText::text'],['../namespacecannot__open.html#a205e5ea6c4bdc873c4200c4abbec104a',1,'cannot_open::text()']]],
+  ['text_60',['text',['../struct_blocking_time_note.html#afdf9477630202b35167647c3b17649e4',1,'BlockingTimeNote::text'],['../struct_incident_target_choice.html#a5295cc3626648e5f4657a7b04d3e9a26',1,'IncidentTargetChoice::text'],['../struct_update_record_text.html#a604e2a89f3c258d21a368d2e2c5a0784',1,'UpdateRecordText::text'],['../namespacecannot__open.html#a205e5ea6c4bdc873c4200c4abbec104a',1,'cannot_open::text()']]],
   ['textfromvalue_61',['textFromValue',['../class_compact_double_spin_box.html#a1c8813bf88e11a6be72528529cb3d672',1,'CompactDoubleSpinBox']]],
   ['texticon_62',['textIcon',['../class_platform_item.html#a0a2fc66619a1005fe5a98bc716c59e87',1,'PlatformItem']]],
   ['thread_63',['thread',['../struct_live_server_state.html#a671bdcb49d19cbe9807f6c0c7cd26bc4',1,'LiveServerState']]],

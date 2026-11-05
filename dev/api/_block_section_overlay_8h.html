@@ -115,7 +115,6 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_block_section
 <div class="textblock"><code>#include &quot;<a class="el" href="_blocking_time_diagram_8h_source.html">diagrams/BlockingTimeDiagram.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_diagram_key_8h_source.html">diagrams/DiagramKey.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_position_scale_8h_source.html">diagrams/PositionScale.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_section_labels_8h_source.html">scene/SectionLabels.h</a>&quot;</code><br />
 <code>#include &lt;QColor&gt;</code><br />
 <code>#include &lt;QFont&gt;</code><br />
 <code>#include &lt;QGraphicsObject&gt;</code><br />
@@ -124,18 +123,14 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_block_section
 <code>#include &lt;QPointF&gt;</code><br />
 <code>#include &lt;QRectF&gt;</code><br />
 <code>#include &lt;QSet&gt;</code><br />
-<code>#include &lt;QSizeF&gt;</code><br />
 <code>#include &lt;QString&gt;</code><br />
-<code>#include &lt;QStringList&gt;</code><br />
 <code>#include &lt;QVector&gt;</code><br />
 <code>#include &lt;cstddef&gt;</code><br />
-<code>#include &lt;functional&gt;</code><br />
-<code>#include &lt;utility&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for BlockSectionOverlay.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_block_section_overlay_8h__incl.svg" width="1987" height="266"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_block_section_overlay_8h__incl.svg" width="1615" height="266"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
@@ -153,8 +148,6 @@ Classes</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:a9796191b875e40a5fd884326a8606815" id="r_a9796191b875e40a5fd884326a8606815"><td class="memItemLeft">QT_END_NAMESPACE const QColor&#160;</td><td class="memItemRight"><a class="el" href="#a9796191b875e40a5fd884326a8606815">kStripRule</a> (201, 211, 219)</td></tr>
 <tr class="memdesc:a9796191b875e40a5fd884326a8606815"><td class="mdescLeft">&#160;</td><td class="mdescRight">The rule between the cells of the section strip, and between a chart and the column of an exported figure.  <br /></td></tr>
-<tr class="memitem:a9a98645c5a48cdaeff8084b3fee7956c" id="r_a9a98645c5a48cdaeff8084b3fee7956c"><td class="memItemLeft">const QColor&#160;</td><td class="memItemRight"><a class="el" href="#a9a98645c5a48cdaeff8084b3fee7956c">kStripStrongText</a> (36, 49, 58)</td></tr>
-<tr class="memdesc:a9a98645c5a48cdaeff8084b3fee7956c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The id of a critical or conflict section in the strip, and the outline of a selected blocking time.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="a9796191b875e40a5fd884326a8606815" name="a9796191b875e40a5fd884326a8606815"></a>
@@ -194,47 +187,6 @@ Functions</h2></td></tr>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_block_section_overlay_8h_a9796191b875e40a5fd884326a8606815_cgraph.svg" width="99" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a9a98645c5a48cdaeff8084b3fee7956c" name="a9a98645c5a48cdaeff8084b3fee7956c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9a98645c5a48cdaeff8084b3fee7956c">&#9670;&#160;</a></span>kStripStrongText()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const QColor kStripStrongText </td>
-          <td>(</td>
-          <td class="paramtype">36</td>          <td class="paramname"><span class="paramname"><em></em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">49</td>          <td class="paramname"><span class="paramname"><em></em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">58</td>          <td class="paramname"><span class="paramname"><em></em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>The id of a critical or conflict section in the strip, and the outline of a selected blocking time. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_block_section_overlay_8h_a9a98645c5a48cdaeff8084b3fee7956c_cgraph.svg" width="139" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
