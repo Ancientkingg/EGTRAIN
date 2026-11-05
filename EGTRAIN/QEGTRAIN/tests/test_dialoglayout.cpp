@@ -17,6 +17,7 @@
 #include <QListWidget>
 #include <QMenu>
 #include <QMessageBox>
+#include <QPainter>
 #include <QProxyStyle>
 #include <QPushButton>
 #include <QScopeGuard>
@@ -24,6 +25,7 @@
 #include <QStyleFactory>
 #include <QTableWidget>
 #include <QTest>
+#include <QTreeWidget>
 
 #include <algorithm>
 #include <cstdlib>
@@ -353,6 +355,22 @@ private:
 	QDialogButtonBox::ButtonLayout m_layout;
 };
 
+// The colour in which SpillingCheckStyle paints the check box of an item.
+constexpr QRgb kBaseStyleCheck = 0xff30c030;
+
+// Fusion whose check box of an item view fills a square 3 px larger on each side than its rectangle, as a native check box
+// can be larger than the rectangle that the style gives it.
+class SpillingCheckStyle : public QProxyStyle {
+public:
+	SpillingCheckStyle() : QProxyStyle(QStringLiteral("Fusion")) {}
+	void drawPrimitive(PrimitiveElement element, const QStyleOption* option, QPainter* painter, const QWidget* widget) const override {
+		if (element == PE_IndicatorItemViewItemCheck)
+			painter->fillRect(option->rect.adjusted(-3, -3, 3, 3), QColor(kBaseStyleCheck));
+		else
+			QProxyStyle::drawPrimitive(element, option, painter, widget);
+	}
+};
+
 // The width in pixels and the colour of the left border of widget, half way down.
 std::pair<int, QRgb> leftBorder(QWidget* widget) {
 	const QImage image = widget->grab().toImage();
@@ -387,6 +405,7 @@ private slots:
 	void messageAfterOpen();
 	void fitWidthToContentGrowsHeight();
 	void itemViewIndicatorsAreVisible();
+	void itemViewsDrawOneCheckBox();
 	void inlineMessagesTakeTheirRole();
 	void panelMessagesLookAsSetAfterShow_data();
 	void panelMessagesLookAsSetAfterShow();
@@ -794,6 +813,59 @@ void TestDialogLayout::itemViewIndicatorsAreVisible() {
 	if (QTest::currentTestFailed())
 		return;
 	checkIndicators(tableImage, tableRow(0), tableRow(1), tableRow(3), tableRow(2), "table item indicators are not clearly visible");
+}
+
+// A list, table or tree item shows the check box of the style sheet only, also under a widget style whose own check box is
+// larger than its rectangle: no pixel of that box shows in a plain, alternate, checked, disabled or selected row.
+void TestDialogLayout::itemViewsDrawOneCheckBox() {
+	SpillingCheckStyle style;
+	QListWidget list;
+	QTableWidget table(5, 1);
+	table.horizontalHeader()->hide();
+	table.verticalHeader()->hide();
+	QTreeWidget tree;
+	tree.setHeaderHidden(true);
+	// Rows 2 to 4 are checked, row 3 is disabled and row 4 is selected.
+	const auto flags = [](Qt::ItemFlags itemFlags, int row) {
+		itemFlags |= Qt::ItemIsUserCheckable;
+		return row == 3 ? itemFlags & ~Qt::ItemIsEnabled : itemFlags;
+	};
+	for (int row = 0; row < 5; ++row) {
+		const Qt::CheckState state = row >= 2 ? Qt::Checked : Qt::Unchecked;
+		auto* listItem = new QListWidgetItem(&list);
+		listItem->setFlags(flags(listItem->flags(), row));
+		listItem->setCheckState(state);
+		auto* tableItem = new QTableWidgetItem;
+		tableItem->setFlags(flags(tableItem->flags(), row));
+		tableItem->setCheckState(state);
+		table.setItem(row, 0, tableItem);
+		auto* treeItem = new QTreeWidgetItem(&tree);
+		treeItem->setFlags(flags(treeItem->flags(), row));
+		treeItem->setCheckState(0, state);
+	}
+	list.setCurrentRow(4);
+	table.setCurrentCell(4, 0);
+	tree.setCurrentItem(tree.topLevelItem(4));
+	QAbstractItemView* const views[] = {&list, &table, &tree};
+	for (QAbstractItemView* view : views) {
+		view->setStyle(&style);
+		view->setAlternatingRowColors(true);
+		view->resize(200, 160);
+		view->show();
+	}
+	QApplication::processEvents();
+
+	for (QAbstractItemView* view : views) {
+		const QImage image = view->viewport()->grab().toImage();
+		int shown = 0;
+		for (int y = 0; y < image.height(); ++y)
+			for (int x = 0; x < image.width(); ++x)
+				shown += image.pixel(x, y) == kBaseStyleCheck ? 1 : 0;
+		const QString message = QStringLiteral("%1 pixels of the check box of the widget style show in the %2")
+									.arg(shown)
+									.arg(QLatin1String(view->metaObject()->className()));
+		QVERIFY2(shown == 0, qPrintable(message));
+	}
 }
 
 void TestDialogLayout::inlineMessagesTakeTheirRole() {

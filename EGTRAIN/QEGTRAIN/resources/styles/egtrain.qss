@@ -618,6 +618,14 @@ QTableView {
     gridline-color: #e3eaee;
 }
 
+/* The style sheet draws each item of a list, table or tree whole. For an item without a rule that draws something it would
+   draw only the check box and leave the rest of the item to the widget style, which draws its own check box as well, and
+   that box shows wherever it is larger than the styled one. An empty image is such a rule and leaves the look of the item
+   as it was; a background would also become the colour behind the focus frame of the item. */
+QListWidget::item, QTableView::item, QTreeView::item {
+    image: none;
+}
+
 /* A selected row is #315a70 with white text, 7.4:1, while its list, table or tree has the keyboard focus, and #d8e1e5 with
    #24313a text, 10:1, while the focus is elsewhere. A selected row of a disabled view keeps the disabled text colour. A
    checked box in a focused selected row has a white border, so that it stands out from the row. */
