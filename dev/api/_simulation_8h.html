@@ -495,11 +495,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Writes EnergyConsumptionPerTrain.txt and TotalEnergyConsumption.txt to OutputFolder: the energy totals of each train and of all trains, converted from MJ to kWh. </p>
+<p>Writes EnergyConsumptionPerTrain.txt and TotalEnergyConsumption.txt to OutputFolder: the energy totals of each train and of all trains, converted from MJ to kWh. Throws std::runtime_error when a file cannot be written (<a class="el" href="_run_output_file_8h.html">simulation/RunOutputFile.h</a>). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_simulation_8h_a6cbdf9a2919a034c72e61894020b4013_cgraph.svg" width="774" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_simulation_8h_a6cbdf9a2919a034c72e61894020b4013_cgraph.svg" width="1010" height="215"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -555,11 +555,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Writes FolderName/Computing_Times.txt with run.compTimeEgtrain (processor time of the steps, s), run.compTimeRoma and their sum. Nothing outside the tests sets compTimeRoma, so its column is 0. </p>
+<p>Writes FolderName/Computing_Times.txt with run.compTimeEgtrain (processor time of the steps, s), run.compTimeRoma and their sum. Nothing outside the tests sets compTimeRoma, so its column is 0. Throws std::runtime_error when the file cannot be written (<a class="el" href="_run_output_file_8h.html">simulation/RunOutputFile.h</a>). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_simulation_8h_a039ec093c9a75c91ec01450e0fa945aa_cgraph.svg" width="412" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_simulation_8h_a039ec093c9a75c91ec01450e0fa945aa_cgraph.svg" width="807" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -592,11 +592,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Writes FolderName/TrainPathDiagram.txt: a row of the step times (s), then for each of the N_S trains of S a row of its head position (m, original coordinates) in every step, -9999 where it does not run. </p>
+<p>Writes FolderName/TrainPathDiagram.txt: a row of the step times (s), then for each of the N_S trains of S a row of its head position (m, original coordinates) in every step, -9999 where it does not run. Throws std::runtime_error when the file cannot be written (<a class="el" href="_run_output_file_8h.html">simulation/RunOutputFile.h</a>). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_simulation_8h_a317b30e94608a53979ab08725343dba1_cgraph.svg" width="1188" height="155"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_simulation_8h_a317b30e94608a53979ab08725343dba1_cgraph.svg" width="1188" height="287"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -619,12 +619,12 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Runs the stages that follow the steps of run, in this order: the energy totals and their two files, the sort of the recorded events of the infrastructure, the timetable points, the delays of the trains with the statistics of the stations and the input delays, the station delay file Stats_Stations.txt, the passenger delay file JourneyDelays.txt, the positive and negative delays with their station delay file Pos&amp;Neg_Stats_Stations.txt, the computing times, the blocking times, the path diagram with settings.exportDetailedTrajectories, the timetable points file and, with that setting too, the file of each train. The folders TrainTrajectories and PassengerStatus of the output folder must exist; the folder TEMP is made here, and a failure to make it throws std::runtime_error.</p>
+<p>Runs the stages that follow the steps of run, in this order: the energy totals and their two files, the sort of the recorded events of the infrastructure, the timetable points, the delays of the trains with the statistics of the stations and the input delays, the station delay file Stats_Stations.txt, the passenger delay file JourneyDelays.txt, the positive and negative delays with their station delay file Pos&amp;Neg_Stats_Stations.txt, the computing times, the blocking times, the path diagram with settings.exportDetailedTrajectories, the timetable points file and, with that setting too, the file of each train. The folders TrainTrajectories and PassengerStatus of the output folder must exist; the folder TEMP is made here. A failure to make it or to write a file throws std::runtime_error.</p>
 <p>stopRequested is called after the energy stage, after the sort, before the blocking times, before the files of the trains and before the file of each train, and the stages end there when it returns true. The caller checks for a stop before this function. Returns true when every stage ran and false when a stop ended them. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_simulation_8h_ae0be230753d4b1eaf8c3ced9570a7ca1_cgraph.svg" width="1300" height="1483"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_simulation_8h_ae0be230753d4b1eaf8c3ced9570a7ca1_cgraph.svg" width="1534" height="1387"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

@@ -1,6 +1,19 @@
 <map id="printPassengerTotalJourneyDelay" name="printPassengerTotalJourneyDelay">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,203,74"/>
-<area shape="rect" id="Node000002" href="$_passengers_8cpp.html#a8fc2d8df775cbb04660ef50dfa81d942" title=" " alt="" coords="251,29,448,74"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,49,238,51,232,52,203,54"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="303,27,301,19,309,10,325,5,349,3,376,5,393,14,388,14,375,10,349,8,326,10,312,15,306,21,307,30"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,60,203,104"/>
+<area shape="rect" id="Node000002" href="$_passengers_8cpp.html#a8fc2d8df775cbb04660ef50dfa81d942" title=" " alt="" coords="251,60,448,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,79,238,81,232,82,203,84"/>
+<area shape="poly" id="edge11_Node000002_Node000002" title=" " alt="" coords="307,58,306,49,313,40,328,35,349,33,373,35,389,45,384,44,372,40,349,38,329,40,316,45,311,51,312,60"/>
+<area shape="rect" id="Node000003" href="$_run_output_file_8h.html#acd85cbf22e0aef3624f978ea723c685e" title="Closes a file that openRunOutputFile opened for path. Throws runOutputWriteError when a write or the ..." alt="" coords="496,29,643,57"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="448,62,478,59,483,58,448,67"/>
+<area shape="rect" id="Node000005" href="$_run_output_file_8h.html#a5813fb6bf47d898f50d4e1c3672baa70" title=" " alt="" coords="497,105,642,133"/>
+<area shape="poly" id="edge6_Node000002_Node000005" title=" " alt="" coords="448,96,484,104,479,104,448,101"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="535,28,530,20,534,11,548,5,570,3,593,5,607,14,602,14,592,10,570,8,549,10,538,15,535,20,540,30"/>
+<area shape="rect" id="Node000004" href="$_run_output_file_8h.html#a32bd31f491e023651e44b2a5ecfd2ef7" title=" " alt="" coords="691,29,844,57"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="644,41,678,43,673,43,644,46"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="733,28,728,20,732,11,746,5,768,3,791,5,805,14,800,14,789,10,767,8,747,10,736,15,733,20,738,30"/>
+<area shape="poly" id="edge10_Node000005_Node000004" title=" " alt="" coords="604,102,690,67,708,63,713,62,692,72,606,107"/>
+<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="535,104,530,96,534,87,548,81,570,79,593,81,607,91,602,90,592,86,570,84,549,86,538,91,535,96,540,106"/>
+<area shape="rect" id="Node000006" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="712,105,823,133"/>
+<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="643,117,699,119,694,119,643,122"/>
+<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="733,104,728,96,732,87,746,81,768,79,791,81,805,91,800,89,789,86,767,84,747,86,736,91,733,96,738,106"/>
 </map>

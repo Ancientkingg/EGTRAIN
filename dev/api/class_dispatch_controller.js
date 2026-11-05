@@ -13,7 +13,7 @@ var class_dispatch_controller =
     [ "mutableRun", "class_dispatch_controller.html#a027310e296b105e0d388fd96dbca6d63", null ],
     [ "nextRunOutputFolder", "class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c", null ],
     [ "prepareScene", "class_dispatch_controller.html#aac2afa04a79b4b5976be94b691750aaf", null ],
-    [ "printLastTrainServicePathDiagram", "class_dispatch_controller.html#a36418dfc2831a157cf9fe1158307ecdc", null ],
+    [ "printLastTrainServicePathDiagram", "class_dispatch_controller.html#abf06691ab0f6e64dad67e5a3f6a39655", null ],
     [ "resetReplayCandidate", "class_dispatch_controller.html#a4e932a087dd00e4d2c817e42c77aceb2", null ],
     [ "resetState", "class_dispatch_controller.html#ae9f55885c0745b66737a45acaf839544", null ],
     [ "run", "class_dispatch_controller.html#aa8e0c7473475d098b4d91cab37a1c4d9", null ],

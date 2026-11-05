@@ -2546,11 +2546,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Appends a row to FolderName/TrainServicePathDiagram.txt: the train, -1 (the column of a line ID that nothing sets), direction, corridor and its head position (m, original coordinates) in every step, empty where it does not run. nextServiceRouteID is a route index or -1. </p>
+<p>Appends a row to FolderName/TrainServicePathDiagram.txt: the train, -1 (the column of a line ID that nothing sets), direction, corridor and its head position (m, original coordinates) in every step, empty where it does not run. nextServiceRouteID is a route index or -1. Throws std::runtime_error when the file cannot be written (<a class="el" href="_run_output_file_8h.html">simulation/RunOutputFile.h</a>). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_af9e8f39bd094820ec5cb7eee001b996c_cgraph.svg" width="843" height="71"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_af9e8f39bd094820ec5cb7eee001b996c_cgraph.svg" width="843" height="215"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -2569,11 +2569,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Writes Traj_Train_&lt;trainDescription&gt;.txt to the TEMP folder of the output: for every valid step the time (s), speed (m/s), head and tail position (m), power (kW), braking point (m), energy (kWh) and section. A reversed route writes original coordinates. </p>
+<p>Writes Traj_Train_&lt;trainDescription&gt;.txt to the TEMP folder of the output: for every valid step the time (s), speed (m/s), head and tail position (m), power (kW), braking point (m), energy (kWh) and section. A reversed route writes original coordinates. A character of trainDescription that a file name cannot hold becomes '_' in the name (runOutputFileName). Throws std::runtime_error when the file cannot be written (<a class="el" href="_run_output_file_8h.html">simulation/RunOutputFile.h</a>). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a2daf71d16057b5847a8640522272a793_cgraph.svg" width="622" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a2daf71d16057b5847a8640522272a793_cgraph.svg" width="622" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

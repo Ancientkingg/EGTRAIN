@@ -20,6 +20,7 @@ var dir_952d7654fb542fa1f2952f4833ffff1d =
     [ "RollingStockTrajectory.cpp", "_rolling_stock_trajectory_8cpp.html", null ],
     [ "RunControl.cpp", "_run_control_8cpp.html", null ],
     [ "RunControl.h", "_run_control_8h.html", "_run_control_8h" ],
+    [ "RunOutputFile.h", "_run_output_file_8h.html", "_run_output_file_8h" ],
     [ "Signalling.cpp", "_signalling_8cpp.html", "_signalling_8cpp" ],
     [ "Signalling.h", "_signalling_8h.html", "_signalling_8h" ],
     [ "Simulation.cpp", "_simulation_8cpp.html", "_simulation_8cpp" ],

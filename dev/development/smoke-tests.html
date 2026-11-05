@@ -483,7 +483,7 @@ Assignment with a train breakdown and with a signal failure through <code class=
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_live_stream_smoke</span></code></p></td>
 <td><p>integration</p></td>
-<td><p>The application with <code class="docutils literal notranslate"><span class="pre">--live</span></code> and <code class="docutils literal notranslate"><span class="pre">build/live_client</span></code>: a client that follows a run, sends <code class="docutils literal notranslate"><span class="pre">set_delay_ms</span></code> or leaves, a run that nobody reads, repeated services, a late client, a stopped run, a second run (macOS only) and the options that are refused. Each run with a stream is compared file by file, and by standard output, with a run without one.</p></td>
+<td><p>The application with <code class="docutils literal notranslate"><span class="pre">--live</span></code> and <code class="docutils literal notranslate"><span class="pre">build/live_client</span></code>: a client that follows a run, sends <code class="docutils literal notranslate"><span class="pre">set_delay_ms</span></code> or leaves, a run that nobody reads, repeated services, a late client, a stopped window run, a stopped run without a window (exit code 3), a second run (macOS only) and the options that are refused. Each run with a stream is compared file by file, and by standard output, with a run without one.</p></td>
 </tr>
 </tbody>
 </table>

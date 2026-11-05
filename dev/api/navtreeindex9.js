@@ -1,5 +1,11 @@
 var NAVTREEINDEX9 =
 {
+"class_composition_panel.html#ac3ad4dbf7beae8e7820eea6e776e10cc":[2,0,55,13],
+"class_composition_panel.html#ae5e75caf952af762387269c23b7a0adc":[2,0,55,0],
+"class_composition_panel.html#ae92a1cc7bb3f44699ded4605fc97aaf5":[2,0,55,2],
+"class_composition_panel.html#aece14237c82d0f060f86cb8a4d6af613":[2,0,55,24],
+"class_composition_panel.html#af0924ca8ebda14134dc62de9ab0dbc18":[2,0,55,7],
+"class_composition_panel.html#af1db8d10e8438da8c3099df41c87b4c9":[2,0,55,23],
 "class_composition_panel.html#afa6ece843725100b4a04402a748b43ff":[2,0,55,5],
 "class_composition_panel.html#afb0634402936f82d4a0714491a07fcbe":[2,0,55,17],
 "class_connection_item.html":[2,0,56],
@@ -77,7 +83,6 @@ var NAVTREEINDEX9 =
 "class_dispatch_controller.html#a027310e296b105e0d388fd96dbca6d63":[2,0,80,10],
 "class_dispatch_controller.html#a0b99aeeb2691c72fabf36a7086aec572":[2,0,80,0],
 "class_dispatch_controller.html#a17f1138c6661bae0d67ecd96e4858054":[2,0,80,25],
-"class_dispatch_controller.html#a36418dfc2831a157cf9fe1158307ecdc":[2,0,80,13],
 "class_dispatch_controller.html#a39cb8a5f1b9faddf6fe72fdda874b921":[2,0,80,5],
 "class_dispatch_controller.html#a3a06bb6aecad14ce209ac4e13040809c":[2,0,80,1],
 "class_dispatch_controller.html#a3a9e80e3e66281ea2a8bcf3f073e2fb0":[2,0,80,26],
@@ -89,6 +94,7 @@ var NAVTREEINDEX9 =
 "class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c":[2,0,80,11],
 "class_dispatch_controller.html#aac2afa04a79b4b5976be94b691750aaf":[2,0,80,12],
 "class_dispatch_controller.html#ab1624ac972383e5f2d1aea51544f7699":[2,0,80,23],
+"class_dispatch_controller.html#abf06691ab0f6e64dad67e5a3f6a39655":[2,0,80,13],
 "class_dispatch_controller.html#acfe9014d13612fcccc58c5b6bd79dacb":[2,0,80,20],
 "class_dispatch_controller.html#ad19c9b2ae386006cd197ff8481d4f290":[2,0,80,3],
 "class_dispatch_controller.html#ad536dc8ce832b340187fc015e846fca1":[2,0,80,17],
@@ -243,11 +249,5 @@ var NAVTREEINDEX9 =
 "class_gui_signal_state_list.html#a0795d26a31606d478d08663f16add619":[2,0,99,1],
 "class_gui_signal_state_list.html#a084b6026f322fc993dddce0b2adde0e0":[2,0,99,0],
 "class_gui_signal_state_list.html#adebe1681fb55ca4be54f561d2ca1210f":[2,0,99,2],
-"class_gui_simulation_snapshot_mailbox.html":[2,0,101],
-"class_gui_simulation_snapshot_mailbox.html#a5ce88a8283dc58030aa1326142951732":[2,0,101,0],
-"class_gui_simulation_snapshot_mailbox.html#a919f0ffcfb5b2b6257864063eac7b0fc":[2,0,101,1],
-"class_highlight_effect.html":[2,0,104],
-"class_highlight_effect.html#a25cde3863d7af3d21332004d5b8390eb":[2,0,104,2],
-"class_highlight_effect.html#a285319f59e726bb03f1c3e38072fe26a":[2,0,104,3],
-"class_highlight_effect.html#a97666fa98f04e6ae5674f4b49aa72cbd":[2,0,104,1]
+"class_gui_simulation_snapshot_mailbox.html":[2,0,101]
 };

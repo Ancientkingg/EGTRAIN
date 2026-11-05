@@ -1,9 +1,25 @@
 <map id="Train::PrintTrajectory" name="Train::PrintTrajectory">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,160,57"/>
-<area shape="rect" id="Node000002" href="$_trajectory_util_8cpp.html#a3628a4e34ea58c9a4584537a7a605751" title=" " alt="" coords="208,29,390,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,41,195,43,189,43,160,46"/>
-<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="262,28,256,20,260,11,275,5,299,3,324,5,340,14,334,14,323,10,299,8,276,10,264,15,261,20,266,30"/>
-<area shape="rect" id="Node000003" href="$_trajectory_util_8cpp.html#afe4ec1b3791e49b8d8c64a911abe693d" title=" " alt="" coords="438,29,615,57"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="390,41,425,43,420,43,390,46"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="488,28,481,20,486,11,502,5,527,3,553,5,569,14,564,14,552,10,527,8,503,10,490,15,487,20,492,30"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,144,160,172"/>
+<area shape="rect" id="Node000002" href="$_run_output_file_8h.html#acd85cbf22e0aef3624f978ea723c685e" title="Closes a file that openRunOutputFile opened for path. Throws runOutputWriteError when a write or the ..." alt="" coords="225,29,372,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,141,145,105,206,67,226,61,222,64,209,72,148,109,102,145"/>
+<area shape="rect" id="Node000004" href="$_run_output_file_8h.html#a5813fb6bf47d898f50d4e1c3672baa70" title=" " alt="" coords="226,105,372,133"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="159,142,213,133,209,136,161,147"/>
+<area shape="rect" id="Node000006" href="$_run_output_file_8h.html#a4d865c3c873edd894d4cf94790975a17" title=" " alt="" coords="225,181,373,209"/>
+<area shape="poly" id="edge10_Node000001_Node000006" title=" " alt="" coords="160,168,212,179,207,181,160,174"/>
+<area shape="rect" id="Node000007" href="$_trajectory_util_8cpp.html#a3628a4e34ea58c9a4584537a7a605751" title=" " alt="" coords="208,257,390,285"/>
+<area shape="poly" id="edge12_Node000001_Node000007" title=" " alt="" coords="112,170,259,248,255,251,110,175"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="261,29,256,20,260,11,275,5,299,3,324,5,340,14,334,14,323,10,299,8,276,10,264,15,261,20,267,29"/>
+<area shape="rect" id="Node000003" href="$_run_output_file_8h.html#a32bd31f491e023651e44b2a5ecfd2ef7" title=" " alt="" coords="450,29,603,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="372,41,438,42,433,44,373,46"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="487,28,481,20,486,11,502,5,527,3,553,5,569,14,564,14,552,10,527,8,503,10,490,15,487,20,493,29"/>
+<area shape="poly" id="edge9_Node000004_Node000003" title=" " alt="" coords="338,102,437,67,465,61,460,63,439,72,340,107"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="261,104,256,96,260,87,275,81,299,79,324,81,340,90,334,90,323,86,299,84,276,86,264,91,261,96,267,105"/>
+<area shape="rect" id="Node000005" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="471,105,582,133"/>
+<area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="372,117,458,118,453,120,372,122"/>
+<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="487,104,481,96,486,87,502,81,527,79,553,81,569,90,564,90,552,86,527,84,503,86,490,91,487,96,493,106"/>
+<area shape="poly" id="edge11_Node000006_Node000006" title=" " alt="" coords="261,180,256,172,260,163,275,157,299,155,324,157,340,166,334,166,323,162,299,160,276,162,264,167,261,172,267,182"/>
+<area shape="poly" id="edge15_Node000007_Node000007" title=" " alt="" coords="262,256,256,248,260,239,275,233,299,231,324,233,340,242,334,242,323,238,299,236,276,238,264,243,261,248,266,258"/>
+<area shape="rect" id="Node000008" href="$_trajectory_util_8cpp.html#afe4ec1b3791e49b8d8c64a911abe693d" title=" " alt="" coords="438,257,615,285"/>
+<area shape="poly" id="edge13_Node000007_Node000008" title=" " alt="" coords="390,269,425,271,420,271,390,274"/>
+<area shape="poly" id="edge14_Node000008_Node000008" title=" " alt="" coords="488,256,481,248,486,239,502,233,527,231,553,233,569,242,564,242,552,238,527,236,503,238,490,243,487,248,492,258"/>
 </map>

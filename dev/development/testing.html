@@ -655,10 +655,11 @@ copy of the package (<a class="reference internal" href="ci-and-release.html"><s
 <section id="windows-headless-runs">
 <h3>Windows headless runs<a class="headerlink" href="#windows-headless-runs" title="Link to this heading">¶</a></h3>
 <p>QEGTRAIN is a GUI-subsystem program on Windows (<code class="docutils literal notranslate"><span class="pre">WIN32_EXECUTABLE</span></code>). With <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">0</span></code> it opens no window and reports only
-through redirected output handles and its exit code (0 on success, 1 for bad arguments or scene errors). Started from
-a terminal it prints nothing, and <code class="docutils literal notranslate"><span class="pre">&amp;</span> <span class="pre">QEGTRAIN.exe</span></code> in PowerShell does not wait for it. Start it from a program that
-creates the process and reads the pipes, such as <code class="docutils literal notranslate"><span class="pre">tools/e2e/headless_scene_smoke.py</span></code>, or from PowerShell with
-<code class="docutils literal notranslate"><span class="pre">Start-Process</span></code>; the two output files must differ:</p>
+through redirected output handles and its exit code (0 for a completed run, 1 for bad arguments, scene errors or a
+failed run, 2 when the live stream cannot start, 3 for a run that a live client stopped, 70 for an internal error; see
+<a class="reference internal" href="../guides/command-line.html#exit-codes"><span class="std std-ref">Exit codes</span></a>). Started from a terminal it prints nothing, and <code class="docutils literal notranslate"><span class="pre">&amp;</span> <span class="pre">QEGTRAIN.exe</span></code>
+in PowerShell does not wait for it. Start it from a program that creates the process and reads the pipes, such as
+<code class="docutils literal notranslate"><span class="pre">tools/e2e/headless_scene_smoke.py</span></code>, or from PowerShell with <code class="docutils literal notranslate"><span class="pre">Start-Process</span></code>; the two output files must differ:</p>
 <div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="nv">$dir</span> <span class="p">=</span> <span class="nb">Resolve-Path</span> <span class="p">.\</span><span class="n">build</span><span class="p">\</span><span class="n">Release</span>
 <span class="nv">$p</span> <span class="p">=</span> <span class="nb">Start-Process</span> <span class="n">-Wait</span> <span class="n">-PassThru</span> <span class="n">-NoNewWindow</span> <span class="n">-WorkingDirectory</span> <span class="nv">$dir</span> <span class="p">`</span>
   <span class="n">-FilePath</span> <span class="s2">"$dir\QEGTRAIN.exe"</span> <span class="p">`</span>
