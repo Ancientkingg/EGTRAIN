@@ -86,7 +86,7 @@ private slots:
 	void catchUpEndsWhileTargetStands();
 	void staysWhereUserPannedWithoutTarget();
 	void keepsZoomAnchor();
-	void holdsAxisAtEdge();
+	void followsTargetAtEdge();
 	void staysAtFit();
 	void settles();
 	void reportsMovesOfCamera();
@@ -278,18 +278,24 @@ void TestFollowCamera::keepsZoomAnchor() {
 	QCOMPARE_LE(offInPixels(rig.view, target), 0.01);
 }
 
-// Where the edge of the scene holds an axis, the view stays at the edge on that axis, without a timer, and follows
+// A target near the edge of the network is at the centre of the view, which then shows the scene beyond the edge. On an
+// axis where the target lies beyond the edge, the view stays with the edge in the middle, without a timer, and follows
 // the target exactly on the other axis.
-void TestFollowCamera::holdsAxisAtEdge() {
+void TestFollowCamera::followsTargetAtEdge() {
 	Rig rig;
 	rig.camera.follow(QPointF(3600.0, 1000.0), true);
-	QPointF target(3990.0, 1000.0);
-	rig.camera.follow(target, false);
-	QVERIFY2(!rig.camera.running(), "a target outside what the view can show starts no timer");
+	const QPointF nearEdge(3990.0, 1000.0);
+	rig.camera.follow(nearEdge, false);
+	QVERIFY2(!rig.camera.running(), "a target near the edge starts no timer");
+	// The view is on the target near the edge, and shows the scene beyond the edge.
+	QCOMPARE_LE(offInPixels(rig.view, nearEdge), 0.01);
 	const QRectF visible = rig.view.mapToScene(rig.view.viewport()->rect()).boundingRect();
-	// The view stopped at the edge of the scene, short of the target.
-	QCOMPARE_GT(target.x() - centerOf(rig.view).x(), 50.0);
-	QCOMPARE_GE(visible.right(), 4000.0 - 2.0 * pixelOf(rig.view));
+	QCOMPARE_GT(visible.right(), 4000.0 + 200.0);
+
+	QPointF target(4150.0, 1000.0);
+	rig.camera.follow(target, false);
+	// A target beyond the edge leaves the edge of the network in the middle of the view.
+	QCOMPARE_LE(std::abs(centerOf(rig.view).x() - 4000.0), 2.0 * pixelOf(rig.view));
 
 	// The target now moves along the free axis. The held axis does not move at all, and the free one follows.
 	const qreal heldX = centerOf(rig.view).x();
@@ -301,12 +307,13 @@ void TestFollowCamera::holdsAxisAtEdge() {
 		held &= centerOf(rig.view).x() == heldX;
 		largest = std::max(largest, std::abs(centerOf(rig.view).y() - target.y()) / pixelOf(rig.view));
 	}
-	QVERIFY2(held, "the axis at the edge of the scene does not move while the target moves along it");
+	QVERIFY2(held, "the axis at the edge of the network does not move while the target moves along it");
 	// The free axis follows the target next to the held axis.
 	QCOMPARE_LE(largest, 0.01);
 	QVERIFY2(!rig.camera.running(), "the edge needs no timer");
 }
 
+// At Fit the view shows the whole network: a target does not move it, and a drag of the user moves it.
 void TestFollowCamera::staysAtFit() {
 	Rig rig(1.0);
 	rig.camera.follow(QPointF(2000.0, 1000.0), true);
@@ -315,6 +322,21 @@ void TestFollowCamera::staysAtFit() {
 	// At Fit the view does not move and no timer runs.
 	QVERIFY(!rig.camera.running());
 	QCOMPARE(centerOf(rig.view), fitted);
+	rig.camera.settle();
+	// Settle at Fit does not move the view either.
+	QCOMPARE(centerOf(rig.view), fitted);
+
+	rig.pan(-100);
+	const QPointF panned = centerOf(rig.view);
+	// The user can move the view at Fit.
+	QCOMPARE_GT(distance(panned, fitted), 50.0 * pixelOf(rig.view));
+	for (int i = 0; i < 40; ++i) {
+		rig.now += 16;
+		rig.camera.follow(QPointF(1000.0 + i, 500.0), false);
+		rig.camera.tick();
+	}
+	// The view stays where the user left it at Fit.
+	QCOMPARE(centerOf(rig.view), panned);
 }
 
 void TestFollowCamera::settles() {

@@ -66,7 +66,10 @@ QPointF FollowCamera::catchUpOffset(qint64 now) {
 	return m_catchUp * (1.0 - done * done * (3.0 - 2.0 * done));
 }
 
+// At Fit only the user moves the view.
 void FollowCamera::moveTo(const QPointF& desired) {
+	if (m_view->atFit())
+		return;
 	m_moving = true;
 	m_view->centerOnExactly(desired);
 	m_moving = false;
