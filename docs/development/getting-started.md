@@ -45,7 +45,7 @@ cd EGTRAIN
 ```
 
 On macOS, install Qt 6.8.3 with [aqtinstall](https://aqtinstall.readthedocs.io/en/latest/getting_started.html)
-(or the Qt online installer) and the other libraries with Homebrew:
+(or the [Qt online installer](build.md#qt-online-installer)) and the other libraries with Homebrew:
 
 ```bash
 python3 -m venv ~/aqt-venv
