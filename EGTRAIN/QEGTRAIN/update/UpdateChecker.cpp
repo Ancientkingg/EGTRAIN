@@ -61,10 +61,12 @@ void UpdateChecker::check() {
 	request.accept = QByteArrayLiteral("application/vnd.github+json");
 	HttpReply* reply = m_transport->get(request);
 	m_reply = reply;
+	// The limit is the time without data, so a slow link that keeps sending finishes the check.
 	m_timeout.start(m_timeoutMs);
 	connect(reply, &HttpReply::readyRead, this, [this, reply]() {
 		if (reply != m_reply)
 			return;
+		m_timeout.start(m_timeoutMs);
 		m_body += reply->readAll();
 		if (m_body.size() <= kMaxReleaseListBytes)
 			return;

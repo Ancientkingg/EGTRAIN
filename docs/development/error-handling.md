@@ -99,7 +99,7 @@ The visual polish smoke also had a use after free: it added a temporary `SignalI
 | Run output files cannot be written | Nothing: `ofstream::open` is not checked (for example `simulation/Simulation.cpp`), and the run reports success | One line for one file (`RollingStock.cpp`) |
 | Result export fails | "Export failed" warning with the path, without the reason from the OS | No |
 | Live stream cannot start | "Cannot Start EGTRAIN" box, exit 2 (`main.cpp`) | Standard error |
-| Manual update check fails | Warning box with the network error | No |
+| Manual update check fails | Warning box with the network error, or "The update check timed out." when no data arrived for 10 s (`update/UpdateChecker.cpp`) | No |
 | Automatic update check fails | Nothing visible (`qWarning`, `app/UpdateTelemetryController.cpp`) | Dock, category `app.ui` |
 | Telemetry send or consent fails | Nothing, by design; a consent save error shows in the dialog | No |
 | Autosave fails | Status bar "Autosave unavailable: ..." once per scene, overwritten by the next status message; during a pick of an incident target it waits until the pick ends (`app/MainWindow.cpp`) | No |

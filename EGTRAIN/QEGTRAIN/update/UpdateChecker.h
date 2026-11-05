@@ -25,8 +25,9 @@ public:
 	/// For tests: uses a transport that the caller owns and a timeout of timeoutMs milliseconds.
 	UpdateChecker(HttpTransport* transport, int timeoutMs, QObject* parent = nullptr);
 
-	/// Fetches releasesUrl() and emits finished() once, also when the request fails or times out or the release
-	/// list is larger than 8 MiB. A check that is still running is cancelled without a result.
+	/// Fetches releasesUrl() and emits finished() once, also when the request fails, the release list is larger than
+	/// 8 MiB or no data arrives for the timeout: from the start of the check, or from the last data that arrived. A
+	/// check that is still running is cancelled without a result.
 	void check();
 	/// True from check() until finished() is emitted.
 	bool isChecking() const { return !m_reply.isNull(); }
