@@ -2,7 +2,7 @@
 
 EGTRAIN is a desktop application for microscopic railway simulation. It covers railway networks, signalling, rolling stock, services, timetables, train movement, passenger operations and results in an interactive Qt interface.
 
-[Download](https://github.com/Ancientkingg/EGTRAIN/releases) | [Install](docs/guides/install.md) | [Getting started](docs/guides/getting-started.md) | [Documentation](docs/README.md) | [Report an issue](https://github.com/Ancientkingg/EGTRAIN/issues)
+[Download](https://ancientkingg.github.io/EGTRAIN/#download) | [Install](docs/guides/install.md) | [Getting started](docs/guides/getting-started.md) | [Documentation](docs/README.md) | [Report an issue](https://github.com/Ancientkingg/EGTRAIN/issues)
 
 ![The main window with a run of Milano_Brescia paused at 06:45:40 at 100x, zoomed in on Treviglio, with trains and their speed labels, the dock Case and Layers with its map key, and Paused in the status bar](docs/images/readme-main-window.png)
 
