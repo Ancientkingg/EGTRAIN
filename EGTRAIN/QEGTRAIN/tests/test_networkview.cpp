@@ -6,11 +6,13 @@
 #include <QApplication>
 #include <QGraphicsRectItem>
 #include <QImage>
+#include <QMouseEvent>
 #include <QNativeGestureEvent>
 #include <QScrollBar>
 #include <QTest>
 #include <QWheelEvent>
 #include <cmath>
+#include <utility>
 
 static bool near(qreal left, qreal right, qreal epsilon = 1e-6) {
 	return std::abs(left - right) <= epsilon;
@@ -90,6 +92,28 @@ static QPoint wheelPosition(const NetworkView& view) {
 	return view.viewport()->rect().center() + QPoint(20, 0);
 }
 
+static QPointF centreOf(const NetworkView& view) {
+	return view.mapToScene(view.viewport()->rect().center());
+}
+
+// How far apart two scene points are on the screen, in logical pixels.
+static qreal pixelsApart(const NetworkView& view, const QPointF& from, const QPointF& to) {
+	return QLineF(from, to).length() * std::abs(view.transform().m11());
+}
+
+// A drag with the left button from the middle of the viewport by offset, in four moves, as the user moves the view.
+static void dragView(NetworkView& view, const QPoint& offset) {
+	const QPoint from = view.viewport()->rect().center();
+	const auto send = [&view](QEvent::Type type, const QPoint& at, Qt::MouseButton button, Qt::MouseButtons held) {
+		QMouseEvent event(type, QPointF(at), QPointF(view.viewport()->mapToGlobal(at)), button, held, Qt::NoModifier);
+		QApplication::sendEvent(view.viewport(), &event);
+	};
+	send(QEvent::MouseButtonPress, from, Qt::LeftButton, Qt::LeftButton);
+	for (int step = 1; step <= 4; ++step)
+		send(QEvent::MouseMove, from + offset * step / 4, Qt::NoButton, Qt::LeftButton);
+	send(QEvent::MouseButtonRelease, from + offset, Qt::LeftButton, Qt::NoButton);
+}
+
 class TestNetworkView : public QObject {
 	Q_OBJECT
 
@@ -100,12 +124,18 @@ private slots:
 	void fitsTopology();
 	void fitsPreviewBounds();
 	void wheelZoomsAroundPointer();
+	void wheelZoomsAroundPointerAtEdge();
 	void highResolutionWheelZoomsProportionally();
 	void twoFingerScrollingPans();
+	void pansAtFit();
+	void panStopsAtEdgeOfNetwork_data();
+	void panStopsAtEdgeOfNetwork();
 	void pinchZooms();
 	void programmaticZoomEmitsOneUpdate();
 	void keepsCentreAndClampsZoom();
 	void resizeKeepsFitOrZoom();
+	void resizeKeepsPan_data();
+	void resizeKeepsPan();
 	void zoomLabelsUseMapNotation();
 };
 
@@ -254,6 +284,29 @@ void TestNetworkView::wheelZoomsAroundPointer() {
 	QCOMPARE(f.updates, 1);
 }
 
+// The left end of the track stays under the pointer while the view zooms in from Fit around it, although the view then
+// shows the scene left of the network.
+void TestNetworkView::wheelZoomsAroundPointerAtEdge() {
+	ViewFixture f;
+	NetworkView& view = f.view;
+	view.fitToTopology();
+	const QPointF end = f.track->line().p1();
+	const QPoint wheelPos = view.mapFromScene(end);
+	const QPointF atEnd = view.mapToScene(wheelPos);
+	for (int notch = 1; notch <= 5; ++notch) {
+		const QPointF underPointer = view.mapToScene(wheelPos);
+		QWheelEvent wheel(wheelPos, view.viewport()->mapToGlobal(wheelPos), QPoint(0, 0), QPoint(0, 120), Qt::NoButton,
+			Qt::NoModifier, Qt::ScrollUpdate, false);
+		QApplication::sendEvent(view.viewport(), &wheel);
+		// Each wheel step keeps the scene point under the pointer to a fraction of a pixel.
+		QCOMPARE_LE(pixelsApart(view, underPointer, view.mapToScene(wheelPos)), 0.01);
+	}
+	QVERIFY2(near(view.zoomRatio(), std::pow(1.15, 5.0), 1e-5), "five wheel steps apply five 1.15 zooms");
+	// The end of the track is still under the pointer, left of the middle of the view.
+	QCOMPARE_LE(pixelsApart(view, atEnd, view.mapToScene(wheelPos)), 0.01);
+	QCOMPARE_LT(wheelPos.x(), view.viewport()->rect().center().x());
+}
+
 void TestNetworkView::highResolutionWheelZoomsProportionally() {
 	ViewFixture f;
 	NetworkView& view = f.view;
@@ -286,6 +339,70 @@ void TestNetworkView::twoFingerScrollingPans() {
 	QCOMPARE_GT(qAbs(centerAfterTrackpad.y() - centerBeforeTrackpad.y()), 0.1);
 	// One two-finger scroll event emits one viewport update.
 	QCOMPARE(f.updates, 1);
+}
+
+// At Fit a drag and a two-finger scroll move the network on both axes, and Fit centres it again.
+void TestNetworkView::pansAtFit() {
+	ViewFixture f;
+	NetworkView& view = f.view;
+	view.fitToTopology();
+	const QPointF fitted = centreOf(view);
+	const qreal pixel = 1.0 / view.fittedScale();
+	f.updates = 0;
+	dragView(view, QPoint(-90, -40));
+	// A drag to the upper left moves the network with the pointer, so the middle of the view shows a point to the lower
+	// right of the centre of the network.
+	QCOMPARE_LE(std::abs((centreOf(view).x() - fitted.x()) / pixel - 90.0), 1.0);
+	QCOMPARE_LE(std::abs((centreOf(view).y() - fitted.y()) / pixel - 40.0), 1.0);
+	QCOMPARE(view.zoomLabel(), "Fit");
+	// The drag emits a viewport update.
+	QCOMPARE_GT(f.updates, 0);
+
+	const QPointF dragged = centreOf(view);
+	const QPoint wheelPos = wheelPosition(view);
+	QWheelEvent trackpadScroll(wheelPos, view.viewport()->mapToGlobal(wheelPos), QPoint(30, 20), QPoint(30, 20),
+		Qt::NoButton, Qt::NoModifier, Qt::ScrollUpdate, false);
+	QApplication::sendEvent(view.viewport(), &trackpadScroll);
+	// A two-finger scroll at Fit moves the network on both axes.
+	QCOMPARE_LE(std::abs((dragged.x() - centreOf(view).x()) / pixel - 30.0), 1.0);
+	QCOMPARE_LE(std::abs((dragged.y() - centreOf(view).y()) / pixel - 20.0), 1.0);
+	QCOMPARE(view.zoomLabel(), "Fit");
+
+	view.fitToTopology();
+	// Fit centres the network again.
+	QCOMPARE_LE(pixelsApart(view, fitted, centreOf(view)), 0.5);
+}
+
+void TestNetworkView::panStopsAtEdgeOfNetwork_data() {
+	QTest::addColumn<double>("zoom");
+	QTest::newRow("Fit") << 1.0;
+	QTest::newRow("4x") << 4.0;
+}
+
+// However far the view is dragged or scrolled, it moves until an edge of the network reaches the middle of the view, and
+// no further.
+void TestNetworkView::panStopsAtEdgeOfNetwork() {
+	QFETCH(double, zoom);
+	ViewFixture f;
+	NetworkView& view = f.view;
+	view.fitToTopology();
+	view.zoomBy(zoom);
+	const QRectF bounds = view.topologyBounds();
+	// A drag to the lower right brings the upper left corner of the network to the middle, and so on.
+	const QList<std::pair<QPoint, QPointF>> drags = {{QPoint(3000, 3000), bounds.topLeft()},
+		{QPoint(-3000, 3000), bounds.topRight()}, {QPoint(3000, -3000), bounds.bottomLeft()},
+		{QPoint(-3000, -3000), bounds.bottomRight()}};
+	for (const auto& [offset, corner] : drags) {
+		dragView(view, offset);
+		// The drag stops with the corner of the network in the middle of the view.
+		QCOMPARE_LE(pixelsApart(view, corner, centreOf(view)), 1.5);
+	}
+	const QPoint wheelPos = wheelPosition(view);
+	QWheelEvent trackpadScroll(wheelPos, view.viewport()->mapToGlobal(wheelPos), QPoint(3000, 3000), QPoint(3000, 3000),
+		Qt::NoButton, Qt::NoModifier, Qt::ScrollUpdate, false);
+	QApplication::sendEvent(view.viewport(), &trackpadScroll);
+	// A two-finger scroll stops at the same edge.
+	QCOMPARE_LE(pixelsApart(view, bounds.topLeft(), centreOf(view)), 1.5);
 }
 
 void TestNetworkView::pinchZooms() {
@@ -394,6 +511,34 @@ void TestNetworkView::resizeKeepsFitOrZoom() {
 	QVERIFY2(near(view.zoomRatio(), 3.0, 1e-5), "resize away from Fit preserves the zoom ratio");
 	// Resize away from Fit preserves the viewed scene center.
 	QCOMPARE_LT(QLineF(centerBeforeResize, centerAfterResize).length(), 0.5);
+}
+
+void TestNetworkView::resizeKeepsPan_data() {
+	QTest::addColumn<double>("zoom");
+	QTest::newRow("Fit") << 1.0;
+	QTest::newRow("3x") << 3.0;
+}
+
+// A resize keeps the place that the user dragged to in the middle of the view, at Fit with the network fitted to the new
+// size, and it does so to a fraction of a pixel, so that the view does not creep while the window is resized.
+void TestNetworkView::resizeKeepsPan() {
+	QFETCH(double, zoom);
+	ViewFixture f;
+	NetworkView& view = f.view;
+	view.fitToTopology();
+	view.zoomBy(zoom);
+	const QPointF before = centreOf(view);
+	dragView(view, QPoint(-100, -30));
+	const QPointF panned = centreOf(view);
+	// The drag moved the view.
+	QCOMPARE_GT(pixelsApart(view, before, panned), 50.0);
+	for (int step = 0; step < 40; ++step) {
+		view.resize(640 + (step % 7) * 13, 480 + (step % 5) * 11);
+		QApplication::processEvents();
+		// Each resize keeps the zoom ratio and the dragged place in the middle.
+		QVERIFY(near(view.zoomRatio(), zoom, 1e-5));
+		QCOMPARE_LE(pixelsApart(view, panned, centreOf(view)), 0.01);
+	}
 }
 
 void TestNetworkView::zoomLabelsUseMapNotation() {

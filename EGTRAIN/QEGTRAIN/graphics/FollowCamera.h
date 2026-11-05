@@ -16,8 +16,9 @@
 /// Every target moves the view to it at once, to a fraction of a pixel. The window passes the position at which a
 /// followed train is drawn at every step of its motion, so the view moves with the train in the same frame. The first
 /// target after stop(), a snap and a target further away than 1.5 times the larger side of the visible scene are a
-/// cut, which also ends a catch-up. Where the edge of the scene holds an axis of the view, the view stays at the edge
-/// on that axis.
+/// cut, which also ends a catch-up. The view can centre on every point of the network, also at its edge. On an axis
+/// where a target lies beyond the edge of the network, the view stays at the edge. At Fit the controller does not move
+/// the view; only the user does.
 ///
 /// While the user moves the view (NetworkView::interacting()), holding a drag, scrolling or pinching, the controller
 /// does not move it: it keeps the target and ends a catch-up, and a snap meanwhile cuts at the first target after. It
@@ -44,9 +45,9 @@ public:
 
 	/// Sets the position to follow, in scene coordinates, and moves the view there, part of the way during a
 	/// catch-up. A snap, the first target after stop() and a target further away than 1.5 times the larger side of
-	/// the visible scene cut to the target. While the user moves the view, the view stays where it is.
+	/// the visible scene cut to the target. While the user moves the view, and at Fit, the view stays where it is.
 	void follow(const QPointF& target, bool snap);
-	/// Moves the view to the target at once and ends a catch-up.
+	/// Moves the view to the target at once, except at Fit, and ends a catch-up.
 	void settle();
 	/// Forgets the target and ends a catch-up.
 	void stop();

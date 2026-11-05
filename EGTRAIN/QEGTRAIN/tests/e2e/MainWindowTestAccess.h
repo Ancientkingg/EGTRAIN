@@ -49,6 +49,8 @@ public:
 	// run controller and the Run Results dock.
 	static void connectRunSignals(MainWindow& w);
 	static void snapshotDelivered(MainWindow& w);
+	/// The hook after each live snapshot is drawn: the check of the first train drawn at Fit, then checkSignalHeads.
+	static void snapshotDrawn(MainWindow& w);
 	static void checkSignalHeads(MainWindow& w);
 	static void runResultsRefreshed(MainWindow& w);
 	static bool runFinished(MainWindow& w);

@@ -108,6 +108,11 @@ namespace {
 
 // Whether the marker of the first live snapshot of an autostarted run has been printed.
 bool autostartProgressReported = false;
+// Whether the view was at Fit, and the scene point in its middle, at the last live snapshot before a train was drawn,
+// and whether the check of the first train at Fit has been made.
+bool atFitBeforeFirstTrain = false;
+QPointF centreBeforeFirstTrain;
+bool firstTrainAtFitChecked = false;
 // Whether the case was edited while the run went on, which the check of a discarded run needs after the window has cleared it.
 bool sceneEditedDuringRun = false;
 // How many runs the operational completion check has seen, and the frame on which the first one ended.
@@ -350,8 +355,13 @@ void MainWindowTestAccess::autostart(MainWindow& w) {
 }
 
 // QEGTRAIN_E2E_OPERATIONAL_DISCARD edits the case while the run goes on, so that its results are discarded. The first live
-// snapshot of an autostarted run prints a marker, and QEGTRAIN_E2E_CLOSE_DURING_RUN closes the window then.
+// snapshot of an autostarted run prints a marker, and QEGTRAIN_E2E_CLOSE_DURING_RUN closes the window then. Until a train
+// is drawn, each snapshot keeps the middle of the view and whether it is at Fit for snapshotDrawn.
 void MainWindowTestAccess::snapshotDelivered(MainWindow& w) {
+	if (!firstTrainAtFitChecked && w.m_presenter->runTrains().isEmpty()) {
+		atFitBeforeFirstTrain = w.networkView->atFit();
+		centreBeforeFirstTrain = w.networkView->mapToScene(w.networkView->viewport()->rect().center());
+	}
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_OPERATIONAL_DISCARD")
 		&& !w.m_runController->m_sceneChangedDuringRun && caseSettingsPanel(w)->descriptionEdit()) {
 		caseSettingsPanel(w)->descriptionEdit()->setText(QStringLiteral("discarded operational run"));
@@ -376,6 +386,28 @@ void MainWindowTestAccess::snapshotDelivered(MainWindow& w) {
 			});
 		}
 	}
+}
+
+// An autostarted run without a scenario that is at Fit when its first train is drawn keeps the middle of the view where it
+// was: the snapshot that draws the first train prints E2E_FIT_FIRST_TRAIN_OK, or prints the distance and exits with 2.
+// Then the signal heads are checked.
+void MainWindowTestAccess::snapshotDrawn(MainWindow& w) {
+	if (!firstTrainAtFitChecked && !w.m_presenter->runTrains().isEmpty()) {
+		firstTrainAtFitChecked = true;
+		if (atFitBeforeFirstTrain && !scenarioStarted && qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART")
+			&& !PlaybackProfiler::enabled()) {
+			const QPointF centre = w.networkView->mapToScene(w.networkView->viewport()->rect().center());
+			const qreal moved = QLineF(centreBeforeFirstTrain, centre).length() * qAbs(w.networkView->transform().m11());
+			if (moved > 0.5) {
+				std::fprintf(stderr, "E2E_FIT_FIRST_TRAIN_FAIL: the first train moved the view at Fit by %.1f px\n", moved);
+				QCoreApplication::exit(2);
+				return;
+			}
+			std::fprintf(stdout, "E2E_FIT_FIRST_TRAIN_OK\n");
+			std::fflush(stdout);
+		}
+	}
+	checkSignalHeads(w);
 }
 
 // Live check of the signal heads (QEGTRAIN_E2E_SIGNAL_HEADS). After every
