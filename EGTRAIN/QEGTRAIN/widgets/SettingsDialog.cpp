@@ -1,5 +1,6 @@
 #include "widgets/SettingsDialog.h"
 
+#include "graphics/VisualPolish.h"
 #include "telemetry/TelemetryConsent.h"
 #include "update/UpdateSettings.h"
 #include "widgets/DialogLayout.h"
@@ -8,8 +9,10 @@
 #include "widgets/PlainToolTip.h"
 
 #include <QCheckBox>
+#include <QComboBox>
 #include <QDialogButtonBox>
 #include <QGroupBox>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
@@ -17,6 +20,17 @@
 #include <QVBoxLayout>
 
 namespace {
+
+// The station mark styles in the order of the Station marks list, with the values under which the settings keep them.
+struct MarkStyleName {
+	StationMarkStyle style;
+	const char* value;
+	const char* text;
+};
+constexpr MarkStyleName kMarkStyles[] = {{StationMarkStyle::MapPin, "mapPin", "Map pin"},
+	{StationMarkStyle::RingAndBar, "ringAndBar", "Ring and bar"},
+	{StationMarkStyle::ClassMarks, "classMarks", "Class marks"},
+	{StationMarkStyle::PlainDot, "plainDot", "Plain dot"}};
 
 QVBoxLayout* addSection(QVBoxLayout* layout, const QString& title) {
 	auto* group = new QGroupBox(title);
@@ -39,6 +53,14 @@ void addHelp(QVBoxLayout* section, const QString& text) {
 }
 
 } // namespace
+
+StationMarkStyle readStationMarkStyle(const QSettings& settings) {
+	const QString value = settings.value(kStationMarkStyleKey).toString();
+	for (const MarkStyleName& name : kMarkStyles)
+		if (value == QLatin1String(name.value))
+			return name.style;
+	return StationMarkStyle::MapPin;
+}
 
 SettingsDialog::SettingsDialog(QSettings& settings, TelemetryConsent& consent, QWidget* parent)
 	: QDialog(parent), m_settings(settings), m_consent(consent) {
@@ -75,6 +97,21 @@ SettingsDialog::SettingsDialog(QSettings& settings, TelemetryConsent& consent, Q
 	addHelp(display, QStringLiteral("Takes effect from the next run."));
 	m_advancedDetails = addCheckBox(display, QStringLiteral("Show advanced details"), "settingsAdvancedDetails",
 		settings.value(kAdvancedDetailsKey, false).toBool());
+	auto* marksRow = new QHBoxLayout;
+	auto* marksLabel = new QLabel(QStringLiteral("Station marks"));
+	m_stationMarks = new QComboBox;
+	m_stationMarks->setObjectName(QStringLiteral("settingsStationMarks"));
+	const StationMarkStyle markStyle = readStationMarkStyle(settings);
+	for (const MarkStyleName& name : kMarkStyles) {
+		m_stationMarks->addItem(QString::fromLatin1(name.text), QString::fromLatin1(name.value));
+		if (name.style == markStyle)
+			m_stationMarks->setCurrentIndex(m_stationMarks->count() - 1);
+	}
+	marksLabel->setBuddy(m_stationMarks);
+	marksRow->addWidget(marksLabel);
+	marksRow->addWidget(m_stationMarks);
+	marksRow->addStretch();
+	display->addLayout(marksRow);
 
 	QVBoxLayout* updates = addSection(layout, QStringLiteral("Updates and privacy"));
 	m_openedUpdateCheckState = m_updateCheckState = readUpdateCheckState(settings);
@@ -111,6 +148,7 @@ void SettingsDialog::restoreDefaults() {
 	m_recentCases->clear();
 	m_showPassengers->setChecked(false);
 	m_advancedDetails->setChecked(false);
+	m_stationMarks->setCurrentIndex(0);
 	m_updateChecks->setChecked(false);
 	m_updateCheckState = UpdateCheckState::Unknown;
 	m_usage->setChecked(false);
@@ -131,6 +169,7 @@ void SettingsDialog::accept() {
 		m_settings.remove(kRecentScenesKey);
 	m_settings.setValue(kShowPassengersKey, m_showPassengers->isChecked());
 	m_settings.setValue(kAdvancedDetailsKey, m_advancedDetails->isChecked());
+	m_settings.setValue(kStationMarkStyleKey, m_stationMarks->currentData());
 	if (m_updateCheckState != m_openedUpdateCheckState)
 		writeUpdateCheckState(m_settings, m_updateCheckState);
 	m_settings.sync();

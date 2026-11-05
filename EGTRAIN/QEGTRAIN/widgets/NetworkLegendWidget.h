@@ -32,6 +32,7 @@ struct NetworkLegendEntry {
 	SignalCueKind signalCue = SignalCueKind::Neutral;					///< The mark in a lit signal lamp: a bar for Stop, a dot for Caution.
 	NetworkLegendSignalLook signalLook = NetworkLegendSignalLook::Lamp; ///< How a signal head is drawn.
 	StationClass stationClass = StationClass::Station;					///< The mark of a station.
+	StationMarkStyle stationMarkStyle = StationMarkStyle::MapPin;		///< The style of the mark of a station.
 	QString iconResource;												///< The Qt resource path of the icon of a passenger row; empty for none.
 };
 
@@ -64,6 +65,8 @@ public:
 
 	/// Replaces the rows with the ones that content calls for.
 	void setCaseContent(const NetworkLegendContent& content);
+	/// Draws the station rows in style, as the canvas does, now and after the next setCaseContent().
+	void setStationMarkStyle(StationMarkStyle style);
 	/// The rows, from top to bottom.
 	QVector<NetworkLegendEntry> entries() const { return m_entries; }
 	/// The labels of the rows, from top to bottom.
@@ -80,6 +83,7 @@ private:
 	QToolButton* m_toggle = nullptr;
 	QWidget* m_body = nullptr;
 	QVector<NetworkLegendEntry> m_entries;
+	StationMarkStyle m_stationMarkStyle = StationMarkStyle::MapPin;
 	bool m_expanded = true;
 };
 

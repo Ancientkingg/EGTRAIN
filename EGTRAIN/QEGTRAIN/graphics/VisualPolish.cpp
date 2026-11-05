@@ -34,12 +34,17 @@ const QColor kStationMarkAccent(80, 120, 210);
 // area over the canvas.
 constexpr int kStationAreaAlpha = 56;
 
-// One part of a station mark: path filled with fill and an edge of edgeWidth in edgeColor, painted over the fill.
+// One part of a station mark: path filled with fill and an edge of edgeWidth in edgeColor, painted over the fill, or
+// under it when edgeUnder is set, so that only its outer half shows.
 struct MarkPart {
+	MarkPart(const QPainterPath& area, const QColor& colour, const QColor& edge = QColor(), qreal width = 0.0,
+		bool under = false)
+		: path(area), fill(colour), edgeColor(edge), edgeWidth(width), edgeUnder(under) {}
 	QPainterPath path;
 	QColor fill;
 	QColor edgeColor;
-	qreal edgeWidth = 0.0;
+	qreal edgeWidth;
+	bool edgeUnder;
 };
 
 // Paints the parts in order over a halo of haloWidth around all of them and their edges.
@@ -49,9 +54,12 @@ void paintMarkParts(QPainter* painter, const QList<MarkPart>& parts, const QColo
 	for (const MarkPart& part : parts)
 		painter->strokePath(part.path, QPen(halo, 2.0 * haloWidth + part.edgeWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
 	for (const MarkPart& part : parts) {
+		const QPen edge(part.edgeColor, part.edgeWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+		if (part.edgeWidth > 0.0 && part.edgeUnder)
+			painter->strokePath(part.path, edge);
 		painter->fillPath(part.path, part.fill);
-		if (part.edgeWidth > 0.0)
-			painter->strokePath(part.path, QPen(part.edgeColor, part.edgeWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+		if (part.edgeWidth > 0.0 && !part.edgeUnder)
+			painter->strokePath(part.path, edge);
 	}
 	painter->restore();
 }
@@ -75,8 +83,7 @@ QPainterPath pinPath(const QPointF& tip, qreal r, qreal d) {
 
 // The parts of the pin in frame, its tip on the bottom centre of frame. Edge widths are in logical pixels, taking
 // haloWidth as two of them.
-QList<MarkPart> stationMarkParts(const QRectF& frame, StationClass cls, const QColor& fill, const QColor& halo,
-	qreal haloWidth) {
+QList<MarkPart> pinParts(const QRectF& frame, StationClass cls, const QColor& fill, const QColor& halo, qreal haloWidth) {
 	const qreal side = std::min(frame.width(), frame.height());
 	const qreal pixel = haloWidth / 2.0;
 	const qreal size = cls == StationClass::Halt ? 0.8 : (cls == StationClass::Major ? 1.15 : 1.0);
@@ -86,10 +93,70 @@ QList<MarkPart> stationMarkParts(const QRectF& frame, StationClass cls, const QC
 	const QPainterPath body = pinPath(tip, r, d);
 	const QPointF head = tip - QPointF(0.0, d);
 	if (cls == StationClass::Halt)
-		return {{body, halo, fill, 1.6 * pixel}, {disc(head, 0.38 * r), fill, QColor(), 0.0}};
+		return {{body, halo, fill, 1.6 * pixel}, {disc(head, 0.38 * r), fill}};
 	if (cls == StationClass::Major)
-		return {{body, kStationMarkAccent, fill, 1.2 * pixel}, {disc(head, 0.42 * r), fill, QColor(), 0.0}};
-	return {{body, fill, QColor(), 0.0}, {disc(head, 0.4 * r), halo, QColor(), 0.0}};
+		return {{body, kStationMarkAccent, fill, 1.2 * pixel}, {disc(head, 0.42 * r), fill}};
+	return {{body, fill}, {disc(head, 0.4 * r), halo}};
+}
+
+// The parts of the ring and bar centred in frame: a ring, or a disc for a major station, crossed by a blue bar for a
+// station and a major station. The edge of the bar, under it, sets it off from the ring.
+QList<MarkPart> ringAndBarParts(const QRectF& frame, StationClass cls, const QColor& fill, const QColor& halo,
+	qreal haloWidth) {
+	const qreal side = std::min(frame.width(), frame.height());
+	const QPointF centre = frame.center();
+	const qreal outer = 0.36 * side;
+	QPainterPath ring = disc(centre, outer);
+	if (cls != StationClass::Major)
+		ring.addEllipse(centre, outer - 0.12 * side, outer - 0.12 * side);
+	QList<MarkPart> parts{{ring, fill}};
+	if (cls != StationClass::Halt) {
+		QRectF bar(0.0, 0.0, 1.02 * side, 0.21 * side);
+		bar.moveCenter(centre);
+		QPainterPath path;
+		path.addRect(bar);
+		parts.append({path, kStationMarkAccent, halo, 0.75 * haloWidth, true});
+	}
+	return parts;
+}
+
+// The class mark centred in frame: an upright bar for a major station, a disc for a station and a ring for a halt.
+QList<MarkPart> classMarkParts(const QRectF& frame, StationClass cls, const QColor& fill, qreal haloWidth) {
+	const qreal side = std::min(frame.width(), frame.height());
+	const QPointF centre = frame.center();
+	QPainterPath mark;
+	if (cls == StationClass::Major) {
+		QRectF bar(0.0, 0.0, 0.32 * side, 0.8 * side);
+		bar.moveCenter(centre);
+		mark.addRoundedRect(bar, bar.width() / 3.0, bar.width() / 3.0);
+	} else {
+		const qreal radius = 0.35 * side;
+		mark = disc(centre, radius);
+		if (cls == StationClass::Halt) {
+			const qreal hole = radius - std::max(0.16 * side, haloWidth);
+			mark.addEllipse(centre, hole, hole);
+		}
+	}
+	return {{mark, fill}};
+}
+
+// The parts of the mark of style in frame.
+QList<MarkPart> stationMarkParts(const QRectF& frame, StationClass cls, StationMarkStyle style, const QColor& fill,
+	const QColor& halo, qreal haloWidth) {
+	switch (style) {
+		case StationMarkStyle::RingAndBar:
+			return ringAndBarParts(frame, cls, fill, halo, haloWidth);
+		case StationMarkStyle::ClassMarks:
+			return classMarkParts(frame, cls, fill, haloWidth);
+		case StationMarkStyle::PlainDot: {
+			// The only style that tells the classes apart by size alone.
+			const qreal across = cls == StationClass::Halt ? 0.4 : (cls == StationClass::Major ? 0.72 : 0.56);
+			return {{disc(frame.center(), across * std::min(frame.width(), frame.height()) / 2.0), fill}};
+		}
+		case StationMarkStyle::MapPin:
+		default:
+			return pinParts(frame, cls, fill, halo, haloWidth);
+	}
 }
 
 // The convex hull of points in order around it (Andrew's monotone chain); fewer than three distinct points stay as they are.
@@ -273,44 +340,59 @@ StationVisual classifyStation(bool hasPlatformId, int connectionCount) {
 	return {QColor(120, 120, 120), QColor(70, 70, 70), StationClass::Halt};
 }
 
-void paintStationMark(QPainter* painter, const QRectF& frame, StationClass cls, const QColor& fill,
+void paintStationMark(QPainter* painter, const QRectF& frame, StationClass cls, StationMarkStyle style, const QColor& fill,
 	const QColor& halo, qreal haloWidth) {
-	paintMarkParts(painter, stationMarkParts(frame, cls, fill, halo, haloWidth), halo, haloWidth);
+	paintMarkParts(painter, stationMarkParts(frame, cls, style, fill, halo, haloWidth), halo, haloWidth);
 }
 
-QRectF stationMarkBounds(const QRectF& frame, StationClass cls, qreal haloWidth) {
+QPointF stationMarkAnchor(const QRectF& frame, StationMarkStyle style) {
+	return style == StationMarkStyle::MapPin ? QPointF(frame.center().x(), frame.bottom()) : frame.center();
+}
+
+QRectF stationMarkBounds(const QRectF& frame, StationClass cls, StationMarkStyle style, qreal haloWidth) {
 	QRectF bounds;
-	for (const MarkPart& part : stationMarkParts(frame, cls, Qt::white, Qt::black, haloWidth)) {
+	for (const MarkPart& part : stationMarkParts(frame, cls, style, Qt::white, Qt::black, haloWidth)) {
 		const qreal grow = haloWidth + part.edgeWidth / 2.0;
 		bounds |= part.path.boundingRect().adjusted(-grow, -grow, grow, grow);
 	}
 	return bounds;
 }
 
-QPainterPath stationMarkShape(const QRectF& frame, StationClass cls, qreal haloWidth) {
-	// The body of the pin holds its dot.
-	const MarkPart body = stationMarkParts(frame, cls, Qt::white, Qt::black, haloWidth).first();
-	if (body.edgeWidth <= 0.0)
-		return body.path;
-	QPainterPathStroker stroker;
-	stroker.setWidth(body.edgeWidth);
-	stroker.setJoinStyle(Qt::RoundJoin);
-	return body.path.united(stroker.createStroke(body.path));
+QPainterPath stationMarkShape(const QRectF& frame, StationClass cls, StationMarkStyle style, qreal haloWidth) {
+	// The parts with their edges. A ring is two circles drawn the same way round, so with the winding rule its hole is
+	// part of the shape.
+	QPainterPath shape;
+	for (const MarkPart& part : stationMarkParts(frame, cls, style, Qt::white, Qt::black, haloWidth)) {
+		QPainterPath area = part.path;
+		area.setFillRule(Qt::WindingFill);
+		shape = shape.united(area);
+		if (part.edgeWidth > 0.0) {
+			QPainterPathStroker stroker;
+			stroker.setWidth(part.edgeWidth);
+			stroker.setJoinStyle(Qt::RoundJoin);
+			shape = shape.united(stroker.createStroke(part.path));
+		}
+	}
+	return shape;
 }
 
-QRectF stationMarkFrameIn(const QRectF& area, StationClass cls, qreal haloWidth) {
-	// The pin of a major station is the largest. Every class takes the frame in which that pin fits, so that the classes
-	// keep their sizes. The mark grows with the frame and its halo does not, measured on a frame of about the size that
-	// fits.
+QRectF stationMarkFrameIn(const QRectF& area, StationClass cls, StationMarkStyle style, qreal haloWidth) {
+	// Every class takes the frame in which the marks of all three fit, so that the classes keep their sizes: in the
+	// styles but the class marks that is the frame of the mark of a major station. The mark grows with the frame and its
+	// halo does not, measured on a frame of about the size that fits.
 	const QRectF reference(0.0, 0.0, std::min(area.width(), area.height()), std::min(area.width(), area.height()));
-	const QRectF mark = stationMarkBounds(reference, StationClass::Major, 0.0);
-	const QRectF painted = stationMarkBounds(reference, StationClass::Major, haloWidth);
+	QRectF mark;
+	QRectF painted;
+	for (const StationClass each : {StationClass::Halt, StationClass::Station, StationClass::Major}) {
+		mark |= stationMarkBounds(reference, each, style, 0.0);
+		painted |= stationMarkBounds(reference, each, style, haloWidth);
+	}
 	const qreal side = reference.width()
 		* std::min((area.width() - (painted.width() - mark.width())) / mark.width(),
 			(area.height() - (painted.height() - mark.height())) / mark.height());
-	// The pin is not centred in its frame, so the frame moves to centre what it paints.
+	// A pin is not centred in its frame, so the frame moves to centre what it paints.
 	const QRectF frame(0.0, 0.0, side, side);
-	return frame.translated(area.center() - stationMarkBounds(frame, cls, haloWidth).center());
+	return frame.translated(area.center() - stationMarkBounds(frame, cls, style, haloWidth).center());
 }
 
 QRectF stationFootprintRect(const QList<QPointF>& centres, StationClass cls, qreal side) {
@@ -339,16 +421,16 @@ QColor stationMarkFill() {
 	return QColor(232, 238, 242);
 }
 
-QIcon stationMarkIcon(StationClass cls) {
+QIcon stationMarkIcon(StationClass cls, StationMarkStyle style) {
 	QIcon icon;
 	for (const int size : {16, 32}) {
 		QPixmap pixmap(size, size);
 		pixmap.fill(Qt::transparent);
 		QPainter painter(&pixmap);
-		// The pin reaches past its frame, so it is fitted to the pixmap by what it paints.
+		// A pin and a bar reach past their frame, so the mark is fitted to the pixmap by what it paints.
 		const qreal halo = size / 16.0;
-		paintStationMark(&painter, stationMarkFrameIn(QRectF(0.0, 0.0, size, size), cls, halo), cls, stationMarkFill(),
-			canvasColor(), halo);
+		paintStationMark(&painter, stationMarkFrameIn(QRectF(0.0, 0.0, size, size), cls, style, halo), cls, style,
+			stationMarkFill(), canvasColor(), halo);
 		painter.end();
 		icon.addPixmap(pixmap);
 	}

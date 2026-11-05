@@ -77,11 +77,11 @@ protected:
 		}
 
 		if (m_entry.kind == NetworkLegendEntryKind::Station) {
-			// The pin of the class in the colours of the canvas, whole and centred in the swatch, a pixel clear of its edges.
-			// Its dark halo outlines it on the light panel.
+			// The mark of the class in its style and the colours of the canvas, whole and centred in the swatch, a pixel
+			// clear of its edges. Its dark halo outlines it on the light panel.
 			const QRectF area = QRectF(rect()).adjusted(1.0, 1.0, -1.0, -1.0);
-			paintStationMark(&painter, stationMarkFrameIn(area, m_entry.stationClass, 1.0), m_entry.stationClass,
-				stationMarkFill(), canvasColor(), 1.0);
+			paintStationMark(&painter, stationMarkFrameIn(area, m_entry.stationClass, m_entry.stationMarkStyle, 1.0),
+				m_entry.stationClass, m_entry.stationMarkStyle, stationMarkFill(), canvasColor(), 1.0);
 			return;
 		}
 
@@ -244,11 +244,12 @@ QVector<NetworkLegendEntry> trainEntries(const QVector<NetworkLegendTrain>& trai
 	return entries;
 }
 
-NetworkLegendEntry stationEntry(const QString& label, StationClass cls) {
+NetworkLegendEntry stationEntry(const QString& label, StationClass cls, StationMarkStyle style) {
 	NetworkLegendEntry entry;
 	entry.kind = NetworkLegendEntryKind::Station;
 	entry.label = label;
 	entry.stationClass = cls;
+	entry.stationMarkStyle = style;
 	return entry;
 }
 
@@ -338,7 +339,7 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 			 std::make_pair(StationClass::Halt, "Halt")}) {
 		if (std::any_of(content.stationVisuals.cbegin(), content.stationVisuals.cend(),
 				[&row](const StationVisual& visual) { return visual.cls == row.first; }))
-			m_entries << stationEntry(row.second, row.first);
+			m_entries << stationEntry(row.second, row.first, m_stationMarkStyle);
 	}
 
 	if (content.hasSignals) {
@@ -355,6 +356,13 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 		entry.iconResource = ":/icons/pax_icon.png";
 		m_entries << entry;
 	}
+	rebuildRows();
+}
+
+void NetworkLegendWidget::setStationMarkStyle(StationMarkStyle style) {
+	m_stationMarkStyle = style;
+	for (NetworkLegendEntry& entry : m_entries)
+		entry.stationMarkStyle = style;
 	rebuildRows();
 }
 

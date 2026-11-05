@@ -109,6 +109,7 @@ private slots:
 	void rowsStayNarrow();
 	void previewKeyExplainsSignalAspects();
 	void stationSwatchesShowPinOfClass();
+	void stationSwatchesFollowMarkStyle();
 	void defaultTrainsShareOneRow();
 	void customColoursGetRowsOfTheirOwn();
 	void servicesOfOneColourShareRow();
@@ -378,6 +379,59 @@ void TestNetworkLegend::stationSwatchesShowPinOfClass() {
 	QCOMPARE(stationLegend.entries().at(0).stationClass, StationClass::Major);
 	QCOMPARE(pinHeights.size(), qsizetype(3));
 	QCOMPARE_LT(pinHeights.at(2), pinHeights.at(0));
+}
+
+// The station swatches draw the marks in the style that the map key is given, as the canvas does, whole and centred in
+// the swatch, also for the rows of the next case.
+void TestNetworkLegend::stationSwatchesFollowMarkStyle() {
+	NetworkLegendWidget stationLegend;
+	NetworkLegendContent stationContent;
+	stationContent.stationVisuals = {classifyStation(false, 3), classifyStation(true), classifyStation()};
+	stationLegend.setCaseContent(stationContent);
+	stationLegend.show();
+	QApplication::processEvents();
+	const auto swatch = [&stationLegend](int row) {
+		QImage image(46, 18, QImage::Format_ARGB32_Premultiplied);
+		image.fill(Qt::transparent);
+		if (QWidget* widget = stationLegend.findChild<QWidget*>(QString("mapKeySwatch%1").arg(row)))
+			widget->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+		return image;
+	};
+	QList<QImage> pins;
+	for (int row = 0; row < 3; ++row)
+		pins.append(swatch(row));
+	const auto check = [&](StationMarkStyle style) {
+		QApplication::processEvents();
+		for (int row = 0; row < 3; ++row) {
+			const NetworkLegendEntry entry = stationLegend.entries().at(row);
+			QCOMPARE(entry.stationMarkStyle, style);
+			// The swatch is the mark of its class in the style, fitted to the swatch a pixel clear of its edges.
+			QImage expected(46, 18, QImage::Format_ARGB32_Premultiplied);
+			expected.fill(Qt::transparent);
+			{
+				QPainter painter(&expected);
+				paintStationMark(&painter, stationMarkFrameIn(QRectF(1.0, 1.0, 44.0, 16.0), entry.stationClass, style, 1.0),
+					entry.stationClass, style, stationMarkFill(), canvasColor(), 1.0);
+			}
+			const QImage image = swatch(row);
+			QCOMPARE(image, expected);
+			// Only the map pin draws the pins of the first rows.
+			QCOMPARE(image == pins.at(row), style == StationMarkStyle::MapPin);
+		}
+	};
+	for (const StationMarkStyle style :
+		{StationMarkStyle::RingAndBar, StationMarkStyle::ClassMarks, StationMarkStyle::PlainDot, StationMarkStyle::MapPin}) {
+		// The rows that show take the style at once.
+		stationLegend.setStationMarkStyle(style);
+		check(style);
+		if (QTest::currentTestFailed())
+			return;
+		// The rows of the next case keep it.
+		stationLegend.setCaseContent(stationContent);
+		check(style);
+		if (QTest::currentTestFailed())
+			return;
+	}
 }
 
 void TestNetworkLegend::defaultTrainsShareOneRow() {

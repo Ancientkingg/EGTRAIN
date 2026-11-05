@@ -14,6 +14,7 @@
 #include <QDebug>
 #include <QPen>
 
+#include "graphics/VisualPolish.h"
 #include "graphics/items/TrackLineItem.h"
 #include "graphics/items/NodeItem.h"
 #include "graphics/items/StationNodeItem.h"
@@ -61,6 +62,13 @@ public:
 	/// or an item of another kind.
 	void select(QGraphicsItem* item);
 
+	/// The style of the station marks of the scene; StationMarkStyle::MapPin until setStationMarkStyle().
+	StationMarkStyle stationMarkStyle() const { return m_stationMarkStyle; }
+	/// Draws the station marks of the scene in style, and those that stations attach later
+	/// (StationOverlayItem::attachArtwork()). The next view scale that the stations apply places them by the anchor of
+	/// style.
+	void setStationMarkStyle(StationMarkStyle style);
+
 signals:
 	/// A mouse button was pressed on the scene.
 	void MousePressedOnScene();
@@ -91,6 +99,7 @@ private:
 	QGraphicsItem* semanticItemAt(const QPointF& scenePos, QWidget* widget) const;
 
 	bool m_pressedOnEmptyCanvas = false;
+	StationMarkStyle m_stationMarkStyle = StationMarkStyle::MapPin;
 };
 
 #endif // NETWORKSCENE_H

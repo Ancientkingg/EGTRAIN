@@ -513,6 +513,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	setupWindowIcon();
 	setupToolBar();
 	setupLayersDock();
+	applyStationMarkStyle(QSettings());
 	setupFollowControls();
 	setupToolBarActions();
 	setupToolBarButtons();
@@ -587,6 +588,8 @@ void MainWindow::setupSettingsAction() {
 				m_showPassengersAction->setChecked(m_passengerChoice);
 		}
 		m_advancedDetailsAction->setChecked(settings.value(kAdvancedDetailsKey, false).toBool());
+		applyStationMarkStyle(settings);
+		updateViewportOverlays();
 		if (auto* updateChecks = findChild<QAction*>(QStringLiteral("actionAutomaticallyCheckForUpdates"))) {
 			const QSignalBlocker blocker(updateChecks);
 			updateChecks->setChecked(readUpdateCheckState(settings) == UpdateCheckState::Enabled);
@@ -596,6 +599,12 @@ void MainWindow::setupSettingsAction() {
 		m_session->rebuildRecentScenesMenu();
 		updateSceneActions();
 	});
+}
+
+void MainWindow::applyStationMarkStyle(const QSettings& settings) {
+	const StationMarkStyle style = readStationMarkStyle(settings);
+	scene->setStationMarkStyle(style);
+	m_networkLegendWidget->setStationMarkStyle(style);
 }
 
 void MainWindow::setupCentralWidget() {
@@ -2969,7 +2978,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 		const int track = station->track;
 		menu->setTitle("Station");
 		QAction* details = menu->addAction("Show details");
-		details->setIcon(stationMarkIcon(StationClass::Station));
+		details->setIcon(stationMarkIcon(StationClass::Station, scene->stationMarkStyle()));
 		connect(details, &QAction::triggered, this, [this, nodeId, track]() {
 			if (auto* current = resolveStationNodeItem(nodeId, track))
 				m_inspector->displayStationNodeInfo(current);
