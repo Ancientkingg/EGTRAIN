@@ -2,6 +2,7 @@
 #include "update/UpdateChecker.h"
 #include "update/UpdateSettings.h"
 
+#include <QElapsedTimer>
 #include <QEventLoop>
 #include <QPointer>
 #include <QProcessEnvironment>
@@ -267,6 +268,8 @@ private slots:
 	void checkSucceeds();
 	void reportsFailureTexts();
 	void timesOut();
+	void slowReplyDoesNotTimeOut();
+	void stallAfterDataTimesOut();
 	void replacesPendingCheck();
 	void refusesGrowingReleaseList();
 	void refusesLargeReleaseListAtEnd();
@@ -686,6 +689,55 @@ void TestUpdateChecker::timesOut() {
 	QCOMPARE(transport.calls.size(), std::size_t(1));
 	QCOMPARE(transport.calls.front().aborts, 1);
 	QVERIFY2(!checker.isChecking(), "a timed out check is not pending");
+}
+
+// A reply that keeps sending finishes, however long it takes in all: the limit is the time without data.
+void TestUpdateChecker::slowReplyDoesNotTimeOut() {
+	FakeTransport transport;
+	const int timeoutMs = 500;
+	UpdateChecker checker(&transport, timeoutMs);
+	Results results(checker);
+	checker.check();
+	// The release list arrives first, and blanks follow it in small parts for three times the limit.
+	QVERIFY(sendChunk(transport, 0, releaseJson("v1.10.0")));
+	QElapsedTimer sending;
+	sending.start();
+	while (sending.elapsed() < 3 * timeoutMs) {
+		spin(50);
+		QVERIFY2(sendChunk(transport, 0, " "), "a check that receives data does not time out");
+	}
+	QVERIFY(results.list.isEmpty());
+	QVERIFY(checker.isChecking());
+	FakeReply* reply = replyAt(transport, 0);
+	if (reply == nullptr)
+		QFAIL("the reply is still open");
+	reply->status = 200;
+	emit reply->finished();
+	QVERIFY(results.wait());
+	// The slow reply gives one successful result with the release.
+	QCOMPARE(results.list.size(), 1);
+	QVERIFY(results.list.first().success);
+	QVERIFY(results.list.first().release.has_value());
+	QCOMPARE(results.list.first().release->tag, QStringLiteral("v1.10.0"));
+	// The slow reply is not aborted.
+	QCOMPARE(transport.calls.front().aborts, 0);
+}
+
+// A reply that stops sending after some data times out the limit after its last data.
+void TestUpdateChecker::stallAfterDataTimesOut() {
+	FakeTransport transport;
+	UpdateChecker checker(&transport, 100);
+	Results results(checker);
+	checker.check();
+	QVERIFY(sendChunk(transport, 0, "["));
+	QVERIFY2(results.wait(), "a reply that stops sending times out");
+	// A stalled reply gives one failure with the timeout text.
+	QCOMPARE(results.list.size(), 1);
+	QVERIFY(!results.list.first().success);
+	QCOMPARE(results.list.first().error, QStringLiteral("The update check timed out."));
+	// The stalled request is aborted once.
+	QCOMPARE(transport.calls.front().aborts, 1);
+	QVERIFY(!checker.isChecking());
 }
 
 void TestUpdateChecker::replacesPendingCheck() {

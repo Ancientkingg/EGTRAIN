@@ -109,8 +109,10 @@ static QStringList recordArguments(const QString& root) {
 }
 
 // The record that the helper left, read with the reader of the application. The bytes are checked as
-// well, because the reader also accepts CRLF and a missing last line feed.
-static void recordIsWritten(const QString& path, UpdateOutcome outcome = UpdateOutcome::RolledBack) {
+// well, because the reader also accepts CRLF and a missing last line feed. A not-applied record ends with
+// the reason.
+static void recordIsWritten(const QString& path, UpdateOutcome outcome = UpdateOutcome::RolledBack,
+	const QString& reason = QString()) {
 	QVERIFY2(QFileInfo::exists(path), "the helper leaves a record");
 	QFile file(path);
 	const QByteArray bytes = file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray();
@@ -127,9 +129,12 @@ static void recordIsWritten(const QString& path, UpdateOutcome outcome = UpdateO
 		name = QStringLiteral("not-applied");
 	else if (outcome == UpdateOutcome::Applied)
 		name = QStringLiteral("applied");
+	const QString reasonLine = reason.isEmpty() ? QString() : QStringLiteral("reason=") + reason + QStringLiteral("\n");
 	const QRegularExpression format(QRegularExpression::anchoredPattern(
-		QStringLiteral("outcome=%1\nversion=9\\.8\\.7\ntime=\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z\n").arg(name)));
-	QVERIFY2(format.match(QString::fromLatin1(bytes)).hasMatch(), "the record is three lines, each ended by one line feed");
+		QStringLiteral("outcome=%1\nversion=9\\.8\\.7\ntime=\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z\n%2")
+			.arg(name, QRegularExpression::escape(reasonLine))));
+	QVERIFY2(format.match(QString::fromLatin1(bytes)).hasMatch(),
+		"the record is three lines and the reason, each ended by one line feed");
 }
 
 struct HelperRun {
@@ -272,6 +277,10 @@ private slots:
 	void cleanQuickExitIsInstalled();
 	void renameIsRetried();
 	void renameKeepsFailing();
+	void parentThatKeepsRunningAbandonsUpdate();
+	void failedPrecheckStartsPreviousVersion_data();
+	void failedPrecheckStartsPreviousVersion();
+	void failedVersionThatCannotBeMovedIsRecorded();
 	void unwritableRecordStillRollsBack();
 	void noRecordWithoutValidOptions_data();
 	void noRecordWithoutValidOptions();
@@ -533,7 +542,7 @@ void TestUpdateHelper::renameKeepsFailing() {
 	QVERIFY2(!QFileInfo::exists(QDir(root).filePath("unavailable")), "no backup is made");
 	QTRY_VERIFY2_WITH_TIMEOUT(logLines(log).contains("old started"), "the previous version is started", kLogWaitMs);
 	QVERIFY2(!logLines(log).contains("new started"), "the new version is not started");
-	recordIsWritten(recordPath(root), UpdateOutcome::NotApplied);
+	recordIsWritten(recordPath(root), UpdateOutcome::NotApplied, QStringLiteral("installation-not-renamed"));
 	if (QTest::currentTestFailed())
 		return;
 	QVERIFY2(logLines(log).contains("old sees record"), "the record exists before the previous version starts");
@@ -541,6 +550,122 @@ void TestUpdateHelper::renameKeepsFailing() {
 	QVERIFY2(ranIn(log, "old", QDir(root).filePath("install")), "the previous version starts in the installation directory");
 #if defined(Q_OS_WIN)
 	QTRY_VERIFY2_WITH_TIMEOUT(startedVersionHasEnded(root), "the previous version has ended", kLogWaitMs);
+#endif
+}
+
+// An application that does not end within the wait leaves its installation as it is. The helper records why and
+// starts that installation, as after any other update that is not applied.
+void TestUpdateHelper::parentThatKeepsRunningAbandonsUpdate() {
+	const QString root = scenarioRoot("parent-running");
+	const QString log = QDir(root).filePath("log.txt");
+	// The fixtures are writable, and the application that does not end is a probe that sleeps.
+	QVERIFY(writeInstallation(QDir(root).filePath("install"), m_probe, "old", log,
+		QStringLiteral("mode=exit\ncode=0\nrecord=") + recordPath(root)));
+	QVERIFY(writeInstallation(stagePath(root), m_probe, "new", log, "mode=exit\ncode=0"));
+	QVERIFY(writeInstallation(QDir(root).filePath("parent"), m_probe, "parent", QString(), "mode=sleep\nms=60000"));
+	QProcess parent;
+	parent.start(QDir(root).filePath("parent/app" + kProbeSuffix), QStringList());
+	QVERIFY2(parent.waitForStarted(), "the application that does not end is started");
+	QStringList arguments = {"--parent-pid", QString::number(parent.processId()), "--current", QDir(root).filePath("install"),
+		"--staged", stagePath(root), "--backup", QDir(root).filePath("install.egtrain-old"),
+		"--launch", QDir(root).filePath("install/app" + kProbeSuffix), "--wait-ms", "300"};
+	arguments += recordArguments(root);
+	const HelperRun run = runHelperProcess(m_helper, root, arguments);
+	parent.kill();
+	parent.waitForFinished();
+	// The helper ends with code 1 when the application does not end.
+	QCOMPARE(run.exitCode, 1);
+	QVERIFY2(installationIs(root, "install", "label=old"), "the previous installation stays in place");
+	QVERIFY2(!QFileInfo::exists(QDir(root).filePath("install.egtrain-old")), "no backup is made");
+	QTRY_VERIFY2_WITH_TIMEOUT(logLines(log).contains("old started"), "the previous version is started", kLogWaitMs);
+	QVERIFY2(!logLines(log).contains("new started"), "the new version is not started");
+	recordIsWritten(recordPath(root), UpdateOutcome::NotApplied, QStringLiteral("parent-still-running"));
+	if (QTest::currentTestFailed())
+		return;
+	QVERIFY2(logLines(log).contains("old sees record"), "the record exists before the previous version starts");
+	QVERIFY2(stagingIsCleared(root, m_helper), "the staging folder of the update is removed");
+#if defined(Q_OS_WIN)
+	QTRY_VERIFY2_WITH_TIMEOUT(startedVersionHasEnded(root), "the previous version has ended", kLogWaitMs);
+#endif
+}
+
+// A check before the first rename that fails leaves the installation as it is, records why and starts it.
+// Every case runs in a root of its own.
+void TestUpdateHelper::failedPrecheckStartsPreviousVersion_data() {
+	QTest::addColumn<QString>("root");
+	QTest::addColumn<bool>("stageMissing");
+	QTest::addColumn<QString>("reason");
+	QTest::newRow("a missing stage") << QDir(m_temp.path()).filePath("precheck-stage") << true << "stage-missing";
+	QTest::newRow("a backup that exists") << QDir(m_temp.path()).filePath("precheck-backup") << false << "backup-exists";
+}
+
+void TestUpdateHelper::failedPrecheckStartsPreviousVersion() {
+	QFETCH(QString, root);
+	QFETCH(bool, stageMissing);
+	QFETCH(QString, reason);
+	const QString log = QDir(root).filePath("log.txt");
+	const QString backup = QDir(root).filePath("install.egtrain-old");
+	// The fixtures are writable.
+	QVERIFY(QDir().mkpath(root));
+	QVERIFY(writeInstallation(QDir(root).filePath("install"), m_probe, "old", log,
+		QStringLiteral("mode=exit\ncode=0\nrecord=") + recordPath(root)));
+	if (stageMissing)
+		QVERIFY(QDir().mkpath(stagingFolder(root)));
+	else
+		QVERIFY(writeInstallation(stagePath(root), m_probe, "new", log, "mode=exit\ncode=0"));
+	if (!stageMissing)
+		QVERIFY(writeInstallation(backup, m_probe, "older", log, "mode=exit\ncode=0"));
+	const HelperRun run = runHelper(m_helper, root, kFailureObserveMs, recordArguments(root));
+	// The helper ends with code 1 when a check fails.
+	QCOMPARE(run.exitCode, 1);
+	QVERIFY2(installationIs(root, "install", "label=old"), "the previous installation stays in place");
+	QTRY_VERIFY2_WITH_TIMEOUT(logLines(log).contains("old started"), "the previous version is started", kLogWaitMs);
+	QVERIFY2(!logLines(log).contains("new started"), "the new version is not started");
+	recordIsWritten(recordPath(root), UpdateOutcome::NotApplied, reason);
+	if (QTest::currentTestFailed())
+		return;
+	QVERIFY2(logLines(log).contains("old sees record"), "the record exists before the previous version starts");
+	QVERIFY2(stageMissing || installationIs(root, "install.egtrain-old", "label=older"), "a backup that exists stays as it is");
+	QVERIFY2(stagingIsCleared(root, m_helper), "the staging folder of the update is removed");
+#if defined(Q_OS_WIN)
+	QTRY_VERIFY2_WITH_TIMEOUT(startedVersionHasEnded(root), "the previous version has ended", kLogWaitMs);
+#endif
+}
+
+// A new version that fails to start and cannot be renamed aside stays in place. The record no longer says that
+// the update was applied, and the helper starts what is installed. A folder below the aside path that its
+// owner cannot change keeps the helper from clearing that path, which needs POSIX permissions.
+void TestUpdateHelper::failedVersionThatCannotBeMovedIsRecorded() {
+#if defined(Q_OS_WIN)
+	QSKIP("The aside path is blocked with POSIX permissions.");
+#else
+	const QString root = scenarioRoot("failed-not-moved");
+	const QString log = QDir(root).filePath("log.txt");
+	const QString locked = QDir(root).filePath("install.egtrain-old.failed/locked");
+	// The fixtures are writable.
+	QVERIFY(writeInstallation(QDir(root).filePath("install"), m_probe, "old", log, "mode=exit\ncode=0"));
+	QVERIFY(writeInstallation(stagePath(root), m_probe, "new", log, "mode=exit\ncode=3"));
+	QVERIFY(QDir().mkpath(locked));
+	QVERIFY(writeFile(QDir(locked).filePath("file"), "kept"));
+	QVERIFY(QFile::setPermissions(locked, QFileDevice::ReadOwner | QFileDevice::ExeOwner));
+	if (QFile::remove(QDir(locked).filePath("file"))) {
+		QFile::setPermissions(locked, QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner);
+		QSKIP("This process may change a read-only folder.");
+	}
+	const HelperRun run = runHelper(m_helper, root, kFailureObserveMs, recordArguments(root));
+	QFile::setPermissions(locked, QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner);
+	// The helper ends with code 1 when the new version fails.
+	QCOMPARE(run.exitCode, 1);
+	QVERIFY2(installationIs(root, "install", "label=new"), "the new version that cannot be moved stays in place");
+	QVERIFY2(installationIs(root, "install.egtrain-old", "label=old"), "the previous installation stays the backup");
+	recordIsWritten(recordPath(root), UpdateOutcome::NotApplied, QStringLiteral("failed-version-not-moved"));
+	if (QTest::currentTestFailed())
+		return;
+	QVERIFY2(!takeUpdateRecord(recordPath(root), kUpdatedVersion),
+		"the version left in place reads the record as stale, so the user is told nothing");
+	// The installation in place is started again.
+	QTRY_COMPARE_WITH_TIMEOUT(logLines(log).count("new started"), 2, kLogWaitMs);
+	QVERIFY2(stagingIsCleared(root, m_helper), "the staging folder of the update is removed");
 #endif
 }
 

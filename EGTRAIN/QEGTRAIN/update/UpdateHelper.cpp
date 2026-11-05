@@ -31,6 +31,8 @@ using ArgumentString = std::string;
 namespace {
 
 constexpr unsigned long kMaxObserveMs = 10 * 60 * 1000;
+// How long the helper waits for the application to end. SelfUpdater passes no --wait-ms, which only shortens it.
+constexpr unsigned long kParentWaitMs = 5 * 60 * 1000;
 // Name prefix of the folder that SelfUpdater stages an update in; it holds the staged installation and this helper.
 constexpr char kStagingPrefix[] = ".qegtrain-update-";
 constexpr std::size_t kMaxVersionLength = 32;
@@ -38,6 +40,7 @@ constexpr std::size_t kMaxVersionLength = 32;
 struct Arguments {
 	unsigned long long parentPid = 0;
 	unsigned observeMs = kUpdateObserveMs;
+	unsigned long waitMs = kParentWaitMs;
 	std::filesystem::path current;
 	std::filesystem::path staged;
 	std::filesystem::path backup;
@@ -117,6 +120,18 @@ bool parseArguments(int argc, ArgumentChar** argv, Arguments& result) {
 				return false;
 			result.observeMs = static_cast<unsigned>(milliseconds);
 #if defined(_WIN32)
+		} else if (name == L"--wait-ms") {
+			wchar_t* end = nullptr;
+			const unsigned long milliseconds = std::wcstoul(value.c_str(), &end, 10);
+#else
+		} else if (name == "--wait-ms") {
+			char* end = nullptr;
+			const unsigned long milliseconds = std::strtoul(value.c_str(), &end, 10);
+#endif
+			if (value.empty() || !end || *end != '\0' || milliseconds > kParentWaitMs)
+				return false;
+			result.waitMs = milliseconds;
+#if defined(_WIN32)
 		} else if (name == L"--installer") {
 			result.installer = value;
 		} else if (name == L"--installer-args") {
@@ -150,23 +165,26 @@ bool parseArguments(int argc, ArgumentChar** argv, Arguments& result) {
 		&& result.staged.has_filename() && result.backup.has_filename();
 }
 
-bool waitForParent(unsigned long long pid) {
+// True when the process has ended or ends within waitMs.
+bool waitForParent(unsigned long long pid, unsigned long waitMs) {
 	if (pid == 0)
 		return true;
 #if defined(_WIN32)
 	HANDLE process = OpenProcess(SYNCHRONIZE, FALSE, static_cast<DWORD>(pid));
 	if (!process)
 		return GetLastError() == ERROR_INVALID_PARAMETER;
-	const DWORD status = WaitForSingleObject(process, 5 * 60 * 1000);
+	const DWORD status = WaitForSingleObject(process, static_cast<DWORD>(waitMs));
 	CloseHandle(process);
 	return status == WAIT_OBJECT_0;
 #else
-	for (int attempt = 0; attempt < 6000; ++attempt) {
+	const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(waitMs);
+	for (;;) {
 		if (kill(static_cast<pid_t>(pid), 0) == -1 && errno == ESRCH)
 			return true;
+		if (std::chrono::steady_clock::now() >= deadline)
+			return false;
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
-	return false;
 #endif
 }
 
@@ -362,7 +380,8 @@ std::string utcTimestamp() {
 //   version=X.Y.Z
 //   time=YYYY-MM-DDTHH:MM:SSZ
 // The version is the one that was put in place, that failed to start, that could not be put in place or
-// that the installer was to install, and the time is the UTC time of this write. Best effort: nothing here throws, and a record that cannot be written
+// that the installer was to install, and the time is the UTC time of this write. A not-applied record has
+// the detail reason=, which names the step that failed (see abandonUpdate). Best effort: nothing here throws, and a record that cannot be written
 // changes nothing else. The application is started after this returns, so it never sees a
 // half-written record.
 void writeRecord(const Arguments& arguments, const char* outcome, const std::string& details = std::string()) {
@@ -383,17 +402,37 @@ void writeRecord(const Arguments& arguments, const char* outcome, const std::str
 		std::filesystem::remove(arguments.record, error);
 }
 
+// The update ends without the new version installed and running. The record names the step that failed:
+//   parent-still-running      the application did not end in time
+//   installation-missing      there is no installation to replace
+//   stage-missing             there is no staged installation
+//   backup-exists             the backup path is taken
+//   installation-not-renamed  the installation could not be renamed to the backup
+//   stage-not-renamed         the staged installation could not take its place, and the backup is back
+//   backup-not-restored       the backup could not be put back after a failure
+//   failed-version-not-moved  the new version failed to start and could not be renamed aside
+// The installation in place is started: mostly the previous one, after the last two whatever was left. The
+// record and the removal of the staging folder come before the start, so that the application finds the
+// record and the sweep of its next start has nothing left to wait for.
+void abandonUpdate(const Arguments& arguments, const char* reason) {
+	writeRecord(arguments, "not-applied", std::string("reason=") + reason + "\n");
+	removeStaging(arguments.runsInstaller() ? arguments.installer.parent_path() : arguments.staged.parent_path());
+	launch(arguments.launch, 0);
+}
+
 // Replaces the installation that failed to start with the backup. The failed one is
 // renamed aside first, so a file that is still locked cannot leave a half-deleted
 // installation. If the backup cannot be renamed back, the failed one is put back. The record that the
-// update was applied is replaced only once the backup is in place: until then it is still true. The
-// staging folder is removed once the backup is in place, as after any other end of the update.
+// update was applied is replaced in every case, by rolled-back once the backup is in place and otherwise by
+// not-applied. The staging folder is removed as after any other end of the update.
 void restoreBackup(const Arguments& arguments) {
 	std::filesystem::path failed = arguments.backup;
 	failed += ".failed";
 	removePath(failed);
-	if (!movePathWithRetries(arguments.current, failed))
+	if (!movePathWithRetries(arguments.current, failed)) {
+		abandonUpdate(arguments, "failed-version-not-moved");
 		return;
+	}
 	if (movePathWithRetries(arguments.backup, arguments.current)) {
 		removePath(failed);
 		writeRecord(arguments, "rolled-back");
@@ -401,37 +440,34 @@ void restoreBackup(const Arguments& arguments) {
 		launch(arguments.launch, 0);
 	} else {
 		movePathWithRetries(failed, arguments.current);
+		abandonUpdate(arguments, "backup-not-restored");
 	}
-}
-
-// The installation could not be replaced and the previous one is in place. The record and the removal
-// of the staging folder come before the start, so that the application finds the record and the sweep
-// of its next start has nothing left to wait for.
-void abandonUpdate(const Arguments& arguments) {
-	writeRecord(arguments, "not-applied");
-	removeStaging(arguments.staged.parent_path());
-	launch(arguments.launch, 0);
 }
 
 bool transactionalInstall(const Arguments& arguments) {
 	std::error_code error;
-	if (!std::filesystem::exists(arguments.current, error)
-		|| error || !std::filesystem::exists(arguments.staged, error) || error)
+	if (!std::filesystem::exists(arguments.current, error) || error) {
+		abandonUpdate(arguments, "installation-missing");
 		return false;
-	if (std::filesystem::exists(arguments.backup, error) || error)
+	}
+	if (!std::filesystem::exists(arguments.staged, error) || error) {
+		abandonUpdate(arguments, "stage-missing");
 		return false;
+	}
+	if (std::filesystem::exists(arguments.backup, error) || error) {
+		abandonUpdate(arguments, "backup-exists");
+		return false;
+	}
 
 	// The application has just ended, so on Windows a file of the installation can stay locked for a
 	// short time. The staged files are fresh from the extraction, which a scanner can still hold.
 	if (!movePathWithRetries(arguments.current, arguments.backup)) {
-		abandonUpdate(arguments);
+		abandonUpdate(arguments, "installation-not-renamed");
 		return false;
 	}
 	if (!movePathWithRetries(arguments.staged, arguments.current)) {
-		if (movePathWithRetries(arguments.backup, arguments.current))
-			abandonUpdate(arguments);
-		else
-			launch(arguments.launch, 0);
+		const bool restored = movePathWithRetries(arguments.backup, arguments.current);
+		abandonUpdate(arguments, restored ? "stage-not-renamed" : "backup-not-restored");
 		return false;
 	}
 	// The new version finds the record at its start. If it fails to start, restoreBackup replaces the record.
@@ -473,10 +509,10 @@ int EGTRAIN_HELPER_MAIN(int argc, ArgumentChar** argv) {
 	Arguments arguments;
 	if (!parseArguments(argc, argv, arguments)) {
 		std::cerr << "usage: egtrain_update_helper --parent-pid PID --current PATH "
-					 "--staged PATH --backup PATH --launch PATH [--observe-ms MILLISECONDS] "
+					 "--staged PATH --backup PATH --launch PATH [--observe-ms MILLISECONDS] [--wait-ms MILLISECONDS] "
 					 "[--version X.Y.Z --record PATH]\n"
 					 "       egtrain_update_helper --parent-pid PID --installer PATH [--installer-args TEXT] "
-					 "--launch PATH [--observe-ms MILLISECONDS] [--version X.Y.Z --record PATH]\n";
+					 "--launch PATH [--observe-ms MILLISECONDS] [--wait-ms MILLISECONDS] [--version X.Y.Z --record PATH]\n";
 		return 2;
 	}
 	// The working directory is the parent of the installation, so that it never holds a folder of it.
@@ -486,8 +522,10 @@ int EGTRAIN_HELPER_MAIN(int argc, ArgumentChar** argv) {
 	std::filesystem::current_path(installation.parent_path(), workingDirectoryError);
 	if (workingDirectoryError)
 		return 1;
-	if (!waitForParent(arguments.parentPid))
+	if (!waitForParent(arguments.parentPid, arguments.waitMs)) {
+		abandonUpdate(arguments, "parent-still-running");
 		return 1;
+	}
 	if (arguments.runsInstaller())
 		return installerUpdate(arguments) ? 0 : 1;
 	return transactionalInstall(arguments) ? 0 : 1;
