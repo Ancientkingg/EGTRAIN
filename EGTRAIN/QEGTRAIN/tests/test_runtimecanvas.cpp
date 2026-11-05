@@ -103,11 +103,13 @@ public:
 
 	bool passengers = false;
 
-	// Makes the line two parallel tracks, the scene tracks T and U, with a crossover from T at 4 km to U at 6 km, and the
-	// route one from the start of T to the end of U over it, in the sections that the simulation makes of it: on T up to
-	// 3 km, the section derived at the switch from 3 to 7 km, and on U. The positions along the route are its X.
-	void makeCrossover() {
+	// Makes the line two parallel tracks, the scene tracks T and U, with a crossover from T at 4 km to U at secondKm, and
+	// the route one from the start of T to the end of U over it, in the sections that the simulation makes of it: on T up
+	// to 3 km, the section derived at the switch from 3 km to 1 km past secondKm, and on U. The positions along the route
+	// are its X.
+	void makeCrossover(double secondKm = 6.0) {
 		makeTwoTracks();
+		m_crossoverSecondKm = secondKm;
 		m_sections.resize(3);
 		const auto section = [this](std::size_t index, const char* id, int track, double fromKm, double toKm) {
 			Section& made = m_sections[index];
@@ -119,9 +121,10 @@ public:
 			made.total_arcs = 0;
 			made.GeoXBegNode = fromKm * 1000.0;
 		};
+		const std::string derived = "@1-s0@-4.000/@2-u1@-" + QString::number(secondKm, 'f', 3).toStdString();
 		section(0, "@1-s0@", 0, 0.0, 3.0);
-		section(1, "@1-s0@-4.000/@2-u1@-6.000", -1, 3.0, 7.0);
-		section(2, "@2-u1@", 1, 7.0, 10.0);
+		section(1, derived.c_str(), -1, 3.0, secondKm + 1.0);
+		section(2, "@2-u1@", 1, secondKm + 1.0, 10.0);
 		m_route.N_Block_Sections = 3;
 		m_route.sequence_of_block_sections = m_sections;
 	}
@@ -134,14 +137,14 @@ public:
 		m_route.sequence_of_block_sections = m_sections;
 	}
 
-	// Gives the crossover of makeCrossover() its connection, from T at 4 km to U at 6 km.
+	// Gives the crossover of makeCrossover() its connection, from T at 4 km to U at the X that makeCrossover() was given.
 	void addCrossoverConnection() {
 		m_connections.resize(1);
 		m_connections[0].ID = "c";
 		m_connections[0].idFirstTrackLine = 0;
 		m_connections[0].idSecondTrackLine = 1;
 		m_connections[0].xFirstNode = 4.0;
-		m_connections[0].xSecondNode = 6.0;
+		m_connections[0].xSecondNode = m_crossoverSecondKm;
 	}
 
 	// Adds a station with this name at X and Y in kilometres, after the stations A and B.
@@ -195,6 +198,7 @@ private:
 	std::vector<Stations> m_stations;
 	std::vector<Connections> m_connections;
 	std::vector<Section> m_sections;
+	double m_crossoverSecondKm = 6.0;
 	Route m_route;
 	Route m_undrawnRoute;
 	StationPlatform m_platform;
@@ -247,16 +251,16 @@ static QPointF drawnMiddle(const TrainItemGroup& train) {
 	return body->mapToScene(body->polygon().boundingRect().center());
 }
 
-// A train of wagons of 100 m each with its head at headKm, on a route whose positions are its X.
-static GuiTrainState trainOfWagons(int wagons, double headKm) {
+// A train of wagons of wagonMetres each, 100 m unless given, with its head at headKm, on a route whose positions are its X.
+static GuiTrainState trainOfWagons(int wagons, double headKm, double wagonMetres = 100.0) {
 	GuiTrainState train = trainAt(headKm);
 	train.wagonCount = wagons - 1;
-	train.length = 100.0 * wagons;
+	train.length = wagonMetres * wagons;
 	train.wagonHeadPositions.clear();
 	train.wagonTailPositions.clear();
 	for (int wagon = 0; wagon < wagons; ++wagon) {
-		train.wagonHeadPositions.push_back(headKm - 0.1 * wagon);
-		train.wagonTailPositions.push_back(headKm - 0.1 * (wagon + 1));
+		train.wagonHeadPositions.push_back(headKm - wagonMetres / 1000.0 * wagon);
+		train.wagonTailPositions.push_back(headKm - wagonMetres / 1000.0 * (wagon + 1));
 	}
 	return train;
 }
@@ -334,6 +338,22 @@ static QPointF drawnCentre(const TrainItemGroup& train) {
 		}
 	}
 	return drawn > 0.0 ? sum / drawn : QPointF();
+}
+
+// Whether the middle of the front or of the back of a body of a train lies within distance of one of the points, in
+// scene coordinates.
+static bool endNearCorner(const TrainItemGroup& train, const std::vector<QPointF>& points, qreal distance) {
+	for (const TrainBodyItem* body : *train.trainPolygonItemList) {
+		const QPolygonF polygon = body->mapToScene(body->polygon());
+		const int corners = static_cast<int>(polygon.size());
+		if (corners < 4)
+			continue;
+		for (const QPointF& end : {(polygon.first() + polygon.last()) / 2.0, (polygon[corners / 2 - 1] + polygon[corners / 2]) / 2.0})
+			for (const QPointF& point : points)
+				if (QLineF(end, point).length() < distance)
+					return true;
+	}
+	return false;
 }
 
 // Records what apply() asks of its host, in order, and apart from that where the steps of a glide draw a train.
@@ -586,6 +606,80 @@ struct MotionFixture : RunFixture {
 	}
 };
 
+// A run on the tracks T and U of a crossover whose connection runs from T at 4 km to U at 4.005 km, 5 m along the
+// tracks. U is drawn 135 m beside T, and a body is 30 m wide and its wagon 50 m long: in Netherlands, where most
+// connections are 10 m long, one level is about 67 m and a body about 15 m wide on the canvas. So the connection is
+// drawn steep and many times longer than the distance along the tracks that a train covers on it. The positions along
+// the route are its X.
+struct ShortCrossover {
+	static constexpr double startKm = 4.0;
+	static constexpr double endKm = 4.005;
+	QGraphicsScene scene;
+	NetworkView view;
+	NetworkPresenter presenter{&scene, &view};
+	FakeGeometry* source = nullptr;
+	SceneModel model;
+	const TrackPreviewLine* first = nullptr;
+	const TrackPreviewLine* second = nullptr;
+	GuiSimulationSnapshot snapshot;
+
+	ShortCrossover() {
+		view.setScene(&scene);
+		view.resize(400, 300);
+		auto geometry = std::make_unique<FakeGeometry>();
+		source = geometry.get();
+		geometry->makeCrossover(endKm);
+		geometry->addCrossoverConnection();
+		presenter.setGeometrySource(std::move(geometry));
+		model.tracks = {{"T"}, {"U"}};
+		model.nodes = {{"T.a", "T", 0.0, 0.0}, {"T.c", "T", startKm, 0.0}, {"T.b", "T", 10.0, 0.0}, {"U.a", "U", 0.0, 0.135},
+			{"U.c", "U", endKm, 0.135}, {"U.b", "U", 10.0, 0.135}};
+		model.arcs = {{"T.1", "T", "T.a", "T.c", 0.0, 0.0, 12.0}, {"T.2", "T", "T.c", "T.b", 0.0, 0.0, 12.0},
+			{"U.1", "U", "U.a", "U.c", 0.0, 0.0, 12.0}, {"U.2", "U", "U.c", "U.b", 0.0, 0.0, 12.0}};
+		model.connections = {{"c", "T.c", "U.c"}};
+		presenter.showPreview(model);
+		presenter.showRuntime(model);
+		view.fitToBounds(scene.itemsBoundingRect());
+		first = presenter.trackLine("T");
+		second = presenter.trackLine("U");
+		snapshot.timestep = 10;
+	}
+
+	~ShortCrossover() { presenter.clear(); }
+
+	// Places a train of three wagons of 50 m with its head the given metres along the route, as a replay frame does.
+	void place(double headMetres) {
+		snapshot.timestep += 1;
+		snapshot.trains = {trainOfWagons(3, headMetres / 1000.0, 50.0)};
+		presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
+	}
+
+	// The point of the drawn track at the position along the route in metres: on T up to the connection, on the
+	// connection in proportion to the X, and on U after it.
+	QPointF drawnAt(double metres) const {
+		const double km = metres / 1000.0;
+		if (km <= startKm)
+			return linePointAt(*first, km);
+		if (km >= endKm)
+			return linePointAt(*second, km);
+		const QPointF start = linePointAt(*first, startKm);
+		return start + (linePointAt(*second, endKm) - start) * ((km - startKm) / (endKm - startKm));
+	}
+
+	// The direction of the drawn track at the position along the route in metres, which is not an end of the connection.
+	QPointF directionAt(double metres) const {
+		const double km = metres / 1000.0;
+		QPointF along;
+		if (km < startKm)
+			along = linePointAt(*first, startKm) - linePointAt(*first, startKm - 0.1);
+		else if (km > endKm)
+			along = linePointAt(*second, endKm + 0.1) - linePointAt(*second, endKm);
+		else
+			along = linePointAt(*second, endKm) - linePointAt(*first, startKm);
+		return along / std::hypot(along.x(), along.y());
+	}
+};
+
 class TestRuntimeCanvas : public QObject {
 	Q_OBJECT
 
@@ -601,6 +695,8 @@ private slots:
 	void stepTouchesOnlyWhatItChanges();
 	void trainGlidesAlongBentLine();
 	void trainRunsOverCrossover();
+	void wagonKeepsWidthOverShortConnection();
+	void badgeStaysAtCentreOverShortConnection();
 	void trainCentreStepsOverJoin();
 	void drawsOnlyTrainsNearVisibleScene();
 	void enteringTrainGlidesOnward();
@@ -1243,7 +1339,9 @@ void TestRuntimeCanvas::trainGlidesAlongBentLine() {
 	// drawn, and whether every step moved the train. While the whole train is on one leg of the line, that centre is on
 	// the line at the middle of its bodies. Around the bend it is the centre of the two pieces of line from the tail to
 	// the bend and from the bend to the head, inside the bend and off the line, as the middle of the bodies is, no
-	// further than half the width of a body from it.
+	// further than half the width of a body from it. An end of the train that is so little past the bend that the inside
+	// of the bend reaches further along the line is drawn at the bend, without that piece, which the centre still counts:
+	// the centre is then on the line, and no further than half the width of a body from the middle of the bodies.
 	qreal farthest = 0.0;
 	bool heard = true;
 	bool everyStep = true;
@@ -1263,8 +1361,9 @@ void TestRuntimeCanvas::trainGlidesAlongBentLine() {
 		const qreal toBend = QLineF(back, bend).length();
 		const qreal fromBend = QLineF(bend, front).length();
 		const QPointF bendCentre = ((back + bend) * toBend + (bend + front) * fromBend) / (2.0 * (toBend + fromBend));
+		const bool endAtBend = toBend <= close || fromBend <= close;
 		heard &= host.moves.size() == 1 && QLineF(host.moves.back(), center).length() <= close
-			&& (oneLeg ? distanceTo(drawnLine, center) <= close && fromBodies <= close
+			&& (oneLeg ? distanceTo(drawnLine, center) <= close && fromBodies <= (endAtBend ? half : close)
 					   : QLineF(bendCentre, center).length() <= close && fromBodies <= half);
 		everyStep &= QLineF(center, before).length() > close;
 	};
@@ -1299,8 +1398,10 @@ void TestRuntimeCanvas::trainGlidesAlongBentLine() {
 	QVERIFY(onItsWay);
 	QVERIFY(!bent.trainMoving(0));
 	QVERIFY(headAt(6.3));
-	// Every corner of every body stays on the drawn line at every step around the bend.
-	QCOMPARE_LE(farthest, half + close);
+	// Every corner of every body stays on the drawn line at every step around the bend: half the width of a body from
+	// it, and the outer corner of a body that bends with the line, its mitre, half that width from both legs.
+	const qreal bend = qDegreesToRadians(std::min(turn(), 360.0 - turn()));
+	QCOMPARE_LE(farthest, half / std::cos(bend / 2.0) + close);
 	QVERIFY2(heard,
 		"the host hears the centre of the train as it is drawn at every step: on the line on one leg, and at the "
 		"centre of the line under it around the bend");
@@ -1393,7 +1494,10 @@ void TestRuntimeCanvas::trainGlidesAlongBentLine() {
 }
 
 // Through a crossover from one track to another every step draws the train where it is too, and every corner of every
-// body stays on the line it runs on: the first track up to the switch, the connection and the second track after it.
+// body stays on the line it runs on: the first track up to the switch, the connection and the second track after it. The
+// centre of the train is the centre of the middle of its bodies, where no end of a body is closer to an end of the
+// connection than the width of a body: there the inside of the bend is cut short and its corners are no longer even on
+// both sides of the drawn track.
 void TestRuntimeCanvas::trainRunsOverCrossover() {
 	QGraphicsScene crossScene;
 	NetworkView crossView;
@@ -1439,6 +1543,9 @@ void TestRuntimeCanvas::trainRunsOverCrossover() {
 	runsOn.emplace_back(linePointAt(*first, 4.0), linePointAt(*second, 6.0));
 	qreal farthest = farthestCorner(*train, runsOn);
 	bool centred = true;
+	const std::vector<QPointF> bends = {linePointAt(*first, 4.0), linePointAt(*second, 6.0)};
+	// Whether the middle of the bodies, and so the centre of the train, can be compared.
+	const auto evenBodies = [&]() { return !endNearCorner(*train, bends, 2.0 * half); };
 	// Updates every 250 ms, 1.2 km apart, take the train from 3.2 km, on the first track, to 8 km, on the second.
 	for (int update = 1; update <= 4; ++update) {
 		for (int ms = 5; ms <= 250; ms += 5) {
@@ -1451,14 +1558,14 @@ void TestRuntimeCanvas::trainRunsOverCrossover() {
 				cross.stepTrains();
 			}
 			farthest = std::max(farthest, farthestCorner(*train, runsOn));
-			centred &= QLineF(drawnCentre(*train), cross.trainCenter(0)).length() <= close;
+			centred &= !evenBodies() || QLineF(drawnCentre(*train), cross.trainCenter(0)).length() <= close;
 		}
 	}
 	while (cross.trainMoving(0)) {
 		now += 5;
 		cross.stepTrains();
 		farthest = std::max(farthest, farthestCorner(*train, runsOn));
-		centred &= QLineF(drawnCentre(*train), cross.trainCenter(0)).length() <= close;
+		centred &= !evenBodies() || QLineF(drawnCentre(*train), cross.trainCenter(0)).length() <= close;
 	}
 	// The train runs over the crossover to its place on the second track.
 	QCOMPARE_LE(QLineF(drawnFront(*train), linePointAt(*second, 8.0)).length(), close);
@@ -1467,6 +1574,121 @@ void TestRuntimeCanvas::trainRunsOverCrossover() {
 	QVERIFY2(centred, "the centre of the train is the centre of its drawn bodies through the crossover");
 	cross.setFrameHost(nullptr);
 	cross.setClock({});
+}
+
+// A train of three wagons runs over the short connection of ShortCrossover, half a metre at a time. Every body is the
+// drawn track under its wagon stroked at the width of a body: the middle of the body runs along the drawn track and every
+// edge of both of its sides lies half that width from the middle, along the bends at both ends of the connection too,
+// also while an end of a wagon is just past a bend. The front of the train and its back are that width across, centred
+// on the drawn track and square to it, where they are further from an end of the connection than the width of a body.
+// Closer to it, the piece past the bend can be shorter than the inside of the bend reaches along it; the body then ends
+// at the bend, square to the rest of it.
+void TestRuntimeCanvas::wagonKeepsWidthOverShortConnection() {
+	ShortCrossover f;
+	if (f.first == nullptr || f.second == nullptr)
+		QFAIL("the run draws no line of both tracks");
+	const qreal half = 0.10 * f.presenter.track_separation * f.presenter.presentationScale();
+	const qreal close = 0.01 * half;
+	const QPointF start = f.drawnAt(4000.0);
+	const QPointF end = f.drawnAt(4005.0);
+	const qreal metre = QLineF(f.drawnAt(3999.0), start).length();
+	// The connection is drawn steep: more than ten times as long as the 5 m of track that it spans, and more than four
+	// times as long as a body is wide.
+	QCOMPARE_GT(QLineF(start, end).length(), 10.0 * 5.0 * metre);
+	QCOMPARE_GT(QLineF(start, end).length(), 4.0 * 2.0 * half);
+	std::vector<QLineF> runsOn = segmentsOf(*f.first);
+	for (const QLineF& segment : segmentsOf(*f.second))
+		runsOn.push_back(segment);
+	runsOn.emplace_back(start, end);
+	// The distance from a corner to the straight line through two points.
+	const auto fromLine = [](const QPointF& corner, const QPointF& one, const QPointF& other) {
+		const QPointF along = other - one;
+		return std::fabs(along.x() * (corner.y() - one.y()) - along.y() * (corner.x() - one.x()))
+			/ std::hypot(along.x(), along.y());
+	};
+	// How far the end of a body with these two corners is from the width of a body across, from point in the middle and
+	// from square to direction.
+	const auto endOff = [half](const QPointF& one, const QPointF& other, const QPointF& point, const QPointF& direction) {
+		return std::max({std::fabs(QLineF(one, other).length() - 2.0 * half), QLineF((one + other) / 2.0, point).length(),
+			std::fabs(QPointF::dotProduct(one - other, direction))});
+	};
+	// Whether the point of the drawn track at the position along the route in metres is closer to an end of the
+	// connection than the width of a body.
+	const auto nearBend = [&f, &start, &end, half](double metres) {
+		return QLineF(f.drawnAt(metres), start).length() < 2.0 * half || QLineF(f.drawnAt(metres), end).length() < 2.0 * half;
+	};
+	int onConnection = 0;
+	int besideBend = 0;
+	qreal middleOff = 0.0;
+	qreal sideOff = 0.0;
+	qreal frontOff = 0.0;
+	qreal backOff = 0.0;
+	for (int halfMetres = 2 * 3980; halfMetres <= 2 * 4180; ++halfMetres) {
+		const double head = halfMetres / 2.0;
+		f.place(head);
+		const TrainItemGroup* const train = f.presenter.trainGroup(0);
+		if (train == nullptr)
+			QFAIL("the step draws no train");
+		bool endNearBend = false;
+		bool endOnConnection = false;
+		for (int wagonEnd = 0; wagonEnd <= 3; ++wagonEnd) {
+			const double at = head - 50.0 * wagonEnd;
+			endNearBend = endNearBend || nearBend(at);
+			endOnConnection = endOnConnection || (at > 4000.0 && at < 4005.0);
+		}
+		besideBend += endNearBend ? 1 : 0;
+		onConnection += endOnConnection ? 1 : 0;
+		for (const TrainBodyItem* body : *train->trainPolygonItemList) {
+			const QPolygonF polygon = body->mapToScene(body->polygon());
+			const int corners = static_cast<int>(polygon.size());
+			if (corners < 4 || corners % 2 != 0)
+				QFAIL("a body has no shape of two sides");
+			const auto middle = [&polygon, corners](int i) { return (polygon[i] + polygon[corners - 1 - i]) / 2.0; };
+			for (int i = 0; i < corners / 2; ++i) {
+				middleOff = std::max(middleOff, distanceTo(runsOn, middle(i)));
+				if (i + 1 == corners / 2)
+					continue;
+				for (const int corner : {i, i + 1, corners - 1 - i, corners - 2 - i})
+					sideOff = std::max(sideOff, std::fabs(fromLine(polygon[corner], middle(i), middle(i + 1)) - half));
+			}
+		}
+		const TrainBodyItem* const headBody = train->trainPolygonItemList->first();
+		const TrainBodyItem* const tailBody = train->trainPolygonItemList->last();
+		const QPolygonF front = headBody->mapToScene(headBody->polygon());
+		const QPolygonF back = tailBody->mapToScene(tailBody->polygon());
+		const int backCorners = static_cast<int>(back.size());
+		if (!nearBend(head))
+			frontOff = std::max(frontOff, endOff(front.first(), front.last(), f.drawnAt(head), f.directionAt(head)));
+		if (!nearBend(head - 150.0))
+			backOff = std::max(backOff, endOff(back[backCorners / 2 - 1], back[backCorners / 2], f.drawnAt(head - 150.0), f.directionAt(head - 150.0)));
+	}
+	// Ends of the wagons were on the connection, and close to its ends, at places that were checked.
+	QCOMPARE_GE(onConnection, 8);
+	QCOMPARE_GE(besideBend, 8);
+	// The middle of every body runs along the drawn track.
+	QCOMPARE_LE(middleOff, close);
+	// Every edge of the sides of every body lies half the width of a body from its middle, also along the bends.
+	QCOMPARE_LE(sideOff, close);
+	// The front and the back of the train are the width of a body across, on the drawn track and square to it.
+	QCOMPARE_LE(frontOff, close);
+	QCOMPARE_LE(backOff, close);
+}
+
+// While a train runs over the short connection of ShortCrossover, its badge stays at its centre as trainCenter() finds
+// it, where the camera that follows the train puts the middle of the view, also while the train bends over the
+// connection.
+void TestRuntimeCanvas::badgeStaysAtCentreOverShortConnection() {
+	ShortCrossover f;
+	const qreal close = 0.001 * f.presenter.track_separation * f.presenter.presentationScale();
+	qreal farthest = 0.0;
+	for (int head = 3980; head <= 4180; ++head) {
+		f.place(head);
+		const TrainBadgeItem* const badge = PresenterAccess::trainBadges(f.presenter).value(0, nullptr);
+		if (badge == nullptr)
+			QFAIL("the train has no badge");
+		farthest = std::max(farthest, QLineF(badge->pos(), f.presenter.trainCenter(0)).length());
+	}
+	QCOMPARE_LE(farthest, close);
 }
 
 // Where two sections of a route lie on two tracks drawn side by side, the drawn path steps from one track to the other at
@@ -1638,7 +1860,8 @@ void TestRuntimeCanvas::enteringTrainGlidesOnward() {
 		const double head = f.drawnHead();
 		f.update(0.02 * step);
 		glides &= presenter.trainMoving(0);
-		headSteady &= std::fabs(f.drawnHead() - head) < 1e-6;
+		// A train with its head at the start of its route has no part on it, and so no shape.
+		headSteady &= std::isnan(head) ? std::isnan(f.drawnHead()) : std::fabs(f.drawnHead() - head) < 1e-6;
 		centreMovesOn();
 	}
 	stepFor(500);
@@ -1954,12 +2177,13 @@ void TestRuntimeCanvas::newRouteOrDirectionPlacesTrainAtOnce() {
 	const bool glidesOnIt = presenter.trainMoving(0);
 	now += 40;
 	send(5.4, 1, true);
-	// A train that changes its route or its direction is placed at once.
+	// A train that changes its route or its direction is placed at once. Reversed, the positions along route 1 run
+	// against the X of its sections from the start of each, so the train is drawn from 4.7 to 4.6 km.
 	QVERIFY(glidesFirst);
 	QVERIFY(newRoute);
 	QVERIFY(glidesOnIt);
 	QVERIFY(!presenter.trainMoving(0));
-	QVERIFY(near(drawnMiddle(*presenter.runTrains()[0]).x(), 5350.0));
+	QVERIFY(near(drawnMiddle(*presenter.runTrains()[0]).x(), 4650.0));
 }
 
 // A followed train at a constant simulated speed whose updates come unevenly, 20, 60, 25 and 55 ms apart, moves the view
@@ -2445,10 +2669,12 @@ void TestRuntimeCanvas::drawsRunAlongBendOfStations() {
 	const QPointF signalNormal(towardsB.y(), -towardsB.x());
 	QVERIFY2(samePoint(corners[0], onLevel(6.05, 1) - signalNormal * (0.10 * separation)),
 		"the head of the body lies beside U against the signal normal of B");
-	// At the end of the connection it turns along the bisector of the angle there between the connection and U.
+	// At the end of the connection the body turns with the track: its corner on the outside of the bend, its mitre, lies
+	// on the bisector of the angle there between the connection and U, 0.1 track separation from both.
 	const QPointF connectionEndShift = bisector(connectionStart, connectionEnd, onLevel(10.0, 1));
-	QVERIFY2(samePoint(corners[1], connectionEnd - connectionEndShift * (0.10 * separation)),
-		"the body turns at the end of the connection along the bisector there");
+	const qreal halfAngleSine = QLineF(unit(connectionStart - connectionEnd), unit(onLevel(10.0, 1) - connectionEnd)).length() / 2.0;
+	QVERIFY2(samePoint(corners[1], connectionEnd - connectionEndShift * (0.10 * separation / halfAngleSine)),
+		"the body turns at the end of the connection with a mitre on the bisector there");
 	presenter.clear();
 }
 

@@ -225,8 +225,8 @@ public:
 	/// The id in the scene of the track line with this index in the run; empty when the run has none for it.
 	std::string sceneTrackId(int track) const;
 
-	/// Adds a train of the run with its badge and train.wagonCount + 1 bodies of equal length, the first at
-	/// the head. The train is promoted when it is selected or followed.
+	/// Adds a train of the run with train.wagonCount + 1 bodies of equal length, the first at the head, and its badge
+	/// at its centre, as trainCenter() finds it. The train is promoted when it is selected or followed.
 	void paintTrain(const GuiTrainState& train, const SceneModel& sceneModel, bool promoted);
 	/// The train group of the run with this index, or null.
 	TrainItemGroup* trainGroup(int train) const;
@@ -241,8 +241,11 @@ public:
 	/// tells whether one of them has a shape.
 	bool getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, const GuiTrainState& train);
 
-	/// The shape, in scene coordinates, of one body of a train, counted from 0 at the head. The polygon
-	/// stays empty when the train has no route or the wagon has no position.
+	/// The shape, in scene coordinates, of one body of a train, counted from 0 at the head: the drawn track under the
+	/// part of the wagon that is on its route, stroked at the width of a body with flat ends and mitred corners. Its
+	/// corners run from the front of the body along its right side to the back and along its left side back to the
+	/// front, so the first and the last are the corners of the front. The polygon stays empty when the train has no
+	/// route, the wagon has no position or no part on its route, or the track under it is not drawn.
 	void getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTrainState& train);
 
 	/// Adds the square of a station node of a track line, centred on coord. size is its side in scene
@@ -591,8 +594,8 @@ private:
 	};
 	// A train that is drawn on its route: the state of its last update, and its glide from fromHead, the position of its
 	// head along the route in metres at the time fromMs, to the head of that state at toMs. It is drawn with its head at
-	// drawnHead, from drawn, the state of the last update with the positions of the wagons there. drawnMs is the time of
-	// the last step if that step drew the train and no update came since, and otherwise the oldest time.
+	// drawnHead, from drawn, the state of the last update with its head moved to drawnHead. drawnMs is the time of the
+	// last step if that step drew the train and no update came since, and otherwise the oldest time.
 	struct TrainMotion {
 		GuiTrainState newest;
 		GuiTrainState drawn;
@@ -627,17 +630,12 @@ private:
 	mutable std::unordered_map<std::string, SwitchEnds> m_switchEnds;
 	// The lines of m_cachedTrackPreview by their track id, the first line of each id. showPreview() fills both.
 	std::unordered_map<std::string, const TrackPreviewLine*> m_previewLinesById;
-	// The points and the sections that getTrainPolygon() works with for one wagon, and the shapes of the wagons of one
-	// train in getTrainPolygonItemList(), kept from wagon to wagon and from frame to frame so that their memory is reused.
+	// The drawn track under one wagon and the middle line of its body that getTrainPolygon() works with, and the shapes
+	// of the wagons of one train in getTrainPolygonItemList(), kept from wagon to wagon and from frame to frame so that
+	// their memory is reused.
 	struct WagonScratch {
-		QVector<QPointF> up;
-		QVector<QPointF> down;
-		QVector<int> stationIndex;
-		QVector<int> stationRegion;
-		QVector<int> graphId;
-		std::vector<int> occupiedSections;
-		std::vector<double> posX;
-		std::vector<double> routeX;
+		RoutePath path;
+		std::vector<QPointF> line;
 	};
 	WagonScratch m_wagonScratch;
 	std::vector<QPolygonF> m_wagonPolygons;
@@ -663,6 +661,7 @@ private:
 	bool sectionPointAt(const Section& section, double x, QPointF& point) const;
 	void addSectionCorners(const Section& section, double fromX, double toX, std::vector<double>& xs) const;
 	bool routePath(int routeIndex, bool reversed, double from, double to, RoutePath& path) const;
+	bool centreOnRoute(const GuiTrainState& state, double head, QPointF& centre) const;
 
 	QPointF Coord2ScreenPoint(double x, double y, double factor) const;
 	void calculateStationCoordAndShift();

@@ -75,8 +75,6 @@
 #include <QtMath>
 
 #include <algorithm>
-#include <cfloat>
-#include <climits>
 #include <cmath>
 #include <cstdlib>
 #include <limits>
@@ -210,20 +208,6 @@ constexpr std::size_t kMeasuredIntervals = 8;
 // that a frame that follows an update shows no more motion than another.
 constexpr int kMotionStepMs = 16;
 
-// The X in kilometres of the point at the position q along a route, in metres, as the simulation finds the end of a
-// wagon (trainXPositionOf()): on the first section of the route that holds it, or -1 where it is on none.
-double routeXAt(const Route& route, bool reversed, double q) {
-	const int sections = std::min(route.N_Block_Sections, static_cast<int>(route.sequence_of_block_sections.size()));
-	for (int i = 0; i < sections; ++i) {
-		const Section& section = route.sequence_of_block_sections[static_cast<std::size_t>(i)];
-		if (q >= section.start_node.X * 1000 && q < section.end_node.X * 1000) {
-			const double portion = q - section.start_node.X * 1000;
-			return (reversed ? section.GeoXBegNode - portion : section.GeoXBegNode + portion) / 1000;
-		}
-	}
-	return -1.0;
-}
-
 // The middle of the front of a train as it is drawn, in scene coordinates, where its callouts start. Returns false while
 // its head has no shape.
 bool trainFront(const TrainItemGroup& train, QPointF& front) {
@@ -307,6 +291,102 @@ QPointF bisectorShift(const QPointF& previous, const QPointF& middle, const QPoi
 	const double beta = atan2(-(y1 - y2), (x1 - x2));
 	const double gamma = alpha / 2 - beta;
 	return QPointF(cos(gamma), sin(gamma));
+}
+
+// The longest that a mitre of the outline of a body reaches from its corner, in half widths of the body: twice the width,
+// the default miter limit of QPainterPathStroker.
+constexpr qreal kMitreLimit = 4.0;
+
+// The middle line of a body along the drawn track of a route, from the points of that track from the back of the body
+// to its front and their positions along the route: the points from the front, without a point within same of the one
+// before it and without one on the straight way from its neighbours. Where the drawn track steps from one track to
+// another at a single position, between two sections, the line leaves out both sides of the step, unless one is an end of
+// the body, and runs straight from the point before it to the point after it, so that the step is not part of the body.
+void bodyLine(const std::vector<QPointF>& points, const std::vector<double>& positions, qreal same,
+	std::vector<QPointF>& line) {
+	line.clear();
+	for (std::size_t k = points.size(); k-- > 0;) {
+		const QPointF& point = points[k];
+		if (!line.empty() && QLineF(line.back(), point).length() <= same)
+			continue;
+		if (k + 1 < points.size() && positions[k] >= positions[k + 1] - 1e-6) {
+			if (line.size() > 1)
+				line.pop_back();
+			if (k > 0)
+				continue;
+		}
+		if (line.size() >= 2) {
+			const QPointF in = line.back() - line[line.size() - 2];
+			const QPointF out = point - line.back();
+			const qreal cross = in.x() * out.y() - in.y() * out.x();
+			if (std::fabs(cross) <= 1e-9 * std::hypot(in.x(), in.y()) * std::hypot(out.x(), out.y())
+				&& QPointF::dotProduct(in, out) > 0.0)
+				line.pop_back();
+		}
+		line.push_back(point);
+	}
+}
+
+// The outline of a body whose middle runs along line, from its front to its back: the line stroked at twice half wide,
+// with flat ends and mitred corners, as QPainterPathStroker strokes it with Qt::FlatCap and Qt::MiterJoin. A mitre
+// reaches at most kMitreLimit half widths from its corner. A piece at an end of the line that is shorter than the inside
+// of the corner at its other end reaches along it is left out, so that the body ends at that corner, square to the piece
+// after it and at its full width. On the inside of a corner between two other pieces the outline reaches along neither
+// piece past its middle, so that it does not fold over itself. The corners of the outline run along the right of the
+// train from the front to the back and then along its left back to the front, so that the first and the last are the
+// corners of its front. A line of fewer than two points has no outline.
+void bodyOutline(const std::vector<QPointF>& line, qreal half, QPolygonF& outline) {
+	outline.clear();
+	if (line.size() < 2)
+		return;
+	const auto length = [&line](std::size_t piece) { return QLineF(line[piece], line[piece + 1]).length(); };
+	// The direction of a piece from the front towards the back, and the side to the right of the train, which runs the
+	// other way.
+	const auto direction = [&line, &length](std::size_t piece) { return (line[piece + 1] - line[piece]) / length(piece); };
+	const auto rightOf = [](const QPointF& along) { return QPointF(along.y(), -along.x()); };
+	// The mitre of the corner at a point between two pieces, to the right of the train and in half widths.
+	const auto mitreAt = [&direction, &rightOf](std::size_t corner) {
+		const QPointF normals = rightOf(direction(corner - 1)) + rightOf(direction(corner));
+		const qreal sum = std::hypot(normals.x(), normals.y());
+		// normals has the length 2 cos(a / 2) for a turn by a, and the mitre the length 1 / cos(a / 2).
+		if (sum * kMitreLimit >= 2.0)
+			return normals * (2.0 / (sum * sum));
+		return sum > 0.0 ? normals * (kMitreLimit / sum) : QPointF();
+	};
+	// How far the inside of a corner reaches back along the piece before it, as far as it reaches along the piece after it.
+	const auto reachAt = [&mitreAt, &direction, half](std::size_t corner) {
+		return half * std::fabs(QPointF::dotProduct(mitreAt(corner), direction(corner - 1)));
+	};
+	std::size_t first = 0;
+	std::size_t last = line.size() - 1;
+	while (last - first >= 2 && length(first) < reachAt(first + 1))
+		++first;
+	while (last - first >= 2 && length(last - 1) < reachAt(last - 1))
+		--last;
+	// How far a corner on the inside may reach along a piece: all of it at an end of the body, otherwise half of it.
+	const auto room = [&length, first, last](std::size_t piece) {
+		return piece == first || piece + 1 == last ? length(piece) : length(piece) / 2.0;
+	};
+	const std::size_t points = last - first + 1;
+	outline.resize(static_cast<qsizetype>(2 * points));
+	for (std::size_t i = first; i <= last; ++i) {
+		QPointF right;
+		QPointF left;
+		if (i == first || i == last) {
+			right = rightOf(direction(i == first ? first : last - 1));
+			left = -right;
+		} else {
+			const QPointF mitre = mitreAt(i);
+			// The corner on the inside lies back along the piece before it, as far as it lies along the piece after it.
+			const qreal back = QPointF::dotProduct(mitre, direction(i - 1));
+			const qreal reach = half * std::fabs(back);
+			const qreal inside = reach > 0.0 ? std::min(1.0, std::min(room(i - 1), room(i)) / reach) : 1.0;
+			right = mitre * (back < 0.0 ? inside : 1.0);
+			left = -mitre * (back < 0.0 ? 1.0 : inside);
+		}
+		outline[static_cast<qsizetype>(i - first)] = line[i] + right * half;
+		outline[static_cast<qsizetype>(2 * points - 1 - (i - first))] = line[i] + left * half;
+	}
 }
 
 void tagPreviewItem(QGraphicsItem* item, const QString& kind, const std::string& id) {
@@ -2095,7 +2175,9 @@ void NetworkPresenter::paintTrain(const GuiTrainState& train, const SceneModel& 
 		m_view ? m_view->zoomRatio() : 1.0, promoted));
 	m_scene->addItem(badge);
 	badge->setVisible(m_trainLayerVisible && !train.outOfSimulation && hasVisibleGeometry);
-	badge->setPos(trainPolygonGroup->sceneBoundingRect().center());
+	QPointF centre;
+	badge->setPos(centreOnRoute(train, train.routeAxisPosition, centre) ? centre
+																		: trainPolygonGroup->sceneBoundingRect().center());
 	m_trainBadges[train.index] = badge;
 }
 
@@ -2109,30 +2191,36 @@ QPointF NetworkPresenter::trainCenter(int train) const {
 	if (!group)
 		return QPointF();
 	const auto found = m_trainMotions.find(train);
-	if (found != m_trainMotions.end()) {
-		const GuiTrainState& state = found->second.newest;
-		const double head = found->second.drawnHead;
-		double start = 0.0;
-		double end = 0.0;
-		RoutePath path;
-		if (routeExtent(m_source ? m_source->route(state.routeIndex) : nullptr, start, end)
-			&& routePath(state.routeIndex, state.reversedDirection, std::clamp(head - state.length, start, end),
-				std::clamp(head, start, end), path)) {
-			QPointF sum;
-			qreal drawn = 0.0;
-			for (std::size_t i = 1; i < path.points.size(); ++i) {
-				// Where two sections meet, the path can step from one drawn track to another at a single position.
-				// That step is not part of the train.
-				if (path.positions[i] <= path.positions[i - 1] + 1e-6)
-					continue;
-				const qreal length = path.lengths[i] - path.lengths[i - 1];
-				sum += (path.points[i - 1] + path.points[i]) * (length / 2.0);
-				drawn += length;
-			}
-			return drawn > 0.0 ? sum / drawn : path.points.back();
-		}
-	}
+	QPointF centre;
+	if (found != m_trainMotions.end() && centreOnRoute(found->second.newest, found->second.drawnHead, centre))
+		return centre;
 	return group->sceneBoundingRect().center();
+}
+
+// The centre of the drawn track under the part of a train on its route, with the route and the length of state and
+// its head at head, in metres along the route, each piece weighted by its drawn length (trainCenter()). Returns false
+// when the train has no place on its route or the track under it is not drawn.
+bool NetworkPresenter::centreOnRoute(const GuiTrainState& state, double head, QPointF& centre) const {
+	double start = 0.0;
+	double end = 0.0;
+	RoutePath path;
+	if (!routeExtent(m_source ? m_source->route(state.routeIndex) : nullptr, start, end)
+		|| !routePath(state.routeIndex, state.reversedDirection, std::clamp(head - state.length, start, end),
+			std::clamp(head, start, end), path))
+		return false;
+	QPointF sum;
+	qreal drawn = 0.0;
+	for (std::size_t i = 1; i < path.points.size(); ++i) {
+		// Where two sections meet, the path can step from one drawn track to another at a single position. That step
+		// is not part of the train.
+		if (path.positions[i] <= path.positions[i - 1] + 1e-6)
+			continue;
+		const qreal length = path.lengths[i] - path.lengths[i - 1];
+		sum += (path.points[i - 1] + path.points[i]) * (length / 2.0);
+		drawn += length;
+	}
+	centre = drawn > 0.0 ? sum / drawn : path.points.back();
+	return true;
 }
 
 // converts geodetic to cartesian coordinates
@@ -2531,7 +2619,9 @@ bool NetworkPresenter::routePath(int routeIndex, bool reversed, double from, dou
 	const Route* route = m_source ? m_source->route(routeIndex) : nullptr;
 	if (!route || to < from)
 		return false;
-	path = RoutePath();
+	path.points.clear();
+	path.positions.clear();
+	path.lengths.clear();
 	// The sections of a reversed route run against their X.
 	const double sign = reversed ? -1.0 : 1.0;
 	const auto add = [this, &path](const Section& section, double position, double x) {
@@ -2661,10 +2751,10 @@ void NetworkPresenter::startGlide(TrainMotion& motion, const GuiTrainState& stat
 	motion.toMs = now + glideMs;
 }
 
-// Draws a train with its head at head along its route: at the place of its last update with the positions of the wagons
-// there, and elsewhere with every end of a wagon at its distance from the head along the route, found as the simulation
-// finds it, -1 where it is on no section of the route. The badge goes to the centre of the bodies and the callouts to
-// the front of the train. Tells whether a body has a shape.
+// Draws a train with its head at head along its route, from the state of its last update with the head moved there:
+// every wagon of that update at its distance from the head along the drawn route (getTrainPolygon()). The badge goes to
+// the centre of the train, as trainCenter() finds it, and the callouts to the front of the train. Tells whether a body
+// has a shape.
 bool NetworkPresenter::drawTrain(TrainItemGroup& trainItem, TrainMotion& motion, double head) {
 	const GuiTrainState& newest = motion.newest;
 	const GuiTrainState* state = &newest;
@@ -2675,16 +2765,8 @@ bool NetworkPresenter::drawTrain(TrainItemGroup& trainItem, TrainMotion& motion,
 		drawn.wagonCount = newest.wagonCount;
 		drawn.length = newest.length;
 		drawn.routeAxisPosition = head;
-		const Route* route = m_source ? m_source->route(newest.routeIndex) : nullptr;
-		const std::size_t wagons = static_cast<std::size_t>(std::max(newest.wagonCount + 1, 0));
-		const double wagonLength = newest.length / (newest.wagonCount + 1);
-		drawn.wagonHeadPositions.resize(wagons);
-		drawn.wagonTailPositions.resize(wagons);
-		for (std::size_t wagon = 0; wagon < wagons; ++wagon) {
-			const double front = head - static_cast<double>(wagon) * wagonLength;
-			drawn.wagonHeadPositions[wagon] = route ? routeXAt(*route, newest.reversedDirection, front) : -1.0;
-			drawn.wagonTailPositions[wagon] = route ? routeXAt(*route, newest.reversedDirection, front - wagonLength) : -1.0;
-		}
+		drawn.wagonHeadPositions = newest.wagonHeadPositions;
+		drawn.wagonTailPositions = newest.wagonTailPositions;
 		state = &drawn;
 	}
 	motion.drawnHead = head;
@@ -2692,7 +2774,8 @@ bool NetworkPresenter::drawTrain(TrainItemGroup& trainItem, TrainMotion& motion,
 	trainItem.setVisible(m_trainLayerVisible && hasVisibleGeometry);
 	if (TrainBadgeItem* badge = m_trainBadges.value(trainItem.index, nullptr)) {
 		badge->setVisible(m_trainLayerVisible && hasVisibleGeometry);
-		badge->setPos(trainItem.sceneBoundingRect().center());
+		QPointF centre;
+		badge->setPos(centreOnRoute(newest, head, centre) ? centre : trainItem.sceneBoundingRect().center());
 	}
 	moveTrainCallouts(trainItem);
 	return hasVisibleGeometry;
@@ -2799,297 +2882,29 @@ bool NetworkPresenter::getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolyg
 	return hasVisibleGeometry;
 }
 
-// returns the shape of an one-wagon train (polygon)
-// used to get each wagon of a multi-wagon train
+// The drawn track under the wagon, from its back to its front, stroked at the width of a body (bodyOutline()). The part
+// of the wagon that is off its route, as while the train enters it, is left out.
 void NetworkPresenter::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTrainState& train) {
-	const Route* trainRoute = m_source ? m_source->route(train.routeIndex) : nullptr;
-	if (!trainPolygon || !trainRoute)
+	if (!trainPolygon)
 		return;
-	double headX, tailX, connectionX1, connectionX2;
-	std::vector<double>& posX = m_wagonScratch.posX;
-	std::vector<double>& routeX = m_wagonScratch.routeX;
-	QPointF ptTrainEdge, ptConnection1, ptConnection2;
-	const Section* currBS = nullptr;
-	const Section* BS1 = nullptr;
-	const Section* BS2 = nullptr;
-	QVector<QPointF>& trainPointsUp = m_wagonScratch.up;
-	QVector<QPointF>& trainPointsDown = m_wagonScratch.down;
-	QVector<int>& trainPointsStIndex = m_wagonScratch.stationIndex;
-	QVector<int>& trainPointsStRegion = m_wagonScratch.stationRegion;
-	QVector<int>& trainPointsGraphID = m_wagonScratch.graphId;
-	posX.clear();
-	routeX.clear();
-	trainPointsUp.clear();
-	trainPointsDown.clear();
-	trainPointsStIndex.clear();
-	trainPointsStRegion.clear();
-	trainPointsGraphID.clear();
-	int revStIndex = 0; // used to add station points to the polygon (needed for reversed routes)
-	double total_nW = train.wagonCount + 1;
-	const auto addPreviewPoint = [&](const TrackPreviewLine* line, double rawX,
-									 const QPointF& point) {
-		QPointF normal;
-		if (!line || !previewSignalNormal(*line, rawX, normal))
-			return false;
-		const QPointF offset = normal * (0.10 * track_separation * presentationScale());
-		trainPointsUp.push_back(point - offset);
-		trainPointsDown.push_front(point + offset);
-		trainPointsStIndex.push_back(-1);
-		trainPointsStRegion.push_back(-1);
-		trainPointsGraphID.push_back(INT_MIN);
-		return true;
-	};
-	const auto addTrackPoint = [&](const QPointF& point, int track, double rawX) {
-		if (const auto* line = cachedTrackLine(track))
-			return addPreviewPoint(line, rawX, point);
-		int stationIdx[2];
-		neighbourStations(rawX, track, stationIdx);
-		const int prevIndex = stationIdx[0];
-		const int index = stationIdx[1];
-		const int revPrevIndex = index * (1 - revStIndex) + prevIndex * revStIndex;
-		const int region = m_source->track(track).region;
-		const StationLayout& station = stationLayout(index);
-		trainPointsUp.push_back(QPointF(point.x()
-				- regionValue(station.signalDeltaX, region) * 0.10 * track_separation,
-			point.y() - regionValue(station.signalDeltaY, region) * 0.10 * track_separation));
-		trainPointsDown.push_front(QPointF(point.x()
-				+ regionValue(station.signalDeltaX, region) * 0.10 * track_separation,
-			point.y() + regionValue(station.signalDeltaY, region) * 0.10 * track_separation));
-		trainPointsStIndex.push_back(revPrevIndex);
-		trainPointsStRegion.push_back(region);
-		trainPointsGraphID.push_back(trackLevel(track));
-		return true;
-	};
-
-	// train position on X axis
-	// reversed route
-	if (wagon >= static_cast<int>(train.wagonHeadPositions.size()) || wagon >= static_cast<int>(train.wagonTailPositions.size()))
-		return;
-	headX = train.wagonHeadPositions[static_cast<std::size_t>(wagon)];
-	tailX = train.wagonTailPositions[static_cast<std::size_t>(wagon)];
-	revStIndex = train.reversedDirection ? 1 : 0;
-	const Route& route = *trainRoute;
-	const double routePosition = train.routeAxisPosition;
-
-	// get occupied block sections (list of index on SeqBS)
-	std::vector<int>& occupiedBS = m_wagonScratch.occupiedSections; // we already know head block sections but not the index on SeqBS
-	occupiedBS.clear();
-
-	// find block sections where the train is (full length)
-	int headIndex = -1, tailIndex = -1;
-	for (int h = route.N_Block_Sections - 1; h >= 0; h--) {
-		if (((routePosition - wagon * (train.length / total_nW)) < route.sequence_of_block_sections[h].end_node.X * 1000)
-			&& ((routePosition - wagon * (train.length / total_nW)) >= route.sequence_of_block_sections[h].start_node.X * 1000)) {
-			occupiedBS.push_back(h);
-			headIndex = h;
-		}
-		if (((routePosition - (wagon + 1) * (train.length / total_nW)) < route.sequence_of_block_sections[h].end_node.X * 1000)
-			&& ((routePosition - (wagon + 1) * (train.length / total_nW)) >= route.sequence_of_block_sections[h].start_node.X * 1000)) {
-			if (h != headIndex) {
-				occupiedBS.push_back(h);
-			} // avoid adding the same block sections twice (entire train in the same block sections)
-			tailIndex = h;
-			break;
-		}
-		// section in between
-		else if (h != headIndex && headIndex != -1) { // already added head block sections
-			occupiedBS.push_back(h);
-		}
-	}
-
-	// get all relevant points from occupied block sections (head, tail and also connection points)
-	for (int i = 0; i < static_cast<int>(occupiedBS.size()); i++) { // run from head block sections to tail block sections (can be the same)
-		currBS = &route.sequence_of_block_sections[occupiedBS[i]];
-
-		if (headIndex == tailIndex && tailIndex == occupiedBS[i]) {
-			posX = {headX, tailX};
-			routeX = {(routePosition / 1000) - wagon * ((train.length / 1000) / total_nW), (routePosition / 1000) - (wagon + 1) * ((train.length / 1000) / total_nW)};
-		} // head and tail in this section
-		else if (occupiedBS[i] == headIndex) {
-			posX = {headX};
-			routeX = {(routePosition / 1000) - wagon * ((train.length / 1000) / total_nW)};
-		} // only head
-		else if (occupiedBS[i] == tailIndex) {
-			posX = {tailX};
-			routeX = {(routePosition / 1000) - (wagon + 1) * ((train.length / 1000) / total_nW)};
-		} // only tail
-		else {
-			posX = {-DBL_MAX};
-			routeX = {-DBL_MAX};
-		} // section in between (no head or tail)
-
-		// in case head and tail in the same block sections (need to get both)
-		for (int j = 0; j < static_cast<int>(posX.size()); j++) {
-			// single block sections -> get head or tail
-			if (currBS->ID.find('/') == std::string::npos) {
-				if (occupiedBS[i] != headIndex && occupiedBS[i] != tailIndex) {
-					continue;
-				} // single section in between (no relevant points)
-
-				// get point
-				if (!sectionPointAt(*currBS, posX[j], ptTrainEdge))
-					continue;
-				if (!addTrackPoint(ptTrainEdge, currBS->trackLineId, posX[j]))
-					return;
-			}
-			// compound block sections -> get connection points and/or tail or head
-			else {
-				// the single block sections are needed for the graphID's
-				if (switchSectionEnds(*currBS, BS1, BS2, connectionX1, connectionX2)) {
-					const TrackPreviewLine* previewLine1 = cachedTrackLine(BS1->trackLineId);
-					const TrackPreviewLine* previewLine2 = cachedTrackLine(BS2->trackLineId);
-					const bool hasPreview = !m_cachedTrackPreview.lines.empty();
-					const qreal lateralSeparation = track_separation * (hasPreview ? presentationScale() : 1.0);
-					if ((hasPreview && (!previewLine1 || !previewLine2))
-						|| (!hasPreview && (!hasTrackGeometry(BS1->trackLineId) || !hasTrackGeometry(BS2->trackLineId))))
-						continue;
-
-					// adds the point of a connection to the polygon, moved to both sides of the track by its shift
-					const auto addConnectionPoint = [&](const QPointF& point, const QPointF& shift, int stationIndex, const Section* section) {
-						trainPointsUp.push_back(QPointF(point.x() - shift.x() * 0.10 * lateralSeparation, point.y() - shift.y() * 0.10 * lateralSeparation));
-						trainPointsDown.push_front(QPointF(point.x() + shift.x() * 0.10 * lateralSeparation, point.y() + shift.y() * 0.10 * lateralSeparation));
-						trainPointsStIndex.push_back(stationIndex);
-						trainPointsStRegion.push_back(m_source->track(section->trackLineId).region);
-						trainPointsGraphID.push_back(trackLevel(section->trackLineId));
-					};
-
-					// get beginning and end of connection to interpolate
-					egtrainPoint2Screen(connectionX1, BS1->trackLineId, track_separation, ptConnection1.rx(), ptConnection1.ry());
-					egtrainPoint2Screen(connectionX2, BS2->trackLineId, track_separation, ptConnection2.rx(), ptConnection2.ry());
-
-					int revPrevIndexConnection1 = -1;
-					int revPrevIndexConnection2 = -1;
-					if (!hasPreview) {
-						// get station indexes (used to add station points)
-						int stationIdx[2];
-						neighbourStations(connectionX1, BS1->trackLineId, stationIdx);
-						revPrevIndexConnection1 = stationIdx[1] * (1 - revStIndex) + stationIdx[0] * revStIndex;
-						neighbourStations(connectionX2, BS2->trackLineId, stationIdx);
-						revPrevIndexConnection2 = stationIdx[1] * (1 - revStIndex) + stationIdx[0] * revStIndex;
-					}
-
-					// shifts on the beginning and the end of the connection: the normals of the preview lines there, or else the
-					// bisectors of the corners at both ends
-					QPointF connectionStartShift;
-					QPointF connectionEndShift;
-					if (hasPreview) {
-						if (!previewSignalNormal(*previewLine1, connectionX1, connectionStartShift)
-							|| !previewSignalNormal(*previewLine2, connectionX2, connectionEndShift))
-							return;
-					} else {
-						// get beginning of BS1 and end of BS2 to calculate shifts
-						QPointF ptBegin1;
-						QPointF ptEnd2;
-						egtrainPoint2Screen(BS1->start_node.X, BS1->trackLineId, track_separation, ptBegin1.rx(), ptBegin1.ry());
-						egtrainPoint2Screen(BS2->end_node.X, BS2->trackLineId, track_separation, ptEnd2.rx(), ptEnd2.ry());
-						connectionStartShift = bisectorShift(ptBegin1, ptConnection1, ptConnection2);
-						connectionEndShift = bisectorShift(ptConnection1, ptConnection2, ptEnd2);
-					}
-
-					// calculate connection deltas (inside connection)
-					const double beta = atan2(-(ptConnection1.y() - ptConnection2.y()), (ptConnection1.x() - ptConnection2.x()));
-					double connectionDeltaX = sin(beta);
-					double connectionDeltaY = cos(beta);
-
-					// adds the ends of the connection that lie between the head and the tail of the wagon, in the order in
-					// which the train runs over them
-					const auto addCrossedConnectionPoints = [&]() {
-						// non-reversed route (add first connection 2)
-						if (!train.reversedDirection) {
-							if (headX > connectionX2 && tailX < connectionX2) {
-								addConnectionPoint(ptConnection2, connectionEndShift, revPrevIndexConnection2, BS2);
-							}
-							if (headX > connectionX1 && tailX < connectionX1) {
-								addConnectionPoint(ptConnection1, connectionStartShift, revPrevIndexConnection1, BS1);
-							}
-						}
-						// reversed route (add first connection 1)
-						else {
-							if (tailX > connectionX1 && headX < connectionX1) {
-								addConnectionPoint(ptConnection1, connectionStartShift, revPrevIndexConnection1, BS1);
-							}
-							if (tailX > connectionX2 && headX < connectionX2) {
-								addConnectionPoint(ptConnection2, connectionEndShift, revPrevIndexConnection2, BS2);
-							}
-						}
-					};
-
-					// add connection points if it is a middle section
-					// add connection points if it is the tail block sections and head already added
-					if ((posX[j] == -DBL_MAX) || (posX.size() == 1 && occupiedBS[i] == tailIndex)) { // adding connection points before adding tail of the train
-						addCrossedConnectionPoints();
-					}
-
-					// head/tail in the 1st track and before connection
-					if (routeX[j] >= currBS->start_node.X && posX[j] <= connectionX1) {
-						if (!sectionPointAt(*currBS, posX[j], ptTrainEdge) || !addTrackPoint(ptTrainEdge, BS1->trackLineId, posX[j]))
-							return;
-					}
-					// head/tail inside the connection
-					else if (posX[j] > connectionX1 && posX[j] < connectionX2) {
-						if (!sectionPointAt(*currBS, posX[j], ptTrainEdge))
-							return;
-
-						// train polygon
-						trainPointsUp.push_back(QPointF(ptTrainEdge.x() - connectionDeltaX * 0.10 * lateralSeparation,
-							ptTrainEdge.y() - connectionDeltaY * 0.10 * lateralSeparation));
-						trainPointsDown.push_front(QPointF(ptTrainEdge.x() + connectionDeltaX * 0.10 * lateralSeparation,
-							ptTrainEdge.y() + connectionDeltaY * 0.10 * lateralSeparation));
-						trainPointsStIndex.push_back(-1);
-						trainPointsStRegion.push_back(-1);
-						trainPointsGraphID.push_back(INT_MIN);
-					}
-					// head/tail in the 2nd track and after connection
-					else if (posX[j] >= connectionX2 && routeX[j] < currBS->end_node.X) {
-						if (!sectionPointAt(*currBS, posX[j], ptTrainEdge) || !addTrackPoint(ptTrainEdge, BS2->trackLineId, posX[j]))
-							return;
-					}
-
-					// add connection points if it is head section and tail is in another block sections
-					// add connection points if head and tail in the same section
-					if ((occupiedBS[i] == headIndex && headIndex != tailIndex) || (posX.size() == 2 && j == 0)) { // adding connection points after adding head of the train
-						addCrossedConnectionPoints();
-					}
-				}
-			}
-		}
-	}
-
-	// add station points to polygon when necessary (change in shifts)
-	int added = 0; // needed when adding new points to the vectors
-	for (int i = 1; i < static_cast<int>(trainPointsStIndex.size()); i++) {
-		// inside connection (no change in shift)
-		if (trainPointsStIndex[i] == -1) {
-			continue;
-		}
-
-		// change in shift when previous point is a connection (assuming no consecutive points inside connection)
-		// change in shift when previous point is not a connection
-		// ignore change in shift if region also changes
-		if ((trainPointsStIndex[i - 1] == -1 && i >= 2 && trainPointsStIndex[i] != trainPointsStIndex[i - 2]
-				&& trainPointsStRegion[i] == trainPointsStRegion[i - 2])
-			|| (trainPointsStIndex[i - 1] != -1 && trainPointsStIndex[i] != trainPointsStIndex[i - 1]
-				&& trainPointsStRegion[i] == trainPointsStRegion[i - 1])) {
-
-			const StationLayout& shiftedStation = stationLayout(trainPointsStIndex[i]);
-			const int stationRegion = trainPointsStRegion[i];
-			const double shiftX = regionValue(shiftedStation.shiftX, stationRegion);
-			const double shiftY = regionValue(shiftedStation.shiftY, stationRegion);
-			QPointF stationUp = QPointF(shiftedStation.graphX + shiftX * track_separation * (trainPointsGraphID[i] - 0.10),
-				shiftedStation.graphY + shiftY * track_separation * (trainPointsGraphID[i] - 0.10));
-			QPointF stationDown = QPointF(shiftedStation.graphX + shiftX * track_separation * (trainPointsGraphID[i] + 0.10),
-				shiftedStation.graphY + shiftY * track_separation * (trainPointsGraphID[i] + 0.10));
-			trainPointsUp.insert(i + added, stationUp);
-			trainPointsDown.insert(i + added, stationDown);
-			added++;
-		}
-	}
-
-	// join Up and Down vectors to build the polygon
 	trainPolygon->clear();
-	trainPolygon->reserve(trainPointsUp.size() + trainPointsDown.size());
-	trainPolygon->append(trainPointsUp);
-	trainPolygon->append(trainPointsDown);
+	double start = 0.0;
+	double end = 0.0;
+	if (wagon < 0 || wagon > train.wagonCount || wagon >= static_cast<int>(train.wagonHeadPositions.size())
+		|| wagon >= static_cast<int>(train.wagonTailPositions.size())
+		|| !routeExtent(m_source ? m_source->route(train.routeIndex) : nullptr, start, end))
+		return;
+	const double wagonLength = train.length / (train.wagonCount + 1);
+	const double head = train.routeAxisPosition - wagon * wagonLength;
+	const double front = std::clamp(head, start, end);
+	const double back = std::clamp(head - wagonLength, start, end);
+	RoutePath& path = m_wagonScratch.path;
+	if (back >= front || !routePath(train.routeIndex, train.reversedDirection, back, front, path))
+		return;
+	const bool hasPreview = !m_cachedTrackPreview.lines.empty();
+	const qreal half = 0.10 * track_separation * (hasPreview ? presentationScale() : 1.0);
+	bodyLine(path.points, path.positions, 1e-3 * half, m_wagonScratch.line);
+	bodyOutline(m_wagonScratch.line, half, *trainPolygon);
 }
 
 // paint VCoupling notification
