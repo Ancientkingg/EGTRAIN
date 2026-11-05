@@ -120,6 +120,18 @@ class App:
         return sorted(p for p in (self.output / "Output").glob("*") if p.is_dir())
 
 
+def start_client_once(client: Path) -> None:
+    """Starts live_client once, with no arguments, before it follows a run.
+
+    A headless run of HORIZON steps keeps its endpoint file for a fraction of a second. The first start of a newly built
+    executable can take longer (macOS checks a new executable before it runs it), and a client that starts that late finds
+    no endpoint file or only the end of the run."""
+    process = subprocess.run([str(client)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace",
+                             timeout=RUN_TIMEOUT)
+    expect(process.returncode == 2 and "usage: live_client" in process.stderr,
+           "live_client without arguments: exit %d, expected 2 with its usage:\n%s" % (process.returncode, process.stderr))
+
+
 def run_client(client: Path, endpoint: Path, arguments: List[str]) -> Tuple[int, List[dict], str]:
     """Runs live_client and returns its exit status, the summary of each run it saw and its standard error."""
     process = subprocess.run([str(client), str(endpoint), "--timeout", str(CLIENT_TIMEOUT)] + arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -410,6 +422,7 @@ def main() -> None:
 
     temp = Path(tempfile.mkdtemp(prefix="qegtrain-live-"))
     try:
+        start_client_once(client)
         reference = baseline(app, temp)
         stream_run(app, client, temp, reference)
         command_run(app, client, temp)
