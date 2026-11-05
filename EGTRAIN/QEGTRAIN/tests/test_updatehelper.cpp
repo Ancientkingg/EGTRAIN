@@ -661,6 +661,8 @@ void TestUpdateHelper::failedVersionThatCannotBeMovedIsRecorded() {
 	recordIsWritten(recordPath(root), UpdateOutcome::NotApplied, QStringLiteral("failed-version-not-moved"));
 	if (QTest::currentTestFailed())
 		return;
+	QVERIFY2(!takeUpdateRecord(recordPath(root), kUpdatedVersion),
+		"the version left in place reads the record as stale, so the user is told nothing");
 	// The installation in place is started again.
 	QTRY_COMPARE_WITH_TIMEOUT(logLines(log).count("new started"), 2, kLogWaitMs);
 	QVERIFY2(stagingIsCleared(root, m_helper), "the staging folder of the update is removed");
