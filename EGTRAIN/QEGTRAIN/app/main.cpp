@@ -644,14 +644,16 @@ static int runMain(int argc, char* argv[]) {
 	return 0;
 }
 
-// An exception that nothing else catches, for example at startup before the event loop runs, is logged and ends the
-// program with exit code 70.
+// An exception that nothing else catches, of any type, for example at startup before the event loop runs, is logged and
+// ends the program with exit code 70.
 int main(int argc, char* argv[]) {
 	try {
 		return runMain(argc, argv);
 	} catch (const std::exception& error) {
 		EG_LOG(AppUi, Error) << "EGTRAIN stopped because of an unexpected error: " << error.what() << '\n';
-		eglog::flush();
-		return 70;
+	} catch (...) {
+		EG_LOG(AppUi, Error) << "EGTRAIN stopped because of an unexpected error: unknown error\n";
 	}
+	eglog::flush();
+	return 70;
 }

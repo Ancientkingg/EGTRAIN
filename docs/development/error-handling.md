@@ -17,7 +17,7 @@ How EGTRAIN handles failure: which exceptions are caught and which escape, the f
 | Simulation run | `DispatchController::runSimulation` (`app/DispatchController.cpp`), around the stages in `runSimulationStages` | The run ends as failed. See [What happens when one is caught](#what-happens-when-one-is-caught). |
 | Run preparation and scene reading in the window | `RunController::runScene` around `prepareScene`, `SceneSession::openSceneDirectory` around `readScene` | Becomes `run.prepare.exception` ("Cannot prepare the run: <what>") or `scene.read.exception` ("Cannot read the case: <what>"). |
 | Window events | `GuardedApplication::notify` | Logged as `Unexpected error in <class> (event <type>): <what>` in `app.ui`, and the event counts as not handled. Not on macOS. |
-| Process entry | `main` in `app/main.cpp` and in `scene/SceneTool.cpp` | Exit code 70 with an `app.ui` error line, or exit code 1 with `error: <what>`. |
+| Process entry | `main` in `app/main.cpp` and in `scene/SceneTool.cpp` | Exit code 70 with an `app.ui` error line, for an exception of any type, or exit code 1 with `error: <what>`. |
 | Telemetry | `telemetry/TelemetrySender.cpp` (`catch (...)` around every operation and the timer pump), `app/UpdateTelemetryController.cpp`, `app/RunController.cpp` | Fails closed and silently, by design. |
 | Recovery copies | `recovery/RecoveryController.cpp` (thread start and worker loop), `recovery/RecoveryStore.cpp` | Turned into a "Cannot write the recovery copy" outcome. |
 | Live stream | `io/LiveServer.cpp` (per operation and the thread body), `io/LiveCommand.cpp` (parses with exceptions off), `io/ExternalState.cpp` | Logged; the stream stops. |
