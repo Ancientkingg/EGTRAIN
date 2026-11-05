@@ -201,12 +201,12 @@ static bool readWholeNumberOf(const char* option, const char* text, int low, int
 	return false;
 }
 
-// Reads a finite decimal number from the text of option. When the text is none, it prints on standard error that option
-// requires `requirement` and returns false.
-static bool readDecimalNumberOf(const char* option, const char* text, double& value, const char* requirement) {
+// Reads a finite decimal number of low or more from the text of option. When the text is none, it prints on standard error
+// that option requires `requirement` and returns false.
+static bool readDecimalNumberOf(const char* option, const char* text, double low, double& value, const char* requirement) {
 	bool valid = false;
 	const double number = text ? QString::fromLocal8Bit(text).toDouble(&valid) : 0.0;
-	if (valid && std::isfinite(number)) {
+	if (valid && std::isfinite(number) && number >= low) {
 		value = number;
 		return true;
 	}
@@ -214,9 +214,16 @@ static bool readDecimalNumberOf(const char* option, const char* text, double& va
 	return false;
 }
 
+// The next answer on standard input to a question of --interactive, or an empty text when there is none.
+static std::string readAnswer() {
+	std::string answer;
+	std::cin >> answer;
+	return answer;
+}
+
 // Reads the options of the case and of the run, and asks with --interactive for those that are left out. Prints the reason
-// on standard error and returns false when the value of an option is not a number. A value of -n that is not a whole
-// number selects no case, which main reports as an unknown case id.
+// on standard error and returns false when the value of an option or an answer is not a number in the range that a scene
+// allows for it. A value of -n that is not a whole number selects no case, which main reports as an unknown case id.
 bool parseCmdOptions(int argc, char* argv[]) {
 	// Keep the legacy questionnaire opt-in so normal launches open the GUI.
 	const bool promptForMissingOptions = cmdOptionEntered(argv, argv + argc, "--interactive") || cmdOptionEntered(argv, argv + argc, "-interactive");
@@ -231,10 +238,10 @@ bool parseCmdOptions(int argc, char* argv[]) {
 		initial_variables.set_case(caseStudy);
 		initial_variables.nArgProvided = true;
 	} else if (promptForMissingOptions) {
-		int case_study;
 		std::cout << "Bundled case (1 Netherlands, 2 Paimpol, 3 Copenhagen, 4 Milano_Brescia, 5 Assignment_Gvc_Gdg_Ut): ";
-		std::cin >> case_study;
-		initial_variables.set_case(case_study);
+		int caseStudy = 0;
+		readWholeNumber(readAnswer().c_str(), INT_MIN, INT_MAX, caseStudy);
+		initial_variables.set_case(caseStudy);
 	} else {
 		initial_variables.set_case(1); // Netherlands
 	}
@@ -242,7 +249,7 @@ bool parseCmdOptions(int argc, char* argv[]) {
 	// simulation horizon
 	if (cmdOptionEntered(argv, argv + argc, "-h")) {
 		int seconds = 0;
-		if (!readWholeNumberOf("-h", getCmdOption(argv, argv + argc, "-h"), INT_MIN, INT_MAX, seconds, "a whole number of seconds"))
+		if (!readWholeNumberOf("-h", getCmdOption(argv, argv + argc, "-h"), 1, INT_MAX, seconds, "a whole number of 1 or more seconds"))
 			return false;
 		initial_variables.times = seconds;
 		initial_variables.durationOverride = true;
@@ -250,14 +257,14 @@ bool parseCmdOptions(int argc, char* argv[]) {
 
 	// buffer time
 	if (cmdOptionEntered(argv, argv + argc, "-b")) {
-		if (!readDecimalNumberOf("-b", getCmdOption(argv, argv + argc, "-b"), initial_variables.bufferTime, "a number of seconds"))
+		if (!readDecimalNumberOf("-b", getCmdOption(argv, argv + argc, "-b"), 0.0, initial_variables.bufferTime, "a number of 0 or more seconds"))
 			return false;
 		initial_variables.bufferTimeOverride = true;
 	}
 
 	// recovery time
 	if (cmdOptionEntered(argv, argv + argc, "-c")) {
-		if (!readDecimalNumberOf("-c", getCmdOption(argv, argv + argc, "-c"), initial_variables.recoveryTimePercentage, "a percentage"))
+		if (!readDecimalNumberOf("-c", getCmdOption(argv, argv + argc, "-c"), 0.0, initial_variables.recoveryTimePercentage, "a percentage of 0 or more"))
 			return false;
 		initial_variables.recoveryTimeOverride = true;
 	}
@@ -265,12 +272,15 @@ bool parseCmdOptions(int argc, char* argv[]) {
 	// utilization of GUI
 	if (cmdOptionEntered(argv, argv + argc, "-g")) {
 		int window = 0;
-		if (!readWholeNumberOf("-g", getCmdOption(argv, argv + argc, "-g"), INT_MIN, INT_MAX, window, "0 or 1"))
+		if (!readWholeNumberOf("-g", getCmdOption(argv, argv + argc, "-g"), 0, 1, window, "0 or 1"))
 			return false;
 		initial_variables.GUI = window != 0;
 	} else if (promptForMissingOptions) {
 		std::cout << "Open the window? (1 yes, 0 no): ";
-		std::cin >> initial_variables.GUI;
+		int window = 0;
+		if (!readWholeNumberOf("-g", readAnswer().c_str(), 0, 1, window, "0 or 1"))
+			return false;
+		initial_variables.GUI = window != 0;
 	} else {
 		initial_variables.GUI = 1;
 	}
@@ -279,12 +289,15 @@ bool parseCmdOptions(int argc, char* argv[]) {
 	if (initial_variables.GUI) {
 		if (cmdOptionEntered(argv, argv + argc, "-pax")) {
 			int passengers = 0;
-			if (!readWholeNumberOf("-pax", getCmdOption(argv, argv + argc, "-pax"), INT_MIN, INT_MAX, passengers, "0 or 1"))
+			if (!readWholeNumberOf("-pax", getCmdOption(argv, argv + argc, "-pax"), 0, 1, passengers, "0 or 1"))
 				return false;
 			initial_variables.PAX_GUI = passengers != 0;
 		} else if (promptForMissingOptions) {
 			std::cout << "Show passengers? (1 yes, 0 no): ";
-			std::cin >> initial_variables.PAX_GUI;
+			int passengers = 0;
+			if (!readWholeNumberOf("-pax", readAnswer().c_str(), 0, 1, passengers, "0 or 1"))
+				return false;
+			initial_variables.PAX_GUI = passengers != 0;
 		} else {
 			initial_variables.PAX_GUI = MainWindow::savedShowPassengers();
 		}

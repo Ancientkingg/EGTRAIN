@@ -357,8 +357,9 @@ def assert_help_and_unknown_option(app: Path) -> None:
         returncode, output = run_app(app, ["--help"], root / "run-help", "--help launch")
         if returncode != 0 or "--scene" not in output or "(default: " not in output or "Graphical user interface" in output:
             raise SystemExit(f"--help exited with {returncode}, or did not list --scene with its default, or started the program\n{tail(output)}")
-        # Qt removes -platform, and a negative number after an option with a value is its value, so only --bogus is unknown.
-        returncode, output = run_app(app, ["-platform", "offscreen", "-b", "-5", "--bogus"], root / "run-unknown", "unknown option launch")
+        # Qt removes -platform, and a value after an option with a value is its value, also when it starts with a minus
+        # sign as -0 does, so only --bogus is unknown.
+        returncode, output = run_app(app, ["-platform", "offscreen", "-b", "-0", "--bogus"], root / "run-unknown", "unknown option launch")
         if returncode == 0 or "Unknown option --bogus" not in output or "--help" not in output:
             raise SystemExit(f"an unknown option exited with {returncode}, or the error did not name --bogus and --help\n{tail(output)}")
         print("--help lists the options and exits with 0; an unknown option exits with an error that names --help")
@@ -367,16 +368,23 @@ def assert_help_and_unknown_option(app: Path) -> None:
 def assert_invalid_numbers_stop_the_start(app: Path) -> None:
     with tempfile.TemporaryDirectory(prefix="qegtrain-numbers-") as root_name:
         root = Path(root_name)
-        # The first value of an option is the one that counts, so the value that is not a number comes first. -pax is read
-        # only with the window, and the start stops before the window opens.
+        # The first value of an option is the one that counts, so the value that is not valid comes first. -pax is read
+        # only with the window, and the start stops before the window opens. A value outside the range that a case allows
+        # for it stops the start as well.
         cases = [
             (["-n", "2x"], "ERROR: Unknown bundled case id"),
-            (["-h", "abc"], "ERROR: -h requires a whole number of seconds."),
-            (["-h", "1.5"], "ERROR: -h requires a whole number of seconds."),
-            (["-b", "abc"], "ERROR: -b requires a number of seconds."),
-            (["-c", "5%"], "ERROR: -c requires a percentage."),
+            (["-h", "abc"], "ERROR: -h requires a whole number of 1 or more seconds."),
+            (["-h", "1.5"], "ERROR: -h requires a whole number of 1 or more seconds."),
+            (["-h", "0"], "ERROR: -h requires a whole number of 1 or more seconds."),
+            (["-h", "-5"], "ERROR: -h requires a whole number of 1 or more seconds."),
+            (["-b", "abc"], "ERROR: -b requires a number of 0 or more seconds."),
+            (["-b", "-30"], "ERROR: -b requires a number of 0 or more seconds."),
+            (["-c", "5%"], "ERROR: -c requires a percentage of 0 or more."),
+            (["-c", "-50"], "ERROR: -c requires a percentage of 0 or more."),
             (["-g", "yes"], "ERROR: -g requires 0 or 1."),
+            (["-g", "2"], "ERROR: -g requires 0 or 1."),
             (["-pax", "on", "-g", "1"], "ERROR: -pax requires 0 or 1."),
+            (["-pax", "7", "-g", "1"], "ERROR: -pax requires 0 or 1."),
         ]
         for index, (args, message) in enumerate(cases):
             label = f"{' '.join(args)} launch"
@@ -394,7 +402,7 @@ def assert_invalid_numbers_stop_the_start(app: Path) -> None:
                                      extra_env={"QEGTRAIN_AUTOSTART": "1"})
         if returncode != 1 or "scene.json.parse" not in output:
             raise SystemExit(f"{label} exited with {returncode}, expected 1 and the parse error\n{tail(output)}")
-        print("a value that is not a number stops the start with exit code 1 and names its option; a scripted window launch of a damaged case shows no box")
+        print("a value that is not a number or out of range stops the start with exit code 1 and names its option; a scripted window launch of a damaged case shows no box")
 
 
 def assert_interactive_questions(app: Path) -> None:
@@ -410,7 +418,15 @@ def assert_interactive_questions(app: Path) -> None:
         if (returncode != 0 or "Bundled case (1 Netherlands" not in output or "Open the window?" in output
                 or not (run / "out/Output/Paimpol").is_dir()):
             raise SystemExit(f"-interactive with -g exited with {returncode}, did not ask for -n, asked for -g or did not run Paimpol\n{tail(output)}")
-        print("--interactive and -interactive ask for -n and -g when they are left out and not when they are given")
+        # An answer that its question does not accept stops the start, as the same value of its option does.
+        for answers, message in (("2\nyes\n", "ERROR: -g requires 0 or 1."), ("2\n", "ERROR: -g requires 0 or 1."),
+                                 ("Paimpol\n0\n", "ERROR: Unknown bundled case id")):
+            run = root / "run-unanswered"
+            returncode, output = run_app(app, ["--interactive", "-h", "1", "-pax", "0"], run, "--interactive launch with a bad answer",
+                                         answers=answers)
+            if returncode != 1 or message not in output or (run / "out/Output/Paimpol").is_dir():
+                raise SystemExit(f"--interactive with the answers {answers!r} exited with {returncode}, expected 1 and {message!r}\n{tail(output)}")
+        print("--interactive and -interactive ask for -n and -g when they are left out and not when they are given; an answer that is not valid stops the start")
 
 
 def make_bundles(scene_tool: Path, root: Path) -> tuple[Path, Path, Path]:
