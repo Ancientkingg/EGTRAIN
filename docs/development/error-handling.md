@@ -91,6 +91,7 @@ The visual polish smoke also had a use after free: it added a temporary `SignalI
 | Default scene cannot be read at start | "Cannot Start EGTRAIN" box, exit 1 (`main.cpp`). A launch whose environment suppresses dialogs shows no box. | Standard error |
 | Option on the command line has a value that is not a number | `ERROR: -h requires a whole number of seconds.` and the like on standard error, exit 1 (`main.cpp`). A value of `-n` that is not a whole number counts as an unknown case id. | Standard error |
 | Save fails | "Cannot Save Case" box with the first diagnostic (`SceneSession::showError`) | Yes |
+| Save, when the scene files of the folder or the bundle file changed on disk since the last open or save (size, modification time, a file added or removed) | "Case Changed on Disk" question, default No; No cancels the save and the edits stay unsaved (`SceneSession::saveSceneToCurrentDir`) | No |
 | Save As Folder onto a folder that holds another case | Question, default No; No writes nothing | No |
 | Save As or an export (CSV, PNG, scenario JSON) whose name gets its suffix after the dialog and then names a file that exists | `<file> already exists. Replace it?`, default No; No writes nothing (`widgets/SaveSuffix.h`) | No |
 | Legacy import into a folder that holds a `scene.json` | Question, default No; No writes nothing. Yes replaces the folder with everything in it | No |

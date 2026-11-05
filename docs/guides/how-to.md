@@ -53,7 +53,7 @@ You should see `Case saved` in the status bar. Your file is now the open case, a
 
 Other ways to save:
 
-- **File > Save** (Ctrl+S) writes the case back to the bundle or case folder it came from. For a bundled case, and for a new case that has no file yet, it asks for a new `.egscene` file instead, as **Save As...** does, and Cancel keeps the edit. A case folder outside the installation, such as one in a source checkout, is saved in place.
+- **File > Save** (Ctrl+S) writes the case back to the bundle or case folder it came from. For a bundled case, and for a new case that has no file yet, it asks for a new `.egscene` file instead, as **Save As...** does, and Cancel keeps the edit. A case folder outside the installation, such as one in a source checkout, is saved in place. If the files of the case changed on disk since you opened or last saved it, for example by a hand edit or another EGTRAIN window, the question **Case Changed on Disk** asks whether to replace the case on disk with your version. No cancels the save and keeps your edits; **Save As...** then keeps both versions.
 - **File > Save As Folder...** writes the case as a folder of JSON files, which you can edit by hand. If the folder you choose is not empty and holds no `scene.json`, EGTRAIN asks `The folder is not empty. Save the case there anyway?`. If it holds another case, EGTRAIN asks whether to replace that case. Either way other files in the folder are kept, and the folder of the open case is saved again without a question.
 - A destination inside the installation is refused with **Cannot Save Case**: `Bundled cases cannot be overwritten. Choose a location outside the EGTRAIN installation.`
 
@@ -93,7 +93,7 @@ You can save a case that has errors. Warnings do not stop a run, but read them: 
 
 After an edit the case is unsaved. EGTRAIN then asks (`Save the changes to <case name>?`) before it replaces the case, which happens when you open another case, choose **New Case...**, load a legacy case or close the window. On Windows and Linux the box is titled **Unsaved Case** and offers **Save**, **Discard** and **Cancel**. On macOS it is a sheet without a title that offers **Save**, **Cancel** and **Don't Save**, which does what **Discard** does.
 
-- **Save** saves the case first. For a bundled case or a new case it asks for a new `.egscene` file, and if you cancel that dialog, the open or close is cancelled too.
+- **Save** saves the case first. For a bundled case or a new case it asks for a new `.egscene` file, and if you cancel that dialog, the open or close is cancelled too. The same holds when you answer No to **Case Changed on Disk**.
 - **Discard** (**Don't Save** on macOS) drops the edits.
 - **Cancel** keeps the case and its edits.
 

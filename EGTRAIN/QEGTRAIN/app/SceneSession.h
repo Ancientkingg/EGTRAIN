@@ -155,7 +155,9 @@ public:
 	/// Save As: saves the scene to a bundle that the user chooses.
 	void saveSceneAs();
 	/// Saves the scene where it came from. A scene without a location, or one inside the installation, is saved as a
-	/// bundle that the user chooses. Returns whether the scene was saved.
+	/// bundle that the user chooses. When the scene files on disk, or the bundle file, differ in size or modification
+	/// time from what was last opened or saved, or a scene file was added or removed, the save goes on only when the user
+	/// agrees to replace them. Returns whether the scene was saved.
 	bool saveSceneToCurrentDir();
 	/// Saves the scene to a folder that the user chooses. A folder that holds another case, or other files, is written
 	/// to only when the user agrees. Returns whether the scene was saved.
@@ -195,6 +197,19 @@ private:
 	bool prepareSaveFolder(const QString& targetDir, const telemetry::OperationObservation& operation);
 	void showError(const QString& title, const QString& message, bool warningIcon = false);
 
+	// A file of the scene on disk: absent, or present with its size and the time it was last modified.
+	struct DiskFile {
+		QString name;
+		bool exists = false;
+		qint64 size = 0;
+		qint64 modifiedMs = 0;
+		bool operator==(const DiskFile& other) const {
+			return name == other.name && exists == other.exists && size == other.size && modifiedMs == other.modifiedMs;
+		}
+	};
+	// The files of the scene at `path` as they are now: every scene file of a folder, or the bundle file.
+	static std::vector<DiskFile> diskFiles(const QString& path, bool bundle);
+
 	QMainWindow* m_window;
 	SceneDocument* m_document;
 	Host& m_host;
@@ -202,6 +217,8 @@ private:
 	UserPrompts m_ownPrompts;
 	UserPrompts* m_prompts = &m_ownPrompts;
 	QString m_sceneDir;
+	// The files of the scene as it was last opened or saved; empty for a scene that has no file.
+	std::vector<DiskFile> m_savedFiles;
 	std::string m_savedSceneSha256;
 	bool m_sceneIsBundle = false;
 	std::optional<int> m_sceneBundleVersion;

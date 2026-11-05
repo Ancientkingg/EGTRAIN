@@ -22,6 +22,7 @@
 #include <QAction>
 #include <QApplication>
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QDir>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -129,6 +130,29 @@ void SceneSession::showError(const QString& title, const QString& message, bool 
 	m_prompts->showError(m_window, title, message, warningIcon);
 }
 
+std::vector<SceneSession::DiskFile> SceneSession::diskFiles(const QString& path, bool bundle) {
+	const auto file = [](const QString& name, const QString& filePath) {
+		const QFileInfo info(filePath);
+		DiskFile disk;
+		disk.name = name;
+		disk.exists = info.exists();
+		if (disk.exists) {
+			disk.size = info.size();
+			disk.modifiedMs = info.lastModified().toMSecsSinceEpoch();
+		}
+		return disk;
+	};
+	std::vector<DiskFile> files;
+	if (bundle) {
+		files.push_back(file(QFileInfo(path).fileName(), path));
+		return files;
+	}
+	const QDir folder(path);
+	for (const SceneFile& sceneFile : kSceneFiles)
+		files.push_back(file(QString::fromLatin1(sceneFile.name), folder.filePath(QString::fromLatin1(sceneFile.name))));
+	return files;
+}
+
 void SceneSession::dragEnter(QDragEnterEvent* event) {
 	QString path;
 	QString rejection;
@@ -179,6 +203,7 @@ void SceneSession::createNewScene(const telemetry::OperationObservation& operati
 	// The window ends the run and the canvas of the scene that goes before the document replaces it.
 	emit sceneWillBeReplaced();
 	m_sceneDir.clear();
+	m_savedFiles.clear();
 	m_savedSceneSha256.clear();
 	m_document->replace(makeNewSceneModel(), true);
 	m_sceneIsBundle = false;
@@ -339,6 +364,8 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 	const bool reloadingSameScene = !recovered && m_document->isLoaded()
 		&& QFileInfo(m_sceneDir).absoluteFilePath() == scenePath;
 	bool timingIdentityOk = true;
+	// Taken before the read, so that a change during the read counts as a change since the open.
+	std::vector<DiskFile> files = recovered ? std::vector<DiskFile>() : diskFiles(scenePath, sceneIsBundle);
 	SceneLoadResult result;
 	try {
 		result = m_host.readScene(scenePath, timingIdentityOk);
@@ -363,6 +390,7 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 	// As in createNewScene(), the window has ended the run of the scene that goes when this returns.
 	emit sceneWillBeReplaced();
 	m_sceneDir = recovered ? QString() : scenePath;
+	m_savedFiles = std::move(files);
 	m_document->replace(result.scene, recovered);
 	m_sceneIsBundle = sceneIsBundle && !recovered;
 	m_sceneBundleVersion = recovered ? std::nullopt : result.bundleVersion;
@@ -404,6 +432,7 @@ bool SceneSession::finishSceneSave(const SceneSaveResult& result,
 	refreshSavedSceneMetadata(m_document->mutableModel());
 	m_document->mutableModel().savedWithAppVersion = EGTRAIN_APP_VERSION;
 	m_savedSceneSha256 = hashSceneInputSnapshot(result.inputSnapshot);
+	m_savedFiles = m_sceneDir.isEmpty() ? std::vector<DiskFile>() : diskFiles(m_sceneDir, m_sceneIsBundle);
 	// A saved folder case may carry a new name, which Recent Cases shows.
 	rebuildRecentScenesMenu();
 	emit sceneSaved();
@@ -417,6 +446,14 @@ bool SceneSession::saveSceneToCurrentDir() {
 	m_host.commitPendingEdits();
 	if (m_sceneDir.isEmpty() || isInstalledScenePath(m_sceneDir, QCoreApplication::applicationDirPath()))
 		return saveSceneAsToBundle(operation);
+
+	// A hand edit, a sync client or another window may have changed the case since it was opened or saved.
+	if (!m_savedFiles.empty() && diskFiles(m_sceneDir, m_sceneIsBundle) != m_savedFiles
+		&& !m_prompts->confirm(m_window, "Case Changed on Disk",
+			QString("%1 has changed on disk since it was opened or last saved.\n\nReplace the case on disk with this "
+					"version? To keep both, choose No and use Save As.")
+				.arg(display_path::format(m_sceneDir))))
+		return false;
 
 	auto result = m_sceneIsBundle
 		? saveSceneBundle(m_document->model(), m_sceneDir.toStdString())

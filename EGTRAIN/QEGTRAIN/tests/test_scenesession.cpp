@@ -16,6 +16,8 @@
 #include <QFileInfo>
 #include <QLineEdit>
 #include <QMainWindow>
+#include <QMessageBox>
+#include <QPushButton>
 #include <QScopeGuard>
 #include <QSettings>
 #include <QString>
@@ -71,6 +73,11 @@ bool writeFile(const QString& path, const QByteArray& bytes) {
 	return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size();
 }
 
+bool appendToFile(const QString& path, const QByteArray& bytes) {
+	QFile file(path);
+	return file.open(QIODevice::Append) && file.write(bytes) == bytes.size();
+}
+
 // A legacy case of one track, one station, one route and one service in `folder`.
 bool writeLegacyCase(const QDir& folder) {
 	return writeFile(folder.filePath("TrackLines/B0/NodiCumPari.txt"), "0 0 0\n1 2 0\n")
@@ -104,6 +111,12 @@ std::string caseName(const QString& path) {
 	return loaded.scene.name;
 }
 
+// An edit that leaves the document with unsaved changes.
+void editDescription(SceneDocument& document, const std::string& description) {
+	document.edit(SceneDocument::CaseSettings, "Edit case settings",
+		[&description](SceneModel& scene) { scene.description = description; });
+}
+
 // Answers the next file dialog: a folder dialog with the folder `path`, a save dialog with the name of `path` typed into
 // its name field in the folder of `path`.
 void answerFileDialog(const QString& path) {
@@ -132,6 +145,24 @@ void answerFileDialog(const QString& path) {
 	timer->start();
 }
 
+// Clicks Save in the next message box, the question about unsaved changes.
+void answerSave() {
+	auto* timer = new QTimer;
+	timer->setInterval(10);
+	QObject::connect(timer, &QTimer::timeout, timer, [timer] {
+		for (QWidget* widget : QApplication::topLevelWidgets()) {
+			auto* box = qobject_cast<QMessageBox*>(widget);
+			if (box == nullptr || !box->isVisible() || box->button(QMessageBox::Save) == nullptr)
+				continue;
+			timer->stop();
+			timer->deleteLater();
+			box->button(QMessageBox::Save)->click();
+			return;
+		}
+	});
+	timer->start();
+}
+
 } // namespace
 
 class TestSceneSession : public QObject {
@@ -145,6 +176,9 @@ private slots:
 	void importAsksBeforeReplacingCase();
 	void saveAsFolderAsksBeforeReplacingCase();
 	void saveAsFolderKeepsViewsOfFailedSave();
+	void saveAsksWhenFolderChangedOnDisk();
+	void saveAsksWhenBundleChangedOnDisk();
+	void unsavedSaveStopsWhenCaseChangedOnDisk();
 	void saveAsAsksBeforeSuffixReplacesFile();
 
 private:
@@ -310,6 +344,105 @@ void TestSceneSession::saveAsFolderKeepsViewsOfFailedSave() {
 	// The save failed and said so, and the target keeps its own views.json.
 	QCOMPARE(f.prompts.errorTitle, "Cannot Save Case");
 	QCOMPARE(readFile(dir.filePath("Locked/Target/views.json")), QByteArray("{\"own\": true}\n"));
+}
+
+void TestSceneSession::saveAsksWhenFolderChangedOnDisk() {
+	QTemporaryDir root;
+	QVERIFY(root.isValid());
+	const QDir dir(root.path());
+	QVERIFY(writeFolderCase(dir.filePath("Mine"), "My case"));
+	Fixture f;
+	QVERIFY(f.session->openSceneDirectory(dir.filePath("Mine")));
+	editDescription(f.document, "first");
+	// A case that nobody else changed is saved without a question.
+	QVERIFY(f.session->saveSceneToCurrentDir());
+	QCOMPARE(f.prompts.confirmCount, 0);
+	QVERIFY(!f.document.isDirty());
+
+	const QString services = dir.filePath("Mine/services.json");
+	QVERIFY(appendToFile(services, "\n"));
+	const QByteArray edited = readFile(services);
+	editDescription(f.document, "second");
+	// A file changed on disk since the save is replaced only after a question, and No keeps it and the unsaved edit.
+	QVERIFY(!f.session->saveSceneToCurrentDir());
+	QCOMPARE(f.prompts.confirmCount, 1);
+	QCOMPARE(f.prompts.confirmTitle, "Case Changed on Disk");
+	QVERIFY2(f.prompts.confirmQuestion.contains("Replace the case on disk with this version?")
+			&& f.prompts.confirmQuestion.contains("Save As"),
+		qPrintable(f.prompts.confirmQuestion));
+	QCOMPARE(readFile(services), edited);
+	QVERIFY(f.document.isDirty());
+
+	f.prompts.confirmAnswer = true;
+	// Yes saves over it.
+	QVERIFY(f.session->saveSceneToCurrentDir());
+	QCOMPARE(f.prompts.confirmCount, 2);
+	QVERIFY(readFile(services) != edited);
+	QVERIFY(!f.document.isDirty());
+
+	f.prompts.confirmAnswer = false;
+	QVERIFY(QFile::remove(dir.filePath("Mine/scenarios.json")));
+	editDescription(f.document, "third");
+	// A scene file that is gone counts as a change too.
+	QVERIFY(!f.session->saveSceneToCurrentDir());
+	QCOMPARE(f.prompts.confirmCount, 3);
+	QVERIFY(!QFileInfo::exists(dir.filePath("Mine/scenarios.json")));
+
+	QVERIFY(writeFolderCase(dir.filePath("Fresh"), "Fresh case"));
+	QVERIFY(f.session->openSceneDirectory(dir.filePath("Fresh")));
+	QVERIFY(writeFile(dir.filePath("Fresh/passengers.json"), "{\"passengers\": []}\n"));
+	editDescription(f.document, "fourth");
+	// So does a scene file that was added.
+	QVERIFY(!f.session->saveSceneToCurrentDir());
+	QCOMPARE(f.prompts.confirmCount, 4);
+}
+
+void TestSceneSession::saveAsksWhenBundleChangedOnDisk() {
+	QTemporaryDir root;
+	QVERIFY(root.isValid());
+	const QString bundle = QDir(root.path()).filePath("Mine.egscene");
+	QVERIFY(writeBundleCase(bundle, "My case"));
+	Fixture f;
+	QVERIFY(f.session->openSceneDirectory(bundle));
+	QVERIFY(f.session->sceneIsBundle());
+	editDescription(f.document, "first");
+	// A bundle that nobody else changed is saved without a question.
+	QVERIFY(f.session->saveSceneToCurrentDir());
+	QCOMPARE(f.prompts.confirmCount, 0);
+
+	QVERIFY(writeBundleCase(bundle, "The case of another window"));
+	const QByteArray replaced = readFile(bundle);
+	editDescription(f.document, "second");
+	// A bundle written by someone else since is replaced only after a question, and No keeps it.
+	QVERIFY(!f.session->saveSceneToCurrentDir());
+	QCOMPARE(f.prompts.confirmCount, 1);
+	QCOMPARE(f.prompts.confirmTitle, "Case Changed on Disk");
+	QCOMPARE(readFile(bundle), replaced);
+	QVERIFY(f.document.isDirty());
+
+	f.prompts.confirmAnswer = true;
+	// Yes saves over it.
+	QVERIFY(f.session->saveSceneToCurrentDir());
+	QCOMPARE(caseName(bundle), "My case");
+}
+
+// The window closes, or opens another case, only when maybeSaveScene() returns true.
+void TestSceneSession::unsavedSaveStopsWhenCaseChangedOnDisk() {
+	QTemporaryDir root;
+	QVERIFY(root.isValid());
+	const QDir dir(root.path());
+	QVERIFY(writeFolderCase(dir.filePath("Mine"), "My case"));
+	Fixture f;
+	QVERIFY(f.session->openSceneDirectory(dir.filePath("Mine")));
+	QVERIFY(appendToFile(dir.filePath("Mine/services.json"), "\n"));
+	editDescription(f.document, "mine");
+
+	answerSave();
+	// Save in the question about unsaved changes, then No to the case changed on disk, keeps the window and the edit.
+	QVERIFY(!f.session->maybeSaveScene());
+	QCOMPARE(f.prompts.confirmCount, 1);
+	QCOMPARE(f.prompts.confirmTitle, "Case Changed on Disk");
+	QVERIFY(f.document.isDirty());
 }
 
 // The save dialog has seen only the name without .egscene, so Save As asks before the name with it replaces a file.
