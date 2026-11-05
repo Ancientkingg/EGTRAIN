@@ -203,6 +203,7 @@ private slots:
 	void stationMarkStyles();
 	void stationMarksReadableAtSmallestSize();
 	void ringAndBarFillsMajorDisc();
+	void stationMarksFillTheirArea();
 	void stationMenuIcons_data();
 	void stationMenuIcons();
 	void stationSquares();
@@ -529,6 +530,30 @@ void TestVisualPolish::ringAndBarFillsMajorDisc() {
 			QVERIFY2(contrastRatio(major.at(index), station.at(index)) >= 3.0, qPrintable(what));
 		}
 	}
+}
+
+// In a swatch of the map key and in a menu icon, the mark of a major station with its halo is as tall or as wide as the
+// area, so the marks are as large as fits, and the mark of every class fits inside the area.
+void TestVisualPolish::stationMarksFillTheirArea() {
+	const std::pair<QRectF, qreal> areas[] = {{QRectF(1.0, 1.0, 44.0, 16.0), 1.0}, {QRectF(0.0, 0.0, 32.0, 32.0), 2.0}};
+	for (const StationMarkStyle style : {StationMarkStyle::MapPin, StationMarkStyle::RingAndBar, StationMarkStyle::ClassMarks,
+			 StationMarkStyle::PlainDot})
+		for (const auto& [area, halo] : areas)
+			for (const StationClass cls : {StationClass::Halt, StationClass::Station, StationClass::Major}) {
+				const QRectF painted = stationMarkBounds(stationMarkFrameIn(area, cls, style, halo), cls, style, halo);
+				const QString what = QStringLiteral("style %1, class %2, area %3 by %4: %5 by %6 painted")
+										 .arg(static_cast<int>(style))
+										 .arg(static_cast<int>(cls))
+										 .arg(area.width())
+										 .arg(area.height())
+										 .arg(painted.width())
+										 .arg(painted.height());
+				QVERIFY2(area.adjusted(-1e-9, -1e-9, 1e-9, 1e-9).contains(painted), qPrintable(what));
+				const bool fills = std::abs(painted.height() - area.height()) < 1e-9
+					|| std::abs(painted.width() - area.width()) < 1e-9;
+				if (cls == StationClass::Major)
+					QVERIFY2(fills, qPrintable(what));
+			}
 }
 
 // At the smallest size of a mark on the canvas, a frame of 24 pixels with a halo of 2, the light or blue part of the mark

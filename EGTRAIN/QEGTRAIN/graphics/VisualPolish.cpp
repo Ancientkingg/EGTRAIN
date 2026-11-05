@@ -381,13 +381,17 @@ QPainterPath stationMarkShape(const QRectF& frame, StationClass cls, StationMark
 }
 
 QRectF stationMarkFrameIn(const QRectF& area, StationClass cls, StationMarkStyle style, qreal haloWidth) {
-	// Every class takes the frame in which the marks of all three fit, so that the classes keep their sizes: in the
-	// styles but the class marks that is the frame of the mark of a major station. The mark grows with the frame and its
-	// halo does not, measured on a frame of about the size that fits.
+	// Every class takes the frame in which the mark of a major station fits, so that the classes keep their sizes. The
+	// upright bar of a major station in the class marks does not hold the disc and the ring of the other classes, so
+	// there every class takes the frame in which the marks of all three fit. The mark grows with the frame and its halo
+	// does not, measured on a frame of about the size that fits.
 	const QRectF reference(0.0, 0.0, std::min(area.width(), area.height()), std::min(area.width(), area.height()));
+	const QList<StationClass> fitted = style == StationMarkStyle::ClassMarks
+		? QList<StationClass>{StationClass::Halt, StationClass::Station, StationClass::Major}
+		: QList<StationClass>{StationClass::Major};
 	QRectF mark;
 	QRectF painted;
-	for (const StationClass each : {StationClass::Halt, StationClass::Station, StationClass::Major}) {
+	for (const StationClass each : fitted) {
 		mark |= stationMarkBounds(reference, each, style, 0.0);
 		painted |= stationMarkBounds(reference, each, style, haloWidth);
 	}
