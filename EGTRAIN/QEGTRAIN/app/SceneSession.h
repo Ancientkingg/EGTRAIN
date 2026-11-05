@@ -152,7 +152,9 @@ public:
 
 	/// Save: saveSceneToCurrentDir().
 	void saveScene();
-	/// Save As: saves the scene to a bundle that the user chooses.
+	/// Save As: asks whether to save the scene as a case file (a bundle) or as a case folder, with the format of the scene
+	/// as the default answer and a case file for a scene without a location, then saves it to a bundle that the user
+	/// chooses or as saveSceneAsToDirectory() does.
 	void saveSceneAs();
 	/// Saves the scene where it came from. A scene without a location, or one inside the installation, is saved as a
 	/// bundle that the user chooses. When the scene files on disk, or the bundle file, differ in size or modification

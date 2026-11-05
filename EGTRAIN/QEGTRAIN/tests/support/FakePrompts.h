@@ -26,6 +26,13 @@ public:
 	QStringList offeredItems;
 	QString chosenItem;
 
+	int buttonCount = 0;
+	QString buttonTitle;
+	QString buttonQuestion;
+	QStringList offeredButtons;
+	int defaultButton = -1;
+	int chosenButton = -1;
+
 	void showError(QWidget*, const QString& title, const QString& message, bool warningIcon = false) override {
 		++errorCount;
 		errorTitle = title;
@@ -47,5 +54,14 @@ public:
 		++chooseCount;
 		offeredItems = items;
 		return chosenItem;
+	}
+	int chooseButton(QWidget*, const QString& title, const QString& question, const QStringList& choices,
+		int defaultChoice) override {
+		++buttonCount;
+		buttonTitle = title;
+		buttonQuestion = question;
+		offeredButtons = choices;
+		defaultButton = defaultChoice;
+		return chosenButton;
 	}
 };

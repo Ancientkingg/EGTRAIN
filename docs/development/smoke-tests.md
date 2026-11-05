@@ -594,7 +594,7 @@ most of its checks, so read the log in its folder.
 | Output | Where | Set by |
 | --- | --- | --- |
 | Result of a CTest run | `build/Testing/Temporary/LastTest.log`; the names of the failed tests are in `LastTestsFailed.log` in the same folder. `ctest --rerun-failed --output-on-failure` runs those again, and `--output-log FILE` writes the log to a file | CTest |
-| Files of a run in the application or from `QEGTRAIN` | `<QStandardPaths::AppDataLocation>/Output/<scene>`; the files are in [Run output](../guides/run-output.md) | `QEGTRAIN_OUTPUT_DIR` replaces the base folder, and `File > Set Output Folder...` replaces the folder of every later run in that session ([Output folder](../guides/command-line.md#output-folder)) |
+| Files of a run in the application or from `QEGTRAIN` | `<QStandardPaths::AppDataLocation>/Output/<scene>`; the files are in [Run output](../guides/run-output.md) | `QEGTRAIN_OUTPUT_DIR` replaces the base folder, and `Simulation > Set Output Folder...` replaces the folder of every later run in that session ([Output folder](../guides/command-line.md#output-folder)) |
 | Messages of a run | Standard output and error, the **Log** dock, and the file named by `EGTRAIN_LOG_FILE` | `EGTRAIN_LOG`, `EGTRAIN_LOG_FILE` ([Log output](../guides/command-line.md#log-output)) |
 | User settings of a test that starts the window | `build/settings/<test>` | `QEGTRAIN_E2E_SETTINGS_DIR`, set by CMake |
 | Run output of the scene render, track preview, legacy import, route diagram and visual polish tests | `build/output/<test>`. `test_scene_drop` and `test_output_folder` write to `build/scene-drop-test` and `build/output-folder-test` | `QEGTRAIN_OUTPUT_DIR`, set by CMake |

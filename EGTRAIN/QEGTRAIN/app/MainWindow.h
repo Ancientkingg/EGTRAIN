@@ -283,9 +283,7 @@ private:
 	bool m_committingPendingEditorValues = false;
 	QAction* m_saveSceneAction = nullptr;
 	QAction* m_saveSceneAsAction = nullptr;
-	QAction* m_saveSceneAsFolderAction = nullptr;
 	QAction* m_advancedDetailsAction = nullptr;
-	QAction* m_runSceneAction = nullptr;
 	QAction* m_outputFolderAction = nullptr;
 	// The validation table, the loaded data tree and the validation status of the status bar belong to m_validation.
 	ValidationPanel* m_validation = nullptr;

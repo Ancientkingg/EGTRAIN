@@ -7,8 +7,9 @@ PACKAGE_DIR is the extracted AppImage (the directory with AppRun) and BUNDLE is 
 runs on a Linux desktop session with an X display and a D-Bus session bus, which the job provides with
 xvfb-run and dbus-run-session. It drives the application as a student does, through its menus and dialogs, with no test
 hook: the release package has none. The widgets are found and operated through the accessibility interface AT-SPI
-(python3-gi with gir1.2-atspi-2.0). The only synthetic keystrokes are the ones that type into a text field and into a
-table cell, sent with xdotool, and the screen is read with ImageMagick.
+(python3-gi with gir1.2-atspi-2.0). The only synthetic keystrokes, sent with xdotool, are the ones that type into a text
+field and into a table cell and the ones that choose Open Case File... in the menu Other ways to open... of the case
+chooser, which the accessibility interface does not list. The screen is read with ImageMagick.
 
 Each step prints one line, STEP n PASS or STEP n FAIL with the detail. The script stops at the first failed step, names
 it and exits with 1. A screenshot of every step, the failure tree of the application, the output of the application and
@@ -16,12 +17,13 @@ the log of the script go to the evidence directory. A missing tool or display ex
 
 1. Start AppRun with a new home directory and no QEGTRAIN_ variable, close the case chooser, answer the question about
    automatic update checks, read the version of About EGTRAIN, and check that the toolbar icon buttons are not blank.
-2. File > Open Case... on the downloaded bundle, after a byte copy of it is taken and its modification time noted.
+2. File > Open Case... and Open Case File... in the case chooser on the downloaded bundle, after a byte copy of it is
+   taken and its modification time noted.
 3. The network is drawn, and View > Loaded Data shows the identity, the category counts, the scenarios, the result
    readiness and, after View > Advanced Details is ticked, the versions.
 4. Type a new description into a text field of the Case Settings editor and into the scenario editor, type into a table
    cell, and check that the run review names the scenario.
-5. File > Save As... to a working copy in another folder. The downloaded bundle stays as it was.
+5. File > Save As... as a case file, to a working copy in another folder. The downloaded bundle stays as it was.
 6. Simulation > Run and Run simulation in the review window, from the working copy, to the end of the run.
 7. Open the timetable table with its planned and simulated values, the delay, the speed and the blocking-time results.
 8. Export a CSV file and a PNG file with the buttons of Run Results.
@@ -550,7 +552,7 @@ class Rehearsal:
 
     def menu_item(self, name=None, pattern=None, menu=None):
         """The first entry of the menu bar with that name or pattern. With `menu` only the entries of the menu with that
-        title count, so that File > Run and Simulation > Run are told apart."""
+        title count, so that entries of one name in two menus are told apart."""
         bar = find_first(self.main_frame(), "menu bar", max_depth=1)
         root = find_first(bar, name=menu, max_depth=1) if bar and menu else bar
         item = find_first(root, "menu item", name, pattern, max_depth=4) if root else None
@@ -579,6 +581,22 @@ class Rehearsal:
             found = find_first(root, "push button", name, max_depth=10, showing=True)
             return found if found is not None and has_state(found, Atspi.StateType.ENABLED) else None
         return wait_until(look, timeout, f"the enabled button {name!r}")
+
+    def open_case_file(self, path: Path) -> None:
+        """Opens a case file as a student does: File > Open Case... shows the case chooser, Open Case File... in its menu
+        Other ways to open... shows the file dialog, and Open opens the file. The accessibility interface does not list the
+        entries of a menu that a button shows, so the arrow keys go down to the second entry and Return takes it. The
+        pointer first leaves the windows, so that it cannot point at another entry."""
+        self.choose("Open Case...", modal=True)
+        chooser = self.wait_window("Open a Case")
+        width, height = subprocess.run(["xdotool", "getdisplaygeometry"], check=True, stdout=subprocess.PIPE,
+                                       text=True).stdout.split()
+        subprocess.run(["xdotool", "mousemove", str(int(width) - 1), str(int(height) - 1)], check=True)
+        self.press(self.button(chooser, "Other ways to open..."), modal=True)
+        subprocess.run(["xdotool", "key", "--clearmodifiers", "Down", "Down", "Return"], check=True)
+        dialog = self.wait_window("Open Case")
+        self.set_file_name(dialog, path)
+        self.press(self.button(dialog, "Open"))
 
     def set_file_name(self, dialog, path: Path) -> None:
         field = wait_until(lambda: find_first(dialog, "text", "File name:", max_depth=4), UI_TIMEOUT_SECONDS,
@@ -697,10 +715,7 @@ class Rehearsal:
         copy.parent.mkdir(parents=True)
         shutil.copyfile(self.bundle, copy)
         self.original_copy, self.original_mtime = copy, self.bundle.stat().st_mtime_ns
-        self.choose("Open Case...", modal=True)
-        dialog = self.wait_window("Open Case")
-        self.set_file_name(dialog, self.bundle)
-        self.press(self.button(dialog, "Open"))
+        self.open_case_file(self.bundle)
         title = f"EGTRAIN - {self.case_name}"
         wait_until(lambda: name_of(self.main_frame()) == title, UI_TIMEOUT_SECONDS, f"the window title {title!r}")
         return f"opened {self.bundle.name}, the window title is {title!r}"
@@ -825,6 +840,8 @@ class Rehearsal:
 
     def step5(self) -> str:
         self.choose("Save As...", modal=True)
+        question = self.wait_window("Save As")
+        self.press(self.button(question, "Case File..."), modal=True)
         dialog = self.wait_window("Save Case As")
         proposed = text_of(find_first(dialog, "text", "File name:", max_depth=4))
         self.note(f"the dialog proposes {proposed!r}")
@@ -952,10 +969,7 @@ class Rehearsal:
         self.wait_closed("Open a Case")
         if self.ask_about_updates(5) is not None:
             raise StepFailed("the question about update checks came again")
-        self.choose("Open Case...", modal=True)
-        dialog = self.wait_window("Open Case")
-        self.set_file_name(dialog, self.working_copy)
-        self.press(self.button(dialog, "Open"))
+        self.open_case_file(self.working_copy)
         wait_until(lambda: name_of(self.main_frame()) == f"EGTRAIN - {self.case_name}", UI_TIMEOUT_SECONDS,
                    "the reopened case")
         if self.loaded_value(LOADED_DATA_CASE) != str(self.working_copy):

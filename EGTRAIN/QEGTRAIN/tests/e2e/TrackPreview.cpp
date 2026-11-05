@@ -305,8 +305,7 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 		}
 	}
 
-	bool runFacetOk = w.m_runSceneAction && !w.m_runSceneAction->isEnabled()
-		&& w.ui->actionSimulationStart && !w.ui->actionSimulationStart->isEnabled();
+	bool runFacetOk = w.ui->actionSimulationStart && !w.ui->actionSimulationStart->isEnabled();
 	if (!runFacetOk)
 		fail("run gating", "Run action is enabled while semantic errors are present");
 	if (w.m_document->isLoaded()) {
@@ -355,13 +354,11 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 		defaultScenarioIncidents(fixed).clear();
 		w.m_document->mutableModel() = fixed;
 		w.refreshValidationPanel();
-		if (hasErrors(w.m_session->m_sceneDiagnostics) || !w.m_runSceneAction || !w.m_runSceneAction->isEnabled()
-			|| !w.ui->actionSimulationStart || !w.ui->actionSimulationStart->isEnabled())
+		if (hasErrors(w.m_session->m_sceneDiagnostics) || !w.ui->actionSimulationStart || !w.ui->actionSimulationStart->isEnabled())
 			runFacetOk = false;
 		w.m_document->mutableModel() = incomplete;
 		w.refreshValidationPanel();
-		if (!hasErrors(w.m_session->m_sceneDiagnostics) || !w.m_runSceneAction || w.m_runSceneAction->isEnabled()
-			|| !w.ui->actionSimulationStart || w.ui->actionSimulationStart->isEnabled())
+		if (!hasErrors(w.m_session->m_sceneDiagnostics) || !w.ui->actionSimulationStart || w.ui->actionSimulationStart->isEnabled())
 			runFacetOk = false;
 	}
 	const PreviewContentSnapshot previewBeforeRun = snapshotPreviewContent();
@@ -401,7 +398,6 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			fail("save/reload", "partial model changed after reload");
 		} else if (!hasDiagnosticCode(w.m_session->m_sceneDiagnostics, "scene.trains.none")
 			|| !hasDiagnosticCode(w.m_session->m_sceneDiagnostics, "scene.services.none")
-			|| !w.m_runSceneAction || w.m_runSceneAction->isEnabled()
 			|| !w.ui->actionSimulationStart || w.ui->actionSimulationStart->isEnabled()) {
 			saveReloadOk = false;
 			fail("save/reload", "reloaded diagnostics or Run gating changed");

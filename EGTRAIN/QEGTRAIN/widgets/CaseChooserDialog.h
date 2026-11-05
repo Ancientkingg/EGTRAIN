@@ -27,6 +27,7 @@ public:
 	enum class Outcome {
 		Continue,	  ///< Continue, Cancel or the close button of the window.
 		OpenSelected, ///< Open, or a double click on a case; chosenPath() names it.
+		BrowseFile,	  ///< "Open Case File..." in the menu.
 		BrowseFolder, ///< "Open Case Folder..." in the menu.
 		ImportLegacy, ///< "Import Legacy Case..." in the menu.
 		NewCase		  ///< "New Case..." in the menu.
