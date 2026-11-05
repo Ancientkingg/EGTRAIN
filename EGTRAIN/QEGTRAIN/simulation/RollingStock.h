@@ -713,7 +713,8 @@ public:
 
 	/// Writes Traj_Train_<trainDescription>.txt to the TEMP folder of the output: for every valid step the time (s), speed (m/s), head
 	/// and tail position (m), power (kW), braking point (m), energy (kWh) and section. A reversed route writes original coordinates.
-	/// Throws std::runtime_error when the file cannot be written (simulation/RunOutputFile.h).
+	/// A character of trainDescription that a file name cannot hold becomes '_' in the name (runOutputFileName). Throws
+	/// std::runtime_error when the file cannot be written (simulation/RunOutputFile.h).
 	void PrintTrajectory();
 
 	/// Does nothing.

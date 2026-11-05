@@ -8,6 +8,7 @@
 #include <ios>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <system_error>
 
 /// \file
@@ -38,6 +39,17 @@ inline void closeRunOutputFile(std::ofstream& file, const std::string& path) {
 	file.close();
 	if (file.fail())
 		throw runOutputWriteError(path, errno, "a write failed");
+}
+
+/// The name with each character that a Windows file name cannot hold (< > : " / \ | ? * and the control characters) replaced
+/// by '_'. A name without them is returned unchanged.
+inline std::string runOutputFileName(std::string name) {
+	constexpr std::string_view kForbidden = "<>:\"/\\|?*";
+	for (char& character : name) {
+		if (static_cast<unsigned char>(character) < 0x20 || kForbidden.find(character) != std::string_view::npos)
+			character = '_';
+	}
+	return name;
 }
 
 #endif // RUNOUTPUTFILE_H

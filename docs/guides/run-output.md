@@ -23,7 +23,7 @@ Earlier versions also wrote `Rescheduling/EGTRAINOutput.txt`. A run no longer wr
 
 Two more files are written only when the application is started with `--detailed-trajectories`:
 
-- `TEMP/Traj_Train_<train description>.txt`, one file for each train. The simulation writes them as its last stage and creates the folder `TEMP` for them.
+- `TEMP/Traj_Train_<train description>.txt`, one file for each train. The simulation writes them as its last stage and creates the folder `TEMP` for them. Each character that a file name cannot hold on Windows (`<`, `>`, `:`, `"`, `/`, `\`, `|`, `?`, `*` and the control characters) becomes `_` in the name, so the first train of the service `IC 3000/3100` writes `Traj_Train_IC 3000_3100-1.txt`.
 - `TrainTrajectories/TrainPathDiagram.txt`, one file with a row for every train and a column for every time step.
 
 Both replace an existing file of the same name.
