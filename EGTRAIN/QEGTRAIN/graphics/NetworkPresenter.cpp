@@ -343,51 +343,63 @@ void bodyLine(const std::vector<QPointF>& points, const std::vector<double>& pos
 
 // The outline of a body whose middle runs along line, from its front to its back: the line stroked at twice half wide,
 // with flat ends and mitred corners, as QPainterPathStroker strokes it with Qt::FlatCap and Qt::MiterJoin. A mitre
-// reaches at most kMitreLimit half widths from its corner. On the inside of a corner the outline reaches along neither
-// piece of line past an end of the body, nor past the middle of a piece between two corners, so that it does not fold
-// over itself where an end is close to the corner. The corners of the outline run along the right of the train from
-// the front to the back and then along its left back to the front, so that the first and the last are the corners of its
-// front. A line of fewer than two points has no outline.
+// reaches at most kMitreLimit half widths from its corner. A piece at an end of the line that is shorter than the inside
+// of the corner at its other end reaches along it is left out, so that the body ends at that corner, square to the piece
+// after it and at its full width. On the inside of a corner between two other pieces the outline reaches along neither
+// piece past its middle, so that it does not fold over itself. The corners of the outline run along the right of the
+// train from the front to the back and then along its left back to the front, so that the first and the last are the
+// corners of its front. A line of fewer than two points has no outline.
 void bodyOutline(const std::vector<QPointF>& line, qreal half, QPolygonF& outline) {
 	outline.clear();
-	const std::size_t points = line.size();
-	if (points < 2)
+	if (line.size() < 2)
 		return;
-	outline.resize(static_cast<qsizetype>(2 * points));
 	const auto length = [&line](std::size_t piece) { return QLineF(line[piece], line[piece + 1]).length(); };
 	// The direction of a piece from the front towards the back, and the side to the right of the train, which runs the
 	// other way.
 	const auto direction = [&line, &length](std::size_t piece) { return (line[piece + 1] - line[piece]) / length(piece); };
 	const auto rightOf = [](const QPointF& along) { return QPointF(along.y(), -along.x()); };
-	// How far a corner on the inside may reach along a piece: all of it at an end of the body, otherwise half of it.
-	const auto room = [&length, points](std::size_t piece) {
-		return piece == 0 || piece + 2 == points ? length(piece) : length(piece) / 2.0;
+	// The mitre of the corner at a point between two pieces, to the right of the train and in half widths.
+	const auto mitreAt = [&direction, &rightOf](std::size_t corner) {
+		const QPointF normals = rightOf(direction(corner - 1)) + rightOf(direction(corner));
+		const qreal sum = std::hypot(normals.x(), normals.y());
+		// normals has the length 2 cos(a / 2) for a turn by a, and the mitre the length 1 / cos(a / 2).
+		if (sum * kMitreLimit >= 2.0)
+			return normals * (2.0 / (sum * sum));
+		return sum > 0.0 ? normals * (kMitreLimit / sum) : QPointF();
 	};
-	for (std::size_t i = 0; i < points; ++i) {
+	// How far the inside of a corner reaches back along the piece before it, as far as it reaches along the piece after it.
+	const auto reachAt = [&mitreAt, &direction, half](std::size_t corner) {
+		return half * std::fabs(QPointF::dotProduct(mitreAt(corner), direction(corner - 1)));
+	};
+	std::size_t first = 0;
+	std::size_t last = line.size() - 1;
+	while (last - first >= 2 && length(first) < reachAt(first + 1))
+		++first;
+	while (last - first >= 2 && length(last - 1) < reachAt(last - 1))
+		--last;
+	// How far a corner on the inside may reach along a piece: all of it at an end of the body, otherwise half of it.
+	const auto room = [&length, first, last](std::size_t piece) {
+		return piece == first || piece + 1 == last ? length(piece) : length(piece) / 2.0;
+	};
+	const std::size_t points = last - first + 1;
+	outline.resize(static_cast<qsizetype>(2 * points));
+	for (std::size_t i = first; i <= last; ++i) {
 		QPointF right;
 		QPointF left;
-		if (i == 0 || i + 1 == points) {
-			right = rightOf(direction(i == 0 ? 0 : i - 1));
+		if (i == first || i == last) {
+			right = rightOf(direction(i == first ? first : last - 1));
 			left = -right;
 		} else {
-			const QPointF in = direction(i - 1);
-			const QPointF normals = rightOf(in) + rightOf(direction(i));
-			const qreal sum = std::hypot(normals.x(), normals.y());
-			// normals has the length 2 cos(a / 2) for a turn by a, and the mitre the length 1 / cos(a / 2).
-			QPointF mitre;
-			if (sum * kMitreLimit >= 2.0)
-				mitre = normals * (2.0 / (sum * sum));
-			else if (sum > 0.0)
-				mitre = normals * (kMitreLimit / sum);
+			const QPointF mitre = mitreAt(i);
 			// The corner on the inside lies back along the piece before it, as far as it lies along the piece after it.
-			const qreal back = QPointF::dotProduct(mitre, in);
+			const qreal back = QPointF::dotProduct(mitre, direction(i - 1));
 			const qreal reach = half * std::fabs(back);
 			const qreal inside = reach > 0.0 ? std::min(1.0, std::min(room(i - 1), room(i)) / reach) : 1.0;
 			right = mitre * (back < 0.0 ? inside : 1.0);
 			left = -mitre * (back < 0.0 ? 1.0 : inside);
 		}
-		outline[static_cast<qsizetype>(i)] = line[i] + right * half;
-		outline[static_cast<qsizetype>(2 * points - 1 - i)] = line[i] + left * half;
+		outline[static_cast<qsizetype>(i - first)] = line[i] + right * half;
+		outline[static_cast<qsizetype>(2 * points - 1 - (i - first))] = line[i] + left * half;
 	}
 }
 

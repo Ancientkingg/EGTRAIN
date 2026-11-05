@@ -1339,7 +1339,9 @@ void TestRuntimeCanvas::trainGlidesAlongBentLine() {
 	// drawn, and whether every step moved the train. While the whole train is on one leg of the line, that centre is on
 	// the line at the middle of its bodies. Around the bend it is the centre of the two pieces of line from the tail to
 	// the bend and from the bend to the head, inside the bend and off the line, as the middle of the bodies is, no
-	// further than half the width of a body from it.
+	// further than half the width of a body from it. An end of the train that is so little past the bend that the inside
+	// of the bend reaches further along the line is drawn at the bend, without that piece, which the centre still counts:
+	// the centre is then on the line, and no further than half the width of a body from the middle of the bodies.
 	qreal farthest = 0.0;
 	bool heard = true;
 	bool everyStep = true;
@@ -1359,8 +1361,9 @@ void TestRuntimeCanvas::trainGlidesAlongBentLine() {
 		const qreal toBend = QLineF(back, bend).length();
 		const qreal fromBend = QLineF(bend, front).length();
 		const QPointF bendCentre = ((back + bend) * toBend + (bend + front) * fromBend) / (2.0 * (toBend + fromBend));
+		const bool endAtBend = toBend <= close || fromBend <= close;
 		heard &= host.moves.size() == 1 && QLineF(host.moves.back(), center).length() <= close
-			&& (oneLeg ? distanceTo(drawnLine, center) <= close && fromBodies <= close
+			&& (oneLeg ? distanceTo(drawnLine, center) <= close && fromBodies <= (endAtBend ? half : close)
 					   : QLineF(bendCentre, center).length() <= close && fromBodies <= half);
 		everyStep &= QLineF(center, before).length() > close;
 	};
@@ -1574,11 +1577,12 @@ void TestRuntimeCanvas::trainRunsOverCrossover() {
 }
 
 // A train of three wagons runs over the short connection of ShortCrossover, half a metre at a time. Every body is the
-// drawn track under its wagon stroked at the width of a body: the middle of the body runs along the drawn track, every
+// drawn track under its wagon stroked at the width of a body: the middle of the body runs along the drawn track and every
 // edge of both of its sides lies half that width from the middle, along the bends at both ends of the connection too,
-// and the front of the train and its back are that width across, centred on the drawn track and square to it. Places
-// where an end of a wagon is closer to an end of the connection than the width of a body are left out: there the inside
-// of the bend is cut short, so that the outline does not fold over the end of the body.
+// also while an end of a wagon is just past a bend. The front of the train and its back are that width across, centred
+// on the drawn track and square to it, where they are further from an end of the connection than the width of a body.
+// Closer to it, the piece past the bend can be shorter than the inside of the bend reaches along it; the body then ends
+// at the bend, square to the rest of it.
 void TestRuntimeCanvas::wagonKeepsWidthOverShortConnection() {
 	ShortCrossover f;
 	if (f.first == nullptr || f.second == nullptr)
@@ -1608,7 +1612,13 @@ void TestRuntimeCanvas::wagonKeepsWidthOverShortConnection() {
 		return std::max({std::fabs(QLineF(one, other).length() - 2.0 * half), QLineF((one + other) / 2.0, point).length(),
 			std::fabs(QPointF::dotProduct(one - other, direction))});
 	};
+	// Whether the point of the drawn track at the position along the route in metres is closer to an end of the
+	// connection than the width of a body.
+	const auto nearBend = [&f, &start, &end, half](double metres) {
+		return QLineF(f.drawnAt(metres), start).length() < 2.0 * half || QLineF(f.drawnAt(metres), end).length() < 2.0 * half;
+	};
 	int onConnection = 0;
+	int besideBend = 0;
 	qreal middleOff = 0.0;
 	qreal sideOff = 0.0;
 	qreal frontOff = 0.0;
@@ -1619,15 +1629,14 @@ void TestRuntimeCanvas::wagonKeepsWidthOverShortConnection() {
 		const TrainItemGroup* const train = f.presenter.trainGroup(0);
 		if (train == nullptr)
 			QFAIL("the step draws no train");
-		bool nearBend = false;
+		bool endNearBend = false;
 		bool endOnConnection = false;
 		for (int wagonEnd = 0; wagonEnd <= 3; ++wagonEnd) {
 			const double at = head - 50.0 * wagonEnd;
-			nearBend = nearBend || QLineF(f.drawnAt(at), start).length() < 2.0 * half || QLineF(f.drawnAt(at), end).length() < 2.0 * half;
+			endNearBend = endNearBend || nearBend(at);
 			endOnConnection = endOnConnection || (at > 4000.0 && at < 4005.0);
 		}
-		if (nearBend)
-			continue;
+		besideBend += endNearBend ? 1 : 0;
 		onConnection += endOnConnection ? 1 : 0;
 		for (const TrainBodyItem* body : *train->trainPolygonItemList) {
 			const QPolygonF polygon = body->mapToScene(body->polygon());
@@ -1648,11 +1657,14 @@ void TestRuntimeCanvas::wagonKeepsWidthOverShortConnection() {
 		const QPolygonF front = headBody->mapToScene(headBody->polygon());
 		const QPolygonF back = tailBody->mapToScene(tailBody->polygon());
 		const int backCorners = static_cast<int>(back.size());
-		frontOff = std::max(frontOff, endOff(front.first(), front.last(), f.drawnAt(head), f.directionAt(head)));
-		backOff = std::max(backOff, endOff(back[backCorners / 2 - 1], back[backCorners / 2], f.drawnAt(head - 150.0), f.directionAt(head - 150.0)));
+		if (!nearBend(head))
+			frontOff = std::max(frontOff, endOff(front.first(), front.last(), f.drawnAt(head), f.directionAt(head)));
+		if (!nearBend(head - 150.0))
+			backOff = std::max(backOff, endOff(back[backCorners / 2 - 1], back[backCorners / 2], f.drawnAt(head - 150.0), f.directionAt(head - 150.0)));
 	}
-	// Ends of the wagons were on the connection at places that were checked.
+	// Ends of the wagons were on the connection, and close to its ends, at places that were checked.
 	QCOMPARE_GE(onConnection, 8);
+	QCOMPARE_GE(besideBend, 8);
 	// The middle of every body runs along the drawn track.
 	QCOMPARE_LE(middleOff, close);
 	// Every edge of the sides of every body lies half the width of a body from its middle, also along the bends.
