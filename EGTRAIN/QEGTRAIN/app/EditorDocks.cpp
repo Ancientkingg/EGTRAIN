@@ -105,6 +105,7 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	// canonical infrastructure fields visible without introducing a second model.
 	m_infrastructureDock = new QDockWidget("Infrastructure", m_window);
 	m_infrastructureDock->setObjectName("infrastructureDock");
+	m_infrastructureDock->setProperty("manualSection", QStringLiteral("infrastructure-editor"));
 	m_infrastructurePanel = new InfrastructurePanel(m_infrastructureDock);
 	m_infrastructureDock->setWidget(m_infrastructurePanel);
 	m_window->addDockWidget(Qt::RightDockWidgetArea, m_infrastructureDock);
@@ -224,6 +225,7 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	// of the selected service below them. Tabbed alongside Compositions.
 	m_serviceDock = new QDockWidget("Services", m_window);
 	m_serviceDock->setObjectName("serviceDock");
+	m_serviceDock->setProperty("manualSection", QStringLiteral("services-editor"));
 	m_servicePanel = new ServicePanel(m_serviceDock);
 
 	m_timetableStopsPanel = new TimetableStopsPanel(m_servicePanel);
@@ -242,6 +244,7 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	// depending on the selected station.
 	m_incidentDock = new QDockWidget("Scenarios", m_window);
 	m_incidentDock->setObjectName("incidentDock");
+	m_incidentDock->setProperty("manualSection", QStringLiteral("scenarios-editor"));
 	QWidget* incidentWidget = new QWidget(m_incidentDock);
 	QVBoxLayout* incidentLayout = new QVBoxLayout(incidentWidget);
 

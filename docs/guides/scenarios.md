@@ -56,8 +56,9 @@ ellipsis. Its tooltip, and the tooltips of **Follow** and of the list, say in fu
 whether the train is followed and why not. A train that has not entered yet remains armed: the view does
 not move, and Follow starts when the train enters. While the Trains layer is off
 the view does not move either, and the nearest station is not emphasised; both
-return when the layer is switched on. Before a case has run, and in a case
-without services, **Follow** is disabled and its tooltip says why.
+return when the layer is switched on. Before a case has run, after an edit or a
+switch of scenario that discards the results of a run, and in a case without
+services, **Follow** is disabled and its tooltip says why.
 
 In a live run Follow is switched off when the selected train leaves the network.
 The train stays in the list, but Follow cannot be switched on for it. In the
@@ -136,8 +137,8 @@ the direction and the place of the head, as in `Proceed, facing right` over
 A completed run without incidents or entrance delays can be frozen with **Set
 delay baseline**. The results panel confirms the completed run identity and
 places the next action or disabled reason beside the baseline controls.
-Selecting another scenario keeps the baseline, discards the results and closes
-the dock **Run Results**. Opened again from the menu **View**, the dock reads
+Selecting another scenario keeps the baseline, discards the results, closes
+the dock **Run Results** and shows the case on the network view without the run. Opened again from the menu **View**, the dock reads
 `No results yet` and `Baseline: <case> / <scenario>`. An edit of the case clears the
 baseline, and the line then reads `Baseline cleared: the case changed`; **File > New Case...**
 gives `Baseline cleared: a new case was created` and opening another case gives

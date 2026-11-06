@@ -16,7 +16,7 @@ The [glossary](glossary.md) defines the other words of the program.
 
 ## 1. Install and start
 
-Download the package for your system from the [releases page](https://github.com/Ancientkingg/EGTRAIN/releases). [Installing EGTRAIN](install.md) has the steps for each system, including what to do when macOS or Windows warns before the first start.
+Download the package for your system from the [EGTRAIN website](https://ancientkingg.github.io/EGTRAIN/#download) or the [releases page](https://github.com/Ancientkingg/EGTRAIN/releases). [Installing EGTRAIN](install.md) has the steps for each system, including what to do when macOS or Windows warns before the first start.
 
 - macOS: open the disk image, drag `QEGTRAIN.app` onto `Applications`, and start it from there. A copy kept in a folder inside your home folder can make macOS ask for access to Desktop, Documents and Downloads at the first **Open Case File...**: in column view the file dialog then lists your home folder. If macOS has not asked for access to Documents yet, it can ask at the first export or save, because an export dialog starts in your Documents folder, as does a save dialog for a bundled case or a new case. That dialog does not respond until you answer.
 - Windows: run `EGTRAIN-Setup-<version>-x64.exe` and start **EGTRAIN** from the Start Menu, or unzip `EGTRAIN-Portable-<version>-x64.zip` into a new, empty folder and run `QEGTRAIN.exe`.
@@ -41,7 +41,7 @@ The toolbar button **Open Case** and **File > Open Case...** (Ctrl+O) show **Ope
 When Paimpol has loaded:
 
 - The window title reads `EGTRAIN - Paimpol`, and the status bar reads `Opened Paimpol`.
-- The network view shows the tracks and stations. Turn the mouse wheel to zoom around the pointer and drag to move the view. On a trackpad, two fingers move the view and a pinch zooms. Click **Fit** (Ctrl+0) in the toolbar to see the whole network again. A click on a track, station or signal opens an information panel for it. To find a station, signal or train by name, choose **Edit > Find...** (Ctrl+F).
+- The network view shows the tracks and stations. Turn the mouse wheel to zoom around the pointer and drag to move the view. On a trackpad, two fingers move the view and a pinch zooms. Click **Fit** (Ctrl+0) in the toolbar to see the whole network again. A click on a track, station or signal opens an information panel for it and selects its row in the dock **Infrastructure**. To find a station, signal or train by name, choose **Edit > Find...** (Ctrl+F).
 - The dock **Case and Layers** on the left names the case. When validation finds an error, the line under the name shows the first error and **Run** is disabled. The check boxes under **Layers** switch parts of the picture on and off: **Stations and platforms**, **Station names**, **Trains**, **Train speed labels**, **Signals** and **Passengers**. **View > Map Key** explains the symbols. **Passengers** is off at the first start and is the same switch as **View > Passengers**. Turning it on shows the passenger markers and counters on the platform bars from the next run, and turning it off hides them at once. The platform bars belong to the stations: they show whenever you zoom in on a station, with or without passengers. A case without passengers draws no passenger markers and shows both controls off and disabled; the choice comes back in a case with passengers. `-pax 1` ([the option](command-line.md#options)) starts with passengers on, and the program remembers the last choice.
 - The toolbar holds **Open Case**, **Run**, **Pause**, **Stop**, a speed slider with the current speed next to it, **Follow** with the list of trains, the zoom buttons and **Fit**.
 
@@ -87,7 +87,7 @@ To open a result window, click **Open result view...** in the dock and choose an
 - **Speed / distance** (**Diagrams > Speed / distance**) plots the speed of each train against the distance it covered. Hover a line to read a value, click a line to select its train, and drag a rectangle to zoom. [Inspecting diagrams](diagram-navigation.md) describes the controls.
 - **Timetable** (**Diagrams > Timetable**) lists each stop of each train with its planned and simulated arrival and departure and the delays.
 
-The other entries are listed in [How-to](how-to.md#results-and-exports). The entries stay disabled until a run has ended.
+The other entries are listed in [View a graph of a run](how-to.md#view-a-graph-of-a-run). The entries stay disabled until a run has ended.
 
 ![The window after a completed run of Paimpol / baseline, with the menu Open result view... of the dock Run Results open above its button. It lists twelve views in three groups of four: timetable and delays, speed and distance, and train paths and capacity. Beside and below it are the Replay row, the buttons Open result view..., Export CSV... and Export PNG..., the results table, and at the bottom Set delay baseline and Compare delays.](../images/getting-started-run-results.png)
 
@@ -133,7 +133,8 @@ The Windows entry follows the rule of Qt for the application data folder. **Simu
 
 This manual is also in EGTRAIN: **Help > EGTRAIN Manual** opens it with its contents and search, and F1 opens the section about the window you are in when the manual has one, otherwise its start page. A build without the manual opens the manual on the project website instead.
 
-- [How-to](how-to.md): recipes for opening and saving, editing a timetable, scenarios and baselines, canvas navigation, results and legacy cases.
+- [How-to](how-to.md): recipes for opening and saving, running, adding trains and services, changing the infrastructure, incidents, graphs of a run, results and legacy cases.
+- [Common questions](common-questions.md): short answers, such as why **Run** is disabled, where a run writes its files and what to attach to a bug report.
 - [Opening an `.egscene` case](opening-a-case-study.md): bundles, version checks and opening by double-click.
 - [Editing and validating a case](editing-a-case.md), [Scenarios and the student loop](scenarios.md) and the [scene schema](scene-schema.md): the editors, the scenarios and the case files.
 - [Glossary](glossary.md).
