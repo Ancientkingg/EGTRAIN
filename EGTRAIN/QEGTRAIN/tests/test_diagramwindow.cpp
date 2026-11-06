@@ -2,6 +2,7 @@
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/PositionScale.h"
 #include "diagrams/RouteDiagramCoordinates.h"
+#include "diagrams/RouteCharts.h"
 #include "diagrams/SeriesMeta.h"
 #include "diagrams/TrainColors.h"
 #include "diagrams/TrainFilterButton.h"
@@ -60,6 +61,7 @@
 #include <QPointer>
 #include <QScopeGuard>
 #include <QScrollBar>
+#include <QSignalSpy>
 #include <QSplitter>
 #include <QThread>
 #include <QTimer>
@@ -252,6 +254,7 @@ private slots:
 	void fadesPlannedMarkers();
 	void saysChartIsEmpty();
 	void selectsLinesInsideBoxes();
+	void sendsSectionsUnderPointer();
 	void cleanup();
 	void cleanupTestCase();
 
@@ -4733,6 +4736,104 @@ void TestDiagramWindow::presentsInputCurve() {
 	QVERIFY2(input.findChild<QLabel*>("diagramWarning")->toolTip().isEmpty(), "a warning without a reason has no tooltip");
 	input.setPresentation("No warning", longContext);
 	QVERIFY2(input.findChild<QLabel*>("diagramWarning")->isHidden(), "absent warning uses no strip");
+}
+
+// A cell of the section strip under the pointer sends its block sections, and a blocking time box its block or, without
+// one, the sections of the strip that it covers. The box that a click selects sends them until Clear or until the window
+// closes; shown again, the window sends its selection.
+void TestDiagramWindow::sendsSectionsUnderPointer() {
+	DiagramWindow window("Blocking time");
+	auto* chart = new QChart;
+	addBlockingBox(chart, "A", BlockingTimeKind::Ordinary, 2, 4, 20, 60);
+	addBlockingBox(chart, "B", BlockingTimeKind::Ordinary, 4, 8, 30, 70);
+	// A box of a train whose route does not run along the reference route: its block is not a section of the strip, and
+	// the box covers the sections of the strip that share a resource with it.
+	BlockingTimeDiagramSegment elsewhere;
+	elsewhere.trainName = "C";
+	elsewhere.blockId = "@1-B5@";
+	elsewhere.startPositionKm = 2;
+	elsewhere.endPositionKm = 6;
+	elsewhere.startTime = 75;
+	elsewhere.endTime = 95;
+	addBlockingTimeSeries(chart, {elsewhere}, false, 0);
+	chart->createDefaultAxes();
+	for (auto* axis : chart->axes()) qobject_cast<QValueAxis*>(axis)->setRange(0, 100);
+	chart->axes(Qt::Horizontal).first()->setRange(0, 10);
+	window.setChart(chart);
+	window.setBlockSections(buildBlockSectionExtents({{"@0-B0@", 0, 2}, {"@0-B1@", 2, 4}, {"@0-B2@", 4, 6}, {"@0-B3@", 6, 8}}));
+	window.setMaximumSize(1200, 750);
+	window.resize(1200, 750);
+	QSignalSpy marked(&window, &DiagramWindow::sectionsMarked);
+	window.show();
+	QApplication::processEvents();
+	auto* view = window.findChild<QChartView*>();
+	auto* clear = window.findChild<QPushButton*>("diagramClearSelection");
+	const auto* overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
+	if (view == nullptr || clear == nullptr || overlay == nullptr)
+		QFAIL("the window has its chart, Clear and the section strip");
+	auto* boxA = qobject_cast<QXYSeries*>(chart->series()[1]);
+	const auto at = [&](const QPointF& value) { return view->mapFromScene(chart->mapToScene(chart->mapToPosition(value, boxA))); };
+	// A point of the strip, which stands above the plot.
+	const auto stripAt = [&](double km) {
+		const QPointF point(chart->mapToPosition(QPointF(km, 0), boxA).x(),
+			chart->plotArea().top() - overlay->property("headerHeight").toDouble() + 5);
+		return view->mapFromScene(chart->mapToScene(point));
+	};
+	const auto send = [&view](QEvent::Type type, const QPoint& position, Qt::MouseButton button, Qt::MouseButtons buttons) {
+		QMouseEvent event(type, position, view->viewport()->mapToGlobal(position), button, buttons, Qt::NoModifier);
+		QApplication::sendEvent(view->viewport(), &event);
+	};
+	const auto move = [&send](const QPoint& position) { send(QEvent::MouseMove, position, Qt::NoButton, Qt::NoButton); };
+	const auto click = [&send](const QPoint& position) {
+		send(QEvent::MouseButtonPress, position, Qt::LeftButton, Qt::LeftButton);
+		send(QEvent::MouseButtonRelease, position, Qt::LeftButton, Qt::NoButton);
+		// Selected shows, which lays the chart out again.
+		QApplication::processEvents();
+	};
+	const auto last = [&marked]() { return marked.isEmpty() ? QVariantList() : marked.last(); };
+	const auto marks = [](const QStringList& selected, const QStringList& hovered) { return QVariantList({selected, hovered}); };
+
+	// a window that points to nothing sends nothing
+	QCOMPARE(marked.count(), 0);
+	move(stripAt(5));
+	// a cell of the strip under the pointer sends its section
+	QCOMPARE(last(), marks({}, {"@0-B2@"}));
+	move(at(QPointF(3, 40)));
+	// a box under the pointer sends the section of its block
+	QCOMPARE(last(), marks({}, {"@0-B1@"}));
+	move(at(QPointF(6, 50)));
+	// a box without a block over two sections sends both
+	QCOMPARE(last(), marks({}, {"@0-B2@", "@0-B3@"}));
+	move(at(QPointF(4, 85)));
+	// a box sends its own block, not the sections of the strip under it
+	QCOMPARE(last(), marks({}, {"@1-B5@"}));
+	move(at(QPointF(1, 90)));
+	// away from the boxes and the strip the pointer is on no section
+	QCOMPARE(last(), marks({}, {}));
+	click(at(QPointF(3, 40)));
+	// a selected box sends its section, which stays while the pointer moves on
+	QCOMPARE(last(), marks({"@0-B1@"}, {"@0-B1@"}));
+	move(at(QPointF(1, 90)));
+	QCOMPARE(last(), marks({"@0-B1@"}, {}));
+	move(stripAt(7));
+	QCOMPARE(last(), marks({"@0-B1@"}, {"@0-B3@"}));
+	QEvent leave(QEvent::Leave);
+	QApplication::sendEvent(view->viewport(), &leave);
+	// the pointer that leaves the chart is on no section, and the selection stays
+	QCOMPARE(last(), marks({"@0-B1@"}, {}));
+	clear->click();
+	// Clear ends the selection
+	QCOMPARE(last(), marks({}, {}));
+	click(at(QPointF(6, 50)));
+	move(at(QPointF(1, 90)));
+	QCOMPARE(last(), marks({"@0-B2@", "@0-B3@"}, {}));
+	window.close();
+	// a closed window points to nothing
+	QCOMPARE(last(), marks({}, {}));
+	window.show();
+	QApplication::processEvents();
+	// shown again, the window points to its selection
+	QCOMPARE(last(), marks({"@0-B2@", "@0-B3@"}, {}));
 }
 
 void TestDiagramWindow::cleanup() {

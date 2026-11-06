@@ -9,6 +9,7 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
+#include <QEvent>
 #include <QFormLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -22,6 +23,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <optional>
 #include <tuple>
 #include <utility>
@@ -138,6 +140,26 @@ QString blockingTimeScopeRouteText(const BlockingTimeScopeChoices::Route& route)
 	return text;
 }
 
+namespace {
+
+// Calls `closed` each time the open list of a combo box closes. It belongs to `owner`, which goes before the list does.
+class ListCloseWatch : public QObject {
+public:
+	ListCloseWatch(QComboBox* list, QObject* owner, std::function<void()> closed) : QObject(owner), m_closed(std::move(closed)) {
+		list->view()->installEventFilter(this);
+	}
+	bool eventFilter(QObject*, QEvent* event) override {
+		if (event->type() == QEvent::Hide)
+			m_closed();
+		return false;
+	}
+
+private:
+	std::function<void()> m_closed;
+};
+
+} // namespace
+
 ScopeStretchChoice::ScopeStretchChoice(std::vector<BlockingTimeScopeChoices::Route> routes, SceneSectionLabels labels,
 	bool allRoutes, QFormLayout* form, QWidget* parent, const QString& name)
 	: QObject(parent), m_routes(std::move(routes)), m_labels(std::move(labels)) {
@@ -175,12 +197,15 @@ ScopeStretchChoice::ScopeStretchChoice(std::vector<BlockingTimeScopeChoices::Rou
 	connect(m_blocks, &QRadioButton::clicked, this, [this]() { chooseKind(false); });
 	connect(m_from, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) { chooseEntry(true, index); });
 	connect(m_to, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) { chooseEntry(false, index); });
-	// A combo box highlights its new entry when the program chooses one too, so only an open list counts.
-	for (QComboBox* list : {m_route, m_from, m_to})
+	// A combo box highlights its new entry when the program chooses one too, so only an open list counts. A list that closes
+	// leaves no entry under the pointer.
+	for (QComboBox* list : {m_route, m_from, m_to}) {
 		connect(list, qOverload<int>(&QComboBox::highlighted), this, [this, list](int index) {
 			if (list->view()->isVisible())
 				hover(list, index);
 		});
+		new ListCloseWatch(list, this, [this]() { emit entryHovered(routeId(), sectionIds(), {}); });
+	}
 }
 
 int ScopeStretchChoice::routeIndex() const {

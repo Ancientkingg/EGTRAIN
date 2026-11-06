@@ -278,7 +278,9 @@ void ResultViews::showBlockingTimeDiagram() {
 
 	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
 	BlockingTimeScope scope = defaultBlockingTimeScopeFrom(*run);
-	if (!m_host.dialogsSuppressed() && !chooseBlockingTimeScope(m_window, blockingTimeScopeChoicesFrom(*run), scope))
+	if (!m_host.dialogsSuppressed() && !askMarkingStretch([this, &run, &scope](const ScopeStretchObserver& observer) {
+			return chooseBlockingTimeScope(m_window, blockingTimeScopeChoicesFrom(*run), scope, observer);
+		}))
 		return;
 	std::optional<BlockingTimeDiagramData> diagram = blockingTimeDiagramData(*run, scope);
 	if (!diagram)
@@ -358,9 +360,61 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 		blockingTimeTrainIds(segments, plannedReferences, trajectoryTrains, unmapped));
 	attachRunProvenance(win, run->provenance);
 	connect(win, &DiagramWindow::trainSelected, this, &ResultViews::trainSelected);
+	// The network view marks the blocks that the window points to.
+	connect(win, &DiagramWindow::sectionsMarked, this, [this, win](const QStringList& selected, const QStringList& hovered) {
+		markWindowSections(win, selected, hovered);
+	});
 	win->setTimeAxisY(true, run->settings.startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	showWindow(win);
+}
+
+bool ResultViews::askMarkingStretch(const std::function<bool(const ScopeStretchObserver&)>& ask) {
+	// The dialog is modal, so the windows point to nothing new while it is open; their marks come back once it closes.
+	m_scopeDialogOpen = true;
+	const bool accepted = ask([this](ScopeStretchChoice& stretch) {
+		emit sectionsMarked(stretch.sectionIds(), {});
+		connect(&stretch, &ScopeStretchChoice::stretchChanged, this,
+			[this](const QString&, const QStringList& sectionIds) { emit sectionsMarked(sectionIds, {}); });
+		connect(&stretch, &ScopeStretchChoice::entryHovered, this,
+			[this](const QString&, const QStringList& sectionIds, const QStringList& entrySectionIds) {
+				emit sectionsMarked(sectionIds, entrySectionIds);
+			});
+	});
+	m_scopeDialogOpen = false;
+	sendWindowMarks();
+	return accepted;
+}
+
+void ResultViews::markWindowSections(QWidget* window, const QStringList& selected, const QStringList& hovered) {
+	const auto mark = std::find_if(m_windowMarks.begin(), m_windowMarks.end(), [window](const WindowMark& one) { return one.window == window; });
+	if (selected.isEmpty() && hovered.isEmpty()) {
+		if (mark != m_windowMarks.end())
+			m_windowMarks.erase(mark);
+	} else if (mark == m_windowMarks.end()) {
+		m_windowMarks.push_back({window, selected, hovered});
+	} else {
+		mark->selected = selected;
+		mark->hovered = hovered;
+	}
+	sendWindowMarks();
+}
+
+void ResultViews::sendWindowMarks() {
+	if (m_scopeDialogOpen)
+		return;
+	// A window that was deleted while shown left its entry behind.
+	m_windowMarks.erase(std::remove_if(m_windowMarks.begin(), m_windowMarks.end(), [](const WindowMark& one) { return !one.window; }),
+		m_windowMarks.end());
+	QStringList sections;
+	QStringList emphasis;
+	for (const WindowMark& mark : m_windowMarks) {
+		sections << mark.selected;
+		emphasis << mark.hovered;
+	}
+	sections.removeDuplicates();
+	emphasis.removeDuplicates();
+	emit sectionsMarked(sections, emphasis);
 }
 
 void ResultViews::showCapacityAnalysis() {
@@ -380,7 +434,9 @@ void ResultViews::showCapacityAnalysis() {
 		return;
 	}
 	if ((!m_host.dialogsSuppressed() || mainWindowTestHooks().askCapacityScope)
-		&& !chooseCapacityAnalysisScope(m_window, *run, scope))
+		&& !askMarkingStretch([this, &run, &scope](const ScopeStretchObserver& observer) {
+			   return chooseCapacityAnalysisScope(m_window, *run, scope, observer);
+		   }))
 		return;
 	if (scope.routeIndex < 0 || scope.blockIds.empty()) {
 		showCapacityMessage("The chosen route has no blocks. Choose another route.");

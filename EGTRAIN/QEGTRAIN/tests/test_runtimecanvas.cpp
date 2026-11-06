@@ -1,5 +1,6 @@
 // SceneModel.h has a member named signals, so it comes before the Qt headers.
 #include "scene/SceneModel.h"
+#include "scene/SectionInventory.h"
 
 #include "graphics/NetworkPresenter.h"
 #include "tests/NetworkPresenterTestAccess.h"
@@ -11,6 +12,7 @@
 #include "graphics/VisualPolish.h"
 #include "graphics/items/ConnectionItem.h"
 #include "graphics/items/HighlightEffect.h"
+#include "graphics/items/NetworkMarkItem.h"
 #include "graphics/items/NodeItem.h"
 #include "graphics/items/PassengerItem.h"
 #include "graphics/items/PlatformItem.h"
@@ -22,8 +24,10 @@
 #include "graphics/items/TrainItemGroup.h"
 #include "scene/TrackPreview.h"
 #include "simulation/Signalling.h"
+#include "simulation/SimulationRun.h"
 
 #include <QApplication>
+#include <QDialog>
 #include <QElapsedTimer>
 #include <QEventLoop>
 #include <QGraphicsPixmapItem>
@@ -34,6 +38,8 @@
 #include <QMap>
 #include <QObject>
 #include <QPixmap>
+#include <QSignalSpy>
+#include <QStringList>
 #include <QTest>
 #include <QTimer>
 #include <QtMath>
@@ -42,6 +48,7 @@
 #include <cmath>
 #include <limits>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -442,6 +449,57 @@ private:
 	int m_count = 0;
 };
 
+// The infrastructure that the scene builder made for a run, as the window gives it to the canvas.
+class RunGeometry final : public RuntimeGeometrySource {
+public:
+	explicit RunGeometry(const SimulationRun& run) : m_run(run) {}
+
+	int trackCount() const override { return m_run.infra.numTrackLines; }
+	const BlockSet& track(int index) const override { return m_run.infra.blockSets[index]; }
+	int regionOfTrack(int index) const override { return m_run.infra.blockSets[index].region; }
+	int stationCount() const override { return m_run.infra.numStations; }
+	const Stations& station(int index) const override { return m_run.infra.stations[index]; }
+	int connectionCount() const override { return m_run.infra.numConnections; }
+	const Connections& connection(int index) const override { return m_run.infra.connections[index]; }
+	int sectionCount() const override { return m_run.infra.numBlocks; }
+	const Section& section(int index) const override { return m_run.infra.sections[static_cast<std::size_t>(index)]; }
+	const Route* route(int index) const override {
+		if (index < 0 || index >= static_cast<int>(m_run.infra.routes.size()))
+			return nullptr;
+		return &m_run.infra.routes[static_cast<std::size_t>(index)];
+	}
+	const StationPlatform* platform(const std::string&, const std::string&) const override { return nullptr; }
+	bool passengerGui() const override { return false; }
+
+private:
+	const SimulationRun& m_run;
+};
+
+// Counts the paint events of a widget.
+class PaintCounter : public QObject {
+public:
+	int count = 0;
+
+	bool eventFilter(QObject*, QEvent* event) override {
+		if (event->type() == QEvent::Paint)
+			++count;
+		return false;
+	}
+};
+
+// The distance from a point to a polyline.
+static qreal distanceToPolyline(const QPointF& point, const QPolygonF& line) {
+	qreal nearest = line.isEmpty() ? std::numeric_limits<qreal>::max() : QLineF(point, line.first()).length();
+	for (qsizetype index = 1; index < line.size(); ++index) {
+		const QPointF start = line[index - 1];
+		const QPointF along = line[index] - start;
+		const qreal length2 = QPointF::dotProduct(along, along);
+		const qreal t = length2 > 0 ? std::clamp(QPointF::dotProduct(point - start, along) / length2, 0.0, 1.0) : 0.0;
+		nearest = std::min(nearest, QLineF(point, start + t * along).length());
+	}
+	return nearest;
+}
+
 // The data role that marks the items that the scene holds at some moment. An item without the mark was added later.
 constexpr int kSeen = 99;
 
@@ -719,6 +777,7 @@ private slots:
 	void runPutsPicturesWherePreviewDoes();
 	void drawsRunAlongBendOfStations();
 	void showingRunAgainLaysItOutAnew();
+	void marksSectionsOfRun();
 };
 
 void TestRuntimeCanvas::initTestCase() {
@@ -2701,6 +2760,139 @@ void TestRuntimeCanvas::showingRunAgainLaysItOutAnew() {
 	QVERIFY2(twiceBody == onceBody, "a train has the body of one call after a second showRuntime()");
 	once.presenter.clear();
 	twice.presenter.clear();
+}
+
+// The stretch of a scope dialog and the blocks of a blocking time window, on the run of Paimpol: the mark lies over the
+// courses of their sections on the track preview, which hold the lines that the run draws for each section, with the
+// sections under the pointer as its emphasis. No id with a course removes it, and so does clearing the run. The view keeps
+// its place and zoom, the follow camera its train, and a modal dialog still lets the view paint the mark.
+void TestRuntimeCanvas::marksSectionsOfRun() {
+	const SceneModel model = loadScene(QFINDTESTDATA("../Scenes/Paimpol").toStdString()).scene;
+	auto run = std::make_unique<SimulationRun>();
+	QVERIFY2(!hasErrors(buildInfrastructureAndSignallingFromScene(*run, model)), "Paimpol builds its infrastructure");
+	QVERIFY2(!run->infra.routes.empty(), "Paimpol builds its routes");
+	QGraphicsScene scene;
+	NetworkView view;
+	view.setScene(&scene);
+	view.resize(800, 600);
+	view.show();
+	QVERIFY(QTest::qWaitForWindowExposed(&view));
+	NetworkPresenter presenter(&scene, &view);
+	presenter.setGeometrySource(std::make_unique<RunGeometry>(*run));
+	// As the window does: the preview of the case, then the run on it.
+	presenter.showPreview(model);
+	presenter.clear();
+	presenter.showRuntime(model);
+	view.fitToBounds(scene.itemsBoundingRect());
+	view.zoomBy(3.0);
+	FollowCamera camera(&view);
+	const auto& tracks = PresenterAccess::tracksBySectionId(presenter);
+	QVERIFY(!tracks.empty());
+	camera.follow(tracks.begin()->second.front()->sceneBoundingRect().center(), true);
+	const QTransform transform = view.transform();
+	const QRectF sceneRect = view.sceneRect();
+	const QPointF centre = view.mapToScene(view.viewport()->rect().center());
+	const bool following = camera.hasTarget();
+	const bool cameraRunning = camera.running();
+	QSignalSpy viewMoves(&view, &NetworkView::viewportChanged);
+
+	// The blocks of the longest route, as a scope dialog sends them, and the courses that they have on the preview.
+	const auto longest = std::max_element(run->infra.routes.begin(), run->infra.routes.end(), [](const Route& a, const Route& b) {
+		return a.sequence_of_block_sections.size() < b.sequence_of_block_sections.size();
+	});
+	QStringList stretch;
+	for (const Section& section : longest->sequence_of_block_sections)
+		stretch << QString::fromStdString(section.ID);
+	const SceneSectionInventory inventory = buildSceneSectionInventory(model);
+	const auto coursesOf = [&presenter, &inventory](const QStringList& ids) {
+		std::vector<std::string> references;
+		for (const QString& id : ids)
+			references.push_back(id.toStdString());
+		QList<QPolygonF> courses;
+		for (const QPolygonF& course : previewSectionCourses(presenter.trackPreview(), inventory, references))
+			if (!course.isEmpty())
+				courses.append(course);
+		return courses;
+	};
+	presenter.markRunSections(stretch, {});
+	const NetworkMarkItem* mark = presenter.runSectionMark();
+	if (mark == nullptr)
+		QFAIL("the stretch of a route has a mark");
+	QCOMPARE(mark->scene(), &scene);
+	QCOMPARE(mark->stretches(), coursesOf(stretch));
+	QVERIFY(mark->emphasis().isEmpty());
+	QCOMPARE(mark->viewScale(), std::abs(view.transform().m11()));
+	// The course of each section holds the lines that the run draws for that section.
+	const qreal tolerance = 1e-6 * std::max(scene.itemsBoundingRect().width(), scene.itemsBoundingRect().height());
+	int drawnSections = 0;
+	for (const QString& id : stretch) {
+		const auto drawn = tracks.find(id.toStdString());
+		if (drawn == tracks.end())
+			continue;
+		const QList<QPolygonF> course = coursesOf({id});
+		QCOMPARE(course.size(), qsizetype(1));
+		for (const TrackLineItem* item : drawn->second)
+			for (const QPointF& end : {item->mapToScene(item->line().p1()), item->mapToScene(item->line().p2())})
+				QVERIFY2(distanceToPolyline(end, course.first()) <= tolerance,
+					qPrintable(QString("a line of %1 lies on its course").arg(id)));
+		++drawnSections;
+	}
+	QCOMPARE_GT(drawnSections, 5);
+
+	// An entry under the pointer adds its blocks as the emphasis, and leaving it takes them away.
+	const QStringList entry = stretch.mid(2, 3);
+	presenter.markRunSections(stretch, entry);
+	QCOMPARE(presenter.runSectionMark(), mark);
+	QCOMPARE(mark->stretches(), coursesOf(stretch));
+	QCOMPARE(mark->emphasis(), coursesOf(entry));
+	QVERIFY(!mark->emphasis().isEmpty());
+	presenter.markRunSections(stretch, {});
+	QVERIFY(mark->emphasis().isEmpty());
+	// A block under the pointer alone is its emphasis.
+	presenter.markRunSections({}, {stretch.first()});
+	QVERIFY(mark->stretches().isEmpty());
+	QCOMPARE(mark->emphasis(), coursesOf({stretch.first()}));
+	// Nothing, or ids without a course, remove the mark.
+	presenter.markRunSections({}, {});
+	QVERIFY(presenter.runSectionMark() == nullptr);
+	presenter.markRunSections({QStringLiteral("@no-such-block@")}, {});
+	QVERIFY(presenter.runSectionMark() == nullptr);
+	for (const QGraphicsItem* item : scene.items())
+		QVERIFY(item->type() != NetworkMarkItem::Type);
+
+	// A modal dialog runs an event loop of its own, in which the view paints the mark.
+	PaintCounter paints;
+	view.viewport()->installEventFilter(&paints);
+	QDialog dialog;
+	dialog.setModal(true);
+	int paintsWhileOpen = 0;
+	QTimer::singleShot(0, &dialog, [&]() {
+		paints.count = 0;
+		presenter.markRunSections(stretch, entry);
+		QTimer::singleShot(300, &dialog, [&]() {
+			paintsWhileOpen = paints.count;
+			dialog.reject();
+		});
+	});
+	dialog.exec();
+	view.viewport()->removeEventFilter(&paints);
+	QCOMPARE_GT(paintsWhileOpen, 0);
+	QVERIFY(presenter.runSectionMark() != nullptr);
+
+	// The view and the follow camera are as they were.
+	QCOMPARE(view.transform(), transform);
+	QCOMPARE(view.sceneRect(), sceneRect);
+	QCOMPARE(view.mapToScene(view.viewport()->rect().center()), centre);
+	QCOMPARE(viewMoves.count(), 0);
+	QCOMPARE(camera.hasTarget(), following);
+	QCOMPARE(camera.running(), cameraRunning);
+
+	// Clearing the run removes the mark, and without a run nothing is marked.
+	presenter.clear();
+	QVERIFY(presenter.runSectionMark() == nullptr);
+	presenter.markRunSections(stretch, entry);
+	QVERIFY(presenter.runSectionMark() == nullptr);
+	QVERIFY(scene.items().isEmpty());
 }
 
 QTEST_MAIN(TestRuntimeCanvas)

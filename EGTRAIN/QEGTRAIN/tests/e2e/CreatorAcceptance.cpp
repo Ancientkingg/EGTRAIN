@@ -410,10 +410,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		});
 		w.m_openCaseAction->trigger();
 	};
-	auto acceptCapacityScope = [&w, fail]() {
+	// Answers the next capacity scope dialog with OK, or with Cancel when `cancel` is set.
+	auto acceptCapacityScope = [&w, fail](bool cancel = false) {
 		auto poll = std::make_shared<std::function<void()>>();
 		auto attempts = std::make_shared<int>(0);
-		*poll = [&w, poll, attempts, fail]() {
+		*poll = [&w, poll, attempts, fail, cancel]() {
 			if (++*attempts > 200) {
 				fail(QStringLiteral("capacity scope dialog did not appear"));
 				return;
@@ -457,6 +458,16 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				if (cycleEnd->currentIndex() != 0 || cycleEnd->itemText(0) != QStringLiteral("First train, one period later")) {
 					dialog->reject();
 					fail(QStringLiteral("the first train one period later does not close the cycle"));
+					return;
+				}
+				// While the chooser is open, the network view marks its stretch.
+				if (!w.m_presenter->runSectionMark()) {
+					dialog->reject();
+					fail(QStringLiteral("the network view does not mark the stretch of the capacity chooser"));
+					return;
+				}
+				if (cancel) {
+					dialog->reject();
 					return;
 				}
 				buttons->button(QDialogButtonBox::Ok)->click();
@@ -2398,6 +2409,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		QAction* capacityButton = findResultAction(QStringLiteral("Capacity"));
 		if (!capacityButton) {
 			fail(QStringLiteral("capacity result control is unavailable"));
+			return;
+		}
+		// Cancel takes the mark of the chooser away.
+		acceptCapacityScope(true);
+		capacityButton->trigger();
+		process();
+		if (w.m_presenter->runSectionMark()) {
+			fail(QStringLiteral("the stretch of the capacity chooser stays marked after Cancel"));
 			return;
 		}
 		acceptCapacityScope();

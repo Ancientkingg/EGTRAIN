@@ -13,6 +13,7 @@
 #include <QPolygonF>
 #include <QRectF>
 #include <QString>
+#include <QStringList>
 #include <QTimer>
 
 #include <functional>
@@ -295,6 +296,15 @@ public:
 	bool previewShown() const { return m_previewShown; }
 	/// The mark of the selected row of the infrastructure panel; null without one.
 	const NetworkMarkItem* selectionMark() const { return m_selectionMark; }
+	/// Marks block sections of the run that the canvas shows, such as the stretch of a scope dialog or a block of a
+	/// blocking time window: the courses of sectionIds on the track preview that the run is drawn on
+	/// (previewSectionCourses()) as the band of a NetworkMarkItem, and the courses of emphasisIds as its emphasis. The ids
+	/// are runtime section ids of the scene of the run. The mark replaces the one of the call before; it goes when no id
+	/// has a course. The view, the follow camera and the rest of the scene stay as they are. Does nothing without a run;
+	/// clear() removes the mark.
+	void markRunSections(const QStringList& sectionIds, const QStringList& emphasisIds);
+	/// The mark of markRunSections(); null without one.
+	const NetworkMarkItem* runSectionMark() const { return m_runSectionMark; }
 
 	/// Forgets the fit and the selection of the last preview; the preview itself stays.
 	void resetPreviewFit();
@@ -616,6 +626,10 @@ private:
 	// The scene of the run, which gives the colour of each service for the trains that apply() adds. It is the
 	// model that showRuntime drew, and the caller keeps it until the next clear().
 	const SceneModel* m_runModel = nullptr;
+	// The sections of the scene of the run, which markRunSections() resolves the ids against; null without a run.
+	std::unique_ptr<SceneSectionInventory> m_runSections;
+	// The mark of markRunSections(), or null.
+	NetworkMarkItem* m_runSectionMark = nullptr;
 	// Who takes the parts of a frame that are not on the canvas. It is never null.
 	FrameHost* m_host;
 

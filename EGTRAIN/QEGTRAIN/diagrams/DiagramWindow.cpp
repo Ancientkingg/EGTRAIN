@@ -684,6 +684,8 @@ void DiagramWindow::setChart(QChart* chart) {
 	m_selectedBox = nullptr;
 	m_pinnedTrainId.clear();
 	m_selectedLines.clear();
+	m_hoveredSections.clear();
+	refreshMarkedSections();
 	if (m_trainList) m_trainList->setSelectedTrain(QString());
 	refreshSelected();
 	// The base look of the old series is of no use, and a new series can take the address of an old one.
@@ -830,6 +832,8 @@ void DiagramWindow::setBlockSections(std::vector<BlockSectionExtent> sections, s
 	legend->show();
 	reserveStripRoom();
 	refreshKey();
+	// The sections come from the new strip.
+	setHoveredSections({});
 }
 
 // The invisible top legend takes the height of the strip.
@@ -1099,6 +1103,7 @@ void DiagramWindow::select(const ChartHit& hit) {
 	m_selectedBox = hit.inside ? hit.series : nullptr;
 	delete m_selectionOutline.data();
 	if (m_selectedBox) m_selectionOutline = new SelectionOutline(chart, m_selectedBox);
+	refreshMarkedSections();
 	if (m_trainList) m_trainList->setSelectedTrain(trainId);
 	raiseTrain(trainId);
 	refreshSelected();
@@ -1130,9 +1135,41 @@ void DiagramWindow::clearPin() {
 	m_selectedLines.clear();
 	m_selectedBox = nullptr;
 	delete m_selectionOutline.data();
+	refreshMarkedSections();
 	if (m_trainList) m_trainList->setSelectedTrain(QString());
 	refreshSelected();
 	applyColourPlan();
+}
+
+// The block of a blocking time box (kBoxBlockProperty), which need not be a section of the strip: a box of a train whose
+// route does not run along the reference route covers the sections of the strip that share a resource with its block.
+// A box without a block has the sections of the strip that it covers along the route; none without a strip.
+QStringList DiagramWindow::boxSections(const QXYSeries* box) const {
+	if (!box) return {};
+	if (const QString block = box->property(kBoxBlockProperty).toString(); !block.isEmpty()) return {block};
+	const auto* overlay = m_sectionOverlay.data();
+	if (!overlay) return {};
+	const QList<QPointF> points = box->points();
+	if (points.isEmpty()) return {};
+	const auto [low, high] =
+		std::minmax_element(points.cbegin(), points.cend(), [](const QPointF& a, const QPointF& b) { return a.x() < b.x(); });
+	return overlay->sectionsBetween(low->x(), high->x());
+}
+
+void DiagramWindow::setHoveredSections(const QStringList& sections) {
+	m_hoveredSections = sections;
+	refreshMarkedSections();
+}
+
+// Sends sectionsMarked when what the window points to has changed. A hidden window points to nothing.
+void DiagramWindow::refreshMarkedSections() {
+	const bool shown = isVisible();
+	const QStringList selected = shown ? boxSections(m_selectedBox) : QStringList();
+	const QStringList hovered = shown ? m_hoveredSections : QStringList();
+	if (selected == m_markedSelected && hovered == m_markedHovered) return;
+	m_markedSelected = selected;
+	m_markedHovered = hovered;
+	emit sectionsMarked(selected, hovered);
 }
 
 // Selected shows the lines of the click and the details of a box, the first line in bold, while something is selected in a
@@ -1470,7 +1507,7 @@ void DiagramWindow::clearTooltip() {
 // axis title, inside a box the nearest sample of a shown line within kLineOverBox px, else the box, outside the boxes the
 // nearest sample of a shown line within 10 px, else the hover of a section boundary. A sample gives its values, a box its
 // title, or else its name, and its context lines only. The lines of inspectionInterval after an empty line are details
-// for Selected.
+// for Selected. A cell of the strip gives its block sections, a box its block.
 DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 	ChartHit hit;
 	QChart* chart = m_view ? m_view->chart() : nullptr;
@@ -1480,6 +1517,7 @@ DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 		const QString text = overlay->inspect(cursor, true);
 		if (!text.isEmpty()) {
 			hit.lines = text.split('\n');
+			hit.sections = overlay->sectionsAt(cursor);
 			return hit;
 		}
 	}
@@ -1546,6 +1584,7 @@ DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 	const SeriesMeta meta = seriesMeta(selected.series);
 	const QString& title = meta.inspectionTitle;
 	if (!title.isEmpty()) identity = title;
+	if (meta.inspectionFilled) hit.sections = boxSections(selected.series);
 	// The corner of a box nearest the pointer says nothing about the box, so a box gives only its own lines.
 	hit.lines = hit.inside || !title.isEmpty() ? QStringList{identity} : sampleLines(selected.sample, identity);
 	const QStringList& contexts = meta.inspectionPoints;
@@ -1558,10 +1597,12 @@ DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 	return hit;
 }
 
-// Shows the tooltip of what the chart shows at a point, one fact per line, and gives it back.
+// Shows the tooltip of what the chart shows at a point, one fact per line, and gives it back. Its block sections are those
+// of the hover.
 DiagramWindow::ChartHit DiagramWindow::inspectAt(const QPoint& position) {
 	clearTooltip();
 	ChartHit hit = hitAt(position);
+	setHoveredSections(hit.sections);
 	if (!hit.lines.isEmpty()) {
 		m_tooltip->setText(hit.lines.join('\n')); // PlainText, so authored ids cannot inject rich text.
 		showTooltip(position);
@@ -1623,9 +1664,15 @@ void DiagramWindow::navigate(double factor, const QPointF& position, const QPoin
 bool DiagramWindow::eventFilter(QObject* obj, QEvent* ev) {
 	if (ev->type() == QEvent::Hide || ev->type() == QEvent::Close || ev->type() == QEvent::Leave)
 		clearTooltip();
+	if (obj == this && (ev->type() == QEvent::Show || ev->type() == QEvent::Hide)) {
+		// A hidden window points to nothing, and once shown again only to its selection; a minimised one stays visible.
+		if (!isVisible()) m_hoveredSections.clear();
+		refreshMarkedSections();
+	}
 	if (!m_view || obj != m_view->viewport() || !m_view->chart())
 		return QDialog::eventFilter(obj, ev);
 	const auto chartPosition = [this](const QPoint& p) { return m_view->chart()->mapFromScene(m_view->mapToScene(p)); };
+	if (ev->type() == QEvent::Leave) setHoveredSections({});
 	if ((ev->type() == QEvent::Leave || ev->type() == QEvent::Resize) && m_readout) {
 		// A new size of the chart, as when the panel shows or hides, moves the plot from under the pointer.
 		clearTooltip();
@@ -1637,7 +1684,10 @@ bool DiagramWindow::eventFilter(QObject* obj, QEvent* ev) {
 		auto* mouse = static_cast<QMouseEvent*>(ev);
 		updateCursorReadout(chartPosition(mouse->pos()));
 		if (mouse->buttons() == Qt::NoButton) inspectAt(mouse->pos());
-		else clearTooltip();
+		else {
+			clearTooltip();
+			setHoveredSections({});
+		}
 	} else if (ev->type() == QEvent::MouseButtonPress) {
 		m_pressPosition = static_cast<QMouseEvent*>(ev)->pos();
 		clearTooltip();

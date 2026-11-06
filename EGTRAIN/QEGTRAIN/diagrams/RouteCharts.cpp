@@ -374,6 +374,8 @@ void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramS
 		if (const QStringList parts = blockingComponentLines(segment); !parts.isEmpty()) lines << QString() << parts;
 		meta.inspectionInterval = lines.join('\n');
 		describeSeries(outline, meta);
+		// The network view marks the block itself, also where the box covers other sections of the strip.
+		outline->setProperty(DiagramWindow::kBoxBlockProperty, QString::fromStdString(segment.blockId));
 		styleBlockingTime(fill, outline, kindFor(segment));
 		if (fill) {
 			chart->addSeries(fill);

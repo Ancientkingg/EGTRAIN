@@ -482,6 +482,8 @@ void NetworkPresenter::clear() {
 	paxIconItem = nullptr;
 	effect = nullptr;
 	m_selectionMark = nullptr;
+	m_runSectionMark = nullptr;
+	m_runSections.reset();
 	m_previewNodeItems.clear();
 	m_previewPlatformBars.clear();
 	m_previewShown = false;
@@ -590,6 +592,8 @@ void NetworkPresenter::updateViewOverlays(const std::function<bool(const Station
 		m_selectionMark->setViewScale(viewScale);
 		m_selectionMark->sync();
 	}
+	if (m_runSectionMark)
+		m_runSectionMark->setViewScale(viewScale);
 	for (TrainItemGroup* train : std::as_const(allTrains))
 		if (train)
 			train->applyViewScale(viewScale);
@@ -1196,6 +1200,38 @@ bool NetworkPresenter::markPreviewSelection(const SceneModel& sceneModel, const 
 	return true;
 }
 
+void NetworkPresenter::markRunSections(const QStringList& sectionIds, const QStringList& emphasisIds) {
+	if (!m_scene || !m_runModel || !m_runSections)
+		return;
+	// The run is drawn on the track preview where it has one, so the courses of the preview lie on its tracks.
+	const auto courses = [this](const QStringList& ids) {
+		std::vector<std::string> references;
+		references.reserve(static_cast<std::size_t>(ids.size()));
+		for (const QString& id : ids)
+			references.push_back(id.toStdString());
+		return previewSectionCourses(m_cachedTrackPreview, *m_runSections, references);
+	};
+	const QList<QPolygonF> stretches = courses(sectionIds);
+	const QList<QPolygonF> emphasis = courses(emphasisIds);
+	const auto drawn = [](const QList<QPolygonF>& lines) {
+		return std::any_of(lines.begin(), lines.end(), [](const QPolygonF& line) { return !line.isEmpty(); });
+	};
+	// Nothing to draw adds no item to the scene.
+	if (!drawn(stretches) && !drawn(emphasis)) {
+		delete m_runSectionMark;
+		m_runSectionMark = nullptr;
+		return;
+	}
+	if (!m_runSectionMark) {
+		m_runSectionMark = new NetworkMarkItem();
+		if (m_view)
+			m_runSectionMark->setViewScale(std::abs(m_view->transform().m11()));
+		m_scene->addItem(m_runSectionMark);
+	}
+	m_runSectionMark->setStretches(stretches);
+	m_runSectionMark->setEmphasis(emphasis);
+}
+
 // Draws the station anchors: one fixed-size marker and name per canonical station.
 void NetworkPresenter::drawPreviewStations(const SceneModel& sceneModel, const PreviewDrawing& drawing) {
 	const TrackPreviewResult& preview = m_cachedTrackPreview;
@@ -1646,6 +1682,8 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 		return;
 	m_runModel = &sceneModel;
 	m_previewShown = false;
+	// The caller has cleared the scene, which took the mark of an earlier run.
+	m_runSectionMark = nullptr;
 
 	// The layout of this run, which starts from the authored levels and regions of the source. The track levels, the
 	// station layouts and the stations of each region are renewed together, so that nothing of an earlier call is left.
@@ -1858,7 +1896,8 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 	}
 
 	// draw signalling; the signals name their sections by the labels of the scene of the run
-	const SceneSectionLabels sectionLabels = sceneSectionLabels(buildSceneSectionInventory(sceneModel));
+	m_runSections = std::make_unique<SceneSectionInventory>(buildSceneSectionInventory(sceneModel));
+	const SceneSectionLabels sectionLabels = sceneSectionLabels(*m_runSections);
 	for (int i = 0; i < m_source->sectionCount(); i++) {
 		const Section& section = m_source->section(i);
 		// draw signal

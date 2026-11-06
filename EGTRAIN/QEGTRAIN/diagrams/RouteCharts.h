@@ -75,6 +75,7 @@ QStringList blockingComponentLines(const BlockingTimeDiagramSegment& segment);
 /// blocks of a compressed chart. The hover of a block names the train and the block by its short id (shortBlockId), then
 /// gives the blocked interval in clock time from `startOffsetSeconds` and the kind of a block that is not an ordinary
 /// one. After an empty line follow the parts of the blocking time (blockingComponentLines), which only Selected shows.
+/// The outline names the block in DiagramWindow::kBoxBlockProperty.
 void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramSegment>& segments,
 	bool useCapacityCriticalStyle, long long startOffsetSeconds);
 
