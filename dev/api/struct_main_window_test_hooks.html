@@ -131,6 +131,8 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a08dfaa657732586e6f67aa3df1ee7df2" id="r_a08dfaa657732586e6f67aa3df1ee7df2"><td class="memItemLeft">std::function&lt; void(<a class="el" href="class_main_window.html">MainWindow</a> &amp;)&gt;&#160;</td><td class="memItemRight"><a class="el" href="#a08dfaa657732586e6f67aa3df1ee7df2">afterFirstShow</a></td></tr>
 <tr class="memdesc:a08dfaa657732586e6f67aa3df1ee7df2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called once, at the end of the first showEvent.  <br /></td></tr>
 <tr class="memitem:a88f0f3027155ccf07e52459ef09298d8" id="r_a88f0f3027155ccf07e52459ef09298d8"><td class="memItemLeft">void(*)&#160;</td><td class="memItemRight"><a class="el" href="#a88f0f3027155ccf07e52459ef09298d8">frameRendered</a> (<a class="el" href="class_main_window.html">MainWindow</a> &amp;window, bool historical) = nullptr</td></tr>
+<tr class="memitem:a9f5971d47adde20ec5e8b7aa04e09766" id="r_a9f5971d47adde20ec5e8b7aa04e09766"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a9f5971d47adde20ec5e8b7aa04e09766">runDataFolder</a></td></tr>
+<tr class="memdesc:a9f5971d47adde20ec5e8b7aa04e09766"><td class="mdescLeft">&#160;</td><td class="mdescRight">The folder that holds Recovery and Crashes in place of AppLocalDataLocation, for a test run with settings of its own.  <br /></td></tr>
 <tr class="memitem:a65b26bad30c181f7046900bedfcd4489" id="r_a65b26bad30c181f7046900bedfcd4489"><td class="memItemLeft">std::function&lt; QString()&gt;&#160;</td><td class="memItemRight"><a class="el" href="#a65b26bad30c181f7046900bedfcd4489">passengerSource</a></td></tr>
 <tr class="memdesc:a65b26bad30c181f7046900bedfcd4489"><td class="mdescLeft">&#160;</td><td class="mdescRight">The folder that Import Passengers reads in place of asking for one. An empty path asks as usual.  <br /></td></tr>
 <tr class="memitem:a55e996b61c2bcaa3045854d3f7295d07" id="r_a55e996b61c2bcaa3045854d3f7295d07"><td class="memItemLeft">std::function&lt; void(QDialog &amp;dialog, const char *kind)&gt;&#160;</td><td class="memItemRight"><a class="el" href="#a55e996b61c2bcaa3045854d3f7295d07">dialogShown</a></td></tr>
@@ -321,6 +323,22 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Called once the window of a route diagram is built, with the function that gives its CSV for the trains shown and the ids of the trains of the run. </p>
+
+</div>
+</div>
+<a id="a9f5971d47adde20ec5e8b7aa04e09766" name="a9f5971d47adde20ec5e8b7aa04e09766"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9f5971d47adde20ec5e8b7aa04e09766">&#9670;&#160;</a></span>runDataFolder</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString MainWindowTestHooks::runDataFolder</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The folder that holds Recovery and Crashes in place of AppLocalDataLocation, for a test run with settings of its own. </p>
 
 </div>
 </div>

@@ -714,6 +714,11 @@ application and <code class="docutils literal notranslate"><span class="pre">sce
 failure prints the end of the output of the run that failed. The scripts of the
 application are in <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/e2e/Recovery.cpp</span></code> and the answer to the
 prompt in <code class="docutils literal notranslate"><span class="pre">Dialogs.cpp</span></code>. The editor smoke covers the same paths in one process.</p>
+<p><code class="docutils literal notranslate"><span class="pre">tools/e2e/run_data_folder_smoke.py</span></code> starts the window on the vnc platform, which gives it a screen without a display,
+with crash notes in a stand-in data folder of the user (<code class="docutils literal notranslate"><span class="pre">XDG_DATA_HOME</span></code>) and in its settings folder. Without
+<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_SETTINGS_DIR</span></code> the start reports the note of the user; with it, the note of the settings folder, and the
+note of the user stays as it was. CTest runs it as <code class="docutils literal notranslate"><span class="pre">test_run_data_folder_smoke</span></code> where Qt has the vnc platform, which is
+Linux.</p>
 <p>The recovery folder is below the local application data folder of the user. An
 operating system backup or a sync tool that includes that folder can copy recovery
 files, which hold the case data of the scenes in them.</p>
@@ -1000,7 +1005,7 @@ most of its checks, so read the log in its folder.</p>
 </tr>
 <tr class="row-odd"><td><p>Files of a run in the application or from <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;QStandardPaths::AppDataLocation&gt;/Output/&lt;scene&gt;</span></code>; the files are in <a class="reference internal" href="../guides/run-output.html"><span class="std std-doc">Run output</span></a></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">QEGTRAIN_OUTPUT_DIR</span></code> replaces the base folder, and <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Set</span> <span class="pre">Output</span> <span class="pre">Folder...</span></code> replaces the folder of every later run in that session (<a class="reference internal" href="../guides/command-line.html#output-folder"><span class="std std-ref">Output folder</span></a>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">QEGTRAIN_OUTPUT_DIR</span></code> replaces the base folder, and <code class="docutils literal notranslate"><span class="pre">Simulation</span> <span class="pre">&gt;</span> <span class="pre">Set</span> <span class="pre">Output</span> <span class="pre">Folder...</span></code> replaces the folder of every later run in that session (<a class="reference internal" href="../guides/command-line.html#output-folder"><span class="std std-ref">Output folder</span></a>)</p></td>
 </tr>
 <tr class="row-even"><td><p>Messages of a run</p></td>
 <td><p>Standard output and error, the <strong>Log</strong> dock, and the file named by <code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG_FILE</span></code></p></td>
@@ -1027,8 +1032,12 @@ most of its checks, so read the log in its folder.</p>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p>Unsaved-work copies that the window keeps</p></td>
-<td><p>A <code class="docutils literal notranslate"><span class="pre">Recovery</span></code> folder in the local application data folder</p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">Recovery</span></code> folder in the local application data folder, or in the folder of <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_SETTINGS_DIR</span></code> for a test run with a window on a screen. Scripted runs and the offscreen and minimal platforms keep none unless <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_RECOVERY_DIR</span></code> is set</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">QEGTRAIN_RECOVERY_DIR</span></code> (<a class="reference internal" href="../architecture/scene-editor-flow.html#window-flow"><span class="std std-ref">Scene editor flow</span></a>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Crash notes of the window</p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">Crashes</span></code> folder next to the <code class="docutils literal notranslate"><span class="pre">Recovery</span></code> folder, kept under the same rules</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">QEGTRAIN_CRASH_DIR</span></code> (<a class="reference internal" href="error-handling.html#crash-notes"><span class="std std-ref">Crash notes</span></a>)</p></td>
 </tr>
 </tbody>
 </table>

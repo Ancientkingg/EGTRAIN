@@ -98,14 +98,14 @@ Choose **Run**, check the dialog **Run simulation** (**Trains** 1, and no **Inci
 
 ## 8. Save as a folder and as a bundle
 
-1. Choose **File > Save As Folder...**. In the dialog **Save Case As Folder**, make or choose an empty folder `minimal-line` and confirm. The folder holds `scene.json`, `infrastructure.json`, `stations.json`, `signalling.json`, `rolling_stock.json`, `services.json` and `scenarios.json` ([files of a case](scene-schema.md#version-and-files)).
-2. Choose **File > Save As...**. In the dialog **Save Case As**, name the file `minimal-line.egscene` and save it. Type the extension too: the folder `minimal-line` of step 1 has the same name without it, and the dialog can open that folder instead of saving. After this, **File > Save** writes to this bundle.
+1. Choose **File > Save As...** and click **Case Folder...**. In the dialog **Save Case As Folder**, make or choose an empty folder `minimal-line` and confirm. The folder holds `scene.json`, `infrastructure.json`, `stations.json`, `signalling.json`, `rolling_stock.json`, `services.json` and `scenarios.json` ([files of a case](scene-schema.md#version-and-files)).
+2. Choose **File > Save As...** again and click **Case File...**. In the dialog **Save Case As**, name the file `minimal-line.egscene` and save it. Type the extension too: the folder `minimal-line` of step 1 has the same name without it, and the dialog can open that folder instead of saving. After this, **File > Save** writes to this bundle.
 
 Both are now listed under **File > Recent Cases**.
 
 ## 9. Reopen and confirm
 
-1. Choose **File > Open Case Folder...**, choose the folder `minimal-line`, and check the Infrastructure, Services and Rolling Stock Units against the sections above. The title bar reads `EGTRAIN - Minimal line`.
+1. Choose **File > Open Case...**, then **Other ways to open... > Open Case Folder...** in **Open a Case**, choose the folder `minimal-line`, and check the Infrastructure, Services and Rolling Stock Units against the sections above. The title bar reads `EGTRAIN - Minimal line`.
 2. Choose **File > Recent Cases** and the entry `minimal-line` for the bundle (the folder is listed as `Minimal line`). The case is the same, and **Run** completes with the same arrival.
 
 ## 10. Check the saved case outside the window

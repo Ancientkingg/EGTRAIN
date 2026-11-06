@@ -6,15 +6,15 @@ This page says what the words of the program and of its documents mean. Every en
 
 ### Case
 
-A case is what the program opens, edits, runs and saves: everything a run needs, that is infrastructure, signalling, rolling stock, services with timetables, scenarios and, optionally, passengers. It is stored as a case folder or as a bundle. You meet it in **File > New Case...**, **File > Open Case...** (which opens a bundle), **File > Save As...**, the dock **Case and Layers**, which names the open case, and the command-line option `-n` ([bundled case numbers](command-line.md#bundled-case-numbers)). The toolbar button **Open Case** shows the chooser **Open a Case**, which lists "Bundled cases" and "Recent cases" and has the button **Other ways to open...**.
+A case is what the program opens, edits, runs and saves: everything a run needs, that is infrastructure, signalling, rolling stock, services with timetables, scenarios and, optionally, passengers. It is stored as a case folder or as a bundle. You meet it in **File > New Case...**, **File > Open Case...**, **File > Save As...**, the dock **Case and Layers**, which names the open case, and the command-line option `-n` ([bundled case numbers](command-line.md#bundled-case-numbers)). **File > Open Case...** and the toolbar button **Open Case** show the chooser **Open a Case**, which lists "Bundled cases" and "Recent cases" and has the button **Other ways to open...**.
 
 ### Case folder
 
-A case folder is a case as the program reads it: a folder of JSON files. The required files are `scene.json`, `infrastructure.json`, `stations.json`, `signalling.json`, `rolling_stock.json` and `services.json`, and `scenarios.json`, `passengers.json` and `views.json` are optional on load ([case folder](scene-schema.md#case-folder), [contents of the files](scene-schema.md#version-and-files)). You meet it in **File > Open Case Folder...**, **File > Save** (it writes back to an ordinary open folder or bundle; for a bundled case or a new case without a location it asks for a new bundle name, like **File > Save As...**) and **File > Save As Folder...**. The word "scene" names only the format of these files and the tools that read them, as in `scene.json`, the [scene schema](scene-schema.md) and `scene_tool`. "Canonical" means this form: the case folder is the editable source of truth, loading, validating and running use only it, and legacy files enter or leave only through the explicit import and export.
+A case folder is a case as the program reads it: a folder of JSON files. The required files are `scene.json`, `infrastructure.json`, `stations.json`, `signalling.json`, `rolling_stock.json` and `services.json`, and `scenarios.json`, `passengers.json` and `views.json` are optional on load ([case folder](scene-schema.md#case-folder), [contents of the files](scene-schema.md#version-and-files)). You meet it in **Open Case Folder...** of **Open a Case**, **File > Save** (it writes back to an ordinary open folder or bundle; for a bundled case or a new case without a location it asks for a new bundle name, like **Case File...** of **File > Save As...**) and **Case Folder...** of **File > Save As...**. The word "scene" names only the format of these files and the tools that read them, as in `scene.json`, the [scene schema](scene-schema.md) and `scene_tool`. "Canonical" means this form: the case folder is the editable source of truth, loading, validating and running use only it, and legacy files enter or leave only through the explicit import and export.
 
 ### Bundle
 
-A bundle is one file for moving a case: a ZIP archive that holds the JSON files of a case folder and has the extension `.egscene`. It holds no results and no legacy input. **File > Save As...** and `scene_tool pack` make it, and **File > Open Case...**, the chooser, the option `--scene`, a file name on the command line and a double-click in Explorer or Finder open it. The folder stays the editable source format and the bundle is its transport form ([opening a case](opening-a-case-study.md), [bundle format](scene-bundle.md)).
+A bundle is one file for moving a case: a ZIP archive that holds the JSON files of a case folder and has the extension `.egscene`. It holds no results and no legacy input. **Case File...** of **File > Save As...** and `scene_tool pack` make it, and the chooser **Open a Case** (a recent case or **Open Case File...**), the option `--scene`, a file name on the command line and a double-click in Explorer or Finder open it. The folder stays the editable source format and the bundle is its transport form ([opening a case](opening-a-case-study.md), [bundle format](scene-bundle.md)).
 
 ### V1 and V2
 
@@ -38,7 +38,7 @@ Provenance names two things. Each export of results (**Export CSV...**, **Export
 
 ### Output folder
 
-The output folder is the folder where a run writes its text output. **File > Set Output Folder...** chooses it for the next run. [Output folder](command-line.md#output-folder) gives the default and the environment variable that replaces it. [Run output files](run-output.md) lists the files of a run. The exports (**Export CSV...**, **Export PNG...**) ask for their own path and are not written there.
+The output folder is the folder where a run writes its text output. **Simulation > Set Output Folder...** chooses it for the next run. [Output folder](command-line.md#output-folder) gives the default and the environment variable that replaces it. [Run output files](run-output.md) lists the files of a run. The exports (**Export CSV...**, **Export PNG...**) ask for their own path and are not written there.
 
 ## Checking, running and results
 
@@ -48,7 +48,7 @@ Validation is the program's check of a case; each finding is a diagnostic with a
 
 ### Run
 
-A run is a simulation of the open case with the selected scenario and the ticked occurrences. You start it with the toolbar button **Run**, **Simulation > Run** (Ctrl+R) or **File > Run**. They are disabled while no case is loaded, while a run is active and while validation reports an error; with no occurrence ticked, starting a run shows the message `Select at least one occurrence on the Run occurrences tab of Services.`, titled **Cannot Run Case** on Windows and Linux. Otherwise the dialog **Run simulation** shows **Trains**, **Start time**, **Duration** and, when the scenario has any, **Incidents**, and its button **Run simulation** starts the run. A run uses the case as it is in the window, including unsaved edits.
+A run is a simulation of the open case with the selected scenario and the ticked occurrences. You start it with the toolbar button **Run** or **Simulation > Run** (Ctrl+R). They are disabled while no case is loaded, while a run is active and while validation reports an error; with no occurrence ticked, starting a run shows the message `Select at least one occurrence on the Run occurrences tab of Services.`, titled **Cannot Run Case** on Windows and Linux. Otherwise the dialog **Run simulation** shows **Trains**, **Start time**, **Duration** and, when the scenario has any, **Incidents**, and its button **Run simulation** starts the run. A run uses the case as it is in the window, including unsaved edits.
 
 ### Runtime
 

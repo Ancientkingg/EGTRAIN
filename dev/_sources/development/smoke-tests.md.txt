@@ -375,6 +375,12 @@ failure prints the end of the output of the run that failed. The scripts of the
 application are in `EGTRAIN/QEGTRAIN/tests/e2e/Recovery.cpp` and the answer to the
 prompt in `Dialogs.cpp`. The editor smoke covers the same paths in one process.
 
+`tools/e2e/run_data_folder_smoke.py` starts the window on the vnc platform, which gives it a screen without a display,
+with crash notes in a stand-in data folder of the user (`XDG_DATA_HOME`) and in its settings folder. Without
+`QEGTRAIN_E2E_SETTINGS_DIR` the start reports the note of the user; with it, the note of the settings folder, and the
+note of the user stays as it was. CTest runs it as `test_run_data_folder_smoke` where Qt has the vnc platform, which is
+Linux.
+
 The recovery folder is below the local application data folder of the user. An
 operating system backup or a sync tool that includes that folder can copy recovery
 files, which hold the case data of the scenes in them.
@@ -594,14 +600,15 @@ most of its checks, so read the log in its folder.
 | Output | Where | Set by |
 | --- | --- | --- |
 | Result of a CTest run | `build/Testing/Temporary/LastTest.log`; the names of the failed tests are in `LastTestsFailed.log` in the same folder. `ctest --rerun-failed --output-on-failure` runs those again, and `--output-log FILE` writes the log to a file | CTest |
-| Files of a run in the application or from `QEGTRAIN` | `<QStandardPaths::AppDataLocation>/Output/<scene>`; the files are in [Run output](../guides/run-output.md) | `QEGTRAIN_OUTPUT_DIR` replaces the base folder, and `File > Set Output Folder...` replaces the folder of every later run in that session ([Output folder](../guides/command-line.md#output-folder)) |
+| Files of a run in the application or from `QEGTRAIN` | `<QStandardPaths::AppDataLocation>/Output/<scene>`; the files are in [Run output](../guides/run-output.md) | `QEGTRAIN_OUTPUT_DIR` replaces the base folder, and `Simulation > Set Output Folder...` replaces the folder of every later run in that session ([Output folder](../guides/command-line.md#output-folder)) |
 | Messages of a run | Standard output and error, the **Log** dock, and the file named by `EGTRAIN_LOG_FILE` | `EGTRAIN_LOG`, `EGTRAIN_LOG_FILE` ([Log output](../guides/command-line.md#log-output)) |
 | User settings of a test that starts the window | `build/settings/<test>` | `QEGTRAIN_E2E_SETTINGS_DIR`, set by CMake |
 | Run output of the scene render, track preview, legacy import, route diagram and visual polish tests | `build/output/<test>`. `test_scene_drop` and `test_output_folder` write to `build/scene-drop-test` and `build/output-folder-test` | `QEGTRAIN_OUTPUT_DIR`, set by CMake |
 | Logs and screenshots of the Bash smokes | A folder of each run's own below `${TMPDIR:-/tmp}`, kept only when the run fails; see [Smoke artifacts](#smoke-artifacts) | `TMPDIR` (`TEMP` and `TMP` on Windows) |
 | Output of `tools/e2e/headless_smoke.py` | `EGTRAIN/QEGTRAIN/Output/<scene>`, and `headless_case_<n>.log` in `build/smoke-logs` under CTest or in `tools/e2e` for a run by hand. Git ignores the source tree files. The script sets `QEGTRAIN_OUTPUT_DIR` itself | The case numbers on the command line; none runs all six, and Copenhagen alone takes minutes. CTest runs each case as its own test. `QEGTRAIN_SMOKE_LOG_DIR` names the log folder, and CTest sets it |
 | Files of `tools/e2e/roundtrip_smoke.py` | A temporary folder that the script removes when it ends | |
-| Unsaved-work copies that the window keeps | A `Recovery` folder in the local application data folder | `QEGTRAIN_RECOVERY_DIR` ([Scene editor flow](../architecture/scene-editor-flow.md#window-flow)) |
+| Unsaved-work copies that the window keeps | A `Recovery` folder in the local application data folder, or in the folder of `QEGTRAIN_E2E_SETTINGS_DIR` for a test run with a window on a screen. Scripted runs and the offscreen and minimal platforms keep none unless `QEGTRAIN_RECOVERY_DIR` is set | `QEGTRAIN_RECOVERY_DIR` ([Scene editor flow](../architecture/scene-editor-flow.md#window-flow)) |
+| Crash notes of the window | A `Crashes` folder next to the `Recovery` folder, kept under the same rules | `QEGTRAIN_CRASH_DIR` ([Crash notes](error-handling.md#crash-notes)) |
 
 Point `TMPDIR` at a folder outside the checkout when several people test on one machine, so that
 no run reads another run's files. Do the same with `QEGTRAIN_OUTPUT_DIR` for manual runs of the

@@ -11,6 +11,7 @@ var struct_main_window_test_hooks =
     [ "passengerSource", "struct_main_window_test_hooks.html#a65b26bad30c181f7046900bedfcd4489", null ],
     [ "privacyPreview", "struct_main_window_test_hooks.html#a030fe1f7bf4a928721bfe463109b186a", null ],
     [ "routeDiagramBuilt", "struct_main_window_test_hooks.html#a3c2b73a1562ab82518217bca0d8cf47f", null ],
+    [ "runDataFolder", "struct_main_window_test_hooks.html#a9f5971d47adde20ec5e8b7aa04e09766", null ],
     [ "runFinished", "struct_main_window_test_hooks.html#a8bfb8df20a1c75532f98458947501a70", null ],
     [ "snapshotDelivered", "struct_main_window_test_hooks.html#a0b475b64be61d9da7982759c6cecd655", null ],
     [ "snapshotDrawn", "struct_main_window_test_hooks.html#aad380a2f152be1de7f8ebd13f7e608dc", null ],

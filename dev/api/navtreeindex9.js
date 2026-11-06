@@ -1,5 +1,6 @@
 var NAVTREEINDEX9 =
 {
+"class_composition_panel.html#aad68b96ee775734d1262784ef752a54c":[2,0,56,14],
 "class_composition_panel.html#ab1e12b259116cc85cf32a312ff2539af":[2,0,56,8],
 "class_composition_panel.html#ab28258935fa9e59a90af0412c971dae4":[2,0,56,15],
 "class_composition_panel.html#ac3ad4dbf7beae8e7820eea6e776e10cc":[2,0,56,13],
@@ -248,6 +249,5 @@ var NAVTREEINDEX9 =
 "class_gui_replay_history.html#adaaf08e3b6f16671f143142825dd6c39":[2,0,97,8],
 "class_gui_replay_history.html#ae9a7813ad6b22bca029ed20e2e41d7c4":[2,0,97,1],
 "class_gui_signal_state_list.html":[2,0,100],
-"class_gui_signal_state_list.html#a0795d26a31606d478d08663f16add619":[2,0,100,1],
-"class_gui_signal_state_list.html#a084b6026f322fc993dddce0b2adde0e0":[2,0,100,0]
+"class_gui_signal_state_list.html#a0795d26a31606d478d08663f16add619":[2,0,100,1]
 };

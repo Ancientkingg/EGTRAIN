@@ -611,14 +611,15 @@ executable. Note what the chooser lists. Close it before step 2 with the
 button that keeps the current case: <strong>Continue</strong> when a case is loaded and
 <strong>Cancel</strong> when none is.</p>
 </li>
-<li><p>Open a downloaded <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> through <strong>File &gt; Open Case…</strong>.</p></li>
+<li><p>Open a downloaded <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> through <strong>File &gt; Open Case…</strong> and
+<strong>Other ways to open… &gt; Open Case File…</strong> in <strong>Open a Case</strong>.</p></li>
 <li><p>Confirm the network renders. Show Loaded Data with <strong>View &gt; Loaded Data</strong>
 (the entry is checked while the dock is shown) and tick
 <strong>View &gt; Advanced Details</strong>, which adds the versions. Confirm
 that it shows identity, versions, category counts, scenarios, validation,
 runtime, and result readiness.</p></li>
 <li><p>Select or edit a scenario and confirm the run review names that scenario.</p></li>
-<li><p>Use <strong>Save As…</strong> to write a working copy outside the package.
+<li><p>Use <strong>Save As…</strong> and <strong>Case File…</strong> to write a working copy outside the package.
 The dialog proposes the downloaded bundle itself: give the copy a new name
 in another folder.
 Confirm the downloaded source bundle is unchanged. Compare the original with
@@ -664,16 +665,16 @@ text, which is the same on every platform.</p>
 </tr>
 <tr class="row-odd"><td><p>R2 Drop a bundle onto the open window</p></td>
 <td><p>Drag one <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file from the file manager onto the open main window.</p></td>
-<td><p>It opens like <strong>File &gt; Open Case…</strong>. The application accepts exactly one local <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file.</p></td>
+<td><p>It opens like <strong>Open Case File…</strong> in <strong>Open a Case</strong>. The application accepts exactly one local <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file.</p></td>
 <td><p>All</p></td>
 </tr>
 <tr class="row-even"><td><p>R3 Unsaved changes</p></td>
-<td><p>Run it after step 9, when the open case is the working copy and not the downloaded bundle. Change a scenario value and choose <strong>File &gt; Open Case…</strong>. In the file dialog choose another copy of a bundle, never the downloaded bundle. The <strong>Unsaved Case</strong> message follows the choice of a file. Then repeat with <strong>File &gt; Quit</strong> (on macOS, <strong>Quit</strong> in the application menu). Make the change again before each repeat, and reopen the working copy after <strong>Discard</strong>.</p></td>
+<td><p>Run it after step 9, when the open case is the working copy and not the downloaded bundle. Change a scenario value and choose <strong>File &gt; Open Case…</strong> and <strong>Other ways to open… &gt; Open Case File…</strong>. In the file dialog choose another copy of a bundle, never the downloaded bundle. The <strong>Unsaved Case</strong> message follows the choice of a file. Then repeat with <strong>File &gt; Quit</strong> (on macOS, <strong>Quit</strong> in the application menu). Make the change again before each repeat, and reopen the working copy after <strong>Discard</strong>.</p></td>
 <td><p>The message offers <strong>Save</strong>, <strong>Discard</strong> and <strong>Cancel</strong>. On macOS it has no title and reads <code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">the</span> <span class="pre">changes</span> <span class="pre">to</span> <span class="pre">&lt;case</span> <span class="pre">name&gt;?</span></code>, and its buttons are <strong>Save</strong>, <strong>Cancel</strong> and <strong>Don’t Save</strong>, which are Qt’s native names for Save, Cancel and Discard. Answer <strong>Cancel</strong> first and record that the edit and the open case stay, and that the status bar adds no message. Then answer <strong>Save</strong> and <strong>Discard</strong> once each, and record what happened to the working copy. Afterwards the downloaded bundle must still equal its copy.</p></td>
 <td><p>All</p></td>
 </tr>
 <tr class="row-odd"><td><p>R4 Damaged file</p></td>
-<td><p>Rename a plain text file to <code class="docutils literal notranslate"><span class="pre">something.egscene</span></code> and open it with <strong>File &gt; Open Case…</strong>.</p></td>
+<td><p>Rename a plain text file to <code class="docutils literal notranslate"><span class="pre">something.egscene</span></code> and open it with <strong>Open Case File…</strong> in <strong>Open a Case</strong>.</p></td>
 <td><p>Record the message title and text, and whether the case that was open before is still shown. The application must not crash and must not change the file.</p></td>
 <td><p>All</p></td>
 </tr>
@@ -708,18 +709,18 @@ text, which is the same on every platform.</p>
 <td><p>All</p></td>
 </tr>
 <tr class="row-even"><td><p>R11 Save a bundled case</p></td>
-<td><p>Copy the installed case folder before testing, then open the bundled case through <strong>Open Case</strong>, edit it, and choose <strong>Save</strong>. Cancel once, then save a new <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> outside the installation. Reopen and edit the bundled case before repeating through <strong>Save</strong> in <strong>Unsaved Case</strong>. Try an installed folder as the destination of <strong>Save As Folder…</strong>, and a file inside it through <strong>Save As…</strong>.</p></td>
+<td><p>Copy the installed case folder before testing, then open the bundled case through <strong>Open Case</strong>, edit it, and choose <strong>Save</strong>. Cancel once, then save a new <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> outside the installation. Reopen and edit the bundled case before repeating through <strong>Save</strong> in <strong>Unsaved Case</strong>. Try an installed folder as the destination of <strong>Case Folder…</strong> in <strong>Save As…</strong>, and a file inside it through <strong>Case File…</strong>.</p></td>
 <td><p>The dialog starts in the Documents folder, or in the home folder when there is none, and not in the installation. Cancel retains the edit and current case; a successful save makes the new bundle current. Installed destinations are rejected. The original folder’s file paths and bytes remain unchanged. A later edit saves in place to the external bundle.</p></td>
 <td><p>All</p></td>
 </tr>
 <tr class="row-odd"><td><p>R12 Bundle of the previous release</p></td>
-<td><p>Download one <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle from the assets of the latest stable release before the candidate, for example <code class="docutils literal notranslate"><span class="pre">Paimpol.egscene</span></code>. Open it in the application under test with <strong>File &gt; Open Case…</strong> and run a short simulation as in step 6.</p></td>
+<td><p>Download one <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle from the assets of the latest stable release before the candidate, for example <code class="docutils literal notranslate"><span class="pre">Paimpol.egscene</span></code>. Open it in the application under test with <strong>Open Case File…</strong> in <strong>Open a Case</strong> and run a short simulation as in step 6.</p></td>
 <td><p>The bundle opens without a version message, and the simulation runs to its end. Record the tag of the release. A message that the scene is older, newer or unsupported is a finding, unless the candidate deliberately drops support for that format.</p></td>
 <td><p>All</p></td>
 </tr>
 <tr class="row-even"><td><p>R13 Replace a case on disk</p></td>
-<td><p>Save the working copy into a new folder with <strong>File &gt; Save As Folder…</strong>; that folder is then the open case. Change a scenario value, change <code class="docutils literal notranslate"><span class="pre">scene.json</span></code> of that folder in a text editor, and choose <strong>File &gt; Save</strong>. Then save into a second new folder with <strong>File &gt; Save As Folder…</strong>, and choose <strong>File &gt; Save As Folder…</strong> again with the first folder. With a legacy case folder at hand, choose <strong>File &gt; Import Legacy Case…</strong> and a destination folder that holds other files.</p></td>
-<td><p><strong>Case Changed on Disk</strong> asks before Save replaces the changed folder, and No keeps the edit and the file on disk. <strong>Save Case As Folder</strong> asks before it replaces the case in the first folder. The import offers a new folder inside the destination and leaves the other files alone. Record each text.</p></td>
+<td><p>Save the working copy into a new folder with <strong>File &gt; Save As…</strong> and <strong>Case Folder…</strong>; that folder is then the open case. Change a scenario value, change <code class="docutils literal notranslate"><span class="pre">scene.json</span></code> of that folder in a text editor, and choose <strong>File &gt; Save</strong>. Then save into a second new folder with <strong>Save As…</strong> and <strong>Case Folder…</strong>, and do that again with the first folder. With a legacy case folder at hand, choose <strong>File &gt; Import Legacy Case…</strong> and a destination folder that holds other files.</p></td>
+<td><p>The question of <strong>Save As…</strong> has <strong>Case File…</strong> as its default button while the working copy is open, and <strong>Case Folder…</strong> once a folder is the open case. <strong>Case Changed on Disk</strong> asks before Save replaces the changed folder, and No keeps the edit and the file on disk. <strong>Save Case As Folder</strong> asks before it replaces the case in the first folder. The import offers a new folder inside the destination and leaves the other files alone. Record each text.</p></td>
 <td><p>All</p></td>
 </tr>
 </tbody>
@@ -820,7 +821,7 @@ did, and go on with <strong>Open With</strong>.</p>
 <td><p>macOS</p></td>
 </tr>
 <tr class="row-odd"><td><p>M6 Folder access questions</p></td>
-<td><p>On an account that has never run EGTRAIN, start the app from the Applications folder, close <strong>Open a Case</strong> and choose <strong>File &gt; Open Case…</strong>. Cancel, choose <strong>File &gt; New Case…</strong> and choose <strong>File &gt; Open Case…</strong> again. Last, in the file dialog choose <strong>lume</strong> or your home folder in the sidebar and write down what macOS asks.</p></td>
+<td><p>On an account that has never run EGTRAIN, start the app from the Applications folder, close <strong>Open a Case</strong>, choose <strong>File &gt; Open Case…</strong> and then <strong>Other ways to open… &gt; Open Case File…</strong>. Cancel, choose <strong>File &gt; New Case…</strong> and open the file dialog in the same way again. Last, in the file dialog choose <strong>lume</strong> or your home folder in the sidebar and write down what macOS asks.</p></td>
 <td><p>The first two file dialogs open in the <code class="docutils literal notranslate"><span class="pre">Scenes</span></code> folder of the app without any question about Desktop, Documents or Downloads. The question <code class="docutils literal notranslate"><span class="pre">&quot;QEGTRAIN&quot;</span> <span class="pre">would</span> <span class="pre">like</span> <span class="pre">to</span> <span class="pre">access</span> <span class="pre">files</span> <span class="pre">in</span> <span class="pre">your</span> <span class="pre">Desktop</span> <span class="pre">folder.</span></code>, and the same for Documents and Downloads, appears only when the file dialog lists your home folder, which it does in the last step. Record each question with its text and the step that caused it. Any question in the first two dialogs is a finding.</p></td>
 <td><p>macOS</p></td>
 </tr>

@@ -238,7 +238,9 @@ in `QEGTRAIN` and in `test_selfupdater` with `EGTRAIN_UPDATE_TEST_HOOK`, which a
 With `EGTRAIN_BUILD_TESTS=ON`, `QEGTRAIN` also compiles the sources in
 `EGTRAIN/QEGTRAIN/tests/e2e`, the runner for the scripted GUI scenarios. At the
 start of `main()` it redirects the user settings to the folder named by
-`QEGTRAIN_E2E_SETTINGS_DIR`. After the first show of the window it starts a
+`QEGTRAIN_E2E_SETTINGS_DIR`, and the recovery copies and crash notes of a window
+on a screen that runs no scenario to `Recovery` and `Crashes` in that folder.
+After the first show of the window it starts a
 scenario, with blocking dialogs switched off, when the variable of that scenario
 is set. A build without tests, such as the three package builds, compiles none
 of it: in such a build the first show of the window starts no scenario and

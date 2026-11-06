@@ -10,7 +10,8 @@ var searchData=
   ['blocked_7',['Blocked',['../_visual_polish_8h.html#ac911f586567167005b7821cfc3da968da4ecc0d90eec1cea3e9db96583a1bb9c2',1,'VisualPolish.h']]],
   ['box_8',['Box',['../struct_diagram_key_entry.html#ab30743ff16b867014d0734c733575ea7a3cfce651e667ab85486dd42a8185f98a',1,'DiagramKeyEntry']]],
   ['breakdownhold_9',['BreakdownHold',['../_rolling_stock_8h.html#a6212850430c9d87a2b2518f5ea118b1cab20c4d284dd357db8fbbaafb988e13d4',1,'RollingStock.h']]],
-  ['browsefolder_10',['BrowseFolder',['../class_case_chooser_dialog.html#a780b44e946d7556c0277e51559b11a00a5a4ed5ce8094d5a091471fc51d60b552',1,'CaseChooserDialog']]],
-  ['bundle_11',['Bundle',['../_recovery_store_8h.html#a1a024835c6bb67380adee3df155f8df5a94c51f19c37f96ed231f5a0ae512b2a8',1,'Bundle:&#160;RecoveryStore.h'],['../_scene_compatibility_8h.html#a11c94f442a5af2e28be0a4c9d60481f7a94c51f19c37f96ed231f5a0ae512b2a8',1,'Bundle:&#160;SceneCompatibility.h'],['../_scene_migration_8h.html#a21ae7eeb465e1f66e0420c7434dcb479a94c51f19c37f96ed231f5a0ae512b2a8',1,'Bundle:&#160;SceneMigration.h']]],
-  ['bundled_12',['Bundled',['../namespacetelemetry.html#a9c4a19fee431cf8e3cee072669dc499fa4d4357cc70fa310fee2ff5157bc14a90',1,'telemetry']]]
+  ['browsefile_10',['BrowseFile',['../class_case_chooser_dialog.html#a780b44e946d7556c0277e51559b11a00a65803d0f039e00f621d288091efab00a',1,'CaseChooserDialog']]],
+  ['browsefolder_11',['BrowseFolder',['../class_case_chooser_dialog.html#a780b44e946d7556c0277e51559b11a00a5a4ed5ce8094d5a091471fc51d60b552',1,'CaseChooserDialog']]],
+  ['bundle_12',['Bundle',['../_recovery_store_8h.html#a1a024835c6bb67380adee3df155f8df5a94c51f19c37f96ed231f5a0ae512b2a8',1,'Bundle:&#160;RecoveryStore.h'],['../_scene_compatibility_8h.html#a11c94f442a5af2e28be0a4c9d60481f7a94c51f19c37f96ed231f5a0ae512b2a8',1,'Bundle:&#160;SceneCompatibility.h'],['../_scene_migration_8h.html#a21ae7eeb465e1f66e0420c7434dcb479a94c51f19c37f96ed231f5a0ae512b2a8',1,'Bundle:&#160;SceneMigration.h']]],
+  ['bundled_13',['Bundled',['../namespacetelemetry.html#a9c4a19fee431cf8e3cee072669dc499fa4d4357cc70fa310fee2ff5157bc14a90',1,'telemetry']]]
 ];

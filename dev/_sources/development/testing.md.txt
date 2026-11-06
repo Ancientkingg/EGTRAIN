@@ -161,6 +161,7 @@ run there.
 | --- | --- | --- | --- | --- |
 | `test_csv_export_smoke`, `test_creator_acceptance_smoke`, `test_dialog_presentation_contract`, `test_editor_smoke` | yes | yes | no | Bash scripts; Windows has no bash on `PATH` that can be relied on. |
 | `test_recovery_smoke` | yes | yes | no | The lock files of the recovery copies are not checked after a crash on Windows. |
+| `test_run_data_folder_smoke` | no | yes | no | Needs the vnc platform plugin of Qt, which gives the window a screen without a display; Qt has it on Linux only. |
 | `test_crashnote` | yes | yes | partly | On Windows the signal and exception cases run on the main thread only, and the notes have no stack. |
 | `test_scene_render_smoke`, `test_track_preview_smoke`, `test_legacy_import_smoke`, `test_route_diagram_smoke` | yes | yes | no | The first three are Bash scripts, and `test_route_diagram_smoke` is registered with them under `if(UNIX)`. |
 | `test_visual_polish_smoke_live`, `test_visual_polish_smoke_replay`, `test_visual_polish_smoke_replay_copenhagen`, `test_visual_polish_smoke_signals`, `test_visual_polish_smoke_stations` | yes | no | no | Registered on macOS only. The script also runs on Linux with `QEGTRAIN_APP=$PWD/build/QEGTRAIN`. |

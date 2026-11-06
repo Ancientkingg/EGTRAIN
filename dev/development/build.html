@@ -515,7 +515,9 @@ in <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span><
 <p>With <code class="docutils literal notranslate"><span class="pre">EGTRAIN_BUILD_TESTS=ON</span></code>, <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code> also compiles the sources in
 <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/e2e</span></code>, the runner for the scripted GUI scenarios. At the
 start of <code class="docutils literal notranslate"><span class="pre">main()</span></code> it redirects the user settings to the folder named by
-<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_SETTINGS_DIR</span></code>. After the first show of the window it starts a
+<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_SETTINGS_DIR</span></code>, and the recovery copies and crash notes of a window
+on a screen that runs no scenario to <code class="docutils literal notranslate"><span class="pre">Recovery</span></code> and <code class="docutils literal notranslate"><span class="pre">Crashes</span></code> in that folder.
+After the first show of the window it starts a
 scenario, with blocking dialogs switched off, when the variable of that scenario
 is set. A build without tests, such as the three package builds, compiles none
 of it: in such a build the first show of the window starts no scenario and

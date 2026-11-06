@@ -124,6 +124,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a291a8f1c4f80fb446f22c09a97f9885f"><td class="mdescLeft">&#160;</td><td class="mdescRight">A message that the user acknowledges. A scripted run has no user to do that, so nothing is shown then.  <br /></td></tr>
 <tr class="memitem:aa74a16f2f04874e3e7910b1e8d422407" id="r_aa74a16f2f04874e3e7910b1e8d422407"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#aa74a16f2f04874e3e7910b1e8d422407">confirm</a> (QWidget *parent, const QString &amp;title, const QString &amp;question)</td></tr>
 <tr class="memdesc:aa74a16f2f04874e3e7910b1e8d422407"><td class="mdescLeft">&#160;</td><td class="mdescRight">A Yes or No question whose default answer is No; true for Yes. It asks also in a suppressed run.  <br /></td></tr>
+<tr class="memitem:a4a4c5ad4f5d69ed7442fbd396fba0afa" id="r_a4a4c5ad4f5d69ed7442fbd396fba0afa"><td class="memItemLeft">virtual int&#160;</td><td class="memItemRight"><a class="el" href="#a4a4c5ad4f5d69ed7442fbd396fba0afa">chooseButton</a> (QWidget *parent, const QString &amp;title, const QString &amp;question, const QStringList &amp;choices, int defaultChoice)</td></tr>
 <tr class="memitem:a00d1b9ed44839b3770d89613eef3edd9" id="r_a00d1b9ed44839b3770d89613eef3edd9"><td class="memItemLeft">virtual QString&#160;</td><td class="memItemRight"><a class="el" href="#a00d1b9ed44839b3770d89613eef3edd9">chooseItem</a> (QWidget *parent, const QString &amp;title, const QString &amp;label, const QStringList &amp;items)</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -181,6 +182,51 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a id="a4a4c5ad4f5d69ed7442fbd396fba0afa" name="a4a4c5ad4f5d69ed7442fbd396fba0afa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4a4c5ad4f5d69ed7442fbd396fba0afa">&#9670;&#160;</a></span>chooseButton()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual int UserPrompts::chooseButton </td>
+          <td>(</td>
+          <td class="paramtype">QWidget *</td>          <td class="paramname"><span class="paramname"><em>parent</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>title</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>question</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QStringList &amp;</td>          <td class="paramname"><span class="paramname"><em>choices</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>defaultChoice</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>A question with a button for each of <span class="tt">choices</span> and a Cancel button. Returns the index of the chosen button in <span class="tt">choices</span>, or -1 for Cancel. The button of <span class="tt">defaultChoice</span> is the default. It asks also in a suppressed run. </p>
+
+</div>
+</div>
 <a id="a00d1b9ed44839b3770d89613eef3edd9" name="a00d1b9ed44839b3770d89613eef3edd9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a00d1b9ed44839b3770d89613eef3edd9">&#9670;&#160;</a></span>chooseItem()</h2>
 
