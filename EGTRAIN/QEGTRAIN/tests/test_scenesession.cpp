@@ -1,5 +1,7 @@
 #include "app/SceneSession.h"
 
+#include "app/CannotOpenMessage.h"
+#include "editors/EditorHelpers.h"
 #include "editors/SceneDocument.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneModel.h"
@@ -562,6 +564,8 @@ void TestSceneSession::openNamesMissingFile() {
 	QVERIFY2(message.contains("infrastructure.json is missing\n\nstations.json is missing\n\nsignalling.json is missing\n\n1 more error"),
 		qPrintable(message));
 	QVERIFY2(!message.contains("rolling_stock.json"), qPrintable(message));
+	// The start of the program builds its box for a file name that does not load from the same parts.
+	QCOMPARE(message, cannot_open::text(folder, diagnosticsDialogText(loadScenePath(folder.toStdString()).diagnostics)));
 }
 
 // A required file that exists and cannot be read is named with the reason, which differs from a missing file.

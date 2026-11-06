@@ -8,6 +8,7 @@
 #include "app/OpenRequestRelay.h"
 #include "app/SceneOpenRequest.h"
 #include "app/SceneOutputDirectory.h"
+#include "editors/EditorHelpers.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneCompatibility.h"
 #include "scene/SceneValidator.h"
@@ -566,7 +567,7 @@ static int runMain(int argc, char* argv[]) {
 			// A file name that does not load is reported and the usual start follows.
 			printSceneDiagnostics(loaded.diagnostics);
 			reportCannotOpen(scenePath, QString::fromStdString(toDisplayText(loaded.diagnostics.front())), true, loadFailed,
-				QString::fromStdString(toDialogText(loaded.diagnostics.front())));
+				diagnosticsDialogText(loaded.diagnostics));
 			openedFromFileName = false;
 			scenePath = resolveScenePath(QString(), defaultName);
 			loaded = preload(scenePath);

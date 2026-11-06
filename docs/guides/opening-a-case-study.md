@@ -28,10 +28,11 @@ report a case that does not open:
 - **Cannot Open Case**: the version cannot be read, the file is not a
   valid case folder or bundle, or loading the case reports errors. The message gives
   the file name and says that the file is damaged or is not an EGTRAIN case,
-  and the first problem follows it; keep it. A folder gets its own
-  sentence: it holds no EGTRAIN case (a case folder holds a `scene.json` file),
-  or the `scene.json` in it is damaged. The same message appears when EGTRAIN starts
-  with that file.
+  and up to three problems follow it, each with its fix and the file and place
+  in the file that it is about, then the number of other errors; keep it. A
+  folder gets its own sentence: it holds no EGTRAIN case (a case folder holds a
+  `scene.json` file), or the `scene.json` in it is damaged. The same message
+  appears when EGTRAIN starts with that file.
 
 Cases written by builds before 2026-08-08 use an older layout under the same
 version number. EGTRAIN recognises that draft layout, reports it in the
