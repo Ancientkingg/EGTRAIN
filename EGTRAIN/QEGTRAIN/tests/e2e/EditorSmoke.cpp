@@ -3871,6 +3871,19 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			facetFailure(facetOk, "incident", "the track preview has no signal head of a block in a scene without authored signals");
 		} else {
 			const QString headId = head->data(PreviewGraphics::Id).toString();
+			const QString headTrack = head->data(PreviewGraphics::TrackId).toString();
+			const bool headReversed = head->data(PreviewGraphics::Reversed).toBool();
+			// A click after an edit, as of an incident, draws the preview again, so a click looks its item up first.
+			const auto currentHead = [&] {
+				return w.m_inspector->resolvePreviewItem("signal", headId, headTrack, headReversed, w.m_document->revision());
+			};
+			const auto currentArc = [&] {
+				QGraphicsItem* found = nullptr;
+				for (QGraphicsItem* item : w.scene->items())
+					if (item->isVisible() && item->data(PreviewGraphics::Kind).toString() == "arc")
+						found = item;
+				return found;
+			};
 			const QString blockId = QString::fromStdString(headSection->sourceBlockId);
 			const int countBefore = incidentPanel(w)->listWidget()->count();
 			w.scene->select(head);
@@ -3888,10 +3901,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				// message.
 				w.m_inspector->handleDisableHighlight();
 				incidentPanel(w)->typeCombo()->setCurrentIndex(incidentPanel(w)->typeCombo()->findData(QStringLiteral("train_breakdown")));
-				QGraphicsItem* arc = nullptr;
-				for (QGraphicsItem* item : w.scene->items())
-					if (item->isVisible() && item->data(PreviewGraphics::Kind).toString() == "arc")
-						arc = item;
+				QGraphicsItem* arc = currentArc();
 				QToolButton* pick = incidentPanel(w)->pickTargetButton();
 				pick->click();
 				QApplication::processEvents();
@@ -3905,14 +3915,14 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				const QString retry = w.statusBar()->currentMessage();
 				const bool kept = arc && incidentPanel(w)->isPickingTarget() && retry == "Not a signal or a train. Click one, or press Esc."
 					&& w.statusBar()->fontMetrics().horizontalAdvance(retry) <= w.statusBar()->fontMetrics().horizontalAdvance(hint);
-				w.scene->select(head);
+				w.scene->select(currentHead());
 				QApplication::processEvents();
 				const SceneIncident* picked = incidentPanel(w)->selectedIncident();
 				const bool applied = picked && picked->type == "signal_failure" && QString::fromStdString(picked->target) == blockId
 					&& !pick->isChecked() && !endTargetPickShortcut(w)->isEnabled()
 					&& w.networkView->viewport()->cursor().shape() == Qt::OpenHandCursor;
 				pick->click();
-				w.scene->select(arc);
+				w.scene->select(currentArc());
 				QApplication::processEvents();
 				const bool restarted = incidentPanel(w)->isPickingTarget() && w.statusBar()->currentMessage() == retry;
 				// A window shortcut needs an active window, which the offscreen platform of Qt 6 does not give a window by itself.
@@ -3940,9 +3950,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			// that shares its id with a signal gives none.
 			{
 				const QString hint = "Click a signal or a train for the incident target. Esc cancels.";
-				const QString headTrack = head->data(PreviewGraphics::TrackId).toString();
-				const bool headReversed = head->data(PreviewGraphics::Reversed).toBool();
-				const QPointF centre = head->sceneBoundingRect().center();
+				head = currentHead();
+				const QPointF centre = head ? head->sceneBoundingRect().center() : QPointF();
 				const auto openMenu = [&]() -> QAction* {
 					w.showSceneContextMenu(head, centre, w.networkView->viewport()->mapToGlobal(w.networkView->mapFromScene(centre)), false);
 					QMenu* menu = w.m_sceneContextMenu.data();
@@ -3995,20 +4004,15 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						QString("the menu of a signal head did not add a signal failure of block %1 (disabled without a target: %2, "
 								"offered: %3, added and shown: %4, one edit that Undo takes back: %5; status: %6)")
 							.arg(blockId, yes(explained), yes(offered), yes(shown), yes(undone), message));
-				// The inspector of the signal head has the same action as a button under its form, and an arc has none. Undo drew
-				// the preview again, so the head is another item now.
-				head = w.m_inspector->resolvePreviewItem("signal", headId, headTrack, headReversed, w.m_document->revision());
+				// The inspector of the signal head has the same action as a button under its form, and an arc has none.
 				QPushButton* button = w.m_inspector->m_incidentButton;
-				QGraphicsItem* arc = nullptr;
-				for (QGraphicsItem* item : w.scene->items())
-					if (item->isVisible() && item->data(PreviewGraphics::Kind).toString() == "arc")
-						arc = item;
+				QGraphicsItem* arc = currentArc();
 				if (arc)
 					w.scene->select(arc);
 				QApplication::processEvents();
 				const bool hiddenForArc = arc && button && button->objectName() == "inspectorIncidentButton" && button->isHidden();
 				sceneSignals(w.m_document->mutableModel()).push_back(SceneSignal{blockId.toStdString(), {}});
-				w.scene->select(head);
+				w.scene->select(currentHead());
 				QApplication::processEvents();
 				const bool buttonExplained = button && button->isVisible() && !button->isEnabled()
 					&& button->toolTip() == "No block or signal to fail here";
@@ -4017,7 +4021,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				incidentDock(w)->hide();
 				if (scenarioTabs)
 					scenarioTabs->setCurrentWidget(scenarioPanel(w));
-				w.scene->select(head);
+				w.scene->select(currentHead());
 				QApplication::processEvents();
 				const bool buttonOffered = button && button->isVisible() && button->isEnabled() && button->text() == "Add signal failure"
 					&& button->accessibleName() == button->text() && button->toolTip().isEmpty();
@@ -6646,15 +6650,19 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 		// A pick that gives the target also shows the held failure. The first incident gets its target while the copy can be
 		// written, which ends the failure, so the failure of the second incident, whose target is picked with the copies
 		// blocked again, is reported again.
-		QGraphicsItem* head = nullptr;
-		if (w.scene && w.m_showingTrackPreview)
-			for (QGraphicsItem* item : w.scene->items())
-				if (item->data(PreviewGraphics::Kind).toString() == "signal")
-					head = item;
-		if (expect(head, "the preview has no signal head for a target")) {
+		// A click after an edit, as of an incident, draws the preview again, so a click looks its head up first.
+		const auto findHead = [&] {
+			QGraphicsItem* found = nullptr;
+			if (w.scene && w.m_showingTrackPreview)
+				for (QGraphicsItem* item : w.scene->items())
+					if (item->data(PreviewGraphics::Kind).toString() == "signal")
+						found = item;
+			return found;
+		};
+		if (expect(findHead(), "the preview has no signal head for a target")) {
 			restartRecovery(writable);
 			incidentPanel(w)->pickTargetButton()->click();
-			w.scene->select(head);
+			w.scene->select(findHead());
 			process();
 			settle();
 			expect(!w.m_recoveryFailureShown, "a written copy did not end the failed autosave");
@@ -6665,7 +6673,7 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 			process();
 			settle();
 			const bool held = w.m_recoveryFailureShown && w.statusBar()->currentMessage() == hint;
-			w.scene->select(head);
+			w.scene->select(findHead());
 			process();
 			settle();
 			expect(held && !incidentPanel(w)->isPickingTarget()

@@ -3,11 +3,13 @@
 #include "graphics/SignalItemRoles.h"
 #include "ui_MainWindow.h"
 
+#include "editors/CaseSettingsPanel.h"
 #include "editors/InfrastructurePanel.h"
 #include "editors/ValidationPanel.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/NetworkView.h"
 #include "graphics/items/HighlightEffect.h"
+#include "graphics/items/NetworkMarkItem.h"
 #include "graphics/items/SelectionCueItem.h"
 #include "graphics/items/SignalItem.h"
 #include "scene/SceneDiagnostic.h"
@@ -40,6 +42,7 @@
 #include <QMenu>
 #include <QPointF>
 #include <QRectF>
+#include <QScrollBar>
 #include <QString>
 #include <QStringList>
 #include <QTableWidget>
@@ -588,9 +591,9 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			marker("E2E_SELECTION_CUE_PREVIEW_OK");
 
 		// A click on an item also selects its row in the Infrastructure dock, which tells it once. The view keeps its zoom
-		// and position and the Details dock the item, also when the model changed after the preview was drawn, as a save
-		// changes it. Edit in Infrastructure does the same and brings the dock to the front. While the dock is disabled, and
-		// for an item whose entity the case does not have, the row stays as it is.
+		// and position and the Details dock the item, also when the model changed after the preview was drawn, as an edit
+		// in another dock changes it. Edit in Infrastructure does the same and brings the dock to the front. While the dock
+		// is disabled, and for an item whose entity the case does not have, the row stays as it is.
 		InfrastructurePanel* panel = infrastructurePanel(w);
 		QDockWidget* dock = infrastructureDock(w);
 		int told = 0;
@@ -748,23 +751,42 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 					fail("infrastructure row", "a click on a node that the case does not have selects a row");
 			}
 
-			// A save changes the model without drawing the preview again. The click marks nothing then, and the preview,
-			// the view and the Details dock stay as they are. Drawing the preview again would delete the item, so the
-			// checks after the click use its id.
-			if (QGraphicsItem* again = clickInView("arc")) {
-				const QPointF at = pointOf(again);
-				const QString arcId = again->data(PreviewGraphics::Id).toString();
-				panel->table()->setCurrentCell(-1, -1);
-				w.m_document->mutableModel();
-				told = 0;
-				clickAt(at);
-				const bool selected = panel->facetKey() == "arcs" && panel->selectionId() == arcId && told == 1;
-				const bool shown = w.m_inspector->dock()->isVisible() && w.m_inspector->previewSelectionKind() == "arc"
-					&& w.m_inspector->previewSelectionId() == arcId;
-				if (!selected || !viewKept() || !shown)
-					fail("infrastructure row", "a click after a change of the model draws the preview again");
+			// An edit in another dock changes the model without drawing the preview again, which then marks no other row
+			// in place. A click on a node, while an arc is selected, draws it again for the mark of the node, at the same
+			// zoom and position, without following a train, and shows the node in the Details dock again. Drawing the
+			// preview deletes the items, so the checks after the click use the id of the node.
+			QGraphicsItem* node = clickInView("node");
+			const QString nodeId = node ? node->data(PreviewGraphics::Id).toString() : QString();
+			const QPointF nodeAt = node ? pointOf(node) : QPointF();
+			if (!node || !clickInView("arc") || panel->facetKey() != "arcs") {
+				fail("infrastructure row", "no preview node and arc in the middle of the view after the other checks");
 			} else {
-				fail("infrastructure row", "no preview arc in the middle of the view after the other checks");
+				caseSettingsPanel(w)->nameEdit()->setText(caseSettingsPanel(w)->nameEdit()->text() + " edited");
+				w.commitPendingCaseSettings();
+				QApplication::processEvents();
+				transform = w.networkView->transform();
+				startCentre = centre();
+				const QPoint scroll(w.networkView->horizontalScrollBar()->value(), w.networkView->verticalScrollBar()->value());
+				const int followed = w.m_followTrainIndex;
+				told = 0;
+				clickAt(nodeAt);
+				const QTransform now = w.networkView->transform();
+				const bool sameView = qFuzzyCompare(now.m11(), transform.m11()) && qFuzzyCompare(now.m22(), transform.m22())
+					&& qAbs(now.dx() - transform.dx()) < 1e-6 && qAbs(now.dy() - transform.dy()) < 1e-6
+					&& QLineF(centre(), startCentre).length() * transform.m11() < 1e-3
+					&& scroll == QPoint(w.networkView->horizontalScrollBar()->value(), w.networkView->verticalScrollBar()->value())
+					&& w.m_followTrainIndex == followed;
+				const NetworkMarkItem* mark = w.m_presenter->selectionMark();
+				const bool marked = mark && std::any_of(mark->ringTargets().cbegin(), mark->ringTargets().cend(), [&nodeId](const QGraphicsItem* target) { return target->data(PreviewGraphics::Id).toString() == nodeId; });
+				if (panel->facetKey() != "nodes" || panel->selectionId() != nodeId || told != 1)
+					fail("infrastructure row", "a click after an edit in another dock selects " + panel->selectionId());
+				else if (!marked)
+					fail("infrastructure row", "a click after an edit in another dock leaves the mark on the row before");
+				else if (!sameView)
+					fail("infrastructure row", "a click after an edit in another dock moves or zooms the view");
+				else if (!w.m_inspector->dock()->isVisible() || w.m_inspector->previewSelectionKind() != "node"
+					|| w.m_inspector->previewSelectionId() != nodeId)
+					fail("infrastructure row", "a click after an edit in another dock empties the Details dock");
 			}
 		} else {
 			fail("infrastructure row", "no preview arc in the middle of the view");

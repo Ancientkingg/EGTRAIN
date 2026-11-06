@@ -3292,8 +3292,10 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	const SceneModel saved = w.m_document->mutableModel();
 	const bool savedDirty = w.m_document->isDirty();
 	const quint64 initialRevision = w.m_document->revision();
-	// Event-driven checks on the actual public-Open result (nonnumeric IDs).
-	for (const auto& line : w.m_presenter->trackPreview().lines) {
+	// Event-driven checks on the actual public-Open result (nonnumeric IDs). The first click draws the preview again,
+	// as the model has changed since it was drawn, so the lines are a copy.
+	const auto lines = w.m_presenter->trackPreview().lines;
+	for (const auto& line : lines) {
 		for (const auto& point : line.points) {
 			auto* item = find("node", QString::fromStdString(point.nodeId));
 			if (!item) item = find("station-node", QString::fromStdString(point.nodeId));

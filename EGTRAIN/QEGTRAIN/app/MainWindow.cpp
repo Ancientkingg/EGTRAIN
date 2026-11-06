@@ -2148,14 +2148,8 @@ void MainWindow::stepSceneHistory(bool redo) {
 	if (!(redo ? m_history->canRedo() : m_history->canUndo()))
 		return;
 	const QString label = QString::fromStdString(redo ? m_history->redoLabel() : m_history->undoLabel());
-	// The preview of the restored scene is drawn again at Fit, and the view returns to the zoom and the centre that it had,
-	// as after an edit. The centre is the middle of the pixel at the centre, which centerOn puts back on that pixel.
-	const qreal zoom = networkView->zoomRatio();
-	const QPointF centre = networkView->viewportTransform().inverted().map(
-		QPointF(networkView->viewport()->width() + 1, networkView->viewport()->height() + 1) / 2.0);
-	restoreSceneFromHistory(*(redo ? m_history->redo() : m_history->undo()));
-	networkView->zoomBy(zoom / networkView->zoomRatio());
-	networkView->centerOn(centre);
+	// The preview of the restored scene is drawn again, and the view keeps its zoom and centre, as after an edit.
+	drawKeepingView([this, redo] { restoreSceneFromHistory(*(redo ? m_history->redo() : m_history->undo())); });
 	statusBar()->showMessage(QString("%1 %2").arg(redo ? "Redid" : "Undid", label), 8000);
 }
 
@@ -2265,9 +2259,11 @@ void MainWindow::infrastructureSelectionChanged() {
 		return;
 	}
 	// The row of an item on the canvas keeps the preview: drawing it again would fit the view and empty the Details dock.
-	// The mark stays where it is until the preview is drawn again.
-	if (m_selectingRowFromCanvas)
+	// selectInfrastructureRow draws it again when the model has changed since it was drawn.
+	if (m_selectingRowFromCanvas) {
+		m_canvasRowUnmarked = true;
 		return;
+	}
 	renderTrackPreview(m_document->model());
 }
 
@@ -2278,12 +2274,33 @@ void MainWindow::selectInfrastructureRow(QGraphicsItem* item, bool reveal) {
 	const QString kind = item->data(PreviewGraphics::Kind).toString();
 	const QString id = item->data(PreviewGraphics::Id).toString();
 	const QString platform = item->data(PreviewGraphics::PlatformId).toString();
+	const QString track = item->data(PreviewGraphics::TrackId).toString();
+	const bool reversed = item->data(PreviewGraphics::Reversed).toBool();
+	const bool inDetails = m_inspector->previewSelectionKind() == kind && m_inspector->previewSelectionId() == id;
 	InfrastructurePanel* panel = m_editorDocks.infrastructurePanel();
 	// A cell that is still being edited is taken first, as an edit that draws the preview again; item can be gone after it.
 	panel->commitPendingEditors();
 	const QScopedValueRollback<bool> fromCanvas(m_selectingRowFromCanvas, true);
-	if (panel->selectCanvasItem(kind, id, platform) && reveal)
+	m_canvasRowUnmarked = false;
+	if (!panel->selectCanvasItem(kind, id, platform))
+		return;
+	if (m_canvasRowUnmarked) {
+		// The model has changed since the preview was drawn, as an edit in another dock changes it, and only a new preview
+		// marks the row. Drawing it empties the Details dock, which shows the item again.
+		drawKeepingView([this] { renderTrackPreview(m_document->model()); });
+		if (inDetails)
+			m_inspector->displayPreviewInfo(m_inspector->resolvePreviewItem(kind, id, track, reversed, m_document->revision()));
+	}
+	if (reveal)
 		revealEditorDock(dock);
+}
+
+void MainWindow::drawKeepingView(const std::function<void()>& draw) {
+	const qreal zoom = networkView->zoomRatio();
+	const QPointF centre = networkView->mapToScene(networkView->viewport()->rect().center());
+	draw();
+	networkView->zoomBy(zoom / networkView->zoomRatio());
+	networkView->centerOnExactly(centre);
 }
 
 void MainWindow::updateTrainUnitSourceStatus() {

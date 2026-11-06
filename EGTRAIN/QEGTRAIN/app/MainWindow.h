@@ -325,8 +325,10 @@ private:
 	int m_replayRequestedTime = 0;
 	bool m_showingTrackPreview = true;
 	// True while an item of the preview selects its row in the Infrastructure panel (selectInfrastructureRow). The
-	// preview is not drawn again for that selection.
+	// preview is not drawn again for that selection; m_canvasRowUnmarked then tells that it could not mark the row.
 	bool m_selectingRowFromCanvas = false;
+	// The selection of m_selectingRowFromCanvas found the preview older than the model, which it marks only when drawn again.
+	bool m_canvasRowUnmarked = false;
 
 	// The parts of the window that the constructor builds, in the order in which it builds them.
 	void setupHelpMenu();
@@ -378,6 +380,9 @@ private:
 	// The view keeps its zoom and position, and the Details dock keeps the item. Nothing happens while the canvas shows a
 	// run or the dock is disabled.
 	void selectInfrastructureRow(QGraphicsItem* item, bool reveal);
+	// Runs draw, which draws the preview again at Fit, and gives the view back the zoom and the centre that it had, to a
+	// fraction of a pixel.
+	void drawKeepingView(const std::function<void()>& draw);
 	void centerSceneItem(QGraphicsItem* item);
 	// Moves the view to the followed train at once, or stops the camera when the view does not follow it.
 	void cutToFollowedTrain(const FollowAvailability& following);
