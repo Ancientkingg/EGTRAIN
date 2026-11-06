@@ -1,5 +1,8 @@
 var NAVTREEINDEX25 =
 {
+"struct_scene_bundle_probe_result.html#a137e598ba0a2ea3c75f27abc1c0cdd3d":[2,0,218,1],
+"struct_scene_bundle_probe_result.html#a719828cb1696080c37b94486e1f73fb6":[2,0,218,3],
+"struct_scene_bundle_probe_result.html#a8adf83bfeaac3b2311f8ad65a9add8e2":[2,0,218,0],
 "struct_scene_bundle_probe_result.html#ae7dac273999795524e30e0000d1e0f3f":[2,0,218,2],
 "struct_scene_bundle_probe_result.html#aebb34f4fb77c5c5f9ef46695e8a70e25":[2,0,218,4],
 "struct_scene_compatibility_probe_result.html":[2,0,219],
@@ -246,8 +249,5 @@ var NAVTREEINDEX25 =
 "struct_scene_section_descriptor.html#acf6764e76ad140ef68834927945a1c0f":[2,0,260,9],
 "struct_scene_section_descriptor.html#ad4cf9dee91b9a677fa8b150f9e05e263":[2,0,260,1],
 "struct_scene_section_descriptor.html#ad577e460a63bdb6f0f23efd1f3bf7f7d":[2,0,260,16],
-"struct_scene_section_descriptor.html#adae095d825eda084178023908ae0d195":[2,0,260,11],
-"struct_scene_section_inventory.html":[2,0,261],
-"struct_scene_section_inventory.html#a03c3b41fd7859a36164db37bc7784fb8":[2,0,261,2],
-"struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48":[2,0,261,0]
+"struct_scene_section_descriptor.html#adae095d825eda084178023908ae0d195":[2,0,260,11]
 };

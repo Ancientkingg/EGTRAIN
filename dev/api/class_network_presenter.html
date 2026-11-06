@@ -191,6 +191,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a19640754921d9353b9e99090a10ef7b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene shows a preview with track lines: <a class="el" href="#a583bd2b439a923f2d17f3e3e16040cc3">showPreview()</a> drew one and neither <a class="el" href="#a6a8ccd8567a7794aaff72338d8bea322">clear()</a> nor <a class="el" href="#a2825db26f3e40183fccc23ee6ec1d0ac">showRuntime()</a> ran since.  <br /></td></tr>
 <tr class="memitem:a83c794493b57ef3901a2951018bf4085" id="r_a83c794493b57ef3901a2951018bf4085"><td class="memItemLeft">const <a class="el" href="class_network_mark_item.html">NetworkMarkItem</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a83c794493b57ef3901a2951018bf4085">selectionMark</a> () const</td></tr>
 <tr class="memdesc:a83c794493b57ef3901a2951018bf4085"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mark of the selected row of the infrastructure panel; null without one.  <br /></td></tr>
+<tr class="memitem:a80a4a029ea8229e21fa70b7c68989b7b" id="r_a80a4a029ea8229e21fa70b7c68989b7b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a80a4a029ea8229e21fa70b7c68989b7b">setSelectionMarkShown</a> (bool shown)</td></tr>
+<tr class="memitem:a7fe989bc7a8895a0be077c2e6e6fb54a" id="r_a7fe989bc7a8895a0be077c2e6e6fb54a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a7fe989bc7a8895a0be077c2e6e6fb54a">selectionMarkShown</a> () const</td></tr>
+<tr class="memdesc:a7fe989bc7a8895a0be077c2e6e6fb54a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mark of the selected row is shown (<a class="el" href="#a80a4a029ea8229e21fa70b7c68989b7b">setSelectionMarkShown()</a>).  <br /></td></tr>
 <tr class="memitem:af1f9fec2d1413a2a6407a3253ac7e7ce" id="r_af1f9fec2d1413a2a6407a3253ac7e7ce"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af1f9fec2d1413a2a6407a3253ac7e7ce">markRunSections</a> (const QStringList &amp;sectionIds, const QStringList &amp;emphasisIds)</td></tr>
 <tr class="memitem:affd31b86698e4081d471a8ea99eaafbd" id="r_affd31b86698e4081d471a8ea99eaafbd"><td class="memItemLeft">const <a class="el" href="class_network_mark_item.html">NetworkMarkItem</a> *&#160;</td><td class="memItemRight"><a class="el" href="#affd31b86698e4081d471a8ea99eaafbd">runSectionMark</a> () const</td></tr>
 <tr class="memdesc:affd31b86698e4081d471a8ea99eaafbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mark of <a class="el" href="#af1f9fec2d1413a2a6407a3253ac7e7ce">markRunSections()</a>; null without one.  <br /></td></tr>
@@ -203,7 +206,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a252c44e30f1c533a1374efb9605e0082" id="r_a252c44e30f1c533a1374efb9605e0082"><td class="memItemLeft">const <a class="el" href="struct_track_preview_result.html">TrackPreviewResult</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a252c44e30f1c533a1374efb9605e0082">trackPreview</a> () const</td></tr>
 <tr class="memdesc:a252c44e30f1c533a1374efb9605e0082"><td class="mdescLeft">&#160;</td><td class="mdescRight">The preview that the scene shows.  <br /></td></tr>
 <tr class="memitem:afc091dbdff1a40501487e8f7863a861c" id="r_afc091dbdff1a40501487e8f7863a861c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#afc091dbdff1a40501487e8f7863a861c">previewHasSelectedTrack</a> () const</td></tr>
-<tr class="memdesc:afc091dbdff1a40501487e8f7863a861c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The preview marks a selected track.  <br /></td></tr>
+<tr class="memdesc:afc091dbdff1a40501487e8f7863a861c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The preview shows the mark of a selected track.  <br /></td></tr>
 <tr class="memitem:ad0c1b8f4e0ccf59478f22850766dcbf7" id="r_ad0c1b8f4e0ccf59478f22850766dcbf7"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad0c1b8f4e0ccf59478f22850766dcbf7">previewHasSignals</a> () const</td></tr>
 <tr class="memdesc:ad0c1b8f4e0ccf59478f22850766dcbf7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The last preview has signals.  <br /></td></tr>
 <tr class="memitem:a0eb5faed83650e23ee94ddf3ec76bf11" id="r_a0eb5faed83650e23ee94ddf3ec76bf11"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a0eb5faed83650e23ee94ddf3ec76bf11">hasContent</a> () const</td></tr>
@@ -750,7 +753,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Marks the row of the infrastructure panel that options selects on the preview that is shown, in place of the mark of the row before, and leaves the rest of the scene and the view as they are. A view that shows no part of the new mark is centred on the point of the mark nearest to its centre, at the same zoom. The mark of each kind of row: the whole drawn track of a track, a ring around a node, the line between its ends for an arc and a connection, the course of its section for a block (<a class="el" href="_network_presenter_8cpp.html#a8cf18205b036242ba1bd00d5913edd18">previewSectionCourse()</a>), rings on the station mark and the squares of the platform nodes of a station, rings on the squares and halos on the bars of a platform, the courses of the sections of a route in travel order with a disc at its start and an arrowhead at its end when its direction is known, rings on the heads of a signal, the kilometres of a signalling area on its track or on every track, and the courses of the sections that a single-track restriction, a station boundary or a block dependency names; for a single-track restriction also the block sections between its start and its end. The section chosen under <a class="el" href="class_route.html">Route</a> sections is drawn over the route in the second colour. Returns false and changes nothing when no preview is shown or options has no model generation or another one than the preview: the caller draws the preview again. </p>
+<p>Marks the row of the infrastructure panel that options selects on the preview that is shown, in place of the mark of the row before, and leaves the rest of the scene and the view as they are. A view that shows no part of the new mark is centred on the point of the mark nearest to its centre, at the same zoom. The mark of each kind of row: the whole drawn track of a track, a ring around a node, the line between its ends for an arc and a connection, the course of its section for a block (<a class="el" href="_network_presenter_8cpp.html#a8cf18205b036242ba1bd00d5913edd18">previewSectionCourse()</a>), rings on the station mark and the squares of the platform nodes of a station, rings on the squares and halos on the bars of a platform, the courses of the sections of a route in travel order with a disc at its start and an arrowhead at its end when its direction is known, rings on the heads of a signal, the kilometres of a signalling area on its track or on every track, and the courses of the sections that a single-track restriction, a station boundary or a block dependency names; for a single-track restriction also the block sections between its start and its end. The section chosen under <a class="el" href="class_route.html">Route</a> sections is drawn over the route in the second colour. Returns false and changes nothing when no preview is shown or options has no model generation or another one than the preview: the caller draws the preview again. A hidden mark (<a class="el" href="#a80a4a029ea8229e21fa70b7c68989b7b">setSelectionMarkShown()</a>) leaves the view as it is. </p>
 
 </div>
 </div>
@@ -1106,7 +1109,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>The preview marks a selected track. </p>
+<p>The preview shows the mark of a selected track. </p>
 
 </div>
 </div>
@@ -1417,6 +1420,33 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a7fe989bc7a8895a0be077c2e6e6fb54a" name="a7fe989bc7a8895a0be077c2e6e6fb54a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7fe989bc7a8895a0be077c2e6e6fb54a">&#9670;&#160;</a></span>selectionMarkShown()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool NetworkPresenter::selectionMarkShown </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The mark of the selected row is shown (<a class="el" href="#a80a4a029ea8229e21fa70b7c68989b7b">setSelectionMarkShown()</a>). </p>
+
+</div>
+</div>
 <a id="a35ddc7ecaec547371835d2c09882826f" name="a35ddc7ecaec547371835d2c09882826f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a35ddc7ecaec547371835d2c09882826f">&#9670;&#160;</a></span>setClock()</h2>
 
@@ -1529,6 +1559,24 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>Shows or hides the passenger layer: the passengers on the platforms and the passenger information of the selected train. </p>
+
+</div>
+</div>
+<a id="a80a4a029ea8229e21fa70b7c68989b7b" name="a80a4a029ea8229e21fa70b7c68989b7b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a80a4a029ea8229e21fa70b7c68989b7b">&#9670;&#160;</a></span>setSelectionMarkShown()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkPresenter::setSelectionMarkShown </td>
+          <td>(</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>shown</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Shows or hides the mark of the selected row, the one that is placed now and the ones that are placed later, and leaves the rest of the scene and the view as they are. A hidden mark keeps its row, so showing it again draws the same mark. The mark is shown until this hides it. </p>
 
 </div>
 </div>

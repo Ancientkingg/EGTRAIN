@@ -139,6 +139,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:aa7070bef0470b28c9c5f9890d5335a3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enables the Infrastructure dock as far as the scene and the run allow, and shows the panel again.  <br /></td></tr>
 <tr class="memitem:a26f4d178b02d192cb844986721d0d763" id="r_a26f4d178b02d192cb844986721d0d763"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a26f4d178b02d192cb844986721d0d763">infrastructureSelectionChanged</a> ()=0</td></tr>
 <tr class="memdesc:a26f4d178b02d192cb844986721d0d763"><td class="mdescLeft">&#160;</td><td class="mdescRight">The selection of the Infrastructure panel changed, which the track preview marks.  <br /></td></tr>
+<tr class="memitem:ad4922c4ed744ba5cd200e0802cf9e886" id="r_ad4922c4ed744ba5cd200e0802cf9e886"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#ad4922c4ed744ba5cd200e0802cf9e886">infrastructureDockShown</a> (bool shown)=0</td></tr>
 <tr class="memitem:a68080cfdba4790ffca4f138c75447186" id="r_a68080cfdba4790ffca4f138c75447186"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a68080cfdba4790ffca4f138c75447186">refreshIncidentPanel</a> ()=0</td></tr>
 <tr class="memdesc:a68080cfdba4790ffca4f138c75447186"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the scenarios, the incidents and the entrance delays again.  <br /></td></tr>
 <tr class="memitem:a1b0702f094581bb1ec7d6e7a6026c941" id="r_a1b0702f094581bb1ec7d6e7a6026c941"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a1b0702f094581bb1ec7d6e7a6026c941">invalidateRunResults</a> ()=0</td></tr>
@@ -296,6 +297,32 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 <p>Takes the pending edits of the Scenario and <a class="el" href="class_passenger.html">Passenger</a> panels only, which validation shows again from the scene, and validates the scene again, after a change that no user action made, such as the reload of a linked file. A field that is being typed in another panel keeps its text. </p>
+
+</div>
+</div>
+<a id="ad4922c4ed744ba5cd200e0802cf9e886" name="ad4922c4ed744ba5cd200e0802cf9e886"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad4922c4ed744ba5cd200e0802cf9e886">&#9670;&#160;</a></span>infrastructureDockShown()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void EditorDocks::Host::infrastructureDockShown </td>
+          <td>(</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>shown</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel pure-virtual">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The Infrastructure dock came into view or went out of it: it was shown or hidden, or its tab came to the front of its group or went behind another one. The track preview marks the selected row only while the dock is in view. </p>
 
 </div>
 </div>
