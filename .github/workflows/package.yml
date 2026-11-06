@@ -58,6 +58,7 @@ jobs:
           cmake -S . -B build "-DEGTRAIN_VERSION=${{ inputs.version }}"
           -DCMAKE_BUILD_TYPE=Release
           -DEGTRAIN_PACKAGED_BUILD=ON
+          -DEGTRAIN_ENABLE_TELEMETRY=ON -DEGTRAIN_TELEMETRY_URL=https://egtrain.samuelbruin.com/api/telemetry/v1
           -DCMAKE_OSX_DEPLOYMENT_TARGET=26.0
           -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)"
           -DWrapOpenGL_AGL="$(xcrun --show-sdk-path)/System/Library/Frameworks/OpenGL.framework"
@@ -366,6 +367,7 @@ jobs:
         run: >
           cmake -S . -B build "-DEGTRAIN_VERSION=${{ inputs.version }}"
           -DEGTRAIN_PACKAGED_BUILD=ON
+          -DEGTRAIN_ENABLE_TELEMETRY=ON -DEGTRAIN_TELEMETRY_URL=https://egtrain.samuelbruin.com/api/telemetry/v1
           -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_TARGET_TRIPLET=x64-windows
           -DVCPKG_MANIFEST_DIR="$env:GITHUB_WORKSPACE/tools/vcpkg"
@@ -826,6 +828,7 @@ jobs:
       - name: Configure
         run: >
           cmake -S . -B build "-DEGTRAIN_VERSION=${{ inputs.version }}" -DCMAKE_BUILD_TYPE=Release -DEGTRAIN_PACKAGED_BUILD=ON
+          -DEGTRAIN_ENABLE_TELEMETRY=ON -DEGTRAIN_TELEMETRY_URL=https://egtrain.samuelbruin.com/api/telemetry/v1
           -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"
 
       - name: Build

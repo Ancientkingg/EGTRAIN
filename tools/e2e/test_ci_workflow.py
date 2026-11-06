@@ -891,10 +891,11 @@ def check_packages(checks: Checks, package: dict, package_text: str, package_che
         expect(
             all(part in text for part in (network, "LICENSE", "THIRD_PARTY_NOTICES.md", "EGTRAIN.qch", "-DEGTRAIN_PACKAGED_BUILD=ON",
                                           '"-DEGTRAIN_VERSION=${{ inputs.version }}"', "'^test_update(helper|preparation)$'",
+                                          "-DEGTRAIN_ENABLE_TELEMETRY=ON -DEGTRAIN_TELEMETRY_URL=https://egtrain.samuelbruin.com/api/telemetry/v1",
                                           "egtrain_update_helper", "tools/release/package_start_smoke.py"))
             and "./.github/actions/setup-deps" in flat(jobs[job_id]) and re.search(r'-DCMAKE_PREFIX_PATH="\$(env:)?QT_ROOT_DIR', runs(jobs[job_id])),
-            f"package.yml: {job_id} builds a packaged build of the version with the setup action, checks Qt Network, the "
-            "licence, the notices, the manual and the update helper, and starts a copy",
+            f"package.yml: {job_id} builds a packaged build of the version with the telemetry receiver and the setup action, "
+            "checks Qt Network, the licence, the notices, the manual and the update helper, and starts a copy",
         )
         expect("RUNNER_TEMP" in step(jobs[job_id], "tools/release/package_start_smoke.py").get("run", "")
                and step(jobs[job_id], "tools/release/package_start_smoke.py").get("env", {}).get("PYTHONUTF8") == "1"
