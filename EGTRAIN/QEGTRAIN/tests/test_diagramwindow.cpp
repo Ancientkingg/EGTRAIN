@@ -2834,9 +2834,10 @@ void TestDiagramWindow::suppressedExportFailureIsWritten() {
 	QVERIFY2(shown.warnings.isEmpty(), qPrintable(shown.warnings.join(" | ")));
 	// the failure is logged at error level
 	QCOMPARE(logged, QStringList(message + "\n"));
+#if !defined(_WIN32)
 	// the message goes to stderr
-	if (StderrCapture::available())
-		QVERIFY2(written.contains("QEGTRAIN_DIALOG_SUPPRESSED: " + message + "\n"), qPrintable(written));
+	QVERIFY2(written.contains("QEGTRAIN_DIALOG_SUPPRESSED: " + message + "\n"), qPrintable(written));
+#endif
 }
 
 // Clicks CSV..., types `name` into the save dialog and answers the question that follows with `answer`. Returns the text

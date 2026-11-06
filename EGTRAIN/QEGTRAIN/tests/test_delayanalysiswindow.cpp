@@ -334,14 +334,14 @@ struct ExportDialog {
 	QStringList warnings;
 };
 
-// Clicks `button`, answers the save dialog with `path`, or cancels it for an empty path, and closes the messages that
-// follow. A dialog that stays open after the answer is cancelled.
 // Why a file at `path` cannot be written, as an export gives it below the path.
 QString writeFailure(const QString& path) {
 	QSaveFile probe(path);
 	return probe.open(QIODevice::WriteOnly) ? QString() : probe.errorString();
 }
 
+// Clicks `button`, answers the save dialog with `path`, or cancels it for an empty path, and closes the messages that
+// follow. A dialog that stays open after the answer is cancelled.
 ExportDialog answerExport(QPushButton* button, const QString& path) {
 	ExportDialog shown;
 	bool answered = false;

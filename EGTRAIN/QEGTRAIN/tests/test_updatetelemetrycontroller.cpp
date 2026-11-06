@@ -292,10 +292,11 @@ void TestUpdateTelemetryController::suppressedUpdateFailureIsWritten() {
 	QCOMPARE(shown, 0);
 	// the failure is logged as a warning in the category update
 	QCOMPARE(warnings, QStringList("EGTRAIN Update: The package could not be unpacked.\n"));
+#if !defined(_WIN32)
 	// the message goes to stderr
-	if (StderrCapture::available())
-		QVERIFY2(written.contains("QEGTRAIN_DIALOG_SUPPRESSED: EGTRAIN Update: The package could not be unpacked.\n"),
-			qPrintable(written));
+	QVERIFY2(written.contains("QEGTRAIN_DIALOG_SUPPRESSED: EGTRAIN Update: The package could not be unpacked.\n"),
+		qPrintable(written));
+#endif
 
 	warnings.clear();
 	UpdateCheckResult failed;

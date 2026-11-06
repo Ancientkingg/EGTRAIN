@@ -11,18 +11,10 @@
 #endif
 
 /// Sends what the process writes to stderr to a file, from construction until text() or the end of the object. Only POSIX
-/// systems can do this: on Windows stderr stays as it is and text() is empty.
+/// systems can do this: on Windows stderr stays as it is, the file is not made and text() is empty. A test checks the
+/// text in `#if !defined(_WIN32)`.
 class StderrCapture {
 public:
-	/// True when the capture works on this system.
-	static constexpr bool available() {
-#if defined(_WIN32)
-		return false;
-#else
-		return true;
-#endif
-	}
-
 	/// Starts to send stderr to `file`, which it creates or empties.
 	explicit StderrCapture(const QString& file) : m_file(file) {
 #if !defined(_WIN32)
@@ -44,7 +36,7 @@ public:
 	QString text() {
 		restore();
 		QFile written(m_file);
-		return available() && written.open(QIODevice::ReadOnly) ? QString::fromLocal8Bit(written.readAll()) : QString();
+		return written.open(QIODevice::ReadOnly) ? QString::fromLocal8Bit(written.readAll()) : QString();
 	}
 
 private:
