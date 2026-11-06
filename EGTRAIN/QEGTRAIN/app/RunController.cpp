@@ -63,8 +63,6 @@ void releaseTrainSamples(SimulationRun& run) {
 		release(train.instant_train_tractive_effort);
 		release(train.instant_train_energy_consumption);
 		release(train.BX);
-		release(train.Xob);
-		release(train.Vob);
 		release(train.Eq);
 	}
 }

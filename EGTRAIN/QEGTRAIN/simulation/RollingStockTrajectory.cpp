@@ -335,6 +335,10 @@ const MovementAuthority* Train::currentFollowingAuthority(double head, double& l
 }
 
 void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double signalCode1, double signalCode2, double signalCode3) {
+	// The target that the step before kept, and none yet of this step
+	previousXob = currentXob;
+	previousVob = currentVob;
+	currentXob = currentVob = 0;
 	if (OutOfSimulation == 0) {
 		if (time_seconds == 0) {
 			CanEnter = false;
@@ -411,12 +415,12 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 			const double head = instant_spatial_position[time_seconds - 1];
 			const double speed = instant_train_speed[time_seconds - 1];
 			// Keep a reached speed target until its boundary, but only while it is still present.
-			if (Vob[time_seconds - 1] > 0 && speed <= Vob[time_seconds - 1] && head < Xob[time_seconds - 1])
+			if (previousVob > 0 && speed <= previousVob && head < previousXob)
 				for (const Section& section : run_->infra.routes[indexOfRoute].sequence_of_block_sections)
 					for (int arc = 0; arc < section.total_arcs; ++arc)
-						if (section.arcs_in_signalling_block_section[arc].endNode.X * 1000 == Xob[time_seconds - 1]
-							&& section.arcs_in_signalling_block_section[arc].speedInBraking == Vob[time_seconds - 1])
-							V_lim = std::min(V_lim, Vob[time_seconds - 1]);
+						if (section.arcs_in_signalling_block_section[arc].endNode.X * 1000 == previousXob
+							&& section.arcs_in_signalling_block_section[arc].speedInBraking == previousVob)
+							V_lim = std::min(V_lim, previousVob);
 			const bool accelerating = speed < V_lim;
 			double candidateSpeed = speed, candidateHead = head + speed * timestep;
 			if (accelerating)
@@ -441,8 +445,8 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				temp = time_seconds;
 				stop = time_seconds;
 				BX[time_seconds] = Braking_Distance;
-				Xob[time_seconds] = Xobmin;
-				Vob[time_seconds] = Vobmin;
+				currentXob = Xobmin;
+				currentVob = Vobmin;
 				counter = 0;
 				GradientExceptionInBraking = false;
 			}
@@ -476,8 +480,8 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				if (speed > 0)
 					stop = time_seconds;
 				BX[time_seconds] = Braking_Distance;
-				Xob[time_seconds] = Xobmin;
-				Vob[time_seconds] = Vobmin;
+				currentXob = Xobmin;
+				currentVob = Vobmin;
 			}
 
 			// Cruising Phase
@@ -492,8 +496,8 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				temp = time_seconds;
 				stop = time_seconds;
 				BX[time_seconds] = Braking_Distance;
-				Xob[time_seconds] = Xobmin;
-				Vob[time_seconds] = Vobmin;
+				currentXob = Xobmin;
+				currentVob = Vobmin;
 				counter = 0;
 				GradientExceptionInBraking = false;
 			}

@@ -612,8 +612,7 @@ bool Train::needsSingleTrackReservation(double head, double speed, double entry,
 }
 
 int Train::cachedBrakingSuccessor(int previousInstant, const Arc& arc, double target, double targetSpeed) {
-	if (counter <= 0 || BrakStep <= 0 || BrakStep >= static_cast<int>(Sbrak.size())
-		|| (previousInstant < static_cast<int>(Xob.size()) && (Xob[previousInstant] != target || Vob[previousInstant] != targetSpeed)))
+	if (counter <= 0 || BrakStep <= 0 || BrakStep >= static_cast<int>(Sbrak.size()) || previousXob != target || previousVob != targetSpeed)
 		return -1;
 	const double head = instant_spatial_position[previousInstant], speed = instant_train_speed[previousInstant];
 	for (int k = 0; k < BrakStep; ++k) {
@@ -848,7 +847,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 			: point.stop					  ? 0
 											  : node.arcSpeedLimit;
 		targets.push_back({&node, position, speed, point.decoupling});
-		if (position > S && position == Xob[PreviousInstant] && speed == Vob[PreviousInstant])
+		if (position > S && position == previousXob && speed == previousVob)
 			incumbent = static_cast<int>(targets.size()) - 1;
 	}
 	const Arc& arc = BS[BlockPos].arcs_in_signalling_block_section[ArcPos];
@@ -977,8 +976,7 @@ bool Train::planBraking(double head, double speed, const Arc& arc, Section* sect
 void Train::brakingStep(int time_seconds, const Arc& As, Section* BS, int Blocks) {
 	const double head = instant_spatial_position[time_seconds - 1];
 	const double speed = instant_train_speed[time_seconds - 1];
-	const bool changedTarget = time_seconds - 1 < static_cast<int>(Xob.size())
-		&& (Xob[time_seconds - 1] != Xobmin || Vob[time_seconds - 1] != Vobmin);
+	const bool changedTarget = previousXob != Xobmin || previousVob != Vobmin;
 	// Retain a native or forward plan only at a real stored state, never by interpolation.
 	const int successor = cachedBrakingSuccessor(time_seconds - 1, As, Xobmin, Vobmin);
 	if (successor >= 0) {

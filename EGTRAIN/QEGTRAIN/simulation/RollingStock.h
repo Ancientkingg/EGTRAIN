@@ -418,10 +418,14 @@ public:
 	int CounterFollowingMode;				 ///< Number of steps the train has been in following mode.
 	std::string LeadingTrainInFollowingMode; ///< trainDescription of the leader in following mode; "None" otherwise.
 	/// Route position in metres of the current braking target.
-	double Xobmin, Vobmin;		  ///< Speed in m/s to reach at the current braking target.
-	std::vector<double> Xob, Vob; ///< Vobmin at each step.
-	/// \var Train::Xob
-	/// Xobmin at each step.
+	double Xobmin, Vobmin; ///< Speed in m/s to reach at the current braking target.
+	/// Xobmin that the step before kept when it accelerated, braked or cruised; 0 when it kept none.
+	double previousXob = 0.0;
+	double previousVob = 0.0; ///< Vobmin that the step before kept; 0 when it kept none.
+	/// Xobmin that this step keeps when it accelerates, brakes or cruises; 0 until it does. Each step starts by moving currentXob
+	/// and currentVob to previousXob and previousVob.
+	double currentXob = 0.0;
+	double currentVob = 0.0; ///< Vobmin that this step keeps; 0 until it keeps one.
 
 	/// Route positions in metres of the stored braking plan, 2,000 entries.
 	std::vector<double> Sbrak = std::vector<double>(2000, 0.0), Vbrak = std::vector<double>(2000, 0.0);
@@ -663,11 +667,13 @@ public:
 	bool needsSingleTrackReservation(double head, double speed, double entry, Section* sections, int count);
 
 	/// The index in Sbrak and Vbrak of the next state of the stored braking plan, when the train is exactly at a state of it in
-	/// step previousInstant with the same target (target m, targetSpeed m/s) and that next step is feasible on arc; -1 otherwise.
+	/// step previousInstant, the step before, which kept the same target (previousXob and previousVob equal to target m and
+	/// targetSpeed m/s), and that next step is feasible on arc; -1 otherwise.
 	int cachedBrakingSuccessor(int previousInstant, const Arc& arc, double target, double targetSpeed);
 
 	/// The route position (m) where the train at S (m) and V (m/s) has to start braking for the most restrictive target ahead, or a very
 	/// large value when there is none. Sets Xobmin and Vobmin to that target; continueCached is true when the stored braking plan goes on.
+	/// PreviousInstant is the step before, whose target previousXob and previousVob hold.
 	double europeanVitalComputerWithListsImproved(double S, double V, int PreviousInstant, Section* BS, int Blocks, bool& continueCached);
 
 	/// An end of authority as a braking target: where the train has to meet which speed.
@@ -703,7 +709,8 @@ public:
 	/// then full braking steps. On success Sbrak, Vbrak and BrakStep hold the plan.
 	bool planBraking(double head, double speed, const Arc& arc, Section* sections, int count);
 
-	/// One braking step at time_seconds on arc As: follows the stored plan, makes a new one, or brakes with full force.
+	/// One braking step at time_seconds on arc As: follows the stored plan, makes a new one, or brakes with full force. The target
+	/// is new when Xobmin and Vobmin differ from previousXob and previousVob, the target of step time_seconds - 1.
 	void brakingStep(int time_seconds, const Arc& As, Section* BS, int Blocks);
 
 	/// One step of braking with the full braking force, for a train that has no braking curve to follow.
@@ -741,7 +748,8 @@ public:
 	double effectiveIncidentSpeedLimit(double candidate, int timestepIndex);
 
 	/// Computes step time_seconds of the train from step time_seconds - 1; Eq[time_seconds] labels the branch taken. signalCode1,
-	/// signalCode2 and signalCode3 are not read.
+	/// signalCode2 and signalCode3 are not read. It first moves the target that the call before kept (currentXob and currentVob) to
+	/// previousXob and previousVob, so each call is for the step after that of the call before.
 	void trajectoryComputationIncludingMovingBlock(int time_seconds, double signalCode1, double signalCode2, double signalCode3);
 
 	/// Finds where the head of the train was at the end of step time_seconds - 1: Bs and its index BsIndex on the route, and As and
@@ -895,7 +903,7 @@ public:
 		earliestActiveTrajectoryIndex = recordEarliestTrajectoryIndex(earliestActiveTrajectoryIndex, index, CanEnter);
 	}
 
-	/// Sizes every per-step vector to vec_size samples of 0 and sets End_Time to the last step.
+	/// Sizes every per-step vector to vec_size samples of 0, sets the kept targets to 0 and sets End_Time to the last step.
 	void setTrainVectorSizesFromInput(int vec_size);
 };
 

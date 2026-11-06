@@ -308,8 +308,6 @@ constexpr std::size_t kTrainBytesPerStep = sizeof(decltype(Train::instant_train_
 	+ sizeof(decltype(Train::instant_block_section_occupied)::value_type)
 	+ sizeof(decltype(Train::instant_train_energy_consumption)::value_type)
 	+ sizeof(decltype(Train::BX)::value_type)
-	+ sizeof(decltype(Train::Xob)::value_type)
-	+ sizeof(decltype(Train::Vob)::value_type)
 	+ sizeof(decltype(Train::Eq)::value_type);
 
 // The most memory that the samples of the trains of one run, one for each step, may take. A run that would need more is
