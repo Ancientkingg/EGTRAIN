@@ -1037,7 +1037,7 @@ void checkLabelledChoosers(const CapturedRun& run) {
 	// Paimpol: the capacity window names its section by block numbers with the labels in the tooltip, the export by ids
 	QVERIFY(capacityScopeTextFrom(data, capacity).startsWith("route0"));
 	QVERIFY(capacityScopeTextFrom(data, capacity).endsWith(", blocks 36 to 72"));
-	QCOMPARE(capacityScopeBlocksText(data, capacity), "First block 36: B0 10.210 to 10.510 km\nLast block 72: B0 21.010 to 21.235, B1 21.252 to 21.450 km");
+	QCOMPARE(capacityScopeBlocksText(data, capacity), "From block 36: B0 10.210 to 10.510 km\nTo block 72: B0 21.010 to 21.235, B1 21.252 to 21.450 km");
 	QVERIFY(capacityScopeLabelFrom(data, capacity).endsWith(" / @35-B0@ to @71-B0@-21.235000/@0-B1@-21.252000"));
 	const std::vector<CapacityHeadwayEvidence> evidence = {{"@35-B0@", "@0-B0@", 12.0, 2.0, 10.0}};
 	// Paimpol: the evidence names its blocks by labels in the tooltip, by short ids in the table and by ids with its figures in the export

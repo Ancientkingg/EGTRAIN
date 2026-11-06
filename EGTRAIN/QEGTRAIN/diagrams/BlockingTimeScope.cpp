@@ -270,6 +270,8 @@ void ScopeStretchChoice::chooseRoute() {
 }
 
 void ScopeStretchChoice::chooseKind(bool stations) {
+	const QString routeBefore = routeId();
+	const QStringList idsBefore = sectionIds();
 	m_preferStations = stations;
 	if (showsStations()) {
 		const BlockingTimeScopeChoices::Route& chosen = *route();
@@ -279,13 +281,17 @@ void ScopeStretchChoice::chooseKind(bool stations) {
 		std::tie(m_firstBlock, m_lastBlock) = stationStretchBlocks(chosen, m_fromStation, m_toStation);
 	}
 	refill();
-	emit stretchChanged(routeId(), sectionIds());
+	// The same blocks in the other kind of entry are the same stretch.
+	if (routeId() != routeBefore || sectionIds() != idsBefore)
+		emit stretchChanged(routeId(), sectionIds());
 }
 
 void ScopeStretchChoice::chooseEntry(bool from, int index) {
 	const BlockingTimeScopeChoices::Route* chosen = route();
 	if (!chosen || index < 0)
 		return;
+	const QString routeBefore = routeId();
+	const QStringList idsBefore = sectionIds();
 	const bool stations = showsStations();
 	int& first = stations ? m_fromStation : m_firstBlock;
 	int& last = stations ? m_toStation : m_lastBlock;
@@ -302,7 +308,9 @@ void ScopeStretchChoice::chooseEntry(bool from, int index) {
 	const QSignalBlocker blockTo(m_to);
 	m_from->setCurrentIndex(first);
 	m_to->setCurrentIndex(last);
-	emit stretchChanged(routeId(), sectionIds());
+	// Another station can hold the same blocks.
+	if (routeId() != routeBefore || sectionIds() != idsBefore)
+		emit stretchChanged(routeId(), sectionIds());
 }
 
 void ScopeStretchChoice::refill() {
@@ -380,10 +388,9 @@ BlockingTimeScope defaultBlockingTimeScope(double caseEndSeconds) {
 
 namespace {
 
-// A time of the run in seconds that reads and is typed as the clock time that the time axis of the diagram gives it
-// (formatSimTime), such as "07:15:00", or "07:15" for a whole minute. Typed text takes the second of the range with that
-// clock time that lies nearest the value before, so in a run that passes midnight 00:10:00 reads as the time after
-// midnight.
+// A time of the run in seconds that shows the clock time that the time axis of the diagram gives it (formatSimTime),
+// such as "07:15:00", and also accepts "07:15". Typed text takes the second of the range with that clock time that lies
+// nearest the value before, so in a run that passes midnight 00:10:00 reads as the time after midnight.
 class ClockTimeSpinBox : public QDoubleSpinBox {
 public:
 	ClockTimeSpinBox(long long startOffsetSeconds, QWidget* parent)

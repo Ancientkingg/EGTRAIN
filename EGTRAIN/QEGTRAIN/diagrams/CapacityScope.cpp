@@ -309,7 +309,7 @@ QString capacityScopeBlocksText(const CompletedRunData& data, const CapacityAnal
 	};
 	if (scope.blockIds.size() == 1)
 		return "Block " + block(0);
-	return "First block " + block(0) + "\nLast block " + block(scope.blockIds.size() - 1);
+	return "From block " + block(0) + "\nTo block " + block(scope.blockIds.size() - 1);
 }
 
 QString capacityReferenceText(const std::string& source, const std::string& label) {

@@ -26,6 +26,7 @@
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListWidget>
 #include <QMetaObject>
 #include <QPushButton>
 #include <QRadioButton>
@@ -148,9 +149,10 @@ RouteDiagramNode node(const char* id, const char* stationId, const char* station
 }
 
 // The line of lineRun with stations: Alpha at its start, Bravo where blocks 3 and 4 meet, Charlie with two nodes inside
-// block 6 and Delta at its end. Route S of the corridor side has no station and route T only the station Echo. The run
-// lasts an hour from 07:00:00. The trains enter every block 5 s after its occupation starts, so that any stretch of
-// route R has the two trains for Capacity.
+// block 6 and Delta at its end. Route S of the corridor side has no station and route T only the station Echo. Route U
+// of the corridor loop visits Foxtrot inside its block 1, Golf where its blocks 2 and 3 meet and Foxtrot again inside its
+// block 4. The run lasts an hour from 07:00:00. The trains enter every block 5 s after its occupation starts, so that any
+// stretch of route R has the two trains for Capacity.
 CompletedRunData stationRun() {
 	CompletedRunData data = lineRun();
 	for (CompletedTrain& lineTrain : data.trains)
@@ -171,8 +173,14 @@ CompletedRunData stationRun() {
 	spur.id = "T";
 	spur.blocks = {{"@0-T@", 0.0, 1.0}, {"@1-T@", 1.0, 2.0}};
 	spur.path.nodes = {node("t1", "e", "Echo", 1.0)};
+	CompletedRoute loop;
+	loop.id = "U";
+	loop.corridor = "loop";
+	loop.blocks = {{"@0-U@", 0.0, 1.0}, {"@1-U@", 1.0, 2.0}, {"@2-U@", 2.0, 3.0}, {"@3-U@", 3.0, 4.0}};
+	loop.path.nodes = {node("u05", "f", "Foxtrot", 0.5), node("u2", "g", "Golf", 2.0), node("u35", "f", "Foxtrot", 3.5)};
 	data.routes.push_back(side);
 	data.routes.push_back(spur);
+	data.routes.push_back(loop);
 	return data;
 }
 
@@ -303,6 +311,7 @@ private slots:
 	void scrollsBodyWithLargeFont();
 	void namesRoutesByEndStations();
 	void choosesBlocksBetweenStations();
+	void choosesStationVisitedTwice();
 	void switchesBetweenStationsAndBlocks();
 	void opensScopeOfBlocks();
 	void entersClockTimes();
@@ -318,7 +327,7 @@ void TestCapacityWindow::initTestCase() {
 // The panel holds the figures of the worked example, Open Diagram and the export, and no paragraph explains the cycle.
 void TestCapacityWindow::showsWorkedExampleInPanel() {
 	const CompletedRunData data = lineRun();
-	CapacityWindow window(lineResult(data), kContext, "First block 1: @0-B0@\nLast block 8: @7-B0@", data.sectionLabels);
+	CapacityWindow window(lineResult(data), kContext, "From block 1: @0-B0@\nTo block 8: @7-B0@", data.sectionLabels);
 	window.show();
 	QApplication::processEvents();
 	// the window is titled Capacity and is not modal
@@ -403,7 +412,7 @@ void TestCapacityWindow::showsWorkedExampleInPanel() {
 		QFAIL("the header names the run and the section, with the blocks in its tooltip");
 	QVERIFY(context->isVisible());
 	QCOMPARE(context->text(), kContext);
-	QVERIFY(context->toolTip().contains("Last block 8: @7-B0@"));
+	QVERIFY(context->toolTip().contains("To block 8: @7-B0@"));
 	QVERIFY(!window.findChild<QLabel*>("dialogContext"));
 	bool autoDefault = false;
 	for (const QPushButton* button : window.findChildren<QPushButton*>())
@@ -594,7 +603,8 @@ void TestCapacityWindow::namesRoutesByEndStations() {
 		if (rows.route == nullptr)
 			QFAIL("Blocking time: the dialog has the rows of the stretch");
 		// Blocking time: the routes by their end stations after All routes
-		QCOMPARE(entriesOf(rows.route), QStringList({"All routes", "R: Alpha to Delta  (main)", "S  (side)", "T: Echo"}));
+		QCOMPARE(entriesOf(rows.route),
+			QStringList({"All routes", "R: Alpha to Delta  (main)", "S  (side)", "T: Echo", "U: Foxtrot to Foxtrot  (loop)"}));
 		rows.route->setCurrentIndex(1);
 		rows = stretchRows(dialog);
 		if (!complete(rows))
@@ -629,7 +639,7 @@ void TestCapacityWindow::namesRoutesByEndStations() {
 			QFAIL("Capacity: the dialog has the rows of the stretch");
 		// Capacity: the routes by their end stations, with no All routes, and route R by its stations from the first to
 		// the last
-		QCOMPARE(entriesOf(rows.route), QStringList({"R: Alpha to Delta  (main)", "S  (side)", "T: Echo"}));
+		QCOMPARE(entriesOf(rows.route), QStringList({"R: Alpha to Delta  (main)", "S  (side)", "T: Echo", "U: Foxtrot to Foxtrot  (loop)"}));
 		QVERIFY(rows.stations->isChecked());
 		QCOMPARE(entriesOf(rows.from), QStringList({"Alpha", "Bravo", "Charlie", "Delta"}));
 		QCOMPARE(rows.from->currentText(), "Alpha");
@@ -695,6 +705,41 @@ void TestCapacityWindow::choosesBlocksBetweenStations() {
 		const QString stretch = QString("Capacity: the stretch from station %1 to station %2").arg(from + 1).arg(to + 1);
 		QVERIFY2(accepted, qPrintable(stretch));
 		QVERIFY2(capacity.sectionIndices == blocks, qPrintable(stretch));
+	}
+}
+
+// A route that visits a station twice lists both visits, and each visit gives its own blocks.
+void TestCapacityWindow::choosesStationVisitedTwice() {
+	const CompletedRunData run = stationRun();
+	// From Golf to the second Foxtrot, from the second Foxtrot to itself and from the first Foxtrot to itself.
+	const std::vector<std::pair<std::pair<int, int>, std::vector<int>>> stretches = {
+		{{1, 2}, {2, 3}}, {{2, 2}, {3}}, {{0, 0}, {0}}};
+	for (const auto& [stations, blocks] : stretches) {
+		BlockingTimeScope scope = defaultBlockingTimeScopeFrom(run);
+		const int from = stations.first;
+		const int to = stations.second;
+		const bool accepted = askBlockingTime(run, scope, [from, to](QDialog& dialog) {
+			StretchRows rows = stretchRows(dialog);
+			if (rows.route == nullptr)
+				QFAIL("Blocking time: the dialog has the rows of the stretch");
+			rows.route->setCurrentIndex(4);
+			rows = stretchRows(dialog);
+			if (!complete(rows) || !rows.stations->isChecked())
+				QFAIL("Blocking time: route U lists its stations");
+			// Blocking time: route U lists Foxtrot at both visits, each with the block that holds it
+			QCOMPARE(entriesOf(rows.from), QStringList({"Foxtrot", "Golf", "Foxtrot"}));
+			QCOMPARE(entriesOf(rows.to), entriesOf(rows.from));
+			QCOMPARE(tooltipsOf(rows.from), QStringList({"Block 1", "Blocks 2 to 3", "Block 4"}));
+			rows.to->setCurrentIndex(to);
+			rows.from->setCurrentIndex(from);
+			QCOMPARE(rows.from->currentIndex(), from);
+			QCOMPARE(rows.to->currentIndex(), to);
+			press(dialog, QDialogButtonBox::Ok);
+		});
+		const QString stretch = QString("Blocking time: the stretch from station %1 to station %2 of route U").arg(from + 1).arg(to + 1);
+		QVERIFY2(accepted, qPrintable(stretch));
+		QVERIFY2(scope.routeIndex == 3, qPrintable(stretch));
+		QVERIFY2(scope.sectionIndices == blocks, qPrintable(stretch));
 	}
 }
 
@@ -898,23 +943,27 @@ void TestCapacityWindow::signalsStretchAndHover() {
 		QCOMPARE(hovered.last(), QVariantList({"R", lineIds(0, 5), QStringList()}));
 		rows.blocks->click();
 		rows = stretchRows(dialog);
-		// Blocking time: Blocks keeps the stretch
-		QCOMPARE(changed.count(), 3);
-		QCOMPARE(changed.last(), QVariantList({"R", lineIds(0, 5)}));
+		// Blocking time: Blocks keeps the stretch and sends nothing, since the blocks are the same
+		QVERIFY(rows.blocks->isChecked());
+		QCOMPARE(rows.from->currentIndex(), 0);
+		QCOMPARE(rows.to->currentIndex(), 5);
+		QCOMPARE(changed.count(), 2);
 		hoverEntry(rows.to, 4);
 		// Blocking time: a block under the pointer sends that block
 		QCOMPARE(hovered.last(), QVariantList({"R", lineIds(0, 5), lineIds(4, 4)}));
 		rows.route->setCurrentIndex(0);
 		// Blocking time: All routes sends no route and no block
+		QCOMPARE(changed.count(), 3);
 		QCOMPARE(changed.last(), QVariantList({QString(), QStringList()}));
 	});
 	if (QTest::currentTestFailed())
 		return;
 	CapacityAnalysisScope capacity;
-	askCapacity(run, capacity, [](QDialog& dialog) {
+	const bool accepted = askCapacity(run, capacity, [](QDialog& dialog) {
 		QObject* stretch = stretchSignals(dialog);
-		const StretchRows rows = stretchRows(dialog);
-		if (stretch == nullptr || !complete(rows))
+		StretchRows rows = stretchRows(dialog);
+		auto* trains = dialog.findChild<QListWidget*>();
+		if (stretch == nullptr || !complete(rows) || trains == nullptr)
 			QFAIL("Capacity: the stretch has its signals");
 		QSignalSpy changed(stretch, SIGNAL(stretchChanged(QString, QStringList)));
 		QSignalSpy hovered(stretch, SIGNAL(entryHovered(QString, QStringList, QStringList)));
@@ -925,7 +974,35 @@ void TestCapacityWindow::signalsStretchAndHover() {
 		hoverEntry(rows.to, 3);
 		// Capacity: a station under the pointer sends the blocks that hold it
 		QCOMPARE(hovered.last(), QVariantList({"R", lineIds(5, 7), lineIds(7, 7)}));
+		const auto order = [trains]() {
+			QStringList ids;
+			for (int row = 0; row < trains->count(); ++row)
+				ids << trains->item(row)->data(Qt::UserRole).toString();
+			return ids;
+		};
+		QCOMPARE(order(), QStringList({"F1", "F2"}));
+		QVERIFY2(trains->model()->moveRow(QModelIndex(), 1, QModelIndex(), 0), "F2 moves above F1");
+		rows.blocks->click();
+		rows = stretchRows(dialog);
+		// Capacity: Blocks with the blocks of Charlie to Delta sends nothing and keeps the order of the trains
+		QVERIFY(rows.blocks->isChecked());
+		QCOMPARE(rows.from->currentIndex(), 5);
+		QCOMPARE(rows.to->currentIndex(), 7);
+		QCOMPARE(changed.count(), 1);
+		QCOMPARE(order(), QStringList({"F2", "F1"}));
+		rows.stations->click();
+		rows = stretchRows(dialog);
+		// Capacity: Stations with the same blocks sends nothing and keeps the order of the trains
+		QVERIFY(rows.stations->isChecked());
+		QCOMPARE(rows.from->currentText(), "Charlie");
+		QCOMPARE(rows.to->currentText(), "Delta");
+		QCOMPARE(changed.count(), 1);
+		QCOMPARE(order(), QStringList({"F2", "F1"}));
+		press(dialog, QDialogButtonBox::Ok);
 	});
+	// Capacity: the analysis takes the trains in the order that the user set
+	QVERIFY(accepted);
+	QCOMPARE(capacity.occurrenceIds, std::vector<std::string>({"F2", "F1"}));
 }
 
 QTEST_MAIN(TestCapacityWindow)
