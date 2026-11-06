@@ -133,7 +133,8 @@ The Windows entry follows the rule of Qt for the application data folder. **Simu
 
 This manual is also in EGTRAIN: **Help > EGTRAIN Manual** opens it with its contents and search, and F1 opens the section about the window you are in when the manual has one, otherwise its start page. A build without the manual opens the manual on the project website instead.
 
-- [How-to](how-to.md): recipes for opening and saving, editing a timetable, scenarios and baselines, canvas navigation, results and legacy cases.
+- [How-to](how-to.md): recipes for opening and saving, running, adding trains and services, changing the infrastructure, incidents, graphs of a run, results and legacy cases.
+- [Common questions](common-questions.md): short answers, such as why **Run** is disabled, where a run writes its files and what to attach to a bug report.
 - [Opening an `.egscene` case](opening-a-case-study.md): bundles, version checks and opening by double-click.
 - [Editing and validating a case](editing-a-case.md), [Scenarios and the student loop](scenarios.md) and the [scene schema](scene-schema.md): the editors, the scenarios and the case files.
 - [Glossary](glossary.md).

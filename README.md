@@ -30,7 +30,7 @@ To cite EGTRAIN, use **Cite this repository** in the sidebar of the [GitHub repo
 
 ## Documentation and development
 
-- Install and run a first case: [Installing EGTRAIN](docs/guides/install.md) and [Getting started](docs/guides/getting-started.md).
+- Install and run a first case: [Installing EGTRAIN](docs/guides/install.md), [Getting started](docs/guides/getting-started.md) and [Common questions](docs/guides/common-questions.md).
 - Run a case: [Bundled cases](docs/guides/case-studies.md), [Opening an `.egscene` case](docs/guides/opening-a-case-study.md) and [Command-line options and scene_tool](docs/guides/command-line.md).
 - Create or edit cases: [Editing and validating a case](docs/guides/editing-a-case.md) and the [V1 scene schema reference](docs/guides/scene-schema.md).
 - Build the application from source: [Getting started as a developer](docs/development/getting-started.md).
@@ -40,7 +40,7 @@ EGTRAIN is a C++17 application built with Qt 6 and CMake. See [Documentation](do
 
 ## Support
 
-Report problems in [GitHub Issues](https://github.com/Ancientkingg/EGTRAIN/issues). Please include the application version, your operating system, the steps to reproduce the problem, and what you expected against what happened.
+Report problems in [GitHub Issues](https://github.com/Ancientkingg/EGTRAIN/issues). Please include the application version, your operating system, the steps to reproduce the problem, and what you expected against what happened. [What should I attach to a bug report?](docs/guides/common-questions.md#what-should-i-attach-to-a-bug-report) says where to find each of them.
 
 Do not upload private project data, such as case files, logs or screenshots with data you do not want to share, unless it is needed to explain the problem. Remove what you do not want to share.
 

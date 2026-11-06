@@ -50,6 +50,38 @@
     },
     {
       "case": "Paimpol",
+      "file": "how-to-add-a-service.png",
+      "height": 750,
+      "state": "new_service on route6 with stops at Guingamp and Paimpol, Services on Service",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Paimpol",
+      "file": "how-to-add-a-train.png",
+      "height": 750,
+      "state": "the express repeated after 3600 s for 2 runs, Services on Run occurrences",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Paimpol",
+      "file": "how-to-add-an-incident.png",
+      "height": 750,
+      "state": "a train breakdown of the express from 900 s to 1200 s in Express breakdown, Scenarios on Incidents",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Paimpol",
+      "file": "how-to-change-infrastructure.png",
+      "height": 750,
+      "state": "Infrastructure on Arcs filtered to B0.arc.226, its speed limit 8.333333333 m/s, marked on the view",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Paimpol",
       "file": "how-to-replay-menu.png",
       "height": 750,
       "state": "replay at 3500 s, context menu of the stopping train open",
@@ -61,6 +93,14 @@
       "file": "how-to-scene-validation.png",
       "height": 750,
       "state": "Case Validation after the dwell at Pontrieaux became 180 s",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Paimpol",
+      "file": "how-to-train-paths.png",
+      "height": 750,
+      "state": "Train paths after a run of baseline, on the first route of the run",
       "version": "1.0.0",
       "width": 1200
     },

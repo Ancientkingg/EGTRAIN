@@ -15,6 +15,7 @@
 #include "graphics/NetworkPresenter.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/NetworkView.h"
+#include "graphics/items/NetworkMarkItem.h"
 #include "graphics/items/TrainBodyItem.h"
 #include "graphics/items/TrainItemGroup.h"
 #include "simulation/SimulationWorker.h"
@@ -74,6 +75,10 @@ constexpr double kFollowZoom = 25.0;
 // The trains that Speed / distance shows. With all of them the lines overlap so much that the order in which they are
 // drawn, which changes from run to run, changes a tenth of the picture.
 constexpr int kShownTrains = 6;
+// The headway that gives the express of Paimpol its second run, and the zoom of the view on the arc whose speed limit
+// the how-to lowers.
+constexpr double kSecondRunHeadway = 3600.0;
+constexpr double kArcZoom = 20.0;
 // The pause between two steps, and between two looks at a step that waits.
 constexpr int kStepPauseMs = 300;
 constexpr int kPollMs = 50;
@@ -298,10 +303,11 @@ int rowWithText(const QTableWidget* table, int column, const QString& text) {
 
 // Takes the pictures of docs/images into the folder that QEGTRAIN_E2E_CAPTURES names, with captures.json, which lists for
 // each its case, its state, its size and the version of the program. The run starts with Netherlands loaded, opens
-// Paimpol from Open a Case, runs it, edits it as the tutorial on modifying a case does, then opens and runs Milano_Brescia
-// and builds the case of the tutorial on the smallest scene. Nothing is saved to a case. With QEGTRAIN_E2E_CAPTURE_COMPARE
-// it compares the pictures with the ones of that folder afterwards. The run prints E2E_CAPTURES_OK and exits with 0, or
-// prints E2E_CAPTURE_FAIL with the reason and exits with 2.
+// Paimpol from Open a Case, runs it, edits it as the tutorial on modifying a case does, then opens and runs Milano_Brescia,
+// builds the case of the tutorial on the smallest scene, and opens, runs and edits Paimpol again as the recipes of the
+// how-to page do. Nothing is saved to a case. With QEGTRAIN_E2E_CAPTURE_COMPARE it compares the pictures with the ones
+// of that folder afterwards. The run prints E2E_CAPTURES_OK and exits with 0, or prints E2E_CAPTURE_FAIL with the reason
+// and exits with 2.
 void MainWindowTestAccess::runCaptures(MainWindow& w) {
 	captureRun.folder = qEnvironmentVariable("QEGTRAIN_E2E_CAPTURES");
 	if (!QDir().mkpath(captureRun.folder)) {
@@ -725,6 +731,114 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		w.resizeDocks({serviceDock(w)}, {760}, Qt::Horizontal);
 		return saveCapture(windowShot(), QStringLiteral("tutorial-minimal-service.png"), QStringLiteral("Minimal line"),
 			QStringLiteral("the finished case, Services on the timetable of new_service"));
+	});
+
+	// How-to: the recipes, on Paimpol as it is committed. A run of baseline gives Train paths, and then the express gets a
+	// second run, a new service is added, an arc gets a lower speed limit and a copy of baseline gets an incident.
+	steps.push_back([&w, scenes] {
+		w.m_document->markSaved();
+		return w.openSceneDirectory(QDir(scenes).filePath(QStringLiteral("Paimpol"))) || failCaptures(QStringLiteral("cannot open Paimpol again"));
+	});
+	steps.push_back([caseIs] { return caseIs("Paimpol"); });
+	steps.push_back([&w, showOnly] {
+		showOnly({});
+		w.m_runController->runCurrent();
+		return true;
+	});
+	steps.push_back(runEnded);
+	steps.push_back([&w] {
+		// A scripted run suppresses the dialog Reference route, so the chart follows the first route of the run.
+		w.m_resultViews->displayTrainPathDiagrams();
+		const QList<DiagramWindow*> diagrams = w.findChildren<DiagramWindow*>();
+		if (diagrams.isEmpty())
+			return failCaptures(QStringLiteral("Train paths did not open"));
+		DiagramWindow* diagram = diagrams.last();
+		diagram->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+		diagram->resize(kWindowSize);
+		settle();
+		const bool saved = saveCapture(diagram->grab(), QStringLiteral("how-to-train-paths.png"), QStringLiteral("Paimpol"),
+			QStringLiteral("Train paths after a run of baseline, on the first route of the run"));
+		diagram->close();
+		return saved;
+	});
+	steps.push_back([&w, showOnly, windowShot] {
+		w.revealEditorDock(serviceDock(w));
+		const QList<QListWidgetItem*> services = servicePanel(w)->listWidget()->findItems(QStringLiteral("Guin-Paim-EXPRESS-1"), Qt::MatchExactly);
+		if (services.isEmpty())
+			return failCaptures(QStringLiteral("Services lists no Guin-Paim-EXPRESS-1"));
+		servicePanel(w)->listWidget()->setCurrentItem(services.first());
+		showTab(serviceDock(w), QStringLiteral("Service"));
+		servicePanel(w)->hasRepeatCountCheck()->setChecked(true);
+		settle();
+		const bool repeated = editNumber(servicePanel(w)->headwaySecondsEdit(), kSecondRunHeadway)
+			&& editLine(servicePanel(w)->repeatCountEdit(), QStringLiteral("2"));
+		showTab(serviceDock(w), QStringLiteral("Run occurrences"));
+		showOnly({serviceDock(w)});
+		w.resizeDocks({serviceDock(w)}, {760}, Qt::Horizontal);
+		return repeated && servicePanel(w)->occurrenceTable()->rowCount() == 3
+			? saveCapture(windowShot(), QStringLiteral("how-to-add-a-train.png"), QStringLiteral("Paimpol"),
+				  QStringLiteral("the express repeated after 3600 s for 2 runs, Services on Run occurrences"))
+			: failCaptures(QStringLiteral("the express could not be given a second run"));
+	});
+	steps.push_back([&w, showOnly, windowShot, addStop] {
+		servicePanel(w)->addButton()->click();
+		settle();
+		if (!chooseText(servicePanel(w)->compositionCombo(), QStringLiteral("Draisy"))
+			|| !chooseText(servicePanel(w)->routeCombo(), QStringLiteral("route6")))
+			return failCaptures(QStringLiteral("new_service cannot take Draisy and route6"));
+		showTab(serviceDock(w), QStringLiteral("Timetable"));
+		if (!addStop(QStringLiteral("Guingamp"), QStringLiteral("Guingamp.platform.1"), -1, 5000)
+			|| !addStop(QStringLiteral("Paimpol"), QStringLiteral("Paimpol.platform.1"), 7599, -1))
+			return failCaptures(QStringLiteral("the stops of new_service could not be added"));
+		showTab(serviceDock(w), QStringLiteral("Service"));
+		showOnly({serviceDock(w)});
+		w.resizeDocks({serviceDock(w)}, {760}, Qt::Horizontal);
+		return saveCapture(windowShot(), QStringLiteral("how-to-add-a-service.png"), QStringLiteral("Paimpol"),
+			QStringLiteral("new_service on route6 with stops at Guingamp and Paimpol, Services on Service"));
+	});
+	steps.push_back([&w, showOnly, windowShot, facet, setCell, selectRow] {
+		w.revealEditorDock(infrastructureDock(w));
+		bool edited = facet("arcs");
+		infrastructurePanel(w)->filterEdit()->setText(QStringLiteral("B0.arc.226"));
+		settle();
+		const int row = rowWithText(infrastructurePanel(w)->table(), 0, QStringLiteral("B0.arc.226"));
+		edited = edited && row >= 0 && setCell(row, 6, QStringLiteral("8.333333333")) && selectRow(row);
+		showOnly({infrastructureDock(w)});
+		w.resizeDocks({infrastructureDock(w)}, {760}, Qt::Horizontal);
+		w.resize(kWindowSize);
+		settle();
+		// Speed limit (m/s) is the last column, beyond the width of the dock.
+		infrastructurePanel(w)->table()->scrollTo(infrastructurePanel(w)->table()->model()->index(row, 6));
+		const NetworkMarkItem* mark = w.m_presenter->selectionMark();
+		if (!edited || !mark)
+			return failCaptures(QStringLiteral("the speed limit of B0.arc.226 could not be changed and marked"));
+		w.networkView->zoomBy(kArcZoom / w.networkView->zoomRatio());
+		w.networkView->centerOn(mark->sceneBoundingRect().center());
+		return saveCapture(windowShot(), QStringLiteral("how-to-change-infrastructure.png"), QStringLiteral("Paimpol"),
+			QStringLiteral("Infrastructure on Arcs filtered to B0.arc.226, its speed limit 8.333333333 m/s, marked on the view"));
+	});
+	steps.push_back([&w, showOnly, windowShot] {
+		// The whole line is in view again for the picture of the incident.
+		infrastructurePanel(w)->table()->clearSelection();
+		w.networkView->fitToTopology();
+		w.revealEditorDock(incidentDock(w));
+		scenarioPanel(w)->listWidget()->setCurrentRow(0);
+		scenarioPanel(w)->duplicateButton()->click();
+		settle();
+		bool ok = editLine(scenarioPanel(w)->nameEdit(), QStringLiteral("Express breakdown"));
+		showTab(incidentDock(w), QStringLiteral("Incidents"));
+		incidentPanel(w)->addButton()->click();
+		settle();
+		ok = ok && chooseText(incidentPanel(w)->typeCombo(), QStringLiteral("Train breakdown"))
+			&& chooseText(incidentPanel(w)->targetCombo(), QStringLiteral("Guin-Paim-EXPRESS-1-1 (route route6, +10 s)"))
+			&& editNumber(incidentPanel(w)->startSecondsEdit(), 900);
+		incidentPanel(w)->hasEndSecondsCheck()->setChecked(true);
+		ok = ok && editNumber(incidentPanel(w)->endSecondsEdit(), 1200);
+		showOnly({incidentDock(w)});
+		w.resizeDocks({incidentDock(w)}, {480}, Qt::Horizontal);
+		return ok ? saveCapture(windowShot(), QStringLiteral("how-to-add-an-incident.png"), QStringLiteral("Paimpol"),
+						QStringLiteral("a train breakdown of the express from 900 s to 1200 s in Express breakdown, Scenarios on Incidents"))
+				  : failCaptures(QStringLiteral("the incident of Express breakdown could not be entered"));
 	});
 
 	advanceCaptures(w);
