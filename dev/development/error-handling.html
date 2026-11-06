@@ -437,6 +437,22 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">scene.bundle.publish</span></code> warning: “Cannot flush <parent> to disk: <reason>”</p></td>
 <td><p>The save or the unpack succeeds. The window shows no warning of a save that succeeds; <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> prints the warning.</p></td>
 </tr>
+<tr class="row-odd"><td><p>The flush to disk of an export before anything in the destination is removed or replaced (<code class="docutils literal notranslate"><span class="pre">publishExport</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SceneExporter.cpp</span></code>): every file and folder of the staged export, with <code class="docutils literal notranslate"><span class="pre">syncDirectoryTree</span></code> as for a folder save, for a new and for an existing destination</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.export.write</span></code>: “Cannot flush <file> to disk: <reason>”, with the path inside the export, or the name of the destination for the staged folder itself</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">export</span></code> exits with 1. An existing destination is unchanged, a new one is not made, and the staged folder is removed.</p></td>
+</tr>
+<tr class="row-even"><td><p>The flush of the folders once an export is in place, on macOS and Linux (<code class="docutils literal notranslate"><span class="pre">publishExport</span></code>). A new destination is renamed into place by <code class="docutils literal notranslate"><span class="pre">publishStagedDirectory</span></code>, which flushes its parent folder and on Windows writes the rename through. Into an existing destination the staged files are moved one by one with <code class="docutils literal notranslate"><span class="pre">std::filesystem::rename</span></code>, which Windows does not write through, and then the destination and every folder in it that gained or lost an entry are flushed</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.export.write</span></code> warning: “Cannot flush <folder> to disk: <reason>”</p></td>
+<td><p>The export succeeds; <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> prints the warning.</p></td>
+</tr>
+<tr class="row-odd"><td><p>The flush to disk of a standalone scenario file before it replaces the old file (<code class="docutils literal notranslate"><span class="pre">writeJsonFileReplacing</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SceneWriter.cpp</span></code>, called by <code class="docutils literal notranslate"><span class="pre">saveScenarioJson</span></code>): the temporary file beside it, with <code class="docutils literal notranslate"><span class="pre">syncToDisk</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.save.write</span></code>: “Cannot flush <file name> to disk: <reason>”</p></td>
+<td><p><strong>Scenario Export Failed</strong>; the old file is unchanged and the temporary file is removed.</p></td>
+</tr>
+<tr class="row-even"><td><p>The flush of the parent folder after the scenario file is renamed into place, on macOS and Linux (<code class="docutils literal notranslate"><span class="pre">writeJsonFileReplacing</span></code>). On Windows the rename is <code class="docutils literal notranslate"><span class="pre">std::filesystem::rename</span></code>, which is not written through</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.save.cleanup</span></code> warning: “Cannot flush <parent> to disk: <reason>”</p></td>
+<td><p>The export of the scenario succeeds; the window shows no warning.</p></td>
+</tr>
 <tr class="row-odd"><td><p>The legacy folder of an import and its passenger files (<code class="docutils literal notranslate"><span class="pre">scene/SceneImporter.cpp</span></code>)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">scene.import.missing</span></code> with the reason; passenger files that cannot be checked count as absent</p></td>
 <td><p><strong>Cannot Import Legacy Case</strong>, or <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">import</span></code> exits with 1.</p></td>
@@ -561,7 +577,6 @@
 <h3>Other hazards<a class="headerlink" href="#other-hazards" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">RunController::clearSimulationWorker</span></code> (<code class="docutils literal notranslate"><span class="pre">app/RunController.cpp</span></code>) waits for the worker thread without a timeout. A step that never checks the stop flag freezes the window when the run is stopped or the window closes.</p></li>
-<li><p>Two writers do not flush their files to disk, so a power loss or a system crash shortly after can leave an empty or cut file: <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">export</span></code> (<code class="docutils literal notranslate"><span class="pre">scene/SceneExporter.cpp</span></code>), where <code class="docutils literal notranslate"><span class="pre">publishStagedDirectory</span></code> flushes only the parent folder of a new export folder, and the standalone scenario file of <code class="docutils literal notranslate"><span class="pre">saveScenarioJson</span></code> (<code class="docutils literal notranslate"><span class="pre">scene/SceneWriter.cpp</span></code>), which is written to a temporary file and renamed over the old one.</p></li>
 </ul>
 </section>
 </section>
