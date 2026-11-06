@@ -1902,11 +1902,14 @@ void TestSceneWriter::publishesSave() {
 		refused = saveScene(scene, other.string());
 	fs::permissions(root, fs::perms::owner_all, fs::perm_options::replace);
 	if (readOnly) {
-		const bool reported = std::any_of(refused.diagnostics.begin(), refused.diagnostics.end(), [](const SceneDiagnostic& diagnostic) {
+		const std::string expected = "Cannot create a private case staging directory: "
+			+ std::make_error_code(std::errc::permission_denied).message();
+		const bool reported = std::any_of(refused.diagnostics.begin(), refused.diagnostics.end(), [&expected](const SceneDiagnostic& diagnostic) {
 			return diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.save.write"
-				&& diagnostic.message.rfind("Cannot create a private case staging directory", 0) == 0;
+				&& diagnostic.message == expected;
 		});
-		// Save into a read-only parent reports the staging directory.
+		printErrors(refused.diagnostics, "read-only parent save");
+		// Save into a read-only parent reports the staging directory and the reason of the system.
 		QVERIFY(!refused.success());
 		QVERIFY(reported);
 		QVERIFY2(!fs::exists(other), "failed save creates no destination");

@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cerrno>
 #include <climits>
 #include <filesystem>
 #include <nlohmann/json.hpp>
@@ -541,11 +542,29 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 	}
 
 	std::vector<std::pair<std::string, std::string>> inputFiles;
+	// A required file that cannot be read is missing, or it exists and the reason is the error of the status or of the
+	// open, `openError`.
+	auto addUnreadableFile = [&](const std::string& file, int openError) {
+		std::error_code statusError;
+		const fs::file_type type = fs::status(directory / file, statusError).type();
+		if (type == fs::file_type::not_found) {
+			addError("scene.file.missing", file, file + " is missing");
+			return;
+		}
+		std::string reason = "it cannot be opened";
+		if (statusError)
+			reason = statusError.message();
+		else if (openError != 0)
+			reason = std::generic_category().message(openError);
+		addError("scene.file.unreadable", file, "Cannot read " + file + ": " + reason);
+	};
 	auto parseObject = [&](const std::string& file, json& value, bool required, bool parseValue = true) {
 		std::string content;
+		errno = 0;
 		if (!readFileBytes(directory / file, content)) {
+			const int openError = errno;
 			if (required)
-				addError("scene.file.missing", file, "Required file is missing");
+				addUnreadableFile(file, openError);
 			return false;
 		}
 		if (isSceneFileName(file))
