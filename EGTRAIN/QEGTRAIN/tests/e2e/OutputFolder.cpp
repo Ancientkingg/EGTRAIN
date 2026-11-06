@@ -57,8 +57,10 @@ constexpr double kDiagramRunSeconds = 600.0;
 // second scene in the window, renames that scene in Case Settings and runs it, then picks a folder as Choose
 // Output Folder does and opens a third scene, which must leave that folder in force. Then a run whose output folder is
 // a file and a run that an exception ends must fail and leave the third scene open and editable, and a run whose
-// TrainServicePathDiagram.txt cannot be written must say so in the status bar. QEGTRAIN_OUTPUT_DIR names the base
-// folder. It prints E2E_OUTPUT_FOLDER_OK and exits with 0, or prints the failures and exits with 2.
+// TrainServicePathDiagram.txt cannot be written must say so in the status bar. A run whose results cannot be captured
+// must end without results, with the scene open and editable and with what waited for the run done, and, where an
+// exception can leave a slot, a run whose finish throws must still release its worker. QEGTRAIN_OUTPUT_DIR names the
+// base folder. It prints E2E_OUTPUT_FOLDER_OK and exits with 0, or prints the failures and exits with 2.
 void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 	if (scenarioStarted)
 		return;
@@ -221,6 +223,46 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 			fail(QStringLiteral("the run whose service path diagram cannot be written did not complete"));
 		else if (w.statusBar()->currentMessage() != unwritten)
 			fail(QStringLiteral("a run whose service path diagram cannot be written shows the status \"%1\"").arg(w.statusBar()->currentMessage()));
+
+		// The capture of the results throws once the run has completed and a Close, New or Open has come to wait for it.
+		simulation.setNextRunOutputFolder(run->temp.filePath(QStringLiteral("capture")).toStdString());
+		initial_variables.times = kDiagramRunSeconds;
+		initial_variables.durationOverride = true;
+		bool deferredRan = false;
+		w.m_runController->m_beforeResultCapture = [&w, &deferredRan, inject] {
+			w.m_runController->deferUntilRunStopped([&deferredRan] { deferredRan = true; });
+			if (inject)
+				throw std::runtime_error("capture failed");
+		};
+		w.m_runController->runScene();
+		const bool captureRunStarted = w.m_runController->m_worker;
+		const bool captureRunEnded = runEnded();
+		w.m_runController->m_beforeResultCapture = nullptr;
+		w.m_runController->m_afterRunAction = nullptr;
+		initial_variables.durationOverride = false;
+		if (!captureRunStarted || !captureRunEnded || !deferredRan || w.m_runController->m_completedRun || !caseUsable())
+			fail(QStringLiteral("a run whose results cannot be captured did not end without results, with the case usable and the "
+								"waiting action done"));
+		else if (w.statusBar()->currentMessage() != QStringLiteral("Simulation ended without results"))
+			fail(QStringLiteral("a run whose results cannot be captured shows the status \"%1\"").arg(w.statusBar()->currentMessage()));
+
+#ifndef Q_OS_MACOS
+		// A run whose finish throws after the capture still releases its worker. The exception passes on to the guard of
+		// the window, which reports it; on macOS it cannot leave the slot.
+		const auto throwing = QObject::connect(w.m_runController, &RunController::runProgressEnded, w.m_runController, [inject] {
+			if (inject)
+				throw std::runtime_error("finish failed");
+		});
+		initial_variables.durationOverride = true;
+		w.m_runController->runScene();
+		const bool throwingRunStarted = w.m_runController->m_worker;
+		const bool throwingRunEnded = runEnded();
+		QObject::disconnect(throwing);
+		initial_variables.durationOverride = false;
+		if (!throwingRunStarted || !throwingRunEnded || !w.m_document->isEditable()
+			|| !w.findChild<QAction*>(QStringLiteral("actionRun"))->isEnabled())
+			fail(QStringLiteral("a run whose finish throws did not release its worker"));
+#endif
 	};
 
 	// The third scene opens once the run has stopped. The folder that was chosen stays in force.
