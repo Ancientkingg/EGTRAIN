@@ -5,7 +5,6 @@
 #include "widgets/EditorLayout.h"
 
 #include <QComboBox>
-#include <QCoreApplication>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
@@ -726,18 +725,6 @@ bool InfrastructurePanel::selectCanvasItem(const QString& kind, const QString& i
 	const int row = m_table->currentRow();
 	if (row < 0 || m_selectionId != target.id)
 		return false;
-	// The controls of the kind, the line under the table and the scroll bars of the rows take their room first, so that
-	// the row ends in view. Qt lays out the panel and the window around it one level for each pass of the event loop, and
-	// shows the scroll bars of the table from it too; those passes run here until the sizes stay.
-	for (int pass = 0; pass < 4; ++pass) {
-		const QSize panelSize = size();
-		const QSize tableSize = m_table->viewport()->size();
-		QCoreApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
-		m_table->doItemsLayout();
-		QCoreApplication::sendPostedEvents(m_table, QEvent::MetaCall);
-		if (size() == panelSize && m_table->viewport()->size() == tableSize)
-			break;
-	}
 	m_table->scrollTo(m_table->model()->index(row, 0));
 	return true;
 }

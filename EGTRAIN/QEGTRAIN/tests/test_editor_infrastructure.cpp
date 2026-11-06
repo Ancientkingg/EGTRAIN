@@ -10,15 +10,18 @@
 #include "scene/SignallingLevel.h"
 
 #include "support/FakePrompts.h"
+#include "widgets/EditorLayout.h"
 
 #include <QApplication>
 #include <QComboBox>
+#include <QDockWidget>
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QMainWindow>
 #include <QMouseEvent>
 #include <QPushButton>
 #include <QScopeGuard>
@@ -327,6 +330,7 @@ private slots:
 	void selectsCanvasItemInListedTable();
 	void canvasItemWithoutRowChangesNothing();
 	void takesOpenEditorBeforeCanvasItem();
+	void scrollsToCanvasRowInWindow();
 };
 
 // The facets, the combo and a panel without a scene.
@@ -1300,24 +1304,27 @@ void TestInfrastructurePanel::leavesOpenEditorDuringOwnEdit() {
 	QVERIFY(table->indexWidget(table->model()->index(0, 0)) == nullptr);
 }
 
-// A panel with the facets of the window on the committed scene Paimpol, with a signal, a block dependency and a station
-// boundary added, which Paimpol does not have.
+// Gives the panel the facets of the window and the document the committed scene Paimpol, with a signal, a block
+// dependency and a station boundary added, which Paimpol does not have.
+static void openPaimpol(InfrastructurePanel& panel, SceneDocument& document) {
+	for (auto* makeFacets : {&makeTopologyFacets, &makeBlockRouteFacets, &makeStationFacets, &makeSignalFacets})
+		for (std::unique_ptr<InfrastructureFacet>& facet : (*makeFacets)())
+			panel.setFacet(std::move(facet));
+	SceneModel scene = loadScene(QFINDTESTDATA("../Scenes/Paimpol").toStdString()).scene;
+	sceneSignals(scene).push_back({"sig.36", "36-B0"});
+	scene.blockDependencies.push_back({"36-B0", "38-B0"});
+	scene.stationBoundaries.push_back({"40-B0", true, "42-B0", false});
+	document.replace(std::move(scene), false);
+	panel.setDocument(&document);
+	panel.refresh();
+}
+
+// A panel with the facets of the window on Paimpol (openPaimpol).
 struct PaimpolPanel {
 	SceneDocument document;
 	InfrastructurePanel panel;
 
-	PaimpolPanel() {
-		for (auto* makeFacets : {&makeTopologyFacets, &makeBlockRouteFacets, &makeStationFacets, &makeSignalFacets})
-			for (std::unique_ptr<InfrastructureFacet>& facet : (*makeFacets)())
-				panel.setFacet(std::move(facet));
-		SceneModel scene = loadScene(QFINDTESTDATA("../Scenes/Paimpol").toStdString()).scene;
-		sceneSignals(scene).push_back({"sig.36", "36-B0"});
-		scene.blockDependencies.push_back({"36-B0", "38-B0"});
-		scene.stationBoundaries.push_back({"40-B0", true, "42-B0", false});
-		document.replace(std::move(scene), false);
-		panel.setDocument(&document);
-		panel.refresh();
-	}
+	PaimpolPanel() { openPaimpol(panel, document); }
 
 	// Selects the row of `facet` whose cell in `column` reads `text`, or the row with that number for `column` -1, and
 	// returns the line under the table; empty while it is hidden.
@@ -1600,6 +1607,66 @@ void TestInfrastructurePanel::takesOpenEditorBeforeCanvasItem() {
 	QCOMPARE(f.panel.facetKey(), "arcs");
 	QCOMPARE(f.panel.selectionId(), "B5.arc.101");
 	QCOMPARE(events.selections.back(), Selection("arcs", "B5.arc.101"));
+}
+
+// The Paimpol panel in the Infrastructure dock of a window of 1280 by 800 pixels, in the scroll area that the main window
+// puts it in. Above it is a dock as high as the Details dock of the main window, hidden, which a click on the canvas
+// shows before the panel selects the row of the item.
+struct PaimpolWindow {
+	SceneDocument document;
+	QMainWindow window;
+	QDockWidget* details = new QDockWidget("Details", &window);
+	QDockWidget* dock = new QDockWidget("Infrastructure", &window);
+	InfrastructurePanel* panel = new InfrastructurePanel;
+
+	PaimpolWindow() {
+		auto* form = new QWidget(details);
+		form->setMinimumHeight(340);
+		details->setWidget(form);
+		window.addDockWidget(Qt::RightDockWidgetArea, details);
+		details->hide();
+		auto* scroll = new EditorLayout::DockScrollArea(dock);
+		scroll->setWidgetResizable(true);
+		scroll->setWidget(panel);
+		dock->setWidget(scroll);
+		window.addDockWidget(Qt::RightDockWidgetArea, dock);
+		window.setCentralWidget(new QWidget(&window));
+		openPaimpol(*panel, document);
+		window.resize(1280, 800);
+		window.show();
+		settle();
+	}
+	PaimpolWindow(const PaimpolWindow&) = delete;
+	PaimpolWindow& operator=(const PaimpolWindow&) = delete;
+
+	// Runs the events that lay out the window, which Qt passes on one level of widgets at a time.
+	static void settle() {
+		for (int pass = 0; pass < 8; ++pass)
+			QApplication::processEvents();
+	}
+};
+
+// In the window a click on the canvas shows the Details dock above the Infrastructure dock, which makes the table lower,
+// and then selects the row of the item. The row of a platform near the end of the list is in view once the window is
+// laid out.
+void TestInfrastructurePanel::scrollsToCanvasRowInWindow() {
+	PaimpolWindow f;
+	// The window shows the line under the table, and blocks are listed, with controls that platforms do not have.
+	f.panel->setMarkShown(true);
+	chooseFacet(*f.panel, "blocks");
+	PaimpolWindow::settle();
+	const int fullHeight = f.panel->table()->viewport()->height();
+	f.details->show();
+	QVERIFY(f.panel->selectCanvasItem("station-node", "B0.node.350", "Paimpol.platform.1"));
+	PaimpolWindow::settle();
+	const QTableWidget* table = f.panel->table();
+	QCOMPARE(f.panel->selectionId(), "Paimpol\nPaimpol.platform.1");
+	QCOMPARE(table->currentRow(), 13);
+	QCOMPARE(table->rowCount(), 15);
+	QVERIFY2(table->viewport()->height() < std::min(fullHeight, table->rowHeight(0) * 10), "the table is lower and shows a part of its rows");
+	const QRect row = table->visualItemRect(table->item(13, 0));
+	QVERIFY2(table->viewport()->rect().contains(row),
+		qPrintable(QStringLiteral("row at %1 to %2 of a viewport %3 high").arg(row.top()).arg(row.bottom()).arg(table->viewport()->height())));
 }
 
 QTEST_MAIN(TestInfrastructurePanel)
