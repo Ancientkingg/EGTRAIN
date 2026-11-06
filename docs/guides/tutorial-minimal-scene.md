@@ -49,9 +49,11 @@ The tables **Connections** (joins between two nodes), **Signals**, **Block depen
 
 ## 3. A rolling stock unit
 
-Open **Editors > Rolling Stock Units** and choose **Add Unit**. The unit is `new_train_unit`. A run needs physical values and a traction curve. This tutorial does not make up railway data: it copies the placeholder unit `SLT_Sprinter` of the case `Assignment_Gvc_Gdg_Ut`, the stock that its [own documentation](assignment-workflow.md) calls a placeholder. Treat it as a stand-in, not as data of a real train.
+A run needs physical values and a traction curve. This tutorial does not make up railway data: it copies the placeholder unit `SLT_Sprinter` of the case `Assignment_Gvc_Gdg_Ut`, the stock that its [own documentation](assignment-workflow.md) calls a placeholder. Treat it as a stand-in, not as data of a real train.
 
-On the tab **Physical**, enter these values, pressing Enter after each:
+Open **Editors > Rolling Stock Units** and choose **Add from Library...**. Under the heading `Assignment_Gvc_Gdg_Ut`, select `SLT_Sprinter` (130 km/h, 70 m, 2 traction rows). Clear **Also add a composition with only this unit**, because section 4 makes the composition, and choose **Add**. The unit `SLT_Sprinter` is added and selected. Set its **ID** to `new_train_unit` and press Enter, so that the unit has the name that the next sections use.
+
+The copy holds the values below. To enter them yourself instead, choose **Add Unit**, which adds the unit `new_train_unit`. On the tab **Physical**, enter these values, pressing Enter after each:
 
 | Field | Value |
 | --- | --- |
@@ -65,14 +67,14 @@ On the tab **Physical**, enter these values, pressing Enter after each:
 | Jerk (m/s³) | 0.75 |
 | Length (m) | 70 |
 
-On the tab **Traction**, choose **Add Row** twice and fill the columns **Lower speed (m/s)**, **Upper speed (m/s)**, **C0**, **C1** and **C2**: click a cell, type the number and press Enter. The force in N at speed v is C0 + C1 v + C2 v².
+On the tab **Traction**, the copy holds these rows. To enter them yourself, choose **Add Row** twice and fill the columns **Lower speed (m/s)**, **Upper speed (m/s)**, **C0**, **C1** and **C2**: click a cell, type the number and press Enter. The force in N at speed v is C0 + C1 v + C2 v².
 
 | Row | Lower speed | Upper speed | C0 | C1 | C2 |
 | --- | --- | --- | --- | --- | --- |
 | 1 | 0 | 8.611111111111 | 209000 | 0 | 0 |
 | 2 | 8.611111111111 | 36.111111111111 | 324607.2915 | -17671.4923 | 292.9005 |
 
-A field or cell that you are not editing can show a number rounded, for example `36.1111`; the full value is kept, and it shows when you click the field or double-click the cell. The speed intervals must not overlap and must run in order. The source references and the links to files are optional and stay empty.
+A field or cell that you are not editing can show a number rounded, for example `36.1111`; the full value is kept, and it shows when you click the field or double-click the cell. The speed intervals must not overlap and must run in order. The copy keeps the source references of the case, `/TrainData/SLT_Sprinter.txt` and `/TrainData/T_SLT_Sprinter.txt`, which say where its values came from. They are optional and stay empty for a unit that you enter yourself, and the links to files stay empty in both ways.
 
 ## 4. A composition
 

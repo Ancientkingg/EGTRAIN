@@ -4,6 +4,8 @@ The bundled cases in `EGTRAIN/QEGTRAIN/Scenes` have their own sources and terms,
 
 Every case also has one network-wide signalling area (level 0), added by project decision. It is not repeated below.
 
+The rolling stock library of **Add from Library...**, `EGTRAIN/QEGTRAIN/resources/rolling_stock_library.json`, is made from the rolling stock of these cases by `tools/rolling_stock_library.py`, so each unit in it has the source and terms that this file gives for the cases that the library names for it.
+
 ## Copenhagen, Milano_Brescia and Paimpol
 
 These three cases come from the dataset *SORTEDMOBILITY: Input data case studies for EGTRAIN rail traffic simulator* on 4TU.ResearchData, by Egidio Quaglietta, Konstantinos Rigos and William Busuttil. The dataset is under CC0 1.0 Universal, which asks for no attribution. The citation at the end is the way to credit it.
