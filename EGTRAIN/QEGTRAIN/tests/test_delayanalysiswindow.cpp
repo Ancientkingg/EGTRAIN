@@ -29,6 +29,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QSaveFile>
 #include <QScopeGuard>
 #include <QScrollArea>
 #include <QScrollBar>
@@ -335,6 +336,12 @@ struct ExportDialog {
 
 // Clicks `button`, answers the save dialog with `path`, or cancels it for an empty path, and closes the messages that
 // follow. A dialog that stays open after the answer is cancelled.
+// Why a file at `path` cannot be written, as an export gives it below the path.
+QString writeFailure(const QString& path) {
+	QSaveFile probe(path);
+	return probe.open(QIODevice::WriteOnly) ? QString() : probe.errorString();
+}
+
 ExportDialog answerExport(QPushButton* button, const QString& path) {
 	ExportDialog shown;
 	bool answered = false;
@@ -1388,7 +1395,7 @@ void TestDelayAnalysisWindow::keepsWindowInFrontAfterExport() {
 }
 
 // The export asks for a CSV file under the name delay_analysis.csv. A write that fails says so with the path as the
-// person reads it, here in the Windows form.
+// person reads it, here in the Windows form, and the reason below it.
 void TestDelayAnalysisWindow::asksForCsvFileOnExport() {
 	QTemporaryDir directory;
 	DelayAnalysisWindow window(lineSnapshot("follow-level-0", kFollowLevel0), std::nullopt);
@@ -1403,13 +1410,14 @@ void TestDelayAnalysisWindow::asksForCsvFileOnExport() {
 	display_path::separator() = QLatin1Char('\\');
 	const QString path = QDir(directory.path()).filePath("missing/delays.csv");
 	const ExportDialog shown = answerExport(button, path);
-	const QString expected = "Could not save the data to:\n" + display_path::format(path);
+	const QString expected = "Could not save the data to:\n" + display_path::format(path) + "\n" + writeFailure(path);
 	display_path::separator() = separator;
 	// the export asks for a CSV file
 	QCOMPARE(shown.title, "Export Data");
 	QCOMPARE(shown.filters, QStringList("CSV File (*.csv)"));
 	QCOMPARE(shown.suggested, "delay_analysis.csv");
-	// a file that cannot be written is named as the person reads it
+	// a file that cannot be written is named as the person reads it, with the reason
+	QVERIFY(!writeFailure(path).isEmpty());
 	QCOMPARE(shown.warnings, QStringList(expected));
 }
 

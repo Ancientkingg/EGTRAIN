@@ -8,7 +8,6 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QScreen>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QSet>
 #include <QStyle>
@@ -249,12 +248,11 @@ void TimetableTableWindow::exportCsv() {
 	if (content.empty()) {
 		// The window comes back in front once the message closes.
 		const KeepInFront front(this);
-		QMessageBox::information(this, "Nothing to export",
-			"There is no data to export for the visible trains.");
+		m_prompts->showInfo(this, "Nothing to export", "There is no data to export for the visible trains.");
 		return;
 	}
 	const auto csv = [&content]() -> const std::string& { return content; };
-	saveExportInteractive(this, telemetry::ExportKind::Csv, "Export Data", "timetable.csv", operation, csv,
+	saveExportInteractive(this, *m_prompts, telemetry::ExportKind::Csv, "Export Data", "timetable.csv", operation, csv,
 		m_hasRunProvenance ? runProvenanceWriter(m_runProvenance) : ExportWriter());
 }
 
@@ -265,6 +263,6 @@ QImage TimetableTableWindow::tableImage() const {
 void TimetableTableWindow::exportPng() {
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	const auto png = [this] { return pngBytes(tableImage()); };
-	saveExportInteractive(this, telemetry::ExportKind::Png, "Export Table", "timetable.png", operation, png,
+	saveExportInteractive(this, *m_prompts, telemetry::ExportKind::Png, "Export Table", "timetable.png", operation, png,
 		m_hasRunProvenance ? runProvenanceWriter(m_runProvenance) : ExportWriter());
 }

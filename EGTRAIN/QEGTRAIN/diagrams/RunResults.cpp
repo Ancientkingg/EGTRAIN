@@ -94,7 +94,9 @@ QJsonObject runJson(const RunProvenance& run) {
 	return result;
 }
 
-bool writeSidecar(const std::string& artifactPath, const std::string& artifactKind,
+// Writes the sidecar of the artifact at artifactPath. Returns why that failed, after the file name of the sidecar, or an
+// empty string.
+std::string writeSidecar(const std::string& artifactPath, const std::string& artifactKind,
 	const QJsonObject& runObject, const QJsonObject* baselineObject = nullptr,
 	const QJsonObject* scenarioObject = nullptr) {
 	const QString path = QString::fromStdString(artifactPath);
@@ -114,25 +116,27 @@ bool writeSidecar(const std::string& artifactPath, const std::string& artifactKi
 
 	const QByteArray bytes = QJsonDocument(root).toJson(QJsonDocument::Indented);
 	QSaveFile file(path + QStringLiteral(".provenance.json"));
-	if (!file.open(QIODevice::WriteOnly))
-		return false;
-	return file.write(bytes) == bytes.size() && file.commit();
+	if (file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size() && file.commit())
+		return {};
+	return (QFileInfo(file.fileName()).fileName() + QStringLiteral(": ") + file.errorString()).toStdString();
 }
 
+// Writes the artifact, then the sidecar with writeProvenance, and keeps the artifact only when both were written. Returns
+// why a write failed, or an empty string.
 template <typename SidecarWriter>
-bool writeArtifactWithSidecar(const std::string& artifactPath,
+std::string writeArtifactWithSidecar(const std::string& artifactPath,
 	const std::string& artifactBytes, SidecarWriter writeProvenance) {
 	const QString path = QString::fromStdString(artifactPath);
 	QSaveFile artifact(path);
-	if (!artifact.open(QIODevice::WriteOnly))
-		return false;
 	const QByteArray bytes = QByteArray::fromStdString(artifactBytes);
-	if (artifact.write(bytes) != bytes.size() || !writeProvenance())
-		return false;
+	if (!artifact.open(QIODevice::WriteOnly) || artifact.write(bytes) != bytes.size())
+		return artifact.errorString().toStdString();
+	if (std::string error = writeProvenance(); !error.empty())
+		return error;
 	if (artifact.commit())
-		return true;
+		return {};
 	QFile::remove(path + QStringLiteral(".provenance.json"));
-	return false;
+	return artifact.errorString().toStdString();
 }
 
 RunResultValue availableValue(double value) {
@@ -247,7 +251,7 @@ RunInputProvenance captureSavedInput(const std::string& savedPath, const std::st
 	return result;
 }
 
-bool writeRunArtifactWithProvenance(const std::string& artifactPath,
+std::string writeRunArtifactWithProvenance(const std::string& artifactPath,
 	const std::string& artifactKind, const std::string& artifactBytes,
 	const RunProvenance& run) {
 	return writeArtifactWithSidecar(artifactPath, artifactBytes, [&]() {
@@ -255,7 +259,7 @@ bool writeRunArtifactWithProvenance(const std::string& artifactPath,
 	});
 }
 
-bool writeDelayArtifactWithProvenance(const std::string& artifactPath,
+std::string writeDelayArtifactWithProvenance(const std::string& artifactPath,
 	const std::string& artifactKind, const std::string& artifactBytes,
 	const RunProvenance& baselineRun, const RunProvenance& scenarioRun) {
 	const QJsonObject baseline = runJson(baselineRun);

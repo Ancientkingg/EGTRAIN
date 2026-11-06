@@ -1,22 +1,16 @@
 // RunController.h brings in SceneModel.h in the way that the member named signals needs, before the other Qt headers do.
 #include "app/RunController.h"
 #include "app/RunResultsDock.h"
-#include "app/DialogFolders.h"
 #include "app/MainWindowSupport.h"
-#include "app/PathMessages.h"
 #include "app/ResultViews.h"
 #include "diagrams/ResultFrame.h"
 #include "diagrams/RunResults.h"
 #include "util/TimeFormat.h"
 #include "widgets/DialogLayout.h"
 #include "widgets/EditorLayout.h"
-#include "widgets/SaveSuffix.h"
-#include "widgets/UserPrompts.h"
 #include <QAction>
 #include <QApplication>
-#include <QBuffer>
 #include <QDockWidget>
-#include <QFileDialog>
 #include <QGraphicsView>
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -24,7 +18,6 @@
 #include <QLabel>
 #include <QMainWindow>
 #include <QMenu>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
@@ -46,7 +39,7 @@ int tableHeight(const QTableWidget& table, int rows) {
 } // namespace
 
 RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController, ResultViews* views, Host& host)
-	: m_window(window), m_runController(runController), m_host(host) {
+	: m_window(window), m_runController(runController), m_host(host), m_prompts(views->prompts()) {
 	m_dock = new QDockWidget("Run Results", m_window);
 	m_dock->setObjectName("runResultsDock");
 	m_dock->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -98,37 +91,26 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 		const auto operation = m_host.captureTelemetryOperation();
 		const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
 		saveCsvInteractive(
-			m_window, "run_summary.csv", operation,
+			m_window, m_prompts, "run_summary.csv", operation,
 			[run] { return run ? buildRunSummaryCsv(run->results) : std::string(); },
 			[run](const QString& path, const std::string& bytes) {
-				return writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, run ? run->provenance : RunProvenance());
+				return QString::fromStdString(
+					writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, run ? run->provenance : RunProvenance()));
 			});
 	});
 	QPushButton* exportPngBtn = new QPushButton("Export PNG...", container);
 	exportPngBtn->setObjectName("resultView_ExportPNG");
 	exportPngBtn->setToolTip("Save the table as an image");
 	QObject::connect(exportPngBtn, &QPushButton::clicked, m_dock, [this]() {
-		const auto operation = m_host.captureTelemetryOperation();
-		QString path = QFileDialog::getSaveFileName(m_window, "Export Table", dialog_folders::suggestedPath("run_summary.png"), "PNG Image (*.png)");
-		if (path.isEmpty())
-			return;
-		UserPrompts prompts;
-		path = savePathWithSuffix(m_window, prompts, "Export Table", path, "png");
-		if (path.isEmpty())
-			return;
-		QByteArray data;
-		QBuffer buffer(&data);
-		if (!buffer.open(QIODevice::WriteOnly) || !fullTableImage(*m_table).save(&buffer, "PNG")) {
-			operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
-			QMessageBox::warning(m_window, "Export failed", path_message::writeFailed("save the image to", path));
-			return;
-		}
-		const std::string bytes(data.constData(), static_cast<std::size_t>(data.size()));
-		const bool written = writeRunArtifactWithProvenance(path.toStdString(), "png", bytes,
-			m_runController->completedRun() ? m_runController->completedRun()->provenance : RunProvenance());
-		operation.exportFinished(telemetry::ExportKind::Png, written, true, telemetry::Error::IoFailure);
-		if (!written)
-			QMessageBox::warning(m_window, "Export failed", path_message::writeFailed("save the image to", path));
+		// The image and the provenance are those of the run that the table shows once the save dialog has closed.
+		const auto png = [this] { return pngBytes(fullTableImage(*m_table)); };
+		const auto write = [this](const QString& path, const char* suffix, const std::string& bytes) {
+			const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
+			return QString::fromStdString(
+				writeRunArtifactWithProvenance(path.toStdString(), suffix, bytes, run ? run->provenance : RunProvenance()));
+		};
+		saveExportInteractive(m_window, m_prompts, telemetry::ExportKind::Png, "Export Table", "run_summary.png",
+			m_host.captureTelemetryOperation(), png, write);
 	});
 	resultViews->addWidget(exportCsvBtn);
 	resultViews->addWidget(exportPngBtn);

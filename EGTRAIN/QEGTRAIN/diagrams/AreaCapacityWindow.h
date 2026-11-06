@@ -5,6 +5,7 @@
 #include "diagrams/CompletedRunData.h"
 #include "diagrams/RunResults.h"
 #include "telemetry/TelemetryOperation.h"
+#include "widgets/UserPrompts.h"
 
 #include <QDialog>
 #include <QString>
@@ -96,6 +97,9 @@ public:
 		QWidget* parent = nullptr, const QString& areaText = QString(), const SceneSectionLabels& labels = SceneSectionLabels());
 	/// Sets the function that gives the telemetry observation of an export; empty for none.
 	void setTelemetryCapture(telemetry::CaptureOperation capture) { m_telemetryCapture = std::move(capture); }
+	/// Sets the prompts of the export, which ask whether to replace a file and show what went wrong. Null restores the
+	/// prompts of the window, which show every message.
+	void setPrompts(UserPrompts* prompts) { m_prompts = prompts ? prompts : &m_ownPrompts; }
 	/// Writes area_capacity.csv and the provenance sidecar. False when the result has no resource row or a write fails.
 	bool exportCsvTo(const QString& path) const;
 
@@ -106,6 +110,8 @@ private:
 	QString m_areaLabel;
 	RunProvenance m_provenance;
 	telemetry::CaptureOperation m_telemetryCapture;
+	UserPrompts m_ownPrompts;
+	UserPrompts* m_prompts = &m_ownPrompts;
 };
 
 /// Asks for the scope, analyses it and opens the window, which deletes itself on close. Null when the person cancels.

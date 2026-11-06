@@ -27,7 +27,6 @@
 #include <QIcon>
 #include <QImage>
 #include <QLabel>
-#include <QMessageBox>
 #include <QPalette>
 #include <QPen>
 #include <QSaveFile>
@@ -52,12 +51,13 @@ constexpr int kNarrowWindow = 1000;
 constexpr qreal kFigureScale = 1.45;
 constexpr QMargins kChartMargins(12, 8, 12, 8);
 
-bool writeAtomically(const QString& path, const std::string& bytes) {
+// Writes bytes to path, so that a failed write leaves no part of a file. Returns why it failed, or an empty string.
+QString writeAtomically(const QString& path, const std::string& bytes) {
 	QSaveFile file(path);
-	if (!file.open(QIODevice::WriteOnly))
-		return false;
 	const QByteArray data = QByteArray::fromStdString(bytes);
-	return file.write(data) == data.size() && file.commit();
+	if (file.open(QIODevice::WriteOnly) && file.write(data) == data.size() && file.commit())
+		return {};
+	return file.errorString();
 }
 } // namespace
 
@@ -345,32 +345,37 @@ void styleResultChart(QChart* chart, const QPalette& palette) {
 	}
 }
 
-QString saveExportInteractive(QWidget* parent, telemetry::ExportKind kind, const QString& title, const QString& suggestedName,
-	const telemetry::OperationObservation& operation, const std::function<std::optional<std::string>()>& bytes,
-	const ExportWriter& write) {
+QString saveExportInteractive(QWidget* parent, UserPrompts& prompts, telemetry::ExportKind kind, const QString& title,
+	const QString& suggestedName, const telemetry::OperationObservation& operation,
+	const std::function<std::optional<std::string>()>& bytes, const ExportWriter& write) {
 	// The window comes back in front once the save dialog and its messages close.
 	const KeepInFront front(parent);
 	const bool image = kind == telemetry::ExportKind::Png;
 	const char* suffix = image ? "png" : "csv";
-	const QString failed = image ? QStringLiteral("save the image to") : QStringLiteral("save the data to");
 	QString path = QFileDialog::getSaveFileName(parent, title, dialog_folders::suggestedPath(suggestedName),
 		image ? QStringLiteral("PNG Image (*.png)") : QStringLiteral("CSV File (*.csv)"));
 	if (path.isEmpty())
 		return QString(); // cancelled: no file is written
-	UserPrompts prompts;
 	path = savePathWithSuffix(parent, prompts, title, path, QLatin1String(suffix));
 	if (path.isEmpty())
 		return QString(); // the file of that name is kept
+	// The message names the path, and the reason on the line below.
+	const auto showFailure = [&](const QString& reason) {
+		const QString failed = image ? QStringLiteral("save the image to") : QStringLiteral("save the data to");
+		prompts.showError(parent, "Export failed", path_message::writeFailed(failed, path) + '\n' + reason, true);
+	};
 	const std::optional<std::string> content = bytes();
 	if (!content) {
 		operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
-		QMessageBox::warning(parent, "Export failed", path_message::writeFailed(failed, path));
+		showFailure(image ? QStringLiteral("The image could not be made.") : QStringLiteral("The data could not be made."));
 		return QString();
 	}
-	const bool written = !content->empty() && (write ? write(path, suffix, *content) : writeAtomically(path, *content));
-	operation.exportFinished(kind, written, true, telemetry::Error::IoFailure);
-	if (!written) {
-		QMessageBox::warning(parent, "Export failed", path_message::writeFailed(failed, path));
+	QString error = QStringLiteral("There is no data to export.");
+	if (!content->empty())
+		error = write ? write(path, suffix, *content) : writeAtomically(path, *content);
+	operation.exportFinished(kind, error.isEmpty(), true, telemetry::Error::IoFailure);
+	if (!error.isEmpty()) {
+		showFailure(error);
 		return QString();
 	}
 	return path;
@@ -418,7 +423,7 @@ QImage fullTableImage(const QTableView& table) {
 
 ExportWriter runProvenanceWriter(RunProvenance provenance) {
 	return [provenance = std::move(provenance)](const QString& path, const char* suffix, const std::string& bytes) {
-		return writeRunArtifactWithProvenance(path.toStdString(), suffix, bytes, provenance);
+		return QString::fromStdString(writeRunArtifactWithProvenance(path.toStdString(), suffix, bytes, provenance));
 	};
 }
 

@@ -589,7 +589,8 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			if (content.empty())
 				return true;
 			const QString path = dir + "/" + file;
-			if (writeRunArtifactWithProvenance(path.toStdString(), "csv", content, w.m_runController->m_completedRun->provenance))
+			if (writeRunArtifactWithProvenance(path.toStdString(), "csv", content, w.m_runController->m_completedRun->provenance)
+					.empty())
 				return true;
 			std::fprintf(stderr, "E2E_PROVENANCE_EXPORT_WARNING: %s\n", path.toStdString().c_str());
 			return false;

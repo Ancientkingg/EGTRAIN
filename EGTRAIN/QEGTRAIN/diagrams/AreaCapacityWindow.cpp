@@ -789,13 +789,13 @@ AreaCapacityWindow::AreaCapacityWindow(AreaCapacityResult result, const QString&
 
 bool AreaCapacityWindow::exportCsvTo(const QString& path) const {
 	const std::string content = areaCapacityCsv(m_result, m_areaLabel);
-	return !content.empty() && writeRunArtifactWithProvenance(path.toStdString(), "csv", content, m_provenance);
+	return !content.empty() && writeRunArtifactWithProvenance(path.toStdString(), "csv", content, m_provenance).empty();
 }
 
 void AreaCapacityWindow::exportCsv() {
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	const auto csv = [this] { return areaCapacityCsv(m_result, m_areaLabel); };
-	saveExportInteractive(this, telemetry::ExportKind::Csv, "Export Data", "area_capacity.csv", operation, csv,
+	saveExportInteractive(this, *m_prompts, telemetry::ExportKind::Csv, "Export Data", "area_capacity.csv", operation, csv,
 		runProvenanceWriter(m_provenance));
 }
 

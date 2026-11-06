@@ -61,7 +61,8 @@ public:
 	};
 
 	/// Builds the dock and adds it to the bottom of the window, hidden. The entries of its result view menu open the
-	/// windows of views. The window owns the widgets; the dock does not own `runController`, `views` or `host`.
+	/// windows of views, and the exports of the table go through the prompts of views. The window owns the widgets; the
+	/// dock does not own `runController`, `views` or `host`.
 	RunResultsDock(QMainWindow* window, RunController* runController, ResultViews* views, Host& host);
 
 	/// The dock widget, which the window owns.
@@ -98,6 +99,7 @@ private:
 	QMainWindow* const m_window;
 	RunController* const m_runController;
 	Host& m_host;
+	UserPrompts& m_prompts;
 	QDockWidget* m_dock = nullptr;
 	QTableWidget* m_table = nullptr;
 	QLabel* m_summaryLabel = nullptr;

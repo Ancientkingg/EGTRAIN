@@ -30,6 +30,7 @@
 #include <QScrollBar>
 #include <QStyle>
 #include <QStyleOptionHeader>
+#include <QSaveFile>
 #include <QTableWidget>
 #include <QTemporaryDir>
 #include <QThread>
@@ -164,6 +165,12 @@ struct ExportDialog {
 
 // Clicks `button`, answers the save dialog with `path`, or cancels it for an empty path, and closes the messages that
 // follow. A dialog that stays open after the answer is cancelled.
+// Why a file at `path` cannot be written, as an export gives it below the path.
+static QString writeFailure(const QString& path) {
+	QSaveFile probe(path);
+	return probe.open(QIODevice::WriteOnly) ? QString() : probe.errorString();
+}
+
 static ExportDialog answerExport(QPushButton* button, const QString& path) {
 	ExportDialog shown;
 	bool answered = false;
@@ -599,7 +606,7 @@ void TestTimetableTableWindow::exportKeepsWindowInFront() {
 }
 
 // CSV... and PNG... ask for a file of their kind under the name of the table, and add the suffix to a name without it.
-// A write that fails says so with the path as the person reads it, here in the Windows form.
+// A write that fails says so with the path as the person reads it, here in the Windows form, and the reason below it.
 void TestTimetableTableWindow::exportAsksForFileOfItsKind() {
 	QTemporaryDir directory;
 	TimetableTableWindow window(twoTrainRows(), 0, [](const QStringList&) { return std::string("csv"); });
@@ -621,16 +628,19 @@ void TestTimetableTableWindow::exportAsksForFileOfItsKind() {
 	QCOMPARE(csv.title, "Export Data");
 	QCOMPARE(csv.filters, QStringList("CSV File (*.csv)"));
 	QCOMPARE(csv.suggested, "timetable.csv");
-	// a CSV file that cannot be written is named as the person reads it
-	QCOMPARE(csv.warnings, QStringList("Could not save the data to:\n" + display_path::format(csvPath)));
+	// a CSV file that cannot be written is named as the person reads it, with the reason
+	const QString csvReason = writeFailure(csvPath);
+	QVERIFY(!csvReason.isEmpty());
+	QCOMPARE(csv.warnings, QStringList("Could not save the data to:\n" + display_path::format(csvPath) + "\n" + csvReason));
 	const QString pngPath = QDir(directory.path()).filePath("missing/table.png");
 	const ExportDialog png = answerExport(pngButton, pngPath);
 	// PNG... asks for a PNG image
 	QCOMPARE(png.title, "Export Table");
 	QCOMPARE(png.filters, QStringList("PNG Image (*.png)"));
 	QCOMPARE(png.suggested, "timetable.png");
-	// an image that cannot be written is named as the person reads it
-	QCOMPARE(png.warnings, QStringList("Could not save the image to:\n" + display_path::format(pngPath)));
+	// an image that cannot be written is named as the person reads it, with the reason
+	QCOMPARE(png.warnings,
+		QStringList("Could not save the image to:\n" + display_path::format(pngPath) + "\n" + writeFailure(pngPath)));
 	display_path::separator() = separator;
 	const ExportDialog cancelled = answerExport(csvButton, QString());
 	// a cancelled export writes nothing and says nothing

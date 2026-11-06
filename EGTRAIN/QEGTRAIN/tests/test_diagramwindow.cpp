@@ -7,6 +7,8 @@
 #include "diagrams/TrainFilterButton.h"
 #include "diagrams/TrainKeyList.h"
 #include "scene/SectionLabels.h"
+#include "support/StderrCapture.h"
+#include "util/Log.h"
 #include "widgets/DisplayPath.h"
 #include "widgets/PlainToolTip.h"
 
@@ -54,6 +56,7 @@
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QRubberBand>
+#include <QSaveFile>
 #include <QPointer>
 #include <QScopeGuard>
 #include <QScrollBar>
@@ -233,6 +236,7 @@ private slots:
 	void drawsOneVerticalAxis();
 	void reportsSavedCsv();
 	void asksForFileOfItsKind();
+	void suppressedExportFailureIsWritten();
 	void asksBeforeSuffixReplacesFile();
 	void laysOutHeader();
 	void showsPanelSections();
@@ -2724,6 +2728,12 @@ struct ExportDialog {
 	QStringList warnings;
 };
 
+// Why a file at `path` cannot be written, as an export gives it below the path.
+static QString writeFailure(const QString& path) {
+	QSaveFile probe(path);
+	return probe.open(QIODevice::WriteOnly) ? QString() : probe.errorString();
+}
+
 // Clicks `button`, answers the save dialog with `path`, or cancels it for an empty path, and closes the messages that
 // follow. A dialog that stays open after the answer is cancelled.
 static ExportDialog answerExport(QPushButton* button, const QString& path) {
@@ -2764,7 +2774,7 @@ static ExportDialog answerExport(QPushButton* button, const QString& path) {
 }
 
 // CSV... and PNG... ask for a file of their kind, export.csv and diagram.png for a window without names of its own. A
-// write that fails says so with the path as the person reads it, here in the Windows form.
+// write that fails says so with the path as the person reads it, here in the Windows form, and the reason below it.
 void TestDiagramWindow::asksForFileOfItsKind() {
 	QTemporaryDir directory;
 	DiagramWindow window("Export dialogs");
@@ -2787,13 +2797,46 @@ void TestDiagramWindow::asksForFileOfItsKind() {
 	QVERIFY2(csv.title == "Export Data", qPrintable("CSV... asks for a CSV file: " + csv.title + ", " + csv.filters.join(", ") + ", " + csv.suggested));
 	QVERIFY2(csv.filters == QStringList("CSV File (*.csv)"), qPrintable("CSV... asks for a CSV file: " + csv.title + ", " + csv.filters.join(", ") + ", " + csv.suggested));
 	QVERIFY2(csv.suggested == "export.csv", qPrintable("CSV... asks for a CSV file: " + csv.title + ", " + csv.filters.join(", ") + ", " + csv.suggested));
-	QVERIFY2(csv.warnings == QStringList("Could not save the data to:\n" + display_path::format(csvPath)), qPrintable("a CSV file that cannot be written is named as the person reads it: " + csv.warnings.join(" | ")));
+	const QString csvReason = writeFailure(csvPath);
+	QVERIFY(!csvReason.isEmpty());
+	QVERIFY2(csv.warnings == QStringList("Could not save the data to:\n" + display_path::format(csvPath) + "\n" + csvReason), qPrintable("a CSV file that cannot be written is named as the person reads it, with the reason: " + csv.warnings.join(" | ")));
 	const QString pngPath = QDir(directory.path()).filePath("missing/diagram.png");
 	const ExportDialog png = answerExport(pngButton, pngPath);
 	QVERIFY2(png.title == "Export Diagram", qPrintable("PNG... asks for a PNG image: " + png.title + ", " + png.filters.join(", ") + ", " + png.suggested));
 	QVERIFY2(png.filters == QStringList("PNG Image (*.png)"), qPrintable("PNG... asks for a PNG image: " + png.title + ", " + png.filters.join(", ") + ", " + png.suggested));
 	QVERIFY2(png.suggested == "diagram.png", qPrintable("PNG... asks for a PNG image: " + png.title + ", " + png.filters.join(", ") + ", " + png.suggested));
-	QVERIFY2(png.warnings == QStringList("Could not save the image to:\n" + display_path::format(pngPath)), qPrintable("an image that cannot be written is named as the person reads it: " + png.warnings.join(" | ")));
+	QVERIFY2(png.warnings == QStringList("Could not save the image to:\n" + display_path::format(pngPath) + "\n" + writeFailure(pngPath)), qPrintable("an image that cannot be written is named as the person reads it, with the reason: " + png.warnings.join(" | ")));
+}
+
+// In a scripted run the prompts of the window are suppressed: an export that fails shows no box, writes the message to
+// stderr and logs it.
+void TestDiagramWindow::suppressedExportFailureIsWritten() {
+	QTemporaryDir directory;
+	QVERIFY(directory.isValid());
+	DiagramWindow window("Suppressed export");
+	window.setChart(buttonTestChart());
+	window.setCsvProvider([](const QStringList&) { return std::string("Train\nA\n"); }, QString());
+	UserPrompts suppressed([] { return true; });
+	window.setPrompts(&suppressed);
+	window.show();
+	QStringList logged;
+	eglog::setSink([&logged](eglog::Category, eglog::Level level, const std::string& text) {
+		if (level == eglog::Level::Error)
+			logged << QString::fromStdString(text);
+	});
+	const auto restoreSink = qScopeGuard([] { eglog::setSink({}); });
+	const QString path = QDir(directory.path()).filePath("missing/diagram.csv");
+	StderrCapture capture(QDir(directory.path()).filePath("stderr.txt"));
+	const ExportDialog shown = answerExport(buttonNamed(window, "CSV..."), path);
+	const QString written = capture.text();
+	const QString message = "Export failed: Could not save the data to:\n" + display_path::format(path) + "\n" + writeFailure(path);
+	// the failure shows no box
+	QVERIFY2(shown.warnings.isEmpty(), qPrintable(shown.warnings.join(" | ")));
+	// the failure is logged at error level
+	QCOMPARE(logged, QStringList(message + "\n"));
+	// the message goes to stderr
+	if (StderrCapture::available())
+		QVERIFY2(written.contains("QEGTRAIN_DIALOG_SUPPRESSED: " + message + "\n"), qPrintable(written));
 }
 
 // Clicks CSV..., types `name` into the save dialog and answers the question that follows with `answer`. Returns the text
