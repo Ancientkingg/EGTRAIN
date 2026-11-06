@@ -131,6 +131,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a082f9f72a49e6a79dce3fdf0f75675a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The combo key given to the constructor.  <br /></td></tr>
 <tr class="memitem:a356f492ff8f85c64f95a4ba0b9850fdf" id="r_a356f492ff8f85c64f95a4ba0b9850fdf"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#a356f492ff8f85c64f95a4ba0b9850fdf">columns</a> () const override</td></tr>
 <tr class="memdesc:a356f492ff8f85c64f95a4ba0b9850fdf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The headers given to the constructor.  <br /></td></tr>
+<tr class="memitem:ac18ad49ece02aa92677b4040bc9bdc83" id="r_ac18ad49ece02aa92677b4040bc9bdc83"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ac18ad49ece02aa92677b4040bc9bdc83">selectionId</a> (const QTableWidget &amp;, int row) const override</td></tr>
+<tr class="memdesc:ac18ad49ece02aa92677b4040bc9bdc83"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of the row, which is the index of its item in the list.  <br /></td></tr>
 <tr class="memitem:ade89dd338ec05c1f654d12abe54757a0" id="r_ade89dd338ec05c1f654d12abe54757a0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ade89dd338ec05c1f654d12abe54757a0">fillRows</a> (<a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;panel) override</td></tr>
 <tr class="memdesc:ade89dd338ec05c1f654d12abe54757a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">One row for each item, filled by <a class="el" href="#a8bee5e5d5040cb4fb00a8f9a6e4b188f" title="Puts the cells of the item in row. inventory holds the sections of the scene for the combos.">fillRow()</a> with the sections of the scene.  <br /></td></tr>
 <tr class="memitem:a808b60aeb8a4b6d2c76e578f8b46cf81" id="r_a808b60aeb8a4b6d2c76e578f8b46cf81"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a808b60aeb8a4b6d2c76e578f8b46cf81">commitCell</a> (<a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;panel, int row, int column) override</td></tr>
@@ -150,7 +152,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a1159b25888d91082ac427a97095813b3 pub_methods_class_infrastructure_facet"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel deletes its facets through this base.  <br /></td></tr>
 <tr class="memitem:a1918c6757b3db77a5ea28ed59e76353a pub_methods_class_infrastructure_facet" id="r_a1918c6757b3db77a5ea28ed59e76353a"><td class="memItemLeft">virtual Capabilities&#160;</td><td class="memItemRight"><a class="el" href="class_infrastructure_facet.html#a1918c6757b3db77a5ea28ed59e76353a">capabilities</a> () const</td></tr>
 <tr class="memdesc:a1918c6757b3db77a5ea28ed59e76353a pub_methods_class_infrastructure_facet"><td class="mdescLeft">&#160;</td><td class="mdescRight">The controls that the panel shows for this facet. The default is none.  <br /></td></tr>
-<tr class="memitem:a236bf728d7cfc10f94d25c5e862252b2 pub_methods_class_infrastructure_facet" id="r_a236bf728d7cfc10f94d25c5e862252b2"><td class="memItemLeft">virtual QString&#160;</td><td class="memItemRight"><a class="el" href="class_infrastructure_facet.html#a236bf728d7cfc10f94d25c5e862252b2">selectionId</a> (const QTableWidget &amp;table, int row) const</td></tr>
 <tr class="memitem:ade0c153239bac056442822ccd1dacada pub_methods_class_infrastructure_facet" id="r_ade0c153239bac056442822ccd1dacada"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="class_infrastructure_facet.html#ade0c153239bac056442822ccd1dacada">commitPendingEdits</a> (<a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;)</td></tr>
 <tr class="memitem:af93ff13e6c64ae7d9f83a882a5684274 pub_methods_class_infrastructure_facet" id="r_af93ff13e6c64ae7d9f83a882a5684274"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="class_infrastructure_facet.html#af93ff13e6c64ae7d9f83a882a5684274">insert</a> (<a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;)</td></tr>
 <tr class="memdesc:af93ff13e6c64ae7d9f83a882a5684274 pub_methods_class_infrastructure_facet"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts an entity before the selected one.  <br /></td></tr>
@@ -218,7 +219,7 @@ Additional Inherited Members</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;typename Item&gt;<br />
-class SectionRowsFacet&lt; Item &gt;</div><p>A facet over one list of the model whose items have no id and name sections instead, such as the dependencies between blocks. A section is chosen in a combo of the sections of the scene, which writes the model as soon as another section is chosen. The other cells are text. A new item is empty, and a row is named by its first section when it is deleted. Nothing else refers to these items. <span class="tt">Item</span> is the type of the items. </p>
+class SectionRowsFacet&lt; Item &gt;</div><p>A facet over one list of the model whose items have no id and name sections instead, such as the dependencies between blocks. A section is chosen in a combo of the sections of the scene, which writes the model as soon as another section is chosen. The other cells are text. A new item is empty, the selection names an item by its row number, and a row is named by its first section when it is deleted. Nothing else refers to these items. <span class="tt">Item</span> is the type of the items. </p>
 </div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
 <a id="a5c991bbe7176fa3dbc870cdb602ff651" name="a5c991bbe7176fa3dbc870cdb602ff651"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5c991bbe7176fa3dbc870cdb602ff651">&#9670;&#160;</a></span>Assign</h2>
@@ -689,6 +690,41 @@ template&lt;typename Item&gt; </div>
 </div><div class="memdoc">
 
 <p>The section that names the item in the question before it is deleted; empty when the item has none yet. </p>
+
+</div>
+</div>
+<a id="ac18ad49ece02aa92677b4040bc9bdc83" name="ac18ad49ece02aa92677b4040bc9bdc83"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac18ad49ece02aa92677b4040bc9bdc83">&#9670;&#160;</a></span>selectionId()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Item&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString <a class="el" href="class_section_rows_facet.html">SectionRowsFacet</a>&lt; Item &gt;::selectionId </td>
+          <td>(</td>
+          <td class="paramtype">const QTableWidget &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>row</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel override">override</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The number of the row, which is the index of its item in the list. </p>
+
+<p>Reimplemented from <a class="el" href="class_infrastructure_facet.html#a236bf728d7cfc10f94d25c5e862252b2">InfrastructureFacet</a>.</p>
 
 </div>
 </div>

@@ -1,5 +1,5 @@
 <map id="NetworkPresenter::showPreview" name="NetworkPresenter::showPreview">
-<area shape="rect" id="Node000001" title="The same, with the selection of the infrastructure panel of options." alt="" coords="5,276,238,304"/>
+<area shape="rect" id="Node000001" title="The same, and marks the row of the infrastructure panel that options selects (see markPreviewSelectio..." alt="" coords="5,276,238,304"/>
 <area shape="rect" id="Node000002" href="$_track_preview_8cpp.html#a66c00d5638f8954afa4aa3f392d279a6" title="The preview of the visible tracks of the scene, before normalization." alt="" coords="342,200,477,228"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,273,285,238,329,230,324,232,286,243,168,278"/>
 <area shape="rect" id="Node000012" href="$_track_preview_8cpp.html#a409628b58940d3e2e3bb6e8f9dea9788" title=" " alt="" coords="323,276,496,304"/>

@@ -52,7 +52,7 @@ var searchData=
   ['distance_49',['distance',['../struct_train_1_1_authority_target.html#a06b889dd8c621a533226c7488a86879b',1,'Train::AuthorityTarget']]],
   ['distribution_50',['distribution',['../struct_update_manifest.html#af427a332aa614284dc2ed91065495a11',1,'UpdateManifest']]],
   ['disturbanceinput_51',['disturbanceInput',['../struct_simulation_run.html#afb764d0aa669d960575edc4518a6f9b3',1,'SimulationRun']]],
-  ['doubleswitch_52',['doubleSwitch',['../struct_scene_track_view.html#a9086c8102baabc8f01e671ef2f522b4a',1,'SceneTrackView']]],
+  ['doubleswitch_52',['doubleSwitch',['../struct_scene_track_view.html#a9086c8102baabc8f01e671ef2f522b4a',1,'SceneTrackView::doubleSwitch'],['../struct_track_preview_line.html#a0f07a7ba4b66720f7e8c6772e6385ef8',1,'TrackPreviewLine::doubleSwitch']]],
   ['downloadurl_53',['downloadUrl',['../struct_release_asset.html#a7fc8a71f2b84597e57fb94762939a874',1,'ReleaseAsset']]],
   ['drawable_54',['drawable',['../struct_follow_availability_input.html#a8033b4b1c54de4169a6e9f3b0629ec45',1,'FollowAvailabilityInput']]],
   ['drawnlines_55',['drawnLines',['../struct_network_presenter_1_1_preview_drawing.html#a710c7ce05803121bdd4c6575bf0032ea',1,'NetworkPresenter::PreviewDrawing']]],

@@ -1,0 +1,7 @@
+<map id="NetworkMarkItem::setEmphasis" name="NetworkMarkItem::setEmphasis">
+<area shape="rect" id="Node000001" title="Sets the stretches of emphasis, drawn over the stretches." alt="" coords="5,32,236,60"/>
+<area shape="rect" id="Node000002" href="$class_network_mark_item.html#a92e12556106745010f4a5827596f9ecb" title="The stretches of emphasis." alt="" coords="284,5,494,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="236,32,271,31,265,32,236,37"/>
+<area shape="rect" id="Node000003" href="$class_network_mark_item.html#aac383677707050684a368ec15058fa10" title="Reads the targets again: which of them are shown and where." alt="" coords="300,57,478,85"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="236,54,287,61,282,61,236,59"/>
+</map>

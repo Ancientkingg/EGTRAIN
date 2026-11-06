@@ -1,11 +1,9 @@
 <map id="graphics/items/SelectionCueItem.h" name="graphics/items/SelectionCueItem.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="381,5,562,50"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="278,5,460,50"/>
 <area shape="rect" id="Node000002" href="$_highlight_effect_8h.html" title=" " alt="" coords="176,98,356,143"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="407,58,317,100,314,95,411,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="331,62,293,99,289,96,335,58"/>
 <area shape="rect" id="Node000010" href="$_selection_cue_item_8cpp.html" title=" " alt="" coords="381,98,562,143"/>
-<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="473,63,474,99,469,97,470,68"/>
-<area shape="rect" id="Node000011" href="$_network_legend_widget_8cpp.html" title=" " alt="" coords="586,106,837,134"/>
-<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="543,53,679,105,674,106,543,58"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="405,58,450,97,444,98,404,63"/>
 <area shape="rect" id="Node000003" href="$_network_presenter_8cpp.html" title=" " alt="" coords="5,283,229,311"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="198,152,175,170,152,192,139,215,129,240,121,284,116,282,124,238,134,213,148,189,172,166,202,148"/>
 <area shape="rect" id="Node000004" href="$_network_presenter_8h.html" title=" " alt="" coords="162,199,370,227"/>

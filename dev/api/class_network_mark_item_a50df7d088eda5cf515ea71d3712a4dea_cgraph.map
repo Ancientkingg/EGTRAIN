@@ -1,0 +1,5 @@
+<map id="NetworkMarkItem::setHaloTargets" name="NetworkMarkItem::setHaloTargets">
+<area shape="rect" id="Node000001" title="Sets the items that get a halo around their outline: the rectangle of a rectangle item,..." alt="" coords="5,5,203,50"/>
+<area shape="rect" id="Node000002" href="$class_network_mark_item.html#aac383677707050684a368ec15058fa10" title="Reads the targets again: which of them are shown and where." alt="" coords="251,14,428,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,25,238,27,232,28,203,30"/>
+</map>

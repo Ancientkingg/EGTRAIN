@@ -171,6 +171,7 @@ var annotated_dup =
     [ "NetworkLegendEntry", "struct_network_legend_entry.html", "struct_network_legend_entry" ],
     [ "NetworkLegendTrain", "struct_network_legend_train.html", "struct_network_legend_train" ],
     [ "NetworkLegendWidget", "class_network_legend_widget.html", "class_network_legend_widget" ],
+    [ "NetworkMarkItem", "class_network_mark_item.html", "class_network_mark_item" ],
     [ "NetworkPresenter", "class_network_presenter.html", "class_network_presenter" ],
     [ "NetworkScene", "class_network_scene.html", "class_network_scene" ],
     [ "NetworkView", "class_network_view.html", "class_network_view" ],

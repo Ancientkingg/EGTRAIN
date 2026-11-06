@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['halopixels_0',['HaloPixels',['../class_station_name_item.html#a3085fc9809d8062ecec22e6744ff247e',1,'StationNameItem']]],
+  ['halopixels_0',['HaloPixels',['../class_network_mark_item.html#a2dfb14ae6b50774bffe4a8a1d1b1d533',1,'NetworkMarkItem::HaloPixels'],['../class_station_name_item.html#a3085fc9809d8062ecec22e6744ff247e',1,'StationNameItem::HaloPixels']]],
   ['haloradiuspixels_1',['HaloRadiusPixels',['../class_selection_cue_item.html#a1dffa5ccd32c7d5b488149aaa431a648',1,'SelectionCueItem']]],
   ['hasarrival_2',['hasArrival',['../struct_stop_draft_fields.html#a0fea99157dd5e75a47bd864046560466',1,'StopDraftFields']]],
   ['hasbuffertime_3',['hasBufferTime',['../struct_scene_simulation_settings.html#a57dea5efac73af78c1c3f988fda50da7',1,'SceneSimulationSettings']]],

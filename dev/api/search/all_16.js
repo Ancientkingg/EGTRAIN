@@ -35,7 +35,7 @@ var searchData=
   ['viewportchanged_32',['viewportChanged',['../class_network_view.html#ac759eb59c9af28946b90f56ced8205ac',1,'NetworkView']]],
   ['viewportevent_33',['viewportEvent',['../class_network_view.html#a14b006303865e0c9fa150ab23b2dbcf4',1,'NetworkView']]],
   ['viewportplacement_34',['ViewportPlacement',['../struct_station_overlay_item_1_1_viewport_placement.html',1,'StationOverlayItem']]],
-  ['viewscale_35',['viewScale',['../class_selection_cue_item.html#a2f5a51a3248c6752c393d0fd0320884e',1,'SelectionCueItem']]],
+  ['viewscale_35',['viewScale',['../class_network_mark_item.html#a503e4e2ec0cf2c0c8563e056bdcc0851',1,'NetworkMarkItem::viewScale()'],['../class_selection_cue_item.html#a2f5a51a3248c6752c393d0fd0320884e',1,'SelectionCueItem::viewScale()']]],
   ['virtualarcitem_36',['VirtualArcItem',['../class_virtual_arc_item.html',1,'VirtualArcItem'],['../class_virtual_arc_item.html#a1c9b987a38271108cf6600377e939c32',1,'VirtualArcItem::VirtualArcItem()']]],
   ['virtualarcitem_2ecpp_37',['VirtualArcItem.cpp',['../_virtual_arc_item_8cpp.html',1,'']]],
   ['virtualarcitem_2eh_38',['VirtualArcItem.h',['../_virtual_arc_item_8h.html',1,'']]],

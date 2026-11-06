@@ -203,6 +203,7 @@ var hierarchy =
       [ "SignalItem", "class_signal_item.html", null ]
     ] ],
     [ "QGraphicsItem", null, [
+      [ "NetworkMarkItem", "class_network_mark_item.html", null ],
       [ "StationOverlayItem", "class_station_overlay_item.html", null ],
       [ "TrainBadgeItem", "class_train_badge_item.html", null ]
     ] ],

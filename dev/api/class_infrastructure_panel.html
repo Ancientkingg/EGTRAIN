@@ -177,7 +177,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a61ff0dbc34d7c80ed1d05f771a4a9a19" id="r_a61ff0dbc34d7c80ed1d05f771a4a9a19"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a61ff0dbc34d7c80ed1d05f771a4a9a19">facetTitle</a> () const</td></tr>
 <tr class="memdesc:a61ff0dbc34d7c80ed1d05f771a4a9a19"><td class="mdescLeft">&#160;</td><td class="mdescRight">The name that the combo shows for the chosen facet.  <br /></td></tr>
 <tr class="memitem:a48e660dd5588d81e184553cff6545be8" id="r_a48e660dd5588d81e184553cff6545be8"><td class="memItemLeft">const QString &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a48e660dd5588d81e184553cff6545be8">selectionId</a> () const</td></tr>
-<tr class="memdesc:a48e660dd5588d81e184553cff6545be8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The id of the selected entity, or an empty string. It is what the track preview marks.  <br /></td></tr>
+<tr class="memitem:a242281619a73c633c0c7a89419879025" id="r_a242281619a73c633c0c7a89419879025"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a242281619a73c633c0c7a89419879025">selectedRouteSection</a> () const</td></tr>
 <tr class="memitem:a23b041cde9222f809aa22cbfe44d4091" id="r_a23b041cde9222f809aa22cbfe44d4091"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a23b041cde9222f809aa22cbfe44d4091">setSelectionId</a> (const QString &amp;id)</td></tr>
 <tr class="memdesc:a23b041cde9222f809aa22cbfe44d4091"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the selection without showing it.  <br /></td></tr>
 <tr class="memitem:ad9828767846f8066c429f2c28ed63a94" id="r_ad9828767846f8066c429f2c28ed63a94"><td class="memItemLeft">std::vector&lt; int &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#ad9828767846f8066c429f2c28ed63a94">blockRowModelIndices</a> ()</td></tr>
@@ -200,6 +200,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ad55cec35eb8d49b5e8fe20b8a01b6ea7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a8963162b471a29e8d0156422d3a45856" title="Deletes the entity in the selected row after the user has confirmed it.">deleteEntity()</a>.  <br /></td></tr>
 <tr class="memitem:afe2a929b6ca5ada5828a376e9d64f199" id="r_afe2a929b6ca5ada5828a376e9d64f199"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#afe2a929b6ca5ada5828a376e9d64f199">guidanceLabel</a> () const</td></tr>
 <tr class="memdesc:afe2a929b6ca5ada5828a376e9d64f199"><td class="mdescLeft">&#160;</td><td class="mdescRight">The sentence about the chosen kind.  <br /></td></tr>
+<tr class="memitem:a8a21d4783ea0a769051737c256f4ec5d" id="r_a8a21d4783ea0a769051737c256f4ec5d"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a8a21d4783ea0a769051737c256f4ec5d">markLabel</a> () const</td></tr>
+<tr class="memitem:a6c0238b0165ad03c913afff3469c9ff1" id="r_a6c0238b0165ad03c913afff3469c9ff1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6c0238b0165ad03c913afff3469c9ff1">setMarkShown</a> (bool shown)</td></tr>
 <tr class="memitem:a1dc89a4d3eabe4aa2f464eafd32e6a4d" id="r_a1dc89a4d3eabe4aa2f464eafd32e6a4d"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#a1dc89a4d3eabe4aa2f464eafd32e6a4d">blockTrackFilterCombo</a> () const</td></tr>
 <tr class="memdesc:a1dc89a4d3eabe4aa2f464eafd32e6a4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The filter of the blocks on a track, shown while blocks are listed.  <br /></td></tr>
 <tr class="memitem:af44445c46656b46bfc01aba90a285d2d" id="r_af44445c46656b46bfc01aba90a285d2d"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#af44445c46656b46bfc01aba90a285d2d">insertBlockButton</a> () const</td></tr>
@@ -263,7 +265,7 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memdesc:a57a02e26e706794cd4afd7191d43737b pro_attribs_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The selection of <a class="el" href="class_scene_editor_panel.html#af13cca73366a245163487f9a06d72bdf">setRunSelection()</a>.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The infrastructure of the scene: a combo on top to pick the kind of entity, a sentence about the kind (infrastructureGuidanceText), a table with one row for each entity of that kind, and under the table the buttons that add and delete one. The kinds are the facets: tracks, nodes, arcs, blocks, connections, stations, platforms, signals, signalling areas, routes, block dependencies, single-track restrictions and station boundaries. What a kind lists and how it is edited is up to its <a class="el" href="class_infrastructure_facet.html">InfrastructureFacet</a>; a kind without one lists nothing. The facet also says which other controls it uses (<a class="el" href="class_infrastructure_facet.html#a1918c6757b3db77a5ea28ed59e76353a" title="The controls that the panel shows for this facet. The default is none.">InfrastructureFacet::capabilities</a>): a filter on the track under the combo, which blocks use, buttons that insert and move an entity, which blocks use too, and the heading "Route sections" with the list of the sections of the selected route and the buttons that change it, below the table in a splitter, which routes use. The buttons call the facet that is chosen, only when it has their capability and only while the scene can be edited. </p>
+<div class="textblock"><p>The infrastructure of the scene: a combo on top to pick the kind of entity, a sentence about the kind (infrastructureGuidanceText), a table with one row for each entity of that kind, under the table a line that says what the canvas marks of the selected row (<a class="el" href="#a8a21d4783ea0a769051737c256f4ec5d">markLabel()</a>), and under that the buttons that add and delete one. The kinds are the facets: tracks, nodes, arcs, blocks, connections, stations, platforms, signals, signalling areas, routes, block dependencies, single-track restrictions and station boundaries. What a kind lists and how it is edited is up to its <a class="el" href="class_infrastructure_facet.html">InfrastructureFacet</a>; a kind without one lists nothing. The facet also says which other controls it uses (<a class="el" href="class_infrastructure_facet.html#a1918c6757b3db77a5ea28ed59e76353a" title="The controls that the panel shows for this facet. The default is none.">InfrastructureFacet::capabilities</a>): a filter on the track under the combo, which blocks use, buttons that insert and move an entity, which blocks use too, and the heading "Route sections" with the list of the sections of the selected route and the buttons that change it, below the table in a splitter, which routes use. The buttons call the facet that is chosen, only when it has their capability and only while the scene can be edited. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a4aa7f19138992c4380f878819b623969" name="a4aa7f19138992c4380f878819b623969"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4aa7f19138992c4380f878819b623969">&#9670;&#160;</a></span>InfrastructurePanel()</h2>
@@ -292,7 +294,7 @@ Additional Inherited Members</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_a4aa7f19138992c4380f878819b623969_cgraph.svg" width="1168" height="1383"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_a4aa7f19138992c4380f878819b623969_cgraph.svg" width="1168" height="1638"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -864,6 +866,33 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a8a21d4783ea0a769051737c256f4ec5d" name="a8a21d4783ea0a769051737c256f4ec5d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a21d4783ea0a769051737c256f4ec5d">&#9670;&#160;</a></span>markLabel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QLabel * InfrastructurePanel::markLabel </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The line under the table that says what the canvas marks of the selected row, such as "route2: 124 sections on B3,
+B0, B4, B5 and B2"; empty and hidden without a selected row, while the document cannot be edited and while <a class="el" href="#a6c0238b0165ad03c913afff3469c9ff1">setMarkShown()</a> hides it. </p>
+
+</div>
+</div>
 <a id="a82af8a411d19611929adaf6d8d328450" name="a82af8a411d19611929adaf6d8d328450"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a82af8a411d19611929adaf6d8d328450">&#9670;&#160;</a></span>model()</h2>
 
@@ -1386,6 +1415,24 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a242281619a73c633c0c7a89419879025" name="a242281619a73c633c0c7a89419879025"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a242281619a73c633c0c7a89419879025">&#9670;&#160;</a></span>selectedRouteSection()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int InfrastructurePanel::selectedRouteSection </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>For a route, the index into <a class="el" href="struct_scene_route.html#a4f041d5160784ae07f00fda35a0c67ed" title="Section references in travel order.">SceneRoute::blocks</a> of the section selected under <a class="el" href="class_route.html">Route</a> sections; -1 for another kind of entity and without one. </p>
+
+</div>
+</div>
 <a id="a9b4bd64176552b66de1c20d4e5dec616" name="a9b4bd64176552b66de1c20d4e5dec616"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9b4bd64176552b66de1c20d4e5dec616">&#9670;&#160;</a></span>selectionChanged</h2>
 
@@ -1412,7 +1459,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>The selection has been taken from the table again: after another row or facet is chosen, and after the table has been filled again. <span class="tt"><a class="el" href="#a1ede3387c827781076354d8e8b2d4173" title="The facet with this key, or null. The panel keeps it.">facet</a></span> is the key of the chosen facet and <span class="tt">id</span> the id of the selected entity, empty when no row is selected. </p>
+<p>The selection has been taken from the table again: after another row or facet is chosen, after another section of the selected route is chosen under <a class="el" href="class_route.html">Route</a> sections, and after the table has been filled again. <span class="tt"><a class="el" href="#a1ede3387c827781076354d8e8b2d4173" title="The facet with this key, or null. The panel keeps it.">facet</a></span> is the key of the chosen facet and <span class="tt">id</span> the id of the selected entity, empty when no row is selected. The controls that depend on the selection are up to date when it is told. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1443,8 +1490,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>The id of the selected entity, or an empty string. It is what the track preview marks. </p>
+<p>The id of the selected entity, or an empty string. It is what the track preview marks. A block dependency, a single-track restriction and a station boundary have no id of their own and are named by their row number. </p>
 
 </div>
 </div>
@@ -1468,6 +1514,24 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_ac49a032fde9d388f6331f1f409eca5a2_cgraph.svg" width="348" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a6c0238b0165ad03c913afff3469c9ff1" name="a6c0238b0165ad03c913afff3469c9ff1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6c0238b0165ad03c913afff3469c9ff1">&#9670;&#160;</a></span>setMarkShown()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void InfrastructurePanel::setMarkShown </td>
+          <td>(</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>shown</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Shows the line under the table (<a class="el" href="#a8a21d4783ea0a769051737c256f4ec5d">markLabel()</a>) or hides it. The window hides it while the canvas shows a run or its results, which mark no row. It is shown until this is called. </p>
 
 </div>
 </div>

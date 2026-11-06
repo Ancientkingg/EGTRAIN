@@ -185,7 +185,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a7b6aab59fe03b18a17758a3e54e94045"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the message of a virtual coupling above a train, in a group that is made once for the train.  <br /></td></tr>
 <tr class="memitem:a583bd2b439a923f2d17f3e3e16040cc3" id="r_a583bd2b439a923f2d17f3e3e16040cc3"><td class="memItemLeft"><a class="el" href="struct_network_presenter_1_1_preview_outcome.html">PreviewOutcome</a>&#160;</td><td class="memItemRight"><a class="el" href="#a583bd2b439a923f2d17f3e3e16040cc3">showPreview</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;sceneModel)</td></tr>
 <tr class="memitem:a5f67f677150140ed39c81306cc727372" id="r_a5f67f677150140ed39c81306cc727372"><td class="memItemLeft"><a class="el" href="struct_network_presenter_1_1_preview_outcome.html">PreviewOutcome</a>&#160;</td><td class="memItemRight"><a class="el" href="#a5f67f677150140ed39c81306cc727372">showPreview</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;sceneModel, const <a class="el" href="struct_network_presenter_1_1_preview_options.html">PreviewOptions</a> &amp;options)</td></tr>
-<tr class="memdesc:a5f67f677150140ed39c81306cc727372"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same, with the selection of the infrastructure panel of options.  <br /></td></tr>
+<tr class="memdesc:a5f67f677150140ed39c81306cc727372"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same, and marks the row of the infrastructure panel that options selects (see <a class="el" href="#a0cd4a0105bf9fa5760368d0d46877ab2">markPreviewSelection()</a>).  <br /></td></tr>
+<tr class="memitem:a0cd4a0105bf9fa5760368d0d46877ab2" id="r_a0cd4a0105bf9fa5760368d0d46877ab2"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a0cd4a0105bf9fa5760368d0d46877ab2">markPreviewSelection</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;sceneModel, const <a class="el" href="struct_network_presenter_1_1_preview_options.html">PreviewOptions</a> &amp;options)</td></tr>
+<tr class="memitem:a19640754921d9353b9e99090a10ef7b2" id="r_a19640754921d9353b9e99090a10ef7b2"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a19640754921d9353b9e99090a10ef7b2">previewShown</a> () const</td></tr>
+<tr class="memdesc:a19640754921d9353b9e99090a10ef7b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene shows a preview with track lines: <a class="el" href="#a583bd2b439a923f2d17f3e3e16040cc3">showPreview()</a> drew one and neither <a class="el" href="#a6a8ccd8567a7794aaff72338d8bea322">clear()</a> nor <a class="el" href="#a2825db26f3e40183fccc23ee6ec1d0ac">showRuntime()</a> ran since.  <br /></td></tr>
+<tr class="memitem:a83c794493b57ef3901a2951018bf4085" id="r_a83c794493b57ef3901a2951018bf4085"><td class="memItemLeft">const <a class="el" href="class_network_mark_item.html">NetworkMarkItem</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a83c794493b57ef3901a2951018bf4085">selectionMark</a> () const</td></tr>
+<tr class="memdesc:a83c794493b57ef3901a2951018bf4085"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mark of the selected row of the infrastructure panel; null without one.  <br /></td></tr>
 <tr class="memitem:a1bdb6293c1982c3cb74603bb6d4263ea" id="r_a1bdb6293c1982c3cb74603bb6d4263ea"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1bdb6293c1982c3cb74603bb6d4263ea">resetPreviewFit</a> ()</td></tr>
 <tr class="memdesc:a1bdb6293c1982c3cb74603bb6d4263ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forgets the fit and the selection of the last preview; the preview itself stays.  <br /></td></tr>
 <tr class="memitem:a1775dc3bc8cf9636cca7ac0bb27bd645" id="r_a1775dc3bc8cf9636cca7ac0bb27bd645"><td class="memItemLeft"><a class="el" href="struct_network_presenter_1_1_preview_fit.html">PreviewFit</a>&#160;</td><td class="memItemRight"><a class="el" href="#a1775dc3bc8cf9636cca7ac0bb27bd645">previewFit</a> () const</td></tr>
@@ -195,7 +200,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a252c44e30f1c533a1374efb9605e0082" id="r_a252c44e30f1c533a1374efb9605e0082"><td class="memItemLeft">const <a class="el" href="struct_track_preview_result.html">TrackPreviewResult</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a252c44e30f1c533a1374efb9605e0082">trackPreview</a> () const</td></tr>
 <tr class="memdesc:a252c44e30f1c533a1374efb9605e0082"><td class="mdescLeft">&#160;</td><td class="mdescRight">The preview that the scene shows.  <br /></td></tr>
 <tr class="memitem:afc091dbdff1a40501487e8f7863a861c" id="r_afc091dbdff1a40501487e8f7863a861c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#afc091dbdff1a40501487e8f7863a861c">previewHasSelectedTrack</a> () const</td></tr>
-<tr class="memdesc:afc091dbdff1a40501487e8f7863a861c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The last preview marks a selected track.  <br /></td></tr>
+<tr class="memdesc:afc091dbdff1a40501487e8f7863a861c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The preview marks a selected track.  <br /></td></tr>
 <tr class="memitem:ad0c1b8f4e0ccf59478f22850766dcbf7" id="r_ad0c1b8f4e0ccf59478f22850766dcbf7"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad0c1b8f4e0ccf59478f22850766dcbf7">previewHasSignals</a> () const</td></tr>
 <tr class="memdesc:ad0c1b8f4e0ccf59478f22850766dcbf7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The last preview has signals.  <br /></td></tr>
 <tr class="memitem:a0eb5faed83650e23ee94ddf3ec76bf11" id="r_a0eb5faed83650e23ee94ddf3ec76bf11"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a0eb5faed83650e23ee94ddf3ec76bf11">hasContent</a> () const</td></tr>
@@ -724,6 +729,28 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a0cd4a0105bf9fa5760368d0d46877ab2" name="a0cd4a0105bf9fa5760368d0d46877ab2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0cd4a0105bf9fa5760368d0d46877ab2">&#9670;&#160;</a></span>markPreviewSelection()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool NetworkPresenter::markPreviewSelection </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>sceneModel</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_network_presenter_1_1_preview_options.html">PreviewOptions</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>options</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Marks the row of the infrastructure panel that options selects on the preview that is shown, in place of the mark of the row before, and leaves the rest of the scene and the view as they are. A view that shows no part of the new mark is centred on the point of the mark nearest to its centre, at the same zoom. The mark of each kind of row: the whole drawn track of a track, a ring around a node, the line between its ends for an arc and a connection, the course of its section for a block (<a class="el" href="_network_presenter_8cpp.html#a8cf18205b036242ba1bd00d5913edd18">previewSectionCourse()</a>), rings on the station mark and the squares of the platform nodes of a station, rings on the squares and halos on the bars of a platform, the courses of the sections of a route in travel order with a disc at its start and an arrowhead at its end when its direction is known, rings on the heads of a signal, the kilometres of a signalling area on its track or on every track, and the courses of the sections that a single-track restriction, a station boundary or a block dependency names; for a single-track restriction also the block sections between its start and its end. The section chosen under <a class="el" href="class_route.html">Route</a> sections is drawn over the route in the second colour. Returns false and changes nothing when no preview is shown or options has no model generation or another one than the preview: the caller draws the preview again. </p>
+
+</div>
+</div>
 <a id="aa360cc99d5a45dcfab687ea8408a9825" name="aa360cc99d5a45dcfab687ea8408a9825"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa360cc99d5a45dcfab687ea8408a9825">&#9670;&#160;</a></span>paintPassengerInfoIcon()</h2>
 
@@ -1049,7 +1076,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>The last preview marks a selected track. </p>
+<p>The preview marks a selected track. </p>
 
 </div>
 </div>
@@ -1077,6 +1104,33 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The last preview has signals. </p>
+
+</div>
+</div>
+<a id="a19640754921d9353b9e99090a10ef7b2" name="a19640754921d9353b9e99090a10ef7b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a19640754921d9353b9e99090a10ef7b2">&#9670;&#160;</a></span>previewShown()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool NetworkPresenter::previewShown </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The scene shows a preview with track lines: <a class="el" href="#a583bd2b439a923f2d17f3e3e16040cc3">showPreview()</a> drew one and neither <a class="el" href="#a6a8ccd8567a7794aaff72338d8bea322">clear()</a> nor <a class="el" href="#a2825db26f3e40183fccc23ee6ec1d0ac">showRuntime()</a> ran since. </p>
 
 </div>
 </div>
@@ -1276,6 +1330,33 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The selected train, or null. </p>
+
+</div>
+</div>
+<a id="a83c794493b57ef3901a2951018bf4085" name="a83c794493b57ef3901a2951018bf4085"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a83c794493b57ef3901a2951018bf4085">&#9670;&#160;</a></span>selectionMark()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="class_network_mark_item.html">NetworkMarkItem</a> * NetworkPresenter::selectionMark </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The mark of the selected row of the infrastructure panel; null without one. </p>
 
 </div>
 </div>
@@ -1534,7 +1615,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>The same, with the selection of the infrastructure panel of options. </p>
+<p>The same, and marks the row of the infrastructure panel that options selects (see <a class="el" href="#a0cd4a0105bf9fa5760368d0d46877ab2">markPreviewSelection()</a>). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

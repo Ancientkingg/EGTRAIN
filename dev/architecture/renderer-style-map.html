@@ -356,7 +356,11 @@ case-specific drawing branches.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">myQGraphicsColorizeEffect(Qt::blue,</span> <span class="pre">1)</span></code> on the clicked item.</p></td>
 <td><p>A ring in the cue colour (61,214,255) with a dark casing, drawn in screen pixels just below the item in the stacking order, so it keeps its size at every zoom. A line item gets a halo along its line, any other item a rounded ring of at least 16 by 16 pixels with 3 pixels of padding; a station node is ringed together with its pictogram. The ring never recolours or covers the item, is covered by the item and by everything stacked over it, and takes no mouse input.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Track state</p></td>
+<tr class="row-odd"><td><p>Infrastructure mark</p></td>
+<td><p>None.</p></td>
+<td><p>The preview marks the row selected in the Infrastructure table with a <code class="docutils literal notranslate"><span class="pre">NetworkMarkItem</span></code> in violet (196,120,255) with a dark casing of 1 pixel, at z -0.5: over the area of a station and under the tracks, the nodes, the platform bars and the signals, which it never covers. A stretch of track (a whole track, the course of a section, the line between the ends of an arc or a connection, the kilometres of a signalling area) is a band 8 pixels wide; a node, a station mark and a signal head get a ring 3 pixels wide and at least 9 pixels in radius; a platform bar gets an outline 4 pixels wide. A route has a disc at its start and an arrowhead at its end when its direction is known, and the section chosen under Route sections is a band 12 pixels wide in light amber (255,220,140) over it. The sizes are logical pixels, so the mark reads the same at Fit and zoomed in. It takes no mouse input and is separate from the selection cue, so both can show at once. A section is drawn along its nodes (<code class="docutils literal notranslate"><span class="pre">trackPreviewSectionCourse</span></code>, <code class="docutils literal notranslate"><span class="pre">previewSectionCourse</span></code>). Like the track, the mark leaves out the first and last arc of a double switch. While a track row is selected, the map key has a “Selected track” row with the violet band.</p></td>
+</tr>
+<tr class="row-even"><td><p>Track state</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">updateBlockOccupationStatus</span></code>: a red <code class="docutils literal notranslate"><span class="pre">myQGraphicsColorizeEffect</span></code> on the blocks occupied by a train. <code class="docutils literal notranslate"><span class="pre">releaseBlockOccupationStatus</span></code>: a white effect on every track at the start of each step of <code class="docutils literal notranslate"><span class="pre">updateTrainPosition</span></code>. Prepared and blocked do not exist.</p></td>
 <td><p>In a run and a replay <code class="docutils literal notranslate"><span class="pre">TrackLineItem::paint</span></code> draws a track line that a train occupies, every arc of the block section the train is in, in red (255,0,0) instead of its speed colour, at the width of its speed class. The red ends with the run, after Stop and when the run fails; a replay shows the occupied lines of its frame. Prepared and blocked are not painted. An occupied line in a section that a signal failure blocks is red as well, and the arc inspector shows it as blocked; otherwise the arc inspector shows occupied, blocked or prepared. The map key of the run canvas has an “Occupied section” row, also after the run ends, and the key of the preview has none.</p></td>
 </tr>
@@ -429,9 +433,17 @@ case-specific drawing branches.</p>
 <td><p>(80,120,210) at alpha 56, (30,47,73) over the canvas</p></td>
 <td><p>1.31; on the area the tracks keep 3.32, 5.15 and 3.05, an occupied track 3.37, a light pin 11.52, the blue pin 3.18, a name 13.48 and a train 8.86</p></td>
 </tr>
-<tr class="row-even"><td><p>Selection cue, track selected in the editor table</p></td>
+<tr class="row-even"><td><p>Selection cue</p></td>
 <td><p>(61,214,255)</p></td>
 <td><p>10.27</p></td>
+</tr>
+<tr class="row-odd"><td><p>Infrastructure mark</p></td>
+<td><p>(196,120,255) with a dark casing</p></td>
+<td><p>6.27, and 4.80 on the station area</p></td>
+</tr>
+<tr class="row-even"><td><p>Infrastructure mark, section chosen under Route sections</p></td>
+<td><p>(255,220,140) with a dark casing</p></td>
+<td><p>13.30, 10.18 on the station area and 2.12 against the violet of the mark</p></td>
 </tr>
 <tr class="row-odd"><td><p>Signal Stop, Caution, Proceed</p></td>
 <td><p>Red, yellow, green</p></td>
@@ -460,11 +472,15 @@ case-specific drawing branches.</p>
 but do not change ordinary historical track paint; an occupied line is red in a
 run and a replay. Selection draws a
 ring around the item and never recolours it, so a selected track keeps its
-speed-class color. The exception is the preview, where the track of the row selected in the Infrastructure table is
-drawn in the cue colour, width 4. A refresh of the table keeps a selected row and selects none otherwise, so Run, Stop, Save and New case
-draw no track in it unless the user selected a row. The cue colour is reserved: no built-in track, signal or default train colour uses
-it; a service colour chosen by the user is not checked. The map key shows only visible track styles. Layer/Follow/replay controls are
-unchanged.</p>
+speed-class color. The row selected in the Infrastructure table does not recolour
+its track either: the preview draws the infrastructure mark under it, in a violet
+of its own, so the cue of a clicked item and the mark of a table row can show at
+once. A refresh of the table keeps a selected row and selects none otherwise, so
+Run, Stop, Save and New case draw no mark unless the user selected a row. The cue
+colour and the two mark colours are reserved: no built-in track, signal or default
+train colour uses them, and neither mark colour is red or green; a service colour
+chosen by the user is not checked. The map key shows only visible track styles.
+Layer/Follow/replay controls are unchanged.</p>
 <p>Preview uses canonical read-only fields and shows the placeholder “After a run”
 in the fields that only a run fills. Signal head identity is the rendered canonical track,
 section and direction, plus any authored signal IDs, not a numeric runtime

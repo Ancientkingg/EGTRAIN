@@ -23,7 +23,7 @@ var searchData=
   ['verticalscrollarea_20',['VerticalScrollArea',['../class_editor_layout_1_1_vertical_scroll_area.html#a486c3d3653896eb58e53c23821228941',1,'EditorLayout::VerticalScrollArea']]],
   ['viewportchanged_21',['viewportChanged',['../class_network_view.html#ac759eb59c9af28946b90f56ced8205ac',1,'NetworkView']]],
   ['viewportevent_22',['viewportEvent',['../class_network_view.html#a14b006303865e0c9fa150ab23b2dbcf4',1,'NetworkView']]],
-  ['viewscale_23',['viewScale',['../class_selection_cue_item.html#a2f5a51a3248c6752c393d0fd0320884e',1,'SelectionCueItem']]],
+  ['viewscale_23',['viewScale',['../class_network_mark_item.html#a503e4e2ec0cf2c0c8563e056bdcc0851',1,'NetworkMarkItem::viewScale()'],['../class_selection_cue_item.html#a2f5a51a3248c6752c393d0fd0320884e',1,'SelectionCueItem::viewScale()']]],
   ['virtualarcitem_24',['VirtualArcItem',['../class_virtual_arc_item.html#a1c9b987a38271108cf6600377e939c32',1,'VirtualArcItem']]],
   ['visibilitychanged_25',['visibilityChanged',['../class_train_key_list.html#a72ce9eb6454f9676364e59040582f633',1,'TrainKeyList']]],
   ['visibletrainids_26',['visibleTrainIds',['../class_train_filter_button.html#a1bdd26f68b8a7bb21ad71e0b8a1cfb0e',1,'TrainFilterButton::visibleTrainIds()'],['../class_train_key_list.html#a8bc8737a80382bdea1ad7b396bef81d9',1,'TrainKeyList::visibleTrainIds()']]],
