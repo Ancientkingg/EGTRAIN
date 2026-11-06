@@ -1,10 +1,12 @@
 #include "app/UpdateTelemetryController.h"
 
 #include "app/MainWindowTestHooks.h"
+#include "support/StderrCapture.h"
 #include "update/ReleaseInfo.h"
 #include "update/SelfUpdater.h"
 #include "update/UpdateChecker.h"
 #include "update/UpdateSettings.h"
+#include "util/Log.h"
 
 #include <QAbstractButton>
 #include <QAction>
@@ -16,6 +18,7 @@
 #include <QMessageBox>
 #include <QProcessEnvironment>
 #include <QPushButton>
+#include <QScopeGuard>
 #include <QSettings>
 #include <QStringList>
 #include <QTemporaryDir>
@@ -111,6 +114,7 @@ private slots:
 	void updateActionsAndFirstStartPrompt();
 	void refusedStartLeavesTelemetryOff();
 	void promptNamesItsDefault();
+	void suppressedUpdateFailureIsWritten();
 	void updateEndsLoopWithoutClosingWindows();
 
 private:
@@ -132,9 +136,11 @@ void TestUpdateTelemetryController::initTestCase() {
 	}
 }
 
-// A failed check ends its slot before the slot takes its hooks back.
+// A failed check ends its slot before the slot takes its hooks and the sink back.
 void TestUpdateTelemetryController::cleanup() {
 	mainWindowTestHooks().telemetryStart = nullptr;
+	mainWindowTestHooks().dialogsSuppressed = false;
+	eglog::setSink({});
 	SelfUpdater::setTestHook(SelfUpdateCapability(), QString());
 }
 
@@ -254,6 +260,49 @@ void TestUpdateTelemetryController::promptNamesItsDefault() {
 	QVERIFY2(defaultButtonOfAvailablePrompt(*checker, release) == "Update and Restart",
 		"the prompt with an update package makes Update and Restart the default");
 	SelfUpdater::setTestHook(SelfUpdateCapability(), QString());
+}
+
+// In a scripted run an update that fails shows no box: it writes the message to stderr and logs it as a warning in the
+// category update. An automatic check that fails is logged there too.
+void TestUpdateTelemetryController::suppressedUpdateFailureIsWritten() {
+	QWidget window;
+	UpdateTelemetryController controller(&window, [] { return true; }, [] {});
+	QMenu help;
+	controller.setupUpdateActions(&help);
+	auto* updater = controller.findChild<SelfUpdater*>();
+	auto* checker = controller.findChild<UpdateChecker*>();
+	QVERIFY2(updater, "the update entries make an updater");
+	QVERIFY2(checker, "the update entries make a checker");
+	QStringList warnings;
+	eglog::setSink([&warnings](eglog::Category category, eglog::Level level, const std::string& text) {
+		if (category == eglog::Category::Update && level == eglog::Level::Warning)
+			warnings << QString::fromStdString(text);
+	});
+	mainWindowTestHooks().dialogsSuppressed = true;
+	QTemporaryDir folder;
+	QVERIFY(folder.isValid());
+	int shown = 0;
+	pressInMessageBox(shown, "OK");
+	StderrCapture capture(folder.filePath("stderr.txt"));
+	emit updater->finished(false, "The package could not be unpacked.");
+	const QString written = capture.text();
+	// Checks that no box opens within this time.
+	waitFor(150);
+	// the failure shows no box
+	QCOMPARE(shown, 0);
+	// the failure is logged as a warning in the category update
+	QCOMPARE(warnings, QStringList("EGTRAIN Update: The package could not be unpacked.\n"));
+	// the message goes to stderr
+	if (StderrCapture::available())
+		QVERIFY2(written.contains("QEGTRAIN_DIALOG_SUPPRESSED: EGTRAIN Update: The package could not be unpacked.\n"),
+			qPrintable(written));
+
+	warnings.clear();
+	UpdateCheckResult failed;
+	failed.error = "No connection.";
+	emit checker->finished(failed);
+	// an automatic check that fails is logged as a warning in the category update
+	QCOMPARE(warnings, QStringList("Automatic update check failed: No connection.\n"));
 }
 
 // A window that asks about unsaved changes and stays open gets no close event when an update ends the application.
