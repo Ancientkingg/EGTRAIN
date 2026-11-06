@@ -179,7 +179,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a0e22c903a39d60235031cba17ec26836" id="r_a0e22c903a39d60235031cba17ec26836"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a0e22c903a39d60235031cba17ec26836">onlyKnownOptions</a> (int argc, char *argv[])</td></tr>
 <tr class="memitem:af8a37ec1c7793e1bc17c4db837211d73" id="r_af8a37ec1c7793e1bc17c4db837211d73"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#af8a37ec1c7793e1bc17c4db837211d73">readWholeNumber</a> (const char *text, int low, int high, int &amp;value)</td></tr>
 <tr class="memitem:aa05f9e0bf42e630202969bd6af9d5036" id="r_aa05f9e0bf42e630202969bd6af9d5036"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#aa05f9e0bf42e630202969bd6af9d5036">readWholeNumberOf</a> (const char *option, const char *text, int low, int high, int &amp;value, const char *requirement)</td></tr>
-<tr class="memitem:a9f0bad842ef5a5c7048fef39287ecde5" id="r_a9f0bad842ef5a5c7048fef39287ecde5"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a9f0bad842ef5a5c7048fef39287ecde5">readDecimalNumberOf</a> (const char *option, const char *text, double &amp;value, const char *requirement)</td></tr>
+<tr class="memitem:a6b46150e88960110c614715feb55c4c7" id="r_a6b46150e88960110c614715feb55c4c7"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a6b46150e88960110c614715feb55c4c7">readDecimalNumberOf</a> (const char *option, const char *text, double low, double &amp;value, const char *requirement)</td></tr>
+<tr class="memitem:a7dccf609ed3fb69048c3ffedd7d4def9" id="r_a7dccf609ed3fb69048c3ffedd7d4def9"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#a7dccf609ed3fb69048c3ffedd7d4def9">readAnswer</a> ()</td></tr>
 <tr class="memitem:a02c66329a4f32c18e5cabfeeb405fb3e" id="r_a02c66329a4f32c18e5cabfeeb405fb3e"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a02c66329a4f32c18e5cabfeeb405fb3e">parseCmdOptions</a> (int argc, char *argv[])</td></tr>
 <tr class="memitem:abae69462edc5b89943c514c4fcb9231b" id="r_abae69462edc5b89943c514c4fcb9231b"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#abae69462edc5b89943c514c4fcb9231b">readLiveOptions</a> (int argc, char *argv[])</td></tr>
 <tr class="memitem:aaf4b2d129f9ea7f2ecab4e56d100c450" id="r_aaf4b2d129f9ea7f2ecab4e56d100c450"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#aaf4b2d129f9ea7f2ecab4e56d100c450">startLiveStream</a> (const std::string &amp;outputFolder, bool showBox)</td></tr>
@@ -460,7 +461,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_a02c66329a4f32c18e5cabfeeb405fb3e_cgraph.svg" width="647" height="536"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_a02c66329a4f32c18e5cabfeeb405fb3e_cgraph.svg" width="647" height="612"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -517,8 +518,38 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a9f0bad842ef5a5c7048fef39287ecde5" name="a9f0bad842ef5a5c7048fef39287ecde5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9f0bad842ef5a5c7048fef39287ecde5">&#9670;&#160;</a></span>readDecimalNumberOf()</h2>
+<a id="a7dccf609ed3fb69048c3ffedd7d4def9" name="a7dccf609ed3fb69048c3ffedd7d4def9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7dccf609ed3fb69048c3ffedd7d4def9">&#9670;&#160;</a></span>readAnswer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string readAnswer </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_a7dccf609ed3fb69048c3ffedd7d4def9_cgraph.svg" width="110" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a6b46150e88960110c614715feb55c4c7" name="a6b46150e88960110c614715feb55c4c7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6b46150e88960110c614715feb55c4c7">&#9670;&#160;</a></span>readDecimalNumberOf()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -535,6 +566,11 @@ Here is the call graph for this function:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>text</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>low</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -556,7 +592,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_a9f0bad842ef5a5c7048fef39287ecde5_cgraph.svg" width="183" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_a6b46150e88960110c614715feb55c4c7_cgraph.svg" width="183" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

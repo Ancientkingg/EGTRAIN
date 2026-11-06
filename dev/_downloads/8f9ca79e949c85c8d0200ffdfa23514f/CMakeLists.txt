@@ -947,8 +947,10 @@ egtrain_add_test(test_output_folder
 	COMMAND $<TARGET_FILE:QEGTRAIN> --scene ${SRC_DIR}/Scenes/Paimpol
 	LABELS integration gui
 	ENVIRONMENT "QEGTRAIN_E2E_OUTPUT_FOLDER=1;QEGTRAIN_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/output-folder-test"
-	# The run that an exception ends shows Simulation Failed, which a scripted run writes to stderr.
-	PASS_REGULAR_EXPRESSION "DIALOG_SUPPRESSED: Simulation Failed.*E2E_OUTPUT_FOLDER_OK;E2E_OUTPUT_FOLDER_OK.*DIALOG_SUPPRESSED: Simulation Failed"
+	# The run that an exception ends shows Simulation Failed, and the run whose service path diagram cannot be written
+	# then shows Cannot Write Run Output. A scripted run writes both to stderr, so the OK line can come before, between
+	# or after them.
+	PASS_REGULAR_EXPRESSION "DIALOG_SUPPRESSED: Simulation Failed.*DIALOG_SUPPRESSED: Cannot Write Run Output.*E2E_OUTPUT_FOLDER_OK;DIALOG_SUPPRESSED: Simulation Failed.*E2E_OUTPUT_FOLDER_OK.*DIALOG_SUPPRESSED: Cannot Write Run Output;E2E_OUTPUT_FOLDER_OK.*DIALOG_SUPPRESSED: Simulation Failed.*DIALOG_SUPPRESSED: Cannot Write Run Output"
 	TIMEOUT 120
 	OWN_SETTINGS)
 egtrain_add_test(test_native_startup_without_legacy

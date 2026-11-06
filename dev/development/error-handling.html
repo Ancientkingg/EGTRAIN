@@ -435,7 +435,7 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">GuardedApplication</span></code> (not on macOS) or <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code>’s <code class="docutils literal notranslate"><span class="pre">main</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">std::bad_alloc</span></code></p></td>
-<td><p>Train vectors sized <code class="docutils literal notranslate"><span class="pre">ceil(duration</span> <span class="pre">/</span> <span class="pre">timestep)</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/builders/OperationsBuilder.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.cpp</span></code>), built on the GUI thread; the scene validator checks only that the duration is positive and finite</p></td>
+<td><p>Any allocation of a run preparation except the train vectors sized <code class="docutils literal notranslate"><span class="pre">ceil(duration</span> <span class="pre">/</span> <span class="pre">timestep)</span></code>: <code class="docutils literal notranslate"><span class="pre">buildOperationsFromScene</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/builders/OperationsBuilder.cpp</span></code>) refuses a run whose train vectors would take more than 4 GiB before it allocates them, and catches a <code class="docutils literal notranslate"><span class="pre">std::bad_alloc</span></code> while it allocates them (see <a class="reference internal" href="#recoverable-failures">Recoverable failures</a>)</p></td>
 <td><p>GUI, or main without a window</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">RunController::runScene</span></code>: <strong>Cannot Run Case</strong>; without a window, <code class="docutils literal notranslate"><span class="pre">main</span></code>: exit code 70</p></td>
 </tr>
@@ -555,8 +555,8 @@
 <td><p>“Cannot Start EGTRAIN” box, exit 1 (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>). A launch whose environment suppresses dialogs shows no box.</p></td>
 <td><p>Standard error</p></td>
 </tr>
-<tr class="row-even"><td><p>Option on the command line has a value that is not a number</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">ERROR:</span> <span class="pre">-h</span> <span class="pre">requires</span> <span class="pre">a</span> <span class="pre">whole</span> <span class="pre">number</span> <span class="pre">of</span> <span class="pre">seconds.</span></code> and the like on standard error, exit 1 (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>). A value of <code class="docutils literal notranslate"><span class="pre">-n</span></code> that is not a whole number counts as an unknown case id.</p></td>
+<tr class="row-even"><td><p>Option on the command line, or an answer to a question of <code class="docutils literal notranslate"><span class="pre">--interactive</span></code>, has a value that is not a number or is outside the range that a scene allows for the same setting (<code class="docutils literal notranslate"><span class="pre">-h</span></code> from 1, <code class="docutils literal notranslate"><span class="pre">-b</span></code> and <code class="docutils literal notranslate"><span class="pre">-c</span></code> from 0, <code class="docutils literal notranslate"><span class="pre">-g</span></code> and <code class="docutils literal notranslate"><span class="pre">-pax</span></code> 0 or 1)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ERROR:</span> <span class="pre">-h</span> <span class="pre">requires</span> <span class="pre">a</span> <span class="pre">whole</span> <span class="pre">number</span> <span class="pre">of</span> <span class="pre">1</span> <span class="pre">or</span> <span class="pre">more</span> <span class="pre">seconds.</span></code> and the like on standard error, exit 1 (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>). A value of <code class="docutils literal notranslate"><span class="pre">-n</span></code>, or an answer for it, that is not a whole number counts as an unknown case id.</p></td>
 <td><p>Standard error</p></td>
 </tr>
 <tr class="row-odd"><td><p>Save fails</p></td>
@@ -591,6 +591,14 @@
 <td><p>“Cannot Run Case” box with the first diagnostic; Run Results status “Failed”</p></td>
 <td><p>Yes</p></td>
 </tr>
+<tr class="row-odd"><td><p>Run whose train vectors, one value of each for every step, would take more than 4 GiB, estimated from the number of trains, the steps and the bytes of a train per step (<code class="docutils literal notranslate"><span class="pre">kTrainBytesPerStep</span></code> in <code class="docutils literal notranslate"><span class="pre">simulation/builders/OperationsBuilder.cpp</span></code>)</p></td>
+<td><p>Refused before they are allocated with <code class="docutils literal notranslate"><span class="pre">scene.native.memory.limit</span></code>, which gives the estimate, the number of trains and the duration: “Cannot Run Case” in the window, the diagnostic on standard error and exit 1 without a window. A duration from <code class="docutils literal notranslate"><span class="pre">-h</span></code> is named as <code class="docutils literal notranslate"><span class="pre">-h</span></code>, not as <code class="docutils literal notranslate"><span class="pre">settings.duration_seconds</span></code>. It is not a scene validation error, so <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">validate</span></code> and Save accept the case</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>Train vectors of a run that do not fit in the free memory (<code class="docutils literal notranslate"><span class="pre">std::bad_alloc</span></code> in <code class="docutils literal notranslate"><span class="pre">buildOperationsFromScene</span></code>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.native.memory.free</span></code>, “The run needs more memory than is free for <trains> over <duration>”, shown as in the row above; the trains of the run and <code class="docutils literal notranslate"><span class="pre">initial_variables</span></code> stay as they were</p></td>
+<td><p>Yes</p></td>
+</tr>
 <tr class="row-odd"><td><p>Run stopped by an exception</p></td>
 <td><p>“Simulation Failed” box; status bar “Simulation failed”; Run Results status “Failed”</p></td>
 <td><p>Yes</p></td>
@@ -608,7 +616,7 @@
 <td><p>No</p></td>
 </tr>
 <tr class="row-odd"><td><p>Run output files cannot be written</p></td>
-<td><p>The run fails as a run stopped by an exception, with “Cannot write <path>: <reason>”: every writer opens and closes its file with <code class="docutils literal notranslate"><span class="pre">simulation/RunOutputFile.h</span></code>. <code class="docutils literal notranslate"><span class="pre">TrainServicePathDiagram.txt</span></code> is written after the run: without a window its failure gives exit code 1, and the window only logs it</p></td>
+<td><p>The run fails as a run stopped by an exception, with “Cannot write <path>: <reason>”: every writer opens and closes its file with <code class="docutils literal notranslate"><span class="pre">simulation/RunOutputFile.h</span></code>. <code class="docutils literal notranslate"><span class="pre">TrainServicePathDiagram.txt</span></code> is written after the run: without a window its failure gives exit code 1, and the window shows a “Cannot Write Run Output” warning with the reason and the status bar “Simulation complete, but TrainServicePathDiagram.txt could not be written” (<code class="docutils literal notranslate"><span class="pre">RunController::onSimulationFinished</span></code>)</p></td>
 <td><p>Yes</p></td>
 </tr>
 <tr class="row-even"><td><p>Result export fails</p></td>

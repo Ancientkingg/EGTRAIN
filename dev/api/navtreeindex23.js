@@ -1,5 +1,6 @@
 var NAVTREEINDEX23 =
 {
+"struct_live_stream_guard.html":[2,0,136],
 "struct_live_stream_guard.html#a45d101ad0737d23410192159e11d3601":[2,0,136,0],
 "struct_main_window_test_hooks.html":[2,0,138],
 "struct_main_window_test_hooks.html#a030fe1f7bf4a928721bfe463109b186a":[2,0,138,9],
@@ -248,6 +249,5 @@ var NAVTREEINDEX23 =
 "struct_run_infrastructure.html#adfd0b2d7067ca014bcc1477e97931632":[2,0,195,9],
 "struct_run_infrastructure.html#ae2d4e5d638311e8e4aae0692b91a6367":[2,0,195,10],
 "struct_run_infrastructure.html#aeb6fae11263ff8a82c7885258c6e6551":[2,0,195,0],
-"struct_run_infrastructure.html#afa192fca82add88ed2a3572cd6c16c8d":[2,0,195,8],
-"struct_run_input_provenance.html":[2,0,196]
+"struct_run_infrastructure.html#afa192fca82add88ed2a3572cd6c16c8d":[2,0,195,8]
 };

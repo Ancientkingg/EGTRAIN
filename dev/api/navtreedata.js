@@ -87,14 +87,14 @@ var NAVTREEINDEX =
 "class_train.html#af885f4cbe2d1e0ec7f78a9ebe2c309da",
 "class_validation_panel.html#a7e8d663c49c1fc8c80c5fdea5450da6f",
 "functions_c.html",
-"namespace_timetable_stops.html#a760c0eac70de2284909ab143fbfe0146",
-"struct_blocking_time_diagram_input.html#a8251b319a542cc7c1b14c01007c9673f",
-"struct_delay_histogram_class.html#a077f9169031f36ce233518cf2a044985",
-"struct_live_stream_guard.html#a45d101ad0737d23410192159e11d3601",
-"struct_run_input_provenance.html#a29b60bc7f791f30736fa832b13c3363b",
-"struct_scene_passenger_journey.html#a30693fdee0552644b7eaf7a9f8d04cbf",
-"struct_self_update_capability.html",
-"struct_train_1_1_braking_arc_cursor.html#ac6771dda22432d499fb1acfc435f465b"
+"namespace_timetable_stops.html#a641f55d38748385fa14b464b2afcd09e",
+"struct_blocking_time_diagram_input.html#a8176a0447f95e741153dac74793703a0",
+"struct_delay_histogram_class.html",
+"struct_live_stream_guard.html",
+"struct_run_input_provenance.html",
+"struct_scene_passenger_journey.html#a2fe49ae8eeea7813d7953fe46f855903",
+"struct_section_reference_part.html#accf06dd6b86b0b8adc9a856698fb115a",
+"struct_train_1_1_braking_arc_cursor.html#aad9c5724afd55dbcf13a09c8800d974a"
 ];
 
 const SYNCONMSG = 'click to disable panel synchronization';

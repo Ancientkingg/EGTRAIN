@@ -1,5 +1,6 @@
 var NAVTREEINDEX27 =
 {
+"struct_train_1_1_braking_arc_cursor.html#aad9c5724afd55dbcf13a09c8800d974a":[2,0,340,0,3],
 "struct_train_1_1_braking_arc_cursor.html#ac6771dda22432d499fb1acfc435f465b":[2,0,340,0,1],
 "struct_train_1_1_braking_arc_cursor.html#ac86d934bcd47cb1f9a030a7c790bb071":[2,0,340,0,4],
 "struct_train_colour_input.html":[2,0,343],
