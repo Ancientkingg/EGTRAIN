@@ -5,13 +5,15 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iterator>
 #include <string>
 #include <system_error>
 
-// File helpers of the scene code. A scene directory is filled in a private directory next to its destination and then
-// renamed into place, so that a failure leaves the previous scene as it was. A bundle and a migration are unpacked into a
-// private temporary directory.
+// File helpers of the scene code. A scene directory is filled in a private directory next to its destination, flushed to
+// disk and then renamed into place, so that a failure leaves the previous scene as it was. A bundle and a migration are
+// unpacked into a private temporary directory. publishStagedDirectory is defined in SceneWriter.cpp, next to the flush of
+// the files, so that the system headers of the flush stay out of this header.
 
 /// Reads the whole file at path into content, byte for byte. Returns false when the file cannot be opened.
 inline bool readFileBytes(const std::filesystem::path& path, std::string& content) {
@@ -117,6 +119,14 @@ inline std::error_code createStagedDirectory(const std::filesystem::path& parent
 	return std::make_error_code(std::errc::file_exists);
 }
 
+/// Called in place of each flush to disk, with the path and whether it is a directory: the files and folders of a staged
+/// scene save, and the parent folder once publishStagedDirectory has renamed a directory into place. A test counts the
+/// flushes with it or makes one fail by returning an error. It is empty in a normal run.
+inline std::function<std::error_code(const std::filesystem::path& path, bool directory)>& syncToDiskHook() {
+	static std::function<std::error_code(const std::filesystem::path& path, bool directory)> hook;
+	return hook;
+}
+
 /// The step of publishStagedDirectory that failed, or Published.
 enum class StagedPublishStep {
 	Published,	  ///< The directory was renamed into place.
@@ -130,31 +140,15 @@ struct StagedPublishResult {
 	std::error_code error{};							   ///< The error of that step.
 	std::error_code restoreError{};						   ///< Set when Rename failed and the old destination could not be moved back.
 	std::error_code removeBackupError{};				   ///< Set when the directory was published and the backup could not be removed.
+	/// Set when the directory was published and the rename could not be flushed to disk; the backup is then kept.
+	std::error_code syncError{};
 };
 
 /// Renames staged.path to destination. backup is empty when there is no destination, otherwise a free name from
 /// uniqueSiblingPath. A rename of a directory over an existing directory fails on Windows, which is why the old
 /// destination is moved aside first and moved back when the rename into place fails. When the step is MoveToBackup or
-/// Rename staged still owns its directory, so the caller can just return and let the destructor remove it.
-inline StagedPublishResult publishStagedDirectory(StagedDirectory& staged, const std::filesystem::path& destination,
-	const std::filesystem::path& backup) {
-	StagedPublishResult result;
-	if (!backup.empty()) {
-		std::filesystem::rename(destination, backup, result.error);
-		if (result.error) {
-			result.step = StagedPublishStep::MoveToBackup;
-			return result;
-		}
-	}
-	std::filesystem::rename(staged.path, destination, result.error);
-	if (result.error) {
-		result.step = StagedPublishStep::Rename;
-		if (!backup.empty())
-			std::filesystem::rename(backup, destination, result.restoreError);
-		return result;
-	}
-	staged.release();
-	if (!backup.empty())
-		std::filesystem::remove_all(backup, result.removeBackupError);
-	return result;
-}
+/// Rename staged still owns its directory, so the caller can just return and let the destructor remove it. The rename
+/// into place is on disk before the backup is removed: on macOS and Linux the parent folder of destination is flushed
+/// after it, and on Windows it is written through. When that flush fails the backup stays and syncError says why.
+StagedPublishResult publishStagedDirectory(StagedDirectory& staged, const std::filesystem::path& destination,
+	const std::filesystem::path& backup);

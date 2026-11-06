@@ -5,6 +5,7 @@
 #include "scene/StagedDirectory.h"
 #include "scene/StopInsertion.h"
 
+#include <QScopeGuard>
 #include <QString>
 #include <QTest>
 
@@ -16,6 +17,7 @@
 #include <iostream>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 #include <nlohmann/json.hpp>
 
@@ -662,6 +664,27 @@ static void put(const fs::path& path, const std::string& bytes) {
 	output << bytes;
 }
 
+// Saves authoredScene() to destination and adds a file and a folder that are not scene files.
+static bool saveCaseWithOtherFiles(const fs::path& destination) {
+	if (!saveScene(authoredScene(), destination.string()).success())
+		return false;
+	put(destination / "marker.txt", "marker\n");
+	std::error_code ec;
+	fs::create_directory(destination / "notes", ec);
+	put(destination / "notes" / "operator.txt", "keep\n");
+	return !ec && fs::is_regular_file(destination / "notes" / "operator.txt");
+}
+
+// The regular files below directory, relative to it.
+static std::set<fs::path> filesBelow(const fs::path& directory) {
+	std::set<fs::path> files;
+	for (const auto& entry : fs::recursive_directory_iterator(directory)) {
+		if (entry.is_regular_file())
+			files.insert(entry.path().lexically_relative(directory).lexically_normal());
+	}
+	return files;
+}
+
 // The errors of a scenario file as "code path: message", in the order in which the loader reported them.
 static std::vector<std::string> scenarioErrors(const ScenarioLoadResult& loaded) {
 	std::vector<std::string> lines;
@@ -737,6 +760,11 @@ private slots:
 	void reportsScenarioFileDiagnostics();
 	void savesEmptyNames();
 	void savesIncompleteEntries();
+	void flushesSaveBeforePublishing();
+	void failedFlushKeepsCase_data();
+	void failedFlushKeepsCase();
+	void keepsBackupWhenParentFlushFails();
+	void savesReadOnlyOtherFile();
 
 private:
 	TempDir m_temp;
@@ -2282,6 +2310,149 @@ void TestSceneWriter::savesIncompleteEntries() {
 				&& diagnostic.file == "services.json" && diagnostic.path == "services[1].composition";
 		});
 	QVERIFY2(missingComposition, "a service without a composition key is still an error");
+}
+
+// A save flushes every file and folder of its staging directory to disk before the rename into place, the files that it
+// copies from the previous case included, and then the parent folder, before it removes the backup.
+void TestSceneWriter::flushesSaveBeforePublishing() {
+	TempDir temp;
+	const fs::path destination = temp.path / "scene";
+	QVERIFY2(saveCaseWithOtherFiles(destination), "the case with other files is saved");
+	std::vector<std::pair<fs::path, bool>> flushes;
+	syncToDiskHook() = [&flushes](const fs::path& path, bool directory) {
+		flushes.emplace_back(path.lexically_normal(), directory);
+		return std::error_code();
+	};
+	SceneSaveResult saved;
+	{
+		const auto unhook = qScopeGuard([] { syncToDiskHook() = nullptr; });
+		saved = saveScene(authoredScene(), destination.string());
+	}
+	printErrors(saved.diagnostics, "flushed save");
+	QVERIFY(saved.success());
+	QVERIFY((entryNames(temp.path) == std::set<std::string>{"scene"}));
+	// The files come first, then the folder inside the case, the staging directory and the parent folder.
+	QVERIFY(flushes.size() > 3);
+	const auto& [parentPath, parentIsFolder] = flushes[flushes.size() - 1];
+	const auto& [stagingPath, stagingIsFolder] = flushes[flushes.size() - 2];
+	const auto& [notesPath, notesIsFolder] = flushes[flushes.size() - 3];
+	QVERIFY(parentIsFolder && parentPath == temp.path.lexically_normal());
+	QVERIFY(stagingIsFolder && stagingPath.parent_path() == temp.path.lexically_normal());
+	QVERIFY(stagingPath.filename().u8string().rfind("scene.staging-", 0) == 0);
+	QVERIFY(notesIsFolder && notesPath == stagingPath / "notes");
+	std::set<fs::path> flushedFiles;
+	for (std::size_t index = 0; index + 3 < flushes.size(); ++index) {
+		QVERIFY2(!flushes[index].second, "only files are flushed before the folders");
+		flushedFiles.insert(flushes[index].first.lexically_relative(stagingPath).lexically_normal());
+	}
+	// Each file of the saved case is flushed once, in the staging directory.
+	QCOMPARE(flushedFiles.size(), flushes.size() - 3);
+	QVERIFY(flushedFiles == filesBelow(destination));
+	QVERIFY(flushedFiles.count(fs::path("scene.json")) == 1);
+	QVERIFY(flushedFiles.count(fs::path("notes") / "operator.txt") == 1);
+}
+
+void TestSceneWriter::failedFlushKeepsCase_data() {
+	QTest::addColumn<bool>("folder");
+	QTest::newRow("file") << false;
+	QTest::newRow("staging directory") << true;
+}
+
+// A file or the staging directory that cannot be flushed to disk fails the save with the reason of the system before
+// anything is published: the previous case stays as it was and the staging directory is removed.
+void TestSceneWriter::failedFlushKeepsCase() {
+	QFETCH(bool, folder);
+	TempDir temp;
+	const fs::path destination = temp.path / "scene";
+	QVERIFY2(saveCaseWithOtherFiles(destination), "the case with other files is saved");
+	const Files before = readDirectoryBytes(destination);
+	const std::error_code failure = std::make_error_code(std::errc::io_error);
+	syncToDiskHook() = [folder, failure](const fs::path& path, bool directory) {
+		const bool failing = folder ? directory && path.filename().u8string().rfind("scene.staging-", 0) == 0
+									: path.filename() == "services.json";
+		return failing ? failure : std::error_code();
+	};
+	SceneModel changed = authoredScene();
+	changed.description = "Changed";
+	SceneSaveResult saved;
+	{
+		const auto unhook = qScopeGuard([] { syncToDiskHook() = nullptr; });
+		saved = saveScene(changed, destination.string());
+	}
+	const std::string name = folder ? "scene" : "services.json";
+	const std::string expected = "Cannot flush " + name + " to disk: " + failure.message();
+	const bool reported = std::any_of(saved.diagnostics.begin(), saved.diagnostics.end(),
+		[&name, &expected](const SceneDiagnostic& diagnostic) {
+			return diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.save.write"
+				&& diagnostic.file == name && diagnostic.message == expected;
+		});
+	printErrors(saved.diagnostics, "failed flush");
+	// The save fails with the file and the reason.
+	QVERIFY(!saved.success());
+	QVERIFY(reported);
+	// The previous case keeps every byte, and no staging or backup folder is left.
+	QVERIFY(readDirectoryBytes(destination) == before);
+	QVERIFY(readBytes(destination / "notes" / "operator.txt") == "keep\n");
+	QVERIFY((entryNames(temp.path) == std::set<std::string>{"scene"}));
+}
+
+// When the parent folder cannot be flushed after the rename into place, the new case is in place and the previous case
+// stays in its backup, which a warning names.
+void TestSceneWriter::keepsBackupWhenParentFlushFails() {
+	TempDir temp;
+	const fs::path destination = temp.path / "scene";
+	QVERIFY2(saveCaseWithOtherFiles(destination), "the case with other files is saved");
+	const Files before = readDirectoryBytes(destination);
+	const fs::path parent = temp.path.lexically_normal();
+	const std::error_code failure = std::make_error_code(std::errc::io_error);
+	syncToDiskHook() = [parent, failure](const fs::path& path, bool directory) {
+		return directory && path.lexically_normal() == parent ? failure : std::error_code();
+	};
+	SceneModel changed = authoredScene();
+	changed.description = "Changed";
+	SceneSaveResult saved;
+	{
+		const auto unhook = qScopeGuard([] { syncToDiskHook() = nullptr; });
+		saved = saveScene(changed, destination.string());
+	}
+	printErrors(saved.diagnostics, "parent flush");
+	fs::path backup;
+	for (const auto& diagnostic : saved.diagnostics) {
+		if (diagnostic.severity == SceneSeverity::Warning && diagnostic.code == "scene.save.cleanup"
+			&& diagnostic.message
+				== "Cannot flush " + destination.parent_path().u8string() + " to disk, so the previous case stays in "
+					+ diagnostic.file + ": " + failure.message())
+			backup = fs::u8path(diagnostic.file);
+	}
+	// The save succeeds with a warning that names the backup.
+	QVERIFY(saved.success());
+	QVERIFY(!backup.empty());
+	QVERIFY(backup.parent_path().lexically_normal() == parent);
+	QVERIFY(backup.filename().u8string().rfind("scene.backup-", 0) == 0);
+	// The backup holds the previous case and the destination the new one.
+	QVERIFY(readDirectoryBytes(backup) == before);
+	QVERIFY(readBytes(backup / "notes" / "operator.txt") == "keep\n");
+	QVERIFY(readBytes(destination / "scene.json") != before.at("scene.json"));
+	QVERIFY(readBytes(destination / "notes" / "operator.txt") == "keep\n");
+}
+
+// A read-only file of the case that is not a scene file goes into the new case, and the save succeeds. Windows cannot
+// flush such a file, so it leaves it as it is.
+void TestSceneWriter::savesReadOnlyOtherFile() {
+	TempDir temp;
+	const fs::path destination = temp.path / "scene";
+	QVERIFY2(saveCaseWithOtherFiles(destination), "the case with other files is saved");
+	const fs::path marker = destination / "marker.txt";
+	fs::permissions(marker, fs::perms::owner_write | fs::perms::group_write | fs::perms::others_write,
+		fs::perm_options::remove);
+	const auto writable = qScopeGuard([&marker] {
+		std::error_code ec;
+		fs::permissions(marker, fs::perms::owner_write, fs::perm_options::add, ec);
+	});
+	const SceneSaveResult saved = saveScene(authoredScene(), destination.string());
+	printErrors(saved.diagnostics, "read-only file save");
+	QVERIFY(saved.success());
+	QVERIFY(readBytes(marker) == "marker\n");
 }
 
 QTEST_APPLESS_MAIN(TestSceneWriter)
