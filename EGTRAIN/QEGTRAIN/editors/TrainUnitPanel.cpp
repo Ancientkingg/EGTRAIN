@@ -1,6 +1,7 @@
 #include "editors/TrainUnitPanel.h"
 
 #include "editors/EditorHelpers.h"
+#include "editors/RollingStockLibraryDialog.h"
 #include "scene/SceneFields.h"
 #include "scene/SceneIds.h"
 #include "scene/SceneReferences.h"
@@ -83,6 +84,15 @@ private:
 	static constexpr int kDecimals = std::numeric_limits<double>::max_digits10;
 };
 
+// Whether two units have the same values apart from their ids: the physical values, the traction curve and the source
+// references.
+bool sameValues(const SceneTrainUnit& a, const SceneTrainUnit& b) {
+	if (a.hasPhysical != b.hasPhysical || a.tractionCurve != b.tractionCurve || a.sourceDataFile != b.sourceDataFile
+		|| a.sourceTractionFile != b.sourceTractionFile)
+		return false;
+	return !a.hasPhysical || std::all_of(kSceneTrainPhysicalFields.begin(), kSceneTrainPhysicalFields.end(), [&a, &b](const SceneTrainPhysicalField& field) { return a.physical.*field.member == b.physical.*field.member; });
+}
+
 // The path as the person reads it on this system, with a zero-width space after each separator and underscore so
 // that a label can wrap it. The characters are not drawn.
 QString breakablePath(const QString& path) {
@@ -97,8 +107,9 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("trainUnitPanel");
 	QVBoxLayout* layout = new QVBoxLayout(this);
 
-	// top: the list of units and the buttons that manage it, in one row. The title of the dock names the list, which
-	// shows about three rows, so that the fields below keep the height of a short dock.
+	// top: the list of units and the buttons that manage it, Add Unit, Duplicate and Delete in one row and Add from Library
+	// under them. The title of the dock names the list, which shows about three rows, so that the fields below keep the
+	// height of a short dock.
 	QWidget* listPane = new QWidget(this);
 	QVBoxLayout* listLayout = new QVBoxLayout(listPane);
 	listLayout->setContentsMargins(0, 0, 0, 0);
@@ -117,6 +128,9 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	buttonLayout->addWidget(m_addButton, 0, 0);
 	buttonLayout->addWidget(m_duplicateButton, 0, 1);
 	buttonLayout->addWidget(m_deleteButton, 0, 2);
+	m_libraryButton = new QPushButton("Add from Library...", listPane);
+	m_libraryButton->setObjectName("addTrainUnitFromLibraryButton");
+	buttonLayout->addWidget(m_libraryButton, 1, 0, 1, 3);
 	listLayout->addLayout(buttonLayout);
 	layout->addWidget(listPane);
 
@@ -246,6 +260,7 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 			[this, i](double) { commitPhysical(i); });
 	}
 	connect(m_addButton, &QPushButton::clicked, this, &TrainUnitPanel::addUnit);
+	connect(m_libraryButton, &QPushButton::clicked, this, &TrainUnitPanel::addFromLibrary);
 	connect(m_duplicateButton, &QPushButton::clicked, this, &TrainUnitPanel::duplicateUnit);
 	connect(m_deleteButton, &QPushButton::clicked, this, &TrainUnitPanel::deleteUnit);
 	connect(m_addTractionRowButton, &QPushButton::clicked, this, &TrainUnitPanel::addTractionRow);
@@ -290,6 +305,7 @@ void TrainUnitPanel::refresh() {
 		m_listWidget->setEnabled(loaded);
 	}
 	m_addButton->setEnabled(loaded);
+	m_libraryButton->setEnabled(loaded);
 	updateDetail();
 }
 
@@ -424,6 +440,69 @@ void TrainUnitPanel::addUnit() {
 	emit changed();
 
 	m_listWidget->setCurrentRow(static_cast<int>(m_document->model().trainUnits.size()) - 1);
+}
+
+void TrainUnitPanel::addFromLibrary() {
+	if (!hasScene())
+		return;
+	const RollingStockLibrary library = bundledRollingStockLibrary();
+	if (hasErrors(library.diagnostics)) {
+		m_prompts->showError(this, "Rolling Stock Library Not Read", firstDiagnosticDialogText(library.diagnostics), true);
+		return;
+	}
+	RollingStockLibraryDialog dialog(library.units, this);
+	if (dialog.exec() != QDialog::Accepted || dialog.selectedUnit() == nullptr)
+		return;
+	addLibraryUnit(dialog.selectedUnit()->unit, dialog.addsComposition());
+}
+
+void TrainUnitPanel::addLibraryUnit(const SceneTrainUnit& libraryUnit, bool withComposition) {
+	if (!hasScene())
+		return;
+	const SceneModel& model = m_document->model();
+	const QString requestedId = QString::fromStdString(libraryUnit.id);
+	const SceneTrainUnit* existing = sceneTrainUnitById(model, libraryUnit.id);
+	if (existing != nullptr && sameValues(*existing, libraryUnit)) {
+		selectUnit(requestedId);
+		emit statusMessage(
+			QString("Rolling stock unit %1 is already in this case with the same values. Nothing was added.").arg(requestedId), 7000);
+		return;
+	}
+	SceneTrainUnit unit = libraryUnit;
+	unit.id = sceneUniqueTrainUnitId(model, libraryUnit.id);
+	SceneComposition composition;
+	composition.id = sceneUniqueCompositionId(model, unit.id);
+	composition.units = {unit.id};
+	// A composition with the id of the unit and only that unit is the one that would be added.
+	const auto sameId = std::find_if(model.compositions.begin(), model.compositions.end(),
+		[&unit](const SceneComposition& item) { return item.id == unit.id; });
+	const bool addsComposition = withComposition && (sameId == model.compositions.end() || sameId->units != composition.units);
+	SceneDocument::ChangeKinds kinds(SceneDocument::TrainUnits);
+	if (addsComposition)
+		kinds |= SceneDocument::Compositions;
+	if (!m_document->edit(kinds, "Add rolling stock unit from library", [&unit, &composition, addsComposition](SceneModel& edited) {
+			edited.trainUnits.push_back(unit);
+			if (addsComposition)
+				edited.compositions.push_back(composition);
+		}))
+		return;
+	refresh();
+	emit changed();
+	selectUnit(QString::fromStdString(unit.id));
+
+	const QString unitId = QString::fromStdString(unit.id);
+	const QString compositionId = QString::fromStdString(composition.id);
+	QString message = addsComposition ? QString("Added rolling stock unit %1 and composition %2.").arg(unitId, compositionId)
+									  : QString("Added rolling stock unit %1.").arg(unitId);
+	const bool unitIdTaken = unit.id != libraryUnit.id;
+	const bool compositionIdTaken = addsComposition && composition.id != unit.id;
+	if (unitIdTaken)
+		message += QString(" %1 was taken, so it is now %2.").arg(requestedId, unitId);
+	if (compositionIdTaken)
+		message += QString(" Composition %1 was taken, so it is now %2.").arg(unitId, compositionId);
+	emit statusMessage(message, 7000);
+	if (unitIdTaken || compositionIdTaken)
+		m_prompts->showInfo(this, "Rolling Stock ID Adjusted", message);
 }
 
 void TrainUnitPanel::duplicateUnit() {

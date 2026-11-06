@@ -41,6 +41,14 @@ public:
 
 	/// Appends a unit with a new unique id and selects it.
 	void addUnit();
+	/// Lists the units of the bundled cases in a dialog and adds the one the user chooses with addLibraryUnit().
+	void addFromLibrary();
+	/// Appends a copy of `libraryUnit`, a unit of the library, with its physical values, traction curve and source references,
+	/// and with `withComposition` a composition with only that unit, as one edit. When the case has a unit with the same id
+	/// and the same values, nothing is copied. A unit with the same id and other values stays as it is, and the copy gets the
+	/// next free id. The composition takes the id of the copy, or the next free id when a composition with other units has
+	/// it. Selects the unit and says what happened through statusMessage(), and also in a message box when an id was taken.
+	void addLibraryUnit(const SceneTrainUnit& libraryUnit, bool withComposition);
 	/// Inserts a copy of the selected unit, with a new unique id, after it.
 	void duplicateUnit();
 	/// Deletes the selected unit after the user has confirmed it; refused while a composition uses it.
@@ -87,6 +95,8 @@ public:
 	QTableWidget* tractionTable() const { return m_tractionTable; }
 	/// The button of addUnit().
 	QPushButton* addButton() const { return m_addButton; }
+	/// The button of addFromLibrary().
+	QPushButton* libraryButton() const { return m_libraryButton; }
 	/// The button of duplicateUnit().
 	QPushButton* duplicateButton() const { return m_duplicateButton; }
 	/// The button of deleteUnit().
@@ -113,6 +123,8 @@ Q_SIGNALS:
 	void unitDeleted(const QString& id);
 	/// The details of the shown unit are shown again, so the state of its source links has to be shown again too.
 	void detailsShown();
+	/// Shows `text` in the status line of the window for `timeoutMs` milliseconds.
+	void statusMessage(const QString& text, int timeoutMs);
 	/// The plot of the traction curve of this unit is wanted.
 	void tractionPlotRequested(const QString& unitId);
 	/// The user asks to link the source of the shown unit. `traction` tells whether it is the traction file or the
@@ -146,6 +158,7 @@ private:
 	QLabel* m_sourceTractionStatusLabel = nullptr;
 	QTableWidget* m_tractionTable = nullptr;
 	QPushButton* m_addButton = nullptr;
+	QPushButton* m_libraryButton = nullptr;
 	QPushButton* m_duplicateButton = nullptr;
 	QPushButton* m_deleteButton = nullptr;
 	QPushButton* m_addTractionRowButton = nullptr;

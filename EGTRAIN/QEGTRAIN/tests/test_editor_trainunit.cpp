@@ -1,5 +1,6 @@
 #include "editors/TrainUnitPanel.h"
 
+#include "editors/RollingStockLibraryDialog.h"
 #include "scene/SceneFields.h"
 #include "support/FakePrompts.h"
 #include "widgets/CompactDoubleSpinBox.h"
@@ -16,6 +17,7 @@
 #include <QPushButton>
 #include <QScopeGuard>
 #include <QScrollArea>
+#include <QSignalSpy>
 #include <QString>
 #include <QStringList>
 #include <QStyledItemDelegate>
@@ -56,6 +58,23 @@ static SceneModel unitScene() {
 	composition.units = {"u1", "u2", "u1"};
 	scene.compositions = {composition};
 	return scene;
+}
+
+// The unit `id` of the rolling stock library, or an empty unit when the library has none.
+static SceneTrainUnit libraryUnit(const char* id) {
+	for (const RollingStockLibraryUnit& entry : bundledRollingStockLibrary().units) {
+		if (entry.unit.id == id)
+			return entry.unit;
+	}
+	return {};
+}
+
+// Whether a unit has the values, the traction curve and the source references of another one; the ids may differ.
+static bool sameValues(const SceneTrainUnit& a, const SceneTrainUnit& b) {
+	return a.hasPhysical == b.hasPhysical && a.tractionCurve == b.tractionCurve && a.sourceDataFile == b.sourceDataFile
+		&& a.sourceTractionFile == b.sourceTractionFile
+		&& std::all_of(kSceneTrainPhysicalFields.begin(), kSceneTrainPhysicalFields.end(),
+			[&a, &b](const SceneTrainPhysicalField& field) { return a.physical.*field.member == b.physical.*field.member; });
 }
 
 // The order in which a panel and its document report an edit.
@@ -165,6 +184,10 @@ private slots:
 	void numberFieldsStopAtRanges();
 	void keepsSelectionOfReorderedScene();
 	void forgetsDeletedDocument();
+	void libraryButtonFollowsScene();
+	void addsLibraryUnitOnce();
+	void libraryUnitTakesFreeId();
+	void addsLibraryUnitWithoutComposition();
 };
 
 void TestTrainUnitPanel::showsNothingWithoutScene() {
@@ -898,6 +921,125 @@ void TestTrainUnitPanel::forgetsDeletedDocument() {
 	QCOMPARE(panel.listWidget()->count(), 0);
 	QVERIFY(!panel.addButton()->isEnabled());
 	QVERIFY(panel.selectedUnit() == nullptr);
+}
+
+// Add from Library is under Add Unit, Duplicate and Delete, as wide as their row, and enabled while a scene is open.
+void TestTrainUnitPanel::libraryButtonFollowsScene() {
+	TrainUnitPanel panel;
+	SceneDocument document;
+	panel.setDocument(&document);
+	QPushButton* library = panel.libraryButton();
+	QCOMPARE(library->text(), "Add from Library...");
+	// A panel without a scene offers no library.
+	QVERIFY(!library->isEnabled());
+	document.replace(unitScene(), false);
+	panel.resize(panel.minimumSizeHint());
+	panel.show();
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
+	QApplication::processEvents();
+	// A scene opens the library, and the button spans the row of the list buttons below them.
+	QVERIFY(library->isEnabled());
+	QCOMPARE_GT(library->y(), panel.addButton()->y());
+	QCOMPARE(library->x(), panel.addButton()->x());
+	QCOMPARE(library->geometry().right(), panel.deleteButton()->geometry().right());
+	QCOMPARE_LT(library->y(), panel.idEdit()->mapTo(&panel, QPoint(0, 0)).y());
+}
+
+// A unit of the library is added with its values and a composition. A second time nothing is copied, not even a missing
+// composition: the unit that is already there is selected and the status line says so.
+void TestTrainUnitPanel::addsLibraryUnitOnce() {
+	UnitFixture f;
+	QSignalSpy messages(&f.panel, &TrainUnitPanel::statusMessage);
+	const SceneTrainUnit draisy = libraryUnit("Draisy");
+	QVERIFY2(draisy.id == "Draisy", "the library has Draisy");
+	f.panel.addLibraryUnit(draisy, true);
+	const SceneModel& model = f.document.model();
+	// The unit is appended with its values and selected, and a composition with only the unit comes with it in one edit.
+	QCOMPARE(items(f.panel.listWidget()), QStringList({"u1", "u2", "Draisy"}));
+	QVERIFY(sameValues(model.trainUnits[2], draisy));
+	QCOMPARE(f.panel.idEdit()->text(), "Draisy");
+	QCOMPARE(model.compositions.size(), std::size_t(2));
+	QCOMPARE(model.compositions[1].id, "Draisy");
+	QVERIFY(model.compositions[1].units == std::vector<std::string>({"Draisy"}));
+	QCOMPARE(f.events.log, editLog);
+	QCOMPARE(f.events.kinds, SceneDocument::ChangeKinds(SceneDocument::TrainUnits | SceneDocument::Compositions));
+	QCOMPARE(messages.size(), 1);
+	QCOMPARE(messages[0][0].toString(), "Added rolling stock unit Draisy and composition Draisy.");
+	QCOMPARE(f.prompts.infoCount, 0);
+
+	f.panel.listWidget()->setCurrentRow(0);
+	f.events.log.clear();
+	const quint64 revision = f.document.revision();
+	f.panel.addLibraryUnit(draisy, true);
+	// The same unit with its composition is not copied again: the unit is selected and the status line says so.
+	QVERIFY(f.events.log.empty());
+	QCOMPARE(f.document.revision(), revision);
+	QCOMPARE(model.trainUnits.size(), std::size_t(3));
+	QCOMPARE(model.compositions.size(), std::size_t(2));
+	QCOMPARE(f.panel.idEdit()->text(), "Draisy");
+	QCOMPARE(messages.size(), 2);
+	QCOMPARE(messages[1][0].toString(), "Rolling stock unit Draisy is already in this case with the same values. Nothing was added.");
+	QCOMPARE(f.prompts.infoCount, 0);
+
+	f.document.mutableModel().compositions.pop_back();
+	f.panel.addLibraryUnit(draisy, true);
+	// A unit that is there is not copied, and no composition comes with it.
+	QVERIFY(f.events.log.empty());
+	QCOMPARE(model.trainUnits.size(), std::size_t(3));
+	QCOMPARE(model.compositions.size(), std::size_t(1));
+	QCOMPARE(messages.size(), 3);
+}
+
+// A unit of the library whose id the case uses for another unit is copied with the next free id, and the composition of
+// the copy takes that id too. The unit and the composition that were there stay as they are, and the user is told.
+void TestTrainUnitPanel::libraryUnitTakesFreeId() {
+	SceneModel scene = unitScene();
+	scene.trainUnits[1].id = "SLT06";
+	scene.compositions[0].units = {"u1", "SLT06"};
+	SceneComposition sameName;
+	sameName.id = "SLT06";
+	sameName.units = {"SLT06"};
+	scene.compositions.push_back(sameName);
+	SceneDocument document;
+	TrainUnitPanel panel;
+	FakePrompts prompts;
+	panel.setPrompts(&prompts);
+	panel.setDocument(&document);
+	document.replace(scene, false);
+	Events events(panel, document);
+	QSignalSpy messages(&panel, &TrainUnitPanel::statusMessage);
+	const SceneTrainUnit slt06 = libraryUnit("SLT06");
+	QVERIFY2(slt06.id == "SLT06", "the library has SLT06");
+	panel.addLibraryUnit(slt06, true);
+	const SceneModel& model = document.model();
+	// The unit that was there keeps its values, and the copy has the values of the library under the next free id.
+	QCOMPARE(items(panel.listWidget()), QStringList({"u1", "SLT06", "SLT06_2"}));
+	QVERIFY(sameValues(model.trainUnits[1], scene.trainUnits[1]));
+	QVERIFY(sameValues(model.trainUnits[2], slt06));
+	QCOMPARE(panel.idEdit()->text(), "SLT06_2");
+	// The composition of the copy is named after it, and the composition SLT06 still holds the unit that was there.
+	QCOMPARE(model.compositions.size(), std::size_t(3));
+	QVERIFY(model.compositions[1].units == std::vector<std::string>({"SLT06"}));
+	QCOMPARE(model.compositions[2].id, "SLT06_2");
+	QVERIFY(model.compositions[2].units == std::vector<std::string>({"SLT06_2"}));
+	QCOMPARE(events.log, editLog);
+	const QString message = "Added rolling stock unit SLT06_2 and composition SLT06_2. SLT06 was taken, so it is now SLT06_2.";
+	// The status line and a message box give the new id.
+	QCOMPARE(messages.size(), 1);
+	QCOMPARE(messages[0][0].toString(), message);
+	QCOMPARE(prompts.infoCount, 1);
+	QCOMPARE(prompts.infoTitle, "Rolling Stock ID Adjusted");
+	QCOMPARE(prompts.infoMessage, message);
+}
+
+// With the tick box cleared only the unit is added.
+void TestTrainUnitPanel::addsLibraryUnitWithoutComposition() {
+	UnitFixture f;
+	f.panel.addLibraryUnit(libraryUnit("LITRA_SA"), false);
+	QCOMPARE(items(f.panel.listWidget()), QStringList({"u1", "u2", "LITRA_SA"}));
+	QCOMPARE(f.document.model().compositions.size(), std::size_t(1));
+	QCOMPARE(f.events.kinds, SceneDocument::ChangeKinds(SceneDocument::TrainUnits));
 }
 
 QTEST_MAIN(TestTrainUnitPanel)

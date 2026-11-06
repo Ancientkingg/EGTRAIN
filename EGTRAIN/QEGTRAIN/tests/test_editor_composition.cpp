@@ -1,4 +1,5 @@
 #include "editors/CompositionPanel.h"
+#include "editors/RollingStockLibraryDialog.h"
 #include "editors/TrainUnitPanel.h"
 
 #include "diagrams/TractionCurve.h"
@@ -152,6 +153,7 @@ private slots:
 	void unitButtonsFitNarrowPanel();
 	void reportsUndefinedUnitAsError();
 	void showsMessagesThroughPrompts();
+	void libraryCompositionTakesFreeId();
 };
 
 // The units of a composition follow the rolling stock, with the same unit selected.
@@ -713,6 +715,39 @@ void TestCompositionPanel::showsMessagesThroughPrompts() {
 	// A run without a user shows no message and adds no unit.
 	QCOMPARE(messageBoxesDuring([&panel] { panel.addUnit(); }), 0);
 	QCOMPARE(document.revision(), revision);
+}
+
+// A unit of the library comes with a composition of its own. When a composition with other units has the id of the unit,
+// that composition stays as it is and the new one gets the next free id, which the user is told.
+void TestCompositionPanel::libraryCompositionTakesFreeId() {
+	SceneModel scene = compositionScene();
+	scene.compositions.push_back(composition("LITRA_SA", {"u2"}));
+	SceneDocument document;
+	FakePrompts prompts;
+	CompositionPanel panel;
+	TrainUnitPanel units;
+	panel.setPrompts(&prompts);
+	panel.setDocument(&document);
+	units.setPrompts(&prompts);
+	units.setDocument(&document);
+	document.replace(scene, false);
+	const std::vector<RollingStockLibraryUnit> library = bundledRollingStockLibrary().units;
+	const auto litra = std::find_if(library.begin(), library.end(),
+		[](const RollingStockLibraryUnit& entry) { return entry.unit.id == "LITRA_SA"; });
+	if (litra == library.end())
+		QFAIL("the library has no LITRA_SA");
+	units.addLibraryUnit(litra->unit, true);
+	const SceneModel& model = document.model();
+	// The composition that had the id keeps its units, and the new one holds only the new unit.
+	QCOMPARE(model.compositions.size(), std::size_t(4));
+	QVERIFY(model.compositions[2].units == std::vector<std::string>({"u2"}));
+	QCOMPARE(model.compositions[3].id, "LITRA_SA_2");
+	QVERIFY(model.compositions[3].units == std::vector<std::string>({"LITRA_SA"}));
+	// The Compositions panel lists it.
+	QCOMPARE(items(panel.listWidget()), QStringList({"c1", "c2", "LITRA_SA", "LITRA_SA_2"}));
+	QCOMPARE(prompts.infoCount, 1);
+	QCOMPARE(prompts.infoMessage,
+		"Added rolling stock unit LITRA_SA and composition LITRA_SA_2. Composition LITRA_SA was taken, so it is now LITRA_SA_2.");
 }
 
 QTEST_MAIN(TestCompositionPanel)

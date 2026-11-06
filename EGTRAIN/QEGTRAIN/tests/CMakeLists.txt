@@ -605,6 +605,18 @@ egtrain_add_test(test_editor_trainunit
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
+# The rolling stock library of the bundled cases, and Add from Library compared with the cases.
+egtrain_add_test(test_rollingstocklibrary
+	SOURCES ${SRC_DIR}/tests/test_rollingstocklibrary.cpp
+	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
+	DEFINITIONS EGTRAIN_SCENES_DIR="${SRC_DIR}/Scenes"
+	LABELS unit gui)
+
+# Fails when the rolling stock library differs from the bundled cases, and names the script that writes it again.
+egtrain_add_test(rolling_stock_library_check
+	COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/rolling_stock_library.py --check
+	LABELS unit)
+
 egtrain_add_test(test_trainunitsourcelinker
 	SOURCES ${SRC_DIR}/tests/test_trainunitsourcelinker.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
