@@ -40,7 +40,7 @@ The editor docks share one group of tabs on the right of the window. The group t
 
 The Services dock shows its list above its tabs, so that beside Case and Layers in a window of 819 px it needs no horizontal scroll bar. Tabs that do not fit scroll and keep their whole names.
 
-The lists of Rolling Stock Units, Services, Incidents and Entrance delays show about three rows, with their three buttons in one row below, so that the fields of the selected item keep the height of a short dock. The title of the dock names the list of Rolling Stock Units and the list of Services. The list of Services keeps its height on the Timetable tab.
+The lists of Rolling Stock Units, Services, Incidents and Entrance delays show about three rows, with their three buttons in one row below (Rolling Stock Units has Add from Library... in a second row under them), so that the fields of the selected item keep the height of a short dock. The title of the dock names the list of Rolling Stock Units and the list of Services. The list of Services keeps its height on the Timetable tab.
 
 ## Light look
 

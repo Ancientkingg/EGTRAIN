@@ -2044,6 +2044,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				}
 			}
 		}
+		// A library unit that the case already holds with the same values adds nothing, and the status bar says so.
+		if (const SceneTrainUnit* present = trainUnitPanel(w)->selectedUnit()) {
+			const std::size_t unitsBefore = w.m_document->model().trainUnits.size();
+			trainUnitPanel(w)->addLibraryUnit(*present, true);
+			if (w.m_document->model().trainUnits.size() != unitsBefore
+				|| !w.statusBar()->currentMessage().contains("is already in this case with the same values")) {
+				ok = false;
+				failures << QString("library unit already in the case: status \"%1\"").arg(w.statusBar()->currentMessage());
+			}
+		}
 		// Exercise the shared input plot, including Qt's actual zoom/reset axes.
 		int tractionPlotIndex = 0;
 		for (const auto& fixture : std::vector<std::pair<std::array<double, 5>, bool>>{

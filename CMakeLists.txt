@@ -161,6 +161,7 @@ target_link_libraries(egtrain_util PRIVATE nlohmann_json::nlohmann_json)
 # No Qt: scene_tool links this library.
 add_library(egtrain_scene STATIC
     ${SRC_DIR}/scene/LoadedDataSummary.cpp
+    ${SRC_DIR}/scene/RollingStockLibrary.cpp
     ${SRC_DIR}/scene/SceneBundle.cpp
     ${SRC_DIR}/scene/SceneCompatibility.cpp
     ${SRC_DIR}/scene/SceneDiagnostic.cpp
@@ -275,6 +276,7 @@ add_library(egtrain_editors STATIC
     ${SRC_DIR}/editors/infrastructure/StationFacets.cpp
     ${SRC_DIR}/editors/infrastructure/TopologyFacets.cpp
     ${SRC_DIR}/editors/PassengerPanel.cpp
+    ${SRC_DIR}/editors/RollingStockLibraryDialog.cpp
     ${SRC_DIR}/editors/SceneDocument.cpp
     ${SRC_DIR}/editors/SceneEditorPanel.h
     ${SRC_DIR}/editors/ScenarioPanel.cpp
@@ -286,6 +288,12 @@ add_library(egtrain_editors STATIC
     ${SRC_DIR}/editors/ValidationPanel.cpp)
 target_link_libraries(egtrain_editors
     PUBLIC Qt::Core Qt::Gui Qt::Widgets egtrain_scene egtrain_diagrams egtrain_widgets egtrain_runselection egtrain_util)
+# The rolling stock units of the bundled cases, which tools/rolling_stock_library.py writes. A target that links the
+# library gets the resource as well.
+qt_add_resources(egtrain_editors rolling_stock_library
+    PREFIX "/"
+    BASE ${SRC_DIR}/resources
+    FILES ${SRC_DIR}/resources/rolling_stock_library.json)
 
 # The HTTP requests of the update check and the telemetry sender. On Windows they go through WinHTTP, so the
 # package needs no TLS plugin of Qt.

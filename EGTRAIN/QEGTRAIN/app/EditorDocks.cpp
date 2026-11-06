@@ -198,6 +198,8 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 		m_host.refreshInputTractionDiagrams(id.toStdString());
 	});
 	QObject::connect(m_trainUnitPanel, &TrainUnitPanel::changed, m_window, [this] { m_host.refreshValidationPanel(); });
+	QObject::connect(m_trainUnitPanel, &TrainUnitPanel::statusMessage, m_window,
+		[this](const QString& text, int timeoutMs) { m_window->statusBar()->showMessage(text, timeoutMs); });
 	const auto plotUnitTraction = [this](const QString& unitId) {
 		if (const SceneTrainUnit* unit = sceneTrainUnitById(m_document->model(), unitId.toStdString()))
 			m_host.plotTrainUnitTraction(*unit);
