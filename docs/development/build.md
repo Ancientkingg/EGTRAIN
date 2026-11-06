@@ -312,7 +312,9 @@ that the window exports with all trains, with the first train and with none (`<w
 `_one`, `_none`). For the blocking-time, the delay and the per-train diagrams it also writes a text dump of the
 chart (`blocking_time_series.txt`, `delay_diagram_series.txt`, `speed_distance_series.txt` and so on: the axes,
 then every series with its properties and points). Two builds of one scene give the same files, so `cmp`
-shows whether a change moved a diagram.
+shows whether a change moved a diagram. It also exports the picture of the delay diagram into a folder that does
+not exist, and fails unless no message box opens and, outside Windows, `QEGTRAIN_DIALOG_SUPPRESSED:` goes to
+standard error.
 
 The hook of `QEGTRAIN_E2E_ROUTE_DIAGRAM` builds the train paths and the timetable graph with each route that trains
 run on as reference. For each of them it writes the text dump of the chart and the CSV of the window with all trains

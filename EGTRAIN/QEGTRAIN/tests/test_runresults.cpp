@@ -11,6 +11,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QSaveFile>
 #include <QScopeGuard>
 #include <QTemporaryDir>
 #include <QTest>
@@ -37,6 +38,12 @@ static bool readBytes(const QString& path, QByteArray& bytes) {
 		return false;
 	bytes = file.readAll();
 	return file.error() == QFile::NoError;
+}
+
+// The reason that a file at path cannot be written, as QSaveFile gives it.
+static std::string openFailure(const QString& path) {
+	QSaveFile probe(path);
+	return probe.open(QIODevice::WriteOnly) ? std::string() : probe.errorString().toStdString();
 }
 
 static QJsonObject readJsonObject(const QString& path) {
@@ -864,8 +871,7 @@ void TestRunResults::recordsRunProvenance() {
 	provenance.randomSeed = 123456789;
 	provenance.selectedOccurrences = {{"service-A", 2, "A\\\"2"}, {"service-B", 1, "B1"}};
 	const QString artifactPath = temp.filePath("result.csv");
-	QVERIFY2(writeRunArtifactWithProvenance(
-				 artifactPath.toStdString(), "csv", "header\nrow\n", provenance),
+	QVERIFY2(writeRunArtifactWithProvenance(artifactPath.toStdString(), "csv", "header\nrow\n", provenance).empty(),
 		"normal artifact and provenance sidecar are written together");
 	QByteArray artifactBytes;
 	// paired export preserves exact artifact bytes
@@ -894,16 +900,22 @@ void TestRunResults::recordsRunProvenance() {
 	const QString failedArtifact = temp.filePath("failed.csv");
 	QVERIFY2(QDir().mkpath(failedArtifact + ".provenance.json"),
 		"sidecar failure path is occupied by a directory");
-	// sidecar failure does not publish the artifact
-	QVERIFY(!writeRunArtifactWithProvenance(
-		failedArtifact.toStdString(), "csv", "header\n", provenance));
+	// sidecar failure does not publish the artifact, and the error names the sidecar and the reason
+	const std::string sidecarReason = openFailure(failedArtifact + ".provenance.json");
+	QVERIFY(!sidecarReason.empty());
+	QCOMPARE(writeRunArtifactWithProvenance(failedArtifact.toStdString(), "csv", "header\n", provenance),
+		"failed.csv.provenance.json: " + sidecarReason);
 	QVERIFY(!QFileInfo::exists(failedArtifact));
+	// an artifact that cannot be written gives the reason
+	const QString folderArtifact = temp.filePath("folder.csv");
+	QVERIFY(QDir().mkpath(folderArtifact));
+	QCOMPARE(writeRunArtifactWithProvenance(folderArtifact.toStdString(), "csv", "header\n", provenance),
+		openFailure(folderArtifact));
 
 	RunProvenance scenario = provenance;
 	scenario.appliedScenario = "incident";
 	const QString delayArtifact = temp.filePath("delay.csv");
-	QVERIFY2(writeDelayArtifactWithProvenance(
-				 delayArtifact.toStdString(), "csv", "header\n", provenance, scenario),
+	QVERIFY2(writeDelayArtifactWithProvenance(delayArtifact.toStdString(), "csv", "header\n", provenance, scenario).empty(),
 		"delay artifact and sidecar are written with two runs");
 	const QJsonObject delaySidecar = readJsonObject(delayArtifact + ".provenance.json");
 	// delay sidecar keeps baseline and scenario provenance distinct
@@ -912,9 +924,9 @@ void TestRunResults::recordsRunProvenance() {
 	const QString failedDelayArtifact = temp.filePath("failed-delay.csv");
 	QVERIFY2(QDir().mkpath(failedDelayArtifact + ".provenance.json"),
 		"delay sidecar failure path is occupied by a directory");
-	// delay sidecar failure does not publish the artifact
-	QVERIFY(!writeDelayArtifactWithProvenance(
-		failedDelayArtifact.toStdString(), "csv", "header\n", provenance, scenario));
+	// delay sidecar failure does not publish the artifact, and the error names the sidecar and the reason
+	QCOMPARE(writeDelayArtifactWithProvenance(failedDelayArtifact.toStdString(), "csv", "header\n", provenance, scenario),
+		"failed-delay.csv.provenance.json: " + openFailure(failedDelayArtifact + ".provenance.json"));
 	QVERIFY(!QFileInfo::exists(failedDelayArtifact));
 }
 

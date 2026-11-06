@@ -26,6 +26,7 @@ class QSplitter;
 class QTableView;
 class QToolButton;
 class QVBoxLayout;
+class UserPrompts;
 struct RunProvenance;
 namespace telemetry {
 enum class ExportKind;
@@ -170,21 +171,22 @@ private:
 /// titles of the axes.
 void styleResultChart(QChart* chart, const QPalette& palette);
 
-/// Writes the content of an export to `path` as a file of the kind `suffix` names, "csv" or "png", and returns whether
-/// it did, such as writeRunArtifactWithProvenance.
-using ExportWriter = std::function<bool(const QString& path, const char* suffix, const std::string& bytes)>;
+/// Writes the content of an export to `path` as a file of the kind `suffix` names, "csv" or "png". Returns why the write
+/// failed, or an empty string when it wrote the file, such as writeRunArtifactWithProvenance.
+using ExportWriter = std::function<QString(const QString& path, const char* suffix, const std::string& bytes)>;
 
 /// Exports a CSV file or a PNG image, as `kind` says, through the save dialog of `parent`: titled `title`, starting at
 /// `suggestedName` in the folder of dialog_folders::suggestedPath, with a filter for the kind. A path without the suffix
-/// of the kind gets it, and when a file of that name exists a question under `title` asks whether to replace it
-/// (savePathWithSuffix). After the dialog `bytes` gives the content, or nothing when it cannot be made, which reports an
-/// internal failure of the export. `write` writes the content, or else it is written atomically without provenance;
-/// empty content is not written. A failed write reports a failed export. Either failure shows "Export failed" with the
-/// path as the person reads it. The window of `parent` stays in front (KeepInFront). Returns the path that was written,
-/// or an empty string when the dialog was cancelled, the file of that name was kept or nothing was written.
-QString saveExportInteractive(QWidget* parent, telemetry::ExportKind kind, const QString& title, const QString& suggestedName,
-	const telemetry::OperationObservation& operation, const std::function<std::optional<std::string>()>& bytes,
-	const ExportWriter& write = {});
+/// of the kind gets it, and when a file of that name exists a question of `prompts` under `title` asks whether to replace
+/// it (savePathWithSuffix). After the dialog `bytes` gives the content, or nothing when it cannot be made, which reports
+/// an internal failure of the export. `write` writes the content, or else it is written atomically without provenance;
+/// empty content is not written. A failed write reports a failed export. Either failure shows "Export failed" through
+/// `prompts`, with the path as the person reads it and the reason on the line below. The window of `parent` stays in
+/// front (KeepInFront). Returns the path that was written, or an empty string when the dialog was cancelled, the file of
+/// that name was kept or nothing was written.
+QString saveExportInteractive(QWidget* parent, UserPrompts& prompts, telemetry::ExportKind kind, const QString& title,
+	const QString& suggestedName, const telemetry::OperationObservation& operation,
+	const std::function<std::optional<std::string>()>& bytes, const ExportWriter& write = {});
 
 /// The content of a PNG export of `image`, for saveExportInteractive; nothing when the image cannot be encoded.
 std::optional<std::string> pngBytes(const QImage& image);

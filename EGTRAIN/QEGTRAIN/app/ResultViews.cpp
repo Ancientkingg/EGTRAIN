@@ -25,7 +25,6 @@
 #include "util/TimeFormat.h"
 #include "widgets/UserPrompts.h"
 #include <QDialog>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QScreen>
 #include <algorithm>
@@ -52,23 +51,24 @@ constexpr const char* kTrajectoryTitles[] = {
 
 } // namespace
 
-void saveCsvInteractive(QWidget* parent, const QString& suggestedName,
+void saveCsvInteractive(QWidget* parent, UserPrompts& prompts, const QString& suggestedName,
 	const telemetry::OperationObservation& operation, const std::function<std::string()>& provider,
-	const std::function<bool(const QString&, const std::string&)>& artifactWriter) {
+	const std::function<QString(const QString&, const std::string&)>& artifactWriter) {
 	const std::string content = provider();
 	if (content.empty()) {
 		// The window comes back in front once the message closes.
 		const KeepInFront front(parent);
-		QMessageBox::information(parent, "Nothing to export", "There is no data to export.");
+		prompts.showInfo(parent, "Nothing to export", "There is no data to export.");
 		return;
 	}
 	const auto csv = [&content]() -> const std::string& { return content; };
 	const auto write = [&artifactWriter](const QString& path, const char*, const std::string& bytes) { return artifactWriter(path, bytes); };
-	saveExportInteractive(parent, telemetry::ExportKind::Csv, "Export Data", suggestedName, operation, csv, write);
+	saveExportInteractive(parent, prompts, telemetry::ExportKind::Csv, "Export Data", suggestedName, operation, csv, write);
 }
 
 ResultViews::ResultViews(QWidget* window, RunController* runController, Host& host)
-	: QObject(window), m_window(window), m_runController(runController), m_host(host) {}
+	: QObject(window), m_window(window), m_runController(runController), m_host(host),
+	  m_prompts([this] { return m_host.dialogsSuppressed(); }) {}
 
 void ResultViews::showWindow(QWidget* window) {
 	m_windows.removeAll(QPointer<QWidget>());
@@ -85,6 +85,8 @@ void ResultViews::showWindow(QWidget* window) {
 }
 
 void ResultViews::addCaseWindow(QWidget* window) {
+	if (auto* diagram = qobject_cast<DiagramWindow*>(window))
+		diagram->setPrompts(&m_prompts);
 	m_caseWindows.removeAll(QPointer<QWidget>());
 	m_caseWindows.append(window);
 }
@@ -148,6 +150,7 @@ void ResultViews::buildPerTrainDiagram(TrajectoryChart kind) {
 	win->setPresentation(heading, completedRunContext(run->provenance));
 	win->setProperty("manualSection", QStringLiteral("train-diagram"));
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
+	win->setPrompts(&m_prompts);
 	win->setChart(trajectories.chart);
 	win->setTrainColors(trainColorsForRun(run->results, m_host.sceneModel()));
 	win->setTrainServices(trainServicesForRun(run->results));
@@ -160,12 +163,15 @@ void ResultViews::buildPerTrainDiagram(TrajectoryChart kind) {
 }
 
 void ResultViews::showDelayAnalysis() {
-	if (QWidget* window = m_runController->openDelayAnalysis())
+	if (DelayAnalysisWindow* window = m_runController->openDelayAnalysis()) {
+		window->setPrompts(&m_prompts);
 		showWindow(window);
+	}
 }
 
 void ResultViews::showDelayComparison() {
 	if (DelayAnalysisWindow* window = m_runController->openDelayAnalysis()) {
+		window->setPrompts(&m_prompts);
 		showWindow(window);
 		window->showBaselineTab();
 	}
@@ -181,6 +187,7 @@ void ResultViews::showTimetableTable() {
 	auto* window = new TimetableTableWindow(run->timetable, run->settings.startOffsetSeconds,
 		csvProviderFrom(run, &timetableCsvFrom), m_window);
 	window->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
+	window->setPrompts(&m_prompts);
 	window->setTrainColors(trainColorsForRun(run->results, m_host.sceneModel()));
 	window->setRunProvenance(run->provenance);
 	window->setAttribute(Qt::WA_DeleteOnClose);
@@ -206,6 +213,7 @@ void ResultViews::showDelayDiagram() {
 	win->setPresentation(heading, completedRunContext(run->provenance) + QStringLiteral(" \u00b7 ") + route.referenceRoute);
 	win->setProperty("manualSection", QStringLiteral("timetable-results"));
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
+	win->setPrompts(&m_prompts);
 	win->setChart(route.chart);
 	if (route.stationAxis) win->setStationAxis(route.stationAxis, std::move(route.stationTicks));
 	win->setTrainColors(trainColorsForRun(run->results, m_host.sceneModel()));
@@ -241,6 +249,7 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 	win->setPresentation(heading, completedRunContext(run->provenance) + QStringLiteral(" \u00b7 ") + route.referenceRoute);
 	win->setProperty("manualSection", QStringLiteral("train-paths"));
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
+	win->setPrompts(&m_prompts);
 	win->setChart(route.chart);
 	if (route.stationAxis) win->setStationAxis(route.stationAxis, std::move(route.stationTicks));
 	win->setTrainColors(trainColorsForRun(run->results, m_host.sceneModel()));
@@ -305,6 +314,7 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 	DiagramWindow* win = new DiagramWindow(title, m_window);
 	win->setProperty("manualSection", compressed ? QStringLiteral("capacity") : QStringLiteral("blocking-time"));
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
+	win->setPrompts(&m_prompts);
 	win->setChart(chart);
 	// The strip marks the stations of the reference route and the critical and conflicting blocks of the chart.
 	std::vector<double> stationKm;
@@ -361,7 +371,7 @@ void ResultViews::showCapacityAnalysis() {
 
 	// A scripted run has nobody to close the message, so it shows none.
 	const auto showCapacityMessage = [this](const QString& message) {
-		UserPrompts([this] { return m_host.dialogsSuppressed(); }).showInfo(m_window, ResultViewName::kCapacity, message);
+		m_prompts.showInfo(m_window, ResultViewName::kCapacity, message);
 	};
 	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
 	CapacityAnalysisScope scope = firstCapacityScopeWithPairFrom(*run);
@@ -414,10 +424,10 @@ void ResultViews::showCapacityAnalysis() {
 	connect(dialog->exportButton(), &QPushButton::clicked, dialog, [this, dialog, result, sectionLabel, provenance]() {
 		const auto operation = m_host.captureTelemetryOperation();
 		saveCsvInteractive(
-			dialog, "capacity_analysis.csv", operation,
+			dialog, m_prompts, "capacity_analysis.csv", operation,
 			[result, sectionLabel] { return capacityAnalysisCsv(result, sectionLabel); },
 			[provenance](const QString& path, const std::string& bytes) {
-				return writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, provenance);
+				return QString::fromStdString(writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, provenance));
 			});
 	});
 	connect(dialog->diagramButton(), &QPushButton::clicked, dialog, [this, run, scope, result, sectionText]() {
@@ -438,6 +448,8 @@ void ResultViews::showAreaCapacity() {
 	}
 	// The options dialog reads the run until it closes, so this call holds it.
 	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
-	if (QWidget* window = openAreaCapacityWindow(m_window, *run, [this] { return m_host.captureTelemetryOperation(); }))
+	if (AreaCapacityWindow* window = openAreaCapacityWindow(m_window, *run, [this] { return m_host.captureTelemetryOperation(); })) {
+		window->setPrompts(&m_prompts);
 		showWindow(window);
+	}
 }

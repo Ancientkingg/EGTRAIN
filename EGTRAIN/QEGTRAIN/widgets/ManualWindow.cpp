@@ -1,5 +1,7 @@
 #include "widgets/ManualWindow.h"
 
+#include "util/Log.h"
+
 #include <QAbstractTextDocumentLayout>
 #include <QCoreApplication>
 #include <QDesktopServices>
@@ -12,6 +14,7 @@
 #include <QHelpSearchQueryWidget>
 #include <QHelpSearchResultWidget>
 #include <QHBoxLayout>
+#include <QMessageBox>
 #include <QPixmap>
 #include <QResizeEvent>
 #include <QScreen>
@@ -45,6 +48,18 @@ QString pageOf(const QString& section) {
 		{QStringLiteral("capacity-by-area"), QStringLiteral("guides/capacity-analysis.html#capacity-by-area")},
 	};
 	return pages.value(section, QStringLiteral("index.html"));
+}
+
+// Opens the address in the web browser. When that fails, it logs a warning and shows the address in a message whose text
+// the user can select and copy, as the About dialog does.
+void openInBrowser(QWidget* parent, const QUrl& url, const QString& title, const QString& what) {
+	if (QDesktopServices::openUrl(url))
+		return;
+	const QString message = QStringLiteral("Could not open %1 in your browser. Address: %2").arg(what, url.toString());
+	EG_LOG(AppUi, Warning) << title.toStdString() << ": " << message.toStdString() << '\n';
+	QMessageBox box(QMessageBox::Warning, title, message, QMessageBox::Ok, parent);
+	box.setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
+	box.exec();
 }
 
 // Reads the pages, style sheets and images of the manual from the help file, and fits the pictures to the page.
@@ -122,7 +137,7 @@ ManualWindow::ManualWindow(const QString& helpFile, QWidget* parent) : QWidget(p
 		if (url.scheme() == QLatin1String("qthelp"))
 			m_browser->setSource(url);
 		else
-			QDesktopServices::openUrl(url);
+			openInBrowser(this, url, QStringLiteral("Open Link"), QStringLiteral("the link"));
 	});
 
 	QHelpSearchEngine* search = m_engine->searchEngine();
@@ -190,7 +205,8 @@ void ManualWindow::open(QWidget* parent, const QString& section) {
 	}
 	if (!window->showSection(section)) {
 		delete window;
-		QDesktopServices::openUrl(QUrl(QStringLiteral("https://ancientkingg.github.io/EGTRAIN/latest/") + pageOf(section)));
+		openInBrowser(parent, QUrl(QStringLiteral("https://ancientkingg.github.io/EGTRAIN/latest/") + pageOf(section)),
+			QStringLiteral("Open Manual"), QStringLiteral("the manual"));
 		return;
 	}
 	window->setWindowState(window->windowState() & ~Qt::WindowMinimized);

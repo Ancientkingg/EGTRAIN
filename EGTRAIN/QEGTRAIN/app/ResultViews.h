@@ -1,6 +1,8 @@
 #ifndef RESULTVIEWS_H
 #define RESULTVIEWS_H
 
+#include "widgets/UserPrompts.h"
+
 #include <QList>
 #include <QObject>
 #include <QPointer>
@@ -22,10 +24,12 @@ class OperationObservation;
 } // namespace telemetry
 
 /// Asks for a path and writes CSV text atomically. A cancelled dialog or a failed write never leaves a partial file behind.
-/// provider gives the text, and artifactWriter writes it together with its provenance and returns whether it succeeded.
-/// Empty text writes nothing and says that there is no data. ".csv" is added to a path without it.
-void saveCsvInteractive(QWidget* parent, const QString& suggestedName, const telemetry::OperationObservation& operation,
-	const std::function<std::string()>& provider, const std::function<bool(const QString&, const std::string&)>& artifactWriter);
+/// provider gives the text, and artifactWriter writes it together with its provenance and returns why it failed, or an
+/// empty string. Empty text writes nothing and says that there is no data. ".csv" is added to a path without it. The
+/// questions and messages go through `prompts` (saveExportInteractive).
+void saveCsvInteractive(QWidget* parent, UserPrompts& prompts, const QString& suggestedName,
+	const telemetry::OperationObservation& operation, const std::function<std::string()>& provider,
+	const std::function<QString(const QString&, const std::string&)>& artifactWriter);
 
 /// The name of each result view. The Diagrams menu, the Run Results menu and the window titles use these names.
 namespace ResultViewName {
@@ -78,8 +82,11 @@ public:
 	/// to 3, as the test hook of MainWindow gives it. Another number opens nothing.
 	void buildPerTrainDiagram(int mode);
 	/// Adds a window that shows data of the case, such as the traction curve of a rolling stock unit, to the windows that
-	/// closeAll() closes. The window keeps its own place on the screen.
+	/// closeAll() closes. The window keeps its own place on the screen. A DiagramWindow gets the prompts().
 	void addCaseWindow(QWidget* window);
+	/// The prompts of the result windows and of their exports. They show no message while Host::dialogsSuppressed() is
+	/// true, and log the errors.
+	UserPrompts& prompts() { return m_prompts; }
 	/// Closes every result window and every window of addCaseWindow() that is still open, because they show another
 	/// case than the one that replaces it. The windows stay open from one run of a case to the next.
 	void closeAll();
@@ -136,6 +143,7 @@ private:
 	QWidget* const m_window;
 	RunController* const m_runController;
 	Host& m_host;
+	UserPrompts m_prompts;
 	// The result windows that showWindow() opened, oldest first; a closed window is deleted and leaves a null entry.
 	QList<QPointer<QWidget>> m_windows;
 	// The windows of addCaseWindow(), which showWindow() does not place.

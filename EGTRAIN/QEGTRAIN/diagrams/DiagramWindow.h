@@ -8,6 +8,7 @@
 #include "diagrams/PositionScale.h"
 #include "diagrams/SeriesMeta.h"
 #include "telemetry/TelemetryOperation.h"
+#include "widgets/UserPrompts.h"
 #include <QHash>
 #include <QPen>
 #include <QBrush>
@@ -178,9 +179,9 @@ public:
 	/// The figure that the PNG export saves and Copy puts on the clipboard: figureImage with the Trains and Key of the
 	/// panel in a column at the right, the shown trains with their line samples and without check boxes.
 	QImage exportedFigure() const;
-	/// Sets the function that writes an export and its provenance sidecar; `artifactKind` is "png" or "csv". Without
-	/// it the export is written alone.
-	void setProvenanceWriter(std::function<bool(const QString& artifactPath,
+	/// Sets the function that writes an export and its provenance sidecar; `artifactKind` is "png" or "csv". It returns
+	/// why the write failed, or an empty string. Without it the export is written alone.
+	void setProvenanceWriter(std::function<QString(const QString& artifactPath,
 			const char* artifactKind, const std::string& artifactBytes)>
 			writer);
 
@@ -198,6 +199,9 @@ protected:
 public:
 	/// Sets the function that gives the telemetry observation of an export; empty for none.
 	void setTelemetryCapture(telemetry::CaptureOperation capture) { m_telemetryCapture = std::move(capture); }
+	/// Sets the prompts of the exports, which ask whether to replace a file and show what went wrong. Null restores the
+	/// prompts of the window, which show every message.
+	void setPrompts(UserPrompts* prompts) { m_prompts = prompts ? prompts : &m_ownPrompts; }
 
 private slots:
 	void exportPng();
@@ -209,6 +213,8 @@ private slots:
 
 private:
 	telemetry::CaptureOperation m_telemetryCapture;
+	UserPrompts m_ownPrompts;
+	UserPrompts* m_prompts = &m_ownPrompts;
 	struct SeriesGroup {
 		QString trainId;
 		QVector<QAbstractSeries*> members;
@@ -301,7 +307,7 @@ private:
 	QString m_csvSuggestedName;
 	QString m_figureFileName;
 	QStringList m_csvTrainIds;
-	std::function<bool(const QString&, const char*, const std::string&)> m_provenanceWriter;
+	std::function<QString(const QString&, const char*, const std::string&)> m_provenanceWriter;
 };
 
 #endif // DIAGRAMWINDOW_H

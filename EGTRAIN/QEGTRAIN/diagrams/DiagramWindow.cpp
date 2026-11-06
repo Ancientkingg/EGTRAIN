@@ -33,7 +33,6 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMainWindow>
-#include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPushButton>
@@ -851,7 +850,7 @@ std::string DiagramWindow::csvContent() const {
 }
 
 void DiagramWindow::setProvenanceWriter(
-	std::function<bool(const QString&, const char*, const std::string&)> writer) {
+	std::function<QString(const QString&, const char*, const std::string&)> writer) {
 	m_provenanceWriter = std::move(writer);
 }
 
@@ -1438,7 +1437,7 @@ void DiagramWindow::exportPng() {
 		: m_csvSuggestedName.isEmpty()					  ? QString("diagram.png")
 														  : QFileInfo(m_csvSuggestedName).completeBaseName() + ".png";
 	const auto png = [this] { return pngBytes(exportedFigure()); };
-	saveExportInteractive(this, telemetry::ExportKind::Png, "Export Diagram", suggested, operation, png, m_provenanceWriter);
+	saveExportInteractive(this, *m_prompts, telemetry::ExportKind::Png, "Export Diagram", suggested, operation, png, m_provenanceWriter);
 }
 
 void DiagramWindow::exportCsv() {
@@ -1449,13 +1448,13 @@ void DiagramWindow::exportCsv() {
 	if (content.empty()) {
 		// The window comes back in front once the message closes.
 		const KeepInFront front(this);
-		QMessageBox::information(this, "Nothing to export",
-			"There is no data to export for the visible trains.");
+		m_prompts->showInfo(this, "Nothing to export", "There is no data to export for the visible trains.");
 		return;
 	}
 	const QString suggested = m_csvSuggestedName.isEmpty() ? QString("export.csv") : m_csvSuggestedName;
 	const auto csv = [&content]() -> const std::string& { return content; };
-	const QString path = saveExportInteractive(this, telemetry::ExportKind::Csv, "Export Data", suggested, operation, csv, m_provenanceWriter);
+	const QString path = saveExportInteractive(this, *m_prompts, telemetry::ExportKind::Csv, "Export Data", suggested, operation, csv,
+		m_provenanceWriter);
 	if (path.isEmpty())
 		return;
 	// The window has no status line of its own, so the main window names the saved file.

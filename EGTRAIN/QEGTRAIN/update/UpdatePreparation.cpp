@@ -26,7 +26,24 @@ constexpr int kDetachAttempts = 4;
 // Expand-Archive unpacks a package of tens of megabytes. An emulated or heavily loaded machine
 // needs well over a minute for it.
 constexpr int kUnpackTimeoutMs = 10 * 60 * 1000;
+// The most lines and characters of the standard error of a tool that an error message quotes.
+constexpr int kErrorTailLines = 5;
+constexpr int kErrorTailCharacters = 500;
 
+// The last lines that are not blank of what the process wrote to its standard error, trimmed, and at most
+// kErrorTailCharacters of their end. Empty when it wrote nothing.
+QString standardErrorTail(QProcess& process) {
+	const QStringList all = QString::fromLocal8Bit(process.readAllStandardError()).split(QLatin1Char('\n'));
+	QStringList lines;
+	for (auto line = all.crbegin(); line != all.crend() && lines.size() < kErrorTailLines; ++line) {
+		if (const QString trimmed = line->trimmed(); !trimmed.isEmpty())
+			lines.prepend(trimmed);
+	}
+	return lines.join(QLatin1Char('\n')).right(kErrorTailCharacters);
+}
+
+// Runs the program and waits for it. A program that fails sets the error to a message with the end of its standard
+// error on the line below.
 bool runProcess(const QString& program, const QStringList& arguments, int timeoutMs,
 	QString* error = nullptr, const QProcessEnvironment* environment = nullptr) {
 	QProcess process;
@@ -46,11 +63,23 @@ bool runProcess(const QString& program, const QStringList& arguments, int timeou
 		return false;
 	}
 	if (process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0) {
-		if (error)
+		if (error) {
 			*error = QStringLiteral("%1 could not prepare the update package.").arg(program);
+			if (const QString detail = standardErrorTail(process); !detail.isEmpty())
+				*error += QLatin1Char('\n') + detail;
+		}
 		return false;
 	}
 	return true;
+}
+
+// Makes the folder and its parents. The error names the folder that could not be made.
+bool makeFolder(const QString& path, QString* error) {
+	if (QDir().mkpath(path))
+		return true;
+	if (error)
+		*error = QStringLiteral("Could not create the folder %1.").arg(QDir::toNativeSeparators(path));
+	return false;
 }
 
 // The newest modification time of the entries in a directory and below it, or of the directory
@@ -153,7 +182,7 @@ bool copyMacApp(const QString& source, const QString& stagedPath, QString* error
 
 bool copyMacAppFromZip(const UpdatePreparationInput& input, const QString& stagedPath, QString* error) {
 	const QString extract = QDir(input.stagingRoot).filePath(QStringLiteral("extract"));
-	if (!QDir().mkpath(extract))
+	if (!makeFolder(extract, error))
 		return false;
 	if (!runProcess(QStringLiteral("/usr/bin/ditto"),
 			{QStringLiteral("-x"), QStringLiteral("-k"), input.packagePath, extract}, 60000, error))
@@ -165,7 +194,7 @@ bool copyMacAppFromZip(const UpdatePreparationInput& input, const QString& stage
 bool copyMacAppFromDiskImage(const UpdatePreparationInput& input, const QString& stagedPath, QString* error) {
 	const QString mountPoint = QDir(input.stagingRoot).filePath(QStringLiteral("mnt"));
 	bool copied = false;
-	if (QDir().mkpath(mountPoint) && attachDiskImage(input.packagePath, mountPoint, error))
+	if (makeFolder(mountPoint, error) && attachDiskImage(input.packagePath, mountPoint, error))
 		copied = copyMacApp(QDir(mountPoint).filePath(QStringLiteral("QEGTRAIN.app")), stagedPath, error);
 	detachDiskImage(mountPoint);
 	return copied;
@@ -194,7 +223,7 @@ bool copyMacAppFromDiskImage(const UpdatePreparationInput& input, const QString&
 [[maybe_unused]] QString stageWindowsPackage(const UpdatePreparationInput& input, QString* error) {
 	const QString root = input.stagingRoot;
 	const QString extract = QDir(root).filePath(QStringLiteral("extract"));
-	if (!QDir().mkpath(extract))
+	if (!makeFolder(extract, error))
 		return {};
 	QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
 	environment.insert(QStringLiteral("EGTRAIN_UPDATE_ZIP"), input.packagePath);

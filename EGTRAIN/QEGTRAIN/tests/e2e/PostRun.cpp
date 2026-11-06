@@ -40,6 +40,7 @@
 #include "widgets/ElidedLabel.h"
 #include "widgets/InfoDockWidget.h"
 #include "widgets/NetworkLegendWidget.h"
+#include "tests/support/StderrCapture.h"
 #include <QAction>
 #include <QApplication>
 #include <QCheckBox>
@@ -49,6 +50,8 @@
 #include <QDockWidget>
 #include <QEvent>
 #include <QFile>
+#include <QFileDialog>
+#include <QFileInfo>
 #include <QGraphicsItem>
 #include <QHash>
 #include <QHeaderView>
@@ -56,6 +59,7 @@
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineF>
+#include <QLineEdit>
 #include <QList>
 #include <QMenu>
 #include <QMessageBox>
@@ -81,6 +85,7 @@
 #include <QStringList>
 #include <QTabBar>
 #include <QTableWidget>
+#include <QTemporaryDir>
 #include <QTextEdit>
 #include <QTimer>
 #include <QVariant>
@@ -326,6 +331,69 @@ bool exportWindow(DiagramWindow* window, const QString& dir, const QString& name
 	if (!ids.isEmpty())
 		list->setTrainVisible(ids.first(), false);
 	ok &= dump(name + "_window_none.csv", window->csvContent());
+	return ok;
+}
+
+// Exports the picture of a result window that the main window opened to `path`, in a folder that does not exist. The
+// window has the prompts of the main window, which a scripted run suppresses: the failure is written to stderr as
+// QEGTRAIN_DIALOG_SUPPRESSED: and no message box opens. A box that opens is closed and fails the check. Windows has no
+// capture of stderr, so there only the box is checked.
+bool exportFailureSuppressed(DiagramWindow* window, const QString& path) {
+	QPushButton* png = nullptr;
+	for (QPushButton* button : window ? window->findChildren<QPushButton*>() : QList<QPushButton*>())
+		if (button->text() == QLatin1String("PNG..."))
+			png = button;
+	if (!png) {
+		std::fprintf(stderr, "E2E_SUPPRESSED_EXPORT_FAIL: the window has no PNG... button\n");
+		return false;
+	}
+	QStringList boxes;
+	bool answered = false;
+	QTimer timer;
+	QObject::connect(&timer, &QTimer::timeout, [&boxes, &answered, &path] {
+		if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+			boxes << box->text();
+			box->accept();
+			return;
+		}
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* dialog = qobject_cast<QFileDialog*>(widget); dialog && dialog->isVisible()) {
+				auto* name = dialog->findChild<QLineEdit*>(QStringLiteral("fileNameEdit"));
+				if (answered || !name) {
+					dialog->reject();
+					continue;
+				}
+				answered = true;
+				// The whole path in the name field, which also takes a folder that does not exist.
+				name->setText(path);
+				// Through QDialog, as QFileDialog::accept is protected.
+				static_cast<QDialog*>(dialog)->accept();
+			}
+	});
+	// The file dialog of Qt on every platform, so that the timer can answer it.
+	const bool nativeDialogsOff = QCoreApplication::testAttribute(Qt::AA_DontUseNativeDialogs);
+	QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
+	const QTemporaryDir folder;
+	QString written;
+	{
+		StderrCapture capture(folder.filePath(QStringLiteral("stderr.txt")));
+		timer.start(0);
+		png->click();
+		timer.stop();
+		written = capture.text();
+	}
+	QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs, nativeDialogsOff);
+	// What went to stderr meanwhile stays in the log of the run.
+	std::fputs(written.toLocal8Bit().constData(), stderr);
+	bool ok = answered && boxes.isEmpty() && !QFileInfo::exists(path);
+#if !defined(_WIN32)
+	ok = ok && written.contains(QStringLiteral("QEGTRAIN_DIALOG_SUPPRESSED: Export failed: Could not save the image to:\n"));
+#endif
+	if (ok)
+		std::fprintf(stdout, "E2E_SUPPRESSED_EXPORT_OK\n");
+	else
+		std::fprintf(stderr, "E2E_SUPPRESSED_EXPORT_FAIL: answered %d, boxes [%s]\n", answered ? 1 : 0,
+			qPrintable(boxes.join(QStringLiteral(" | "))));
 	return ok;
 }
 
@@ -589,7 +657,8 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			if (content.empty())
 				return true;
 			const QString path = dir + "/" + file;
-			if (writeRunArtifactWithProvenance(path.toStdString(), "csv", content, w.m_runController->m_completedRun->provenance))
+			if (writeRunArtifactWithProvenance(path.toStdString(), "csv", content, w.m_runController->m_completedRun->provenance)
+					.empty())
 				return true;
 			std::fprintf(stderr, "E2E_PROVENANCE_EXPORT_WARNING: %s\n", path.toStdString().c_str());
 			return false;
@@ -648,6 +717,8 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			w.showDelayDiagram();
 			DiagramWindow* delay = newestWindow(w);
 			ok &= trainServicesShown(delay, services);
+			// An export of a result window that fails does not stop the run with a message box.
+			ok &= exportFailureSuppressed(delay, dir + "/missing/delay_diagram.png");
 			ok &= exportWindow(delay, dir, "delay_diagram", dump);
 			if (delay)
 				delay->close();

@@ -8,6 +8,7 @@
 #include <QHash>
 #include <QImage>
 #include "telemetry/TelemetryOperation.h"
+#include "widgets/UserPrompts.h"
 #include <QPointer>
 #include <QStringList>
 
@@ -44,6 +45,9 @@ public:
 public:
 	/// Sets the function that gives the telemetry observation of an export; empty for none.
 	void setTelemetryCapture(telemetry::CaptureOperation capture) { m_telemetryCapture = std::move(capture); }
+	/// Sets the prompts of the exports, which ask whether to replace a file and show what went wrong. Null restores the
+	/// prompts of the window, which show every message.
+	void setPrompts(UserPrompts* prompts) { m_prompts = prompts ? prompts : &m_ownPrompts; }
 
 private slots:
 	void applyTrainVisibility();
@@ -52,6 +56,8 @@ private slots:
 
 private:
 	telemetry::CaptureOperation m_telemetryCapture;
+	UserPrompts m_ownPrompts;
+	UserPrompts* m_prompts = &m_ownPrompts;
 	void fillTable();
 	void fillTrainFilter();
 

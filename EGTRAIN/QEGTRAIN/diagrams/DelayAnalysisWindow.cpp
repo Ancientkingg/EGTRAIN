@@ -911,21 +911,23 @@ QString DelayAnalysisWindow::suggestedFileName() const {
 }
 
 bool DelayAnalysisWindow::exportCsvTo(const QString& path) const {
-	return writeCsv(path, currentCsv());
+	return writeCsv(path, currentCsv()).isEmpty();
 }
 
-// The Against baseline tab writes the provenance of both runs, the other tabs that of the run.
-bool DelayAnalysisWindow::writeCsv(const QString& path, const std::string& content) const {
+// The Against baseline tab writes the provenance of both runs, the other tabs that of the run. Returns why nothing was
+// written, or an empty string.
+QString DelayAnalysisWindow::writeCsv(const QString& path, const std::string& content) const {
 	if (content.empty())
-		return false;
+		return QStringLiteral("There is no data to export.");
 	if (m_tabs->currentIndex() == kBaselineTab && m_baseline)
-		return writeDelayArtifactWithProvenance(path.toStdString(), "csv", content, m_baseline->provenance, m_scenario.provenance);
-	return writeRunArtifactWithProvenance(path.toStdString(), "csv", content, m_scenario.provenance);
+		return QString::fromStdString(
+			writeDelayArtifactWithProvenance(path.toStdString(), "csv", content, m_baseline->provenance, m_scenario.provenance));
+	return QString::fromStdString(writeRunArtifactWithProvenance(path.toStdString(), "csv", content, m_scenario.provenance));
 }
 
 void DelayAnalysisWindow::exportCsv() {
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	const auto csv = [this] { return currentCsv(); };
 	const auto write = [this](const QString& path, const char*, const std::string& content) { return writeCsv(path, content); };
-	saveExportInteractive(this, telemetry::ExportKind::Csv, "Export Data", suggestedFileName(), operation, csv, write);
+	saveExportInteractive(this, *m_prompts, telemetry::ExportKind::Csv, "Export Data", suggestedFileName(), operation, csv, write);
 }

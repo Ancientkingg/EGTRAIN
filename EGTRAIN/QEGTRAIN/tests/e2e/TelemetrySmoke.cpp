@@ -39,7 +39,7 @@ std::shared_ptr<telemetry_smoke::State> smoke;
 void attachRunProvenance(DiagramWindow* window, RunProvenance provenance) {
 	window->setProvenanceWriter([provenance = std::move(provenance)](
 									const QString& path, const char* kind, const std::string& bytes) {
-		return writeRunArtifactWithProvenance(path.toStdString(), kind, bytes, provenance);
+		return QString::fromStdString(writeRunArtifactWithProvenance(path.toStdString(), kind, bytes, provenance));
 	});
 }
 

@@ -16,6 +16,7 @@
 #include <QTimer>
 
 #include <chrono>
+#include <filesystem>
 #include <functional>
 
 static bool writeFile(const QString& path, const QByteArray& contents) {
@@ -164,6 +165,8 @@ private slots:
 	void probesWritableFolder();
 	void stagesInstallerAsIs();
 	void stagesMacDiskImage();
+	void quotesToolError();
+	void namesFolderThatCannotBeMade();
 
 private:
 	UpdatePreparationInput baseInput(const QString& sha256) const;
@@ -482,6 +485,56 @@ void TestUpdatePreparation::stagesMacDiskImage() {
 	QVERIFY(legacy.error.isEmpty());
 #else
 	QSKIP("A disk image is staged on macOS only.");
+#endif
+}
+
+// A tool that fails gives the end of its standard error on the line below the message.
+void TestUpdatePreparation::quotesToolError() {
+#if defined(Q_OS_MACOS)
+	const QString folder = QDir(m_temp.path()).filePath("tool-error");
+	const QString package = folder + "/not-a-zip.zip";
+	QVERIFY(QDir().mkpath(folder));
+	QVERIFY(writeFile(package, "not a zip package"));
+	UpdatePreparationInput input;
+	input.packagePath = package;
+	input.stagingRoot = folder + "/staging";
+	QString error;
+	QVERIFY(stageUpdatePackage(input, &error).isEmpty());
+	// The text that ditto writes to its standard error for this package.
+	QProcess ditto;
+	ditto.start("/usr/bin/ditto", {"-x", "-k", package, input.stagingRoot + "/extract"});
+	QVERIFY(ditto.waitForFinished(60000));
+	const QString toolError = QString::fromLocal8Bit(ditto.readAllStandardError()).trimmed();
+	QVERIFY2(!toolError.isEmpty(), "ditto explains why it cannot unpack the file");
+	const QString message = "/usr/bin/ditto could not prepare the update package.\n";
+	// the message is followed by what the tool wrote
+	QVERIFY2(error.startsWith(message), qPrintable(error));
+	const QString quoted = error.mid(message.size());
+	QVERIFY2(!quoted.isEmpty() && toolError.endsWith(quoted.split('\n').last()), qPrintable(error + " | " + toolError));
+	QVERIFY(quoted.size() <= 500);
+#else
+	QSKIP("The tools of the update are run on macOS in this test.");
+#endif
+}
+
+// A folder of the staging that cannot be made is named in the error.
+void TestUpdatePreparation::namesFolderThatCannotBeMade() {
+#if defined(Q_OS_MACOS) || defined(Q_OS_WIN)
+	const QString blocker = QDir(m_temp.path()).filePath("blocker");
+	QVERIFY2(writeFile(blocker, "a file where the staging folder should be"), "the blocking file is writable");
+	UpdatePreparationInput input;
+	input.packagePath = m_packagePath;
+	input.stagingRoot = blocker + "/staging";
+	QString error;
+	QVERIFY(stageUpdatePackage(input, &error).isEmpty());
+	const QString start = "Could not create the folder ";
+	// the error names the extract folder
+	QVERIFY2(error.startsWith(start) && error.endsWith('.'), qPrintable(error));
+	const QString named = error.mid(start.size(), error.size() - start.size() - 1);
+	QCOMPARE(std::filesystem::path(named.toStdWString()),
+		std::filesystem::path(QDir::toNativeSeparators(input.stagingRoot + "/extract").toStdWString()));
+#else
+	QSKIP("An AppImage is staged without a folder.");
 #endif
 }
 
