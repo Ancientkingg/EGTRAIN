@@ -1,5 +1,6 @@
 var NAVTREEINDEX7 =
 {
+"_station_overlay_item_8cpp.html":[3,0,4,0,18],
 "_station_overlay_item_8h.html":[3,0,4,0,19],
 "_station_overlay_item_8h_source.html":[3,0,4,0,19],
 "_stop_editor_dialog_8cpp.html":[3,0,3,26],
@@ -248,6 +249,5 @@ var NAVTREEINDEX7 =
 "_validation_panel_8h_source.html":[3,0,3,35],
 "_version_8cpp.html":[3,0,11,14],
 "_version_8cpp.html#a137f71e5b980c1049d67bc615992834b":[3,0,11,14,0],
-"_version_8cpp.html#aa20cfcba4dcc840dfe167778f8ced44f":[3,0,11,14,1],
-"_version_8h.html":[3,0,11,15]
+"_version_8cpp.html#aa20cfcba4dcc840dfe167778f8ced44f":[3,0,11,14,1]
 };

@@ -1,5 +1,6 @@
 var NAVTREEINDEX25 =
 {
+"struct_scene_loaded_data.html#a4476e42c735cbf121120809a7b272fcd":[2,0,238,2],
 "struct_scene_loaded_data.html#a715d451ae256bba8f66805077fd56a11":[2,0,238,0],
 "struct_scene_loaded_data.html#abcd971fabb3e25dfb1fada7424944deb":[2,0,238,4],
 "struct_scene_loaded_data.html#ae2edb7c2c8e77d001a20738bf4663433":[2,0,238,5],
@@ -248,6 +249,5 @@ var NAVTREEINDEX25 =
 "struct_scene_station_view.html#a9219809ae7bcf97046ff9befde1b1f42":[2,0,277,1],
 "struct_scene_station_view.html#ad5bba694a1658294f997bc5593cc6fa6":[2,0,277,3],
 "struct_scene_station_view.html#ade6032ca8cf9ebe1214f3e696fd55241":[2,0,277,2],
-"struct_scene_stop.html":[2,0,278],
-"struct_scene_stop.html#a1fdf30314b16b8de69b8db9db608fc76":[2,0,278,3]
+"struct_scene_stop.html":[2,0,278]
 };

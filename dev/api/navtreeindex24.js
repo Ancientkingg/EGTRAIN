@@ -1,5 +1,6 @@
 var NAVTREEINDEX24 =
 {
+"struct_route_diagram_projection.html":[2,0,189],
 "struct_route_diagram_projection.html#a2a0434a7373850572207aa97e99911bf":[2,0,189,0],
 "struct_route_diagram_projection.html#ac871fbe6d49241c474bc45cd1a25189f":[2,0,189,2],
 "struct_route_diagram_projection.html#ad0d33e9a1a9d898d65f6c1a2ae4d0f33":[2,0,189,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX24 =
 "struct_scene_load_result.html#aecc357b7f51f5a0ef97afb70acda69b3":[2,0,239,1],
 "struct_scene_loaded_data.html":[2,0,238],
 "struct_scene_loaded_data.html#a1d652719c83ff5d3a67b5318e1e1be80":[2,0,238,1],
-"struct_scene_loaded_data.html#a36deb9fd0a1ff950cf7cd57957a6b8b0":[2,0,238,3],
-"struct_scene_loaded_data.html#a4476e42c735cbf121120809a7b272fcd":[2,0,238,2]
+"struct_scene_loaded_data.html#a36deb9fd0a1ff950cf7cd57957a6b8b0":[2,0,238,3]
 };

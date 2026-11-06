@@ -1,5 +1,6 @@
 var NAVTREEINDEX22 =
 {
+"struct_completed_trajectory.html#a3e58f0c4baaaf37ad6dcea1a1a642e72":[2,0,55,0],
 "struct_completed_trajectory.html#a5997274fdf6008323774706b597b9382":[2,0,55,6],
 "struct_completed_trajectory.html#a9bb023bc844c92e2c7449e037b717f30":[2,0,55,1],
 "struct_completed_trajectory.html#aa8dadd4141e09f55a3d40b0780c6e9bd":[2,0,55,3],
@@ -248,6 +249,5 @@ var NAVTREEINDEX22 =
 "struct_incident_target_choices.html":[2,0,113],
 "struct_incident_target_choices.html#a19bbb39a3d7711bb4494f944a932f720":[2,0,113,1],
 "struct_incident_target_choices.html#a20c4d39d829af64bb43c1f6406aa935b":[2,0,113,0],
-"struct_infrastructure_guidance_state.html":[2,0,118],
-"struct_infrastructure_guidance_state.html#a141149e014fae8ab95f2288306798350":[2,0,118,3]
+"struct_infrastructure_guidance_state.html":[2,0,118]
 };

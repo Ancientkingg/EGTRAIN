@@ -1,5 +1,6 @@
 var NAVTREEINDEX28 =
 {
+"structtelemetry_1_1_telemetry_event_input.html#aa60a217f0555550efdc0f2e2fb8ce212":[1,0,14,9,1],
 "structtelemetry_1_1_telemetry_event_input.html#aa60a217f0555550efdc0f2e2fb8ce212":[2,0,3,9,1],
 "structtelemetry_1_1_telemetry_event_input.html#af80c2ed06d6da2197866bf9014318196":[1,0,14,9,3],
 "structtelemetry_1_1_telemetry_event_input.html#af80c2ed06d6da2197866bf9014318196":[2,0,3,9,3],

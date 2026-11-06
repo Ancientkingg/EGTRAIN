@@ -1,5 +1,6 @@
 var NAVTREEINDEX6 =
 {
+"_series_meta_8h_source.html":[3,0,1,47],
 "_service_panel_8cpp.html":[3,0,3,24],
 "_service_panel_8h.html":[3,0,3,25],
 "_service_panel_8h_source.html":[3,0,3,25],
@@ -248,6 +249,5 @@ var NAVTREEINDEX6 =
 "_station_facets_8h_source.html":[3,0,3,0,10],
 "_station_node_item_8cpp.html":[3,0,4,0,16],
 "_station_node_item_8h.html":[3,0,4,0,17],
-"_station_node_item_8h_source.html":[3,0,4,0,17],
-"_station_overlay_item_8cpp.html":[3,0,4,0,18]
+"_station_node_item_8h_source.html":[3,0,4,0,17]
 };

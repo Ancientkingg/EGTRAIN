@@ -1,5 +1,6 @@
 var NAVTREEINDEX21 =
 {
+"struct_baseline_occurrence.html#a61107daf18f04a794bed070471e203fc":[2,0,17,1],
 "struct_baseline_occurrence.html#a7c9bc6de04c8c62115de9b1aa9fd0b5f":[2,0,17,10],
 "struct_baseline_occurrence.html#a9cb2ac500251ce744f48bcbcf2436cc0":[2,0,17,3],
 "struct_baseline_occurrence.html#a9f815644e205e334b1e19a080d8ec037":[2,0,17,12],
@@ -248,6 +249,5 @@ var NAVTREEINDEX21 =
 "struct_completed_trajectory.html#a0ea59247c03b5d92a0999be2b58f8aea":[2,0,55,7],
 "struct_completed_trajectory.html#a18c1f905983652fe0b58f235bebff17e":[2,0,55,4],
 "struct_completed_trajectory.html#a226e6bfe52d5462831eb28f6c2b3c509":[2,0,55,2],
-"struct_completed_trajectory.html#a2cc8b15107aa83d7457f5006a56babea":[2,0,55,10],
-"struct_completed_trajectory.html#a3e58f0c4baaaf37ad6dcea1a1a642e72":[2,0,55,0]
+"struct_completed_trajectory.html#a2cc8b15107aa83d7457f5006a56babea":[2,0,55,10]
 };

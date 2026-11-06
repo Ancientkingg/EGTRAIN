@@ -483,8 +483,8 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">std::abort()</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">BlockingTimeList::checkIndex</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h</span></code>) on a negative index</p></td>
-<td><p>The only deliberate abort. It logs and flushes first.</p></td>
+<td><p>the terminate handler of the window build (<code class="docutils literal notranslate"><span class="pre">app/CrashNote.cpp</span></code>)</p></td>
+<td><p>See <a class="reference internal" href="#crash-notes">Crash notes</a>. <code class="docutils literal notranslate"><span class="pre">BlockingTimeList::checkIndex</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h</span></code>) throws <code class="docutils literal notranslate"><span class="pre">std::out_of_range</span></code> with the index and the size of the list on a negative index, and the run fails with that message (<a class="reference internal" href="#what-happens-when-one-is-caught">What happens when one is caught</a>).</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">_exit(127)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">update/UpdateHelper.cpp</span></code>, in a forked child after <code class="docutils literal notranslate"><span class="pre">exec</span></code> fails</p></td>
@@ -492,7 +492,7 @@
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">assert</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">io/third_party/pugixml.cpp</span></code></p></td>
-<td><p>Compiled out in release builds.</p></td>
+<td><p>Compiled out in release builds. The simulation checks its own preconditions with exceptions: a route whose section numbers do not match its sections (<code class="docutils literal notranslate"><span class="pre">setRouteFlags</span></code>) and a route of more than 600 sections (<code class="docutils literal notranslate"><span class="pre">Route::createRouteFromBlockIds</span></code>, both in <code class="docutils literal notranslate"><span class="pre">simulation/Signalling.cpp</span></code>) throw <code class="docutils literal notranslate"><span class="pre">std::logic_error</span></code>, which fails the run or its preparation.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Q_ASSERT</span></code>, <code class="docutils literal notranslate"><span class="pre">qFatal</span></code>, <code class="docutils literal notranslate"><span class="pre">Q_UNREACHABLE</span></code>, <code class="docutils literal notranslate"><span class="pre">std::terminate</span></code></p></td>
 <td><p>none in the application code</p></td>
@@ -507,8 +507,8 @@
 <td><p>See below.</p></td>
 </tr>
 <tr class="row-even"><td><p>Fixed simulation arrays</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">arcs_in_signalling_block_section[20]</span></code> is written without a bound check (<code class="docutils literal notranslate"><span class="pre">simulation/builders/InfrastructureBuilder.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/Signalling.cpp</span></code>)</p></td>
-<td><p>Relies on the validator rejecting sections with more than 20 arcs. <code class="docutils literal notranslate"><span class="pre">IDConnectedBS</span></code> is checked, and delayed indexes are checked in <code class="docutils literal notranslate"><span class="pre">RollingStockOccupation.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">RollingStock.cpp</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">arcs_in_signalling_block_section[20]</span></code> of the switch sections that <code class="docutils literal notranslate"><span class="pre">generateConnectBlock</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/Signalling.cpp</span></code>) derives is written without a bound check; cut and reversed copies of a section take no more arcs than it has</p></td>
+<td><p>Relies on the builder and the validator rejecting sections with more than 20 arcs. The builder also checks the arc count of each block section where it writes the arcs (<code class="docutils literal notranslate"><span class="pre">storeNativeSectionArcs</span></code> in <code class="docutils literal notranslate"><span class="pre">simulation/builders/InfrastructureBuilder.cpp</span></code>), with the preparation error <code class="docutils literal notranslate"><span class="pre">scene.native.capacity</span></code> “Block section <id> has <count> arcs, more than the 20 a section holds”. <code class="docutils literal notranslate"><span class="pre">IDConnectedBS</span></code> is checked, and delayed indexes are checked in <code class="docutils literal notranslate"><span class="pre">RollingStockOccupation.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">RollingStock.cpp</span></code>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -523,7 +523,6 @@
 <section id="other-hazards">
 <h3>Other hazards<a class="headerlink" href="#other-hazards" title="Link to this heading">¶</a></h3>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">Train::BrakingDistanceFastComputation</span></code> and <code class="docutils literal notranslate"><span class="pre">AccelerationTimeFollowingMode</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockBraking.cpp</span></code>) divide by an arc count that is 0 when no arc ends between the two positions. The result is NaN, the comparisons that use it are false, and an approach time is silently not found. No crash and no log.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">RunController::clearSimulationWorker</span></code> (<code class="docutils literal notranslate"><span class="pre">app/RunController.cpp</span></code>) waits for the worker thread without a timeout. A step that never checks the stop flag freezes the window when the run is stopped or the window closes.</p></li>
 </ul>
 </section>

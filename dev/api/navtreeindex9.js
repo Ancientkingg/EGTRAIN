@@ -1,5 +1,6 @@
 var NAVTREEINDEX9 =
 {
+"class_compact_double_spin_box.html#ad5aa1a83412eea311a0fb1f4d4cfbe08":[2,0,49,6],
 "class_composition_panel.html":[2,0,56],
 "class_composition_panel.html#a0a2d370af22e57b570404dc498287e34":[2,0,56,29],
 "class_composition_panel.html#a1b479f3821fea6491c372ef700491e09":[2,0,56,3],
@@ -248,6 +249,5 @@ var NAVTREEINDEX9 =
 "class_guarded_application.html#a95bf425fae6586fd9bab28090408c6cd":[2,0,93,3],
 "class_guarded_application.html#ab74b1405a479cb372356cb54e70fd79d":[2,0,93,2],
 "class_guarded_application.html#ae3b7f27811775d0b9cfff3f0093a84e0":[2,0,93,1],
-"class_gui_replay_history.html":[2,0,97],
-"class_gui_replay_history.html#a1ef3c453582eba9742c21275d180ac38":[2,0,97,10]
+"class_gui_replay_history.html":[2,0,97]
 };

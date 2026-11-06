@@ -1,5 +1,6 @@
 var NAVTREEINDEX18 =
 {
+"class_update_preparation_worker.html":[2,0,370],
 "class_update_preparation_worker.html#a287e87ded84dd73ca146c22c1f80bc45":[2,0,370,1],
 "class_update_preparation_worker.html#a28e7e224ea595bff936cd21f9c8a9f38":[2,0,370,0],
 "class_update_preparation_worker.html#a52891470dcf429d829e386b2b5f1859e":[2,0,370,3],
@@ -248,6 +249,5 @@ var NAVTREEINDEX18 =
 "classtelemetry_1_1_worker.html#a81aed8eda2509c0b593919526065a182":[2,0,3,13,24],
 "classtelemetry_1_1_worker.html#a847658ae62e37407e7b08ea2d77354cd":[1,0,14,13,27],
 "classtelemetry_1_1_worker.html#a847658ae62e37407e7b08ea2d77354cd":[2,0,3,13,27],
-"classtelemetry_1_1_worker.html#a86c29556fadd99b6e9a13807416c3518":[1,0,14,13,35],
-"classtelemetry_1_1_worker.html#a86c29556fadd99b6e9a13807416c3518":[2,0,3,13,35]
+"classtelemetry_1_1_worker.html#a86c29556fadd99b6e9a13807416c3518":[1,0,14,13,35]
 };

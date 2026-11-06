@@ -349,9 +349,9 @@ to the console directly.
   applies. A `qFatal()` message is never filtered. The handler writes to the console streams
   only, not to the system log.
 - `simulation/`, `io/` and `app/DispatchController.cpp` write through `EG_LOG`, except for the
-  marker line `QEGTRAIN_NATIVE_DETAIL`. `BlockingTimeList::checkIndex` logs a negative index as
-  `sim.setup` at `error` and calls `eglog::flush()`, which flushes `std::cout` and `std::cerr`,
-  before `std::abort()`: the sinks write `std::cout` without a flush. The command-line entry
+  marker line `QEGTRAIN_NATIVE_DETAIL`. The sinks write `std::cout` without a flush;
+  `eglog::flush()` flushes `std::cout` and `std::cerr` for a caller that ends the process
+  without leaving `main()`. The command-line entry
   points (`app/main.cpp`, `scene/SceneTool.cpp`) write to `std::cerr`. `app/main.cpp` also
   writes the line `End of Simulation` of a run without a window to `std::cout` itself: scripts
   read it, so no logging rule may hide it. A run in the window logs the same line as `app.run`.

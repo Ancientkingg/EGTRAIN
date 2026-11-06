@@ -1,5 +1,6 @@
 var NAVTREEINDEX23 =
 {
+"struct_infrastructure_guidance_state.html#a141149e014fae8ab95f2288306798350":[2,0,118,3],
 "struct_infrastructure_guidance_state.html#a355d353d7e6c330042c893bb52524247":[2,0,118,0],
 "struct_infrastructure_guidance_state.html#a8b2b927ecbb38e41040b7a24c9b9c0e9":[2,0,118,1],
 "struct_infrastructure_guidance_state.html#aa25b8f96a966c886ec16c63432be9ba3":[2,0,118,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX23 =
 "struct_route_diagram_point.html#a37a5bed3ff9dffe63f9343314c958be2":[2,0,188,4],
 "struct_route_diagram_point.html#a428f25295ede6f4130b33ac877202ff8":[2,0,188,0],
 "struct_route_diagram_point.html#a98cf6167453d2a9bf99b8f371701acf2":[2,0,188,2],
-"struct_route_diagram_point.html#aa83a0f9a6cf7aa9db6127c38f6935d95":[2,0,188,1],
-"struct_route_diagram_projection.html":[2,0,189]
+"struct_route_diagram_point.html#aa83a0f9a6cf7aa9db6127c38f6935d95":[2,0,188,1]
 };

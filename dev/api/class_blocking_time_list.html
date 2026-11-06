@@ -118,9 +118,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_blocking
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a69f82153e3bf45b5f6756daafd944766" id="r_a69f82153e3bf45b5f6756daafd944766"><td class="memItemLeft"><a class="el" href="class_blocking_times.html">BlockingTimes</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a69f82153e3bf45b5f6756daafd944766">operator[]</a> (int index)</td></tr>
-<tr class="memdesc:a69f82153e3bf45b5f6756daafd944766"><td class="mdescLeft">&#160;</td><td class="mdescRight">The entry at index, which is added when the list is shorter. A negative index aborts the program.  <br /></td></tr>
+<tr class="memdesc:a69f82153e3bf45b5f6756daafd944766"><td class="mdescLeft">&#160;</td><td class="mdescRight">The entry at index, which is added when the list is shorter. A negative index throws std::out_of_range.  <br /></td></tr>
 <tr class="memitem:a94e3494688b93a8f56a42bb079e64548" id="r_a94e3494688b93a8f56a42bb079e64548"><td class="memItemLeft">const <a class="el" href="class_blocking_times.html">BlockingTimes</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a94e3494688b93a8f56a42bb079e64548">operator[]</a> (int index) const</td></tr>
-<tr class="memdesc:a94e3494688b93a8f56a42bb079e64548"><td class="mdescLeft">&#160;</td><td class="mdescRight">The entry at index, or a default entry when the list is shorter. A negative index aborts the program.  <br /></td></tr>
+<tr class="memdesc:a94e3494688b93a8f56a42bb079e64548"><td class="mdescLeft">&#160;</td><td class="mdescRight">The entry at index, or a default entry when the list is shorter. A negative index throws std::out_of_range.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Blocking times of one train, indexed like an array. Indexing a non-const list past the end grows it with default-constructed entries; growing never moves existing entries. Indexing a const list never grows it. </p>
@@ -148,7 +148,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>The entry at index, which is added when the list is shorter. A negative index aborts the program. </p>
+<p>The entry at index, which is added when the list is shorter. A negative index throws std::out_of_range. </p>
 
 </div>
 </div>
@@ -175,7 +175,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>The entry at index, or a default entry when the list is shorter. A negative index aborts the program. </p>
+<p>The entry at index, or a default entry when the list is shorter. A negative index throws std::out_of_range. </p>
 
 </div>
 </div>
