@@ -123,6 +123,12 @@ static QJsonArray readDurableEvents(const QString& path) {
 	return QFile::exists(path) ? readObject(path).value(QStringLiteral("events")).toArray() : QJsonArray();
 }
 
+// The bytes of the file at path; empty when it cannot be read.
+static QByteArray fileBytes(const QString& path) {
+	QFile file(path);
+	return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray();
+}
+
 // The time in milliseconds that a test waits for the sender thread without a semaphore. A busy machine that runs other
 // tests at the same time can take seconds to schedule that thread, so the limit is the 3 s of the semaphore waits below.
 constexpr int kWaitMs = 3000;
@@ -256,6 +262,7 @@ private slots:
 	void sessionAttemptLoss();
 	void disabledWorkerExits_data();
 	void disabledWorkerExits();
+	void storageFailureWaitsForConsentChange();
 	void pathIsolation_data();
 	void pathIsolation();
 	void pathIsolationResolvesSettingsParent();
@@ -747,15 +754,20 @@ void TestTelemetrySender::sessionAttemptLoss() {
 
 void TestTelemetrySender::disabledWorkerExits_data() {
 	// A worker that can send nothing more in this run leaves its loop without a stop: when its first pump finds the
-	// queue disabled, when a pump takes a receiver change, and after a 410 response. No pump follows.
+	// queue disabled by a marker that no consent change removes, when a pump takes a receiver change, and after a 410
+	// response. No pump follows.
 	QTest::addColumn<int>("cause");
-	QTest::newRow("disabled queue") << 0;
-	QTest::newRow("receiver change") << 1;
-	QTest::newRow("410 response") << 2;
+	QTest::addColumn<QByteArray>("marker");
+	QTest::newRow("disabled queue") << 0 << QByteArray("disabled\n");
+	QTest::newRow("retirement marker") << 0 << QByteArray("disabled\nretirement\n");
+	QTest::newRow("ledger marker") << 0 << QByteArray("disabled\nledger\n");
+	QTest::newRow("receiver change") << 1 << QByteArray();
+	QTest::newRow("410 response") << 2 << QByteArray();
 }
 
 void TestTelemetrySender::disabledWorkerExits() {
 	QFETCH(int, cause);
+	QFETCH(QByteArray, marker);
 	QTemporaryDir directory;
 	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
 	const QString storage = directory.filePath(QStringLiteral("queue"));
@@ -764,9 +776,9 @@ void TestTelemetrySender::disabledWorkerExits() {
 	QVERIFY(consent.save(true, false));
 	if (cause == 0) {
 		QVERIFY(QDir().mkpath(storage));
-		QFile marker(storage + QStringLiteral("/disabled"));
-		QVERIFY(marker.open(QIODevice::WriteOnly));
-		QCOMPARE(marker.write("disabled\n"), qint64(9));
+		QFile file(storage + QStringLiteral("/disabled"));
+		QVERIFY(file.open(QIODevice::WriteOnly));
+		QCOMPARE(file.write(marker), qint64(marker.size()));
 	}
 	auto clock = std::make_shared<std::atomic<qint64>>(0);
 	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
@@ -804,7 +816,57 @@ void TestTelemetrySender::disabledWorkerExits() {
 	QVERIFY(exited.tryAcquire(1, 3000));
 	QCOMPARE(pumps.load(), lastPump.load());
 	QVERIFY(!sender.tryEnqueue({}));
+	// The worker has exited, which is what keeps the marker: no worker is left to remove it.
+	if (cause == 0) {
+		QVERIFY(consent.save(true, true));
+		sender.requestConsentRefresh();
+		QCOMPARE(fileBytes(storage + QStringLiteral("/disabled")), marker);
+	}
 	sender.stop();
+}
+
+void TestTelemetrySender::storageFailureWaitsForConsentChange() {
+	// A worker that finds the marker of a failed write keeps the queue and takes in nothing. A refresh without a consent
+	// change keeps the marker; a changed choice removes it, and the queue opens again and stores events.
+	QTemporaryDir directory;
+	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
+	const QString storage = directory.filePath(QStringLiteral("queue"));
+	const QString marker = storage + QStringLiteral("/disabled");
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, false));
+	{
+		telemetry::TelemetryQueue queue;
+		const QDateTime now = QDateTime::currentDateTimeUtc();
+		QCOMPARE(queue.open(storage, m_context.endpoint, m_context.termsVersion, now), telemetry::TelemetryQueue::OpenResult::Owner);
+		queue.failNextWritesForTesting(2);
+		QVERIFY(!queue.enqueueUsage({telemetry::createEvent({}, now), consent.usageInstallationId()}, now));
+	}
+	QVERIFY(QFile::exists(marker));
+	Semaphore exited;
+	PumpHold pump;
+	auto options = stillClockOptions(settingsFile);
+	options.beforeFlagsRead = [&] { pump.atPump(); };
+	options.onWorkerExit = [&] { exited.release(); };
+	pump.arm();
+	telemetry::TelemetrySender sender(m_context, m_metadata, storage, options);
+	QVERIFY(pump.reached());
+	QVERIFY2(pump.nextPump(), "the worker waits after its first pump found the marker of a failed write");
+	QVERIFY(!sender.tryEnqueue({}));
+	sender.requestConsentRefresh();
+	QVERIFY(pump.nextPump());
+	QVERIFY2(QFile::exists(marker), "a refresh without a consent change keeps the marker");
+	QVERIFY(!sender.tryEnqueue({}));
+	QVERIFY(consent.save(true, true));
+	sender.requestConsentRefresh();
+	QVERIFY(pump.nextPump());
+	QVERIFY2(!QFile::exists(marker), "a consent change removes the marker of a failed write");
+	QVERIFY(sender.tryEnqueue({}));
+	QVERIFY(pump.nextPump());
+	QCOMPARE(readDurableEvents(storage + QStringLiteral("/usage.json")).size(), 1);
+	sender.stop();
+	pump.release();
+	QVERIFY(exited.tryAcquire(1, 3000));
 }
 
 void TestTelemetrySender::pathIsolation_data() {

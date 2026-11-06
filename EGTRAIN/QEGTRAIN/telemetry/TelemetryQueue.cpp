@@ -22,6 +22,9 @@ constexpr qint64 kControlBytes = 64 * 1024;
 constexpr qint64 kDiskBytes = 1024 * 1024;
 constexpr qint64 kRecordBytes = 1024;
 constexpr qint64 kLifetimeMs = 7LL * 24 * 60 * 60 * 1000;
+// The disabled marker that a failed file write or space check leaves, the only one that clearStorageFailure() removes.
+constexpr char kStorageMarker[] = "disabled\nstorage\n";
+constexpr char kLedgerMarker[] = "disabled\nledger\n";
 QString filename(Category category) { return category == Category::Usage ? QStringLiteral("usage.json") : QStringLiteral("diagnostics.json"); }
 bool utc(const QDateTime& time) { return validUtc(time); }
 bool keys(const QJsonObject& obj, std::initializer_list<const char*> expected) {
@@ -62,25 +65,49 @@ bool TelemetryQueue::checkSpace(qint64 incomingBytes) const {
 	}
 	return true;
 }
-bool TelemetryQueue::fail() {
+bool TelemetryQueue::fail(Failure failure) {
+	if (!m_failed) m_failure = failure;
 	m_failed = true;
 	m_usage.clear();
 	m_diagnostics.clear();
 	// Best effort marker. A storage error must never turn into an upload attempt.
-	if (m_owner && !m_dir.isEmpty() && !QFile::exists(m_dir + QStringLiteral("/disabled")) && checkSpace(9)) {
-		QSaveFile marker(m_dir + QStringLiteral("/disabled"));
-		marker.setDirectWriteFallback(false);
-		if (marker.open(QIODevice::WriteOnly)) {
-			marker.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
-			marker.write("disabled\n");
-			marker.commit();
-		}
-	}
+	const QByteArray bytes = m_failure == Failure::Storage ? QByteArray(kStorageMarker)
+		: m_failure == Failure::Retirement				   ? QByteArrayLiteral("disabled\nretirement\n")
+		: m_failure == Failure::Ledger					   ? QByteArray(kLedgerMarker)
+														   : QByteArrayLiteral("disabled\ntime\n");
+	if (m_owner && !m_dir.isEmpty() && !QFile::exists(m_dir + QStringLiteral("/disabled"))) writeMarker(bytes);
 	return false;
 }
-bool TelemetryQueue::replace(const QString& file, const QByteArray& data, qint64 limit) {
+bool TelemetryQueue::writeMarker(const QByteArray& bytes) {
+	if (!checkSpace(bytes.size())) return false;
+	QSaveFile marker(m_dir + QStringLiteral("/disabled"));
+	marker.setDirectWriteFallback(false);
+	if (!marker.open(QIODevice::WriteOnly)) return false;
+	marker.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
+	return marker.write(bytes) == bytes.size() && marker.commit();
+}
+bool TelemetryQueue::storageMarker() const {
+	QFile marker(m_dir + QStringLiteral("/disabled"));
+	return marker.open(QIODevice::ReadOnly) && marker.read(sizeof(kStorageMarker)) == kStorageMarker;
+}
+// Never interpret deleted control state as an empty retirement ledger if category data already exists in this directory.
+bool TelemetryQueue::ledgerMissing() const {
+	return !QFile::exists(m_dir + QStringLiteral("/control.json"))
+		&& (QFile::exists(m_dir + QStringLiteral("/usage.json")) || QFile::exists(m_dir + QStringLiteral("/diagnostics.json")));
+}
+bool TelemetryQueue::storageFailed() const { return m_owner && m_failed && !ledgerMissing() && storageMarker(); }
+bool TelemetryQueue::clearStorageFailure() {
+	if (!storageFailed()) return false;
+	// The queued events go first, as open() discards them after a failure; the marker goes only after them.
+	for (Category category : {Category::Usage, Category::Diagnostics}) {
+		QFile file(m_dir + QLatin1Char('/') + filename(category));
+		if (file.exists() && !file.remove()) return false;
+	}
+	return QFile::remove(m_dir + QStringLiteral("/disabled"));
+}
+bool TelemetryQueue::replace(const QString& file, const QByteArray& data, qint64 limit, Failure failure) {
 	// QSaveFile's temporary payload coexists with the old file and any orphan leftovers.
-	if (!m_owner || m_failed || data.size() > limit || !checkSpace(data.size())) return fail();
+	if (!m_owner || m_failed || data.size() > limit || !checkSpace(data.size())) return fail(failure);
 	const auto write = [this, &file, &data]() {
 #ifdef EGTRAIN_TELEMETRY_TEST_HOOK
 		if (m_failingWrites > 0) {
@@ -97,9 +124,9 @@ bool TelemetryQueue::replace(const QString& file, const QByteArray& data, qint64
 	// tried once more before the queue fails closed. A failed QSaveFile leaves no temporary file behind.
 	if (!write()) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		if (!write()) return fail();
+		if (!write()) return fail(failure);
 	}
-	return checkSpace() || fail();
+	return checkSpace() || fail(failure);
 }
 bool TelemetryQueue::loadControl() {
 	QFile file(m_dir + QStringLiteral("/control.json"));
@@ -139,7 +166,7 @@ bool TelemetryQueue::loadControl() {
 	if (obj.value(QStringLiteral("endpoint")).toString() != m_endpoint || obj.value(QStringLiteral("terms")).toString() != m_terms) m_retry = {};
 	return true;
 }
-bool TelemetryQueue::saveControl() {
+bool TelemetryQueue::saveControl(Failure failure) {
 	QJsonArray retired;
 	for (const auto& endpoint : m_retired) retired.append(endpoint);
 	QJsonObject retry{{QStringLiteral("failures"), m_retry.failures},
@@ -148,7 +175,7 @@ bool TelemetryQueue::saveControl() {
 	QJsonObject obj{{QStringLiteral("format"), 1}, {QStringLiteral("endpoint"), m_endpoint}, {QStringLiteral("terms"), m_terms},
 		{QStringLiteral("retired"), retired}, {QStringLiteral("retry"), retry},
 		{QStringLiteral("last_seen"), m_lastSeen.isValid() ? m_lastSeen.toUTC().toString(Qt::ISODateWithMs) : QString()}};
-	if (!replace(QStringLiteral("control.json"), QJsonDocument(obj).toJson(QJsonDocument::Compact), kControlBytes)) return false;
+	if (!replace(QStringLiteral("control.json"), QJsonDocument(obj).toJson(QJsonDocument::Compact), kControlBytes, failure)) return false;
 	m_lastCheckpoint = m_lastSeen;
 	return true;
 }
@@ -221,19 +248,24 @@ TelemetryQueue::OpenResult TelemetryQueue::open(const QString& privateDirectory,
 	}
 	m_owner = true;
 	m_ownershipId = QUuid::createUuid().toString(QUuid::WithoutBraces);
-	// Never interpret deleted control state as an empty retirement ledger if
-	// category data already exists in this directory.
-	const bool missingControlWithData = !QFile::exists(m_dir + QStringLiteral("/control.json"))
-		&& (QFile::exists(m_dir + QStringLiteral("/usage.json")) || QFile::exists(m_dir + QStringLiteral("/diagnostics.json")));
+	const bool missingControlWithData = ledgerMissing();
 	if (QFile::exists(m_dir + QStringLiteral("/disabled"))) {
-		// Recovery only discards payloads. Never erase the disabled marker or retirement ledger.
-		QFile::remove(m_dir + QStringLiteral("/usage.json"));
-		QFile::remove(m_dir + QStringLiteral("/diagnostics.json"));
+		// Recovery only discards payloads. Never erase the disabled marker or retirement ledger. A storage marker
+		// next to category data without a ledger first becomes a ledger marker, which nothing removes, so that the
+		// data can go; if that write fails, the data stays and clearStorageFailure() still refuses.
+		if (!missingControlWithData || !storageMarker() || writeMarker(QByteArray(kLedgerMarker))) {
+			QFile::remove(m_dir + QStringLiteral("/usage.json"));
+			QFile::remove(m_dir + QStringLiteral("/diagnostics.json"));
+		}
 		fail();
 		return OpenResult::Disabled;
 	}
-	if (!checkSpace() || missingControlWithData || !loadControl()) {
-		fail();
+	if (missingControlWithData || !checkSpace()) {
+		fail(missingControlWithData ? Failure::Ledger : Failure::Storage);
+		return OpenResult::Disabled;
+	}
+	if (!loadControl()) {
+		fail(Failure::Ledger);
 		return OpenResult::Disabled;
 	}
 	if (isRetired(m_endpoint)) {
@@ -252,7 +284,7 @@ TelemetryQueue::OpenResult TelemetryQueue::open(const QString& privateDirectory,
 	return OpenResult::Owner;
 }
 bool TelemetryQueue::prune(const QDateTime& now) {
-	if (!healthy() || !utc(now)) return fail();
+	if (!healthy() || !utc(now)) return fail(Failure::Time);
 	const bool rollback = m_lastSeen.isValid() && now < m_lastSeen;
 	for (Category category : {Category::Usage, Category::Diagnostics}) {
 		auto& list = records(category);
@@ -379,10 +411,10 @@ bool TelemetryQueue::isRetired(const QString& endpoint) const { return m_retired
 bool TelemetryQueue::retireExactEndpoint(const QString& endpoint) {
 	if (!healthy() || endpoint != m_endpoint || endpoint.toUtf8().size() > 2048) return false;
 	if (!isRetired(endpoint)) {
-		if (m_retired.size() >= 16) return fail();
+		if (m_retired.size() >= 16) return fail(Failure::Retirement);
 		m_retired.append(endpoint);
 	}
-	if (!saveControl()) return false;
+	if (!saveControl(Failure::Retirement)) return false;
 	return purgeEndpointData();
 }
 void TelemetryQueue::close() {

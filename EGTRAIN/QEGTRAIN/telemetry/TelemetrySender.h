@@ -19,7 +19,10 @@ namespace telemetry {
 /// docs/telemetry/README.md say. Only the process that owns the queue sends; in others every event
 /// is dropped. A sender whose context is not capable, or whose construction fails, starts no thread
 /// and accepts nothing. The worker exits by itself once it can send nothing more in this run: after
-/// a receiver change, a 410 response, or a failed consent read or storage operation.
+/// a receiver change, a 410 response, or a failed consent read or storage operation. When only a file
+/// write or a space check of the queue failed (TelemetryQueue::storageFailed()), it keeps the queue
+/// open but takes in nothing, reads consent once a second and at requestConsentRefresh(), and once
+/// the consent of either category has changed, removes the disabled marker and opens the queue again.
 class TelemetrySender {
 public:
 	/// Internal ingress state retained by the worker until it exits.
