@@ -449,6 +449,7 @@ private:
 	// EditorDocks::Host: what the editor docks ask of the window. The other functions that it names are declared above and
 	// below, marked override.
 	void infrastructureSelectionChanged() override;
+	void infrastructureDockShown(bool shown) override;
 	void renameTractionDiagrams(const QString& oldId, const QString& newId) override;
 	void setStartOffset(long long seconds) override;
 

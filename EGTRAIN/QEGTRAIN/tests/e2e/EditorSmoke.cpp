@@ -47,8 +47,10 @@
 #include "simulation/SimulationWorker.h"
 #include "util/TimeFormat.h"
 #include "widgets/ColorChoiceButton.h"
+#include "widgets/ElidedLabel.h"
 #include "widgets/FocusWheel.h"
 #include "widgets/InfoDockWidget.h"
+#include "widgets/NetworkLegendWidget.h"
 #include <QAbstractButton>
 #include <QAbstractItemDelegate>
 #include <QAbstractSpinBox>
@@ -612,6 +614,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					ok = false;
 					failures << "scene: a refresh selected a row that nobody selected";
 				}
+				// The preview marks the selected track while the dock is in view.
+				const bool infrastructureShown = infrastructureDock(w)->isVisible();
+				w.revealEditorDock(infrastructureDock(w));
+				QApplication::processEvents();
 				infrastructurePanel(w)->facetCombo()->setCurrentIndex(infrastructurePanel(w)->facetCombo()->findData("tracks"));
 				infrastructurePanel(w)->table()->setCurrentCell(0, 0);
 				const QString explicitlySelectedTrack = infrastructurePanel(w)->selectionId();
@@ -630,6 +636,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					ok = false;
 					failures << "scene: explicit selection leaked into another case";
 				}
+				infrastructureDock(w)->setVisible(infrastructureShown);
 			}
 			if (QDir(w.m_session->m_sceneDir).absolutePath() != QDir(scenePath).absolutePath()) {
 				ok = false;
@@ -5974,6 +5981,60 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		undo();
 		redo();
 	}
+	// The labels of the rows of the map key that only a run has: the occupied sections and the trains.
+	const auto runKeys = [&w]() {
+		QStringList labels;
+		for (const NetworkLegendEntry& entry : w.m_networkLegendWidget->entries())
+			if (entry.kind == NetworkLegendEntryKind::Train || entry.label == QLatin1String("Occupied section"))
+				labels << entry.label;
+		return labels;
+	};
+	// An edit while a run goes on, or while it is paused, leaves the run on the network view, Follow and the map key as
+	// they are. The run then ends without results.
+	{
+		const auto runShown = [&](const QString& when) {
+			expect(!w.m_showingTrackPreview && w.m_followAction->isEnabled()
+					&& w.m_followTrainCombo->currentText() != QLatin1String("Run the case first")
+					&& runKeys().contains(QStringLiteral("Occupied section")),
+				when + " took the run off the network view, Follow or the map key");
+		};
+		// An edit of the case settings, which stay open during a run. Undo is off until the run ends, so the edit is kept
+		// as step() keeps one, without its checks.
+		const auto describe = [&](const char* text) {
+			caseSettingsPanel(w)->descriptionEdit()->setText(text);
+			w.commitPendingCaseSettings();
+			process();
+			if (savedState && *savedState > position)
+				savedState.reset();
+			states.resize(position + 1);
+			states.push_back(authoredSceneBytes(w.m_document->mutableModel()));
+			modifiedStates.resize(position + 1);
+			modifiedStates.push_back(w.modifiedScenarioIds());
+			++position;
+		};
+		// The slowest speed keeps the run going until it is stopped.
+		const int speed = w.m_speedSlider->value();
+		w.m_speedSlider->setValue(w.m_speedSlider->minimum());
+		simulation.setNextRunOutputFolder(QDir(outFolder).filePath("edited_run_output").toStdString());
+		w.ui->actionSimulationStart->trigger();
+		if (!expect(w.m_runController->m_worker != nullptr, "the run to edit did not start"))
+			return finish();
+		describe("edited during a run");
+		runShown("an edit during a run");
+		w.ui->actionSimulationPause->trigger();
+		describe("edited during a paused run");
+		runShown("an edit during a paused run");
+		w.ui->actionSimulationStop->trigger();
+		QElapsedTimer waited;
+		waited.start();
+		while (w.m_runController->m_worker && waited.elapsed() < 60000)
+			QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+		w.m_speedSlider->setValue(speed);
+		if (!expect(!w.m_runController->m_worker, "the edited run did not stop"))
+			return finish();
+		undo();
+		undo();
+	}
 	// Runs of 600 s, in which the first trains run, and an edit after each.
 	{
 		const QScopedValueRollback<double> horizon(initial_variables.times, 600.0);
@@ -6069,6 +6130,54 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		expect(incidentDock(w)->isVisible() && scenarioTabs && scenarioTabs->currentWidget() == incidentPanel(w)
 				&& QApplication::focusWidget() == incidentPanel(w)->startSecondsEdit(),
 			"a breakdown from the menu of a train was not shown on the Incidents tab with the focus on its start");
+		undo();
+
+		// After a run, a change that discards its results leaves the window as a case without results, whatever the change
+		// is: the network view shows the track preview instead of the last step of the run, Follow is off with "Run the case
+		// first", and the map key lists no occupied section and no train.
+		const auto withoutRun = [&](const QString& what) {
+			expect(!w.m_runController->resultsAvailable() && w.m_showingTrackPreview && w.m_presenter->previewShown(),
+				what + " after a run left the run on the network view");
+			expect(!w.m_followAction->isEnabled() && w.m_followTrainCombo->currentText() == QLatin1String("Run the case first")
+					&& w.m_followStatusLabel->text() == QLatin1String("Run the case first"),
+				what + " after a run left Follow at '" + w.m_followTrainCombo->currentText() + "' with '"
+					+ w.m_followStatusLabel->text() + "'");
+			expect(runKeys().isEmpty(), what + " after a run left the map key with " + runKeys().join(", "));
+		};
+		if (!completeRun("service_edit_run_output"))
+			return finish();
+		servicePanel(w)->listWidget()->setCurrentRow(0);
+		if (!step("a service field after a run", "Edit", [&] {
+				servicePanel(w)->operatingCodeEdit()->setText("1732");
+				servicePanel(w)->commitPendingEditors();
+			}))
+			return finish();
+		withoutRun("a service field");
+		undo();
+		if (!completeRun("add_service_run_output"))
+			return finish();
+		if (!step("a service added after a run", "Add service", [&] { servicePanel(w)->addButton()->click(); }))
+			return finish();
+		withoutRun("Add Service");
+		undo();
+		if (!expect(selectServiceWithStops(2), "no service has two stops to move after a run") || !completeRun("timetable_edit_run_output"))
+			return finish();
+		if (!step("a stop moved after a run", "Edit", [&] {
+				timetableStopsPanel(w)->table()->setCurrentCell(0, 0);
+				timetableStopsPanel(w)->moveDownButton()->click();
+			}))
+			return finish();
+		withoutRun("a timetable edit");
+		undo();
+		// The run is of the first scenario, and a scenario that is added before it is the one to switch to.
+		if (!step("a scenario to switch to after a run", "Add scenario", [&] { scenarioPanel(w)->blankButton()->click(); }))
+			return finish();
+		scenarioPanel(w)->listWidget()->setCurrentRow(0);
+		if (!completeRun("scenario_switch_run_output"))
+			return finish();
+		scenarioPanel(w)->listWidget()->setCurrentRow(scenarioPanel(w)->listWidget()->count() - 1);
+		process();
+		withoutRun("a scenario switch");
 		undo();
 	}
 

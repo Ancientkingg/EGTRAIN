@@ -2029,7 +2029,8 @@ void MainWindow::invalidateAfterSceneChange() {
 		m_validation->refreshLoadedData();
 		updateDiagramActions();
 	} else {
-		// The message that the run is complete would outlast its results. Other messages, such as the hint of a pick, stay.
+		// The message that the run is complete would outlast its results. Other messages, such as the hint of a pick, stay,
+		// unless the preview that replaces the canvas of the run clears them.
 		const bool completionShown = m_runController->resultsAvailable()
 			&& statusBar()->currentMessage().startsWith(QLatin1String("Simulation complete"));
 		invalidateRunResults();
@@ -2203,8 +2204,10 @@ void MainWindow::invalidateRunResults() {
 	if (QWidget* focus = QApplication::focusWidget();
 		focus && ((m_replayBar && m_replayBar->isAncestorOf(focus)) || (m_runResultsPanel && m_runResultsPanel->dock()->isAncestorOf(focus))))
 		networkView->setFocus(Qt::OtherFocusReason);
+	// The canvas of a run that has ended, its last step or a step of its replay, gives way to the track preview, which ends
+	// Follow and the map key of the run. A run that goes on or is paused keeps its canvas.
 	if (!m_runController->running()) {
-		if (m_replayActive && m_document->isLoaded() && scene) {
+		if (!m_showingTrackPreview && m_document->isLoaded() && scene) {
 			setFollowTrain(-1);
 			m_inspector->handleDisableHighlight();
 			renderTrackPreview(m_document->model()); // Teardown clears history and graphics together.
@@ -2265,6 +2268,14 @@ void MainWindow::infrastructureSelectionChanged() {
 		return;
 	}
 	renderTrackPreview(m_document->model());
+}
+
+void MainWindow::infrastructureDockShown(bool shown) {
+	// The mark of the selected row comes back as it was, so the selection and the view stay.
+	m_presenter->setSelectionMarkShown(shown);
+	// The map key lists the selected track only while the preview shows its mark.
+	if (m_presenter->previewShown())
+		updateNetworkLegend();
 }
 
 void MainWindow::selectInfrastructureRow(QGraphicsItem* item, bool reveal) {
@@ -2503,8 +2514,8 @@ void MainWindow::updateInspectorIncidentAction() {
 }
 
 void MainWindow::addIncidentFromView(const IncidentTarget& target) {
-	// The edit can end a replay and draw the preview again, which deletes the items of the view and closes the menu, so it
-	// waits until the menu or the button has been handled.
+	// The edit can discard the results of a run and draw the preview again, which deletes the items of the view and closes
+	// the menu, so it waits until the menu or the button has been handled.
 	QTimer::singleShot(0, this, [this, target] {
 		// Read first: a pending value that is committed can discard the results itself.
 		const bool discardsResults = m_runController->resultsAvailable();
@@ -2548,8 +2559,8 @@ void MainWindow::pickIncidentTarget() {
 		return;
 	QString selected;
 	const IncidentTarget target = selectedIncidentTarget(selected);
-	// The edit can end a replay and draw the preview again, which deletes the item of the click, so it waits until the click
-	// has been handled.
+	// The edit can discard the results of a run and draw the preview again, which deletes the item of the click, so it waits
+	// until the click has been handled.
 	QTimer::singleShot(0, this, [this, target, selected] {
 		if (!m_editorDocks.incidentPanel()->isPickingTarget())
 			return;
