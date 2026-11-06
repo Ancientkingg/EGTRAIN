@@ -1340,12 +1340,12 @@ static const SceneDiagnostic* diagnosticWithCode(const std::vector<SceneDiagnost
 	return found == diagnostics.end() ? nullptr : &*found;
 }
 
-// The bytes that the sample vectors of a train allocate for `steps` steps. Each sample vector takes at least 4 bytes for
-// each step; smaller allocations are not samples.
+// The bytes that the sample vectors of a train allocate for `steps` steps, with BX for detailed trajectories. Each sample
+// vector takes at least 4 bytes for each step; smaller allocations are not samples.
 static std::size_t sampleBytesFor(int steps) {
 	Train train;
 	const LargeAllocations samples(static_cast<std::size_t>(steps), false);
-	train.setTrainVectorSizesFromInput(steps);
+	train.setTrainVectorSizesFromInput(steps, true);
 	return LargeAllocations::counted();
 }
 
@@ -3555,6 +3555,8 @@ void TestOperationsBuilder::brakingPhase() {
 			QCOMPARE_EQ(nextHead, cached.Sbrak[2]);
 			for (double point : {head, std::nextafter(head, 0.0), std::nextafter(head, std::numeric_limits<double>::infinity()), head + 1}) {
 				BoundaryTrain live = cached;
+				// The braking point of each step is kept, as for detailed trajectories.
+				live.BX.assign(live.instant_spatial_position.size(), 0.0);
 				live.point = point;
 				live.counter = 1;
 				live.GradientExceptionInBraking = false;
@@ -5228,7 +5230,7 @@ void TestOperationsBuilder::singleTrackLocks() {
 	for (Regional& train : defaultRun().trains) {
 		const double head = train.instant_spatial_position[1];
 		const double speed = train.CanEnter ? train.instant_train_speed[1] : 0.0;
-		train.setTrainVectorSizesFromInput(steps);
+		train.setTrainVectorSizesFromInput(steps, false);
 		train.instant_spatial_position[0] = head - speed * timestep;
 		train.instant_spatial_position[1] = head;
 		train.instant_train_speed[0] = train.instant_train_speed[1] = speed;

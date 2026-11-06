@@ -265,7 +265,7 @@ void nativeCopyTrainPlan(SimulationRun& run, const NativeTrainPlan& plan, Train&
 		train.ScheduledArrivals[index] = plan.stops[index].plannedArrival;
 		train.ScheduledDepartures[index] = plan.stops[index].plannedDeparture;
 	}
-	train.setTrainVectorSizesFromInput(vectorSize);
+	train.setTrainVectorSizesFromInput(vectorSize, initial_variables.exportDetailedTrajectories);
 	train.cacheStationPositions();
 }
 
@@ -300,7 +300,7 @@ double nativeSceneDuration(const SceneModel& scene, std::vector<SceneDiagnostic>
 }
 
 // The bytes that a train keeps for each step of the run: one element of each vector that
-// Train::setTrainVectorSizesFromInput sizes to the steps of the run.
+// Train::setTrainVectorSizesFromInput sizes to the steps of the run, BX included.
 constexpr std::size_t kTrainBytesPerStep = sizeof(decltype(Train::instant_train_speed)::value_type)
 	+ sizeof(decltype(Train::instant_spatial_position)::value_type)
 	+ sizeof(decltype(Train::instant_train_power_consumption)::value_type)

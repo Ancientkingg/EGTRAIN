@@ -371,7 +371,9 @@ public:
 	std::string trainDescription;				  ///< Service ID and occurrence joined by "-", which names the train everywhere.
 	/// True while the stored braking plan is below its target speed before its last point.
 	bool GradientExceptionInBraking;
-	std::vector<double> BX; ///< Route position in metres, at each step, where braking for the current target begins.
+	/// Route position in metres, at each step, where braking for the current target begins. Only PrintTrajectory reads it, so it
+	/// is kept only for a run that exports detailed trajectories and is empty otherwise.
+	std::vector<double> BX;
 	/// Stop nodes of the train in service order. Node::dwellTime, StopTime and StepStopped hold the dwell of each stop.
 	std::vector<Node> Stations;
 	/// Number of stops in use; equals Stations.size() for a train built from a scene
@@ -731,6 +733,7 @@ public:
 
 	/// Writes Traj_Train_<trainDescription>.txt to the TEMP folder of the output: for every valid step the time (s), speed (m/s), head
 	/// and tail position (m), power (kW), braking point (m), energy (kWh) and section. A reversed route writes original coordinates.
+	/// The train must keep BX: setTrainVectorSizesFromInput sized it for detailed trajectories.
 	/// A character of trainDescription that a file name cannot hold becomes '_' in the name (runOutputFileName). Throws
 	/// std::runtime_error when the file cannot be written (simulation/RunOutputFile.h).
 	void PrintTrajectory();
@@ -914,7 +917,8 @@ public:
 	}
 
 	/// Sizes every per-step vector to vec_size samples of 0, sets the kept targets and stepBranch to 0 and sets End_Time to the last step.
-	void setTrainVectorSizesFromInput(int vec_size);
+	/// BX is sized only with detailedTrajectory, for a run that exports detailed trajectories, and is empty otherwise.
+	void setTrainVectorSizesFromInput(int vec_size, bool detailedTrajectory);
 };
 
 /// Another name for Train, which the tests use.

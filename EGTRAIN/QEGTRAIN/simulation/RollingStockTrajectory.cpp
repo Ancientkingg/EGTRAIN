@@ -455,7 +455,8 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				train_energy_consumption(time_seconds);
 				temp = time_seconds;
 				stop = time_seconds;
-				BX[time_seconds] = Braking_Distance;
+				if (!BX.empty())
+					BX[time_seconds] = Braking_Distance;
 				currentXob = Xobmin;
 				currentVob = Vobmin;
 				counter = 0;
@@ -490,7 +491,8 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				// A fallback from rest must not restart an active station's dwell clock.
 				if (speed > 0)
 					stop = time_seconds;
-				BX[time_seconds] = Braking_Distance;
+				if (!BX.empty())
+					BX[time_seconds] = Braking_Distance;
 				currentXob = Xobmin;
 				currentVob = Vobmin;
 			}
@@ -506,7 +508,8 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				train_energy_consumption(time_seconds);
 				temp = time_seconds;
 				stop = time_seconds;
-				BX[time_seconds] = Braking_Distance;
+				if (!BX.empty())
+					BX[time_seconds] = Braking_Distance;
 				currentXob = Xobmin;
 				currentVob = Vobmin;
 				counter = 0;

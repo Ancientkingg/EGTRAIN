@@ -654,7 +654,7 @@ void protectStationAreas(SimulationRun& run, int i) {
 }
 
 // set vector sizes with length of simulation from user input
-void Train::setTrainVectorSizesFromInput(int vec_size) {
+void Train::setTrainVectorSizesFromInput(int vec_size, bool detailedTrajectory) {
 	End_Time = vec_size - 1;
 	// define vector sizes with length of simulation from user input
 	instant_train_speed = std::vector<double>(vec_size, 0);
@@ -663,7 +663,7 @@ void Train::setTrainVectorSizesFromInput(int vec_size) {
 	instant_train_tractive_effort = std::vector<double>(vec_size, 0);
 	instant_block_section_occupied = std::vector<std::int32_t>(vec_size, kNoBlockSection);
 	instant_train_energy_consumption = std::vector<double>(vec_size, 0);
-	BX = std::vector<double>(vec_size, 0);
+	BX = detailedTrajectory ? std::vector<double>(vec_size, 0) : std::vector<double>();
 	previousXob = previousVob = currentXob = currentVob = 0;
 	stepBranch = 0;
 
