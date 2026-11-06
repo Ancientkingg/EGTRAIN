@@ -1,4 +1,5 @@
 #include "scene/SceneModel.h"
+#include "scene/RuntimeLimits.h"
 #include "scene/SceneExporter.h"
 #include "scene/SceneImporter.h"
 #include "scene/SceneWriter.h"
@@ -29,6 +30,7 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <type_traits>
@@ -75,6 +77,7 @@ private slots:
 	void buildsLongTrack();
 	void buildsManySections();
 	void routeHoldsExactlyItsSections();
+	void routeOverBlockCapacityThrows();
 	void routeEndsWhereLastSectionEnds();
 	void copiesNode();
 	void nodesDifferingInOneMemberDiffer_data();
@@ -1166,6 +1169,33 @@ void TestSceneBuilder::routeHoldsExactlyItsSections() {
 	// The runtime reset removes the routes.
 	QCOMPARE(defaultRun().infra.numRoutes, 0);
 	QVERIFY(defaultRun().infra.routes.empty());
+}
+
+// The builder refuses longer routes, so a longer list of sections is an error of the caller.
+void TestSceneBuilder::routeOverBlockCapacityThrows() {
+	const auto run = std::make_unique<SimulationRun>();
+	run->infra.sections = std::vector<Section>(1);
+	run->infra.numBlocks = 1;
+	Section& section = run->infra.sections[0];
+	section.ID = "@capacity.block@";
+	section.end_node.X = 1.0;
+	section.total_arcs = 1;
+	section.arcs_in_signalling_block_section[0].endNode.X = 1.0;
+	std::vector<std::string> blockIds(RuntimeLimits::kNativeMaxRouteBlocks, "capacity.block");
+	Route route;
+	route.createRouteFromBlockIds(*run, blockIds, 1);
+	// A route holds as many sections as the limit.
+	QCOMPARE(route.N_Block_Sections, static_cast<int>(RuntimeLimits::kNativeMaxRouteBlocks));
+
+	blockIds.push_back("capacity.block");
+	std::string error;
+	try {
+		route.createRouteFromBlockIds(*run, blockIds, 1);
+	} catch (const std::logic_error& thrown) {
+		error = thrown.what();
+	}
+	// One section more throws and names the route, its sections and the limit.
+	QCOMPARE(error, std::string("Route @capacity.block@->@capacity.block@ has 601 sections, more than the 600 a route holds"));
 }
 
 // The route starts and ends where its first and last sections do, at these kilometres.

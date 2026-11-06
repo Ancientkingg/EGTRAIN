@@ -61,7 +61,7 @@ An exception that reaches `std::terminate` leaves only the `libc++abi: terminati
 | --- | --- | --- |
 | `std::abort()` | the terminate handler of the window build (`app/CrashNote.cpp`) | See [Crash notes](#crash-notes). `BlockingTimeList::checkIndex` (`simulation/RollingStock.h`) throws `std::out_of_range` with the index and the size of the list on a negative index, and the run fails with that message ([What happens when one is caught](#what-happens-when-one-is-caught)). |
 | `_exit(127)` | `update/UpdateHelper.cpp`, in a forked child after `exec` fails | Correct use. |
-| `assert` | `io/third_party/pugixml.cpp` | Compiled out in release builds. |
+| `assert` | `io/third_party/pugixml.cpp` | Compiled out in release builds. The simulation checks its own preconditions with exceptions: a route whose section numbers do not match its sections (`setRouteFlags`) and a route of more than 600 sections (`Route::createRouteFromBlockIds`, both in `simulation/Signalling.cpp`) throw `std::logic_error`, which fails the run or its preparation. |
 | `Q_ASSERT`, `qFatal`, `Q_UNREACHABLE`, `std::terminate` | none in the application code | |
 | Uncaught exceptions | see [Where they still escape](#where-they-still-escape) | |
 | Dangling scene items | `QGraphicsScene`'s BSP index | See below. |

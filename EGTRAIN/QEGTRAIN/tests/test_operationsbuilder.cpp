@@ -190,6 +190,7 @@ private slots:
 	void trainStorageHoldsLastBuild();
 	void singleTrackLocks();
 	void signallingFindsSectionsById();
+	void signallingRejectsUnnumberedRoutes();
 	void rollingStockMessages();
 	void aspectIsRestrictive_data();
 	void aspectIsRestrictive();
@@ -5402,6 +5403,45 @@ void TestOperationsBuilder::signallingFindsSectionsById() {
 				("route " + std::to_string(r) + " releases " + route.sequence_of_block_sections[h].ID + ": " + (expected ? "yes" : "no")).c_str());
 		}
 	}
+}
+
+// The signalling step reads the marks of each route by the numbers of its sections, so a route that changed after the numbering
+// throws instead of reading past the numbers.
+void TestOperationsBuilder::signallingRejectsUnnumberedRoutes() {
+	const auto run = std::make_unique<SimulationRun>();
+	RunInfrastructure& infra = run->infra;
+	Route route;
+	route.ID = "R1";
+	route.N_Block_Sections = 3;
+	route.sequence_of_block_sections = boundarySections(route.N_Block_Sections);
+	for (Section& section : route.sequence_of_block_sections) {
+		section.SignallingLevel = 3;
+		section.code = 270;
+	}
+	infra.routes = {route};
+	infra.numRoutes = 1;
+	infra.numberRouteSections();
+	resetSingleTrackLocks(*run);
+	const auto activationError = [&run] {
+		std::string error;
+		try {
+			activateMixedSignallingSystem(*run);
+		} catch (const std::logic_error& thrown) {
+			error = thrown.what();
+		}
+		return error;
+	};
+	// A numbered route passes.
+	QCOMPARE(activationError(), std::string());
+	// A route with other sections than numbers throws and names the route and both counts.
+	infra.routes[0].N_Block_Sections = 2;
+	QCOMPARE(activationError(), std::string("Route R1 (route 0) has 2 sections but 3 section numbers"));
+	// A route added after the numbering throws and names the route and how many routes the numbers cover.
+	infra.routes[0].N_Block_Sections = 3;
+	route.ID = "R2";
+	infra.routes.push_back(route);
+	infra.numRoutes = 2;
+	QCOMPARE(activationError(), std::string("Route R2 (route 1) has no section numbers; the numbers cover 1 of 2 routes"));
 }
 
 // The messages of the rolling stock, passenger and run settings code are messages of the logging core. A sink collects them, because
