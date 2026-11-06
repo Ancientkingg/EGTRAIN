@@ -133,8 +133,12 @@ public:
 	/// The sentence about the chosen kind.
 	QLabel* guidanceLabel() const { return m_guidanceLabel; }
 	/// The line under the table that says what the canvas marks of the selected row, such as "route2: 124 sections on B3,
-	/// B0, B4, B5 and B2"; hidden without a selected row.
+	/// B0, B4, B5 and B2"; empty and hidden without a selected row, while the document cannot be edited and while
+	/// setMarkShown() hides it.
 	QLabel* markLabel() const { return m_markLabel; }
+	/// Shows the line under the table (markLabel()) or hides it. The window hides it while the canvas shows a run or its
+	/// results, which mark no row. It is shown until this is called.
+	void setMarkShown(bool shown);
 	/// The filter of the blocks on a track, shown while blocks are listed.
 	QComboBox* blockTrackFilterCombo() const { return m_blockTrackFilterCombo; }
 	/// The button of insertEntity() for blocks.
@@ -197,6 +201,8 @@ private:
 	QLabel* m_guidanceLabel = nullptr;
 	QTableWidget* m_table = nullptr;
 	QLabel* m_markLabel = nullptr;
+	// False while setMarkShown() hides m_markLabel.
+	bool m_markShown = true;
 	// The delegate of the table, which knows its open editor.
 	CellDelegate* m_cellDelegate = nullptr;
 	// True while editInPlace() changes the document and tells changed().

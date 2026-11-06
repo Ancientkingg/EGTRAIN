@@ -271,8 +271,9 @@ QString markText(const SceneModel& scene, const QString& facet, const QString& i
 		for (const std::string* reference : {&restriction->protectedStartBlock, &restriction->protectedEndBlock})
 			if (!reference->empty())
 				protectedEnds << section(*reference);
+		// The label of a switch section has a comma, so each end has its own "at".
 		if (!protectedEnds.isEmpty())
-			text += QStringLiteral(", protected at ") + sentenceList(protectedEnds);
+			text += QStringLiteral(", protected at ") + protectedEnds.join(QStringLiteral(" and at "));
 		return QStringLiteral("Single-track restriction: ") + text;
 	}
 	if (facet == QLatin1String("station_boundaries")) {
@@ -653,8 +654,15 @@ int InfrastructurePanel::selectedRouteSection() const {
 	return m_routeSectionListWidget->currentRow();
 }
 
+void InfrastructurePanel::setMarkShown(bool shown) {
+	if (shown == m_markShown)
+		return;
+	m_markShown = shown;
+	refreshMarkLabel();
+}
+
 void InfrastructurePanel::refreshMarkLabel() {
-	const QString text = hasScene() ? markText(model(), facetKey(), m_selectionId) : QString();
+	const QString text = canEdit() && m_markShown ? markText(model(), facetKey(), m_selectionId) : QString();
 	m_markLabel->setText(text);
 	m_markLabel->setVisible(!text.isEmpty());
 }

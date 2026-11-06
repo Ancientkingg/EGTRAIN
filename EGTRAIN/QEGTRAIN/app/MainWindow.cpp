@@ -1769,6 +1769,8 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 	if (&sceneModel == &m_document->model())
 		options.modelGeneration = m_document->modelGeneration();
 	const NetworkPresenter::PreviewOutcome outcome = m_presenter->showPreview(sceneModel, options);
+	// The preview marks the selected row, which the line under the table names.
+	m_editorDocks.infrastructurePanel()->setMarkShown(true);
 	if (!outcome.available) {
 		statusBar()->showMessage("This case has no tracks to draw");
 		return;
@@ -2247,7 +2249,10 @@ void MainWindow::refreshInfrastructurePanel(bool resetSelection) {
 }
 
 void MainWindow::infrastructureSelectionChanged() {
-	if (!m_document->isLoaded() || m_runController->running() || m_runController->resultsAvailable())
+	// A run and its results mark no row, so the line under the table names none either.
+	const bool preview = m_document->isLoaded() && !m_runController->running() && !m_runController->resultsAvailable();
+	m_editorDocks.infrastructurePanel()->setMarkShown(preview);
+	if (!preview)
 		return;
 	// Another row of an unchanged document moves only the mark, so the view keeps its zoom and position. After an edit
 	// the preview is drawn again.
