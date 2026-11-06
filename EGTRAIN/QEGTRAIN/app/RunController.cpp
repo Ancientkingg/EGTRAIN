@@ -684,9 +684,10 @@ void RunController::onSimulationFinished() {
 	if (m_host.runFinished())
 		return;
 
-	// print last services
+	// Why TrainServicePathDiagram.txt could not be written, or empty.
+	QString diagramFailure;
 	if (!outcome.stopped && !end.failed)
-		simulation.printLastTrainServicePathDiagram();
+		diagramFailure = QString::fromStdString(simulation.printLastTrainServicePathDiagram());
 
 	emit runProgressEnded();
 	const QString status = outcome.discard == RunDiscard::SceneChanged
@@ -694,6 +695,7 @@ void RunController::onSimulationFinished() {
 		: outcome.discard == RunDiscard::Failed	 ? QStringLiteral("Simulation failed")
 		: outcome.discard == RunDiscard::Stopped ? QStringLiteral("Simulation stopped")
 		: !resultsAvailable()					 ? QStringLiteral("Simulation ended without results")
+		: !diagramFailure.isEmpty()				 ? QStringLiteral("Simulation complete, but TrainServicePathDiagram.txt could not be written")
 												 : QStringLiteral("Simulation complete");
 	m_window->statusBar()->showMessage(status);
 	// The Run Results dock raised by resultsKept is the completion notice;
@@ -712,6 +714,9 @@ void RunController::onSimulationFinished() {
 	if (!failure.isEmpty())
 		showError(QStringLiteral("Simulation Failed"),
 			QStringLiteral("The run stopped because of an error:\n\n%1").arg(failure));
+	if (!diagramFailure.isEmpty())
+		showError(QStringLiteral("Cannot Write Run Output"),
+			QStringLiteral("The run completed, but TrainServicePathDiagram.txt was not written:\n\n%1").arg(diagramFailure));
 
 	emit runSettled();
 }

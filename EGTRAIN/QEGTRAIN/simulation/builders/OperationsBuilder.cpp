@@ -9,9 +9,13 @@
 #include <climits>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
+#include <iomanip>
 #include <list>
 #include <map>
+#include <new>
 #include <set>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -273,16 +277,19 @@ bool nativeOccurrenceSelected(const SceneRunSelection& selectedOccurrences, cons
 		|| selectedOccurrences.count(SceneServiceOccurrence{serviceId, occurrence}) > 0;
 }
 
-// The simulated duration (s), once the time settings of the scene are checked.
+// The simulated duration (s), once the time settings of the scene are checked. The duration of -h, when it is given, is
+// checked as the value of -h and not as the duration of the scene.
 double nativeSceneDuration(const SceneModel& scene, std::vector<SceneDiagnostic>& diagnostics) {
-	const double durationSeconds = initial_variables.durationOverride
-		? initial_variables.times
-		: scene.settings.durationSeconds;
-	if (!scene.settings.hasDuration || !nativeFinite(durationSeconds)
-		|| durationSeconds < 1.0
-		|| durationSeconds > static_cast<double>(INT_MAX))
+	const bool overridden = initial_variables.durationOverride;
+	const double durationSeconds = overridden ? initial_variables.times : scene.settings.durationSeconds;
+	const bool durationValid = nativeFinite(durationSeconds) && durationSeconds >= 1.0
+		&& durationSeconds <= static_cast<double>(INT_MAX);
+	if (!scene.settings.hasDuration || (!overridden && !durationValid))
 		addNativeDiagnostic(diagnostics, "scene.native.time.duration", "A positive finite simulation duration is required",
 			"scene.json", "scene", scene.name, "settings.duration_seconds");
+	if (overridden && !durationValid)
+		addNativeDiagnostic(diagnostics, "scene.native.time.duration",
+			"The duration of -h must be from 1 to " + std::to_string(INT_MAX) + " seconds", "", "", "");
 	if (scene.settings.hasBufferTime && (!nativeFinite(scene.settings.bufferTimeSeconds) || scene.settings.bufferTimeSeconds < 0.0))
 		addNativeDiagnostic(diagnostics, "scene.native.settings.buffer", "buffer_time_seconds must be finite and non-negative",
 			"scene.json", "scene", scene.name, "settings.buffer_time_seconds");
@@ -290,6 +297,58 @@ double nativeSceneDuration(const SceneModel& scene, std::vector<SceneDiagnostic>
 		addNativeDiagnostic(diagnostics, "scene.native.settings.recovery", "recovery_time_percent must be finite and non-negative",
 			"scene.json", "scene", scene.name, "settings.recovery_time_percent");
 	return durationSeconds;
+}
+
+// The bytes that a train keeps for each step of the run: one element of each vector that
+// Train::setTrainVectorSizesFromInput sizes to the steps of the run.
+constexpr std::size_t kTrainBytesPerStep = sizeof(decltype(Train::instant_train_speed)::value_type)
+	+ sizeof(decltype(Train::instant_spatial_position)::value_type)
+	+ sizeof(decltype(Train::instant_train_power_consumption)::value_type)
+	+ sizeof(decltype(Train::instant_train_tractive_effort)::value_type)
+	+ sizeof(decltype(Train::instant_block_section_occupied)::value_type)
+	+ sizeof(decltype(Train::instant_train_energy_consumption)::value_type)
+	+ sizeof(decltype(Train::BX)::value_type)
+	+ sizeof(decltype(Train::Xob)::value_type)
+	+ sizeof(decltype(Train::Vob)::value_type)
+	+ sizeof(decltype(Train::Eq)::value_type);
+
+// The most memory that the samples of the trains of one run, one for each step, may take. A run that would need more is
+// refused before its trains are built.
+constexpr std::uint64_t kMaxTrainSampleBytes = std::uint64_t{4} << 30; // 4 GiB
+
+// "2 trains over 3600 s", or "over the 3600 s of -h" when the command line gave the duration.
+std::string nativeRunSizeText(std::size_t trainCount, double durationSeconds) {
+	std::ostringstream text;
+	text << trainCount << (trainCount == 1 ? " train over " : " trains over ")
+		 << (initial_variables.durationOverride ? "the " : "") << std::setprecision(12) << durationSeconds << " s"
+		 << (initial_variables.durationOverride ? " of -h" : "");
+	return text.str();
+}
+
+// Adds the memory error `message` with `code`, located at the duration of the scene unless the command line gave the
+// duration.
+void addNativeMemoryDiagnostic(std::vector<SceneDiagnostic>& diagnostics, const SceneModel& scene, const std::string& code,
+	const std::string& message) {
+	if (initial_variables.durationOverride)
+		addNativeDiagnostic(diagnostics, code, message, "", "", "");
+	else
+		addNativeDiagnostic(diagnostics, code, message, "scene.json", "scene", scene.name, "settings.duration_seconds");
+}
+
+// Whether the samples of trainCount trains over `steps` steps fit in kMaxTrainSampleBytes. When they do not, it adds an
+// error that gives the estimate.
+bool nativeTrainSamplesFit(const SceneModel& scene, std::size_t trainCount, int steps, double durationSeconds,
+	std::vector<SceneDiagnostic>& diagnostics) {
+	const std::uint64_t bytes = static_cast<std::uint64_t>(trainCount) * static_cast<std::uint64_t>(steps) * kTrainBytesPerStep;
+	if (bytes <= kMaxTrainSampleBytes)
+		return true;
+	std::ostringstream message;
+	message << "The run needs about " << std::fixed << std::setprecision(1)
+			<< static_cast<double>(bytes) / static_cast<double>(std::uint64_t{1} << 30) << " GiB of memory for "
+			<< nativeRunSizeText(trainCount, durationSeconds) << ", more than the limit of "
+			<< (kMaxTrainSampleBytes >> 30) << " GiB. Shorten the duration or run fewer trains.";
+	addNativeMemoryDiagnostic(diagnostics, scene, "scene.native.memory.limit", message.str());
+	return false;
 }
 
 const SceneScenario* nativeSelectedScenario(const SceneModel& scene, const std::string& selectedScenarioId) {
@@ -1138,6 +1197,8 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 	const InitialParameters stagedParameters = nativeStagedParameters(scene, baseTime, durationSeconds);
 
 	const int vectorSize = std::max(1, static_cast<int>(std::ceil(durationSeconds / timestep)));
+	if (!nativeTrainSamplesFit(scene, trains.size(), vectorSize, durationSeconds, diagnostics))
+		return diagnostics;
 	std::list<StationPlatform> stagedPlatforms = nativeStagedPlatforms(run, stationById);
 	nativeListStoppingTrains(stagedPlatforms, trains);
 
@@ -1211,13 +1272,24 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 
 	nativeSamplePassengerWindows(run, scene, stagedPassengers);
 
+	// The new trains are built before the old ones are released, so trains that do not fit in the memory that is free leave
+	// the trains of the run and initial_variables as they were.
+	std::vector<Train> storage;
+	try {
+		storage = std::vector<Train>(trains.size());
+		for (std::size_t index = 0; index < trains.size(); ++index)
+			nativeCopyTrainPlan(run, trains[index], storage[index], vectorSize);
+	} catch (const std::bad_alloc&) {
+		// Frees the trains built so far before the message is made.
+		storage = std::vector<Train>();
+		addNativeMemoryDiagnostic(diagnostics, scene, "scene.native.memory.free",
+			"The run needs more memory than is free for " + nativeRunSizeText(trains.size(), durationSeconds)
+				+ ". Shorten the duration, run fewer trains or close other programs.");
+		return diagnostics;
+	}
 	initial_variables = stagedParameters;
-	// The new storage exists before the old trains are released.
-	std::vector<Train> storage(trains.size());
 	run.trains = std::move(storage);
 	run.numTrains = static_cast<int>(trains.size());
-	for (std::size_t index = 0; index < trains.size(); ++index)
-		nativeCopyTrainPlan(run, trains[index], run.trains[index], vectorSize);
 	run.platforms = std::move(stagedPlatforms);
 	run.numPlatforms = static_cast<int>(run.platforms.size());
 	run.passengers = std::move(stagedPassengers);

@@ -23,6 +23,7 @@
 #endif
 
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
@@ -34,6 +35,7 @@
 #include <limits>
 #include <list>
 #include <memory>
+#include <new>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -53,6 +55,53 @@
 #else
 #define TEST_NOINLINE __attribute__((noinline))
 #endif
+
+namespace {
+
+// While above 0, operator new refuses or counts each allocation of at least this many bytes.
+std::atomic<std::size_t> g_largeAllocationBytes{0};
+std::atomic<bool> g_refuseLargeAllocations{false};
+std::atomic<std::size_t> g_countedLargeAllocationBytes{0};
+
+// While it lives, every allocation of at least `bytes` bytes throws std::bad_alloc when `refuse` is set, and is counted
+// otherwise. A test can so make the samples of a long run fail without allocating them.
+class LargeAllocations {
+public:
+	LargeAllocations(std::size_t bytes, bool refuse) {
+		g_refuseLargeAllocations = refuse;
+		g_countedLargeAllocationBytes = 0;
+		g_largeAllocationBytes = bytes;
+	}
+	~LargeAllocations() { g_largeAllocationBytes = 0; }
+	LargeAllocations(const LargeAllocations&) = delete;
+	LargeAllocations& operator=(const LargeAllocations&) = delete;
+	// The bytes of the allocations counted so far.
+	static std::size_t counted() { return g_countedLargeAllocationBytes; }
+};
+
+} // namespace
+
+// The test program replaces the allocation functions of the standard library for LargeAllocations. They are not inlined,
+// so that GCC does not pair the malloc and free inside them with the new and delete of their callers.
+TEST_NOINLINE void* operator new(std::size_t size) {
+	const std::size_t large = g_largeAllocationBytes;
+	if (large > 0 && size >= large) {
+		if (g_refuseLargeAllocations)
+			throw std::bad_alloc();
+		g_countedLargeAllocationBytes += size;
+	}
+	if (void* memory = std::malloc(size > 0 ? size : 1))
+		return memory;
+	throw std::bad_alloc();
+}
+
+TEST_NOINLINE void operator delete(void* memory) noexcept {
+	std::free(memory);
+}
+
+TEST_NOINLINE void operator delete(void* memory, std::size_t /*size*/) noexcept {
+	std::free(memory);
+}
 
 // The builders write the run of the process. The slots run in the order of their declaration, which is the order of the
 // groups of checks before them, and each slot builds the scene that it reads, so that it also passes alone.
@@ -91,6 +140,11 @@ private slots:
 	void routeExternalRowsKeepPlannedTimes();
 	void shortHorizonOmitsLateJourneys();
 	void durationOverrideSizesRuntimeVectors();
+	void durationOverrideIsCheckedAsOption();
+	void trainSamplesTakeTheirBytesPerStep();
+	void runOverSampleLimitIsRefused();
+	void runAtSampleLimitIsNotRefused();
+	void failedSampleAllocationIsReported();
 	void reducedPerformanceDelaysCompletion();
 	void zeroStopThroughServiceStaysSafe();
 	void stationStatisticsOfSmallPopulations();
@@ -1194,6 +1248,24 @@ void TestOperationsBuilder::durationOverrideSizesRuntimeVectors() {
 	QCOMPARE(defaultRun().trains[0].instant_train_speed.size(), std::size_t(120));
 }
 
+// A duration of -h that is not valid is reported as the value of -h, not as the duration of the scene.
+void TestOperationsBuilder::durationOverrideIsCheckedAsOption() {
+	const auto clearOverride = qScopeGuard([] { initial_variables.durationOverride = false; });
+	initial_variables.times = 0.0;
+	initial_variables.durationOverride = true;
+	const SceneModel scene = completeScene();
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene)));
+	const std::vector<SceneDiagnostic> diagnostics = buildOperationsFromScene(defaultRun(), scene, "scenario.selected");
+	const auto duration = std::find_if(diagnostics.begin(), diagnostics.end(),
+		[](const SceneDiagnostic& diagnostic) { return diagnostic.code == "scene.native.time.duration"; });
+	if (duration == diagnostics.end())
+		QFAIL("a duration of 0 s from -h is not reported");
+	QCOMPARE(duration->path, std::string());
+	QVERIFY2(duration->message.find("-h") != std::string::npos, duration->message.c_str());
+	for (const SceneDiagnostic& diagnostic : diagnostics)
+		QVERIFY2(diagnostic.path != "settings.duration_seconds", diagnostic.message.c_str());
+}
+
 // The complete fixture with one train of strong stock that enters at 0 s and runs through without a stop, in a run of
 // 600 s.
 static SceneModel trajectoryPerformanceScene(double performancePercent) {
@@ -1211,6 +1283,139 @@ static SceneModel trajectoryPerformanceScene(double performancePercent) {
 			band[2] = 10000.0;
 	trajectoryPerformance.services[0].performancePercent = performancePercent;
 	return trajectoryPerformance;
+}
+
+// The bytes that the samples of a train take for each step: eight double, an int and a std::string.
+constexpr std::size_t kSampleBytesPerStep = 8 * sizeof(double) + sizeof(int) + sizeof(std::string);
+// The most memory that the samples of the trains of one run may take.
+constexpr std::size_t kSampleLimitBytes = std::size_t{4} << 30;
+// No allocation of the builds below is this large, except those of the samples of a long run.
+constexpr std::size_t kSampleAllocationBytes = std::size_t{64} << 20;
+
+// The build of the operations of scene while every allocation of kSampleAllocationBytes or more fails. False when
+// std::bad_alloc left the build.
+static bool buildWithoutLargeAllocations(const SceneModel& scene, std::vector<SceneDiagnostic>& diagnostics) {
+	const LargeAllocations refused(kSampleAllocationBytes, true);
+	try {
+		diagnostics = buildOperationsFromScene(defaultRun(), scene, "scenario.base");
+	} catch (const std::bad_alloc&) {
+		return false;
+	}
+	return true;
+}
+
+static const SceneDiagnostic* diagnosticWithCode(const std::vector<SceneDiagnostic>& diagnostics, const std::string& code) {
+	const auto found = std::find_if(diagnostics.begin(), diagnostics.end(),
+		[&code](const SceneDiagnostic& diagnostic) { return diagnostic.code == code; });
+	return found == diagnostics.end() ? nullptr : &*found;
+}
+
+// The bytes that the sample vectors of a train allocate for `steps` steps. Each sample vector takes at least 4 bytes for
+// each step; smaller allocations are not samples.
+static std::size_t sampleBytesFor(int steps) {
+	Train train;
+	const LargeAllocations samples(static_cast<std::size_t>(steps), false);
+	train.setTrainVectorSizesFromInput(steps);
+	return LargeAllocations::counted();
+}
+
+// The samples of a train take kSampleBytesPerStep bytes for each step, which the memory estimate of the builder counts.
+// The difference of two sizes leaves out the bytes that the standard library adds to each block (MSVC adds a few to every
+// block of 4096 bytes or more).
+void TestOperationsBuilder::trainSamplesTakeTheirBytesPerStep() {
+	QCOMPARE(sampleBytesFor(8192) - sampleBytesFor(4096), kSampleBytesPerStep * 4096);
+}
+
+// A run whose samples would take more than 4 GiB is refused before its trains are built, with the estimate, the number of
+// trains and the duration in the message. With the duration of -h the message names -h and not the field of the scene.
+void TestOperationsBuilder::runOverSampleLimitIsRefused() {
+	const auto clearOverride = qScopeGuard([] { initial_variables.durationOverride = false; });
+	const std::size_t steps = kSampleLimitBytes / kSampleBytesPerStep + 1;
+	SceneModel scene = trajectoryPerformanceScene(100.0);
+	scene.settings.durationSeconds = static_cast<double>(steps);
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene)));
+	std::vector<SceneDiagnostic> diagnostics;
+	QVERIFY2(buildWithoutLargeAllocations(scene, diagnostics), "the build allocated the samples");
+	const SceneDiagnostic* refusal = diagnosticWithCode(diagnostics, "scene.native.memory.limit");
+	if (refusal == nullptr)
+		QFAIL("a run over the limit is not refused");
+	QVERIFY(refusal->severity == SceneSeverity::Error);
+	QCOMPARE(refusal->path, std::string("settings.duration_seconds"));
+	const std::string expected = " GiB of memory for 1 train over " + std::to_string(steps)
+		+ " s, more than the limit of 4 GiB. Shorten the duration or run fewer trains.";
+	QVERIFY2(refusal->message.rfind("The run needs about ", 0) == 0, refusal->message.c_str());
+	QVERIFY2(refusal->message.find(expected) != std::string::npos, refusal->message.c_str());
+
+	initial_variables.times = static_cast<double>(steps);
+	initial_variables.durationOverride = true;
+	QVERIFY2(buildWithoutLargeAllocations(scene, diagnostics), "the build with -h allocated the samples");
+	refusal = diagnosticWithCode(diagnostics, "scene.native.memory.limit");
+	if (refusal == nullptr)
+		QFAIL("a run over the limit of -h is not refused");
+	QCOMPARE(refusal->path, std::string());
+	QVERIFY2(refusal->message.find("for 1 train over the " + std::to_string(steps) + " s of -h,") != std::string::npos,
+		refusal->message.c_str());
+}
+
+// A run whose samples take 4 GiB or a little less is not refused by the estimate: its build goes on to allocate them, which
+// fails here.
+void TestOperationsBuilder::runAtSampleLimitIsNotRefused() {
+	// The most whole steps whose samples fit in the limit.
+	const std::size_t steps = kSampleLimitBytes / kSampleBytesPerStep;
+	SceneModel scene = trajectoryPerformanceScene(100.0);
+	scene.settings.durationSeconds = static_cast<double>(steps);
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene)));
+	std::vector<SceneDiagnostic> diagnostics;
+	QVERIFY2(buildWithoutLargeAllocations(scene, diagnostics), "std::bad_alloc left the build");
+	QVERIFY(diagnosticWithCode(diagnostics, "scene.native.memory.limit") == nullptr);
+	QVERIFY(diagnosticWithCode(diagnostics, "scene.native.memory.free") != nullptr);
+}
+
+// Samples that do not fit in the memory that is free give an error that names the number of trains and the duration, and
+// the trains of the run and initial_variables stay those of the build before.
+void TestOperationsBuilder::failedSampleAllocationIsReported() {
+	const auto clearOverride = qScopeGuard([] { initial_variables.durationOverride = false; });
+	SceneModel scene = trajectoryPerformanceScene(100.0);
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene)));
+	QVERIFY(!hasErrors(buildOperationsFromScene(defaultRun(), scene, "scenario.base")));
+	QCOMPARE(defaultRun().trains[0].instant_train_speed.size(), std::size_t(600));
+	// The samples of one train over 2000000 s take less than the limit, and each of them 8 MB or more.
+	scene.settings.durationSeconds = 2000000.0;
+	std::vector<SceneDiagnostic> diagnostics;
+	{
+		const LargeAllocations refused(std::size_t{1} << 20, true);
+		try {
+			diagnostics = buildOperationsFromScene(defaultRun(), scene, "scenario.base");
+		} catch (const std::bad_alloc&) {
+			QFAIL("std::bad_alloc left the build");
+		}
+	}
+	const SceneDiagnostic* failure = diagnosticWithCode(diagnostics, "scene.native.memory.free");
+	if (failure == nullptr)
+		QFAIL("samples that cannot be allocated are not reported");
+	QVERIFY(failure->severity == SceneSeverity::Error);
+	QCOMPARE(failure->path, std::string("settings.duration_seconds"));
+	QCOMPARE(failure->message, std::string("The run needs more memory than is free for 1 train over 2000000 s. Shorten the "
+										   "duration, run fewer trains or close other programs."));
+	QCOMPARE(defaultRun().numTrains, 1);
+	QCOMPARE(defaultRun().trains[0].instant_train_speed.size(), std::size_t(600));
+	QCOMPARE_EQ(initial_variables.times, 600.0);
+
+	initial_variables.times = 2000000.0;
+	initial_variables.durationOverride = true;
+	{
+		const LargeAllocations refused(std::size_t{1} << 20, true);
+		try {
+			diagnostics = buildOperationsFromScene(defaultRun(), scene, "scenario.base");
+		} catch (const std::bad_alloc&) {
+			QFAIL("std::bad_alloc left the build with -h");
+		}
+	}
+	failure = diagnosticWithCode(diagnostics, "scene.native.memory.free");
+	if (failure == nullptr)
+		QFAIL("samples of -h that cannot be allocated are not reported");
+	QCOMPARE(failure->path, std::string());
+	QVERIFY2(failure->message.find("for 1 train over the 2000000 s of -h.") != std::string::npos, failure->message.c_str());
 }
 
 void TestOperationsBuilder::reducedPerformanceDelaysCompletion() {
