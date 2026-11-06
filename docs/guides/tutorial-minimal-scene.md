@@ -86,7 +86,7 @@ Open **Editors > Compositions** and choose **Add Composition**. The composition 
 2. Open the tab **Timetable** and choose **Add Stop**. In the dialog **Add Timetable Stop**, leave **Insert position** as proposed, and check that **Station** is `station` and **Compatible platform** is `platform`. Tick **Planned departure** and enter `120`. Leave **Planned arrival** unticked and **Minimum dwell (s)** at 0, and choose **OK**. A blank planned time means that there is none, and the first stop has no arrival.
 3. Choose **Add Stop** again. Leave **Insert position** at the proposed place after stop 1, and set **Station** to `station_2` and **Compatible platform** to `platform_2`. Tick **Planned arrival** and enter `250`. Leave the departure unticked, because the train ends its service here, and choose **OK**.
 
-   ![The dock Services on the tab Timetable for new_service: station on platform with departure 120 and station_2 on platform_2 with arrival 250, in Seconds after 08:00:00. Run is enabled, and the dock Case and Layers shows no error.](../images/tutorial-minimal-service.png)
+   ![The dock Services on the tab Timetable for new_service: station on platform with departure 120 and station_2 on platform_2 (cut short to platform...) with arrival 250, in Seconds after 08:00:00. Run is enabled, and the dock Case and Layers shows no error.](../images/tutorial-minimal-service.png)
 
 The planned times are seconds after the base time of the case, 08:00:00 (**Planned time display** is **Elapsed offsets (s)**). The table shows both stops in order. **Cancel** in the dialog leaves the table unchanged.
 

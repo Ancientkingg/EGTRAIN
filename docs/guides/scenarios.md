@@ -56,8 +56,9 @@ ellipsis. Its tooltip, and the tooltips of **Follow** and of the list, say in fu
 whether the train is followed and why not. A train that has not entered yet remains armed: the view does
 not move, and Follow starts when the train enters. While the Trains layer is off
 the view does not move either, and the nearest station is not emphasised; both
-return when the layer is switched on. Before a case has run, and in a case
-without services, **Follow** is disabled and its tooltip says why.
+return when the layer is switched on. Before a case has run, after an edit or a
+switch of scenario that discards the results of a run, and in a case without
+services, **Follow** is disabled and its tooltip says why.
 
 In a live run Follow is switched off when the selected train leaves the network.
 The train stays in the list, but Follow cannot be switched on for it. In the
