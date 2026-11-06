@@ -32,6 +32,8 @@
 #include <cstdlib>
 #include <deque>
 #include <limits>
+#include <stdexcept>
+#include <string>
 #include <vector>
 #include <cmath> // std::fabs
 
@@ -135,7 +137,7 @@ enum class BlockingTimeMethod {
 /// existing entries. Indexing a const list never grows it.
 class BlockingTimeList {
 public:
-	/// The entry at index, which is added when the list is shorter. A negative index aborts the program.
+	/// The entry at index, which is added when the list is shorter. A negative index throws std::out_of_range.
 	BlockingTimes& operator[](int index) {
 		checkIndex(index);
 		if (index >= static_cast<int>(entries.size()))
@@ -143,7 +145,7 @@ public:
 		return entries[static_cast<std::size_t>(index)];
 	}
 
-	/// The entry at index, or a default entry when the list is shorter. A negative index aborts the program.
+	/// The entry at index, or a default entry when the list is shorter. A negative index throws std::out_of_range.
 	const BlockingTimes& operator[](int index) const {
 		checkIndex(index);
 		static const BlockingTimes unset;
@@ -153,12 +155,11 @@ public:
 	}
 
 private:
-	static void checkIndex(int index) {
-		if (index < 0) {
-			EG_LOG(SimSetup, Error) << "BlockTime index " << index << " is negative\n";
-			eglog::flush();
-			std::abort();
-		}
+	// A run catches the exception and fails with its message.
+	void checkIndex(int index) const {
+		if (index < 0)
+			throw std::out_of_range("Blocking time index " + std::to_string(index) + " is negative; the list has "
+				+ std::to_string(entries.size()) + " entries");
 	}
 
 	std::deque<BlockingTimes> entries;
@@ -556,11 +557,12 @@ public:
 	void leaveFollowingModeWhenLeaderIsGone(int time_seconds);
 
 	/// Braking distance (m) from V1 to V2 (m/s) by the closed formula, on the mean gradient and curvature of the arcs of BS that end in
-	/// (X1, X2] (m).
+	/// (X1, X2] (m). When no arc ends there, it takes those of the arc that holds X1, or a flat and straight track when no arc holds it.
 	double BrakingDistanceFastComputation(double V1, double V2, double X1, double X2, Section* BS, int N_BS);
 
 	/// Time (s) to accelerate from V1 to V2 (m/s, V2 above V1) on the mean gradient and curvature of the arcs of BS that end in
-	/// (X1, X2] (m), summed over 200 speed steps. When the train cannot accelerate there it is taken on a flat gradient, and when it
+	/// (X1, X2] (m), summed over 200 speed steps. When no arc ends there, it takes those of the arc that holds X1, or a flat and
+	/// straight track when no arc holds it. When the train cannot accelerate there it is taken on a flat gradient, and when it
 	/// cannot accelerate on that either the result is -99999.
 	double AccelerationTimeFollowingMode(double V1, double V2, double X1, double X2, Section* BS, int N_BS);
 

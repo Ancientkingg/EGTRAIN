@@ -37,6 +37,7 @@
 #include <memory>
 #include <new>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -115,6 +116,7 @@ private slots:
 	void platformNumberOfId_data();
 	void platformNumberOfId();
 	void copiedBlockingTimeKeepsOwnTimes();
+	void negativeBlockingTimeIndexThrows();
 	void diagramFixtureSharesReferenceCoordinates();
 	void buildsCompleteFixture();
 	void directBlockSignalFailureStaysCompatible();
@@ -160,6 +162,7 @@ private slots:
 	void brakingWithoutReachingSpeed_data();
 	void brakingWithoutReachingSpeed();
 	void brakingStepValues();
+	void stretchInsideOneArcTakesItsGradient();
 	void inverseStepsSolveForwardModel_data();
 	void inverseStepsSolveForwardModel();
 	void lateNativeStateUsesFallback();
@@ -187,6 +190,7 @@ private slots:
 	void trainStorageHoldsLastBuild();
 	void singleTrackLocks();
 	void signallingFindsSectionsById();
+	void signallingRejectsUnnumberedRoutes();
 	void rollingStockMessages();
 	void aspectIsRestrictive_data();
 	void aspectIsRestrictive();
@@ -453,6 +457,31 @@ void TestOperationsBuilder::copiedBlockingTimeKeepsOwnTimes() {
 	// A copied blocking time keeps its own sight and reaction time.
 	QCOMPARE_EQ(copy.setupTime, 2.0);
 	QCOMPARE_EQ(copy.sightReacTime, 5.0);
+}
+
+// A negative index of the blocking times throws, so that the run fails with the message instead of ending the program.
+void TestOperationsBuilder::negativeBlockingTimeIndexThrows() {
+	BlockingTimeList times;
+	times[2].BlockID = "B3";
+	const BlockingTimeList& readOnly = times;
+	std::string error;
+	try {
+		error = times[-1].BlockID;
+	} catch (const std::out_of_range& thrown) {
+		error = thrown.what();
+	}
+	// The message names the index and the size of the list.
+	QCOMPARE(error, std::string("Blocking time index -1 is negative; the list has 3 entries"));
+	error.clear();
+	try {
+		error = readOnly[-4].BlockID;
+	} catch (const std::out_of_range& thrown) {
+		error = thrown.what();
+	}
+	// A read-only list throws as well.
+	QCOMPARE(error, std::string("Blocking time index -4 is negative; the list has 3 entries"));
+	// The entries stay as they were.
+	QCOMPARE(readOnly[2].BlockID, "B3");
 }
 
 static bool sameSections(const std::vector<BlockSectionInput>& actual, const std::vector<BlockSectionInput>& expected) {
@@ -2580,6 +2609,33 @@ void TestOperationsBuilder::brakingStepValues() {
 		QVERIFY2(search.BrakDist_Block(speed, targetSpeed, 100.0, route.data(), 1) < 50.0,
 			"the braking-point search gives a braking point before the train for the second case");
 	}
+}
+
+// No arc ends between two positions inside one arc. The braking distance and the acceleration time then take the gradient and
+// curvature of that arc, as over the stretch to its end, and those of a flat and straight track beyond the arcs.
+void TestOperationsBuilder::stretchInsideOneArcTakesItsGradient() {
+	std::vector<Section> route = brakingRouteOfTwoArcs(1.0, 2.0, 0.002, 0.01);
+	route[0].arcs_in_signalling_block_section[1].curvature = 800.0;
+	std::vector<Section> flat = brakingRoute(0.0, 1.0, 0.0);
+	Train train = brakingTrain(1.0);
+	train.velocityIntervals = 1;
+	train.Vub[0] = 100.0;
+	train.C0[0] = 200000.0;
+	const double braking = train.BrakingDistanceFastComputation(20.0, 0.0, 1200.0, 1500.0, route.data(), 1);
+	// Inside the second arc the braking distance is that over the stretch to the end of the arc, not that of the first arc.
+	QVERIFY(std::isfinite(braking));
+	QCOMPARE_EQ(braking, train.BrakingDistanceFastComputation(20.0, 0.0, 1200.0, 2000.0, route.data(), 1));
+	QCOMPARE_NE(braking, train.BrakingDistanceFastComputation(20.0, 0.0, 0.0, 1000.0, route.data(), 1));
+	// Beyond the arcs it is that of a flat and straight arc.
+	QCOMPARE_EQ(train.BrakingDistanceFastComputation(20.0, 0.0, 2500.0, 2600.0, route.data(), 1),
+		train.BrakingDistanceFastComputation(20.0, 0.0, 0.0, 1000.0, flat.data(), 1));
+	const double accelerating = train.AccelerationTimeFollowingMode(5.0, 10.0, 1200.0, 1500.0, route.data(), 1);
+	// The acceleration time follows the same arcs.
+	QVERIFY(std::isfinite(accelerating));
+	QCOMPARE_GT(accelerating, 0.0);
+	QCOMPARE_EQ(accelerating, train.AccelerationTimeFollowingMode(5.0, 10.0, 1200.0, 2000.0, route.data(), 1));
+	QCOMPARE_EQ(train.AccelerationTimeFollowingMode(5.0, 10.0, 2500.0, 2600.0, route.data(), 1),
+		train.AccelerationTimeFollowingMode(5.0, 10.0, 0.0, 1000.0, flat.data(), 1));
 }
 
 // The routes of the inverse braking steps: one arc that is flat, rises or falls, and two arcs that change the gradient
@@ -5347,6 +5403,45 @@ void TestOperationsBuilder::signallingFindsSectionsById() {
 				("route " + std::to_string(r) + " releases " + route.sequence_of_block_sections[h].ID + ": " + (expected ? "yes" : "no")).c_str());
 		}
 	}
+}
+
+// The signalling step reads the marks of each route by the numbers of its sections, so a route that changed after the numbering
+// throws instead of reading past the numbers.
+void TestOperationsBuilder::signallingRejectsUnnumberedRoutes() {
+	const auto run = std::make_unique<SimulationRun>();
+	RunInfrastructure& infra = run->infra;
+	Route route;
+	route.ID = "R1";
+	route.N_Block_Sections = 3;
+	route.sequence_of_block_sections = boundarySections(route.N_Block_Sections);
+	for (Section& section : route.sequence_of_block_sections) {
+		section.SignallingLevel = 3;
+		section.code = 270;
+	}
+	infra.routes = {route};
+	infra.numRoutes = 1;
+	infra.numberRouteSections();
+	resetSingleTrackLocks(*run);
+	const auto activationError = [&run] {
+		std::string error;
+		try {
+			activateMixedSignallingSystem(*run);
+		} catch (const std::logic_error& thrown) {
+			error = thrown.what();
+		}
+		return error;
+	};
+	// A numbered route passes.
+	QCOMPARE(activationError(), std::string());
+	// A route with other sections than numbers throws and names the route and both counts.
+	infra.routes[0].N_Block_Sections = 2;
+	QCOMPARE(activationError(), std::string("Route R1 (route 0) has 2 sections but 3 section numbers"));
+	// A route added after the numbering throws and names the route and how many routes the numbers cover.
+	infra.routes[0].N_Block_Sections = 3;
+	route.ID = "R2";
+	infra.routes.push_back(route);
+	infra.numRoutes = 2;
+	QCOMPARE(activationError(), std::string("Route R2 (route 1) has no section numbers; the numbers cover 1 of 2 routes"));
 }
 
 // The messages of the rolling stock, passenger and run settings code are messages of the logging core. A sink collects them, because

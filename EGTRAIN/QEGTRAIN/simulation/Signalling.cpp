@@ -5,13 +5,14 @@
 #include "util/Log.h"
 #include "util/PlaybackProfiler.h"
 #include <algorithm>
-#include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
 #include <iterator>
 #include <list>
 #include <memory>
+#include <stdexcept>
+#include <string>
 #include <unordered_set>
 #include <utility>
 
@@ -1530,8 +1531,12 @@ void Route::createRouteFromBlockIds(SimulationRun& run, const std::vector<std::s
 		}
 	}
 
-	// The builder refuses a route of more than RuntimeLimits::kNativeMaxRouteBlocks sections before it creates the routes.
-	assert(BlockList.size() <= RuntimeLimits::kNativeMaxRouteBlocks);
+	// The builder refuses a route of more than RuntimeLimits::kNativeMaxRouteBlocks sections before it creates the routes, so a
+	// longer route is an error of the caller.
+	if (BlockList.size() > RuntimeLimits::kNativeMaxRouteBlocks)
+		throw std::logic_error("Route " + BlockList.front().ID + "->" + BlockList.back().ID + " has "
+			+ std::to_string(BlockList.size()) + " sections, more than the "
+			+ std::to_string(RuntimeLimits::kNativeMaxRouteBlocks) + " a route holds");
 	N_Block_Sections = (int)BlockList.size();
 	if (N_Block_Sections == 0)
 		return;
@@ -2677,12 +2682,18 @@ void markSectionIds(const RunInfrastructure& infra, std::list<std::string>::cons
 	}
 }
 
-// Sets flags[h] to the mark of the ID of section h of route routeIndex. The routes must be numbered since they last changed.
+// Sets flags[h] to the mark of the ID of section h of route routeIndex. The routes must be numbered since they last changed: a route
+// without numbers, or with another number of them than of sections, throws std::logic_error.
 void setRouteFlags(const RunInfrastructure& infra, int routeIndex, const std::vector<char>& marks, std::vector<char>& flags) {
-	assert(static_cast<std::size_t>(routeIndex) < infra.routeSectionNumbers.size()
-		&& infra.routeSectionNumbers[static_cast<std::size_t>(routeIndex)].size()
-			== static_cast<std::size_t>(infra.routes[static_cast<std::size_t>(routeIndex)].N_Block_Sections));
-	const std::vector<int>& numbers = infra.routeSectionNumbers[static_cast<std::size_t>(routeIndex)];
+	const auto r = static_cast<std::size_t>(routeIndex);
+	const Route& route = infra.routes[r];
+	if (r >= infra.routeSectionNumbers.size())
+		throw std::logic_error("Route " + route.ID + " (route " + std::to_string(routeIndex) + ") has no section numbers; the numbers cover "
+			+ std::to_string(infra.routeSectionNumbers.size()) + " of " + std::to_string(infra.routes.size()) + " routes");
+	const std::vector<int>& numbers = infra.routeSectionNumbers[r];
+	if (numbers.size() != static_cast<std::size_t>(route.N_Block_Sections))
+		throw std::logic_error("Route " + route.ID + " (route " + std::to_string(routeIndex) + ") has "
+			+ std::to_string(route.N_Block_Sections) + " sections but " + std::to_string(numbers.size()) + " section numbers");
 	flags.resize(numbers.size());
 	for (std::size_t h = 0; h < numbers.size(); ++h)
 		flags[h] = marks[static_cast<std::size_t>(numbers[h])];
