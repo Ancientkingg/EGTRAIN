@@ -1,5 +1,6 @@
 var NAVTREEINDEX19 =
 {
+"classtelemetry_1_1_telemetry_sender.html#a63aff60ffeeea563d18ef17a5388b88c":[2,0,3,11,2],
 "classtelemetry_1_1_telemetry_sender.html#a6612c1bd64f0598bc2ee2ab337527337":[1,0,14,11,3],
 "classtelemetry_1_1_telemetry_sender.html#a6612c1bd64f0598bc2ee2ab337527337":[2,0,3,11,3],
 "classtelemetry_1_1_telemetry_sender.html#a863f93afda16ffb2bdf5ea474cd3bb65":[1,0,14,11,13],
@@ -248,6 +249,5 @@ var NAVTREEINDEX19 =
 "globals_func_n.html":[3,1,1,13],
 "globals_func_o.html":[3,1,1,14],
 "globals_func_p.html":[3,1,1,15],
-"globals_func_q.html":[3,1,1,16],
-"globals_func_r.html":[3,1,1,17]
+"globals_func_q.html":[3,1,1,16]
 };

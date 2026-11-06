@@ -1,5 +1,6 @@
 var NAVTREEINDEX27 =
 {
+"struct_stable_release.html#aaf1369f85c6cf198197c53887a8b040a":[2,0,311,3],
 "struct_stable_release.html#aaf4edba9dc20babeb7c337dc595723fa":[2,0,311,1],
 "struct_staged_directory.html":[2,0,312],
 "struct_staged_directory.html#a034909ede7df4a39006d4907c7d4af33":[2,0,312,3],
@@ -248,6 +249,5 @@ var NAVTREEINDEX27 =
 "struct_update_package.html#a3a9fcda7a03d2786a6534c4584a749fa":[2,0,368,1],
 "struct_update_preparation_input.html":[2,0,369],
 "struct_update_preparation_input.html#a06dc26c1f7dc3a5ba090c30c019f127d":[2,0,369,2],
-"struct_update_preparation_input.html#a896caac4b4dac913c2b1fc381c7681f8":[2,0,369,4],
-"struct_update_preparation_input.html#ab4750e00d3de2a1937f7676e0a6d16c6":[2,0,369,0]
+"struct_update_preparation_input.html#a896caac4b4dac913c2b1fc381c7681f8":[2,0,369,4]
 };

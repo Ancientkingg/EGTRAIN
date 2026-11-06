@@ -154,6 +154,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a0c87b611dfdbee714133398d548be696"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same as <a class="el" href="#aca7640132abdecc0e086603f73d1d01c" title="The same; no row is selected afterwards when resetSelection is true, as when another scene has been o...">refresh(bool)</a> without the state of the combo and the add button. The facets call it after a change.  <br /></td></tr>
 <tr class="memitem:aa5c4d490988f68fa3f7085752c78e400" id="r_aa5c4d490988f68fa3f7085752c78e400"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa5c4d490988f68fa3f7085752c78e400">updateSelection</a> ()</td></tr>
 <tr class="memdesc:aa5c4d490988f68fa3f7085752c78e400"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the selected row as the selection, tells selectionChanged, and shows the controls that depend on it.  <br /></td></tr>
+<tr class="memitem:ad85b2c876398b024843b4395099916fc" id="r_ad85b2c876398b024843b4395099916fc"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad85b2c876398b024843b4395099916fc">selectCanvasItem</a> (const QString &amp;kind, const QString &amp;id, const QString &amp;platform=QString())</td></tr>
 <tr class="memitem:a372635fb6d8c1c16b14aa9489d21c5f8" id="r_a372635fb6d8c1c16b14aa9489d21c5f8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a372635fb6d8c1c16b14aa9489d21c5f8">refreshBlockTrackFilter</a> ()</td></tr>
 <tr class="memdesc:a372635fb6d8c1c16b14aa9489d21c5f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lists the tracks that blocks can be filtered on again and keeps the chosen track where it still exists.  <br /></td></tr>
 <tr class="memitem:a1cdddd1de7b9b429003b2c6dd9a313f2" id="r_a1cdddd1de7b9b429003b2c6dd9a313f2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1cdddd1de7b9b429003b2c6dd9a313f2">commitCell</a> (int row, int column)</td></tr>
@@ -1411,6 +1412,38 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_ac5d00aae72c6711b880e3fb25f64f90b_cgraph.svg" width="354" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ad85b2c876398b024843b4395099916fc" name="ad85b2c876398b024843b4395099916fc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad85b2c876398b024843b4395099916fc">&#9670;&#160;</a></span>selectCanvasItem()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool InfrastructurePanel::selectCanvasItem </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>kind</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>id</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>platform</em></span><span class="paramdefsep"> = </span><span class="paramdefval">QString()</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Selects the row of the entity that an item of the track preview stands for and scrolls the table to it, choosing its kind in the combo first. <span class="tt">kind</span> and <span class="tt">id</span> are the kind and the id of the item (<a class="el" href="namespace_preview_graphics.html#ab5c908dfa3c9a1a5664ac8a95369fa1faa815b6293885dc7adc9fd0a989eca7cf" title="The kind of item: &quot;track&quot;, &quot;arc&quot;, &quot;connection&quot;, &quot;node&quot;, &quot;station-node&quot;, &quot;station&quot; or &quot;signal&quot;.">PreviewGraphics::Kind</a> and Id), and <span class="tt">platform</span> is the platform of a station node (<a class="el" href="namespace_preview_graphics.html#ab5c908dfa3c9a1a5664ac8a95369fa1fa3fafc5355ebbaefacf9c83c15618249d" title="On a station node: the id of its platform, empty without one.">PreviewGraphics::PlatformId</a>). A node, a track, an arc, a connection and a station are rows of their own kind. A station node is the row of its platform under Platforms, or its row under Nodes when it has no platform. A signal head names a section, and is the row of the block of that section under Blocks, whose track the filter then shows. The cells that are being edited are taken first (<a class="el" href="#a97abf3cc2e21bd76b6cd282d75da1176">commitPendingEditors()</a>). selectionChanged is told once, or not at all when the row was selected already. Returns false and changes nothing while the scene cannot be edited, and for an item of another kind or whose entity the scene does not have. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_ad85b2c876398b024843b4395099916fc_cgraph.svg" width="1116" height="980"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

@@ -44,6 +44,7 @@ var class_infrastructure_panel =
     [ "routeSectionDetailWidget", "class_infrastructure_panel.html#a13b84b6e2bd60f61bce84593c38c99b8", null ],
     [ "routeSectionListWidget", "class_infrastructure_panel.html#ae13fa2f74136f2faf44d6936dd7d80c9", null ],
     [ "sectionLabel", "class_infrastructure_panel.html#ac5d00aae72c6711b880e3fb25f64f90b", null ],
+    [ "selectCanvasItem", "class_infrastructure_panel.html#ad85b2c876398b024843b4395099916fc", null ],
     [ "selectedRouteSection", "class_infrastructure_panel.html#a242281619a73c633c0c7a89419879025", null ],
     [ "selectionChanged", "class_infrastructure_panel.html#a9b4bd64176552b66de1c20d4e5dec616", null ],
     [ "selectionId", "class_infrastructure_panel.html#a48e660dd5588d81e184553cff6545be8", null ],
