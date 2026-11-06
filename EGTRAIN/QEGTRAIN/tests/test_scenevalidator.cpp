@@ -4,10 +4,13 @@
 #include "scene/SignallingLevel.h"
 #include "scene/RuntimeLimits.h"
 #include "scene/SceneFields.h"
+#include "scene/SceneWriter.h"
 
 // The Qt headers come before the undef: Qt defines `signals`, and the scene model has a member of that name.
 #include <QByteArray>
+#include <QDir>
 #include <QString>
+#include <QTemporaryDir>
 #include <QTest>
 #ifdef signals
 #undef signals
@@ -705,6 +708,7 @@ private slots:
 	void validatesHistoricalFixture();
 	void reportsMissingSceneDirectory();
 	void formatsDialogText();
+	void namesIncompleteEntries();
 };
 
 void TestSceneValidator::completeSceneValidates() {
@@ -2833,6 +2837,106 @@ void TestSceneValidator::formatsDialogText() {
 	dialogDiagnostic.suggestedFix = "Choose a route";
 	// A diagnostic with a fix shows the fix as a second paragraph.
 	QCOMPARE(toDialogText(dialogDiagnostic), "Service s1 has no route\n\nChoose a route");
+}
+
+// The entries that the editors add before their references are chosen save and load, so validation is what reports
+// them: each by name, with the fix to choose the reference, before a run, in Case Validation and in scene_tool validate,
+// which reads the folder as validateSceneDirectory and, with --runnable, validateRunnableSceneDirectory do.
+void TestSceneValidator::namesIncompleteEntries() {
+	SceneModel scene = completeScene();
+	SceneService service;
+	service.id = "new_service";
+	scene.services.push_back(service);
+	SceneIncident incident;
+	incident.id = "new_incident";
+	incident.type = "signal_failure";
+	incident.hasEndSeconds = true;
+	scene.scenarios[0].incidents.push_back(incident);
+	scene.blockDependencies.push_back({});
+	scene.singleTrackRestrictions.push_back({});
+	scene.stationBoundaries.push_back({});
+	scene.nodes.push_back({"new_node", "", 0.0, 0.0});
+	scene.arcs.push_back({"new_arc", "", "", "", 0.0, 0.0, 40.0});
+	scene.connections.push_back({"new_connection", "", "", false, 0.0});
+	scene.scenarios[0].entranceDelays.push_back({"", 1, "", 0.0});
+	ScenePassengerJourney journey;
+	journey.id = "new_journey";
+	journey.legs.push_back({"new_leg", "", "", "", 1});
+	scene.passengers[0].journeys.push_back(journey);
+
+	const std::set<std::pair<std::string, std::string>> expected = {
+		{"Node new_node has no track", "Choose the track"},
+		{"Arc new_arc has no track", "Choose the track"},
+		{"Arc new_arc has no start node", "Choose the start node"},
+		{"Arc new_arc has no end node", "Choose the end node"},
+		{"Connection new_connection has no start node", "Choose the start node"},
+		{"Connection new_connection has no end node", "Choose the end node"},
+		{"Block dependency 1 has no block", "Choose the block"},
+		{"Block dependency 1 has no section it depends on", "Choose the section it depends on"},
+		{"Single-track restriction 1 has no start section", "Choose the start section"},
+		{"Single-track restriction 1 has no end section", "Choose the end section"},
+		{"Single-track restriction 1 has no protected start section", "Choose the protected start section"},
+		{"Single-track restriction 1 has no protected end section", "Choose the protected end section"},
+		{"Station boundary 1 has no entrance section", "Choose the entrance section"},
+		{"Service new_service has no composition", "Choose the composition"},
+		{"Service new_service has no route", "Choose the route"},
+		{"Incident new_incident has no target", "Choose the target"},
+		{"Entrance delay 2 has no service", "Choose the service"},
+		{"Entrance delay 2 has no station", "Choose the station"},
+		{"Journey new_journey has no origin station", "Choose the origin station"},
+		{"Journey new_journey has no destination station", "Choose the destination station"},
+		{"Passenger leg new_leg has no origin station", "Choose the origin station"},
+		{"Passenger leg new_leg has no destination station", "Choose the destination station"},
+		{"Passenger leg new_leg has no service", "Choose the service"},
+	};
+	// The messages and fixes of the unresolved references among diagnostics, each an error.
+	const auto unresolved = [](const std::vector<SceneDiagnostic>& diagnostics) {
+		std::set<std::pair<std::string, std::string>> found;
+		for (const SceneDiagnostic& diagnostic : diagnostics) {
+			if (diagnostic.code == "scene.ref.unresolved" && diagnostic.severity == SceneSeverity::Error)
+				found.emplace(diagnostic.message, diagnostic.suggestedFix);
+		}
+		return found;
+	};
+	const auto report = [](const std::set<std::pair<std::string, std::string>>& found) {
+		std::string text;
+		for (const auto& entry : found)
+			text += "\n" + entry.first + " / " + entry.second;
+		return text;
+	};
+	// Before a run and in Case Validation.
+	const auto runnable = unresolved(validateRunnableScene(scene));
+	QVERIFY2(runnable == expected, report(runnable).c_str());
+	// In scene_tool validate without --runnable.
+	QVERIFY(unresolved(validateScene(scene)) == expected);
+	// The diagnostic has the file and the path of the reference, and no related id.
+	const std::vector<SceneDiagnostic> semantic = validateScene(scene);
+	const auto found = std::find_if(semantic.begin(), semantic.end(),
+		[](const SceneDiagnostic& diagnostic) { return diagnostic.message == "Service new_service has no composition"; });
+	QVERIFY(found != semantic.end());
+	QCOMPARE(found->file, "services.json");
+	QCOMPARE(found->path, "services[new_service].composition");
+	QCOMPARE(found->itemId, "new_service");
+	QVERIFY(found->relatedId.empty());
+
+	// A saved folder of the case loads, and scene_tool validate reads it the same way.
+	QTemporaryDir temp;
+	QVERIFY(temp.isValid());
+	const std::string folder = QDir(temp.path()).filePath("incomplete").toStdString();
+	QVERIFY(saveScene(scene, folder).success());
+	QVERIFY(!hasErrors(validateSceneStructure(folder)));
+	QVERIFY(unresolved(validateSceneDirectory(folder)) == expected);
+	QVERIFY(unresolved(validateRunnableSceneDirectory(folder)) == expected);
+
+	// A reference to an entry that does not exist keeps its own message, with the reference as the related id.
+	scene.services.back().composition = "gone";
+	const std::vector<SceneDiagnostic> unknown = validateScene(scene);
+	const auto gone = std::find_if(unknown.begin(), unknown.end(), [](const SceneDiagnostic& diagnostic) {
+		return diagnostic.path == "services[new_service].composition";
+	});
+	QVERIFY(gone != unknown.end());
+	QCOMPARE(gone->message, "Service refers to unknown composition");
+	QCOMPARE(gone->relatedId, "gone");
 }
 
 QTEST_APPLESS_MAIN(TestSceneValidator)

@@ -980,6 +980,18 @@ The loader accepts these historical forms when the preferred key is absent;
 `loaded_data` is runtime metadata, not an editable source section. `views.json`
 is display-only.
 
+A reference that an editor leaves empty until it is chosen is written as an
+empty string, and the loader accepts it: the `composition` and `route` of a
+service, the `target` of an incident, the `block` and `depends_on` of a block
+dependency, the four blocks of a single-track restriction, the
+`entrance_block` of a station boundary, the `track` of a node, the `track`,
+`from` and `to` of an arc, the `from` and `to` of a connection, the `service`
+and `station` of an entrance delay, the `origin` and `destination` of a
+passenger journey, and the `origin`, `destination` and `service` of a leg. A
+missing key is still an error. Semantic validation reports the empty reference
+as `scene.ref.unresolved` with the entry named, such as `Service new_service
+has no composition`, so the case cannot run until the reference is chosen.
+
 The editor and simulator use canonical data directly. `legacy/` is not a V1
 scene requirement; import and export are explicit interoperability actions.
 

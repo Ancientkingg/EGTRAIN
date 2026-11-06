@@ -1573,7 +1573,7 @@ void TestSceneImporter::reportsMalformedScenarioItems() {
 		json scenario = {{"id", "s"}, {"name", "n"}, {"incidents", incidents}, {"entrance_delays", entranceDelays}};
 		return json({{"default_scenario_id", "s"}, {"scenarios", json::array({scenario})}});
 	};
-	const json wrongTypes = {{"id", "i"}, {"type", 5}, {"target", ""}, {"start_seconds", "a"}, {"end_seconds", "b"},
+	const json wrongTypes = {{"id", "i"}, {"type", 5}, {"target", 6}, {"start_seconds", "a"}, {"end_seconds", "b"},
 		{"occurrence", 1.5}, {"reduced_speed_kmh", true}, {"terminate_at_destination", "c"}};
 	// The keys of wrongTypes that are reported, in the order of the schema.
 	const std::vector<const char*> wrongTypeKeys = {"type", "target", "start_seconds", "end_seconds", "occurrence",

@@ -13,6 +13,11 @@ using json = nlohmann::json;
 
 namespace {
 
+// A reference that an editor leaves empty until it is chosen, such as the composition of a new service, the target of a new
+// incident or the sections of a new block dependency. The reader takes it, so that a save loads what it wrote, and
+// validation reports the entry that lacks it.
+constexpr SceneFieldReader::Empty kUnchosen = SceneFieldReader::Empty::Allowed;
+
 std::string joinPath(const std::string& parent, const std::string& key) {
 	return parent.empty() ? key : parent + "." + key;
 }
@@ -50,9 +55,9 @@ ScenePassengerLeg decodePassengerLeg(const SceneFieldReader& reader, const json&
 	ScenePassengerLeg leg;
 	rejectResultFields(reader, value, path);
 	reader.stringField(value, "id", path, leg.id);
-	reader.stringField(value, "origin", path, leg.originStationId);
-	reader.stringField(value, "destination", path, leg.destinationStationId);
-	reader.stringField(value, "service", path, leg.serviceId);
+	reader.stringField(value, "origin", path, leg.originStationId, true, kUnchosen);
+	reader.stringField(value, "destination", path, leg.destinationStationId, true, kUnchosen);
+	reader.stringField(value, "service", path, leg.serviceId, true, kUnchosen);
 	reader.integerField(value, "occurrence", path, leg.occurrence, false);
 	return leg;
 }
@@ -62,8 +67,8 @@ ScenePassengerJourney decodePassengerJourney(const SceneFieldReader& reader, con
 	rejectResultFields(reader, value, path);
 	reader.stringField(value, "id", path, journey.id);
 	reader.stringField(value, "activity", path, journey.activity, false);
-	reader.stringField(value, "origin", path, journey.originStationId);
-	reader.stringField(value, "destination", path, journey.destinationStationId);
+	reader.stringField(value, "origin", path, journey.originStationId, true, kUnchosen);
+	reader.stringField(value, "destination", path, journey.destinationStationId, true, kUnchosen);
 	decodeWindow(reader, value, "planned_departure", path, journey.plannedDepartureStartSeconds,
 		journey.plannedDepartureEndSeconds);
 	decodeWindow(reader, value, "planned_arrival", path, journey.plannedArrivalStartSeconds,
@@ -200,7 +205,7 @@ SceneIncident decodeIncident(const SceneFieldReader& reader, const json& value, 
 	SceneIncident incident;
 	reader.stringField(value, "id", path, incident.id);
 	reader.stringField(value, "type", path, incident.type);
-	reader.stringField(value, "target", path, incident.target);
+	reader.stringField(value, "target", path, incident.target, true, kUnchosen);
 	reader.numberField(value, "start_seconds", path, incident.startSeconds);
 	incident.hasEndSeconds = reader.numberField(value, "end_seconds", path, incident.endSeconds, false);
 	incident.hasOccurrence = reader.integerField(value, "occurrence", path, incident.occurrence, false);
@@ -211,9 +216,9 @@ SceneIncident decodeIncident(const SceneFieldReader& reader, const json& value, 
 
 SceneEntranceDelay decodeEntranceDelay(const SceneFieldReader& reader, const json& value, const std::string& path) {
 	SceneEntranceDelay delay;
-	reader.stringField(value, "service", path, delay.serviceId);
+	reader.stringField(value, "service", path, delay.serviceId, true, kUnchosen);
 	reader.integerField(value, "occurrence", path, delay.occurrence, false);
-	reader.stringField(value, "station", path, delay.stationId);
+	reader.stringField(value, "station", path, delay.stationId, true, kUnchosen);
 	reader.numberField(value, "delay_seconds", path, delay.delaySeconds);
 	return delay;
 }
@@ -344,7 +349,7 @@ void decodeInfrastructure(const SceneFieldReader& reader, const json& root, Scen
 			SceneNode node;
 			reader.stringField(root["nodes"][index], "id", path, node.id);
 			reader.stringField(root["nodes"][index], "track", path,
-				node.trackId);
+				node.trackId, true, kUnchosen);
 			reader.numberField(root["nodes"][index], "x_km", path,
 				node.xKm);
 			reader.numberField(root["nodes"][index], "y_km", path,
@@ -358,11 +363,11 @@ void decodeInfrastructure(const SceneFieldReader& reader, const json& root, Scen
 			SceneArc arc;
 			reader.stringField(root["arcs"][index], "id", path, arc.id);
 			reader.stringField(root["arcs"][index], "track", path,
-				arc.trackId);
+				arc.trackId, true, kUnchosen);
 			reader.stringField(root["arcs"][index], "from", path,
-				arc.fromNodeId);
+				arc.fromNodeId, true, kUnchosen);
 			reader.stringField(root["arcs"][index], "to", path,
-				arc.toNodeId);
+				arc.toNodeId, true, kUnchosen);
 			reader.numberField(root["arcs"][index], "curvature_radius_m",
 				path, arc.curvatureRadiusM);
 			reader.numberField(root["arcs"][index], "gradient_percent",
@@ -392,9 +397,9 @@ void decodeInfrastructure(const SceneFieldReader& reader, const json& root, Scen
 			reader.stringField(root["connections"][index], "id", path,
 				connection.id);
 			reader.stringField(root["connections"][index], "from", path,
-				connection.fromNodeId);
+				connection.fromNodeId, true, kUnchosen);
 			reader.stringField(root["connections"][index], "to", path,
-				connection.toNodeId);
+				connection.toNodeId, true, kUnchosen);
 			connection.hasSpeedLimit = reader.numberField(root["connections"][index],
 				"speed_limit_ms", path, connection.speedLimitMs, false);
 			scene.connections.push_back(connection);
@@ -659,9 +664,9 @@ void decodeSignalling(const SceneFieldReader& reader, const json& root, SceneMod
 			const std::string path = "block_dependencies[" + std::to_string(index) + "]";
 			SceneBlockDependency dependency;
 			reader.stringField(root["block_dependencies"][index], "block", path,
-				dependency.block);
+				dependency.block, true, kUnchosen);
 			reader.stringField(root["block_dependencies"][index], "depends_on",
-				path, dependency.dependsOn);
+				path, dependency.dependsOn, true, kUnchosen);
 			scene.blockDependencies.push_back(dependency);
 		}
 	}
@@ -670,12 +675,12 @@ void decodeSignalling(const SceneFieldReader& reader, const json& root, SceneMod
 			const std::string path = "single_track_restrictions[" + std::to_string(index) + "]";
 			const json& value = root["single_track_restrictions"][index];
 			SceneSingleTrackRestriction restriction;
-			reader.stringField(value, "start_block", path, restriction.startBlock);
-			reader.stringField(value, "end_block", path, restriction.endBlock);
+			reader.stringField(value, "start_block", path, restriction.startBlock, true, kUnchosen);
+			reader.stringField(value, "end_block", path, restriction.endBlock, true, kUnchosen);
 			reader.stringField(value, "protected_start_block", path,
-				restriction.protectedStartBlock);
+				restriction.protectedStartBlock, true, kUnchosen);
 			reader.stringField(value, "protected_end_block", path,
-				restriction.protectedEndBlock);
+				restriction.protectedEndBlock, true, kUnchosen);
 			scene.singleTrackRestrictions.push_back(restriction);
 		}
 	}
@@ -684,7 +689,7 @@ void decodeSignalling(const SceneFieldReader& reader, const json& root, SceneMod
 			const std::string path = "station_boundaries[" + std::to_string(index) + "]";
 			const json& value = root["station_boundaries"][index];
 			SceneStationBoundary boundary;
-			reader.stringField(value, "entrance_block", path, boundary.entranceBlock);
+			reader.stringField(value, "entrance_block", path, boundary.entranceBlock, true, kUnchosen);
 			boundary.hasExitBlock = reader.stringField(value, "exit_block", path,
 				boundary.exitBlock, false);
 			if (value.contains("direction")) {
@@ -800,8 +805,8 @@ void decodeServices(const SceneFieldReader& reader, const json& root, SceneModel
 		reader.stringField(value, "operating_code", path, service.operatingCode, false);
 		reader.stringField(value, "category", path, service.category, false);
 		reader.stringField(value, "visualization_color", path, service.visualizationColor, false);
-		reader.stringField(value, "composition", path, service.composition);
-		reader.stringField(value, "route", path, service.route);
+		reader.stringField(value, "composition", path, service.composition, true, kUnchosen);
+		reader.stringField(value, "route", path, service.route, true, kUnchosen);
 		reader.numberField(value, "performance_percent", path,
 			service.performancePercent, false);
 		service.hasMaximumSpeed = reader.numberField(value, "maximum_speed_kmh", path,

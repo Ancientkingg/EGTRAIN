@@ -237,6 +237,7 @@ private slots:
 	void initTestCase();
 	void extractionCleanup();
 	void newSceneRoundTrip();
+	void incompleteEntriesRoundTrip();
 	void signallingAreaRoundTrip();
 	void unicodePaths();
 	void unreadablePaths();
@@ -375,6 +376,35 @@ void TestSceneBundle::newSceneRoundTrip() {
 }
 
 // Every level from 0 to 5, with and without a track, in file order.
+// A new case with a service from Add Service, which has no composition and no route yet, and an incident from Add
+// Incident, which has no target yet, saves to a bundle and loads back with the empty references.
+void TestSceneBundle::incompleteEntriesRoundTrip() {
+	SceneModel scene = makeNewSceneModel();
+	SceneService service;
+	service.id = "new_service";
+	scene.services.push_back(service);
+	SceneIncident incident;
+	incident.id = "new_incident";
+	incident.type = "signal_failure";
+	incident.hasEndSeconds = true;
+	defaultScenarioIncidents(scene).push_back(incident);
+	TempDir temp;
+	const fs::path bundle = temp.path / "incomplete.egscene";
+	const SceneSaveResult saved = saveSceneBundle(scene, bundle.string());
+	for (const SceneDiagnostic& diagnostic : saved.diagnostics)
+		qWarning("%s", toDisplayText(diagnostic).c_str());
+	QVERIFY2(saved.success(), "a bundle with entries whose references are not chosen saves");
+	const SceneLoadResult loaded = loadSceneBundle(bundle.string());
+	QVERIFY(!hasErrors(loaded.diagnostics));
+	QCOMPARE(loaded.scene.services.size(), std::size_t(1));
+	QCOMPARE(loaded.scene.services[0].id, "new_service");
+	QVERIFY(loaded.scene.services[0].composition.empty());
+	QVERIFY(loaded.scene.services[0].route.empty());
+	QCOMPARE(defaultScenarioIncidents(loaded.scene).size(), std::size_t(1));
+	QCOMPARE(defaultScenarioIncidents(loaded.scene)[0].id, "new_incident");
+	QVERIFY(defaultScenarioIncidents(loaded.scene)[0].target.empty());
+}
+
 void TestSceneBundle::signallingAreaRoundTrip() {
 	SceneModel expected = makeNewSceneModel();
 	expected.tracks = {{"area-track-a"}, {"area-track-b"}};
