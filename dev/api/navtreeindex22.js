@@ -1,5 +1,7 @@
 var NAVTREEINDEX22 =
 {
+"struct_case_chooser_dialog_1_1_options.html#a717d7a14f73af415a3170b32cdd82a52":[2,0,44,0,1],
+"struct_case_chooser_dialog_1_1_options.html#a877d0ff6822c93b80917d03e394bd851":[2,0,44,0,2],
 "struct_case_chooser_dialog_1_1_options.html#abd33b5f0ea54d4801b2c4dfa83065f57":[2,0,44,0,3],
 "struct_command_line_option.html":[2,0,48],
 "struct_command_line_option.html#a66aa3a1b5e41d3d04c755e88220c725a":[2,0,48,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX22 =
 "struct_gui_signal_state.html":[2,0,99],
 "struct_gui_signal_state.html#a0d00824504ced6f21971d0ebab4c4c9c":[2,0,99,4],
 "struct_gui_signal_state.html#a275f7955d23196ae6989b668a4e49fed":[2,0,99,2],
-"struct_gui_signal_state.html#a6240f8cd0b1f4c22befdb4d47e4e4ad6":[2,0,99,3],
-"struct_gui_signal_state.html#ab6711034a40529aaad3f46f27151f938":[2,0,99,1],
-"struct_gui_signal_state.html#ae5eb6c8d9d1488352138159d4f6d92ec":[2,0,99,0]
+"struct_gui_signal_state.html#a6240f8cd0b1f4c22befdb4d47e4e4ad6":[2,0,99,3]
 };

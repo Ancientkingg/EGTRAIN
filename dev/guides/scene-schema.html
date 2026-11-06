@@ -1364,6 +1364,17 @@ file pair and keeps unresolved references visible for correction or deletion.</p
 <p><code class="docutils literal notranslate"><span class="pre">Save</span></code> writes the canonical files and removes stale flat incident data.
 <code class="docutils literal notranslate"><span class="pre">loaded_data</span></code> is runtime metadata, not an editable source section. <code class="docutils literal notranslate"><span class="pre">views.json</span></code>
 is display-only.</p>
+<p>A reference that an editor leaves empty until it is chosen is written as an
+empty string, and the loader accepts it: the <code class="docutils literal notranslate"><span class="pre">composition</span></code> and <code class="docutils literal notranslate"><span class="pre">route</span></code> of a
+service, the <code class="docutils literal notranslate"><span class="pre">target</span></code> of an incident, the <code class="docutils literal notranslate"><span class="pre">block</span></code> and <code class="docutils literal notranslate"><span class="pre">depends_on</span></code> of a block
+dependency, the four blocks of a single-track restriction, the
+<code class="docutils literal notranslate"><span class="pre">entrance_block</span></code> of a station boundary, the <code class="docutils literal notranslate"><span class="pre">track</span></code> of a node, the <code class="docutils literal notranslate"><span class="pre">track</span></code>,
+<code class="docutils literal notranslate"><span class="pre">from</span></code> and <code class="docutils literal notranslate"><span class="pre">to</span></code> of an arc, the <code class="docutils literal notranslate"><span class="pre">from</span></code> and <code class="docutils literal notranslate"><span class="pre">to</span></code> of a connection, the <code class="docutils literal notranslate"><span class="pre">service</span></code>
+and <code class="docutils literal notranslate"><span class="pre">station</span></code> of an entrance delay, the <code class="docutils literal notranslate"><span class="pre">origin</span></code> and <code class="docutils literal notranslate"><span class="pre">destination</span></code> of a
+passenger journey, and the <code class="docutils literal notranslate"><span class="pre">origin</span></code>, <code class="docutils literal notranslate"><span class="pre">destination</span></code> and <code class="docutils literal notranslate"><span class="pre">service</span></code> of a leg. A
+missing key is still an error. Semantic validation reports the empty reference
+as <code class="docutils literal notranslate"><span class="pre">scene.ref.unresolved</span></code> with the entry named, such as <code class="docutils literal notranslate"><span class="pre">Service</span> <span class="pre">new_service</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">composition</span></code>, so the case cannot run, and <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">export</span></code> writes no
+legacy files for it, until the reference is chosen.</p>
 <p>The editor and simulator use canonical data directly. <code class="docutils literal notranslate"><span class="pre">legacy/</span></code> is not a V1
 scene requirement; import and export are explicit interoperability actions.</p>
 <p>Use the three validation layers before running:</p>

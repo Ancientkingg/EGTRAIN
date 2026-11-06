@@ -112,12 +112,15 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_editor_helper
   <div class="headertitle"><div class="title">EditorHelpers.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_scene_document_8h_source.html">editors/SceneDocument.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_count_text_8h_source.html">editors/CountText.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_document_8h_source.html">editors/SceneDocument.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_scene_diagnostic_8h_source.html">scene/SceneDiagnostic.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_compact_double_spin_box_8h_source.html">widgets/CompactDoubleSpinBox.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_display_path_8h_source.html">widgets/DisplayPath.h</a>&quot;</code><br />
 <code>#include &lt;QApplication&gt;</code><br />
 <code>#include &lt;QDoubleSpinBox&gt;</code><br />
 <code>#include &lt;QString&gt;</code><br />
+<code>#include &lt;QStringList&gt;</code><br />
 <code>#include &lt;QWidget&gt;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;cmath&gt;</code><br />
@@ -127,12 +130,12 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_editor_helper
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for EditorHelpers.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_editor_helpers_8h__incl.svg" width="2314" height="359"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_editor_helpers_8h__incl.svg" width="2451" height="359"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_editor_helpers_8h__dep__incl.svg" width="2110" height="131"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_editor_helpers_8h__dep__incl.svg" width="2243" height="131"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div>
 <p><a href="_editor_helpers_8h_source.html">Go to the source code of this file.</a></p>
@@ -146,9 +149,41 @@ Functions</h2></td></tr>
 <tr class="memdesc:a09e73f87cbcd282d2bcc9f19ada160f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">The first error among the diagnostics, else the first diagnostic, else null.  <br /></td></tr>
 <tr class="memitem:af5d748ce89a9d10eb322c5790818782e" id="r_af5d748ce89a9d10eb322c5790818782e"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#af5d748ce89a9d10eb322c5790818782e">firstDiagnosticDialogText</a> (const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;diagnostics)</td></tr>
 <tr class="memdesc:af5d748ce89a9d10eb322c5790818782e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The message and the fix of firstDiagnostic, for a dialog; empty without a diagnostic.  <br /></td></tr>
+<tr class="memitem:a08147d49f9a25c257e89efc194f7a7a2" id="r_a08147d49f9a25c257e89efc194f7a7a2"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a08147d49f9a25c257e89efc194f7a7a2">diagnosticsDialogText</a> (const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;diagnostics)</td></tr>
 <tr class="memitem:ad62f2e54a7087b05ffde1ecd81112a79" id="r_ad62f2e54a7087b05ffde1ecd81112a79"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ad62f2e54a7087b05ffde1ecd81112a79">generatedServiceLabel</a> (const <a class="el" href="struct_scene_service.html">SceneService</a> &amp;service, int occurrence)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="a08147d49f9a25c257e89efc194f7a7a2" name="a08147d49f9a25c257e89efc194f7a7a2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a08147d49f9a25c257e89efc194f7a7a2">&#9670;&#160;</a></span>diagnosticsDialogText()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString diagnosticsDialogText </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>diagnostics</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The text for a box about <span class="tt">diagnostics</span>: the dialog text of each of the first errors, or of the first diagnostics when none is an error, with the file it is about when the message does not name it and the path in that file, then the count of the rest. Empty without a diagnostic. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_editor_helpers_8h_a08147d49f9a25c257e89efc194f7a7a2_cgraph.svg" width="602" height="215"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="ac3f2707f5e0b31ca949621b5ac3ea111" name="ac3f2707f5e0b31ca949621b5ac3ea111"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac3f2707f5e0b31ca949621b5ac3ea111">&#9670;&#160;</a></span>exactNumberEdit()</h2>
 

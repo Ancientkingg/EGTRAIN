@@ -1,5 +1,6 @@
 var NAVTREEINDEX2 =
 {
+"_infrastructure_panel_8cpp.html":[3,0,3,13],
 "_infrastructure_panel_8h.html":[3,0,3,14],
 "_infrastructure_panel_8h_source.html":[3,0,3,14],
 "_initial_parameters_8cpp.html":[3,0,8,4],
@@ -248,6 +249,5 @@ var NAVTREEINDEX2 =
 "_release_notes_text_8h.html":[3,0,0,21],
 "_release_notes_text_8h.html#a67dd6d6519097a505626643b25a4465b":[3,0,0,21,1],
 "_release_notes_text_8h.html#accf1a980e35823345938ac3d43dd21d5":[3,0,0,21,0],
-"_release_notes_text_8h_source.html":[3,0,0,21],
-"_replay_coverage_8h.html":[3,0,0,22]
+"_release_notes_text_8h_source.html":[3,0,0,21]
 };

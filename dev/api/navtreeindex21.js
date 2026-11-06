@@ -1,5 +1,7 @@
 var NAVTREEINDEX21 =
 {
+"struct_area_capacity_input.html#a16f00238417c9c152f5ad722b3372577":[2,0,7,1],
+"struct_area_capacity_input.html#a5c3f6af9d086d0bb4e471297ae91ec76":[2,0,7,4],
 "struct_area_capacity_input.html#a603f1bc5119583eebcc13f49e0b29b7f":[2,0,7,2],
 "struct_area_capacity_input.html#aa7c06c8ec8bca026bbf6ce735b2ae336":[2,0,7,0],
 "struct_area_capacity_input.html#ad5c2a5754a6b40a82affcea0c24bf8cf":[2,0,7,3],
@@ -247,7 +249,5 @@ var NAVTREEINDEX21 =
 "struct_capacity_pair_row.html#aa2dd6cad91e321f347323c456d2aaefa":[2,0,42,4],
 "struct_capacity_pair_row.html#aeb3254007c59432c5adcea78c54ea1f0":[2,0,42,7],
 "struct_case_chooser_dialog_1_1_options.html":[2,0,44,0],
-"struct_case_chooser_dialog_1_1_options.html#a63464bb952e1aedbc0c05aa1358c40b7":[2,0,44,0,0],
-"struct_case_chooser_dialog_1_1_options.html#a717d7a14f73af415a3170b32cdd82a52":[2,0,44,0,1],
-"struct_case_chooser_dialog_1_1_options.html#a877d0ff6822c93b80917d03e394bd851":[2,0,44,0,2]
+"struct_case_chooser_dialog_1_1_options.html#a63464bb952e1aedbc0c05aa1358c40b7":[2,0,44,0,0]
 };

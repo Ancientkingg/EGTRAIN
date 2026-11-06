@@ -382,9 +382,9 @@
 <li><p>Fix the first error in the editor that matches its <strong>File</strong> and <strong>Path</strong> (menu <strong>Editors</strong>), and read the table again. It updates after each edit.</p></li>
 <li><p>Repeat until no error is left. <strong>Run</strong> is then enabled.</p></li>
 </ol>
-<p>You can save a case that has errors. Warnings do not stop a run, but read them: the dialog <strong>Run simulation</strong> repeats the one about route sections that have no signalling level. Examples of errors and their usual fixes:</p>
+<p>You can save a case that has errors, also one with a new service, incident or row whose references you have not chosen yet; the table names that entry, such as <code class="docutils literal notranslate"><span class="pre">Service</span> <span class="pre">new_service</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">composition</span></code>. Warnings do not stop a run, but read them: the dialog <strong>Run simulation</strong> repeats the one about route sections that have no signalling level. Examples of errors and their usual fixes:</p>
 <ul class="simple">
-<li><p>A service names a composition or a route that does not exist. Choose an existing one in <strong>Services</strong>, or add the missing record.</p></li>
+<li><p>A service has no composition or route, or names one that does not exist. Choose an existing one in <strong>Services</strong>, or add the missing record.</p></li>
 <li><p>A stop names a platform that the route does not reach, or the stops are out of route order. Correct the stop on the tab <strong>Timetable</strong> of <strong>Services</strong>.</p></li>
 <li><p>A rolling stock unit has no traction rows, or its rows overlap, are out of order or have a lower speed that is not below the upper speed. Correct them in <strong>Rolling Stock Units</strong>.</p></li>
 </ul>

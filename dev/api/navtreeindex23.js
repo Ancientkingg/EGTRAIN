@@ -1,5 +1,7 @@
 var NAVTREEINDEX23 =
 {
+"struct_gui_signal_state.html#ab6711034a40529aaad3f46f27151f938":[2,0,99,1],
+"struct_gui_signal_state.html#ae5eb6c8d9d1488352138159d4f6d92ec":[2,0,99,0],
 "struct_gui_simulation_snapshot.html":[2,0,101],
 "struct_gui_simulation_snapshot.html#a00c152ab6525ebf6defc35a61588056b":[2,0,101,1],
 "struct_gui_simulation_snapshot.html#a0fde0120f11f7ac6f708640a3b1a362d":[2,0,101,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX23 =
 "struct_recovery_source.html#ad1757f2ab119513e389f1572b2b78650":[2,0,169,0],
 "struct_release_asset.html":[2,0,171],
 "struct_release_asset.html#a7fc8a71f2b84597e57fb94762939a874":[2,0,171,0],
-"struct_release_asset.html#ab061af10347e21e83985b417c15eb9f4":[2,0,171,1],
-"struct_replay_bar_text.html":[2,0,172],
-"struct_replay_bar_text.html#a12940b26428ce59196bf857cf55a7a65":[2,0,172,3]
+"struct_release_asset.html#ab061af10347e21e83985b417c15eb9f4":[2,0,171,1]
 };

@@ -1,5 +1,6 @@
 var _editor_helpers_8h =
 [
+    [ "diagnosticsDialogText", "_editor_helpers_8h.html#a08147d49f9a25c257e89efc194f7a7a2", null ],
     [ "exactNumberEdit", "_editor_helpers_8h.html#ac3f2707f5e0b31ca949621b5ac3ea111", null ],
     [ "firstDiagnostic", "_editor_helpers_8h.html#a09e73f87cbcd282d2bcc9f19ada160f9", null ],
     [ "firstDiagnosticDialogText", "_editor_helpers_8h.html#af5d748ce89a9d10eb322c5790818782e", null ],

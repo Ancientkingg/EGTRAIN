@@ -1,5 +1,7 @@
 var NAVTREEINDEX20 =
 {
+"index.html":[],
+"index.html":[0],
 "main_8cpp.html":[3,0,0,13],
 "main_8cpp.html#a02c66329a4f32c18e5cabfeeb405fb3e":[3,0,0,13,12],
 "main_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97":[3,0,0,13,10],
@@ -247,7 +249,5 @@ var NAVTREEINDEX20 =
 "pages.html":[],
 "portability_8h.html":[3,0,11,6],
 "portability_8h_source.html":[3,0,11,6],
-"struct_area_capacity_input.html":[2,0,7],
-"struct_area_capacity_input.html#a16f00238417c9c152f5ad722b3372577":[2,0,7,1],
-"struct_area_capacity_input.html#a5c3f6af9d086d0bb4e471297ae91ec76":[2,0,7,4]
+"struct_area_capacity_input.html":[2,0,7]
 };

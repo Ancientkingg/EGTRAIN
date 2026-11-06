@@ -1,5 +1,7 @@
 var NAVTREEINDEX19 =
 {
+"classtelemetry_1_1_telemetry_sender_1_1_operation_token.html#a5fea3af9af185876667484f95534fbbe":[2,0,3,11,0,1],
+"classtelemetry_1_1_telemetry_sender_1_1_operation_token.html#aaf833edbae6e26da698eb0599dd75245":[1,0,14,11,0,0],
 "classtelemetry_1_1_telemetry_sender_1_1_operation_token.html#aaf833edbae6e26da698eb0599dd75245":[2,0,3,11,0,0],
 "classtelemetry_1_1_worker.html":[1,0,14,13],
 "classtelemetry_1_1_worker.html":[2,0,3,13],
@@ -247,7 +249,5 @@ var NAVTREEINDEX19 =
 "globals_v.html":[3,1,0,22],
 "globals_vars.html":[3,1,2],
 "globals_w.html":[3,1,0,23],
-"hierarchy.html":[2,2],
-"index.html":[],
-"index.html":[0]
+"hierarchy.html":[2,2]
 };

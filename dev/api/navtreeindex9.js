@@ -1,5 +1,7 @@
 var NAVTREEINDEX9 =
 {
+"class_color_choice_button.html":[2,0,47],
+"class_color_choice_button.html#a00930b3201d01d063825235f0fd25d4d":[2,0,47,4],
 "class_color_choice_button.html#a086d45c115db1003a0ff99b360dcf622":[2,0,47,6],
 "class_color_choice_button.html#a6ed77f3215c493d7e5f0a7063e0a101f":[2,0,47,2],
 "class_color_choice_button.html#a7e06a983e7d73eec1539af24dcd7b47c":[2,0,47,5],
@@ -247,7 +249,5 @@ var NAVTREEINDEX9 =
 "class_follow_camera.html":[2,0,91],
 "class_follow_camera.html#a1291df8bc9f1ed8468a2cf60b579e66e":[2,0,91,5],
 "class_follow_camera.html#a268b0b5a4f3b7f7b88089dca9a58874a":[2,0,91,11],
-"class_follow_camera.html#a36eac3c89c8c676f93cc33a1f7bca0f5":[2,0,91,7],
-"class_follow_camera.html#a388b88dfd824d48b7d1209d158e6e907":[2,0,91,9],
-"class_follow_camera.html#a5178af1e65f77d47cf6166cb47f0010a":[2,0,91,10]
+"class_follow_camera.html#a36eac3c89c8c676f93cc33a1f7bca0f5":[2,0,91,7]
 };

@@ -1,5 +1,7 @@
 var NAVTREEINDEX7 =
 {
+"_startup_timing_8h.html#abee6acfe897b91b81b07347f06b698e0":[3,0,0,42,4],
+"_startup_timing_8h.html#afc4b99469fe5a5e382be0216b6184cdd":[3,0,0,42,9],
 "_startup_timing_8h_source.html":[3,0,0,42],
 "_station_facets_8cpp.html":[3,0,3,0,9],
 "_station_facets_8cpp.html#a51e61eec66036092b0c2b5ca47471591":[3,0,3,0,9,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX7 =
 "_update_telemetry_controller_8cpp.html#a6f709333026cc3310b5e305f05f00631":[3,0,0,46,0],
 "_update_telemetry_controller_8h.html":[3,0,0,47],
 "_update_telemetry_controller_8h.html#a6f709333026cc3310b5e305f05f00631":[3,0,0,47,1],
-"_update_telemetry_controller_8h_source.html":[3,0,0,47],
-"_update_timing_8h.html":[3,0,10,19],
-"_update_timing_8h.html#a5cb6d76a9276d58455f5f4af04477631":[3,0,10,19,1]
+"_update_telemetry_controller_8h_source.html":[3,0,0,47]
 };
