@@ -141,8 +141,9 @@ public:
 	int trackLineId;				///< Slot of the track the section lies on; -1 for a section derived at a switch.
 	int FirstConnectedTrackLineID;	///< First track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise.
 	int SecondConnectedTrackLineID; ///< Second track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise.
-	/// Arcs of the section, total_arcs of them.
-	Arc arcs_in_signalling_block_section[RuntimeLimits::kNativeMaxSectionArcs];
+	/// Arcs of the section, always total_arcs of them. The builders refuse a scene section of more than
+	/// RuntimeLimits::kNativeMaxSectionArcs arcs.
+	std::vector<Arc> arcs_in_signalling_block_section;
 	/// Start node.
 	Node start_node, end_node; ///< End node.
 	/// Nodes composing the block section, shared by every copy of the section; empty for a default section and a reversed route section
@@ -172,8 +173,8 @@ public:
 	/// An empty section with code 270, state Green and no signalling level (kSignallingLevelUnset). The track line IDs are -1.
 	Section();
 
-	/// Copies the members, but the two arrays only up to their counts (total_arcs and N_ConnectedBS): the entries after those
-	/// keep their values. The copy constructor copies every entry. The node list stays shared.
+	/// Copies the members, but IDConnectedBS only up to N_ConnectedBS: the entries after that keep their values. The copy
+	/// constructor copies every entry. The node list stays shared.
 	Section& operator=(const Section& ob2) {
 		if (this == &ob2)
 			return *this;
@@ -191,9 +192,7 @@ public:
 		nodelist_of_nodes_in_signalling_section = ob2.nodelist_of_nodes_in_signalling_section;
 		FirstConnectedTrackLineID = ob2.FirstConnectedTrackLineID;
 		SecondConnectedTrackLineID = ob2.SecondConnectedTrackLineID;
-
-		for (int i = 0; i < total_arcs; i++)
-			arcs_in_signalling_block_section[i] = ob2.arcs_in_signalling_block_section[i];
+		arcs_in_signalling_block_section = ob2.arcs_in_signalling_block_section;
 
 		state = ob2.state;
 		trackLineId = ob2.trackLineId;
@@ -219,13 +218,7 @@ public:
 
 	/// True when the ID, the size, the length, the start node, the shared node list, the arcs, exit_speed, code and state are equal.
 	bool operator==(const Section& ob2) const {
-		bool AreArcsEqual = true;
-		for (int i = 0; i < total_arcs && i < ob2.total_arcs; i++) {
-			if (!(arcs_in_signalling_block_section[i] == ob2.arcs_in_signalling_block_section[i])) {
-				AreArcsEqual = false;
-				break;
-			}
-		}
+		const bool AreArcsEqual = arcs_in_signalling_block_section == ob2.arcs_in_signalling_block_section;
 		if ((ID == ob2.ID) && (total_nodes == ob2.total_nodes)
 			&& (total_arcs == ob2.total_arcs)
 			&& (length == ob2.length)

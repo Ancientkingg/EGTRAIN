@@ -189,6 +189,7 @@ void TestRunResults::reportsPositionWithinRoute() {
 		sections[index].GeoXBegNode = sections[index].start_node.X * 1000;
 		sections[index].GeoXEndNode = sections[index].end_node.X * 1000;
 		sections[index].total_nodes = 2;
+		sections[index].arcs_in_signalling_block_section.resize(1);
 		sections[index].total_arcs = 1;
 		sections[index].arcs_in_signalling_block_section[0].startNode = sections[index].start_node;
 		sections[index].arcs_in_signalling_block_section[0].endNode = sections[index].end_node;

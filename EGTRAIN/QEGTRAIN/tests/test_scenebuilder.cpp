@@ -1180,6 +1180,7 @@ void TestSceneBuilder::routeOverBlockCapacityThrows() {
 	Section& section = run->infra.sections[0];
 	section.ID = "@capacity.block@";
 	section.end_node.X = 1.0;
+	section.arcs_in_signalling_block_section.resize(1);
 	section.total_arcs = 1;
 	section.arcs_in_signalling_block_section[0].endNode.X = 1.0;
 	std::vector<std::string> blockIds(RuntimeLimits::kNativeMaxRouteBlocks, "capacity.block");
@@ -1217,6 +1218,7 @@ void TestSceneBuilder::sectionArcsOverCapacityAreRejected() {
 	QCOMPARE(diagnostics[0].message, "Block section long.block has 21 arcs, more than the 20 a section holds");
 	// The section stores none of them.
 	QCOMPARE(section->total_arcs, 0);
+	QVERIFY(section->arcs_in_signalling_block_section.empty());
 
 	arcs.pop_back();
 	arcs.back().gradient = 0.01;
@@ -1224,6 +1226,7 @@ void TestSceneBuilder::sectionArcsOverCapacityAreRejected() {
 	// As many arcs as the section holds are stored.
 	QCOMPARE(diagnostics.size(), std::size_t(1));
 	QCOMPARE(section->total_arcs, static_cast<int>(RuntimeLimits::kNativeMaxSectionArcs));
+	QCOMPARE(section->arcs_in_signalling_block_section.size(), RuntimeLimits::kNativeMaxSectionArcs);
 	QCOMPARE_EQ(section->arcs_in_signalling_block_section[RuntimeLimits::kNativeMaxSectionArcs - 1].gradient, 0.01);
 }
 
@@ -1321,6 +1324,7 @@ static void fillSection(Section& s, const NodeList& nodes, TDS* tds) {
 	s.SignallingLevel = 3;
 	fillNode(s.start_node, 91);
 	fillNode(s.end_node, 92);
+	s.arcs_in_signalling_block_section.resize(2);
 	fillArc(s.arcs_in_signalling_block_section[0], 1, 0);
 	fillArc(s.arcs_in_signalling_block_section[1], 2, 0.02);
 	s.total_arcs = 2;
@@ -1410,7 +1414,7 @@ static const SectionChange kSectionChanges[] = {
 	{"state", [](Section& s, const NodeList&) { s.state = SignalState::Green; }},
 	{"the list of nodes", [](Section& s, const NodeList& otherNodes) { s.nodelist_of_nodes_in_signalling_section = otherNodes; }},
 	{"total_nodes", [](Section& s, const NodeList&) { s.total_nodes = 1; }},
-	{"total_arcs", [](Section& s, const NodeList&) { s.total_arcs = 1; }},
+	{"total_arcs", [](Section& s, const NodeList&) { s.arcs_in_signalling_block_section.resize(1); s.total_arcs = 1; }},
 	{"length", [](Section& s, const NodeList&) { s.length += 1; }},
 	{"exit_speed", [](Section& s, const NodeList&) { s.exit_speed += 1; }},
 	{"code", [](Section& s, const NodeList&) { s.code += 1; }},
@@ -1584,7 +1588,8 @@ void TestSceneBuilder::sectionsDifferingInOneMemberDiffer() {
 // and the text that a node searches its connected blocks with.
 void TestSceneBuilder::namesTrackDetectionBorders() {
 	const auto addArc = [](Section& target, double startX, double endX, int connections = 0, const std::string& name = std::string()) {
-		Arc& added = target.arcs_in_signalling_block_section[target.total_arcs++];
+		Arc& added = target.arcs_in_signalling_block_section.emplace_back();
+		target.total_arcs++;
 		added.startNode.X = startX;
 		added.endNode.X = endX;
 		added.endNode.numConnections = connections;
@@ -1707,6 +1712,7 @@ static std::vector<Logged> cutMessages(Capture& capture, const std::string& part
 	section.XStartSwitch = xStartSwitch;
 	section.XEndSwitch = xEndSwitch;
 	section.end_node.X = 10.0;
+	section.arcs_in_signalling_block_section.resize(1);
 	section.total_arcs = 1;
 	section.arcs_in_signalling_block_section[0].endNode.X = 10.0;
 	section.CutBlockSection(part, abscissa);
@@ -1822,7 +1828,8 @@ void TestSceneBuilder::logsDetectionBorderWarnings() {
 		return sections;
 	};
 	const auto addArc = [](Section& target, double startX, double endX, int startConnections, const std::string& startName, int endConnections) {
-		Arc& added = target.arcs_in_signalling_block_section[target.total_arcs++];
+		Arc& added = target.arcs_in_signalling_block_section.emplace_back();
+		target.total_arcs++;
 		added.startNode.X = startX;
 		added.startNode.numConnections = startConnections;
 		added.startNode.tdsbId = startName;
@@ -1924,6 +1931,7 @@ void TestSceneBuilder::logsShortSwitchNames() {
 		"a switch at the start of a section");
 	QVERIFY2(problem.empty(), problem.c_str());
 	Section arcEdge = edge();
+	arcEdge.arcs_in_signalling_block_section.resize(1);
 	arcEdge.total_arcs = 1;
 	arcEdge.arcs_in_signalling_block_section[0].endNode.tdsbId = "AB";
 	arcEdge.arcs_in_signalling_block_section[0].endNode.tdsbGeoCoordX = 0.0;
@@ -1933,6 +1941,7 @@ void TestSceneBuilder::logsShortSwitchNames() {
 		"a switch at the end of an arc");
 	QVERIFY2(problem.empty(), problem.c_str());
 	Section reversedEdge = edge();
+	reversedEdge.arcs_in_signalling_block_section.resize(1);
 	reversedEdge.total_arcs = 1;
 	reversedEdge.arcs_in_signalling_block_section[0].startNode.tdsbId = "AB";
 	reversedEdge.arcs_in_signalling_block_section[0].startNode.tdsbGeoCoordX = 0.0;
@@ -1955,6 +1964,7 @@ void TestSceneBuilder::logsSwitchConnectedToOtherBlocks() {
 	Capture capture;
 	Section unknownBlock;
 	unknownBlock.ID = "@C@";
+	unknownBlock.arcs_in_signalling_block_section.resize(1);
 	unknownBlock.total_arcs = 1;
 	unknownBlock.arcs_in_signalling_block_section[0].endNode.X = 1.0;
 	unknownBlock.arcs_in_signalling_block_section[0].endNode.numConnections = 1;
@@ -2187,6 +2197,7 @@ static void describeCuttableSection(Section& section) {
 	section.ID = "@Cut@";
 	section.start_node.X = 0.0;
 	section.end_node.X = 10.0;
+	section.arcs_in_signalling_block_section.resize(2);
 	section.total_arcs = 2;
 	section.arcs_in_signalling_block_section[0].startNode.X = 0.0;
 	section.arcs_in_signalling_block_section[0].endNode.X = 4.0;
@@ -2946,6 +2957,7 @@ void TestSceneBuilder::lastLocationHasNoClearingTime() {
 		section.ID = "B" + std::to_string(s + 1);
 		section.start_node.X = s;
 		section.end_node.X = s + 1;
+		section.arcs_in_signalling_block_section.resize(1);
 		section.total_arcs = 1;
 		section.arcs_in_signalling_block_section[0].endNode.X = s + 1;
 		section.arcs_in_signalling_block_section[0].gradient = 0.0;

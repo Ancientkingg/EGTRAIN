@@ -319,7 +319,7 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 			// Transferring all the arcs to CutSection
 			if (listarcs.empty() != 1) {
 				for (list<Arc>::iterator it = listarcs.begin(); it != listarcs.end(); it++) {
-					CutSection.arcs_in_signalling_block_section[CutSection.total_arcs] = *it;
+					CutSection.arcs_in_signalling_block_section.push_back(*it);
 					CutSection.total_arcs++;
 				}
 			}
@@ -407,7 +407,7 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 			// Transferring all the arcs to CutSection
 			if (listarcs.empty() != 1) {
 				for (list<Arc>::iterator it = listarcs.begin(); it != listarcs.end(); it++) {
-					CutSection.arcs_in_signalling_block_section[CutSection.total_arcs] = *it;
+					CutSection.arcs_in_signalling_block_section.push_back(*it);
 					CutSection.total_arcs++;
 				}
 			}
@@ -454,6 +454,8 @@ void Section::reverseBlockSection(const Section& blockSets, double RouteLength) 
 	ID = blockSets.ID;
 	length = blockSets.length;
 	total_arcs = blockSets.total_arcs;
+	// Each arc below gets every member from blockSets.
+	arcs_in_signalling_block_section.resize(blockSets.arcs_in_signalling_block_section.size());
 	total_nodes = blockSets.total_nodes;
 	N_ConnectedBS = blockSets.N_ConnectedBS;
 	// The GeoCoordinate will be reversed
@@ -618,11 +620,9 @@ void generateConnectBlock(SimulationRun& run, const Section& BS1, const Section&
 		}
 		BS3.nodelist_of_nodes_in_signalling_section = std::make_shared<const std::vector<Node>>(std::move(connectNodes));
 
-		it = listarc.begin();
-		for (int i = 0; i < BS3.total_arcs; i++) {
-			BS3.arcs_in_signalling_block_section[i] = *it;
-			it++;
-		}
+		// BS3.total_arcs has counted these arcs.
+		for (const Arc& arc : listarc)
+			BS3.arcs_in_signalling_block_section.push_back(arc);
 		BS3.withSwitchDiv = true; // This block contains a switch in a diverged position
 		BS3.XStartSwitch = N1.X;  // The begin of the switch is the abscissa N1.X
 		BS3.XEndSwitch = N2.X;	  // The end of the switch is in the abscissa N2.X
@@ -1643,14 +1643,11 @@ void Route::adjustRouteAcrossDiffRegions() {
 			// adjust section to common km reference
 			sequence_of_block_sections[i].start_node.X = sequence_of_block_sections[i - 1].end_node.X;
 			sequence_of_block_sections[i].end_node.X = sequence_of_block_sections[i].start_node.X + sequence_of_block_sections[i].length;
-			sequence_of_block_sections[i].arcs_in_signalling_block_section[0].startNode.X = sequence_of_block_sections[i].start_node.X;
-			sequence_of_block_sections[i].arcs_in_signalling_block_section[0].endNode.X = sequence_of_block_sections[i].start_node.X + sequence_of_block_sections[i].arcs_in_signalling_block_section[0].length;
-
-			if (sequence_of_block_sections[i].total_arcs > 1) {
-				for (int j = 1; j < sequence_of_block_sections[i].total_arcs; j++) { // j = 0 already changed
-					sequence_of_block_sections[i].arcs_in_signalling_block_section[j].startNode.X = sequence_of_block_sections[i].arcs_in_signalling_block_section[j - 1].endNode.X;
-					sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.X = sequence_of_block_sections[i].arcs_in_signalling_block_section[j].startNode.X + sequence_of_block_sections[i].arcs_in_signalling_block_section[j].length;
-				}
+			// Each arc starts where the one before it ends, the first at the start of the section.
+			for (int j = 0; j < sequence_of_block_sections[i].total_arcs; j++) {
+				Arc& arc = sequence_of_block_sections[i].arcs_in_signalling_block_section[j];
+				arc.startNode.X = j == 0 ? sequence_of_block_sections[i].start_node.X : sequence_of_block_sections[i].arcs_in_signalling_block_section[j - 1].endNode.X;
+				arc.endNode.X = arc.startNode.X + arc.length;
 			}
 		}
 	}

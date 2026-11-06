@@ -3543,9 +3543,7 @@ void NetworkPresenter::buildTrackIndexes() {
 			continue;
 		// the last section with the id
 		m_sectionIndexById[section.ID] = sectionIndex;
-		const int arcCount = std::min(section.total_arcs,
-			static_cast<int>(sizeof(section.arcs_in_signalling_block_section)
-				/ sizeof(section.arcs_in_signalling_block_section[0])));
+		const int arcCount = std::min(section.total_arcs, static_cast<int>(section.arcs_in_signalling_block_section.size()));
 		auto& tracks = m_tracksBySectionId[section.ID];
 		for (int arcIndex = 0; arcIndex < arcCount; ++arcIndex) {
 			const Arc& sectionArc = section.arcs_in_signalling_block_section[arcIndex];
