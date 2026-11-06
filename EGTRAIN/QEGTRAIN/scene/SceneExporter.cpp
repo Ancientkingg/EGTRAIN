@@ -16,6 +16,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <map>
+#include <set>
 #include <cmath>
 #include <regex>
 #include <limits>
@@ -1123,9 +1124,12 @@ static bool isUnchosenReference(const SceneDiagnostic& diagnostic) {
 		&& diagnostic.relatedId.empty() && diagnostic.suggestedFix.rfind("Choose the ", 0) == 0;
 }
 
-// Publishes a complete export. A destination that does not exist becomes the staged folder. Otherwise the stale files and
-// folders are removed and every staged file is moved over the file of the same name, so the other files that the export
-// did not write stay. When a move fails, the destination keeps the files moved before it.
+// Publishes a complete export. Every staged file and folder is flushed to disk first, so nothing in the destination is
+// removed or replaced before what takes its place is on disk. A destination that does not exist becomes the staged
+// folder, and publishStagedDirectory flushes its parent folder. Otherwise the stale files and folders are removed, every
+// staged file is moved over the file of the same name, so the other files that the export did not write stay, and then
+// the destination and every folder in it that gained or lost an entry are flushed. When a move fails, the destination
+// keeps the files moved before it. A flush that fails once the export is in place gives a warning.
 static bool publishExport(StagedDirectory& staging, const ExportFolders& folders, bool destinationExists,
 	SceneExportResult& result) {
 	const auto fail = [&](const std::string& message, const fs::path& file, const std::error_code& ec) {
@@ -1137,21 +1141,43 @@ static bool publishExport(StagedDirectory& staging, const ExportFolders& folders
 		result.diagnostics.push_back(d);
 		return false;
 	};
+	const auto warnUnflushed = [&](const fs::path& folder, const std::error_code& ec) {
+		SceneDiagnostic d;
+		d.severity = SceneSeverity::Warning;
+		d.code = "scene.export.write";
+		d.message = "Cannot flush " + folder.u8string() + " to disk: " + ec.message();
+		d.file = folder.u8string();
+		result.diagnostics.push_back(d);
+	};
+	fs::path unsynced;
+	std::error_code ec = syncDirectoryTree(staging.path, unsynced);
+	if (ec) {
+		const fs::path relative = unsynced.lexically_relative(staging.path);
+		const bool whole = relative == fs::path(".");
+		return fail("Cannot flush " + (whole ? folders.destination.filename() : relative).u8string() + " to disk",
+			whole ? folders.destination : folders.destination / relative, ec);
+	}
 	if (!destinationExists) {
 		const StagedPublishResult published = publishStagedDirectory(staging, folders.destination, fs::path());
-		return published.step == StagedPublishStep::Published
-			|| fail("Cannot move the export into place", folders.destination, published.error);
+		if (published.step != StagedPublishStep::Published)
+			return fail("Cannot move the export into place", folders.destination, published.error);
+		if (published.syncError)
+			warnUnflushed(folders.destination.parent_path().empty() ? fs::path(".") : folders.destination.parent_path(),
+				published.syncError);
+		return true;
 	}
-	std::error_code ec;
+	std::set<fs::path> changed{folders.destination};
 	for (const fs::path& file : folders.stale) {
 		fs::remove(file, ec);
 		if (ec)
 			return fail("Cannot remove the old export file", file, ec);
+		changed.insert(file.parent_path());
 	}
 	for (const fs::path& folder : folders.staleFolders) {
 		fs::remove_all(folder, ec);
 		if (ec)
 			return fail("Cannot remove the old export folder", folder, ec);
+		changed.insert(folder.parent_path());
 	}
 	std::vector<fs::path> entries;
 	for (fs::recursive_directory_iterator it(staging.path, ec), end; !ec && it != end; it.increment(ec))
@@ -1166,6 +1192,13 @@ static bool publishExport(StagedDirectory& staging, const ExportFolders& folders
 			fs::rename(entry, target, ec);
 		if (ec)
 			return fail("Cannot move the exported file into place", target, ec);
+		changed.insert(target.parent_path());
+	}
+	// Each folder after the folders inside it. Windows flushes no folder.
+	for (auto folder = changed.rbegin(); folder != changed.rend(); ++folder) {
+		ec = syncToDisk(*folder, true);
+		if (ec)
+			warnUnflushed(*folder, ec);
 	}
 	return true;
 }

@@ -184,7 +184,7 @@ static bool writeJsonFile(SceneSaveResult& result, const fs::path& scenePath,
 	return writeBytes(result, filename, scenePath / filename, bytes);
 }
 
-// Writes a file that may already exist: the old content stays until the new content is complete.
+// Writes a file that may already exist: the old content stays until the new content is complete and on disk.
 static bool writeJsonFileReplacing(SceneSaveResult& result, const fs::path& path,
 	const json& value) {
 	const std::string filename = path.filename().u8string();
@@ -218,18 +218,29 @@ static bool writeJsonFileReplacing(SceneSaveResult& result, const fs::path& path
 		const fs::file_status existing = fs::status(target, ec);
 		if (!ec && fs::is_regular_file(existing))
 			fs::permissions(temporary, existing.permissions(), fs::perm_options::replace, ec);
-		ec.clear();
-		fs::rename(temporary, target, ec);
-		if (ec)
-			addWriteError(result, filename, "Cannot replace " + filename + ": " + ec.message());
-		else
-			published = true;
+		ec = syncToDisk(temporary, false);
+		if (ec) {
+			addWriteError(result, filename, "Cannot flush " + filename + " to disk: " + ec.message());
+		} else {
+			fs::rename(temporary, target, ec);
+			if (ec)
+				addWriteError(result, filename, "Cannot replace " + filename + ": " + ec.message());
+			else
+				published = true;
+		}
 	}
 	if (!published) {
 		ec.clear();
 		fs::remove(temporary, ec);
+		return false;
 	}
-	return published;
+	// The parent folder holds the new name. Windows flushes no folder, and std::filesystem::rename does not write the
+	// rename through. The file is in place already, so a failure here is only a warning.
+	const fs::path parent = target.parent_path().empty() ? fs::path(".") : target.parent_path();
+	ec = syncToDisk(parent, true);
+	if (ec)
+		addCleanupWarning(result, parent, "Cannot flush " + parent.u8string() + " to disk: " + ec.message());
+	return true;
 }
 
 static bool copyExistingSceneContents(const fs::path& source, const fs::path& staging,

@@ -3,6 +3,7 @@
 #include "scene/SceneModel.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneWriter.h"
+#include "scene/StagedDirectory.h"
 #include <cctype>
 #include <algorithm>
 #include <iostream>
@@ -14,7 +15,11 @@
 #include <cstdint>
 #include <nlohmann/json.hpp>
 #include <map>
+#include <set>
+#include <system_error>
+#include <vector>
 
+#include <QScopeGuard>
 #include <QTest>
 
 namespace fs = std::filesystem;
@@ -71,6 +76,28 @@ static void writeAreaScene(const fs::path& scene, const std::string& signallingA
 	std::ofstream(scene / "services.json") << R"({"services":[]})" << "\n";
 }
 
+// Exports a scene with three routes into out and adds a file of the user there. Then writes the one-route scene of
+// writeAreaScene into scene, so that the next export into out removes two route files and replaces the others.
+static bool exportEarlierScene(const fs::path& scene, const fs::path& out) {
+	writeAreaScene(scene, "");
+	std::ofstream(scene / "signalling.json")
+		<< R"({"signals":[],"routes":[{"id":"route0","blocks":["block.a"]},{"id":"route1","blocks":["block.a"]},{"id":"route2","blocks":["block.b"]}]})"
+		<< "\n";
+	if (!exportLegacyScene(scene.string(), out.string()).success())
+		return false;
+	std::ofstream(out / "notes.txt") << "mine\n";
+	writeAreaScene(scene, "");
+	return true;
+}
+
+// The names of the entries of directory.
+static std::set<std::string> entryNames(const fs::path& directory) {
+	std::set<std::string> names;
+	for (const auto& entry : fs::directory_iterator(directory))
+		names.insert(entry.path().filename().u8string());
+	return names;
+}
+
 // Japanese and Thai characters, as UTF-8. No Windows code page holds both.
 static const std::string kUnicodeName = "scene-\xE6\x97\xA5\xE6\x9C\xAC-\xE0\xB8\x81";
 
@@ -114,6 +141,12 @@ private slots:
 	void reExportRemovesStaleImporterInputs();
 	void exportsUnderUnicodeNames();
 	void exportsLayoutAndSettingsFromViews();
+	void flushesExportBeforePublishing_data();
+	void flushesExportBeforePublishing();
+	void failedExportFlushKeepsDestination_data();
+	void failedExportFlushKeepsDestination();
+	void warnsWhenExportFolderFlushFails_data();
+	void warnsWhenExportFolderFlushFails();
 };
 
 // The minimal fixture scene does not export.
@@ -1155,6 +1188,178 @@ void TestSceneExporter::exportsLayoutAndSettingsFromViews() {
 	QVERIFY(doubleSwitch.success());
 	QCOMPARE(readText(fs::path(switchDir.dir) / "GUI/caseStudyTrackData.txt"), "0\t2\t3\n");
 	QVERIFY(hasDiag(doubleSwitch.diagnostics, "scene.export.compatibility", SceneSeverity::Warning));
+}
+
+void TestSceneExporter::flushesExportBeforePublishing_data() {
+	QTest::addColumn<bool>("existing");
+	QTest::newRow("new folder") << false;
+	QTest::newRow("existing folder") << true;
+}
+
+// An export flushes every staged file and folder to disk before it removes or replaces anything in the destination. A
+// new folder is then renamed into place and its parent folder flushed. Into an existing folder the files are moved, and
+// then every folder that gained or lost an entry is flushed, each after the folders inside it.
+void TestSceneExporter::flushesExportBeforePublishing() {
+	QFETCH(bool, existing);
+	TempDir sceneDir, rootDir;
+	const fs::path scene(sceneDir.dir), root = fs::path(rootDir.dir).lexically_normal(), out = root / "out";
+	writeAreaScene(scene, "");
+	std::map<std::string, std::string> before;
+	if (existing) {
+		QVERIFY2(exportEarlierScene(scene, out), "the earlier scene exports");
+		before = snapshot(out);
+	}
+	struct Flush {
+		fs::path path;
+		bool directory = false;
+		bool destinationAsBefore = false; // The destination held what it held before the export, or did not exist.
+	};
+	std::vector<Flush> flushes;
+	syncToDiskHook() = [&flushes, &out, &before, existing](const fs::path& path, bool directory) {
+		flushes.push_back({path.lexically_normal(), directory, existing ? snapshot(out) == before : !fs::exists(out)});
+		return std::error_code();
+	};
+	SceneExportResult exported;
+	{
+		const auto unhook = qScopeGuard([] { syncToDiskHook() = nullptr; });
+		exported = exportLegacyScene(scene.string(), out.string());
+	}
+	printErrors(exported.diagnostics, "flushed export");
+	QVERIFY(exported.success());
+	const auto staged = std::find_if(flushes.begin(), flushes.end(), [&root](const Flush& flush) {
+		return flush.directory && flush.path.parent_path() == root
+			&& flush.path.filename().u8string().rfind(".out.export-", 0) == 0;
+	});
+	QVERIFY(staged != flushes.end());
+	// Up to the staged folder itself every flush is inside it, and the destination is as before.
+	std::set<fs::path> flushedFiles;
+	std::size_t fileFlushes = 0;
+	for (auto flush = flushes.begin(); flush != staged + 1; ++flush) {
+		QVERIFY(containsPath(staged->path, flush->path));
+		QVERIFY(flush->destinationAsBefore);
+		if (!flush->directory) {
+			++fileFlushes;
+			flushedFiles.insert(flush->path.lexically_relative(staged->path).lexically_normal());
+		}
+	}
+	// Each file that the export wrote is flushed once.
+	std::set<fs::path> written;
+	for (const auto& entry : snapshot(out))
+		if (entry.first != "notes.txt")
+			written.insert(fs::path(entry.first).lexically_normal());
+	QCOMPARE(fileFlushes, flushedFiles.size());
+	QVERIFY(flushedFiles == written);
+	// The folders follow once the export is in place.
+	std::vector<fs::path> folders;
+	for (auto flush = staged + 1; flush != flushes.end(); ++flush) {
+		QVERIFY(flush->directory);
+		QVERIFY(!flush->destinationAsBefore);
+		folders.push_back(flush->path);
+	}
+	if (!existing) {
+		QVERIFY((folders == std::vector<fs::path>{root}));
+		return;
+	}
+	const std::set<fs::path> flushedFolders(folders.begin(), folders.end());
+	QCOMPARE(flushedFolders.size(), folders.size());
+	QVERIFY(folders.back() == out);
+	for (std::size_t index = 0; index < folders.size(); ++index) {
+		QVERIFY(containsPath(out, folders[index]));
+		for (std::size_t later = index + 1; later < folders.size(); ++later)
+			QVERIFY2(!containsPath(folders[index], folders[later]), "a folder is flushed after the folders inside it");
+	}
+	for (const fs::path& file : written)
+		QVERIFY2(flushedFolders.count((out / file).parent_path()) == 1, "every folder that received a file is flushed");
+	QVERIFY(!fs::exists(out / "Routes" / "Route1.txt"));
+}
+
+void TestSceneExporter::failedExportFlushKeepsDestination_data() {
+	QTest::addColumn<bool>("existing");
+	QTest::addColumn<bool>("folder");
+	QTest::newRow("file, new folder") << false << false;
+	QTest::newRow("file, existing folder") << true << false;
+	QTest::newRow("staged folder, existing folder") << true << true;
+}
+
+// A staged file or the staged folder that cannot be flushed to disk fails the export with the reason before anything is
+// published: an existing destination keeps every byte, a new one is not made, and the staged folder is removed.
+void TestSceneExporter::failedExportFlushKeepsDestination() {
+	QFETCH(bool, existing);
+	QFETCH(bool, folder);
+	TempDir sceneDir, rootDir;
+	const fs::path scene(sceneDir.dir), out = fs::path(rootDir.dir) / "out";
+	writeAreaScene(scene, "");
+	std::map<std::string, std::string> before;
+	if (existing) {
+		QVERIFY2(exportEarlierScene(scene, out), "the earlier scene exports");
+		before = snapshot(out);
+	}
+	const std::error_code failure = std::make_error_code(std::errc::io_error);
+	syncToDiskHook() = [folder, failure](const fs::path& path, bool directory) {
+		const bool failing = folder ? directory && path.filename().u8string().rfind(".out.export-", 0) == 0
+									: path.filename() == "trainNames.txt";
+		return failing ? failure : std::error_code();
+	};
+	SceneExportResult exported;
+	{
+		const auto unhook = qScopeGuard([] { syncToDiskHook() = nullptr; });
+		exported = exportLegacyScene(scene.string(), out.string());
+	}
+	const std::string name = folder ? "out" : "trainNames.txt";
+	const fs::path file = (folder ? out : out / name).lexically_normal();
+	const std::string expected = "Cannot flush " + name + " to disk: " + failure.message();
+	const bool reported = std::any_of(exported.diagnostics.begin(), exported.diagnostics.end(),
+		[&file, &expected](const SceneDiagnostic& diagnostic) {
+			return diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.export.write"
+				&& fs::u8path(diagnostic.file).lexically_normal() == file && diagnostic.message == expected;
+		});
+	printErrors(exported.diagnostics, "failed export flush");
+	// The export fails with the file and the reason.
+	QVERIFY(!exported.success());
+	QVERIFY(reported);
+	// The destination is as before and no staged folder is left.
+	if (existing)
+		QVERIFY(snapshot(out) == before);
+	QVERIFY((entryNames(rootDir.dir) == (existing ? std::set<std::string>{"out"} : std::set<std::string>{})));
+}
+
+void TestSceneExporter::warnsWhenExportFolderFlushFails_data() {
+	QTest::addColumn<bool>("existing");
+	QTest::newRow("new folder") << false;
+	QTest::newRow("existing folder") << true;
+}
+
+// When a folder cannot be flushed once the export is in place, the parent folder of a new destination or the existing
+// destination itself, the export succeeds with a warning that names the folder and gives the reason.
+void TestSceneExporter::warnsWhenExportFolderFlushFails() {
+	QFETCH(bool, existing);
+	TempDir sceneDir, rootDir;
+	const fs::path scene(sceneDir.dir), out = fs::path(rootDir.dir) / "out";
+	writeAreaScene(scene, "");
+	if (existing)
+		QVERIFY2(exportEarlierScene(scene, out), "the earlier scene exports");
+	const fs::path failing = (existing ? out : out.parent_path()).lexically_normal();
+	const std::error_code failure = std::make_error_code(std::errc::io_error);
+	syncToDiskHook() = [&failing, failure](const fs::path& path, bool directory) {
+		return directory && path.lexically_normal() == failing ? failure : std::error_code();
+	};
+	SceneExportResult exported;
+	{
+		const auto unhook = qScopeGuard([] { syncToDiskHook() = nullptr; });
+		exported = exportLegacyScene(scene.string(), out.string());
+	}
+	printErrors(exported.diagnostics, "export folder flush");
+	const bool warned = std::any_of(exported.diagnostics.begin(), exported.diagnostics.end(),
+		[&failing, failure](const SceneDiagnostic& diagnostic) {
+			return diagnostic.severity == SceneSeverity::Warning && diagnostic.code == "scene.export.write"
+				&& fs::u8path(diagnostic.file).lexically_normal() == failing
+				&& diagnostic.message == "Cannot flush " + diagnostic.file + " to disk: " + failure.message();
+		});
+	// The export succeeds with the warning, and the destination holds it.
+	QVERIFY(exported.success());
+	QVERIFY(warned);
+	QVERIFY(fs::is_regular_file(out / "Routes" / "Route0.txt"));
+	QVERIFY(!fs::exists(out / "Routes" / "Route1.txt"));
 }
 
 QTEST_APPLESS_MAIN(TestSceneExporter)

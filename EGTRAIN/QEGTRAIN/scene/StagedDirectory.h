@@ -123,9 +123,9 @@ inline std::error_code createStagedDirectory(const std::filesystem::path& parent
 }
 
 /// Called in place of each flush to disk, with the path and whether it is a directory: the files and folders of a staged
-/// scene save or of an unpacked bundle, the archive of a bundle save, and the parent folder once a directory or a bundle
-/// has been renamed into place. A test counts the flushes with it or makes one fail by returning an error. It is empty in
-/// a normal run.
+/// scene save, of a staged export or of an unpacked bundle, the archive of a bundle save, the temporary file of a
+/// standalone scenario, and the folders whose entries changed once these have been moved into place. A test counts the
+/// flushes with it or makes one fail by returning an error. It is empty in a normal run.
 inline std::function<std::error_code(const std::filesystem::path& path, bool directory)>& syncToDiskHook() {
 	static std::function<std::error_code(const std::filesystem::path& path, bool directory)> hook;
 	return hook;
