@@ -916,7 +916,8 @@ public:
 		earliestActiveTrajectoryIndex = recordEarliestTrajectoryIndex(earliestActiveTrajectoryIndex, index, CanEnter);
 	}
 
-	/// Sizes every per-step vector to vec_size samples of 0, sets the kept targets and stepBranch to 0 and sets End_Time to the last step.
+	/// Sizes every per-step vector to vec_size samples of 0 (kNoBlockSection for instant_block_section_occupied), sets the
+	/// kept targets and stepBranch to 0 and sets End_Time to the last step.
 	/// BX is sized only with detailedTrajectory, for a run that exports detailed trajectories, and is empty otherwise.
 	void setTrainVectorSizesFromInput(int vec_size, bool detailedTrajectory);
 };
