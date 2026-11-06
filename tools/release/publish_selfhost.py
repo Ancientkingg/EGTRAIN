@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Publishes a release and the documentation site on egtrain.samuelbruin.com, and the release files on bin.samuelbruin.com.
 
-usage: publish_selfhost.py release --tag TAG --name NAME --prerelease true|false --assets DIR --commit SHA --run-url URL
+usage: publish_selfhost.py release --tag TAG --name NAME --prerelease true|false --assets DIR --commit SHA --run-url URL [--new-feed]
+       publish_selfhost.py import TAG [--new-feed]
        publish_selfhost.py notes TAG FILE
        publish_selfhost.py site PAGES [DIR ...]
 
@@ -14,20 +15,27 @@ the file here, so a second run of the same release adds nothing; another size st
 page, releases/<version>/index.html, and its entry in the update feed releases/feed.json, newest release first, in place
 of an entry with the same tag. The feed is written last, after every file and the page are in place. The entry has the
 fields of a GitHub release that EGTRAIN reads, and its notes are the text of the GitHub release that release.yml creates.
-<version> is TAG without its leading v. A second run keeps the publication time of the entry.
+<version> is TAG without its leading v. A second run keeps the publication time of the entry. When the website has no
+feed, the script stops, so that a feed that was lost is never replaced by one with only the new release; --new-feed
+starts a new feed instead, for the first release on the site.
+
+import publishes the release TAG of the GitHub releases of EGTRAIN in the same way: its files, its name, its notes and
+its publication time, which it reads with the GitHub CLI gh, and the source archive of the tag TAG, which must be in this
+repository. A second run uploads no file again and writes the same page and feed entry.
 
 notes replaces the release notes of the release TAG in the feed and on its page with the Markdown text of FILE, for a
 correction after the release is published.
 
 site publishes the folders DIR of PAGES, the copy of the documentation site that docs.yml builds, as the folders of the
-same name of the website, and then the pages that tools/docs/home_page.py writes into PAGES: assets/, support/, source/,
-privacy/ and, last, index.html.
+same name of the website. It then reads the feed of the website and publishes the pages that tools/docs/home_page.py
+writes from it alone: assets/, support/, source/, privacy/ and, last, index.html. Their list of versions is that of the
+feed, not that of PAGES, so two runs of docs.yml at the same time publish the same pages.
 
 The website takes a folder as a gzip-compressed tar file in PUT /api/publish/dir/<folder>, which replaces the folder, and
 a file in PUT /api/publish/file/<path>, both with the bearer token of the environment variable EGTRAIN_PUBLISH_TOKEN.
 Zipline takes the files in POST /api/upload with its API token, from the environment variable ZIPLINE_TOKEN, as the value
 of the Authorization header. EGTRAIN_SITE_URL and ZIPLINE_URL replace the two addresses, for tests. The script follows no
-redirect and prints no token.
+redirect, also when it reads the feed, and prints no token.
 """
 import argparse
 import datetime
@@ -53,6 +61,7 @@ from version import parse_version  # noqa: E402
 
 SITE_URL = "https://egtrain.samuelbruin.com"
 ZIPLINE_URL = "https://bin.samuelbruin.com"
+GITHUB_REPOSITORY = "Ancientkingg/EGTRAIN"
 FEED_PATH = "releases/feed.json"
 NAME = re.compile(r"[A-Za-z0-9._-]+")
 # Zipline 4.8.1 takes a file of up to 95 MB in one request (its default chunks.max) and Cloudflare a body of up to 100 MB.
@@ -75,20 +84,12 @@ Download the package for your platform. The bundled cases are also available as 
 """
 
 
-class NoRedirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, *_arguments):
-        return None
-
-
-OPENER = urllib.request.build_opener(NoRedirect)
-
-
 def request(method: str, url: str, data=None, headers=None, stream=False):
     """Sends one request and returns the response, or the HTTPError for a status of 300 or more. A failed connection
     stops the script."""
     headers = {"User-Agent": home_page.USER_AGENT, **(headers or {})}
     try:
-        return OPENER.open(urllib.request.Request(url, data=data, headers=headers, method=method), timeout=TIMEOUT_SECONDS)
+        return home_page.OPENER.open(urllib.request.Request(url, data=data, headers=headers, method=method), timeout=TIMEOUT_SECONDS)
     except urllib.error.HTTPError as error:
         return error
     except (urllib.error.URLError, OSError) as error:
@@ -297,12 +298,27 @@ def publish_feed(site: str, site_token: str, feed: list) -> None:
     publish_text(site, site_token, FEED_PATH, json.dumps(feed, indent=2) + "\n", "application/json")
 
 
-def publish_release(site: str, zipline: str, arguments) -> dict:
-    tag, version = arguments.tag, check_tag(arguments.tag)
+def read_feed(site: str, new_feed: bool = False) -> list:
+    """The feed of the website. A feed that does not exist stops the script, unless new_feed starts a new one, so that a
+    feed that was lost is never replaced by one that has only the new release."""
+    url = f"{site}/{FEED_PATH}"
+    feed = home_page.read_feed(url)
+    if feed is None and not new_feed:
+        raise SystemExit(f"{url} answered HTTP 404: the website has no feed. Restore it. Only the first release on a new "
+                         "site starts a feed, with --new-feed")
+    return feed or []
+
+
+def publish_release(site: str, zipline: str, release: dict, folder: Path, commit: str, new_feed: bool) -> dict:
+    """Publishes the files of folder and the source archive of commit on Zipline, then the release page and, last, the
+    entry of the release in the feed. release has the tag_name, name, body and prerelease of the entry, and its
+    published_at, or None to keep the time of the entry of the same tag in the feed or else take the current time."""
+    tag = release["tag_name"]
+    version = check_tag(tag)
     site_token, zipline_token = token("EGTRAIN_PUBLISH_TOKEN"), token("ZIPLINE_TOKEN")
-    assets = release_assets(arguments.assets)
+    assets = release_assets(folder)
     with tempfile.TemporaryDirectory() as temporary:
-        source = source_archive(arguments.commit, tag, Path(temporary))
+        source = source_archive(commit, tag, Path(temporary))
         listed = []
         for path in assets:
             name = home_page.zipline_name(tag, path.name)
@@ -310,16 +326,16 @@ def publish_release(site: str, zipline: str, arguments) -> dict:
             listed.append({"name": path.name, "browser_download_url": raw_url(zipline, name), "size": size})
         source_name = home_page.zipline_name(tag, source.name)
         source_size = publish_file(zipline, zipline_token, source, source_name, source.name)
-    feed = home_page.read_feed(f"{site}/{FEED_PATH}")
+    feed = read_feed(site, new_feed)
     published = next((old.get("published_at") for old in feed if old.get("tag_name") == tag), None)
     entry = {
         "tag_name": tag,
-        "name": arguments.name,
-        "body": RELEASE_BODY.format(name=arguments.name, commit=arguments.commit, run_url=arguments.run_url),
+        "name": release["name"],
+        "body": release["body"],
         "html_url": f"{site}/releases/{version}/",
         "draft": False,
-        "prerelease": arguments.prerelease == "true",
-        "published_at": published or utc_now(),
+        "prerelease": release["prerelease"],
+        "published_at": release["published_at"] or published or utc_now(),
         "assets": listed,
     }
     publish_release_page(site, site_token, entry, (source.name, raw_url(zipline, source_name), source_size))
@@ -328,11 +344,69 @@ def publish_release(site: str, zipline: str, arguments) -> dict:
     return entry
 
 
+def release_from_workflow(site: str, zipline: str, arguments) -> dict:
+    release = {
+        "tag_name": arguments.tag,
+        "name": arguments.name,
+        "body": RELEASE_BODY.format(name=arguments.name, commit=arguments.commit, run_url=arguments.run_url),
+        "prerelease": arguments.prerelease == "true",
+        "published_at": None,
+    }
+    return publish_release(site, zipline, release, arguments.assets, arguments.commit, arguments.new_feed)
+
+
+def gh(*arguments: str) -> str:
+    """The output of the GitHub CLI for the releases of EGTRAIN."""
+    command = ["gh", *arguments, "--repo", GITHUB_REPOSITORY]
+    try:
+        completed = subprocess.run(command, cwd=ROOT, stdout=subprocess.PIPE, encoding="utf-8")
+    except OSError as error:
+        raise SystemExit(f"cannot run the GitHub CLI gh: {error}")
+    if completed.returncode != 0:
+        raise SystemExit(f"{' '.join(command)} failed with exit code {completed.returncode}")
+    return completed.stdout
+
+
+def tag_commit(tag: str) -> str:
+    """The commit of the tag in this repository."""
+    found = subprocess.run(["git", "rev-parse", "--verify", "--quiet", f"refs/tags/{tag}^{{commit}}"], cwd=ROOT,
+                           stdout=subprocess.PIPE, encoding="utf-8")
+    if found.returncode != 0:
+        raise SystemExit(f"this repository has no tag {tag}: run git fetch origin tag {tag}")
+    return found.stdout.strip()
+
+
+def import_release(site: str, zipline: str, arguments) -> dict:
+    """Publishes a release of the GitHub releases with its files, name, notes and publication time."""
+    tag = arguments.tag
+    check_tag(tag)
+    # The tokens are checked before the download.
+    token("EGTRAIN_PUBLISH_TOKEN")
+    token("ZIPLINE_TOKEN")
+    commit = tag_commit(tag)
+    try:
+        github = json.loads(gh("release", "view", tag, "--json", "tagName,name,body,isDraft,isPrerelease,publishedAt"))
+    except ValueError as error:
+        raise SystemExit(f"gh release view {tag} printed no JSON: {error}")
+    if github.get("tagName") != tag or github.get("isDraft") or not github.get("publishedAt"):
+        raise SystemExit(f"{tag} is not a published release on GitHub")
+    release = {
+        "tag_name": tag,
+        "name": github.get("name") or tag,
+        "body": github.get("body") or "",
+        "prerelease": bool(github.get("isPrerelease")),
+        "published_at": github["publishedAt"],
+    }
+    with tempfile.TemporaryDirectory() as temporary:
+        gh("release", "download", tag, "--dir", temporary)
+        return publish_release(site, zipline, release, Path(temporary), commit, arguments.new_feed)
+
+
 def publish_notes(site: str, zipline: str, arguments) -> dict:
     check_tag(arguments.tag)
     site_token = token("EGTRAIN_PUBLISH_TOKEN")
     body = arguments.file.read_text(encoding="utf-8")
-    feed = home_page.read_feed(f"{site}/{FEED_PATH}")
+    feed = read_feed(site)
     entry = next((old for old in feed if old.get("tag_name") == arguments.tag), None)
     if entry is None:
         raise SystemExit(f"the feed has no release {arguments.tag}")
@@ -352,15 +426,19 @@ def publish_notes(site: str, zipline: str, arguments) -> dict:
 
 def publish_site(site: str, arguments) -> None:
     site_token = token("EGTRAIN_PUBLISH_TOKEN")
-    pages = arguments.pages
     for name in arguments.dirs:
         if not NAME.fullmatch(name) or name in (".", ".."):
             raise SystemExit(f"{name!r} is not the name of a folder of the site")
-        publish_directory(site, site_token, name, pages / name)
-    for name in ("assets", *home_page.SITE_PAGES):
-        publish_directory(site, site_token, name, pages / name)
-    page = (pages / "index.html").read_bytes()
-    publish(site, site_token, "file", "index.html", page, len(page), "text/html; charset=utf-8")
+    for name in arguments.dirs:
+        publish_directory(site, site_token, name, arguments.pages / name)
+    # The pages come from the feed, which only a release changes, and not from the copy of the site of this run.
+    with tempfile.TemporaryDirectory() as temporary:
+        pages = Path(temporary)
+        home_page.write_home_page(pages, home_page.read_feed(f"{site}/{FEED_PATH}") or [], from_feed=True)
+        for name in ("assets", *home_page.SITE_PAGES):
+            publish_directory(site, site_token, name, pages / name)
+        page = (pages / "index.html").read_bytes()
+        publish(site, site_token, "file", "index.html", page, len(page), "text/html; charset=utf-8")
 
 
 def main(argv=None) -> None:
@@ -373,6 +451,10 @@ def main(argv=None) -> None:
     release.add_argument("--assets", required=True, type=Path)
     release.add_argument("--commit", required=True)
     release.add_argument("--run-url", required=True)
+    release.add_argument("--new-feed", action="store_true", help="start a new feed when the website has none")
+    imported = commands.add_parser("import", help="publish a release of the GitHub releases, with its files and notes")
+    imported.add_argument("tag")
+    imported.add_argument("--new-feed", action="store_true", help="start a new feed when the website has none")
     notes = commands.add_parser("notes", help="replace the release notes of a published release")
     notes.add_argument("tag")
     notes.add_argument("file", type=Path)
@@ -383,7 +465,9 @@ def main(argv=None) -> None:
     site_url = os.environ.get("EGTRAIN_SITE_URL", SITE_URL).rstrip("/")
     zipline_url = os.environ.get("ZIPLINE_URL", ZIPLINE_URL).rstrip("/")
     if arguments.command == "release":
-        publish_release(site_url, zipline_url, arguments)
+        release_from_workflow(site_url, zipline_url, arguments)
+    elif arguments.command == "import":
+        import_release(site_url, zipline_url, arguments)
     elif arguments.command == "notes":
         publish_notes(site_url, zipline_url, arguments)
     else:

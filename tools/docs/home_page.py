@@ -9,12 +9,13 @@ and replaces PAGES/assets/ with docs/site/site.css and the picture of the README
 into docs/site/layout.html. The other files of PAGES, such as the version folders or a CNAME file, stay as they are.
 
 --feed names the list of releases that the website publishes, newest first, in the form of the update feed that
-tools/release/publish_selfhost.py writes (https://egtrain.samuelbruin.com/releases/feed.json by default). A feed that
-does not exist yet is an empty list, and any other failure to read it stops the script. The home page offers the files of
-the newest release that is neither a draft nor a prerelease, with the links of the feed, and the source page lists every
-release with its source archive. Without such a release, the parts between <!-- release --> and <!-- /release --> are
-left out and those between <!-- no release --> and <!-- /no release --> are kept. The parts between <!-- latest --> and
-<!-- /latest --> link latest/, so they are kept only when PAGES has that folder.
+tools/release/publish_selfhost.py writes (https://egtrain.samuelbruin.com/releases/feed.json by default). The script
+follows no redirect. A feed that does not exist yet is an empty list, and any other failure to read it stops the script.
+The home page offers the files of the newest release that is neither a draft nor a prerelease, with the links of the
+feed, and the source page lists every release with its source archive. Without such a release, the parts between
+<!-- release --> and <!-- /release --> are left out and those between <!-- no release --> and <!-- /no release --> are
+kept. The parts between <!-- latest --> and <!-- /latest --> link latest/, so they are kept only when PAGES has that
+folder.
 
 In a part, {name} stands for a value that the script fills in, and {asset:NAME} for the download link of the release file
 NAME. A link to a file that the release does not have stops the script.
@@ -56,15 +57,26 @@ def published_versions(pages: Path) -> list:
     return sorted(names, key=lambda name: [int(part) for part in name.split(".")], reverse=True)
 
 
-def read_feed(url: str) -> list:
-    """The releases of the feed at url, or an empty list when the server answers 404."""
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Turns a redirect into an error, which is the answer of the server."""
+
+    def redirect_request(self, *_arguments):
+        return None
+
+
+OPENER = urllib.request.build_opener(NoRedirect)
+
+
+def read_feed(url: str):
+    """The releases of the feed at url, or None when the server answers 404."""
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Cache-Control": "no-cache"})
     try:
-        with urllib.request.urlopen(request, timeout=60) as response:
+        with OPENER.open(request, timeout=60) as response:
             data = response.read()
     except urllib.error.HTTPError as error:
+        error.close()
         if error.code == 404:
-            return []
+            return None
         raise SystemExit(f"cannot read the release feed {url}: HTTP {error.code}")
     except (urllib.error.URLError, OSError) as error:
         raise SystemExit(f"cannot read the release feed {url}: {error}")
@@ -75,6 +87,14 @@ def read_feed(url: str) -> list:
     if not isinstance(feed, list) or not all(isinstance(entry, dict) and isinstance(entry.get("tag_name"), str) for entry in feed):
         raise SystemExit(f"the release feed {url} is not a list of releases")
     return feed
+
+
+def feed_versions(feed: list) -> list:
+    """The versions of the stable releases of the feed, newest first. The documentation workflow publishes a folder for
+    each of them on the website."""
+    names = {release_version(entry["tag_name"]) for entry in feed if not entry.get("draft") and not entry.get("prerelease")}
+    names = [name for name in names if VERSION.fullmatch(name)]
+    return sorted(names, key=lambda name: [int(part) for part in name.split(".")], reverse=True)
 
 
 def newest_release(feed: list):
@@ -198,12 +218,12 @@ def release_page(release: dict, source: tuple) -> str:
     return render(main, release["name"], f"The release notes and files of {release['name']}.", "../../")
 
 
-def home_page(pages: Path, release) -> str:
-    versions = published_versions(pages)
+def home_page(latest: bool, dev: bool, versions: list, release) -> str:
+    """The home page, which lists latest/ and dev/ when they are there and the version folders."""
     items = [f'<li><a href="{name}/">{name}</a>{note}</li>'
-             for name, note in (("latest", ": the newest release"), ("dev", ": the main branch")) if (pages / name).is_dir()]
+             for name, note, shown in (("latest", ": the newest release", latest), ("dev", ": the main branch", dev)) if shown]
     items += [f'<li><a href="{name}/">{name}</a></li>' for name in versions]
-    main = keep(PAGE.read_text(encoding="utf-8"), "latest", (pages / "latest").is_dir())
+    main = keep(PAGE.read_text(encoding="utf-8"), "latest", latest)
     main = keep(keep(main, "release", release is not None), "no release", release is None)
     values = {"versions": "\n".join(f"        {item}" for item in items)}
     if release is not None:
@@ -234,9 +254,17 @@ def source_page(feed: list) -> str:
     return fill(main, {"releases": "\n".join(items), "root": "../"})
 
 
-def write_home_page(pages: Path, feed: list) -> None:
-    """Writes the home page, the other pages and assets/ into pages, from the releases of feed."""
-    (pages / "index.html").write_text(home_page(pages, newest_release(feed)), encoding="utf-8")
+def write_home_page(pages: Path, feed: list, from_feed: bool = False) -> None:
+    """Writes the home page, the other pages and assets/ into pages, from the releases of feed. The home page lists the
+    folders latest/ and dev/ and the version folders that pages has. With from_feed it lists the folders that the website
+    has by its feed alone instead: dev/, and latest/ and the versions of feed_versions when the feed has a stable release.
+    Every run that reads the same feed then writes the same pages, whatever copy of the site it has."""
+    if from_feed:
+        versions = feed_versions(feed)
+        documentation = (bool(versions), True, versions)
+    else:
+        documentation = ((pages / "latest").is_dir(), (pages / "dev").is_dir(), published_versions(pages))
+    (pages / "index.html").write_text(home_page(*documentation, newest_release(feed)), encoding="utf-8")
     for folder, (title, description) in SITE_PAGES.items():
         main = source_page(feed) if folder == "source" else fill(SITE.joinpath(f"{folder}.html").read_text(encoding="utf-8"), {"root": "../"})
         shutil.rmtree(pages / folder, ignore_errors=True)
@@ -254,4 +282,4 @@ if __name__ == "__main__":
     parser.add_argument("pages", type=Path, help="the root of the copy of the published site")
     parser.add_argument("--feed", default=FEED_URL, help="the address of the release feed")
     arguments = parser.parse_args()
-    write_home_page(arguments.pages, read_feed(arguments.feed))
+    write_home_page(arguments.pages, read_feed(arguments.feed) or [])

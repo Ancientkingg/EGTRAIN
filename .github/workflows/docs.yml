@@ -5,7 +5,8 @@ name: Docs
 # on the gh-pages branch. A successful run of the Release workflow publishes the commit it released to <version>/, and to
 # latest/ when no published version is newer. Each publish also writes the home page and the support, source code and
 # privacy pages at the root of gh-pages from docs/site/ of main, with the downloads of the newest release in the feed of
-# egtrain.samuelbruin.com, and then publishes the same folders and pages on egtrain.samuelbruin.com.
+# egtrain.samuelbruin.com, and then publishes the same folders on egtrain.samuelbruin.com with pages written from that
+# feed alone.
 on:
   pull_request:
   push:
@@ -141,7 +142,8 @@ jobs:
           done
           exit 1
 
-      # The folders of the step above and the pages that home_page.py wrote, from the same copy of gh-pages.
+      # The folders of the step above. The pages of the website list the versions of its feed, not the folders of this copy
+      # of gh-pages, so a run of main and a run of a release that publish at the same time leave the same pages.
       - name: Publish on egtrain.samuelbruin.com
         if: steps.pages.outputs.dirs != ''
         env:

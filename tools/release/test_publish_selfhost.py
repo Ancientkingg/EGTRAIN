@@ -4,10 +4,11 @@
 The tests run the script against two servers on 127.0.0.1: a stub of the publish API of the website, which also serves
 what was published, and a stub of the upload API of Zipline 4.8.1 as its source describes it (POST /api/upload with the
 token as the Authorization header, the name from x-zipline-filename and x-zipline-file-extension, 400 with code 1009 for a
-name that exists, 429 with Retry-After, and GET /raw/<name>).
+name that exists, 429 with Retry-After, and GET /raw/<name>). The import tests replace the GitHub CLI with a stand-in
+that has one release with the made-up files of the test.
 
-With ZIPLINE_TEST_URL and ZIPLINE_TEST_TOKEN set, the release tests also run against that Zipline server, with the stub
-of the website. Use a server of your own that you can throw away, for example:
+With ZIPLINE_TEST_URL and ZIPLINE_TEST_TOKEN set, the release and import tests also run against that Zipline server, with
+the stub of the website. Use a server of your own that you can throw away, for example:
 
   docker network create zipline-test
   docker run -d --name zipline-test-db --network zipline-test -e POSTGRES_USER=zipline \\
@@ -39,6 +40,7 @@ from pathlib import Path
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import build_release_assets  # noqa: E402
 import publish_selfhost  # noqa: E402
 import home_page  # noqa: E402  (publish_selfhost puts tools/docs on the path)
 
@@ -74,7 +76,7 @@ class Server:
 
         self.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         self.url = f"http://127.0.0.1:{self.server.server_address[1]}"
-        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread = threading.Thread(target=self.server.serve_forever, args=(0.05,), daemon=True)
         self.thread.start()
 
     def close(self):
@@ -99,6 +101,7 @@ class SiteStub(Server):
         self.root = root
         self.fail_feed = None
         self.redirect = False
+        self.redirect_feed = False
         super().__init__(events)
 
     def handle(self, handler, method):
@@ -106,6 +109,9 @@ class SiteStub(Server):
         if method in ("GET", "HEAD"):
             if path == publish_selfhost.FEED_PATH and self.fail_feed:
                 return self.reply(handler, self.fail_feed, b"broken", method=method)
+            # A feed elsewhere that a client which follows the redirect would read.
+            if path == publish_selfhost.FEED_PATH and self.redirect_feed:
+                return self.reply(handler, 302, headers={"Location": f"{self.url}/moved/feed.json"}, method=method)
             target = self.root / path
             if target.is_dir():
                 target = target / "index.html"
@@ -205,11 +211,34 @@ class PublishTests(unittest.TestCase):
         self.addCleanup(patch.stop)
         self.addCleanup(self.temp.cleanup)
 
-    def release(self, archive=fake_source_archive, commit="0123abc"):
+    def release(self, archive=fake_source_archive, commit="0123abc", new_feed=True):
         arguments = ["release", "--tag", self.tag, "--name", f"EGTRAIN {self.tag}", "--prerelease", "false",
                      "--assets", str(self.assets), "--commit", commit, "--run-url", "https://example.org/runs/1"]
         with mock.patch.object(publish_selfhost, "source_archive", archive), mock.patch("sys.stdout", io.StringIO()):
-            publish_selfhost.main(arguments)
+            publish_selfhost.main(arguments + (["--new-feed"] if new_feed else []))
+
+    def import_release(self, github: dict, archive=fake_source_archive, new_feed=True):
+        """Runs import with a stand-in for the GitHub CLI that has the release github and the files of self.assets."""
+        calls = []
+
+        def gh(*arguments):
+            calls.append(arguments)
+            if arguments[:3] == ("release", "view", self.tag):
+                return json.dumps(github)
+            if arguments[:3] == ("release", "download", self.tag):
+                for path in self.assets.iterdir():
+                    shutil.copyfile(path, Path(arguments[arguments.index("--dir") + 1], path.name))
+                return ""
+            raise AssertionError(arguments)
+
+        with mock.patch.object(publish_selfhost, "gh", gh), mock.patch.object(publish_selfhost, "source_archive", archive), \
+                mock.patch.object(publish_selfhost, "tag_commit", lambda tag: f"commit of {tag}"), mock.patch("sys.stdout", io.StringIO()):
+            publish_selfhost.main(["import", self.tag] + (["--new-feed"] if new_feed else []))
+        return calls
+
+    def github_release(self, **changes):
+        return {"tagName": self.tag, "name": f"EGTRAIN {self.tag}", "body": "Notes from GitHub.\r\n\r\n- one\r\n- two\r\n",
+                "isDraft": False, "isPrerelease": False, "publishedAt": "2026-10-01T12:00:00Z", **changes}
 
     def feed(self):
         return json.loads((self.root / "site/releases/feed.json").read_text(encoding="utf-8"))
@@ -254,7 +283,7 @@ class PublishTests(unittest.TestCase):
             self.release()
         uploads = [event for event in self.events if event.startswith("zipline ")]
         with mock.patch.object(publish_selfhost, "utc_now", return_value="2026-11-07T10:00:00Z"):
-            self.release()
+            self.release(new_feed=False)
         self.assertEqual([event for event in self.events if event.startswith("zipline ")], uploads)
         feed = self.feed()
         self.assertEqual([entry["tag_name"] for entry in feed], ["v1.2.3"])
@@ -266,7 +295,8 @@ class PublishTests(unittest.TestCase):
         stale = {"tag_name": "v1.2.3", "name": "stale", "published_at": "2026-03-01T00:00:00Z"}
         (self.root / "site/releases").mkdir()
         (self.root / "site/releases/feed.json").write_text(json.dumps([newer, stale, old]), encoding="utf-8")
-        self.release()
+        # --new-feed only matters when the website has no feed.
+        self.release(new_feed=True)
         feed = self.feed()
         self.assertEqual([entry["tag_name"] for entry in feed], ["v1.2.3", "v1.2.2", "v1.2.1"])
         self.assertEqual((feed[0]["name"], feed[0]["published_at"]), ("EGTRAIN v1.2.3", "2026-03-01T00:00:00Z"))
@@ -304,6 +334,54 @@ class PublishTests(unittest.TestCase):
         with self.assertRaises(SystemExit) as raised:
             self.release()
         self.assertIn("HTTP 500", str(raised.exception))
+        self.assertEqual([event for event in self.events if event.startswith("site ")], [])
+
+    def test_a_missing_feed_stops_a_release_without_new_feed(self):
+        with self.assertRaises(SystemExit) as raised:
+            self.release(new_feed=False)
+        self.assertIn("HTTP 404: the website has no feed", str(raised.exception))
+        self.assertIn("--new-feed", str(raised.exception))
+        self.assertEqual([event for event in self.events if event.startswith("site ")], [])
+
+    def test_a_redirect_of_the_feed_is_not_followed(self):
+        (self.root / "site/moved").mkdir()
+        (self.root / "site/moved/feed.json").write_text("[]", encoding="utf-8")
+        self.site.redirect_feed = True
+        with self.assertRaises(SystemExit) as raised:
+            self.release()
+        self.assertIn("HTTP 302", str(raised.exception))
+        self.assertEqual([event for event in self.events if event.startswith("site ")], [])
+
+    def test_import_publishes_a_github_release(self):
+        github = self.github_release()
+        calls = self.import_release(github)
+        self.assertEqual([call[:3] for call in calls], [("release", "view", self.tag), ("release", "download", self.tag)])
+        version = self.tag[1:]
+        entry = self.feed()[0]
+        self.assertEqual(set(entry), FIELDS)
+        self.assertEqual((entry["name"], entry["body"], entry["prerelease"], entry["published_at"], entry["html_url"]),
+                         (github["name"], github["body"], False, github["publishedAt"], f"{self.site.url}/releases/{version}/"))
+        self.assertEqual([asset["name"] for asset in entry["assets"]], sorted(path.name for path in self.assets.iterdir()))
+        for asset in entry["assets"]:
+            data, _headers = self.zipline_get(f"egtrain-{self.tag}-{asset['name']}")
+            self.assertEqual(data, (self.assets / asset["name"]).read_bytes())
+        page = (self.root / f"site/releases/{version}/index.html").read_text(encoding="utf-8")
+        self.assertIn("<li>two</li>", page)
+        self.assertIn(f"EGTRAIN-{version}-source.tar.gz", page)
+        # A second run, now that the feed exists, uploads nothing and writes the same page and feed.
+        uploads = [event for event in self.events if event.startswith("zipline ")]
+        self.import_release(github, new_feed=False)
+        self.assertEqual([event for event in self.events if event.startswith("zipline ")], uploads)
+        self.assertEqual(self.feed(), [entry])
+        self.assertEqual((self.root / f"site/releases/{version}/index.html").read_text(encoding="utf-8"), page)
+
+    def test_import_refuses_a_draft_and_a_missing_feed(self):
+        with self.assertRaises(SystemExit) as raised:
+            self.import_release(self.github_release(isDraft=True))
+        self.assertIn("not a published release", str(raised.exception))
+        with self.assertRaises(SystemExit) as raised:
+            self.import_release(self.github_release(), new_feed=False)
+        self.assertIn("HTTP 404: the website has no feed", str(raised.exception))
         self.assertEqual([event for event in self.events if event.startswith("site ")], [])
 
     def test_a_refused_token_is_not_printed(self):
@@ -346,7 +424,7 @@ class PublishTests(unittest.TestCase):
 
     def test_a_prerelease_has_no_documentation_link(self):
         arguments = ["release", "--tag", "v1.2.3-rc1", "--name", "EGTRAIN v1.2.3-rc1", "--prerelease", "true",
-                     "--assets", str(self.assets), "--commit", "0123abc", "--run-url", "https://example.org/runs/1"]
+                     "--assets", str(self.assets), "--commit", "0123abc", "--run-url", "https://example.org/runs/1", "--new-feed"]
         with mock.patch.object(publish_selfhost, "source_archive", fake_source_archive), mock.patch("sys.stdout", io.StringIO()):
             publish_selfhost.main(arguments)
         entry = self.feed()[0]
@@ -370,32 +448,89 @@ class StubOnly(unittest.TestCase):
         patch.start()
         self.addCleanup(patch.stop)
 
-    def pages(self):
-        pages = self.root / "pages"
-        for name in ("dev", "latest", "1.2.3"):
-            (pages / name / "guides").mkdir(parents=True)
-            (pages / name / "index.html").write_text(f"docs of {name}", encoding="utf-8")
-            (pages / name / "guides" / "install.html").write_text(f"install of {name}", encoding="utf-8")
+    def pages(self, folders=("dev", "latest", "1.2.3"), name="pages"):
+        pages = self.root / name
+        for folder in folders:
+            (pages / folder / "guides").mkdir(parents=True)
+            (pages / folder / "index.html").write_text(f"docs of {folder}", encoding="utf-8")
+            (pages / folder / "guides" / "install.html").write_text(f"install of {folder}", encoding="utf-8")
         home_page.write_home_page(pages, [])
         return pages
 
+    def site_feed(self, *tags):
+        """Puts a feed with the releases tags, newest first, on the website. A tag with a hyphen is a prerelease."""
+        feed = []
+        for index, tag in enumerate(tags):
+            names = [template.format(version=tag[1:]) for _key, template, _folder in build_release_assets.PACKAGES]
+            names += [scene + build_release_assets.SCENE_SUFFIX for scene in build_release_assets.SCENES]
+            assets = [{"name": name, "browser_download_url": f"https://bin.example.org/raw/egtrain-{tag}-{name}", "size": 1}
+                      for name in names + [build_release_assets.MANIFEST_NAME]]
+            feed.append({"tag_name": tag, "name": f"EGTRAIN {tag}", "body": "", "html_url": f"{self.site.url}/releases/{tag[1:]}/",
+                         "draft": False, "prerelease": "-" in tag, "published_at": f"2026-0{9 - index}-01T00:00:00Z", "assets": assets})
+        (self.root / "site/releases").mkdir(exist_ok=True)
+        (self.root / "site/releases/feed.json").write_text(json.dumps(feed), encoding="utf-8")
+
+    def publish_site(self, pages, *folders):
+        with mock.patch("sys.stdout", io.StringIO()):
+            publish_selfhost.main(["site", str(pages), *folders])
+
     def test_site_publishes_the_folders_then_the_pages_then_the_home_page(self):
         pages = self.pages()
-        with mock.patch("sys.stdout", io.StringIO()):
-            publish_selfhost.main(["site", str(pages), "1.2.3", "latest"])
+        self.publish_site(pages, "1.2.3", "latest")
         self.assertEqual(self.events, ["site dir 1.2.3", "site dir latest", "site dir assets", "site dir support", "site dir source",
                                        "site dir privacy", "site file index.html"])
-        for name in ("1.2.3/guides/install.html", "latest/index.html", "assets/site.css", "support/index.html",
-                     "source/index.html", "privacy/index.html", "index.html"):
+        for name in ("1.2.3/guides/install.html", "latest/index.html"):
             self.assertEqual((self.root / "site" / name).read_bytes(), (pages / name).read_bytes(), name)
+        for name in ("assets/site.css", "support/index.html", "privacy/index.html"):
+            self.assertTrue((self.root / "site" / name).is_file(), name)
         self.assertFalse((self.root / "site/dev").exists())
+
+    def test_site_pages_come_from_the_feed_whatever_the_copy(self):
+        # A run of main whose copy of gh-pages is older than the release, and the run of the release, publish the same
+        # pages, in either order.
+        self.site_feed("v1.2.4-rc.1", "v1.2.3", "v1.2.0")
+        newer, older = self.pages(), self.pages(("dev", "latest", "1.2.0"), "older")
+        published = []
+        for pages, folders in ((newer, ("1.2.3", "latest")), (older, ("dev",)), (newer, ())):
+            self.publish_site(pages, *folders)
+            published.append([(self.root / "site" / name).read_bytes() for name in ("index.html", "source/index.html")])
+        self.assertEqual(published[0], published[1])
+        self.assertEqual(published[0], published[2])
+        text = published[0][0].decode("utf-8")
+        listed = [text.find(f'<li><a href="{name}/">') for name in ("latest", "dev", "1.2.3", "1.2.0")]
+        self.assertTrue(-1 not in listed and listed == sorted(listed), listed)
+        self.assertNotIn('href="1.2.4-rc.1/"', text)
+        self.assertIn("https://bin.example.org/raw/egtrain-v1.2.3-EGTRAIN-1.2.3-macOS-arm64.dmg", text)
+        self.assertIn("egtrain-v1.2.4-rc.1-EGTRAIN-1.2.4-rc.1-source.tar.gz", published[0][1].decode("utf-8"))
+
+    def test_site_without_a_feed_lists_dev_only(self):
+        self.publish_site(self.pages())
+        text = (self.root / "site/index.html").read_text(encoding="utf-8")
+        self.assertIn('<li><a href="dev/">', text)
+        self.assertNotIn("latest/", text)
+        self.assertNotIn('href="1.2.3/"', text)
+        self.assertIn("No release is published on this site yet", text)
+
+    def test_site_does_not_follow_a_redirect_of_the_feed(self):
+        (self.root / "site/moved").mkdir()
+        (self.root / "site/moved/feed.json").write_text("[]", encoding="utf-8")
+        self.site.redirect_feed = True
+        with self.assertRaises(SystemExit) as raised:
+            publish_selfhost.main(["site", str(self.pages())])
+        self.assertIn("HTTP 302", str(raised.exception))
+        self.assertEqual(self.events, [])
 
     def test_site_refuses_links_and_other_names(self):
         pages = self.pages()
-        (pages / "latest" / "link.html").symlink_to(pages / "latest" / "index.html")
-        for folders in (["latest"], [".."], ["a/b"]):
+        for folders in ([".."], ["a/b"], ["latest", "."]):
             with self.assertRaises(SystemExit):
                 publish_selfhost.main(["site", str(pages), *folders])
+        try:
+            (pages / "latest" / "link.html").symlink_to(pages / "latest" / "index.html")
+        except OSError:
+            self.skipTest("this system makes no symbolic link")
+        with self.assertRaises(SystemExit):
+            publish_selfhost.main(["site", str(pages), "latest"])
         self.assertEqual(self.events, [])
 
     def test_the_body_limit_holds_before_sending(self):
@@ -413,6 +548,8 @@ class StubOnly(unittest.TestCase):
                 publish_selfhost.check_tag(tag)
 
     def test_source_archive_of_a_commit(self):
+        if not (publish_selfhost.ROOT / ".git").exists():
+            self.skipTest("the source code is not a Git repository")
         commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=publish_selfhost.ROOT, capture_output=True, text=True, check=True).stdout.strip()
         path = publish_selfhost.source_archive(commit, "v1.2.3", self.root)
         self.assertEqual(path.name, "EGTRAIN-1.2.3-source.tar.gz")
@@ -437,8 +574,8 @@ class StubOnly(unittest.TestCase):
         self.assertNotIn("<script", home_page.markdown_html("<script>alert(1)</script> [x](javascript:alert(1))"))
         self.assertNotIn('href="javascript', home_page.markdown_html("[x](javascript:alert(1))"))
 
-    def test_feed_of_404_is_empty(self):
-        self.assertEqual(home_page.read_feed(f"{self.site.url}/{publish_selfhost.FEED_PATH}"), [])
+    def test_feed_of_404_is_none(self):
+        self.assertIsNone(home_page.read_feed(f"{self.site.url}/{publish_selfhost.FEED_PATH}"))
         (self.root / "site/releases").mkdir()
         (self.root / "site/releases/feed.json").write_text('{"not": "a list"}', encoding="utf-8")
         with self.assertRaises(SystemExit):
@@ -505,6 +642,15 @@ class RealZiplineTests(PublishTests):
         self.skipTest("covered by the stub")
 
     def test_a_prerelease_has_no_documentation_link(self):
+        self.skipTest("covered by the stub")
+
+    def test_a_missing_feed_stops_a_release_without_new_feed(self):
+        self.skipTest("covered by the stub")
+
+    def test_a_redirect_of_the_feed_is_not_followed(self):
+        self.skipTest("covered by the stub")
+
+    def test_import_refuses_a_draft_and_a_missing_feed(self):
         self.skipTest("covered by the stub")
 
 
