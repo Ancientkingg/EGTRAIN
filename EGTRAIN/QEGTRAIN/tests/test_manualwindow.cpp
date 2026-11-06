@@ -241,7 +241,7 @@ void TestManualWindow::browserFailureShowsAddress() {
 	// the published manual that does not open shows its address in a message whose text can be selected
 	QCOMPARE(manualMessages.texts,
 		QStringList(QStringLiteral("Could not open the manual in your browser. Address: "
-								   "https://ancientkingg.github.io/EGTRAIN/latest/guides/capacity-analysis.html")));
+								   "https://egtrain.samuelbruin.com/latest/guides/capacity-analysis.html")));
 	QVERIFY(manualMessages.selectable);
 }
 

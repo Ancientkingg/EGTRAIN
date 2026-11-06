@@ -208,7 +208,7 @@ void ManualWindow::open(QWidget* parent, const QString& section) {
 	}
 	if (!window->showSection(section)) {
 		delete window;
-		openInBrowser(parent, QUrl(QStringLiteral("https://ancientkingg.github.io/EGTRAIN/latest/") + pageOf(section)),
+		openInBrowser(parent, QUrl(QStringLiteral("https://egtrain.samuelbruin.com/latest/") + pageOf(section)),
 			QStringLiteral("Open Manual"), QStringLiteral("the manual"));
 		return;
 	}
