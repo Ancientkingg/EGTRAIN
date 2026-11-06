@@ -3409,6 +3409,9 @@ void MainWindow::teardownGUI() {
 void MainWindow::setupRunResultsDock() {
 	m_resultViews = new ResultViews(this, m_runController, *this);
 	connect(m_resultViews, &ResultViews::trainSelected, this, &MainWindow::focusTrainInScene);
+	// The network view marks the stretch of a scope dialog and the blocks that a blocking time window points to.
+	connect(m_resultViews, &ResultViews::sectionsMarked, this,
+		[this](const QStringList& sectionIds, const QStringList& emphasisIds) { m_presenter->markRunSections(sectionIds, emphasisIds); });
 	m_runResultsPanel.reset(new RunResultsDock(this, m_runController, m_resultViews, *this));
 	m_runResultsPanel->dock()->setProperty("manualSection", QStringLiteral("run-results"));
 }

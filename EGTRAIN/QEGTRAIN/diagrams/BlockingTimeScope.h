@@ -117,7 +117,8 @@ signals:
 	void stretchChanged(const QString& routeId, const QStringList& sectionIds);
 	/// The pointer or the arrow keys are on an entry of the open route, From or To list: the chosen route and stretch as
 	/// stretchChanged gives them, and the section ids of the entry: all blocks of a route, the blocks that hold a station (RouteStation
-	/// firstBlock to lastBlock) or the one block; none for "All routes".
+	/// firstBlock to lastBlock) or the one block; none for "All routes". A list that closes sends the chosen route and
+	/// stretch with no entry.
 	void entryHovered(const QString& routeId, const QStringList& sectionIds, const QStringList& entrySectionIds);
 	/// The lists hold other entries, of another route or another kind of stretch, so the dialog can widen for them.
 	void entriesChanged();

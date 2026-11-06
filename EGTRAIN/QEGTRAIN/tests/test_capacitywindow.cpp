@@ -282,11 +282,14 @@ bool complete(const StretchRows& rows) {
 	return rows.route && rows.stations && rows.blocks && rows.from && rows.to;
 }
 
-// Opens the list, puts the pointer on its entry `index` and closes the list again.
-void hoverEntry(QComboBox* list, int index) {
+// Opens the list, puts the pointer on its entry `index` and closes the list again. Gives what `hovered`, a spy on
+// entryHovered, holds last while the pointer is on the entry.
+QVariantList hoverEntry(QComboBox* list, int index, const QSignalSpy& hovered) {
 	list->showPopup();
 	emit list->highlighted(index);
+	const QVariantList sent = hovered.isEmpty() ? QVariantList() : hovered.last();
 	list->hidePopup();
+	return sent;
 }
 
 // The object of the dialog that sends the signals of the stretch.
@@ -931,16 +934,16 @@ void TestCapacityWindow::signalsStretchAndHover() {
 		QCOMPARE(changed.last(), QVariantList({"R", lineIds(0, 5)}));
 		// Blocking time: choosing an entry is no hover
 		QCOMPARE(hovered.count(), 0);
-		hoverEntry(rows.from, 1);
+		const QVariantList station = hoverEntry(rows.from, 1, hovered);
 		// Blocking time: a station under the pointer sends the blocks that hold it
 		QCOMPARE_GT(hovered.count(), 0);
-		QCOMPARE(hovered.last(), QVariantList({"R", lineIds(0, 5), lineIds(2, 3)}));
-		hoverEntry(rows.route, 2);
-		// Blocking time: a route under the pointer sends its blocks and the chosen stretch
-		QCOMPARE(hovered.last(), QVariantList({"R", lineIds(0, 5), QStringList({"@0-S@", "@1-S@"})}));
-		hoverEntry(rows.route, 0);
-		// Blocking time: All routes under the pointer sends no block
+		QCOMPARE(station, QVariantList({"R", lineIds(0, 5), lineIds(2, 3)}));
+		// Blocking time: the list that closes leaves the stretch without an entry
 		QCOMPARE(hovered.last(), QVariantList({"R", lineIds(0, 5), QStringList()}));
+		// Blocking time: a route under the pointer sends its blocks and the chosen stretch
+		QCOMPARE(hoverEntry(rows.route, 2, hovered), QVariantList({"R", lineIds(0, 5), QStringList({"@0-S@", "@1-S@"})}));
+		// Blocking time: All routes under the pointer sends no block
+		QCOMPARE(hoverEntry(rows.route, 0, hovered), QVariantList({"R", lineIds(0, 5), QStringList()}));
 		rows.blocks->click();
 		rows = stretchRows(dialog);
 		// Blocking time: Blocks keeps the stretch and sends nothing, since the blocks are the same
@@ -948,9 +951,9 @@ void TestCapacityWindow::signalsStretchAndHover() {
 		QCOMPARE(rows.from->currentIndex(), 0);
 		QCOMPARE(rows.to->currentIndex(), 5);
 		QCOMPARE(changed.count(), 2);
-		hoverEntry(rows.to, 4);
 		// Blocking time: a block under the pointer sends that block
-		QCOMPARE(hovered.last(), QVariantList({"R", lineIds(0, 5), lineIds(4, 4)}));
+		QCOMPARE(hoverEntry(rows.to, 4, hovered), QVariantList({"R", lineIds(0, 5), lineIds(4, 4)}));
+		QCOMPARE(hovered.last(), QVariantList({"R", lineIds(0, 5), QStringList()}));
 		rows.route->setCurrentIndex(0);
 		// Blocking time: All routes sends no route and no block
 		QCOMPARE(changed.count(), 3);
@@ -971,9 +974,9 @@ void TestCapacityWindow::signalsStretchAndHover() {
 		// Capacity: another From station sends the blocks of the stretch
 		QCOMPARE(changed.count(), 1);
 		QCOMPARE(changed.last(), QVariantList({"R", lineIds(5, 7)}));
-		hoverEntry(rows.to, 3);
-		// Capacity: a station under the pointer sends the blocks that hold it
-		QCOMPARE(hovered.last(), QVariantList({"R", lineIds(5, 7), lineIds(7, 7)}));
+		// Capacity: a station under the pointer sends the blocks that hold it, and the list that closes no entry
+		QCOMPARE(hoverEntry(rows.to, 3, hovered), QVariantList({"R", lineIds(5, 7), lineIds(7, 7)}));
+		QCOMPARE(hovered.last(), QVariantList({"R", lineIds(5, 7), QStringList()}));
 		const auto order = [trains]() {
 			QStringList ids;
 			for (int row = 0; row < trains->count(); ++row)

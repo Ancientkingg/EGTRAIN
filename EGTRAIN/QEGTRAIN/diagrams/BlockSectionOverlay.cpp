@@ -22,6 +22,7 @@ constexpr double kStripMarkHeight = 3; // the bars of a station, a critical bloc
 constexpr double kStripGap = 4;		   // below the strip
 constexpr double kBreakMarkReach = 7;  // how near the pointer must be to a break mark for its hover
 constexpr double kCellReach = 3;	   // how near the pointer must be to a cell of the strip for its hover
+constexpr double kSharedKm = 1e-6;	   // how far a section and a stretch must overlap to share more than a point
 
 // The layer under the series of a chart that `paint` draws in, inside the plot. QChart stacks its grid at 2, its axes at 3
 // and its series at 4.
@@ -125,22 +126,7 @@ QString BlockSectionOverlay::inspect(const QPointF& point, bool headerOnly) cons
 	if (!axis || (!inStrip && (headerOnly || !plot.contains(point)))) return {};
 	QStringList details;
 	if (inStrip) {
-		// The cell under the pointer, or the nearest within kCellReach, so that a narrow cell can be hovered too. Coincident
-		// sections lie at the same distance.
-		double nearest = kCellReach;
-		std::vector<std::size_t> hits;
-		for (std::size_t i = 0; i < m_sections.size(); ++i) {
-			const BlockSectionExtent& section = m_sections[i];
-			if (!section.geometryValid) continue;
-			const double start = pixelX(section.startKm, axis), end = pixelX(section.endKm, axis);
-			const double distance = std::max({0.0, std::min(start, end) - point.x(), point.x() - std::max(start, end)});
-			if (distance < nearest) {
-				nearest = distance;
-				hits.clear();
-			}
-			if (distance == nearest) hits.push_back(i);
-		}
-		for (const std::size_t i : hits) details << sectionDetails(i);
+		for (const std::size_t i : cellsAt(point, axis)) details << sectionDetails(i);
 	} else {
 		for (std::size_t i = 0; i < m_sections.size(); ++i) {
 			const BlockSectionExtent& section = m_sections[i];
@@ -150,6 +136,44 @@ QString BlockSectionOverlay::inspect(const QPointF& point, bool headerOnly) cons
 		}
 	}
 	return details.join('\n');
+}
+
+QStringList BlockSectionOverlay::sectionsAt(const QPointF& point) const {
+	const auto* axis = distanceAxis();
+	if (!axis || m_sections.empty() || !headerRect().contains(point)) return {};
+	QStringList ids;
+	for (const std::size_t i : cellsAt(point, axis)) ids << QString::fromStdString(m_sections[i].id);
+	ids.removeDuplicates();
+	return ids;
+}
+
+QStringList BlockSectionOverlay::sectionsBetween(double fromKm, double toKm) const {
+	const double lower = std::min(fromKm, toKm), upper = std::max(fromKm, toKm);
+	QStringList ids;
+	for (const BlockSectionExtent& section : m_sections)
+		if (section.geometryValid && std::min(upper, section.upperKm()) - std::max(lower, section.lowerKm()) > kSharedKm)
+			ids << QString::fromStdString(section.id);
+	ids.removeDuplicates();
+	return ids;
+}
+
+// The cells of the strip at `point`: the cell under the pointer, or the nearest within kCellReach, so that a narrow cell can
+// be hovered too. Coincident sections lie at the same distance.
+std::vector<std::size_t> BlockSectionOverlay::cellsAt(const QPointF& point, const QValueAxis* axis) const {
+	double nearest = kCellReach;
+	std::vector<std::size_t> hits;
+	for (std::size_t i = 0; i < m_sections.size(); ++i) {
+		const BlockSectionExtent& section = m_sections[i];
+		if (!section.geometryValid) continue;
+		const double start = pixelX(section.startKm, axis), end = pixelX(section.endKm, axis);
+		const double distance = std::max({0.0, std::min(start, end) - point.x(), point.x() - std::max(start, end)});
+		if (distance < nearest) {
+			nearest = distance;
+			hits.clear();
+		}
+		if (distance == nearest) hits.push_back(i);
+	}
+	return hits;
 }
 
 // The dotted boundaries of the sections in the plot, under the series.

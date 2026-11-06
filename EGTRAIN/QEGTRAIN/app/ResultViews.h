@@ -7,6 +7,7 @@
 #include <QObject>
 #include <QPointer>
 #include <QString>
+#include <QStringList>
 
 #include <functional>
 #include <memory>
@@ -15,6 +16,7 @@
 
 class QWidget;
 class RunController;
+class ScopeStretchChoice;
 struct BlockingTimeDiagramData;
 struct CompletedRunData;
 struct SceneModel;
@@ -124,6 +126,11 @@ public slots:
 signals:
 	/// A train was selected in one of the windows.
 	void trainSelected(const QString& trainId);
+	/// The block sections that the network view marks changed. While a Blocking time or Capacity scope dialog is open
+	/// they are the stretch that it chooses, with the sections of the entry under the pointer as `emphasisIds`; once it
+	/// closes, with OK or Cancel, they are the blocks of the boxes that the blocking time windows select, with those of the
+	/// cell or box under the pointer as `emphasisIds`. Runtime section ids of the run; both empty for no mark.
+	void sectionsMarked(const QStringList& sectionIds, const QStringList& emphasisIds);
 
 private:
 	// Opens a window on the blocking-time diagram `data` of the run, with `context` as its context line. The window keeps
@@ -139,6 +146,13 @@ private:
 	// it over the main window. The delay analysis and capacity by area windows, which their openers show, move there
 	// after they appear.
 	void showWindow(QWidget* window);
+	// Runs `ask`, which opens a scope dialog with the observer it is given, while sectionsMarked follows the stretch of the
+	// dialog. Gives back what `ask` gives.
+	bool askMarkingStretch(const std::function<bool(const std::function<void(ScopeStretchChoice&)>&)>& ask);
+	// Keeps what a blocking time window points to (DiagramWindow::sectionsMarked) and sends the marks of the windows.
+	void markWindowSections(QWidget* window, const QStringList& selected, const QStringList& hovered);
+	// Sends the marks of the blocking time windows, unless a scope dialog is open.
+	void sendWindowMarks();
 
 	QWidget* const m_window;
 	RunController* const m_runController;
@@ -148,6 +162,14 @@ private:
 	QList<QPointer<QWidget>> m_windows;
 	// The windows of addCaseWindow(), which showWindow() does not place.
 	QList<QPointer<QWidget>> m_caseWindows;
+	// What each blocking time window that points to block sections points to.
+	struct WindowMark {
+		QPointer<QWidget> window;
+		QStringList selected;
+		QStringList hovered;
+	};
+	std::vector<WindowMark> m_windowMarks;
+	bool m_scopeDialogOpen = false; // sectionsMarked follows the stretch of a scope dialog
 };
 
 #endif // RESULTVIEWS_H

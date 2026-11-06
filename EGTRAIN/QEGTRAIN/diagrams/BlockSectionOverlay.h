@@ -14,6 +14,7 @@
 #include <QRectF>
 #include <QSet>
 #include <QString>
+#include <QStringList>
 #include <QVector>
 
 #include <cstddef>
@@ -55,11 +56,18 @@ public:
 	/// its short id (shortBlockId) and its geo extent, such as "Position 21.010 to 21.450 km". Coincident sections are
 	/// all listed. Empty where the overlay shows nothing.
 	QString inspect(const QPointF& point, bool headerOnly) const;
+	/// The ids of the sections of the cells of the strip that inspect() names at `point` in chart pixels: the cell under
+	/// the pointer, or the nearest within 3 px, with the sections that coincide with it. Empty outside the strip.
+	QStringList sectionsAt(const QPointF& point) const;
+	/// The ids of the sections that share more than a point with the stretch from `fromKm` to `toKm` along the route, such
+	/// as the block of a blocking time box, in the order of the strip without repeats.
+	QStringList sectionsBetween(double fromKm, double toKm) const;
 	/// Draws the strip and the break marks.
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) override;
 
 private:
 	void refresh();
+	std::vector<std::size_t> cellsAt(const QPointF& point, const QValueAxis* axis) const;
 	void paintBoundaries(QPainter* painter) const;
 	QPen boundaryPen() const;
 	QString sectionDetails(std::size_t index) const;

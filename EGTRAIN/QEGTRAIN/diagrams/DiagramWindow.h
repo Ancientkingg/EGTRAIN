@@ -88,6 +88,9 @@ struct FigureColumn {
 ///
 /// A chart without series shows the text of setEmptyText in the middle of its plot, and the panel leaves out the
 /// sections that have nothing to show, Trains included.
+///
+/// A cell of the section strip and a blocking time box name the block sections that they cover, which sectionsMarked
+/// sends, so that the network view can mark them.
 class DiagramWindow : public QDialog {
 	Q_OBJECT
 public:
@@ -187,6 +190,11 @@ public:
 
 signals:
 	void trainSelected(const QString& trainId); ///< A click on a series selected this train
+	/// The block sections that the window points to changed. `selected` holds those of the selected blocking time box,
+	/// until Clear, Escape or another selection ends it; `hovered` those of the cell of the section strip (setBlockSections)
+	/// or the box that the tooltip names under the pointer. Both are runtime section ids of the sections of the strip,
+	/// empty for none, and both are empty while the window is hidden.
+	void sectionsMarked(const QStringList& selected, const QStringList& hovered);
 
 protected:
 	/// Hover, click selection, the readout, wheel and pinch zoom, and wheel pan on the chart view. The readout fills when
@@ -225,6 +233,7 @@ private:
 		bool inside = false;		 // the point lies inside the filled outline `series`, not on a line
 		QStringList lines;			 // one fact per line; empty where the chart shows nothing
 		QStringList details;		 // what Selected shows below the lines, such as the parts of a blocking time
+		QStringList sections;		 // the block sections of the cell of the strip or of the box `series`
 	};
 
 	void applyChartStyle(QChart* chart);
@@ -244,6 +253,9 @@ private:
 	void rebuildFilterGroups();
 	void refreshTrainList();
 	void select(const ChartHit& hit);
+	QStringList boxSections(const QXYSeries* box) const;
+	void setHoveredSections(const QStringList& sections);
+	void refreshMarkedSections();
 	void raiseTrain(const QString& trainId);
 	void refreshTrainsSection();
 	void refreshEmptyNote();
@@ -303,6 +315,9 @@ private:
 	QString m_pinnedTrainId;		   // the selected train, or the train of the selected blocking time
 	QPointer<QXYSeries> m_selectedBox; // the outline of the selected blocking time; null while a train is selected
 	QStringList m_selectedLines;	   // what Selected shows: the tooltip lines of the click and their details
+	QStringList m_hoveredSections;	   // the block sections of the hover, as ChartHit::sections
+	QStringList m_markedSelected;	   // what sectionsMarked sent last
+	QStringList m_markedHovered;
 	std::function<std::string(const QStringList&)> m_csvProvider;
 	QString m_csvSuggestedName;
 	QString m_figureFileName;
