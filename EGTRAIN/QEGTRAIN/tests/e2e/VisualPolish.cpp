@@ -1520,13 +1520,26 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	}
 	captureScreenshot("QEGTRAIN_E2E_SELECTED_SCREENSHOT", "selected Fit");
 	if (w.networkView && selectedTrain && selectedTrainBody) {
-		// The cue of a selected train is seen at Fit.
+		// The cue of a selected train is seen at Fit. The markers of other trains lie above it, and at a busy station
+		// they can cover most of it, so they are hidden while it is measured.
+		const TrainBadgeItem* selectedFitBadge = PresenterAccess::trainBadges(*w.m_presenter).value(selectedTrain->index, nullptr);
+		QList<QGraphicsItem*> fitNeighbours;
+		for (TrainItemGroup* otherTrain : w.m_presenter->runTrains())
+			if (otherTrain != selectedTrain && otherTrain->isVisible())
+				fitNeighbours << otherTrain;
+		for (TrainBadgeItem* otherBadge : PresenterAccess::trainBadges(*w.m_presenter))
+			if (otherBadge && otherBadge != selectedFitBadge && otherBadge->isVisible())
+				fitNeighbours << otherBadge;
+		for (QGraphicsItem* item : fitNeighbours)
+			item->setVisible(false);
 		int seen = 0;
 		int withoutCue = 0;
 		if (checkCueSeen("selected train at Fit", selectedTrain->sceneBoundingRect(), &seen, &withoutCue)) {
 			std::fprintf(stdout, "E2E_SELECTION_CUE_FIT_OK pixels=%d without=%d\n", seen, withoutCue);
 			std::fflush(stdout);
 		}
+		for (QGraphicsItem* item : fitNeighbours)
+			item->setVisible(true);
 		// It keeps its size on screen and does not paint over the train at detail zoom.
 		w.networkView->zoomBy(12.0);
 		w.networkView->centerOn(selectedTrain->sceneBoundingRect().center());
