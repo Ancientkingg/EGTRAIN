@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Bundled cases" href="case-studies.html"><link rel="prev" title="Installing EGTRAIN" href="install.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="How-to" href="how-to.html"><link rel="prev" title="EGTRAIN documentation" href="../index.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>Getting started - EGTRAIN documentation</title>
@@ -192,11 +192,12 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul class="current">
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="common-questions.html">Common questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
-<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
 <li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
@@ -321,7 +322,7 @@
 </section>
 <section id="install-and-start">
 <h2>1. Install and start<a class="headerlink" href="#install-and-start" title="Link to this heading">¶</a></h2>
-<p>Download the package for your system from the <a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/releases">releases page</a>. <a class="reference internal" href="install.html"><span class="std std-doc">Installing EGTRAIN</span></a> has the steps for each system, including what to do when macOS or Windows warns before the first start.</p>
+<p>Download the package for your system from the <a class="reference external" href="https://ancientkingg.github.io/EGTRAIN/#download">EGTRAIN website</a> or the <a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/releases">releases page</a>. <a class="reference internal" href="install.html"><span class="std std-doc">Installing EGTRAIN</span></a> has the steps for each system, including what to do when macOS or Windows warns before the first start.</p>
 <ul class="simple">
 <li><p>macOS: open the disk image, drag <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code> onto <code class="docutils literal notranslate"><span class="pre">Applications</span></code>, and start it from there. A copy kept in a folder inside your home folder can make macOS ask for access to Desktop, Documents and Downloads at the first <strong>Open Case File…</strong>: in column view the file dialog then lists your home folder. If macOS has not asked for access to Documents yet, it can ask at the first export or save, because an export dialog starts in your Documents folder, as does a save dialog for a bundled case or a new case. That dialog does not respond until you answer.</p></li>
 <li><p>Windows: run <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Setup-&lt;version&gt;-x64.exe</span></code> and start <strong>EGTRAIN</strong> from the Start Menu, or unzip <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Portable-&lt;version&gt;-x64.zip</span></code> into a new, empty folder and run <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>.</p></li>
@@ -346,7 +347,7 @@
 <p>When Paimpol has loaded:</p>
 <ul class="simple">
 <li><p>The window title reads <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">-</span> <span class="pre">Paimpol</span></code>, and the status bar reads <code class="docutils literal notranslate"><span class="pre">Opened</span> <span class="pre">Paimpol</span></code>.</p></li>
-<li><p>The network view shows the tracks and stations. Turn the mouse wheel to zoom around the pointer and drag to move the view. On a trackpad, two fingers move the view and a pinch zooms. Click <strong>Fit</strong> (Ctrl+0) in the toolbar to see the whole network again. A click on a track, station or signal opens an information panel for it. To find a station, signal or train by name, choose <strong>Edit &gt; Find…</strong> (Ctrl+F).</p></li>
+<li><p>The network view shows the tracks and stations. Turn the mouse wheel to zoom around the pointer and drag to move the view. On a trackpad, two fingers move the view and a pinch zooms. Click <strong>Fit</strong> (Ctrl+0) in the toolbar to see the whole network again. A click on a track, station or signal opens an information panel for it and selects its row in the dock <strong>Infrastructure</strong>. To find a station, signal or train by name, choose <strong>Edit &gt; Find…</strong> (Ctrl+F).</p></li>
 <li><p>The dock <strong>Case and Layers</strong> on the left names the case. When validation finds an error, the line under the name shows the first error and <strong>Run</strong> is disabled. The check boxes under <strong>Layers</strong> switch parts of the picture on and off: <strong>Stations and platforms</strong>, <strong>Station names</strong>, <strong>Trains</strong>, <strong>Train speed labels</strong>, <strong>Signals</strong> and <strong>Passengers</strong>. <strong>View &gt; Map Key</strong> explains the symbols. <strong>Passengers</strong> is off at the first start and is the same switch as <strong>View &gt; Passengers</strong>. Turning it on shows the passenger markers and counters on the platform bars from the next run, and turning it off hides them at once. The platform bars belong to the stations: they show whenever you zoom in on a station, with or without passengers. A case without passengers draws no passenger markers and shows both controls off and disabled; the choice comes back in a case with passengers. <code class="docutils literal notranslate"><span class="pre">-pax</span> <span class="pre">1</span></code> (<a class="reference internal" href="command-line.html#options"><span class="std std-ref">the option</span></a>) starts with passengers on, and the program remembers the last choice.</p></li>
 <li><p>The toolbar holds <strong>Open Case</strong>, <strong>Run</strong>, <strong>Pause</strong>, <strong>Stop</strong>, a speed slider with the current speed next to it, <strong>Follow</strong> with the list of trains, the zoom buttons and <strong>Fit</strong>.</p></li>
 </ul>
@@ -390,7 +391,7 @@
 <li><p><strong>Speed / distance</strong> (<strong>Diagrams &gt; Speed / distance</strong>) plots the speed of each train against the distance it covered. Hover a line to read a value, click a line to select its train, and drag a rectangle to zoom. <a class="reference internal" href="diagram-navigation.html"><span class="std std-doc">Inspecting diagrams</span></a> describes the controls.</p></li>
 <li><p><strong>Timetable</strong> (<strong>Diagrams &gt; Timetable</strong>) lists each stop of each train with its planned and simulated arrival and departure and the delays.</p></li>
 </ul>
-<p>The other entries are listed in <a class="reference internal" href="how-to.html#results-and-exports"><span class="std std-ref">How-to</span></a>. The entries stay disabled until a run has ended.</p>
+<p>The other entries are listed in <a class="reference internal" href="how-to.html#view-a-graph-of-a-run"><span class="std std-ref">View a graph of a run</span></a>. The entries stay disabled until a run has ended.</p>
 <p><img alt="The window after a completed run of Paimpol / baseline, with the menu Open result view... of the dock Run Results open above its button. It lists twelve views in three groups of four: timetable and delays, speed and distance, and train paths and capacity. Beside and below it are the Replay row, the buttons Open result view..., Export CSV... and Export PNG..., the results table, and at the bottom Set delay baseline and Compare delays." src="../_images/getting-started-run-results.png" /></p>
 </section>
 <section id="export-one-csv-and-one-png">
@@ -456,7 +457,8 @@
 <h2>Next<a class="headerlink" href="#next" title="Link to this heading">¶</a></h2>
 <p>This manual is also in EGTRAIN: <strong>Help &gt; EGTRAIN Manual</strong> opens it with its contents and search, and F1 opens the section about the window you are in when the manual has one, otherwise its start page. A build without the manual opens the manual on the project website instead.</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="how-to.html"><span class="std std-doc">How-to</span></a>: recipes for opening and saving, editing a timetable, scenarios and baselines, canvas navigation, results and legacy cases.</p></li>
+<li><p><a class="reference internal" href="how-to.html"><span class="std std-doc">How-to</span></a>: recipes for opening and saving, running, adding trains and services, changing the infrastructure, incidents, graphs of a run, results and legacy cases.</p></li>
+<li><p><a class="reference internal" href="common-questions.html"><span class="std std-doc">Common questions</span></a>: short answers, such as why <strong>Run</strong> is disabled, where a run writes its files and what to attach to a bug report.</p></li>
 <li><p><a class="reference internal" href="opening-a-case-study.html"><span class="std std-doc">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</span></a>: bundles, version checks and opening by double-click.</p></li>
 <li><p><a class="reference internal" href="editing-a-case.html"><span class="std std-doc">Editing and validating a case</span></a>, <a class="reference internal" href="scenarios.html"><span class="std std-doc">Scenarios and the student loop</span></a> and the <a class="reference internal" href="scene-schema.html"><span class="std std-doc">scene schema</span></a>: the editors, the scenarios and the case files.</p></li>
 <li><p><a class="reference internal" href="glossary.html"><span class="std std-doc">Glossary</span></a>.</p></li>
@@ -469,23 +471,23 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="case-studies.html">
+          <a class="next-page" href="how-to.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Bundled cases</div>
+                <div class="title">How-to</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="install.html">
+          <a class="prev-page" href="../index.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Installing EGTRAIN</div>
+                <div class="title">Home</div>
                 
               </div>
             </a>

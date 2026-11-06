@@ -6,11 +6,12 @@ EGTRAIN is a railway micro-simulation desktop application. The manual is for peo
 :caption: Run existing cases
 :maxdepth: 1
 
+guides/getting-started
+guides/how-to
+guides/common-questions
 README
 guides/install
-guides/getting-started
 guides/case-studies
-guides/how-to
 guides/opening-a-case-study
 guides/main-window
 guides/updates
