@@ -89,11 +89,15 @@ struct FigureColumn {
 /// A chart without series shows the text of setEmptyText in the middle of its plot, and the panel leaves out the
 /// sections that have nothing to show, Trains included.
 ///
-/// A cell of the section strip and a blocking time box name the block sections that they cover, which sectionsMarked
-/// sends, so that the network view can mark them.
+/// A cell of the section strip names its block sections and a blocking time box its block, which sectionsMarked sends,
+/// so that the network view can mark them.
 class DiagramWindow : public QDialog {
 	Q_OBJECT
 public:
+	/// The dynamic property of the outline of a blocking time box that names its block: the runtime id of the section that
+	/// the train held, such as "@12-B0@". A box without it names the sections of the strip that it covers.
+	static constexpr char kBoxBlockProperty[] = "egtrainBoxBlock";
+
 	/// An empty window with the given title.
 	explicit DiagramWindow(const QString& title, QWidget* parent = nullptr);
 	/// Shows the chart and takes ownership of it. The chart loses its title, since the window title and the exported
@@ -192,8 +196,8 @@ signals:
 	void trainSelected(const QString& trainId); ///< A click on a series selected this train
 	/// The block sections that the window points to changed. `selected` holds those of the selected blocking time box,
 	/// until Clear, Escape or another selection ends it; `hovered` those of the cell of the section strip (setBlockSections)
-	/// or the box that the tooltip names under the pointer. Both are runtime section ids of the sections of the strip,
-	/// empty for none, and both are empty while the window is hidden.
+	/// or the box that the tooltip names under the pointer. Both are runtime section ids, of the block of a box
+	/// (kBoxBlockProperty) or of sections of the strip, empty for none, and both are empty while the window is hidden.
 	void sectionsMarked(const QStringList& selected, const QStringList& hovered);
 
 protected:
@@ -233,7 +237,7 @@ private:
 		bool inside = false;		 // the point lies inside the filled outline `series`, not on a line
 		QStringList lines;			 // one fact per line; empty where the chart shows nothing
 		QStringList details;		 // what Selected shows below the lines, such as the parts of a blocking time
-		QStringList sections;		 // the block sections of the cell of the strip or of the box `series`
+		QStringList sections;		 // the block sections of the cell of the strip, or the block of the box `series`
 	};
 
 	void applyChartStyle(QChart* chart);

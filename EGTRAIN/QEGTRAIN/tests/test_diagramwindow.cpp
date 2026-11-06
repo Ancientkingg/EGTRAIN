@@ -2,6 +2,7 @@
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/PositionScale.h"
 #include "diagrams/RouteDiagramCoordinates.h"
+#include "diagrams/RouteCharts.h"
 #include "diagrams/SeriesMeta.h"
 #include "diagrams/TrainColors.h"
 #include "diagrams/TrainFilterButton.h"
@@ -4737,13 +4738,24 @@ void TestDiagramWindow::presentsInputCurve() {
 	QVERIFY2(input.findChild<QLabel*>("diagramWarning")->isHidden(), "absent warning uses no strip");
 }
 
-// A cell of the section strip and a blocking time box under the pointer send their block sections, and the box that a
-// click selects sends its sections until Clear or until the window closes; shown again, the window sends its selection.
+// A cell of the section strip under the pointer sends its block sections, and a blocking time box its block or, without
+// one, the sections of the strip that it covers. The box that a click selects sends them until Clear or until the window
+// closes; shown again, the window sends its selection.
 void TestDiagramWindow::sendsSectionsUnderPointer() {
 	DiagramWindow window("Blocking time");
 	auto* chart = new QChart;
 	addBlockingBox(chart, "A", BlockingTimeKind::Ordinary, 2, 4, 20, 60);
 	addBlockingBox(chart, "B", BlockingTimeKind::Ordinary, 4, 8, 30, 70);
+	// A box of a train whose route does not run along the reference route: its block is not a section of the strip, and
+	// the box covers the sections of the strip that share a resource with it.
+	BlockingTimeDiagramSegment elsewhere;
+	elsewhere.trainName = "C";
+	elsewhere.blockId = "@1-B5@";
+	elsewhere.startPositionKm = 2;
+	elsewhere.endPositionKm = 6;
+	elsewhere.startTime = 75;
+	elsewhere.endTime = 95;
+	addBlockingTimeSeries(chart, {elsewhere}, false, 0);
 	chart->createDefaultAxes();
 	for (auto* axis : chart->axes()) qobject_cast<QValueAxis*>(axis)->setRange(0, 100);
 	chart->axes(Qt::Horizontal).first()->setRange(0, 10);
@@ -4790,8 +4802,11 @@ void TestDiagramWindow::sendsSectionsUnderPointer() {
 	// a box under the pointer sends the section of its block
 	QCOMPARE(last(), marks({}, {"@0-B1@"}));
 	move(at(QPointF(6, 50)));
-	// a box over two sections sends both
+	// a box without a block over two sections sends both
 	QCOMPARE(last(), marks({}, {"@0-B2@", "@0-B3@"}));
+	move(at(QPointF(4, 85)));
+	// a box sends its own block, not the sections of the strip under it
+	QCOMPARE(last(), marks({}, {"@1-B5@"}));
 	move(at(QPointF(1, 90)));
 	// away from the boxes and the strip the pointer is on no section
 	QCOMPARE(last(), marks({}, {}));

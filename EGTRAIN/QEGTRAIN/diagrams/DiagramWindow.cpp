@@ -1141,10 +1141,14 @@ void DiagramWindow::clearPin() {
 	applyColourPlan();
 }
 
-// The block sections of the strip that a blocking time box covers along the route; none without a strip.
+// The block of a blocking time box (kBoxBlockProperty), which need not be a section of the strip: a box of a train whose
+// route does not run along the reference route covers the sections of the strip that share a resource with its block.
+// A box without a block has the sections of the strip that it covers along the route; none without a strip.
 QStringList DiagramWindow::boxSections(const QXYSeries* box) const {
+	if (!box) return {};
+	if (const QString block = box->property(kBoxBlockProperty).toString(); !block.isEmpty()) return {block};
 	const auto* overlay = m_sectionOverlay.data();
-	if (!overlay || !box) return {};
+	if (!overlay) return {};
 	const QList<QPointF> points = box->points();
 	if (points.isEmpty()) return {};
 	const auto [low, high] =
@@ -1503,7 +1507,7 @@ void DiagramWindow::clearTooltip() {
 // axis title, inside a box the nearest sample of a shown line within kLineOverBox px, else the box, outside the boxes the
 // nearest sample of a shown line within 10 px, else the hover of a section boundary. A sample gives its values, a box its
 // title, or else its name, and its context lines only. The lines of inspectionInterval after an empty line are details
-// for Selected. A cell of the strip and a box give their block sections.
+// for Selected. A cell of the strip gives its block sections, a box its block.
 DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 	ChartHit hit;
 	QChart* chart = m_view ? m_view->chart() : nullptr;
