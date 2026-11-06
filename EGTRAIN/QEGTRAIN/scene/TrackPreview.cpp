@@ -116,6 +116,20 @@ bool legacyDoubleSwitchTrack(const SceneModel& scene, const std::string& trackId
 		&& std::fabs(lastX - firstX - kVirtualSwitchSpanKm) < kVirtualSwitchToleranceKm;
 }
 
+// The lowest and the highest chainage of the part of the line that is drawn: the whole line, and a double switch
+// without its first and last arc. False when no part of the line is drawn.
+bool drawnChainages(const TrackPreviewLine& line, double& low, double& high) {
+	const std::size_t skip = line.doubleSwitch ? 1 : 0;
+	const std::size_t fewest = line.doubleSwitch ? 4 : 1;
+	if (line.points.size() < fewest)
+		return false;
+	const auto [lowest, highest] = std::minmax_element(line.points.begin() + skip, line.points.end() - skip,
+		[](const TrackPreviewPoint& left, const TrackPreviewPoint& right) { return left.rawX < right.rawX; });
+	low = lowest->rawX;
+	high = highest->rawX;
+	return true;
+}
+
 } // namespace
 
 TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
@@ -157,6 +171,7 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 		const auto view = std::find_if(scene.trackViews.begin(), scene.trackViews.end(),
 			[&line](const SceneTrackView& candidate) { return candidate.trackId == line.id; });
 		if (view != scene.trackViews.end()) {
+			line.doubleSwitch = view->doubleSwitch;
 			// The y of the scene runs downwards, so a higher level is drawn above the level before it.
 			line.levelSpacing = 0.015;
 			line.displayOffset = -static_cast<double>(view->level) * line.levelSpacing;
@@ -478,7 +493,12 @@ std::vector<TrackPreviewPoint> trackPreviewSectionCourse(const TrackPreviewResul
 	if (!first || !last)
 		return {};
 	std::vector<TrackPreviewPoint> course;
+	// A point on an arc that the preview does not draw, the first or last arc of a double switch, is left out.
 	const auto add = [&course](const TrackPreviewLine& line, TrackPreviewPoint point) {
+		double low = 0.0;
+		double high = 0.0;
+		if (line.doubleSwitch && (!drawnChainages(line, low, high) || point.rawX < low || point.rawX > high))
+			return;
 		point.y += line.displayOffset;
 		course.push_back(std::move(point));
 	};
@@ -507,12 +527,12 @@ std::vector<TrackPreviewPoint> trackPreviewSectionCourse(const TrackPreviewResul
 }
 
 std::vector<TrackPreviewPoint> trackPreviewChainageCourse(const TrackPreviewLine& line, double fromKm, double toKm) {
-	if (line.points.empty() || !std::isfinite(fromKm) || !std::isfinite(toKm))
+	double lowest = 0.0;
+	double highest = 0.0;
+	if (!std::isfinite(fromKm) || !std::isfinite(toKm) || !drawnChainages(line, lowest, highest))
 		return {};
-	const auto [lowest, highest] = std::minmax_element(line.points.begin(), line.points.end(),
-		[](const TrackPreviewPoint& left, const TrackPreviewPoint& right) { return left.rawX < right.rawX; });
-	const double low = std::max(std::min(fromKm, toKm), lowest->rawX);
-	const double high = std::min(std::max(fromKm, toKm), highest->rawX);
+	const double low = std::max(std::min(fromKm, toKm), lowest);
+	const double high = std::min(std::max(fromKm, toKm), highest);
 	if (low > high)
 		return {};
 	TrackPreviewPoint start;

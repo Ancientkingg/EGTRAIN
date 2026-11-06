@@ -23,6 +23,9 @@ struct TrackPreviewLine {
 	/// The distance between two levels when displayOffset holds the level of the track, in the units of the
 	/// points; 0 when it does not.
 	double levelSpacing = 0.0;
+	/// True when the view of the track draws it as a double switch (SceneTrackView::doubleSwitch): without its first
+	/// and last arc.
+	bool doubleSwitch = false;
 };
 
 /// A connection between two visible tracks.
@@ -94,12 +97,14 @@ TrackPreviewResult normalizeTrackPreview(const TrackPreviewResult& preview);
 /// start chainage, the points of its nodes in order (SceneSectionDescriptor::nodeIds) and the point at its end
 /// chainage, each on the line of its own track, with the display offset of that line added to y. An end at a node adds
 /// no point of its own. A switch section goes from the line of its first track to the line of its second track at its
-/// connection. Empty when a node or an end of the section is on no line of the preview.
+/// connection. A double switch is drawn without its first and last arc, so the points on those arcs are left out. Empty
+/// when a node or an end of the section is on no line of the preview.
 std::vector<TrackPreviewPoint> trackPreviewSectionCourse(const TrackPreviewResult& preview,
 	const SceneSectionDescriptor& section);
 /// The course of the line from chainage fromKm to toKm in kilometres, in the order of the line: the points at both
 /// chainages and the points of the line between them, with the display offset of the line added to y. A range that
-/// reaches past the line is cut at its ends. Empty when the range does not meet the line or is not finite.
+/// reaches past the drawn line, which for a double switch ends at its second and its last but one point, is cut at its
+/// ends. Empty when the range does not meet the drawn line or is not finite.
 std::vector<TrackPreviewPoint> trackPreviewChainageCourse(const TrackPreviewLine& line, double fromKm, double toKm);
 
 #endif

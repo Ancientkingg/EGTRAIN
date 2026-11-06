@@ -951,6 +951,17 @@ void NetworkPresenter::drawPreviewNodes(const SceneModel& sceneModel, PreviewDra
 }
 
 namespace {
+// The polyline of a course on the preview in scene coordinates; empty when a point is not finite.
+QPolygonF finitePolyline(const std::vector<TrackPreviewPoint>& course) {
+	QPolygonF polyline;
+	for (const TrackPreviewPoint& point : course) {
+		if (!std::isfinite(point.x) || !std::isfinite(point.y))
+			return {};
+		polyline.append(QPointF(point.x, point.y));
+	}
+	return polyline;
+}
+
 // The courses of the sections that the reference names: the section that it resolves to, or else the block sections of
 // the blocks that it names (sceneBlockReferenceComponents). None for an empty reference.
 QList<QPolygonF> referenceCourses(const TrackPreviewResult& preview, const SceneSectionInventory& inventory,
@@ -992,8 +1003,6 @@ struct SelectionMarkParts {
 	QList<const QGraphicsItem*> rings;
 	QList<const QGraphicsItem*> halos;
 	bool track = false;
-
-	bool empty() const { return stretches.isEmpty() && emphasis.isEmpty() && rings.isEmpty() && halos.isEmpty(); }
 };
 } // namespace
 
@@ -1101,14 +1110,9 @@ void NetworkPresenter::placeSelectionMark(const SceneModel& sceneModel, const Pr
 		}
 	} else if (facet == "signalling_areas") {
 		if (const SceneSignallingArea* area = itemWithId(sceneModel.signallingAreas, id)) {
-			for (const TrackPreviewLine& line : preview.lines) {
-				if (!area->trackId.empty() && line.id != area->trackId)
-					continue;
-				QPolygonF course;
-				for (const TrackPreviewPoint& point : trackPreviewChainageCourse(line, area->startKm, area->endKm))
-					course.append(QPointF(point.x, point.y));
-				parts.stretches.append(course);
-			}
+			for (const TrackPreviewLine& line : preview.lines)
+				if (area->trackId.empty() || line.id == area->trackId)
+					parts.stretches.append(finitePolyline(trackPreviewChainageCourse(line, area->startKm, area->endKm)));
 		}
 	} else if (facet == "routes") {
 		if (const SceneRoute* route = itemWithId(sceneModel.routes, id)) {
@@ -1160,11 +1164,6 @@ void NetworkPresenter::placeSelectionMark(const SceneModel& sceneModel, const Pr
 		}
 	}
 
-	const auto empty = [](const QPolygonF& course) { return course.isEmpty(); };
-	parts.stretches.erase(std::remove_if(parts.stretches.begin(), parts.stretches.end(), empty), parts.stretches.end());
-	parts.emphasis.erase(std::remove_if(parts.emphasis.begin(), parts.emphasis.end(), empty), parts.emphasis.end());
-	if (parts.empty())
-		return;
 	auto* mark = new NetworkMarkItem();
 	m_scene->addItem(mark);
 	if (m_view)
@@ -1174,6 +1173,11 @@ void NetworkPresenter::placeSelectionMark(const SceneModel& sceneModel, const Pr
 	mark->setDirected(parts.directed);
 	mark->setRingTargets(parts.rings);
 	mark->setHaloTargets(parts.halos);
+	// The mark leaves out the empty courses; a row with nothing on the preview has no mark.
+	if (mark->isEmpty()) {
+		delete mark;
+		return;
+	}
 	m_selectionMark = mark;
 	m_previewHasSelectedTrack = parts.track;
 }
@@ -3622,13 +3626,7 @@ bool previewPointAtX(const TrackPreviewLine& line, double x, qreal offset, QPoin
 }
 
 QPolygonF previewSectionCourse(const TrackPreviewResult& preview, const SceneSectionDescriptor& section) {
-	QPolygonF course;
-	for (const TrackPreviewPoint& point : trackPreviewSectionCourse(preview, section)) {
-		if (!std::isfinite(point.x) || !std::isfinite(point.y))
-			return {};
-		course.append(QPointF(point.x, point.y));
-	}
-	return course;
+	return finitePolyline(trackPreviewSectionCourse(preview, section));
 }
 
 QList<QPolygonF> previewSectionCourses(const TrackPreviewResult& preview, const SceneSectionInventory& inventory,

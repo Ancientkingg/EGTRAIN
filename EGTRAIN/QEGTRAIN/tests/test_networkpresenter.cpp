@@ -437,6 +437,8 @@ private slots:
 	void anotherRowKeepsTheView();
 	void markInPlaceNeedsTheDrawnModel();
 	void markColoursStandApart();
+	void marksLeaveOutHiddenArcsOfDoubleSwitches();
+	void areaLeavesOutLineThatIsNotFinite();
 };
 
 void TestNetworkPresenter::initTestCase() {
@@ -1181,6 +1183,95 @@ void TestNetworkPresenter::markColoursStandApart() {
 	}
 	// The two colours of the mark tell apart.
 	QCOMPARE_GE(distance(kNetworkMarkColor, kNetworkMarkEmphasisColor), 70.0);
+}
+
+// A double switch is drawn without its first and last arc, and a mark along it leaves them out too. On Copenhagen the
+// block sections of the double switch B157 mark only the part of the middle arc that they cover, and a signalling area
+// over every track marks the middle arc of each double switch and not the arcs at its ends.
+void TestNetworkPresenter::marksLeaveOutHiddenArcsOfDoubleSwitches() {
+	QGraphicsScene scene;
+	NetworkView view;
+	view.setScene(&scene);
+	view.resize(800, 600);
+	NetworkPresenter presenter(&scene, &view);
+	const SceneModel model = loadScene(QFINDTESTDATA("../Scenes/Copenhagen").toStdString()).scene;
+	const auto show = [&presenter, &model](const char* facet, const char* id) {
+		presenter.clear();
+		presenter.showPreview(model, PaimpolFixture::options(facet, id));
+		return presenter.selectionMark();
+	};
+	// The distance from the mark to the point of B157 at the chainage.
+	const auto fromB157 = [&presenter](const NetworkMarkItem& mark, double km) {
+		const TrackPreviewLine* line = presenter.trackLine("B157");
+		QPointF point;
+		if (!line || !previewPointAtX(*line, km, line->displayOffset, point))
+			return std::numeric_limits<qreal>::max();
+		return distanceTo(mark.stretches(), point);
+	};
+	// B157 has its nodes at 38.125, 38.135, 38.145 and 38.155 km; its blocks meet at 38.140 km.
+	const NetworkMarkItem* mark = show("blocks", "0-B157");
+	if (mark == nullptr)
+		QFAIL("a block of a double switch has a mark");
+	const qreal near = presenter.previewFit().bounds.width() * 1e-6;
+	QCOMPARE_GT(fromB157(*mark, 38.130), near);
+	QCOMPARE_LE(fromB157(*mark, 38.137), near);
+	mark = show("blocks", "1-B157");
+	if (mark == nullptr)
+		QFAIL("a block of a double switch has a mark");
+	QCOMPARE_GT(fromB157(*mark, 38.150), near);
+	QCOMPARE_LE(fromB157(*mark, 38.143), near);
+
+	mark = show("signalling_areas", "network");
+	if (mark == nullptr)
+		QFAIL("a signalling area has a mark");
+	int switches = 0;
+	int hiddenMarked = 0;
+	int middleMarked = 0;
+	for (const SceneTrackView& trackView : model.trackViews) {
+		const TrackPreviewLine* line = trackView.doubleSwitch ? presenter.trackLine(trackView.trackId) : nullptr;
+		if (line == nullptr || line->points.size() != 4)
+			continue;
+		++switches;
+		// The middles of the first, the middle and the last arc.
+		for (std::size_t index = 1; index < 4; ++index) {
+			const TrackPreviewPoint& from = line->points[index - 1];
+			const TrackPreviewPoint& to = line->points[index];
+			const QPointF middle((from.x + to.x) / 2.0, (from.y + to.y) / 2.0 + line->displayOffset);
+			if (distanceTo(mark->stretches(), middle) > near)
+				continue;
+			if (index == 2)
+				++middleMarked;
+			else
+				++hiddenMarked;
+		}
+	}
+	QCOMPARE(switches, 137);
+	QCOMPARE(hiddenMarked, 0);
+	QCOMPARE(middleMarked, switches);
+}
+
+// A signalling area over every track leaves out a line with a point that is not finite, which the preview does not draw.
+void TestNetworkPresenter::areaLeavesOutLineThatIsNotFinite() {
+	QGraphicsScene scene;
+	NetworkPresenter presenter(&scene, nullptr);
+	SceneModel model;
+	model.tracks = {{"B0"}, {"B1"}};
+	model.nodes = {{"B0.1", "B0", 0.0, 0.0}, {"B0.2", "B0", 4.0, 0.0}};
+	for (int node = 0; node < 5; ++node)
+		model.nodes.push_back({"B1." + std::to_string(node + 1), "B1", static_cast<double>(node),
+			node == 2 ? std::numeric_limits<double>::quiet_NaN() : 1.0});
+	model.signallingAreas.push_back({"area", 0.0, 4.0, 0, ""});
+	presenter.showPreview(model, PaimpolFixture::options("signalling_areas", "area"));
+	const NetworkMarkItem* mark = presenter.selectionMark();
+	if (mark == nullptr)
+		QFAIL("a signalling area has a mark");
+	// Only B0 is marked.
+	const TrackPreviewLine* b0 = presenter.trackLine("B0");
+	QVERIFY(b0);
+	QCOMPARE(mark->stretches().size(), qsizetype(1));
+	QPointF start;
+	QVERIFY(previewPointAtX(*b0, 0.0, b0->displayOffset, start));
+	QCOMPARE(mark->stretches().front().front(), start);
 }
 
 QTEST_MAIN(TestNetworkPresenter)
