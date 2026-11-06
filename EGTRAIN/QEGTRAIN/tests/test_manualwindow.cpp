@@ -1,6 +1,7 @@
 #include "widgets/ManualWindow.h"
 
 #include <QApplication>
+#include <QDesktopServices>
 #include <QDir>
 #include <QElapsedTimer>
 #include <QFile>
@@ -9,7 +10,10 @@
 #include <QHelpEngine>
 #include <QHelpSearchEngine>
 #include <QImage>
+#include <QMessageBox>
 #include <QProcess>
+#include <QRegularExpression>
+#include <QScopeGuard>
 #include <QScreen>
 #include <QScrollBar>
 #include <QTemporaryDir>
@@ -18,6 +22,7 @@
 #include <QTextBrowser>
 #include <QTextObjectInterface>
 #include <QThread>
+#include <QTimer>
 
 #include <cmath>
 #include <functional>
@@ -48,6 +53,27 @@ static QVector<QSizeF> pictureSizes(QTextDocument* page) {
 			if (it.fragment().charFormat().isImageFormat())
 				sizes.append(pictures->intrinsicSize(page, it.fragment().position(), it.fragment().charFormat()));
 	return sizes;
+}
+
+// The text of each message box that shows while `act` runs, and whether its text can be selected. The boxes are closed.
+struct ShownMessages {
+	QStringList texts;
+	bool selectable = true;
+};
+
+static ShownMessages closeMessages(const std::function<void()>& act) {
+	ShownMessages shown;
+	QTimer timer;
+	QObject::connect(&timer, &QTimer::timeout, [&shown] {
+		if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+			shown.texts << box->text();
+			shown.selectable = shown.selectable && box->textInteractionFlags().testFlag(Qt::TextSelectableByMouse);
+			box->accept();
+		}
+	});
+	timer.start(0);
+	act();
+	return shown;
 }
 
 // Builds a help file with a start page, the page of the section case-settings and a page of pictures, the way the build
@@ -96,6 +122,7 @@ private slots:
 	void picturesFitPage();
 	void widgetTakesSectionOfParent();
 	void missingHelpFileOpensNothing();
+	void browserFailureShowsAddress();
 
 private:
 	QTemporaryDir m_folder;
@@ -182,6 +209,40 @@ void TestManualWindow::widgetTakesSectionOfParent() {
 void TestManualWindow::missingHelpFileOpensNothing() {
 	ManualWindow missing(m_folder.path() + QStringLiteral("/missing.qch"));
 	QVERIFY2(!missing.showSection(QStringLiteral("case-settings")), "a missing help file opened");
+}
+
+// A link and the published manual that the browser cannot open show their address in a message whose text can be
+// selected. The test lets QDesktopServices::openUrl fail on every platform, without a browser: the handler of https that
+// it registers has no method of the given name, so the call to the handler fails.
+void TestManualWindow::browserFailureShowsAddress() {
+	QObject receiver;
+	QDesktopServices::setUrlHandler(QStringLiteral("https"), &receiver, "missingMethod");
+	const auto restore = qScopeGuard([] { QDesktopServices::unsetUrlHandler(QStringLiteral("https")); });
+	const QRegularExpression noMethod(QStringLiteral("No such method"));
+
+	ManualWindow window(m_helpFile);
+	auto* browser = window.findChild<QTextBrowser*>();
+	QVERIFY(browser);
+	const QUrl link(QStringLiteral("https://example.org/egtrain-test-link"));
+	QTest::ignoreMessage(QtWarningMsg, noMethod);
+	const ShownMessages linkMessages = closeMessages([browser, &link] { emit browser->anchorClicked(link); });
+	// a link that does not open shows its address in a message whose text can be selected
+	QCOMPARE(linkMessages.texts,
+		QStringList(QStringLiteral("Could not open the link in your browser. Address: ") + link.toString()));
+	QVERIFY(linkMessages.selectable);
+
+	// Without a help file next to the program, Help > Manual opens the published guides.
+	const QDir programFolder(QCoreApplication::applicationDirPath());
+	if (programFolder.exists(QStringLiteral("EGTRAIN.qch")) || programFolder.exists(QStringLiteral("../Resources/EGTRAIN.qch")))
+		QSKIP("a help file is next to the test program");
+	QWidget parent;
+	QTest::ignoreMessage(QtWarningMsg, noMethod);
+	const ShownMessages manualMessages = closeMessages([&parent] { ManualWindow::open(&parent, QStringLiteral("capacity")); });
+	// the published manual that does not open shows its address in a message whose text can be selected
+	QCOMPARE(manualMessages.texts,
+		QStringList(QStringLiteral("Could not open the manual in your browser. Address: "
+								   "https://ancientkingg.github.io/EGTRAIN/latest/guides/capacity-analysis.html")));
+	QVERIFY(manualMessages.selectable);
 }
 
 QTEST_MAIN(TestManualWindow)
