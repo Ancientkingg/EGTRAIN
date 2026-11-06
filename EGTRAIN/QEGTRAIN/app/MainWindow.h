@@ -378,7 +378,7 @@ private:
 	// Selects the row of the Infrastructure panel that the item of the preview stands for, and with reveal brings the
 	// Infrastructure dock to the front (InfrastructurePanel::selectCanvasItem). A click and Edit in Infrastructure call it.
 	// The view keeps its zoom and position, and the Details dock keeps the item. Nothing happens while the canvas shows a
-	// run or the dock is disabled.
+	// run or the dock is disabled. For an item without a row, Edit in Infrastructure says so in the status bar.
 	void selectInfrastructureRow(QGraphicsItem* item, bool reveal);
 	// Runs draw, which draws the preview again at Fit, and gives the view back the zoom and the centre that it had, to a
 	// fraction of a pixel.

@@ -2282,8 +2282,12 @@ void MainWindow::selectInfrastructureRow(QGraphicsItem* item, bool reveal) {
 	panel->commitPendingEditors();
 	const QScopedValueRollback<bool> fromCanvas(m_selectingRowFromCanvas, true);
 	m_canvasRowUnmarked = false;
-	if (!panel->selectCanvasItem(kind, id, platform))
+	if (!panel->selectCanvasItem(kind, id, platform)) {
+		// Edit in Infrastructure says when the item has no row, as for an entity that the model no longer has.
+		if (reveal)
+			statusBar()->showMessage(QStringLiteral("%1 has no row in Infrastructure").arg(id), 8000);
 		return;
+	}
 	if (m_canvasRowUnmarked) {
 		// The model has changed since the preview was drawn, as an edit in another dock changes it, and only a new preview
 		// marks the row. Drawing it empties the Details dock, which shows the item again.

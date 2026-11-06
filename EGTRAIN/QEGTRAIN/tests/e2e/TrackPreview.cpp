@@ -43,6 +43,7 @@
 #include <QPointF>
 #include <QRectF>
 #include <QScrollBar>
+#include <QStatusBar>
 #include <QString>
 #include <QStringList>
 #include <QTableWidget>
@@ -593,7 +594,8 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 		// A click on an item also selects its row in the Infrastructure dock, which tells it once. The view keeps its zoom
 		// and position and the Details dock the item, also when the model changed after the preview was drawn, as an edit
 		// in another dock changes it. Edit in Infrastructure does the same and brings the dock to the front. While the dock
-		// is disabled, and for an item whose entity the case does not have, the row stays as it is.
+		// is disabled, and for an item whose entity the case does not have, the row stays as it is; for such an item Edit
+		// in Infrastructure says that it has no row.
 		InfrastructurePanel* panel = infrastructurePanel(w);
 		QDockWidget* dock = infrastructureDock(w);
 		int told = 0;
@@ -739,16 +741,25 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			if (clickInView("node") && (told != 0 || panel->selectionId() != arcRow))
 				fail("infrastructure row", "a click selects a row while the dock is disabled");
 			dock->setEnabled(true);
-			// Nor does a node that the case does not have.
+			// Nor does a node that the case does not have, and Edit in Infrastructure says that it has no row.
 			if (QGraphicsItem* node = clickInView("node")) {
 				const QString nodeRow = panel->selectionId();
 				const QString nodeId = node->data(PreviewGraphics::Id).toString();
 				node->setData(PreviewGraphics::Id, QStringLiteral("E2E_NO_SUCH_NODE"));
 				told = 0;
 				clickAt(pointOf(node));
-				node->setData(PreviewGraphics::Id, nodeId);
 				if (told != 0 || panel->selectionId() != nodeRow)
 					fail("infrastructure row", "a click on a node that the case does not have selects a row");
+				w.statusBar()->clearMessage();
+				w.showSceneContextMenu(node, pointOf(node), QPoint(), false);
+				for (QAction* action : w.m_sceneContextMenu ? w.m_sceneContextMenu->actions() : QList<QAction*>())
+					if (action->text() == "Edit in Infrastructure")
+						action->trigger();
+				w.closeSceneContextMenu();
+				node->setData(PreviewGraphics::Id, nodeId);
+				if (told != 0 || panel->selectionId() != nodeRow
+					|| w.statusBar()->currentMessage() != "E2E_NO_SUCH_NODE has no row in Infrastructure")
+					fail("infrastructure row", "Edit in Infrastructure on a node that the case does not have says " + w.statusBar()->currentMessage());
 			}
 
 			// An edit in another dock changes the model without drawing the preview again, which then marks no other row
