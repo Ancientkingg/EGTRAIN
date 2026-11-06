@@ -65,7 +65,7 @@ An exception that reaches `std::terminate` leaves only the `libc++abi: terminati
 | `Q_ASSERT`, `qFatal`, `Q_UNREACHABLE`, `std::terminate` | none in the application code | |
 | Uncaught exceptions | see [Where they still escape](#where-they-still-escape) | |
 | Dangling scene items | `QGraphicsScene`'s BSP index | See below. |
-| Fixed simulation arrays | `arcs_in_signalling_block_section[20]` is written without a bound check (`simulation/builders/InfrastructureBuilder.cpp`, `simulation/Signalling.cpp`) | Relies on the validator rejecting sections with more than 20 arcs. `IDConnectedBS` is checked, and delayed indexes are checked in `RollingStockOccupation.cpp` and `RollingStock.cpp`. |
+| Fixed simulation arrays | `arcs_in_signalling_block_section[20]` of the switch sections that `generateConnectBlock` (`simulation/Signalling.cpp`) derives is written without a bound check; cut and reversed copies of a section take no more arcs than it has | Relies on the builder and the validator rejecting sections with more than 20 arcs. The builder also checks the arc count of each block section where it writes the arcs (`storeNativeSectionArcs` in `simulation/builders/InfrastructureBuilder.cpp`), with the preparation error `scene.native.capacity` "Block section <id> has <count> arcs, more than the 20 a section holds". `IDConnectedBS` is checked, and delayed indexes are checked in `RollingStockOccupation.cpp` and `RollingStock.cpp`. |
 
 ### Scene items and the paint crash
 

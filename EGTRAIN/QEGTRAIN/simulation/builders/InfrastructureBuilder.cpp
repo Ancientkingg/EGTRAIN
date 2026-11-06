@@ -18,6 +18,11 @@
 #include <utility>
 #include <vector>
 
+// Stores arcs as the arcs of section, the block section blockId. More arcs than a section holds add the error
+// scene.native.capacity and store none. test_scenebuilder declares it as well.
+void storeNativeSectionArcs(Section& section, const std::vector<Arc>& arcs, const std::string& blockId,
+	std::vector<SceneDiagnostic>& diagnostics);
+
 void setUpRoutesFromScene(SimulationRun& run, const SceneModel& scene, const std::vector<int>& routeDirections) {
 	run.infra.numRoutes = (int)scene.routes.size();
 	run.infra.routes.clear();
@@ -937,10 +942,8 @@ void nativeBuildBlockSections(SimulationRun& run, const InfrastructurePlan& plan
 		section.start_node = nodes.front();
 		section.end_node = nodes.back();
 		section.total_nodes = static_cast<int>(nodes.size());
-		section.total_arcs = static_cast<int>(arcs.size());
 		section.nodelist_of_nodes_in_signalling_section = std::make_shared<const std::vector<Node>>(std::move(nodes));
-		for (std::size_t index = 0; index < arcs.size(); ++index)
-			section.arcs_in_signalling_block_section[index] = arcs[index];
+		storeNativeSectionArcs(section, arcs, blockPlan.source->id, add.diagnostics);
 	}
 }
 
@@ -1199,6 +1202,21 @@ void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const Inf
 }
 
 } // namespace
+
+void storeNativeSectionArcs(Section& section, const std::vector<Arc>& arcs, const std::string& blockId,
+	std::vector<SceneDiagnostic>& diagnostics) {
+	if (arcs.size() > kNativeMaxSectionArcs) {
+		const NativeDiagnosticAdder add{diagnostics};
+		add(SceneSeverity::Error, "scene.native.capacity",
+			"Block section " + blockId + " has " + std::to_string(arcs.size()) + " arcs, more than the "
+				+ std::to_string(kNativeMaxSectionArcs) + " a section holds",
+			"infrastructure.json", "block", blockId, "sections", std::to_string(kNativeMaxSectionArcs), "Split the section");
+		return;
+	}
+	section.total_arcs = static_cast<int>(arcs.size());
+	for (std::size_t index = 0; index < arcs.size(); ++index)
+		section.arcs_in_signalling_block_section[index] = arcs[index];
+}
 
 void resetNativeInfrastructureState(SimulationRun& run) {
 	nativeResetRuntime(run);

@@ -78,6 +78,7 @@ private slots:
 	void buildsManySections();
 	void routeHoldsExactlyItsSections();
 	void routeOverBlockCapacityThrows();
+	void sectionArcsOverCapacityAreRejected();
 	void routeEndsWhereLastSectionEnds();
 	void copiesNode();
 	void nodesDifferingInOneMemberDiffer_data();
@@ -1196,6 +1197,34 @@ void TestSceneBuilder::routeOverBlockCapacityThrows() {
 	}
 	// One section more throws and names the route, its sections and the limit.
 	QCOMPARE(error, std::string("Route @capacity.block@->@capacity.block@ has 601 sections, more than the 600 a route holds"));
+}
+
+// Defined in simulation/builders/InfrastructureBuilder.cpp, which has no header. The checks of the plan reject a section with more
+// arcs than it holds before the builder stores them, so no scene that passes them reaches the check of the store.
+void storeNativeSectionArcs(Section& section, const std::vector<Arc>& arcs, const std::string& blockId,
+	std::vector<SceneDiagnostic>& diagnostics);
+
+void TestSceneBuilder::sectionArcsOverCapacityAreRejected() {
+	std::vector<Arc> arcs(RuntimeLimits::kNativeMaxSectionArcs + 1);
+	std::vector<SceneDiagnostic> diagnostics;
+	auto section = std::make_unique<Section>();
+	storeNativeSectionArcs(*section, arcs, "long.block", diagnostics);
+	// More arcs than a section holds are a run preparation error that names the block section, its arcs and the limit.
+	QCOMPARE(diagnostics.size(), std::size_t(1));
+	QVERIFY(diagnostics[0].severity == SceneSeverity::Error);
+	QCOMPARE(diagnostics[0].code, "scene.native.capacity");
+	QCOMPARE(diagnostics[0].itemId, "long.block");
+	QCOMPARE(diagnostics[0].message, "Block section long.block has 21 arcs, more than the 20 a section holds");
+	// The section stores none of them.
+	QCOMPARE(section->total_arcs, 0);
+
+	arcs.pop_back();
+	arcs.back().gradient = 0.01;
+	storeNativeSectionArcs(*section, arcs, "long.block", diagnostics);
+	// As many arcs as the section holds are stored.
+	QCOMPARE(diagnostics.size(), std::size_t(1));
+	QCOMPARE(section->total_arcs, static_cast<int>(RuntimeLimits::kNativeMaxSectionArcs));
+	QCOMPARE_EQ(section->arcs_in_signalling_block_section[RuntimeLimits::kNativeMaxSectionArcs - 1].gradient, 0.01);
 }
 
 // The route starts and ends where its first and last sections do, at these kilometres.
