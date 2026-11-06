@@ -29,7 +29,10 @@ from one of two sources.
 - The assets of one published release, made by a push to `production` or by
   a `v*` tag. A release holds the application assets, the case-study bundles
   and `update-manifest.json` that the next section lists, and nothing else. It
-  stays a draft until all of them are uploaded. A `v*` tag that contains a
+  stays a draft until all of them are uploaded. The same files and an archive
+  of the source code, `EGTRAIN-<version>-source.tar.gz`, are then on
+  bin.samuelbruin.com, listed on the release page of the website,
+  `https://egtrain.samuelbruin.com/releases/<version>/`. A `v*` tag that contains a
   hyphen is published as a prerelease: the updater never offers it, and its
   version is the number before the hyphen.
 
@@ -46,7 +49,10 @@ Before a release, check that the authors in `CITATION.cff` are still correct.
 
 The release is ready to rehearse only when the version, validation, sanitizer
 and the package jobs of the `Release` workflow (macOS, Windows, Finalize Windows,
-Linux and Rehearse Linux) are green. The release job needs all of them.
+Linux and Rehearse Linux) are green. The release job needs all of them. After
+the GitHub release, the job **Publish on egtrain.samuelbruin.com** uploads the
+same files and the source archive to Zipline and then publishes the release page
+and the entry of the update feed of the website.
 [CI and release branches](ci-and-release.md#ci-and-release-branches) describes
 what the workflow does.
 
@@ -73,7 +79,8 @@ Expected case-study assets:
 
 A published release also has `update-manifest.json`. Confirm the workflow
 validates all the bundles and publishes exactly the application assets and the
-case-study assets above and the update manifest.
+case-study assets above and the update manifest, on GitHub and on the release
+page of the website, which also lists `EGTRAIN-<version>-source.tar.gz`.
 
 What the jobs prove today:
 
@@ -157,7 +164,10 @@ What the jobs prove today:
   starts the image through its `AppRun` with a new home directory and no
   `QEGTRAIN_` variable, and drives the real menus and dialogs through AT-SPI,
   with `xdotool` only for typing and for giving the keyboard to a field or a
-  table cell. The release package has no test hook. Each
+  table cell. The release package has no test hook. At the first start it
+  answers **Not now** to the question about usage statistics and diagnostic
+  reports and **Don't Check Automatically** to the question about update
+  checks. Each
   step prints `STEP n PASS` or `STEP n FAIL` with what it saw, and the job stops
   at the first step that fails. The script also fails when the area of the
   buttons Zoom In and Zoom Out of the toolbar, which show an icon and no text,
@@ -175,12 +185,12 @@ What the jobs prove today:
 - Each package job also runs the update helper tests
   (`ctest -R '^test_update(helper|preparation)$'`, step **Verify update helper
   transaction**).
-- The Package Windows job also makes one HTTPS request to the GitHub release list
-  from a copy of the package, with only the Windows directories on `PATH` (step
-  **Check HTTPS from the package**). It shows that the update transport completes
-  an HTTPS request with the Qt files of the package and no Qt or vcpkg directory
-  on `PATH`. It does not show the update check of the application on a clean
-  machine, which row R8 covers.
+- The Package Windows job also makes one HTTPS request to the update feed of the
+  EGTRAIN website from a copy of the package, with only the Windows directories
+  on `PATH` (step **Check HTTPS from the package**). It shows that the update
+  transport completes an HTTPS request with the Qt files of the package and no
+  Qt or vcpkg directory on `PATH`. It does not show the update check of the
+  application on a clean machine, which row R8 covers.
 - The Package macOS job starts a copy of the app that goes into the disk image, the
   Package Windows job starts a copy of the directory it uploads, and the Package
   Linux job starts the extracted AppImage, all with
@@ -286,7 +296,10 @@ in-place save. Row R11 checks the bundled-case path.
    `../Resources/Scenes` or in `../share/EGTRAIN/Scenes` relative to the
    executable. Note what the chooser lists. Close it before step 2 with the
    button that keeps the current case: **Continue** when a case is loaded and
-   **Cancel** when none is.
+   **Cancel** when none is. A release package then asks once, in **Help improve
+   EGTRAIN**, whether to share usage statistics and diagnostic reports, before
+   the question of row R7. Record its text and the receiving domain it names,
+   and answer **Not now** unless the record is for the receiver.
 2. Open a downloaded `.egscene` through **File > Open Case...** and
    **Other ways to open... > Open Case File...** in **Open a Case**.
 3. Confirm the network renders. Show Loaded Data with **View > Loaded Data**
@@ -343,8 +356,8 @@ text, which is the same on every platform.
 
 Notes on the update rows:
 
-- The update check looks at the latest stable release. A draft or a prerelease
-  is never offered. **Update and Restart** is offered only for a stable release
+- The update check looks at the latest stable release in the update feed of
+  the website. A draft or a prerelease is never offered. **Update and Restart** is offered only for a stable release
   that is newer than the running version, holds `update-manifest.json` and the
   package of the platform, and only where the installation can update itself.
   [Application updates](../guides/updates.md)
@@ -405,7 +418,7 @@ did, and go on with **Open With**.
 | M1 File type in Finder | Quit EGTRAIN. In Finder select a downloaded `.egscene` file and choose **File > Get Info**. Note the **Kind** and the application under **Open with**. Do the same for a `.zip` file. Then Control-click the `.egscene` file and open **Open With**. | **Kind** reads `EGTRAIN Case` and **Open with** names `QEGTRAIN`, which the **Open With** menu lists. Record the icon that Finder shows for the file. The `.zip` file keeps the application it had, and EGTRAIN is not the one that opens it. If Finder shows another Kind or application, record it, and whether choosing `QEGTRAIN` under **Open with** and **Change All...** corrects it. | macOS |
 | M2 Open a case by double-click | With EGTRAIN closed, double-click a downloaded `.egscene` file in Finder. Then change a value and double-click a second `.egscene` file: answer **Cancel**, double-click again and answer **Don't Save**, which is Discard, and never **Save**. Last, quit EGTRAIN, start it from the Applications folder, leave **Open a Case** open and double-click a file. | The first file opens in EGTRAIN, and **Open a Case** does not open first; record it if it does. The second double-click brings the open window to the front and asks about the unsaved changes. The box has no title on macOS and reads `Save the changes to <case name>?`, and its buttons are **Save**, **Cancel** and **Don't Save**, Qt's native names for Save, Cancel and Discard. No second EGTRAIN icon appears in the Dock and no second window opens. **Cancel** keeps the open case and the edit, and the status bar adds no message. After **Don't Save** the second file is open, and both files are in **File > Recent Cases**. With **Open a Case** open, that window closes and the file opens. Record any question that macOS asks, with its text. | macOS |
 | M3 Double-click a damaged file and a special path | Rename a plain text file to `something.egscene`. Put a copy of a bundle in a folder whose name and file name contain accented letters (for example é or ü) and one character outside the Latin alphabet. With EGTRAIN closed, double-click the damaged file, quit EGTRAIN, and double-click the bundle. With EGTRAIN open on another case, double-click the damaged file and then the bundle. | Record the message title and text for the damaged file, and which case and which window are shown after it. EGTRAIN does not crash, does not change the file and does not list it under **File > Recent Cases**. With EGTRAIN open, the case that was open stays after the damaged file. The bundle opens each time. | macOS |
-| M4 First start of an ad hoc build | Run it as the first launch of step 1 on an ad hoc candidate. Download the disk image with a browser, from the run page or the release page, so that macOS knows it came from the internet. Open it, drag `QEGTRAIN.app` onto `Applications`, eject the image and open the copy from the Applications folder in Finder. Use no terminal command that removes the download mark or changes Gatekeeper. | Record every dialog with its title, text and buttons. The first start is refused with the dialog `"QEGTRAIN" Not Opened`, whose buttons are **Move to Trash** and **Done**, and which has no **Open** button. **System Settings > Privacy & Security** shows, in the section **Security**, `"QEGTRAIN" was blocked to protect your Mac.` with the button **Open Anyway**. **Open Anyway** opens the dialog `Open "QEGTRAIN"?` with **Move to Trash**, **Open Anyway** and **Done**, and its **Open Anyway** asks for an administrator's name and password. Record whether EGTRAIN starts after that and which dialog, if any, comes next. Another dialog or another order is a finding: record its text. | macOS |
+| M4 First start of an ad hoc build | Run it as the first launch of step 1 on an ad hoc candidate. Download the disk image with a browser, from the run page or the release page of the website, so that macOS knows it came from the internet. Open it, drag `QEGTRAIN.app` onto `Applications`, eject the image and open the copy from the Applications folder in Finder. Use no terminal command that removes the download mark or changes Gatekeeper. | Record every dialog with its title, text and buttons. The first start is refused with the dialog `"QEGTRAIN" Not Opened`, whose buttons are **Move to Trash** and **Done**, and which has no **Open** button. **System Settings > Privacy & Security** shows, in the section **Security**, `"QEGTRAIN" was blocked to protect your Mac.` with the button **Open Anyway**. **Open Anyway** opens the dialog `Open "QEGTRAIN"?` with **Move to Trash**, **Open Anyway** and **Done**, and its **Open Anyway** asks for an administrator's name and password. Record whether EGTRAIN starts after that and which dialog, if any, comes next. Another dialog or another order is a finding: record its text. | macOS |
 | M5 First start of a notarized build | Run it as the first launch of step 1 on a Developer ID candidate. Download, copy and open the disk image as in M4. Before the first launch run `xcrun stapler validate /Applications/QEGTRAIN.app`, which must succeed. | EGTRAIN starts through the normal Finder path. The only dialog before the main window is the confirmation that macOS asks for an app that was downloaded: record its title and text. No **Open Anyway**, no visit to System Settings, no administrator password and no terminal command is needed. If one is, M5 fails, whatever the package job reported. | macOS |
 | M6 Folder access questions | On an account that has never run EGTRAIN, start the app from the Applications folder, close **Open a Case**, choose **File > Open Case...** and then **Other ways to open... > Open Case File...**. Cancel, choose **File > New Case...** and open the file dialog in the same way again. Last, in the file dialog choose **lume** or your home folder in the sidebar and write down what macOS asks. | The first two file dialogs open in the `Scenes` folder of the app without any question about Desktop, Documents or Downloads. The question `"QEGTRAIN" would like to access files in your Desktop folder.`, and the same for Documents and Downloads, appears only when the file dialog lists your home folder, which it does in the last step. Record each question with its text and the step that caused it. Any question in the first two dialogs is a finding. | macOS |
 | M7 Documentation pictures | This row needs no package. In a checkout of the candidate commit, build with `EGTRAIN_BUILD_TESTS=ON` as in [Documentation pictures](smoke-tests.md#documentation-pictures) and run `bash tools/docs/capture_screenshots.sh --check` on a macOS screen at a device pixel ratio of 1, as that section says. | The script prints `every picture matches docs/images`. Otherwise it lists the pictures that changed. Retake them with `bash tools/docs/capture_screenshots.sh`, look at each, and commit them with the release, or record why the difference is expected. | macOS |

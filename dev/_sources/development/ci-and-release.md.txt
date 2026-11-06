@@ -37,14 +37,22 @@ scripts that build, sign and check the release packages.
   The result check is named `Tidy result`.
 - The documentation workflow (`docs.yml`) builds the [documentation site](testing.md#documentation-site)
   for every pull request, fails a pull request that adds undocumented classes or members to the
-  files it changes, and publishes the site to `gh-pages`: `dev/` from `main`, and `<version>/`
-  and `latest/` after a successful release. Each publish also writes the home page at the root of
-  `gh-pages` with `tools/docs/home_page.py`, from `docs/site/` of `main`: the downloads of the
-  newest published version, links to its guides and C++ reference, and the list of versions.
-  `test_ci_workflow`, which the documentation workflow also runs, checks that the downloads are
-  the files that `tools/release/build_release_assets.py` names. The page links the names of `main`
-  with the newest published version, so a renamed package breaks its download link until the next
-  release: merge a rename together with a release.
+  files it changes, and publishes the site to `gh-pages` and to egtrain.samuelbruin.com: `dev/` from
+  `main`, and `<version>/` and `latest/` after a successful release. Each publish also writes the home
+  page and the pages `support/`, `source/` and `privacy/` at the root with `tools/docs/home_page.py`,
+  from `docs/site/` of `main`: the downloads of the newest stable release in the update feed of the
+  website, links to its guides and C++ reference, and the list of versions. After the push to
+  `gh-pages`, the step **Publish on egtrain.samuelbruin.com** sends the same folders to the website
+  with `tools/release/publish_selfhost.py site` (see
+  [Self-hosted publication](#self-hosted-publication)), and then the pages, the home page last. The
+  website gets pages written from its feed alone, not from the copy of `gh-pages`, so that a run of
+  `main` and a run of a release that publish at the same time leave the same pages. A version folder
+  that `gh-pages` had before, such as `1.0.5/`, reaches the website only when it is published once by
+  hand ([Filling a new site](#filling-a-new-site)). `test_ci_workflow`, which the documentation workflow also runs, checks that the
+  downloads are the files that `tools/release/build_release_assets.py` names. The page links the names
+  of `main` with the files of the newest release, and `home_page.py` stops on a name that the release
+  does not have, so a renamed package stops the publish of the site until the next release: merge a
+  rename together with a release.
 - A pull request to `main` that changes a packaging input also runs the
   package check (`package-check.yml`). The inputs are the workflow files
   `package-check.yml`, `package.yml` and `release.yml`, the setup action in `.github/actions/`, `tools/release/`, the
@@ -178,7 +186,11 @@ scripts that build, sign and check the release packages.
   `EGTRAIN-windows-x64-installer` and `EGTRAIN-windows-x64-portable`. The release
   job builds the files of the release from the downloaded artifacts with
   `tools/release/build_release_assets.py` and publishes the files it writes; the
-  portable archive is written only by the script. Before
+  portable archive is written only by the script. The job `publish-site` then
+  builds the same files from the same artifacts and publishes them on
+  egtrain.samuelbruin.com with `tools/release/publish_selfhost.py release` (see
+  [Self-hosted publication](#self-hosted-publication)). It is a job of its own,
+  so that it can run again after the GitHub release exists. Before
   building, the pipeline increments the highest patch version
   among the CMake baseline, existing stable tags, and reserved release versions.
   Every build job, the package metadata and the update manifest use that same version. Local builds use the
@@ -232,7 +244,9 @@ scripts that build, sign and check the release packages.
   prerelease suffix remain prereleases and are not offered by the updater.
   `workflow_dispatch` validates the pipeline without publishing.
 - Releases remain drafts until every package and scene bundle is uploaded.
-  Stable production releases then appear in the application's update checks.
+  A stable release appears in the update checks of the application once the job
+  `publish-site` has added it to the update feed of the website, after its files.
+  Copies of EGTRAIN 1.0.5 and earlier read the GitHub releases instead.
 
 Pushes and pull requests to `production` skip the release workflow when changes
 are limited to Markdown files (`**.md`), `docs/`, the root `LICENSE`, or
@@ -301,6 +315,11 @@ workflow keeps:
   such as `env`, `container` or `services`, reads one, except the `secrets` of a call of a workflow in this repository,
   whose jobs this rule checks in turn. The top-level `env` of a workflow reads none either. A call of `package.yml`
   passes the inputs and credentials that it declares, by name, and grants the permissions that its jobs ask for.
+- The one exception is the `publish` job of `docs.yml`, which `MAIN_CREDENTIALS` lists: its steps may read
+  `EGTRAIN_PUBLISH_TOKEN` and no other credential. The job runs only for a push to `main` or after a successful run of
+  the release workflow for a push, and it runs the scripts of `main`: a `workflow_run` event runs the workflow of the
+  default branch, and the job checks out no other commit. The test checks the triggers, the conditions of the job and
+  of the build job that sets its version, and the checkout.
 - The files, actions and tests that the workflows name exist, and every test script in `tools/ci/` and
   `tools/release/` is registered in CTest or run by a workflow.
 
@@ -380,6 +399,68 @@ The test is `tools/release/test_release_assets.py`. It builds a small artifact
 tree, with the portable archive written by the script, runs the script on it and
 checks the rules directly. Run it with
 `ctest --test-dir build -R test_release_assets --output-on-failure`.
+
+### Self-hosted publication
+
+`tools/release/publish_selfhost.py` publishes a release and the documentation site on egtrain.samuelbruin.com, and the
+release files on bin.samuelbruin.com, a Zipline 4.8.1 server:
+
+```bash
+python3 tools/release/publish_selfhost.py release --tag TAG --name NAME --prerelease true|false --assets DIR --commit SHA --run-url URL [--new-feed]
+python3 tools/release/publish_selfhost.py import TAG [--new-feed]
+python3 tools/release/publish_selfhost.py notes TAG FILE
+python3 tools/release/publish_selfhost.py site PAGES [DIR ...]
+```
+
+`release` uploads each file of `--assets`, the folder that the release assets script writes, and an archive of the
+source code of the commit (`git archive`, `EGTRAIN-<version>-source.tar.gz`) to Zipline as `egtrain-<tag>-<name>`, which
+Zipline serves at `https://bin.samuelbruin.com/raw/egtrain-<tag>-<name>`. It downloads each file from that address and
+compares its size with the file. A name that Zipline has already is not uploaded again when the file there has the same
+size, so a second run adds nothing. Another size stops the script: delete the file on Zipline first. After the files,
+the script publishes the release page `releases/<version>/` with the notes, the files and their sizes, and last the
+entry of the release in the update feed `releases/feed.json`, newest release first. The entry has the fields of a GitHub
+release that the application reads, the text of the GitHub release as its notes and the Zipline addresses as its
+downloads. A second run keeps the time of the first. The source archive is listed on the release page and on the source
+code page, not in the feed. When the website answers 404 for the feed, `release` stops before it publishes the page:
+a feed that was lost, for example with the volume of the website, must be restored, not replaced by one that has only
+the new release. Only the first release on a new site passes `--new-feed`, which starts a feed when there is none.
+
+`import` publishes a release that is already on the GitHub releases in the same way. It reads the name, the notes, the
+publication time and the files of the release with the GitHub CLI `gh`, and makes the source archive from the tag, which
+must be in the local repository. A second run uploads no file again and writes the same page and entry.
+
+`notes` replaces the notes of a published release (see [Release text](code-signing.md#release-text)). `site` publishes
+folders of the documentation site, and then the pages that `tools/docs/home_page.py` writes from the feed of the
+website: `assets/`, `support/`, `source/`, `privacy/` and, last, the home page. Their list of versions has `dev/`, and
+`latest/` and a folder for each stable release in the feed when it has one.
+
+The script reads the Zipline token from `ZIPLINE_TOKEN` and the token of the publish API of the website from
+`EGTRAIN_PUBLISH_TOKEN`, prints neither and follows no redirect. Zipline takes its token as the `Authorization` header
+and accepts 10 uploads a minute from a user who is not an administrator, so a release of 12 files waits once for the
+time that Zipline names. A file may have up to 95 MiB, which Zipline takes in one request, and a request to the publish
+API up to 90 MB. `tools/release/test_publish_selfhost.py`, which the documentation workflow runs, tests the script
+against a stub of the publish API and of the upload API of Zipline. With `ZIPLINE_TEST_URL` and `ZIPLINE_TEST_TOKEN` it
+also runs against a real Zipline server; its docstring says how to start one with Docker. CTest runs it as
+`test_publish_selfhost`.
+
+#### Filling a new site
+
+The first release that the release workflow publishes on the website needs a feed to add to. Fill a new site once, from
+a checkout of this repository with the release tags (`git fetch origin --tags`), with `gh` logged in, and with the tokens
+in `ZIPLINE_TOKEN` and `EGTRAIN_PUBLISH_TOKEN`:
+
+```bash
+python3 tools/release/publish_selfhost.py import v1.0.5 --new-feed
+git fetch origin gh-pages
+git worktree add --detach "$TMPDIR/gh-pages" FETCH_HEAD
+python3 tools/release/publish_selfhost.py site "$TMPDIR/gh-pages" dev 1.0.4 1.0.5 latest
+git worktree remove "$TMPDIR/gh-pages"
+```
+
+`import` publishes the release v1.0.5 with its files, notes and page, and starts the feed. `site` publishes the
+documentation folders of the copy of `gh-pages` on the website, and then the pages. Both can be run again. The home page
+lists `latest/`, `dev/` and the versions of the feed, so `1.0.4/` is listed only when v1.0.4 is imported too, with
+`python3 tools/release/publish_selfhost.py import v1.0.4`.
 
 ### Disk image script
 

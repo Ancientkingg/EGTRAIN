@@ -345,14 +345,22 @@ and the checks are described in the <a class="reference internal" href="coding-g
 The result check is named <code class="docutils literal notranslate"><span class="pre">Tidy</span> <span class="pre">result</span></code>.</p></li>
 <li><p>The documentation workflow (<code class="docutils literal notranslate"><span class="pre">docs.yml</span></code>) builds the <a class="reference internal" href="testing.html#documentation-site"><span class="std std-ref">documentation site</span></a>
 for every pull request, fails a pull request that adds undocumented classes or members to the
-files it changes, and publishes the site to <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code>: <code class="docutils literal notranslate"><span class="pre">dev/</span></code> from <code class="docutils literal notranslate"><span class="pre">main</span></code>, and <code class="docutils literal notranslate"><span class="pre">&lt;version&gt;/</span></code>
-and <code class="docutils literal notranslate"><span class="pre">latest/</span></code> after a successful release. Each publish also writes the home page at the root of
-<code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> with <code class="docutils literal notranslate"><span class="pre">tools/docs/home_page.py</span></code>, from <code class="docutils literal notranslate"><span class="pre">docs/site/</span></code> of <code class="docutils literal notranslate"><span class="pre">main</span></code>: the downloads of the
-newest published version, links to its guides and C++ reference, and the list of versions.
-<code class="docutils literal notranslate"><span class="pre">test_ci_workflow</span></code>, which the documentation workflow also runs, checks that the downloads are
-the files that <code class="docutils literal notranslate"><span class="pre">tools/release/build_release_assets.py</span></code> names. The page links the names of <code class="docutils literal notranslate"><span class="pre">main</span></code>
-with the newest published version, so a renamed package breaks its download link until the next
-release: merge a rename together with a release.</p></li>
+files it changes, and publishes the site to <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> and to egtrain.samuelbruin.com: <code class="docutils literal notranslate"><span class="pre">dev/</span></code> from
+<code class="docutils literal notranslate"><span class="pre">main</span></code>, and <code class="docutils literal notranslate"><span class="pre">&lt;version&gt;/</span></code> and <code class="docutils literal notranslate"><span class="pre">latest/</span></code> after a successful release. Each publish also writes the home
+page and the pages <code class="docutils literal notranslate"><span class="pre">support/</span></code>, <code class="docutils literal notranslate"><span class="pre">source/</span></code> and <code class="docutils literal notranslate"><span class="pre">privacy/</span></code> at the root with <code class="docutils literal notranslate"><span class="pre">tools/docs/home_page.py</span></code>,
+from <code class="docutils literal notranslate"><span class="pre">docs/site/</span></code> of <code class="docutils literal notranslate"><span class="pre">main</span></code>: the downloads of the newest stable release in the update feed of the
+website, links to its guides and C++ reference, and the list of versions. After the push to
+<code class="docutils literal notranslate"><span class="pre">gh-pages</span></code>, the step <strong>Publish on egtrain.samuelbruin.com</strong> sends the same folders to the website
+with <code class="docutils literal notranslate"><span class="pre">tools/release/publish_selfhost.py</span> <span class="pre">site</span></code> (see
+<a class="reference internal" href="#self-hosted-publication">Self-hosted publication</a>), and then the pages, the home page last. The
+website gets pages written from its feed alone, not from the copy of <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code>, so that a run of
+<code class="docutils literal notranslate"><span class="pre">main</span></code> and a run of a release that publish at the same time leave the same pages. A version folder
+that <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> had before, such as <code class="docutils literal notranslate"><span class="pre">1.0.5/</span></code>, reaches the website only when it is published once by
+hand (<a class="reference internal" href="#filling-a-new-site">Filling a new site</a>). <code class="docutils literal notranslate"><span class="pre">test_ci_workflow</span></code>, which the documentation workflow also runs, checks that the
+downloads are the files that <code class="docutils literal notranslate"><span class="pre">tools/release/build_release_assets.py</span></code> names. The page links the names
+of <code class="docutils literal notranslate"><span class="pre">main</span></code> with the files of the newest release, and <code class="docutils literal notranslate"><span class="pre">home_page.py</span></code> stops on a name that the release
+does not have, so a renamed package stops the publish of the site until the next release: merge a
+rename together with a release.</p></li>
 <li><p>A pull request to <code class="docutils literal notranslate"><span class="pre">main</span></code> that changes a packaging input also runs the
 package check (<code class="docutils literal notranslate"><span class="pre">package-check.yml</span></code>). The inputs are the workflow files
 <code class="docutils literal notranslate"><span class="pre">package-check.yml</span></code>, <code class="docutils literal notranslate"><span class="pre">package.yml</span></code> and <code class="docutils literal notranslate"><span class="pre">release.yml</span></code>, the setup action in <code class="docutils literal notranslate"><span class="pre">.github/actions/</span></code>, <code class="docutils literal notranslate"><span class="pre">tools/release/</span></code>, the
@@ -486,7 +494,11 @@ installer and the portable archive from it and uploads them as
 <code class="docutils literal notranslate"><span class="pre">EGTRAIN-windows-x64-installer</span></code> and <code class="docutils literal notranslate"><span class="pre">EGTRAIN-windows-x64-portable</span></code>. The release
 job builds the files of the release from the downloaded artifacts with
 <code class="docutils literal notranslate"><span class="pre">tools/release/build_release_assets.py</span></code> and publishes the files it writes; the
-portable archive is written only by the script. Before
+portable archive is written only by the script. The job <code class="docutils literal notranslate"><span class="pre">publish-site</span></code> then
+builds the same files from the same artifacts and publishes them on
+egtrain.samuelbruin.com with <code class="docutils literal notranslate"><span class="pre">tools/release/publish_selfhost.py</span> <span class="pre">release</span></code> (see
+<a class="reference internal" href="#self-hosted-publication">Self-hosted publication</a>). It is a job of its own,
+so that it can run again after the GitHub release exists. Before
 building, the pipeline increments the highest patch version
 among the CMake baseline, existing stable tags, and reserved release versions.
 Every build job, the package metadata and the update manifest use that same version. Local builds use the
@@ -556,7 +568,9 @@ rerun all jobs on the latest production commit to allocate a new version.</p></l
 prerelease suffix remain prereleases and are not offered by the updater.
 <code class="docutils literal notranslate"><span class="pre">workflow_dispatch</span></code> validates the pipeline without publishing.</p></li>
 <li><p>Releases remain drafts until every package and scene bundle is uploaded.
-Stable production releases then appear in the application’s update checks.</p></li>
+A stable release appears in the update checks of the application once the job
+<code class="docutils literal notranslate"><span class="pre">publish-site</span></code> has added it to the update feed of the website, after its files.
+Copies of EGTRAIN 1.0.5 and earlier read the GitHub releases instead.</p></li>
 </ul>
 <p>Pushes and pull requests to <code class="docutils literal notranslate"><span class="pre">production</span></code> skip the release workflow when changes
 are limited to Markdown files (<code class="docutils literal notranslate"><span class="pre">**.md</span></code>), <code class="docutils literal notranslate"><span class="pre">docs/</span></code>, the root <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code>, or
@@ -620,6 +634,11 @@ skipped, is not one. In any other job only a step with that condition reads a cr
 such as <code class="docutils literal notranslate"><span class="pre">env</span></code>, <code class="docutils literal notranslate"><span class="pre">container</span></code> or <code class="docutils literal notranslate"><span class="pre">services</span></code>, reads one, except the <code class="docutils literal notranslate"><span class="pre">secrets</span></code> of a call of a workflow in this repository,
 whose jobs this rule checks in turn. The top-level <code class="docutils literal notranslate"><span class="pre">env</span></code> of a workflow reads none either. A call of <code class="docutils literal notranslate"><span class="pre">package.yml</span></code>
 passes the inputs and credentials that it declares, by name, and grants the permissions that its jobs ask for.</p></li>
+<li><p>The one exception is the <code class="docutils literal notranslate"><span class="pre">publish</span></code> job of <code class="docutils literal notranslate"><span class="pre">docs.yml</span></code>, which <code class="docutils literal notranslate"><span class="pre">MAIN_CREDENTIALS</span></code> lists: its steps may read
+<code class="docutils literal notranslate"><span class="pre">EGTRAIN_PUBLISH_TOKEN</span></code> and no other credential. The job runs only for a push to <code class="docutils literal notranslate"><span class="pre">main</span></code> or after a successful run of
+the release workflow for a push, and it runs the scripts of <code class="docutils literal notranslate"><span class="pre">main</span></code>: a <code class="docutils literal notranslate"><span class="pre">workflow_run</span></code> event runs the workflow of the
+default branch, and the job checks out no other commit. The test checks the triggers, the conditions of the job and
+of the build job that sets its version, and the checkout.</p></li>
 <li><p>The files, actions and tests that the workflows name exist, and every test script in <code class="docutils literal notranslate"><span class="pre">tools/ci/</span></code> and
 <code class="docutils literal notranslate"><span class="pre">tools/release/</span></code> is registered in CTest or run by a workflow.</p></li>
 </ul>
@@ -694,6 +713,61 @@ uploads the package.</p>
 tree, with the portable archive written by the script, runs the script on it and
 checks the rules directly. Run it with
 <code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">--test-dir</span> <span class="pre">build</span> <span class="pre">-R</span> <span class="pre">test_release_assets</span> <span class="pre">--output-on-failure</span></code>.</p>
+</section>
+<section id="self-hosted-publication">
+<h3>Self-hosted publication<a class="headerlink" href="#self-hosted-publication" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">tools/release/publish_selfhost.py</span></code> publishes a release and the documentation site on egtrain.samuelbruin.com, and the
+release files on bin.samuelbruin.com, a Zipline 4.8.1 server:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>tools/release/publish_selfhost.py<span class="w"> </span>release<span class="w"> </span>--tag<span class="w"> </span>TAG<span class="w"> </span>--name<span class="w"> </span>NAME<span class="w"> </span>--prerelease<span class="w"> </span>true<span class="p">|</span><span class="nb">false</span><span class="w"> </span>--assets<span class="w"> </span>DIR<span class="w"> </span>--commit<span class="w"> </span>SHA<span class="w"> </span>--run-url<span class="w"> </span>URL<span class="w"> </span><span class="o">[</span>--new-feed<span class="o">]</span>
+python3<span class="w"> </span>tools/release/publish_selfhost.py<span class="w"> </span>import<span class="w"> </span>TAG<span class="w"> </span><span class="o">[</span>--new-feed<span class="o">]</span>
+python3<span class="w"> </span>tools/release/publish_selfhost.py<span class="w"> </span>notes<span class="w"> </span>TAG<span class="w"> </span>FILE
+python3<span class="w"> </span>tools/release/publish_selfhost.py<span class="w"> </span>site<span class="w"> </span>PAGES<span class="w"> </span><span class="o">[</span>DIR<span class="w"> </span>...<span class="o">]</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">release</span></code> uploads each file of <code class="docutils literal notranslate"><span class="pre">--assets</span></code>, the folder that the release assets script writes, and an archive of the
+source code of the commit (<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">archive</span></code>, <code class="docutils literal notranslate"><span class="pre">EGTRAIN-&lt;version&gt;-source.tar.gz</span></code>) to Zipline as <code class="docutils literal notranslate"><span class="pre">egtrain-&lt;tag&gt;-&lt;name&gt;</span></code>, which
+Zipline serves at <code class="docutils literal notranslate"><span class="pre">https://bin.samuelbruin.com/raw/egtrain-&lt;tag&gt;-&lt;name&gt;</span></code>. It downloads each file from that address and
+compares its size with the file. A name that Zipline has already is not uploaded again when the file there has the same
+size, so a second run adds nothing. Another size stops the script: delete the file on Zipline first. After the files,
+the script publishes the release page <code class="docutils literal notranslate"><span class="pre">releases/&lt;version&gt;/</span></code> with the notes, the files and their sizes, and last the
+entry of the release in the update feed <code class="docutils literal notranslate"><span class="pre">releases/feed.json</span></code>, newest release first. The entry has the fields of a GitHub
+release that the application reads, the text of the GitHub release as its notes and the Zipline addresses as its
+downloads. A second run keeps the time of the first. The source archive is listed on the release page and on the source
+code page, not in the feed. When the website answers 404 for the feed, <code class="docutils literal notranslate"><span class="pre">release</span></code> stops before it publishes the page:
+a feed that was lost, for example with the volume of the website, must be restored, not replaced by one that has only
+the new release. Only the first release on a new site passes <code class="docutils literal notranslate"><span class="pre">--new-feed</span></code>, which starts a feed when there is none.</p>
+<p><code class="docutils literal notranslate"><span class="pre">import</span></code> publishes a release that is already on the GitHub releases in the same way. It reads the name, the notes, the
+publication time and the files of the release with the GitHub CLI <code class="docutils literal notranslate"><span class="pre">gh</span></code>, and makes the source archive from the tag, which
+must be in the local repository. A second run uploads no file again and writes the same page and entry.</p>
+<p><code class="docutils literal notranslate"><span class="pre">notes</span></code> replaces the notes of a published release (see <a class="reference internal" href="code-signing.html#release-text"><span class="std std-ref">Release text</span></a>). <code class="docutils literal notranslate"><span class="pre">site</span></code> publishes
+folders of the documentation site, and then the pages that <code class="docutils literal notranslate"><span class="pre">tools/docs/home_page.py</span></code> writes from the feed of the
+website: <code class="docutils literal notranslate"><span class="pre">assets/</span></code>, <code class="docutils literal notranslate"><span class="pre">support/</span></code>, <code class="docutils literal notranslate"><span class="pre">source/</span></code>, <code class="docutils literal notranslate"><span class="pre">privacy/</span></code> and, last, the home page. Their list of versions has <code class="docutils literal notranslate"><span class="pre">dev/</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">latest/</span></code> and a folder for each stable release in the feed when it has one.</p>
+<p>The script reads the Zipline token from <code class="docutils literal notranslate"><span class="pre">ZIPLINE_TOKEN</span></code> and the token of the publish API of the website from
+<code class="docutils literal notranslate"><span class="pre">EGTRAIN_PUBLISH_TOKEN</span></code>, prints neither and follows no redirect. Zipline takes its token as the <code class="docutils literal notranslate"><span class="pre">Authorization</span></code> header
+and accepts 10 uploads a minute from a user who is not an administrator, so a release of 12 files waits once for the
+time that Zipline names. A file may have up to 95 MiB, which Zipline takes in one request, and a request to the publish
+API up to 90 MB. <code class="docutils literal notranslate"><span class="pre">tools/release/test_publish_selfhost.py</span></code>, which the documentation workflow runs, tests the script
+against a stub of the publish API and of the upload API of Zipline. With <code class="docutils literal notranslate"><span class="pre">ZIPLINE_TEST_URL</span></code> and <code class="docutils literal notranslate"><span class="pre">ZIPLINE_TEST_TOKEN</span></code> it
+also runs against a real Zipline server; its docstring says how to start one with Docker. CTest runs it as
+<code class="docutils literal notranslate"><span class="pre">test_publish_selfhost</span></code>.</p>
+<section id="filling-a-new-site">
+<h4>Filling a new site<a class="headerlink" href="#filling-a-new-site" title="Link to this heading">¶</a></h4>
+<p>The first release that the release workflow publishes on the website needs a feed to add to. Fill a new site once, from
+a checkout of this repository with the release tags (<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">fetch</span> <span class="pre">origin</span> <span class="pre">--tags</span></code>), with <code class="docutils literal notranslate"><span class="pre">gh</span></code> logged in, and with the tokens
+in <code class="docutils literal notranslate"><span class="pre">ZIPLINE_TOKEN</span></code> and <code class="docutils literal notranslate"><span class="pre">EGTRAIN_PUBLISH_TOKEN</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>tools/release/publish_selfhost.py<span class="w"> </span>import<span class="w"> </span>v1.0.5<span class="w"> </span>--new-feed
+git<span class="w"> </span>fetch<span class="w"> </span>origin<span class="w"> </span>gh-pages
+git<span class="w"> </span>worktree<span class="w"> </span>add<span class="w"> </span>--detach<span class="w"> </span><span class="s2">"</span><span class="nv">$TMPDIR</span><span class="s2">/gh-pages"</span><span class="w"> </span>FETCH_HEAD
+python3<span class="w"> </span>tools/release/publish_selfhost.py<span class="w"> </span>site<span class="w"> </span><span class="s2">"</span><span class="nv">$TMPDIR</span><span class="s2">/gh-pages"</span><span class="w"> </span>dev<span class="w"> </span><span class="m">1</span>.0.4<span class="w"> </span><span class="m">1</span>.0.5<span class="w"> </span>latest
+git<span class="w"> </span>worktree<span class="w"> </span>remove<span class="w"> </span><span class="s2">"</span><span class="nv">$TMPDIR</span><span class="s2">/gh-pages"</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">import</span></code> publishes the release v1.0.5 with its files, notes and page, and starts the feed. <code class="docutils literal notranslate"><span class="pre">site</span></code> publishes the
+documentation folders of the copy of <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> on the website, and then the pages. Both can be run again. The home page
+lists <code class="docutils literal notranslate"><span class="pre">latest/</span></code>, <code class="docutils literal notranslate"><span class="pre">dev/</span></code> and the versions of the feed, so <code class="docutils literal notranslate"><span class="pre">1.0.4/</span></code> is listed only when v1.0.4 is imported too, with
+<code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/release/publish_selfhost.py</span> <span class="pre">import</span> <span class="pre">v1.0.4</span></code>.</p>
+</section>
 </section>
 <section id="disk-image-script">
 <h3>Disk image script<a class="headerlink" href="#disk-image-script" title="Link to this heading">¶</a></h3>
@@ -1218,6 +1292,10 @@ seven days; the nightly run keeps the entries in use.</p>
 <li><a class="reference internal" href="#required-checks-on-main">Required checks on <code class="docutils literal notranslate"><span class="pre">main</span></code></a></li>
 <li><a class="reference internal" href="#workflow-test">Workflow test</a></li>
 <li><a class="reference internal" href="#release-assets-script">Release assets script</a></li>
+<li><a class="reference internal" href="#self-hosted-publication">Self-hosted publication</a><ul>
+<li><a class="reference internal" href="#filling-a-new-site">Filling a new site</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#disk-image-script">Disk image script</a></li>
 <li><a class="reference internal" href="#macos-packaging-script">macOS packaging script</a></li>
 <li><a class="reference internal" href="#macos-signing-script">macOS signing script</a></li>

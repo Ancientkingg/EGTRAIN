@@ -96,4 +96,4 @@ and atomically published. An existing regular bundle is
 replaced by the same atomic operation, so a failed publication leaves the old
 path intact. Generated outputs and legacy files are never included.
 
-[`SceneModel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_model.html
+[`SceneModel`]: https://egtrain.samuelbruin.com/latest/api/struct_scene_model.html

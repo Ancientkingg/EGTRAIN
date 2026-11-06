@@ -338,7 +338,10 @@ no <code class="docutils literal notranslate"><span class="pre">update-manifest.
 <li><p>The assets of one published release, made by a push to <code class="docutils literal notranslate"><span class="pre">production</span></code> or by
 a <code class="docutils literal notranslate"><span class="pre">v*</span></code> tag. A release holds the application assets, the case-study bundles
 and <code class="docutils literal notranslate"><span class="pre">update-manifest.json</span></code> that the next section lists, and nothing else. It
-stays a draft until all of them are uploaded. A <code class="docutils literal notranslate"><span class="pre">v*</span></code> tag that contains a
+stays a draft until all of them are uploaded. The same files and an archive
+of the source code, <code class="docutils literal notranslate"><span class="pre">EGTRAIN-&lt;version&gt;-source.tar.gz</span></code>, are then on
+bin.samuelbruin.com, listed on the release page of the website,
+<code class="docutils literal notranslate"><span class="pre">https://egtrain.samuelbruin.com/releases/&lt;version&gt;/</span></code>. A <code class="docutils literal notranslate"><span class="pre">v*</span></code> tag that contains a
 hyphen is published as a prerelease: the updater never offers it, and its
 version is the number before the hyphen.</p></li>
 </ul>
@@ -353,7 +356,10 @@ archive carry it. Record that version; step 1 says where the entry is.</p>
 <h2>Automated release evidence<a class="headerlink" href="#automated-release-evidence" title="Link to this heading">¶</a></h2>
 <p>The release is ready to rehearse only when the version, validation, sanitizer
 and the package jobs of the <code class="docutils literal notranslate"><span class="pre">Release</span></code> workflow (macOS, Windows, Finalize Windows,
-Linux and Rehearse Linux) are green. The release job needs all of them.
+Linux and Rehearse Linux) are green. The release job needs all of them. After
+the GitHub release, the job <strong>Publish on egtrain.samuelbruin.com</strong> uploads the
+same files and the source archive to Zipline and then publishes the release page
+and the entry of the update feed of the website.
 <a class="reference internal" href="ci-and-release.html#ci-and-release-branches"><span class="std std-ref">CI and release branches</span></a> describes
 what the workflow does.</p>
 <p>Expected application assets:</p>
@@ -378,7 +384,8 @@ Windows names above.</p>
 </ul>
 <p>A published release also has <code class="docutils literal notranslate"><span class="pre">update-manifest.json</span></code>. Confirm the workflow
 validates all the bundles and publishes exactly the application assets and the
-case-study assets above and the update manifest.</p>
+case-study assets above and the update manifest, on GitHub and on the release
+page of the website, which also lists <code class="docutils literal notranslate"><span class="pre">EGTRAIN-&lt;version&gt;-source.tar.gz</span></code>.</p>
 <p>What the jobs prove today:</p>
 <ul class="simple">
 <li><p>The Full validation job builds the project with tests on macOS and runs
@@ -461,7 +468,10 @@ case-study bundles, would end this job after the Windows jobs. The script
 starts the image through its <code class="docutils literal notranslate"><span class="pre">AppRun</span></code> with a new home directory and no
 <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_</span></code> variable, and drives the real menus and dialogs through AT-SPI,
 with <code class="docutils literal notranslate"><span class="pre">xdotool</span></code> only for typing and for giving the keyboard to a field or a
-table cell. The release package has no test hook. Each
+table cell. The release package has no test hook. At the first start it
+answers <strong>Not now</strong> to the question about usage statistics and diagnostic
+reports and <strong>Don’t Check Automatically</strong> to the question about update
+checks. Each
 step prints <code class="docutils literal notranslate"><span class="pre">STEP</span> <span class="pre">n</span> <span class="pre">PASS</span></code> or <code class="docutils literal notranslate"><span class="pre">STEP</span> <span class="pre">n</span> <span class="pre">FAIL</span></code> with what it saw, and the job stops
 at the first step that fails. The script also fails when the area of the
 buttons Zoom In and Zoom Out of the toolbar, which show an icon and no text,
@@ -479,12 +489,12 @@ to R13.</p></li>
 <li><p>Each package job also runs the update helper tests
 (<code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">-R</span> <span class="pre">'^test_update(helper|preparation)$'</span></code>, step <strong>Verify update helper
 transaction</strong>).</p></li>
-<li><p>The Package Windows job also makes one HTTPS request to the GitHub release list
-from a copy of the package, with only the Windows directories on <code class="docutils literal notranslate"><span class="pre">PATH</span></code> (step
-<strong>Check HTTPS from the package</strong>). It shows that the update transport completes
-an HTTPS request with the Qt files of the package and no Qt or vcpkg directory
-on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>. It does not show the update check of the application on a clean
-machine, which row R8 covers.</p></li>
+<li><p>The Package Windows job also makes one HTTPS request to the update feed of the
+EGTRAIN website from a copy of the package, with only the Windows directories
+on <code class="docutils literal notranslate"><span class="pre">PATH</span></code> (step <strong>Check HTTPS from the package</strong>). It shows that the update
+transport completes an HTTPS request with the Qt files of the package and no
+Qt or vcpkg directory on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>. It does not show the update check of the
+application on a clean machine, which row R8 covers.</p></li>
 <li><p>The Package macOS job starts a copy of the app that goes into the disk image, the
 Package Windows job starts a copy of the directory it uploads, and the Package
 Linux job starts the extracted AppImage, all with
@@ -610,7 +620,10 @@ whether a clean machine starts without it.</p></li>
 <code class="docutils literal notranslate"><span class="pre">../Resources/Scenes</span></code> or in <code class="docutils literal notranslate"><span class="pre">../share/EGTRAIN/Scenes</span></code> relative to the
 executable. Note what the chooser lists. Close it before step 2 with the
 button that keeps the current case: <strong>Continue</strong> when a case is loaded and
-<strong>Cancel</strong> when none is.</p>
+<strong>Cancel</strong> when none is. A release package then asks once, in <strong>Help improve
+EGTRAIN</strong>, whether to share usage statistics and diagnostic reports, before
+the question of row R7. Record its text and the receiving domain it names,
+and answer <strong>Not now</strong> unless the record is for the receiver.</p>
 </li>
 <li><p>Open a downloaded <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> through <strong>File &gt; Open Case…</strong> and
 <strong>Other ways to open… &gt; Open Case File…</strong> in <strong>Open a Case</strong>.</p></li>
@@ -729,8 +742,8 @@ text, which is the same on every platform.</p>
 </div>
 <p>Notes on the update rows:</p>
 <ul class="simple">
-<li><p>The update check looks at the latest stable release. A draft or a prerelease
-is never offered. <strong>Update and Restart</strong> is offered only for a stable release
+<li><p>The update check looks at the latest stable release in the update feed of
+the website. A draft or a prerelease is never offered. <strong>Update and Restart</strong> is offered only for a stable release
 that is newer than the running version, holds <code class="docutils literal notranslate"><span class="pre">update-manifest.json</span></code> and the
 package of the platform, and only where the installation can update itself.
 <a class="reference internal" href="../guides/updates.html"><span class="std std-doc">Application updates</span></a>
@@ -812,7 +825,7 @@ did, and go on with <strong>Open With</strong>.</p>
 <td><p>macOS</p></td>
 </tr>
 <tr class="row-odd"><td><p>M4 First start of an ad hoc build</p></td>
-<td><p>Run it as the first launch of step 1 on an ad hoc candidate. Download the disk image with a browser, from the run page or the release page, so that macOS knows it came from the internet. Open it, drag <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code> onto <code class="docutils literal notranslate"><span class="pre">Applications</span></code>, eject the image and open the copy from the Applications folder in Finder. Use no terminal command that removes the download mark or changes Gatekeeper.</p></td>
+<td><p>Run it as the first launch of step 1 on an ad hoc candidate. Download the disk image with a browser, from the run page or the release page of the website, so that macOS knows it came from the internet. Open it, drag <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code> onto <code class="docutils literal notranslate"><span class="pre">Applications</span></code>, eject the image and open the copy from the Applications folder in Finder. Use no terminal command that removes the download mark or changes Gatekeeper.</p></td>
 <td><p>Record every dialog with its title, text and buttons. The first start is refused with the dialog <code class="docutils literal notranslate"><span class="pre">&quot;QEGTRAIN&quot;</span> <span class="pre">Not</span> <span class="pre">Opened</span></code>, whose buttons are <strong>Move to Trash</strong> and <strong>Done</strong>, and which has no <strong>Open</strong> button. <strong>System Settings &gt; Privacy &amp; Security</strong> shows, in the section <strong>Security</strong>, <code class="docutils literal notranslate"><span class="pre">&quot;QEGTRAIN&quot;</span> <span class="pre">was</span> <span class="pre">blocked</span> <span class="pre">to</span> <span class="pre">protect</span> <span class="pre">your</span> <span class="pre">Mac.</span></code> with the button <strong>Open Anyway</strong>. <strong>Open Anyway</strong> opens the dialog <code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">&quot;QEGTRAIN&quot;?</span></code> with <strong>Move to Trash</strong>, <strong>Open Anyway</strong> and <strong>Done</strong>, and its <strong>Open Anyway</strong> asks for an administrator’s name and password. Record whether EGTRAIN starts after that and which dialog, if any, comes next. Another dialog or another order is a finding: record its text.</p></td>
 <td><p>macOS</p></td>
 </tr>

@@ -27,8 +27,9 @@ of any signing service: every fact that only the owner can give is a field that 
   of the same release. On Windows it checks no signature, so these checks detect a damaged download and do not show who
   published the package. On macOS the staged app is also checked with `codesign --verify`, which an ad-hoc signature
   passes.
-- A release page does not say whether the macOS app is notarized or whether the Windows files are signed. The release
-  text, built by the Prepare release step of the release job in `.github/workflows/release.yml`, says nothing about
+- Neither the GitHub release nor the release page on egtrain.samuelbruin.com says whether the macOS app is notarized
+  or whether the Windows files are signed. The release text, built by the Prepare release step of the release job in
+  `.github/workflows/release.yml` and copied to the website by `tools/release/publish_selfhost.py`, says nothing about
   signing. [Release text](#release-text) has the lines for macOS.
 
 ## What would be signed
@@ -357,19 +358,31 @@ EGTRAIN has been built in this mode, so this has not been observed. Row M5 of th
 ### Release text
 
 The release text that the Prepare release step writes says nothing about signing. After a release is published, the owner
-adds one of these paragraphs to its description on the releases page. The first is for a release whose app is signed ad
+adds one of these paragraphs to its release notes. The first is for a release whose app is signed ad
 hoc: the log of the step **Verify the signature** of the package job shows `Signature=adhoc`. The second is only for one
 whose app and image are notarized: the logs of the steps **Notarize the app** and **Notarize the disk image** each end
 with a line `OK: ... is notarized, stapled and accepted by Gatekeeper`. A Developer ID signature with the line
 `Notarization skipped` is neither, and needs a sentence of its own.
 
 ```text
-macOS: the app is signed ad hoc and is not notarized by Apple, so macOS refuses the first start. To allow it, choose Open Anyway for QEGTRAIN in System Settings > Privacy & Security. macOS then asks for an administrator's name and password. See "macOS disk image" in the manual: https://ancientkingg.github.io/EGTRAIN/latest/guides/install.html#macos-disk-image
+macOS: the app is signed ad hoc and is not notarized by Apple, so macOS refuses the first start. To allow it, choose Open Anyway for QEGTRAIN in System Settings > Privacy & Security. macOS then asks for an administrator's name and password. See "macOS disk image" in the manual: https://egtrain.samuelbruin.com/latest/guides/install.html#macos-disk-image
 ```
 
 ```text
 macOS: the app and the disk image are signed with a Developer ID and notarized by Apple. macOS is expected to ask only for the usual confirmation for an app that was downloaded.
 ```
+
+The release notes are in two places, and the paragraph goes into both: the description of the GitHub release, and the
+notes on the website, which the update check of the application shows. For the website, save the whole text, the notes
+of the release with the paragraph, in a Markdown file and run this command with the publish token of the website in the
+environment variable `EGTRAIN_PUBLISH_TOKEN`:
+
+```bash
+python3 tools/release/publish_selfhost.py notes v<version> notes.md
+```
+
+It replaces the notes in the update feed `releases/feed.json` and on the release page `releases/<version>/`, and leaves
+the files of the release as they are.
 
 ### Checking a macOS download
 

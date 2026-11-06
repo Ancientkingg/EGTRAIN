@@ -47,7 +47,7 @@ guides/signalling-levels
 guides/assignment-workflow
 ```
 
-The developer pages explain how the application is built, tested and structured, next to the [C++ reference](https://ancientkingg.github.io/EGTRAIN/latest/api/index.html).
+The developer pages explain how the application is built, tested and structured, next to the [C++ reference](https://egtrain.samuelbruin.com/latest/api/index.html).
 
 ```{toctree}
 :caption: Develop or contribute

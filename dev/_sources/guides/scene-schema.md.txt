@@ -547,9 +547,9 @@ The reverse exporter remains available for interoperability. It does not make
 legacy files authoritative, and the normal runtime never invokes it. Canonical
 scenario selection and passengers execute directly from [`SceneModel`].
 
-[`InitialParameters`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_initial_parameters.html
-[`Train::computePaxDependentDwellTimeAtStations`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_train.html
-[`SceneModel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_model.html
+[`InitialParameters`]: https://egtrain.samuelbruin.com/latest/api/class_initial_parameters.html
+[`Train::computePaxDependentDwellTimeAtStations`]: https://egtrain.samuelbruin.com/latest/api/class_train.html
+[`SceneModel`]: https://egtrain.samuelbruin.com/latest/api/struct_scene_model.html
 
 ## Case folder
 

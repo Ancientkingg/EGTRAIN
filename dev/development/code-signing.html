@@ -335,8 +335,9 @@ modes, the settings that the owner adds and what a user sees at the first start 
 of the same release. On Windows it checks no signature, so these checks detect a damaged download and do not show who
 published the package. On macOS the staged app is also checked with <code class="docutils literal notranslate"><span class="pre">codesign</span> <span class="pre">--verify</span></code>, which an ad-hoc signature
 passes.</p></li>
-<li><p>A release page does not say whether the macOS app is notarized or whether the Windows files are signed. The release
-text, built by the Prepare release step of the release job in <code class="docutils literal notranslate"><span class="pre">.github/workflows/release.yml</span></code>, says nothing about
+<li><p>Neither the GitHub release nor the release page on egtrain.samuelbruin.com says whether the macOS app is notarized
+or whether the Windows files are signed. The release text, built by the Prepare release step of the release job in
+<code class="docutils literal notranslate"><span class="pre">.github/workflows/release.yml</span></code> and copied to the website by <code class="docutils literal notranslate"><span class="pre">tools/release/publish_selfhost.py</span></code>, says nothing about
 signing. <a class="reference internal" href="#release-text">Release text</a> has the lines for macOS.</p></li>
 </ul>
 </section>
@@ -859,17 +860,26 @@ EGTRAIN has been built in this mode, so this has not been observed. Row M5 of th
 <section id="release-text">
 <h3>Release text<a class="headerlink" href="#release-text" title="Link to this heading">¶</a></h3>
 <p>The release text that the Prepare release step writes says nothing about signing. After a release is published, the owner
-adds one of these paragraphs to its description on the releases page. The first is for a release whose app is signed ad
+adds one of these paragraphs to its release notes. The first is for a release whose app is signed ad
 hoc: the log of the step <strong>Verify the signature</strong> of the package job shows <code class="docutils literal notranslate"><span class="pre">Signature=adhoc</span></code>. The second is only for one
 whose app and image are notarized: the logs of the steps <strong>Notarize the app</strong> and <strong>Notarize the disk image</strong> each end
 with a line <code class="docutils literal notranslate"><span class="pre">OK:</span> <span class="pre">...</span> <span class="pre">is</span> <span class="pre">notarized,</span> <span class="pre">stapled</span> <span class="pre">and</span> <span class="pre">accepted</span> <span class="pre">by</span> <span class="pre">Gatekeeper</span></code>. A Developer ID signature with the line
 <code class="docutils literal notranslate"><span class="pre">Notarization</span> <span class="pre">skipped</span></code> is neither, and needs a sentence of its own.</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>macOS: the app is signed ad hoc and is not notarized by Apple, so macOS refuses the first start. To allow it, choose Open Anyway for QEGTRAIN in System Settings &gt; Privacy &amp; Security. macOS then asks for an administrator's name and password. See "macOS disk image" in the manual: https://ancientkingg.github.io/EGTRAIN/latest/guides/install.html#macos-disk-image
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>macOS: the app is signed ad hoc and is not notarized by Apple, so macOS refuses the first start. To allow it, choose Open Anyway for QEGTRAIN in System Settings &gt; Privacy &amp; Security. macOS then asks for an administrator's name and password. See "macOS disk image" in the manual: https://egtrain.samuelbruin.com/latest/guides/install.html#macos-disk-image
 </pre></div>
 </div>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>macOS: the app and the disk image are signed with a Developer ID and notarized by Apple. macOS is expected to ask only for the usual confirmation for an app that was downloaded.
 </pre></div>
 </div>
+<p>The release notes are in two places, and the paragraph goes into both: the description of the GitHub release, and the
+notes on the website, which the update check of the application shows. For the website, save the whole text, the notes
+of the release with the paragraph, in a Markdown file and run this command with the publish token of the website in the
+environment variable <code class="docutils literal notranslate"><span class="pre">EGTRAIN_PUBLISH_TOKEN</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>tools/release/publish_selfhost.py<span class="w"> </span>notes<span class="w"> </span>v&lt;version&gt;<span class="w"> </span>notes.md
+</pre></div>
+</div>
+<p>It replaces the notes in the update feed <code class="docutils literal notranslate"><span class="pre">releases/feed.json</span></code> and on the release page <code class="docutils literal notranslate"><span class="pre">releases/&lt;version&gt;/</span></code>, and leaves
+the files of the release as they are.</p>
 </section>
 <section id="checking-a-macos-download">
 <h3>Checking a macOS download<a class="headerlink" href="#checking-a-macos-download" title="Link to this heading">¶</a></h3>

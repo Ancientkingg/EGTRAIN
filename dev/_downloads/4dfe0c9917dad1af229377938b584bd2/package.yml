@@ -58,6 +58,7 @@ jobs:
           cmake -S . -B build "-DEGTRAIN_VERSION=${{ inputs.version }}"
           -DCMAKE_BUILD_TYPE=Release
           -DEGTRAIN_PACKAGED_BUILD=ON
+          -DEGTRAIN_ENABLE_TELEMETRY=ON -DEGTRAIN_TELEMETRY_URL=https://egtrain.samuelbruin.com/api/telemetry/v1
           -DCMAKE_OSX_DEPLOYMENT_TARGET=26.0
           -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)"
           -DWrapOpenGL_AGL="$(xcrun --show-sdk-path)/System/Library/Frameworks/OpenGL.framework"
@@ -366,6 +367,7 @@ jobs:
         run: >
           cmake -S . -B build "-DEGTRAIN_VERSION=${{ inputs.version }}"
           -DEGTRAIN_PACKAGED_BUILD=ON
+          -DEGTRAIN_ENABLE_TELEMETRY=ON -DEGTRAIN_TELEMETRY_URL=https://egtrain.samuelbruin.com/api/telemetry/v1
           -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_TARGET_TRIPLET=x64-windows
           -DVCPKG_MANIFEST_DIR="$env:GITHUB_WORKSPACE/tools/vcpkg"
@@ -498,10 +500,10 @@ jobs:
           python tools/release/package_start_smoke.py "$start"
 
       - name: Check HTTPS from the package
-        # One real request to the GitHub release list through the update transport, as the update check makes it. The program starts
-        # from the copy of the package that the previous step started, with only the Windows directories on PATH, so it uses the Qt
-        # files of the package as a machine without a developer setup would. It fails when no HTTPS response arrives. It exits with
-        # 77 when GitHub answers with its rate limit or an outage, which does not fail the job.
+        # One real request to the update feed of the EGTRAIN website through the update transport, as the update check makes it. The
+        # program starts from the copy of the package that the previous step started, with only the Windows directories on PATH, so it
+        # uses the Qt files of the package as a machine without a developer setup would. It fails when no HTTPS response arrives. It
+        # exits with 77 when the website refuses the request (403 or 429) or has an outage (5xx), which does not fail the job.
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
@@ -826,6 +828,7 @@ jobs:
       - name: Configure
         run: >
           cmake -S . -B build "-DEGTRAIN_VERSION=${{ inputs.version }}" -DCMAKE_BUILD_TYPE=Release -DEGTRAIN_PACKAGED_BUILD=ON
+          -DEGTRAIN_ENABLE_TELEMETRY=ON -DEGTRAIN_TELEMETRY_URL=https://egtrain.samuelbruin.com/api/telemetry/v1
           -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"
 
       - name: Build
