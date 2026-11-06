@@ -20,9 +20,10 @@ class InfrastructurePanel;
 /// scene, and what an edited cell, an addition and a deletion do to the model of the panel's document. It changes the
 /// model only through InfrastructurePanel::edit or InfrastructurePanel::editInPlace, which refuse while the document is
 /// not open for edits, and when it refuses an edit it calls InfrastructurePanel::refuseEdit. The panel calls key(),
-/// capabilities(), columns(), fillRows(), selectionId() and commitPendingEdits() at any time, and commitCell(), add(),
-/// remove(), insert(), move(), addSection(), removeSection() and moveSection() only while the scene is loaded and open
-/// for edits. A widget that a facet puts in the table can still change while the scene is closed for edits.
+/// capabilities(), columns(), fillRows(), selectionId(), rowOnTrack(), choices() and commitPendingEdits() at any time, and
+/// commitCell(), add(), remove(), insert(), move(), addSection(), removeSection() and moveSection() only while the scene is
+/// loaded and open for edits. A widget that a facet puts in the table can still change while the scene is closed for
+/// edits.
 class InfrastructureFacet {
 public:
 	/// Makes the base of a facet, which holds nothing.
@@ -43,6 +44,9 @@ public:
 		/// The sections of the selected route below the table, whose buttons call addSection(), removeSection() and
 		/// moveSection().
 		RouteSections = 0x4,
+		/// The filter on a track above the table that hides the rows that are not on the chosen track (rowOnTrack()). Add
+		/// does not use it.
+		TrackRowFilter = 0x8,
 	};
 	// A combination of Capability values.
 	Q_DECLARE_FLAGS(Capabilities, Capability)
@@ -62,6 +66,20 @@ public:
 		const QTableWidgetItem* item = table.item(row, 0);
 		return item ? item->text() : QString();
 	}
+	/// Whether the entity in `row` lies on the track `trackId`, for the filter of TrackRowFilter. The default is true.
+	virtual bool rowOnTrack(const InfrastructurePanel&, int /*row*/, const std::string& /*trackId*/) const { return true; }
+	/// An entity that a cell can refer to: the text that names it in a list, and the id that the cell takes.
+	struct Choice {
+		/// The text in the list, such as "B0.node.41 (B0)".
+		QString label;
+		/// The id that the cell takes when the entity is chosen.
+		QString id;
+	};
+	/// The entities that the cell in `row` and `column` can refer to, in the order of the list. The editor of such a cell
+	/// is a combo of their labels in which the user can also type, and which completes what is typed from any part of a
+	/// label, ignoring case. The cell takes the id of the chosen entity, or the text when it is no label. The default, for
+	/// a cell that takes any text, is none.
+	virtual std::vector<Choice> choices(const InfrastructurePanel&, int /*row*/, int /*column*/) const { return {}; }
 	/// The cell in `row` and `column` has been edited: takes its text into the model, or refuses it.
 	virtual void commitCell(InfrastructurePanel& panel, int row, int column) = 0;
 	/// Adds an entity.
@@ -103,6 +121,34 @@ protected:
 		if (!editable)
 			item->setFlags(item->flags() & ~Qt::ItemIsEditable);
 		table.setItem(row, column, item);
+	}
+
+	/// Puts a check box for a flag in the table, which owns it. The cell has no text and takes none; a click on the box
+	/// changes the flag, and cellValue() reads it as flagText() does.
+	static void setFlagCell(QTableWidget& table, int row, int column, bool value) {
+		auto* item = new QTableWidgetItem();
+		item->setFlags((item->flags() | Qt::ItemIsUserCheckable) & ~Qt::ItemIsEditable);
+		item->setCheckState(value ? Qt::Checked : Qt::Unchecked);
+		table.setItem(row, column, item);
+	}
+
+	/// What an edited cell holds: its trimmed text, or for a check box (a cell with a check state) "true" or "false".
+	static QString cellValue(const QTableWidgetItem& item) {
+		if (item.data(Qt::CheckStateRole).isValid())
+			return flagText(item.checkState() == Qt::Checked);
+		return item.text().trimmed();
+	}
+
+	/// The message that refuses ids that the scene does not have. `noun` names one entity of their kind, such as "Node":
+	/// "Node 'n9' does not exist" or "Nodes 'n8', 'n9' do not exist". An empty id asks for one: "Choose a node".
+	static QString missingIdsText(const QString& noun, const QStringList& ids) {
+		if (ids.size() == 1 && ids.front().isEmpty())
+			return QStringLiteral("Choose a %1").arg(noun.toLower());
+		QStringList quoted;
+		for (const QString& id : ids)
+			quoted << QStringLiteral("'%1'").arg(id);
+		return ids.size() == 1 ? QStringLiteral("%1 %2 does not exist").arg(noun, quoted.join(QString()))
+							   : QStringLiteral("%1s %2 do not exist").arg(noun, quoted.join(QStringLiteral(", ")));
 	}
 
 	/// The text of a number with enough digits to give the number back.

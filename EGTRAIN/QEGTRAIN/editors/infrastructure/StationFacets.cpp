@@ -30,8 +30,13 @@ namespace {
 
 // Set on a number field of a platform while its text has been edited and not yet taken into the model.
 constexpr const char kGeometryEditedProperty[] = "platformGeometryEdited";
-constexpr int kLengthColumn = 3;
-constexpr int kWidthColumn = 4;
+// The columns of the platforms after the id of the station: the name of the station, which cannot be edited, the id of the
+// platform, its nodes, its length and its width.
+constexpr int kStationNameColumn = 1;
+constexpr int kPlatformIdColumn = 2;
+constexpr int kNodesColumn = 3;
+constexpr int kLengthColumn = 4;
+constexpr int kWidthColumn = 5;
 
 // The id that names a platform for the selection: the platforms of different stations may share an id.
 std::string platformSelectionKey(const std::string& stationId, const std::string& platformId) {
@@ -140,7 +145,7 @@ private:
 	void fillRow(QTableWidget& table, int row, const SceneStation& station) const override {
 		setCell(table, row, 0, QString::fromStdString(station.id));
 		setCell(table, row, 1, QString::fromStdString(station.name));
-		setCell(table, row, 2, flagText(station.hasPosition));
+		setFlagCell(table, row, 2, station.hasPosition);
 		setCell(table, row, 3, numberText(station.positionKm));
 	}
 	Edit editField(SceneStation& station, int column, const QString& value) const override {
@@ -167,7 +172,8 @@ private:
 class PlatformsFacet final : public InfrastructureFacet {
 public:
 	QString key() const override { return QStringLiteral("platforms"); }
-	QStringList columns() const override { return {"Station ID", "ID", "Nodes", "Length (m)", "Width (m)"}; }
+	Capabilities capabilities() const override { return TrackRowFilter; }
+	QStringList columns() const override { return {"Station ID", "Station", "ID", "Nodes", "Length (m)", "Width (m)"}; }
 
 	void fillRows(InfrastructurePanel& panel) override {
 		const SceneModel& model = panel.model();
@@ -180,8 +186,9 @@ public:
 		for (const SceneStation& station : model.stations) {
 			for (const ScenePlatform& platform : station.platforms) {
 				setCell(table, row, 0, QString::fromStdString(station.id));
-				setCell(table, row, 1, QString::fromStdString(platform.id));
-				setCell(table, row, 2, joinCommaList(platform.nodeIds));
+				setCell(table, row, kStationNameColumn, QString::fromStdString(station.name.empty() ? station.id : station.name), false);
+				setCell(table, row, kPlatformIdColumn, QString::fromStdString(platform.id));
+				setCell(table, row, kNodesColumn, joinCommaList(platform.nodeIds));
 				table.setCellWidget(row, kLengthColumn,
 					makeGeometryField(panel, row, kLengthColumn, platform.hasLength ? platform.lengthM : kDefaultPlatformLengthM,
 						"platformLengthEdit",
@@ -198,10 +205,23 @@ public:
 	// A platform is named by its station and its id.
 	QString selectionId(const QTableWidget& table, int row) const override {
 		const QTableWidgetItem* station = table.item(row, 0);
-		const QTableWidgetItem* platform = table.item(row, 1);
+		const QTableWidgetItem* platform = table.item(row, kPlatformIdColumn);
 		if (station && platform)
 			return QString::fromStdString(platformSelectionKey(station->text().toStdString(), platform->text().toStdString()));
 		return InfrastructureFacet::selectionId(table, row);
+	}
+
+	// A platform lies on the tracks of its nodes.
+	bool rowOnTrack(const InfrastructurePanel& panel, int row, const std::string& trackId) const override {
+		const SceneModel& model = panel.model();
+		const PlatformPlace place = platformPlace(model, row);
+		if (place.station < 0)
+			return false;
+		const ScenePlatform& platform = model.stations[static_cast<std::size_t>(place.station)].platforms[static_cast<std::size_t>(place.platform)];
+		return std::any_of(platform.nodeIds.begin(), platform.nodeIds.end(), [&model, &trackId](const std::string& nodeId) {
+			return std::any_of(model.nodes.begin(), model.nodes.end(),
+				[&nodeId, &trackId](const SceneNode& node) { return node.id == nodeId && node.trackId == trackId; });
+		});
 	}
 
 	void commitCell(InfrastructurePanel& panel, int row, int column) override {
@@ -241,7 +261,7 @@ public:
 				edited.stations[targetIndex].platforms.push_back(std::move(moved));
 				sceneMovePlatformReferences(edited, platformId, sourceId, targetId);
 			});
-		} else if (column == 1) {
+		} else if (column == kPlatformIdColumn) {
 			const std::string oldId = platform.id;
 			const std::string newId = value.toStdString();
 			if (oldId == newId)
@@ -258,10 +278,18 @@ public:
 				edited.stations[stationIndex].platforms[platformIndex].id = newId;
 				sceneRewritePlatformReferences(edited, stationId, oldId, newId);
 			});
-		} else if (column == 2) {
+		} else if (column == kNodesColumn) {
 			std::vector<std::string> nodes = splitCommaList(value);
 			if (platform.nodeIds == nodes)
 				return;
+			QStringList unknown;
+			for (const std::string& nodeId : nodes)
+				if (std::none_of(model.nodes.begin(), model.nodes.end(), [&nodeId](const SceneNode& node) { return node.id == nodeId; }))
+					unknown << QString::fromStdString(nodeId);
+			if (!unknown.isEmpty()) {
+				panel.refuseEdit(missingIdsText(QStringLiteral("Node"), unknown));
+				return;
+			}
 			panel.edit(QStringLiteral("Edit platform"),
 				[&](SceneModel& edited) { edited.stations[stationIndex].platforms[platformIndex].nodeIds = std::move(nodes); });
 		}
@@ -339,7 +367,7 @@ private:
 			},
 			true, QStringLiteral("(none)"))
 			->setToolTip(QStringLiteral("Exit section, or (none)"));
-		setCell(*panel.table(), row, 2, flagText(boundary.direction));
+		setFlagCell(*panel.table(), row, 2, boundary.direction);
 	}
 	std::string rowTitle(const SceneStationBoundary& boundary) const override { return boundary.entranceBlock; }
 	Edit editField(SceneStationBoundary& boundary, int column, const QString& value) const override {

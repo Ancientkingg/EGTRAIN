@@ -236,9 +236,9 @@ private:
 				? QStringLiteral("-")
 				: countText(static_cast<long long>(route.blocks.size()), QStringLiteral("section"), QStringLiteral("sections")),
 			false);
-		setCell(table, row, 2, flagText(route.hasCorridor));
+		setFlagCell(table, row, 2, route.hasCorridor);
 		setCell(table, row, 3, QString::fromStdString(route.corridor));
-		setCell(table, row, 4, flagText(route.reversed));
+		setFlagCell(table, row, 4, route.reversed);
 	}
 	Edit editField(SceneRoute& route, int column, const QString& value) const override {
 		if (column == 2)

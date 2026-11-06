@@ -480,32 +480,31 @@ void TestBlockRouteFacets::editsRoutes() {
 	// Routes are listed with the number of their sections.
 	QCOMPARE(f.headers(), QStringList({"ID", "Sections", "Has corridor", "Corridor", "Reversed"}));
 	QCOMPARE(f.table()->rowCount(), 2);
-	QCOMPARE(f.rowTexts(0), QStringList({"route-1", "2 sections", "false", "", "false"}));
+	// Has corridor and Reversed are check boxes, which have no text.
+	QCOMPARE(f.rowTexts(0), QStringList({"route-1", "2 sections", "", "", ""}));
+	QCOMPARE(f.table()->item(0, 2)->checkState(), Qt::Unchecked);
+	QCOMPARE(f.table()->item(0, 4)->checkState(), Qt::Unchecked);
 	QVERIFY2(!f.table()->item(0, 1)->flags().testFlag(Qt::ItemIsEditable), "the number of sections cannot be edited");
 	// Listing routes edits nothing.
 	QVERIFY(f.untouched());
 	QVERIFY(!f.document.isDirty());
 
 	// edit
-	f.type(0, 2, "True");
-	// The flag of a route is edited.
+	f.table()->item(0, 2)->setCheckState(Qt::Checked);
+	// Checking the box sets the flag of the route.
 	QVERIFY(f.model().routes[0].hasCorridor);
-	QCOMPARE(f.cell(0, 2), "true");
+	QCOMPARE(f.table()->item(0, 2)->checkState(), Qt::Checked);
 	QVERIFY(f.changedOnce("Edit route"));
 	f.type(0, 3, "north");
 	// The corridor of a route is edited.
 	QCOMPARE(f.model().routes[0].corridor, "north");
 	QVERIFY(f.changedOnce("Edit route"));
-	f.type(0, 4, "true");
+	f.table()->item(0, 4)->setCheckState(Qt::Checked);
 	// The direction of a route is edited.
 	QVERIFY(f.model().routes[0].reversed);
 	QVERIFY(f.changedOnce("Edit route"));
-	f.type(0, 4, "maybe");
-	// A flag that is neither true nor false is refused and the table shows the model again.
-	QVERIFY(f.untouched());
-	QVERIFY(f.model().routes[0].reversed);
-	QCOMPARE(f.cell(0, 4), "true");
-	QVERIFY(f.messages.empty());
+	// The box takes no text.
+	QVERIFY(!f.table()->item(0, 4)->flags().testFlag(Qt::ItemIsEditable));
 	f.type(0, 1, "7 sections");
 	// The number of sections is no value of the route.
 	QVERIFY(f.untouched());

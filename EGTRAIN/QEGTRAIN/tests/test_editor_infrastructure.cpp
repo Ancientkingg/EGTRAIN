@@ -27,6 +27,8 @@
 #include <QScopeGuard>
 #include <QSplitter>
 #include <QString>
+#include <QStyle>
+#include <QStyleOptionViewItem>
 #include <QStringList>
 #include <QTableWidget>
 #include <QTest>
@@ -302,6 +304,23 @@ static QStringList choices(const QComboBox* combo) {
 
 static const Log edit({"documentChanged", "panelChanged"});
 
+// The rows that the filters of the table show.
+static std::vector<int> shownRows(const QTableWidget* table) {
+	std::vector<int> rows;
+	for (int row = 0; row < table->rowCount(); ++row)
+		if (!table->isRowHidden(row))
+			rows.push_back(row);
+	return rows;
+}
+
+// The texts in `column` of the rows that the filters of the table show.
+static QStringList shownTexts(const QTableWidget* table, int column = 0) {
+	QStringList texts;
+	for (const int row : shownRows(table))
+		texts << table->item(row, column)->text();
+	return texts;
+}
+
 static void chooseFacet(InfrastructurePanel& panel, const char* key) {
 	panel.facetCombo()->setCurrentIndex(panel.facetCombo()->findData(key));
 }
@@ -330,6 +349,12 @@ private slots:
 	void selectsCanvasItemInListedTable();
 	void canvasItemWithoutRowChangesNothing();
 	void takesOpenEditorBeforeCanvasItem();
+	void filtersRowsByText();
+	void filtersRowsByTrack();
+	void editsAndDeletesFilteredRows();
+	void clearsFiltersForAddAndInsert();
+	void showsHiddenRowOfCanvasItem();
+	void checksFlagWithOneClick();
 	void scrollsToCanvasRowInWindow();
 	void keepsWidthForEveryKind();
 };
@@ -1353,7 +1378,7 @@ void TestInfrastructurePanel::saysWhatTheCanvasMarks() {
 	QCOMPARE(f.markFor("connections", "connection.5"), "connection.5: from B0 at 9.539 km to B4 at 9.549 km");
 	QCOMPARE(f.markFor("stations", "Gourland"), "Gourland: station mark and platform node on B0 at 2.520 km");
 	QCOMPARE(f.markFor("stations", "Tregonneau_Squiffiec"), "Tregonneau_Squiffiec: station mark and 2 platform nodes on B0 and B4");
-	QCOMPARE(f.markFor("platforms", "Gourland.platform.1", 1), "Gourland.platform.1: node B0.node.41 at 2.520 km");
+	QCOMPARE(f.markFor("platforms", "Gourland.platform.1", 2), "Gourland.platform.1: node B0.node.41 at 2.520 km");
 	QCOMPARE(f.markFor("signals", "sig.36"), "sig.36: protects B0 10.510 to 10.810 km");
 	QCOMPARE(f.markFor("signalling_areas", "network-fixed-block"), "network-fixed-block: 0.000 to 38.000 km on every track");
 	QCOMPARE(f.markFor("routes", "route2"), "route2: 124 sections on B3, B0, B4, B5 and B2");
@@ -1401,7 +1426,7 @@ void TestInfrastructurePanel::toldSelectionIsComplete() {
 	const quint64 before = f.document.modelGeneration();
 	f.markFor("nodes", "B0.node.41");
 	generations.clear();
-	f.panel.table()->item(f.panel.table()->currentRow(), 2)->setText("2.53");
+	f.panel.table()->item(f.panel.table()->currentRow(), 3)->setText("2.53");
 	QVERIFY(f.document.isDirty());
 	QVERIFY(!generations.empty());
 	QCOMPARE_GT(generations.front(), before);
@@ -1484,11 +1509,11 @@ void TestInfrastructurePanel::selectsRowOfCanvasItem_data() {
 	// The first cells of the row that is selected.
 	QTest::addColumn<QStringList>("cells");
 	QTest::newRow("node") << QStringLiteral("node") << QStringLiteral("B0.node.42") << true << QStringLiteral("nodes")
-						  << QStringList{"B0.node.42", "B0"};
+						  << QStringList{"B0.node.42", "", "B0"};
 	QTest::newRow("platform node") << QStringLiteral("station-node") << QStringLiteral("B0.node.41") << true
-								   << QStringLiteral("platforms") << QStringList{"Gourland", "Gourland.platform.1"};
+								   << QStringLiteral("platforms") << QStringList{"Gourland", "Gourland", "Gourland.platform.1"};
 	QTest::newRow("station node without platform") << QStringLiteral("station-node") << QStringLiteral("B0.node.42") << false
-												   << QStringLiteral("nodes") << QStringList{"B0.node.42", "B0"};
+												   << QStringLiteral("nodes") << QStringList{"B0.node.42", "", "B0"};
 	QTest::newRow("track") << QStringLiteral("track") << QStringLiteral("B5") << false << QStringLiteral("tracks")
 						   << QStringList{"B5"};
 	QTest::newRow("arc") << QStringLiteral("arc") << QStringLiteral("B5.arc.101") << true << QStringLiteral("arcs")
@@ -1595,8 +1620,8 @@ void TestInfrastructurePanel::takesOpenEditorBeforeCanvasItem() {
 	f.panel.commitPendingEditors();
 	QTableWidget* table = f.panel.table();
 	const int row = table->currentRow();
-	table->editItem(table->item(row, 2));
-	auto* editor = qobject_cast<QLineEdit*>(table->indexWidget(table->model()->index(row, 2)));
+	table->editItem(table->item(row, 3));
+	auto* editor = qobject_cast<QLineEdit*>(table->indexWidget(table->model()->index(row, 3)));
 	if (editor == nullptr)
 		QFAIL("the cell has no editor");
 	editor->setText("2.53");
@@ -1608,6 +1633,324 @@ void TestInfrastructurePanel::takesOpenEditorBeforeCanvasItem() {
 	QCOMPARE(f.panel.facetKey(), "arcs");
 	QCOMPARE(f.panel.selectionId(), "B5.arc.101");
 	QCOMPARE(events.selections.back(), Selection("arcs", "B5.arc.101"));
+}
+
+// The filter above the table shows the rows that hold every word of it in their cells, ignoring case, and the line
+// above the table counts them. A row keeps its place, so it stays the entity at that index. The filter stays when the
+// kind changes and when the table is filled again.
+void TestInfrastructurePanel::filtersRowsByText() {
+	PaimpolPanel f;
+	chooseFacet(f.panel, "nodes");
+	const QTableWidget* table = f.panel.table();
+	QLineEdit* filter = f.panel.filterEdit();
+	const QLabel* count = f.panel.countLabel();
+	// Every node is listed and counted.
+	QVERIFY(!filter->isHidden());
+	QCOMPARE(shownRows(table).size(), std::size_t(399));
+	QVERIFY(!count->isHidden());
+	QCOMPARE(count->text(), "399 nodes");
+
+	filter->setText("NODE.1 b4");
+	// The words can be in different cells and in another case.
+	QCOMPARE(shownTexts(table), QStringList({"B4.node.1", "B4.node.10"}));
+	QCOMPARE(count->text(), "2 of 399 nodes");
+	for (const int row : shownRows(table))
+		QCOMPARE(QString::fromStdString(f.document.model().nodes[static_cast<std::size_t>(row)].id), table->item(row, 0)->text());
+	filter->setText("gourland");
+	// The name of the station of a node is one of its cells.
+	QCOMPARE(shownTexts(table), QStringList({"B0.node.41"}));
+	QCOMPARE(count->text(), "1 of 399 nodes");
+	filter->setText("nowhere");
+	// A filter that no row matches shows none, and no row is selected.
+	QVERIFY(shownRows(table).empty());
+	QCOMPARE(count->text(), "0 of 399 nodes");
+	QCOMPARE(table->currentRow(), -1);
+	filter->setText("   ");
+	// A filter without words shows every row.
+	QCOMPARE(count->text(), "399 nodes");
+
+	filter->setText("b4 node.1");
+	chooseFacet(f.panel, "arcs");
+	QStringList arcs;
+	for (const SceneArc& arc : f.document.model().arcs) {
+		const QStringList cells = {QString::fromStdString(arc.id), QString::fromStdString(arc.trackId),
+			QString::fromStdString(arc.fromNodeId), QString::fromStdString(arc.toNodeId)};
+		const auto holds = [&cells](const char* word) {
+			return std::any_of(cells.begin(), cells.end(), [word](const QString& cell) { return cell.contains(word, Qt::CaseInsensitive); });
+		};
+		if (holds("b4") && holds("node.1"))
+			arcs << cells.front();
+	}
+	// The filter stays when the kind changes, and filters the arcs.
+	QCOMPARE(filter->text(), "b4 node.1");
+	QVERIFY(!arcs.isEmpty());
+	QCOMPARE(shownTexts(table), arcs);
+	QCOMPARE(count->text(), QStringLiteral("%1 of 393 arcs").arg(arcs.size()));
+	f.panel.refresh();
+	// Filling the table again filters it again.
+	QCOMPARE(shownTexts(table), arcs);
+	chooseFacet(f.panel, "routes");
+	filter->clear();
+	// Another kind counts its rows the same way.
+	QCOMPARE(count->text(), QStringLiteral("%1 routes").arg(f.document.model().routes.size()));
+}
+
+// The track filter of nodes, arcs, connections and platforms shows the rows on the chosen track: a node on it, an arc on
+// it, a connection with an end on it, and a platform with a node on it. Blocks keep their own filter, and tracks have none.
+void TestInfrastructurePanel::filtersRowsByTrack() {
+	PaimpolPanel f;
+	const SceneModel& model = f.document.model();
+	QComboBox* tracks = f.panel.trackFilterCombo();
+	const QTableWidget* table = f.panel.table();
+	const QLabel* count = f.panel.countLabel();
+	const auto onB4 = [&model](const std::string& nodeId) {
+		return std::any_of(model.nodes.begin(), model.nodes.end(),
+			[&nodeId](const SceneNode& node) { return node.id == nodeId && node.trackId == "B4"; });
+	};
+
+	chooseFacet(f.panel, "nodes");
+	// The filter offers every track, and shows all of them at first.
+	QVERIFY(!tracks->isHidden());
+	QCOMPARE(choices(tracks), QStringList({"All tracks", "B0", "B1", "B2", "B3", "B4", "B5"}));
+	QCOMPARE(tracks->currentIndex(), 0);
+	tracks->setCurrentIndex(tracks->findData("B4"));
+	std::vector<int> nodes;
+	for (std::size_t index = 0; index < model.nodes.size(); ++index)
+		if (model.nodes[index].trackId == "B4")
+			nodes.push_back(static_cast<int>(index));
+	// The nodes on the track are shown.
+	QCOMPARE(shownRows(table), nodes);
+	QCOMPARE(count->text(), "10 of 399 nodes");
+
+	chooseFacet(f.panel, "arcs");
+	std::vector<int> arcs;
+	for (std::size_t index = 0; index < model.arcs.size(); ++index)
+		if (model.arcs[index].trackId == "B4")
+			arcs.push_back(static_cast<int>(index));
+	// The filter stays when the kind changes, and shows the arcs on the track.
+	QVERIFY(!tracks->isHidden());
+	QCOMPARE(tracks->currentData().toString(), "B4");
+	QCOMPARE(shownRows(table), arcs);
+	QCOMPARE(count->text(), "9 of 393 arcs");
+
+	chooseFacet(f.panel, "connections");
+	// A connection with one end on the track is shown.
+	QCOMPARE(shownTexts(table), QStringList({"connection.4", "connection.5"}));
+	QVERIFY(onB4(model.connections[4].fromNodeId) && !onB4(model.connections[4].toNodeId));
+	QVERIFY(!onB4(model.connections[5].fromNodeId) && onB4(model.connections[5].toNodeId));
+	QCOMPARE(count->text(), "2 of 8 connections");
+
+	chooseFacet(f.panel, "platforms");
+	// A platform with a node on the track is shown.
+	QCOMPARE(shownTexts(table, 2), QStringList({"Tregonneau_Squiffiec.platform.2"}));
+	QCOMPARE(count->text(), "1 of 15 platforms");
+
+	chooseFacet(f.panel, "tracks");
+	// Tracks have no track filter, and every track is shown.
+	QVERIFY(tracks->isHidden());
+	QCOMPARE(count->text(), "6 tracks");
+	chooseFacet(f.panel, "blocks");
+	// Blocks keep the filter of their own.
+	QVERIFY(tracks->isHidden());
+	QVERIFY(!f.panel.blockTrackFilterCombo()->isHidden());
+	QCOMPARE(shownRows(table).size(), static_cast<std::size_t>(table->rowCount()));
+
+	chooseFacet(f.panel, "nodes");
+	f.panel.filterEdit()->setText("node.1");
+	// The text filter and the track filter both apply.
+	QCOMPARE(shownTexts(table), QStringList({"B4.node.1", "B4.node.10"}));
+	tracks->setCurrentIndex(0);
+	// All tracks leaves the text filter.
+	QCOMPARE_GT(shownRows(table).size(), std::size_t(2));
+	QVERIFY(shownTexts(table).contains("B0.node.1"));
+}
+
+// In a filtered table an edit, a delete and the line under the table name the entity of the row, and undo brings a
+// deleted row back under the same filters.
+void TestInfrastructurePanel::editsAndDeletesFilteredRows() {
+	PaimpolPanel f;
+	FakePrompts prompts;
+	f.panel.setPrompts(&prompts);
+	QTableWidget* table = f.panel.table();
+	chooseFacet(f.panel, "nodes");
+	f.panel.trackFilterCombo()->setCurrentIndex(f.panel.trackFilterCombo()->findData("B4"));
+	f.panel.filterEdit()->setText("node.10");
+	QCOMPARE(shownTexts(table), QStringList({"B4.node.10"}));
+	const int nodeRow = shownRows(table).front();
+	table->setCurrentCell(nodeRow, 0);
+	// The line under the table names the node of the row.
+	QVERIFY2(f.panel.markLabel()->text().startsWith("B4.node.10: node on B4"), qPrintable(f.panel.markLabel()->text()));
+
+	Events events(f.panel, f.document);
+	table->item(nodeRow, 4)->setText("0.75");
+	const SceneNode& node = f.document.model().nodes[static_cast<std::size_t>(nodeRow)];
+	// The edit changes the node of the row, once, and the row stays shown and selected.
+	QCOMPARE(events.log, edit);
+	QCOMPARE(f.document.lastChangeLabel(), "Edit node");
+	QCOMPARE(node.id, "B4.node.10");
+	QCOMPARE_EQ(node.yKm, 0.75);
+	QCOMPARE(shownTexts(table), QStringList({"B4.node.10"}));
+	QCOMPARE(table->currentRow(), nodeRow);
+	QCOMPARE(f.panel.selectionId(), "B4.node.10");
+	f.panel.deleteButton()->click();
+	// Delete names the node of the row, which arcs use.
+	QCOMPARE(prompts.errorCount, 1);
+	QVERIFY2(prompts.errorMessage.startsWith("Node 'B4.node.10' is used by:"), qPrintable(prompts.errorMessage));
+
+	chooseFacet(f.panel, "arcs");
+	const SceneModel before = f.document.model();
+	QCOMPARE(shownRows(table).size(), std::size_t(1));
+	const int arcRow = shownRows(table).front();
+	const QString arcId = QString::fromStdString(before.arcs[static_cast<std::size_t>(arcRow)].id);
+	QVERIFY(arcRow > 0);
+	table->setCurrentCell(arcRow, 0);
+	QVERIFY2(f.panel.markLabel()->text().startsWith(arcId + ": arc on B4"), qPrintable(f.panel.markLabel()->text()));
+	prompts.confirmAnswer = true;
+	events.log.clear();
+	f.panel.deleteButton()->click();
+	const std::vector<SceneArc>& arcs = f.document.model().arcs;
+	// Delete asks about the arc of the row and deletes that one only.
+	QCOMPARE(prompts.confirmQuestion, QStringLiteral("Delete arc '%1'?").arg(arcId));
+	QCOMPARE(events.log, edit);
+	QCOMPARE(f.document.lastChangeLabel(), "Delete arc");
+	QCOMPARE(arcs.size(), before.arcs.size() - 1);
+	QCOMPARE(arcs[static_cast<std::size_t>(arcRow) - 1].id, before.arcs[static_cast<std::size_t>(arcRow) - 1].id);
+	QCOMPARE(arcs[static_cast<std::size_t>(arcRow)].id, before.arcs[static_cast<std::size_t>(arcRow) + 1].id);
+	QVERIFY(shownRows(table).empty());
+	QCOMPARE(f.panel.countLabel()->text(), "0 of 392 arcs");
+	f.document.restore(before, true);
+	f.panel.refresh();
+	// Undo brings the arc back in its row, under the same filters.
+	QCOMPARE(f.document.model().arcs.size(), before.arcs.size());
+	QCOMPARE(shownTexts(table), QStringList({arcId}));
+	QCOMPARE(shownRows(table).front(), arcRow);
+	QCOMPARE(f.panel.countLabel()->text(), "1 of 393 arcs");
+}
+
+// Add and Insert clear the filters of the kind, so that the new row is shown. Move Up and Move Down are off while a filter
+// hides a row, and the filter of blocks on a track stays.
+void TestInfrastructurePanel::clearsFiltersForAddAndInsert() {
+	PaimpolPanel f;
+	QTableWidget* table = f.panel.table();
+	QLineEdit* filter = f.panel.filterEdit();
+	QComboBox* tracks = f.panel.trackFilterCombo();
+	chooseFacet(f.panel, "nodes");
+	tracks->setCurrentIndex(tracks->findData("B4"));
+	filter->setText("node.1");
+	Events events(f.panel, f.document);
+	f.panel.addButton()->click();
+	// The node is added once, both filters are cleared, and its row is shown and selected.
+	QCOMPARE(events.log, edit);
+	QCOMPARE(f.document.lastChangeLabel(), "Add node");
+	QVERIFY(filter->text().isEmpty());
+	QCOMPARE(tracks->currentIndex(), 0);
+	QCOMPARE(f.document.model().nodes.size(), std::size_t(400));
+	QCOMPARE(table->currentRow(), 399);
+	QVERIFY(!table->isRowHidden(399));
+	QCOMPARE(f.panel.selectionId(), QString::fromStdString(f.document.model().nodes.back().id));
+	QCOMPARE(f.panel.countLabel()->text(), "400 nodes");
+
+	chooseFacet(f.panel, "blocks");
+	QComboBox* blockTracks = f.panel.blockTrackFilterCombo();
+	blockTracks->setCurrentIndex(blockTracks->findData("B0"));
+	table->setCurrentCell(2, 0);
+	// Without a filter a block can move.
+	QVERIFY(f.panel.moveBlockUpButton()->isEnabled());
+	QVERIFY(f.panel.moveBlockDownButton()->isEnabled());
+	filter->setText("3");
+	const std::vector<int> shown = shownRows(table);
+	QVERIFY(shown.size() > 2 && shown.size() < static_cast<std::size_t>(table->rowCount()));
+	table->setCurrentCell(shown[1], 0);
+	const QString selected = f.panel.selectionId();
+	// While the filter hides a row, the blocks cannot move, and the buttons say why.
+	QVERIFY(!f.panel.moveBlockUpButton()->isEnabled());
+	QVERIFY(!f.panel.moveBlockDownButton()->isEnabled());
+	QCOMPARE(f.panel.moveBlockUpButton()->toolTip(), "Clear the filter to move a row.");
+	events.log.clear();
+	f.panel.moveEntity(-1);
+	QVERIFY(events.log.empty());
+	QCOMPARE(f.panel.selectionId(), selected);
+	f.panel.insertBlockButton()->click();
+	// Insert clears the text filter and keeps the track of the blocks, and its row is shown and selected.
+	QCOMPARE(events.log, edit);
+	QCOMPARE(f.document.lastChangeLabel(), "Insert block");
+	QVERIFY(filter->text().isEmpty());
+	QCOMPARE(blockTracks->currentData().toString(), "B0");
+	QCOMPARE(shownRows(table).size(), static_cast<std::size_t>(table->rowCount()));
+	QVERIFY(table->currentRow() >= 0);
+	QVERIFY(f.panel.moveBlockUpButton()->isEnabled());
+	QVERIFY(f.panel.moveBlockUpButton()->toolTip().isEmpty());
+}
+
+// A canvas item whose row a filter hides clears that filter, and only that one, and its row is selected and told once.
+void TestInfrastructurePanel::showsHiddenRowOfCanvasItem() {
+	PaimpolPanel f;
+	const QTableWidget* table = f.panel.table();
+	QLineEdit* filter = f.panel.filterEdit();
+	QComboBox* tracks = f.panel.trackFilterCombo();
+	chooseFacet(f.panel, "nodes");
+	tracks->setCurrentIndex(tracks->findData("B5"));
+	filter->setText("node.4");
+	Events events(f.panel, f.document);
+	QVERIFY(f.panel.selectCanvasItem("node", "B0.node.42"));
+	// The node is listed: the track filter that hid it shows all tracks, and the text filter, which matches it, stays.
+	QCOMPARE(tracks->currentIndex(), 0);
+	QCOMPARE(filter->text(), "node.4");
+	QCOMPARE(f.panel.selectionId(), "B0.node.42");
+	QVERIFY(!table->isRowHidden(table->currentRow()));
+	QCOMPARE(table->item(table->currentRow(), 0)->text(), "B0.node.42");
+	QCOMPARE(events.selections, std::vector<Selection>({Selection("nodes", "B0.node.42")}));
+
+	filter->setText("Gourland");
+	events.selections.clear();
+	QVERIFY(f.panel.selectCanvasItem("node", "B0.node.42"));
+	// A text filter that hides the row is cleared.
+	QVERIFY(filter->text().isEmpty());
+	QCOMPARE(f.panel.selectionId(), "B0.node.42");
+	QVERIFY(!table->isRowHidden(table->currentRow()));
+	QCOMPARE(events.selections, std::vector<Selection>({Selection("nodes", "B0.node.42")}));
+
+	chooseFacet(f.panel, "routes");
+	filter->setText("route0");
+	tracks->setCurrentIndex(tracks->findData("B5"));
+	events.selections.clear();
+	QVERIFY(f.panel.selectCanvasItem("arc", "B0.arc.100"));
+	// Another kind shows the row of the item once, without the filters that would hide it.
+	QCOMPARE(f.panel.facetKey(), "arcs");
+	QVERIFY(filter->text().isEmpty());
+	QCOMPARE(tracks->currentIndex(), 0);
+	QCOMPARE(f.panel.selectionId(), "B0.arc.100");
+	QVERIFY(!table->isRowHidden(table->currentRow()));
+	QCOMPARE(events.selections, std::vector<Selection>({Selection("arcs", "B0.arc.100")}));
+	QVERIFY(events.log.empty());
+}
+
+// One click on a check box of a flag sets the flag in one edit, and opens no editor.
+void TestInfrastructurePanel::checksFlagWithOneClick() {
+	PaimpolCanvas f;
+	f.panel.activateWindow();
+	chooseFacet(f.panel, "connections");
+	QApplication::processEvents();
+	QTableWidget* table = f.panel.table();
+	const QTableWidgetItem* box = table->item(0, 3);
+	QCOMPARE(table->horizontalHeaderItem(3)->text(), "Has speed limit");
+	QVERIFY(!f.document.model().connections[0].hasSpeedLimit);
+	QCOMPARE(box->checkState(), Qt::Unchecked);
+	QStyleOptionViewItem option;
+	option.initFrom(table->viewport());
+	option.rect = table->visualItemRect(box);
+	option.features = QStyleOptionViewItem::HasCheckIndicator;
+	option.checkState = Qt::Unchecked;
+	const QRect indicator = table->style()->subElementRect(QStyle::SE_ItemViewItemCheckIndicator, &option, table);
+	Events events(f.panel, f.document);
+	QTest::mouseClick(table->viewport(), Qt::LeftButton, Qt::NoModifier, indicator.center());
+	QApplication::processEvents();
+	// The flag is set once, the box is checked, and no editor is open.
+	QCOMPARE(events.log, edit);
+	QCOMPARE(f.document.lastChangeLabel(), "Edit connection");
+	QVERIFY(f.document.model().connections[0].hasSpeedLimit);
+	QCOMPARE(table->item(0, 3)->checkState(), Qt::Checked);
+	QVERIFY(table->indexWidget(table->model()->index(0, 3)) == nullptr);
 }
 
 // The Paimpol panel in the Infrastructure dock of a window of 1280 by 800 pixels, in the scroll area that the main window

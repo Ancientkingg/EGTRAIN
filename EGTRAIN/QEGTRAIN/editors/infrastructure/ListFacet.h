@@ -35,13 +35,14 @@ public:
 			fillRow(table, row, items[static_cast<std::size_t>(row)]);
 	}
 
-	/// Takes the trimmed text of the cell into the item. A new id must be unique in the list and not empty, and renames the
-	/// item and what refers to it; another column goes to editField().
+	/// Takes the value of the cell (cellValue()) into the item. A new id must be unique in the list and not empty, and
+	/// renames the item and what refers to it; another column goes to editField(), and a changed value that refusal()
+	/// refuses is refused with its message.
 	void commitCell(InfrastructurePanel& panel, int row, int column) override {
 		const std::vector<Item>& items = panel.model().*m_list;
 		if (row >= static_cast<int>(items.size()))
 			return;
-		const QString value = panel.table()->item(row, column)->text().trimmed();
+		const QString value = cellValue(*panel.table()->item(row, column));
 		const std::size_t index = static_cast<std::size_t>(row);
 		if (column == 0) {
 			const std::string oldId = items[index].id;
@@ -61,7 +62,10 @@ public:
 		}
 		Item edited = items[index];
 		const Edit edit = editField(edited, column, value);
-		if (edit == Edit::Changed)
+		const QString refused = edit == Edit::Changed ? refusal(panel.model(), column, value) : QString();
+		if (!refused.isEmpty())
+			panel.refuseEdit(refused);
+		else if (edit == Edit::Changed)
 			panel.edit(QStringLiteral("Edit %1").arg(m_noun), [this, index, &edited](SceneModel& model) { (model.*m_list)[index] = edited; });
 		else if (edit == Edit::Refused)
 			panel.refuseEdit();
@@ -101,8 +105,11 @@ protected:
 
 	/// Puts the cells of the entity in `row`.
 	virtual void fillRow(QTableWidget& table, int row, const Item& item) const = 0;
-	/// Takes the trimmed text of a cell other than the id into the item.
+	/// Takes the value of a cell other than the id into the item.
 	virtual Edit editField(Item& item, int column, const QString& value) const = 0;
+	/// The message that refuses the new `value` of `column`, such as an id that the model does not have; empty when the
+	/// item can take it. The default refuses nothing.
+	virtual QString refusal(const SceneModel&, int /*column*/, const QString& /*value*/) const { return {}; }
 	/// A new item with this id, as the model is now.
 	virtual Item newItem(const SceneModel& model, const std::string& id) const = 0;
 	/// The id that a new item has when no other item has it. The default is the noun.

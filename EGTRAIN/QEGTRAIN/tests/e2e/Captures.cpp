@@ -655,7 +655,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		const int track = infrastructurePanel(w)->blockTrackFilterCombo()->findData(QStringLiteral("track"));
 		infrastructurePanel(w)->blockTrackFilterCombo()->setCurrentIndex(track);
 		built = built && track >= 0 && addRows("blocks", 2) && addRows("stations", 2) && addRows("platforms", 2)
-			&& setCell(1, 0, QStringLiteral("station_2")) && setCell(0, 2, QStringLiteral("node")) && setCell(1, 2, QStringLiteral("node_3"));
+			&& setCell(1, 0, QStringLiteral("station_2")) && setCell(0, 3, QStringLiteral("node")) && setCell(1, 3, QStringLiteral("node_3"));
 		return built && selectRow(1)
 			? saveCapture(windowShot(), QStringLiteral("tutorial-minimal-platforms.png"), QStringLiteral("Minimal line"),
 				  QStringLiteral("two stations with a platform at each end node, Infrastructure on Platforms"))

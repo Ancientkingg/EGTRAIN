@@ -830,7 +830,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				auto setInfrastructureCell = [&](const char* facet, int row, int column, const QString& value) {
 					if (!chooseInfrastructureFacet(facet) || row < 0 || row >= infrastructureTable->rowCount() || !infrastructureTable->item(row, column))
 						return false;
-					infrastructureTable->item(row, column)->setText(value);
+					QTableWidgetItem* cell = infrastructureTable->item(row, column);
+					// A flag is a check box, which takes "true" or "false" as its state.
+					if (cell->data(Qt::CheckStateRole).isValid())
+						cell->setCheckState(value == QLatin1String("true") ? Qt::Checked : Qt::Unchecked);
+					else
+						cell->setText(value);
 					QApplication::processEvents();
 					return true;
 				};
@@ -846,12 +851,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				if (!setInfrastructureCell("tracks", 0, 0, "e2e-yard") || w.m_document->mutableModel().tracks.size() != 2 || w.m_document->mutableModel().tracks[0].id != "e2e-main")
 					facetFailure(facetOk, "infrastructure", "duplicate track ID was not rejected safely");
 				for (int row = 0; row < 3; ++row) {
-					if (!addInfrastructureRow("nodes") || !setInfrastructureCell("nodes", row, 0, QString("e2e-main-node-%1").arg(row)) || !setInfrastructureCell("nodes", row, 1, "e2e-main") || !setInfrastructureCell("nodes", row, 2, QString::number(row)) || !setInfrastructureCell("nodes", row, 3, QString::number(row == 1 ? 0.25 : 0.0)))
+					if (!addInfrastructureRow("nodes") || !setInfrastructureCell("nodes", row, 0, QString("e2e-main-node-%1").arg(row)) || !setInfrastructureCell("nodes", row, 2, "e2e-main") || !setInfrastructureCell("nodes", row, 3, QString::number(row)) || !setInfrastructureCell("nodes", row, 4, QString::number(row == 1 ? 0.25 : 0.0)))
 						facetFailure(facetOk, "infrastructure", "main-track node field edit did not apply");
 				}
 				for (int row = 3; row < 6; ++row) {
 					const double x = row == 4 ? 1.5 : static_cast<double>(row - 3);
-					if (!addInfrastructureRow("nodes") || !setInfrastructureCell("nodes", row, 0, QString("e2e-yard-node-%1").arg(row - 3)) || !setInfrastructureCell("nodes", row, 1, "e2e-yard") || !setInfrastructureCell("nodes", row, 2, QString::number(x)) || !setInfrastructureCell("nodes", row, 3, "1.0"))
+					if (!addInfrastructureRow("nodes") || !setInfrastructureCell("nodes", row, 0, QString("e2e-yard-node-%1").arg(row - 3)) || !setInfrastructureCell("nodes", row, 2, "e2e-yard") || !setInfrastructureCell("nodes", row, 3, QString::number(x)) || !setInfrastructureCell("nodes", row, 4, "1.0"))
 						facetFailure(facetOk, "infrastructure", "yard-track node field edit did not apply");
 				}
 				const QStringList mainNodeIds = {"e2e-main-node-0", "e2e-main-node-1", "e2e-main-node-2"};
@@ -944,7 +949,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					facetFailure(facetOk, "infrastructure", "orphan block could not be restored to a valid track");
 				if (!addInfrastructureRow("stations") || !setInfrastructureCell("stations", 0, 0, "e2e-station-a") || !setInfrastructureCell("stations", 0, 1, "E2E A") || !setInfrastructureCell("stations", 0, 2, "true") || !setInfrastructureCell("stations", 0, 3, "0.5") || !addInfrastructureRow("stations") || !setInfrastructureCell("stations", 1, 0, "e2e-station-b") || !setInfrastructureCell("stations", 1, 1, "E2E B") || !setInfrastructureCell("stations", 1, 2, "true") || !setInfrastructureCell("stations", 1, 3, "1.5"))
 					facetFailure(facetOk, "stations/signalling", "station table authoring did not apply");
-				if (!addInfrastructureRow("platforms") || !setInfrastructureCell("platforms", 0, 0, "e2e-station-a") || !setInfrastructureCell("platforms", 0, 1, "e2e-platform-a") || !setInfrastructureCell("platforms", 0, 2, mainNodeIds[0]) || !addInfrastructureRow("platforms") || !setInfrastructureCell("platforms", 1, 0, "e2e-station-b") || !setInfrastructureCell("platforms", 1, 1, "e2e-platform-b") || !setInfrastructureCell("platforms", 1, 2, yardNodeIds[2]))
+				if (!addInfrastructureRow("platforms") || !setInfrastructureCell("platforms", 0, 0, "e2e-station-a") || !setInfrastructureCell("platforms", 0, 2, "e2e-platform-a") || !setInfrastructureCell("platforms", 0, 3, mainNodeIds[0]) || !addInfrastructureRow("platforms") || !setInfrastructureCell("platforms", 1, 0, "e2e-station-b") || !setInfrastructureCell("platforms", 1, 2, "e2e-platform-b") || !setInfrastructureCell("platforms", 1, 3, yardNodeIds[2]))
 					facetFailure(facetOk, "stations/signalling", "platform table authoring or station move did not apply");
 				if (!addInfrastructureRow("signals") || !setInfrastructureCell("signals", 0, 0, "e2e-signal"))
 					facetFailure(facetOk, "stations/signalling", "signal table authoring did not apply");
@@ -1252,8 +1257,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				if (!m3TablesAuthored)
 					facetFailure(facetOk, "stations/signalling", "canonical M3 rows were not created through the table controls");
 				if (chooseInfrastructureFacet("platforms")) {
-					auto* lengthEdit = qobject_cast<QDoubleSpinBox*>(infrastructureTable->cellWidget(0, 3));
-					auto* widthEdit = qobject_cast<QDoubleSpinBox*>(infrastructureTable->cellWidget(0, 4));
+					auto* lengthEdit = qobject_cast<QDoubleSpinBox*>(infrastructureTable->cellWidget(0, 4));
+					auto* widthEdit = qobject_cast<QDoubleSpinBox*>(infrastructureTable->cellWidget(0, 5));
 					if (!lengthEdit || !widthEdit) {
 						facetFailure(facetOk, "platform geometry", "length/width editors were unavailable");
 					} else {
@@ -1418,7 +1423,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				std::size_t platformCount = 0;
 				for (const auto& station : w.m_document->mutableModel().stations)
 					platformCount += station.platforms.size();
-				refuseInfrastructureDelete("platforms", 0, 1, platformCount, "platform");
+				refuseInfrastructureDelete("platforms", 0, 2, platformCount, "platform");
 				refuseInfrastructureDelete("signals", 0, 0, sceneSignals(w.m_document->mutableModel()).size(), "signal");
 				refuseInfrastructureDelete("routes", 0, 0, w.m_document->mutableModel().routes.size(), "route");
 				expectedTracks = w.m_document->mutableModel().tracks;
@@ -4271,10 +4276,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							}
 						}
 						auto* implicitLengthEdit = implicitPlatformRow >= 0
-							? qobject_cast<QDoubleSpinBox*>(infrastructurePanel(w)->table()->cellWidget(implicitPlatformRow, 3))
+							? qobject_cast<QDoubleSpinBox*>(infrastructurePanel(w)->table()->cellWidget(implicitPlatformRow, 4))
 							: nullptr;
 						auto* implicitWidthEdit = implicitPlatformRow >= 0
-							? qobject_cast<QDoubleSpinBox*>(infrastructurePanel(w)->table()->cellWidget(implicitPlatformRow, 4))
+							? qobject_cast<QDoubleSpinBox*>(infrastructurePanel(w)->table()->cellWidget(implicitPlatformRow, 5))
 							: nullptr;
 						QLineEdit* implicitLength = spinTextEdit(implicitLengthEdit);
 						QLineEdit* implicitWidth = spinTextEdit(implicitWidthEdit);
@@ -4298,7 +4303,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 								facetFailure(facetOk, "save/reload",
 									"Save materialized an untouched compatibility platform length");
 						}
-						auto* lengthEdit = qobject_cast<QDoubleSpinBox*>(infrastructurePanel(w)->table()->cellWidget(0, 3));
+						auto* lengthEdit = qobject_cast<QDoubleSpinBox*>(infrastructurePanel(w)->table()->cellWidget(0, 4));
 						QLineEdit* pendingLength = spinTextEdit(lengthEdit);
 						if (!pendingLength) {
 							facetFailure(facetOk, "save/reload", "focused platform length editor was unavailable");
