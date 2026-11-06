@@ -249,7 +249,7 @@ Incidents, which are signal failures and train breakdowns, and entrance delays b
 
 You can also start on the network view: right-click a signal head and choose **Add signal failure**, or right-click a train after a run and choose **Add train breakdown**. The information panel of a signal or a train has the same action as a button under its fields. It adds the incident to the selected scenario as one edit, which Undo takes back, opens the tab **Incidents** with the new incident selected and puts the cursor in **Start (s)**. It is disabled while the case runs and when the item gives no target, and its tooltip says why. After a run the new incident discards the results, as any edit does, and the status bar says so.
 
-![The dock Scenarios of Paimpol on the tab Incidents of the scenario Express breakdown: new_incident, a Train breakdown with the target Guin-Paim-EXPRESS-1-1 (route route6, +10 s), Start (s) 900, End (s) ticked with 1200, and Reduced speed unticked with 40 km/h dimmed.](../images/how-to-add-an-incident.png)
+![The dock Scenarios of Paimpol on the tab Incidents of Express breakdown: new_incident, a Train breakdown of Guin-Paim-EXPRESS-1-1 (route route6, +10 s), Start (s) 900, End (s) ticked with 1200, and Reduced speed (40 km/h dimmed) and Terminate at destination unticked.](../images/how-to-add-an-incident.png)
 
 The picture shows the scenario `Express breakdown`, a duplicate of `baseline` of Paimpol, with one train breakdown of the express from 900 s to 1200 s. The [tutorial](tutorial-modify-a-case.md) adds the same incident and compares its run with `baseline`.
 
@@ -289,7 +289,7 @@ You need a run that reached its end ([Run a case](#run-a-case)). Each view opens
 | **Capacity** | The minimum headways and the cycle of a chain of trains on a stretch | A route, a stretch and the trains |
 | **Capacity by area** | The occupation of the blocks of an area by the trains | One or two block ranges and a period |
 
-![The window Train paths, headed Paimpol / baseline · route2: Guingamp (0.20 km), Brelidy-Plouec, Pontrieaux (21.58 km) and Paimpol across the top, Distance (km) along the bottom and Time (hh:mm) down from 07:10:40, and a blue and a pink line. The panel has Trains 2 of 2, listing them as Guin-Paim-ALL-STOPS-... and Guin-Paim-EXPRESS-1-1, and Export with PNG... and CSV....](../images/how-to-train-paths.png)
+![The window Train paths, headed Paimpol / baseline · route2: Guingamp (0.20 km), Brelidy-Plouec, Pontrieaux (21.58 km) and Paimpol across the top, Distance (km) along the bottom and Time (hh:mm) down from 07:10:40. The panel lists Trains 2 of 2, Guin-Paim-ALL-STOPS-1-1 with a blue line and Guin-Paim-EXPRESS-1-1 with a pink one, and Export with PNG... and CSV....](../images/how-to-train-paths.png)
 
 The picture shows **Train paths** after a run of `baseline` of Paimpol, on `route2`, the first route of the list. The line of each train runs down the window as time passes, and it is vertical where the train stands at a station. [Inspecting diagrams](diagram-navigation.md#timetable-graphs-and-train-paths) explains how to read and move such a chart, and [Results and exports](#results-and-exports) how to save it.
 
