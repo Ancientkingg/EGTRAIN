@@ -37,6 +37,7 @@
 #include <memory>
 #include <new>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -115,6 +116,7 @@ private slots:
 	void platformNumberOfId_data();
 	void platformNumberOfId();
 	void copiedBlockingTimeKeepsOwnTimes();
+	void negativeBlockingTimeIndexThrows();
 	void diagramFixtureSharesReferenceCoordinates();
 	void buildsCompleteFixture();
 	void directBlockSignalFailureStaysCompatible();
@@ -453,6 +455,31 @@ void TestOperationsBuilder::copiedBlockingTimeKeepsOwnTimes() {
 	// A copied blocking time keeps its own sight and reaction time.
 	QCOMPARE_EQ(copy.setupTime, 2.0);
 	QCOMPARE_EQ(copy.sightReacTime, 5.0);
+}
+
+// A negative index of the blocking times throws, so that the run fails with the message instead of ending the program.
+void TestOperationsBuilder::negativeBlockingTimeIndexThrows() {
+	BlockingTimeList times;
+	times[2].BlockID = "B3";
+	const BlockingTimeList& readOnly = times;
+	std::string error;
+	try {
+		error = times[-1].BlockID;
+	} catch (const std::out_of_range& thrown) {
+		error = thrown.what();
+	}
+	// The message names the index and the size of the list.
+	QCOMPARE(error, std::string("Blocking time index -1 is negative; the list has 3 entries"));
+	error.clear();
+	try {
+		error = readOnly[-4].BlockID;
+	} catch (const std::out_of_range& thrown) {
+		error = thrown.what();
+	}
+	// A read-only list throws as well.
+	QCOMPARE(error, std::string("Blocking time index -4 is negative; the list has 3 entries"));
+	// The entries stay as they were.
+	QCOMPARE(readOnly[2].BlockID, "B3");
 }
 
 static bool sameSections(const std::vector<BlockSectionInput>& actual, const std::vector<BlockSectionInput>& expected) {

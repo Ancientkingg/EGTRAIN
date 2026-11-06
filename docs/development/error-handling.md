@@ -59,7 +59,7 @@ An exception that reaches `std::terminate` leaves only the `libc++abi: terminati
 
 | Path | Where | Notes |
 | --- | --- | --- |
-| `std::abort()` | `BlockingTimeList::checkIndex` (`simulation/RollingStock.h`) on a negative index | The only deliberate abort. It logs and flushes first. |
+| `std::abort()` | the terminate handler of the window build (`app/CrashNote.cpp`) | See [Crash notes](#crash-notes). `BlockingTimeList::checkIndex` (`simulation/RollingStock.h`) throws `std::out_of_range` with the index and the size of the list on a negative index, and the run fails with that message ([What happens when one is caught](#what-happens-when-one-is-caught)). |
 | `_exit(127)` | `update/UpdateHelper.cpp`, in a forked child after `exec` fails | Correct use. |
 | `assert` | `io/third_party/pugixml.cpp` | Compiled out in release builds. |
 | `Q_ASSERT`, `qFatal`, `Q_UNREACHABLE`, `std::terminate` | none in the application code | |
