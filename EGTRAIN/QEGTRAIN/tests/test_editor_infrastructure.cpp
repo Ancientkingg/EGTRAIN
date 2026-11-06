@@ -4,17 +4,24 @@
 #include "editors/infrastructure/StationFacets.h"
 #include "editors/infrastructure/TopologyFacets.h"
 
+#include "graphics/NetworkPresenter.h"
+#include "graphics/NetworkScene.h"
 #include "scene/SectionInventory.h"
 #include "scene/SignallingLevel.h"
 
 #include "support/FakePrompts.h"
+#include "widgets/EditorLayout.h"
 
 #include <QApplication>
 #include <QComboBox>
+#include <QDockWidget>
+#include <QGraphicsItem>
+#include <QGraphicsScene>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QMainWindow>
 #include <QMouseEvent>
 #include <QPushButton>
 #include <QScopeGuard>
@@ -24,6 +31,7 @@
 #include <QTableWidget>
 #include <QTest>
 
+#include <algorithm>
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -317,6 +325,13 @@ private slots:
 	void saysWhatTheCanvasMarks();
 	void toldSelectionIsComplete();
 	void namesNoMarkWithoutPreview();
+	void selectsRowOfCanvasItem_data();
+	void selectsRowOfCanvasItem();
+	void selectsCanvasItemInListedTable();
+	void canvasItemWithoutRowChangesNothing();
+	void takesOpenEditorBeforeCanvasItem();
+	void scrollsToCanvasRowInWindow();
+	void keepsWidthForEveryKind();
 };
 
 // The facets, the combo and a panel without a scene.
@@ -1290,24 +1305,27 @@ void TestInfrastructurePanel::leavesOpenEditorDuringOwnEdit() {
 	QVERIFY(table->indexWidget(table->model()->index(0, 0)) == nullptr);
 }
 
-// A panel with the facets of the window on the committed scene Paimpol, with a signal, a block dependency and a station
-// boundary added, which Paimpol does not have.
+// Gives the panel the facets of the window and the document the committed scene Paimpol, with a signal, a block
+// dependency and a station boundary added, which Paimpol does not have.
+static void openPaimpol(InfrastructurePanel& panel, SceneDocument& document) {
+	for (auto* makeFacets : {&makeTopologyFacets, &makeBlockRouteFacets, &makeStationFacets, &makeSignalFacets})
+		for (std::unique_ptr<InfrastructureFacet>& facet : (*makeFacets)())
+			panel.setFacet(std::move(facet));
+	SceneModel scene = loadScene(QFINDTESTDATA("../Scenes/Paimpol").toStdString()).scene;
+	sceneSignals(scene).push_back({"sig.36", "36-B0"});
+	scene.blockDependencies.push_back({"36-B0", "38-B0"});
+	scene.stationBoundaries.push_back({"40-B0", true, "42-B0", false});
+	document.replace(std::move(scene), false);
+	panel.setDocument(&document);
+	panel.refresh();
+}
+
+// A panel with the facets of the window on Paimpol (openPaimpol).
 struct PaimpolPanel {
 	SceneDocument document;
 	InfrastructurePanel panel;
 
-	PaimpolPanel() {
-		for (auto* makeFacets : {&makeTopologyFacets, &makeBlockRouteFacets, &makeStationFacets, &makeSignalFacets})
-			for (std::unique_ptr<InfrastructureFacet>& facet : (*makeFacets)())
-				panel.setFacet(std::move(facet));
-		SceneModel scene = loadScene(QFINDTESTDATA("../Scenes/Paimpol").toStdString()).scene;
-		sceneSignals(scene).push_back({"sig.36", "36-B0"});
-		scene.blockDependencies.push_back({"36-B0", "38-B0"});
-		scene.stationBoundaries.push_back({"40-B0", true, "42-B0", false});
-		document.replace(std::move(scene), false);
-		panel.setDocument(&document);
-		panel.refresh();
-	}
+	PaimpolPanel() { openPaimpol(panel, document); }
 
 	// Selects the row of `facet` whose cell in `column` reads `text`, or the row with that number for `column` -1, and
 	// returns the line under the table; empty while it is hidden.
@@ -1411,6 +1429,259 @@ void TestInfrastructurePanel::namesNoMarkWithoutPreview() {
 	f.panel.setMarkShown(true);
 	QCOMPARE(f.panel.markLabel()->text(), "B0.node.42: node on B0 at 2.581 km");
 	QVERIFY(!f.panel.markLabel()->isHidden());
+}
+
+// The Paimpol panel, shown, with the track preview of its document drawn on a scene as the network view of the window draws
+// it.
+struct PaimpolCanvas : PaimpolPanel {
+	QGraphicsScene scene;
+	NetworkPresenter presenter{&scene, nullptr};
+
+	PaimpolCanvas() {
+		presenter.showPreview(document.model());
+		panel.resize(700, 400);
+		panel.show();
+		QApplication::processEvents();
+	}
+	PaimpolCanvas(const PaimpolCanvas&) = delete;
+	PaimpolCanvas& operator=(const PaimpolCanvas&) = delete;
+	~PaimpolCanvas() { panel.hide(); }
+
+	// The item of the preview with this kind and id, or null.
+	QGraphicsItem* item(const QString& kind, const QString& id) const {
+		for (QGraphicsItem* candidate : scene.items())
+			if (candidate->data(PreviewGraphics::Kind).toString() == kind && candidate->data(PreviewGraphics::Id).toString() == id)
+				return candidate;
+		return nullptr;
+	}
+	// Selects the row of the item as the window does for a click on it.
+	bool click(const QGraphicsItem& clicked) {
+		return panel.selectCanvasItem(clicked.data(PreviewGraphics::Kind).toString(), clicked.data(PreviewGraphics::Id).toString(),
+			clicked.data(PreviewGraphics::PlatformId).toString());
+	}
+	// The texts of the first cells of the selected row, as many as `count`.
+	QStringList selectedCells(qsizetype count) const {
+		QStringList cells;
+		const QTableWidget* table = panel.table();
+		for (int column = 0; column < count && table->currentRow() >= 0; ++column)
+			cells << (table->item(table->currentRow(), column) ? table->item(table->currentRow(), column)->text() : QString());
+		return cells;
+	}
+	// The selected row is in the visible part of the table.
+	bool selectionInView() const {
+		const QTableWidget* table = panel.table();
+		const QTableWidgetItem* cell = table->currentRow() < 0 ? nullptr : table->item(table->currentRow(), 0);
+		return cell && table->viewport()->rect().intersects(table->visualItemRect(cell));
+	}
+};
+
+void TestInfrastructurePanel::selectsRowOfCanvasItem_data() {
+	QTest::addColumn<QString>("kind");
+	QTest::addColumn<QString>("id");
+	// Whether the preview of Paimpol draws the item. A drawn item gives its own platform.
+	QTest::addColumn<bool>("drawn");
+	QTest::addColumn<QString>("facet");
+	// The first cells of the row that is selected.
+	QTest::addColumn<QStringList>("cells");
+	QTest::newRow("node") << QStringLiteral("node") << QStringLiteral("B0.node.42") << true << QStringLiteral("nodes")
+						  << QStringList{"B0.node.42", "B0"};
+	QTest::newRow("platform node") << QStringLiteral("station-node") << QStringLiteral("B0.node.41") << true
+								   << QStringLiteral("platforms") << QStringList{"Gourland", "Gourland.platform.1"};
+	QTest::newRow("station node without platform") << QStringLiteral("station-node") << QStringLiteral("B0.node.42") << false
+												   << QStringLiteral("nodes") << QStringList{"B0.node.42", "B0"};
+	QTest::newRow("track") << QStringLiteral("track") << QStringLiteral("B5") << false << QStringLiteral("tracks")
+						   << QStringList{"B5"};
+	QTest::newRow("arc") << QStringLiteral("arc") << QStringLiteral("B5.arc.101") << true << QStringLiteral("arcs")
+						 << QStringList{"B5.arc.101", "B5"};
+	QTest::newRow("connection") << QStringLiteral("connection") << QStringLiteral("connection.5") << true
+								<< QStringLiteral("connections") << QStringList{"connection.5", "B0.node.101", "B4.node.3"};
+	QTest::newRow("station") << QStringLiteral("station") << QStringLiteral("Frynaudour") << true << QStringLiteral("stations")
+							 << QStringList{"Frynaudour"};
+	QTest::newRow("signal head") << QStringLiteral("signal") << QStringLiteral("@2-B4@") << true << QStringLiteral("blocks")
+								 << QStringList{"2-B4", "B4"};
+}
+
+// An item of the preview of Paimpol selects its row: the combo shows its kind, the row is selected and in view, and the
+// selection is told once. A signal head names the section of a block, whose track the filter of the blocks then shows.
+void TestInfrastructurePanel::selectsRowOfCanvasItem() {
+	QFETCH(QString, kind);
+	QFETCH(QString, id);
+	QFETCH(bool, drawn);
+	QFETCH(QString, facet);
+	QFETCH(QStringList, cells);
+	PaimpolCanvas f;
+	// Another kind is listed, with a row selected.
+	f.markFor("routes", "route2");
+	QGraphicsItem* clicked = drawn ? f.item(kind, id) : nullptr;
+	if (drawn && clicked == nullptr)
+		QFAIL("the preview of Paimpol does not draw the item");
+	Events events(f.panel, f.document);
+	QVERIFY(clicked ? f.click(*clicked) : f.panel.selectCanvasItem(kind, id));
+	QCOMPARE(f.panel.facetKey(), facet);
+	QCOMPARE(f.panel.facetCombo()->currentData().toString(), facet);
+	QCOMPARE(f.selectedCells(cells.size()), cells);
+	QCOMPARE(events.selections, std::vector<Selection>({Selection(facet, f.panel.selectionId())}));
+	QVERIFY2(f.selectionInView(), "the row is in view");
+	QVERIFY2(f.panel.table()->indexWidget(f.panel.table()->currentIndex()) == nullptr, "no cell editor opens");
+	QVERIFY(events.log.empty());
+	QVERIFY(!f.document.isDirty());
+	if (facet == QLatin1String("blocks"))
+		QCOMPARE(f.panel.blockTrackFilterCombo()->currentData().toString(), cells.value(1));
+}
+
+// While the table lists the row already, selecting it scrolls to it and tells the selection once, and selecting it again
+// tells nothing.
+void TestInfrastructurePanel::selectsCanvasItemInListedTable() {
+	PaimpolCanvas f;
+	f.markFor("nodes", "B0.node.1");
+	Events events(f.panel, f.document);
+	QVERIFY(f.panel.selectCanvasItem("node", "B0.node.300"));
+	QCOMPARE(f.selectedCells(1), QStringList{"B0.node.300"});
+	QCOMPARE(events.selections, std::vector<Selection>({Selection("nodes", "B0.node.300")}));
+	QVERIFY2(f.selectionInView(), "the table scrolls to the row");
+	QVERIFY2(f.panel.table()->indexWidget(f.panel.table()->currentIndex()) == nullptr, "no cell editor opens");
+	events.selections.clear();
+	QVERIFY(f.panel.selectCanvasItem("node", "B0.node.300"));
+	QVERIFY2(events.selections.empty(), "a row that is selected already is not told again");
+
+	// A block on the track of the filter is selected in the listed table.
+	f.panel.blockTrackFilterCombo()->setCurrentIndex(f.panel.blockTrackFilterCombo()->findData("B0"));
+	f.markFor("blocks", "0-B0");
+	events.selections.clear();
+	QVERIFY(f.panel.selectCanvasItem("signal", "@36-B0@"));
+	QCOMPARE(f.selectedCells(2), QStringList({"36-B0", "B0"}));
+	QCOMPARE(events.selections, std::vector<Selection>({Selection("blocks", "36-B0")}));
+}
+
+// An item without a row changes nothing and tells nothing: an id that the scene does not have, a kind without rows and a
+// switch section, which no block has. Nor does any item while the scene cannot be edited, as during a run.
+void TestInfrastructurePanel::canvasItemWithoutRowChangesNothing() {
+	PaimpolCanvas f;
+	f.markFor("nodes", "B0.node.41");
+	const SceneSectionInventory inventory = buildSceneSectionInventory(f.document.model());
+	const auto switchSection = std::find_if(inventory.sections.begin(), inventory.sections.end(),
+		[](const SceneSectionDescriptor& section) { return section.connectionDerived; });
+	if (switchSection == inventory.sections.end())
+		QFAIL("Paimpol has no switch section");
+	Events events(f.panel, f.document);
+	const std::vector<std::pair<QString, QString>> withoutRow = {{"node", "no-such-node"}, {"arc", "B0.node.42"},
+		{"train", "B0.node.42"}, {"station-node", "no-such-node"}, {"signal", QString::fromStdString(switchSection->id)},
+		{"signal", "no-such-section"}};
+	for (const auto& [kind, id] : withoutRow) {
+		QVERIFY2(!f.panel.selectCanvasItem(kind, id, "Gourland.platform.1"), qPrintable(kind + " " + id));
+		QCOMPARE(f.panel.facetKey(), "nodes");
+		QCOMPARE(f.panel.selectionId(), "B0.node.41");
+	}
+	QVERIFY(events.selections.empty());
+
+	f.document.setEditable(false);
+	f.panel.refresh();
+	events.selections.clear();
+	QVERIFY(!f.panel.selectCanvasItem("arc", "B5.arc.101"));
+	QVERIFY(!f.panel.selectCanvasItem("node", "B0.node.42"));
+	QCOMPARE(f.panel.facetKey(), "nodes");
+	QCOMPARE(f.panel.selectionId(), "B0.node.41");
+	QVERIFY(events.selections.empty());
+	QVERIFY(events.log.empty());
+}
+
+// The text of a cell that is still being edited is taken into the model before the row of the item is selected, as
+// choosing another row takes it.
+void TestInfrastructurePanel::takesOpenEditorBeforeCanvasItem() {
+	PaimpolCanvas f;
+	f.panel.activateWindow();
+	f.markFor("nodes", "B0.node.41");
+	// Choosing the row opened an editor on its id, which is taken unchanged.
+	f.panel.commitPendingEditors();
+	QTableWidget* table = f.panel.table();
+	const int row = table->currentRow();
+	table->editItem(table->item(row, 2));
+	auto* editor = qobject_cast<QLineEdit*>(table->indexWidget(table->model()->index(row, 2)));
+	if (editor == nullptr)
+		QFAIL("the cell has no editor");
+	editor->setText("2.53");
+	Events events(f.panel, f.document);
+	QVERIFY(f.panel.selectCanvasItem("arc", "B5.arc.101"));
+	QCOMPARE(f.document.model().nodes[40].id, "B0.node.41");
+	QCOMPARE(f.document.model().nodes[40].xKm, 2.53);
+	QCOMPARE(f.document.lastChangeLabel(), "Edit node");
+	QCOMPARE(f.panel.facetKey(), "arcs");
+	QCOMPARE(f.panel.selectionId(), "B5.arc.101");
+	QCOMPARE(events.selections.back(), Selection("arcs", "B5.arc.101"));
+}
+
+// The Paimpol panel in the Infrastructure dock of a window of 1280 by 800 pixels, in the scroll area that the main window
+// puts it in. Above it is a dock as high as the Details dock of the main window, hidden, which a click on the canvas
+// shows before the panel selects the row of the item.
+struct PaimpolWindow {
+	SceneDocument document;
+	QMainWindow window;
+	QDockWidget* details = new QDockWidget("Details", &window);
+	QDockWidget* dock = new QDockWidget("Infrastructure", &window);
+	InfrastructurePanel* panel = new InfrastructurePanel;
+
+	PaimpolWindow() {
+		auto* form = new QWidget(details);
+		form->setMinimumHeight(340);
+		details->setWidget(form);
+		window.addDockWidget(Qt::RightDockWidgetArea, details);
+		details->hide();
+		auto* scroll = new EditorLayout::DockScrollArea(dock);
+		scroll->setWidgetResizable(true);
+		scroll->setWidget(panel);
+		dock->setWidget(scroll);
+		window.addDockWidget(Qt::RightDockWidgetArea, dock);
+		window.setCentralWidget(new QWidget(&window));
+		openPaimpol(*panel, document);
+		window.resize(1280, 800);
+		window.show();
+		settle();
+	}
+	PaimpolWindow(const PaimpolWindow&) = delete;
+	PaimpolWindow& operator=(const PaimpolWindow&) = delete;
+
+	// Runs the events that lay out the window, which Qt passes on one level of widgets at a time.
+	static void settle() {
+		for (int pass = 0; pass < 8; ++pass)
+			QApplication::processEvents();
+	}
+};
+
+// In the window a click on the canvas shows the Details dock above the Infrastructure dock, which makes the table lower,
+// and then selects the row of the item. The row of a platform near the end of the list is in view once the window is
+// laid out.
+void TestInfrastructurePanel::scrollsToCanvasRowInWindow() {
+	PaimpolWindow f;
+	// The window shows the line under the table, and blocks are listed, with controls that platforms do not have.
+	f.panel->setMarkShown(true);
+	chooseFacet(*f.panel, "blocks");
+	PaimpolWindow::settle();
+	const int fullHeight = f.panel->table()->viewport()->height();
+	f.details->show();
+	QVERIFY(f.panel->selectCanvasItem("station-node", "B0.node.350", "Paimpol.platform.1"));
+	PaimpolWindow::settle();
+	const QTableWidget* table = f.panel->table();
+	QCOMPARE(f.panel->selectionId(), "Paimpol\nPaimpol.platform.1");
+	QCOMPARE(table->currentRow(), 13);
+	QCOMPARE(table->rowCount(), 15);
+	QVERIFY2(table->viewport()->height() < std::min(fullHeight, table->rowHeight(0) * 10), "the table is lower and shows a part of its rows");
+	const QRect row = table->visualItemRect(table->item(13, 0));
+	QVERIFY2(table->viewport()->rect().contains(row),
+		qPrintable(QStringLiteral("row at %1 to %2 of a viewport %3 high").arg(row.top()).arg(row.bottom()).arg(table->viewport()->height())));
+}
+
+// The panel needs the same width for every kind, so that the dock keeps its width when the kind changes.
+void TestInfrastructurePanel::keepsWidthForEveryKind() {
+	PaimpolWindow f;
+	std::vector<std::pair<QString, int>> widths;
+	for (const QString& key : InfrastructurePanel::facetKeys()) {
+		f.panel->facetCombo()->setCurrentIndex(f.panel->facetCombo()->findData(key));
+		PaimpolWindow::settle();
+		widths.emplace_back(key, f.panel->minimumSizeHint().width());
+	}
+	QCOMPARE(widths.size(), std::size_t(13));
+	for (const auto& [key, width] : widths)
+		QVERIFY2(width == widths.front().second, qPrintable(QStringLiteral("%1 is %2 wide, tracks %3").arg(key).arg(width).arg(widths.front().second)));
 }
 
 QTEST_MAIN(TestInfrastructurePanel)

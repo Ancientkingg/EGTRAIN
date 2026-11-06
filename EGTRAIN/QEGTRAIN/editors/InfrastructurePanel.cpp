@@ -13,6 +13,7 @@
 #include <QPushButton>
 #include <QScopedValueRollback>
 #include <QSignalBlocker>
+#include <QSizePolicy>
 #include <QSplitter>
 #include <QStyledItemDelegate>
 #include <QVBoxLayout>
@@ -298,6 +299,43 @@ QString markText(const SceneModel& scene, const QString& facet, const QString& i
 	return {};
 }
 
+// The row that an item of the track preview stands for (see InfrastructurePanel::selectCanvasItem): the key of its facet
+// and its selection id, and for a block the track that the filter shows. The facet is empty for an item without a row.
+struct CanvasRow {
+	QString facet;
+	QString id;
+	QString track;
+};
+
+CanvasRow canvasRow(const SceneModel& scene, const QString& kind, const QString& id, const QString& platform) {
+	const std::string key = id.toStdString();
+	if (kind == QLatin1String("station-node") && !platform.isEmpty()) {
+		const std::string platformId = platform.toStdString();
+		for (const SceneStation& station : scene.stations)
+			for (const ScenePlatform& candidate : station.platforms)
+				if (candidate.id == platformId
+					&& std::find(candidate.nodeIds.begin(), candidate.nodeIds.end(), key) != candidate.nodeIds.end())
+					return {QStringLiteral("platforms"), QString::fromStdString(station.id) + QLatin1Char('\n') + platform, {}};
+	}
+	if ((kind == QLatin1String("node") || kind == QLatin1String("station-node")) && withId(scene.nodes, key))
+		return {QStringLiteral("nodes"), id, {}};
+	if (kind == QLatin1String("track") && withId(scene.tracks, key))
+		return {QStringLiteral("tracks"), id, {}};
+	if (kind == QLatin1String("arc") && withId(scene.arcs, key))
+		return {QStringLiteral("arcs"), id, {}};
+	if (kind == QLatin1String("connection") && withId(scene.connections, key))
+		return {QStringLiteral("connections"), id, {}};
+	if (kind == QLatin1String("station") && withId(scene.stations, key))
+		return {QStringLiteral("stations"), id, {}};
+	if (kind == QLatin1String("signal")) {
+		const SceneSectionInventory inventory = buildSceneSectionInventory(scene);
+		const SceneSectionDescriptor* section = inventory.resolve(key);
+		if (const SceneBlock* block = section ? withId(scene.blocks, section->sourceBlockId) : nullptr)
+			return {QStringLiteral("blocks"), QString::fromStdString(block->id), QString::fromStdString(block->trackId)};
+	}
+	return {};
+}
+
 } // namespace
 
 /// The delegate of the table. It knows the editor that it has open on a cell. The widgets that facets put in cells with
@@ -407,6 +445,13 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	actions->addWidget(m_moveBlockDownButton);
 	actions->addStretch();
 	tableLayout->addLayout(actions);
+	// The buttons of blocks keep their room while another kind hides them. They make the widest controls of any kind, so
+	// the panel is as wide for every kind, and the dock and the canvas beside it keep their width when the kind changes.
+	for (QPushButton* button : {m_insertBlockButton, m_moveBlockUpButton, m_moveBlockDownButton}) {
+		QSizePolicy policy = button->sizePolicy();
+		policy.setRetainSizeWhenHidden(true);
+		button->setSizePolicy(policy);
+	}
 
 	m_routeSectionDetailWidget = new QWidget(splitter);
 	m_routeSectionDetailWidget->setObjectName("routeSectionDetailWidget");
@@ -646,6 +691,50 @@ void InfrastructurePanel::updateSelection() {
 	refreshRouteSectionPanel();
 	refreshMarkLabel();
 	emit selectionChanged(key, m_selectionId);
+}
+
+bool InfrastructurePanel::selectCanvasItem(const QString& kind, const QString& id, const QString& platform) {
+	if (!canEdit() || canvasRow(model(), kind, id, platform).facet.isEmpty())
+		return false;
+	commitPendingEditors();
+	// Taking the cells is an edit when their text changed, and the edit can rename or remove the entity.
+	const CanvasRow target = canvasRow(model(), kind, id, platform);
+	InfrastructureFacet* targetFacet = facet(target.facet);
+	if (!canEdit() || !targetFacet)
+		return false;
+	bool listed = facetKey() == target.facet;
+	if (!listed) {
+		const QSignalBlocker blocker(m_facetCombo);
+		m_facetCombo->setCurrentIndex(m_facetCombo->findData(target.facet));
+	}
+	if (targetFacet->capabilities().testFlag(InfrastructureFacet::TrackFilter)) {
+		// The filter shows the track of the block, so that the table lists its row.
+		refreshBlockTrackFilter();
+		const int track = m_blockTrackFilterCombo->findData(target.track);
+		listed = listed && track == m_blockTrackFilterCombo->currentIndex();
+		const QSignalBlocker blocker(m_blockTrackFilterCombo);
+		m_blockTrackFilterCombo->setCurrentIndex(track);
+	}
+	if (listed) {
+		// Choosing a row of the table tells selectionChanged, as a click on the row does, and opens no editor on it.
+		for (int row = 0; row < m_table->rowCount(); ++row) {
+			if (targetFacet->selectionId(*m_table, row) != target.id)
+				continue;
+			m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+			m_table->setCurrentCell(row, std::max(m_table->currentColumn(), 0));
+			m_table->setEditTriggers(QAbstractItemView::AllEditTriggers);
+			break;
+		}
+	} else {
+		// Filling the table again finds the row of the selection and tells selectionChanged once.
+		m_selectionId = target.id;
+		refreshTable();
+	}
+	const int row = m_table->currentRow();
+	if (row < 0 || m_selectionId != target.id)
+		return false;
+	m_table->scrollTo(m_table->model()->index(row, 0));
+	return true;
 }
 
 int InfrastructurePanel::selectedRouteSection() const {

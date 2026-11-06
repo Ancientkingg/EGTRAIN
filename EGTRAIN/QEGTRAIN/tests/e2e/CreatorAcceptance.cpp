@@ -3292,9 +3292,10 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	const SceneModel saved = w.m_document->mutableModel();
 	const bool savedDirty = w.m_document->isDirty();
 	const quint64 initialRevision = w.m_document->revision();
-	const QString editorSelection = infrastructurePanel(w)->selectionId();
-	// Event-driven checks on the actual public-Open result (nonnumeric IDs).
-	for (const auto& line : w.m_presenter->trackPreview().lines) {
+	// Event-driven checks on the actual public-Open result (nonnumeric IDs). The first click draws the preview again,
+	// as the model has changed since it was drawn, so the lines are a copy.
+	const auto lines = w.m_presenter->trackPreview().lines;
+	for (const auto& line : lines) {
 		for (const auto& point : line.points) {
 			auto* item = find("node", QString::fromStdString(point.nodeId));
 			if (!item) item = find("station-node", QString::fromStdString(point.nodeId));
@@ -3339,8 +3340,11 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	if (!require(w.m_inspector->dock()->windowTitle().contains("creator-switch")
 				&& w.m_inspector->m_connectionXFirstNodeText->text().toDouble() == 1000,
 			"connection event canonical fields")) return false;
+	// The clicks select the rows of their items in the Infrastructure panel, the last one that of the connection, and
+	// change nothing else.
 	if (!require(w.m_document->revision() == initialRevision && w.m_document->isDirty() == savedDirty
-				&& infrastructurePanel(w)->selectionId() == editorSelection && !w.m_runController->m_worker && PresenterAccess::allArcs(*w.m_presenter).isEmpty()
+				&& infrastructurePanel(w)->facetKey() == "connections" && infrastructurePanel(w)->selectionId() == "creator-switch"
+				&& !w.m_runController->m_worker && PresenterAccess::allArcs(*w.m_presenter).isEmpty()
 				&& w.m_presenter->runSignals().isEmpty() && PresenterAccess::allPlatforms(*w.m_presenter).isEmpty(),
 			"inspection mutated Open state")) return false;
 

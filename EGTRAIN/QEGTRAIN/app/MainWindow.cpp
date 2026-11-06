@@ -792,6 +792,8 @@ void MainWindow::setupFileMenu() {
 void MainWindow::connectSceneToInspector() {
 	// connect scene signals
 	connect(scene, &NetworkScene::MousePressedOnPreview, m_inspector, &InspectorPanel::displayPreviewInfo);
+	// The Infrastructure panel selects the row of the item after the inspector has shown it.
+	connect(scene, &NetworkScene::MousePressedOnPreview, this, [this](QGraphicsItem* item) { selectInfrastructureRow(item, false); });
 	connect(scene, &NetworkScene::MousePressedOnNode, m_inspector, &InspectorPanel::displayNodeInfo);
 	connect(scene, &NetworkScene::MousePressedOnStationNode, m_inspector, &InspectorPanel::displayStationNodeInfo);
 	connect(scene, &NetworkScene::MousePressedOnArc, m_inspector, &InspectorPanel::displayArcInfo);
@@ -2146,14 +2148,8 @@ void MainWindow::stepSceneHistory(bool redo) {
 	if (!(redo ? m_history->canRedo() : m_history->canUndo()))
 		return;
 	const QString label = QString::fromStdString(redo ? m_history->redoLabel() : m_history->undoLabel());
-	// The preview of the restored scene is drawn again at Fit, and the view returns to the zoom and the centre that it had,
-	// as after an edit. The centre is the middle of the pixel at the centre, which centerOn puts back on that pixel.
-	const qreal zoom = networkView->zoomRatio();
-	const QPointF centre = networkView->viewportTransform().inverted().map(
-		QPointF(networkView->viewport()->width() + 1, networkView->viewport()->height() + 1) / 2.0);
-	restoreSceneFromHistory(*(redo ? m_history->redo() : m_history->undo()));
-	networkView->zoomBy(zoom / networkView->zoomRatio());
-	networkView->centerOn(centre);
+	// The preview of the restored scene is drawn again, and the view keeps its zoom and centre, as after an edit.
+	drawKeepingView([this, redo] { restoreSceneFromHistory(*(redo ? m_history->redo() : m_history->undo())); });
 	statusBar()->showMessage(QString("%1 %2").arg(redo ? "Redid" : "Undid", label), 8000);
 }
 
@@ -2262,7 +2258,53 @@ void MainWindow::infrastructureSelectionChanged() {
 		updateNetworkLegend();
 		return;
 	}
+	// The row of an item on the canvas keeps the preview: drawing it again would fit the view and empty the Details dock.
+	// selectInfrastructureRow draws it again when the model has changed since it was drawn.
+	if (m_selectingRowFromCanvas) {
+		m_canvasRowUnmarked = true;
+		return;
+	}
 	renderTrackPreview(m_document->model());
+}
+
+void MainWindow::selectInfrastructureRow(QGraphicsItem* item, bool reveal) {
+	QDockWidget* dock = m_editorDocks.infrastructureDock();
+	if (!item || !m_showingTrackPreview || m_snapshot || !dock || !dock->isEnabled())
+		return;
+	const QString kind = item->data(PreviewGraphics::Kind).toString();
+	const QString id = item->data(PreviewGraphics::Id).toString();
+	const QString platform = item->data(PreviewGraphics::PlatformId).toString();
+	const QString track = item->data(PreviewGraphics::TrackId).toString();
+	const bool reversed = item->data(PreviewGraphics::Reversed).toBool();
+	const bool inDetails = m_inspector->previewSelectionKind() == kind && m_inspector->previewSelectionId() == id;
+	InfrastructurePanel* panel = m_editorDocks.infrastructurePanel();
+	// A cell that is still being edited is taken first, as an edit that draws the preview again; item can be gone after it.
+	panel->commitPendingEditors();
+	const QScopedValueRollback<bool> fromCanvas(m_selectingRowFromCanvas, true);
+	m_canvasRowUnmarked = false;
+	if (!panel->selectCanvasItem(kind, id, platform)) {
+		// Edit in Infrastructure says when the item has no row, as for an entity that the model no longer has.
+		if (reveal)
+			statusBar()->showMessage(QStringLiteral("%1 has no row in Infrastructure").arg(id), 8000);
+		return;
+	}
+	if (m_canvasRowUnmarked) {
+		// The model has changed since the preview was drawn, as an edit in another dock changes it, and only a new preview
+		// marks the row. Drawing it empties the Details dock, which shows the item again.
+		drawKeepingView([this] { renderTrackPreview(m_document->model()); });
+		if (inDetails)
+			m_inspector->displayPreviewInfo(m_inspector->resolvePreviewItem(kind, id, track, reversed, m_document->revision()));
+	}
+	if (reveal)
+		revealEditorDock(dock);
+}
+
+void MainWindow::drawKeepingView(const std::function<void()>& draw) {
+	const qreal zoom = networkView->zoomRatio();
+	const QPointF centre = networkView->mapToScene(networkView->viewport()->rect().center());
+	draw();
+	networkView->zoomBy(zoom / networkView->zoomRatio());
+	networkView->centerOnExactly(centre);
 }
 
 void MainWindow::updateTrainUnitSourceStatus() {
@@ -2893,8 +2935,6 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 	};
 	if (item && item->data(PreviewGraphics::Kind).isValid()) {
 		const QString kind = item->data(PreviewGraphics::Kind).toString();
-		if (kind == "node" || kind == "connection")
-			return; // No new node/connection menus.
 		const QString id = item->data(PreviewGraphics::Id).toString();
 		const QString track = item->data(PreviewGraphics::TrackId).toString();
 		const bool reversed = item->data(PreviewGraphics::Reversed).toBool();
@@ -2916,6 +2956,12 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 			const IncidentTarget target = previewIncidentTarget(kind, id, &why);
 			addIncidentEntry(menu, "signal", target, why);
 		}
+		QAction* edit = menu->addAction("Edit in Infrastructure");
+		edit->setEnabled(m_editorDocks.infrastructureDock()->isEnabled());
+		connect(edit, &QAction::triggered, this, [this, resolve]() {
+			if (auto* current = resolve())
+				selectInfrastructureRow(current, true);
+		});
 		connect(menu->addAction("Center in view"), &QAction::triggered, this, [this, resolve]() {
 			if (auto* current = resolve()) centerSceneItem(current);
 		});
