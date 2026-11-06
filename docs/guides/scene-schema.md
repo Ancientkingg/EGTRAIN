@@ -990,7 +990,8 @@ and `station` of an entrance delay, the `origin` and `destination` of a
 passenger journey, and the `origin`, `destination` and `service` of a leg. A
 missing key is still an error. Semantic validation reports the empty reference
 as `scene.ref.unresolved` with the entry named, such as `Service new_service
-has no composition`, so the case cannot run until the reference is chosen.
+has no composition`, so the case cannot run, and `scene_tool export` writes no
+legacy files for it, until the reference is chosen.
 
 The editor and simulator use canonical data directly. `legacy/` is not a V1
 scene requirement; import and export are explicit interoperability actions.

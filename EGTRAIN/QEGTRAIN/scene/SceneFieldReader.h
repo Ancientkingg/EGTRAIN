@@ -50,8 +50,8 @@ class SceneFieldReader {
 public:
 	/// Whether stringField takes an empty string as the value of a required key. An optional key may always be empty.
 	enum class Empty {
-		Invalid, ///< An empty string is invalid, as for an id or a reference.
-		Allowed, ///< An empty string is a value, as for a display name.
+		Invalid, ///< An empty string is invalid, as for an id.
+		Allowed, ///< An empty string is a value, as for a display name or a reference that is not chosen yet.
 	};
 
 	SceneFieldReader(std::string_view file, const SceneFieldCodes& codes, std::vector<SceneDiagnostic>& sink)

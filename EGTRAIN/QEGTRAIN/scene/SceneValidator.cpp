@@ -55,8 +55,9 @@ struct DiagnosticBuilder {
 
 	// The error for a reference of `entry`, such as "Service s1", that names nothing in the case. An empty reference has
 	// not been chosen yet, as for the composition of a new service, so the message says that the entry has no `what` and
-	// the fix says to choose it. Any other reference gets `message` and `suggestedFix`, with the reference as the related
-	// id.
+	// the fix says to choose it; the legacy export refuses a case by that fix and the empty related id
+	// (isUnchosenReference in SceneExporter.cpp). Any other reference gets `message` and `suggestedFix`, with the
+	// reference as the related id.
 	void unresolved(const std::string& reference, const std::string& entry, const std::string& what,
 		const std::string& message, const std::string& file, const std::string& itemType, const std::string& itemId,
 		const std::string& path, const std::string& suggestedFix = "") {

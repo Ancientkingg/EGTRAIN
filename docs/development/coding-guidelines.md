@@ -304,12 +304,17 @@ carries these fields:
 severity chosen by `error` or `warning`:
 
 ```cpp
-if (!hasId(trackIds, node.trackId)) {
-	diagnostics.error("scene.ref.unresolved", "Node refers to unknown track", "infrastructure.json",
-			"node", node.id, path + ".track", node.trackId,
-			"Add track " + node.trackId + " or reference an existing track");
+if (!hasId(blockIds, component)) {
+	diagnostics.error("scene.ref.unresolved", "Route refers to unknown block",
+		"signalling.json", "route", route.id, blockPath, component,
+		"Add block " + component + " or fix the route");
 }
 ```
+
+A reference that an editor leaves empty until it is chosen, such as the track of a node, goes
+through `DiagnosticBuilder::unresolved`. An empty reference names the entry instead
+(`Node n1 has no track`, with the fix `Choose the track` and no `relatedId`); any other
+reference gets the message and fix that the call passes.
 
 ## Logging
 

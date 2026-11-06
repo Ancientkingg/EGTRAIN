@@ -1,6 +1,8 @@
 #include "scene/SceneExporter.h"
 #include "scene/SceneImporter.h"
 #include "scene/SceneModel.h"
+#include "scene/SceneBundle.h"
+#include "scene/SceneWriter.h"
 #include <cctype>
 #include <algorithm>
 #include <iostream>
@@ -98,6 +100,7 @@ private slots:
 	void writesNoGuiFilesWithoutNodes();
 	void exportsIncidents();
 	void writesNoIncidentsFileWithoutIncidents();
+	void refusesUnchosenReferences();
 	void exportsCanonicalInfrastructure();
 	void mapsBlockAndTrackIds();
 	void keepsSignallingAreasInSidecar();
@@ -604,6 +607,43 @@ void TestSceneExporter::writesNoIncidentsFileWithoutIncidents() {
 	auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
 	QVERIFY2(res.success(), "No Incidents scene export succeeds");
 	QVERIFY2(!fs::exists(fs::path(outDir.dir) / "Incidents.txt"), "No Incidents.txt written");
+}
+
+// A saved case with an incident from Add Incident, which has no target yet, and a single-track restriction and a station
+// boundary whose sections are not chosen yet does not export: the legacy files cannot leave out a reference. The export
+// names each entry and writes nothing, also not a staging folder beside the destination.
+void TestSceneExporter::refusesUnchosenReferences() {
+	TempDir sourceDir, sceneDir, outParent;
+	writeAreaScene(sourceDir.dir, "");
+	SceneLoadResult loaded = loadScenePath(sourceDir.dir);
+	QVERIFY(!hasErrors(loaded.diagnostics));
+	SceneIncident incident;
+	incident.id = "new_incident";
+	incident.type = "signal_failure";
+	incident.hasEndSeconds = true;
+	defaultScenario(loaded.scene)->incidents.push_back(incident);
+	loaded.scene.singleTrackRestrictions.emplace_back();
+	loaded.scene.stationBoundaries.emplace_back();
+	const fs::path saved = fs::path(sceneDir.dir) / "case";
+	QVERIFY(saveScene(loaded.scene, saved.string()).success());
+
+	const SceneExportResult res = exportLegacyScene(saved.string(), (fs::path(outParent.dir) / "export").string());
+	QVERIFY2(!res.success(), "a case with references that are not chosen yet does not export");
+	std::vector<std::string> errors;
+	for (const SceneDiagnostic& diagnostic : res.diagnostics) {
+		if (diagnostic.severity == SceneSeverity::Error)
+			errors.push_back(diagnostic.message + " (Fix: " + diagnostic.suggestedFix + ")");
+	}
+	const std::vector<std::string> expected = {
+		"Single-track restriction 1 has no start section (Fix: Choose the start section)",
+		"Single-track restriction 1 has no end section (Fix: Choose the end section)",
+		"Single-track restriction 1 has no protected start section (Fix: Choose the protected start section)",
+		"Single-track restriction 1 has no protected end section (Fix: Choose the protected end section)",
+		"Station boundary 1 has no entrance section (Fix: Choose the entrance section)",
+		"Incident new_incident has no target (Fix: Choose the target)",
+	};
+	QCOMPARE(errors, expected);
+	QVERIFY2(fs::is_empty(outParent.dir), "a refused export writes no files");
 }
 
 // Canonical infrastructure exports without legacy passthrough data.

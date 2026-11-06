@@ -1113,6 +1113,16 @@ static void synthesizeGuiLayout(const SceneModel& scene, const std::unordered_ma
 	}
 }
 
+// A reference that an editor leaves empty until it is chosen, such as the target of a new incident or the sections of a
+// new single-track restriction. Validation reports it as an unresolved reference without a related id and with the fix
+// "Choose the <what>" (DiagnosticBuilder::unresolved in SceneValidator.cpp). The legacy files have no way to leave such a
+// reference out, so the export refuses the case. An empty item of a list, such as a route block, has another fix or none,
+// so it does not stop the export.
+static bool isUnchosenReference(const SceneDiagnostic& diagnostic) {
+	return diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.ref.unresolved"
+		&& diagnostic.relatedId.empty() && diagnostic.suggestedFix.rfind("Choose the ", 0) == 0;
+}
+
 // Publishes a complete export. A destination that does not exist becomes the staged folder. Otherwise the stale files and
 // folders are removed and every staged file is moved over the file of the same name, so the other files that the export
 // did not write stay. When a move fails, the destination keeps the files moved before it.
@@ -1231,9 +1241,11 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		addDiag(SceneSeverity::Error, "scene.export.path", "Cannot inspect export destination: " + cleanupEc.message(), outDir);
 		return result;
 	}
-	// Validate only the new preservation boundary, not unrelated legacy export limitations.
+	// Validate the signalling areas, which the export keeps in a sidecar, and the references that are not chosen yet, but
+	// not unrelated legacy export limitations.
 	for (const auto& diagnostic : validateRunnableScene(scene)) {
-		if (diagnostic.file == "signalling.json" && diagnostic.path.rfind("signalling_areas", 0) == 0)
+		if ((diagnostic.file == "signalling.json" && diagnostic.path.rfind("signalling_areas", 0) == 0)
+			|| isUnchosenReference(diagnostic))
 			result.diagnostics.push_back(diagnostic);
 	}
 	if (hasErrors(result.diagnostics)) return result;

@@ -375,7 +375,6 @@ void TestSceneBundle::newSceneRoundTrip() {
 	QVERIFY(bundle.extension() == ".egscene");
 }
 
-// Every level from 0 to 5, with and without a track, in file order.
 // A new case with a service from Add Service, which has no composition and no route yet, and an incident from Add
 // Incident, which has no target yet, saves to a bundle and loads back with the empty references.
 void TestSceneBundle::incompleteEntriesRoundTrip() {
@@ -405,6 +404,7 @@ void TestSceneBundle::incompleteEntriesRoundTrip() {
 	QVERIFY(defaultScenarioIncidents(loaded.scene)[0].target.empty());
 }
 
+// Every level from 0 to 5, with and without a track, in file order.
 void TestSceneBundle::signallingAreaRoundTrip() {
 	SceneModel expected = makeNewSceneModel();
 	expected.tracks = {{"area-track-a"}, {"area-track-b"}};
