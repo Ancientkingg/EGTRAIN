@@ -176,7 +176,7 @@ A train is one run of a service, an [occurrence](glossary.md#occurrence). You ne
 To repeat a service:
 
 1. Choose **Editors > Services**, select the service in the list at the top of the dock and open the tab **Service**.
-2. Tick **Repeat every (s)**, type the time from one run to the next and press Enter.
+2. Tick **Repeat every (s)** if it is not ticked yet; a click on a ticked box turns the repeat off. Type the time from one run to the next in its field and press Enter. On Paimpol the box is ticked for both services, with 9999 s, which is longer than the 9000 s that the case runs, so each service runs once.
 3. Tick **Repeat count**, type the number of runs and press Enter. Without **Repeat count**, the number of runs is the **Duration (s)** of **Editors > Case Settings** divided by the time between the runs, rounded up.
 4. Open the tab **Run occurrences**. It has a row for each run, ticked, with the run number added to the operating code and the entry time under **Entry**.
 
@@ -227,7 +227,7 @@ The line under the table names the selected arc and where it lies, and the netwo
 
 ![The main window with the dock Infrastructure on Arcs, filtered to B0.arc.226 (1 of 393 arcs): track B0 from B0.node.127 to B0.node.128, curvature radius 10000, gradient -0.012 and speed limit 8.3333333330000006. The line under the table reads B0.arc.226: arc on B0 from 12.755 to 13.140 km, and the network view at 20x shows the arc as a violet band on the track.](../images/how-to-change-infrastructure.png)
 
-The picture shows `B0.arc.226` of Paimpol, which runs from 12.755 to 13.140 km, with its limit lowered from 19.444 m/s (70 km/h) to 8.333333333 m/s (30 km/h), the limit of the short arcs next to it. The table writes a number with all the digits it holds, so the cell reads `8.3333333330000006`. In a run without a window of Paimpol with this one change, the express reached Paimpol 24 s later than before, at 2700 s instead of 2676 s.
+The picture shows `B0.arc.226` of Paimpol, which runs from 12.755 to 13.140 km, with its limit lowered from 19.444 m/s (70 km/h) to 8.333333333 m/s (30 km/h), the limit of the next arc, `B0.arc.227`. The table writes a number with all the digits it holds, so the cell reads `8.3333333330000006`. In a run without a window of Paimpol with this one change, the express reached Paimpol 24 s later than before, at 2700 s instead of 2676 s.
 
 To add a platform to a station:
 
@@ -243,7 +243,7 @@ With a platform for that stop, the case validates and runs again. Save the copy 
 Incidents, which are signal failures and train breakdowns, and entrance delays belong to a scenario, not to the whole case ([glossary](glossary.md#incident)). You need an open case that you have copied and no active run: the contents of the dock **Scenarios** are disabled during a run. Keep the scenario without them, such as `baseline`, to compare with ([Compare a scenario with a baseline](#compare-a-scenario-with-a-baseline)).
 
 1. Choose **Editors > Scenarios**. On the tab **Scenario**, select a scenario and click **Duplicate**, or click **New** for an empty one. The new scenario is selected. Give it a **Name**, such as `Express breakdown`.
-2. Open the tab **Incidents** and click **Add Incident**. Set **Type** to **Signal failure** or **Train breakdown**, choose the **Target** and enter **Start (s)**. For an incident that ends, tick **End (s)** and enter the end; a signal failure needs one. Press Enter after each number. The times are seconds after the base time of the case.
+2. Open the tab **Incidents** and click **Add Incident**. Set **Type** to **Signal failure** or **Train breakdown**, choose the **Target** and enter **Start (s)**. **End (s)** is ticked on a new incident; enter the end in its field. A signal failure always needs an end. A train breakdown holds the train in place from its start to its end, and needs an end too, unless you tick **Reduced speed**: the breakdown then limits the speed of the train to the speed in that field, in km/h (40 km/h at first), instead of stopping it. Untick **End (s)** to keep that limit until the train reaches the end of its route. Press Enter after each number. The times are seconds after the base time of the case.
 3. To take the target from the network view instead, select a signal head or a train there before you click **Add Incident**: it becomes the target of the new incident. The icon button **Pick** beside **Target** waits for the next one that you click and takes it as the target; Esc or a second click on **Pick** stops the wait. A signal head gives a signal failure of its block, or of the authored signal when exactly one protects its section, and a train of a completed run gives a breakdown of its occurrence.
 4. For an entrance delay, open the tab **Entrance delays** and click **Add**. This adds a row for the first service that has a planned departure, at its first stop with one, with a delay of 0 s. With the row selected, change **Service**, **Occurrence**, **Station** and **Delay (s)**; the line in the list follows each change, and **Delay (s)** takes effect when you press Enter or leave the field.
 

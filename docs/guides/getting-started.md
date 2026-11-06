@@ -87,7 +87,7 @@ To open a result window, click **Open result view...** in the dock and choose an
 - **Speed / distance** (**Diagrams > Speed / distance**) plots the speed of each train against the distance it covered. Hover a line to read a value, click a line to select its train, and drag a rectangle to zoom. [Inspecting diagrams](diagram-navigation.md) describes the controls.
 - **Timetable** (**Diagrams > Timetable**) lists each stop of each train with its planned and simulated arrival and departure and the delays.
 
-The other entries are listed in [How-to](how-to.md#results-and-exports). The entries stay disabled until a run has ended.
+The other entries are listed in [View a graph of a run](how-to.md#view-a-graph-of-a-run). The entries stay disabled until a run has ended.
 
 ![The window after a completed run of Paimpol / baseline, with the menu Open result view... of the dock Run Results open above its button. It lists twelve views in three groups of four: timetable and delays, speed and distance, and train paths and capacity. Beside and below it are the Replay row, the buttons Open result view..., Export CSV... and Export PNG..., the results table, and at the bottom Set delay baseline and Compare delays.](../images/getting-started-run-results.png)
 

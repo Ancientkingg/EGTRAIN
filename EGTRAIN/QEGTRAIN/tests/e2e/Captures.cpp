@@ -818,8 +818,9 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 			QStringLiteral("Infrastructure on Arcs filtered to B0.arc.226, its speed limit 8.333333333 m/s, marked on the view"));
 	});
 	steps.push_back([&w, showOnly, windowShot] {
-		// The whole line is in view again for the picture of the incident.
-		infrastructurePanel(w)->table()->clearSelection();
+		// No row of Infrastructure is selected, so the view marks no arc, and the whole line is in view again for the picture
+		// of the incident.
+		infrastructurePanel(w)->table()->setCurrentCell(-1, -1);
 		w.networkView->fitToTopology();
 		w.revealEditorDock(incidentDock(w));
 		scenarioPanel(w)->listWidget()->setCurrentRow(0);
@@ -836,6 +837,9 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		ok = ok && editNumber(incidentPanel(w)->endSecondsEdit(), 1200);
 		showOnly({incidentDock(w)});
 		w.resizeDocks({incidentDock(w)}, {480}, Qt::Horizontal);
+		settle();
+		if (w.m_presenter->selectionMark())
+			return failCaptures(QStringLiteral("the view still marks a row of Infrastructure"));
 		return ok ? saveCapture(windowShot(), QStringLiteral("how-to-add-an-incident.png"), QStringLiteral("Paimpol"),
 						QStringLiteral("a train breakdown of the express from 900 s to 1200 s in Express breakdown, Scenarios on Incidents"))
 				  : failCaptures(QStringLiteral("the incident of Express breakdown could not be entered"));

@@ -342,7 +342,7 @@ This is the formula applied by hand to current records. It is not an output of t
 
 ### The label
 
-The removed code carries the label "UIC code 406" for the compression, in comments in `Optimisation.cpp`, `Optimisation.h` and `Simulation.cpp` and in one console message in `Optimisation.cpp`, as those files stood before that commit. A comment in `Capacity.cpp` writes it "UIC Code 406". The repository holds no description of that method. This guide therefore says neither that either calculation follows it nor that it does not.
+The removed code carries the label "UIC code 406" for the compression, in comments in `Optimisation.cpp`, `Optimisation.h` and `Simulation.cpp` and in one console message in `Optimisation.cpp`. A comment in `Capacity.cpp` writes it "UIC Code 406". The repository holds no description of that method. This guide therefore says neither that either calculation follows it nor that it does not.
 
 ## Limits
 
