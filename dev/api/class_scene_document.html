@@ -279,7 +279,7 @@ Friends</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Emitted once for each <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a> and for each <a class="el" href="#a19d593b9d99483a0468c0c17409cb2c8">edit()</a> that is not refused, after the revision and the dirty state are updated. </p>
+<p>Emitted once for each <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a> and for each <a class="el" href="#a19d593b9d99483a0468c0c17409cb2c8">edit()</a> that is neither refused nor ended by an exception, after the revision and the dirty state are updated. </p>
 
 </div>
 </div>
@@ -333,7 +333,7 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Changes <span class="tt">kinds</span> of the model with <span class="tt">apply</span> and records the change as <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a> does. While a run uses the model (<a class="el" href="#ae81e4460eb27933960887d597c5cd54c" title="False while a run uses the model.">isEditable()</a> is false) an edit that touches no part of OpenDuringRun is refused: <span class="tt">apply</span> is not called, nothing changes and the result is false. </p>
+<p>Changes <span class="tt">kinds</span> of the model with <span class="tt">apply</span> and records the change as <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a> does. While a run uses the model (<a class="el" href="#ae81e4460eb27933960887d597c5cd54c" title="False while a run uses the model.">isEditable()</a> is false) an edit that touches no part of OpenDuringRun is refused: <span class="tt">apply</span> is not called, nothing changes and the result is false. When <span class="tt">apply</span> throws, the model is put back as it was before the edit, nothing is recorded and the exception passes on to the caller. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
