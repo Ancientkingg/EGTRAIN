@@ -148,7 +148,7 @@ void Train::PrintTrajectory() {
 			for (int i = segment.first; i <= segment.last; i++) {
 				trainout << i * timestep << "\t" << instant_train_speed[i] << "\t" << instant_spatial_position[i] << "\t" << instant_spatial_position[i] - train_length << "\t" << instant_train_power_consumption[i] / 1000 << "\t" <<
 
-					BX[i] << "\t" << instant_train_energy_consumption[i] * 0.27778 << "\t" << instant_block_section_occupied[i] <<
+					BX[i] << "\t" << instant_train_energy_consumption[i] * 0.27778 << "\t" << blockSectionIdAt(i) <<
 
 					// Bs.
 					"\n";
@@ -161,11 +161,21 @@ void Train::PrintTrajectory() {
 				trainout << "\n";
 			firstSegment = false;
 			for (int i = segment.first; i <= segment.last; i++) {
-				trainout << i * timestep << "\t" << instant_train_speed[i] << "\t" << run_->infra.routes[indexOfRoute].OriginalRefReversedRoute - instant_spatial_position[i] << "\t" << run_->infra.routes[indexOfRoute].OriginalRefReversedRoute - instant_spatial_position[i] + train_length << "\t" << instant_train_power_consumption[i] / 1000 << "\t" << BX[i] << "\t" << instant_train_energy_consumption[i] * 0.27778 << "\t" << instant_block_section_occupied[i] << "\n";
+				trainout << i * timestep << "\t" << instant_train_speed[i] << "\t" << run_->infra.routes[indexOfRoute].OriginalRefReversedRoute - instant_spatial_position[i] << "\t" << run_->infra.routes[indexOfRoute].OriginalRefReversedRoute - instant_spatial_position[i] + train_length << "\t" << instant_train_power_consumption[i] / 1000 << "\t" << BX[i] << "\t" << instant_train_energy_consumption[i] * 0.27778 << "\t" << blockSectionIdAt(i) << "\n";
 			}
 		}
 	}
 	closeRunOutputFile(trainout, path);
+}
+
+const std::string& Train::blockSectionIdAt(int t) const {
+	static const std::string noSection, outsideRoute = "-";
+	const std::int32_t index = instant_block_section_occupied[static_cast<std::size_t>(t)];
+	if (index == kOutsideRoute)
+		return outsideRoute;
+	if (index == kNoBlockSection)
+		return noSection;
+	return run_->infra.routes[static_cast<std::size_t>(indexOfRoute)].sequence_of_block_sections[static_cast<std::size_t>(index)].ID;
 }
 
 string Train::DetermineOccupiedTDS(int timeinstant, bool IsRouteReversed) {
@@ -345,7 +355,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 			CanEnter = false;
 			instant_train_speed[0] = 0.0;
 			instant_spatial_position[0] = Start_Node_X * 1000;
-			instant_block_section_occupied[0] = "-";
+			instant_block_section_occupied[0] = kOutsideRoute;
 			instant_train_power_consumption[0] = 0.0;
 			instant_train_tractive_effort[0] = 0.0;
 			instant_train_energy_consumption[0] = 0.0;
@@ -573,12 +583,12 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 		else {
 			instant_train_speed[time_seconds] = 0.0;
 			instant_spatial_position[time_seconds] = Start_Node_X * 1000;
-			instant_block_section_occupied[time_seconds] = "-";
+			instant_block_section_occupied[time_seconds] = kOutsideRoute;
 			instant_train_power_consumption[time_seconds] = 0.0;
 			instant_train_tractive_effort[time_seconds] = 0.0;
 		}
 	} else {
-		instant_block_section_occupied[time_seconds] = "-";
+		instant_block_section_occupied[time_seconds] = kOutsideRoute;
 	}
 }
 
@@ -589,7 +599,7 @@ void Train::locateHead(int time_seconds, Arc& As, int& BsIndex, int& AsIndex) {
 			&& (instant_spatial_position[time_seconds - 1] >= run_->infra.routes[indexOfRoute].sequence_of_block_sections[h].start_node.X * 1000)) {
 			Bs = run_->infra.routes[indexOfRoute].sequence_of_block_sections[h];
 			BsIndex = h;
-			instant_block_section_occupied[time_seconds] = Bs.ID;
+			instant_block_section_occupied[time_seconds] = h;
 
 			if (h != 0)
 				break;

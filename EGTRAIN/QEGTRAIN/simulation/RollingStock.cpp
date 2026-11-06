@@ -661,7 +661,7 @@ void Train::setTrainVectorSizesFromInput(int vec_size) {
 	instant_spatial_position = std::vector<double>(vec_size, 0);
 	instant_train_power_consumption = std::vector<double>(vec_size, 0);
 	instant_train_tractive_effort = std::vector<double>(vec_size, 0);
-	instant_block_section_occupied = std::vector<std::string>(vec_size);
+	instant_block_section_occupied = std::vector<std::int32_t>(vec_size, kNoBlockSection);
 	instant_train_energy_consumption = std::vector<double>(vec_size, 0);
 	BX = std::vector<double>(vec_size, 0);
 	previousXob = previousVob = currentXob = currentVob = 0;

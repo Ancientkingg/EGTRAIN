@@ -26,6 +26,7 @@
 #include <atomic>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -1314,8 +1315,8 @@ static SceneModel trajectoryPerformanceScene(double performancePercent) {
 	return trajectoryPerformance;
 }
 
-// The bytes that the samples of a train take for each step: six double and a std::string.
-constexpr std::size_t kSampleBytesPerStep = 6 * sizeof(double) + sizeof(std::string);
+// The bytes that the samples of a train take for each step: six double and a 32-bit section index.
+constexpr std::size_t kSampleBytesPerStep = 6 * sizeof(double) + sizeof(std::int32_t);
 // The most memory that the samples of the trains of one run may take.
 constexpr std::size_t kSampleLimitBytes = std::size_t{4} << 30;
 // No allocation of the builds below is this large, except those of the samples of a long run.

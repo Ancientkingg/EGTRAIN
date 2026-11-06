@@ -28,6 +28,7 @@
 #include "util/Log.h"
 #include "util/TrajectoryUtil.h"
 
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <deque>
@@ -308,9 +309,17 @@ public:
 	double resistanceCoefficient = 0.0; ///< Coefficient of the wagon resistance (Sauthoff formula) that multiplies the speed in km/h.
 	/// Head position on the route in metres at each step; -9999 at the step after End_Time and 0 after that.
 	std::vector<double> instant_spatial_position;
-	/// ID of the section of the head at each step; "-" before the train enters and from End_Time + 2 on; empty at End_Time + 1
-	/// and on a step held by a breakdown.
-	std::vector<std::string> instant_block_section_occupied;
+	/// Section of the head at each step, as its index in the sections of the route indexOfRoute; kOutsideRoute before the train
+	/// enters and from End_Time + 2 on; kNoBlockSection at End_Time + 1 and on a step held by a breakdown. blockSectionIdAt gives
+	/// its ID.
+	std::vector<std::int32_t> instant_block_section_occupied;
+	/// instant_block_section_occupied of a step that found no section, whose ID is empty.
+	static constexpr std::int32_t kNoBlockSection = -1;
+	/// instant_block_section_occupied of a step before the train enters or after it has left the route, whose ID is "-".
+	static constexpr std::int32_t kOutsideRoute = -2;
+	/// The ID of the section of the head at step t, a step of the run: "-" for kOutsideRoute and empty for kNoBlockSection. The
+	/// route must still be that of the run that made the step.
+	const std::string& blockSectionIdAt(int t) const;
 	std::vector<double> instant_train_power_consumption; ///< Power at each step in W; -9999 at the step after End_Time and 0 after that.
 	/// Branch-applied wheel effort [N], aligned with trajectory samples; -9999 at the step after End_Time and 0 after that.
 	std::vector<double> instant_train_tractive_effort;
@@ -753,7 +762,8 @@ public:
 	void trajectoryComputationIncludingMovingBlock(int time_seconds, double signalCode1, double signalCode2, double signalCode3);
 
 	/// Finds where the head of the train was at the end of step time_seconds - 1: Bs and its index BsIndex on the route, and As and
-	/// its index AsIndex in Bs, which keep their values when nothing is found. Sets instant_block_section_occupied[time_seconds].
+	/// its index AsIndex in Bs, which keep their values when nothing is found. Sets instant_block_section_occupied[time_seconds] to
+	/// BsIndex when it finds Bs.
 	void locateHead(int time_seconds, Arc& As, int& BsIndex, int& AsIndex);
 
 	/// The speed (m/s) and head (m) after step time_seconds of a train that accelerates on arc As with the surplus of its traction
