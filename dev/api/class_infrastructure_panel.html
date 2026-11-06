@@ -160,13 +160,13 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a1cdddd1de7b9b429003b2c6dd9a313f2" id="r_a1cdddd1de7b9b429003b2c6dd9a313f2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1cdddd1de7b9b429003b2c6dd9a313f2">commitCell</a> (int row, int column)</td></tr>
 <tr class="memdesc:a1cdddd1de7b9b429003b2c6dd9a313f2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The cell in <span class="tt">row</span> and <span class="tt">column</span> has been edited; the chosen facet takes it.  <br /></td></tr>
 <tr class="memitem:a2fc2a40afe25a35c94491af27737d87a" id="r_a2fc2a40afe25a35c94491af27737d87a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2fc2a40afe25a35c94491af27737d87a">addEntity</a> ()</td></tr>
-<tr class="memdesc:a2fc2a40afe25a35c94491af27737d87a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds an entity of the chosen kind.  <br /></td></tr>
+<tr class="memdesc:a2fc2a40afe25a35c94491af27737d87a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds an entity of the chosen kind, after clearing the filters.  <br /></td></tr>
 <tr class="memitem:a8963162b471a29e8d0156422d3a45856" id="r_a8963162b471a29e8d0156422d3a45856"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8963162b471a29e8d0156422d3a45856">deleteEntity</a> ()</td></tr>
 <tr class="memdesc:a8963162b471a29e8d0156422d3a45856"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes the entity in the selected row after the user has confirmed it.  <br /></td></tr>
 <tr class="memitem:aa37ed4827fec2cc069a6c62d9c0a3876" id="r_aa37ed4827fec2cc069a6c62d9c0a3876"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa37ed4827fec2cc069a6c62d9c0a3876">insertEntity</a> ()</td></tr>
-<tr class="memdesc:aa37ed4827fec2cc069a6c62d9c0a3876"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts an entity before the selected one.  <br /></td></tr>
+<tr class="memdesc:aa37ed4827fec2cc069a6c62d9c0a3876"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts an entity before the selected one, after clearing the text filter.  <br /></td></tr>
 <tr class="memitem:ab6fce7b583449030a197a740a611e0b0" id="r_ab6fce7b583449030a197a740a611e0b0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab6fce7b583449030a197a740a611e0b0">moveEntity</a> (int offset)</td></tr>
-<tr class="memdesc:ab6fce7b583449030a197a740a611e0b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the selected entity down by <span class="tt">offset</span> rows, up when it is negative.  <br /></td></tr>
+<tr class="memdesc:ab6fce7b583449030a197a740a611e0b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the selected entity down by <span class="tt">offset</span> rows, up when it is negative. Does nothing while a filter hides a row.  <br /></td></tr>
 <tr class="memitem:a9a04a6929b935a136dea467f7088c96e" id="r_a9a04a6929b935a136dea467f7088c96e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9a04a6929b935a136dea467f7088c96e">addSection</a> ()</td></tr>
 <tr class="memdesc:a9a04a6929b935a136dea467f7088c96e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds the section of the catalog that is chosen to the selected route.  <br /></td></tr>
 <tr class="memitem:a07f679fefcfe17cd067b11711a346d7b" id="r_a07f679fefcfe17cd067b11711a346d7b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a07f679fefcfe17cd067b11711a346d7b">removeSection</a> ()</td></tr>
@@ -196,7 +196,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a31cb9e682960c3930935790669059c54" id="r_a31cb9e682960c3930935790669059c54"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#a31cb9e682960c3930935790669059c54">facetCombo</a> () const</td></tr>
 <tr class="memdesc:a31cb9e682960c3930935790669059c54"><td class="mdescLeft">&#160;</td><td class="mdescRight">The combo of the kinds of entity, with the key of each facet as its data.  <br /></td></tr>
 <tr class="memitem:af07cdb6e38d3e5f090449110e3fbb225" id="r_af07cdb6e38d3e5f090449110e3fbb225"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#af07cdb6e38d3e5f090449110e3fbb225">addButton</a> () const</td></tr>
-<tr class="memdesc:af07cdb6e38d3e5f090449110e3fbb225"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a2fc2a40afe25a35c94491af27737d87a" title="Adds an entity of the chosen kind.">addEntity()</a>.  <br /></td></tr>
+<tr class="memdesc:af07cdb6e38d3e5f090449110e3fbb225"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a2fc2a40afe25a35c94491af27737d87a" title="Adds an entity of the chosen kind, after clearing the filters.">addEntity()</a>.  <br /></td></tr>
 <tr class="memitem:ad55cec35eb8d49b5e8fe20b8a01b6ea7" id="r_ad55cec35eb8d49b5e8fe20b8a01b6ea7"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#ad55cec35eb8d49b5e8fe20b8a01b6ea7">deleteButton</a> () const</td></tr>
 <tr class="memdesc:ad55cec35eb8d49b5e8fe20b8a01b6ea7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a8963162b471a29e8d0156422d3a45856" title="Deletes the entity in the selected row after the user has confirmed it.">deleteEntity()</a>.  <br /></td></tr>
 <tr class="memitem:afe2a929b6ca5ada5828a376e9d64f199" id="r_afe2a929b6ca5ada5828a376e9d64f199"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#afe2a929b6ca5ada5828a376e9d64f199">guidanceLabel</a> () const</td></tr>
@@ -205,12 +205,15 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a6c0238b0165ad03c913afff3469c9ff1" id="r_a6c0238b0165ad03c913afff3469c9ff1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6c0238b0165ad03c913afff3469c9ff1">setMarkShown</a> (bool shown)</td></tr>
 <tr class="memitem:a1dc89a4d3eabe4aa2f464eafd32e6a4d" id="r_a1dc89a4d3eabe4aa2f464eafd32e6a4d"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#a1dc89a4d3eabe4aa2f464eafd32e6a4d">blockTrackFilterCombo</a> () const</td></tr>
 <tr class="memdesc:a1dc89a4d3eabe4aa2f464eafd32e6a4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The filter of the blocks on a track, shown while blocks are listed.  <br /></td></tr>
+<tr class="memitem:a8205342d43f5d5e683204782d949fe4d" id="r_a8205342d43f5d5e683204782d949fe4d"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#a8205342d43f5d5e683204782d949fe4d">trackFilterCombo</a> () const</td></tr>
+<tr class="memitem:a1df7f1a5185aa855cb7b949df0bdaff8" id="r_a1df7f1a5185aa855cb7b949df0bdaff8"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#a1df7f1a5185aa855cb7b949df0bdaff8">filterEdit</a> () const</td></tr>
+<tr class="memitem:ad3fbd3d60689a669323e5417a27b47a4" id="r_ad3fbd3d60689a669323e5417a27b47a4"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#ad3fbd3d60689a669323e5417a27b47a4">countLabel</a> () const</td></tr>
 <tr class="memitem:af44445c46656b46bfc01aba90a285d2d" id="r_af44445c46656b46bfc01aba90a285d2d"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#af44445c46656b46bfc01aba90a285d2d">insertBlockButton</a> () const</td></tr>
-<tr class="memdesc:af44445c46656b46bfc01aba90a285d2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#aa37ed4827fec2cc069a6c62d9c0a3876" title="Inserts an entity before the selected one.">insertEntity()</a> for blocks.  <br /></td></tr>
+<tr class="memdesc:af44445c46656b46bfc01aba90a285d2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#aa37ed4827fec2cc069a6c62d9c0a3876" title="Inserts an entity before the selected one, after clearing the text filter.">insertEntity()</a> for blocks.  <br /></td></tr>
 <tr class="memitem:af7b2ec9692352f66eefacc6eabf6f73e" id="r_af7b2ec9692352f66eefacc6eabf6f73e"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#af7b2ec9692352f66eefacc6eabf6f73e">moveBlockUpButton</a> () const</td></tr>
-<tr class="memdesc:af7b2ec9692352f66eefacc6eabf6f73e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#ab6fce7b583449030a197a740a611e0b0" title="Moves the selected entity down by offset rows, up when it is negative.">moveEntity()</a> up for blocks.  <br /></td></tr>
+<tr class="memdesc:af7b2ec9692352f66eefacc6eabf6f73e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#ab6fce7b583449030a197a740a611e0b0" title="Moves the selected entity down by offset rows, up when it is negative. Does nothing while a filter hi...">moveEntity()</a> up for blocks.  <br /></td></tr>
 <tr class="memitem:a3d0870e00964e8f436557c9ccb0fa636" id="r_a3d0870e00964e8f436557c9ccb0fa636"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a3d0870e00964e8f436557c9ccb0fa636">moveBlockDownButton</a> () const</td></tr>
-<tr class="memdesc:a3d0870e00964e8f436557c9ccb0fa636"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#ab6fce7b583449030a197a740a611e0b0" title="Moves the selected entity down by offset rows, up when it is negative.">moveEntity()</a> down for blocks.  <br /></td></tr>
+<tr class="memdesc:a3d0870e00964e8f436557c9ccb0fa636"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#ab6fce7b583449030a197a740a611e0b0" title="Moves the selected entity down by offset rows, up when it is negative. Does nothing while a filter hi...">moveEntity()</a> down for blocks.  <br /></td></tr>
 <tr class="memitem:a13b84b6e2bd60f61bce84593c38c99b8" id="r_a13b84b6e2bd60f61bce84593c38c99b8"><td class="memItemLeft">QWidget *&#160;</td><td class="memItemRight"><a class="el" href="#a13b84b6e2bd60f61bce84593c38c99b8">routeSectionDetailWidget</a> () const</td></tr>
 <tr class="memdesc:a13b84b6e2bd60f61bce84593c38c99b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The part below the table that holds the sections of the selected route, shown while routes are listed.  <br /></td></tr>
 <tr class="memitem:a207fd99aa0abc9f931055f10c7017546" id="r_a207fd99aa0abc9f931055f10c7017546"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#a207fd99aa0abc9f931055f10c7017546">routeSectionCatalogCombo</a> () const</td></tr>
@@ -266,7 +269,8 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memdesc:a57a02e26e706794cd4afd7191d43737b pro_attribs_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The selection of <a class="el" href="class_scene_editor_panel.html#af13cca73366a245163487f9a06d72bdf">setRunSelection()</a>.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The infrastructure of the scene: a combo on top to pick the kind of entity, a sentence about the kind (infrastructureGuidanceText), a table with one row for each entity of that kind, under the table a line that says what the canvas marks of the selected row (<a class="el" href="#a8a21d4783ea0a769051737c256f4ec5d">markLabel()</a>), and under that the buttons that add and delete one. The kinds are the facets: tracks, nodes, arcs, blocks, connections, stations, platforms, signals, signalling areas, routes, block dependencies, single-track restrictions and station boundaries. What a kind lists and how it is edited is up to its <a class="el" href="class_infrastructure_facet.html">InfrastructureFacet</a>; a kind without one lists nothing. The facet also says which other controls it uses (<a class="el" href="class_infrastructure_facet.html#a1918c6757b3db77a5ea28ed59e76353a" title="The controls that the panel shows for this facet. The default is none.">InfrastructureFacet::capabilities</a>): a filter on the track under the combo, which blocks use, buttons that insert and move an entity, which blocks use too, and the heading "Route sections" with the list of the sections of the selected route and the buttons that change it, below the table in a splitter, which routes use. The buttons call the facet that is chosen, only when it has their capability and only while the scene can be edited. </p>
+<div class="textblock"><p>The infrastructure of the scene: a combo on top to pick the kind of entity, a row with a field that filters the rows by text (<a class="el" href="#a1df7f1a5185aa855cb7b949df0bdaff8">filterEdit()</a>) and a line that counts them (<a class="el" href="#ad3fbd3d60689a669323e5417a27b47a4">countLabel()</a>), a sentence about the kind (infrastructureGuidanceText), a table with one row for each entity of that kind, under the table a line that says what the canvas marks of the selected row (<a class="el" href="#a8a21d4783ea0a769051737c256f4ec5d">markLabel()</a>), and under that the buttons that add and delete one. The kinds are the facets: tracks, nodes, arcs, blocks, connections, stations, platforms, signals, signalling areas, routes, block dependencies, single-track restrictions and station boundaries. What a kind lists and how it is edited is up to its <a class="el" href="class_infrastructure_facet.html">InfrastructureFacet</a>; a kind without one lists nothing. The facet also says which other controls it uses (<a class="el" href="class_infrastructure_facet.html#a1918c6757b3db77a5ea28ed59e76353a" title="The controls that the panel shows for this facet. The default is none.">InfrastructureFacet::capabilities</a>): a filter on the track under the combo that lists the blocks of one track, which blocks use, a filter on the track at the start of the row of the text filter that hides the rows of other tracks, which nodes, arcs, connections and platforms use, buttons that insert and move an entity, which blocks use too, and the heading "Route sections" with the list of the sections of the selected route and the buttons that change it, below the table in a splitter, which routes use. The buttons call the facet that is chosen, only when it has their capability and only while the scene can be edited.</p>
+<p>The filters hide rows and keep them in the table, so that a row keeps its number. They stay when another kind is chosen, and are applied again whenever the table is filled. Add and Insert clear them first, so that the new row is shown, and Move Up and Move Down are off while they hide a row. A row that they hide is never selected. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a4aa7f19138992c4380f878819b623969" name="a4aa7f19138992c4380f878819b623969"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4aa7f19138992c4380f878819b623969">&#9670;&#160;</a></span>InfrastructurePanel()</h2>
@@ -295,7 +299,7 @@ Additional Inherited Members</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_a4aa7f19138992c4380f878819b623969_cgraph.svg" width="1168" height="1638"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_a4aa7f19138992c4380f878819b623969_cgraph.svg" width="1168" height="1727"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -324,7 +328,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>The button of <a class="el" href="#a2fc2a40afe25a35c94491af27737d87a" title="Adds an entity of the chosen kind.">addEntity()</a>. </p>
+<p>The button of <a class="el" href="#a2fc2a40afe25a35c94491af27737d87a" title="Adds an entity of the chosen kind, after clearing the filters.">addEntity()</a>. </p>
 
 </div>
 </div>
@@ -343,7 +347,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Adds an entity of the chosen kind. </p>
+<p>Adds an entity of the chosen kind, after clearing the filters. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -542,6 +546,32 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_a4bbcb9306a3d4e6816b581171adab0ef_cgraph.svg" width="382" height="159"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="ad3fbd3d60689a669323e5417a27b47a4" name="ad3fbd3d60689a669323e5417a27b47a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad3fbd3d60689a669323e5417a27b47a4">&#9670;&#160;</a></span>countLabel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QLabel * InfrastructurePanel::countLabel </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The line beside the text filter that counts the rows, such as "399 nodes", or "12 of 399 nodes" while the filters hide rows. Blocks are counted on the track of their filter. Hidden while the table is empty. </p>
 
 </div>
 </div>
@@ -789,6 +819,32 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a1df7f1a5185aa855cb7b949df0bdaff8" name="a1df7f1a5185aa855cb7b949df0bdaff8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1df7f1a5185aa855cb7b949df0bdaff8">&#9670;&#160;</a></span>filterEdit()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QLineEdit * InfrastructurePanel::filterEdit </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The field that filters the rows by text: a row is shown when every word of the field occurs in one of its cells, ignoring case, the rule of the Find dialog (<a class="el" href="class_find_dialog.html#a390eee6fcd4801e84d1024266abdfe14">FindDialog::matches</a>). The text of a combo or a number field in a cell counts as its text. </p>
+
+</div>
+</div>
 <a id="afe2a929b6ca5ada5828a376e9d64f199" name="afe2a929b6ca5ada5828a376e9d64f199"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afe2a929b6ca5ada5828a376e9d64f199">&#9670;&#160;</a></span>guidanceLabel()</h2>
 
@@ -839,7 +895,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>The button of <a class="el" href="#aa37ed4827fec2cc069a6c62d9c0a3876" title="Inserts an entity before the selected one.">insertEntity()</a> for blocks. </p>
+<p>The button of <a class="el" href="#aa37ed4827fec2cc069a6c62d9c0a3876" title="Inserts an entity before the selected one, after clearing the text filter.">insertEntity()</a> for blocks. </p>
 
 </div>
 </div>
@@ -858,7 +914,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Inserts an entity before the selected one. </p>
+<p>Inserts an entity before the selected one, after clearing the text filter. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -936,7 +992,7 @@ B0, B4, B5 and B2"; empty and hidden without a selected row, while the document 
 </table>
 </div><div class="memdoc">
 
-<p>The button of <a class="el" href="#ab6fce7b583449030a197a740a611e0b0" title="Moves the selected entity down by offset rows, up when it is negative.">moveEntity()</a> down for blocks. </p>
+<p>The button of <a class="el" href="#ab6fce7b583449030a197a740a611e0b0" title="Moves the selected entity down by offset rows, up when it is negative. Does nothing while a filter hi...">moveEntity()</a> down for blocks. </p>
 
 </div>
 </div>
@@ -963,7 +1019,7 @@ B0, B4, B5 and B2"; empty and hidden without a selected row, while the document 
 </table>
 </div><div class="memdoc">
 
-<p>The button of <a class="el" href="#ab6fce7b583449030a197a740a611e0b0" title="Moves the selected entity down by offset rows, up when it is negative.">moveEntity()</a> up for blocks. </p>
+<p>The button of <a class="el" href="#ab6fce7b583449030a197a740a611e0b0" title="Moves the selected entity down by offset rows, up when it is negative. Does nothing while a filter hi...">moveEntity()</a> up for blocks. </p>
 
 </div>
 </div>
@@ -982,7 +1038,7 @@ B0, B4, B5 and B2"; empty and hidden without a selected row, while the document 
       </table>
 </div><div class="memdoc">
 
-<p>Moves the selected entity down by <span class="tt">offset</span> rows, up when it is negative. </p>
+<p>Moves the selected entity down by <span class="tt">offset</span> rows, up when it is negative. Does nothing while a filter hides a row. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1439,7 +1495,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Selects the row of the entity that an item of the track preview stands for and scrolls the table to it, choosing its kind in the combo first. <span class="tt">kind</span> and <span class="tt">id</span> are the kind and the id of the item (<a class="el" href="namespace_preview_graphics.html#ab5c908dfa3c9a1a5664ac8a95369fa1faa815b6293885dc7adc9fd0a989eca7cf" title="The kind of item: &quot;track&quot;, &quot;arc&quot;, &quot;connection&quot;, &quot;node&quot;, &quot;station-node&quot;, &quot;station&quot; or &quot;signal&quot;.">PreviewGraphics::Kind</a> and Id), and <span class="tt">platform</span> is the platform of a station node (<a class="el" href="namespace_preview_graphics.html#ab5c908dfa3c9a1a5664ac8a95369fa1fa3fafc5355ebbaefacf9c83c15618249d" title="On a station node: the id of its platform, empty without one.">PreviewGraphics::PlatformId</a>). A node, a track, an arc, a connection and a station are rows of their own kind. A station node is the row of its platform under Platforms, or its row under Nodes when it has no platform. A signal head names a section, and is the row of the block of that section under Blocks, whose track the filter then shows. The cells that are being edited are taken first (<a class="el" href="#a97abf3cc2e21bd76b6cd282d75da1176">commitPendingEditors()</a>). selectionChanged is told once, or not at all when the row was selected already. Returns false and changes nothing while the scene cannot be edited, and for an item of another kind or whose entity the scene does not have. </p>
+<p>Selects the row of the entity that an item of the track preview stands for and scrolls the table to it, choosing its kind in the combo first and clearing a filter that hides the row. <span class="tt">kind</span> and <span class="tt">id</span> are the kind and the id of the item (<a class="el" href="namespace_preview_graphics.html#ab5c908dfa3c9a1a5664ac8a95369fa1faa815b6293885dc7adc9fd0a989eca7cf" title="The kind of item: &quot;track&quot;, &quot;arc&quot;, &quot;connection&quot;, &quot;node&quot;, &quot;station-node&quot;, &quot;station&quot; or &quot;signal&quot;.">PreviewGraphics::Kind</a> and Id), and <span class="tt">platform</span> is the platform of a station node (<a class="el" href="namespace_preview_graphics.html#ab5c908dfa3c9a1a5664ac8a95369fa1fa3fafc5355ebbaefacf9c83c15618249d" title="On a station node: the id of its platform, empty without one.">PreviewGraphics::PlatformId</a>). A node, a track, an arc, a connection and a station are rows of their own kind. A station node is the row of its platform under Platforms, or its row under Nodes when it has no platform. A signal head names a section, and is the row of the block of that section under Blocks, whose track the filter then shows. The cells that are being edited are taken first (<a class="el" href="#a97abf3cc2e21bd76b6cd282d75da1176">commitPendingEditors()</a>). selectionChanged is told once, or not at all when the row was selected already. Returns false and changes nothing while the scene cannot be edited, and for an item of another kind or whose entity the scene does not have. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1678,6 +1734,32 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The table that the facets fill; the panel owns it. </p>
+
+</div>
+</div>
+<a id="a8205342d43f5d5e683204782d949fe4d" name="a8205342d43f5d5e683204782d949fe4d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8205342d43f5d5e683204782d949fe4d">&#9670;&#160;</a></span>trackFilterCombo()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QComboBox * InfrastructurePanel::trackFilterCombo </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The filter on a track of a facet with <a class="el" href="class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9a9b39d8f8522e190b4126c5d7ec4b3eaf">InfrastructureFacet::TrackRowFilter</a>, shown while one is listed: "All tracks" with an empty id as its data, then the tracks of the scene with their ids. One choice serves every such facet. </p>
 
 </div>
 </div>

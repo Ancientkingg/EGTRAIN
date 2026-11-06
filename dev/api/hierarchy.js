@@ -40,6 +40,7 @@ var hierarchy =
     [ "CapacityCriticalBlock", "struct_capacity_critical_block.html", null ],
     [ "CapacityHeadwayEvidence", "struct_capacity_headway_evidence.html", null ],
     [ "CapacityPairRow", "struct_capacity_pair_row.html", null ],
+    [ "InfrastructureFacet::Choice", "struct_infrastructure_facet_1_1_choice.html", null ],
     [ "CommandLineOption", "struct_command_line_option.html", null ],
     [ "CompletedRoute", "struct_completed_route.html", null ],
     [ "CompletedRunData", "struct_completed_run_data.html", null ],

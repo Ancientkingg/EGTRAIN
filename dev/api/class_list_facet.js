@@ -10,6 +10,7 @@ var class_list_facet =
     [ "idBase", "class_list_facet.html#a745404cf0a3ba3d75aff338af1111079", null ],
     [ "key", "class_list_facet.html#a48f1dc4d233c93e2a0a4e5042e8366f9", null ],
     [ "newItem", "class_list_facet.html#ac70084e96686c9a4f14ad8b8ec2655bc", null ],
+    [ "refusal", "class_list_facet.html#aa41eeaa230093cee844aab3cbd43952b", null ],
     [ "remove", "class_list_facet.html#abc844f336839decab2a5b3fbbd5c89bc", null ],
     [ "rewriteReferences", "class_list_facet.html#af5ce94a6a767f0014372e13185cf242f", null ]
 ];

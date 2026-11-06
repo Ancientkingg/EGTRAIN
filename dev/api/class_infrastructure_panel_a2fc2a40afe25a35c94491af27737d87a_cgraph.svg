@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title="Adds an entity of the chosen kind.">
+<g id="a_Node000001"><a xlink:title="Adds an entity of the chosen kind, after clearing the filters.">
 <polygon fill="#999999" stroke="#666666" points="108.25,-46.12 0,-46.12 0,-12.62 108.25,-12.62 108.25,-46.12"/>
 <text xml:space="preserve" text-anchor="start" x="8" y="-32.62" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text xml:space="preserve" text-anchor="middle" x="54.12" y="-19.88" font-family="Helvetica,sans-Serif" font-size="10.00">::addEntity</text>

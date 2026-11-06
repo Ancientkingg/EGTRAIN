@@ -120,11 +120,17 @@ Inheritance diagram for InfrastructureFacet:</div>
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_facet__inherit__graph.svg" width="371" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:Choice" id="r_Choice"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_infrastructure_facet_1_1_choice.html">Choice</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An entity that a cell can refer to: the text that names it in a list, and the id that the cell takes.  <a href="struct_infrastructure_facet_1_1_choice.html#details">More...</a><br /></td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:aed4e8cca9f65e056704bccc4b37817f9" id="r_aed4e8cca9f65e056704bccc4b37817f9"><td class="memItemLeft">enum &#160;</td><td class="memItemRight"><a class="el" href="#aed4e8cca9f65e056704bccc4b37817f9">Capability</a> { <a class="el" href="#aed4e8cca9f65e056704bccc4b37817f9aa8c764d408d15a5b6f8b2e25d4aceab3">TrackFilter</a> = 0x1
 , <a class="el" href="#aed4e8cca9f65e056704bccc4b37817f9a2665198455233842906ff0552c11b3b2">InsertAndMove</a> = 0x2
 , <a class="el" href="#aed4e8cca9f65e056704bccc4b37817f9a4bbe5408bbda88213b08d905933cdead">RouteSections</a> = 0x4
+, <a class="el" href="#aed4e8cca9f65e056704bccc4b37817f9a9b39d8f8522e190b4126c5d7ec4b3eaf">TrackRowFilter</a> = 0x8
  }</td></tr>
 <tr class="memdesc:aed4e8cca9f65e056704bccc4b37817f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">The controls next to the table that a facet uses besides the Add and Delete buttons.  <a href="#aed4e8cca9f65e056704bccc4b37817f9">More...</a><br /></td></tr>
 </table><table class="memberdecls">
@@ -146,6 +152,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a1bcf515fa43eaf66f879c75970f36875"><td class="mdescLeft">&#160;</td><td class="mdescRight">The headers of the table.  <br /></td></tr>
 <tr class="memitem:abde7ecdd5e31bdfe8ef5fa76ba0e759f" id="r_abde7ecdd5e31bdfe8ef5fa76ba0e759f"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#abde7ecdd5e31bdfe8ef5fa76ba0e759f">fillRows</a> (<a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;panel)=0</td></tr>
 <tr class="memitem:a236bf728d7cfc10f94d25c5e862252b2" id="r_a236bf728d7cfc10f94d25c5e862252b2"><td class="memItemLeft">virtual QString&#160;</td><td class="memItemRight"><a class="el" href="#a236bf728d7cfc10f94d25c5e862252b2">selectionId</a> (const QTableWidget &amp;table, int row) const</td></tr>
+<tr class="memitem:ac0616ed4d0ef19ba9f1e87145e5d09f7" id="r_ac0616ed4d0ef19ba9f1e87145e5d09f7"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#ac0616ed4d0ef19ba9f1e87145e5d09f7">rowOnTrack</a> (const <a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;, int, const std::string &amp;) const</td></tr>
+<tr class="memdesc:ac0616ed4d0ef19ba9f1e87145e5d09f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the entity in <span class="tt">row</span> lies on the track <span class="tt">trackId</span>, for the filter of TrackRowFilter. The default is true.  <br /></td></tr>
+<tr class="memitem:ab76f5f01c5663380c3f1ec64ac96cc84" id="r_ab76f5f01c5663380c3f1ec64ac96cc84"><td class="memItemLeft">virtual std::vector&lt; <a class="el" href="struct_infrastructure_facet_1_1_choice.html">Choice</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ab76f5f01c5663380c3f1ec64ac96cc84">choices</a> (const <a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;, int, int) const</td></tr>
 <tr class="memitem:ae6e8b73a3c6c40dd3b750f5d4d727288" id="r_ae6e8b73a3c6c40dd3b750f5d4d727288"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#ae6e8b73a3c6c40dd3b750f5d4d727288">commitCell</a> (<a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;panel, int row, int column)=0</td></tr>
 <tr class="memdesc:ae6e8b73a3c6c40dd3b750f5d4d727288"><td class="mdescLeft">&#160;</td><td class="mdescRight">The cell in <span class="tt">row</span> and <span class="tt">column</span> has been edited: takes its text into the model, or refuses it.  <br /></td></tr>
 <tr class="memitem:a59ef82d561cda5d6590da834599652b2" id="r_a59ef82d561cda5d6590da834599652b2"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a59ef82d561cda5d6590da834599652b2">add</a> (<a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;panel)=0</td></tr>
@@ -177,6 +186,10 @@ Protected Types</h2></td></tr>
 Static Protected Member Functions</h2></td></tr>
 <tr class="memitem:ac1a496d6ca177637508453cacaec8202" id="r_ac1a496d6ca177637508453cacaec8202"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#ac1a496d6ca177637508453cacaec8202">setCell</a> (QTableWidget &amp;table, int row, int column, const QString &amp;text, bool editable=true)</td></tr>
 <tr class="memdesc:ac1a496d6ca177637508453cacaec8202"><td class="mdescLeft">&#160;</td><td class="mdescRight">Puts a text cell in the table, which owns it. A cell that is not editable shows a value that follows from the others.  <br /></td></tr>
+<tr class="memitem:a673539005907917979ae8830c3ce596a" id="r_a673539005907917979ae8830c3ce596a"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a673539005907917979ae8830c3ce596a">setFlagCell</a> (QTableWidget &amp;table, int row, int column, bool value)</td></tr>
+<tr class="memitem:a41463bc765631c1d8abb406c762b3187" id="r_a41463bc765631c1d8abb406c762b3187"><td class="memItemLeft">static QString&#160;</td><td class="memItemRight"><a class="el" href="#a41463bc765631c1d8abb406c762b3187">cellValue</a> (const QTableWidgetItem &amp;item)</td></tr>
+<tr class="memdesc:a41463bc765631c1d8abb406c762b3187"><td class="mdescLeft">&#160;</td><td class="mdescRight">What an edited cell holds: its trimmed text, or for a check box (a cell with a check state) "true" or "false".  <br /></td></tr>
+<tr class="memitem:a4833f06f9f35761194335cd98029e503" id="r_a4833f06f9f35761194335cd98029e503"><td class="memItemLeft">static QString&#160;</td><td class="memItemRight"><a class="el" href="#a4833f06f9f35761194335cd98029e503">missingIdsText</a> (const QString &amp;noun, const QStringList &amp;ids)</td></tr>
 <tr class="memitem:a93965812d3e22c65de39f10caac500ee" id="r_a93965812d3e22c65de39f10caac500ee"><td class="memItemLeft">static QString&#160;</td><td class="memItemRight"><a class="el" href="#a93965812d3e22c65de39f10caac500ee">numberText</a> (double value)</td></tr>
 <tr class="memdesc:a93965812d3e22c65de39f10caac500ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">The text of a number with enough digits to give the number back.  <br /></td></tr>
 <tr class="memitem:a9760eaef45f7754a6a786e578f1dc455" id="r_a9760eaef45f7754a6a786e578f1dc455"><td class="memItemLeft">static QString&#160;</td><td class="memItemRight"><a class="el" href="#a9760eaef45f7754a6a786e578f1dc455">flagText</a> (bool value)</td></tr>
@@ -192,7 +205,7 @@ Static Protected Member Functions</h2></td></tr>
 <tr class="memdesc:a45715831d447cdca65a9318f133c5f05"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the item in <span class="tt">row</span> can take <span class="tt">id</span>: it is not empty, and no other item has it.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>One kind of entity that the infrastructure panel lists, such as the tracks. The panel owns the facet combo, the table, the selection and the facets. A facet knows the columns of the table, the rows that show the entities of the scene, and what an edited cell, an addition and a deletion do to the model of the panel's document. It changes the model only through <a class="el" href="class_infrastructure_panel.html#a01a8c86d0644b2bdd52829f2ecca4d09">InfrastructurePanel::edit</a> or <a class="el" href="class_infrastructure_panel.html#a43eebc6c38b4a076554d434bc3d42846">InfrastructurePanel::editInPlace</a>, which refuse while the document is not open for edits, and when it refuses an edit it calls <a class="el" href="class_infrastructure_panel.html#afe771b2db8b9514abd02da5eaba017c0">InfrastructurePanel::refuseEdit</a>. The panel calls <a class="el" href="#a737539b2834dc70254b559a438baf711" title="The value that the facet combo stores for this facet, such as &quot;tracks&quot;.">key()</a>, <a class="el" href="#a1918c6757b3db77a5ea28ed59e76353a" title="The controls that the panel shows for this facet. The default is none.">capabilities()</a>, <a class="el" href="#a1bcf515fa43eaf66f879c75970f36875" title="The headers of the table.">columns()</a>, <a class="el" href="#abde7ecdd5e31bdfe8ef5fa76ba0e759f">fillRows()</a>, <a class="el" href="#a236bf728d7cfc10f94d25c5e862252b2">selectionId()</a> and <a class="el" href="#ade0c153239bac056442822ccd1dacada">commitPendingEdits()</a> at any time, and <a class="el" href="#ae6e8b73a3c6c40dd3b750f5d4d727288" title="The cell in row and column has been edited: takes its text into the model, or refuses it.">commitCell()</a>, <a class="el" href="#a59ef82d561cda5d6590da834599652b2" title="Adds an entity.">add()</a>, <a class="el" href="#ad937cff6135a5a2a9bde611d4a96613b" title="Deletes the entity in the selected row after the user has confirmed it.">remove()</a>, <a class="el" href="#af93ff13e6c64ae7d9f83a882a5684274" title="Inserts an entity before the selected one.">insert()</a>, <a class="el" href="#a1a84433cbd92f00c37061e96cdd6b65d" title="Moves the selected entity down by offset rows, up when it is negative.">move()</a>, <a class="el" href="#abfeec33ab7ce714e7c67d99115ffe5b5" title="Adds the section that the catalog shows to the selected route.">addSection()</a>, <a class="el" href="#a6ff123f514278f36578447388f62b16d" title="Removes the selected section from the selected route.">removeSection()</a> and <a class="el" href="#a8933cd118adc79cab0129573be920109" title="Moves the selected section of the selected route down by offset places, up when it is negative.">moveSection()</a> only while the scene is loaded and open for edits. A widget that a facet puts in the table can still change while the scene is closed for edits. </p>
+<div class="textblock"><p>One kind of entity that the infrastructure panel lists, such as the tracks. The panel owns the facet combo, the table, the selection and the facets. A facet knows the columns of the table, the rows that show the entities of the scene, and what an edited cell, an addition and a deletion do to the model of the panel's document. It changes the model only through <a class="el" href="class_infrastructure_panel.html#a01a8c86d0644b2bdd52829f2ecca4d09">InfrastructurePanel::edit</a> or <a class="el" href="class_infrastructure_panel.html#a43eebc6c38b4a076554d434bc3d42846">InfrastructurePanel::editInPlace</a>, which refuse while the document is not open for edits, and when it refuses an edit it calls <a class="el" href="class_infrastructure_panel.html#afe771b2db8b9514abd02da5eaba017c0">InfrastructurePanel::refuseEdit</a>. The panel calls <a class="el" href="#a737539b2834dc70254b559a438baf711" title="The value that the facet combo stores for this facet, such as &quot;tracks&quot;.">key()</a>, <a class="el" href="#a1918c6757b3db77a5ea28ed59e76353a" title="The controls that the panel shows for this facet. The default is none.">capabilities()</a>, <a class="el" href="#a1bcf515fa43eaf66f879c75970f36875" title="The headers of the table.">columns()</a>, <a class="el" href="#abde7ecdd5e31bdfe8ef5fa76ba0e759f">fillRows()</a>, <a class="el" href="#a236bf728d7cfc10f94d25c5e862252b2">selectionId()</a>, <a class="el" href="#ac0616ed4d0ef19ba9f1e87145e5d09f7" title="Whether the entity in row lies on the track trackId, for the filter of TrackRowFilter....">rowOnTrack()</a>, <a class="el" href="#ab76f5f01c5663380c3f1ec64ac96cc84">choices()</a> and <a class="el" href="#ade0c153239bac056442822ccd1dacada">commitPendingEdits()</a> at any time, and <a class="el" href="#ae6e8b73a3c6c40dd3b750f5d4d727288" title="The cell in row and column has been edited: takes its text into the model, or refuses it.">commitCell()</a>, <a class="el" href="#a59ef82d561cda5d6590da834599652b2" title="Adds an entity.">add()</a>, <a class="el" href="#ad937cff6135a5a2a9bde611d4a96613b" title="Deletes the entity in the selected row after the user has confirmed it.">remove()</a>, <a class="el" href="#af93ff13e6c64ae7d9f83a882a5684274" title="Inserts an entity before the selected one.">insert()</a>, <a class="el" href="#a1a84433cbd92f00c37061e96cdd6b65d" title="Moves the selected entity down by offset rows, up when it is negative.">move()</a>, <a class="el" href="#abfeec33ab7ce714e7c67d99115ffe5b5" title="Adds the section that the catalog shows to the selected route.">addSection()</a>, <a class="el" href="#a6ff123f514278f36578447388f62b16d" title="Removes the selected section from the selected route.">removeSection()</a> and <a class="el" href="#a8933cd118adc79cab0129573be920109" title="Moves the selected section of the selected route down by offset places, up when it is negative.">moveSection()</a> only while the scene is loaded and open for edits. A widget that a facet puts in the table can still change while the scene is closed for edits. </p>
 </div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="aed4e8cca9f65e056704bccc4b37817f9" name="aed4e8cca9f65e056704bccc4b37817f9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aed4e8cca9f65e056704bccc4b37817f9">&#9670;&#160;</a></span>Capability</h2>
@@ -213,6 +226,8 @@ Static Protected Member Functions</h2></td></tr>
 <tr><td class="fieldname"><a id="aed4e8cca9f65e056704bccc4b37817f9a2665198455233842906ff0552c11b3b2" name="aed4e8cca9f65e056704bccc4b37817f9a2665198455233842906ff0552c11b3b2"></a>InsertAndMove&#160;</td><td class="fielddoc"><p>The Insert, Move Up and Move Down buttons, which call <a class="el" href="#af93ff13e6c64ae7d9f83a882a5684274" title="Inserts an entity before the selected one.">insert()</a> and <a class="el" href="#a1a84433cbd92f00c37061e96cdd6b65d" title="Moves the selected entity down by offset rows, up when it is negative.">move()</a>. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="aed4e8cca9f65e056704bccc4b37817f9a4bbe5408bbda88213b08d905933cdead" name="aed4e8cca9f65e056704bccc4b37817f9a4bbe5408bbda88213b08d905933cdead"></a>RouteSections&#160;</td><td class="fielddoc"><p>The sections of the selected route below the table, whose buttons call <a class="el" href="#abfeec33ab7ce714e7c67d99115ffe5b5" title="Adds the section that the catalog shows to the selected route.">addSection()</a>, <a class="el" href="#a6ff123f514278f36578447388f62b16d" title="Removes the selected section from the selected route.">removeSection()</a> and <a class="el" href="#a8933cd118adc79cab0129573be920109" title="Moves the selected section of the selected route down by offset places, up when it is negative.">moveSection()</a>. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aed4e8cca9f65e056704bccc4b37817f9a9b39d8f8522e190b4126c5d7ec4b3eaf" name="aed4e8cca9f65e056704bccc4b37817f9a9b39d8f8522e190b4126c5d7ec4b3eaf"></a>TrackRowFilter&#160;</td><td class="fielddoc"><p>The filter on a track above the table that hides the rows that are not on the chosen track (<a class="el" href="#ac0616ed4d0ef19ba9f1e87145e5d09f7" title="Whether the entity in row lies on the track trackId, for the filter of TrackRowFilter....">rowOnTrack()</a>). Add does not use it. </p>
 </td></tr>
 </table>
 
@@ -425,6 +440,73 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_facet_a1918c6757b3db77a5ea28ed59e76353a_cgraph.svg" width="155" height="80"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a41463bc765631c1d8abb406c762b3187" name="a41463bc765631c1d8abb406c762b3187"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a41463bc765631c1d8abb406c762b3187">&#9670;&#160;</a></span>cellValue()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString InfrastructureFacet::cellValue </td>
+          <td>(</td>
+          <td class="paramtype">const QTableWidgetItem &amp;</td>          <td class="paramname"><span class="paramname"><em>item</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>What an edited cell holds: its trimmed text, or for a check box (a cell with a check state) "true" or "false". </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_facet_a41463bc765631c1d8abb406c762b3187_cgraph.svg" width="346" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ab76f5f01c5663380c3f1ec64ac96cc84" name="ab76f5f01c5663380c3f1ec64ac96cc84"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab76f5f01c5663380c3f1ec64ac96cc84">&#9670;&#160;</a></span>choices()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual std::vector&lt; <a class="el" href="struct_infrastructure_facet_1_1_choice.html">Choice</a> &gt; InfrastructureFacet::choices </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em></em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em></em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The entities that the cell in <span class="tt">row</span> and <span class="tt">column</span> can refer to, in the order of the list. The editor of such a cell is a combo of their labels in which the user can also type, and which completes what is typed from any part of a label, ignoring case. The cell takes the id of the chosen entity, or the text when it is no label. The default, for a cell that takes any text, is none. </p>
 
 </div>
 </div>
@@ -675,6 +757,36 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a4833f06f9f35761194335cd98029e503" name="a4833f06f9f35761194335cd98029e503"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4833f06f9f35761194335cd98029e503">&#9670;&#160;</a></span>missingIdsText()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString InfrastructureFacet::missingIdsText </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>noun</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QStringList &amp;</td>          <td class="paramname"><span class="paramname"><em>ids</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The message that refuses ids that the scene does not have. <span class="tt">noun</span> names one entity of their kind, such as "Node": "Node 'n9' does not exist" or "Nodes 'n8', 'n9' do not exist". An empty id asks for one: "Choose a node". </p>
+
+</div>
+</div>
 <a id="a1a84433cbd92f00c37061e96cdd6b65d" name="a1a84433cbd92f00c37061e96cdd6b65d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1a84433cbd92f00c37061e96cdd6b65d">&#9670;&#160;</a></span>move()</h2>
 
@@ -852,6 +964,42 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="ac0616ed4d0ef19ba9f1e87145e5d09f7" name="ac0616ed4d0ef19ba9f1e87145e5d09f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac0616ed4d0ef19ba9f1e87145e5d09f7">&#9670;&#160;</a></span>rowOnTrack()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool InfrastructureFacet::rowOnTrack </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em></em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Whether the entity in <span class="tt">row</span> lies on the track <span class="tt">trackId</span>, for the filter of TrackRowFilter. The default is true. </p>
+
+</div>
+</div>
 <a id="a236bf728d7cfc10f94d25c5e862252b2" name="a236bf728d7cfc10f94d25c5e862252b2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a236bf728d7cfc10f94d25c5e862252b2">&#9670;&#160;</a></span>selectionId()</h2>
 
@@ -958,6 +1106,46 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Stores the flag that <span class="tt">text</span> reads, "true" or "false" in any case, in <span class="tt">target</span>. Other text is refused. </p>
+
+</div>
+</div>
+<a id="a673539005907917979ae8830c3ce596a" name="a673539005907917979ae8830c3ce596a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a673539005907917979ae8830c3ce596a">&#9670;&#160;</a></span>setFlagCell()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void InfrastructureFacet::setFlagCell </td>
+          <td>(</td>
+          <td class="paramtype">QTableWidget &amp;</td>          <td class="paramname"><span class="paramname"><em>table</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>row</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>column</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>value</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Puts a check box for a flag in the table, which owns it. The cell has no text and takes none; a click on the box changes the flag, and <a class="el" href="#a41463bc765631c1d8abb406c762b3187" title="What an edited cell holds: its trimmed text, or for a check box (a cell with a check state) &quot;true&quot; or...">cellValue()</a> reads it as <a class="el" href="#a9760eaef45f7754a6a786e578f1dc455" title="The text of a flag: &quot;true&quot; or &quot;false&quot;.">flagText()</a> does. </p>
 
 </div>
 </div>

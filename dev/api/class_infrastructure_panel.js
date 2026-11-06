@@ -11,6 +11,7 @@ var class_infrastructure_panel =
     [ "commitCell", "class_infrastructure_panel.html#a1cdddd1de7b9b429003b2c6dd9a313f2", null ],
     [ "commitPendingEditors", "class_infrastructure_panel.html#a97abf3cc2e21bd76b6cd282d75da1176", null ],
     [ "confirmDelete", "class_infrastructure_panel.html#a4bbcb9306a3d4e6816b581171adab0ef", null ],
+    [ "countLabel", "class_infrastructure_panel.html#ad3fbd3d60689a669323e5417a27b47a4", null ],
     [ "deleteButton", "class_infrastructure_panel.html#ad55cec35eb8d49b5e8fe20b8a01b6ea7", null ],
     [ "deleteEntity", "class_infrastructure_panel.html#a8963162b471a29e8d0156422d3a45856", null ],
     [ "documentReplaced", "class_infrastructure_panel.html#a074f48f2320d84d763f53f77f91598eb", null ],
@@ -21,6 +22,7 @@ var class_infrastructure_panel =
     [ "facetKey", "class_infrastructure_panel.html#afb09d53bfc86597cdcee9e0b586e9792", null ],
     [ "facetKeys", "class_infrastructure_panel.html#a93adee461c3c66c05fcbda41214c7b9e", null ],
     [ "facetTitle", "class_infrastructure_panel.html#a61ff0dbc34d7c80ed1d05f771a4a9a19", null ],
+    [ "filterEdit", "class_infrastructure_panel.html#a1df7f1a5185aa855cb7b949df0bdaff8", null ],
     [ "guidanceLabel", "class_infrastructure_panel.html#afe2a929b6ca5ada5828a376e9d64f199", null ],
     [ "insertBlockButton", "class_infrastructure_panel.html#af44445c46656b46bfc01aba90a285d2d", null ],
     [ "insertEntity", "class_infrastructure_panel.html#aa37ed4827fec2cc069a6c62d9c0a3876", null ],
@@ -54,5 +56,6 @@ var class_infrastructure_panel =
     [ "showStatus", "class_infrastructure_panel.html#adceee517b3c2ddee88aa4f085f541b74", null ],
     [ "statusMessage", "class_infrastructure_panel.html#a22e28927ad36bf4eb7ae077ef3c4ec79", null ],
     [ "table", "class_infrastructure_panel.html#a73a2fc120255bc2db5c662b6d61de8ab", null ],
+    [ "trackFilterCombo", "class_infrastructure_panel.html#a8205342d43f5d5e683204782d949fe4d", null ],
     [ "updateSelection", "class_infrastructure_panel.html#aa5c4d490988f68fa3f7085752c78e400", null ]
 ];

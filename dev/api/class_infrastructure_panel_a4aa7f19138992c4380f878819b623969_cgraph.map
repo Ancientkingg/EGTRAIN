@@ -1,84 +1,87 @@
 <map id="InfrastructurePanel::InfrastructurePanel" name="InfrastructurePanel::InfrastructurePanel">
-<area shape="rect" id="Node000001" title="Makes the widgets, without facets and empty until a loaded document is set." alt="" coords="5,577,158,622"/>
-<area shape="rect" id="Node000002" href="$class_infrastructure_panel.html#a2fc2a40afe25a35c94491af27737d87a" title="Adds an entity of the chosen kind." alt="" coords="243,217,387,262"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,576,95,520,116,444,152,362,176,323,204,288,233,268,230,272,208,292,180,326,157,365,122,446,100,521,89,577"/>
-<area shape="rect" id="Node000006" href="$class_infrastructure_panel.html#a9a04a6929b935a136dea467f7088c96e" title="Adds the section of the catalog that is chosen to the selected route." alt="" coords="501,448,645,493"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="99,576,144,532,173,510,205,493,276,472,350,461,422,457,487,460,483,463,422,462,351,466,277,477,207,498,176,515,147,536,104,578"/>
-<area shape="rect" id="Node000007" href="$class_infrastructure_panel.html#a1cdddd1de7b9b429003b2c6dd9a313f2" title="The cell in row and column has been edited; the chosen facet takes it." alt="" coords="243,388,387,433"/>
-<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="94,576,138,514,169,480,204,450,230,436,227,440,207,454,173,483,142,517,99,578"/>
-<area shape="rect" id="Node000009" href="$class_infrastructure_panel.html#a8963162b471a29e8d0156422d3a45856" title="Deletes the entity in the selected row after the user has confirmed it." alt="" coords="243,65,387,110"/>
-<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="79,577,81,494,86,437,95,375,111,309,133,244,163,182,204,127,231,108,228,113,208,131,168,185,138,246,116,311,101,376,91,438,86,494,85,577"/>
-<area shape="rect" id="Node000011" href="$class_infrastructure_panel.html#afb09d53bfc86597cdcee9e0b586e9792" title="The key of the chosen facet, one of facetKeys()." alt="" coords="745,1267,889,1311"/>
-<area shape="poly" id="edge13_Node000001_Node000011" title=" " alt="" coords="85,620,102,733,128,892,144,974,163,1050,185,1113,208,1157,256,1214,304,1257,355,1286,407,1304,465,1313,527,1316,674,1308,732,1303,727,1305,675,1313,527,1321,464,1319,406,1309,352,1291,301,1261,252,1218,203,1160,180,1115,158,1051,139,975,122,893,97,734,85,625"/>
-<area shape="rect" id="Node000012" href="$class_infrastructure_panel.html#aa37ed4827fec2cc069a6c62d9c0a3876" title="Inserts an entity before the selected one." alt="" coords="243,508,387,553"/>
-<area shape="poly" id="edge14_Node000001_Node000012" title=" " alt="" coords="156,575,230,554,226,558,160,579"/>
-<area shape="rect" id="Node000013" href="$class_infrastructure_panel.html#ab6fce7b583449030a197a740a611e0b0" title="Moves the selected entity down by offset rows, up when it is negative." alt="" coords="243,577,387,622"/>
-<area shape="poly" id="edge16_Node000001_Node000013" title=" " alt="" coords="156,598,229,598,225,601,159,602"/>
-<area shape="rect" id="Node000014" href="$class_infrastructure_panel.html#a65c4cc7ac6e034a97aff86af909ae3fa" title="Moves the selected section of the route down by offset places, up when it is negative." alt="" coords="243,141,387,186"/>
-<area shape="poly" id="edge18_Node000001_Node000014" title=" " alt="" coords="81,577,86,506,104,407,120,353,141,299,169,248,204,203,230,185,227,190,208,207,173,251,146,301,125,355,109,408,92,507,86,577"/>
-<area shape="rect" id="Node000015" href="$class_infrastructure_panel.html#a893cdf9d2324e3abdc6e465a8c3fd7e5" title="Lists the entities of the chosen facet again, and keeps the selected row where it still exists." alt="" coords="243,1443,387,1487"/>
-<area shape="poly" id="edge20_Node000001_Node000015" title=" " alt="" coords="84,620,95,774,116,1005,132,1126,153,1238,178,1332,192,1369,208,1398,224,1417,245,1434,240,1435,220,1421,203,1401,187,1371,173,1334,147,1239,127,1127,111,1005,90,775,84,625"/>
-<area shape="rect" id="Node000016" href="$class_infrastructure_panel.html#a0c87b611dfdbee714133398d548be696" title="The same as refresh(bool) without the state of the combo and the add button. The facets call it after..." alt="" coords="243,915,387,959"/>
-<area shape="poly" id="edge22_Node000001_Node000016" title=" " alt="" coords="99,620,292,901,287,903,98,625"/>
-<area shape="rect" id="Node000024" href="$class_infrastructure_panel.html#aa5c4d490988f68fa3f7085752c78e400" title="Takes the selected row as the selection, tells selectionChanged, and shows the controls that depend o..." alt="" coords="501,1197,645,1242"/>
-<area shape="poly" id="edge52_Node000001_Node000024" title=" " alt="" coords="86,620,99,686,121,776,156,876,180,925,208,970,267,1044,324,1092,389,1132,473,1179,494,1190,488,1191,471,1183,386,1136,321,1097,263,1048,203,973,175,927,151,878,116,777,94,687,86,625"/>
-<area shape="rect" id="Node000025" href="$class_infrastructure_panel.html#a9b4bd64176552b66de1c20d4e5dec616" title=" " alt="" coords="744,1347,890,1391"/>
-<area shape="poly" id="edge51_Node000001_Node000025" title=" " alt="" coords="83,620,91,764,109,974,124,1082,145,1180,173,1260,189,1290,207,1312,244,1334,298,1351,365,1362,439,1369,594,1374,732,1373,727,1374,594,1379,439,1375,364,1367,297,1356,242,1339,204,1316,185,1293,168,1263,140,1182,119,1083,103,974,86,764,83,625"/>
-<area shape="rect" id="Node000027" href="$class_infrastructure_panel.html#a07f679fefcfe17cd067b11711a346d7b" title="Removes the selected section of the route." alt="" coords="243,303,387,347"/>
-<area shape="poly" id="edge44_Node000001_Node000027" title=" " alt="" coords="87,576,103,534,127,481,161,424,204,374,236,353,233,357,207,378,165,427,132,483,108,536,93,578"/>
-<area shape="rect" id="Node000028" href="$class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" title="A panel without a document." alt="" coords="206,1512,424,1557"/>
-<area shape="poly" id="edge46_Node000001_Node000028" title=" " alt="" coords="83,620,88,793,94,919,103,1056,118,1194,140,1321,154,1377,170,1426,187,1467,208,1498,210,1502,205,1501,204,1501,183,1470,165,1428,149,1379,135,1322,113,1195,98,1057,88,919,83,794,83,625"/>
-<area shape="rect" id="Node000029" href="$namespace_editor_layout.html#a8aeab0ef1896c245802221520b549af0" title=" " alt="" coords="209,1604,421,1632"/>
-<area shape="poly" id="edge47_Node000001_Node000029" title=" " alt="" coords="83,620,88,803,94,938,104,1086,119,1234,140,1373,170,1488,188,1533,208,1567,223,1583,244,1598,239,1597,220,1587,204,1571,183,1535,165,1489,135,1374,113,1235,98,1086,89,938,83,803,83,625"/>
-<area shape="rect" id="Node000003" href="$class_infrastructure_facet.html#a59ef82d561cda5d6590da834599652b2" title="Adds an entity." alt="" coords="486,175,661,203"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="386,224,486,205,482,208,389,228"/>
-<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b" title="False while no scene is loaded or a run uses it." alt="" coords="722,487,912,515"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="386,229,453,227,527,232,604,248,641,262,676,280,702,299,725,322,763,375,791,427,809,472,804,472,786,430,758,377,721,326,698,303,673,285,639,267,603,253,527,237,452,232,389,233"/>
-<area shape="rect" id="Node000005" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="960,1095,1163,1123"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="826,513,1052,1081,1046,1081,823,518"/>
-<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="644,477,709,486,704,488,647,482"/>
-<area shape="poly" id="edge8_Node000007_Node000004" title=" " alt="" coords="386,406,522,409,599,418,675,433,731,453,781,478,776,480,729,458,674,438,598,423,522,415,389,410"/>
-<area shape="rect" id="Node000008" href="$class_infrastructure_facet.html#ae6e8b73a3c6c40dd3b750f5d4d727288" title="The cell in row and column has been edited: takes its text into the model, or refuses it." alt="" coords="502,328,645,373"/>
-<area shape="poly" id="edge9_Node000007_Node000008" title=" " alt="" coords="386,392,488,369,484,372,389,396"/>
-<area shape="poly" id="edge11_Node000009_Node000004" title=" " alt="" coords="386,73,454,67,530,70,569,76,607,86,643,102,676,123,715,160,745,204,769,253,787,303,809,399,817,472,812,471,804,400,782,305,765,255,741,207,710,164,673,127,640,107,605,91,568,81,529,75,454,72,389,77"/>
-<area shape="rect" id="Node000010" href="$class_infrastructure_facet.html#ad937cff6135a5a2a9bde611d4a96613b" title="Deletes the entity in the selected row after the user has confirmed it." alt="" coords="502,5,645,50"/>
-<area shape="poly" id="edge12_Node000009_Node000010" title=" " alt="" coords="386,69,488,46,484,50,389,73"/>
-<area shape="poly" id="edge15_Node000012_Node000004" title=" " alt="" coords="386,524,709,506,705,509,388,529"/>
-<area shape="poly" id="edge17_Node000013_Node000004" title=" " alt="" coords="386,583,729,516,726,520,389,588"/>
-<area shape="poly" id="edge19_Node000014_Node000004" title=" " alt="" coords="386,140,453,127,528,122,567,124,605,131,642,143,676,161,713,193,742,231,766,273,784,318,807,404,816,472,811,471,802,405,779,320,761,275,738,234,709,196,673,166,640,148,604,136,566,130,528,127,453,132,389,144"/>
-<area shape="poly" id="edge21_Node000015_Node000015" title=" " alt="" coords="270,1441,269,1433,277,1424,292,1418,315,1416,340,1419,357,1427,351,1428,339,1424,315,1421,293,1423,280,1428,274,1434,275,1443"/>
-<area shape="poly" id="edge23_Node000016_Node000004" title=" " alt="" coords="321,913,339,861,370,793,414,720,440,686,470,655,496,634,521,620,566,603,615,592,673,571,778,521,774,524,675,575,616,597,568,609,523,625,499,639,474,659,444,689,418,723,375,795,344,863,326,915"/>
-<area shape="poly" id="edge29_Node000016_Node000005" title=" " alt="" coords="339,957,416,1032,452,1065,473,1081,510,1092,560,1101,684,1110,820,1113,947,1113,942,1114,820,1118,684,1116,560,1106,509,1098,471,1086,448,1069,412,1036,339,963"/>
-<area shape="poly" id="edge27_Node000016_Node000011" title=" " alt="" coords="320,957,336,1020,363,1101,383,1144,408,1185,438,1222,474,1252,503,1269,534,1282,601,1298,668,1302,732,1301,727,1303,668,1308,600,1303,533,1287,500,1274,470,1257,434,1225,404,1188,379,1146,358,1103,331,1022,319,963"/>
-<area shape="rect" id="Node000017" href="$class_infrastructure_facet.html#a1918c6757b3db77a5ea28ed59e76353a" title="The controls that the panel shows for this facet. The default is none." alt="" coords="502,957,645,1002"/>
-<area shape="poly" id="edge24_Node000016_Node000017" title=" " alt="" coords="386,946,488,964,484,967,388,951"/>
-<area shape="rect" id="Node000018" href="$class_infrastructure_facet.html#a1bcf515fa43eaf66f879c75970f36875" title="The headers of the table." alt="" coords="502,1027,645,1071"/>
-<area shape="poly" id="edge26_Node000016_Node000018" title=" " alt="" coords="358,957,473,1012,490,1020,485,1021,471,1017,359,962"/>
-<area shape="rect" id="Node000019" href="$class_infrastructure_facet.html#abde7ecdd5e31bdfe8ef5fa76ba0e759f" title=" " alt="" coords="502,739,645,783"/>
-<area shape="poly" id="edge28_Node000016_Node000019" title=" " alt="" coords="333,913,391,854,429,822,471,793,489,786,485,790,473,798,433,826,395,858,338,916"/>
-<area shape="rect" id="Node000020" href="$_infrastructure_guidance_8cpp.html#a38d021c05876cb3015e8f9f3f4c94c48" title=" " alt="" coords="474,831,672,859"/>
-<area shape="poly" id="edge30_Node000016_Node000020" title=" " alt="" coords="372,912,471,874,512,862,508,866,473,880,375,916"/>
-<area shape="rect" id="Node000021" href="$class_infrastructure_panel.html#a82af8a411d19611929adaf6d8d328450" title="The model of the document; an empty scene without one." alt="" coords="745,772,889,817"/>
-<area shape="poly" id="edge32_Node000016_Node000021" title=" " alt="" coords="386,928,522,907,599,890,673,868,722,847,769,823,765,827,724,852,675,873,600,895,523,912,389,933"/>
-<area shape="rect" id="Node000022" href="$class_infrastructure_panel.html#a372635fb6d8c1c16b14aa9489d21c5f8" title="Lists the tracks that blocks can be filtered on again and keeps the chosen track where it still exist..." alt="" coords="484,669,662,714"/>
-<area shape="poly" id="edge33_Node000016_Node000022" title=" " alt="" coords="325,913,347,873,379,822,421,770,470,724,480,720,477,724,474,728,424,773,383,825,351,876,329,916"/>
-<area shape="rect" id="Node000023" href="$class_infrastructure_facet.html#a236bf728d7cfc10f94d25c5e862252b2" title=" " alt="" coords="745,1147,889,1191"/>
-<area shape="poly" id="edge36_Node000016_Node000023" title=" " alt="" coords="327,957,351,996,383,1043,424,1089,448,1109,473,1125,536,1151,604,1166,670,1173,732,1175,727,1177,670,1178,603,1172,535,1156,471,1130,444,1113,420,1092,378,1046,346,999,327,962"/>
-<area shape="poly" id="edge37_Node000016_Node000024" title=" " alt="" coords="331,957,413,1086,474,1176,490,1189,485,1190,470,1180,409,1089,330,962"/>
-<area shape="poly" id="edge25_Node000017_Node000017" title=" " alt="" coords="527,956,525,947,533,938,549,933,573,931,600,933,617,942,612,943,598,938,573,936,550,938,536,943,530,949,532,957"/>
-<area shape="poly" id="edge31_Node000020_Node000020" title=" " alt="" coords="531,831,525,822,530,813,547,807,573,805,602,807,619,815,614,817,600,812,573,810,548,812,534,817,530,822,537,831"/>
-<area shape="poly" id="edge34_Node000022_Node000004" title=" " alt="" coords="639,667,673,648,710,619,743,586,798,525,795,529,747,590,713,623,676,653,643,671"/>
-<area shape="poly" id="edge35_Node000022_Node000021" title=" " alt="" coords="643,712,675,724,761,764,756,766,673,729,644,717"/>
-<area shape="poly" id="edge38_Node000024_Node000004" title=" " alt="" coords="595,1195,635,1146,655,1115,672,1083,688,1036,698,996,703,924,705,851,710,808,720,759,739,693,761,629,802,531,805,527,766,631,744,695,725,760,715,809,710,851,708,924,703,996,693,1038,677,1085,660,1118,640,1149,599,1199"/>
-<area shape="poly" id="edge40_Node000024_Node000005" title=" " alt="" coords="645,1224,704,1226,771,1225,842,1217,911,1201,945,1187,977,1169,1030,1134,1035,1132,980,1174,947,1192,912,1206,843,1222,772,1230,704,1232,646,1229"/>
-<area shape="poly" id="edge39_Node000024_Node000011" title=" " alt="" coords="645,1237,732,1264,727,1265,646,1243"/>
-<area shape="poly" id="edge43_Node000024_Node000023" title=" " alt="" coords="645,1202,732,1186,727,1188,647,1207"/>
-<area shape="poly" id="edge41_Node000024_Node000025" title=" " alt="" coords="604,1240,660,1280,724,1321,754,1339,749,1339,721,1326,657,1284,604,1245"/>
-<area shape="rect" id="Node000026" href="$class_infrastructure_panel.html#a1ede3387c827781076354d8e8b2d4173" title="The facet with this key, or null. The panel keeps it." alt="" coords="989,1347,1134,1391"/>
-<area shape="poly" id="edge42_Node000025_Node000026" title=" " alt="" coords="890,1366,976,1369,971,1369,891,1372"/>
-<area shape="poly" id="edge45_Node000027_Node000004" title=" " alt="" coords="386,302,451,290,525,284,602,290,640,299,676,313,700,328,722,346,759,389,787,433,807,473,801,473,783,436,755,392,718,350,697,332,673,318,638,304,601,295,525,289,452,295,389,306"/>
-<area shape="poly" id="edge48_Node000029_Node000029" title=" " alt="" coords="275,1603,268,1596,274,1586,289,1580,315,1578,342,1580,359,1590,353,1589,341,1586,315,1583,290,1585,277,1590,274,1595,280,1605"/>
-<area shape="rect" id="Node000030" href="$namespace_editor_layout.html#a1bcc9ab5e8ef4ac521182638d3a22dde" title=" " alt="" coords="472,1604,674,1632"/>
-<area shape="poly" id="edge49_Node000029_Node000030" title=" " alt="" coords="422,1616,459,1618,454,1618,422,1621"/>
-<area shape="poly" id="edge50_Node000030_Node000030" title=" " alt="" coords="531,1603,525,1596,530,1586,547,1580,573,1578,602,1580,619,1590,613,1589,600,1586,573,1583,548,1585,534,1590,530,1595,536,1605"/>
+<area shape="rect" id="Node000001" title="Makes the widgets, without facets and empty until a loaded document is set." alt="" coords="5,981,158,1026"/>
+<area shape="rect" id="Node000002" href="$class_infrastructure_panel.html#a2fc2a40afe25a35c94491af27737d87a" title="Adds an entity of the chosen kind, after clearing the filters." alt="" coords="243,48,387,92"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,980,91,821,113,577,129,449,149,329,174,227,188,186,203,154,228,123,260,98,258,103,231,127,208,157,193,188,179,229,154,330,134,449,118,578,96,821,87,980"/>
+<area shape="rect" id="Node000006" href="$class_infrastructure_panel.html#a9a04a6929b935a136dea467f7088c96e" title="Adds the section of the catalog that is chosen to the selected route." alt="" coords="501,500,645,544"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="93,979,139,904,204,816,262,757,312,716,363,676,422,619,435,601,444,585,454,570,470,554,489,545,485,549,474,559,458,573,449,588,440,604,426,622,366,680,315,720,265,761,208,820,143,907,98,981"/>
+<area shape="rect" id="Node000007" href="$class_infrastructure_panel_1_1_cell_delegate.html#a5d2b676931636cbb1a6e8acd2ff561f3" title="The delegate of the table of panel; parent owns it." alt="" coords="212,1438,418,1483"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="83,1023,89,1099,105,1204,120,1261,141,1319,169,1374,205,1426,200,1427,164,1377,136,1321,115,1263,100,1205,84,1100,83,1029"/>
+<area shape="rect" id="Node000008" href="$class_infrastructure_panel.html#a1cdddd1de7b9b429003b2c6dd9a313f2" title="The cell in row and column has been edited; the chosen facet takes it." alt="" coords="243,168,387,212"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="82,980,94,841,118,633,134,524,154,422,177,336,203,274,228,244,260,219,257,224,231,247,208,277,182,338,159,423,140,525,123,634,99,842,87,981"/>
+<area shape="rect" id="Node000010" href="$class_infrastructure_panel.html#a8963162b471a29e8d0156422d3a45856" title="Deletes the entity in the selected row after the user has confirmed it." alt="" coords="243,288,387,332"/>
+<area shape="poly" id="edge12_Node000001_Node000010" title=" " alt="" coords="82,980,92,852,114,665,131,568,151,478,175,404,189,375,204,352,230,332,228,336,208,356,193,377,180,406,156,480,136,569,120,666,97,853,87,981"/>
+<area shape="rect" id="Node000012" href="$class_infrastructure_panel.html#afb09d53bfc86597cdcee9e0b586e9792" title="The key of the chosen facet, one of facetKeys()." alt="" coords="745,1286,889,1331"/>
+<area shape="poly" id="edge15_Node000001_Node000012" title=" " alt="" coords="94,1023,141,1096,172,1137,208,1175,273,1232,329,1271,390,1300,473,1326,539,1337,606,1339,671,1334,732,1327,727,1329,672,1339,607,1344,538,1342,471,1331,388,1305,326,1276,270,1236,204,1178,168,1140,136,1099,95,1028"/>
+<area shape="rect" id="Node000013" href="$class_infrastructure_panel.html#aa37ed4827fec2cc069a6c62d9c0a3876" title="Inserts an entity before the selected one, after clearing the text filter." alt="" coords="501,569,645,614"/>
+<area shape="poly" id="edge16_Node000001_Node000013" title=" " alt="" coords="124,979,189,940,268,886,349,819,388,781,422,742,438,712,443,685,451,659,470,631,489,618,486,622,474,634,455,661,449,687,443,714,426,745,391,785,353,823,271,890,192,944,128,982"/>
+<area shape="rect" id="Node000014" href="$class_infrastructure_panel.html#ab6fce7b583449030a197a740a611e0b0" title="Moves the selected entity down by offset rows, up when it is negative. Does nothing while a filter hi..." alt="" coords="243,366,387,411"/>
+<area shape="poly" id="edge18_Node000001_Node000014" title=" " alt="" coords="83,980,96,869,121,709,138,626,157,550,179,486,204,442,234,417,231,421,208,445,184,489,162,552,143,628,126,710,101,870,88,981"/>
+<area shape="rect" id="Node000015" href="$class_infrastructure_panel.html#a65c4cc7ac6e034a97aff86af909ae3fa" title="Moves the selected section of the route down by offset places, up when it is negative." alt="" coords="243,456,387,500"/>
+<area shape="poly" id="edge20_Node000001_Node000015" title=" " alt="" coords="81,980,87,903,106,792,121,730,142,667,169,606,204,550,225,526,254,507,251,511,229,530,208,553,174,608,147,669,126,731,111,793,93,904,86,981"/>
+<area shape="rect" id="Node000016" href="$class_infrastructure_panel.html#a893cdf9d2324e3abdc6e465a8c3fd7e5" title="Lists the entities of the chosen facet again, and keeps the selected row where it still exists." alt="" coords="243,1532,387,1576"/>
+<area shape="poly" id="edge22_Node000001_Node000016" title=" " alt="" coords="83,1023,88,1110,103,1232,118,1300,140,1368,170,1434,208,1494,222,1509,241,1523,235,1524,219,1513,204,1497,165,1436,135,1370,113,1302,98,1233,83,1110,82,1029"/>
+<area shape="rect" id="Node000017" href="$class_infrastructure_panel.html#a0c87b611dfdbee714133398d548be696" title="The same as refresh(bool) without the state of the combo and the add button. The facets call it after..." alt="" coords="243,981,387,1026"/>
+<area shape="poly" id="edge24_Node000001_Node000017" title=" " alt="" coords="156,1001,229,1001,225,1005,159,1005"/>
+<area shape="rect" id="Node000025" href="$class_infrastructure_panel.html#aa5c4d490988f68fa3f7085752c78e400" title="Takes the selected row as the selection, tells selectionChanged, and shows the controls that depend o..." alt="" coords="501,1217,645,1262"/>
+<area shape="poly" id="edge54_Node000001_Node000025" title=" " alt="" coords="126,1023,280,1101,473,1194,505,1210,500,1211,471,1199,278,1106,127,1029"/>
+<area shape="rect" id="Node000026" href="$class_infrastructure_panel.html#a9b4bd64176552b66de1c20d4e5dec616" title=" " alt="" coords="744,1366,890,1411"/>
+<area shape="poly" id="edge53_Node000001_Node000026" title=" " alt="" coords="84,1023,94,1086,113,1166,129,1209,149,1249,175,1286,207,1317,268,1355,335,1382,405,1400,477,1410,547,1414,614,1413,731,1404,726,1405,615,1418,547,1419,476,1416,404,1405,333,1387,266,1360,204,1321,171,1290,145,1252,124,1211,108,1168,89,1087,84,1029"/>
+<area shape="rect" id="Node000028" href="$class_infrastructure_panel.html#a07f679fefcfe17cd067b11711a346d7b" title="Removes the selected section of the route." alt="" coords="243,564,387,608"/>
+<area shape="poly" id="edge46_Node000001_Node000028" title=" " alt="" coords="87,980,128,858,162,780,203,704,239,657,279,617,277,621,243,661,208,707,167,783,133,860,92,981"/>
+<area shape="rect" id="Node000029" href="$class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" title="A panel without a document." alt="" coords="206,1601,424,1646"/>
+<area shape="poly" id="edge48_Node000001_Node000029" title=" " alt="" coords="85,1023,99,1142,122,1311,138,1397,158,1477,181,1543,194,1568,208,1587,211,1591,205,1591,204,1590,189,1570,176,1545,153,1479,133,1399,116,1311,93,1142,84,1028"/>
+<area shape="rect" id="Node000030" href="$namespace_editor_layout.html#a8aeab0ef1896c245802221520b549af0" title=" " alt="" coords="209,1693,421,1721"/>
+<area shape="poly" id="edge49_Node000001_Node000030" title=" " alt="" coords="85,1024,98,1154,120,1342,137,1440,157,1530,180,1605,194,1634,208,1656,224,1672,246,1687,240,1686,221,1676,204,1660,189,1636,175,1607,151,1531,131,1441,115,1343,92,1155,84,1029"/>
+<area shape="rect" id="Node000003" href="$class_infrastructure_facet.html#a59ef82d561cda5d6590da834599652b2" title="Adds an entity." alt="" coords="486,5,661,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="386,54,486,35,482,38,389,58"/>
+<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b" title="False while no scene is loaded or a run uses it." alt="" coords="722,479,912,506"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="386,52,454,43,530,43,569,48,607,58,643,73,676,93,717,132,749,179,773,231,791,284,804,337,812,386,818,463,813,462,806,387,799,338,786,285,768,233,744,182,713,136,673,97,640,77,605,63,568,54,529,49,454,48,389,56"/>
+<area shape="rect" id="Node000005" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="960,1115,1163,1142"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="825,505,1052,1100,1047,1100,822,509"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="644,511,709,504,705,507,647,515"/>
+<area shape="poly" id="edge8_Node000007_Node000001" title=" " alt="" coords="253,1438,227,1427,204,1409,170,1366,143,1317,122,1266,107,1214,88,1117,84,1044,84,1038,93,1116,112,1213,127,1264,148,1315,175,1363,208,1405,230,1423,258,1437"/>
+<area shape="poly" id="edge10_Node000008_Node000004" title=" " alt="" coords="386,173,453,166,528,167,567,172,605,181,642,194,676,213,707,238,733,269,755,303,774,338,799,408,813,464,808,463,794,409,769,341,751,305,729,272,703,242,673,217,640,199,604,186,566,177,528,173,453,172,389,178"/>
+<area shape="rect" id="Node000009" href="$class_infrastructure_facet.html#ae6e8b73a3c6c40dd3b750f5d4d727288" title="The cell in row and column has been edited: takes its text into the model, or refuses it." alt="" coords="502,108,645,152"/>
+<area shape="poly" id="edge11_Node000008_Node000009" title=" " alt="" coords="386,171,488,148,484,152,389,175"/>
+<area shape="poly" id="edge13_Node000010_Node000004" title=" " alt="" coords="386,313,451,322,524,335,601,355,675,383,709,402,741,423,793,467,788,468,738,428,706,406,673,388,600,361,523,340,450,327,389,318"/>
+<area shape="rect" id="Node000011" href="$class_infrastructure_facet.html#ad937cff6135a5a2a9bde611d4a96613b" title="Deletes the entity in the selected row after the user has confirmed it." alt="" coords="502,228,645,272"/>
+<area shape="poly" id="edge14_Node000010_Node000011" title=" " alt="" coords="386,291,488,268,484,272,389,295"/>
+<area shape="poly" id="edge17_Node000013_Node000004" title=" " alt="" coords="641,566,673,554,775,511,771,515,675,559,645,570"/>
+<area shape="poly" id="edge19_Node000014_Node000004" title=" " alt="" coords="386,384,523,390,600,400,675,417,734,440,784,469,779,471,731,445,674,422,599,405,522,395,389,389"/>
+<area shape="poly" id="edge21_Node000015_Node000004" title=" " alt="" coords="386,456,472,441,573,431,618,433,675,441,726,453,773,471,768,473,724,458,674,446,618,438,574,437,472,446,389,461"/>
+<area shape="poly" id="edge23_Node000016_Node000016" title=" " alt="" coords="270,1530,269,1521,277,1512,292,1507,315,1505,340,1507,357,1516,351,1517,339,1513,315,1510,293,1512,280,1517,274,1523,275,1532"/>
+<area shape="poly" id="edge25_Node000017_Node000004" title=" " alt="" coords="369,978,398,959,422,934,439,899,445,866,444,833,440,802,436,770,437,739,447,707,470,675,494,654,518,644,542,640,566,640,617,640,644,635,673,623,709,600,742,571,797,516,794,520,746,575,713,604,676,628,646,641,618,646,566,645,543,645,520,649,497,659,474,678,452,709,443,740,442,770,445,801,450,833,451,866,444,901,426,937,402,963,373,982"/>
+<area shape="poly" id="edge31_Node000017_Node000005" title=" " alt="" coords="342,1023,400,1065,436,1085,473,1101,533,1117,596,1129,722,1142,842,1143,947,1140,942,1142,842,1149,722,1147,595,1134,532,1122,471,1106,433,1090,398,1070,342,1029"/>
+<area shape="poly" id="edge29_Node000017_Node000012" title=" " alt="" coords="322,1023,341,1078,370,1146,390,1182,414,1216,441,1246,473,1272,503,1288,535,1300,602,1315,669,1320,732,1320,727,1321,669,1325,601,1321,533,1305,501,1293,471,1276,438,1250,410,1219,385,1185,365,1149,336,1080,321,1029"/>
+<area shape="rect" id="Node000018" href="$class_infrastructure_facet.html#a1918c6757b3db77a5ea28ed59e76353a" title="The controls that the panel shows for this facet. The default is none." alt="" coords="502,782,645,827"/>
+<area shape="poly" id="edge26_Node000017_Node000018" title=" " alt="" coords="381,978,403,965,422,949,433,935,439,922,445,894,451,866,458,851,470,837,489,826,486,830,474,841,462,854,456,868,450,895,444,923,437,938,426,953,406,970,385,982"/>
+<area shape="rect" id="Node000019" href="$class_infrastructure_facet.html#a1bcf515fa43eaf66f879c75970f36875" title="The headers of the table." alt="" coords="502,852,645,896"/>
+<area shape="poly" id="edge28_Node000017_Node000019" title=" " alt="" coords="369,978,422,949,446,927,471,906,489,899,485,902,473,911,449,931,426,953,373,982"/>
+<area shape="rect" id="Node000020" href="$class_infrastructure_facet.html#abde7ecdd5e31bdfe8ef5fa76ba0e759f" title=" " alt="" coords="502,921,645,966"/>
+<area shape="poly" id="edge30_Node000017_Node000020" title=" " alt="" coords="386,984,488,962,484,965,389,989"/>
+<area shape="rect" id="Node000021" href="$_infrastructure_guidance_8cpp.html#a38d021c05876cb3015e8f9f3f4c94c48" title=" " alt="" coords="474,1064,672,1092"/>
+<area shape="poly" id="edge32_Node000017_Node000021" title=" " alt="" coords="387,1021,510,1058,505,1060,388,1027"/>
+<area shape="rect" id="Node000022" href="$class_infrastructure_panel.html#a82af8a411d19611929adaf6d8d328450" title="The model of the document; an empty scene without one." alt="" coords="745,836,889,880"/>
+<area shape="poly" id="edge34_Node000017_Node000022" title=" " alt="" coords="386,1008,450,1011,523,1008,600,997,673,975,706,958,737,936,789,890,786,893,740,940,709,963,675,980,601,1002,524,1013,450,1016,389,1013"/>
+<area shape="rect" id="Node000023" href="$class_infrastructure_panel.html#a372635fb6d8c1c16b14aa9489d21c5f8" title="Lists the tracks that blocks can be filtered on again and keeps the chosen track where it still exist..." alt="" coords="484,689,662,734"/>
+<area shape="poly" id="edge35_Node000017_Node000023" title=" " alt="" coords="385,978,405,965,422,950,438,923,445,898,446,872,444,847,442,822,444,797,452,770,470,744,475,742,472,746,474,748,457,773,449,798,447,822,449,847,451,872,450,898,443,925,426,953,409,970,389,982"/>
+<area shape="rect" id="Node000024" href="$class_infrastructure_facet.html#a236bf728d7cfc10f94d25c5e862252b2" title=" " alt="" coords="745,1166,889,1211"/>
+<area shape="poly" id="edge38_Node000017_Node000024" title=" " alt="" coords="333,1023,391,1086,430,1119,473,1145,537,1168,605,1181,670,1188,732,1192,727,1193,670,1193,604,1187,536,1173,471,1150,427,1123,388,1090,333,1028"/>
+<area shape="poly" id="edge39_Node000017_Node000025" title=" " alt="" coords="336,1023,426,1131,448,1166,458,1181,474,1196,492,1209,486,1210,470,1200,454,1184,443,1169,422,1134,336,1028"/>
+<area shape="poly" id="edge27_Node000018_Node000018" title=" " alt="" coords="527,781,525,772,533,763,549,757,573,756,600,758,617,766,612,768,598,763,573,761,550,763,536,768,530,774,532,782"/>
+<area shape="poly" id="edge33_Node000021_Node000021" title=" " alt="" coords="531,1063,525,1055,530,1045,547,1039,573,1037,602,1040,619,1048,613,1049,600,1045,573,1043,548,1045,534,1049,530,1055,537,1063"/>
+<area shape="poly" id="edge36_Node000023_Node000004" title=" " alt="" coords="641,686,673,668,712,632,747,592,801,518,798,522,752,595,716,636,676,672,645,690"/>
+<area shape="poly" id="edge37_Node000023_Node000022" title=" " alt="" coords="649,731,676,744,734,782,783,824,778,825,731,786,673,748,650,737"/>
+<area shape="poly" id="edge40_Node000025_Node000004" title=" " alt="" coords="595,1214,635,1165,655,1135,672,1102,687,1062,696,1027,704,966,707,902,720,823,765,650,805,524,808,519,770,652,725,824,713,903,709,966,701,1028,692,1064,677,1104,660,1137,639,1168,599,1218"/>
+<area shape="poly" id="edge42_Node000025_Node000005" title=" " alt="" coords="645,1244,704,1246,771,1244,842,1237,911,1221,945,1207,977,1189,1030,1154,1035,1151,980,1193,947,1211,912,1226,843,1242,772,1250,704,1251,646,1249"/>
+<area shape="poly" id="edge41_Node000025_Node000012" title=" " alt="" coords="645,1257,732,1283,727,1284,646,1262"/>
+<area shape="poly" id="edge45_Node000025_Node000024" title=" " alt="" coords="645,1222,732,1205,727,1208,647,1227"/>
+<area shape="poly" id="edge43_Node000025_Node000026" title=" " alt="" coords="604,1259,660,1299,724,1341,754,1359,749,1359,721,1345,657,1304,604,1265"/>
+<area shape="rect" id="Node000027" href="$class_infrastructure_panel.html#a1ede3387c827781076354d8e8b2d4173" title="The facet with this key, or null. The panel keeps it." alt="" coords="989,1366,1134,1411"/>
+<area shape="poly" id="edge44_Node000026_Node000027" title=" " alt="" coords="890,1386,976,1388,971,1389,891,1391"/>
+<area shape="poly" id="edge47_Node000028_Node000004" title=" " alt="" coords="348,561,420,514,471,485,535,472,600,467,663,468,722,475,717,477,662,474,600,472,535,477,473,490,423,518,352,565"/>
+<area shape="poly" id="edge50_Node000030_Node000030" title=" " alt="" coords="275,1692,268,1684,274,1675,289,1669,315,1667,342,1669,359,1678,353,1678,341,1674,315,1672,290,1674,277,1679,274,1684,280,1694"/>
+<area shape="rect" id="Node000031" href="$namespace_editor_layout.html#a1bcc9ab5e8ef4ac521182638d3a22dde" title=" " alt="" coords="472,1693,674,1721"/>
+<area shape="poly" id="edge51_Node000030_Node000031" title=" " alt="" coords="422,1705,459,1707,454,1707,422,1710"/>
+<area shape="poly" id="edge52_Node000031_Node000031" title=" " alt="" coords="531,1692,525,1684,530,1675,547,1669,573,1667,602,1669,619,1678,613,1678,600,1674,573,1672,548,1674,534,1679,530,1684,536,1694"/>
 </map>

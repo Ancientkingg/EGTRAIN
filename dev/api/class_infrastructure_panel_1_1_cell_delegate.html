@@ -125,15 +125,57 @@ Collaboration diagram for InfrastructurePanel::CellDelegate:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:a5d2b676931636cbb1a6e8acd2ff561f3" id="r_a5d2b676931636cbb1a6e8acd2ff561f3"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a5d2b676931636cbb1a6e8acd2ff561f3">CellDelegate</a> (<a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;panel, QObject *parent)</td></tr>
+<tr class="memdesc:a5d2b676931636cbb1a6e8acd2ff561f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The delegate of the table of <span class="tt">panel</span>; <span class="tt">parent</span> owns it.  <br /></td></tr>
 <tr class="memitem:abd0d9d32c9232ea743748b690ae6cb7b" id="r_abd0d9d32c9232ea743748b690ae6cb7b"><td class="memItemLeft">QWidget *&#160;</td><td class="memItemRight"><a class="el" href="#abd0d9d32c9232ea743748b690ae6cb7b">createEditor</a> (QWidget *parent, const QStyleOptionViewItem &amp;option, const QModelIndex &amp;index) const override</td></tr>
-<tr class="memdesc:abd0d9d32c9232ea743748b690ae6cb7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the editor of a cell as QStyledItemDelegate does, and keeps it as the open editor.  <br /></td></tr>
+<tr class="memitem:a0b00c0d93b8602f0027dd31acc54b65c" id="r_a0b00c0d93b8602f0027dd31acc54b65c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0b00c0d93b8602f0027dd31acc54b65c">setEditorData</a> (QWidget *editor, const QModelIndex &amp;index) const override</td></tr>
+<tr class="memdesc:a0b00c0d93b8602f0027dd31acc54b65c"><td class="mdescLeft">&#160;</td><td class="mdescRight">A combo of choices shows the item of the id in the cell, or the id itself when it offers no item for it.  <br /></td></tr>
+<tr class="memitem:aa8717f9e9bf3ac865b19a8f1ea00560b" id="r_aa8717f9e9bf3ac865b19a8f1ea00560b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa8717f9e9bf3ac865b19a8f1ea00560b">updateEditorGeometry</a> (QWidget *editor, const QStyleOptionViewItem &amp;option, const QModelIndex &amp;index) const override</td></tr>
+<tr class="memitem:a0dc749f42cce57524cdda54ada21774c" id="r_a0dc749f42cce57524cdda54ada21774c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0dc749f42cce57524cdda54ada21774c">setModelData</a> (QWidget *editor, QAbstractItemModel *model, const QModelIndex &amp;index) const override</td></tr>
 <tr class="memitem:accd3b2e77e624234e78504dfb176ed89" id="r_accd3b2e77e624234e78504dfb176ed89"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#accd3b2e77e624234e78504dfb176ed89">destroyEditor</a> (QWidget *editor, const QModelIndex &amp;index) const override</td></tr>
 <tr class="memdesc:accd3b2e77e624234e78504dfb176ed89"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forgets the open editor when the view lets it go, and destroys it as QStyledItemDelegate does.  <br /></td></tr>
 <tr class="memitem:af7763b27d9d24453b26b144eadd94129" id="r_af7763b27d9d24453b26b144eadd94129"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af7763b27d9d24453b26b144eadd94129">commitOpenEditor</a> ()</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The delegate of the table. It knows the editor that it has open on a cell. The widgets that facets put in cells with setCellWidget are not its editors. </p>
-</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a5d2b676931636cbb1a6e8acd2ff561f3" name="a5d2b676931636cbb1a6e8acd2ff561f3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d2b676931636cbb1a6e8acd2ff561f3">&#9670;&#160;</a></span>CellDelegate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">InfrastructurePanel::CellDelegate::CellDelegate </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>panel</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">QObject *</td>          <td class="paramname"><span class="paramname"><em>parent</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The delegate of the table of <span class="tt">panel</span>; <span class="tt">parent</span> owns it. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_1_1_cell_delegate_a5d2b676931636cbb1a6e8acd2ff561f3_cgraph.svg" width="1422" height="1638"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="af7763b27d9d24453b26b144eadd94129" name="af7763b27d9d24453b26b144eadd94129"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af7763b27d9d24453b26b144eadd94129">&#9670;&#160;</a></span>commitOpenEditor()</h2>
 
@@ -156,7 +198,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Takes the text of the open editor into its cell and closes the editor, as leaving it does: the view writes the text with setModelData(), and the table tells itemChanged() when it differs. Does nothing without an open editor. </p>
+<p>Takes the text of the open editor into its cell and closes the editor, as leaving it does: the view writes the text with <a class="el" href="#a0dc749f42cce57524cdda54ada21774c">setModelData()</a>, and the table tells itemChanged() when it differs. Does nothing without an open editor. </p>
 
 </div>
 </div>
@@ -191,8 +233,12 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Makes the editor of a cell as QStyledItemDelegate does, and keeps it as the open editor. </p>
+<p>Makes the editor of a cell and keeps it as the open editor. A cell that refers to other entities (<a class="el" href="class_infrastructure_facet.html#ab76f5f01c5663380c3f1ec64ac96cc84">InfrastructureFacet::choices</a>) gets a combo of their labels, in which the user can also type, and which completes what is typed from any part of a label, ignoring case. Choosing an entity in its list ends the edit, as Return does. Another cell gets the editor of QStyledItemDelegate. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_1_1_cell_delegate_abd0d9d32c9232ea743748b690ae6cb7b_cgraph.svg" width="404" height="126"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -224,6 +270,112 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Forgets the open editor when the view lets it go, and destroys it as QStyledItemDelegate does. </p>
+
+</div>
+</div>
+<a id="a0b00c0d93b8602f0027dd31acc54b65c" name="a0b00c0d93b8602f0027dd31acc54b65c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0b00c0d93b8602f0027dd31acc54b65c">&#9670;&#160;</a></span>setEditorData()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void InfrastructurePanel::CellDelegate::setEditorData </td>
+          <td>(</td>
+          <td class="paramtype">QWidget *</td>          <td class="paramname"><span class="paramname"><em>editor</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QModelIndex &amp;</td>          <td class="paramname"><span class="paramname"><em>index</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel override">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>A combo of choices shows the item of the id in the cell, or the id itself when it offers no item for it. </p>
+
+</div>
+</div>
+<a id="a0dc749f42cce57524cdda54ada21774c" name="a0dc749f42cce57524cdda54ada21774c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0dc749f42cce57524cdda54ada21774c">&#9670;&#160;</a></span>setModelData()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void InfrastructurePanel::CellDelegate::setModelData </td>
+          <td>(</td>
+          <td class="paramtype">QWidget *</td>          <td class="paramname"><span class="paramname"><em>editor</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">QAbstractItemModel *</td>          <td class="paramname"><span class="paramname"><em>model</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QModelIndex &amp;</td>          <td class="paramname"><span class="paramname"><em>index</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel override">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>A combo of choices gives the cell the id of the item whose label or id it shows, also in another case, or else the text as it is typed. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_1_1_cell_delegate_a0dc749f42cce57524cdda54ada21774c_cgraph.svg" width="416" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aa8717f9e9bf3ac865b19a8f1ea00560b" name="aa8717f9e9bf3ac865b19a8f1ea00560b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa8717f9e9bf3ac865b19a8f1ea00560b">&#9670;&#160;</a></span>updateEditorGeometry()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void InfrastructurePanel::CellDelegate::updateEditorGeometry </td>
+          <td>(</td>
+          <td class="paramtype">QWidget *</td>          <td class="paramname"><span class="paramname"><em>editor</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QStyleOptionViewItem &amp;</td>          <td class="paramname"><span class="paramname"><em>option</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QModelIndex &amp;</td>          <td class="paramname"><span class="paramname"><em>index</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel override">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>A combo of choices is as wide as the label of the entity in the cell, also where the cell is narrower; it then covers the cells to its right. </p>
 
 </div>
 </div>

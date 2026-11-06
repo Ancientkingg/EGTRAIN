@@ -136,6 +136,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:aa5ec2e3278ccf89baeb33dc396ea1f79"><td class="mdescLeft">&#160;</td><td class="mdescRight">An empty dialog; setLabels gives it the names.  <br /></td></tr>
 <tr class="memitem:a787091e23248c70ca07f27da4dd74fdf" id="r_a787091e23248c70ca07f27da4dd74fdf"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a787091e23248c70ca07f27da4dd74fdf">setLabels</a> (const QStringList &amp;labels, const QStringList &amp;keys=QStringList())</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:a390eee6fcd4801e84d1024266abdfe14" id="r_a390eee6fcd4801e84d1024266abdfe14"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a390eee6fcd4801e84d1024266abdfe14">matches</a> (const QString &amp;text, const QStringList &amp;texts)</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:aab94ad10a8c557a3a24d1e046c7819e4" id="r_aab94ad10a8c557a3a24d1e046c7819e4"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aab94ad10a8c557a3a24d1e046c7819e4">eventFilter</a> (QObject *watched, QEvent *event) override</td></tr>
@@ -232,6 +236,36 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Passes Up and Down from the field to the list, and chooses the current name on Enter in the list. </p>
+
+</div>
+</div>
+<a id="a390eee6fcd4801e84d1024266abdfe14" name="a390eee6fcd4801e84d1024266abdfe14"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a390eee6fcd4801e84d1024266abdfe14">&#9670;&#160;</a></span>matches()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool FindDialog::matches </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>text</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QStringList &amp;</td>          <td class="paramname"><span class="paramname"><em>texts</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Whether every word of <span class="tt">text</span>, the parts between spaces, occurs in one of <span class="tt">texts</span>, ignoring case: the rule by which the list shows a name with its keys. True when <span class="tt">text</span> has no word. </p>
 
 </div>
 </div>
