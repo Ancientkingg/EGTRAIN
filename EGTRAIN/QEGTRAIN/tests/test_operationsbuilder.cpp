@@ -162,6 +162,7 @@ private slots:
 	void brakingWithoutReachingSpeed_data();
 	void brakingWithoutReachingSpeed();
 	void brakingStepValues();
+	void stretchInsideOneArcTakesItsGradient();
 	void inverseStepsSolveForwardModel_data();
 	void inverseStepsSolveForwardModel();
 	void lateNativeStateUsesFallback();
@@ -2607,6 +2608,33 @@ void TestOperationsBuilder::brakingStepValues() {
 		QVERIFY2(search.BrakDist_Block(speed, targetSpeed, 100.0, route.data(), 1) < 50.0,
 			"the braking-point search gives a braking point before the train for the second case");
 	}
+}
+
+// No arc ends between two positions inside one arc. The braking distance and the acceleration time then take the gradient and
+// curvature of that arc, as over the stretch to its end, and those of a flat and straight track beyond the arcs.
+void TestOperationsBuilder::stretchInsideOneArcTakesItsGradient() {
+	std::vector<Section> route = brakingRouteOfTwoArcs(1.0, 2.0, 0.002, 0.01);
+	route[0].arcs_in_signalling_block_section[1].curvature = 800.0;
+	std::vector<Section> flat = brakingRoute(0.0, 1.0, 0.0);
+	Train train = brakingTrain(1.0);
+	train.velocityIntervals = 1;
+	train.Vub[0] = 100.0;
+	train.C0[0] = 200000.0;
+	const double braking = train.BrakingDistanceFastComputation(20.0, 0.0, 1200.0, 1500.0, route.data(), 1);
+	// Inside the second arc the braking distance is that over the stretch to the end of the arc, not that of the first arc.
+	QVERIFY(std::isfinite(braking));
+	QCOMPARE_EQ(braking, train.BrakingDistanceFastComputation(20.0, 0.0, 1200.0, 2000.0, route.data(), 1));
+	QCOMPARE_NE(braking, train.BrakingDistanceFastComputation(20.0, 0.0, 0.0, 1000.0, route.data(), 1));
+	// Beyond the arcs it is that of a flat and straight arc.
+	QCOMPARE_EQ(train.BrakingDistanceFastComputation(20.0, 0.0, 2500.0, 2600.0, route.data(), 1),
+		train.BrakingDistanceFastComputation(20.0, 0.0, 0.0, 1000.0, flat.data(), 1));
+	const double accelerating = train.AccelerationTimeFollowingMode(5.0, 10.0, 1200.0, 1500.0, route.data(), 1);
+	// The acceleration time follows the same arcs.
+	QVERIFY(std::isfinite(accelerating));
+	QCOMPARE_GT(accelerating, 0.0);
+	QCOMPARE_EQ(accelerating, train.AccelerationTimeFollowingMode(5.0, 10.0, 1200.0, 2000.0, route.data(), 1));
+	QCOMPARE_EQ(train.AccelerationTimeFollowingMode(5.0, 10.0, 2500.0, 2600.0, route.data(), 1),
+		train.AccelerationTimeFollowingMode(5.0, 10.0, 0.0, 1000.0, flat.data(), 1));
 }
 
 // The routes of the inverse braking steps: one arc that is flat, rises or falls, and two arcs that change the gradient

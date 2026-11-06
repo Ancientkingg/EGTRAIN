@@ -557,11 +557,12 @@ public:
 	void leaveFollowingModeWhenLeaderIsGone(int time_seconds);
 
 	/// Braking distance (m) from V1 to V2 (m/s) by the closed formula, on the mean gradient and curvature of the arcs of BS that end in
-	/// (X1, X2] (m).
+	/// (X1, X2] (m). When no arc ends there, it takes those of the arc that holds X1, or a flat and straight track when no arc holds it.
 	double BrakingDistanceFastComputation(double V1, double V2, double X1, double X2, Section* BS, int N_BS);
 
 	/// Time (s) to accelerate from V1 to V2 (m/s, V2 above V1) on the mean gradient and curvature of the arcs of BS that end in
-	/// (X1, X2] (m), summed over 200 speed steps. When the train cannot accelerate there it is taken on a flat gradient, and when it
+	/// (X1, X2] (m), summed over 200 speed steps. When no arc ends there, it takes those of the arc that holds X1, or a flat and
+	/// straight track when no arc holds it. When the train cannot accelerate there it is taken on a flat gradient, and when it
 	/// cannot accelerate on that either the result is -99999.
 	double AccelerationTimeFollowingMode(double V1, double V2, double X1, double X2, Section* BS, int N_BS);
 

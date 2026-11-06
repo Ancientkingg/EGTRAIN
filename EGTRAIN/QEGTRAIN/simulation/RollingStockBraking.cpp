@@ -28,25 +28,48 @@ bool sameQuery(const TrainStepCache::BrakingQuery& a, const TrainStepCache::Brak
 		&& sameBits(a.target, b.target) && sameBits(a.cutoff, b.cutoff);
 }
 
-} // namespace
+struct GradientAndCurvature {
+	double gradient = 0.0;
+	double curvature = 0.0;
+};
 
-double Train::BrakingDistanceFastComputation(double V1, double V2, double X1, double X2, Section* BS, int N_BS) {
-	double AverageGradient = 0;
-	double AverageCurvature = 0;
+// The mean gradient and curvature radius of the arcs of the N_BS sections BS that end in (X1, X2] (m). When no arc ends there, the
+// stretch lies inside one arc, and the values are those of the arc that holds X1; they are 0 when no arc holds it.
+GradientAndCurvature meanGradientAndCurvature(double X1, double X2, const Section* BS, int N_BS) {
+	GradientAndCurvature mean;
 	int N_arcs = 0;
-
 	for (int i = 0; i < N_BS; i++) {
 		for (int j = 0; j < BS[i].total_arcs; j++) {
-			if ((BS[i].arcs_in_signalling_block_section[j].endNode.X * 1000 > X1) && (BS[i].arcs_in_signalling_block_section[j].endNode.X * 1000 <= X2)) {
-				AverageGradient = AverageGradient + BS[i].arcs_in_signalling_block_section[j].gradient;
-				AverageCurvature = AverageCurvature + BS[i].arcs_in_signalling_block_section[j].curvature;
+			const Arc& arc = BS[i].arcs_in_signalling_block_section[j];
+			if ((arc.endNode.X * 1000 > X1) && (arc.endNode.X * 1000 <= X2)) {
+				mean.gradient = mean.gradient + arc.gradient;
+				mean.curvature = mean.curvature + arc.curvature;
 				N_arcs++;
 			}
 		}
 	}
+	if (N_arcs > 0) {
+		mean.gradient = mean.gradient / N_arcs;
+		mean.curvature = mean.curvature / N_arcs;
+		return mean;
+	}
+	for (int i = 0; i < N_BS; i++) {
+		for (int j = 0; j < BS[i].total_arcs; j++) {
+			const Arc& arc = BS[i].arcs_in_signalling_block_section[j];
+			if ((arc.startNode.X * 1000 <= X1) && (arc.endNode.X * 1000 > X1))
+				return {arc.gradient, arc.curvature};
+		}
+	}
+	return mean;
+}
+
+} // namespace
+
+double Train::BrakingDistanceFastComputation(double V1, double V2, double X1, double X2, Section* BS, int N_BS) {
 	// Computing Average Gradient and Average Curvature Radii
-	AverageGradient = AverageGradient / N_arcs;
-	AverageCurvature = AverageCurvature / N_arcs;
+	const GradientAndCurvature mean = meanGradientAndCurvature(X1, X2, BS, N_BS);
+	const double AverageGradient = mean.gradient;
+	const double AverageCurvature = mean.curvature;
 
 	// Computing the braking curve with closed formula
 	double BrakingDistance;
@@ -58,27 +81,10 @@ double Train::BrakingDistanceFastComputation(double V1, double V2, double X1, do
 }
 
 double Train::AccelerationTimeFollowingMode(double V1, double V2, double X1, double X2, Section* BS, int N_BS) {
-	double AverageGradient = 0;
-	double AverageCurvature = 0;
-	int N_arcs = 0;
-
-	for (int i = 0; i < N_BS; i++) {
-
-		for (int j = 0; j < BS[i].total_arcs; j++) {
-
-			if ((BS[i].arcs_in_signalling_block_section[j].endNode.X * 1000 > X1) && (BS[i].arcs_in_signalling_block_section[j].endNode.X * 1000 <= X2)) {
-
-				AverageGradient = AverageGradient + BS[i].arcs_in_signalling_block_section[j].gradient;
-
-				AverageCurvature = AverageCurvature + BS[i].arcs_in_signalling_block_section[j].curvature;
-
-				N_arcs++;
-			}
-		}
-	}
 	// Computing Average Gradient and Average Curvature Radii
-	AverageGradient = AverageGradient / N_arcs;
-	AverageCurvature = AverageCurvature / N_arcs;
+	const GradientAndCurvature mean = meanGradientAndCurvature(X1, X2, BS, N_BS);
+	const double AverageGradient = mean.gradient;
+	const double AverageCurvature = mean.curvature;
 
 	// Computing the acceleration curve of the train
 

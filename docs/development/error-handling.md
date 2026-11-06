@@ -79,7 +79,6 @@ The visual polish smoke also had a use after free: it added a temporary `SignalI
 
 ### Other hazards
 
-- `Train::BrakingDistanceFastComputation` and `AccelerationTimeFollowingMode` (`simulation/RollingStockBraking.cpp`) divide by an arc count that is 0 when no arc ends between the two positions. The result is NaN, the comparisons that use it are false, and an approach time is silently not found. No crash and no log.
 - `RunController::clearSimulationWorker` (`app/RunController.cpp`) waits for the worker thread without a timeout. A step that never checks the stop flag freezes the window when the run is stopped or the window closes.
 
 ## Recoverable failures
