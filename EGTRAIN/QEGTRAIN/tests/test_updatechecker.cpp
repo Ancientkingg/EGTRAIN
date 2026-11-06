@@ -18,8 +18,8 @@ static QByteArray releaseJson(const char* tag, bool draft = false, bool prerelea
 	return QByteArray("[{\"tag_name\":\"") + tag
 		+ "\",\"draft\":" + (draft ? "true" : "false")
 		+ ",\"prerelease\":" + (prerelease ? "true" : "false")
-		+ ",\"html_url\":\"https://github.com/Ancientkingg/EGTRAIN/releases/tag/"
-		+ tag + "\",\"body\":\"Notes\"}]";
+		+ ",\"html_url\":\"https://egtrain.samuelbruin.com/releases/"
+		+ QByteArray(tag).mid(1) + "/\",\"body\":\"Notes\"}]";
 }
 
 // Runs the event loop for the given time.
@@ -204,7 +204,7 @@ static std::optional<StableRelease> releaseWith(const QList<const char*>& names)
 		if (!assets.isEmpty())
 			assets += ',';
 		assets += QByteArray("{\"name\":\"") + name
-			+ "\",\"browser_download_url\":\"https://github.com/Ancientkingg/EGTRAIN/releases/download/v1.10.0/" + name + "\"}";
+			+ "\",\"browser_download_url\":\"https://bin.samuelbruin.com/raw/egtrain-v1.10.0-" + name + "\"}";
 	}
 	return parseLatestStableRelease(
 		QByteArray("[{\"tag_name\":\"v1.10.0\",\"draft\":false,\"prerelease\":false,\"assets\":[") + assets + "]}]");
@@ -233,7 +233,7 @@ static QByteArray fileListOf(int count) {
 }
 
 static constexpr int kListLimit = 8 * 1024 * 1024;
-static const QString kTooLarge = QStringLiteral("The release list from GitHub is too large.");
+static const QString kTooLarge = QStringLiteral("The release list from the EGTRAIN website is too large.");
 
 class TestUpdateChecker : public QObject {
 	Q_OBJECT
@@ -252,8 +252,12 @@ private slots:
 	void ignoresInvalidRelease_data();
 	void ignoresInvalidRelease();
 	void selectsLatestStableRelease();
+	void constrainsReleasePage_data();
 	void constrainsReleasePage();
 	void keepsOnlyExactPackageAssets();
+	void acceptsExactAssetUrl();
+	void refusesAssetUrl_data();
+	void refusesAssetUrl();
 	void parsesUpdateManifest();
 	void selectsAssetName_data();
 	void selectsAssetName();
@@ -399,30 +403,101 @@ void TestUpdateChecker::selectsLatestStableRelease() {
 	QCOMPARE(releases->version.minor, 10u);
 }
 
+// Whatever html_url names, the release page is the page of the version on the EGTRAIN website.
+void TestUpdateChecker::constrainsReleasePage_data() {
+	QTest::addColumn<QByteArray>("page");
+	QTest::newRow("the page of the version") << QByteArray("https://egtrain.samuelbruin.com/releases/1.10.0/");
+	QTest::newRow("another host") << QByteArray("https://example.com/phishing");
+	QTest::newRow("github.com") << QByteArray("https://github.com/Ancientkingg/EGTRAIN/releases/tag/v1.10.0");
+	QTest::newRow("another page of the website") << QByteArray("https://egtrain.samuelbruin.com/releases/1.9.0/");
+	QTest::newRow("no page") << QByteArray();
+}
+
 void TestUpdateChecker::constrainsReleasePage() {
-	const auto wrongPage = parseLatestStableRelease(
-		QByteArray("[{\"tag_name\":\"v1.10.0\",\"draft\":false,\"prerelease\":false,"
-				   "\"html_url\":\"https://example.com/phishing\"}]"));
-	// The release page is constrained to the expected GitHub repository.
-	QVERIFY(wrongPage.has_value());
-	QCOMPARE(wrongPage->releasePage.host(), QStringLiteral("github.com"));
-	QVERIFY(wrongPage->releasePage.path().startsWith(QStringLiteral("/Ancientkingg/EGTRAIN/")));
+	QFETCH(QByteArray, page);
+	const auto release = parseLatestStableRelease(
+		QByteArray("[{\"tag_name\":\"v1.10.0\",\"draft\":false,\"prerelease\":false,\"html_url\":\"") + page + "\"}]");
+	QVERIFY(release.has_value());
+	QCOMPARE(release->releasePage, QUrl(QStringLiteral("https://egtrain.samuelbruin.com/releases/1.10.0/")));
 }
 
 void TestUpdateChecker::keepsOnlyExactPackageAssets() {
 	const QByteArray packagedRelease = QByteArray(
 		"[{\"tag_name\":\"v1.10.0\",\"draft\":false,\"prerelease\":false,"
-		"\"html_url\":\"https://github.com/Ancientkingg/EGTRAIN/releases/tag/v1.10.0\","
+		"\"html_url\":\"https://egtrain.samuelbruin.com/releases/1.10.0/\","
 		"\"assets\":["
-		"{\"name\":\"update-manifest.json\",\"browser_download_url\":\"https://github.com/Ancientkingg/EGTRAIN/releases/download/v1.10.0/update-manifest.json\"},"
-		"{\"name\":\"QEGTRAIN-linux-x86_64.AppImage\",\"browser_download_url\":\"https://github.com/Ancientkingg/EGTRAIN/releases/download/v1.10.0/QEGTRAIN-linux-x86_64.AppImage\"},"
+		"{\"name\":\"update-manifest.json\",\"browser_download_url\":\"https://bin.samuelbruin.com/raw/egtrain-v1.10.0-update-manifest.json\"},"
+		"{\"name\":\"QEGTRAIN-linux-x86_64.AppImage\",\"browser_download_url\":\"https://bin.samuelbruin.com/raw/egtrain-v1.10.0-QEGTRAIN-linux-x86_64.AppImage\"},"
+		"{\"name\":\"EGTRAIN-1.10.0-macOS-arm64.dmg\",\"browser_download_url\":\"https://github.com/Ancientkingg/EGTRAIN/releases/download/v1.10.0/EGTRAIN-1.10.0-macOS-arm64.dmg\"},"
+		"{\"name\":\"EGTRAIN-Setup-1.10.0-x64.exe\",\"browser_download_url\":\"https://bin.samuelbruin.com/raw/egtrain-v1.10.0-EGTRAIN-Setup-1.10.0-x64.exe?download\"},"
 		"{\"name\":\"untrusted.zip\",\"browser_download_url\":\"https://example.com/untrusted.zip\"}]}]");
 	const auto packaged = parseLatestStableRelease(packagedRelease);
 	// Only exact release package assets are retained.
 	QVERIFY(packaged.has_value());
 	QVERIFY(packaged->asset(updateManifestAssetName()) != nullptr);
 	QVERIFY(packaged->asset(QStringLiteral("QEGTRAIN-linux-x86_64.AppImage")) != nullptr);
+	QCOMPARE(packaged->asset(QStringLiteral("QEGTRAIN-linux-x86_64.AppImage"))->downloadUrl,
+		QUrl(QStringLiteral("https://bin.samuelbruin.com/raw/egtrain-v1.10.0-QEGTRAIN-linux-x86_64.AppImage")));
+	QVERIFY2(packaged->asset(QStringLiteral("EGTRAIN-1.10.0-macOS-arm64.dmg")) == nullptr, "a package on github.com is ignored");
+	QVERIFY2(packaged->asset(QStringLiteral("EGTRAIN-Setup-1.10.0-x64.exe")) == nullptr, "a package with a query is ignored");
 	QVERIFY2(packaged->asset(QStringLiteral("untrusted.zip")) == nullptr, "untrusted release assets are ignored");
+	QCOMPARE(packaged->assets.size(), 2);
+}
+
+// The file host serves a release file only as /raw/egtrain-<tag>-<name>.
+void TestUpdateChecker::acceptsExactAssetUrl() {
+	QVERIFY(isExpectedReleaseAssetUrl(QStringLiteral("v1.10.0"), QStringLiteral("EGTRAIN-Portable-1.10.0-x64.zip"),
+		QUrl(QStringLiteral("https://bin.samuelbruin.com/raw/egtrain-v1.10.0-EGTRAIN-Portable-1.10.0-x64.zip"))));
+	QVERIFY(isExpectedReleaseAssetUrl(QStringLiteral("v1.10.0"), QStringLiteral("update-manifest.json"),
+		QUrl(QStringLiteral("https://bin.samuelbruin.com/raw/egtrain-v1.10.0-update-manifest.json"))));
+	// A test that serves the files itself passes the folder of its server.
+	QVERIFY(isExpectedReleaseAssetUrl(QStringLiteral("v1.10.0"), QStringLiteral("update-manifest.json"),
+		QUrl(QStringLiteral("http://127.0.0.1:8080/files/egtrain-v1.10.0-update-manifest.json")),
+		QStringLiteral("http://127.0.0.1:8080/files")));
+}
+
+void TestUpdateChecker::refusesAssetUrl_data() {
+	QTest::addColumn<QString>("tag");
+	QTest::addColumn<QString>("name");
+	QTest::addColumn<QString>("url");
+	const QString tag = QStringLiteral("v1.10.0");
+	const QString name = QStringLiteral("update-manifest.json");
+	const QString file = QStringLiteral("egtrain-v1.10.0-update-manifest.json");
+	const auto add = [&](const char* row, const QString& url) { QTest::newRow(row) << tag << name << url; };
+	add("github.com", QStringLiteral("https://github.com/Ancientkingg/EGTRAIN/releases/download/v1.10.0/update-manifest.json"));
+	add("github.com with the path of the file host", QStringLiteral("https://github.com/raw/") + file);
+	add("another host", QStringLiteral("https://example.com/raw/") + file);
+	add("a host that ends like the file host", QStringLiteral("https://evilbin.samuelbruin.com/raw/") + file);
+	add("the website", QStringLiteral("https://egtrain.samuelbruin.com/raw/") + file);
+	add("http", QStringLiteral("http://bin.samuelbruin.com/raw/") + file);
+	add("a port", QStringLiteral("https://bin.samuelbruin.com:443/raw/") + file);
+	add("a user", QStringLiteral("https://user@bin.samuelbruin.com/raw/") + file);
+	add("a query", QStringLiteral("https://bin.samuelbruin.com/raw/") + file + QStringLiteral("?download"));
+	add("an empty query", QStringLiteral("https://bin.samuelbruin.com/raw/") + file + QStringLiteral("?"));
+	add("a fragment", QStringLiteral("https://bin.samuelbruin.com/raw/") + file + QStringLiteral("#x"));
+	add("another folder", QStringLiteral("https://bin.samuelbruin.com/u/") + file);
+	add("a subfolder", QStringLiteral("https://bin.samuelbruin.com/raw/x/") + file);
+	add("no prefix", QStringLiteral("https://bin.samuelbruin.com/raw/v1.10.0-update-manifest.json"));
+	add("another prefix", QStringLiteral("https://bin.samuelbruin.com/raw/other-v1.10.0-update-manifest.json"));
+	add("another tag", QStringLiteral("https://bin.samuelbruin.com/raw/egtrain-v1.9.0-update-manifest.json"));
+	add("another name", QStringLiteral("https://bin.samuelbruin.com/raw/egtrain-v1.10.0-QEGTRAIN-linux-x86_64.AppImage"));
+	add("an encoded slash", QStringLiteral("https://bin.samuelbruin.com/raw/egtrain-v1.10.0%2Fupdate-manifest.json"));
+	add("a trailing slash", QStringLiteral("https://bin.samuelbruin.com/raw/") + file + QStringLiteral("/"));
+	// A tag or a name with a character outside letters, digits, ".", "_" and "-" is refused even at its own address.
+	const QString base = QStringLiteral("https://bin.samuelbruin.com/raw/egtrain-");
+	QTest::newRow("a slash in the name") << tag << QStringLiteral("x/update-manifest.json")
+										 << base + QStringLiteral("v1.10.0-x/update-manifest.json");
+	QTest::newRow("a space in the name") << tag << QStringLiteral("update manifest.json")
+										 << base + QStringLiteral("v1.10.0-update%20manifest.json");
+	QTest::newRow("a plus in the tag") << QStringLiteral("v1.10.0+1") << name << base + QStringLiteral("v1.10.0+1-update-manifest.json");
+	QTest::newRow("an empty name") << tag << QString() << base + QStringLiteral("v1.10.0-");
+}
+
+void TestUpdateChecker::refusesAssetUrl() {
+	QFETCH(QString, tag);
+	QFETCH(QString, name);
+	QFETCH(QString, url);
+	QVERIFY2(!isExpectedReleaseAssetUrl(tag, name, QUrl(url)), "the address of the release file is refused");
 }
 
 void TestUpdateChecker::parsesUpdateManifest() {
@@ -609,11 +684,12 @@ void TestUpdateChecker::checkSucceeds() {
 	QVERIFY(checker.isChecking());
 	QCOMPARE(transport.calls.size(), std::size_t(1));
 	const HttpRequest& request = transport.calls.front().request;
-	// The check requests the releases URL.
+	// The check requests the release feed of the EGTRAIN website.
 	QCOMPARE(request.url, UpdateChecker::releasesUrl());
+	QCOMPARE(request.url, QUrl(QStringLiteral("https://egtrain.samuelbruin.com/releases/feed.json")));
 	QVERIFY2(request.userAgent.startsWith("EGTRAIN/"), "the check sends an EGTRAIN user agent");
-	// The check accepts the GitHub JSON type.
-	QCOMPARE(request.accept, QByteArray("application/vnd.github+json"));
+	// The check asks for JSON.
+	QCOMPARE(request.accept, QByteArray("application/json"));
 
 	Answer response;
 	response.status = 200;
@@ -646,15 +722,24 @@ void TestUpdateChecker::reportsFailureTexts() {
 	// A failed request without an error text reports the generic text.
 	QVERIFY(runCheck(response, &result));
 	QVERIFY(!result.success);
-	QCOMPARE(result.error, QStringLiteral("GitHub update check failed."));
+	QCOMPARE(result.error, QStringLiteral("The update check with the EGTRAIN website failed."));
 
 	response = Answer();
 	response.status = 500;
 	// An HTTP error status is reported with its code.
 	QVERIFY(runCheck(response, &result));
 	QVERIFY(!result.success);
-	QCOMPARE(result.error, QStringLiteral("GitHub returned HTTP 500."));
+	QCOMPARE(result.error, QStringLiteral("The EGTRAIN website returned HTTP 500."));
 
+	response.status = 302;
+	response.body = releaseJson("v1.10.0");
+	// A redirect is refused, whatever its body is.
+	QVERIFY(runCheck(response, &result));
+	QVERIFY(!result.success);
+	QVERIFY(!result.release);
+	QCOMPARE(result.error, QStringLiteral("The EGTRAIN website returned HTTP 302."));
+
+	response.body.clear();
 	response.status = 204;
 	QString parseError;
 	parseLatestStableRelease(QByteArray(), &parseError);

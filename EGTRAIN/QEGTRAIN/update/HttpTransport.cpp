@@ -56,8 +56,7 @@ public:
 
 	HttpReply* get(const HttpRequest& request) override {
 		QNetworkRequest networkRequest = baseRequest(request);
-		networkRequest.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
-			QNetworkRequest::NoLessSafeRedirectPolicy);
+		networkRequest.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::ManualRedirectPolicy);
 		return new QtHttpReply(m_network.get(networkRequest), this);
 	}
 

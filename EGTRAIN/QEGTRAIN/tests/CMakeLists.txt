@@ -149,8 +149,8 @@ egtrain_add_test(test_updatehelper
 	TIMEOUT 120)
 add_dependencies(test_updatehelper ${UPDATEHELPER_TEST_PROGRAMS})
 
-# One real HTTPS request to GitHub through the update transport. The package job runs the program from a
-# copy of the package; the test test_updatetransport_https below runs it from the build.
+# One real HTTPS request for the release feed of the EGTRAIN website through the update transport. The package job
+# runs the program from a copy of the package; the test test_updatetransport_https below runs it from the build.
 add_executable(test_updatetransport_https ${SRC_DIR}/tests/test_updatetransport_https.cpp)
 target_link_libraries(test_updatetransport_https PRIVATE egtrain_update Qt::Core Qt::Network)
 egtrain_target_warnings(test_updatetransport_https STRICT)
@@ -240,14 +240,15 @@ egtrain_add_test(test_httptransport
 	LABELS integration
 	TIMEOUT 60)
 
-# The program that asks GitHub for the release list, against a server on the loopback address.
+# The program that asks the EGTRAIN website for the release feed, against a server on the loopback address.
 egtrain_add_test(test_updatetransport_https_cases
 	COMMAND ${Python3_EXECUTABLE}
 		${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_updatetransport_https_cases.py $<TARGET_FILE:test_updatetransport_https>
 	LABELS integration
 	TIMEOUT 300)
-# The request to GitHub needs internet access, so no test run includes it unless the configuration asks for it.
-# The program returns 77 when GitHub answers with its rate limit or an outage, which CTest shows as skipped.
+# The request to the EGTRAIN website needs internet access, so no test run includes it unless the configuration asks
+# for it. The program returns 77 when the website answers with a rate limit, a challenge or an outage, which CTest shows
+# as skipped.
 if(EGTRAIN_NETWORK_TESTS)
 	egtrain_add_test(test_updatetransport_https LABELS integration network TIMEOUT 120 SKIP_RETURN_CODE 77)
 endif()

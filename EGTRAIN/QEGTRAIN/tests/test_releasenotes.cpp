@@ -27,7 +27,7 @@ std::optional<QString> notesOfReleaseBody(const QString& body) {
 	release.insert(QStringLiteral("tag_name"), QStringLiteral("v1.0.2"));
 	release.insert(QStringLiteral("draft"), false);
 	release.insert(QStringLiteral("prerelease"), false);
-	release.insert(QStringLiteral("html_url"), QStringLiteral("https://github.com/Ancientkingg/EGTRAIN/releases/tag/v1.0.2"));
+	release.insert(QStringLiteral("html_url"), QStringLiteral("https://egtrain.samuelbruin.com/releases/1.0.2/"));
 	release.insert(QStringLiteral("body"), body);
 	const std::optional<StableRelease> parsed = parseLatestStableRelease(QJsonDocument(QJsonArray{release}).toJson());
 	if (!parsed)
@@ -114,14 +114,14 @@ void TestReleaseNotes::showsInformativeTextAsMarkdown() {
 	QCOMPARE(label->textFormat(), Qt::MarkdownText);
 }
 
-// The body of release v1.0.2 as GitHub sends it, with CRLF line ends, goes through the parser and into the label of
+// The body of release v1.0.2 as the feed may send it, with CRLF line ends, goes through the parser and into the label of
 // the update dialog as separate paragraphs and a two item list.
 void TestReleaseNotes::showsReleaseBodyInDialog() {
 	const QString body = QStringLiteral(
 		"Automated EGTRAIN build for `EGTRAIN v1.0.2`.\r\n"
 		"\r\n"
 		"- Commit: 13cb88561425b64b79624efd6eadf8d609357158\r\n"
-		"- Workflow run: https://github.com/Ancientkingg/EGTRAIN/actions/runs/36513873983\r\n"
+		"- Release page: https://egtrain.samuelbruin.com/releases/1.0.2/\r\n"
 		"\r\n"
 		"Download the package for your platform. Case studies are also available as `.egscene` files.\r\n");
 	const std::optional<QString> notes = notesOfReleaseBody(body);

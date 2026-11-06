@@ -21,7 +21,7 @@ struct HttpRequest {
 	QByteArray extraRootPem;
 };
 
-/// The response of one request. A redirect of a get() is followed, but never from https to http.
+/// The response of one request. A redirect is never followed: its reply is the reply of the request, without an error.
 class HttpReply : public QObject {
 	Q_OBJECT
 
@@ -60,11 +60,11 @@ public:
 	/// Makes a transport owned by parent.
 	explicit HttpTransport(QObject* parent = nullptr) : QObject(parent) {}
 
-	/// Starts a GET of request.url and returns its reply, which the transport owns.
+	/// Starts a GET of request.url and returns its reply, which the transport owns. A redirect is not
+	/// followed, so the files of an update come only from the address that was checked.
 	virtual HttpReply* get(const HttpRequest& request) = 0;
-	/// Sends request.body with a POST. A redirect is not followed: its reply is the reply of the post,
-	/// without an error. The request carries no cookie and no credentials. The default transport cannot
-	/// post and returns nullptr.
+	/// Sends request.body with a POST. A redirect is not followed. The request carries no cookie and no
+	/// credentials. The default transport cannot post and returns nullptr.
 	virtual HttpReply* post(const HttpRequest&) { return nullptr; }
 };
 

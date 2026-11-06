@@ -112,9 +112,10 @@ The update code and the telemetry sender make their HTTP requests through `HttpT
 function `createHttpTransport` selects the implementation that the application uses: Qt's network
 manager, or on Windows `WinHttpTransport`, so the Windows package needs no TLS plugin of Qt. The WinHTTP
 transport fetches https addresses only. A test passes `allowLoopbackHttp` to reach `http://127.0.0.1`
-as well. `UpdateChecker` can take any transport, so `test_updatechecker` gives it a fake one, and
+as well. Neither transport follows a redirect: the reply of a redirect is the reply of the request.
+`UpdateChecker` can take any transport, so `test_updatechecker` gives it a fake one, and
 `test_httptransport` runs the transport of the application, for a GET and a POST, against a server on the loopback address.
-`test_updatetransport_https` sends one real request to the GitHub release list through that transport
+`test_updatetransport_https` sends one real request to the release feed of the EGTRAIN website through that transport
 ([HTTPS update check](../development/testing.md#https-update-check)).
 
 The telemetry sources also build with test hooks, which add members and a constructor

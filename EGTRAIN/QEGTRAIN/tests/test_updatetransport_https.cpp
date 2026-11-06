@@ -1,5 +1,6 @@
 #include "update/HttpTransport.h"
 #include "update/ReleaseInfo.h"
+#include "update/UpdateChecker.h"
 
 #include <QCoreApplication>
 #include <QJsonDocument>
@@ -12,18 +13,18 @@
 #include <iostream>
 #include <optional>
 
-// One real GET of the GitHub release list through the transport that the application uses, read with the
-// parser of the update check. It tells a connection that cannot be made from an answer of the server: a
+// One real GET of the release feed of the EGTRAIN website through the transport that the application uses, read
+// with the parser of the update check. It tells a connection that cannot be made from an answer of the server: a
 // reply with a status code reached the server, so the TLS handshake and the certificate check worked,
-// whatever the status is.
+// whatever the status is. A redirect is not followed, as in the update check, so it fails the probe.
 //
 //   test_updatetransport_https [URL]
 //
 // A test passes the address of a server on 127.0.0.1 as URL, which the Windows transport fetches only for
 // a test. The output starts with PASS, SKIP or FAIL, and the exit code is
 //   0   PASS: the release list arrived and was read
-//   77  SKIP: the server answered, but not with a release list, because of its rate limit (403, 429) or an
-//       outage (5xx). CTest shows a test with this code as skipped.
+//   77  SKIP: the server answered, but not with a release list, because of a rate limit or a challenge of the
+//       proxy (403, 429) or an outage (5xx). CTest shows a test with this code as skipped.
 //   1   FAIL: no response arrived, or the answer is not a release list
 
 namespace {
@@ -77,7 +78,7 @@ Verdict judge(const Outcome& outcome) {
 	const std::optional<StableRelease> release = parseLatestStableRelease(outcome.body, &parseError);
 	if (release)
 		return pass(answered + QStringLiteral(" and the newest stable release is %1.").arg(release->tag));
-	// The list holds only the newest release, which may be a prerelease. The answer still came over HTTPS.
+	// The list may hold only prereleases. The answer still came over HTTPS.
 	if (QJsonDocument::fromJson(outcome.body).isArray())
 		return pass(answered + QStringLiteral(" with a release list that has no stable release: %1").arg(parseError));
 	return fail(answered + QStringLiteral(", but the body is not a release list: %1").arg(parseError));
@@ -91,9 +92,9 @@ int main(int argc, char** argv) {
 	const bool loopback = arguments.size() > 1;
 
 	HttpRequest request;
-	request.url = loopback ? QUrl(arguments.at(1)) : QUrl(QStringLiteral("https://api.github.com/repos/Ancientkingg/EGTRAIN/releases?per_page=1"));
+	request.url = loopback ? QUrl(arguments.at(1)) : UpdateChecker::releasesUrl();
 	request.userAgent = QByteArrayLiteral("EGTRAIN-https-probe");
-	request.accept = QByteArrayLiteral("application/vnd.github+json");
+	request.accept = QByteArrayLiteral("application/json");
 	HttpTransport* transport = createHttpTransport(&application, loopback);
 	HttpReply* reply = transport->get(request);
 

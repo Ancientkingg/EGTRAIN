@@ -201,8 +201,8 @@ and `leak check (Linux)` a scene limit of 1500 s ([Nightly sanitizer runs](smoke
 
 ### HTTPS update check
 
-`test_updatetransport_https` (labels `integration` and `network`) makes one real GET of the GitHub release list
-through `createHttpTransport`, which is WinHTTP on Windows, and reads the answer with `parseLatestStableRelease`. It
+`test_updatetransport_https` (labels `integration` and `network`) makes one real GET of the release feed of the EGTRAIN
+website, `https://egtrain.samuelbruin.com/releases/feed.json`, through `createHttpTransport`, which is WinHTTP on Windows, and reads the answer with `parseLatestStableRelease`. It
 is registered only when the configuration asks for it (on Windows add `-C Release` to `ctest`):
 
 ```bash
@@ -210,10 +210,10 @@ cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_NETWORK_TESTS=ON
 ctest --test-dir build -L network --output-on-failure
 ```
 
-Its output starts with `PASS` (exit code 0: the release list was read), `SKIP` (77: GitHub answered with HTTP 403 or
-429, its rate limit, or with 5xx, an outage) or `FAIL` (1: no HTTP response within 45 s, another HTTP status, or a
-body that is not a release list). CTest shows a skip as skipped. The anonymous GitHub API allows 60 requests an hour
-for one address, and a run makes one. `test_updatetransport_https_cases` runs the same program against a server on
+Its output starts with `PASS` (exit code 0: the release list was read), `SKIP` (77: the website answered with HTTP 403
+or 429, a rate limit or a challenge of its proxy, or with 5xx, an outage) or `FAIL` (1: no HTTP response within 45 s,
+another HTTP status, a redirect included, or a body that is not a release list). CTest shows a skip as skipped.
+`test_updatetransport_https_cases` runs the same program against a server on
 `127.0.0.1` and needs no internet. The Windows leg of the CMake workflow leaves the network tests out of its Test step
 (`-LE network`) and runs them in the step Check HTTPS (Windows), and the Windows package job runs the program from a
 copy of the package ([CI and release](ci-and-release.md)).

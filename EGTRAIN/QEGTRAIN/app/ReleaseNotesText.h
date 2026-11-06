@@ -7,7 +7,7 @@
 #include <QStringList>
 
 /// Release notes as the Markdown that a message box shows. Markdown joins the lines of a paragraph, so a line that is
-/// followed by another line gets a hard break, except inside a fenced block. GitHub gives the notes with CRLF line ends.
+/// followed by another line gets a hard break, except inside a fenced block. The notes may have CRLF line ends.
 inline QString releaseNotesMarkdown(QString notes) {
 	notes.replace(QLatin1String("\r\n"), QLatin1String("\n"));
 	notes.replace('\r', '\n');
