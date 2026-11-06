@@ -436,6 +436,7 @@ private slots:
 	void otherKindsHaveMarks();
 	void anotherRowKeepsTheView();
 	void markInPlaceNeedsTheDrawnModel();
+	void hiddenMarkKeepsItsRowAndTheView();
 	void markColoursStandApart();
 	void marksLeaveOutHiddenArcsOfDoubleSwitches();
 	void areaLeavesOutLineThatIsNotFinite();
@@ -1142,6 +1143,40 @@ void TestNetworkPresenter::markInPlaceNeedsTheDrawnModel() {
 	QVERIFY(!f.presenter.previewShown());
 	QVERIFY2(!f.presenter.markPreviewSelection(f.model, PaimpolFixture::options("stations", "Frynaudour")),
 		"without a preview nothing is marked in place");
+}
+
+// A hidden mark is placed for each row and each preview as a shown one is, but it is not drawn, the view does not move to
+// it and the preview has no selected track. Shown again, it is the mark of the last row, at the same view.
+void TestNetworkPresenter::hiddenMarkKeepsItsRowAndTheView() {
+	PaimpolFixture f;
+	const NetworkMarkItem* track = f.show("tracks", "B0");
+	QVERIFY(track && track->isVisible());
+	QVERIFY(f.presenter.previewHasSelectedTrack());
+	f.presenter.setSelectionMarkShown(false);
+	QVERIFY(!f.presenter.selectionMarkShown());
+	QVERIFY2(!track->isVisible(), "a hidden mark is not drawn");
+	QVERIFY2(!f.presenter.previewHasSelectedTrack(), "a hidden mark of a track lists no selected track");
+	track = f.show("tracks", "B0");
+	QVERIFY2(track && !track->isVisible(), "a preview places the mark hidden");
+	QVERIFY(!f.presenter.previewHasSelectedTrack());
+
+	f.show("stations", "Gourland");
+	QVERIFY(f.view.zoomBy(8.0));
+	f.view.centerOn(f.at("B0.node.41"));
+	const QTransform transform = f.view.transform();
+	const auto centre = [&f]() { return f.view.mapToScene(f.view.viewport()->rect().center()); };
+	const QPointF before = centre();
+	QVERIFY(!f.view.mapToScene(f.view.viewport()->rect()).boundingRect().contains(f.at("B0.node.241")));
+	QVERIFY(f.presenter.markPreviewSelection(f.model, PaimpolFixture::options("stations", "Frynaudour")));
+	const NetworkMarkItem* station = f.presenter.selectionMark();
+	QVERIFY2(station && !station->isVisible(), "another row places the mark hidden");
+	QCOMPARE(f.view.transform(), transform);
+	QCOMPARE(centre(), before);
+	f.presenter.setSelectionMarkShown(true);
+	QCOMPARE(f.presenter.selectionMark(), station);
+	QVERIFY2(station->isVisible(), "the mark shown again is drawn");
+	QCOMPARE(f.view.transform(), transform);
+	QCOMPARE(centre(), before);
 }
 
 // The colours of the mark read on the canvas and on the area of a station, are neither red nor green, and differ from the

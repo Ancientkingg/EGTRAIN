@@ -109,6 +109,8 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	m_infrastructureDock->setWidget(m_infrastructurePanel);
 	m_window->addDockWidget(Qt::RightDockWidgetArea, m_infrastructureDock);
 	m_infrastructureDock->hide();
+	// Qt sends no visibilityChanged for a dock that is hidden before it was ever shown.
+	m_host.infrastructureDockShown(false);
 	// The editor docks share one group of tabs, so each open editor has the full height of the side instead of a share of it.
 	m_window->tabifyDockWidget(m_caseSettingsDock, m_infrastructureDock);
 	m_host.registerEditorDock(m_infrastructureDock);
@@ -127,11 +129,9 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	QObject::connect(m_infrastructurePanel, &InfrastructurePanel::changed, m_window, [this] { m_host.refreshValidationPanel(); });
 	QObject::connect(m_infrastructurePanel, &InfrastructurePanel::statusMessage, m_window,
 		[this](const QString& text, int timeoutMs) { m_window->statusBar()->showMessage(text, timeoutMs); });
+	// The signal also comes when the tab of the dock comes to the front of its group or goes behind another one.
 	QObject::connect(m_infrastructureDock, &QDockWidget::visibilityChanged, m_window,
-		[this](bool visible) {
-			if (visible)
-				m_infrastructurePanel->updateSelection();
-		});
+		[this](bool visible) { m_host.infrastructureDockShown(visible); });
 	m_host.refreshInfrastructurePanel(false);
 
 	m_trainUnitDock = new QDockWidget("Rolling Stock Units", m_window);

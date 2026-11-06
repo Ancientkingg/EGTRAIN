@@ -799,6 +799,76 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 					|| w.m_inspector->previewSelectionId() != nodeId)
 					fail("infrastructure row", "a click after an edit in another dock empties the Details dock");
 			}
+
+			// The canvas shows the mark only while the dock is in view: closing the dock, or bringing another dock of its
+			// group to the front, hides it. Showing the dock again shows the same mark of the same row, without a new
+			// selection, and the view stays where it is, also when it shows none of the mark.
+			// Case Settings is shown behind the dock first, so that it takes no room of the view when it comes to the front.
+			QDockWidget* front = caseSettingsDock(w);
+			const bool frontShown = front->isVisible();
+			front->show();
+			dock->raise();
+			QApplication::processEvents();
+			const NetworkMarkItem* mark = w.m_presenter->selectionMark();
+			if (!mark || !mark->isVisible()) {
+				fail("infrastructure mark", "the row selected in the dock has no mark");
+			} else if (!w.tabifiedDockWidgets(dock).contains(front)) {
+				fail("infrastructure mark", "the dock shares no group of tabs with Case Settings");
+			} else {
+				const QString row = panel->selectionId();
+				// The point of the preview farthest from the mark, which the view shows at a zoom of four times as much.
+				const QPointF marked = mark->sceneBoundingRect().center();
+				QPointF far = marked;
+				for (QGraphicsItem* candidate : w.scene->items())
+					if (candidate->isVisible() && !candidate->data(PreviewGraphics::Kind).toString().isEmpty()
+						&& QLineF(candidate->sceneBoundingRect().center(), marked).length() > QLineF(far, marked).length())
+						far = candidate->sceneBoundingRect().center();
+				const QPointF centreBefore = centre();
+				w.networkView->zoomBy(4.0);
+				w.networkView->centerOn(far);
+				QApplication::processEvents();
+				const QRectF visible = w.networkView->mapToScene(w.networkView->viewport()->rect()).boundingRect();
+				const qreal zoom = w.networkView->zoomRatio();
+				const QPointF farCentre = centre();
+				// The same zoom, and the same centre to two pixels: the dock beside the view changes its size.
+				const auto viewStays = [&]() {
+					const QPoint shift = w.networkView->mapFromScene(farCentre) - w.networkView->viewport()->rect().center();
+					return qFuzzyCompare(w.networkView->zoomRatio(), zoom) && shift.manhattanLength() <= 2;
+				};
+				const auto markShown = [&w, mark]() { return w.m_presenter->selectionMark() == mark && mark->isVisible(); };
+				QStringList wrong;
+				if (mark->intersects(visible))
+					wrong << "the view shows the mark before the dock is hidden";
+				told = 0;
+				dock->hide();
+				QApplication::processEvents();
+				if (mark->isVisible())
+					wrong << "a closed dock leaves the mark on the canvas";
+				dock->show();
+				dock->raise();
+				QApplication::processEvents();
+				if (!markShown())
+					wrong << "the dock shown again does not show the same mark";
+				front->raise();
+				QApplication::processEvents();
+				if (mark->isVisible())
+					wrong << "the dock behind another tab leaves the mark on the canvas";
+				dock->raise();
+				QApplication::processEvents();
+				if (!markShown())
+					wrong << "the dock brought to the front does not show the same mark";
+				if (told != 0 || panel->selectionId() != row)
+					wrong << QString("showing the dock tells the selection %1 times").arg(told);
+				if (!viewStays())
+					wrong << "showing the dock moves or zooms the view";
+				if (!wrong.isEmpty())
+					fail("infrastructure mark", wrong.join("; "));
+				w.networkView->zoomBy(0.25);
+				w.networkView->centerOn(centreBefore);
+			}
+			front->setVisible(frontShown);
+			dock->raise();
+			QApplication::processEvents();
 		} else {
 			fail("infrastructure row", "no preview arc in the middle of the view");
 		}

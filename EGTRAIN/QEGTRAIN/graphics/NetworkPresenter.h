@@ -290,12 +290,18 @@ public:
 	/// names; for a single-track restriction also the block sections between its start and its end. The section chosen
 	/// under Route sections is drawn over the route in the second colour. Returns false and changes nothing when no
 	/// preview is shown or options has no model generation or another one than the preview: the caller draws the
-	/// preview again.
+	/// preview again. A hidden mark (setSelectionMarkShown()) leaves the view as it is.
 	bool markPreviewSelection(const SceneModel& sceneModel, const PreviewOptions& options);
 	/// The scene shows a preview with track lines: showPreview() drew one and neither clear() nor showRuntime() ran since.
 	bool previewShown() const { return m_previewShown; }
 	/// The mark of the selected row of the infrastructure panel; null without one.
 	const NetworkMarkItem* selectionMark() const { return m_selectionMark; }
+	/// Shows or hides the mark of the selected row, the one that is placed now and the ones that are placed later, and
+	/// leaves the rest of the scene and the view as they are. A hidden mark keeps its row, so showing it again draws the
+	/// same mark. The mark is shown until this hides it.
+	void setSelectionMarkShown(bool shown);
+	/// The mark of the selected row is shown (setSelectionMarkShown()).
+	bool selectionMarkShown() const { return m_selectionMarkShown; }
 	/// Marks block sections of the run that the canvas shows, such as the stretch of a scope dialog or a block of a
 	/// blocking time window: the courses of sectionIds on the track preview that the run is drawn on
 	/// (previewSectionCourses()) as the band of a NetworkMarkItem, and the courses of emphasisIds as its emphasis. The ids
@@ -322,8 +328,8 @@ public:
 	void restorePreviewFit(const PreviewFit& fit);
 	/// The preview that the scene shows.
 	const TrackPreviewResult& trackPreview() const { return m_cachedTrackPreview; }
-	/// The preview marks a selected track.
-	bool previewHasSelectedTrack() const { return m_previewHasSelectedTrack; }
+	/// The preview shows the mark of a selected track.
+	bool previewHasSelectedTrack() const { return m_previewHasSelectedTrack && m_selectionMarkShown; }
 	/// The last preview has signals.
 	bool previewHasSignals() const { return m_previewHasSignals; }
 
@@ -546,6 +552,8 @@ private:
 	std::map<std::string, const PlatformItem*> m_previewPlatformBars;
 	// The mark of the selected row of the infrastructure panel, or null.
 	NetworkMarkItem* m_selectionMark = nullptr;
+	// The mark of the selected row is shown.
+	bool m_selectionMarkShown = true;
 
 	// The stages of showPreview(), in the order in which it runs them, and what they share. Between drawPreviewStations()
 	// and drawPreviewSignals() it also runs measureStationTrackSpacing(), declared above, and after fitPreview() it places

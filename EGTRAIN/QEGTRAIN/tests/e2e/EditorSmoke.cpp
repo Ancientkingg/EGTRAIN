@@ -614,6 +614,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					ok = false;
 					failures << "scene: a refresh selected a row that nobody selected";
 				}
+				// The preview marks the selected track while the dock is in view.
+				const bool infrastructureShown = infrastructureDock(w)->isVisible();
+				w.revealEditorDock(infrastructureDock(w));
+				QApplication::processEvents();
 				infrastructurePanel(w)->facetCombo()->setCurrentIndex(infrastructurePanel(w)->facetCombo()->findData("tracks"));
 				infrastructurePanel(w)->table()->setCurrentCell(0, 0);
 				const QString explicitlySelectedTrack = infrastructurePanel(w)->selectionId();
@@ -632,6 +636,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					ok = false;
 					failures << "scene: explicit selection leaked into another case";
 				}
+				infrastructureDock(w)->setVisible(infrastructureShown);
 			}
 			if (QDir(w.m_session->m_sceneDir).absolutePath() != QDir(scenePath).absolutePath()) {
 				ok = false;

@@ -1182,6 +1182,7 @@ void NetworkPresenter::placeSelectionMark(const SceneModel& sceneModel, const Pr
 		delete mark;
 		return;
 	}
+	mark->setVisible(m_selectionMarkShown);
 	m_selectionMark = mark;
 	m_previewHasSelectedTrack = parts.track;
 }
@@ -1190,7 +1191,7 @@ bool NetworkPresenter::markPreviewSelection(const SceneModel& sceneModel, const 
 	if (!m_previewShown || !options.modelGeneration || options.modelGeneration != m_previewGeneration)
 		return false;
 	placeSelectionMark(sceneModel, options);
-	if (!m_view || !m_selectionMark)
+	if (!m_view || !m_selectionMark || !m_selectionMarkShown)
 		return true;
 	// The view keeps its zoom and moves only when it shows nothing of the mark.
 	const QRectF visible = m_view->mapToScene(m_view->viewport()->rect()).boundingRect();
@@ -1198,6 +1199,12 @@ bool NetworkPresenter::markPreviewSelection(const SceneModel& sceneModel, const 
 	if (!m_selectionMark->intersects(visible) && m_selectionMark->nearestPoint(visible.center(), &nearest))
 		m_view->centerOn(nearest);
 	return true;
+}
+
+void NetworkPresenter::setSelectionMarkShown(bool shown) {
+	m_selectionMarkShown = shown;
+	if (m_selectionMark)
+		m_selectionMark->setVisible(shown);
 }
 
 void NetworkPresenter::markRunSections(const QStringList& sectionIds, const QStringList& emphasisIds) {

@@ -56,6 +56,9 @@ public:
 		virtual void refreshInfrastructurePanel(bool resetSelection) = 0;
 		/// The selection of the Infrastructure panel changed, which the track preview marks.
 		virtual void infrastructureSelectionChanged() = 0;
+		/// The Infrastructure dock came into view or went out of it: it was shown or hidden, or its tab came to the front
+		/// of its group or went behind another one. The track preview marks the selected row only while the dock is in view.
+		virtual void infrastructureDockShown(bool shown) = 0;
 		/// Shows the scenarios, the incidents and the entrance delays again.
 		virtual void refreshIncidentPanel() = 0;
 		/// The selected scenario changed, so the results of the last run no longer match the next run.

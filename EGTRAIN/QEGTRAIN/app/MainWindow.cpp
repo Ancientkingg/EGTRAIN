@@ -2270,6 +2270,14 @@ void MainWindow::infrastructureSelectionChanged() {
 	renderTrackPreview(m_document->model());
 }
 
+void MainWindow::infrastructureDockShown(bool shown) {
+	// The mark of the selected row comes back as it was, so the selection and the view stay.
+	m_presenter->setSelectionMarkShown(shown);
+	// The map key lists the selected track only while the preview shows its mark.
+	if (m_presenter->previewShown())
+		updateNetworkLegend();
+}
+
 void MainWindow::selectInfrastructureRow(QGraphicsItem* item, bool reveal) {
 	QDockWidget* dock = m_editorDocks.infrastructureDock();
 	if (!item || !m_showingTrackPreview || m_snapshot || !dock || !dock->isEnabled())
