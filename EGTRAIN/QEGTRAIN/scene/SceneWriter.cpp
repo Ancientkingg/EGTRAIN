@@ -128,16 +128,17 @@ static std::error_code syncToDisk(const fs::path& path, bool directory) {
 	do {
 		descriptor = ::open(path.c_str(), O_RDONLY | O_CLOEXEC);
 	} while (descriptor < 0 && errno == EINTR);
+	// A folder the user may write but not read cannot be opened to flush it, and nothing more can be done there.
 	if (descriptor < 0)
-		return std::error_code(errno, std::generic_category());
+		return directory && errno == EACCES ? std::error_code() : std::error_code(errno, std::generic_category());
 	int synced = -1;
 	do {
 		synced = ::fsync(descriptor);
 	} while (synced != 0 && errno == EINTR);
 	const int error = synced == 0 ? 0 : errno;
 	::close(descriptor);
-	// A file system that cannot flush a directory says so with EINVAL, and nothing more can be done there.
-	if (error == 0 || (directory && error == EINVAL))
+	// A file system that cannot flush a directory says so with EINVAL or EBADF, and nothing more can be done there.
+	if (error == 0 || (directory && (error == EINVAL || error == EBADF)))
 		return std::error_code();
 	return std::error_code(error, std::generic_category());
 #endif
