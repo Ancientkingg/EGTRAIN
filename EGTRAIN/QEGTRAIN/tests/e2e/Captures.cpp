@@ -31,6 +31,7 @@
 #include <QEvent>
 #include <QFile>
 #include <QFileInfo>
+#include <QHeaderView>
 #include <QItemSelectionModel>
 #include <QModelIndex>
 #include <QGraphicsSceneContextMenuEvent>
@@ -52,12 +53,16 @@
 #include <QPointer>
 #include <QPushButton>
 #include <QRgb>
+#include <QScrollArea>
 #include <QSize>
+#include <QSplitter>
 #include <QString>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTimer>
 #include <QToolButton>
+#include <QTreeWidget>
+#include <algorithm>
 #include <array>
 #include <cstdlib>
 #include <cstddef>
@@ -662,10 +667,20 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		infrastructurePanel(w)->blockTrackFilterCombo()->setCurrentIndex(track);
 		built = built && track >= 0 && addRows("blocks", 2) && addRows("stations", 2) && addRows("platforms", 2)
 			&& setCell(1, 0, QStringLiteral("station_2")) && setCell(0, 3, QStringLiteral("node")) && setCell(1, 3, QStringLiteral("node_3"));
-		return built && selectRow(1)
-			? saveCapture(windowShot(), QStringLiteral("tutorial-minimal-platforms.png"), QStringLiteral("Minimal line"),
-				  QStringLiteral("two stations with a platform at each end node, Infrastructure on Platforms"))
-			: failCaptures(QStringLiteral("the arcs, blocks, stations and platforms of Minimal line could not be added and selected"));
+		if (!built || !selectRow(1))
+			return failCaptures(QStringLiteral("the arcs, blocks, stations and platforms of Minimal line could not be added and selected"));
+		// Width (m), the last column, is beyond the width of the dock. The dock is widened, as a drag of its edge does, until
+		// the table shows every column, and gets its width back after the picture.
+		QDockWidget* dock = infrastructureDock(w);
+		const QHeaderView* columns = infrastructurePanel(w)->table()->horizontalHeader();
+		const int width = dock->width();
+		w.resizeDocks({dock}, {width + std::max(0, columns->length() - columns->width())}, Qt::Horizontal);
+		settle();
+		const bool saved = saveCapture(windowShot(), QStringLiteral("tutorial-minimal-platforms.png"), QStringLiteral("Minimal line"),
+			QStringLiteral("two stations with a platform at each end node, Infrastructure on Platforms"));
+		w.resizeDocks({dock}, {width}, Qt::Horizontal);
+		settle();
+		return saved;
 	});
 	steps.push_back([&w, addRows] {
 		bool built = addRows("signalling_areas", 1);
@@ -756,6 +771,18 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		diagram->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
 		diagram->resize(kWindowSize);
 		settle();
+		// A train name can be wider than the panel, which then cuts it short. The panel is widened, as a drag of the
+		// splitter does, until the list of trains shows the whole names.
+		auto* splitter = diagram->findChild<QSplitter*>(QStringLiteral("resultSplitter"));
+		auto* trains = diagram->findChild<TrainKeyList*>();
+		if (!splitter || splitter->count() != 2 || !trains)
+			return failCaptures(QStringLiteral("Train paths has no panel with a list of trains"));
+		const QTreeWidget* names = trains->tree();
+		// QTreeView keeps its override protected; the one of QAbstractItemView is public.
+		const int wider = std::max(0, static_cast<const QAbstractItemView*>(names)->sizeHintForColumn(0) - names->columnWidth(0));
+		const QList<int> sizes = splitter->sizes();
+		splitter->setSizes({sizes[0] - wider, sizes[1] + wider});
+		settle();
 		const bool saved = saveCapture(diagram->grab(), QStringLiteral("how-to-train-paths.png"), QStringLiteral("Paimpol"),
 			QStringLiteral("Train paths after a run of baseline, on the first route of the run"));
 		diagram->close();
@@ -837,6 +864,15 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		ok = ok && editNumber(incidentPanel(w)->endSecondsEdit(), 1200);
 		showOnly({incidentDock(w)});
 		w.resizeDocks({incidentDock(w)}, {480}, Qt::Horizontal);
+		settle();
+		// The form scrolls when it is taller than the dock. It is scrolled to show Terminate at destination, as Tab does
+		// when it reaches the check box.
+		QCheckBox* terminate = incidentPanel(w)->terminateAtDestinationCheck();
+		for (QWidget* parent = terminate->parentWidget(); parent; parent = parent->parentWidget())
+			if (auto* form = qobject_cast<QScrollArea*>(parent)) {
+				form->ensureWidgetVisible(terminate);
+				break;
+			}
 		settle();
 		if (w.m_presenter->selectionMark())
 			return failCaptures(QStringLiteral("the view still marks a row of Infrastructure"));
