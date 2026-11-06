@@ -1,4 +1,5 @@
-/* The home page of the documentation site. The fonts and colours are those of the Furo theme of the guides. */
+/* The pages of the website: the home page, the support, source and privacy pages and the release pages. The fonts and
+   colours are those of the Furo theme of the guides. */
 
 :root {
   --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
@@ -68,7 +69,8 @@ code {
   font-size: 81.25%;
 }
 
-p code {
+p code,
+li code {
   padding: 0.1em 0.2em;
   border: 1px solid var(--color-background-border);
   border-radius: 0.2em;
@@ -121,7 +123,8 @@ nav a:hover {
 }
 
 h1,
-h2 {
+h2,
+h3 {
   font-weight: 700;
   line-height: 1.25;
 }
@@ -134,6 +137,11 @@ h1 {
 h2 {
   margin: 2.5rem 0 1rem;
   font-size: 1.5em;
+}
+
+h3 {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1.125em;
 }
 
 figure {
@@ -219,8 +227,34 @@ figcaption {
 }
 
 .guides,
-.versions {
+.versions,
+.releases {
   padding-left: 1.25rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 87.5%;
+}
+
+th,
+td {
+  padding: 0.375rem 0.5rem;
+  border-bottom: 1px solid var(--color-background-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+th:last-child,
+td:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.files a {
+  font-family: var(--font-stack--monospace);
+  overflow-wrap: anywhere;
 }
 
 li {
