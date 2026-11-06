@@ -13,6 +13,7 @@
 #include <QFontMetrics>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -346,13 +347,23 @@ CanvasRow canvasRow(const SceneModel& scene, const QString& kind, const QString&
 	return {};
 }
 
-// The editor of a cell that refers to other entities. It ignores the mouse wheel, so the wheel scrolls the table behind it.
+// The editor of a cell that refers to other entities. It ignores the mouse wheel, so the wheel scrolls the table behind it,
+// and the keys up and down without Alt or Ctrl, so they move to another row as from a text cell instead of choosing
+// another entity.
 class ReferenceComboBox : public QComboBox {
 public:
 	using QComboBox::QComboBox;
 
 protected:
 	void wheelEvent(QWheelEvent* event) override { event->ignore(); }
+	void keyPressEvent(QKeyEvent* event) override {
+		const int key = event->key();
+		const bool rowKey = key == Qt::Key_Up || key == Qt::Key_Down || key == Qt::Key_PageUp || key == Qt::Key_PageDown;
+		if (rowKey && !(event->modifiers() & (Qt::AltModifier | Qt::ControlModifier)))
+			event->ignore();
+		else
+			QComboBox::keyPressEvent(event);
+	}
 };
 
 } // namespace

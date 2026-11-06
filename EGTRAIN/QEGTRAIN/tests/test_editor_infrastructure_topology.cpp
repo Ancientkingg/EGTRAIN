@@ -192,6 +192,7 @@ private slots:
 	void deletesConnectionThatRouteUses();
 	void namesStationOfNodes();
 	void editsReferencesInCombos();
+	void leavesComboWithArrowKeys();
 };
 
 void TestTopologyFacets::offersNetworkFacets() {
@@ -728,6 +729,36 @@ void TestTopologyFacets::editsReferencesInCombos() {
 	QVERIFY(f.untouched());
 	QCOMPARE(f.model().connections[0].fromNodeId, "node-a1");
 	QCOMPARE(f.messages, QStringList({"Node 'node-q' does not exist"}));
+}
+
+// The keys up and down move from a combo of references to another row, as from a text cell, and choose no other entity.
+void TestTopologyFacets::leavesComboWithArrowKeys() {
+	Fixture f;
+	f.panel.show();
+	// The panel is hidden before the fixture destroys it, also when a check fails.
+	const auto hide = qScopeGuard([&f] { f.panel.hide(); });
+	f.panel.activateWindow();
+	QApplication::processEvents();
+	f.choose("nodes");
+	QComboBox* track = f.openCombo(1, 2);
+	if (track == nullptr)
+		QFAIL("the track of a node has no combo");
+	QTest::keyClick(track, Qt::Key_Down);
+	QApplication::processEvents();
+	// The next row is current, and the node keeps its track.
+	QCOMPARE(f.table()->currentRow(), 2);
+	QCOMPARE(f.table()->currentColumn(), 2);
+	QCOMPARE(f.model().nodes[1].trackId, "track-a");
+	QVERIFY(f.untouched());
+	track = qobject_cast<QComboBox*>(f.table()->indexWidget(f.table()->model()->index(2, 2)));
+	if (track == nullptr)
+		QFAIL("moving to the track of a node opens no combo");
+	QTest::keyClick(track, Qt::Key_Up);
+	QApplication::processEvents();
+	// Up goes back, and no node changes its track.
+	QCOMPARE(f.table()->currentRow(), 1);
+	QCOMPARE(f.model().nodes[2].trackId, "track-a");
+	QVERIFY(f.untouched());
 }
 
 QTEST_MAIN(TestTopologyFacets)
