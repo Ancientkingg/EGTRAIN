@@ -473,10 +473,7 @@ void TrainUnitPanel::addLibraryUnit(const SceneTrainUnit& libraryUnit, bool with
 	SceneComposition composition;
 	composition.id = sceneUniqueCompositionId(model, unit.id);
 	composition.units = {unit.id};
-	// A composition with the id of the unit and only that unit is the one that would be added.
-	const auto sameId = std::find_if(model.compositions.begin(), model.compositions.end(),
-		[&unit](const SceneComposition& item) { return item.id == unit.id; });
-	const bool addsComposition = withComposition && (sameId == model.compositions.end() || sameId->units != composition.units);
+	const bool addsComposition = withComposition;
 	SceneDocument::ChangeKinds kinds(SceneDocument::TrainUnits);
 	if (addsComposition)
 		kinds |= SceneDocument::Compositions;
