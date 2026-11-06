@@ -171,6 +171,7 @@ CaseChooserDialog::CaseChooserDialog(const Options& options, QWidget* parent) : 
 	moreButton->setAutoDefault(false);
 	m_otherMenu = new QMenu(moreButton);
 	QAction* newCase = m_otherMenu->addAction("New Case...");
+	QAction* browseFile = m_otherMenu->addAction("Open Case File...");
 	QAction* browseScene = m_otherMenu->addAction("Open Case Folder...");
 	QAction* legacy = m_otherMenu->addAction("Import Legacy Case...");
 	legacy->setToolTip("Convert a case from the original text files");
@@ -200,6 +201,7 @@ CaseChooserDialog::CaseChooserDialog(const Options& options, QWidget* parent) : 
 	});
 	connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 	connect(newCase, &QAction::triggered, this, [this]() { choose(Outcome::NewCase); });
+	connect(browseFile, &QAction::triggered, this, [this]() { choose(Outcome::BrowseFile); });
 	connect(browseScene, &QAction::triggered, this, [this]() { choose(Outcome::BrowseFolder); });
 	connect(legacy, &QAction::triggered, this, [this]() { choose(Outcome::ImportLegacy); });
 	DialogLayout::install(*this, "Open a Case",

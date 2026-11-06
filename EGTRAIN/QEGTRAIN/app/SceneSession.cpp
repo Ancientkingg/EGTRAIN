@@ -462,7 +462,17 @@ bool SceneSession::saveSceneToCurrentDir() {
 }
 
 void SceneSession::saveSceneAs() {
-	saveSceneAsToBundle();
+	if (!m_document->isLoaded())
+		return;
+	// A save dialog chooses either a file or a folder, so the format comes first.
+	const bool folder = !m_sceneIsBundle && !m_sceneDir.isEmpty();
+	const int format = m_prompts->chooseButton(m_window, "Save As",
+		"Save the case as one case file (.egscene) or as a case folder of JSON files?", {"Case File...", "Case Folder..."},
+		folder ? 1 : 0);
+	if (format == 0)
+		saveSceneAsToBundle();
+	else if (format == 1)
+		saveSceneAsToDirectory();
 }
 
 bool SceneSession::saveSceneAsToBundle() {

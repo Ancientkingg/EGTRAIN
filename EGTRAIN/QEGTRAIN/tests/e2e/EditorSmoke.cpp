@@ -76,6 +76,7 @@
 #include <QFontMetrics>
 #include <QFormLayout>
 #include <QGraphicsItem>
+#include <QHash>
 #include <QHeaderView>
 #include <QHelpEvent>
 #include <QIODevice>
@@ -84,6 +85,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QKeyEvent>
+#include <QKeySequence>
 #include <QLabel>
 #include <QLineEdit>
 #include <QLineF>
@@ -123,6 +125,7 @@
 #include <QTemporaryDir>
 #include <QThread>
 #include <QTimer>
+#include <QToolBar>
 #include <QToolButton>
 #include <QToolTip>
 #include <QTreeWidget>
@@ -211,6 +214,40 @@ void answerMessageBox(QObject* context, QMessageBox::StandardButton button) {
 			break;
 		}
 	});
+}
+
+// The commands that the menus of the bar hold more than once, the same action or the same text, as sentences. The entries
+// of `cases`, the Recent Cases menu, are cases, not commands, and two cases may share a name.
+QStringList menuBarDuplicates(const QMenuBar& bar, const QMenu* cases) {
+	// View > Passengers shows the passenger layer and Editors > Passengers the passenger editor: two commands of one name.
+	const QStringList sharedTexts{QStringLiteral("Passengers")};
+	QStringList duplicates;
+	QHash<const QAction*, QString> actionPlaces;
+	QHash<QString, QString> textPlaces;
+	std::function<void(const QMenu&, const QString&)> walk = [&](const QMenu& menu, const QString& path) {
+		for (const QAction* action : menu.actions()) {
+			if (action->isSeparator() || !action->isVisible())
+				continue;
+			const QString text = QString(action->text()).remove(QLatin1Char('&'));
+			const QString place = path + QStringLiteral(" > ") + text;
+			if (const QMenu* submenu = action->menu()) {
+				if (submenu != cases)
+					walk(*submenu, place);
+				continue;
+			}
+			if (actionPlaces.contains(action))
+				duplicates << QStringLiteral("%1 is the action of %2").arg(place, actionPlaces.value(action));
+			else if (textPlaces.contains(text) && !sharedTexts.contains(text))
+				duplicates << QStringLiteral("%1 has the text of %2").arg(place, textPlaces.value(text));
+			actionPlaces.insert(action, place);
+			textPlaces.insert(text, place);
+		}
+	};
+	for (const QAction* entry : bar.actions()) {
+		if (const QMenu* menu = entry->menu())
+			walk(*menu, QString(menu->title()).remove(QLatin1Char('&')));
+	}
+	return duplicates;
 }
 
 } // namespace
@@ -498,6 +535,32 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		return true;
 	};
 
+	// The menu bar holds each command once. The File menu groups opening, saving, importing and quitting between
+	// separators, Open Case... is the action of the toolbar button, and the Simulation menu holds the run commands and the
+	// output folder.
+	{
+		bool facetOk = true;
+		for (const QString& duplicate : menuBarDuplicates(*w.menuBar(), w.m_session->recentScenesMenu()))
+			facetFailure(facetOk, "menus", duplicate);
+		const auto entries = [](const QMenu* menu) {
+			QStringList texts;
+			for (const QAction* action : menu->actions())
+				texts << (action->isSeparator() ? QStringLiteral("-") : action->text());
+			return texts;
+		};
+		const QStringList fileMenu = entries(w.ui->menuFile);
+		if (fileMenu != QStringList{"New Case...", "Open Case...", "Recent Cases", "-", "Save", "Save As...", "-", "Import Legacy Case...", "-", "Quit"})
+			facetFailure(facetOk, "menus", "the File menu reads " + fileMenu.join(" | "));
+		if (w.m_openCaseAction->shortcut() != QKeySequence(QKeySequence::Open)
+			|| !w.m_toolBar->actions().contains(w.m_openCaseAction))
+			facetFailure(facetOk, "menus", "File > Open Case... is not the action of the toolbar button with the key of Open");
+		const QStringList simulationMenu = entries(w.ui->menuSimulation);
+		if (simulationMenu != QStringList{"Run", "Pause", "Stop", "-", "Set Output Folder..."})
+			facetFailure(facetOk, "menus", "the Simulation menu reads " + simulationMenu.join(" | "));
+		if (facetOk)
+			std::fprintf(stdout, "E2E_EDITOR_MENUS_OK\n");
+	}
+
 	// step a: load scene from env
 	QString scenePath = qEnvironmentVariable("QEGTRAIN_E2E_SCENE");
 	if (scenePath.isEmpty()) {
@@ -700,9 +763,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			discardConfirmation();
 			w.m_session->newScene();
 			QApplication::processEvents();
-			if (!w.m_document->isLoaded() || !w.m_document->isDirty() || !w.m_session->m_sceneDir.isEmpty() || w.m_session->m_sceneIsBundle || !w.m_saveSceneAction || !w.m_saveSceneAction->isEnabled() || !w.m_saveSceneAsAction || !w.m_saveSceneAsAction->isEnabled() || !w.m_saveSceneAsFolderAction || !w.m_saveSceneAsFolderAction->isEnabled())
+			if (!w.m_document->isLoaded() || !w.m_document->isDirty() || !w.m_session->m_sceneDir.isEmpty() || w.m_session->m_sceneIsBundle || !w.m_saveSceneAction || !w.m_saveSceneAction->isEnabled() || !w.m_saveSceneAsAction || !w.m_saveSceneAsAction->isEnabled())
 				facetFailure(facetOk, "new case", "new case did not start unsaved and dirty with save actions enabled");
-			if (!w.m_runSceneAction || w.m_runSceneAction->isEnabled() || !w.ui->actionSimulationStart || w.ui->actionSimulationStart->isEnabled())
+			if (!w.ui->actionSimulationStart || w.ui->actionSimulationStart->isEnabled())
 				facetFailure(facetOk, "new case", "Run actions were enabled for an empty case");
 
 			auto* nameEdit = w.findChild<QLineEdit*>("caseNameEdit");
@@ -972,7 +1035,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						firstSceneError = QString::fromStdString(diagnostic.message);
 						break;
 					}
-				if (!areaLevelError().contains("has no signalling system") || !w.m_runSceneAction || w.m_runSceneAction->isEnabled()
+				if (!areaLevelError().contains("has no signalling system") || w.ui->actionSimulationStart->isEnabled()
 					|| !w.m_caseReadinessLabel || firstSceneError.isEmpty() || w.m_caseReadinessLabel->text() != firstSceneError)
 					facetFailure(facetOk, "stations/signalling", "an area without a chosen system did not block the case with a diagnostic");
 				const QComboBox* newAreaSystem = areaSystemCombo();
@@ -4410,7 +4473,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							} else {
 								const std::vector<std::string> validRoute = w.m_document->mutableModel().routes.front().blocks;
 								w.m_document->mutableModel().routes.front().blocks.clear();
-								w.m_runSceneAction->trigger();
+								w.ui->actionSimulationStart->trigger();
 								QApplication::processEvents();
 								if (w.m_runController->m_worker || !incidentPanel(w)->selectedIncident()
 									|| !incidentPanel(w)->selectedIncident()->hasEndSeconds
@@ -5850,7 +5913,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		return finish();
 	{
 		simulation.setNextRunOutputFolder(QDir(outFolder).filePath("undo_run_output").toStdString());
-		w.m_runSceneAction->trigger();
+		w.ui->actionSimulationStart->trigger();
 		if (!expect(w.m_runController->m_worker != nullptr, "the run did not start"))
 			return finish();
 		const quint64 revision = w.m_document->revision();
@@ -5897,7 +5960,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		const QScopedValueRollback<double> horizon(initial_variables.times, 600.0);
 		const auto completeRun = [&](const char* folder) {
 			simulation.setNextRunOutputFolder(QDir(outFolder).filePath(folder).toStdString());
-			w.m_runSceneAction->trigger();
+			w.ui->actionSimulationStart->trigger();
 			QElapsedTimer waited;
 			waited.start();
 			while ((w.m_runController->m_worker || !w.m_runController->resultsAvailable()) && waited.elapsed() < 60000)

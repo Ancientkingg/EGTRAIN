@@ -79,6 +79,7 @@
 #include <QLineF>
 #include <QList>
 #include <QListWidget>
+#include <QMenu>
 #include <QMessageBox>
 #include <QMetaObject>
 #include <QObject>
@@ -355,6 +356,59 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			QTimer::singleShot(25, &w, [poll]() { (*poll)(); });
 		};
 		QTimer::singleShot(0, &w, [poll]() { (*poll)(); });
+	};
+	// Clicks the button `text` of the next message box, such as Case Folder... of the Save As question. The default button of
+	// the box has to read `defaultText`.
+	auto answerMessageBox = [&w, fail](const QString& text, const QString& defaultText) {
+		auto poll = std::make_shared<std::function<void()>>();
+		auto attempts = std::make_shared<int>(0);
+		*poll = [&w, text, defaultText, poll, attempts, fail]() {
+			if (++*attempts > 200) {
+				fail(QStringLiteral("message box with the button %1 did not appear").arg(text));
+				return;
+			}
+			for (QWidget* widget : QApplication::topLevelWidgets()) {
+				auto* box = qobject_cast<QMessageBox*>(widget);
+				if (!box || !box->isVisible())
+					continue;
+				const QPushButton* defaultButton = box->defaultButton();
+				if (!defaultButton || defaultButton->text() != defaultText)
+					fail(QStringLiteral("the default button of %1 is not %2").arg(box->text(), defaultText));
+				for (QAbstractButton* button : box->buttons()) {
+					if (button->text() == text) {
+						button->click();
+						return;
+					}
+				}
+				fail(QStringLiteral("%1 has no button %2").arg(box->text(), text));
+				box->reject();
+				return;
+			}
+			QTimer::singleShot(25, &w, [poll]() { (*poll)(); });
+		};
+		QTimer::singleShot(0, &w, [poll]() { (*poll)(); });
+	};
+	// File > Open Case..., then `entry` of Other ways to open... in the case chooser that it shows.
+	auto openOtherWay = [&w, fail](const QString& entry) {
+		QTimer::singleShot(0, &w, [&w, entry, fail]() {
+			auto* chooser = w.findChild<QDialog*>(QStringLiteral("caseChooserDialog"));
+			const QMenu* other = chooser ? chooser->findChild<QMenu*>() : nullptr;
+			if (!other) {
+				fail(QStringLiteral("File > Open Case... did not show the case chooser"));
+				if (chooser)
+					chooser->reject();
+				return;
+			}
+			for (QAction* action : other->actions()) {
+				if (action->text() == entry) {
+					action->trigger();
+					return;
+				}
+			}
+			fail(QStringLiteral("Other ways to open... has no entry ") + entry);
+			chooser->reject();
+		});
+		w.m_openCaseAction->trigger();
 	};
 	auto acceptCapacityScope = [&w, fail]() {
 		auto poll = std::make_shared<std::function<void()>>();
@@ -1248,7 +1302,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 
 	if (creatorAcceptance.phase == 7) {
 		const QString folder = emitPath(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_FOLDER"));
-		if (!w.m_document->isLoaded() || folder.isEmpty() || !w.m_saveSceneAsFolderAction
+		if (!w.m_document->isLoaded() || folder.isEmpty() || !w.m_saveSceneAsAction
 			|| !w.m_newSceneAction || !trainUnitPanel(w)->listWidget()) {
 			fail(QStringLiteral("folder persistence controls or target are unavailable"));
 			return;
@@ -1273,24 +1327,21 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("focused train-unit mass editor did not retain focus before Save As"));
 			return;
 		}
+		// A case without a location is saved as a case file unless the user chooses otherwise.
+		answerMessageBox(QStringLiteral("Case Folder..."), QStringLiteral("Case File..."));
 		acceptFileDialog(folder, true);
-		w.m_saveSceneAsFolderAction->trigger();
+		w.m_saveSceneAsAction->trigger();
 		process();
 		if (QFileInfo(w.m_session->m_sceneDir).absoluteFilePath() != folder || w.m_session->m_sceneIsBundle
 			|| w.m_document->isDirty() || !QFileInfo(QDir(folder).filePath("scene.json")).exists()) {
-			fail(QStringLiteral("public Save As Folder did not persist the focused physical value"));
+			fail(QStringLiteral("public Save As a case folder did not persist the focused physical value"));
 			return;
 		}
 		w.m_newSceneAction->trigger();
 		process();
-		QAction* openFolder = w.findChild<QAction*>("actionOpenSceneFolder");
-		if (!openFolder) {
-			fail(QStringLiteral("public Open Case Folder action is unavailable"));
-			return;
-		}
 		acceptFileDialog(folder, true);
 		acceptMessageBox(QMessageBox::Discard);
-		openFolder->trigger();
+		openOtherWay(QStringLiteral("Open Case Folder..."));
 		process();
 		if (QFileInfo(w.m_session->m_sceneDir).absoluteFilePath() != folder || w.m_session->m_sceneIsBundle
 			|| w.m_document->mutableModel().name != "creator_acceptance_case"
@@ -1360,6 +1411,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("bundle persistence controls or target are unavailable"));
 			return;
 		}
+		// The open case is a folder, so Save As offers a case folder first.
+		answerMessageBox(QStringLiteral("Case File..."), QStringLiteral("Case Folder..."));
 		acceptFileDialog(bundle, false);
 		w.m_saveSceneAsAction->trigger();
 		process();
@@ -1530,14 +1583,9 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		marker("E2E_CREATOR_PENDING_OPEN_OK");
 		w.m_newSceneAction->trigger();
 		process();
-		QAction* openBundle = w.findChild<QAction*>("actionOpenCaseStudyBundle");
-		if (!openBundle) {
-			fail(QStringLiteral("public Open Case bundle action is unavailable"));
-			return;
-		}
 		acceptFileDialog(bundle, false);
 		acceptMessageBox(QMessageBox::Discard);
-		openBundle->trigger();
+		openOtherWay(QStringLiteral("Open Case File..."));
 		process();
 		if (QFileInfo(w.m_session->m_sceneDir).absoluteFilePath() != bundle || !w.m_session->m_sceneIsBundle
 			|| w.m_document->mutableModel().name != "creator_acceptance_case"
@@ -1590,7 +1638,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		}
 		marker("E2E_CREATOR_BUNDLE_ROUNDTRIP_OK");
 		w.m_speedSlider->setValue(0);
-		w.m_runSceneAction->trigger();
+		w.ui->actionSimulationStart->trigger();
 		next();
 		return;
 	}
@@ -1666,7 +1714,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("queued accessible Follow toggle survived simulation completion"));
 			return;
 		}
-		w.m_runSceneAction->trigger();
+		w.ui->actionSimulationStart->trigger();
 		if (!w.m_runController->m_worker) {
 			fail(QStringLiteral("completion ordering check could not restart the replacement run"));
 			return;
@@ -1710,7 +1758,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		w.m_speedSlider->setValue(500);
-		if (!w.m_document->isLoaded() || !w.m_runSceneAction || !servicePanel(w)->occurrenceTable()
+		if (!w.m_document->isLoaded() || !w.ui->actionSimulationStart || !servicePanel(w)->occurrenceTable()
 			|| !scenarioPanel(w)->listWidget() || !w.m_runResultsPanel->setDelayBaselineButton() || !w.m_runResultsPanel->compareDelayButton()
 			|| !w.m_runResultsPanel->delayFeedbackLabel()) {
 			fail(QStringLiteral("run and occurrence controls are unavailable"));
@@ -1741,7 +1789,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		}
 		process();
 		creatorAcceptance.polls = 0;
-		w.m_runSceneAction->trigger();
+		w.ui->actionSimulationStart->trigger();
 		const quint64 runningRevision = w.m_document->revision();
 		const bool runningDirty = w.m_document->isDirty();
 		w.commitPendingEditorValues();
@@ -1818,14 +1866,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		for (int row = 0; row < static_cast<int>(w.m_document->mutableModel().scenarios.size()); ++row)
 			if (w.m_document->mutableModel().scenarios[static_cast<std::size_t>(row)].id == "entrance")
 				entranceRow = row;
-		if (entranceRow < 0 || !scenarioPanel(w)->listWidget() || !w.m_runSceneAction) {
+		if (entranceRow < 0 || !scenarioPanel(w)->listWidget() || !w.ui->actionSimulationStart) {
 			fail(QStringLiteral("entrance scenario was not available for public run"));
 			return;
 		}
 		scenarioPanel(w)->listWidget()->setCurrentRow(entranceRow);
 		process();
 		creatorAcceptance.polls = 0;
-		w.m_runSceneAction->trigger();
+		w.ui->actionSimulationStart->trigger();
 		next();
 		return;
 	}
@@ -1928,14 +1976,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		for (int row = 0; row < static_cast<int>(w.m_document->mutableModel().scenarios.size()); ++row)
 			if (w.m_document->mutableModel().scenarios[static_cast<std::size_t>(row)].id == "incident")
 				incidentRow = row;
-		if (incidentRow < 0 || !scenarioPanel(w)->listWidget() || !w.m_runSceneAction) {
+		if (incidentRow < 0 || !scenarioPanel(w)->listWidget() || !w.ui->actionSimulationStart) {
 			fail(QStringLiteral("incident scenario was not available for final public run"));
 			return;
 		}
 		scenarioPanel(w)->listWidget()->setCurrentRow(incidentRow);
 		process();
 		creatorAcceptance.polls = 0;
-		w.m_runSceneAction->trigger();
+		w.ui->actionSimulationStart->trigger();
 		next();
 		return;
 	}
@@ -3110,7 +3158,7 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 	};
 	w.showSceneContextMenu(held(), QPointF(), QPoint(), false);
 	w.m_speedSlider->setValue(0);
-	w.m_runSceneAction->trigger();
+	w.ui->actionSimulationStart->trigger();
 	if (!w.m_runController->m_worker || w.m_showingTrackPreview || held() || w.m_sceneContextMenu
 		|| !w.m_inspector->m_previewSelectedStationId.isEmpty() || !w.m_inspector->m_nodeIDText->text().isEmpty()) {
 		failure = "preview-to-prepared-runtime did not clear canonical state/actions";

@@ -25,6 +25,8 @@ struct MainWindowTestHooks {
 	/// Called at the end of every frame that renderSnapshot draws, with whether the frame comes from a replay.
 	/// A plain pointer, so that a normal run pays one test per frame.
 	void (*frameRendered)(MainWindow& window, bool historical) = nullptr;
+	/// The folder that holds Recovery and Crashes in place of AppLocalDataLocation, for a test run with settings of its own.
+	QString runDataFolder;
 	/// The folder that Import Passengers reads in place of asking for one. An empty path asks as usual.
 	std::function<QString()> passengerSource;
 	/// Called with a dialog just before it opens. kind names the dialog: startupChooser, runReview, privacySettings or recoveryPrompt.

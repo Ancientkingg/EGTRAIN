@@ -1023,6 +1023,18 @@ if(UNIX)
 		LABELS integration gui slow
 		ENVIRONMENT ${egtrain_script_environment}
 		TIMEOUT 600)
+	# A window on a screen with a settings folder of its own keeps its crash notes in that folder. The vnc platform gives
+	# the window a screen without a display; Qt has it on Linux only. Some Linux packages of Qt do not load the targets of
+	# their plugins with Qt6Gui.
+	if(NOT TARGET Qt6::QVncIntegrationPlugin)
+		find_package(Qt6QVncIntegrationPlugin CONFIG QUIET PATHS "${Qt6Gui_DIR}" NO_DEFAULT_PATH)
+	endif()
+	if(TARGET Qt6::QVncIntegrationPlugin)
+		egtrain_add_test(test_run_data_folder_smoke
+			COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/run_data_folder_smoke.py $<TARGET_FILE:QEGTRAIN>
+			LABELS integration gui
+			TIMEOUT 300)
+	endif()
 else()
 	message(STATUS "Windows: skipping bash smoke tests (test_csv_export_smoke, test_creator_acceptance_smoke, test_editor_smoke, test_dialog_presentation_contract)")
 endif()

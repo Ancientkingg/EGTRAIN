@@ -9,7 +9,7 @@ Save the bundled case under a new name with **File > Save As...** before you cha
 ## 1. Open Paimpol and save a working copy
 
 1. Open `Paimpol` from **Bundled cases** in the **Open a Case** window (toolbar button **Open Case**), as in [Getting started](getting-started.md). The title bar reads `EGTRAIN - Paimpol` and the dock **Case and Layers** shows no error under the name of the case.
-2. Choose **File > Save As...**. The dialog **Save Case As** starts in your Documents folder when the case comes from the installation, or in your home folder when there is no Documents folder. Name the file `paimpol-practice.egscene` and save it. EGTRAIN adds `.egscene` when you leave it out.
+2. Choose **File > Save As...** and click **Case File...**. The dialog **Save Case As** starts in your Documents folder when the case comes from the installation, or in your home folder when there is no Documents folder. Name the file `paimpol-practice.egscene` and save it. EGTRAIN adds `.egscene` when you leave it out.
 3. The window now holds the copy: **File > Save** writes to `paimpol-practice.egscene`, and **File > Recent Cases** lists it. The case inside still has the name `Paimpol`, so the title bar does not tell the copy from the original, and a run of the copy would write to the same output folder as a run of the original ([Output folder](command-line.md#output-folder)).
 4. Give the copy its own name. Open the dock **Case Settings** (**Editors > Case Settings**), replace **Name** with `Paimpol practice` and press Enter. The title bar now reads `EGTRAIN - Paimpol practice`, with the platform's mark for unsaved changes.
 5. Choose **File > Save**. The mark goes and the status bar reads "Case saved".
@@ -106,7 +106,7 @@ Results are the Run Results table, the result windows opened from it and the rep
 | Choosing another scenario in the dock **Scenarios** | Cleared | Kept |
 | Starting a run | Replaced by the new run | Kept |
 | A run that you stop | None kept | Kept |
-| **File > Save**, **Save As...**, **Save As Folder...** | Kept | Kept |
+| **File > Save**, **Save As...** | Kept | Kept |
 | Opening a case (also from **Recent Cases**), **New Case...**, **Import Legacy Case...**, recovering unsaved work | Cleared | Cleared |
 | Opening a result window, **Export CSV...**, **Compare delays** | Kept | Kept |
 | Quitting EGTRAIN | Lost | Lost |
@@ -128,12 +128,12 @@ APP=/Applications/QEGTRAIN.app/Contents/MacOS
 "$APP/QEGTRAIN" --scene paimpol-practice.egscene -g 0
 ```
 
-The first command prints the diagnostics and exits with 0 when there is no error. The second runs the default scenario, `baseline`, without a window, and writes the [run output](run-output.md) to the folder named `Paimpol practice`. To run the scenario `baseline_copy` this way, make it the default scenario in `scenarios.json` of a folder saved with **Save As Folder...**, as in the next section.
+The first command prints the diagnostics and exits with 0 when there is no error. The second runs the default scenario, `baseline`, without a window, and writes the [run output](run-output.md) to the folder named `Paimpol practice`. To run the scenario `baseline_copy` this way, make it the default scenario in `scenarios.json` of a folder saved with **Case Folder...** of **Save As...**, as in the next section.
 
 ## Limits and the JSON route
 
 - The editors are tables, lists and dialogs. The network view can give an incident its target, with **Pick** beside **Target**, and add one with **Add signal failure** in the context menu of a signal head or **Add train breakdown** in that of a train after a run. You set the other fields of the incident in the dock.
-- This tutorial changes one value at a time. For many changes at once, save the case with **File > Save As Folder...** and edit the JSON files, then validate with `scene_tool validate`. The keys are in [editing examples](scene-schema.md#editing-examples) and the [schema reference](scene-schema.md).
+- This tutorial changes one value at a time. For many changes at once, save the case with **File > Save As...** and **Case Folder...**, and edit the JSON files, then validate with `scene_tool validate`. The keys are in [editing examples](scene-schema.md#editing-examples) and the [schema reference](scene-schema.md).
 - The same two edits in `services.json` are `"performance_percent": 80` on the service and `"dwell_seconds": 180` on its second stop.
 - The same scenario is the object below in the list `scenarios` of `scenarios.json`. It has the incident id that the editor proposes (`new_incident`) and the scenario id that **Duplicate** proposes. The key `default_scenario_id` in that file names the scenario that a run without a window uses; set it to `baseline_copy` for that run.
 

@@ -4,7 +4,9 @@
 #include <QApplication>
 #include <QFontMetrics>
 #include <QInputDialog>
+#include <QList>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QScreen>
 #include <QString>
 #include <QStringList>
@@ -52,6 +54,20 @@ public:
 	virtual bool confirm(QWidget* parent, const QString& title, const QString& question) {
 		return QMessageBox::question(parent, title, question, QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
 			== QMessageBox::Yes;
+	}
+
+	/// A question with a button for each of `choices` and a Cancel button. Returns the index of the chosen button in
+	/// `choices`, or -1 for Cancel. The button of `defaultChoice` is the default. It asks also in a suppressed run.
+	virtual int chooseButton(QWidget* parent, const QString& title, const QString& question, const QStringList& choices,
+		int defaultChoice) {
+		QMessageBox box(QMessageBox::Question, title, question, QMessageBox::Cancel, parent);
+		QList<QPushButton*> buttons;
+		for (const QString& choice : choices)
+			buttons << box.addButton(choice, QMessageBox::AcceptRole);
+		if (QPushButton* button = buttons.value(defaultChoice))
+			box.setDefaultButton(button);
+		box.exec();
+		return static_cast<int>(buttons.indexOf(box.clickedButton()));
 	}
 
 	/// One of `items`, for example the id of a rolling stock unit; empty when the user cancels. It asks also in a

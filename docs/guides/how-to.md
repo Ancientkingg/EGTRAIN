@@ -25,15 +25,15 @@ You need a case: a bundled case, an `.egscene` file or a case folder.
 
 Use one of these:
 
-- Click **Open Case** in the toolbar. In **Open a Case**, select an entry under **Bundled cases** or **Recent cases** and click **Open**. A long case name is shortened in the middle of the row; hold the pointer over the row to see the whole name and the path. **Other ways to open...** offers **New Case...**, **Open Case Folder...** and **Import Legacy Case...**.
-- Choose **File > Open Case...** (Ctrl+O) and select an `.egscene` file.
-- Choose **File > Open Case Folder...** and select a folder that holds `scene.json`.
+- Click **Open Case** in the toolbar, or choose **File > Open Case...** (Ctrl+O). In **Open a Case**, select an entry under **Bundled cases** or **Recent cases** and click **Open**. A long case name is shortened in the middle of the row; hold the pointer over the row to see the whole name and the path. **Other ways to open...** offers **New Case...**, **Open Case File...**, **Open Case Folder...** and **Import Legacy Case...**.
+- In **Open a Case**, choose **Other ways to open... > Open Case File...** and select an `.egscene` file.
+- In **Open a Case**, choose **Other ways to open... > Open Case Folder...** and select a folder that holds `scene.json`.
 - Choose **File > Recent Cases**. It lists the last 8 cases you opened or saved, each under the name that **Open a Case** shows (a saved `.egscene` file without its extension). The bundled cases are not listed there; **Open a Case** has them under **Bundled cases**. The menu checks the files each time it opens. An entry whose file is gone reads `Unavailable:` and is disabled, and the menu is greyed out while the list is empty.
 - Drag one `.egscene` file onto the window. A folder or several files are refused with `Cannot open the dropped file: <reason>` in the status bar.
 - On Windows and macOS, double-click an `.egscene` file ([Open by double-click](opening-a-case-study.md#open-by-double-click)).
 - From a terminal, `QEGTRAIN --scene path/to/case.egscene` opens a bundle or a case folder, and `QEGTRAIN path/to/case.egscene` opens a bundle ([command-line options](command-line.md)).
 
-The dialogs of **Open Case...** and **Open Case Folder...** start in the folder above the open case. With no case open, they start in the `Scenes` folder of the app on macOS, and in your home folder on other systems.
+The dialogs of **Open Case File...** and **Open Case Folder...** start in the folder above the open case. With no case open, they start in the `Scenes` folder of the app on macOS, and in your home folder on other systems.
 
 You should see the window title `EGTRAIN - <case name>`, the network in the view and the status bar `Opened <case name>`. Opening a case does not run it and does not change the file.
 
@@ -45,7 +45,7 @@ Normal mode keeps the network view and the editors uncluttered. **View > Advance
 
 A bundled case is read-only in practice: EGTRAIN never saves into the installation. Make your own copy before you edit.
 
-1. Choose **File > Save As...**.
+1. Choose **File > Save As...** and click **Case File...**. The question also offers **Case Folder...**, and its default button is the format of the open case.
 2. Choose a folder of your own and a file name. EGTRAIN adds `.egscene` when you leave it off, and asks before that name replaces a file. The dialog starts in the folder of your open case, or in your Documents folder for a bundled case.
 3. Save.
 
@@ -53,11 +53,11 @@ You should see `Case saved` in the status bar. Your file is now the open case, a
 
 Other ways to save:
 
-- **File > Save** (Ctrl+S) writes the case back to the bundle or case folder it came from. For a bundled case, and for a new case that has no file yet, it asks for a new `.egscene` file instead, as **Save As...** does, and Cancel keeps the edit. A case folder outside the installation, such as one in a source checkout, is saved in place. If the files of the case changed on disk since you opened or last saved it, for example by a hand edit or another EGTRAIN window, the question **Case Changed on Disk** asks whether to replace the case on disk with your version. No cancels the save and keeps your edits; **Save As...** then keeps both versions.
-- **File > Save As Folder...** writes the case as a folder of JSON files, which you can edit by hand. If the folder you choose is not empty and holds no `scene.json`, EGTRAIN asks `The folder is not empty. Save the case there anyway?`. If it holds another case, EGTRAIN asks whether to replace that case. Either way other files in the folder are kept, and the folder of the open case is saved again without a question.
+- **File > Save** (Ctrl+S) writes the case back to the bundle or case folder it came from. For a bundled case, and for a new case that has no file yet, it asks for a new `.egscene` file instead, as **Case File...** of **Save As...** does, and Cancel keeps the edit. A case folder outside the installation, such as one in a source checkout, is saved in place. If the files of the case changed on disk since you opened or last saved it, for example by a hand edit or another EGTRAIN window, the question **Case Changed on Disk** asks whether to replace the case on disk with your version. No cancels the save and keeps your edits; **Save As...** then keeps both versions.
+- **File > Save As...** with **Case Folder...** writes the case as a folder of JSON files, which you can edit by hand. If the folder you choose is not empty and holds no `scene.json`, EGTRAIN asks `The folder is not empty. Save the case there anyway?`. If it holds another case, EGTRAIN asks whether to replace that case. Either way other files in the folder are kept, and the folder of the open case is saved again without a question.
 - A destination inside the installation is refused with **Cannot Save Case**: `Bundled cases cannot be overwritten. Choose a location outside the EGTRAIN installation.`
 
-To check a saved case, open it again from **File > Recent Cases**. The three save commands are enabled whenever a case is open, also during a run.
+To check a saved case, open it again from **File > Recent Cases**. **Save** and **Save As...** are enabled whenever a case is open, also during a run.
 
 ## Run a case
 
@@ -220,10 +220,10 @@ EGTRAIN keeps the 10 newest notes that it has reported.
 
 | Command | It is disabled when | What to do |
 | --- | --- | --- |
-| **Run** (toolbar), **Simulation > Run**, **File > Run** | No case is open, a run is active, or validation reports an error | Read the first error in **View > Case Validation** ([fix validation errors](#fix-validation-errors)) or wait for the run |
+| **Run** (toolbar), **Simulation > Run** | No case is open, a run is active, or validation reports an error | Read the first error in **View > Case Validation** ([fix validation errors](#fix-validation-errors)) or wait for the run |
 | **Pause**, **Stop** | No run is active, or the run is already stopping | Start a run, or wait for the run to stop |
-| **File > Save**, **Save As...**, **Save As Folder...** | No case is open | Open or create a case. A normal start always has one open |
-| **File > Set Output Folder...** | A run is active | Wait for the run to end. The folder applies from the next run |
+| **File > Save**, **Save As...** | No case is open | Open or create a case. A normal start always has one open |
+| **Simulation > Set Output Folder...** | A run is active | Wait for the run to end. The folder applies from the next run |
 | The contents of the editors **Services**, **Passengers**, **Infrastructure** and **Scenarios** (the menu **Editors** still opens them) | A run uses the case | Stop the run or wait. **Case Settings**, **Rolling Stock Units** and **Compositions** stay usable during a run, and an edit there discards the results of that run |
 | **Edit > Undo**, **Edit > Redo** | A run uses the case, or there is nothing to undo or redo | Stop the run or wait |
 | **Diagrams** entries, **Open result view...**, **Export CSV...**, **Export PNG...** in **Run Results** | No run has reached its end since the last edit | Run again. A stopped run, an edit, a new case and another scenario all discard results |

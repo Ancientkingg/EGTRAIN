@@ -386,9 +386,10 @@ bool e2eDialogsSuppressed() {
 		|| mainWindowTestHooks().dialogsSuppressed;
 }
 
-// The folder that the environment variable names, else the subfolder name of AppLocalDataLocation, or an empty string
-// when this run keeps none. A run that has no user to answer a question keeps files only in the folder that the variable
-// names, so that it never meets the files of a user.
+// The folder that the environment variable names, else the subfolder name of the folder of a test run with settings of
+// its own or of AppLocalDataLocation, or an empty string when this run keeps none. A run that has no user to answer a
+// question keeps files only in the folder that the variable names, and a test run keeps them next to its settings, so
+// that neither meets the files of a user.
 QString runDataFolder(const char* variable, const char* name) {
 	const QString named = qEnvironmentVariable(variable);
 	if (!named.isEmpty())
@@ -396,6 +397,9 @@ QString runDataFolder(const char* variable, const char* name) {
 	const QString platform = QGuiApplication::platformName();
 	if (e2eDialogsSuppressed() || platform == QLatin1String("offscreen") || platform == QLatin1String("minimal"))
 		return {};
+	const QString testFolder = mainWindowTestHooks().runDataFolder;
+	if (!testFolder.isEmpty())
+		return QDir(testFolder).filePath(QLatin1String(name));
 	const QString data = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
 	return data.isEmpty() ? QString() : QDir(data).filePath(QLatin1String(name));
 }
@@ -754,44 +758,33 @@ void MainWindow::connectUiActions() {
 void MainWindow::setupFileMenu() {
 	connect(ui->actionLoad_Network, &QAction::triggered, m_session, &SceneSession::actionLoad_Network);
 
-	ui->actionLoad_Network->setText("Import Legacy Case...");
-	ui->actionLoad_Network->setShortcut(QKeySequence());
 	m_newSceneAction = new QAction("New Case...", this);
 	m_newSceneAction->setObjectName("actionNewCaseStudy");
 	m_newSceneAction->setShortcut(QKeySequence::New);
-	QAction* openSceneAction = new QAction("Open Case...", this);
-	openSceneAction->setObjectName("actionOpenCaseStudyBundle");
-	openSceneAction->setShortcut(QKeySequence::Open);
-	QAction* openSceneFolderAction = new QAction("Open Case Folder...", this);
-	openSceneFolderAction->setObjectName("actionOpenSceneFolder");
+	// Open Case... shows the chooser, which lists the bundled and recent cases and offers a case file, a case folder, a
+	// new case and a legacy import. The toolbar button Open Case shows the same action.
+	m_openCaseAction = new QAction("Open Case...", this);
+	m_openCaseAction->setObjectName("actionOpenCase");
+	m_openCaseAction->setShortcut(QKeySequence::Open);
+	m_openCaseAction->setProperty("chooserEntryPoint", "showStartupChooser");
 	m_saveSceneAction = new QAction("Save", this);
 	m_saveSceneAction->setObjectName("actionSaveScene");
 	m_saveSceneAction->setShortcut(QKeySequence::Save);
 	m_saveSceneAsAction = new QAction("Save As...", this);
-	m_saveSceneAsAction->setObjectName("actionSaveCaseStudyBundle");
-	m_saveSceneAsFolderAction = new QAction("Save As Folder...", this);
-	m_saveSceneAsFolderAction->setObjectName("actionSaveSceneFolder");
-	m_runSceneAction = new QAction("Run", this);
-	m_runSceneAction->setObjectName("actionRunScene");
+	m_saveSceneAsAction->setObjectName("actionSaveSceneAs");
 	connect(m_newSceneAction, &QAction::triggered, m_session, &SceneSession::newScene);
-	connect(openSceneAction, &QAction::triggered, m_session, &SceneSession::openSceneDialog);
-	connect(openSceneFolderAction, &QAction::triggered, m_session, &SceneSession::openSceneFolderDialog);
+	connect(m_openCaseAction, &QAction::triggered, this, &MainWindow::showStartupChooser);
 	connect(m_saveSceneAction, &QAction::triggered, m_session, &SceneSession::saveScene);
 	connect(m_saveSceneAsAction, &QAction::triggered, m_session, &SceneSession::saveSceneAs);
-	connect(m_saveSceneAsFolderAction, &QAction::triggered, this, [this]() { m_session->saveSceneAsToDirectory(); });
-	connect(m_runSceneAction, &QAction::triggered, m_runController, &RunController::runScene);
-	if (ui->menuFile) {
-		QAction* beforeAction = ui->actionLoad_Network;
-		ui->menuFile->insertAction(beforeAction, m_newSceneAction);
-		ui->menuFile->insertAction(beforeAction, openSceneAction);
-		ui->menuFile->insertAction(beforeAction, openSceneFolderAction);
-		ui->menuFile->insertAction(beforeAction, m_saveSceneAction);
-		ui->menuFile->insertAction(beforeAction, m_saveSceneAsAction);
-		ui->menuFile->insertAction(beforeAction, m_saveSceneAsFolderAction);
-		ui->menuFile->insertAction(beforeAction, m_runSceneAction);
-		ui->menuFile->insertMenu(beforeAction, m_session->recentScenesMenu());
-		ui->menuFile->insertSeparator(beforeAction);
-	}
+	// Opening, saving, importing and quitting, each between separators.
+	QAction* importAction = ui->actionLoad_Network;
+	ui->menuFile->insertAction(importAction, m_newSceneAction);
+	ui->menuFile->insertAction(importAction, m_openCaseAction);
+	ui->menuFile->insertMenu(importAction, m_session->recentScenesMenu());
+	ui->menuFile->insertSeparator(importAction);
+	ui->menuFile->insertAction(importAction, m_saveSceneAction);
+	ui->menuFile->insertAction(importAction, m_saveSceneAsAction);
+	ui->menuFile->insertSeparator(importAction);
 	m_session->rebuildRecentScenesMenu();
 	updateSceneActions();
 }
@@ -1036,14 +1029,6 @@ void MainWindow::setupFollowControls() {
 }
 
 void MainWindow::setupToolBarActions() {
-	// The one toolbar entry for every way of opening a case goes through the
-	// existing chooser so bundled scenes, recents, folders, and legacy import
-	// keep a single entry point.
-	m_openCaseAction = new QAction("Open Case", this);
-	m_openCaseAction->setObjectName("actionOpenCase");
-	m_openCaseAction->setProperty("chooserEntryPoint", "showStartupChooser");
-	connect(m_openCaseAction, &QAction::triggered, this, &MainWindow::showStartupChooser);
-
 	ui->actionZoomIn->setObjectName("actionZoomIn");
 	ui->actionZoomIn->setIcon(QIcon(":/icons/zoom-in.svg"));
 	ui->actionZoomIn->setToolTip(withShortcut("Zoom in", ui->actionZoomIn));
@@ -1061,7 +1046,8 @@ void MainWindow::setupToolBarButtons() {
 		if (auto* button = qobject_cast<QToolButton*>(m_toolBar->widgetForAction(action))) {
 			button->setObjectName(objectName);
 			button->setToolButtonStyle(style);
-			button->setAccessibleName(action->text());
+			// The button shows the text of the action without the ... of its menu entry.
+			button->setAccessibleName(action->iconText());
 			button->setAccessibleDescription(action->toolTip());
 			button->setFocusPolicy(Qt::StrongFocus);
 			button->setAutoRaise(true);
@@ -1171,13 +1157,12 @@ void MainWindow::setCommandBarTabOrder() {
 }
 
 void MainWindow::setupOutputFolderAction() {
-	// file menu: output folder chooser, after Import Legacy Case and above the separator before Quit
-	if (ui->menuFile) {
-		m_outputFolderAction = new QAction("Set Output Folder...", this);
-		connect(m_outputFolderAction, &QAction::triggered, m_runController, &RunController::chooseOutputFolder);
-		const QList<QAction*> fileActions = ui->menuFile->actions();
-		ui->menuFile->insertAction(fileActions.value(fileActions.indexOf(ui->actionQuit) - 1), m_outputFolderAction);
-	}
+	// The folder of the next runs, below the run commands of the Simulation menu.
+	m_outputFolderAction = new QAction("Set Output Folder...", this);
+	m_outputFolderAction->setObjectName("actionSetOutputFolder");
+	connect(m_outputFolderAction, &QAction::triggered, m_runController, &RunController::chooseOutputFolder);
+	ui->menuSimulation->addSeparator();
+	ui->menuSimulation->addAction(m_outputFolderAction);
 }
 
 void MainWindow::setupLogPane() {
@@ -1910,10 +1895,6 @@ void MainWindow::updateSceneActions() {
 		m_saveSceneAction->setEnabled(m_document->isLoaded());
 	if (m_saveSceneAsAction)
 		m_saveSceneAsAction->setEnabled(m_document->isLoaded());
-	if (m_saveSceneAsFolderAction)
-		m_saveSceneAsFolderAction->setEnabled(m_document->isLoaded());
-	if (m_runSceneAction)
-		m_runSceneAction->setEnabled(m_document->isLoaded() && !m_runController->running() && !hasErrors(m_session->diagnostics()));
 	if (ui->actionSimulationStart) {
 		const bool sceneRunnable = m_document->isLoaded() && !m_runController->running() && !hasErrors(m_session->diagnostics());
 		ui->actionSimulationStart->setEnabled(sceneRunnable);
@@ -3229,7 +3210,7 @@ void MainWindow::showEvent(QShowEvent* e) {
 		return;
 	}
 	// A file that the system opens arrives from the relay that main created, from a second process or,
-	// on macOS, as an open event. It takes the steps of File > Open Case... A modal dialog, such as
+	// on macOS, as an open event. It takes the steps of Open Case File... in Open a Case. A modal dialog, such as
 	// the first-run questions or the question about unsaved changes, holds it back until the dialog has
 	// closed.
 	auto* relay = findChild<OpenRequestRelay*>(QString(), Qt::FindDirectChildrenOnly);
@@ -3356,6 +3337,7 @@ void MainWindow::showStartupChooser() {
 		case CaseChooserDialog::Outcome::OpenSelected:
 			if (!dialog.chosenPath().isEmpty()) m_session->requestOpenScene(dialog.chosenPath());
 			break;
+		case CaseChooserDialog::Outcome::BrowseFile: m_session->openSceneDialog(); break;
 		case CaseChooserDialog::Outcome::BrowseFolder: m_session->openSceneFolderDialog(); break;
 		case CaseChooserDialog::Outcome::ImportLegacy: m_session->actionLoad_Network(); break;
 		case CaseChooserDialog::Outcome::NewCase: m_session->newScene(); break;

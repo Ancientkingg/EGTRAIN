@@ -55,6 +55,7 @@ private slots:
 	void showsInfoBox();
 	void suppressedInfoOpensNoDialog();
 	void confirmsWithYesOnly();
+	void returnsChosenButton();
 	void returnsChosenItem();
 	void choiceFitsTitleWithinScreen();
 };
@@ -153,6 +154,37 @@ void TestUserPrompts::confirmsWithYesOnly() {
 	QVERIFY2(defaultIsNo, "the default answer of a confirmation is No");
 	answering = answerDialog<QMessageBox>(shown, [](QMessageBox* box) { box->button(QMessageBox::No)->click(); });
 	QVERIFY2(!prompts.confirm(nullptr, "Delete", "Delete it?"), "No does not confirm");
+}
+
+void TestUserPrompts::returnsChosenButton() {
+	UserPrompts prompts([] { return true; });
+	QString defaultText;
+	QStringList texts;
+	int shown = 0;
+	auto answering = answerDialog<QMessageBox>(shown, [&](QMessageBox* box) {
+		defaultText = box->defaultButton() ? box->defaultButton()->text() : QString();
+		for (const QAbstractButton* button : box->buttons())
+			texts << button->text();
+		for (QAbstractButton* button : box->buttons()) {
+			if (button->text() == "Folder")
+				button->click();
+		}
+	});
+	// The index of the chosen button is returned, also in a suppressed run.
+	QCOMPARE(prompts.chooseButton(nullptr, "Save As", "Which format?", {"File", "Folder"}, 0), 1);
+	QCOMPARE(shown, 1);
+	// The default button is the one asked for.
+	QCOMPARE(defaultText, "File");
+	// The box has a button for each choice and Cancel.
+	QCOMPARE(texts.size(), 3);
+	QVERIFY(texts.contains("File") && texts.contains("Folder"));
+	answering = answerDialog<QMessageBox>(shown, [&](QMessageBox* box) {
+		defaultText = box->defaultButton() ? box->defaultButton()->text() : QString();
+		box->button(QMessageBox::Cancel)->click();
+	});
+	// Cancel returns -1, and the default can be another button.
+	QCOMPARE(prompts.chooseButton(nullptr, "Save As", "Which format?", {"File", "Folder"}, 1), -1);
+	QCOMPARE(defaultText, "Folder");
 }
 
 void TestUserPrompts::returnsChosenItem() {

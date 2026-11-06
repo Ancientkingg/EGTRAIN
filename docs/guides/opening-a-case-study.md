@@ -9,8 +9,8 @@ run, and [How-to](how-to.md) has the recipes for everyday tasks.
 
 Opening a bundle does not run it or modify the downloaded file. To run it,
 follow [Getting started](getting-started.md#4-run-the-simulation). Use
-**File > Save As...** to create a new `.egscene` after editing the
-case.
+**File > Save As...** and **Case File...** to create a new `.egscene` after
+editing the case.
 
 ## Cases that do not open
 
@@ -93,9 +93,10 @@ Uninstalling EGTRAIN removes the registration that Setup made and leaves your
 
 The portable archive registers nothing, not even when you run it, so a
 double-click does not start a portable copy. In a portable copy, open a case
-with **File > Open Case...**, drag the file onto the window, or give
-the file name to `QEGTRAIN.exe` on the command line. If an installed copy exists
-as well, a double-click starts that one, also while the portable copy is open.
+with **File > Open Case...** and **Other ways to open... > Open Case File...**,
+drag the file onto the window, or give the file name to `QEGTRAIN.exe` on the
+command line. If an installed copy exists as well, a double-click starts that
+one, also while the portable copy is open.
 
 ### macOS
 
@@ -117,7 +118,8 @@ it yourself:
 
 ### Linux
 
-The AppImage registers no file type. Use **File > Open Case...**.
+The AppImage registers no file type. Use **File > Open Case...** and
+**Other ways to open... > Open Case File...**.
 
 ## Instructor and command-line use
 

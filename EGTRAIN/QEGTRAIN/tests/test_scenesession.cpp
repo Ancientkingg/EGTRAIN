@@ -180,6 +180,7 @@ private slots:
 	void saveAsksWhenBundleChangedOnDisk();
 	void unsavedSaveStopsWhenCaseChangedOnDisk();
 	void saveAsAsksBeforeSuffixReplacesFile();
+	void saveAsAsksForFileOrFolder();
 
 private:
 	QTemporaryDir m_settingsDir;
@@ -457,6 +458,8 @@ void TestSceneSession::saveAsAsksBeforeSuffixReplacesFile() {
 	Fixture f;
 	QVERIFY(f.session->openSceneDirectory(dir.filePath("Mine")));
 	const QString mine = f.session->sceneDir();
+	// Case File... in the question about the format.
+	f.prompts.chosenButton = 0;
 
 	answerFileDialog(dir.filePath("Other"));
 	f.session->saveSceneAs();
@@ -479,6 +482,59 @@ void TestSceneSession::saveAsAsksBeforeSuffixReplacesFile() {
 	// A name whose file does not exist yet is saved without a question.
 	QCOMPARE(f.prompts.confirmCount, 2);
 	QVERIFY(QFileInfo::exists(dir.filePath("New.egscene")));
+}
+
+// A save dialog chooses a file or a folder, so Save As asks for the format first, with the format of the case as the
+// default answer, and then saves as the answer says.
+void TestSceneSession::saveAsAsksForFileOrFolder() {
+	QTemporaryDir root;
+	QVERIFY(root.isValid());
+	const QDir dir(root.path());
+	QVERIFY(writeFolderCase(dir.filePath("Mine"), "My case"));
+	Fixture f;
+	QVERIFY(f.session->openSceneDirectory(dir.filePath("Mine")));
+
+	f.prompts.chosenButton = 0;
+	answerFileDialog(dir.filePath("Copy.egscene"));
+	f.session->saveSceneAs();
+	// The question offers both formats, with a case folder first for a folder, and Case File... saves a bundle.
+	QCOMPARE(f.prompts.buttonCount, 1);
+	QCOMPARE(f.prompts.buttonTitle, "Save As");
+	QCOMPARE(f.prompts.offeredButtons, QStringList({"Case File...", "Case Folder..."}));
+	QCOMPARE(f.prompts.defaultButton, 1);
+	QCOMPARE(caseName(dir.filePath("Copy.egscene")), "My case");
+	QCOMPARE(QFileInfo(f.session->sceneDir()).canonicalFilePath(), QFileInfo(dir.filePath("Copy.egscene")).canonicalFilePath());
+	QVERIFY(f.session->sceneIsBundle());
+
+	f.prompts.chosenButton = 1;
+	QVERIFY(QDir().mkpath(dir.filePath("Copy")));
+	answerFileDialog(dir.filePath("Copy"));
+	f.session->saveSceneAs();
+	// A bundle has a case file first, and Case Folder... saves a folder.
+	QCOMPARE(f.prompts.buttonCount, 2);
+	QCOMPARE(f.prompts.defaultButton, 0);
+	QCOMPARE(caseName(dir.filePath("Copy")), "My case");
+	QCOMPARE(QFileInfo(f.session->sceneDir()).canonicalFilePath(), QFileInfo(dir.filePath("Copy")).canonicalFilePath());
+	QVERIFY(!f.session->sceneIsBundle());
+
+	f.prompts.chosenButton = -1;
+	editDescription(f.document, "not saved");
+	const QByteArray folder = readFile(dir.filePath("Copy/scene.json"));
+	f.session->saveSceneAs();
+	// Cancel saves nothing.
+	QCOMPARE(f.prompts.buttonCount, 3);
+	QCOMPARE(f.prompts.defaultButton, 1);
+	QVERIFY(f.document.isDirty());
+	QCOMPARE(readFile(dir.filePath("Copy/scene.json")), folder);
+	QCOMPARE(QFileInfo(f.session->sceneDir()).canonicalFilePath(), QFileInfo(dir.filePath("Copy")).canonicalFilePath());
+
+	Fixture fresh;
+	fresh.session->newScene();
+	fresh.session->saveSceneAs();
+	// A new case, which has no location, has a case file first.
+	QCOMPARE(fresh.prompts.buttonCount, 1);
+	QCOMPARE(fresh.prompts.defaultButton, 0);
+	QVERIFY(fresh.session->sceneDir().isEmpty());
 }
 
 QTEST_MAIN(TestSceneSession)

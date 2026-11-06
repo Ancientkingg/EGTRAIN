@@ -328,6 +328,7 @@ private slots:
 	void tooltipsShowNativeSeparators();
 	void doubleClickOpensRow();
 	void openButtonOpensSelectedRow();
+	void caseFileEntryBrowsesFiles();
 	void escapeChoosesNothing();
 	void leftButtonChoosesNothing();
 	void tabReachesMenuAndFooter();
@@ -466,7 +467,12 @@ void TestCaseChooserDialog::emptyChooser() {
 	QVERIFY(!shown.dialog.openButton()->isEnabled());
 	QVERIFY(shown.dialog.selectedPath().isEmpty());
 	// The other ways to open are there.
-	QCOMPARE(shown.dialog.otherMenu()->actions().size(), 3);
+	QStringList otherTexts;
+	for (const QAction* action : shown.dialog.otherMenu()->actions())
+		otherTexts << action->text();
+	QCOMPARE(otherTexts,
+		QStringList({QStringLiteral("New Case..."), QStringLiteral("Open Case File..."), QStringLiteral("Open Case Folder..."),
+			QStringLiteral("Import Legacy Case...")}));
 	shown.dialog.list()->setFocus();
 	sendKey(shown.dialog.list(), Qt::Key_Down);
 	sendKey(shown.dialog.list(), Qt::Key_Return);
@@ -719,6 +725,24 @@ void TestCaseChooserDialog::openButtonOpensSelectedRow() {
 	QCOMPARE(shown.dialog.result(), int(QDialog::Accepted));
 	QCOMPARE(shown.dialog.outcome(), CaseChooserDialog::Outcome::OpenSelected);
 	QCOMPARE(shown.dialog.chosenPath(), m_scenarios.scenes.filePath(QStringLiteral("beta")));
+}
+
+// Open Case File... in the other ways to open leaves for the case file dialog.
+void TestCaseChooserDialog::caseFileEntryBrowsesFiles() {
+	Shown shown(interactionOptions(), kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	QAction* caseFile = nullptr;
+	for (QAction* action : shown.dialog.otherMenu()->actions()) {
+		if (action->text() == QStringLiteral("Open Case File..."))
+			caseFile = action;
+	}
+	if (caseFile == nullptr)
+		QFAIL("the other ways to open have no Open Case File...");
+	caseFile->trigger();
+	// Open Case File... closes the chooser for the case file dialog, without a path.
+	QCOMPARE(shown.dialog.result(), int(QDialog::Accepted));
+	QCOMPARE(shown.dialog.outcome(), CaseChooserDialog::Outcome::BrowseFile);
+	QVERIFY(shown.dialog.chosenPath().isEmpty());
 }
 
 // Escape leaves without a path.

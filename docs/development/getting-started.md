@@ -148,15 +148,15 @@ This is the path of one case through the code, in the order a user takes it. It 
 into `MainWindow.cpp`. [Scene editor flow](../architecture/scene-editor-flow.md) describes the same
 path from the user's side, and [Scene model](../architecture/scene-model.md) describes the data.
 
-1. **Open.** `File > Open Case...` (a `.egscene` bundle), `File > Open Case Folder...` or the
-   case chooser lead to `SceneSession::openSceneDirectory`. It probes the scene format, and the window
+1. **Open.** `File > Open Case...` and the toolbar button `Open Case` show the case chooser. Its rows,
+   `Open Case File...` (a `.egscene` bundle) and `Open Case Folder...` lead to `SceneSession::openSceneDirectory`. It probes the scene format, and the window
    loads the scene with `loadScenePath` into a `SceneModel` and hands it to its `SceneDocument`.
 2. **Edit.** An editor panel changes the model with `SceneDocument::edit`, which refuses most edits while a run uses the scene.
    `MainWindow::sceneDocumentChanged` records the step for Undo and Redo, discards the results of an
    earlier run and schedules the recovery copy.
 3. **Validate.** `MainWindow::refreshValidationPanel` asks `ValidationPanel::refresh`, which calls
    `validateRunnableScene` and fills the validation table. Error diagnostics block Run; warnings do not.
-4. **Run.** `Run` in the toolbar (Ctrl+R) or `File > Run` reaches `RunController::runScene`, which
+4. **Run.** `Run` in the toolbar or `Simulation > Run` (Ctrl+R) reaches `RunController::runScene`, which
    validates again and opens the review window **Run simulation**. Its button goes on to
    `DispatchController::prepareScene`, which validates, builds the infrastructure and the operations
    with `buildInfrastructureAndSignallingFromScene` and `buildOperationsFromScene`, and then to
@@ -168,7 +168,8 @@ path from the user's side, and [Scene model](../architecture/scene-model.md) des
    window. The output files are written to the [output folder](../guides/command-line.md#output-folder).
 6. **Save.** `File > Save` goes through `SceneSession::saveSceneToCurrentDir` to `saveSceneBundle`
    or `saveScene` (`scene/SceneWriter`), and `SceneSession::finishSceneSave` marks the scene saved. A bundled case
-   in the installation folder is never overwritten: Save leads to `Save As...`.
+   in the installation folder is never overwritten: Save leads to the dialog of a new case file, as
+   `Case File...` of `Save As...` does.
 
 Messages go through the logging core in `util/Log`. Switch categories on with `EGTRAIN_LOG` and
 read them in the **Log** dock (`View > Log`); see

@@ -103,7 +103,8 @@ struct UpdateCheckResult;
 
 /// The folder for crash notes, or an empty string when this run keeps none. QEGTRAIN_CRASH_DIR names a folder for any
 /// run. Otherwise a scripted run and a run on the offscreen or minimal platform keep none, so that they never meet the
-/// notes of a user, and a normal run keeps them in AppLocalDataLocation/Crashes. Call it once the application exists.
+/// notes of a user, a test run with settings of its own keeps them in Crashes in its settings folder, and a normal run
+/// keeps them in AppLocalDataLocation/Crashes. Call it once the application exists.
 QString crashNoteFolder();
 /// Records the scene at `path`, as `loaded` read it, as the scene that startup timing expects. Does nothing when
 /// startup timing is off.
@@ -283,9 +284,7 @@ private:
 	bool m_committingPendingEditorValues = false;
 	QAction* m_saveSceneAction = nullptr;
 	QAction* m_saveSceneAsAction = nullptr;
-	QAction* m_saveSceneAsFolderAction = nullptr;
 	QAction* m_advancedDetailsAction = nullptr;
-	QAction* m_runSceneAction = nullptr;
 	QAction* m_outputFolderAction = nullptr;
 	// The validation table, the loaded data tree and the validation status of the status bar belong to m_validation.
 	ValidationPanel* m_validation = nullptr;

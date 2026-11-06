@@ -18,7 +18,7 @@ The [glossary](glossary.md) defines the other words of the program.
 
 Download the package for your system from the [releases page](https://github.com/Ancientkingg/EGTRAIN/releases). [Installing EGTRAIN](install.md) has the steps for each system, including what to do when macOS or Windows warns before the first start.
 
-- macOS: open the disk image, drag `QEGTRAIN.app` onto `Applications`, and start it from there. A copy kept in a folder inside your home folder can make macOS ask for access to Desktop, Documents and Downloads at the first **File > Open Case...**: in column view the file dialog then lists your home folder. If macOS has not asked for access to Documents yet, it can ask at the first export or save, because an export dialog starts in your Documents folder, as does a save dialog for a bundled case or a new case. That dialog does not respond until you answer.
+- macOS: open the disk image, drag `QEGTRAIN.app` onto `Applications`, and start it from there. A copy kept in a folder inside your home folder can make macOS ask for access to Desktop, Documents and Downloads at the first **Open Case File...**: in column view the file dialog then lists your home folder. If macOS has not asked for access to Documents yet, it can ask at the first export or save, because an export dialog starts in your Documents folder, as does a save dialog for a bundled case or a new case. That dialog does not respond until you answer.
 - Windows: run `EGTRAIN-Setup-<version>-x64.exe` and start **EGTRAIN** from the Start Menu, or unzip `EGTRAIN-Portable-<version>-x64.zip` into a new, empty folder and run `QEGTRAIN.exe`.
 - Linux: make the AppImage executable and run it. It needs glibc 2.38 or later, as on Ubuntu 24.04. On a minimal system that reports a missing library such as `libGL.so.1`, install `libgl1`, `libopengl0`, `libegl1`, `libharfbuzz0b` and `libfontconfig1` first. The AppImage also needs the FUSE 2 library: when it stops with `AppImages require FUSE to run.`, install `libfuse2t64`, or start it with `./QEGTRAIN-linux-x86_64.AppImage --appimage-extract-and-run`.
 
@@ -34,7 +34,7 @@ EGTRAIN asks its questions in this order. Some appear only once.
    ![The window Open a Case over Netherlands, with Paimpol selected in the list of Bundled cases. The text above the list reads Current case: Netherlands, and the buttons are Open and Continue.](../images/getting-started-open-a-case.png)
 3. When the earlier steps are done, and **Open a Case** has closed if it appeared, the first start only may also ask **Check for EGTRAIN updates automatically?** Either answer works: **Check Automatically** or **Don't Check Automatically**. **Help** changes the choice later. See [Updating EGTRAIN](updates.md).
 
-The toolbar button **Open Case** shows **Open a Case** again whenever you want to open another case. If you started EGTRAIN by opening a `.egscene` file, or if the list does not show Paimpol, use **File > Open Case...** and select `Paimpol.egscene` instead. The file dialog starts in the folder above the open case, and on macOS, with no case open, in the `Scenes` folder of the app. [Opening an `.egscene` case](opening-a-case-study.md) describes that.
+The toolbar button **Open Case** and **File > Open Case...** (Ctrl+O) show **Open a Case** again whenever you want to open another case. If you started EGTRAIN by opening a `.egscene` file, or if the list does not show Paimpol, choose **Other ways to open... > Open Case File...** in **Open a Case** and select `Paimpol.egscene` instead. The file dialog starts in the folder above the open case, and on macOS, with no case open, in the `Scenes` folder of the app. [Opening an `.egscene` case](opening-a-case-study.md) describes that.
 
 ## 3. Look at the case
 
@@ -57,7 +57,7 @@ To see the findings, choose **View > Case Validation** (Ctrl+Shift+V). The table
 
 ## 4. Run the simulation
 
-1. Click **Run** in the toolbar, or choose **Simulation > Run** (Ctrl+R) or **File > Run**. The three do the same.
+1. Click **Run** in the toolbar, or choose **Simulation > Run** (Ctrl+R). Both do the same.
 2. The dialog **Run simulation** reviews the run before it starts. Under the name of the case and the scenario (`Paimpol / baseline`) it shows **Trains** (2: both services enter during the run), **Start time** (07:10:40) and **Duration** (`2:30:00, until 09:40:40`). **Incidents** shows only when the scenario has any, and a line under the facts shows only when something needs your attention, for example `No selected trains start in this period.` **Run details** shows more.
 
    ![The dialog Run simulation for Paimpol / baseline before a run: Trains 2, Start time 07:10:40 and Duration 2:30:00, until 09:40:40, with Run details closed and the buttons Cancel and Run simulation.](../images/getting-started-run-simulation.png)
@@ -70,7 +70,7 @@ While the run is active:
   ![The main window during a run of Paimpol, zoomed in to 25x with Follow on Guin-Paim-EXPRESS-1-1 between its signals. The progress bar reads 07:51:31 of 09:40:40, and Run is dimmed while Pause and Stop are enabled.](../images/getting-started-run-in-progress.png)
 - Move the speed slider to the right to play faster or to the left to play slower. It starts at the fastest setting. **Pause** (Ctrl+.) stops the clock: the button then reads **Resume** and the status bar `Paused`. **Stop** (Ctrl+Esc) ends the run, and a stopped run leaves no results.
 - To keep a train in view, choose it in the list next to **Follow** and click **Follow**. Zooming and dragging still work.
-- The menu **Editors** still opens every editor, but the contents of **Services**, **Passengers**, **Infrastructure** and **Scenarios** are disabled, and so are **Edit > Undo**, **Edit > Redo** and **File > Set Output Folder...**. The editors **Case Settings**, **Rolling Stock Units** and **Compositions** stay usable, but an edit there discards the results of that run, so wait for the run to end first.
+- The menu **Editors** still opens every editor, but the contents of **Services**, **Passengers**, **Infrastructure** and **Scenarios** are disabled, and so are **Edit > Undo**, **Edit > Redo** and **Simulation > Set Output Folder...**. The editors **Case Settings**, **Rolling Stock Units** and **Compositions** stay usable, but an edit there discards the results of that run, so wait for the run to end first.
 
 At the fastest speed the run of Paimpol takes seconds. When it has ended, the status bar reads `Simulation complete`, the dock **Run Results** opens, and the **Replay** row appears under the network. Follow switches off when the followed train leaves the network, so in Paimpol it is usually off before the end.
 
@@ -110,7 +110,7 @@ A run also writes text files, such as the energy files and the delay statistics.
 | Windows | `%APPDATA%\EGTRAIN\EGTRAIN` | yes, on Windows 11 |
 | Linux | `~/.local/share/EGTRAIN/EGTRAIN` | yes, on Ubuntu 24.04 |
 
-The Windows entry follows the rule of Qt for the application data folder. **File > Set Output Folder...** chooses another folder for the following runs of the session. [Command-line options](command-line.md#output-folder) explain the rule and `QEGTRAIN_OUTPUT_DIR`, and [Run output](run-output.md) lists the files.
+The Windows entry follows the rule of Qt for the application data folder. **Simulation > Set Output Folder...** chooses another folder for the following runs of the session. [Command-line options](command-line.md#output-folder) explain the rule and `QEGTRAIN_OUTPUT_DIR`, and [Run output](run-output.md) lists the files.
 
 ## If something goes wrong
 
