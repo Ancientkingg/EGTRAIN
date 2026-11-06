@@ -585,7 +585,9 @@ that the window exports with all trains, with the first train and with none (<co
 <code class="docutils literal notranslate"><span class="pre">_one</span></code>, <code class="docutils literal notranslate"><span class="pre">_none</span></code>). For the blocking-time, the delay and the per-train diagrams it also writes a text dump of the
 chart (<code class="docutils literal notranslate"><span class="pre">blocking_time_series.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">delay_diagram_series.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">speed_distance_series.txt</span></code> and so on: the axes,
 then every series with its properties and points). Two builds of one scene give the same files, so <code class="docutils literal notranslate"><span class="pre">cmp</span></code>
-shows whether a change moved a diagram.</p>
+shows whether a change moved a diagram. It also exports the picture of the delay diagram into a folder that does
+not exist, and fails unless no message box opens and, outside Windows, <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_DIALOG_SUPPRESSED:</span></code> goes to
+standard error.</p>
 <p>The hook of <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_ROUTE_DIAGRAM</span></code> builds the train paths and the timetable graph with each route that trains
 run on as reference. For each of them it writes the text dump of the chart and the CSV of the window with all trains
 (<code class="docutils literal notranslate"><span class="pre">train_path_graph_route&lt;N&gt;_series.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">train_path_graph_route&lt;N&gt;.csv</span></code>, and <code class="docutils literal notranslate"><span class="pre">timetable_graph_route&lt;N&gt;</span></code> likewise, with

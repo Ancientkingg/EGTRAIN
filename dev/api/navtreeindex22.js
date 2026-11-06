@@ -1,5 +1,10 @@
 var NAVTREEINDEX22 =
 {
+"struct_capacity_pair_row.html#a95711ae34c58a1578f6854f6a3267ad6":[2,0,42,8],
+"struct_capacity_pair_row.html#aa2dd6cad91e321f347323c456d2aaefa":[2,0,42,4],
+"struct_capacity_pair_row.html#aeb3254007c59432c5adcea78c54ea1f0":[2,0,42,7],
+"struct_case_chooser_dialog_1_1_options.html":[2,0,44,0],
+"struct_case_chooser_dialog_1_1_options.html#a63464bb952e1aedbc0c05aa1358c40b7":[2,0,44,0,0],
 "struct_case_chooser_dialog_1_1_options.html#a717d7a14f73af415a3170b32cdd82a52":[2,0,44,0,1],
 "struct_case_chooser_dialog_1_1_options.html#a877d0ff6822c93b80917d03e394bd851":[2,0,44,0,2],
 "struct_case_chooser_dialog_1_1_options.html#abd33b5f0ea54d4801b2c4dfa83065f57":[2,0,44,0,3],
@@ -244,10 +249,5 @@ var NAVTREEINDEX22 =
 "struct_gui_platform_state.html#ae8537a3c580e02c7a1a29972cd14c15d":[2,0,96,0],
 "struct_gui_section_state.html":[2,0,98],
 "struct_gui_section_state.html#abe1770c07637dbaca47ff807aed75f57":[2,0,98,0],
-"struct_gui_section_state.html#ac7d180ca2d3abbf923cbe171f5d25415":[2,0,98,1],
-"struct_gui_section_state.html#ae1e692046034cc52a332dc90d8313eb2":[2,0,98,2],
-"struct_gui_signal_state.html":[2,0,99],
-"struct_gui_signal_state.html#a0d00824504ced6f21971d0ebab4c4c9c":[2,0,99,4],
-"struct_gui_signal_state.html#a275f7955d23196ae6989b668a4e49fed":[2,0,99,2],
-"struct_gui_signal_state.html#a6240f8cd0b1f4c22befdb4d47e4e4ad6":[2,0,99,3]
+"struct_gui_section_state.html#ac7d180ca2d3abbf923cbe171f5d25415":[2,0,98,1]
 };

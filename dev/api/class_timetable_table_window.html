@@ -137,6 +137,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aebc64c6a1a2e22b532b860361b7c9d9e" id="r_aebc64c6a1a2e22b532b860361b7c9d9e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aebc64c6a1a2e22b532b860361b7c9d9e">setTrainColors</a> (const QHash&lt; QString, QColor &gt; &amp;colors)</td></tr>
 <tr class="memitem:a08dc8f78a2a7117b38953f311f85d1a3" id="r_a08dc8f78a2a7117b38953f311f85d1a3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a08dc8f78a2a7117b38953f311f85d1a3">setTelemetryCapture</a> (<a class="el" href="namespacetelemetry.html#a72614ca7f8f9984ba7f8ca9222444bd7">telemetry::CaptureOperation</a> capture)</td></tr>
 <tr class="memdesc:a08dc8f78a2a7117b38953f311f85d1a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the function that gives the telemetry observation of an export; empty for none.  <br /></td></tr>
+<tr class="memitem:a1881940dbb625ecf2a1eeecf1df5a203" id="r_a1881940dbb625ecf2a1eeecf1df5a203"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1881940dbb625ecf2a1eeecf1df5a203">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Planned versus simulated timetable as a filterable, sortable table in the frame of the chart windows: the table at the left and a panel with the train filter and the exports at the right. The CSV button is shown only when the constructor gets a CSV provider. </p>
@@ -199,6 +200,32 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Sets the window title to <span class="tt">heading</span> and shows <span class="tt">context</span> in the header in one line; an empty context hides it. </p>
+
+</div>
+</div>
+<a id="a1881940dbb625ecf2a1eeecf1df5a203" name="a1881940dbb625ecf2a1eeecf1df5a203"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1881940dbb625ecf2a1eeecf1df5a203">&#9670;&#160;</a></span>setPrompts()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TimetableTableWindow::setPrompts </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_user_prompts.html">UserPrompts</a> *</td>          <td class="paramname"><span class="paramname"><em>prompts</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Sets the prompts of the exports, which ask whether to replace a file and show what went wrong. Null restores the prompts of the window, which show every message. </p>
 
 </div>
 </div>

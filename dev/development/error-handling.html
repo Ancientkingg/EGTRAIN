@@ -643,8 +643,8 @@
 <td><p>Yes</p></td>
 </tr>
 <tr class="row-even"><td><p>Result export fails</p></td>
-<td><p>“Export failed” warning with the path, without the reason from the OS</p></td>
-<td><p>No</p></td>
+<td><p>“Export failed” warning with the path and, on the line below, the reason: the error of the file system, which for the provenance file follows its name (”<file>.provenance.json: <error>”, <code class="docutils literal notranslate"><span class="pre">diagrams/RunResults.cpp</span></code>), “There is no data to export.”, “The image could not be made.” or “The data could not be made.” (<code class="docutils literal notranslate"><span class="pre">saveExportInteractive</span></code> in <code class="docutils literal notranslate"><span class="pre">diagrams/ResultFrame.cpp</span></code>). The result windows and the Run Results dock pass the prompts of <code class="docutils literal notranslate"><span class="pre">ResultViews</span></code>, so a run with dialogs suppressed prints it to standard error instead</p></td>
+<td><p>Yes</p></td>
 </tr>
 <tr class="row-odd"><td><p>Live stream cannot start</p></td>
 <td><p>“Cannot Start EGTRAIN” box, exit 2 (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>). With <code class="docutils literal notranslate"><span class="pre">--live-commands</span></code> also when the endpoint file on macOS or Linux would be readable by other users, as on a file system without POSIX modes; without commands such a file is written with a warning in <code class="docutils literal notranslate"><span class="pre">io.zmq</span></code> (<code class="docutils literal notranslate"><span class="pre">io/LiveServer.cpp</span></code>).</p></td>
@@ -652,15 +652,23 @@
 </tr>
 <tr class="row-even"><td><p>Manual update check fails</p></td>
 <td><p>Warning box with the network error, or “The update check timed out.” when no data arrived for 10 s (<code class="docutils literal notranslate"><span class="pre">update/UpdateChecker.cpp</span></code>)</p></td>
-<td><p>No</p></td>
+<td><p>Yes, category <code class="docutils literal notranslate"><span class="pre">update</span></code> at warning level</p></td>
 </tr>
 <tr class="row-odd"><td><p>Automatic update check fails</p></td>
-<td><p>Nothing visible (<code class="docutils literal notranslate"><span class="pre">qWarning</span></code>, <code class="docutils literal notranslate"><span class="pre">app/UpdateTelemetryController.cpp</span></code>)</p></td>
-<td><p>Dock, category <code class="docutils literal notranslate"><span class="pre">app.ui</span></code></p></td>
+<td><p>Nothing visible (<code class="docutils literal notranslate"><span class="pre">app/UpdateTelemetryController.cpp</span></code>)</p></td>
+<td><p>Dock, category <code class="docutils literal notranslate"><span class="pre">update</span></code> at warning level</p></td>
 </tr>
-<tr class="row-even"><td><p>Update cannot be installed</p></td>
+<tr class="row-even"><td><p>Update download or preparation fails</p></td>
+<td><p>“EGTRAIN Update” warning with the reason (<code class="docutils literal notranslate"><span class="pre">UpdateTelemetryController::handleSelfUpdateFinished</span></code>). A tool that fails adds the end of its standard error, at most five lines and 500 characters, on the line below “<tool> could not prepare the update package.”, and a staging folder that cannot be made gives “Could not create the folder <path>.” (<code class="docutils literal notranslate"><span class="pre">update/UpdatePreparation.cpp</span></code>)</p></td>
+<td><p>Yes, category <code class="docutils literal notranslate"><span class="pre">update</span></code> at warning level</p></td>
+</tr>
+<tr class="row-odd"><td><p>Update cannot be installed</p></td>
 <td><p>The update helper starts the installation in place and leaves a <code class="docutils literal notranslate"><span class="pre">not-applied</span></code> record whose <code class="docutils literal notranslate"><span class="pre">reason=</span></code> line names the step that failed (<code class="docutils literal notranslate"><span class="pre">abandonUpdate</span></code> in <code class="docutils literal notranslate"><span class="pre">update/UpdateHelper.cpp</span></code>): the old EGTRAIN did not end within 5 minutes, a check before the renames failed, a rename failed, or the new version failed to start and could not be moved aside. A previous version that runs then shows “The update to EGTRAIN <version> could not be applied.”</p></td>
-<td><p>No</p></td>
+<td><p>The notice: category <code class="docutils literal notranslate"><span class="pre">update</span></code> at warning level (<code class="docutils literal notranslate"><span class="pre">update/UpdateNotices.cpp</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p>A link in the manual window, or the published manual that Help &gt; Manual opens without a help file, does not open in the browser</p></td>
+<td><p>“Open Link” or “Open Manual” warning with the address, whose text can be selected and copied (<code class="docutils literal notranslate"><span class="pre">widgets/ManualWindow.cpp</span></code>)</p></td>
+<td><p>Category <code class="docutils literal notranslate"><span class="pre">app.ui</span></code> at warning level</p></td>
 </tr>
 <tr class="row-odd"><td><p>Telemetry send or consent fails</p></td>
 <td><p>Nothing, by design; a consent save error shows in the dialog. A queue file that cannot be written is tried once more after 100 ms; when that fails too, the <code class="docutils literal notranslate"><span class="pre">disabled</span></code> marker stops the queue of that installation until a usage or diagnostics choice changes, in the privacy dialog or in Settings. The sender then removes the marker and the queued events, keeps <code class="docutils literal notranslate"><span class="pre">control.json</span></code>, and opens the queue again (<code class="docutils literal notranslate"><span class="pre">telemetry/TelemetryQueue.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">telemetry/TelemetrySender.cpp</span></code>). A marker for a retirement after a 410 response that <code class="docutils literal notranslate"><span class="pre">control.json</span></code> could not record, for a damaged or missing <code class="docutils literal notranslate"><span class="pre">control.json</span></code>, or written by an earlier EGTRAIN version, stops the queue for good.</p></td>
@@ -677,7 +685,7 @@
 </tbody>
 </table>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">UserPrompts::showError</span></code> (<code class="docutils literal notranslate"><span class="pre">widgets/UserPrompts.h</span></code>) logs <code class="docutils literal notranslate"><span class="pre">&lt;title&gt;:</span> <span class="pre">&lt;message&gt;</span></code> at error level in <code class="docutils literal notranslate"><span class="pre">app.ui</span></code>, then shows the box. In a run with dialogs suppressed it prints <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_DIALOG_SUPPRESSED:</span> <span class="pre">&lt;title&gt;:</span> <span class="pre">&lt;message&gt;</span></code> to standard error instead of the box.</p>
+<p><code class="docutils literal notranslate"><span class="pre">UserPrompts::showError</span></code> (<code class="docutils literal notranslate"><span class="pre">widgets/UserPrompts.h</span></code>) logs <code class="docutils literal notranslate"><span class="pre">&lt;title&gt;:</span> <span class="pre">&lt;message&gt;</span></code> at error level in <code class="docutils literal notranslate"><span class="pre">app.ui</span></code>, then shows the box. In a run with dialogs suppressed it prints <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_DIALOG_SUPPRESSED:</span> <span class="pre">&lt;title&gt;:</span> <span class="pre">&lt;message&gt;</span></code> to standard error instead of the box. The update messages of <code class="docutils literal notranslate"><span class="pre">app/UpdateTelemetryController.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">update/UpdateNotices.cpp</span></code> are also logged in <code class="docutils literal notranslate"><span class="pre">update</span></code>, so a failure appears there at warning level and in <code class="docutils literal notranslate"><span class="pre">app.ui</span></code> at error level.</p>
 </section>
 <section id="logging">
 <h2>Logging<a class="headerlink" href="#logging" title="Link to this heading">¶</a></h2>

@@ -131,6 +131,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ac0db7191dc2b43d97527f7ad778f109f"><td class="mdescLeft">&#160;</td><td class="mdescRight"><span class="tt">baseline</span> is the baseline run when one is set. The Against baseline tab compares it with <span class="tt">scenario</span>.  <br /></td></tr>
 <tr class="memitem:afa32d881039d41bba798b2539faec6fe" id="r_afa32d881039d41bba798b2539faec6fe"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afa32d881039d41bba798b2539faec6fe">setTelemetryCapture</a> (<a class="el" href="namespacetelemetry.html#a72614ca7f8f9984ba7f8ca9222444bd7">telemetry::CaptureOperation</a> capture)</td></tr>
 <tr class="memdesc:afa32d881039d41bba798b2539faec6fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the function that gives the telemetry observation of an export; empty for none.  <br /></td></tr>
+<tr class="memitem:a72b9a049bf2f6bcc8d0f9851d3e47707" id="r_a72b9a049bf2f6bcc8d0f9851d3e47707"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a72b9a049bf2f6bcc8d0f9851d3e47707">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
 <tr class="memitem:a42c8be067e8ff4a9ea16c53822b4fbd1" id="r_a42c8be067e8ff4a9ea16c53822b4fbd1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a42c8be067e8ff4a9ea16c53822b4fbd1">showBaselineTab</a> ()</td></tr>
 <tr class="memdesc:a42c8be067e8ff4a9ea16c53822b4fbd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the Against baseline tab. The window opens on the Calls tab.  <br /></td></tr>
 <tr class="memitem:a8bcc228a187149cd1a0f6b22348be9cd" id="r_a8bcc228a187149cd1a0f6b22348be9cd"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a8bcc228a187149cd1a0f6b22348be9cd">suggestedFileName</a> () const</td></tr>
@@ -224,6 +225,32 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>Writes the visible tab, for the occurrences, stations and events that are selected, and the provenance sidecar. The Against baseline tab writes the provenance of both runs. False when the tab has no row or a write fails. </p>
+
+</div>
+</div>
+<a id="a72b9a049bf2f6bcc8d0f9851d3e47707" name="a72b9a049bf2f6bcc8d0f9851d3e47707"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a72b9a049bf2f6bcc8d0f9851d3e47707">&#9670;&#160;</a></span>setPrompts()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DelayAnalysisWindow::setPrompts </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_user_prompts.html">UserPrompts</a> *</td>          <td class="paramname"><span class="paramname"><em>prompts</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Sets the prompts of the export, which ask whether to replace a file and show what went wrong. Null restores the prompts of the window, which show every message. </p>
 
 </div>
 </div>

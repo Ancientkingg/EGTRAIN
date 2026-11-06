@@ -1,5 +1,10 @@
 var NAVTREEINDEX24 =
 {
+"struct_recovery_source.html#aaef56fe2cadd461c6a6607151a937f27":[2,0,169,3],
+"struct_recovery_source.html#ad1757f2ab119513e389f1572b2b78650":[2,0,169,0],
+"struct_release_asset.html":[2,0,171],
+"struct_release_asset.html#a7fc8a71f2b84597e57fb94762939a874":[2,0,171,0],
+"struct_release_asset.html#ab061af10347e21e83985b417c15eb9f4":[2,0,171,1],
 "struct_replay_bar_text.html":[2,0,172],
 "struct_replay_bar_text.html#a12940b26428ce59196bf857cf55a7a65":[2,0,172,3],
 "struct_replay_bar_text.html#a778b7e58a9efc0ad4eb690b10816993a":[2,0,172,0],
@@ -244,10 +249,5 @@ var NAVTREEINDEX24 =
 "struct_scene_entrance_delay.html":[2,0,227],
 "struct_scene_entrance_delay.html#a1d1693f103a362dcc34e9b6ae04410c9":[2,0,227,2],
 "struct_scene_entrance_delay.html#a400efdfc34e06419b448c7d3bc562079":[2,0,227,3],
-"struct_scene_entrance_delay.html#a9a47c5a799911708f8eeca2b9821f902":[2,0,227,1],
-"struct_scene_entrance_delay.html#ae8d6a7913abf5545309f6c6e1f39b89f":[2,0,227,0],
-"struct_scene_export_result.html":[2,0,228],
-"struct_scene_export_result.html#a668568b16087355bc3c6aadb8b127d90":[2,0,228,1],
-"struct_scene_export_result.html#a874f0d3360c108406cc82db69acc3de3":[2,0,228,0],
-"struct_scene_export_result.html#afa11c67d31451ce018967f2fdd5730d1":[2,0,228,2]
+"struct_scene_entrance_delay.html#a9a47c5a799911708f8eeca2b9821f902":[2,0,227,1]
 };

@@ -1,5 +1,10 @@
 var NAVTREEINDEX28 =
 {
+"struct_waiting_at_platform.html":[2,0,378],
+"struct_waiting_at_platform.html#a1ca65c68af09891c04a849f68451ff3f":[2,0,378,1],
+"struct_waiting_at_platform.html#a94d8ee65b662aeea8639bb828ededb4e":[2,0,378,0],
+"structtelemetry_1_1_application.html":[1,0,14,0],
+"structtelemetry_1_1_application.html":[2,0,3,0],
 "structtelemetry_1_1_application.html#a30a238bc2178bf2b9b7bcb01ed52a69e":[1,0,14,0,2],
 "structtelemetry_1_1_application.html#a30a238bc2178bf2b9b7bcb01ed52a69e":[2,0,3,0,2],
 "structtelemetry_1_1_application.html#a53d654e9c441b8f15032342fd459b5e3":[1,0,14,0,1],

@@ -156,9 +156,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:aeaf1a8a285ed78422cb00c04f7cc8a83"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same provider/filter snapshot that the CSV export writes, without opening a file dialog.  <br /></td></tr>
 <tr class="memitem:a66d6e64434954e6ba58990c584eef5b4" id="r_a66d6e64434954e6ba58990c584eef5b4"><td class="memItemLeft">QImage&#160;</td><td class="memItemRight"><a class="el" href="#a66d6e64434954e6ba58990c584eef5b4">figureImage</a> (const <a class="el" href="struct_figure_column.html">FigureColumn</a> &amp;column={}) const</td></tr>
 <tr class="memitem:aeef7b61d77e6b996f1a859e2ce8ccb9f" id="r_aeef7b61d77e6b996f1a859e2ce8ccb9f"><td class="memItemLeft">QImage&#160;</td><td class="memItemRight"><a class="el" href="#aeef7b61d77e6b996f1a859e2ce8ccb9f">exportedFigure</a> () const</td></tr>
-<tr class="memitem:a072ab92bbf800c9021108d0b1283078d" id="r_a072ab92bbf800c9021108d0b1283078d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a072ab92bbf800c9021108d0b1283078d">setProvenanceWriter</a> (std::function&lt; bool(const QString &amp;artifactPath, const char *artifactKind, const std::string &amp;artifactBytes)&gt; writer)</td></tr>
+<tr class="memitem:a6f371b09200c1aca7665877b753b4566" id="r_a6f371b09200c1aca7665877b753b4566"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6f371b09200c1aca7665877b753b4566">setProvenanceWriter</a> (std::function&lt; QString(const QString &amp;artifactPath, const char *artifactKind, const std::string &amp;artifactBytes)&gt; writer)</td></tr>
 <tr class="memitem:ada70cd96c57e022ae8e6bfd6c649f2d9" id="r_ada70cd96c57e022ae8e6bfd6c649f2d9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ada70cd96c57e022ae8e6bfd6c649f2d9">setTelemetryCapture</a> (<a class="el" href="namespacetelemetry.html#a72614ca7f8f9984ba7f8ca9222444bd7">telemetry::CaptureOperation</a> capture)</td></tr>
 <tr class="memdesc:ada70cd96c57e022ae8e6bfd6c649f2d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the function that gives the telemetry observation of an export; empty for none.  <br /></td></tr>
+<tr class="memitem:a8a6102391ec5355690ad27243496ff60" id="r_a8a6102391ec5355690ad27243496ff60"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8a6102391ec5355690ad27243496ff60">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
@@ -533,8 +534,34 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a072ab92bbf800c9021108d0b1283078d" name="a072ab92bbf800c9021108d0b1283078d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a072ab92bbf800c9021108d0b1283078d">&#9670;&#160;</a></span>setProvenanceWriter()</h2>
+<a id="a8a6102391ec5355690ad27243496ff60" name="a8a6102391ec5355690ad27243496ff60"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a6102391ec5355690ad27243496ff60">&#9670;&#160;</a></span>setPrompts()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DiagramWindow::setPrompts </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_user_prompts.html">UserPrompts</a> *</td>          <td class="paramname"><span class="paramname"><em>prompts</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Sets the prompts of the exports, which ask whether to replace a file and show what went wrong. Null restores the prompts of the window, which show every message. </p>
+
+</div>
+</div>
+<a id="a6f371b09200c1aca7665877b753b4566" name="a6f371b09200c1aca7665877b753b4566"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6f371b09200c1aca7665877b753b4566">&#9670;&#160;</a></span>setProvenanceWriter()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -542,12 +569,12 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">void DiagramWindow::setProvenanceWriter </td>
           <td>(</td>
-          <td class="paramtype">std::function&lt; bool(const QString &amp;artifactPath, const char *artifactKind, const std::string &amp;artifactBytes)&gt;</td>          <td class="paramname"><span class="paramname"><em>writer</em></span></td><td>)</td>
+          <td class="paramtype">std::function&lt; QString(const QString &amp;artifactPath, const char *artifactKind, const std::string &amp;artifactBytes)&gt;</td>          <td class="paramname"><span class="paramname"><em>writer</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Sets the function that writes an export and its provenance sidecar; <span class="tt">artifactKind</span> is "png" or "csv". Without it the export is written alone. </p>
+<p>Sets the function that writes an export and its provenance sidecar; <span class="tt">artifactKind</span> is "png" or "csv". It returns why the write failed, or an empty string. Without it the export is written alone. </p>
 
 </div>
 </div>

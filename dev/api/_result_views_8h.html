@@ -112,7 +112,8 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_result_views_
   <div class="headertitle"><div class="title">ResultViews.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;QList&gt;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_user_prompts_8h_source.html">widgets/UserPrompts.h</a>&quot;</code><br />
+<code>#include &lt;QList&gt;</code><br />
 <code>#include &lt;QObject&gt;</code><br />
 <code>#include &lt;QPointer&gt;</code><br />
 <code>#include &lt;QString&gt;</code><br />
@@ -123,7 +124,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_result_views_
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for ResultViews.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_views_8h__incl.svg" width="738" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_views_8h__incl.svg" width="1947" height="266"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
@@ -147,7 +148,7 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a49689422c78819ad5793da818378e387" id="r_a49689422c78819ad5793da818378e387"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a49689422c78819ad5793da818378e387">saveCsvInteractive</a> (QWidget *parent, const QString &amp;suggestedName, const <a class="el" href="classtelemetry_1_1_operation_observation.html">telemetry::OperationObservation</a> &amp;operation, const std::function&lt; std::string()&gt; &amp;provider, const std::function&lt; bool(const QString &amp;, const std::string &amp;)&gt; &amp;artifactWriter)</td></tr>
+<tr class="memitem:afc69c65e584b4afe0456f7a17bd80694" id="r_afc69c65e584b4afe0456f7a17bd80694"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afc69c65e584b4afe0456f7a17bd80694">saveCsvInteractive</a> (QWidget *parent, <a class="el" href="class_user_prompts.html">UserPrompts</a> &amp;prompts, const QString &amp;suggestedName, const <a class="el" href="classtelemetry_1_1_operation_observation.html">telemetry::OperationObservation</a> &amp;operation, const std::function&lt; std::string()&gt; &amp;provider, const std::function&lt; QString(const QString &amp;, const std::string &amp;)&gt; &amp;artifactWriter)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -177,8 +178,8 @@ Variables</h2></td></tr>
 <tr class="memdesc:a73ed701e7d67826aec0c832183928083"><td class="mdescLeft">&#160;</td><td class="mdescRight">The capacity analysis by area.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
-<a id="a49689422c78819ad5793da818378e387" name="a49689422c78819ad5793da818378e387"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a49689422c78819ad5793da818378e387">&#9670;&#160;</a></span>saveCsvInteractive()</h2>
+<a id="afc69c65e584b4afe0456f7a17bd80694" name="afc69c65e584b4afe0456f7a17bd80694"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afc69c65e584b4afe0456f7a17bd80694">&#9670;&#160;</a></span>saveCsvInteractive()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -187,6 +188,11 @@ Variables</h2></td></tr>
           <td class="memname">void saveCsvInteractive </td>
           <td>(</td>
           <td class="paramtype">QWidget *</td>          <td class="paramname"><span class="paramname"><em>parent</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="class_user_prompts.html">UserPrompts</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>prompts</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -206,15 +212,15 @@ Variables</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::function&lt; bool(const QString &amp;, const std::string &amp;)&gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>artifactWriter</em></span>&#160;)</td>
+          <td class="paramtype">const std::function&lt; QString(const QString &amp;, const std::string &amp;)&gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>artifactWriter</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Asks for a path and writes CSV text atomically. A cancelled dialog or a failed write never leaves a partial file behind. provider gives the text, and artifactWriter writes it together with its provenance and returns whether it succeeded. Empty text writes nothing and says that there is no data. ".csv" is added to a path without it. </p>
+<p>Asks for a path and writes CSV text atomically. A cancelled dialog or a failed write never leaves a partial file behind. provider gives the text, and artifactWriter writes it together with its provenance and returns why it failed, or an empty string. Empty text writes nothing and says that there is no data. ".csv" is added to a path without it. The questions and messages go through <span class="tt">prompts</span> (saveExportInteractive). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_views_8h_a49689422c78819ad5793da818378e387_cgraph.svg" width="1660" height="395"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_views_8h_afc69c65e584b4afe0456f7a17bd80694_cgraph.svg" width="1668" height="447"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

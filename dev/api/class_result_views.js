@@ -8,6 +8,7 @@ var class_result_views =
     [ "buildRouteDiagram", "class_result_views.html#a0a1a09d502810a0902eeb4d48205af14", null ],
     [ "closeAll", "class_result_views.html#a2142298549b7e6b8aabe1e43ef39912f", null ],
     [ "displayTrainPathDiagrams", "class_result_views.html#a6654ed2f9732984a4810179a9275addf", null ],
+    [ "prompts", "class_result_views.html#a932e616f0c9cb6bd4c5ba48f05022b48", null ],
     [ "showAreaCapacity", "class_result_views.html#a8e32ba30e8190ebc639b33719a73ea78", null ],
     [ "showBlockingTimeDiagram", "class_result_views.html#aa9e252a043e4690bee758082e1f58722", null ],
     [ "showCapacityAnalysis", "class_result_views.html#a9f539b64e7342aee59d626baebfd8617", null ],
