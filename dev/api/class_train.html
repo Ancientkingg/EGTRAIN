@@ -129,8 +129,9 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a6d00800a06e2e8d77d3503fcf918b65d" id="r_a6d00800a06e2e8d77d3503fcf918b65d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6d00800a06e2e8d77d3503fcf918b65d">setStepBranch</a> (int time_seconds, <a class="el" href="_rolling_stock_8h.html#a6212850430c9d87a2b2518f5ea118b1c">TrajectoryBranch</a> branch)</td></tr>
-<tr class="memdesc:a6d00800a06e2e8d77d3503fcf918b65d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets Eq[time_seconds] to the number of branch.  <br /></td></tr>
+<tr class="memitem:ae5c4a072e6f5c7e1afc3cbedd0d03048" id="r_ae5c4a072e6f5c7e1afc3cbedd0d03048"><td class="memItemLeft">const std::string &amp;&#160;</td><td class="memItemRight"><a class="el" href="#ae5c4a072e6f5c7e1afc3cbedd0d03048">blockSectionIdAt</a> (int t) const</td></tr>
+<tr class="memitem:a3f33e9849f97c8f075a1075c1c764195" id="r_a3f33e9849f97c8f075a1075c1c764195"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3f33e9849f97c8f075a1075c1c764195">setStepBranch</a> (<a class="el" href="_rolling_stock_8h.html#a6212850430c9d87a2b2518f5ea118b1c">TrajectoryBranch</a> branch)</td></tr>
+<tr class="memdesc:a3f33e9849f97c8f075a1075c1c764195"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets stepBranch to the number of branch.  <br /></td></tr>
 <tr class="memitem:aa05ce5a8ff68dea76d457f4ff2d0d1ba" id="r_aa05ce5a8ff68dea76d457f4ff2d0d1ba"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aa05ce5a8ff68dea76d457f4ff2d0d1ba">Train</a> ()</td></tr>
 <tr class="memdesc:aa05ce5a8ff68dea76d457f4ff2d0d1ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the default values. The vectors stay empty until setTrainVectorSizesFromInput.  <br /></td></tr>
 <tr class="memitem:aab13668e235554b116f7a32d2ea894db" id="r_aab13668e235554b116f7a32d2ea894db"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aab13668e235554b116f7a32d2ea894db">cacheStationPositions</a> ()</td></tr>
@@ -188,7 +189,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:adda58a2a6872fa9512e72cbec2abb7e0" id="r_adda58a2a6872fa9512e72cbec2abb7e0"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#adda58a2a6872fa9512e72cbec2abb7e0">DrawBrakingCurve</a> (double V1, double V2, double X0, <a class="el" href="class_section.html">Section</a> *BS, int Blocks)</td></tr>
 <tr class="memitem:a632ba10791abd58a3febb922e8d60ae6" id="r_a632ba10791abd58a3febb922e8d60ae6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a632ba10791abd58a3febb922e8d60ae6">planBraking</a> (double head, double speed, const <a class="el" href="class_arc.html">Arc</a> &amp;arc, <a class="el" href="class_section.html">Section</a> *sections, int count)</td></tr>
 <tr class="memitem:a1af634b7447d29cd8696899f0d900f03" id="r_a1af634b7447d29cd8696899f0d900f03"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1af634b7447d29cd8696899f0d900f03">brakingStep</a> (int time_seconds, const <a class="el" href="class_arc.html">Arc</a> &amp;As, <a class="el" href="class_section.html">Section</a> *BS, int Blocks)</td></tr>
-<tr class="memdesc:a1af634b7447d29cd8696899f0d900f03"><td class="mdescLeft">&#160;</td><td class="mdescRight">One braking step at time_seconds on arc As: follows the stored plan, makes a new one, or brakes with full force.  <br /></td></tr>
 <tr class="memitem:a9ed1da2ac786a644ff5e8fd001c8d4e1" id="r_a9ed1da2ac786a644ff5e8fd001c8d4e1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9ed1da2ac786a644ff5e8fd001c8d4e1">fullBrakingStep</a> (int time_seconds, const <a class="el" href="class_arc.html">Arc</a> &amp;As)</td></tr>
 <tr class="memitem:a2daf71d16057b5847a8640522272a793" id="r_a2daf71d16057b5847a8640522272a793"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2daf71d16057b5847a8640522272a793">PrintTrajectory</a> ()</td></tr>
 <tr class="memitem:aa6129d2e460d7abdfb98939484357f09" id="r_aa6129d2e460d7abdfb98939484357f09"><td class="memItemLeft">virtual&#160;</td><td class="memItemRight"><a class="el" href="#aa6129d2e460d7abdfb98939484357f09">~Train</a> ()</td></tr>
@@ -246,8 +246,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a35281388c1449d2ffe98bcd5313f2326"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of trajectory samples, one per step.  <br /></td></tr>
 <tr class="memitem:ae4f1399d1ae60d6156405abb657b5799" id="r_ae4f1399d1ae60d6156405abb657b5799"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae4f1399d1ae60d6156405abb657b5799">recordEarliestActiveTrajectoryIndex</a> (int index)</td></tr>
 <tr class="memdesc:ae4f1399d1ae60d6156405abb657b5799"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets earliestActiveTrajectoryIndex to index when it is unset and the train has entered.  <br /></td></tr>
-<tr class="memitem:a1be5fcc56d9f6ff038fb56cb2d50bebc" id="r_a1be5fcc56d9f6ff038fb56cb2d50bebc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1be5fcc56d9f6ff038fb56cb2d50bebc">setTrainVectorSizesFromInput</a> (int vec_size)</td></tr>
-<tr class="memdesc:a1be5fcc56d9f6ff038fb56cb2d50bebc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sizes every per-step vector to vec_size samples of 0 and sets End_Time to the last step.  <br /></td></tr>
+<tr class="memitem:ade9aee0e3bbeef722dbdbe52ef8e15dd" id="r_ade9aee0e3bbeef722dbdbe52ef8e15dd"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ade9aee0e3bbeef722dbdbe52ef8e15dd">setTrainVectorSizesFromInput</a> (int vec_size, bool detailedTrajectory)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -285,7 +284,7 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a28622cad0d9a16fc3ec99ced92d984ff" id="r_a28622cad0d9a16fc3ec99ced92d984ff"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a28622cad0d9a16fc3ec99ced92d984ff">resistanceCoefficient</a> = 0.0</td></tr>
 <tr class="memitem:ac0f161a910c6a50db8b29f966f35689d" id="r_ac0f161a910c6a50db8b29f966f35689d"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac0f161a910c6a50db8b29f966f35689d">instant_spatial_position</a></td></tr>
 <tr class="memdesc:ac0f161a910c6a50db8b29f966f35689d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Head position on the route in metres at each step; -9999 at the step after End_Time and 0 after that.  <br /></td></tr>
-<tr class="memitem:ac1e2b8cc11d12d55cc2f5ca285da17a4" id="r_ac1e2b8cc11d12d55cc2f5ca285da17a4"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac1e2b8cc11d12d55cc2f5ca285da17a4">instant_block_section_occupied</a></td></tr>
+<tr class="memitem:a26fe6568dce33444c7b2cc2de798d9ef" id="r_a26fe6568dce33444c7b2cc2de798d9ef"><td class="memItemLeft">std::vector&lt; std::int32_t &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a26fe6568dce33444c7b2cc2de798d9ef">instant_block_section_occupied</a></td></tr>
 <tr class="memitem:a94e63d2a7170446febb88603f73280c5" id="r_a94e63d2a7170446febb88603f73280c5"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a94e63d2a7170446febb88603f73280c5">instant_train_power_consumption</a></td></tr>
 <tr class="memitem:a834ddc6578d87cceec6fa274a8234687" id="r_a834ddc6578d87cceec6fa274a8234687"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a834ddc6578d87cceec6fa274a8234687">instant_train_tractive_effort</a></td></tr>
 <tr class="memdesc:a834ddc6578d87cceec6fa274a8234687"><td class="mdescLeft">&#160;</td><td class="mdescRight">Branch-applied wheel effort [N], aligned with trajectory samples; -9999 at the step after End_Time and 0 after that.  <br /></td></tr>
@@ -389,9 +388,12 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:af2ed5c8cff997ea3b912665f793e2b37" id="r_af2ed5c8cff997ea3b912665f793e2b37"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#af2ed5c8cff997ea3b912665f793e2b37">Xobmin</a></td></tr>
 <tr class="memdesc:af2ed5c8cff997ea3b912665f793e2b37"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_route.html">Route</a> position in metres of the current braking target.  <br /></td></tr>
 <tr class="memitem:a5f6d750f3c140d4d9041c71963decb8b" id="r_a5f6d750f3c140d4d9041c71963decb8b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a5f6d750f3c140d4d9041c71963decb8b">Vobmin</a></td></tr>
-<tr class="memdesc:a5f6d750f3c140d4d9041c71963decb8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Speed in m/s to reach at the current braking target.  <br /></td></tr>
-<tr class="memitem:ad203984e3c92793ef876da3498049514" id="r_ad203984e3c92793ef876da3498049514"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad203984e3c92793ef876da3498049514">Xob</a></td></tr>
-<tr class="memitem:ae16d047dcd8bffa083be9c5e129a5f43" id="r_ae16d047dcd8bffa083be9c5e129a5f43"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ae16d047dcd8bffa083be9c5e129a5f43">Vob</a></td></tr>
+<tr class="memitem:a7133c0eaf80c255f5d2fb3d7f8a22a7a" id="r_a7133c0eaf80c255f5d2fb3d7f8a22a7a"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a7133c0eaf80c255f5d2fb3d7f8a22a7a">previousXob</a> = 0.0</td></tr>
+<tr class="memdesc:a7133c0eaf80c255f5d2fb3d7f8a22a7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Xobmin that the step before kept when it accelerated, braked or cruised; 0 when it kept none.  <br /></td></tr>
+<tr class="memitem:a844b7051ca228519ca63b23a2a16ea30" id="r_a844b7051ca228519ca63b23a2a16ea30"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a844b7051ca228519ca63b23a2a16ea30">previousVob</a> = 0.0</td></tr>
+<tr class="memitem:adbfd1a8a1df574b2c2cb1fc48d2dd6fb" id="r_adbfd1a8a1df574b2c2cb1fc48d2dd6fb"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#adbfd1a8a1df574b2c2cb1fc48d2dd6fb">currentXob</a> = 0.0</td></tr>
+<tr class="memitem:a612e0112dac36d3cc985a2d796422431" id="r_a612e0112dac36d3cc985a2d796422431"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a612e0112dac36d3cc985a2d796422431">currentVob</a> = 0.0</td></tr>
+<tr class="memdesc:a612e0112dac36d3cc985a2d796422431"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vobmin that this step keeps; 0 until it keeps one.  <br /></td></tr>
 <tr class="memitem:a3c5ca2bb5a1c9e8fef991ceea6b2d5bb" id="r_a3c5ca2bb5a1c9e8fef991ceea6b2d5bb"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a3c5ca2bb5a1c9e8fef991ceea6b2d5bb">Sbrak</a> = std::vector&lt;double&gt;(2000, 0.0)</td></tr>
 <tr class="memdesc:a3c5ca2bb5a1c9e8fef991ceea6b2d5bb"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_route.html">Route</a> positions in metres of the stored braking plan, 2,000 entries.  <br /></td></tr>
 <tr class="memitem:abd68731b52a2b572e50839751edff299" id="r_abd68731b52a2b572e50839751edff299"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#abd68731b52a2b572e50839751edff299">Vbrak</a> = std::vector&lt;double&gt;(2000, 0.0)</td></tr>
@@ -406,7 +408,7 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ac5ae4fe0b11d665cb61159195c3adfa6" id="r_ac5ae4fe0b11d665cb61159195c3adfa6"><td class="memItemLeft"><a class="el" href="class_movement_authority.html">MovementAuthority</a>&#160;</td><td class="memItemRight"><a class="el" href="#ac5ae4fe0b11d665cb61159195c3adfa6">Last_MA_StoppedAt</a></td></tr>
 <tr class="memdesc:ac5ae4fe0b11d665cb61159195c3adfa6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Last movement authority the train has stopped at.  <br /></td></tr>
 <tr class="memitem:aa75d2159d571a9f1feffea68ac93f524" id="r_aa75d2159d571a9f1feffea68ac93f524"><td class="memItemLeft"><a class="el" href="class_movement_authority.html">MovementAuthority</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa75d2159d571a9f1feffea68ac93f524">Predicted_MA_To_DecoupleAt</a></td></tr>
-<tr class="memitem:a0dda948744adbdb34c8f8624cf92d2d8" id="r_a0dda948744adbdb34c8f8624cf92d2d8"><td class="memItemLeft">std::vector&lt; int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a0dda948744adbdb34c8f8624cf92d2d8">Eq</a></td></tr>
+<tr class="memitem:a8a154d1313928bdf3d853772987e5d64" id="r_a8a154d1313928bdf3d853772987e5d64"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a8a154d1313928bdf3d853772987e5d64">stepBranch</a> = 0</td></tr>
 <tr class="memitem:a9d4ff6ca9ae5c587060d734eb8f44b1c" id="r_a9d4ff6ca9ae5c587060d734eb8f44b1c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a9d4ff6ca9ae5c587060d734eb8f44b1c">RunStartTime</a></td></tr>
 <tr class="memdesc:a9d4ff6ca9ae5c587060d734eb8f44b1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Step before the first step with a speed above 0 (Det_Run_Start_Time); 0 until computed.  <br /></td></tr>
 <tr class="memitem:a207882ffae8d66449972414dea9b4112" id="r_a207882ffae8d66449972414dea9b4112"><td class="memItemLeft"><a class="el" href="class_blocking_time_list.html">BlockingTimeList</a>&#160;</td><td class="memItemRight"><a class="el" href="#a207882ffae8d66449972414dea9b4112">BlockTime</a></td></tr>
@@ -430,6 +432,10 @@ Public Attributes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
+<tr class="memitem:a634f58475c0d555b2eac191e2844d5f7" id="r_a634f58475c0d555b2eac191e2844d5f7"><td class="memItemLeft">static constexpr std::int32_t&#160;</td><td class="memItemRight"><a class="el" href="#a634f58475c0d555b2eac191e2844d5f7">kNoBlockSection</a> = -1</td></tr>
+<tr class="memdesc:a634f58475c0d555b2eac191e2844d5f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">instant_block_section_occupied of a step that found no section, whose ID is empty.  <br /></td></tr>
+<tr class="memitem:a9f6274987312d983a8836c48bbae4794" id="r_a9f6274987312d983a8836c48bbae4794"><td class="memItemLeft">static constexpr std::int32_t&#160;</td><td class="memItemRight"><a class="el" href="#a9f6274987312d983a8836c48bbae4794">kOutsideRoute</a> = -2</td></tr>
+<tr class="memdesc:a9f6274987312d983a8836c48bbae4794"><td class="mdescLeft">&#160;</td><td class="mdescRight">instant_block_section_occupied of a step before the train enters or after it has left the route, whose ID is "-".  <br /></td></tr>
 <tr class="memitem:ad3413c2c368aec1a5ee480ba98158ca5" id="r_ad3413c2c368aec1a5ee480ba98158ca5"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a> = <a class="el" href="namespace_runtime_limits.html#ac76e7126b610c9001450a7ee56ccff15">RuntimeLimits::kMaxTimetableStops</a></td></tr>
 <tr class="memdesc:ad3413c2c368aec1a5ee480ba98158ca5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Capacity of the station-indexed arrays below; stations beyond this cap have no timetable slot.  <br /></td></tr>
 </table>
@@ -655,6 +661,24 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="ae5c4a072e6f5c7e1afc3cbedd0d03048" name="ae5c4a072e6f5c7e1afc3cbedd0d03048"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae5c4a072e6f5c7e1afc3cbedd0d03048">&#9670;&#160;</a></span>blockSectionIdAt()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::string &amp; Train::blockSectionIdAt </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>t</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The ID of the section of the head at step t, a step of the run: "-" for kOutsideRoute and empty for kNoBlockSection. The route must still be that of the run that made the step. </p>
+
+</div>
+</div>
 <a id="a86fe06b963d9fe57ec35dae0764265aa" name="a86fe06b963d9fe57ec35dae0764265aa"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a86fe06b963d9fe57ec35dae0764265aa">&#9670;&#160;</a></span>BrakDist_Block()</h2>
 
@@ -877,8 +901,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>One braking step at time_seconds on arc As: follows the stored plan, makes a new one, or brakes with full force. </p>
+<p>One braking step at time_seconds on arc As: follows the stored plan, makes a new one, or brakes with full force. The target is new when Xobmin and Vobmin differ from previousXob and previousVob, the target of step time_seconds - 1. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -967,7 +990,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The index in Sbrak and Vbrak of the next state of the stored braking plan, when the train is exactly at a state of it in step previousInstant with the same target (target m, targetSpeed m/s) and that next step is feasible on arc; -1 otherwise. </p>
+<p>The index in Sbrak and Vbrak of the next state of the stored braking plan, when the train is exactly at a state of it in step previousInstant, the step before, which kept the same target (previousXob and previousVob equal to target m and targetSpeed m/s), and that next step is feasible on arc; -1 otherwise. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1898,7 +1921,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The route position (m) where the train at S (m) and V (m/s) has to start braking for the most restrictive target ahead, or a very large value when there is none. Sets Xobmin and Vobmin to that target; continueCached is true when the stored braking plan goes on. </p>
+<p>The route position (m) where the train at S (m) and V (m/s) has to start braking for the most restrictive target ahead, or a very large value when there is none. Sets Xobmin and Vobmin to that target; continueCached is true when the stored braking plan goes on. PreviousInstant is the step before, whose target previousXob and previousVob hold. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2205,7 +2228,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Finds where the head of the train was at the end of step time_seconds - 1: Bs and its index BsIndex on the route, and As and its index AsIndex in Bs, which keep their values when nothing is found. Sets instant_block_section_occupied[time_seconds]. </p>
+<p>Finds where the head of the train was at the end of step time_seconds - 1: Bs and its index BsIndex on the route, and As and its index AsIndex in Bs, which keep their values when nothing is found. Sets instant_block_section_occupied[time_seconds] to BsIndex when it finds Bs. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2569,11 +2592,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Writes Traj_Train_&lt;trainDescription&gt;.txt to the TEMP folder of the output: for every valid step the time (s), speed (m/s), head and tail position (m), power (kW), braking point (m), energy (kWh) and section. A reversed route writes original coordinates. A character of trainDescription that a file name cannot hold becomes '_' in the name (runOutputFileName). Throws std::runtime_error when the file cannot be written (<a class="el" href="_run_output_file_8h.html">simulation/RunOutputFile.h</a>). </p>
+<p>Writes Traj_Train_&lt;trainDescription&gt;.txt to the TEMP folder of the output: for every valid step the time (s), speed (m/s), head and tail position (m), power (kW), braking point (m), energy (kWh) and section. A reversed route writes original coordinates. The train must keep BX: setTrainVectorSizesFromInput sized it for detailed trajectories. A character of trainDescription that a file name cannot hold becomes '_' in the name (runOutputFileName). Throws std::runtime_error when the file cannot be written (<a class="el" href="_run_output_file_8h.html">simulation/RunOutputFile.h</a>). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a2daf71d16057b5847a8640522272a793_cgraph.svg" width="622" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a2daf71d16057b5847a8640522272a793_cgraph.svg" width="622" height="343"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -2833,8 +2856,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a6d00800a06e2e8d77d3503fcf918b65d" name="a6d00800a06e2e8d77d3503fcf918b65d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6d00800a06e2e8d77d3503fcf918b65d">&#9670;&#160;</a></span>setStepBranch()</h2>
+<a id="a3f33e9849f97c8f075a1075c1c764195" name="a3f33e9849f97c8f075a1075c1c764195"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f33e9849f97c8f075a1075c1c764195">&#9670;&#160;</a></span>setStepBranch()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2845,12 +2868,8 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">void Train::setStepBranch </td>
           <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>time_seconds</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype"><a class="el" href="_rolling_stock_8h.html#a6212850430c9d87a2b2518f5ea118b1c">TrajectoryBranch</a></td>          <td class="paramname"><span class="paramname"><em>branch</em></span></td><td>)</td>
           <td></td>
-          <td class="paramtype"><a class="el" href="_rolling_stock_8h.html#a6212850430c9d87a2b2518f5ea118b1c">TrajectoryBranch</a></td>          <td class="paramname"><span class="paramname"><em>branch</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -2860,12 +2879,12 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>Sets Eq[time_seconds] to the number of branch. </p>
+<p>Sets stepBranch to the number of branch. </p>
 
 </div>
 </div>
-<a id="a1be5fcc56d9f6ff038fb56cb2d50bebc" name="a1be5fcc56d9f6ff038fb56cb2d50bebc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1be5fcc56d9f6ff038fb56cb2d50bebc">&#9670;&#160;</a></span>setTrainVectorSizesFromInput()</h2>
+<a id="ade9aee0e3bbeef722dbdbe52ef8e15dd" name="ade9aee0e3bbeef722dbdbe52ef8e15dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ade9aee0e3bbeef722dbdbe52ef8e15dd">&#9670;&#160;</a></span>setTrainVectorSizesFromInput()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2873,13 +2892,16 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">void Train::setTrainVectorSizesFromInput </td>
           <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>vec_size</em></span></td><td>)</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>vec_size</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>detailedTrajectory</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Sizes every per-step vector to vec_size samples of 0 and sets End_Time to the last step. </p>
+<p>Sizes every per-step vector to vec_size samples of 0 (kNoBlockSection for instant_block_section_occupied), sets the kept targets and stepBranch to 0 and sets End_Time to the last step. BX is sized only with detailedTrajectory, for a run that exports detailed trajectories, and is empty otherwise. </p>
 
 </div>
 </div>
@@ -3222,7 +3244,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Computes step time_seconds of the train from step time_seconds - 1; Eq[time_seconds] labels the branch taken. signalCode1, signalCode2 and signalCode3 are not read. </p>
+<p>Computes step time_seconds of the train from step time_seconds - 1; stepBranch labels the branch taken. signalCode1, signalCode2 and signalCode3 are not read. It first moves the target that the call before kept (currentXob and currentVob) to previousXob and previousVob, so each call is for the step after that of the call before. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -3489,7 +3511,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p><a class="el" href="class_route.html">Route</a> position in metres, at each step, where braking for the current target begins. </p>
+<p><a class="el" href="class_route.html">Route</a> position in metres, at each step, where braking for the current target begins. Only PrintTrajectory reads it, so it is kept only for a run that exports detailed trajectories and is empty otherwise. </p>
 
 </div>
 </div>
@@ -3695,6 +3717,37 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a612e0112dac36d3cc985a2d796422431" name="a612e0112dac36d3cc985a2d796422431"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a612e0112dac36d3cc985a2d796422431">&#9670;&#160;</a></span>currentVob</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double Train::currentVob = 0.0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Vobmin that this step keeps; 0 until it keeps one. </p>
+
+</div>
+</div>
+<a id="adbfd1a8a1df574b2c2cb1fc48d2dd6fb" name="adbfd1a8a1df574b2c2cb1fc48d2dd6fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbfd1a8a1df574b2c2cb1fc48d2dd6fb">&#9670;&#160;</a></span>currentXob</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double Train::currentXob = 0.0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Xobmin that this step keeps when it accelerates, brakes or cruises; 0 until it does. Each step starts by moving currentXob and currentVob to previousXob and previousVob. </p>
+
+</div>
+</div>
 <a id="aa6124e479707b630cf57f85cf43a85e0" name="aa6124e479707b630cf57f85cf43a85e0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa6124e479707b630cf57f85cf43a85e0">&#9670;&#160;</a></span>departure_time</h2>
 
@@ -3831,21 +3884,6 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>Station ID (runtime station name) of the first stop whose planned departure the entrance delay shifted; empty when none was applied </p>
-
-</div>
-</div>
-<a id="a0dda948744adbdb34c8f8624cf92d2d8" name="a0dda948744adbdb34c8f8624cf92d2d8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0dda948744adbdb34c8f8624cf92d2d8">&#9670;&#160;</a></span>Eq</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt;int&gt; Train::Eq</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>The branch of the step that produced each sample, as the number of its <a class="el" href="_rolling_stock_8h.html#a6212850430c9d87a2b2518f5ea118b1c">TrajectoryBranch</a>; 0 (<a class="el" href="_rolling_stock_8h.html#a6212850430c9d87a2b2518f5ea118b1ca6adf97f83acf6453d4a6a4b1070f3754" title="No branch: a step before the train enters, and from End_Time + 2 on.">TrajectoryBranch::None</a>) on other steps before entry and from End_Time + 2 on. </p>
 
 </div>
 </div>
@@ -3990,18 +4028,18 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ac1e2b8cc11d12d55cc2f5ca285da17a4" name="ac1e2b8cc11d12d55cc2f5ca285da17a4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac1e2b8cc11d12d55cc2f5ca285da17a4">&#9670;&#160;</a></span>instant_block_section_occupied</h2>
+<a id="a26fe6568dce33444c7b2cc2de798d9ef" name="a26fe6568dce33444c7b2cc2de798d9ef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a26fe6568dce33444c7b2cc2de798d9ef">&#9670;&#160;</a></span>instant_block_section_occupied</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt;std::string&gt; Train::instant_block_section_occupied</td>
+          <td class="memname">std::vector&lt;std::int32_t&gt; Train::instant_block_section_occupied</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>ID of the section of the head at each step; "-" before the train enters and from End_Time + 2 on; empty at End_Time + 1 and on a step held by a breakdown. </p>
+<p><a class="el" href="class_section.html">Section</a> of the head at each step, as its index in the sections of the route indexOfRoute; kOutsideRoute before the train enters and from End_Time + 2 on; kNoBlockSection at End_Time + 1 and on a step held by a breakdown. blockSectionIdAt gives its ID. </p>
 
 </div>
 </div>
@@ -4196,6 +4234,54 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Capacity of the station-indexed arrays below; stations beyond this cap have no timetable slot. </p>
+
+</div>
+</div>
+<a id="a634f58475c0d555b2eac191e2844d5f7" name="a634f58475c0d555b2eac191e2844d5f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a634f58475c0d555b2eac191e2844d5f7">&#9670;&#160;</a></span>kNoBlockSection</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::int32_t Train::kNoBlockSection = -1</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>instant_block_section_occupied of a step that found no section, whose ID is empty. </p>
+
+</div>
+</div>
+<a id="a9f6274987312d983a8836c48bbae4794" name="a9f6274987312d983a8836c48bbae4794"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9f6274987312d983a8836c48bbae4794">&#9670;&#160;</a></span>kOutsideRoute</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::int32_t Train::kOutsideRoute = -2</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>instant_block_section_occupied of a step before the train enters or after it has left the route, whose ID is "-". </p>
 
 </div>
 </div>
@@ -4476,6 +4562,37 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>Authority where the train is predicted to decouple from the train ahead. </p>
+
+</div>
+</div>
+<a id="a844b7051ca228519ca63b23a2a16ea30" name="a844b7051ca228519ca63b23a2a16ea30"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a844b7051ca228519ca63b23a2a16ea30">&#9670;&#160;</a></span>previousVob</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double Train::previousVob = 0.0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Vobmin that the step before kept; 0 when it kept none. </p>
+
+</div>
+</div>
+<a id="a7133c0eaf80c255f5d2fb3d7f8a22a7a" name="a7133c0eaf80c255f5d2fb3d7f8a22a7a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7133c0eaf80c255f5d2fb3d7f8a22a7a">&#9670;&#160;</a></span>previousXob</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double Train::previousXob = 0.0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Xobmin that the step before kept when it accelerated, braked or cruised; 0 when it kept none. </p>
 
 </div>
 </div>
@@ -4791,6 +4908,21 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a8a154d1313928bdf3d853772987e5d64" name="a8a154d1313928bdf3d853772987e5d64"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a154d1313928bdf3d853772987e5d64">&#9670;&#160;</a></span>stepBranch</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int Train::stepBranch = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The branch that the current step took, as the number of its <a class="el" href="_rolling_stock_8h.html#a6212850430c9d87a2b2518f5ea118b1c">TrajectoryBranch</a>; 0 (<a class="el" href="_rolling_stock_8h.html#a6212850430c9d87a2b2518f5ea118b1ca6adf97f83acf6453d4a6a4b1070f3754" title="No branch: a step before the train enters, and from End_Time + 2 on.">TrajectoryBranch::None</a>) until it takes one. Each step starts at 0. </p>
+
+</div>
+</div>
 <a id="a9421f5a0678320b9e7098a1c3239359c" name="a9421f5a0678320b9e7098a1c3239359c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9421f5a0678320b9e7098a1c3239359c">&#9670;&#160;</a></span>stepCache</h2>
 
@@ -5076,21 +5208,6 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ae16d047dcd8bffa083be9c5e129a5f43" name="ae16d047dcd8bffa083be9c5e129a5f43"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae16d047dcd8bffa083be9c5e129a5f43">&#9670;&#160;</a></span>Vob</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt;double&gt; Train::Vob</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Vobmin at each step. </p>
-
-</div>
-</div>
 <a id="a5f6d750f3c140d4d9041c71963decb8b" name="a5f6d750f3c140d4d9041c71963decb8b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5f6d750f3c140d4d9041c71963decb8b">&#9670;&#160;</a></span>Vobmin</h2>
 
@@ -5102,7 +5219,6 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
 <p>Speed in m/s to reach at the current braking target. </p>
 
 </div>
@@ -5119,21 +5235,6 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>Upper speed bound of each band, which the band does not include. </p>
-
-</div>
-</div>
-<a id="ad203984e3c92793ef876da3498049514" name="ad203984e3c92793ef876da3498049514"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad203984e3c92793ef876da3498049514">&#9670;&#160;</a></span>Xob</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt;double&gt; Train::Xob</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Xobmin at each step. </p>
 
 </div>
 </div>

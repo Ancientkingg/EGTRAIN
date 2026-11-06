@@ -1,5 +1,10 @@
 var NAVTREEINDEX22 =
 {
+"struct_capacity_pair_row.html#a2d54870c625e1ed983f72070b54d4a58":[2,0,42,9],
+"struct_capacity_pair_row.html#a2d8f6035ed6005d0a1c517294a345fda":[2,0,42,5],
+"struct_capacity_pair_row.html#a729ab0b3cb2352f014c74ee86c62629b":[2,0,42,3],
+"struct_capacity_pair_row.html#a8e2698240030b1f2f8036f2d0dad047c":[2,0,42,2],
+"struct_capacity_pair_row.html#a94e27693f8fe65ef077c57723e3c644c":[2,0,42,0],
 "struct_capacity_pair_row.html#a95711ae34c58a1578f6854f6a3267ad6":[2,0,42,8],
 "struct_capacity_pair_row.html#aa2dd6cad91e321f347323c456d2aaefa":[2,0,42,4],
 "struct_capacity_pair_row.html#aeb3254007c59432c5adcea78c54ea1f0":[2,0,42,7],
@@ -244,10 +249,5 @@ var NAVTREEINDEX22 =
 "struct_gui_passenger_state.html#af7224fa2b2a8f3cb98fedb304d520b08":[2,0,95,2],
 "struct_gui_platform_state.html":[2,0,96],
 "struct_gui_platform_state.html#a3089f0bef4d91a80eadb62f7a8167a6d":[2,0,96,2],
-"struct_gui_platform_state.html#a70333a52c9b1f35749b82d5b7081a585":[2,0,96,1],
-"struct_gui_platform_state.html#aa3a4f93004bf9dbaf0800aa72fdeb919":[2,0,96,3],
-"struct_gui_platform_state.html#ae8537a3c580e02c7a1a29972cd14c15d":[2,0,96,0],
-"struct_gui_section_state.html":[2,0,98],
-"struct_gui_section_state.html#abe1770c07637dbaca47ff807aed75f57":[2,0,98,0],
-"struct_gui_section_state.html#ac7d180ca2d3abbf923cbe171f5d25415":[2,0,98,1]
+"struct_gui_platform_state.html#a70333a52c9b1f35749b82d5b7081a585":[2,0,96,1]
 };

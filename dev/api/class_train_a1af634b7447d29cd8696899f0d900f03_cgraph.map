@@ -1,5 +1,5 @@
 <map id="Train::brakingStep" name="Train::brakingStep">
-<area shape="rect" id="Node000001" title="One braking step at time_seconds on arc As: follows the stored plan, makes a new one,..." alt="" coords="5,419,144,447"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,419,144,447"/>
 <area shape="rect" id="Node000002" href="$class_train.html#a384f38f04a720e0a4f01338d6465ac84" title=" " alt="" coords="432,495,654,523"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,442,440,490,437,494,144,447"/>
 <area shape="rect" id="Node000004" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title=" " alt="" coords="971,388,1098,433"/>
@@ -10,7 +10,7 @@
 <area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="76,418,88,373,111,310,144,241,165,208,190,178,209,161,234,148,231,152,212,166,194,182,169,211,148,244,115,312,94,375,82,419"/>
 <area shape="rect" id="Node000015" href="$class_train.html#a9ed1da2ac786a644ff5e8fd001c8d4e1" title=" " alt="" coords="207,191,367,219"/>
 <area shape="poly" id="edge17_Node000001_Node000015" title=" " alt="" coords="84,418,128,358,190,286,257,227,254,231,194,290,132,362,88,420"/>
-<area shape="rect" id="Node000016" href="$class_train.html#a6d00800a06e2e8d77d3503fcf918b65d" title="Sets Eq[time_seconds] to the number of branch." alt="" coords="466,191,620,219"/>
+<area shape="rect" id="Node000016" href="$class_train.html#a3f33e9849f97c8f075a1075c1c764195" title="Sets stepBranch to the number of branch." alt="" coords="466,191,620,219"/>
 <area shape="poly" id="edge43_Node000001_Node000016" title=" " alt="" coords="96,417,233,333,329,281,429,235,469,222,465,226,431,240,331,286,236,337,100,421"/>
 <area shape="rect" id="Node000017" href="$class_train.html#a632ba10791abd58a3febb922e8d60ae6" title=" " alt="" coords="218,394,356,422"/>
 <area shape="poly" id="edge20_Node000001_Node000017" title=" " alt="" coords="142,423,204,416,200,420,145,427"/>

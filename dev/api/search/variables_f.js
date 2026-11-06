@@ -72,12 +72,14 @@ var searchData=
   ['presentationscale_69',['presentationScale',['../struct_track_preview_result.html#a5c148ba2a204ee25d337c03a6671afc1',1,'TrackPreviewResult']]],
   ['previewbounds_70',['previewBounds',['../struct_network_presenter_1_1_preview_drawing.html#a5122c742d852d9f2130b7e73d8bb2993',1,'NetworkPresenter::PreviewDrawing']]],
   ['previewsignals_71',['previewSignals',['../struct_track_preview_result.html#a64323e4d70c108d4a81ca459d7aea8b5',1,'TrackPreviewResult']]],
-  ['privacypreview_72',['privacyPreview',['../struct_main_window_test_hooks.html#a030fe1f7bf4a928721bfe463109b186a',1,'MainWindowTestHooks']]],
-  ['problem_73',['problem',['../struct_scene_stop_insertion_window.html#ab6010d67e4c6c18d8bff94ac12e5122b',1,'SceneStopInsertionWindow']]],
-  ['profilereferencetime_74',['profileReferenceTime',['../struct_capacity_analysis_train.html#ab7464cfcf6f80dffad75600ca49e9b06',1,'CapacityAnalysisTrain']]],
-  ['projections_75',['projections',['../struct_route_projections.html#a82152106c10125d16d1fa1cd98293072',1,'RouteProjections']]],
-  ['protectedendblock_76',['protectedEndBlock',['../struct_scene_single_track_restriction.html#a22687bf6aeaed7afd82a2db7e5be9f9d',1,'SceneSingleTrackRestriction']]],
-  ['protectedsection_77',['protectedSection',['../struct_scene_signal.html#a9de0b28c4f2181fcf83b748d5502b44e',1,'SceneSignal']]],
-  ['protectedstartblock_78',['protectedStartBlock',['../struct_scene_single_track_restriction.html#a25b3874fb60873c635999428802c4b89',1,'SceneSingleTrackRestriction']]],
-  ['provenance_79',['provenance',['../struct_completed_run_data.html#ad5968077c4da30d0036692ac5a1c017b',1,'CompletedRunData::provenance'],['../struct_delay_run_snapshot.html#a76f667297695ee282c4a9f6e71aa912d',1,'DelayRunSnapshot::provenance']]]
+  ['previousvob_72',['previousVob',['../class_train.html#a844b7051ca228519ca63b23a2a16ea30',1,'Train']]],
+  ['previousxob_73',['previousXob',['../class_train.html#a7133c0eaf80c255f5d2fb3d7f8a22a7a',1,'Train']]],
+  ['privacypreview_74',['privacyPreview',['../struct_main_window_test_hooks.html#a030fe1f7bf4a928721bfe463109b186a',1,'MainWindowTestHooks']]],
+  ['problem_75',['problem',['../struct_scene_stop_insertion_window.html#ab6010d67e4c6c18d8bff94ac12e5122b',1,'SceneStopInsertionWindow']]],
+  ['profilereferencetime_76',['profileReferenceTime',['../struct_capacity_analysis_train.html#ab7464cfcf6f80dffad75600ca49e9b06',1,'CapacityAnalysisTrain']]],
+  ['projections_77',['projections',['../struct_route_projections.html#a82152106c10125d16d1fa1cd98293072',1,'RouteProjections']]],
+  ['protectedendblock_78',['protectedEndBlock',['../struct_scene_single_track_restriction.html#a22687bf6aeaed7afd82a2db7e5be9f9d',1,'SceneSingleTrackRestriction']]],
+  ['protectedsection_79',['protectedSection',['../struct_scene_signal.html#a9de0b28c4f2181fcf83b748d5502b44e',1,'SceneSignal']]],
+  ['protectedstartblock_80',['protectedStartBlock',['../struct_scene_single_track_restriction.html#a25b3874fb60873c635999428802c4b89',1,'SceneSingleTrackRestriction']]],
+  ['provenance_81',['provenance',['../struct_completed_run_data.html#ad5968077c4da30d0036692ac5a1c017b',1,'CompletedRunData::provenance'],['../struct_delay_run_snapshot.html#a76f667297695ee282c4a9f6e71aa912d',1,'DelayRunSnapshot::provenance']]]
 ];

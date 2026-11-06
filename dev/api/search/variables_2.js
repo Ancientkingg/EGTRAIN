@@ -108,11 +108,13 @@ var searchData=
   ['currentservicestopplatform_105',['CurrentServiceStopPlatform',['../class_train.html#a444331fe0663a0bb2f747c3ecbc1dbff',1,'Train']]],
   ['currentservicestopplatformnumber_106',['currentServiceStopPlatformNumber',['../class_train.html#a980aaac0bfc49967610e204823156d2d',1,'Train']]],
   ['currentstatus_107',['CurrentStatus',['../class_passenger.html#a1619e21c1d94aa6f3645c0f788e95edd',1,'Passenger']]],
-  ['curvature_108',['curvature',['../class_arc.html#aee2dfaf5d286bc771fbaf167865bf933',1,'Arc']]],
-  ['curvatureradiusm_109',['curvatureRadiusM',['../struct_scene_arc.html#a41083882cd3d8f6f34fd735a2c19c293',1,'SceneArc']]],
-  ['cutoff_110',['cutoff',['../struct_train_step_cache_1_1_braking_query.html#ab758ae96686b9195dc122dfa15b361ec',1,'TrainStepCache::BrakingQuery']]],
-  ['cycleendidentity_111',['cycleEndIdentity',['../struct_area_capacity_input.html#aa7c06c8ec8bca026bbf6ce735b2ae336',1,'AreaCapacityInput::cycleEndIdentity'],['../struct_capacity_analysis_result.html#ab2bb1531833a9af99bbb185f58d04cca',1,'CapacityAnalysisResult::cycleEndIdentity']]],
-  ['cycleendoccurrenceid_112',['cycleEndOccurrenceId',['../struct_area_capacity_scope.html#a1495549f4a43d548ae815bde4c87e636',1,'AreaCapacityScope::cycleEndOccurrenceId'],['../struct_capacity_analysis_scope.html#ab9f9b770bf1b0a49e5785b511b520e3e',1,'CapacityAnalysisScope::cycleEndOccurrenceId']]],
-  ['cyclepercentage_113',['cyclePercentage',['../struct_capacity_analysis_result.html#a958b3aedd20b9a9fab709c0dc8b744c1',1,'CapacityAnalysisResult']]],
-  ['cycletime_114',['cycleTime',['../struct_capacity_analysis_result.html#aee07229ba2471103406f4c2e87c8882a',1,'CapacityAnalysisResult']]]
+  ['currentvob_108',['currentVob',['../class_train.html#a612e0112dac36d3cc985a2d796422431',1,'Train']]],
+  ['currentxob_109',['currentXob',['../class_train.html#adbfd1a8a1df574b2c2cb1fc48d2dd6fb',1,'Train']]],
+  ['curvature_110',['curvature',['../class_arc.html#aee2dfaf5d286bc771fbaf167865bf933',1,'Arc']]],
+  ['curvatureradiusm_111',['curvatureRadiusM',['../struct_scene_arc.html#a41083882cd3d8f6f34fd735a2c19c293',1,'SceneArc']]],
+  ['cutoff_112',['cutoff',['../struct_train_step_cache_1_1_braking_query.html#ab758ae96686b9195dc122dfa15b361ec',1,'TrainStepCache::BrakingQuery']]],
+  ['cycleendidentity_113',['cycleEndIdentity',['../struct_area_capacity_input.html#aa7c06c8ec8bca026bbf6ce735b2ae336',1,'AreaCapacityInput::cycleEndIdentity'],['../struct_capacity_analysis_result.html#ab2bb1531833a9af99bbb185f58d04cca',1,'CapacityAnalysisResult::cycleEndIdentity']]],
+  ['cycleendoccurrenceid_114',['cycleEndOccurrenceId',['../struct_area_capacity_scope.html#a1495549f4a43d548ae815bde4c87e636',1,'AreaCapacityScope::cycleEndOccurrenceId'],['../struct_capacity_analysis_scope.html#ab9f9b770bf1b0a49e5785b511b520e3e',1,'CapacityAnalysisScope::cycleEndOccurrenceId']]],
+  ['cyclepercentage_115',['cyclePercentage',['../struct_capacity_analysis_result.html#a958b3aedd20b9a9fab709c0dc8b744c1',1,'CapacityAnalysisResult']]],
+  ['cycletime_116',['cycleTime',['../struct_capacity_analysis_result.html#aee07229ba2471103406f4c2e87c8882a',1,'CapacityAnalysisResult']]]
 ];

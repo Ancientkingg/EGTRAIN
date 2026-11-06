@@ -1,6 +1,6 @@
 <map id="Train::fullBrakingStep" name="Train::fullBrakingStep">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,59,166,86"/>
-<area shape="rect" id="Node000002" href="$class_train.html#a6d00800a06e2e8d77d3503fcf918b65d" title="Sets Eq[time_seconds] to the number of branch." alt="" coords="214,28,368,56"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a3f33e9849f97c8f075a1075c1c764195" title="Sets stepBranch to the number of branch." alt="" coords="214,28,368,56"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,58,200,54,196,57,167,63"/>
 <area shape="rect" id="Node000003" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title=" " alt="" coords="227,80,354,124"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="165,81,214,90,209,92,166,87"/>

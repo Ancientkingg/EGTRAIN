@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_train.html#a6d00800a06e2e8d77d3503fcf918b65d" target="_top" xlink:title="Sets Eq[time_seconds] to the number of branch.">
+<g id="a_Node000002"><a xlink:href="class_train.html#a3f33e9849f97c8f075a1075c1c764195" target="_top" xlink:title="Sets stepBranch to the number of branch.">
 <polygon fill="white" stroke="#666666" points="272,-132.75 156.25,-132.75 156.25,-112 272,-112 272,-132.75"/>
 <text xml:space="preserve" text-anchor="middle" x="214.12" y="-119.25" font-family="Helvetica,sans-Serif" font-size="10.00">Train::setStepBranch</text>
 </a>

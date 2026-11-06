@@ -117,6 +117,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_rolling_stock
 <code>#include &quot;<a class="el" href="_runtime_limits_8h_source.html">scene/RuntimeLimits.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_log_8h_source.html">util/Log.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_trajectory_util_8h_source.html">util/TrajectoryUtil.h</a>&quot;</code><br />
+<code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;cstdio&gt;</code><br />
 <code>#include &lt;cstdlib&gt;</code><br />
 <code>#include &lt;deque&gt;</code><br />
@@ -128,7 +129,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_rolling_stock
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for RollingStock.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h__incl.svg" width="2923" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h__incl.svg" width="2934" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
@@ -279,7 +280,7 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>The branch of <a class="el" href="class_train.html#a09e55bf615f21184e4a57367932d4a61">Train::trajectoryComputationIncludingMovingBlock</a>, or of the braking step that it calls, that produced the sample of a step. <a class="el" href="class_train.html#a0dda948744adbdb34c8f8624cf92d2d8">Train::Eq</a> holds the number of each value, and the numbers do not change. </p>
+<p>The branch of <a class="el" href="class_train.html#a09e55bf615f21184e4a57367932d4a61">Train::trajectoryComputationIncludingMovingBlock</a>, or of the braking step that it calls, that produced the sample of a step. <a class="el" href="class_train.html#a8a154d1313928bdf3d853772987e5d64">Train::stepBranch</a> holds the number of the value of the current step, and the numbers do not change. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1ca6adf97f83acf6453d4a6a4b1070f3754" name="a6212850430c9d87a2b2518f5ea118b1ca6adf97f83acf6453d4a6a4b1070f3754"></a>None&#160;</td><td class="fielddoc"><p>No branch: a step before the train enters, and from End_Time + 2 on. </p>
 </td></tr>

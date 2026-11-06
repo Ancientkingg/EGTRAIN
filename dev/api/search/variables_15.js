@@ -16,7 +16,6 @@ var searchData=
   ['visits_13',['visits',['../struct_scene_route_traversal.html#ad7a0bd02b85a15b2ca7a0d12eb184cd4',1,'SceneRouteTraversal::visits'],['../struct_scene_stop_insertion_window.html#a4eafb4930a0ebe96cddff71b3c4028c6',1,'SceneStopInsertionWindow::visits']]],
   ['visualizationcolor_14',['visualizationColor',['../struct_scene_service.html#a1d2e458d673714763f9c0ff67b55d9d1',1,'SceneService']]],
   ['vlb_15',['Vlb',['../class_train.html#a884a4ac08f13a4acfd559e91f2b8ba5b',1,'Train']]],
-  ['vob_16',['Vob',['../class_train.html#ae16d047dcd8bffa083be9c5e129a5f43',1,'Train']]],
-  ['vobmin_17',['Vobmin',['../class_train.html#a5f6d750f3c140d4d9041c71963decb8b',1,'Train']]],
-  ['vub_18',['Vub',['../class_train.html#a2291f6dd74312f8ad46dc1e113118648',1,'Train']]]
+  ['vobmin_16',['Vobmin',['../class_train.html#a5f6d750f3c140d4d9041c71963decb8b',1,'Train']]],
+  ['vub_17',['Vub',['../class_train.html#a2291f6dd74312f8ad46dc1e113118648',1,'Train']]]
 ];

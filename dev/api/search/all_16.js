@@ -53,7 +53,6 @@ var searchData=
   ['visualpolish_2ecpp_50',['VisualPolish.cpp',['../_visual_polish_8cpp.html',1,'']]],
   ['visualpolish_2eh_51',['VisualPolish.h',['../_visual_polish_8h.html',1,'']]],
   ['vlb_52',['Vlb',['../class_train.html#a884a4ac08f13a4acfd559e91f2b8ba5b',1,'Train']]],
-  ['vob_53',['Vob',['../class_train.html#ae16d047dcd8bffa083be9c5e129a5f43',1,'Train']]],
-  ['vobmin_54',['Vobmin',['../class_train.html#a5f6d750f3c140d4d9041c71963decb8b',1,'Train']]],
-  ['vub_55',['Vub',['../class_train.html#a2291f6dd74312f8ad46dc1e113118648',1,'Train']]]
+  ['vobmin_53',['Vobmin',['../class_train.html#a5f6d750f3c140d4d9041c71963decb8b',1,'Train']]],
+  ['vub_54',['Vub',['../class_train.html#a2291f6dd74312f8ad46dc1e113118648',1,'Train']]]
 ];

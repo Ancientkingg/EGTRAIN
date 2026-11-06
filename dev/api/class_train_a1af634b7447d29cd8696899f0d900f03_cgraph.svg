@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title="One braking step at time_seconds on arc As: follows the stored plan, makes a new one,...">
+<g id="a_Node000001"><a xlink:title=" ">
 <polygon fill="#999999" stroke="#666666" points="103.75,-324.74 0,-324.74 0,-303.99 103.75,-303.99 103.75,-324.74"/>
 <text xml:space="preserve" text-anchor="middle" x="51.88" y="-311.24" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingStep</text>
 </a>
@@ -111,7 +111,7 @@
 <!-- Node16 -->
 <g id="Node000016" class="node">
 <title>Node16</title>
-<g id="a_Node000016"><a xlink:href="class_train.html#a6d00800a06e2e8d77d3503fcf918b65d" target="_top" xlink:title="Sets Eq[time_seconds] to the number of branch.">
+<g id="a_Node000016"><a xlink:href="class_train.html#a3f33e9849f97c8f075a1075c1c764195" target="_top" xlink:title="Sets stepBranch to the number of branch.">
 <polygon fill="white" stroke="#666666" points="461.25,-495.74 345.5,-495.74 345.5,-474.99 461.25,-474.99 461.25,-495.74"/>
 <text xml:space="preserve" text-anchor="middle" x="403.38" y="-482.24" font-family="Helvetica,sans-Serif" font-size="10.00">Train::setStepBranch</text>
 </a>

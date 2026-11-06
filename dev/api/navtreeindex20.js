@@ -1,5 +1,10 @@
 var NAVTREEINDEX20 =
 {
+"globals_q.html":[3,1,0,17],
+"globals_r.html":[3,1,0,18],
+"globals_s.html":[3,1,0,19],
+"globals_t.html":[3,1,0,20],
+"globals_type.html":[3,1,3],
 "globals_u.html":[3,1,0,21],
 "globals_v.html":[3,1,0,22],
 "globals_vars.html":[3,1,2],
@@ -244,10 +249,5 @@ var NAVTREEINDEX20 =
 "namespacetelemetry__smoke.html#a18f65fdfc1ed13a429b109490b72224f":[1,0,15,4],
 "namespacetelemetry__smoke.html#a367da95c2d49956edd80cf0cc13b7734":[1,0,15,6],
 "namespacetelemetry__smoke.html#a3c1041a79e9cab25bed16e004be72ab3":[1,0,15,2],
-"namespacetelemetry__smoke.html#a85275817c611471f3d0e7a436fe7abcf":[1,0,15,1],
-"namespacetelemetry__smoke.html#a88e3fb2ed40440e4fec7a11c3075ab6a":[1,0,15,3],
-"namespacetelemetry__smoke.html#afa73675d5a5c3e79b63eddab4ab0bc59":[1,0,15,5],
-"namespaceupdate__prompt.html":[1,0,18],
-"namespaceupdate__prompt.html#a053138b81be5c78b193ab21cd54592c5":[1,0,18,1],
-"namespaceupdate__prompt.html#a82c1c5be32beff8f5f711f66ff1f9334":[1,0,18,0]
+"namespacetelemetry__smoke.html#a85275817c611471f3d0e7a436fe7abcf":[1,0,15,1]
 };

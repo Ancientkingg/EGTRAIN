@@ -1,5 +1,10 @@
 var NAVTREEINDEX18 =
 {
+"class_train_unit_panel.html#ad96a96db63e9722469e93ebaecd19f5b":[2,0,358,31],
+"class_train_unit_panel.html#adccbd5933efd9680fed732f1ac2f4f24":[2,0,358,10],
+"class_train_unit_panel.html#adf0ef5738595e9fc20e9e0255cef59c2":[2,0,358,32],
+"class_train_unit_panel.html#ae1ea8c0456637b3a783d67067069c2e3":[2,0,358,35],
+"class_train_unit_panel.html#ae7baaf565f9016ae91df5441cb62950b":[2,0,358,38],
 "class_train_unit_panel.html#aefd255479a3f3113473f1be601158615":[2,0,358,12],
 "class_train_unit_panel.html#af2652ae180796207e2e8ea6ca0310d8c":[2,0,358,28],
 "class_train_unit_panel.html#af496c8a9dc4ad04a749a5cf977622ba3":[2,0,358,37],
@@ -244,10 +249,5 @@ var NAVTREEINDEX18 =
 "classtelemetry_1_1_telemetry_sender.html#ab8f226e7d0eb5f5ee61783a482f7faba":[2,0,3,11,10],
 "classtelemetry_1_1_telemetry_sender.html#acb1b449e3a4de6b4c11ef128f35e9beb":[1,0,14,11,11],
 "classtelemetry_1_1_telemetry_sender.html#acb1b449e3a4de6b4c11ef128f35e9beb":[2,0,3,11,11],
-"classtelemetry_1_1_telemetry_sender.html#ad14231c3f113cab1b3cf965471a6dda3":[1,0,14,11,6],
-"classtelemetry_1_1_telemetry_sender.html#ad14231c3f113cab1b3cf965471a6dda3":[2,0,3,11,6],
-"classtelemetry_1_1_telemetry_sender.html#ad6e408d86dd8adedca19e37864ea2dca":[1,0,14,11,12],
-"classtelemetry_1_1_telemetry_sender.html#ad6e408d86dd8adedca19e37864ea2dca":[2,0,3,11,12],
-"classtelemetry_1_1_telemetry_sender.html#ad8e54185e46801321ca2d7c658372801":[1,0,14,11,8],
-"classtelemetry_1_1_telemetry_sender.html#ad8e54185e46801321ca2d7c658372801":[2,0,3,11,8]
+"classtelemetry_1_1_telemetry_sender.html#ad14231c3f113cab1b3cf965471a6dda3":[1,0,14,11,6]
 };

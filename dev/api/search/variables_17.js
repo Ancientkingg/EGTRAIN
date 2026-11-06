@@ -9,8 +9,7 @@ var searchData=
   ['xendswitch_6',['XEndSwitch',['../class_section.html#a9afe21947753aa2af864cffb4cb5d155',1,'Section']]],
   ['xfirstnode_7',['xFirstNode',['../class_connections.html#ac0d0d092939d41d6d0c5c7518a17b858',1,'Connections']]],
   ['xkm_8',['xKm',['../struct_scene_node.html#adba21abcc2cb019bca15ee43896e5f19',1,'SceneNode']]],
-  ['xob_9',['Xob',['../class_train.html#ad203984e3c92793ef876da3498049514',1,'Train']]],
-  ['xobmin_10',['Xobmin',['../class_train.html#af2ed5c8cff997ea3b912665f793e2b37',1,'Train']]],
-  ['xsecondnode_11',['xSecondNode',['../class_connections.html#a7130f512aa69623fffa17940ed8cc2bd',1,'Connections']]],
-  ['xstartswitch_12',['XStartSwitch',['../class_section.html#a0d50c3f4542ad182e7241975ae0f058d',1,'Section']]]
+  ['xobmin_9',['Xobmin',['../class_train.html#af2ed5c8cff997ea3b912665f793e2b37',1,'Train']]],
+  ['xsecondnode_10',['xSecondNode',['../class_connections.html#a7130f512aa69623fffa17940ed8cc2bd',1,'Connections']]],
+  ['xstartswitch_11',['XStartSwitch',['../class_section.html#a0d50c3f4542ad182e7241975ae0f058d',1,'Section']]]
 ];
