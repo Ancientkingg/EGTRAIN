@@ -570,8 +570,11 @@ void generateConnectBlock(SimulationRun& run, const Section& BS1, const Section&
 			Connection.length = N2.X - N1.X;
 			Connection.ID = N2.X + N1.X;
 		} else { // else if the Node N1 is the first Node of the Block Section BS1
-			Connection.gradient = BS1.arcs_in_signalling_block_section[0].gradient;
-			Connection.curvature = BS1.arcs_in_signalling_block_section[0].curvature;
+			// A section without arcs leaves the gradient and curvature of a default arc.
+			if (!BS1.arcs_in_signalling_block_section.empty()) {
+				Connection.gradient = BS1.arcs_in_signalling_block_section[0].gradient;
+				Connection.curvature = BS1.arcs_in_signalling_block_section[0].curvature;
+			}
 			Connection.speedLimit = speed_lim_on_switch_arc;
 			Connection.length = N2.X - N1.X;
 			Connection.ID = N2.X + N1.X;
