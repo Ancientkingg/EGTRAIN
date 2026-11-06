@@ -59,6 +59,15 @@ public:
 	void refreshTable(bool resetSelection = false);
 	/// Takes the selected row as the selection, tells selectionChanged, and shows the controls that depend on it.
 	void updateSelection();
+	/// Selects the row of the entity that an item of the track preview stands for and scrolls the table to it, choosing its
+	/// kind in the combo first. `kind` and `id` are the kind and the id of the item (PreviewGraphics::Kind and Id), and
+	/// `platform` is the platform of a station node (PreviewGraphics::PlatformId). A node, a track, an arc, a connection and
+	/// a station are rows of their own kind. A station node is the row of its platform under Platforms, or its row under
+	/// Nodes when it has no platform. A signal head names a section, and is the row of the block of that section under
+	/// Blocks, whose track the filter then shows. The cells that are being edited are taken first (commitPendingEditors()).
+	/// selectionChanged is told once, or not at all when the row was selected already. Returns false and changes nothing
+	/// while the scene cannot be edited, and for an item of another kind or whose entity the scene does not have.
+	bool selectCanvasItem(const QString& kind, const QString& id, const QString& platform = QString());
 	/// Lists the tracks that blocks can be filtered on again and keeps the chosen track where it still exists.
 	void refreshBlockTrackFilter();
 

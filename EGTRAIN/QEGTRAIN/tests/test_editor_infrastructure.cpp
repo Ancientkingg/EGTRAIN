@@ -4,6 +4,8 @@
 #include "editors/infrastructure/StationFacets.h"
 #include "editors/infrastructure/TopologyFacets.h"
 
+#include "graphics/NetworkPresenter.h"
+#include "graphics/NetworkScene.h"
 #include "scene/SectionInventory.h"
 #include "scene/SignallingLevel.h"
 
@@ -11,6 +13,8 @@
 
 #include <QApplication>
 #include <QComboBox>
+#include <QGraphicsItem>
+#include <QGraphicsScene>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
@@ -24,6 +28,7 @@
 #include <QTableWidget>
 #include <QTest>
 
+#include <algorithm>
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -317,6 +322,11 @@ private slots:
 	void saysWhatTheCanvasMarks();
 	void toldSelectionIsComplete();
 	void namesNoMarkWithoutPreview();
+	void selectsRowOfCanvasItem_data();
+	void selectsRowOfCanvasItem();
+	void selectsCanvasItemInListedTable();
+	void canvasItemWithoutRowChangesNothing();
+	void takesOpenEditorBeforeCanvasItem();
 };
 
 // The facets, the combo and a panel without a scene.
@@ -1411,6 +1421,185 @@ void TestInfrastructurePanel::namesNoMarkWithoutPreview() {
 	f.panel.setMarkShown(true);
 	QCOMPARE(f.panel.markLabel()->text(), "B0.node.42: node on B0 at 2.581 km");
 	QVERIFY(!f.panel.markLabel()->isHidden());
+}
+
+// The Paimpol panel, shown, with the track preview of its document drawn on a scene as the network view of the window draws
+// it.
+struct PaimpolCanvas : PaimpolPanel {
+	QGraphicsScene scene;
+	NetworkPresenter presenter{&scene, nullptr};
+
+	PaimpolCanvas() {
+		presenter.showPreview(document.model());
+		panel.resize(700, 400);
+		panel.show();
+		QApplication::processEvents();
+	}
+	PaimpolCanvas(const PaimpolCanvas&) = delete;
+	PaimpolCanvas& operator=(const PaimpolCanvas&) = delete;
+	~PaimpolCanvas() { panel.hide(); }
+
+	// The item of the preview with this kind and id, or null.
+	QGraphicsItem* item(const QString& kind, const QString& id) const {
+		for (QGraphicsItem* candidate : scene.items())
+			if (candidate->data(PreviewGraphics::Kind).toString() == kind && candidate->data(PreviewGraphics::Id).toString() == id)
+				return candidate;
+		return nullptr;
+	}
+	// Selects the row of the item as the window does for a click on it.
+	bool click(const QGraphicsItem& clicked) {
+		return panel.selectCanvasItem(clicked.data(PreviewGraphics::Kind).toString(), clicked.data(PreviewGraphics::Id).toString(),
+			clicked.data(PreviewGraphics::PlatformId).toString());
+	}
+	// The texts of the first cells of the selected row, as many as `count`.
+	QStringList selectedCells(qsizetype count) const {
+		QStringList cells;
+		const QTableWidget* table = panel.table();
+		for (int column = 0; column < count && table->currentRow() >= 0; ++column)
+			cells << (table->item(table->currentRow(), column) ? table->item(table->currentRow(), column)->text() : QString());
+		return cells;
+	}
+	// The selected row is in the visible part of the table.
+	bool selectionInView() const {
+		const QTableWidget* table = panel.table();
+		const QTableWidgetItem* cell = table->currentRow() < 0 ? nullptr : table->item(table->currentRow(), 0);
+		return cell && table->viewport()->rect().intersects(table->visualItemRect(cell));
+	}
+};
+
+void TestInfrastructurePanel::selectsRowOfCanvasItem_data() {
+	QTest::addColumn<QString>("kind");
+	QTest::addColumn<QString>("id");
+	// Whether the preview of Paimpol draws the item. A drawn item gives its own platform.
+	QTest::addColumn<bool>("drawn");
+	QTest::addColumn<QString>("facet");
+	// The first cells of the row that is selected.
+	QTest::addColumn<QStringList>("cells");
+	QTest::newRow("node") << QStringLiteral("node") << QStringLiteral("B0.node.42") << true << QStringLiteral("nodes")
+						  << QStringList{"B0.node.42", "B0"};
+	QTest::newRow("platform node") << QStringLiteral("station-node") << QStringLiteral("B0.node.41") << true
+								   << QStringLiteral("platforms") << QStringList{"Gourland", "Gourland.platform.1"};
+	QTest::newRow("station node without platform") << QStringLiteral("station-node") << QStringLiteral("B0.node.42") << false
+												   << QStringLiteral("nodes") << QStringList{"B0.node.42", "B0"};
+	QTest::newRow("track") << QStringLiteral("track") << QStringLiteral("B5") << false << QStringLiteral("tracks")
+						   << QStringList{"B5"};
+	QTest::newRow("arc") << QStringLiteral("arc") << QStringLiteral("B5.arc.101") << true << QStringLiteral("arcs")
+						 << QStringList{"B5.arc.101", "B5"};
+	QTest::newRow("connection") << QStringLiteral("connection") << QStringLiteral("connection.5") << true
+								<< QStringLiteral("connections") << QStringList{"connection.5", "B0.node.101", "B4.node.3"};
+	QTest::newRow("station") << QStringLiteral("station") << QStringLiteral("Frynaudour") << true << QStringLiteral("stations")
+							 << QStringList{"Frynaudour"};
+	QTest::newRow("signal head") << QStringLiteral("signal") << QStringLiteral("@2-B4@") << true << QStringLiteral("blocks")
+								 << QStringList{"2-B4", "B4"};
+}
+
+// An item of the preview of Paimpol selects its row: the combo shows its kind, the row is selected and in view, and the
+// selection is told once. A signal head names the section of a block, whose track the filter of the blocks then shows.
+void TestInfrastructurePanel::selectsRowOfCanvasItem() {
+	QFETCH(QString, kind);
+	QFETCH(QString, id);
+	QFETCH(bool, drawn);
+	QFETCH(QString, facet);
+	QFETCH(QStringList, cells);
+	PaimpolCanvas f;
+	// Another kind is listed, with a row selected.
+	f.markFor("routes", "route2");
+	QGraphicsItem* clicked = drawn ? f.item(kind, id) : nullptr;
+	if (drawn && clicked == nullptr)
+		QFAIL("the preview of Paimpol does not draw the item");
+	Events events(f.panel, f.document);
+	QVERIFY(clicked ? f.click(*clicked) : f.panel.selectCanvasItem(kind, id));
+	QCOMPARE(f.panel.facetKey(), facet);
+	QCOMPARE(f.panel.facetCombo()->currentData().toString(), facet);
+	QCOMPARE(f.selectedCells(cells.size()), cells);
+	QCOMPARE(events.selections, std::vector<Selection>({Selection(facet, f.panel.selectionId())}));
+	QVERIFY2(f.selectionInView(), "the row is in view");
+	QVERIFY2(f.panel.table()->indexWidget(f.panel.table()->currentIndex()) == nullptr, "no cell editor opens");
+	QVERIFY(events.log.empty());
+	QVERIFY(!f.document.isDirty());
+	if (facet == QLatin1String("blocks"))
+		QCOMPARE(f.panel.blockTrackFilterCombo()->currentData().toString(), cells.value(1));
+}
+
+// While the table lists the row already, selecting it scrolls to it and tells the selection once, and selecting it again
+// tells nothing.
+void TestInfrastructurePanel::selectsCanvasItemInListedTable() {
+	PaimpolCanvas f;
+	f.markFor("nodes", "B0.node.1");
+	Events events(f.panel, f.document);
+	QVERIFY(f.panel.selectCanvasItem("node", "B0.node.300"));
+	QCOMPARE(f.selectedCells(1), QStringList{"B0.node.300"});
+	QCOMPARE(events.selections, std::vector<Selection>({Selection("nodes", "B0.node.300")}));
+	QVERIFY2(f.selectionInView(), "the table scrolls to the row");
+	QVERIFY2(f.panel.table()->indexWidget(f.panel.table()->currentIndex()) == nullptr, "no cell editor opens");
+	events.selections.clear();
+	QVERIFY(f.panel.selectCanvasItem("node", "B0.node.300"));
+	QVERIFY2(events.selections.empty(), "a row that is selected already is not told again");
+
+	// A block on the track of the filter is selected in the listed table.
+	f.panel.blockTrackFilterCombo()->setCurrentIndex(f.panel.blockTrackFilterCombo()->findData("B0"));
+	f.markFor("blocks", "0-B0");
+	events.selections.clear();
+	QVERIFY(f.panel.selectCanvasItem("signal", "@36-B0@"));
+	QCOMPARE(f.selectedCells(2), QStringList({"36-B0", "B0"}));
+	QCOMPARE(events.selections, std::vector<Selection>({Selection("blocks", "36-B0")}));
+}
+
+// An item without a row changes nothing and tells nothing: an id that the scene does not have, a kind without rows and a
+// switch section, which no block has. Nor does any item while the scene cannot be edited, as during a run.
+void TestInfrastructurePanel::canvasItemWithoutRowChangesNothing() {
+	PaimpolCanvas f;
+	f.markFor("nodes", "B0.node.41");
+	const SceneSectionInventory inventory = buildSceneSectionInventory(f.document.model());
+	const auto switchSection = std::find_if(inventory.sections.begin(), inventory.sections.end(),
+		[](const SceneSectionDescriptor& section) { return section.connectionDerived; });
+	if (switchSection == inventory.sections.end())
+		QFAIL("Paimpol has no switch section");
+	Events events(f.panel, f.document);
+	const std::vector<std::pair<QString, QString>> withoutRow = {{"node", "no-such-node"}, {"arc", "B0.node.42"},
+		{"train", "B0.node.42"}, {"station-node", "no-such-node"}, {"signal", QString::fromStdString(switchSection->id)},
+		{"signal", "no-such-section"}};
+	for (const auto& [kind, id] : withoutRow) {
+		QVERIFY2(!f.panel.selectCanvasItem(kind, id, "Gourland.platform.1"), qPrintable(kind + " " + id));
+		QCOMPARE(f.panel.facetKey(), "nodes");
+		QCOMPARE(f.panel.selectionId(), "B0.node.41");
+	}
+	QVERIFY(events.selections.empty());
+
+	f.document.setEditable(false);
+	f.panel.refresh();
+	events.selections.clear();
+	QVERIFY(!f.panel.selectCanvasItem("arc", "B5.arc.101"));
+	QVERIFY(!f.panel.selectCanvasItem("node", "B0.node.42"));
+	QCOMPARE(f.panel.facetKey(), "nodes");
+	QCOMPARE(f.panel.selectionId(), "B0.node.41");
+	QVERIFY(events.selections.empty());
+	QVERIFY(events.log.empty());
+}
+
+// The text of a cell that is still being edited is taken into the model before the row of the item is selected, as
+// choosing another row takes it.
+void TestInfrastructurePanel::takesOpenEditorBeforeCanvasItem() {
+	PaimpolCanvas f;
+	f.panel.activateWindow();
+	f.markFor("nodes", "B0.node.41");
+	// Choosing the row opened an editor on its id, which is taken unchanged.
+	f.panel.commitPendingEditors();
+	QTableWidget* table = f.panel.table();
+	const int row = table->currentRow();
+	table->editItem(table->item(row, 2));
+	auto* editor = qobject_cast<QLineEdit*>(table->indexWidget(table->model()->index(row, 2)));
+	if (editor == nullptr)
+		QFAIL("the cell has no editor");
+	editor->setText("2.53");
+	Events events(f.panel, f.document);
+	QVERIFY(f.panel.selectCanvasItem("arc", "B5.arc.101"));
+	QCOMPARE(f.document.model().nodes[40].id, "B0.node.41");
+	QCOMPARE(f.document.model().nodes[40].xKm, 2.53);
+	QCOMPARE(f.document.lastChangeLabel(), "Edit node");
+	QCOMPARE(f.panel.facetKey(), "arcs");
+	QCOMPARE(f.panel.selectionId(), "B5.arc.101");
+	QCOMPARE(events.selections.back(), Selection("arcs", "B5.arc.101"));
 }
 
 QTEST_MAIN(TestInfrastructurePanel)

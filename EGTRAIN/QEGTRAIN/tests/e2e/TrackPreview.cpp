@@ -3,6 +3,7 @@
 #include "graphics/SignalItemRoles.h"
 #include "ui_MainWindow.h"
 
+#include "editors/InfrastructurePanel.h"
 #include "editors/ValidationPanel.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/NetworkView.h"
@@ -12,6 +13,7 @@
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneModel.h"
 #include "scene/SceneWriter.h"
+#include "scene/SectionInventory.h"
 #include "scene/TrackPreview.h"
 #include "simulation/SimulationWorker.h"
 #include "widgets/ElidedLabel.h"
@@ -24,6 +26,7 @@
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QDir>
+#include <QDockWidget>
 #include <QEvent>
 #include <QFile>
 #include <QFileInfo>
@@ -583,6 +586,195 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			fail("selection", "the preview has too few kinds of item to click");
 		else if (cuesOk)
 			marker("E2E_SELECTION_CUE_PREVIEW_OK");
+
+		// A click on an item also selects its row in the Infrastructure dock, which tells it once. The view keeps its zoom
+		// and position and the Details dock the item, also when the model changed after the preview was drawn, as a save
+		// changes it. Edit in Infrastructure does the same and brings the dock to the front. While the dock is disabled, and
+		// for an item whose entity the case does not have, the row stays as it is.
+		InfrastructurePanel* panel = infrastructurePanel(w);
+		QDockWidget* dock = infrastructureDock(w);
+		int told = 0;
+		const QMetaObject::Connection counter =
+			QObject::connect(panel, &InfrastructurePanel::selectionChanged, &w, [&told] { ++told; });
+		// Where a click hits the item: the middle of a line, or the centre of its bounds.
+		const auto pointOf = [](QGraphicsItem* item) {
+			const auto* lineItem = dynamic_cast<const QGraphicsLineItem*>(item);
+			return lineItem ? item->mapToScene(lineItem->line().pointAt(0.5)) : item->sceneBoundingRect().center();
+		};
+		const auto middleOfView = [&w]() {
+			const QRectF visible = w.networkView->mapToScene(w.networkView->viewport()->rect()).boundingRect();
+			return visible.adjusted(visible.width() / 4, visible.height() / 4, -visible.width() / 4, -visible.height() / 4);
+		};
+		// The preview of the case, which the checks above replaced by one of a copy, zoomed in, with the dock shown. Drawing
+		// it hid the Details dock, which a first click shows again, and that makes the view smaller. The dock is as wide as
+		// the controls of Blocks need: a narrower one widens for them, as when Blocks is chosen in its list, and narrows
+		// the view.
+		const bool dockShown = dock->isVisible();
+		const QSize windowSize = w.size();
+		w.resize(1280, 800);
+		dock->show();
+		dock->raise();
+		QApplication::processEvents();
+		w.resizeDocks({dock}, {400}, Qt::Horizontal);
+		w.renderTrackPreview(w.m_document->model());
+		w.networkView->zoomBy(2.0);
+		QApplication::processEvents();
+		for (QGraphicsItem* item : w.scene->items()) {
+			if (item->isVisible() && item->data(PreviewGraphics::Kind).toString() == "arc" && middleOfView().contains(pointOf(item))) {
+				clickAt(pointOf(item));
+				break;
+			}
+		}
+		const QRectF middle = middleOfView();
+		const auto centre = [&w]() { return w.networkView->mapToScene(w.networkView->viewport()->rect().center()); };
+		QTransform transform = w.networkView->transform();
+		QPointF startCentre = centre();
+		// The panel shows the row that the item stands for: by its kind and id, the platform of a platform node, and the
+		// block of the section of a signal head.
+		const auto rowMatches = [&w, panel](QGraphicsItem* item) {
+			const QString kind = item->data(PreviewGraphics::Kind).toString();
+			const QString id = item->data(PreviewGraphics::Id).toString();
+			const QString platform = item->data(PreviewGraphics::PlatformId).toString();
+			if (kind == "signal") {
+				const SceneSectionInventory inventory = buildSceneSectionInventory(w.m_document->model());
+				const SceneSectionDescriptor* section = inventory.resolve(id.toStdString());
+				return section && panel->facetKey() == "blocks" && panel->selectionId().toStdString() == section->sourceBlockId;
+			}
+			if (kind == "station-node" && !platform.isEmpty())
+				return panel->facetKey() == "platforms" && panel->selectionId().endsWith(QLatin1Char('\n') + platform);
+			const QString facet = kind == "station-node" ? QStringLiteral("nodes") : kind + QLatin1Char('s');
+			return panel->facetKey() == facet && panel->selectionId() == id;
+		};
+		const auto rowInView = [panel]() {
+			const QTableWidget* table = panel->table();
+			const QTableWidgetItem* cell = table->currentRow() < 0 ? nullptr : table->item(table->currentRow(), 0);
+			return cell && table->viewport()->rect().contains(table->visualItemRect(cell));
+		};
+		// The same zoom, and the same centre to less than half a pixel. The view centres to a fraction of a pixel with the
+		// translation of its transform, which rounding changes a little.
+		const auto viewKept = [&]() {
+			const QTransform now = w.networkView->transform();
+			const QPointF shift = (centre() - startCentre) * transform.m11();
+			return qFuzzyCompare(now.m11(), transform.m11()) && qFuzzyCompare(now.m22(), transform.m22())
+				&& shift.manhattanLength() < 0.5;
+		};
+		const auto detailsKept = [&w](QGraphicsItem* item) {
+			return w.m_inspector->dock()->isVisible() && w.m_inspector->previewSelectionKind() == item->data(PreviewGraphics::Kind).toString()
+				&& w.m_inspector->previewSelectionId() == item->data(PreviewGraphics::Id).toString();
+		};
+		// An item of the kind in the middle of the view that a click there selects, clicked; null when there is none.
+		const auto clickInView = [&](const char* kind) -> QGraphicsItem* {
+			for (QGraphicsItem* item : w.scene->items()) {
+				if (!item->isVisible() || item->data(PreviewGraphics::Kind).toString() != kind || !middle.contains(pointOf(item)))
+					continue;
+				clickAt(pointOf(item));
+				if (detailsKept(item))
+					return item;
+			}
+			return nullptr;
+		};
+		// A click on the item, with no row selected before it.
+		const auto clickWithoutRow = [&](QGraphicsItem* item) {
+			panel->table()->setCurrentCell(-1, -1);
+			told = 0;
+			clickAt(pointOf(item));
+		};
+		int kinds = 0;
+		for (const char* kind : {"arc", "node", "connection", "station-node", "station", "signal"}) {
+			QGraphicsItem* item = clickInView(kind);
+			if (!item)
+				continue;
+			clickWithoutRow(item);
+			++kinds;
+			if (!rowMatches(item) || told != 1)
+				fail("infrastructure row", QString("a click on a preview %1 selects %2 %3 and tells it %4 times").arg(kind, panel->facetKey(), panel->selectionId()).arg(told));
+			else if (!rowInView())
+				fail("infrastructure row", QString("a click on a preview %1 leaves its row out of view").arg(kind));
+			else if (!viewKept())
+				fail("infrastructure row", QString("a click on a preview %1 moves or zooms the view").arg(kind));
+			else if (!detailsKept(item))
+				fail("infrastructure row", QString("a click on a preview %1 empties the Details dock").arg(kind));
+		}
+		if (kinds < 3)
+			fail("infrastructure row", QString("only %1 kinds of item in the middle of the view").arg(kinds));
+
+		if (QGraphicsItem* item = clickInView("arc")) {
+			// No row is selected, and the dock is hidden.
+			panel->table()->setCurrentCell(-1, -1);
+			dock->hide();
+			QApplication::processEvents();
+			// Showing the dock makes the view smaller, which keeps its zoom and centre.
+			const qreal ratio = w.networkView->zoomRatio();
+			const QPointF menuCentre = centre();
+			const auto viewKeptWhenSmaller = [&]() {
+				const QPoint shift = w.networkView->mapFromScene(menuCentre) - w.networkView->viewport()->rect().center();
+				return qFuzzyCompare(w.networkView->zoomRatio(), ratio) && shift.manhattanLength() <= 2;
+			};
+			told = 0;
+			w.showSceneContextMenu(item, pointOf(item), QPoint(), false);
+			QAction* entry = nullptr;
+			for (QAction* action : w.m_sceneContextMenu ? w.m_sceneContextMenu->actions() : QList<QAction*>())
+				if (action->text() == "Edit in Infrastructure")
+					entry = action;
+			if (!entry || !entry->isEnabled()) {
+				fail("infrastructure row", "the menu of a preview arc has no Edit in Infrastructure");
+			} else {
+				entry->trigger();
+				w.closeSceneContextMenu();
+				QApplication::processEvents();
+				if (!dock->isVisible() || dock->visibleRegion().isEmpty() || !rowMatches(item) || !rowInView())
+					fail("infrastructure row", "Edit in Infrastructure does not show the row of the arc");
+				else if (!viewKeptWhenSmaller())
+					fail("infrastructure row", "Edit in Infrastructure moves or zooms the view");
+			}
+			const QString arcRow = panel->selectionId();
+			// The view has the size from before the menu again.
+			transform = w.networkView->transform();
+			startCentre = centre();
+
+			// While the dock is disabled, as during a run, a click selects no row.
+			dock->setEnabled(false);
+			told = 0;
+			if (clickInView("node") && (told != 0 || panel->selectionId() != arcRow))
+				fail("infrastructure row", "a click selects a row while the dock is disabled");
+			dock->setEnabled(true);
+			// Nor does a node that the case does not have.
+			if (QGraphicsItem* node = clickInView("node")) {
+				const QString nodeRow = panel->selectionId();
+				const QString nodeId = node->data(PreviewGraphics::Id).toString();
+				node->setData(PreviewGraphics::Id, QStringLiteral("E2E_NO_SUCH_NODE"));
+				told = 0;
+				clickAt(pointOf(node));
+				node->setData(PreviewGraphics::Id, nodeId);
+				if (told != 0 || panel->selectionId() != nodeRow)
+					fail("infrastructure row", "a click on a node that the case does not have selects a row");
+			}
+
+			// A save changes the model without drawing the preview again. The click marks nothing then, and the preview,
+			// the view and the Details dock stay as they are. Drawing the preview again would delete the item, so the
+			// checks after the click use its id.
+			if (QGraphicsItem* again = clickInView("arc")) {
+				const QPointF at = pointOf(again);
+				const QString arcId = again->data(PreviewGraphics::Id).toString();
+				panel->table()->setCurrentCell(-1, -1);
+				w.m_document->mutableModel();
+				told = 0;
+				clickAt(at);
+				const bool selected = panel->facetKey() == "arcs" && panel->selectionId() == arcId && told == 1;
+				const bool shown = w.m_inspector->dock()->isVisible() && w.m_inspector->previewSelectionKind() == "arc"
+					&& w.m_inspector->previewSelectionId() == arcId;
+				if (!selected || !viewKept() || !shown)
+					fail("infrastructure row", "a click after a change of the model draws the preview again");
+			} else {
+				fail("infrastructure row", "no preview arc in the middle of the view after the other checks");
+			}
+		} else {
+			fail("infrastructure row", "no preview arc in the middle of the view");
+		}
+		QObject::disconnect(counter);
+		dock->setVisible(dockShown);
+		w.resize(windowSize);
+		w.networkView->zoomBy(0.5);
 	}
 
 	if (w.networkView) {

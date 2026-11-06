@@ -792,6 +792,8 @@ void MainWindow::setupFileMenu() {
 void MainWindow::connectSceneToInspector() {
 	// connect scene signals
 	connect(scene, &NetworkScene::MousePressedOnPreview, m_inspector, &InspectorPanel::displayPreviewInfo);
+	// The Infrastructure panel selects the row of the item after the inspector has shown it.
+	connect(scene, &NetworkScene::MousePressedOnPreview, this, [this](QGraphicsItem* item) { selectInfrastructureRow(item, false); });
 	connect(scene, &NetworkScene::MousePressedOnNode, m_inspector, &InspectorPanel::displayNodeInfo);
 	connect(scene, &NetworkScene::MousePressedOnStationNode, m_inspector, &InspectorPanel::displayStationNodeInfo);
 	connect(scene, &NetworkScene::MousePressedOnArc, m_inspector, &InspectorPanel::displayArcInfo);
@@ -2262,7 +2264,26 @@ void MainWindow::infrastructureSelectionChanged() {
 		updateNetworkLegend();
 		return;
 	}
+	// The row of an item on the canvas keeps the preview: drawing it again would fit the view and empty the Details dock.
+	// The mark stays where it is until the preview is drawn again.
+	if (m_selectingRowFromCanvas)
+		return;
 	renderTrackPreview(m_document->model());
+}
+
+void MainWindow::selectInfrastructureRow(QGraphicsItem* item, bool reveal) {
+	QDockWidget* dock = m_editorDocks.infrastructureDock();
+	if (!item || !m_showingTrackPreview || m_snapshot || !dock || !dock->isEnabled())
+		return;
+	const QString kind = item->data(PreviewGraphics::Kind).toString();
+	const QString id = item->data(PreviewGraphics::Id).toString();
+	const QString platform = item->data(PreviewGraphics::PlatformId).toString();
+	InfrastructurePanel* panel = m_editorDocks.infrastructurePanel();
+	// A cell that is still being edited is taken first, as an edit that draws the preview again; item can be gone after it.
+	panel->commitPendingEditors();
+	const QScopedValueRollback<bool> fromCanvas(m_selectingRowFromCanvas, true);
+	if (panel->selectCanvasItem(kind, id, platform) && reveal)
+		revealEditorDock(dock);
 }
 
 void MainWindow::updateTrainUnitSourceStatus() {
@@ -2893,8 +2914,6 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 	};
 	if (item && item->data(PreviewGraphics::Kind).isValid()) {
 		const QString kind = item->data(PreviewGraphics::Kind).toString();
-		if (kind == "node" || kind == "connection")
-			return; // No new node/connection menus.
 		const QString id = item->data(PreviewGraphics::Id).toString();
 		const QString track = item->data(PreviewGraphics::TrackId).toString();
 		const bool reversed = item->data(PreviewGraphics::Reversed).toBool();
@@ -2916,6 +2935,12 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 			const IncidentTarget target = previewIncidentTarget(kind, id, &why);
 			addIncidentEntry(menu, "signal", target, why);
 		}
+		QAction* edit = menu->addAction("Edit in Infrastructure");
+		edit->setEnabled(m_editorDocks.infrastructureDock()->isEnabled());
+		connect(edit, &QAction::triggered, this, [this, resolve]() {
+			if (auto* current = resolve())
+				selectInfrastructureRow(current, true);
+		});
 		connect(menu->addAction("Center in view"), &QAction::triggered, this, [this, resolve]() {
 			if (auto* current = resolve()) centerSceneItem(current);
 		});
