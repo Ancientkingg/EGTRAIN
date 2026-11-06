@@ -3,8 +3,10 @@ name: Docs
 # Builds the documentation site: the pages of docs/ with Sphinx and the C++ reference with Doxygen. A pull request also
 # fails when it adds undocumented classes or members to the files it changes. A push to main publishes the site to dev/
 # on the gh-pages branch. A successful run of the Release workflow publishes the commit it released to <version>/, and to
-# latest/ when no published version is newer. Each publish also writes the home page at the root of gh-pages from
-# docs/site/ of main, with the downloads of the newest published version.
+# latest/ when no published version is newer. Each publish also writes the home page and the support, source code and
+# privacy pages at the root of gh-pages from docs/site/ of main, with the downloads of the newest release in the feed of
+# egtrain.samuelbruin.com, and then publishes the same folders on egtrain.samuelbruin.com with pages written from that
+# feed alone.
 on:
   pull_request:
   push:
@@ -58,6 +60,7 @@ jobs:
           python tools/docs/test_check_undocumented.py
           python tools/docs/check_docs.py
           python tools/e2e/test_ci_workflow.py
+          python tools/release/test_publish_selfhost.py
 
       - name: Build the site
         run: |
@@ -95,8 +98,10 @@ jobs:
           name: docs-site
           path: site
 
-      # Another run can push to gh-pages first, so a rejected push starts again from its new tip.
+      # Another run can push to gh-pages first, so a rejected push starts again from its new tip. The output dirs names
+      # the folders that the step published, for the next step.
       - name: Push to gh-pages
+        id: pages
         env:
           VERSION: ${{ needs.build.outputs.version }}
         run: |
@@ -116,19 +121,34 @@ jobs:
             fi
             rm -rf "pages/$dir"
             cp -R site "pages/$dir"
+            dirs="$dir"
             if [ "$dir" != dev ] && [ "$dir" = "$(cd pages && ls -d [0-9]* | sort -V | tail -n 1)" ]; then
               rm -rf pages/latest
               cp -R site pages/latest
+              dirs="$dir latest"
             fi
             touch pages/.nojekyll
             python3 tools/docs/home_page.py pages
             git -C pages add -A
             if git -C pages diff --cached --quiet; then
+              echo "dirs=$dirs" >> "$GITHUB_OUTPUT"
               exit 0
             fi
             git -C pages commit -q -m "Publish the documentation of $dir"
             if git -C pages push origin HEAD:refs/heads/gh-pages; then
+              echo "dirs=$dirs" >> "$GITHUB_OUTPUT"
               exit 0
             fi
           done
           exit 1
+
+      # The folders of the step above. The pages of the website list the versions of its feed, not the folders of this copy
+      # of gh-pages, so a run of main and a run of a release that publish at the same time leave the same pages.
+      - name: Publish on egtrain.samuelbruin.com
+        if: steps.pages.outputs.dirs != ''
+        env:
+          EGTRAIN_PUBLISH_TOKEN: ${{ secrets.EGTRAIN_PUBLISH_TOKEN }}
+          DIRS: ${{ steps.pages.outputs.dirs }}
+        run: |
+          read -ra dirs <<< "$DIRS"
+          python3 tools/release/publish_selfhost.py site pages "${dirs[@]}"

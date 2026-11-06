@@ -15,8 +15,10 @@ Each step prints one line, STEP n PASS or STEP n FAIL with the detail. The scrip
 it and exits with 1. A screenshot of every step, the failure tree of the application, the output of the application and
 the log of the script go to the evidence directory. A missing tool or display exits with 2 before the first step.
 
-1. Start AppRun with a new home directory and no QEGTRAIN_ variable, close the case chooser, answer the question about
-   automatic update checks, read the version of About EGTRAIN, and check that the toolbar icon buttons are not blank.
+1. Start AppRun with a new home directory and no QEGTRAIN_ variable, close the case chooser, answer Not now to the
+   question about usage statistics and diagnostic reports that a package with a telemetry receiver asks, answer the
+   question about automatic update checks, read the version of About EGTRAIN, and check that the toolbar icon buttons
+   are not blank.
 2. File > Open Case... and Open Case File... in the case chooser on the downloaded bundle, after a byte copy of it is
    taken and its modification time noted.
 3. The network is drawn, and View > Loaded Data shows the identity, the category counts, the scenarios, the result
@@ -653,6 +655,15 @@ class Rehearsal:
         self.note(f"closing the case chooser with {name_of(close)!r}")
         self.press(close)
         self.wait_closed("Open a Case")
+        privacy = self.ask_about_privacy(20)
+        if privacy is not None:
+            choices = [name_of(item) for item in find_all(privacy, "check box", max_depth=6)]
+            self.note(f"dialog {name_of(privacy)!r}: " + " | ".join(choices))
+            self.screenshot("privacy-question")
+            self.press(self.button(privacy, "Not now"))
+            self.wait_closed("Help improve EGTRAIN")
+        else:
+            self.note("no question about usage statistics and diagnostic reports appeared")
         question = self.ask_about_updates(20)
         if question is not None:
             labels = [name_of(item) for item in find_all(question, "label", max_depth=4)]
@@ -677,6 +688,15 @@ class Rehearsal:
         icon_buttons = self.check_toolbar_icons()
         return (f"started from {self.package.name}, version {version}, {len(bundled)} bundled cases, "
                 f"icons of the toolbar buttons {icon_buttons} drawn")
+
+    def ask_about_privacy(self, seconds: float):
+        """The question about usage statistics and diagnostic reports comes once, after the case chooser is closed and
+        before the question about update checks, in a package built with a telemetry receiver. Looks for it for some
+        seconds and returns its window, or None."""
+        try:
+            return wait_until(lambda: self.window("Help improve EGTRAIN"), seconds, "the question about usage statistics")
+        except StepFailed:
+            return None
 
     def ask_about_updates(self, seconds: float):
         """The question about automatic update checks comes once, after the case chooser is closed, and only when the

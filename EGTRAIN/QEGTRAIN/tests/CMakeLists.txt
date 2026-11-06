@@ -1171,6 +1171,11 @@ egtrain_add_test(test_release_version
 egtrain_add_test(test_release_assets
 	COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_release_assets.py
 	LABELS unit)
+# Runs the publication on egtrain.samuelbruin.com against servers on 127.0.0.1. Its tests against a real Zipline server
+# run only with ZIPLINE_TEST_URL and ZIPLINE_TEST_TOKEN set, which CTest does not set.
+egtrain_add_test(test_publish_selfhost
+	COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_publish_selfhost.py
+	LABELS unit)
 egtrain_add_test(test_make_dmg
 	COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_make_dmg.py
 	LABELS unit)

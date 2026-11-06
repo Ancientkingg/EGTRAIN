@@ -37,6 +37,13 @@ WRITE_PERMISSIONS = {
     ("release.yml", "release"): ({"contents"}, "creates and publishes the GitHub release"),
 }
 
+# The jobs whose steps may read a credential for a push to main, besides the steps of a push to production or a v* tag:
+# the credential, the condition of the job, and why. main_only says which runs such a job has.
+MAIN_CREDENTIALS = {
+    ("docs.yml", "publish"): ("EGTRAIN_PUBLISH_TOKEN", "github.event_name == 'push' || needs.build.outputs.version != ''",
+                              "publishes the documentation site of main and of each release on egtrain.samuelbruin.com"),
+}
+
 # Properties that these workflows do not have yet. The test fails when one of them gets the property, so that the entry
 # goes with the change.
 KNOWN_GAPS = {
@@ -276,6 +283,27 @@ def push_only_jobs(jobs: dict) -> set:
     return found
 
 
+def main_only(workflow: dict, job: dict, condition: str) -> bool:
+    """True when the job runs only for a push to main or after a successful run of the Release workflow for a push, and
+    runs the scripts of main. A workflow_run event runs the workflow of the default branch, and a checkout without a ref
+    takes the commit of the run: the pushed commit of main, or the tip of main after a release. The condition of the job
+    holds for neither a pull request nor another run of the Release workflow, because the build job skips such a run and
+    sets the version output only for a workflow_run event."""
+    events = triggers(workflow)
+    build = workflow["jobs"].get("build", {})
+    version = next((item for item in build.get("steps", []) if item.get("id") == "version"), {})
+    return (
+        sorted(events) == ["pull_request", "push", "workflow_run"]
+        and events["push"] == {"branches": ["main"]}
+        and events["workflow_run"] == {"workflows": ["Release"], "types": ["completed"]}
+        and job.get("if") == condition and needs(job) == ["build"]
+        and build.get("if") == "github.event_name != 'workflow_run' || (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success')"
+        and build.get("outputs") == {"version": "${{ steps.version.outputs.version }}"}
+        and version.get("if") == "github.event_name == 'workflow_run'"
+        and all("ref" not in item.get("with", {}) for item in job.get("steps", []) if item.get("uses", "").startswith("actions/checkout@"))
+    )
+
+
 def test_registration(cmake: str, name: str) -> str:
     """The egtrain_add_test call that registers the test, or an empty string."""
     found = re.search(rf"^\s*egtrain_add_test\({re.escape(name)}\b.*?\)$", cmake, re.MULTILINE | re.DOTALL)
@@ -446,8 +474,9 @@ def check_credentials(checks: Checks, workflows: dict) -> None:
     """A credential reaches only the steps of a push to production or a v* tag: through a job or a step with that
     condition, or a job that runs only after such a job succeeded. Every other key of a job applies to the whole job, and
     the top-level env to every job. The secrets of a call of a workflow of the repository are the exception: this check
-    reads the jobs of that workflow in turn. A call passes a credential by name, never all of them, and no step that
-    reads one traces its commands."""
+    reads the jobs of that workflow in turn. The steps of a job of MAIN_CREDENTIALS may also read its one credential when
+    main_only holds for the job. A call passes a credential by name, never all of them, and no step that reads one traces
+    its commands."""
     expect = checks.expect
     for name, workflow in workflows.items():
         push_jobs = push_only_jobs(workflow["jobs"])
@@ -468,9 +497,13 @@ def check_credentials(checks: Checks, workflows: dict) -> None:
             environment = job.get("environment", "")
             expect(not environment or job_id in push_jobs or PUSH_GATE in environment,
                    f"{name}: job {job_id} uses an environment only for a push to production or a v* tag")
+            main_credential, condition, _reason = MAIN_CREDENTIALS.get((name, job_id), ("", "", ""))
+            for_main = main_credential and main_only(workflow, job, condition)
+            expect(not main_credential or for_main, f"{name}: job {job_id} of MAIN_CREDENTIALS runs only for main, with the scripts of main")
             for item in job.get("steps", []):
-                reads = "secrets." in flat({key: value for key, value in item.items() if key != "if"})
-                expect(not reads or job_id in push_jobs or PUSH_GATE in item.get("if", ""),
+                read = re.findall(r"secrets\.(\w+)", flat({key: value for key, value in item.items() if key != "if"}))
+                reads = bool(read)
+                expect(not reads or job_id in push_jobs or PUSH_GATE in item.get("if", "") or (for_main and set(read) == {main_credential}),
                        f"{name}: job {job_id} reads a credential in a step that a pull request runs")
                 expect(not reads or not re.search(r"\bset\s+-\w*x", item.get("run", "")),
                        f"{name}: job {job_id} traces the commands of a step that reads a credential")
@@ -795,7 +828,8 @@ def check_format_and_tidy(checks: Checks, format_workflow: dict, tidy_workflow: 
 
 def check_release(checks: Checks, release: dict, release_text: str, package_check: dict, rules: dict, sources: dict) -> None:
     """The release workflow selects one version, validates and packages it, and publishes only for a push to production
-    or a v* tag, after every other job succeeded. The package check runs the same version job and release assets script."""
+    or a v* tag, after every other job succeeded, first on GitHub and then on egtrain.samuelbruin.com. The package check
+    runs the same version job and release assets script."""
     expect = checks.expect
     events = triggers(release)
     documentation = sorted(pattern.replace("*", "**") for pattern in rules["cmake"][2])
@@ -811,10 +845,27 @@ def check_release(checks: Checks, release: dict, release_text: str, package_chec
            "release.yml: publications run one at a time and are never cancelled")
     jobs = release["jobs"]
     publish = jobs.get("release", {})
-    expect(sorted(needs(publish)) == sorted(job for job in jobs if job != "release") and publish.get("if") == PUSH_GATE,
+    expect(sorted(needs(publish)) == sorted(job for job in jobs if job not in ("release", "publish-site")) and publish.get("if") == PUSH_GATE,
            "release.yml: the release job needs every other job and publishes only for a push to production or a v* tag")
+    # The job of its own can run again after the GitHub release exists. It builds the release assets as the release job
+    # does and publishes them with the tag, the name and the kind of the GitHub release.
+    site = jobs.get("publish-site", {})
+    script = "python3 tools/release/build_release_assets.py --version"
+    upload = step(site, "tools/release/publish_selfhost.py release")
+    expect(
+        sorted(needs(site)) == ["release", "version"] and site.get("if") == PUSH_GATE
+        and step(site, script) == step(publish, script) != {}
+        and step(site, "actions/download-artifact@") == step(publish, "actions/download-artifact@") != {}
+        and in_order(site, "actions/checkout@", script, "tools/release/publish_selfhost.py release")
+        and publish.get("outputs") == {key: f"${{{{ steps.release-meta.outputs.{key} }}}}" for key in ("tag", "name", "prerelease")}
+        and {key: upload.get("env", {}).get(key) for key in ("RELEASE_TAG", "RELEASE_NAME", "PRERELEASE")}
+        == {"RELEASE_TAG": "${{ needs.release.outputs.tag }}", "RELEASE_NAME": "${{ needs.release.outputs.name }}",
+            "PRERELEASE": "${{ needs.release.outputs.prerelease }}"},
+        "release.yml: the publish-site job publishes the release assets on egtrain.samuelbruin.com after the GitHub release, "
+        "with its tag, name and kind",
+    )
     builds = [job for job in jobs.values() if "cmake -S . -B build" in runs(job)]
-    expect(all(needs(job) == ["version"] for job_id, job in jobs.items() if job_id not in ("version", "release"))
+    expect(all(needs(job) == ["version"] for job_id, job in jobs.items() if job_id not in ("version", "release", "publish-site"))
            and builds and all('cmake -S . -B build "-DEGTRAIN_VERSION=${{ needs.version.outputs.version }}"' in runs(job) for job in builds)
            and jobs["package"].get("with", {}).get("version") == "${{ needs.version.outputs.version }}",
            "release.yml: every build gets the version that the version job selects")
@@ -835,7 +886,6 @@ def check_release(checks: Checks, release: dict, release_text: str, package_chec
         "package-check.yml: the version job of the release workflow, skipped with the changes job",
     )
     assets = package_check["jobs"]["release-assets"]
-    script = "python3 tools/release/build_release_assets.py --version"
     expect(
         sorted(needs(assets)) == ["package", "version"]
         and step(assets, script) == step(publish, script) != {}
@@ -891,10 +941,11 @@ def check_packages(checks: Checks, package: dict, package_text: str, package_che
         expect(
             all(part in text for part in (network, "LICENSE", "THIRD_PARTY_NOTICES.md", "EGTRAIN.qch", "-DEGTRAIN_PACKAGED_BUILD=ON",
                                           '"-DEGTRAIN_VERSION=${{ inputs.version }}"', "'^test_update(helper|preparation)$'",
+                                          "-DEGTRAIN_ENABLE_TELEMETRY=ON -DEGTRAIN_TELEMETRY_URL=https://egtrain.samuelbruin.com/api/telemetry/v1",
                                           "egtrain_update_helper", "tools/release/package_start_smoke.py"))
             and "./.github/actions/setup-deps" in flat(jobs[job_id]) and re.search(r'-DCMAKE_PREFIX_PATH="\$(env:)?QT_ROOT_DIR', runs(jobs[job_id])),
-            f"package.yml: {job_id} builds a packaged build of the version with the setup action, checks Qt Network, the "
-            "licence, the notices, the manual and the update helper, and starts a copy",
+            f"package.yml: {job_id} builds a packaged build of the version with the telemetry receiver and the setup action, "
+            "checks Qt Network, the licence, the notices, the manual and the update helper, and starts a copy",
         )
         expect("RUNNER_TEMP" in step(jobs[job_id], "tools/release/package_start_smoke.py").get("run", "")
                and step(jobs[job_id], "tools/release/package_start_smoke.py").get("env", {}).get("PYTHONUTF8") == "1"
@@ -1077,42 +1128,55 @@ def check_packages(checks: Checks, package: dict, package_text: str, package_che
 
 
 def check_home_page(checks: Checks, docs: dict, build_release_assets, home_page) -> None:
-    """The home page at the root of gh-pages: the publish job writes it with tools/docs/home_page.py after it has updated
-    the version folders, the page offers the packages and scene bundles that the release script names, and the script
-    fills in the newest version folder and keeps the other files of the root."""
+    """The pages at the root of gh-pages and of egtrain.samuelbruin.com: the publish job writes them with
+    tools/docs/home_page.py after it has updated the version folders, and then publishes the same folders and pages on the
+    website. The home page offers the packages and scene bundles that the release script names, with the links of the
+    newest release of the feed, and the script keeps the other files of the root."""
     expect = checks.expect
-    publish = runs(docs["jobs"]["publish"])
+    job = docs["jobs"]["publish"]
+    publish = runs(job)
     positions = [publish.find(command) for command in ("cp -R site pages/latest\n", "python3 tools/docs/home_page.py pages\n", "git -C pages add -A\n")]
     expect(-1 not in positions and positions == sorted(positions), "docs.yml: the publish job writes the home page after latest/ and before it commits")
-    page = home_page.PAGE.read_text(encoding="utf-8")
+    pushed, published = (step_index(job, marker) for marker in ("git -C pages push", "tools/release/publish_selfhost.py site pages"))
+    expect(0 <= pushed < published, "docs.yml: the publish job publishes on egtrain.samuelbruin.com in a step after the push to gh-pages")
     names = [template for _key, template, _directory in build_release_assets.PACKAGES]
     names += [scene + build_release_assets.SCENE_SUFFIX for scene in build_release_assets.SCENES]
-    offered = re.findall(r'href="([^"]*/releases/[^"]*download/[^"]*)"', page)
-    released = [f"https://github.com/Ancientkingg/EGTRAIN/releases/download/v{{version}}/{name}" for name in names]
-    expect(sorted(offered) == sorted(released),
-           f"docs/site/index.html links each package and scene bundle of build_release_assets.py once: {sorted(set(offered) ^ set(released))}")
+
+    def release(tag: str, prerelease: bool = False) -> dict:
+        files = [name.format(version=tag[1:]) for name in names] + [build_release_assets.MANIFEST_NAME]
+        return {"tag_name": tag, "name": f"EGTRAIN {tag}", "body": "", "html_url": f"https://egtrain.example.org/releases/{tag[1:]}/",
+                "draft": False, "prerelease": prerelease, "published_at": "2026-01-01T00:00:00Z",
+                "assets": [{"name": name, "browser_download_url": f"https://bin.example.org/raw/egtrain-{tag}-{name}", "size": 1} for name in files]}
+
     with tempfile.TemporaryDirectory() as folder:
         pages = Path(folder)
         for name in ("dev", "latest", "1.0.4", "1.0.10", "assets"):
             (pages / name).mkdir()
         (pages / "assets/old.css").write_text("", encoding="utf-8")
         (pages / "CNAME").write_text("egtrain.example.org\n", encoding="utf-8")
-        home_page.write_home_page(pages)
+        home_page.write_home_page(pages, [release("v1.0.11-rc.1", prerelease=True), release("v1.0.10"), release("v1.0.4")])
         text = (pages / "index.html").read_text(encoding="utf-8")
+        offered = re.findall(r'href="(https://bin\.example\.org/raw/[^"]*)"', text)
+        released = [f"https://bin.example.org/raw/egtrain-v1.0.10-{name.format(version='1.0.10')}" for name in names]
+        expect(sorted(offered) == sorted(released),
+               f"docs/site/index.html links each package and scene bundle of build_release_assets.py once: {sorted(set(offered) ^ set(released))}")
         listed = [text.find(f'<li><a href="{name}/">') for name in ("latest", "dev", "1.0.10", "1.0.4")]
-        expect("/releases/download/v1.0.10/EGTRAIN-1.0.10-macOS-arm64.dmg" in text and "{" not in text
-               and -1 not in listed and listed == sorted(listed),
-               "tools/docs/home_page.py offers the newest version and lists latest/, dev/ and the versions, newest first")
+        expect('href="https://egtrain.example.org/releases/1.0.10/"' in text and "{" not in text and -1 not in listed and listed == sorted(listed),
+               "tools/docs/home_page.py offers the newest release that is no prerelease and lists latest/, dev/ and the versions, newest first")
+        source = (pages / "source/index.html").read_text(encoding="utf-8")
+        expect(all(f"https://bin.samuelbruin.com/raw/egtrain-{tag}-EGTRAIN-{tag[1:]}-source.tar.gz" in source for tag in ("v1.0.11-rc.1", "v1.0.10", "v1.0.4"))
+               and all("{" not in (pages / page / "index.html").read_text(encoding="utf-8") for page in home_page.SITE_PAGES),
+               "tools/docs/home_page.py writes the support, source code and privacy pages, with the source archive of each release")
         expect((pages / "CNAME").read_text(encoding="utf-8") == "egtrain.example.org\n"
                and sorted(path.name for path in (pages / "assets").iterdir()) == sorted(path.name for path in home_page.ASSETS),
                "tools/docs/home_page.py keeps the CNAME file and replaces assets/")
     with tempfile.TemporaryDirectory() as folder:
         pages = Path(folder)
         (pages / "dev").mkdir()
-        home_page.write_home_page(pages)
+        home_page.write_home_page(pages, [])
         text = (pages / "index.html").read_text(encoding="utf-8")
-        expect('<li><a href="dev/">' in text and "{" not in text and "latest/" not in text and "/download/" not in text,
-               "tools/docs/home_page.py leaves out the downloads and latest/ when no version is published")
+        expect('<li><a href="dev/">' in text and "{" not in text and "latest/" not in text and "/raw/" not in text,
+               "tools/docs/home_page.py leaves out the downloads and latest/ when no release is published")
 
 
 def check_scripts(checks: Checks, tests_cmake: str) -> None:

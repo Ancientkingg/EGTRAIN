@@ -757,7 +757,7 @@ how diverging switches are handled at levels 3 and 4
 does not say what creates the infrastructure elements that levels 3 and 4 make
 blocking times for; the characterization line has none.
 
-[`Section::SignallingLevel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_section.html
-[`DispatchController`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_dispatch_controller.html
-[`Train::Det_Section_Occupied_By_Train`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_train.html
-[`Route::createRouteFromBlockIds`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_route.html
+[`Section::SignallingLevel`]: https://egtrain.samuelbruin.com/latest/api/class_section.html
+[`DispatchController`]: https://egtrain.samuelbruin.com/latest/api/class_dispatch_controller.html
+[`Train::Det_Section_Occupied_By_Train`]: https://egtrain.samuelbruin.com/latest/api/class_train.html
+[`Route::createRouteFromBlockIds`]: https://egtrain.samuelbruin.com/latest/api/class_route.html
