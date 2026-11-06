@@ -193,3 +193,38 @@ both over 8000 steps. The instructions retired fell by less than 0.3 percent,
 so these runs show no change in run time. Every output file and the standard
 output of every committed scene stayed the same byte for byte, also with
 detailed trajectories.
+
+## Section arcs, recorded 2026-11-06
+
+Every block section (`Section` in `simulation/Signalling.h`) held room for
+20 arcs inside itself, 13,920 of its 14,944 bytes, while the sections of the
+committed scenes have 1.0 to 4.2 arcs on average (Copenhagen 3.8 in the
+infrastructure and 4.2 in the routes, Netherlands 2.8 and 2.7). The run keeps
+sections in `RunInfrastructure::sections`, in each route
+(`sequence_of_block_sections`) and in each train (`Train::Bs`). The arcs are
+now a vector that holds exactly the arcs of the section, so a section takes
+1,048 bytes plus 696 bytes for each arc. The limit of 20 arcs for a scene
+section stays, with the same diagnostics.
+
+These numbers compare a Release executable (Qt 6.8.3, macOS 27.0.1, arm64,
+`EGTRAIN_IPO=OFF`) with the train step vectors of the previous section with
+one that also has this change. The two ran in turns, each scene headless and
+alone, three times for each executable, with `OMP_NUM_THREADS=4` and
+`QT_QPA_PLATFORM=offscreen`, at a one-minute load average of 3.2 to 4.0:
+
+```text
+/usr/bin/time -l <app> --scene <absolute-scene-directory> -g 0
+```
+
+| Case | Peak RSS before (MiB) | Peak RSS after (MiB) | Peak footprint before (MiB) | Peak footprint after (MiB) | Elapsed before (s) | Elapsed after (s) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Copenhagen | 239.3 | 180.5 | 225.2 | 166.3 | 7.19 | 7.14 |
+| Netherlands | 199.6 | 101.7 | 185.4 | 87.4 | 1.60 | 1.42 |
+
+Each value is the median of three runs. The peak RSS fell by 58.8 MiB
+(25 percent) for Copenhagen and by 97.9 MiB (49 percent) for Netherlands. The
+instructions retired fell by 1.7 percent for Copenhagen and by 5.7 percent for
+Netherlands, so the copy of the section that a train takes in each step does
+not slow the run. Every output file and the standard output of every
+committed scene stayed the same byte for byte, also with detailed
+trajectories.

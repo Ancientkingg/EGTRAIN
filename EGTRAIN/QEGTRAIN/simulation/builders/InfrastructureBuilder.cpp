@@ -1213,9 +1213,8 @@ void storeNativeSectionArcs(Section& section, const std::vector<Arc>& arcs, cons
 			"infrastructure.json", "block", blockId, "sections", std::to_string(kNativeMaxSectionArcs), "Split the section");
 		return;
 	}
+	section.arcs_in_signalling_block_section = arcs;
 	section.total_arcs = static_cast<int>(arcs.size());
-	for (std::size_t index = 0; index < arcs.size(); ++index)
-		section.arcs_in_signalling_block_section[index] = arcs[index];
 }
 
 void resetNativeInfrastructureState(SimulationRun& run) {

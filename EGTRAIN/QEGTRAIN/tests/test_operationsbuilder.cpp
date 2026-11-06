@@ -2198,6 +2198,7 @@ static std::vector<Section> brakingRoute(double startKm, double endKm, double gr
 	Section& section = route[0];
 	section.start_node.X = startKm;
 	section.end_node.X = endKm;
+	section.arcs_in_signalling_block_section.resize(1);
 	section.total_arcs = 1;
 	section.arcs_in_signalling_block_section[0].startNode.X = startKm;
 	section.arcs_in_signalling_block_section[0].endNode.X = endKm;
@@ -2298,6 +2299,7 @@ void TestOperationsBuilder::brakingPointSearch() {
 static std::vector<Section> brakingRouteOfTwoArcs(double splitKm, double endKm, double firstGradient, double secondGradient) {
 	std::vector<Section> route = brakingRoute(0.0, endKm, firstGradient);
 	Section& section = route[0];
+	section.arcs_in_signalling_block_section.resize(2);
 	section.total_arcs = 2;
 	section.arcs_in_signalling_block_section[0].endNode.X = splitKm;
 	section.arcs_in_signalling_block_section[1].startNode.X = splitKm;
@@ -3769,21 +3771,19 @@ void TestOperationsBuilder::brakingPhase() {
 	// The final ten metres change gradient; no fixture file or rolling stock is changed.
 	{
 		Section& last = nativeRoute.sequence_of_block_sections.back();
-		// index + 1 stays inside the 20 arcs of a section.
-		const int index = std::min(last.total_arcs, 19) - 1;
+		const int index = last.total_arcs - 1;
 		const Arc original = last.arcs_in_signalling_block_section[index];
 		// Upstream gradient fixture ends at 5000 metres.
 		QCOMPARE_EQ(original.endNode.X, 5.0);
-		QVERIFY(last.total_arcs < 20);
 		last.arcs_in_signalling_block_section[index].endNode.X = 4.99;
 		last.arcs_in_signalling_block_section[index].endNode.station = 0;
 		last.arcs_in_signalling_block_section[index].endNode.stationName = "None";
 		last.arcs_in_signalling_block_section[index].speedInBraking = native.max_train_speed;
-		last.arcs_in_signalling_block_section[index + 1] = original;
+		last.arcs_in_signalling_block_section.push_back(original);
+		++last.total_arcs;
 		last.arcs_in_signalling_block_section[index + 1].startNode.X = 4.99;
 		last.arcs_in_signalling_block_section[index + 1].gradient = 0.005;
 		last.arcs_in_signalling_block_section[index + 1].speedInBraking = 0;
-		++last.total_arcs;
 		for (int station = 0; station < native.numStations; ++station)
 			if (native.stationBlockSection[station] == nativeRoute.N_Block_Sections - 1 && native.stationArc[station] == index)
 				native.stationArc[station] = index + 1;
@@ -4598,6 +4598,7 @@ static std::vector<Section> boundarySections(int n) {
 		section.ID = "@boundary." + std::to_string(i) + "@";
 		section.start_node.X = 2.0 * i;
 		section.end_node.X = 2.0 * (i + 1);
+		section.arcs_in_signalling_block_section.resize(1);
 		section.total_arcs = 1;
 		section.arcs_in_signalling_block_section[0].speedLimit = 36.111111111111;
 	}

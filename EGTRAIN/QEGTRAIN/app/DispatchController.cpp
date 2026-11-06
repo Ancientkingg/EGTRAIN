@@ -122,9 +122,7 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 		}
 
 		if (guiTrainPublishesOccupiedArcs(state)) {
-			const int arcCount = std::min(train.Bs.total_arcs,
-				static_cast<int>(sizeof(train.Bs.arcs_in_signalling_block_section)
-					/ sizeof(train.Bs.arcs_in_signalling_block_section[0])));
+			const int arcCount = std::min(train.Bs.total_arcs, static_cast<int>(train.Bs.arcs_in_signalling_block_section.size()));
 			for (int arc = 0; arc < arcCount; ++arc) {
 				state.occupiedArcs.push_back({train.Bs.trackLineId,
 					train.Bs.arcs_in_signalling_block_section[arc].startNode.X});
