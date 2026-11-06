@@ -57,7 +57,7 @@ option(EGTRAIN_ISOLATED_TELEMETRY_SMOKE "Enable isolated numeric-loopback applic
 if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE AND (NOT EGTRAIN_BUILD_TESTS OR NOT EGTRAIN_PACKAGED_BUILD))
     message(FATAL_ERROR "Isolated telemetry smoke requires EGTRAIN_BUILD_TESTS and EGTRAIN_PACKAGED_BUILD")
 endif()
-set(EGTRAIN_TELEMETRY_URL "" CACHE STRING "Exact compiled HTTPS telemetry receiver URL")
+set(EGTRAIN_TELEMETRY_URL "https://egtrain.samuelbruin.com/api/telemetry/v1" CACHE STRING "Exact compiled HTTPS telemetry receiver URL")
 if(EGTRAIN_TELEMETRY_URL MATCHES "[\"\\\\;]")
     message(FATAL_ERROR "EGTRAIN_TELEMETRY_URL contains unsupported characters")
 endif()

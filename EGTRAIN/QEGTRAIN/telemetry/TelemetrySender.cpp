@@ -549,6 +549,7 @@ public:
 			if (!authorized(i, selectedStamp, selectedEpoch)) return;
 			HttpRequest request;
 			request.url = QUrl(s->context.endpoint);
+			request.userAgent = QStringLiteral("EGTRAIN/%1").arg(s->application.version).toUtf8();
 			request.contentType = QByteArrayLiteral("application/json; charset=utf-8");
 			request.body = active.bytes;
 #ifdef EGTRAIN_SENDER_TEST_HOOK

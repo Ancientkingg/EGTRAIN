@@ -4,16 +4,28 @@
 
 #include <QApplication>
 #include <QCheckBox>
+#include <QDesktopServices>
 #include <QFile>
 #include <QLabel>
 #include <QLockFile>
 #include <QPushButton>
 #include <QProcess>
+#include <QRegularExpression>
+#include <QScopeGuard>
 #include <QSettings>
 #include <QTemporaryDir>
 #include <QTest>
 #include <QUrl>
 #include <memory>
+
+// Takes the https addresses that the dialog opens, in place of a browser.
+class UrlReceiver : public QObject {
+	Q_OBJECT
+public:
+	QList<QUrl> opened;
+public slots:
+	void receive(const QUrl& url) { opened.append(url); }
+};
 
 class TestTelemetryConsent : public QObject {
 	Q_OBJECT
@@ -24,6 +36,7 @@ private slots:
 	void savesEveryCombination();
 	void dismissalPersistsDisabled_data();
 	void dismissalPersistsDisabled();
+	void linksPrivacyNotice();
 	void revocationClearsSinks();
 	void concurrentChangesClearOldReports();
 	void overlappingWriterAndLock();
@@ -127,6 +140,48 @@ void TestTelemetryConsent::dismissalPersistsDisabled() {
 	QVERIFY(!consent.usageEnabled());
 	QVERIFY(!consent.diagnosticsEnabled());
 	QVERIFY(consent.usageInstallationId().isEmpty());
+}
+
+// The dialog links the privacy notice of the EGTRAIN website. The link opens it in the browser, or shows its address when
+// the browser cannot open it, and changes no choice.
+void TestTelemetryConsent::linksPrivacyNotice() {
+	QSettings settings(consentFile(), QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	TelemetryConsentDialog dialog(consent, m_context.domain(), true);
+	const QUrl notice(QStringLiteral("https://egtrain.samuelbruin.com/privacy/"));
+	auto* link = dialog.findChild<QPushButton*>(QStringLiteral("telemetryPrivacyNotice"));
+	if (link == nullptr)
+		QFAIL("the dialog has no link to the privacy notice");
+	QCOMPARE(link->text(), QStringLiteral("Privacy notice"));
+	// The link has the address of the notice as tooltip and description.
+	QCOMPARE(link->toolTip(), notice.toString());
+	QCOMPARE(link->accessibleDescription(), notice.toString());
+	for (const auto* label : dialog.findChildren<QLabel*>())
+		QVERIFY2(!label->text().contains(QStringLiteral("No privacy notice")), "the dialog says that no notice is supplied");
+
+	UrlReceiver receiver;
+	QDesktopServices::setUrlHandler(QStringLiteral("https"), &receiver, "receive");
+	const auto restore = qScopeGuard([] { QDesktopServices::unsetUrlHandler(QStringLiteral("https")); });
+	link->click();
+	// The link opens the notice.
+	QCOMPARE(receiver.opened, QList<QUrl>{notice});
+	auto* status = dialog.findChild<QLabel*>(QStringLiteral("telemetryConsentStatus"));
+	if (status == nullptr)
+		QFAIL("the dialog has no status label");
+	QVERIFY(status->isHidden());
+
+	// A handler without the method fails the call, as a missing browser does.
+	QObject broken;
+	QDesktopServices::setUrlHandler(QStringLiteral("https"), &broken, "missingMethod");
+	QTest::ignoreMessage(QtWarningMsg, QRegularExpression(QStringLiteral("No such method")));
+	link->click();
+	// A link that does not open shows its address.
+	QVERIFY(!status->isHidden());
+	QVERIFY(status->text().contains(notice.toString()));
+	// The link changes no choice.
+	QVERIFY(consent.promptRequired());
+	QVERIFY(!consent.usageEnabled());
+	QVERIFY(!consent.diagnosticsEnabled());
 }
 
 void TestTelemetryConsent::revocationClearsSinks() {

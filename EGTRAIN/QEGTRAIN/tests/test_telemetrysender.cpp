@@ -1073,6 +1073,8 @@ void TestTelemetrySender::outcomes() {
 	options.post = [&](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray& bytes) {
 		RECORD_VERIFY(++calls == 1);
 		RECORD_VERIFY(bytes.size() <= 65536);
+		// The post names EGTRAIN and the version of the batch, so that a proxy in front of the receiver can tell it.
+		RECORD_VERIFY(request.rawHeader("User-Agent") == QByteArrayLiteral("EGTRAIN/1.2.3"));
 		RECORD_VERIFY(request.attribute(QNetworkRequest::RedirectPolicyAttribute).toInt() == QNetworkRequest::ManualRedirectPolicy);
 		RECORD_VERIFY(request.attribute(QNetworkRequest::CookieLoadControlAttribute).toInt() == QNetworkRequest::Manual);
 		RECORD_VERIFY(request.attribute(QNetworkRequest::CookieSaveControlAttribute).toInt() == QNetworkRequest::Manual);
