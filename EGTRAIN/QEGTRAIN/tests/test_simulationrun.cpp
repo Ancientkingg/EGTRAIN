@@ -244,8 +244,21 @@ struct Outcome {
 	bool adopted = false;
 	// The snapshot of the last step that the controller published.
 	std::shared_ptr<const GuiSimulationSnapshot> lastSnapshot;
+	// The branch of each step of each train, kept when the snapshot of the step is published; -1 for a step without one.
+	std::vector<std::vector<int>> stepBranches;
 	Files files;
 };
+
+// Keeps in branches the branch that each train of run took in step `step`.
+void recordStepBranches(const SimulationRun& run, int step, std::vector<std::vector<int>>& branches) {
+	branches.resize(run.trains.size());
+	for (std::size_t i = 0; i < run.trains.size(); ++i) {
+		std::vector<int>& train = branches[i];
+		if (train.size() <= static_cast<std::size_t>(step))
+			train.resize(static_cast<std::size_t>(step) + 1, -1);
+		train[static_cast<std::size_t>(step)] = run.trains[i].stepBranch;
+	}
+}
 
 // Reads the files below root, except Computing_Times.txt, whose wall-clock timings differ between any two runs.
 Files readFiles(const std::filesystem::path& root) {
@@ -309,8 +322,10 @@ Outcome runScene(const RunSetup& setup) {
 	QObject context;
 	QObject::connect(&simulation, &DispatchController::snapshotAvailable, &context, [&] {
 		// The mailbox only emits again once the snapshot has been taken.
-		if (const auto snapshot = simulation.takeSimulationSnapshot())
+		if (const auto snapshot = simulation.takeSimulationSnapshot()) {
 			outcome.lastSnapshot = snapshot;
+			recordStepBranches(simulation.run(), snapshot->timestep, outcome.stepBranches);
+		}
 		if (++snapshots == setup.stopAtSnapshot)
 			simulation.runControl()->requestStop(); }, Qt::DirectConnection);
 	simulation.runSimulation();
@@ -666,8 +681,11 @@ void TestSimulationRun::stepsRunWithoutController() {
 	QCOMPARE_EQ(other->settings.times, controlled.settings.times);
 	QVERIFY(other->settings.PAX_GUI);
 	TrainMovementOrder order(*other);
-	for (int t = 0; t < other->settings.times; ++t)
+	std::vector<std::vector<int>> stepBranches;
+	for (int t = 0; t < other->settings.times; ++t) {
 		runSimulationStep(*other, t, order);
+		recordStepBranches(*other, t, stepBranches);
+	}
 
 	// Every train moves as in the run of the controller, and the run ends with the trains out of the network.
 	QCOMPARE(other->numTrains, controlled.numTrains);
@@ -679,7 +697,8 @@ void TestSimulationRun::stepsRunWithoutController() {
 		QCOMPARE(actual.trainDescription, expected.trainDescription);
 		QVERIFY2(actual.instant_spatial_position == expected.instant_spatial_position, (label + ": positions").c_str());
 		QVERIFY2(actual.instant_train_speed == expected.instant_train_speed, (label + ": speeds").c_str());
-		QVERIFY2(actual.Eq == expected.Eq, (label + ": branches of the steps").c_str());
+		QVERIFY2(stepBranches[static_cast<std::size_t>(i)] == reference.stepBranches[static_cast<std::size_t>(i)],
+			(label + ": branches of the steps").c_str());
 		QCOMPARE(actual.End_Time, expected.End_Time);
 		QCOMPARE(actual.OutOfSimulation, expected.OutOfSimulation);
 		QCOMPARE(actual.Current_OnBoard_Passengers, expected.Current_OnBoard_Passengers);

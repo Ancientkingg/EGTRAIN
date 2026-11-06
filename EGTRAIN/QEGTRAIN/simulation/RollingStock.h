@@ -187,7 +187,7 @@ inline bool isPastStopHoldback(double position, double stoppingPoint) {
 }
 
 /// The branch of Train::trajectoryComputationIncludingMovingBlock, or of the braking step that it calls, that produced the sample
-/// of a step. Train::Eq holds the number of each value, and the numbers do not change.
+/// of a step. Train::stepBranch holds the number of the value of the current step, and the numbers do not change.
 enum class TrajectoryBranch : int {
 	None = 0,				///< No branch: a step before the train enters, and from End_Time + 2 on.
 	Accelerate = 1,			///< Accelerates towards the speed limit.
@@ -439,11 +439,11 @@ public:
 	MovementAuthority Last_Received_MA;			  ///< Last movement authority applied to the train.
 	MovementAuthority Last_MA_StoppedAt;		  ///< Last movement authority the train has stopped at.
 	MovementAuthority Predicted_MA_To_DecoupleAt; ///< Authority where the train is predicted to decouple from the train ahead.
-	/// The branch of the step that produced each sample, as the number of its TrajectoryBranch; 0 (TrajectoryBranch::None) on other
-	/// steps before entry and from End_Time + 2 on.
-	std::vector<int> Eq;
-	/// Sets Eq[time_seconds] to the number of branch.
-	void setStepBranch(int time_seconds, TrajectoryBranch branch) { Eq[time_seconds] = static_cast<int>(branch); }
+	/// The branch that the current step took, as the number of its TrajectoryBranch; 0 (TrajectoryBranch::None) until it takes one.
+	/// Each step starts at 0.
+	int stepBranch = 0;
+	/// Sets stepBranch to the number of branch.
+	void setStepBranch(TrajectoryBranch branch) { stepBranch = static_cast<int>(branch); }
 	int RunStartTime;			///< Step before the first step with a speed above 0 (Det_Run_Start_Time); 0 until computed.
 	BlockingTimeList BlockTime; ///< Blocking times of the train, N_BlockSections of them, which the stage after the steps computes.
 	int N_BlockSections;		///< Number of entries of BlockTime.
@@ -747,7 +747,7 @@ public:
 	/// is recorded as a direct incident.
 	double effectiveIncidentSpeedLimit(double candidate, int timestepIndex);
 
-	/// Computes step time_seconds of the train from step time_seconds - 1; Eq[time_seconds] labels the branch taken. signalCode1,
+	/// Computes step time_seconds of the train from step time_seconds - 1; stepBranch labels the branch taken. signalCode1,
 	/// signalCode2 and signalCode3 are not read. It first moves the target that the call before kept (currentXob and currentVob) to
 	/// previousXob and previousVob, so each call is for the step after that of the call before.
 	void trajectoryComputationIncludingMovingBlock(int time_seconds, double signalCode1, double signalCode2, double signalCode3);
@@ -903,7 +903,7 @@ public:
 		earliestActiveTrajectoryIndex = recordEarliestTrajectoryIndex(earliestActiveTrajectoryIndex, index, CanEnter);
 	}
 
-	/// Sizes every per-step vector to vec_size samples of 0, sets the kept targets to 0 and sets End_Time to the last step.
+	/// Sizes every per-step vector to vec_size samples of 0, sets the kept targets and stepBranch to 0 and sets End_Time to the last step.
 	void setTrainVectorSizesFromInput(int vec_size);
 };
 

@@ -335,10 +335,11 @@ const MovementAuthority* Train::currentFollowingAuthority(double head, double& l
 }
 
 void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double signalCode1, double signalCode2, double signalCode3) {
-	// The target that the step before kept, and none yet of this step
+	// The target that the step before kept, and no target or branch yet of this step
 	previousXob = currentXob;
 	previousVob = currentVob;
 	currentXob = currentVob = 0;
+	stepBranch = static_cast<int>(TrajectoryBranch::None);
 	if (OutOfSimulation == 0) {
 		if (time_seconds == 0) {
 			CanEnter = false;
@@ -361,7 +362,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 			instant_train_power_consumption[time_seconds] = 0;
 			instant_train_tractive_effort[time_seconds] = 0;
 			train_energy_consumption(time_seconds);
-			setStepBranch(time_seconds, TrajectoryBranch::BreakdownHold);
+			setStepBranch(TrajectoryBranch::BreakdownHold);
 			return;
 		}
 
@@ -438,7 +439,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				instant_train_speed[time_seconds] = candidateSpeed;
 				instant_spatial_position[time_seconds] = candidateHead;
 
-				setStepBranch(time_seconds, TrajectoryBranch::Accelerate);
+				setStepBranch(TrajectoryBranch::Accelerate);
 				instant_train_tractive_effort[time_seconds] = tractiveEffort(instant_train_speed[time_seconds - 1]);
 				instant_train_power_consumption[time_seconds] = instant_train_tractive_effort[time_seconds] * instant_train_speed[time_seconds - 1];
 				train_energy_consumption(time_seconds);
@@ -463,7 +464,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 					brakingStep(time_seconds, As, run_->infra.routes[indexOfRoute].sequence_of_block_sections.data(),
 						run_->infra.routes[indexOfRoute].N_Block_Sections);
 
-				if (Eq[time_seconds] == static_cast<int>(TrajectoryBranch::FullBraking)) {
+				if (stepBranch == static_cast<int>(TrajectoryBranch::FullBraking)) {
 					instant_train_tractive_effort[time_seconds] =
 						-(brakingEffort((time_seconds - temp - 1) * timestep)
 							+ gradient_resistances(As.gradient)
@@ -491,7 +492,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				const double cruisingEffort = total_train_resistances(speed, As.gradient, As.curvature);
 				instant_train_tractive_effort[time_seconds] = cruisingEffort;
 				instant_train_power_consumption[time_seconds] = cruisingEffort * speed;
-				setStepBranch(time_seconds, TrajectoryBranch::Cruise);
+				setStepBranch(TrajectoryBranch::Cruise);
 				train_energy_consumption(time_seconds);
 				temp = time_seconds;
 				stop = time_seconds;
@@ -540,7 +541,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 						temp = time_seconds;
 						stop = time_seconds;
 						counter = 0;
-						setStepBranch(time_seconds, TrajectoryBranch::FollowLeader);
+						setStepBranch(TrajectoryBranch::FollowLeader);
 					}
 				}
 			}
@@ -742,14 +743,14 @@ void Train::standingTrainStep(int time_seconds, const Arc& As, double head, bool
 
 
 		if ((Cond_To_Stop_Train == 0) && (authorityHold == 0)) { // the checkpoint Node can coincide with an ETCS3 EoA, that is why the train can depart from this Node only after having verified that the checkpoint does not coincide with an ETCS3 EoA or that the EoA has been deleted
-			setStepBranch(time_seconds, TrajectoryBranch::LeaveTrainOrder);
+			setStepBranch(TrajectoryBranch::LeaveTrainOrder);
 			instant_train_speed[time_seconds] = kRestartSpeedMs;
 			instant_spatial_position[time_seconds] = As.endNode.X * 1000 + kRestartOffsetM;
 			BrakingForEoA = false; // setting back to false BrakingForEoa since the train starts to move again
 		}
 		// otherwise it has to be stopped
 		else {
-			setStepBranch(time_seconds, TrajectoryBranch::HoldAtTrainOrder);
+			setStepBranch(TrajectoryBranch::HoldAtTrainOrder);
 			instant_train_speed[time_seconds] = 0;
 			instant_spatial_position[time_seconds] = authorityHold ? head : As.endNode.X * 1000 - kStopHoldbackM;
 		}
@@ -761,7 +762,7 @@ void Train::standingTrainStep(int time_seconds, const Arc& As, double head, bool
 
 	// Stopping at a Red Signal
 	else if (As.endNode.X * 1000 - instant_spatial_position[time_seconds - 1] < kAtPointM) {
-		setStepBranch(time_seconds, TrajectoryBranch::AtSignal);
+		setStepBranch(TrajectoryBranch::AtSignal);
 
 		// also a signal can coincide with an ETCS3 EoA, that is why a train must stop at the signal also if this not red but and ETCS 3 EoA exists
 		if ((Bs.state == SignalState::Red) || (authorityHold == 1)) {
@@ -781,7 +782,7 @@ void Train::standingTrainStep(int time_seconds, const Arc& As, double head, bool
 	else if (this->IsTrainStoppedForEoA == 1) {
 		instant_train_speed[time_seconds] = 0;
 		instant_spatial_position[time_seconds] = head;
-		setStepBranch(time_seconds, TrajectoryBranch::HoldAtAuthority);
+		setStepBranch(TrajectoryBranch::HoldAtAuthority);
 		instant_train_power_consumption[time_seconds] = 0;
 		instant_train_tractive_effort[time_seconds] = 0;
 		train_energy_consumption(time_seconds);
@@ -791,7 +792,7 @@ void Train::standingTrainStep(int time_seconds, const Arc& As, double head, bool
 	// if the speed limit on the Arc is 0: this case happens only when the BACC is implemented
 	if (V_lim == 0) {
 		counter = 0;
-		setStepBranch(time_seconds, TrajectoryBranch::ZeroSpeedLimit);
+		setStepBranch(TrajectoryBranch::ZeroSpeedLimit);
 		instant_train_speed[time_seconds] = 0;
 		instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1];
 		instant_train_power_consumption[time_seconds] = 0;
@@ -803,7 +804,7 @@ void Train::standingTrainStep(int time_seconds, const Arc& As, double head, bool
 
 void Train::serviceStopStep(int time_seconds, const Arc& As, double head, bool authorityHold) {
 	this->StoppedForServiceStop = true; // Stating that the train is stopping at a station to perform a service stop
-	setStepBranch(time_seconds, TrajectoryBranch::ServiceStop);
+	setStepBranch(TrajectoryBranch::ServiceStop);
 	double stoptime = 0;
 	double dep_time = 0;
 	counter = 0;

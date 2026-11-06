@@ -665,7 +665,7 @@ void Train::setTrainVectorSizesFromInput(int vec_size) {
 	instant_train_energy_consumption = std::vector<double>(vec_size, 0);
 	BX = std::vector<double>(vec_size, 0);
 	previousXob = previousVob = currentXob = currentVob = 0;
-	Eq = std::vector<int>(vec_size, 0);
+	stepBranch = 0;
 
 	// previously on train class constructor (there won't work because size of vector is zero until user sets length of simulation and constructor is called before that)
 	instant_train_energy_consumption[0] = 0;
