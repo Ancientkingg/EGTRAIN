@@ -136,8 +136,8 @@ the direction and the place of the head, as in `Proceed, facing right` over
 A completed run without incidents or entrance delays can be frozen with **Set
 delay baseline**. The results panel confirms the completed run identity and
 places the next action or disabled reason beside the baseline controls.
-Selecting another scenario keeps the baseline, discards the results and closes
-the dock **Run Results**. Opened again from the menu **View**, the dock reads
+Selecting another scenario keeps the baseline, discards the results, closes
+the dock **Run Results** and shows the case on the network view without the run. Opened again from the menu **View**, the dock reads
 `No results yet` and `Baseline: <case> / <scenario>`. An edit of the case clears the
 baseline, and the line then reads `Baseline cleared: the case changed`; **File > New Case...**
 gives `Baseline cleared: a new case was created` and opening another case gives
