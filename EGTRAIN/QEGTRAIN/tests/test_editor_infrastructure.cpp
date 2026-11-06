@@ -331,6 +331,7 @@ private slots:
 	void canvasItemWithoutRowChangesNothing();
 	void takesOpenEditorBeforeCanvasItem();
 	void scrollsToCanvasRowInWindow();
+	void keepsWidthForEveryKind();
 };
 
 // The facets, the combo and a panel without a scene.
@@ -1667,6 +1668,20 @@ void TestInfrastructurePanel::scrollsToCanvasRowInWindow() {
 	const QRect row = table->visualItemRect(table->item(13, 0));
 	QVERIFY2(table->viewport()->rect().contains(row),
 		qPrintable(QStringLiteral("row at %1 to %2 of a viewport %3 high").arg(row.top()).arg(row.bottom()).arg(table->viewport()->height())));
+}
+
+// The panel needs the same width for every kind, so that the dock keeps its width when the kind changes.
+void TestInfrastructurePanel::keepsWidthForEveryKind() {
+	PaimpolWindow f;
+	std::vector<std::pair<QString, int>> widths;
+	for (const QString& key : InfrastructurePanel::facetKeys()) {
+		f.panel->facetCombo()->setCurrentIndex(f.panel->facetCombo()->findData(key));
+		PaimpolWindow::settle();
+		widths.emplace_back(key, f.panel->minimumSizeHint().width());
+	}
+	QCOMPARE(widths.size(), std::size_t(13));
+	for (const auto& [key, width] : widths)
+		QVERIFY2(width == widths.front().second, qPrintable(QStringLiteral("%1 is %2 wide, tracks %3").arg(key).arg(width).arg(widths.front().second)));
 }
 
 QTEST_MAIN(TestInfrastructurePanel)

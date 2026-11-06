@@ -605,17 +605,15 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			const QRectF visible = w.networkView->mapToScene(w.networkView->viewport()->rect()).boundingRect();
 			return visible.adjusted(visible.width() / 4, visible.height() / 4, -visible.width() / 4, -visible.height() / 4);
 		};
-		// The preview of the case, which the checks above replaced by one of a copy, zoomed in, with the dock shown. Drawing
-		// it hid the Details dock, which a first click shows again, and that makes the view smaller. The dock is as wide as
-		// the controls of Blocks need: a narrower one widens for them, as when Blocks is chosen in its list, and narrows
-		// the view.
+		// The preview of the case, which the checks above replaced by one of a copy, zoomed in, with the dock shown at the
+		// width that the window gives it. Drawing the preview hid the Details dock, which a first click shows again, and
+		// that makes the view smaller.
 		const bool dockShown = dock->isVisible();
 		const QSize windowSize = w.size();
 		w.resize(1280, 800);
 		dock->show();
 		dock->raise();
 		QApplication::processEvents();
-		w.resizeDocks({dock}, {400}, Qt::Horizontal);
 		w.renderTrackPreview(w.m_document->model());
 		w.networkView->zoomBy(2.0);
 		QApplication::processEvents();

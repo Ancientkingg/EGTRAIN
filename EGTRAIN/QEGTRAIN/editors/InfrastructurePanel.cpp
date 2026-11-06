@@ -13,6 +13,7 @@
 #include <QPushButton>
 #include <QScopedValueRollback>
 #include <QSignalBlocker>
+#include <QSizePolicy>
 #include <QSplitter>
 #include <QStyledItemDelegate>
 #include <QVBoxLayout>
@@ -444,6 +445,13 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	actions->addWidget(m_moveBlockDownButton);
 	actions->addStretch();
 	tableLayout->addLayout(actions);
+	// The buttons of blocks keep their room while another kind hides them. They make the widest controls of any kind, so
+	// the panel is as wide for every kind, and the dock and the canvas beside it keep their width when the kind changes.
+	for (QPushButton* button : {m_insertBlockButton, m_moveBlockUpButton, m_moveBlockDownButton}) {
+		QSizePolicy policy = button->sizePolicy();
+		policy.setRetainSizeWhenHidden(true);
+		button->setSizePolicy(policy);
+	}
 
 	m_routeSectionDetailWidget = new QWidget(splitter);
 	m_routeSectionDetailWidget->setObjectName("routeSectionDetailWidget");
