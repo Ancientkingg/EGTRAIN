@@ -20,14 +20,17 @@ if tags.has("manual"):
     suppress_warnings += ["toc.not_readable"]
 
 # Pages link to the published C++ reference, so that the links also work on GitHub. In the site they
-# point to the reference that the docs target builds next to the pages, which opens from disk.
-API_URL = "https://ancientkingg.github.io/EGTRAIN/latest/api/"
+# point to the reference that the docs target builds next to the pages, which opens from disk. Some pages
+# still link the reference on GitHub Pages, which publishes the same site.
+API_URLS = ("https://egtrain.samuelbruin.com/latest/api/", "https://ancientkingg.github.io/EGTRAIN/latest/api/")
 
 
 def link_local_api(app, doctree, docname):
     for node in doctree.findall(nodes.reference):
-        if node.get("refuri", "").startswith(API_URL):
-            node["refuri"] = "../" * docname.count("/") + "api/" + node["refuri"][len(API_URL) :]
+        refuri = node.get("refuri", "")
+        for prefix in API_URLS:
+            if refuri.startswith(prefix):
+                node["refuri"] = "../" * docname.count("/") + "api/" + refuri[len(prefix) :]
 
 
 def drop_developer_contents(app, docname, source):

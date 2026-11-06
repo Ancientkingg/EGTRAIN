@@ -1,6 +1,6 @@
 # Bundled cases
 
-The application packages contain six bundled cases, and the releases page offers each as an `.egscene` file. This page lists them with their size.
+The application packages contain six bundled cases, and the [EGTRAIN website](https://egtrain.samuelbruin.com/#cases) offers each as an `.egscene` file. This page lists them with their size.
 
 | Case | Release file | Tracks | Stations | Services | Note |
 | --- | --- | ---: | ---: | ---: | --- |

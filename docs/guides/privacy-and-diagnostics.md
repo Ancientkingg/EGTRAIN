@@ -4,7 +4,7 @@ This page says what EGTRAIN can send about its use and its errors, when it sends
 
 ## When anything is sent
 
-EGTRAIN sends usage statistics and diagnostic reports only to a receiver whose exact HTTPS address is built into the program, and only after you agree. No receiver is configured today, so EGTRAIN sends nothing. Development builds and runs without a window, such as headless runs, tests and automation, never send anything, whatever the saved choices are.
+EGTRAIN sends usage statistics and diagnostic reports only to a receiver whose exact HTTPS address is built into the program, and only after you agree. The release packages have the receiver `https://egtrain.samuelbruin.com/api/telemetry/v1`. A build from source has no receiver unless it is configured with one, so it sends nothing. Development builds and runs without a window, such as headless runs, tests and automation, never send anything, whatever the saved choices are.
 
 When nothing can be sent, **Help > Privacy & diagnostics...** says `Usage statistics and diagnostics are unavailable in this build or run. Nothing is collected or sent.`
 
@@ -24,7 +24,7 @@ Usage events carry a random installation ID. It counts installations that take p
 
 **Share diagnostic reports** sends one event when opening a case, a run or an export fails, with the kind of failure: invalid input, unsupported format, a file failure or an internal failure. Diagnostic events carry no installation ID and are sent separately from usage events.
 
-Neither choice sends text from your cases, file names, paths, simulation input, logs, error messages, crash dumps, an email address or a device identifier. The receiver can see the IP address of your network. Events that cannot be sent wait on your computer for at most seven days.
+Neither choice sends text from your cases, file names, paths, simulation input, logs, error messages, crash dumps, an email address or a device identifier. The receiver can see the IP address of your network. The [privacy page](https://egtrain.samuelbruin.com/privacy/) of the website says what the receiver and the server keep and for how long. Events that cannot be sent wait on your computer for at most seven days.
 
 The recovery copies that EGTRAIN keeps of unsaved edits stay on your computer and are never sent.
 
@@ -33,4 +33,4 @@ The recovery copies that EGTRAIN keeps of unsaved edits stay on your computer an
 1. Choose **Help > Privacy & diagnostics...**. The dialog shows your saved choices.
 2. Untick **Share usage statistics**, **Share diagnostic reports** or both, and click **Save choices**.
 
-Closing the dialog without saving keeps the saved choices. In a build without a receiver, as today, **Help > Privacy & diagnostics...** shows only the sentence of [When anything is sent](#when-anything-is-sent), and there is nothing to switch off. Events that were sent already cannot be recalled. EGTRAIN supplies no privacy notice yet.
+Closing the dialog without saving keeps the saved choices. In a build without a receiver, such as a build from source, **Help > Privacy & diagnostics...** shows only the sentence of [When anything is sent](#when-anything-is-sent), and there is nothing to switch off. Events that were sent already cannot be recalled.
