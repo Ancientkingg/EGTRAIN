@@ -87,11 +87,12 @@ bundle reader. `unpackSceneBundle` performs the same validation and structural
 load before publishing an extracted directory. The destination must not already
 exist, so unpacking cannot replace unrelated files.
 
-`saveSceneBundle` first calls the existing `saveScene` in a temporary
-directory. It adds only the bundle marker and version to that temporary
-`scene.json`, then writes sorted entries with fixed compression and zero ZIP
-timestamps. Source model values are not mutated. The archive is written to a
-sibling staging file and atomically published. An existing regular bundle is
+`saveSceneBundle` first writes the scene files into a temporary directory and
+loads them back, as `saveScene` does in its staging folder. It adds only the
+bundle marker and version to that temporary `scene.json`, then writes sorted
+entries with fixed compression and zero ZIP timestamps. Source model values are
+not mutated. The archive is written to a sibling staging file, flushed to disk
+and atomically published. An existing regular bundle is
 replaced by the same atomic operation, so a failed publication leaves the old
 path intact. Generated outputs and legacy files are never included.
 
