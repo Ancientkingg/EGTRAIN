@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_http_reply.html" target="_top" xlink:title="The response of one request. A redirect of a get() is followed, but never from https to http.">
+<g id="a_Node000003"><a xlink:href="class_http_reply.html" target="_top" xlink:title="The response of one request. A redirect is never followed: its reply is the reply of the request,...">
 <polygon fill="white" stroke="#666666" points="232.12,-96.25 167.38,-96.25 167.38,-75.5 232.12,-75.5 232.12,-96.25"/>
 <text xml:space="preserve" text-anchor="middle" x="199.75" y="-82.75" font-family="Helvetica,sans-Serif" font-size="10.00">HttpReply</text>
 </a>

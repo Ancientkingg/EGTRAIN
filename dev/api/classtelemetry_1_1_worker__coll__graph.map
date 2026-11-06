@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="203,207,340,234"/>
 <area shape="rect" id="Node000002" href="$classtelemetry_1_1_telemetry_queue.html" title=" " alt="" coords="5,106,205,134"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,139,252,205,247,207,139,144"/>
-<area shape="rect" id="Node000003" href="$class_http_reply.html" title="The response of one request. A redirect of a get() is followed, but never from https to http." alt="" coords="228,106,315,134"/>
+<area shape="rect" id="Node000003" href="$class_http_reply.html" title="The response of one request. A redirect is never followed: its reply is the reply of the request,..." alt="" coords="228,106,315,134"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="274,148,274,207,269,205,270,151"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="235,5,308,33"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="273,47,274,106,269,104,270,51"/>

@@ -16,14 +16,14 @@
 <area shape="poly" id="edge18_Node000001_Node000013" title=" " alt="" coords="116,278,165,302,221,326,246,336,241,337,219,331,162,307,116,283"/>
 <area shape="rect" id="Node000014" href="$class_http_reply.html#a6477173090a5907d88d42340d358511e" title="New bytes can be taken with readAll()." alt="" coords="239,393,402,421"/>
 <area shape="poly" id="edge19_Node000001_Node000014" title=" " alt="" coords="102,277,152,327,185,355,221,378,238,387,232,388,218,383,182,359,148,331,102,283"/>
-<area shape="rect" id="Node000015" href="$class_update_checker.html#a93fd2added1cd3bdf26be8c0b4ca2575" title="The release list of the GitHub API, at most 100 releases." alt="" coords="220,445,422,473"/>
+<area shape="rect" id="Node000015" href="$class_update_checker.html#a93fd2added1cd3bdf26be8c0b4ca2575" title="The release feed of the EGTRAIN website, https://egtrain.samuelbruin.com/releases/feed...." alt="" coords="220,445,422,473"/>
 <area shape="poly" id="edge20_Node000001_Node000015" title=" " alt="" coords="97,277,117,310,143,351,179,394,221,430,233,439,228,439,218,435,175,398,139,355,112,313,97,283"/>
 <area shape="rect" id="Node000016" href="$class_http_reply.html#a25c7e826839fcd45ef0c7b11195aaaed" title="The HTTP status code of the response, or 0 when no response arrived." alt="" coords="238,497,404,525"/>
 <area shape="poly" id="edge21_Node000001_Node000016" title=" " alt="" coords="94,278,111,320,136,375,173,433,196,460,221,482,231,491,225,490,218,487,192,463,169,436,132,378,106,322,94,283"/>
 <area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="281,289,275,280,280,271,295,265,321,263,348,265,364,274,359,274,347,270,321,268,297,270,283,275,280,280,286,289"/>
 <area shape="rect" id="Node000008" href="$_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" title="The version as &quot;X.Y.Z&quot;." alt="" coords="482,176,657,204"/>
 <area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="353,286,421,250,444,231,469,214,490,208,485,210,471,219,447,236,423,255,355,291"/>
-<area shape="rect" id="Node000009" href="$_release_info_8cpp.html#af5c1cef922b9bea6e866ea9782d31cb8" title=" " alt="" coords="470,252,669,280"/>
+<area shape="rect" id="Node000009" href="$_release_info_8cpp.html#aa9ac21e937c17aa82e73ee3b1f3d602c" title=" " alt="" coords="470,252,669,280"/>
 <area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="416,286,461,282,456,283,417,291"/>
 <area shape="rect" id="Node000010" href="$_version_8cpp.html#a137f71e5b980c1049d67bc615992834b" title=" " alt="" coords="510,328,630,356"/>
 <area shape="poly" id="edge12_Node000007_Node000010" title=" " alt="" coords="414,315,496,330,491,331,414,320"/>

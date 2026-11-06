@@ -4,7 +4,7 @@ var _release_info_8h =
     [ "StableRelease", "struct_stable_release.html", "struct_stable_release" ],
     [ "UpdateManifest", "struct_update_manifest.html", "struct_update_manifest" ],
     [ "formatSemanticVersion", "_release_info_8h.html#a284d503287f8e232b3bbbf652c4ee71d", null ],
-    [ "isExpectedReleaseAssetUrl", "_release_info_8h.html#af5c1cef922b9bea6e866ea9782d31cb8", null ],
+    [ "isExpectedReleaseAssetUrl", "_release_info_8h.html#a59af6fc82e1fb2fe8c4f2dca7077426b", null ],
     [ "isUpdateAssetName", "_release_info_8h.html#aa78620ca0576690ed8329f0a2c34e583", null ],
     [ "isUpdateAvailable", "_release_info_8h.html#a77451affe3b0bda8102ddfe15289a307", null ],
     [ "parseLatestStableRelease", "_release_info_8h.html#a9e6d811c2bfdda52f9d53527c2173848", null ],

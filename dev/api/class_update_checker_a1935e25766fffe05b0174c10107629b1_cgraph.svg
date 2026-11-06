@@ -164,7 +164,7 @@
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="class_update_checker.html#a93fd2added1cd3bdf26be8c0b4ca2575" target="_top" xlink:title="The release list of the GitHub API, at most 100 releases.">
+<g id="a_Node000015"><a xlink:href="class_update_checker.html#a93fd2added1cd3bdf26be8c0b4ca2575" target="_top" xlink:title="The release feed of the EGTRAIN website, https://egtrain.samuelbruin.com/releases/feed....">
 <polygon fill="white" stroke="#666666" points="312.5,-59.75 160.75,-59.75 160.75,-39 312.5,-39 312.5,-59.75"/>
 <text xml:space="preserve" text-anchor="middle" x="236.62" y="-46.25" font-family="Helvetica,sans-Serif" font-size="10.00">UpdateChecker::releasesUrl</text>
 </a>
@@ -227,7 +227,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="_release_info_8cpp.html#af5c1cef922b9bea6e866ea9782d31cb8" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="_release_info_8cpp.html#aa9ac21e937c17aa82e73ee3b1f3d602c" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="498,-204.75 348.5,-204.75 348.5,-184 498,-184 498,-204.75"/>
 <text xml:space="preserve" text-anchor="middle" x="423.25" y="-191.25" font-family="Helvetica,sans-Serif" font-size="10.00">isExpectedReleaseAssetUrl</text>
 </a>

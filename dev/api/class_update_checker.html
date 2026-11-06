@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_update_c
 </div><!--header-->
 <div class="contents">
 
-<p>Asks GitHub for the newest stable release.  
+<p>Asks the EGTRAIN website for the newest stable release.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_update_checker_8h_source.html">update/UpdateChecker.h</a>&gt;</code></p>
@@ -146,10 +146,10 @@ Public Member Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a93fd2added1cd3bdf26be8c0b4ca2575" id="r_a93fd2added1cd3bdf26be8c0b4ca2575"><td class="memItemLeft">static QUrl&#160;</td><td class="memItemRight"><a class="el" href="#a93fd2added1cd3bdf26be8c0b4ca2575">releasesUrl</a> ()</td></tr>
-<tr class="memdesc:a93fd2added1cd3bdf26be8c0b4ca2575"><td class="mdescLeft">&#160;</td><td class="mdescRight">The release list of the GitHub API, at most 100 releases.  <br /></td></tr>
+<tr class="memdesc:a93fd2added1cd3bdf26be8c0b4ca2575"><td class="mdescLeft">&#160;</td><td class="mdescRight">The release feed of the EGTRAIN website, <span class="tt"><a href="https://egtrain.samuelbruin.com/releases/feed.json">https://egtrain.samuelbruin.com/releases/feed.json</a></span>.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Asks GitHub for the newest stable release. </p>
+<div class="textblock"><p>Asks the EGTRAIN website for the newest stable release. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a157247da05f80aa2d62c377e50a51ac6" name="a157247da05f80aa2d62c377e50a51ac6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a157247da05f80aa2d62c377e50a51ac6">&#9670;&#160;</a></span>UpdateChecker() <span class="overload">[1/2]</span></h2>
@@ -226,7 +226,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Fetches <a class="el" href="#a93fd2added1cd3bdf26be8c0b4ca2575" title="The release list of the GitHub API, at most 100 releases.">releasesUrl()</a> and emits <a class="el" href="#aff7ad6ee2f6c676cc13133ef6cd2d939" title="The check started by check() ended.">finished()</a> once, also when the request fails, the release list is larger than 8 MiB or no data arrives for the timeout: from the start of the check, or from the last data that arrived. A check that is still running is cancelled without a result. </p>
+<p>Fetches <a class="el" href="#a93fd2added1cd3bdf26be8c0b4ca2575" title="The release feed of the EGTRAIN website, https://egtrain.samuelbruin.com/releases/feed....">releasesUrl()</a> and emits <a class="el" href="#aff7ad6ee2f6c676cc13133ef6cd2d939" title="The check started by check() ended.">finished()</a> once, also when the request fails, the answer is not 2xx (a redirect included), the release list is larger than 8 MiB or no data arrives for the timeout: from the start of the check, or from the last data that arrived. A check that is still running is cancelled without a result. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -312,7 +312,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>The release list of the GitHub API, at most 100 releases. </p>
+<p>The release feed of the EGTRAIN website, <span class="tt"><a href="https://egtrain.samuelbruin.com/releases/feed.json">https://egtrain.samuelbruin.com/releases/feed.json</a></span>. </p>
 
 </div>
 </div>

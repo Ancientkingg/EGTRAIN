@@ -92,7 +92,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_http_reply.html" target="_top" xlink:title="The response of one request. A redirect of a get() is followed, but never from https to http.">
+<g id="a_Node000005"><a xlink:href="class_http_reply.html" target="_top" xlink:title="The response of one request. A redirect is never followed: its reply is the reply of the request,...">
 <polygon fill="white" stroke="#666666" points="197.38,-761.75 132.62,-761.75 132.62,-741 197.38,-741 197.38,-761.75"/>
 <text xml:space="preserve" text-anchor="middle" x="165" y="-748.25" font-family="Helvetica,sans-Serif" font-size="10.00">HttpReply</text>
 </a>
@@ -380,7 +380,7 @@
 <!-- Node21 -->
 <g id="Node000021" class="node">
 <title>Node21</title>
-<g id="a_Node000021"><a xlink:href="class_update_checker.html" target="_top" xlink:title="Asks GitHub for the newest stable release.">
+<g id="a_Node000021"><a xlink:href="class_update_checker.html" target="_top" xlink:title="Asks the EGTRAIN website for the newest stable release.">
 <polygon fill="white" stroke="#666666" points="210.12,-137.75 119.88,-137.75 119.88,-117 210.12,-117 210.12,-137.75"/>
 <text xml:space="preserve" text-anchor="middle" x="165" y="-124.25" font-family="Helvetica,sans-Serif" font-size="10.00">UpdateChecker</text>
 </a>

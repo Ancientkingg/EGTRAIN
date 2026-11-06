@@ -644,17 +644,17 @@ and <code class="docutils literal notranslate"><span class="pre">leak</span> <sp
 </section>
 <section id="https-update-check">
 <h3>HTTPS update check<a class="headerlink" href="#https-update-check" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">test_updatetransport_https</span></code> (labels <code class="docutils literal notranslate"><span class="pre">integration</span></code> and <code class="docutils literal notranslate"><span class="pre">network</span></code>) makes one real GET of the GitHub release list
-through <code class="docutils literal notranslate"><span class="pre">createHttpTransport</span></code>, which is WinHTTP on Windows, and reads the answer with <code class="docutils literal notranslate"><span class="pre">parseLatestStableRelease</span></code>. It
+<p><code class="docutils literal notranslate"><span class="pre">test_updatetransport_https</span></code> (labels <code class="docutils literal notranslate"><span class="pre">integration</span></code> and <code class="docutils literal notranslate"><span class="pre">network</span></code>) makes one real GET of the release feed of the EGTRAIN
+website, <code class="docutils literal notranslate"><span class="pre">https://egtrain.samuelbruin.com/releases/feed.json</span></code>, through <code class="docutils literal notranslate"><span class="pre">createHttpTransport</span></code>, which is WinHTTP on Windows, and reads the answer with <code class="docutils literal notranslate"><span class="pre">parseLatestStableRelease</span></code>. It
 is registered only when the configuration asks for it (on Windows add <code class="docutils literal notranslate"><span class="pre">-C</span> <span class="pre">Release</span></code> to <code class="docutils literal notranslate"><span class="pre">ctest</span></code>):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build<span class="w"> </span>-DEGTRAIN_BUILD_TESTS<span class="o">=</span>ON<span class="w"> </span>-DEGTRAIN_NETWORK_TESTS<span class="o">=</span>ON
 ctest<span class="w"> </span>--test-dir<span class="w"> </span>build<span class="w"> </span>-L<span class="w"> </span>network<span class="w"> </span>--output-on-failure
 </pre></div>
 </div>
-<p>Its output starts with <code class="docutils literal notranslate"><span class="pre">PASS</span></code> (exit code 0: the release list was read), <code class="docutils literal notranslate"><span class="pre">SKIP</span></code> (77: GitHub answered with HTTP 403 or
-429, its rate limit, or with 5xx, an outage) or <code class="docutils literal notranslate"><span class="pre">FAIL</span></code> (1: no HTTP response within 45 s, another HTTP status, or a
-body that is not a release list). CTest shows a skip as skipped. The anonymous GitHub API allows 60 requests an hour
-for one address, and a run makes one. <code class="docutils literal notranslate"><span class="pre">test_updatetransport_https_cases</span></code> runs the same program against a server on
+<p>Its output starts with <code class="docutils literal notranslate"><span class="pre">PASS</span></code> (exit code 0: the release list was read), <code class="docutils literal notranslate"><span class="pre">SKIP</span></code> (77: the website answered with HTTP 403
+or 429, a rate limit or a challenge of its proxy, or with 5xx, an outage) or <code class="docutils literal notranslate"><span class="pre">FAIL</span></code> (1: no HTTP response within 45 s,
+another HTTP status, a redirect included, or a body that is not a release list). CTest shows a skip as skipped.
+<code class="docutils literal notranslate"><span class="pre">test_updatetransport_https_cases</span></code> runs the same program against a server on
 <code class="docutils literal notranslate"><span class="pre">127.0.0.1</span></code> and needs no internet. The Windows leg of the CMake workflow leaves the network tests out of its Test step
 (<code class="docutils literal notranslate"><span class="pre">-LE</span> <span class="pre">network</span></code>) and runs them in the step Check HTTPS (Windows), and the Windows package job runs the program from a
 copy of the package (<a class="reference internal" href="ci-and-release.html"><span class="std std-doc">CI and release</span></a>).</p>

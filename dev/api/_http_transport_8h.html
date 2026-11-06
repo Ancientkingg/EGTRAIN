@@ -133,7 +133,7 @@ This graph shows which files directly or indirectly include this file:</div>
 Classes</h2></td></tr>
 <tr class="memitem:HttpRequest" id="r_HttpRequest"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_http_request.html">HttpRequest</a></td></tr>
 <tr class="memitem:HttpReply" id="r_HttpReply"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_http_reply.html">HttpReply</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The response of one request. A redirect of a get() is followed, but never from https to http.  <a href="class_http_reply.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The response of one request. A redirect is never followed: its reply is the reply of the request, without an error.  <a href="class_http_reply.html#details">More...</a><br /></td></tr>
 <tr class="memitem:HttpTransport" id="r_HttpTransport"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_http_transport.html">HttpTransport</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends requests. A reply is a child of its transport; the caller releases it with deleteLater().  <a href="class_http_transport.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
