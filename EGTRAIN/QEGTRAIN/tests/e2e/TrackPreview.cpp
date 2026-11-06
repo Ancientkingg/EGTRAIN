@@ -727,6 +727,8 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 				QApplication::processEvents();
 				if (!dock->isVisible() || dock->visibleRegion().isEmpty() || !rowMatches(item) || !rowInView())
 					fail("infrastructure row", "Edit in Infrastructure does not show the row of the arc");
+				else if (!w.m_presenter->selectionMark() || !w.m_presenter->selectionMark()->isVisible())
+					fail("infrastructure row", "Edit in Infrastructure does not show the mark of the arc");
 				else if (!viewKeptWhenSmaller())
 					fail("infrastructure row", "Edit in Infrastructure moves or zooms the view");
 			}
