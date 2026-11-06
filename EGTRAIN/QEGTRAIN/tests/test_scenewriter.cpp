@@ -765,6 +765,9 @@ private slots:
 	void failedFlushKeepsCase();
 	void keepsBackupWhenParentFlushFails();
 	void savesReadOnlyOtherFile();
+	void flushesScenarioBeforeReplacing();
+	void failedScenarioFlushKeepsFile();
+	void warnsWhenScenarioFolderFlushFails();
 
 private:
 	TempDir m_temp;
@@ -2453,6 +2456,99 @@ void TestSceneWriter::savesReadOnlyOtherFile() {
 	printErrors(saved.diagnostics, "read-only file save");
 	QVERIFY(saved.success());
 	QVERIFY(readBytes(marker) == "marker\n");
+}
+
+// A scenario save flushes its temporary file to disk before it renames it over the old file, and the folder after it.
+void TestSceneWriter::flushesScenarioBeforeReplacing() {
+	TempDir temp;
+	const fs::path scenarioPath = temp.path / "scenario.json";
+	put(scenarioPath, "old scenario\n");
+	struct Flush {
+		fs::path path;
+		bool directory = false;
+		std::string flushed;  // The bytes of the flushed file.
+		std::string scenario; // The bytes of the scenario file at that moment.
+	};
+	std::vector<Flush> flushes;
+	syncToDiskHook() = [&flushes, &scenarioPath](const fs::path& path, bool directory) {
+		flushes.push_back({path.lexically_normal(), directory, directory ? std::string() : readBytes(path),
+			readBytes(scenarioPath)});
+		return std::error_code();
+	};
+	SceneSaveResult saved;
+	{
+		const auto unhook = qScopeGuard([] { syncToDiskHook() = nullptr; });
+		saved = saveScenarioJson(authoredScene().scenarios[0], scenarioPath.string());
+	}
+	printErrors(saved.diagnostics, "flushed scenario");
+	QVERIFY(saved.success());
+	const std::string written = readBytes(scenarioPath);
+	QVERIFY(written != "old scenario\n");
+	QCOMPARE(flushes.size(), std::size_t(2));
+	// First the temporary file beside the old one: it holds the new bytes, and the old file is unchanged.
+	QVERIFY(!flushes[0].directory);
+	QVERIFY(flushes[0].path.parent_path() == temp.path.lexically_normal());
+	QVERIFY(flushes[0].path.filename().u8string().rfind("scenario.json.tmp-", 0) == 0);
+	QVERIFY(flushes[0].flushed == written);
+	QVERIFY(flushes[0].scenario == "old scenario\n");
+	// Then the folder, once the new file is in place.
+	QVERIFY(flushes[1].directory && flushes[1].path == temp.path.lexically_normal());
+	QVERIFY(flushes[1].scenario == written);
+	QVERIFY((entryNames(temp.path) == std::set<std::string>{"scenario.json"}));
+}
+
+// A temporary scenario file that cannot be flushed to disk fails the save with the reason before the rename: the old
+// file keeps its bytes and the temporary file is removed.
+void TestSceneWriter::failedScenarioFlushKeepsFile() {
+	TempDir temp;
+	const fs::path scenarioPath = temp.path / "scenario.json";
+	put(scenarioPath, "old scenario\n");
+	const std::error_code failure = std::make_error_code(std::errc::io_error);
+	syncToDiskHook() = [failure](const fs::path&, bool directory) { return directory ? std::error_code() : failure; };
+	SceneSaveResult saved;
+	{
+		const auto unhook = qScopeGuard([] { syncToDiskHook() = nullptr; });
+		saved = saveScenarioJson(authoredScene().scenarios[0], scenarioPath.string());
+	}
+	const std::string expected = "Cannot flush scenario.json to disk: " + failure.message();
+	const bool reported = std::any_of(saved.diagnostics.begin(), saved.diagnostics.end(),
+		[&expected](const SceneDiagnostic& diagnostic) {
+			return diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.save.write"
+				&& diagnostic.file == "scenario.json" && diagnostic.message == expected;
+		});
+	// The save fails with the file and the reason.
+	QVERIFY(!saved.success());
+	QVERIFY(reported);
+	// The old file keeps every byte, and no temporary file is left.
+	QVERIFY(readBytes(scenarioPath) == "old scenario\n");
+	QVERIFY((entryNames(temp.path) == std::set<std::string>{"scenario.json"}));
+}
+
+// When the folder cannot be flushed after the rename, the new scenario file is in place and a warning gives the reason.
+void TestSceneWriter::warnsWhenScenarioFolderFlushFails() {
+	TempDir temp;
+	const fs::path scenarioPath = temp.path / "scenario.json";
+	put(scenarioPath, "old scenario\n");
+	const std::error_code failure = std::make_error_code(std::errc::io_error);
+	syncToDiskHook() = [failure](const fs::path&, bool directory) { return directory ? failure : std::error_code(); };
+	SceneSaveResult saved;
+	{
+		const auto unhook = qScopeGuard([] { syncToDiskHook() = nullptr; });
+		saved = saveScenarioJson(authoredScene().scenarios[0], scenarioPath.string());
+	}
+	printErrors(saved.diagnostics, "scenario folder flush");
+	const fs::path folder = temp.path.lexically_normal();
+	const bool warned = std::any_of(saved.diagnostics.begin(), saved.diagnostics.end(),
+		[&folder, failure](const SceneDiagnostic& diagnostic) {
+			return diagnostic.severity == SceneSeverity::Warning && diagnostic.code == "scene.save.cleanup"
+				&& fs::u8path(diagnostic.file).lexically_normal() == folder
+				&& diagnostic.message == "Cannot flush " + diagnostic.file + " to disk: " + failure.message();
+		});
+	// The save succeeds with the warning, and the file holds the new scenario.
+	QVERIFY(saved.success());
+	QVERIFY(warned);
+	QCOMPARE(loadScenarioJson(scenarioPath.string()).scenario.id, authoredScene().scenarios[0].id);
+	QVERIFY((entryNames(temp.path) == std::set<std::string>{"scenario.json"}));
 }
 
 QTEST_APPLESS_MAIN(TestSceneWriter)
