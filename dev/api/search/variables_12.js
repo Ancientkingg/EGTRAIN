@@ -238,5 +238,6 @@ var searchData=
   ['switchname_235',['SwitchName',['../class_infra_element.html#aa06b244a85e8f7ea6dcde478700ddeb6',1,'InfraElement::SwitchName'],['../class_blocking_times.html#a241592bbfda502d79d8ff43ed29429dd',1,'BlockingTimes::SwitchName']]],
   ['switchname_236',['switchName',['../struct_blocking_time_diagram_input.html#aa596106c5fda6c98f4294b3e1aff2ae1',1,'BlockingTimeDiagramInput']]],
   ['switchoff_237',['switchOff',['../struct_follow_availability.html#ab1689a40d885d8005bfa9a40669e7fa9',1,'FollowAvailability']]],
-  ['symbolrect_238',['symbolRect',['../struct_station_overlay_item_1_1_viewport_placement.html#a3462866d5b2e1abf287694b3cf3e9c3a',1,'StationOverlayItem::ViewportPlacement']]]
+  ['symbolrect_238',['symbolRect',['../struct_station_overlay_item_1_1_viewport_placement.html#a3462866d5b2e1abf287694b3cf3e9c3a',1,'StationOverlayItem::ViewportPlacement']]],
+  ['syncerror_239',['syncError',['../struct_staged_publish_result.html#ae3b95e50420f743aa02c6d9abab2bddc',1,'StagedPublishResult']]]
 ];

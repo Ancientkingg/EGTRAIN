@@ -260,7 +260,7 @@ var searchData=
   ['publish_257',['publish',['../class_gui_simulation_snapshot_mailbox.html#a5ce88a8283dc58030aa1326142951732',1,'GuiSimulationSnapshotMailbox']]],
   ['published_258',['Published',['../_staged_directory_8h.html#a26c0867a7cae8d3d23a5cd02ea2cc421a9b9d8a976b42e0bd66381797644943d5',1,'StagedDirectory.h']]],
   ['publishexport_259',['publishExport',['../_scene_exporter_8cpp.html#ad37b94799a202382d8fb818b0c72b020',1,'SceneExporter.cpp']]],
-  ['publishstageddirectory_260',['publishStagedDirectory',['../_staged_directory_8h.html#aa42575c31d4a05d79524be93acfe58b5',1,'StagedDirectory.h']]],
+  ['publishstageddirectory_260',['publishStagedDirectory',['../_scene_writer_8cpp.html#a428bb4a40e563c6588dc61818d4173c2',1,'publishStagedDirectory(StagedDirectory &amp;staged, const fs::path &amp;destination, const fs::path &amp;backup):&#160;SceneWriter.cpp'],['../_staged_directory_8h.html#aa42575c31d4a05d79524be93acfe58b5',1,'publishStagedDirectory(StagedDirectory &amp;staged, const std::filesystem::path &amp;destination, const std::filesystem::path &amp;backup):&#160;StagedDirectory.h']]],
   ['pump_261',['pump',['../classtelemetry_1_1_worker.html#a1f136a06f23ad6db74ef4dc30c9a0f6a',1,'telemetry::Worker']]],
   ['purgecategory_262',['purgeCategory',['../classtelemetry_1_1_telemetry_queue.html#ad94eec7c1ad72b0269c46409f99cbc56',1,'telemetry::TelemetryQueue']]],
   ['purgeendpointdata_263',['purgeEndpointData',['../classtelemetry_1_1_telemetry_queue.html#ade92495134e6374bd5a29665c294d960',1,'telemetry::TelemetryQueue']]],

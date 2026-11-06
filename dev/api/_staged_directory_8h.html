@@ -116,13 +116,14 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_staged_direct
 <code>#include &lt;chrono&gt;</code><br />
 <code>#include &lt;filesystem&gt;</code><br />
 <code>#include &lt;fstream&gt;</code><br />
+<code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;iterator&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;system_error&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for StagedDirectory.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_staged_directory_8h__incl.svg" width="580" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_staged_directory_8h__incl.svg" width="702" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
@@ -156,6 +157,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:ad2f34dde2fe79b37d3505ef5a1e5ca69"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when child is parent or lies inside it, compared element by element. Pass both through comparablePath first.  <br /></td></tr>
 <tr class="memitem:a6926bca0e25e96b0483e105e38d222fd" id="r_a6926bca0e25e96b0483e105e38d222fd"><td class="memItemLeft">std::error_code&#160;</td><td class="memItemRight"><a class="el" href="#a6926bca0e25e96b0483e105e38d222fd">uniqueSiblingPath</a> (const std::filesystem::path &amp;parent, const std::string &amp;prefix, std::filesystem::path &amp;result)</td></tr>
 <tr class="memitem:a02b12c62b2c00769ab23d290931b6f98" id="r_a02b12c62b2c00769ab23d290931b6f98"><td class="memItemLeft">std::error_code&#160;</td><td class="memItemRight"><a class="el" href="#a02b12c62b2c00769ab23d290931b6f98">createStagedDirectory</a> (const std::filesystem::path &amp;parent, const std::string &amp;prefix, bool ownerOnly, <a class="el" href="struct_staged_directory.html">StagedDirectory</a> &amp;staged)</td></tr>
+<tr class="memitem:adb3eae1a97042bdd695770f97fbdc18e" id="r_adb3eae1a97042bdd695770f97fbdc18e"><td class="memItemLeft">std::function&lt; std::error_code(const std::filesystem::path &amp;path, bool directory)&gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#adb3eae1a97042bdd695770f97fbdc18e">syncToDiskHook</a> ()</td></tr>
 <tr class="memitem:aa42575c31d4a05d79524be93acfe58b5" id="r_aa42575c31d4a05d79524be93acfe58b5"><td class="memItemLeft"><a class="el" href="struct_staged_publish_result.html">StagedPublishResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa42575c31d4a05d79524be93acfe58b5">publishStagedDirectory</a> (<a class="el" href="struct_staged_directory.html">StagedDirectory</a> &amp;staged, const std::filesystem::path &amp;destination, const std::filesystem::path &amp;backup)</td></tr>
 </table>
 <a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
@@ -309,9 +311,6 @@ Here is the call graph for this function:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="struct_staged_publish_result.html">StagedPublishResult</a> publishStagedDirectory </td>
@@ -329,17 +328,12 @@ Here is the call graph for this function:</div>
           <td class="paramtype">const std::filesystem::path &amp;</td>          <td class="paramname"><span class="paramname"><em>backup</em></span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
-<p>Renames staged.path to destination. backup is empty when there is no destination, otherwise a free name from uniqueSiblingPath. A rename of a directory over an existing directory fails on Windows, which is why the old destination is moved aside first and moved back when the rename into place fails. When the step is MoveToBackup or Rename staged still owns its directory, so the caller can just return and let the destructor remove it. </p>
+<p>Renames staged.path to destination. backup is empty when there is no destination, otherwise a free name from uniqueSiblingPath. A rename of a directory over an existing directory fails on Windows, which is why the old destination is moved aside first and moved back when the rename into place fails. When the step is MoveToBackup or Rename staged still owns its directory, so the caller can just return and let the destructor remove it. The rename into place is on disk before the backup is removed: on macOS and Linux the parent folder of destination is flushed after it, and on Windows it is written through. When that flush fails the backup stays and syncError says why. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_staged_directory_8h_aa42575c31d4a05d79524be93acfe58b5_cgraph.svg" width="414" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_staged_directory_8h_aa42575c31d4a05d79524be93acfe58b5_cgraph.svg" width="811" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -376,6 +370,37 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_staged_directory_8h_a7aa4b7fb80e7c4bde386345c1698840f_cgraph.svg" width="122" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="adb3eae1a97042bdd695770f97fbdc18e" name="adb3eae1a97042bdd695770f97fbdc18e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb3eae1a97042bdd695770f97fbdc18e">&#9670;&#160;</a></span>syncToDiskHook()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::function&lt; std::error_code(const std::filesystem::path &amp;path, bool directory)&gt; &amp; syncToDiskHook </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Called in place of each flush to disk, with the path and whether it is a directory: the files and folders of a staged scene save, and the parent folder once publishStagedDirectory has renamed a directory into place. A test counts the flushes with it or makes one fail by returning an error. It is empty in a normal run. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_staged_directory_8h_adb3eae1a97042bdd695770f97fbdc18e_cgraph.svg" width="139" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

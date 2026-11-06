@@ -1,5 +1,8 @@
 var NAVTREEINDEX6 =
 {
+"_self_updater_8cpp.html#aa22045a699919a13d6a7f6d40439a971":[3,0,10,6,0],
+"_self_updater_8h.html":[3,0,10,7],
+"_self_updater_8h.html#aa0e57a6cd0a1574ee37af55b84ea8ec3":[3,0,10,7,3],
 "_self_updater_8h_source.html":[3,0,10,7],
 "_series_meta_8cpp.html":[3,0,1,46],
 "_series_meta_8cpp.html#a0ae6c6bbbc450a870226409f69b01b0d":[3,0,1,46,1],
@@ -226,11 +229,12 @@ var NAVTREEINDEX6 =
 "_staged_directory_8h.html#a26c0867a7cae8d3d23a5cd02ea2cc421a904a8304056d77e4547744781b7ceb50":[3,0,7,40,2,2],
 "_staged_directory_8h.html#a26c0867a7cae8d3d23a5cd02ea2cc421a9b9d8a976b42e0bd66381797644943d5":[3,0,7,40,2,0],
 "_staged_directory_8h.html#a26c0867a7cae8d3d23a5cd02ea2cc421ab3d927c4b4ea3c173719f03f5596fe5f":[3,0,7,40,2,1],
-"_staged_directory_8h.html#a6926bca0e25e96b0483e105e38d222fd":[3,0,7,40,8],
+"_staged_directory_8h.html#a6926bca0e25e96b0483e105e38d222fd":[3,0,7,40,9],
 "_staged_directory_8h.html#a7aa4b7fb80e7c4bde386345c1698840f":[3,0,7,40,7],
 "_staged_directory_8h.html#aa42575c31d4a05d79524be93acfe58b5":[3,0,7,40,6],
 "_staged_directory_8h.html#ab5a4038c6857411053105a5e9718725d":[3,0,7,40,3],
 "_staged_directory_8h.html#ad2f34dde2fe79b37d3505ef5a1e5ca69":[3,0,7,40,4],
+"_staged_directory_8h.html#adb3eae1a97042bdd695770f97fbdc18e":[3,0,7,40,8],
 "_staged_directory_8h_source.html":[3,0,7,40],
 "_startup_timing_8cpp.html":[3,0,0,41],
 "_startup_timing_8cpp.html#a15adb6d88e076bc8c4f098e36b17bda9":[3,0,0,41,5],
@@ -245,9 +249,5 @@ var NAVTREEINDEX6 =
 "_startup_timing_8h.html":[3,0,0,42],
 "_startup_timing_8h.html#a0b1472493f7b2cff5992282f4a995a92":[3,0,0,42,6],
 "_startup_timing_8h.html#a103f029459514cde1f55eb5a3f65d10b":[3,0,0,42,5],
-"_startup_timing_8h.html#a15adb6d88e076bc8c4f098e36b17bda9":[3,0,0,42,7],
-"_startup_timing_8h.html#a2b1c024f044a79cbecb2bd8ebdac0ff4":[3,0,0,42,3],
-"_startup_timing_8h.html#a37446f0d4d442e06d499953df913552f":[3,0,0,42,8],
-"_startup_timing_8h.html#a63d91ad96a8a23ba52cc91ea2b8912f9":[3,0,0,42,10],
-"_startup_timing_8h.html#a83e0ad346d67e58fe51907c04f72f66c":[3,0,0,42,2]
+"_startup_timing_8h.html#a15adb6d88e076bc8c4f098e36b17bda9":[3,0,0,42,7]
 };

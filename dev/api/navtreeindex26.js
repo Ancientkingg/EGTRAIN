@@ -1,5 +1,9 @@
 var NAVTREEINDEX26 =
 {
+"struct_scene_service.html#ac5b89a85e2b996233f8d27a8d7ca88ce":[2,0,266,8],
+"struct_scene_service.html#ace85969c17120f997f50178fcf4835cc":[2,0,266,11],
+"struct_scene_service.html#ad2ff49042d4c58463fccbad119a26fe1":[2,0,266,12],
+"struct_scene_service.html#af46d083eca1637a5578dfb128e8b4685":[2,0,266,9],
 "struct_scene_service.html#af807f962b1c50a29b0543e51ea08e3ac":[2,0,266,7],
 "struct_scene_service.html#af8d7a7a27fe5e194f5d2420f023dfc88":[2,0,266,15],
 "struct_scene_service_occurrence.html":[2,0,267],
@@ -245,9 +249,5 @@ var NAVTREEINDEX26 =
 "struct_staged_directory.html#ad0a5616c02408535475b86fe139e1f77":[2,0,312,4],
 "struct_staged_publish_result.html":[2,0,313],
 "struct_staged_publish_result.html#a1589b93c3e59f22a2273b83190c5e5c5":[2,0,313,2],
-"struct_staged_publish_result.html#a78b4c5b62205dadb12c214bf0608a622":[2,0,313,3],
-"struct_staged_publish_result.html#a7d4556fb3b900684414d60361150a7cf":[2,0,313,1],
-"struct_staged_publish_result.html#aaff9e3815f98c93e5a2f2e4436c3644b":[2,0,313,0],
-"struct_startup_identity.html":[2,0,314],
-"struct_startup_identity.html#a065e7e0dfa7f3e224199fa8e7ecaa376":[2,0,314,0]
+"struct_staged_publish_result.html#a78b4c5b62205dadb12c214bf0608a622":[2,0,313,3]
 };

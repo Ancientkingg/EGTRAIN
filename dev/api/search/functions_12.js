@@ -469,8 +469,11 @@ var searchData=
   ['swatchcolor_466',['swatchColor',['../class_color_choice_button.html#a7e06a983e7d73eec1539af24dcd7b47c',1,'ColorChoiceButton']]],
   ['symbolrect_467',['symbolRect',['../class_station_overlay_item.html#a6bd9f3174fb5d90109e7e742483f1928',1,'StationOverlayItem']]],
   ['sync_468',['sync',['../class_network_mark_item.html#aac383677707050684a368ec15058fa10',1,'NetworkMarkItem::sync()'],['../class_selection_cue_item.html#ad7d1659586bc24e053efea9e3b269c48',1,'SelectionCueItem::sync()'],['../class_console_streambuf.html#ac44be2269b38a922f9816b3f923f49e7',1,'ConsoleStreambuf::sync()']]],
-  ['synthesizecanonicalcompatibility_469',['synthesizeCanonicalCompatibility',['../_scene_exporter_8cpp.html#a2440ebe58c0970c3bb4735d631e68f3e',1,'SceneExporter.cpp']]],
-  ['synthesizecanonicalinfrastructure_470',['synthesizeCanonicalInfrastructure',['../_scene_exporter_8cpp.html#a1331d41d6315b1136f27af288579eb6e',1,'SceneExporter.cpp']]],
-  ['synthesizeguilayout_471',['synthesizeGuiLayout',['../_scene_exporter_8cpp.html#a3f6a40b2209c24df28e7a1237aa035e5',1,'SceneExporter.cpp']]],
-  ['synthesizesignallingareas_472',['synthesizeSignallingAreas',['../_scene_exporter_8cpp.html#a9b4874707e0d44d9698942d7235c828b',1,'SceneExporter.cpp']]]
+  ['syncdirectorytree_469',['syncDirectoryTree',['../_scene_writer_8cpp.html#adecc01a55e5f5f0c10c1a146e30ea857',1,'SceneWriter.cpp']]],
+  ['synctodisk_470',['syncToDisk',['../_scene_writer_8cpp.html#a99250e67b8e97ce9330e009aa815f819',1,'SceneWriter.cpp']]],
+  ['synctodiskhook_471',['syncToDiskHook',['../_staged_directory_8h.html#adb3eae1a97042bdd695770f97fbdc18e',1,'StagedDirectory.h']]],
+  ['synthesizecanonicalcompatibility_472',['synthesizeCanonicalCompatibility',['../_scene_exporter_8cpp.html#a2440ebe58c0970c3bb4735d631e68f3e',1,'SceneExporter.cpp']]],
+  ['synthesizecanonicalinfrastructure_473',['synthesizeCanonicalInfrastructure',['../_scene_exporter_8cpp.html#a1331d41d6315b1136f27af288579eb6e',1,'SceneExporter.cpp']]],
+  ['synthesizeguilayout_474',['synthesizeGuiLayout',['../_scene_exporter_8cpp.html#a3f6a40b2209c24df28e7a1237aa035e5',1,'SceneExporter.cpp']]],
+  ['synthesizesignallingareas_475',['synthesizeSignallingAreas',['../_scene_exporter_8cpp.html#a9b4874707e0d44d9698942d7235c828b',1,'SceneExporter.cpp']]]
 ];

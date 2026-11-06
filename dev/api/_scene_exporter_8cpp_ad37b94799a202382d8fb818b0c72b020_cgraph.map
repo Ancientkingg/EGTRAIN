@@ -1,9 +1,15 @@
 <map id="publishExport" name="publishExport">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,116,57"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="27,29,22,20,27,11,40,5,61,3,83,5,97,14,91,14,81,10,60,8,41,10,30,15,28,20,33,29"/>
-<area shape="rect" id="Node000002" href="$_staged_directory_8h.html#aa42575c31d4a05d79524be93acfe58b5" title=" " alt="" coords="164,29,337,57"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="116,41,151,43,145,43,116,46"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="217,28,212,20,216,11,229,5,250,3,273,5,286,14,281,14,271,10,250,8,231,10,220,15,217,20,222,30"/>
-<area shape="rect" id="Node000003" href="$struct_staged_directory.html#ad0a5616c02408535475b86fe139e1f77" title="Keeps the directory: the destructor no longer removes it." alt="" coords="385,29,566,57"/>
-<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="337,41,372,43,367,43,337,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,44,116,72"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="27,44,22,35,27,26,40,19,61,17,83,20,96,28,91,29,81,25,60,23,41,25,30,29,28,35,33,43"/>
+<area shape="rect" id="Node000002" href="$_scene_writer_8cpp.html#a428bb4a40e563c6588dc61818d4173c2" title=" " alt="" coords="164,44,337,72"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="116,55,151,57,146,59,116,60"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="217,43,212,35,216,26,229,19,250,17,273,20,286,29,281,28,271,25,250,23,231,25,220,29,217,35,222,44"/>
+<area shape="rect" id="Node000003" href="$struct_staged_directory.html#ad0a5616c02408535475b86fe139e1f77" title="Keeps the directory: the destructor no longer removes it." alt="" coords="385,5,566,33"/>
+<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="334,41,379,36,373,37,335,46"/>
+<area shape="rect" id="Node000004" href="$_scene_writer_8cpp.html#a99250e67b8e97ce9330e009aa815f819" title=" " alt="" coords="428,81,523,109"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="337,70,416,85,411,85,337,75"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="441,80,435,72,440,63,453,57,476,55,500,57,514,66,509,66,498,62,476,60,455,62,443,67,440,72,445,82"/>
+<area shape="rect" id="Node000005" href="$_staged_directory_8h.html#adb3eae1a97042bdd695770f97fbdc18e" title=" " alt="" coords="614,81,743,109"/>
+<area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="523,93,601,95,596,95,523,98"/>
+<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="643,80,638,72,642,63,656,57,679,55,702,57,717,67,712,66,701,62,678,60,658,62,646,67,643,72,648,82"/>
 </map>

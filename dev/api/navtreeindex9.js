@@ -1,5 +1,9 @@
 var NAVTREEINDEX9 =
 {
+"class_choice_combo_box.html#a30c6b7dd84eda2085cca64e355210f51":[2,0,46,1],
+"class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539":[2,0,46,0],
+"class_choice_combo_box.html#a922c40529211b3068bf0a78a254f45a5":[2,0,46,2],
+"class_choice_combo_box.html#acd760dade2bc054a7c5251877fb10736":[2,0,46,4],
 "class_choice_combo_box.html#aeb628e36249cb4b8645dfd61849249de":[2,0,46,5],
 "class_color_choice_button.html":[2,0,47],
 "class_color_choice_button.html#a00930b3201d01d063825235f0fd25d4d":[2,0,47,4],
@@ -245,9 +249,5 @@ var NAVTREEINDEX9 =
 "class_focus_wheel_1_1_filter.html#a1a60beba61276306e647907db4dd9994":[2,0,2,0,0],
 "class_focus_wheel_1_1_watcher.html":[1,0,8,1],
 "class_focus_wheel_1_1_watcher.html":[2,0,2,1],
-"class_focus_wheel_1_1_watcher.html#abfbc241e708def263953461e816352e0":[1,0,8,1,1],
-"class_focus_wheel_1_1_watcher.html#abfbc241e708def263953461e816352e0":[2,0,2,1,1],
-"class_focus_wheel_1_1_watcher.html#ad00a11590e72d270d94ebc39456eaea2":[1,0,8,1,0],
-"class_focus_wheel_1_1_watcher.html#ad00a11590e72d270d94ebc39456eaea2":[2,0,2,1,0],
-"class_follow_camera.html":[2,0,91]
+"class_focus_wheel_1_1_watcher.html#abfbc241e708def263953461e816352e0":[1,0,8,1,1]
 };

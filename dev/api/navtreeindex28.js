@@ -1,5 +1,10 @@
 var NAVTREEINDEX28 =
 {
+"struct_update_record_text.html#a1637d33f079a4bb707ad75dded0a72a9":[2,0,373,0],
+"struct_update_record_text.html#a604e2a89f3c258d21a368d2e2c5a0784":[2,0,373,1],
+"struct_validation_panel_1_1_loaded_data_context.html":[2,0,376,0],
+"struct_validation_panel_1_1_loaded_data_context.html#a1dd136ecb2386cab89e5a3460919bdde":[2,0,376,0,3],
+"struct_validation_panel_1_1_loaded_data_context.html#a2260f5b8a9ade817e7c87152a691d8f6":[2,0,376,0,2],
 "struct_validation_panel_1_1_loaded_data_context.html#a4d00ccc20a5ab9ad294e950402d1a3bd":[2,0,376,0,1],
 "struct_validation_panel_1_1_loaded_data_context.html#a5ed4c2898fce58d8f0facc965d0885f3":[2,0,376,0,5],
 "struct_validation_panel_1_1_loaded_data_context.html#a81cc940d1b967be66af112249950a1e4":[2,0,376,0,4],

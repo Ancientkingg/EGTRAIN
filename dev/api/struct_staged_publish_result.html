@@ -127,7 +127,8 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a1589b93c3e59f22a2273b83190c5e5c5" id="r_a1589b93c3e59f22a2273b83190c5e5c5"><td class="memItemLeft">std::error_code&#160;</td><td class="memItemRight"><a class="el" href="#a1589b93c3e59f22a2273b83190c5e5c5">restoreError</a> {}</td></tr>
 <tr class="memdesc:a1589b93c3e59f22a2273b83190c5e5c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set when Rename failed and the old destination could not be moved back.  <br /></td></tr>
 <tr class="memitem:a7d4556fb3b900684414d60361150a7cf" id="r_a7d4556fb3b900684414d60361150a7cf"><td class="memItemLeft">std::error_code&#160;</td><td class="memItemRight"><a class="el" href="#a7d4556fb3b900684414d60361150a7cf">removeBackupError</a> {}</td></tr>
-<tr class="memdesc:a7d4556fb3b900684414d60361150a7cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set when the directory was published and the backup could not be removed.  <br /></td></tr>
+<tr class="memitem:ae3b95e50420f743aa02c6d9abab2bddc" id="r_ae3b95e50420f743aa02c6d9abab2bddc"><td class="memItemLeft">std::error_code&#160;</td><td class="memItemRight"><a class="el" href="#ae3b95e50420f743aa02c6d9abab2bddc">syncError</a> {}</td></tr>
+<tr class="memdesc:ae3b95e50420f743aa02c6d9abab2bddc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set when the directory was published and the rename could not be flushed to disk; the backup is then kept.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The outcome of publishStagedDirectory. </p>
@@ -159,7 +160,6 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-
 <p>Set when the directory was published and the backup could not be removed. </p>
 
 </div>
@@ -193,6 +193,22 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The step that failed, or Published. </p>
+
+</div>
+</div>
+<a id="ae3b95e50420f743aa02c6d9abab2bddc" name="ae3b95e50420f743aa02c6d9abab2bddc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae3b95e50420f743aa02c6d9abab2bddc">&#9670;&#160;</a></span>syncError</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::error_code StagedPublishResult::syncError {}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Set when the directory was published and the rename could not be flushed to disk; the backup is then kept. </p>
 
 </div>
 </div>

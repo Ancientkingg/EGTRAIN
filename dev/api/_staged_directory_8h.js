@@ -12,5 +12,6 @@ var _staged_directory_8h =
     [ "createStagedDirectory", "_staged_directory_8h.html#a02b12c62b2c00769ab23d290931b6f98", null ],
     [ "publishStagedDirectory", "_staged_directory_8h.html#aa42575c31d4a05d79524be93acfe58b5", null ],
     [ "readFileBytes", "_staged_directory_8h.html#a7aa4b7fb80e7c4bde386345c1698840f", null ],
+    [ "syncToDiskHook", "_staged_directory_8h.html#adb3eae1a97042bdd695770f97fbdc18e", null ],
     [ "uniqueSiblingPath", "_staged_directory_8h.html#a6926bca0e25e96b0483e105e38d222fd", null ]
 ];

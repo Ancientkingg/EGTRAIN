@@ -1,5 +1,9 @@
 var NAVTREEINDEX24 =
 {
+"struct_recovery_result.html#a9998c5ddbe86951b42eff9d38ba50780":[2,0,167,2],
+"struct_recovery_result.html#ade59a8ff21ce9e0f0572487e52b199fc":[2,0,167,1],
+"struct_recovery_scan.html":[2,0,168],
+"struct_recovery_scan.html#a4e2dcdeb71309cb7e66fa8f13efd4f51":[2,0,168,0],
 "struct_recovery_scan.html#ae20e7237336e68231c4f642bc38ed40d":[2,0,168,1],
 "struct_recovery_source.html":[2,0,169],
 "struct_recovery_source.html#a2bc9fb7698b219ca86ea51a3b219710e":[2,0,169,4],
@@ -245,9 +249,5 @@ var NAVTREEINDEX24 =
 "struct_scene_diagnostic.html#a64c53ec3aa3d61dd220239c8080d7066":[2,0,223,2],
 "struct_scene_diagnostic.html#aba9bf404d65ffc4fd96549a9ebd7bae8":[2,0,223,4],
 "struct_scene_diagnostic.html#ad0c2388990097e626ecd2d6b79db5597":[2,0,223,8],
-"struct_scene_diagnostic.html#ad664986323731525603765aee6a6bab6":[2,0,223,7],
-"struct_scene_diagnostic.html#af71ca1f3e7bd46b63f2f728111a5e0c1":[2,0,223,0],
-"struct_scene_diagnostic_counts.html":[2,0,224],
-"struct_scene_diagnostic_counts.html#a7acf405632836eec12cf2dd7a0cb922c":[2,0,224,2],
-"struct_scene_diagnostic_counts.html#aa56ba71e2d55b239e1c9041b2e874ddd":[2,0,224,0]
+"struct_scene_diagnostic.html#ad664986323731525603765aee6a6bab6":[2,0,223,7]
 };
