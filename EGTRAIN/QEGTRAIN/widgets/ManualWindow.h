@@ -22,7 +22,8 @@ public:
 	static QString sectionOf(const QWidget* widget);
 
 	/// Shows the section in the manual window of parent, which opens on first use. Without a readable help file next to the
-	/// application, the web browser opens the section in the published guides instead.
+	/// application, the web browser opens the section in the published guides instead. When the browser cannot open it, a
+	/// message gives the address.
 	static void open(QWidget* parent, const QString& section);
 
 private:

@@ -29,7 +29,8 @@ enum class Category {
 	IoZmq,	   ///< "io.zmq": the ZeroMQ transport of the live server.
 	AppRun,	   ///< "app.run": the banners and the progress of a run.
 	AppUi,	   ///< "app.ui": the messages of Qt (qDebug, qInfo, qWarning, qCritical, qFatal).
-	Update,	   ///< "update": no product code logs in this category.
+	Update,	   ///< "update": the update check, the download and preparation, and the update notices
+			   ///< (app/UpdateTelemetryController.cpp, update/UpdateNotices.cpp).
 };
 /// The severity of a message. levelName() gives the name that the rules of configure() use.
 enum class Level {

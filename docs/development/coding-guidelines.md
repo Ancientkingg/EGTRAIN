@@ -362,8 +362,10 @@ to the console directly.
   `sim.step` at `debug`, which is off by default, for messages written once per step by a
   train in the trajectory code, and `sim.pax` for passengers. The application uses `app.run`
   for the banners and the progress of a run. The live server (`io/LiveServer.cpp`) uses
-  `io.zmq`.
-- `scene/`, `update/` and `telemetry/` neither log nor print, apart from their entry points.
+  `io.zmq`. The update messages of `app/UpdateTelemetryController.cpp` and the startup
+  notices of `update/UpdateNotices.cpp` use `update`, at `warning` for a failure.
+- `scene/`, `update/` and `telemetry/` neither log nor print, apart from their entry points,
+  such as the startup notices of `update/UpdateNotices.cpp`.
   They return the problem, as a `SceneDiagnostic` or an `error` field (`UpdateCheckResult`).
 - `tools/e2e/test_logging_contract.py` counts the console write statements per file
   (`cout`, `cerr`, `clog`, `printf` and `fprintf` to `stdout` or `stderr`)
