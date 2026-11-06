@@ -704,6 +704,24 @@ void TestTopologyFacets::editsReferencesInCombos() {
 	// A typed id is taken with Return.
 	QCOMPARE(f.model().arcs[0].fromNodeId, "node-a1");
 	QVERIFY(f.changedOnce("Edit arc"));
+	from = f.openCombo(0, 2);
+	if (from == nullptr)
+		QFAIL("the start of an arc has no combo");
+	from->lineEdit()->setText("NODE-A0");
+	f.panel.commitPendingEditors();
+	// An id typed in another case is that node, also where the label holds more than the id.
+	QCOMPARE(f.model().arcs[0].fromNodeId, "node-a0");
+	QVERIFY(f.changedOnce("Edit arc"));
+	f.messages.clear();
+	from = f.openCombo(0, 2);
+	if (from == nullptr)
+		QFAIL("the start of an arc has no combo");
+	from->lineEdit()->clear();
+	f.panel.commitPendingEditors();
+	// An empty end is refused and asks for a node.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().arcs[0].fromNodeId, "node-a0");
+	QCOMPARE(f.messages, QStringList({"Choose a node"}));
 	f.messages.clear();
 
 	// the nodes of a connection

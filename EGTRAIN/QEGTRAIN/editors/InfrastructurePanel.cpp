@@ -422,8 +422,8 @@ public:
 		combo->resize(std::max(combo->width(), width), combo->height());
 	}
 
-	/// A combo of choices gives the cell the id of the item whose label it shows, the same label in another case too, or
-	/// else the text as it is typed.
+	/// A combo of choices gives the cell the id of the item whose label or id it shows, also in another case, or else the
+	/// text as it is typed.
 	void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override {
 		auto* combo = qobject_cast<QComboBox*>(editor);
 		if (!combo) {
@@ -434,6 +434,8 @@ public:
 		int item = combo->findText(text, Qt::MatchExactly | Qt::MatchCaseSensitive);
 		if (item < 0)
 			item = combo->findText(text, Qt::MatchFixedString);
+		if (item < 0)
+			item = combo->findData(text, Qt::UserRole, Qt::MatchFixedString);
 		model->setData(index, item < 0 ? text : combo->itemData(item).toString(), Qt::EditRole);
 	}
 
@@ -765,7 +767,8 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 	else
 		m_table->setRowCount(0);
 	// The table shows two rows also in a low dock, which then scrolls the panel instead.
-	const int rowHeight = m_table->rowCount() > 0 ? m_table->rowHeight(0) : m_table->verticalHeader()->defaultSectionSize();
+	// A row that a filter hid before the refresh has no height, so the default height is the least.
+	const int rowHeight = std::max(m_table->rowCount() > 0 ? m_table->rowHeight(0) : 0, m_table->verticalHeader()->defaultSectionSize());
 	m_table->setMinimumHeight(m_table->horizontalHeader()->sizeHint().height() + 2 * rowHeight + 2 * m_table->frameWidth());
 	const bool editable = canEdit();
 	m_table->setEnabled(editable);
@@ -783,7 +786,10 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 	m_guidanceLabel->setText(guidance);
 	m_guidanceLabel->setVisible(!guidance.isEmpty());
 
-	// The columns fit all rows, also those that the filters hide.
+	// The table measures only the rows it shows, so the rows that the filters hid are shown while the columns are sized,
+	// and a filter does not narrow them.
+	for (int row = 0; row < m_table->rowCount(); ++row)
+		m_table->setRowHidden(row, false);
 	m_table->resizeColumnsToContents();
 	applyFilters();
 	int rowToSelect = -1;

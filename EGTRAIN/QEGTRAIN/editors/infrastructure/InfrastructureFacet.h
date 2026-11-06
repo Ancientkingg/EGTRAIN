@@ -140,8 +140,10 @@ protected:
 	}
 
 	/// The message that refuses ids that the scene does not have. `noun` names one entity of their kind, such as "Node":
-	/// "Node 'n9' does not exist" or "Nodes 'n8', 'n9' do not exist".
+	/// "Node 'n9' does not exist" or "Nodes 'n8', 'n9' do not exist". An empty id asks for one: "Choose a node".
 	static QString missingIdsText(const QString& noun, const QStringList& ids) {
+		if (ids.size() == 1 && ids.front().isEmpty())
+			return QStringLiteral("Choose a %1").arg(noun.toLower());
 		QStringList quoted;
 		for (const QString& id : ids)
 			quoted << QStringLiteral("'%1'").arg(id);
