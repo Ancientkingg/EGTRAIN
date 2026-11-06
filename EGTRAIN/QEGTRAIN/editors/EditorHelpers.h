@@ -1,12 +1,15 @@
 #pragma once
 
+#include "editors/CountText.h"
 #include "editors/SceneDocument.h"
 #include "scene/SceneDiagnostic.h"
 #include "widgets/CompactDoubleSpinBox.h"
+#include "widgets/DisplayPath.h"
 
 #include <QApplication>
 #include <QDoubleSpinBox>
 #include <QString>
+#include <QStringList>
 #include <QWidget>
 
 #include <algorithm>
@@ -52,6 +55,38 @@ inline const SceneDiagnostic* firstDiagnostic(const std::vector<SceneDiagnostic>
 inline QString firstDiagnosticDialogText(const std::vector<SceneDiagnostic>& diagnostics) {
 	const SceneDiagnostic* diagnostic = firstDiagnostic(diagnostics);
 	return diagnostic ? QString::fromStdString(toDialogText(*diagnostic)) : QString();
+}
+
+/// The text for a box about `diagnostics`: the dialog text of each of the first errors, or of the first diagnostics when
+/// none is an error, with the file it is about when the message does not name it and the path in that file, then the
+/// count of the rest. Empty without a diagnostic.
+inline QString diagnosticsDialogText(const std::vector<SceneDiagnostic>& diagnostics) {
+	const std::size_t kShown = 3;
+	std::vector<const SceneDiagnostic*> listed;
+	for (const SceneDiagnostic& d : diagnostics) {
+		if (d.severity == SceneSeverity::Error)
+			listed.push_back(&d);
+	}
+	const bool errors = !listed.empty();
+	if (!errors) {
+		for (const SceneDiagnostic& d : diagnostics)
+			listed.push_back(&d);
+	}
+	QStringList parts;
+	for (std::size_t index = 0; index < std::min(listed.size(), kShown); ++index) {
+		const SceneDiagnostic& d = *listed[index];
+		QString part = QString::fromStdString(toDialogText(d));
+		if (!d.file.empty() && d.message.find(d.file) == std::string::npos)
+			part += "\nFile: " + display_path::format(QString::fromStdString(d.file));
+		if (!d.path.empty())
+			part += "\nPath: " + QString::fromStdString(d.path);
+		parts << part;
+	}
+	if (listed.size() > kShown) {
+		const long long rest = static_cast<long long>(listed.size() - kShown);
+		parts << (errors ? countText(rest, "more error", "more errors") : countText(rest, "more message", "more messages"));
+	}
+	return parts.join("\n\n");
 }
 
 /// What a generated service is called in lists: its operating code, or the service id when it has none, its route and

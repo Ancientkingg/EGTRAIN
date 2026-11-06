@@ -1,5 +1,7 @@
 #include "app/SceneSession.h"
 
+#include "app/CannotOpenMessage.h"
+#include "editors/EditorHelpers.h"
 #include "editors/SceneDocument.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneModel.h"
@@ -27,6 +29,7 @@
 
 #include <functional>
 #include <string>
+#include <system_error>
 
 namespace {
 
@@ -181,6 +184,9 @@ private slots:
 	void unsavedSaveStopsWhenCaseChangedOnDisk();
 	void saveAsAsksBeforeSuffixReplacesFile();
 	void saveAsAsksForFileOrFolder();
+	void openNamesMissingFile();
+	void openNamesUnreadableFile();
+	void saveShowsFileAndPath();
 
 private:
 	QTemporaryDir m_settingsDir;
@@ -535,6 +541,89 @@ void TestSceneSession::saveAsAsksForFileOrFolder() {
 	QCOMPARE(fresh.prompts.buttonCount, 1);
 	QCOMPARE(fresh.prompts.defaultButton, 0);
 	QVERIFY(fresh.session->sceneDir().isEmpty());
+}
+
+// A case folder without a required file names the file in the box.
+void TestSceneSession::openNamesMissingFile() {
+	QTemporaryDir root;
+	QVERIFY(root.isValid());
+	const QString folder = QDir(root.path()).filePath("Mine");
+	QVERIFY(writeFolderCase(folder, "My case"));
+	QVERIFY(QFile::remove(QDir(folder).filePath("infrastructure.json")));
+	Fixture f;
+	QVERIFY(!f.session->openSceneDirectory(folder));
+	QCOMPARE(f.prompts.errorTitle, "Cannot Open Case");
+	QVERIFY2(f.prompts.errorMessage.contains("infrastructure.json is missing"), qPrintable(f.prompts.errorMessage));
+	QVERIFY(!f.document.isLoaded());
+
+	// The box shows the first three errors and counts the rest.
+	for (const char* file : {"stations.json", "signalling.json", "rolling_stock.json"})
+		QVERIFY(QFile::remove(QDir(folder).filePath(file)));
+	QVERIFY(!f.session->openSceneDirectory(folder));
+	const QString message = f.prompts.errorMessage;
+	QVERIFY2(message.contains("infrastructure.json is missing\n\nstations.json is missing\n\nsignalling.json is missing\n\n1 more error"),
+		qPrintable(message));
+	QVERIFY2(!message.contains("rolling_stock.json"), qPrintable(message));
+	// The start of the program builds its box for a file name that does not load from the same parts.
+	QCOMPARE(message, cannot_open::text(folder, diagnosticsDialogText(loadScenePath(folder.toStdString()).diagnostics)));
+}
+
+// A required file that exists and cannot be read is named with the reason, which differs from a missing file.
+void TestSceneSession::openNamesUnreadableFile() {
+#ifdef Q_OS_WIN
+	QSKIP("Windows has no file that its owner cannot read");
+#else
+	QTemporaryDir root;
+	QVERIFY(root.isValid());
+	const QString folder = QDir(root.path()).filePath("Mine");
+	QVERIFY(writeFolderCase(folder, "My case"));
+	const QString infrastructure = QDir(folder).filePath("infrastructure.json");
+	const QFileDevice::Permissions permissions = QFile::permissions(infrastructure);
+	QVERIFY(QFile::setPermissions(infrastructure, QFileDevice::Permissions()));
+	const auto restore = qScopeGuard([infrastructure, permissions] { QFile::setPermissions(infrastructure, permissions); });
+	if (QFile(infrastructure).open(QIODevice::ReadOnly))
+		QSKIP("this process can read a file without read permission");
+	Fixture f;
+	QVERIFY(!f.session->openSceneDirectory(folder));
+	QCOMPARE(f.prompts.errorTitle, "Cannot Open Case");
+	const QString reason = QString::fromStdString(std::make_error_code(std::errc::permission_denied).message());
+	QVERIFY2(f.prompts.errorMessage.contains("Cannot read infrastructure.json: " + reason), qPrintable(f.prompts.errorMessage));
+	QVERIFY2(!f.prompts.errorMessage.contains("is missing"), qPrintable(f.prompts.errorMessage));
+#endif
+}
+
+// A save that the writer refuses shows the diagnostic with the file and the path it is about.
+void TestSceneSession::saveShowsFileAndPath() {
+	QTemporaryDir root;
+	QVERIFY(root.isValid());
+	const QString folder = QDir(root.path()).filePath("Mine");
+	QVERIFY(writeFolderCase(folder, "My case"));
+	Fixture f;
+	QVERIFY(f.session->openSceneDirectory(folder));
+	// A service from Add Service and an incident from Add Incident, whose references are not chosen yet, save.
+	f.document.edit(SceneDocument::Services | SceneDocument::Scenarios, "Add entries", [](SceneModel& scene) {
+		SceneService service;
+		service.id = "new_service";
+		scene.services.push_back(service);
+		SceneIncident incident;
+		incident.id = "new_incident";
+		incident.type = "signal_failure";
+		incident.hasEndSeconds = true;
+		defaultScenarioIncidents(scene).push_back(incident);
+	});
+	QVERIFY2(f.session->saveSceneToCurrentDir(), qPrintable(f.prompts.errorMessage));
+	QCOMPARE(f.prompts.errorCount, 0);
+	const SceneLoadResult saved = loadScenePath(folder.toStdString());
+	QCOMPARE(saved.scene.services.size(), std::size_t(1));
+	QVERIFY(saved.scene.services[0].composition.empty());
+
+	// An incident without a type is not written.
+	f.document.edit(SceneDocument::Scenarios, "Clear type",
+		[](SceneModel& scene) { defaultScenarioIncidents(scene)[0].type.clear(); });
+	QVERIFY(!f.session->saveSceneToCurrentDir());
+	QCOMPARE(f.prompts.errorTitle, "Cannot Save Case");
+	QVERIFY2(f.prompts.errorMessage.contains("\nFile: scenarios.json\nPath: scenarios[0].incidents[0].type"),
+		qPrintable(f.prompts.errorMessage));
 }
 
 QTEST_MAIN(TestSceneSession)

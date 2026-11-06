@@ -52,6 +52,20 @@ struct DiagnosticBuilder {
 		const std::string& suggestedFix = "") {
 		add(SceneSeverity::Warning, code, message, file, itemType, itemId, path, relatedId, suggestedFix);
 	}
+
+	// The error for a reference of `entry`, such as "Service s1", that names nothing in the case. An empty reference has
+	// not been chosen yet, as for the composition of a new service, so the message says that the entry has no `what` and
+	// the fix says to choose it; the legacy export refuses a case by that fix and the empty related id
+	// (isUnchosenReference in SceneExporter.cpp). Any other reference gets `message` and `suggestedFix`, with the
+	// reference as the related id.
+	void unresolved(const std::string& reference, const std::string& entry, const std::string& what,
+		const std::string& message, const std::string& file, const std::string& itemType, const std::string& itemId,
+		const std::string& path, const std::string& suggestedFix = "") {
+		if (reference.empty())
+			error("scene.ref.unresolved", entry + " has no " + what, file, itemType, itemId, path, "", "Choose the " + what);
+		else
+			error("scene.ref.unresolved", message, file, itemType, itemId, path, reference, suggestedFix);
+	}
 };
 
 // The block ids of the parts of a route token. A part that names no block gives an empty id, which no block has.
@@ -664,11 +678,10 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		if (!std::isfinite(node.yKm))
 			diagnostics.error("scene.node.coordinate.invalid", "Node Y must be a number",
 				"infrastructure.json", "node", node.id, path + ".y_km");
-		if (!hasId(trackIds, node.trackId)) {
-			diagnostics.error("scene.ref.unresolved", "Node refers to unknown track", "infrastructure.json",
-				"node", node.id, path + ".track", node.trackId,
+		if (!hasId(trackIds, node.trackId))
+			diagnostics.unresolved(node.trackId, "Node " + node.id, "track", "Node refers to unknown track",
+				"infrastructure.json", "node", node.id, path + ".track",
 				"Add track " + node.trackId + " or reference an existing track");
-		}
 	}
 	for (std::size_t index = 0; index < scene.arcs.size(); ++index) {
 		const SceneArc& arc = scene.arcs[index];
@@ -684,15 +697,15 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			diagnostics.error("scene.arc.speed.invalid", "Arc speed limit must be above 0",
 				"infrastructure.json", "arc", arc.id, path + ".speed_limit_ms");
 		if (!hasId(trackIds, arc.trackId))
-			diagnostics.error("scene.ref.unresolved", "Arc refers to unknown track", "infrastructure.json",
-				"arc", arc.id, path + ".track", arc.trackId);
+			diagnostics.unresolved(arc.trackId, "Arc " + arc.id, "track", "Arc refers to unknown track",
+				"infrastructure.json", "arc", arc.id, path + ".track");
 		if (!hasId(nodeIds, arc.fromNodeId))
-			diagnostics.error("scene.ref.unresolved", "Arc refers to unknown start node", "infrastructure.json",
-				"arc", arc.id, path + ".from", arc.fromNodeId);
+			diagnostics.unresolved(arc.fromNodeId, "Arc " + arc.id, "start node", "Arc refers to unknown start node",
+				"infrastructure.json", "arc", arc.id, path + ".from");
 		if (!hasId(nodeIds, arc.toNodeId))
-			diagnostics.error("scene.ref.unresolved", "Arc refers to unknown end node", "infrastructure.json",
-				"arc", arc.id, path + ".to", arc.toNodeId);
-		if (arc.fromNodeId == arc.toNodeId)
+			diagnostics.unresolved(arc.toNodeId, "Arc " + arc.id, "end node", "Arc refers to unknown end node",
+				"infrastructure.json", "arc", arc.id, path + ".to");
+		if (!arc.fromNodeId.empty() && arc.fromNodeId == arc.toNodeId)
 			diagnostics.error("scene.topology.loop", "Arc cannot connect a node to itself", "infrastructure.json",
 				"arc", arc.id, path + ".to", arc.fromNodeId);
 		if (hasId(trackIds, arc.trackId)) {
@@ -732,13 +745,13 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				"Connection speed limit must be above 0",
 				"infrastructure.json", "connection", connection.id, path + ".speed_limit_ms");
 		if (!hasId(nodeIds, connection.fromNodeId))
-			diagnostics.error("scene.ref.unresolved", "Connection refers to unknown start node",
-				"infrastructure.json", "connection", connection.id, path + ".from",
-				connection.fromNodeId);
+			diagnostics.unresolved(connection.fromNodeId, "Connection " + connection.id, "start node",
+				"Connection refers to unknown start node", "infrastructure.json", "connection", connection.id,
+				path + ".from");
 		if (!hasId(nodeIds, connection.toNodeId))
-			diagnostics.error("scene.ref.unresolved", "Connection refers to unknown end node",
-				"infrastructure.json", "connection", connection.id, path + ".to",
-				connection.toNodeId);
+			diagnostics.unresolved(connection.toNodeId, "Connection " + connection.id, "end node",
+				"Connection refers to unknown end node", "infrastructure.json", "connection", connection.id,
+				path + ".to");
 	}
 
 	const bool topologyIdsUnique = idsAreUnique(scene.tracks) && idsAreUnique(scene.nodes)
@@ -1151,38 +1164,43 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 	for (std::size_t index = 0; index < scene.blockDependencies.size(); ++index) {
 		const SceneBlockDependency& dependency = scene.blockDependencies[index];
 		const std::string path = "block_dependencies[" + std::to_string(index) + "]";
+		const std::string entry = "Block dependency " + std::to_string(index + 1);
 		if (!blockReferenceKnown(dependency.block))
-			diagnostics.error("scene.ref.unresolved", "Block dependency refers to unknown block",
-				"signalling.json", "block_dependency", dependency.block, path + ".block",
-				dependency.block);
+			diagnostics.unresolved(dependency.block, entry, "block", "Block dependency refers to unknown block",
+				"signalling.json", "block_dependency", dependency.block, path + ".block");
 		if (!blockReferenceKnown(dependency.dependsOn))
-			diagnostics.error("scene.ref.unresolved", "Block dependency refers to unknown dependency",
-				"signalling.json", "block_dependency", dependency.block, path + ".depends_on",
-				dependency.dependsOn);
+			diagnostics.unresolved(dependency.dependsOn, entry, "section it depends on",
+				"Block dependency refers to unknown dependency", "signalling.json", "block_dependency", dependency.block,
+				path + ".depends_on");
 	}
 	for (std::size_t index = 0; index < scene.singleTrackRestrictions.size(); ++index) {
 		const SceneSingleTrackRestriction& restriction = scene.singleTrackRestrictions[index];
 		const std::string path = "single_track_restrictions[" + std::to_string(index) + "]";
-		const std::array<std::pair<const char*, const std::string*>, 4> roles = {{
-			{"start_block", &restriction.startBlock},
-			{"end_block", &restriction.endBlock},
-			{"protected_start_block", &restriction.protectedStartBlock},
-			{"protected_end_block", &restriction.protectedEndBlock},
+		struct Role {
+			const char* key;
+			const char* what;
+			const std::string* block;
+		};
+		const std::array<Role, 4> roles = {{
+			{"start_block", "start section", &restriction.startBlock},
+			{"end_block", "end section", &restriction.endBlock},
+			{"protected_start_block", "protected start section", &restriction.protectedStartBlock},
+			{"protected_end_block", "protected end section", &restriction.protectedEndBlock},
 		}};
-		for (const auto& role : roles) {
-			if (!blockReferenceKnown(*role.second))
-				diagnostics.error("scene.ref.unresolved", "Single-track restriction refers to unknown block",
-					"signalling.json", "single_track_restriction", *role.second,
-					path + "." + role.first, *role.second);
+		for (const Role& role : roles) {
+			if (!blockReferenceKnown(*role.block))
+				diagnostics.unresolved(*role.block, "Single-track restriction " + std::to_string(index + 1), role.what,
+					"Single-track restriction refers to unknown block", "signalling.json", "single_track_restriction",
+					*role.block, path + "." + role.key);
 		}
 	}
 	for (std::size_t index = 0; index < scene.stationBoundaries.size(); ++index) {
 		const SceneStationBoundary& boundary = scene.stationBoundaries[index];
 		const std::string path = "station_boundaries[" + std::to_string(index) + "]";
 		if (!blockReferenceKnown(boundary.entranceBlock))
-			diagnostics.error("scene.ref.unresolved", "Station boundary refers to unknown entrance block",
-				"signalling.json", "station_boundary", boundary.entranceBlock,
-				path + ".entrance_block", boundary.entranceBlock);
+			diagnostics.unresolved(boundary.entranceBlock, "Station boundary " + std::to_string(index + 1),
+				"entrance section", "Station boundary refers to unknown entrance block", "signalling.json",
+				"station_boundary", boundary.entranceBlock, path + ".entrance_block");
 		if (boundary.hasExitBlock && !blockReferenceKnown(boundary.exitBlock))
 			diagnostics.error("scene.ref.unresolved", "Station boundary refers to unknown exit block",
 				"signalling.json", "station_boundary", boundary.exitBlock,
@@ -1265,11 +1283,11 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		services.emplace(service.id, &service);
 		const std::string path = "services[" + service.id + "]";
 		if (!hasId(compositionIds, service.composition))
-			diagnostics.error("scene.ref.unresolved", "Service refers to unknown composition", "services.json",
-				"service", service.id, path + ".composition", service.composition);
+			diagnostics.unresolved(service.composition, "Service " + service.id, "composition",
+				"Service refers to unknown composition", "services.json", "service", service.id, path + ".composition");
 		if (!hasId(routeIds, service.route))
-			diagnostics.error("scene.ref.unresolved", "Service refers to unknown route", "services.json",
-				"service", service.id, path + ".route", service.route);
+			diagnostics.unresolved(service.route, "Service " + service.id, "route", "Service refers to unknown route",
+				"services.json", "service", service.id, path + ".route");
 		if (!service.visualizationColor.empty() && !sceneParseVisualizationColor(service.visualizationColor))
 			diagnostics.warning("scene.service.color.invalid",
 				"Colour must be #RRGGBB. The default colour is used.",
@@ -1476,13 +1494,15 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 							"scenarios.json", "incident", incident.id, path + ".target", incident.target,
 							"Choose the protected section of the signal first");
 				} else if (directSection == nullptr) {
-					diagnostics.error("scene.ref.unresolved", "Signal failure refers to unknown signal or block",
-						"scenarios.json", "incident", incident.id, path + ".target", incident.target);
+					diagnostics.unresolved(incident.target, "Incident " + incident.id, "target",
+						"Signal failure refers to unknown signal or block", "scenarios.json", "incident", incident.id,
+						path + ".target");
 				}
 			} else if (incident.type == "train_breakdown") {
 				if (!hasId(serviceIds, incident.target))
-					diagnostics.error("scene.ref.unresolved", "Train breakdown refers to unknown service",
-						"scenarios.json", "incident", incident.id, path + ".target", incident.target);
+					diagnostics.unresolved(incident.target, "Incident " + incident.id, "target",
+						"Train breakdown refers to unknown service", "scenarios.json", "incident", incident.id,
+						path + ".target");
 				if (hasOccurrence) {
 					if (incident.occurrence <= 0)
 						diagnostics.error("scene.occurrence.invalid", "Breakdown occurrence must be positive",
@@ -1525,16 +1545,17 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		for (std::size_t delayIndex = 0; delayIndex < scenario.entranceDelays.size(); ++delayIndex) {
 			const SceneEntranceDelay& delay = scenario.entranceDelays[delayIndex];
 			const std::string path = scenarioPath + ".entrance_delays[" + std::to_string(delayIndex) + "]";
+			const std::string entry = "Entrance delay " + std::to_string(delayIndex + 1);
 			bool valid = true;
 			const auto service = services.find(delay.serviceId);
 			if (service == services.end()) {
-				diagnostics.error("scene.ref.unresolved", "Entrance delay refers to unknown service",
-					"scenarios.json", "entrance_delay", delay.serviceId, path + ".service", delay.serviceId);
+				diagnostics.unresolved(delay.serviceId, entry, "service", "Entrance delay refers to unknown service",
+					"scenarios.json", "entrance_delay", delay.serviceId, path + ".service");
 				valid = false;
 			}
 			if (!hasId(stationIds, delay.stationId)) {
-				diagnostics.error("scene.ref.unresolved", "Entrance delay refers to unknown station",
-					"scenarios.json", "entrance_delay", delay.serviceId, path + ".station", delay.stationId);
+				diagnostics.unresolved(delay.stationId, entry, "station", "Entrance delay refers to unknown station",
+					"scenarios.json", "entrance_delay", delay.serviceId, path + ".station");
 				valid = false;
 			} else if (service != services.end()) {
 				const auto stop = std::find_if(service->second->stops.begin(), service->second->stops.end(),
@@ -1607,12 +1628,13 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				diagnostics.error("scene.id.duplicate", "Duplicate passenger journey ID", "passengers.json",
 					"journey", journey.id, journeyPath + ".id", journey.id);
 			if (!hasId(stationIds, journey.originStationId))
-				diagnostics.error("scene.ref.unresolved", "Journey refers to unknown origin station",
-					"passengers.json", "journey", journey.id, journeyPath + ".origin", journey.originStationId);
+				diagnostics.unresolved(journey.originStationId, "Journey " + journey.id, "origin station",
+					"Journey refers to unknown origin station", "passengers.json", "journey", journey.id,
+					journeyPath + ".origin");
 			if (!hasId(stationIds, journey.destinationStationId))
-				diagnostics.error("scene.ref.unresolved", "Journey refers to unknown destination station",
-					"passengers.json", "journey", journey.id, journeyPath + ".destination",
-					journey.destinationStationId);
+				diagnostics.unresolved(journey.destinationStationId, "Journey " + journey.id, "destination station",
+					"Journey refers to unknown destination station", "passengers.json", "journey", journey.id,
+					journeyPath + ".destination");
 			if (!std::isfinite(journey.plannedDepartureStartSeconds)
 				|| !std::isfinite(journey.plannedDepartureEndSeconds)
 				|| journey.plannedDepartureStartSeconds < 0.0
@@ -1635,15 +1657,16 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 					diagnostics.error("scene.id.duplicate", "Duplicate passenger leg ID", "passengers.json",
 						"leg", leg.id, legPath + ".id", leg.id);
 				if (!hasId(stationIds, leg.originStationId))
-					diagnostics.error("scene.ref.unresolved", "Passenger leg refers to unknown origin station",
-						"passengers.json", "leg", leg.id, legPath + ".origin", leg.originStationId);
+					diagnostics.unresolved(leg.originStationId, "Passenger leg " + leg.id, "origin station",
+						"Passenger leg refers to unknown origin station", "passengers.json", "leg", leg.id,
+						legPath + ".origin");
 				if (!hasId(stationIds, leg.destinationStationId))
-					diagnostics.error("scene.ref.unresolved", "Passenger leg refers to unknown destination station",
-						"passengers.json", "leg", leg.id, legPath + ".destination",
-						leg.destinationStationId);
+					diagnostics.unresolved(leg.destinationStationId, "Passenger leg " + leg.id, "destination station",
+						"Passenger leg refers to unknown destination station", "passengers.json", "leg", leg.id,
+						legPath + ".destination");
 				if (!hasId(serviceIds, leg.serviceId))
-					diagnostics.error("scene.ref.unresolved", "Passenger leg refers to unknown service",
-						"passengers.json", "leg", leg.id, legPath + ".service", leg.serviceId);
+					diagnostics.unresolved(leg.serviceId, "Passenger leg " + leg.id, "service",
+						"Passenger leg refers to unknown service", "passengers.json", "leg", leg.id, legPath + ".service");
 				const auto service = services.find(leg.serviceId);
 				if (service != services.end()) {
 					const bool hasOriginStop = std::any_of(service->second->stops.begin(), service->second->stops.end(),

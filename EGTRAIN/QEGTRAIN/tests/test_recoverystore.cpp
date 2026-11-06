@@ -346,6 +346,7 @@ private slots:
 	void writesCopyAndRecord();
 	void keepsCopyWhenWriteFails();
 	void keepsEmptyNames();
+	void keepsIncompleteEntries();
 	void listsCopyLeftBehind();
 	void skipsOpenStores();
 	void listsNewestCompleteBundle();
@@ -491,7 +492,7 @@ void TestRecoveryStore::keepsCopyWhenWriteFails() {
 	QVERIFY(refused.bundlePath.isEmpty());
 	QVERIFY2(!refused.error.contains("scene."), "failed write: the error holds no diagnostic code");
 
-	// An incomplete incident cannot be written: the error says which entry, in words and without the code.
+	// An incident without a type cannot be written: the error says which entry, in words and without the code.
 	SceneModel incomplete = makeScene("incomplete");
 	SceneIncident incident;
 	incident.id = "first";
@@ -499,20 +500,12 @@ void TestRecoveryStore::keepsCopyWhenWriteFails() {
 	incident.target = "sig.a";
 	defaultScenarioIncidents(incomplete).push_back(incident);
 	incident.id = "second";
-	incident.target.clear();
+	incident.type.clear();
 	defaultScenarioIncidents(incomplete).push_back(incident);
 	const RecoveryResult unfinished = store.write(incomplete, source);
 	// An incomplete incident is named in the error.
 	QVERIFY(cleanError(unfinished, root));
 	QCOMPARE(unfinished.error, "Cannot write the recovery copy because incident 2 is incomplete");
-	SceneModel newService = makeScene("new service");
-	SceneService service;
-	service.id = "service.a";
-	newService.services.push_back(service);
-	const RecoveryResult unfinishedService = store.write(newService, source);
-	// A new service without a composition is named in the error.
-	QVERIFY(cleanError(unfinishedService, root));
-	QVERIFY(unfinishedService.error.endsWith(" because service 1 is incomplete"));
 	QVERIFY2(snapshot(folder) == before, "failed write: the folder and the record are unchanged");
 	QVERIFY2(bundleLoadsAs(at(folder, "gen-1.egscene"), "first"), "failed write: the previous bundle still loads");
 
@@ -575,6 +568,38 @@ void TestRecoveryStore::keepsEmptyNames() {
 	QVERIFY(loaded.scene.stations[0].name.empty());
 	QCOMPARE(loaded.scene.scenarios.size(), std::size_t(1));
 	QVERIFY(loaded.scene.scenarios[0].name.empty());
+}
+
+// A service from Add Service has no composition and no route, and an incident from Add Incident has no target until
+// they are chosen. The copy of a case with them is written and loads with the empty references.
+void TestRecoveryStore::keepsIncompleteEntries() {
+	QTemporaryDir temp;
+	const RecoverySource source = makeBundleSource(temp.filePath("source"), "source");
+	RecoveryStore store(temp.filePath("root"));
+	QVERIFY2(store.open().ok, "incomplete entries: open");
+	SceneModel scene = makeScene("incomplete");
+	SceneService service;
+	service.id = "new_service";
+	scene.services.push_back(service);
+	SceneIncident incident;
+	incident.id = "new_incident";
+	incident.type = "signal_failure";
+	incident.hasEndSeconds = true;
+	defaultScenarioIncidents(scene).push_back(incident);
+	const RecoveryResult written = store.write(scene, source);
+	// The copy is written.
+	QVERIFY2(written.ok, qPrintable(written.error));
+	QVERIFY(written.error.isEmpty());
+	const SceneLoadResult loaded = loadSceneBundle(written.bundlePath.toStdString());
+	// The copy loads with the empty references.
+	QVERIFY(!hasErrors(loaded.diagnostics));
+	QCOMPARE(loaded.scene.services.size(), std::size_t(1));
+	QCOMPARE(loaded.scene.services[0].id, "new_service");
+	QVERIFY(loaded.scene.services[0].composition.empty());
+	QVERIFY(loaded.scene.services[0].route.empty());
+	QCOMPARE(defaultScenarioIncidents(loaded.scene).size(), std::size_t(1));
+	QCOMPARE(defaultScenarioIncidents(loaded.scene)[0].id, "new_incident");
+	QVERIFY(defaultScenarioIncidents(loaded.scene)[0].target.empty());
 }
 
 void TestRecoveryStore::listsCopyLeftBehind() {

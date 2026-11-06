@@ -81,9 +81,9 @@ You need an open case. EGTRAIN checks it when it opens, after every edit and bef
 3. Fix the first error in the editor that matches its **File** and **Path** (menu **Editors**), and read the table again. It updates after each edit.
 4. Repeat until no error is left. **Run** is then enabled.
 
-You can save a case that has errors. Warnings do not stop a run, but read them: the dialog **Run simulation** repeats the one about route sections that have no signalling level. Examples of errors and their usual fixes:
+You can save a case that has errors, also one with a new service, incident or row whose references you have not chosen yet; the table names that entry, such as `Service new_service has no composition`. Warnings do not stop a run, but read them: the dialog **Run simulation** repeats the one about route sections that have no signalling level. Examples of errors and their usual fixes:
 
-- A service names a composition or a route that does not exist. Choose an existing one in **Services**, or add the missing record.
+- A service has no composition or route, or names one that does not exist. Choose an existing one in **Services**, or add the missing record.
 - A stop names a platform that the route does not reach, or the stops are out of route order. Correct the stop on the tab **Timetable** of **Services**.
 - A rolling stock unit has no traction rows, or its rows overlap, are out of order or have a lower speed that is not below the upper speed. Correct them in **Rolling Stock Units**.
 

@@ -8,8 +8,9 @@
 #include "widgets/DisplayPath.h"
 
 /// The message for a case that is damaged or is not a case. The window and the start of the program show the same
-/// title and text; the internal error follows the plain sentence. A folder gets its own sentence, which names the
-/// scene.json that a case folder holds. A path that cannot be found or read is not called damaged.
+/// title and text: the plain sentence, then the errors as diagnosticsDialogText (editors/EditorHelpers.h) lists them. A
+/// folder gets its own sentence, which names the scene.json that a case folder holds. A path that cannot be found or
+/// read is not called damaged.
 namespace cannot_open {
 
 /// The title of the message box.

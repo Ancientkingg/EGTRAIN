@@ -355,8 +355,10 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 	}
 	if (compatibility.classification == SceneCompatibilityClass::Malformed) {
 		operation.failure(telemetry::Operation::SceneOpen, telemetryDiagnosticError(compatibility.diagnostics));
-		if (!noCompatibilityDialogs)
-			showError(cannot_open::title(), cannot_open::text(scenePath, compatibilityMessage()));
+		if (!noCompatibilityDialogs) {
+			const QString message = diagnosticsDialogText(compatibility.diagnostics);
+			showError(cannot_open::title(), cannot_open::text(scenePath, message.isEmpty() ? compatibilityMessage() : message));
+		}
 		return false;
 	}
 	const bool sceneIsBundle = compatibility.sourceKind == SceneSourceKind::Bundle;
@@ -375,15 +377,9 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 		diagnostic.message = std::string("Cannot read the case: ") + error.what();
 		result.diagnostics.push_back(std::move(diagnostic));
 	}
-	int errorCount = errorDiagnosticCount(result.diagnostics);
-	if (errorCount > 0) {
+	if (errorDiagnosticCount(result.diagnostics) > 0) {
 		operation.failure(telemetry::Operation::SceneOpen, telemetryDiagnosticError(result.diagnostics));
-		QString message = firstDiagnosticMessage(result.diagnostics);
-		if (message.isEmpty())
-			message = "The case could not be opened.";
-		if (errorCount > 1)
-			message += "\n\n" + countText(errorCount - 1, "more error", "more errors");
-		showError(cannot_open::title(), cannot_open::text(scenePath, message));
+		showError(cannot_open::title(), cannot_open::text(scenePath, diagnosticsDialogText(result.diagnostics)));
 		return false;
 	}
 
@@ -422,7 +418,7 @@ bool SceneSession::finishSceneSave(const SceneSaveResult& result,
 		error = telemetry::Error::UnsupportedFormat;
 	operation.exportFinished(kind, result.success(), result.writeAttempted, error);
 	if (!result.success()) {
-		QString message = firstDiagnosticMessage(result.diagnostics);
+		QString message = diagnosticsDialogText(result.diagnostics);
 		if (message.isEmpty())
 			message = "The case could not be saved.";
 		showError("Cannot Save Case", message);

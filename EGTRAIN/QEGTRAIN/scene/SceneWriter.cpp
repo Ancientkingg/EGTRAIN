@@ -652,7 +652,7 @@ static SceneSaveResult writeSceneDirectory(const SceneModel& scene, const std::s
 	StagedDirectory staging;
 	ec = createStagedDirectory(parent, destinationName + ".staging-", keepOtherFiles, staging);
 	if (ec) {
-		addWriteError(result, destination.u8string(), "Cannot create a private case staging directory");
+		addWriteError(result, destination.u8string(), "Cannot create a private case staging directory: " + ec.message());
 		return result;
 	}
 	if (keepOtherFiles && hadDestination && !copyExistingSceneContents(destination, staging.path, result))
@@ -693,9 +693,12 @@ static SceneSaveResult writeSceneDirectory(const SceneModel& scene, const std::s
 		return result;
 	}
 	if (published.step == StagedPublishStep::Rename) {
-		addWriteError(result, destination.u8string(), "Cannot publish case generation: " + published.error.message());
+		// When the previous case cannot be moved back, it stays under the backup name, which the first error names.
 		if (published.restoreError)
-			addWriteError(result, destination.u8string(), "Cannot restore the previous case generation: " + published.restoreError.message());
+			addWriteError(result, backup.u8string(),
+				"The previous case is now in " + backup.u8string()
+					+ " and cannot be moved back: " + published.restoreError.message());
+		addWriteError(result, destination.u8string(), "Cannot publish case generation: " + published.error.message());
 		result.wroteAll = false;
 		return result;
 	}

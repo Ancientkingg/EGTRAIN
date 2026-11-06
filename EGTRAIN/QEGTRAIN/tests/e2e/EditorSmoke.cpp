@@ -6604,17 +6604,26 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 	expect(w.m_document->isDirty() && w.m_history->undoCount() == steps + 2 && w.m_document->mutableModel().name == "E2E unwritable two",
 		"a failed autosave stopped the editing");
 
+	// Starts the copies again in `folder`.
+	const auto restartRecovery = [&w](const QString& folder) {
+		if (w.m_recovery)
+			w.m_recovery->shutdown();
+		qputenv("QEGTRAIN_RECOVERY_DIR", folder.toUtf8());
+		w.startRecovery();
+	};
+	const QString writable = QDir(outFolder).filePath("recovery-writable");
+	const QString blocked = QDir(blocker).filePath("recovery");
+
 	// A copy that is written again ends the message.
-	w.m_recovery->shutdown();
-	qputenv("QEGTRAIN_RECOVERY_DIR", QDir(outFolder).filePath("recovery-writable").toUtf8());
-	w.startRecovery();
+	restartRecovery(writable);
 	editCase("E2E writable again");
 	settle();
 	expect(!w.m_recoveryFailureShown && !w.statusBar()->currentMessage().startsWith("Autosave unavailable"),
 		"the message about the failed autosave stayed after a copy was written");
 
 	// A failed autosave waits while the target of an incident is picked, so the hint of the pick stays, and shows when the
-	// pick ends. A new incident has no target, so its copy cannot be written.
+	// pick ends. The folder of the copies cannot be made, so the copy of the new incident cannot be written.
+	restartRecovery(blocked);
 	{
 		const QString hint = QStringLiteral("Click a signal or a train for the incident target. Esc cancels.");
 		w.m_inspector->handleDisableHighlight();
@@ -6632,23 +6641,25 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 		process();
 		qt_sendShortcutOverrideEvent(w.networkView->viewport(), 0, Qt::Key_Escape, Qt::NoModifier);
 		process();
-		expect(!incidentPanel(w)->isPickingTarget()
-				&& w.statusBar()->currentMessage().startsWith("Autosave unavailable: Cannot write the recovery copy because incident"),
+		expect(!incidentPanel(w)->isPickingTarget() && w.statusBar()->currentMessage().startsWith("Autosave unavailable: "),
 			"the failed autosave did not show when the pick ended: " + w.statusBar()->currentMessage());
-		// A pick that gives the target also shows the held failure. The first incident gets a target, so a copy is written
-		// and a later failure is reported again; the second keeps the copy failing, and the third is picked.
+		// A pick that gives the target also shows the held failure. The first incident gets its target while the copy can be
+		// written, which ends the failure, so the failure of the second incident, whose target is picked with the copies
+		// blocked again, is reported again.
 		QGraphicsItem* head = nullptr;
 		if (w.scene && w.m_showingTrackPreview)
 			for (QGraphicsItem* item : w.scene->items())
 				if (item->data(PreviewGraphics::Kind).toString() == "signal")
 					head = item;
 		if (expect(head, "the preview has no signal head for a target")) {
+			restartRecovery(writable);
 			incidentPanel(w)->pickTargetButton()->click();
 			w.scene->select(head);
 			process();
 			settle();
+			expect(!w.m_recoveryFailureShown, "a written copy did not end the failed autosave");
+			restartRecovery(blocked);
 			w.m_inspector->handleDisableHighlight();
-			incidentPanel(w)->addButton()->click();
 			incidentPanel(w)->addButton()->click();
 			incidentPanel(w)->pickTargetButton()->click();
 			process();
@@ -6658,7 +6669,7 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 			process();
 			settle();
 			expect(held && !incidentPanel(w)->isPickingTarget()
-					&& w.statusBar()->currentMessage().startsWith("Autosave unavailable: Cannot write the recovery copy because incident"),
+					&& w.statusBar()->currentMessage().startsWith("Autosave unavailable: "),
 				"the failed autosave did not show after a pick that gave the target: " + w.statusBar()->currentMessage());
 		}
 	}

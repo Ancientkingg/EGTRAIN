@@ -676,7 +676,9 @@ void TestSceneImporter::reportsReadOnlyStagingParent() {
 		for (const auto& diagnostic : refused.diagnostics) {
 			reported = reported
 				|| (diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.save.write"
-					&& diagnostic.message == "Cannot create a private case staging directory");
+					&& diagnostic.message
+						== "Cannot create a private case staging directory: "
+							+ std::make_error_code(std::errc::permission_denied).message());
 		}
 		// Import into a read-only parent reports the staging directory.
 		QVERIFY(!refused.wroteScene);
@@ -1527,7 +1529,19 @@ void TestSceneImporter::reportsMalformedSceneFiles() {
 	SceneLoadResult loaded = loadChanged([](const fs::path& scene) { fs::remove(scene / "rolling_stock.json"); });
 	// A required file that is absent is reported under its name.
 	QCOMPARE(errorsIn(loaded.diagnostics, "rolling_stock.json"),
-		std::vector<std::string>{"scene.file.missing : Required file is missing"});
+		std::vector<std::string>{"scene.file.missing : rolling_stock.json is missing"});
+#ifndef _WIN32
+	// A required file that exists and cannot be read is reported with the reason. This does not apply to root.
+	if (geteuid() != 0) {
+		loaded = loadChanged([](const fs::path& scene) {
+			fs::permissions(scene / "rolling_stock.json", fs::perms::none, fs::perm_options::replace);
+		});
+		QCOMPARE(errorsIn(loaded.diagnostics, "rolling_stock.json"),
+			std::vector<std::string>{"scene.file.unreadable : Cannot read rolling_stock.json: "
+				+ std::make_error_code(std::errc::permission_denied).message()});
+		fs::permissions(copy / "rolling_stock.json", fs::perms::owner_all, fs::perm_options::replace);
+	}
+#endif
 	loaded = loadChanged([](const fs::path& scene) { writeText(scene / "views.json", "[]"); });
 	// A file whose root is not an object is reported.
 	QCOMPARE(errorsIn(loaded.diagnostics, "views.json"),
@@ -1573,7 +1587,7 @@ void TestSceneImporter::reportsMalformedScenarioItems() {
 		json scenario = {{"id", "s"}, {"name", "n"}, {"incidents", incidents}, {"entrance_delays", entranceDelays}};
 		return json({{"default_scenario_id", "s"}, {"scenarios", json::array({scenario})}});
 	};
-	const json wrongTypes = {{"id", "i"}, {"type", 5}, {"target", ""}, {"start_seconds", "a"}, {"end_seconds", "b"},
+	const json wrongTypes = {{"id", "i"}, {"type", 5}, {"target", 6}, {"start_seconds", "a"}, {"end_seconds", "b"},
 		{"occurrence", 1.5}, {"reduced_speed_kmh", true}, {"terminate_at_destination", "c"}};
 	// The keys of wrongTypes that are reported, in the order of the schema.
 	const std::vector<const char*> wrongTypeKeys = {"type", "target", "start_seconds", "end_seconds", "occurrence",

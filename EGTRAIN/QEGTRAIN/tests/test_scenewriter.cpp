@@ -736,6 +736,7 @@ private slots:
 	void reportsMissingDestination();
 	void reportsScenarioFileDiagnostics();
 	void savesEmptyNames();
+	void savesIncompleteEntries();
 
 private:
 	TempDir m_temp;
@@ -1901,11 +1902,14 @@ void TestSceneWriter::publishesSave() {
 		refused = saveScene(scene, other.string());
 	fs::permissions(root, fs::perms::owner_all, fs::perm_options::replace);
 	if (readOnly) {
-		const bool reported = std::any_of(refused.diagnostics.begin(), refused.diagnostics.end(), [](const SceneDiagnostic& diagnostic) {
+		const std::string expected = "Cannot create a private case staging directory: "
+			+ std::make_error_code(std::errc::permission_denied).message();
+		const bool reported = std::any_of(refused.diagnostics.begin(), refused.diagnostics.end(), [&expected](const SceneDiagnostic& diagnostic) {
 			return diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.save.write"
-				&& diagnostic.message.rfind("Cannot create a private case staging directory", 0) == 0;
+				&& diagnostic.message == expected;
 		});
-		// Save into a read-only parent reports the staging directory.
+		printErrors(refused.diagnostics, "read-only parent save");
+		// Save into a read-only parent reports the staging directory and the reason of the system.
 		QVERIFY(!refused.success());
 		QVERIFY(reported);
 		QVERIFY2(!fs::exists(other), "failed save creates no destination");
@@ -2108,7 +2112,7 @@ void TestSceneWriter::reportsScenarioFileDiagnostics() {
 	};
 	const std::string type = "scene.scenario.field.type";
 	const std::string missing = "scene.scenario.field.missing";
-	const json wrongTypes = {{"id", "i"}, {"type", 5}, {"target", ""}, {"start_seconds", "a"}, {"end_seconds", "b"},
+	const json wrongTypes = {{"id", "i"}, {"type", 5}, {"target", 6}, {"start_seconds", "a"}, {"end_seconds", "b"},
 		{"occurrence", 1.5}, {"reduced_speed_kmh", true}, {"terminate_at_destination", "c"}};
 	// The keys of wrongTypes that are reported, in the order of the schema.
 	const std::vector<const char*> wrongTypeKeys = {"type", "target", "start_seconds", "end_seconds", "occurrence",
@@ -2196,6 +2200,88 @@ void TestSceneWriter::savesEmptyNames() {
 			|| (diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.field.missing"
 				&& diagnostic.file == "stations.json" && diagnostic.path == "stations[0].name");
 	QVERIFY2(missingName, "a station without a name key is still an error");
+}
+
+// completeScene() with the entries that the editors add before their references are chosen: a service without a
+// composition and a route, an incident without a target, block dependency, single-track restriction and station
+// boundary rows without sections, a node, an arc and a connection without a track and nodes, an entrance delay without
+// a service and a station, and a passenger journey and leg without stations and a service.
+static SceneModel incompleteScene() {
+	SceneModel scene = completeScene();
+	SceneService service;
+	service.id = "new_service";
+	scene.services.push_back(service);
+	SceneIncident incident;
+	incident.id = "new_incident";
+	incident.type = "signal_failure";
+	incident.hasEndSeconds = true;
+	scene.scenarios[0].incidents.push_back(incident);
+	scene.blockDependencies.push_back({});
+	scene.singleTrackRestrictions.push_back({});
+	scene.stationBoundaries.push_back({});
+	scene.nodes.push_back({"new_node", "", 0.0, 0.0});
+	scene.arcs.push_back({"new_arc", "", "", "", 0.0, 0.0, 40.0});
+	scene.connections.push_back({"new_connection", "", "", false, 30.0});
+	scene.scenarios[0].entranceDelays.push_back({"", 1, "", 0.0});
+	ScenePassengerJourney journey;
+	journey.id = "new_journey";
+	journey.legs.push_back({"new_leg", "", "", "", 1});
+	scene.passengers[0].journeys.push_back(journey);
+	return scene;
+}
+
+// A save loads what it wrote, so the loader takes the empty references of entries whose references are not chosen
+// yet. A missing reference key is still an error.
+void TestSceneWriter::savesIncompleteEntries() {
+	TempDir temp;
+	const SceneModel scene = incompleteScene();
+	const fs::path scenePath = temp.path / "incomplete";
+	const SceneSaveResult saved = saveScene(scene, scenePath.string());
+	printErrors(saved.diagnostics, "incomplete entries save");
+	QVERIFY2(saved.success(), "a scene with entries whose references are not chosen saves");
+	SceneModel reloaded;
+	QVERIFY(loadHasNoErrors(scenePath, reloaded));
+	// The entries load with their empty references.
+	QCOMPARE(reloaded.services.size(), scene.services.size());
+	QCOMPARE(reloaded.services.back().id, "new_service");
+	QVERIFY(reloaded.services.back().composition.empty());
+	QVERIFY(reloaded.services.back().route.empty());
+	QCOMPARE(reloaded.scenarios[0].incidents.size(), std::size_t(2));
+	QCOMPARE(reloaded.scenarios[0].incidents[1].id, "new_incident");
+	QVERIFY(reloaded.scenarios[0].incidents[1].target.empty());
+	QCOMPARE(reloaded.blockDependencies.size(), std::size_t(2));
+	QVERIFY(reloaded.blockDependencies[1].block.empty() && reloaded.blockDependencies[1].dependsOn.empty());
+	QCOMPARE(reloaded.singleTrackRestrictions.size(), std::size_t(2));
+	QVERIFY(reloaded.singleTrackRestrictions[1].startBlock.empty()
+		&& reloaded.singleTrackRestrictions[1].protectedEndBlock.empty());
+	QCOMPARE(reloaded.stationBoundaries.size(), std::size_t(2));
+	QVERIFY(reloaded.stationBoundaries[1].entranceBlock.empty());
+	QCOMPARE(reloaded.nodes.back().id, "new_node");
+	QVERIFY(reloaded.nodes.back().trackId.empty());
+	QCOMPARE(reloaded.arcs.back().id, "new_arc");
+	QVERIFY(reloaded.arcs.back().trackId.empty() && reloaded.arcs.back().fromNodeId.empty()
+		&& reloaded.arcs.back().toNodeId.empty());
+	QCOMPARE(reloaded.connections.back().id, "new_connection");
+	QVERIFY(reloaded.connections.back().fromNodeId.empty() && reloaded.connections.back().toNodeId.empty());
+	QCOMPARE(reloaded.scenarios[0].entranceDelays.size(), std::size_t(2));
+	QVERIFY(reloaded.scenarios[0].entranceDelays[1].serviceId.empty()
+		&& reloaded.scenarios[0].entranceDelays[1].stationId.empty());
+	QCOMPARE(reloaded.passengers[0].journeys.size(), std::size_t(2));
+	const ScenePassengerJourney& journey = reloaded.passengers[0].journeys[1];
+	QVERIFY(journey.originStationId.empty() && journey.destinationStationId.empty());
+	QCOMPARE(journey.legs.size(), std::size_t(1));
+	QVERIFY(journey.legs[0].originStationId.empty() && journey.legs[0].serviceId.empty());
+
+	json services = readJsonFile(scenePath / "services.json");
+	services["services"][1].erase("composition");
+	std::ofstream(scenePath / "services.json", std::ios::trunc) << services.dump(4) << "\n";
+	const SceneLoadResult missing = loadScene(scenePath.string());
+	const bool missingComposition = std::any_of(missing.diagnostics.begin(), missing.diagnostics.end(),
+		[](const SceneDiagnostic& diagnostic) {
+			return diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.field.missing"
+				&& diagnostic.file == "services.json" && diagnostic.path == "services[1].composition";
+		});
+	QVERIFY2(missingComposition, "a service without a composition key is still an error");
 }
 
 QTEST_APPLESS_MAIN(TestSceneWriter)
