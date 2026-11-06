@@ -151,7 +151,7 @@ private slots:
 void TestRunResults::allocatesActiveEnd() {
 	Train train;
 	train.End_Time = -1;
-	train.setTrainVectorSizesFromInput(5);
+	train.setTrainVectorSizesFromInput(5, false);
 	// trajectory allocation initializes the active end bound
 	QCOMPARE(train.End_Time, 4);
 }
@@ -955,7 +955,7 @@ void TestRunResults::exportsTrajectoryTail() {
 		train->trainDescription = direction == 0 ? "tail-forward" : "tail-reversed";
 		train->indexOfRoute = direction;
 		train->train_length = 84.0;
-		train->setTrainVectorSizesFromInput(4);
+		train->setTrainVectorSizesFromInput(4, true);
 		train->earliestActiveTrajectoryIndex = 0;
 		train->instant_spatial_position = {100, 110, 130, 160};
 		train->PrintTrajectory();
@@ -1021,7 +1021,7 @@ void TestRunResults::namesTrajectoryFile() {
 	train->run_ = &defaultRun();
 	train->trainDescription = description.toStdString();
 	train->indexOfRoute = 0;
-	train->setTrainVectorSizesFromInput(2);
+	train->setTrainVectorSizesFromInput(2, true);
 	train->earliestActiveTrajectoryIndex = 0;
 	train->PrintTrajectory();
 	QCOMPARE(QDir(temp.filePath("TEMP")).entryList(QDir::Files), QStringList{fileName});
@@ -1043,7 +1043,7 @@ void TestRunResults::trajectoryWithoutFolderFails() {
 	train->run_ = &defaultRun();
 	train->trainDescription = "no-folder-1";
 	train->indexOfRoute = 0;
-	train->setTrainVectorSizesFromInput(2);
+	train->setTrainVectorSizesFromInput(2, true);
 	std::string error;
 	try {
 		train->PrintTrajectory();

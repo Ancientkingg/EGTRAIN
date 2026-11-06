@@ -192,7 +192,7 @@ Outcome runServices(const std::string& fixture, int level, const std::vector<std
 															- train.total_train_resistances(trajectory.speed[step - 1], arc.gradient, arc.curvature))
 							/ (train.total_train_mass * train.massFactor);
 						if (trajectory.speed[step - 1] == 0 && trajectory.position[step] != trajectory.position[step - 1]
-							&& (train.Eq[step] == 5 || train.Eq[step] == 6)) {
+							&& (train.stepBranch == 5 || train.stepBranch == 6)) {
 							const double node = arc.endNode.X * 1000;
 							const double oldHead = trajectory.position[step - 1], nextHead = trajectory.position[step];
 							const double nextSpeed = trajectory.speed[step];
@@ -208,7 +208,7 @@ Outcome runServices(const std::string& fixture, int level, const std::vector<std
 							double dwell = 0, departure = 0;
 							bool red = false;
 							const Section& running = train.Bs;
-							if (train.Eq[step] == 5 && arc.endNode.station == 1 && arc.endNode.respectOrder == 0 && node - oldHead < 4) {
+							if (train.stepBranch == 5 && arc.endNode.station == 1 && arc.endNode.respectOrder == 0 && node - oldHead < 4) {
 								for (int station = 0; station < train.numStations; ++station)
 									if (train.Stations[station].stationName == arc.endNode.stationName) {
 										dwell = train.Stations[station].StepStopped > train.Stations[station].StopTime ? 0 : train.Stations[station].StopTime;
@@ -219,7 +219,7 @@ Outcome runServices(const std::string& fixture, int level, const std::vector<std
 									&& running.state == SignalState::Red;
 								const bool mustHold = step - train.stop <= dwell || step <= departure || train.IsTrainStoppedForEoA || red;
 								predicate = hold ? mustHold : release && !mustHold;
-							} else if (train.Eq[step] == 6 && arc.endNode.station != 1 && arc.endNode.respectOrder == 0 && node - oldHead < 4) {
+							} else if (train.stepBranch == 6 && arc.endNode.station != 1 && arc.endNode.respectOrder == 0 && node - oldHead < 4) {
 								red = running.state == SignalState::Red;
 								const bool mustHold = red || train.IsTrainStoppedForEoA;
 								predicate = hold ? mustHold : release && !mustHold;

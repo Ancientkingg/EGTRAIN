@@ -28,6 +28,7 @@
 #include "util/Log.h"
 #include "util/TrajectoryUtil.h"
 
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <deque>
@@ -187,7 +188,7 @@ inline bool isPastStopHoldback(double position, double stoppingPoint) {
 }
 
 /// The branch of Train::trajectoryComputationIncludingMovingBlock, or of the braking step that it calls, that produced the sample
-/// of a step. Train::Eq holds the number of each value, and the numbers do not change.
+/// of a step. Train::stepBranch holds the number of the value of the current step, and the numbers do not change.
 enum class TrajectoryBranch : int {
 	None = 0,				///< No branch: a step before the train enters, and from End_Time + 2 on.
 	Accelerate = 1,			///< Accelerates towards the speed limit.
@@ -308,9 +309,17 @@ public:
 	double resistanceCoefficient = 0.0; ///< Coefficient of the wagon resistance (Sauthoff formula) that multiplies the speed in km/h.
 	/// Head position on the route in metres at each step; -9999 at the step after End_Time and 0 after that.
 	std::vector<double> instant_spatial_position;
-	/// ID of the section of the head at each step; "-" before the train enters and from End_Time + 2 on; empty at End_Time + 1
-	/// and on a step held by a breakdown.
-	std::vector<std::string> instant_block_section_occupied;
+	/// Section of the head at each step, as its index in the sections of the route indexOfRoute; kOutsideRoute before the train
+	/// enters and from End_Time + 2 on; kNoBlockSection at End_Time + 1 and on a step held by a breakdown. blockSectionIdAt gives
+	/// its ID.
+	std::vector<std::int32_t> instant_block_section_occupied;
+	/// instant_block_section_occupied of a step that found no section, whose ID is empty.
+	static constexpr std::int32_t kNoBlockSection = -1;
+	/// instant_block_section_occupied of a step before the train enters or after it has left the route, whose ID is "-".
+	static constexpr std::int32_t kOutsideRoute = -2;
+	/// The ID of the section of the head at step t, a step of the run: "-" for kOutsideRoute and empty for kNoBlockSection. The
+	/// route must still be that of the run that made the step.
+	const std::string& blockSectionIdAt(int t) const;
 	std::vector<double> instant_train_power_consumption; ///< Power at each step in W; -9999 at the step after End_Time and 0 after that.
 	/// Branch-applied wheel effort [N], aligned with trajectory samples; -9999 at the step after End_Time and 0 after that.
 	std::vector<double> instant_train_tractive_effort;
@@ -362,7 +371,9 @@ public:
 	std::string trainDescription;				  ///< Service ID and occurrence joined by "-", which names the train everywhere.
 	/// True while the stored braking plan is below its target speed before its last point.
 	bool GradientExceptionInBraking;
-	std::vector<double> BX; ///< Route position in metres, at each step, where braking for the current target begins.
+	/// Route position in metres, at each step, where braking for the current target begins. Only PrintTrajectory reads it, so it
+	/// is kept only for a run that exports detailed trajectories and is empty otherwise.
+	std::vector<double> BX;
 	/// Stop nodes of the train in service order. Node::dwellTime, StopTime and StepStopped hold the dwell of each stop.
 	std::vector<Node> Stations;
 	/// Number of stops in use; equals Stations.size() for a train built from a scene
@@ -418,10 +429,14 @@ public:
 	int CounterFollowingMode;				 ///< Number of steps the train has been in following mode.
 	std::string LeadingTrainInFollowingMode; ///< trainDescription of the leader in following mode; "None" otherwise.
 	/// Route position in metres of the current braking target.
-	double Xobmin, Vobmin;		  ///< Speed in m/s to reach at the current braking target.
-	std::vector<double> Xob, Vob; ///< Vobmin at each step.
-	/// \var Train::Xob
-	/// Xobmin at each step.
+	double Xobmin, Vobmin; ///< Speed in m/s to reach at the current braking target.
+	/// Xobmin that the step before kept when it accelerated, braked or cruised; 0 when it kept none.
+	double previousXob = 0.0;
+	double previousVob = 0.0; ///< Vobmin that the step before kept; 0 when it kept none.
+	/// Xobmin that this step keeps when it accelerates, brakes or cruises; 0 until it does. Each step starts by moving currentXob
+	/// and currentVob to previousXob and previousVob.
+	double currentXob = 0.0;
+	double currentVob = 0.0; ///< Vobmin that this step keeps; 0 until it keeps one.
 
 	/// Route positions in metres of the stored braking plan, 2,000 entries.
 	std::vector<double> Sbrak = std::vector<double>(2000, 0.0), Vbrak = std::vector<double>(2000, 0.0);
@@ -435,11 +450,11 @@ public:
 	MovementAuthority Last_Received_MA;			  ///< Last movement authority applied to the train.
 	MovementAuthority Last_MA_StoppedAt;		  ///< Last movement authority the train has stopped at.
 	MovementAuthority Predicted_MA_To_DecoupleAt; ///< Authority where the train is predicted to decouple from the train ahead.
-	/// The branch of the step that produced each sample, as the number of its TrajectoryBranch; 0 (TrajectoryBranch::None) on other
-	/// steps before entry and from End_Time + 2 on.
-	std::vector<int> Eq;
-	/// Sets Eq[time_seconds] to the number of branch.
-	void setStepBranch(int time_seconds, TrajectoryBranch branch) { Eq[time_seconds] = static_cast<int>(branch); }
+	/// The branch that the current step took, as the number of its TrajectoryBranch; 0 (TrajectoryBranch::None) until it takes one.
+	/// Each step starts at 0.
+	int stepBranch = 0;
+	/// Sets stepBranch to the number of branch.
+	void setStepBranch(TrajectoryBranch branch) { stepBranch = static_cast<int>(branch); }
 	int RunStartTime;			///< Step before the first step with a speed above 0 (Det_Run_Start_Time); 0 until computed.
 	BlockingTimeList BlockTime; ///< Blocking times of the train, N_BlockSections of them, which the stage after the steps computes.
 	int N_BlockSections;		///< Number of entries of BlockTime.
@@ -663,11 +678,13 @@ public:
 	bool needsSingleTrackReservation(double head, double speed, double entry, Section* sections, int count);
 
 	/// The index in Sbrak and Vbrak of the next state of the stored braking plan, when the train is exactly at a state of it in
-	/// step previousInstant with the same target (target m, targetSpeed m/s) and that next step is feasible on arc; -1 otherwise.
+	/// step previousInstant, the step before, which kept the same target (previousXob and previousVob equal to target m and
+	/// targetSpeed m/s), and that next step is feasible on arc; -1 otherwise.
 	int cachedBrakingSuccessor(int previousInstant, const Arc& arc, double target, double targetSpeed);
 
 	/// The route position (m) where the train at S (m) and V (m/s) has to start braking for the most restrictive target ahead, or a very
 	/// large value when there is none. Sets Xobmin and Vobmin to that target; continueCached is true when the stored braking plan goes on.
+	/// PreviousInstant is the step before, whose target previousXob and previousVob hold.
 	double europeanVitalComputerWithListsImproved(double S, double V, int PreviousInstant, Section* BS, int Blocks, bool& continueCached);
 
 	/// An end of authority as a braking target: where the train has to meet which speed.
@@ -703,7 +720,8 @@ public:
 	/// then full braking steps. On success Sbrak, Vbrak and BrakStep hold the plan.
 	bool planBraking(double head, double speed, const Arc& arc, Section* sections, int count);
 
-	/// One braking step at time_seconds on arc As: follows the stored plan, makes a new one, or brakes with full force.
+	/// One braking step at time_seconds on arc As: follows the stored plan, makes a new one, or brakes with full force. The target
+	/// is new when Xobmin and Vobmin differ from previousXob and previousVob, the target of step time_seconds - 1.
 	void brakingStep(int time_seconds, const Arc& As, Section* BS, int Blocks);
 
 	/// One step of braking with the full braking force, for a train that has no braking curve to follow.
@@ -715,6 +733,7 @@ public:
 
 	/// Writes Traj_Train_<trainDescription>.txt to the TEMP folder of the output: for every valid step the time (s), speed (m/s), head
 	/// and tail position (m), power (kW), braking point (m), energy (kWh) and section. A reversed route writes original coordinates.
+	/// The train must keep BX: setTrainVectorSizesFromInput sized it for detailed trajectories.
 	/// A character of trainDescription that a file name cannot hold becomes '_' in the name (runOutputFileName). Throws
 	/// std::runtime_error when the file cannot be written (simulation/RunOutputFile.h).
 	void PrintTrajectory();
@@ -740,12 +759,14 @@ public:
 	/// is recorded as a direct incident.
 	double effectiveIncidentSpeedLimit(double candidate, int timestepIndex);
 
-	/// Computes step time_seconds of the train from step time_seconds - 1; Eq[time_seconds] labels the branch taken. signalCode1,
-	/// signalCode2 and signalCode3 are not read.
+	/// Computes step time_seconds of the train from step time_seconds - 1; stepBranch labels the branch taken. signalCode1,
+	/// signalCode2 and signalCode3 are not read. It first moves the target that the call before kept (currentXob and currentVob) to
+	/// previousXob and previousVob, so each call is for the step after that of the call before.
 	void trajectoryComputationIncludingMovingBlock(int time_seconds, double signalCode1, double signalCode2, double signalCode3);
 
 	/// Finds where the head of the train was at the end of step time_seconds - 1: Bs and its index BsIndex on the route, and As and
-	/// its index AsIndex in Bs, which keep their values when nothing is found. Sets instant_block_section_occupied[time_seconds].
+	/// its index AsIndex in Bs, which keep their values when nothing is found. Sets instant_block_section_occupied[time_seconds] to
+	/// BsIndex when it finds Bs.
 	void locateHead(int time_seconds, Arc& As, int& BsIndex, int& AsIndex);
 
 	/// The speed (m/s) and head (m) after step time_seconds of a train that accelerates on arc As with the surplus of its traction
@@ -895,8 +916,10 @@ public:
 		earliestActiveTrajectoryIndex = recordEarliestTrajectoryIndex(earliestActiveTrajectoryIndex, index, CanEnter);
 	}
 
-	/// Sizes every per-step vector to vec_size samples of 0 and sets End_Time to the last step.
-	void setTrainVectorSizesFromInput(int vec_size);
+	/// Sizes every per-step vector to vec_size samples of 0 (kNoBlockSection for instant_block_section_occupied), sets the
+	/// kept targets and stepBranch to 0 and sets End_Time to the last step.
+	/// BX is sized only with detailedTrajectory, for a run that exports detailed trajectories, and is empty otherwise.
+	void setTrainVectorSizesFromInput(int vec_size, bool detailedTrajectory);
 };
 
 /// Another name for Train, which the tests use.

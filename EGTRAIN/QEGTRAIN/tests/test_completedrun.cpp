@@ -396,7 +396,7 @@ void compareCapture(const CapturedRun& run) {
 				const std::uint32_t block = trajectory.blockAt(t);
 				const bool blockPresent = t < static_cast<int>(train.instant_block_section_occupied.size());
 				sameSamples = sameSamples
-					&& (blockPresent ? block != CompletedTrajectory::kNoBlock && data.blockNames[block] == train.instant_block_section_occupied[t]
+					&& (blockPresent ? block != CompletedTrajectory::kNoBlock && data.blockNames[block] == train.blockSectionIdAt(t)
 									 : block == CompletedTrajectory::kNoBlock);
 			}
 		QVERIFY2(sameSamples, (who + ": trajectory samples").c_str());

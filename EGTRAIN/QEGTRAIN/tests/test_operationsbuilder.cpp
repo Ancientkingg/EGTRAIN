@@ -26,6 +26,7 @@
 #include <atomic>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -1314,8 +1315,10 @@ static SceneModel trajectoryPerformanceScene(double performancePercent) {
 	return trajectoryPerformance;
 }
 
-// The bytes that the samples of a train take for each step: eight double, an int and a std::string.
-constexpr std::size_t kSampleBytesPerStep = 8 * sizeof(double) + sizeof(int) + sizeof(std::string);
+// The bytes that the samples of a train take for each step: five double and a 32-bit section index.
+constexpr std::size_t kSampleBytesPerStep = 5 * sizeof(double) + sizeof(std::int32_t);
+// The bytes for each step of a train of a run that exports detailed trajectories, which also keeps BX.
+constexpr std::size_t kDetailedSampleBytesPerStep = kSampleBytesPerStep + sizeof(double);
 // The most memory that the samples of the trains of one run may take.
 constexpr std::size_t kSampleLimitBytes = std::size_t{4} << 30;
 // No allocation of the builds below is this large, except those of the samples of a long run.
@@ -1339,26 +1342,31 @@ static const SceneDiagnostic* diagnosticWithCode(const std::vector<SceneDiagnost
 	return found == diagnostics.end() ? nullptr : &*found;
 }
 
-// The bytes that the sample vectors of a train allocate for `steps` steps. Each sample vector takes at least 4 bytes for
-// each step; smaller allocations are not samples.
-static std::size_t sampleBytesFor(int steps) {
+// The bytes that the sample vectors of a train allocate for `steps` steps, with BX when detailed. Each sample vector takes
+// at least 4 bytes for each step; smaller allocations are not samples.
+static std::size_t sampleBytesFor(int steps, bool detailed) {
 	Train train;
 	const LargeAllocations samples(static_cast<std::size_t>(steps), false);
-	train.setTrainVectorSizesFromInput(steps);
+	train.setTrainVectorSizesFromInput(steps, detailed);
 	return LargeAllocations::counted();
 }
 
-// The samples of a train take kSampleBytesPerStep bytes for each step, which the memory estimate of the builder counts.
-// The difference of two sizes leaves out the bytes that the standard library adds to each block (MSVC adds a few to every
-// block of 4096 bytes or more).
+// The samples of a train take kSampleBytesPerStep bytes for each step, and kDetailedSampleBytesPerStep in a run that exports
+// detailed trajectories, which the memory estimate of the builder counts. The difference of two sizes leaves out the bytes
+// that the standard library adds to each block (MSVC adds a few to every block of 4096 bytes or more).
 void TestOperationsBuilder::trainSamplesTakeTheirBytesPerStep() {
-	QCOMPARE(sampleBytesFor(8192) - sampleBytesFor(4096), kSampleBytesPerStep * 4096);
+	QCOMPARE(sampleBytesFor(8192, false) - sampleBytesFor(4096, false), kSampleBytesPerStep * 4096);
+	QCOMPARE(sampleBytesFor(8192, true) - sampleBytesFor(4096, true), kDetailedSampleBytesPerStep * 4096);
 }
 
 // A run whose samples would take more than 4 GiB is refused before its trains are built, with the estimate, the number of
-// trains and the duration in the message. With the duration of -h the message names -h and not the field of the scene.
+// trains and the duration in the message. With the duration of -h the message names -h and not the field of the scene. A
+// run that exports detailed trajectories counts BX too.
 void TestOperationsBuilder::runOverSampleLimitIsRefused() {
-	const auto clearOverride = qScopeGuard([] { initial_variables.durationOverride = false; });
+	const auto restore = qScopeGuard([] {
+		initial_variables.durationOverride = false;
+		initial_variables.exportDetailedTrajectories = false;
+	});
 	const std::size_t steps = kSampleLimitBytes / kSampleBytesPerStep + 1;
 	SceneModel scene = trajectoryPerformanceScene(100.0);
 	scene.settings.durationSeconds = static_cast<double>(steps);
@@ -1384,6 +1392,14 @@ void TestOperationsBuilder::runOverSampleLimitIsRefused() {
 	QCOMPARE(refusal->path, std::string());
 	QVERIFY2(refusal->message.find("for 1 train over the " + std::to_string(steps) + " s of -h,") != std::string::npos,
 		refusal->message.c_str());
+
+	// With BX the run is refused at fewer steps.
+	initial_variables.durationOverride = false;
+	initial_variables.exportDetailedTrajectories = true;
+	const std::size_t detailedSteps = kSampleLimitBytes / kDetailedSampleBytesPerStep + 1;
+	scene.settings.durationSeconds = static_cast<double>(detailedSteps);
+	QVERIFY2(buildWithoutLargeAllocations(scene, diagnostics), "the detailed build allocated the samples");
+	QVERIFY2(diagnosticWithCode(diagnostics, "scene.native.memory.limit") != nullptr, "a detailed run over the limit is not refused");
 }
 
 // A run whose samples take 4 GiB or a little less is not refused by the estimate: its build goes on to allocate them, which
@@ -1396,6 +1412,15 @@ void TestOperationsBuilder::runAtSampleLimitIsNotRefused() {
 	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene)));
 	std::vector<SceneDiagnostic> diagnostics;
 	QVERIFY2(buildWithoutLargeAllocations(scene, diagnostics), "std::bad_alloc left the build");
+	QVERIFY(diagnosticWithCode(diagnostics, "scene.native.memory.limit") == nullptr);
+	QVERIFY(diagnosticWithCode(diagnostics, "scene.native.memory.free") != nullptr);
+
+	// A run that exports detailed trajectories keeps BX too: fewer steps fit, and the most that fit are not refused either.
+	const auto clearDetail = qScopeGuard([] { initial_variables.exportDetailedTrajectories = false; });
+	initial_variables.exportDetailedTrajectories = true;
+	const std::size_t detailedSteps = kSampleLimitBytes / kDetailedSampleBytesPerStep;
+	scene.settings.durationSeconds = static_cast<double>(detailedSteps);
+	QVERIFY2(buildWithoutLargeAllocations(scene, diagnostics), "std::bad_alloc left the detailed build");
 	QVERIFY(diagnosticWithCode(diagnostics, "scene.native.memory.limit") == nullptr);
 	QVERIFY(diagnosticWithCode(diagnostics, "scene.native.memory.free") != nullptr);
 }
@@ -2437,9 +2462,11 @@ static BrakingRun brakingRun(Train& train, std::vector<Section>& route, double p
 	run.speed[0] = run.speed[1] = speed;
 	train.instant_spatial_position = run.position;
 	train.instant_train_speed = run.speed;
-	train.Eq = run.eq;
 	train.Xobmin = targetPosition;
 	train.Vobmin = targetSpeed;
+	// Every step before kept the same target.
+	train.previousXob = targetPosition;
+	train.previousVob = targetSpeed;
 	for (int t = 2; t < size; ++t) {
 		const Section& section = route[0];
 		Arc arc = section.arcs_in_signalling_block_section[0];
@@ -2451,11 +2478,11 @@ static BrakingRun brakingRun(Train& train, std::vector<Section>& route, double p
 		}
 		train.GradientExceptionInBraking = true;
 		train.brakingStep(t, arc, route.data(), 1);
+		run.eq[t] = train.stepBranch;
 		run.gradientExceptionClear &= !train.GradientExceptionInBraking;
 	}
 	run.position = train.instant_spatial_position;
 	run.speed = train.instant_train_speed;
-	run.eq = train.Eq;
 	return run;
 }
 
@@ -2690,9 +2717,10 @@ void TestOperationsBuilder::inverseStepsSolveForwardModel() {
 		const double head = native.Sbrak[k] - fraction * speed * timestep;
 		train.instant_spatial_position = {head - speed, head, -1};
 		train.instant_train_speed = {speed, speed, -1};
-		train.Eq.assign(3, 0);
 		train.Xobmin = 5000;
 		train.Vobmin = 0;
+		train.previousXob = 5000;
+		train.previousVob = 0;
 		bool stopped = false;
 		for (int step = 0; step < 100; ++step) {
 			const double oldHead = train.instant_spatial_position[1], oldSpeed = train.instant_train_speed[1];
@@ -2706,8 +2734,8 @@ void TestOperationsBuilder::inverseStepsSolveForwardModel() {
 			std::ostringstream context;
 			context.precision(17);
 			context << "route=" << routeIndex << " fraction=" << fraction << " step=" << step << " head=" << oldHead
-					<< " speed=" << oldSpeed << " next=" << nextHead << "/" << nextSpeed << " eq=" << train.Eq[2];
-			QVERIFY2(train.Eq[2] != 54, ("feasible continuation does not take late fallback: " + context.str()).c_str());
+					<< " speed=" << oldSpeed << " next=" << nextHead << "/" << nextSpeed << " eq=" << train.stepBranch;
+			QVERIFY2(train.stepBranch != 54, ("feasible continuation does not take late fallback: " + context.str()).c_str());
 			const std::string bounds = "actual-speed force, full subsequent model steps and right-endpoint distance: " + context.str();
 			QVERIFY2(nextSpeed >= minimum - 1e-9, bounds.c_str());
 			QVERIFY2(nextSpeed <= maximum + 1e-9, bounds.c_str());
@@ -2762,17 +2790,16 @@ void TestOperationsBuilder::zeroSpeedTerminalsKeepCoordinate() {
 void TestOperationsBuilder::changedLateTargetKeepsHistory() {
 	auto route = brakingRoute(0, 10, 0);
 	Train train = brakingTrain(1);
-	train.Xob.assign(3, 5000);
-	train.Vob.assign(3, 0);
+	train.previousXob = 5000;
+	train.previousVob = 0;
 	train.Xobmin = 4500;
 	train.Vobmin = 0;
 	train.counter = 1;
 	train.instant_spatial_position = {4780, 4800, -1};
 	train.instant_train_speed = {20, 20, -1};
-	train.Eq.assign(3, 0);
 	train.brakingStep(2, route[0].arcs_in_signalling_block_section[0], route.data(), 1);
 	// Changed late target preserves immutable history and fallback.
-	QCOMPARE(train.Eq[2], 54);
+	QCOMPARE(train.stepBranch, 54);
 	QCOMPARE_EQ(train.instant_spatial_position[1], 4800.0);
 	QCOMPARE_EQ(train.instant_train_speed[1], 20.0);
 	QVERIFY(train.instant_spatial_position[2] > 4800);
@@ -2849,9 +2876,8 @@ void TestOperationsBuilder::nonMonotoneInverseRecovers() {
 		const double startSpeed = train.Vbrak[0], start = train.Sbrak[0] - fraction * startSpeed * timestep;
 		live.instant_spatial_position = {start - startSpeed, start, -1};
 		live.instant_train_speed = {startSpeed, startSpeed, -1};
-		live.Eq.assign(3, 0);
-		live.Xob.assign(3, 5000);
-		live.Vob.assign(3, 15);
+		live.previousXob = 5000;
+		live.previousVob = 15;
 		live.Xobmin = 5000;
 		live.Vobmin = 15;
 		bool reached = false, below = false, recovered = false;
@@ -2866,10 +2892,10 @@ void TestOperationsBuilder::nonMonotoneInverseRecovers() {
 			const double nextHead = live.instant_spatial_position[2], nextSpeed = live.instant_train_speed[2];
 			std::ostringstream context;
 			context.precision(17);
-			context << "fraction=" << fraction << " step=" << step << " old=" << oldHead << "/" << oldSpeed << " next=" << nextHead << "/" << nextSpeed << " eq=" << live.Eq[2];
+			context << "fraction=" << fraction << " step=" << step << " old=" << oldHead << "/" << oldSpeed << " next=" << nextHead << "/" << nextSpeed << " eq=" << live.stepBranch;
 			const bool terminal = near(nextHead, 4999.998) && nextSpeed > 0 && nextSpeed <= 15;
 			const std::string plan = "positive endpoint plan obeys full prefix and admissible terminal force: " + context.str();
-			QVERIFY2(live.Eq[2] != 54, plan.c_str());
+			QVERIFY2(live.stepBranch != 54, plan.c_str());
 			QVERIFY2(nextSpeed >= lower - 1e-9, plan.c_str());
 			QVERIFY2(nextSpeed <= upper + 1e-9, plan.c_str());
 			QVERIFY2(nextHead >= oldHead, plan.c_str());
@@ -3313,13 +3339,13 @@ void TestOperationsBuilder::brakingPhase() {
 	train.instant_spatial_position[0] = 690;
 	train.instant_spatial_position[1] = 700;
 	train.instant_train_speed[0] = train.instant_train_speed[1] = 10;
-	train.Xob[1] = 1000;
-	train.Vob[1] = 10;
+	train.currentXob = 1000;
+	train.currentVob = 10;
 	train.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 	// Reached speed target is retained until its actual boundary.
 	QCOMPARE_EQ(train.instant_train_speed[2], 10.0);
 	QCOMPARE_EQ(train.instant_spatial_position[2], 710.0);
-	QCOMPARE(train.Eq[2], 12);
+	QCOMPARE(train.stepBranch, 12);
 	// Cruising does not rewrite its prior speed or position.
 	QCOMPARE_EQ(train.instant_train_speed[1], 10.0);
 	QCOMPARE_EQ(train.instant_spatial_position[1], 700.0);
@@ -3328,13 +3354,16 @@ void TestOperationsBuilder::brakingPhase() {
 	train.instant_spatial_position[1] = 700;
 	train.instant_train_speed[1] = 10;
 	train.counter = 0;
+	// Step 2 again, after step 1 with its target.
+	train.currentXob = 1000;
+	train.currentVob = 10;
 	const Arc& phaseArc = phaseRoute.sequence_of_block_sections[0].arcs_in_signalling_block_section[0];
 	const double minimumSpeed = std::max(0.0, 10 - (train.max_train_decelaration + train.total_train_resistances(10, phaseArc.gradient, phaseArc.curvature) / (train.total_train_mass * train.massFactor)) * timestep);
 	train.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 	// Late current speed limit uses the model's full-braking step, not a cap or Eq12 history rewrite.
 	QCOMPARE_EQ(train.instant_train_speed[1], 10.0);
 	QVERIFY(near(train.instant_train_speed[2], minimumSpeed));
-	QCOMPARE(train.Eq[2], 54);
+	QCOMPARE(train.stepBranch, 54);
 	QVERIFY(near(train.instant_spatial_position[2], 700 + (10 + minimumSpeed) / 2 * timestep));
 	// Retain the original native stock for the executed steep-descent probe below.
 	SceneModel targetScene = scene;
@@ -3383,16 +3412,16 @@ void TestOperationsBuilder::brakingPhase() {
 				live.instant_spatial_position[0] = head - speed * timestep;
 				live.instant_spatial_position[1] = head;
 				live.instant_train_speed[0] = live.instant_train_speed[1] = speed;
-				live.Xob[1] = live.Vob[1] = 0;
+				live.currentXob = live.currentVob = 0;
 				// Satisfied positive target precedes stop BX crossed by this movement.
 				QVERIFY(head < satisfied);
 				QVERIFY(satisfied < point);
 				QVERIFY(head + speed * timestep > point);
 				live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 				// Equal/below-ceiling demand selects restrictive stop rather than satisfied target.
-				QCOMPARE_EQ(live.Xob[2], 5000.0);
-				QCOMPARE_EQ(live.Vob[2], 0.0);
-				QCOMPARE(live.Eq[2], 55);
+				QCOMPARE_EQ(live.currentXob, 5000.0);
+				QCOMPARE_EQ(live.currentVob, 0.0);
+				QCOMPARE(live.stepBranch, 55);
 				bool stopped = false;
 				for (int time = 2; time < 100; ++time) {
 					if (time > 2)
@@ -3402,7 +3431,7 @@ void TestOperationsBuilder::brakingPhase() {
 					QCOMPARE_EQ(live.instant_spatial_position[1], head);
 					QCOMPARE_EQ(live.instant_train_speed[0], speed);
 					QCOMPARE_EQ(live.instant_train_speed[1], speed);
-					if (live.Eq[time] != 55 && live.Eq[time] != 52 && live.Eq[time] != 53)
+					if (live.stepBranch != 55 && live.stepBranch != 52 && live.stepBranch != 53)
 						break;
 					if (live.instant_train_speed[time] == 0) {
 						stopped = true;
@@ -3442,8 +3471,8 @@ void TestOperationsBuilder::brakingPhase() {
 				live.instant_spatial_position[0] = 4999.998 - speed * timestep;
 				live.instant_spatial_position[1] = 4999.998;
 				live.instant_train_speed[0] = live.instant_train_speed[1] = speed;
-				live.Xob[1] = 5000;
-				live.Vob[1] = 15;
+				live.currentXob = 5000;
+				live.currentVob = 15;
 				const Arc& descent = section.arcs_in_signalling_block_section[1];
 				const double minimum = live.brakingCurveSpeed(speed, descent);
 				const double resistance = live.total_train_resistances(speed, descent.gradient, descent.curvature);
@@ -3453,7 +3482,7 @@ void TestOperationsBuilder::brakingPhase() {
 				QVERIFY(resistance < fullEffort);
 				live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 				// Infeasible retained hold/cap uses force-feasible full-model mean-displacement fallback.
-				QCOMPARE(live.Eq[2], 54);
+				QCOMPARE(live.stepBranch, 54);
 				QCOMPARE(live.counter, 0);
 				QCOMPARE_EQ(live.instant_train_speed[2], minimum);
 				QVERIFY(near(live.instant_spatial_position[2], 4999.998 + (speed + minimum) / 2 * timestep));
@@ -3474,8 +3503,8 @@ void TestOperationsBuilder::brakingPhase() {
 				live.instant_spatial_position[0] = head - speed * timestep;
 				live.instant_spatial_position[1] = head;
 				live.instant_train_speed[0] = live.instant_train_speed[1] = speed;
-				live.Xob[1] = 5000;
-				live.Vob[1] = 15;
+				live.currentXob = 5000;
+				live.currentVob = 15;
 				bool below = false, recovered = false, reached = false;
 				for (int time = 2; time < 100; ++time) {
 					const double oldHead = live.instant_spatial_position[time - 1], oldSpeed = live.instant_train_speed[time - 1];
@@ -3484,11 +3513,11 @@ void TestOperationsBuilder::brakingPhase() {
 					std::ostringstream context;
 					context.precision(17);
 					context << " t=" << time << " old=" << oldHead << "/" << oldSpeed << " next=" << nextHead << "/" << nextSpeed
-							<< " eq=" << live.Eq[time] << " target=" << live.Xob[time] << "/" << live.Vob[time];
+							<< " eq=" << live.stepBranch << " target=" << live.currentXob << "/" << live.currentVob;
 					const std::string plan = "real active recovery retains target, right-endpoint plan and immutable history" + context.str();
-					QVERIFY2(live.Eq[time] != 54, plan.c_str());
-					QVERIFY2(live.Xob[time] == 5000, plan.c_str());
-					QVERIFY2(live.Vob[time] == 15, plan.c_str());
+					QVERIFY2(live.stepBranch != 54, plan.c_str());
+					QVERIFY2(live.currentXob == 5000, plan.c_str());
+					QVERIFY2(live.currentVob == 15, plan.c_str());
 					QVERIFY2(near(nextHead, oldHead + nextSpeed * timestep), plan.c_str());
 					QVERIFY2(live.instant_spatial_position[time - 1] == oldHead, plan.c_str());
 					QVERIFY2(live.instant_train_speed[time - 1] == oldSpeed, plan.c_str());
@@ -3498,7 +3527,7 @@ void TestOperationsBuilder::brakingPhase() {
 						reached = true;
 						break;
 					}
-					if (nextHead > 5000 || nextSpeed == 0 || live.Eq[time] == 54)
+					if (nextHead > 5000 || nextSpeed == 0 || live.stepBranch == 54)
 						break;
 				}
 				// Upstream real selector keeps nonmonotone recovery through its positive endpoint.
@@ -3550,14 +3579,16 @@ void TestOperationsBuilder::brakingPhase() {
 			QCOMPARE_EQ(nextHead, cached.Sbrak[2]);
 			for (double point : {head, std::nextafter(head, 0.0), std::nextafter(head, std::numeric_limits<double>::infinity()), head + 1}) {
 				BoundaryTrain live = cached;
+				// The braking point of each step is kept, as for detailed trajectories.
+				live.BX.assign(live.instant_spatial_position.size(), 0.0);
 				live.point = point;
 				live.counter = 1;
 				live.GradientExceptionInBraking = false;
 				live.instant_spatial_position[0] = head - speed * timestep;
 				live.instant_spatial_position[1] = head;
 				live.instant_train_speed[0] = live.instant_train_speed[1] = speed;
-				live.Xob[1] = 2000;
-				live.Vob[1] = 0;
+				live.currentXob = 2000;
+				live.currentVob = 0;
 				live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 				const bool shortOfPoint = isShortOfBrakingPoint(head, point);
 				// Boundary dispatch uses the chosen BX and retains published history.
@@ -3567,12 +3598,12 @@ void TestOperationsBuilder::brakingPhase() {
 				QVERIFY(speed > arc.signalSpeedLimit);
 				// Equivalent rounded BX retains valid full-model cache; genuinely short current-limit state retains fallback.
 				if (shortOfPoint) {
-					QCOMPARE(live.Eq[2], 54);
+					QCOMPARE(live.stepBranch, 54);
 					QCOMPARE(live.counter, 0);
 					QCOMPARE_EQ(live.instant_train_speed[2], nextSpeed);
 					QVERIFY(near(live.instant_spatial_position[2], head + (speed + nextSpeed) / 2 * timestep));
 				} else {
-					QCOMPARE(live.Eq[2], 52);
+					QCOMPARE(live.stepBranch, 52);
 					QCOMPARE(live.counter, 1);
 					QCOMPARE_EQ(live.instant_train_speed[2], nextSpeed);
 					QCOMPARE_EQ(live.instant_spatial_position[2], nextHead);
@@ -3687,10 +3718,10 @@ void TestOperationsBuilder::brakingPhase() {
 		native.instant_spatial_position[0] = head - speed;
 		native.instant_spatial_position[1] = head;
 		native.instant_train_speed[0] = native.instant_train_speed[1] = speed;
-		native.Xob[1] = native.Vob[1] = 0;
+		native.currentXob = native.currentVob = 0;
 		native.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 		// Accelerating/cruising crossing enters the forward curve before the old braking point.
-		QCOMPARE(native.Eq[2], 55);
+		QCOMPARE(native.stepBranch, 55);
 		QCOMPARE_EQ(native.instant_spatial_position[1], head);
 		QCOMPARE_EQ(native.instant_train_speed[1], speed);
 	}
@@ -3706,21 +3737,20 @@ void TestOperationsBuilder::brakingPhase() {
 		const double invalid = (maximum + startingMaximum) / 2;
 		power.instant_spatial_position = {2320, 2350, -1};
 		power.instant_train_speed = {speed, speed, -1};
-		power.Eq.assign(3, 0);
 		power.Sbrak[0] = 2350;
 		power.Sbrak[1] = 2350 + invalid * timestep;
 		power.Vbrak[0] = speed;
 		power.Vbrak[1] = invalid;
 		power.BrakStep = 1;
 		power.counter = 1;
-		power.Xob.assign(3, 2400);
-		power.Vob.assign(3, 0);
+		power.previousXob = 2400;
+		power.previousVob = 0;
 		power.Xobmin = 2400;
 		power.Vobmin = 0;
 		power.brakingStep(2, arc, nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections);
 		// Actual-speed power-band bound rejects a starting-effort overdraw without rewriting speed.
 		QVERIFY(power.instant_train_speed[2] <= maximum + 1e-9);
-		QCOMPARE(power.Eq[2], 54);
+		QCOMPARE(power.stepBranch, 54);
 		QCOMPARE_EQ(power.instant_train_speed[1], speed);
 		// Reacceleration in the separate late-target fallback also obeys actual effort.
 		arc.gradient = -0.2;
@@ -3729,7 +3759,7 @@ void TestOperationsBuilder::brakingPhase() {
 		const double downhillMaximum = speed + (power.tractiveEffort(speed) - power.total_train_resistances(speed, arc.gradient, arc.curvature)) / mass * timestep;
 		power.fullBrakingStep(2, arc);
 		// Late-target model reacceleration obeys actual-speed power bound and unchanged mean displacement.
-		QCOMPARE(power.Eq[2], 54);
+		QCOMPARE(power.stepBranch, 54);
 		QVERIFY(power.instant_train_speed[2] > speed);
 		QVERIFY(power.instant_train_speed[2] <= downhillMaximum + 1e-9);
 		QVERIFY(near(power.instant_spatial_position[2], 1000 + (speed + power.instant_train_speed[2]) / 2 * timestep));
@@ -3771,13 +3801,13 @@ void TestOperationsBuilder::brakingPhase() {
 		native.instant_spatial_position[0] = 4170;
 		native.instant_spatial_position[1] = 4200;
 		native.instant_train_speed[0] = native.instant_train_speed[1] = 30;
-		native.Xob[1] = native.Vob[1] = 0;
+		native.currentXob = native.currentVob = 0;
 		bool braked = false, stopped = false;
 		for (int time = 2; time < 100; ++time) {
 			const double oldHead = native.instant_spatial_position[time - 1], oldSpeed = native.instant_train_speed[time - 1];
 			native.trajectoryComputationIncludingMovingBlock(time, signalCode1, signalCode2, signalCode3);
 			const double nextHead = native.instant_spatial_position[time], nextSpeed = native.instant_train_speed[time];
-			if (native.Eq[time] == 55 || native.Eq[time] == 53 || native.Eq[time] == 52) {
+			if (native.stepBranch == 55 || native.stepBranch == 53 || native.stepBranch == 52) {
 				const Arc* running = native.brakingArc(oldHead, nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections);
 				const double wheel = native.total_train_mass * native.massFactor * (nextSpeed - oldSpeed) / timestep
 					+ native.total_train_resistances(oldSpeed, running->gradient, running->curvature);
@@ -3791,8 +3821,8 @@ void TestOperationsBuilder::brakingPhase() {
 			QCOMPARE_EQ(native.instant_train_speed[time - 1], oldSpeed);
 			QVERIFY(nextHead >= oldHead);
 			QVERIFY(nextHead <= 5000);
-			QVERIFY(native.Eq[time] != 54);
-			if (!braked && (native.Eq[time] == 55 || native.Eq[time] == 53 || native.Eq[time] == 52)) {
+			QVERIFY(native.stepBranch != 54);
+			if (!braked && (native.stepBranch == 55 || native.stepBranch == 53 || native.stepBranch == 52)) {
 				braked = true;
 			}
 			if (nextSpeed == 0) {
@@ -3811,6 +3841,8 @@ void TestOperationsBuilder::brakingPhase() {
 	// First service entry must survive movement until the existing passenger phase initializes dwell.
 	{
 		Train service = native;
+		// Step 1 kept no target.
+		service.currentXob = service.currentVob = 0;
 		const int station = service.numStations - 1;
 		service.Stations[station].StepStopped = 0;
 		service.Stations[station].StopTime = 0;
@@ -3820,7 +3852,7 @@ void TestOperationsBuilder::brakingPhase() {
 		service.instant_train_speed[1] = 0;
 		service.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 		// Zero-authored dwell retains first service entry for the post-movement passenger initializer.
-		QCOMPARE(service.Eq[2], 5);
+		QCOMPARE(service.stepBranch, 5);
 		QVERIFY(service.StoppedForServiceStop);
 		QCOMPARE(service.Stations[station].StepStopped, 1);
 		QCOMPARE(service.stop, 2);
@@ -3873,8 +3905,8 @@ void TestOperationsBuilder::brakingPhase() {
 		cached.counter = 1;
 		cached.instant_spatial_position[1] = head;
 		cached.instant_train_speed[1] = speed;
-		cached.Xob[1] = 5000;
-		cached.Vob[1] = 0;
+		cached.currentXob = 5000;
+		cached.currentVob = 0;
 		for (int change = 0; change < 4; ++change) {
 			Train live = cached;
 			section.arcs_in_signalling_block_section[0].speedInBraking = change == 0 ? live.max_train_speed : change == 1 ? 12
@@ -3888,10 +3920,10 @@ void TestOperationsBuilder::brakingPhase() {
 			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 			// Cleared/changed incumbent or mismatched/force-invalid cache cannot retain stale braking.
 			if (change < 2) {
-				QCOMPARE(live.Eq[2], 1);
+				QCOMPARE(live.stepBranch, 1);
 				QCOMPARE(live.counter, 0);
 			} else {
-				QVERIFY(live.Eq[2] != 52);
+				QVERIFY(live.stepBranch != 52);
 			}
 		}
 		const Section baseSection = section;
@@ -3916,9 +3948,9 @@ void TestOperationsBuilder::brakingPhase() {
 			Train live = cached;
 			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 			// New stricter stop/positive target interrupts cached proposal from immutable previous actual state.
-			QCOMPARE_EQ(live.Xob[2], competing.arcs_in_signalling_block_section[0].endNode.X * 1000);
-			QCOMPARE_EQ(live.Vob[2], ceiling);
-			QVERIFY(live.Eq[2] != 52);
+			QCOMPARE_EQ(live.currentXob, competing.arcs_in_signalling_block_section[0].endNode.X * 1000);
+			QCOMPARE_EQ(live.currentVob, ceiling);
+			QVERIFY(live.stepBranch != 52);
 			QCOMPARE_EQ(live.instant_spatial_position[1], head);
 			QCOMPARE_EQ(live.instant_train_speed[1], speed);
 			nativeRoute.sequence_of_block_sections = {baseSection};
@@ -3938,9 +3970,9 @@ void TestOperationsBuilder::brakingPhase() {
 		QCOMPARE_EQ(live.BrakDist_Block(live.Vbrak[1], 8, 10000, nativeRoute.sequence_of_block_sections.data(), 1), -1.0);
 		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 		// Unavailable farther target does not discard a cached plan ending at an earlier stop.
-		QCOMPARE_EQ(live.Xob[2], 5000.0);
-		QCOMPARE_EQ(live.Vob[2], 0.0);
-		QCOMPARE(live.Eq[2], 52);
+		QCOMPARE_EQ(live.currentXob, 5000.0);
+		QCOMPARE_EQ(live.currentVob, 0.0);
+		QCOMPARE(live.stepBranch, 52);
 		QCOMPARE_EQ(live.instant_spatial_position[2], cached.Sbrak[1]);
 		QCOMPARE_EQ(live.instant_train_speed[2], cached.Vbrak[1]);
 		nativeRoute = savedRoute;
@@ -3982,8 +4014,8 @@ void TestOperationsBuilder::brakingPhase() {
 		live.Vbrak[1] = ceiling;
 		live.instant_spatial_position[1] = head;
 		live.instant_train_speed[1] = speed;
-		live.Xob[1] = boundary;
-		live.Vob[1] = ceiling;
+		live.currentXob = boundary;
+		live.currentVob = ceiling;
 		const Arc* arc = live.brakingArc(head, route.sequence_of_block_sections.data(), route.N_Block_Sections);
 		double end = 0.0;
 		// Locally force-valid Copenhagen recovery would consume the competing stop's last opportunity.
@@ -3998,17 +4030,17 @@ void TestOperationsBuilder::brakingPhase() {
 			live.trajectoryComputationIncludingMovingBlock(time, signalCode1, signalCode2, signalCode3);
 			if (time <= 3) {
 				std::cout.precision(17);
-				std::cout << "Copenhagen arbitration t=" << time << " target=" << live.Xob[time] << "/" << live.Vob[time]
-						  << " state=" << live.instant_spatial_position[time] << "/" << live.instant_train_speed[time] << " eq=" << live.Eq[time] << "\n";
+				std::cout << "Copenhagen arbitration t=" << time << " target=" << live.currentXob << "/" << live.currentVob
+						  << " state=" << live.instant_spatial_position[time] << "/" << live.instant_train_speed[time] << " eq=" << live.stepBranch << "\n";
 			}
 			// Copenhagen stop preempts recovery and retains actual cached continuation despite hypothetical acceleration ceiling.
-			QCOMPARE_EQ(live.Xob[time], stopTarget);
-			QCOMPARE_EQ(live.Vob[time], 0.0);
-			QVERIFY(live.Eq[time] != 54);
+			QCOMPARE_EQ(live.currentXob, stopTarget);
+			QCOMPARE_EQ(live.currentVob, 0.0);
+			QVERIFY(live.stepBranch != 54);
 			QCOMPARE_EQ(live.instant_spatial_position[time - 1], oldHead);
 			QCOMPARE_EQ(live.instant_train_speed[time - 1], oldSpeed);
 			QCOMPARE_EQ(live.instant_spatial_position[time], oldHead + live.instant_train_speed[time] * timestep);
-			if (live.Eq[time] == 54 || live.Xob[time] != stopTarget)
+			if (live.stepBranch == 54 || live.currentXob != stopTarget)
 				break;
 			if (live.instant_train_speed[time] == 0) {
 				stopped = true;
@@ -4083,8 +4115,8 @@ void TestOperationsBuilder::level4Transitions() {
 		live.instant_spatial_position[0] = live.instant_spatial_position[1] = head;
 		live.instant_train_speed[0] = live.instant_train_speed[1] = speed;
 		live.instant_spatial_position[2] = live.instant_train_speed[2] = -123;
-		live.Eq[2] = -123;
-		live.Xob[1] = live.Vob[1] = 0;
+		live.stepBranch = -123;
+		live.previousXob = live.previousVob = live.currentXob = live.currentVob = 0;
 		return live;
 	};
 	{
@@ -4096,7 +4128,7 @@ void TestOperationsBuilder::level4Transitions() {
 		arc.speedInBraking = 0;
 		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 		// A behind braking Tale cannot project into a forward authority in either direction.
-		QCOMPARE_EQ(live.Xob[2], 10000.0);
+		QCOMPARE_EQ(live.currentXob, 10000.0);
 		QVERIFY(!live.BrakingForEoA);
 		arc.speedInBraking = stock.max_train_speed;
 	}
@@ -4130,8 +4162,8 @@ void TestOperationsBuilder::level4Transitions() {
 		live = actual(1000, 10);
 		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 		// Opposing Front remains a stopping authority in either route direction.
-		QVERIFY(near(live.Xob[2], 1020));
-		QCOMPARE_EQ(live.Vob[2], 0.0);
+		QVERIFY(near(live.currentXob, 1020));
+		QCOMPARE_EQ(live.currentVob, 0.0);
 		QVERIFY(live.BrakingForEoA);
 		arc.signalSpeedLimit = stock.max_train_speed;
 	}
@@ -4148,8 +4180,8 @@ void TestOperationsBuilder::level4Transitions() {
 		QCOMPARE_EQ(end, raw);
 		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 		// Projected stop excludes the inverse anchor holdback and stays fixed when the leader reaches zero.
-		QCOMPARE_EQ(live.Xob[2], raw);
-		QCOMPARE_EQ(live.Vob[2], 0.0);
+		QCOMPARE_EQ(live.currentXob, raw);
+		QCOMPARE_EQ(live.currentVob, 0.0);
 	}
 	{
 		const Arc originalArc = arc;
@@ -4178,7 +4210,7 @@ void TestOperationsBuilder::level4Transitions() {
 			QCOMPARE_EQ(live.instant_train_speed[2], 0.0);
 			QVERIFY(live.StoppedForServiceStop);
 			QCOMPARE(live.stop, 1);
-			QVERIFY(near(live.Xob[2], 1000.005));
+			QVERIFY(near(live.currentXob, 1000.005));
 			if (dwellComplete) {
 				defaultRun().etcsMa.clear();
 				live.trajectoryComputationIncludingMovingBlock(3, signalCode1, signalCode2, signalCode3);
@@ -4218,14 +4250,14 @@ void TestOperationsBuilder::level4Transitions() {
 		// Removed saved Tale releases to the actual-state successor, retaining new near Tale or open acceleration.
 		QVERIFY(!live.IsTrainStoppedForEoA);
 		if (replacement) {
-			QCOMPARE(live.Eq[2], 54);
+			QCOMPARE(live.stepBranch, 54);
 			QCOMPARE_EQ(live.instant_spatial_position[2], 1000.0);
 			QCOMPARE_EQ(live.instant_train_speed[2], 0.0);
-			QVERIFY(near(live.Xob[2], 1000.003));
+			QVERIFY(near(live.currentXob, 1000.003));
 			QVERIFY(live.BrakingForEoA);
 			QCOMPARE(live.stop, 1);
 		} else {
-			QCOMPARE(live.Eq[2], 1);
+			QCOMPARE(live.stepBranch, 1);
 			QVERIFY(live.instant_spatial_position[2] > 1000);
 			QVERIFY(live.instant_train_speed[2] > 0);
 		}
@@ -4270,12 +4302,12 @@ void TestOperationsBuilder::level4Transitions() {
 		live.Sbrak[0] = live.Sbrak[1] = terminal;
 		live.Vbrak[0] = 0.1;
 		live.Vbrak[1] = 0;
-		live.Xob[1] = target;
-		live.Vob[1] = 0;
+		live.currentXob = target;
+		live.currentVob = 0;
 		defaultRun().etcsMa = {saved};
 		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 		// Active following cannot replace a native anchored zero-speed terminal.
-		QCOMPARE(live.Eq[2], 52);
+		QCOMPARE(live.stepBranch, 52);
 		QCOMPARE_EQ(live.instant_spatial_position[2], terminal);
 		QCOMPARE_EQ(live.instant_train_speed[2], 0.0);
 	}
@@ -4293,7 +4325,7 @@ void TestOperationsBuilder::level4Transitions() {
 		control.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 		// An ineligible live Front produces no following proposal and preserves the complete normal result.
-		QCOMPARE(live.Eq[2], control.Eq[2]);
+		QCOMPARE(live.stepBranch, control.stepBranch);
 		QCOMPARE_EQ(live.instant_spatial_position[2], control.instant_spatial_position[2]);
 		QCOMPARE_EQ(live.instant_train_speed[2], control.instant_train_speed[2]);
 		QCOMPARE(live.counter, control.counter);
@@ -4319,9 +4351,9 @@ void TestOperationsBuilder::level4Transitions() {
 		QVERIFY(live.instant_train_speed[2] >= minimum);
 		QVERIFY(live.instant_train_speed[2] <= 10);
 		if (intent == 1)
-			QVERIFY(live.Eq[2] != 1002);
+			QVERIFY(live.stepBranch != 1002);
 		else
-			QCOMPARE(live.Eq[2], 1002);
+			QCOMPARE(live.stepBranch, 1002);
 		if (intent != 1) {
 			const double effort = live.total_train_mass * live.massFactor * (live.instant_train_speed[2] - 10) / timestep
 				+ live.total_train_resistances(10, arc.gradient, arc.curvature);
@@ -4358,7 +4390,7 @@ void TestOperationsBuilder::stationaryBrakingCompletesDwell() {
 		service.trajectoryComputationIncludingMovingBlock(time, signalCode1, signalCode2, signalCode3);
 		// Zero-speed braking fallback preserves the first service entry clock throughout dwell.
 		QCOMPARE(service.stop, 2);
-		QCOMPARE_EQ(service.Xob[time], service.stationRoutePositionMeters(station));
+		QCOMPARE_EQ(service.currentXob, service.stationRoutePositionMeters(station));
 		// Real-path stationary braking completes dwell and scheduled departure without resetting the clock.
 		if (time <= 7) {
 			QVERIFY(service.StoppedForServiceStop);
@@ -4436,7 +4468,7 @@ void TestOperationsBuilder::signalFailureEvidence() {
 		live.firstDirectIncidentTime = live.firstDirectIncidentLocation = -1.0;
 		live.instant_spatial_position[0] = live.instant_spatial_position[1] = head;
 		live.instant_train_speed[0] = live.instant_train_speed[1] = 0;
-		live.Xob[1] = live.Vob[1] = 0;
+		live.currentXob = live.currentVob = 0;
 		return live;
 	};
 	const auto runStep = [](Train& train) { train.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3); };
@@ -5222,7 +5254,7 @@ void TestOperationsBuilder::singleTrackLocks() {
 	for (Regional& train : defaultRun().trains) {
 		const double head = train.instant_spatial_position[1];
 		const double speed = train.CanEnter ? train.instant_train_speed[1] : 0.0;
-		train.setTrainVectorSizesFromInput(steps);
+		train.setTrainVectorSizesFromInput(steps, false);
 		train.instant_spatial_position[0] = head - speed * timestep;
 		train.instant_spatial_position[1] = head;
 		train.instant_train_speed[0] = train.instant_train_speed[1] = speed;

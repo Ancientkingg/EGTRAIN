@@ -138,9 +138,9 @@ CompletedTrajectory captureTrajectory(const Train& train, BlockNameTable& blocks
 	trajectory.power = sliceSeries(train.instant_train_power_consumption, first, last);
 	trajectory.energy = sliceSeries(train.instant_train_energy_consumption, first, last);
 	trajectory.effort = sliceSeries(train.instant_train_tractive_effort, first, last);
-	const auto& occupied = train.instant_block_section_occupied;
-	for (int sample = first; sample <= last && sample < static_cast<int>(occupied.size()); ++sample)
-		trajectory.block.push_back(blocks.indexOf(occupied[static_cast<std::size_t>(sample)]));
+	const int samples = static_cast<int>(train.instant_block_section_occupied.size());
+	for (int sample = first; sample <= last && sample < samples; ++sample)
+		trajectory.block.push_back(blocks.indexOf(train.blockSectionIdAt(sample)));
 	return trajectory;
 }
 

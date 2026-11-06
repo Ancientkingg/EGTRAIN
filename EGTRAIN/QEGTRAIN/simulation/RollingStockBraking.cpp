@@ -612,8 +612,7 @@ bool Train::needsSingleTrackReservation(double head, double speed, double entry,
 }
 
 int Train::cachedBrakingSuccessor(int previousInstant, const Arc& arc, double target, double targetSpeed) {
-	if (counter <= 0 || BrakStep <= 0 || BrakStep >= static_cast<int>(Sbrak.size())
-		|| (previousInstant < static_cast<int>(Xob.size()) && (Xob[previousInstant] != target || Vob[previousInstant] != targetSpeed)))
+	if (counter <= 0 || BrakStep <= 0 || BrakStep >= static_cast<int>(Sbrak.size()) || previousXob != target || previousVob != targetSpeed)
 		return -1;
 	const double head = instant_spatial_position[previousInstant], speed = instant_train_speed[previousInstant];
 	for (int k = 0; k < BrakStep; ++k) {
@@ -848,7 +847,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 			: point.stop					  ? 0
 											  : node.arcSpeedLimit;
 		targets.push_back({&node, position, speed, point.decoupling});
-		if (position > S && position == Xob[PreviousInstant] && speed == Vob[PreviousInstant])
+		if (position > S && position == previousXob && speed == previousVob)
 			incumbent = static_cast<int>(targets.size()) - 1;
 	}
 	const Arc& arc = BS[BlockPos].arcs_in_signalling_block_section[ArcPos];
@@ -977,14 +976,13 @@ bool Train::planBraking(double head, double speed, const Arc& arc, Section* sect
 void Train::brakingStep(int time_seconds, const Arc& As, Section* BS, int Blocks) {
 	const double head = instant_spatial_position[time_seconds - 1];
 	const double speed = instant_train_speed[time_seconds - 1];
-	const bool changedTarget = time_seconds - 1 < static_cast<int>(Xob.size())
-		&& (Xob[time_seconds - 1] != Xobmin || Vob[time_seconds - 1] != Vobmin);
+	const bool changedTarget = previousXob != Xobmin || previousVob != Vobmin;
 	// Retain a native or forward plan only at a real stored state, never by interpolation.
 	const int successor = cachedBrakingSuccessor(time_seconds - 1, As, Xobmin, Vobmin);
 	if (successor >= 0) {
 		instant_train_speed[time_seconds] = Vbrak[successor];
 		instant_spatial_position[time_seconds] = Sbrak[successor];
-		setStepBranch(time_seconds, TrajectoryBranch::FollowBrakingPlan);
+		setStepBranch(TrajectoryBranch::FollowBrakingPlan);
 		GradientExceptionInBraking = Vbrak[successor] < Vobmin && successor < BrakStep;
 		return;
 	}
@@ -1001,7 +999,7 @@ void Train::brakingStep(int time_seconds, const Arc& As, Section* BS, int Blocks
 	if (planned) {
 		instant_train_speed[time_seconds] = Vbrak[1];
 		instant_spatial_position[time_seconds] = Sbrak[1];
-		setStepBranch(time_seconds, newCurve ? TrajectoryBranch::NewBrakingCurve : TrajectoryBranch::ReplanBraking);
+		setStepBranch(newCurve ? TrajectoryBranch::NewBrakingCurve : TrajectoryBranch::ReplanBraking);
 		counter = 1;
 		GradientExceptionInBraking = Vbrak[1] < Vobmin && BrakStep > 1;
 		return;
@@ -1018,5 +1016,5 @@ void Train::fullBrakingStep(int time_seconds, const Arc& As) {
 	instant_train_speed[time_seconds] = std::max(0.0, speed - deceleration * timestep);
 	instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1] + (speed + instant_train_speed[time_seconds]) / 2 * timestep;
 	GradientExceptionInBraking = false;
-	setStepBranch(time_seconds, TrajectoryBranch::FullBraking);
+	setStepBranch(TrajectoryBranch::FullBraking);
 }

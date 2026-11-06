@@ -159,3 +159,37 @@ zone:
 `footprint <pid>` did not fall with them: malloc keeps the freed pages of its
 small regions for the next allocations of the process, such as the result
 windows and the next run.
+
+## Train step vectors, recorded 2026-11-06
+
+Every train kept ten vectors with one entry for each step of the run: eight
+doubles, a `std::string` and an `int`, 92 bytes per step. It now keeps five
+doubles and a 32-bit section index, 44 bytes per step. The braking target
+(`Xob`, `Vob`) is kept for the previous and the current step only, the branch
+of the step (`Eq`) for the current step only, and the occupied section is an
+index into the route of the train. `BX` is kept only in a run that exports
+detailed trajectories, which adds 8 bytes per step.
+
+These numbers compare a Release executable (Qt 6.8.3, macOS 27.0.1, arm64,
+`EGTRAIN_IPO=OFF`) built from `main` after #1211 with one that has these
+changes. Each scene ran headless and alone, three times for each executable,
+with `OMP_NUM_THREADS=4` and `QT_QPA_PLATFORM=offscreen`, at a one-minute load
+average of 2.0 to 3.6:
+
+```text
+/usr/bin/time -l <app> --scene <absolute-scene-directory> -g 0
+```
+
+| Case | Peak RSS before (MiB) | Peak RSS after (MiB) | Peak footprint before (MiB) | Peak footprint after (MiB) | Elapsed before (s) | Elapsed after (s) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Copenhagen | 316.5 | 241.9 | 302.4 | 227.8 | 7.15 | 6.97 |
+| Netherlands | 215.0 | 201.1 | 200.9 | 187.0 | 1.61 | 1.58 |
+
+Each value is the median of three runs. The peak RSS fell by 74.6 MiB
+(24 percent) for Copenhagen and by 13.9 MiB (6 percent) for Netherlands. That
+is close to the 48 bytes per step that the vectors no longer take: 71.8 MiB for
+the 196 trains of Copenhagen and 14.7 MiB for the 40 trains of Netherlands,
+both over 8000 steps. The instructions retired fell by less than 0.3 percent,
+so these runs show no change in run time. Every output file and the standard
+output of every committed scene stayed the same byte for byte, also with
+detailed trajectories.

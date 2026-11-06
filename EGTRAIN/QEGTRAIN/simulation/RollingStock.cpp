@@ -654,19 +654,18 @@ void protectStationAreas(SimulationRun& run, int i) {
 }
 
 // set vector sizes with length of simulation from user input
-void Train::setTrainVectorSizesFromInput(int vec_size) {
+void Train::setTrainVectorSizesFromInput(int vec_size, bool detailedTrajectory) {
 	End_Time = vec_size - 1;
 	// define vector sizes with length of simulation from user input
 	instant_train_speed = std::vector<double>(vec_size, 0);
 	instant_spatial_position = std::vector<double>(vec_size, 0);
 	instant_train_power_consumption = std::vector<double>(vec_size, 0);
 	instant_train_tractive_effort = std::vector<double>(vec_size, 0);
-	instant_block_section_occupied = std::vector<std::string>(vec_size);
+	instant_block_section_occupied = std::vector<std::int32_t>(vec_size, kNoBlockSection);
 	instant_train_energy_consumption = std::vector<double>(vec_size, 0);
-	BX = std::vector<double>(vec_size, 0);
-	Xob = std::vector<double>(vec_size, 0);
-	Vob = std::vector<double>(vec_size, 0);
-	Eq = std::vector<int>(vec_size, 0);
+	BX = detailedTrajectory ? std::vector<double>(vec_size, 0) : std::vector<double>();
+	previousXob = previousVob = currentXob = currentVob = 0;
+	stepBranch = 0;
 
 	// previously on train class constructor (there won't work because size of vector is zero until user sets length of simulation and constructor is called before that)
 	instant_train_energy_consumption[0] = 0;
