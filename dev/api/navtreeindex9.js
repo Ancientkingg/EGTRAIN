@@ -1,5 +1,16 @@
 var NAVTREEINDEX9 =
 {
+"class_composition_panel.html":[2,0,56],
+"class_composition_panel.html#a0a2d370af22e57b570404dc498287e34":[2,0,56,29],
+"class_composition_panel.html#a1b479f3821fea6491c372ef700491e09":[2,0,56,3],
+"class_composition_panel.html#a26ad31ea8e6f6feaf1ce792d6a40e1ce":[2,0,56,28],
+"class_composition_panel.html#a345726f1b707c9569f8f3c321cd7f84f":[2,0,56,26],
+"class_composition_panel.html#a42269c3699cae8206fbc2c6d60ad7aef":[2,0,56,27],
+"class_composition_panel.html#a4587ee8f166485b36c9c52093638ff7d":[2,0,56,11],
+"class_composition_panel.html#a586d53c83ee6be6218b0fbc1bf36d6ec":[2,0,56,1],
+"class_composition_panel.html#a65e6d394d42e4e1ba05665009c694a94":[2,0,56,4],
+"class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1":[2,0,56,21],
+"class_composition_panel.html#a7084166255f47ad6e3e0c370b2ac1df2":[2,0,56,12],
 "class_composition_panel.html#a70d049d1fcfd588c1855fa5ed4b632c6":[2,0,56,16],
 "class_composition_panel.html#a785ce1339193e0c0b6a35933e2e09f54":[2,0,56,6],
 "class_composition_panel.html#a7fc526b9dc446945b7a0deaecedd0dcf":[2,0,56,19],
@@ -238,16 +249,5 @@ var NAVTREEINDEX9 =
 "class_guarded_application.html#ab74b1405a479cb372356cb54e70fd79d":[2,0,93,2],
 "class_guarded_application.html#ae3b7f27811775d0b9cfff3f0093a84e0":[2,0,93,1],
 "class_gui_replay_history.html":[2,0,97],
-"class_gui_replay_history.html#a1ef3c453582eba9742c21275d180ac38":[2,0,97,10],
-"class_gui_replay_history.html#a268cfa7fdb12e55214b82c937eaa6af5":[2,0,97,19],
-"class_gui_replay_history.html#a2a831e1fbd0f0d1faa5e051548ad8d84":[2,0,97,6],
-"class_gui_replay_history.html#a2ca8c4c0fd3f3803b5c7f7984a0b2ec7":[2,0,97,17],
-"class_gui_replay_history.html#a2da7e2bd56ebc9a7b2425d99dc0105f0":[2,0,97,16],
-"class_gui_replay_history.html#a379de4c1249cdf2d57a800dc9680c196":[2,0,97,13],
-"class_gui_replay_history.html#a446ab9a8747d56f94b2b8e49cebe3d83":[2,0,97,7],
-"class_gui_replay_history.html#a48619ad5b3fda563c4b17b7583e0b52f":[2,0,97,12],
-"class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a":[2,0,97,4],
-"class_gui_replay_history.html#a6496af7c6af4fd206cebc70c5c0a8762":[2,0,97,18],
-"class_gui_replay_history.html#a763f2e97c297cfc6c239546e93abe36f":[2,0,97,3],
-"class_gui_replay_history.html#a79e4ea7d823679887b7992a4f90906bf":[2,0,97,2]
+"class_gui_replay_history.html#a1ef3c453582eba9742c21275d180ac38":[2,0,97,10]
 };

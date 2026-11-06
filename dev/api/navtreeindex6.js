@@ -1,5 +1,16 @@
 var NAVTREEINDEX6 =
 {
+"_service_panel_8cpp.html":[3,0,3,24],
+"_service_panel_8h.html":[3,0,3,25],
+"_service_panel_8h_source.html":[3,0,3,25],
+"_settings_dialog_8cpp.html":[3,0,12,29],
+"_settings_dialog_8cpp.html#ae7e36497083e6adf5057c690e115296d":[3,0,12,29,0],
+"_settings_dialog_8h.html":[3,0,12,30],
+"_settings_dialog_8h.html#a40e0c7ec9e882963d2b2a1ba2716f722":[3,0,12,30,5],
+"_settings_dialog_8h.html#ab6690b7ce3c1f479cb09a41231b2e2f3":[3,0,12,30,4],
+"_settings_dialog_8h.html#ad6a1aa38a132f0fdf9682c8b0d8e823e":[3,0,12,30,3],
+"_settings_dialog_8h.html#ae7e36497083e6adf5057c690e115296d":[3,0,12,30,1],
+"_settings_dialog_8h.html#aedd4b44325c46f7e0605147971411ad0":[3,0,12,30,2],
 "_settings_dialog_8h_source.html":[3,0,12,30],
 "_signal_facets_8cpp.html":[3,0,3,0,7],
 "_signal_facets_8cpp.html#a02416d03c980d78e7b4c3bbabe37f908":[3,0,3,0,7,0],
@@ -238,16 +249,5 @@ var NAVTREEINDEX6 =
 "_station_node_item_8cpp.html":[3,0,4,0,16],
 "_station_node_item_8h.html":[3,0,4,0,17],
 "_station_node_item_8h_source.html":[3,0,4,0,17],
-"_station_overlay_item_8cpp.html":[3,0,4,0,18],
-"_station_overlay_item_8h.html":[3,0,4,0,19],
-"_station_overlay_item_8h_source.html":[3,0,4,0,19],
-"_stop_editor_dialog_8cpp.html":[3,0,3,26],
-"_stop_editor_dialog_8cpp.html#a2e03e5721b5f6e3953e419ec2a950f17":[3,0,3,26,4],
-"_stop_editor_dialog_8h.html":[3,0,3,27],
-"_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217":[3,0,3,27,3],
-"_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217a394a844cc3d6d99eb45b4e71afde2c99":[3,0,3,27,3,5],
-"_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217a419f3742e6de8e0ec4b22cce005e7630":[3,0,3,27,3,6],
-"_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217a52f5e0bc3859bc5f5e25130b6c7e8881":[3,0,3,27,3,1],
-"_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217a55946985f2b95380554a318d07e49586":[3,0,3,27,3,2],
-"_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217a67c6a7187d9b6bf8c68872cd5a66c7c1":[3,0,3,27,3,3]
+"_station_overlay_item_8cpp.html":[3,0,4,0,18]
 };

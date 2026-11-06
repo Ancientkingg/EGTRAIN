@@ -4,12 +4,15 @@ var classtelemetry_1_1_worker =
     [ "attemptInteractiveSession", "classtelemetry_1_1_worker.html#a4226b0e0877dfcdea0b4e09d1e717f46", null ],
     [ "authorized", "classtelemetry_1_1_worker.html#a7059c1f8d1980b7b4a0c8bcd144351dc", null ],
     [ "close", "classtelemetry_1_1_worker.html#a1e1845e9e51c21862c29806193005b78", null ],
+    [ "closeAfterFailure", "classtelemetry_1_1_worker.html#af26dd88bad2d9bd41280c3ae3877bee9", null ],
+    [ "closeIngress", "classtelemetry_1_1_worker.html#a68bfa203c3d8a4b325808975335afc72", null ],
     [ "disable", "classtelemetry_1_1_worker.html#abafe4cf5a4c981445f62ae9747accb9f", null ],
     [ "failClosed", "classtelemetry_1_1_worker.html#a9aad91dbf9c43cc4bfbfea8705f8d776", null ],
     [ "monotonic", "classtelemetry_1_1_worker.html#a05283aff80c1f0236c3c0964cd56df85", null ],
     [ "now", "classtelemetry_1_1_worker.html#a331a2ed413fd225039b13d3b46020c61", null ],
     [ "onFinished", "classtelemetry_1_1_worker.html#aa4bede92e4f0dc36f2e3e2e75487c1a5", null ],
     [ "pump", "classtelemetry_1_1_worker.html#a1f136a06f23ad6db74ef4dc30c9a0f6a", null ],
+    [ "readConsent", "classtelemetry_1_1_worker.html#a42368f27e708902b77836d30e8b99e9a", null ],
     [ "refresh", "classtelemetry_1_1_worker.html#ad52466496e349dcb76e5e28e0eee41ef", null ],
     [ "reserve", "classtelemetry_1_1_worker.html#a65745d9bd123911e4ccf94928319e419", null ],
     [ "run", "classtelemetry_1_1_worker.html#ae10987671ac7e6c0b1c26d40c3284192", null ],
@@ -17,6 +20,7 @@ var classtelemetry_1_1_worker =
     [ "takeFlags", "classtelemetry_1_1_worker.html#a7434402ceb56a8f55e68b8450496f422", null ],
     [ "active", "classtelemetry_1_1_worker.html#ada6dc93986fbc146d545131c57913dd6", null ],
     [ "consent", "classtelemetry_1_1_worker.html#a12dbfdeba71419000d7ce00064bcbdd8", null ],
+    [ "consentAtFailure", "classtelemetry_1_1_worker.html#ab7fe0c76782f04ccfe3e976a2b9103ea", null ],
     [ "deadline", "classtelemetry_1_1_worker.html#aedfc4de3e0098e0a52fff6693116816a", null ],
     [ "disabled", "classtelemetry_1_1_worker.html#a6b711139bb6339e4c34ebc49527b4c36", null ],
     [ "elapsed", "classtelemetry_1_1_worker.html#a03e175800fb29a3835a12ed4c1d61591", null ],
@@ -38,5 +42,6 @@ var classtelemetry_1_1_worker =
     [ "tick", "classtelemetry_1_1_worker.html#ab17ea61e87bfaffeb43a84f2d9af1e7c", null ],
     [ "timedOut", "classtelemetry_1_1_worker.html#af265b516e8e95617dd803e689924c97d", null ],
     [ "timeout", "classtelemetry_1_1_worker.html#a2b8dddba44c0a2c555365cbab040d6f8", null ],
-    [ "transport", "classtelemetry_1_1_worker.html#a2c253b790d447afeebf8c204518acbfe", null ]
+    [ "transport", "classtelemetry_1_1_worker.html#a2c253b790d447afeebf8c204518acbfe", null ],
+    [ "waiting", "classtelemetry_1_1_worker.html#ac1f9bc7da9a8b82c60e52baed99e9862", null ]
 ];

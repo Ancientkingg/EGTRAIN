@@ -1,0 +1,20 @@
+<map id="ScopeStretchChoice::ScopeStretchChoice" name="ScopeStretchChoice::ScopeStretchChoice">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,73,164,118"/>
+<area shape="rect" id="Node000002" href="$_blocking_time_scope_8cpp.html#a62a3e8b77d8b29b0fa4a430935911ec9" title=" " alt="" coords="235,29,448,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,77,257,59,252,62,165,82"/>
+<area shape="rect" id="Node000003" href="$class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" title="A combo box that expands across its row and fits its size hint to its entries." alt="" coords="212,81,471,109"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="164,93,199,94,194,96,165,98"/>
+<area shape="rect" id="Node000005" href="$class_scope_stretch_choice.html#a6c5706c19759b1c3884339da03628ca2" title=" " alt="" coords="266,141,416,186"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="164,113,254,138,249,140,164,119"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="297,28,291,20,296,11,313,5,341,3,371,5,389,14,384,14,370,10,341,8,314,10,300,15,296,20,303,29"/>
+<area shape="rect" id="Node000004" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="530,73,674,101"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="471,89,517,89,512,90,472,94"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="566,72,560,64,565,55,579,49,602,47,627,49,642,58,636,58,625,54,602,52,581,54,569,59,566,64,571,74"/>
+<area shape="rect" id="Node000006" href="$_blocking_time_scope_8cpp.html#a5feaa6509d6770f624cca415de6121e7" title=" " alt="" coords="519,149,685,177"/>
+<area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="417,161,506,163,501,163,417,166"/>
+<area shape="rect" id="Node000007" href="$_blocking_time_scope_8cpp.html#a9b69b830af3ce74a5c31ab8884fd3596" title=" " alt="" coords="733,175,889,202"/>
+<area shape="poly" id="edge11_Node000005_Node000007" title=" " alt="" coords="417,174,519,186,622,190,720,192,715,192,622,195,519,191,417,179"/>
+<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="566,148,560,140,565,131,579,125,602,123,627,125,642,134,636,134,625,130,602,128,581,130,569,135,566,140,571,150"/>
+<area shape="poly" id="edge9_Node000006_Node000007" title=" " alt="" coords="686,171,721,177,715,177,685,176"/>
+<area shape="poly" id="edge10_Node000007_Node000007" title=" " alt="" coords="775,173,769,166,774,156,788,150,811,148,836,151,850,160,845,159,834,156,811,153,789,155,777,160,775,165,780,175"/>
+</map>

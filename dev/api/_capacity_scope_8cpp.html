@@ -113,6 +113,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_capacity_scop
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="_capacity_scope_8h_source.html">diagrams/CapacityScope.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_blocking_time_scope_8h_source.html">diagrams/BlockingTimeScope.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_csv_writer_8h_source.html">util/CsvWriter.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_time_format_8h_source.html">util/TimeFormat.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_choice_combo_box_8h_source.html">widgets/ChoiceComboBox.h</a>&quot;</code><br />
@@ -141,7 +142,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_capacity_scop
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for CapacityScope.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp__incl.svg" width="4692" height="266"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp__incl.svg" width="4390" height="492"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -163,7 +164,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:aef6bf25092ffd019abf81b3d7b3eda4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">capacityReferenceText for the train <span class="tt">identity</span> of the result; empty when the result does not have it.  <br /></td></tr>
 <tr class="memitem:a62eed2b24d01769f5963ceca7ef4d972" id="r_a62eed2b24d01769f5963ceca7ef4d972"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a62eed2b24d01769f5963ceca7ef4d972">capacityPeriodText</a> (double periodSeconds)</td></tr>
 <tr class="memdesc:a62eed2b24d01769f5963ceca7ef4d972"><td class="mdescLeft">&#160;</td><td class="mdescRight">An analysis period as the capacity windows name it: "1 h" for whole hours, "30 min" for whole minutes, else "90.5 s".  <br /></td></tr>
-<tr class="memitem:a4f64e5cefd15be361bdc4d1bb39727cf" id="r_a4f64e5cefd15be361bdc4d1bb39727cf"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4f64e5cefd15be361bdc4d1bb39727cf">chooseCapacityAnalysisScope</a> (QWidget *parent, const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;run, <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope)</td></tr>
+<tr class="memitem:afba6dddec91bde9e29843f8937cca3e2" id="r_afba6dddec91bde9e29843f8937cca3e2"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#afba6dddec91bde9e29843f8937cca3e2">chooseCapacityAnalysisScope</a> (QWidget *parent, const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;run, <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope, const <a class="el" href="_blocking_time_scope_8h.html#a489ed0cfab4927fbb3f62dcd4ee7fe82">ScopeStretchObserver</a> &amp;observer)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="acfe154895d5d0c3d5793d1c8f2836e66" name="acfe154895d5d0c3d5793d1c8f2836e66"></a>
@@ -518,8 +519,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a4f64e5cefd15be361bdc4d1bb39727cf" name="a4f64e5cefd15be361bdc4d1bb39727cf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4f64e5cefd15be361bdc4d1bb39727cf">&#9670;&#160;</a></span>chooseCapacityAnalysisScope()</h2>
+<a id="afba6dddec91bde9e29843f8937cca3e2" name="afba6dddec91bde9e29843f8937cca3e2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afba6dddec91bde9e29843f8937cca3e2">&#9670;&#160;</a></span>chooseCapacityAnalysisScope()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -537,15 +538,20 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scope</em></span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scope</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="_blocking_time_scope_8h.html#a489ed0cfab4927fbb3f62dcd4ee7fe82">ScopeStretchObserver</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>observer</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Asks for a route, a range of its blocks, a period, the trains to analyse in order and the train that closes the cycle: the first train one period later or a checked train after the first. The list holds the trains of the range (capacityInputsFrom) in the order of capacityTrainOrder, all checked, and a new route or range lists them again, with the trains that were unchecked still unchecked. It opens on the scope when the run has its route: its range, the trains it names checked and first in their order, the other trains of the range unchecked, and its cycle-closing train. Else it opens on firstCapacityScopeWithPairFrom. On accept the scope holds the choice. False when the dialog is cancelled or the run has no route. </p>
+<p>Asks for a route, a stretch of it (<a class="el" href="class_scope_stretch_choice.html">ScopeStretchChoice</a>, as the blocking-time scope asks for them), a period, the trains to analyse in order and the train that closes the cycle: the first train one period later or a checked train after the first. The list holds the trains of the stretch (capacityInputsFrom) in the order of capacityTrainOrder, all checked, and a new route or stretch lists them again, with the trains that were unchecked still unchecked. It opens on the scope when the run has its route: its blocks, the trains it names checked and first in their order, the other trains of the blocks unchecked, and its cycle-closing train. Else it opens on firstCapacityScopeWithPairFrom. On accept the scope holds the choice. False when the dialog is cancelled or the run has no route. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp_a4f64e5cefd15be361bdc4d1bb39727cf_cgraph.svg" width="1494" height="708"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp_afba6dddec91bde9e29843f8937cca3e2_cgraph.svg" width="1498" height="1026"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

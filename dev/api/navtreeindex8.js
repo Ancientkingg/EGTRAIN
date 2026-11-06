@@ -1,5 +1,16 @@
 var NAVTREEINDEX8 =
 {
+"_version_8h.html#a137f71e5b980c1049d67bc615992834b":[3,0,11,15,1],
+"_version_8h.html#aa20cfcba4dcc840dfe167778f8ced44f":[3,0,11,15,2],
+"_version_8h_source.html":[3,0,11,15],
+"_virtual_arc_item_8cpp.html":[3,0,4,0,28],
+"_virtual_arc_item_8h.html":[3,0,4,0,29],
+"_virtual_arc_item_8h_source.html":[3,0,4,0,29],
+"_visual_polish_8cpp.html":[3,0,4,13],
+"_visual_polish_8cpp.html#a06b631732ccb9afd0ca289b580af943d":[3,0,4,13,22],
+"_visual_polish_8cpp.html#a0ca541531be69ea00b2db71455ba3104":[3,0,4,13,9],
+"_visual_polish_8cpp.html#a1116968bc73a190cd5f022eff464c95c":[3,0,4,13,6],
+"_visual_polish_8cpp.html#a1cc87232a45c91e955c2e5a7220ae087":[3,0,4,13,7],
 "_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf":[3,0,4,13,2],
 "_visual_polish_8cpp.html#a25b564e13629edc3120f6ca6f58a72db":[3,0,4,13,13],
 "_visual_polish_8cpp.html#a2e7d09af69daec1cb464c65129b19737":[3,0,4,13,0],
@@ -238,16 +249,5 @@ var NAVTREEINDEX8 =
 "class_compact_double_spin_box.html#a3d5bdfeb808b1f6a613234788d5f7676":[2,0,49,2],
 "class_compact_double_spin_box.html#a5b93b2791ffb2c6335da78b3e595b623":[2,0,49,1],
 "class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe":[2,0,49,0],
-"class_compact_double_spin_box.html#ad5aa1a83412eea311a0fb1f4d4cfbe08":[2,0,49,6],
-"class_composition_panel.html":[2,0,56],
-"class_composition_panel.html#a0a2d370af22e57b570404dc498287e34":[2,0,56,29],
-"class_composition_panel.html#a1b479f3821fea6491c372ef700491e09":[2,0,56,3],
-"class_composition_panel.html#a26ad31ea8e6f6feaf1ce792d6a40e1ce":[2,0,56,28],
-"class_composition_panel.html#a345726f1b707c9569f8f3c321cd7f84f":[2,0,56,26],
-"class_composition_panel.html#a42269c3699cae8206fbc2c6d60ad7aef":[2,0,56,27],
-"class_composition_panel.html#a4587ee8f166485b36c9c52093638ff7d":[2,0,56,11],
-"class_composition_panel.html#a586d53c83ee6be6218b0fbc1bf36d6ec":[2,0,56,1],
-"class_composition_panel.html#a65e6d394d42e4e1ba05665009c694a94":[2,0,56,4],
-"class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1":[2,0,56,21],
-"class_composition_panel.html#a7084166255f47ad6e3e0c370b2ac1df2":[2,0,56,12]
+"class_compact_double_spin_box.html#ad5aa1a83412eea311a0fb1f4d4cfbe08":[2,0,49,6]
 };

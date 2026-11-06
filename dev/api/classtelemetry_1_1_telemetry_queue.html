@@ -152,12 +152,14 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a00d63c978d718528a20d0c9fac94fc99"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when endpoint is on the list of retired endpoints.  <br /></td></tr>
 <tr class="memitem:a9406c6febb4f2d36dcf387e32cd6548f" id="r_a9406c6febb4f2d36dcf387e32cd6548f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a9406c6febb4f2d36dcf387e32cd6548f">healthy</a> () const</td></tr>
 <tr class="memdesc:a9406c6febb4f2d36dcf387e32cd6548f"><td class="mdescLeft">&#160;</td><td class="mdescRight">True while this object holds owner.lock and no storage operation has failed.  <br /></td></tr>
+<tr class="memitem:ade4b037cbde1dbccb3115cdf7e33c9b7" id="r_ade4b037cbde1dbccb3115cdf7e33c9b7"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ade4b037cbde1dbccb3115cdf7e33c9b7">storageFailed</a> () const</td></tr>
+<tr class="memitem:a221ca2790a1dcab07ae998e34d84a4a3" id="r_a221ca2790a1dcab07ae998e34d84a4a3"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a221ca2790a1dcab07ae998e34d84a4a3">clearStorageFailure</a> ()</td></tr>
 <tr class="memitem:a7fdc5ae8bff7769dc3729d146792c45e" id="r_a7fdc5ae8bff7769dc3729d146792c45e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7fdc5ae8bff7769dc3729d146792c45e">close</a> ()</td></tr>
 <tr class="memdesc:a7fdc5ae8bff7769dc3729d146792c45e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Releases owner.lock and drops the events held in memory. The files stay.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The persistent queue of usage and diagnostic events for one exact receiver endpoint and terms version, in a private directory (usage.json, diagnostics.json, control.json and owner.lock). Only the process that holds owner.lock uses the files. Each category holds at most 512 events and 192 KiB, one stored event at most 1 KiB, and the directory at most 1 MiB in 32 files. The oldest events give way first when a category is full; going over the directory limit is a storage failure. An event expires seven days after it occurred. All times are UTC.</p>
-<p>One worker owns this object and all methods. A file write that fails is tried once more after 100 ms. An unsuccessful storage operation, including a write that fails twice, fails closed; the caller must close ingress and abandon outstanding RAM work. It also tries to leave a disabled marker file, after which every later <a class="el" href="#ad2e0b52372cacd0ec50134db2b7f8ce5">open()</a> that takes owner.lock discards the queued events and returns Disabled. </p>
+<p>One worker owns this object and all methods. A file write that fails is tried once more after 100 ms. An unsuccessful storage operation, including a write that fails twice, fails closed; the caller must close ingress and abandon outstanding RAM work. It also tries to leave a disabled marker file, after which every later <a class="el" href="#ad2e0b52372cacd0ec50134db2b7f8ce5">open()</a> that takes owner.lock discards the queued events and returns Disabled. The second line of the marker names the failure: storage (a file write or space check), retirement (a retirement that control.json does not record), ledger (control.json is damaged, or missing next to category data) or time (a time that is not UTC). Older versions write no second line, and every version only tests that the file exists. Only <a class="el" href="#a221ca2790a1dcab07ae998e34d84a4a3">clearStorageFailure()</a> removes a marker, and only a storage one. When <a class="el" href="#ad2e0b52372cacd0ec50134db2b7f8ce5">open()</a> finds a storage marker next to category data and no control.json, it makes it a ledger marker before it discards the data, so that the marker stays. </p>
 </div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="a5fdcf89146509911ce754826df9b6c94" name="a5fdcf89146509911ce754826df9b6c94"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5fdcf89146509911ce754826df9b6c94">&#9670;&#160;</a></span>OpenResult</h2>
@@ -249,6 +251,29 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a id="a221ca2790a1dcab07ae998e34d84a4a3" name="a221ca2790a1dcab07ae998e34d84a4a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a221ca2790a1dcab07ae998e34d84a4a3">&#9670;&#160;</a></span>clearStorageFailure()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool telemetry::TelemetryQueue::clearStorageFailure </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>When <a class="el" href="#ade4b037cbde1dbccb3115cdf7e33c9b7">storageFailed()</a>, removes the category files and then the disabled marker, so that the next <a class="el" href="#ad2e0b52372cacd0ec50134db2b7f8ce5">open()</a> starts again. control.json, the retirement ledger, stays as it is, and so does this object until it is opened again. False when nothing or not everything was removed. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_telemetry_queue_a221ca2790a1dcab07ae998e34d84a4a3_cgraph.svg" width="458" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a7fdc5ae8bff7769dc3729d146792c45e" name="a7fdc5ae8bff7769dc3729d146792c45e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7fdc5ae8bff7769dc3729d146792c45e">&#9670;&#160;</a></span>close()</h2>
 
@@ -663,6 +688,24 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The current retry state. </p>
+
+</div>
+</div>
+<a id="ade4b037cbde1dbccb3115cdf7e33c9b7" name="ade4b037cbde1dbccb3115cdf7e33c9b7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ade4b037cbde1dbccb3115cdf7e33c9b7">&#9670;&#160;</a></span>storageFailed()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool telemetry::TelemetryQueue::storageFailed </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>True while this object holds owner.lock after a failure, the disabled marker is a storage one and control.json exists or no category data does. </p>
 
 </div>
 </div>

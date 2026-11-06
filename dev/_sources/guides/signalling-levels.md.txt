@@ -610,7 +610,7 @@ independent. Changing one does not change the others.
 | --- | --- | --- | --- |
 | What it is | A range of chainage that gives sections a signalling level | A part of one track that a train occupies; the unit of the aspects | A route and a range of its blocks, by default all of them, with the trains the user checks, for one analysis |
 | Where it is stored | `signalling.json`, `signalling_areas[]` | `infrastructure.json`, `blocks[]`: `id`, `track` and `length_km`; blocks follow each other along the track. Connections derive switch sections | Not stored in the case. There is no such object |
-| Where it is computed | Builder, `buildInfrastructureAndSignallingFromScene` | `buildSceneSectionInventory`; the runtime sections are `infra.sections` of the run and the route copies | The capacity analysis dialog: route, From block and To block, trains and period, with the blocking times of the run (`diagrams/CapacityScope`, `diagrams/CapacityAnalysis`) |
+| Where it is computed | Builder, `buildInfrastructureAndSignallingFromScene` | `buildSceneSectionInventory`; the runtime sections are `infra.sections` of the run and the route copies | The capacity analysis dialog: route, stretch (From station and To station, or From block and To block), trains and period, with the blocking times of the run (`diagrams/CapacityScope`, `diagrams/CapacityAnalysis`) |
 | What it decides | The level of every section that it contains | What a train occupies, and where an aspect is written | Which blocking times enter the analysis |
 | Depends on | The sections | The tracks and blocks | The blocking times, which are computed only at levels 0, 2, 3 and 4 |
 

@@ -8,6 +8,7 @@ var classtelemetry_1_1_telemetry_queue =
     ] ],
     [ "TelemetryQueue", "classtelemetry_1_1_telemetry_queue.html#a0d968b2d86e0554168efb4958cbc1f52", null ],
     [ "~TelemetryQueue", "classtelemetry_1_1_telemetry_queue.html#ae67e247a0bfe4848d528cd8e6f6b41ba", null ],
+    [ "clearStorageFailure", "classtelemetry_1_1_telemetry_queue.html#a221ca2790a1dcab07ae998e34d84a4a3", null ],
     [ "close", "classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e", null ],
     [ "commitRetry", "classtelemetry_1_1_telemetry_queue.html#a5bbba5b22a9a393304f02535cbfa6b5a", null ],
     [ "discardBatch", "classtelemetry_1_1_telemetry_queue.html#a3fc3db4ac492fc3ec649ceeed720feed", null ],
@@ -23,5 +24,6 @@ var classtelemetry_1_1_telemetry_queue =
     [ "purgeEndpointData", "classtelemetry_1_1_telemetry_queue.html#ade92495134e6374bd5a29665c294d960", null ],
     [ "purgeOtherStamps", "classtelemetry_1_1_telemetry_queue.html#a665464812eb23c0319b4b1b95901601a", null ],
     [ "retireExactEndpoint", "classtelemetry_1_1_telemetry_queue.html#a4f6bb5e7a6d6cefd0c897a22cfe4f231", null ],
-    [ "retryState", "classtelemetry_1_1_telemetry_queue.html#a4369d8c6a22afb250ceaa45178bcb9c5", null ]
+    [ "retryState", "classtelemetry_1_1_telemetry_queue.html#a4369d8c6a22afb250ceaa45178bcb9c5", null ],
+    [ "storageFailed", "classtelemetry_1_1_telemetry_queue.html#ade4b037cbde1dbccb3115cdf7e33c9b7", null ]
 ];

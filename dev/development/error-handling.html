@@ -640,7 +640,7 @@
 <td><p>No</p></td>
 </tr>
 <tr class="row-odd"><td><p>Telemetry send or consent fails</p></td>
-<td><p>Nothing, by design; a consent save error shows in the dialog. A queue file that cannot be written is tried once more after 100 ms; when that fails too, the <code class="docutils literal notranslate"><span class="pre">disabled</span></code> marker stops the queue of that installation for good (<code class="docutils literal notranslate"><span class="pre">telemetry/TelemetryQueue.cpp</span></code>).</p></td>
+<td><p>Nothing, by design; a consent save error shows in the dialog. A queue file that cannot be written is tried once more after 100 ms; when that fails too, the <code class="docutils literal notranslate"><span class="pre">disabled</span></code> marker stops the queue of that installation until a usage or diagnostics choice changes, in the privacy dialog or in Settings. The sender then removes the marker and the queued events, keeps <code class="docutils literal notranslate"><span class="pre">control.json</span></code>, and opens the queue again (<code class="docutils literal notranslate"><span class="pre">telemetry/TelemetryQueue.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">telemetry/TelemetrySender.cpp</span></code>). A marker for a retirement after a 410 response that <code class="docutils literal notranslate"><span class="pre">control.json</span></code> could not record, for a damaged or missing <code class="docutils literal notranslate"><span class="pre">control.json</span></code>, or written by an earlier EGTRAIN version, stops the queue for good.</p></td>
 <td><p>No</p></td>
 </tr>
 <tr class="row-even"><td><p>Autosave fails</p></td>

@@ -123,8 +123,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae2472f5f960d646fecda3ee4fc28aa2e" id="r_ae2472f5f960d646fecda3ee4fc28aa2e"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ae2472f5f960d646fecda3ee4fc28aa2e">Worker</a> (std::shared_ptr&lt; <a class="el" href="structtelemetry_1_1_telemetry_sender_1_1_shared.html">TelemetrySender::Shared</a> &gt; state)</td></tr>
 <tr class="memitem:a05283aff80c1f0236c3c0964cd56df85" id="r_a05283aff80c1f0236c3c0964cd56df85"><td class="memItemLeft">qint64&#160;</td><td class="memItemRight"><a class="el" href="#a05283aff80c1f0236c3c0964cd56df85">monotonic</a> () const</td></tr>
 <tr class="memitem:a331a2ed413fd225039b13d3b46020c61" id="r_a331a2ed413fd225039b13d3b46020c61"><td class="memItemLeft">QDateTime&#160;</td><td class="memItemRight"><a class="el" href="#a331a2ed413fd225039b13d3b46020c61">now</a> () const</td></tr>
+<tr class="memitem:a68bfa203c3d8a4b325808975335afc72" id="r_a68bfa203c3d8a4b325808975335afc72"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a68bfa203c3d8a4b325808975335afc72">closeIngress</a> ()</td></tr>
+<tr class="memdesc:a68bfa203c3d8a4b325808975335afc72"><td class="mdescLeft">&#160;</td><td class="mdescRight">Closes the gates, empties the ring and abandons a running request. The queue stays as it is.  <br /></td></tr>
 <tr class="memitem:a1e1845e9e51c21862c29806193005b78" id="r_a1e1845e9e51c21862c29806193005b78"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1e1845e9e51c21862c29806193005b78">close</a> ()</td></tr>
 <tr class="memitem:abafe4cf5a4c981445f62ae9747accb9f" id="r_abafe4cf5a4c981445f62ae9747accb9f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abafe4cf5a4c981445f62ae9747accb9f">disable</a> ()</td></tr>
+<tr class="memitem:a42368f27e708902b77836d30e8b99e9a" id="r_a42368f27e708902b77836d30e8b99e9a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a42368f27e708902b77836d30e8b99e9a">readConsent</a> (QString(&amp;values)[2])</td></tr>
+<tr class="memitem:af26dd88bad2d9bd41280c3ae3877bee9" id="r_af26dd88bad2d9bd41280c3ae3877bee9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af26dd88bad2d9bd41280c3ae3877bee9">closeAfterFailure</a> ()</td></tr>
 <tr class="memitem:a9aad91dbf9c43cc4bfbfea8705f8d776" id="r_a9aad91dbf9c43cc4bfbfea8705f8d776"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9aad91dbf9c43cc4bfbfea8705f8d776">failClosed</a> () noexcept</td></tr>
 <tr class="memitem:ad52466496e349dcb76e5e28e0eee41ef" id="r_ad52466496e349dcb76e5e28e0eee41ef"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad52466496e349dcb76e5e28e0eee41ef">refresh</a> ()</td></tr>
 <tr class="memitem:a4226b0e0877dfcdea0b4e09d1e717f46" id="r_a4226b0e0877dfcdea0b4e09d1e717f46"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4226b0e0877dfcdea0b4e09d1e717f46">attemptInteractiveSession</a> ()</td></tr>
@@ -153,7 +157,11 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a3c5657254613de8fc22e2abed72d0d78" id="r_a3c5657254613de8fc22e2abed72d0d78"><td class="memItemLeft">qint64&#160;</td><td class="memItemRight"><a class="el" href="#a3c5657254613de8fc22e2abed72d0d78">nextOwnership</a> = 0</td></tr>
 <tr class="memitem:a4d11d97bdf6bc818afa440bd00025dac" id="r_a4d11d97bdf6bc818afa440bd00025dac"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4d11d97bdf6bc818afa440bd00025dac">owner</a> = false</td></tr>
 <tr class="memitem:a6b711139bb6339e4c34ebc49527b4c36" id="r_a6b711139bb6339e4c34ebc49527b4c36"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a6b711139bb6339e4c34ebc49527b4c36">disabled</a> = false</td></tr>
+<tr class="memitem:ac1f9bc7da9a8b82c60e52baed99e9862" id="r_ac1f9bc7da9a8b82c60e52baed99e9862"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac1f9bc7da9a8b82c60e52baed99e9862">waiting</a> = false</td></tr>
+<tr class="memdesc:ac1f9bc7da9a8b82c60e52baed99e9862"><td class="mdescLeft">&#160;</td><td class="mdescRight">True while the worker waits for a consent change after a storage failure; see <a class="el" href="#af26dd88bad2d9bd41280c3ae3877bee9">closeAfterFailure()</a>.  <br /></td></tr>
 <tr class="memitem:a9764fda57edca82b9fb6a2b496463ad9" id="r_a9764fda57edca82b9fb6a2b496463ad9"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a9764fda57edca82b9fb6a2b496463ad9">stamp</a> [2]</td></tr>
+<tr class="memitem:ab7fe0c76782f04ccfe3e976a2b9103ea" id="r_ab7fe0c76782f04ccfe3e976a2b9103ea"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ab7fe0c76782f04ccfe3e976a2b9103ea">consentAtFailure</a> [2]</td></tr>
+<tr class="memdesc:ab7fe0c76782f04ccfe3e976a2b9103ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">The consent of both categories when the worker began to wait, as <a class="el" href="#a42368f27e708902b77836d30e8b99e9a">readConsent()</a> read it.  <br /></td></tr>
 <tr class="memitem:a2d94a2e371dbe5ed65b0eec8bee47213" id="r_a2d94a2e371dbe5ed65b0eec8bee47213"><td class="memItemLeft">quint64&#160;</td><td class="memItemRight"><a class="el" href="#a2d94a2e371dbe5ed65b0eec8bee47213">mappedEpoch</a> [2] = {0, 0}</td></tr>
 <tr class="memitem:a25a462ba5011bc64178b35d0a40cabf5" id="r_a25a462ba5011bc64178b35d0a40cabf5"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a25a462ba5011bc64178b35d0a40cabf5">observed</a> [2] = {false, false}</td></tr>
 <tr class="memitem:a58d2eea0ed1f586a3dbe46c716cff5bf" id="r_a58d2eea0ed1f586a3dbe46c716cff5bf"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a58d2eea0ed1f586a3dbe46c716cff5bf">sessionAttempted</a> = false</td></tr>
@@ -215,7 +223,7 @@ Public Attributes</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a4226b0e0877dfcdea0b4e09d1e717f46_cgraph.svg" width="1167" height="491"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a4226b0e0877dfcdea0b4e09d1e717f46_cgraph.svg" width="1603" height="719"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -254,7 +262,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a7059c1f8d1980b7b4a0c8bcd144351dc_cgraph.svg" width="1092" height="312"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a7059c1f8d1980b7b4a0c8bcd144351dc_cgraph.svg" width="1527" height="480"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -284,7 +292,70 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a1e1845e9e51c21862c29806193005b78_cgraph.svg" width="404" height="107"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a1e1845e9e51c21862c29806193005b78_cgraph.svg" width="579" height="126"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="af26dd88bad2d9bd41280c3ae3877bee9" name="af26dd88bad2d9bd41280c3ae3877bee9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af26dd88bad2d9bd41280c3ae3877bee9">&#9670;&#160;</a></span>closeAfterFailure()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void telemetry::Worker::closeAfterFailure </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Closes after the queue refused to open or a queue operation failed. When only a file write or a space check failed, the worker keeps the queue, and with it owner.lock, and waits until the consent of either category changes (see <a class="el" href="#a1f136a06f23ad6db74ef4dc30c9a0f6a">pump()</a>). Otherwise it closes for the rest of the run. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_af26dd88bad2d9bd41280c3ae3877bee9_cgraph.svg" width="1087" height="255"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a68bfa203c3d8a4b325808975335afc72" name="a68bfa203c3d8a4b325808975335afc72"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a68bfa203c3d8a4b325808975335afc72">&#9670;&#160;</a></span>closeIngress()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void telemetry::Worker::closeIngress </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Closes the gates, empties the ring and abandons a running request. The queue stays as it is. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a68bfa203c3d8a4b325808975335afc72_cgraph.svg" width="332" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -314,7 +385,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_abafe4cf5a4c981445f62ae9747accb9f_cgraph.svg" width="598" height="107"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_abafe4cf5a4c981445f62ae9747accb9f_cgraph.svg" width="772" height="126"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -344,7 +415,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a9aad91dbf9c43cc4bfbfea8705f8d776_cgraph.svg" width="791" height="107"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a9aad91dbf9c43cc4bfbfea8705f8d776_cgraph.svg" width="966" height="126"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -424,7 +495,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_aa4bede92e4f0dc36f2e3e2e75487c1a5_cgraph.svg" width="1146" height="795"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_aa4bede92e4f0dc36f2e3e2e75487c1a5_cgraph.svg" width="1582" height="943"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -454,7 +525,38 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a1f136a06f23ad6db74ef4dc30c9a0f6a_cgraph.svg" width="1691" height="2267"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a1f136a06f23ad6db74ef4dc30c9a0f6a_cgraph.svg" width="2114" height="2636"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a42368f27e708902b77836d30e8b99e9a" name="a42368f27e708902b77836d30e8b99e9a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a42368f27e708902b77836d30e8b99e9a">&#9670;&#160;</a></span>readConsent()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool telemetry::Worker::readConsent </td>
+          <td>(</td>
+          <td class="paramtype">QString(&amp;)</td>          <td class="paramname"><span class="paramname"><em>values</em></span>[2]</td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Reads the consent of both categories: the installation ID and the diagnostics generation, empty for a category that is off. False when it cannot be read for this receiver and terms. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a42368f27e708902b77836d30e8b99e9a_cgraph.svg" width="416" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -484,7 +586,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_ad52466496e349dcb76e5e28e0eee41ef_cgraph.svg" width="899" height="312"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_ad52466496e349dcb76e5e28e0eee41ef_cgraph.svg" width="1334" height="480"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -528,7 +630,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a65745d9bd123911e4ccf94928319e419_cgraph.svg" width="899" height="315"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a65745d9bd123911e4ccf94928319e419_cgraph.svg" width="1334" height="479"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -558,7 +660,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_ae10987671ac7e6c0b1c26d40c3284192_cgraph.svg" width="1904" height="2466"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_ae10987671ac7e6c0b1c26d40c3284192_cgraph.svg" width="2327" height="2606"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -588,7 +690,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_acc56f4f17d7f654bf8669d8eae45d0fc_cgraph.svg" width="1424" height="1295"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_acc56f4f17d7f654bf8669d8eae45d0fc_cgraph.svg" width="1860" height="1523"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -645,6 +747,22 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab7fe0c76782f04ccfe3e976a2b9103ea" name="ab7fe0c76782f04ccfe3e976a2b9103ea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab7fe0c76782f04ccfe3e976a2b9103ea">&#9670;&#160;</a></span>consentAtFailure</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString telemetry::Worker::consentAtFailure[2]</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The consent of both categories when the worker began to wait, as <a class="el" href="#a42368f27e708902b77836d30e8b99e9a">readConsent()</a> read it. </p>
 
 </div>
 </div>
@@ -953,6 +1071,22 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac1f9bc7da9a8b82c60e52baed99e9862" name="ac1f9bc7da9a8b82c60e52baed99e9862"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac1f9bc7da9a8b82c60e52baed99e9862">&#9670;&#160;</a></span>waiting</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool telemetry::Worker::waiting = false</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>True while the worker waits for a consent change after a storage failure; see <a class="el" href="#af26dd88bad2d9bd41280c3ae3877bee9">closeAfterFailure()</a>. </p>
 
 </div>
 </div>

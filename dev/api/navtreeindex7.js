@@ -1,5 +1,16 @@
 var NAVTREEINDEX7 =
 {
+"_station_overlay_item_8h.html":[3,0,4,0,19],
+"_station_overlay_item_8h_source.html":[3,0,4,0,19],
+"_stop_editor_dialog_8cpp.html":[3,0,3,26],
+"_stop_editor_dialog_8cpp.html#a2e03e5721b5f6e3953e419ec2a950f17":[3,0,3,26,4],
+"_stop_editor_dialog_8h.html":[3,0,3,27],
+"_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217":[3,0,3,27,3],
+"_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217a394a844cc3d6d99eb45b4e71afde2c99":[3,0,3,27,3,5],
+"_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217a419f3742e6de8e0ec4b22cce005e7630":[3,0,3,27,3,6],
+"_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217a52f5e0bc3859bc5f5e25130b6c7e8881":[3,0,3,27,3,1],
+"_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217a55946985f2b95380554a318d07e49586":[3,0,3,27,3,2],
+"_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217a67c6a7187d9b6bf8c68872cd5a66c7c1":[3,0,3,27,3,3],
 "_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217a6adf97f83acf6453d4a6a4b1070f3754":[3,0,3,27,3,0],
 "_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217a72208938ff5d41b722faba328d044f12":[3,0,3,27,3,4],
 "_stop_editor_dialog_8h.html#a2e03e5721b5f6e3953e419ec2a950f17":[3,0,3,27,8],
@@ -238,16 +249,5 @@ var NAVTREEINDEX7 =
 "_version_8cpp.html":[3,0,11,14],
 "_version_8cpp.html#a137f71e5b980c1049d67bc615992834b":[3,0,11,14,0],
 "_version_8cpp.html#aa20cfcba4dcc840dfe167778f8ced44f":[3,0,11,14,1],
-"_version_8h.html":[3,0,11,15],
-"_version_8h.html#a137f71e5b980c1049d67bc615992834b":[3,0,11,15,1],
-"_version_8h.html#aa20cfcba4dcc840dfe167778f8ced44f":[3,0,11,15,2],
-"_version_8h_source.html":[3,0,11,15],
-"_virtual_arc_item_8cpp.html":[3,0,4,0,28],
-"_virtual_arc_item_8h.html":[3,0,4,0,29],
-"_virtual_arc_item_8h_source.html":[3,0,4,0,29],
-"_visual_polish_8cpp.html":[3,0,4,13],
-"_visual_polish_8cpp.html#a06b631732ccb9afd0ca289b580af943d":[3,0,4,13,22],
-"_visual_polish_8cpp.html#a0ca541531be69ea00b2db71455ba3104":[3,0,4,13,9],
-"_visual_polish_8cpp.html#a1116968bc73a190cd5f022eff464c95c":[3,0,4,13,6],
-"_visual_polish_8cpp.html#a1cc87232a45c91e955c2e5a7220ae087":[3,0,4,13,7]
+"_version_8h.html":[3,0,11,15]
 };
