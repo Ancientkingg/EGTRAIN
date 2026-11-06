@@ -128,7 +128,7 @@ Collaboration diagram for DiagramWindow:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:a223a88f35d30e0508c02eba4ea4228bc" id="r_a223a88f35d30e0508c02eba4ea4228bc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a223a88f35d30e0508c02eba4ea4228bc">trainSelected</a> (const QString &amp;trainId)</td></tr>
-<tr class="memdesc:a223a88f35d30e0508c02eba4ea4228bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">A click on a series selected this train.  <br /></td></tr>
+<tr class="memitem:a4392cddfeae78022cfe3c2a78c2655f8" id="r_a4392cddfeae78022cfe3c2a78c2655f8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4392cddfeae78022cfe3c2a78c2655f8">sectionsMarked</a> (const QStringList &amp;selected, const QStringList &amp;hovered)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -161,6 +161,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ada70cd96c57e022ae8e6bfd6c649f2d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the function that gives the telemetry observation of an export; empty for none.  <br /></td></tr>
 <tr class="memitem:a8a6102391ec5355690ad27243496ff60" id="r_a8a6102391ec5355690ad27243496ff60"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8a6102391ec5355690ad27243496ff60">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:aa683fe415b51ef77bad6e85b51572624" id="r_aa683fe415b51ef77bad6e85b51572624"><td class="memItemLeft">static constexpr char&#160;</td><td class="memItemRight"><a class="el" href="#aa683fe415b51ef77bad6e85b51572624">kBoxBlockProperty</a> [] = &quot;egtrainBoxBlock&quot;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:adf2416ba68c9e6bfd18c22e165864c1a" id="r_adf2416ba68c9e6bfd18c22e165864c1a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#adf2416ba68c9e6bfd18c22e165864c1a">eventFilter</a> (QObject *obj, QEvent *ev) override</td></tr>
@@ -172,7 +176,8 @@ Protected Member Functions</h2></td></tr>
 <p>A chart builder tells the window about a series with describeSeries (<a class="el" href="struct_series_meta.html">SeriesMeta</a>) and about an axis with describeAxis (<a class="el" href="struct_axis_meta.html" title="What a chart builder tells DiagramWindow about an axis.">AxisMeta</a>). The Key lists each kind of mark that a shown series draws, with the pen and brush of the series: keyKind names its kind, and an empty one leaves the series out; without it layer names the kind, else the series is Planned or Simulated. A closed outline with inspectionFilled is a box, filled with the brush of an area series of the same kind; another series is a line in the text colour, since its colour belongs to its train, with a dot when it shows its points, and upright with keyUpright, as for a dwell. The keyMarker of a series that shows its points names a kind of its own for its points, such as "Stop". The chart draws the points of a planned series as open circles and those of another series as dots, and the Key draws them alike: a planned line with an open circle, a kind of points as a dot while a series that is not planned has them. Simulated is left out while it is the only kind of line. The section strip adds Station section and Switch section. The Key follows the trains that are shown. A box takes the keyPen of its outline when the outline has one, so that it looks alike for every train. A chart of rolling stock input lists its series by name, in their own colours.</p>
 <p>Series are grouped by trainId when the caller sets it (the same train can own several series, such as planned and simulated lines); series without one are grouped by their own name. Optional inspection metadata: inspectionPoints has one plain-text context entry per appended point (including empty entries). inspectionInterval is plain-text context shared by a line segment; its lines after an empty line are details that only Selected shows, such as the parts of a blocking time. inspectionFilled explicitly opts a closed QLineSeries into interior hits, and inspectionTitle is the first line of such a box, such as "IC1723-2 on 12-B0". Inside a box a click selects a line only within 4 px of it, and otherwise the box. A line hit always reports its nearest actual plotted sample, not an interpolated value at the cursor.</p>
 <p>One colour rule paints the trains, by the trains that the Trains list shows (trainColourPlan): a colour of the palette for each train while six trains or fewer are shown, else one for each service while those trains run in six services or fewer (setTrainServices), else grey with the selected train in the first colour of the palette. The colour of a service in the case wins over the palette (setTrainColors). Showing, hiding and selecting trains apply the rule again and keep which trains are checked. A series takes the colour of its train in its pen, and an area series also in its brush, with the alpha of the brush kept; widths and dash patterns stay as the chart builder set them. A series with ownColour keeps the colours of its builder, as do the series of a chart of rolling stock input. The line sample of a train in the Trains list has its colour, and that of a hidden train is light grey. The selected train is drawn over the other trains.</p>
-<p>A chart without series shows the text of setEmptyText in the middle of its plot, and the panel leaves out the sections that have nothing to show, Trains included. </p>
+<p>A chart without series shows the text of setEmptyText in the middle of its plot, and the panel leaves out the sections that have nothing to show, Trains included.</p>
+<p>A cell of the section strip names its block sections and a blocking time box its block, which sectionsMarked sends, so that the network view can mark them. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a02013e3da2fd785a63557a6f6db43d58" name="a02013e3da2fd785a63557a6f6db43d58"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a02013e3da2fd785a63557a6f6db43d58">&#9670;&#160;</a></span>DiagramWindow()</h2>
@@ -357,6 +362,41 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The id that setRollingStockSubject gave, or empty for a chart of trains. </p>
+
+</div>
+</div>
+<a id="a4392cddfeae78022cfe3c2a78c2655f8" name="a4392cddfeae78022cfe3c2a78c2655f8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4392cddfeae78022cfe3c2a78c2655f8">&#9670;&#160;</a></span>sectionsMarked</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DiagramWindow::sectionsMarked </td>
+          <td>(</td>
+          <td class="paramtype">const QStringList &amp;</td>          <td class="paramname"><span class="paramname"><em>selected</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QStringList &amp;</td>          <td class="paramname"><span class="paramname"><em>hovered</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The block sections that the window points to changed. <span class="tt">selected</span> holds those of the selected blocking time box, until Clear, Escape or another selection ends it; <span class="tt">hovered</span> those of the cell of the section strip (setBlockSections) or the box that the tooltip names under the pointer. Both are runtime section ids, of the block of a box (kBoxBlockProperty) or of sections of the strip, empty for none, and both are empty while the window is hidden. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a4392cddfeae78022cfe3c2a78c2655f8_cgraph.svg" width="528" height="91"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -766,13 +806,31 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>A click on a series selected this train </p>
 
-<p>A click on a series selected this train. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a223a88f35d30e0508c02eba4ea4228bc_cgraph.svg" width="512" height="91"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+</div>
+<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a id="aa683fe415b51ef77bad6e85b51572624" name="aa683fe415b51ef77bad6e85b51572624"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa683fe415b51ef77bad6e85b51572624">&#9670;&#160;</a></span>kBoxBlockProperty</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">char DiagramWindow::kBoxBlockProperty[] = &quot;egtrainBoxBlock&quot;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The dynamic property of the outline of a blocking time box that names its block: the runtime id of the section that the train held, such as "@12-B0@". A box without it names the sections of the strip that it covers. </p>
 
 </div>
 </div>

@@ -5,7 +5,7 @@ var class_section =
     [ "operator=", "class_section.html#a19c7ad148d4216503ad2749e7e752622", null ],
     [ "operator==", "class_section.html#a96ed8ec0e3d0c39d615fd392a6313063", null ],
     [ "reverseBlockSection", "class_section.html#ad2d52f861799b6b459e5c4295c88c53f", null ],
-    [ "arcs_in_signalling_block_section", "class_section.html#a13b8bae99d5d7b7148e9f54b2aa7eb6e", null ],
+    [ "arcs_in_signalling_block_section", "class_section.html#af04540d8021bd1187567aa17acc7ce7f", null ],
     [ "code", "class_section.html#afbdae80fc7c0bcae32e9befa321775e8", null ],
     [ "end_node", "class_section.html#a565e1de59d3e57b5489f7b1c6ff556dc", null ],
     [ "exit_speed", "class_section.html#ac0cc7a63e69d916505a95296af2c9551", null ],

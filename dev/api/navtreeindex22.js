@@ -1,5 +1,12 @@
 var NAVTREEINDEX22 =
 {
+"struct_capacity_critical_block.html":[2,0,40],
+"struct_capacity_critical_block.html#a219e48075922aef361e8d912a62d4004":[2,0,40,2],
+"struct_capacity_critical_block.html#a271d8aced75dd49c47d7e388577f16c5":[2,0,40,3],
+"struct_capacity_critical_block.html#a88191021b6f7f5975bb96bc7a297ca2d":[2,0,40,4],
+"struct_capacity_critical_block.html#aa38987fe0a92b8e0f24b0da9f89aa26f":[2,0,40,0],
+"struct_capacity_critical_block.html#ac2fa393e8cde127b7e539d207351b21b":[2,0,40,1],
+"struct_capacity_headway_evidence.html":[2,0,41],
 "struct_capacity_headway_evidence.html#a04ad614dac0072a6b2d9f44b9ee7493b":[2,0,41,0],
 "struct_capacity_headway_evidence.html#a1e0adbe92b6e062fd28ccc5b32520464":[2,0,41,4],
 "struct_capacity_headway_evidence.html#a264b3c18462581c44b5b7136bc4399a4":[2,0,41,1],
@@ -242,12 +249,5 @@ var NAVTREEINDEX22 =
 "struct_follow_availability_input.html#ad0111903130cf79c03fefef72d6e7f58":[2,0,90,4],
 "struct_follow_availability_input.html#ad6c7287a3c41d4b0b006ab3adc8f4a6d":[2,0,90,10],
 "struct_follow_availability_input.html#adf966c634dc01cc716f9d0f897f7cc30":[2,0,90,8],
-"struct_follow_availability_input.html#aeacdd20c992e6367e4a5277f1b4554b5":[2,0,90,9],
-"struct_follow_list_under_frames.html":[2,0,92],
-"struct_follow_list_under_frames.html#a69e24ec825ded35ee88baf21cd55ba2d":[2,0,92,1],
-"struct_follow_list_under_frames.html#ac51d8b7faa6b1c3f446abcab4e30a38a":[2,0,92,0],
-"struct_gui_occupied_arc.html":[2,0,94],
-"struct_gui_occupied_arc.html#af031185be582c8ea6d28305b30e4923f":[2,0,94,0],
-"struct_gui_occupied_arc.html#af7564985d1482e81eb4da5987e7b77df":[2,0,94,1],
-"struct_gui_passenger_state.html":[2,0,95]
+"struct_follow_availability_input.html#aeacdd20c992e6367e4a5277f1b4554b5":[2,0,90,9]
 };

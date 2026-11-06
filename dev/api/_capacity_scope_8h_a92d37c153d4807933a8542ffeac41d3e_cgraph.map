@@ -1,90 +1,96 @@
 <map id="chooseCapacityAnalysisScope" name="chooseCapacityAnalysisScope">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,451,224,478"/>
-<area shape="poly" id="edge18_Node000001_Node000001" title=" " alt="" coords="68,451,61,442,67,432,85,426,115,424,146,426,165,434,160,437,145,432,114,429,86,431,70,436,66,441,73,449"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,432,224,460"/>
+<area shape="poly" id="edge18_Node000001_Node000001" title=" " alt="" coords="68,432,61,423,67,413,85,407,115,405,146,408,165,415,160,418,145,413,114,411,86,413,70,418,66,423,73,431"/>
 <area shape="rect" id="Node000002" href="$_blocking_time_scope_8cpp.html#aa2f22a6f5eb227c8d834ac3672ec4996" title="The route as the scope dialogs offer it: its id, corridor, blocks and stations." alt="" coords="277,29,496,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,450,124,382,149,281,169,225,196,170,229,118,270,73,289,62,286,66,273,77,233,121,200,172,174,227,154,283,130,383,120,451"/>
-<area shape="rect" id="Node000004" href="$_capacity_scope_8cpp.html#a9221478d65742500cad2597b5f521d2c" title=" " alt="" coords="874,137,1024,165"/>
-<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="114,450,124,386,148,293,168,243,195,195,229,152,270,117,291,106,317,99,380,89,457,87,541,91,713,109,861,133,856,136,712,114,540,96,457,92,381,95,318,104,293,111,273,121,232,155,199,198,173,245,153,294,129,387,120,451"/>
-<area shape="rect" id="Node000008" href="$_capacity_scope_8cpp.html#a62f4c74947ab265e9d89a718b792e609" title=" " alt="" coords="289,155,484,182"/>
-<area shape="poly" id="edge13_Node000001_Node000008" title=" " alt="" coords="117,449,133,400,164,330,184,293,209,256,237,222,270,193,282,187,279,192,273,197,241,226,213,259,189,295,168,332,138,402,122,451"/>
-<area shape="rect" id="Node000009" href="$class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" title="A combo box that expands across its row and fits its size hint to its entries." alt="" coords="549,709,808,737"/>
-<area shape="poly" id="edge15_Node000001_Node000009" title=" " alt="" coords="122,476,144,517,176,568,219,622,245,645,273,665,335,693,402,712,470,722,536,729,531,730,469,728,401,717,333,698,270,669,241,649,215,625,171,572,139,519,122,482"/>
-<area shape="rect" id="Node000011" href="$class_scope_stretch_choice.html#a3ee9cb0b0519a69c46cfb9b8dca5effb" title="The lists hold other entries, of another route or another kind of stretch, so the dialog can widen fo..." alt="" coords="311,282,462,327"/>
-<area shape="poly" id="edge19_Node000001_Node000011" title=" " alt="" coords="127,449,187,395,227,364,270,337,299,326,295,330,273,342,230,368,190,399,132,452"/>
-<area shape="rect" id="Node000012" href="$_capacity_scope_8cpp.html#aef5487a731116924537c202f04406798" title=" " alt="" coords="272,231,501,258"/>
-<area shape="poly" id="edge20_Node000001_Node000012" title=" " alt="" coords="120,450,141,412,174,363,217,311,243,288,270,268,282,263,279,267,273,272,246,292,221,315,178,366,145,415,125,451"/>
-<area shape="rect" id="Node000014" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="859,514,1039,559"/>
-<area shape="poly" id="edge25_Node000001_Node000014" title=" " alt="" coords="136,476,197,510,234,527,272,539,348,554,426,563,582,568,725,562,846,551,841,553,726,567,582,574,426,568,347,559,271,544,232,532,194,515,138,481"/>
-<area shape="rect" id="Node000016" href="$struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" title="True when routeIndex indexes routes." alt="" coords="278,503,495,530"/>
-<area shape="poly" id="edge29_Node000001_Node000016" title=" " alt="" coords="190,476,297,498,293,501,192,481"/>
-<area shape="rect" id="Node000017" href="$namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874" title=" " alt="" coords="309,628,464,656"/>
-<area shape="poly" id="edge30_Node000001_Node000017" title=" " alt="" coords="131,476,193,526,273,584,340,620,335,622,270,588,190,531,132,481"/>
-<area shape="rect" id="Node000020" href="$class_scope_stretch_choice.html#a8a3f8e041af6dc25c79c8300d995f722" title=" " alt="" coords="307,762,466,807"/>
-<area shape="poly" id="edge38_Node000001_Node000020" title=" " alt="" coords="121,476,142,524,174,589,218,661,244,695,273,725,314,754,308,755,270,729,240,698,214,664,169,592,137,526,121,482"/>
-<area shape="rect" id="Node000025" href="$namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e" title=" " alt="" coords="304,451,469,478"/>
-<area shape="poly" id="edge48_Node000001_Node000025" title=" " alt="" coords="223,462,291,463,286,466,225,467"/>
-<area shape="rect" id="Node000027" href="$namespace_dialog_layout.html#a66a7d42bda10000c79c85ab652f8805e" title=" " alt="" coords="298,375,474,402"/>
-<area shape="poly" id="edge53_Node000001_Node000027" title=" " alt="" coords="157,448,271,413,307,405,303,408,272,418,160,452"/>
-<area shape="rect" id="Node000028" href="$class_scope_stretch_choice.html#a21bac8ebe43c089b4686deaee067a711" title=" " alt="" coords="311,906,462,951"/>
-<area shape="poly" id="edge56_Node000001_Node000028" title=" " alt="" coords="120,476,141,535,173,622,217,721,244,771,274,818,308,859,346,896,341,895,304,862,270,821,240,774,212,724,168,624,136,537,120,481"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,431,126,366,152,270,172,217,198,165,230,116,270,73,289,62,286,66,273,77,234,119,202,167,177,219,157,272,131,368,120,432"/>
+<area shape="rect" id="Node000004" href="$_capacity_scope_8cpp.html#a9221478d65742500cad2597b5f521d2c" title=" " alt="" coords="874,117,1024,145"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="115,431,125,370,151,282,171,235,197,190,230,150,270,117,317,98,381,88,457,84,541,85,713,98,861,117,856,119,712,103,541,90,457,89,381,93,318,104,273,121,234,153,202,193,176,237,156,284,131,371,120,432"/>
+<area shape="rect" id="Node000008" href="$_capacity_scope_8cpp.html#a62f4c74947ab265e9d89a718b792e609" title=" " alt="" coords="289,231,484,258"/>
+<area shape="poly" id="edge13_Node000001_Node000008" title=" " alt="" coords="122,430,179,356,221,312,270,274,299,262,295,266,273,279,225,316,183,359,127,433"/>
+<area shape="rect" id="Node000009" href="$class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" title="A combo box that expands across its row and fits its size hint to its entries." alt="" coords="549,559,808,586"/>
+<area shape="poly" id="edge15_Node000001_Node000009" title=" " alt="" coords="131,458,192,503,231,527,273,545,337,562,405,572,471,577,536,580,531,582,471,583,404,577,336,567,271,550,228,531,189,508,132,463"/>
+<area shape="rect" id="Node000011" href="$class_scope_stretch_choice.html#a3ee9cb0b0519a69c46cfb9b8dca5effb" title="The lists hold other entries, of another route or another kind of stretch, so the dialog can widen fo..." alt="" coords="311,730,462,775"/>
+<area shape="poly" id="edge19_Node000001_Node000011" title=" " alt="" coords="120,458,140,507,171,574,216,646,243,680,273,709,300,727,295,728,270,713,239,683,211,649,166,576,135,509,120,463"/>
+<area shape="rect" id="Node000012" href="$_capacity_scope_8cpp.html#aef5487a731116924537c202f04406798" title=" " alt="" coords="272,155,501,182"/>
+<area shape="poly" id="edge20_Node000001_Node000012" title=" " alt="" coords="118,431,135,385,166,320,211,251,239,220,270,193,282,187,279,191,273,197,242,224,215,254,171,322,140,387,123,433"/>
+<area shape="rect" id="Node000014" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="859,353,1039,398"/>
+<area shape="poly" id="edge25_Node000001_Node000014" title=" " alt="" coords="125,430,149,404,183,372,224,341,271,318,349,293,417,278,478,271,537,271,595,277,658,288,809,318,850,329,890,346,885,346,848,334,808,323,657,293,594,283,536,277,479,277,418,283,350,299,273,323,227,346,186,376,153,408,130,433"/>
+<area shape="rect" id="Node000016" href="$struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" title="True when routeIndex indexes routes." alt="" coords="278,799,495,826"/>
+<area shape="poly" id="edge29_Node000001_Node000016" title=" " alt="" coords="118,458,132,520,159,609,179,657,204,704,236,748,273,785,279,791,274,791,270,789,232,751,200,707,174,660,154,611,127,522,118,463"/>
+<area shape="rect" id="Node000017" href="$namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874" title=" " alt="" coords="309,508,464,536"/>
+<area shape="poly" id="edge30_Node000001_Node000017" title=" " alt="" coords="166,458,321,502,317,505,168,463"/>
+<area shape="rect" id="Node000020" href="$class_scope_stretch_choice.html#a8a3f8e041af6dc25c79c8300d995f722" title=" " alt="" coords="307,610,466,655"/>
+<area shape="poly" id="edge38_Node000001_Node000020" title=" " alt="" coords="127,458,188,520,228,557,273,589,298,603,293,604,270,593,225,561,184,524,128,463"/>
+<area shape="rect" id="Node000028" href="$namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e" title=" " alt="" coords="304,432,469,460"/>
+<area shape="poly" id="edge53_Node000001_Node000028" title=" " alt="" coords="223,443,291,444,286,447,225,448"/>
+<area shape="rect" id="Node000030" href="$namespace_dialog_layout.html#a66a7d42bda10000c79c85ab652f8805e" title=" " alt="" coords="298,356,474,384"/>
+<area shape="poly" id="edge58_Node000001_Node000030" title=" " alt="" coords="157,429,271,394,307,386,303,390,272,399,160,433"/>
+<area shape="rect" id="Node000031" href="$class_scope_stretch_choice.html#a21bac8ebe43c089b4686deaee067a711" title=" " alt="" coords="604,874,754,919"/>
+<area shape="poly" id="edge61_Node000001_Node000031" title=" " alt="" coords="121,457,143,500,174,557,218,616,244,642,273,665,304,681,333,687,390,685,417,684,445,686,474,696,503,716,518,734,525,752,528,789,530,826,537,843,551,860,569,873,591,885,586,885,566,878,547,864,533,846,525,827,523,790,520,753,513,736,499,720,471,700,444,691,417,689,390,691,333,692,302,686,270,669,241,646,214,619,170,559,138,503,122,463"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="340,29,333,20,339,11,357,5,386,3,418,5,437,13,432,15,417,10,386,8,358,10,342,15,338,20,345,28"/>
 <area shape="rect" id="Node000003" href="$_blocking_time_scope_8cpp.html#ac01aee1b4c6ace5d6b3ca77476012670" title=" " alt="" coords="608,29,749,57"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="495,41,594,42,590,45,498,46"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="495,41,595,42,590,45,498,46"/>
 <area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="632,29,625,20,631,11,649,5,679,3,710,5,729,13,724,15,709,10,679,8,650,10,635,15,631,20,638,29"/>
-<area shape="poly" id="edge10_Node000004_Node000004" title=" " alt="" coords="911,137,905,128,910,119,925,113,949,111,975,113,990,122,985,122,973,118,949,116,926,118,914,123,911,128,916,137"/>
-<area shape="rect" id="Node000005" href="$_capacity_scope_8cpp.html#a1eacf23720ac45233dc640e58f1217a2" title=" " alt="" coords="1096,100,1238,128"/>
-<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="1023,136,1083,127,1078,130,1025,141"/>
-<area shape="rect" id="Node000007" href="$_capacity_scope_8cpp.html#aac7c86a64b69f8408bd47a637e7f4ef5" title=" " alt="" coords="1096,176,1239,204"/>
-<area shape="poly" id="edge11_Node000004_Node000007" title=" " alt="" coords="1023,162,1083,174,1078,175,1025,167"/>
-<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="1130,99,1124,91,1129,81,1143,75,1167,73,1193,76,1208,84,1203,85,1192,81,1167,79,1145,81,1132,85,1129,91,1135,100"/>
-<area shape="rect" id="Node000006" href="$_blocking_time_diagram_8cpp.html#a788941251df4149c16de46d3441e0926" title=" " alt="" coords="1293,92,1491,136"/>
-<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="1238,111,1280,113,1275,115,1240,116"/>
-<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="1349,90,1348,81,1355,72,1370,67,1392,65,1417,67,1433,76,1427,77,1415,73,1392,70,1371,72,1358,77,1353,83,1354,92"/>
-<area shape="poly" id="edge12_Node000007_Node000007" title=" " alt="" coords="1130,175,1124,167,1129,157,1143,151,1167,149,1193,152,1208,160,1203,161,1192,157,1167,155,1145,157,1132,161,1129,167,1135,176"/>
-<area shape="poly" id="edge14_Node000008_Node000008" title=" " alt="" coords="340,155,333,146,339,136,357,130,386,128,418,130,437,138,432,140,417,136,386,133,358,135,342,140,338,145,345,154"/>
-<area shape="rect" id="Node000010" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="877,733,1021,761"/>
-<area shape="poly" id="edge16_Node000009_Node000010" title=" " alt="" coords="808,732,864,739,859,740,809,737"/>
-<area shape="poly" id="edge17_Node000010_Node000010" title=" " alt="" coords="911,732,905,724,910,715,925,709,949,707,975,709,990,718,985,718,973,714,949,712,926,714,914,719,911,724,916,734"/>
-<area shape="poly" id="edge24_Node000012_Node000012" title=" " alt="" coords="340,231,333,222,339,212,357,206,386,204,418,206,437,214,432,216,417,212,386,209,358,211,342,216,338,221,345,230"/>
-<area shape="rect" id="Node000013" href="$_capacity_scope_8cpp.html#a546fa2154c7dfa3011a4bfcc79be6a4c" title=" " alt="" coords="584,193,773,221"/>
-<area shape="poly" id="edge21_Node000012_Node000013" title=" " alt="" coords="499,228,571,220,567,223,501,232"/>
-<area shape="poly" id="edge22_Node000013_Node000004" title=" " alt="" coords="748,190,866,167,862,170,750,195"/>
-<area shape="poly" id="edge23_Node000013_Node000013" title=" " alt="" coords="632,193,625,184,631,175,649,169,679,167,710,169,729,177,724,179,709,174,679,172,650,174,635,179,631,184,638,193"/>
-<area shape="poly" id="edge26_Node000014_Node000014" title=" " alt="" coords="907,512,906,504,913,495,927,490,949,488,973,490,988,499,983,499,971,495,949,493,929,495,916,499,911,505,912,515"/>
-<area shape="rect" id="Node000015" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="1091,545,1244,590"/>
-<area shape="poly" id="edge27_Node000014_Node000015" title=" " alt="" coords="1039,547,1078,554,1073,555,1040,552"/>
-<area shape="poly" id="edge28_Node000015_Node000015" title=" " alt="" coords="1126,543,1124,535,1131,526,1146,520,1167,518,1191,521,1207,530,1201,530,1190,526,1167,523,1147,525,1134,530,1129,536,1130,546"/>
-<area shape="poly" id="edge36_Node000017_Node000015" title=" " alt="" coords="463,629,549,619,837,591,1078,573,1073,575,838,597,549,624,465,634"/>
-<area shape="poly" id="edge37_Node000017_Node000017" title=" " alt="" coords="340,628,333,619,339,609,357,603,386,601,418,604,437,612,432,613,417,609,386,607,358,609,342,614,338,619,345,627"/>
-<area shape="rect" id="Node000018" href="$namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" title="Guards every combo box, spin box and slider inside root." alt="" coords="598,657,759,685"/>
-<area shape="poly" id="edge31_Node000017_Node000018" title=" " alt="" coords="464,647,585,661,580,663,465,652"/>
-<area shape="poly" id="edge32_Node000018_Node000010" title=" " alt="" coords="758,683,809,695,900,727,895,728,808,700,758,688"/>
-<area shape="poly" id="edge33_Node000018_Node000018" title=" " alt="" coords="632,656,625,648,631,639,649,633,679,631,710,633,729,642,724,642,709,638,679,636,650,638,635,643,631,648,638,657"/>
-<area shape="rect" id="Node000019" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ..." alt="" coords="856,657,1042,685"/>
-<area shape="poly" id="edge34_Node000018_Node000019" title=" " alt="" coords="759,669,843,671,838,672,760,674"/>
-<area shape="poly" id="edge35_Node000019_Node000019" title=" " alt="" coords="911,656,905,648,910,639,925,633,949,631,975,633,990,642,985,642,973,638,949,636,926,638,914,643,911,648,916,658"/>
-<area shape="poly" id="edge41_Node000020_Node000009" title=" " alt="" coords="465,765,548,747,595,740,590,742,550,752,467,770"/>
-<area shape="rect" id="Node000021" href="$_blocking_time_scope_8cpp.html#a62a3e8b77d8b29b0fa4a430935911ec9" title=" " alt="" coords="572,785,785,813"/>
-<area shape="poly" id="edge39_Node000020_Node000021" title=" " alt="" coords="466,786,559,792,554,794,466,791"/>
-<area shape="rect" id="Node000022" href="$class_scope_stretch_choice.html#a6c5706c19759b1c3884339da03628ca2" title=" " alt="" coords="604,837,754,882"/>
-<area shape="poly" id="edge42_Node000020_Node000022" title=" " alt="" coords="466,802,591,836,586,837,466,807"/>
-<area shape="poly" id="edge40_Node000021_Node000021" title=" " alt="" coords="633,784,625,776,631,767,649,761,679,759,710,761,729,770,724,770,709,766,679,764,650,766,635,771,631,776,638,785"/>
-<area shape="rect" id="Node000023" href="$_blocking_time_scope_8cpp.html#a5feaa6509d6770f624cca415de6121e7" title=" " alt="" coords="866,827,1032,854"/>
-<area shape="poly" id="edge43_Node000022_Node000023" title=" " alt="" coords="754,851,853,847,847,848,755,857"/>
-<area shape="rect" id="Node000024" href="$_blocking_time_scope_8cpp.html#a9b69b830af3ce74a5c31ab8884fd3596" title=" " alt="" coords="1090,852,1245,880"/>
-<area shape="poly" id="edge47_Node000022_Node000024" title=" " alt="" coords="754,860,856,863,1076,866,1071,867,856,868,754,865"/>
-<area shape="poly" id="edge44_Node000023_Node000023" title=" " alt="" coords="911,825,905,818,910,808,925,802,949,800,975,803,990,812,985,811,973,808,949,805,926,807,914,812,911,817,916,827"/>
-<area shape="poly" id="edge45_Node000023_Node000024" title=" " alt="" coords="1032,847,1077,855,1072,855,1033,853"/>
-<area shape="poly" id="edge46_Node000024_Node000024" title=" " alt="" coords="1130,850,1124,843,1129,833,1143,827,1167,825,1193,828,1208,837,1203,836,1192,833,1167,831,1145,833,1132,837,1129,843,1135,853"/>
-<area shape="poly" id="edge49_Node000025_Node000025" title=" " alt="" coords="340,450,333,442,339,432,357,426,386,424,418,426,437,435,432,436,417,432,386,429,358,431,342,436,338,441,345,450"/>
-<area shape="rect" id="Node000026" href="$namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734" title=" " alt="" coords="602,442,755,487"/>
-<area shape="poly" id="edge50_Node000025_Node000026" title=" " alt="" coords="469,462,589,463,585,466,470,467"/>
-<area shape="poly" id="edge51_Node000026_Node000014" title=" " alt="" coords="755,482,850,509,845,510,756,487"/>
-<area shape="poly" id="edge52_Node000026_Node000026" title=" " alt="" coords="628,441,626,432,635,423,652,417,679,416,707,418,726,426,721,427,706,423,679,421,653,423,637,428,631,434,633,442"/>
-<area shape="poly" id="edge55_Node000027_Node000026" title=" " alt="" coords="451,400,502,413,590,438,585,440,500,418,452,406"/>
-<area shape="poly" id="edge54_Node000027_Node000027" title=" " alt="" coords="340,374,333,366,339,356,357,350,386,348,418,350,437,358,432,360,417,356,386,353,358,355,342,360,338,365,345,374"/>
-<area shape="rect" id="Node000029" href="$class_scope_stretch_choice.html#af734ca85ae9aa159377bd99f94aaffeb" title="The id of the chosen route, empty for all routes." alt="" coords="604,906,754,951"/>
-<area shape="poly" id="edge57_Node000028_Node000029" title=" " alt="" coords="462,926,591,928,586,929,462,931"/>
-<area shape="rect" id="Node000030" href="$class_scope_stretch_choice.html#afd6f02545f01d9ca39cd7aa589cbc43a" title="The runtime section ids of the blocks of the stretch in route order; empty for all routes." alt="" coords="604,976,754,1020"/>
-<area shape="poly" id="edge58_Node000028_Node000030" title=" " alt="" coords="462,944,591,977,586,977,462,949"/>
+<area shape="poly" id="edge10_Node000004_Node000004" title=" " alt="" coords="911,117,905,108,910,99,925,93,949,91,975,93,990,102,985,102,973,98,949,96,926,98,914,103,911,108,916,117"/>
+<area shape="rect" id="Node000005" href="$_capacity_scope_8cpp.html#a1eacf23720ac45233dc640e58f1217a2" title=" " alt="" coords="1096,80,1238,108"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="1023,116,1083,107,1078,110,1025,121"/>
+<area shape="rect" id="Node000007" href="$_capacity_scope_8cpp.html#aac7c86a64b69f8408bd47a637e7f4ef5" title=" " alt="" coords="1096,156,1239,184"/>
+<area shape="poly" id="edge11_Node000004_Node000007" title=" " alt="" coords="1023,142,1083,154,1078,155,1025,147"/>
+<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="1130,79,1124,71,1129,61,1143,55,1167,53,1193,56,1208,64,1203,65,1192,61,1167,59,1145,61,1132,65,1129,71,1135,80"/>
+<area shape="rect" id="Node000006" href="$_blocking_time_diagram_8cpp.html#a788941251df4149c16de46d3441e0926" title=" " alt="" coords="1293,72,1491,116"/>
+<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="1238,91,1280,93,1275,95,1240,96"/>
+<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="1349,70,1348,61,1355,52,1370,47,1392,45,1417,47,1433,56,1427,57,1415,53,1392,50,1371,52,1358,57,1353,63,1354,72"/>
+<area shape="poly" id="edge12_Node000007_Node000007" title=" " alt="" coords="1130,155,1124,147,1129,137,1143,131,1167,129,1193,132,1208,140,1203,141,1192,137,1167,135,1145,137,1132,141,1129,147,1135,156"/>
+<area shape="poly" id="edge14_Node000008_Node000008" title=" " alt="" coords="340,231,333,222,339,212,357,206,386,204,418,206,437,214,432,216,417,212,386,209,358,211,342,216,338,221,345,230"/>
+<area shape="rect" id="Node000010" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="877,572,1021,600"/>
+<area shape="poly" id="edge16_Node000009_Node000010" title=" " alt="" coords="808,576,864,581,859,582,809,582"/>
+<area shape="poly" id="edge17_Node000010_Node000010" title=" " alt="" coords="911,571,905,563,910,553,925,547,949,545,975,548,990,557,985,557,973,553,949,551,926,553,914,557,911,563,916,572"/>
+<area shape="poly" id="edge24_Node000012_Node000012" title=" " alt="" coords="340,155,333,146,339,136,357,130,386,128,418,130,437,138,432,140,417,136,386,133,358,135,342,140,338,145,345,154"/>
+<area shape="rect" id="Node000013" href="$_capacity_scope_8cpp.html#a546fa2154c7dfa3011a4bfcc79be6a4c" title=" " alt="" coords="584,155,773,182"/>
+<area shape="poly" id="edge21_Node000012_Node000013" title=" " alt="" coords="500,166,571,167,566,170,502,171"/>
+<area shape="poly" id="edge22_Node000013_Node000004" title=" " alt="" coords="773,153,861,142,856,145,775,158"/>
+<area shape="poly" id="edge23_Node000013_Node000013" title=" " alt="" coords="632,154,625,146,631,136,649,130,679,128,710,130,729,139,724,140,709,136,679,133,650,135,635,140,631,145,638,154"/>
+<area shape="poly" id="edge26_Node000014_Node000014" title=" " alt="" coords="907,351,906,343,913,334,927,328,949,326,973,329,988,337,983,338,971,334,949,331,929,333,916,338,911,344,912,353"/>
+<area shape="rect" id="Node000015" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="1091,384,1244,428"/>
+<area shape="poly" id="edge27_Node000014_Node000015" title=" " alt="" coords="1039,385,1078,392,1073,394,1040,390"/>
+<area shape="poly" id="edge28_Node000015_Node000015" title=" " alt="" coords="1126,382,1124,373,1131,364,1146,359,1167,357,1191,359,1207,368,1201,368,1190,364,1167,362,1147,364,1134,369,1129,375,1130,384"/>
+<area shape="poly" id="edge36_Node000017_Node000015" title=" " alt="" coords="425,505,483,486,548,469,692,444,836,426,1078,409,1073,411,837,431,693,449,550,474,484,491,428,510"/>
+<area shape="poly" id="edge37_Node000017_Node000017" title=" " alt="" coords="340,508,333,499,339,489,357,483,386,481,418,484,437,492,432,493,417,489,386,487,358,489,342,494,338,499,345,507"/>
+<area shape="rect" id="Node000018" href="$namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" title="Guards every combo box, spin box and slider inside root." alt="" coords="598,507,759,534"/>
+<area shape="poly" id="edge31_Node000017_Node000018" title=" " alt="" coords="464,519,585,520,580,522,465,524"/>
+<area shape="poly" id="edge32_Node000018_Node000010" title=" " alt="" coords="754,532,809,545,887,567,882,568,808,550,754,538"/>
+<area shape="poly" id="edge33_Node000018_Node000018" title=" " alt="" coords="632,506,625,498,631,488,649,482,679,480,710,482,729,491,724,492,709,488,679,485,650,487,635,492,631,497,638,506"/>
+<area shape="rect" id="Node000019" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ..." alt="" coords="856,496,1042,524"/>
+<area shape="poly" id="edge34_Node000018_Node000019" title=" " alt="" coords="759,515,843,513,838,515,761,520"/>
+<area shape="poly" id="edge35_Node000019_Node000019" title=" " alt="" coords="911,495,905,487,910,477,925,471,949,469,975,472,990,481,985,481,973,477,949,475,926,477,914,481,911,487,916,496"/>
+<area shape="poly" id="edge41_Node000020_Node000009" title=" " alt="" coords="465,613,548,595,591,589,586,591,550,600,467,618"/>
+<area shape="rect" id="Node000021" href="$_blocking_time_scope_8cpp.html#a62a3e8b77d8b29b0fa4a430935911ec9" title=" " alt="" coords="572,823,785,850"/>
+<area shape="poly" id="edge39_Node000020_Node000021" title=" " alt="" coords="466,649,503,672,515,687,522,701,528,730,533,758,540,771,551,785,573,802,600,817,594,817,570,806,547,789,535,774,528,760,523,731,517,703,511,689,499,676,466,654"/>
+<area shape="rect" id="Node000022" href="$class_scope_stretch_choice.html#a6c5706c19759b1c3884339da03628ca2" title=" " alt="" coords="604,610,754,655"/>
+<area shape="poly" id="edge42_Node000020_Node000022" title=" " alt="" coords="465,630,590,631,585,634,467,635"/>
+<area shape="rect" id="Node000025" href="$class_scope_stretch_choice.html#aa7cd7b5579927c4f434a18d6f26f1f38" title=" " alt="" coords="604,730,754,775"/>
+<area shape="poly" id="edge48_Node000020_Node000025" title=" " alt="" coords="461,653,502,672,527,691,550,709,591,728,586,729,548,713,523,695,500,676,461,658"/>
+<area shape="rect" id="Node000026" href="$class_scope_stretch_choice.html#af734ca85ae9aa159377bd99f94aaffeb" title="The id of the chosen route, empty for all routes." alt="" coords="874,749,1024,794"/>
+<area shape="poly" id="edge51_Node000020_Node000026" title=" " alt="" coords="466,647,549,665,680,686,737,697,809,715,857,734,876,743,870,743,855,739,808,720,736,702,679,692,549,670,466,652"/>
+<area shape="rect" id="Node000027" href="$class_scope_stretch_choice.html#afd6f02545f01d9ca39cd7aa589cbc43a" title="The runtime section ids of the blocks of the stretch in route order; empty for all routes." alt="" coords="874,874,1024,919"/>
+<area shape="poly" id="edge52_Node000020_Node000027" title=" " alt="" coords="432,653,471,680,503,716,518,747,523,777,519,833,517,858,519,883,530,906,551,929,589,952,631,965,676,970,722,968,768,961,811,950,884,926,890,925,813,955,769,966,723,973,676,975,630,971,587,957,547,933,525,909,514,884,512,859,514,832,517,777,513,749,499,719,467,684,431,658"/>
+<area shape="poly" id="edge40_Node000021_Node000021" title=" " alt="" coords="633,821,625,814,631,804,649,798,679,796,710,798,729,807,724,807,709,804,679,801,650,803,635,808,631,813,638,823"/>
+<area shape="rect" id="Node000023" href="$_blocking_time_scope_8cpp.html#a5feaa6509d6770f624cca415de6121e7" title=" " alt="" coords="866,697,1032,725"/>
+<area shape="poly" id="edge43_Node000022_Node000023" title=" " alt="" coords="754,652,887,692,882,693,754,657"/>
+<area shape="rect" id="Node000024" href="$_blocking_time_scope_8cpp.html#a9b69b830af3ce74a5c31ab8884fd3596" title=" " alt="" coords="1090,660,1245,688"/>
+<area shape="poly" id="edge47_Node000022_Node000024" title=" " alt="" coords="754,636,1042,659,1077,664,1071,665,1041,664,755,641"/>
+<area shape="poly" id="edge44_Node000023_Node000023" title=" " alt="" coords="911,696,905,688,910,679,925,673,949,671,975,673,990,682,985,682,973,678,949,676,926,678,914,683,911,688,916,698"/>
+<area shape="poly" id="edge45_Node000023_Node000024" title=" " alt="" coords="1032,694,1077,689,1072,690,1033,700"/>
+<area shape="poly" id="edge46_Node000024_Node000024" title=" " alt="" coords="1130,659,1124,651,1129,641,1143,635,1167,633,1193,636,1208,645,1203,644,1192,641,1167,639,1145,641,1132,645,1129,651,1135,660"/>
+<area shape="poly" id="edge49_Node000025_Node000026" title=" " alt="" coords="754,755,861,765,856,765,754,760"/>
+<area shape="poly" id="edge50_Node000025_Node000027" title=" " alt="" coords="755,765,810,785,868,822,917,864,911,863,865,826,807,790,754,770"/>
+<area shape="poly" id="edge54_Node000028_Node000028" title=" " alt="" coords="340,432,333,423,339,413,357,407,386,405,418,408,437,416,432,417,417,413,386,411,358,413,342,418,338,423,345,431"/>
+<area shape="rect" id="Node000029" href="$namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734" title=" " alt="" coords="602,357,755,402"/>
+<area shape="poly" id="edge55_Node000028_Node000029" title=" " alt="" coords="449,429,590,398,585,401,452,434"/>
+<area shape="poly" id="edge56_Node000029_Node000014" title=" " alt="" coords="754,375,846,376,841,378,756,381"/>
+<area shape="poly" id="edge57_Node000029_Node000029" title=" " alt="" coords="628,355,626,347,635,338,652,332,679,330,707,333,726,341,721,342,706,338,679,335,653,337,637,342,631,348,633,357"/>
+<area shape="poly" id="edge60_Node000030_Node000029" title=" " alt="" coords="474,370,589,375,585,378,476,375"/>
+<area shape="poly" id="edge59_Node000030_Node000030" title=" " alt="" coords="340,356,333,347,339,337,357,331,386,329,418,332,437,340,432,342,417,337,386,335,358,337,342,342,338,347,345,355"/>
+<area shape="poly" id="edge62_Node000031_Node000026" title=" " alt="" coords="754,878,807,859,859,831,904,804,909,802,862,836,809,864,755,883"/>
+<area shape="poly" id="edge63_Node000031_Node000027" title=" " alt="" coords="754,894,861,896,855,897,754,899"/>
 </map>

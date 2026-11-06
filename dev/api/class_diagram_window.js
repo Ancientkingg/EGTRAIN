@@ -7,6 +7,7 @@ var class_diagram_window =
     [ "figureImage", "class_diagram_window.html#a66d6e64434954e6ba58990c584eef5b4", null ],
     [ "keyPressEvent", "class_diagram_window.html#abe3380e3fe58e9421d64ea14fbef3939", null ],
     [ "rollingStockSubject", "class_diagram_window.html#ae067ab333903345d80d46c53ef560f43", null ],
+    [ "sectionsMarked", "class_diagram_window.html#a4392cddfeae78022cfe3c2a78c2655f8", null ],
     [ "setBlockSections", "class_diagram_window.html#a19621f9b0021d5f4a43a09a3b07ba7a4", null ],
     [ "setChart", "class_diagram_window.html#a6a0470e83e6f726a252b1b7b308842df", null ],
     [ "setCsvProvider", "class_diagram_window.html#aec15f7fbe7dff817ea556595a326c71d", null ],
@@ -24,5 +25,6 @@ var class_diagram_window =
     [ "setTrainColors", "class_diagram_window.html#ae62313eba188517867e611dfa3a6f3b2", null ],
     [ "setTrainCopies", "class_diagram_window.html#a2345999359bdaabb45554ee519b8491a", null ],
     [ "setTrainServices", "class_diagram_window.html#ab408ce4b95e0ba9ab73fdbe8f4efbd62", null ],
-    [ "trainSelected", "class_diagram_window.html#a223a88f35d30e0508c02eba4ea4228bc", null ]
+    [ "trainSelected", "class_diagram_window.html#a223a88f35d30e0508c02eba4ea4228bc", null ],
+    [ "kBoxBlockProperty", "class_diagram_window.html#aa683fe415b51ef77bad6e85b51572624", null ]
 ];

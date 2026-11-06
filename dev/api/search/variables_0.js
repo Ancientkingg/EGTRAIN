@@ -34,7 +34,7 @@ var searchData=
   ['architecture_31',['architecture',['../structtelemetry_1_1_application.html#ad35926fa93540efa11e4540fc2dc6467',1,'telemetry::Application::architecture'],['../struct_playback_profiler_1_1_run_config.html#ad8cb9cf7cb1c8c6bea5a1371e49e1b94',1,'PlaybackProfiler::RunConfig::architecture']]],
   ['arcindex_32',['arcIndex',['../struct_train_1_1_braking_arc_cursor.html#a8e84a6dec5b1e83a0af20bc2b785e714',1,'Train::BrakingArcCursor::arcIndex'],['../struct_train_1_1_backward_braking_arc_cursor.html#af74ccf0fbc39e009bda0a6b2baf9e305',1,'Train::BackwardBrakingArcCursor::arcIndex']]],
   ['arcs_33',['arcs',['../struct_scene_model.html#aadf421098851c5a24b6564f8842ca53c',1,'SceneModel::arcs'],['../class_block_set.html#aa5e37228f753a2c2a8272450179ca9ae',1,'BlockSet::arcs']]],
-  ['arcs_5fin_5fsignalling_5fblock_5fsection_34',['arcs_in_signalling_block_section',['../class_section.html#a13b8bae99d5d7b7148e9f54b2aa7eb6e',1,'Section']]],
+  ['arcs_5fin_5fsignalling_5fblock_5fsection_34',['arcs_in_signalling_block_section',['../class_section.html#af04540d8021bd1187567aa17acc7ce7f',1,'Section']]],
   ['arcspeedlimit_35',['arcSpeedLimit',['../class_node.html#aaa9a61fcade634b182e5a58e66795bb1',1,'Node']]],
   ['area_36',['area',['../struct_scene_signalling_area_conflict.html#a060c4613bfdb20f4073b2de51ddbce4f',1,'SceneSignallingAreaConflict']]],
   ['areamarginpixels_37',['AreaMarginPixels',['../class_station_overlay_item.html#a60802b763231043f1b5bbb836d20e736',1,'StationOverlayItem']]],

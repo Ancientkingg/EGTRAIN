@@ -1,5 +1,12 @@
 var NAVTREEINDEX20 =
 {
+"globals_func_s.html":[3,1,1,18],
+"globals_func_t.html":[3,1,1,19],
+"globals_func_u.html":[3,1,1,20],
+"globals_func_v.html":[3,1,1,21],
+"globals_func_w.html":[3,1,1,22],
+"globals_g.html":[3,1,0,7],
+"globals_h.html":[3,1,0,8],
 "globals_i.html":[3,1,0,9],
 "globals_j.html":[3,1,0,10],
 "globals_k.html":[3,1,0,11],
@@ -242,12 +249,5 @@ var NAVTREEINDEX20 =
 "namespacetelemetry.html#a8ec2d53909f0fb677857ec071723bd0b":[1,0,14,27],
 "namespacetelemetry.html#a9c4a19fee431cf8e3cee072669dc499f":[1,0,14,21],
 "namespacetelemetry.html#a9c4a19fee431cf8e3cee072669dc499fa4d4357cc70fa310fee2ff5157bc14a90":[1,0,14,21,0],
-"namespacetelemetry.html#a9c4a19fee431cf8e3cee072669dc499fa509820290d57f333403f490dde7316f4":[1,0,14,21,1],
-"namespacetelemetry.html#ab0d67ac93c3c3ea86e13dcad6b448636":[1,0,14,20],
-"namespacetelemetry.html#ab0d67ac93c3c3ea86e13dcad6b448636a0095a9fa74d1713e43e370a7d7846224":[1,0,14,20,2],
-"namespacetelemetry.html#ab0d67ac93c3c3ea86e13dcad6b448636a4f502b57d2835715eaa382c7d4c32e94":[1,0,14,20,1],
-"namespacetelemetry.html#ab0d67ac93c3c3ea86e13dcad6b448636a7ef42719436307aabb2c2351062274d2":[1,0,14,20,0],
-"namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012":[1,0,14,15],
-"namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012a36b64aad8a26246fe3ad4116a2b6f289":[1,0,14,15,1],
-"namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012ac64518704ce0c0d5501a45763f464276":[1,0,14,15,0]
+"namespacetelemetry.html#a9c4a19fee431cf8e3cee072669dc499fa509820290d57f333403f490dde7316f4":[1,0,14,21,1]
 };

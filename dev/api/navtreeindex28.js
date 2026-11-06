@@ -1,5 +1,12 @@
 var NAVTREEINDEX28 =
 {
+"struct_update_preparation_input.html#ab7009e5f5870e8505cd221fd7b423e31":[2,0,369,3],
+"struct_update_preparation_input.html#ae4b7c93415440da7b8d1b66c742606c5":[2,0,369,1],
+"struct_update_preparation_result.html":[2,0,370],
+"struct_update_preparation_result.html#a07aa660ec79a0fd935535484dd41e393":[2,0,370,0],
+"struct_update_preparation_result.html#aaac63040b287b8cc4beef887fd4c5a0a":[2,0,370,2],
+"struct_update_preparation_result.html#af5dab8da3404b1d453080c97bc1a2d63":[2,0,370,1],
+"struct_update_record.html":[2,0,372],
 "struct_update_record.html#a550e87cf5c396b184c34b334160e824b":[2,0,372,0],
 "struct_update_record.html#aa85aad1b548c75f9ad7bb95a5ce04870":[2,0,372,2],
 "struct_update_record.html#adcee3b4ce998347d4cd995f674e22801":[2,0,372,1],

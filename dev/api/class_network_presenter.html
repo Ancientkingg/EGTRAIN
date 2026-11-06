@@ -191,6 +191,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a19640754921d9353b9e99090a10ef7b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene shows a preview with track lines: <a class="el" href="#a583bd2b439a923f2d17f3e3e16040cc3">showPreview()</a> drew one and neither <a class="el" href="#a6a8ccd8567a7794aaff72338d8bea322">clear()</a> nor <a class="el" href="#a2825db26f3e40183fccc23ee6ec1d0ac">showRuntime()</a> ran since.  <br /></td></tr>
 <tr class="memitem:a83c794493b57ef3901a2951018bf4085" id="r_a83c794493b57ef3901a2951018bf4085"><td class="memItemLeft">const <a class="el" href="class_network_mark_item.html">NetworkMarkItem</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a83c794493b57ef3901a2951018bf4085">selectionMark</a> () const</td></tr>
 <tr class="memdesc:a83c794493b57ef3901a2951018bf4085"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mark of the selected row of the infrastructure panel; null without one.  <br /></td></tr>
+<tr class="memitem:af1f9fec2d1413a2a6407a3253ac7e7ce" id="r_af1f9fec2d1413a2a6407a3253ac7e7ce"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af1f9fec2d1413a2a6407a3253ac7e7ce">markRunSections</a> (const QStringList &amp;sectionIds, const QStringList &amp;emphasisIds)</td></tr>
+<tr class="memitem:affd31b86698e4081d471a8ea99eaafbd" id="r_affd31b86698e4081d471a8ea99eaafbd"><td class="memItemLeft">const <a class="el" href="class_network_mark_item.html">NetworkMarkItem</a> *&#160;</td><td class="memItemRight"><a class="el" href="#affd31b86698e4081d471a8ea99eaafbd">runSectionMark</a> () const</td></tr>
+<tr class="memdesc:affd31b86698e4081d471a8ea99eaafbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mark of <a class="el" href="#af1f9fec2d1413a2a6407a3253ac7e7ce">markRunSections()</a>; null without one.  <br /></td></tr>
 <tr class="memitem:a1bdb6293c1982c3cb74603bb6d4263ea" id="r_a1bdb6293c1982c3cb74603bb6d4263ea"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1bdb6293c1982c3cb74603bb6d4263ea">resetPreviewFit</a> ()</td></tr>
 <tr class="memdesc:a1bdb6293c1982c3cb74603bb6d4263ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forgets the fit and the selection of the last preview; the preview itself stays.  <br /></td></tr>
 <tr class="memitem:a1775dc3bc8cf9636cca7ac0bb27bd645" id="r_a1775dc3bc8cf9636cca7ac0bb27bd645"><td class="memItemLeft"><a class="el" href="struct_network_presenter_1_1_preview_fit.html">PreviewFit</a>&#160;</td><td class="memItemRight"><a class="el" href="#a1775dc3bc8cf9636cca7ac0bb27bd645">previewFit</a> () const</td></tr>
@@ -751,6 +754,33 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="af1f9fec2d1413a2a6407a3253ac7e7ce" name="af1f9fec2d1413a2a6407a3253ac7e7ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af1f9fec2d1413a2a6407a3253ac7e7ce">&#9670;&#160;</a></span>markRunSections()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkPresenter::markRunSections </td>
+          <td>(</td>
+          <td class="paramtype">const QStringList &amp;</td>          <td class="paramname"><span class="paramname"><em>sectionIds</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QStringList &amp;</td>          <td class="paramname"><span class="paramname"><em>emphasisIds</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Marks block sections of the run that the canvas shows, such as the stretch of a scope dialog or a block of a blocking time window: the courses of sectionIds on the track preview that the run is drawn on (<a class="el" href="_network_presenter_8cpp.html#add28e0e6c110c9b6180e912d4e0ae504">previewSectionCourses()</a>) as the band of a <a class="el" href="class_network_mark_item.html">NetworkMarkItem</a>, and the courses of emphasisIds as its emphasis. The ids are runtime section ids of the scene of the run. The mark replaces the one of the call before; it goes when no id has a course. The view, the follow camera and the rest of the scene stay as they are. Does nothing without a run; <a class="el" href="#a6a8ccd8567a7794aaff72338d8bea322">clear()</a> removes the mark. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_af1f9fec2d1413a2a6407a3253ac7e7ce_cgraph.svg" width="1168" height="170"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="aa360cc99d5a45dcfab687ea8408a9825" name="aa360cc99d5a45dcfab687ea8408a9825"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa360cc99d5a45dcfab687ea8408a9825">&#9670;&#160;</a></span>paintPassengerInfoIcon()</h2>
 
@@ -1230,6 +1260,33 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Puts back a fit that <a class="el" href="#a1775dc3bc8cf9636cca7ac0bb27bd645" title="The fit of the last preview.">previewFit()</a> returned, after a clear that the view of a run must not see. </p>
+
+</div>
+</div>
+<a id="affd31b86698e4081d471a8ea99eaafbd" name="affd31b86698e4081d471a8ea99eaafbd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#affd31b86698e4081d471a8ea99eaafbd">&#9670;&#160;</a></span>runSectionMark()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="class_network_mark_item.html">NetworkMarkItem</a> * NetworkPresenter::runSectionMark </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The mark of <a class="el" href="#af1f9fec2d1413a2a6407a3253ac7e7ce">markRunSections()</a>; null without one. </p>
 
 </div>
 </div>

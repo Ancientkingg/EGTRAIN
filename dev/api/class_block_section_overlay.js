@@ -6,6 +6,8 @@ var class_block_section_overlay =
     [ "inspect", "class_block_section_overlay.html#a4341ed7061ce5946dfb84e5bee07ba8b", null ],
     [ "keyEntries", "class_block_section_overlay.html#a074e84f86970580dfe59769ffa85b9fa", null ],
     [ "paint", "class_block_section_overlay.html#a08c390a508861db30d83e359ca36038b", null ],
+    [ "sectionsAt", "class_block_section_overlay.html#abb1118d7d6c7e59534ba948d7ff7a388", null ],
+    [ "sectionsBetween", "class_block_section_overlay.html#a23f4606d4e1c4c4a88a0e2bd091d959f", null ],
     [ "setJumps", "class_block_section_overlay.html#a5c78b1c0c85fd0e9a501f0620993f188", null ],
     [ "watchAxes", "class_block_section_overlay.html#a4c63445940353db95ce8dcff05399970", null ]
 ];

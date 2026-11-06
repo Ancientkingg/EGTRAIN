@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_section.
 <div class="dynheader">
 Collaboration diagram for Section:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_section__coll__graph.svg" width="234" height="304"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_section__coll__graph.svg" width="123" height="162"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -140,8 +140,7 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a36c6365c3e4a3d934234d4543a5d42c9" id="r_a36c6365c3e4a3d934234d4543a5d42c9"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a36c6365c3e4a3d934234d4543a5d42c9">FirstConnectedTrackLineID</a></td></tr>
 <tr class="memdesc:a36c6365c3e4a3d934234d4543a5d42c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">First track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise.  <br /></td></tr>
 <tr class="memitem:a3196e7535e753f4ae17c079752fd85f9" id="r_a3196e7535e753f4ae17c079752fd85f9"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a3196e7535e753f4ae17c079752fd85f9">SecondConnectedTrackLineID</a></td></tr>
-<tr class="memitem:a13b8bae99d5d7b7148e9f54b2aa7eb6e" id="r_a13b8bae99d5d7b7148e9f54b2aa7eb6e"><td class="memItemLeft"><a class="el" href="class_arc.html">Arc</a>&#160;</td><td class="memItemRight"><a class="el" href="#a13b8bae99d5d7b7148e9f54b2aa7eb6e">arcs_in_signalling_block_section</a> [<a class="el" href="namespace_runtime_limits.html#a432a9ed44b097ac42198d2d36f2c0987">RuntimeLimits::kNativeMaxSectionArcs</a>]</td></tr>
-<tr class="memdesc:a13b8bae99d5d7b7148e9f54b2aa7eb6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Arcs of the section, total_arcs of them.  <br /></td></tr>
+<tr class="memitem:af04540d8021bd1187567aa17acc7ce7f" id="r_af04540d8021bd1187567aa17acc7ce7f"><td class="memItemLeft">std::vector&lt; <a class="el" href="class_arc.html">Arc</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#af04540d8021bd1187567aa17acc7ce7f">arcs_in_signalling_block_section</a></td></tr>
 <tr class="memitem:a18141433af72aed8b416dc5e10c8c481" id="r_a18141433af72aed8b416dc5e10c8c481"><td class="memItemLeft"><a class="el" href="class_node.html">Node</a>&#160;</td><td class="memItemRight"><a class="el" href="#a18141433af72aed8b416dc5e10c8c481">start_node</a></td></tr>
 <tr class="memdesc:a18141433af72aed8b416dc5e10c8c481"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start node.  <br /></td></tr>
 <tr class="memitem:a565e1de59d3e57b5489f7b1c6ff556dc" id="r_a565e1de59d3e57b5489f7b1c6ff556dc"><td class="memItemLeft"><a class="el" href="class_node.html">Node</a>&#160;</td><td class="memItemRight"><a class="el" href="#a565e1de59d3e57b5489f7b1c6ff556dc">end_node</a></td></tr>
@@ -251,7 +250,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Copies the members, but the two arrays only up to their counts (total_arcs and N_ConnectedBS): the entries after those keep their values. The copy constructor copies every entry. The node list stays shared. </p>
+<p>Copies the members, but IDConnectedBS only up to N_ConnectedBS: the entries after that keep their values. The copy constructor copies every entry. The node list stays shared. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -321,19 +320,18 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
-<a id="a13b8bae99d5d7b7148e9f54b2aa7eb6e" name="a13b8bae99d5d7b7148e9f54b2aa7eb6e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a13b8bae99d5d7b7148e9f54b2aa7eb6e">&#9670;&#160;</a></span>arcs_in_signalling_block_section</h2>
+<a id="af04540d8021bd1187567aa17acc7ce7f" name="af04540d8021bd1187567aa17acc7ce7f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af04540d8021bd1187567aa17acc7ce7f">&#9670;&#160;</a></span>arcs_in_signalling_block_section</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="class_arc.html">Arc</a> Section::arcs_in_signalling_block_section[<a class="el" href="namespace_runtime_limits.html#a432a9ed44b097ac42198d2d36f2c0987">RuntimeLimits::kNativeMaxSectionArcs</a>]</td>
+          <td class="memname">std::vector&lt;<a class="el" href="class_arc.html">Arc</a>&gt; Section::arcs_in_signalling_block_section</td>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Arcs of the section, total_arcs of them. </p>
+<p>Arcs of the section, always total_arcs of them. The builders refuse a scene section of more than <a class="el" href="namespace_runtime_limits.html#a432a9ed44b097ac42198d2d36f2c0987">RuntimeLimits::kNativeMaxSectionArcs</a> arcs. </p>
 
 </div>
 </div>
