@@ -703,7 +703,8 @@ void TestBlockRouteFacets::editsDependencies() {
 	QVERIFY(f.model().blockDependencies[1].dependsOn.empty());
 	QVERIFY(f.changedOnce("Add block dependency"));
 	QCOMPARE(f.table()->currentRow(), 1);
-	QVERIFY(f.panel.selectionId().isEmpty());
+	// A dependency has no id, and the selection names it by its row.
+	QCOMPARE(f.panel.selectionId(), "1");
 	// An empty block shows as none.
 	QCOMPARE(f.combo(1, 0)->currentText(), "(none)");
 	QVERIFY(f.chosen(1, 0).isEmpty());

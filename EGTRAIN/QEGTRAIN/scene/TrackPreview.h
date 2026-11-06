@@ -71,6 +71,7 @@ struct TrackPreviewResult {
 };
 
 struct SceneModel;
+struct SceneSectionDescriptor;
 
 /// The preview of the visible tracks of the scene, before normalization.
 TrackPreviewResult loadTrackPreview(const SceneModel& scene);
@@ -88,5 +89,17 @@ bool trackPreviewPointAtX(const TrackPreviewLine& line, double rawX,
 /// The preview scaled so that its larger extent equals the longest chainage span of a line in metres. A
 /// normalized preview is returned unchanged.
 TrackPreviewResult normalizeTrackPreview(const TrackPreviewResult& preview);
+
+/// The course of a section on the preview, the points along which the track of the section is drawn: the point at its
+/// start chainage, the points of its nodes in order (SceneSectionDescriptor::nodeIds) and the point at its end
+/// chainage, each on the line of its own track, with the display offset of that line added to y. An end at a node adds
+/// no point of its own. A switch section goes from the line of its first track to the line of its second track at its
+/// connection. Empty when a node or an end of the section is on no line of the preview.
+std::vector<TrackPreviewPoint> trackPreviewSectionCourse(const TrackPreviewResult& preview,
+	const SceneSectionDescriptor& section);
+/// The course of the line from chainage fromKm to toKm in kilometres, in the order of the line: the points at both
+/// chainages and the points of the line between them, with the display offset of the line added to y. A range that
+/// reaches past the line is cut at its ends. Empty when the range does not meet the line or is not finite.
+std::vector<TrackPreviewPoint> trackPreviewChainageCourse(const TrackPreviewLine& line, double fromKm, double toKm);
 
 #endif

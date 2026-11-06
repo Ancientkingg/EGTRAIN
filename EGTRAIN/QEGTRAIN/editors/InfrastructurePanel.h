@@ -22,9 +22,10 @@ struct SceneSectionInventory;
 struct SceneSectionLabels;
 
 /// The infrastructure of the scene: a combo on top to pick the kind of entity, a sentence about the kind
-/// (infrastructureGuidanceText), a table with one row for each entity of that kind, and under the table the buttons that
-/// add and delete one. The kinds are the facets: tracks, nodes, arcs, blocks, connections, stations, platforms, signals,
-/// signalling areas, routes, block dependencies, single-track restrictions and station boundaries. What a kind lists and
+/// (infrastructureGuidanceText), a table with one row for each entity of that kind, under the table a line that says
+/// what the canvas marks of the selected row (markLabel()), and under that the buttons that add and delete one. The
+/// kinds are the facets: tracks, nodes, arcs, blocks, connections, stations, platforms, signals, signalling areas,
+/// routes, block dependencies, single-track restrictions and station boundaries. What a kind lists and
 /// how it is edited is up to its InfrastructureFacet; a kind without one lists nothing. The facet also says which other
 /// controls it uses (InfrastructureFacet::capabilities): a filter on the track under the combo, which blocks use, buttons
 /// that insert and move an entity, which blocks use too, and the heading "Route sections" with the list of the sections
@@ -82,8 +83,12 @@ public:
 	QString facetKey() const;
 	/// The name that the combo shows for the chosen facet.
 	QString facetTitle() const;
-	/// The id of the selected entity, or an empty string. It is what the track preview marks.
+	/// The id of the selected entity, or an empty string. It is what the track preview marks. A block dependency, a
+	/// single-track restriction and a station boundary have no id of their own and are named by their row number.
 	const QString& selectionId() const { return m_selectionId; }
+	/// For a route, the index into SceneRoute::blocks of the section selected under Route sections; -1 for another kind of
+	/// entity and without one.
+	int selectedRouteSection() const;
 	/// Sets the selection without showing it.
 	void setSelectionId(const QString& id) { m_selectionId = id; }
 	/// For each row of the table of blocks, the index of its block in the model. The facet that lists the blocks sets it.
@@ -127,6 +132,9 @@ public:
 	QPushButton* deleteButton() const { return m_deleteButton; }
 	/// The sentence about the chosen kind.
 	QLabel* guidanceLabel() const { return m_guidanceLabel; }
+	/// The line under the table that says what the canvas marks of the selected row, such as "route2: 124 sections on B3,
+	/// B0, B4, B5 and B2"; hidden without a selected row.
+	QLabel* markLabel() const { return m_markLabel; }
 	/// The filter of the blocks on a track, shown while blocks are listed.
 	QComboBox* blockTrackFilterCombo() const { return m_blockTrackFilterCombo; }
 	/// The button of insertEntity() for blocks.
@@ -151,9 +159,10 @@ public:
 	QPushButton* moveRouteSectionDownButton() const { return m_moveRouteSectionDownButton; }
 
 Q_SIGNALS:
-	/// The selection has been taken from the table again: after another row or facet is chosen, and after the table has
-	/// been filled again. `facet` is the key of the chosen facet and `id` the id of the selected entity, empty when no
-	/// row is selected.
+	/// The selection has been taken from the table again: after another row or facet is chosen, after another section of
+	/// the selected route is chosen under Route sections, and after the table has been filled again. `facet` is the key of
+	/// the chosen facet and `id` the id of the selected entity, empty when no row is selected. The controls that depend on
+	/// the selection are up to date when it is told.
 	void selectionChanged(const QString& facet, const QString& id);
 	/// A message for the status line, shown for `timeoutMs` milliseconds.
 	void statusMessage(const QString& text, int timeoutMs);
@@ -168,6 +177,8 @@ private:
 
 	// Shows the section catalog and the sections of the selected route, while routes are listed.
 	void refreshRouteSectionPanel();
+	// Says on the line under the table what the canvas marks of the selected row.
+	void refreshMarkLabel();
 	InfrastructureFacet* currentFacet() const;
 	// Whether the chosen facet has the capability; false without a facet.
 	bool currentFacetHas(InfrastructureFacet::Capability capability) const;
@@ -185,6 +196,7 @@ private:
 	QPushButton* m_moveBlockDownButton = nullptr;
 	QLabel* m_guidanceLabel = nullptr;
 	QTableWidget* m_table = nullptr;
+	QLabel* m_markLabel = nullptr;
 	// The delegate of the table, which knows its open editor.
 	CellDelegate* m_cellDelegate = nullptr;
 	// True while editInPlace() changes the document and tells changed().

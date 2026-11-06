@@ -465,3 +465,68 @@ TrackPreviewResult normalizeTrackPreview(const TrackPreviewResult& preview) {
 	}
 	return normalized;
 }
+
+std::vector<TrackPreviewPoint> trackPreviewSectionCourse(const TrackPreviewResult& preview,
+	const SceneSectionDescriptor& section) {
+	const auto lineOf = [&preview](const std::string& trackId) -> const TrackPreviewLine* {
+		const auto found = std::find_if(preview.lines.begin(), preview.lines.end(),
+			[&trackId](const TrackPreviewLine& line) { return line.id == trackId; });
+		return found == preview.lines.end() ? nullptr : &*found;
+	};
+	const TrackPreviewLine* first = lineOf(section.firstTrackId);
+	const TrackPreviewLine* last = section.secondTrackId.empty() ? first : lineOf(section.secondTrackId);
+	if (!first || !last)
+		return {};
+	std::vector<TrackPreviewPoint> course;
+	const auto add = [&course](const TrackPreviewLine& line, TrackPreviewPoint point) {
+		point.y += line.displayOffset;
+		course.push_back(std::move(point));
+	};
+	TrackPreviewPoint point;
+	if (section.startNodeId.empty()) {
+		if (!trackPreviewPointAtX(*first, section.startKm, point))
+			return {};
+		add(*first, point);
+	}
+	// The nodes on the first track come first; a switch section goes on with the nodes of its second track.
+	const TrackPreviewLine* current = first;
+	for (const std::string& nodeId : section.nodeIds) {
+		if (!trackPreviewPointAtNode(*current, nodeId, point)) {
+			if (current == last || !trackPreviewPointAtNode(*last, nodeId, point))
+				return {};
+			current = last;
+		}
+		add(*current, point);
+	}
+	if (section.endNodeId.empty()) {
+		if (!trackPreviewPointAtX(*last, section.endKm, point))
+			return {};
+		add(*last, point);
+	}
+	return course;
+}
+
+std::vector<TrackPreviewPoint> trackPreviewChainageCourse(const TrackPreviewLine& line, double fromKm, double toKm) {
+	if (line.points.empty() || !std::isfinite(fromKm) || !std::isfinite(toKm))
+		return {};
+	const auto [lowest, highest] = std::minmax_element(line.points.begin(), line.points.end(),
+		[](const TrackPreviewPoint& left, const TrackPreviewPoint& right) { return left.rawX < right.rawX; });
+	const double low = std::max(std::min(fromKm, toKm), lowest->rawX);
+	const double high = std::min(std::max(fromKm, toKm), highest->rawX);
+	if (low > high)
+		return {};
+	TrackPreviewPoint start;
+	TrackPreviewPoint end;
+	if (!trackPreviewPointAtX(line, low, start) || !trackPreviewPointAtX(line, high, end))
+		return {};
+	// The points of the line run up or down in chainage; the ends go before and after the points between them.
+	const bool rising = line.points.front().rawX <= line.points.back().rawX;
+	std::vector<TrackPreviewPoint> course{rising ? start : end};
+	for (const TrackPreviewPoint& point : line.points)
+		if (point.rawX > low && point.rawX < high)
+			course.push_back(point);
+	course.push_back(rising ? end : start);
+	for (TrackPreviewPoint& point : course)
+		point.y += line.displayOffset;
+	return course;
+}

@@ -61,6 +61,242 @@ const SceneModel& emptyScene() {
 	return scene;
 }
 
+// A chainage in kilometres with three decimals and a full stop in every locale.
+QString kilometres(double value) {
+	return QString::number(value, 'f', 3);
+}
+
+// Names as a sentence lists them: "A", "A and B", "A, B and C".
+QString sentenceList(const QStringList& names) {
+	if (names.size() <= 1)
+		return names.value(0);
+	return names.mid(0, names.size() - 1).join(QStringLiteral(", ")) + QStringLiteral(" and ") + names.last();
+}
+
+// The item with the id, or null.
+template <typename Item>
+const Item* withId(const std::vector<Item>& items, const std::string& id) {
+	const auto found = std::find_if(items.begin(), items.end(), [&id](const Item& item) { return item.id == id; });
+	return found == items.end() ? nullptr : &*found;
+}
+
+// The item in the row that the id names by its number, or null.
+template <typename Item>
+const Item* inRow(const std::vector<Item>& items, const QString& id) {
+	bool ok = false;
+	const int row = id.toInt(&ok);
+	return ok && row >= 0 && row < static_cast<int>(items.size()) ? &items[static_cast<std::size_t>(row)] : nullptr;
+}
+
+// What the line under the table says the canvas marks of the entity `id` of the facet `facet`: the id of the entity, and
+// the tracks, the kilometres, the nodes and the sections that the table shows of it, such as "route2: 124 sections on B3,
+// B0, B4, B5 and B2". A section is named by its label, as in the combos of the table. Empty without an id and for an
+// entity that is not in the model.
+QString markText(const SceneModel& scene, const QString& facet, const QString& id) {
+	if (id.isEmpty())
+		return {};
+	const std::string key = id.toStdString();
+	const auto nodeOf = [&scene](const std::string& nodeId) { return withId(scene.nodes, nodeId); };
+	const auto trackName = [](const std::string& trackId) {
+		return trackId.empty() ? QStringLiteral("no track") : QString::fromStdString(trackId);
+	};
+	SceneSectionInventory inventory;
+	SceneSectionLabels labels;
+	const auto buildSections = [&]() {
+		inventory = buildSceneSectionInventory(scene);
+		labels = sceneSectionLabels(inventory);
+	};
+	// The label of the section that a reference names, the reference with "(missing)" when it names none.
+	const auto section = [&inventory, &labels](const std::string& reference) {
+		if (inventory.resolve(reference))
+			return QString::fromStdString(labels.label(reference));
+		return QStringLiteral("%1 (missing)").arg(QString::fromStdString(reference));
+	};
+
+	if (facet == QLatin1String("tracks")) {
+		bool found = false;
+		double low = 0.0;
+		double high = 0.0;
+		for (const SceneNode& node : scene.nodes) {
+			if (node.trackId != key)
+				continue;
+			low = found ? std::min(low, node.xKm) : node.xKm;
+			high = found ? std::max(high, node.xKm) : node.xKm;
+			found = true;
+		}
+		if (!withId(scene.tracks, key))
+			return {};
+		return found ? QStringLiteral("%1: the whole track, %2 to %3 km").arg(id, kilometres(low), kilometres(high))
+					 : QStringLiteral("%1: the whole track").arg(id);
+	}
+	if (facet == QLatin1String("nodes")) {
+		const SceneNode* node = nodeOf(key);
+		return node ? QStringLiteral("%1: node on %2 at %3 km").arg(id, trackName(node->trackId), kilometres(node->xKm)) : QString();
+	}
+	if (facet == QLatin1String("arcs")) {
+		const SceneArc* arc = withId(scene.arcs, key);
+		if (!arc)
+			return {};
+		const SceneNode* from = nodeOf(arc->fromNodeId);
+		const SceneNode* to = nodeOf(arc->toNodeId);
+		if (!from || !to)
+			return QStringLiteral("%1: arc on %2").arg(id, trackName(arc->trackId));
+		return QStringLiteral("%1: arc on %2 from %3 to %4 km")
+			.arg(id, trackName(arc->trackId), kilometres(from->xKm), kilometres(to->xKm));
+	}
+	if (facet == QLatin1String("connections")) {
+		const SceneConnection* connection = withId(scene.connections, key);
+		if (!connection)
+			return {};
+		const SceneNode* from = nodeOf(connection->fromNodeId);
+		const SceneNode* to = nodeOf(connection->toNodeId);
+		if (!from || !to)
+			return QStringLiteral("%1: connection").arg(id);
+		return QStringLiteral("%1: from %2 at %3 km to %4 at %5 km")
+			.arg(id, trackName(from->trackId), kilometres(from->xKm), trackName(to->trackId), kilometres(to->xKm));
+	}
+	if (facet == QLatin1String("blocks")) {
+		if (!withId(scene.blocks, key))
+			return {};
+		buildSections();
+		const std::vector<std::size_t>* positions = inventory.sections.withSourceBlock(key);
+		if (!positions)
+			return QStringLiteral("%1: no section").arg(id);
+		QStringList names;
+		for (const std::size_t position : *positions)
+			names << InfrastructurePanel::sectionLabel(labels, inventory.sections[position]);
+		return QStringLiteral("%1: section %2").arg(id, sentenceList(names));
+	}
+	if (facet == QLatin1String("stations")) {
+		const SceneStation* station = withId(scene.stations, key);
+		if (!station)
+			return {};
+		QStringList nodes;
+		QStringList tracks;
+		const SceneNode* first = nullptr;
+		for (const ScenePlatform& platform : station->platforms)
+			for (const std::string& nodeId : platform.nodeIds) {
+				const SceneNode* node = nodeOf(nodeId);
+				if (!node || nodes.contains(QString::fromStdString(nodeId)))
+					continue;
+				nodes << QString::fromStdString(nodeId);
+				if (!tracks.contains(trackName(node->trackId)))
+					tracks << trackName(node->trackId);
+				first = first ? first : node;
+			}
+		if (nodes.size() == 1)
+			return QStringLiteral("%1: station mark and platform node on %2 at %3 km")
+				.arg(id, trackName(first->trackId), kilometres(first->xKm));
+		if (nodes.size() > 1)
+			return QStringLiteral("%1: station mark and %2 platform nodes on %3")
+				.arg(id, QString::number(nodes.size()), sentenceList(tracks));
+		if (station->hasPosition)
+			return QStringLiteral("%1: station mark at %2 km").arg(id, kilometres(station->positionKm));
+		return QStringLiteral("%1: station mark").arg(id);
+	}
+	if (facet == QLatin1String("platforms")) {
+		const qsizetype separator = id.indexOf(QLatin1Char('\n'));
+		const SceneStation* station = separator < 0 ? nullptr : withId(scene.stations, id.left(separator).toStdString());
+		const ScenePlatform* platform = station ? withId(station->platforms, id.mid(separator + 1).toStdString()) : nullptr;
+		if (!platform)
+			return {};
+		const QString name = QString::fromStdString(platform->id);
+		QStringList nodes;
+		for (const std::string& nodeId : platform->nodeIds)
+			nodes << QString::fromStdString(nodeId);
+		if (nodes.isEmpty())
+			return QStringLiteral("%1: no node").arg(name);
+		if (const SceneNode* node = nodes.size() == 1 ? nodeOf(platform->nodeIds.front()) : nullptr)
+			return QStringLiteral("%1: node %2 at %3 km").arg(name, nodes.front(), kilometres(node->xKm));
+		return QStringLiteral("%1: %2 %3").arg(name, nodes.size() == 1 ? QStringLiteral("node") : QStringLiteral("nodes"), sentenceList(nodes));
+	}
+	if (facet == QLatin1String("signals")) {
+		const SceneSignal* signal = withId(sceneSignals(scene), key);
+		if (!signal)
+			return {};
+		if (signal->protectedSection.empty())
+			return QStringLiteral("%1: protects no section").arg(id);
+		buildSections();
+		return QStringLiteral("%1: protects %2").arg(id, section(signal->protectedSection));
+	}
+	if (facet == QLatin1String("signalling_areas")) {
+		const SceneSignallingArea* area = withId(scene.signallingAreas, key);
+		if (!area)
+			return {};
+		return QStringLiteral("%1: %2 to %3 km on %4")
+			.arg(id, kilometres(area->startKm), kilometres(area->endKm),
+				area->trackId.empty() ? QStringLiteral("every track") : QString::fromStdString(area->trackId));
+	}
+	if (facet == QLatin1String("routes")) {
+		const SceneRoute* route = withId(scene.routes, key);
+		if (!route)
+			return {};
+		buildSections();
+		QStringList tracks;
+		int missing = 0;
+		for (const std::string& reference : route->blocks) {
+			const SceneSectionDescriptor* resolved = inventory.resolve(reference);
+			if (!resolved) {
+				++missing;
+				continue;
+			}
+			for (const std::string* trackId : {&resolved->firstTrackId, &resolved->secondTrackId})
+				if (!trackId->empty() && !tracks.contains(QString::fromStdString(*trackId)))
+					tracks << QString::fromStdString(*trackId);
+		}
+		const qsizetype count = static_cast<qsizetype>(route->blocks.size());
+		QString text = QStringLiteral("%1: %2 %3")
+						   .arg(id, QString::number(count), count == 1 ? QStringLiteral("section") : QStringLiteral("sections"));
+		if (!tracks.isEmpty())
+			text += QStringLiteral(" on ") + sentenceList(tracks);
+		if (missing > 0)
+			text += missing == 1 ? QStringLiteral("; 1 is missing") : QStringLiteral("; %1 are missing").arg(missing);
+		return text;
+	}
+	if (facet == QLatin1String("single_track_restrictions")) {
+		const SceneSingleTrackRestriction* restriction = inRow(scene.singleTrackRestrictions, id);
+		if (!restriction)
+			return {};
+		buildSections();
+		const SceneSectionDescriptor* start = inventory.resolve(restriction->startBlock);
+		const SceneSectionDescriptor* end = inventory.resolve(restriction->endBlock);
+		QString text;
+		if (start && end && !start->connectionDerived && !end->connectionDerived && start->firstTrackId == end->firstTrackId)
+			text = QStringLiteral("%1 %2 to %3 km")
+					   .arg(trackName(start->firstTrackId), kilometres(std::min(start->startKm, end->startKm)),
+						   kilometres(std::max(start->endKm, end->endKm)));
+		else
+			text = QStringLiteral("%1 to %2").arg(section(restriction->startBlock), section(restriction->endBlock));
+		QStringList protectedEnds;
+		for (const std::string* reference : {&restriction->protectedStartBlock, &restriction->protectedEndBlock})
+			if (!reference->empty())
+				protectedEnds << section(*reference);
+		if (!protectedEnds.isEmpty())
+			text += QStringLiteral(", protected at ") + sentenceList(protectedEnds);
+		return QStringLiteral("Single-track restriction: ") + text;
+	}
+	if (facet == QLatin1String("station_boundaries")) {
+		const SceneStationBoundary* boundary = inRow(scene.stationBoundaries, id);
+		if (!boundary)
+			return {};
+		buildSections();
+		const QString entrance = boundary->entranceBlock.empty() ? QStringLiteral("none") : section(boundary->entranceBlock);
+		return QStringLiteral("Station boundary: entrance %1, %2")
+			.arg(entrance, boundary->hasExitBlock ? QStringLiteral("exit ") + section(boundary->exitBlock) : QStringLiteral("no exit"));
+	}
+	if (facet == QLatin1String("block_dependencies")) {
+		const SceneBlockDependency* dependency = inRow(scene.blockDependencies, id);
+		if (!dependency)
+			return {};
+		buildSections();
+		const auto named = [&section](const std::string& reference) {
+			return reference.empty() ? QStringLiteral("none") : section(reference);
+		};
+		return QStringLiteral("Block dependency: %1 depends on %2").arg(named(dependency->block), named(dependency->dependsOn));
+	}
+	return {};
+}
+
 } // namespace
 
 /// The delegate of the table. It knows the editor that it has open on a cell. The widgets that facets put in cells with
@@ -144,6 +380,13 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	m_table->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_table->horizontalHeader()->setStretchLastSection(true);
 	tableLayout->addWidget(m_table, 1);
+	m_markLabel = new QLabel(tablePane);
+	m_markLabel->setObjectName("infrastructureMarkLabel");
+	m_markLabel->setAccessibleName("Marked on the canvas");
+	m_markLabel->setWordWrap(true);
+	m_markLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+	m_markLabel->setVisible(false);
+	tableLayout->addWidget(m_markLabel);
 
 	QHBoxLayout* actions = new QHBoxLayout();
 	m_addButton = new QPushButton("Add", tablePane);
@@ -224,7 +467,11 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	connect(m_removeRouteSectionButton, &QPushButton::clicked, this, &InfrastructurePanel::removeSection);
 	connect(m_moveRouteSectionUpButton, &QPushButton::clicked, this, [this] { moveSection(-1); });
 	connect(m_moveRouteSectionDownButton, &QPushButton::clicked, this, [this] { moveSection(1); });
-	connect(m_routeSectionListWidget, &QListWidget::itemSelectionChanged, this, [this] { refreshRouteSectionPanel(); });
+	connect(m_routeSectionListWidget, &QListWidget::itemSelectionChanged, this, [this] {
+		refreshRouteSectionPanel();
+		refreshMarkLabel();
+		emit selectionChanged(facetKey(), m_selectionId);
+	});
 	InfrastructurePanel::refresh(false);
 }
 
@@ -375,7 +622,6 @@ void InfrastructurePanel::updateSelection() {
 	const QString key = facetKey();
 	const InfrastructureFacet* current = currentFacet();
 	m_selectionId = row >= 0 && current ? current->selectionId(*m_table, row) : QString();
-	emit selectionChanged(key, m_selectionId);
 	const bool hasRow = canEdit() && row >= 0;
 	m_deleteButton->setEnabled(hasRow);
 	const bool insertAndMove = currentFacetHas(InfrastructureFacet::InsertAndMove);
@@ -397,6 +643,20 @@ void InfrastructurePanel::updateSelection() {
 		m_moveBlockDownButton->setEnabled(editable && row + 1 < blockRows);
 	}
 	refreshRouteSectionPanel();
+	refreshMarkLabel();
+	emit selectionChanged(key, m_selectionId);
+}
+
+int InfrastructurePanel::selectedRouteSection() const {
+	if (!currentFacetHas(InfrastructureFacet::RouteSections) || m_table->currentRow() < 0)
+		return -1;
+	return m_routeSectionListWidget->currentRow();
+}
+
+void InfrastructurePanel::refreshMarkLabel() {
+	const QString text = hasScene() ? markText(model(), facetKey(), m_selectionId) : QString();
+	m_markLabel->setText(text);
+	m_markLabel->setVisible(!text.isEmpty());
 }
 
 void InfrastructurePanel::refreshBlockTrackFilter() {

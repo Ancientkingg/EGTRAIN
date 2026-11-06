@@ -658,7 +658,8 @@ void TestStationFacets::editsStationBoundaries() {
 	QVERIFY(!f.model().stationBoundaries[1].hasExitBlock);
 	QVERIFY(f.changedOnce("Add station boundary"));
 	QCOMPARE(f.table()->currentRow(), 1);
-	QVERIFY(f.panel.selectionId().isEmpty());
+	// A station boundary has no id, and the selection names it by its row.
+	QCOMPARE(f.panel.selectionId(), "1");
 	// An empty entrance and an empty exit show as none.
 	QCOMPARE(f.combo(1, 0)->currentText(), "(none)");
 	QCOMPARE(f.combo(1, 1)->currentText(), "(none)");

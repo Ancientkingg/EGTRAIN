@@ -1739,6 +1739,17 @@ void MainWindow::delayBaselineChanged() {
 	updateDiagramActions();
 }
 
+namespace {
+// The row of the infrastructure panel that the preview marks.
+NetworkPresenter::PreviewOptions infrastructurePreviewOptions(const InfrastructurePanel& panel) {
+	NetworkPresenter::PreviewOptions options;
+	options.selectedFacet = panel.facetKey().toStdString();
+	options.selectedId = panel.selectionId().toStdString();
+	options.selectedRouteSection = panel.selectedRouteSection();
+	return options;
+}
+} // namespace
+
 void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 	m_inspector->clearPreviewInspection();
 	m_presenter->resetPreviewFit();
@@ -1753,10 +1764,10 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 		m_presenter->clear();
 	}
 	m_showingTrackPreview = true;
-	NetworkPresenter::PreviewOptions options;
-	options.selectedFacet = m_editorDocks.infrastructurePanel()->facetKey().toStdString();
-	options.selectedId = m_editorDocks.infrastructurePanel()->selectionId().toStdString();
-	options.markSelection = m_editorDocks.infrastructureDock() && m_editorDocks.infrastructureDock()->isVisible();
+	NetworkPresenter::PreviewOptions options = infrastructurePreviewOptions(*m_editorDocks.infrastructurePanel());
+	// Only a preview of the document takes the mark of another row in place, until the document changes.
+	if (&sceneModel == &m_document->model())
+		options.modelGeneration = m_document->modelGeneration();
 	const NetworkPresenter::PreviewOutcome outcome = m_presenter->showPreview(sceneModel, options);
 	if (!outcome.available) {
 		statusBar()->showMessage("This case has no tracks to draw");
@@ -2236,8 +2247,17 @@ void MainWindow::refreshInfrastructurePanel(bool resetSelection) {
 }
 
 void MainWindow::infrastructureSelectionChanged() {
-	if (m_document->isLoaded() && !m_runController->running() && !m_runController->resultsAvailable())
-		renderTrackPreview(m_document->model());
+	if (!m_document->isLoaded() || m_runController->running() || m_runController->resultsAvailable())
+		return;
+	// Another row of an unchanged document moves only the mark, so the view keeps its zoom and position. After an edit
+	// the preview is drawn again.
+	NetworkPresenter::PreviewOptions options = infrastructurePreviewOptions(*m_editorDocks.infrastructurePanel());
+	options.modelGeneration = m_document->modelGeneration();
+	if (m_showingTrackPreview && !m_snapshot && m_presenter->markPreviewSelection(m_document->model(), options)) {
+		updateNetworkLegend();
+		return;
+	}
+	renderTrackPreview(m_document->model());
 }
 
 void MainWindow::updateTrainUnitSourceStatus() {
