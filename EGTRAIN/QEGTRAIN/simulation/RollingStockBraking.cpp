@@ -34,7 +34,7 @@ struct GradientAndCurvature {
 };
 
 // The mean gradient and curvature radius of the arcs of the N_BS sections BS that end in (X1, X2] (m). When no arc ends there, the
-// stretch lies inside one arc, and the values are those of the arc that holds X1; they are 0 when no arc holds it.
+// values are those of the arc that holds X1, or 0 when no arc holds it.
 GradientAndCurvature meanGradientAndCurvature(double X1, double X2, const Section* BS, int N_BS) {
 	GradientAndCurvature mean;
 	int N_arcs = 0;
