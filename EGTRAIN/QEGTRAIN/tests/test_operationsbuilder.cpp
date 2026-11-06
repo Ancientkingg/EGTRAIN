@@ -1315,8 +1315,10 @@ static SceneModel trajectoryPerformanceScene(double performancePercent) {
 	return trajectoryPerformance;
 }
 
-// The bytes that the samples of a train take for each step: six double and a 32-bit section index.
-constexpr std::size_t kSampleBytesPerStep = 6 * sizeof(double) + sizeof(std::int32_t);
+// The bytes that the samples of a train take for each step: five double and a 32-bit section index.
+constexpr std::size_t kSampleBytesPerStep = 5 * sizeof(double) + sizeof(std::int32_t);
+// The bytes for each step of a train of a run that exports detailed trajectories, which also keeps BX.
+constexpr std::size_t kDetailedSampleBytesPerStep = kSampleBytesPerStep + sizeof(double);
 // The most memory that the samples of the trains of one run may take.
 constexpr std::size_t kSampleLimitBytes = std::size_t{4} << 30;
 // No allocation of the builds below is this large, except those of the samples of a long run.
@@ -1340,26 +1342,31 @@ static const SceneDiagnostic* diagnosticWithCode(const std::vector<SceneDiagnost
 	return found == diagnostics.end() ? nullptr : &*found;
 }
 
-// The bytes that the sample vectors of a train allocate for `steps` steps, with BX for detailed trajectories. Each sample
-// vector takes at least 4 bytes for each step; smaller allocations are not samples.
-static std::size_t sampleBytesFor(int steps) {
+// The bytes that the sample vectors of a train allocate for `steps` steps, with BX when detailed. Each sample vector takes
+// at least 4 bytes for each step; smaller allocations are not samples.
+static std::size_t sampleBytesFor(int steps, bool detailed) {
 	Train train;
 	const LargeAllocations samples(static_cast<std::size_t>(steps), false);
-	train.setTrainVectorSizesFromInput(steps, true);
+	train.setTrainVectorSizesFromInput(steps, detailed);
 	return LargeAllocations::counted();
 }
 
-// The samples of a train take kSampleBytesPerStep bytes for each step, which the memory estimate of the builder counts.
-// The difference of two sizes leaves out the bytes that the standard library adds to each block (MSVC adds a few to every
-// block of 4096 bytes or more).
+// The samples of a train take kSampleBytesPerStep bytes for each step, and kDetailedSampleBytesPerStep in a run that exports
+// detailed trajectories, which the memory estimate of the builder counts. The difference of two sizes leaves out the bytes
+// that the standard library adds to each block (MSVC adds a few to every block of 4096 bytes or more).
 void TestOperationsBuilder::trainSamplesTakeTheirBytesPerStep() {
-	QCOMPARE(sampleBytesFor(8192) - sampleBytesFor(4096), kSampleBytesPerStep * 4096);
+	QCOMPARE(sampleBytesFor(8192, false) - sampleBytesFor(4096, false), kSampleBytesPerStep * 4096);
+	QCOMPARE(sampleBytesFor(8192, true) - sampleBytesFor(4096, true), kDetailedSampleBytesPerStep * 4096);
 }
 
 // A run whose samples would take more than 4 GiB is refused before its trains are built, with the estimate, the number of
-// trains and the duration in the message. With the duration of -h the message names -h and not the field of the scene.
+// trains and the duration in the message. With the duration of -h the message names -h and not the field of the scene. A
+// run that exports detailed trajectories counts BX too.
 void TestOperationsBuilder::runOverSampleLimitIsRefused() {
-	const auto clearOverride = qScopeGuard([] { initial_variables.durationOverride = false; });
+	const auto restore = qScopeGuard([] {
+		initial_variables.durationOverride = false;
+		initial_variables.exportDetailedTrajectories = false;
+	});
 	const std::size_t steps = kSampleLimitBytes / kSampleBytesPerStep + 1;
 	SceneModel scene = trajectoryPerformanceScene(100.0);
 	scene.settings.durationSeconds = static_cast<double>(steps);
@@ -1385,6 +1392,14 @@ void TestOperationsBuilder::runOverSampleLimitIsRefused() {
 	QCOMPARE(refusal->path, std::string());
 	QVERIFY2(refusal->message.find("for 1 train over the " + std::to_string(steps) + " s of -h,") != std::string::npos,
 		refusal->message.c_str());
+
+	// With BX the run is refused at fewer steps.
+	initial_variables.durationOverride = false;
+	initial_variables.exportDetailedTrajectories = true;
+	const std::size_t detailedSteps = kSampleLimitBytes / kDetailedSampleBytesPerStep + 1;
+	scene.settings.durationSeconds = static_cast<double>(detailedSteps);
+	QVERIFY2(buildWithoutLargeAllocations(scene, diagnostics), "the detailed build allocated the samples");
+	QVERIFY2(diagnosticWithCode(diagnostics, "scene.native.memory.limit") != nullptr, "a detailed run over the limit is not refused");
 }
 
 // A run whose samples take 4 GiB or a little less is not refused by the estimate: its build goes on to allocate them, which
@@ -1397,6 +1412,15 @@ void TestOperationsBuilder::runAtSampleLimitIsNotRefused() {
 	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene)));
 	std::vector<SceneDiagnostic> diagnostics;
 	QVERIFY2(buildWithoutLargeAllocations(scene, diagnostics), "std::bad_alloc left the build");
+	QVERIFY(diagnosticWithCode(diagnostics, "scene.native.memory.limit") == nullptr);
+	QVERIFY(diagnosticWithCode(diagnostics, "scene.native.memory.free") != nullptr);
+
+	// A run that exports detailed trajectories keeps BX too: fewer steps fit, and the most that fit are not refused either.
+	const auto clearDetail = qScopeGuard([] { initial_variables.exportDetailedTrajectories = false; });
+	initial_variables.exportDetailedTrajectories = true;
+	const std::size_t detailedSteps = kSampleLimitBytes / kDetailedSampleBytesPerStep;
+	scene.settings.durationSeconds = static_cast<double>(detailedSteps);
+	QVERIFY2(buildWithoutLargeAllocations(scene, diagnostics), "std::bad_alloc left the detailed build");
 	QVERIFY(diagnosticWithCode(diagnostics, "scene.native.memory.limit") == nullptr);
 	QVERIFY(diagnosticWithCode(diagnostics, "scene.native.memory.free") != nullptr);
 }

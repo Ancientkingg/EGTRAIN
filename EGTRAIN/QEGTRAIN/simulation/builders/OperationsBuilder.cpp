@@ -300,14 +300,16 @@ double nativeSceneDuration(const SceneModel& scene, std::vector<SceneDiagnostic>
 }
 
 // The bytes that a train keeps for each step of the run: one element of each vector that
-// Train::setTrainVectorSizesFromInput sizes to the steps of the run, BX included.
+// Train::setTrainVectorSizesFromInput sizes to the steps of the run. BX is not one of them unless the run exports detailed
+// trajectories (kDetailedTrajectoryBytesPerStep).
 constexpr std::size_t kTrainBytesPerStep = sizeof(decltype(Train::instant_train_speed)::value_type)
 	+ sizeof(decltype(Train::instant_spatial_position)::value_type)
 	+ sizeof(decltype(Train::instant_train_power_consumption)::value_type)
 	+ sizeof(decltype(Train::instant_train_tractive_effort)::value_type)
 	+ sizeof(decltype(Train::instant_block_section_occupied)::value_type)
-	+ sizeof(decltype(Train::instant_train_energy_consumption)::value_type)
-	+ sizeof(decltype(Train::BX)::value_type);
+	+ sizeof(decltype(Train::instant_train_energy_consumption)::value_type);
+// The bytes that a train keeps for each step of a run that exports detailed trajectories, on top of kTrainBytesPerStep: BX.
+constexpr std::size_t kDetailedTrajectoryBytesPerStep = sizeof(decltype(Train::BX)::value_type);
 
 // The most memory that the samples of the trains of one run, one for each step, may take. A run that would need more is
 // refused before its trains are built.
@@ -332,11 +334,13 @@ void addNativeMemoryDiagnostic(std::vector<SceneDiagnostic>& diagnostics, const 
 		addNativeDiagnostic(diagnostics, code, message, "scene.json", "scene", scene.name, "settings.duration_seconds");
 }
 
-// Whether the samples of trainCount trains over `steps` steps fit in kMaxTrainSampleBytes. When they do not, it adds an
-// error that gives the estimate.
+// Whether the samples of trainCount trains over `steps` steps fit in kMaxTrainSampleBytes, with BX when the run exports
+// detailed trajectories. When they do not, it adds an error that gives the estimate.
 bool nativeTrainSamplesFit(const SceneModel& scene, std::size_t trainCount, int steps, double durationSeconds,
 	std::vector<SceneDiagnostic>& diagnostics) {
-	const std::uint64_t bytes = static_cast<std::uint64_t>(trainCount) * static_cast<std::uint64_t>(steps) * kTrainBytesPerStep;
+	const std::size_t bytesPerStep = kTrainBytesPerStep
+		+ (initial_variables.exportDetailedTrajectories ? kDetailedTrajectoryBytesPerStep : 0);
+	const std::uint64_t bytes = static_cast<std::uint64_t>(trainCount) * static_cast<std::uint64_t>(steps) * bytesPerStep;
 	if (bytes <= kMaxTrainSampleBytes)
 		return true;
 	std::ostringstream message;
