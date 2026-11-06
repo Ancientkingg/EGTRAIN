@@ -1,5 +1,9 @@
 var NAVTREEINDEX8 =
 {
+"_update_settings_8h.html#aafad3b22f25264ecfe072e5b38a4c751":[3,0,10,18,3],
+"_update_settings_8h.html#afaf79ec184ce30c95c89b5b057b25789":[3,0,10,18,6],
+"_update_settings_8h_source.html":[3,0,10,18],
+"_update_telemetry_controller_8cpp.html":[3,0,0,46],
 "_update_telemetry_controller_8cpp.html#a6f709333026cc3310b5e305f05f00631":[3,0,0,46,0],
 "_update_telemetry_controller_8h.html":[3,0,0,47],
 "_update_telemetry_controller_8h.html#a6f709333026cc3310b5e305f05f00631":[3,0,0,47,1],
@@ -245,9 +249,5 @@ var NAVTREEINDEX8 =
 "class_case_settings_panel.html#ab626149c6737ccedf70c13e9e5a2722a":[2,0,45,0],
 "class_case_settings_panel.html#acb968dbe3f40db2f385af2b032ac32f9":[2,0,45,11],
 "class_case_settings_panel.html#adf7a9af461fd8312d03f90db5890eae2":[2,0,45,9],
-"class_case_settings_panel.html#ae31fed717086048ee10cb6a42cab286e":[2,0,45,1],
-"class_case_settings_panel.html#ae3a7929359c0847f8984b9c59303f5aa":[2,0,45,8],
-"class_case_settings_panel.html#af84b8ae72f2c266f736e2601f4244083":[2,0,45,3],
-"class_choice_combo_box.html":[2,0,46],
-"class_choice_combo_box.html#a2aa33621757974e588eb7fd695970af0":[2,0,46,3]
+"class_case_settings_panel.html#ae31fed717086048ee10cb6a42cab286e":[2,0,45,1]
 };

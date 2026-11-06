@@ -158,6 +158,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a6926bca0e25e96b0483e105e38d222fd" id="r_a6926bca0e25e96b0483e105e38d222fd"><td class="memItemLeft">std::error_code&#160;</td><td class="memItemRight"><a class="el" href="#a6926bca0e25e96b0483e105e38d222fd">uniqueSiblingPath</a> (const std::filesystem::path &amp;parent, const std::string &amp;prefix, std::filesystem::path &amp;result)</td></tr>
 <tr class="memitem:a02b12c62b2c00769ab23d290931b6f98" id="r_a02b12c62b2c00769ab23d290931b6f98"><td class="memItemLeft">std::error_code&#160;</td><td class="memItemRight"><a class="el" href="#a02b12c62b2c00769ab23d290931b6f98">createStagedDirectory</a> (const std::filesystem::path &amp;parent, const std::string &amp;prefix, bool ownerOnly, <a class="el" href="struct_staged_directory.html">StagedDirectory</a> &amp;staged)</td></tr>
 <tr class="memitem:adb3eae1a97042bdd695770f97fbdc18e" id="r_adb3eae1a97042bdd695770f97fbdc18e"><td class="memItemLeft">std::function&lt; std::error_code(const std::filesystem::path &amp;path, bool directory)&gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#adb3eae1a97042bdd695770f97fbdc18e">syncToDiskHook</a> ()</td></tr>
+<tr class="memitem:ab0274a84b6cdc080a18e57738dd0699a" id="r_ab0274a84b6cdc080a18e57738dd0699a"><td class="memItemLeft">std::error_code&#160;</td><td class="memItemRight"><a class="el" href="#ab0274a84b6cdc080a18e57738dd0699a">syncToDisk</a> (const std::filesystem::path &amp;path, bool directory)</td></tr>
+<tr class="memitem:a8c1f891943fb4d4b689bf45e36e8177d" id="r_a8c1f891943fb4d4b689bf45e36e8177d"><td class="memItemLeft">std::error_code&#160;</td><td class="memItemRight"><a class="el" href="#a8c1f891943fb4d4b689bf45e36e8177d">syncDirectoryTree</a> (const std::filesystem::path &amp;directory, std::filesystem::path &amp;failed)</td></tr>
+<tr class="memitem:a29d566e72cdc82d54f5cfbb6f42bbd8a" id="r_a29d566e72cdc82d54f5cfbb6f42bbd8a"><td class="memItemLeft"><a class="el" href="struct_scene_save_result.html">SceneSaveResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a29d566e72cdc82d54f5cfbb6f42bbd8a">writeSceneFiles</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::filesystem::path &amp;directory)</td></tr>
 <tr class="memitem:aa42575c31d4a05d79524be93acfe58b5" id="r_aa42575c31d4a05d79524be93acfe58b5"><td class="memItemLeft"><a class="el" href="struct_staged_publish_result.html">StagedPublishResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa42575c31d4a05d79524be93acfe58b5">publishStagedDirectory</a> (<a class="el" href="struct_staged_directory.html">StagedDirectory</a> &amp;staged, const std::filesystem::path &amp;destination, const std::filesystem::path &amp;backup)</td></tr>
 </table>
 <a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
@@ -374,6 +377,60 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a8c1f891943fb4d4b689bf45e36e8177d" name="a8c1f891943fb4d4b689bf45e36e8177d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c1f891943fb4d4b689bf45e36e8177d">&#9670;&#160;</a></span>syncDirectoryTree()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::error_code syncDirectoryTree </td>
+          <td>(</td>
+          <td class="paramtype">const std::filesystem::path &amp;</td>          <td class="paramname"><span class="paramname"><em>directory</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::filesystem::path &amp;</td>          <td class="paramname"><span class="paramname"><em>failed</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Flushes every file and folder in directory, and directory itself, to disk with syncToDisk, each folder after what it holds. Links are not followed. On an error failed is the path that could not be flushed or listed. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_staged_directory_8h_a8c1f891943fb4d4b689bf45e36e8177d_cgraph.svg" width="655" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ab0274a84b6cdc080a18e57738dd0699a" name="ab0274a84b6cdc080a18e57738dd0699a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab0274a84b6cdc080a18e57738dd0699a">&#9670;&#160;</a></span>syncToDisk()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::error_code syncToDisk </td>
+          <td>(</td>
+          <td class="paramtype">const std::filesystem::path &amp;</td>          <td class="paramname"><span class="paramname"><em>path</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>directory</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Flushes the file or the directory at path from the caches of the system to the disk: fsync on macOS and Linux, FlushFileBuffers on Windows, or <a class="el" href="#adb3eae1a97042bdd695770f97fbdc18e">syncToDiskHook()</a> when it is set. Windows flushes no directory, and a file with the read-only attribute is left as it is there. A directory that cannot be opened for reading or whose file system cannot flush one counts as flushed. Returns the error of the system. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_staged_directory_8h_ab0274a84b6cdc080a18e57738dd0699a_cgraph.svg" width="424" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="adb3eae1a97042bdd695770f97fbdc18e" name="adb3eae1a97042bdd695770f97fbdc18e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adb3eae1a97042bdd695770f97fbdc18e">&#9670;&#160;</a></span>syncToDiskHook()</h2>
 
@@ -396,7 +453,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Called in place of each flush to disk, with the path and whether it is a directory: the files and folders of a staged scene save, and the parent folder once publishStagedDirectory has renamed a directory into place. A test counts the flushes with it or makes one fail by returning an error. It is empty in a normal run. </p>
+<p>Called in place of each flush to disk, with the path and whether it is a directory: the files and folders of a staged scene save or of an unpacked bundle, the archive of a bundle save, and the parent folder once a directory or a bundle has been renamed into place. A test counts the flushes with it or makes one fail by returning an error. It is empty in a normal run. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -441,6 +498,33 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_staged_directory_8h_a6926bca0e25e96b0483e105e38d222fd_cgraph.svg" width="308" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a29d566e72cdc82d54f5cfbb6f42bbd8a" name="a29d566e72cdc82d54f5cfbb6f42bbd8a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a29d566e72cdc82d54f5cfbb6f42bbd8a">&#9670;&#160;</a></span>writeSceneFiles()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_scene_save_result.html">SceneSaveResult</a> writeSceneFiles </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::filesystem::path &amp;</td>          <td class="paramname"><span class="paramname"><em>directory</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Writes the scene files of scene into directory, replacing files of the same names, and loads the directory back: the step of saveScene inside its staging directory, without the flush to disk and the rename into place. The bundle writer packs its archive from such a private temporary directory and removes it afterwards. On success inputSnapshot holds the snapshot of the files loaded back. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_staged_directory_8h_a29d566e72cdc82d54f5cfbb6f42bbd8a_cgraph.svg" width="1811" height="2074"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

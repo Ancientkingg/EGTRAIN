@@ -1,5 +1,9 @@
 var NAVTREEINDEX9 =
 {
+"class_case_settings_panel.html#ae3a7929359c0847f8984b9c59303f5aa":[2,0,45,8],
+"class_case_settings_panel.html#af84b8ae72f2c266f736e2601f4244083":[2,0,45,3],
+"class_choice_combo_box.html":[2,0,46],
+"class_choice_combo_box.html#a2aa33621757974e588eb7fd695970af0":[2,0,46,3],
 "class_choice_combo_box.html#a30c6b7dd84eda2085cca64e355210f51":[2,0,46,1],
 "class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539":[2,0,46,0],
 "class_choice_combo_box.html#a922c40529211b3068bf0a78a254f45a5":[2,0,46,2],
@@ -245,9 +249,5 @@ var NAVTREEINDEX9 =
 "class_find_dialog.html#aab94ad10a8c557a3a24d1e046c7819e4":[2,0,88,2],
 "class_focus_wheel_1_1_filter.html":[1,0,8,0],
 "class_focus_wheel_1_1_filter.html":[2,0,2,0],
-"class_focus_wheel_1_1_filter.html#a1a60beba61276306e647907db4dd9994":[1,0,8,0,0],
-"class_focus_wheel_1_1_filter.html#a1a60beba61276306e647907db4dd9994":[2,0,2,0,0],
-"class_focus_wheel_1_1_watcher.html":[1,0,8,1],
-"class_focus_wheel_1_1_watcher.html":[2,0,2,1],
-"class_focus_wheel_1_1_watcher.html#abfbc241e708def263953461e816352e0":[1,0,8,1,1]
+"class_focus_wheel_1_1_filter.html#a1a60beba61276306e647907db4dd9994":[1,0,8,0,0]
 };

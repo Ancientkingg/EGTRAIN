@@ -23,13 +23,14 @@ var _scene_writer_8cpp =
     [ "saveScenarioJson", "_scene_writer_8cpp.html#a786a7acd10c619ec634411db420b77ae", null ],
     [ "saveScene", "_scene_writer_8cpp.html#a45802402f953087d9d858f26a4b92e6b", null ],
     [ "serializeJson", "_scene_writer_8cpp.html#a13d90d8066135562db9ad8368921daa6", null ],
-    [ "syncDirectoryTree", "_scene_writer_8cpp.html#adecc01a55e5f5f0c10c1a146e30ea857", null ],
-    [ "syncToDisk", "_scene_writer_8cpp.html#a99250e67b8e97ce9330e009aa815f819", null ],
+    [ "syncDirectoryTree", "_scene_writer_8cpp.html#ac6ef253226f0affc9ecde8dc34243bf7", null ],
+    [ "syncToDisk", "_scene_writer_8cpp.html#aac70d77a008164cf18ea3ef681b41208", null ],
     [ "writeBytes", "_scene_writer_8cpp.html#acbf21f0e79ec9a4378269c094e2e6aa4", null ],
     [ "writeJsonFile", "_scene_writer_8cpp.html#a0661b745dc8f255625b50d690ec1e593", null ],
     [ "writeJsonFileReplacing", "_scene_writer_8cpp.html#a54c92eff3d4b83adcc7ab02a5020aad4", null ],
     [ "writePhysical", "_scene_writer_8cpp.html#a9f704ed2bf3a6d752874400c6a256212", null ],
     [ "writeScenarioValue", "_scene_writer_8cpp.html#a2937bfe822fa84a0fd4ec1e474744733", null ],
     [ "writeSceneDirectory", "_scene_writer_8cpp.html#acb758208b15b36fd3e891b99992950cf", null ],
+    [ "writeSceneFiles", "_scene_writer_8cpp.html#a433b88cd792406f174a1d9e1a6402c49", null ],
     [ "writeSceneGeneration", "_scene_writer_8cpp.html#a4c312eb521372713ae6a8bfd29d391f1", null ]
 ];

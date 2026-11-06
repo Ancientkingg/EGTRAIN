@@ -1,5 +1,9 @@
 var NAVTREEINDEX7 =
 {
+"_startup_timing_8h.html":[3,0,0,42],
+"_startup_timing_8h.html#a0b1472493f7b2cff5992282f4a995a92":[3,0,0,42,6],
+"_startup_timing_8h.html#a103f029459514cde1f55eb5a3f65d10b":[3,0,0,42,5],
+"_startup_timing_8h.html#a15adb6d88e076bc8c4f098e36b17bda9":[3,0,0,42,7],
 "_startup_timing_8h.html#a2b1c024f044a79cbecb2bd8ebdac0ff4":[3,0,0,42,3],
 "_startup_timing_8h.html#a37446f0d4d442e06d499953df913552f":[3,0,0,42,8],
 "_startup_timing_8h.html#a63d91ad96a8a23ba52cc91ea2b8912f9":[3,0,0,42,10],
@@ -245,9 +249,5 @@ var NAVTREEINDEX7 =
 "_update_settings_8h.html#a35da7659693a1ca3699fe9616d8fea67a88183b946cc5f0e8c96b2e66e1c74a7e":[3,0,10,18,0,0],
 "_update_settings_8h.html#a35da7659693a1ca3699fe9616d8fea67ab9f5c797ebbf55adccdd8539a65a0241":[3,0,10,18,0,2],
 "_update_settings_8h.html#a841edd1014624f82e68d783dce07a809":[3,0,10,18,5],
-"_update_settings_8h.html#aa2b2cb64256e4731e74a780c89db57cc":[3,0,10,18,2],
-"_update_settings_8h.html#aafad3b22f25264ecfe072e5b38a4c751":[3,0,10,18,3],
-"_update_settings_8h.html#afaf79ec184ce30c95c89b5b057b25789":[3,0,10,18,6],
-"_update_settings_8h_source.html":[3,0,10,18],
-"_update_telemetry_controller_8cpp.html":[3,0,0,46]
+"_update_settings_8h.html#aa2b2cb64256e4731e74a780c89db57cc":[3,0,10,18,2]
 };

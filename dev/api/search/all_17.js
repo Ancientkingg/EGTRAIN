@@ -62,11 +62,12 @@ var searchData=
   ['writerunartifactwithprovenance_59',['writeRunArtifactWithProvenance',['../_run_results_8cpp.html#aef45206a92cadde90e29fd2c9a7cea69',1,'writeRunArtifactWithProvenance(const std::string &amp;artifactPath, const std::string &amp;artifactKind, const std::string &amp;artifactBytes, const RunProvenance &amp;run):&#160;RunResults.cpp'],['../_run_results_8h.html#aef45206a92cadde90e29fd2c9a7cea69',1,'writeRunArtifactWithProvenance(const std::string &amp;artifactPath, const std::string &amp;artifactKind, const std::string &amp;artifactBytes, const RunProvenance &amp;run):&#160;RunResults.cpp']]],
   ['writescenariovalue_60',['writeScenarioValue',['../_scene_writer_8cpp.html#a2937bfe822fa84a0fd4ec1e474744733',1,'SceneWriter.cpp']]],
   ['writescenedirectory_61',['writeSceneDirectory',['../_scene_writer_8cpp.html#acb758208b15b36fd3e891b99992950cf',1,'SceneWriter.cpp']]],
-  ['writescenegeneration_62',['writeSceneGeneration',['../_scene_writer_8cpp.html#a4c312eb521372713ae6a8bfd29d391f1',1,'SceneWriter.cpp']]],
-  ['writeupdatecheckstate_63',['writeUpdateCheckState',['../_update_settings_8cpp.html#a2e63cb77401af6e590fcc8cb34e71250',1,'writeUpdateCheckState(QSettings &amp;settings, UpdateCheckState state):&#160;UpdateSettings.cpp'],['../_update_settings_8h.html#a2e63cb77401af6e590fcc8cb34e71250',1,'writeUpdateCheckState(QSettings &amp;settings, UpdateCheckState state):&#160;UpdateSettings.cpp']]],
-  ['writeviewlayout_64',['writeViewLayout',['../_scene_exporter_8cpp.html#aea56aab1e162a700d87bce2e6b546c67',1,'SceneExporter.cpp']]],
-  ['written_65',['written',['../class_recovery_controller.html#a409ff80419880e6a1ba651a2d16e3469',1,'RecoveryController']]],
-  ['writtenat_66',['writtenAt',['../struct_recovery_candidate.html#a46e71b98b741f4fa510579cbb8932195',1,'RecoveryCandidate']]],
-  ['wroteall_67',['wroteAll',['../struct_scene_export_result.html#afa11c67d31451ce018967f2fdd5730d1',1,'SceneExportResult::wroteAll'],['../struct_scene_save_result.html#a958e74be4b43572b8534e6b68e58904a',1,'SceneSaveResult::wroteAll']]],
-  ['wrotescene_68',['wroteScene',['../struct_scene_import_result.html#a7a8281e3422ca72c6de3eaf4c4089165',1,'SceneImportResult']]]
+  ['writescenefiles_62',['writeSceneFiles',['../_scene_writer_8cpp.html#a433b88cd792406f174a1d9e1a6402c49',1,'writeSceneFiles(const SceneModel &amp;scene, const fs::path &amp;directory):&#160;SceneWriter.cpp'],['../_staged_directory_8h.html#a29d566e72cdc82d54f5cfbb6f42bbd8a',1,'writeSceneFiles(const SceneModel &amp;scene, const std::filesystem::path &amp;directory):&#160;StagedDirectory.h']]],
+  ['writescenegeneration_63',['writeSceneGeneration',['../_scene_writer_8cpp.html#a4c312eb521372713ae6a8bfd29d391f1',1,'SceneWriter.cpp']]],
+  ['writeupdatecheckstate_64',['writeUpdateCheckState',['../_update_settings_8cpp.html#a2e63cb77401af6e590fcc8cb34e71250',1,'writeUpdateCheckState(QSettings &amp;settings, UpdateCheckState state):&#160;UpdateSettings.cpp'],['../_update_settings_8h.html#a2e63cb77401af6e590fcc8cb34e71250',1,'writeUpdateCheckState(QSettings &amp;settings, UpdateCheckState state):&#160;UpdateSettings.cpp']]],
+  ['writeviewlayout_65',['writeViewLayout',['../_scene_exporter_8cpp.html#aea56aab1e162a700d87bce2e6b546c67',1,'SceneExporter.cpp']]],
+  ['written_66',['written',['../class_recovery_controller.html#a409ff80419880e6a1ba651a2d16e3469',1,'RecoveryController']]],
+  ['writtenat_67',['writtenAt',['../struct_recovery_candidate.html#a46e71b98b741f4fa510579cbb8932195',1,'RecoveryCandidate']]],
+  ['wroteall_68',['wroteAll',['../struct_scene_export_result.html#afa11c67d31451ce018967f2fdd5730d1',1,'SceneExportResult::wroteAll'],['../struct_scene_save_result.html#a958e74be4b43572b8534e6b68e58904a',1,'SceneSaveResult::wroteAll']]],
+  ['wrotescene_69',['wroteScene',['../struct_scene_import_result.html#a7a8281e3422ca72c6de3eaf4c4089165',1,'SceneImportResult']]]
 ];

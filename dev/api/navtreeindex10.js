@@ -1,5 +1,9 @@
 var NAVTREEINDEX10 =
 {
+"class_focus_wheel_1_1_filter.html#a1a60beba61276306e647907db4dd9994":[2,0,2,0,0],
+"class_focus_wheel_1_1_watcher.html":[1,0,8,1],
+"class_focus_wheel_1_1_watcher.html":[2,0,2,1],
+"class_focus_wheel_1_1_watcher.html#abfbc241e708def263953461e816352e0":[1,0,8,1,1],
 "class_focus_wheel_1_1_watcher.html#abfbc241e708def263953461e816352e0":[2,0,2,1,1],
 "class_focus_wheel_1_1_watcher.html#ad00a11590e72d270d94ebc39456eaea2":[1,0,8,1,0],
 "class_focus_wheel_1_1_watcher.html#ad00a11590e72d270d94ebc39456eaea2":[2,0,2,1,0],
@@ -245,9 +249,5 @@ var NAVTREEINDEX10 =
 "class_initial_parameters.html#a15da55fd59e27bcc9dc7266a6d6d5086":[2,0,120,22],
 "class_initial_parameters.html#a1fcab8acd974d3fc21a9e50c251b7363":[2,0,120,4],
 "class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f":[2,0,120,0],
-"class_initial_parameters.html#a304ca7c24b4f8fae8334690181fbfbd7":[2,0,120,10],
-"class_initial_parameters.html#a407f5e9c6466c651e5b7faf60e1824b8":[2,0,120,9],
-"class_initial_parameters.html#a47045e760f1069b70e42d2b0a0a7ff81":[2,0,120,14],
-"class_initial_parameters.html#a554464065ffaaa6b31c52c6d3fa834d5":[2,0,120,13],
-"class_initial_parameters.html#a57ddfa48245441990329e8663fe1a569":[2,0,120,8]
+"class_initial_parameters.html#a304ca7c24b4f8fae8334690181fbfbd7":[2,0,120,10]
 };

@@ -1,5 +1,9 @@
 var NAVTREEINDEX27 =
 {
+"struct_staged_directory.html#ad0a5616c02408535475b86fe139e1f77":[2,0,312,4],
+"struct_staged_publish_result.html":[2,0,313],
+"struct_staged_publish_result.html#a1589b93c3e59f22a2273b83190c5e5c5":[2,0,313,2],
+"struct_staged_publish_result.html#a78b4c5b62205dadb12c214bf0608a622":[2,0,313,3],
 "struct_staged_publish_result.html#a7d4556fb3b900684414d60361150a7cf":[2,0,313,1],
 "struct_staged_publish_result.html#aaff9e3815f98c93e5a2f2e4436c3644b":[2,0,313,0],
 "struct_staged_publish_result.html#ae3b95e50420f743aa02c6d9abab2bddc":[2,0,313,4],
@@ -245,9 +249,5 @@ var NAVTREEINDEX27 =
 "struct_update_preparation_result.html#a07aa660ec79a0fd935535484dd41e393":[2,0,370,0],
 "struct_update_preparation_result.html#aaac63040b287b8cc4beef887fd4c5a0a":[2,0,370,2],
 "struct_update_preparation_result.html#af5dab8da3404b1d453080c97bc1a2d63":[2,0,370,1],
-"struct_update_record.html":[2,0,372],
-"struct_update_record.html#a550e87cf5c396b184c34b334160e824b":[2,0,372,0],
-"struct_update_record.html#aa85aad1b548c75f9ad7bb95a5ce04870":[2,0,372,2],
-"struct_update_record.html#adcee3b4ce998347d4cd995f674e22801":[2,0,372,1],
-"struct_update_record_text.html":[2,0,373]
+"struct_update_record.html":[2,0,372]
 };
