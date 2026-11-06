@@ -1,5 +1,6 @@
 var NAVTREEINDEX26 =
 {
+"struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c":[2,0,261,1],
 "struct_scene_section_inventory.html#adced47cf62d88d8a950c3959c53560fc":[2,0,261,3],
 "struct_scene_section_labels.html":[2,0,262],
 "struct_scene_section_labels.html#a0cbfd895683f43251f8fb40a85effecd":[2,0,262,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX26 =
 "struct_simulation_run.html#ae2a5df5cc93ca9fd692cc1b43ac8eece":[2,0,307,0],
 "struct_simulation_run.html#ae66a375f73d24b1d74f62a2ecfc6e96f":[2,0,307,8],
 "struct_simulation_run.html#aede4e9f69b1371af053e529f6cf1018a":[2,0,307,24],
-"struct_simulation_run.html#af01751101de231c201b00a07de62caf0":[2,0,307,2],
-"struct_simulation_run.html#af6d9f8972b6a63879e8ce3febf96b073":[2,0,307,21]
+"struct_simulation_run.html#af01751101de231c201b00a07de62caf0":[2,0,307,2]
 };

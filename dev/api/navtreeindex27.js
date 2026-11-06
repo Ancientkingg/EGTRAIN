@@ -1,5 +1,6 @@
 var NAVTREEINDEX27 =
 {
+"struct_simulation_run.html#af6d9f8972b6a63879e8ce3febf96b073":[2,0,307,21],
 "struct_simulation_run.html#afb764d0aa669d960575edc4518a6f9b3":[2,0,307,7],
 "struct_simulation_run.html#afce9337337bae03e14d1cf509f5a9e3f":[2,0,307,19],
 "struct_single_track_reservation.html":[2,0,309],
@@ -248,6 +249,5 @@ var NAVTREEINDEX27 =
 "struct_trajectory_chart_result.html":[2,0,361],
 "struct_trajectory_chart_result.html#a8149baa1bf5c78cf2d309f0035883026":[2,0,361,0],
 "struct_trajectory_chart_result.html#ad76bf8b1298af94e35470d3bb24f5186":[2,0,361,1],
-"struct_trajectory_segment.html":[2,0,363],
-"struct_trajectory_segment.html#a2aae5fddcb9f14a47e70b38c71b7ae83":[2,0,363,1]
+"struct_trajectory_segment.html":[2,0,363]
 };

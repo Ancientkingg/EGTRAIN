@@ -1,5 +1,6 @@
 var NAVTREEINDEX22 =
 {
+"struct_capacity_analysis_train.html#ac654d1f8fd0431ef608d9905de71e3e0":[2,0,36,1],
 "struct_capacity_analysis_train.html#adc8c5e3b16104d36b64341570815fb67":[2,0,36,6],
 "struct_capacity_chain_table.html":[2,0,37],
 "struct_capacity_chain_table.html#ac868d6fa6319e76031d9dae1978f81ce":[2,0,37,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX22 =
 "struct_follow_availability.html#a33ac27566169b089f684515cf96317b5":[2,0,89,2],
 "struct_follow_availability.html#a530c83da5707d667134c8bbabb63eab6":[2,0,89,0],
 "struct_follow_availability.html#a6901590da1e71a88182b727b9ecd89fb":[2,0,89,6],
-"struct_follow_availability.html#a6d1604b580cb30e93ca874ad9b9c9169":[2,0,89,7],
-"struct_follow_availability.html#a812fd7ea89db709d24a28311ba26eade":[2,0,89,3]
+"struct_follow_availability.html#a6d1604b580cb30e93ca874ad9b9c9169":[2,0,89,7]
 };

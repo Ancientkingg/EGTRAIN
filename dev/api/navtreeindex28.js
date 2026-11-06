@@ -1,5 +1,6 @@
 var NAVTREEINDEX28 =
 {
+"struct_trajectory_segment.html#a2aae5fddcb9f14a47e70b38c71b7ae83":[2,0,363,1],
 "struct_trajectory_segment.html#a7afb02d712f8ec6692c0ddb8e44bb053":[2,0,363,0],
 "struct_update_check_result.html":[2,0,366],
 "struct_update_check_result.html#a3ba2443f7b7573c18a973dc6280e984c":[2,0,366,1],
