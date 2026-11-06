@@ -197,7 +197,7 @@ You need an open case that you have copied, with a composition and a route for t
 3. Open the tab **Timetable** and click **Add Stop** for each stop, in the order of the route. In the dialog **Add Timetable Stop**, choose the **Station** and the **Compatible platform**, tick **Planned departure** or **Planned arrival**, type the time in seconds after the base time of the case and click **OK**. Give the first stop a departure and the last stop an arrival.
 4. Choose **View > Case Validation** and fix what it lists ([Fix validation errors](#fix-validation-errors)). Then run the case.
 
-   ![The dock Services of Paimpol on the tab Service for new_service, the last of three services: Composition Draisy, Route Guingamp → Paimpol [route6], Entry time (s), Repeat every (s) and Repeat count unticked, and Performance (%) 100.](../images/how-to-add-a-service.png)
+   ![The dock Services of Paimpol on the tab Service for new_service, the third service: Composition Draisy, Route Guingamp → Paimpol [route6], Entry time (s) and Repeat every (s) unticked, Repeat count dimmed, and Performance (%) 100.](../images/how-to-add-a-service.png)
 
 The picture shows the tab **Service** of `new_service` on Paimpol, with the composition `Draisy` and the route `route6`. Its stops are Guingamp, with a departure at 5000 s from `Guingamp.platform.1`, and Paimpol, with an arrival at 7599 s on `Paimpol.platform.1`. A run without a window of this case completed with the train `new_service-1`, which reached Paimpol at 7528 s. The fields of a service are explained in [Editing and validating a case](editing-a-case.md#services).
 
@@ -225,7 +225,7 @@ To change the speed limit of an arc:
 
 The line under the table names the selected arc and where it lies, and the network view marks the arc with a violet band.
 
-![The main window with the dock Infrastructure on Arcs, filtered to B0.arc.226 (1 of 393 arcs): track B0 from B0.node.127 to B0.node.128, curvature radius 10000, gradient -0.012 and speed limit 8.333333333. The line under the table reads B0.arc.226: arc on B0 from 12.755 to 13.140 km, and the network view at 20x shows the arc as a violet band on the track.](../images/how-to-change-infrastructure.png)
+![The dock Infrastructure on Arcs, filtered to B0.arc.226 (1 of 393 arcs): Track ID B0, From node B0.node.127, To node B0.node.128, Curvature radius (m) 10000, Gradient (rise/length) -0.012 and Speed limit (m/s) 8.333333333. The line under the table reads B0.arc.226: arc on B0 from 12.755 to 13.140 km, and the view at 20x shows the arc as a violet band.](../images/how-to-change-infrastructure.png)
 
 The picture shows `B0.arc.226` of Paimpol, which runs from 12.755 to 13.140 km, with its limit lowered from 19.444 m/s (70 km/h) to 8.333333333 m/s (30 km/h), the limit of the next arc, `B0.arc.227`. In a run without a window of Paimpol with this one change, the express reached Paimpol 24 s later than before, at 2700 s instead of 2676 s.
 
@@ -249,7 +249,7 @@ Incidents, which are signal failures and train breakdowns, and entrance delays b
 
 You can also start on the network view: right-click a signal head and choose **Add signal failure**, or right-click a train after a run and choose **Add train breakdown**. The information panel of a signal or a train has the same action as a button under its fields. It adds the incident to the selected scenario as one edit, which Undo takes back, opens the tab **Incidents** with the new incident selected and puts the cursor in **Start (s)**. It is disabled while the case runs and when the item gives no target, and its tooltip says why. After a run the new incident discards the results, as any edit does, and the status bar says so.
 
-![The dock Scenarios of Paimpol on the tab Incidents of the scenario Express breakdown: new_incident, a Train breakdown with the target Guin-Paim-EXPRESS-1-1 (route route6, +10 s), Start (s) 900, End (s) ticked with 1200, Reduced speed and Terminate at destination unticked.](../images/how-to-add-an-incident.png)
+![The dock Scenarios of Paimpol on the tab Incidents of the scenario Express breakdown: new_incident, a Train breakdown with the target Guin-Paim-EXPRESS-1-1 (route route6, +10 s), Start (s) 900, End (s) ticked with 1200, and Reduced speed unticked with 40 km/h dimmed.](../images/how-to-add-an-incident.png)
 
 The picture shows the scenario `Express breakdown`, a duplicate of `baseline` of Paimpol, with one train breakdown of the express from 900 s to 1200 s. The [tutorial](tutorial-modify-a-case.md) adds the same incident and compares its run with `baseline`.
 
@@ -289,7 +289,7 @@ You need a run that reached its end ([Run a case](#run-a-case)). Each view opens
 | **Capacity** | The minimum headways and the cycle of a chain of trains on a stretch | A route, a stretch and the trains |
 | **Capacity by area** | The occupation of the blocks of an area by the trains | One or two block ranges and a period |
 
-![The window Train paths with the header Paimpol / baseline · route2: the stations Guingamp, Brelidy-Plouec, Pontrieaux and Paimpol across the top, Distance (km) along the bottom and Time (hh:mm) downward from 07:10:40, a line for Guin-Paim-EXPRESS-1-1 and one for Guin-Paim-ALL-STOPS-1-1, and the panel at the right with Trains 2 of 2 and the export buttons PNG... and CSV....](../images/how-to-train-paths.png)
+![The window Train paths, headed Paimpol / baseline · route2: Guingamp (0.20 km), Brelidy-Plouec, Pontrieaux (21.58 km) and Paimpol across the top, Distance (km) along the bottom and Time (hh:mm) down from 07:10:40, and a blue and a pink line. The panel has Trains 2 of 2, listing them as Guin-Paim-ALL-STOPS-... and Guin-Paim-EXPRESS-1-1, and Export with PNG... and CSV....](../images/how-to-train-paths.png)
 
 The picture shows **Train paths** after a run of `baseline` of Paimpol, on `route2`, the first route of the list. The line of each train runs down the window as time passes, and it is vertical where the train stands at a station. [Inspecting diagrams](diagram-navigation.md#timetable-graphs-and-train-paths) explains how to read and move such a chart, and [Results and exports](#results-and-exports) how to save it.
 
