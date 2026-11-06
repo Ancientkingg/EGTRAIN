@@ -38,7 +38,15 @@ void SceneDocument::markChanged(ChangeKinds kinds, const QString& label) {
 bool SceneDocument::edit(ChangeKinds kinds, const QString& label, const std::function<void(SceneModel&)>& apply) {
 	if (!m_editable && !(kinds & OpenDuringRun))
 		return false;
-	apply(m_model);
+	// The edit changes the model in place, so that what the panels hold of it stays valid, and the copy puts the model
+	// back when the edit throws partway.
+	SceneModel before = m_model;
+	try {
+		apply(m_model);
+	} catch (...) {
+		m_model = std::move(before);
+		throw;
+	}
 	markChanged(kinds, label);
 	return true;
 }

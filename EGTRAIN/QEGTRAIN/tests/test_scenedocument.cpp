@@ -5,6 +5,7 @@
 #include <QTest>
 
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -48,6 +49,7 @@ private slots:
 	void revisionGrows();
 	void assignAuthoredSceneKeepsDerivedParts();
 	void restoreKeepsDerivedParts();
+	void throwingEditKeepsModel();
 };
 
 // A new document holds no scene, has no edits and is open for edits.
@@ -249,6 +251,53 @@ void TestSceneDocument::restoreKeepsDerivedParts() {
 	// A restore that keeps the dirty state still advances the revision.
 	QCOMPARE(recorder.dirty.size(), std::size_t(2));
 	QCOMPARE(document.revision(), revision + 3);
+}
+
+void TestSceneDocument::throwingEditKeepsModel() {
+	SceneModel scene = namedScene("scene");
+	scene.services.resize(2);
+	scene.services[0].id = "first";
+	scene.services[1].id = "second";
+	SceneDocument document;
+	document.replace(scene, false);
+	Recorder recorder(document);
+	const quint64 revision = document.revision();
+	const quint64 generation = document.modelGeneration();
+
+	// A condition the compiler cannot see through: MSVC warns about unreachable code after a call that always throws.
+	const bool inject = !document.model().services.empty();
+	QString error;
+	try {
+		document.edit(SceneDocument::CaseSettings | SceneDocument::Services, "Edit service", [inject](SceneModel& model) {
+			model.name = "edited";
+			model.services[0].id = "edited";
+			model.services.erase(model.services.begin() + 1);
+			if (inject)
+				throw std::runtime_error("injected");
+		});
+	} catch (const std::runtime_error& thrown) {
+		error = QString::fromUtf8(thrown.what());
+	}
+	// The exception of the edit reaches the caller.
+	QCOMPARE(error, QStringLiteral("injected"));
+	// The model is as it was before the edit.
+	QCOMPARE(document.model().name, "scene");
+	QCOMPARE(document.model().services.size(), std::size_t(2));
+	QCOMPARE(document.model().services[0].id, "first");
+	QCOMPARE(document.model().services[1].id, "second");
+	// Nothing is recorded: the document stays clean and emits nothing.
+	QVERIFY(!document.isDirty());
+	QCOMPARE(document.revision(), revision);
+	QCOMPARE(document.modelGeneration(), generation);
+	QVERIFY(document.lastChangeLabel().isEmpty());
+	QVERIFY(recorder.changes.empty());
+	QVERIFY(recorder.dirty.empty());
+
+	// The next edit applies as usual.
+	QVERIFY(document.edit(SceneDocument::CaseSettings, "Edit case settings", [](SceneModel& model) { model.name = "next"; }));
+	QCOMPARE(document.model().name, "next");
+	QVERIFY(document.isDirty());
+	QCOMPARE(recorder.changes.size(), std::size_t(1));
 }
 
 QTEST_APPLESS_MAIN(TestSceneDocument)

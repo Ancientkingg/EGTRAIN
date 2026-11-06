@@ -4,7 +4,7 @@ How EGTRAIN handles failure: which exceptions are caught and which escape, the f
 
 ## In short
 
-- Runs, run preparation, scene reading in the window, window events and both `main` functions catch exceptions; the tables below give where and what the user sees. On macOS the guard on window events (`GuardedApplication::notify`) sees nothing, so an exception that leaves a slot there still ends in `std::terminate`.
+- Runs, run preparation, scene reading in the window, scene edits, window events and both `main` functions catch exceptions; the tables below give where and what the user sees. On macOS the guard on window events (`GuardedApplication::notify`) sees nothing, so an exception that leaves a slot there still ends in `std::terminate`.
 - The output folder of a run, the scene folder that `loadScene` reads and the folder of a legacy import are checked with the `std::error_code` overloads of `std::filesystem`, so a folder that cannot be created or read gives a diagnostic instead of an exception.
 - The window build installs a crash handler (`app/CrashNote.cpp`, see [Crash notes](#crash-notes)): `std::set_terminate`, and signal handlers for SIGSEGV, SIGBUS, SIGILL, SIGFPE and SIGABRT. Headless runs and `scene_tool` have none. The other handler is `qInstallMessageHandler(qtMessageToLog)` (`widgets/ConsoleWidget.cpp`), which routes Qt messages to the log. An exception that passes the guards ends in `std::terminate` and `abort()`; the window build then leaves a crash note that the next start reports.
 
@@ -16,6 +16,7 @@ How EGTRAIN handles failure: which exceptions are caught and which escape, the f
 | --- | --- | --- |
 | Simulation run | `DispatchController::runSimulation` (`app/DispatchController.cpp`), around the stages in `runSimulationStages` | The run ends as failed. See [What happens when one is caught](#what-happens-when-one-is-caught). |
 | Run preparation and scene reading in the window | `RunController::runScene` around `prepareScene`, `SceneSession::openSceneDirectory` around `readScene` | Becomes `run.prepare.exception` ("Cannot prepare the run: <what>") or `scene.read.exception` ("Cannot read the case: <what>"). |
+| Scene edits | `SceneDocument::edit` (`editors/SceneDocument.cpp`) around the change of a panel | The model is put back as it was before the edit from a copy taken before the change; nothing is recorded, and the exception passes on. |
 | Window events | `GuardedApplication::notify` | Logged as `Unexpected error in <class> (event <type>): <what>` in `app.ui`, and the event counts as not handled. Not on macOS. |
 | Process entry | `main` in `app/main.cpp` and in `scene/SceneTool.cpp` | Exit code 70 with an `app.ui` error line, for an exception of any type, or exit code 1 with `error: <what>`. |
 | Telemetry | `telemetry/TelemetrySender.cpp` (`catch (...)` around every operation and the timer pump), `app/UpdateTelemetryController.cpp`, `app/RunController.cpp` | Fails closed and silently, by design. |
@@ -49,7 +50,7 @@ How EGTRAIN handles failure: which exceptions are caught and which escape, the f
 | Where it is thrown | Outcome |
 | --- | --- |
 | A run, on the simulation `QThread` or with `-g 0` | `runSimulation` returns normally, so `SimulationWorker::simulationFinished` is still emitted. `lastRunError()` holds the text, `app.run` logs "The run stopped because of an error: <what>", and the live stream gets `run_cancelled` once the run has sent its hello frame, because contract version 1 has no event for a failed run. The window shows **Simulation Failed** ("The run stopped because of an error:" and the reason), the status bar says "Simulation failed", Run Results says "Failed" and the case stays open and editable. Without a window `main` prints `ERROR: <what>` on standard error and exits with 1. |
-| A slot or event handler on the GUI thread | Linux and Windows: `GuardedApplication` logs it, the event counts as not handled, and an **Unexpected Error** box says that the case is still open and should be saved. Further exceptions while that box waits or is open are only logged. What the slot had done before the throw is not undone. macOS: `std::terminate` at the throw, because an exception cannot pass the frames of QtWidgets. |
+| A slot or event handler on the GUI thread | Linux and Windows: `GuardedApplication` logs it, the event counts as not handled, and an **Unexpected Error** box says that the case is still open and that an edit that the error interrupted was undone. Further exceptions while that box waits or is open are only logged. An edit through `SceneDocument::edit` whose change throws leaves the model as it was; what the slot had done otherwise before the throw is not undone, such as a scenario that a scenario edit has marked as modified. macOS: `std::terminate`, because an exception cannot pass the frames of QtWidgets. |
 | Startup, before `application.exec()` | `main` logs "EGTRAIN stopped because of an unexpected error: <what>" in `app.ui` and exits with 70. |
 | `scene_tool` | `error: <what>` on standard error and exit code 1. |
 
