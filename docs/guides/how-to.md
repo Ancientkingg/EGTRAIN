@@ -225,9 +225,9 @@ To change the speed limit of an arc:
 
 The line under the table names the selected arc and where it lies, and the network view marks the arc with a violet band.
 
-![The main window with the dock Infrastructure on Arcs, filtered to B0.arc.226 (1 of 393 arcs): track B0 from B0.node.127 to B0.node.128, curvature radius 10000, gradient -0.012 and speed limit 8.3333333330000006. The line under the table reads B0.arc.226: arc on B0 from 12.755 to 13.140 km, and the network view at 20x shows the arc as a violet band on the track.](../images/how-to-change-infrastructure.png)
+![The main window with the dock Infrastructure on Arcs, filtered to B0.arc.226 (1 of 393 arcs): track B0 from B0.node.127 to B0.node.128, curvature radius 10000, gradient -0.012 and speed limit 8.333333333. The line under the table reads B0.arc.226: arc on B0 from 12.755 to 13.140 km, and the network view at 20x shows the arc as a violet band on the track.](../images/how-to-change-infrastructure.png)
 
-The picture shows `B0.arc.226` of Paimpol, which runs from 12.755 to 13.140 km, with its limit lowered from 19.444 m/s (70 km/h) to 8.333333333 m/s (30 km/h), the limit of the next arc, `B0.arc.227`. The table writes a number with all the digits it holds, so the cell reads `8.3333333330000006`. In a run without a window of Paimpol with this one change, the express reached Paimpol 24 s later than before, at 2700 s instead of 2676 s.
+The picture shows `B0.arc.226` of Paimpol, which runs from 12.755 to 13.140 km, with its limit lowered from 19.444 m/s (70 km/h) to 8.333333333 m/s (30 km/h), the limit of the next arc, `B0.arc.227`. In a run without a window of Paimpol with this one change, the express reached Paimpol 24 s later than before, at 2700 s instead of 2676 s.
 
 To add a platform to a station:
 
