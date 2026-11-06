@@ -2,28 +2,45 @@
 // test_areacapacitywindow.cpp, eight blocks, F1 then F2, profile references 59 s and 199 s, authored departures 120 s and
 // 180 s, analysed over 3600 s with F2 closing the cycle. The guide works out a cycle of 471.5 s, 13.1 % of the hour, with
 // the critical block @3-B0@. Times are in seconds. The test shows no message box and opens no file chooser.
+//
+// The last tests run the Blocking time and Capacity scope dialogs on that line with stations (stationRun) and choose
+// their stretch by stations, by blocks and their interval by clock times. They drive the dialogs by the labels of their
+// rows and find the signals of the stretch by name.
 
+#include "diagrams/BlockingTimeData.h"
+#include "diagrams/BlockingTimeScope.h"
 #include "diagrams/CapacityScope.h"
 #include "diagrams/CapacityWindow.h"
 #include "diagrams/ResultFrame.h"
+#include "util/TimeFormat.h"
 
 #include <QApplication>
+#include <QComboBox>
+#include <QDialog>
 #include <QDialogButtonBox>
+#include <QDoubleSpinBox>
 #include <QFile>
 #include <QFont>
+#include <QFormLayout>
 #include <QHeaderView>
 #include <QKeyEvent>
 #include <QLabel>
+#include <QLineEdit>
+#include <QMetaObject>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QScopeGuard>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QSignalSpy>
 #include <QTabBar>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTest>
+#include <QTimer>
 #include <QToolButton>
 
+#include <functional>
 #include <initializer_list>
 #include <string>
 #include <utility>
@@ -121,6 +138,157 @@ QStringList headerTexts(const QTableWidget* table) {
 	return headers;
 }
 
+RouteDiagramNode node(const char* id, const char* stationId, const char* stationName, double km) {
+	RouteDiagramNode value;
+	value.nodeId = id;
+	value.stationId = stationId;
+	value.stationName = stationName;
+	value.positionKm = km;
+	return value;
+}
+
+// The line of lineRun with stations: Alpha at its start, Bravo where blocks 3 and 4 meet, Charlie with two nodes inside
+// block 6 and Delta at its end. Route S of the corridor side has no station and route T only the station Echo. The run
+// lasts an hour from 07:00:00. The trains enter every block 5 s after its occupation starts, so that any stretch of
+// route R has the two trains for Capacity.
+CompletedRunData stationRun() {
+	CompletedRunData data = lineRun();
+	for (CompletedTrain& lineTrain : data.trains)
+		for (BlockingTimeDiagramInput& occupation : lineTrain.blockTimes)
+			if (occupation.startRunTime < 0.0)
+				occupation.startRunTime = occupation.startOccTime + 5.0;
+	data.settings.timestepSeconds = 1.0;
+	data.settings.horizonSteps = 3600.0;
+	data.settings.startOffsetSeconds = 7 * 3600;
+	data.routes.front().path.nodes = {node("n0", "a", "Alpha", 0.0), node("n1", "", "", 1.0), node("n3", "b", "Bravo", 3.0),
+		node("n55", "c", "Charlie", 5.5), node("n58", "c", "Charlie", 5.8), node("n8", "d", "Delta", 8.0)};
+	CompletedRoute side;
+	side.id = "S";
+	side.corridor = "side";
+	side.blocks = {{"@0-S@", 0.0, 1.0}, {"@1-S@", 1.0, 2.0}};
+	side.path.nodes = {node("s0", "", "", 0.0), node("s2", "", "", 2.0)};
+	CompletedRoute spur;
+	spur.id = "T";
+	spur.blocks = {{"@0-T@", 0.0, 1.0}, {"@1-T@", 1.0, 2.0}};
+	spur.path.nodes = {node("t1", "e", "Echo", 1.0)};
+	data.routes.push_back(side);
+	data.routes.push_back(spur);
+	return data;
+}
+
+// The runtime section ids of the blocks `first` to `last` of route R, positions from 0.
+QStringList lineIds(int first, int last) {
+	QStringList ids;
+	for (int index = first; index <= last; ++index)
+		ids << QString("@%1-B0@").arg(index);
+	return ids;
+}
+
+// Lets `answer` act on the open dialog titled `title`, and cancels the dialog when the answer leaves it open.
+void answerDialog(const QString& title, const std::function<void(QDialog&)>& answer) {
+	auto* dialog = qobject_cast<QDialog*>(QApplication::activeModalWidget());
+	if (dialog == nullptr)
+		QFAIL(qPrintable("the " + title + " dialog opens"));
+	if (dialog->windowTitle() != title) {
+		dialog->reject();
+		QFAIL(qPrintable("the " + title + " dialog opens"));
+	}
+	answer(*dialog);
+	if (dialog->isVisible())
+		dialog->reject();
+}
+
+bool askBlockingTime(const CompletedRunData& run, BlockingTimeScope& scope, const std::function<void(QDialog&)>& answer) {
+	QTimer::singleShot(0, [&answer]() { answerDialog("Blocking time", answer); });
+	return chooseBlockingTimeScope(nullptr, blockingTimeScopeChoicesFrom(run), scope);
+}
+
+bool askCapacity(const CompletedRunData& run, CapacityAnalysisScope& scope, const std::function<void(QDialog&)>& answer) {
+	QTimer::singleShot(0, [&answer]() { answerDialog("Capacity", answer); });
+	return chooseCapacityAnalysisScope(nullptr, run, scope);
+}
+
+void press(QDialog& dialog, QDialogButtonBox::StandardButton button) {
+	auto* buttons = dialog.findChild<QDialogButtonBox*>();
+	if (buttons == nullptr || buttons->button(button) == nullptr)
+		QFAIL("the dialog has its buttons");
+	buttons->button(button)->click();
+}
+
+// The field of the row of the dialog whose label reads `label`, nullptr when there is none.
+template <typename Field>
+Field* fieldOf(const QDialog& dialog, const QString& label) {
+	for (const QFormLayout* form : dialog.findChildren<QFormLayout*>())
+		for (int row = 0; row < form->rowCount(); ++row) {
+			const QLayoutItem* name = form->itemAt(row, QFormLayout::LabelRole);
+			const QLayoutItem* field = form->itemAt(row, QFormLayout::FieldRole);
+			const auto* text = name ? qobject_cast<const QLabel*>(name->widget()) : nullptr;
+			if (text && field && text->text() == label)
+				return qobject_cast<Field*>(field->widget());
+		}
+	return nullptr;
+}
+
+QRadioButton* kindButton(const QDialog& dialog, const QString& text) {
+	for (QRadioButton* button : dialog.findChildren<QRadioButton*>())
+		if (button->text() == text)
+			return button;
+	return nullptr;
+}
+
+QStringList entriesOf(const QComboBox* combo) {
+	QStringList entries;
+	for (int index = 0; combo && index < combo->count(); ++index)
+		entries << combo->itemText(index);
+	return entries;
+}
+
+QStringList tooltipsOf(const QComboBox* combo) {
+	QStringList tooltips;
+	for (int index = 0; combo && index < combo->count(); ++index)
+		tooltips << combo->itemData(index, Qt::ToolTipRole).toString();
+	return tooltips;
+}
+
+// The rows of a stretch: the route, the kinds and the From and To lists, by stations or by blocks.
+struct StretchRows {
+	QComboBox* route = nullptr;
+	QRadioButton* stations = nullptr;
+	QRadioButton* blocks = nullptr;
+	QComboBox* from = nullptr;
+	QComboBox* to = nullptr;
+};
+
+StretchRows stretchRows(const QDialog& dialog) {
+	StretchRows rows;
+	rows.route = fieldOf<QComboBox>(dialog, "Route / corridor:");
+	rows.stations = kindButton(dialog, "Stations");
+	rows.blocks = kindButton(dialog, "Blocks");
+	const bool byStations = rows.stations && rows.stations->isChecked();
+	rows.from = fieldOf<QComboBox>(dialog, byStations ? "From station:" : "From block:");
+	rows.to = fieldOf<QComboBox>(dialog, byStations ? "To station:" : "To block:");
+	return rows;
+}
+
+bool complete(const StretchRows& rows) {
+	return rows.route && rows.stations && rows.blocks && rows.from && rows.to;
+}
+
+// Opens the list, puts the pointer on its entry `index` and closes the list again.
+void hoverEntry(QComboBox* list, int index) {
+	list->showPopup();
+	emit list->highlighted(index);
+	list->hidePopup();
+}
+
+// The object of the dialog that sends the signals of the stretch.
+QObject* stretchSignals(const QDialog& dialog) {
+	for (QObject* child : dialog.findChildren<QObject*>())
+		if (child->metaObject()->indexOfSignal("stretchChanged(QString,QStringList)") >= 0)
+			return child;
+	return nullptr;
+}
+
 } // namespace
 
 class TestCapacityWindow : public QObject {
@@ -133,6 +301,12 @@ private slots:
 	void listsChainInTabs();
 	void opensWithPanelOf200Px();
 	void scrollsBodyWithLargeFont();
+	void namesRoutesByEndStations();
+	void choosesBlocksBetweenStations();
+	void switchesBetweenStationsAndBlocks();
+	void opensScopeOfBlocks();
+	void entersClockTimes();
+	void signalsStretchAndHover();
 };
 
 void TestCapacityWindow::initTestCase() {
@@ -407,6 +581,351 @@ void TestCapacityWindow::scrollsBodyWithLargeFont() {
 	if (value == nullptr)
 		QFAIL("the value of a figure is larger than the text");
 	QCOMPARE_GT(value->font().pointSizeF(), font.pointSizeF() * 1.3);
+}
+
+// Both dialogs name a route by its first and last station, keep its id and corridor, and name a route without a station
+// by its id and corridor. The stations of the route are listed in route order with their blocks as tooltips.
+void TestCapacityWindow::namesRoutesByEndStations() {
+	const CompletedRunData run = stationRun();
+	BlockingTimeScope scope = defaultBlockingTimeScopeFrom(run);
+	askBlockingTime(run, scope, [](QDialog& dialog) {
+		StretchRows rows = stretchRows(dialog);
+		// Blocking time: the dialog has the rows of the stretch
+		if (rows.route == nullptr)
+			QFAIL("Blocking time: the dialog has the rows of the stretch");
+		// Blocking time: the routes by their end stations after All routes
+		QCOMPARE(entriesOf(rows.route), QStringList({"All routes", "R: Alpha to Delta  (main)", "S  (side)", "T: Echo"}));
+		rows.route->setCurrentIndex(1);
+		rows = stretchRows(dialog);
+		if (!complete(rows))
+			QFAIL("Blocking time: route R lists its stations");
+		// Blocking time: route R lists its stations in route order, from the first to the last
+		QVERIFY(rows.stations->isChecked());
+		QCOMPARE(entriesOf(rows.from), QStringList({"Alpha", "Bravo", "Charlie", "Delta"}));
+		QCOMPARE(entriesOf(rows.to), entriesOf(rows.from));
+		QCOMPARE(tooltipsOf(rows.from), QStringList({"Block 1", "Blocks 3 to 4", "Block 6", "Block 8"}));
+		QCOMPARE(rows.from->currentText(), "Alpha");
+		QCOMPARE(rows.to->currentText(), "Delta");
+		rows.route->setCurrentIndex(2);
+		rows = stretchRows(dialog);
+		if (!complete(rows))
+			QFAIL("Blocking time: route S lists its blocks");
+		// Blocking time: a route without a station lists its blocks and offers no stations
+		QVERIFY(rows.blocks->isChecked());
+		QVERIFY(!rows.stations->isEnabled());
+		QCOMPARE(entriesOf(rows.from).size(), 2);
+		rows.route->setCurrentIndex(3);
+		rows = stretchRows(dialog);
+		// Blocking time: a route of one station lists its blocks too
+		QVERIFY(rows.blocks && rows.blocks->isChecked());
+		QVERIFY(rows.stations && !rows.stations->isEnabled());
+	});
+	if (QTest::currentTestFailed())
+		return;
+	CapacityAnalysisScope capacity;
+	askCapacity(run, capacity, [](QDialog& dialog) {
+		const StretchRows rows = stretchRows(dialog);
+		if (!complete(rows))
+			QFAIL("Capacity: the dialog has the rows of the stretch");
+		// Capacity: the routes by their end stations, with no All routes, and route R by its stations from the first to
+		// the last
+		QCOMPARE(entriesOf(rows.route), QStringList({"R: Alpha to Delta  (main)", "S  (side)", "T: Echo"}));
+		QVERIFY(rows.stations->isChecked());
+		QCOMPARE(entriesOf(rows.from), QStringList({"Alpha", "Bravo", "Charlie", "Delta"}));
+		QCOMPARE(rows.from->currentText(), "Alpha");
+		QCOMPARE(rows.to->currentText(), "Delta");
+	});
+}
+
+// A stretch from one station to another takes every block that lies at least partly between them, the first and the
+// last station standing for the ends of the route, and the diagram shows those blocks. A From station after the To
+// station moves the To station to it, and a To station before the From station moves the From station.
+void TestCapacityWindow::choosesBlocksBetweenStations() {
+	const CompletedRunData run = stationRun();
+	BlockingTimeScope scope = defaultBlockingTimeScopeFrom(run);
+	bool accepted = askBlockingTime(run, scope, [](QDialog& dialog) {
+		StretchRows rows = stretchRows(dialog);
+		if (rows.route == nullptr)
+			QFAIL("Blocking time: the dialog has the rows of the stretch");
+		rows.route->setCurrentIndex(1);
+		rows = stretchRows(dialog);
+		if (!complete(rows))
+			QFAIL("Blocking time: route R lists its stations");
+		rows.to->setCurrentIndex(2);
+		rows.from->setCurrentIndex(3);
+		// Blocking time: a From station after the To station moves the To station to it
+		QCOMPARE(rows.to->currentText(), "Delta");
+		rows.to->setCurrentIndex(0);
+		// Blocking time: a To station before the From station moves the From station to it
+		QCOMPARE(rows.from->currentText(), "Alpha");
+		rows.from->setCurrentIndex(1);
+		rows.to->setCurrentIndex(2);
+		// Blocking time: the stretch from Bravo to Charlie
+		QCOMPARE(rows.from->currentText(), "Bravo");
+		QCOMPARE(rows.to->currentText(), "Charlie");
+		press(dialog, QDialogButtonBox::Ok);
+	});
+	// Blocking time: from Bravo, where blocks 3 and 4 meet, to Charlie inside block 6 the blocks 4 to 6
+	QVERIFY(accepted);
+	QCOMPARE(scope.routeIndex, 0);
+	QCOMPARE(scope.sectionIndices, std::vector<int>({3, 4, 5}));
+	QCOMPARE(scope.blockIds, std::vector<std::string>({"@3-B0@", "@4-B0@", "@5-B0@"}));
+	const std::optional<BlockingTimeDiagramData> diagram = blockingTimeDiagramData(run, scope);
+	QStringList shown;
+	for (const BlockSectionExtent& extent : diagram ? diagram->extents : std::vector<BlockSectionExtent>())
+		shown << QString::fromStdString(extent.id);
+	// Blocking time: the diagram shows those blocks
+	QCOMPARE(shown, lineIds(3, 5));
+
+	// The pairs of stations and their blocks, with a station to itself giving the blocks that hold it.
+	const std::vector<std::pair<std::pair<int, int>, std::vector<int>>> stretches = {{{0, 1}, {0, 1, 2}}, {{1, 1}, {2, 3}},
+		{{2, 3}, {5, 6, 7}}, {{0, 3}, {0, 1, 2, 3, 4, 5, 6, 7}}, {{3, 3}, {7}}};
+	for (const auto& [stations, blocks] : stretches) {
+		CapacityAnalysisScope capacity;
+		const int from = stations.first;
+		const int to = stations.second;
+		accepted = askCapacity(run, capacity, [from, to](QDialog& dialog) {
+			const StretchRows rows = stretchRows(dialog);
+			if (!complete(rows) || !rows.stations->isChecked())
+				QFAIL("Capacity: route R lists its stations");
+			rows.to->setCurrentIndex(to);
+			rows.from->setCurrentIndex(from);
+			press(dialog, QDialogButtonBox::Ok);
+		});
+		const QString stretch = QString("Capacity: the stretch from station %1 to station %2").arg(from + 1).arg(to + 1);
+		QVERIFY2(accepted, qPrintable(stretch));
+		QVERIFY2(capacity.sectionIndices == blocks, qPrintable(stretch));
+	}
+}
+
+// Blocks shows the blocks of the stations, and Stations shows the smallest stretch between stations that holds the blocks.
+void TestCapacityWindow::switchesBetweenStationsAndBlocks() {
+	const CompletedRunData run = stationRun();
+	CapacityAnalysisScope capacity;
+	const bool accepted = askCapacity(run, capacity, [](QDialog& dialog) {
+		StretchRows rows = stretchRows(dialog);
+		if (!complete(rows))
+			QFAIL("Capacity: route R lists its stations");
+		rows.from->setCurrentIndex(1);
+		rows.to->setCurrentIndex(2);
+		rows.blocks->click();
+		rows = stretchRows(dialog);
+		// Capacity: Blocks lists the blocks with the blocks of Bravo to Charlie chosen
+		QVERIFY(rows.blocks->isChecked());
+		QCOMPARE(rows.from->count(), 8);
+		QCOMPARE(rows.from->currentIndex(), 3);
+		QCOMPARE(rows.to->currentIndex(), 5);
+		rows.from->setCurrentIndex(4);
+		rows.to->setCurrentIndex(4);
+		rows.stations->click();
+		rows = stretchRows(dialog);
+		// Capacity: Stations shows Bravo to Charlie for block 5
+		QVERIFY(rows.stations->isChecked());
+		QCOMPARE(rows.from->currentText(), "Bravo");
+		QCOMPARE(rows.to->currentText(), "Charlie");
+		rows.blocks->click();
+		rows = stretchRows(dialog);
+		// Capacity: Blocks shows the blocks of that stretch again
+		QCOMPARE(rows.from->currentIndex(), 3);
+		QCOMPARE(rows.to->currentIndex(), 5);
+		rows.to->setCurrentIndex(6);
+		press(dialog, QDialogButtonBox::Ok);
+	});
+	// Capacity: the blocks chosen last
+	QVERIFY(accepted);
+	QCOMPARE(capacity.sectionIndices, std::vector<int>({3, 4, 5, 6}));
+}
+
+// A scope of blocks opens on its route and blocks: by stations when two stations give exactly its blocks, else by blocks.
+void TestCapacityWindow::opensScopeOfBlocks() {
+	const CompletedRunData run = stationRun();
+	BlockingTimeScope scope = defaultBlockingTimeScopeFrom(run);
+	scope.routeIndex = 0;
+	scope.sectionIndices = {3, 4, 5};
+	scope.blockIds = {"@3-B0@", "@4-B0@", "@5-B0@"};
+	bool accepted = askBlockingTime(run, scope, [](QDialog& dialog) {
+		const StretchRows rows = stretchRows(dialog);
+		if (!complete(rows))
+			QFAIL("Blocking time: the dialog has the rows of the stretch");
+		// Blocking time: blocks 4 to 6 open as the stretch from Bravo to Charlie of route R
+		QCOMPARE(rows.route->currentText(), "R: Alpha to Delta  (main)");
+		QVERIFY(rows.stations->isChecked());
+		QCOMPARE(rows.from->currentText(), "Bravo");
+		QCOMPARE(rows.to->currentText(), "Charlie");
+		press(dialog, QDialogButtonBox::Ok);
+	});
+	// Blocking time: the scope keeps its blocks
+	QVERIFY(accepted);
+	QCOMPARE(scope.sectionIndices, std::vector<int>({3, 4, 5}));
+	scope.sectionIndices = {4};
+	scope.blockIds = {"@4-B0@"};
+	accepted = askBlockingTime(run, scope, [](QDialog& dialog) {
+		const StretchRows rows = stretchRows(dialog);
+		if (!complete(rows))
+			QFAIL("Blocking time: the dialog has the rows of the stretch");
+		// Blocking time: block 5 alone opens as that block
+		QVERIFY(rows.blocks->isChecked());
+		QCOMPARE(rows.from->currentIndex(), 4);
+		QCOMPARE(rows.to->currentIndex(), 4);
+		press(dialog, QDialogButtonBox::Ok);
+	});
+	QVERIFY(accepted);
+	QCOMPARE(scope.sectionIndices, std::vector<int>({4}));
+
+	CapacityAnalysisScope capacity = capacityRangeScopeFrom(run, 0, 5, 7);
+	accepted = askCapacity(run, capacity, [](QDialog& dialog) {
+		const StretchRows rows = stretchRows(dialog);
+		if (!complete(rows))
+			QFAIL("Capacity: the dialog has the rows of the stretch");
+		// Capacity: blocks 6 to 8 open as the stretch from Charlie to Delta
+		QVERIFY(rows.stations->isChecked());
+		QCOMPARE(rows.from->currentText(), "Charlie");
+		QCOMPARE(rows.to->currentText(), "Delta");
+		press(dialog, QDialogButtonBox::Ok);
+	});
+	QVERIFY(accepted);
+	QCOMPARE(capacity.sectionIndices, std::vector<int>({5, 6, 7}));
+	capacity = capacityRangeScopeFrom(run, 0, 4, 6);
+	accepted = askCapacity(run, capacity, [](QDialog& dialog) {
+		const StretchRows rows = stretchRows(dialog);
+		if (!complete(rows))
+			QFAIL("Capacity: the dialog has the rows of the stretch");
+		// Capacity: blocks 5 to 7 open as blocks
+		QVERIFY(rows.blocks->isChecked());
+		QCOMPARE(rows.from->currentIndex(), 4);
+		QCOMPARE(rows.to->currentIndex(), 6);
+		press(dialog, QDialogButtonBox::Ok);
+	});
+	QVERIFY(accepted);
+	QCOMPARE(capacity.sectionIndices, std::vector<int>({4, 5, 6}));
+}
+
+// The interval reads and is typed as the clock times of the time axis, and gives the seconds of the run at those times,
+// after midnight too.
+void TestCapacityWindow::entersClockTimes() {
+	CompletedRunData run = stationRun();
+	const auto type = [](QDoubleSpinBox* field, const QString& text) {
+		auto* edit = field->findChild<QLineEdit*>();
+		if (edit == nullptr)
+			return;
+		edit->selectAll();
+		QTest::keyClicks(edit, text);
+		field->interpretText();
+	};
+	BlockingTimeScope scope = defaultBlockingTimeScopeFrom(run);
+	bool accepted = askBlockingTime(run, scope, [&type](QDialog& dialog) {
+		auto* from = fieldOf<QDoubleSpinBox>(dialog, "From time:");
+		auto* to = fieldOf<QDoubleSpinBox>(dialog, "To time:");
+		if (!from || !to)
+			QFAIL("Blocking time: the dialog asks for the interval as clock times");
+		// Blocking time: the interval opens on the run, from 07:00:00 to 08:00:00
+		QCOMPARE(from->text(), "07:00:00");
+		QCOMPARE(to->text(), "08:00:00");
+		type(from, "07:01:40");
+		type(to, "07:30");
+		// Blocking time: typed clock times give the seconds of the run
+		QCOMPARE(from->value(), 100.0);
+		QCOMPARE(to->value(), 1800.0);
+		QCOMPARE(to->text(), "07:30:00");
+		type(to, "25:00");
+		// Blocking time: a time that is no clock time keeps the time before
+		QCOMPARE(to->value(), 1800.0);
+		type(to, "06:00");
+		// Blocking time: a clock time outside the run keeps the time before
+		QCOMPARE(to->value(), 1800.0);
+		press(dialog, QDialogButtonBox::Ok);
+	});
+	QVERIFY(accepted);
+	QCOMPARE(scope.startTime, 100.0);
+	QCOMPARE(scope.endTime, 1800.0);
+
+	run.settings.startOffsetSeconds = 23 * 3600 + 50 * 60;
+	run.settings.horizonSteps = 1800.0;
+	scope = defaultBlockingTimeScopeFrom(run);
+	accepted = askBlockingTime(run, scope, [&type](QDialog& dialog) {
+		auto* from = fieldOf<QDoubleSpinBox>(dialog, "From time:");
+		auto* to = fieldOf<QDoubleSpinBox>(dialog, "To time:");
+		if (!from || !to)
+			QFAIL("Blocking time: the dialog asks for the interval as clock times");
+		// Blocking time: a run from 23:50:00 ends at 00:20:00, as the time axis shows it
+		QCOMPARE(from->text(), QString::fromStdString(formatSimTime(0, 23 * 3600 + 50 * 60)));
+		QCOMPARE(to->text(), "00:20:00");
+		type(from, "23:55");
+		type(to, "00:05:00");
+		// Blocking time: 00:05:00 is the time after midnight
+		QCOMPARE(from->value(), 300.0);
+		QCOMPARE(to->value(), 900.0);
+		press(dialog, QDialogButtonBox::Ok);
+	});
+	QVERIFY(accepted);
+	QCOMPARE(scope.startTime, 300.0);
+	QCOMPARE(scope.endTime, 900.0);
+}
+
+// The stretch signals another route or stretch, and the entry under the pointer, with the route id and the section ids.
+void TestCapacityWindow::signalsStretchAndHover() {
+	const CompletedRunData run = stationRun();
+	BlockingTimeScope scope = defaultBlockingTimeScopeFrom(run);
+	askBlockingTime(run, scope, [](QDialog& dialog) {
+		QObject* stretch = stretchSignals(dialog);
+		StretchRows rows = stretchRows(dialog);
+		if (stretch == nullptr || rows.route == nullptr)
+			QFAIL("Blocking time: the stretch has its signals");
+		QSignalSpy changed(stretch, SIGNAL(stretchChanged(QString, QStringList)));
+		QSignalSpy hovered(stretch, SIGNAL(entryHovered(QString, QStringList, QStringList)));
+		rows.route->setCurrentIndex(1);
+		// Blocking time: another route sends its id and all its blocks
+		QCOMPARE(changed.count(), 1);
+		QCOMPARE(changed.last(), QVariantList({"R", lineIds(0, 7)}));
+		rows = stretchRows(dialog);
+		if (!complete(rows))
+			QFAIL("Blocking time: route R lists its stations");
+		rows.to->setCurrentIndex(2);
+		// Blocking time: another To station sends the blocks of the stretch
+		QCOMPARE(changed.count(), 2);
+		QCOMPARE(changed.last(), QVariantList({"R", lineIds(0, 5)}));
+		// Blocking time: choosing an entry is no hover
+		QCOMPARE(hovered.count(), 0);
+		hoverEntry(rows.from, 1);
+		// Blocking time: a station under the pointer sends the blocks that hold it
+		QCOMPARE_GT(hovered.count(), 0);
+		QCOMPARE(hovered.last(), QVariantList({"R", lineIds(0, 5), lineIds(2, 3)}));
+		hoverEntry(rows.route, 2);
+		// Blocking time: a route under the pointer sends its blocks and the chosen stretch
+		QCOMPARE(hovered.last(), QVariantList({"R", lineIds(0, 5), QStringList({"@0-S@", "@1-S@"})}));
+		hoverEntry(rows.route, 0);
+		// Blocking time: All routes under the pointer sends no block
+		QCOMPARE(hovered.last(), QVariantList({"R", lineIds(0, 5), QStringList()}));
+		rows.blocks->click();
+		rows = stretchRows(dialog);
+		// Blocking time: Blocks keeps the stretch
+		QCOMPARE(changed.count(), 3);
+		QCOMPARE(changed.last(), QVariantList({"R", lineIds(0, 5)}));
+		hoverEntry(rows.to, 4);
+		// Blocking time: a block under the pointer sends that block
+		QCOMPARE(hovered.last(), QVariantList({"R", lineIds(0, 5), lineIds(4, 4)}));
+		rows.route->setCurrentIndex(0);
+		// Blocking time: All routes sends no route and no block
+		QCOMPARE(changed.last(), QVariantList({QString(), QStringList()}));
+	});
+	if (QTest::currentTestFailed())
+		return;
+	CapacityAnalysisScope capacity;
+	askCapacity(run, capacity, [](QDialog& dialog) {
+		QObject* stretch = stretchSignals(dialog);
+		const StretchRows rows = stretchRows(dialog);
+		if (stretch == nullptr || !complete(rows))
+			QFAIL("Capacity: the stretch has its signals");
+		QSignalSpy changed(stretch, SIGNAL(stretchChanged(QString, QStringList)));
+		QSignalSpy hovered(stretch, SIGNAL(entryHovered(QString, QStringList, QStringList)));
+		rows.from->setCurrentIndex(2);
+		// Capacity: another From station sends the blocks of the stretch
+		QCOMPARE(changed.count(), 1);
+		QCOMPARE(changed.last(), QVariantList({"R", lineIds(5, 7)}));
+		hoverEntry(rows.to, 3);
+		// Capacity: a station under the pointer sends the blocks that hold it
+		QCOMPARE(hovered.last(), QVariantList({"R", lineIds(5, 7), lineIds(7, 7)}));
+	});
 }
 
 QTEST_MAIN(TestCapacityWindow)

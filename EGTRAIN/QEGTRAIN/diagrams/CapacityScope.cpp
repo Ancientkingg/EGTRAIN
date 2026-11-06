@@ -1,5 +1,7 @@
 #include "diagrams/CapacityScope.h"
 
+#include "diagrams/BlockingTimeScope.h"
+
 #include "util/CsvWriter.h"
 #include "util/TimeFormat.h"
 #include "widgets/ChoiceComboBox.h"
@@ -372,7 +374,8 @@ QString trainRowText(const CompletedRunData& run, const CapacityAnalysisScope& s
 
 } // namespace
 
-bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, CapacityAnalysisScope& scope) {
+bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, CapacityAnalysisScope& scope,
+	const ScopeStretchObserver& observer) {
 	if (run.routes.empty())
 		return false;
 	QDialog dialog(parent);
@@ -385,19 +388,11 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	form->setRowWrapPolicy(QFormLayout::WrapLongRows);
 	// The fields fill the width, so the labels keep their place when a choice changes the width of its field.
 	form->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-	auto* routeCombo = new ChoiceComboBox(&dialog);
-	for (std::size_t routeIndex = 0; routeIndex < run.routes.size(); ++routeIndex) {
-		const CompletedRoute& route = run.routes[routeIndex];
-		const QString id = QString::fromStdString(route.id);
-		routeCombo->addItem(route.corridor.empty() ? id : QString("%1  (%2)").arg(id, QString::fromStdString(route.corridor)),
-			static_cast<int>(routeIndex));
-	}
-	// The first and the last analysed block, by their labels; a long entry is cut in the middle. The tooltip of an entry
-	// is the short id of its block.
-	auto* fromBlock = new ChoiceComboBox(&dialog);
-	fromBlock->setObjectName("capacityFromBlock");
-	auto* toBlock = new ChoiceComboBox(&dialog);
-	toBlock->setObjectName("capacityToBlock");
+	std::vector<BlockingTimeScopeChoices::Route> routes;
+	for (const CompletedRoute& route : run.routes)
+		routes.push_back(blockingTimeScopeRouteFrom(route));
+	// The route and the analysed stretch, as the blocking-time scope chooses them.
+	auto* stretch = new ScopeStretchChoice(std::move(routes), run.sectionLabels, false, form, &dialog, "capacity");
 	auto* period = new QDoubleSpinBox(&dialog);
 	period->setRange(0.001, std::numeric_limits<double>::max());
 	period->setDecimals(3);
@@ -411,9 +406,6 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	occurrences->setDragDropMode(QAbstractItemView::InternalMove);
 	occurrences->setDefaultDropAction(Qt::MoveAction);
 	occurrences->setMinimumHeight(occurrences->fontMetrics().height() * 4);
-	form->addRow("Route / corridor:", routeCombo);
-	form->addRow("From block:", fromBlock);
-	form->addRow("To block:", toBlock);
 	form->addRow("Analysis period:", period);
 	form->addRow("Cycle-closing train:", cycleEnd);
 	layout->addLayout(form);
@@ -505,9 +497,10 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	};
 	// Lists the trains of the range: those of `first` checked and first, in that order, then the others in the order of
 	// capacityTrainOrder, checked unless the user unchecked them.
-	const auto refillTrains = [&run, &range, &trains, &unchecked, routeCombo, fromBlock, toBlock, occurrences, refreshChoices](
+	const auto refillTrains = [&run, &range, &trains, &unchecked, stretch, occurrences, refreshChoices](
 								  const std::vector<std::string>& first) {
-		range = blockRangeOf(run, routeCombo->currentData().toInt(), fromBlock->currentIndex(), toBlock->currentIndex());
+		const std::vector<int> blocks = stretch->sectionIndices();
+		range = blockRangeOf(run, stretch->routeIndex(), blocks.empty() ? 0 : blocks.front(), blocks.empty() ? -1 : blocks.back());
 		trains = capacityInputsFrom(run, range);
 		const auto rank = [&first](const CapacityAnalysisTrain& train) {
 			return std::find(first.begin(), first.end(), train.runtimeId) - first.begin();
@@ -530,36 +523,10 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 		}
 		refreshChoices();
 	};
-	// The blocks of the route as "1: <label>", from the first to the last.
-	const auto refillBlocks = [&run, routeCombo, fromBlock, toBlock]() {
-		const QSignalBlocker blockFrom(fromBlock);
-		const QSignalBlocker blockTo(toBlock);
-		fromBlock->clear();
-		toBlock->clear();
-		const int routeIndex = routeCombo->currentData().toInt();
-		if (!run.hasRoute(routeIndex))
-			return;
-		const std::vector<BlockSectionInput>& blocks = run.routes[static_cast<std::size_t>(routeIndex)].blocks;
-		for (std::size_t index = 0; index < blocks.size(); ++index) {
-			const QString text = QString("%1: %2").arg(index + 1).arg(QString::fromStdString(readableSectionLabel(blocks[index].id, run.sectionLabels)));
-			for (QComboBox* combo : {fromBlock, toBlock}) {
-				combo->addItem(text);
-				combo->setItemData(combo->count() - 1, QString::fromStdString(shortBlockId(blocks[index].id)), Qt::ToolTipRole);
-			}
-		}
-		toBlock->setCurrentIndex(toBlock->count() - 1);
-	};
-
 	// The dialog opens on the given scope when the run has its route, else on the whole of the first route.
 	const bool givenRoute = run.hasRoute(scope.routeIndex);
 	const CapacityAnalysisScope opening = givenRoute ? scope : firstCapacityScopeWithPairFrom(run);
-	routeCombo->setCurrentIndex(std::max(0, routeCombo->findData(opening.routeIndex)));
-	refillBlocks();
-	if (givenRoute && !scope.sectionIndices.empty()) {
-		const auto [low, high] = std::minmax_element(scope.sectionIndices.begin(), scope.sectionIndices.end());
-		fromBlock->setCurrentIndex(std::min(*low, fromBlock->count() - 1));
-		toBlock->setCurrentIndex(std::min(*high, toBlock->count() - 1));
-	}
+	stretch->choose(opening.routeIndex, givenRoute ? scope.sectionIndices : std::vector<int>());
 	period->setValue(opening.periodSeconds);
 	refillTrains(givenRoute ? scope.occurrenceIds : std::vector<std::string>());
 	// A given scope that names its trains leaves the other trains of its range unchecked.
@@ -578,28 +545,8 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 		cycleEnd->setCurrentIndex(std::max(0, cycleEnd->findData(QString::fromStdString(scope.cycleEndOccurrenceId))));
 	refreshChoices();
 
-	// A route has its own trains and blocks, so the dialog widens to show them.
-	QObject::connect(routeCombo, qOverload<int>(&QComboBox::currentIndexChanged), &dialog,
-		[refillBlocks, refillTrains, &dialog](int) {
-			refillBlocks();
-			refillTrains({});
-			DialogLayout::fitWidthToContent(dialog);
-		});
-	// A first block after the last moves the last block to it, and a last block before the first moves the first block.
-	QObject::connect(fromBlock, qOverload<int>(&QComboBox::currentIndexChanged), &dialog, [toBlock, refillTrains](int index) {
-		if (index > toBlock->currentIndex()) {
-			const QSignalBlocker blocker(toBlock);
-			toBlock->setCurrentIndex(index);
-		}
-		refillTrains({});
-	});
-	QObject::connect(toBlock, qOverload<int>(&QComboBox::currentIndexChanged), &dialog, [fromBlock, refillTrains](int index) {
-		if (index < fromBlock->currentIndex()) {
-			const QSignalBlocker blocker(fromBlock);
-			fromBlock->setCurrentIndex(index);
-		}
-		refillTrains({});
-	});
+	// Another route or stretch has its own trains.
+	QObject::connect(stretch, &ScopeStretchChoice::stretchChanged, &dialog, [refillTrains]() { refillTrains({}); });
 	QObject::connect(cycleEnd, qOverload<int>(&QComboBox::currentIndexChanged), &dialog, [refreshChoices](int) { refreshChoices(); });
 	QObject::connect(occurrences, &QListWidget::itemChanged, &dialog, [&unchecked, refreshChoices](QListWidgetItem* item) {
 		const std::string id = item->data(Qt::UserRole).toString().toStdString();
@@ -629,8 +576,12 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	dialogColumn->insertWidget(dialogColumn->count() - 1, firstTrain);
 	dialogColumn->insertWidget(dialogColumn->count() - 1, status);
 	DialogLayout::fitWidthToContent(dialog);
+	// Another route or kind of stretch fills the lists again, so the dialog widens for their entries.
+	QObject::connect(stretch, &ScopeStretchChoice::entriesChanged, &dialog, [&dialog]() { DialogLayout::fitWidthToContent(dialog); });
 	// The dialog opened tall enough for the list at its preferred height. From now on the list counts at its minimum
 	// height, so that on a short screen it scrolls its rows before the body scrolls.
 	occurrences->setSizePolicy(occurrences->sizePolicy().horizontalPolicy(), QSizePolicy::Ignored);
+	if (observer)
+		observer(*stretch);
 	return dialog.exec() == QDialog::Accepted;
 }

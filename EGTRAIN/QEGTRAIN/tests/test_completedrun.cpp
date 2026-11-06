@@ -42,6 +42,7 @@
 #include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QScreen>
 #include <QScrollArea>
 #include <QScrollBar>
@@ -1017,6 +1018,10 @@ void checkLabelledChoosers(const CapturedRun& run) {
 		if (combos.size() != 3)
 			return;
 		combos[0]->setCurrentIndex(combos[0]->findData(routeIndex));
+		auto* blocks = dialog.findChild<QRadioButton*>("blockingTimeBlocks");
+		if (blocks == nullptr)
+			QFAIL("Paimpol: the blocking-time chooser offers the blocks of route0");
+		blocks->click();
 		// Paimpol: the blocking-time chooser names the blocks of route0 by their labels
 		QCOMPARE(combos[1]->itemText(0), "1: B0 0.000 to 0.230 km");
 		QCOMPARE(combos[1]->itemData(0, Qt::ToolTipRole).toString(), "0-B0");
@@ -1066,6 +1071,72 @@ void checkLabelledChoosers(const CapturedRun& run) {
 		QFAIL("Paimpol: the capacity by area chooser names the blocks of route0 by their labels");
 	QCOMPARE(first->itemText(0), "1: B0 0.000 to 0.230 km");
 	QCOMPARE(first->itemData(0, Qt::ToolTipRole).toString(), "0-B0");
+}
+
+// The rows of the stretch of a scope dialog, by their names: "blockingTime" or "capacity" and then Route, Stations,
+// Blocks, FromBlock and ToBlock.
+struct StretchRows {
+	QComboBox* route = nullptr;
+	QRadioButton* stations = nullptr;
+	QRadioButton* blocks = nullptr;
+	QComboBox* from = nullptr;
+	QComboBox* to = nullptr;
+	bool complete() const { return route && stations && blocks && from && to; }
+};
+
+StretchRows stretchRows(const QDialog& dialog, const QString& name) {
+	StretchRows rows;
+	rows.route = dialog.findChild<QComboBox*>(name + "Route");
+	rows.stations = dialog.findChild<QRadioButton*>(name + "Stations");
+	rows.blocks = dialog.findChild<QRadioButton*>(name + "Blocks");
+	rows.from = dialog.findChild<QComboBox*>(name + "FromBlock");
+	rows.to = dialog.findChild<QComboBox*>(name + "ToBlock");
+	return rows;
+}
+
+int routeIndexOf(const CompletedRunData& data, const std::string& routeId) {
+	const auto route = std::find_if(data.routes.begin(), data.routes.end(), [&routeId](const CompletedRoute& candidate) { return candidate.id == routeId; });
+	return route == data.routes.end() ? -1 : static_cast<int>(route - data.routes.begin());
+}
+
+// In the Blocking time dialog of `run`, the stretch of route `routeId` from station `from` to station `to` gives the
+// blocks `first` to `last`, positions from 0, and the diagram of the scope shows them.
+void checkStationStretch(const CapturedRun& run, const std::string& routeId, const QString& from, const QString& to, int first, int last) {
+	const CompletedRunData& data = run.data;
+	const int routeIndex = routeIndexOf(data, routeId);
+	const std::string stretch = QString("%1: %2 of %3 to %4 takes blocks %5 to %6")
+									.arg(QString::fromStdString(run.scene), QString::fromStdString(routeId), from, to)
+									.arg(first + 1)
+									.arg(last + 1)
+									.toStdString();
+	if (routeIndex < 0)
+		QFAIL(stretch.c_str());
+	BlockingTimeScope scope = defaultBlockingTimeScopeFrom(data);
+	const bool accepted = askScope(blockingTimeScopeChoicesFrom(data), scope, [&](QDialog& dialog) {
+		const StretchRows rows = stretchRows(dialog, "blockingTime");
+		if (!rows.complete())
+			QFAIL(stretch.c_str());
+		rows.route->setCurrentIndex(rows.route->findData(routeIndex));
+		QVERIFY2(rows.stations->isChecked(), stretch.c_str());
+		rows.from->setCurrentIndex(rows.from->findText(from));
+		rows.to->setCurrentIndex(rows.to->findText(to));
+		QVERIFY2(rows.from->currentText() == from && rows.to->currentText() == to, stretch.c_str());
+		press(dialog, QDialogButtonBox::Ok);
+	});
+	if (QTest::currentTestFailed())
+		return;
+	std::vector<int> blocks;
+	QStringList ids;
+	for (int index = first; index <= last; ++index) {
+		blocks.push_back(index);
+		ids << QString::fromStdString(data.routes[static_cast<std::size_t>(routeIndex)].blocks[static_cast<std::size_t>(index)].id);
+	}
+	QVERIFY2(accepted && scope.routeIndex == routeIndex && scope.sectionIndices == blocks, stretch.c_str());
+	const std::optional<BlockingTimeDiagramData> diagram = blockingTimeDiagramData(data, scope);
+	QStringList shown;
+	for (const BlockSectionExtent& extent : diagram ? diagram->extents : std::vector<BlockSectionExtent>())
+		shown << QString::fromStdString(extent.id);
+	QVERIFY2(shown == ids, (stretch + ", and the diagram shows them").c_str());
 }
 
 // The parts of the capacity dialog, by their names. The route is the first combo.
@@ -1188,6 +1259,7 @@ private slots:
 	void windowsExportTheirRun_data();
 	void windowsExportTheirRun();
 	void namesBlocksByLabels();
+	void choosesStretchesByStations();
 	void keepsExportsAfterLaterRuns();
 	void leavesTrajectoryCellsEmpty();
 	void skipsPlannedReferencesWithoutTime();
@@ -1339,6 +1411,88 @@ void TestCompletedRun::namesBlocksByLabels() {
 	if (first == nullptr)
 		QFAIL("the scene runs");
 	checkLabelledChoosers(first->run);
+}
+
+// The scope dialogs name the routes of a run by their end stations and list the stations of a route in its order. A
+// stretch from one station to another takes every block that lies at least partly between them, the first and the last
+// station of the route standing for its ends: on Paimpol, on the long route8 of Milano_Brescia, whose OspitalettoT.1E
+// lies where two blocks meet, and on Assignment_Gvc_Gdg_Ut, whose Gdg lies where blocks 14 and 15 meet.
+void TestCompletedRun::choosesStretchesByStations() {
+	const SceneRun* paimpol = firstRun("Paimpol");
+	if (paimpol == nullptr)
+		QFAIL("the scene runs");
+	const CompletedRunData& data = paimpol->run.data;
+	const int route0 = routeIndexOf(data, "route0");
+	const int route13 = routeIndexOf(data, "route13");
+	const QStringList stations = {"Guingamp", "Gourland", "Tregonneau_Squiffiec", "Brelidy-Plouec", "Pontrieaux_Halte", "Pontrieaux",
+		"Frynaudour", "Traou_Nez", "Lancerf", "Paimpol"};
+	BlockingTimeScope scope = defaultBlockingTimeScopeFrom(data);
+	askScope(blockingTimeScopeChoicesFrom(data), scope, [route0, route13, &stations](QDialog& dialog) {
+		const StretchRows rows = stretchRows(dialog, "blockingTime");
+		if (!rows.complete())
+			QFAIL("Paimpol: the Blocking time dialog has the rows of the stretch");
+		// Paimpol: the Blocking time dialog names the routes by their end stations, with their ids and corridors
+		QCOMPARE(rows.route->itemText(rows.route->findData(route0)), "route0: Guingamp to Paimpol  (A)");
+		QCOMPARE(rows.route->itemText(rows.route->findData(route13)), "route13: Tregonneau_Squiffiec to Guingamp  (A)");
+		rows.route->setCurrentIndex(rows.route->findData(route0));
+		// Paimpol: route0 lists its stations in route order, from the first to the last
+		QVERIFY(rows.stations->isChecked());
+		QCOMPARE(entriesOf(rows.from), stations);
+		QCOMPARE(entriesOf(rows.to), stations);
+		QCOMPARE(rows.from->currentText(), "Guingamp");
+		QCOMPARE(rows.to->currentText(), "Paimpol");
+		dialog.reject();
+	});
+	if (QTest::currentTestFailed())
+		return;
+	// Paimpol: Tregonneau_Squiffiec at km 9.989 lies inside block 35 and Pontrieaux at km 21.584 inside block 73
+	checkStationStretch(paimpol->run, "route0", "Tregonneau_Squiffiec", "Pontrieaux", 34, 72);
+	// Paimpol: the stretch from the first to the last station takes the whole route, the last block after Paimpol too
+	checkStationStretch(paimpol->run, "route0", "Guingamp", "Paimpol", 0, 124);
+	// Paimpol: from a station to itself, the blocks that hold it
+	checkStationStretch(paimpol->run, "route0", "Gourland", "Gourland", 9, 9);
+	if (QTest::currentTestFailed())
+		return;
+
+	// The Capacity dialog offers the same routes and stretches, and Blocks shows the blocks of the stations.
+	CapacityAnalysisScope capacity;
+	askCapacityScope(data, capacity, [route0, &stations](QDialog& dialog) {
+		StretchRows rows = stretchRows(dialog, "capacity");
+		if (!rows.complete())
+			QFAIL("Paimpol: the Capacity dialog has the rows of the stretch");
+		// Paimpol: the Capacity dialog names the routes by their end stations
+		QCOMPARE(rows.route->itemText(rows.route->findData(route0)), "route0: Guingamp to Paimpol  (A)");
+		rows.route->setCurrentIndex(rows.route->findData(route0));
+		QCOMPARE(entriesOf(rows.from), stations);
+		rows.from->setCurrentIndex(rows.from->findText("Pontrieaux"));
+		rows.blocks->click();
+		// Paimpol: Blocks shows the blocks from Pontrieaux to Paimpol, 73 to 125
+		QCOMPARE(rows.from->currentIndex(), 72);
+		QCOMPARE(rows.to->currentIndex(), 124);
+		QCOMPARE(rows.from->currentData(Qt::ToolTipRole).toString(), "1-B1");
+		dialog.reject();
+	});
+	if (QTest::currentTestFailed())
+		return;
+
+	const SceneRun* milano = firstRun("Milano_Brescia");
+	if (milano == nullptr)
+		QFAIL("the scene runs");
+	// Milano_Brescia: Treviglio at km 33.143 lies inside block 19 and Rovato at km 65.827 inside block 41
+	checkStationStretch(milano->run, "route8", "Treviglio", "Rovato", 18, 40);
+	// Milano_Brescia: OspitalettoT.1E at km 71.860 ends block 45 and starts block 46
+	checkStationStretch(milano->run, "route8", "Rovato", "OspitalettoT.1E", 40, 44);
+	checkStationStretch(milano->run, "route8", "OspitalettoT.1E", "BivioRoncadelle", 45, 49);
+	checkStationStretch(milano->run, "route8", "OspitalettoT.1E", "OspitalettoT.1E", 44, 45);
+	if (QTest::currentTestFailed())
+		return;
+
+	const SceneRun* assignment = firstRun("Assignment_Gvc_Gdg_Ut");
+	if (assignment == nullptr)
+		QFAIL("the scene runs");
+	// Assignment_Gvc_Gdg_Ut: Gdg at km 28 ends block 14 and starts block 15
+	checkStationStretch(assignment->run, "route0", "Gvc", "Gdg", 0, 13);
+	checkStationStretch(assignment->run, "route0", "Gdg", "Ut", 14, 31);
 }
 
 // Every run has been replaced by the next one by now. The data of each must still give what it gave.
@@ -2293,22 +2447,32 @@ void TestCompletedRun::choosesBlockingTimeScope() {
 	QCOMPARE(scope.blockIds, std::vector<std::string>({"b", "c"}));
 	QVERIFY(scope.trainIds.empty());
 
-	// The last block may come before the first.
+	// The dialog opens on the route and blocks of the scope. A To block before the From block moves the From block to it,
+	// and a From block after the To block moves the To block.
 	accepted = askScope(choices, scope, [](QDialog& dialog) {
 		const auto combos = dialog.findChildren<QComboBox*>();
 		if (combos.size() != 3)
 			return;
+		// the dialog opens on the blocks of the scope
+		QCOMPARE(combos[0]->currentIndex(), 1);
+		QCOMPARE(combos[1]->currentIndex(), 1);
+		QCOMPARE(combos[2]->currentIndex(), 2);
 		combos[0]->setCurrentIndex(2);
-		combos[2]->setCurrentIndex(0);
 		combos[1]->setCurrentIndex(1);
+		combos[2]->setCurrentIndex(0);
+		// a To block before the From block moves the From block
+		QCOMPARE(combos[1]->currentIndex(), 0);
+		combos[1]->setCurrentIndex(1);
+		// a From block after the To block moves the To block
+		QCOMPARE(combos[2]->currentIndex(), 1);
 		press(dialog, QDialogButtonBox::Ok);
 	});
 	if (QTest::currentTestFailed())
 		return;
-	// the blocks are taken in route order
+	// the dialog gives the blocks of the last choice
 	QVERIFY(accepted);
 	QCOMPARE(scope.routeIndex, 1);
-	QCOMPARE(scope.sectionIndices, std::vector<int>({0, 1}));
+	QCOMPARE(scope.sectionIndices, std::vector<int>({1}));
 	QVERIFY(scope.trainIds.empty());
 
 	// An empty interval is widened by one step, or moved back at the end of the run.

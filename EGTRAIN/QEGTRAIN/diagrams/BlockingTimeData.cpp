@@ -113,15 +113,10 @@ BlockingTimeScopeChoices blockingTimeScopeChoicesFrom(const CompletedRunData& da
 	BlockingTimeScopeChoices choices;
 	choices.caseEndSeconds = data.settings.horizonSeconds();
 	choices.stepSeconds = data.settings.timestepSeconds;
+	choices.startOffsetSeconds = data.settings.startOffsetSeconds;
 	choices.sectionLabels = data.sectionLabels;
-	for (const CompletedRoute& route : data.routes) {
-		BlockingTimeScopeChoices::Route choice;
-		choice.id = route.id;
-		choice.corridor = route.corridor;
-		for (const BlockSectionInput& block : route.blocks)
-			choice.blockIds.push_back(block.id);
-		choices.routes.push_back(std::move(choice));
-	}
+	for (const CompletedRoute& route : data.routes)
+		choices.routes.push_back(blockingTimeScopeRouteFrom(route));
 	return choices;
 }
 
