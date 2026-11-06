@@ -40,8 +40,9 @@ struct PreparedBatch {
 /// space check), retirement (a retirement that control.json does not record), ledger (control.json
 /// is damaged, or missing next to category data) or time (a time that is not UTC). Older versions
 /// write no second line, and every version only tests that the file exists. Only
-/// clearStorageFailure() removes a marker, and only a storage one; open() keeps the category data
-/// next to a storage marker while control.json is missing, so that the marker stays.
+/// clearStorageFailure() removes a marker, and only a storage one. When open() finds a storage
+/// marker next to category data and no control.json, it makes it a ledger marker before it
+/// discards the data, so that the marker stays.
 class TelemetryQueue {
 public:
 	/// Result of open().
@@ -129,6 +130,7 @@ private:
 	bool saveControl(Failure failure = Failure::Storage);
 	bool replace(const QString& file, const QByteArray& bytes, qint64 limit, Failure failure = Failure::Storage);
 	bool fail(Failure failure = Failure::Storage);
+	bool writeMarker(const QByteArray& bytes);
 	bool storageMarker() const;
 	bool ledgerMissing() const;
 	bool checkSpace(qint64 incomingBytes = 0) const;

@@ -215,11 +215,11 @@ void TestTelemetryQueue::keepsOtherMarkers_data() {
 	QTest::newRow("damaged ledger") << 2 << QByteArray("disabled\nledger\n");
 	QTest::newRow("missing ledger") << 3 << QByteArray("disabled\nledger\n");
 	QTest::newRow("marker without a reason") << 4 << QByteArray("disabled\n");
-	QTest::newRow("storage marker and missing ledger") << 5 << QByteArray("disabled\nstorage\n");
+	QTest::newRow("storage marker and missing ledger") << 5 << QByteArray("disabled\nledger\n");
 }
 
-// Every marker but a storage one, and a storage one next to category data without control.json, stays after a consent
-// change, and control.json stays as it was.
+// Every marker but a storage one stays after a consent change, and control.json stays as it was. A storage marker next
+// to category data without control.json becomes a ledger marker and stays too.
 void TestTelemetryQueue::keepsOtherMarkers() {
 	QFETCH(int, cause);
 	QFETCH(QByteArray, marker);
@@ -267,8 +267,8 @@ void TestTelemetryQueue::keepsOtherMarkers() {
 	QCOMPARE(fileBytes(markerPath), marker);
 	QCOMPARE(QFile::exists(control), ledgerExists);
 	QCOMPARE(fileBytes(control), ledger);
-	// Category data without a ledger stays next to a storage marker.
-	if (cause == 5) QVERIFY(QFile::exists(usage));
+	// The queued events go, also next to a storage marker without a ledger, which became a ledger marker first.
+	QVERIFY(!QFile::exists(usage));
 }
 
 void TestTelemetryQueue::temporaryBudget() {

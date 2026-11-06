@@ -816,6 +816,7 @@ void TestTelemetrySender::disabledWorkerExits() {
 	QVERIFY(exited.tryAcquire(1, 3000));
 	QCOMPARE(pumps.load(), lastPump.load());
 	QVERIFY(!sender.tryEnqueue({}));
+	// The worker has exited, which is what keeps the marker: no worker is left to remove it.
 	if (cause == 0) {
 		QVERIFY(consent.save(true, true));
 		sender.requestConsentRefresh();

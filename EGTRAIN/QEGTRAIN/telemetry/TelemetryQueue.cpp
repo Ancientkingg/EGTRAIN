@@ -24,6 +24,7 @@ constexpr qint64 kRecordBytes = 1024;
 constexpr qint64 kLifetimeMs = 7LL * 24 * 60 * 60 * 1000;
 // The disabled marker that a failed file write or space check leaves, the only one that clearStorageFailure() removes.
 constexpr char kStorageMarker[] = "disabled\nstorage\n";
+constexpr char kLedgerMarker[] = "disabled\nledger\n";
 QString filename(Category category) { return category == Category::Usage ? QStringLiteral("usage.json") : QStringLiteral("diagnostics.json"); }
 bool utc(const QDateTime& time) { return validUtc(time); }
 bool keys(const QJsonObject& obj, std::initializer_list<const char*> expected) {
@@ -72,18 +73,18 @@ bool TelemetryQueue::fail(Failure failure) {
 	// Best effort marker. A storage error must never turn into an upload attempt.
 	const QByteArray bytes = m_failure == Failure::Storage ? QByteArray(kStorageMarker)
 		: m_failure == Failure::Retirement				   ? QByteArrayLiteral("disabled\nretirement\n")
-		: m_failure == Failure::Ledger					   ? QByteArrayLiteral("disabled\nledger\n")
+		: m_failure == Failure::Ledger					   ? QByteArray(kLedgerMarker)
 														   : QByteArrayLiteral("disabled\ntime\n");
-	if (m_owner && !m_dir.isEmpty() && !QFile::exists(m_dir + QStringLiteral("/disabled")) && checkSpace(bytes.size())) {
-		QSaveFile marker(m_dir + QStringLiteral("/disabled"));
-		marker.setDirectWriteFallback(false);
-		if (marker.open(QIODevice::WriteOnly)) {
-			marker.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
-			marker.write(bytes);
-			marker.commit();
-		}
-	}
+	if (m_owner && !m_dir.isEmpty() && !QFile::exists(m_dir + QStringLiteral("/disabled"))) writeMarker(bytes);
 	return false;
+}
+bool TelemetryQueue::writeMarker(const QByteArray& bytes) {
+	if (!checkSpace(bytes.size())) return false;
+	QSaveFile marker(m_dir + QStringLiteral("/disabled"));
+	marker.setDirectWriteFallback(false);
+	if (!marker.open(QIODevice::WriteOnly)) return false;
+	marker.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
+	return marker.write(bytes) == bytes.size() && marker.commit();
 }
 bool TelemetryQueue::storageMarker() const {
 	QFile marker(m_dir + QStringLiteral("/disabled"));
@@ -249,9 +250,10 @@ TelemetryQueue::OpenResult TelemetryQueue::open(const QString& privateDirectory,
 	m_ownershipId = QUuid::createUuid().toString(QUuid::WithoutBraces);
 	const bool missingControlWithData = ledgerMissing();
 	if (QFile::exists(m_dir + QStringLiteral("/disabled"))) {
-		// Recovery only discards payloads. Never erase the disabled marker or retirement ledger. Category data
-		// next to a storage marker and a missing ledger stays, so that clearStorageFailure() keeps that marker.
-		if (!missingControlWithData || !storageMarker()) {
+		// Recovery only discards payloads. Never erase the disabled marker or retirement ledger. A storage marker
+		// next to category data without a ledger first becomes a ledger marker, which nothing removes, so that the
+		// data can go; if that write fails, the data stays and clearStorageFailure() still refuses.
+		if (!missingControlWithData || !storageMarker() || writeMarker(QByteArray(kLedgerMarker))) {
 			QFile::remove(m_dir + QStringLiteral("/usage.json"));
 			QFile::remove(m_dir + QStringLiteral("/diagnostics.json"));
 		}
