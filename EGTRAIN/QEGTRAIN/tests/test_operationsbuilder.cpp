@@ -1310,18 +1310,20 @@ static const SceneDiagnostic* diagnosticWithCode(const std::vector<SceneDiagnost
 	return found == diagnostics.end() ? nullptr : &*found;
 }
 
-// The samples of a train take kSampleBytesPerStep bytes for each step, which the memory estimate of the builder counts.
-void TestOperationsBuilder::trainSamplesTakeTheirBytesPerStep() {
-	constexpr int steps = 4096;
+// The bytes that the sample vectors of a train allocate for `steps` steps. Each sample vector takes at least 4 bytes for
+// each step; smaller allocations are not samples.
+static std::size_t sampleBytesFor(int steps) {
 	Train train;
-	std::size_t counted = 0;
-	{
-		// Each sample vector takes at least 4 bytes for each step; smaller allocations are not samples.
-		const LargeAllocations samples(steps, false);
-		train.setTrainVectorSizesFromInput(steps);
-		counted = LargeAllocations::counted();
-	}
-	QCOMPARE(counted, kSampleBytesPerStep * steps);
+	const LargeAllocations samples(static_cast<std::size_t>(steps), false);
+	train.setTrainVectorSizesFromInput(steps);
+	return LargeAllocations::counted();
+}
+
+// The samples of a train take kSampleBytesPerStep bytes for each step, which the memory estimate of the builder counts.
+// The difference of two sizes leaves out the bytes that the standard library adds to each block (MSVC adds a few to every
+// block of 4096 bytes or more).
+void TestOperationsBuilder::trainSamplesTakeTheirBytesPerStep() {
+	QCOMPARE(sampleBytesFor(8192) - sampleBytesFor(4096), kSampleBytesPerStep * 4096);
 }
 
 // A run whose samples would take more than 4 GiB is refused before its trains are built, with the estimate, the number of
