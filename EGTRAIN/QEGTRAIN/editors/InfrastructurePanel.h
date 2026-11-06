@@ -15,22 +15,30 @@
 
 class QComboBox;
 class QLabel;
+class QLineEdit;
 class QListWidget;
 class QPushButton;
 struct SceneSectionDescriptor;
 struct SceneSectionInventory;
 struct SceneSectionLabels;
 
-/// The infrastructure of the scene: a combo on top to pick the kind of entity, a sentence about the kind
-/// (infrastructureGuidanceText), a table with one row for each entity of that kind, under the table a line that says
-/// what the canvas marks of the selected row (markLabel()), and under that the buttons that add and delete one. The
-/// kinds are the facets: tracks, nodes, arcs, blocks, connections, stations, platforms, signals, signalling areas,
-/// routes, block dependencies, single-track restrictions and station boundaries. What a kind lists and
-/// how it is edited is up to its InfrastructureFacet; a kind without one lists nothing. The facet also says which other
-/// controls it uses (InfrastructureFacet::capabilities): a filter on the track under the combo, which blocks use, buttons
-/// that insert and move an entity, which blocks use too, and the heading "Route sections" with the list of the sections
-/// of the selected route and the buttons that change it, below the table in a splitter, which routes use. The buttons
-/// call the facet that is chosen, only when it has their capability and only while the scene can be edited.
+/// The infrastructure of the scene: a combo on top to pick the kind of entity, a row with a field that filters the rows by
+/// text (filterEdit()) and a line that counts them (countLabel()), a sentence about the kind (infrastructureGuidanceText),
+/// a table with one row for each entity of that kind, under the table a line that says what the canvas marks of the
+/// selected row (markLabel()), and under that the buttons that add and delete one. The kinds are the facets: tracks, nodes,
+/// arcs, blocks, connections, stations, platforms, signals, signalling areas, routes, block dependencies, single-track
+/// restrictions and station boundaries. What a kind lists and how it is edited is up to its InfrastructureFacet; a kind
+/// without one lists nothing. The facet also says which other controls it uses (InfrastructureFacet::capabilities): a
+/// filter on the track under the combo that lists the blocks of one track, which blocks use, a filter on the track at the
+/// start of the row of the text filter that hides the rows of other tracks, which nodes, arcs, connections and platforms
+/// use, buttons that insert and move an entity, which blocks use too, and the heading "Route sections" with the list of
+/// the sections of the selected route and the buttons that change it, below the table in a splitter, which routes use. The
+/// buttons call the facet that is chosen, only when it has their capability and only while the scene can be edited.
+///
+/// The filters hide rows and keep them in the table, so that a row keeps its number. They stay when another kind is
+/// chosen, and are applied again whenever the table is filled. Add and Insert clear them first, so
+/// that the new row is shown, and Move Up and Move Down are off while they hide a row. A row that they hide is never
+/// selected.
 class InfrastructurePanel : public SceneEditorPanel {
 	Q_OBJECT
 
@@ -60,26 +68,27 @@ public:
 	/// Takes the selected row as the selection, tells selectionChanged, and shows the controls that depend on it.
 	void updateSelection();
 	/// Selects the row of the entity that an item of the track preview stands for and scrolls the table to it, choosing its
-	/// kind in the combo first. `kind` and `id` are the kind and the id of the item (PreviewGraphics::Kind and Id), and
-	/// `platform` is the platform of a station node (PreviewGraphics::PlatformId). A node, a track, an arc, a connection and
-	/// a station are rows of their own kind. A station node is the row of its platform under Platforms, or its row under
-	/// Nodes when it has no platform. A signal head names a section, and is the row of the block of that section under
-	/// Blocks, whose track the filter then shows. The cells that are being edited are taken first (commitPendingEditors()).
-	/// selectionChanged is told once, or not at all when the row was selected already. Returns false and changes nothing
-	/// while the scene cannot be edited, and for an item of another kind or whose entity the scene does not have.
+	/// kind in the combo first and clearing a filter that hides the row. `kind` and `id` are the kind and the id of the item
+	/// (PreviewGraphics::Kind and Id), and `platform` is the platform of a station node (PreviewGraphics::PlatformId). A
+	/// node, a track, an arc, a connection and a station are rows of their own kind. A station node is the row of its
+	/// platform under Platforms, or its row under Nodes when it has no platform. A signal head names a section, and is the
+	/// row of the block of that section under Blocks, whose track the filter then shows. The cells that are being edited
+	/// are taken first (commitPendingEditors()). selectionChanged is told once, or not at all when the row was selected
+	/// already. Returns false and changes nothing while the scene cannot be edited, and for an item of another kind or
+	/// whose entity the scene does not have.
 	bool selectCanvasItem(const QString& kind, const QString& id, const QString& platform = QString());
 	/// Lists the tracks that blocks can be filtered on again and keeps the chosen track where it still exists.
 	void refreshBlockTrackFilter();
 
 	/// The cell in `row` and `column` has been edited; the chosen facet takes it.
 	void commitCell(int row, int column);
-	/// Adds an entity of the chosen kind.
+	/// Adds an entity of the chosen kind, after clearing the filters.
 	void addEntity();
 	/// Deletes the entity in the selected row after the user has confirmed it.
 	void deleteEntity();
-	/// Inserts an entity before the selected one.
+	/// Inserts an entity before the selected one, after clearing the text filter.
 	void insertEntity();
-	/// Moves the selected entity down by `offset` rows, up when it is negative.
+	/// Moves the selected entity down by `offset` rows, up when it is negative. Does nothing while a filter hides a row.
 	void moveEntity(int offset);
 	/// Adds the section of the catalog that is chosen to the selected route.
 	void addSection();
@@ -150,6 +159,16 @@ public:
 	void setMarkShown(bool shown);
 	/// The filter of the blocks on a track, shown while blocks are listed.
 	QComboBox* blockTrackFilterCombo() const { return m_blockTrackFilterCombo; }
+	/// The filter on a track of a facet with InfrastructureFacet::TrackRowFilter, shown while one is listed: "All tracks"
+	/// with an empty id as its data, then the tracks of the scene with their ids. One choice serves every such facet.
+	QComboBox* trackFilterCombo() const { return m_trackFilterCombo; }
+	/// The field that filters the rows by text: a row is shown when every word of the field occurs in one of its cells,
+	/// ignoring case, the rule of the Find dialog (FindDialog::matches). The text of a combo or a number field in a cell
+	/// counts as its text.
+	QLineEdit* filterEdit() const { return m_filterEdit; }
+	/// The line beside the text filter that counts the rows, such as "399 nodes", or "12 of 399 nodes" while the filters
+	/// hide rows. Blocks are counted on the track of their filter. Hidden while the table is empty.
+	QLabel* countLabel() const { return m_countLabel; }
 	/// The button of insertEntity() for blocks.
 	QPushButton* insertBlockButton() const { return m_insertBlockButton; }
 	/// The button of moveEntity() up for blocks.
@@ -190,6 +209,23 @@ private:
 
 	// Shows the section catalog and the sections of the selected route, while routes are listed.
 	void refreshRouteSectionPanel();
+	// Lists the tracks of the filter of TrackRowFilter again, after "All tracks", and keeps the chosen track where it still
+	// exists.
+	void refreshTrackFilter();
+	// Enables Move Up and Move Down for the selected row of a facet with InsertAndMove.
+	void refreshMoveButtons();
+	// Whether the row holds every word of the filter field in its cells.
+	bool matchesText(int row) const;
+	// Whether the row is on the track of the track filter, or the chosen facet has no such filter or "All tracks" is chosen.
+	bool matchesTrack(int row) const;
+	// Hides the rows that do not match the filters, and counts the rows that are shown.
+	void applyFilters();
+	// Applies the filters after the user has changed one, and drops the selection of a row that they hide.
+	void filterRows();
+	// Clears the filters that hide the row.
+	void revealRow(int row);
+	// Clears the text filter and, for a facet with TrackRowFilter, the track filter, before an entity is added.
+	void clearFilters();
 	// Says on the line under the table what the canvas marks of the selected row.
 	void refreshMarkLabel();
 	InfrastructureFacet* currentFacet() const;
@@ -204,6 +240,13 @@ private:
 	QPushButton* m_addButton = nullptr;
 	QPushButton* m_deleteButton = nullptr;
 	QComboBox* m_blockTrackFilterCombo = nullptr;
+	QComboBox* m_trackFilterCombo = nullptr;
+	QLineEdit* m_filterEdit = nullptr;
+	QLabel* m_countLabel = nullptr;
+	// True while the filters hide a row.
+	bool m_rowsHidden = false;
+	// True while refreshTable() is to clear a filter that hides the selected entity, as for a row of the canvas.
+	bool m_revealSelection = false;
 	QPushButton* m_insertBlockButton = nullptr;
 	QPushButton* m_moveBlockUpButton = nullptr;
 	QPushButton* m_moveBlockDownButton = nullptr;

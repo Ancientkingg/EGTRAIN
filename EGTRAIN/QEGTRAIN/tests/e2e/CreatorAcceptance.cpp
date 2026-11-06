@@ -545,7 +545,12 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		if (row < 0 || !infrastructurePanel(w)->table()->item(row, column))
 			return false;
 		infrastructurePanel(w)->table()->setCurrentCell(row, column);
-		infrastructurePanel(w)->table()->item(row, column)->setText(value);
+		QTableWidgetItem* cell = infrastructurePanel(w)->table()->item(row, column);
+		// A flag is a check box, which takes "true" or "false" as its state.
+		if (cell->data(Qt::CheckStateRole).isValid())
+			cell->setCheckState(value == QLatin1String("true") ? Qt::Checked : Qt::Unchecked);
+		else
+			cell->setText(value);
 		process();
 		return true;
 	};
@@ -641,9 +646,9 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				: QString();
 			const QString track = row < 3 ? QStringLiteral("creator-main") : QStringLiteral("creator-yard");
 			if (!setCell("nodes", generated, 0, nodeIds[static_cast<std::size_t>(row)])
-				|| !setCell("nodes", nodeIds[static_cast<std::size_t>(row)], 1, track)
-				|| !setCell("nodes", nodeIds[static_cast<std::size_t>(row)], 2, QString::number(nodeX[static_cast<std::size_t>(row)]))
-				|| !setCell("nodes", nodeIds[static_cast<std::size_t>(row)], 3, QString::number(nodeY[static_cast<std::size_t>(row)]))) {
+				|| !setCell("nodes", nodeIds[static_cast<std::size_t>(row)], 2, track)
+				|| !setCell("nodes", nodeIds[static_cast<std::size_t>(row)], 3, QString::number(nodeX[static_cast<std::size_t>(row)]))
+				|| !setCell("nodes", nodeIds[static_cast<std::size_t>(row)], 4, QString::number(nodeY[static_cast<std::size_t>(row)]))) {
 				fail(QStringLiteral("node geometry editing failed"));
 				return;
 			}
@@ -785,11 +790,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return true;
 		};
 		if (!setPlatformCell(0, 0, "creator-station-a")
-			|| !setPlatformCell(0, 1, "creator-platform-a")
-			|| !setPlatformCell(0, 2, "creator-main-node-1")
+			|| !setPlatformCell(0, 2, "creator-platform-a")
+			|| !setPlatformCell(0, 3, "creator-main-node-1")
 			|| !setPlatformCell(1, 0, "creator-station-b")
-			|| !setPlatformCell(1, 1, "creator-platform-b")
-			|| !setPlatformCell(1, 2, "creator-yard-node-1")) {
+			|| !setPlatformCell(1, 2, "creator-platform-b")
+			|| !setPlatformCell(1, 3, "creator-yard-node-1")) {
 			fail(QStringLiteral("platform station/node references did not commit"));
 			return;
 		}
@@ -798,9 +803,9 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		for (int row = 0; row < infrastructurePanel(w)->table()->rowCount(); ++row) {
-			if (auto* length = qobject_cast<QDoubleSpinBox*>(infrastructurePanel(w)->table()->cellWidget(row, 3)))
+			if (auto* length = qobject_cast<QDoubleSpinBox*>(infrastructurePanel(w)->table()->cellWidget(row, 4)))
 				length->setValue(123.75);
-			if (auto* width = qobject_cast<QDoubleSpinBox*>(infrastructurePanel(w)->table()->cellWidget(row, 4)))
+			if (auto* width = qobject_cast<QDoubleSpinBox*>(infrastructurePanel(w)->table()->cellWidget(row, 5)))
 				width->setValue(4.25);
 			process();
 		}

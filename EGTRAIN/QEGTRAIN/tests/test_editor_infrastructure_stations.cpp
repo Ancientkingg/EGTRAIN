@@ -218,6 +218,7 @@ private slots:
 	void editsStations();
 	void listsPlatforms();
 	void editsPlatforms();
+	void refusesUnknownPlatformNodes();
 	void movesPlatforms();
 	void editsPlatformSize();
 	void addsAndDeletesPlatforms();
@@ -245,7 +246,7 @@ void TestStationFacets::offersStationFacets() {
 	f.panel.refresh();
 	f.panel.addEntity();
 	f.panel.deleteEntity();
-	f.type(0, 2, "node-a0");
+	f.type(0, 3, "node-a0");
 	f.panel.commitPendingEditors();
 	// Nothing is edited, added or deleted while a run uses the scene.
 	QVERIFY(f.untouched());
@@ -259,8 +260,11 @@ void TestStationFacets::editsStations() {
 	// Stations are listed with their name and position.
 	QCOMPARE(f.headers(), QStringList({"ID", "Name", "Has position", "Position km"}));
 	QCOMPARE(f.table()->rowCount(), 2);
-	QCOMPARE(f.rowTexts(0, 4), QStringList({"station-1", "Alpha", "true", "0.5"}));
-	QCOMPARE(f.rowTexts(1, 4), QStringList({"station-2", "Beta", "false", "0"}));
+	QCOMPARE(f.rowTexts(0, 4), QStringList({"station-1", "Alpha", "", "0.5"}));
+	QCOMPARE(f.rowTexts(1, 4), QStringList({"station-2", "Beta", "", "0"}));
+	// Has position is a check box.
+	QCOMPARE(f.table()->item(0, 2)->checkState(), Qt::Checked);
+	QCOMPARE(f.table()->item(1, 2)->checkState(), Qt::Unchecked);
 	// Listing stations edits nothing.
 	QVERIFY(f.untouched());
 	QVERIFY(!f.document.isDirty());
@@ -270,26 +274,25 @@ void TestStationFacets::editsStations() {
 	// The name of a station is edited.
 	QCOMPARE(f.model().stations[1].name, "Gamma");
 	QVERIFY(f.changedOnce("Edit station"));
-	f.type(1, 2, "TRUE");
-	// The flag of a station is edited.
+	f.table()->item(1, 2)->setCheckState(Qt::Checked);
+	// Checking the box sets the flag of the station.
 	QVERIFY(f.model().stations[1].hasPosition);
-	QCOMPARE(f.cell(1, 2), "true");
+	QCOMPARE(f.table()->item(1, 2)->checkState(), Qt::Checked);
 	QVERIFY(f.changedOnce("Edit station"));
 	f.type(1, 3, "12.25");
 	// The position of a station is edited.
 	QCOMPARE_EQ(f.model().stations[1].positionKm, 12.25);
 	QVERIFY(f.changedOnce("Edit station"));
 	f.type(1, 1, "Gamma");
-	f.type(1, 2, "true");
+	f.table()->item(1, 2)->setCheckState(Qt::Checked);
 	f.type(1, 3, " 12.25 ");
 	QVERIFY2(f.untouched(), "values that are the same change nothing");
-	f.type(1, 2, "yes");
+	// The box takes no text.
+	QVERIFY(!f.table()->item(1, 2)->flags().testFlag(Qt::ItemIsEditable));
 	f.type(1, 3, "far");
-	// A flag and a position that are no values are refused, without a message, and the table shows the model again.
+	// A position that is no number is refused, without a message, and the table shows the model again.
 	QVERIFY(f.untouched());
-	QVERIFY(f.model().stations[1].hasPosition);
 	QCOMPARE_EQ(f.model().stations[1].positionKm, 12.25);
-	QCOMPARE(f.cell(1, 2), "true");
 	QCOMPARE(f.cell(1, 3), "12.25");
 	QVERIFY(f.messages.empty());
 
@@ -368,23 +371,25 @@ void TestStationFacets::listsPlatforms() {
 	Fixture f;
 	f.choose("platforms");
 	// Platforms are listed under their stations.
-	QCOMPARE(f.headers(), QStringList({"Station ID", "ID", "Nodes", "Length (m)", "Width (m)"}));
+	QCOMPARE(f.headers(), QStringList({"Station ID", "Station", "ID", "Nodes", "Length (m)", "Width (m)"}));
 	QCOMPARE(f.table()->rowCount(), 4);
-	// Each row has its station, id and nodes.
-	QCOMPARE(f.rowTexts(0, 3), QStringList({"station-1", "platform-1", "node-a1"}));
-	QCOMPARE(f.rowTexts(1, 3), QStringList({"station-1", "platform-2", ""}));
-	QCOMPARE(f.rowTexts(2, 3), QStringList({"station-2", "platform-3", ""}));
-	QCOMPARE(f.rowTexts(3, 3), QStringList({"station-2", "platform-2", ""}));
+	// Each row has its station, the name of the station, its id and nodes.
+	QCOMPARE(f.rowTexts(0, 4), QStringList({"station-1", "Alpha", "platform-1", "node-a1"}));
+	QCOMPARE(f.rowTexts(1, 4), QStringList({"station-1", "Alpha", "platform-2", ""}));
+	QCOMPARE(f.rowTexts(2, 4), QStringList({"station-2", "Beta", "platform-3", ""}));
+	QCOMPARE(f.rowTexts(3, 4), QStringList({"station-2", "Beta", "platform-2", ""}));
+	// The name of the station is not edited in this table.
+	QVERIFY(!(f.table()->item(0, 1)->flags() & Qt::ItemIsEditable));
 	// The length and the width are number fields.
-	QVERIFY(f.spin(0, 3));
 	QVERIFY(f.spin(0, 4));
-	QCOMPARE(f.spin(0, 3)->objectName(), "platformLengthEdit");
-	QCOMPARE(f.spin(0, 4)->objectName(), "platformWidthEdit");
+	QVERIFY(f.spin(0, 5));
+	QCOMPARE(f.spin(0, 4)->objectName(), "platformLengthEdit");
+	QCOMPARE(f.spin(0, 5)->objectName(), "platformWidthEdit");
 	// A platform that states no size shows the default size.
-	QCOMPARE_EQ(f.spin(0, 3)->value(), 150.0);
-	QCOMPARE_EQ(f.spin(0, 4)->value(), 2.5);
-	QCOMPARE_EQ(f.spin(1, 3)->value(), 100.0);
-	QCOMPARE_EQ(f.spin(1, 4)->value(), 2.5);
+	QCOMPARE_EQ(f.spin(0, 4)->value(), 150.0);
+	QCOMPARE_EQ(f.spin(0, 5)->value(), 2.5);
+	QCOMPARE_EQ(f.spin(1, 4)->value(), 100.0);
+	QCOMPARE_EQ(f.spin(1, 5)->value(), 2.5);
 	// Listing platforms edits nothing, and states no size that the scene does not.
 	QVERIFY(!f.model().stations[0].platforms[1].hasLength);
 	QVERIFY(!f.model().stations[0].platforms[1].hasWidth);
@@ -405,19 +410,19 @@ void TestStationFacets::editsPlatforms() {
 	f.choose("platforms");
 
 	// nodes
-	f.type(0, 2, " node-a0 , node-a2 ,, ");
+	f.type(0, 3, " node-a0 , node-a2 ,, ");
 	// The nodes of a platform are a list that drops empty items.
 	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-a0", "node-a2"}));
 	QVERIFY(f.changedOnce("Edit platform"));
-	f.type(0, 2, "node-a0,node-a2");
+	f.type(0, 3, "node-a0,node-a2");
 	QVERIFY2(f.untouched(), "the same nodes change nothing");
-	f.type(0, 2, "");
+	f.type(0, 3, "");
 	// A platform can have no nodes.
 	QVERIFY(f.model().stations[0].platforms[0].nodeIds.empty());
 	QVERIFY(f.changedOnce("Edit platform"));
 
 	// rename: only the stops at the platform of that station
-	f.type(1, 1, " platform-x ");
+	f.type(1, 2, " platform-x ");
 	// A renamed platform leaves the stops at the platform of another station with that id as they are.
 	QCOMPARE(f.model().stations[0].platforms[1].id, "platform-x");
 	QCOMPARE(f.model().services[0].stops[2].platformId, "platform-2");
@@ -427,21 +432,21 @@ void TestStationFacets::editsPlatforms() {
 	QVERIFY(f.changedOnce("Rename platform"));
 	QCOMPARE(f.panel.selectionId(), "station-1\nplatform-x");
 	QCOMPARE(f.table()->currentRow(), 1);
-	f.type(0, 1, "platform-x");
+	f.type(0, 2, "platform-x");
 	// An id that another platform of the station has is refused.
 	QVERIFY(f.untouched());
 	QCOMPARE(f.model().stations[0].platforms[0].id, "platform-1");
 	QCOMPARE(f.messages, QStringList({"IDs must be unique and not empty"}));
-	f.type(0, 1, "");
+	f.type(0, 2, "");
 	// An empty id is refused.
 	QVERIFY(f.untouched());
 	QCOMPARE(f.messages.size(), qsizetype(2));
-	f.type(1, 1, "platform-1");
+	f.type(1, 2, "platform-1");
 	// The id of another platform of the station is refused.
 	QVERIFY(f.untouched());
 	QCOMPARE(f.model().stations[0].platforms[1].id, "platform-x");
 	QCOMPARE(f.messages.size(), qsizetype(3));
-	f.type(3, 1, "platform-1");
+	f.type(3, 2, "platform-1");
 	// An id that is free in a station is taken even when another station has it, and only the stops at that station follow.
 	QCOMPARE(f.model().stations[1].platforms[1].id, "platform-1");
 	QCOMPARE(f.model().services[0].stops[2].platformId, "platform-1");
@@ -449,6 +454,26 @@ void TestStationFacets::editsPlatforms() {
 	QCOMPARE(f.model().services[0].stops[0].stationId, "station-1");
 	QCOMPARE(f.model().services[0].stops[0].platformId, "platform-1");
 	QVERIFY(f.changedOnce("Rename platform"));
+}
+
+// The nodes of a platform stay a list of ids in a text cell. A node that the scene does not have is refused with a message
+// that names it.
+void TestStationFacets::refusesUnknownPlatformNodes() {
+	Fixture f;
+	f.choose("platforms");
+	f.type(0, 3, "node-a0, node-x");
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-a1"}));
+	QCOMPARE(f.messages, QStringList({"Node 'node-x' does not exist"}));
+	QCOMPARE(f.cell(0, 3), "node-a1");
+	f.type(0, 3, "node-y, node-a2, node-x");
+	// Every node that the scene does not have is named.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.messages.back(), "Nodes 'node-y', 'node-x' do not exist");
+	f.type(0, 3, "node-a2");
+	// A node that the scene has is taken.
+	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-a2"}));
+	QVERIFY(f.changedOnce("Edit platform"));
 }
 
 void TestStationFacets::movesPlatforms() {
@@ -475,7 +500,7 @@ void TestStationFacets::movesPlatforms() {
 	QVERIFY(f.changedOnce("Edit platform"));
 	QCOMPARE(f.panel.selectionId(), "station-2\nplatform-1");
 	QCOMPARE(f.table()->currentRow(), 3);
-	QCOMPARE(f.rowTexts(3, 2), QStringList({"station-2", "platform-1"}));
+	QCOMPARE(f.rowTexts(3, 3), QStringList({"station-2", "Beta", "platform-1"}));
 	f.type(3, 0, "station-2");
 	QVERIFY2(f.untouched(), "naming the station that the platform is in changes nothing");
 
@@ -500,7 +525,7 @@ void TestStationFacets::editsPlatformSize() {
 	f.choose("platforms");
 
 	// a field is the widget that is edited, so the table keeps it
-	QDoubleSpinBox* length = f.spin(1, 3);
+	QDoubleSpinBox* length = f.spin(1, 4);
 	length->setValue(200.5);
 	const ScenePlatform& second = f.model().stations[0].platforms[1];
 	// A length is taken as soon as the field changes, and the table keeps the field.
@@ -508,15 +533,15 @@ void TestStationFacets::editsPlatformSize() {
 	QCOMPARE_EQ(second.lengthM, 200.5);
 	QVERIFY(!second.hasWidth);
 	QVERIFY(f.changedOnce("Edit platform"));
-	QCOMPARE(f.spin(1, 3), length);
-	f.spin(1, 4)->setValue(3.25);
+	QCOMPARE(f.spin(1, 4), length);
+	f.spin(1, 5)->setValue(3.25);
 	// A width is taken the same way.
 	QVERIFY(second.hasWidth);
 	QCOMPARE_EQ(second.widthM, 3.25);
 	QVERIFY(f.changedOnce("Edit platform"));
 	length->setValue(200.5);
 	QVERIFY2(f.untouched(), "a value that is the same changes nothing");
-	f.spin(0, 4)->setValue(2.75);
+	f.spin(0, 5)->setValue(2.75);
 	// A size that the scene did not state is stated once the field changes.
 	QVERIFY(f.model().stations[0].platforms[0].hasWidth);
 	QCOMPARE_EQ(f.model().stations[0].platforms[0].widthM, 2.75);
@@ -528,7 +553,7 @@ void TestStationFacets::editsPlatformSize() {
 	const auto hide = qScopeGuard([&f] { f.panel.hide(); });
 	f.panel.activateWindow();
 	QApplication::processEvents();
-	QDoubleSpinBox* typed = f.spin(2, 3);
+	QDoubleSpinBox* typed = f.spin(2, 4);
 	typed->setFocus();
 	QApplication::processEvents();
 	QLineEdit* text = typed->findChild<QLineEdit*>();
@@ -613,7 +638,9 @@ void TestStationFacets::editsStationBoundaries() {
 	QCOMPARE(f.combo(0, 1)->objectName(), "boundaryExitCombo");
 	QCOMPARE(f.combo(0, 0)->currentData().toString().toStdString(), a1);
 	QCOMPARE(f.combo(0, 1)->currentText(), "(none)");
-	QCOMPARE(f.cell(0, 2), "false");
+	// The direction is a check box.
+	QCOMPARE(f.cell(0, 2), "");
+	QCOMPARE(f.table()->item(0, 2)->checkState(), Qt::Unchecked);
 	// Listing station boundaries edits nothing.
 	QVERIFY(f.untouched());
 	QVERIFY(!f.document.isDirty());
@@ -638,17 +665,13 @@ void TestStationFacets::editsStationBoundaries() {
 	QVERIFY(!boundary.hasExitBlock);
 	QVERIFY(boundary.exitBlock.empty());
 	QVERIFY(f.changedOnce("Edit station boundary"));
-	f.type(0, 2, "True");
-	// The direction is edited.
+	f.table()->item(0, 2)->setCheckState(Qt::Checked);
+	// Checking the box sets the direction.
 	QVERIFY(boundary.direction);
-	QCOMPARE(f.cell(0, 2), "true");
+	QCOMPARE(f.table()->item(0, 2)->checkState(), Qt::Checked);
 	QVERIFY(f.changedOnce("Edit station boundary"));
-	f.type(0, 2, "up");
-	// A direction that is neither true nor false is refused and the table shows the model again.
-	QVERIFY(f.untouched());
-	QVERIFY(boundary.direction);
-	QCOMPARE(f.cell(0, 2), "true");
-	QVERIFY(f.messages.empty());
+	// The box takes no text.
+	QVERIFY(!f.table()->item(0, 2)->flags().testFlag(Qt::ItemIsEditable));
 
 	// add
 	f.panel.addButton()->click();

@@ -1,6 +1,7 @@
 #include "editors/infrastructure/TopologyFacets.h"
 
 #include "editors/infrastructure/ListFacet.h"
+#include "graphics/NetworkPresenter.h"
 #include "scene/SceneReferences.h"
 
 #include <QString>
@@ -9,10 +10,24 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <map>
 #include <string>
 #include <vector>
 
 namespace {
+
+// The item of the list with the id, or null.
+template <typename Item>
+const Item* withId(const std::vector<Item>& items, const std::string& id) {
+	const auto found = std::find_if(items.begin(), items.end(), [&id](const Item& item) { return item.id == id; });
+	return found == items.end() ? nullptr : &*found;
+}
+
+// The item of the list in `row`, or null.
+template <typename Item>
+const Item* inRow(const std::vector<Item>& items, int row) {
+	return row >= 0 && row < static_cast<int>(items.size()) ? &items[static_cast<std::size_t>(row)] : nullptr;
+}
 
 class TracksFacet final : public ListFacet<SceneTrack> {
 public:
@@ -29,25 +44,60 @@ private:
 	}
 };
 
+// The station of a node is the one that the Details dock names for it (previewStationMemberships): the station of a
+// platform that lists the node, or a station without platforms at the position of the node.
 class NodesFacet final : public ListFacet<SceneNode> {
 public:
-	NodesFacet() : ListFacet("nodes", "node", &SceneModel::nodes, {"ID", "Track ID", "X (km)", "Y (km)"}) {}
+	NodesFacet() : ListFacet("nodes", "node", &SceneModel::nodes, {"ID", "Station", "Track ID", "X (km)", "Y (km)"}) {}
+	Capabilities capabilities() const override { return TrackRowFilter; }
+
+	// The name of the station of the node, which cannot be edited, comes after the id.
+	void fillRows(InfrastructurePanel& panel) override {
+		ListFacet::fillRows(panel);
+		const std::vector<SceneNode>& nodes = panel.model().nodes;
+		const std::map<std::string, PreviewStationMembership> stations = previewStationMemberships(panel.model());
+		for (int row = 0; row < static_cast<int>(nodes.size()); ++row) {
+			const auto station = stations.find(nodes[static_cast<std::size_t>(row)].id);
+			setCell(*panel.table(), row, kStationColumn,
+				station == stations.end() ? QString() : QString::fromStdString(station->second.name), false);
+		}
+	}
+	bool rowOnTrack(const InfrastructurePanel& panel, int row, const std::string& trackId) const override {
+		const SceneNode* node = inRow(panel.model().nodes, row);
+		return node && node->trackId == trackId;
+	}
+	// The track is one of the tracks of the scene.
+	std::vector<Choice> choices(const InfrastructurePanel& panel, int, int column) const override {
+		std::vector<Choice> result;
+		if (column == kTrackColumn)
+			for (const SceneTrack& track : panel.model().tracks)
+				result.push_back({QString::fromStdString(track.id), QString::fromStdString(track.id)});
+		return result;
+	}
 
 private:
+	static constexpr int kStationColumn = 1;
+	static constexpr int kTrackColumn = 2;
+
 	void fillRow(QTableWidget& table, int row, const SceneNode& node) const override {
 		setCell(table, row, 0, QString::fromStdString(node.id));
-		setCell(table, row, 1, QString::fromStdString(node.trackId));
-		setCell(table, row, 2, numberText(node.xKm));
-		setCell(table, row, 3, numberText(node.yKm));
+		setCell(table, row, kTrackColumn, QString::fromStdString(node.trackId));
+		setCell(table, row, 3, numberText(node.xKm));
+		setCell(table, row, 4, numberText(node.yKm));
 	}
 	Edit editField(SceneNode& node, int column, const QString& value) const override {
-		if (column == 1)
+		if (column == kTrackColumn)
 			return setText(value, node.trackId);
-		if (column == 2)
-			return setNumber(value, node.xKm);
 		if (column == 3)
+			return setNumber(value, node.xKm);
+		if (column == 4)
 			return setNumber(value, node.yKm);
 		return Edit::Unchanged;
+	}
+	QString refusal(const SceneModel& model, int column, const QString& value) const override {
+		if (column != kTrackColumn || withId(model.tracks, value.toStdString()))
+			return {};
+		return missingIdsText(QStringLiteral("Track"), {value});
 	}
 	// A node goes on the first track, one kilometre after the last node on it.
 	SceneNode newItem(const SceneModel& model, const std::string& id) const override {
@@ -68,6 +118,26 @@ public:
 	ArcsFacet()
 		: ListFacet("arcs", "arc", &SceneModel::arcs,
 			  {"ID", "Track ID", "From node", "To node", "Curvature radius (m)", "Gradient (rise/length)", "Speed limit (m/s)"}) {}
+	Capabilities capabilities() const override { return TrackRowFilter; }
+
+	bool rowOnTrack(const InfrastructurePanel& panel, int row, const std::string& trackId) const override {
+		const SceneArc* arc = inRow(panel.model().arcs, row);
+		return arc && arc->trackId == trackId;
+	}
+	// An end is one of the nodes on the track of the arc, named with its position, such as "B0.node.41 (2.520 km)".
+	std::vector<Choice> choices(const InfrastructurePanel& panel, int row, int column) const override {
+		std::vector<Choice> result;
+		const SceneArc* arc = inRow(panel.model().arcs, row);
+		if (!arc || (column != 2 && column != 3))
+			return result;
+		for (const SceneNode& node : panel.model().nodes) {
+			if (node.trackId != arc->trackId)
+				continue;
+			const QString id = QString::fromStdString(node.id);
+			result.push_back({QStringLiteral("%1 (%2 km)").arg(id, QString::number(node.xKm, 'f', 3)), id});
+		}
+		return result;
+	}
 
 private:
 	void fillRow(QTableWidget& table, int row, const SceneArc& arc) const override {
@@ -93,6 +163,11 @@ private:
 		if (column == 6)
 			return setNumber(value, arc.speedLimitMs);
 		return Edit::Unchanged;
+	}
+	QString refusal(const SceneModel& model, int column, const QString& value) const override {
+		if ((column != 2 && column != 3) || withId(model.nodes, value.toStdString()))
+			return {};
+		return missingIdsText(QStringLiteral("Node"), {value});
 	}
 	// An arc goes on the first track, from the node after the last node that the arcs of the track end at to the next one.
 	SceneArc newItem(const SceneModel& model, const std::string& id) const override {
@@ -120,13 +195,38 @@ public:
 	ConnectionsFacet()
 		: ListFacet("connections", "connection", &SceneModel::connections,
 			  {"ID", "From node", "To node", "Has speed limit", "Speed limit (m/s)"}) {}
+	Capabilities capabilities() const override { return TrackRowFilter; }
+
+	// A connection lies on the tracks of both its ends.
+	bool rowOnTrack(const InfrastructurePanel& panel, int row, const std::string& trackId) const override {
+		const SceneConnection* connection = inRow(panel.model().connections, row);
+		if (!connection)
+			return false;
+		for (const std::string* end : {&connection->fromNodeId, &connection->toNodeId}) {
+			const SceneNode* node = withId(panel.model().nodes, *end);
+			if (node && node->trackId == trackId)
+				return true;
+		}
+		return false;
+	}
+	// An end is any node, named with its track, such as "B0.node.41 (B0)".
+	std::vector<Choice> choices(const InfrastructurePanel& panel, int, int column) const override {
+		std::vector<Choice> result;
+		if (column != 1 && column != 2)
+			return result;
+		for (const SceneNode& node : panel.model().nodes) {
+			const QString id = QString::fromStdString(node.id);
+			result.push_back({QStringLiteral("%1 (%2)").arg(id, QString::fromStdString(node.trackId)), id});
+		}
+		return result;
+	}
 
 private:
 	void fillRow(QTableWidget& table, int row, const SceneConnection& connection) const override {
 		setCell(table, row, 0, QString::fromStdString(connection.id));
 		setCell(table, row, 1, QString::fromStdString(connection.fromNodeId));
 		setCell(table, row, 2, QString::fromStdString(connection.toNodeId));
-		setCell(table, row, 3, flagText(connection.hasSpeedLimit));
+		setFlagCell(table, row, 3, connection.hasSpeedLimit);
 		setCell(table, row, 4, numberText(connection.speedLimitMs));
 	}
 	Edit editField(SceneConnection& connection, int column, const QString& value) const override {
@@ -139,6 +239,11 @@ private:
 		if (column == 4)
 			return setNumber(value, connection.speedLimitMs);
 		return Edit::Unchanged;
+	}
+	QString refusal(const SceneModel& model, int column, const QString& value) const override {
+		if ((column != 1 && column != 2) || withId(model.nodes, value.toStdString()))
+			return {};
+		return missingIdsText(QStringLiteral("Node"), {value});
 	}
 	// A connection joins the first two nodes.
 	SceneConnection newItem(const SceneModel& model, const std::string& id) const override {

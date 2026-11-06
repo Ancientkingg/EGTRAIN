@@ -20,9 +20,9 @@
 
 /// A facet over one list of the model whose items have no id and name sections instead, such as the dependencies between
 /// blocks. A section is chosen in a combo of the sections of the scene, which writes the model as soon as another
-/// section is chosen. The other cells are text. A new item is empty, the selection names an item by its row number, and
-/// a row is named by its first section when it is deleted. Nothing else refers to these items. `Item` is the type of the
-/// items.
+/// section is chosen. The other cells are text or check boxes. A new item is empty, the selection names an item by its
+/// row number, and a row is named by its first section when it is deleted. Nothing else refers to these items. `Item` is
+/// the type of the items.
 template <typename Item>
 class SectionRowsFacet : public InfrastructureFacet {
 public:
@@ -42,12 +42,12 @@ public:
 			fillRow(panel, inventory, row, items[static_cast<std::size_t>(row)]);
 	}
 
-	/// Takes the trimmed text of a text cell into the item through editField().
+	/// Takes the value of a cell that is no combo (cellValue()) into the item through editField().
 	void commitCell(InfrastructurePanel& panel, int row, int column) override {
 		const std::vector<Item>& items = panel.model().*m_list;
 		if (row >= static_cast<int>(items.size()))
 			return;
-		const QString value = panel.table()->item(row, column)->text().trimmed();
+		const QString value = cellValue(*panel.table()->item(row, column));
 		const std::size_t index = static_cast<std::size_t>(row);
 		Item edited = items[index];
 		const Edit edit = editField(edited, column, value);
@@ -97,7 +97,7 @@ protected:
 	virtual void fillRow(InfrastructurePanel& panel, const SceneSectionInventory& inventory, int row, const Item& item) const = 0;
 	/// The section that names the item in the question before it is deleted; empty when the item has none yet.
 	virtual std::string rowTitle(const Item& item) const = 0;
-	/// Takes the text of a cell that is no combo into the item. The default has no such cell.
+	/// Takes the value of a cell that is no combo into the item. The default has no such cell.
 	virtual Edit editField(Item&, int, const QString&) const { return Edit::Unchanged; }
 
 	/// Puts a combo of the sections in `column` of `row`; the table owns it. `current` is the section that it shows at first,

@@ -6,8 +6,12 @@
 #include "support/FakePrompts.h"
 
 #include <QApplication>
+#include <QAbstractItemView>
 #include <QComboBox>
+#include <QCompleter>
+#include <QLineEdit>
 #include <QPushButton>
+#include <QScopeGuard>
 #include <QString>
 #include <QStringList>
 #include <QTableWidget>
@@ -146,7 +150,30 @@ struct Fixture {
 		log.clear();
 		return still;
 	}
+	// Opens the editor of the cell, as a click on it does, and returns it when it is a combo.
+	QComboBox* openCombo(int row, int column) {
+		table()->setCurrentCell(row, column);
+		table()->editItem(table()->item(row, column));
+		return qobject_cast<QComboBox*>(table()->indexWidget(table()->model()->index(row, column)));
+	}
+	// True when no editor is open on the cell.
+	bool closed(int row, int column) { return table()->indexWidget(table()->model()->index(row, column)) == nullptr; }
 };
+
+// The labels of the items of the combo.
+static QStringList labels(const QComboBox* combo) {
+	QStringList result;
+	for (int index = 0; index < combo->count(); ++index)
+		result << combo->itemText(index);
+	return result;
+}
+
+// Chooses the item of the combo as a click in its list does, and lets the queued end of the edit run.
+static void choose(QComboBox* combo, int index) {
+	combo->setCurrentIndex(index);
+	emit combo->activated(index);
+	QApplication::processEvents();
+}
 
 static QString blocked(const char* kind, const char* id, const QStringList& consumers) {
 	return QString("%1 '%2' is used by:\n\xE2\x80\xA2 %3\nRemove or change these first.")
@@ -163,6 +190,8 @@ private slots:
 	void editsArcs();
 	void editsConnections();
 	void deletesConnectionThatRouteUses();
+	void namesStationOfNodes();
+	void editsReferencesInCombos();
 };
 
 void TestTopologyFacets::offersNetworkFacets() {
@@ -299,36 +328,36 @@ void TestTopologyFacets::editsNodes() {
 	Fixture f;
 	f.choose("nodes");
 	// Nodes are listed with their track and position.
-	QCOMPARE(f.headers(), QStringList({"ID", "Track ID", "X (km)", "Y (km)"}));
+	QCOMPARE(f.headers(), QStringList({"ID", "Station", "Track ID", "X (km)", "Y (km)"}));
 	QCOMPARE(f.table()->rowCount(), 6);
-	QCOMPARE(f.rowTexts(1), QStringList({"node-a1", "track-a", "1", "0"}));
+	QCOMPARE(f.rowTexts(1), QStringList({"node-a1", "station-1", "track-a", "1", "0"}));
 	// Listing nodes edits nothing.
 	QVERIFY(f.untouched());
 	QVERIFY(!f.document.isDirty());
 
 	// edit
-	f.type(1, 2, "2.5");
+	f.type(1, 3, "2.5");
 	// A position is edited.
 	QCOMPARE_EQ(f.model().nodes[1].xKm, 2.5);
-	QCOMPARE(f.cell(1, 2), "2.5");
+	QCOMPARE(f.cell(1, 3), "2.5");
 	QVERIFY(f.changedOnce("Edit node"));
-	f.type(1, 3, "-0.125");
+	f.type(1, 4, "-0.125");
 	// The other coordinate is edited.
 	QCOMPARE_EQ(f.model().nodes[1].yKm, -0.125);
 	QVERIFY(f.changedOnce("Edit node"));
-	f.type(1, 1, "track-b");
+	f.type(1, 2, "track-b");
 	// The track of a node is edited.
 	QCOMPARE(f.model().nodes[1].trackId, "track-b");
 	QVERIFY(f.changedOnce("Edit node"));
 	for (const char* refused : {"abc", "", "inf", "nan"}) {
-		f.type(1, 2, refused);
+		f.type(1, 3, refused);
 		// A position that is no finite number is refused, without a message, and the table shows the model again.
 		QVERIFY2(f.untouched(), refused);
 		QCOMPARE_EQ(f.model().nodes[1].xKm, 2.5);
-		QCOMPARE(f.cell(1, 2), "2.5");
+		QCOMPARE(f.cell(1, 3), "2.5");
 		QVERIFY2(f.messages.empty(), refused);
 	}
-	f.type(1, 2, " 2.5 ");
+	f.type(1, 3, " 2.5 ");
 	QVERIFY2(f.untouched(), "a position that is the same number changes nothing");
 
 	// rename
@@ -366,7 +395,7 @@ void TestTopologyFacets::editsNodes() {
 	QVERIFY(f.changedOnce("Add node"));
 	QCOMPARE(f.panel.selectionId(), "node");
 	QCOMPARE(f.table()->currentRow(), 6);
-	QCOMPARE(f.rowTexts(6), QStringList({"node", "track-a", "3", "0"}));
+	QCOMPARE(f.rowTexts(6), QStringList({"node", "", "track-a", "3", "0"}));
 
 	// delete
 	f.select(1);
@@ -479,25 +508,21 @@ void TestTopologyFacets::editsConnections() {
 	f.choose("connections");
 	// Connections are listed with their nodes and limit.
 	QCOMPARE(f.headers(), QStringList({"ID", "From node", "To node", "Has speed limit", "Speed limit (m/s)"}));
-	QCOMPARE(f.rowTexts(0), QStringList({"connection-1", "node-a1", "node-b2", "false", "0"}));
+	// The flag is a check box, which has no text.
+	QCOMPARE(f.rowTexts(0), QStringList({"connection-1", "node-a1", "node-b2", "", "0"}));
+	QCOMPARE(f.table()->item(0, 3)->checkState(), Qt::Unchecked);
 	// Listing connections edits nothing.
 	QVERIFY(f.untouched());
 	QVERIFY(!f.document.isDirty());
 
 	// edit
-	f.type(0, 3, "True");
-	// The flag of a connection is edited, whatever the case.
+	f.table()->item(0, 3)->setCheckState(Qt::Checked);
+	// Checking the box sets the flag of the connection.
 	QVERIFY(f.model().connections[0].hasSpeedLimit);
-	QCOMPARE(f.cell(0, 3), "true");
+	QCOMPARE(f.table()->item(0, 3)->checkState(), Qt::Checked);
 	QVERIFY(f.changedOnce("Edit connection"));
-	f.type(0, 3, "TRUE");
-	QVERIFY2(f.untouched(), "a flag that has the value changes nothing");
-	f.type(0, 3, "maybe");
-	// A flag that is neither true nor false is refused and the table shows the model again.
-	QVERIFY(f.untouched());
-	QVERIFY(f.model().connections[0].hasSpeedLimit);
-	QCOMPARE(f.cell(0, 3), "true");
-	QVERIFY(f.messages.empty());
+	// The box takes no text.
+	QVERIFY(!f.table()->item(0, 3)->flags().testFlag(Qt::ItemIsEditable));
 	f.type(0, 4, "12.5");
 	f.type(0, 1, "node-a0");
 	f.type(0, 2, "node-b0");
@@ -567,6 +592,142 @@ void TestTopologyFacets::deletesConnectionThatRouteUses() {
 	QCOMPARE(used.prompts.confirmQuestion, "Delete connection 'connection-1'?");
 	QVERIFY(used.model().connections.empty());
 	QVERIFY(used.changedOnce("Delete connection"));
+}
+
+// The Station column of nodes names the station of a node as the Details dock does: the station of a platform that lists
+// it, by its name or else its id, or a station without platforms at the position of the node. The column is not edited.
+void TestTopologyFacets::namesStationOfNodes() {
+	SceneModel scene = topologyScene();
+	SceneStation yard;
+	yard.id = "station-2";
+	yard.name = "Yard";
+	yard.hasPosition = true;
+	yard.positionKm = 2.0;
+	scene.stations.push_back(yard);
+	Fixture f(scene);
+	f.choose("nodes");
+	QStringList stations;
+	for (int row = 0; row < f.table()->rowCount(); ++row)
+		stations << f.cell(row, 1);
+	// The platform of station-1, which has no name, lists node-a1, and Yard is at 2 km.
+	QCOMPARE(stations, QStringList({"", "station-1", "Yard", "", "", "Yard"}));
+	QVERIFY(!f.table()->item(1, 1)->flags().testFlag(Qt::ItemIsEditable));
+	f.document.mutableModel().stations[0].name = "Alpha";
+	f.panel.refresh();
+	// The column follows the scene.
+	QCOMPARE(f.cell(1, 1), "Alpha");
+}
+
+// The track of a node, the nodes of an arc and the nodes of a connection are chosen in a combo, in which the user can also
+// type, and which completes from any part of a name, ignoring case. A choice is one edit, and an id that the scene does
+// not have is refused with a message that names it.
+void TestTopologyFacets::editsReferencesInCombos() {
+	Fixture f;
+	f.panel.show();
+	// The panel is hidden before the fixture destroys it, also when a check fails.
+	const auto hide = qScopeGuard([&f] { f.panel.hide(); });
+	f.panel.activateWindow();
+	QApplication::processEvents();
+
+	// the track of a node
+	f.choose("nodes");
+	QComboBox* track = f.openCombo(1, 2);
+	if (track == nullptr)
+		QFAIL("the track of a node has no combo");
+	// The combo lists the tracks, shows the track of the node, and can be typed in.
+	QCOMPARE(track->objectName(), "infrastructureReferenceEditor");
+	QCOMPARE(track->accessibleName(), "Track ID");
+	QCOMPARE(labels(track), QStringList({"track-a", "track-b"}));
+	QCOMPARE(track->currentText(), "track-a");
+	QVERIFY(track->isEditable());
+	choose(track, 1);
+	// Choosing a track moves the node in one edit and ends the edit.
+	QCOMPARE(f.model().nodes[1].trackId, "track-b");
+	QVERIFY(f.changedOnce("Edit node"));
+	QCOMPARE(f.cell(1, 2), "track-b");
+	QVERIFY(f.closed(1, 2));
+	track = f.openCombo(1, 2);
+	if (track == nullptr)
+		QFAIL("the track of a node has no combo");
+	track->lineEdit()->setText("track-z");
+	f.panel.commitPendingEditors();
+	// A track that the scene does not have is refused, and the table shows the model again.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().nodes[1].trackId, "track-b");
+	QCOMPARE(f.messages, QStringList({"Track 'track-z' does not exist"}));
+	QCOMPARE(f.cell(1, 2), "track-b");
+	f.messages.clear();
+	track = f.openCombo(1, 2);
+	if (track == nullptr)
+		QFAIL("the track of a node has no combo");
+	track->lineEdit()->setText("TRACK-A");
+	f.panel.commitPendingEditors();
+	// A track typed in another case is that track.
+	QCOMPARE(f.model().nodes[1].trackId, "track-a");
+	QVERIFY(f.changedOnce("Edit node"));
+
+	// the nodes of an arc
+	f.choose("arcs");
+	QComboBox* to = f.openCombo(0, 3);
+	if (to == nullptr)
+		QFAIL("the end of an arc has no combo");
+	// The combo lists the nodes of the track of the arc with their positions.
+	QCOMPARE(to->accessibleName(), "To node");
+	QCOMPARE(labels(to), QStringList({"node-a0 (0.000 km)", "node-a1 (1.000 km)", "node-a2 (2.000 km)"}));
+	QCOMPARE(to->currentText(), "node-a1 (1.000 km)");
+	QCompleter* completer = to->completer();
+	completer->setCompletionPrefix("A2");
+	// Typing completes from any part of a label, ignoring case.
+	QCOMPARE(completer->completionCount(), 1);
+	QCOMPARE(completer->currentCompletion(), "node-a2 (2.000 km)");
+	choose(to, 2);
+	// Choosing a node is one edit, and the cell shows its id.
+	QCOMPARE(f.model().arcs[0].toNodeId, "node-a2");
+	QVERIFY(f.changedOnce("Edit arc"));
+	QCOMPARE(f.cell(0, 3), "node-a2");
+	QComboBox* from = f.openCombo(0, 2);
+	if (from == nullptr)
+		QFAIL("the start of an arc has no combo");
+	from->lineEdit()->setText("node-z");
+	f.panel.commitPendingEditors();
+	// A node that the scene does not have is refused.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().arcs[0].fromNodeId, "node-a0");
+	QCOMPARE(f.messages, QStringList({"Node 'node-z' does not exist"}));
+	from = f.openCombo(0, 2);
+	if (from == nullptr)
+		QFAIL("the start of an arc has no combo");
+	from->lineEdit()->setText("node-a1");
+	QTest::keyClick(from->lineEdit(), Qt::Key_Return);
+	QApplication::processEvents();
+	// A typed id is taken with Return.
+	QCOMPARE(f.model().arcs[0].fromNodeId, "node-a1");
+	QVERIFY(f.changedOnce("Edit arc"));
+	f.messages.clear();
+
+	// the nodes of a connection
+	f.choose("connections");
+	QComboBox* end = f.openCombo(0, 2);
+	if (end == nullptr)
+		QFAIL("the end of a connection has no combo");
+	// The combo lists every node with its track.
+	QCOMPARE(labels(end), QStringList({"node-a0 (track-a)", "node-a1 (track-a)", "node-a2 (track-a)", "node-b0 (track-b)", "node-b1 (track-b)", "node-b2 (track-b)"}));
+	QCOMPARE(end->currentText(), "node-b2 (track-b)");
+	end->completer()->setCompletionPrefix("B1");
+	QCOMPARE(end->completer()->completionCount(), 1);
+	choose(end, 3);
+	// Choosing a node is one edit.
+	QCOMPARE(f.model().connections[0].toNodeId, "node-b0");
+	QVERIFY(f.changedOnce("Edit connection"));
+	QComboBox* start = f.openCombo(0, 1);
+	if (start == nullptr)
+		QFAIL("the start of a connection has no combo");
+	start->lineEdit()->setText("node-q");
+	f.panel.commitPendingEditors();
+	// A node that the scene does not have is refused.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().connections[0].fromNodeId, "node-a1");
+	QCOMPARE(f.messages, QStringList({"Node 'node-q' does not exist"}));
 }
 
 QTEST_MAIN(TestTopologyFacets)

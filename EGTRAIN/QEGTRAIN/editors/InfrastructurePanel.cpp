@@ -1,13 +1,20 @@
 #include "editors/InfrastructurePanel.h"
 
+#include "editors/CountText.h"
 #include "editors/infrastructure/InfrastructureGuidance.h"
 #include "scene/SectionInventory.h"
 #include "widgets/EditorLayout.h"
+#include "widgets/FindDialog.h"
 
+#include <QAbstractItemView>
+#include <QAbstractSpinBox>
 #include <QComboBox>
+#include <QCompleter>
+#include <QFontMetrics>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QPointer>
 #include <QPushButton>
@@ -15,8 +22,11 @@
 #include <QSignalBlocker>
 #include <QSizePolicy>
 #include <QSplitter>
+#include <QStyle>
+#include <QStyleOption>
 #include <QStyledItemDelegate>
 #include <QVBoxLayout>
+#include <QWheelEvent>
 
 #include <algorithm>
 #include <cstddef>
@@ -336,18 +346,84 @@ CanvasRow canvasRow(const SceneModel& scene, const QString& kind, const QString&
 	return {};
 }
 
+// The editor of a cell that refers to other entities. It ignores the mouse wheel, so the wheel scrolls the table behind it.
+class ReferenceComboBox : public QComboBox {
+public:
+	using QComboBox::QComboBox;
+
+protected:
+	void wheelEvent(QWheelEvent* event) override { event->ignore(); }
+};
+
 } // namespace
 
 /// The delegate of the table. It knows the editor that it has open on a cell. The widgets that facets put in cells with
 /// setCellWidget are not its editors.
 class InfrastructurePanel::CellDelegate : public QStyledItemDelegate {
 public:
-	using QStyledItemDelegate::QStyledItemDelegate;
+	/// The delegate of the table of `panel`; `parent` owns it.
+	CellDelegate(InfrastructurePanel& panel, QObject* parent) : QStyledItemDelegate(parent), m_panel(panel) {}
 
-	/// Makes the editor of a cell as QStyledItemDelegate does, and keeps it as the open editor.
+	/// Makes the editor of a cell and keeps it as the open editor. A cell that refers to other entities
+	/// (InfrastructureFacet::choices) gets a combo of their labels, in which the user can also type, and which completes
+	/// what is typed from any part of a label, ignoring case. Choosing an entity in its list ends the edit, as Return does.
+	/// Another cell gets the editor of QStyledItemDelegate.
 	QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
-		m_editor = QStyledItemDelegate::createEditor(parent, option, index);
+		const InfrastructureFacet* facet = m_panel.currentFacet();
+		const std::vector<InfrastructureFacet::Choice> choices = facet ? facet->choices(m_panel, index.row(), index.column()) : std::vector<InfrastructureFacet::Choice>();
+		m_editor = choices.empty() ? QStyledItemDelegate::createEditor(parent, option, index) : referenceEditor(parent, index, choices);
 		return m_editor;
+	}
+
+	/// A combo of choices shows the item of the id in the cell, or the id itself when it offers no item for it.
+	void setEditorData(QWidget* editor, const QModelIndex& index) const override {
+		// The default editors of the text cells are line edits, so the only combo is one of choices.
+		auto* combo = qobject_cast<QComboBox*>(editor);
+		if (!combo) {
+			QStyledItemDelegate::setEditorData(editor, index);
+			return;
+		}
+		const QString id = index.data(Qt::EditRole).toString();
+		combo->setCurrentIndex(combo->findData(id));
+		if (combo->currentIndex() < 0)
+			combo->setEditText(id);
+		// All of the text is selected, with the cursor at its start, so that a narrow cell shows the id.
+		const int length = static_cast<int>(combo->currentText().size());
+		combo->lineEdit()->setSelection(length, -length);
+	}
+
+	/// A combo of choices is as wide as the label of the entity in the cell, also where the cell is narrower; it then covers
+	/// the cells to its right.
+	void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
+		QStyledItemDelegate::updateEditorGeometry(editor, option, index);
+		auto* combo = qobject_cast<QComboBox*>(editor);
+		if (!combo)
+			return;
+		const QString id = index.data(Qt::EditRole).toString();
+		const int item = combo->findData(id);
+		const QString label = item < 0 ? id : combo->itemText(item);
+		QStyleOptionComboBox box;
+		box.initFrom(combo);
+		box.editable = true;
+		const QFontMetrics metrics(combo->font());
+		const QSize text(metrics.horizontalAdvance(label) + metrics.averageCharWidth(), combo->height());
+		const int width = combo->style()->sizeFromContents(QStyle::CT_ComboBox, &box, text, combo).width();
+		combo->resize(std::max(combo->width(), width), combo->height());
+	}
+
+	/// A combo of choices gives the cell the id of the item whose label it shows, the same label in another case too, or
+	/// else the text as it is typed.
+	void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override {
+		auto* combo = qobject_cast<QComboBox*>(editor);
+		if (!combo) {
+			QStyledItemDelegate::setModelData(editor, model, index);
+			return;
+		}
+		const QString text = combo->currentText().trimmed();
+		int item = combo->findText(text, Qt::MatchExactly | Qt::MatchCaseSensitive);
+		if (item < 0)
+			item = combo->findText(text, Qt::MatchFixedString);
+		model->setData(index, item < 0 ? text : combo->itemData(item).toString(), Qt::EditRole);
 	}
 
 	/// Forgets the open editor when the view lets it go, and destroys it as QStyledItemDelegate does.
@@ -370,6 +446,40 @@ public:
 	}
 
 private:
+	// The combo of the choices of the cell in `index`, with each id as the data of its label.
+	QComboBox* referenceEditor(QWidget* parent, const QModelIndex& index, const std::vector<InfrastructureFacet::Choice>& choices) const {
+		auto* combo = new ReferenceComboBox(parent);
+		combo->setObjectName(QStringLiteral("infrastructureReferenceEditor"));
+		if (const QTableWidgetItem* header = m_panel.table()->horizontalHeaderItem(index.column()))
+			combo->setAccessibleName(header->text());
+		combo->setEditable(true);
+		combo->setInsertPolicy(QComboBox::NoInsert);
+		const QFontMetrics metrics(combo->font());
+		int widest = 0;
+		for (const InfrastructureFacet::Choice& choice : choices) {
+			combo->addItem(choice.label, choice.id);
+			widest = std::max(widest, metrics.horizontalAdvance(choice.label));
+		}
+		QCompleter* completer = combo->completer();
+		completer->setCompletionMode(QCompleter::PopupCompletion);
+		completer->setFilterMode(Qt::MatchContains);
+		completer->setCaseSensitivity(Qt::CaseInsensitive);
+		// The lists show their labels in full, also under a narrow column.
+		const int listWidth = widest + combo->style()->pixelMetric(QStyle::PM_ScrollBarExtent) + 4 * metrics.averageCharWidth();
+		combo->view()->setMinimumWidth(listWidth);
+		completer->popup()->setMinimumWidth(listWidth);
+		// The edit ends after the combo has handled the choice.
+		auto* self = const_cast<CellDelegate*>(this);
+		const auto commitChoice = [self, editor = QPointer<QWidget>(combo)] {
+			if (editor && editor == self->m_editor)
+				self->commitOpenEditor();
+		};
+		QObject::connect(combo, &QComboBox::activated, self, commitChoice, Qt::QueuedConnection);
+		QObject::connect(completer, QOverload<const QModelIndex&>::of(&QCompleter::activated), self, commitChoice, Qt::QueuedConnection);
+		return combo;
+	}
+
+	InfrastructurePanel& m_panel;
 	mutable QPointer<QWidget> m_editor;
 };
 
@@ -391,6 +501,32 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	m_blockTrackFilterCombo->setToolTip("Track to show. Add puts new blocks on it.");
 	layout->addWidget(m_blockTrackFilterCombo);
 
+	// The filters of the rows and their count share one row, which leaves the table its height in a low dock.
+	QHBoxLayout* filterRow = new QHBoxLayout();
+	m_trackFilterCombo = new QComboBox(this);
+	m_trackFilterCombo->setObjectName("infrastructureTrackFilterCombo");
+	m_trackFilterCombo->setAccessibleName("Track filter");
+	m_trackFilterCombo->setToolTip("Track whose rows to show.");
+	// As wide as "All tracks" whatever the ids of the tracks, so that the panel keeps its width.
+	m_trackFilterCombo->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+	m_trackFilterCombo->setMinimumContentsLength(10);
+	filterRow->addWidget(m_trackFilterCombo);
+	m_filterEdit = new QLineEdit(this);
+	m_filterEdit->setObjectName("infrastructureFilterEdit");
+	m_filterEdit->setAccessibleName("Filter rows");
+	m_filterEdit->setPlaceholderText("Filter rows");
+	m_filterEdit->setToolTip("Shows the rows that hold every word in their cells.");
+	m_filterEdit->setClearButtonEnabled(true);
+	filterRow->addWidget(m_filterEdit, 1);
+	m_countLabel = new QLabel(this);
+	m_countLabel->setObjectName("infrastructureCountLabel");
+	m_countLabel->setAccessibleName("Rows shown");
+	// A long count is cut short in a narrow dock rather than make the panel wider.
+	m_countLabel->setMinimumWidth(1);
+	m_countLabel->setVisible(false);
+	filterRow->addWidget(m_countLabel);
+	layout->addLayout(filterRow);
+
 	m_guidanceLabel = new QLabel(this);
 	m_guidanceLabel->setObjectName("infrastructureGuidance");
 	m_guidanceLabel->setWordWrap(true);
@@ -411,7 +547,7 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	m_table->setObjectName("infrastructureTable");
 	m_table->setAccessibleName("Infrastructure fields");
 	m_table->setEditTriggers(QAbstractItemView::AllEditTriggers);
-	m_cellDelegate = new CellDelegate(m_table);
+	m_cellDelegate = new CellDelegate(*this, m_table);
 	m_table->setItemDelegate(m_cellDelegate);
 	// Tab leaves the table and the arrow keys move between the cells.
 	m_table->setTabKeyNavigation(false);
@@ -499,6 +635,11 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 			refreshTable();
 		}
 	});
+	connect(m_trackFilterCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int) {
+		if (currentFacetHas(InfrastructureFacet::TrackRowFilter))
+			filterRows();
+	});
+	connect(m_filterEdit, &QLineEdit::textChanged, this, &InfrastructurePanel::filterRows);
 	connect(m_table, &QTableWidget::itemChanged, this, [this](QTableWidgetItem* item) {
 		if (item)
 			commitCell(item->row(), item->column());
@@ -595,6 +736,8 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 	const InfrastructureFacet::Capabilities capabilities = current ? current->capabilities() : InfrastructureFacet::Capabilities();
 	if (capabilities.testFlag(InfrastructureFacet::TrackFilter))
 		refreshBlockTrackFilter();
+	if (capabilities.testFlag(InfrastructureFacet::TrackRowFilter))
+		refreshTrackFilter();
 	m_blockRowModelIndices.clear();
 	const QStringList headers = current ? current->columns() : QStringList();
 
@@ -610,6 +753,9 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 		current->fillRows(*this);
 	else
 		m_table->setRowCount(0);
+	// The table shows two rows also in a low dock, which then scrolls the panel instead.
+	const int rowHeight = m_table->rowCount() > 0 ? m_table->rowHeight(0) : m_table->verticalHeader()->defaultSectionSize();
+	m_table->setMinimumHeight(m_table->horizontalHeader()->sizeHint().height() + 2 * rowHeight + 2 * m_table->frameWidth());
 	const bool editable = canEdit();
 	m_table->setEnabled(editable);
 
@@ -626,7 +772,9 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 	m_guidanceLabel->setText(guidance);
 	m_guidanceLabel->setVisible(!guidance.isEmpty());
 
+	// The columns fit all rows, also those that the filters hide.
 	m_table->resizeColumnsToContents();
+	applyFilters();
 	int rowToSelect = -1;
 	if (current) {
 		for (int row = 0; row < m_table->rowCount(); ++row) {
@@ -636,12 +784,25 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 			}
 		}
 	}
+	// An entity that the filters hide is not selected, unless the row of a canvas item is being selected: then the filters
+	// that hide it are cleared.
+	const bool selectionHidden = rowToSelect >= 0 && m_table->isRowHidden(rowToSelect);
+	if (selectionHidden && m_revealSelection)
+		revealRow(rowToSelect);
+	else if (selectionHidden)
+		rowToSelect = -1;
 	// The entity that is found again in its row keeps the column that was current, if the facet still has it. A new or
 	// moved row starts at the first column.
 	const bool sameRow = !previousId.isEmpty() && rowToSelect >= 0 && rowToSelect == previousRow;
 	const int columnToSelect = sameRow && previousColumn >= 0 && previousColumn < m_table->columnCount() ? previousColumn : 0;
-	if (!resetSelection && rowToSelect < 0 && previousRow >= 0 && m_table->rowCount() > 0)
-		rowToSelect = std::min(previousRow, m_table->rowCount() - 1);
+	if (!resetSelection && !selectionHidden && rowToSelect < 0 && previousRow >= 0 && m_table->rowCount() > 0) {
+		// The shown row at the same position, or else the one before it.
+		const int position = std::min(previousRow, m_table->rowCount() - 1);
+		for (int row = position; row < m_table->rowCount() && rowToSelect < 0; ++row)
+			rowToSelect = m_table->isRowHidden(row) ? -1 : row;
+		for (int row = position - 1; row >= 0 && rowToSelect < 0; --row)
+			rowToSelect = m_table->isRowHidden(row) ? -1 : row;
+	}
 	m_table->setCurrentCell(rowToSelect, rowToSelect < 0 ? -1 : columnToSelect);
 	m_table->setEditTriggers(QAbstractItemView::AllEditTriggers);
 	updateSelection();
@@ -649,6 +810,9 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 	const bool trackFilter = capabilities.testFlag(InfrastructureFacet::TrackFilter);
 	const bool insertAndMove = capabilities.testFlag(InfrastructureFacet::InsertAndMove);
 	m_blockTrackFilterCombo->setVisible(trackFilter);
+	m_trackFilterCombo->setVisible(capabilities.testFlag(InfrastructureFacet::TrackRowFilter));
+	m_trackFilterCombo->setEnabled(editable);
+	m_filterEdit->setEnabled(editable);
 	m_insertBlockButton->setVisible(insertAndMove);
 	m_moveBlockUpButton->setVisible(insertAndMove);
 	m_moveBlockDownButton->setVisible(insertAndMove);
@@ -682,12 +846,7 @@ void InfrastructurePanel::updateSelection() {
 	else
 		deleteHint = QStringLiteral("Delete the selected row.");
 	m_deleteButton->setToolTip(deleteHint);
-	if (insertAndMove) {
-		const int blockRows = static_cast<int>(m_blockRowModelIndices.size());
-		const bool editable = canEdit() && row >= 0 && row < blockRows;
-		m_moveBlockUpButton->setEnabled(editable && row > 0);
-		m_moveBlockDownButton->setEnabled(editable && row + 1 < blockRows);
-	}
+	refreshMoveButtons();
 	refreshRouteSectionPanel();
 	refreshMarkLabel();
 	emit selectionChanged(key, m_selectionId);
@@ -720,14 +879,17 @@ bool InfrastructurePanel::selectCanvasItem(const QString& kind, const QString& i
 		for (int row = 0; row < m_table->rowCount(); ++row) {
 			if (targetFacet->selectionId(*m_table, row) != target.id)
 				continue;
+			revealRow(row);
 			m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 			m_table->setCurrentCell(row, std::max(m_table->currentColumn(), 0));
 			m_table->setEditTriggers(QAbstractItemView::AllEditTriggers);
 			break;
 		}
 	} else {
-		// Filling the table again finds the row of the selection and tells selectionChanged once.
+		// Filling the table again finds the row of the selection, clears the filters that hide it, and tells
+		// selectionChanged once.
 		m_selectionId = target.id;
+		const QScopedValueRollback<bool> reveal(m_revealSelection, true);
 		refreshTable();
 	}
 	const int row = m_table->currentRow();
@@ -754,6 +916,95 @@ void InfrastructurePanel::refreshMarkLabel() {
 	const QString text = canEdit() && m_markShown ? markText(model(), facetKey(), m_selectionId) : QString();
 	m_markLabel->setText(text);
 	m_markLabel->setVisible(!text.isEmpty());
+}
+
+void InfrastructurePanel::refreshTrackFilter() {
+	const QString previousTrack = m_trackFilterCombo->currentData().toString();
+	const QSignalBlocker blocker(m_trackFilterCombo);
+	m_trackFilterCombo->clear();
+	m_trackFilterCombo->addItem(QStringLiteral("All tracks"), QString());
+	for (const SceneTrack& track : model().tracks)
+		m_trackFilterCombo->addItem(QString::fromStdString(track.id), QString::fromStdString(track.id));
+	m_trackFilterCombo->setCurrentIndex(std::max(m_trackFilterCombo->findData(previousTrack), 0));
+}
+
+void InfrastructurePanel::refreshMoveButtons() {
+	if (!currentFacetHas(InfrastructureFacet::InsertAndMove))
+		return;
+	const int row = m_table->currentRow();
+	const int rows = static_cast<int>(m_blockRowModelIndices.size());
+	const bool movable = canEdit() && row >= 0 && row < rows && !m_rowsHidden;
+	m_moveBlockUpButton->setEnabled(movable && row > 0);
+	m_moveBlockDownButton->setEnabled(movable && row + 1 < rows);
+	const QString hint = m_rowsHidden ? QStringLiteral("Clear the filter to move a row.") : QString();
+	m_moveBlockUpButton->setToolTip(hint);
+	m_moveBlockDownButton->setToolTip(hint);
+}
+
+bool InfrastructurePanel::matchesText(int row) const {
+	const QString text = m_filterEdit->text();
+	if (text.trimmed().isEmpty())
+		return true;
+	QStringList cells;
+	for (int column = 0; column < m_table->columnCount(); ++column) {
+		if (const QTableWidgetItem* item = m_table->item(row, column))
+			cells << item->text();
+		const QWidget* widget = m_table->cellWidget(row, column);
+		if (const auto* combo = qobject_cast<const QComboBox*>(widget))
+			cells << combo->currentText();
+		else if (const auto* field = qobject_cast<const QAbstractSpinBox*>(widget))
+			cells << field->text();
+	}
+	return FindDialog::matches(text, cells);
+}
+
+bool InfrastructurePanel::matchesTrack(int row) const {
+	const QString track = m_trackFilterCombo->currentData().toString();
+	const InfrastructureFacet* current = currentFacet();
+	return track.isEmpty() || !current || !current->capabilities().testFlag(InfrastructureFacet::TrackRowFilter)
+		|| current->rowOnTrack(*this, row, track.toStdString());
+}
+
+void InfrastructurePanel::applyFilters() {
+	const int rows = m_table->rowCount();
+	int shown = 0;
+	for (int row = 0; row < rows; ++row) {
+		const bool show = matchesTrack(row) && matchesText(row);
+		m_table->setRowHidden(row, !show);
+		shown += show ? 1 : 0;
+	}
+	m_rowsHidden = shown < rows;
+	const FacetEntry* entry = facetEntry(facetKey());
+	QString count;
+	if (entry && currentFacet() && rows > 0) {
+		count = countText(rows, QString::fromLatin1(entry->noun).toLower(), QString::fromLatin1(entry->title).toLower());
+		if (m_rowsHidden)
+			count = QStringLiteral("%1 of %2").arg(shown).arg(count);
+	}
+	m_countLabel->setText(count);
+	m_countLabel->setVisible(!count.isEmpty());
+	refreshMoveButtons();
+}
+
+void InfrastructurePanel::filterRows() {
+	applyFilters();
+	const int row = m_table->currentRow();
+	if (row >= 0 && m_table->isRowHidden(row))
+		m_table->setCurrentCell(-1, -1);
+}
+
+void InfrastructurePanel::revealRow(int row) {
+	// Each change of a filter applies the filters again.
+	if (!matchesText(row))
+		m_filterEdit->clear();
+	if (!matchesTrack(row))
+		m_trackFilterCombo->setCurrentIndex(0);
+}
+
+void InfrastructurePanel::clearFilters() {
+	m_filterEdit->clear();
+	if (currentFacetHas(InfrastructureFacet::TrackRowFilter))
+		m_trackFilterCombo->setCurrentIndex(0);
 }
 
 void InfrastructurePanel::refreshBlockTrackFilter() {
@@ -852,8 +1103,10 @@ void InfrastructurePanel::commitCell(int row, int column) {
 void InfrastructurePanel::addEntity() {
 	if (!canEdit())
 		return;
-	if (InfrastructureFacet* current = currentFacet())
+	if (InfrastructureFacet* current = currentFacet()) {
+		clearFilters();
 		current->add(*this);
+	}
 }
 
 void InfrastructurePanel::deleteEntity() {
@@ -864,12 +1117,14 @@ void InfrastructurePanel::deleteEntity() {
 }
 
 void InfrastructurePanel::insertEntity() {
-	if (canEdit() && currentFacetHas(InfrastructureFacet::InsertAndMove))
+	if (canEdit() && currentFacetHas(InfrastructureFacet::InsertAndMove)) {
+		clearFilters();
 		currentFacet()->insert(*this);
+	}
 }
 
 void InfrastructurePanel::moveEntity(int offset) {
-	if (canEdit() && currentFacetHas(InfrastructureFacet::InsertAndMove))
+	if (canEdit() && currentFacetHas(InfrastructureFacet::InsertAndMove) && !m_rowsHidden)
 		currentFacet()->move(*this, offset);
 }
 
