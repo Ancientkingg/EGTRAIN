@@ -13,7 +13,7 @@ The application packages contain six bundled cases, and the [EGTRAIN website](ht
 
 The counts are the numbers of entries in `infrastructure.json` (tracks), `stations.json` (stations) and `services.json` (services), so they can differ from the number of trains in a result window. The case folders are in `EGTRAIN/QEGTRAIN/Scenes` in the repository and inside the application packages.
 
-The source, changes and terms of each bundled case are in `DATA.md` at the top of the [repository](https://github.com/Ancientkingg/EGTRAIN).
+The source, changes and terms of each bundled case are in `DATA.md`, at the top of the repository and of each source archive. The [source code page](https://egtrain.samuelbruin.com/source/) links both.
 
 ![The window Speed / distance after a run of Milano_Brescia / baseline, with the speed of six of the 47 trains plotted against the distance in km](../images/case-studies-speed-distance.png)
 

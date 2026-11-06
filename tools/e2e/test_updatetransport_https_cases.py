@@ -3,8 +3,9 @@
 
 usage: test_updatetransport_https_cases.py PROBE
 
-The probe asks a server on 127.0.0.1 for its address. The answers stand for GitHub: a release list, a rate limit, an
-outage and a wrong address. A connection that the server closes without a response stands for one that cannot be made.
+The probe asks a server on 127.0.0.1 for its address. The answers stand for the EGTRAIN website: a release list, a rate
+limit, an outage and a wrong address. A connection that the server closes without a response stands for one that cannot
+be made.
 The probe must pass only for a release list, skip for a rate limit or an outage, and fail with a text that names the
 cause: the missing response or the HTTP status.
 """

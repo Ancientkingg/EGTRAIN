@@ -500,10 +500,10 @@ jobs:
           python tools/release/package_start_smoke.py "$start"
 
       - name: Check HTTPS from the package
-        # One real request to the GitHub release list through the update transport, as the update check makes it. The program starts
-        # from the copy of the package that the previous step started, with only the Windows directories on PATH, so it uses the Qt
-        # files of the package as a machine without a developer setup would. It fails when no HTTPS response arrives. It exits with
-        # 77 when GitHub answers with its rate limit or an outage, which does not fail the job.
+        # One real request to the update feed of the EGTRAIN website through the update transport, as the update check makes it. The
+        # program starts from the copy of the package that the previous step started, with only the Windows directories on PATH, so it
+        # uses the Qt files of the package as a machine without a developer setup would. It fails when no HTTPS response arrives. It
+        # exits with 77 when the website refuses the request (403 or 429) or has an outage (5xx), which does not fail the job.
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
