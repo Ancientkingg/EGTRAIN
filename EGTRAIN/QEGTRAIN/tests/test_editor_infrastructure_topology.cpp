@@ -188,6 +188,7 @@ private slots:
 	void editsTracks();
 	void editsNodes();
 	void editsArcs();
+	void showsShortestNumbers();
 	void editsConnections();
 	void deletesConnectionThatRouteUses();
 	void namesStationOfNodes();
@@ -502,6 +503,31 @@ void TestTopologyFacets::editsArcs() {
 	QCOMPARE(f.prompts.confirmQuestion, "Delete arc 'arc'?");
 	QCOMPARE(f.model().arcs.size(), std::size_t(3));
 	QVERIFY(f.changedOnce("Delete arc"));
+}
+
+void TestTopologyFacets::showsShortestNumbers() {
+	SceneModel scene = topologyScene();
+	scene.arcs[0].speedLimitMs = 8.333333333;
+	Fixture f(std::move(scene));
+	f.choose("arcs");
+	// A number has the fewest digits that read back as it, such as the speed limit of 30 km/h of Paimpol.
+	QCOMPARE(f.cell(0, 6), "8.333333333");
+
+	const std::vector<std::pair<double, QString>> numbers = {{0.1, "0.1"}, {1.0 / 3.0, "0.3333333333333333"},
+		{8.333333333, "8.333333333"}, {1e-7, "1e-07"}, {123456789.123, "123456789.123"}, {-0.012, "-0.012"}, {0.0, "0"},
+		{-5.0, "-5"}, {10000.0, "10000"}, {100000.0, "100000"}, {1e20, "1e+20"}};
+	for (const auto& [number, text] : numbers) {
+		f.document.mutableModel().arcs[0].gradientPercent = number;
+		f.panel.refresh();
+		// The cell shows the shortest text of the number, which reads back as the same number.
+		QCOMPARE(f.cell(0, 5), text);
+		QCOMPARE_EQ(f.cell(0, 5).toDouble(), number);
+		f.panel.commitCell(0, 5);
+		// A cell that is left as it is edits nothing.
+		QVERIFY2(f.untouched(), qPrintable(text));
+		QCOMPARE_EQ(f.model().arcs[0].gradientPercent, number);
+	}
+	QVERIFY(!f.document.isDirty());
 }
 
 void TestTopologyFacets::editsConnections() {

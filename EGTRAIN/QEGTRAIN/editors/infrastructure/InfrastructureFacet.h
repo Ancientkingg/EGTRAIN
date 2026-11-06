@@ -9,9 +9,10 @@
 
 #include <cmath>
 #include <cstddef>
-#include <limits>
 #include <string>
 #include <vector>
+
+#include "widgets/CompactDoubleSpinBox.h"
 
 class InfrastructurePanel;
 
@@ -151,10 +152,9 @@ protected:
 							   : QStringLiteral("%1s %2 do not exist").arg(noun, quoted.join(QStringLiteral(", ")));
 	}
 
-	/// The text of a number with enough digits to give the number back.
-	static QString numberText(double value) {
-		return QString::number(value, 'g', std::numeric_limits<double>::max_digits10);
-	}
+	/// The text of a number in the fewest digits that read back as the same number, as the number fields of the editors
+	/// show it while they are edited (CompactDoubleSpinBox::fullText).
+	static QString numberText(double value) { return CompactDoubleSpinBox::fullText(value); }
 
 	/// The text of a flag: "true" or "false".
 	static QString flagText(bool value) { return value ? QStringLiteral("true") : QStringLiteral("false"); }

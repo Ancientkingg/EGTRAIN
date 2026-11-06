@@ -48,6 +48,14 @@ public:
 		return QString::number(value, 'g', 6);
 	}
 
+	/// The value with the fewest digits that read back as the same number, such as "8.333333333". From 1e-4 up to 1e15 it
+	/// has no exponent, and other non-zero numbers have one, such as "1e-07".
+	static QString fullText(double value) {
+		const double magnitude = std::fabs(value);
+		const bool plain = magnitude >= 1e-4 && magnitude < 1e15;
+		return QString::number(value, plain ? 'f' : 'g', QLocale::FloatingPointShortest);
+	}
+
 protected:
 	/// While the field is not focused and shows a text other than the shortest exact text of the value, shows that text
 	/// after the tooltip of the field.
@@ -80,13 +88,6 @@ protected:
 private:
 	// The full text with the prefix and the suffix of the field.
 	QString shortestValueText() const { return prefix() + fullText(value()) + suffix(); }
-
-	// The value with the fewest digits that read back as the same number. From 1e-4 up to 1e15 it has no exponent.
-	static QString fullText(double value) {
-		const double magnitude = std::fabs(value);
-		const bool plain = magnitude >= 1e-4 && magnitude < 1e15;
-		return QString::number(value, plain ? 'f' : 'g', QLocale::FloatingPointShortest);
-	}
 
 	bool isCurrentText(const QString& text, const QString& number) const {
 		return text == number || text == prefix() + number + suffix();
