@@ -2607,9 +2607,11 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					ok = false;
 					failures << "second follow delivery did not go on with the glide";
 				}
+				// The badge sits at the centre of the train along its route (trainCenter()), which on a curve or a switch is not the
+				// centre of the bounding box of the train.
 				TrainBadgeItem* interruptedBadge = PresenterAccess::trainBadges(*w.m_presenter).value(selectedTrain->index, nullptr);
 				const qreal interruptedAnchorError = interruptedBadge
-					? QLineF(interruptedBadge->scenePos(), selectedTrain->sceneBoundingRect().center()).length()
+					? QLineF(interruptedBadge->scenePos(), w.m_presenter->trainCenter(selectedTrain->index)).length()
 					: std::numeric_limits<qreal>::max();
 				const qreal interruptedCameraOff = offTrain();
 				if (pixelsBetween(cameraPaused, cameraResumed) > 1.0 || interruptedCameraOff > onTrainPixels || w.m_followCamera->running()) {
@@ -2647,22 +2649,22 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				TrainBadgeItem* finalBadge = PresenterAccess::trainBadges(*w.m_presenter).value(selectedTrain->index, nullptr);
 				const QPointF finalCameraCenter = w.networkView->mapToScene(
 					w.networkView->viewport()->rect().center());
-				const QPointF finalGroupCenter = selectedTrain->sceneBoundingRect().center();
+				const QPointF finalTrainCenter = w.m_presenter->trainCenter(selectedTrain->index);
 				const qreal bodyMovement = QLineF(initialBodyCenter, finalBodyCenter).length();
 				const qreal badgeOff = std::max(interruptedAnchorError,
-					finalBadge ? QLineF(finalBadge->scenePos(), finalGroupCenter).length() : std::numeric_limits<qreal>::max());
+					finalBadge ? QLineF(finalBadge->scenePos(), finalTrainCenter).length() : std::numeric_limits<qreal>::max());
 				if (!interruptedBadge || !finalBadge || bodyMovement <= 1.0 || badgeOff > 1.0 || largestOffToEnd > onTrainPixels
-					|| pixelsBetween(finalCameraCenter, clampedCameraCenter(w.m_presenter->trainCenter(selectedTrain->index))) > onTrainPixels) {
+					|| pixelsBetween(finalCameraCenter, clampedCameraCenter(finalTrainCenter)) > onTrainPixels) {
 					ok = false;
 					failures << QString("follow glide lost body movement, the badge on the train, or camera center "
-										"(movement=%1 badge off=%2 largest off=%3px finalCamera=%4,%5 group=%6,%7)")
+										"(movement=%1 badge off=%2 largest off=%3px finalCamera=%4,%5 train centre=%6,%7)")
 									.arg(bodyMovement, 0, 'f', 2)
 									.arg(badgeOff, 0, 'f', 2)
 									.arg(largestOffToEnd, 0, 'f', 2)
 									.arg(finalCameraCenter.x(), 0, 'f', 2)
 									.arg(finalCameraCenter.y(), 0, 'f', 2)
-									.arg(finalGroupCenter.x(), 0, 'f', 2)
-									.arg(finalGroupCenter.y(), 0, 'f', 2);
+									.arg(finalTrainCenter.x(), 0, 'f', 2)
+									.arg(finalTrainCenter.y(), 0, 'f', 2);
 				}
 
 				// A frame that moves the view with the followed train does not run the whole pass over the overlays: a pan
