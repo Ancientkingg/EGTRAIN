@@ -232,6 +232,7 @@ add_library(egtrain_graphics STATIC
     ${SRC_DIR}/graphics/items/ConnectionItem.cpp
     ${SRC_DIR}/graphics/items/HighlightEffect.cpp
     ${SRC_DIR}/graphics/items/IconItem.cpp
+    ${SRC_DIR}/graphics/items/NetworkMarkItem.cpp
     ${SRC_DIR}/graphics/items/NodeItem.cpp
     ${SRC_DIR}/graphics/items/PassengerItem.cpp
     ${SRC_DIR}/graphics/items/PlatformItem.cpp

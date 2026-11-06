@@ -116,6 +116,20 @@ bool legacyDoubleSwitchTrack(const SceneModel& scene, const std::string& trackId
 		&& std::fabs(lastX - firstX - kVirtualSwitchSpanKm) < kVirtualSwitchToleranceKm;
 }
 
+// The lowest and the highest chainage of the part of the line that is drawn: the whole line, and a double switch
+// without its first and last arc. False when no part of the line is drawn.
+bool drawnChainages(const TrackPreviewLine& line, double& low, double& high) {
+	const std::size_t skip = line.doubleSwitch ? 1 : 0;
+	const std::size_t fewest = line.doubleSwitch ? 4 : 1;
+	if (line.points.size() < fewest)
+		return false;
+	const auto [lowest, highest] = std::minmax_element(line.points.begin() + skip, line.points.end() - skip,
+		[](const TrackPreviewPoint& left, const TrackPreviewPoint& right) { return left.rawX < right.rawX; });
+	low = lowest->rawX;
+	high = highest->rawX;
+	return true;
+}
+
 } // namespace
 
 TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
@@ -157,6 +171,7 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 		const auto view = std::find_if(scene.trackViews.begin(), scene.trackViews.end(),
 			[&line](const SceneTrackView& candidate) { return candidate.trackId == line.id; });
 		if (view != scene.trackViews.end()) {
+			line.doubleSwitch = view->doubleSwitch;
 			// The y of the scene runs downwards, so a higher level is drawn above the level before it.
 			line.levelSpacing = 0.015;
 			line.displayOffset = -static_cast<double>(view->level) * line.levelSpacing;
@@ -464,4 +479,74 @@ TrackPreviewResult normalizeTrackPreview(const TrackPreviewResult& preview) {
 		}
 	}
 	return normalized;
+}
+
+std::vector<TrackPreviewPoint> trackPreviewSectionCourse(const TrackPreviewResult& preview,
+	const SceneSectionDescriptor& section) {
+	const auto lineOf = [&preview](const std::string& trackId) -> const TrackPreviewLine* {
+		const auto found = std::find_if(preview.lines.begin(), preview.lines.end(),
+			[&trackId](const TrackPreviewLine& line) { return line.id == trackId; });
+		return found == preview.lines.end() ? nullptr : &*found;
+	};
+	const TrackPreviewLine* first = lineOf(section.firstTrackId);
+	const TrackPreviewLine* last = section.secondTrackId.empty() ? first : lineOf(section.secondTrackId);
+	if (!first || !last)
+		return {};
+	std::vector<TrackPreviewPoint> course;
+	// A point on an arc that the preview does not draw, the first or last arc of a double switch, is left out.
+	const auto add = [&course](const TrackPreviewLine& line, TrackPreviewPoint point) {
+		double low = 0.0;
+		double high = 0.0;
+		if (line.doubleSwitch && (!drawnChainages(line, low, high) || point.rawX < low || point.rawX > high))
+			return;
+		point.y += line.displayOffset;
+		course.push_back(std::move(point));
+	};
+	TrackPreviewPoint point;
+	if (section.startNodeId.empty()) {
+		if (!trackPreviewPointAtX(*first, section.startKm, point))
+			return {};
+		add(*first, point);
+	}
+	// The nodes on the first track come first; a switch section goes on with the nodes of its second track.
+	const TrackPreviewLine* current = first;
+	for (const std::string& nodeId : section.nodeIds) {
+		if (!trackPreviewPointAtNode(*current, nodeId, point)) {
+			if (current == last || !trackPreviewPointAtNode(*last, nodeId, point))
+				return {};
+			current = last;
+		}
+		add(*current, point);
+	}
+	if (section.endNodeId.empty()) {
+		if (!trackPreviewPointAtX(*last, section.endKm, point))
+			return {};
+		add(*last, point);
+	}
+	return course;
+}
+
+std::vector<TrackPreviewPoint> trackPreviewChainageCourse(const TrackPreviewLine& line, double fromKm, double toKm) {
+	double lowest = 0.0;
+	double highest = 0.0;
+	if (!std::isfinite(fromKm) || !std::isfinite(toKm) || !drawnChainages(line, lowest, highest))
+		return {};
+	const double low = std::max(std::min(fromKm, toKm), lowest);
+	const double high = std::min(std::max(fromKm, toKm), highest);
+	if (low > high)
+		return {};
+	TrackPreviewPoint start;
+	TrackPreviewPoint end;
+	if (!trackPreviewPointAtX(line, low, start) || !trackPreviewPointAtX(line, high, end))
+		return {};
+	// The points of the line run up or down in chainage; the ends go before and after the points between them.
+	const bool rising = line.points.front().rawX <= line.points.back().rawX;
+	std::vector<TrackPreviewPoint> course{rising ? start : end};
+	for (const TrackPreviewPoint& point : line.points)
+		if (point.rawX > low && point.rawX < high)
+			course.push_back(point);
+	course.push_back(rising ? end : start);
+	for (TrackPreviewPoint& point : course)
+		point.y += line.displayOffset;
+	return course;
 }

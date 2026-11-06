@@ -9,14 +9,17 @@
 #include "graphics/NetworkView.h"
 #include "graphics/VisualPolish.h"
 #include "graphics/items/HighlightEffect.h"
+#include "graphics/items/NetworkMarkItem.h"
 #include "graphics/items/PassengerItem.h"
 #include "graphics/items/PlatformItem.h"
+#include "graphics/items/SelectionCueItem.h"
 #include "graphics/items/SignalItem.h"
 #include "graphics/items/StationNodeItem.h"
 #include "graphics/items/StationOverlayItem.h"
 #include "graphics/items/TrackLineItem.h"
 #include "graphics/items/TrainBadgeItem.h"
 #include "graphics/items/TrainItemGroup.h"
+#include "scene/SectionInventory.h"
 
 #include <QApplication>
 #include <QCoreApplication>
@@ -36,7 +39,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <memory>
+#include <string>
 #include <vector>
 
 // A track line that counts how often it is painted.
@@ -282,6 +287,126 @@ struct PreviewFixture {
 	}
 };
 
+// The distance from point to the nearest of the polylines.
+static qreal distanceTo(const QList<QPolygonF>& lines, const QPointF& point) {
+	qreal best = std::numeric_limits<qreal>::max();
+	for (const QPolygonF& line : lines)
+		for (qsizetype index = 0; index < line.size(); ++index) {
+			const QPointF start = line[index];
+			const QPointF segment = (index + 1 < line.size() ? line[index + 1] : start) - start;
+			const qreal lengthSquared = QPointF::dotProduct(segment, segment);
+			const qreal ratio = lengthSquared > 0.0 ? std::clamp(QPointF::dotProduct(point - start, segment) / lengthSquared, 0.0, 1.0) : 0.0;
+			best = std::min(best, QLineF(start + ratio * segment, point).length());
+		}
+	return best;
+}
+
+// The ids of the targets of the rings of a mark, sorted.
+static QStringList ringIds(const NetworkMarkItem& mark) {
+	QStringList ids;
+	for (const QGraphicsItem* target : mark.ringTargets())
+		ids << target->data(PreviewGraphics::Id).toString();
+	ids.sort();
+	return ids;
+}
+
+// The track lines that are drawn in the colour of the selection cue.
+static int cueColouredTracks(QGraphicsScene& scene) {
+	int count = 0;
+	for (QGraphicsItem* item : scene.items())
+		if (const auto* track = qgraphicsitem_cast<TrackLineItem*>(item); track && track->pen().color() == kSelectionCueColor)
+			++count;
+	return count;
+}
+
+// A presenter that draws the committed scene Paimpol in a view of 800 by 600 pixels. The scene gets a signal on 36-B0, a
+// block dependency, a station boundary and a signalling area on B0 from 2 to 3 km, which Paimpol does not have.
+struct PaimpolFixture {
+	QGraphicsScene scene;
+	NetworkView view;
+	NetworkPresenter presenter{&scene, &view};
+	SceneModel model;
+	SceneSectionInventory inventory;
+
+	PaimpolFixture() {
+		view.setScene(&scene);
+		view.setFrameShape(QFrame::NoFrame);
+		view.resize(800, 600);
+		view.show();
+		model = loadScene(QFINDTESTDATA("../Scenes/Paimpol").toStdString()).scene;
+		sceneSignals(model).push_back({"sig.36", "36-B0"});
+		model.blockDependencies.push_back({"36-B0", "38-B0"});
+		model.stationBoundaries.push_back({"40-B0", true, "42-B0", false});
+		model.signallingAreas.push_back({"area.B0", 2.0, 3.0, 0, "B0"});
+		inventory = buildSceneSectionInventory(model);
+	}
+
+	// The row `id` of `facet` selected, on the first generation of the model.
+	static NetworkPresenter::PreviewOptions options(const std::string& facet, const std::string& id, int routeSection = -1) {
+		NetworkPresenter::PreviewOptions options;
+		options.selectedFacet = facet;
+		options.selectedId = id;
+		options.selectedRouteSection = routeSection;
+		options.modelGeneration = 1;
+		return options;
+	}
+	// Draws the preview again with the row selected; the mark, or null.
+	const NetworkMarkItem* show(const std::string& facet, const std::string& id, int routeSection = -1) {
+		presenter.clear();
+		presenter.showPreview(model, options(facet, id, routeSection));
+		return presenter.selectionMark();
+	}
+	// The point of the preview at the node; the origin when the preview has none.
+	QPointF at(const std::string& nodeId) const {
+		const auto node = std::find_if(model.nodes.cbegin(), model.nodes.cend(), [&nodeId](const SceneNode& candidate) {
+			return candidate.id == nodeId;
+		});
+		const TrackPreviewLine* line = node == model.nodes.cend() ? nullptr : presenter.trackLine(node->trackId);
+		QPointF point;
+		if (line)
+			previewPointAtNode(*line, nodeId, line->displayOffset, point);
+		return point;
+	}
+	// Points inside the section: on a block section the points of its track at a quarter, the half and three quarters of
+	// its chainage, on a switch section the middle of each step from one of its nodes to the next, the connection included.
+	QList<QPointF> middles(const std::string& sectionId) const {
+		QList<QPointF> points;
+		const SceneSectionDescriptor* section = inventory.exact(sectionId);
+		if (section == nullptr)
+			return points;
+		if (section->connectionDerived) {
+			for (std::size_t index = 1; index < section->nodeIds.size(); ++index)
+				points << (at(section->nodeIds[index - 1]) + at(section->nodeIds[index])) / 2.0;
+			return points;
+		}
+		const TrackPreviewLine* line = presenter.trackLine(section->firstTrackId);
+		for (const double share : {0.25, 0.5, 0.75}) {
+			QPointF point;
+			if (line && previewPointAtX(*line, section->startKm + share * (section->endKm - section->startKm), line->displayOffset, point))
+				points << point;
+		}
+		return points;
+	}
+	// The sections of which every middle, or with `every` false any middle, lies on a stretch of the mark: within a
+	// millionth of the width of the preview.
+	QStringList marked(const NetworkMarkItem& mark, const std::vector<std::string>& sectionIds, bool every = true) const {
+		const qreal near = presenter.previewFit().bounds.width() * 1e-6;
+		const auto on = [&](const QPointF& point) { return distanceTo(mark.stretches(), point) <= near; };
+		QStringList hits;
+		for (const std::string& sectionId : sectionIds) {
+			const QList<QPointF> points = middles(sectionId);
+			if (!points.isEmpty()
+				&& (every ? std::all_of(points.cbegin(), points.cend(), on) : std::any_of(points.cbegin(), points.cend(), on)))
+				hits << QString::fromStdString(sectionId);
+		}
+		return hits;
+	}
+	// The sections of which any middle lies on a stretch of the mark.
+	QStringList touched(const NetworkMarkItem& mark, const std::vector<std::string>& sectionIds) const {
+		return marked(mark, sectionIds, false);
+	}
+};
+
 class TestNetworkPresenter : public QObject {
 	Q_OBJECT
 
@@ -304,6 +429,16 @@ private slots:
 	void previewLeavesNoQueuedCall();
 	void paintsOnlyTracksThatChangeState();
 	void doubleSwitchDrawsMiddleArc();
+	void platformMarksItsNodeAndBar();
+	void routeMarksItsSectionsAndConnections();
+	void stationsHaveMarksOfTheirOwn();
+	void nodeAndBlockMarkThatItem();
+	void otherKindsHaveMarks();
+	void anotherRowKeepsTheView();
+	void markInPlaceNeedsTheDrawnModel();
+	void markColoursStandApart();
+	void marksLeaveOutHiddenArcsOfDoubleSwitches();
+	void areaLeavesOutLineThatIsNotFinite();
 };
 
 void TestNetworkPresenter::initTestCase() {
@@ -384,6 +519,17 @@ void TestNetworkPresenter::previewMarksSelectedTrack() {
 	PreviewFixture f;
 	f.presenter.showPreview(f.model, f.options);
 	QVERIFY2(f.presenter.previewHasSelectedTrack(), "a selected track is marked");
+	// The mark is a band along the whole drawn track, which keeps the colour of its speed.
+	const NetworkMarkItem* mark = f.presenter.selectionMark();
+	if (mark == nullptr)
+		QFAIL("a selected track has a mark");
+	const TrackPreviewLine* line = f.presenter.trackLine("B1");
+	QVERIFY(line);
+	QPolygonF whole;
+	for (const TrackPreviewPoint& point : line->points)
+		whole << QPointF(point.x, point.y + line->displayOffset);
+	QCOMPARE(mark->stretches(), QList<QPolygonF>{whole});
+	QCOMPARE(cueColouredTracks(f.scene), 0);
 }
 
 // The preview draws the platform bars without being asked, among the station decorations, hidden in the far look and
@@ -442,10 +588,11 @@ void TestNetworkPresenter::platformBarsOfVerticalTrackLieOnItsLeft() {
 void TestNetworkPresenter::previewWithSelectionCyclesDrawSameItems() {
 	PreviewFixture f;
 	NetworkPresenter& presenter = f.presenter;
-	f.options.markSelection = true;
 	qsizetype drawnWithOptions = 0;
 	for (int cycle = 0; cycle < 25; ++cycle) {
 		presenter.showPreview(f.model, f.options);
+		// Every cycle marks the selection.
+		QVERIFY(presenter.selectionMark());
 		if (cycle == 0)
 			drawnWithOptions = f.scene.items().size();
 		// Every cycle with a selection draws the same items.
@@ -793,6 +940,338 @@ void TestNetworkPresenter::doubleSwitchDrawsMiddleArc() {
 	QVERIFY2(drawn() == std::make_pair(std::vector<std::string>{"B0.arc.2"}, 0),
 		"a double switch draws its middle arc and no node dot");
 	presenter.clear();
+}
+
+// A platform marks its node with a ring and its bar with a halo, and not the rest of its track.
+void TestNetworkPresenter::platformMarksItsNodeAndBar() {
+	PaimpolFixture f;
+	const NetworkMarkItem* mark = f.show("platforms", "Gourland\nGourland.platform.1");
+	if (mark == nullptr)
+		QFAIL("a platform has a mark");
+	QCOMPARE(ringIds(*mark), QStringList{"B0.node.41"});
+	QVERIFY2(mark->stretches().isEmpty(), "a platform marks no stretch of its track");
+	QCOMPARE(mark->haloTargets().size(), qsizetype(1));
+	const auto* bar = qgraphicsitem_cast<const PlatformItem*>(mark->haloTargets().front());
+	if (bar == nullptr)
+		QFAIL("the halo of a platform is on its bar");
+	// The bar is the one of the node, 1.15 squares from it.
+	const qreal square = f.presenter.station_node_size * f.presenter.presentationScale();
+	QCOMPARE_LT(QLineF(bar->mapToScene(bar->rect().center()), f.at("B0.node.41")).length(), 1.2 * square);
+	// No track is drawn in another colour, and the legend has no selected track.
+	QCOMPARE(cueColouredTracks(f.scene), 0);
+	QVERIFY(!f.presenter.previewHasSelectedTrack());
+}
+
+// A route marks the course of each of its sections in travel order, B4 and B5 and the connections to them included, and
+// not the sections of B0 that it passes by on them.
+void TestNetworkPresenter::routeMarksItsSectionsAndConnections() {
+	PaimpolFixture f;
+	const NetworkMarkItem* mark = f.show("routes", "route2");
+	if (mark == nullptr)
+		QFAIL("a route has a mark");
+	QCOMPARE(mark->stretches().size(), qsizetype(124));
+	const std::vector<std::string> taken = {"@32-B0@-9.539000/@0-B4@-9.549000", "@1-B4@", "@2-B4@",
+		"@3-B4@-10.347000/@35-B0@-10.357000", "@103-B0@-30.866000/@0-B5@-30.889000", "@1-B5@",
+		"@2-B5@-31.342000/@105-B0@-31.365000", "@36-B0@", "@102-B0@"};
+	QStringList all;
+	for (const std::string& section : taken)
+		all << QString::fromStdString(section);
+	QCOMPARE(f.marked(*mark, taken), all);
+	QCOMPARE(f.touched(*mark, {"@33-B0@", "@34-B0@", "@104-B0@"}), QStringList());
+	// The connections are drawn from node to node.
+	for (const auto& [from, to] : {std::pair<const char*, const char*>{"B0.node.101", "B4.node.3"}, {"B4.node.9", "B0.node.107"},
+			 {"B0.node.310", "B5.node.2"}, {"B5.node.7", "B0.node.316"}})
+		QCOMPARE_LT(distanceTo(mark->stretches(), (f.at(from) + f.at(to)) / 2.0), f.presenter.previewFit().bounds.width() * 1e-6);
+	// The direction shows: the stretches run in travel order, from the start of 0-B3 to the end of 1-B2.
+	QVERIFY(mark->directed());
+	const SceneSectionDescriptor* first = f.inventory.exact("@0-B3@");
+	const SceneSectionDescriptor* last = f.inventory.exact("@1-B2@");
+	QVERIFY(first && last);
+	QCOMPARE(mark->stretches().front(), previewSectionCourse(f.presenter.trackPreview(), *first));
+	QCOMPARE(mark->stretches().back(), previewSectionCourse(f.presenter.trackPreview(), *last));
+	QVERIFY(mark->emphasis().isEmpty());
+	// The section chosen under Route sections is drawn over the route in the second colour.
+	mark = f.show("routes", "route2", 3);
+	if (mark == nullptr)
+		QFAIL("a route has a mark");
+	const SceneSectionDescriptor* chosen = f.inventory.exact("@3-B0@");
+	QVERIFY(chosen);
+	QCOMPARE(mark->emphasis(), QList<QPolygonF>{previewSectionCourse(f.presenter.trackPreview(), *chosen)});
+	QCOMPARE(mark->stretches().size(), qsizetype(124));
+}
+
+// A station marks its own station mark and platform nodes, so two stations on one track have different marks.
+void TestNetworkPresenter::stationsHaveMarksOfTheirOwn() {
+	PaimpolFixture f;
+	const NetworkMarkItem* mark = f.show("stations", "Gourland");
+	if (mark == nullptr)
+		QFAIL("a station has a mark");
+	const QStringList gourland = ringIds(*mark);
+	QVERIFY(mark->stretches().isEmpty());
+	mark = f.show("stations", "Frynaudour");
+	if (mark == nullptr)
+		QFAIL("a station has a mark");
+	const QStringList frynaudour = ringIds(*mark);
+	QCOMPARE(gourland, QStringList({"B0.node.41", "Gourland"}));
+	QCOMPARE(frynaudour, QStringList({"B0.node.241", "Frynaudour"}));
+	// A station with platforms on two tracks rings both nodes.
+	mark = f.show("stations", "Tregonneau_Squiffiec");
+	if (mark == nullptr)
+		QFAIL("a station has a mark");
+	QCOMPARE(ringIds(*mark), QStringList({"B0.node.102", "B4.node.4", "Tregonneau_Squiffiec"}));
+	QCOMPARE(cueColouredTracks(f.scene), 0);
+}
+
+// A node is ringed, and a block marks the course of its section only.
+void TestNetworkPresenter::nodeAndBlockMarkThatItem() {
+	PaimpolFixture f;
+	const NetworkMarkItem* mark = f.show("nodes", "B0.node.41");
+	if (mark == nullptr)
+		QFAIL("a node has a mark");
+	QCOMPARE(ringIds(*mark), QStringList{"B0.node.41"});
+	QVERIFY(mark->stretches().isEmpty());
+	mark = f.show("blocks", "36-B0");
+	if (mark == nullptr)
+		QFAIL("a block has a mark");
+	const SceneSectionDescriptor* section = f.inventory.exact("@36-B0@");
+	QVERIFY(section);
+	QCOMPARE(mark->stretches(), QList<QPolygonF>{previewSectionCourse(f.presenter.trackPreview(), *section)});
+	QCOMPARE(f.marked(*mark, {"@36-B0@"}), QStringList{"@36-B0@"});
+	QCOMPARE(f.touched(*mark, {"@35-B0@", "@36-B0@", "@37-B0@"}), QStringList{"@36-B0@"});
+	// An arc and a connection mark the line between their ends.
+	mark = f.show("connections", "connection.5");
+	if (mark == nullptr)
+		QFAIL("a connection has a mark");
+	QCOMPARE(mark->stretches(), QList<QPolygonF>{QPolygonF({f.at("B0.node.101"), f.at("B4.node.3")})});
+	QCOMPARE(cueColouredTracks(f.scene), 0);
+}
+
+// A signal rings its heads, and a signalling area, a single-track restriction, a station boundary and a block dependency
+// mark the sections or the kilometres that they name. The kinds without an id are named by their row.
+void TestNetworkPresenter::otherKindsHaveMarks() {
+	PaimpolFixture f;
+	const NetworkMarkItem* mark = f.show("signals", "sig.36");
+	if (mark == nullptr)
+		QFAIL("a signal has a mark");
+	QCOMPARE(ringIds(*mark), QStringList({"@36-B0@", "@36-B0@"}));
+	QVERIFY(std::all_of(mark->ringTargets().cbegin(), mark->ringTargets().cend(),
+		[](const QGraphicsItem* target) { return qgraphicsitem_cast<const SignalItem*>(target) != nullptr; }));
+
+	mark = f.show("signalling_areas", "area.B0");
+	if (mark == nullptr)
+		QFAIL("a signalling area has a mark");
+	const TrackPreviewLine* b0 = f.presenter.trackLine("B0");
+	QVERIFY(b0);
+	QPointF start;
+	QPointF end;
+	QVERIFY(previewPointAtX(*b0, 2.0, b0->displayOffset, start));
+	QVERIFY(previewPointAtX(*b0, 3.0, b0->displayOffset, end));
+	QCOMPARE(mark->stretches().size(), qsizetype(1));
+	QCOMPARE(mark->stretches().front().front(), start);
+	QCOMPARE(mark->stretches().front().back(), end);
+	const qreal near = f.presenter.previewFit().bounds.width() * 1e-6;
+	QCOMPARE_LT(distanceTo(mark->stretches(), f.at("B0.node.41")), near);
+
+	// The first restriction runs from 2-B0 to 31-B0, between two switch sections.
+	mark = f.show("single_track_restrictions", "0");
+	if (mark == nullptr)
+		QFAIL("a single-track restriction has a mark");
+	QCOMPARE(mark->stretches().size(), qsizetype(32));
+	QCOMPARE(f.marked(*mark, {"@2-B0@", "@20-B0@", "@31-B0@", "@1-B3@-0.250000/@1-B0@-0.300000", "@32-B0@-9.539000/@0-B4@-9.549000"})
+				 .size(),
+		qsizetype(5));
+	QCOMPARE(f.touched(*mark, {"@33-B0@", "@50-B0@"}), QStringList());
+
+	mark = f.show("station_boundaries", "0");
+	if (mark == nullptr)
+		QFAIL("a station boundary has a mark");
+	QCOMPARE(f.marked(*mark, {"@40-B0@", "@42-B0@"}), QStringList({"@40-B0@", "@42-B0@"}));
+	QCOMPARE(f.touched(*mark, {"@39-B0@", "@41-B0@", "@43-B0@"}), QStringList());
+
+	mark = f.show("block_dependencies", "0");
+	if (mark == nullptr)
+		QFAIL("a block dependency has a mark");
+	QCOMPARE(f.marked(*mark, {"@36-B0@", "@38-B0@"}), QStringList({"@36-B0@", "@38-B0@"}));
+	QCOMPARE(f.touched(*mark, {"@37-B0@"}), QStringList());
+	QVERIFY2(!f.show("block_dependencies", "1"), "a row that does not exist has no mark");
+}
+
+// Choosing another row moves the mark and keeps the zoom and the position of the view; only a mark that is wholly outside
+// the view moves it, onto the mark at the same zoom.
+void TestNetworkPresenter::anotherRowKeepsTheView() {
+	PaimpolFixture f;
+	f.show("stations", "Gourland");
+	QVERIFY(f.view.zoomBy(8.0));
+	f.view.centerOn(f.at("B0.node.41"));
+	const QTransform transform = f.view.transform();
+	const auto centre = [&f]() { return f.view.mapToScene(f.view.viewport()->rect().center()); };
+	const QPointF before = centre();
+	const qsizetype items = f.scene.items().size();
+	QVERIFY(f.presenter.markPreviewSelection(f.model, PaimpolFixture::options("platforms", "Gourland\nGourland.platform.1")));
+	QCOMPARE(f.view.transform(), transform);
+	QCOMPARE(centre(), before);
+	// Only the mark is replaced.
+	QCOMPARE(f.scene.items().size(), items);
+	if (f.presenter.selectionMark() == nullptr)
+		QFAIL("the platform has a mark");
+	QCOMPARE(ringIds(*f.presenter.selectionMark()), QStringList{"B0.node.41"});
+
+	const QPointF frynaudour = f.at("B0.node.241");
+	QVERIFY(!f.view.mapToScene(f.view.viewport()->rect()).boundingRect().contains(frynaudour));
+	QVERIFY(f.presenter.markPreviewSelection(f.model, PaimpolFixture::options("stations", "Frynaudour")));
+	QCOMPARE(f.view.transform(), transform);
+	QVERIFY2(f.view.mapToScene(f.view.viewport()->rect()).boundingRect().contains(frynaudour),
+		"a mark wholly outside the view centres the view on it");
+}
+
+// A mark goes in place of another only on the preview of the model generation that it was drawn from, so the caller draws
+// the preview again after an edit.
+void TestNetworkPresenter::markInPlaceNeedsTheDrawnModel() {
+	PaimpolFixture f;
+	f.show("stations", "Gourland");
+	const NetworkMarkItem* drawn = f.presenter.selectionMark();
+	QVERIFY(drawn);
+	QVERIFY(f.presenter.previewShown());
+	NetworkPresenter::PreviewOptions edited = PaimpolFixture::options("stations", "Frynaudour");
+	edited.modelGeneration = 2;
+	QVERIFY2(!f.presenter.markPreviewSelection(f.model, edited), "an edited model is drawn again");
+	edited.modelGeneration.reset();
+	QVERIFY2(!f.presenter.markPreviewSelection(f.model, edited), "a model of unknown generation is drawn again");
+	QCOMPARE(f.presenter.selectionMark(), drawn);
+	f.presenter.clear();
+	QVERIFY(!f.presenter.previewShown());
+	QVERIFY2(!f.presenter.markPreviewSelection(f.model, PaimpolFixture::options("stations", "Frynaudour")),
+		"without a preview nothing is marked in place");
+}
+
+// The colours of the mark read on the canvas and on the area of a station, are neither red nor green, and differ from the
+// selection cue and the other colours of the canvas.
+void TestNetworkPresenter::markColoursStandApart() {
+	const auto channel = [](int value) {
+		const double unit = value / 255.0;
+		return unit <= 0.03928 ? unit / 12.92 : std::pow((unit + 0.055) / 1.055, 2.4);
+	};
+	const auto luminance = [&channel](const QColor& color) {
+		return 0.2126 * channel(color.red()) + 0.7152 * channel(color.green()) + 0.0722 * channel(color.blue());
+	};
+	const auto contrast = [&luminance](const QColor& first, const QColor& second) {
+		const double a = luminance(first);
+		const double b = luminance(second);
+		return (std::max(a, b) + 0.05) / (std::min(a, b) + 0.05);
+	};
+	const auto distance = [](const QColor& first, const QColor& second) {
+		return std::hypot(first.red() - second.red(), first.green() - second.green(), first.blue() - second.blue());
+	};
+	std::vector<QColor> used = {kSelectionCueColor, QColor(Qt::white), QColor(Qt::red), QColor(Qt::yellow), QColor(Qt::green),
+		defaultTrainFill(), defaultTrainOutline(), stationMarkFill(), QColor(80, 120, 210)};
+	for (const double speed : {0.0, 20.0, 40.0, 60.0})
+		used.push_back(classifyTrackSpeed(speed).color);
+	for (const TrackOperationalState state : {TrackOperationalState::Prepared, TrackOperationalState::Occupied, TrackOperationalState::Blocked})
+		used.push_back(classifyTrackState(state).color);
+	for (const int code : {0, 75, 180, 270, -1})
+		used.push_back(classifySignalAspect(code).lamp);
+	const QColor stationArea(30, 47, 73);
+	for (const QColor& colour : {kNetworkMarkColor, kNetworkMarkEmphasisColor}) {
+		QCOMPARE_GE(contrast(colour, canvasColor()), 4.5);
+		QCOMPARE_GE(contrast(colour, stationArea), 4.5);
+		const int hue = colour.hsvHue();
+		QVERIFY2(hue > 20 && hue < 340 && (hue < 80 || hue > 160), "the mark is neither red nor green");
+		double nearest = 1e9;
+		for (const QColor& other : used)
+			nearest = std::min(nearest, distance(colour, other));
+		QCOMPARE_GE(nearest, 70.0);
+	}
+	// The two colours of the mark tell apart.
+	QCOMPARE_GE(distance(kNetworkMarkColor, kNetworkMarkEmphasisColor), 70.0);
+}
+
+// A double switch is drawn without its first and last arc, and a mark along it leaves them out too. On Copenhagen the
+// block sections of the double switch B157 mark only the part of the middle arc that they cover, and a signalling area
+// over every track marks the middle arc of each double switch and not the arcs at its ends.
+void TestNetworkPresenter::marksLeaveOutHiddenArcsOfDoubleSwitches() {
+	QGraphicsScene scene;
+	NetworkView view;
+	view.setScene(&scene);
+	view.resize(800, 600);
+	NetworkPresenter presenter(&scene, &view);
+	const SceneModel model = loadScene(QFINDTESTDATA("../Scenes/Copenhagen").toStdString()).scene;
+	const auto show = [&presenter, &model](const char* facet, const char* id) {
+		presenter.clear();
+		presenter.showPreview(model, PaimpolFixture::options(facet, id));
+		return presenter.selectionMark();
+	};
+	// The distance from the mark to the point of B157 at the chainage.
+	const auto fromB157 = [&presenter](const NetworkMarkItem& mark, double km) {
+		const TrackPreviewLine* line = presenter.trackLine("B157");
+		QPointF point;
+		if (!line || !previewPointAtX(*line, km, line->displayOffset, point))
+			return std::numeric_limits<qreal>::max();
+		return distanceTo(mark.stretches(), point);
+	};
+	// B157 has its nodes at 38.125, 38.135, 38.145 and 38.155 km; its blocks meet at 38.140 km.
+	const NetworkMarkItem* mark = show("blocks", "0-B157");
+	if (mark == nullptr)
+		QFAIL("a block of a double switch has a mark");
+	const qreal near = presenter.previewFit().bounds.width() * 1e-6;
+	QCOMPARE_GT(fromB157(*mark, 38.130), near);
+	QCOMPARE_LE(fromB157(*mark, 38.137), near);
+	mark = show("blocks", "1-B157");
+	if (mark == nullptr)
+		QFAIL("a block of a double switch has a mark");
+	QCOMPARE_GT(fromB157(*mark, 38.150), near);
+	QCOMPARE_LE(fromB157(*mark, 38.143), near);
+
+	mark = show("signalling_areas", "network");
+	if (mark == nullptr)
+		QFAIL("a signalling area has a mark");
+	int switches = 0;
+	int hiddenMarked = 0;
+	int middleMarked = 0;
+	for (const SceneTrackView& trackView : model.trackViews) {
+		const TrackPreviewLine* line = trackView.doubleSwitch ? presenter.trackLine(trackView.trackId) : nullptr;
+		if (line == nullptr || line->points.size() != 4)
+			continue;
+		++switches;
+		// The middles of the first, the middle and the last arc.
+		for (std::size_t index = 1; index < 4; ++index) {
+			const TrackPreviewPoint& from = line->points[index - 1];
+			const TrackPreviewPoint& to = line->points[index];
+			const QPointF middle((from.x + to.x) / 2.0, (from.y + to.y) / 2.0 + line->displayOffset);
+			if (distanceTo(mark->stretches(), middle) > near)
+				continue;
+			if (index == 2)
+				++middleMarked;
+			else
+				++hiddenMarked;
+		}
+	}
+	QCOMPARE(switches, 137);
+	QCOMPARE(hiddenMarked, 0);
+	QCOMPARE(middleMarked, switches);
+}
+
+// A signalling area over every track leaves out a line with a point that is not finite, which the preview does not draw.
+void TestNetworkPresenter::areaLeavesOutLineThatIsNotFinite() {
+	QGraphicsScene scene;
+	NetworkPresenter presenter(&scene, nullptr);
+	SceneModel model;
+	model.tracks = {{"B0"}, {"B1"}};
+	model.nodes = {{"B0.1", "B0", 0.0, 0.0}, {"B0.2", "B0", 4.0, 0.0}};
+	for (int node = 0; node < 5; ++node)
+		model.nodes.push_back({"B1." + std::to_string(node + 1), "B1", static_cast<double>(node),
+			node == 2 ? std::numeric_limits<double>::quiet_NaN() : 1.0});
+	model.signallingAreas.push_back({"area", 0.0, 4.0, 0, ""});
+	presenter.showPreview(model, PaimpolFixture::options("signalling_areas", "area"));
+	const NetworkMarkItem* mark = presenter.selectionMark();
+	if (mark == nullptr)
+		QFAIL("a signalling area has a mark");
+	// Only B0 is marked.
+	const TrackPreviewLine* b0 = presenter.trackLine("B0");
+	QVERIFY(b0);
+	QCOMPARE(mark->stretches().size(), qsizetype(1));
+	QPointF start;
+	QVERIFY(previewPointAtX(*b0, 0.0, b0->displayOffset, start));
+	QCOMPARE(mark->stretches().front().front(), start);
 }
 
 QTEST_MAIN(TestNetworkPresenter)

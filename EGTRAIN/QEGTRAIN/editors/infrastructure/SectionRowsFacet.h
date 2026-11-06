@@ -20,8 +20,9 @@
 
 /// A facet over one list of the model whose items have no id and name sections instead, such as the dependencies between
 /// blocks. A section is chosen in a combo of the sections of the scene, which writes the model as soon as another
-/// section is chosen. The other cells are text. A new item is empty, and a row is named by its first section when it is
-/// deleted. Nothing else refers to these items. `Item` is the type of the items.
+/// section is chosen. The other cells are text. A new item is empty, the selection names an item by its row number, and
+/// a row is named by its first section when it is deleted. Nothing else refers to these items. `Item` is the type of the
+/// items.
 template <typename Item>
 class SectionRowsFacet : public InfrastructureFacet {
 public:
@@ -29,6 +30,8 @@ public:
 	QString key() const override { return m_key; }
 	/// The headers given to the constructor.
 	QStringList columns() const override { return m_columns; }
+	/// The number of the row, which is the index of its item in the list.
+	QString selectionId(const QTableWidget&, int row) const override { return QString::number(row); }
 
 	/// One row for each item, filled by fillRow() with the sections of the scene.
 	void fillRows(InfrastructurePanel& panel) override {

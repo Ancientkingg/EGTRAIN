@@ -19,6 +19,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -33,6 +34,7 @@
 
 class Arc;
 class Connections;
+class NetworkMarkItem;
 class Node;
 class PassengerItem;
 class PlatformItem;
@@ -51,6 +53,8 @@ struct GuiPassengerState;
 struct GuiPlatformState;
 struct GuiSignalState;
 struct SceneModel;
+struct SceneSectionDescriptor;
+struct SceneSectionInventory;
 struct SceneStationView;
 struct StationVisual;
 
@@ -72,14 +76,18 @@ class NetworkPresenter {
 public:
 	/// What the preview needs to know besides the model.
 	struct PreviewOptions {
-		/// The facet of the row that the infrastructure panel selects: "tracks", "nodes", "arcs", "blocks",
-		/// "connections", "stations", "platforms" or "routes". Empty without one.
+		/// The facet of the row that the infrastructure panel selects, one of InfrastructurePanel::facetKeys(), such as
+		/// "tracks" or "station_boundaries". Empty without one.
 		std::string selectedFacet;
-		/// The id of that row; for a platform the station id and the platform id with a newline between
-		/// them. Empty without one.
+		/// The id of that row; for a platform the station id and the platform id with a newline between them, and for a
+		/// block dependency, a single-track restriction or a station boundary, which have no id, the row number. Empty
+		/// without one.
 		std::string selectedId;
-		/// The infrastructure panel is shown, so the arc or connection that it selects is marked.
-		bool markSelection = false;
+		/// For a route, the index into SceneRoute::blocks of the section chosen under Route sections; -1 without one.
+		int selectedRouteSection = -1;
+		/// The model generation (SceneDocument::modelGeneration()) of the model that is drawn; none when the caller does
+		/// not know it. markPreviewSelection() marks only on a preview drawn from the same generation.
+		std::optional<quint64> modelGeneration;
 	};
 
 	/// What showPreview drew.
@@ -267,8 +275,26 @@ public:
 	/// model on the scene, which holds no item, and fits the view to them. The caller clears the
 	/// scene first.
 	PreviewOutcome showPreview(const SceneModel& sceneModel);
-	/// The same, with the selection of the infrastructure panel of options.
+	/// The same, and marks the row of the infrastructure panel that options selects (see markPreviewSelection()).
 	PreviewOutcome showPreview(const SceneModel& sceneModel, const PreviewOptions& options);
+	/// Marks the row of the infrastructure panel that options selects on the preview that is shown, in place of the mark
+	/// of the row before, and leaves the rest of the scene and the view as they are. A view that shows no part of the
+	/// new mark is centred on the point of the mark nearest to its centre, at the same zoom. The mark of each kind of
+	/// row: the whole drawn track of a track, a ring around a node, the line between its ends for an arc and a
+	/// connection, the course of its section for a block (previewSectionCourse()), rings on the station mark and the
+	/// squares of the platform nodes of a station, rings on the squares and halos on the bars of a platform, the
+	/// courses of the sections of a route in travel order with a disc at its start and an arrowhead at its end when its
+	/// direction is known, rings on the heads of a signal, the kilometres of a signalling area on its track or on every
+	/// track, and the courses of the sections that a single-track restriction, a station boundary or a block dependency
+	/// names; for a single-track restriction also the block sections between its start and its end. The section chosen
+	/// under Route sections is drawn over the route in the second colour. Returns false and changes nothing when no
+	/// preview is shown or options has no model generation or another one than the preview: the caller draws the
+	/// preview again.
+	bool markPreviewSelection(const SceneModel& sceneModel, const PreviewOptions& options);
+	/// The scene shows a preview with track lines: showPreview() drew one and neither clear() nor showRuntime() ran since.
+	bool previewShown() const { return m_previewShown; }
+	/// The mark of the selected row of the infrastructure panel; null without one.
+	const NetworkMarkItem* selectionMark() const { return m_selectionMark; }
 
 	/// Forgets the fit and the selection of the last preview; the preview itself stays.
 	void resetPreviewFit();
@@ -286,7 +312,7 @@ public:
 	void restorePreviewFit(const PreviewFit& fit);
 	/// The preview that the scene shows.
 	const TrackPreviewResult& trackPreview() const { return m_cachedTrackPreview; }
-	/// The last preview marks a selected track.
+	/// The preview marks a selected track.
 	bool previewHasSelectedTrack() const { return m_previewHasSelectedTrack; }
 	/// The last preview has signals.
 	bool previewHasSignals() const { return m_previewHasSignals; }
@@ -500,22 +526,31 @@ private:
 	bool m_previewHasSelectedTrack = false;
 	// The preview has signals.
 	bool m_previewHasSignals = false;
+	// showPreview() drew track lines, and neither clear() nor showRuntime() ran since.
+	bool m_previewShown = false;
+	// The model generation of the preview, from PreviewOptions::modelGeneration.
+	std::optional<quint64> m_previewGeneration;
+	// The item of each node of the preview, by node id.
+	std::map<std::string, QGraphicsItem*> m_previewNodeItems;
+	// The platform bar of each station node of the preview, by node id.
+	std::map<std::string, const PlatformItem*> m_previewPlatformBars;
+	// The mark of the selected row of the infrastructure panel, or null.
+	NetworkMarkItem* m_selectionMark = nullptr;
 
-	// The stages of showPreview(), in the order in which it runs them, and what they share. Before them it finds the tracks
-	// that the infrastructure panel selects, which drawPreviewTrackLines() draws with the selection pen, and between
-	// drawPreviewStations() and drawPreviewSignals() it also runs measureStationTrackSpacing(), declared above.
+	// The stages of showPreview(), in the order in which it runs them, and what they share. Between drawPreviewStations()
+	// and drawPreviewSignals() it also runs measureStationTrackSpacing(), declared above, and after fitPreview() it places
+	// the mark of the selected row with placeSelectionMark().
 	struct PreviewDrawing;
 	void collectPreviewLines(PreviewDrawing& drawing) const;
 	void drawPreviewConnections(PreviewDrawing& drawing);
-	void drawPreviewTrackLines(const SceneModel& sceneModel, const std::set<std::string>& selectedTrackIds,
-		const PreviewDrawing& drawing);
+	void drawPreviewTrackLines(const SceneModel& sceneModel, const PreviewDrawing& drawing);
 	void drawPreviewNodes(const SceneModel& sceneModel, PreviewDrawing& drawing);
-	void markPreviewSelection(const SceneModel& sceneModel, const PreviewOptions& options, const PreviewDrawing& drawing);
 	void drawPreviewStations(const SceneModel& sceneModel, const PreviewDrawing& drawing);
 	void drawPreviewSignals(const SceneModel& sceneModel, const PreviewDrawing& drawing);
 	void fitPreview(const PreviewDrawing& drawing);
-	// Not a stage: markPreviewSelection() draws the mark of a selected arc or connection with it.
-	void addSelectionLine(const QPointF& start, const QPointF& end);
+	// Replaces the mark of the selected row by the mark of the row that options selects, at the scale of the view, and sets
+	// m_previewHasSelectedTrack.
+	void placeSelectionMark(const SceneModel& sceneModel, const PreviewOptions& options);
 
 	// The icon of a passenger on a platform, a tenth of station_size in pixels on each side. It is null when the
 	// application resource is missing.
@@ -722,6 +757,15 @@ bool previewPointAtNode(const TrackPreviewLine& line, const std::string& nodeId,
 /// The point of a preview line at the position x in kilometres, interpolated between its points, with offset scene
 /// units added to its y. Outside the line it is the nearest point. Returns false when there is no finite point.
 bool previewPointAtX(const TrackPreviewLine& line, double x, qreal offset, QPointF& point);
+
+/// The course of a section on the preview in scene coordinates, the polyline of trackPreviewSectionCourse(); empty when
+/// the course is not on the preview or has a point that is not finite.
+QPolygonF previewSectionCourse(const TrackPreviewResult& preview, const SceneSectionDescriptor& section);
+/// The courses of sections on the preview in scene coordinates, one per reference in order: the course of the section
+/// that the reference resolves to (SceneSectionInventory::resolve), empty for a reference that resolves to none. The
+/// preview is the one the canvas shows (NetworkPresenter::trackPreview()), and a NetworkMarkItem draws the courses.
+QList<QPolygonF> previewSectionCourses(const TrackPreviewResult& preview, const SceneSectionInventory& inventory,
+	const std::vector<std::string>& references);
 
 /// The unit normal of a preview line at the position rawX in kilometres, which tells the side of a signal head.
 /// Returns false when no segment of the line covers rawX.

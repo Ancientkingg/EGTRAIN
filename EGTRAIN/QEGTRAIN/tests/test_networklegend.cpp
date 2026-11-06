@@ -1,7 +1,7 @@
 #include "widgets/NetworkLegendWidget.h"
 
 #include "graphics/VisualPolish.h"
-#include "graphics/items/SelectionCueItem.h"
+#include "graphics/items/NetworkMarkItem.h"
 #include "graphics/items/StationOverlayItem.h"
 
 #include <QApplication>
@@ -309,9 +309,9 @@ void TestNetworkLegend::previewKeyExplainsSignalAspects() {
 	QCOMPARE(previewEntries.at(7).label, "Proceed signal");
 	QCOMPARE(previewEntries.at(8).label, "Unavailable signal");
 	QCOMPARE(previewEntries.at(9).label, "Failed signal");
-	// The preview selected-track key matches the highlighted path.
-	QCOMPARE(previewEntries.at(3).color, kSelectionCueColor);
-	QCOMPARE(previewEntries.at(3).lineWidth, 4);
+	// The row of the selected track shows the band of its mark on the preview.
+	QCOMPARE(previewEntries.at(3).color, kNetworkMarkColor);
+	QCOMPARE(previewEntries.at(3).lineWidth, qRound(NetworkMarkItem::BandPixels));
 	QVERIFY2(!legend.entryLabels().contains("Occupied section"), "the track preview has no row for the occupied sections");
 }
 

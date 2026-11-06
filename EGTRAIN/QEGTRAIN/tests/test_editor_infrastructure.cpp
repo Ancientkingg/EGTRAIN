@@ -1,6 +1,7 @@
 #include "editors/InfrastructurePanel.h"
 #include "editors/infrastructure/BlockRouteFacets.h"
 #include "editors/infrastructure/SignalFacets.h"
+#include "editors/infrastructure/StationFacets.h"
 #include "editors/infrastructure/TopologyFacets.h"
 
 #include "scene/SectionInventory.h"
@@ -313,6 +314,9 @@ private slots:
 	void returnAndAddLeaveNoEditor();
 	void commitsOpenCellEditor();
 	void leavesOpenEditorDuringOwnEdit();
+	void saysWhatTheCanvasMarks();
+	void toldSelectionIsComplete();
+	void namesNoMarkWithoutPreview();
 };
 
 // The facets, the combo and a panel without a scene.
@@ -1068,6 +1072,17 @@ void TestInfrastructurePanel::laysOutControls() {
 	QVERIFY(panel.routeSectionDetailWidget()->isHidden());
 	QCOMPARE_LE(bottom(table), top(add));
 	QVERIFY(inside(add));
+
+	panel.table()->setCurrentCell(0, 0);
+	QApplication::processEvents();
+	const QLabel* markLine = panel.findChild<QLabel*>("infrastructureMarkLabel");
+	// The line that says what the canvas marks of the selected row is between the table and the buttons.
+	if (markLine == nullptr)
+		QFAIL("the panel has a line under the table that says what the canvas marks");
+	QVERIFY(markLine->isVisible());
+	QCOMPARE_LE(bottom(table), top(markLine));
+	QCOMPARE_LE(bottom(markLine), top(add));
+	QVERIFY(inside(add));
 }
 
 // Another facet is chosen while a field in a cell has the focus, and the panel is closed with a cell editor open.
@@ -1273,6 +1288,129 @@ void TestInfrastructurePanel::leavesOpenEditorDuringOwnEdit() {
 	QCOMPARE(firstColumn(table), QStringList({"T1", "T2", "T3"}));
 	QCOMPARE(panel.selectionId(), "T3");
 	QVERIFY(table->indexWidget(table->model()->index(0, 0)) == nullptr);
+}
+
+// A panel with the facets of the window on the committed scene Paimpol, with a signal, a block dependency and a station
+// boundary added, which Paimpol does not have.
+struct PaimpolPanel {
+	SceneDocument document;
+	InfrastructurePanel panel;
+
+	PaimpolPanel() {
+		for (auto* makeFacets : {&makeTopologyFacets, &makeBlockRouteFacets, &makeStationFacets, &makeSignalFacets})
+			for (std::unique_ptr<InfrastructureFacet>& facet : (*makeFacets)())
+				panel.setFacet(std::move(facet));
+		SceneModel scene = loadScene(QFINDTESTDATA("../Scenes/Paimpol").toStdString()).scene;
+		sceneSignals(scene).push_back({"sig.36", "36-B0"});
+		scene.blockDependencies.push_back({"36-B0", "38-B0"});
+		scene.stationBoundaries.push_back({"40-B0", true, "42-B0", false});
+		document.replace(std::move(scene), false);
+		panel.setDocument(&document);
+		panel.refresh();
+	}
+
+	// Selects the row of `facet` whose cell in `column` reads `text`, or the row with that number for `column` -1, and
+	// returns the line under the table; empty while it is hidden.
+	QString markFor(const char* facet, const QString& text, int column = 0) {
+		chooseFacet(panel, facet);
+		QTableWidget* table = panel.table();
+		for (int row = 0; row < table->rowCount(); ++row) {
+			const QTableWidgetItem* cell = column < 0 ? nullptr : table->item(row, column);
+			if (column < 0 ? QString::number(row) == text : cell && cell->text() == text)
+				table->setCurrentCell(row, 0);
+		}
+		return panel.markLabel()->isHidden() ? QString() : panel.markLabel()->text();
+	}
+};
+
+// The line under the table says what the canvas marks of the selected row, with the ids, tracks, kilometres and section
+// labels that the table shows, and is hidden without a row.
+void TestInfrastructurePanel::saysWhatTheCanvasMarks() {
+	PaimpolPanel f;
+	QCOMPARE(f.markFor("tracks", "B5"), "B5: the whole track, 30.866 to 31.365 km");
+	QCOMPARE(f.markFor("nodes", "B0.node.41"), "B0.node.41: node on B0 at 2.520 km");
+	QCOMPARE(f.markFor("arcs", "B0.arc.100"), "B0.arc.100: arc on B0 from 0.000 to 0.050 km");
+	f.panel.blockTrackFilterCombo()->setCurrentIndex(f.panel.blockTrackFilterCombo()->findData("B0"));
+	QCOMPARE(f.markFor("blocks", "36-B0"), "36-B0: section B0 10.510 to 10.810 km");
+	QCOMPARE(f.markFor("connections", "connection.5"), "connection.5: from B0 at 9.539 km to B4 at 9.549 km");
+	QCOMPARE(f.markFor("stations", "Gourland"), "Gourland: station mark and platform node on B0 at 2.520 km");
+	QCOMPARE(f.markFor("stations", "Tregonneau_Squiffiec"), "Tregonneau_Squiffiec: station mark and 2 platform nodes on B0 and B4");
+	QCOMPARE(f.markFor("platforms", "Gourland.platform.1", 1), "Gourland.platform.1: node B0.node.41 at 2.520 km");
+	QCOMPARE(f.markFor("signals", "sig.36"), "sig.36: protects B0 10.510 to 10.810 km");
+	QCOMPARE(f.markFor("signalling_areas", "network-fixed-block"), "network-fixed-block: 0.000 to 38.000 km on every track");
+	QCOMPARE(f.markFor("routes", "route2"), "route2: 124 sections on B3, B0, B4, B5 and B2");
+	QCOMPARE(f.markFor("block_dependencies", "0", -1),
+		"Block dependency: B0 10.510 to 10.810 km depends on B0 11.110 to 11.410 km");
+	QCOMPARE(f.markFor("single_track_restrictions", "0", -1),
+		"Single-track restriction: B0 0.310 to 9.310 km, protected at B3 0.230 to 0.250, B0 0.300 to 0.310 km and at B0 9.310 "
+		"to 9.539, B4 9.549 to 9.675 km");
+	QCOMPARE(f.markFor("station_boundaries", "0", -1),
+		"Station boundary: entrance B0 11.710 to 12.010 km, exit B0 12.310 to 12.610 km");
+	// A row of a kind without an id is selected by its number.
+	QCOMPARE(f.panel.selectionId(), "0");
+	f.panel.table()->setCurrentCell(-1, -1);
+	QVERIFY2(f.panel.markLabel()->isHidden(), "without a row the line is hidden");
+}
+
+// When the panel tells the selection, the controls that depend on it show it: the sections of the selected route, and
+// the section chosen under Route sections, which is told again when another one is chosen.
+void TestInfrastructurePanel::toldSelectionIsComplete() {
+	PaimpolPanel f;
+	Events events(f.panel, f.document);
+	QStringList firstSections;
+	QStringList lines;
+	QObject::connect(&f.panel, &InfrastructurePanel::selectionChanged, &f.panel, [&f, &firstSections, &lines]() {
+		const QListWidgetItem* first = f.panel.routeSectionListWidget()->item(0);
+		firstSections << (first ? first->toolTip() : QString());
+		lines << f.panel.markLabel()->text();
+	});
+	f.markFor("routes", "route0");
+	firstSections.clear();
+	lines.clear();
+	f.markFor("routes", "route2");
+	QCOMPARE(firstSections, QStringList{"0-B3"});
+	QCOMPARE(lines, QStringList{"route2: 124 sections on B3, B0, B4, B5 and B2"});
+	events.selections.clear();
+	f.panel.routeSectionListWidget()->setCurrentRow(3);
+	QCOMPARE(events.selections, std::vector<Selection>({Selection("routes", "route2")}));
+	QCOMPARE(f.panel.selectedRouteSection(), 3);
+	chooseFacet(f.panel, "tracks");
+	QCOMPARE(f.panel.selectedRouteSection(), -1);
+	// An edit grows the model generation before the selection is told again, so that the window draws the preview again.
+	std::vector<quint64> generations;
+	QObject::connect(&f.panel, &InfrastructurePanel::selectionChanged, &f.panel,
+		[&f, &generations]() { generations.push_back(f.document.modelGeneration()); });
+	const quint64 before = f.document.modelGeneration();
+	f.markFor("nodes", "B0.node.41");
+	generations.clear();
+	f.panel.table()->item(f.panel.table()->currentRow(), 2)->setText("2.53");
+	QVERIFY(f.document.isDirty());
+	QVERIFY(!generations.empty());
+	QCOMPARE_GT(generations.front(), before);
+	QCOMPARE(generations.back(), f.document.modelGeneration());
+}
+
+// The line under the table is empty while the canvas marks no row: while a run uses the document, and while the window
+// hides it because the canvas shows a run or its results.
+void TestInfrastructurePanel::namesNoMarkWithoutPreview() {
+	PaimpolPanel f;
+	const QString node = "B0.node.41: node on B0 at 2.520 km";
+	QCOMPARE(f.markFor("nodes", "B0.node.41"), node);
+	f.document.setEditable(false);
+	f.panel.refresh();
+	QVERIFY2(f.panel.markLabel()->isHidden() && f.panel.markLabel()->text().isEmpty(), "a run marks no row");
+	f.document.setEditable(true);
+	f.panel.refresh();
+	QCOMPARE(f.panel.markLabel()->text(), node);
+	QVERIFY(!f.panel.markLabel()->isHidden());
+
+	f.panel.setMarkShown(false);
+	QVERIFY2(f.panel.markLabel()->isHidden() && f.panel.markLabel()->text().isEmpty(), "the results of a run mark no row");
+	QCOMPARE(f.markFor("nodes", "B0.node.42"), QString());
+	QVERIFY2(f.panel.markLabel()->text().isEmpty(), "another row is not named either");
+	f.panel.setMarkShown(true);
+	QCOMPARE(f.panel.markLabel()->text(), "B0.node.42: node on B0 at 2.581 km");
+	QVERIFY(!f.panel.markLabel()->isHidden());
 }
 
 QTEST_MAIN(TestInfrastructurePanel)

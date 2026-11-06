@@ -1,6 +1,6 @@
 #include "widgets/NetworkLegendWidget.h"
 
-#include "graphics/items/SelectionCueItem.h"
+#include "graphics/items/NetworkMarkItem.h"
 
 #include <QEvent>
 #include <QHBoxLayout>
@@ -326,9 +326,10 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 			m_entries << occupied;
 		}
 		if (content.hasSelectedTrack) {
+			// The band of the mark that the preview draws along the track of the selected row.
 			NetworkLegendEntry selected = trackEntry("Selected track", TrackOperationalState::Free);
-			selected.color = kSelectionCueColor;
-			selected.lineWidth = 4;
+			selected.color = kNetworkMarkColor;
+			selected.lineWidth = qRound(NetworkMarkItem::BandPixels);
 			m_entries << selected;
 		}
 	}
