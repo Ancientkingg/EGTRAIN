@@ -9,6 +9,18 @@
 #include <nlohmann/json.hpp>
 #include <system_error>
 #include <utility>
+#include <vector>
+
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#else
+#include <cerrno>
+#include <fcntl.h>
+#include <unistd.h>
+#endif
 
 using json = nlohmann::json;
 namespace fs = std::filesystem;
@@ -83,6 +95,85 @@ static bool writeBytes(SceneSaveResult& result, const std::string& filename, con
 		return false;
 	}
 	return true;
+}
+
+// Flushes the file or the directory at path from the caches of the system to the disk. Closing a std::ofstream only hands
+// its bytes to the system, and the standard library has no flush to disk, so this calls the system: fsync on macOS and
+// Linux, FlushFileBuffers on Windows. On Windows a directory is not flushed; publishStagedDirectory writes its rename
+// through instead.
+static std::error_code syncToDisk(const fs::path& path, bool directory) {
+	if (const auto& hook = syncToDiskHook())
+		return hook(path, directory);
+#ifdef _WIN32
+	if (directory)
+		return std::error_code();
+	const HANDLE file = CreateFileW(path.c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+		nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	if (file == INVALID_HANDLE_VALUE) {
+		const DWORD error = GetLastError();
+		// The flush needs write access, which a file with the read-only attribute refuses; such a file is left as it is.
+		const DWORD attributes = GetFileAttributesW(path.c_str());
+		if (error == ERROR_ACCESS_DENIED && attributes != INVALID_FILE_ATTRIBUTES
+			&& (attributes & FILE_ATTRIBUTE_READONLY) != 0)
+			return std::error_code();
+		return std::error_code(static_cast<int>(error), std::system_category());
+	}
+	std::error_code ec;
+	if (FlushFileBuffers(file) == 0)
+		ec = std::error_code(static_cast<int>(GetLastError()), std::system_category());
+	CloseHandle(file);
+	return ec;
+#else
+	int descriptor = -1;
+	do {
+		descriptor = ::open(path.c_str(), O_RDONLY | O_CLOEXEC);
+	} while (descriptor < 0 && errno == EINTR);
+	if (descriptor < 0)
+		return std::error_code(errno, std::generic_category());
+	int synced = -1;
+	do {
+		synced = ::fsync(descriptor);
+	} while (synced != 0 && errno == EINTR);
+	const int error = synced == 0 ? 0 : errno;
+	::close(descriptor);
+	// A file system that cannot flush a directory says so with EINVAL, and nothing more can be done there.
+	if (error == 0 || (directory && error == EINVAL))
+		return std::error_code();
+	return std::error_code(error, std::generic_category());
+#endif
+}
+
+// Flushes every file and folder in directory, and directory itself, to disk, each folder after what it holds. Links are
+// not followed. failed is the path that could not be flushed or listed.
+static std::error_code syncDirectoryTree(const fs::path& directory, fs::path& failed) {
+	std::vector<fs::path> folders{directory};
+	std::error_code ec;
+	for (fs::recursive_directory_iterator entry(directory, ec), end; !ec && entry != end; entry.increment(ec)) {
+		const fs::file_status status = entry->symlink_status(ec);
+		if (ec)
+			break;
+		if (fs::is_directory(status)) {
+			folders.push_back(entry->path());
+		} else if (fs::is_regular_file(status)) {
+			ec = syncToDisk(entry->path(), false);
+			if (ec) {
+				failed = entry->path();
+				return ec;
+			}
+		}
+	}
+	if (ec) {
+		failed = directory;
+		return ec;
+	}
+	for (auto folder = folders.rbegin(); folder != folders.rend(); ++folder) {
+		ec = syncToDisk(*folder, true);
+		if (ec) {
+			failed = *folder;
+			return ec;
+		}
+	}
+	return ec;
 }
 
 // Writes into a scene directory that is private to the save, so truncating is safe.
@@ -614,10 +705,40 @@ static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::p
 	return result;
 }
 
-// Writes the scene into a staging directory next to sceneDir, loads it back and renames it into place. With
-// keepOtherFiles the staging directory is limited to its owner and takes the files of the previous directory that are
-// not scene files; without it the previous directory is replaced with everything in it and the new one keeps the
-// default mode of a new directory.
+StagedPublishResult publishStagedDirectory(StagedDirectory& staged, const fs::path& destination, const fs::path& backup) {
+	StagedPublishResult result;
+	if (!backup.empty()) {
+		fs::rename(destination, backup, result.error);
+		if (result.error) {
+			result.step = StagedPublishStep::MoveToBackup;
+			return result;
+		}
+	}
+#ifdef _WIN32
+	// std::filesystem::rename calls MoveFileExW without MOVEFILE_WRITE_THROUGH.
+	if (MoveFileExW(staged.path.c_str(), destination.c_str(), MOVEFILE_WRITE_THROUGH) == 0)
+		result.error = std::error_code(static_cast<int>(GetLastError()), std::system_category());
+#else
+	fs::rename(staged.path, destination, result.error);
+#endif
+	if (result.error) {
+		result.step = StagedPublishStep::Rename;
+		if (!backup.empty())
+			fs::rename(backup, destination, result.restoreError);
+		return result;
+	}
+	staged.release();
+	// The parent folder holds the new name, and the backup goes only once that is on disk.
+	result.syncError = syncToDisk(destination.parent_path().empty() ? fs::path(".") : destination.parent_path(), true);
+	if (!backup.empty() && !result.syncError)
+		fs::remove_all(backup, result.removeBackupError);
+	return result;
+}
+
+// Writes the scene into a staging directory next to sceneDir, loads it back, flushes it to disk and renames it into
+// place. With keepOtherFiles the staging directory is limited to its owner and takes the files of the previous directory
+// that are not scene files; without it the previous directory is replaced with everything in it and the new one keeps
+// the default mode of a new directory.
 static SceneSaveResult writeSceneDirectory(const SceneModel& scene, const std::string& sceneDir,
 	bool keepOtherFiles) {
 	SceneSaveResult result;
@@ -670,6 +791,15 @@ static SceneSaveResult writeSceneDirectory(const SceneModel& scene, const std::s
 		return result;
 	}
 	const std::string stagedSnapshot = staged.inputSnapshot;
+	fs::path unsynced;
+	ec = syncDirectoryTree(staging.path, unsynced);
+	if (ec) {
+		const fs::path inCase = unsynced.lexically_relative(staging.path);
+		const std::string name = inCase == fs::path(".") ? destinationName : inCase.u8string();
+		addWriteError(result, name, "Cannot flush " + name + " to disk: " + ec.message());
+		result.wroteAll = false;
+		return result;
+	}
 
 	if (!inspectDestination(destination, hadDestination, result)) {
 		result.wroteAll = false;
@@ -702,6 +832,11 @@ static SceneSaveResult writeSceneDirectory(const SceneModel& scene, const std::s
 		result.wroteAll = false;
 		return result;
 	}
+	if (published.syncError)
+		addCleanupWarning(result, backup.empty() ? parent : backup,
+			"Cannot flush " + parent.u8string() + " to disk"
+				+ (backup.empty() ? std::string() : ", so the previous case stays in " + backup.u8string()) + ": "
+				+ published.syncError.message());
 	if (published.removeBackupError)
 		addCleanupWarning(result, backup,
 			"Cannot remove the previous case generation: " + published.removeBackupError.message());
