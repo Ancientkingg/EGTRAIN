@@ -129,11 +129,7 @@ private:
 		if (path == "/redirect")
 			send(socket, "302 Found", QByteArray(), "Location: " + url("/target").toEncoded() + "\r\n");
 		else if (path == "/redirect-relative")
-			send(socket, "302 Found", QByteArray(), "Location: /target\r\n");
-		else if (path == "/redirect-loop")
-			send(socket, "302 Found", QByteArray(), "Location: " + url("/redirect-loop").toEncoded() + "\r\n");
-		else if (path == "/redirect-away")
-			send(socket, "302 Found", QByteArray(), "Location: http://localhost:" + QByteArray::number(server.serverPort()) + "/redirect-away-target\r\n");
+			send(socket, "301 Moved Permanently", QByteArray(), "Location: /target\r\n");
 		else if (path == "/post-redirect")
 			send(socket, "302 Found", QByteArray(), "Location: " + url("/post-target").toEncoded() + "\r\n");
 		else if (path == "/post-accepted")
@@ -257,9 +253,7 @@ private slots:
 	void postErrorStatus();
 	void postSendsNoCookie();
 	void readsLargeBody();
-	void redirect();
-	void relativeRedirect();
-	void redirectLoop();
+	void redirectNotFollowed();
 	void errorStatus();
 	void abortDuringResponse();
 	void connectionDropped();
@@ -267,7 +261,6 @@ private slots:
 	void releaseAfterFinished();
 	void teardownDuringRequest();
 	void plainHttpRefused();
-	void redirectToPlainHttpRefused();
 
 private:
 	TestServer m_server;
@@ -296,7 +289,7 @@ void TestHttpTransport::readsSmallBody() {
 }
 
 void TestHttpTransport::requestHeaders() {
-	const QByteArray accept = QByteArrayLiteral("application/vnd.github+json");
+	const QByteArray accept = QByteArrayLiteral("application/json");
 	Fetch first(*m_transport, makeRequest(m_server.url("/headers-first"), "EGTRAIN/9.9.9", accept));
 	QVERIFY2(first.waitFinished(), "headers: the first request finishes");
 	const RecordedRequest* recorded = m_server.find("/headers-first");
@@ -387,35 +380,27 @@ void TestHttpTransport::readsLargeBody() {
 	QCOMPARE(fetch.data, body);
 }
 
-void TestHttpTransport::redirect() {
-	Fetch fetch(*m_transport, makeRequest(m_server.url("/redirect")));
-	QVERIFY2(fetch.waitFinished(), "redirect: finished() arrives");
-	// The reply is the one of the target.
-	QVERIFY(!fetch.failed);
-	QCOMPARE(fetch.status, 200);
-	// The body is the one of the target.
-	QCOMPARE(fetch.data, targetBody());
-}
-
-void TestHttpTransport::relativeRedirect() {
-	Fetch fetch(*m_transport, makeRequest(m_server.url("/redirect-relative")));
-	QVERIFY2(fetch.waitFinished(), "relative redirect: finished() arrives");
-	// The reply is the one of the target.
-	QVERIFY(!fetch.failed);
-	QCOMPARE(fetch.status, 200);
-	// The body is the one of the target.
-	QCOMPARE(fetch.data, targetBody());
-}
-
-// A server that redirects to its own address: the transport gives up after a limited number of redirects.
-void TestHttpTransport::redirectLoop() {
-	Fetch fetch(*m_transport, makeRequest(m_server.url("/redirect-loop")));
-	QVERIFY2(fetch.waitFinished(), "redirect loop: finished() arrives");
+// A redirect of a get is a reply like any other: it is not followed, to an absolute or a relative address, so the
+// files of an update come only from the address that the update code checked.
+void TestHttpTransport::redirectNotFollowed() {
+	Fetch absolute(*m_transport, makeRequest(m_server.url("/redirect")));
+	QVERIFY2(absolute.waitFinished(), "redirect: finished() arrives");
 	spin(50);
 	// finished() is emitted once.
-	QCOMPARE(fetch.finishedCount, 1);
-	QVERIFY2(fetch.failed, "redirect loop: the reply has failed");
-	QVERIFY2(!fetch.error.isEmpty(), "redirect loop: errorString() is not empty");
+	QCOMPARE(absolute.finishedCount, 1);
+	// The reply is the redirect, without an error.
+	QVERIFY(!absolute.failed);
+	QCOMPARE(absolute.status, 302);
+	// header() returns the Location.
+	QCOMPARE(absolute.location, m_server.url("/target").toEncoded());
+	QVERIFY2(absolute.data != targetBody(), "redirect: the body is not the one of the target");
+
+	Fetch relative(*m_transport, makeRequest(m_server.url("/redirect-relative")));
+	QVERIFY2(relative.waitFinished(), "relative redirect: finished() arrives");
+	QVERIFY(!relative.failed);
+	QCOMPARE(relative.status, 301);
+	spin(50);
+	QVERIFY2(m_server.find("/target") == nullptr, "redirect: the redirect is not followed");
 }
 
 void TestHttpTransport::errorStatus() {
@@ -538,22 +523,6 @@ void TestHttpTransport::plainHttpRefused() {
 	}
 	spin(50);
 	QVERIFY2(m_server.find("/plain-http") == nullptr, "plain http: no request reaches the server");
-#else
-	QSKIP("Only the transport on Windows refuses plain http.");
-#endif
-}
-
-// With plain http to the loopback address allowed, a redirect to another plain http address is still
-// refused. The redirect names this server by host name, which is not the loopback address the test
-// allows, so a transport that followed it would send the request to this server.
-void TestHttpTransport::redirectToPlainHttpRefused() {
-#ifdef Q_OS_WIN
-	Fetch fetch(*m_transport, makeRequest(m_server.url("/redirect-away")));
-	QVERIFY2(fetch.waitFinished(), "redirect to http: finished() arrives");
-	QVERIFY2(fetch.failed, "redirect to http: the reply has failed");
-	QVERIFY2(!fetch.error.isEmpty(), "redirect to http: errorString() is not empty");
-	spin(50);
-	QVERIFY2(m_server.find("/redirect-away-target") == nullptr, "redirect to http: the redirect is not followed");
 #else
 	QSKIP("Only the transport on Windows refuses plain http.");
 #endif

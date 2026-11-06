@@ -242,7 +242,7 @@ void TestUpdateTelemetryController::promptNamesItsDefault() {
 	StableRelease release;
 	release.version = SemanticVersion{1, 2, 3};
 	release.tag = "v1.2.3";
-	release.releasePage = QUrl("https://github.com/Ancientkingg/EGTRAIN/releases/tag/v1.2.3");
+	release.releasePage = QUrl("https://egtrain.samuelbruin.com/releases/1.2.3/");
 	release.notes = "Notes";
 
 	SelfUpdateCapability unsupported;

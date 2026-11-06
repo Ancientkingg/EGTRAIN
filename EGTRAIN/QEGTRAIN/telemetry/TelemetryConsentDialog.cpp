@@ -3,10 +3,17 @@
 #include "widgets/DialogLayout.h"
 
 #include <QCheckBox>
+#include <QDesktopServices>
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QPushButton>
+#include <QUrl>
 #include <QVBoxLayout>
+
+namespace {
+// The privacy notice of the EGTRAIN website, which says what the receiver keeps and for how long.
+constexpr char kPrivacyNotice[] = "https://egtrain.samuelbruin.com/privacy/";
+} // namespace
 
 TelemetryConsentDialog::TelemetryConsentDialog(TelemetryConsent& consent, const QString& domain,
 	bool initialPrompt, QWidget* parent)
@@ -33,12 +40,29 @@ TelemetryConsentDialog::TelemetryConsentDialog(TelemetryConsent& consent, const 
 	layout->addWidget(m_diagnostics);
 	addText(QStringLiteral("Structured application errors and technical context. No native crash dumps or usage installation ID. No project data or raw error messages."));
 	addText(QStringLiteral("Example only, not collected from this computer: usage: session.started, application version 1.0.0, platform macOS; diagnostics: operation.failed, operation_code export, error_code io_failure. These categories are sent separately."));
-	addText(QStringLiteral("Receiving domain: %1. No privacy notice is currently supplied. The network may reveal your IP address to the receiver. Previous uploads cannot be recalled. You can change these choices later in Help > Privacy & diagnostics.").arg(domain));
+	addText(QStringLiteral("Receiving domain: %1. The network may reveal your IP address to the receiver. Previous uploads cannot be recalled. You can change these choices later in Help > Privacy & diagnostics.").arg(domain));
 	auto* status = new QLabel(body);
 	status->setObjectName(QStringLiteral("telemetryConsentStatus"));
 	status->setProperty("dialogStatus", "error");
 	status->setWordWrap(true);
 	status->hide();
+	// A link like those of About EGTRAIN: the browser opens the notice, or the status shows its address.
+	const QUrl notice(QString::fromLatin1(kPrivacyNotice));
+	auto* privacy = new QPushButton(QStringLiteral("Privacy notice"), body);
+	privacy->setObjectName(QStringLiteral("telemetryPrivacyNotice"));
+	privacy->setFlat(true);
+	privacy->setAutoDefault(true);
+	privacy->setCursor(Qt::PointingHandCursor);
+	privacy->setToolTip(notice.toString());
+	privacy->setAccessibleDescription(notice.toString());
+	privacy->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
+	connect(privacy, &QPushButton::clicked, this, [status, notice] {
+		if (QDesktopServices::openUrl(notice))
+			return;
+		status->setText(QStringLiteral("Could not open the link in your browser. Address: %1").arg(notice.toString()));
+		status->show();
+	});
+	layout->addWidget(privacy, 0, Qt::AlignLeft);
 	layout->addWidget(status);
 	auto* actions = new QDialogButtonBox(this);
 	auto* save = actions->addButton(QStringLiteral("Save choices"), QDialogButtonBox::AcceptRole);

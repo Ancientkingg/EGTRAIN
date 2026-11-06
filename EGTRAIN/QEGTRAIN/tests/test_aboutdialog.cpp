@@ -36,12 +36,12 @@ public:
 
 namespace {
 const char* const kNames[] = {"aboutResearchProfile", "aboutOriginalResearch", "aboutWebsite",
-	"aboutGitHub", "aboutSourceCode", "aboutReportIssue"};
+	"aboutProjectWebsite", "aboutSourceCode", "aboutReportIssue"};
 const char* const kAddresses[] = {"https://orcid.org/0000-0002-7936-5832",
 	"https://doi.org/10.6092/unina/fedoa/8599",
-	"https://samuelbruin.com/", "https://github.com/Ancientkingg",
-	"https://github.com/Ancientkingg/EGTRAIN",
-	"https://github.com/Ancientkingg/EGTRAIN/issues"};
+	"https://samuelbruin.com/", "https://egtrain.samuelbruin.com/",
+	"https://egtrain.samuelbruin.com/source/",
+	"https://egtrain.samuelbruin.com/support/"};
 } // namespace
 
 // About shows the version, the authors and the links, opens a link only when it is activated, and closes with Escape,
@@ -133,6 +133,11 @@ void TestAboutDialog::showsContentAndOpensLinks() {
 		QCOMPARE(m_receiver.opened.last(), QUrl(QString::fromLatin1(kAddresses[i])));
 		QVERIFY(dialog.isVisible());
 	}
+	// About has these six links and no other.
+	int links = 0;
+	for (const auto* button : dialog.findChildren<QPushButton*>())
+		links += button->property("aboutLink").toBool() ? 1 : 0;
+	QCOMPARE(links, 6);
 	m_receiver.opened.clear();
 	QKeyEvent escape(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier);
 	QApplication::sendEvent(&dialog, &escape);

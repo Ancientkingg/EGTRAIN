@@ -41,8 +41,8 @@ static const QString kTag = QStringLiteral("v1.2.3");
 static const QString kInstallerKey = QStringLiteral("windows-x64-installer");
 static const QString kInstallerName = QStringLiteral("EGTRAIN-Setup-1.2.3-x64.exe");
 static const QString kPortableName = QStringLiteral("EGTRAIN-Portable-1.2.3-x64.zip");
-static const QByteArray kManifestPath = "/download/v1.2.3/update-manifest.json";
-static const QByteArray kPackagePath = "/download/v1.2.3/EGTRAIN-Setup-1.2.3-x64.exe";
+static const QByteArray kManifestPath = "/download/egtrain-v1.2.3-update-manifest.json";
+static const QByteArray kPackagePath = "/download/egtrain-v1.2.3-EGTRAIN-Setup-1.2.3-x64.exe";
 
 static QByteArray packageBytes() {
 	QByteArray bytes(200 * 1000, '\0');
@@ -82,6 +82,8 @@ struct Route {
 	qint64 announced = -1;
 	// Keeps the connection open after the body, so that the client waits for the rest.
 	bool keepOpen = false;
+	// More header lines, each ending in CRLF.
+	QByteArray headers;
 };
 
 // A small HTTP server on the loopback address that answers by path and counts the requests.
@@ -94,7 +96,7 @@ public:
 
 	bool listening = false;
 
-	// The folder that the paths of a release start with.
+	// The folder of the release files, which are named egtrain-<tag>-<name> as on the file host.
 	QString base() const {
 		return QStringLiteral("http://127.0.0.1:%1/download").arg(m_server.serverPort());
 	}
@@ -134,13 +136,13 @@ private:
 		const QByteArray path = requestLine.size() >= 2 ? requestLine.at(1) : QByteArray();
 		m_pending.remove(socket);
 		++m_counts[path];
-		respond(socket, m_routes.value(path, Route{"404 Not Found", "no such file", -1, false}));
+		respond(socket, m_routes.value(path, Route{"404 Not Found", "no such file", -1, false, {}}));
 	}
 
 	static void respond(QTcpSocket* socket, const Route& route) {
 		const qint64 announced = route.announced < 0 ? route.body.size() : route.announced;
 		socket->write("HTTP/1.1 " + route.status + "\r\nContent-Length: " + QByteArray::number(announced)
-			+ "\r\nConnection: close\r\n\r\n" + route.body);
+			+ "\r\nConnection: close\r\n" + route.headers + "\r\n" + route.body);
 		if (!route.keepOpen)
 			socket->disconnectFromHost();
 	}
@@ -264,14 +266,14 @@ public:
 	// A release that lists the manifest and the package of the given name, at the URLs of the server
 	// unless the package is meant to be somewhere else.
 	StableRelease release(const QString& packageName = kInstallerName, const QString& packageBase = QString()) const {
-		const QString packageFolder = (packageBase.isEmpty() ? server.base() : packageBase) + QStringLiteral("/") + kTag;
+		const QString packageFolder = packageBase.isEmpty() ? server.base() : packageBase;
 		StableRelease result;
 		result.version = SemanticVersion{1, 2, 3};
 		result.tag = kTag;
-		result.releasePage = QUrl(QStringLiteral("https://github.com/Ancientkingg/EGTRAIN/releases/tag/v1.2.3"));
+		result.releasePage = QUrl(QStringLiteral("https://egtrain.samuelbruin.com/releases/1.2.3/"));
 		result.assets.append({QStringLiteral("update-manifest.json"),
-			QUrl(server.base() + QStringLiteral("/") + kTag + QStringLiteral("/update-manifest.json"))});
-		result.assets.append({packageName, QUrl(packageFolder + QStringLiteral("/") + packageName)});
+			QUrl(server.base() + QStringLiteral("/egtrain-") + kTag + QStringLiteral("-update-manifest.json"))});
+		result.assets.append({packageName, QUrl(packageFolder + QStringLiteral("/egtrain-") + kTag + QLatin1Char('-') + packageName)});
 		return result;
 	}
 
@@ -330,6 +332,8 @@ private slots:
 	void failsTruncatedDownload();
 	void failsMissingPackage();
 	void refusesUntrustedPackageUrl();
+	void refusesRedirectedManifest();
+	void refusesRedirectedPackage();
 	void cancelsDownload();
 	void cancelsWhileManifestIsAwaited();
 	void reportsUnsupportedCopy();
@@ -520,7 +524,7 @@ void TestSelfUpdater::rejectsManifest() {
 
 void TestSelfUpdater::rejectsMissingManifest() {
 	Scenario missing(m_temp.path(), QStringLiteral("manifest-missing"), m_probe);
-	missing.server.serve(kManifestPath, Route{"404 Not Found", "gone", -1, false});
+	missing.server.serve(kManifestPath, Route{"404 Not Found", "gone", -1, false, {}});
 	SelfUpdater updater;
 	const Outcome outcome = runUpdate(updater, missing.release());
 	// A manifest that the server does not have.
@@ -589,7 +593,7 @@ void TestSelfUpdater::failsTruncatedDownload() {
 void TestSelfUpdater::failsMissingPackage() {
 	Scenario scenario(m_temp.path(), QStringLiteral("package-missing"), m_probe);
 	scenario.serveGoodRelease();
-	scenario.server.serve(kPackagePath, Route{"404 Not Found", "gone", -1, false});
+	scenario.server.serve(kPackagePath, Route{"404 Not Found", "gone", -1, false, {}});
 	SelfUpdater updater;
 	const Outcome outcome = runUpdate(updater, scenario.release());
 	// An installer that the server does not have fails.
@@ -610,6 +614,56 @@ void TestSelfUpdater::refusesUntrustedPackageUrl() {
 	// No request and no staging folder for an untrusted URL.
 	QCOMPARE(scenario.server.requests(kPackagePath), 0);
 	QVERIFY(stagingFolders(scenario.root).isEmpty());
+}
+
+// A manifest that the server redirects to another address is not fetched there: the update fails with the redirect.
+void TestSelfUpdater::refusesRedirectedManifest() {
+	Scenario scenario(m_temp.path(), QStringLiteral("redirected-manifest"), m_probe);
+	scenario.serveGoodRelease();
+	const QByteArray movedPath = "/elsewhere/update-manifest.json";
+	Route moved;
+	moved.body = goodManifest(scenario.package);
+	scenario.server.serve(movedPath, moved);
+	Route redirect;
+	redirect.status = "302 Found";
+	redirect.headers = "Location: " + scenario.server.base().toLatin1().replace("/download", movedPath) + "\r\n";
+	scenario.server.serve(kManifestPath, redirect);
+	SelfUpdater updater;
+	const Outcome outcome = runUpdate(updater, scenario.release());
+	// The update fails with the status of the redirect.
+	QCOMPARE(outcome.finishedCount, 1);
+	QVERIFY(!outcome.success);
+	QCOMPARE(outcome.error, QStringLiteral("The download server returned HTTP 302 while downloading the update."));
+	// Neither the target of the redirect nor the installer is requested.
+	QCOMPARE(scenario.server.requests(kManifestPath), 1);
+	QCOMPARE(scenario.server.requests(movedPath), 0);
+	QCOMPARE(scenario.server.requests(kPackagePath), 0);
+	QVERIFY2(scenario.endedCleanly(updater), "a redirected manifest leaves nothing behind");
+}
+
+// An installer that the server redirects to another address is not downloaded from there.
+void TestSelfUpdater::refusesRedirectedPackage() {
+	Scenario scenario(m_temp.path(), QStringLiteral("redirected-package"), m_probe);
+	scenario.serveGoodRelease();
+	const QByteArray movedPath = "/elsewhere/EGTRAIN-Setup-1.2.3-x64.exe";
+	Route moved;
+	moved.body = scenario.package;
+	scenario.server.serve(movedPath, moved);
+	Route redirect;
+	redirect.status = "302 Found";
+	redirect.headers = "Location: " + scenario.server.base().toLatin1().replace("/download", movedPath) + "\r\n";
+	scenario.server.serve(kPackagePath, redirect);
+	SelfUpdater updater;
+	const Outcome outcome = runUpdate(updater, scenario.release());
+	// The update fails with the status of the redirect, before anything is prepared.
+	QCOMPARE(outcome.finishedCount, 1);
+	QVERIFY(!outcome.success);
+	QCOMPARE(outcome.error, QStringLiteral("The download server returned HTTP 302 while downloading the update."));
+	QVERIFY(outcome.preparing.isEmpty());
+	// The target of the redirect is not requested.
+	QCOMPARE(scenario.server.requests(kPackagePath), 1);
+	QCOMPARE(scenario.server.requests(movedPath), 0);
+	QVERIFY2(scenario.endedCleanly(updater), "a redirected installer leaves nothing behind");
 }
 
 // Cancel ends the update at any time before the preparation and removes what was downloaded.

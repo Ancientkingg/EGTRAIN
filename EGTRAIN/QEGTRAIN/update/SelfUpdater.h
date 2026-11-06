@@ -81,8 +81,8 @@ public:
 
 #ifdef EGTRAIN_UPDATE_TEST_HOOK
 	/// Makes capability() return the replacement and accepts the package of a release only at
-	/// `releaseBase/<tag>/<name>`, so that a test can update from a server on the loopback address into
-	/// a folder of its own. An empty releaseBase ends the replacement.
+	/// `releaseBase/egtrain-<tag>-<name>`, so that a test can update from a server on the loopback address
+	/// into a folder of its own. An empty releaseBase ends the replacement.
 	static void setTestHook(const SelfUpdateCapability& replacement, const QString& releaseBase);
 #endif
 

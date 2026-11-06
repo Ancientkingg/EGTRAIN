@@ -13,17 +13,18 @@
 /// A file published with a release.
 struct ReleaseAsset {
 	QString name;	  ///< The file name, such as "update-manifest.json".
-	QUrl downloadUrl; ///< `https://github.com/Ancientkingg/EGTRAIN/releases/download/<tag>/<name>`.
+	QUrl downloadUrl; ///< `https://bin.samuelbruin.com/raw/egtrain-<tag>-<name>`.
 };
 
-/// The newest stable release on GitHub, as parseLatestStableRelease() reads it.
+/// The newest stable release in the release feed, as parseLatestStableRelease() reads it.
 struct StableRelease {
 	SemanticVersion version; ///< The version of the tag.
 	QString tag;			 ///< The tag, "vX.Y.Z".
 	/// The release notes with LF line ends, without trailing spaces and with at most one blank line in a
 	/// row. Notes longer than 360 characters are cut and end with a line that points to the release page.
 	QString notes;
-	/// The page of the release on github.com. When GitHub names another page, the page of the tag.
+	/// The page of the release on the EGTRAIN website, `https://egtrain.samuelbruin.com/releases/<version>/`, where
+	/// version is the tag without its v.
 	QUrl releasePage;
 	/// The update manifest and the known package files of the release. A file at any other address is left out.
 	QList<ReleaseAsset> assets;
@@ -55,12 +56,16 @@ QString updateManifestAssetName();
 bool isUpdateAssetName(const QString& distribution, const QString& name, const QString& version);
 /// True when the release lists a package that the distribution key allows.
 bool releaseHasUpdatePackage(const StableRelease& release, const QString& distribution);
-/// True when url is `https://github.com/Ancientkingg/EGTRAIN/releases/download/<tag>/<name>`, without
-/// user, port, query or fragment.
-bool isExpectedReleaseAssetUrl(const QString& tag, const QString& name, const QUrl& url);
+/// True when url is exactly `<base>/egtrain-<tag>-<name>`, without user, port, query or fragment, and tag and
+/// name hold only letters, digits, ".", "_" and "-". base is the folder of the release files on the file host,
+/// `https://bin.samuelbruin.com/raw`, unless a test serves the files itself.
+bool isExpectedReleaseAssetUrl(const QString& tag, const QString& name, const QUrl& url,
+	const QString& base = QStringLiteral("https://bin.samuelbruin.com/raw"));
 
-/// Reads the release list of the GitHub API and returns the release with the highest "vX.Y.Z" tag that
-/// is neither a draft nor a prerelease. Returns nothing, and sets error when it is given, when there is none.
+/// Reads the release feed, a JSON array of releases with tag_name, draft, prerelease, body and assets (name and
+/// browser_download_url), and returns the release with the highest "vX.Y.Z" tag that is neither a draft nor a
+/// prerelease. Only the update manifest and the known packages at their expected address are kept. Returns nothing,
+/// and sets error when it is given, when there is none.
 std::optional<StableRelease> parseLatestStableRelease(const QByteArray& json,
 	QString* error = nullptr);
 /// Reads update-manifest.json of the release with expectedTag ("vX.Y.Z") and returns its entry for

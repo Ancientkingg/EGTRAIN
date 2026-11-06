@@ -15,7 +15,7 @@ void TestUpdatePromptText::firstStartTexts() {
 	// The question of the first start.
 	QCOMPARE(update_prompt::automaticChecksQuestion(), "Check for EGTRAIN updates automatically?");
 	// The detail of the first start says what the check does and where to change it.
-	QVERIFY(update_prompt::automaticChecksDetail().contains("GitHub"));
+	QVERIFY(update_prompt::automaticChecksDetail().startsWith("EGTRAIN can check its website for a new version"));
 	QVERIFY(update_prompt::automaticChecksDetail().endsWith("in the Help menu."));
 }
 

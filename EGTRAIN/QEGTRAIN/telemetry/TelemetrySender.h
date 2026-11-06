@@ -15,7 +15,7 @@ namespace telemetry {
 /// Sends usage and diagnostic events to the compiled receiver from a worker thread of its own.
 /// Producers on any thread hand events to an in-memory ring of 128 entries without waiting. Once a
 /// second the worker re-reads consent through its own TelemetryConsent, stores events in a
-/// TelemetryQueue and posts batches over HTTPS, handling each response as the HTTP outcomes of
+/// TelemetryQueue and posts batches over HTTPS with the User-Agent EGTRAIN/<version>, handling each response as the HTTP outcomes of
 /// docs/telemetry/README.md say. Only the process that owns the queue sends; in others every event
 /// is dropped. A sender whose context is not capable, or whose construction fails, starts no thread
 /// and accepts nothing. The worker exits by itself once it can send nothing more in this run: after

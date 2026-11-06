@@ -50,7 +50,7 @@ constexpr bool kAllowLoopbackHttp = false;
 bool isTrustedPackageUrl(const QString& tag, const QString& name, const QUrl& url) {
 #ifdef EGTRAIN_UPDATE_TEST_HOOK
 	if (!testHook().releaseBase.isEmpty())
-		return url == QUrl(QStringLiteral("%1/%2/%3").arg(testHook().releaseBase, tag, name));
+		return isExpectedReleaseAssetUrl(tag, name, url, testHook().releaseBase);
 #endif
 	return isExpectedReleaseAssetUrl(tag, name, url);
 }
@@ -355,7 +355,7 @@ void SelfUpdater::handleReply(HttpReply* reply, bool manifestReply) {
 	const int status = reply->statusCode();
 	if (status < 200 || status >= 300) {
 		reply->deleteLater();
-		fail(QStringLiteral("GitHub returned HTTP %1 while downloading the update.").arg(status));
+		fail(QStringLiteral("The download server returned HTTP %1 while downloading the update.").arg(status));
 		return;
 	}
 	if (manifestReply) {
