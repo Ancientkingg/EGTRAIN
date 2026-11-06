@@ -226,6 +226,8 @@ public:
 	bool deferUntilRunStopped(std::function<void()> action);
 	/// The results of the run are kept or discarded, and the window follows. Then the samples that the trains keep for
 	/// every step are freed, unless a scripted run or the playback profiler has ended the run for the window before.
+	/// Results that cannot be captured are reported as an error, and the run ends as one without results. Any other
+	/// exception passes on, after the worker is cleared and what waited for the run is forgotten.
 	void onSimulationFinished();
 
 signals:
@@ -280,6 +282,8 @@ private:
 	// Asks the user to look at the run before it starts. Returns whether the run starts.
 	bool showRunReview();
 	void runDeferredAction();
+	// What onSimulationFinished does; an exception that leaves it still clears the worker.
+	void finishRun();
 	void showError(const QString& title, const QString& message);
 	static bool hasRawRunResults();
 
@@ -310,6 +314,9 @@ private:
 	QPointer<QThread> m_workerThread;
 	// What Close, New or Open asked for while a run was active. It runs when the worker has finished.
 	std::function<void()> m_afterRunAction;
+	// Called just before the results of a completed run are captured. The scripted runs in tests/e2e set one that throws,
+	// as a capture that fails would.
+	std::function<void()> m_beforeResultCapture;
 	// Each connection is in the slot that ObservationSlot names.
 	std::array<QMetaObject::Connection, static_cast<std::size_t>(ObservationSlot::Count)> m_simulationObservations{};
 

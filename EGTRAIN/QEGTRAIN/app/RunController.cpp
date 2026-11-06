@@ -41,6 +41,7 @@
 #include <algorithm>
 #include <cmath>
 #include <exception>
+#include <optional>
 
 namespace {
 
@@ -646,6 +647,20 @@ void RunController::runDeferredAction() {
 
 // handle simulation completion on the main thread
 void RunController::onSimulationFinished() {
+	try {
+		finishRun();
+	} catch (...) {
+		// What waited for the run is forgotten: the error is reported first, and the user can ask again.
+		m_afterRunAction = nullptr;
+		if (m_worker) {
+			clearSimulationWorker(false);
+			emit runPanelsChanged();
+		}
+		throw;
+	}
+}
+
+void RunController::finishRun() {
 	m_host.endFollowing();
 	if (PlaybackProfiler::enabled() && PlaybackProfiler::instance().frozen()) {
 		PlaybackProfiler::instance().emitRecords(true);
@@ -668,10 +683,24 @@ void RunController::onSimulationFinished() {
 		setState(RunState::Completed);
 	else
 		setState(stoppedByUser ? RunState::Stopped : RunState::Failed);
+	// Why the results of the run could not be kept. The run then ends as one without results.
+	std::optional<QString> captureFailure;
 	if (resultsAvailable()) {
 		// Freeze result values before a subsequent run replaces the runtime trains.
-		m_completedRun = std::make_shared<const CompletedRunData>(
-			captureCompletedRun(simulation.run(), &m_document->model(), m_startOffsetSeconds, m_pendingRunProvenance));
+		try {
+			if (m_beforeResultCapture)
+				m_beforeResultCapture();
+			m_completedRun = std::make_shared<const CompletedRunData>(
+				captureCompletedRun(simulation.run(), &m_document->model(), m_startOffsetSeconds, m_pendingRunProvenance));
+		} catch (const std::exception& error) {
+			captureFailure = QString::fromUtf8(error.what());
+		} catch (...) {
+			captureFailure = QStringLiteral("unknown error");
+		}
+		if (captureFailure)
+			setState(RunState::Failed);
+	}
+	if (resultsAvailable()) {
 		emit resultsKept();
 	} else {
 		m_pendingRunProvenance = RunProvenance();
@@ -714,6 +743,9 @@ void RunController::onSimulationFinished() {
 	if (!failure.isEmpty())
 		showError(QStringLiteral("Simulation Failed"),
 			QStringLiteral("The run stopped because of an error:\n\n%1").arg(failure));
+	if (captureFailure)
+		showError(QStringLiteral("Cannot Keep Run Results"),
+			QStringLiteral("The run completed, but its results could not be kept because of an internal error:\n\n%1").arg(*captureFailure));
 	if (!diagramFailure.isEmpty())
 		showError(QStringLiteral("Cannot Write Run Output"),
 			QStringLiteral("The run completed, but TrainServicePathDiagram.txt was not written:\n\n%1").arg(diagramFailure));

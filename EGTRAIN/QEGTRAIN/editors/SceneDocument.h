@@ -92,7 +92,8 @@ public:
 	void markChanged(ChangeKinds kinds, const QString& label = {});
 	/// Changes `kinds` of the model with `apply` and records the change as markChanged() does. While a run uses the model
 	/// (isEditable() is false) an edit that touches no part of OpenDuringRun is refused: `apply` is not called, nothing
-	/// changes and the result is false.
+	/// changes and the result is false. When `apply` throws, the model is put back as it was before the edit, nothing is
+	/// recorded and the exception passes on to the caller.
 	bool edit(ChangeKinds kinds, const QString& label, const std::function<void(SceneModel&)>& apply);
 	/// The model is what is saved now: clears the dirty state.
 	void markSaved() { setDirty(false); }
@@ -102,8 +103,8 @@ public:
 	void setEditable(bool editable);
 
 Q_SIGNALS:
-	/// Emitted once for each markChanged() and for each edit() that is not refused, after the revision and the dirty state
-	/// are updated.
+	/// Emitted once for each markChanged() and for each edit() that is neither refused nor ended by an exception, after the
+	/// revision and the dirty state are updated.
 	void changed(SceneDocument::ChangeKinds kinds);
 	/// Emitted by replace(), after the whole state is set.
 	void replaced();

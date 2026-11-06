@@ -1,4 +1,5 @@
 #include "app/GuardedApplication.h"
+#include "app/MainWindowTestHooks.h"
 #include "util/Log.h"
 
 #include <QCoreApplication>
@@ -41,12 +42,14 @@ class TestGuardedApplication : public QObject {
 private slots:
 	void cleanup();
 	void reportsExceptions();
+	void defaultReportSaysEditIsUndone();
 };
 
 // The sink and the reporter capture locals of the slot, which a failed check leaves early.
 void TestGuardedApplication::cleanup() {
 	eglog::setSink({});
 	GuardedApplication::setReporter({});
+	mainWindowTestHooks().dialogsSuppressed = false;
 }
 
 void TestGuardedApplication::reportsExceptions() {
@@ -90,6 +93,28 @@ void TestGuardedApplication::reportsExceptions() {
 	// an exception in a timer slot is reported
 	QCOMPARE(reports.size(), 2);
 	QCOMPARE(reports.back(), QStringLiteral("from a timer"));
+}
+
+// The default report, an Unexpected Error box, says that an edit that the error interrupted was undone, and does not
+// ask to save the case.
+void TestGuardedApplication::defaultReportSaysEditIsUndone() {
+	// A run with suppressed dialogs logs the box instead of showing it.
+	mainWindowTestHooks().dialogsSuppressed = true;
+	QString report;
+	eglog::setSink([&report](eglog::Category, eglog::Level level, const std::string& text) {
+		const QString line = QString::fromStdString(text);
+		if (level == eglog::Level::Error && line.startsWith(QStringLiteral("Unexpected Error: ")))
+			report = line;
+	});
+
+	ThrowingObject thrower;
+	QEvent event(QEvent::User);
+	QCoreApplication::sendEvent(&thrower, &event);
+	for (int i = 0; i < 100 && report.isEmpty(); ++i)
+		QCoreApplication::processEvents(QEventLoop::AllEvents, 10);
+	QVERIFY2(report.contains(QStringLiteral("injected")), qPrintable(report));
+	QVERIFY2(report.contains(QStringLiteral("The case is still open. An edit that the error interrupted was undone.")), qPrintable(report));
+	QVERIFY2(!report.contains(QStringLiteral("Save")), qPrintable(report));
 }
 
 int main(int argc, char** argv) {
