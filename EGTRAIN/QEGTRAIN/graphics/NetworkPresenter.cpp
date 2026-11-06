@@ -1211,18 +1211,25 @@ void NetworkPresenter::markRunSections(const QStringList& sectionIds, const QStr
 			references.push_back(id.toStdString());
 		return previewSectionCourses(m_cachedTrackPreview, *m_runSections, references);
 	};
+	const QList<QPolygonF> stretches = courses(sectionIds);
+	const QList<QPolygonF> emphasis = courses(emphasisIds);
+	const auto drawn = [](const QList<QPolygonF>& lines) {
+		return std::any_of(lines.begin(), lines.end(), [](const QPolygonF& line) { return !line.isEmpty(); });
+	};
+	// Nothing to draw adds no item to the scene.
+	if (!drawn(stretches) && !drawn(emphasis)) {
+		delete m_runSectionMark;
+		m_runSectionMark = nullptr;
+		return;
+	}
 	if (!m_runSectionMark) {
 		m_runSectionMark = new NetworkMarkItem();
 		if (m_view)
 			m_runSectionMark->setViewScale(std::abs(m_view->transform().m11()));
 		m_scene->addItem(m_runSectionMark);
 	}
-	m_runSectionMark->setStretches(courses(sectionIds));
-	m_runSectionMark->setEmphasis(courses(emphasisIds));
-	if (m_runSectionMark->isEmpty()) {
-		delete m_runSectionMark;
-		m_runSectionMark = nullptr;
-	}
+	m_runSectionMark->setStretches(stretches);
+	m_runSectionMark->setEmphasis(emphasis);
 }
 
 // Draws the station anchors: one fixed-size marker and name per canonical station.
