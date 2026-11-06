@@ -11,9 +11,9 @@
 <!-- Node0 -->
 <g id="Node000000" class="node">
 <title>Node0</title>
-<g id="a_Node000000"><a xlink:href="struct_scene_single_track_restriction.html" target="_top" xlink:title="A single&#45;track stretch that trains of one direction hold at a time.">
-<polygon fill="white" stroke="#666666" points="153.25,-20.75 0,-20.75 0,0 153.25,0 153.25,-20.75"/>
-<text xml:space="preserve" text-anchor="middle" x="76.62" y="-7.25" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSingleTrackRestriction</text>
+<g id="a_Node000000"><a xlink:href="struct_scene_signalling_area_conflict.html" target="_top" xlink:title="Two signalling areas of one scope that give one section different levels.">
+<polygon fill="white" stroke="#666666" points="152.5,-20.75 0,-20.75 0,0 152.5,0 152.5,-20.75"/>
+<text xml:space="preserve" text-anchor="middle" x="76.25" y="-7.25" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSignallingAreaConflict</text>
 </a>
 </g>
 </g>

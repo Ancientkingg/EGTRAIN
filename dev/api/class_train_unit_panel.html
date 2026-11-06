@@ -133,6 +133,8 @@ Signals</h2></td></tr>
 <tr class="memdesc:aada88fec49c7c65ff35650ce409594ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">The unit is gone from the model. Emitted after the document is marked changed.  <br /></td></tr>
 <tr class="memitem:ab16520eb63d0ff6c3858fd8c8ecab368" id="r_ab16520eb63d0ff6c3858fd8c8ecab368"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab16520eb63d0ff6c3858fd8c8ecab368">detailsShown</a> ()</td></tr>
 <tr class="memdesc:ab16520eb63d0ff6c3858fd8c8ecab368"><td class="mdescLeft">&#160;</td><td class="mdescRight">The details of the shown unit are shown again, so the state of its source links has to be shown again too.  <br /></td></tr>
+<tr class="memitem:af496c8a9dc4ad04a749a5cf977622ba3" id="r_af496c8a9dc4ad04a749a5cf977622ba3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af496c8a9dc4ad04a749a5cf977622ba3">statusMessage</a> (const QString &amp;text, int timeoutMs)</td></tr>
+<tr class="memdesc:af496c8a9dc4ad04a749a5cf977622ba3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows <span class="tt">text</span> in the status line of the window for <span class="tt">timeoutMs</span> milliseconds.  <br /></td></tr>
 <tr class="memitem:ab91dedec627e1e09bf8405f47c6ee3c1" id="r_ab91dedec627e1e09bf8405f47c6ee3c1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab91dedec627e1e09bf8405f47c6ee3c1">tractionPlotRequested</a> (const QString &amp;unitId)</td></tr>
 <tr class="memdesc:ab91dedec627e1e09bf8405f47c6ee3c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The plot of the traction curve of this unit is wanted.  <br /></td></tr>
 <tr class="memitem:adf0ef5738595e9fc20e9e0255cef59c2" id="r_adf0ef5738595e9fc20e9e0255cef59c2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#adf0ef5738595e9fc20e9e0255cef59c2">sourceLinkRequested</a> (bool traction)</td></tr>
@@ -153,6 +155,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a68a9825ad30e3359da648cdadf3cbefc" id="r_a68a9825ad30e3359da648cdadf3cbefc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a68a9825ad30e3359da648cdadf3cbefc">commitPendingEditors</a> () override</td></tr>
 <tr class="memitem:a24c77d62bbfdbe5bff7c307b14fb07a6" id="r_a24c77d62bbfdbe5bff7c307b14fb07a6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a24c77d62bbfdbe5bff7c307b14fb07a6">addUnit</a> ()</td></tr>
 <tr class="memdesc:a24c77d62bbfdbe5bff7c307b14fb07a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Appends a unit with a new unique id and selects it.  <br /></td></tr>
+<tr class="memitem:a8efa7777d7dbb797c2fbd608e6a5fced" id="r_a8efa7777d7dbb797c2fbd608e6a5fced"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8efa7777d7dbb797c2fbd608e6a5fced">addFromLibrary</a> ()</td></tr>
+<tr class="memdesc:a8efa7777d7dbb797c2fbd608e6a5fced"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lists the units of the bundled cases in a dialog and adds the one the user chooses with <a class="el" href="#a016bcf4fedb5d48a467ac85f9e594f7c">addLibraryUnit()</a>.  <br /></td></tr>
+<tr class="memitem:a016bcf4fedb5d48a467ac85f9e594f7c" id="r_a016bcf4fedb5d48a467ac85f9e594f7c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a016bcf4fedb5d48a467ac85f9e594f7c">addLibraryUnit</a> (const <a class="el" href="struct_scene_train_unit.html">SceneTrainUnit</a> &amp;libraryUnit, bool withComposition)</td></tr>
 <tr class="memitem:a85f63f7e107fb87d41832ee72f112da6" id="r_a85f63f7e107fb87d41832ee72f112da6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a85f63f7e107fb87d41832ee72f112da6">duplicateUnit</a> ()</td></tr>
 <tr class="memdesc:a85f63f7e107fb87d41832ee72f112da6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts a copy of the selected unit, with a new unique id, after it.  <br /></td></tr>
 <tr class="memitem:a39c33b0ee0eb7fd73494e957b77a752a" id="r_a39c33b0ee0eb7fd73494e957b77a752a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a39c33b0ee0eb7fd73494e957b77a752a">deleteUnit</a> ()</td></tr>
@@ -190,6 +195,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:af803843bfd1642279b39cea0b53fea91"><td class="mdescLeft">&#160;</td><td class="mdescRight">The traction curve, one row per speed band: lower and upper speed in m/s, then c0, c1 and c2.  <br /></td></tr>
 <tr class="memitem:afbdbb3f1da51d062b47b8bea457aca0b" id="r_afbdbb3f1da51d062b47b8bea457aca0b"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#afbdbb3f1da51d062b47b8bea457aca0b">addButton</a> () const</td></tr>
 <tr class="memdesc:afbdbb3f1da51d062b47b8bea457aca0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a24c77d62bbfdbe5bff7c307b14fb07a6" title="Appends a unit with a new unique id and selects it.">addUnit()</a>.  <br /></td></tr>
+<tr class="memitem:a99504925079cbced2a156c056bcd7b12" id="r_a99504925079cbced2a156c056bcd7b12"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a99504925079cbced2a156c056bcd7b12">libraryButton</a> () const</td></tr>
+<tr class="memdesc:a99504925079cbced2a156c056bcd7b12"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a8efa7777d7dbb797c2fbd608e6a5fced" title="Lists the units of the bundled cases in a dialog and adds the one the user chooses with addLibraryUni...">addFromLibrary()</a>.  <br /></td></tr>
 <tr class="memitem:a388229a8d349d74f6f4fdeef831516ae" id="r_a388229a8d349d74f6f4fdeef831516ae"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a388229a8d349d74f6f4fdeef831516ae">duplicateButton</a> () const</td></tr>
 <tr class="memdesc:a388229a8d349d74f6f4fdeef831516ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a85f63f7e107fb87d41832ee72f112da6" title="Inserts a copy of the selected unit, with a new unique id, after it.">duplicateUnit()</a>.  <br /></td></tr>
 <tr class="memitem:aefd255479a3f3113473f1be601158615" id="r_aefd255479a3f3113473f1be601158615"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#aefd255479a3f3113473f1be601158615">deleteButton</a> () const</td></tr>
@@ -274,7 +281,7 @@ Additional Inherited Members</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_unit_panel_aa715d9ed13fefeb02e2968259bd32c56_cgraph.svg" width="1542" height="1343"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_unit_panel_aa715d9ed13fefeb02e2968259bd32c56_cgraph.svg" width="1307" height="1731"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -304,6 +311,57 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The button of <a class="el" href="#a24c77d62bbfdbe5bff7c307b14fb07a6" title="Appends a unit with a new unique id and selects it.">addUnit()</a>. </p>
+
+</div>
+</div>
+<a id="a8efa7777d7dbb797c2fbd608e6a5fced" name="a8efa7777d7dbb797c2fbd608e6a5fced"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8efa7777d7dbb797c2fbd608e6a5fced">&#9670;&#160;</a></span>addFromLibrary()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TrainUnitPanel::addFromLibrary </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Lists the units of the bundled cases in a dialog and adds the one the user chooses with <a class="el" href="#a016bcf4fedb5d48a467ac85f9e594f7c">addLibraryUnit()</a>. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_unit_panel_a8efa7777d7dbb797c2fbd608e6a5fced_cgraph.svg" width="1792" height="916"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a016bcf4fedb5d48a467ac85f9e594f7c" name="a016bcf4fedb5d48a467ac85f9e594f7c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a016bcf4fedb5d48a467ac85f9e594f7c">&#9670;&#160;</a></span>addLibraryUnit()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TrainUnitPanel::addLibraryUnit </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_train_unit.html">SceneTrainUnit</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>libraryUnit</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>withComposition</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Appends a copy of <span class="tt">libraryUnit</span>, a unit of the library, with its physical values, traction curve and source references, and with <span class="tt">withComposition</span> a composition with only that unit, as one edit. When the case has a unit with the same id and the same values, nothing is copied. A unit with the same id and other values stays as it is, and the copy gets the next free id. The composition takes the id of the copy, or the next free id when a composition with other units has it. Selects the unit and says what happened through <a class="el" href="#af496c8a9dc4ad04a749a5cf977622ba3" title="Shows text in the status line of the window for timeoutMs milliseconds.">statusMessage()</a>, and also in a message box when an id was taken. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_unit_panel_a016bcf4fedb5d48a467ac85f9e594f7c_cgraph.svg" width="891" height="524"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -688,6 +746,33 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The field of the id of the shown unit. </p>
+
+</div>
+</div>
+<a id="a99504925079cbced2a156c056bcd7b12" name="a99504925079cbced2a156c056bcd7b12"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99504925079cbced2a156c056bcd7b12">&#9670;&#160;</a></span>libraryButton()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QPushButton * TrainUnitPanel::libraryButton </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The button of <a class="el" href="#a8efa7777d7dbb797c2fbd608e6a5fced" title="Lists the units of the bundled cases in a dialog and adds the one the user chooses with addLibraryUni...">addFromLibrary()</a>. </p>
 
 </div>
 </div>
@@ -1139,6 +1224,37 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The user asks to unlink the traction file (<span class="tt">traction</span> true) or the parameter file of the shown unit. </p>
+
+</div>
+</div>
+<a id="af496c8a9dc4ad04a749a5cf977622ba3" name="af496c8a9dc4ad04a749a5cf977622ba3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af496c8a9dc4ad04a749a5cf977622ba3">&#9670;&#160;</a></span>statusMessage</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TrainUnitPanel::statusMessage </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>text</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>timeoutMs</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Shows <span class="tt">text</span> in the status line of the window for <span class="tt">timeoutMs</span> milliseconds. </p>
 
 </div>
 </div>

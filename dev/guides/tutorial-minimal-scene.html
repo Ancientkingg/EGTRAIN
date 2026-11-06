@@ -375,8 +375,9 @@
 </section>
 <section id="a-rolling-stock-unit">
 <h2>3. A rolling stock unit<a class="headerlink" href="#a-rolling-stock-unit" title="Link to this heading">¶</a></h2>
-<p>Open <strong>Editors &gt; Rolling Stock Units</strong> and choose <strong>Add Unit</strong>. The unit is <code class="docutils literal notranslate"><span class="pre">new_train_unit</span></code>. A run needs physical values and a traction curve. This tutorial does not make up railway data: it copies the placeholder unit <code class="docutils literal notranslate"><span class="pre">SLT_Sprinter</span></code> of the case <code class="docutils literal notranslate"><span class="pre">Assignment_Gvc_Gdg_Ut</span></code>, the stock that its <a class="reference internal" href="assignment-workflow.html"><span class="std std-doc">own documentation</span></a> calls a placeholder. Treat it as a stand-in, not as data of a real train.</p>
-<p>On the tab <strong>Physical</strong>, enter these values, pressing Enter after each:</p>
+<p>A run needs physical values and a traction curve. This tutorial does not make up railway data: it copies the placeholder unit <code class="docutils literal notranslate"><span class="pre">SLT_Sprinter</span></code> of the case <code class="docutils literal notranslate"><span class="pre">Assignment_Gvc_Gdg_Ut</span></code>, the stock that its <a class="reference internal" href="assignment-workflow.html"><span class="std std-doc">own documentation</span></a> calls a placeholder. Treat it as a stand-in, not as data of a real train.</p>
+<p>Open <strong>Editors &gt; Rolling Stock Units</strong> and choose <strong>Add from Library…</strong>. Under the heading <code class="docutils literal notranslate"><span class="pre">Assignment_Gvc_Gdg_Ut</span></code>, select <code class="docutils literal notranslate"><span class="pre">SLT_Sprinter</span></code> (130 km/h, 70 m, 2 traction rows). Clear <strong>Also add a composition with only this unit</strong>, because section 4 makes the composition, and choose <strong>Add</strong>. The unit <code class="docutils literal notranslate"><span class="pre">SLT_Sprinter</span></code> is added and selected. Set its <strong>ID</strong> to <code class="docutils literal notranslate"><span class="pre">new_train_unit</span></code> and press Enter, so that the unit has the name that the next sections use.</p>
+<p>The copy holds the values below. To enter them yourself instead, choose <strong>Add Unit</strong>, which adds the unit <code class="docutils literal notranslate"><span class="pre">new_train_unit</span></code>. On the tab <strong>Physical</strong>, enter these values, pressing Enter after each:</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -415,7 +416,7 @@
 </tbody>
 </table>
 </div>
-<p>On the tab <strong>Traction</strong>, choose <strong>Add Row</strong> twice and fill the columns <strong>Lower speed (m/s)</strong>, <strong>Upper speed (m/s)</strong>, <strong>C0</strong>, <strong>C1</strong> and <strong>C2</strong>: click a cell, type the number and press Enter. The force in N at speed v is C0 + C1 v + C2 v².</p>
+<p>On the tab <strong>Traction</strong>, the copy holds these rows. To enter them yourself, choose <strong>Add Row</strong> twice and fill the columns <strong>Lower speed (m/s)</strong>, <strong>Upper speed (m/s)</strong>, <strong>C0</strong>, <strong>C1</strong> and <strong>C2</strong>: click a cell, type the number and press Enter. The force in N at speed v is C0 + C1 v + C2 v².</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -445,7 +446,7 @@
 </tbody>
 </table>
 </div>
-<p>A field or cell that you are not editing can show a number rounded, for example <code class="docutils literal notranslate"><span class="pre">36.1111</span></code>; the full value is kept, and it shows when you click the field or double-click the cell. The speed intervals must not overlap and must run in order. The source references and the links to files are optional and stay empty.</p>
+<p>A field or cell that you are not editing can show a number rounded, for example <code class="docutils literal notranslate"><span class="pre">36.1111</span></code>; the full value is kept, and it shows when you click the field or double-click the cell. The speed intervals must not overlap and must run in order. The copy keeps the source references of the case, <code class="docutils literal notranslate"><span class="pre">/TrainData/SLT_Sprinter.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">/TrainData/T_SLT_Sprinter.txt</span></code>, which say where its values came from. They are optional and stay empty for a unit that you enter yourself, and the links to files stay empty in both ways.</p>
 </section>
 <section id="a-composition">
 <h2>4. A composition<a class="headerlink" href="#a-composition" title="Link to this heading">¶</a></h2>

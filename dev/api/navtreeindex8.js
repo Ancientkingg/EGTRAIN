@@ -1,5 +1,15 @@
 var NAVTREEINDEX8 =
 {
+"_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf":[3,0,4,13,2],
+"_visual_polish_8cpp.html#a25b564e13629edc3120f6ca6f58a72db":[3,0,4,13,13],
+"_visual_polish_8cpp.html#a2e7d09af69daec1cb464c65129b19737":[3,0,4,13,0],
+"_visual_polish_8cpp.html#a390edc9c1e6f62d5b3ed847698920d13":[3,0,4,13,14],
+"_visual_polish_8cpp.html#a3cad1c71ca22ff81187f1c11478d0afe":[3,0,4,13,21],
+"_visual_polish_8cpp.html#a436626af4d350c743238ab619ecd6066":[3,0,4,13,24],
+"_visual_polish_8cpp.html#a4d5203c8f6abefdd07da3cfa205ebcd3":[3,0,4,13,12],
+"_visual_polish_8cpp.html#a4d53d9a2a4bde8099d883e9a982680c1":[3,0,4,13,25],
+"_visual_polish_8cpp.html#a533b0acec8e0aa932ee206a07c02a1d8":[3,0,4,13,20],
+"_visual_polish_8cpp.html#a5b48cd7dfc5108e7723e392116d647d3":[3,0,4,13,23],
 "_visual_polish_8cpp.html#a7e15855ab30e624b125dbe6e396125a7":[3,0,4,13,19],
 "_visual_polish_8cpp.html#a805626f8aa909690d0870ba92fabc89a":[3,0,4,13,10],
 "_visual_polish_8cpp.html#a9029f888d43bb9214a40cebfe2302111":[3,0,4,13,4],
@@ -239,15 +249,5 @@ var NAVTREEINDEX8 =
 "class_composition_panel.html#a586d53c83ee6be6218b0fbc1bf36d6ec":[2,0,56,1],
 "class_composition_panel.html#a65e6d394d42e4e1ba05665009c694a94":[2,0,56,4],
 "class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1":[2,0,56,21],
-"class_composition_panel.html#a7084166255f47ad6e3e0c370b2ac1df2":[2,0,56,12],
-"class_composition_panel.html#a70d049d1fcfd588c1855fa5ed4b632c6":[2,0,56,16],
-"class_composition_panel.html#a785ce1339193e0c0b6a35933e2e09f54":[2,0,56,6],
-"class_composition_panel.html#a7fc526b9dc446945b7a0deaecedd0dcf":[2,0,56,19],
-"class_composition_panel.html#a7ff0980f21f7056dbe154443380c764b":[2,0,56,20],
-"class_composition_panel.html#a8d64f8c9e6918502fc43f6e469058d84":[2,0,56,9],
-"class_composition_panel.html#a8e0679d192ea17fff12dae25b309518d":[2,0,56,22],
-"class_composition_panel.html#a95eb57836f7a398e47f0a2e655945ebe":[2,0,56,10],
-"class_composition_panel.html#a980deac83d7950c40aa900f4eda2e2c8":[2,0,56,25],
-"class_composition_panel.html#aa61a3dc72fdf5aa9f0462cb0f722a47c":[2,0,56,30],
-"class_composition_panel.html#aa81884139fcf717506a1d17efdf1b130":[2,0,56,18]
+"class_composition_panel.html#a7084166255f47ad6e3e0c370b2ac1df2":[2,0,56,12]
 };

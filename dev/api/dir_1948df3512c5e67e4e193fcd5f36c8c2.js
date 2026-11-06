@@ -17,6 +17,8 @@ var dir_1948df3512c5e67e4e193fcd5f36c8c2 =
     [ "InfrastructurePanel.h", "_infrastructure_panel_8h.html", "_infrastructure_panel_8h" ],
     [ "PassengerPanel.cpp", "_passenger_panel_8cpp.html", null ],
     [ "PassengerPanel.h", "_passenger_panel_8h.html", "_passenger_panel_8h" ],
+    [ "RollingStockLibraryDialog.cpp", "_rolling_stock_library_dialog_8cpp.html", "_rolling_stock_library_dialog_8cpp" ],
+    [ "RollingStockLibraryDialog.h", "_rolling_stock_library_dialog_8h.html", "_rolling_stock_library_dialog_8h" ],
     [ "ScenarioPanel.cpp", "_scenario_panel_8cpp.html", null ],
     [ "ScenarioPanel.h", "_scenario_panel_8h.html", "_scenario_panel_8h" ],
     [ "SceneDocument.cpp", "_scene_document_8cpp.html", "_scene_document_8cpp" ],

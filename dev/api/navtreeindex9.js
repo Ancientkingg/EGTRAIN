@@ -1,5 +1,15 @@
 var NAVTREEINDEX9 =
 {
+"class_composition_panel.html#a70d049d1fcfd588c1855fa5ed4b632c6":[2,0,56,16],
+"class_composition_panel.html#a785ce1339193e0c0b6a35933e2e09f54":[2,0,56,6],
+"class_composition_panel.html#a7fc526b9dc446945b7a0deaecedd0dcf":[2,0,56,19],
+"class_composition_panel.html#a7ff0980f21f7056dbe154443380c764b":[2,0,56,20],
+"class_composition_panel.html#a8d64f8c9e6918502fc43f6e469058d84":[2,0,56,9],
+"class_composition_panel.html#a8e0679d192ea17fff12dae25b309518d":[2,0,56,22],
+"class_composition_panel.html#a95eb57836f7a398e47f0a2e655945ebe":[2,0,56,10],
+"class_composition_panel.html#a980deac83d7950c40aa900f4eda2e2c8":[2,0,56,25],
+"class_composition_panel.html#aa61a3dc72fdf5aa9f0462cb0f722a47c":[2,0,56,30],
+"class_composition_panel.html#aa81884139fcf717506a1d17efdf1b130":[2,0,56,18],
 "class_composition_panel.html#aad68b96ee775734d1262784ef752a54c":[2,0,56,14],
 "class_composition_panel.html#ab1e12b259116cc85cf32a312ff2539af":[2,0,56,8],
 "class_composition_panel.html#ab28258935fa9e59a90af0412c971dae4":[2,0,56,15],
@@ -239,15 +249,5 @@ var NAVTREEINDEX9 =
 "class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a":[2,0,97,4],
 "class_gui_replay_history.html#a6496af7c6af4fd206cebc70c5c0a8762":[2,0,97,18],
 "class_gui_replay_history.html#a763f2e97c297cfc6c239546e93abe36f":[2,0,97,3],
-"class_gui_replay_history.html#a79e4ea7d823679887b7992a4f90906bf":[2,0,97,2],
-"class_gui_replay_history.html#a893d5a3f40cb78d5fb1329659dadb9ae":[2,0,97,0],
-"class_gui_replay_history.html#a8d9254b9de5abe7b8bf9702530e06a13":[2,0,97,14],
-"class_gui_replay_history.html#a8e7c0b98d6d98890ee9569fcb94b8406":[2,0,97,5],
-"class_gui_replay_history.html#a9164eb444e4713ef8918f5e91619531a":[2,0,97,15],
-"class_gui_replay_history.html#ab1023e589af0f9ea60ec32a6fe9ab059":[2,0,97,9],
-"class_gui_replay_history.html#ad43c317b8d129b60d75203b854b1b76b":[2,0,97,11],
-"class_gui_replay_history.html#adaaf08e3b6f16671f143142825dd6c39":[2,0,97,8],
-"class_gui_replay_history.html#ae9a7813ad6b22bca029ed20e2e41d7c4":[2,0,97,1],
-"class_gui_signal_state_list.html":[2,0,100],
-"class_gui_signal_state_list.html#a0795d26a31606d478d08663f16add619":[2,0,100,1]
+"class_gui_replay_history.html#a79e4ea7d823679887b7992a4f90906bf":[2,0,97,2]
 };

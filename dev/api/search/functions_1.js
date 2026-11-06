@@ -77,6 +77,7 @@ var searchData=
   ['buildstage_74',['buildStage',['../namespace_windows_staging.html#a04252549267e75771c39d14d9be57670',1,'WindowsStaging']]],
   ['buildtimetableresults_75',['buildTimetableResults',['../_run_results_8cpp.html#a9ae7edc4c23c80417d0baa9f06fc052f',1,'buildTimetableResults(const std::vector&lt; const Train * &gt; &amp;trains):&#160;RunResults.cpp'],['../_run_results_8h.html#a9ae7edc4c23c80417d0baa9f06fc052f',1,'buildTimetableResults(const std::vector&lt; const Train * &gt; &amp;trains):&#160;RunResults.cpp']]],
   ['buildtrajectorychart_76',['buildTrajectoryChart',['../_route_charts_8cpp.html#aa94f9d298cae23ccb972beaf893a1a15',1,'buildTrajectoryChart(const CompletedRunData &amp;run, TrajectoryChart kind):&#160;RouteCharts.cpp'],['../_route_charts_8h.html#aa94f9d298cae23ccb972beaf893a1a15',1,'buildTrajectoryChart(const CompletedRunData &amp;run, TrajectoryChart kind):&#160;RouteCharts.cpp']]],
-  ['bundlesteps_77',['bundleSteps',['../class_scene_migration_registry.html#adda904941452a0b3fc9aaa5be661a2ab',1,'SceneMigrationRegistry']]],
-  ['bytes_78',['bytes',['../class_scene_history.html#a124029b31793fbd0d1100f0b8f41bd85',1,'SceneHistory']]]
+  ['bundledrollingstocklibrary_77',['bundledRollingStockLibrary',['../_rolling_stock_library_dialog_8cpp.html#a0de8df4b3df5b880525374d3e7c6ce0f',1,'bundledRollingStockLibrary():&#160;RollingStockLibraryDialog.cpp'],['../_rolling_stock_library_dialog_8h.html#a0de8df4b3df5b880525374d3e7c6ce0f',1,'bundledRollingStockLibrary():&#160;RollingStockLibraryDialog.cpp']]],
+  ['bundlesteps_78',['bundleSteps',['../class_scene_migration_registry.html#adda904941452a0b3fc9aaa5be661a2ab',1,'SceneMigrationRegistry']]],
+  ['bytes_79',['bytes',['../class_scene_history.html#a124029b31793fbd0d1100f0b8f41bd85',1,'SceneHistory']]]
 ];
