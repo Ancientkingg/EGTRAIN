@@ -10,10 +10,13 @@
 #include <string>
 #include <system_error>
 
-// File helpers of the scene code. A scene directory is filled in a private directory next to its destination, flushed to
-// disk and then renamed into place, so that a failure leaves the previous scene as it was. A bundle and a migration are
-// unpacked into a private temporary directory. publishStagedDirectory is defined in SceneWriter.cpp, next to the flush of
-// the files, so that the system headers of the flush stay out of this header.
+// File helpers of the scene code. A scene directory or a bundle is filled in a private directory next to its destination,
+// flushed to disk and then renamed into place, so that a failure leaves the previous scene as it was. A bundle and a
+// migration are unpacked into a private temporary directory. The flushes, publishStagedDirectory and writeSceneFiles are
+// defined in SceneWriter.cpp, so that the system headers of the flush stay out of this header.
+
+struct SceneModel;
+struct SceneSaveResult;
 
 /// Reads the whole file at path into content, byte for byte. Returns false when the file cannot be opened.
 inline bool readFileBytes(const std::filesystem::path& path, std::string& content) {
@@ -120,12 +123,29 @@ inline std::error_code createStagedDirectory(const std::filesystem::path& parent
 }
 
 /// Called in place of each flush to disk, with the path and whether it is a directory: the files and folders of a staged
-/// scene save, and the parent folder once publishStagedDirectory has renamed a directory into place. A test counts the
-/// flushes with it or makes one fail by returning an error. It is empty in a normal run.
+/// scene save or of an unpacked bundle, the archive of a bundle save, and the parent folder once a directory or a bundle
+/// has been renamed into place. A test counts the flushes with it or makes one fail by returning an error. It is empty in
+/// a normal run.
 inline std::function<std::error_code(const std::filesystem::path& path, bool directory)>& syncToDiskHook() {
 	static std::function<std::error_code(const std::filesystem::path& path, bool directory)> hook;
 	return hook;
 }
+
+/// Flushes the file or the directory at path from the caches of the system to the disk: fsync on macOS and Linux,
+/// FlushFileBuffers on Windows, or syncToDiskHook() when it is set. Windows flushes no directory, and a file with the
+/// read-only attribute is left as it is there. A directory that cannot be opened for reading or whose file system cannot
+/// flush one counts as flushed. Returns the error of the system.
+std::error_code syncToDisk(const std::filesystem::path& path, bool directory);
+
+/// Flushes every file and folder in directory, and directory itself, to disk with syncToDisk, each folder after what it
+/// holds. Links are not followed. On an error failed is the path that could not be flushed or listed.
+std::error_code syncDirectoryTree(const std::filesystem::path& directory, std::filesystem::path& failed);
+
+/// Writes the scene files of scene into directory, replacing files of the same names, and loads the directory back: the
+/// step of saveScene inside its staging directory, without the flush to disk and the rename into place. The bundle writer
+/// packs its archive from such a private temporary directory and removes it afterwards. On success inputSnapshot holds the
+/// snapshot of the files loaded back.
+SceneSaveResult writeSceneFiles(const SceneModel& scene, const std::filesystem::path& directory);
 
 /// The step of publishStagedDirectory that failed, or Published.
 enum class StagedPublishStep {

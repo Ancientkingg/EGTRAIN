@@ -59,9 +59,9 @@ struct BundleManifest {
 };
 
 static void addDiagnostic(std::vector<SceneDiagnostic>& diagnostics, const std::string& code,
-	const std::string& message, const std::string& file = "") {
+	const std::string& message, const std::string& file = "", SceneSeverity severity = SceneSeverity::Error) {
 	SceneDiagnostic diagnostic;
-	diagnostic.severity = SceneSeverity::Error;
+	diagnostic.severity = severity;
 	diagnostic.code = code;
 	diagnostic.message = message;
 	diagnostic.file = file;
@@ -464,6 +464,12 @@ static bool publishPath(const fs::path& staging, const fs::path& target,
 			target.u8string());
 		return false;
 	}
+	// The parent folder holds the new name; on Windows the rename above is written through instead. The target is in
+	// place already, so a failure here is only a warning.
+	ec = syncToDisk(parent, true);
+	if (ec)
+		addDiagnostic(diagnostics, "scene.bundle.publish", "Cannot flush " + parent.u8string() + " to disk: " + ec.message(),
+			parent.u8string(), SceneSeverity::Warning);
 	return true;
 }
 
@@ -582,7 +588,8 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 	StagedDirectory temp;
 	if (!makeTempDirectory(temp, result.diagnostics, &result.writeAttempted))
 		return result;
-	SceneSaveResult directoryResult = saveScene(scene, temp.path.u8string());
+	// The temporary case is removed once it is packed, so it is not flushed to disk.
+	SceneSaveResult directoryResult = writeSceneFiles(scene, temp.path);
 	result.writeAttempted = result.writeAttempted || directoryResult.writeAttempted;
 	result.diagnostics = directoryResult.diagnostics;
 	if (!directoryResult.success())
@@ -699,6 +706,14 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 		if (!inspectBundle(staging, archiveBytes, checkReader, checkEntries, checkManifest, result.diagnostics))
 			return result;
 	}
+	// The archive is on disk before it takes the place of the previous bundle.
+	ec = syncToDisk(staging, false);
+	if (ec) {
+		const std::string name = target.filename().u8string();
+		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot flush " + name + " to disk: " + ec.message(),
+			target.u8string());
+		return result;
+	}
 	if (!publishPath(staging, target, result.diagnostics, "bundle", true))
 		return result;
 	result.wroteAll = !hasErrors(result.diagnostics);
@@ -759,6 +774,15 @@ SceneSaveResult unpackSceneBundle(const std::string& bundlePath, const std::stri
 	result.diagnostics.insert(result.diagnostics.end(), loaded.diagnostics.begin(), loaded.diagnostics.end());
 	if (hasErrors(loaded.diagnostics))
 		return result;
+	// The extracted case is on disk before it is renamed into place.
+	fs::path unsynced;
+	ec = syncDirectoryTree(staging.path, unsynced);
+	if (ec) {
+		const fs::path inCase = unsynced.lexically_relative(staging.path);
+		const std::string name = inCase == fs::path(".") ? destinationName : inCase.u8string();
+		addDiagnostic(result.diagnostics, "scene.bundle.extract", "Cannot flush " + name + " to disk: " + ec.message(), name);
+		return result;
+	}
 	if (!publishPath(staging.path, destination, result.diagnostics, "extracted scene", false))
 		return result;
 	staging.release();

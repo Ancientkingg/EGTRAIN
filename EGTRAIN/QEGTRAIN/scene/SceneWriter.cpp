@@ -97,11 +97,10 @@ static bool writeBytes(SceneSaveResult& result, const std::string& filename, con
 	return true;
 }
 
-// Flushes the file or the directory at path from the caches of the system to the disk. Closing a std::ofstream only hands
-// its bytes to the system, and the standard library has no flush to disk, so this calls the system: fsync on macOS and
-// Linux, FlushFileBuffers on Windows. On Windows a directory is not flushed; publishStagedDirectory writes its rename
+// Closing a std::ofstream only hands its bytes to the system, and the standard library has no flush to disk, so this calls
+// the system. On Windows a directory is not flushed; publishStagedDirectory and the bundle code write their renames
 // through instead.
-static std::error_code syncToDisk(const fs::path& path, bool directory) {
+std::error_code syncToDisk(const fs::path& path, bool directory) {
 	if (const auto& hook = syncToDiskHook())
 		return hook(path, directory);
 #ifdef _WIN32
@@ -144,9 +143,7 @@ static std::error_code syncToDisk(const fs::path& path, bool directory) {
 #endif
 }
 
-// Flushes every file and folder in directory, and directory itself, to disk, each folder after what it holds. Links are
-// not followed. failed is the path that could not be flushed or listed.
-static std::error_code syncDirectoryTree(const fs::path& directory, fs::path& failed) {
+std::error_code syncDirectoryTree(const fs::path& directory, fs::path& failed) {
 	std::vector<fs::path> folders{directory};
 	std::error_code ec;
 	for (fs::recursive_directory_iterator entry(directory, ec), end; !ec && entry != end; entry.increment(ec)) {
@@ -706,6 +703,20 @@ static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::p
 	return result;
 }
 
+SceneSaveResult writeSceneFiles(const SceneModel& scene, const fs::path& directory) {
+	SceneSaveResult result = writeSceneGeneration(scene, directory);
+	if (!result.success())
+		return result;
+	SceneLoadResult loaded = loadScene(directory.u8string());
+	result.diagnostics.insert(result.diagnostics.end(), loaded.diagnostics.begin(), loaded.diagnostics.end());
+	if (hasErrors(loaded.diagnostics)) {
+		result.wroteAll = false;
+		return result;
+	}
+	result.inputSnapshot = std::move(loaded.inputSnapshot);
+	return result;
+}
+
 StagedPublishResult publishStagedDirectory(StagedDirectory& staged, const fs::path& destination, const fs::path& backup) {
 	StagedPublishResult result;
 	if (!backup.empty()) {
@@ -780,18 +791,13 @@ static SceneSaveResult writeSceneDirectory(const SceneModel& scene, const std::s
 	if (keepOtherFiles && hadDestination && !copyExistingSceneContents(destination, staging.path, result))
 		return result;
 	const bool stagingAttempted = result.writeAttempted;
-	result = writeSceneGeneration(scene, staging.path);
+	result = writeSceneFiles(scene, staging.path);
 	result.writeAttempted = result.writeAttempted || stagingAttempted;
-	if (!result.wroteAll || hasErrors(result.diagnostics))
+	if (!result.success())
 		return result;
-
-	const SceneLoadResult staged = loadScene(staging.path.u8string());
-	result.diagnostics.insert(result.diagnostics.end(), staged.diagnostics.begin(), staged.diagnostics.end());
-	if (hasErrors(staged.diagnostics)) {
-		result.wroteAll = false;
-		return result;
-	}
-	const std::string stagedSnapshot = staged.inputSnapshot;
+	// The snapshot is the result only once the case is published.
+	std::string stagedSnapshot;
+	stagedSnapshot.swap(result.inputSnapshot);
 	fs::path unsynced;
 	ec = syncDirectoryTree(staging.path, unsynced);
 	if (ec) {

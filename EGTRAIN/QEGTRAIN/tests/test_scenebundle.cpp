@@ -2,9 +2,11 @@
 #include "scene/SceneBundle.h"
 #include "scene/SceneModel.h"
 #include "scene/SceneWriter.h"
+#include "scene/StagedDirectory.h"
 #include "scene/Utf8Path.h"
 
 #include <QByteArray>
+#include <QScopeGuard>
 #include <QString>
 #include <QTest>
 
@@ -15,7 +17,9 @@
 #include <filesystem>
 #include <fstream>
 #include <optional>
+#include <set>
 #include <string>
+#include <system_error>
 #include <utility>
 #include <vector>
 
@@ -143,6 +147,35 @@ static bool writeBytes(const fs::path& path, const std::string& bytes) {
 	return static_cast<bool>(output);
 }
 
+// The names of the entries of directory.
+static std::set<std::string> entryNames(const fs::path& directory) {
+	std::set<std::string> names;
+	for (const auto& entry : fs::directory_iterator(directory))
+		names.insert(entry.path().filename().u8string());
+	return names;
+}
+
+// The regular files below directory, relative to it.
+static std::set<fs::path> filesBelow(const fs::path& directory) {
+	std::set<fs::path> files;
+	for (const auto& entry : fs::recursive_directory_iterator(directory)) {
+		if (entry.is_regular_file())
+			files.insert(entry.path().lexically_relative(directory).lexically_normal());
+	}
+	return files;
+}
+
+// True when name starts with prefix.
+static bool startsWith(const std::string& name, const std::string& prefix) {
+	return name.rfind(prefix, 0) == 0;
+}
+
+// The diagnostics as text, for a failed check.
+static void printDiagnostics(const std::vector<SceneDiagnostic>& diagnostics) {
+	for (const SceneDiagnostic& diagnostic : diagnostics)
+		qWarning("%s", toDisplayText(diagnostic).c_str());
+}
+
 struct ScopedTempEnvironment {
 	std::array<const char*, 3> names{{"TMPDIR", "TEMP", "TMP"}};
 	std::array<std::optional<std::string>, 3> previous;
@@ -252,6 +285,12 @@ private slots:
 	void unpacksBundle();
 	void rejectsMalformedArchive_data();
 	void rejectsMalformedArchive();
+	void flushesBundleBeforePublishing();
+	void failedArchiveFlushKeepsBundle();
+	void keepsBundleWhenParentFlushFails();
+	void flushesUnpackBeforePublishing();
+	void failedUnpackFlushLeavesNothing_data();
+	void failedUnpackFlushLeavesNothing();
 
 private:
 	TempDir m_temp;
@@ -731,6 +770,195 @@ void TestSceneBundle::rejectsMalformedArchive() {
 	// The archive is rejected with the diagnostic code of the row.
 	QVERIFY(hasErrors(rejected.diagnostics));
 	QVERIFY(hasCode(rejected.diagnostics, diagnosticCode.toStdString().c_str()));
+}
+
+// A bundle save flushes the finished archive to disk under its staging name, so before the rename into place, and then
+// the parent folder. The temporary case that the archive is packed from is not flushed.
+void TestSceneBundle::flushesBundleBeforePublishing() {
+	TempDir temp;
+	const fs::path bundle = temp.path / "case.egscene";
+	QVERIFY2(saveSceneBundle(m_source.scene, bundle.string()).success(), "the previous bundle is saved");
+	const std::string before = readBytes(bundle);
+	struct Flush {
+		fs::path path;
+		bool directory = false;
+		std::string archiveBytes; // The archive as it was when it was flushed.
+		std::string bundleBytes;  // The bundle at its final name at that moment.
+	};
+	std::vector<Flush> flushes;
+	syncToDiskHook() = [&flushes, &bundle](const fs::path& path, bool directory) {
+		flushes.push_back({path.lexically_normal(), directory, directory ? std::string() : readBytes(path), readBytes(bundle)});
+		return std::error_code();
+	};
+	SceneModel changed = m_source.scene;
+	changed.description = "Changed";
+	SceneSaveResult saved;
+	{
+		const auto unhook = qScopeGuard([] { syncToDiskHook() = nullptr; });
+		saved = saveSceneBundle(changed, bundle.string());
+	}
+	printDiagnostics(saved.diagnostics);
+	QVERIFY(saved.success());
+	QVERIFY((entryNames(temp.path) == std::set<std::string>{"case.egscene"}));
+	const std::string after = readBytes(bundle);
+	QVERIFY(after != before);
+	// Two flushes: the archive and the parent folder, and nothing in the temporary case.
+	QCOMPARE(flushes.size(), std::size_t(2));
+	const Flush& archive = flushes[0];
+	const Flush& parent = flushes[1];
+	// The archive is complete, under its staging name next to the bundle, and the previous bundle is still in place.
+	QVERIFY(!archive.directory);
+	QVERIFY(archive.path.parent_path().parent_path() == temp.path.lexically_normal());
+	QVERIFY(startsWith(archive.path.parent_path().filename().u8string(), "case.egscene.staging-"));
+	QVERIFY(archive.archiveBytes == after);
+	QVERIFY(archive.bundleBytes == before);
+	// The parent folder is flushed once the new bundle is in place.
+	QVERIFY(parent.directory);
+	QVERIFY(parent.path == temp.path.lexically_normal());
+	QVERIFY(parent.bundleBytes == after);
+}
+
+// An archive that cannot be flushed to disk fails the save with the reason of the system, and the previous bundle stays
+// as it was.
+void TestSceneBundle::failedArchiveFlushKeepsBundle() {
+	TempDir temp;
+	const fs::path bundle = temp.path / "case.egscene";
+	QVERIFY2(saveSceneBundle(m_source.scene, bundle.string()).success(), "the previous bundle is saved");
+	const std::string before = readBytes(bundle);
+	const std::error_code failure = std::make_error_code(std::errc::io_error);
+	syncToDiskHook() = [failure](const fs::path&, bool directory) {
+		return directory ? std::error_code() : failure;
+	};
+	SceneModel changed = m_source.scene;
+	changed.description = "Changed";
+	SceneSaveResult saved;
+	{
+		const auto unhook = qScopeGuard([] { syncToDiskHook() = nullptr; });
+		saved = saveSceneBundle(changed, bundle.string());
+	}
+	printDiagnostics(saved.diagnostics);
+	const std::string expected = "Cannot flush case.egscene to disk: " + failure.message();
+	const bool reported = std::any_of(saved.diagnostics.begin(), saved.diagnostics.end(),
+		[&bundle, &expected](const SceneDiagnostic& diagnostic) {
+			return diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.bundle.write"
+				&& fs::u8path(diagnostic.file).lexically_normal() == bundle.lexically_normal()
+				&& diagnostic.message == expected;
+		});
+	// The save fails with the bundle and the reason.
+	QVERIFY(!saved.success());
+	QVERIFY(reported);
+	QVERIFY(saved.inputSnapshot.empty());
+	// The previous bundle keeps every byte, and no staging file is left.
+	QVERIFY(readBytes(bundle) == before);
+	QVERIFY((entryNames(temp.path) == std::set<std::string>{"case.egscene"}));
+}
+
+// When the parent folder cannot be flushed after the rename into place, the new bundle is in place, and the save
+// succeeds with a warning.
+void TestSceneBundle::keepsBundleWhenParentFlushFails() {
+	TempDir temp;
+	const fs::path bundle = temp.path / "case.egscene";
+	QVERIFY2(saveSceneBundle(m_source.scene, bundle.string()).success(), "the previous bundle is saved");
+	const std::string before = readBytes(bundle);
+	const fs::path parent = temp.path.lexically_normal();
+	const std::error_code failure = std::make_error_code(std::errc::io_error);
+	syncToDiskHook() = [parent, failure](const fs::path& path, bool directory) {
+		return directory && path.lexically_normal() == parent ? failure : std::error_code();
+	};
+	SceneModel changed = m_source.scene;
+	changed.description = "Changed";
+	SceneSaveResult saved;
+	{
+		const auto unhook = qScopeGuard([] { syncToDiskHook() = nullptr; });
+		saved = saveSceneBundle(changed, bundle.string());
+	}
+	printDiagnostics(saved.diagnostics);
+	const bool warned = std::any_of(saved.diagnostics.begin(), saved.diagnostics.end(),
+		[&parent, &failure](const SceneDiagnostic& diagnostic) {
+			return diagnostic.severity == SceneSeverity::Warning && diagnostic.code == "scene.bundle.publish"
+				&& fs::u8path(diagnostic.file).lexically_normal() == parent
+				&& diagnostic.message == "Cannot flush " + diagnostic.file + " to disk: " + failure.message();
+		});
+	// The save succeeds with the warning, and the new bundle is in place.
+	QVERIFY(saved.success());
+	QVERIFY(warned);
+	QVERIFY(readBytes(bundle) != before);
+	QVERIFY(readBytes(bundle) == saved.inputSnapshot);
+	QVERIFY((entryNames(temp.path) == std::set<std::string>{"case.egscene"}));
+}
+
+// An unpack flushes every extracted file and folder to disk inside the staging folder, so before the rename into place,
+// and then the parent folder.
+void TestSceneBundle::flushesUnpackBeforePublishing() {
+	TempDir temp;
+	const fs::path unpacked = temp.path / "unpacked";
+	std::vector<std::pair<fs::path, bool>> flushes;
+	syncToDiskHook() = [&flushes](const fs::path& path, bool directory) {
+		flushes.emplace_back(path.lexically_normal(), directory);
+		return std::error_code();
+	};
+	SceneSaveResult result;
+	{
+		const auto unhook = qScopeGuard([] { syncToDiskHook() = nullptr; });
+		result = unpackSceneBundle(m_bundle.string(), unpacked.string());
+	}
+	printDiagnostics(result.diagnostics);
+	QVERIFY(result.success());
+	QVERIFY((entryNames(temp.path) == std::set<std::string>{"unpacked"}));
+	// The files come first, then the staging folder and the parent folder.
+	QVERIFY(flushes.size() > 2);
+	const auto& [parentPath, parentIsFolder] = flushes[flushes.size() - 1];
+	const auto& [stagingPath, stagingIsFolder] = flushes[flushes.size() - 2];
+	QVERIFY(parentIsFolder && parentPath == temp.path.lexically_normal());
+	QVERIFY(stagingIsFolder && stagingPath.parent_path() == temp.path.lexically_normal());
+	QVERIFY(startsWith(stagingPath.filename().u8string(), "unpacked.staging-"));
+	std::set<fs::path> flushedFiles;
+	for (std::size_t index = 0; index + 2 < flushes.size(); ++index) {
+		QVERIFY2(!flushes[index].second, "only files are flushed before the folders");
+		flushedFiles.insert(flushes[index].first.lexically_relative(stagingPath).lexically_normal());
+	}
+	// Each extracted file is flushed once, in the staging folder.
+	QCOMPARE(flushedFiles.size(), flushes.size() - 2);
+	QVERIFY(flushedFiles == filesBelow(unpacked));
+	QVERIFY(flushedFiles.count(fs::path("scene.json")) == 1);
+}
+
+void TestSceneBundle::failedUnpackFlushLeavesNothing_data() {
+	QTest::addColumn<bool>("folder");
+	QTest::newRow("file") << false;
+	QTest::newRow("staging folder") << true;
+}
+
+// A file or the staging folder of an unpack that cannot be flushed to disk fails the unpack with the reason of the system
+// before anything is published: no destination folder and no staging folder are left.
+void TestSceneBundle::failedUnpackFlushLeavesNothing() {
+	QFETCH(bool, folder);
+	TempDir temp;
+	const fs::path unpacked = temp.path / "unpacked";
+	const std::error_code failure = std::make_error_code(std::errc::io_error);
+	syncToDiskHook() = [folder, failure](const fs::path& path, bool directory) {
+		const bool failing = folder ? directory && startsWith(path.filename().u8string(), "unpacked.staging-")
+									: path.filename() == "services.json";
+		return failing ? failure : std::error_code();
+	};
+	SceneSaveResult result;
+	{
+		const auto unhook = qScopeGuard([] { syncToDiskHook() = nullptr; });
+		result = unpackSceneBundle(m_bundle.string(), unpacked.string());
+	}
+	printDiagnostics(result.diagnostics);
+	const std::string name = folder ? "unpacked" : "services.json";
+	const std::string expected = "Cannot flush " + name + " to disk: " + failure.message();
+	const bool reported = std::any_of(result.diagnostics.begin(), result.diagnostics.end(),
+		[&name, &expected](const SceneDiagnostic& diagnostic) {
+			return diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.bundle.extract"
+				&& diagnostic.file == name && diagnostic.message == expected;
+		});
+	// The unpack fails with the file and the reason, and leaves nothing behind.
+	QVERIFY(!result.success());
+	QVERIFY(reported);
+	QVERIFY(!fs::exists(unpacked));
+	QVERIFY(fs::is_empty(temp.path));
 }
 
 QTEST_APPLESS_MAIN(TestSceneBundle)
