@@ -25,6 +25,9 @@ namespace telemetry {
 /// the consent of either category has changed, removes the disabled marker and opens the queue again.
 class TelemetrySender {
 public:
+	/// Interval of the worker's timer in milliseconds. Each tick the worker applies revocations and refresh requests,
+	/// stores the waiting events and sends a batch that is due.
+	static constexpr int kTickIntervalMs = 50;
 	/// Internal ingress state retained by the worker until it exits.
 	struct Shared;
 	/// Default-invalid authorization for one sender, independently per category.
@@ -61,7 +64,8 @@ public:
 		bool failConstruction = false;					   ///< The constructor fails as on an allocation failure.
 		QByteArray loopbackRootPem;						   ///< The root certificate that a loopback server is checked against.
 		int requestTimeoutMs;							   ///< Time limit of one request in milliseconds, 1 to 10000.
-		TestOptions() : requestTimeoutMs(10000) {}
+		int tickIntervalMs;								   ///< Interval of the worker's timer in milliseconds, 1 to kTickIntervalMs.
+		TestOptions() : requestTimeoutMs(10000), tickIntervalMs(kTickIntervalMs) {}
 		/// Worker-thread callback; reply ownership is transferred to the sender.
 		std::function<QNetworkReply*(QNetworkAccessManager&, const QNetworkRequest&, const QByteArray&)> post;
 	};

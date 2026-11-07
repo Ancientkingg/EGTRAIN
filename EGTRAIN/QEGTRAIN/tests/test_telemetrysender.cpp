@@ -236,9 +236,16 @@ private:
 	std::thread m_thread;
 };
 
+// The options of every sender whose worker a test waits for: the worker pumps every millisecond instead of every 50 ms.
+static telemetry::TelemetrySender::TestOptions shortTickOptions() {
+	telemetry::TelemetrySender::TestOptions options;
+	options.tickIntervalMs = 1;
+	return options;
+}
+
 // The options of a sender with a still clock, so that nothing is sent and no poll runs unless a test asks for one.
 static telemetry::TelemetrySender::TestOptions stillClockOptions(const QString& settingsFile) {
-	telemetry::TelemetrySender::TestOptions options;
+	auto options = shortTickOptions();
 	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
 	options.monotonicMs = [] { return 0; };
 	return options;
@@ -254,6 +261,7 @@ private slots:
 	void refusesEndpointsThatAreNotHttps();
 #ifdef EGTRAIN_SENDER_TEST_HOOK
 	void refusesTestTransportForPublicReceiver();
+	void defaultTickInterval();
 	void operationTokens();
 	void tokenLifetimeAndContention();
 	void interactiveSessions_data();
@@ -363,6 +371,12 @@ void TestTelemetrySender::refusesTestTransportForPublicReceiver() {
 	QVERIFY(!publicOverride.tryEnqueue(telemetry::TelemetryEventInput()));
 }
 
+void TestTelemetrySender::defaultTickInterval() {
+	// The tests that wait for a pump use a 1 ms tick. The product, and options that set no tick, keep 50 ms.
+	QCOMPARE(telemetry::TelemetrySender::kTickIntervalMs, 50);
+	QCOMPARE(telemetry::TelemetrySender::TestOptions().tickIntervalMs, telemetry::TelemetrySender::kTickIntervalMs);
+}
+
 void TestTelemetrySender::operationTokens() {
 	QTemporaryDir directory;
 	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
@@ -371,7 +385,7 @@ void TestTelemetrySender::operationTokens() {
 	TelemetryConsent consent(settings, m_context);
 	QVERIFY(consent.save(false, false));
 	Semaphore polled, proceed, settled, exited;
-	telemetry::TelemetrySender::TestOptions options;
+	auto options = shortTickOptions();
 	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
 	options.monotonicMs = [] { return 0; }; // Never transmit; inspect durable records.
 	options.afterPoll = [&] {
@@ -467,7 +481,7 @@ void TestTelemetrySender::tokenLifetimeAndContention() {
 	QVERIFY(consent.save(true, true));
 	Semaphore polled, proceed, settled, exited, captured, unlock;
 	std::atomic<bool> holdCapture{false}, throwCapture{false};
-	telemetry::TelemetrySender::TestOptions options;
+	auto options = shortTickOptions();
 	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
 	options.monotonicMs = [] { return 0; };
 	options.afterPoll = [&] {
@@ -578,7 +592,7 @@ void TestTelemetrySender::interactiveSessions() {
 	Semaphore polled, proceed, settled, exited, posted, completed, opened, allowObservations;
 	int sessionAttempts = 0;
 	QString expectedInstallationId = consent.observeUsage().installationId;
-	telemetry::TelemetrySender::TestOptions options;
+	auto options = shortTickOptions();
 	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
 	options.utcNow = [base, clock] { return base.addMSecs(clock->load()); };
 	options.monotonicMs = [clock] { return clock->load(); };
@@ -623,11 +637,15 @@ void TestTelemetrySender::interactiveSessions() {
 		sender.requestInteractiveSession();
 		sender.requestInteractiveSession();
 	}
-	// Lets the worker finish its poll, asks for the next one and waits until the worker holds in it.
-	const auto cycle = [&] {
+	// Lets the worker finish its poll, asks for the next one and waits until the worker holds in it. A moment, at least a
+	// second after the held poll, moves the clock there instead, and the worker polls without being asked. Both wait
+	// until the held pump has ended: on Windows each tick of a 1 ms timer is a posted event, so the next pump can run
+	// before `settled`, and no poll may be due in it.
+	const auto cycle = [&](qint64 moment = -1) {
 		proceed.release();
 		if (!settled.tryAcquire(1, 3000)) return false;
-		sender.requestConsentRefresh();
+		if (moment < 0) sender.requestConsentRefresh();
+		else *clock = moment;
 		return polled.tryAcquire(1, 3000);
 	};
 	QVERIFY(cycle());
@@ -636,8 +654,7 @@ void TestTelemetrySender::interactiveSessions() {
 		QVERIFY(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
 		QVERIFY(consent.save(true, true));
 		expectedInstallationId = consent.observeUsage().installationId;
-		*clock = 1234;
-		QVERIFY(cycle());
+		QVERIFY(cycle(1234));
 		QVERIFY(cycle());
 		QCOMPARE(sessionAttempts, 1);
 	}
@@ -645,8 +662,7 @@ void TestTelemetrySender::interactiveSessions() {
 	QCOMPARE(records.size(), scenario < 2 ? 1 : 0);
 	if (scenario < 2) {
 		QCOMPARE(records.first().toObject().value(QStringLiteral("event")).toObject().value(QStringLiteral("name")).toString(), QStringLiteral("session.started"));
-		*clock = 60001;
-		QVERIFY(cycle());
+		QVERIFY(cycle(60001));
 		QVERIFY(cycle());
 		QVERIFY(posted.tryAcquire(1, 3000));
 		QVERIFY(completed.tryAcquire(1, 3000));
@@ -687,7 +703,7 @@ void TestTelemetrySender::sessionAttemptLoss() {
 	QVERIFY(consent.save(true, false));
 	Semaphore polled, proceed, settled, attempted, resume, exited;
 	int attempts = 0;
-	telemetry::TelemetrySender::TestOptions options;
+	auto options = shortTickOptions();
 	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
 	options.monotonicMs = [] { return 0; };
 	options.afterPoll = [&] {
@@ -785,7 +801,7 @@ void TestTelemetrySender::disabledWorkerExits() {
 	Semaphore polled, atPump, resume, exited;
 	std::atomic<int> pumps{0}, lastPump{1};
 	std::atomic<bool> hold{false};
-	telemetry::TelemetrySender::TestOptions options;
+	auto options = shortTickOptions();
 	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
 	options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
 	options.monotonicMs = [clock] { return clock->load(); };
@@ -980,7 +996,7 @@ void TestTelemetrySender::backoffSaturation() {
 	}
 	auto clock = std::make_shared<std::atomic<qint64>>(0);
 	Semaphore ready, completed, exited;
-	telemetry::TelemetrySender::TestOptions options;
+	auto options = shortTickOptions();
 	options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
 	options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
 	options.monotonicMs = [clock] { return clock->load(); };
@@ -1063,7 +1079,7 @@ void TestTelemetrySender::outcomes() {
 	Semaphore posted, completed, exited;
 	int calls = 0;
 	const QString storage = directory.path() + QStringLiteral("/queue");
-	telemetry::TelemetrySender::TestOptions options;
+	auto options = shortTickOptions();
 	options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
 	options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
 	options.monotonicMs = [clock] { return clock->load(); };
@@ -1118,7 +1134,7 @@ void TestTelemetrySender::startupIngress() {
 	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
 	Semaphore opened, proceed, posted, completed, exited;
 	std::atomic<bool> first{true};
-	telemetry::TelemetrySender::TestOptions options;
+	auto options = shortTickOptions();
 	options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
 	options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
 	options.monotonicMs = [clock] { return clock->load(); };
@@ -1155,7 +1171,7 @@ void TestTelemetrySender::stopKeepsStoredEvents() {
 	QVERIFY(consent.save(true, false));
 	Semaphore polled, proceed, settled, atPump, resume, exited;
 	std::atomic<bool> hold{false};
-	telemetry::TelemetrySender::TestOptions options;
+	auto options = shortTickOptions();
 	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
 	options.monotonicMs = [] { return 0; }; // Never transmit; inspect durable records.
 	options.afterPoll = [&] {
@@ -1201,7 +1217,7 @@ void TestTelemetrySender::preparationBarrier() {
 	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
 	Semaphore reserved, proceed, settled, exited;
 	std::atomic<int> posts{0};
-	telemetry::TelemetrySender::TestOptions options;
+	auto options = shortTickOptions();
 	options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
 	options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
 	options.monotonicMs = [clock] { return clock->load(); };
@@ -1247,7 +1263,7 @@ void TestTelemetrySender::interruptedBackoff() {
 	auto clock = std::make_shared<std::atomic<qint64>>(0);
 	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
 	const auto optionsBase = [&] {
-		telemetry::TelemetrySender::TestOptions options;
+		auto options = shortTickOptions();
 		options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
 		options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
 		options.monotonicMs = [clock] { return clock->load(); };
@@ -1326,7 +1342,7 @@ void TestTelemetrySender::timeoutAndExceptions() {
 	int requests = 0;
 	QString firstId;
 	ScriptedReply* delayed = nullptr;
-	telemetry::TelemetrySender::TestOptions options;
+	auto options = shortTickOptions();
 	options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
 	options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
 	options.monotonicMs = [clock] { return clock->load(); };
@@ -1411,7 +1427,7 @@ void TestTelemetrySender::expiryAndActiveRevocation() {
 	}
 	Semaphore posted, completed, polled, exited;
 	std::atomic<int> calls{0};
-	telemetry::TelemetrySender::TestOptions options;
+	auto options = shortTickOptions();
 	options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
 	options.utcNow = [utcClock, base] { return base.addMSecs(utcClock->load()); };
 	options.monotonicMs = [clock] { return clock->load(); };
@@ -1515,7 +1531,7 @@ void TestTelemetrySender::followerTakeover() {
 	Semaphore firstPosted, secondPosted, secondCompleted, firstExited, secondExited, followerAttempt;
 	QString id;
 	const auto optionsBase = [&] {
-		telemetry::TelemetrySender::TestOptions options;
+		auto options = shortTickOptions();
 		options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
 		options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
 		options.monotonicMs = [clock] { return clock->load(); };
@@ -1570,7 +1586,7 @@ void TestTelemetrySender::retirementWithQueuedWork() {
 	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
 	Semaphore posted, completed, exited;
 	ScriptedReply* pending = nullptr;
-	telemetry::TelemetrySender::TestOptions options;
+	auto options = shortTickOptions();
 	options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
 	options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
 	options.monotonicMs = [clock] { return clock->load(); };
@@ -1609,7 +1625,7 @@ void TestTelemetrySender::splitRetainsIds() {
 	Semaphore posted, completed, exited;
 	int attempts = 0;
 	QSet<QString> ids, acknowledged;
-	telemetry::TelemetrySender::TestOptions options;
+	auto options = shortTickOptions();
 	options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
 	options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
 	options.monotonicMs = [clock] { return clock->load(); };
@@ -1663,7 +1679,7 @@ void TestTelemetrySender::retryAfterAndRetirement() {
 	auto pumps = std::make_shared<std::atomic<int>>(0);
 	auto completions = std::make_shared<std::atomic<int>>(0);
 	auto exits = std::make_shared<std::atomic<int>>(0);
-	telemetry::TelemetrySender::TestOptions tests;
+	auto tests = shortTickOptions();
 	tests.settingsFactory = [settingsFile] {
 		return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat));
 	};
@@ -1703,8 +1719,10 @@ void TestTelemetrySender::retryAfterAndRetirement() {
 	// The 429 response is handled at this time, so its Retry-After counts from it.
 	QTRY_COMPARE_WITH_TIMEOUT(completions->load(), 1, kWaitMs);
 	*clock = 120002;
-	QThread::msleep(100);		// Checks that no request follows in this time.
-	QCOMPARE(posts->load(), 1); // Retry-After wins over one-minute backoff.
+	// Two whole pumps at this time send nothing: Retry-After wins over one-minute backoff.
+	const int backoffAt = pumps->load();
+	QTRY_VERIFY_WITH_TIMEOUT(pumps->load() >= backoffAt + 3, kWaitMs);
+	QCOMPARE(posts->load(), 1);
 	*clock = 180003;
 	QTRY_COMPARE_WITH_TIMEOUT(posts->load(), 2, 2 * kWaitMs);
 	QTRY_COMPARE_WITH_TIMEOUT(completions->load(), 2, kWaitMs);
@@ -1719,11 +1737,9 @@ void TestTelemetrySender::retryAfterAndRetirement() {
 	QVERIFY(!sender.tryEnqueue(input));
 	QTRY_COMPARE_WITH_TIMEOUT(exits->load(), 1, kWaitMs);
 	telemetry::TelemetrySender restarted(m_context, m_metadata, directory.path() + QStringLiteral("/queue"), tests);
-	// Checks for a second that the retired queue takes nothing.
-	for (int i = 0; i < 50; ++i) {
-		QThread::msleep(20);
-		QVERIFY(!restarted.tryEnqueue(input));
-	}
+	// Its worker finds the queue retired and exits without a stop, so the retired queue takes nothing.
+	QTRY_COMPARE_WITH_TIMEOUT(exits->load(), 2, kWaitMs);
+	QVERIFY(!restarted.tryEnqueue(input));
 	restarted.stop();
 	QCOMPARE(posts->load(), 3);
 }
@@ -1921,7 +1937,7 @@ void TestTelemetrySender::otherCategoryRevokedBeforeRequest() {
 	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
 	Semaphore reserved, proceed, settled, exited;
 	std::atomic<int> posts{0};
-	telemetry::TelemetrySender::TestOptions options;
+	auto options = shortTickOptions();
 	options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
 	options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
 	options.monotonicMs = [clock] { return clock->load(); };
@@ -2035,7 +2051,7 @@ void TestTelemetrySender::disabledDuringRevocationStaysClosed() {
 	PumpHold pump;
 	std::atomic<int> ownershipAttempts{0};
 	std::atomic<telemetry::TelemetrySender*> probe{nullptr};
-	telemetry::TelemetrySender::TestOptions options;
+	auto options = shortTickOptions();
 	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
 	options.utcNow = [base, clock] { return base.addMSecs(clock->load()); };
 	options.monotonicMs = [clock] { return clock->load(); };
