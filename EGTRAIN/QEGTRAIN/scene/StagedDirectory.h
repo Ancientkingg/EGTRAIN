@@ -131,10 +131,11 @@ inline std::function<std::error_code(const std::filesystem::path& path, bool dir
 	return hook;
 }
 
-/// Flushes the file or the directory at path from the caches of the system to the disk: fsync on macOS and Linux,
-/// FlushFileBuffers on Windows, or syncToDiskHook() when it is set. Windows flushes no directory, and a file with the
-/// read-only attribute is left as it is there. A directory that cannot be opened for reading or whose file system cannot
-/// flush one counts as flushed. Returns the error of the system.
+/// Flushes the file or the directory at path from the caches of the system to the disk: fcntl(F_FULLFSYNC) on macOS,
+/// which also has the drive write its own cache to permanent storage, or fsync when that call fails; fsync on Linux;
+/// FlushFileBuffers on Windows; or syncToDiskHook() when it is set. Windows flushes no directory, and a file with the
+/// read-only attribute is left as it is there. A directory that cannot be opened for reading or whose file system
+/// cannot flush one counts as flushed. Returns the error of the system.
 std::error_code syncToDisk(const std::filesystem::path& path, bool directory);
 
 /// Flushes every file and folder in directory, and directory itself, to disk with syncToDisk, each folder after what it

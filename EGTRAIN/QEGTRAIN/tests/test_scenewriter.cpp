@@ -768,6 +768,8 @@ private slots:
 	void flushesScenarioBeforeReplacing();
 	void failedScenarioFlushKeepsFile();
 	void warnsWhenScenarioFolderFlushFails();
+	void flushesFileAndFolderToDisk_data();
+	void flushesFileAndFolderToDisk();
 
 private:
 	TempDir m_temp;
@@ -2549,6 +2551,32 @@ void TestSceneWriter::warnsWhenScenarioFolderFlushFails() {
 	QVERIFY(warned);
 	QCOMPARE(loadScenarioJson(scenarioPath.string()).scenario.id, authoredScene().scenarios[0].id);
 	QVERIFY((entryNames(temp.path) == std::set<std::string>{"scenario.json"}));
+}
+
+void TestSceneWriter::flushesFileAndFolderToDisk_data() {
+	QTest::addColumn<QString>("kind");
+	QTest::newRow("file") << QStringLiteral("file");
+	QTest::newRow("folder") << QStringLiteral("folder");
+#ifdef __APPLE__
+	// devfs refuses F_FULLFSYNC with ENOTSUP, as some other file systems do.
+	QTest::newRow("folder whose file system refuses F_FULLFSYNC") << QStringLiteral("devfs");
+#endif
+}
+
+// Without the hook a file and a folder are flushed through the system. On macOS that is F_FULLFSYNC, which also has the
+// drive write its cache to permanent storage, or fsync on a file system that refuses F_FULLFSYNC.
+void TestSceneWriter::flushesFileAndFolderToDisk() {
+	QFETCH(QString, kind);
+	TempDir temp;
+	const fs::path file = temp.path / "scene.json";
+	put(file, "{}\n");
+	fs::path path("/dev");
+	if (kind == "file")
+		path = file;
+	else if (kind == "folder")
+		path = temp.path;
+	const std::error_code ec = syncToDisk(path, kind != "file");
+	QVERIFY2(!ec, ec.message().c_str());
 }
 
 QTEST_APPLESS_MAIN(TestSceneWriter)
