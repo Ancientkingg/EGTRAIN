@@ -311,7 +311,11 @@ and passengers into the model. It is an explicit conversion command/UI action,
 not a fallback used when running a scene. A legacy number that reads as `nan`
 or `inf` is malformed, like any other unreadable number: a row of a file is
 skipped with the warning `scene.import.parse`, and a Trains or train data file
-gives that code as an error and stops the import. `SceneExporter` remains an explicit
+gives that code as an error and stops the import. The station of a timetable
+row is the text before its last three numbers, spaces included, as in
+`Stations.txt`. When that text names no single station, its words are tried
+joined without spaces: the timetables of the legacy Milano_Brescia case write
+`Morengo Bariano` for the station `MorengoBariano`. `SceneExporter` remains an explicit
 interoperability tool; exporting does not change the active scene or stage the
 normal simulator input.
 

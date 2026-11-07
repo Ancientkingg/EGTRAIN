@@ -285,6 +285,7 @@ private slots:
 	void warnsAboutBoundaryPartWithoutBlock();
 	void keepsJoinedBoundaryBlocks();
 	void importsUnicodeNames();
+	void readsStationNamesWithSpaces();
 	void lastExportDecidesRoutesAndIncidents();
 	void reportsOddSizedUtf16Files();
 	void readsFirstRowAfterUtf8ByteOrderMark();
@@ -1348,6 +1349,30 @@ void TestSceneImporter::importsUnicodeNames() {
 	for (const auto& diagnostic : refused.diagnostics)
 		namedAbsent = namedAbsent || (diagnostic.code == "scene.import.missing" && diagnostic.file == absent.u8string());
 	QVERIFY2(namedAbsent, "A missing case folder with a Unicode name is reported as UTF-8");
+}
+
+// A station name of two words in Stations.txt and in a timetable gives a stop at that station. A timetable that writes
+// a name of Stations.txt as two words, as the legacy Milano_Brescia case writes "Morengo Bariano" for the station
+// MorengoBariano, still gives a stop at that station.
+void TestSceneImporter::readsStationNamesWithSpaces() {
+	TempDir root;
+	const fs::path legacy = fs::path(root.dir) / "spaces";
+	const fs::path destination = fs::path(root.dir) / "spaces-scene";
+	writeSmallLegacyCase(legacy);
+	writeText(legacy / "TrackLines/Stations.txt", "0\tGour Land\n2\tMorengoBariano\n");
+	writeText(legacy / "TimeTable/Service.txt", "Gour Land 2 -1 10\nMorengo Bariano\t3\t20\t-1\n");
+	const auto imported = importLegacyScene(legacy.string(), destination.string(), "Spaces");
+	const SceneLoadResult loaded = loadScene(destination.u8string());
+	// The case imports with one service of two stops.
+	QVERIFY(imported.success());
+	QCOMPARE(loaded.scene.services.size(), std::size_t(1));
+	const auto& stops = loaded.scene.services.front().stops;
+	QCOMPARE(stops.size(), std::size_t(2));
+	// The first stop is at the station of two words, and the second at the station of one word.
+	QCOMPARE(stops[0].stationId, std::string("Gour Land"));
+	QCOMPARE(stops[1].stationId, std::string("MorengoBariano"));
+	// No timetable row refers to an unresolved station.
+	QVERIFY(!hasDiag(imported.diagnostics, "scene.import.ref", SceneSeverity::Warning));
 }
 
 // A case with three routes and an incident and then a case with one route and none, exported into the same folder,
