@@ -18,32 +18,32 @@ How the documentation is structured, written, built, checked and shipped, and th
 
 From the issue and the owner's comments:
 
-1. Sources are Markdown in `docs/` and comments in the code. Links are relative and no GitHub-only Markdown feature is used.
+1. Sources are Markdown in `docs/` and comments in the code. Links are relative, and the Markdown uses no feature that only one host renders.
 2. The built site is static HTML that any web host serves and a browser opens from disk.
 3. One command builds the whole site (guides and C++ reference) into the build folder, and one command serves a live preview.
-4. Tool versions are pinned in a file in the repository.
+4. Tool versions are pinned in a committed file.
 5. The same manual is used offline in the app (#917) without writing the text twice.
 6. The maintenance status of each tool is checked before choosing.
 7. The site has a developer section and a user section, and keeps one copy per release.
 
 ## Options compared
 
-Release dates and versions were read on 2026-10-19 from GitHub and PyPI.
+Release dates and versions were read on 2026-10-19 from the release pages of the projects and from PyPI.
 
 | Option | Search | Copy per release | Offline and in the app | Link checking | Maintenance | Effort |
 | --- | --- | --- | --- | --- | --- | --- |
-| Plain Markdown on GitHub | GitHub code search only | A Git tag shows the docs of that tag | No HTML, so nothing to show in the app | `check_docs.py` | Not applicable | None, but no manual in the app and no C++ reference |
+| Plain Markdown files | None of its own | A Git tag shows the docs of that tag | No HTML, so nothing to show in the app | `check_docs.py` | Not applicable | None, but no manual in the app and no C++ reference |
 | MkDocs with Material | Built in | `mike` plugin | Offline plugin; the theme needs JavaScript, which Qt's text widgets do not run; no `.qch` | Validation settings | MkDocs 1.6.1 on 2024-08-30 is the last release. Material 9.7.7 on 2026-07-17, maintenance only | Low, plus a second pipeline for the app |
 | Zensical (successor of Material) | Built in | Not built in; a fork of `mike`, described as transitional | Offline plugin; no `.qch` | Reported broken anchors on the current pages | 0.0.71 on 2026-10-16, before its first 0.1 release | Low, but the tool still changes |
 | Sphinx with MyST | Built in | Build each tag into its own folder | `qthelp` builder is part of Sphinx; `qhelpgenerator` comes with Qt | Warnings for missing pages and anchors; `-W` turns them into errors | Sphinx 9.1.0 on 2025-12-31, MyST-Parser 5.1.0 on 2026-05-13, both active | Low to medium |
-| Docusaurus | Built in through a plugin or a hosted service | Copies the docs into `versioned_docs/` for each version | No `.qch` | Broken link check at build | 3.10.2 on 2026-07-10, active | Medium; adds Node and React to a C++ and Python repository |
+| Docusaurus | Built in through a plugin or a hosted service | Copies the docs into `versioned_docs/` for each version | No `.qch` | Broken link check at build | 3.10.2 on 2026-07-10, active | Medium; adds Node and React to a C++ and Python project |
 | Doxygen alone | Built in | One output folder per release | `GENERATE_QHP` writes Qt Help input | Warnings for unresolved references | 1.18.0 on 2026-08-13, active | Low for code; the page tree follows folders and ordering 45 pages of prose needs Doxygen commands in the Markdown |
 
 Notes:
 
-- MkDocs and Material. The Material team has stopped feature work and calls MkDocs unmaintained since August 2024 ([announcement](https://squidfunk.github.io/mkdocs-material/blog/2025/11/05/zensical/)). The announcement ends critical fixes on 2027-05-05; the Material README gives 2026-11-05. Either date is too near for a new site.
+- MkDocs and Material. The Material team has stopped feature work and calls MkDocs unmaintained since August 2024, in its announcement of Zensical of 2025-11-05 on the Material blog. The announcement ends critical fixes on 2027-05-05; the Material README gives 2026-11-05. Either date is too near for a new site.
 - Zensical. It reads `mkdocs.yml` and builds Material projects ([compatibility](https://zensical.org/docs/compatibility/mkdocs/)). Versioning is listed on its [roadmap](https://zensical.org/roadmap/) as planned. A new site would depend on features that do not exist yet.
-- Docusaurus. A version is a copy of the docs inside the repository ([versioning](https://docusaurus.io/docs/versioning)), so old copies would need the same reviews as current pages.
+- Docusaurus. A version is a copy of the docs inside the source tree ([versioning](https://docusaurus.io/docs/versioning)), so old copies would need the same reviews as current pages.
 - Doxygen alone stays the fallback if Sphinx proves too heavy.
 
 ## Why Sphinx with MyST
@@ -61,7 +61,7 @@ The cost is four pinned Python packages and Doxygen, against none for plain Mark
 ## Hosting
 
 - The sources are Markdown in `docs/` and comments in the code. The output is static HTML with relative links that opens from disk.
-- Only the publish job depends on the hosts. It builds each release tag into `<version>/`, keeps `latest/`, and writes the home page and the support, source code and privacy pages of the site at the root from `docs/site/`, with the downloads of the newest release and the list of versions. It pushes the site to GitHub Pages and publishes the same folders and pages on egtrain.samuelbruin.com, the address that the documentation links.
+- Only the publish job depends on the hosts. It builds each release tag into `<version>/`, keeps `latest/`, and writes the home page, the pages `support/` (Report a problem), `contact/` and `privacy/`, and the stub `source/`, which sends a visitor to the home page, at the root from `docs/site/`, with the downloads of the newest release and the list of versions. It pushes the site to the branch `gh-pages` and publishes the same folders and pages on egtrain.samuelbruin.com, the address that the documentation links.
 - Moving to another host needs a new publish step and, for each old path, a stub page that redirects with a meta refresh.
 - The app's `.qch` is built from the same tag, so the manual in the app matches its version (`EGTRAIN_VERSION` in `CMakeLists.txt`).
 - Without the `.qch`, as in a build without Sphinx, the app opens the same section of the published guides in the web browser. That needs a network and loses the in-app contents and search.
@@ -77,7 +77,7 @@ cmake --build build --target docs-preview
 
 `docs` runs Doxygen and Sphinx into `build/docs/`; open `build/docs/index.html`. `docs-preview` runs `sphinx-autobuild`, which serves the site on a local port and rebuilds a page when its Markdown changes. The C++ reference is refreshed by `docs`.
 
-The site keeps its table of contents in `docs/index.md`, the only Sphinx directive in the sources. `docs/README.md` stays a short landing page for readers on GitHub.
+The site keeps its table of contents in `docs/index.md`. The only other Sphinx directive in the sources is the include of `DATA.md` in `docs/guides/case-data.md`, so that the data of the bundled cases has one source. `docs/README.md` stays a short landing page for readers who open the `docs/` folder.
 
 ## Pinned versions
 
@@ -116,7 +116,7 @@ A stale picture is found in two ways:
 A new developer reads, in this order:
 
 1. `README.md`, then the developer section of the site.
-2. [Getting started as a developer](getting-started.md): tools, clone, configure, build and run. A first full build with tests took about 14 minutes on an Apple silicon laptop and about 7 minutes in a Linux container with 10 CPUs.
+2. [Getting started as a developer](getting-started.md): tools, configure, build and run. A first full build with tests took about 14 minutes on an Apple silicon laptop and about 7 minutes in a Linux container with 10 CPUs.
 3. The first change in the same page: one test assertion, then the quick unit tests.
 4. [Source layout](../architecture/source-layout.md), then the [scene model](../architecture/scene-model.md), then the C++ reference of the folder being changed.
 5. The build and test pages, the [coding guidelines](coding-guidelines.md) and the checks a pull request must pass.
@@ -154,7 +154,7 @@ Menus and controls:
 
 It already checks relative links, heading anchors, empty alt text, orphan images, pages that `docs/README.md` does not reach, `bash`, `sh` and `json` examples, dashes and local paths. #916 adds:
 
-1. `github-only`: GitHub alerts (`> [!NOTE]`), `<details>`, links that start with `/`, and links to `github.com/Ancientkingg/EGTRAIN/blob/` for files in the repository.
+1. Markdown that only one host renders: alerts (`> [!NOTE]`), `<details>`, links that start with `/`, and web links to files of the source tree where a relative link belongs.
 2. `heading`: one `#` heading, first in the file, and no skipped levels.
 3. `manual-link`: a page in `docs/guides/` links only to pages in `docs/guides/`.
 4. `capture`: the name pattern, the width and the `captures.json` rules above.

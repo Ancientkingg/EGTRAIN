@@ -18,7 +18,7 @@ tools/performance/playback_profile.py \
   --output <new-output-dir>
 ```
 
-The output directory must be new, non-symlinked, outside the repository, application, and scene input. Each process uses a separate temporary `QEGTRAIN_OUTPUT_DIR` which is removed after the trial.
+The output directory must be new, non-symlinked, outside the source tree, application, and scene input. Each process uses a separate temporary `QEGTRAIN_OUTPUT_DIR` which is removed after the trial.
 
 The recorded settings are Copenhagen, its default baseline scenario, the passenger GUI asked for with `-pax 1`, an 8000-second horizon, a 250 ms step delay, 30 measured seconds, and three independent processes per view. Fit calls `fitToTopology()`, disables follow, retains the existing speed-label setting, and uses zoom ratio 1. Dense first fits, selects the lowest-index visible train, centers it, applies `zoomBy(3.0)`, and leaves follow off.
 

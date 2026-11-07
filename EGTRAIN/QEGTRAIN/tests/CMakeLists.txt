@@ -736,6 +736,9 @@ egtrain_add_test(test_check_docs
 egtrain_add_test(test_check_undocumented
 	COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/docs/test_check_undocumented.py
 	LABELS unit)
+egtrain_add_test(test_home_data
+	COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/docs/test_home_data.py
+	LABELS unit)
 # The documentation check reads the file list from Git, so it runs only in a checkout.
 if(EXISTS ${CMAKE_SOURCE_DIR}/.git)
 	egtrain_add_test(docs_check

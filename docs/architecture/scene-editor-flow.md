@@ -259,10 +259,10 @@ The tables stay for everything the actions do not cover. A drawing editor is not
 - Treating an explicit interoperability export as a scene directory.
 - General-purpose JSON text editing inside the application.
 
-[`SceneModel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_model.html
-[`SceneDiagnostic`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_diagnostic.html
-[`SceneDocument`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_scene_document.html
-[`DispatchController::prepareScene`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_dispatch_controller.html
-[`SceneEditorPanel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_scene_editor_panel.html
-[`InfrastructureFacet`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_infrastructure_facet.html
-[`ValidationPanel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_validation_panel.html
+[`SceneModel`]: https://egtrain.samuelbruin.com/latest/api/struct_scene_model.html
+[`SceneDiagnostic`]: https://egtrain.samuelbruin.com/latest/api/struct_scene_diagnostic.html
+[`SceneDocument`]: https://egtrain.samuelbruin.com/latest/api/class_scene_document.html
+[`DispatchController::prepareScene`]: https://egtrain.samuelbruin.com/latest/api/class_dispatch_controller.html
+[`SceneEditorPanel`]: https://egtrain.samuelbruin.com/latest/api/class_scene_editor_panel.html
+[`InfrastructureFacet`]: https://egtrain.samuelbruin.com/latest/api/class_infrastructure_facet.html
+[`ValidationPanel`]: https://egtrain.samuelbruin.com/latest/api/class_validation_panel.html

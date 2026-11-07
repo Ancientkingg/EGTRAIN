@@ -267,7 +267,7 @@ The [section of the signalling levels page](signalling-levels.md#signalling-area
 | Where it is stored | `signalling.json` | Not stored | Not stored | The case input folder |
 | When a block belongs to it | The section lies wholly inside the range, with a coordinate tolerance of 1e-8 km (`sectionSpanInsideArea`) | An occupation belongs when its block id shares a resource with an analysed block | An occupation belongs when its block id shares a resource with a block of a range | A block or blocking time belongs when at least one end lies inside the closed range from start x 1000 to end x 1000 metres. A block that contains the whole range is not in. A block that touches an edge is in, so two areas that meet at a block edge both hold that block |
 | Whether it gives a level | Yes | No | No | Yes: a network-wide row only where none was set, a row for a track line overrides |
-| Whether it gives a result | No | Yes: cycle time and cycle percentage for the chain | Yes: the occupation rate of each resource, the governing resource, the cycle of the chain and a legacy envelope for comparison. No trains per hour | Yes: occupation envelope, ratio and trains per hour for the area (never called in the history of the repository) |
+| Whether it gives a result | No | Yes: cycle time and cycle percentage for the chain | Yes: the occupation rate of each resource, the governing resource, the cycle of the chain and a legacy envelope for comparison. No trains per hour | Yes: occupation envelope, ratio and trains per hour for the area (never called in the history of the code) |
 | Period | None | Entered per analysis | Entered per analysis | The length of the simulation |
 | Traffic | None | The checked occurrences | The checked occurrences, and the other trains of the run in the area reported as unselected | Every train with a blocking time in the range |
 
@@ -294,7 +294,7 @@ The callers were in `simulation/Optimisation.cpp`, which has since been removed 
 2. `prepareSimulation` called `InitializeAllNetworkAreas` for this file (in the last revision that had the code, only when the file existed). That set the level of the blocks and collected the block ids of each area.
 3. `computeCapacityAndTphForAllNetworkAreas` was to do the rest. For each area it selected the trains, computed the timetable variant and wrote `TT_Statistics_Area_<name>.txt` and `TT_BlockTrainsInArea_<name>.txt`. Then it compressed the trains and computed again. Last it added an area named EntireNetwork and wrote `Statistics_Area_<name>.txt` and `BlockTrainsInArea_<name>.txt`. The files went to `AreaResults/<area>_Results` under the folder that `ComputeNetworkCapacityForTimetable` received as its folder name.
 
-In the history of the repository only the initialisation had a caller. `computeCapacityAndTphForAllNetworkAreas` was called only by `ComputeNetworkCapacityForTimetable`, as its last step: before it, that function reset the trains to the timetable and ran the train-level compression of the last row of [Status of each piece](#status-of-each-piece) on the trains of the run. No revision in the Git history of the repository called `ComputeNetworkCapacityForTimetable` (the history starts with an initial import). So no run of any revision in that history produced these files. The history also holds area files in the input folders of some older cases, and no output file of the calculation.
+In the history of the code only the initialisation had a caller. `computeCapacityAndTphForAllNetworkAreas` was called only by `ComputeNetworkCapacityForTimetable`, as its last step: before it, that function reset the trains to the timetable and ran the train-level compression of the last row of [Status of each piece](#status-of-each-piece) on the trains of the run. No revision in the Git history of EGTRAIN called `ComputeNetworkCapacityForTimetable` (the history starts with an initial import). So no run of any revision in that history produced these files. The history also holds area files in the input folders of some older cases, and no output file of the calculation.
 
 ### Formulas
 
@@ -316,7 +316,7 @@ Two blocks matched when `AreOnTheSameBlock` returned true. It compared the same 
 
 ### Status of each piece
 
-A piece is valid today when it is still true in the current code. It is superseded when it ran and other code does the job now. It is dead when no revision in the history of the repository called it, or when nothing of the program uses it now. It is unsupported when the formula can be evaluated but the guide gives no reading of its result.
+A piece is valid today when it is still true in the current code. It is superseded when it ran and other code does the job now. It is dead when no revision in the history of the code called it, or when nothing of the program uses it now. It is unsupported when the formula can be evaluated but the guide gives no reading of its result.
 
 | Piece | What it did | Status | Names absent from the program |
 | --- | --- | --- | --- |
@@ -331,7 +331,7 @@ A piece is valid today when it is still true in the current code. It is supersed
 | The block match test | Compared the block ids of two blocking times | Valid today in `shareBlockingTimeResource`, without the station-name condition | `AreOnTheSameBlock` |
 | EntireNetwork | Added an area for all trains | Unsupported | `Compute_Capacity_And_TPH_For_Entire_Network` |
 | The critical couple | Named the pair of trains with the smallest difference | Dead | `IdentifyMostCriticalTrainCouple` |
-| The macroscopic events and processes export | Computed headways and wrote `Events.csv` and `Processes.csv` for a macroscopic model, as its comments say. It is not part of the analysis of this guide | Dead: no revision in the history of the repository called the three functions | `MacroscopicEvent`, `initialiseAllMacroEvents`, `Compute_Headways_For_AllNetworkAreas_For_Macro_Model`, `Print_Macroscopic_Events_And_Processes` |
+| The macroscopic events and processes export | Computed headways and wrote `Events.csv` and `Processes.csv` for a macroscopic model, as its comments say. It is not part of the analysis of this guide | Dead: no revision in the history of the code called the three functions | `MacroscopicEvent`, `initialiseAllMacroEvents`, `Compute_Headways_For_AllNetworkAreas_For_Macro_Model`, `Print_Macroscopic_Events_And_Processes` |
 | The train-level headway matrix and compression that comments call the "UIC code 406 approach" | The first function took trains in a given order. For the first train it applied a shift. For each later train it computed a departure matrix, shifted the train and detected conflicts, and repeated while overlaps remained. `ComputeNetworkCapacityForTimetable` was its only caller, and the other two functions were called only by it. The formulas are not described here | Dead | `ComputeHwMatrixWithGivenOrderSolvingAllConflicts`, `ShiftTrainToCompressTT`, `DepartureMatrixToSolveConflictsForGivenOrderImproved3` |
 
 ### A hand check of the envelope
@@ -342,7 +342,7 @@ This is the formula applied by hand to current records. It is not an output of t
 
 ### The label
 
-The removed code carries the label "UIC code 406" for the compression, in comments in `Optimisation.cpp`, `Optimisation.h` and `Simulation.cpp` and in one console message in `Optimisation.cpp`. A comment in `Capacity.cpp` writes it "UIC Code 406". The repository holds no description of that method. This guide therefore says neither that either calculation follows it nor that it does not.
+The removed code carries the label "UIC code 406" for the compression, in comments in `Optimisation.cpp`, `Optimisation.h` and `Simulation.cpp` and in one console message in `Optimisation.cpp`. A comment in `Capacity.cpp` writes it "UIC Code 406". No file of EGTRAIN describes that method. This guide therefore says neither that either calculation follows it nor that it does not.
 
 ## Limits
 
@@ -356,7 +356,7 @@ The removed code carries the label "UIC code 406" for the compression, in commen
 8. The Capacity window does not say when a checked train has no usable record on some of the chosen blocks; the row of the train names only the first and the last chosen block it occupies. The Capacity by area window reports an unusable occupation but not a missing one.
 9. One analysis covers one range of consecutive blocks of one route, the stretch between two stations or two blocks. Trains that run over part of the range are analysed from where they enter it. The program does not split the range where the order of the trains changes. The Capacity by area window takes a block range that the user chooses ([Assignment workflow](assignment-workflow.md#calculation-boundaries)).
 10. The period is independent of the length of the run and of the timetable.
-11. Parity with the legacy tool is not established. No output of the removed calculation exists in the repository, and the two answer different questions ([hand check](#a-hand-check-of-the-envelope)). The legacy envelope of the Capacity by area window differs from the removed formula in what belongs to the area and in the denominator, and the program computes no trains per hour. Network-wide validity is not claimed: the program has no rule for which traffic a result must include.
-12. The program cites no norm or recommendation for the percentage or for a rate. Step 18 of the Assignment workflow refers to a course recommendation that comes from the course material and is not stated in this repository.
+11. Parity with the legacy tool is not established. No output of the removed calculation exists in EGTRAIN or its history, and the two answer different questions ([hand check](#a-hand-check-of-the-envelope)). The legacy envelope of the Capacity by area window differs from the removed formula in what belongs to the area and in the denominator, and the program computes no trains per hour. Network-wide validity is not claimed: the program has no rule for which traffic a result must include.
+12. The program cites no norm or recommendation for the percentage or for a rate. Step 18 of the Assignment workflow refers to a course recommendation that comes from the course material and that EGTRAIN does not state.
 13. The rates of the Capacity by area window count the trains that were selected, over a period that the user enters, with no time window. "Complete traffic" says that no train or occupation of the run in the area is left out ([Complete and partial traffic](#complete-and-partial-traffic)). It does not say that the run holds all the traffic of the period.
 14. The governing resource of the area is the resource that the selected trains occupy most. It is not a bottleneck of the line.

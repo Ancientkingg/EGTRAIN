@@ -1,6 +1,5 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Ancientkingg/EGTRAIN/blob/main/docs/telemetry/batch-v1.schema.json",
   "title": "EGTRAIN telemetry batch version 1",
   "oneOf": [
     { "$ref": "#/$defs/usageBatch" },

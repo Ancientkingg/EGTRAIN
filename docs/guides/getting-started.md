@@ -1,6 +1,6 @@
 # Getting started
 
-This page takes you from a download to a finished run of the Paimpol case, its results and two exported files. Paimpol is a small line with 6 tracks, 10 stations and 2 services, and it runs in seconds. You need only the downloaded program. You do not need the source code, a build or the command line.
+This page takes you from a download to a finished run of the Paimpol case, its results and two exported files. Paimpol is a small line with 6 tracks, 10 stations and 2 services, and it runs in seconds. You need only the downloaded program, not a build of your own or the command line.
 
 The steps use the labels of the window. A label such as **Run** is a menu entry or a button, and a name such as `Paimpol` is a case. On macOS the key Ctrl in a shortcut is the Command key, and [Keyboard shortcuts](keyboard-shortcuts.md) lists every shortcut.
 
@@ -22,7 +22,7 @@ Download the package for your system from the [EGTRAIN website](https://egtrain.
 - Windows: run `EGTRAIN-Setup-<version>-x64.exe` and start **EGTRAIN** from the Start Menu, or unzip `EGTRAIN-Portable-<version>-x64.zip` into a new, empty folder and run `QEGTRAIN.exe`.
 - Linux: make the AppImage executable and run it. It needs glibc 2.38 or later, as on Ubuntu 24.04. On a minimal system that reports a missing library such as `libGL.so.1`, install `libgl1`, `libopengl0`, `libegl1`, `libharfbuzz0b` and `libfontconfig1` first. The AppImage also needs the FUSE 2 library: when it stops with `AppImages require FUSE to run.`, install `libfuse2t64`, or start it with `./QEGTRAIN-linux-x86_64.AppImage --appimage-extract-and-run`.
 
-The packages contain the bundled cases, so you need no separate case file. If you prefer a file, download `Paimpol.egscene` from the same page.
+The packages contain the bundled cases, so you need no separate case file. If you prefer a file, download `Paimpol.egscene` from the release page: follow the Release notes link below the downloads on the EGTRAIN website.
 
 ## 2. The first start
 

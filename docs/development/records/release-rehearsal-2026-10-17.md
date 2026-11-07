@@ -17,10 +17,10 @@ rehearsal found. A row names the run that showed its result.
 
 | Item | Value |
 | --- | --- |
-| Main candidate | [Release run 38954910966](https://github.com/Ancientkingg/EGTRAIN/actions/runs/38954910966), manual run of 2026-10-16, commit `5868098` on main |
-| Recheck candidate 1 | [Release run 39019990227](https://github.com/Ancientkingg/EGTRAIN/actions/runs/39019990227), manual run of 2026-10-17, commit `950b145` |
-| Recheck candidate 2 | [Release run 39032467694](https://github.com/Ancientkingg/EGTRAIN/actions/runs/39032467694), manual run of 2026-10-17, commit `b6e2da8` |
-| Recheck candidate 3 | [Release run 39049264770](https://github.com/Ancientkingg/EGTRAIN/actions/runs/39049264770), manual run of 2026-10-17, commit `2c8f41c` |
+| Main candidate | Release run 38954910966, manual run of 2026-10-16, commit `5868098` on main |
+| Recheck candidate 1 | Release run 39019990227, manual run of 2026-10-17, commit `950b145` |
+| Recheck candidate 2 | Release run 39032467694, manual run of 2026-10-17, commit `b6e2da8` |
+| Recheck candidate 3 | Release run 39049264770, manual run of 2026-10-17, commit `2c8f41c` |
 | Version shown by About EGTRAIN, macOS | 1.0.0, the CMake baseline (main candidate) |
 | Version shown by About EGTRAIN, Windows | 1.0.0, the CMake baseline (all four candidates) |
 | Version shown by About EGTRAIN, Linux | 1.0.0, read by the Rehearse Linux job (all four candidates) |
@@ -29,7 +29,7 @@ In the main candidate all package jobs and the Rehearse Linux job passed. The
 Sign Windows jobs and the release job were skipped, as they are for a manual
 run. In recheck candidate 2 the Sanitizers job failed. The package jobs and the
 Rehearse Linux job passed, and the files of that run are the ones that were
-rechecked. Recheck candidate 3 holds [#886](https://github.com/Ancientkingg/EGTRAIN/pull/886) and
+rechecked. Recheck candidate 3 holds #886 and
 the fixes for the two tests that failed in the Sanitizers job; Windows row R9
 was rechecked on it.
 
@@ -58,7 +58,7 @@ last rows.
 
 | Item | macOS | Windows | Linux |
 | --- | --- | --- | --- |
-| Operating system and exact version | macOS 26.6.2 | Windows 11 Pro, build 26300 | Ubuntu 24.04 on a GitHub hosted runner |
+| Operating system and exact version | macOS 26.6.2 | Windows 11 Pro, build 26300 | Ubuntu 24.04 on a hosted CI runner |
 | Processor architecture | Apple silicon, arm64 | ARM64. The x64 program ran under the emulation of Windows. | x86_64 |
 | Machine type | A macOS virtual machine with 4 processors, 4 GB of memory and a 1280x800 screen | A Windows 11 virtual machine with 4 cores, 4 GB of memory, a 1024x768 screen and no graphics card. There was no physical x64 PC, so timings and drawing speed do not stand for one. | The Rehearse Linux job, with a virtual display, a D-Bus session and the accessibility bus. It is not a desktop session. |
 | User rights | The account is an administrator. | A standard account without administrator rights. The administrator account was signed out for the GUI steps. | The runner user |
@@ -101,16 +101,16 @@ steps ran in the Rehearse Linux job of the three runs, all with the same result.
 | R6 Assignment bundle | PASS 10-17 | PASS 10-16 | NOT RUN | `Scene loaded: Assignment Gvc-Gdg-Ut (4 services, 2 routes)` |
 | R7 First start | PASS 10-17 | PASS 10-16 | NOT RUN | The macOS question lacked its main text (#840), seen fixed in run 39032467694. Windows: seen in row W2. The job answers the question but does not record its text. |
 | R8 Manual update check | PASS 10-17 | PASS 10-16 | NOT RUN | macOS: no title and no offered version in the main text (#840), seen fixed in run 39032467694. Windows: the release notes ran together (#828), seen fixed in run 39032467694 after #873. |
-| R9 In-app update | PASS 10-17, second attempt | PASS 10-17, run 39049264770 | NOT RUN | macOS: the first attempt ended with `The update download timed out.` on the network of the virtual machine. The second attempt installed 1.0.2 and left `QEGTRAIN.app.egtrain-old`. Windows: failed on the earlier candidates ([#826](https://github.com/Ancientkingg/EGTRAIN/issues/826)); on run 39049264770 the portable copy installed 1.0.2 at the first attempt and kept `EGTRAIN.egtrain-old`. See the section Defects. |
+| R9 In-app update | PASS 10-17, second attempt | PASS 10-17, run 39049264770 | NOT RUN | macOS: the first attempt ended with `The update download timed out.` on the network of the virtual machine. The second attempt installed 1.0.2 and left `QEGTRAIN.app.egtrain-old`. Windows: failed on the earlier candidates (#826); on run 39049264770 the portable copy installed 1.0.2 at the first attempt and kept `EGTRAIN.egtrain-old`. See the section Defects. |
 | R10 Installation that cannot be updated in place | PASS 10-17 | PASS 10-16 | NOT RUN | Both texts of the checklist were seen, also for a copy that runs from a disk image on macOS |
-| R11 Save an installed example | PASS 10-17 | PASS 10-16 | NOT RUN | Windows: two dialogs started in the installation folder ([#827](https://github.com/Ancientkingg/EGTRAIN/issues/827)), seen fixed in run 39019990227. The installed folder was unchanged. macOS: a single file inside an installed example folder was not tried. |
+| R11 Save an installed example | PASS 10-17 | PASS 10-16 | NOT RUN | Windows: two dialogs started in the installation folder (#827), seen fixed in run 39019990227. The installed folder was unchanged. macOS: a single file inside an installed example folder was not tried. |
 | R12 Bundle of the previous release | PASS 10-17 | PASS 10-16 | NOT RUN | The Paimpol bundle of v1.0.2 opened without a version message and ran. It reports that 140 of 140 route sections have no signalling level, which is a property of the old bundle. |
 | M1 File type in Finder | PASS 10-17 | NOT APPLICABLE, macOS only | NOT APPLICABLE, macOS only | Kind `EGTRAIN Case Study`, opens with `QEGTRAIN`. The `.zip` file keeps Archive Utility. |
 | M2 Open a case study by double-click | PASS 10-17 | NOT APPLICABLE, macOS only | NOT APPLICABLE, macOS only | One process, no second window. The question has no title on macOS. |
 | M3 Double-click a damaged file and a special path | PASS 10-17 | NOT APPLICABLE, macOS only | NOT APPLICABLE, macOS only | The damaged file was not listed under Recent Scenes. The special path opened each time. |
 | M4 First start of an ad hoc build | NOT RUN, seen up to the password prompt | NOT APPLICABLE, macOS only | NOT APPLICABLE, macOS only | See the notes below the table. The rest is left to the owner. |
 | M5 First start of a notarized build | NOT APPLICABLE, the app is ad hoc signed (`Signature=adhoc`) | NOT APPLICABLE, macOS only | NOT APPLICABLE, macOS only | |
-| M6 Folder access questions | PASS 10-17, run 39032467694, without the New Case Study step | NOT APPLICABLE, macOS only | NOT APPLICABLE, macOS only | The three questions appeared at the first File > Open Case Study in the main candidate ([#841](https://github.com/Ancientkingg/EGTRAIN/issues/841)). On run 39032467694, started from the Applications folder of a fresh virtual machine, File > Open Case Study... and File > Open Scene Folder... opened in the `Scenes` folder of the app, in column view, with no question. The New Case Study variant was not run. A copy started from a folder inside the home folder asked the three questions at once: its column view lists the home folder, as the expected result of the last step describes. |
+| M6 Folder access questions | PASS 10-17, run 39032467694, without the New Case Study step | NOT APPLICABLE, macOS only | NOT APPLICABLE, macOS only | The three questions appeared at the first File > Open Case Study in the main candidate (#841). On run 39032467694, started from the Applications folder of a fresh virtual machine, File > Open Case Study... and File > Open Scene Folder... opened in the `Scenes` folder of the app, in column view, with no question. The New Case Study variant was not run. A copy started from a folder inside the home folder asked the three questions at once: its column view lists the home folder, as the expected result of the last step describes. |
 | W1 Windows assets | NOT APPLICABLE, Windows only | PASS 10-16, run page only | NOT APPLICABLE, Windows only | Both names carry 1.0.0. A run has no release page and no manifest. The release page row is left to the owner. |
 | W2 Install | NOT APPLICABLE, Windows only | PASS 10-16 | NOT APPLICABLE, Windows only | No administrator prompt. One entry `EGTRAIN`, version 1.0.0, no desktop shortcut, nothing below Program Files. Recheck on run 39019990227 passed. |
 | W3 Uninstall | NOT APPLICABLE, Windows only | PASS 10-16 | NOT APPLICABLE, Windows only | The working copy, exports and run output stayed. A `.egscene` file no longer opened in EGTRAIN. Recheck on run 39019990227 passed. |
@@ -119,7 +119,7 @@ steps ran in the Rehearse Linux job of the three runs, all with the same result.
 | W6 Portable archive | NOT APPLICABLE, Windows only | PASS 10-16 | NOT APPLICABLE, Windows only | No installed-apps entry, no Start Menu entry, no marker file, no uninstaller. The extracted program kept its download mark and started with no warning. |
 | W7 Open a case study by double-click | NOT APPLICABLE, Windows only | PASS 10-16 | NOT APPLICABLE, Windows only | The answer Save was not tried |
 | W8 In-app update of an installed copy | NOT APPLICABLE, Windows only | NOT RUN | NOT APPLICABLE, Windows only | No older Setup exists and no release lists the installer in its manifest. Left to the owner. |
-| W9 Double-click a damaged file and a special path | NOT APPLICABLE, Windows only | PASS 10-16 | NOT APPLICABLE, Windows only | The two messages had different titles and text ([#828](https://github.com/Ancientkingg/EGTRAIN/issues/828)). Run 39019990227 showed one title and one text. |
+| W9 Double-click a damaged file and a special path | NOT APPLICABLE, Windows only | PASS 10-16 | NOT APPLICABLE, Windows only | The two messages had different titles and text (#828). Run 39019990227 showed one title and one text. |
 
 M4 on macOS, in the order that the checklist gives. The disk image window showed
 an icon view with large icons, without toolbar, sidebar, path bar and status bar,
@@ -152,14 +152,14 @@ Each failed row, and each other difference that the rehearsal found, has one
 issue. All of them are closed. A fix after a failed row needs a new candidate, so
 the last column names the candidate that showed the fix.
 
-| Platform | Row | Issue link | Fix and where it was seen |
+| Platform | Row | Issue | Fix and where it was seen |
 | --- | --- | --- | --- |
-| Windows | R9 | [#826](https://github.com/Ancientkingg/EGTRAIN/issues/826) | The update restarted the old version and said nothing. Run 39019990227 shows the notice that the update could not be applied or was rolled back. The update itself still failed there. Run 39049264770 installed 1.0.2. See below. |
-| Windows | W2 step 8, R11 | [#827](https://github.com/Ancientkingg/EGTRAIN/issues/827) | Fixed. Run 39019990227: Export Data and Save Scene As Folder start in Documents, and the installed destination is still refused. |
-| Windows | W9, R8 | [#828](https://github.com/Ancientkingg/EGTRAIN/issues/828) | The damaged-file message is the same on both paths in run 39019990227. The release notes kept their list structure only after [#873](https://github.com/Ancientkingg/EGTRAIN/pull/873), seen in run 39032467694. |
-| macOS | R7, R8, R3, M2 | [#840](https://github.com/Ancientkingg/EGTRAIN/issues/840) | Fixed for R7 and R8 and seen in run 39032467694: the main text now holds the question and the offered version. |
-| macOS | Step 1, M6 | [#841](https://github.com/Ancientkingg/EGTRAIN/issues/841) | Fixed in run 39032467694 and seen on a fresh virtual machine with the app in Applications (row M6). |
-| macOS | No source or development dependency | [#842](https://github.com/Ancientkingg/EGTRAIN/issues/842) | Fixed. Run 39032467694: no path under `/opt/homebrew` or `/usr/local` in 39 Mach-O files. |
+| Windows | R9 | #826 | The update restarted the old version and said nothing. Run 39019990227 shows the notice that the update could not be applied or was rolled back. The update itself still failed there. Run 39049264770 installed 1.0.2. See below. |
+| Windows | W2 step 8, R11 | #827 | Fixed. Run 39019990227: Export Data and Save Scene As Folder start in Documents, and the installed destination is still refused. |
+| Windows | W9, R8 | #828 | The damaged-file message is the same on both paths in run 39019990227. The release notes kept their list structure only after #873, seen in run 39032467694. |
+| macOS | R7, R8, R3, M2 | #840 | Fixed for R7 and R8 and seen in run 39032467694: the main text now holds the question and the offered version. |
+| macOS | Step 1, M6 | #841 | Fixed in run 39032467694 and seen on a fresh virtual machine with the app in Applications (row M6). |
+| macOS | No source or development dependency | #842 | Fixed. Run 39032467694: no path under `/opt/homebrew` or `/usr/local` in 39 Mach-O files. |
 
 On Windows R9 the cause was the test machine and not the update helper, as far as
 it could be told. The program of release 1.0.2 fails to start from a staged
@@ -168,7 +168,7 @@ complete the requested service`, and it uses about 2 GB of the 4 GB. After a
 restart of the machine, the same update installed 1.0.2 and left the backup
 `.egtrain-old`. Staging also runs a PowerShell unpack with a limit of 60 seconds,
 which timed out once, and a failed attempt left a hidden `.qegtrain-update-*`
-folder behind. [#886](https://github.com/Ancientkingg/EGTRAIN/pull/886) gives
+folder behind. #886 gives
 the unpacking more time and clears failed staging folders. It was merged after
 run 39032467694. On run 39049264770, which holds it, the portable copy offered
 `EGTRAIN 1.0.2 is Available`, prepared the update in about 21 seconds, said
@@ -179,14 +179,14 @@ program that removes it after a restart is the new one, and 1.0.2 predates that
 cleanup, so this row can show the cleanup only once a newer release is the target.
 
 Other fixes were seen in run 39032467694 on Windows: the clipped text of default
-buttons ([#874](https://github.com/Ancientkingg/EGTRAIN/pull/874)) and long case
+buttons (#874) and long case
 names in the case chooser
-([#877](https://github.com/Ancientkingg/EGTRAIN/pull/877)). In the case chooser,
+(#877). In the case chooser,
 Enter on an unavailable recent case opened another case. That is fixed by
-[#887](https://github.com/Ancientkingg/EGTRAIN/pull/887), merged after the last
+#887, merged after the last
 candidate.
 
-One gap is still open: [#883](https://github.com/Ancientkingg/EGTRAIN/issues/883).
+One gap is still open: #883.
 At 1024 by 768 the toolbar separators change between thin lines and grey blocks
 with the window width, the zoom buttons drop off the toolbar below about 900
 pixels, and the restored window is 1044 by 788, larger than the screen.
@@ -208,7 +208,7 @@ pixels, and the restored window is 1044 by 788, larger than the screen.
 | A physical x64 PC | Windows | The machine was an ARM64 virtual machine under emulation. Timings, drawing speed and the memory limit of R9 do not stand for one. |
 | Graphics card behaviour | Windows | The machine has no graphics card. Drawing showed no fault, but speed was not measured. |
 | Trackpad pinch and scroll | macOS, Windows | The test machines have no trackpad |
-| The source build on Linux | Linux | Not part of the packaged rehearsal. A build from a clean Ubuntu 24.04 container of arm64 on 2026-10-17 followed the developer guide and passed all 314 tests, after [#875](https://github.com/Ancientkingg/EGTRAIN/pull/875) fixed the guide and `test_measure_peak_rss` for containers without an init process. |
+| The source build on Linux | Linux | Not part of the packaged rehearsal. A build from a clean Ubuntu 24.04 container of arm64 on 2026-10-17 followed the developer guide and passed all 314 tests, after #875 fixed the guide and `test_measure_peak_rss` for containers without an init process. |
 
 ## Left to the owner
 
@@ -220,12 +220,12 @@ These need a published release, a person at the keyboard or a different machine.
 - Row W8, the in-app update of an installed Windows copy. It needs a published
   release with the installer in its manifest and an older installed Setup.
 - The update test across two published releases, tracked in
-  [#405](https://github.com/Ancientkingg/EGTRAIN/issues/405).
+  #405.
 - Row M4 after Open Anyway on macOS: enter the administrator password, then
   record whether EGTRAIN starts and which dialog, if any, comes next.
 - Row R9 on a physical x64 Windows PC. The virtual machine passed it on run
   39049264770.
 - Row W5 with a real older Setup once one is published.
 
-Issue [#74](https://github.com/Ancientkingg/EGTRAIN/issues/74) stays open until
+Issue #74 stays open until
 the owner has decided whether this record, with the rows above, is enough.

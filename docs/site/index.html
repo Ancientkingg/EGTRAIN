@@ -1,70 +1,605 @@
-    <h1>EGTRAIN is a desktop application for microscopic railway simulation.</h1>
-    <figure>
-      <img src="assets/readme-main-window.png" width="1200" height="750" alt="The main window with a run of Milano_Brescia paused at 06:45:40 at 100x, zoomed in on Treviglio, with trains and their speed labels, the dock Case and Layers with its map key, and Paused in the status bar">
-      <figcaption>A run of Milano_Brescia in the main window, paused with the trains around Treviglio in view.</figcaption>
-    </figure>
+      <div class="hero" style="--trev:{graph_trev};--osp:{graph_osp};--br:{graph_br};--mark-x:{graph_mark}%">
+        <div class="say">
+          <h1>EGTRAIN is a desktop application for microscopic railway simulation.</h1>
+          <p class="lead">It covers railway networks, signalling, rolling stock, services, timetables, train movement, passenger operations and results in an interactive Qt interface.</p>
+        </div>
 
-    <section id="download">
-      <h2>Download<!-- release --> EGTRAIN {version}<!-- /release --></h2>
-      <!-- release -->
-      <ul class="downloads">
-        <li><a class="download" href="{asset:EGTRAIN-{version}-macOS-arm64.dmg}">
-          <span class="system">macOS</span>
-          <span class="detail">Disk image for Apple silicon Macs with macOS 26 or later</span>
-          <code>EGTRAIN-{version}-macOS-arm64.dmg</code>
-        </a></li>
-        <li><a class="download" href="{asset:EGTRAIN-Setup-{version}-x64.exe}">
-          <span class="system">Windows installer</span>
-          <span class="detail">Installer for 64-bit Windows</span>
-          <code>EGTRAIN-Setup-{version}-x64.exe</code>
-        </a></li>
-        <li><a class="download" href="{asset:EGTRAIN-Portable-{version}-x64.zip}">
-          <span class="system">Windows portable archive</span>
-          <span class="detail">Zip archive for 64-bit Windows that you unzip and run without installing</span>
-          <code>EGTRAIN-Portable-{version}-x64.zip</code>
-        </a></li>
-        <li><a class="download" href="{asset:QEGTRAIN-linux-x86_64.AppImage}">
-          <span class="system">Linux</span>
-          <span class="detail">AppImage for 64-bit Linux with glibc 2.38 or later, as on Ubuntu 24.04</span>
-          <code>QEGTRAIN-linux-x86_64.AppImage</code>
-        </a></li>
-      </ul>
-      <p><a href="latest/guides/install.html">Installing EGTRAIN</a> has the steps for each system, including what to do when macOS or Windows warns before the first start.</p>
-      <p>The <a href="{release_page}">release page</a> of EGTRAIN {version} has its release notes and the size of each file.</p>
-      <!-- /release -->
-      <!-- no release -->
-      <p>No release is published on this site yet. The earlier releases are on <a href="https://github.com/Ancientkingg/EGTRAIN/releases">GitHub</a>.</p>
-      <!-- /no release -->
-      <p>The <a href="source/">source code</a> page lists every release with an archive of its source code.</p>
-    </section>
-    <!-- release -->
+        <!-- release -->
+        <div class="board">
+          <div class="board-head"><h2>Download EGTRAIN {version}</h2><!-- latest --><a href="latest/guides/install.html">How to install</a><!-- /latest --></div>
+          <ul>
+            <li data-sys="mac"><a href="{asset:EGTRAIN-{version}-macOS-arm64.dmg}" aria-label="Download macOS disk image, {size:EGTRAIN-{version}-macOS-arm64.dmg}" aria-describedby="b1-d"><span class="sys">macOS</span><span class="det" id="b1-d">Apple silicon, macOS 26 or later</span><span class="size">{size:EGTRAIN-{version}-macOS-arm64.dmg}</span><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.5v9.5M5.5 8.75 10 13.25l4.5-4.5M4 16.5h12"/></svg></a></li>
+            <li data-sys="win"><a href="{asset:EGTRAIN-Setup-{version}-x64.exe}" aria-label="Download Windows installer, {size:EGTRAIN-Setup-{version}-x64.exe}" aria-describedby="b2-d"><span class="sys">Windows installer</span><span class="det" id="b2-d">Installer, 64-bit</span><span class="size">{size:EGTRAIN-Setup-{version}-x64.exe}</span><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.5v9.5M5.5 8.75 10 13.25l4.5-4.5M4 16.5h12"/></svg></a></li>
+            <li data-sys="win-zip"><a href="{asset:EGTRAIN-Portable-{version}-x64.zip}" aria-label="Download Windows portable archive, {size:EGTRAIN-Portable-{version}-x64.zip}" aria-describedby="b3-d"><span class="sys">Windows portable</span><span class="det" id="b3-d">Zip archive, runs without installing</span><span class="size">{size:EGTRAIN-Portable-{version}-x64.zip}</span><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.5v9.5M5.5 8.75 10 13.25l4.5-4.5M4 16.5h12"/></svg></a></li>
+            <li data-sys="linux"><a href="{asset:QEGTRAIN-linux-x86_64.AppImage}" aria-label="Download Linux AppImage, {size:QEGTRAIN-linux-x86_64.AppImage}" aria-describedby="b4-d"><span class="sys">Linux</span><span class="det" id="b4-d">AppImage, glibc 2.38 or later</span><span class="size">{size:QEGTRAIN-linux-x86_64.AppImage}</span><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.5v9.5M5.5 8.75 10 13.25l4.5-4.5M4 16.5h12"/></svg></a></li>
+          </ul>
+        </div>
+        <!-- /release -->
 
-    <section id="cases">
-      <h2>Bundled cases</h2>
-      <p>The packages contain six cases. Each is also a separate <code>.egscene</code> file that EGTRAIN opens. <a href="latest/guides/case-studies.html">Bundled cases</a> describes them.</p>
-      <ul class="cases">
-        <li><a href="{asset:Netherlands.egscene}">Netherlands.egscene</a></li>
-        <li><a href="{asset:Paimpol.egscene}">Paimpol.egscene</a></li>
-        <li><a href="{asset:Copenhagen.egscene}">Copenhagen.egscene</a></li>
-        <li><a href="{asset:Milano_Brescia.egscene}">Milano_Brescia.egscene</a></li>
-        <li><a href="{asset:Assignment_Gvc_Gdg_Ut.egscene}">Assignment_Gvc_Gdg_Ut.egscene</a></li>
-        <li><a href="{asset:Amsterdam_Hilversum_Student.egscene}">Amsterdam_Hilversum_Student.egscene</a></li>
-      </ul>
-    </section>
-    <!-- /release -->
+        <figure class="shot">
+          <img src="assets/readme-main-window.png" width="1200" height="750" alt="The EGTRAIN main window with a run of Milano_Brescia paused at 06:45:40 at 100x, zoomed in near Treviglio: trains with their speed labels on the track plan, and the Case and Layers dock with its map key on the left.">
+          <figcaption>EGTRAIN at <b>{capture}</b>, near Treviglio</figcaption>
+        </figure>
 
-    <section id="documentation">
-      <h2>Documentation</h2>
-      <!-- latest -->
-      <ul class="guides">
-        <li><a href="latest/">User guides</a>: installing EGTRAIN, running cases and editing them</li>
-        <li><a href="latest/development/getting-started.html">Developer pages</a>: building from source, testing and the structure of the code</li>
-        <li><a href="latest/api/index.html">C++ reference</a>: the classes and functions of the source code</li>
-      </ul>
-      <!-- /latest -->
-      <p>Each version has its user guides, developer pages and C++ reference:</p>
-      <ul class="versions">
-{versions}
-      </ul>
-      <p>For help with a problem, see <a href="support/">Support</a>.</p>
-    </section>
+      <section class="sheet" id="sheet" aria-labelledby="graph-h">
+        <h2 class="vh" id="graph-h">Train graph of Milano_Brescia</h2>
+        <p class="vh" id="graph-d">Time runs across from 05:45 to 08:45, and the stations run down from {first_station}, km {first_km}, to {last_station}, km {last_km}. Each line is the planned path of one of {services} services through its stops. A dashed line marks {capture}, the moment of the screenshot, and a ring marks Treviglio at that moment.</p>
+        <p class="vh" id="svc-keys">Use the arrow keys to move between services.</p>
+
+        <div class="labels" aria-hidden="true">
+          <ol class="stations">
+              {graph_labels}
+          </ol>
+        </div>
+
+        <div class="scroller" id="scroller" role="region" aria-label="Train graph" aria-describedby="graph-d" tabindex="0">
+          <div class="canvas">
+            <div class="axis" aria-hidden="true">
+              {graph_axis}
+              <span class="tick sweep" id="sweep-clock">05:45</span>
+            </div>
+            <div class="plot" id="plot">
+              <svg class="grid" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+          {graph_grid}
+              </svg>
+              <svg class="paths" viewBox="0 0 1000 1000" preserveAspectRatio="none" role="listbox" aria-label="Planned services" aria-describedby="svc-keys">
+                <defs><clipPath id="sweep-clip"><rect id="sweep-rect" x="-10" y="-10" width="1020" height="1020"/></clipPath></defs>
+                <g clip-path="url(#sweep-clip)">
+            {graph_paths}
+                </g>
+                <path class="hl" id="hl" d=""/>
+                <line class="sweep" id="sweep-line" x1="0" x2="0" y1="0" y2="1000"/>
+              </svg>
+              <span class="dot" aria-hidden="true"></span>
+              <div class="stop-times" id="stop-times" aria-hidden="true"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="readout">
+          <p><span class="live" id="live" aria-live="polite"></span><span class="hint"><span class="hint-point">Point at a line, or tab to it, to see its stops.</span><span class="hint-tap">Tap a line to see its stops.</span><span class="swipe"> The graph scrolls sideways.</span></span></p>
+          <ul class="key" aria-label="Line colours">
+            <li class="teal"><i></i>23001 to 23010, 10603 to 10610</li>
+            <li class="ink"><i></i>10711 to 10718</li>
+            <li class="red"><i></i>2054 to 2096, 4904, 4908</li>
+          </ul>
+        </div>
+
+        <details class="tv" id="tv">
+          <summary>Graph as a table</summary>
+          <div class="tv-wrap" id="tv-wrap">
+            <table>
+              <caption>Planned stops of the {services} services, in the order they start</caption>
+              <thead><tr><th scope="col">Service</th><th scope="col">Station</th><th scope="col" class="n">km</th><th scope="col" class="t">Arrives</th><th scope="col" class="t">Leaves</th></tr></thead>
+              {graph_table}
+            </table>
+          </div>
+        </details>
+      </section>
+      </div>
+
+      <section class="band" id="run" aria-labelledby="run-h">
+        <div class="band-head">
+          <h2 id="run-h">Playback of a run</h2>
+          <p>A simulated run of the Milano_Brescia case in EGTRAIN, baseline scenario.</p>
+        </div>
+
+        <div class="pb">
+          <p class="clock-c ctl"><span class="vh">Run clock </span><span class="clock" id="clock">{capture}</span><span class="of">of {run_end}</span></p>
+          <div class="btns ctl" role="group" aria-label="Playback">
+            <button class="btn play" id="play" type="button" data-state="paused">
+              <svg class="i-play" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 1l11 6-11 6z"/></svg>
+              <svg class="i-pause" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 1h3.5v12H2zM8.5 1H12v12H8.5z"/></svg>
+              <span id="play-l">Play</span>
+            </button>
+            <button class="btn" id="stepB" type="button" aria-label="Back 10 seconds"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M7 3L2 8l5 5M2 8h12"/></svg>Back 10 s</button>
+            <button class="btn" id="stepF" type="button" aria-label="Forward 10 seconds">Forward 10 s<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 3l5 5-5 5M14 8H2"/></svg></button>
+            <fieldset class="speed">
+              <legend>Speed</legend>
+              <div class="seg">
+                <label><input type="radio" name="speed" value="30"><span>30x</span></label>
+                <label><input type="radio" name="speed" value="100" checked><span>100x</span></label>
+                <label><input type="radio" name="speed" value="300"><span>300x</span></label>
+              </div>
+            </fieldset>
+            <button class="btn cap" id="cap" type="button"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2L2 6l4 4M2 6h8a4 4 0 0 1 0 8H8"/></svg>Back to {capture}</button>
+          </div>
+          <label class="scrub-l ctl" for="scrub">Time in the run</label>
+          <div class="scrub ctl">
+            <input id="scrub" type="range" min="0" max="{run_seconds}" step="1" value="{capture_seconds}" aria-valuetext="{capture}" style="--f:{capture_fraction}">
+            <div class="sticks" aria-hidden="true">{scrub_ticks}</div>
+          </div>
+          <p class="vh" id="status" role="status"></p>
+
+          <div class="draw wide">
+            <div class="dscroll" id="dscroll" tabindex="0" role="region" aria-label="Line drawing, scrolls sideways">
+              <div id="dwipe"><div id="dwipe-in">
+                <svg class="line" id="line" viewBox="0 0 {drawing_width} {drawing_height}" width="{drawing_width}" height="{drawing_height}" role="img" aria-labelledby="line-t" aria-describedby="line-d" data-cx="{drawing_centre}" style="min-width:{drawing_min_width}px;font-size:{drawing_font}px">
+                  <title id="line-t">Line drawing of Milano_Brescia, with the trains of the run</title>
+                  <desc id="line-d">The line from km {km_from} to km {km_to}, {first_station} to {last_station}, with each track on its drawing level, higher levels higher up, and its {stations} stations as ticks. At the time shown, each train is an arrow with its speed in km/h, and each section of track reserved for a train is a red dashed line.</desc>
+                  <path class="track" d="{drawing_tracks}"/>
+                  <path id="blocks-h" d="{drawing_blocks}"/>
+                  <path id="blocks" d="{drawing_blocks}"/>
+                  <g id="trains">{drawing_trains}</g>
+                  <g id="tlabels" aria-hidden="true"></g>
+                  <g class="stn" aria-hidden="true">{drawing_stations}</g>
+                  <g class="scale" aria-hidden="true">{drawing_scale}</g>
+                </svg>
+              </div></div>
+            </div>
+          </div>
+
+          <div class="c2">
+            <ul class="dkey" aria-label="Key">
+              <li><svg viewBox="0 0 34 14" aria-hidden="true"><path class="k-tk" d="M0 7H34"/></svg>Track</li>
+              <li><svg viewBox="0 0 34 14" aria-hidden="true"><path class="k-tk" d="M0 7H34"/><path class="k-tr" d="M8 2H22L29 7L22 12H8Z"/></svg>Train, with its speed in km/h</li>
+              <li><svg viewBox="0 0 34 14" aria-hidden="true"><path class="k-tk" d="M0 7H34"/><path class="k-bh" d="M4 7H30"/><path class="k-bl" d="M4 7H30"/></svg>Track reserved for a train</li>
+              <li><svg viewBox="0 0 34 14" aria-hidden="true"><path class="k-st" d="M0 3H34M17 3V11"/></svg>Station</li>
+            </ul>
+            <p class="dhint" id="dhint" hidden>The drawing scrolls sideways.</p>
+            <div class="alts">
+              <details class="tv">
+                <summary>Stations and their km</summary>
+                <div class="tv-wrap">
+                  <table>
+                    <caption>The {stations} stations of Milano_Brescia, by km</caption>
+                    <thead><tr><th scope="col">Station</th><th scope="col" class="n">km</th></tr></thead>
+                    <tbody>{station_rows}</tbody>
+                  </table>
+                </div>
+              </details>
+              <details class="tv" id="now-d">
+                <summary>Trains at this moment</summary>
+                <div class="tv-wrap">
+                  <table>
+                    <caption id="now-c">{train_caption}</caption>
+                    <thead><tr><th scope="col">Train</th><th scope="col" class="n">km</th><th scope="col">Track</th><th scope="col" class="n">Speed, km/h</th></tr></thead>
+                    <tbody id="now-b">{train_rows}</tbody>
+                  </table>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" id="download" aria-labelledby="download-h">
+        <div class="band-head">
+          <h2 id="download-h">Download<!-- release --> EGTRAIN {version}<!-- /release --></h2>
+          <!-- release -->
+          <p>Published {published}</p>
+          <!-- /release -->
+        </div>
+        <!-- release -->
+        <ul class="rows">
+          <li data-sys="mac"><a href="{asset:EGTRAIN-{version}-macOS-arm64.dmg}" aria-label="Download macOS disk image, {size:EGTRAIN-{version}-macOS-arm64.dmg}" aria-describedby="r1-d r1-f"><span class="sys">macOS</span><span class="det" id="r1-d">Apple silicon, macOS 26 or later</span><code class="file" id="r1-f">EGTRAIN-{version}-macOS-arm64.dmg</code><span class="size">{size:EGTRAIN-{version}-macOS-arm64.dmg}</span><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.5v9.5M5.5 8.75 10 13.25l4.5-4.5M4 16.5h12"/></svg></a></li>
+          <li data-sys="win"><a href="{asset:EGTRAIN-Setup-{version}-x64.exe}" aria-label="Download Windows installer, {size:EGTRAIN-Setup-{version}-x64.exe}" aria-describedby="r2-d r2-f"><span class="sys">Windows installer</span><span class="det" id="r2-d">Installer, 64-bit</span><code class="file" id="r2-f">EGTRAIN-Setup-{version}-x64.exe</code><span class="size">{size:EGTRAIN-Setup-{version}-x64.exe}</span><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.5v9.5M5.5 8.75 10 13.25l4.5-4.5M4 16.5h12"/></svg></a></li>
+          <li data-sys="win-zip"><a href="{asset:EGTRAIN-Portable-{version}-x64.zip}" aria-label="Download Windows portable archive, {size:EGTRAIN-Portable-{version}-x64.zip}" aria-describedby="r3-d r3-f"><span class="sys">Windows portable archive</span><span class="det" id="r3-d">Zip archive, runs without installing</span><code class="file" id="r3-f">EGTRAIN-Portable-{version}-x64.zip</code><span class="size">{size:EGTRAIN-Portable-{version}-x64.zip}</span><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.5v9.5M5.5 8.75 10 13.25l4.5-4.5M4 16.5h12"/></svg></a></li>
+          <li data-sys="linux"><a href="{asset:QEGTRAIN-linux-x86_64.AppImage}" aria-label="Download Linux AppImage, {size:QEGTRAIN-linux-x86_64.AppImage}" aria-describedby="r4-d r4-f"><span class="sys">Linux</span><span class="det" id="r4-d">AppImage, glibc 2.38 or later</span><code class="file" id="r4-f">QEGTRAIN-linux-x86_64.AppImage</code><span class="size">{size:QEGTRAIN-linux-x86_64.AppImage}</span><svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.5v9.5M5.5 8.75 10 13.25l4.5-4.5M4 16.5h12"/></svg></a></li>
+        </ul>
+        <ul class="links">
+          <!-- latest -->
+          <li><a href="latest/guides/install.html">Installing EGTRAIN</a></li>
+          <!-- /latest -->
+          <li><a href="{release_page}">Release notes</a></li>
+        </ul>
+        <!-- /release -->
+        <!-- no release -->
+        <p class="empty">No release is published on this site yet.</p>
+        <!-- /no release -->
+      </section>
+
+      <section class="band" id="documentation" aria-labelledby="docs-h">
+        <div class="band-head">
+          <h2 id="docs-h">Documentation</h2>
+        </div>
+        <table class="docs">
+          <thead><tr><th scope="col"><span class="vh">Pages</span></th>{docs_head}</tr></thead>
+          <tbody>
+            <tr><th scope="row"><a href="{docs}">User guides</a><span class="what">Installing, running and editing cases</span></th>
+              {docs_guides}</tr>
+            <tr><th scope="row"><a href="{docs}development/getting-started.html">Developer pages</a><span class="what">Building, testing and code structure</span></th>
+              {docs_developer}</tr>
+            <tr><th scope="row"><a href="{docs}api/index.html">C++ reference</a><span class="what">Classes and functions</span></th>
+              {docs_reference}</tr>
+          </tbody>
+        </table>
+      </section>
+
+      <script type="application/json" id="svc-data">{graph_json}</script>
+      <script type="application/json" id="run-data">{run_json}</script>
+      <script>
+      (function () {
+        var $ = function (id) { return document.getElementById(id); };
+        var root = document.documentElement, intro = root.classList.contains("intro");
+        if (intro) setTimeout(function () { root.classList.remove("intro"); }, 3000);
+
+        // 1. The visitor's system: its rows say "Your system". Without this script no row is marked.
+        var ua = navigator.userAgent, sys = null;
+        var touchMac = /Mac/i.test(ua) && navigator.maxTouchPoints > 1; // iPadOS reports itself as a Mac
+        if (!/iPhone|iPad|iPod|Android/i.test(ua) && !touchMac) {
+          if (/Mac/i.test(ua)) sys = "mac";
+          else if (/Win/i.test(ua)) sys = "win";
+          else if (/Linux|X11/i.test(ua)) sys = "linux";
+        }
+        if (sys) document.querySelectorAll('[data-sys="' + sys + '"]').forEach(function (li) {
+          var a = li.querySelector("a"), y = document.createElement("span");
+          li.classList.add("is-yours");
+          y.className = "yours"; y.textContent = "Your system";
+          li.querySelector(".sys").appendChild(y);
+          a.setAttribute("aria-label", a.getAttribute("aria-label") + ", your system");
+        });
+
+        // 2. The train graph: highlight one service on hover or focus, and sweep the paths in, in time order, once.
+        var data = JSON.parse($("svc-data").textContent), T0 = data.t0, T1 = data.t1, BASE = data.base, K0 = data.k0, K1 = data.k1;
+        var sheet = $("sheet"), plot = $("plot"), scroller = $("scroller");
+        var groups = Array.prototype.slice.call(plot.querySelectorAll(".svc"));
+        var services = data.svc, hl = $("hl"), times = $("stop-times"), live = $("live"), active = -1;
+        function clock(t, secs) {
+          var s = Math.round(BASE + t), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+          var p = function (n) { return (n < 10 ? "0" : "") + n; };
+          return p(h) + ":" + p(m) + (secs ? ":" + p(x) : "");
+        }
+        function xp(t) { return (t - T0) / (T1 - T0) * 100; }
+        function yp(km) { return (km - K0) / (K1 - K0) * 100; }
+        function tag(text, x, y, cls) {
+          var s = document.createElement("span");
+          s.textContent = text; s.style.left = x + "%"; s.style.top = y + "%";
+          if (cls) s.className = cls;
+          times.appendChild(s);
+        }
+        function show(i) {
+          if (active === i) return;
+          if (active >= 0) groups[active].setAttribute("aria-selected", "false");
+          active = i;
+          var g = groups[i], svc = services[i], stops = svc.stops;
+          g.setAttribute("aria-selected", "true");
+          sheet.classList.add("has-active");
+          hl.setAttribute("d", g.querySelector(".line").getAttribute("d"));
+          hl.setAttribute("class", "hl " + svc.g);
+          times.textContent = "";
+          var first = stops[0], last = stops[stops.length - 1];
+          tag(svc.id, xp(first[2] != null ? first[2] : first[3]), yp(first[1]), "id");
+          stops.forEach(function (st, k) {
+            var end = k === stops.length - 1;
+            var t = end ? (st[2] != null ? st[2] : st[3]) : (st[3] != null ? st[3] : st[2]);
+            tag(clock(t, true), xp(t), yp(st[1]), end ? "end" : "");
+          });
+          var a = first[3] != null ? first[3] : first[2], b = last[2] != null ? last[2] : last[3];
+          live.innerHTML = "<strong>Service " + svc.id + "</strong> leaves " + first[0] + " at " + clock(a, true) +
+            " and reaches " + last[0] + " at " + clock(b, true) + ", with " + stops.length + " planned stops.";
+        }
+        function clear() {
+          if (active >= 0) groups[active].setAttribute("aria-selected", "false");
+          active = -1;
+          sheet.classList.remove("has-active");
+          hl.setAttribute("d", "");
+          times.textContent = "";
+          live.textContent = "";
+        }
+        groups.forEach(function (g, i) {
+          g.addEventListener("pointerenter", function () { show(i); });
+          g.addEventListener("pointerleave", function (e) { if (e.pointerType !== "touch" && document.activeElement !== g) clear(); });
+          g.addEventListener("focus", function () { show(i); });
+          g.addEventListener("blur", clear);
+          g.addEventListener("keydown", function (e) {
+            var n = { ArrowRight: i + 1, ArrowDown: i + 1, ArrowLeft: i - 1, ArrowUp: i - 1, Home: 0, End: groups.length - 1 }[e.key];
+            if (e.key === "Escape") { g.blur(); return; }
+            if (n === undefined) return;
+            e.preventDefault();
+            n = (n + groups.length) % groups.length;
+            g.setAttribute("tabindex", "-1"); groups[n].setAttribute("tabindex", "0"); groups[n].focus();
+          });
+        });
+        // A tap on the paper, away from any line, clears a highlight made by touch.
+        plot.addEventListener("pointerdown", function (e) { if (!e.target.closest(".svc")) clear(); });
+
+        // When the graph scrolls sideways (phones), start at 06:20 so the busy part is in view.
+        // A box that scrolls sideways is a tab stop; one that fits is not.
+        function fit(el, label) {
+          if (el.scrollWidth > el.clientWidth + 2) { el.tabIndex = 0; if (label) { el.setAttribute("role", "region"); el.setAttribute("aria-label", label); } return true; }
+          el.removeAttribute("tabindex"); if (label) { el.removeAttribute("role"); el.removeAttribute("aria-label"); }
+          return false;
+        }
+        if (fit(scroller, "Train graph")) scroller.scrollLeft = (6 * 3600 + 20 * 60 - BASE - T0) / (T1 - T0) * plot.clientWidth;
+        var tvWrap = $("tv-wrap");
+        $("tv").addEventListener("toggle", function () { fit(tvWrap, "Planned stops, as a table"); });
+
+        // The sweep, 2.3 s, starting once the header and the H1 are in. Skipped with reduced motion and
+        // for the #light and #dark screenshots, as is the rest of the start-up animation.
+        var finishSweep = function () {};
+        if (intro) {
+          var rect = $("sweep-rect"), line = $("sweep-line"), label = $("sweep-clock"), dur = 2300, delay = 320, start = 0, done = false;
+          var draw = function (p) {
+            var x = p * 1000;
+            rect.setAttribute("width", String(x + 10));
+            line.setAttribute("x1", String(x)); line.setAttribute("x2", String(x));
+            label.style.left = p * 100 + "%";
+            label.textContent = clock(T0 + p * (T1 - T0), false);
+          };
+          finishSweep = function () {
+            if (done) return;
+            done = true;
+            rect.setAttribute("width", "1020");
+            sheet.classList.remove("is-sweeping");
+          };
+          var frame = function (now) {
+            if (done) return;
+            if (!start) start = now;
+            var p = Math.min(1, (now - start) / dur);
+            draw(p);
+            if (p < 1) requestAnimationFrame(frame); else finishSweep();
+          };
+          draw(0);
+          setTimeout(function () { if (!done) { sheet.classList.add("is-sweeping"); requestAnimationFrame(frame); } }, delay);
+          setTimeout(finishSweep, delay + dur + 80);
+          sheet.addEventListener("focusin", finishSweep);
+        }
+      })();
+
+      // 3. Playback of the run. It starts paused at 06:45:40 and moves only after Play. It stops at the end of the run,
+      //    when the tab is hidden and when the drawing leaves the view. Screen readers hear the time and the number of
+      //    trains when it pauses, after a step and when scrubbing ends, never while it plays.
+      (function () {
+        var $ = function (id) { return document.getElementById(id); };
+        var D = JSON.parse($("run-data").textContent);
+        var G = D.geo, GW = G[0], PADL = G[1], PADR = G[2], K0 = G[3], K1 = G[4], TOP = G[5], GAP = G[6], LMAX = G[7];
+        var CAP = D.cap, END = D.end, BASE = D.base, NS = "http://www.w3.org/2000/svg";
+        var TRK = D.tk, B = D.bl;
+        var svg = $("line"), gT = $("trains"), gL = $("tlabels"), pB = $("blocks"), pH = $("blocks-h");
+        var play = $("play"), playL = $("play-l"), clockEl = $("clock"), scrub = $("scrub");
+        var status = $("status"), nowC = $("now-c"), nowB = $("now-b"), box = $("dscroll");
+        function X(km) { return PADL + (km - K0) / (K1 - K0) * (GW - PADL - PADR); }
+        function Y(ti) { return TOP + (LMAX - TRK[ti][1]) * GAP; }
+        function hms(t) {
+          var s = Math.round(BASE + t), p = function (n) { return (n < 10 ? "0" : "") + n; };
+          return p(Math.floor(s / 3600)) + ":" + p(Math.floor(s % 3600 / 60)) + ":" + p(s % 60);
+        }
+        // Reserved sections: x from and to, y, and the times, read once.
+        var BX = [];
+        // Stored as km from and length in hundredths, drawing level, start and duration in seconds.
+        for (var b = 0; b < B.length; b += 5) BX.push([X(B[b] / 100).toFixed(1), X((B[b] + B[b + 1]) / 100).toFixed(1), (TOP + (LMAX - B[b + 2]) * GAP).toFixed(1), B[b + 3], B[b + 3] + B[b + 4]]);
+
+        gT.textContent = ""; // the marks drawn into the page for 06:45:40 make way for the script's own
+        var trains = D.tr.map(function (tr) {
+          // Each point: time and km (in hundredths) as differences from the point before, track, speed in km/h.
+          var s = tr[1], n = s.length / 4, T = [], KM = [], TI = [], V = [], dir = [], d = 1, i, ct = 0, ck = 0;
+          for (i = 0; i < n; i++) { ct += s[4 * i]; ck += s[4 * i + 1]; T.push(ct); KM.push(ck / 100); TI.push(s[4 * i + 2]); V.push(s[4 * i + 3]); }
+          for (i = 0; i < n; i++) {
+            var dk = i + 1 < n ? KM[i + 1] - KM[i] : 0;
+            if (dk > 0.0005) d = 1; else if (dk < -0.0005) d = -1;
+            dir.push(d);
+          }
+          // The mark: an arrow pointing the way the train runs. The label: its speed on a paper box, above all marks.
+          var p = document.createElementNS(NS, "path"), lb = document.createElementNS(NS, "g");
+          var bx = document.createElementNS(NS, "rect"), tx = document.createElementNS(NS, "text");
+          p.setAttribute("class", "tr"); p.setAttribute("d", "M-20 -5H-7L0 0L-7 5H-20Z"); p.style.display = "none";
+          lb.setAttribute("class", "lb"); lb.style.display = "none"; bx.setAttribute("height", "19");
+          lb.appendChild(bx); lb.appendChild(tx); gT.appendChild(p); gL.appendChild(lb);
+          return { name: tr[0], T: T, KM: KM, TI: TI, V: V, D: dir, p: p, lb: lb, bx: bx, tx: tx, on: false, v: -1, w: 0, lx: 0, ly: 0, x: 0, y: 0, d: 1, km: 0, ti: 0 };
+        });
+
+        // Label widths, measured once per text in the real font.
+        var widths = {};
+        function textWidth(e) {
+          var s = e.textContent;
+          if (widths[s] == null) widths[s] = e.getComputedTextLength() || s.length * 8.6;
+          return widths[s];
+        }
+
+        var shown = [];
+        function render(t, settled) {
+          var tr, k;
+          shown = [];
+          for (k = 0; k < trains.length; k++) {
+            tr = trains[k];
+            var T = tr.T, n = T.length;
+            if (t < T[0] || t > T[n - 1]) {
+              if (tr.on) { tr.p.style.display = tr.lb.style.display = "none"; tr.on = false; }
+              continue;
+            }
+            var lo = 0, hi = n - 1;
+            while (hi - lo > 1) { var mid = (lo + hi) >> 1; if (T[mid] <= t) lo = mid; else hi = mid; }
+            var f = T[hi] > T[lo] ? (t - T[lo]) / (T[hi] - T[lo]) : 0;
+            var km = tr.KM[lo] + (tr.KM[hi] - tr.KM[lo]) * f;
+            var x = X(km), y = Y(tr.TI[lo]) + (Y(tr.TI[hi]) - Y(tr.TI[lo])) * f;
+            var v = Math.round(tr.V[lo] + (tr.V[hi] - tr.V[lo]) * f), d = tr.D[lo];
+            tr.p.setAttribute("transform", "translate(" + x.toFixed(1) + " " + y.toFixed(1) + ")" + (d < 0 ? " scale(-1 1)" : ""));
+            if (!tr.on) { tr.p.style.display = tr.lb.style.display = ""; tr.on = true; }
+            if (v !== tr.v) { tr.tx.textContent = v + " km/h"; tr.v = v; tr.w = textWidth(tr.tx); }
+            tr.x = x; tr.y = y; tr.d = d; tr.km = km; tr.ti = f < 0.5 ? tr.TI[lo] : tr.TI[hi];
+            shown.push(tr);
+          }
+          // Speed labels: above the train, else below it, else left out where they would cover another label or another
+          // train. They stay inside the drawing. The trains table always lists every train.
+          shown.sort(function (a, b) { return a.x - b.x; });
+          var marks = shown.map(function (m) { return m.d > 0 ? [m.x - 22, m.y - 7, m.x + 2, m.y + 7, m] : [m.x - 2, m.y - 7, m.x + 22, m.y + 7, m]; });
+          var boxes = [];
+          for (k = 0; k < shown.length; k++) {
+            tr = shown[k];
+            var w = tr.w + 8, cx = Math.max(w / 2 + 2, Math.min(GW - w / 2 - 2, tr.x - 10 * tr.d)), pos = 0, top = 0;
+            for (var o = 0; o < 2 && !pos; o++) {
+              top = tr.y + (o ? 7 : -26);
+              var l = cx - w / 2, r = cx + w / 2, bb = top + 19, free = true, j, q;
+              for (j = 0; j < boxes.length && free; j++) { q = boxes[j]; if (l < q[2] && r > q[0] && top < q[3] && bb > q[1]) free = false; }
+              for (j = 0; j < marks.length && free; j++) { q = marks[j]; if (q[4] !== tr && l < q[2] && r > q[0] && top < q[3] && bb > q[1]) free = false; }
+              if (free) { boxes.push([l - 3, top, r + 3, bb]); pos = o + 1; }
+            }
+            tr.lb.style.visibility = pos ? "" : "hidden";
+            if (pos && (cx !== tr.lx || top !== tr.ly)) {
+              tr.bx.setAttribute("x", (cx - w / 2).toFixed(1)); tr.bx.setAttribute("y", top.toFixed(1)); tr.bx.setAttribute("width", w.toFixed(1));
+              tr.tx.setAttribute("x", cx.toFixed(1)); tr.tx.setAttribute("y", (top + 14.5).toFixed(1));
+              tr.lx = cx; tr.ly = top;
+            }
+          }
+          var path = "";
+          for (var i = 0; i < BX.length; i++) if (BX[i][3] <= t && t <= BX[i][4]) path += "M" + BX[i][0] + " " + BX[i][2] + "H" + BX[i][1];
+          pB.setAttribute("d", path);
+          pH.setAttribute("d", path);
+          var c = hms(t);
+          clockEl.textContent = c;
+          scrub.value = Math.round(t);
+          scrub.style.setProperty("--f", (t / END).toFixed(4));
+          if (settled) { scrub.setAttribute("aria-valuetext", c); table(c); }
+        }
+
+        function count() { return shown.length === 1 ? "1 train on the line" : shown.length + " trains on the line"; }
+        function table(c) {
+          var rows = shown.slice().sort(function (a, b) { return a.km - b.km; });
+          nowC.textContent = (rows.length === 1 ? "1 train" : rows.length + " trains") + " on the line at " + c;
+          var frag = document.createDocumentFragment();
+          rows.forEach(function (tr) {
+            var r = document.createElement("tr");
+            [[tr.name, "th"], [tr.km.toFixed(1), "td", "n"], [TRK[tr.ti][0], "td"], [String(tr.v), "td", "n"]].forEach(function (cell) {
+              var e = document.createElement(cell[1]);
+              if (cell[1] === "th") e.setAttribute("scope", "row");
+              if (cell[2]) e.className = cell[2];
+              e.textContent = cell[0];
+              r.appendChild(e);
+            });
+            frag.appendChild(r);
+          });
+          nowB.textContent = "";
+          nowB.appendChild(frag);
+        }
+
+        var t = CAP, speed = 100, playing = false, inView = true, raf = 0, last = 0, drawn = 0, said = 0;
+        function say(msg, delay) {
+          clearTimeout(said);
+          status.textContent = "";
+          said = setTimeout(function () { status.textContent = msg; }, delay || 80);
+        }
+        function setState(p, msg) {
+          playing = p;
+          play.setAttribute("data-state", p ? "playing" : "paused");
+          playL.textContent = p ? "Pause" : (t >= END ? "Replay" : "Play");
+          if (p) { clearTimeout(said); status.textContent = ""; last = 0; tick(); return; }
+          if (raf) cancelAnimationFrame(raf);
+          raf = 0;
+          render(t, true);
+          if (msg !== false) say((t >= END ? "End of the run at " : "Paused at ") + hms(t) + ". " + count() + ".");
+        }
+        function tick() { if (playing && !raf) raf = requestAnimationFrame(frame); }
+        function frame(now) {
+          raf = 0;
+          if (!playing) return;
+          var dt = last ? Math.min(now - last, 100) : 0;
+          last = now;
+          t += dt / 1000 * speed;
+          if (t >= END) { t = END; setState(false); return; }
+          if (now - drawn >= 30) { render(t, false); drawn = now; } // at most about 30 drawings a second
+          tick();
+        }
+        play.addEventListener("click", function () {
+          reveal();
+          if (!playing && t >= END) t = 0;
+          if (!playing && !inView) box.scrollIntoView({ block: "nearest" });
+          setState(!playing);
+        });
+        function jump(nt, note, delay) {
+          reveal();
+          if (playing) setState(false, false);
+          t = Math.max(0, Math.min(END, nt));
+          playL.textContent = t >= END ? "Replay" : "Play";
+          render(t, true);
+          say(hms(t) + (note || "") + ". " + count() + ".", delay);
+        }
+        $("stepB").addEventListener("click", function () { jump(Math.round(t / 10) * 10 - 10); });
+        $("stepF").addEventListener("click", function () { jump(Math.round(t / 10) * 10 + 10); });
+        $("cap").addEventListener("click", function () { jump(CAP, ", the moment of the screenshot"); centre(); });
+        scrub.addEventListener("input", function () { reveal(); t = +scrub.value; render(t, !playing); });
+        scrub.addEventListener("change", function () {
+          if (playing) return;
+          playL.textContent = t >= END ? "Replay" : "Play";
+          say(hms(t) + ". " + count() + ".");
+        });
+        // The slider counts seconds; its arrow keys move 10 s and Page Up and Page Down 1 minute, so the keyboard does not
+        // crawl. The status waits until the keys rest.
+        scrub.addEventListener("keydown", function (e) {
+          var d = { ArrowRight: 10, ArrowUp: 10, ArrowLeft: -10, ArrowDown: -10, PageUp: 60, PageDown: -60 }[e.key];
+          var nt = d !== undefined ? Math.round(t / 10) * 10 + d : e.key === "Home" ? 0 : e.key === "End" ? END : null;
+          if (nt === null) return;
+          e.preventDefault();
+          jump(nt, "", 400);
+        });
+        Array.prototype.forEach.call(document.querySelectorAll('input[name="speed"]'), function (r) {
+          r.addEventListener("change", function () { speed = +r.value; });
+        });
+        if ("IntersectionObserver" in window) {
+          new IntersectionObserver(function (e) {
+            inView = e[e.length - 1].isIntersecting;
+            if (!inView && playing) setState(false);
+          }).observe(box);
+        }
+        document.addEventListener("visibilitychange", function () { if (document.hidden && playing) setState(false); });
+
+        render(t, true);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () {
+          widths = {};
+          trains.forEach(function (tr) { if (tr.on) tr.w = textWidth(tr.tx); tr.lx = tr.ly = null; });
+          render(t, !playing);
+        });
+
+        // On narrow screens the drawing scrolls sideways in its own box: then it is a tab stop with a hint, and it starts
+        // with Treviglio in the middle. When it fits, it is not a tab stop.
+        var hint = $("dhint"), scrolls = null;
+        function centre() {
+          if (!scrolls) return;
+          var cx = +svg.getAttribute("data-cx") / svg.viewBox.baseVal.width * svg.getBoundingClientRect().width;
+          box.scrollLeft = cx - box.clientWidth / 2;
+        }
+        function fitBox() {
+          // The drawing's own width, not the box's scrollWidth, which the draw-in below shrinks while it waits.
+          var s = svg.getBoundingClientRect().width > box.clientWidth + 1;
+          if (s === scrolls) return;
+          scrolls = s;
+          hint.hidden = !s;
+          if (s) { endWipe(); box.tabIndex = 0; box.setAttribute("role", "region"); box.setAttribute("aria-label", "Line drawing, scrolls sideways"); centre(); }
+          else { box.removeAttribute("tabindex"); box.removeAttribute("role"); box.removeAttribute("aria-label"); }
+        }
+        fitBox();
+        addEventListener("resize", fitBox);
+
+        // The drawing's own draw-in: a wipe from left to right, once, when it first scrolls into view. Only when it starts
+        // off screen, with motion allowed and outside the #light and #dark screenshots, and only when the drawing fits its
+        // box: the clipping would reset a box that scrolls sideways to its left end, away from Treviglio. Transforms only:
+        // the outer box slides in from the left and clips, the inner one slides the other way so the drawing stays put.
+        var wa = $("dwipe"), wb = $("dwipe-in"), waiting = false, io = null;
+        function endWipe() {
+          if (!waiting) return;
+          waiting = false;
+          if (io) io.disconnect();
+          wa.classList.remove("wiping");
+          wa.style.transform = wb.style.transform = "";
+        }
+        function reveal() {
+          if (!waiting) return;
+          waiting = false;
+          var o = { duration: 1000, easing: "cubic-bezier(0.2, 0.7, 0.2, 1)" };
+          if (wa.animate) {
+            var a = wa.animate([{ transform: "translateX(-100%)" }, { transform: "none" }], o);
+            wb.animate([{ transform: "translateX(100%)" }, { transform: "none" }], o);
+            a.onfinish = a.oncancel = function () { wa.classList.remove("wiping"); centre(); };
+          } else {
+            wa.classList.remove("wiping");
+          }
+          wa.style.transform = wb.style.transform = "";
+        }
+        if (document.documentElement.classList.contains("intro") && "IntersectionObserver" in window && !scrolls) {
+          var r = box.getBoundingClientRect();
+          if (r.top > innerHeight || r.bottom < 0) {
+            waiting = true;
+            wa.classList.add("wiping");
+            wa.style.transform = "translateX(-100%)";
+            wb.style.transform = "translateX(100%)";
+            io = new IntersectionObserver(function (e) {
+              if (!e[e.length - 1].isIntersecting) return;
+              io.disconnect();
+              reveal();
+            }, { threshold: 0.35 });
+            io.observe(box);
+            box.addEventListener("focus", reveal);
+          }
+        }
+      })();
+      </script>

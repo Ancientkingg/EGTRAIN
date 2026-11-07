@@ -26,7 +26,6 @@ import io
 import json
 import os
 import shutil
-import subprocess
 import sys
 import tarfile
 import tempfile
@@ -178,10 +177,9 @@ class ZiplineStub(Server):
                                                         "url": f"{self.url}/u/{name}"}]}).encode())
 
 
-def fake_source_archive(commit, tag, folder):
-    path = folder / home_page.source_archive_name(tag)
-    path.write_bytes(f"source of {commit}".encode())
-    return path
+def source_code_words(page: str) -> list:
+    """The words of a page of the website that offer or link source code or name GitHub, which no page has."""
+    return [word for word in ("source.tar.gz", "source code", 'source/"', "github") if word in page.lower()]
 
 
 class PublishTests(unittest.TestCase):
@@ -211,13 +209,14 @@ class PublishTests(unittest.TestCase):
         self.addCleanup(patch.stop)
         self.addCleanup(self.temp.cleanup)
 
-    def release(self, archive=fake_source_archive, commit="0123abc", new_feed=True):
+    def release(self, new_feed=True):
+        """Runs release with the arguments of the publish step of release.yml, which passes --commit and --run-url too."""
         arguments = ["release", "--tag", self.tag, "--name", f"EGTRAIN {self.tag}", "--prerelease", "false",
-                     "--assets", str(self.assets), "--commit", commit, "--run-url", "https://example.org/runs/1"]
-        with mock.patch.object(publish_selfhost, "source_archive", archive), mock.patch("sys.stdout", io.StringIO()):
+                     "--assets", str(self.assets), "--commit", "0123abc", "--run-url", "https://example.org/runs/1"]
+        with mock.patch("sys.stdout", io.StringIO()):
             publish_selfhost.main(arguments + (["--new-feed"] if new_feed else []))
 
-    def import_release(self, github: dict, archive=fake_source_archive, new_feed=True):
+    def import_release(self, github: dict, new_feed=True):
         """Runs import with a stand-in for the GitHub CLI that has the release github and the files of self.assets."""
         calls = []
 
@@ -231,8 +230,7 @@ class PublishTests(unittest.TestCase):
                 return ""
             raise AssertionError(arguments)
 
-        with mock.patch.object(publish_selfhost, "gh", gh), mock.patch.object(publish_selfhost, "source_archive", archive), \
-                mock.patch.object(publish_selfhost, "tag_commit", lambda tag: f"commit of {tag}"), mock.patch("sys.stdout", io.StringIO()):
+        with mock.patch.object(publish_selfhost, "gh", gh), mock.patch("sys.stdout", io.StringIO()):
             publish_selfhost.main(["import", self.tag] + (["--new-feed"] if new_feed else []))
         return calls
 
@@ -247,6 +245,9 @@ class PublishTests(unittest.TestCase):
         with urllib.request.urlopen(f"{self.zipline_url}/raw/{name}") as response:
             return response.read(), response.headers
 
+    def uploads(self):
+        return [event for event in self.events if event.startswith("zipline ")]
+
     def test_release_publishes_the_files_then_the_page_then_the_feed(self):
         self.release()
         feed = self.feed()
@@ -255,8 +256,7 @@ class PublishTests(unittest.TestCase):
         self.assertEqual(set(entry), FIELDS)
         self.assertEqual((entry["tag_name"], entry["name"], entry["draft"], entry["prerelease"]), ("v1.2.3", "EGTRAIN v1.2.3", False, False))
         self.assertEqual(entry["html_url"], f"{self.site.url}/releases/1.2.3/")
-        self.assertEqual(entry["body"], publish_selfhost.RELEASE_BODY.format(name="EGTRAIN v1.2.3", commit="0123abc",
-                                                                            run_url="https://example.org/runs/1"))
+        self.assertEqual(entry["body"], publish_selfhost.RELEASE_BODY.format(name="EGTRAIN v1.2.3"))
         self.assertRegex(entry["published_at"], r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$")
         self.assertEqual([asset["name"] for asset in entry["assets"]], sorted(NAMES))
         for asset in entry["assets"]:
@@ -265,26 +265,27 @@ class PublishTests(unittest.TestCase):
             data, headers = self.zipline_get(f"egtrain-v1.2.3-{asset['name']}")
             self.assertEqual(data, (self.assets / asset["name"]).read_bytes())
             self.assertEqual(asset["size"], len(data))
-        source, _headers = self.zipline_get("egtrain-v1.2.3-EGTRAIN-1.2.3-source.tar.gz")
-        self.assertEqual(source, b"source of 0123abc")
+        # Zipline gets the release files and nothing else.
+        self.assertEqual(sorted(self.uploads()), sorted(f"zipline egtrain-v1.2.3-{name} as {name}" for name in NAMES))
         page = (self.root / "site/releases/1.2.3/index.html").read_text(encoding="utf-8")
         self.assertIn("<h1>EGTRAIN v1.2.3</h1>", page)
-        self.assertIn("<li>Commit: 0123abc</li>", page)
-        self.assertIn(f'href="{self.zipline_url}/raw/egtrain-v1.2.3-EGTRAIN-1.2.3-source.tar.gz">EGTRAIN-1.2.3-source.tar.gz</a>', page)
+        self.assertEqual(page.count("<tr><td><a href="), len(NAMES))
+        self.assertEqual(source_code_words(page), [])
+        self.assertNotIn("0123abc", page)
+        self.assertNotIn("https://example.org/runs/1", page)
         self.assertIn('href="../../1.2.3/">documentation of EGTRAIN 1.2.3</a>', page)
         # Every upload comes first, then the page, and the feed last.
         site_events = [event for event in self.events if event.startswith("site ")]
         self.assertEqual(site_events, ["site dir releases/1.2.3", f"site file {publish_selfhost.FEED_PATH}"])
         self.assertEqual(self.events[-2:], site_events)
-        self.assertIn(f"zipline egtrain-v1.2.3-{NAMES[0]} as {NAMES[0]}", self.events)
 
     def test_a_second_run_adds_nothing_and_keeps_the_time(self):
         with mock.patch.object(publish_selfhost, "utc_now", return_value="2026-11-06T10:00:00Z"):
             self.release()
-        uploads = [event for event in self.events if event.startswith("zipline ")]
+        uploads = self.uploads()
         with mock.patch.object(publish_selfhost, "utc_now", return_value="2026-11-07T10:00:00Z"):
             self.release(new_feed=False)
-        self.assertEqual([event for event in self.events if event.startswith("zipline ")], uploads)
+        self.assertEqual(self.uploads(), uploads)
         feed = self.feed()
         self.assertEqual([entry["tag_name"] for entry in feed], ["v1.2.3"])
         self.assertEqual(feed[0]["published_at"], "2026-11-06T10:00:00Z")
@@ -365,13 +366,16 @@ class PublishTests(unittest.TestCase):
         for asset in entry["assets"]:
             data, _headers = self.zipline_get(f"egtrain-{self.tag}-{asset['name']}")
             self.assertEqual(data, (self.assets / asset["name"]).read_bytes())
+        if hasattr(self, "zipline"):
+            self.assertEqual(sorted(self.uploads()), sorted(f"zipline egtrain-{self.tag}-{name} as {name}" for name in NAMES))
         page = (self.root / f"site/releases/{version}/index.html").read_text(encoding="utf-8")
         self.assertIn("<li>two</li>", page)
-        self.assertIn(f"EGTRAIN-{version}-source.tar.gz", page)
+        # The page has the notes as GitHub has them, which name GitHub here, and lists no archive of the source code.
+        self.assertEqual(source_code_words(page), ["github"])
         # A second run, now that the feed exists, uploads nothing and writes the same page and feed.
-        uploads = [event for event in self.events if event.startswith("zipline ")]
+        uploads = self.uploads()
         self.import_release(github, new_feed=False)
-        self.assertEqual([event for event in self.events if event.startswith("zipline ")], uploads)
+        self.assertEqual(self.uploads(), uploads)
         self.assertEqual(self.feed(), [entry])
         self.assertEqual((self.root / f"site/releases/{version}/index.html").read_text(encoding="utf-8"), page)
 
@@ -418,14 +422,14 @@ class PublishTests(unittest.TestCase):
         page = (self.root / "site/releases/1.2.3/index.html").read_text(encoding="utf-8")
         self.assertIn('<a href="https://example.org/a">link</a>', page)
         self.assertIn("<li>two</li>", page)
-        self.assertIn("EGTRAIN-1.2.3-source.tar.gz", page)
+        self.assertEqual(source_code_words(page), [])
         with self.assertRaises(SystemExit):
             publish_selfhost.main(["notes", "v9.9.9", str(notes)])
 
     def test_a_prerelease_has_no_documentation_link(self):
         arguments = ["release", "--tag", "v1.2.3-rc1", "--name", "EGTRAIN v1.2.3-rc1", "--prerelease", "true",
-                     "--assets", str(self.assets), "--commit", "0123abc", "--run-url", "https://example.org/runs/1", "--new-feed"]
-        with mock.patch.object(publish_selfhost, "source_archive", fake_source_archive), mock.patch("sys.stdout", io.StringIO()):
+                     "--assets", str(self.assets), "--new-feed"]
+        with mock.patch("sys.stdout", io.StringIO()):
             publish_selfhost.main(arguments)
         entry = self.feed()[0]
         self.assertEqual((entry["prerelease"], entry["html_url"]), (True, f"{self.site.url}/releases/1.2.3-rc1/"))
@@ -477,13 +481,22 @@ class StubOnly(unittest.TestCase):
     def test_site_publishes_the_folders_then_the_pages_then_the_home_page(self):
         pages = self.pages()
         self.publish_site(pages, "1.2.3", "latest")
-        self.assertEqual(self.events, ["site dir 1.2.3", "site dir latest", "site dir assets", "site dir support", "site dir source",
-                                       "site dir privacy", "site file index.html"])
+        # contact/ is published before the pages that link it.
+        self.assertEqual(self.events, ["site dir 1.2.3", "site dir latest", "site dir assets", "site dir contact", "site dir support",
+                                       "site dir privacy", "site dir source", "site file index.html"])
         for name in ("1.2.3/guides/install.html", "latest/index.html"):
             self.assertEqual((self.root / "site" / name).read_bytes(), (pages / name).read_bytes(), name)
-        for name in ("assets/site.css", "support/index.html", "privacy/index.html"):
+        # assets/site.css is the style that release pages published with the earlier layout load.
+        for name in ("assets/archivo-latin-wdth-wght.woff2", "assets/site.css", "support/index.html", "contact/index.html", "privacy/index.html"):
             self.assertTrue((self.root / "site" / name).is_file(), name)
         self.assertFalse((self.root / "site/dev").exists())
+        # source/, which Help > About of EGTRAIN 1.0.5 links, sends the visitor to the home page.
+        stub = (self.root / "site/source/index.html").read_text(encoding="utf-8")
+        for part in ('<meta http-equiv="refresh" content="0; url=../">', '<link rel="canonical" href="https://egtrain.samuelbruin.com/">',
+                     '<a href="../">'):
+            self.assertIn(part, stub)
+        for path in [self.root / "site/index.html", *(self.root / "site").glob("*/index.html")]:
+            self.assertEqual(source_code_words(path.read_text(encoding="utf-8")), [], path)
 
     def test_site_pages_come_from_the_feed_whatever_the_copy(self):
         # A run of main whose copy of gh-pages is older than the release, and the run of the release, publish the same
@@ -493,23 +506,22 @@ class StubOnly(unittest.TestCase):
         published = []
         for pages, folders in ((newer, ("1.2.3", "latest")), (older, ("dev",)), (newer, ())):
             self.publish_site(pages, *folders)
-            published.append([(self.root / "site" / name).read_bytes() for name in ("index.html", "source/index.html")])
+            published.append((self.root / "site/index.html").read_bytes())
         self.assertEqual(published[0], published[1])
         self.assertEqual(published[0], published[2])
-        text = published[0][0].decode("utf-8")
-        listed = [text.find(f'<li><a href="{name}/">') for name in ("latest", "dev", "1.2.3", "1.2.0")]
+        text = published[0].decode("utf-8")
+        listed = [text.find(f'<th scope="col"><b>{name}</b>') for name in ("latest", "dev", "1.2.3", "1.2.0")]
         self.assertTrue(-1 not in listed and listed == sorted(listed), listed)
         self.assertNotIn('href="1.2.4-rc.1/"', text)
         self.assertIn("https://bin.example.org/raw/egtrain-v1.2.3-EGTRAIN-1.2.3-macOS-arm64.dmg", text)
-        self.assertIn("egtrain-v1.2.4-rc.1-EGTRAIN-1.2.4-rc.1-source.tar.gz", published[0][1].decode("utf-8"))
 
     def test_site_without_a_feed_lists_dev_only(self):
         self.publish_site(self.pages())
         text = (self.root / "site/index.html").read_text(encoding="utf-8")
-        self.assertIn('<li><a href="dev/">', text)
+        self.assertIn('<th scope="col"><b>dev</b>in development</th>', text)
         self.assertNotIn("latest/", text)
         self.assertNotIn('href="1.2.3/"', text)
-        self.assertIn("No release is published on this site yet", text)
+        self.assertIn('<p class="empty">No release is published on this site yet.</p>', text)
 
     def test_site_does_not_follow_a_redirect_of_the_feed(self):
         (self.root / "site/moved").mkdir()
@@ -547,22 +559,12 @@ class StubOnly(unittest.TestCase):
             with self.assertRaises(SystemExit, msg=tag):
                 publish_selfhost.check_tag(tag)
 
-    def test_source_archive_of_a_commit(self):
-        if not (publish_selfhost.ROOT / ".git").exists():
-            self.skipTest("the source code is not a Git repository")
-        commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=publish_selfhost.ROOT, capture_output=True, text=True, check=True).stdout.strip()
-        path = publish_selfhost.source_archive(commit, "v1.2.3", self.root)
-        self.assertEqual(path.name, "EGTRAIN-1.2.3-source.tar.gz")
-        with tarfile.open(path) as archive:
-            names = archive.getnames()
-        self.assertIn("EGTRAIN-1.2.3/LICENSE", names)
-        self.assertTrue(all(name.split("/")[0] == "EGTRAIN-1.2.3" for name in names))
-
     def test_release_body_matches_the_github_release(self):
         workflow = (publish_selfhost.ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
-        body = publish_selfhost.RELEASE_BODY.format(name="${{ steps.release-meta.outputs.name }}", commit="${{ github.sha }}",
-                                                    run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}")
+        body = publish_selfhost.RELEASE_BODY.format(name="${{ steps.release-meta.outputs.name }}")
         self.assertIn("body: |\n" + "".join(f"            {line}\n" if line else "\n" for line in body.splitlines()), workflow)
+        # The notes on the website carry no link to GitHub.
+        self.assertNotIn("github", publish_selfhost.RELEASE_BODY.lower())
 
     def test_markdown_of_release_notes(self):
         text = "Line one\nline <two> & `code <x>`\n\n- item **bold**\n  continued\n* other https://example.org/a.\n\n## Heading\n"
@@ -604,7 +606,7 @@ class RealZiplineTests(PublishTests):
             return [file["name"] for file in json.load(response)["page"]]
 
     def test_release_publishes_the_files_then_the_page_then_the_feed(self):
-        self.release(publish_selfhost.source_archive, "HEAD")
+        self.release()
         version = self.tag[1:]
         entry = self.feed()[0]
         for asset in entry["assets"]:
@@ -612,8 +614,7 @@ class RealZiplineTests(PublishTests):
             self.assertEqual(data, (self.assets / asset["name"]).read_bytes())
             self.assertEqual(headers["Content-Disposition"], f"filename*=utf-8''{asset['name']}")
         names = [name for name in self.files_of_user() if name.startswith(f"egtrain-{self.tag}-")]
-        self.assertEqual(sorted(names), sorted([f"egtrain-{self.tag}-{asset['name']}" for asset in entry["assets"]]
-                                               + [f"egtrain-{self.tag}-EGTRAIN-{version}-source.tar.gz"]))
+        self.assertEqual(sorted(names), sorted(f"egtrain-{self.tag}-{asset['name']}" for asset in entry["assets"]))
         self.assertEqual(self.events[-2:], [f"site dir releases/{version}", f"site file {publish_selfhost.FEED_PATH}"])
 
     def test_a_second_run_adds_nothing_and_keeps_the_time(self):

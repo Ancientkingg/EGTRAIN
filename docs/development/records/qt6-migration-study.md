@@ -20,7 +20,7 @@ EGTRAIN was ported to Qt 6 later: since #1027 (21 October 2026, first released i
   packages, then switch the releases. Homebrew stops installing `qt@5` on 2027-05-19, which sets the deadline for the
   macOS jobs.
 
-## Source code
+## Code
 
 ### Build with deprecated APIs disabled
 
@@ -56,14 +56,14 @@ without `io/third_party`.
 | A size-changing `QList` call invalidates references to its elements | not countable by search | review |
 
 The warnings matter because CI configures with `-DEGTRAIN_WARNINGS_AS_ERRORS=ON`
-([cmake.yml](../../../.github/workflows/cmake.yml), lines 197 to 225) and the libraries other than the simulation, and
-the test executables, are strict targets ([CMakeLists.txt](../../../CMakeLists.txt), lines 414 to 417, and `egtrain_add_test`
-in [tests/CMakeLists.txt](../../../EGTRAIN/QEGTRAIN/tests/CMakeLists.txt)), so a warning in them fails a Qt 6 CI build. The
+(the workflow `cmake.yml`, lines 197 to 225) and the libraries other than the simulation, and
+the test executables, are strict targets (`CMakeLists.txt`, lines 414 to 417, and `egtrain_add_test`
+in `tests/CMakeLists.txt`), so a warning in them fails a Qt 6 CI build. The
 `QEGTRAIN` target, which builds most of `app/`, gets no warning flags (lines 418 to 434). The `qsizetype` count is a lower bound: it misses sizes passed as `int` arguments or returned
 from `int` functions, which MSVC at `/W4` reports too. Clang and GCC do not warn about these conversions with `-Wall
 -Wextra`.
 
-Outside the sources: [CMakeLists.txt](../../../CMakeLists.txt) names Qt 5 on 97 lines (`find_package(Qt5 ...)` on line
+Outside the sources: `CMakeLists.txt` names Qt 5 on 97 lines (`find_package(Qt5 ...)` on line
 115, `Qt5::` targets, `Qt5::WinMain` on line 626). The MSVC forced include `util/QtMsvcCompat.h` was written for
 the Qt 5.15 headers. Eleven files under `tools/` name Qt 5, among them `tools/tidy.py:70`,
 `tools/release/package_start_smoke.py:70` and `tools/e2e/test_qt_resources.py:62`.
@@ -72,9 +72,9 @@ the Qt 5.15 headers. Eleven files under `tools/` name Qt 5, among them `tools/ti
 
 | Platform | Today | With Qt 6 |
 | --- | --- | --- |
-| macOS | `macdeployqt` of Homebrew `qt@5`, then the trimming of #488 removes Qt Quick, QML, the virtual keyboard and the WebP and TIFF plugins ([package.yml](../../../.github/workflows/package.yml), lines 109 to 127) | `macdeployqt` remains. Homebrew Qt 6 is split into formulae: `qtbase`, `qtcharts` and `qtsvg` are enough, and `qtcharts` depends on `qtdeclarative`. `qtbase` depends on `icu4c@78` and `openssl@4` and links OpenSSL (Homebrew `qtbase.rb`, lines 62, 67 and 141), so the bundle can gain ICU and OpenSSL libraries; HarfBuzz, double-conversion, libb2 and D-Bus are further `qtbase` dependencies on macOS, and step 4 decides which of them `macdeployqt` bundles. The trimming steps and the checks on lines 200 to 213 use framework names that Qt 6 keeps. |
-| Windows | `windeployqt` with `--no-angle` and `--no-virtualkeyboard` ([cmake.yml](../../../.github/workflows/cmake.yml), line 254; [package.yml](../../../.github/workflows/package.yml), line 525); checks name `Qt5Core.dll`, `styles/qwindowsvistastyle.dll` and others (lines 569, 575 and 583) | The Qt 6 `windeployqt` has neither option ([Qt for Windows deployment](https://doc.qt.io/qt-6/windows-deployment.html)); `--skip-plugin-types` and `--exclude-plugins` replace them. The DLLs become `Qt6*.dll`, and the style plugin of Qt 6.8.3 `win64_msvc2022_64` is `styles/qmodernwindowsstyle.dll`. TLS is a plugin, `qschannelbackend` ([Qt SSL](https://doc.qt.io/qt-6/ssl.html)). |
-| Linux | `linuxdeploy-plugin-qt` with the Ubuntu Qt 5 packages; the `QMAKE` fallback names `qmake-qt5` (line 1010); the checks look for `libQt5*.so` (lines 1033 to 1035) | The plugin supports Qt 5 and 6 ([README](https://github.com/linuxdeploy/linuxdeploy-plugin-qt)). The `QMAKE` line, the checks and `package_start_smoke.py` need the Qt 6 names. |
+| macOS | `macdeployqt` of Homebrew `qt@5`, then the trimming of #488 removes Qt Quick, QML, the virtual keyboard and the WebP and TIFF plugins (the workflow `package.yml`, lines 109 to 127) | `macdeployqt` remains. Homebrew Qt 6 is split into formulae: `qtbase`, `qtcharts` and `qtsvg` are enough, and `qtcharts` depends on `qtdeclarative`. `qtbase` depends on `icu4c@78` and `openssl@4` and links OpenSSL (Homebrew `qtbase.rb`, lines 62, 67 and 141), so the bundle can gain ICU and OpenSSL libraries; HarfBuzz, double-conversion, libb2 and D-Bus are further `qtbase` dependencies on macOS, and step 4 decides which of them `macdeployqt` bundles. The trimming steps and the checks on lines 200 to 213 use framework names that Qt 6 keeps. |
+| Windows | `windeployqt` with `--no-angle` and `--no-virtualkeyboard` (the workflows `cmake.yml`, line 254, and `package.yml`, line 525); checks name `Qt5Core.dll`, `styles/qwindowsvistastyle.dll` and others (lines 569, 575 and 583) | The Qt 6 `windeployqt` has neither option ([Qt for Windows deployment](https://doc.qt.io/qt-6/windows-deployment.html)); `--skip-plugin-types` and `--exclude-plugins` replace them. The DLLs become `Qt6*.dll`, and the style plugin of Qt 6.8.3 `win64_msvc2022_64` is `styles/qmodernwindowsstyle.dll`. TLS is a plugin, `qschannelbackend` ([Qt SSL](https://doc.qt.io/qt-6/ssl.html)). |
+| Linux | `linuxdeploy-plugin-qt` with the Ubuntu Qt 5 packages; the `QMAKE` fallback names `qmake-qt5` (line 1010); the checks look for `libQt5*.so` (lines 1033 to 1035) | The plugin supports Qt 5 and 6, as its README says. The `QMAKE` line, the checks and `package_start_smoke.py` need the Qt 6 names. |
 
 Platform support compared with what the README promises:
 
@@ -91,7 +91,7 @@ Every promise holds with either version. Windows 10 support ends after Qt 6.12, 
 | Platform | Today | Qt 6 option |
 | --- | --- | --- |
 | macOS | `brew install qt@5` in `cmake.yml`, `package.yml` and `release.yml` | `brew install qtbase qtcharts qtsvg` (6.12.0), or `install-qt-action` with host `mac` |
-| Windows | `jurplel/install-qt-action@v4`, Qt 5.15.2 `win64_msvc2019_64` | the same action, `win64_msvc2022_64`; its default is 6.8.3, "a tested Qt 6 LTS version for open-source licensed users" ([install-qt-action](https://github.com/jurplel/install-qt-action)) |
+| Windows | `jurplel/install-qt-action@v4`, Qt 5.15.2 `win64_msvc2019_64` | the same action, `win64_msvc2022_64`; its default is 6.8.3, "a tested Qt 6 LTS version for open-source licensed users" (the README of install-qt-action) |
 | Linux | Ubuntu 24.04 Qt 5 packages, also in `tidy.yml` | Ubuntu 24.04 has Qt 6.4.2 (`qt6-charts-dev 6.4.2-5build2`, [packages.ubuntu.com](https://packages.ubuntu.com/noble/qt6-charts-dev)); `install-qt-action` gives the version that the other platforms use |
 
 After 2027-05-19 `brew install qt@5` fails: Homebrew blocks a disabled formula and removes it from `homebrew/core`
@@ -156,7 +156,7 @@ The third-party code inside Qt 6 is listed at [Licenses used in Qt](https://doc.
 | High-DPI and look | Windows and Linux at 100 %, 125 % and 150 %, network view, diagrams, dialogs | 1 to 2 days |
 | Release rehearsal | the checklist on three platforms | 1 day |
 
-These are estimates for one developer who knows the repository, about 8 to 12 days in all. Replacing Qt Charts is not
+These are estimates for one developer who knows the code, about 8 to 12 days in all. Replacing Qt Charts is not
 included.
 
 ## Risks

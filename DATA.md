@@ -1,10 +1,10 @@
 # Data of the bundled cases
 
-The bundled cases in `EGTRAIN/QEGTRAIN/Scenes` have their own sources and terms, which this file records for each case that ships. Where something is not confirmed, it says so.
+The bundled cases in `EGTRAIN/QEGTRAIN/Scenes` have their own sources and terms, which this page records for each case that ships. Where something is not confirmed, it says so.
 
 Every case also has one network-wide signalling area (level 0), added by project decision. It is not repeated below.
 
-The rolling stock library of **Add from Library...**, `EGTRAIN/QEGTRAIN/resources/rolling_stock_library.json`, is made from the rolling stock of these cases by `tools/rolling_stock_library.py`, so each unit in it has the source and terms that this file gives for the cases that the library names for it.
+The rolling stock library of **Add from Library...**, `EGTRAIN/QEGTRAIN/resources/rolling_stock_library.json`, is made from the rolling stock of these cases by `tools/rolling_stock_library.py`, so each unit in it has the source and terms that this page gives for the cases that the library names for it.
 
 ## Copenhagen, Milano_Brescia and Paimpol
 
@@ -42,7 +42,7 @@ Terms: it may be redistributed with EGTRAIN. No licence name was given, and none
 
 Changes for EGTRAIN: the services end at their last stop.
 
-Attribution: none was specified. The original EGTRAIN is credited in the [README](README.md#credits-and-research-background).
+Attribution: none was specified. The original EGTRAIN is credited in **Help > About EGTRAIN**.
 
 ## Assignment_Gvc_Gdg_Ut
 
