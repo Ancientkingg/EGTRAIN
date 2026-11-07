@@ -6,7 +6,7 @@ This guide records the conventions that new code follows. The newer modules (`sc
 `std::list` containers; new code follows the newer modules, including when it is added to
 `simulation/`. These rules do not ask for a rename of legacy code.
 
-Formatting follows `.clang-format` and `.editorconfig` in the repository root.
+Formatting follows `.clang-format` and `.editorconfig` in the root of the source tree.
 `python3 tools/format.py --fix` formats every C++ source under `EGTRAIN/QEGTRAIN`, and
 `python3 tools/format.py` checks them and lists the files that differ. The pull request
 checks run the same check. The script needs clang-format 23.1.3, because other releases
@@ -23,7 +23,7 @@ line, so wrap it at one of those places.
 
 `.git-blame-ignore-revs` lists the commits that only changed the format.
 `git config blame.ignoreRevsFile .git-blame-ignore-revs` makes `git blame` skip them, and
-the blame view of GitHub skips them without a setting.
+the blame view of the code host skips them without a setting.
 
 ## Static checks
 
@@ -156,7 +156,7 @@ convention. Use this table to decide where a new file goes. Paths are relative t
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events, see the [wire contract](../telemetry/README.md) |
 | `recovery/` | Recovery copies of a scene with unsaved edits, kept below a folder that the caller names, and the controller that writes them in the background |
 | `tests/` | C++ test executables, one per file, with data in `tests/fixtures/`. The folder `tests/e2e/` is the runner of the scripted GUI scenarios, compiled into `QEGTRAIN` itself and not a test executable |
-| `tools/` | At the repository root: Python and shell tests and helpers (`e2e/`, `memory/`, `performance/`, `release/`) |
+| `tools/` | At the root of the source tree: Python and shell tests and helpers (`e2e/`, `memory/`, `performance/`, `release/`) |
 
 - Add a new `.cpp` to the library that holds its folder ([Libraries](../architecture/source-layout.md#libraries)),
   or to `EGTRAIN_SOURCES` when only the application uses it. Add a new `.h` to `EGTRAIN_HEADERS`

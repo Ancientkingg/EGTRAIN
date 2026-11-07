@@ -13,11 +13,11 @@ scripts that build, sign and check the release packages.
   [Scene Roundtrip Smoke Test](smoke-tests.md#scene-roundtrip-smoke-test)). The `docs` job runs
   `tools/docs/check_docs.py` on every pull request, documentation-only ones
   included. The same checks run on `main` once a night (02:17 UTC)
-  and when started by hand from the Actions tab (`workflow_dispatch`); both
+  and when started by hand (`workflow_dispatch`); both
   always build, and both also start the [leak check](smoke-tests.md#leak-check) and the [nightly sanitizer runs](smoke-tests.md#nightly-sanitizer-runs) on Linux.
   A push to `main` starts no run. A scheduled workflow runs
-  on the default branch only, and GitHub pauses schedules in a repository
-  without activity for 60 days. The three legs run independently
+  on the default branch only, and the CI pauses schedules after 60 days
+  without activity. The three legs run independently
   (`fail-fast: false`) and follow the same rule. A newer push to a pull
   request cancels its running checks; a scheduled or manual run is never
   cancelled. After the tests, the Windows leg also makes the request of the
@@ -30,7 +30,7 @@ scripts that build, sign and check the release packages.
   `tools/format.py` or `format.yml`, and when started by hand.
 - The tidy check (`tidy.yml`) runs `tools/tidy.py` for a pull request to `main` that
   changes `EGTRAIN/QEGTRAIN/`, the root `CMakeLists.txt`, `.clang-tidy`, `tools/tidy.py`,
-  `tidy.yml` or the setup action in `.github/actions/`. A pull request analyses the changed sources and the sources that include a
+  `tidy.yml` or the setup action `setup-deps`. A pull request analyses the changed sources and the sources that include a
   changed header; the nightly run (02:37 UTC) and a manual start analyse every source. The
   run installs clang-tidy 23.1 from apt.llvm.org and lists the findings; the local command
   and the checks are described in the [coding guidelines](coding-guidelines.md#static-checks).
@@ -39,8 +39,9 @@ scripts that build, sign and check the release packages.
   for every pull request, fails a pull request that adds undocumented classes or members to the
   files it changes, and publishes the site to `gh-pages` and to egtrain.samuelbruin.com: `dev/` from
   `main`, and `<version>/` and `latest/` after a successful release. Each publish also writes the home
-  page and the pages `support/`, `source/` and `privacy/` at the root with `tools/docs/home_page.py`,
-  from `docs/site/` of `main`: the downloads of the newest stable release in the update feed of the
+  page, the pages `support/` (Report a problem), `contact/` and `privacy/`, and the stub `source/`,
+  which sends a visitor to the home page, at the root with `tools/docs/home_page.py`, from
+  `docs/site/` of `main`: the downloads of the newest stable release in the update feed of the
   website, a table of the guides, developer pages and C++ reference of `latest/`, `dev/` and the
   three newest versions, and a train graph and a playback of a run of the bundled case
   Milano_Brescia. Their values are in `docs/site/home-data.json`, which `tools/docs/home_data.py`
@@ -59,7 +60,7 @@ scripts that build, sign and check the release packages.
   rename together with a release.
 - A pull request to `main` that changes a packaging input also runs the
   package check (`package-check.yml`). The inputs are the workflow files
-  `package-check.yml`, `package.yml` and `release.yml`, the setup action in `.github/actions/`, `tools/release/`, the
+  `package-check.yml`, `package.yml` and `release.yml`, the setup action `setup-deps`, `tools/release/`, the
   vcpkg manifest in `tools/vcpkg/`,
   `installer/`, `Info.plist.in`, `EGTRAIN/QEGTRAIN/update/` and
   `EGTRAIN/QEGTRAIN/app/main.cpp`. The check also runs once a night on `main`
@@ -78,7 +79,7 @@ scripts that build, sign and check the release packages.
   bytes of the package in its job summary. It also prints the signature state of
   `QEGTRAIN.exe`, `egtrain_update_helper.exe` and `scene_tool.exe` with
   `tools/release/verify_signatures.ps1 -Report`, which fails for no file. A push
-  to `production` or a `v*` tag runs the job `sign-windows` when the repository
+  to `production` or a `v*` tag runs the job `sign-windows` when the CI
   variable `WINDOWS_SIGNING` is `signpath`; it signs those three files and
   replaces the uploaded directory with one that holds them (see
   [Code signing](code-signing.md#signing-in-ci)). Every other run skips it. The
@@ -182,7 +183,7 @@ scripts that build, sign and check the release packages.
   Windows, and Linux applications, runs CTest, which holds the smoke suite,
   and the sanitizers, validates the scene bundles, and publishes a stable `vX.Y.Z`
   release. The three package jobs and the Rehearse Linux job, which runs the
-  clean-install steps on the Linux package, are in `.github/workflows/package.yml`, which
+  clean-install steps on the Linux package, are in the workflow `package.yml`, which
   `release.yml` calls from its `package` job with the selected version. The
   Windows package job uploads the assembled directory as the artifact
   `QEGTRAIN-windows-x64-payload`, and the Windows finalize job builds the
@@ -194,7 +195,7 @@ scripts that build, sign and check the release packages.
   builds the same files from the same artifacts and publishes them on
   egtrain.samuelbruin.com with `tools/release/publish_selfhost.py release` (see
   [Self-hosted publication](#self-hosted-publication)). It is a job of its own,
-  so that it can run again after the GitHub release exists. Before
+  so that it can run again after the release exists. Before
   building, the pipeline increments the highest patch version
   among the CMake baseline, existing stable tags, and reserved release versions.
   Every build job, the package metadata and the update manifest use that same version. Local builds use the
@@ -250,11 +251,11 @@ scripts that build, sign and check the release packages.
 - Releases remain drafts until every package and scene bundle is uploaded.
   A stable release appears in the update checks of the application once the job
   `publish-site` has added it to the update feed of the website, after its files.
-  Copies of EGTRAIN 1.0.5 and earlier read the GitHub releases instead.
+  Copies of EGTRAIN 1.0.5 and earlier read the releases that the release job creates instead.
 
 Pushes and pull requests to `production` skip the release workflow when changes
 are limited to Markdown files (`**.md`), `docs/`, the root `LICENSE`, or
-`.github/ISSUE_TEMPLATE/`. Mixed changes still run the full workflow, as do
+the issue templates. Mixed changes still run the full workflow, as do
 changes to source, tests, scenes, build settings, or workflows.
 Documentation-only production pushes do not publish a new release. Updated
 packaged guides ship with the next release; `v*` tags and manual release runs
@@ -268,7 +269,7 @@ compares the files of the pull request with the rule of the workflow, and the
 real jobs skip when the rule selects nothing:
 
 - CMake builds unless every changed file is a Markdown file (`**.md`), under
-  `docs/` or `.github/ISSUE_TEMPLATE/`, or the root `LICENSE`. Its `docs` job
+  `docs/` or in the issue templates, or the root `LICENSE`. Its `docs` job
   checks the documentation on every pull request.
 - Format runs for the files of the format check, listed above.
 - Tidy runs for the files of the tidy check, listed above.
@@ -316,7 +317,7 @@ workflow keeps:
 - A credential or an environment reaches only a job or a step of a push to `production` or a `v*` tag. Such a job has
   that condition or runs only when such a job succeeded; the Windows finalize job, which also runs when the signing was
   skipped, is not one. In any other job only a step with that condition reads a credential: no other key of the job,
-  such as `env`, `container` or `services`, reads one, except the `secrets` of a call of a workflow in this repository,
+  such as `env`, `container` or `services`, reads one, except the `secrets` of a call of another of these workflows,
   whose jobs this rule checks in turn. The top-level `env` of a workflow reads none either. A call of `package.yml`
   passes the inputs and credentials that it declares, by name, and grants the permissions that its jobs ask for.
 - The one exception is the `publish` job of `docs.yml`, which `MAIN_CREDENTIALS` lists: its steps may read
@@ -416,29 +417,29 @@ python3 tools/release/publish_selfhost.py notes TAG FILE
 python3 tools/release/publish_selfhost.py site PAGES [DIR ...]
 ```
 
-`release` uploads each file of `--assets`, the folder that the release assets script writes, and an archive of the
-source code of the commit (`git archive`, `EGTRAIN-<version>-source.tar.gz`) to Zipline as `egtrain-<tag>-<name>`, which
-Zipline serves at `https://bin.samuelbruin.com/raw/egtrain-<tag>-<name>`. It downloads each file from that address and
-compares its size with the file. A name that Zipline has already is not uploaded again when the file there has the same
-size, so a second run adds nothing. Another size stops the script: delete the file on Zipline first. After the files,
-the script publishes the release page `releases/<version>/` with the notes, the files and their sizes, and last the
-entry of the release in the update feed `releases/feed.json`, newest release first. The entry has the fields of a GitHub
-release that the application reads, the text of the GitHub release as its notes and the Zipline addresses as its
-downloads. A second run keeps the time of the first. The source archive is listed on the release page and on the source
-code page, not in the feed. When the website answers 404 for the feed, `release` stops before it publishes the page:
-a feed that was lost, for example with the volume of the website, must be restored, not replaced by one that has only
-the new release. Only the first release on a new site passes `--new-feed`, which starts a feed when there is none.
+`release` uploads each file of `--assets`, the folder that the release assets script writes, to Zipline as
+`egtrain-<tag>-<name>`, which Zipline serves at `https://bin.samuelbruin.com/raw/egtrain-<tag>-<name>`. It downloads
+each file from that address and compares its size with the file. A name that Zipline has already is not uploaded again
+when the file there has the same size, so a second run adds nothing. Another size stops the script: delete the file on
+Zipline first. After the files, the script publishes the release page `releases/<version>/` with the notes, the files
+and their sizes, and last the entry of the release in the update feed `releases/feed.json`, newest release first. The
+entry has the fields of a release that the application reads, the release text as its notes and the Zipline addresses
+as its downloads. The release text is the body that the release job of `release.yml` writes: it names the build, points
+to the packages and the case files, and links neither the commit nor the run. A second run keeps the time of the first.
+When the website answers 404 for the feed, `release` stops before it publishes the page: a feed that was lost, for
+example with the volume of the website, must be restored, not replaced by one that has only the new release. Only the
+first release on a new site passes `--new-feed`, which starts a feed when there is none.
 
-`import` publishes a release that is already on the GitHub releases in the same way. It reads the name, the notes, the
-publication time and the files of the release with the GitHub CLI `gh`, and makes the source archive from the tag, which
-must be in the local repository. A second run uploads no file again and writes the same page and entry.
+`import` publishes, in the same way, a release that the release job has already created. It reads the name, the
+notes, the publication time and the files of the release with `gh`. A second run uploads no file again and writes the same
+page and entry.
 
 `notes` replaces the notes of a published release (see [Release text](code-signing.md#release-text)). `site` publishes
 folders of the documentation site, and then the pages that `tools/docs/home_page.py` writes from the feed of the
-website: `assets/`, `support/`, `source/`, `privacy/` and, last, the home page. Their list of versions has `dev/`, and
-`latest/` and a folder for each stable release in the feed when it has one. `assets/` keeps `site.css`, the style of
-the earlier layout, because the release pages published with that layout load it; `import` publishes such a page again
-in the current layout.
+website: `assets/`, `support/` (Report a problem), `contact/`, `privacy/`, the stub `source/`, which sends a visitor to
+the home page, and, last, the home page. Their list of versions has `dev/`, and `latest/` and a folder for each stable
+release in the feed when it has one. `assets/` keeps `site.css`, the style of the earlier layout, because the release
+pages published with that layout load it; `import` publishes such a page again in the current layout.
 
 The script reads the Zipline token from `ZIPLINE_TOKEN` and the token of the publish API of the website from
 `EGTRAIN_PUBLISH_TOKEN`, prints neither and follows no redirect. Zipline takes its token as the `Authorization` header
@@ -452,8 +453,7 @@ also runs against a real Zipline server; its docstring says how to start one wit
 #### Filling a new site
 
 The first release that the release workflow publishes on the website needs a feed to add to. Fill a new site once, from
-a checkout of this repository with the release tags (`git fetch origin --tags`), with `gh` logged in, and with the tokens
-in `ZIPLINE_TOKEN` and `EGTRAIN_PUBLISH_TOKEN`:
+a Git checkout of the source tree, with `gh` logged in, and with the tokens in `ZIPLINE_TOKEN` and `EGTRAIN_PUBLISH_TOKEN`:
 
 ```bash
 python3 tools/release/publish_selfhost.py import v1.0.5 --new-feed
@@ -493,7 +493,7 @@ bar and status bar, with `QEGTRAIN.app` on the left and `Applications` on the ri
 at the same height. There is no background picture and no volume icon. Without
 `--layout` Finder places the two icons itself. The file is written without
 Finder by `tools/release/dmg/make_ds_store.py`, which needs the `ds_store`
-package. The package is not a dependency of the repository or of CI, so run the
+package. The package is not a dependency of the project or of CI, so run the
 script in a throwaway environment and commit the result:
 
 ```bash
@@ -567,9 +567,10 @@ the link. Run it with
 The first six steps change the app, so they come before the signature, and the last three check the signed app. The app
 first runs in the next step, **Start the package**, from a copy. `bundle` and `add-files` take the programs from the
 folder that holds the app, which is the build folder. `bundle` needs `QT_ROOT_DIR` and Homebrew. `trim` and
-`min-version` also write their lines into the job summary when `GITHUB_STEP_SUMMARY` is set, so every step also runs
-outside a workflow. To package a local build, copy the app and the two programs into a new folder and run the steps in
-the order of the table, with `tools/release/sign_macos.sh` between `min-version` and `verify-contents`:
+`min-version` also write their lines into the job summary when the workflow gives the job one, and skip it outside a
+workflow, so every step also runs there. To package a local build, copy the app and the two programs into a new folder
+and run the steps in the order of the table, with `tools/release/sign_macos.sh` between `min-version` and
+`verify-contents`:
 
 ```bash
 mkdir -p /tmp/package/build
@@ -724,8 +725,8 @@ Windows finalize job of `package.yml` compiles the script, and
 
 The test is `tools/release/test_installer_script.py`. It reads the script,
 `installer/installed-by-setup.ini`, `docs/development/windows-installer.md`, `kAssetPatterns`
-in `update/ReleaseInfo.cpp`, `LICENSE` and the Windows package job of
-`.github/workflows/package.yml` as text, looks for the icon file, and checks
+in `update/ReleaseInfo.cpp`, `LICENSE` and the Windows package job of the
+workflow `package.yml` as text, looks for the icon file, and checks
 that the script names `LICENSE` as its licence file and the package job copies
 and checks it, and that:
 
@@ -874,7 +875,7 @@ checkout.
 ### Dependency caches
 
 The build legs, the leak check, the nightly sanitizer jobs, the tidy check and the package jobs set up their
-dependencies with the local action `.github/actions/setup-deps`. It installs Qt 6.8.3 with Qt Charts through
+dependencies with the local action `setup-deps`. It installs Qt 6.8.3 with Qt Charts through
 `jurplel/install-qt-action`, ZeroMQ, cppzmq and nlohmann-json from Homebrew on macOS and from apt on Linux, with the
 extra apt packages of its `apt-packages` input, and sets up the MSVC environment on Windows. The `validation` and
 `sanitizer` jobs of `release.yml` install the same Qt and Homebrew packages in steps of their own.
@@ -904,7 +905,7 @@ cache is the leg and the runner image, and the action adds a timestamp, so every
 run saves a new entry. A run restores the newest entry of its leg and image, or
 else the newest of its leg. The post step of the action (`Post Set up compiler
 cache`) prints the hits and misses of the job. Each entry holds at most 500 MB,
-and GitHub keeps 10 GB for the repository and removes the entries used least
+and the CI keeps 10 GB of caches in all and removes the entries used least
 recently first.
 
 The ci presets of the three legs set `EGTRAIN_IPO=OFF`. A Release build links with
@@ -922,5 +923,5 @@ run, so only the nightly or manual run on `main` writes the caches that the
 first run of a pull request uses. That is enough: the newest compiler cache of
 `main` is about a day old, so a pull request compiles again only what the
 changes since then affect, and its later runs restore its own cache. The first
-run after a key change is cold. GitHub removes a cache that no run has used for
+run after a key change is cold. The CI removes a cache that no run has used for
 seven days; the nightly run keeps the entries in use.

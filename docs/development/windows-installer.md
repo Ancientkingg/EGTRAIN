@@ -20,12 +20,12 @@ ISCC.exe /DVersion=1.2.3 /DPayload=C:\build\dist\QEGTRAIN /OC:\build\installer-o
 
 The script stops with a message that names the parameter when `/DVersion` or `/DPayload` is missing. It does not check that the payload holds `QEGTRAIN.exe`.
 
-Besides the payload, the compiler reads three files of the repository: `installer/installed-by-setup.ini`, the icon `EGTRAIN/QEGTRAIN/resources/app/egtrain.ico`, which is the icon of Setup, and `LICENSE`, the GPL-3.0 text that the licence page shows.
+Besides the payload, the compiler reads three files of the source tree: `installer/installed-by-setup.ini`, the icon `EGTRAIN/QEGTRAIN/resources/app/egtrain.ico`, which is the icon of Setup, and `LICENSE`, the GPL-3.0 text that the licence page shows.
 
 ## What the installer does
 
 - It runs without administrator rights and has one install scope, the current user. The script sets no way to choose another.
-- It shows the GNU General Public License version 3 (`LICENSE` of the repository) on a licence page, and the user must accept it to go on. A silent install shows no page. The Windows package job copies `LICENSE` and `THIRD_PARTY_NOTICES.md` (the licences of the bundled libraries) into the package, so the installation folder and the portable ZIP hold both.
+- It shows the GNU General Public License version 3 (`LICENSE` of the source tree) on a licence page, and the user must accept it to go on. A silent install shows no page. The Windows package job copies `LICENSE` and `THIRD_PARTY_NOTICES.md` (the licences of the bundled libraries) into the package, so the installation folder and the portable ZIP hold both.
 - It installs the payload as it is into `%LOCALAPPDATA%\Programs\EGTRAIN` by default, a folder of the user. The folder page of the wizard lets the user choose another folder on a first install.
 - It adds the entry `EGTRAIN` to the Start Menu of the user, directly in the Programs folder.
 - It offers a desktop shortcut as the task `desktopicon`, which is unchecked by default.

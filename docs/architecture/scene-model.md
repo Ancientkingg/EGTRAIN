@@ -454,8 +454,8 @@ runtime does not read `TrackLines/AreasCaseStudy.txt` and does not synthesize a
 conventional or ETCS default. The levels and the rule that gives a section its
 level are described in [Signalling levels](../guides/signalling-levels.md).
 
-[`DispatchController::prepareScene`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_dispatch_controller.html
-[`SceneModel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_model.html
-[`SceneScenario`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_scenario.html
-[`Train`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_train.html
-[`RunResults`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_run_results.html
+[`DispatchController::prepareScene`]: https://egtrain.samuelbruin.com/latest/api/class_dispatch_controller.html
+[`SceneModel`]: https://egtrain.samuelbruin.com/latest/api/struct_scene_model.html
+[`SceneScenario`]: https://egtrain.samuelbruin.com/latest/api/struct_scene_scenario.html
+[`Train`]: https://egtrain.samuelbruin.com/latest/api/class_train.html
+[`RunResults`]: https://egtrain.samuelbruin.com/latest/api/struct_run_results.html

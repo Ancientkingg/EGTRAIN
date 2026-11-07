@@ -311,8 +311,8 @@ On Windows the programs of the environment are in `build\docs-venv\Scripts`. `do
 rebuild the reference, so run `docs` first.
 
 A page links to a class with the address of the published reference, such as
-`https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_model.html`, so the link also works on GitHub. The
-site build points such a link to the reference next to the page.
+`https://egtrain.samuelbruin.com/latest/api/struct_scene_model.html`, so the link also works in the manual, which holds no
+reference. The site build points such a link to the reference next to the page.
 `build/docs-venv/bin/python tools/docs/check_undocumented.py main` lists the undocumented classes and members that
 your branch adds since it forked from `main`, as the pull request check does.
 
