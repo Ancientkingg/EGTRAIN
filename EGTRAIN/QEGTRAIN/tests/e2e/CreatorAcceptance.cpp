@@ -3475,8 +3475,7 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 		if (!require(head != nullptr, "same-chainage signal head missing")) return false;
 		click(head->sceneBoundingRect().center());
 		if (!require(w.m_inspector->m_signallingTrackIDText->text() == track && w.m_inspector->m_signallingXText->text().toDouble() == 1000
-					&& w.m_inspector->m_signallingLengthSectionAheadText->text().isEmpty()
-					&& w.m_inspector->m_signallingLengthSectionAheadText->placeholderText() == "After a run"
+					&& w.m_inspector->m_signallingLengthSectionAheadText->text() == "2000"
 					&& w.m_inspector->m_signallingGroupDetails->toPlainText().contains("authored-" + track),
 				"exact canonical preview signal identity")) return false;
 	}

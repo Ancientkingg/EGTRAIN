@@ -222,6 +222,8 @@ private slots:
 	void dockStartsHidden();
 	void inspectsPreviewNodeAndArc();
 	void inspectsPreviewSignal();
+	void showsPreviewSectionLength();
+	void namesPreviewStation();
 	void clearsPreviewInspection();
 	void showsRunNode();
 	void showsRunStation();
@@ -335,6 +337,44 @@ void TestInspectorPanel::inspectsPreviewSignal() {
 	// An item of the preview that the scene does not have leaves nothing selected.
 	QVERIFY(f.panel.previewSelectionKind().isEmpty());
 	QVERIFY(f.panel.previewSelectionId().isEmpty());
+}
+
+// Track T2 runs from 0 to 0.3 km in the blocks b1 of 0.1 km and b2 of 0.2 km, and the head at the start of b2 gives the
+// length of b2. In floating point 0.3 - 0.1 is a little less than 0.2.
+void TestInspectorPanel::showsPreviewSectionLength() {
+	PanelFixture f;
+	SceneModel& model = f.host.model;
+	model.tracks.push_back({"T2"});
+	model.nodes.push_back({"m1", "T2", 0.0, 0.0});
+	model.nodes.push_back({"m2", "T2", 0.3, 0.0});
+	model.arcs.push_back({"a2", "T2", "m1", "m2", 0.0, 0.0, 0.0});
+	model.blocks.push_back({"b1", "T2", 0.1});
+	model.blocks.push_back({"b2", "T2", 0.2});
+	TrackPreviewSignal head;
+	head.trackId = "T2";
+	head.sectionId = "@b2@";
+	PresenterAccess::trackPreview(f.presenter).previewSignals.push_back(head);
+	QGraphicsEllipseItem* signalPreview = previewItem(f.scene, "signal", "@b2@");
+	signalPreview->setData(PreviewGraphics::TrackId, "T2");
+	f.panel.displayPreviewInfo(signalPreview);
+	// Before a run a signal gives the length of its block section in metres.
+	QCOMPARE(text(f.panel, "Block section length (m)"), "200");
+	QVERIFY(placeholder(f.panel, "Block section length (m)").isEmpty());
+}
+
+// A station of the preview shows its id after its name only when the two differ.
+void TestInspectorPanel::namesPreviewStation() {
+	PanelFixture f;
+	f.host.model.stations = {{"Alpha", "Alpha", false, 0.0, {}}, {"Beta", "", false, 0.0, {}}, {"Gm", "Gamma", false, 0.0, {}}};
+	f.panel.displayPreviewInfo(previewItem(f.scene, "station", "Alpha"));
+	// A station whose name is its id shows the name once.
+	QCOMPARE(text(f.panel, "Name"), "Alpha");
+	f.panel.displayPreviewInfo(previewItem(f.scene, "station", "Beta"));
+	// A station without a name shows its id once.
+	QCOMPARE(text(f.panel, "Name"), "Beta");
+	f.panel.displayPreviewInfo(previewItem(f.scene, "station", "Gm"));
+	// A station with a name of its own shows its id after it.
+	QCOMPARE(text(f.panel, "Name"), "Gamma [Gm]");
 }
 
 void TestInspectorPanel::clearsPreviewInspection() {
