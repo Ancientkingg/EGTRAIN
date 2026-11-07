@@ -101,7 +101,8 @@ constexpr int kHiddenNodeSize = 0;
 // The number of seconds after its step for which a message of virtual coupling shows at its train.
 constexpr int kVirtualCouplingMessageSeconds = 40;
 
-// The look of a callout: a line up from the origin of its group to the bottom centre of a box with a text in it.
+// The look of a callout: a line from the origin of its group to a box with a text in it, up to the bottom centre of the
+// box, or down to its top centre when the callout hangs (drawCallout()).
 struct CalloutLook {
 	qreal rise;		  // The length of the line, in track separations.
 	int fontDivisor;  // The pixel size of the font is station_size divided by this.
@@ -121,10 +122,17 @@ const CalloutLook kVirtualCouplingCallout{2.0, 6, 1.25, Qt::white, 4.4};
 // The orange of the line and the box of a callout.
 const QColor kCalloutColor(242, 161, 106);
 
-// Shows text in the callout group, which is made and added to scene when it is null, and returns the group. The
-// items of the group are laid out again only when the text or the scale changes.
+// The scene y of the top of the part of the scene that the view shows; minus infinity without a view.
+qreal visibleTop(const QGraphicsView* view) {
+	return view ? view->mapToScene(view->viewport()->rect()).boundingRect().top() : -std::numeric_limits<qreal>::infinity();
+}
+
+// Shows text in the callout group, which is made and added to scene when it is null, and returns the group. The callout
+// points at target, a rectangle in scene coordinates: it stands on the middle of its top edge, or, when its box would
+// then reach above the scene y ceiling, hangs from the middle of its bottom edge. The group goes to the start of its line.
+// The text is laid out again only when it or the scale changes.
 QGraphicsItemGroup* drawCallout(QGraphicsScene* scene, QGraphicsItemGroup* group, const CalloutLook& look,
-	const QString& text, qreal scale) {
+	const QString& text, qreal scale, const QRectF& target, qreal ceiling = -std::numeric_limits<qreal>::infinity()) {
 	const bool fresh = !group;
 	QGraphicsLineItem* line = nullptr;
 	QGraphicsRectItem* box = nullptr;
@@ -158,29 +166,45 @@ QGraphicsItemGroup* drawCallout(QGraphicsScene* scene, QGraphicsItemGroup* group
 				label = textChild;
 		}
 	}
-	if (!line || !box || !label || (!fresh && label->toPlainText() == text && label->scale() == scale))
+	if (!line || !box || !label)
 		return group;
+	if (fresh || label->toPlainText() != text || label->scale() != scale) {
+		label->setPlainText(text);
+		label->setScale(scale);
+		const QRectF textRect = label->boundingRect();
+		box->setRect(QRectF(0, 0, look.boxFactor * (textRect.width() * scale), look.boxFactor * (textRect.height() * scale)));
+		QPen boxPen = box->pen();
+		boxPen.setWidthF(scale);
+		box->setPen(boxPen);
+	}
 
-	const QPointF end(0.0, -look.rise * NetworkPresenter::track_separation * scale);
-	line->setLine(QLineF(QPointF(), end));
-	label->setPlainText(text);
-	label->setScale(scale);
+	// the box stands on the end of the line, or hangs from it, and the text is in its centre
+	const qreal rise = look.rise * NetworkPresenter::track_separation * scale;
 	const QRectF textRect = label->boundingRect();
-	box->setRect(QRectF(0, 0, look.boxFactor * (textRect.width() * scale), look.boxFactor * (textRect.height() * scale)));
-	QPen boxPen = box->pen();
-	boxPen.setWidthF(scale);
-	box->setPen(boxPen);
-	// the box stands on the end of the line, and the text is in its centre
 	const QRectF boxRect = box->boundingRect();
-	box->setPos(end.x() - boxRect.width() / 2, end.y() - boxRect.height());
+	const bool hangs = target.top() - rise - boxRect.height() < ceiling;
+	const QPointF end(0.0, hangs ? rise : -rise);
+	line->setLine(QLineF(QPointF(), end));
+	box->setPos(end.x() - boxRect.width() / 2, hangs ? end.y() : end.y() - boxRect.height());
 	label->setPos(box->pos()
 		+ QPointF(0.5 * (boxRect.width() - textRect.width() * scale), 0.5 * (boxRect.height() - textRect.height() * scale)));
+	group->setPos(target.center().x(), hangs ? target.bottom() : target.top());
 	return group;
 }
 
 // A station node stands for a platform: its platform id is neither empty nor "None".
 bool hasPlatformId(const std::string& platformId) {
 	return !platformId.empty() && platformId != "None";
+}
+
+// A platform in words: "Guingamp, platform 2" for "Guingamp.platform.2", the form in which the import names the
+// platforms of a station, and any other id as it is.
+std::string platformWords(const std::string& platformId) {
+	const std::string separator = ".platform.";
+	const std::size_t at = platformId.rfind(separator);
+	if (at == std::string::npos || at == 0 || at + separator.size() == platformId.size())
+		return platformId;
+	return platformId.substr(0, at) + ", platform " + platformId.substr(at + separator.size());
 }
 
 // A station node gets a platform bar for a platform of a station that is not virtual: its name does not hold "virtual",
@@ -2057,26 +2081,34 @@ void NetworkPresenter::paintTrainPassengerInfo(TrainItemGroup* trainItem) {
 		removeTrainPaxInfoIcon();
 		return;
 	}
-	// drawn from the front of the train, where the group is
+	// drawn from the front of the train, where the group is, above it or, at the top edge of the view, below it
 	trainPaxInfoItem = drawCallout(m_scene, trainPaxInfoItem, kTrainPassengersCallout,
 		QStringLiteral("%1 of %2 on board").arg(trainItem->currentOnboardPassengers).arg(trainItem->maxOnboardPassengers),
-		presentationScale());
-	trainPaxInfoItem->setPos(front);
+		presentationScale(), QRectF(front, front), visibleTop(m_view));
 	trainPaxInfoItem->setVisible(true);
 }
 
 // paint passenger info on top of passenger icon
 void NetworkPresenter::paintPassengerInfoIcon(PassengerItem* paxItem, const GuiPassengerState& passenger, bool replayActive) {
-	std::string text = "Passenger " + passenger.id + "\nStatus: " + passenger.status + " (" + passenger.waitingPlatform
-		+ ")\nNext train: " + passenger.nextTrain;
+	// The run writes "None" for what it does not have.
+	const auto known = [](const std::string& value) { return !value.empty() && value != "None"; };
+	std::string text = "Passenger " + passenger.id;
+	if (passenger.status == "OnPlatform")
+		text += known(passenger.waitingPlatform) ? "\nWaiting at " + platformWords(passenger.waitingPlatform) : "\nWaiting";
+	else if (passenger.status == "OnBoard")
+		text += "\nOn board";
+	else if (passenger.status == "None") // outside the network a passenger has an icon only where its journey ended
+		text += "\nArrived";
+	if (known(passenger.nextTrain))
+		text += "\nNext train: " + passenger.nextTrain;
 	if (!passenger.nextDestination.empty())
 		text += "\nNext destination: " + passenger.nextDestination;
 	if (replayActive)
 		text += "\nJourney not shown in the replay";
 
-	// drawn from the top centre of the icon
-	paxIconInfoItem = drawCallout(m_scene, paxIconInfoItem, kPassengerCallout, QString::fromStdString(text), presentationScale());
-	paxIconInfoItem->setPos(paxItem->sceneBoundingRect().center().x(), paxItem->sceneBoundingRect().top());
+	// drawn from the top centre of the icon or, at the top edge of the view, from its bottom centre
+	paxIconInfoItem = drawCallout(m_scene, paxIconInfoItem, kPassengerCallout, QString::fromStdString(text), presentationScale(),
+		paxItem->sceneBoundingRect(), visibleTop(m_view));
 	paxIconInfoItem->setVisible(true);
 	paxIconItem = paxItem;
 }
@@ -3089,8 +3121,8 @@ void NetworkPresenter::paintVCouplingMsg(TrainItemGroup* trainItem, const std::s
 	// The message is drawn from the front of the train, where the group is.
 	const QPointF front = headPolygon->mapToScene((frontUp + frontDown) / 2);
 	QGraphicsItemGroup*& msgGroup = m_vcMessageItems[trainItem->index];
-	msgGroup = drawCallout(m_scene, msgGroup, kVirtualCouplingCallout, QString::fromStdString(message), presentationScale());
-	msgGroup->setPos(front);
+	msgGroup = drawCallout(m_scene, msgGroup, kVirtualCouplingCallout, QString::fromStdString(message), presentationScale(),
+		QRectF(front, front));
 	msgGroup->setVisible(true);
 }
 

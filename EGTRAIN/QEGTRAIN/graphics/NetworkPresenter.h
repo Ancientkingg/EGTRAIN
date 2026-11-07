@@ -263,11 +263,14 @@ public:
 	/// is known.
 	void paintStationNode(QPointF coord, int size, int track, const Node* node, bool lineEnd);
 
-	/// Shows the passengers on board above a train and selects it. A train without a shape shows none, and the
-	/// passenger information is deleted. The group of the information is made once and then reused.
+	/// Shows the passengers on board above the front of a train, or below it when they would reach above the view, and
+	/// selects the train. A train without a shape shows none, and the passenger information is deleted. The group of the
+	/// information is made once and then reused.
 	void paintTrainPassengerInfo(TrainItemGroup* trainItem);
-	/// Shows the details of a passenger above its icon and selects the icon; a replay adds that the journey details are
-	/// unavailable. The group of the details is made once and then reused.
+	/// Shows the details of a passenger in words above its icon, or below it when they would reach above the view, and
+	/// selects the icon. A passenger on a platform waits at it, such as "Waiting at Guingamp, platform 2", one on a train
+	/// is on board, and one outside the network has arrived; a replay adds that the journey details are unavailable. The
+	/// group of the details is made once and then reused.
 	void paintPassengerInfoIcon(PassengerItem* paxItem, const GuiPassengerState& passenger, bool replayActive);
 	/// Shows the message of a virtual coupling above a train, in a group that is made once for the train.
 	void paintVCouplingMsg(TrainItemGroup* trainItem, const std::string& message);
