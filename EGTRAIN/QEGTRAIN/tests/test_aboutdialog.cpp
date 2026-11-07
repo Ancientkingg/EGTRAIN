@@ -36,11 +36,10 @@ public:
 
 namespace {
 const char* const kNames[] = {"aboutResearchProfile", "aboutOriginalResearch", "aboutWebsite",
-	"aboutProjectWebsite", "aboutSourceCode", "aboutReportIssue"};
+	"aboutProjectWebsite", "aboutReportIssue"};
 const char* const kAddresses[] = {"https://orcid.org/0000-0002-7936-5832",
 	"https://doi.org/10.6092/unina/fedoa/8599",
 	"https://samuelbruin.com/", "https://egtrain.samuelbruin.com/",
-	"https://egtrain.samuelbruin.com/source/",
 	"https://egtrain.samuelbruin.com/support/"};
 } // namespace
 
@@ -118,7 +117,7 @@ void TestAboutDialog::showsContentAndOpensLinks() {
 		QFAIL("bounded dialog must retain its Close footer");
 	QVERIFY(footer->isVisible());
 	QCOMPARE_GE(footer->geometry().top(), scroll->geometry().bottom());
-	for (int i = 0; i < 6; ++i) {
+	for (int i = 0; i < 5; ++i) {
 		auto* link = dialog.findChild<QPushButton*>(QString::fromLatin1(kNames[i]));
 		// The link has its address as tooltip and description.
 		if (link == nullptr)
@@ -133,11 +132,11 @@ void TestAboutDialog::showsContentAndOpensLinks() {
 		QCOMPARE(m_receiver.opened.last(), QUrl(QString::fromLatin1(kAddresses[i])));
 		QVERIFY(dialog.isVisible());
 	}
-	// About has these six links and no other.
+	// About has these five links and no other.
 	int links = 0;
 	for (const auto* button : dialog.findChildren<QPushButton*>())
 		links += button->property("aboutLink").toBool() ? 1 : 0;
-	QCOMPARE(links, 6);
+	QCOMPARE(links, 5);
 	m_receiver.opened.clear();
 	QKeyEvent escape(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier);
 	QApplication::sendEvent(&dialog, &escape);
