@@ -323,7 +323,8 @@ files and the two sidecars of an export keep their own diagnostics.
 and stops the import, as a missing one does. Any other file gives the warning
 `scene.import.read` and counts as skipped in `import_report`. An unreadable
 `trainNames.txt` is replaced by the files in `Trains`, as a missing one is, and
-an unreadable rollout adds no scenario.
+an unreadable rollout adds no scenario. A UTF-8 byte order mark at the start of
+a legacy file is dropped before its rows are read.
 
 `SceneExporter` writes a legacy case into a staging folder next to the
 destination and publishes it only when the export is complete, so a failed

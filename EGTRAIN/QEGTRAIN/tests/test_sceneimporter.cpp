@@ -287,6 +287,7 @@ private slots:
 	void importsUnicodeNames();
 	void lastExportDecidesRoutesAndIncidents();
 	void reportsOddSizedUtf16Files();
+	void readsFirstRowAfterUtf8ByteOrderMark();
 	void skipsNonFiniteNumbers();
 	void reportsFilesThatCannotBeOpened();
 	void reportsFolderThatCannotBeRead();
@@ -1410,6 +1411,25 @@ void TestSceneImporter::reportsOddSizedUtf16Files() {
 	// An odd-sized UTF-16 rollout is reported and left out.
 	QVERIFY(hasReadDiag(imported.diagnostics, rollout, SceneSeverity::Warning));
 	QVERIFY(!rolloutImported);
+}
+
+// A legacy file that starts with the UTF-8 byte order mark, as Notepad, Excel and QGIS can write it, imports its first
+// row.
+void TestSceneImporter::readsFirstRowAfterUtf8ByteOrderMark() {
+	TempDir root;
+	const fs::path legacy = fs::path(root.dir) / "bom";
+	const fs::path destination = fs::path(root.dir) / "bom-scene";
+	const std::string byteOrderMark = "\xEF\xBB\xBF";
+	writeSmallLegacyCase(legacy);
+	writeText(legacy / "TrackLines/Stations.txt", byteOrderMark + "0\tOrigin\n");
+	const auto imported = importLegacyScene(legacy.string(), destination.string(), "Bom");
+	// No row of the station file is reported as malformed, and the case imports.
+	QVERIFY(!hasDiag(imported.diagnostics, "scene.import.parse", SceneSeverity::Warning));
+	QVERIFY(imported.success());
+	const SceneLoadResult loaded = loadScene(destination.u8string());
+	// The station of the first row is in the scene.
+	QCOMPARE(loaded.scene.stations.size(), std::size_t(1));
+	QCOMPARE(loaded.scene.stations.front().name, std::string("Origin"));
 }
 
 // A token that std::stod reads as NaN or infinity is a malformed number. A node row with one is skipped with a warning
