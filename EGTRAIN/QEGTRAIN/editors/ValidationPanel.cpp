@@ -187,8 +187,13 @@ QString ValidationPanel::statusText(const SceneDiagnosticCounts& counts, bool ad
 
 void ValidationPanel::showAdvancedColumns() {
 	const bool advanced = advancedDetails();
-	for (const int column : {kCodeColumn, kFileColumn, kPathColumn})
+	for (const int column : {kCodeColumn, kFileColumn, kPathColumn}) {
+		const bool comesIntoView = advanced && m_table->isColumnHidden(column);
 		m_table->setColumnHidden(column, !advanced);
+		// resizeColumnsToContents() in refresh() skips hidden columns, so a column fits its content when it shows.
+		if (comesIntoView)
+			m_table->resizeColumnToContents(column);
+	}
 }
 
 void ValidationPanel::updateStatus() {

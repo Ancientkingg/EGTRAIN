@@ -103,7 +103,8 @@ Q_SIGNALS:
 
 private:
 	bool advancedDetails() const;
-	// Shows the code, file and path columns of the table only with advanced details.
+	// Shows the code, file and path columns of the table only with advanced details; a column that comes into view fits
+	// its content.
 	void showAdvancedColumns();
 
 	// The latest validation of the scene and what it was computed from.
