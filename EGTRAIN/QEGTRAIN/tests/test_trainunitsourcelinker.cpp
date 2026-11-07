@@ -1,9 +1,14 @@
 #include "editors/TrainUnitSourceLinker.h"
 
+#include "editors/TrainUnitPanel.h"
+#include "support/EditHistory.h"
+#include "support/FakePrompts.h"
+
 #include <QAbstractButton>
 #include <QApplication>
 #include <QDir>
 #include <QFile>
+#include <QLineEdit>
 #include <QMessageBox>
 #include <QString>
 #include <QStringList>
@@ -117,6 +122,45 @@ static const SceneTrainUnit& unitOf(const SceneDocument& document, std::size_t i
 	return document.model().trainUnits[index];
 }
 
+// A Rolling Stock Units panel and a linker on a document that shows unitScene(), connected as the window connects them: a
+// unit that the panel renames takes its links along, and one that it deletes loses them. The question before a delete is
+// answered with Yes. u1 is linked to the two files, which are taken.
+struct LinkedUnitFixture {
+	SceneDocument document;
+	TrainUnitSourceLinker linker;
+	TrainUnitPanel panel;
+	FakePrompts prompts;
+	RunSelection selection;
+
+	LinkedUnitFixture(const QString& physicalPath, const QString& tractionPath) {
+		linker.setDocument(&document);
+		prompts.confirmAnswer = true;
+		panel.setPrompts(&prompts);
+		panel.setDocument(&document);
+		QObject::connect(&panel, &TrainUnitPanel::unitRenamed, &linker,
+			[this](const QString& oldId, const QString& newId) { linker.renameUnit(oldId.toStdString(), newId.toStdString()); });
+		QObject::connect(&panel, &TrainUnitPanel::unitDeleted, &linker, [this](const QString& id) { linker.forgetUnit(id.toStdString()); });
+		document.replace(unitScene(), false);
+		writeFile(physicalPath, physicalFile(71.0));
+		writeFile(tractionPath, tractionFile(120000.0));
+		linker.linkFile("u1", false, physicalPath);
+		linker.linkFile("u1", true, tractionPath);
+		linker.processChanges();
+	}
+};
+
+// The links of the unit `id`, with their files, their status and what was taken from them, followed by the watched files
+// and folders. Only the watches when the unit has no links.
+static QStringList linkState(const TrainUnitSourceLinker& linker, const std::string& id) {
+	QStringList state;
+	if (const TrainUnitSourceLinker::Link* link = linker.linkOf(id))
+		state << link->dataPath << link->dataStatus << link->dataSignature << link->tractionPath << link->tractionStatus
+			  << link->tractionSignature;
+	QStringList files = linker.watchedFiles();
+	files.sort();
+	return state + files + linker.watchedDirectories();
+}
+
 // The linker keeps train units linked to their parameter and traction files, takes a changed file into the unit, asks
 // when the file differs from a hand edit, and waits while a run uses the model.
 class TestTrainUnitSourceLinker : public QObject {
@@ -131,6 +175,8 @@ private slots:
 	void linkDuringRunWaits();
 	void changeDuringRunNeedsAgreement();
 	void sharedFileAndUnlinking();
+	void undoKeepsLinksOfDeletedUnit();
+	void undoKeepsLinksOfRenamedUnit();
 	void otherSceneDropsLinks();
 	void questionTakesEveryPendingEdit();
 
@@ -564,6 +610,64 @@ void TestTrainUnitSourceLinker::sharedFileAndUnlinking() {
 	// A link ends with its unit.
 	QVERIFY(linker.linkOf("u1_renamed") == nullptr);
 	QVERIFY(linker.watchedFiles().isEmpty());
+}
+
+// Undo of a delete brings the unit back with the links to its parameter file and its traction file, their status and their
+// watches, and Redo drops them again.
+void TestTrainUnitSourceLinker::undoKeepsLinksOfDeletedUnit() {
+	LinkedUnitFixture f(m_physicalPath, m_tractionPath);
+	EditHistory history(f.document, f.selection, f.panel, &f.linker);
+	const QStringList linked = linkState(f.linker, "u1");
+	// u1 has both links, whose files were taken, and the two files and their folder are watched.
+	QCOMPARE(linked.size(), 9);
+	QCOMPARE(f.linker.linkOf("u1")->dataStatus, QStringLiteral("Reloaded"));
+	QCOMPARE(f.linker.linkOf("u1")->tractionStatus, QStringLiteral("Reloaded"));
+
+	f.panel.selectUnit("u1");
+	f.panel.deleteUnit();
+	// The delete drops the links of u1 and the watches.
+	QCOMPARE(linkState(f.linker, "u1"), QStringList());
+
+	QVERIFY(history.undo());
+	// Undo brings u1 back with both links as they were, and the files and their folder are watched again.
+	QCOMPARE(linkState(f.linker, "u1"), linked);
+	f.linker.processChanges();
+	// The files did not change while u1 was gone, so nothing is taken again, and Redo is still there.
+	QCOMPARE(linkState(f.linker, "u1"), linked);
+
+	QVERIFY(history.redo());
+	// Redo deletes u1 again, with its links and the watches.
+	QCOMPARE(linkState(f.linker, "u1"), QStringList());
+
+	writeFile(m_physicalPath, physicalFile(72.0));
+	QVERIFY(history.undo());
+	// A second Undo brings them back once more, and a file that changed while u1 was gone is taken.
+	QCOMPARE(linkState(f.linker, "u1"), linked);
+	f.linker.processChanges();
+	QCOMPARE_EQ(unitOf(f.document, 0).physical.length_m, 72.0);
+}
+
+// Undo of a rename gives the links back to the old id, and Redo to the new one.
+void TestTrainUnitSourceLinker::undoKeepsLinksOfRenamedUnit() {
+	LinkedUnitFixture f(m_physicalPath, m_tractionPath);
+	EditHistory history(f.document, f.selection, f.panel, &f.linker);
+	const QStringList linked = linkState(f.linker, "u1");
+	// u1 has both links, and the two files and their folder are watched.
+	QCOMPARE(linked.size(), 9);
+	f.panel.selectUnit("u1");
+	f.panel.idEdit()->setText("u1_renamed");
+	f.panel.commitIdEdit();
+	// The links go with the new id.
+	QCOMPARE(linkState(f.linker, "u1_renamed"), linked);
+
+	QVERIFY(history.undo());
+	// Undo gives the old id back with the links.
+	QCOMPARE(linkState(f.linker, "u1"), linked);
+	QVERIFY(f.linker.linkOf("u1_renamed") == nullptr);
+	QVERIFY(history.redo());
+	// Redo gives them to the new id again.
+	QCOMPARE(linkState(f.linker, "u1_renamed"), linked);
+	QVERIFY(f.linker.linkOf("u1") == nullptr);
 }
 
 // another scene drops the links

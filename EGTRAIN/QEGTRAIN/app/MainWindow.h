@@ -487,7 +487,7 @@ private:
 	void undoScene();
 	void redoScene();
 	void stepSceneHistory(bool redo);
-	void keepRunSelectionInHistory();
+	void keepSessionStateInHistory();
 	void restoreSceneFromHistory(const SceneModel& previous, const SceneHistoryEntry& entry);
 	void refreshAllEditorPanels();
 	void updateUndoRedoActions();

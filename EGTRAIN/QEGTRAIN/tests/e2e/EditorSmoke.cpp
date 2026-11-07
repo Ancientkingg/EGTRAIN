@@ -6245,7 +6245,8 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 	// Edits in the rolling stock, composition, service, timetable, scenario, incident, entrance delay and passenger editors.
 	if (!step("an added rolling stock unit", "Add rolling stock unit", [&] { trainUnitPanel(w)->addUnit(); }))
 		return finish();
-	// A link to a source file is session state: it stays with a unit that the scene still has and goes with one that it lost.
+	// A link to a source file is session state: it stays with a unit that the scene still has, goes with one that it lost
+	// and comes back with one that Redo brings back.
 	const std::string linkedUnitId = w.m_document->mutableModel().trainUnits.front().id;
 	const std::string addedUnitId = w.m_document->mutableModel().trainUnits.back().id;
 	{
@@ -6421,6 +6422,8 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		redo();
 	expect(!w.m_redoAction->isEnabled() && w.m_undoAction->text() == QLatin1String("Undo Delete service"),
 		"Redo is available after the last edit");
+	expect(trainUnitSourceLinker(w)->linkOf(linkedUnitId) && trainUnitSourceLinker(w)->linkOf(addedUnitId),
+		"Redo did not bring back the link of a unit that it brought back");
 	if (!failures.isEmpty())
 		return finish();
 
