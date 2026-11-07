@@ -12,6 +12,7 @@ guides/common-questions
 README
 guides/install
 guides/case-studies
+guides/case-data
 guides/opening-a-case-study
 guides/main-window
 guides/updates

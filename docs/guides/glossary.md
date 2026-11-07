@@ -1,6 +1,6 @@
 # Glossary of application terms
 
-This page says what the words of the program and of its documents mean. Every entry says what a word means in EGTRAIN and where a user meets it: in a menu, a window, a field or a file. Railway words are explained only as far as the documents of this repository define them; [What is not established](signalling-levels.md#what-is-not-established) says what they do not claim. The schema and the guides stay the authority, so an entry links to them instead of repeating them.
+This page says what the words of the program and of its documents mean. Every entry says what a word means in EGTRAIN and where a user meets it: in a menu, a window, a field or a file. Railway words are explained only as far as the documents of EGTRAIN define them; [What is not established](signalling-levels.md#what-is-not-established) says what they do not claim. The schema and the guides stay the authority, so an entry links to them instead of repeating them.
 
 ## Cases and files
 

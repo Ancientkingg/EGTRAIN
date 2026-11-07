@@ -59,7 +59,7 @@ Any edit of the case clears the baseline, so build the scenario before you run t
 
 ## What should I attach to a bug report?
 
-Report the problem as the [support page](https://egtrain.samuelbruin.com/support/) of the EGTRAIN website says. **Report an issue** in **Help > About EGTRAIN** opens that page. Include:
+Send the problem by email to [egtrain@samuelbruin.com](mailto:egtrain@samuelbruin.com), as the [Report a problem](https://egtrain.samuelbruin.com/support/) page of the EGTRAIN website says. **Report an issue** in **Help > About EGTRAIN** opens that page. Include:
 
 - The version of EGTRAIN. **Help > About EGTRAIN** shows it under its title, after `Version`. On macOS the entry is in the menu **EGTRAIN**.
 - Your system and its version, such as macOS 26 or Windows 11.

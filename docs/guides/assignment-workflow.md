@@ -13,11 +13,8 @@ fixture with three stations, no signals and four services that all use one
 placeholder `SLT_Sprinter` composition. It validates, runs and packs as
 `.egscene`, but its railway data are not authoritative: do not use it for model
 answers or publish it as the completed assignment. Its sources and terms are in
-`DATA.md` at the top of the repository. Issues
-[#182](https://github.com/Ancientkingg/EGTRAIN/issues/182),
-[#228](https://github.com/Ancientkingg/EGTRAIN/issues/228), and
-[#181](https://github.com/Ancientkingg/EGTRAIN/issues/181) track optional project
-work to add a source-backed example dataset.
+[Data of the bundled cases](case-data.md). A source-backed example dataset is
+optional project work that is still open.
 
 ## Instructor preparation
 
@@ -106,7 +103,7 @@ timetable.
 
 The capacity consumption of step 18 is the cycle of the selected train chain as a
 percentage of the period that the student enters. EGTRAIN compares it with no
-threshold and states no recommended value, and the repository holds none. The
+threshold and states no recommended value, and no file of EGTRAIN holds one. The
 course recommendation named in step 18 comes from the course material.
 
 **Capacity by area** reports the share of the period that the selected trains
