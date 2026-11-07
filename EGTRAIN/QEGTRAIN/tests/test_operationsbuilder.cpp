@@ -5540,7 +5540,7 @@ void TestOperationsBuilder::rollingStockMessages() {
 		return;
 	QVERIFY2(!parameters.name.empty(), "a selected case study has a name");
 	parameters.set_case(6);
-	shows(capture.take(), {{Category::SimSetup, Level::Warning, "No case selected"}}, "a case number that selects nothing");
+	shows(capture.take(), {{Category::SimSetup, Level::Warning, "No case selected\n"}}, "a case number that selects nothing");
 	if (QTest::currentTestFailed())
 		return;
 	QVERIFY2(parameters.name.empty(), "a case number that selects nothing clears the name");
