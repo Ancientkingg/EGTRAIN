@@ -1649,16 +1649,14 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 			size_t slashPos = relStr.find('/');
 			if (slashPos != std::string::npos) {
 				std::string top = relStr.substr(0, slashPos);
-				std::string topLower = top;
-				std::transform(topLower.begin(), topLower.end(), topLower.begin(), ::tolower);
+				const std::string topLower = lowerCopy(top);
 				if (topLower == "tracklines")
 					top = "TrackLines";
 				else if (topLower == "timetable")
 					top = "TimeTable";
 				relStr = top + relStr.substr(slashPos);
 			} else {
-				std::string topLower = relStr;
-				std::transform(topLower.begin(), topLower.end(), topLower.begin(), ::tolower);
+				const std::string topLower = lowerCopy(relStr);
 				if (topLower == "tracklines")
 					relStr = "TrackLines";
 				else if (topLower == "timetable")

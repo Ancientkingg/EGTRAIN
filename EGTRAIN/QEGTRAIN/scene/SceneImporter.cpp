@@ -182,7 +182,7 @@ static bool utf16ToUtf8(const std::u16string& in, std::string& out) {
 }
 
 // Reads a file as UTF-8. A file that starts with the UTF-16 LE byte order mark is converted; an odd byte count or an
-// unpaired surrogate fails the read and leaves content empty.
+// unpaired surrogate fails the read and leaves content empty. A leading UTF-8 byte order mark is dropped.
 static bool readFile(const fs::path& path, std::string& content) {
 	if (!readFileBytes(path, content))
 		return false;
@@ -204,12 +204,20 @@ static bool readFile(const fs::path& path, std::string& content) {
 			return false;
 		}
 	}
+	if (content.compare(0, 3, "\xEF\xBB\xBF") == 0)
+		content.erase(0, 3);
 	return true;
+}
+
+// True for the ASCII white space that std::isspace finds in every locale. std::isspace is undefined for a negative
+// char, and in a UTF-8 locale on macOS it counts byte 0xA0, which ends many UTF-8 characters, as a space.
+static bool isAsciiSpace(char c) {
+	return c == ' ' || (c >= '\t' && c <= '\r');
 }
 
 static std::string trimRight(const std::string& s) {
 	std::string res = s;
-	while (!res.empty() && std::isspace(res.back())) {
+	while (!res.empty() && isAsciiSpace(res.back())) {
 		res.pop_back();
 	}
 	return res;
@@ -217,7 +225,7 @@ static std::string trimRight(const std::string& s) {
 
 static std::string trim(const std::string& s) {
 	size_t start = 0;
-	while (start < s.length() && std::isspace(s[start]))
+	while (start < s.length() && isAsciiSpace(s[start]))
 		start++;
 	std::string res = s.substr(start);
 	return trimRight(res);
