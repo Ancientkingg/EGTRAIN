@@ -46,6 +46,13 @@ SceneStation station(const std::string& id, const std::string& nodeId) {
 	return result;
 }
 
+SceneService service(const std::string& id, const std::string& routeId) {
+	SceneService result;
+	result.id = id;
+	result.route = routeId;
+	return result;
+}
+
 QListWidget* listOf(QDialog& dialog) {
 	return dialog.findChild<QListWidget*>(QStringLiteral("routeReferenceList"));
 }
@@ -100,6 +107,8 @@ private slots:
 	void assignmentRoutes();
 	void netherlandsRoute();
 	void lineStations();
+	void twinsNameTheirServices();
+	void paimpolRoutes();
 	void routesWithoutStations();
 	void longLabels();
 	void dialogKeepsTwinsApart();
@@ -121,8 +130,10 @@ void TestRouteReferenceChoice::assignmentRoutes() {
 	// The choice keeps its runtime index and route id.
 	QCOMPARE(assignmentChoices[1].runtimeIndex, 1);
 	QCOMPARE(assignmentChoices[1].routeId, QStringLiteral("route1"));
-	// The tooltip holds the station list.
-	QCOMPARE(assignmentChoices[0].toolTip, assignmentChoices[0].label);
+	// The tooltip holds the station list and the services of the route.
+	QCOMPARE(assignmentChoices[0].toolTip, assignmentChoices[0].label + "\nUsed by services IC1723, S19825, IC2025, S9827");
+	// A route without services has the station list alone.
+	QCOMPARE(assignmentChoices[1].toolTip, assignmentChoices[1].label);
 }
 
 void TestRouteReferenceChoice::netherlandsRoute() {
@@ -147,6 +158,33 @@ void TestRouteReferenceChoice::lineStations() {
 	QCOMPARE(lineChoices[2].label.mid(12), QStringLiteral("A - B-1"));
 	QCOMPARE(lineChoices[0].runtimeIndex, 2);
 	QCOMPARE(lineChoices[2].runtimeIndex, 4);
+}
+
+void TestRouteReferenceChoice::twinsNameTheirServices() {
+	SceneModel line = twoStationLine();
+	line.services = {service("S-1", "route-1"), service("S-2", "route-2"), service("S-3a", "route-3"),
+		service("S-3b", "route-3")};
+	const auto choices = buildRouteReferenceChoices(line, Used{{2, "route-1"}, {7, "route-2"}, {4, "route-3"}});
+	QCOMPARE(choices.size(), qsizetype(3));
+	// route-1 and route-3 pass the same stations, so their labels name the services that run on them.
+	QCOMPARE(choices[0].label, QStringLiteral("route-1 --> A - B-1 (service S-1)"));
+	QCOMPARE(choices[2].label, QStringLiteral("route-3 --> A - B-1 (services S-3a, S-3b)"));
+	// The reversed route reads differently and keeps its label.
+	QCOMPARE(choices[1].label, QStringLiteral("route-2 --> B-1 - A"));
+	// Every tooltip names the services of its route.
+	QCOMPARE(choices[1].toolTip, QStringLiteral("route-2 --> B-1 - A\nUsed by service S-2"));
+	QCOMPARE(choices[2].toolTip, QStringLiteral("route-3 --> A - B-1\nUsed by services S-3a, S-3b"));
+}
+
+void TestRouteReferenceChoice::paimpolRoutes() {
+	const SceneModel paimpol = loadCommitted("Paimpol");
+	const auto choices = buildRouteReferenceChoices(paimpol, Used{{2, "route2"}, {6, "route6"}});
+	QCOMPARE(choices.size(), qsizetype(2));
+	// Both routes pass the same stations, so each label names the service that runs on it.
+	const QString stations = QStringLiteral("Guingamp - Gourland - Tregonneau_Squiffiec - Brelidy-Plouec"
+											" - Pontrieaux_Halte - Pontrieaux - Frynaudour - Traou_Nez - Lancerf - Paimpol");
+	QCOMPARE(choices[0].label, "route2 --> " + stations + " (service Guin-Paim-ALL-STOPS-1)");
+	QCOMPARE(choices[1].label, "route6 --> " + stations + " (service Guin-Paim-EXPRESS-1)");
 }
 
 void TestRouteReferenceChoice::routesWithoutStations() {
