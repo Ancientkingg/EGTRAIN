@@ -1235,6 +1235,19 @@ egtrain_add_test(test_headless_scene_smoke
 	LABELS integration
 	TIMEOUT 150)
 
+# Paimpol headless and in the window with LANG set to a locale that writes a decimal comma. Qt sets the locale of the C
+# library from LANG on macOS and Linux only. The script exits with 77 when no such locale is installed.
+if(NOT WIN32)
+	egtrain_add_test(test_numeric_locale_smoke
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/numeric_locale_smoke.py
+			$<TARGET_FILE:QEGTRAIN> ${SRC_DIR}/Scenes/Paimpol
+		LABELS integration gui
+		SKIP_RETURN_CODE 77
+		TIMEOUT 300)
+else()
+	message(STATUS "Windows: skipping test_numeric_locale_smoke (Qt sets the locale of the C library from LANG on macOS and Linux only)")
+endif()
+
 # The same three runs on each scene of tests/fixtures/scene-versions that is meant to run.
 egtrain_add_test(test_scene_version_run_main-82.1
 	COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/headless_scene_smoke.py
