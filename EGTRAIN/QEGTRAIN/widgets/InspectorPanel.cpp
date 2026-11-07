@@ -23,6 +23,7 @@
 #include "graphics/items/TrainBodyItem.h"
 #include "graphics/items/TrainItemGroup.h"
 #include "scene/RuntimeLimits.h"
+#include "scene/SectionInventory.h"
 #include "scene/TrackPreview.h"
 #include "widgets/InfoDockWidget.h"
 #include "widgets/PlainToolTip.h"
@@ -435,9 +436,11 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 		else
 			afterRun(m_nodeYText);
 		m_nodeTrackIDText->setText(node ? text(node->trackId) : QStringLiteral("None"));
-		m_nodeStationNameText->setText(station
-				? text(station->name.empty() ? station->id : station->name) + " [" + text(station->id) + "]"
-				: QString());
+		// The id follows the name in brackets only when the station has a name that differs from it.
+		if (station && !station->name.empty() && station->name != station->id)
+			m_nodeStationNameText->setText(text(station->name) + " [" + text(station->id) + "]");
+		else
+			m_nodeStationNameText->setText(station ? text(station->id) : QString());
 		afterRun(m_nodeRegionText);
 		afterRun(m_nodeSignalledText);
 		QStringList connectedTracks;
@@ -521,7 +524,12 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 		setSectionText(m_signallingProtectedSectionText, id, head->sectionLabel);
 		afterRun(m_signallingNextTrackText);
 		setSectionText(m_signallingIDSectionAheadText, id, head->sectionLabel);
-		afterRun(m_signallingLengthSectionAheadText);
+		// The section inventory of the scene gives the start and the end of the section.
+		const SceneSectionInventory inventory = buildSceneSectionInventory(model);
+		if (const SceneSectionDescriptor* section = inventory.exact(id))
+			m_signallingLengthSectionAheadText->setText(number((section->endKm - section->startKm) * 1000));
+		else
+			afterRun(m_signallingLengthSectionAheadText);
 		QStringList ids;
 		for (const auto& signal : sceneSignals(model))
 			if (signal.protectedSection == id)
