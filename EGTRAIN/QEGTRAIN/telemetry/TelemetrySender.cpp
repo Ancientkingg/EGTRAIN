@@ -161,13 +161,13 @@ TelemetrySender::TelemetrySender(TelemetryContext context, Application applicati
 		application = normalized(std::move(application));
 		if (!context.capable() || !validApplication(application) || directory.isEmpty() || context.endpoint.toUtf8().size() > 2048) return;
 #ifdef EGTRAIN_SENDER_TEST_HOOK
-		if (tests.settingsFactory || tests.utcNow || tests.monotonicMs || tests.jitterPercent || tests.afterReservation || tests.onWorkerExit || tests.afterCompletion || tests.afterPoll || tests.afterOperationCaptureLocked || tests.beforeSessionAttempt || tests.afterOwnershipAttempt || tests.failConstruction || tests.post || !tests.loopbackRootPem.isEmpty() || tests.requestTimeoutMs != 10000) {
+		if (tests.settingsFactory || tests.utcNow || tests.monotonicMs || tests.jitterPercent || tests.afterReservation || tests.onWorkerExit || tests.afterCompletion || tests.afterPoll || tests.afterOperationCaptureLocked || tests.beforeSessionAttempt || tests.afterOwnershipAttempt || tests.failConstruction || tests.post || !tests.loopbackRootPem.isEmpty() || tests.requestTimeoutMs != 10000 || tests.tickIntervalMs != kTickIntervalMs) {
 			const QUrl url(context.endpoint);
 			const QString host = url.host();
 			if (!tests.settingsFactory || (host != QStringLiteral("127.0.0.1") && host != QStringLiteral("::1"))) return;
 			// A test transport still requires a valid HTTPS context and independently isolated storage.
 			directory = isolatedPath(directory);
-			if (directory.isEmpty() || tests.requestTimeoutMs < 1 || tests.requestTimeoutMs > 10000) return;
+			if (directory.isEmpty() || tests.requestTimeoutMs < 1 || tests.requestTimeoutMs > 10000 || tests.tickIntervalMs < 1 || tests.tickIntervalMs > kTickIntervalMs) return;
 		}
 #endif
 #ifdef EGTRAIN_SENDER_TEST_HOOK
@@ -770,7 +770,11 @@ public:
 	}
 	void run() {
 		elapsed.start();
-		tick.setInterval(50);
+#ifdef EGTRAIN_SENDER_TEST_HOOK
+		tick.setInterval(s->tests.tickIntervalMs);
+#else
+		tick.setInterval(TelemetrySender::kTickIntervalMs);
+#endif
 		timeout.setSingleShot(true);
 		QObject::connect(&tick, &QTimer::timeout, &tick, [this] { try { pump(); } catch (...) { failClosed(); } });
 		QObject::connect(&timeout, &QTimer::timeout, &tick, [this] {
