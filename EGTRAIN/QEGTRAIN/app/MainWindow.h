@@ -256,6 +256,8 @@ private:
 	ConsoleWidget* m_logPane = nullptr; // in-app log output
 	QMenu* m_diagramsMenu = nullptr;	// Diagrams top-level menu
 	QHash<QDockWidget*, QAction*> m_editorActions;
+	// The View entries of Log, Case Validation, Loaded Data and Run Results (addViewDockAction).
+	QHash<QDockWidget*, QAction*> m_viewDockActions;
 	QMenu* m_editorsMenu = nullptr; // Editors top-level menu (dock toggles)
 	// The scene, its unsaved state and its revision. The editors work on it through their panels.
 	SceneDocument* m_document = nullptr;
@@ -454,6 +456,9 @@ private:
 	void setStartOffset(long long seconds) override;
 
 	void registerEditorDock(QDockWidget* dock) override;
+	// Adds the View entry of dock: the action of an editor dock without telemetry, which also brings the dock to the front
+	// when it is open behind another tab. The built-in action of the dock only shows or hides it.
+	QAction* addViewDockAction(QDockWidget* dock);
 	QMenu* createPopupMenu() override;
 	void revealEditorDock(QDockWidget* dock);
 	void revealEditorDock(QDockWidget* dock, const telemetry::OperationObservation& operation);

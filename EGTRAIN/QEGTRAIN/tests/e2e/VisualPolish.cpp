@@ -582,7 +582,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			ok = false;
 			failures << "loaded data review opened automatically in normal mode";
 		}
-		w.m_loadedDataDock->toggleViewAction()->trigger();
+		w.m_viewDockActions.value(w.m_loadedDataDock)->trigger();
 		QApplication::processEvents();
 		if (!w.m_loadedDataDock->isVisible()) {
 			ok = false;

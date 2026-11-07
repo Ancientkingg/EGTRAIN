@@ -47,6 +47,7 @@
 #include "simulation/SimulationWorker.h"
 #include "util/TimeFormat.h"
 #include "widgets/ColorChoiceButton.h"
+#include "widgets/ConsoleWidget.h"
 #include "widgets/ElidedLabel.h"
 #include "widgets/FocusWheel.h"
 #include "widgets/InfoDockWidget.h"
@@ -150,6 +151,7 @@
 #include <functional>
 #include <iterator>
 #include <limits>
+#include <memory>
 #include <optional>
 #include <set>
 #include <string>
@@ -5173,6 +5175,65 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			QApplication::processEvents();
 			if (!caseSettingsAction->isChecked() || caseSettingsDock(w)->visibleRegion().isEmpty())
 				facetFailure(ok, "presentation", "choosing Case Settings behind another editor tab in the Editors menu does not bring it to the front");
+
+			// Log, Case Validation, Loaded Data and Run Results share one group of tabs below the network, and their View entries bring
+			// them to the front as the Editors menu does. With Run Results in front Ctrl+Shift+L brings Log to the front, with Log in
+			// front Ctrl+Shift+V brings Case Validation to the front and a second press hides it, and the View entries of Loaded Data
+			// and Run Results bring each from behind another tab to the front. The menu of a dock title has the same entries.
+			{
+				const QList<QDockWidget*> bottomDocks{w.m_logPane, w.m_validationDock, w.m_loadedDataDock, w.m_runResultsPanel->dock()};
+				const auto viewEntryIn = [](const QMenu* menu, const QDockWidget* dock) -> QAction* {
+					const QList<QAction*> entries = menu ? menu->actions() : QList<QAction*>();
+					const auto found = std::find_if(entries.cbegin(), entries.cend(), [dock](const QAction* entry) { return entry->text() == dock->windowTitle(); });
+					return found == entries.cend() ? nullptr : *found;
+				};
+				const auto inFront = [](const QDockWidget* dock) { return dock->isVisible() && !dock->visibleRegion().isEmpty(); };
+				const auto pressShortcut = [&w](Qt::Key key) {
+					qt_sendShortcutOverrideEvent(&w, 0, key, Qt::ControlModifier | Qt::ShiftModifier);
+					QApplication::processEvents();
+				};
+				const auto chooseEntry = [](QAction* entry) {
+					if (entry)
+						entry->trigger();
+					QApplication::processEvents();
+				};
+				// A window shortcut needs an active window, which the offscreen platform of Qt 6 does not give a window by itself.
+				w.activateWindow();
+				QApplication::processEvents();
+				pressShortcut(Qt::Key_L);
+				const bool logInFront = inFront(w.m_logPane);
+				const bool bottomGrouped = w.tabifiedDockWidgets(w.m_logPane).contains(w.m_loadedDataDock)
+					&& w.tabifiedDockWidgets(w.m_logPane).contains(w.m_runResultsPanel->dock());
+				w.m_logPane->raise();
+				QApplication::processEvents();
+				QAction* validationEntry = viewEntryIn(w.ui->menuView, w.m_validationDock);
+				pressShortcut(Qt::Key_V);
+				const bool validationInFront = inFront(w.m_validationDock) && validationEntry && validationEntry->isChecked();
+				pressShortcut(Qt::Key_V);
+				const bool validationHidden = w.m_validationDock->isHidden() && validationEntry && !validationEntry->isChecked();
+				w.m_logPane->raise();
+				QApplication::processEvents();
+				chooseEntry(viewEntryIn(w.ui->menuView, w.m_loadedDataDock));
+				const bool loadedDataInFront = inFront(w.m_loadedDataDock);
+				chooseEntry(viewEntryIn(w.ui->menuView, w.m_runResultsPanel->dock()));
+				const bool resultsInFront = inFront(w.m_runResultsPanel->dock());
+				const std::unique_ptr<QMenu> titleMenu(w.createPopupMenu());
+				const bool titleMenuAlike = std::all_of(bottomDocks.cbegin(), bottomDocks.cend(), [&](const QDockWidget* dock) {
+					return viewEntryIn(titleMenu.get(), dock) && viewEntryIn(titleMenu.get(), dock) == viewEntryIn(w.ui->menuView, dock);
+				});
+				w.m_logPane->hide();
+				w.m_validationDock->hide();
+				const auto yesNo = [](bool value) { return value ? "yes" : "no"; };
+				if (!bottomGrouped)
+					facetFailure(ok, "presentation", "Log is not tabbed with Loaded Data and Run Results, so the View entry check proves nothing");
+				else if (!logInFront || !validationInFront || !validationHidden || !loadedDataInFront || !resultsInFront || !titleMenuAlike)
+					facetFailure(ok, "presentation",
+						QString("a View entry does not bring its dock below the network to the front (Log after Ctrl+Shift+L: %1, Case "
+								"Validation in front of Log after Ctrl+Shift+V: %2, hidden by a second press: %3, Loaded Data: %4, Run Results: "
+								"%5, the same entries in the menu of a dock title: %6)")
+							.arg(yesNo(logInFront), yesNo(validationInFront), yesNo(validationHidden), yesNo(loadedDataInFront), yesNo(resultsInFront),
+								yesNo(titleMenuAlike)));
+			}
 
 			// In a window of 1280 by 800 or 1024 by 768 pixels, beside Case and Layers and with Run Results as high as it opens after
 			// a run, Rolling Stock Units shows its list, its buttons in one row, the ID field, its tabs and three rows of fields on
