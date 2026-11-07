@@ -41,7 +41,11 @@ scripts that build, sign and check the release packages.
   `main`, and `<version>/` and `latest/` after a successful release. Each publish also writes the home
   page and the pages `support/`, `source/` and `privacy/` at the root with `tools/docs/home_page.py`,
   from `docs/site/` of `main`: the downloads of the newest stable release in the update feed of the
-  website, links to its guides and C++ reference, and the list of versions. After the push to
+  website, a table of the guides, developer pages and C++ reference of `latest/`, `dev/` and the
+  three newest versions, and a train graph and a playback of a run of the bundled case
+  Milano_Brescia. Their values are in `docs/site/home-data.json`, which `tools/docs/home_data.py`
+  writes from the case and a run of it (its docstring has the commands), so the publish runs no
+  simulation. After the push to
   `gh-pages`, the step **Publish on egtrain.samuelbruin.com** sends the same folders to the website
   with `tools/release/publish_selfhost.py site` (see
   [Self-hosted publication](#self-hosted-publication)), and then the pages, the home page last. The
@@ -432,7 +436,9 @@ must be in the local repository. A second run uploads no file again and writes t
 `notes` replaces the notes of a published release (see [Release text](code-signing.md#release-text)). `site` publishes
 folders of the documentation site, and then the pages that `tools/docs/home_page.py` writes from the feed of the
 website: `assets/`, `support/`, `source/`, `privacy/` and, last, the home page. Their list of versions has `dev/`, and
-`latest/` and a folder for each stable release in the feed when it has one.
+`latest/` and a folder for each stable release in the feed when it has one. `assets/` keeps `site.css`, the style of
+the earlier layout, because the release pages published with that layout load it; `import` publishes such a page again
+in the current layout.
 
 The script reads the Zipline token from `ZIPLINE_TOKEN` and the token of the publish API of the website from
 `EGTRAIN_PUBLISH_TOKEN`, prints neither and follows no redirect. Zipline takes its token as the `Authorization` header
