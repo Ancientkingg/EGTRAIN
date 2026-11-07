@@ -34,7 +34,7 @@ To cite EGTRAIN, use **Cite this repository** in the sidebar of the [GitHub repo
 - Run a case: [Bundled cases](docs/guides/case-studies.md), [Opening an `.egscene` case](docs/guides/opening-a-case-study.md) and [Command-line options and scene_tool](docs/guides/command-line.md).
 - Create or edit cases: [Editing and validating a case](docs/guides/editing-a-case.md) and the [V1 scene schema reference](docs/guides/scene-schema.md).
 - Build the application from source: [Getting started as a developer](docs/development/getting-started.md).
-- Build, test and contribute: [Build from source](docs/development/build.md), [Testing](docs/development/testing.md), [Coding guidelines](docs/development/coding-guidelines.md), [V1 Scene Model](docs/architecture/scene-model.md) and, for the repository layout, [QEGTRAIN source layout](docs/architecture/source-layout.md#repository-layout).
+- Build, test and contribute: [Build from source](docs/development/build.md), [Testing](docs/development/testing.md), [Coding guidelines](docs/development/coding-guidelines.md), [V1 Scene Model](docs/architecture/scene-model.md) and, for the repository layout, [QEGTRAIN source layout](docs/architecture/source-layout.md#top-level-layout).
 
 EGTRAIN is a C++17 application built with Qt 6 and CMake. See [Documentation](docs/README.md) for the full list.
 

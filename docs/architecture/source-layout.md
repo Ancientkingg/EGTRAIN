@@ -7,7 +7,7 @@ folders and the renames so the next reader does not have to reconstruct them.
 [Getting started as a developer](../development/getting-started.md) shows how to build the
 application and how to find the code behind a screen.
 
-## Repository layout
+## Top-level layout
 
 ```text
 EGTRAIN/QEGTRAIN/         C++ Qt application source; the folders are listed below
