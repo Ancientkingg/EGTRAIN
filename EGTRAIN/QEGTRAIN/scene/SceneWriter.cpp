@@ -131,10 +131,20 @@ std::error_code syncToDisk(const fs::path& path, bool directory) {
 	if (descriptor < 0)
 		return directory && errno == EACCES ? std::error_code() : std::error_code(errno, std::generic_category());
 	int synced = -1;
+#ifdef __APPLE__
+	// On macOS fsync only hands the data to the drive, which can keep it in its cache and lose it in a power cut.
+	// F_FULLFSYNC also has the drive write its cache to permanent storage. When it fails, as on a file system that cannot
+	// do that, fsync is the best that is left.
 	do {
-		synced = ::fsync(descriptor);
-	} while (synced != 0 && errno == EINTR);
-	const int error = synced == 0 ? 0 : errno;
+		synced = ::fcntl(descriptor, F_FULLFSYNC);
+	} while (synced == -1 && errno == EINTR);
+#endif
+	if (synced == -1) {
+		do {
+			synced = ::fsync(descriptor);
+		} while (synced == -1 && errno == EINTR);
+	}
+	const int error = synced == -1 ? errno : 0;
 	::close(descriptor);
 	// A file system that cannot flush a directory says so with EINVAL or EBADF, and nothing more can be done there.
 	if (error == 0 || (directory && (error == EINVAL || error == EBADF)))
