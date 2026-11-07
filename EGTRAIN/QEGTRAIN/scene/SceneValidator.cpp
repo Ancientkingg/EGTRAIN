@@ -888,9 +888,11 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			}
 			if (following->xKm + kNativeCoordinateTolerance < current->xKm)
 				diagnostics.error("scene.topology.order",
-					"Node X (km) must not decrease along the track",
+					"X goes down from " + valueText(current->xKm) + " km at node " + current->id + " to "
+						+ valueText(following->xKm) + " km at node " + following->id + " on arc " + arc->id
+						+ " of track " + track.id,
 					"infrastructure.json", "arc", arc->id, arcPaths[arc->id] + ".to", current->id,
-					"Order the nodes of the track by increasing X (km)");
+					"X (km) is the distance along the track, not a map coordinate. Give the nodes X values that do not go down along the arcs");
 			current = following;
 		}
 		if (visitedArcs.size() != arcs.size() || visitedNodes.size() != nodes.size())

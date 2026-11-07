@@ -358,9 +358,17 @@ struct FailureCase {
 	void (*mutate)(SceneModel&);
 	const char* code;
 	const char* path = nullptr;
+	const char* message = nullptr;
+	const char* suggestedFix = nullptr;
 };
 
-// Changes to the complete scene that runnable validation reports with code, at path when it is given.
+// The message and the fix of the order error of the case "descending chain order" below.
+static const char kOrderMessage[] = "X goes down from 0 km at node node-1 to -1 km at node node-2 on arc arc-1 of track track-1";
+static const char kOrderFix[] =
+	"X (km) is the distance along the track, not a map coordinate. Give the nodes X values that do not go down along the arcs";
+
+// Changes to the complete scene that runnable validation reports with code, at path and with message and fix when they
+// are given.
 static const FailureCase kFailureCases[] = {
 	{"empty track id", [](SceneModel& scene) { scene.tracks[0].id.clear(); }, "scene.id.empty",
 		"tracks[0].id"},
@@ -478,7 +486,7 @@ static const FailureCase kFailureCases[] = {
 		 scene.nodes.push_back({"node-4", "track-1", 3.0, 0.0});
 	 },
 		"scene.topology.disconnected", "tracks[0].nodes"},
-	{"descending chain order", [](SceneModel& scene) { scene.nodes[1].xKm = -1.0; }, "scene.topology.order", "arcs[0].to"},
+	{"descending chain order", [](SceneModel& scene) { scene.nodes[1].xKm = -1.0; }, "scene.topology.order", "arcs[0].to", kOrderMessage, kOrderFix},
 	{"empty tracks", [](SceneModel& scene) { scene.tracks.clear(); }, "scene.topology.tracks.none"},
 	{"empty nodes", [](SceneModel& scene) { scene.nodes.clear(); }, "scene.topology.nodes.none"},
 	{"empty arcs", [](SceneModel& scene) { scene.arcs.clear(); }, "scene.topology.arcs.none"},
@@ -2564,6 +2572,15 @@ void TestSceneValidator::rejectsBrokenScene() {
 	QVERIFY(hasCode(diagnostics, test.code));
 	if (test.path)
 		QVERIFY(hasCodeAndPath(diagnostics, test.code, test.path));
+	if (test.message || test.suggestedFix) {
+		const SceneDiagnostic* diagnostic = findCode(diagnostics, test.code);
+		if (diagnostic == nullptr)
+			QFAIL("the diagnostic is not reported");
+		if (test.message)
+			QCOMPARE(diagnostic->message, test.message);
+		if (test.suggestedFix)
+			QCOMPARE(diagnostic->suggestedFix, test.suggestedFix);
+	}
 }
 
 void TestSceneValidator::rejectsReservedSlashInBlockId() {
