@@ -1130,8 +1130,8 @@ def check_packages(checks: Checks, package: dict, package_text: str, package_che
 def check_home_page(checks: Checks, docs: dict, build_release_assets, home_page) -> None:
     """The pages at the root of gh-pages and of egtrain.samuelbruin.com: the publish job writes them with
     tools/docs/home_page.py after it has updated the version folders, and then publishes the same folders and pages on the
-    website. The home page offers the packages and scene bundles that the release script names, with the links of the
-    newest release of the feed, and the script keeps the other files of the root."""
+    website. The home page offers the packages that the release script names, with the links and sizes of the newest
+    release of the feed, and the script keeps the other files of the root."""
     expect = checks.expect
     job = docs["jobs"]["publish"]
     publish = runs(job)
@@ -1140,13 +1140,17 @@ def check_home_page(checks: Checks, docs: dict, build_release_assets, home_page)
     pushed, published = (step_index(job, marker) for marker in ("git -C pages push", "tools/release/publish_selfhost.py site pages"))
     expect(0 <= pushed < published, "docs.yml: the publish job publishes on egtrain.samuelbruin.com in a step after the push to gh-pages")
     names = [template for _key, template, _directory in build_release_assets.PACKAGES]
-    names += [scene + build_release_assets.SCENE_SUFFIX for scene in build_release_assets.SCENES]
+    scenes = [scene + build_release_assets.SCENE_SUFFIX for scene in build_release_assets.SCENES]
+    # A placeholder that the script did not fill: {name}, {asset:NAME} or {size:NAME}. The scripts of the home page hold
+    # other braces.
+    unfilled = re.compile(r"\{[a-z_]+\}|\{(?:asset|size):")
 
     def release(tag: str, prerelease: bool = False) -> dict:
-        files = [name.format(version=tag[1:]) for name in names] + [build_release_assets.MANIFEST_NAME]
+        files = [name.format(version=tag[1:]) for name in names] + scenes + [build_release_assets.MANIFEST_NAME]
         return {"tag_name": tag, "name": f"EGTRAIN {tag}", "body": "", "html_url": f"https://egtrain.example.org/releases/{tag[1:]}/",
-                "draft": False, "prerelease": prerelease, "published_at": "2026-01-01T00:00:00Z",
-                "assets": [{"name": name, "browser_download_url": f"https://bin.example.org/raw/egtrain-{tag}-{name}", "size": 1} for name in files]}
+                "draft": False, "prerelease": prerelease, "published_at": "2026-01-02T00:00:00Z",
+                "assets": [{"name": name, "browser_download_url": f"https://bin.example.org/raw/egtrain-{tag}-{name}", "size": 19_853_837}
+                           for name in files]}
 
     with tempfile.TemporaryDirectory() as folder:
         pages = Path(folder)
@@ -1158,14 +1162,15 @@ def check_home_page(checks: Checks, docs: dict, build_release_assets, home_page)
         text = (pages / "index.html").read_text(encoding="utf-8")
         offered = re.findall(r'href="(https://bin\.example\.org/raw/[^"]*)"', text)
         released = [f"https://bin.example.org/raw/egtrain-v1.0.10-{name.format(version='1.0.10')}" for name in names]
-        expect(sorted(offered) == sorted(released),
-               f"docs/site/index.html links each package and scene bundle of build_release_assets.py once: {sorted(set(offered) ^ set(released))}")
-        listed = [text.find(f'<li><a href="{name}/">') for name in ("latest", "dev", "1.0.10", "1.0.4")]
-        expect('href="https://egtrain.example.org/releases/1.0.10/"' in text and "{" not in text and -1 not in listed and listed == sorted(listed),
-               "tools/docs/home_page.py offers the newest release that is no prerelease and lists latest/, dev/ and the versions, newest first")
+        expect(sorted(offered) == sorted(released * 2) and text.count(">19.9 MB<") == 2 * len(names),
+               f"docs/site/index.html links each package of build_release_assets.py with its size, on the board and in the list: {sorted(set(offered) ^ set(released))}")
+        listed = [text.find(f'<th scope="col"><b>{name}</b>') for name in ("latest", "dev", "1.0.10", "1.0.4")]
+        expect('href="https://egtrain.example.org/releases/1.0.10/"' in text and "Published 2026-01-02" in text and not unfilled.search(text)
+               and -1 not in listed and listed == sorted(listed) and '<a href="1.0.4/api/index.html" aria-label="C++ reference, 1.0.4">' in text,
+               "tools/docs/home_page.py offers the newest release that is no prerelease and has a documentation column for latest/, dev/ and the versions, newest first")
         source = (pages / "source/index.html").read_text(encoding="utf-8")
         expect(all(f"https://bin.samuelbruin.com/raw/egtrain-{tag}-EGTRAIN-{tag[1:]}-source.tar.gz" in source for tag in ("v1.0.11-rc.1", "v1.0.10", "v1.0.4"))
-               and all("{" not in (pages / page / "index.html").read_text(encoding="utf-8") for page in home_page.SITE_PAGES),
+               and all(not unfilled.search((pages / page / "index.html").read_text(encoding="utf-8")) for page in home_page.SITE_PAGES),
                "tools/docs/home_page.py writes the support, source code and privacy pages, with the source archive of each release")
         expect((pages / "CNAME").read_text(encoding="utf-8") == "egtrain.example.org\n"
                and sorted(path.name for path in (pages / "assets").iterdir()) == sorted(path.name for path in home_page.ASSETS),
@@ -1175,7 +1180,8 @@ def check_home_page(checks: Checks, docs: dict, build_release_assets, home_page)
         (pages / "dev").mkdir()
         home_page.write_home_page(pages, [])
         text = (pages / "index.html").read_text(encoding="utf-8")
-        expect('<li><a href="dev/">' in text and "{" not in text and "latest/" not in text and "/raw/" not in text,
+        expect('<th scope="col"><b>dev</b>main branch</th>' in text and "No release is published on this site yet" in text
+               and not unfilled.search(text) and "latest/" not in text and "/raw/" not in text,
                "tools/docs/home_page.py leaves out the downloads and latest/ when no release is published")
 
 

@@ -41,7 +41,10 @@ scripts that build, sign and check the release packages.
   `main`, and `<version>/` and `latest/` after a successful release. Each publish also writes the home
   page and the pages `support/`, `source/` and `privacy/` at the root with `tools/docs/home_page.py`,
   from `docs/site/` of `main`: the downloads of the newest stable release in the update feed of the
-  website, links to its guides and C++ reference, and the list of versions. After the push to
+  website, a table of the guides, developer pages and C++ reference of each version, and a train
+  graph and a playback of a run of the bundled case Milano_Brescia. Their values are in
+  `docs/site/home-data.json`, which `tools/docs/home_data.py` writes from the case and a run of it
+  (its docstring has the commands), so the publish runs no simulation. After the push to
   `gh-pages`, the step **Publish on egtrain.samuelbruin.com** sends the same folders to the website
   with `tools/release/publish_selfhost.py site` (see
   [Self-hosted publication](#self-hosted-publication)), and then the pages, the home page last. The
