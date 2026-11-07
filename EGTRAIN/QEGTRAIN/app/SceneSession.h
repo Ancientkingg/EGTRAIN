@@ -76,7 +76,7 @@ public:
 		virtual void bringToFront() = 0;
 		/// Starts a check for a newer version at the request of the user.
 		virtual void offerUpdateCheck() = 0;
-		/// The path of the file that a recovered scene is a copy of, or an empty string.
+		/// The path of the case file or case folder that a recovered scene is a copy of, or an empty string.
 		virtual QString recoveredSceneSource() const = 0;
 		/// Reads the scene at `path`. `identityOk` tells whether startup timing, when it is on, found the scene that it
 		/// expects; it is true when startup timing is off.

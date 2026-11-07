@@ -595,11 +595,13 @@ bool SceneSession::maybeSaveScene() {
 }
 
 QString SceneSession::saveSceneAsStartPath() const {
-	// A recovered scene has no file of its own, so the dialog starts at the file that it is a copy of.
+	// A recovered scene has no file of its own, so the dialog starts at the case that it is a copy of.
 	const QString recoveredSource = m_host.recoveredSceneSource();
-	if (m_sceneDir.isEmpty() && !recoveredSource.isEmpty())
-		return dialog_folders::suggestedPath(QFileInfo(recoveredSource).fileName(), recoveredSource);
-	return dialog_folders::suggestedPath(m_sceneIsBundle ? QFileInfo(m_sceneDir).fileName() : QString(), m_sceneDir);
+	const QString casePath = m_sceneDir.isEmpty() && !recoveredSource.isEmpty() ? recoveredSource : m_sceneDir;
+	// A case file is suggested under its own name, and a case folder as a case file of its name beside it.
+	const QFileInfo info(casePath);
+	const QString name = info.isDir() ? QDir(casePath).dirName() + ".egscene" : info.fileName();
+	return dialog_folders::suggestedPath(name, casePath);
 }
 
 QMenu* SceneSession::recentScenesMenu() const {
