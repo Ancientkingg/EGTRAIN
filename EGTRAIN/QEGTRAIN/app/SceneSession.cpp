@@ -718,10 +718,12 @@ void SceneSession::updateSceneWindowTitle() {
 
 void SceneSession::actionLoad_Network() {
 	const auto operation = m_host.captureTelemetryOperation();
-	const QString sourceDir = QFileDialog::getExistingDirectory(m_window, "Select Legacy Case Folder", QDir::homePath());
+	const QString startDir = dialog_folders::openStartFolder(m_sceneDir);
+	const QString sourceDir = QFileDialog::getExistingDirectory(m_window, "Select Legacy Case Folder", startDir);
 	if (sourceDir.isEmpty())
 		return;
-	const QString destinationDir = QFileDialog::getExistingDirectory(m_window, "Select Case Destination", QDir::homePath());
+	const QString destinationDir =
+		QFileDialog::getExistingDirectory(m_window, "Select Case Destination", QFileInfo(sourceDir).absolutePath());
 	importLegacyCase(sourceDir, destinationDir, operation);
 }
 

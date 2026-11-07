@@ -28,6 +28,7 @@
 #include <QTimer>
 
 #include <functional>
+#include <memory>
 #include <string>
 #include <system_error>
 
@@ -148,6 +149,36 @@ void answerFileDialog(const QString& path) {
 	timer->start();
 }
 
+// Answers the next folder dialogs in turn, each with the folder at its place in `answers`, or with Cancel where that is
+// empty, and returns the folders in which they started.
+std::shared_ptr<QStringList> answerFolderDialogs(const QStringList& answers) {
+	auto starts = std::make_shared<QStringList>();
+	auto* timer = new QTimer;
+	timer->setInterval(10);
+	QObject::connect(timer, &QTimer::timeout, timer, [timer, answers, starts] {
+		for (QWidget* widget : QApplication::topLevelWidgets()) {
+			auto* dialog = qobject_cast<QFileDialog*>(widget);
+			if (dialog == nullptr || !dialog->isVisible())
+				continue;
+			const QString answer = answers.value(starts->size());
+			starts->append(dialog->directory().absolutePath());
+			if (starts->size() == answers.size()) {
+				timer->stop();
+				timer->deleteLater();
+			}
+			if (answer.isEmpty()) {
+				dialog->reject();
+				return;
+			}
+			dialog->setDirectory(answer);
+			static_cast<QDialog*>(dialog)->done(QDialog::Accepted);
+			return;
+		}
+	});
+	timer->start();
+	return starts;
+}
+
 // Clicks Save in the next message box, the question about unsaved changes.
 void answerSave() {
 	auto* timer = new QTimer;
@@ -177,6 +208,7 @@ private slots:
 	void importKeepsFolderWithOtherFiles();
 	void importStopsAtFolderOfThatName();
 	void importAsksBeforeReplacingCase();
+	void importDialogsStartNextToCases();
 	void saveAsFolderAsksBeforeReplacingCase();
 	void saveAsFolderKeepsViewsOfFailedSave();
 	void saveAsksWhenFolderChangedOnDisk();
@@ -288,6 +320,25 @@ void TestSceneSession::importAsksBeforeReplacingCase() {
 	// Yes replaces the folder with the imported case.
 	QCOMPARE(caseName(dir.filePath("Other")), "Line");
 	QVERIFY(!QFileInfo::exists(dir.filePath("Other/notes.txt")));
+}
+
+// The folder dialogs of Import Legacy Case start next to the cases, not in the home folder.
+void TestSceneSession::importDialogsStartNextToCases() {
+	QTemporaryDir root;
+	QVERIFY(root.isValid());
+	const QDir dir(root.path());
+	QVERIFY(writeFolderCase(dir.filePath("Cases/Mine"), "My case"));
+	QVERIFY(dir.mkpath("Old/Line"));
+	Fixture f;
+	QVERIFY(f.session->openSceneDirectory(dir.filePath("Cases/Mine")));
+
+	const auto starts = answerFolderDialogs({dir.filePath("Old/Line"), QString()});
+	f.session->actionLoad_Network();
+	// Select Legacy Case Folder starts where Open Case Folder starts, in the folder above the open case, and Select
+	// Case Destination in the folder that holds the chosen legacy case.
+	QCOMPARE(starts->size(), 2);
+	QCOMPARE(QFileInfo(starts->at(0)).canonicalFilePath(), QFileInfo(dir.filePath("Cases")).canonicalFilePath());
+	QCOMPARE(QFileInfo(starts->at(1)).canonicalFilePath(), QFileInfo(dir.filePath("Old")).canonicalFilePath());
 }
 
 void TestSceneSession::saveAsFolderAsksBeforeReplacingCase() {
