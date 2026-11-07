@@ -108,7 +108,7 @@ CompletedTrain secondTrain() {
 }
 
 // Route R holds the eight blocks. Route S runs the other way over the last two. The run lists F2 before F1.
-// G runs on S and has no occupation of the first block of R. Z uses no block of R or S.
+// G runs on S and its records have no StartRunTime, so it has no reference time. Z uses no block of R or S.
 CompletedRunData lineRun() {
 	CompletedRunData data;
 	data.routes = {route("R", false, {"@0-B0@", "@1-B0@", "@2-B0@", "@3-B0@", "@4-B0@", "@5-B0@", "@6-B0@", "@7-B0@"}),
@@ -345,21 +345,35 @@ void TestAreaCapacityWindow::buildsInputFromScope() {
 	QCOMPARE_EQ(input.periodSeconds, 3600.0);
 	QCOMPARE(input.cycleEndIdentity, "F2");
 	const AreaCapacityTrain& first = input.selected[1];
-	// the reference times come from the first block of the first route and all occupations are passed
+	// the reference times come from where the train enters the area and all occupations are passed
 	QCOMPARE_EQ(first.train.profileReferenceTime, 59.0);
 	QCOMPARE_EQ(first.train.scheduledReferenceTime, 120.0);
 	QCOMPARE(first.train.occupations.size(), std::size_t(8));
 	// the direction is the one of the route of the train
 	QVERIFY(!first.reversedDirection);
 	QVERIFY(input.otherTraffic[0].reversedDirection);
-	// a train without the first block has no reference
+	// a train without a StartRunTime in the area has no reference
 	QCOMPARE_LT(input.otherTraffic[0].train.profileReferenceTime, 0.0);
 	CompletedRunData later = data;
 	later.trains.push_back(train("L", 0, {occupation("@3-B0@", 400.0, 460.0, 400.0)}));
-	const AreaCapacityInput laterInput = areaCapacityInputFrom(later, lineScope({"F1", "L"}));
-	// a train that enters the area after the first block has no reference, though its record there has a StartRunTime
+	AreaCapacityScope laterScope = lineScope({"F1", "L"});
+	laterScope.cycleEndOccurrenceId = "L";
+	const AreaCapacityInput laterInput = areaCapacityInputFrom(later, laterScope);
+	// a train that enters the area after the first block has its reference there, as in the Capacity window
 	QCOMPARE(laterInput.selected.size(), std::size_t(2));
-	QCOMPARE_LT(laterInput.selected[1].train.profileReferenceTime, 0.0);
+	QCOMPARE_EQ(laterInput.selected[1].train.profileReferenceTime, 400.0);
+	QCOMPARE(laterInput.selected[1].train.referenceLabel, "block @3-B0@ entry");
+	// so the chain can be analysed: L enters @3 at its reference and F1 leaves @3 674 - 59 = 615 s after its own, the cycle
+	const AreaCapacityResult laterResult = analyzeAreaCapacity(laterInput);
+	QVERIFY(laterResult.chain.analyzable);
+	QCOMPARE_EQ(laterResult.chain.cycleTime, 615.0);
+	// the range of the second route is part of the area, also for the reference
+	laterScope.blockIds = {"@0-B0@"};
+	laterScope.sectionIndices = {0};
+	laterScope.secondRouteIndex = 0;
+	laterScope.secondBlockIds = {"@3-B0@"};
+	laterScope.secondSectionIndices = {3};
+	QCOMPARE_EQ(areaCapacityInputFrom(later, laterScope).selected[1].train.profileReferenceTime, 400.0);
 	// the label names both route ranges
 	QCOMPARE(areaCapacityLabel(data, scope).toStdString(), "R / main / @0-B0@ to @7-B0@ and S / @7-B0@ to @6-B0@");
 	// the label of one route range

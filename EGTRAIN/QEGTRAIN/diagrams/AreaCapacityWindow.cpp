@@ -314,18 +314,18 @@ CapacityAnalysisScope referenceScope(const AreaCapacityScope& scope) {
 	return reference;
 }
 
-// The first resource of the first range, where capacityInputFrom takes the reference time of a train of the area.
-CapacityAnalysisScope entryScope(const AreaCapacityScope& scope) {
-	CapacityAnalysisScope entry = referenceScope(scope);
-	entry.blockIds.resize(std::min<std::size_t>(entry.blockIds.size(), 1));
-	entry.sectionIndices.resize(std::min<std::size_t>(entry.sectionIndices.size(), 1));
-	return entry;
-}
-
 std::vector<std::string> areaResources(const AreaCapacityScope& scope) {
 	std::vector<std::string> resources = scope.blockIds;
 	resources.insert(resources.end(), scope.secondBlockIds.begin(), scope.secondBlockIds.end());
 	return resources;
+}
+
+// The resources of both ranges, in which capacityInputFrom takes the reference time of a train where it enters the area:
+// at its first occupation of a resource of the area, as the Capacity window does in its blocks.
+CapacityAnalysisScope entryScope(const AreaCapacityScope& scope) {
+	CapacityAnalysisScope entry;
+	entry.blockIds = areaResources(scope);
+	return entry;
 }
 
 bool runsReversed(const CompletedRunData& data, const CompletedTrain& train) {
@@ -340,7 +340,8 @@ bool runsReversed(const CompletedRunData& data, const std::string& trainId) {
 AreaCapacityTrain areaTrainFor(const CompletedRunData& data, const CompletedTrain& train, const CapacityAnalysisScope& reference) {
 	AreaCapacityTrain result;
 	result.train = capacityInputFrom(train, reference);
-	// capacityInputFrom keeps the usable occupations of the first route only. The analysis picks the occupations of the area and reports the unusable ones.
+	// capacityInputFrom keeps only the usable occupations of the area, and none without a reference. The analysis takes
+	// them all, so that it can report the unusable ones.
 	result.train.occupations = train.blockTimes;
 	result.reversedDirection = runsReversed(data, train);
 	return result;
@@ -435,7 +436,7 @@ QString areaCapacityStatusText(const AreaCapacityNote& note, bool shortIds) {
 		case AreaCapacityNoteKind::OpposingTrain:
 			return QString("Train %1 runs in the other direction. It counts in the resource rows and is left out of the chain.").arg(train);
 		case AreaCapacityNoteKind::InvalidReference:
-			return QString("Train %1 has no valid reference time at the first resource, so the chain cannot be analysed.").arg(train);
+			return QString("Train %1 has no valid reference time in the area, so the chain cannot be analysed.").arg(train);
 		case AreaCapacityNoteKind::FewerThanTwoTrains:
 			return QStringLiteral("The chain has one train. A chain needs at least two.");
 		case AreaCapacityNoteKind::NoSharedResource:
