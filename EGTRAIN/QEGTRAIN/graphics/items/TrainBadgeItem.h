@@ -10,8 +10,8 @@
 
 /// The badge of a train, placed at the centre of its bodies. It ignores the transformation of the view, so
 /// its geometry is in logical pixels from its position. It keeps the identifier, the speed, the kind and the
-/// direction of the train, but draws only the speed, as white text with a dark outline beside the train. It
-/// takes no click and shows no tooltip.
+/// direction of the train, but draws only the speed, as white text on a backing in canvasColor() beside the train.
+/// It takes no click and shows no tooltip.
 class TrainBadgeItem : public QGraphicsItem {
 public:
 	/// How much the badge shows.
@@ -60,11 +60,12 @@ public:
 	/// The speed text, starting 8 logical pixels to the right of the position, with the bottom of its line
 	/// 8 above it; empty when showsSpeed() is false.
 	QRectF speedTextRect() const;
-	/// The speed text with its outline and a margin of 1 logical pixel; empty when showsSpeed() is false.
+	/// The backing of the speed, which reaches 2 logical pixels past the ends of the text and 1 above and below it, with
+	/// a margin of 1 logical pixel; empty when showsSpeed() is false.
 	QRectF boundingRect() const override;
 	/// An empty shape, so the badge is never picked.
 	QPainterPath shape() const override;
-	/// Draws the speed in white with a dark outline when showsSpeed() is true, and nothing otherwise.
+	/// Draws the speed in white on its backing in canvasColor() when showsSpeed() is true, and nothing otherwise.
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
 		QWidget* widget = nullptr) override;
 
@@ -75,6 +76,7 @@ public:
 private:
 	QFont speedFont() const;
 	QPointF speedBaseline() const;
+	QRectF speedBackingRect() const;
 	void updateToolTip();
 
 	QString m_identifier;

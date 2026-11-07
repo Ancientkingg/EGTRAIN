@@ -209,6 +209,7 @@ private slots:
 	void stationSquares();
 	void speedLabels();
 	void trainBadge();
+	void trainSpeedBacking();
 	void signalGeometries();
 	void signalHead();
 	void headStatesWithoutColour();
@@ -715,7 +716,7 @@ void TestVisualPolish::trainBadge() {
 	QVERIFY2(drawsNothing(), "an Identity badge draws nothing");
 	badge.setPresentation(TrainBadgeItem::Presentation::Detailed);
 	const QImage speedImage = renderBadge();
-	// A Detailed badge draws the speed in white with a dark outline.
+	// A Detailed badge draws the speed in white on a dark backing.
 	QCOMPARE_GT(pixelsOfColor(speedImage, Qt::white), 100);
 	QCOMPARE_GT(pixelsOfColor(speedImage, QColor(16, 26, 34)), 100);
 	const QRectF speedBounds = badge.boundingRect();
@@ -741,6 +742,44 @@ void TestVisualPolish::trainBadge() {
 	QCOMPARE_LT(unpromoted, StationNameItem::NameZValue);
 	QCOMPARE_LT(badge.zValue(), StationNameItem::NameZValue);
 	badge.setPromoted(false);
+}
+
+// A train that stands at a platform shows "0 km/h" over the white bar of the platform or the red dot of a signal. The
+// badge paints a backing in the canvas colour behind the whole speed, so nothing under it shows between the letters.
+void TestVisualPolish::trainSpeedBacking() {
+	TrainBadgeItem badge;
+	badge.setPresentation(TrainBadgeItem::Presentation::Detailed);
+	badge.setSpeedText("0 km/h");
+	// The badge four times as large, with its position in the middle of the image.
+	const QTransform badgeScale = QTransform::fromTranslate(240.0, 120.0).scale(4.0, 4.0);
+	const auto renderOver = [&badge, &badgeScale](const QColor& under) {
+		QImage image(480, 240, QImage::Format_ARGB32_Premultiplied);
+		image.fill(under);
+		{
+			QPainter painter(&image);
+			painter.setTransform(badgeScale);
+			badge.paint(&painter, nullptr, nullptr);
+		}
+		return image;
+	};
+	const QImage overBar = renderOver(Qt::white);
+	const QImage overSignal = renderOver(Qt::red);
+	const QRect speed = badgeScale.mapRect(badge.speedTextRect()).toAlignedRect();
+	int showing = 0;
+	int backing = 0;
+	int letters = 0;
+	for (int y = speed.top(); y <= speed.bottom(); ++y)
+		for (int x = speed.left(); x <= speed.right(); ++x) {
+			const QColor pixel = overSignal.pixelColor(x, y);
+			showing += overBar.pixelColor(x, y) != pixel;
+			backing += pixel == canvasColor();
+			letters += pixel == QColor(Qt::white);
+		}
+	// Nothing under the speed shows through it.
+	QCOMPARE(showing, 0);
+	// The speed is white letters on the backing, which fills most of its line.
+	QCOMPARE_GT(letters, 100);
+	QCOMPARE_GT(backing, speed.width() * speed.height() / 2);
 }
 
 void TestVisualPolish::signalGeometries() {
