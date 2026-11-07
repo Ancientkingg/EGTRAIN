@@ -28,7 +28,7 @@
 <area shape="poly" id="edge75_Node000001_Node000048" title=" " alt="" coords="115,645,168,573,209,530,255,494,267,489,264,493,258,498,212,534,172,576,120,647"/>
 <area shape="rect" id="Node000049" href="$class_incident_panel.html#a43b973587863c82bd9e5a72feafa1320" title=" " alt="" coords="274,387,470,415"/>
 <area shape="poly" id="edge78_Node000001_Node000049" title=" " alt="" coords="110,645,127,601,157,541,199,478,226,449,255,424,265,420,262,424,258,429,229,453,203,481,162,544,132,603,116,646"/>
-<area shape="rect" id="Node000050" href="$class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" title="A spin box whose wheel is guarded by FocusWheel." alt="" coords="572,927,759,972"/>
+<area shape="rect" id="Node000050" href="$class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" title="A spin box whose wheel is guarded by FocusWheel, which also gives it the stepSize property." alt="" coords="572,927,759,972"/>
 <area shape="poly" id="edge82_Node000001_Node000050" title=" " alt="" coords="111,671,126,725,153,797,172,835,196,872,224,904,258,931,293,949,330,962,369,971,408,976,486,977,560,971,555,973,486,982,408,981,368,976,328,967,291,954,255,935,221,908,192,875,167,838,148,799,121,726,111,677"/>
 <area shape="rect" id="Node000051" href="$class_incident_panel.html#a1917aff18f1a9554c46c66e2315b2d82" title="Deletes the selected incident after the user has confirmed it." alt="" coords="268,129,477,156"/>
 <area shape="poly" id="edge84_Node000001_Node000051" title=" " alt="" coords="105,645,107,562,113,501,124,433,142,361,169,290,206,223,229,193,255,166,261,163,258,168,259,170,233,197,210,226,174,292,147,362,129,434,118,502,113,562,111,646"/>
@@ -55,7 +55,7 @@
 <area shape="rect" id="Node000007" href="$_scene_model_8cpp.html#a765f734ddc8d717d03dfb08048237303" title=" " alt="" coords="2173,706,2279,734"/>
 <area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="2098,717,2160,719,2154,720,2099,723"/>
 <area shape="poly" id="edge8_Node000007_Node000007" title=" " alt="" coords="2191,705,2186,697,2190,688,2204,681,2226,679,2250,682,2265,691,2259,690,2249,687,2226,685,2205,687,2194,691,2191,697,2196,706"/>
-<area shape="rect" id="Node000009" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="895,935,1040,963"/>
+<area shape="rect" id="Node000009" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title=" " alt="" coords="895,935,1040,963"/>
 <area shape="poly" id="edge11_Node000008_Node000009" title=" " alt="" coords="740,992,795,981,883,966,878,967,796,986,741,997"/>
 <area shape="poly" id="edge12_Node000009_Node000009" title=" " alt="" coords="921,934,914,926,920,917,938,911,968,909,999,911,1018,920,1013,920,998,916,967,914,939,916,923,921,919,926,926,935"/>
 <area shape="rect" id="Node000011" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="568,393,764,420"/>

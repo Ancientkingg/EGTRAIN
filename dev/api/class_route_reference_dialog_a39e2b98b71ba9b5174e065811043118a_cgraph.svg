@@ -158,7 +158,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" target="_top" xlink:title="Guards box: gives it strong focus and installs a Filter, once.">
+<g id="a_Node000006"><a xlink:href="namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="629.88,-105.75 521.62,-105.75 521.62,-85 629.88,-85 629.88,-105.75"/>
 <text xml:space="preserve" text-anchor="middle" x="575.75" y="-92.25" font-family="Helvetica,sans-Serif" font-size="10.00">FocusWheel::guard</text>
 </a>

@@ -44,7 +44,7 @@
 <area shape="poly" id="edge61_Node000001_Node000060" title=" " alt="" coords="148,824,248,794,304,780,300,784,249,799,152,828"/>
 <area shape="rect" id="Node000061" href="$class_service_panel.html#a3ce72403e5525acc9ddba510773617d7" title="Takes the display colour, &quot;#rrggbb&quot; or empty for the default." alt="" coords="255,375,502,420"/>
 <area shape="poly" id="edge65_Node000001_Node000061" title=" " alt="" coords="102,826,109,755,130,649,148,590,173,532,205,478,247,430,254,427,251,431,251,434,210,481,178,534,153,592,135,650,114,756,108,826"/>
-<area shape="rect" id="Node000062" href="$class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" title="A spin box whose wheel is guarded by FocusWheel." alt="" coords="592,1075,779,1120"/>
+<area shape="rect" id="Node000062" href="$class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" title="A spin box whose wheel is guarded by FocusWheel, which also gives it the stepSize property." alt="" coords="592,1075,779,1120"/>
 <area shape="poly" id="edge67_Node000001_Node000062" title=" " alt="" coords="112,852,135,884,165,924,204,964,250,997,286,1013,317,1022,375,1027,435,1028,469,1031,509,1040,557,1060,582,1070,577,1071,555,1065,507,1045,468,1037,434,1033,375,1032,316,1028,284,1018,247,1001,201,968,161,927,131,887,113,857"/>
 <area shape="rect" id="Node000063" href="$class_service_panel.html#a8bdbff0bbf3dd4d8c17349885263b254" title="Deletes the selected service after the user has confirmed it; refused while something refers to it." alt="" coords="278,649,479,677"/>
 <area shape="poly" id="edge69_Node000001_Node000063" title=" " alt="" coords="112,825,164,761,203,724,247,693,278,680,275,684,250,697,207,728,168,764,117,827"/>
@@ -100,7 +100,7 @@
 <area shape="poly" id="edge21_Node000027_Node000027" title=" " alt="" coords="1228,550,1221,542,1227,532,1244,526,1272,524,1302,526,1320,535,1315,536,1301,531,1272,529,1245,531,1230,536,1227,541,1234,550"/>
 <area shape="poly" id="edge26_Node000035_Node000035" title=" " alt="" coords="1228,744,1221,736,1227,726,1244,721,1272,718,1302,721,1320,729,1315,730,1301,726,1272,724,1245,726,1230,731,1227,736,1234,745"/>
 <area shape="poly" id="edge28_Node000039_Node000039" title=" " alt="" coords="634,444,626,435,633,425,653,419,686,417,722,420,742,428,737,430,721,425,686,422,654,424,636,429,631,435,639,443"/>
-<area shape="rect" id="Node000041" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="918,1140,1062,1167"/>
+<area shape="rect" id="Node000041" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title=" " alt="" coords="918,1140,1062,1167"/>
 <area shape="poly" id="edge30_Node000040_Node000041" title=" " alt="" coords="784,1049,817,1061,841,1077,865,1095,940,1133,935,1134,862,1100,838,1081,814,1065,784,1055"/>
 <area shape="poly" id="edge31_Node000041_Node000041" title=" " alt="" coords="942,1139,934,1131,941,1121,959,1115,990,1113,1024,1116,1043,1125,1038,1125,1022,1121,990,1118,960,1120,944,1125,940,1131,947,1140"/>
 <area shape="poly" id="edge34_Node000043_Node000003" title=" " alt="" coords="459,298,509,310,578,334,641,360,636,362,576,339,507,315,461,302"/>

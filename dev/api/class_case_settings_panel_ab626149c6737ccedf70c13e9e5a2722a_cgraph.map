@@ -16,9 +16,9 @@
 <area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="386,105,508,109,503,111,387,110"/>
 <area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="532,97,526,89,531,79,546,73,571,71,597,74,612,83,607,83,595,79,571,76,548,78,535,83,532,89,538,98"/>
 <area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="272,245,266,237,271,227,287,221,312,219,339,222,355,231,350,230,338,227,312,224,288,226,274,231,271,237,277,246"/>
-<area shape="rect" id="Node000007" href="$class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" title="A spin box whose wheel is guarded by FocusWheel." alt="" coords="478,237,664,282"/>
+<area shape="rect" id="Node000007" href="$class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" title="A spin box whose wheel is guarded by FocusWheel, which also gives it the stepSize property." alt="" coords="478,237,664,282"/>
 <area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="379,257,465,259,460,260,380,262"/>
-<area shape="rect" id="Node000008" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="720,246,865,274"/>
+<area shape="rect" id="Node000008" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title=" " alt="" coords="720,246,865,274"/>
 <area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="664,257,707,259,702,260,664,262"/>
 <area shape="poly" id="edge9_Node000008_Node000008" title=" " alt="" coords="754,244,748,237,753,227,768,221,793,219,819,222,834,231,829,230,817,227,792,224,769,226,757,231,754,237,759,246"/>
 <area shape="poly" id="edge12_Node000009_Node000004" title=" " alt="" coords="386,172,456,173,451,174,387,177"/>

@@ -14,7 +14,7 @@
 <area shape="rect" id="Node000007" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="534,142,686,187"/>
 <area shape="poly" id="edge9_Node000003_Node000007" title=" " alt="" coords="440,133,521,149,515,149,440,138"/>
 <area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="571,65,566,58,570,48,585,42,610,40,636,43,651,51,646,51,634,48,610,45,587,47,574,52,571,57,577,67"/>
-<area shape="rect" id="Node000005" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="759,29,903,57"/>
+<area shape="rect" id="Node000005" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title=" " alt="" coords="759,29,903,57"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="690,64,746,57,741,58,691,70"/>
 <area shape="rect" id="Node000006" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ..." alt="" coords="738,105,924,133"/>
 <area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="691,92,736,102,731,102,691,97"/>

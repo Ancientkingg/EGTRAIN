@@ -12,7 +12,7 @@
 <area shape="rect" id="Node000006" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="919,190,1071,235"/>
 <area shape="poly" id="edge8_Node000002_Node000006" title=" " alt="" coords="418,148,623,166,871,193,906,199,901,199,870,198,622,172,418,153"/>
 <area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="519,104,513,96,518,87,533,81,557,79,582,81,597,90,592,90,581,86,557,84,534,86,522,91,519,96,524,106"/>
-<area shape="rect" id="Node000004" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="706,29,850,57"/>
+<area shape="rect" id="Node000004" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title=" " alt="" coords="706,29,850,57"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="592,102,684,67,712,61,707,63,686,72,594,107"/>
 <area shape="rect" id="Node000005" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ..." alt="" coords="685,105,871,133"/>
 <area shape="poly" id="edge6_Node000003_Node000005" title=" " alt="" coords="637,117,672,119,667,120,638,122"/>

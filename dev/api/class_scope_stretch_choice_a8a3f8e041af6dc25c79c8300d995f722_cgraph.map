@@ -13,7 +13,7 @@
 <area shape="rect" id="Node000010" href="$class_scope_stretch_choice.html#afd6f02545f01d9ca39cd7aa589cbc43a" title="The runtime section ids of the blocks of the stretch in route order; empty for all routes." alt="" coords="527,313,677,358"/>
 <area shape="poly" id="edge16_Node000001_Node000010" title=" " alt="" coords="102,206,148,260,178,287,213,307,249,321,288,332,367,344,443,347,509,347,514,346,443,352,366,349,287,337,248,327,211,312,175,291,144,264,100,211"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="297,29,291,20,296,11,313,5,341,3,371,5,389,13,384,15,370,10,341,8,314,10,300,15,296,20,303,29"/>
-<area shape="rect" id="Node000004" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="530,65,674,93"/>
+<area shape="rect" id="Node000004" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title=" " alt="" coords="530,65,674,93"/>
 <area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="471,85,517,84,512,85,472,90"/>
 <area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="566,64,560,56,565,47,579,41,602,39,627,41,642,50,636,50,625,46,602,44,581,46,569,51,566,56,571,65"/>
 <area shape="rect" id="Node000006" href="$_blocking_time_scope_8cpp.html#a5feaa6509d6770f624cca415de6121e7" title=" " alt="" coords="519,141,685,169"/>
