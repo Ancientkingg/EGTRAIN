@@ -325,9 +325,10 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 			occupied.color = occupiedTrackColor();
 			m_entries << occupied;
 		}
-		if (content.hasSelectedTrack) {
-			// The band of the mark that the preview draws along the track of the selected row.
-			NetworkLegendEntry selected = trackEntry("Selected track", TrackOperationalState::Free);
+		if (content.hasSelectedTrack || content.hasSelectedItem) {
+			// The band of the mark that the preview draws along the track of the selected row. The mark of a row of another
+			// kind has the same violet.
+			NetworkLegendEntry selected = trackEntry(content.hasSelectedTrack ? "Selected track" : "Selected item", TrackOperationalState::Free);
 			selected.color = kNetworkMarkColor;
 			selected.lineWidth = qRound(NetworkMarkItem::BandPixels);
 			m_entries << selected;

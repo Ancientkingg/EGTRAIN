@@ -2280,7 +2280,7 @@ void MainWindow::infrastructureSelectionChanged() {
 void MainWindow::infrastructureDockShown(bool shown) {
 	// The mark of the selected row comes back as it was, so the selection and the view stay.
 	m_presenter->setSelectionMarkShown(shown);
-	// The map key lists the selected track only while the preview shows its mark.
+	// The map key lists the mark of the selected row only while the preview shows it.
 	if (m_presenter->previewShown())
 		updateNetworkLegend();
 }
@@ -3845,6 +3845,7 @@ void MainWindow::updateNetworkLegend() {
 	content.hasTracks = simulation.run().infra.numTrackLines > 0 || !m_document->model().tracks.empty();
 	content.showOperationalTrackStates = !preview;
 	content.hasSelectedTrack = preview && m_presenter->previewHasSelectedTrack();
+	content.hasSelectedItem = preview && !content.hasSelectedTrack && m_presenter->selectionMark() && m_presenter->selectionMarkShown();
 	for (const TrainItemGroup* train : m_presenter->runTrains()) {
 		if (train)
 			content.trains << NetworkLegendTrain{train->fillColor, train->outlineColor,

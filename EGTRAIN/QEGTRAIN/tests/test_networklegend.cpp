@@ -108,6 +108,7 @@ private slots:
 	void collapsesAndExpands();
 	void rowsStayNarrow();
 	void previewKeyExplainsSignalAspects();
+	void previewKeyExplainsMarkOfSelectedItem();
 	void stationSwatchesShowPinOfClass();
 	void stationSwatchesFollowMarkStyle();
 	void defaultTrainsShareOneRow();
@@ -313,6 +314,27 @@ void TestNetworkLegend::previewKeyExplainsSignalAspects() {
 	QCOMPARE(previewEntries.at(3).color, kNetworkMarkColor);
 	QCOMPARE(previewEntries.at(3).lineWidth, qRound(NetworkMarkItem::BandPixels));
 	QVERIFY2(!legend.entryLabels().contains("Occupied section"), "the track preview has no row for the occupied sections");
+}
+
+// The mark of a selected row that is not a track, such as a station, an arc or a signal, has a row of its own where the
+// row of a selected track goes, in the violet of the mark.
+void TestNetworkLegend::previewKeyExplainsMarkOfSelectedItem() {
+	NetworkLegendWidget legend;
+	NetworkLegendContent content;
+	content.hasTracks = true;
+	content.showOperationalTrackStates = false;
+	content.hasSelectedItem = true;
+	content.stationVisuals = {classifyStation(true)};
+	legend.setCaseContent(content);
+	QCOMPARE(legend.entryLabels(), QStringList({"High speed track (200+ km/h)", "Mainline track (120+ km/h)", "Local track", "Selected item", "Station"}));
+	const NetworkLegendEntry selected = legend.entries().at(3);
+	QCOMPARE(selected.color, kNetworkMarkColor);
+	QCOMPARE(selected.lineWidth, qRound(NetworkMarkItem::BandPixels));
+	// A selected track keeps its own row, and the map key has one row for the mark.
+	content.hasSelectedTrack = true;
+	legend.setCaseContent(content);
+	QCOMPARE(legend.entryLabels().at(3), "Selected track");
+	QVERIFY(!legend.entryLabels().contains("Selected item"));
 }
 
 void TestNetworkLegend::stationSwatchesShowPinOfClass() {
