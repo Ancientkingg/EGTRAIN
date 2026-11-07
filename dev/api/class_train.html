@@ -136,6 +136,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aab13668e235554b116f7a32d2ea894db" id="r_aab13668e235554b116f7a32d2ea894db"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aab13668e235554b116f7a32d2ea894db">cacheStationPositions</a> ()</td></tr>
 <tr class="memitem:a7e2990e6f543460759cde3d36dd6adc3" id="r_a7e2990e6f543460759cde3d36dd6adc3"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a7e2990e6f543460759cde3d36dd6adc3">isStopArc</a> (int section, int arc) const</td></tr>
 <tr class="memitem:a0d15f6d3dc453d6aba319e852f21714e" id="r_a0d15f6d3dc453d6aba319e852f21714e"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a0d15f6d3dc453d6aba319e852f21714e">tractiveEffort</a> (double V)</td></tr>
+<tr class="memitem:a0a450bd385a5d28f17000a8bcafe76fd" id="r_a0a450bd385a5d28f17000a8bcafe76fd"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a0a450bd385a5d28f17000a8bcafe76fd">trackSpeedLimit</a> (const <a class="el" href="class_arc.html">Arc</a> &amp;arc) const</td></tr>
+<tr class="memdesc:a0a450bd385a5d28f17000a8bcafe76fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Track speed limit of arc in m/s for this train: speedLimit scaled by servicePerformancePercent.  <br /></td></tr>
+<tr class="memitem:adb4893594413748e6f7ffd37211ce4b7" id="r_adb4893594413748e6f7ffd37211ce4b7"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#adb4893594413748e6f7ffd37211ce4b7">arcEndTargetSpeed</a> (const <a class="el" href="class_section.html">Section</a> *BS, int Blocks, int section, int arc) const</td></tr>
 <tr class="memitem:a82de975c4acc0c503964ccce89396d74" id="r_a82de975c4acc0c503964ccce89396d74"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a82de975c4acc0c503964ccce89396d74">brakingEffort</a> (double T)</td></tr>
 <tr class="memdesc:a82de975c4acc0c503964ccce89396d74"><td class="mdescLeft">&#160;</td><td class="mdescRight">Braking force in N after T seconds of braking: it grows with Jerk until the deceleration reaches max_train_decelaration.  <br /></td></tr>
 <tr class="memitem:ab101610ad7c3a484b47d1b921a06748c" id="r_ab101610ad7c3a484b47d1b921a06748c"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab101610ad7c3a484b47d1b921a06748c">traction_unit_resistences</a> (double V)</td></tr>
@@ -309,7 +312,6 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a33dfd4246dc7f6ad37f3a550a5d5256a"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the scene service.  <br /></td></tr>
 <tr class="memitem:ae564e9119b7c3e432bfa31faf2942de6" id="r_ae564e9119b7c3e432bfa31faf2942de6"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ae564e9119b7c3e432bfa31faf2942de6">serviceOccurrence</a></td></tr>
 <tr class="memitem:ac901c60022ae68ae343746a62bf0267a" id="r_ac901c60022ae68ae343746a62bf0267a"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ac901c60022ae68ae343746a62bf0267a">servicePerformancePercent</a></td></tr>
-<tr class="memdesc:ac901c60022ae68ae343746a62bf0267a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performance of the service in percent; it scales the tractive effort and the maximum speed.  <br /></td></tr>
 <tr class="memitem:ab5cdbc2031c4a76ff5f290aad06cae65" id="r_ab5cdbc2031c4a76ff5f290aad06cae65"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab5cdbc2031c4a76ff5f290aad06cae65">hasConfiguredMaximumSpeed</a></td></tr>
 <tr class="memdesc:ab5cdbc2031c4a76ff5f290aad06cae65"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the service sets its own maximum speed.  <br /></td></tr>
 <tr class="memitem:a9c372394644f39a82f1c40d1b46c8370" id="r_a9c372394644f39a82f1c40d1b46c8370"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a9c372394644f39a82f1c40d1b46c8370">configuredMaximumSpeedKmh</a></td></tr>
@@ -578,6 +580,43 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a9919b5df2c04fa5c9be99f738d5471f3_cgraph.svg" width="728" height="211"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="adb4893594413748e6f7ffd37211ce4b7" name="adb4893594413748e6f7ffd37211ce4b7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb4893594413748e6f7ffd37211ce4b7">&#9670;&#160;</a></span>arcEndTargetSpeed()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double Train::arcEndTargetSpeed </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_section.html">Section</a> *</td>          <td class="paramname"><span class="paramname"><em>BS</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>Blocks</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>section</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>arc</em></span>&#160;) const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Speed in m/s this train has to reach at the end of arc arc of route section section of the Blocks sections BS: the speedInBraking of the arc, at most the track speed limit of the next arc for this train. The last arc of the route is its own next arc, as in setInfraSpeedLimits. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_adb4893594413748e6f7ffd37211ce4b7_cgraph.svg" width="410" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1924,7 +1963,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_ad8b349c94f8a0f31bdff97899672573d_cgraph.svg" width="2198" height="804"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_ad8b349c94f8a0f31bdff97899672573d_cgraph.svg" width="2204" height="671"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -3133,6 +3172,25 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a0a450bd385a5d28f17000a8bcafe76fd" name="a0a450bd385a5d28f17000a8bcafe76fd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a450bd385a5d28f17000a8bcafe76fd">&#9670;&#160;</a></span>trackSpeedLimit()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double Train::trackSpeedLimit </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_arc.html">Arc</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>arc</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Track speed limit of arc in m/s for this train: speedLimit scaled by servicePerformancePercent. </p>
+
+</div>
+</div>
 <a id="ab101610ad7c3a484b47d1b921a06748c" name="ab101610ad7c3a484b47d1b921a06748c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab101610ad7c3a484b47d1b921a06748c">&#9670;&#160;</a></span>traction_unit_resistences()</h2>
 
@@ -3247,7 +3305,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a09e55bf615f21184e4a57367932d4a61_cgraph.svg" width="1699" height="2191"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a09e55bf615f21184e4a57367932d4a61_cgraph.svg" width="1699" height="2271"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -4745,8 +4803,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Performance of the service in percent; it scales the tractive effort and the maximum speed. </p>
+<p>Performance of the service in percent; it scales the tractive effort, the maximum speed and the track speed limits, not the signal speed limits. </p>
 
 </div>
 </div>

@@ -1,5 +1,7 @@
 var NAVTREEINDEX20 =
 {
+"namespacedialog__folders.html#a89df3db14c75cb7ac0d4a9e999ccde1d":[1,0,3,0],
+"namespacedialog__folders.html#aa1f36163d18d6b6bdf0d453c5a410b03":[1,0,3,3],
 "namespacedialog__folders.html#ab86e736f34d54930599b38b2b6e4120e":[1,0,3,4],
 "namespacedialog__folders.html#ad02cf64edfe889f9f3910239062b46b8":[1,0,3,9],
 "namespacedialog__folders.html#ae19dff647096a30a99da1bb19ea46242":[1,0,3,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX20 =
 "struct_blocking_time_diagram_segment.html#a78c90d2bc5589f274edf011a88491353":[2,0,21,4],
 "struct_blocking_time_diagram_segment.html#a7b767305af8fd37f328a9de97f747a03":[2,0,21,17],
 "struct_blocking_time_diagram_segment.html#a88df97388c470bbb365a791ecf686fdf":[2,0,21,8],
-"struct_blocking_time_diagram_segment.html#a8eda344fab1c68e008a4b13b2bf46e85":[2,0,21,3],
-"struct_blocking_time_diagram_segment.html#a90cf5dcd3a3e897c13c9a46178695f31":[2,0,21,6],
-"struct_blocking_time_diagram_segment.html#a9bd43b44ae30902f63b4c5e019a7d15f":[2,0,21,15]
+"struct_blocking_time_diagram_segment.html#a8eda344fab1c68e008a4b13b2bf46e85":[2,0,21,3]
 };

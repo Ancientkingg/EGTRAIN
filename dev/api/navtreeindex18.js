@@ -1,5 +1,7 @@
 var NAVTREEINDEX18 =
 {
+"classtelemetry_1_1_operation_observation.html#afca86c2dc6f1865b2d4fca65f8f70385":[2,0,3,3,3],
+"classtelemetry_1_1_sender_thread.html":[1,0,14,6],
 "classtelemetry_1_1_sender_thread.html":[2,0,3,6],
 "classtelemetry_1_1_sender_thread.html#a31e2e523a8a8a6ebe68cbf0ad3a79106":[1,0,14,6,2],
 "classtelemetry_1_1_sender_thread.html#a31e2e523a8a8a6ebe68cbf0ad3a79106":[2,0,3,6,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX18 =
 "functions_func_q.html":[2,3,1,16],
 "functions_func_r.html":[2,3,1,17],
 "functions_func_s.html":[2,3,1,18],
-"functions_func_t.html":[2,3,1,19],
-"functions_func_u.html":[2,3,1,20],
-"functions_func_v.html":[2,3,1,21]
+"functions_func_t.html":[2,3,1,19]
 };

@@ -84,17 +84,17 @@ var NAVTREEINDEX =
 "class_scene_history.html#a124029b31793fbd0d1100f0b8f41bd85",
 "class_signal_item.html#a60f3da81dae95e653a5d068aa70e06d4",
 "class_train.html#a05aa6fd519005ecf7c4c0b642684f101",
-"class_train_event.html#ac455b83db253f6d457d128c756d736b9",
-"classtelemetry_1_1_sender_thread.html",
-"functions_func_w.html",
-"namespacedialog__folders.html#ab86e736f34d54930599b38b2b6e4120e",
-"struct_blocking_time_diagram_segment.html#ab1fe6358019d4c6c18c2cdac6de0f056",
-"struct_delay_statistics.html#a249be534510bfa55f05f5f9fb0b77e63",
-"struct_network_legend_content.html#a5ba856f093161794004d63145a28d825",
-"struct_run_outcome.html",
-"struct_scene_passenger_leg.html#a8db6d2f5f8cb8487540d7d0ee45bc2f2",
-"struct_semantic_version.html",
-"struct_train_colour_input.html#ab91bf4346578941cc371ff4dff2e469e"
+"class_train_event.html#aa6b2bb89b35e8aa55c4efe52b2e7a249",
+"classtelemetry_1_1_operation_observation.html#afca86c2dc6f1865b2d4fca65f8f70385",
+"functions_func_u.html",
+"namespacedialog__folders.html#a89df3db14c75cb7ac0d4a9e999ccde1d",
+"struct_blocking_time_diagram_segment.html#a90cf5dcd3a3e897c13c9a46178695f31",
+"struct_delay_statistics.html",
+"struct_network_legend_content.html",
+"struct_run_occurrence_provenance.html#aac5f4f78396d3c9d440998d64b136c1e",
+"struct_scene_passenger_leg.html",
+"struct_self_update_capability.html#add7252647dc3654efa5d7c099066fc9b",
+"struct_train_colour_input.html#a5a601b9ce6b320986fc6a30b22edc81a"
 ];
 
 const SYNCONMSG = 'click to disable panel synchronization';

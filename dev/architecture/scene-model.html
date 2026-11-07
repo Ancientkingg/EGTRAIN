@@ -475,8 +475,10 @@ codes <code class="docutils literal notranslate"><span class="pre">9707</span></
 finite in <code class="docutils literal notranslate"><span class="pre">1..100</span></code>; <code class="docutils literal notranslate"><span class="pre">maximum_speed_kmh</span></code>, when present, is a positive finite
 service cap in km/h. The native commanded speed is the composition maximum
 limited by that cap, then multiplied by performance; 100% takes the legacy
-raw path. Performance does not alter braking, mass, shared composition data,
-buffer, or recovery.</p>
+raw path. Performance also multiplies the track speed limits the train obeys,
+including the braking targets taken from them, but not signal speed limits.
+Performance does not alter braking, mass, shared composition data, buffer, or
+recovery.</p>
 <p>The optional service <code class="docutils literal notranslate"><span class="pre">category</span></code> is descriptive metadata, independent of physical
 properties, performance, speed limits and stops. Missing values mean no category;
 unknown strings survive canonical folder and bundle persistence. Legacy export
