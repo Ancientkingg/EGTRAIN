@@ -39,7 +39,7 @@ var searchData=
   ['heightforcontent_36',['heightForContent',['../namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac',1,'DialogLayout::detail']]],
   ['hideevent_37',['hideEvent',['../class_incident_panel.html#ab755519e686d0bcfb5cd4b70e15cab47',1,'IncidentPanel']]],
   ['highlighteffect_38',['HighlightEffect',['../class_highlight_effect.html#adf647a7463d3cfd110067bc3f28c692a',1,'HighlightEffect']]],
-  ['historyrestored_39',['historyRestored',['../class_run_selection.html#a0940878fd28e81f1c43be9ef5c2eeefd',1,'RunSelection']]],
+  ['historyrestored_39',['historyRestored',['../class_run_selection.html#a0940878fd28e81f1c43be9ef5c2eeefd',1,'RunSelection::historyRestored()'],['../class_train_unit_source_linker.html#a1a98bd09b9f44948575cb064536e0c41',1,'TrainUnitSourceLinker::historyRestored()']]],
   ['horizonseconds_40',['horizonSeconds',['../struct_completed_run_settings.html#a153e7bfe4196089fb8e532f261ef95c8',1,'CompletedRunSettings']]],
   ['httpreply_41',['HttpReply',['../class_http_reply.html#a9c571cc8b8932c2d247dcd19360aca1c',1,'HttpReply']]],
   ['httptransport_42',['HttpTransport',['../class_http_transport.html#aa30f85322d04c0a9312befd02a5bcb58',1,'HttpTransport']]]

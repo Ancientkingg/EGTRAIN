@@ -90,7 +90,7 @@ var searchData=
   ['highlighteffect_2ecpp_87',['HighlightEffect.cpp',['../_highlight_effect_8cpp.html',1,'']]],
   ['highlighteffect_2eh_88',['HighlightEffect.h',['../_highlight_effect_8h.html',1,'']]],
   ['highspeed_89',['HighSpeed',['../_visual_polish_8h.html#aa3d69fc136eed55ed2a75c1c0d8a7f97a419dcbabdbac74acb57d4d21aa110da8',1,'VisualPolish.h']]],
-  ['historyrestored_90',['historyRestored',['../class_run_selection.html#a0940878fd28e81f1c43be9ef5c2eeefd',1,'RunSelection']]],
+  ['historyrestored_90',['historyRestored',['../class_run_selection.html#a0940878fd28e81f1c43be9ef5c2eeefd',1,'RunSelection::historyRestored()'],['../class_train_unit_source_linker.html#a1a98bd09b9f44948575cb064536e0c41',1,'TrainUnitSourceLinker::historyRestored()']]],
   ['holdatauthority_91',['HoldAtAuthority',['../_rolling_stock_8h.html#a6212850430c9d87a2b2518f5ea118b1ca567d1f086adad2c2d5230c30a6df3baa',1,'RollingStock.h']]],
   ['holdattrainorder_92',['HoldAtTrainOrder',['../_rolling_stock_8h.html#a6212850430c9d87a2b2518f5ea118b1ca6590ee3e83154e0ce18465e1a23b695f',1,'RollingStock.h']]],
   ['horizon_93',['horizon',['../struct_playback_profiler_1_1_run_config.html#a93939c5473081b4399f85c0e40c8396e',1,'PlaybackProfiler::RunConfig']]],

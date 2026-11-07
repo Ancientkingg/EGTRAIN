@@ -128,6 +128,7 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a6f536b1670129b136cb56abdb74674c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scenario selected for the next run when this state was last left; empty before.  <br /></td></tr>
 <tr class="memitem:a3b0714a2d04ee30e3499e088d26f92c4" id="r_a3b0714a2d04ee30e3499e088d26f92c4"><td class="memItemLeft"><a class="el" href="_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a>&#160;</td><td class="memItemRight"><a class="el" href="#a3b0714a2d04ee30e3499e088d26f92c4">excludedOccurrences</a></td></tr>
 <tr class="memdesc:a3b0714a2d04ee30e3499e088d26f92c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The occurrences that the next run left out when this state was last left.  <br /></td></tr>
+<tr class="memitem:a6e632e85c0f8922abdbb1daa4de06c3f" id="r_a6e632e85c0f8922abdbb1daa4de06c3f"><td class="memItemLeft">std::any&#160;</td><td class="memItemRight"><a class="el" href="#a6e632e85c0f8922abdbb1daa4de06c3f">trainUnitSourceLinks</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>One state of the scene. The label names the edit that produced the state from the one before; the root has none. </p>
@@ -224,6 +225,21 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The scenario selected for the next run when this state was last left; empty before. </p>
+
+</div>
+</div>
+<a id="a6e632e85c0f8922abdbb1daa4de06c3f" name="a6e632e85c0f8922abdbb1daa4de06c3f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6e632e85c0f8922abdbb1daa4de06c3f">&#9670;&#160;</a></span>trainUnitSourceLinks</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::any SceneHistoryEntry::trainUnitSourceLinks</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The links of the rolling stock units to their source files when this state was last left, as <a class="el" href="class_train_unit_source_linker.html#ac1dce0f3a15cd61daf03a73f6b1710ae" title="The links of the units by their id.">TrainUnitSourceLinker::Links</a>; empty before. The history has no Qt, so it holds them without their type. </p>
 
 </div>
 </div>

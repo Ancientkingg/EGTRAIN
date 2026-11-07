@@ -1,5 +1,9 @@
 var NAVTREEINDEX20 =
 {
+"functions_vars_z.html":[2,3,2,25],
+"functions_w.html":[2,3,0,22],
+"functions_x.html":[2,3,0,23],
+"functions_y.html":[2,3,0,24],
 "functions_z.html":[2,3,0,25],
 "functions_~.html":[2,3,0,26],
 "globals.html":[3,1,0],
@@ -245,9 +249,5 @@ var NAVTREEINDEX20 =
 "namespacescene__save__policy.html#aedd625aae76b1b1d7716d50d4c05956f":[1,0,13,1],
 "namespacetelemetry.html":[1,0,14],
 "namespacetelemetry.html#a099700bb2d688eb14684c4f9b72c0f86":[1,0,14,24],
-"namespacetelemetry.html#a09e6c66396efe7f44f370a235112c332":[1,0,14,26],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657":[1,0,14,19],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a30ad29ecbf8b92b3cc90327caecec1dd":[1,0,14,19,1],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a4d98250a14f0cda0742971d6a4c8e3b7":[1,0,14,19,2],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a7482cd4ebe2505e5275de25d89abae23":[1,0,14,19,4]
+"namespacetelemetry.html#a09e6c66396efe7f44f370a235112c332":[1,0,14,26]
 };

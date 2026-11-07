@@ -130,6 +130,11 @@ Classes</h2></td></tr>
 <tr class="memitem:Link" id="r_Link"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_train_unit_source_linker_1_1_link.html">Link</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The state of the links of one unit. <span class="tt">data</span> is the parameter file and <span class="tt">traction</span> the traction file.  <a href="struct_train_unit_source_linker_1_1_link.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:ac1dce0f3a15cd61daf03a73f6b1710ae" id="r_ac1dce0f3a15cd61daf03a73f6b1710ae"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#ac1dce0f3a15cd61daf03a73f6b1710ae">Links</a> = std::map&lt;std::string, <a class="el" href="struct_train_unit_source_linker_1_1_link.html">Link</a>&gt;</td></tr>
+<tr class="memdesc:ac1dce0f3a15cd61daf03a73f6b1710ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">The links of the units by their id.  <br /></td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:afff27b427b5d6a1c116a8b362b85fdf6" id="r_afff27b427b5d6a1c116a8b362b85fdf6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afff27b427b5d6a1c116a8b362b85fdf6">statusChanged</a> ()</td></tr>
@@ -152,6 +157,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a72e6ff502031c2dee5f7f81e771d375e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The questions of the linker are put in front of this window.  <br /></td></tr>
 <tr class="memitem:a60ac49edaa0700895d414683ed36f587" id="r_a60ac49edaa0700895d414683ed36f587"><td class="memItemLeft">const <a class="el" href="struct_train_unit_source_linker_1_1_link.html">Link</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a60ac49edaa0700895d414683ed36f587">linkOf</a> (const std::string &amp;unitId) const</td></tr>
 <tr class="memdesc:a60ac49edaa0700895d414683ed36f587"><td class="mdescLeft">&#160;</td><td class="mdescRight">The links of a unit, or null. The pointer is valid until the links change.  <br /></td></tr>
+<tr class="memitem:a569d79c49b98054057b2f21db22d3b7c" id="r_a569d79c49b98054057b2f21db22d3b7c"><td class="memItemLeft">const <a class="el" href="#ac1dce0f3a15cd61daf03a73f6b1710ae">Links</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a569d79c49b98054057b2f21db22d3b7c">links</a> () const</td></tr>
+<tr class="memdesc:a569d79c49b98054057b2f21db22d3b7c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The links of every unit.  <br /></td></tr>
 <tr class="memitem:a479439f4f4395755453cfa6eabfd0d6d" id="r_a479439f4f4395755453cfa6eabfd0d6d"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#a479439f4f4395755453cfa6eabfd0d6d">watchedFiles</a> () const</td></tr>
 <tr class="memdesc:a479439f4f4395755453cfa6eabfd0d6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The linked files that are watched.  <br /></td></tr>
 <tr class="memitem:a5b2df4f4a6eeb98648f4bd685dd8891f" id="r_a5b2df4f4a6eeb98648f4bd685dd8891f"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#a5b2df4f4a6eeb98648f4bd685dd8891f">watchedDirectories</a> () const</td></tr>
@@ -160,7 +167,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a3eef3d22841d2a77efce3df0459cddd8"><td class="mdescLeft">&#160;</td><td class="mdescRight">True while a change waits to be taken.  <br /></td></tr>
 <tr class="memitem:a0544f5a2d483f734412981ad90a8eae0" id="r_a0544f5a2d483f734412981ad90a8eae0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0544f5a2d483f734412981ad90a8eae0">link</a> (std::string unitId, bool traction)</td></tr>
 <tr class="memitem:acb3f033e858f7f1b5e385ffb56f9715a" id="r_acb3f033e858f7f1b5e385ffb56f9715a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acb3f033e858f7f1b5e385ffb56f9715a">linkFile</a> (const std::string &amp;unitId, bool traction, const QString &amp;path)</td></tr>
-<tr class="memdesc:acb3f033e858f7f1b5e385ffb56f9715a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Links this file, which takes the current values of the unit as the ones that came from it.  <br /></td></tr>
+<tr class="memdesc:acb3f033e858f7f1b5e385ffb56f9715a"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="#ac1dce0f3a15cd61daf03a73f6b1710ae" title="The links of the units by their id.">Links</a> this file, which takes the current values of the unit as the ones that came from it.  <br /></td></tr>
 <tr class="memitem:aef0091e88c9f4604be8245b216d56607" id="r_aef0091e88c9f4604be8245b216d56607"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aef0091e88c9f4604be8245b216d56607">unlink</a> (const std::string &amp;unitId, bool traction)</td></tr>
 <tr class="memdesc:aef0091e88c9f4604be8245b216d56607"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the link of the parameter file (<span class="tt">traction</span> false) or the traction file of the unit.  <br /></td></tr>
 <tr class="memitem:a2305b36d041398190e7dc4911eb9dea6" id="r_a2305b36d041398190e7dc4911eb9dea6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2305b36d041398190e7dc4911eb9dea6">retry</a> (const std::string &amp;unitId, bool traction)</td></tr>
@@ -169,6 +176,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:addfb2f4b9d08a4d900241cd26f40dc3b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The unit has another id. Its links go with it.  <br /></td></tr>
 <tr class="memitem:a3b9ea4f872d5ec25776cab95b481c358" id="r_a3b9ea4f872d5ec25776cab95b481c358"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3b9ea4f872d5ec25776cab95b481c358">forgetUnit</a> (const std::string &amp;unitId)</td></tr>
 <tr class="memdesc:a3b9ea4f872d5ec25776cab95b481c358"><td class="mdescLeft">&#160;</td><td class="mdescRight">The unit is gone.  <br /></td></tr>
+<tr class="memitem:a1a98bd09b9f44948575cb064536e0c41" id="r_a1a98bd09b9f44948575cb064536e0c41"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1a98bd09b9f44948575cb064536e0c41">historyRestored</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;previous, const <a class="el" href="struct_scene_history_entry.html">SceneHistoryEntry</a> &amp;entry)</td></tr>
 <tr class="memitem:aab03a4717247b3434574c6905b628367" id="r_aab03a4717247b3434574c6905b628367"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aab03a4717247b3434574c6905b628367">clear</a> ()</td></tr>
 <tr class="memdesc:aab03a4717247b3434574c6905b628367"><td class="mdescLeft">&#160;</td><td class="mdescRight">Drops all links and stops watching.  <br /></td></tr>
 <tr class="memitem:a8ba1c11aba1ff4f4a64efb43329f88c1" id="r_a8ba1c11aba1ff4f4a64efb43329f88c1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8ba1c11aba1ff4f4a64efb43329f88c1">scheduleChange</a> (const QString &amp;changedPath)</td></tr>
@@ -185,8 +193,25 @@ Friends</h2></td></tr>
 <tr class="memitem:a07d58747d59f49d1ff6b222687ecbf39" id="r_a07d58747d59f49d1ff6b222687ecbf39"><td class="memItemLeft">class&#160;</td><td class="memItemRight"><a class="el" href="#a07d58747d59f49d1ff6b222687ecbf39">MainWindowTestAccess</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Links the parameter file and the traction file of a rolling stock unit to the files they came from, and takes a changed file into the unit. The files are watched. A change waits until the file has been quiet for 150 ms, and until no run uses the model. A value that was edited by hand and differs from the file is only replaced when the user agrees. The links belong to the session, not to the scene: they are cleared when the document is replaced. Units are named by their id. </p>
-</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<div class="textblock"><p><a class="el" href="#ac1dce0f3a15cd61daf03a73f6b1710ae" title="The links of the units by their id.">Links</a> the parameter file and the traction file of a rolling stock unit to the files they came from, and takes a changed file into the unit. The files are watched. A change waits until the file has been quiet for 150 ms, and until no run uses the model. A value that was edited by hand and differs from the file is only replaced when the user agrees. The links belong to the session, not to the scene: they are cleared when the document is replaced. The window keeps them with each state of the edit history, so that a unit that Undo or Redo brings back gets them again. Units are named by their id. </p>
+</div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
+<a id="ac1dce0f3a15cd61daf03a73f6b1710ae" name="ac1dce0f3a15cd61daf03a73f6b1710ae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac1dce0f3a15cd61daf03a73f6b1710ae">&#9670;&#160;</a></span>Links</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#ac1dce0f3a15cd61daf03a73f6b1710ae">TrainUnitSourceLinker::Links</a> = std::map&lt;std::string, <a class="el" href="struct_train_unit_source_linker_1_1_link.html">Link</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The links of the units by their id. </p>
+
+</div>
+</div>
+<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a4a956874976fc131a31095e03150a088" name="a4a956874976fc131a31095e03150a088"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4a956874976fc131a31095e03150a088">&#9670;&#160;</a></span>TrainUnitSourceLinker()</h2>
 
@@ -347,6 +372,33 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a1a98bd09b9f44948575cb064536e0c41" name="a1a98bd09b9f44948575cb064536e0c41"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a98bd09b9f44948575cb064536e0c41">&#9670;&#160;</a></span>historyRestored()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TrainUnitSourceLinker::historyRestored </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>previous</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_scene_history_entry.html">SceneHistoryEntry</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>entry</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Undo or Redo has put back the state of <span class="tt">entry</span> in place of the scene <span class="tt">previous</span>. A unit that is gone loses its links. A unit that comes back gets the links that the entry keeps for it, with their status, and its files are watched again and taken when they changed meanwhile. The other units keep their links. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_unit_source_linker_a1a98bd09b9f44948575cb064536e0c41_cgraph.svg" width="384" height="200"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a0544f5a2d483f734412981ad90a8eae0" name="a0544f5a2d483f734412981ad90a8eae0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0544f5a2d483f734412981ad90a8eae0">&#9670;&#160;</a></span>link()</h2>
 
@@ -398,7 +450,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Links this file, which takes the current values of the unit as the ones that came from it. </p>
+<p><a class="el" href="#ac1dce0f3a15cd61daf03a73f6b1710ae" title="The links of the units by their id.">Links</a> this file, which takes the current values of the unit as the ones that came from it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -423,6 +475,33 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The links of a unit, or null. The pointer is valid until the links change. </p>
+
+</div>
+</div>
+<a id="a569d79c49b98054057b2f21db22d3b7c" name="a569d79c49b98054057b2f21db22d3b7c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a569d79c49b98054057b2f21db22d3b7c">&#9670;&#160;</a></span>links()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="#ac1dce0f3a15cd61daf03a73f6b1710ae">Links</a> &amp; TrainUnitSourceLinker::links </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The links of every unit. </p>
 
 </div>
 </div>

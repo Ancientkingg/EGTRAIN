@@ -367,8 +367,9 @@ that returns the skip code before it calls <code class="docutils literal notrans
 application object exists (<code class="docutils literal notranslate"><span class="pre">tests/test_consolestream.cpp</span></code>).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">tests/support/FakePrompts.h</span></code> answers the prompts of an editor panel without a dialog and keeps what the panel asked
 (<code class="docutils literal notranslate"><span class="pre">tests/test_editor_infrastructure_blocks.cpp</span></code>).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">tests/support/EditHistory.h</span></code> keeps the edit history of a document and its run selection as the window does, so that
-a panel test can call Undo and Redo (<code class="docutils literal notranslate"><span class="pre">tests/test_editor_service.cpp</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tests/support/EditHistory.h</span></code> keeps the edit history of a document, its run selection and the links of a
+<code class="docutils literal notranslate"><span class="pre">TrainUnitSourceLinker</span></code> as the window does, so that a test can call Undo and Redo (<code class="docutils literal notranslate"><span class="pre">tests/test_editor_service.cpp</span></code>,
+<code class="docutils literal notranslate"><span class="pre">tests/test_trainunitsourcelinker.cpp</span></code>).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">test_updatetransport_https</span></code> and the three programs in <code class="docutils literal notranslate"><span class="pre">tests/characterization/</span></code> are plain programs with a <code class="docutils literal notranslate"><span class="pre">main</span></code>,
 built with <code class="docutils literal notranslate"><span class="pre">add_executable</span></code>. The first returns 0, 77 or 1 (<a class="reference internal" href="#https-update-check">HTTPS update check</a>).
 <code class="docutils literal notranslate"><span class="pre">test_characterization</span></code> and <code class="docutils literal notranslate"><span class="pre">test_signalling_aspects</span></code> compare their output with golden files, and

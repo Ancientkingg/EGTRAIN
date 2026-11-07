@@ -1,15 +1,18 @@
 var class_train_unit_source_linker =
 [
     [ "Link", "struct_train_unit_source_linker_1_1_link.html", "struct_train_unit_source_linker_1_1_link" ],
+    [ "Links", "class_train_unit_source_linker.html#ac1dce0f3a15cd61daf03a73f6b1710ae", null ],
     [ "TrainUnitSourceLinker", "class_train_unit_source_linker.html#a4a956874976fc131a31095e03150a088", null ],
     [ "clear", "class_train_unit_source_linker.html#aab03a4717247b3434574c6905b628367", null ],
     [ "commitAllPendingEditsRequested", "class_train_unit_source_linker.html#a1634ba591e106a7ed9878439e5ed67e7", null ],
     [ "commitPendingEditsRequested", "class_train_unit_source_linker.html#a54184a53c6a3a3ecd45c007f1ff75873", null ],
     [ "forgetUnit", "class_train_unit_source_linker.html#a3b9ea4f872d5ec25776cab95b481c358", null ],
     [ "hasPendingChanges", "class_train_unit_source_linker.html#a3eef3d22841d2a77efce3df0459cddd8", null ],
+    [ "historyRestored", "class_train_unit_source_linker.html#a1a98bd09b9f44948575cb064536e0c41", null ],
     [ "link", "class_train_unit_source_linker.html#a0544f5a2d483f734412981ad90a8eae0", null ],
     [ "linkFile", "class_train_unit_source_linker.html#acb3f033e858f7f1b5e385ffb56f9715a", null ],
     [ "linkOf", "class_train_unit_source_linker.html#a60ac49edaa0700895d414683ed36f587", null ],
+    [ "links", "class_train_unit_source_linker.html#a569d79c49b98054057b2f21db22d3b7c", null ],
     [ "linksCleared", "class_train_unit_source_linker.html#ae03fc8e1d489ae031230808457f2677e", null ],
     [ "processChanges", "class_train_unit_source_linker.html#afb25c4d7890af7afca1f014b38c2d3ff", null ],
     [ "processFile", "class_train_unit_source_linker.html#ae3fda9df595e4ee120f40884d798dfd8", null ],

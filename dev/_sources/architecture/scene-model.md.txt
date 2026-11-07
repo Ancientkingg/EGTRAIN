@@ -256,7 +256,9 @@ scene. Each snapshot carries a label that `record` derives from the counts of
 the parts of the scene (`Add service`, `Delete stop`, or `Edit` when the change
 is not one part added or removed), the scenarios that differ from the saved
 scene, the run selection (the selected scenario and the occurrences left out)
-as `keepRunSelection` kept it when the state was last left, and its memory as
+as `keepRunSelection` kept it when the state was last left, the links of the
+rolling stock units to their files as `keepTrainUnitSourceLinks` kept them,
+which it holds as a `std::any` because it has no Qt, and its memory as
 `estimateSceneModelBytes` counts it. That estimate adds up the structs, the
 vectors and the strings too long for the string object, so it depends on the
 standard library and is a bound, not a measurement.
