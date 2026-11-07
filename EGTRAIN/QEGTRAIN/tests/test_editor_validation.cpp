@@ -141,6 +141,7 @@ private slots:
 	void activatesTargets();
 	void selectsDiagnosticOfFile();
 	void showsColumnsWithAdvancedDetails();
+	void fitsColumnsShownByAdvancedDetails();
 	void namesItemOfEachRow();
 	void reusesValidationWithoutChange();
 	void validatesAgainAfterEdit();
@@ -591,6 +592,35 @@ void TestValidationPanel::showsColumnsWithAdvancedDetails() {
 	panel.updateStatus();
 	// The columns follow advanced details back.
 	QCOMPARE(shown(), QStringList({"Severity", "Message", "Item", "Fix"}));
+}
+
+// The code, file and path columns are as wide as their content when advanced details show them, as when the case is
+// opened with advanced details on, also after a refresh that wrote the table while they were hidden.
+void TestValidationPanel::fitsColumnsShownByAdvancedDetails() {
+	QWidget host;
+	ValidationPanel panel(&host);
+	SceneDocument document;
+	bool advanced = false;
+	panel.setDocument(&document);
+	panel.setAdvancedDetails([&advanced] { return advanced; });
+	// The case lacks a duration; the path of that error, simulation_settings.duration_seconds, is wider than the header.
+	document.replace(caseScene(), false);
+	panel.refresh();
+	advanced = true;
+	panel.updateStatus();
+	QTableWidget* table = panel.table();
+	// QTableView keeps sizeHintForColumn(), the width that the cells of a column ask for, protected.
+	const QAbstractItemView* view = table;
+	const int codeColumn = 1;
+	const int fileColumn = 4;
+	const int pathColumn = 5;
+	QCOMPARE((QStringList{table->horizontalHeaderItem(codeColumn)->text(), table->horizontalHeaderItem(fileColumn)->text(),
+				 table->horizontalHeaderItem(pathColumn)->text()}),
+		QStringList({"Code", "File", "Path"}));
+	// Path, Code and File are wide enough for their text.
+	QCOMPARE_GE(table->columnWidth(pathColumn), view->sizeHintForColumn(pathColumn));
+	QCOMPARE_GE(table->columnWidth(codeColumn), view->sizeHintForColumn(codeColumn));
+	QCOMPARE_GE(table->columnWidth(fileColumn), view->sizeHintForColumn(fileColumn));
 }
 
 // Rows with the same message tell their items apart: the Item column, which shows without advanced details, names the
