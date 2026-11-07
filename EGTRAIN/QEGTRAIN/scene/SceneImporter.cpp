@@ -2086,11 +2086,26 @@ static void importTimetables(ImportContext& context) {
 				++rowIndex;
 				continue;
 			}
-			std::string stationName = tokens[0];
-			for (std::size_t i = 1; i + 3 < tokens.size(); ++i) stationName += tokens[i];
-			bool ambiguous = false;
-			const std::string stationId = stationIdFor(context.scene.stations, stationName, ambiguous);
-			if (ambiguous || std::none_of(context.scene.stations.begin(), context.scene.stations.end(), [&](const SceneStation& station) { return station.id == stationId; })) {
+			// The station name is the text before the last three tokens, spaces included, as importStations reads a
+			// name. Legacy timetables can also write a name of Stations.txt as separate words (the legacy Milano_Brescia
+			// case has "Morengo Bariano" for MorengoBariano), so the words joined without spaces are tried when the
+			// text names no single station.
+			const std::size_t nameStart = line.find(tokens[0]);
+			std::size_t nameEnd = nameStart;
+			std::string joinedName;
+			for (std::size_t i = 0; i + 3 < tokens.size(); ++i) {
+				nameEnd = line.find(tokens[i], nameEnd) + tokens[i].size();
+				joinedName += tokens[i];
+			}
+			const std::string stationName = line.substr(nameStart, nameEnd - nameStart);
+			const auto resolves = [&](const std::string& name, std::string& id) {
+				bool ambiguous = false;
+				id = stationIdFor(context.scene.stations, name, ambiguous);
+				return !ambiguous && std::any_of(context.scene.stations.begin(), context.scene.stations.end(), [&](const SceneStation& station) { return station.id == id; });
+			};
+			std::string stationId;
+			if (!resolves(stationName, stationId) && !resolves(joinedName, stationId)) {
+				stationId = stationName;
 				context.addDiag(SceneSeverity::Warning, "scene.import.ref", "Timetable refers to unresolved station " + stationName,
 					timetablePath.u8string(), "timetable", true);
 			}
