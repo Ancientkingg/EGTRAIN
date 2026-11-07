@@ -435,7 +435,9 @@ must be in the local repository. A second run uploads no file again and writes t
 `notes` replaces the notes of a published release (see [Release text](code-signing.md#release-text)). `site` publishes
 folders of the documentation site, and then the pages that `tools/docs/home_page.py` writes from the feed of the
 website: `assets/`, `support/`, `source/`, `privacy/` and, last, the home page. Their list of versions has `dev/`, and
-`latest/` and a folder for each stable release in the feed when it has one.
+`latest/` and a folder for each stable release in the feed when it has one. `assets/` keeps `site.css`, the style of
+the earlier layout, because the release pages published with that layout load it; `import` publishes such a page again
+in the current layout.
 
 The script reads the Zipline token from `ZIPLINE_TOKEN` and the token of the publish API of the website from
 `EGTRAIN_PUBLISH_TOKEN`, prints neither and follows no redirect. Zipline takes its token as the `Authorization` header

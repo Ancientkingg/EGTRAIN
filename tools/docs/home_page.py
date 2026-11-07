@@ -5,9 +5,10 @@ usage: home_page.py PAGES [--feed URL]
 
 PAGES holds the published site: dev/, latest/ and a folder X.Y.Z for each released version. The script writes
 PAGES/index.html, the home page, and the pages support/, source/ and privacy/, each as index.html in a folder of its own,
-and replaces PAGES/assets/ with the font Archivo with its licence and the picture of the README. Every page is a part of
-docs/site/ put into docs/site/layout.html, with the style docs/site/site.css in its head. The other files of PAGES, such
-as the version folders or a CNAME file, stay as they are.
+and replaces PAGES/assets/ with the font Archivo with its licence, the picture of the README and
+docs/site/legacy/site.css, the style of the earlier layout, which the release pages published with that layout load.
+Every page is a part of docs/site/ put into docs/site/layout.html, with the style docs/site/site.css in its head. The
+other files of PAGES, such as the version folders or a CNAME file, stay as they are.
 
 --feed names the list of releases that the website publishes, newest first, in the form of the update feed that
 tools/release/publish_selfhost.py writes (https://egtrain.samuelbruin.com/releases/feed.json by default). The script
@@ -41,7 +42,8 @@ LAYOUT = SITE / "layout.html"
 STYLE = SITE / "site.css"
 PAGE = SITE / "index.html"
 DATA = SITE / "home-data.json"
-ASSETS = (SITE / "fonts/archivo-latin-wdth-wght.woff2", SITE / "fonts/Archivo-OFL.txt", ROOT / "docs/images/readme-main-window.png")
+ASSETS = (SITE / "fonts/archivo-latin-wdth-wght.woff2", SITE / "fonts/Archivo-OFL.txt", ROOT / "docs/images/readme-main-window.png",
+          SITE / "legacy/site.css")
 DESCRIPTION = ("EGTRAIN is a desktop application for microscopic railway simulation. Download it for macOS, Windows or Linux, "
                "and read the documentation of every version.")
 # The rows of the documentation table of the home page: the value that holds the links of each, its name and the page
