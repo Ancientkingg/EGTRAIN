@@ -178,7 +178,7 @@ static ExportDialog answerExport(QPushButton* button, const QString& path) {
 	QObject::connect(&timer, &QTimer::timeout, [&shown, &answered, &path] {
 		if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
 			if (box->icon() == QMessageBox::Warning)
-				shown.warnings << box->text();
+				shown.warnings << box->informativeText();
 			box->accept();
 			return;
 		}

@@ -83,17 +83,21 @@ void TestUserPrompts::suppressedErrorIsLoggedWithoutDialog() {
 void TestUserPrompts::showsErrorBox() {
 	UserPrompts prompts;
 	QString text;
+	QString informativeText;
 	QMessageBox::Icon icon = QMessageBox::NoIcon;
 	int shown = 0;
 	auto answering = answerDialog<QMessageBox>(shown, [&](QMessageBox* box) {
 		text = box->text();
+		informativeText = box->informativeText();
 		icon = box->icon();
 		box->accept();
 	});
 	prompts.showError(nullptr, "Title", "Message");
-	// An error shows a critical message box with the message.
+	// An error shows a critical message box with the title as its main text, as macOS draws no title on a message box,
+	// and the message below it.
 	QCOMPARE(shown, 1);
-	QCOMPARE(text, "Message");
+	QCOMPARE(text, "Title");
+	QCOMPARE(informativeText, "Message");
 	QCOMPARE(icon, QMessageBox::Critical);
 	answering = answerDialog<QMessageBox>(shown, [&](QMessageBox* box) {
 		icon = box->icon();

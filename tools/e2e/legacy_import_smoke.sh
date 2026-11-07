@@ -55,6 +55,10 @@ for marker in "${required_markers[@]}"; do
 		missing_markers+=("$marker")
 	fi
 done
+# The box of the failed import starts with "Not imported:", so it does not read like an import that worked.
+if ! grep -q "QEGTRAIN_DIALOG_SUPPRESSED: Cannot Import Legacy Case: Not imported: " "$LOG"; then
+	missing_markers+=("Cannot Import Legacy Case: Not imported:")
+fi
 
 if [[ "$APP_EXIT" -eq 0 ]] && [[ "${#missing_markers[@]}" -eq 0 ]] && grep -q "E2E_LEGACY_IMPORT_OK" "$LOG"; then
 	SOURCE_HASH_AFTER="$(cksum <"$SOURCE/Stations.txt")"

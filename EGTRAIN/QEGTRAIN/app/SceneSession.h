@@ -140,9 +140,10 @@ public:
 	void newScene();
 	/// Imports a legacy case, which the user chooses, as a scene and opens it.
 	void actionLoad_Network();
-	/// The text of the box that reports an import: the counts of the diagnostics by severity that are not zero, then the
-	/// first four lines, the most serious first, then the number of lines left out. Empty when there are no diagnostics.
-	static QString legacyImportSummary(const std::vector<SceneDiagnostic>& diagnostics);
+	/// The text of the box that reports an import: whether the case was imported, with the counts of the diagnostics by
+	/// severity that are not zero, as in "Imported with 2 warnings" or "Not imported: 1 error", then the first four lines,
+	/// the most serious first, then the number of lines left out. Empty when there are no diagnostics.
+	static QString legacyImportSummary(const std::vector<SceneDiagnostic>& diagnostics, bool imported);
 	/// Imports the legacy case in `sourceDir` as a scene folder in `destinationDir` and opens it. The two folders must
 	/// not contain each other. Does nothing when either is empty. A destination that holds a scene.json is replaced only
 	/// when the user agrees. A destination that holds other files is left as it is: the user may import into a new folder
