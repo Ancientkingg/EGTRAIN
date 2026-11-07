@@ -3,6 +3,7 @@
 #include "scene/SceneWriter.h"
 #include "widgets/FocusWheel.h"
 
+#include <QAccessible>
 #include <QApplication>
 #include <QDoubleSpinBox>
 #include <QLabel>
@@ -67,6 +68,12 @@ static bool hasCode(const std::vector<SceneDiagnostic>& diagnostics, const std::
 	return std::any_of(diagnostics.begin(), diagnostics.end(), [&code](const SceneDiagnostic& diagnostic) { return diagnostic.code == code; });
 }
 
+// The value of a field as an accessibility client such as VoiceOver reads and sets it, or null.
+static QAccessibleValueInterface* accessibleValue(QWidget* field) {
+	QAccessibleInterface* accessible = QAccessible::queryAccessibleInterface(field);
+	return accessible ? accessible->valueInterface() : nullptr;
+}
+
 // A panel on a document that shows `scene`, and the events of both.
 struct CaseFixture {
 	SceneDocument document;
@@ -97,6 +104,7 @@ private slots:
 	void detachedPanelIgnoresDocument();
 	void forgetsDeletedDocument();
 	void longDescriptionShowsStartAfterFocus();
+	void accessibilityStepsBySingleStep();
 };
 
 // Save, Undo and validation commit the field that is being edited. A stored number that a field shows at a limit of its
@@ -403,6 +411,28 @@ void TestCaseSettingsPanel::longDescriptionShowsStartAfterFocus() {
 	QCOMPARE(document.model().baseTime, "08:00:00");
 	QVERIFY(!document.isDirty());
 	QCOMPARE(document.revision(), quint64(1));
+}
+
+// Qt's accessibility performs an Increment, such as VO+Up of VoiceOver, by adding the step that a number field reports
+// to its value, and a tenth of the range when the field reports none: that took a Duration of 8000 s to 1.8e307 s.
+void TestCaseSettingsPanel::accessibilityStepsBySingleStep() {
+	SceneModel scene = caseScene("Case A", "08:00:00");
+	scene.settings.durationSeconds = 8000.0;
+	CaseFixture f(scene);
+	CaseSettingsPanel& panel = f.panel;
+	for (QDoubleSpinBox* field : {panel.durationSecondsEdit(), panel.bufferSecondsEdit(), panel.recoveryPercentEdit()}) {
+		QAccessibleValueInterface* value = accessibleValue(field);
+		if (value == nullptr)
+			QFAIL("a number field has no accessible value");
+		// Each number field reports its single step, 1, and an Increment adds it.
+		QCOMPARE_EQ(value->minimumStepSize().toDouble(), 1.0);
+		value->setCurrentValue(value->currentValue().toDouble() + value->minimumStepSize().toDouble());
+	}
+	// The Increments store a duration of 8001 s, a buffer of 1 s and a recovery of 1 %.
+	const SceneSimulationSettings& settings = f.document.model().settings;
+	QCOMPARE_EQ(settings.durationSeconds, 8001.0);
+	QCOMPARE_EQ(settings.bufferTimeSeconds, 1.0);
+	QCOMPARE_EQ(settings.recoveryTimePercent, 1.0);
 }
 
 QTEST_MAIN(TestCaseSettingsPanel)

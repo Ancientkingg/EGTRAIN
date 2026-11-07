@@ -6,6 +6,7 @@
 #include "widgets/CompactDoubleSpinBox.h"
 #include "widgets/DisplayPath.h"
 
+#include <QAccessible>
 #include <QApplication>
 #include <QDoubleSpinBox>
 #include <QFile>
@@ -145,6 +146,12 @@ static void typeNumber(QDoubleSpinBox* edit, const QString& text) {
 	edit->interpretText();
 }
 
+// The value of a field as an accessibility client such as VoiceOver reads and sets it, or null.
+static QAccessibleValueInterface* accessibleValue(QWidget* field) {
+	QAccessibleInterface* accessible = QAccessible::queryAccessibleInterface(field);
+	return accessible ? accessible->valueInterface() : nullptr;
+}
+
 // A panel with prompts of its own on a document that shows unitScene(), the events of both, and how often the panel
 // showed the details of a unit since the scene was opened.
 struct UnitFixture {
@@ -182,6 +189,7 @@ private slots:
 	void buttonsFitNarrowPanel();
 	void focusDecidesPendingEdits();
 	void numberFieldsStopAtRanges();
+	void accessibilityStepsBySingleStep();
 	void keepsSelectionOfReorderedScene();
 	void forgetsDeletedDocument();
 	void libraryButtonFollowsScene();
@@ -889,6 +897,30 @@ void TestTrainUnitPanel::numberFieldsStopAtRanges() {
 	// A cell shows a number as its editor rounds it, and an editor that closes unchanged keeps the stored number.
 	QCOMPARE_EQ(cellValue(panel, 0, 3), 0.0);
 	QCOMPARE_EQ(document.model().trainUnits[0].tractionCurve[0][3], 1e-20);
+}
+
+// Qt's accessibility performs an Increment, such as VO+Up of VoiceOver, by adding the step that a number field reports
+// to its value, and a tenth of the range when the field reports none: that took a wagon count of 5 to 105.
+void TestTrainUnitPanel::accessibilityStepsBySingleStep() {
+	SceneModel scene = unitScene();
+	scene.trainUnits[0].physical.number_of_wagons = 5.0;
+	SceneDocument document;
+	TrainUnitPanel panel;
+	panel.setDocument(&document);
+	document.replace(scene, false);
+	for (std::size_t index = 0; index < panel.physicalEdits().size(); ++index) {
+		QAccessibleValueInterface* value = accessibleValue(panel.physicalEdits()[index]);
+		if (value == nullptr)
+			QFAIL("a physical field has no accessible value");
+		// Each physical field reports its single step: 1 for the wagon count, 0.1 for the others.
+		QCOMPARE_EQ(value->minimumStepSize().toDouble(), index == 2 ? 1.0 : 0.1);
+	}
+	QAccessibleValueInterface* wagons = accessibleValue(panel.physicalEdits()[2]);
+	if (wagons == nullptr)
+		QFAIL("the wagon count has no accessible value");
+	wagons->setCurrentValue(wagons->currentValue().toDouble() + wagons->minimumStepSize().toDouble());
+	// An Increment of the wagon count stores 6 wagons.
+	QCOMPARE_EQ(document.model().trainUnits[0].physical.number_of_wagons, 6.0);
 }
 
 // Opening a scene that lists the selected rolling stock unit at another row keeps it selected.
