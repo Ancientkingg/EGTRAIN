@@ -147,9 +147,10 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 	}
 
 	// To apply the dwell time model by Gibson it is required to have the number of people boarding and alighting at each door
-	// We consider that train cars have 2 doors per car + 2 extra doors which pertain to the traction units
+	// We consider that every car, the traction unit included, has 2 doors. The doors are counted from N_cars, the cars the
+	// passengers were split over above, so a fractional number of wagons adds no door.
 	int N_Doors_In_a_Car = 2;
-	int Total_N_Doors_In_Train = N_Doors_In_a_Car * number_of_wagons + N_Doors_In_a_Car;
+	int Total_N_Doors_In_Train = N_Doors_In_a_Car * N_cars;
 
 	// defining list of passengers boarding and alighting from each door in a car
 	// they are defined by randomly drawin the number of passenger boarding or alighting from a door and deriving the remaining of that car from the randomly drawn number
