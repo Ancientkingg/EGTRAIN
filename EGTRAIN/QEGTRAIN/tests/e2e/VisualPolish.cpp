@@ -1249,6 +1249,23 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 							.arg(indent(stationNames, stationLayer))
 							.arg(indent(trainSpeedLabels, trainLayer));
 		}
+		// A secondary layer shows only with its parent layer, so its box is disabled while the parent is off and keeps its
+		// tick for when the parent comes back on.
+		const auto checkSecondaryLayer = [&ok, &failures, &toggleFromBox](QCheckBox* parentLayer, const QCheckBox* secondary) {
+			const bool ticked = secondary->isChecked();
+			toggleFromBox(parentLayer);
+			if (secondary->isEnabled() || secondary->isChecked() != ticked) {
+				ok = false;
+				failures << QString("%1 is enabled or lost its tick while %2 is off").arg(secondary->text(), parentLayer->text());
+			}
+			toggleFromBox(parentLayer);
+			if (!secondary->isEnabled() || secondary->isChecked() != ticked) {
+				ok = false;
+				failures << QString("%1 is disabled or lost its tick after %2 came back on").arg(secondary->text(), parentLayer->text());
+			}
+		};
+		checkSecondaryLayer(stationLayer, stationNames);
+		checkSecondaryLayer(trainLayer, trainSpeedLabels);
 		// Checkbox slots run synchronously. Do not deliver unrelated simulation
 		// frames between the ownership counts for this layer-only assertion.
 		// The clicked train is on the canvas; the first train of the run may have left the network.

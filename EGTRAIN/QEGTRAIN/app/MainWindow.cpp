@@ -959,6 +959,10 @@ void MainWindow::setupLayersDock() {
 		if (m_runResultsPanel)
 			addViewDockAction(m_runResultsPanel->dock());
 	}
+	// A secondary layer shows only with its parent layer, so its box is disabled while the parent is off and keeps its
+	// tick for when the parent comes back on.
+	connect(m_stationLayerCheck, &QCheckBox::toggled, m_stationNamesCheck, &QWidget::setEnabled);
+	connect(m_trainLayerCheck, &QCheckBox::toggled, m_trainSpeedLabelsCheck, &QWidget::setEnabled);
 	connect(m_stationLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
 		m_presenter->setStationLayerVisible(checked);
 		// updateViewportOverlays owns station name visibility and that of the platform bars, which show in the near look
