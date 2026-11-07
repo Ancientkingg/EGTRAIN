@@ -481,7 +481,7 @@ class StubOnly(unittest.TestCase):
                                        "site dir privacy", "site file index.html"])
         for name in ("1.2.3/guides/install.html", "latest/index.html"):
             self.assertEqual((self.root / "site" / name).read_bytes(), (pages / name).read_bytes(), name)
-        for name in ("assets/site.css", "support/index.html", "privacy/index.html"):
+        for name in ("assets/archivo-latin-wdth-wght.woff2", "support/index.html", "privacy/index.html"):
             self.assertTrue((self.root / "site" / name).is_file(), name)
         self.assertFalse((self.root / "site/dev").exists())
 
@@ -497,7 +497,7 @@ class StubOnly(unittest.TestCase):
         self.assertEqual(published[0], published[1])
         self.assertEqual(published[0], published[2])
         text = published[0][0].decode("utf-8")
-        listed = [text.find(f'<li><a href="{name}/">') for name in ("latest", "dev", "1.2.3", "1.2.0")]
+        listed = [text.find(f'<th scope="col"><b>{name}</b>') for name in ("latest", "dev", "1.2.3", "1.2.0")]
         self.assertTrue(-1 not in listed and listed == sorted(listed), listed)
         self.assertNotIn('href="1.2.4-rc.1/"', text)
         self.assertIn("https://bin.example.org/raw/egtrain-v1.2.3-EGTRAIN-1.2.3-macOS-arm64.dmg", text)
@@ -506,7 +506,7 @@ class StubOnly(unittest.TestCase):
     def test_site_without_a_feed_lists_dev_only(self):
         self.publish_site(self.pages())
         text = (self.root / "site/index.html").read_text(encoding="utf-8")
-        self.assertIn('<li><a href="dev/">', text)
+        self.assertIn('<th scope="col"><b>dev</b>main branch</th>', text)
         self.assertNotIn("latest/", text)
         self.assertNotIn('href="1.2.3/"', text)
         self.assertIn("No release is published on this site yet", text)
