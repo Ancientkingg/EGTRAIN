@@ -238,9 +238,6 @@ jobs:
           body: |
             Automated EGTRAIN build for `${{ steps.release-meta.outputs.name }}`.
 
-            - Commit: ${{ github.sha }}
-            - Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
             Download the package for your platform. The bundled cases are also available as `.egscene` files.
 
       - name: Publish complete release

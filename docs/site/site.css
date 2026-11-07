@@ -1,5 +1,5 @@
-/* The style of the pages of the website: the home page with its train graph and playback, and the support, source
-   code, privacy and release pages. tools/docs/home_page.py puts it into the head of each page, so that a page and its
+/* The style of the pages of the website: the home page with its train graph and playback, and the report a problem,
+   contact, privacy and release pages. tools/docs/home_page.py puts it into the head of each page, so that a page and its
    style always change together, and fills in the path of the font from the folder of the page. */
 
 @font-face {
@@ -123,6 +123,8 @@
 html { background: var(--paper); -webkit-text-size-adjust: 100%; scrollbar-color: var(--rule-stop) var(--paper); scroll-padding-top: 16px; }
 body {
   margin: 0;
+  /* The grid fills the window also under a short page such as Contact. */
+  min-height: 100svh;
   font-family: var(--sans);
   font-size: 17px;
   line-height: 1.55;
@@ -403,11 +405,10 @@ table { border-collapse: collapse; }
 .docs td a { display: inline-flex; align-items: center; min-height: 32px; min-width: 32px; font-stretch: 84%; font-size: 16px; font-weight: 550; }
 
 footer { margin-top: 88px; border-top: 1.5px solid var(--ink); padding: 22px 0 56px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px 32px; font-size: 14.5px; color: var(--ink-2); }
-footer p { margin: 0; max-width: 72ch; }
 footer nav ul { display: flex; flex-wrap: wrap; gap: 0 22px; margin: 0; padding: 0; list-style: none; }
 footer nav a { display: inline-flex; align-items: center; min-height: 44px; }
 
-/* The other pages: support, source code, privacy and each release */
+/* The other pages: report a problem, contact, privacy and each release */
 .text main { padding-top: 34px; overflow-wrap: break-word; }
 .text h1 { font-size: clamp(2.1rem, 1.4rem + 2vw, 3.1rem); }
 .text main > p { margin: 18px 0 0; max-width: 66ch; font-size: 1.1rem; color: var(--ink-2); text-wrap: pretty; }

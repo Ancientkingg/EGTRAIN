@@ -4,21 +4,23 @@
 usage: home_page.py PAGES [--feed URL]
 
 PAGES holds the published site: dev/, latest/ and a folder X.Y.Z for each released version. The script writes
-PAGES/index.html, the home page, and the pages support/, source/ and privacy/, each as index.html in a folder of its own,
-and replaces PAGES/assets/ with the font Archivo with its licence, the picture of the README and
-docs/site/legacy/site.css, the style of the earlier layout, which the release pages published with that layout load.
-Every page is a part of docs/site/ put into docs/site/layout.html, with the style docs/site/site.css in its head. The
-other files of PAGES, such as the version folders or a CNAME file, stay as they are.
+PAGES/index.html, the home page, and the pages support/ (Report a problem), contact/ and privacy/, each as index.html
+in a folder of its own, and replaces PAGES/assets/ with the font Archivo with its licence, the picture of the README
+and docs/site/legacy/site.css, the style of the earlier layout, which the release pages published with that layout
+load. Every page is a part of docs/site/ put into docs/site/layout.html, with the style docs/site/site.css in its head.
+The script also writes docs/site/source.html as it is to source/index.html, which sends the visitor to the home page:
+Help > About of EGTRAIN 1.0.5 links source/, and publishing the folder replaces the page that was there. The other
+files of PAGES, such as the version folders or a CNAME file, stay as they are.
 
 --feed names the list of releases that the website publishes, newest first, in the form of the update feed that
 tools/release/publish_selfhost.py writes (https://egtrain.samuelbruin.com/releases/feed.json by default). The script
 follows no redirect. A feed that does not exist yet is an empty list, and any other failure to read it stops the script.
 The home page offers the files of the newest release that is neither a draft nor a prerelease, with the links and sizes
 of the feed, and has a documentation table with a column for latest/, dev/ and each of the three newest version folders.
-The release page of an older version links its documentation. The source page lists every release with its source
-archive. Without such a release, the parts between <!-- release --> and <!-- /release --> are left out and those between
-<!-- no release --> and <!-- /no release --> are kept. The parts between <!-- latest --> and <!-- /latest --> link
-latest/, so they are kept only when PAGES has that folder.
+The release page of an older version links its documentation. Without a release that is neither a draft nor a
+prerelease, the parts between <!-- release --> and <!-- /release --> are left out and those between <!-- no release -->
+and <!-- /no release --> are kept. The parts between <!-- latest --> and <!-- /latest --> link latest/, so they are
+kept only when PAGES has that folder.
 
 In a part, {name} stands for a value that the script fills in, {asset:NAME} for the download link of the release file
 NAME and {size:NAME} for its size. A file that the release does not have stops the script. The train graph and the
@@ -56,12 +58,13 @@ DOCUMENTATION = (("docs_guides", "User guides", ""), ("docs_developer", "Develop
 VERSION_COLUMNS = 3
 # The pages besides the home page: the folder that each is written to, its title and its description.
 SITE_PAGES = {
-    "support": ("Support", "How to report a problem with EGTRAIN and where its documentation is."),
-    "source": ("Source code", "The source code of EGTRAIN and the source archive of each release."),
+    "support": ("Report a problem", "How to report a problem with EGTRAIN and where its documentation is."),
+    "contact": ("Contact", "How to contact the maintainer of EGTRAIN."),
     "privacy": ("Privacy", "Which data EGTRAIN and its website receive and how long they are kept."),
 }
+# The folder of the earlier source code page, whose index.html, docs/site/source.html, sends the visitor to the home page.
+STUB = "source"
 FEED_URL = "https://egtrain.samuelbruin.com/releases/feed.json"
-SOURCE_URL = "https://bin.samuelbruin.com/raw/"
 USER_AGENT = "EGTRAIN-site-publisher"
 VERSION = re.compile(r"\d+\.\d+\.\d+")
 PLACEHOLDER = re.compile(r"\{([a-z_]+)\}")
@@ -123,11 +126,6 @@ def newest_release(feed: list):
 def release_version(tag: str) -> str:
     """The version of a release in the paths of the website: its tag without the leading v."""
     return tag[1:]
-
-
-def source_archive_name(tag: str) -> str:
-    """The name of the source archive of a release."""
-    return f"EGTRAIN-{release_version(tag)}-source.tar.gz"
 
 
 def zipline_name(tag: str, name: str) -> str:
@@ -218,13 +216,11 @@ def markdown_html(text: str) -> str:
     return "\n".join(blocks)
 
 
-def release_page(release: dict, source: tuple) -> str:
-    """The page of a release: its notes, its files and the source archive. source is the name, the link and the size of
-    that archive."""
+def release_page(release: dict) -> str:
+    """The page of a release: its notes and its files."""
     version = release_version(release["tag_name"])
-    rows = [(asset["name"], asset["browser_download_url"], asset["size"]) for asset in release["assets"]] + [source]
-    files = "\n".join(f'          <tr><td><a href="{html.escape(url)}">{html.escape(name)}</a></td><td>{human_size(size)}</td></tr>'
-                      for name, url, size in rows)
+    files = "\n".join(f'          <tr><td><a href="{html.escape(asset["browser_download_url"])}">{html.escape(asset["name"])}</a></td>'
+                      f'<td>{human_size(asset["size"])}</td></tr>' for asset in release["assets"])
     stable = VERSION.fullmatch(version) is not None
     main = keep(keep(SITE.joinpath("release.html").read_text(encoding="utf-8"), "prerelease", not stable), "documentation", stable)
     main = fill(main, {
@@ -268,19 +264,6 @@ def home_page(latest: bool, dev: bool, versions: list, release) -> str:
     return render(main, "EGTRAIN", DESCRIPTION, "./", "home")
 
 
-def source_page(feed: list) -> str:
-    releases = [entry for entry in feed if not entry.get("draft")]
-    items = []
-    for entry in releases:
-        tag = entry["tag_name"]
-        archive = source_archive_name(tag)
-        items.append(f'        <li>{html.escape(entry["name"])}, {html.escape(entry.get("published_at", "")[:10])}: '
-                     f'<a href="{html.escape(SOURCE_URL + zipline_name(tag, archive))}">{html.escape(archive)}</a> '
-                     f'(<a href="{html.escape(entry["html_url"])}">release page</a>)</li>')
-    main = keep(keep(SITE.joinpath("source.html").read_text(encoding="utf-8"), "releases", bool(releases)), "no releases", not releases)
-    return fill(main, {"releases": "\n".join(items), "root": "../"})
-
-
 def write_home_page(pages: Path, feed: list, from_feed: bool = False) -> None:
     """Writes the home page, the other pages and assets/ into pages, from the releases of feed. The home page lists the
     folders latest/ and dev/ and the version folders that pages has. With from_feed it lists the folders that the website
@@ -292,11 +275,14 @@ def write_home_page(pages: Path, feed: list, from_feed: bool = False) -> None:
     else:
         documentation = ((pages / "latest").is_dir(), (pages / "dev").is_dir(), published_versions(pages))
     (pages / "index.html").write_text(home_page(*documentation, newest_release(feed)), encoding="utf-8")
-    for folder, (title, description) in SITE_PAGES.items():
-        main = source_page(feed) if folder == "source" else fill(SITE.joinpath(f"{folder}.html").read_text(encoding="utf-8"), {"root": "../"})
+    for folder in (*SITE_PAGES, STUB):
+        text = SITE.joinpath(f"{folder}.html").read_text(encoding="utf-8")
+        if folder in SITE_PAGES:
+            title, description = SITE_PAGES[folder]
+            text = render(fill(text, {"root": "../"}), f"{title} - EGTRAIN", description, "../")
         shutil.rmtree(pages / folder, ignore_errors=True)
         (pages / folder).mkdir()
-        (pages / folder / "index.html").write_text(render(main, f"{title} - EGTRAIN", description, "../"), encoding="utf-8")
+        (pages / folder / "index.html").write_text(text, encoding="utf-8")
     assets = pages / "assets"
     shutil.rmtree(assets, ignore_errors=True)
     assets.mkdir()

@@ -1169,10 +1169,13 @@ def check_home_page(checks: Checks, docs: dict, build_release_assets, home_page)
                and -1 not in listed and listed == sorted(listed) and '<a href="1.0.8/api/index.html" aria-label="C++ reference, 1.0.8">' in text
                and 'href="1.0.4/' not in text,
                "tools/docs/home_page.py offers the newest release that is no prerelease and has a documentation column for latest/, dev/ and the three newest versions, newest first")
-        source = (pages / "source/index.html").read_text(encoding="utf-8")
-        expect(all(f"https://bin.samuelbruin.com/raw/egtrain-{tag}-EGTRAIN-{tag[1:]}-source.tar.gz" in source for tag in ("v1.0.11-rc.1", "v1.0.10", "v1.0.4"))
-               and all(not unfilled.search((pages / page / "index.html").read_text(encoding="utf-8")) for page in home_page.SITE_PAGES),
-               "tools/docs/home_page.py writes the support, source code and privacy pages, with the source archive of each release")
+        written = {page: (pages / page / "index.html").read_text(encoding="utf-8") for page in (*home_page.SITE_PAGES, home_page.STUB)}
+        expect(sorted(written) == ["contact", "privacy", "source", "support"]
+               and not any(unfilled.search(page) for page in written.values())
+               and '<meta http-equiv="refresh" content="0; url=../">' in written["source"]
+               and not any(word in page.lower() for page in (text, *written.values()) for word in ("github", "source code", 'source/"', "source.tar.gz")),
+               "tools/docs/home_page.py writes the report a problem, contact and privacy pages and a source/ page that sends the "
+               "visitor to the home page, and no page names GitHub or links source code")
         expect((pages / "CNAME").read_text(encoding="utf-8") == "egtrain.example.org\n"
                and sorted(path.name for path in (pages / "assets").iterdir()) == sorted(path.name for path in home_page.ASSETS),
                "tools/docs/home_page.py keeps the CNAME file and replaces assets/")
@@ -1181,9 +1184,9 @@ def check_home_page(checks: Checks, docs: dict, build_release_assets, home_page)
         (pages / "dev").mkdir()
         home_page.write_home_page(pages, [])
         text = (pages / "index.html").read_text(encoding="utf-8")
-        expect('<th scope="col"><b>dev</b>main branch</th>' in text and "No release is published on this site yet" in text
+        expect('<th scope="col"><b>dev</b>main branch</th>' in text and '<p class="empty">No release is published on this site yet.</p>' in text
                and not unfilled.search(text) and "latest/" not in text and "/raw/" not in text,
-               "tools/docs/home_page.py leaves out the downloads and latest/ when no release is published")
+               "tools/docs/home_page.py leaves out the downloads and latest/ when no release is published, and links nothing in their place")
 
 
 def check_scripts(checks: Checks, tests_cmake: str) -> None:
