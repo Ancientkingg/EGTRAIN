@@ -77,7 +77,7 @@ struct TrainRunResult {
 	std::string operatingCode;				///< Operating code of the service
 	std::string serviceId;					///< Scene service of the train
 	int occurrence = 1;						///< Occurrence of the service, from 1
-	double performancePercent = 100.0;		///< Share of the tractive effort and maximum speed the service uses, in percent
+	double performancePercent = 100.0;		///< Share of the tractive effort, maximum speed and track speed limits the service uses, in percent
 	bool hasConfiguredMaximumSpeed = false; ///< True when the service sets a maximum speed
 	double configuredMaximumSpeedKmh = 0.0; ///< Maximum speed of the service in km/h; meaningful only when hasConfiguredMaximumSpeed
 	double compositionMaximumSpeedMs = 0.0; ///< Maximum speed of the composition in m/s

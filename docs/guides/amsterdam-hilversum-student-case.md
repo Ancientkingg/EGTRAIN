@@ -67,7 +67,7 @@ Record the arrival and departure delays at `Asd` and `Hvs`. Separate the time fr
 3. Run and export as in task 2, with file names that start with `slower`.
 4. Compare the `Hvs` arrival delay, the whole **Travel time (h:mm:ss)**, **Maximum speed (km/h)** and **Energy (kWh)** with the baseline. Use the same energy column in every comparison.
 
-The percentage multiplies the tractive effort at every speed and the maximum speed of the train. It does not change the mass or the braking effort. Read the journey time from the results; do not derive it from the percentage.
+The percentage multiplies the tractive effort at every speed, the maximum speed of the train and the track speed limits it runs under. It does not change speed limits that signals impose, the mass or the braking effort. Read the journey time from the results; do not derive it from the percentage.
 
 Optional: choose **Open result view...** > **Tractive effort / distance** and compare it with **Speed / distance**. It shows the tractive effort the run applied, in kN, not the traction curve of the rolling stock unit. Export a PNG if you want it in your hand-in.
 

@@ -145,8 +145,10 @@ codes `9707` and `9709`. `performance_percent` defaults to `100.0` and must be
 finite in `1..100`; `maximum_speed_kmh`, when present, is a positive finite
 service cap in km/h. The native commanded speed is the composition maximum
 limited by that cap, then multiplied by performance; 100% takes the legacy
-raw path. Performance does not alter braking, mass, shared composition data,
-buffer, or recovery.
+raw path. Performance also multiplies the track speed limits the train obeys,
+including the braking targets taken from them, but not signal speed limits.
+Performance does not alter braking, mass, shared composition data, buffer, or
+recovery.
 
 The optional service `category` is descriptive metadata, independent of physical
 properties, performance, speed limits and stops. Missing values mean no category;

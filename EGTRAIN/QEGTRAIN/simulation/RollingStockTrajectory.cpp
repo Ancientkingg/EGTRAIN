@@ -389,10 +389,11 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 			locateHead(time_seconds, As, BsIndex, AsIndex);
 			// A platform node, or a stop of this train
 			const bool stationAtEndOfAs = As.endNode.station || isStopArc(BsIndex, AsIndex);
-			// Determination of the right speed limit to observe
+			// Determination of the right speed limit to observe. The service performance scales the maximum speed of the train
+			// (already in max_train_speed) and the track speed limit, not the signal speed limit.
 			double Speeds[3];
 			Speeds[0] = max_train_speed;
-			Speeds[1] = As.speedLimit;
+			Speeds[1] = trackSpeedLimit(As);
 			Speeds[2] = As.signalSpeedLimit;
 			V_lim = Speeds[0];
 			for (int k = 0; k < 3; k++) {
@@ -426,12 +427,14 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 			const double head = instant_spatial_position[time_seconds - 1];
 			const double speed = instant_train_speed[time_seconds - 1];
 			// Keep a reached speed target until its boundary, but only while it is still present.
-			if (previousVob > 0 && speed <= previousVob && head < previousXob)
-				for (const Section& section : run_->infra.routes[indexOfRoute].sequence_of_block_sections)
-					for (int arc = 0; arc < section.total_arcs; ++arc)
-						if (section.arcs_in_signalling_block_section[arc].endNode.X * 1000 == previousXob
-							&& section.arcs_in_signalling_block_section[arc].speedInBraking == previousVob)
+			if (previousVob > 0 && speed <= previousVob && head < previousXob) {
+				const Route& route = run_->infra.routes[indexOfRoute];
+				for (int section = 0; section < route.N_Block_Sections; ++section)
+					for (int arc = 0; arc < route.sequence_of_block_sections[section].total_arcs; ++arc)
+						if (route.sequence_of_block_sections[section].arcs_in_signalling_block_section[arc].endNode.X * 1000 == previousXob
+							&& arcEndTargetSpeed(route.sequence_of_block_sections.data(), route.N_Block_Sections, section, arc) == previousVob)
 							V_lim = std::min(V_lim, previousVob);
+			}
 			const bool accelerating = speed < V_lim;
 			double candidateSpeed = speed, candidateHead = head + speed * timestep;
 			if (accelerating)

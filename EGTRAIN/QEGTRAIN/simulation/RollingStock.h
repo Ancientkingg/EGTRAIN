@@ -351,7 +351,8 @@ public:
 	std::string operatingCode; ///< Operating code of this occurrence of the service.
 	std::string serviceId;	   ///< ID of the scene service.
 	int serviceOccurrence = 1; ///< 1-based occurrence of the service.
-	/// Performance of the service in percent; it scales the tractive effort and the maximum speed.
+	/// Performance of the service in percent; it scales the tractive effort, the maximum speed and the track speed limits, not
+	/// the signal speed limits.
 	double servicePerformancePercent = 100.0;
 	bool hasConfiguredMaximumSpeed = false; ///< True when the service sets its own maximum speed.
 	double configuredMaximumSpeedKmh = 0.0; ///< Maximum speed of the service in km/h.
@@ -492,6 +493,14 @@ public:
 	/// Tractive effort in N at speed V in m/s, from the band of the traction curve that holds V, scaled by
 	/// servicePerformancePercent. 0 outside every band.
 	double tractiveEffort(double V);
+
+	/// Track speed limit of arc in m/s for this train: speedLimit scaled by servicePerformancePercent.
+	double trackSpeedLimit(const Arc& arc) const;
+
+	/// Speed in m/s this train has to reach at the end of arc arc of route section section of the Blocks sections BS: the
+	/// speedInBraking of the arc, at most the track speed limit of the next arc for this train. The last arc of the route is its
+	/// own next arc, as in setInfraSpeedLimits.
+	double arcEndTargetSpeed(const Section* BS, int Blocks, int section, int arc) const;
 
 	/// Braking force in N after T seconds of braking: it grows with Jerk until the deceleration reaches max_train_decelaration.
 	double brakingEffort(double T);

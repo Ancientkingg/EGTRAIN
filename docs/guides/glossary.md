@@ -128,7 +128,7 @@ The dock **Case Settings** (**Editors > Case Settings**) holds **Name**, **Descr
 
 ### Performance and speed cap
 
-Performance and speed cap are two settings of a service. **Performance (%)** (`performance_percent`; the default is in [services.json](scene-schema.md#servicesjson)) scales the available tractive effort and the commanded maximum speed, not braking, mass or composition data. **Maximum speed (km/h)** (`maximum_speed_kmh`, a box) caps the speed: the commanded maximum is the composition maximum limited by the cap, then multiplied by the performance. **Performance (%)** and **Maximum speed (km/h)** in **Run Results** show the applied values per train, and the **Reduced speed** of a train breakdown is a different, temporary limit.
+Performance and speed cap are two settings of a service. **Performance (%)** (`performance_percent`; the default is in [services.json](scene-schema.md#servicesjson)) scales the available tractive effort, the commanded maximum speed and the track speed limits the train runs under, not signal speed limits, braking, mass or composition data. **Maximum speed (km/h)** (`maximum_speed_kmh`, a box) caps the speed: the commanded maximum is the composition maximum limited by the cap, then multiplied by the performance. **Performance (%)** and **Maximum speed (km/h)** in **Run Results** show the applied values per train, and the **Reduced speed** of a train breakdown is a different, temporary limit.
 
 ### Rolling stock unit and composition
 
