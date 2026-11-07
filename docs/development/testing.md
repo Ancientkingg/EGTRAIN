@@ -64,8 +64,9 @@ QTEST_APPLESS_MAIN(TestSpeedFormat)
   application object exists (`tests/test_consolestream.cpp`).
 - `tests/support/FakePrompts.h` answers the prompts of an editor panel without a dialog and keeps what the panel asked
   (`tests/test_editor_infrastructure_blocks.cpp`).
-- `tests/support/EditHistory.h` keeps the edit history of a document and its run selection as the window does, so that
-  a panel test can call Undo and Redo (`tests/test_editor_service.cpp`).
+- `tests/support/EditHistory.h` keeps the edit history of a document, its run selection and the links of a
+  `TrainUnitSourceLinker` as the window does, so that a test can call Undo and Redo (`tests/test_editor_service.cpp`,
+  `tests/test_trainunitsourcelinker.cpp`).
 - `test_updatetransport_https` and the three programs in `tests/characterization/` are plain programs with a `main`,
   built with `add_executable`. The first returns 0, 77 or 1 ([HTTPS update check](#https-update-check)).
   `test_characterization` and `test_signalling_aspects` compare their output with golden files, and

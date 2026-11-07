@@ -19,10 +19,13 @@
 #include <string>
 #include <vector>
 
+struct SceneHistoryEntry;
+
 /// Links the parameter file and the traction file of a rolling stock unit to the files they came from, and takes a
 /// changed file into the unit. The files are watched. A change waits until the file has been quiet for 150 ms, and
 /// until no run uses the model. A value that was edited by hand and differs from the file is only replaced when the
-/// user agrees. The links belong to the session, not to the scene: they are cleared when the document is replaced.
+/// user agrees. The links belong to the session, not to the scene: they are cleared when the document is replaced. The
+/// window keeps them with each state of the edit history, so that a unit that Undo or Redo brings back gets them again.
 /// Units are named by their id.
 class TrainUnitSourceLinker : public QObject {
 	Q_OBJECT
@@ -55,6 +58,8 @@ public:
 		/// Grows when the link is made or removed, so that an answer to a question about an older link is dropped.
 		quint64 generation = 0;
 	};
+	/// The links of the units by their id.
+	using Links = std::map<std::string, Link>;
 
 	/// A linker without a document and without links.
 	explicit TrainUnitSourceLinker(QObject* parent = nullptr);
@@ -66,6 +71,8 @@ public:
 
 	/// The links of a unit, or null. The pointer is valid until the links change.
 	const Link* linkOf(const std::string& unitId) const;
+	/// The links of every unit.
+	const Links& links() const { return m_links; }
 	/// The linked files that are watched.
 	QStringList watchedFiles() const { return m_watcher.files(); }
 	/// The folders of the linked files, which are watched as well.
@@ -86,6 +93,10 @@ public:
 	void renameUnit(const std::string& oldId, const std::string& newId);
 	/// The unit is gone.
 	void forgetUnit(const std::string& unitId);
+	/// Undo or Redo has put back the state of `entry` in place of the scene `previous`. A unit that is gone loses its links.
+	/// A unit that comes back gets the links that the entry keeps for it, with their status, and its files are watched
+	/// again and taken when they changed meanwhile. The other units keep their links.
+	void historyRestored(const SceneModel& previous, const SceneHistoryEntry& entry);
 	/// Drops all links and stops watching.
 	void clear();
 
@@ -129,7 +140,7 @@ private:
 	QPointer<SceneDocument> m_document;
 	QPointer<QWidget> m_dialogParent;
 	QMetaObject::Connection m_replacedConnection;
-	std::map<std::string, Link> m_links;
+	Links m_links;
 	QFileSystemWatcher m_watcher;
 	QTimer m_debounceTimer;
 	QSet<QString> m_pendingPaths;

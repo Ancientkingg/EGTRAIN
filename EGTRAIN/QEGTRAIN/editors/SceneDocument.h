@@ -29,8 +29,8 @@ void assignAuthoredScene(SceneModel& live, const SceneModel& snapshot);
 /// An editor changes the model through edit(), which applies the change, counts the revision, marks the document dirty and
 /// emits changed(), and which refuses most edits while a run uses the model. The window keeps the undo history: it records a
 /// copy of the model on every changed(), and Undo and Redo put a recorded copy back with restore(), which emits no changed().
-/// On aboutToEdit() the window keeps the run selection of the state that the edit leaves, for Undo to bring back. Opening or
-/// creating a scene goes through replace(), which emits replaced().
+/// On aboutToEdit() the window keeps the run selection and the links of the rolling stock units of the state that the edit
+/// leaves, for Undo to bring back. Opening or creating a scene goes through replace(), which emits replaced().
 class SceneDocument : public QObject {
 	Q_OBJECT
 

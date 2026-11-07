@@ -1,5 +1,6 @@
 #include "editors/TrainUnitSourceLinker.h"
 
+#include "scene/SceneHistory.h"
 #include "scene/SceneImporter.h"
 #include "scene/SceneReferences.h"
 
@@ -13,6 +14,7 @@
 #include <QScopedValueRollback>
 
 #include <algorithm>
+#include <any>
 #include <set>
 #include <utility>
 
@@ -181,6 +183,33 @@ void TrainUnitSourceLinker::renameUnit(const std::string& oldId, const std::stri
 void TrainUnitSourceLinker::forgetUnit(const std::string& unitId) {
 	m_links.erase(unitId);
 	refreshWatches();
+	emit statusChanged();
+}
+
+void TrainUnitSourceLinker::historyRestored(const SceneModel& previous, const SceneHistoryEntry& entry) {
+	const SceneModel& restored = *entry.scene;
+	for (auto it = m_links.begin(); it != m_links.end();) {
+		if (sceneTrainUnitById(restored, it->first))
+			++it;
+		else
+			it = m_links.erase(it);
+	}
+	if (const Links* kept = std::any_cast<Links>(&entry.trainUnitSourceLinks)) {
+		for (const auto& [unitId, state] : *kept) {
+			if (!sceneTrainUnitById(restored, unitId) || sceneTrainUnitById(previous, unitId))
+				continue;
+			m_links[unitId] = state;
+			// The files may have changed while the unit was gone. One that holds what it held when it was last handled is
+			// not taken again.
+			for (const QString& path : {state.dataPath, state.tractionPath}) {
+				if (!path.isEmpty())
+					m_pendingPaths.insert(path);
+			}
+		}
+	}
+	refreshWatches();
+	if (!m_pendingPaths.isEmpty())
+		m_debounceTimer.start();
 	emit statusChanged();
 }
 
