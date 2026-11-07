@@ -92,7 +92,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" target="_top" xlink:title="Shows the fields of the selected incident again.">
+<g id="a_Node000007"><a xlink:href="class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" target="_top" xlink:title="Shows the fields of the selected incident again. While a run uses the scene they show it disabled.">
 <polygon fill="white" stroke="#666666" points="308,-279.12 157.75,-279.12 157.75,-258.38 308,-258.38 308,-279.12"/>
 <text xml:space="preserve" text-anchor="middle" x="232.88" y="-265.62" font-family="Helvetica,sans-Serif" font-size="10.00">IncidentPanel::updateDetail</text>
 </a>

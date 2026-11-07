@@ -8,7 +8,7 @@
 <area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="209,309,492,303,488,307,210,314"/>
 <area shape="rect" id="Node000007" href="$class_user_prompts.html#a577030d596229c409a5bd863b50327f4" title=" " alt="" coords="268,351,446,378"/>
 <area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="178,326,273,346,268,349,179,331"/>
-<area shape="rect" id="Node000008" href="$class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" title="Shows the fields of the selected incident again." alt="" coords="257,409,457,437"/>
+<area shape="rect" id="Node000008" href="$class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" title="Shows the fields of the selected incident again. While a run uses the scene they show it disabled." alt="" coords="257,409,457,437"/>
 <area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="133,326,190,356,258,387,296,403,291,405,256,392,188,360,134,331"/>
 <area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="314,249,307,240,313,231,330,225,357,223,386,225,403,233,398,235,385,230,357,228,331,230,316,235,313,240,319,249"/>
 <area shape="rect" id="Node000005" href="$class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b" title="False while no scene is loaded or a run uses it." alt="" coords="790,284,979,312"/>

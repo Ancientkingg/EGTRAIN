@@ -19,7 +19,7 @@
 <area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="668,256,733,217,829,164,944,110,1005,87,1066,67,1200,33,1256,22,1308,16,1361,15,1417,19,1553,43,1578,54,1601,66,1629,77,1623,77,1599,71,1575,59,1552,48,1416,24,1361,20,1309,21,1257,27,1201,38,1067,72,1007,92,946,115,831,169,736,221,671,260"/>
 <area shape="rect" id="Node000007" href="$_scene_editor_panel_8h.html#a4b3a696283f2f614706656bafc6c2860" title=" " alt="" coords="843,384,994,412"/>
 <area shape="poly" id="edge8_Node000004_Node000007" title=" " alt="" coords="679,284,875,376,870,378,678,290"/>
-<area shape="rect" id="Node000009" href="$class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" title="Shows the fields of the selected incident again." alt="" coords="818,208,1019,236"/>
+<area shape="rect" id="Node000009" href="$class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" title="Shows the fields of the selected incident again. While a run uses the scene they show it disabled." alt="" coords="818,208,1019,236"/>
 <area shape="poly" id="edge12_Node000004_Node000009" title=" " alt="" coords="723,256,828,238,823,240,725,261"/>
 <area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="1511,234,1532,225,1550,212,1567,189,1573,166,1580,142,1599,119,1603,118,1608,115,1602,122,1585,144,1578,167,1572,191,1554,216,1535,229,1513,239"/>
 <area shape="poly" id="edge9_Node000007_Node000007" title=" " alt="" coords="874,383,867,375,873,365,890,359,919,357,949,360,967,369,962,369,948,365,918,363,891,365,876,370,872,375,879,384"/>

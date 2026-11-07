@@ -1,5 +1,5 @@
 <map id="IncidentPanel::updateDetail" name="IncidentPanel::updateDetail">
-<area shape="rect" id="Node000001" title="Shows the fields of the selected incident again." alt="" coords="5,467,206,494"/>
+<area shape="rect" id="Node000001" title="Shows the fields of the selected incident again. While a run uses the scene they show it disabled." alt="" coords="5,467,206,494"/>
 <area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b" title="False while no scene is loaded or a run uses it." alt="" coords="538,284,728,312"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,464,184,431,253,398,328,371,388,354,526,322,562,315,557,317,528,327,389,359,329,376,255,403,186,436,131,468"/>
 <area shape="rect" id="Node000004" href="$class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" title="Lists the choices of targets of the selected incident again." alt="" coords="262,412,471,440"/>
