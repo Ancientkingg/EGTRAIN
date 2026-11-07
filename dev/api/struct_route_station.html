@@ -8,7 +8,6 @@
 <title>EGTRAIN: RouteStation Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,19 +115,19 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_route_s
 <p>One visit of a route to a station, as the scope dialogs list it. Positions of blocks count from 0 in route order.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_blocking_time_scope_8h_source.html">diagrams/BlockingTimeScope.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/BlockingTimeScope.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a7205f7580f866cdf415e871e2a5d0f55" id="r_a7205f7580f866cdf415e871e2a5d0f55"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a7205f7580f866cdf415e871e2a5d0f55">name</a></td></tr>
 <tr class="memdesc:a7205f7580f866cdf415e871e2a5d0f55"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the station, or its id when it has no name.  <br /></td></tr>
-<tr class="memitem:a3671b8593618490e65d6ae4ff907335c" id="r_a3671b8593618490e65d6ae4ff907335c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a3671b8593618490e65d6ae4ff907335c">firstBlock</a> = 0</td></tr>
+<tr class="memitem:a3671b8593618490e65d6ae4ff907335c" id="r_a3671b8593618490e65d6ae4ff907335c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a3671b8593618490e65d6ae4ff907335c">firstBlock</a></td></tr>
 <tr class="memdesc:a3671b8593618490e65d6ae4ff907335c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The first block that holds the station: a node of the station lies on it, its ends included.  <br /></td></tr>
-<tr class="memitem:a72b4ddff01d6335e9f9c3741dd2f2c2e" id="r_a72b4ddff01d6335e9f9c3741dd2f2c2e"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a72b4ddff01d6335e9f9c3741dd2f2c2e">lastBlock</a> = 0</td></tr>
+<tr class="memitem:a72b4ddff01d6335e9f9c3741dd2f2c2e" id="r_a72b4ddff01d6335e9f9c3741dd2f2c2e"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a72b4ddff01d6335e9f9c3741dd2f2c2e">lastBlock</a></td></tr>
 <tr class="memdesc:a72b4ddff01d6335e9f9c3741dd2f2c2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The last block that holds the station.  <br /></td></tr>
-<tr class="memitem:a37494551f42c0845f5b7d4c84ab2b719" id="r_a37494551f42c0845f5b7d4c84ab2b719"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a37494551f42c0845f5b7d4c84ab2b719">fromBlock</a> = 0</td></tr>
+<tr class="memitem:a37494551f42c0845f5b7d4c84ab2b719" id="r_a37494551f42c0845f5b7d4c84ab2b719"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a37494551f42c0845f5b7d4c84ab2b719">fromBlock</a></td></tr>
 <tr class="memdesc:a37494551f42c0845f5b7d4c84ab2b719"><td class="mdescLeft">&#160;</td><td class="mdescRight">The first block that holds a part of the route after the first node of the station.  <br /></td></tr>
-<tr class="memitem:a7297e306f5d2cd371a184983ef9f7d92" id="r_a7297e306f5d2cd371a184983ef9f7d92"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a7297e306f5d2cd371a184983ef9f7d92">toBlock</a> = 0</td></tr>
+<tr class="memitem:a7297e306f5d2cd371a184983ef9f7d92" id="r_a7297e306f5d2cd371a184983ef9f7d92"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a7297e306f5d2cd371a184983ef9f7d92">toBlock</a></td></tr>
 <tr class="memdesc:a7297e306f5d2cd371a184983ef9f7d92"><td class="mdescLeft">&#160;</td><td class="mdescRight">The last block that holds a part of the route before the last node of the station.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -141,7 +140,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int RouteStation::firstBlock = 0</td>
+          <td class="memname">int RouteStation::firstBlock</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -157,7 +156,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int RouteStation::fromBlock = 0</td>
+          <td class="memname">int RouteStation::fromBlock</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -173,7 +172,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int RouteStation::lastBlock = 0</td>
+          <td class="memname">int RouteStation::lastBlock</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -205,7 +204,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int RouteStation::toBlock = 0</td>
+          <td class="memname">int RouteStation::toBlock</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -215,7 +214,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_blocking_time_scope_8h_source.html">BlockingTimeScope.h</a></li>
+<li>diagrams/<a class="el" href="_blocking_time_scope_8h.html">BlockingTimeScope.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

@@ -198,6 +198,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guides/install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guides/case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guides/case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guides/updates.html">Updating EGTRAIN</a></li>
@@ -328,8 +329,8 @@ packages, then switch the releases. Homebrew stops installing <code class="docut
 macOS jobs.</p></li>
 </ul>
 </section>
-<section id="source-code">
-<h2>Source code<a class="headerlink" href="#source-code" title="Link to this heading">¶</a></h2>
+<section id="code">
+<h2>Code<a class="headerlink" href="#code" title="Link to this heading">¶</a></h2>
 <section id="build-with-deprecated-apis-disabled">
 <h3>Build with deprecated APIs disabled<a class="headerlink" href="#build-with-deprecated-apis-disabled" title="Link to this heading">¶</a></h3>
 <p>The application and all tests were built in a separate build directory with Qt 5.15.19 from Homebrew <code class="docutils literal notranslate"><span class="pre">qt&#64;5</span></code>, Ninja,
@@ -391,12 +392,12 @@ without <code class="docutils literal notranslate"><span class="pre">io/third_pa
 </table>
 </div>
 <p>The warnings matter because CI configures with <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_WARNINGS_AS_ERRORS=ON</span></code>
-(<a class="reference download internal" download="" href="../../_downloads/fef567e3af672842624d451f5b33225e/cmake.yml"><span class="xref download myst">cmake.yml</span></a>, lines 197 to 225) and the libraries other than the simulation, and
-the test executables, are strict targets (<a class="reference download internal" download="" href="../../_downloads/9d3ea64d202742d882d48737d634209b/CMakeLists.txt"><span class="xref download myst">CMakeLists.txt</span></a>, lines 414 to 417, and <code class="docutils literal notranslate"><span class="pre">egtrain_add_test</span></code>
-in <a class="reference download internal" download="" href="../../_downloads/8f9ca79e949c85c8d0200ffdfa23514f/CMakeLists.txt"><span class="xref download myst">tests/CMakeLists.txt</span></a>), so a warning in them fails a Qt 6 CI build. The
+(the workflow <code class="docutils literal notranslate"><span class="pre">cmake.yml</span></code>, lines 197 to 225) and the libraries other than the simulation, and
+the test executables, are strict targets (<code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code>, lines 414 to 417, and <code class="docutils literal notranslate"><span class="pre">egtrain_add_test</span></code>
+in <code class="docutils literal notranslate"><span class="pre">tests/CMakeLists.txt</span></code>), so a warning in them fails a Qt 6 CI build. The
 <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code> target, which builds most of <code class="docutils literal notranslate"><span class="pre">app/</span></code>, gets no warning flags (lines 418 to 434). The <code class="docutils literal notranslate"><span class="pre">qsizetype</span></code> count is a lower bound: it misses sizes passed as <code class="docutils literal notranslate"><span class="pre">int</span></code> arguments or returned
 from <code class="docutils literal notranslate"><span class="pre">int</span></code> functions, which MSVC at <code class="docutils literal notranslate"><span class="pre">/W4</span></code> reports too. Clang and GCC do not warn about these conversions with <code class="docutils literal notranslate"><span class="pre">-Wall</span> <span class="pre">-Wextra</span></code>.</p>
-<p>Outside the sources: <a class="reference download internal" download="" href="../../_downloads/9d3ea64d202742d882d48737d634209b/CMakeLists.txt"><span class="xref download myst">CMakeLists.txt</span></a> names Qt 5 on 97 lines (<code class="docutils literal notranslate"><span class="pre">find_package(Qt5</span> <span class="pre">...)</span></code> on line
+<p>Outside the sources: <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> names Qt 5 on 97 lines (<code class="docutils literal notranslate"><span class="pre">find_package(Qt5</span> <span class="pre">...)</span></code> on line
 115, <code class="docutils literal notranslate"><span class="pre">Qt5::</span></code> targets, <code class="docutils literal notranslate"><span class="pre">Qt5::WinMain</span></code> on line 626). The MSVC forced include <code class="docutils literal notranslate"><span class="pre">util/QtMsvcCompat.h</span></code> was written for
 the Qt 5.15 headers. Eleven files under <code class="docutils literal notranslate"><span class="pre">tools/</span></code> name Qt 5, among them <code class="docutils literal notranslate"><span class="pre">tools/tidy.py:70</span></code>,
 <code class="docutils literal notranslate"><span class="pre">tools/release/package_start_smoke.py:70</span></code> and <code class="docutils literal notranslate"><span class="pre">tools/e2e/test_qt_resources.py:62</span></code>.</p>
@@ -414,16 +415,16 @@ the Qt 5.15 headers. Eleven files under <code class="docutils literal notranslat
 </thead>
 <tbody>
 <tr class="row-even"><td><p>macOS</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">macdeployqt</span></code> of Homebrew <code class="docutils literal notranslate"><span class="pre">qt&#64;5</span></code>, then the trimming of #488 removes Qt Quick, QML, the virtual keyboard and the WebP and TIFF plugins (<a class="reference download internal" download="" href="../../_downloads/4dfe0c9917dad1af229377938b584bd2/package.yml"><span class="xref download myst">package.yml</span></a>, lines 109 to 127)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">macdeployqt</span></code> of Homebrew <code class="docutils literal notranslate"><span class="pre">qt&#64;5</span></code>, then the trimming of #488 removes Qt Quick, QML, the virtual keyboard and the WebP and TIFF plugins (the workflow <code class="docutils literal notranslate"><span class="pre">package.yml</span></code>, lines 109 to 127)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">macdeployqt</span></code> remains. Homebrew Qt 6 is split into formulae: <code class="docutils literal notranslate"><span class="pre">qtbase</span></code>, <code class="docutils literal notranslate"><span class="pre">qtcharts</span></code> and <code class="docutils literal notranslate"><span class="pre">qtsvg</span></code> are enough, and <code class="docutils literal notranslate"><span class="pre">qtcharts</span></code> depends on <code class="docutils literal notranslate"><span class="pre">qtdeclarative</span></code>. <code class="docutils literal notranslate"><span class="pre">qtbase</span></code> depends on <code class="docutils literal notranslate"><span class="pre">icu4c&#64;78</span></code> and <code class="docutils literal notranslate"><span class="pre">openssl&#64;4</span></code> and links OpenSSL (Homebrew <code class="docutils literal notranslate"><span class="pre">qtbase.rb</span></code>, lines 62, 67 and 141), so the bundle can gain ICU and OpenSSL libraries; HarfBuzz, double-conversion, libb2 and D-Bus are further <code class="docutils literal notranslate"><span class="pre">qtbase</span></code> dependencies on macOS, and step 4 decides which of them <code class="docutils literal notranslate"><span class="pre">macdeployqt</span></code> bundles. The trimming steps and the checks on lines 200 to 213 use framework names that Qt 6 keeps.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Windows</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">windeployqt</span></code> with <code class="docutils literal notranslate"><span class="pre">--no-angle</span></code> and <code class="docutils literal notranslate"><span class="pre">--no-virtualkeyboard</span></code> (<a class="reference download internal" download="" href="../../_downloads/fef567e3af672842624d451f5b33225e/cmake.yml"><span class="xref download myst">cmake.yml</span></a>, line 254; <a class="reference download internal" download="" href="../../_downloads/4dfe0c9917dad1af229377938b584bd2/package.yml"><span class="xref download myst">package.yml</span></a>, line 525); checks name <code class="docutils literal notranslate"><span class="pre">Qt5Core.dll</span></code>, <code class="docutils literal notranslate"><span class="pre">styles/qwindowsvistastyle.dll</span></code> and others (lines 569, 575 and 583)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">windeployqt</span></code> with <code class="docutils literal notranslate"><span class="pre">--no-angle</span></code> and <code class="docutils literal notranslate"><span class="pre">--no-virtualkeyboard</span></code> (the workflows <code class="docutils literal notranslate"><span class="pre">cmake.yml</span></code>, line 254, and <code class="docutils literal notranslate"><span class="pre">package.yml</span></code>, line 525); checks name <code class="docutils literal notranslate"><span class="pre">Qt5Core.dll</span></code>, <code class="docutils literal notranslate"><span class="pre">styles/qwindowsvistastyle.dll</span></code> and others (lines 569, 575 and 583)</p></td>
 <td><p>The Qt 6 <code class="docutils literal notranslate"><span class="pre">windeployqt</span></code> has neither option (<a class="reference external" href="https://doc.qt.io/qt-6/windows-deployment.html">Qt for Windows deployment</a>); <code class="docutils literal notranslate"><span class="pre">--skip-plugin-types</span></code> and <code class="docutils literal notranslate"><span class="pre">--exclude-plugins</span></code> replace them. The DLLs become <code class="docutils literal notranslate"><span class="pre">Qt6*.dll</span></code>, and the style plugin of Qt 6.8.3 <code class="docutils literal notranslate"><span class="pre">win64_msvc2022_64</span></code> is <code class="docutils literal notranslate"><span class="pre">styles/qmodernwindowsstyle.dll</span></code>. TLS is a plugin, <code class="docutils literal notranslate"><span class="pre">qschannelbackend</span></code> (<a class="reference external" href="https://doc.qt.io/qt-6/ssl.html">Qt SSL</a>).</p></td>
 </tr>
 <tr class="row-even"><td><p>Linux</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">linuxdeploy-plugin-qt</span></code> with the Ubuntu Qt 5 packages; the <code class="docutils literal notranslate"><span class="pre">QMAKE</span></code> fallback names <code class="docutils literal notranslate"><span class="pre">qmake-qt5</span></code> (line 1010); the checks look for <code class="docutils literal notranslate"><span class="pre">libQt5*.so</span></code> (lines 1033 to 1035)</p></td>
-<td><p>The plugin supports Qt 5 and 6 (<a class="reference external" href="https://github.com/linuxdeploy/linuxdeploy-plugin-qt">README</a>). The <code class="docutils literal notranslate"><span class="pre">QMAKE</span></code> line, the checks and <code class="docutils literal notranslate"><span class="pre">package_start_smoke.py</span></code> need the Qt 6 names.</p></td>
+<td><p>The plugin supports Qt 5 and 6, as its README says. The <code class="docutils literal notranslate"><span class="pre">QMAKE</span></code> line, the checks and <code class="docutils literal notranslate"><span class="pre">package_start_smoke.py</span></code> need the Qt 6 names.</p></td>
 </tr>
 </tbody>
 </table>
@@ -476,7 +477,7 @@ the Qt 5.15 headers. Eleven files under <code class="docutils literal notranslat
 </tr>
 <tr class="row-odd"><td><p>Windows</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">jurplel/install-qt-action&#64;v4</span></code>, Qt 5.15.2 <code class="docutils literal notranslate"><span class="pre">win64_msvc2019_64</span></code></p></td>
-<td><p>the same action, <code class="docutils literal notranslate"><span class="pre">win64_msvc2022_64</span></code>; its default is 6.8.3, “a tested Qt 6 LTS version for open-source licensed users” (<a class="reference external" href="https://github.com/jurplel/install-qt-action">install-qt-action</a>)</p></td>
+<td><p>the same action, <code class="docutils literal notranslate"><span class="pre">win64_msvc2022_64</span></code>; its default is 6.8.3, “a tested Qt 6 LTS version for open-source licensed users” (the README of install-qt-action)</p></td>
 </tr>
 <tr class="row-even"><td><p>Linux</p></td>
 <td><p>Ubuntu 24.04 Qt 5 packages, also in <code class="docutils literal notranslate"><span class="pre">tidy.yml</span></code></p></td>
@@ -594,7 +595,7 @@ different in a dark Windows.</p></li>
 </tbody>
 </table>
 </div>
-<p>These are estimates for one developer who knows the repository, about 8 to 12 days in all. Replacing Qt Charts is not
+<p>These are estimates for one developer who knows the code, about 8 to 12 days in all. Replacing Qt Charts is not
 included.</p>
 </section>
 <section id="risks">
@@ -677,7 +678,7 @@ release drops Qt Charts.</p>
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">
@@ -701,7 +702,7 @@ release drops Qt Charts.</p>
             <ul>
 <li><a class="reference internal" href="#">Qt 6 migration study</a><ul>
 <li><a class="reference internal" href="#summary">Summary</a></li>
-<li><a class="reference internal" href="#source-code">Source code</a><ul>
+<li><a class="reference internal" href="#code">Code</a><ul>
 <li><a class="reference internal" href="#build-with-deprecated-apis-disabled">Build with deprecated APIs disabled</a></li>
 <li><a class="reference internal" href="#changes-the-qt-5-build-cannot-show">Changes the Qt 5 build cannot show</a></li>
 </ul>

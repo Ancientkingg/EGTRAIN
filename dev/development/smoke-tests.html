@@ -198,6 +198,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
@@ -377,7 +378,7 @@ sanitizer the heap count comes from AddressSanitizer.</p></li>
 </ul>
 <p>The job runs only in the nightly and the manual run, because the sanitizer build and the
 instrumented runs take longer than the pull request checks. To check a branch before a merge,
-start the workflow by hand from the Actions tab, or with <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">workflow</span> <span class="pre">run</span> <span class="pre">cmake.yml</span> <span class="pre">--ref</span> <span class="pre">BRANCH</span></code>;
+start the workflow by hand, for example with <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">workflow</span> <span class="pre">run</span> <span class="pre">cmake.yml</span> <span class="pre">--ref</span> <span class="pre">BRANCH</span></code>;
 the other legs start with it. The artifact <code class="docutils literal notranslate"><span class="pre">leak-check-logs</span></code> holds one <code class="docutils literal notranslate"><span class="pre">SCENE.log</span></code> per scene and
 <code class="docutils literal notranslate"><span class="pre">ctest-reload.log</span></code>, <code class="docutils literal notranslate"><span class="pre">ctest-canvas.log</span></code> and <code class="docutils literal notranslate"><span class="pre">ctest-replay.log</span></code>, also when the job fails.</p>
 <p><code class="docutils literal notranslate"><span class="pre">tools/e2e/lsan_suppressions.txt</span></code> lists the known leaks. Add one rule for each, with a comment that
@@ -940,7 +941,7 @@ dialog takes its size from the font and style of the platform. CTest runs it on 
 <section id="smoke-artifacts">
 <h2>Smoke artifacts<a class="headerlink" href="#smoke-artifacts" title="Link to this heading">¶</a></h2>
 <p>Smoke scripts write temporary diagnostics below <code class="docutils literal notranslate"><span class="pre">${TMPDIR:-/tmp}</span></code>; on Windows
-the temporary directory comes from <code class="docutils literal notranslate"><span class="pre">TEMP</span></code> and <code class="docutils literal notranslate"><span class="pre">TMP</span></code>. GitHub Actions routes
+the temporary directory comes from <code class="docutils literal notranslate"><span class="pre">TEMP</span></code> and <code class="docutils literal notranslate"><span class="pre">TMP</span></code>. The CI workflows route
 <code class="docutils literal notranslate"><span class="pre">TMPDIR</span></code> (macOS, Linux) or <code class="docutils literal notranslate"><span class="pre">TEMP</span></code> and <code class="docutils literal notranslate"><span class="pre">TMP</span></code> (Windows) to <code class="docutils literal notranslate"><span class="pre">$RUNNER_TEMP</span></code>
 (<code class="docutils literal notranslate"><span class="pre">runner.temp</span></code>) for CI diagnostics.</p>
 <p>Each run of a Bash smoke with a log writes its logs, screenshots and files into a folder of its own,
@@ -1082,7 +1083,7 @@ application; CTest and the smoke scripts set it themselves.</p>
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

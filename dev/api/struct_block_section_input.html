@@ -8,7 +8,6 @@
 <title>EGTRAIN: BlockSectionInput Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,18 +112,18 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_block_s
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_blocking_time_diagram_8h_source.html">diagrams/BlockingTimeDiagram.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/BlockingTimeDiagram.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a276028de9703f53274d3f2fd0336f8f1" id="r_a276028de9703f53274d3f2fd0336f8f1"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a276028de9703f53274d3f2fd0336f8f1">id</a></td></tr>
-<tr class="memitem:a74a5e1a1e7646a07d9a2ab50531a4f92" id="r_a74a5e1a1e7646a07d9a2ab50531a4f92"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a74a5e1a1e7646a07d9a2ab50531a4f92">startKm</a> = 0.0</td></tr>
-<tr class="memitem:a64187953d21c19c79dcf2e00e6711ac0" id="r_a64187953d21c19c79dcf2e00e6711ac0"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a64187953d21c19c79dcf2e00e6711ac0">endKm</a> = 0.0</td></tr>
-<tr class="memitem:a59092e23122bd0485bc15f80af8638ce" id="r_a59092e23122bd0485bc15f80af8638ce"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a59092e23122bd0485bc15f80af8638ce">geoStartKm</a> = std::numeric_limits&lt;double&gt;::quiet_NaN()</td></tr>
+<tr class="memitem:a74a5e1a1e7646a07d9a2ab50531a4f92" id="r_a74a5e1a1e7646a07d9a2ab50531a4f92"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a74a5e1a1e7646a07d9a2ab50531a4f92">startKm</a></td></tr>
+<tr class="memitem:a64187953d21c19c79dcf2e00e6711ac0" id="r_a64187953d21c19c79dcf2e00e6711ac0"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a64187953d21c19c79dcf2e00e6711ac0">endKm</a></td></tr>
+<tr class="memitem:a59092e23122bd0485bc15f80af8638ce" id="r_a59092e23122bd0485bc15f80af8638ce"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a59092e23122bd0485bc15f80af8638ce">geoStartKm</a></td></tr>
 <tr class="memdesc:a59092e23122bd0485bc15f80af8638ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Geo X of the start in km, the scene X; NaN when unknown.  <br /></td></tr>
-<tr class="memitem:aa989fbe7482e7352e488d8884063de00" id="r_aa989fbe7482e7352e488d8884063de00"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aa989fbe7482e7352e488d8884063de00">geoEndKm</a> = std::numeric_limits&lt;double&gt;::quiet_NaN()</td></tr>
+<tr class="memitem:aa989fbe7482e7352e488d8884063de00" id="r_aa989fbe7482e7352e488d8884063de00"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aa989fbe7482e7352e488d8884063de00">geoEndKm</a></td></tr>
 <tr class="memdesc:aa989fbe7482e7352e488d8884063de00"><td class="mdescLeft">&#160;</td><td class="mdescRight">Geo X of the end in km, the scene X; NaN when unknown.  <br /></td></tr>
-<tr class="memitem:a2a36dc851bfdcba451dfd30370b0317c" id="r_a2a36dc851bfdcba451dfd30370b0317c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2a36dc851bfdcba451dfd30370b0317c">isSwitch</a> = false</td></tr>
+<tr class="memitem:a2a36dc851bfdcba451dfd30370b0317c" id="r_a2a36dc851bfdcba451dfd30370b0317c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2a36dc851bfdcba451dfd30370b0317c">isSwitch</a></td></tr>
 <tr class="memdesc:a2a36dc851bfdcba451dfd30370b0317c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The section holds a diverging switch.  <br /></td></tr>
 </table>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -135,7 +134,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double BlockSectionInput::endKm = 0.0</td>
+          <td class="memname">double BlockSectionInput::endKm</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -149,7 +148,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double BlockSectionInput::geoEndKm = std::numeric_limits&lt;double&gt;::quiet_NaN()</td>
+          <td class="memname">double BlockSectionInput::geoEndKm</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -165,7 +164,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double BlockSectionInput::geoStartKm = std::numeric_limits&lt;double&gt;::quiet_NaN()</td>
+          <td class="memname">double BlockSectionInput::geoStartKm</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -195,7 +194,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool BlockSectionInput::isSwitch = false</td>
+          <td class="memname">bool BlockSectionInput::isSwitch</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -211,7 +210,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double BlockSectionInput::startKm = 0.0</td>
+          <td class="memname">double BlockSectionInput::startKm</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -219,7 +218,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_blocking_time_diagram_8h_source.html">BlockingTimeDiagram.h</a></li>
+<li>diagrams/<a class="el" href="_blocking_time_diagram_8h.html">BlockingTimeDiagram.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

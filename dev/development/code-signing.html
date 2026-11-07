@@ -198,6 +198,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
@@ -316,10 +317,10 @@ of any signing service: every fact that only the owner can give is a field that 
 <ul class="simple">
 <li><p>No Windows file is signed, and the owner has decided to release them unsigned for now (see
 <a class="reference internal" href="#windows-releases">Windows releases</a>). The package workflow has two jobs that sign the three program files and then
-the installer through SignPath, and both are skipped unless the repository variable <code class="docutils literal notranslate"><span class="pre">WINDOWS_SIGNING</span></code> is <code class="docutils literal notranslate"><span class="pre">signpath</span></code>
+the installer through SignPath, and both are skipped unless the CI variable <code class="docutils literal notranslate"><span class="pre">WINDOWS_SIGNING</span></code> is <code class="docutils literal notranslate"><span class="pre">signpath</span></code>
 (see <a class="reference internal" href="#signing-in-ci">Signing in CI</a>). Every run of
 the package workflow reports the signature state of the program files with <code class="docutils literal notranslate"><span class="pre">tools/release/verify_signatures.ps1</span></code> and
-fails for no file. Without the setup, the workflows use no credential other than the token that GitHub gives to each
+fails for no file. Without the setup, the workflows use no credential other than the token that the CI gives to each
 run.</p></li>
 <li><p>The Windows downloads are the installer <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Setup-&lt;version&gt;-x64.exe</span></code> and the portable ZIP
 <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Portable-&lt;version&gt;-x64.zip</span></code>.</p></li>
@@ -335,10 +336,9 @@ modes, the settings that the owner adds and what a user sees at the first start 
 of the same release. On Windows it checks no signature, so these checks detect a damaged download and do not show who
 published the package. On macOS the staged app is also checked with <code class="docutils literal notranslate"><span class="pre">codesign</span> <span class="pre">--verify</span></code>, which an ad-hoc signature
 passes.</p></li>
-<li><p>Neither the GitHub release nor the release page on egtrain.samuelbruin.com says whether the macOS app is notarized
-or whether the Windows files are signed. The release text, built by the Prepare release step of the release job in
-<code class="docutils literal notranslate"><span class="pre">.github/workflows/release.yml</span></code> and copied to the website by <code class="docutils literal notranslate"><span class="pre">tools/release/publish_selfhost.py</span></code>, says nothing about
-signing. <a class="reference internal" href="#release-text">Release text</a> has the lines for macOS.</p></li>
+<li><p>Neither the release nor its page on egtrain.samuelbruin.com says whether the macOS app is notarized or whether the
+Windows files are signed. The release text, built by the Prepare release step of the release job in the workflow
+<code class="docutils literal notranslate"><span class="pre">release.yml</span></code> and copied to the website by <code class="docutils literal notranslate"><span class="pre">tools/release/publish_selfhost.py</span></code>, says nothing about signing. <a class="reference internal" href="#release-text">Release text</a> has the lines for macOS.</p></li>
 </ul>
 </section>
 <section id="what-would-be-signed">
@@ -362,7 +362,7 @@ signed.</p>
 <p>The first choice is the SignPath Foundation free programme for open-source projects, if the project meets its
 conditions.</p>
 <p>The fallback is a paid service or certificate. It is chosen only after the reason the free path does not work is written
-in the fallback record below, and then it is the lowest-cost option that works with GitHub Actions.</p>
+in the fallback record below, and then it is the lowest-cost option that works with the CI workflows.</p>
 <section id="eligibility-record">
 <h3>Eligibility record<a class="headerlink" href="#eligibility-record" title="Link to this heading">¶</a></h3>
 <p>The programme publishes its own conditions. Whoever applies reads the current published conditions, records the link and
@@ -375,14 +375,14 @@ the date, and fills the table. Not recorded means that nothing has been recorded
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Repository</p></td>
-<td><p>Public, owned by the GitHub user account Ancientkingg, not a fork (from <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">repo</span> <span class="pre">view</span></code>)</p></td>
+<tr class="row-even"><td><p>Project</p></td>
+<td><p>Not recorded</p></td>
 </tr>
 <tr class="row-odd"><td><p>Built where</p></td>
-<td><p>GitHub Actions workflows in the repository</p></td>
+<td><p>The CI workflows of the project</p></td>
 </tr>
-<tr class="row-even"><td><p>Licence in the repository</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> is the GNU General Public License version 3, and the README names it as GPL-3.0-only for the source code</p></td>
+<tr class="row-even"><td><p>Licence</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> is the GNU General Public License version 3, and the README names it as GPL-3.0-only for the code</p></td>
 </tr>
 <tr class="row-odd"><td><p>Owner confirms that this is the intended OSI-approved licence</p></td>
 <td><p>Not recorded</p></td>
@@ -464,9 +464,9 @@ company (<code class="docutils literal notranslate"><span class="pre">CompanyNam
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Signing owner (the repository owner)</p></td>
+<tr class="row-even"><td><p>Signing owner (the project owner)</p></td>
 <td><p>Not recorded</p></td>
-<td><p>Applies to the programme or buys the service, accepts its terms, receives its mail, creates and maintains the protected environment and its credentials in the repository settings, and answers any approval step the service requires</p></td>
+<td><p>Applies to the programme or buys the service, accepts its terms, receives its mail, creates and maintains the protected environment and its credentials in the CI settings, and answers any approval step the service requires</p></td>
 </tr>
 <tr class="row-odd"><td><p>Second contact with access</p></td>
 <td><p>Not recorded</p></td>
@@ -485,12 +485,12 @@ company (<code class="docutils literal notranslate"><span class="pre">CompanyNam
 </div>
 <p>Nobody but the signing owner and the second contact may hold the credentials.</p>
 </section>
-<section id="repository-authorization">
-<h2>Repository authorization<a class="headerlink" href="#repository-authorization" title="Link to this heading">¶</a></h2>
-<p>These rules apply to any signing that is set up for this repository.</p>
+<section id="authorization-rules">
+<h2>Authorization rules<a class="headerlink" href="#authorization-rules" title="Link to this heading">¶</a></h2>
+<p>These rules apply to any signing that is set up for this project.</p>
 <ul class="simple">
-<li><p>Credentials exist only in the GitHub environments <code class="docutils literal notranslate"><span class="pre">windows-signing</span></code> and <code class="docutils literal notranslate"><span class="pre">macos-signing</span></code>, which only the <code class="docutils literal notranslate"><span class="pre">production</span></code>
-branch and <code class="docutils literal notranslate"><span class="pre">v*</span></code> tags may use. They are never in the repository, in workflow logs, in workflow artifacts or in release
+<li><p>Credentials exist only in the CI environments <code class="docutils literal notranslate"><span class="pre">windows-signing</span></code> and <code class="docutils literal notranslate"><span class="pre">macos-signing</span></code>, which only the <code class="docutils literal notranslate"><span class="pre">production</span></code>
+branch and <code class="docutils literal notranslate"><span class="pre">v*</span></code> tags may use. They are never in the source tree, in workflow logs, in workflow artifacts or in release
 assets. No certificate, private key, password or token is committed.</p></li>
 <li><p>Signing runs only for pushes to <code class="docutils literal notranslate"><span class="pre">production</span></code> and for <code class="docutils literal notranslate"><span class="pre">v*</span></code> tags. Pull requests, including pull requests from forks and
 the pull request from <code class="docutils literal notranslate"><span class="pre">main</span></code> to <code class="docutils literal notranslate"><span class="pre">production</span></code>, and manual runs never sign and never need credentials. Ordinary
@@ -504,9 +504,9 @@ signer, and the ZIP and the installer are built from the files that were checked
 </section>
 <section id="signing-in-ci">
 <h2>Signing in CI<a class="headerlink" href="#signing-in-ci" title="Link to this heading">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">sign-windows</span></code> job of <code class="docutils literal notranslate"><span class="pre">.github/workflows/package.yml</span></code> signs <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_update_helper.exe</span></code> and
-<code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code> through the SignPath action <code class="docutils literal notranslate"><span class="pre">signpath/github-action-submit-signing-request</span></code>. It runs only for a push
-to <code class="docutils literal notranslate"><span class="pre">production</span></code> or a <code class="docutils literal notranslate"><span class="pre">v*</span></code> tag, and only when the repository variable <code class="docutils literal notranslate"><span class="pre">WINDOWS_SIGNING</span></code> is <code class="docutils literal notranslate"><span class="pre">signpath</span></code>. In every other run
+<p>The <code class="docutils literal notranslate"><span class="pre">sign-windows</span></code> job of the workflow <code class="docutils literal notranslate"><span class="pre">package.yml</span></code> signs <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_update_helper.exe</span></code> and
+<code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code> through the action of SignPath that submits a signing request. It runs only for a push to <code class="docutils literal notranslate"><span class="pre">production</span></code>
+or a <code class="docutils literal notranslate"><span class="pre">v*</span></code> tag, and only when the CI variable <code class="docutils literal notranslate"><span class="pre">WINDOWS_SIGNING</span></code> is <code class="docutils literal notranslate"><span class="pre">signpath</span></code>. In every other run
 it is skipped, and the Windows finalize job builds the installer and the ZIP from the unsigned files.</p>
 <p>The job downloads the payload artifact, uploads the three program files alone as the artifact
 <code class="docutils literal notranslate"><span class="pre">QEGTRAIN-windows-x64-unsigned</span></code> (so no Qt or other library can be signed), submits the signing request for that
@@ -525,10 +525,10 @@ smoke of the finalize job installs the installer before it is signed, and nothin
 compiled installer is signed here; whether the uninstaller that Setup writes carries a signature has not been checked.</p>
 <p>SignPath Foundation needs a person to approve each request, so a signed release needs two approvals, one for the program
 files and one for the installer, and each signing step waits up to one hour for its approval.</p>
-<p>The names below are the placeholders that the workflow reads. The owner creates them in the repository settings and in
-SignPath. The SignPath documentation (https://docs.signpath.io/trusted-build-systems/github) describes the inputs. It
-asks for the predefined GitHub.com trusted build system to be added to the SignPath organization and linked to the
-project, and for the SignPath GitHub App to be installed when audit log checks are used.</p>
+<p>The names below are the placeholders that the workflow reads. The owner creates them in the CI settings and in
+SignPath. The page on trusted build systems of the SignPath documentation describes the inputs. It asks for the
+predefined trusted build system of the CI service to be added to the SignPath organization and linked to the project,
+and for the SignPath app of the CI service to be installed when audit log checks are used.</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -539,31 +539,31 @@ project, and for the SignPath GitHub App to be installed when audit log checks a
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">WINDOWS_SIGNING</span></code></p></td>
-<td><p>Repository variable</p></td>
+<td><p>CI variable</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">signpath</span></code> turns the job on. Anything else, or nothing, leaves it off</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SIGNPATH_ORGANIZATION_ID</span></code></p></td>
-<td><p>Repository variable</p></td>
+<td><p>CI variable</p></td>
 <td><p>The organization id that SignPath issues</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SIGNPATH_PROJECT_SLUG</span></code></p></td>
-<td><p>Repository variable</p></td>
+<td><p>CI variable</p></td>
 <td><p>The project slug that SignPath issues</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SIGNPATH_SIGNING_POLICY_SLUG</span></code></p></td>
-<td><p>Repository variable</p></td>
+<td><p>CI variable</p></td>
 <td><p>The slug of the release signing policy</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SIGNPATH_ARTIFACT_CONFIGURATION_SLUG</span></code></p></td>
-<td><p>Repository variable</p></td>
+<td><p>CI variable</p></td>
 <td><p>The slug of the artifact configuration of the program files below. It must be set</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG</span></code></p></td>
-<td><p>Repository variable</p></td>
+<td><p>CI variable</p></td>
 <td><p>The slug of the artifact configuration of the installer below. It must be set</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">WINDOWS_SIGNING_SUBJECT</span></code></p></td>
-<td><p>Repository variable</p></td>
+<td><p>CI variable</p></td>
 <td><p>The subject of the signing certificate as <code class="docutils literal notranslate"><span class="pre">Get-AuthenticodeSignature</span></code> prints it. The check fails for any other signer</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SIGNPATH_API_TOKEN</span></code></p></td>
@@ -587,7 +587,7 @@ read permissions. A called workflow cannot hold more than its caller grants, so 
 and the <code class="docutils literal notranslate"><span class="pre">package</span></code> job of the package check have the same block. No workflow has a write permission except the release
 job (<code class="docutils literal notranslate"><span class="pre">contents:</span> <span class="pre">write</span></code>).</p>
 <p>The artifact configuration of the program files in SignPath lists exactly the three program files at the top of the
-artifact, which GitHub uploads as a ZIP file:</p>
+artifact, which the CI uploads as a ZIP file:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;artifact-configuration</span><span class="w"> </span><span class="na">xmlns=</span><span class="s">"http://signpath.io/artifact-configuration/v1"</span><span class="nt">&gt;</span>
 <span class="w">  </span><span class="nt">&lt;zip-file&gt;</span>
 <span class="w">    </span><span class="nt">&lt;pe-file-set&gt;</span>
@@ -650,7 +650,7 @@ against a real SignPath project, and a pull request run shows the signing jobs a
 <tr class="row-even"><td><p>Rotation of the access token of the signing service (interval, last done, next due)</p></td>
 <td><p>Not recorded</p></td>
 </tr>
-<tr class="row-odd"><td><p>What to update when the signer name or the service changes (the repository variable <code class="docutils literal notranslate"><span class="pre">WINDOWS_SIGNING_SUBJECT</span></code>, which holds the expected signer name used by the check, and the SignPath names in the table above)</p></td>
+<tr class="row-odd"><td><p>What to update when the signer name or the service changes (the CI variable <code class="docutils literal notranslate"><span class="pre">WINDOWS_SIGNING_SUBJECT</span></code>, which holds the expected signer name used by the check, and the SignPath names in the table above)</p></td>
 <td><p>Not recorded</p></td>
 </tr>
 </tbody>
@@ -673,8 +673,8 @@ no Authenticode signature, and Windows shows no publisher for them.</p>
 <h3>Decision<a class="headerlink" href="#decision" title="Link to this heading">¶</a></h3>
 <p>On 2026-10-16 the owner decided to ship Windows releases unsigned. Neither the SignPath Foundation programme nor a paid
 certificate is pursued for now. The <a class="reference internal" href="#fallback-record">fallback record</a> stays empty, because no paid option was chosen.
-The signing jobs <code class="docutils literal notranslate"><span class="pre">sign-windows</span></code> and <code class="docutils literal notranslate"><span class="pre">sign-windows-installer</span></code> stay in <code class="docutils literal notranslate"><span class="pre">.github/workflows/package.yml</span></code> and are skipped
-unless the repository variable <code class="docutils literal notranslate"><span class="pre">WINDOWS_SIGNING</span></code> is <code class="docutils literal notranslate"><span class="pre">signpath</span></code>, so releases and pull request checks need nothing extra.</p>
+The signing jobs <code class="docutils literal notranslate"><span class="pre">sign-windows</span></code> and <code class="docutils literal notranslate"><span class="pre">sign-windows-installer</span></code> stay in the workflow <code class="docutils literal notranslate"><span class="pre">package.yml</span></code> and are skipped
+unless the CI variable <code class="docutils literal notranslate"><span class="pre">WINDOWS_SIGNING</span></code> is <code class="docutils literal notranslate"><span class="pre">signpath</span></code>, so releases and pull request checks need nothing extra.</p>
 <p>To enable signing later, the owner:</p>
 <ol class="arabic simple">
 <li><p>Applies to the SignPath Foundation, or chooses another service after filling the fallback record. The programme asks
@@ -739,7 +739,7 @@ that Apple refused is never published as notarized. Without credentials the job 
 notarized.</p>
 <section id="what-the-owner-adds">
 <h3>What the owner adds<a class="headerlink" href="#what-the-owner-adds" title="Link to this heading">¶</a></h3>
-<p>The owner adds these to the environment <code class="docutils literal notranslate"><span class="pre">macos-signing</span></code> in the repository settings and limits the environment to the
+<p>The owner adds these to the environment <code class="docutils literal notranslate"><span class="pre">macos-signing</span></code> in the CI settings and limits the environment to the
 <code class="docutils literal notranslate"><span class="pre">production</span></code> branch and <code class="docutils literal notranslate"><span class="pre">v*</span></code> tags, the runs that use it. A secret is stored as a secret of the environment and a
 variable as a variable of it. None of them is committed, and the scripts print none of the values. The job imports the
 certificate into a keychain of its own and deletes that keychain in its last step.</p>
@@ -796,7 +796,7 @@ complete. A group that is only partly set, with the other group not complete, fa
 A certificate without its password or without the identity name fails it too. The scripts are described in
 <a class="reference internal" href="ci-and-release.html#macos-signing-script"><span class="std std-ref">macOS signing script</span></a> and
 <a class="reference internal" href="ci-and-release.html#macos-notarization-script"><span class="std std-ref">macOS notarization script</span></a>. The roles in <a class="reference internal" href="#ownership">Ownership</a> and the
-rules in <a class="reference internal" href="#repository-authorization">Repository authorization</a> apply to these values.</p>
+rules in <a class="reference internal" href="#authorization-rules">Authorization rules</a> apply to these values.</p>
 </section>
 <section id="apple-developer-identity-record">
 <h3>Apple Developer identity record<a class="headerlink" href="#apple-developer-identity-record" title="Link to this heading">¶</a></h3>
@@ -871,8 +871,8 @@ with a line <code class="docutils literal notranslate"><span class="pre">OK:</sp
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>macOS: the app and the disk image are signed with a Developer ID and notarized by Apple. macOS is expected to ask only for the usual confirmation for an app that was downloaded.
 </pre></div>
 </div>
-<p>The release notes are in two places, and the paragraph goes into both: the description of the GitHub release, and the
-notes on the website, which the update check of the application shows. For the website, save the whole text, the notes
+<p>The release notes are in two places, and the paragraph goes into both: the description of the release that the release
+job creates, and the notes on the website, which the update check of the application shows. For the website, save the whole text, the notes
 of the release with the paragraph, in a Markdown file and run this command with the publish token of the website in the
 environment variable <code class="docutils literal notranslate"><span class="pre">EGTRAIN_PUBLISH_TOKEN</span></code>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>tools/release/publish_selfhost.py<span class="w"> </span>notes<span class="w"> </span>v&lt;version&gt;<span class="w"> </span>notes.md
@@ -923,7 +923,7 @@ and, for a notarized build, the ticket in the step <strong>Notarize the app</str
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">
@@ -954,7 +954,7 @@ and, for a notarized build, the ticket in the step <strong>Notarize the app</str
 </ul>
 </li>
 <li><a class="reference internal" href="#ownership">Ownership</a></li>
-<li><a class="reference internal" href="#repository-authorization">Repository authorization</a></li>
+<li><a class="reference internal" href="#authorization-rules">Authorization rules</a></li>
 <li><a class="reference internal" href="#signing-in-ci">Signing in CI</a></li>
 <li><a class="reference internal" href="#renewal-and-maintenance">Renewal and maintenance</a></li>
 <li><a class="reference internal" href="#checking-a-download">Checking a download</a></li>

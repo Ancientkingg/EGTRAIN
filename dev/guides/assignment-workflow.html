@@ -198,6 +198,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
@@ -320,11 +321,8 @@ fixture with three stations, no signals and four services that all use one
 placeholder <code class="docutils literal notranslate"><span class="pre">SLT_Sprinter</span></code> composition. It validates, runs and packs as
 <code class="docutils literal notranslate"><span class="pre">.egscene</span></code>, but its railway data are not authoritative: do not use it for model
 answers or publish it as the completed assignment. Its sources and terms are in
-<code class="docutils literal notranslate"><span class="pre">DATA.md</span></code> at the top of the repository. Issues
-<a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/182">#182</a>,
-<a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/228">#228</a>, and
-<a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/181">#181</a> track optional project
-work to add a source-backed example dataset.</p>
+<a class="reference internal" href="case-data.html"><span class="std std-doc">Data of the bundled cases</span></a>. A source-backed example dataset is
+optional project work that is still open.</p>
 <section id="instructor-preparation">
 <h2>Instructor preparation<a class="headerlink" href="#instructor-preparation" title="Link to this heading">¶</a></h2>
 <p>An instructor can build the case through the normal application workflow:</p>
@@ -535,7 +533,7 @@ of its list. Compression is analysis output and does not rewrite the authored
 timetable.</p>
 <p>The capacity consumption of step 18 is the cycle of the selected train chain as a
 percentage of the period that the student enters. EGTRAIN compares it with no
-threshold and states no recommended value, and the repository holds none. The
+threshold and states no recommended value, and no file of EGTRAIN holds one. The
 course recommendation named in step 18 comes from the course material.</p>
 <p><strong>Capacity by area</strong> reports the share of the period that the selected trains
 occupy each resource of an area, and names the resource with the largest share.
@@ -586,7 +584,7 @@ student.</p>
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

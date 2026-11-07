@@ -8,7 +8,6 @@
 <title>EGTRAIN: app/MainWindowSupport.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,15 +111,15 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_main_window_s
   <div class="headertitle"><div class="title">MainWindowSupport.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_run_csv_8h_source.html">diagrams/RunCsv.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_run_results_8h_source.html">diagrams/RunResults.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_annotation_placement_8h_source.html">graphics/AnnotationPlacement.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_network_view_8h_source.html">graphics/NetworkView.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_visual_polish_8h_source.html">graphics/VisualPolish.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_signal_item_8h_source.html">graphics/items/SignalItem.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_track_preview_8h_source.html">scene/TrackPreview.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_csv_writer_8h_source.html">util/CsvWriter.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_settings_dialog_8h_source.html">widgets/SettingsDialog.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_run_csv_8h.html">diagrams/RunCsv.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_run_results_8h.html">diagrams/RunResults.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_annotation_placement_8h.html">graphics/AnnotationPlacement.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_network_view_8h.html">graphics/NetworkView.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_visual_polish_8h.html">graphics/VisualPolish.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_signal_item_8h.html">graphics/items/SignalItem.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_track_preview_8h.html">scene/TrackPreview.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_csv_writer_8h.html">util/CsvWriter.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_settings_dialog_8h.html">widgets/SettingsDialog.h</a>&quot;</code><br />
 <code>#include &lt;QAbstractItemModel&gt;</code><br />
 <code>#include &lt;QComboBox&gt;</code><br />
 <code>#include &lt;QList&gt;</code><br />
@@ -144,9 +143,7 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h__dep__incl.svg" width="923" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-</div>
-<p><a href="_main_window_support_8h_source.html">Go to the source code of this file.</a></p>
-<table class="memberdecls">
+</div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:FollowListUnderFrames" id="r_FollowListUnderFrames"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_follow_list_under_frames.html">FollowListUnderFrames</a></td></tr>
@@ -168,10 +165,10 @@ Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a6aa2f18f2ec53dacb3a595d007a70595" id="r_a6aa2f18f2ec53dacb3a595d007a70595"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a6aa2f18f2ec53dacb3a595d007a70595">kFollowNameRole</a> = Qt::UserRole + 1</td></tr>
+<tr class="memitem:a6aa2f18f2ec53dacb3a595d007a70595" id="r_a6aa2f18f2ec53dacb3a595d007a70595"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a6aa2f18f2ec53dacb3a595d007a70595">kFollowNameRole</a></td></tr>
 <tr class="memdesc:a6aa2f18f2ec53dacb3a595d007a70595"><td class="mdescLeft">&#160;</td><td class="mdescRight">The name of a train in the train list, to which the entry text adds a state.  <br /></td></tr>
-<tr class="memitem:ae4a820273af0456582cb8cb1da388336" id="r_ae4a820273af0456582cb8cb1da388336"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ae4a820273af0456582cb8cb1da388336">kFollowStatusMaxWidth</a> = 400</td></tr>
-<tr class="memitem:a110d4fb368297fb6c77f3ba78a319404" id="r_a110d4fb368297fb6c77f3ba78a319404"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a110d4fb368297fb6c77f3ba78a319404">kMaxStepDelayMs</a> = 500</td></tr>
+<tr class="memitem:ae4a820273af0456582cb8cb1da388336" id="r_ae4a820273af0456582cb8cb1da388336"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ae4a820273af0456582cb8cb1da388336">kFollowStatusMaxWidth</a></td></tr>
+<tr class="memitem:a110d4fb368297fb6c77f3ba78a319404" id="r_a110d4fb368297fb6c77f3ba78a319404"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a110d4fb368297fb6c77f3ba78a319404">kMaxStepDelayMs</a></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="aba8e868798ce4e4828665e22e21f766a" name="aba8e868798ce4e4828665e22e21f766a"></a>
@@ -415,7 +412,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int kFollowNameRole = Qt::UserRole + 1</td>
+          <td class="memname">int kFollowNameRole</td>
         </tr>
       </table>
   </td>
@@ -439,7 +436,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int kFollowStatusMaxWidth = 400</td>
+          <td class="memname">int kFollowStatusMaxWidth</td>
         </tr>
       </table>
   </td>
@@ -462,7 +459,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int kMaxStepDelayMs = 500</td>
+          <td class="memname">int kMaxStepDelayMs</td>
         </tr>
       </table>
   </td>

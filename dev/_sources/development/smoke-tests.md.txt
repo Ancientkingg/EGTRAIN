@@ -73,7 +73,7 @@ and fails on any leak or double free. It has four parts:
 
 The job runs only in the nightly and the manual run, because the sanitizer build and the
 instrumented runs take longer than the pull request checks. To check a branch before a merge,
-start the workflow by hand from the Actions tab, or with `gh workflow run cmake.yml --ref BRANCH`;
+start the workflow by hand, for example with `gh workflow run cmake.yml --ref BRANCH`;
 the other legs start with it. The artifact `leak-check-logs` holds one `SCENE.log` per scene and
 `ctest-reload.log`, `ctest-canvas.log` and `ctest-replay.log`, also when the job fails.
 
@@ -570,7 +570,7 @@ dialog takes its size from the font and style of the platform. CTest runs it on 
 ## Smoke artifacts
 
 Smoke scripts write temporary diagnostics below `${TMPDIR:-/tmp}`; on Windows
-the temporary directory comes from `TEMP` and `TMP`. GitHub Actions routes
+the temporary directory comes from `TEMP` and `TMP`. The CI workflows route
 `TMPDIR` (macOS, Linux) or `TEMP` and `TMP` (Windows) to `$RUNNER_TEMP`
 (`runner.temp`) for CI diagnostics.
 

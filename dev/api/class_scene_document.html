@@ -8,7 +8,6 @@
 <title>EGTRAIN: SceneDocument Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,7 +112,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_scene_do
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_scene_document_8h_source.html">editors/SceneDocument.h</a>&gt;</code></p>
+<p><code>#include &lt;editors/SceneDocument.h&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for SceneDocument:</div>
 <div class="dyncontent">
@@ -128,17 +127,17 @@ Collaboration diagram for SceneDocument:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:a91f74e5143e65d144b7e484152ee01d0" id="r_a91f74e5143e65d144b7e484152ee01d0"><td class="memItemLeft">enum &#160;</td><td class="memItemRight"><a class="el" href="#a91f74e5143e65d144b7e484152ee01d0">Change</a> { <br />
-&#160;&#160;<a class="el" href="#a91f74e5143e65d144b7e484152ee01d0a5e70f5dedfbaf10e23475cc4f2cea867">CaseSettings</a> = 1 &lt;&lt; 0
-, <a class="el" href="#a91f74e5143e65d144b7e484152ee01d0af8277de1f70e1cdb7c3df402ee45d9d4">Infrastructure</a> = 1 &lt;&lt; 1
-, <a class="el" href="#a91f74e5143e65d144b7e484152ee01d0a627a1fbaf48d8fe8c04f974fa6e609aa">TrainUnits</a> = 1 &lt;&lt; 2
-, <a class="el" href="#a91f74e5143e65d144b7e484152ee01d0ae08b6ed4f8d2d2f813c3e364b28d57de">Compositions</a> = 1 &lt;&lt; 3
+&#160;&#160;<a class="el" href="#a91f74e5143e65d144b7e484152ee01d0a5e70f5dedfbaf10e23475cc4f2cea867">CaseSettings</a>
+, <a class="el" href="#a91f74e5143e65d144b7e484152ee01d0af8277de1f70e1cdb7c3df402ee45d9d4">Infrastructure</a>
+, <a class="el" href="#a91f74e5143e65d144b7e484152ee01d0a627a1fbaf48d8fe8c04f974fa6e609aa">TrainUnits</a>
+, <a class="el" href="#a91f74e5143e65d144b7e484152ee01d0ae08b6ed4f8d2d2f813c3e364b28d57de">Compositions</a>
 , <br />
-&#160;&#160;<a class="el" href="#a91f74e5143e65d144b7e484152ee01d0ac2e42be467e1b6127929a0a2b5db888a">Services</a> = 1 &lt;&lt; 4
-, <a class="el" href="#a91f74e5143e65d144b7e484152ee01d0a59831ef80f0e7d032b2820ea8c6b1fed">Scenarios</a> = 1 &lt;&lt; 5
-, <a class="el" href="#a91f74e5143e65d144b7e484152ee01d0a115850ac59aa4feb0664ab25db188933">Passengers</a> = 1 &lt;&lt; 6
-, <a class="el" href="#a91f74e5143e65d144b7e484152ee01d0a65cf14ddce60f0ccce313a79bbf813a3">AllChanges</a> = CaseSettings | Infrastructure | TrainUnits | Compositions | Services | Scenarios | Passengers
+&#160;&#160;<a class="el" href="#a91f74e5143e65d144b7e484152ee01d0ac2e42be467e1b6127929a0a2b5db888a">Services</a>
+, <a class="el" href="#a91f74e5143e65d144b7e484152ee01d0a59831ef80f0e7d032b2820ea8c6b1fed">Scenarios</a>
+, <a class="el" href="#a91f74e5143e65d144b7e484152ee01d0a115850ac59aa4feb0664ab25db188933">Passengers</a>
+, <a class="el" href="#a91f74e5143e65d144b7e484152ee01d0a65cf14ddce60f0ccce313a79bbf813a3">AllChanges</a>
 , <br />
-&#160;&#160;<a class="el" href="#a91f74e5143e65d144b7e484152ee01d0a2c7155c7dc5deb950ae7c43db96ed159">OpenDuringRun</a> = CaseSettings | TrainUnits | Compositions
+&#160;&#160;<a class="el" href="#a91f74e5143e65d144b7e484152ee01d0a2c7155c7dc5deb950ae7c43db96ed159">OpenDuringRun</a>
 <br />
  }</td></tr>
 <tr class="memdesc:a91f74e5143e65d144b7e484152ee01d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The parts of the model that an edit can touch. <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a> and <a class="el" href="#a66de48a8dd0dc3d1036d1ad5ccce450f">changed()</a> carry a combination of them.  <a href="#a91f74e5143e65d144b7e484152ee01d0">More...</a><br /></td></tr>
@@ -826,7 +825,7 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>editors/<a class="el" href="_scene_document_8h_source.html">SceneDocument.h</a></li>
+<li>editors/<a class="el" href="_scene_document_8h.html">SceneDocument.h</a></li>
 <li>editors/<a class="el" href="_scene_document_8cpp.html">SceneDocument.cpp</a></li>
 </ul>
 </div><!-- contents -->

@@ -8,7 +8,6 @@
 <title>EGTRAIN: AreaCapacityResource Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,22 +112,22 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_area_ca
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_area_capacity_8h_source.html">diagrams/AreaCapacity.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/AreaCapacity.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ad623a65a08e5739ce6d60cadc2919fce" id="r_ad623a65a08e5739ce6d60cadc2919fce"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ad623a65a08e5739ce6d60cadc2919fce">resourceId</a></td></tr>
-<tr class="memitem:a776c8f2c8a620115a777edc1105a1286" id="r_a776c8f2c8a620115a777edc1105a1286"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a776c8f2c8a620115a777edc1105a1286">trainCount</a> = 0</td></tr>
+<tr class="memitem:a776c8f2c8a620115a777edc1105a1286" id="r_a776c8f2c8a620115a777edc1105a1286"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a776c8f2c8a620115a777edc1105a1286">trainCount</a></td></tr>
 <tr class="memdesc:a776c8f2c8a620115a777edc1105a1286"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selected trains with at least one such occupation.  <br /></td></tr>
-<tr class="memitem:a2a7def27160158799fd53d319c87e01c" id="r_a2a7def27160158799fd53d319c87e01c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a2a7def27160158799fd53d319c87e01c">occupationCount</a> = 0</td></tr>
+<tr class="memitem:a2a7def27160158799fd53d319c87e01c" id="r_a2a7def27160158799fd53d319c87e01c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a2a7def27160158799fd53d319c87e01c">occupationCount</a></td></tr>
 <tr class="memdesc:a2a7def27160158799fd53d319c87e01c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Such occupations; a repeat on the same resource counts again.  <br /></td></tr>
-<tr class="memitem:a8d57d0175458a49667cb60622a4b3fe6" id="r_a8d57d0175458a49667cb60622a4b3fe6"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a8d57d0175458a49667cb60622a4b3fe6">occupationSeconds</a> = 0.0</td></tr>
+<tr class="memitem:a8d57d0175458a49667cb60622a4b3fe6" id="r_a8d57d0175458a49667cb60622a4b3fe6"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a8d57d0175458a49667cb60622a4b3fe6">occupationSeconds</a></td></tr>
 <tr class="memdesc:a8d57d0175458a49667cb60622a4b3fe6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sum of endOccTime minus startOccTime over those occupations.  <br /></td></tr>
-<tr class="memitem:a7e4c2bf983f6fe5f9aea29c8ae5ff839" id="r_a7e4c2bf983f6fe5f9aea29c8ae5ff839"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a7e4c2bf983f6fe5f9aea29c8ae5ff839">unionSeconds</a> = 0.0</td></tr>
+<tr class="memitem:a7e4c2bf983f6fe5f9aea29c8ae5ff839" id="r_a7e4c2bf983f6fe5f9aea29c8ae5ff839"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a7e4c2bf983f6fe5f9aea29c8ae5ff839">unionSeconds</a></td></tr>
 <tr class="memdesc:a7e4c2bf983f6fe5f9aea29c8ae5ff839"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length of the union of those occupations; overlapping or touching ones count once.  <br /></td></tr>
-<tr class="memitem:ad9f9263fa50152619e8e90087c01ff02" id="r_ad9f9263fa50152619e8e90087c01ff02"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad9f9263fa50152619e8e90087c01ff02">occupationPercentage</a> = -1.0</td></tr>
+<tr class="memitem:ad9f9263fa50152619e8e90087c01ff02" id="r_ad9f9263fa50152619e8e90087c01ff02"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad9f9263fa50152619e8e90087c01ff02">occupationPercentage</a></td></tr>
 <tr class="memdesc:ad9f9263fa50152619e8e90087c01ff02"><td class="mdescLeft">&#160;</td><td class="mdescRight">occupationSeconds / period * 100; -1.0 without a valid period.  <br /></td></tr>
-<tr class="memitem:a64390649625cb3e82129c54835181a94" id="r_a64390649625cb3e82129c54835181a94"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a64390649625cb3e82129c54835181a94">governing</a> = false</td></tr>
+<tr class="memitem:a64390649625cb3e82129c54835181a94" id="r_a64390649625cb3e82129c54835181a94"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a64390649625cb3e82129c54835181a94">governing</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>One row per resource of the area, computed from the usable occupations of the selected trains that belong to the resource. </p>
@@ -140,7 +139,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool AreaCapacityResource::governing = false</td>
+          <td class="memname">bool AreaCapacityResource::governing</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -155,7 +154,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int AreaCapacityResource::occupationCount = 0</td>
+          <td class="memname">int AreaCapacityResource::occupationCount</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -171,7 +170,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double AreaCapacityResource::occupationPercentage = -1.0</td>
+          <td class="memname">double AreaCapacityResource::occupationPercentage</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -187,7 +186,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double AreaCapacityResource::occupationSeconds = 0.0</td>
+          <td class="memname">double AreaCapacityResource::occupationSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -218,7 +217,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int AreaCapacityResource::trainCount = 0</td>
+          <td class="memname">int AreaCapacityResource::trainCount</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -234,7 +233,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double AreaCapacityResource::unionSeconds = 0.0</td>
+          <td class="memname">double AreaCapacityResource::unionSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -244,7 +243,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_area_capacity_8h_source.html">AreaCapacity.h</a></li>
+<li>diagrams/<a class="el" href="_area_capacity_8h.html">AreaCapacity.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

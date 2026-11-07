@@ -8,7 +8,6 @@
 <title>EGTRAIN: io/LiveCommand.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -126,9 +125,7 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_live_command_8h__dep__incl.svg" width="702" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-</div>
-<p><a href="_live_command_8h_source.html">Go to the source code of this file.</a></p>
-<table class="memberdecls">
+</div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:LiveCommand" id="r_LiveCommand"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_live_command.html">LiveCommand</a></td></tr>
@@ -151,10 +148,10 @@ Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a953375d60d575ea6db714f0983c1b02a" id="r_a953375d60d575ea6db714f0983c1b02a"><td class="memItemLeft">constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a953375d60d575ea6db714f0983c1b02a">kLiveMaxRequestBytes</a> = 4096</td></tr>
-<tr class="memitem:aabe08e4da69a9ee82f41058d4b7d8927" id="r_aabe08e4da69a9ee82f41058d4b7d8927"><td class="memItemLeft">constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#aabe08e4da69a9ee82f41058d4b7d8927">kLiveMaxRequestIdBytes</a> = 64</td></tr>
+<tr class="memitem:a953375d60d575ea6db714f0983c1b02a" id="r_a953375d60d575ea6db714f0983c1b02a"><td class="memItemLeft">constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a953375d60d575ea6db714f0983c1b02a">kLiveMaxRequestBytes</a></td></tr>
+<tr class="memitem:aabe08e4da69a9ee82f41058d4b7d8927" id="r_aabe08e4da69a9ee82f41058d4b7d8927"><td class="memItemLeft">constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#aabe08e4da69a9ee82f41058d4b7d8927">kLiveMaxRequestIdBytes</a></td></tr>
 <tr class="memdesc:aabe08e4da69a9ee82f41058d4b7d8927"><td class="mdescLeft">&#160;</td><td class="mdescRight">Longest request id, in bytes. A longer one is rejected as bad_argument.  <br /></td></tr>
-<tr class="memitem:aeb5ce96c37cdd763fde054d9261d352e" id="r_aeb5ce96c37cdd763fde054d9261d352e"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#aeb5ce96c37cdd763fde054d9261d352e">kLiveMaxDelayMs</a> = 1000</td></tr>
+<tr class="memitem:aeb5ce96c37cdd763fde054d9261d352e" id="r_aeb5ce96c37cdd763fde054d9261d352e"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#aeb5ce96c37cdd763fde054d9261d352e">kLiveMaxDelayMs</a></td></tr>
 <tr class="memdesc:aeb5ce96c37cdd763fde054d9261d352e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Largest delay that set_delay_ms accepts, in milliseconds.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -256,7 +253,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int kLiveMaxDelayMs = 1000</td>
+          <td class="memname">int kLiveMaxDelayMs</td>
         </tr>
       </table>
   </td>
@@ -280,7 +277,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::size_t kLiveMaxRequestBytes = 4096</td>
+          <td class="memname">std::size_t kLiveMaxRequestBytes</td>
         </tr>
       </table>
   </td>
@@ -303,7 +300,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::size_t kLiveMaxRequestIdBytes = 64</td>
+          <td class="memname">std::size_t kLiveMaxRequestIdBytes</td>
         </tr>
       </table>
   </td>

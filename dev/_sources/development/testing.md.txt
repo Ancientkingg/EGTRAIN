@@ -123,7 +123,7 @@ say what they check (`-functions` lists them). [Smoke tests](smoke-tests.md) des
 | Packages and release scripts | `tools/release/test_*`, `tools/ci/test_changed_files.py`, `tools/e2e/test_ci_workflow.py`, `test_windows_image_size`, `test_windows_default_stack`, `test_win32_configure_rejected` | The release, packaging and signing scripts, the PE header of the Windows programs and the workflows. `test_notarize_macos.sh` runs in the macOS package job, not in CTest. |
 | Smoke tests | `tools/e2e/*_smoke.*`, `tools/e2e/startup_launch_contract.py`, `tools/e2e/case_chooser_contract.py`, `tools/e2e/dialog_presentation_contract.py`, `tools/e2e/test_case3_startup_errors.py`, `tools/e2e/test_headless_smoke_decode.py`, `test_headless_scene_smoke`, `test_scene_version_run_*`, and the scripted window runs of `tests/e2e/` | The built application end to end on the committed scenes ([Smoke tests](smoke-tests.md)). |
 | Source and tool checks | `tools/e2e/test_logging_contract.py`, `test_no_e2e_in_product.py`, `test_qt_resources.py`, `test_app_icon_config.py`, `test_windows_subsystem_config.py`, `tools/memory/test_*.py`, `tools/performance/test_playback_profile.py` | Static checks of the application source and its resources, and the tests of the memory and profiling tools. |
-| Documentation tools | `tools/docs/test_check_docs.py`, `tools/docs/test_check_undocumented.py`, `docs_check`, `test_capture_screenshots` | The documentation checks and the capture of the pictures ([Documentation pictures](smoke-tests.md#documentation-pictures)). |
+| Documentation tools | `tools/docs/test_check_docs.py`, `tools/docs/test_check_undocumented.py`, `tools/docs/test_home_data.py`, `docs_check`, `test_capture_screenshots` | The documentation checks, the data of the train graph and the playback of the website's home page, and the capture of the pictures ([Documentation pictures](smoke-tests.md#documentation-pictures)). |
 
 A case that needs POSIX permissions or file size limits, or the behaviour of one system, reports itself as skipped
 elsewhere, and the permission cases also for a process that may write into a read-only folder, as one with root rights
@@ -311,8 +311,8 @@ On Windows the programs of the environment are in `build\docs-venv\Scripts`. `do
 rebuild the reference, so run `docs` first.
 
 A page links to a class with the address of the published reference, such as
-`https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_model.html`, so the link also works on GitHub. The
-site build points such a link to the reference next to the page.
+`https://egtrain.samuelbruin.com/latest/api/struct_scene_model.html`, so the link also works in the manual, which holds no
+reference. The site build points such a link to the reference next to the page.
 `build/docs-venv/bin/python tools/docs/check_undocumented.py main` lists the undocumented classes and members that
 your branch adds since it forked from `main`, as the pull request check does.
 

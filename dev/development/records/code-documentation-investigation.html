@@ -198,6 +198,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guides/install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guides/case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guides/case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guides/updates.html">Updating EGTRAIN</a></li>
@@ -864,7 +865,7 @@
 <td><p>“the departure time in the initial timetable not the actual scheduled_departure_time” names the member it describes</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:274</span></code> to <code class="docutils literal notranslate"><span class="pre">275</span></code></p></td>
-<td><p>“from dispatching tool”. Nothing in the repository sets <code class="docutils literal notranslate"><span class="pre">dispLineID</span></code> or <code class="docutils literal notranslate"><span class="pre">arrivalPlatform</span></code>; they stay at -1, and are only written to output files (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.cpp:568</span></code>, <code class="docutils literal notranslate"><span class="pre">606</span></code>) compared (<code class="docutils literal notranslate"><span class="pre">693</span></code>) and copied into <code class="docutils literal notranslate"><span class="pre">reservedPlatform</span></code> (<code class="docutils literal notranslate"><span class="pre">750</span></code>)</p></td>
+<td><p>“from dispatching tool”. Nothing in the code sets <code class="docutils literal notranslate"><span class="pre">dispLineID</span></code> or <code class="docutils literal notranslate"><span class="pre">arrivalPlatform</span></code>; they stay at -1, and are only written to output files (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.cpp:568</span></code>, <code class="docutils literal notranslate"><span class="pre">606</span></code>) compared (<code class="docutils literal notranslate"><span class="pre">693</span></code>) and copied into <code class="docutils literal notranslate"><span class="pre">reservedPlatform</span></code> (<code class="docutils literal notranslate"><span class="pre">750</span></code>)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:263</span></code>, <code class="docutils literal notranslate"><span class="pre">268</span></code> to <code class="docutils literal notranslate"><span class="pre">270</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">numOverlaps</span></code>, <code class="docutils literal notranslate"><span class="pre">ConflictingTrains</span></code>, <code class="docutils literal notranslate"><span class="pre">N_ConflictingTrains</span></code> and <code class="docutils literal notranslate"><span class="pre">ETCS3StoppingPoint</span></code> have comments but no use beyond their initial values (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.cpp:67</span></code>, <code class="docutils literal notranslate"><span class="pre">72</span></code>, <code class="docutils literal notranslate"><span class="pre">81</span></code>)</p></td>
@@ -962,7 +963,7 @@
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

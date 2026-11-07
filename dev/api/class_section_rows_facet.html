@@ -8,7 +8,6 @@
 <title>EGTRAIN: SectionRowsFacet&lt; Item &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,7 +112,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_section_
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_section_rows_facet_8h_source.html">editors/infrastructure/SectionRowsFacet.h</a>&gt;</code></p>
+<p><code>#include &lt;editors/infrastructure/SectionRowsFacet.h&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for SectionRowsFacet&lt; Item &gt;:</div>
 <div class="dyncontent">
@@ -169,7 +168,7 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-types" class="groupheader"><a id="pro-types" name="pro-types"></a>
 Protected Types</h2></td></tr>
-<tr class="memitem:a5c991bbe7176fa3dbc870cdb602ff651" id="r_a5c991bbe7176fa3dbc870cdb602ff651"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#a5c991bbe7176fa3dbc870cdb602ff651">Assign</a> = std::function&lt;bool(Item&amp;, const std::string&amp;)&gt;</td></tr>
+<tr class="memitem:a5c991bbe7176fa3dbc870cdb602ff651" id="r_a5c991bbe7176fa3dbc870cdb602ff651"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#a5c991bbe7176fa3dbc870cdb602ff651">Assign</a></td></tr>
 <tr class="memdesc:a5c991bbe7176fa3dbc870cdb602ff651"><td class="mdescLeft">&#160;</td><td class="mdescRight">What a combo does to an item when another section is chosen: stores it, and tells whether that changed the item.  <br /></td></tr>
 <tr class="inherit_header pro_types_class_infrastructure_facet"><td colspan="2">Protected Types inherited from <a class="el" href="class_infrastructure_facet.html">InfrastructureFacet</a></td></tr>
 <tr class="memitem:aeb7ce8db82d9ecedf99d50aed54a0c11 pro_types_class_infrastructure_facet" id="r_aeb7ce8db82d9ecedf99d50aed54a0c11"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="class_infrastructure_facet.html#aeb7ce8db82d9ecedf99d50aed54a0c11">Edit</a> { <a class="el" href="class_infrastructure_facet.html#aeb7ce8db82d9ecedf99d50aed54a0c11a5ff3c6978f87d96febfdc8ed3899a97e">Unchanged</a>
@@ -217,10 +216,10 @@ Static Protected Member Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-inherited" class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header pub_types_class_infrastructure_facet"><td colspan="2">Public Types inherited from <a class="el" href="class_infrastructure_facet.html">InfrastructureFacet</a></td></tr>
-<tr class="memitem:aed4e8cca9f65e056704bccc4b37817f9 pub_types_class_infrastructure_facet" id="r_aed4e8cca9f65e056704bccc4b37817f9"><td class="memItemLeft">enum &#160;</td><td class="memItemRight"><a class="el" href="class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9">Capability</a> { <a class="el" href="class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9aa8c764d408d15a5b6f8b2e25d4aceab3">TrackFilter</a> = 0x1
-, <a class="el" href="class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9a2665198455233842906ff0552c11b3b2">InsertAndMove</a> = 0x2
-, <a class="el" href="class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9a4bbe5408bbda88213b08d905933cdead">RouteSections</a> = 0x4
-, <a class="el" href="class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9a9b39d8f8522e190b4126c5d7ec4b3eaf">TrackRowFilter</a> = 0x8
+<tr class="memitem:aed4e8cca9f65e056704bccc4b37817f9 pub_types_class_infrastructure_facet" id="r_aed4e8cca9f65e056704bccc4b37817f9"><td class="memItemLeft">enum &#160;</td><td class="memItemRight"><a class="el" href="class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9">Capability</a> { <a class="el" href="class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9aa8c764d408d15a5b6f8b2e25d4aceab3">TrackFilter</a>
+, <a class="el" href="class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9a2665198455233842906ff0552c11b3b2">InsertAndMove</a>
+, <a class="el" href="class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9a4bbe5408bbda88213b08d905933cdead">RouteSections</a>
+, <a class="el" href="class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9a9b39d8f8522e190b4126c5d7ec4b3eaf">TrackRowFilter</a>
  }</td></tr>
 <tr class="memdesc:aed4e8cca9f65e056704bccc4b37817f9 pub_types_class_infrastructure_facet"><td class="mdescLeft">&#160;</td><td class="mdescRight">The controls next to the table that a facet uses besides the Add and Delete buttons.  <a href="class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9">More...</a><br /></td></tr>
 </table>
@@ -240,7 +239,7 @@ template&lt;typename Item&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="class_section_rows_facet.html">SectionRowsFacet</a>&lt; Item &gt;::Assign = std::function&lt;bool(Item&amp;, const std::string&amp;)&gt;</td>
+          <td class="memname">using <a class="el" href="class_section_rows_facet.html">SectionRowsFacet</a>&lt; Item &gt;::Assign</td>
         </tr>
       </table>
   </td>
@@ -765,7 +764,7 @@ template&lt;typename Item&gt; </div>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>editors/infrastructure/<a class="el" href="_section_rows_facet_8h_source.html">SectionRowsFacet.h</a></li>
+<li>editors/infrastructure/<a class="el" href="_section_rows_facet_8h.html">SectionRowsFacet.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

@@ -8,7 +8,6 @@
 <title>EGTRAIN: CompletedRunSettings Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,7 +115,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_complet
 <p>The time frame of the run.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_completed_run_data_8h_source.html">diagrams/CompletedRunData.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/CompletedRunData.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -125,11 +124,11 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a019176b359128a5b5b0b6efd3d0cb3c9" id="r_a019176b359128a5b5b0b6efd3d0cb3c9"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a019176b359128a5b5b0b6efd3d0cb3c9">timestepSeconds</a> = 1.0</td></tr>
+<tr class="memitem:a019176b359128a5b5b0b6efd3d0cb3c9" id="r_a019176b359128a5b5b0b6efd3d0cb3c9"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a019176b359128a5b5b0b6efd3d0cb3c9">timestepSeconds</a></td></tr>
 <tr class="memdesc:a019176b359128a5b5b0b6efd3d0cb3c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length of one step in seconds.  <br /></td></tr>
-<tr class="memitem:ad5c1d1176f62ef97d97a09f50c6fd826" id="r_ad5c1d1176f62ef97d97a09f50c6fd826"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad5c1d1176f62ef97d97a09f50c6fd826">horizonSteps</a> = 0.0</td></tr>
+<tr class="memitem:ad5c1d1176f62ef97d97a09f50c6fd826" id="r_ad5c1d1176f62ef97d97a09f50c6fd826"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad5c1d1176f62ef97d97a09f50c6fd826">horizonSteps</a></td></tr>
 <tr class="memdesc:ad5c1d1176f62ef97d97a09f50c6fd826"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of timesteps of the run.  <br /></td></tr>
-<tr class="memitem:ab8b8388f874076b8208c6ca0f908c68a" id="r_ab8b8388f874076b8208c6ca0f908c68a"><td class="memItemLeft">long long&#160;</td><td class="memItemRight"><a class="el" href="#ab8b8388f874076b8208c6ca0f908c68a">startOffsetSeconds</a> = 0</td></tr>
+<tr class="memitem:ab8b8388f874076b8208c6ca0f908c68a" id="r_ab8b8388f874076b8208c6ca0f908c68a"><td class="memItemLeft">long long&#160;</td><td class="memItemRight"><a class="el" href="#ab8b8388f874076b8208c6ca0f908c68a">startOffsetSeconds</a></td></tr>
 <tr class="memdesc:ab8b8388f874076b8208c6ca0f908c68a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clock time of second 0, in seconds since midnight.  <br /></td></tr>
 <tr class="memitem:a90d497ad279cb031ab1259aa446659e6" id="r_a90d497ad279cb031ab1259aa446659e6"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a90d497ad279cb031ab1259aa446659e6">caseName</a></td></tr>
 <tr class="memdesc:a90d497ad279cb031ab1259aa446659e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the scene that was run.  <br /></td></tr>
@@ -188,7 +187,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double CompletedRunSettings::horizonSteps = 0.0</td>
+          <td class="memname">double CompletedRunSettings::horizonSteps</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -204,7 +203,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">long long CompletedRunSettings::startOffsetSeconds = 0</td>
+          <td class="memname">long long CompletedRunSettings::startOffsetSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -220,7 +219,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double CompletedRunSettings::timestepSeconds = 1.0</td>
+          <td class="memname">double CompletedRunSettings::timestepSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -230,7 +229,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_completed_run_data_8h_source.html">CompletedRunData.h</a></li>
+<li>diagrams/<a class="el" href="_completed_run_data_8h.html">CompletedRunData.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

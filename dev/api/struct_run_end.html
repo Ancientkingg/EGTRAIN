@@ -8,7 +8,6 @@
 <title>EGTRAIN: RunEnd Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,19 +115,19 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_run_end
 <p>How a run ended, as the run controller reads it once the worker has finished.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_run_outcome_8h_source.html">app/RunOutcome.h</a>&gt;</code></p>
+<p><code>#include &lt;app/RunOutcome.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a24ec71fa203803f6909b18007d360f72" id="r_a24ec71fa203803f6909b18007d360f72"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a24ec71fa203803f6909b18007d360f72">failed</a> = false</td></tr>
+<tr class="memitem:a24ec71fa203803f6909b18007d360f72" id="r_a24ec71fa203803f6909b18007d360f72"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a24ec71fa203803f6909b18007d360f72">failed</a></td></tr>
 <tr class="memdesc:a24ec71fa203803f6909b18007d360f72"><td class="mdescLeft">&#160;</td><td class="mdescRight">An exception ended the run.  <br /></td></tr>
-<tr class="memitem:afc28ac68524a2a218277f76790319dc7" id="r_afc28ac68524a2a218277f76790319dc7"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#afc28ac68524a2a218277f76790319dc7">stopRequested</a> = false</td></tr>
+<tr class="memitem:afc28ac68524a2a218277f76790319dc7" id="r_afc28ac68524a2a218277f76790319dc7"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#afc28ac68524a2a218277f76790319dc7">stopRequested</a></td></tr>
 <tr class="memdesc:afc28ac68524a2a218277f76790319dc7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The worker was asked to stop.  <br /></td></tr>
-<tr class="memitem:a53c092c7da33a6a830c84bcc26e8e041" id="r_a53c092c7da33a6a830c84bcc26e8e041"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a53c092c7da33a6a830c84bcc26e8e041">lastStageCompleted</a> = false</td></tr>
+<tr class="memitem:a53c092c7da33a6a830c84bcc26e8e041" id="r_a53c092c7da33a6a830c84bcc26e8e041"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a53c092c7da33a6a830c84bcc26e8e041">lastStageCompleted</a></td></tr>
 <tr class="memdesc:a53c092c7da33a6a830c84bcc26e8e041"><td class="mdescLeft">&#160;</td><td class="mdescRight">The run went through its last stage.  <br /></td></tr>
-<tr class="memitem:a2c2e9a6f0553cdfb30645e1adb5bf9cf" id="r_a2c2e9a6f0553cdfb30645e1adb5bf9cf"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2c2e9a6f0553cdfb30645e1adb5bf9cf">sceneChangedDuringRun</a> = false</td></tr>
+<tr class="memitem:a2c2e9a6f0553cdfb30645e1adb5bf9cf" id="r_a2c2e9a6f0553cdfb30645e1adb5bf9cf"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2c2e9a6f0553cdfb30645e1adb5bf9cf">sceneChangedDuringRun</a></td></tr>
 <tr class="memdesc:a2c2e9a6f0553cdfb30645e1adb5bf9cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene was edited while the run went on.  <br /></td></tr>
-<tr class="memitem:a2b50f1c2da7fcabbee27adfef0076f7f" id="r_a2b50f1c2da7fcabbee27adfef0076f7f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2b50f1c2da7fcabbee27adfef0076f7f">hasTrajectories</a> = false</td></tr>
+<tr class="memitem:a2b50f1c2da7fcabbee27adfef0076f7f" id="r_a2b50f1c2da7fcabbee27adfef0076f7f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2b50f1c2da7fcabbee27adfef0076f7f">hasTrajectories</a></td></tr>
 <tr class="memdesc:a2b50f1c2da7fcabbee27adfef0076f7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">At least one train of the run has a trajectory.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -141,7 +140,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool RunEnd::failed = false</td>
+          <td class="memname">bool RunEnd::failed</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -157,7 +156,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool RunEnd::hasTrajectories = false</td>
+          <td class="memname">bool RunEnd::hasTrajectories</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -173,7 +172,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool RunEnd::lastStageCompleted = false</td>
+          <td class="memname">bool RunEnd::lastStageCompleted</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -189,7 +188,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool RunEnd::sceneChangedDuringRun = false</td>
+          <td class="memname">bool RunEnd::sceneChangedDuringRun</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -205,7 +204,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool RunEnd::stopRequested = false</td>
+          <td class="memname">bool RunEnd::stopRequested</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -215,7 +214,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>app/<a class="el" href="_run_outcome_8h_source.html">RunOutcome.h</a></li>
+<li>app/<a class="el" href="_run_outcome_8h.html">RunOutcome.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

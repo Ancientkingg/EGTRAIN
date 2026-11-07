@@ -8,7 +8,6 @@
 <title>EGTRAIN: ScenePassengerImportRow Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,19 +115,19 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_p
 <p>What happened to one row of a legacy passenger file.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_scene_importer_8h_source.html">scene/SceneImporter.h</a>&gt;</code></p>
+<p><code>#include &lt;scene/SceneImporter.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a3d45cb794b7bc33675bb4a4806bbf384" id="r_a3d45cb794b7bc33675bb4a4806bbf384"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a3d45cb794b7bc33675bb4a4806bbf384">sourceFile</a></td></tr>
 <tr class="memdesc:a3d45cb794b7bc33675bb4a4806bbf384"><td class="mdescLeft">&#160;</td><td class="mdescRight">Path of the file.  <br /></td></tr>
-<tr class="memitem:ad460f32d19cf545b60b4a47614927b22" id="r_ad460f32d19cf545b60b4a47614927b22"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ad460f32d19cf545b60b4a47614927b22">row</a> = 0</td></tr>
+<tr class="memitem:ad460f32d19cf545b60b4a47614927b22" id="r_ad460f32d19cf545b60b4a47614927b22"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ad460f32d19cf545b60b4a47614927b22">row</a></td></tr>
 <tr class="memdesc:ad460f32d19cf545b60b4a47614927b22"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of the data row, counted from 1 without the header and blank lines.  <br /></td></tr>
 <tr class="memitem:a41f26b8f192d59760f49897b9bda705a" id="r_a41f26b8f192d59760f49897b9bda705a"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a41f26b8f192d59760f49897b9bda705a">passengerId</a></td></tr>
 <tr class="memdesc:a41f26b8f192d59760f49897b9bda705a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Person id of the row; empty when it has none.  <br /></td></tr>
-<tr class="memitem:a109d1693d622293580147b2951dc6e87" id="r_a109d1693d622293580147b2951dc6e87"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a109d1693d622293580147b2951dc6e87">accepted</a> = false</td></tr>
+<tr class="memitem:a109d1693d622293580147b2951dc6e87" id="r_a109d1693d622293580147b2951dc6e87"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a109d1693d622293580147b2951dc6e87">accepted</a></td></tr>
 <tr class="memdesc:a109d1693d622293580147b2951dc6e87"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the row was converted.  <br /></td></tr>
-<tr class="memitem:a107a5076a82d06e6274d497cc7266fb5" id="r_a107a5076a82d06e6274d497cc7266fb5"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a107a5076a82d06e6274d497cc7266fb5">unresolvedReferences</a> = false</td></tr>
+<tr class="memitem:a107a5076a82d06e6274d497cc7266fb5" id="r_a107a5076a82d06e6274d497cc7266fb5"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a107a5076a82d06e6274d497cc7266fb5">unresolvedReferences</a></td></tr>
 <tr class="memdesc:a107a5076a82d06e6274d497cc7266fb5"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the row refers to something that could not be resolved.  <br /></td></tr>
 <tr class="memitem:a7625ce074588f9821e261ec7e5b06d14" id="r_a7625ce074588f9821e261ec7e5b06d14"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a7625ce074588f9821e261ec7e5b06d14">context</a></td></tr>
 <tr class="memdesc:a7625ce074588f9821e261ec7e5b06d14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Text for the user about the row.  <br /></td></tr>
@@ -143,7 +142,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool ScenePassengerImportRow::accepted = false</td>
+          <td class="memname">bool ScenePassengerImportRow::accepted</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -191,7 +190,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int ScenePassengerImportRow::row = 0</td>
+          <td class="memname">int ScenePassengerImportRow::row</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -223,7 +222,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool ScenePassengerImportRow::unresolvedReferences = false</td>
+          <td class="memname">bool ScenePassengerImportRow::unresolvedReferences</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -233,7 +232,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>scene/<a class="el" href="_scene_importer_8h_source.html">SceneImporter.h</a></li>
+<li>scene/<a class="el" href="_scene_importer_8h.html">SceneImporter.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

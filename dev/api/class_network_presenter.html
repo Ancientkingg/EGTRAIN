@@ -8,7 +8,6 @@
 <title>EGTRAIN: NetworkPresenter Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,7 +112,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_network_
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_network_presenter_8h_source.html">graphics/NetworkPresenter.h</a>&gt;</code></p>
+<p><code>#include &lt;graphics/NetworkPresenter.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -135,7 +134,7 @@ Public Types</h2></td></tr>
 , <a class="el" href="#a825c599a3402605dfa219e6657c05355a56e8fac7007de50d714790732d5acfb9">Replay</a>
  }</td></tr>
 <tr class="memdesc:a825c599a3402605dfa219e6657c05355"><td class="mdescLeft">&#160;</td><td class="mdescRight">What a snapshot is a step of.  <a href="#a825c599a3402605dfa219e6657c05355">More...</a><br /></td></tr>
-<tr class="memitem:a0e2ecaea83c2239c22b746d7914ef826" id="r_a0e2ecaea83c2239c22b746d7914ef826"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#a0e2ecaea83c2239c22b746d7914ef826">Clock</a> = std::function&lt;qint64()&gt;</td></tr>
+<tr class="memitem:a0e2ecaea83c2239c22b746d7914ef826" id="r_a0e2ecaea83c2239c22b746d7914ef826"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#a0e2ecaea83c2239c22b746d7914ef826">Clock</a></td></tr>
 <tr class="memdesc:a0e2ecaea83c2239c22b746d7914ef826"><td class="mdescLeft">&#160;</td><td class="mdescRight">A clock that returns a time in milliseconds.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -265,15 +264,15 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
-<tr class="memitem:a4956f49a40df96a62d03da526aeab06e" id="r_a4956f49a40df96a62d03da526aeab06e"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a> = 10</td></tr>
+<tr class="memitem:a4956f49a40df96a62d03da526aeab06e" id="r_a4956f49a40df96a62d03da526aeab06e"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td></tr>
 <tr class="memdesc:a4956f49a40df96a62d03da526aeab06e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The factor of the sizes below.  <br /></td></tr>
-<tr class="memitem:a4ce791465fd432994d28b3f3961d273c" id="r_a4ce791465fd432994d28b3f3961d273c"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a4ce791465fd432994d28b3f3961d273c">node_size</a> = 2 * <a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td></tr>
-<tr class="memitem:afa2d4bb1c8acb0bc0f5690f8be8b00c8" id="r_afa2d4bb1c8acb0bc0f5690f8be8b00c8"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#afa2d4bb1c8acb0bc0f5690f8be8b00c8">station_node_size</a> = 2 * <a class="el" href="#a4ce791465fd432994d28b3f3961d273c">node_size</a></td></tr>
-<tr class="memitem:ac3afe6e8a6fe090dacdaab1258a35263" id="r_ac3afe6e8a6fe090dacdaab1258a35263"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ac3afe6e8a6fe090dacdaab1258a35263">station_name_graphID</a> = -8</td></tr>
-<tr class="memitem:ae9ad44c3f7b5c6e8aa424bb1f2174fdf" id="r_ae9ad44c3f7b5c6e8aa424bb1f2174fdf"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ae9ad44c3f7b5c6e8aa424bb1f2174fdf">line_width</a> = 2</td></tr>
-<tr class="memitem:af9bd2317024cacd35f2df4191ee224f0" id="r_af9bd2317024cacd35f2df4191ee224f0"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#af9bd2317024cacd35f2df4191ee224f0">track_separation</a> = 15 * <a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td></tr>
-<tr class="memitem:a96a96fe243fec584886c6fb0a59e8983" id="r_a96a96fe243fec584886c6fb0a59e8983"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a96a96fe243fec584886c6fb0a59e8983">station_size</a> = 30 * <a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td></tr>
-<tr class="memitem:a69175b0701d927540dfa19f59d1402ff" id="r_a69175b0701d927540dfa19f59d1402ff"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a69175b0701d927540dfa19f59d1402ff">geo_scale</a> = 80000 * <a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td></tr>
+<tr class="memitem:a4ce791465fd432994d28b3f3961d273c" id="r_a4ce791465fd432994d28b3f3961d273c"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a4ce791465fd432994d28b3f3961d273c">node_size</a></td></tr>
+<tr class="memitem:afa2d4bb1c8acb0bc0f5690f8be8b00c8" id="r_afa2d4bb1c8acb0bc0f5690f8be8b00c8"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#afa2d4bb1c8acb0bc0f5690f8be8b00c8">station_node_size</a></td></tr>
+<tr class="memitem:ac3afe6e8a6fe090dacdaab1258a35263" id="r_ac3afe6e8a6fe090dacdaab1258a35263"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ac3afe6e8a6fe090dacdaab1258a35263">station_name_graphID</a></td></tr>
+<tr class="memitem:ae9ad44c3f7b5c6e8aa424bb1f2174fdf" id="r_ae9ad44c3f7b5c6e8aa424bb1f2174fdf"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ae9ad44c3f7b5c6e8aa424bb1f2174fdf">line_width</a></td></tr>
+<tr class="memitem:af9bd2317024cacd35f2df4191ee224f0" id="r_af9bd2317024cacd35f2df4191ee224f0"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#af9bd2317024cacd35f2df4191ee224f0">track_separation</a></td></tr>
+<tr class="memitem:a96a96fe243fec584886c6fb0a59e8983" id="r_a96a96fe243fec584886c6fb0a59e8983"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a96a96fe243fec584886c6fb0a59e8983">station_size</a></td></tr>
+<tr class="memitem:a69175b0701d927540dfa19f59d1402ff" id="r_a69175b0701d927540dfa19f59d1402ff"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a69175b0701d927540dfa19f59d1402ff">geo_scale</a></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-friends" class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
@@ -291,7 +290,7 @@ Friends</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="#a0e2ecaea83c2239c22b746d7914ef826">NetworkPresenter::Clock</a> = std::function&lt;qint64()&gt;</td>
+          <td class="memname">using <a class="el" href="#a0e2ecaea83c2239c22b746d7914ef826">NetworkPresenter::Clock</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -2239,7 +2238,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int NetworkPresenter::geo_scale = 80000 * <a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td>
+          <td class="memname">int NetworkPresenter::geo_scale</td>
         </tr>
       </table>
   </td>
@@ -2262,7 +2261,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int NetworkPresenter::global_scale = 10</td>
+          <td class="memname">int NetworkPresenter::global_scale</td>
         </tr>
       </table>
   </td>
@@ -2286,7 +2285,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int NetworkPresenter::line_width = 2</td>
+          <td class="memname">int NetworkPresenter::line_width</td>
         </tr>
       </table>
   </td>
@@ -2309,7 +2308,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int NetworkPresenter::node_size = 2 * <a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td>
+          <td class="memname">int NetworkPresenter::node_size</td>
         </tr>
       </table>
   </td>
@@ -2332,7 +2331,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int NetworkPresenter::station_name_graphID = -8</td>
+          <td class="memname">int NetworkPresenter::station_name_graphID</td>
         </tr>
       </table>
   </td>
@@ -2355,7 +2354,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int NetworkPresenter::station_node_size = 2 * <a class="el" href="#a4ce791465fd432994d28b3f3961d273c">node_size</a></td>
+          <td class="memname">int NetworkPresenter::station_node_size</td>
         </tr>
       </table>
   </td>
@@ -2378,7 +2377,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int NetworkPresenter::station_size = 30 * <a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td>
+          <td class="memname">int NetworkPresenter::station_size</td>
         </tr>
       </table>
   </td>
@@ -2401,7 +2400,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int NetworkPresenter::track_separation = 15 * <a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td>
+          <td class="memname">int NetworkPresenter::track_separation</td>
         </tr>
       </table>
   </td>
@@ -2415,7 +2414,7 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>graphics/<a class="el" href="_network_presenter_8h_source.html">NetworkPresenter.h</a></li>
+<li>graphics/<a class="el" href="_network_presenter_8h.html">NetworkPresenter.h</a></li>
 <li>graphics/<a class="el" href="_network_presenter_8cpp.html">NetworkPresenter.cpp</a></li>
 </ul>
 </div><!-- contents -->

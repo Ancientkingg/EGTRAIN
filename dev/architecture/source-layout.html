@@ -198,6 +198,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
@@ -314,8 +315,8 @@ directory with names taken from their Qt base class. This document records the
 folders and the renames so the next reader does not have to reconstruct them.
 <a class="reference internal" href="../development/getting-started.html"><span class="std std-doc">Getting started as a developer</span></a> shows how to build the
 application and how to find the code behind a screen.</p>
-<section id="repository-layout">
-<h2>Repository layout<a class="headerlink" href="#repository-layout" title="Link to this heading">¶</a></h2>
+<section id="top-level-layout">
+<h2>Top-level layout<a class="headerlink" href="#top-level-layout" title="Link to this heading">¶</a></h2>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>EGTRAIN/QEGTRAIN/         C++ Qt application source; the folders are listed below
 EGTRAIN/QEGTRAIN/Scenes/  The bundled cases
 EGTRAIN/QEGTRAIN/tests/   C++ regression tests and their fixtures
@@ -329,9 +330,10 @@ tools/tidy.py             Runs clang-tidy on the C++ sources outside simulation/
 tools/rolling_stock_library.py  Writes or checks the rolling stock library of the bundled cases
 tools/docs/               Checks the Markdown documentation
 docs/                     Guides and architecture, development, product, telemetry and UI documentation
-.github/workflows/        GitHub Actions workflows: build and test, format, tidy, packages, releases and the telemetry contract check
 </pre></div>
 </div>
+<p>The CI workflows build and test, check the format, run tidy, make the packages and releases and check the telemetry
+contract. <a class="reference internal" href="../development/ci-and-release.html"><span class="std std-doc">CI and release</span></a> describes them.</p>
 </section>
 <section id="folders">
 <h2>Folders<a class="headerlink" href="#folders" title="Link to this heading">¶</a></h2>
@@ -661,7 +663,7 @@ constructed, was removed.</p>
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">
@@ -684,7 +686,7 @@ constructed, was removed.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">QEGTRAIN source layout</a><ul>
-<li><a class="reference internal" href="#repository-layout">Repository layout</a></li>
+<li><a class="reference internal" href="#top-level-layout">Top-level layout</a></li>
 <li><a class="reference internal" href="#folders">Folders</a></li>
 <li><a class="reference internal" href="#completed-run-data">Completed-run data</a></li>
 <li><a class="reference internal" href="#includes">Includes</a></li>

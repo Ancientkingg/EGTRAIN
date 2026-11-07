@@ -8,7 +8,6 @@
 <title>EGTRAIN: ScenarioImport Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,7 +115,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scenari
 <p>A scenario read from a file, made ready to be added to a scene.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_editor_rules_8h_source.html">editors/EditorRules.h</a>&gt;</code></p>
+<p><code>#include &lt;editors/EditorRules.h&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for ScenarioImport:</div>
 <div class="dyncontent">
@@ -129,9 +128,9 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a2965d65d4700bab751f00326ce684cb9"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scenario, with an id and incident ids that the scene does not use yet.  <br /></td></tr>
 <tr class="memitem:aa766c583d4da82a5da2bbfa09d53c3df" id="r_aa766c583d4da82a5da2bbfa09d53c3df"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aa766c583d4da82a5da2bbfa09d53c3df">requestedId</a></td></tr>
 <tr class="memdesc:aa766c583d4da82a5da2bbfa09d53c3df"><td class="mdescLeft">&#160;</td><td class="mdescRight">The id that the file gave the scenario.  <br /></td></tr>
-<tr class="memitem:a2f786565370cafe2bbcaa46721dff0f0" id="r_a2f786565370cafe2bbcaa46721dff0f0"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2f786565370cafe2bbcaa46721dff0f0">idTaken</a> = false</td></tr>
+<tr class="memitem:a2f786565370cafe2bbcaa46721dff0f0" id="r_a2f786565370cafe2bbcaa46721dff0f0"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2f786565370cafe2bbcaa46721dff0f0">idTaken</a></td></tr>
 <tr class="memdesc:a2f786565370cafe2bbcaa46721dff0f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene already used that id, so the scenario has another.  <br /></td></tr>
-<tr class="memitem:a22fadc45eae2f93e690ca60227dab956" id="r_a22fadc45eae2f93e690ca60227dab956"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a22fadc45eae2f93e690ca60227dab956">renamedIncidents</a> = 0</td></tr>
+<tr class="memitem:a22fadc45eae2f93e690ca60227dab956" id="r_a22fadc45eae2f93e690ca60227dab956"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a22fadc45eae2f93e690ca60227dab956">renamedIncidents</a></td></tr>
 <tr class="memdesc:a22fadc45eae2f93e690ca60227dab956"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of incidents that got another id.  <br /></td></tr>
 <tr class="memitem:affa5d8073ae8e30e9695e847cadea543" id="r_affa5d8073ae8e30e9695e847cadea543"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#affa5d8073ae8e30e9695e847cadea543">errors</a></td></tr>
 </table>
@@ -160,7 +159,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool ScenarioImport::idTaken = false</td>
+          <td class="memname">bool ScenarioImport::idTaken</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -176,7 +175,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int ScenarioImport::renamedIncidents = 0</td>
+          <td class="memname">int ScenarioImport::renamedIncidents</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -218,7 +217,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>editors/<a class="el" href="_editor_rules_8h_source.html">EditorRules.h</a></li>
+<li>editors/<a class="el" href="_editor_rules_8h.html">EditorRules.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

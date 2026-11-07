@@ -8,7 +8,6 @@
 <title>EGTRAIN: BaselineOccurrence Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,7 +115,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_baselin
 <p>One occurrence in both runs, judged at its final arrival.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_delay_analysis_8h_source.html">diagrams/DelayAnalysis.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/DelayAnalysis.h&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for BaselineOccurrence:</div>
 <div class="dyncontent">
@@ -131,18 +130,18 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:ae9e6662cc4c7daa9931d5d0c6bd89e50"><td class="mdescLeft">&#160;</td><td class="mdescRight">Operating code of the service.  <br /></td></tr>
 <tr class="memitem:a41a22322afe9d54ec84eb1ee78456e69" id="r_a41a22322afe9d54ec84eb1ee78456e69"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a41a22322afe9d54ec84eb1ee78456e69">serviceId</a></td></tr>
 <tr class="memdesc:a41a22322afe9d54ec84eb1ee78456e69"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scene service of the train.  <br /></td></tr>
-<tr class="memitem:ac25eb344b4e92873a9f9cc6568b2941d" id="r_ac25eb344b4e92873a9f9cc6568b2941d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ac25eb344b4e92873a9f9cc6568b2941d">occurrence</a> = 1</td></tr>
-<tr class="memitem:a4a47612ea90a948343aaee616659d785" id="r_a4a47612ea90a948343aaee616659d785"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a4a47612ea90a948343aaee616659d785">inputDelaySeconds</a> = 0.0</td></tr>
+<tr class="memitem:ac25eb344b4e92873a9f9cc6568b2941d" id="r_ac25eb344b4e92873a9f9cc6568b2941d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ac25eb344b4e92873a9f9cc6568b2941d">occurrence</a></td></tr>
+<tr class="memitem:a4a47612ea90a948343aaee616659d785" id="r_a4a47612ea90a948343aaee616659d785"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a4a47612ea90a948343aaee616659d785">inputDelaySeconds</a></td></tr>
 <tr class="memdesc:a4a47612ea90a948343aaee616659d785"><td class="mdescLeft">&#160;</td><td class="mdescRight">The entrance delay of the scenario run: 0 when it applied none. A known input, not a measurement.  <br /></td></tr>
 <tr class="memitem:aed658ae5767c83086e2fb2ee4bb440ce" id="r_aed658ae5767c83086e2fb2ee4bb440ce"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aed658ae5767c83086e2fb2ee4bb440ce">inputDelayStationId</a></td></tr>
 <tr class="memdesc:aed658ae5767c83086e2fb2ee4bb440ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Empty when no entrance delay applied.  <br /></td></tr>
-<tr class="memitem:ac8d005a27a339e820fb3e5a8613c5fb3" id="r_ac8d005a27a339e820fb3e5a8613c5fb3"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac8d005a27a339e820fb3e5a8613c5fb3">hasDirectEvidence</a> = false</td></tr>
+<tr class="memitem:ac8d005a27a339e820fb3e5a8613c5fb3" id="r_ac8d005a27a339e820fb3e5a8613c5fb3"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac8d005a27a339e820fb3e5a8613c5fb3">hasDirectEvidence</a></td></tr>
 <tr class="memdesc:ac8d005a27a339e820fb3e5a8613c5fb3"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the scenario run recorded a direct incident effect on it.  <br /></td></tr>
 <tr class="memitem:a0631a121b9d2326fde384f8599374808" id="r_a0631a121b9d2326fde384f8599374808"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a0631a121b9d2326fde384f8599374808">incidentIds</a></td></tr>
 <tr class="memitem:a9cb2ac500251ce744f48bcbcf2436cc0" id="r_a9cb2ac500251ce744f48bcbcf2436cc0"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a9cb2ac500251ce744f48bcbcf2436cc0">finalStationId</a></td></tr>
-<tr class="memitem:ad7bc4e706c4a7afe481917e46351f0cd" id="r_ad7bc4e706c4a7afe481917e46351f0cd"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ad7bc4e706c4a7afe481917e46351f0cd">finalJourneyIndex</a> = 0</td></tr>
+<tr class="memitem:ad7bc4e706c4a7afe481917e46351f0cd" id="r_ad7bc4e706c4a7afe481917e46351f0cd"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ad7bc4e706c4a7afe481917e46351f0cd">finalJourneyIndex</a></td></tr>
 <tr class="memdesc:ad7bc4e706c4a7afe481917e46351f0cd"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="struct_timetable_result_row.html#a348d27a3ebbbd7c1b5078a9059521261" title="Position of the stop in the stops of the train, from 1.">TimetableResultRow::journeyIndex</a> of the final call.  <br /></td></tr>
-<tr class="memitem:a61107daf18f04a794bed070471e203fc" id="r_a61107daf18f04a794bed070471e203fc"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a61107daf18f04a794bed070471e203fc">finalCallIndex</a> = 0</td></tr>
+<tr class="memitem:a61107daf18f04a794bed070471e203fc" id="r_a61107daf18f04a794bed070471e203fc"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a61107daf18f04a794bed070471e203fc">finalCallIndex</a></td></tr>
 <tr class="memitem:aa3eee68db87c042319cc733696a28e67" id="r_aa3eee68db87c042319cc733696a28e67"><td class="memItemLeft"><a class="el" href="struct_delay_difference.html">DelayDifference</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa3eee68db87c042319cc733696a28e67">finalArrival</a></td></tr>
 <tr class="memdesc:aa3eee68db87c042319cc733696a28e67"><td class="mdescLeft">&#160;</td><td class="mdescRight">The arrival difference at the final call; NotAvailable without a call.  <br /></td></tr>
 <tr class="memitem:a7c9bc6de04c8c62115de9b1aa9fd0b5f" id="r_a7c9bc6de04c8c62115de9b1aa9fd0b5f"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#a7c9bc6de04c8c62115de9b1aa9fd0b5f">secondarySeconds</a></td></tr>
@@ -174,7 +173,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int BaselineOccurrence::finalCallIndex = 0</td>
+          <td class="memname">int BaselineOccurrence::finalCallIndex</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -189,7 +188,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int BaselineOccurrence::finalJourneyIndex = 0</td>
+          <td class="memname">int BaselineOccurrence::finalJourneyIndex</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -220,7 +219,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool BaselineOccurrence::hasDirectEvidence = false</td>
+          <td class="memname">bool BaselineOccurrence::hasDirectEvidence</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -251,7 +250,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double BaselineOccurrence::inputDelaySeconds = 0.0</td>
+          <td class="memname">double BaselineOccurrence::inputDelaySeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -283,7 +282,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int BaselineOccurrence::occurrence = 1</td>
+          <td class="memname">int BaselineOccurrence::occurrence</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -356,7 +355,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_delay_analysis_8h_source.html">DelayAnalysis.h</a></li>
+<li>diagrams/<a class="el" href="_delay_analysis_8h.html">DelayAnalysis.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

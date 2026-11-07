@@ -198,6 +198,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
@@ -341,13 +342,13 @@
 </table>
 </div>
 <p>The script stops with a message that names the parameter when <code class="docutils literal notranslate"><span class="pre">/DVersion</span></code> or <code class="docutils literal notranslate"><span class="pre">/DPayload</span></code> is missing. It does not check that the payload holds <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>.</p>
-<p>Besides the payload, the compiler reads three files of the repository: <code class="docutils literal notranslate"><span class="pre">installer/installed-by-setup.ini</span></code>, the icon <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/resources/app/egtrain.ico</span></code>, which is the icon of Setup, and <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code>, the GPL-3.0 text that the licence page shows.</p>
+<p>Besides the payload, the compiler reads three files of the source tree: <code class="docutils literal notranslate"><span class="pre">installer/installed-by-setup.ini</span></code>, the icon <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/resources/app/egtrain.ico</span></code>, which is the icon of Setup, and <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code>, the GPL-3.0 text that the licence page shows.</p>
 </section>
 <section id="what-the-installer-does">
 <h2>What the installer does<a class="headerlink" href="#what-the-installer-does" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>It runs without administrator rights and has one install scope, the current user. The script sets no way to choose another.</p></li>
-<li><p>It shows the GNU General Public License version 3 (<code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> of the repository) on a licence page, and the user must accept it to go on. A silent install shows no page. The Windows package job copies <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> and <code class="docutils literal notranslate"><span class="pre">THIRD_PARTY_NOTICES.md</span></code> (the licences of the bundled libraries) into the package, so the installation folder and the portable ZIP hold both.</p></li>
+<li><p>It shows the GNU General Public License version 3 (<code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> of the source tree) on a licence page, and the user must accept it to go on. A silent install shows no page. The Windows package job copies <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> and <code class="docutils literal notranslate"><span class="pre">THIRD_PARTY_NOTICES.md</span></code> (the licences of the bundled libraries) into the package, so the installation folder and the portable ZIP hold both.</p></li>
 <li><p>It installs the payload as it is into <code class="docutils literal notranslate"><span class="pre">%LOCALAPPDATA%\Programs\EGTRAIN</span></code> by default, a folder of the user. The folder page of the wizard lets the user choose another folder on a first install.</p></li>
 <li><p>It adds the entry <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span></code> to the Start Menu of the user, directly in the Programs folder.</p></li>
 <li><p>It offers a desktop shortcut as the task <code class="docutils literal notranslate"><span class="pre">desktopicon</span></code>, which is unchecked by default.</p></li>
@@ -461,7 +462,7 @@
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

@@ -8,7 +8,6 @@
 <title>EGTRAIN: StopDraftCheck Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,7 +115,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_stop_dr
 <p>What <a class="el" href="_stop_editor_dialog_8cpp.html#a2e03e5721b5f6e3953e419ec2a950f17">validateStopDraft()</a> found: the finished stop, or the first problem with its message and the field to focus.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_stop_editor_dialog_8h_source.html">editors/StopEditorDialog.h</a>&gt;</code></p>
+<p><code>#include &lt;editors/StopEditorDialog.h&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for StopDraftCheck:</div>
 <div class="dyncontent">
@@ -125,13 +124,13 @@ Collaboration diagram for StopDraftCheck:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:acda2786094db484280cd4e506237bfe0" id="r_acda2786094db484280cd4e506237bfe0"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#acda2786094db484280cd4e506237bfe0">ok</a> = false</td></tr>
+<tr class="memitem:acda2786094db484280cd4e506237bfe0" id="r_acda2786094db484280cd4e506237bfe0"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#acda2786094db484280cd4e506237bfe0">ok</a></td></tr>
 <tr class="memdesc:acda2786094db484280cd4e506237bfe0"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the stop can be taken.  <br /></td></tr>
 <tr class="memitem:abe775068d3f8c727b2918f09bb37de5a" id="r_abe775068d3f8c727b2918f09bb37de5a"><td class="memItemLeft"><a class="el" href="struct_scene_stop.html">SceneStop</a>&#160;</td><td class="memItemRight"><a class="el" href="#abe775068d3f8c727b2918f09bb37de5a">stop</a></td></tr>
 <tr class="memdesc:abe775068d3f8c727b2918f09bb37de5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The draft with the planned times and the dwell of the fields, when ok.  <br /></td></tr>
 <tr class="memitem:a117e8402c52814ff61a52f597bb8f3cb" id="r_a117e8402c52814ff61a52f597bb8f3cb"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a117e8402c52814ff61a52f597bb8f3cb">message</a></td></tr>
 <tr class="memdesc:a117e8402c52814ff61a52f597bb8f3cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The message of the problem, when not ok. A refused insertion can leave it empty.  <br /></td></tr>
-<tr class="memitem:a7bb7387758369d19d589656542ae3356" id="r_a7bb7387758369d19d589656542ae3356"><td class="memItemLeft"><a class="el" href="_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217">StopDraftField</a>&#160;</td><td class="memItemRight"><a class="el" href="#a7bb7387758369d19d589656542ae3356">field</a> = <a class="el" href="_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217a6adf97f83acf6453d4a6a4b1070f3754">StopDraftField::None</a></td></tr>
+<tr class="memitem:a7bb7387758369d19d589656542ae3356" id="r_a7bb7387758369d19d589656542ae3356"><td class="memItemLeft"><a class="el" href="_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217">StopDraftField</a>&#160;</td><td class="memItemRight"><a class="el" href="#a7bb7387758369d19d589656542ae3356">field</a></td></tr>
 <tr class="memdesc:a7bb7387758369d19d589656542ae3356"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the problem, when not ok.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -144,7 +143,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217">StopDraftField</a> StopDraftCheck::field = <a class="el" href="_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217a6adf97f83acf6453d4a6a4b1070f3754">StopDraftField::None</a></td>
+          <td class="memname"><a class="el" href="_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217">StopDraftField</a> StopDraftCheck::field</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -176,7 +175,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool StopDraftCheck::ok = false</td>
+          <td class="memname">bool StopDraftCheck::ok</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -202,7 +201,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>editors/<a class="el" href="_stop_editor_dialog_8h_source.html">StopEditorDialog.h</a></li>
+<li>editors/<a class="el" href="_stop_editor_dialog_8h.html">StopEditorDialog.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

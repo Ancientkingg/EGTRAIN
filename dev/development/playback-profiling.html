@@ -198,6 +198,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
@@ -323,7 +324,7 @@
 <span class="w">  </span>--output<span class="w"> </span>&lt;new-output-dir&gt;
 </pre></div>
 </div>
-<p>The output directory must be new, non-symlinked, outside the repository, application, and scene input. Each process uses a separate temporary <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_OUTPUT_DIR</span></code> which is removed after the trial.</p>
+<p>The output directory must be new, non-symlinked, outside the source tree, application, and scene input. Each process uses a separate temporary <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_OUTPUT_DIR</span></code> which is removed after the trial.</p>
 <p>The recorded settings are Copenhagen, its default baseline scenario, the passenger GUI asked for with <code class="docutils literal notranslate"><span class="pre">-pax</span> <span class="pre">1</span></code>, an 8000-second horizon, a 250 ms step delay, 30 measured seconds, and three independent processes per view. Fit calls <code class="docutils literal notranslate"><span class="pre">fitToTopology()</span></code>, disables follow, retains the existing speed-label setting, and uses zoom ratio 1. Dense first fits, selects the lowest-index visible train, centers it, applies <code class="docutils literal notranslate"><span class="pre">zoomBy(3.0)</span></code>, and leaves follow off.</p>
 </section>
 <section id="measurement-boundary">
@@ -389,7 +390,7 @@
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

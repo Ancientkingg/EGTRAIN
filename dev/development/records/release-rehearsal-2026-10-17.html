@@ -198,6 +198,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guides/install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guides/case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guides/case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guides/updates.html">Updating EGTRAIN</a></li>
@@ -328,16 +329,16 @@ rehearsal found. A row names the run that showed its result.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Main candidate</p></td>
-<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/actions/runs/38954910966">Release run 38954910966</a>, manual run of 2026-10-16, commit <code class="docutils literal notranslate"><span class="pre">5868098</span></code> on main</p></td>
+<td><p>Release run 38954910966, manual run of 2026-10-16, commit <code class="docutils literal notranslate"><span class="pre">5868098</span></code> on main</p></td>
 </tr>
 <tr class="row-odd"><td><p>Recheck candidate 1</p></td>
-<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/actions/runs/39019990227">Release run 39019990227</a>, manual run of 2026-10-17, commit <code class="docutils literal notranslate"><span class="pre">950b145</span></code></p></td>
+<td><p>Release run 39019990227, manual run of 2026-10-17, commit <code class="docutils literal notranslate"><span class="pre">950b145</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Recheck candidate 2</p></td>
-<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/actions/runs/39032467694">Release run 39032467694</a>, manual run of 2026-10-17, commit <code class="docutils literal notranslate"><span class="pre">b6e2da8</span></code></p></td>
+<td><p>Release run 39032467694, manual run of 2026-10-17, commit <code class="docutils literal notranslate"><span class="pre">b6e2da8</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Recheck candidate 3</p></td>
-<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/actions/runs/39049264770">Release run 39049264770</a>, manual run of 2026-10-17, commit <code class="docutils literal notranslate"><span class="pre">2c8f41c</span></code></p></td>
+<td><p>Release run 39049264770, manual run of 2026-10-17, commit <code class="docutils literal notranslate"><span class="pre">2c8f41c</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Version shown by About EGTRAIN, macOS</p></td>
 <td><p>1.0.0, the CMake baseline (main candidate)</p></td>
@@ -355,7 +356,7 @@ rehearsal found. A row names the run that showed its result.</p>
 Sign Windows jobs and the release job were skipped, as they are for a manual
 run. In recheck candidate 2 the Sanitizers job failed. The package jobs and the
 Rehearse Linux job passed, and the files of that run are the ones that were
-rechecked. Recheck candidate 3 holds <a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/pull/886">#886</a> and
+rechecked. Recheck candidate 3 holds #886 and
 the fixes for the two tests that failed in the Sanitizers job; Windows row R9
 was rechecked on it.</p>
 <p>An earlier Windows pass on an older run is not part of this record.</p>
@@ -433,7 +434,7 @@ last rows.</p>
 <tr class="row-even"><td><p>Operating system and exact version</p></td>
 <td><p>macOS 26.6.2</p></td>
 <td><p>Windows 11 Pro, build 26300</p></td>
-<td><p>Ubuntu 24.04 on a GitHub hosted runner</p></td>
+<td><p>Ubuntu 24.04 on a hosted CI runner</p></td>
 </tr>
 <tr class="row-odd"><td><p>Processor architecture</p></td>
 <td><p>Apple silicon, arm64</p></td>
@@ -623,7 +624,7 @@ steps ran in the Rehearse Linux job of the three runs, all with the same result.
 <td><p>PASS 10-17, second attempt</p></td>
 <td><p>PASS 10-17, run 39049264770</p></td>
 <td><p>NOT RUN</p></td>
-<td><p>macOS: the first attempt ended with <code class="docutils literal notranslate"><span class="pre">The</span> <span class="pre">update</span> <span class="pre">download</span> <span class="pre">timed</span> <span class="pre">out.</span></code> on the network of the virtual machine. The second attempt installed 1.0.2 and left <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app.egtrain-old</span></code>. Windows: failed on the earlier candidates (<a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/826">#826</a>); on run 39049264770 the portable copy installed 1.0.2 at the first attempt and kept <code class="docutils literal notranslate"><span class="pre">EGTRAIN.egtrain-old</span></code>. See the section Defects.</p></td>
+<td><p>macOS: the first attempt ended with <code class="docutils literal notranslate"><span class="pre">The</span> <span class="pre">update</span> <span class="pre">download</span> <span class="pre">timed</span> <span class="pre">out.</span></code> on the network of the virtual machine. The second attempt installed 1.0.2 and left <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app.egtrain-old</span></code>. Windows: failed on the earlier candidates (#826); on run 39049264770 the portable copy installed 1.0.2 at the first attempt and kept <code class="docutils literal notranslate"><span class="pre">EGTRAIN.egtrain-old</span></code>. See the section Defects.</p></td>
 </tr>
 <tr class="row-odd"><td><p>R10 Installation that cannot be updated in place</p></td>
 <td><p>PASS 10-17</p></td>
@@ -635,7 +636,7 @@ steps ran in the Rehearse Linux job of the three runs, all with the same result.
 <td><p>PASS 10-17</p></td>
 <td><p>PASS 10-16</p></td>
 <td><p>NOT RUN</p></td>
-<td><p>Windows: two dialogs started in the installation folder (<a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/827">#827</a>), seen fixed in run 39019990227. The installed folder was unchanged. macOS: a single file inside an installed example folder was not tried.</p></td>
+<td><p>Windows: two dialogs started in the installation folder (#827), seen fixed in run 39019990227. The installed folder was unchanged. macOS: a single file inside an installed example folder was not tried.</p></td>
 </tr>
 <tr class="row-odd"><td><p>R12 Bundle of the previous release</p></td>
 <td><p>PASS 10-17</p></td>
@@ -677,7 +678,7 @@ steps ran in the Rehearse Linux job of the three runs, all with the same result.
 <td><p>PASS 10-17, run 39032467694, without the New Case Study step</p></td>
 <td><p>NOT APPLICABLE, macOS only</p></td>
 <td><p>NOT APPLICABLE, macOS only</p></td>
-<td><p>The three questions appeared at the first File &gt; Open Case Study in the main candidate (<a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/841">#841</a>). On run 39032467694, started from the Applications folder of a fresh virtual machine, File &gt; Open Case Study… and File &gt; Open Scene Folder… opened in the <code class="docutils literal notranslate"><span class="pre">Scenes</span></code> folder of the app, in column view, with no question. The New Case Study variant was not run. A copy started from a folder inside the home folder asked the three questions at once: its column view lists the home folder, as the expected result of the last step describes.</p></td>
+<td><p>The three questions appeared at the first File &gt; Open Case Study in the main candidate (#841). On run 39032467694, started from the Applications folder of a fresh virtual machine, File &gt; Open Case Study… and File &gt; Open Scene Folder… opened in the <code class="docutils literal notranslate"><span class="pre">Scenes</span></code> folder of the app, in column view, with no question. The New Case Study variant was not run. A copy started from a folder inside the home folder asked the three questions at once: its column view lists the home folder, as the expected result of the last step describes.</p></td>
 </tr>
 <tr class="row-even"><td><p>W1 Windows assets</p></td>
 <td><p>NOT APPLICABLE, Windows only</p></td>
@@ -731,7 +732,7 @@ steps ran in the Rehearse Linux job of the three runs, all with the same result.
 <td><p>NOT APPLICABLE, Windows only</p></td>
 <td><p>PASS 10-16</p></td>
 <td><p>NOT APPLICABLE, Windows only</p></td>
-<td><p>The two messages had different titles and text (<a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/828">#828</a>). Run 39019990227 showed one title and one text.</p></td>
+<td><p>The two messages had different titles and text (#828). Run 39019990227 showed one title and one text.</p></td>
 </tr>
 </tbody>
 </table>
@@ -795,39 +796,39 @@ the last column names the candidate that showed the fix.</p>
 <thead>
 <tr class="row-odd"><th class="head"><p>Platform</p></th>
 <th class="head"><p>Row</p></th>
-<th class="head"><p>Issue link</p></th>
+<th class="head"><p>Issue</p></th>
 <th class="head"><p>Fix and where it was seen</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Windows</p></td>
 <td><p>R9</p></td>
-<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/826">#826</a></p></td>
+<td><p>#826</p></td>
 <td><p>The update restarted the old version and said nothing. Run 39019990227 shows the notice that the update could not be applied or was rolled back. The update itself still failed there. Run 39049264770 installed 1.0.2. See below.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Windows</p></td>
 <td><p>W2 step 8, R11</p></td>
-<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/827">#827</a></p></td>
+<td><p>#827</p></td>
 <td><p>Fixed. Run 39019990227: Export Data and Save Scene As Folder start in Documents, and the installed destination is still refused.</p></td>
 </tr>
 <tr class="row-even"><td><p>Windows</p></td>
 <td><p>W9, R8</p></td>
-<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/828">#828</a></p></td>
-<td><p>The damaged-file message is the same on both paths in run 39019990227. The release notes kept their list structure only after <a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/pull/873">#873</a>, seen in run 39032467694.</p></td>
+<td><p>#828</p></td>
+<td><p>The damaged-file message is the same on both paths in run 39019990227. The release notes kept their list structure only after #873, seen in run 39032467694.</p></td>
 </tr>
 <tr class="row-odd"><td><p>macOS</p></td>
 <td><p>R7, R8, R3, M2</p></td>
-<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/840">#840</a></p></td>
+<td><p>#840</p></td>
 <td><p>Fixed for R7 and R8 and seen in run 39032467694: the main text now holds the question and the offered version.</p></td>
 </tr>
 <tr class="row-even"><td><p>macOS</p></td>
 <td><p>Step 1, M6</p></td>
-<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/841">#841</a></p></td>
+<td><p>#841</p></td>
 <td><p>Fixed in run 39032467694 and seen on a fresh virtual machine with the app in Applications (row M6).</p></td>
 </tr>
 <tr class="row-odd"><td><p>macOS</p></td>
 <td><p>No source or development dependency</p></td>
-<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/842">#842</a></p></td>
+<td><p>#842</p></td>
 <td><p>Fixed. Run 39032467694: no path under <code class="docutils literal notranslate"><span class="pre">/opt/homebrew</span></code> or <code class="docutils literal notranslate"><span class="pre">/usr/local</span></code> in 39 Mach-O files.</p></td>
 </tr>
 </tbody>
@@ -839,7 +840,7 @@ folder on this machine with the error <code class="docutils literal notranslate"
 restart of the machine, the same update installed 1.0.2 and left the backup
 <code class="docutils literal notranslate"><span class="pre">.egtrain-old</span></code>. Staging also runs a PowerShell unpack with a limit of 60 seconds,
 which timed out once, and a failed attempt left a hidden <code class="docutils literal notranslate"><span class="pre">.qegtrain-update-*</span></code>
-folder behind. <a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/pull/886">#886</a> gives
+folder behind. #886 gives
 the unpacking more time and clears failed staging folders. It was merged after
 run 39032467694. On run 39049264770, which holds it, the portable copy offered
 <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">1.0.2</span> <span class="pre">is</span> <span class="pre">Available</span></code>, prepared the update in about 21 seconds, said
@@ -849,13 +850,13 @@ first attempt, with the backup <code class="docutils literal notranslate"><span 
 program that removes it after a restart is the new one, and 1.0.2 predates that
 cleanup, so this row can show the cleanup only once a newer release is the target.</p>
 <p>Other fixes were seen in run 39032467694 on Windows: the clipped text of default
-buttons (<a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/pull/874">#874</a>) and long case
+buttons (#874) and long case
 names in the case chooser
-(<a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/pull/877">#877</a>). In the case chooser,
+(#877). In the case chooser,
 Enter on an unavailable recent case opened another case. That is fixed by
-<a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/pull/887">#887</a>, merged after the last
+#887, merged after the last
 candidate.</p>
-<p>One gap is still open: <a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/883">#883</a>.
+<p>One gap is still open: #883.
 At 1024 by 768 the toolbar separators change between thin lines and grey blocks
 with the window width, the zoom buttons drop off the toolbar below about 900
 pixels, and the restored window is 1044 by 788, larger than the screen.</p>
@@ -925,7 +926,7 @@ pixels, and the restored window is 1044 by 788, larger than the screen.</p>
 </tr>
 <tr class="row-odd"><td><p>The source build on Linux</p></td>
 <td><p>Linux</p></td>
-<td><p>Not part of the packaged rehearsal. A build from a clean Ubuntu 24.04 container of arm64 on 2026-10-17 followed the developer guide and passed all 314 tests, after <a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/pull/875">#875</a> fixed the guide and <code class="docutils literal notranslate"><span class="pre">test_measure_peak_rss</span></code> for containers without an init process.</p></td>
+<td><p>Not part of the packaged rehearsal. A build from a clean Ubuntu 24.04 container of arm64 on 2026-10-17 followed the developer guide and passed all 314 tests, after #875 fixed the guide and <code class="docutils literal notranslate"><span class="pre">test_measure_peak_rss</span></code> for containers without an init process.</p></td>
 </tr>
 </tbody>
 </table>
@@ -941,14 +942,14 @@ installer, and the <code class="docutils literal notranslate"><span class="pre">
 <li><p>Row W8, the in-app update of an installed Windows copy. It needs a published
 release with the installer in its manifest and an older installed Setup.</p></li>
 <li><p>The update test across two published releases, tracked in
-<a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/405">#405</a>.</p></li>
+#405.</p></li>
 <li><p>Row M4 after Open Anyway on macOS: enter the administrator password, then
 record whether EGTRAIN starts and which dialog, if any, comes next.</p></li>
 <li><p>Row R9 on a physical x64 Windows PC. The virtual machine passed it on run
 39049264770.</p></li>
 <li><p>Row W5 with a real older Setup once one is published.</p></li>
 </ul>
-<p>Issue <a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/74">#74</a> stays open until
+<p>Issue #74 stays open until
 the owner has decided whether this record, with the rows above, is enough.</p>
 </section>
 </section>
@@ -986,7 +987,7 @@ the owner has decided whether this record, with the rows above, is enough.</p>
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

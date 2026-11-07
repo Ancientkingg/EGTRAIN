@@ -8,7 +8,6 @@
 <title>EGTRAIN: LiveServerState Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,8 +115,8 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_live_se
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ab64886055bee4e92758efc1bd7168a3b" id="r_ab64886055bee4e92758efc1bd7168a3b"><td class="memItemLeft">std::mutex&#160;</td><td class="memItemRight"><a class="el" href="#ab64886055bee4e92758efc1bd7168a3b">mutex</a></td></tr>
-<tr class="memitem:a0071ab7c0b94807c05ced2d4bc53684c" id="r_a0071ab7c0b94807c05ced2d4bc53684c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a0071ab7c0b94807c05ced2d4bc53684c">accepting</a> = false</td></tr>
-<tr class="memitem:afb92ac17f1e4a246b4a79cfc17443d6f" id="r_afb92ac17f1e4a246b4a79cfc17443d6f"><td class="memItemLeft">std::uint64_t&#160;</td><td class="memItemRight"><a class="el" href="#afb92ac17f1e4a246b4a79cfc17443d6f">nextTicket</a> = 0</td></tr>
+<tr class="memitem:a0071ab7c0b94807c05ced2d4bc53684c" id="r_a0071ab7c0b94807c05ced2d4bc53684c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a0071ab7c0b94807c05ced2d4bc53684c">accepting</a></td></tr>
+<tr class="memitem:afb92ac17f1e4a246b4a79cfc17443d6f" id="r_afb92ac17f1e4a246b4a79cfc17443d6f"><td class="memItemLeft">std::uint64_t&#160;</td><td class="memItemRight"><a class="el" href="#afb92ac17f1e4a246b4a79cfc17443d6f">nextTicket</a></td></tr>
 <tr class="memitem:a6a47b481accf4c73d6845298e8f6ab9c" id="r_a6a47b481accf4c73d6845298e8f6ab9c"><td class="memItemLeft">std::deque&lt; Queued &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a6a47b481accf4c73d6845298e8f6ab9c">states</a></td></tr>
 <tr class="memitem:ae190e920412d8875ead045acf24315d8" id="r_ae190e920412d8875ead045acf24315d8"><td class="memItemLeft">std::deque&lt; Queued &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ae190e920412d8875ead045acf24315d8">events</a></td></tr>
 <tr class="memitem:aafbb26d04e3c894cf60e68449e601622" id="r_aafbb26d04e3c894cf60e68449e601622"><td class="memItemLeft">std::deque&lt; <a class="el" href="struct_live_command.html">LiveCommand</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aafbb26d04e3c894cf60e68449e601622">commands</a></td></tr>
@@ -125,8 +124,8 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a6dd01b652539081150b8bce2b2c56065" id="r_a6dd01b652539081150b8bce2b2c56065"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a6dd01b652539081150b8bce2b2c56065">helloRunId</a></td></tr>
 <tr class="memitem:a894513c0c5b8aab50db4a193f64f28e5" id="r_a894513c0c5b8aab50db4a193f64f28e5"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a894513c0c5b8aab50db4a193f64f28e5">stateEndpoint</a></td></tr>
 <tr class="memitem:afe6cffa56aa11d63327d463aad7a01ff" id="r_afe6cffa56aa11d63327d463aad7a01ff"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#afe6cffa56aa11d63327d463aad7a01ff">commandEndpoint</a></td></tr>
-<tr class="memitem:aaeafdb856db91c25e53ca4def3eb3d79" id="r_aaeafdb856db91c25e53ca4def3eb3d79"><td class="memItemLeft">std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aaeafdb856db91c25e53ca4def3eb3d79">stopRequested</a> {false}</td></tr>
-<tr class="memitem:a9ed222affbfcc2c372af35e8732d3ce3" id="r_a9ed222affbfcc2c372af35e8732d3ce3"><td class="memItemLeft">std::atomic&lt; std::uint64_t &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9ed222affbfcc2c372af35e8732d3ce3">droppedStates</a> {0}</td></tr>
+<tr class="memitem:aaeafdb856db91c25e53ca4def3eb3d79" id="r_aaeafdb856db91c25e53ca4def3eb3d79"><td class="memItemLeft">std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aaeafdb856db91c25e53ca4def3eb3d79">stopRequested</a></td></tr>
+<tr class="memitem:a9ed222affbfcc2c372af35e8732d3ce3" id="r_a9ed222affbfcc2c372af35e8732d3ce3"><td class="memItemLeft">std::atomic&lt; std::uint64_t &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9ed222affbfcc2c372af35e8732d3ce3">droppedStates</a></td></tr>
 <tr class="memitem:a671bdcb49d19cbe9807f6c0c7cd26bc4" id="r_a671bdcb49d19cbe9807f6c0c7cd26bc4"><td class="memItemLeft">std::thread&#160;</td><td class="memItemRight"><a class="el" href="#a671bdcb49d19cbe9807f6c0c7cd26bc4">thread</a></td></tr>
 <tr class="memitem:a9aead2a9c1eec0e4dd23e4450dbca85d" id="r_a9aead2a9c1eec0e4dd23e4450dbca85d"><td class="memItemLeft">fs::path&#160;</td><td class="memItemRight"><a class="el" href="#a9aead2a9c1eec0e4dd23e4450dbca85d">endpointFile</a></td></tr>
 </table>
@@ -138,7 +137,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool LiveServerState::accepting = false</td>
+          <td class="memname">bool LiveServerState::accepting</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -180,7 +179,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::atomic&lt;std::uint64_t&gt; LiveServerState::droppedStates {0}</td>
+          <td class="memname">std::atomic&lt;std::uint64_t&gt; LiveServerState::droppedStates</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -264,7 +263,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::uint64_t LiveServerState::nextTicket = 0</td>
+          <td class="memname">std::uint64_t LiveServerState::nextTicket</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -306,7 +305,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::atomic&lt;bool&gt; LiveServerState::stopRequested {false}</td>
+          <td class="memname">std::atomic&lt;bool&gt; LiveServerState::stopRequested</td>
         </tr>
       </table>
 </div><div class="memdoc">

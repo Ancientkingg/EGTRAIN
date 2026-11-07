@@ -8,7 +8,6 @@
 <title>EGTRAIN: scene/SceneExporter.cpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,17 +111,17 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_exporte
   <div class="headertitle"><div class="title">SceneExporter.cpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_scene_exporter_8h_source.html">scene/SceneExporter.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_bundle_8h_source.html">scene/SceneBundle.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_importer_8h_source.html">scene/SceneImporter.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_validator_8h_source.html">scene/SceneValidator.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_writer_8h_source.html">scene/SceneWriter.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_staged_directory_8h_source.html">scene/StagedDirectory.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_utf8_path_8h_source.html">scene/Utf8Path.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_scene_exporter_8h.html">scene/SceneExporter.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_bundle_8h.html">scene/SceneBundle.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_importer_8h.html">scene/SceneImporter.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_model_8h.html">scene/SceneModel.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_validator_8h.html">scene/SceneValidator.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_writer_8h.html">scene/SceneWriter.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_staged_directory_8h.html">scene/StagedDirectory.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_utf8_path_8h.html">scene/Utf8Path.h</a>&quot;</code><br />
 <code>#include &lt;nlohmann/json.hpp&gt;</code><br />
-<code>#include &quot;<a class="el" href="_section_inventory_8h_source.html">scene/SectionInventory.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_section_reference_8h_source.html">scene/SectionReference.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_section_inventory_8h.html">scene/SectionInventory.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_section_reference_8h.html">scene/SectionReference.h</a>&quot;</code><br />
 <code>#include &lt;filesystem&gt;</code><br />
 <code>#include &lt;fstream&gt;</code><br />
 <code>#include &lt;sstream&gt;</code><br />
@@ -1024,43 +1023,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">                                       = {</div>
-<div class="line">    {<a class="code hl_enumvalue" href="#a47b93a8406e0fe3c7b80c9ca7e954011ada55f982393fc9ef26f75a21dc638062">LegacyInputKind::Sidecar</a>, <span class="stringliteral">&quot;tracklines&quot;</span>, [](<span class="keyword">const</span> std::string&amp; name) { <span class="keywordflow">return</span> name == <span class="stringliteral">&quot;egtrainsignallingareas.json&quot;</span>; }},</div>
-<div class="line">    {<a class="code hl_enumvalue" href="#a47b93a8406e0fe3c7b80c9ca7e954011ab948e8a02a7f8dc9f098c89e8df9892c">LegacyInputKind::Entry</a>, <span class="stringliteral">&quot;&quot;</span>,</div>
-<div class="line">        [](<span class="keyword">const</span> std::string&amp; name) {</div>
-<div class="line">            <span class="keywordflow">return</span> name == <span class="stringliteral">&quot;egtraininitialparameters.json&quot;</span> || name == <span class="stringliteral">&quot;trainnames.txt&quot;</span> || name == <span class="stringliteral">&quot;incidents.txt&quot;</span></div>
-<div class="line">                || name == <span class="stringliteral">&quot;stations.txt&quot;</span>;</div>
-<div class="line">        }},</div>
-<div class="line">    {<a class="code hl_enumvalue" href="#a47b93a8406e0fe3c7b80c9ca7e954011a0b27918290ff5323bea1e3b78a9cf04e">LegacyInputKind::File</a>, <span class="stringliteral">&quot;&quot;</span>,</div>
-<div class="line">        [](<span class="keyword">const</span> std::string&amp; name) { <span class="keywordflow">return</span> name == <span class="stringliteral">&quot;das_frenchcasestudy.csv&quot;</span> || name == <span class="stringliteral">&quot;routechoicefc_eq1.csv&quot;</span>; }},</div>
-<div class="line">    {<a class="code hl_enumvalue" href="#a47b93a8406e0fe3c7b80c9ca7e954011ab0f2b97dc5d2b76b26e040408bb1d8af">LegacyInputKind::Folder</a>, <span class="stringliteral">&quot;&quot;</span>, <a class="code hl_function" href="#a803fd08886164f526fc725105c0266e9">isLegacyTrackFolderName</a>},</div>
-<div class="line">    {<a class="code hl_enumvalue" href="#a47b93a8406e0fe3c7b80c9ca7e954011ab0f2b97dc5d2b76b26e040408bb1d8af">LegacyInputKind::Folder</a>, <span class="stringliteral">&quot;tracklines&quot;</span>, <a class="code hl_function" href="#a803fd08886164f526fc725105c0266e9">isLegacyTrackFolderName</a>},</div>
-<div class="line">    {<a class="code hl_enumvalue" href="#a47b93a8406e0fe3c7b80c9ca7e954011ab948e8a02a7f8dc9f098c89e8df9892c">LegacyInputKind::Entry</a>, <span class="stringliteral">&quot;tracklines&quot;</span>,</div>
-<div class="line">        [](<span class="keyword">const</span> std::string&amp; name) {</div>
-<div class="line">            <span class="keywordflow">return</span> name == <span class="stringliteral">&quot;connections.txt&quot;</span> || name == <span class="stringliteral">&quot;stations.txt&quot;</span> || name == <span class="stringliteral">&quot;areascasestudy.txt&quot;</span>;</div>
-<div class="line">        }},</div>
-<div class="line">    {<a class="code hl_enumvalue" href="#a47b93a8406e0fe3c7b80c9ca7e954011ab948e8a02a7f8dc9f098c89e8df9892c">LegacyInputKind::Entry</a>, <span class="stringliteral">&quot;gui&quot;</span>,</div>
-<div class="line">        [](<span class="keyword">const</span> std::string&amp; name) {</div>
-<div class="line">            <span class="keywordflow">return</span> name == <span class="stringliteral">&quot;casestudytrackdata.txt&quot;</span> || name == <span class="stringliteral">&quot;unusedtracks.txt&quot;</span> || name == <span class="stringliteral">&quot;stationscoord.txt&quot;</span></div>
-<div class="line">                || name == <span class="stringliteral">&quot;casestudyroutecorridors.txt&quot;</span> || name == <span class="stringliteral">&quot;singletracklimits.txt&quot;</span></div>
-<div class="line">                || name == <span class="stringliteral">&quot;stationboundarysections.txt&quot;</span>;</div>
-<div class="line">        }},</div>
-<div class="line">    {<a class="code hl_enumvalue" href="#a47b93a8406e0fe3c7b80c9ca7e954011a0b27918290ff5323bea1e3b78a9cf04e">LegacyInputKind::File</a>, <span class="stringliteral">&quot;trains&quot;</span>,</div>
-<div class="line">        [](<span class="keyword">const</span> std::string&amp; name) { <span class="keywordflow">return</span> name != <span class="stringliteral">&quot;trainnames.txt&quot;</span> &amp;&amp; fs::path(name).extension() == <span class="stringliteral">&quot;.txt&quot;</span>; }},</div>
-<div class="line">    {<a class="code hl_enumvalue" href="#a47b93a8406e0fe3c7b80c9ca7e954011a0b27918290ff5323bea1e3b78a9cf04e">LegacyInputKind::File</a>, <span class="stringliteral">&quot;routes&quot;</span>, [](<span class="keyword">const</span> std::string&amp; name) { <span class="keywordflow">return</span> <a class="code hl_function" href="#a9c3144d5d9f799f08430e9081be7c26e">isLegacyRouteFile</a>(fs::path(name)); }},</div>
-<div class="line">    {<a class="code hl_enumvalue" href="#a47b93a8406e0fe3c7b80c9ca7e954011ab948e8a02a7f8dc9f098c89e8df9892c">LegacyInputKind::Entry</a>, <span class="stringliteral">&quot;routestowrite&quot;</span>, [](<span class="keyword">const</span> std::string&amp; name) { <span class="keywordflow">return</span> name == <span class="stringliteral">&quot;routestojoin.txt&quot;</span>; }},</div>
-<div class="line">    {<a class="code hl_enumvalue" href="#a47b93a8406e0fe3c7b80c9ca7e954011a0b27918290ff5323bea1e3b78a9cf04e">LegacyInputKind::File</a>, <span class="stringliteral">&quot;passengers&quot;</span>,</div>
-<div class="line">        [](<span class="keyword">const</span> std::string&amp; name) { <span class="keywordflow">return</span> name == <span class="stringliteral">&quot;das_frenchcasestudy.csv&quot;</span> || name == <span class="stringliteral">&quot;routechoicefc_eq1.csv&quot;</span>; }},</div>
-<div class="line">    {<a class="code hl_enumvalue" href="#a47b93a8406e0fe3c7b80c9ca7e954011a0b27918290ff5323bea1e3b78a9cf04e">LegacyInputKind::File</a>, <span class="stringliteral">&quot;timetable/scenarios_entrance_delays&quot;</span>,</div>
-<div class="line">        [](<span class="keyword">const</span> std::string&amp; name) { <span class="keywordflow">return</span> std::regex_match(name, std::regex(<span class="stringliteral">&quot;rollout_[0-9]+\\.txt&quot;</span>)); }},</div>
-<div class="line">}</div>
-<div class="ttc" id="a_scene_exporter_8cpp_html_a47b93a8406e0fe3c7b80c9ca7e954011a0b27918290ff5323bea1e3b78a9cf04e"><div class="ttname"><a href="#a47b93a8406e0fe3c7b80c9ca7e954011a0b27918290ff5323bea1e3b78a9cf04e">LegacyInputKind::File</a></div><div class="ttdeci">@ File</div><div class="ttdoc">A regular file in a folder that the importer lists.</div><div class="ttdef"><b>Definition</b> SceneExporter.cpp:51</div></div>
-<div class="ttc" id="a_scene_exporter_8cpp_html_a47b93a8406e0fe3c7b80c9ca7e954011ab0f2b97dc5d2b76b26e040408bb1d8af"><div class="ttname"><a href="#a47b93a8406e0fe3c7b80c9ca7e954011ab0f2b97dc5d2b76b26e040408bb1d8af">LegacyInputKind::Folder</a></div><div class="ttdeci">@ Folder</div><div class="ttdef"><b>Definition</b> SceneExporter.cpp:52</div></div>
-<div class="ttc" id="a_scene_exporter_8cpp_html_a47b93a8406e0fe3c7b80c9ca7e954011ab948e8a02a7f8dc9f098c89e8df9892c"><div class="ttname"><a href="#a47b93a8406e0fe3c7b80c9ca7e954011ab948e8a02a7f8dc9f098c89e8df9892c">LegacyInputKind::Entry</a></div><div class="ttdeci">@ Entry</div><div class="ttdoc">Any entry, which the importer opens by its name.</div><div class="ttdef"><b>Definition</b> SceneExporter.cpp:50</div></div>
-<div class="ttc" id="a_scene_exporter_8cpp_html_a47b93a8406e0fe3c7b80c9ca7e954011ada55f982393fc9ef26f75a21dc638062"><div class="ttname"><a href="#a47b93a8406e0fe3c7b80c9ca7e954011ada55f982393fc9ef26f75a21dc638062">LegacyInputKind::Sidecar</a></div><div class="ttdeci">@ Sidecar</div><div class="ttdef"><b>Definition</b> SceneExporter.cpp:55</div></div>
-<div class="ttc" id="a_scene_exporter_8cpp_html_a803fd08886164f526fc725105c0266e9"><div class="ttname"><a href="#a803fd08886164f526fc725105c0266e9">isLegacyTrackFolderName</a></div><div class="ttdeci">static bool isLegacyTrackFolderName(const std::string &amp;name)</div><div class="ttdef"><b>Definition</b> SceneExporter.cpp:43</div></div>
-<div class="ttc" id="a_scene_exporter_8cpp_html_a9c3144d5d9f799f08430e9081be7c26e"><div class="ttname"><a href="#a9c3144d5d9f799f08430e9081be7c26e">isLegacyRouteFile</a></div><div class="ttdeci">static bool isLegacyRouteFile(const fs::path &amp;path)</div><div class="ttdef"><b>Definition</b> SceneExporter.cpp:37</div></div>
-</div><!-- fragment -->
+
 </div>
 </div>
 </div><!-- contents -->

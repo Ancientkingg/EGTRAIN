@@ -198,6 +198,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
@@ -308,7 +309,7 @@
         <article role="main" id="furo-main-content">
           <section id="getting-started">
 <h1>Getting started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h1>
-<p>This page takes you from a download to a finished run of the Paimpol case, its results and two exported files. Paimpol is a small line with 6 tracks, 10 stations and 2 services, and it runs in seconds. You need only the downloaded program. You do not need the source code, a build or the command line.</p>
+<p>This page takes you from a download to a finished run of the Paimpol case, its results and two exported files. Paimpol is a small line with 6 tracks, 10 stations and 2 services, and it runs in seconds. You need only the downloaded program, not a build of your own or the command line.</p>
 <p>The steps use the labels of the window. A label such as <strong>Run</strong> is a menu entry or a button, and a name such as <code class="docutils literal notranslate"><span class="pre">Paimpol</span></code> is a case. On macOS the key Ctrl in a shortcut is the Command key, and <a class="reference internal" href="keyboard-shortcuts.html"><span class="std std-doc">Keyboard shortcuts</span></a> lists every shortcut.</p>
 <p>This walk was done on macOS. On Linux (an Ubuntu 24.04 desktop in a container, 2026-10-17) the first steps were repeated with the program built from source: opening Paimpol, the dialog <strong>Run simulation</strong>, the run, the results table and the output folder <code class="docutils literal notranslate"><span class="pre">~/.local/share/EGTRAIN/EGTRAIN/Output/Paimpol</span></code> matched this page, with Ctrl as the shortcut key. The AppImage is started and walked through these steps by the Linux rehearsal job of each release run; its install step was not walked by hand. On Windows 11 (the release candidate of 2026-10-17, installed per user) the cases opened and ran as on this page, the dialog <strong>Run simulation</strong> and the results table matched it, and each case that was opened or run had its output folder under <code class="docutils literal notranslate"><span class="pre">%APPDATA%\EGTRAIN\EGTRAIN\Output</span></code>.</p>
 <section id="three-things-to-keep-apart">
@@ -328,7 +329,7 @@
 <li><p>Windows: run <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Setup-&lt;version&gt;-x64.exe</span></code> and start <strong>EGTRAIN</strong> from the Start Menu, or unzip <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Portable-&lt;version&gt;-x64.zip</span></code> into a new, empty folder and run <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>.</p></li>
 <li><p>Linux: make the AppImage executable and run it. It needs glibc 2.38 or later, as on Ubuntu 24.04. On a minimal system that reports a missing library such as <code class="docutils literal notranslate"><span class="pre">libGL.so.1</span></code>, install <code class="docutils literal notranslate"><span class="pre">libgl1</span></code>, <code class="docutils literal notranslate"><span class="pre">libopengl0</span></code>, <code class="docutils literal notranslate"><span class="pre">libegl1</span></code>, <code class="docutils literal notranslate"><span class="pre">libharfbuzz0b</span></code> and <code class="docutils literal notranslate"><span class="pre">libfontconfig1</span></code> first. The AppImage also needs the FUSE 2 library: when it stops with <code class="docutils literal notranslate"><span class="pre">AppImages</span> <span class="pre">require</span> <span class="pre">FUSE</span> <span class="pre">to</span> <span class="pre">run.</span></code>, install <code class="docutils literal notranslate"><span class="pre">libfuse2t64</span></code>, or start it with <code class="docutils literal notranslate"><span class="pre">./QEGTRAIN-linux-x86_64.AppImage</span> <span class="pre">--appimage-extract-and-run</span></code>.</p></li>
 </ul>
-<p>The packages contain the bundled cases, so you need no separate case file. If you prefer a file, download <code class="docutils literal notranslate"><span class="pre">Paimpol.egscene</span></code> from the same page.</p>
+<p>The packages contain the bundled cases, so you need no separate case file. If you prefer a file, download <code class="docutils literal notranslate"><span class="pre">Paimpol.egscene</span></code> from the release page: follow the Release notes link below the downloads on the EGTRAIN website.</p>
 </section>
 <section id="the-first-start">
 <h2>2. The first start<a class="headerlink" href="#the-first-start" title="Link to this heading">¶</a></h2>
@@ -499,7 +500,7 @@
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

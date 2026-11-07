@@ -29,8 +29,7 @@ from one of two sources.
 - The assets of one published release, made by a push to `production` or by
   a `v*` tag. A release holds the application assets, the case-study bundles
   and `update-manifest.json` that the next section lists, and nothing else. It
-  stays a draft until all of them are uploaded. The same files and an archive
-  of the source code, `EGTRAIN-<version>-source.tar.gz`, are then on
+  stays a draft until all of them are uploaded. The same files are then on
   bin.samuelbruin.com, listed on the release page of the website,
   `https://egtrain.samuelbruin.com/releases/<version>/`. A `v*` tag that contains a
   hyphen is published as a prerelease: the updater never offers it, and its
@@ -50,9 +49,9 @@ Before a release, check that the authors in `CITATION.cff` are still correct.
 The release is ready to rehearse only when the version, validation, sanitizer
 and the package jobs of the `Release` workflow (macOS, Windows, Finalize Windows,
 Linux and Rehearse Linux) are green. The release job needs all of them. After
-the GitHub release, the job **Publish on egtrain.samuelbruin.com** uploads the
-same files and the source archive to Zipline and then publishes the release page
-and the entry of the update feed of the website.
+the release, the job **Publish on egtrain.samuelbruin.com** uploads the same
+files to Zipline and then publishes the release page and the entry of the update
+feed of the website.
 [CI and release branches](ci-and-release.md#ci-and-release-branches) describes
 what the workflow does.
 
@@ -79,8 +78,8 @@ Expected case-study assets:
 
 A published release also has `update-manifest.json`. Confirm the workflow
 validates all the bundles and publishes exactly the application assets and the
-case-study assets above and the update manifest, on GitHub and on the release
-page of the website, which also lists `EGTRAIN-<version>-source.tar.gz`.
+case-study assets above and the update manifest, in the release and on the
+release page of the website.
 
 What the jobs prove today:
 
@@ -154,7 +153,7 @@ What the jobs prove today:
   plugins comes from the image and not from the runner.
 - The Rehearse Linux job runs the steps 1 to 9 of the clean-install rehearsal
   on the AppImage that the Package Linux job uploaded. It runs on every package
-  run, so the release run rehearses the frozen candidate. The runner is a GitHub
+  run, so the release run rehearses the frozen candidate. The runner is a hosted
   Ubuntu 24.04 machine with a virtual display, a D-Bus session and the AT-SPI
   accessibility bus. The job installs no Qt package. It extracts the
   image, packs the Paimpol scene of the image into a `.egscene` bundle with the
@@ -177,7 +176,7 @@ What the jobs prove today:
   artifact `linux-rehearsal-evidence` of the run, also when a step fails. The
   artifact is for diagnosis and is not a release asset.
   Record the result of the steps 1 to 9 on Linux from this job, and label it as
-  a run on a GitHub Ubuntu runner with a virtual display. The job does not cover
+  a run on a hosted Ubuntu runner with a virtual display. The job does not cover
   dragging a bundle from a file manager (row R2), a real desktop session, the
   questions that a desktop environment asks at the first start, the file dialog
   of a desktop environment (the job uses the dialog of Qt) and the rows R1 and R3
@@ -247,7 +246,7 @@ have `QEGTRAIN_` variables set: any `QEGTRAIN_E2E_` variable,
 off and are not part of a student launch.
 
 On Linux, the steps 1 to 9 run in the Rehearse Linux job of every package run, on
-a GitHub Ubuntu runner with a virtual display, and need no machine of their own.
+a hosted Ubuntu runner with a virtual display, and need no machine of their own.
 [Automated release evidence](#automated-release-evidence) says what that job does
 and does not cover.
 

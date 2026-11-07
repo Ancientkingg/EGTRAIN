@@ -1,6 +1,6 @@
 # Getting started as a developer
 
-This page takes you from a fresh clone to a built application, a first run, a changed test and the
+This page takes you from a fresh copy of the source tree to a built application, a first run, a changed test and the
 checks a pull request has to pass. It points to the longer guides for details. EGTRAIN is a Qt 6 and
 C++17 desktop application for railway micro-simulation, built with CMake.
 
@@ -24,7 +24,7 @@ is not what CI uses and was not checked for this page.
 | Tool | Version | Notes |
 | --- | --- | --- |
 | Git | any recent release | |
-| CMake | 3.16 or newer | `CMakeLists.txt` at the repository root |
+| CMake | 3.16 or newer | `CMakeLists.txt` at the root of the source tree |
 | C++ compiler | C++17 | Apple Clang on macOS, MSVC 2022 or newer on Windows (x64 only), GCC on Ubuntu |
 | Qt 6 | Core, Gui, Widgets, Charts, Svg, Network and Help | CI uses Qt 6.8.3 from aqtinstall on all three systems; the Qt 6.4.2 of Ubuntu 24.04 also builds |
 | ZeroMQ, cppzmq, nlohmann-json | any release that CMake finds | `libzmq3-dev cppzmq-dev nlohmann-json3-dev` on Ubuntu, vcpkg on Windows |
@@ -35,14 +35,9 @@ is not what CI uses and was not checked for this page.
 [Requirements](build.md#requirements) lists the supported toolchains and the exact install
 commands for each system.
 
-## Clone, configure and build
+## Configure and build
 
-Clone the repository and change into it:
-
-```bash
-git clone https://github.com/Ancientkingg/EGTRAIN.git
-cd EGTRAIN
-```
+Run the commands below in the root folder of the source tree, the folder that holds `CMakeLists.txt`.
 
 On macOS, install Qt 6.8.3 with [aqtinstall](https://aqtinstall.readthedocs.io/en/latest/getting_started.html)
 (or the [Qt online installer](build.md#qt-online-installer)) and the other libraries with Homebrew:
@@ -254,7 +249,7 @@ run, CTest and each smoke write their files.
 
 ## Contributing
 
-What the repository itself shows:
+What the source tree itself shows:
 
 - Pull requests go to `main`. CI builds and runs the CTest suite on macOS, Windows and Linux without
   the tests labelled `network`, which run on Windows only, unless every changed file is documentation. The format and tidy checks run when C++ sources change.

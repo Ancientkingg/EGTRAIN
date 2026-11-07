@@ -198,6 +198,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
@@ -881,7 +882,7 @@
 <td><p>No</p></td>
 <td><p>Yes: cycle time and cycle percentage for the chain</p></td>
 <td><p>Yes: the occupation rate of each resource, the governing resource, the cycle of the chain and a legacy envelope for comparison. No trains per hour</p></td>
-<td><p>Yes: occupation envelope, ratio and trains per hour for the area (never called in the history of the repository)</p></td>
+<td><p>Yes: occupation envelope, ratio and trains per hour for the area (never called in the history of the code)</p></td>
 </tr>
 <tr class="row-odd"><td><p>Period</p></td>
 <td><p>None</p></td>
@@ -919,7 +920,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">prepareSimulation</span></code> called <code class="docutils literal notranslate"><span class="pre">InitializeAllNetworkAreas</span></code> for this file (in the last revision that had the code, only when the file existed). That set the level of the blocks and collected the block ids of each area.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">computeCapacityAndTphForAllNetworkAreas</span></code> was to do the rest. For each area it selected the trains, computed the timetable variant and wrote <code class="docutils literal notranslate"><span class="pre">TT_Statistics_Area_&lt;name&gt;.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">TT_BlockTrainsInArea_&lt;name&gt;.txt</span></code>. Then it compressed the trains and computed again. Last it added an area named EntireNetwork and wrote <code class="docutils literal notranslate"><span class="pre">Statistics_Area_&lt;name&gt;.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">BlockTrainsInArea_&lt;name&gt;.txt</span></code>. The files went to <code class="docutils literal notranslate"><span class="pre">AreaResults/&lt;area&gt;_Results</span></code> under the folder that <code class="docutils literal notranslate"><span class="pre">ComputeNetworkCapacityForTimetable</span></code> received as its folder name.</p></li>
 </ol>
-<p>In the history of the repository only the initialisation had a caller. <code class="docutils literal notranslate"><span class="pre">computeCapacityAndTphForAllNetworkAreas</span></code> was called only by <code class="docutils literal notranslate"><span class="pre">ComputeNetworkCapacityForTimetable</span></code>, as its last step: before it, that function reset the trains to the timetable and ran the train-level compression of the last row of <a class="reference internal" href="#status-of-each-piece">Status of each piece</a> on the trains of the run. No revision in the Git history of the repository called <code class="docutils literal notranslate"><span class="pre">ComputeNetworkCapacityForTimetable</span></code> (the history starts with an initial import). So no run of any revision in that history produced these files. The history also holds area files in the input folders of some older cases, and no output file of the calculation.</p>
+<p>In the history of the code only the initialisation had a caller. <code class="docutils literal notranslate"><span class="pre">computeCapacityAndTphForAllNetworkAreas</span></code> was called only by <code class="docutils literal notranslate"><span class="pre">ComputeNetworkCapacityForTimetable</span></code>, as its last step: before it, that function reset the trains to the timetable and ran the train-level compression of the last row of <a class="reference internal" href="#status-of-each-piece">Status of each piece</a> on the trains of the run. No revision in the Git history of EGTRAIN called <code class="docutils literal notranslate"><span class="pre">ComputeNetworkCapacityForTimetable</span></code> (the history starts with an initial import). So no run of any revision in that history produced these files. The history also holds area files in the input folders of some older cases, and no output file of the calculation.</p>
 </section>
 <section id="formulas">
 <h3>Formulas<a class="headerlink" href="#formulas" title="Link to this heading">¶</a></h3>
@@ -976,7 +977,7 @@
 </section>
 <section id="status-of-each-piece">
 <h3>Status of each piece<a class="headerlink" href="#status-of-each-piece" title="Link to this heading">¶</a></h3>
-<p>A piece is valid today when it is still true in the current code. It is superseded when it ran and other code does the job now. It is dead when no revision in the history of the repository called it, or when nothing of the program uses it now. It is unsupported when the formula can be evaluated but the guide gives no reading of its result.</p>
+<p>A piece is valid today when it is still true in the current code. It is superseded when it ran and other code does the job now. It is dead when no revision in the history of the code called it, or when nothing of the program uses it now. It is unsupported when the formula can be evaluated but the guide gives no reading of its result.</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -1044,7 +1045,7 @@
 </tr>
 <tr class="row-odd"><td><p>The macroscopic events and processes export</p></td>
 <td><p>Computed headways and wrote <code class="docutils literal notranslate"><span class="pre">Events.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">Processes.csv</span></code> for a macroscopic model, as its comments say. It is not part of the analysis of this guide</p></td>
-<td><p>Dead: no revision in the history of the repository called the three functions</p></td>
+<td><p>Dead: no revision in the history of the code called the three functions</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">MacroscopicEvent</span></code>, <code class="docutils literal notranslate"><span class="pre">initialiseAllMacroEvents</span></code>, <code class="docutils literal notranslate"><span class="pre">Compute_Headways_For_AllNetworkAreas_For_Macro_Model</span></code>, <code class="docutils literal notranslate"><span class="pre">Print_Macroscopic_Events_And_Processes</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>The train-level headway matrix and compression that comments call the “UIC code 406 approach”</p></td>
@@ -1063,7 +1064,7 @@
 </section>
 <section id="the-label">
 <h3>The label<a class="headerlink" href="#the-label" title="Link to this heading">¶</a></h3>
-<p>The removed code carries the label “UIC code 406” for the compression, in comments in <code class="docutils literal notranslate"><span class="pre">Optimisation.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">Optimisation.h</span></code> and <code class="docutils literal notranslate"><span class="pre">Simulation.cpp</span></code> and in one console message in <code class="docutils literal notranslate"><span class="pre">Optimisation.cpp</span></code>. A comment in <code class="docutils literal notranslate"><span class="pre">Capacity.cpp</span></code> writes it “UIC Code 406”. The repository holds no description of that method. This guide therefore says neither that either calculation follows it nor that it does not.</p>
+<p>The removed code carries the label “UIC code 406” for the compression, in comments in <code class="docutils literal notranslate"><span class="pre">Optimisation.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">Optimisation.h</span></code> and <code class="docutils literal notranslate"><span class="pre">Simulation.cpp</span></code> and in one console message in <code class="docutils literal notranslate"><span class="pre">Optimisation.cpp</span></code>. A comment in <code class="docutils literal notranslate"><span class="pre">Capacity.cpp</span></code> writes it “UIC Code 406”. No file of EGTRAIN describes that method. This guide therefore says neither that either calculation follows it nor that it does not.</p>
 </section>
 </section>
 <section id="limits">
@@ -1079,8 +1080,8 @@
 <li><p>The Capacity window does not say when a checked train has no usable record on some of the chosen blocks; the row of the train names only the first and the last chosen block it occupies. The Capacity by area window reports an unusable occupation but not a missing one.</p></li>
 <li><p>One analysis covers one range of consecutive blocks of one route, the stretch between two stations or two blocks. Trains that run over part of the range are analysed from where they enter it. The program does not split the range where the order of the trains changes. The Capacity by area window takes a block range that the user chooses (<a class="reference internal" href="assignment-workflow.html#calculation-boundaries"><span class="std std-ref">Assignment workflow</span></a>).</p></li>
 <li><p>The period is independent of the length of the run and of the timetable.</p></li>
-<li><p>Parity with the legacy tool is not established. No output of the removed calculation exists in the repository, and the two answer different questions (<a class="reference internal" href="#a-hand-check-of-the-envelope">hand check</a>). The legacy envelope of the Capacity by area window differs from the removed formula in what belongs to the area and in the denominator, and the program computes no trains per hour. Network-wide validity is not claimed: the program has no rule for which traffic a result must include.</p></li>
-<li><p>The program cites no norm or recommendation for the percentage or for a rate. Step 18 of the Assignment workflow refers to a course recommendation that comes from the course material and is not stated in this repository.</p></li>
+<li><p>Parity with the legacy tool is not established. No output of the removed calculation exists in EGTRAIN or its history, and the two answer different questions (<a class="reference internal" href="#a-hand-check-of-the-envelope">hand check</a>). The legacy envelope of the Capacity by area window differs from the removed formula in what belongs to the area and in the denominator, and the program computes no trains per hour. Network-wide validity is not claimed: the program has no rule for which traffic a result must include.</p></li>
+<li><p>The program cites no norm or recommendation for the percentage or for a rate. Step 18 of the Assignment workflow refers to a course recommendation that comes from the course material and that EGTRAIN does not state.</p></li>
 <li><p>The rates of the Capacity by area window count the trains that were selected, over a period that the user enters, with no time window. “Complete traffic” says that no train or occupation of the run in the area is left out (<a class="reference internal" href="#complete-and-partial-traffic">Complete and partial traffic</a>). It does not say that the run holds all the traffic of the period.</p></li>
 <li><p>The governing resource of the area is the resource that the selected trains occupy most. It is not a bottleneck of the line.</p></li>
 </ol>
@@ -1120,7 +1121,7 @@
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

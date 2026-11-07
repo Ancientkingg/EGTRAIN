@@ -8,7 +8,6 @@
 <title>EGTRAIN: SceneSignallingArea Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,16 +115,16 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_s
 <p>A stretch of chainage with one signalling level.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&gt;</code></p>
+<p><code>#include &lt;scene/SceneModel.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ac7995a6ad87cd37135759b53c5a129ae" id="r_ac7995a6ad87cd37135759b53c5a129ae"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ac7995a6ad87cd37135759b53c5a129ae">id</a></td></tr>
 <tr class="memdesc:ac7995a6ad87cd37135759b53c5a129ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unique id of the area.  <br /></td></tr>
-<tr class="memitem:abb737b0e56cd434334bbf0c5fb702628" id="r_abb737b0e56cd434334bbf0c5fb702628"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#abb737b0e56cd434334bbf0c5fb702628">startKm</a> = 0.0</td></tr>
+<tr class="memitem:abb737b0e56cd434334bbf0c5fb702628" id="r_abb737b0e56cd434334bbf0c5fb702628"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#abb737b0e56cd434334bbf0c5fb702628">startKm</a></td></tr>
 <tr class="memdesc:abb737b0e56cd434334bbf0c5fb702628"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start of the stretch in kilometres of chainage.  <br /></td></tr>
-<tr class="memitem:a43afd6690c82b2831db6314091416160" id="r_a43afd6690c82b2831db6314091416160"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a43afd6690c82b2831db6314091416160">endKm</a> = 0.0</td></tr>
-<tr class="memitem:ab70a763f02f27f65152576f70adce10b" id="r_ab70a763f02f27f65152576f70adce10b"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ab70a763f02f27f65152576f70adce10b">level</a> = 0</td></tr>
+<tr class="memitem:a43afd6690c82b2831db6314091416160" id="r_a43afd6690c82b2831db6314091416160"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a43afd6690c82b2831db6314091416160">endKm</a></td></tr>
+<tr class="memitem:ab70a763f02f27f65152576f70adce10b" id="r_ab70a763f02f27f65152576f70adce10b"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ab70a763f02f27f65152576f70adce10b">level</a></td></tr>
 <tr class="memdesc:ab70a763f02f27f65152576f70adce10b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signalling level 0 to 5 (<a class="el" href="_signalling_level_8h.html#a54b7d64327a4a83cf45836f9c8e487d1">SignallingLevel</a>), or kSignallingLevelUnset for an area without a chosen system.  <br /></td></tr>
 <tr class="memitem:af29e13021955d6ca1944b3a7e1663dbb" id="r_af29e13021955d6ca1944b3a7e1663dbb"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#af29e13021955d6ca1944b3a7e1663dbb">trackId</a></td></tr>
 <tr class="memdesc:af29e13021955d6ca1944b3a7e1663dbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The track the area applies to. Empty means network-wide.  <br /></td></tr>
@@ -140,7 +139,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double SceneSignallingArea::endKm = 0.0</td>
+          <td class="memname">double SceneSignallingArea::endKm</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -171,7 +170,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int SceneSignallingArea::level = 0</td>
+          <td class="memname">int SceneSignallingArea::level</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -187,7 +186,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double SceneSignallingArea::startKm = 0.0</td>
+          <td class="memname">double SceneSignallingArea::startKm</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -213,7 +212,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>scene/<a class="el" href="_scene_model_8h_source.html">SceneModel.h</a></li>
+<li>scene/<a class="el" href="_scene_model_8h.html">SceneModel.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

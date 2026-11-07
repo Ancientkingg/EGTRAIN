@@ -8,7 +8,6 @@
 <title>EGTRAIN: RunProvenance Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,7 +115,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_run_pro
 <p>The inputs and settings of a run, written next to every export as a provenance sidecar.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_run_results_8h_source.html">diagrams/RunResults.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/RunResults.h&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for RunProvenance:</div>
 <div class="dyncontent">
@@ -127,25 +126,25 @@ Collaboration diagram for RunProvenance:</div>
 Public Attributes</h2></td></tr>
 <tr class="memitem:aaa80bc336d0b715168dcf5408212d90c" id="r_aaa80bc336d0b715168dcf5408212d90c"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aaa80bc336d0b715168dcf5408212d90c">caseName</a></td></tr>
 <tr class="memdesc:aaa80bc336d0b715168dcf5408212d90c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the scene.  <br /></td></tr>
-<tr class="memitem:a552e7546b9b84c7463f41c85462bb2bf" id="r_a552e7546b9b84c7463f41c85462bb2bf"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a552e7546b9b84c7463f41c85462bb2bf">sceneSchemaVersion</a> = 0</td></tr>
+<tr class="memitem:a552e7546b9b84c7463f41c85462bb2bf" id="r_a552e7546b9b84c7463f41c85462bb2bf"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a552e7546b9b84c7463f41c85462bb2bf">sceneSchemaVersion</a></td></tr>
 <tr class="memdesc:a552e7546b9b84c7463f41c85462bb2bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Schema version of the scene.  <br /></td></tr>
 <tr class="memitem:a8155aca9a8b1b7df7bbd20fe0dee92a7" id="r_a8155aca9a8b1b7df7bbd20fe0dee92a7"><td class="memItemLeft"><a class="el" href="struct_run_input_provenance.html">RunInputProvenance</a>&#160;</td><td class="memItemRight"><a class="el" href="#a8155aca9a8b1b7df7bbd20fe0dee92a7">input</a></td></tr>
 <tr class="memdesc:a8155aca9a8b1b7df7bbd20fe0dee92a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene input.  <br /></td></tr>
 <tr class="memitem:a7f3f6f50155a43f74e2a24723866fbad" id="r_a7f3f6f50155a43f74e2a24723866fbad"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a7f3f6f50155a43f74e2a24723866fbad">appliedScenario</a></td></tr>
 <tr class="memdesc:a7f3f6f50155a43f74e2a24723866fbad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Id of the scenario applied to the run, empty for none.  <br /></td></tr>
-<tr class="memitem:a255bce1dcbe006663eedfbdaf161c4fe" id="r_a255bce1dcbe006663eedfbdaf161c4fe"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a255bce1dcbe006663eedfbdaf161c4fe">baseTimeSeconds</a> = 0.0</td></tr>
+<tr class="memitem:a255bce1dcbe006663eedfbdaf161c4fe" id="r_a255bce1dcbe006663eedfbdaf161c4fe"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a255bce1dcbe006663eedfbdaf161c4fe">baseTimeSeconds</a></td></tr>
 <tr class="memdesc:a255bce1dcbe006663eedfbdaf161c4fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clock time of second 0, in seconds since midnight.  <br /></td></tr>
-<tr class="memitem:a824756f1b194612d9515accbf3d4b9f8" id="r_a824756f1b194612d9515accbf3d4b9f8"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a824756f1b194612d9515accbf3d4b9f8">durationSeconds</a> = 0.0</td></tr>
+<tr class="memitem:a824756f1b194612d9515accbf3d4b9f8" id="r_a824756f1b194612d9515accbf3d4b9f8"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a824756f1b194612d9515accbf3d4b9f8">durationSeconds</a></td></tr>
 <tr class="memdesc:a824756f1b194612d9515accbf3d4b9f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length of the run in seconds.  <br /></td></tr>
-<tr class="memitem:abb8d354b80841109dff2380b17bed88b" id="r_abb8d354b80841109dff2380b17bed88b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#abb8d354b80841109dff2380b17bed88b">timestepSeconds</a> = 0.0</td></tr>
+<tr class="memitem:abb8d354b80841109dff2380b17bed88b" id="r_abb8d354b80841109dff2380b17bed88b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#abb8d354b80841109dff2380b17bed88b">timestepSeconds</a></td></tr>
 <tr class="memdesc:abb8d354b80841109dff2380b17bed88b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length of one step in seconds.  <br /></td></tr>
-<tr class="memitem:a18ebc7bf037574de25ea85e9b02a88d5" id="r_a18ebc7bf037574de25ea85e9b02a88d5"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a18ebc7bf037574de25ea85e9b02a88d5">bufferSeconds</a> = 0.0</td></tr>
+<tr class="memitem:a18ebc7bf037574de25ea85e9b02a88d5" id="r_a18ebc7bf037574de25ea85e9b02a88d5"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a18ebc7bf037574de25ea85e9b02a88d5">bufferSeconds</a></td></tr>
 <tr class="memdesc:a18ebc7bf037574de25ea85e9b02a88d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Buffer time in seconds.  <br /></td></tr>
-<tr class="memitem:abed073ff714fb95d8ddbbf7db671a04e" id="r_abed073ff714fb95d8ddbbf7db671a04e"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#abed073ff714fb95d8ddbbf7db671a04e">recoveryPercent</a> = 0.0</td></tr>
+<tr class="memitem:abed073ff714fb95d8ddbbf7db671a04e" id="r_abed073ff714fb95d8ddbbf7db671a04e"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#abed073ff714fb95d8ddbbf7db671a04e">recoveryPercent</a></td></tr>
 <tr class="memdesc:abed073ff714fb95d8ddbbf7db671a04e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Running time recovery in percent.  <br /></td></tr>
-<tr class="memitem:aa1ff696b059ce12c3640bab135eb4d52" id="r_aa1ff696b059ce12c3640bab135eb4d52"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aa1ff696b059ce12c3640bab135eb4d52">paxMode</a> = 0</td></tr>
+<tr class="memitem:aa1ff696b059ce12c3640bab135eb4d52" id="r_aa1ff696b059ce12c3640bab135eb4d52"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aa1ff696b059ce12c3640bab135eb4d52">paxMode</a></td></tr>
 <tr class="memdesc:aa1ff696b059ce12c3640bab135eb4d52"><td class="mdescLeft">&#160;</td><td class="mdescRight">1 when <a class="el" href="class_initial_parameters.html#a0c8ff8c0bf86bec7fa363ba68dcc3c75" title="Shows the passengers in the window (-pax, or the passenger view of the window). With it on,...">InitialParameters::PAX_GUI</a> was set, else 0  <br /></td></tr>
-<tr class="memitem:afe1e37956c75886b14deec29ca29bace" id="r_afe1e37956c75886b14deec29ca29bace"><td class="memItemLeft">unsigned long&#160;</td><td class="memItemRight"><a class="el" href="#afe1e37956c75886b14deec29ca29bace">randomSeed</a> = <a class="el" href="_initial_parameters_8h.html#a1f52f2d2afceb8eab8e2f24b9523a35e">kDefaultRandomSeed</a></td></tr>
+<tr class="memitem:afe1e37956c75886b14deec29ca29bace" id="r_afe1e37956c75886b14deec29ca29bace"><td class="memItemLeft">unsigned long&#160;</td><td class="memItemRight"><a class="el" href="#afe1e37956c75886b14deec29ca29bace">randomSeed</a></td></tr>
 <tr class="memitem:ac941e59ff4cb9a9e4310c47aec04b6b0" id="r_ac941e59ff4cb9a9e4310c47aec04b6b0"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_run_occurrence_provenance.html">RunOccurrenceProvenance</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac941e59ff4cb9a9e4310c47aec04b6b0">selectedOccurrences</a></td></tr>
 <tr class="memdesc:ac941e59ff4cb9a9e4310c47aec04b6b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The trains of the run, in run order.  <br /></td></tr>
 </table>
@@ -175,7 +174,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double RunProvenance::baseTimeSeconds = 0.0</td>
+          <td class="memname">double RunProvenance::baseTimeSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -191,7 +190,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double RunProvenance::bufferSeconds = 0.0</td>
+          <td class="memname">double RunProvenance::bufferSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -223,7 +222,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double RunProvenance::durationSeconds = 0.0</td>
+          <td class="memname">double RunProvenance::durationSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -255,7 +254,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int RunProvenance::paxMode = 0</td>
+          <td class="memname">int RunProvenance::paxMode</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -271,7 +270,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">unsigned long RunProvenance::randomSeed = <a class="el" href="_initial_parameters_8h.html#a1f52f2d2afceb8eab8e2f24b9523a35e">kDefaultRandomSeed</a></td>
+          <td class="memname">unsigned long RunProvenance::randomSeed</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -286,7 +285,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double RunProvenance::recoveryPercent = 0.0</td>
+          <td class="memname">double RunProvenance::recoveryPercent</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -302,7 +301,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int RunProvenance::sceneSchemaVersion = 0</td>
+          <td class="memname">int RunProvenance::sceneSchemaVersion</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -334,7 +333,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double RunProvenance::timestepSeconds = 0.0</td>
+          <td class="memname">double RunProvenance::timestepSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -344,7 +343,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_run_results_8h_source.html">RunResults.h</a></li>
+<li>diagrams/<a class="el" href="_run_results_8h.html">RunResults.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

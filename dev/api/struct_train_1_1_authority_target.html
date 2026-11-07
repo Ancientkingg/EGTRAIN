@@ -8,7 +8,6 @@
 <title>EGTRAIN: Train::AuthorityTarget Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,17 +115,17 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_train_1
 <p>An end of authority as a braking target: where the train has to meet which speed.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_rolling_stock_8h_source.html">simulation/RollingStock.h</a>&gt;</code></p>
+<p><code>#include &lt;simulation/RollingStock.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:ab533678d25aa7fd30c48d3d827ce03da" id="r_ab533678d25aa7fd30c48d3d827ce03da"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab533678d25aa7fd30c48d3d827ce03da">position</a> = 0</td></tr>
+<tr class="memitem:ab533678d25aa7fd30c48d3d827ce03da" id="r_ab533678d25aa7fd30c48d3d827ce03da"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab533678d25aa7fd30c48d3d827ce03da">position</a></td></tr>
 <tr class="memdesc:ab533678d25aa7fd30c48d3d827ce03da"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_route.html">Route</a> position (m) of the target.  <br /></td></tr>
-<tr class="memitem:ab9f4e486dd46b7546b34c60335a70db4" id="r_ab9f4e486dd46b7546b34c60335a70db4"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab9f4e486dd46b7546b34c60335a70db4">speed</a> = -1</td></tr>
-<tr class="memitem:a667406cb6f90c29457ee0d5ce93c9201" id="r_a667406cb6f90c29457ee0d5ce93c9201"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a667406cb6f90c29457ee0d5ce93c9201">moved</a> = false</td></tr>
-<tr class="memitem:a06b889dd8c621a533226c7488a86879b" id="r_a06b889dd8c621a533226c7488a86879b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a06b889dd8c621a533226c7488a86879b">distance</a> = 0</td></tr>
+<tr class="memitem:ab9f4e486dd46b7546b34c60335a70db4" id="r_ab9f4e486dd46b7546b34c60335a70db4"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab9f4e486dd46b7546b34c60335a70db4">speed</a></td></tr>
+<tr class="memitem:a667406cb6f90c29457ee0d5ce93c9201" id="r_a667406cb6f90c29457ee0d5ce93c9201"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a667406cb6f90c29457ee0d5ce93c9201">moved</a></td></tr>
+<tr class="memitem:a06b889dd8c621a533226c7488a86879b" id="r_a06b889dd8c621a533226c7488a86879b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a06b889dd8c621a533226c7488a86879b">distance</a></td></tr>
 <tr class="memdesc:a06b889dd8c621a533226c7488a86879b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The distance (m) by which a moved position lies ahead of the authority.  <br /></td></tr>
-<tr class="memitem:aa9b06bf1c96c1602dd170d9d237a413c" id="r_aa9b06bf1c96c1602dd170d9d237a413c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aa9b06bf1c96c1602dd170d9d237a413c">canCouple</a> = false</td></tr>
+<tr class="memitem:aa9b06bf1c96c1602dd170d9d237a413c" id="r_aa9b06bf1c96c1602dd170d9d237a413c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aa9b06bf1c96c1602dd170d9d237a413c">canCouple</a></td></tr>
 <tr class="memdesc:aa9b06bf1c96c1602dd170d9d237a413c"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the train can start to couple virtually to the train ahead.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -139,7 +138,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool Train::AuthorityTarget::canCouple = false</td>
+          <td class="memname">bool Train::AuthorityTarget::canCouple</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -155,7 +154,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::AuthorityTarget::distance = 0</td>
+          <td class="memname">double Train::AuthorityTarget::distance</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -171,7 +170,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool Train::AuthorityTarget::moved = false</td>
+          <td class="memname">bool Train::AuthorityTarget::moved</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -186,7 +185,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::AuthorityTarget::position = 0</td>
+          <td class="memname">double Train::AuthorityTarget::position</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -202,7 +201,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::AuthorityTarget::speed = -1</td>
+          <td class="memname">double Train::AuthorityTarget::speed</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -211,7 +210,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>simulation/<a class="el" href="_rolling_stock_8h_source.html">RollingStock.h</a></li>
+<li>simulation/<a class="el" href="_rolling_stock_8h.html">RollingStock.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

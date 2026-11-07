@@ -3,7 +3,7 @@
 This page lists what you need to build EGTRAIN and explains how to configure, build and run it, with the
 common setup failures and their fixes.
 
-Run configure, build, and test commands from the repository root. Run the
+Run configure, build, and test commands from the root of the source tree. Run the
 application itself from `EGTRAIN/QEGTRAIN` so relative scene paths resolve.
 
 ## Requirements
@@ -17,7 +17,7 @@ application itself from `EGTRAIN/QEGTRAIN` so relative scene paths resolve.
   CTest runs its Python tests with that interpreter. On Windows, set
   `PYTHONUTF8=1` for local runs so scripts read program output as UTF-8;
   the Windows presets set it.
-- Git, to clone the repository. On Windows, Git for Windows is a separate install from Visual Studio, and vcpkg
+- Git, to get the source tree. On Windows, Git for Windows is a separate install from Visual Studio, and vcpkg
   uses it to fetch its registry at the `builtin-baseline` of `tools/vcpkg/vcpkg.json`.
 
 Qt Svg is required by the application and must be available with the
@@ -135,7 +135,7 @@ On Linux, use `linux-release` and leave out `WrapOpenGL_AGL`. A preset build put
 
 On Windows, `CMakePresets.json` holds the settings: Ninja and MSVC for x64, the vcpkg of Visual Studio with the
 `x64-windows` triplet and the manifest `tools/vcpkg/vcpkg.json`, Qt from `C:/Qt/6.8.3/msvc2022_64`, and the tests.
-From an x64 Developer PowerShell for Visual Studio 2022 or newer, in the repository folder:
+From an x64 Developer PowerShell for Visual Studio 2022 or newer, in the root folder of the source tree:
 
 ```powershell
 cmake --preset x64-release
@@ -146,7 +146,7 @@ ctest --preset x64-release
 The `x64-debug` presets make a Debug build. Each preset builds in `out\build\<preset>`. The first configure on a
 machine also builds ZeroMQ, cppzmq and nlohmann-json with vcpkg; later configures restore them from the cache of vcpkg
 in `%LOCALAPPDATA%\vcpkg\archives`. The configure prints `Could NOT find WrapVulkanHeaders` twice, which does no
-harm. The Windows leg of CI (`.github/workflows/cmake.yml`) and the Windows package (`.github/workflows/package.yml`)
+harm. The Windows leg of CI (the workflow `cmake.yml`) and the Windows package (the workflow `package.yml`)
 install the same manifest with the vcpkg of the runner image: the leg through the `ci-windows` preset, and the package
 job with the same options on its configure line.
 
@@ -171,14 +171,14 @@ when building and testing, as in the next two sections.
 
 ### Visual Studio
 
-The repository has no Visual Studio solution or project file. Visual Studio opens the folder as a CMake project and
+The source tree has no Visual Studio solution or project file. Visual Studio opens the folder as a CMake project and
 uses the presets:
 
 1. Install Visual Studio 2022 or newer with the **Desktop development with C++** workload. Its default components
    include the C++ CMake tools and the vcpkg package manager.
 2. Install Git for Windows and Python 3.9 or newer. Install Qt 6.8.3 `msvc2022_64` with Qt Charts into `C:\Qt`, with
    aqtinstall as in [Requirements](#requirements) or with the [Qt online installer](#qt-online-installer).
-3. Open the repository folder with **File > Open > Folder**. Visual Studio then configures the `x64-debug` preset. The
+3. Open the root folder of the source tree with **File > Open > Folder**. Visual Studio then configures the `x64-debug` preset. The
    first configure on a machine also builds the vcpkg libraries and takes longer.
 4. For a Release build, pick `x64-release` in the configuration list of the toolbar.
 5. Pick `QEGTRAIN.exe` as the startup item, not `QEGTRAIN.exe (Install)`, and press F5. The default startup item is
@@ -357,8 +357,8 @@ Started outside Visual Studio, it needs the Qt `bin` folder on `PATH`, for examp
 These are local build paths; downloaded release packages are documented in [Installing EGTRAIN](../guides/install.md).
 
 Runtime output defaults to
-`<QStandardPaths::AppDataLocation>/Output/<scene>`. It does not always use a
-repository `Output/` directory. Set `QEGTRAIN_OUTPUT_DIR` to override the base
+`<QStandardPaths::AppDataLocation>/Output/<scene>`. It does not always use an
+`Output/` directory in the source tree. Set `QEGTRAIN_OUTPUT_DIR` to override the base
 directory; EGTRAIN then writes `<override>/Output/<scene>`.
 
 ## Common setup failures

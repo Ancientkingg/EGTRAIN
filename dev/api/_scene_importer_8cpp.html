@@ -8,7 +8,6 @@
 <title>EGTRAIN: scene/SceneImporter.cpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,15 +111,15 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_importe
   <div class="headertitle"><div class="title">SceneImporter.cpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_scene_importer_8h_source.html">scene/SceneImporter.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_field_reader_8h_source.html">scene/SceneFieldReader.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_fields_8h_source.html">scene/SceneFields.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_validator_8h_source.html">scene/SceneValidator.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_writer_8h_source.html">scene/SceneWriter.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_section_reference_8h_source.html">scene/SectionReference.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_staged_directory_8h_source.html">scene/StagedDirectory.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_utf8_path_8h_source.html">scene/Utf8Path.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_scene_importer_8h.html">scene/SceneImporter.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_field_reader_8h.html">scene/SceneFieldReader.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_fields_8h.html">scene/SceneFields.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_model_8h.html">scene/SceneModel.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_validator_8h.html">scene/SceneValidator.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_writer_8h.html">scene/SceneWriter.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_section_reference_8h.html">scene/SectionReference.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_staged_directory_8h.html">scene/StagedDirectory.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_utf8_path_8h.html">scene/Utf8Path.h</a>&quot;</code><br />
 <code>#include &lt;filesystem&gt;</code><br />
 <code>#include &lt;locale&gt;</code><br />
 <code>#include &lt;sstream&gt;</code><br />
@@ -1832,25 +1831,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">                                   = {</div>
-<div class="line">    </div>
-<div class="line">    {{<span class="stringliteral">&quot;input_egtrain_netherlands&quot;</span>}, {<span class="stringliteral">&quot;netherlands&quot;</span>}, <span class="stringliteral">&quot;&quot;</span>, <span class="stringliteral">&quot;06:28:20&quot;</span>, 8000.0, <span class="keyword">false</span>, <span class="keyword">false</span>},</div>
-<div class="line">    </div>
-<div class="line">    {{<span class="stringliteral">&quot;input_egtrain_paimpol&quot;</span>}, {<span class="stringliteral">&quot;paimpol&quot;</span>}, <span class="stringliteral">&quot;&quot;</span>, <span class="stringliteral">&quot;07:10:40&quot;</span>, 9000.0, <span class="keyword">false</span>, <span class="keyword">true</span>},</div>
-<div class="line">    </div>
-<div class="line">    </div>
-<div class="line">    {{<span class="stringliteral">&quot;input_egtrain_paimpol - alternativejourneys&quot;</span>}, {<span class="stringliteral">&quot;paimpol alternative journeys&quot;</span>}, <span class="stringliteral">&quot;&quot;</span>, <span class="stringliteral">&quot;07:10:40&quot;</span>, 9000.0, <span class="keyword">false</span>, <span class="keyword">false</span>},</div>
-<div class="line">    </div>
-<div class="line">    {{}, {}, <span class="stringliteral">&quot;input_egtrain_paimpol&quot;</span>, <span class="stringliteral">&quot;&quot;</span>, 0.0, <span class="keyword">false</span>, <span class="keyword">true</span>},</div>
-<div class="line">    </div>
-<div class="line">    </div>
-<div class="line">    {{<span class="stringliteral">&quot;input_egtrain_copenhagen&quot;</span>, <span class="stringliteral">&quot;input_egtrain_banedanmark&quot;</span>}, {<span class="stringliteral">&quot;copenhagen&quot;</span>, <span class="stringliteral">&quot;banedanmark&quot;</span>}, <span class="stringliteral">&quot;&quot;</span>, <span class="stringliteral">&quot;06:28:20&quot;</span>, 8000.0, <span class="keyword">true</span>, <span class="keyword">false</span>},</div>
-<div class="line">    </div>
-<div class="line">    {{<span class="stringliteral">&quot;input_egtrain_milano_brescia&quot;</span>}, {<span class="stringliteral">&quot;brescia&quot;</span>, <span class="stringliteral">&quot;milano_brescia&quot;</span>}, <span class="stringliteral">&quot;&quot;</span>, <span class="stringliteral">&quot;06:28:20&quot;</span>, 4000.0, <span class="keyword">false</span>, <span class="keyword">false</span>},</div>
-<div class="line">    </div>
-<div class="line">    {{<span class="stringliteral">&quot;input_egtrain_assignment&quot;</span>}, {<span class="stringliteral">&quot;assignment&quot;</span>}, <span class="stringliteral">&quot;&quot;</span>, <span class="stringliteral">&quot;07:00:00&quot;</span>, 10000.0, <span class="keyword">false</span>, <span class="keyword">false</span>},</div>
-<div class="line">}</div>
-</div><!-- fragment -->
+
 </div>
 </div>
 </div><!-- contents -->

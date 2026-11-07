@@ -8,7 +8,6 @@
 <title>EGTRAIN: SimulationRun Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,7 +112,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_simulat
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_simulation_run_8h_source.html">simulation/SimulationRun.h</a>&gt;</code></p>
+<p><code>#include &lt;simulation/SimulationRun.h&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for SimulationRun:</div>
 <div class="dyncontent">
@@ -130,7 +129,7 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:af6d9f8972b6a63879e8ce3febf96b073" id="r_af6d9f8972b6a63879e8ce3febf96b073"><td class="memItemLeft"><a class="el" href="class_initial_parameters.html">InitialParameters</a>&#160;</td><td class="memItemRight"><a class="el" href="#af6d9f8972b6a63879e8ce3febf96b073">settings</a> {0}</td></tr>
+<tr class="memitem:af6d9f8972b6a63879e8ce3febf96b073" id="r_af6d9f8972b6a63879e8ce3febf96b073"><td class="memItemLeft"><a class="el" href="class_initial_parameters.html">InitialParameters</a>&#160;</td><td class="memItemRight"><a class="el" href="#af6d9f8972b6a63879e8ce3febf96b073">settings</a></td></tr>
 <tr class="memitem:a11345f02ca8a96f1da319a27916a3e78" id="r_a11345f02ca8a96f1da319a27916a3e78"><td class="memItemLeft">std::list&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a11345f02ca8a96f1da319a27916a3e78">blocksOccupied</a></td></tr>
 <tr class="memdesc:a11345f02ca8a96f1da319a27916a3e78"><td class="mdescLeft">&#160;</td><td class="mdescRight">IDs of the block sections that trains occupy. The signalling routines fill the list during a step and the step clears it.  <br /></td></tr>
 <tr class="memitem:acfd9c938d2615ea5cc898ef5e2edb9c3" id="r_acfd9c938d2615ea5cc898ef5e2edb9c3"><td class="memItemLeft">std::list&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#acfd9c938d2615ea5cc898ef5e2edb9c3">blocksConnected</a></td></tr>
@@ -147,11 +146,11 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a9f1cf2a12811221fcdae1aec6e3b537e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Text of each virtual coupling notice.  <br /></td></tr>
 <tr class="memitem:ad1ad527d5244908944e8c0e7ba418e87" id="r_ad1ad527d5244908944e8c0e7ba418e87"><td class="memItemLeft">std::list&lt; <a class="el" href="class_station_platform.html">StationPlatform</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad1ad527d5244908944e8c0e7ba418e87">platforms</a></td></tr>
 <tr class="memdesc:ad1ad527d5244908944e8c0e7ba418e87"><td class="mdescLeft">&#160;</td><td class="mdescRight">The platforms of the network.  <br /></td></tr>
-<tr class="memitem:adc132f81dade594bc983b8a8ba642666" id="r_adc132f81dade594bc983b8a8ba642666"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#adc132f81dade594bc983b8a8ba642666">numPlatforms</a> = 0</td></tr>
+<tr class="memitem:adc132f81dade594bc983b8a8ba642666" id="r_adc132f81dade594bc983b8a8ba642666"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#adc132f81dade594bc983b8a8ba642666">numPlatforms</a></td></tr>
 <tr class="memdesc:adc132f81dade594bc983b8a8ba642666"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of platforms.  <br /></td></tr>
 <tr class="memitem:a703aa52b2a23bad198cdd0ba45c3470b" id="r_a703aa52b2a23bad198cdd0ba45c3470b"><td class="memItemLeft">std::list&lt; <a class="el" href="class_passenger.html">Passenger</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a703aa52b2a23bad198cdd0ba45c3470b">passengers</a></td></tr>
 <tr class="memdesc:a703aa52b2a23bad198cdd0ba45c3470b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The passengers of the run.  <br /></td></tr>
-<tr class="memitem:aafa9438ee4ba25eec6344024ecce05de" id="r_aafa9438ee4ba25eec6344024ecce05de"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aafa9438ee4ba25eec6344024ecce05de">numPassengers</a> = 0</td></tr>
+<tr class="memitem:aafa9438ee4ba25eec6344024ecce05de" id="r_aafa9438ee4ba25eec6344024ecce05de"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aafa9438ee4ba25eec6344024ecce05de">numPassengers</a></td></tr>
 <tr class="memdesc:aafa9438ee4ba25eec6344024ecce05de"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of passengers.  <br /></td></tr>
 <tr class="memitem:a43dd361d475559b4479a9980c6cc5526" id="r_a43dd361d475559b4479a9980c6cc5526"><td class="memItemLeft"><a class="el" href="class_passenger_index.html">PassengerIndex</a>&#160;</td><td class="memItemRight"><a class="el" href="#a43dd361d475559b4479a9980c6cc5526">passengerIndex</a></td></tr>
 <tr class="memitem:afce9337337bae03e14d1cf509f5a9e3f" id="r_afce9337337bae03e14d1cf509f5a9e3f"><td class="memItemLeft"><a class="el" href="class_platform_index.html">PlatformIndex</a>&#160;</td><td class="memItemRight"><a class="el" href="#afce9337337bae03e14d1cf509f5a9e3f">platformIndex</a></td></tr>
@@ -165,14 +164,14 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a240b06ba30d3240b5f528b573ca64947" id="r_a240b06ba30d3240b5f528b573ca64947"><td class="memItemLeft"><a class="el" href="struct_delay_stats.html">DelayStats</a>&#160;</td><td class="memItemRight"><a class="el" href="#a240b06ba30d3240b5f528b573ca64947">finalStation</a></td></tr>
 <tr class="memdesc:a240b06ba30d3240b5f528b573ca64947"><td class="mdescLeft">&#160;</td><td class="mdescRight">Delay statistics at the final stop of every train, which the files show under kFinalStationName.  <br /></td></tr>
 <tr class="memitem:aede4e9f69b1371af053e529f6cf1018a" id="r_aede4e9f69b1371af053e529f6cf1018a"><td class="memItemLeft">std::vector&lt; <a class="el" href="class_train.html">Train</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aede4e9f69b1371af053e529f6cf1018a">trains</a></td></tr>
-<tr class="memitem:a8a642519a4c27e61e8efb71214f58ecd" id="r_a8a642519a4c27e61e8efb71214f58ecd"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a8a642519a4c27e61e8efb71214f58ecd">numTrains</a> = 0</td></tr>
+<tr class="memitem:a8a642519a4c27e61e8efb71214f58ecd" id="r_a8a642519a4c27e61e8efb71214f58ecd"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a8a642519a4c27e61e8efb71214f58ecd">numTrains</a></td></tr>
 <tr class="memdesc:a8a642519a4c27e61e8efb71214f58ecd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of trains.  <br /></td></tr>
-<tr class="memitem:ab3523eba3bbf113596f03c00522743d6" id="r_ab3523eba3bbf113596f03c00522743d6"><td class="memItemLeft"><a class="el" href="class_number_generator.html">NumberGenerator</a>&#160;</td><td class="memItemRight"><a class="el" href="#ab3523eba3bbf113596f03c00522743d6">numberGenerator</a> {<a class="el" href="_initial_parameters_8h.html#a1f52f2d2afceb8eab8e2f24b9523a35e">kDefaultRandomSeed</a>}</td></tr>
+<tr class="memitem:ab3523eba3bbf113596f03c00522743d6" id="r_ab3523eba3bbf113596f03c00522743d6"><td class="memItemLeft"><a class="el" href="class_number_generator.html">NumberGenerator</a>&#160;</td><td class="memItemRight"><a class="el" href="#ab3523eba3bbf113596f03c00522743d6">numberGenerator</a></td></tr>
 <tr class="memdesc:ab3523eba3bbf113596f03c00522743d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The draws of the passenger sampling. The operations builder seeds it from initial_variables.randomSeed.  <br /></td></tr>
-<tr class="memitem:aae989c4bf3721dd9cd29c8bd5ee0d3a1" id="r_aae989c4bf3721dd9cd29c8bd5ee0d3a1"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aae989c4bf3721dd9cd29c8bd5ee0d3a1">signallingDelay</a> = 0</td></tr>
-<tr class="memitem:ad02bbaddd777d6efe66125849f63aacc" id="r_ad02bbaddd777d6efe66125849f63aacc"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad02bbaddd777d6efe66125849f63aacc">compTimeEgtrain</a> = 0</td></tr>
+<tr class="memitem:aae989c4bf3721dd9cd29c8bd5ee0d3a1" id="r_aae989c4bf3721dd9cd29c8bd5ee0d3a1"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aae989c4bf3721dd9cd29c8bd5ee0d3a1">signallingDelay</a></td></tr>
+<tr class="memitem:ad02bbaddd777d6efe66125849f63aacc" id="r_ad02bbaddd777d6efe66125849f63aacc"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad02bbaddd777d6efe66125849f63aacc">compTimeEgtrain</a></td></tr>
 <tr class="memdesc:ad02bbaddd777d6efe66125849f63aacc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time of the steps in seconds as clock() measures it, summed over the run.  <br /></td></tr>
-<tr class="memitem:a4a8ee624088ebd005150c58264a6d8fe" id="r_a4a8ee624088ebd005150c58264a6d8fe"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a4a8ee624088ebd005150c58264a6d8fe">compTimeRoma</a> = 0</td></tr>
+<tr class="memitem:a4a8ee624088ebd005150c58264a6d8fe" id="r_a4a8ee624088ebd005150c58264a6d8fe"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a4a8ee624088ebd005150c58264a6d8fe">compTimeRoma</a></td></tr>
 <tr class="memdesc:a4a8ee624088ebd005150c58264a6d8fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Written to the computing times file next to compTimeEgtrain. Nothing in the program sets it, so it stays 0.  <br /></td></tr>
 <tr class="memitem:a6adc19a351ad7af5c835d4de1d1c8e45" id="r_a6adc19a351ad7af5c835d4de1d1c8e45"><td class="memItemLeft"><a class="el" href="struct_run_infrastructure.html">RunInfrastructure</a>&#160;</td><td class="memItemRight"><a class="el" href="#a6adc19a351ad7af5c835d4de1d1c8e45">infra</a></td></tr>
 <tr class="memdesc:a6adc19a351ad7af5c835d4de1d1c8e45"><td class="mdescLeft">&#160;</td><td class="mdescRight">The infrastructure and the routes. The scene builder replaces them, and the previous ones stay in place until then.  <br /></td></tr>
@@ -294,7 +293,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double SimulationRun::compTimeEgtrain = 0</td>
+          <td class="memname">double SimulationRun::compTimeEgtrain</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -310,7 +309,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double SimulationRun::compTimeRoma = 0</td>
+          <td class="memname">double SimulationRun::compTimeRoma</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -422,7 +421,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="class_number_generator.html">NumberGenerator</a> SimulationRun::numberGenerator {<a class="el" href="_initial_parameters_8h.html#a1f52f2d2afceb8eab8e2f24b9523a35e">kDefaultRandomSeed</a>}</td>
+          <td class="memname"><a class="el" href="class_number_generator.html">NumberGenerator</a> SimulationRun::numberGenerator</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -438,7 +437,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int SimulationRun::numPassengers = 0</td>
+          <td class="memname">int SimulationRun::numPassengers</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -454,7 +453,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int SimulationRun::numPlatforms = 0</td>
+          <td class="memname">int SimulationRun::numPlatforms</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -470,7 +469,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int SimulationRun::numTrains = 0</td>
+          <td class="memname">int SimulationRun::numTrains</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -549,7 +548,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="class_initial_parameters.html">InitialParameters</a> SimulationRun::settings {0}</td>
+          <td class="memname"><a class="el" href="class_initial_parameters.html">InitialParameters</a> SimulationRun::settings</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -564,7 +563,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double SimulationRun::signallingDelay = 0</td>
+          <td class="memname">double SimulationRun::signallingDelay</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -652,7 +651,7 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following files:<ul>
-<li>simulation/<a class="el" href="_simulation_run_8h_source.html">SimulationRun.h</a></li>
+<li>simulation/<a class="el" href="_simulation_run_8h.html">SimulationRun.h</a></li>
 <li>simulation/<a class="el" href="_simulation_run_8cpp.html">SimulationRun.cpp</a></li>
 </ul>
 </div><!-- contents -->

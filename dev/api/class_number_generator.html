@@ -8,7 +8,6 @@
 <title>EGTRAIN: NumberGenerator Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,7 +112,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_number_g
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_number_generator_8h_source.html">simulation/NumberGenerator.h</a>&gt;</code></p>
+<p><code>#include &lt;simulation/NumberGenerator.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -130,23 +129,23 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
-<tr class="memitem:ad7e74a6ca1331369e05d1af1ebe6a66d" id="r_ad7e74a6ca1331369e05d1af1ebe6a66d"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ad7e74a6ca1331369e05d1af1ebe6a66d">kIa</a> = 16807</td></tr>
+<tr class="memitem:ad7e74a6ca1331369e05d1af1ebe6a66d" id="r_ad7e74a6ca1331369e05d1af1ebe6a66d"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ad7e74a6ca1331369e05d1af1ebe6a66d">kIa</a></td></tr>
 <tr class="memdesc:ad7e74a6ca1331369e05d1af1ebe6a66d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Multiplier of the state.  <br /></td></tr>
-<tr class="memitem:a10026ea90569e16fe562fe0fd98746e7" id="r_a10026ea90569e16fe562fe0fd98746e7"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a10026ea90569e16fe562fe0fd98746e7">kIm</a> = 2147483647</td></tr>
+<tr class="memitem:a10026ea90569e16fe562fe0fd98746e7" id="r_a10026ea90569e16fe562fe0fd98746e7"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a10026ea90569e16fe562fe0fd98746e7">kIm</a></td></tr>
 <tr class="memdesc:a10026ea90569e16fe562fe0fd98746e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Modulus of the state, 2^31 - 1.  <br /></td></tr>
-<tr class="memitem:acc30144790c080c62c4b5d14626dac55" id="r_acc30144790c080c62c4b5d14626dac55"><td class="memItemLeft">static constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#acc30144790c080c62c4b5d14626dac55">kAm</a> = 1.0 / <a class="el" href="#a10026ea90569e16fe562fe0fd98746e7">kIm</a></td></tr>
+<tr class="memitem:acc30144790c080c62c4b5d14626dac55" id="r_acc30144790c080c62c4b5d14626dac55"><td class="memItemLeft">static constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#acc30144790c080c62c4b5d14626dac55">kAm</a></td></tr>
 <tr class="memdesc:acc30144790c080c62c4b5d14626dac55"><td class="mdescLeft">&#160;</td><td class="mdescRight">Turns a state into a number on the unit interval.  <br /></td></tr>
-<tr class="memitem:a0bbb1c7b479b1df817ebce14527c7c08" id="r_a0bbb1c7b479b1df817ebce14527c7c08"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a0bbb1c7b479b1df817ebce14527c7c08">kIq</a> = 127773</td></tr>
+<tr class="memitem:a0bbb1c7b479b1df817ebce14527c7c08" id="r_a0bbb1c7b479b1df817ebce14527c7c08"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a0bbb1c7b479b1df817ebce14527c7c08">kIq</a></td></tr>
 <tr class="memdesc:a0bbb1c7b479b1df817ebce14527c7c08"><td class="mdescLeft">&#160;</td><td class="mdescRight">kIm / kIa.  <br /></td></tr>
-<tr class="memitem:a7eab08dfeb44d81013ee4824c0387b4e" id="r_a7eab08dfeb44d81013ee4824c0387b4e"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a7eab08dfeb44d81013ee4824c0387b4e">kIr</a> = 2836</td></tr>
+<tr class="memitem:a7eab08dfeb44d81013ee4824c0387b4e" id="r_a7eab08dfeb44d81013ee4824c0387b4e"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a7eab08dfeb44d81013ee4824c0387b4e">kIr</a></td></tr>
 <tr class="memdesc:a7eab08dfeb44d81013ee4824c0387b4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">kIm % kIa.  <br /></td></tr>
-<tr class="memitem:a6f0e5fdb0885a79a71144eec9d925574" id="r_a6f0e5fdb0885a79a71144eec9d925574"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a6f0e5fdb0885a79a71144eec9d925574">kNtab</a> = 32</td></tr>
+<tr class="memitem:a6f0e5fdb0885a79a71144eec9d925574" id="r_a6f0e5fdb0885a79a71144eec9d925574"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a6f0e5fdb0885a79a71144eec9d925574">kNtab</a></td></tr>
 <tr class="memdesc:a6f0e5fdb0885a79a71144eec9d925574"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of entries of the table.  <br /></td></tr>
-<tr class="memitem:af0c821b681640cb5e2dbccd43385e242" id="r_af0c821b681640cb5e2dbccd43385e242"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#af0c821b681640cb5e2dbccd43385e242">kNdiv</a> = 1 + (<a class="el" href="#a10026ea90569e16fe562fe0fd98746e7">kIm</a> - 1) / <a class="el" href="#a6f0e5fdb0885a79a71144eec9d925574">kNtab</a></td></tr>
+<tr class="memitem:af0c821b681640cb5e2dbccd43385e242" id="r_af0c821b681640cb5e2dbccd43385e242"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#af0c821b681640cb5e2dbccd43385e242">kNdiv</a></td></tr>
 <tr class="memdesc:af0c821b681640cb5e2dbccd43385e242"><td class="mdescLeft">&#160;</td><td class="mdescRight">Turns the previous result into an index of the table.  <br /></td></tr>
-<tr class="memitem:a1327d017e952c3a366f01c3831bb694a" id="r_a1327d017e952c3a366f01c3831bb694a"><td class="memItemLeft">static constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a1327d017e952c3a366f01c3831bb694a">kEps</a> = 1.2e-7</td></tr>
+<tr class="memitem:a1327d017e952c3a366f01c3831bb694a" id="r_a1327d017e952c3a366f01c3831bb694a"><td class="memItemLeft">static constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a1327d017e952c3a366f01c3831bb694a">kEps</a></td></tr>
 <tr class="memdesc:a1327d017e952c3a366f01c3831bb694a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Keeps a draw on the unit interval below 1.  <br /></td></tr>
-<tr class="memitem:a21fbfa632b597c45357793cdd37e059e" id="r_a21fbfa632b597c45357793cdd37e059e"><td class="memItemLeft">static constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a21fbfa632b597c45357793cdd37e059e">kRnmx</a> = 1.0 - <a class="el" href="#a1327d017e952c3a366f01c3831bb694a">kEps</a></td></tr>
+<tr class="memitem:a21fbfa632b597c45357793cdd37e059e" id="r_a21fbfa632b597c45357793cdd37e059e"><td class="memItemLeft">static constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a21fbfa632b597c45357793cdd37e059e">kRnmx</a></td></tr>
 <tr class="memdesc:a21fbfa632b597c45357793cdd37e059e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Largest draw on the unit interval.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -333,7 +332,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">double NumberGenerator::kAm = 1.0 / <a class="el" href="#a10026ea90569e16fe562fe0fd98746e7">kIm</a></td>
+          <td class="memname">double NumberGenerator::kAm</td>
         </tr>
       </table>
   </td>
@@ -357,7 +356,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">double NumberGenerator::kEps = 1.2e-7</td>
+          <td class="memname">double NumberGenerator::kEps</td>
         </tr>
       </table>
   </td>
@@ -381,7 +380,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int NumberGenerator::kIa = 16807</td>
+          <td class="memname">int NumberGenerator::kIa</td>
         </tr>
       </table>
   </td>
@@ -405,7 +404,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int NumberGenerator::kIm = 2147483647</td>
+          <td class="memname">int NumberGenerator::kIm</td>
         </tr>
       </table>
   </td>
@@ -429,7 +428,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int NumberGenerator::kIq = 127773</td>
+          <td class="memname">int NumberGenerator::kIq</td>
         </tr>
       </table>
   </td>
@@ -453,7 +452,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int NumberGenerator::kIr = 2836</td>
+          <td class="memname">int NumberGenerator::kIr</td>
         </tr>
       </table>
   </td>
@@ -477,7 +476,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int NumberGenerator::kNdiv = 1 + (<a class="el" href="#a10026ea90569e16fe562fe0fd98746e7">kIm</a> - 1) / <a class="el" href="#a6f0e5fdb0885a79a71144eec9d925574">kNtab</a></td>
+          <td class="memname">int NumberGenerator::kNdiv</td>
         </tr>
       </table>
   </td>
@@ -501,7 +500,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int NumberGenerator::kNtab = 32</td>
+          <td class="memname">int NumberGenerator::kNtab</td>
         </tr>
       </table>
   </td>
@@ -525,7 +524,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">double NumberGenerator::kRnmx = 1.0 - <a class="el" href="#a1327d017e952c3a366f01c3831bb694a">kEps</a></td>
+          <td class="memname">double NumberGenerator::kRnmx</td>
         </tr>
       </table>
   </td>
@@ -540,7 +539,7 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>simulation/<a class="el" href="_number_generator_8h_source.html">NumberGenerator.h</a></li>
+<li>simulation/<a class="el" href="_number_generator_8h.html">NumberGenerator.h</a></li>
 <li>simulation/<a class="el" href="_number_generator_8cpp.html">NumberGenerator.cpp</a></li>
 </ul>
 </div><!-- contents -->

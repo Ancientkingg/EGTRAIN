@@ -8,7 +8,6 @@
 <title>EGTRAIN: SeriesMeta Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,13 +112,13 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_series_
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_series_meta_8h_source.html">diagrams/SeriesMeta.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/SeriesMeta.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a1eb1ee0d919b95014817d200bc3fd6a3" id="r_a1eb1ee0d919b95014817d200bc3fd6a3"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a1eb1ee0d919b95014817d200bc3fd6a3">trainId</a></td></tr>
 <tr class="memdesc:a1eb1ee0d919b95014817d200bc3fd6a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The train that the series belongs to, which groups the series of a train; empty groups the series by its own name.  <br /></td></tr>
-<tr class="memitem:a4513e1e479b47ed335cb045777ba0b65" id="r_a4513e1e479b47ed335cb045777ba0b65"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4513e1e479b47ed335cb045777ba0b65">planned</a> = false</td></tr>
+<tr class="memitem:a4513e1e479b47ed335cb045777ba0b65" id="r_a4513e1e479b47ed335cb045777ba0b65"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4513e1e479b47ed335cb045777ba0b65">planned</a></td></tr>
 <tr class="memdesc:a4513e1e479b47ed335cb045777ba0b65"><td class="mdescLeft">&#160;</td><td class="mdescRight">The series is planned, whatever its name: the window draws it dashed, with open circles at its points.  <br /></td></tr>
 <tr class="memitem:af91c7e380200af865f80cfebed3b3e1f" id="r_af91c7e380200af865f80cfebed3b3e1f"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#af91c7e380200af865f80cfebed3b3e1f">layer</a></td></tr>
 <tr class="memdesc:af91c7e380200af865f80cfebed3b3e1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The kind that the Key lists the series under while <span class="tt"><a class="el" href="#a622d6053614b7f0559ccbd78edd70612" title="The kind that the Key lists the series under, in the place of layer; empty leaves the series out of t...">keyKind</a></span> is not set; empty makes it Planned or Simulated.  <br /></td></tr>
@@ -129,15 +128,15 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a21402c8e5e9be7541e2410a7d283daaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The pen of the sample of a box in the Key, so that it looks alike for every train; not set for the pen of the series.  <br /></td></tr>
 <tr class="memitem:a33084c516e12c5c0f7561d6f3b289c08" id="r_a33084c516e12c5c0f7561d6f3b289c08"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a33084c516e12c5c0f7561d6f3b289c08">keyMarker</a></td></tr>
 <tr class="memdesc:a33084c516e12c5c0f7561d6f3b289c08"><td class="mdescLeft">&#160;</td><td class="mdescRight">A kind of its own in the Key for the points of a series that shows them, such as "Stop"; empty for none.  <br /></td></tr>
-<tr class="memitem:ac706f44ea3a8be72d05731012d8190d4" id="r_ac706f44ea3a8be72d05731012d8190d4"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac706f44ea3a8be72d05731012d8190d4">keyUpright</a> = false</td></tr>
+<tr class="memitem:ac706f44ea3a8be72d05731012d8190d4" id="r_ac706f44ea3a8be72d05731012d8190d4"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac706f44ea3a8be72d05731012d8190d4">keyUpright</a></td></tr>
 <tr class="memdesc:ac706f44ea3a8be72d05731012d8190d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The Key draws the line upright, as for a dwell.  <br /></td></tr>
-<tr class="memitem:ade094fefbd1e2395e4a02308bb9bbc55" id="r_ade094fefbd1e2395e4a02308bb9bbc55"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ade094fefbd1e2395e4a02308bb9bbc55">ownColour</a> = false</td></tr>
+<tr class="memitem:ade094fefbd1e2395e4a02308bb9bbc55" id="r_ade094fefbd1e2395e4a02308bb9bbc55"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ade094fefbd1e2395e4a02308bb9bbc55">ownColour</a></td></tr>
 <tr class="memitem:aac41fa2e4be2c74dd553363bc49b404f" id="r_aac41fa2e4be2c74dd553363bc49b404f"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#aac41fa2e4be2c74dd553363bc49b404f">inspectionPoints</a></td></tr>
 <tr class="memdesc:aac41fa2e4be2c74dd553363bc49b404f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Plain-text context for each appended point, including empty entries.  <br /></td></tr>
 <tr class="memitem:a80003b0ab71b82ecbaed4849b7430c66" id="r_a80003b0ab71b82ecbaed4849b7430c66"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a80003b0ab71b82ecbaed4849b7430c66">inspectionTitle</a></td></tr>
 <tr class="memdesc:a80003b0ab71b82ecbaed4849b7430c66"><td class="mdescLeft">&#160;</td><td class="mdescRight">The first line of the hover of a box, such as "IC1723-2 on 12-B0"; empty for none.  <br /></td></tr>
 <tr class="memitem:a20ebb6070993dd24783ece9b8b3c8cf5" id="r_a20ebb6070993dd24783ece9b8b3c8cf5"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a20ebb6070993dd24783ece9b8b3c8cf5">inspectionInterval</a></td></tr>
-<tr class="memitem:a97729ed7ae850e29b0764b86a49a875f" id="r_a97729ed7ae850e29b0764b86a49a875f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a97729ed7ae850e29b0764b86a49a875f">inspectionFilled</a> = false</td></tr>
+<tr class="memitem:a97729ed7ae850e29b0764b86a49a875f" id="r_a97729ed7ae850e29b0764b86a49a875f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a97729ed7ae850e29b0764b86a49a875f">inspectionFilled</a></td></tr>
 <tr class="memdesc:a97729ed7ae850e29b0764b86a49a875f"><td class="mdescLeft">&#160;</td><td class="mdescRight">A closed line series is a box: the window hits its interior, and it keeps the width of its outline.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -150,7 +149,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool SeriesMeta::inspectionFilled = false</td>
+          <td class="memname">bool SeriesMeta::inspectionFilled</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -261,7 +260,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool SeriesMeta::keyUpright = false</td>
+          <td class="memname">bool SeriesMeta::keyUpright</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -293,7 +292,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool SeriesMeta::ownColour = false</td>
+          <td class="memname">bool SeriesMeta::ownColour</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -308,7 +307,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool SeriesMeta::planned = false</td>
+          <td class="memname">bool SeriesMeta::planned</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -334,7 +333,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_series_meta_8h_source.html">SeriesMeta.h</a></li>
+<li>diagrams/<a class="el" href="_series_meta_8h.html">SeriesMeta.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

@@ -22,7 +22,8 @@ report a case that does not open:
   EGTRAIN can read, or it has the draft layout. No older version can be
   upgraded today. The message names the version numbers of the case and the
   EGTRAIN version that saved it, when the case records that. Download the
-  current case from the [EGTRAIN website](https://egtrain.samuelbruin.com/#cases).
+  current case from the page of the newest release: the Release notes link
+  under the downloads of the [EGTRAIN website](https://egtrain.samuelbruin.com/#download) opens it.
 - **Newer Case**: the case was saved with a newer EGTRAIN. Choose
   **Check for Updates...** to look for the newer release.
 - **Cannot Open Case**: the version cannot be read, the file is not a

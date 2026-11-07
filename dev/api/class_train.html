@@ -8,7 +8,6 @@
 <title>EGTRAIN: Train Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,7 +112,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_train.ht
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_rolling_stock_8h_source.html">simulation/RollingStock.h</a>&gt;</code></p>
+<p><code>#include &lt;simulation/RollingStock.h&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for Train:</div>
 <div class="dyncontent">
@@ -255,33 +254,33 @@ Static Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:adc6e0bb904a48e7d10787cffcd165c19" id="r_adc6e0bb904a48e7d10787cffcd165c19"><td class="memItemLeft"><a class="el" href="struct_simulation_run.html">SimulationRun</a> *&#160;</td><td class="memItemRight"><a class="el" href="#adc6e0bb904a48e7d10787cffcd165c19">run_</a> = nullptr</td></tr>
+<tr class="memitem:adc6e0bb904a48e7d10787cffcd165c19" id="r_adc6e0bb904a48e7d10787cffcd165c19"><td class="memItemLeft"><a class="el" href="struct_simulation_run.html">SimulationRun</a> *&#160;</td><td class="memItemRight"><a class="el" href="#adc6e0bb904a48e7d10787cffcd165c19">run_</a></td></tr>
 <tr class="memdesc:adc6e0bb904a48e7d10787cffcd165c19"><td class="mdescLeft">&#160;</td><td class="mdescRight">The run that the train is part of, which the operations builder sets. The train does not own it.  <br /></td></tr>
-<tr class="memitem:a007737b741647e6c6410c34a47feded6" id="r_a007737b741647e6c6410c34a47feded6"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a007737b741647e6c6410c34a47feded6">number_of_wagons</a> = 0.0</td></tr>
+<tr class="memitem:a007737b741647e6c6410c34a47feded6" id="r_a007737b741647e6c6410c34a47feded6"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a007737b741647e6c6410c34a47feded6">number_of_wagons</a></td></tr>
 <tr class="memdesc:a007737b741647e6c6410c34a47feded6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of wagons, without the traction unit.  <br /></td></tr>
-<tr class="memitem:a245e22e116866b126e06dd79462d9656" id="r_a245e22e116866b126e06dd79462d9656"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a245e22e116866b126e06dd79462d9656">massFactor</a> = 0.0</td></tr>
-<tr class="memitem:a55e19b27c65750f898b9d37ca05a3122" id="r_a55e19b27c65750f898b9d37ca05a3122"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a55e19b27c65750f898b9d37ca05a3122">mass_of_traction_unit</a> = 0.0</td></tr>
+<tr class="memitem:a245e22e116866b126e06dd79462d9656" id="r_a245e22e116866b126e06dd79462d9656"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a245e22e116866b126e06dd79462d9656">massFactor</a></td></tr>
+<tr class="memitem:a55e19b27c65750f898b9d37ca05a3122" id="r_a55e19b27c65750f898b9d37ca05a3122"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a55e19b27c65750f898b9d37ca05a3122">mass_of_traction_unit</a></td></tr>
 <tr class="memdesc:a55e19b27c65750f898b9d37ca05a3122"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mass of the traction unit in kg.  <br /></td></tr>
-<tr class="memitem:ac2b84614e9b8c27effdbdf7a77e328c9" id="r_ac2b84614e9b8c27effdbdf7a77e328c9"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ac2b84614e9b8c27effdbdf7a77e328c9">mass_of_a_wagon</a> = 0.0</td></tr>
-<tr class="memitem:ae5f67f12289fea6f2ab170de1df2f26d" id="r_ae5f67f12289fea6f2ab170de1df2f26d"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ae5f67f12289fea6f2ab170de1df2f26d">total_train_mass</a> = 0.0</td></tr>
-<tr class="memitem:a026ae2d312345ddc4c2965b1150f70fc" id="r_a026ae2d312345ddc4c2965b1150f70fc"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a026ae2d312345ddc4c2965b1150f70fc">max_train_decelaration</a> = 0.0</td></tr>
-<tr class="memitem:a9be8284d19dad9ac2aae3a2ce6be696e" id="r_a9be8284d19dad9ac2aae3a2ce6be696e"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a9be8284d19dad9ac2aae3a2ce6be696e">max_train_speed</a> = 0.0</td></tr>
-<tr class="memitem:aeca44a334e5ff8d45f74eb4263ad5dd1" id="r_aeca44a334e5ff8d45f74eb4263ad5dd1"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aeca44a334e5ff8d45f74eb4263ad5dd1">g</a> = 0.0</td></tr>
-<tr class="memitem:a5e7cf985e5e6bba1a7bbcdde37fd0ed6" id="r_a5e7cf985e5e6bba1a7bbcdde37fd0ed6"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a5e7cf985e5e6bba1a7bbcdde37fd0ed6">frontal_wagon_area</a> = 0.0</td></tr>
-<tr class="memitem:a5adf1755d4e8ac4f0b26d91c4e236736" id="r_a5adf1755d4e8ac4f0b26d91c4e236736"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a5adf1755d4e8ac4f0b26d91c4e236736">massPerWagonAxle</a> = 0.0</td></tr>
-<tr class="memitem:a4484d02efb043fc6689ec6753a671849" id="r_a4484d02efb043fc6689ec6753a671849"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a4484d02efb043fc6689ec6753a671849">Jerk</a> = 0.0</td></tr>
-<tr class="memitem:ab19583117d143b2e0b23ac379b694ffd" id="r_ab19583117d143b2e0b23ac379b694ffd"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab19583117d143b2e0b23ac379b694ffd">train_length</a> = 0.0</td></tr>
+<tr class="memitem:ac2b84614e9b8c27effdbdf7a77e328c9" id="r_ac2b84614e9b8c27effdbdf7a77e328c9"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ac2b84614e9b8c27effdbdf7a77e328c9">mass_of_a_wagon</a></td></tr>
+<tr class="memitem:ae5f67f12289fea6f2ab170de1df2f26d" id="r_ae5f67f12289fea6f2ab170de1df2f26d"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ae5f67f12289fea6f2ab170de1df2f26d">total_train_mass</a></td></tr>
+<tr class="memitem:a026ae2d312345ddc4c2965b1150f70fc" id="r_a026ae2d312345ddc4c2965b1150f70fc"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a026ae2d312345ddc4c2965b1150f70fc">max_train_decelaration</a></td></tr>
+<tr class="memitem:a9be8284d19dad9ac2aae3a2ce6be696e" id="r_a9be8284d19dad9ac2aae3a2ce6be696e"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a9be8284d19dad9ac2aae3a2ce6be696e">max_train_speed</a></td></tr>
+<tr class="memitem:aeca44a334e5ff8d45f74eb4263ad5dd1" id="r_aeca44a334e5ff8d45f74eb4263ad5dd1"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aeca44a334e5ff8d45f74eb4263ad5dd1">g</a></td></tr>
+<tr class="memitem:a5e7cf985e5e6bba1a7bbcdde37fd0ed6" id="r_a5e7cf985e5e6bba1a7bbcdde37fd0ed6"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a5e7cf985e5e6bba1a7bbcdde37fd0ed6">frontal_wagon_area</a></td></tr>
+<tr class="memitem:a5adf1755d4e8ac4f0b26d91c4e236736" id="r_a5adf1755d4e8ac4f0b26d91c4e236736"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a5adf1755d4e8ac4f0b26d91c4e236736">massPerWagonAxle</a></td></tr>
+<tr class="memitem:a4484d02efb043fc6689ec6753a671849" id="r_a4484d02efb043fc6689ec6753a671849"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a4484d02efb043fc6689ec6753a671849">Jerk</a></td></tr>
+<tr class="memitem:ab19583117d143b2e0b23ac379b694ffd" id="r_ab19583117d143b2e0b23ac379b694ffd"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab19583117d143b2e0b23ac379b694ffd">train_length</a></td></tr>
 <tr class="memitem:ad749860eb52e883188e49316297ef1fc" id="r_ad749860eb52e883188e49316297ef1fc"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad749860eb52e883188e49316297ef1fc">instant_train_speed</a></td></tr>
 <tr class="memdesc:ad749860eb52e883188e49316297ef1fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Speed at each step in m/s.  <br /></td></tr>
 <tr class="memitem:abe378851e9b53cc04057a092bfb478ce" id="r_abe378851e9b53cc04057a092bfb478ce"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#abe378851e9b53cc04057a092bfb478ce">velocityIntervals</a></td></tr>
-<tr class="memitem:a884a4ac08f13a4acfd559e91f2b8ba5b" id="r_a884a4ac08f13a4acfd559e91f2b8ba5b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a884a4ac08f13a4acfd559e91f2b8ba5b">Vlb</a> [20] = {}</td></tr>
+<tr class="memitem:a884a4ac08f13a4acfd559e91f2b8ba5b" id="r_a884a4ac08f13a4acfd559e91f2b8ba5b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a884a4ac08f13a4acfd559e91f2b8ba5b">Vlb</a> [20]</td></tr>
 <tr class="memdesc:a884a4ac08f13a4acfd559e91f2b8ba5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lower speed bound of each band of the traction curve; the code compares it with the speed in m/s.  <br /></td></tr>
-<tr class="memitem:a2291f6dd74312f8ad46dc1e113118648" id="r_a2291f6dd74312f8ad46dc1e113118648"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a2291f6dd74312f8ad46dc1e113118648">Vub</a> [20] = {}</td></tr>
-<tr class="memitem:a611572cef0565d89fcc99c00b2f0ce01" id="r_a611572cef0565d89fcc99c00b2f0ce01"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a611572cef0565d89fcc99c00b2f0ce01">C0</a> [20] = {}</td></tr>
+<tr class="memitem:a2291f6dd74312f8ad46dc1e113118648" id="r_a2291f6dd74312f8ad46dc1e113118648"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a2291f6dd74312f8ad46dc1e113118648">Vub</a> [20]</td></tr>
+<tr class="memitem:a611572cef0565d89fcc99c00b2f0ce01" id="r_a611572cef0565d89fcc99c00b2f0ce01"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a611572cef0565d89fcc99c00b2f0ce01">C0</a> [20]</td></tr>
 <tr class="memdesc:a611572cef0565d89fcc99c00b2f0ce01"><td class="mdescLeft">&#160;</td><td class="mdescRight">Coefficients of the tractive effort c0 + c1 v + c2 v^2 of each band, which give N for v in m/s.  <br /></td></tr>
-<tr class="memitem:a4d2e2c521ae979065a861d9650432f25" id="r_a4d2e2c521ae979065a861d9650432f25"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a4d2e2c521ae979065a861d9650432f25">C1</a> [20] = {}</td></tr>
-<tr class="memitem:ae5ac5d71a4fc4245d1eaa66b7aba07ff" id="r_ae5ac5d71a4fc4245d1eaa66b7aba07ff"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ae5ac5d71a4fc4245d1eaa66b7aba07ff">C2</a> [20] = {}</td></tr>
-<tr class="memitem:a28622cad0d9a16fc3ec99ced92d984ff" id="r_a28622cad0d9a16fc3ec99ced92d984ff"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a28622cad0d9a16fc3ec99ced92d984ff">resistanceCoefficient</a> = 0.0</td></tr>
+<tr class="memitem:a4d2e2c521ae979065a861d9650432f25" id="r_a4d2e2c521ae979065a861d9650432f25"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a4d2e2c521ae979065a861d9650432f25">C1</a> [20]</td></tr>
+<tr class="memitem:ae5ac5d71a4fc4245d1eaa66b7aba07ff" id="r_ae5ac5d71a4fc4245d1eaa66b7aba07ff"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ae5ac5d71a4fc4245d1eaa66b7aba07ff">C2</a> [20]</td></tr>
+<tr class="memitem:a28622cad0d9a16fc3ec99ced92d984ff" id="r_a28622cad0d9a16fc3ec99ced92d984ff"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a28622cad0d9a16fc3ec99ced92d984ff">resistanceCoefficient</a></td></tr>
 <tr class="memitem:ac0f161a910c6a50db8b29f966f35689d" id="r_ac0f161a910c6a50db8b29f966f35689d"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac0f161a910c6a50db8b29f966f35689d">instant_spatial_position</a></td></tr>
 <tr class="memdesc:ac0f161a910c6a50db8b29f966f35689d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Head position on the route in metres at each step; -9999 at the step after End_Time and 0 after that.  <br /></td></tr>
 <tr class="memitem:a26fe6568dce33444c7b2cc2de798d9ef" id="r_a26fe6568dce33444c7b2cc2de798d9ef"><td class="memItemLeft">std::vector&lt; std::int32_t &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a26fe6568dce33444c7b2cc2de798d9ef">instant_block_section_occupied</a></td></tr>
@@ -294,13 +293,13 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a5a1e40f3306588466460ac04cb92320d" id="r_a5a1e40f3306588466460ac04cb92320d"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a5a1e40f3306588466460ac04cb92320d">TotalEnergySubstationRequest</a></td></tr>
 <tr class="memitem:ae5662f19faada89b66c03ae9209ce22b" id="r_ae5662f19faada89b66c03ae9209ce22b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ae5662f19faada89b66c03ae9209ce22b">TotalEnergyConsWithRegBrak</a></td></tr>
 <tr class="memitem:a64848b60a78f18f42eadc06d6ae1743d" id="r_a64848b60a78f18f42eadc06d6ae1743d"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a64848b60a78f18f42eadc06d6ae1743d">TotalEnergySubstRequestWithRegBrak</a></td></tr>
-<tr class="memitem:acaf9ea9d7ef495ef529cd3b3b49dbfbf" id="r_acaf9ea9d7ef495ef529cd3b3b49dbfbf"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#acaf9ea9d7ef495ef529cd3b3b49dbfbf">EnergyForAuxiliaries</a> = 0.0</td></tr>
-<tr class="memitem:aa6124e479707b630cf57f85cf43a85e0" id="r_aa6124e479707b630cf57f85cf43a85e0"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aa6124e479707b630cf57f85cf43a85e0">departure_time</a> = 0.0</td></tr>
-<tr class="memitem:adcbc6c37377e3367888f54f959092ef7" id="r_adcbc6c37377e3367888f54f959092ef7"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#adcbc6c37377e3367888f54f959092ef7">scheduled_departure_time</a> = 0.0</td></tr>
+<tr class="memitem:acaf9ea9d7ef495ef529cd3b3b49dbfbf" id="r_acaf9ea9d7ef495ef529cd3b3b49dbfbf"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#acaf9ea9d7ef495ef529cd3b3b49dbfbf">EnergyForAuxiliaries</a></td></tr>
+<tr class="memitem:aa6124e479707b630cf57f85cf43a85e0" id="r_aa6124e479707b630cf57f85cf43a85e0"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aa6124e479707b630cf57f85cf43a85e0">departure_time</a></td></tr>
+<tr class="memitem:adcbc6c37377e3367888f54f959092ef7" id="r_adcbc6c37377e3367888f54f959092ef7"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#adcbc6c37377e3367888f54f959092ef7">scheduled_departure_time</a></td></tr>
 <tr class="memitem:a7a645c0416337b21b0212cf2a994f2f4" id="r_a7a645c0416337b21b0212cf2a994f2f4"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a7a645c0416337b21b0212cf2a994f2f4">temp</a></td></tr>
 <tr class="memitem:add33181aceefcc5f3dc329c526899545" id="r_add33181aceefcc5f3dc329c526899545"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#add33181aceefcc5f3dc329c526899545">stop</a></td></tr>
 <tr class="memitem:afaa3d7513ca2f21af3652b3353bd85ec" id="r_afaa3d7513ca2f21af3652b3353bd85ec"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#afaa3d7513ca2f21af3652b3353bd85ec">counter</a></td></tr>
-<tr class="memitem:ae840ef5c13c8f3094b7d666feab56ed9" id="r_ae840ef5c13c8f3094b7d666feab56ed9"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ae840ef5c13c8f3094b7d666feab56ed9">ID</a> = 0.0</td></tr>
+<tr class="memitem:ae840ef5c13c8f3094b7d666feab56ed9" id="r_ae840ef5c13c8f3094b7d666feab56ed9"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ae840ef5c13c8f3094b7d666feab56ed9">ID</a></td></tr>
 <tr class="memdesc:ae840ef5c13c8f3094b7d666feab56ed9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Occurrence number of the service, from 1.  <br /></td></tr>
 <tr class="memitem:a9f00194d24ad07e86839738bc1e6c811" id="r_a9f00194d24ad07e86839738bc1e6c811"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a9f00194d24ad07e86839738bc1e6c811">type</a></td></tr>
 <tr class="memdesc:a9f00194d24ad07e86839738bc1e6c811"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the service.  <br /></td></tr>
@@ -308,31 +307,31 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a87163bfd71cf9e42623b90732d1ba8cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Operating code of this occurrence of the service.  <br /></td></tr>
 <tr class="memitem:a33dfd4246dc7f6ad37f3a550a5d5256a" id="r_a33dfd4246dc7f6ad37f3a550a5d5256a"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a33dfd4246dc7f6ad37f3a550a5d5256a">serviceId</a></td></tr>
 <tr class="memdesc:a33dfd4246dc7f6ad37f3a550a5d5256a"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the scene service.  <br /></td></tr>
-<tr class="memitem:ae564e9119b7c3e432bfa31faf2942de6" id="r_ae564e9119b7c3e432bfa31faf2942de6"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ae564e9119b7c3e432bfa31faf2942de6">serviceOccurrence</a> = 1</td></tr>
-<tr class="memitem:ac901c60022ae68ae343746a62bf0267a" id="r_ac901c60022ae68ae343746a62bf0267a"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ac901c60022ae68ae343746a62bf0267a">servicePerformancePercent</a> = 100.0</td></tr>
+<tr class="memitem:ae564e9119b7c3e432bfa31faf2942de6" id="r_ae564e9119b7c3e432bfa31faf2942de6"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ae564e9119b7c3e432bfa31faf2942de6">serviceOccurrence</a></td></tr>
+<tr class="memitem:ac901c60022ae68ae343746a62bf0267a" id="r_ac901c60022ae68ae343746a62bf0267a"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ac901c60022ae68ae343746a62bf0267a">servicePerformancePercent</a></td></tr>
 <tr class="memdesc:ac901c60022ae68ae343746a62bf0267a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performance of the service in percent; it scales the tractive effort and the maximum speed.  <br /></td></tr>
-<tr class="memitem:ab5cdbc2031c4a76ff5f290aad06cae65" id="r_ab5cdbc2031c4a76ff5f290aad06cae65"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab5cdbc2031c4a76ff5f290aad06cae65">hasConfiguredMaximumSpeed</a> = false</td></tr>
+<tr class="memitem:ab5cdbc2031c4a76ff5f290aad06cae65" id="r_ab5cdbc2031c4a76ff5f290aad06cae65"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab5cdbc2031c4a76ff5f290aad06cae65">hasConfiguredMaximumSpeed</a></td></tr>
 <tr class="memdesc:ab5cdbc2031c4a76ff5f290aad06cae65"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the service sets its own maximum speed.  <br /></td></tr>
-<tr class="memitem:a9c372394644f39a82f1c40d1b46c8370" id="r_a9c372394644f39a82f1c40d1b46c8370"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a9c372394644f39a82f1c40d1b46c8370">configuredMaximumSpeedKmh</a> = 0.0</td></tr>
+<tr class="memitem:a9c372394644f39a82f1c40d1b46c8370" id="r_a9c372394644f39a82f1c40d1b46c8370"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a9c372394644f39a82f1c40d1b46c8370">configuredMaximumSpeedKmh</a></td></tr>
 <tr class="memdesc:a9c372394644f39a82f1c40d1b46c8370"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum speed of the service in km/h.  <br /></td></tr>
-<tr class="memitem:af885f4cbe2d1e0ec7f78a9ebe2c309da" id="r_af885f4cbe2d1e0ec7f78a9ebe2c309da"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#af885f4cbe2d1e0ec7f78a9ebe2c309da">compositionMaximumSpeedMs</a> = 0.0</td></tr>
-<tr class="memitem:a02e90aabdc31664b6dec5314408db877" id="r_a02e90aabdc31664b6dec5314408db877"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a02e90aabdc31664b6dec5314408db877">appliedMaximumSpeedMs</a> = 0.0</td></tr>
+<tr class="memitem:af885f4cbe2d1e0ec7f78a9ebe2c309da" id="r_af885f4cbe2d1e0ec7f78a9ebe2c309da"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#af885f4cbe2d1e0ec7f78a9ebe2c309da">compositionMaximumSpeedMs</a></td></tr>
+<tr class="memitem:a02e90aabdc31664b6dec5314408db877" id="r_a02e90aabdc31664b6dec5314408db877"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a02e90aabdc31664b6dec5314408db877">appliedMaximumSpeedMs</a></td></tr>
 <tr class="memdesc:a02e90aabdc31664b6dec5314408db877"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum speed in m/s the train runs at: the lower of the two above, scaled by servicePerformancePercent.  <br /></td></tr>
-<tr class="memitem:a447a44399085cf33d3d4810257462546" id="r_a447a44399085cf33d3d4810257462546"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a447a44399085cf33d3d4810257462546">appliedMaximumSpeedKmh</a> = 0.0</td></tr>
+<tr class="memitem:a447a44399085cf33d3d4810257462546" id="r_a447a44399085cf33d3d4810257462546"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a447a44399085cf33d3d4810257462546">appliedMaximumSpeedKmh</a></td></tr>
 <tr class="memdesc:a447a44399085cf33d3d4810257462546"><td class="mdescLeft">&#160;</td><td class="mdescRight">appliedMaximumSpeedMs in km/h.  <br /></td></tr>
 <tr class="memitem:a566631ce5858f8a73711ccfa08467e15" id="r_a566631ce5858f8a73711ccfa08467e15"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a566631ce5858f8a73711ccfa08467e15">directIncidentIds</a></td></tr>
 <tr class="memdesc:a566631ce5858f8a73711ccfa08467e15"><td class="mdescLeft">&#160;</td><td class="mdescRight">IDs of the incidents that acted on this train directly, in order of first effect.  <br /></td></tr>
-<tr class="memitem:a22a1caae7a121683474adbeff7fdebc2" id="r_a22a1caae7a121683474adbeff7fdebc2"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a22a1caae7a121683474adbeff7fdebc2">firstDirectIncidentTime</a> = -1.0</td></tr>
+<tr class="memitem:a22a1caae7a121683474adbeff7fdebc2" id="r_a22a1caae7a121683474adbeff7fdebc2"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a22a1caae7a121683474adbeff7fdebc2">firstDirectIncidentTime</a></td></tr>
 <tr class="memdesc:a22a1caae7a121683474adbeff7fdebc2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time in seconds of the first direct incident; -1 when there is none.  <br /></td></tr>
-<tr class="memitem:a7893d063ea3e51236b8ffbf5cb6bc65a" id="r_a7893d063ea3e51236b8ffbf5cb6bc65a"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a7893d063ea3e51236b8ffbf5cb6bc65a">firstDirectIncidentLocation</a> = -1.0</td></tr>
+<tr class="memitem:a7893d063ea3e51236b8ffbf5cb6bc65a" id="r_a7893d063ea3e51236b8ffbf5cb6bc65a"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a7893d063ea3e51236b8ffbf5cb6bc65a">firstDirectIncidentLocation</a></td></tr>
 <tr class="memdesc:a7893d063ea3e51236b8ffbf5cb6bc65a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Position in metres where the first direct incident acted; -1 when there is none.  <br /></td></tr>
-<tr class="memitem:a04243153043d7d2665696f8d85975be5" id="r_a04243153043d7d2665696f8d85975be5"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a04243153043d7d2665696f8d85975be5">destinationTerminationRequested</a> = false</td></tr>
+<tr class="memitem:a04243153043d7d2665696f8d85975be5" id="r_a04243153043d7d2665696f8d85975be5"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a04243153043d7d2665696f8d85975be5">destinationTerminationRequested</a></td></tr>
 <tr class="memdesc:a04243153043d7d2665696f8d85975be5"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when a breakdown asks to mark the train terminated at the end of its route.  <br /></td></tr>
-<tr class="memitem:a741058ae08dbdb942b0006dbcc37efe1" id="r_a741058ae08dbdb942b0006dbcc37efe1"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a741058ae08dbdb942b0006dbcc37efe1">destinationTerminated</a> = false</td></tr>
+<tr class="memitem:a741058ae08dbdb942b0006dbcc37efe1" id="r_a741058ae08dbdb942b0006dbcc37efe1"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a741058ae08dbdb942b0006dbcc37efe1">destinationTerminated</a></td></tr>
 <tr class="memdesc:a741058ae08dbdb942b0006dbcc37efe1"><td class="mdescLeft">&#160;</td><td class="mdescRight">True once such a train has reached the end of its route.  <br /></td></tr>
 <tr class="memitem:a0e36c50be567928ddce0ef03c752a832" id="r_a0e36c50be567928ddce0ef03c752a832"><td class="memItemLeft"><a class="el" href="class_section.html">Section</a>&#160;</td><td class="memItemRight"><a class="el" href="#a0e36c50be567928ddce0ef03c752a832">Bs</a></td></tr>
 <tr class="memdesc:a0e36c50be567928ddce0ef03c752a832"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy of the section of the head in the current step.  <br /></td></tr>
-<tr class="memitem:a16d9fbb942200efe5fd346dd6a35bea3" id="r_a16d9fbb942200efe5fd346dd6a35bea3"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a16d9fbb942200efe5fd346dd6a35bea3">Start_Node_X</a> = 0.0</td></tr>
+<tr class="memitem:a16d9fbb942200efe5fd346dd6a35bea3" id="r_a16d9fbb942200efe5fd346dd6a35bea3"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a16d9fbb942200efe5fd346dd6a35bea3">Start_Node_X</a></td></tr>
 <tr class="memdesc:a16d9fbb942200efe5fd346dd6a35bea3"><td class="mdescLeft">&#160;</td><td class="mdescRight">X in kilometres of the start of the route.  <br /></td></tr>
 <tr class="memitem:af29aa837789328eb73873b36813316e0" id="r_af29aa837789328eb73873b36813316e0"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#af29aa837789328eb73873b36813316e0">TrainRouteID</a></td></tr>
 <tr class="memdesc:af29aa837789328eb73873b36813316e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the route of the train.  <br /></td></tr>
@@ -346,16 +345,16 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a1a86c435a7d8d57b1741197aec1e5049"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stop nodes of the train in service order. <a class="el" href="class_node.html#adfac506c25da76917b30fb9783c86b1d">Node::dwellTime</a>, StopTime and StepStopped hold the dwell of each stop.  <br /></td></tr>
 <tr class="memitem:a6896eaa0540454341567ddccf73105ad" id="r_a6896eaa0540454341567ddccf73105ad"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a6896eaa0540454341567ddccf73105ad">numStations</a></td></tr>
 <tr class="memdesc:a6896eaa0540454341567ddccf73105ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of stops in use; equals Stations.size() for a train built from a scene.  <br /></td></tr>
-<tr class="memitem:ae62187e622e40bf7377ba442ba4e9aaa" id="r_ae62187e622e40bf7377ba442ba4e9aaa"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ae62187e622e40bf7377ba442ba4e9aaa">stationBlockSection</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>] = {}</td></tr>
+<tr class="memitem:ae62187e622e40bf7377ba442ba4e9aaa" id="r_ae62187e622e40bf7377ba442ba4e9aaa"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ae62187e622e40bf7377ba442ba4e9aaa">stationBlockSection</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>]</td></tr>
 <tr class="memdesc:ae62187e622e40bf7377ba442ba4e9aaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index on the route of the section of each stop; -1 when the stop is not on the route.  <br /></td></tr>
-<tr class="memitem:aa66798ef720a2c5edebfd4a7dd622343" id="r_aa66798ef720a2c5edebfd4a7dd622343"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aa66798ef720a2c5edebfd4a7dd622343">stationArc</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>] = {}</td></tr>
+<tr class="memitem:aa66798ef720a2c5edebfd4a7dd622343" id="r_aa66798ef720a2c5edebfd4a7dd622343"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aa66798ef720a2c5edebfd4a7dd622343">stationArc</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>]</td></tr>
 <tr class="memdesc:aa66798ef720a2c5edebfd4a7dd622343"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index of the arc of each stop within its section; -1 when not on the route.  <br /></td></tr>
-<tr class="memitem:a88432893996154985b5453c72737a644" id="r_a88432893996154985b5453c72737a644"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a88432893996154985b5453c72737a644">stationPlatformNumber</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>] = {}</td></tr>
+<tr class="memitem:a88432893996154985b5453c72737a644" id="r_a88432893996154985b5453c72737a644"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a88432893996154985b5453c72737a644">stationPlatformNumber</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>]</td></tr>
 <tr class="memdesc:a88432893996154985b5453c72737a644"><td class="mdescLeft">&#160;</td><td class="mdescRight">platformNumber of the platform of each stop, which the operations builder sets.  <br /></td></tr>
-<tr class="memitem:a33ecab227d3ecbbd569baf008f1be225" id="r_a33ecab227d3ecbbd569baf008f1be225"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a33ecab227d3ecbbd569baf008f1be225">StoppedForServiceStop</a> = false</td></tr>
+<tr class="memitem:a33ecab227d3ecbbd569baf008f1be225" id="r_a33ecab227d3ecbbd569baf008f1be225"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a33ecab227d3ecbbd569baf008f1be225">StoppedForServiceStop</a></td></tr>
 <tr class="memitem:a1e01c361493c68afc15196290b299657" id="r_a1e01c361493c68afc15196290b299657"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a1e01c361493c68afc15196290b299657">CurrentServiceStop</a></td></tr>
 <tr class="memitem:a444331fe0663a0bb2f747c3ecbc1dbff" id="r_a444331fe0663a0bb2f747c3ecbc1dbff"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a444331fe0663a0bb2f747c3ecbc1dbff">CurrentServiceStopPlatform</a></td></tr>
-<tr class="memitem:a980aaac0bfc49967610e204823156d2d" id="r_a980aaac0bfc49967610e204823156d2d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a980aaac0bfc49967610e204823156d2d">currentServiceStopPlatformNumber</a> = 0</td></tr>
+<tr class="memitem:a980aaac0bfc49967610e204823156d2d" id="r_a980aaac0bfc49967610e204823156d2d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a980aaac0bfc49967610e204823156d2d">currentServiceStopPlatformNumber</a></td></tr>
 <tr class="memdesc:a980aaac0bfc49967610e204823156d2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">platformNumber of that platform; 0 when CurrentServiceStopPlatform is "None".  <br /></td></tr>
 <tr class="memitem:aad612a588d062345c19c4eb14c687773" id="r_aad612a588d062345c19c4eb14c687773"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aad612a588d062345c19c4eb14c687773">StationArrivals</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>]</td></tr>
 <tr class="memdesc:aad612a588d062345c19c4eb14c687773"><td class="mdescLeft">&#160;</td><td class="mdescRight">Arrival at each stop in seconds from the start of the run; -1 when the train did not arrive there.  <br /></td></tr>
@@ -364,9 +363,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ab0d9f7942f8624e556430f34c39b8118" id="r_ab0d9f7942f8624e556430f34c39b8118"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab0d9f7942f8624e556430f34c39b8118">StationConsecDelay</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>]</td></tr>
 <tr class="memitem:ae46c67dc9f9756139a4c4ebedccb41eb" id="r_ae46c67dc9f9756139a4c4ebedccb41eb"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ae46c67dc9f9756139a4c4ebedccb41eb">StationDisturbance</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>]</td></tr>
 <tr class="memdesc:ae46c67dc9f9756139a4c4ebedccb41eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Disturbance of the dwell at each stop in seconds; 0, since nothing sets it.  <br /></td></tr>
-<tr class="memitem:ac7e422051ab76ac6dee9ec2bdf52695b" id="r_ac7e422051ab76ac6dee9ec2bdf52695b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ac7e422051ab76ac6dee9ec2bdf52695b">ScheduledArrivals</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>] = {}</td></tr>
-<tr class="memitem:abe5cf10a3a2fcc62b35ce0d35505d2cb" id="r_abe5cf10a3a2fcc62b35ce0d35505d2cb"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#abe5cf10a3a2fcc62b35ce0d35505d2cb">ScheduledDepartures</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>] = {}</td></tr>
-<tr class="memitem:a6d0eca68bf9bd529189b6327e379ddfe" id="r_a6d0eca68bf9bd529189b6327e379ddfe"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a6d0eca68bf9bd529189b6327e379ddfe">TotalInputDelays</a> = 0.0</td></tr>
+<tr class="memitem:ac7e422051ab76ac6dee9ec2bdf52695b" id="r_ac7e422051ab76ac6dee9ec2bdf52695b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ac7e422051ab76ac6dee9ec2bdf52695b">ScheduledArrivals</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>]</td></tr>
+<tr class="memitem:abe5cf10a3a2fcc62b35ce0d35505d2cb" id="r_abe5cf10a3a2fcc62b35ce0d35505d2cb"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#abe5cf10a3a2fcc62b35ce0d35505d2cb">ScheduledDepartures</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>]</td></tr>
+<tr class="memitem:a6d0eca68bf9bd529189b6327e379ddfe" id="r_a6d0eca68bf9bd529189b6327e379ddfe"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a6d0eca68bf9bd529189b6327e379ddfe">TotalInputDelays</a></td></tr>
 <tr class="memdesc:a6d0eca68bf9bd529189b6327e379ddfe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sum of the Entrance Delays +stochastic disturbances to dwell times, in seconds.  <br /></td></tr>
 <tr class="memitem:a825cd3cc07e160b05483bfd36d697131" id="r_a825cd3cc07e160b05483bfd36d697131"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a825cd3cc07e160b05483bfd36d697131">EntranceDelay</a></td></tr>
 <tr class="memitem:abab2c99fc4afaf1120dc5767f493be7d" id="r_abab2c99fc4afaf1120dc5767f493be7d"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#abab2c99fc4afaf1120dc5767f493be7d">entranceDelayStationId</a></td></tr>
@@ -388,18 +387,18 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:af2ed5c8cff997ea3b912665f793e2b37" id="r_af2ed5c8cff997ea3b912665f793e2b37"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#af2ed5c8cff997ea3b912665f793e2b37">Xobmin</a></td></tr>
 <tr class="memdesc:af2ed5c8cff997ea3b912665f793e2b37"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_route.html">Route</a> position in metres of the current braking target.  <br /></td></tr>
 <tr class="memitem:a5f6d750f3c140d4d9041c71963decb8b" id="r_a5f6d750f3c140d4d9041c71963decb8b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a5f6d750f3c140d4d9041c71963decb8b">Vobmin</a></td></tr>
-<tr class="memitem:a7133c0eaf80c255f5d2fb3d7f8a22a7a" id="r_a7133c0eaf80c255f5d2fb3d7f8a22a7a"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a7133c0eaf80c255f5d2fb3d7f8a22a7a">previousXob</a> = 0.0</td></tr>
+<tr class="memitem:a7133c0eaf80c255f5d2fb3d7f8a22a7a" id="r_a7133c0eaf80c255f5d2fb3d7f8a22a7a"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a7133c0eaf80c255f5d2fb3d7f8a22a7a">previousXob</a></td></tr>
 <tr class="memdesc:a7133c0eaf80c255f5d2fb3d7f8a22a7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Xobmin that the step before kept when it accelerated, braked or cruised; 0 when it kept none.  <br /></td></tr>
-<tr class="memitem:a844b7051ca228519ca63b23a2a16ea30" id="r_a844b7051ca228519ca63b23a2a16ea30"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a844b7051ca228519ca63b23a2a16ea30">previousVob</a> = 0.0</td></tr>
-<tr class="memitem:adbfd1a8a1df574b2c2cb1fc48d2dd6fb" id="r_adbfd1a8a1df574b2c2cb1fc48d2dd6fb"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#adbfd1a8a1df574b2c2cb1fc48d2dd6fb">currentXob</a> = 0.0</td></tr>
-<tr class="memitem:a612e0112dac36d3cc985a2d796422431" id="r_a612e0112dac36d3cc985a2d796422431"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a612e0112dac36d3cc985a2d796422431">currentVob</a> = 0.0</td></tr>
+<tr class="memitem:a844b7051ca228519ca63b23a2a16ea30" id="r_a844b7051ca228519ca63b23a2a16ea30"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a844b7051ca228519ca63b23a2a16ea30">previousVob</a></td></tr>
+<tr class="memitem:adbfd1a8a1df574b2c2cb1fc48d2dd6fb" id="r_adbfd1a8a1df574b2c2cb1fc48d2dd6fb"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#adbfd1a8a1df574b2c2cb1fc48d2dd6fb">currentXob</a></td></tr>
+<tr class="memitem:a612e0112dac36d3cc985a2d796422431" id="r_a612e0112dac36d3cc985a2d796422431"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a612e0112dac36d3cc985a2d796422431">currentVob</a></td></tr>
 <tr class="memdesc:a612e0112dac36d3cc985a2d796422431"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vobmin that this step keeps; 0 until it keeps one.  <br /></td></tr>
-<tr class="memitem:a3c5ca2bb5a1c9e8fef991ceea6b2d5bb" id="r_a3c5ca2bb5a1c9e8fef991ceea6b2d5bb"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a3c5ca2bb5a1c9e8fef991ceea6b2d5bb">Sbrak</a> = std::vector&lt;double&gt;(2000, 0.0)</td></tr>
+<tr class="memitem:a3c5ca2bb5a1c9e8fef991ceea6b2d5bb" id="r_a3c5ca2bb5a1c9e8fef991ceea6b2d5bb"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a3c5ca2bb5a1c9e8fef991ceea6b2d5bb">Sbrak</a></td></tr>
 <tr class="memdesc:a3c5ca2bb5a1c9e8fef991ceea6b2d5bb"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_route.html">Route</a> positions in metres of the stored braking plan, 2,000 entries.  <br /></td></tr>
-<tr class="memitem:abd68731b52a2b572e50839751edff299" id="r_abd68731b52a2b572e50839751edff299"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#abd68731b52a2b572e50839751edff299">Vbrak</a> = std::vector&lt;double&gt;(2000, 0.0)</td></tr>
+<tr class="memitem:abd68731b52a2b572e50839751edff299" id="r_abd68731b52a2b572e50839751edff299"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#abd68731b52a2b572e50839751edff299">Vbrak</a></td></tr>
 <tr class="memitem:a517af1a45e65942d356cd6b571ad7f7c" id="r_a517af1a45e65942d356cd6b571ad7f7c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a517af1a45e65942d356cd6b571ad7f7c">BrakStep</a></td></tr>
 <tr class="memdesc:a517af1a45e65942d356cd6b571ad7f7c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index of the last entry of the stored braking plan; -1 when there is none.  <br /></td></tr>
-<tr class="memitem:ae670a928cc2aa098ae1738a4adbe664e" id="r_ae670a928cc2aa098ae1738a4adbe664e"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ae670a928cc2aa098ae1738a4adbe664e">BrakingForEoA</a> = false</td></tr>
+<tr class="memitem:ae670a928cc2aa098ae1738a4adbe664e" id="r_ae670a928cc2aa098ae1738a4adbe664e"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ae670a928cc2aa098ae1738a4adbe664e">BrakingForEoA</a></td></tr>
 <tr class="memdesc:ae670a928cc2aa098ae1738a4adbe664e"><td class="mdescLeft">&#160;</td><td class="mdescRight">True while the train brakes for an ETCS end of authority on the route.  <br /></td></tr>
 <tr class="memitem:aefa493a5093a20cfd200c0bdc24d3957" id="r_aefa493a5093a20cfd200c0bdc24d3957"><td class="memItemLeft"><a class="el" href="class_movement_authority.html">MovementAuthority</a>&#160;</td><td class="memItemRight"><a class="el" href="#aefa493a5093a20cfd200c0bdc24d3957">Predicted_MA_To_CoupleAt</a></td></tr>
 <tr class="memdesc:aefa493a5093a20cfd200c0bdc24d3957"><td class="mdescLeft">&#160;</td><td class="mdescRight">Authority where the train is predicted to couple virtually to the train ahead.  <br /></td></tr>
@@ -408,7 +407,7 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ac5ae4fe0b11d665cb61159195c3adfa6" id="r_ac5ae4fe0b11d665cb61159195c3adfa6"><td class="memItemLeft"><a class="el" href="class_movement_authority.html">MovementAuthority</a>&#160;</td><td class="memItemRight"><a class="el" href="#ac5ae4fe0b11d665cb61159195c3adfa6">Last_MA_StoppedAt</a></td></tr>
 <tr class="memdesc:ac5ae4fe0b11d665cb61159195c3adfa6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Last movement authority the train has stopped at.  <br /></td></tr>
 <tr class="memitem:aa75d2159d571a9f1feffea68ac93f524" id="r_aa75d2159d571a9f1feffea68ac93f524"><td class="memItemLeft"><a class="el" href="class_movement_authority.html">MovementAuthority</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa75d2159d571a9f1feffea68ac93f524">Predicted_MA_To_DecoupleAt</a></td></tr>
-<tr class="memitem:a8a154d1313928bdf3d853772987e5d64" id="r_a8a154d1313928bdf3d853772987e5d64"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a8a154d1313928bdf3d853772987e5d64">stepBranch</a> = 0</td></tr>
+<tr class="memitem:a8a154d1313928bdf3d853772987e5d64" id="r_a8a154d1313928bdf3d853772987e5d64"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a8a154d1313928bdf3d853772987e5d64">stepBranch</a></td></tr>
 <tr class="memitem:a9d4ff6ca9ae5c587060d734eb8f44b1c" id="r_a9d4ff6ca9ae5c587060d734eb8f44b1c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a9d4ff6ca9ae5c587060d734eb8f44b1c">RunStartTime</a></td></tr>
 <tr class="memdesc:a9d4ff6ca9ae5c587060d734eb8f44b1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Step before the first step with a speed above 0 (Det_Run_Start_Time); 0 until computed.  <br /></td></tr>
 <tr class="memitem:a207882ffae8d66449972414dea9b4112" id="r_a207882ffae8d66449972414dea9b4112"><td class="memItemLeft"><a class="el" href="class_blocking_time_list.html">BlockingTimeList</a>&#160;</td><td class="memItemRight"><a class="el" href="#a207882ffae8d66449972414dea9b4112">BlockTime</a></td></tr>
@@ -417,7 +416,7 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a05aa6fd519005ecf7c4c0b642684f101"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of entries of BlockTime.  <br /></td></tr>
 <tr class="memitem:a4dc39039e2b4d547b759f513e42fc67f" id="r_a4dc39039e2b4d547b759f513e42fc67f"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4dc39039e2b4d547b759f513e42fc67f">N_BlockTimeComplete</a></td></tr>
 <tr class="memitem:a6ccb40620b3c8ac7776ca81eca9c804d" id="r_a6ccb40620b3c8ac7776ca81eca9c804d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a6ccb40620b3c8ac7776ca81eca9c804d">End_Time</a></td></tr>
-<tr class="memitem:a679d291204949b90f53122f164704ddb" id="r_a679d291204949b90f53122f164704ddb"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a679d291204949b90f53122f164704ddb">earliestActiveTrajectoryIndex</a> = -1</td></tr>
+<tr class="memitem:a679d291204949b90f53122f164704ddb" id="r_a679d291204949b90f53122f164704ddb"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a679d291204949b90f53122f164704ddb">earliestActiveTrajectoryIndex</a></td></tr>
 <tr class="memdesc:a679d291204949b90f53122f164704ddb"><td class="mdescLeft">&#160;</td><td class="mdescRight">First simulation sample in the active run; -1 until the train enters.  <br /></td></tr>
 <tr class="memitem:a97808864d0b344d7e720a9c58fbf210b" id="r_a97808864d0b344d7e720a9c58fbf210b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a97808864d0b344d7e720a9c58fbf210b">IsTrainStoppedForEoA</a></td></tr>
 <tr class="memitem:acc2df842d01c43aa0a3bd6d7bb5b2a04" id="r_acc2df842d01c43aa0a3bd6d7bb5b2a04"><td class="memItemLeft">std::list&lt; <a class="el" href="class_train_event.html">TrainEvent</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#acc2df842d01c43aa0a3bd6d7bb5b2a04">TimetablePoints</a></td></tr>
@@ -432,11 +431,11 @@ Public Attributes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
-<tr class="memitem:a634f58475c0d555b2eac191e2844d5f7" id="r_a634f58475c0d555b2eac191e2844d5f7"><td class="memItemLeft">static constexpr std::int32_t&#160;</td><td class="memItemRight"><a class="el" href="#a634f58475c0d555b2eac191e2844d5f7">kNoBlockSection</a> = -1</td></tr>
+<tr class="memitem:a634f58475c0d555b2eac191e2844d5f7" id="r_a634f58475c0d555b2eac191e2844d5f7"><td class="memItemLeft">static constexpr std::int32_t&#160;</td><td class="memItemRight"><a class="el" href="#a634f58475c0d555b2eac191e2844d5f7">kNoBlockSection</a></td></tr>
 <tr class="memdesc:a634f58475c0d555b2eac191e2844d5f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">instant_block_section_occupied of a step that found no section, whose ID is empty.  <br /></td></tr>
-<tr class="memitem:a9f6274987312d983a8836c48bbae4794" id="r_a9f6274987312d983a8836c48bbae4794"><td class="memItemLeft">static constexpr std::int32_t&#160;</td><td class="memItemRight"><a class="el" href="#a9f6274987312d983a8836c48bbae4794">kOutsideRoute</a> = -2</td></tr>
+<tr class="memitem:a9f6274987312d983a8836c48bbae4794" id="r_a9f6274987312d983a8836c48bbae4794"><td class="memItemLeft">static constexpr std::int32_t&#160;</td><td class="memItemRight"><a class="el" href="#a9f6274987312d983a8836c48bbae4794">kOutsideRoute</a></td></tr>
 <tr class="memdesc:a9f6274987312d983a8836c48bbae4794"><td class="mdescLeft">&#160;</td><td class="mdescRight">instant_block_section_occupied of a step before the train enters or after it has left the route, whose ID is "-".  <br /></td></tr>
-<tr class="memitem:ad3413c2c368aec1a5ee480ba98158ca5" id="r_ad3413c2c368aec1a5ee480ba98158ca5"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a> = <a class="el" href="namespace_runtime_limits.html#ac76e7126b610c9001450a7ee56ccff15">RuntimeLimits::kMaxTimetableStops</a></td></tr>
+<tr class="memitem:ad3413c2c368aec1a5ee480ba98158ca5" id="r_ad3413c2c368aec1a5ee480ba98158ca5"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a></td></tr>
 <tr class="memdesc:ad3413c2c368aec1a5ee480ba98158ca5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Capacity of the station-indexed arrays below; stations beyond this cap have no timetable slot.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -3411,7 +3410,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::appliedMaximumSpeedKmh = 0.0</td>
+          <td class="memname">double Train::appliedMaximumSpeedKmh</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3427,7 +3426,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::appliedMaximumSpeedMs = 0.0</td>
+          <td class="memname">double Train::appliedMaximumSpeedMs</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3459,7 +3458,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool Train::BrakingForEoA = false</td>
+          <td class="memname">bool Train::BrakingForEoA</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3522,7 +3521,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::C0[20] = {}</td>
+          <td class="memname">double Train::C0[20]</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3538,7 +3537,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::C1[20] = {}</td>
+          <td class="memname">double Train::C1[20]</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3553,7 +3552,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::C2[20] = {}</td>
+          <td class="memname">double Train::C2[20]</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3584,7 +3583,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::compositionMaximumSpeedMs = 0.0</td>
+          <td class="memname">double Train::compositionMaximumSpeedMs</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3599,7 +3598,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::configuredMaximumSpeedKmh = 0.0</td>
+          <td class="memname">double Train::configuredMaximumSpeedKmh</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3708,7 +3707,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int Train::currentServiceStopPlatformNumber = 0</td>
+          <td class="memname">int Train::currentServiceStopPlatformNumber</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3724,7 +3723,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::currentVob = 0.0</td>
+          <td class="memname">double Train::currentVob</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3740,7 +3739,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::currentXob = 0.0</td>
+          <td class="memname">double Train::currentXob</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3755,7 +3754,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::departure_time = 0.0</td>
+          <td class="memname">double Train::departure_time</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3770,7 +3769,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool Train::destinationTerminated = false</td>
+          <td class="memname">bool Train::destinationTerminated</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3786,7 +3785,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool Train::destinationTerminationRequested = false</td>
+          <td class="memname">bool Train::destinationTerminationRequested</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3818,7 +3817,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int Train::earliestActiveTrajectoryIndex = -1</td>
+          <td class="memname">int Train::earliestActiveTrajectoryIndex</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3849,7 +3848,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::EnergyForAuxiliaries = 0.0</td>
+          <td class="memname">double Train::EnergyForAuxiliaries</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3894,7 +3893,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::firstDirectIncidentLocation = -1.0</td>
+          <td class="memname">double Train::firstDirectIncidentLocation</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3910,7 +3909,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::firstDirectIncidentTime = -1.0</td>
+          <td class="memname">double Train::firstDirectIncidentTime</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3926,7 +3925,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::frontal_wagon_area = 0.0</td>
+          <td class="memname">double Train::frontal_wagon_area</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3941,7 +3940,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::g = 0.0</td>
+          <td class="memname">double Train::g</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3987,7 +3986,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool Train::hasConfiguredMaximumSpeed = false</td>
+          <td class="memname">bool Train::hasConfiguredMaximumSpeed</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4003,7 +4002,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::ID = 0.0</td>
+          <td class="memname">double Train::ID</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4205,7 +4204,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::Jerk = 0.0</td>
+          <td class="memname">double Train::Jerk</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4223,7 +4222,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int Train::kMaxTimetableStations = <a class="el" href="namespace_runtime_limits.html#ac76e7126b610c9001450a7ee56ccff15">RuntimeLimits::kMaxTimetableStops</a></td>
+          <td class="memname">int Train::kMaxTimetableStations</td>
         </tr>
       </table>
   </td>
@@ -4247,7 +4246,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::int32_t Train::kNoBlockSection = -1</td>
+          <td class="memname">std::int32_t Train::kNoBlockSection</td>
         </tr>
       </table>
   </td>
@@ -4271,7 +4270,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::int32_t Train::kOutsideRoute = -2</td>
+          <td class="memname">std::int32_t Train::kOutsideRoute</td>
         </tr>
       </table>
   </td>
@@ -4339,7 +4338,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::mass_of_a_wagon = 0.0</td>
+          <td class="memname">double Train::mass_of_a_wagon</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4354,7 +4353,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::mass_of_traction_unit = 0.0</td>
+          <td class="memname">double Train::mass_of_traction_unit</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4370,7 +4369,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::massFactor = 0.0</td>
+          <td class="memname">double Train::massFactor</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4385,7 +4384,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::massPerWagonAxle = 0.0</td>
+          <td class="memname">double Train::massPerWagonAxle</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4416,7 +4415,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::max_train_decelaration = 0.0</td>
+          <td class="memname">double Train::max_train_decelaration</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4431,7 +4430,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::max_train_speed = 0.0</td>
+          <td class="memname">double Train::max_train_speed</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4477,7 +4476,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::number_of_wagons = 0.0</td>
+          <td class="memname">double Train::number_of_wagons</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4572,7 +4571,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::previousVob = 0.0</td>
+          <td class="memname">double Train::previousVob</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4587,7 +4586,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::previousXob = 0.0</td>
+          <td class="memname">double Train::previousXob</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4603,7 +4602,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::resistanceCoefficient = 0.0</td>
+          <td class="memname">double Train::resistanceCoefficient</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4618,7 +4617,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="struct_simulation_run.html">SimulationRun</a>* Train::run_ = nullptr</td>
+          <td class="memname"><a class="el" href="struct_simulation_run.html">SimulationRun</a>* Train::run_</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4650,7 +4649,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt;double&gt; Train::Sbrak = std::vector&lt;double&gt;(2000, 0.0)</td>
+          <td class="memname">std::vector&lt;double&gt; Train::Sbrak</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4666,7 +4665,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::scheduled_departure_time = 0.0</td>
+          <td class="memname">double Train::scheduled_departure_time</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4681,7 +4680,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::ScheduledArrivals[<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>] = {}</td>
+          <td class="memname">double Train::ScheduledArrivals[<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>]</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4696,7 +4695,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::ScheduledDepartures[<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>] = {}</td>
+          <td class="memname">double Train::ScheduledDepartures[<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>]</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4727,7 +4726,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int Train::serviceOccurrence = 1</td>
+          <td class="memname">int Train::serviceOccurrence</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4742,7 +4741,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::servicePerformancePercent = 100.0</td>
+          <td class="memname">double Train::servicePerformancePercent</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4758,7 +4757,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::Start_Node_X = 0.0</td>
+          <td class="memname">double Train::Start_Node_X</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4774,7 +4773,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int Train::stationArc[<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>] = {}</td>
+          <td class="memname">int Train::stationArc[<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>]</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4821,7 +4820,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int Train::stationBlockSection[<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>] = {}</td>
+          <td class="memname">int Train::stationBlockSection[<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>]</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4883,7 +4882,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int Train::stationPlatformNumber[<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>] = {}</td>
+          <td class="memname">int Train::stationPlatformNumber[<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>]</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4915,7 +4914,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int Train::stepBranch = 0</td>
+          <td class="memname">int Train::stepBranch</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4969,7 +4968,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool Train::StoppedForServiceStop = false</td>
+          <td class="memname">bool Train::StoppedForServiceStop</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -5015,7 +5014,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::total_train_mass = 0.0</td>
+          <td class="memname">double Train::total_train_mass</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -5091,7 +5090,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::TotalInputDelays = 0.0</td>
+          <td class="memname">double Train::TotalInputDelays</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -5107,7 +5106,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::train_length = 0.0</td>
+          <td class="memname">double Train::train_length</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -5169,7 +5168,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt;double&gt; Train::Vbrak = std::vector&lt;double&gt;(2000, 0.0)</td>
+          <td class="memname">std::vector&lt;double&gt; Train::Vbrak</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -5199,7 +5198,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::Vlb[20] = {}</td>
+          <td class="memname">double Train::Vlb[20]</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -5230,7 +5229,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Train::Vub[20] = {}</td>
+          <td class="memname">double Train::Vub[20]</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -5255,7 +5254,7 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>simulation/<a class="el" href="_rolling_stock_8h_source.html">RollingStock.h</a></li>
+<li>simulation/<a class="el" href="_rolling_stock_8h.html">RollingStock.h</a></li>
 <li>simulation/<a class="el" href="_rolling_stock_8cpp.html">RollingStock.cpp</a></li>
 <li>simulation/<a class="el" href="_rolling_stock_blocking_times_8cpp.html">RollingStockBlockingTimes.cpp</a></li>
 <li>simulation/<a class="el" href="_rolling_stock_braking_8cpp.html">RollingStockBraking.cpp</a></li>
@@ -5263,7 +5262,7 @@ Here is the call graph for this function:</div>
 <li>simulation/<a class="el" href="_rolling_stock_occupation_8cpp.html">RollingStockOccupation.cpp</a></li>
 <li>simulation/<a class="el" href="_rolling_stock_stops_8cpp.html">RollingStockStops.cpp</a></li>
 <li>simulation/<a class="el" href="_rolling_stock_trajectory_8cpp.html">RollingStockTrajectory.cpp</a></li>
-<li>simulation/<a class="el" href="_simulation_run_8h_source.html">SimulationRun.h</a></li>
+<li>simulation/<a class="el" href="_simulation_run_8h.html">SimulationRun.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

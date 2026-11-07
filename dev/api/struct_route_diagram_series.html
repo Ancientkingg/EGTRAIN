@@ -8,7 +8,6 @@
 <title>EGTRAIN: RouteDiagramSeries Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,7 +115,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_route_d
 <p>One line of the route diagram. A line ends where a point is missing or cannot be projected.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_route_diagram_data_8h_source.html">diagrams/RouteDiagramData.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/RouteDiagramData.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
@@ -128,15 +127,15 @@ Public Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:ad929dd1cb41383cd82fbe18e0361e694" id="r_ad929dd1cb41383cd82fbe18e0361e694"><td class="memItemLeft"><a class="el" href="#a99f1439d0db3191ec5ff7ad0ce45b2a7">Kind</a>&#160;</td><td class="memItemRight"><a class="el" href="#ad929dd1cb41383cd82fbe18e0361e694">kind</a> = <a class="el" href="#a99f1439d0db3191ec5ff7ad0ce45b2a7a2c1f43c429c5e00feaef7ba3327375dc">Kind::Trajectory</a></td></tr>
+<tr class="memitem:ad929dd1cb41383cd82fbe18e0361e694" id="r_ad929dd1cb41383cd82fbe18e0361e694"><td class="memItemLeft"><a class="el" href="#a99f1439d0db3191ec5ff7ad0ce45b2a7">Kind</a>&#160;</td><td class="memItemRight"><a class="el" href="#ad929dd1cb41383cd82fbe18e0361e694">kind</a></td></tr>
 <tr class="memdesc:ad929dd1cb41383cd82fbe18e0361e694"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the line shows.  <br /></td></tr>
 <tr class="memitem:afd1ac71304019de522ad715bc88884ea" id="r_afd1ac71304019de522ad715bc88884ea"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#afd1ac71304019de522ad715bc88884ea">trainId</a></td></tr>
 <tr class="memdesc:afd1ac71304019de522ad715bc88884ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the train in the run.  <br /></td></tr>
-<tr class="memitem:a74cdea5039364e043e6c301e24233bc6" id="r_a74cdea5039364e043e6c301e24233bc6"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a74cdea5039364e043e6c301e24233bc6">trainIndex</a> = 0</td></tr>
+<tr class="memitem:a74cdea5039364e043e6c301e24233bc6" id="r_a74cdea5039364e043e6c301e24233bc6"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a74cdea5039364e043e6c301e24233bc6">trainIndex</a></td></tr>
 <tr class="memdesc:a74cdea5039364e043e6c301e24233bc6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Position of the train in the run.  <br /></td></tr>
 <tr class="memitem:acfc0388524acbf312dafacdc4373950c" id="r_acfc0388524acbf312dafacdc4373950c"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#acfc0388524acbf312dafacdc4373950c">event</a></td></tr>
 <tr class="memdesc:acfc0388524acbf312dafacdc4373950c"><td class="mdescLeft">&#160;</td><td class="mdescRight">"planned arrival", "simulated dwell" and so on; empty for a trajectory  <br /></td></tr>
-<tr class="memitem:af94af1edb1ccdc14352115008232d787" id="r_af94af1edb1ccdc14352115008232d787"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af94af1edb1ccdc14352115008232d787">planned</a> = false</td></tr>
+<tr class="memitem:af94af1edb1ccdc14352115008232d787" id="r_af94af1edb1ccdc14352115008232d787"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af94af1edb1ccdc14352115008232d787">planned</a></td></tr>
 <tr class="memdesc:af94af1edb1ccdc14352115008232d787"><td class="mdescLeft">&#160;</td><td class="mdescRight">Of the timetable, not of the simulation.  <br /></td></tr>
 <tr class="memitem:a1c41f2104a0fa493256ba47acaa5009b" id="r_a1c41f2104a0fa493256ba47acaa5009b"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a1c41f2104a0fa493256ba47acaa5009b">routeId</a></td></tr>
 <tr class="memdesc:a1c41f2104a0fa493256ba47acaa5009b"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_route.html">Route</a> of the train; trajectories only.  <br /></td></tr>
@@ -202,7 +201,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="#a99f1439d0db3191ec5ff7ad0ce45b2a7">Kind</a> RouteDiagramSeries::kind = <a class="el" href="#a99f1439d0db3191ec5ff7ad0ce45b2a7a2c1f43c429c5e00feaef7ba3327375dc">Kind::Trajectory</a></td>
+          <td class="memname"><a class="el" href="#a99f1439d0db3191ec5ff7ad0ce45b2a7">Kind</a> RouteDiagramSeries::kind</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -218,7 +217,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool RouteDiagramSeries::planned = false</td>
+          <td class="memname">bool RouteDiagramSeries::planned</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -282,7 +281,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int RouteDiagramSeries::trainIndex = 0</td>
+          <td class="memname">int RouteDiagramSeries::trainIndex</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -292,7 +291,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_route_diagram_data_8h_source.html">RouteDiagramData.h</a></li>
+<li>diagrams/<a class="el" href="_route_diagram_data_8h.html">RouteDiagramData.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

@@ -8,7 +8,6 @@
 <title>EGTRAIN: app/ResultViews.cpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,31 +111,31 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_result_views_
   <div class="headertitle"><div class="title">ResultViews.cpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_run_controller_8h_source.html">app/RunController.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_result_views_8h_source.html">app/ResultViews.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_main_window_support_8h_source.html">app/MainWindowSupport.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_main_window_test_hooks_8h_source.html">app/MainWindowTestHooks.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_area_capacity_window_8h_source.html">diagrams/AreaCapacityWindow.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_blocking_time_data_8h_source.html">diagrams/BlockingTimeData.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_blocking_time_diagram_8h_source.html">diagrams/BlockingTimeDiagram.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_blocking_time_scope_8h_source.html">diagrams/BlockingTimeScope.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_capacity_analysis_8h_source.html">diagrams/CapacityAnalysis.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_capacity_scope_8h_source.html">diagrams/CapacityScope.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_capacity_window_8h_source.html">diagrams/CapacityWindow.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_delay_analysis_window_8h_source.html">diagrams/DelayAnalysisWindow.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_diagram_window_8h_source.html">diagrams/DiagramWindow.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_position_scale_8h_source.html">diagrams/PositionScale.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_result_frame_8h_source.html">diagrams/ResultFrame.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_route_diagram_coordinates_8h_source.html">diagrams/RouteDiagramCoordinates.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_route_diagram_data_8h_source.html">diagrams/RouteDiagramData.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_route_charts_8h_source.html">diagrams/RouteCharts.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_route_reference_choice_8h_source.html">diagrams/RouteReferenceChoice.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_run_csv_8h_source.html">diagrams/RunCsv.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_run_results_8h_source.html">diagrams/RunResults.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_timetable_table_window_8h_source.html">diagrams/TimetableTableWindow.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_train_colors_8h_source.html">diagrams/TrainColors.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_time_format_8h_source.html">util/TimeFormat.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_user_prompts_8h_source.html">widgets/UserPrompts.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_run_controller_8h.html">app/RunController.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_result_views_8h.html">app/ResultViews.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_main_window_support_8h.html">app/MainWindowSupport.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_main_window_test_hooks_8h.html">app/MainWindowTestHooks.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_area_capacity_window_8h.html">diagrams/AreaCapacityWindow.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_blocking_time_data_8h.html">diagrams/BlockingTimeData.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_blocking_time_diagram_8h.html">diagrams/BlockingTimeDiagram.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_blocking_time_scope_8h.html">diagrams/BlockingTimeScope.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_capacity_analysis_8h.html">diagrams/CapacityAnalysis.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_capacity_scope_8h.html">diagrams/CapacityScope.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_capacity_window_8h.html">diagrams/CapacityWindow.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_delay_analysis_window_8h.html">diagrams/DelayAnalysisWindow.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_diagram_window_8h.html">diagrams/DiagramWindow.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_position_scale_8h.html">diagrams/PositionScale.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_result_frame_8h.html">diagrams/ResultFrame.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_route_diagram_coordinates_8h.html">diagrams/RouteDiagramCoordinates.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_route_diagram_data_8h.html">diagrams/RouteDiagramData.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_route_charts_8h.html">diagrams/RouteCharts.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_route_reference_choice_8h.html">diagrams/RouteReferenceChoice.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_run_csv_8h.html">diagrams/RunCsv.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_run_results_8h.html">diagrams/RunResults.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_timetable_table_window_8h.html">diagrams/TimetableTableWindow.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_train_colors_8h.html">diagrams/TrainColors.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_time_format_8h.html">util/TimeFormat.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_user_prompts_8h.html">widgets/UserPrompts.h</a>&quot;</code><br />
 <code>#include &lt;QDialog&gt;</code><br />
 <code>#include &lt;QPushButton&gt;</code><br />
 <code>#include &lt;QScreen&gt;</code><br />

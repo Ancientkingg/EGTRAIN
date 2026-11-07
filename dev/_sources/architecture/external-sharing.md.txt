@@ -305,9 +305,9 @@ After a stop, `start` begins with empty queues, no hello, no command and a drop 
 
 The live server is in `egtrain_live`, which is built from `io/LiveCommand.cpp`, `io/LiveFrame.cpp` and `io/LiveServer.cpp` and links `nlohmann_json`, `egtrain_util` and cppzmq. It does not use Qt. `egtrain_dispatch` links it, and `DispatchController` is its only user in the application.
 
-[`RunControl`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_run_control.html
-[`SimulationWorker`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_simulation_worker.html
-[`RunController::startSimulation`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_run_controller.html
-[`SceneModel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_model.html
-[`SimulationRun::trains`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_simulation_run.html
-[`LiveServer`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_live_server.html
+[`RunControl`]: https://egtrain.samuelbruin.com/latest/api/class_run_control.html
+[`SimulationWorker`]: https://egtrain.samuelbruin.com/latest/api/class_simulation_worker.html
+[`RunController::startSimulation`]: https://egtrain.samuelbruin.com/latest/api/class_run_controller.html
+[`SceneModel`]: https://egtrain.samuelbruin.com/latest/api/struct_scene_model.html
+[`SimulationRun::trains`]: https://egtrain.samuelbruin.com/latest/api/struct_simulation_run.html
+[`LiveServer`]: https://egtrain.samuelbruin.com/latest/api/class_live_server.html

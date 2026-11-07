@@ -8,7 +8,6 @@
 <title>EGTRAIN: FollowCamera Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,7 +112,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_follow_c
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_follow_camera_8h_source.html">graphics/FollowCamera.h</a>&gt;</code></p>
+<p><code>#include &lt;graphics/FollowCamera.h&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for FollowCamera:</div>
 <div class="dyncontent">
@@ -127,7 +126,7 @@ Collaboration diagram for FollowCamera:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a7708afbc07564d2a4ac15fa15c99d0d2" id="r_a7708afbc07564d2a4ac15fa15c99d0d2"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#a7708afbc07564d2a4ac15fa15c99d0d2">Clock</a> = std::function&lt;qint64()&gt;</td></tr>
+<tr class="memitem:a7708afbc07564d2a4ac15fa15c99d0d2" id="r_a7708afbc07564d2a4ac15fa15c99d0d2"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#a7708afbc07564d2a4ac15fa15c99d0d2">Clock</a></td></tr>
 <tr class="memdesc:a7708afbc07564d2a4ac15fa15c99d0d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">A clock that returns a time in milliseconds.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -150,9 +149,9 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
-<tr class="memitem:a268b0b5a4f3b7f7b88089dca9a58874a" id="r_a268b0b5a4f3b7f7b88089dca9a58874a"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a268b0b5a4f3b7f7b88089dca9a58874a">tickIntervalMs</a> = 16</td></tr>
+<tr class="memitem:a268b0b5a4f3b7f7b88089dca9a58874a" id="r_a268b0b5a4f3b7f7b88089dca9a58874a"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a268b0b5a4f3b7f7b88089dca9a58874a">tickIntervalMs</a></td></tr>
 <tr class="memdesc:a268b0b5a4f3b7f7b88089dca9a58874a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The interval of the timer of a catch-up in milliseconds.  <br /></td></tr>
-<tr class="memitem:a5178af1e65f77d47cf6166cb47f0010a" id="r_a5178af1e65f77d47cf6166cb47f0010a"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a5178af1e65f77d47cf6166cb47f0010a">catchUpMs</a> = 400</td></tr>
+<tr class="memitem:a5178af1e65f77d47cf6166cb47f0010a" id="r_a5178af1e65f77d47cf6166cb47f0010a"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a5178af1e65f77d47cf6166cb47f0010a">catchUpMs</a></td></tr>
 <tr class="memdesc:a5178af1e65f77d47cf6166cb47f0010a"><td class="mdescLeft">&#160;</td><td class="mdescRight">How long a catch-up takes in milliseconds.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -167,7 +166,7 @@ Static Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="#a7708afbc07564d2a4ac15fa15c99d0d2">FollowCamera::Clock</a> = std::function&lt;qint64()&gt;</td>
+          <td class="memname">using <a class="el" href="#a7708afbc07564d2a4ac15fa15c99d0d2">FollowCamera::Clock</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -402,7 +401,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int FollowCamera::catchUpMs = 400</td>
+          <td class="memname">int FollowCamera::catchUpMs</td>
         </tr>
       </table>
   </td>
@@ -426,7 +425,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int FollowCamera::tickIntervalMs = 16</td>
+          <td class="memname">int FollowCamera::tickIntervalMs</td>
         </tr>
       </table>
   </td>
@@ -441,7 +440,7 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>graphics/<a class="el" href="_follow_camera_8h_source.html">FollowCamera.h</a></li>
+<li>graphics/<a class="el" href="_follow_camera_8h.html">FollowCamera.h</a></li>
 <li>graphics/<a class="el" href="_follow_camera_8cpp.html">FollowCamera.cpp</a></li>
 </ul>
 </div><!-- contents -->

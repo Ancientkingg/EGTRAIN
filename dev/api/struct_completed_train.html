@@ -8,7 +8,6 @@
 <title>EGTRAIN: CompletedTrain Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,7 +115,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_complet
 <p>One train of the run: its identity, blocking times, stops and recorded samples.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_completed_run_data_8h_source.html">diagrams/CompletedRunData.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/CompletedRunData.h&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for CompletedTrain:</div>
 <div class="dyncontent">
@@ -131,14 +130,14 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:ac1a42580594f586aeaefdeb080894cb7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Operating code of the service.  <br /></td></tr>
 <tr class="memitem:afde401a9bc9ca5732d840bdaa6c69b67" id="r_afde401a9bc9ca5732d840bdaa6c69b67"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#afde401a9bc9ca5732d840bdaa6c69b67">serviceId</a></td></tr>
 <tr class="memdesc:afde401a9bc9ca5732d840bdaa6c69b67"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scene service that the train runs.  <br /></td></tr>
-<tr class="memitem:a464335990027a562a4010b743ac7fcfe" id="r_a464335990027a562a4010b743ac7fcfe"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a464335990027a562a4010b743ac7fcfe">serviceOccurrence</a> = 1</td></tr>
+<tr class="memitem:a464335990027a562a4010b743ac7fcfe" id="r_a464335990027a562a4010b743ac7fcfe"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a464335990027a562a4010b743ac7fcfe">serviceOccurrence</a></td></tr>
 <tr class="memdesc:a464335990027a562a4010b743ac7fcfe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Occurrence of the service, from 1.  <br /></td></tr>
-<tr class="memitem:a065d7078f2ba2ec6fb7f042c6015b82b" id="r_a065d7078f2ba2ec6fb7f042c6015b82b"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a065d7078f2ba2ec6fb7f042c6015b82b">routeIndex</a> = -1</td></tr>
+<tr class="memitem:a065d7078f2ba2ec6fb7f042c6015b82b" id="r_a065d7078f2ba2ec6fb7f042c6015b82b"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a065d7078f2ba2ec6fb7f042c6015b82b">routeIndex</a></td></tr>
 <tr class="memdesc:a065d7078f2ba2ec6fb7f042c6015b82b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index into <a class="el" href="struct_completed_run_data.html#a9a547516bc17d291896b61deb5466dfb" title="In the order of the simulation&#39;s routes.">CompletedRunData::routes</a>, or out of range.  <br /></td></tr>
 <tr class="memitem:ac179c4509c472cc03cb9aabe6dc5bef6" id="r_ac179c4509c472cc03cb9aabe6dc5bef6"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ac179c4509c472cc03cb9aabe6dc5bef6">routeId</a></td></tr>
 <tr class="memdesc:ac179c4509c472cc03cb9aabe6dc5bef6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Id of the route of the train.  <br /></td></tr>
-<tr class="memitem:a2f9b65ec334160ac9f66205e58bde36e" id="r_a2f9b65ec334160ac9f66205e58bde36e"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a2f9b65ec334160ac9f66205e58bde36e">scheduledDepartureTime</a> = 0.0</td></tr>
-<tr class="memitem:ad9ec4f68b31222a24b13bd6e2301342d" id="r_ad9ec4f68b31222a24b13bd6e2301342d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ad9ec4f68b31222a24b13bd6e2301342d">runStartTime</a> = 0</td></tr>
+<tr class="memitem:a2f9b65ec334160ac9f66205e58bde36e" id="r_a2f9b65ec334160ac9f66205e58bde36e"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a2f9b65ec334160ac9f66205e58bde36e">scheduledDepartureTime</a></td></tr>
+<tr class="memitem:ad9ec4f68b31222a24b13bd6e2301342d" id="r_ad9ec4f68b31222a24b13bd6e2301342d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ad9ec4f68b31222a24b13bd6e2301342d">runStartTime</a></td></tr>
 <tr class="memitem:a13187451bd17ac908df4c3df88db7e5d" id="r_a13187451bd17ac908df4c3df88db7e5d"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_blocking_time_diagram_input.html">BlockingTimeDiagramInput</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a13187451bd17ac908df4c3df88db7e5d">blockTimes</a></td></tr>
 <tr class="memdesc:a13187451bd17ac908df4c3df88db7e5d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Blocking times of the train, as <a class="el" href="class_train.html#a207882ffae8d66449972414dea9b4112" title="Blocking times of the train, N_BlockSections of them, which the stage after the steps computes.">Train::BlockTime</a> holds them.  <br /></td></tr>
 <tr class="memitem:a4ab95037812b825ae41364d8f50fd51a" id="r_a4ab95037812b825ae41364d8f50fd51a"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_completed_stop.html">CompletedStop</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a4ab95037812b825ae41364d8f50fd51a">stops</a></td></tr>
@@ -204,7 +203,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int CompletedTrain::routeIndex = -1</td>
+          <td class="memname">int CompletedTrain::routeIndex</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -220,7 +219,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int CompletedTrain::runStartTime = 0</td>
+          <td class="memname">int CompletedTrain::runStartTime</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -235,7 +234,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double CompletedTrain::scheduledDepartureTime = 0.0</td>
+          <td class="memname">double CompletedTrain::scheduledDepartureTime</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -266,7 +265,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int CompletedTrain::serviceOccurrence = 1</td>
+          <td class="memname">int CompletedTrain::serviceOccurrence</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -324,7 +323,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_completed_run_data_8h_source.html">CompletedRunData.h</a></li>
+<li>diagrams/<a class="el" href="_completed_run_data_8h.html">CompletedRunData.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

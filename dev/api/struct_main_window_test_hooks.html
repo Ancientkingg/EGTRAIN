@@ -8,7 +8,6 @@
 <title>EGTRAIN: MainWindowTestHooks Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,21 +115,21 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_main_wi
 <p>The entry points that the scripted runs in tests/e2e use. They are empty in a normal run.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_main_window_test_hooks_8h_source.html">app/MainWindowTestHooks.h</a>&gt;</code></p>
+<p><code>#include &lt;app/MainWindowTestHooks.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a1b1491197035f326045c06ccf6f4b9d2" id="r_a1b1491197035f326045c06ccf6f4b9d2"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a1b1491197035f326045c06ccf6f4b9d2">dialogsSuppressed</a> = false</td></tr>
+<tr class="memitem:a1b1491197035f326045c06ccf6f4b9d2" id="r_a1b1491197035f326045c06ccf6f4b9d2"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a1b1491197035f326045c06ccf6f4b9d2">dialogsSuppressed</a></td></tr>
 <tr class="memdesc:a1b1491197035f326045c06ccf6f4b9d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">A scripted run has no user to answer a dialog.  <br /></td></tr>
-<tr class="memitem:a72397496b16533fa4c8f990af0840c4a" id="r_a72397496b16533fa4c8f990af0840c4a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a72397496b16533fa4c8f990af0840c4a">suppressStartupPrompts</a> = false</td></tr>
+<tr class="memitem:a72397496b16533fa4c8f990af0840c4a" id="r_a72397496b16533fa4c8f990af0840c4a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a72397496b16533fa4c8f990af0840c4a">suppressStartupPrompts</a></td></tr>
 <tr class="memdesc:a72397496b16533fa4c8f990af0840c4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">A scripted run that starts without a scene: the first show asks no startup question and starts nothing but afterFirstShow.  <br /></td></tr>
-<tr class="memitem:acc65fb0d3ac9e0488099a7d9712a0a65" id="r_acc65fb0d3ac9e0488099a7d9712a0a65"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#acc65fb0d3ac9e0488099a7d9712a0a65">askCapacityScope</a> = false</td></tr>
+<tr class="memitem:acc65fb0d3ac9e0488099a7d9712a0a65" id="r_acc65fb0d3ac9e0488099a7d9712a0a65"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#acc65fb0d3ac9e0488099a7d9712a0a65">askCapacityScope</a></td></tr>
 <tr class="memdesc:acc65fb0d3ac9e0488099a7d9712a0a65"><td class="mdescLeft">&#160;</td><td class="mdescRight">Capacity analysis asks for its scope although dialogs are suppressed, for a scripted run that answers the dialog.  <br /></td></tr>
-<tr class="memitem:a4566b7e5a66d0a3ebd208e9363d97184" id="r_a4566b7e5a66d0a3ebd208e9363d97184"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4566b7e5a66d0a3ebd208e9363d97184">askRunReview</a> = false</td></tr>
+<tr class="memitem:a4566b7e5a66d0a3ebd208e9363d97184" id="r_a4566b7e5a66d0a3ebd208e9363d97184"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4566b7e5a66d0a3ebd208e9363d97184">askRunReview</a></td></tr>
 <tr class="memdesc:a4566b7e5a66d0a3ebd208e9363d97184"><td class="mdescLeft">&#160;</td><td class="mdescRight">The run review opens although dialogs are suppressed, for a scripted run that answers the dialog.  <br /></td></tr>
 <tr class="memitem:a08dfaa657732586e6f67aa3df1ee7df2" id="r_a08dfaa657732586e6f67aa3df1ee7df2"><td class="memItemLeft">std::function&lt; void(<a class="el" href="class_main_window.html">MainWindow</a> &amp;)&gt;&#160;</td><td class="memItemRight"><a class="el" href="#a08dfaa657732586e6f67aa3df1ee7df2">afterFirstShow</a></td></tr>
 <tr class="memdesc:a08dfaa657732586e6f67aa3df1ee7df2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called once, at the end of the first showEvent.  <br /></td></tr>
-<tr class="memitem:a88f0f3027155ccf07e52459ef09298d8" id="r_a88f0f3027155ccf07e52459ef09298d8"><td class="memItemLeft">void(*)&#160;</td><td class="memItemRight"><a class="el" href="#a88f0f3027155ccf07e52459ef09298d8">frameRendered</a> (<a class="el" href="class_main_window.html">MainWindow</a> &amp;window, bool historical) = nullptr</td></tr>
+<tr class="memitem:a88f0f3027155ccf07e52459ef09298d8" id="r_a88f0f3027155ccf07e52459ef09298d8"><td class="memItemLeft">void(*)&#160;</td><td class="memItemRight"><a class="el" href="#a88f0f3027155ccf07e52459ef09298d8">frameRendered</a> (<a class="el" href="class_main_window.html">MainWindow</a> &amp;window, bool historical)</td></tr>
 <tr class="memitem:a9f5971d47adde20ec5e8b7aa04e09766" id="r_a9f5971d47adde20ec5e8b7aa04e09766"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a9f5971d47adde20ec5e8b7aa04e09766">runDataFolder</a></td></tr>
 <tr class="memdesc:a9f5971d47adde20ec5e8b7aa04e09766"><td class="mdescLeft">&#160;</td><td class="mdescRight">The folder that holds Recovery and Crashes in place of AppLocalDataLocation, for a test run with settings of its own.  <br /></td></tr>
 <tr class="memitem:a65b26bad30c181f7046900bedfcd4489" id="r_a65b26bad30c181f7046900bedfcd4489"><td class="memItemLeft">std::function&lt; QString()&gt;&#160;</td><td class="memItemRight"><a class="el" href="#a65b26bad30c181f7046900bedfcd4489">passengerSource</a></td></tr>
@@ -138,19 +137,19 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a55e996b61c2bcaa3045854d3f7295d07" id="r_a55e996b61c2bcaa3045854d3f7295d07"><td class="memItemLeft">std::function&lt; void(QDialog &amp;dialog, const char *kind)&gt;&#160;</td><td class="memItemRight"><a class="el" href="#a55e996b61c2bcaa3045854d3f7295d07">dialogShown</a></td></tr>
 <tr class="memdesc:a55e996b61c2bcaa3045854d3f7295d07"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called with a dialog just before it opens. kind names the dialog: startupChooser, runReview, privacySettings or recoveryPrompt.  <br /></td></tr>
 <tr class="memitem:acf15bd38152d71278dfac8a7eb670782" id="r_acf15bd38152d71278dfac8a7eb670782"><td class="memItemLeft">std::function&lt; void(QDialog &amp;dialog, const char *kind)&gt;&#160;</td><td class="memItemRight"><a class="el" href="#acf15bd38152d71278dfac8a7eb670782">dialogClosed</a></td></tr>
-<tr class="memitem:a0b475b64be61d9da7982759c6cecd655" id="r_a0b475b64be61d9da7982759c6cecd655"><td class="memItemLeft">void(*)&#160;</td><td class="memItemRight"><a class="el" href="#a0b475b64be61d9da7982759c6cecd655">snapshotDelivered</a> (<a class="el" href="class_main_window.html">MainWindow</a> &amp;window) = nullptr</td></tr>
+<tr class="memitem:a0b475b64be61d9da7982759c6cecd655" id="r_a0b475b64be61d9da7982759c6cecd655"><td class="memItemLeft">void(*)&#160;</td><td class="memItemRight"><a class="el" href="#a0b475b64be61d9da7982759c6cecd655">snapshotDelivered</a> (<a class="el" href="class_main_window.html">MainWindow</a> &amp;window)</td></tr>
 <tr class="memdesc:a0b475b64be61d9da7982759c6cecd655"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called with each live snapshot once the window holds it and before it is drawn.  <br /></td></tr>
-<tr class="memitem:aad380a2f152be1de7f8ebd13f7e608dc" id="r_aad380a2f152be1de7f8ebd13f7e608dc"><td class="memItemLeft">void(*)&#160;</td><td class="memItemRight"><a class="el" href="#aad380a2f152be1de7f8ebd13f7e608dc">snapshotDrawn</a> (<a class="el" href="class_main_window.html">MainWindow</a> &amp;window) = nullptr</td></tr>
+<tr class="memitem:aad380a2f152be1de7f8ebd13f7e608dc" id="r_aad380a2f152be1de7f8ebd13f7e608dc"><td class="memItemLeft">void(*)&#160;</td><td class="memItemRight"><a class="el" href="#aad380a2f152be1de7f8ebd13f7e608dc">snapshotDrawn</a> (<a class="el" href="class_main_window.html">MainWindow</a> &amp;window)</td></tr>
 <tr class="memdesc:aad380a2f152be1de7f8ebd13f7e608dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called after each live snapshot is drawn and kept as the last one drawn.  <br /></td></tr>
-<tr class="memitem:a8bfb8df20a1c75532f98458947501a70" id="r_a8bfb8df20a1c75532f98458947501a70"><td class="memItemLeft">bool(*)&#160;</td><td class="memItemRight"><a class="el" href="#a8bfb8df20a1c75532f98458947501a70">runFinished</a> (<a class="el" href="class_main_window.html">MainWindow</a> &amp;window) = nullptr</td></tr>
+<tr class="memitem:a8bfb8df20a1c75532f98458947501a70" id="r_a8bfb8df20a1c75532f98458947501a70"><td class="memItemLeft">bool(*)&#160;</td><td class="memItemRight"><a class="el" href="#a8bfb8df20a1c75532f98458947501a70">runFinished</a> (<a class="el" href="class_main_window.html">MainWindow</a> &amp;window)</td></tr>
 <tr class="memitem:a030fe1f7bf4a928721bfe463109b186a" id="r_a030fe1f7bf4a928721bfe463109b186a"><td class="memItemLeft">std::function&lt; bool(<a class="el" href="struct_telemetry_context.html">TelemetryContext</a> &amp;context, bool &amp;initialPrompt)&gt;&#160;</td><td class="memItemRight"><a class="el" href="#a030fe1f7bf4a928721bfe463109b186a">privacyPreview</a></td></tr>
-<tr class="memitem:ae6aaceae17eef5ca6b33526bbd6ee4cc" id="r_ae6aaceae17eef5ca6b33526bbd6ee4cc"><td class="memItemLeft">bool(*)&#160;</td><td class="memItemRight"><a class="el" href="#ae6aaceae17eef5ca6b33526bbd6ee4cc">telemetryStart</a> (<a class="el" href="class_update_telemetry_controller.html">UpdateTelemetryController</a> &amp;controller) = nullptr</td></tr>
-<tr class="memitem:a9a4d4d6a6fc1839a447ba08678ac2eb7" id="r_a9a4d4d6a6fc1839a447ba08678ac2eb7"><td class="memItemLeft">void(*)&#160;</td><td class="memItemRight"><a class="el" href="#a9a4d4d6a6fc1839a447ba08678ac2eb7">observationStep</a> (int step) = nullptr</td></tr>
+<tr class="memitem:ae6aaceae17eef5ca6b33526bbd6ee4cc" id="r_ae6aaceae17eef5ca6b33526bbd6ee4cc"><td class="memItemLeft">bool(*)&#160;</td><td class="memItemRight"><a class="el" href="#ae6aaceae17eef5ca6b33526bbd6ee4cc">telemetryStart</a> (<a class="el" href="class_update_telemetry_controller.html">UpdateTelemetryController</a> &amp;controller)</td></tr>
+<tr class="memitem:a9a4d4d6a6fc1839a447ba08678ac2eb7" id="r_a9a4d4d6a6fc1839a447ba08678ac2eb7"><td class="memItemLeft">void(*)&#160;</td><td class="memItemRight"><a class="el" href="#a9a4d4d6a6fc1839a447ba08678ac2eb7">observationStep</a> (int step)</td></tr>
 <tr class="memitem:a90f4af5176afe3a977103a031188a862" id="r_a90f4af5176afe3a977103a031188a862"><td class="memItemLeft">std::function&lt; void(<a class="el" href="class_main_window.html">MainWindow</a> &amp;window)&gt;&#160;</td><td class="memItemRight"><a class="el" href="#a90f4af5176afe3a977103a031188a862">windowBroughtToFront</a></td></tr>
 <tr class="memdesc:a90f4af5176afe3a977103a031188a862"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called each time the window has been raised and activated so that a question in front of it is seen.  <br /></td></tr>
-<tr class="memitem:ad967c3a62bb701355d96f41adeb81a11" id="r_ad967c3a62bb701355d96f41adeb81a11"><td class="memItemLeft">void(*)&#160;</td><td class="memItemRight"><a class="el" href="#ad967c3a62bb701355d96f41adeb81a11">windowDestroyed</a> () = nullptr</td></tr>
+<tr class="memitem:ad967c3a62bb701355d96f41adeb81a11" id="r_ad967c3a62bb701355d96f41adeb81a11"><td class="memItemLeft">void(*)&#160;</td><td class="memItemRight"><a class="el" href="#ad967c3a62bb701355d96f41adeb81a11">windowDestroyed</a> ()</td></tr>
 <tr class="memdesc:ad967c3a62bb701355d96f41adeb81a11"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called at the end of the destructor of the window.  <br /></td></tr>
-<tr class="memitem:a3c2b73a1562ab82518217bca0d8cf47f" id="r_a3c2b73a1562ab82518217bca0d8cf47f"><td class="memItemLeft">void(*)&#160;</td><td class="memItemRight"><a class="el" href="#a3c2b73a1562ab82518217bca0d8cf47f">routeDiagramBuilt</a> (const std::function&lt; std::string(const QStringList &amp;)&gt; &amp;<a class="el" href="namespacecsv.html">csv</a>, const QStringList &amp;trainIds, bool timetable) = nullptr</td></tr>
+<tr class="memitem:a3c2b73a1562ab82518217bca0d8cf47f" id="r_a3c2b73a1562ab82518217bca0d8cf47f"><td class="memItemLeft">void(*)&#160;</td><td class="memItemRight"><a class="el" href="#a3c2b73a1562ab82518217bca0d8cf47f">routeDiagramBuilt</a> (const std::function&lt; std::string(const QStringList &amp;)&gt; &amp;<a class="el" href="namespacecsv.html">csv</a>, const QStringList &amp;trainIds, bool timetable)</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The entry points that the scripted runs in tests/e2e use. They are empty in a normal run. </p>
@@ -178,7 +177,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool MainWindowTestHooks::askCapacityScope = false</td>
+          <td class="memname">bool MainWindowTestHooks::askCapacityScope</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -194,7 +193,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool MainWindowTestHooks::askRunReview = false</td>
+          <td class="memname">bool MainWindowTestHooks::askRunReview</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -241,7 +240,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool MainWindowTestHooks::dialogsSuppressed = false</td>
+          <td class="memname">bool MainWindowTestHooks::dialogsSuppressed</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -257,7 +256,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void(*) MainWindowTestHooks::frameRendered(<a class="el" href="class_main_window.html">MainWindow</a> &amp;window, bool historical) = nullptr</td>
+          <td class="memname">void(*) MainWindowTestHooks::frameRendered(<a class="el" href="class_main_window.html">MainWindow</a> &amp;window, bool historical)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -272,7 +271,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void(*) MainWindowTestHooks::observationStep(int step) = nullptr</td>
+          <td class="memname">void(*) MainWindowTestHooks::observationStep(int step)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -318,7 +317,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void(*) MainWindowTestHooks::routeDiagramBuilt(const std::function&lt; std::string(const QStringList &amp;)&gt; &amp;<a class="el" href="namespacecsv.html">csv</a>, const QStringList &amp;trainIds, bool timetable) = nullptr</td>
+          <td class="memname">void(*) MainWindowTestHooks::routeDiagramBuilt(const std::function&lt; std::string(const QStringList &amp;)&gt; &amp;<a class="el" href="namespacecsv.html">csv</a>, const QStringList &amp;trainIds, bool timetable)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -349,7 +348,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool(*) MainWindowTestHooks::runFinished(<a class="el" href="class_main_window.html">MainWindow</a> &amp;window) = nullptr</td>
+          <td class="memname">bool(*) MainWindowTestHooks::runFinished(<a class="el" href="class_main_window.html">MainWindow</a> &amp;window)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -364,7 +363,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void(*) MainWindowTestHooks::snapshotDelivered(<a class="el" href="class_main_window.html">MainWindow</a> &amp;window) = nullptr</td>
+          <td class="memname">void(*) MainWindowTestHooks::snapshotDelivered(<a class="el" href="class_main_window.html">MainWindow</a> &amp;window)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -380,7 +379,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void(*) MainWindowTestHooks::snapshotDrawn(<a class="el" href="class_main_window.html">MainWindow</a> &amp;window) = nullptr</td>
+          <td class="memname">void(*) MainWindowTestHooks::snapshotDrawn(<a class="el" href="class_main_window.html">MainWindow</a> &amp;window)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -396,7 +395,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool MainWindowTestHooks::suppressStartupPrompts = false</td>
+          <td class="memname">bool MainWindowTestHooks::suppressStartupPrompts</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -412,7 +411,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool(*) MainWindowTestHooks::telemetryStart(<a class="el" href="class_update_telemetry_controller.html">UpdateTelemetryController</a> &amp;controller) = nullptr</td>
+          <td class="memname">bool(*) MainWindowTestHooks::telemetryStart(<a class="el" href="class_update_telemetry_controller.html">UpdateTelemetryController</a> &amp;controller)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -443,7 +442,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void(*) MainWindowTestHooks::windowDestroyed() = nullptr</td>
+          <td class="memname">void(*) MainWindowTestHooks::windowDestroyed()</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -453,7 +452,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>app/<a class="el" href="_main_window_test_hooks_8h_source.html">MainWindowTestHooks.h</a></li>
+<li>app/<a class="el" href="_main_window_test_hooks_8h.html">MainWindowTestHooks.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

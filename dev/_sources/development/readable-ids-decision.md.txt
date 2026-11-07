@@ -84,7 +84,7 @@ Notes:
 
 - (a) fixes what the four Paimpol steps show without touching data, so nothing in the scenes, the legacy files, the golden files, the exports or the live frame can break.
 - (a) costs little more than (c), because both need the label function and (a) only uses it in more places.
-- (b) crosses the data-loss boundaries of the repository: scene files, a first migration step, the legacy export and recovery. It changes 127 golden files, which hides real behaviour changes in a large diff, and still leaves switch sections hard to read.
+- (b) crosses the data-loss boundaries of EGTRAIN: scene files, a first migration step, the legacy export and recovery. It changes 127 golden files, which hides real behaviour changes in a large diff, and still leaves switch sections hard to read.
 
 Against (a):
 

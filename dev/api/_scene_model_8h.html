@@ -8,7 +8,6 @@
 <title>EGTRAIN: scene/SceneModel.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,7 +111,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_model_8
   <div class="headertitle"><div class="title">SceneModel.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_scene_diagnostic_8h_source.html">scene/SceneDiagnostic.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_scene_diagnostic_8h.html">scene/SceneDiagnostic.h</a>&quot;</code><br />
 <code>#include &lt;array&gt;</code><br />
 <code>#include &lt;cstddef&gt;</code><br />
 <code>#include &lt;optional&gt;</code><br />
@@ -130,9 +129,7 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h__dep__incl.svg" width="5911" height="359"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-</div>
-<p><a href="_scene_model_8h_source.html">Go to the source code of this file.</a></p>
-<table class="memberdecls">
+</div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:SceneSimulationSettings" id="r_SceneSimulationSettings"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_simulation_settings.html">SceneSimulationSettings</a></td></tr>
@@ -204,7 +201,7 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-typedef-members" class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:ad9ed02f1c27b585001ed98c686bc3761" id="r_ad9ed02f1c27b585001ed98c686bc3761"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a> = std::set&lt;<a class="el" href="struct_scene_service_occurrence.html">SceneServiceOccurrence</a>&gt;</td></tr>
+<tr class="memitem:ad9ed02f1c27b585001ed98c686bc3761" id="r_ad9ed02f1c27b585001ed98c686bc3761"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a></td></tr>
 <tr class="memdesc:ad9ed02f1c27b585001ed98c686bc3761"><td class="mdescLeft">&#160;</td><td class="mdescRight">The occurrences chosen for a run. An empty set means every occurrence.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-enum-members" class="groupheader"><a id="enum-members" name="enum-members"></a>
@@ -255,15 +252,15 @@ Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:abc26f5639867b24c9e8a891a57b86f3a" id="r_abc26f5639867b24c9e8a891a57b86f3a"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#abc26f5639867b24c9e8a891a57b86f3a">kCurrentSceneSchemaVersion</a> = 1</td></tr>
+<tr class="memitem:abc26f5639867b24c9e8a891a57b86f3a" id="r_abc26f5639867b24c9e8a891a57b86f3a"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#abc26f5639867b24c9e8a891a57b86f3a">kCurrentSceneSchemaVersion</a></td></tr>
 <tr class="memdesc:abc26f5639867b24c9e8a891a57b86f3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The schema_version of scene.json that this application reads and writes.  <br /></td></tr>
-<tr class="memitem:a1c5945996f49639c8197eff1a2c6901c" id="r_a1c5945996f49639c8197eff1a2c6901c"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a1c5945996f49639c8197eff1a2c6901c">kCurrentSceneBundleVersion</a> = 1</td></tr>
+<tr class="memitem:a1c5945996f49639c8197eff1a2c6901c" id="r_a1c5945996f49639c8197eff1a2c6901c"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a1c5945996f49639c8197eff1a2c6901c">kCurrentSceneBundleVersion</a></td></tr>
 <tr class="memdesc:a1c5945996f49639c8197eff1a2c6901c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The bundle_version of an .egscene bundle that this application reads and writes.  <br /></td></tr>
-<tr class="memitem:ae5fc684ef6fbebe5d0cc8a95d979bd79" id="r_ae5fc684ef6fbebe5d0cc8a95d979bd79"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#ae5fc684ef6fbebe5d0cc8a95d979bd79">kDefaultPlatformLengthM</a> = 100.0</td></tr>
+<tr class="memitem:ae5fc684ef6fbebe5d0cc8a95d979bd79" id="r_ae5fc684ef6fbebe5d0cc8a95d979bd79"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#ae5fc684ef6fbebe5d0cc8a95d979bd79">kDefaultPlatformLengthM</a></td></tr>
 <tr class="memdesc:ae5fc684ef6fbebe5d0cc8a95d979bd79"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length of a platform in metres when the platform states none.  <br /></td></tr>
-<tr class="memitem:ad132147496247c482e942adece81c530" id="r_ad132147496247c482e942adece81c530"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#ad132147496247c482e942adece81c530">kDefaultPlatformWidthM</a> = 2.5</td></tr>
+<tr class="memitem:ad132147496247c482e942adece81c530" id="r_ad132147496247c482e942adece81c530"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#ad132147496247c482e942adece81c530">kDefaultPlatformWidthM</a></td></tr>
 <tr class="memdesc:ad132147496247c482e942adece81c530"><td class="mdescLeft">&#160;</td><td class="mdescRight">Width of a platform in metres when the platform states none.  <br /></td></tr>
-<tr class="memitem:ac24f3e5205302959b94756ed22d13564" id="r_ac24f3e5205302959b94756ed22d13564"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#ac24f3e5205302959b94756ed22d13564">kSceneGravityMs2</a> = 9.81</td></tr>
+<tr class="memitem:ac24f3e5205302959b94756ed22d13564" id="r_ac24f3e5205302959b94756ed22d13564"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#ac24f3e5205302959b94756ed22d13564">kSceneGravityMs2</a></td></tr>
 <tr class="memitem:a17ea65fad1be8609ef1271a2c2c855d1" id="r_a17ea65fad1be8609ef1271a2c2c855d1"><td class="memItemLeft">constexpr std::array&lt; <a class="el" href="struct_scene_file.html">SceneFile</a>, 10 &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a17ea65fad1be8609ef1271a2c2c855d1">kSceneFiles</a></td></tr>
 </table>
 <a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Typedef Documentation</h2>
@@ -274,7 +271,7 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a> = std::set&lt;<a class="el" href="struct_scene_service_occurrence.html">SceneServiceOccurrence</a>&gt;</td>
+          <td class="memname">using <a class="el" href="#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1015,7 +1012,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int kCurrentSceneBundleVersion = 1</td>
+          <td class="memname">int kCurrentSceneBundleVersion</td>
         </tr>
       </table>
   </td>
@@ -1039,7 +1036,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int kCurrentSceneSchemaVersion = 1</td>
+          <td class="memname">int kCurrentSceneSchemaVersion</td>
         </tr>
       </table>
   </td>
@@ -1063,7 +1060,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">double kDefaultPlatformLengthM = 100.0</td>
+          <td class="memname">double kDefaultPlatformLengthM</td>
         </tr>
       </table>
   </td>
@@ -1087,7 +1084,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">double kDefaultPlatformWidthM = 2.5</td>
+          <td class="memname">double kDefaultPlatformWidthM</td>
         </tr>
       </table>
   </td>
@@ -1120,23 +1117,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">{{</div>
-<div class="line">    {<span class="stringliteral">&quot;scene.json&quot;</span>, <span class="keyword">true</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c">SceneFileWrite::Always</a>},</div>
-<div class="line">    {<span class="stringliteral">&quot;infrastructure.json&quot;</span>, <span class="keyword">true</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c">SceneFileWrite::Always</a>},</div>
-<div class="line">    {<span class="stringliteral">&quot;stations.json&quot;</span>, <span class="keyword">true</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c">SceneFileWrite::Always</a>},</div>
-<div class="line">    {<span class="stringliteral">&quot;signalling.json&quot;</span>, <span class="keyword">true</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c">SceneFileWrite::Always</a>},</div>
-<div class="line">    {<span class="stringliteral">&quot;rolling_stock.json&quot;</span>, <span class="keyword">true</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c">SceneFileWrite::Always</a>},</div>
-<div class="line">    {<span class="stringliteral">&quot;services.json&quot;</span>, <span class="keyword">true</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c">SceneFileWrite::Always</a>},</div>
-<div class="line">    {<span class="stringliteral">&quot;scenarios.json&quot;</span>, <span class="keyword">false</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c">SceneFileWrite::Always</a>},</div>
-<div class="line">    {<span class="stringliteral">&quot;views.json&quot;</span>, <span class="keyword">false</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfa8b5f87dca22aeabef40d6bcf6632dd9d">SceneFileWrite::WithViews</a>},</div>
-<div class="line">    {<span class="stringliteral">&quot;passengers.json&quot;</span>, <span class="keyword">false</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfaaf070742fd356f8df61ad321d678d539">SceneFileWrite::WithPassengers</a>},</div>
-<div class="line">    {<span class="stringliteral">&quot;incidents.json&quot;</span>, <span class="keyword">false</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfa6e7b34fa59e1bd229b207892956dc41c">SceneFileWrite::Never</a>},</div>
-<div class="line">}}</div>
-<div class="ttc" id="a_scene_model_8h_html_a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c"><div class="ttname"><a href="#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c">SceneFileWrite::Always</a></div><div class="ttdeci">@ Always</div><div class="ttdoc">On every save.</div><div class="ttdef"><b>Definition</b> SceneModel.h:464</div></div>
-<div class="ttc" id="a_scene_model_8h_html_a2f0af6395a02c0c742ec145287c7bfdfa6e7b34fa59e1bd229b207892956dc41c"><div class="ttname"><a href="#a2f0af6395a02c0c742ec145287c7bfdfa6e7b34fa59e1bd229b207892956dc41c">SceneFileWrite::Never</a></div><div class="ttdeci">@ Never</div><div class="ttdoc">Never; the loader still reads it from an older scene.</div><div class="ttdef"><b>Definition</b> SceneModel.h:467</div></div>
-<div class="ttc" id="a_scene_model_8h_html_a2f0af6395a02c0c742ec145287c7bfdfa8b5f87dca22aeabef40d6bcf6632dd9d"><div class="ttname"><a href="#a2f0af6395a02c0c742ec145287c7bfdfa8b5f87dca22aeabef40d6bcf6632dd9d">SceneFileWrite::WithViews</a></div><div class="ttdeci">@ WithViews</div><div class="ttdoc">When the scene has track or station views.</div><div class="ttdef"><b>Definition</b> SceneModel.h:465</div></div>
-<div class="ttc" id="a_scene_model_8h_html_a2f0af6395a02c0c742ec145287c7bfdfaaf070742fd356f8df61ad321d678d539"><div class="ttname"><a href="#a2f0af6395a02c0c742ec145287c7bfdfaaf070742fd356f8df61ad321d678d539">SceneFileWrite::WithPassengers</a></div><div class="ttdeci">@ WithPassengers</div><div class="ttdoc">When the scene has passengers.</div><div class="ttdef"><b>Definition</b> SceneModel.h:466</div></div>
-</div><!-- fragment --><p>Every file of a scene directory, in the order in which saveScene writes them. The snapshot of a directory holds all of them. A bundle holds the files that saveScene writes, and those that it always writes are required there. </p>
+<p>Every file of a scene directory, in the order in which saveScene writes them. The snapshot of a directory holds all of them. A bundle holds the files that saveScene writes, and those that it always writes are required there. </p>
 
 </div>
 </div>
@@ -1150,7 +1131,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">double kSceneGravityMs2 = 9.81</td>
+          <td class="memname">double kSceneGravityMs2</td>
         </tr>
       </table>
   </td>

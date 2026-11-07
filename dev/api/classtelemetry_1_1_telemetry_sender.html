@@ -8,7 +8,6 @@
 <title>EGTRAIN: telemetry::TelemetrySender Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,7 +112,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('classtelemetry
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_telemetry_sender_8h_source.html">telemetry/TelemetrySender.h</a>&gt;</code></p>
+<p><code>#include &lt;telemetry/TelemetrySender.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -138,7 +137,7 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
-<tr class="memitem:af128348a90aceebb1a203c2c88869c0a" id="r_af128348a90aceebb1a203c2c88869c0a"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#af128348a90aceebb1a203c2c88869c0a">kTickIntervalMs</a> = 50</td></tr>
+<tr class="memitem:af128348a90aceebb1a203c2c88869c0a" id="r_af128348a90aceebb1a203c2c88869c0a"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#af128348a90aceebb1a203c2c88869c0a">kTickIntervalMs</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Sends usage and diagnostic events to the compiled receiver from a worker thread of its own. Producers on any thread hand events to an in-memory ring of 128 entries without waiting. Once a second the worker re-reads consent through its own <a class="el" href="class_telemetry_consent.html">TelemetryConsent</a>, stores events in a <a class="el" href="classtelemetry_1_1_telemetry_queue.html">TelemetryQueue</a> and posts batches over HTTPS with the User-Agent EGTRAIN/&lt;version&gt;, handling each response as the HTTP outcomes of docs/telemetry/README.md say. Only the process that owns the queue sends; in others every event is dropped. A sender whose context is not capable, or whose construction fails, starts no thread and accepts nothing. The worker exits by itself once it can send nothing more in this run: after a receiver change, a 410 response, or a failed consent read or storage operation. When only a file write or a space check of the queue failed (<a class="el" href="classtelemetry_1_1_telemetry_queue.html#ade4b037cbde1dbccb3115cdf7e33c9b7">TelemetryQueue::storageFailed()</a>), it keeps the queue open but takes in nothing, reads consent once a second and at <a class="el" href="#ab04a761b9bbcbecbaa997b1b2001d09c">requestConsentRefresh()</a>, and once the consent of either category has changed, removes the disabled marker and opens the queue again. </p>
@@ -502,7 +501,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int telemetry::TelemetrySender::kTickIntervalMs = 50</td>
+          <td class="memname">int telemetry::TelemetrySender::kTickIntervalMs</td>
         </tr>
       </table>
   </td>
@@ -516,7 +515,7 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>telemetry/<a class="el" href="_telemetry_sender_8h_source.html">TelemetrySender.h</a></li>
+<li>telemetry/<a class="el" href="_telemetry_sender_8h.html">TelemetrySender.h</a></li>
 <li>telemetry/<a class="el" href="_telemetry_sender_8cpp.html">TelemetrySender.cpp</a></li>
 </ul>
 </div><!-- contents -->

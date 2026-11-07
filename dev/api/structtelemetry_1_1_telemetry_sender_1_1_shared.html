@@ -8,7 +8,6 @@
 <title>EGTRAIN: telemetry::TelemetrySender::Shared Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -132,13 +131,13 @@ Public Member Functions</h2></td></tr>
 Public Attributes</h2></td></tr>
 <tr class="memitem:aa63f290307d7e98bbd864a44baefa633" id="r_aa63f290307d7e98bbd864a44baefa633"><td class="memItemLeft">QMutex&#160;</td><td class="memItemRight"><a class="el" href="#aa63f290307d7e98bbd864a44baefa633">mutex</a></td></tr>
 <tr class="memitem:a67f0d48ccc707e5bbd5b795cf7c68e87" id="r_a67f0d48ccc707e5bbd5b795cf7c68e87"><td class="memItemLeft">std::array&lt; <a class="el" href="structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html">Intent</a>, kIngress &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a67f0d48ccc707e5bbd5b795cf7c68e87">ring</a></td></tr>
-<tr class="memitem:aa23cce0105db34dfa7792846bcd5f19f" id="r_aa23cce0105db34dfa7792846bcd5f19f"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aa23cce0105db34dfa7792846bcd5f19f">head</a> = 0</td></tr>
-<tr class="memitem:ab68fd49969bfc0a4d19d8bfbe11a1049" id="r_ab68fd49969bfc0a4d19d8bfbe11a1049"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ab68fd49969bfc0a4d19d8bfbe11a1049">count</a> = 0</td></tr>
-<tr class="memitem:acdadc0b7709e86d0dfeb82cb362e9650" id="r_acdadc0b7709e86d0dfeb82cb362e9650"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#acdadc0b7709e86d0dfeb82cb362e9650">gate</a> [2] = {false, false}</td></tr>
-<tr class="memitem:ad43567200d179b37e4eb6d7f6a10e288" id="r_ad43567200d179b37e4eb6d7f6a10e288"><td class="memItemLeft">quint64&#160;</td><td class="memItemRight"><a class="el" href="#ad43567200d179b37e4eb6d7f6a10e288">epoch</a> [2] = {1, 1}</td></tr>
-<tr class="memitem:a16704c3ac7d6276178ceb1cad3b1b4e6" id="r_a16704c3ac7d6276178ceb1cad3b1b4e6"><td class="memItemLeft">std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a16704c3ac7d6276178ceb1cad3b1b4e6">stop</a> {false}</td></tr>
-<tr class="memitem:ab8152619b90750d9d8fb41ec87850884" id="r_ab8152619b90750d9d8fb41ec87850884"><td class="memItemLeft">std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ab8152619b90750d9d8fb41ec87850884">interactiveSessionRequested</a> {false}</td></tr>
-<tr class="memitem:a72a1eefb5e14de542f8da4604ff0d913" id="r_a72a1eefb5e14de542f8da4604ff0d913"><td class="memItemLeft">std::atomic&lt; unsigned &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a72a1eefb5e14de542f8da4604ff0d913">flags</a> {0}</td></tr>
+<tr class="memitem:aa23cce0105db34dfa7792846bcd5f19f" id="r_aa23cce0105db34dfa7792846bcd5f19f"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aa23cce0105db34dfa7792846bcd5f19f">head</a></td></tr>
+<tr class="memitem:ab68fd49969bfc0a4d19d8bfbe11a1049" id="r_ab68fd49969bfc0a4d19d8bfbe11a1049"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ab68fd49969bfc0a4d19d8bfbe11a1049">count</a></td></tr>
+<tr class="memitem:acdadc0b7709e86d0dfeb82cb362e9650" id="r_acdadc0b7709e86d0dfeb82cb362e9650"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#acdadc0b7709e86d0dfeb82cb362e9650">gate</a> [2]</td></tr>
+<tr class="memitem:ad43567200d179b37e4eb6d7f6a10e288" id="r_ad43567200d179b37e4eb6d7f6a10e288"><td class="memItemLeft">quint64&#160;</td><td class="memItemRight"><a class="el" href="#ad43567200d179b37e4eb6d7f6a10e288">epoch</a> [2]</td></tr>
+<tr class="memitem:a16704c3ac7d6276178ceb1cad3b1b4e6" id="r_a16704c3ac7d6276178ceb1cad3b1b4e6"><td class="memItemLeft">std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a16704c3ac7d6276178ceb1cad3b1b4e6">stop</a></td></tr>
+<tr class="memitem:ab8152619b90750d9d8fb41ec87850884" id="r_ab8152619b90750d9d8fb41ec87850884"><td class="memItemLeft">std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ab8152619b90750d9d8fb41ec87850884">interactiveSessionRequested</a></td></tr>
+<tr class="memitem:a72a1eefb5e14de542f8da4604ff0d913" id="r_a72a1eefb5e14de542f8da4604ff0d913"><td class="memItemLeft">std::atomic&lt; unsigned &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a72a1eefb5e14de542f8da4604ff0d913">flags</a></td></tr>
 <tr class="memitem:a132360faf8274e14638dc817671864d3" id="r_a132360faf8274e14638dc817671864d3"><td class="memItemLeft"><a class="el" href="struct_telemetry_context.html">TelemetryContext</a>&#160;</td><td class="memItemRight"><a class="el" href="#a132360faf8274e14638dc817671864d3">context</a></td></tr>
 <tr class="memitem:a38f58fbe9e261c5ad575fece283ddb77" id="r_a38f58fbe9e261c5ad575fece283ddb77"><td class="memItemLeft"><a class="el" href="structtelemetry_1_1_application.html">Application</a>&#160;</td><td class="memItemRight"><a class="el" href="#a38f58fbe9e261c5ad575fece283ddb77">application</a></td></tr>
 <tr class="memitem:a444a54ac1ff5305759d26495ebf627e8" id="r_a444a54ac1ff5305759d26495ebf627e8"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a444a54ac1ff5305759d26495ebf627e8">directory</a></td></tr>
@@ -256,7 +255,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int telemetry::TelemetrySender::Shared::count = 0</td>
+          <td class="memname">int telemetry::TelemetrySender::Shared::count</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -284,7 +283,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">quint64 telemetry::TelemetrySender::Shared::epoch[2] = {1, 1}</td>
+          <td class="memname">quint64 telemetry::TelemetrySender::Shared::epoch[2]</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -298,7 +297,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::atomic&lt;unsigned&gt; telemetry::TelemetrySender::Shared::flags {0}</td>
+          <td class="memname">std::atomic&lt;unsigned&gt; telemetry::TelemetrySender::Shared::flags</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -312,7 +311,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool telemetry::TelemetrySender::Shared::gate[2] = {false, false}</td>
+          <td class="memname">bool telemetry::TelemetrySender::Shared::gate[2]</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -326,7 +325,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int telemetry::TelemetrySender::Shared::head = 0</td>
+          <td class="memname">int telemetry::TelemetrySender::Shared::head</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -340,7 +339,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::atomic&lt;bool&gt; telemetry::TelemetrySender::Shared::interactiveSessionRequested {false}</td>
+          <td class="memname">std::atomic&lt;bool&gt; telemetry::TelemetrySender::Shared::interactiveSessionRequested</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -382,7 +381,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::atomic&lt;bool&gt; telemetry::TelemetrySender::Shared::stop {false}</td>
+          <td class="memname">std::atomic&lt;bool&gt; telemetry::TelemetrySender::Shared::stop</td>
         </tr>
       </table>
 </div><div class="memdoc">

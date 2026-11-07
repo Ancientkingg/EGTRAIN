@@ -8,7 +8,6 @@
 <title>EGTRAIN: CapacityHeadwayEvidence Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,7 +115,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_capacit
 <p>One pair of occupations that bounds the headway of two trains.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_capacity_analysis_8h_source.html">diagrams/CapacityAnalysis.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/CapacityAnalysis.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -124,11 +123,11 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a60a0900ee457b95a9df2ccb43b85e3e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Block of the leader's occupation.  <br /></td></tr>
 <tr class="memitem:a264b3c18462581c44b5b7136bc4399a4" id="r_a264b3c18462581c44b5b7136bc4399a4"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a264b3c18462581c44b5b7136bc4399a4">followerBlockId</a></td></tr>
 <tr class="memdesc:a264b3c18462581c44b5b7136bc4399a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Block of the follower's occupation, which shares a resource with it.  <br /></td></tr>
-<tr class="memitem:a1e0adbe92b6e062fd28ccc5b32520464" id="r_a1e0adbe92b6e062fd28ccc5b32520464"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a1e0adbe92b6e062fd28ccc5b32520464">leaderOffset</a> = 0.0</td></tr>
+<tr class="memitem:a1e0adbe92b6e062fd28ccc5b32520464" id="r_a1e0adbe92b6e062fd28ccc5b32520464"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a1e0adbe92b6e062fd28ccc5b32520464">leaderOffset</a></td></tr>
 <tr class="memdesc:a1e0adbe92b6e062fd28ccc5b32520464"><td class="mdescLeft">&#160;</td><td class="mdescRight">Leader's end of occupation minus its profile reference.  <br /></td></tr>
-<tr class="memitem:aa1844699e44e37ce964c191206cce862" id="r_aa1844699e44e37ce964c191206cce862"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aa1844699e44e37ce964c191206cce862">followerOffset</a> = 0.0</td></tr>
+<tr class="memitem:aa1844699e44e37ce964c191206cce862" id="r_aa1844699e44e37ce964c191206cce862"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aa1844699e44e37ce964c191206cce862">followerOffset</a></td></tr>
 <tr class="memdesc:aa1844699e44e37ce964c191206cce862"><td class="mdescLeft">&#160;</td><td class="mdescRight">Follower's start of occupation minus its profile reference.  <br /></td></tr>
-<tr class="memitem:a04ad614dac0072a6b2d9f44b9ee7493b" id="r_a04ad614dac0072a6b2d9f44b9ee7493b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a04ad614dac0072a6b2d9f44b9ee7493b">candidateHeadway</a> = 0.0</td></tr>
+<tr class="memitem:a04ad614dac0072a6b2d9f44b9ee7493b" id="r_a04ad614dac0072a6b2d9f44b9ee7493b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a04ad614dac0072a6b2d9f44b9ee7493b">candidateHeadway</a></td></tr>
 <tr class="memdesc:a04ad614dac0072a6b2d9f44b9ee7493b"><td class="mdescLeft">&#160;</td><td class="mdescRight">leaderOffset minus followerOffset  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -141,7 +140,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double CapacityHeadwayEvidence::candidateHeadway = 0.0</td>
+          <td class="memname">double CapacityHeadwayEvidence::candidateHeadway</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -173,7 +172,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double CapacityHeadwayEvidence::followerOffset = 0.0</td>
+          <td class="memname">double CapacityHeadwayEvidence::followerOffset</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -205,7 +204,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double CapacityHeadwayEvidence::leaderOffset = 0.0</td>
+          <td class="memname">double CapacityHeadwayEvidence::leaderOffset</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -215,7 +214,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_capacity_analysis_8h_source.html">CapacityAnalysis.h</a></li>
+<li>diagrams/<a class="el" href="_capacity_analysis_8h.html">CapacityAnalysis.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

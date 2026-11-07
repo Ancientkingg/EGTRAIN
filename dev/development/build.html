@@ -198,6 +198,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
@@ -310,7 +311,7 @@
 <h1>Build from source<a class="headerlink" href="#build-from-source" title="Link to this heading">¶</a></h1>
 <p>This page lists what you need to build EGTRAIN and explains how to configure, build and run it, with the
 common setup failures and their fixes.</p>
-<p>Run configure, build, and test commands from the repository root. Run the
+<p>Run configure, build, and test commands from the root of the source tree. Run the
 application itself from <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN</span></code> so relative scene paths resolve.</p>
 <section id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h2>
@@ -324,7 +325,7 @@ application itself from <code class="docutils literal notranslate"><span class="
 CTest runs its Python tests with that interpreter. On Windows, set
 <code class="docutils literal notranslate"><span class="pre">PYTHONUTF8=1</span></code> for local runs so scripts read program output as UTF-8;
 the Windows presets set it.</p></li>
-<li><p>Git, to clone the repository. On Windows, Git for Windows is a separate install from Visual Studio, and vcpkg
+<li><p>Git, to get the source tree. On Windows, Git for Windows is a separate install from Visual Studio, and vcpkg
 uses it to fetch its registry at the <code class="docutils literal notranslate"><span class="pre">builtin-baseline</span></code> of <code class="docutils literal notranslate"><span class="pre">tools/vcpkg/vcpkg.json</span></code>.</p></li>
 </ul>
 <p>Qt Svg is required by the application and must be available with the
@@ -425,7 +426,7 @@ ctest<span class="w"> </span>--preset<span class="w"> </span>macos-release
 <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_APP</span></code> (see <a class="reference internal" href="testing.html#platform-coverage"><span class="std std-ref">Platform coverage</span></a>).</p>
 <p>On Windows, <code class="docutils literal notranslate"><span class="pre">CMakePresets.json</span></code> holds the settings: Ninja and MSVC for x64, the vcpkg of Visual Studio with the
 <code class="docutils literal notranslate"><span class="pre">x64-windows</span></code> triplet and the manifest <code class="docutils literal notranslate"><span class="pre">tools/vcpkg/vcpkg.json</span></code>, Qt from <code class="docutils literal notranslate"><span class="pre">C:/Qt/6.8.3/msvc2022_64</span></code>, and the tests.
-From an x64 Developer PowerShell for Visual Studio 2022 or newer, in the repository folder:</p>
+From an x64 Developer PowerShell for Visual Studio 2022 or newer, in the root folder of the source tree:</p>
 <div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="n">cmake</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">x64-release</span>
 <span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">x64-release</span>
 <span class="n">ctest</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">x64-release</span>
@@ -434,7 +435,7 @@ From an x64 Developer PowerShell for Visual Studio 2022 or newer, in the reposit
 <p>The <code class="docutils literal notranslate"><span class="pre">x64-debug</span></code> presets make a Debug build. Each preset builds in <code class="docutils literal notranslate"><span class="pre">out\build\&lt;preset&gt;</span></code>. The first configure on a
 machine also builds ZeroMQ, cppzmq and nlohmann-json with vcpkg; later configures restore them from the cache of vcpkg
 in <code class="docutils literal notranslate"><span class="pre">%LOCALAPPDATA%\vcpkg\archives</span></code>. The configure prints <code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">NOT</span> <span class="pre">find</span> <span class="pre">WrapVulkanHeaders</span></code> twice, which does no
-harm. The Windows leg of CI (<code class="docutils literal notranslate"><span class="pre">.github/workflows/cmake.yml</span></code>) and the Windows package (<code class="docutils literal notranslate"><span class="pre">.github/workflows/package.yml</span></code>)
+harm. The Windows leg of CI (the workflow <code class="docutils literal notranslate"><span class="pre">cmake.yml</span></code>) and the Windows package (the workflow <code class="docutils literal notranslate"><span class="pre">package.yml</span></code>)
 install the same manifest with the vcpkg of the runner image: the leg through the <code class="docutils literal notranslate"><span class="pre">ci-windows</span></code> preset, and the package
 job with the same options on its configure line.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">ci-macos</span></code>, <code class="docutils literal notranslate"><span class="pre">ci-linux</span></code> and <code class="docutils literal notranslate"><span class="pre">ci-windows</span></code> presets hold the options that the three CI legs share: a Release build with
@@ -453,14 +454,14 @@ stops with a message that names x64 as the only supported platform. Switch that 
 when building and testing, as in the next two sections.</p>
 <section id="visual-studio">
 <h3>Visual Studio<a class="headerlink" href="#visual-studio" title="Link to this heading">¶</a></h3>
-<p>The repository has no Visual Studio solution or project file. Visual Studio opens the folder as a CMake project and
+<p>The source tree has no Visual Studio solution or project file. Visual Studio opens the folder as a CMake project and
 uses the presets:</p>
 <ol class="arabic simple">
 <li><p>Install Visual Studio 2022 or newer with the <strong>Desktop development with C++</strong> workload. Its default components
 include the C++ CMake tools and the vcpkg package manager.</p></li>
 <li><p>Install Git for Windows and Python 3.9 or newer. Install Qt 6.8.3 <code class="docutils literal notranslate"><span class="pre">msvc2022_64</span></code> with Qt Charts into <code class="docutils literal notranslate"><span class="pre">C:\Qt</span></code>, with
 aqtinstall as in <a class="reference internal" href="#requirements">Requirements</a> or with the <a class="reference internal" href="#qt-online-installer">Qt online installer</a>.</p></li>
-<li><p>Open the repository folder with <strong>File &gt; Open &gt; Folder</strong>. Visual Studio then configures the <code class="docutils literal notranslate"><span class="pre">x64-debug</span></code> preset. The
+<li><p>Open the root folder of the source tree with <strong>File &gt; Open &gt; Folder</strong>. Visual Studio then configures the <code class="docutils literal notranslate"><span class="pre">x64-debug</span></code> preset. The
 first configure on a machine also builds the vcpkg libraries and takes longer.</p></li>
 <li><p>For a Release build, pick <code class="docutils literal notranslate"><span class="pre">x64-release</span></code> in the configuration list of the toolbar.</p></li>
 <li><p>Pick <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code> as the startup item, not <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span> <span class="pre">(Install)</span></code>, and press F5. The default startup item is
@@ -626,8 +627,8 @@ Started outside Visual Studio, it needs the Qt <code class="docutils literal not
 <code class="docutils literal notranslate"><span class="pre">$env:PATH</span> <span class="pre">=</span> <span class="pre">&quot;C:\Qt\6.8.3\msvc2022_64\bin;$env:PATH&quot;</span></code>. Without it the program exits with no window or message.
 These are local build paths; downloaded release packages are documented in <a class="reference internal" href="../guides/install.html"><span class="std std-doc">Installing EGTRAIN</span></a>.</p>
 <p>Runtime output defaults to
-<code class="docutils literal notranslate"><span class="pre">&lt;QStandardPaths::AppDataLocation&gt;/Output/&lt;scene&gt;</span></code>. It does not always use a
-repository <code class="docutils literal notranslate"><span class="pre">Output/</span></code> directory. Set <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_OUTPUT_DIR</span></code> to override the base
+<code class="docutils literal notranslate"><span class="pre">&lt;QStandardPaths::AppDataLocation&gt;/Output/&lt;scene&gt;</span></code>. It does not always use an
+<code class="docutils literal notranslate"><span class="pre">Output/</span></code> directory in the source tree. Set <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_OUTPUT_DIR</span></code> to override the base
 directory; EGTRAIN then writes <code class="docutils literal notranslate"><span class="pre">&lt;override&gt;/Output/&lt;scene&gt;</span></code>.</p>
 </section>
 <section id="common-setup-failures">
@@ -745,7 +746,7 @@ against <code class="docutils literal notranslate"><span class="pre">CMakeLists.
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

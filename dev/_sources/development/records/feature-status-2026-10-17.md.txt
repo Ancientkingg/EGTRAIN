@@ -163,7 +163,7 @@ The editors are panels in `editors/`. They are docks under View or Editors.
 | macOS double-click on `.egscene` | tested | `test_package_contents_smoke`; manual run, 2026-10-17, macOS (rehearsal rows M1, M2) |
 | Linux AppImage start, open, run, export, save | partial | Rehearse Linux job steps 1 to 9 under a virtual display. Manual runs on a Linux desktop container (Ubuntu 24.04, Xvfb) used a build from source, not the AppImage. Update on Linux: untested |
 | Licence and third-party notices in packages | partial | The Windows installer and portable archive carry `LICENSE`; the notices are missing everywhere (#784) |
-| Assignment case with source-backed infrastructure and rolling stock | placeholder | The committed case is synthetic. The source data are not in the repository (#181, #182, #228) |
+| Assignment case with source-backed infrastructure and rolling stock | placeholder | The committed case is synthetic. The source data are not part of EGTRAIN (#181, #182, #228) |
 
 ## Limitations and deferred
 
@@ -196,32 +196,32 @@ These checks ran later on 2026-10-17, on newer builds of `main` and on release c
 
 ## Gaps
 
-Each gap links one issue. Issues that were closed later the same day are marked as closed.
+Each gap names one issue. Issues that were closed later the same day are marked as closed.
 
 | Gap | Issue |
 | --- | --- |
-| Start Time in the Simulation menu does not change the run | [#781](https://github.com/Ancientkingg/EGTRAIN/issues/781) (closed on 2026-10-19) |
-| The Passengers layer does nothing without `-pax 1` | [#782](https://github.com/Ancientkingg/EGTRAIN/issues/782) (fixed after this snapshot) |
-| No `--help`; unknown options are ignored | [#783](https://github.com/Ancientkingg/EGTRAIN/issues/783) |
-| Packages carry no licence text or third-party notices | [#784](https://github.com/Ancientkingg/EGTRAIN/issues/784) |
-| Unused golden-master scripts | [#785](https://github.com/Ancientkingg/EGTRAIN/issues/785) (closed on 2026-10-19) |
-| The remaining smokes and the documentation check do not run on pull requests | [#786](https://github.com/Ancientkingg/EGTRAIN/issues/786) |
-| Toolbar separators and window size on Windows, and toolbar commands cut at 1.5 times the text | [#883](https://github.com/Ancientkingg/EGTRAIN/issues/883) |
-| Trains are hard to see at the full view | [#822](https://github.com/Ancientkingg/EGTRAIN/issues/822) |
-| Timetable graph axis labels collapse at 1.5 times the font, and long identifiers in tooltips | [#889](https://github.com/Ancientkingg/EGTRAIN/issues/889) (closed on 2026-10-17) |
-| Legacy import loses the layout | [#884](https://github.com/Ancientkingg/EGTRAIN/issues/884) |
-| Rolling stock spin boxes accept any value up to the largest double | [#885](https://github.com/Ancientkingg/EGTRAIN/issues/885) |
-| The Open a Case window has no Cancel button and does not match the dialog style | [#391](https://github.com/Ancientkingg/EGTRAIN/issues/391) (closed on 2026-10-17) |
-| Dialog presentation across the application | [#389](https://github.com/Ancientkingg/EGTRAIN/issues/389) (closed on 2026-10-17) |
-| Editor sizing, dense layouts and empty states | [#392](https://github.com/Ancientkingg/EGTRAIN/issues/392) (closed on 2026-10-17) |
-| Result windows and inspectors do not match the desktop UI | [#393](https://github.com/Ancientkingg/EGTRAIN/issues/393) (closed on 2026-10-17) |
-| Self-update for installed and portable copies, and its failure on Windows | [#405](https://github.com/Ancientkingg/EGTRAIN/issues/405) |
-| Windows installer and portable archive as release assets; macOS disk image | [#401](https://github.com/Ancientkingg/EGTRAIN/issues/401), [#403](https://github.com/Ancientkingg/EGTRAIN/issues/403) |
-| File associations as an install step | [#416](https://github.com/Ancientkingg/EGTRAIN/issues/416) (closed on 2026-10-17) |
-| Unused Qt modules in packages | [#488](https://github.com/Ancientkingg/EGTRAIN/issues/488) (closed on 2026-10-17) |
-| The release rehearsal on Windows and Linux is not complete | [#74](https://github.com/Ancientkingg/EGTRAIN/issues/74) |
-| Source-backed assignment infrastructure and rolling stock | [#181](https://github.com/Ancientkingg/EGTRAIN/issues/181), [#182](https://github.com/Ancientkingg/EGTRAIN/issues/182), [#228](https://github.com/Ancientkingg/EGTRAIN/issues/228) |
-| Guides and onboarding | [#408](https://github.com/Ancientkingg/EGTRAIN/issues/408) |
+| Start Time in the Simulation menu does not change the run | #781 (closed on 2026-10-19) |
+| The Passengers layer does nothing without `-pax 1` | #782 (fixed after this snapshot) |
+| No `--help`; unknown options are ignored | #783 |
+| Packages carry no licence text or third-party notices | #784 |
+| Unused golden-master scripts | #785 (closed on 2026-10-19) |
+| The remaining smokes and the documentation check do not run on pull requests | #786 |
+| Toolbar separators and window size on Windows, and toolbar commands cut at 1.5 times the text | #883 |
+| Trains are hard to see at the full view | #822 |
+| Timetable graph axis labels collapse at 1.5 times the font, and long identifiers in tooltips | #889 (closed on 2026-10-17) |
+| Legacy import loses the layout | #884 |
+| Rolling stock spin boxes accept any value up to the largest double | #885 |
+| The Open a Case window has no Cancel button and does not match the dialog style | #391 (closed on 2026-10-17) |
+| Dialog presentation across the application | #389 (closed on 2026-10-17) |
+| Editor sizing, dense layouts and empty states | #392 (closed on 2026-10-17) |
+| Result windows and inspectors do not match the desktop UI | #393 (closed on 2026-10-17) |
+| Self-update for installed and portable copies, and its failure on Windows | #405 |
+| Windows installer and portable archive as release assets; macOS disk image | #401, #403 |
+| File associations as an install step | #416 (closed on 2026-10-17) |
+| Unused Qt modules in packages | #488 (closed on 2026-10-17) |
+| The release rehearsal on Windows and Linux is not complete | #74 |
+| Source-backed assignment infrastructure and rolling stock | #181, #182, #228 |
+| Guides and onboarding | #408 |
 
 ### Gaps without an issue yet
 

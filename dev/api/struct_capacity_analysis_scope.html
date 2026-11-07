@@ -8,7 +8,6 @@
 <title>EGTRAIN: CapacityAnalysisScope Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,11 +115,11 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_capacit
 <p>The route, blocks, trains and period of a capacity analysis.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_capacity_scope_8h_source.html">diagrams/CapacityScope.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/CapacityScope.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:af48c07ffcfcfddd1faf073a7c2747531" id="r_af48c07ffcfcfddd1faf073a7c2747531"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#af48c07ffcfcfddd1faf073a7c2747531">routeIndex</a> = -1</td></tr>
+<tr class="memitem:af48c07ffcfcfddd1faf073a7c2747531" id="r_af48c07ffcfcfddd1faf073a7c2747531"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#af48c07ffcfcfddd1faf073a7c2747531">routeIndex</a></td></tr>
 <tr class="memdesc:af48c07ffcfcfddd1faf073a7c2747531"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index into <a class="el" href="struct_completed_run_data.html#a9a547516bc17d291896b61deb5466dfb" title="In the order of the simulation&#39;s routes.">CompletedRunData::routes</a>, -1 for none.  <br /></td></tr>
 <tr class="memitem:a7cd4bcf09530fe99be2902a7f14a6b96" id="r_a7cd4bcf09530fe99be2902a7f14a6b96"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a7cd4bcf09530fe99be2902a7f14a6b96">blockIds</a></td></tr>
 <tr class="memdesc:a7cd4bcf09530fe99be2902a7f14a6b96"><td class="mdescLeft">&#160;</td><td class="mdescRight">The analysed blocks, a range of the route, in route order.  <br /></td></tr>
@@ -129,9 +128,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a9f4b77a20d02a7fcdbb6985f9e5e3793" id="r_a9f4b77a20d02a7fcdbb6985f9e5e3793"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9f4b77a20d02a7fcdbb6985f9e5e3793">occurrenceIds</a></td></tr>
 <tr class="memdesc:a9f4b77a20d02a7fcdbb6985f9e5e3793"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_train.html">Train</a> ids in chain order; empty for every train with occupations.  <br /></td></tr>
 <tr class="memitem:ab9f9b770bf1b0a49e5785b511b520e3e" id="r_ab9f9b770bf1b0a49e5785b511b520e3e"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ab9f9b770bf1b0a49e5785b511b520e3e">cycleEndOccurrenceId</a></td></tr>
-<tr class="memitem:a33f5ce427ec5c7dc846156d034415a73" id="r_a33f5ce427ec5c7dc846156d034415a73"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a33f5ce427ec5c7dc846156d034415a73">repeatFirstTrain</a> = false</td></tr>
+<tr class="memitem:a33f5ce427ec5c7dc846156d034415a73" id="r_a33f5ce427ec5c7dc846156d034415a73"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a33f5ce427ec5c7dc846156d034415a73">repeatFirstTrain</a></td></tr>
 <tr class="memdesc:a33f5ce427ec5c7dc846156d034415a73"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the first train one period later (capacityNextPeriodTrain) follows the last train and closes the cycle.  <br /></td></tr>
-<tr class="memitem:a2714699baf4443ce76cf1e2c92728389" id="r_a2714699baf4443ce76cf1e2c92728389"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a2714699baf4443ce76cf1e2c92728389">periodSeconds</a> = 3600.0</td></tr>
+<tr class="memitem:a2714699baf4443ce76cf1e2c92728389" id="r_a2714699baf4443ce76cf1e2c92728389"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a2714699baf4443ce76cf1e2c92728389">periodSeconds</a></td></tr>
 <tr class="memdesc:a2714699baf4443ce76cf1e2c92728389"><td class="mdescLeft">&#160;</td><td class="mdescRight">Analysis period in seconds.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -191,7 +190,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double CapacityAnalysisScope::periodSeconds = 3600.0</td>
+          <td class="memname">double CapacityAnalysisScope::periodSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -207,7 +206,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool CapacityAnalysisScope::repeatFirstTrain = false</td>
+          <td class="memname">bool CapacityAnalysisScope::repeatFirstTrain</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -223,7 +222,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int CapacityAnalysisScope::routeIndex = -1</td>
+          <td class="memname">int CapacityAnalysisScope::routeIndex</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -249,7 +248,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_capacity_scope_8h_source.html">CapacityScope.h</a></li>
+<li>diagrams/<a class="el" href="_capacity_scope_8h.html">CapacityScope.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

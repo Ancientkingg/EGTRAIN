@@ -8,7 +8,6 @@
 <title>EGTRAIN: SceneCompatibilityProbeResult Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,18 +115,18 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_c
 <p>The version of a scene and what it means for opening it.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_scene_compatibility_8h_source.html">scene/SceneCompatibility.h</a>&gt;</code></p>
+<p><code>#include &lt;scene/SceneCompatibility.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a76d8d7af8457de96afab2eeac34fdf30" id="r_a76d8d7af8457de96afab2eeac34fdf30"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a76d8d7af8457de96afab2eeac34fdf30">schemaVersion</a> = 0</td></tr>
+<tr class="memitem:a76d8d7af8457de96afab2eeac34fdf30" id="r_a76d8d7af8457de96afab2eeac34fdf30"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a76d8d7af8457de96afab2eeac34fdf30">schemaVersion</a></td></tr>
 <tr class="memdesc:a76d8d7af8457de96afab2eeac34fdf30"><td class="mdescLeft">&#160;</td><td class="mdescRight">schema_version of scene.json; 0 when not read.  <br /></td></tr>
 <tr class="memitem:a7db503e99440119b548a7d98ecf3a805" id="r_a7db503e99440119b548a7d98ecf3a805"><td class="memItemLeft">std::optional&lt; int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a7db503e99440119b548a7d98ecf3a805">bundleVersion</a></td></tr>
 <tr class="memdesc:a7db503e99440119b548a7d98ecf3a805"><td class="mdescLeft">&#160;</td><td class="mdescRight">bundle_version of a bundle; empty when not read or for a directory.  <br /></td></tr>
 <tr class="memitem:a7ed1511c221863203a736b76d3b13139" id="r_a7ed1511c221863203a736b76d3b13139"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a7ed1511c221863203a736b76d3b13139">savedWithAppVersion</a></td></tr>
-<tr class="memitem:abd073488806b6515f28dff55e0a789aa" id="r_abd073488806b6515f28dff55e0a789aa"><td class="memItemLeft"><a class="el" href="_scene_compatibility_8h.html#a11c94f442a5af2e28be0a4c9d60481f7">SceneSourceKind</a>&#160;</td><td class="memItemRight"><a class="el" href="#abd073488806b6515f28dff55e0a789aa">sourceKind</a> = <a class="el" href="_scene_compatibility_8h.html#a11c94f442a5af2e28be0a4c9d60481f7ae73cda510e8bb947f7e61089e5581494">SceneSourceKind::Directory</a></td></tr>
+<tr class="memitem:abd073488806b6515f28dff55e0a789aa" id="r_abd073488806b6515f28dff55e0a789aa"><td class="memItemLeft"><a class="el" href="_scene_compatibility_8h.html#a11c94f442a5af2e28be0a4c9d60481f7">SceneSourceKind</a>&#160;</td><td class="memItemRight"><a class="el" href="#abd073488806b6515f28dff55e0a789aa">sourceKind</a></td></tr>
 <tr class="memdesc:abd073488806b6515f28dff55e0a789aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Directory or bundle.  <br /></td></tr>
-<tr class="memitem:a2b935f81c032d8d168d14910b917ac76" id="r_a2b935f81c032d8d168d14910b917ac76"><td class="memItemLeft"><a class="el" href="_scene_compatibility_8h.html#aca6c0ad7a6d9f3c7fcdf30a5a57ff79f">SceneCompatibilityClass</a>&#160;</td><td class="memItemRight"><a class="el" href="#a2b935f81c032d8d168d14910b917ac76">classification</a> = <a class="el" href="_scene_compatibility_8h.html#aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa0dc7301026e66d38061d7eaba481c9a5">SceneCompatibilityClass::Malformed</a></td></tr>
+<tr class="memitem:a2b935f81c032d8d168d14910b917ac76" id="r_a2b935f81c032d8d168d14910b917ac76"><td class="memItemLeft"><a class="el" href="_scene_compatibility_8h.html#aca6c0ad7a6d9f3c7fcdf30a5a57ff79f">SceneCompatibilityClass</a>&#160;</td><td class="memItemRight"><a class="el" href="#a2b935f81c032d8d168d14910b917ac76">classification</a></td></tr>
 <tr class="memdesc:a2b935f81c032d8d168d14910b917ac76"><td class="mdescLeft">&#160;</td><td class="mdescRight">The outcome.  <br /></td></tr>
 <tr class="memitem:a2ae3ee8387913eba1a9f85d9d98c7017" id="r_a2ae3ee8387913eba1a9f85d9d98c7017"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a2ae3ee8387913eba1a9f85d9d98c7017">diagnostics</a></td></tr>
 <tr class="memdesc:a2ae3ee8387913eba1a9f85d9d98c7017"><td class="mdescLeft">&#160;</td><td class="mdescRight">Why the scene is malformed or rejected.  <br /></td></tr>
@@ -158,7 +157,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_scene_compatibility_8h.html#aca6c0ad7a6d9f3c7fcdf30a5a57ff79f">SceneCompatibilityClass</a> SceneCompatibilityProbeResult::classification = <a class="el" href="_scene_compatibility_8h.html#aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa0dc7301026e66d38061d7eaba481c9a5">SceneCompatibilityClass::Malformed</a></td>
+          <td class="memname"><a class="el" href="_scene_compatibility_8h.html#aca6c0ad7a6d9f3c7fcdf30a5a57ff79f">SceneCompatibilityClass</a> SceneCompatibilityProbeResult::classification</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -205,7 +204,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int SceneCompatibilityProbeResult::schemaVersion = 0</td>
+          <td class="memname">int SceneCompatibilityProbeResult::schemaVersion</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -221,7 +220,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_scene_compatibility_8h.html#a11c94f442a5af2e28be0a4c9d60481f7">SceneSourceKind</a> SceneCompatibilityProbeResult::sourceKind = <a class="el" href="_scene_compatibility_8h.html#a11c94f442a5af2e28be0a4c9d60481f7ae73cda510e8bb947f7e61089e5581494">SceneSourceKind::Directory</a></td>
+          <td class="memname"><a class="el" href="_scene_compatibility_8h.html#a11c94f442a5af2e28be0a4c9d60481f7">SceneSourceKind</a> SceneCompatibilityProbeResult::sourceKind</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -231,7 +230,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>scene/<a class="el" href="_scene_compatibility_8h_source.html">SceneCompatibility.h</a></li>
+<li>scene/<a class="el" href="_scene_compatibility_8h.html">SceneCompatibility.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

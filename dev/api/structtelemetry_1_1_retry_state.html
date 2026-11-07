@@ -8,7 +8,6 @@
 <title>EGTRAIN: telemetry::RetryState Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,17 +115,17 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('structtelemetr
 <p>Retry state shared by both categories, stored in control.json.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_telemetry_queue_8h_source.html">telemetry/TelemetryQueue.h</a>&gt;</code></p>
+<p><code>#include &lt;telemetry/TelemetryQueue.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a7ff58ea7cfdfceecf192f38007d14a09" id="r_a7ff58ea7cfdfceecf192f38007d14a09"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a7ff58ea7cfdfceecf192f38007d14a09">failures</a> = 0</td></tr>
+<tr class="memitem:a7ff58ea7cfdfceecf192f38007d14a09" id="r_a7ff58ea7cfdfceecf192f38007d14a09"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a7ff58ea7cfdfceecf192f38007d14a09">failures</a></td></tr>
 <tr class="memdesc:a7ff58ea7cfdfceecf192f38007d14a09"><td class="mdescLeft">&#160;</td><td class="mdescRight">Consecutive retryable failures, counting the attempt in progress; 0 to 31.  <br /></td></tr>
 <tr class="memitem:ad9d6e92bffcd24d329f67f46b8d7f12a" id="r_ad9d6e92bffcd24d329f67f46b8d7f12a"><td class="memItemLeft">QDateTime&#160;</td><td class="memItemRight"><a class="el" href="#ad9d6e92bffcd24d329f67f46b8d7f12a">nextEligibleUtc</a></td></tr>
 <tr class="memdesc:ad9d6e92bffcd24d329f67f46b8d7f12a"><td class="mdescLeft">&#160;</td><td class="mdescRight">No batch is sent before this UTC time; invalid when there is no wait.  <br /></td></tr>
-<tr class="memitem:a789f1fc9f5587b31d217440116cb1e40" id="r_a789f1fc9f5587b31d217440116cb1e40"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a789f1fc9f5587b31d217440116cb1e40">usageBatchLimit</a> = 50</td></tr>
+<tr class="memitem:a789f1fc9f5587b31d217440116cb1e40" id="r_a789f1fc9f5587b31d217440116cb1e40"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a789f1fc9f5587b31d217440116cb1e40">usageBatchLimit</a></td></tr>
 <tr class="memdesc:a789f1fc9f5587b31d217440116cb1e40"><td class="mdescLeft">&#160;</td><td class="mdescRight">Most events in one usage batch, 1 to 50. A 413 response lowers it.  <br /></td></tr>
-<tr class="memitem:ade9a4bb92f1c902a47e1bdd47977a09f" id="r_ade9a4bb92f1c902a47e1bdd47977a09f"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ade9a4bb92f1c902a47e1bdd47977a09f">diagnosticsBatchLimit</a> = 50</td></tr>
+<tr class="memitem:ade9a4bb92f1c902a47e1bdd47977a09f" id="r_ade9a4bb92f1c902a47e1bdd47977a09f"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ade9a4bb92f1c902a47e1bdd47977a09f">diagnosticsBatchLimit</a></td></tr>
 <tr class="memdesc:ade9a4bb92f1c902a47e1bdd47977a09f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Most events in one diagnostics batch, 1 to 50. A 413 response lowers it.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -139,7 +138,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int telemetry::RetryState::diagnosticsBatchLimit = 50</td>
+          <td class="memname">int telemetry::RetryState::diagnosticsBatchLimit</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -155,7 +154,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int telemetry::RetryState::failures = 0</td>
+          <td class="memname">int telemetry::RetryState::failures</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -187,7 +186,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int telemetry::RetryState::usageBatchLimit = 50</td>
+          <td class="memname">int telemetry::RetryState::usageBatchLimit</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -197,7 +196,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>telemetry/<a class="el" href="_telemetry_queue_8h_source.html">TelemetryQueue.h</a></li>
+<li>telemetry/<a class="el" href="_telemetry_queue_8h.html">TelemetryQueue.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
