@@ -13,7 +13,7 @@ var class_scene_session =
     [ "dragEnter", "class_scene_session.html#a5492fa414029edef5a85e7f907d2cd24", null ],
     [ "drop", "class_scene_session.html#a78e07332f7b84f2b9814cfb35ca6ff3d", null ],
     [ "importLegacyCase", "class_scene_session.html#a48e567be090858725ab284f23dcc4cf2", null ],
-    [ "legacyImportSummary", "class_scene_session.html#a60fb95c2ec11308fef83757ca7fb640c", null ],
+    [ "legacyImportSummary", "class_scene_session.html#ace1bfaea5f337af18db13e05d0bc201d", null ],
     [ "maybeSaveScene", "class_scene_session.html#a1670c6348436d746a13f02d8a1c488ba", null ],
     [ "mutableDiagnostics", "class_scene_session.html#a779fdbb73b48ea2878e21932bf326f5a", null ],
     [ "newScene", "class_scene_session.html#a35547a44d88a477d33d9a819d5421fbb", null ],

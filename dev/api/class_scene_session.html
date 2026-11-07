@@ -208,7 +208,7 @@ Public Member Functions</h2></td></tr>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a5336ae6de75c60c4fbc9d2207d89d2fc" id="r_a5336ae6de75c60c4fbc9d2207d89d2fc"><td class="memItemLeft">static QStringList&#160;</td><td class="memItemRight"><a class="el" href="#a5336ae6de75c60c4fbc9d2207d89d2fc">recentScenes</a> ()</td></tr>
 <tr class="memdesc:a5336ae6de75c60c4fbc9d2207d89d2fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear once.  <br /></td></tr>
-<tr class="memitem:a60fb95c2ec11308fef83757ca7fb640c" id="r_a60fb95c2ec11308fef83757ca7fb640c"><td class="memItemLeft">static QString&#160;</td><td class="memItemRight"><a class="el" href="#a60fb95c2ec11308fef83757ca7fb640c">legacyImportSummary</a> (const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;diagnostics)</td></tr>
+<tr class="memitem:ace1bfaea5f337af18db13e05d0bc201d" id="r_ace1bfaea5f337af18db13e05d0bc201d"><td class="memItemLeft">static QString&#160;</td><td class="memItemRight"><a class="el" href="#ace1bfaea5f337af18db13e05d0bc201d">legacyImportSummary</a> (const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;diagnostics, bool imported)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-friends" class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
@@ -426,8 +426,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a60fb95c2ec11308fef83757ca7fb640c" name="a60fb95c2ec11308fef83757ca7fb640c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a60fb95c2ec11308fef83757ca7fb640c">&#9670;&#160;</a></span>legacyImportSummary()</h2>
+<a id="ace1bfaea5f337af18db13e05d0bc201d" name="ace1bfaea5f337af18db13e05d0bc201d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ace1bfaea5f337af18db13e05d0bc201d">&#9670;&#160;</a></span>legacyImportSummary()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -438,8 +438,12 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">QString SceneSession::legacyImportSummary </td>
           <td>(</td>
-          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>diagnostics</em></span></td><td>)</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>diagnostics</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>imported</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -448,11 +452,11 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>The text of the box that reports an import: the counts of the diagnostics by severity that are not zero, then the first four lines, the most serious first, then the number of lines left out. Empty when there are no diagnostics. </p>
+<p>The text of the box that reports an import: whether the case was imported, with the counts of the diagnostics by severity that are not zero, as in "Imported with 2 warnings" or "Not imported: 1 error", then the first four lines, the most serious first, then the number of lines left out. Empty when there are no diagnostics. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_a60fb95c2ec11308fef83757ca7fb640c_cgraph.svg" width="456" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_ace1bfaea5f337af18db13e05d0bc201d_cgraph.svg" width="456" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

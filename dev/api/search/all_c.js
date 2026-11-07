@@ -42,7 +42,7 @@ var searchData=
   ['left_39',['Left',['../class_station_overlay_item.html#a0af9fa9f950f04263d448e47806e9f2fa945d5e233cf7d6240f6b783b36a374ff',1,'StationOverlayItem']]],
   ['legacy_40',['Legacy',['../namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121a0cc0a0507cf3d31e5089f420a4cf8b4b',1,'telemetry']]],
   ['legacyboundarytoken_41',['legacyBoundaryToken',['../_scene_exporter_8cpp.html#a852c4c61a8d9505c440d48336336808b',1,'SceneExporter.cpp']]],
-  ['legacyimportsummary_42',['legacyImportSummary',['../class_scene_session.html#a60fb95c2ec11308fef83757ca7fb640c',1,'SceneSession']]],
+  ['legacyimportsummary_42',['legacyImportSummary',['../class_scene_session.html#ace1bfaea5f337af18db13e05d0bc201d',1,'SceneSession']]],
   ['legacyinput_43',['LegacyInput',['../struct_legacy_input.html',1,'']]],
   ['legacyinputkind_44',['LegacyInputKind',['../_scene_exporter_8cpp.html#a47b93a8406e0fe3c7b80c9ca7e954011',1,'SceneExporter.cpp']]],
   ['legacypassengerparseresult_45',['LegacyPassengerParseResult',['../struct_legacy_passenger_parse_result.html',1,'']]],

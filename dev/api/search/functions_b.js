@@ -16,7 +16,7 @@ var searchData=
   ['leavefollowingmodewhenleaderisgone_13',['leaveFollowingModeWhenLeaderIsGone',['../class_train.html#a53e9517a26b451c8ebd49e4895bb8921',1,'Train']]],
   ['leaverouteatend_14',['leaveRouteAtEnd',['../class_train.html#aba4681c554914fde095d9d4e490cbfff',1,'Train']]],
   ['legacyboundarytoken_15',['legacyBoundaryToken',['../_scene_exporter_8cpp.html#a852c4c61a8d9505c440d48336336808b',1,'SceneExporter.cpp']]],
-  ['legacyimportsummary_16',['legacyImportSummary',['../class_scene_session.html#a60fb95c2ec11308fef83757ca7fb640c',1,'SceneSession']]],
+  ['legacyimportsummary_16',['legacyImportSummary',['../class_scene_session.html#ace1bfaea5f337af18db13e05d0bc201d',1,'SceneSession']]],
   ['legacystationname_17',['legacyStationName',['../_scene_exporter_8cpp.html#a884eb8f6955c729fe312754aa8e13e0b',1,'SceneExporter.cpp']]],
   ['legdestinationcombo_18',['legDestinationCombo',['../class_passenger_panel.html#af4751224989701d59d197fc5fde1bdda',1,'PassengerPanel']]],
   ['legidedit_19',['legIdEdit',['../class_passenger_panel.html#acb4e328391dc5e720b010482ccaf1e59',1,'PassengerPanel']]],
