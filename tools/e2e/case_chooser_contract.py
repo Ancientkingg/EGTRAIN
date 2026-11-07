@@ -109,9 +109,9 @@ def main():
             assert sum(row["path"] == first["path"] for row in rows) == 1, rows
             assert sum(row["title"] == "Recent cases" for row in rows) == 1, rows
             assert not any(row["title"] == "No other recent cases to show" for row in rows), rows
-            unavailable = next(row for row in rows if row["tooltip"] == tooltip("missing case", missing))
-            assert shown_lines(unavailable["tooltip"]) == ["missing case", str(missing)], unavailable
-            assert unavailable["title"] == "Unavailable: missing case", unavailable
+            unavailable = next(row for row in rows if row["tooltip"] == tooltip("missing_case", missing))
+            assert shown_lines(unavailable["tooltip"]) == ["missing_case", str(missing)], unavailable
+            assert unavailable["title"] == "Unavailable: missing_case", unavailable
             assert sum(row["title"].startswith("Unavailable: ") for row in rows) == 1, rows
             assert unavailable["enabled"] and unavailable["selectable"] and not unavailable["path"], unavailable
             assert str(missing) in settings_text, settings_text

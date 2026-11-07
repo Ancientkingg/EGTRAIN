@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <utility>
 
 namespace {
 
@@ -318,6 +319,7 @@ private slots:
 	void onlyUnavailable();
 	void spellingsOfOnePath_data() { addScaleRows(); }
 	void spellingsOfOnePath();
+	void sameNamesToldApart();
 	void fortyBundledCases_data() { addScaleRows(); }
 	void fortyBundledCases();
 	void longCaseTitle_data() { addScaleRows(); }
@@ -420,9 +422,9 @@ void TestCaseChooserDialog::missingRecentCases() {
 	Shown shown(recents, kScreen);
 	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
 	const QStringList texts = rowTexts(shown.dialog.list());
-	// The missing recent cases are listed as unavailable.
+	// The missing recent cases are listed as unavailable, under their folder names as they are.
 	QCOMPARE(texts.mid(texts.size() - 3),
-		QStringList({QStringLiteral("Recent cases"), QStringLiteral("Unavailable: gone case"), QStringLiteral("Unavailable: other gone case")}));
+		QStringList({QStringLiteral("Recent cases"), QStringLiteral("Unavailable: gone_case"), QStringLiteral("Unavailable: other_gone_case")}));
 	// An unavailable row does not change the selection.
 	QCOMPARE(currentText(shown.dialog.list()), "Alpha case");
 	QVERIFY(shown.dialog.openButton()->isEnabled());
@@ -433,7 +435,7 @@ void TestCaseChooserDialog::missingRecentCases() {
 	list->setFocus();
 	click(list, list->item(static_cast<int>(texts.size()) - 2));
 	// An unavailable row is selected with a reason and Open disabled.
-	QCOMPARE(currentText(list), "Unavailable: gone case");
+	QCOMPARE(currentText(list), "Unavailable: gone_case");
 	QVERIFY(!shown.dialog.openButton()->isEnabled());
 	QVERIFY(shown.dialog.selectedPath().isEmpty());
 	QVERIFY(!statusText(shown.dialog).isEmpty());
@@ -493,7 +495,7 @@ void TestCaseChooserDialog::onlyUnavailable() {
 	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
 	// Unavailable recent cases alone are listed under their heading.
 	QCOMPARE(rowTexts(shown.dialog.list()),
-		QStringList({QStringLiteral("Recent cases"), QStringLiteral("Unavailable: gone case"), QStringLiteral("Unavailable: other gone case")}));
+		QStringList({QStringLiteral("Recent cases"), QStringLiteral("Unavailable: gone_case"), QStringLiteral("Unavailable: other_gone_case")}));
 	// No heading or unavailable row is selected, and Open is disabled.
 	QVERIFY(!shown.dialog.list()->currentItem());
 	QVERIFY(!shown.dialog.openButton()->isEnabled());
@@ -506,7 +508,7 @@ void TestCaseChooserDialog::onlyUnavailable() {
 	// A double click on an unavailable row opens nothing and gives a reason.
 	QVERIFY(shown.dialog.isVisible());
 	QVERIFY(shown.dialog.chosenPath().isEmpty());
-	QCOMPARE(currentText(shown.dialog.list()), "Unavailable: gone case");
+	QCOMPARE(currentText(shown.dialog.list()), "Unavailable: gone_case");
 	QVERIFY(!shown.dialog.openButton()->isEnabled());
 	QVERIFY(!statusText(shown.dialog).isEmpty());
 	shown.dialog.list()->setFocus();
@@ -534,8 +536,50 @@ void TestCaseChooserDialog::spellingsOfOnePath() {
 	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
 	// The spellings of one path list one row each.
 	QCOMPARE(rowTexts(shown.dialog.list()),
-		QStringList({QStringLiteral("Recent cases"), QStringLiteral("Unavailable: gone case"), QStringLiteral("Recent One"),
-			QStringLiteral("Unavailable: other gone case")}));
+		QStringList({QStringLiteral("Recent cases"), QStringLiteral("Unavailable: gone_case"), QStringLiteral("Recent One"),
+			QStringLiteral("Unavailable: other_gone_case")}));
+}
+
+// Cases of one name read differently, in one group or across the two: a copy of a bundled case among the recent cases, two
+// imports of one case and two missing cases of one folder name add their parent folder, and two bundled cases of one name
+// in one folder add their file names too.
+void TestCaseChooserDialog::sameNamesToldApart() {
+	Scenarios own;
+	own.bundled(QStringLiteral("Paimpol"), QStringLiteral("Paimpol"));
+	own.bundled(QStringLiteral("twin_a"), QStringLiteral("Twin"));
+	own.bundled(QStringLiteral("twin_b"), QStringLiteral("Twin"));
+	const QDir temporary(own.temporary.path());
+	CaseChooserDialog::Options options;
+	options.sceneRoots = QStringList{own.scenes.path()};
+	options.recentPaths = QStringList{makeScene(temporary, QStringLiteral("mine/Paimpol"), QStringLiteral("Paimpol")),
+		makeScene(temporary, QStringLiteral("first/legacy"), QStringLiteral("Imported")),
+		makeScene(temporary, QStringLiteral("second/legacy"), QStringLiteral("Imported")),
+		temporary.filePath(QStringLiteral("first/gone_case")), temporary.filePath(QStringLiteral("second/gone_case"))};
+	options.availableGeometry = kScreen;
+	Shown shown(options, kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	const QStringList texts = rowTexts(shown.dialog.list());
+	// A case row starts with the name and ends with the parent folder in parentheses, followed by the file name when the
+	// parent folder is the same. A long path is shortened in the middle, so only the start and the end are fixed.
+	const QList<std::pair<QString, QString>> expected = {{QStringLiteral("Bundled cases"), QString()},
+		{QStringLiteral("Paimpol"), QStringLiteral("/Scenes")}, {QStringLiteral("Twin"), QStringLiteral("/Scenes/twin_a")},
+		{QStringLiteral("Twin"), QStringLiteral("/Scenes/twin_b")}, {QStringLiteral("Recent cases"), QString()},
+		{QStringLiteral("Paimpol"), QStringLiteral("/mine")}, {QStringLiteral("Imported"), QStringLiteral("/first")},
+		{QStringLiteral("Imported"), QStringLiteral("/second")}, {QStringLiteral("Unavailable: gone_case"), QStringLiteral("/first")},
+		{QStringLiteral("Unavailable: gone_case"), QStringLiteral("/second")}};
+	QCOMPARE(texts.size(), expected.size());
+	for (qsizetype row = 0; row < texts.size(); ++row) {
+		const auto& [name, folder] = expected.at(row);
+		const QString& text = texts.at(row);
+		const bool reads = folder.isEmpty()
+			? text == name
+			: text.startsWith(name + QStringLiteral(" (")) && text.endsWith(display_path::format(folder) + QLatin1Char(')'));
+		QVERIFY2(reads, qPrintable(QStringLiteral("row %1 reads \"%2\"").arg(row).arg(text)));
+	}
+	QStringList distinct = texts;
+	distinct.removeDuplicates();
+	// Every row reads differently.
+	QCOMPARE(distinct, texts);
 }
 
 // Forty bundled cases: the list scrolls and the footer stays.
@@ -558,14 +602,17 @@ void TestCaseChooserDialog::fortyBundledCases() {
 }
 
 // A case title of 300 characters does not widen the dialog or add a horizontal scroll bar, in the bundled group and in the
-// recent group. The row elides the middle of the name; the opened path is complete.
+// recent group. The row elides the middle of the name; the opened path is complete. The two names differ, so that each row
+// shows its name alone.
 void TestCaseChooserDialog::longCaseTitle() {
 	QFETCH(qreal, scale);
 	const auto font = useScaledFont(scale);
 	const QString longName = QStringLiteral("Start") + QString(291, QLatin1Char('W')) + QStringLiteral("Tail");
+	const QString longRecentName = QStringLiteral("Recent") + QString(290, QLatin1Char('W')) + QStringLiteral("Tail");
 	Scenarios one;
 	one.bundled(QStringLiteral("long_title"), longName);
-	const QString recent = makeScene(QDir(one.temporary.filePath(QStringLiteral("elsewhere"))), QStringLiteral("long_recent"), longName);
+	const QString recent =
+		makeScene(QDir(one.temporary.filePath(QStringLiteral("elsewhere"))), QStringLiteral("long_recent"), longRecentName);
 	CaseChooserDialog::Options titled = layoutOptions();
 	titled.sceneRoots = QStringList{one.scenes.path()};
 	titled.recentPaths = QStringList{recent};
@@ -575,7 +622,7 @@ void TestCaseChooserDialog::longCaseTitle() {
 	QCOMPARE(shown.dialog.list()->count(), 4);
 	const QString bundledProblem = longRowProblem(shown.dialog, longName, one.scenes.absoluteFilePath(QStringLiteral("long_title")), 1);
 	QVERIFY2(bundledProblem.isEmpty(), qPrintable(QStringLiteral("bundled: ") + bundledProblem));
-	const QString recentProblem = longRowProblem(shown.dialog, longName, recent, 3);
+	const QString recentProblem = longRowProblem(shown.dialog, longRecentName, recent, 3);
 	QVERIFY2(recentProblem.isEmpty(), qPrintable(QStringLiteral("recent: ") + recentProblem));
 	shown.dialog.list()->setCurrentRow(3);
 	shown.dialog.openButton()->click();
@@ -592,11 +639,11 @@ void TestCaseChooserDialog::arrowKeysSkipHeadings() {
 	// The rows of the bundled and the recent group.
 	QCOMPARE(rowTexts(list),
 		QStringList({QStringLiteral("Bundled cases"), QStringLiteral("Alpha case"), QStringLiteral("Beta case"),
-			QStringLiteral("Recent cases"), QStringLiteral("Unavailable: gone case"), QStringLiteral("Recent One")}));
+			QStringLiteral("Recent cases"), QStringLiteral("Unavailable: gone_case"), QStringLiteral("Recent One")}));
 	list->setFocus();
-	const QStringList down = {QStringLiteral("Beta case"), QStringLiteral("Unavailable: gone case"), QStringLiteral("Recent One"),
+	const QStringList down = {QStringLiteral("Beta case"), QStringLiteral("Unavailable: gone_case"), QStringLiteral("Recent One"),
 		QStringLiteral("Recent One")};
-	const QStringList up = {QStringLiteral("Unavailable: gone case"), QStringLiteral("Beta case"), QStringLiteral("Alpha case"),
+	const QStringList up = {QStringLiteral("Unavailable: gone_case"), QStringLiteral("Beta case"), QStringLiteral("Alpha case"),
 		QStringLiteral("Alpha case")};
 	// The first case is selected.
 	QCOMPARE(currentText(list), "Alpha case");
@@ -627,14 +674,14 @@ void TestCaseChooserDialog::selectedRowsStayReadable() {
 	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
 	QListWidget* list = shown.dialog.list();
 	shown.dialog.activateWindow();
-	for (const QString& text : {QStringLiteral("Beta case"), QStringLiteral("Unavailable: gone case")}) {
+	for (const QString& text : {QStringLiteral("Beta case"), QStringLiteral("Unavailable: gone_case")}) {
 		const QList<QListWidgetItem*> found = list->findItems(text, Qt::MatchExactly);
 		QVERIFY2(found.size() == 1, qPrintable(text + QStringLiteral(": a row to select is missing")));
 		const double contrast = selectedRowContrast(list, found.first());
 		QVERIFY2(contrast >= 4.5,
 			qPrintable(QStringLiteral("%1: the text of the selected row has a contrast ratio of %2, below 4.5 against its highlight").arg(text).arg(contrast)));
 	}
-	const QList<QListWidgetItem*> unavailable = list->findItems(QStringLiteral("Unavailable: gone case"), Qt::MatchExactly);
+	const QList<QListWidgetItem*> unavailable = list->findItems(QStringLiteral("Unavailable: gone_case"), Qt::MatchExactly);
 	// A selected unavailable row is italic.
 	QCOMPARE(unavailable.size(), 1);
 	QVERIFY(unavailable.first()->isSelected());
@@ -697,7 +744,7 @@ void TestCaseChooserDialog::tooltipsShowNativeSeparators() {
 	// The tooltip of a case row shows its path with backslashes.
 	QCOMPARE(tipLines(caseTip), QStringList({QStringLiteral("Native case"), backslashes(path)}));
 	// The tooltip of an unavailable row shows its path with backslashes.
-	QCOMPARE(tipLines(goneTip), QStringList({QStringLiteral("gone case"), backslashes(gone)}));
+	QCOMPARE(tipLines(goneTip), QStringList({QStringLiteral("gone_case"), backslashes(gone)}));
 	// The stored path of a case row is unchanged.
 	if (caseItem == nullptr)
 		QFAIL("the stored path of a case row changed");
@@ -815,7 +862,7 @@ void TestCaseChooserDialog::openIsDefaultWhileTabbing() {
 }
 
 // A bundle is named without its extension, in the chooser and in the label that sceneDisplayName gives the Recent Cases
-// menu; a folder is named by its manifest.
+// menu; a folder is named by its manifest. A missing bundle keeps the underscores of its file name.
 void TestCaseChooserDialog::bundlesAreNamedWithoutExtension() {
 	const QString bundle = m_scenarios.temporary.filePath(QStringLiteral("elsewhere/Saved_case.EGSCENE"));
 	QFile file(bundle);
@@ -825,8 +872,8 @@ void TestCaseChooserDialog::bundlesAreNamedWithoutExtension() {
 	const QString goneBundle = m_scenarios.temporary.filePath(QStringLiteral("moved/Gone_bundle.egscene"));
 	// A bundle is named without its extension.
 	QCOMPARE(sceneDisplayName(bundle), "Saved case");
-	// A missing bundle is named without its extension.
-	QCOMPARE(sceneDisplayName(goneBundle), "Gone bundle");
+	// A missing bundle is named by its file name as it is, without the extension.
+	QCOMPARE(sceneDisplayName(goneBundle), "Gone_bundle");
 	// A folder is named by its manifest.
 	QCOMPARE(sceneDisplayName(m_scenarios.outside), "Recent One");
 	CaseChooserDialog::Options options;
@@ -836,7 +883,7 @@ void TestCaseChooserDialog::bundlesAreNamedWithoutExtension() {
 	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
 	// The recent rows are named without the extension.
 	QCOMPARE(rowTexts(shown.dialog.list()),
-		QStringList({QStringLiteral("Recent cases"), QStringLiteral("Saved case"), QStringLiteral("Unavailable: Gone bundle"),
+		QStringList({QStringLiteral("Recent cases"), QStringLiteral("Saved case"), QStringLiteral("Unavailable: Gone_bundle"),
 			QStringLiteral("Recent One")}));
 }
 
