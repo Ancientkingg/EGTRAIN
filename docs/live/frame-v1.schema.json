@@ -1,6 +1,5 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Ancientkingg/EGTRAIN/blob/main/docs/live/frame-v1.schema.json",
   "title": "EGTRAIN live frame version 1",
   "description": "One frame of the live contract: a JSON object that describes a run (hello), one step of it (state) or a change in its life (event). Every frame carries the contract version v, the run it belongs to and its position in the run. A consumer ignores members it does not know: a new member does not change v, and a change that removes or reinterprets a member does. A value that the simulation does not hold, such as the position of a train that has not entered, is null and is never a sentinel number. The frames are built by io/LiveFrame.h.",
   "oneOf": [

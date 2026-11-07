@@ -1,5 +1,7 @@
 # Sphinx configuration of the documentation site. The table of contents is in index.md.
 
+import re
+
 from docutils import nodes
 
 project = "EGTRAIN"
@@ -19,18 +21,27 @@ if tags.has("manual"):
     include_patterns = ["index.md", "guides/**"]
     suppress_warnings += ["toc.not_readable"]
 
-# Pages link to the published C++ reference, so that the links also work on GitHub. In the site they
-# point to the reference that the docs target builds next to the pages, which opens from disk. Some pages
-# still link the reference on GitHub Pages, which publishes the same site.
-API_URLS = ("https://egtrain.samuelbruin.com/latest/api/", "https://ancientkingg.github.io/EGTRAIN/latest/api/")
+# Pages link to the published C++ reference, so that the links also work in the manual, which holds no reference. In
+# the site they point to the reference that the docs target builds next to the pages, which opens from disk.
+API_URL = "https://egtrain.samuelbruin.com/latest/api/"
+
+# Furo links its name at the foot of every page to the home of its code. The site links no code host, so the footer
+# keeps the name without the link.
+FURO_LINK = re.compile(r'<a href="[^"]+/furo">Furo</a>')
 
 
 def link_local_api(app, doctree, docname):
     for node in doctree.findall(nodes.reference):
         refuri = node.get("refuri", "")
-        for prefix in API_URLS:
-            if refuri.startswith(prefix):
-                node["refuri"] = "../" * docname.count("/") + "api/" + refuri[len(prefix) :]
+        if refuri.startswith(API_URL):
+            node["refuri"] = "../" * docname.count("/") + "api/" + refuri[len(API_URL) :]
+
+
+def drop_furo_link(app):
+    templates = getattr(app.builder, "templates", None)
+    if templates:
+        render = templates.render
+        templates.render = lambda template, context: FURO_LINK.sub("Furo", render(template, context))
 
 
 def drop_developer_contents(app, docname, source):
@@ -41,6 +52,7 @@ def drop_developer_contents(app, docname, source):
 
 
 def setup(app):
+    app.connect("builder-inited", drop_furo_link)
     # The manual holds no C++ reference, so its links keep the published address.
     if app.tags.has("manual"):
         app.connect("source-read", drop_developer_contents)
