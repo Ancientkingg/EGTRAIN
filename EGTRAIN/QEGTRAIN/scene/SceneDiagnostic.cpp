@@ -12,13 +12,18 @@ std::string severityLabel(SceneSeverity s) {
 	return "unknown";
 }
 
+std::string itemLabel(const SceneDiagnostic& d) {
+	if (d.itemId.empty())
+		return {};
+	return (d.itemType.empty() ? "item" : d.itemType) + " " + d.itemId;
+}
+
 std::string toDisplayText(const SceneDiagnostic& d) {
 	std::string text = severityLabel(d.severity) + " [" + d.code + "]";
 	if (!d.file.empty())
 		text += " in " + d.file;
-	if (!d.itemId.empty()) {
-		text += " (" + (d.itemType.empty() ? "item" : d.itemType) + " " + d.itemId + ")";
-	}
+	if (!d.itemId.empty())
+		text += " (" + itemLabel(d) + ")";
 	if (!d.path.empty())
 		text += " at " + d.path;
 	text += ": " + d.message;

@@ -54,6 +54,9 @@ inline bool readJsonInt(const nlohmann::json& value, int min, int max, int& outp
 }
 
 std::string severityLabel(SceneSeverity s); ///< "error", "warning" or "info".
+/// The kind and the id of the item, such as "journey 0:2" or "arc B0.arc.108", with "item" as the kind when it is not set;
+/// empty when the diagnostic has no item id.
+std::string itemLabel(const SceneDiagnostic& d);
 /// One line for the log and the console: severity, code, file, item, path, message and suggested fix.
 std::string toDisplayText(const SceneDiagnostic& d);
 /// The text of a dialog that shows the diagnostic: the message, and the suggested fix as a second paragraph when there is

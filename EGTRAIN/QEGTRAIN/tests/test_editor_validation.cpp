@@ -141,6 +141,7 @@ private slots:
 	void activatesTargets();
 	void selectsDiagnosticOfFile();
 	void showsColumnsWithAdvancedDetails();
+	void namesItemOfEachRow();
 	void reusesValidationWithoutChange();
 	void validatesAgainAfterEdit();
 	void validatesAgainAfterUndo();
@@ -543,8 +544,8 @@ void TestValidationPanel::selectsDiagnosticOfFile() {
 	QVERIFY2(panel.table()->selectionModel()->isRowSelected(1, QModelIndex()), "a file without a row leaves the selection as it was");
 }
 
-// The table shows the severity, the message and the fix; the code, the file and the path are in the tooltip of the
-// row and are columns only with advanced details.
+// The table shows the severity, the message, the item and the fix; the code, the file and the path are in the tooltip of
+// the row and are columns only with advanced details.
 void TestValidationPanel::showsColumnsWithAdvancedDetails() {
 	QWidget host;
 	ValidationPanel panel(&host);
@@ -573,15 +574,15 @@ void TestValidationPanel::showsColumnsWithAdvancedDetails() {
 	for (int row = 0; row < table->rowCount(); ++row)
 		if (table->item(row, 1)->text() == "scene.basetime.missing")
 			baseTimeRow = row;
-	// Without advanced details the table shows the severity, the message and the fix.
-	QCOMPARE(headers, QStringList({"Severity", "Code", "Message", "File", "Path", "Fix"}));
-	QCOMPARE(shown(), QStringList({"Severity", "Message", "Fix"}));
+	// Without advanced details the table shows the severity, the message, the item and the fix.
+	QCOMPARE(headers, QStringList({"Severity", "Code", "Message", "Item", "File", "Path", "Fix"}));
+	QCOMPARE(shown(), QStringList({"Severity", "Message", "Item", "Fix"}));
 	// A row keeps its file as data and names its code, file and path in its tooltip, one per line.
 	QCOMPARE_GE(baseTimeRow, 0);
 	QCOMPARE(table->item(baseTimeRow, 0)->text(), "Error");
 	QCOMPARE(table->item(baseTimeRow, 0)->data(ValidationPanel::kFileRole).toString(), "scene.json");
 	QCOMPARE(table->item(baseTimeRow, 2)->toolTip(), "Code: scene.basetime.missing\nFile: scene.json\nPath: base_time");
-	QCOMPARE(table->item(baseTimeRow, 5)->toolTip(), table->item(baseTimeRow, 2)->toolTip());
+	QCOMPARE(table->item(baseTimeRow, 6)->toolTip(), table->item(baseTimeRow, 2)->toolTip());
 	advanced = true;
 	panel.updateStatus();
 	// Advanced details show every column.
@@ -589,7 +590,52 @@ void TestValidationPanel::showsColumnsWithAdvancedDetails() {
 	advanced = false;
 	panel.updateStatus();
 	// The columns follow advanced details back.
-	QCOMPARE(shown(), QStringList({"Severity", "Message", "Fix"}));
+	QCOMPARE(shown(), QStringList({"Severity", "Message", "Item", "Fix"}));
+}
+
+// Rows with the same message tell their items apart: the Item column, which shows without advanced details, names the
+// kind and the id of the item of each row, and stays empty for a row without an item.
+void TestValidationPanel::namesItemOfEachRow() {
+	QWidget host;
+	ValidationPanel panel(&host);
+	SceneDocument document;
+	panel.setDocument(&document);
+	panel.setAdvancedDetails([] { return false; });
+	SceneModel scene = runnableScene();
+	scene.baseTime.clear();
+	ScenePassenger passenger;
+	passenger.id = "0";
+	for (const char* id : {"0:1", "0:2"}) {
+		ScenePassengerJourney journey;
+		journey.id = id;
+		journey.originStationId = "station";
+		journey.destinationStationId = "station";
+		passenger.journeys.push_back(journey);
+	}
+	scene.passengers.push_back(passenger);
+	document.replace(scene, false);
+	panel.refresh();
+	QTableWidget* table = panel.table();
+	int itemColumn = -1;
+	for (int column = 0; column < table->columnCount(); ++column)
+		if (table->horizontalHeaderItem(column)->text() == "Item")
+			itemColumn = column;
+	QCOMPARE_GE(itemColumn, 0);
+	QVERIFY(!table->isColumnHidden(itemColumn));
+	QStringList journeyItems;
+	int baseTimeRow = -1;
+	for (int row = 0; row < table->rowCount(); ++row) {
+		const QString code = table->item(row, 1)->text();
+		if (code == "scene.passenger.legs.empty")
+			journeyItems << table->item(row, itemColumn)->text();
+		else if (code == "scene.basetime.missing")
+			baseTimeRow = row;
+	}
+	// Each journey without legs has a row that names it.
+	QCOMPARE(journeyItems, QStringList({"journey 0:1", "journey 0:2"}));
+	// The base time belongs to no item, so its row leaves the Item column empty.
+	QCOMPARE_GE(baseTimeRow, 0);
+	QCOMPARE(table->item(baseTimeRow, itemColumn)->text(), QString());
 }
 
 // A refresh that finds the scene and the duration override as they were validated shows that validation again: the

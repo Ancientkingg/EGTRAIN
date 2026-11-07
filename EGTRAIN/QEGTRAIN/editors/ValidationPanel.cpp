@@ -19,8 +19,8 @@ namespace {
 
 // The table columns that only advanced details show.
 constexpr int kCodeColumn = 1;
-constexpr int kFileColumn = 3;
-constexpr int kPathColumn = 4;
+constexpr int kFileColumn = 4;
+constexpr int kPathColumn = 5;
 
 // What the status column says for a status of the loaded data: one word for data without a problem.
 QString loadedStatusText(SceneLoadedStatus status) {
@@ -116,9 +116,9 @@ void addLoadedDataTreeItem(QTreeWidget* tree, QTreeWidgetItem* parent, const Sce
 } // namespace
 
 ValidationPanel::ValidationPanel(QWidget* parent) : QObject(parent) {
-	m_table = new QTableWidget(0, 6, parent);
+	m_table = new QTableWidget(0, 7, parent);
 	QStringList validationHeaders;
-	validationHeaders << "Severity" << "Code" << "Message" << "File" << "Path" << "Fix";
+	validationHeaders << "Severity" << "Code" << "Message" << "Item" << "File" << "Path" << "Fix";
 	m_table->setHorizontalHeaderLabels(validationHeaders);
 	m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -238,9 +238,11 @@ void ValidationPanel::refresh() {
 		m_table->setItem(row, 0, severityItem);
 		m_table->setItem(row, kCodeColumn, new QTableWidgetItem(QString::fromStdString(d.code)));
 		m_table->setItem(row, 2, new QTableWidgetItem(QString::fromStdString(d.message)));
+		// The item tells apart rows with the same message, such as the journeys without legs.
+		m_table->setItem(row, 3, new QTableWidgetItem(QString::fromStdString(itemLabel(d))));
 		m_table->setItem(row, kFileColumn, new QTableWidgetItem(file));
 		m_table->setItem(row, kPathColumn, new QTableWidgetItem(QString::fromStdString(d.path)));
-		m_table->setItem(row, 5, new QTableWidgetItem(QString::fromStdString(d.suggestedFix)));
+		m_table->setItem(row, 6, new QTableWidgetItem(QString::fromStdString(d.suggestedFix)));
 		// The code, the file and the path, one per line, for a table that does not show their columns.
 		QStringList details{QStringLiteral("Code: %1").arg(QString::fromStdString(d.code))};
 		if (!file.isEmpty())

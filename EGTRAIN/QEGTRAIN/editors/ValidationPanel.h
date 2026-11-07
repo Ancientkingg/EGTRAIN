@@ -66,8 +66,8 @@ public:
 	/// Gives the context of the tree whenever it is written. Without it the scene came from nowhere and no run was made.
 	void setLoadedDataContext(std::function<LoadedDataContext()> context);
 
-	/// The diagnostics, errors first: severity, code, message, file, path and fix. The code, file and path columns show
-	/// only with advanced details; the tooltip of a row gives them.
+	/// The diagnostics, errors first: severity, code, message, item (its kind and id, see itemLabel()), file, path and
+	/// fix. The code, file and path columns show only with advanced details; the tooltip of a row gives them.
 	QTableWidget* table() const { return m_table; }
 	/// The case, its source files and the state of the run.
 	QTreeWidget* tree() const { return m_tree; }
