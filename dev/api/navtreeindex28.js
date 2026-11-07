@@ -1,5 +1,7 @@
 var NAVTREEINDEX28 =
 {
+"struct_train_step_cache_1_1_braking_query.html#ab4b263965c073cc9e80a80b3d13846b9":[2,0,357,0,3],
+"struct_train_step_cache_1_1_braking_query.html#ab758ae96686b9195dc122dfa15b361ec":[2,0,357,0,1],
 "struct_train_step_cache_1_1_braking_query.html#acae3bbb1832d91f46e3a6e9f5784b22e":[2,0,357,0,0],
 "struct_train_unit_source_linker_1_1_link.html":[2,0,359,0],
 "struct_train_unit_source_linker_1_1_link.html#a53feed326be1c5b238ac8fd93526de79":[2,0,359,0,5],

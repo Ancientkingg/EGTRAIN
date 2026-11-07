@@ -1,5 +1,7 @@
 var NAVTREEINDEX8 =
 {
+"_update_settings_8h.html#a35da7659693a1ca3699fe9616d8fea67a00d23a76e43b46dae9ec7aa9dcbebb32":[3,0,10,18,0,1],
+"_update_settings_8h.html#a35da7659693a1ca3699fe9616d8fea67a88183b946cc5f0e8c96b2e66e1c74a7e":[3,0,10,18,0,0],
 "_update_settings_8h.html#a35da7659693a1ca3699fe9616d8fea67ab9f5c797ebbf55adccdd8539a65a0241":[3,0,10,18,0,2],
 "_update_settings_8h.html#a841edd1014624f82e68d783dce07a809":[3,0,10,18,5],
 "_update_settings_8h.html#aa2b2cb64256e4731e74a780c89db57cc":[3,0,10,18,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX8 =
 "class_case_settings_panel.html":[2,0,45],
 "class_case_settings_panel.html#a0aa7a7ae30964978c4d7786745d6edf5":[2,0,45,10],
 "class_case_settings_panel.html#a0f0584a419b0399016fe1804c9813a2c":[2,0,45,4],
-"class_case_settings_panel.html#a50a48c015c7022a049f7f5d636841d4d":[2,0,45,6],
-"class_case_settings_panel.html#a5ea1b6d082ad62636f686c1fbcbabb64":[2,0,45,2],
-"class_case_settings_panel.html#a912f7ba1975f5526c7fef36c61cfd1fd":[2,0,45,7]
+"class_case_settings_panel.html#a50a48c015c7022a049f7f5d636841d4d":[2,0,45,6]
 };

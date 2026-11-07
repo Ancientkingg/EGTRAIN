@@ -2,6 +2,7 @@ var _scene_diagnostic_8cpp =
 [
     [ "countDiagnostics", "_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4", null ],
     [ "hasErrors", "_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6", null ],
+    [ "itemLabel", "_scene_diagnostic_8cpp.html#a3384f3ec4bd60dc07adad600a2a3e5e4", null ],
     [ "severityLabel", "_scene_diagnostic_8cpp.html#a8d88ff4b3062ad07eacd7e35c5be6426", null ],
     [ "toDialogText", "_scene_diagnostic_8cpp.html#a757664039e68baa3d8e4d84eb8f0fb9a", null ],
     [ "toDisplayText", "_scene_diagnostic_8cpp.html#a610ae58f0e5af2938f73ae86e01c9eec", null ],

@@ -1,10 +1,13 @@
 <map id="printDiags" name="printDiags">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,94,57"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="23,29,19,20,23,11,33,5,50,3,67,5,78,13,72,14,65,10,49,8,35,10,27,14,25,20,28,29"/>
-<area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a610ae58f0e5af2938f73ae86e01c9eec" title="One line for the log and the console: severity, code, file, item, path, message and suggested fix." alt="" coords="142,29,252,57"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="94,41,129,43,123,43,94,46"/>
-<area shape="poly" id="edge5_Node000002_Node000002" title=" " alt="" coords="171,28,167,20,170,11,180,5,197,3,214,5,225,14,220,13,212,10,197,8,182,10,174,14,172,20,176,30"/>
-<area shape="rect" id="Node000003" href="$_scene_diagnostic_8cpp.html#a8d88ff4b3062ad07eacd7e35c5be6426" title=" " alt="" coords="300,29,409,57"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="252,41,287,43,281,43,252,46"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="327,28,322,20,326,11,337,5,355,3,374,5,385,15,380,13,372,10,355,8,339,10,330,14,328,20,332,30"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,68,94,96"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="23,68,19,59,23,50,33,44,50,41,67,44,78,52,73,53,65,49,49,47,35,49,27,53,25,59,28,67"/>
+<area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a610ae58f0e5af2938f73ae86e01c9eec" title="One line for the log and the console: severity, code, file, item, path, message and suggested fix." alt="" coords="142,68,252,96"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="94,79,129,81,124,83,95,84"/>
+<area shape="poly" id="edge7_Node000002_Node000002" title=" " alt="" coords="171,67,167,59,170,50,180,44,197,41,214,44,225,52,220,52,212,49,197,47,182,49,174,53,172,59,176,68"/>
+<area shape="rect" id="Node000003" href="$_scene_diagnostic_8cpp.html#a3384f3ec4bd60dc07adad600a2a3e5e4" title=" " alt="" coords="312,29,398,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="252,66,299,57,294,58,253,71"/>
+<area shape="rect" id="Node000004" href="$_scene_diagnostic_8cpp.html#a8d88ff4b3062ad07eacd7e35c5be6426" title=" " alt="" coords="300,105,409,133"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="253,92,287,103,282,103,252,98"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="327,28,322,20,326,11,337,5,355,3,374,5,385,14,380,14,372,10,355,8,339,10,330,14,328,20,332,30"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="327,104,322,96,326,87,337,81,355,79,374,81,385,91,380,89,372,86,355,84,339,86,330,90,328,96,332,106"/>
 </map>

@@ -1,22 +1,25 @@
 <map id="printVersionRejection" name="printVersionRejection">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,105,166,133"/>
-<area shape="poly" id="edge9_Node000001_Node000001" title=" " alt="" coords="47,105,41,96,46,87,61,81,86,79,111,81,127,89,122,91,110,86,85,84,63,86,50,91,47,96,53,104"/>
+<area shape="poly" id="edge11_Node000001_Node000001" title=" " alt="" coords="47,105,41,96,46,87,61,81,86,79,111,81,127,89,122,91,110,86,85,84,63,86,50,91,47,96,53,104"/>
 <area shape="rect" id="Node000002" href="$_scene_compatibility_8h.html#a677b2be9af485a73e18c35fd300630fc" title=" " alt="" coords="228,29,385,57"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,102,213,67,240,61,236,63,215,72,123,107"/>
 <area shape="rect" id="Node000003" href="$_scene_tool_8cpp.html#a0eb54f38772c0fc75e926348389a3112" title=" " alt="" coords="262,105,350,133"/>
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="166,117,249,118,245,120,167,122"/>
-<area shape="rect" id="Node000006" href="$_scene_compatibility_8cpp.html#ac1955238f3fae287668574b442b6b074" title=" " alt="" coords="214,183,399,210"/>
-<area shape="poly" id="edge10_Node000001_Node000006" title=" " alt="" coords="128,131,253,176,248,179,127,136"/>
+<area shape="rect" id="Node000007" href="$_scene_compatibility_8cpp.html#ac1955238f3fae287668574b442b6b074" title=" " alt="" coords="214,183,399,210"/>
+<area shape="poly" id="edge12_Node000001_Node000007" title=" " alt="" coords="128,131,253,176,248,179,127,136"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="268,28,262,20,267,11,282,5,306,3,332,5,348,14,343,14,331,10,306,8,283,10,271,15,268,20,273,29"/>
 <area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="268,104,262,96,267,87,282,81,306,79,332,81,348,90,343,90,331,86,306,84,283,86,271,91,268,96,273,105"/>
 <area shape="rect" id="Node000004" href="$_scene_diagnostic_8cpp.html#a610ae58f0e5af2938f73ae86e01c9eec" title="One line for the log and the console: severity, code, file, item, path, message and suggested fix." alt="" coords="488,103,598,130"/>
 <area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="351,116,475,117,469,118,351,121"/>
-<area shape="poly" id="edge8_Node000004_Node000004" title=" " alt="" coords="508,101,503,94,507,84,521,78,543,76,566,79,580,88,575,87,565,84,543,81,522,83,511,88,508,93,513,103"/>
-<area shape="rect" id="Node000005" href="$_scene_diagnostic_8cpp.html#a8d88ff4b3062ad07eacd7e35c5be6426" title=" " alt="" coords="686,103,796,130"/>
-<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="598,114,673,116,668,117,598,119"/>
-<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="707,101,701,94,706,84,719,78,741,76,764,79,779,88,773,87,763,84,741,81,720,83,709,88,707,93,711,103"/>
-<area shape="poly" id="edge11_Node000006_Node000006" title=" " alt="" coords="268,181,262,174,267,164,282,158,306,156,332,159,348,168,343,167,331,164,306,161,283,163,271,168,268,173,273,183"/>
-<area shape="rect" id="Node000007" href="$_scene_migration_8cpp.html#a34c152459f18cd16c84e714e1fbb3385" title=" " alt="" coords="447,178,638,223"/>
-<area shape="poly" id="edge12_Node000006_Node000007" title=" " alt="" coords="399,195,434,199,429,199,399,201"/>
-<area shape="poly" id="edge13_Node000007_Node000007" title=" " alt="" coords="505,176,503,168,510,159,523,154,543,152,564,154,578,163,573,162,562,159,543,157,524,159,513,163,508,169,509,179"/>
+<area shape="poly" id="edge10_Node000004_Node000004" title=" " alt="" coords="508,101,503,94,507,84,521,78,543,76,566,79,580,88,575,87,565,84,543,81,522,83,511,88,508,93,513,103"/>
+<area shape="rect" id="Node000005" href="$_scene_diagnostic_8cpp.html#a3384f3ec4bd60dc07adad600a2a3e5e4" title=" " alt="" coords="698,65,784,93"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="597,104,685,90,680,91,598,109"/>
+<area shape="rect" id="Node000006" href="$_scene_diagnostic_8cpp.html#a8d88ff4b3062ad07eacd7e35c5be6426" title=" " alt="" coords="686,141,796,169"/>
+<area shape="poly" id="edge8_Node000004_Node000006" title=" " alt="" coords="598,125,674,142,668,142,598,130"/>
+<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="707,64,701,56,706,47,719,41,741,39,764,41,779,50,773,50,763,46,741,44,720,46,709,51,707,56,712,66"/>
+<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="707,140,701,132,706,123,719,117,741,115,764,117,779,126,773,126,763,122,741,120,720,122,709,127,707,132,711,142"/>
+<area shape="poly" id="edge13_Node000007_Node000007" title=" " alt="" coords="268,181,262,174,267,164,282,158,306,156,332,159,348,168,343,167,331,164,306,161,283,163,271,168,268,173,273,183"/>
+<area shape="rect" id="Node000008" href="$_scene_migration_8cpp.html#a34c152459f18cd16c84e714e1fbb3385" title=" " alt="" coords="447,178,638,223"/>
+<area shape="poly" id="edge14_Node000007_Node000008" title=" " alt="" coords="399,195,434,199,429,199,399,201"/>
+<area shape="poly" id="edge15_Node000008_Node000008" title=" " alt="" coords="505,176,503,168,510,159,523,154,543,152,564,154,578,163,573,162,562,159,543,157,524,159,513,163,508,169,509,179"/>
 </map>
