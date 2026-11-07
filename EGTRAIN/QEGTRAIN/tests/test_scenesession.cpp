@@ -37,13 +37,16 @@ namespace {
 // The window as the session sees it: no run, no startup timing and no dialogs.
 class FakeHost : public SceneSession::Host {
 public:
+	// The case that a recovered scene is a copy of, as the window keeps it.
+	QString recoveredSource;
+
 	telemetry::OperationObservation captureTelemetryOperation() const noexcept override { return {}; }
 	bool dialogsSuppressed() const override { return true; }
 	void commitPendingEdits() override {}
 	bool afterRunStopped(std::function<void()>) override { return false; }
 	void bringToFront() override {}
 	void offerUpdateCheck() override {}
-	QString recoveredSceneSource() const override { return {}; }
+	QString recoveredSceneSource() const override { return recoveredSource; }
 	SceneLoadResult readScene(const QString& path, bool& identityOk) override {
 		identityOk = true;
 		return loadScenePath(path.toStdString());
@@ -179,6 +182,29 @@ std::shared_ptr<QStringList> answerFolderDialogs(const QStringList& answers) {
 	return starts;
 }
 
+// Runs `action`, which opens a save dialog, and cancels the dialog. Returns the path that the dialog suggested, the folder
+// that it shows with the name in its name field, or an empty string when no file dialog opened.
+QString suggestedSavePath(const std::function<void()>& action) {
+	QString suggested;
+	QTimer timer;
+	timer.setInterval(10);
+	QObject::connect(&timer, &QTimer::timeout, &timer, [&timer, &suggested] {
+		for (QWidget* widget : QApplication::topLevelWidgets()) {
+			auto* dialog = qobject_cast<QFileDialog*>(widget);
+			if (dialog == nullptr || !dialog->isVisible())
+				continue;
+			timer.stop();
+			const auto* name = dialog->findChild<QLineEdit*>("fileNameEdit");
+			suggested = dialog->directory().filePath(name != nullptr ? name->text() : QString());
+			dialog->reject();
+			return;
+		}
+	});
+	timer.start();
+	action();
+	return suggested;
+}
+
 // Clicks Save in the next message box, the question about unsaved changes.
 void answerSave() {
 	auto* timer = new QTimer;
@@ -216,6 +242,8 @@ private slots:
 	void unsavedSaveStopsWhenCaseChangedOnDisk();
 	void saveAsAsksBeforeSuffixReplacesFile();
 	void saveAsAsksForFileOrFolder();
+	void saveAsSuggestsNameOfFolder();
+	void saveAsSuggestsNameOfRecoveredFolder();
 	void openNamesMissingFile();
 	void openNamesUnreadableFile();
 	void saveShowsFileAndPath();
@@ -592,6 +620,38 @@ void TestSceneSession::saveAsAsksForFileOrFolder() {
 	QCOMPARE(fresh.prompts.buttonCount, 1);
 	QCOMPARE(fresh.prompts.defaultButton, 0);
 	QVERIFY(fresh.session->sceneDir().isEmpty());
+}
+
+// Case File... of Save As suggests a case file named after the open case folder, beside that folder.
+void TestSceneSession::saveAsSuggestsNameOfFolder() {
+	QTemporaryDir root;
+	QVERIFY(root.isValid());
+	const QDir dir(root.path());
+	QVERIFY(writeFolderCase(dir.filePath("Mine"), "My case"));
+	Fixture f;
+	QVERIFY(f.session->openSceneDirectory(dir.filePath("Mine")));
+	f.prompts.chosenButton = 0;
+	const QString suggested = suggestedSavePath([&f] { f.session->saveSceneAs(); });
+	QCOMPARE(QFileInfo(suggested).fileName(), "Mine.egscene");
+	QCOMPARE(QFileInfo(suggested).dir().canonicalPath(), dir.canonicalPath());
+}
+
+// A recovered case has no file of its own, so Case File... suggests a case file named after the case folder that it is
+// a copy of, beside that folder.
+void TestSceneSession::saveAsSuggestsNameOfRecoveredFolder() {
+	QTemporaryDir root;
+	QVERIFY(root.isValid());
+	const QDir dir(root.path());
+	QVERIFY(writeFolderCase(dir.filePath("Mine"), "My case"));
+	QVERIFY(dir.mkdir("Recovery"));
+	QVERIFY(writeBundleCase(dir.filePath("Recovery/copy.egscene"), "My case"));
+	Fixture f;
+	QVERIFY(f.session->openSceneDirectory(dir.filePath("Recovery/copy.egscene"), {}, SceneSession::OpenOrigin::Recovered));
+	f.host.recoveredSource = QFileInfo(dir.filePath("Mine")).absoluteFilePath();
+	f.prompts.chosenButton = 0;
+	const QString suggested = suggestedSavePath([&f] { f.session->saveSceneAs(); });
+	QCOMPARE(QFileInfo(suggested).fileName(), "Mine.egscene");
+	QCOMPARE(QFileInfo(suggested).dir().canonicalPath(), dir.canonicalPath());
 }
 
 // A case folder without a required file names the file in the box.
