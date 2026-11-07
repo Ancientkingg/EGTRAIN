@@ -1736,16 +1736,27 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		followButton->click();
-		// The status bar says whether the run goes on.
+		// The status bar says whether the run goes on, and a screen reader reads the text of the Pause button as its name.
+		const auto pauseButtonName = [&w]() {
+			QAccessibleInterface* pause = QAccessible::queryAccessibleInterface(w.findChild<QToolButton*>("actionPauseButton"));
+			return pause ? pause->text(QAccessible::Name) : QString();
+		};
 		w.ui->actionSimulationPause->trigger();
 		const QString pausedMessage = w.statusBar()->currentMessage();
+		const QString pausedName = pauseButtonName();
 		w.ui->actionSimulationPause->trigger();
 		const QString resumedMessage = w.statusBar()->currentMessage();
+		const QString resumedName = pauseButtonName();
 		w.ui->actionSimulationPause->trigger();
 		if (pausedMessage != QStringLiteral("Paused") || resumedMessage != QStringLiteral("Running")
 			|| w.statusBar()->currentMessage() != QStringLiteral("Paused")) {
 			fail(QStringLiteral("the status bar does not follow Pause and Resume: ") + pausedMessage + QStringLiteral(" / ")
 				+ resumedMessage);
+			return;
+		}
+		if (pausedName != QStringLiteral("Resume") || resumedName != QStringLiteral("Pause")) {
+			fail(QStringLiteral("the accessible name of the Pause button does not follow Pause and Resume: ") + pausedName
+				+ QStringLiteral(" / ") + resumedName);
 			return;
 		}
 		for (QAction* action : w.m_session->recentScenesMenu()->actions()) {
@@ -1771,6 +1782,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			|| w.ui->actionSimulationPause->text() != "Pause"
 			|| !w.statusBar()->currentMessage().startsWith("Reloaded ")) {
 			fail(QStringLiteral("stopped run completion changed the replacement scene"));
+			return;
+		}
+		if (pauseButtonName() != QStringLiteral("Pause")) {
+			fail(QStringLiteral("the Pause button keeps the accessible name ") + pauseButtonName()
+				+ QStringLiteral(" after the paused run ended"));
 			return;
 		}
 		w.m_speedSlider->setValue(500);

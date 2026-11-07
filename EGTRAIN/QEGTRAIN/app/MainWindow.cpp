@@ -767,6 +767,7 @@ void MainWindow::setupFileMenu() {
 	m_openCaseAction = new QAction("Open Case...", this);
 	m_openCaseAction->setObjectName("actionOpenCase");
 	m_openCaseAction->setShortcut(QKeySequence::Open);
+	m_openCaseAction->setToolTip(withShortcut("Open a case", m_openCaseAction));
 	m_openCaseAction->setProperty("chooserEntryPoint", "showStartupChooser");
 	m_saveSceneAction = new QAction("Save", this);
 	m_saveSceneAction->setObjectName("actionSaveScene");
@@ -1049,9 +1050,14 @@ void MainWindow::setupToolBarButtons() {
 		if (auto* button = qobject_cast<QToolButton*>(m_toolBar->widgetForAction(action))) {
 			button->setObjectName(objectName);
 			button->setToolButtonStyle(style);
-			// The button shows the text of the action without the ... of its menu entry.
-			button->setAccessibleName(action->iconText());
-			button->setAccessibleDescription(action->toolTip());
+			// The button shows the text of the action without the ... of its menu entry. Its name and description follow the
+			// text and the tooltip of the action, so the Pause button is named Resume while a run is paused.
+			const auto describe = [button, action]() {
+				button->setAccessibleName(action->iconText());
+				button->setAccessibleDescription(action->toolTip());
+			};
+			describe();
+			connect(action, &QAction::changed, button, describe);
 			button->setFocusPolicy(Qt::StrongFocus);
 			button->setAutoRaise(true);
 			button->setFixedHeight(32);
