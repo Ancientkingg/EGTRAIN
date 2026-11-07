@@ -625,7 +625,11 @@ and passengers into the model. It is an explicit conversion command/UI action,
 not a fallback used when running a scene. A legacy number that reads as <code class="docutils literal notranslate"><span class="pre">nan</span></code>
 or <code class="docutils literal notranslate"><span class="pre">inf</span></code> is malformed, like any other unreadable number: a row of a file is
 skipped with the warning <code class="docutils literal notranslate"><span class="pre">scene.import.parse</span></code>, and a Trains or train data file
-gives that code as an error and stops the import. <code class="docutils literal notranslate"><span class="pre">SceneExporter</span></code> remains an explicit
+gives that code as an error and stops the import. The station of a timetable
+row is the text before its last three numbers, spaces included, as in
+<code class="docutils literal notranslate"><span class="pre">Stations.txt</span></code>. When that text names no single station, its words are tried
+joined without spaces: the timetables of the legacy Milano_Brescia case write
+<code class="docutils literal notranslate"><span class="pre">Morengo</span> <span class="pre">Bariano</span></code> for the station <code class="docutils literal notranslate"><span class="pre">MorengoBariano</span></code>. <code class="docutils literal notranslate"><span class="pre">SceneExporter</span></code> remains an explicit
 interoperability tool; exporting does not change the active scene or stage the
 normal simulator input.</p>
 <p>A legacy file that cannot be opened, or that starts with the UTF-16 byte order
