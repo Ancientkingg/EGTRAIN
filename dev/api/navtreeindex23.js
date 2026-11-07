@@ -1,5 +1,6 @@
 var NAVTREEINDEX23 =
 {
+"struct_figure_column.html#a2e19d38ed81e9c8560c5dc7f644c7f86":[2,0,87,0],
 "struct_figure_column.html#af64451c6a4a126691991ea7c8993656f":[2,0,87,1],
 "struct_follow_availability.html":[2,0,89],
 "struct_follow_availability.html#a33ac27566169b089f684515cf96317b5":[2,0,89,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX23 =
 "struct_playback_profiler_1_1_run_config.html#a17ae947d5989a3f681cc2feeb79a7833":[2,0,161,0,4],
 "struct_playback_profiler_1_1_run_config.html#a18b62424db404a889a81279c3e79a936":[2,0,161,0,16],
 "struct_playback_profiler_1_1_run_config.html#a3c7c05bb8dba4cc43c431f767fdc26a1":[2,0,161,0,2],
-"struct_playback_profiler_1_1_run_config.html#a411c66097fe1ce4072cfdb26403bc231":[2,0,161,0,8],
-"struct_playback_profiler_1_1_run_config.html#a5ca704cfc1bc242b50e195d650c23ee1":[2,0,161,0,0]
+"struct_playback_profiler_1_1_run_config.html#a411c66097fe1ce4072cfdb26403bc231":[2,0,161,0,8]
 };

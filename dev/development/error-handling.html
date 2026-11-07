@@ -393,13 +393,13 @@
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>The output folder of a run and its subfolders (<code class="docutils literal notranslate"><span class="pre">prepareRunOutput</span></code> in <code class="docutils literal notranslate"><span class="pre">prepareScene</span></code>)</p></td>
+<tr class="row-even"><td><p>The output folder of a run and its subfolders (<code class="docutils literal notranslate"><span class="pre">prepareRunOutput</span></code> in <code class="docutils literal notranslate"><span class="pre">prepareScene</span></code>; the window makes them first with <code class="docutils literal notranslate"><span class="pre">DispatchController::makeNextRunOutputFolders</span></code>)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">run.output.folder</span></code>: “Cannot create the output folder <path>: <reason>”</p></td>
-<td><p>Window: <strong>Cannot Run Case</strong> with that text, Run Results status “Failed”, the case stays open. Without a window: the diagnostic on standard error and exit code 1.</p></td>
+<td><p>Window: <strong>Cannot Run Case</strong> with that text and the status bar “Run not started: <text>”. The window makes the folders before it lets go of the earlier run, so that run keeps its results, its replay and its canvas, and the case stays open. Without a window: the diagnostic on standard error and exit code 1.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TrainTrajectories/TrainServicePathDiagram.txt</span></code> of an earlier run, which the run would append to (<code class="docutils literal notranslate"><span class="pre">prepareRunOutput</span></code>)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">run.output.file</span></code>: “Cannot write <path>: <reason>” when it cannot be removed</p></td>
-<td><p>As for <code class="docutils literal notranslate"><span class="pre">run.output.folder</span></code>.</p></td>
+<td><p>Window: as for any refusal by the preparation (see <a class="reference internal" href="#recoverable-failures">Recoverable failures</a>): the results of the earlier run are gone and the view shows the track preview. Without a window: as for <code class="docutils literal notranslate"><span class="pre">run.output.folder</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;output&gt;/TEMP</span></code> of a run with <code class="docutils literal notranslate"><span class="pre">--detailed-trajectories</span></code></p></td>
 <td><p>none; the run throws “Cannot create the folder <path>: <reason>”, which <code class="docutils literal notranslate"><span class="pre">runSimulation</span></code> catches</p></td>
@@ -644,7 +644,7 @@
 <td><p>Yes</p></td>
 </tr>
 <tr class="row-odd"><td><p>Run refused by validation or preparation, also when the output folder cannot be created or the preparation throws</p></td>
-<td><p>“Cannot Run Case” box with the first diagnostic; Run Results status “Failed”</p></td>
+<td><p>“Cannot Run Case” box with the first diagnostic. A refusal by the preparation also shows the status bar “Run not started: <message>” and Run Results status “Failed”; the results of an earlier run are gone, and the view shows the track preview. An output folder that cannot be created is found before the earlier run is let go, so the status bar shows “Run not started: <message>” while the earlier run keeps its Run Results status, its results, its replay and its canvas</p></td>
 <td><p>Yes</p></td>
 </tr>
 <tr class="row-even"><td><p>Run whose train vectors, one value of each for every step, would take more than 4 GiB, estimated from the number of trains, the steps and the bytes of a train per step (<code class="docutils literal notranslate"><span class="pre">kTrainBytesPerStep</span></code> in <code class="docutils literal notranslate"><span class="pre">simulation/builders/OperationsBuilder.cpp</span></code>, plus <code class="docutils literal notranslate"><span class="pre">kDetailedTrajectoryBytesPerStep</span></code> when the run exports detailed trajectories)</p></td>

@@ -10,6 +10,7 @@ var class_dispatch_controller =
     [ "lastRunCompleted", "class_dispatch_controller.html#a756ed4264cc4dd25e79a258212a9fb60", null ],
     [ "lastRunError", "class_dispatch_controller.html#a67c2bc73f24aa64755af89e8344315e8", null ],
     [ "liveEndpoint", "class_dispatch_controller.html#afbac0de33112f6ead2aee19517b3f959", null ],
+    [ "makeNextRunOutputFolders", "class_dispatch_controller.html#a245a2d885d4ac018166b36e9f29cfef8", null ],
     [ "mutableRun", "class_dispatch_controller.html#a027310e296b105e0d388fd96dbca6d63", null ],
     [ "nextRunOutputFolder", "class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c", null ],
     [ "prepareScene", "class_dispatch_controller.html#aac2afa04a79b4b5976be94b691750aaf", null ],

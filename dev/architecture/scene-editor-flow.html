@@ -422,12 +422,17 @@ when that option is given (see <a class="reference internal" href="../guides/com
 </ul>
 <p><code class="docutils literal notranslate"><span class="pre">DispatchController::prepareScene</span></code> sets these values from the scene. Run calls
 it in the current main window with this sequence:</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>teardownGUI
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>simulation.makeNextRunOutputFolders()
+teardownGUI
 simulation.prepareScene(SceneModel)
 setupGUI
 </pre></div>
 </div>
-<p>Only after setup succeeds does the simulation worker start. Opening or creating
+<p>An output folder that cannot be made stops Run before <code class="docutils literal notranslate"><span class="pre">teardownGUI</span></code>, so the
+earlier run keeps its results, its replay and its canvas. A preparation that
+fails after <code class="docutils literal notranslate"><span class="pre">teardownGUI</span></code> leaves no results, and the window draws the track
+preview again. Both say “Run not started” with the reason in the status bar.
+Only after setup succeeds does the simulation worker start. Opening or creating
 a scene calls <code class="docutils literal notranslate"><span class="pre">teardownGUI</span></code> and <code class="docutils literal notranslate"><span class="pre">simulation.resetState</span></code> before it replaces the
 current scene. Case replacement waits for the old worker to stop and ignores any
 queued completion from that worker. Disabled scenario controls are not pending
@@ -439,7 +444,9 @@ edit, <code class="docutils literal notranslate"><span class="pre">Ready</span><
 run before it completes, and <code class="docutils literal notranslate"><span class="pre">Failed</span></code> with builder diagnostics after preparation
 fails. <code class="docutils literal notranslate"><span class="pre">Failed</span></code> also covers a run that ends without results, unless a stop
 request ended it before it completed, and a run whose scene changed while it ran. Completed simulation output
-is reported as available, but remains outside canonical input.</p>
+is reported as available, but remains outside canonical input. The Case row counts the errors and warnings of the
+run with those of the validation and the loaded data, except <code class="docutils literal notranslate"><span class="pre">run.output.*</span></code>: an output folder or file that the run
+cannot write says nothing about the case.</p>
 </section>
 <section id="editor-panels">
 <h2>Editor panels<a class="headerlink" href="#editor-panels" title="Link to this heading">¶</a></h2>
