@@ -7,6 +7,7 @@
 
 #include "scene/SceneModel.h"
 #include "simulation/Infrastructure.h"
+#include "simulation/NumberGenerator.h"
 #include "simulation/Passengers.h"
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
@@ -104,6 +105,8 @@ private slots:
 	void stopLength();
 	void morePassengersLengthenStop();
 	void stationPositionsCacheMatchesComputation();
+	void fractionalWagonCount_data();
+	void fractionalWagonCount();
 
 private:
 	// The dwell that one boarding passenger needs (25 s with the parameters of the builder), and planned dwells below and
@@ -230,6 +233,31 @@ void TestStopDwell::stationPositionsCacheMatchesComputation() {
 	train.stepCache.beginStep(0);
 	QCOMPARE(held(), 0);
 	train.stepCache.endStep();
+}
+
+void TestStopDwell::fractionalWagonCount_data() {
+	QTest::addColumn<double>("wagons");
+	QTest::newRow("half a wagon: the two doors of the power unit") << 0.5;
+	QTest::newRow("two and a half wagons: the six doors of three cars") << 2.5;
+}
+
+// A scene can give a unit a fractional number of wagons. The passengers are split over the power unit and the whole
+// wagons, two doors to a car, so the fraction adds no door: one boarding passenger gives the fixed time and one boarding
+// time, and a larger flow gives the dwell of the whole wagons.
+void TestStopDwell::fractionalWagonCount() {
+	QFETCH(double, wagons);
+	// The two dwells of a comparison draw the same split of the passengers at the doors.
+	const NumberGenerator draws = defaultRun().numberGenerator;
+	const auto dwell = [&draws](double count, int boarding, int alighting) {
+		Train formula = nativeTrain();
+		formula.number_of_wagons = count;
+		formula.Current_OnBoard_Passengers = 0;
+		defaultRun().numberGenerator = draws;
+		const float* beta = formula.GibsonDwellTimeParameters;
+		return formula.computePaxDependentDwellTimeAtStations(boarding, alighting, 0.0, beta[0], beta[1], beta[2], beta[3], beta[4], beta[5], beta[6], beta[7]);
+	};
+	QCOMPARE(dwell(wagons, 1, 0), boardingOnlyDwell(nativeTrain()));
+	QCOMPARE_EQ(dwell(wagons, 40, 20), dwell(std::floor(wagons), 40, 20));
 }
 
 QTEST_APPLESS_MAIN(TestStopDwell)
