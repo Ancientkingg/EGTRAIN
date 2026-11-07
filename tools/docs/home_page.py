@@ -14,10 +14,11 @@ other files of PAGES, such as the version folders or a CNAME file, stay as they 
 tools/release/publish_selfhost.py writes (https://egtrain.samuelbruin.com/releases/feed.json by default). The script
 follows no redirect. A feed that does not exist yet is an empty list, and any other failure to read it stops the script.
 The home page offers the files of the newest release that is neither a draft nor a prerelease, with the links and sizes
-of the feed, and has a documentation table with a column for latest/, dev/ and each version folder. The source page
-lists every release with its source archive. Without such a release, the parts between <!-- release --> and
-<!-- /release --> are left out and those between <!-- no release --> and <!-- /no release --> are kept. The parts
-between <!-- latest --> and <!-- /latest --> link latest/, so they are kept only when PAGES has that folder.
+of the feed, and has a documentation table with a column for latest/, dev/ and each of the three newest version folders.
+The release page of an older version links its documentation. The source page lists every release with its source
+archive. Without such a release, the parts between <!-- release --> and <!-- /release --> are left out and those between
+<!-- no release --> and <!-- /no release --> are kept. The parts between <!-- latest --> and <!-- /latest --> link
+latest/, so they are kept only when PAGES has that folder.
 
 In a part, {name} stands for a value that the script fills in, {asset:NAME} for the download link of the release file
 NAME and {size:NAME} for its size. A file that the release does not have stops the script. The train graph and the
@@ -50,6 +51,9 @@ DESCRIPTION = ("EGTRAIN is a desktop application for microscopic railway simulat
 # that it links in each folder.
 DOCUMENTATION = (("docs_guides", "User guides", ""), ("docs_developer", "Developer pages", "development/getting-started.html"),
                  ("docs_reference", "C++ reference", "api/index.html"))
+# The number of version folders that the documentation table has a column for, newest first, so that the table stays
+# narrower than the page at 601 px, the narrowest screen that shows it as a table, also with longer version numbers.
+VERSION_COLUMNS = 3
 # The pages besides the home page: the folder that each is written to, its title and its description.
 SITE_PAGES = {
     "support": ("Support", "How to report a problem with EGTRAIN and where its documentation is."),
@@ -235,11 +239,11 @@ def release_page(release: dict, source: tuple) -> str:
 
 
 def home_page(latest: bool, dev: bool, versions: list, release) -> str:
-    """The home page. Its documentation table has a column for latest/ and dev/ when they are there and for each version
-    folder."""
+    """The home page. Its documentation table has a column for latest/ and dev/ when they are there and for each of the
+    newest VERSION_COLUMNS version folders."""
     version = release_version(release["tag_name"]) if release is not None else None
     columns = [(name, note) for name, note, shown in (("latest", "newest release", latest), ("dev", "main branch", dev)) if shown]
-    columns += [(name, "this release" if name == version else "") for name in versions]
+    columns += [(name, "this release" if name == version else "") for name in versions[:VERSION_COLUMNS]]
     main = keep(PAGE.read_text(encoding="utf-8"), "latest", latest)
     main = keep(keep(main, "release", release is not None), "no release", release is None)
     values = json.loads(DATA.read_text(encoding="utf-8"))

@@ -1154,7 +1154,7 @@ def check_home_page(checks: Checks, docs: dict, build_release_assets, home_page)
 
     with tempfile.TemporaryDirectory() as folder:
         pages = Path(folder)
-        for name in ("dev", "latest", "1.0.4", "1.0.10", "assets"):
+        for name in ("dev", "latest", "1.0.4", "1.0.8", "1.0.9", "1.0.10", "assets"):
             (pages / name).mkdir()
         (pages / "assets/old.css").write_text("", encoding="utf-8")
         (pages / "CNAME").write_text("egtrain.example.org\n", encoding="utf-8")
@@ -1164,10 +1164,11 @@ def check_home_page(checks: Checks, docs: dict, build_release_assets, home_page)
         released = [f"https://bin.example.org/raw/egtrain-v1.0.10-{name.format(version='1.0.10')}" for name in names]
         expect(sorted(offered) == sorted(released * 2) and text.count(">19.9 MB<") == 2 * len(names),
                f"docs/site/index.html links each package of build_release_assets.py with its size, on the board and in the list: {sorted(set(offered) ^ set(released))}")
-        listed = [text.find(f'<th scope="col"><b>{name}</b>') for name in ("latest", "dev", "1.0.10", "1.0.4")]
+        listed = [text.find(f'<th scope="col"><b>{name}</b>') for name in ("latest", "dev", "1.0.10", "1.0.9", "1.0.8")]
         expect('href="https://egtrain.example.org/releases/1.0.10/"' in text and "Published 2026-01-02" in text and not unfilled.search(text)
-               and -1 not in listed and listed == sorted(listed) and '<a href="1.0.4/api/index.html" aria-label="C++ reference, 1.0.4">' in text,
-               "tools/docs/home_page.py offers the newest release that is no prerelease and has a documentation column for latest/, dev/ and the versions, newest first")
+               and -1 not in listed and listed == sorted(listed) and '<a href="1.0.8/api/index.html" aria-label="C++ reference, 1.0.8">' in text
+               and 'href="1.0.4/' not in text,
+               "tools/docs/home_page.py offers the newest release that is no prerelease and has a documentation column for latest/, dev/ and the three newest versions, newest first")
         source = (pages / "source/index.html").read_text(encoding="utf-8")
         expect(all(f"https://bin.samuelbruin.com/raw/egtrain-{tag}-EGTRAIN-{tag[1:]}-source.tar.gz" in source for tag in ("v1.0.11-rc.1", "v1.0.10", "v1.0.4"))
                and all(not unfilled.search((pages / page / "index.html").read_text(encoding="utf-8")) for page in home_page.SITE_PAGES),
