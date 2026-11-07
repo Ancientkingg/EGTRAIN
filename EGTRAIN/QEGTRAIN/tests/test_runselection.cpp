@@ -1,10 +1,13 @@
 #include "app/RunSelection.h"
 
 #include "scene/RuntimeLimits.h"
+#include "scene/SceneHistory.h"
 
 #include <QTest>
 
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 static SceneServiceOccurrence occurrence(const char* serviceId, int number) {
@@ -37,6 +40,27 @@ static SceneModel runScene() {
 
 constexpr double kPeriod = 1000.0;
 
+// The scene of runScene() with the scenarios `ids`, of which the first is the default.
+static SceneModel sceneWithScenarios(std::vector<std::string> ids) {
+	SceneModel scene = runScene();
+	for (std::string& id : ids) {
+		SceneScenario scenario;
+		scenario.id = std::move(id);
+		scene.scenarios.push_back(scenario);
+	}
+	scene.defaultScenarioId = scene.scenarios.front().id;
+	return scene;
+}
+
+// A state of the edit history with `scene`, in which `scenarioId` was selected and `excluded` left out.
+static SceneHistoryEntry historyState(const SceneModel& scene, const char* scenarioId, SceneRunSelection excluded = {}) {
+	SceneHistoryEntry entry;
+	entry.scene = std::make_shared<const SceneModel>(scene);
+	entry.selectedScenarioId = scenarioId;
+	entry.excludedOccurrences = std::move(excluded);
+	return entry;
+}
+
 class TestRunSelection : public QObject {
 	Q_OBJECT
 
@@ -48,6 +72,7 @@ private slots:
 	void excludesOccurrences();
 	void prunesExclusions();
 	void followsServiceRenames();
+	void followsHistorySteps();
 	void keepsExclusionsOutOfOversizedScene();
 };
 
@@ -211,6 +236,40 @@ void TestRunSelection::followsServiceRenames() {
 	selection.serviceRenamed("other", "S9");
 	QVERIFY2(selection.excluded() == SceneRunSelection({occurrence("S1", 1), occurrence("S2b", 1), occurrence("S2b", 3)}),
 		"renaming to the same id, or a service without exclusions, changes nothing");
+}
+
+void TestRunSelection::followsHistorySteps() {
+	const SceneModel withScenarios = sceneWithScenarios({"base", "alt"});
+	SceneModel withoutS3 = withScenarios;
+	withoutS3.services.pop_back();
+	SceneHistoryEntry state = historyState(withScenarios, "base", {occurrence("S2", 1), occurrence("S3", 1)});
+	state.modifiedScenarioIds = {"alt"};
+	RunSelection selection;
+	selection.selectScenario("base");
+	selection.setExcluded(occurrence("S2", 3), true);
+	selection.markScenarioModified("base");
+	selection.historyRestored(withoutS3, state, kPeriod);
+	QVERIFY2(selection.excluded() == SceneRunSelection({occurrence("S2", 3), occurrence("S3", 1)}),
+		"a service that comes back has what the state left out of it, and the others keep what is left out now");
+	QVERIFY2(selection.isScenarioModified("alt") && !selection.isScenarioModified("base"), "the edited scenarios are those of the state");
+	selection.historyRestored(withScenarios, historyState(withoutS3, "base"), kPeriod);
+	QVERIFY2(selection.excluded() == SceneRunSelection({occurrence("S2", 3)}), "a service that is gone loses what was left out of it");
+
+	selection.historyRestored(sceneWithScenarios({"base"}), historyState(withScenarios, "alt"), kPeriod);
+	// The scenario of the state is selected when it comes back,
+	QCOMPARE(selection.scenarioId(), "alt");
+	selection.selectScenario("base");
+	selection.historyRestored(withScenarios, historyState(withScenarios, "alt"), kPeriod);
+	// and not when it was there before.
+	QCOMPARE(selection.scenarioId(), "base");
+	selection.selectScenario("extra");
+	selection.historyRestored(sceneWithScenarios({"base", "alt", "extra"}), historyState(withScenarios, "alt"), kPeriod);
+	// It takes the place of a selected scenario that is gone,
+	QCOMPARE(selection.scenarioId(), "alt");
+	selection.selectScenario("extra");
+	selection.historyRestored(sceneWithScenarios({"base", "alt", "extra"}), historyState(withScenarios, "gone"), kPeriod);
+	// and when the state has none either, the default scenario does.
+	QCOMPARE(selection.scenarioId(), "base");
 }
 
 void TestRunSelection::keepsExclusionsOutOfOversizedScene() {

@@ -5,6 +5,7 @@
 
 #include "scene/SceneWriter.h"
 
+#include "support/EditHistory.h"
 #include "support/FakePrompts.h"
 
 #include "widgets/ChoiceComboBox.h"
@@ -197,6 +198,8 @@ private slots:
 	void leavesOccurrencesOut();
 	void editsFieldsOfService();
 	void renamesAddsAndDeletesServices();
+	void undoKeepsOccurrencesOfDeletedService();
+	void undoKeepsOccurrencesOfRenamedService();
 	void closesFieldsWhileRunUsesScene();
 	void refusesEditsWhileRunUsesScene();
 	void followsOtherPartsOfScene();
@@ -772,6 +775,74 @@ void TestServicePanel::renamesAddsAndDeletesServices() {
 	// Deleting the last service selects the new last one.
 	QCOMPARE(panel.listWidget()->currentRow(), 3);
 	QCOMPARE(panel.listWidget()->count(), 4);
+}
+
+// Undo of a delete brings the service back with the occurrences that the run left out of it, and Redo deletes it again.
+// What was changed in the other occurrences after the delete stays.
+void TestServicePanel::undoKeepsOccurrencesOfDeletedService() {
+	ServiceFixture f;
+	EditHistory history(f.document, f.selection, f.panel);
+	QTableWidget* table = f.panel.occurrenceTable();
+	const SceneRunSelection leftOutOfS2{SceneServiceOccurrence{"s2", 1}, SceneServiceOccurrence{"s2", 3}};
+	const SceneRunSelection leftOutOfS3{SceneServiceOccurrence{"s3", 1}};
+	// The rows are s1-1, s2-1, s2-2, s2-3 and s3-1. Leave out the first and the last run of s2, and s3.
+	table->item(1, 0)->setCheckState(Qt::Unchecked);
+	table->item(3, 0)->setCheckState(Qt::Unchecked);
+	table->item(4, 0)->setCheckState(Qt::Unchecked);
+	QCOMPARE(f.selection.excluded().size(), std::size_t(3));
+	f.panel.listWidget()->setCurrentRow(1);
+	f.prompts.confirmAnswer = true;
+	f.panel.deleteService();
+	// The delete forgets what was left out of s2.
+	QCOMPARE(items(f.panel.listWidget()), QStringList({"s1", "s3"}));
+	QVERIFY(f.selection.excluded() == leftOutOfS3);
+	// s3 is taken into the run again after the delete.
+	table->item(1, 0)->setCheckState(Qt::Checked);
+	QVERIFY(f.selection.excluded().empty());
+
+	QVERIFY(history.undo());
+	// Undo brings s2 back with the same runs left out, and s3 stays in the run.
+	QCOMPARE(items(f.panel.listWidget()), QStringList({"s1", "s2", "s3"}));
+	QVERIFY2(f.selection.excluded() == leftOutOfS2, "Undo of a delete leaves out the same occurrences of the service");
+	QVERIFY(checked(table, 0));
+	QVERIFY(!checked(table, 1));
+	QVERIFY(checked(table, 2));
+	QVERIFY(!checked(table, 3));
+	QVERIFY(checked(table, 4));
+	QCOMPARE(f.panel.occurrenceSelectionLabel()->text(), "3 of 5 selected");
+
+	QVERIFY(history.redo());
+	// Redo deletes s2 again.
+	QCOMPARE(items(f.panel.listWidget()), QStringList({"s1", "s3"}));
+	QVERIFY(f.selection.excluded().empty());
+	QCOMPARE(f.panel.occurrenceSelectionLabel()->text(), "2 of 2 selected");
+	QVERIFY(history.undo());
+	// Undo brings the same runs back once more.
+	QVERIFY2(f.selection.excluded() == leftOutOfS2, "a second Undo of the delete leaves them out again");
+}
+
+// Undo of a rename gives the occurrences that the run leaves out back to the old id, and Redo to the new one.
+void TestServicePanel::undoKeepsOccurrencesOfRenamedService() {
+	ServiceFixture f;
+	EditHistory history(f.document, f.selection, f.panel);
+	const SceneRunSelection leftOutOfOld{SceneServiceOccurrence{"s2", 2}};
+	const SceneRunSelection leftOutOfNew{SceneServiceOccurrence{"s2_renamed", 2}};
+	f.panel.listWidget()->setCurrentRow(1);
+	f.panel.occurrenceTable()->item(2, 0)->setCheckState(Qt::Unchecked);
+	f.panel.idEdit()->setText("s2_renamed");
+	f.panel.commitIdEdit();
+	QCOMPARE(f.document.model().services[1].id, "s2_renamed");
+	QVERIFY(f.selection.excluded() == leftOutOfNew);
+
+	QVERIFY(history.undo());
+	// Undo gives the old id back, and the second run of s2 stays out of the run.
+	QCOMPARE(f.document.model().services[1].id, "s2");
+	QVERIFY2(f.selection.excluded() == leftOutOfOld, "Undo of a rename leaves the occurrence out under the old id");
+	QVERIFY(!checked(f.panel.occurrenceTable(), 2));
+	QVERIFY(history.redo());
+	// Redo gives the new id back with it.
+	QCOMPARE(f.document.model().services[1].id, "s2_renamed");
+	QVERIFY2(f.selection.excluded() == leftOutOfNew, "Redo of a rename leaves it out under the new id");
 }
 
 void TestServicePanel::closesFieldsWhileRunUsesScene() {

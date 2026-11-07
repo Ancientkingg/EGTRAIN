@@ -255,10 +255,11 @@ and `redo` move the position and return the snapshot that becomes the live
 scene. Each snapshot carries a label that `record` derives from the counts of
 the parts of the scene (`Add service`, `Delete stop`, or `Edit` when the change
 is not one part added or removed), the scenarios that differ from the saved
-scene, and its memory as `estimateSceneModelBytes` counts it. That estimate
-adds up the structs, the vectors and the strings too long for the string
-object, so it depends on the standard library and is a bound, not a
-measurement.
+scene, the run selection (the selected scenario and the occurrences left out)
+as `keepRunSelection` kept it when the state was last left, and its memory as
+`estimateSceneModelBytes` counts it. That estimate adds up the structs, the
+vectors and the strings too long for the string object, so it depends on the
+standard library and is a bound, not a measurement.
 
 The history keeps at most 100 undo steps and an estimated 128 MiB. Both limits
 are parameters of the constructor. When either is exceeded the oldest

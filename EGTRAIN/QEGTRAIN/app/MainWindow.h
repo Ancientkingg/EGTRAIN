@@ -487,7 +487,8 @@ private:
 	void undoScene();
 	void redoScene();
 	void stepSceneHistory(bool redo);
-	void restoreSceneFromHistory(const SceneHistoryEntry& entry);
+	void keepRunSelectionInHistory();
+	void restoreSceneFromHistory(const SceneModel& previous, const SceneHistoryEntry& entry);
 	void refreshAllEditorPanels();
 	void updateUndoRedoActions();
 	// Autosave and recovery. The scene changed, was saved, or was replaced by another scene.

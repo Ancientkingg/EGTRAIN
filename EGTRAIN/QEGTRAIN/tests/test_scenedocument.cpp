@@ -50,6 +50,7 @@ private slots:
 	void assignAuthoredSceneKeepsDerivedParts();
 	void restoreKeepsDerivedParts();
 	void throwingEditKeepsModel();
+	void announcesEditBeforeChange();
 };
 
 // A new document holds no scene, has no edits and is open for edits.
@@ -298,6 +299,21 @@ void TestSceneDocument::throwingEditKeepsModel() {
 	QCOMPARE(document.model().name, "next");
 	QVERIFY(document.isDirty());
 	QCOMPARE(recorder.changes.size(), std::size_t(1));
+}
+
+// An edit emits aboutToEdit before it changes the model, and a refused edit emits nothing.
+void TestSceneDocument::announcesEditBeforeChange() {
+	SceneDocument document;
+	document.replace(namedScene("scene"), false);
+	std::vector<std::string> namesBeforeEdit;
+	QObject::connect(&document, &SceneDocument::aboutToEdit, &document,
+		[&namesBeforeEdit, &document] { namesBeforeEdit.push_back(document.model().name); });
+	QVERIFY(document.edit(SceneDocument::CaseSettings, "Edit case settings", [](SceneModel& model) { model.name = "edited"; }));
+	QVERIFY(namesBeforeEdit == std::vector<std::string>{"scene"});
+	document.setEditable(false);
+	QVERIFY(!document.edit(SceneDocument::Services, "Edit services", [](SceneModel& model) { model.name = "refused"; }));
+	QCOMPARE(namesBeforeEdit.size(), std::size_t(1));
+	QCOMPARE(document.model().name, "edited");
 }
 
 QTEST_APPLESS_MAIN(TestSceneDocument)

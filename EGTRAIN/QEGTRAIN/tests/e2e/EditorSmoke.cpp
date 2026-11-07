@@ -6377,18 +6377,38 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 			QMetaObject::invokeMethod(passengerPanel(w)->passengerIdEdit(), "editingFinished", Qt::DirectConnection);
 		}))
 		return finish();
-	// The duplicate is the service that nothing refers to.
+	// The duplicate is the service that nothing refers to. Its first run is left out of the next run before the delete.
+	const SceneServiceOccurrence duplicateRun{duplicatedServiceId, 1};
+	const auto checkDuplicateRun = [&](Qt::CheckState state) {
+		for (std::size_t row = 0; row < w.m_document->mutableModel().services.size(); ++row) {
+			if (w.m_document->mutableModel().services[row].id == duplicatedServiceId)
+				servicePanel(w)->listWidget()->setCurrentRow(static_cast<int>(row));
+		}
+		QTableWidget* runs = servicePanel(w)->occurrenceTable();
+		for (int row = 0; row < runs->rowCount(); ++row) {
+			QTableWidgetItem* include = runs->item(row, 0);
+			if (include->data(Qt::UserRole).toString().toStdString() == duplicateRun.serviceId
+				&& include->data(Qt::UserRole + 1).toInt() == duplicateRun.occurrence)
+				include->setCheckState(state);
+		}
+	};
 	if (!step("a deleted service", "Delete service", [&] {
-			for (std::size_t row = 0; row < w.m_document->mutableModel().services.size(); ++row) {
-				if (w.m_document->mutableModel().services[row].id == duplicatedServiceId)
-					servicePanel(w)->listWidget()->setCurrentRow(static_cast<int>(row));
-			}
+			checkDuplicateRun(Qt::Unchecked);
 			answerMessageBox(&w, QMessageBox::Yes);
 			servicePanel(w)->deleteService();
 		}))
 		return finish();
 	expect(w.m_undoAction->text() == QLatin1String("Undo Delete service") && w.m_redoAction->text() == QLatin1String("Redo"),
 		"the actions do not name the edit that Undo reverts");
+	undo();
+	expect(w.m_runSelection.isExcluded(duplicateRun), "Undo of the delete took the run that was left out into the run again");
+	// A run taken into the next run again after Undo is still in it after Redo and another Undo.
+	checkDuplicateRun(Qt::Checked);
+	expect(!w.m_runSelection.isExcluded(duplicateRun), "the run table did not take the run into the next run again");
+	redo();
+	undo();
+	expect(!w.m_runSelection.isExcluded(duplicateRun), "Undo after Redo left out the run that was taken in again before Redo");
+	redo();
 
 	// Undo all the way back and Redo all the way forward. The saved state is the one where the scene is clean.
 	const std::size_t stepCount = position;
