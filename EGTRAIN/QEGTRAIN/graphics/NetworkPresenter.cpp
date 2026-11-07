@@ -80,7 +80,6 @@
 #include <cstdlib>
 #include <limits>
 #include <optional>
-#include <sstream>
 #include <string_view>
 #include <tuple>
 #include <unordered_map>
@@ -187,6 +186,11 @@ bool hasPlatformId(const std::string& platformId) {
 // as for the station overlays.
 bool hasPlatformBar(const std::string& stationName, const std::string& platformId) {
 	return hasPlatformId(platformId) && stationName.find("virtual") == std::string::npos;
+}
+
+// The counter of a platform: how many passengers wait on it and how many it holds, such as "3 waiting (capacity 99)".
+QString platformCounterText(int waiting, int capacity) {
+	return QStringLiteral("%1 waiting (capacity %2)").arg(waiting).arg(capacity);
 }
 
 // The glide of a train between two live updates lasts this many times the longest of the last update intervals but
@@ -2016,12 +2020,7 @@ void NetworkPresenter::paintStationPlatform(QPointF before, QPointF coord, QPoin
 		platformItem->maxVolume = platform->Max_Passenger_Volume;
 	}
 
-	// string with pax counter
-	std::stringstream ss;
-	ss << (platform ? platform->Current_N_Passengers : 0) << " of " << platformItem->maxVolume << " passengers";
-
-	// convert string
-	QString text = QString::fromStdString(ss.str());
+	const QString text = platformCounterText(platform ? platform->Current_N_Passengers : 0, platformItem->maxVolume);
 
 	// set text size
 	QFont font = QFont();
@@ -3211,12 +3210,7 @@ void NetworkPresenter::updatePlatform(PlatformItem* platform, const GuiPlatformS
 	const auto& passengerIds = state.passengerIds;
 	const int nPaxIcons = static_cast<int>(passengerIds.size());
 
-	// string with pax counter
-	std::stringstream ss;
-	ss << nPaxIcons << " of " << state.maxVolume << " passengers";
-
-	// convert string
-	QString text = QString::fromStdString(ss.str());
+	const QString text = platformCounterText(nPaxIcons, state.maxVolume);
 
 	// update text item
 	if (platform->textIcon->toPlainText() != text) {
