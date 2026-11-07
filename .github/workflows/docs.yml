@@ -3,10 +3,10 @@ name: Docs
 # Builds the documentation site: the pages of docs/ with Sphinx and the C++ reference with Doxygen. A pull request also
 # fails when it adds undocumented classes or members to the files it changes. A push to main publishes the site to dev/
 # on the gh-pages branch. A successful run of the Release workflow publishes the commit it released to <version>/, and to
-# latest/ when no published version is newer. Each publish also writes the home page and the support, source code and
-# privacy pages at the root of gh-pages from docs/site/ of main, with the downloads of the newest release in the feed of
-# egtrain.samuelbruin.com, and then publishes the same folders on egtrain.samuelbruin.com with pages written from that
-# feed alone.
+# latest/ when no published version is newer. Each publish also writes the home page, the support, contact and privacy
+# pages and the source/ stub at the root of gh-pages from docs/site/ of main, with the downloads of the newest release in
+# the feed of egtrain.samuelbruin.com, and then publishes the same folders on egtrain.samuelbruin.com with pages written
+# from that feed alone.
 on:
   pull_request:
   push:
