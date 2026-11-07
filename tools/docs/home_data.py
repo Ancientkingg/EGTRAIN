@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Writes docs/site/home-data.json: the train graph and the playback of a run on the home page of the website.
 
-usage: home_data.py RUN [--case CASE] [--out FILE]
+usage: home_data.py RUN [--out FILE]
 
 The train graph shows the planned stops of the services of the bundled case Milano_Brescia that stop at two stations or
 more. The playback shows the trains and the reserved sections of track of a run of that case, at the moment of the
 screenshot docs/images/readme-main-window.png (06:45:40) and, with the script of the page, at any moment of the run.
-CASE is the case folder, EGTRAIN/QEGTRAIN/Scenes/Milano_Brescia by default. RUN is the output folder of a run of it
-without a window and with detailed trajectories: the script reads its per-train files TEMP/Traj_Train_*.txt and
+The script reads the case from EGTRAIN/QEGTRAIN/Scenes/Milano_Brescia. RUN is the output folder of a run of it without a
+window and with detailed trajectories: the script reads its per-train files TEMP/Traj_Train_*.txt and
 TrainTrajectories/BlockingTimes.txt. Make the run and the file from the root of the repository, with the program of a
 build from source (build/QEGTRAIN on Linux):
 
@@ -463,10 +463,9 @@ def drawing(case: dict, trains: list, blocking: list) -> dict:
 def main(argv=None) -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("run", type=Path, help="the output folder of the run, such as Output/Milano_Brescia")
-    parser.add_argument("--case", type=Path, default=CASE, help="the case folder")
     parser.add_argument("--out", type=Path, default=OUT, help="the file to write")
     arguments = parser.parse_args(argv)
-    case = read_case(arguments.case)
+    case = read_case(CASE)
     trains, blocking = read_run(arguments.run, case["level"])
     if not any(samples for _train, samples in trains):
         raise SystemExit(f"{arguments.run} holds no trajectory: run the case with --detailed-trajectories")
