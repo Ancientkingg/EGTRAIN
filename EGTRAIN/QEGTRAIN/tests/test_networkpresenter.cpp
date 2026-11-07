@@ -319,6 +319,62 @@ static int cueColouredTracks(QGraphicsScene& scene) {
 	return count;
 }
 
+// The text of a callout; empty without one.
+static QString calloutText(const QGraphicsItemGroup* callout) {
+	if (callout)
+		for (QGraphicsItem* child : callout->childItems())
+			if (const auto* text = qgraphicsitem_cast<QGraphicsTextItem*>(child))
+				return text->toPlainText();
+	return {};
+}
+
+// The part of the scene that a callout covers with its line, its box and its text; a null rectangle without one.
+static QRectF calloutArea(const QGraphicsItemGroup* callout) {
+	return callout ? callout->mapRectToScene(callout->childrenBoundingRect()) : QRectF();
+}
+
+// A passenger that waits at Guingamp on platform 2 for its train to Paimpol.
+static GuiPassengerState waitingPassenger() {
+	return GuiPassengerState{"7", "OnPlatform", "Guingamp.platform.2", "Guin-Paim-ALL-STOPS-1-1", "Paimpol"};
+}
+
+// An empty scene in a view of 800 by 600 pixels, fitted to 8000 by 6000 scene units and zoomed in to 4x on their middle,
+// so that the scene goes on beyond every edge of the view.
+struct CalloutFixture {
+	QGraphicsScene scene;
+	NetworkView view;
+	NetworkPresenter presenter{&scene, &view};
+
+	CalloutFixture() {
+		view.setScene(&scene);
+		view.setFrameShape(QFrame::NoFrame);
+		view.resize(800, 600);
+		view.show();
+		view.fitToBounds(QRectF(0, 0, 8000, 6000));
+		view.zoomBy(4.0);
+	}
+	// The part of the scene that the view shows.
+	QRectF visible() const { return view.mapToScene(view.viewport()->rect()).boundingRect(); }
+	// A passenger icon of 30 by 30 scene units, its size on the canvas, with the middle of its top edge at the point.
+	PassengerItem* icon(const QPointF& topCentre) {
+		auto* item = new PassengerItem(QPixmap(30, 30));
+		item->setPos(topCentre - QPointF(15.0, 0.0));
+		scene.addItem(item);
+		return item;
+	}
+	// A train of one body of 200 by 20 scene units that heads right, with the middle of its front at the point.
+	TrainItemGroup* train(const QPointF& front) {
+		auto* group = new TrainItemGroup;
+		auto* body = new TrainBodyItem(QPolygonF({front + QPointF(0.0, -10.0), front + QPointF(-200.0, -10.0),
+			front + QPointF(-200.0, 10.0), front + QPointF(0.0, 10.0)}));
+		group->addToGroup(body);
+		// The group deletes the list.
+		group->trainPolygonItemList = new QList<TrainBodyItem*>{body};
+		scene.addItem(group);
+		return group;
+	}
+};
+
 // A presenter that draws the committed scene Paimpol in a view of 800 by 600 pixels. The scene gets a signal on 36-B0, a
 // block dependency, a station boundary and a signalling area on B0 from 2 to 3 km, which Paimpol does not have.
 struct PaimpolFixture {
@@ -440,6 +496,9 @@ private slots:
 	void markColoursStandApart();
 	void marksLeaveOutHiddenArcsOfDoubleSwitches();
 	void areaLeavesOutLineThatIsNotFinite();
+	void passengerCalloutSaysWhereInWords();
+	void passengerCalloutAtTopEdgeOpensInView();
+	void trainCalloutAtTopEdgeOpensInView();
 };
 
 void TestNetworkPresenter::initTestCase() {
@@ -1307,6 +1366,57 @@ void TestNetworkPresenter::areaLeavesOutLineThatIsNotFinite() {
 	QPointF start;
 	QVERIFY(previewPointAtX(*b0, 0.0, b0->displayOffset, start));
 	QCOMPARE(mark->stretches().front().front(), start);
+}
+
+// The details of a passenger say in words where it is, without the names of its states and the platform ids that the run
+// stores, and leave out what the run does not have.
+void TestNetworkPresenter::passengerCalloutSaysWhereInWords() {
+	QGraphicsScene scene;
+	NetworkPresenter presenter(&scene, nullptr);
+	auto* icon = new PassengerItem(QPixmap(30, 30));
+	scene.addItem(icon);
+	presenter.paintPassengerInfoIcon(icon, waitingPassenger(), false);
+	QCOMPARE(calloutText(PresenterAccess::paxIconInfoItem(presenter)),
+		QStringLiteral("Passenger 7\nWaiting at Guingamp, platform 2\nNext train: Guin-Paim-ALL-STOPS-1-1\nNext destination: Paimpol"));
+	presenter.paintPassengerInfoIcon(icon, GuiPassengerState{"7", "OnBoard", "None", "None", "Paimpol"}, false);
+	QCOMPARE(calloutText(PresenterAccess::paxIconInfoItem(presenter)), QStringLiteral("Passenger 7\nOn board\nNext destination: Paimpol"));
+	presenter.paintPassengerInfoIcon(icon, GuiPassengerState{"7", "None", "None", "None", ""}, true);
+	QCOMPARE(calloutText(PresenterAccess::paxIconInfoItem(presenter)), QStringLiteral("Passenger 7\nArrived\nJourney not shown in the replay"));
+	// A platform id of another form than the import gives is shown as it is.
+	presenter.paintPassengerInfoIcon(icon, GuiPassengerState{"7", "OnPlatform", "platform_2", "T1", "B"}, false);
+	QCOMPARE(calloutText(PresenterAccess::paxIconInfoItem(presenter)), QStringLiteral("Passenger 7\nWaiting at platform_2\nNext train: T1\nNext destination: B"));
+}
+
+// The details of a passenger stand above its icon, and at the top edge of the view they open below it, inside the view.
+void TestNetworkPresenter::passengerCalloutAtTopEdgeOpensInView() {
+	CalloutFixture f;
+	const QRectF visible = f.visible();
+	PassengerItem* const middle = f.icon(visible.center());
+	f.presenter.paintPassengerInfoIcon(middle, waitingPassenger(), false);
+	if (PresenterAccess::paxIconInfoItem(f.presenter) == nullptr)
+		QFAIL("the details of the passenger are not drawn");
+	QVERIFY(visible.contains(calloutArea(PresenterAccess::paxIconInfoItem(f.presenter))));
+	QCOMPARE_LT(calloutArea(PresenterAccess::paxIconInfoItem(f.presenter)).center().y(), middle->sceneBoundingRect().top());
+	PassengerItem* const top = f.icon(QPointF(visible.center().x(), visible.top() + 1.0));
+	f.presenter.paintPassengerInfoIcon(top, waitingPassenger(), false);
+	QVERIFY(visible.contains(calloutArea(PresenterAccess::paxIconInfoItem(f.presenter))));
+	QCOMPARE_GT(calloutArea(PresenterAccess::paxIconInfoItem(f.presenter)).center().y(), top->sceneBoundingRect().bottom());
+}
+
+// The passengers on board of a selected train stand above its front, and at the top edge of the view they open below it,
+// inside the view.
+void TestNetworkPresenter::trainCalloutAtTopEdgeOpensInView() {
+	CalloutFixture f;
+	const QRectF visible = f.visible();
+	f.presenter.paintTrainPassengerInfo(f.train(visible.center()));
+	if (PresenterAccess::trainPaxInfoItem(f.presenter) == nullptr)
+		QFAIL("the passengers on board are not drawn");
+	QVERIFY(visible.contains(calloutArea(PresenterAccess::trainPaxInfoItem(f.presenter))));
+	QCOMPARE_LT(calloutArea(PresenterAccess::trainPaxInfoItem(f.presenter)).center().y(), visible.center().y());
+	const QPointF front(visible.center().x(), visible.top() + 11.0);
+	f.presenter.paintTrainPassengerInfo(f.train(front));
+	QVERIFY(visible.contains(calloutArea(PresenterAccess::trainPaxInfoItem(f.presenter))));
+	QCOMPARE_GT(calloutArea(PresenterAccess::trainPaxInfoItem(f.presenter)).center().y(), front.y());
 }
 
 QTEST_MAIN(TestNetworkPresenter)
