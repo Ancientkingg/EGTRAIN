@@ -757,6 +757,16 @@ void Train::closestEndOfAuthority(double S, double V, Section* BS, int Blocks, i
 	}
 }
 
+double Train::arcEndTargetSpeed(const Section* BS, int Blocks, int section, int arc) const {
+	const Arc& current = BS[section].arcs_in_signalling_block_section[arc];
+	if (servicePerformancePercent == 100.0)
+		return current.speedInBraking;
+	const Arc& next = arc + 1 < BS[section].total_arcs ? BS[section].arcs_in_signalling_block_section[arc + 1]
+		: section + 1 < Blocks						   ? BS[section + 1].arcs_in_signalling_block_section[0]
+													   : current;
+	return std::min(current.speedInBraking, trackSpeedLimit(next));
+}
+
 double Train::europeanVitalComputerWithListsImproved(double S, double V, int PreviousInstant, Section* BS, int Blocks, bool& continueCached) {
 	continueCached = false;
 	IsTrainCoupling = false;
@@ -801,8 +811,8 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 
 	// Putting in the list of braking points the nodes of the Arc where the train currently is
 	for (int p = ArcPos; p < BS[BlockPos].total_arcs; p++) {
-		// Setting the current Arc speedInBraking to the final Node of Arc
-		BS[BlockPos].arcs_in_signalling_block_section[p].endNode.arcSpeedLimit = BS[BlockPos].arcs_in_signalling_block_section[p].speedInBraking;
+		// Setting the target speed at the end of the current Arc to its final Node
+		BS[BlockPos].arcs_in_signalling_block_section[p].endNode.arcSpeedLimit = arcEndTargetSpeed(BS, Blocks, BlockPos, p);
 		BrakingPoints.push_back({&BS[BlockPos].arcs_in_signalling_block_section[p].endNode, false, false});
 		targetStop(BlockPos, p);
 	}
@@ -816,7 +826,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 	// Putting in list of Braking Points all the nodes belonging to the other block sections
 	for (int z = 0; z < Cons_Block; z++) {
 		for (int p = 0; p < BS[z + BlockPos + 1].total_arcs; p++) {
-			BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].endNode.arcSpeedLimit = BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].speedInBraking;
+			BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].endNode.arcSpeedLimit = arcEndTargetSpeed(BS, Blocks, z + BlockPos + 1, p);
 			BrakingPoints.push_back({&BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].endNode, false, false});
 			targetStop(z + BlockPos + 1, p);
 		}

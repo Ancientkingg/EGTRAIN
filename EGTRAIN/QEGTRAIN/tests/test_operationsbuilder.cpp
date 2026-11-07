@@ -149,6 +149,9 @@ private slots:
 	void runAtSampleLimitIsNotRefused();
 	void failedSampleAllocationIsReported();
 	void reducedPerformanceDelaysCompletion();
+	void reducedPerformanceLowersTrackSpeed();
+	void reducedPerformanceBrakesBeforeLowerTrackSpeed();
+	void reducedPerformanceKeepsSignalSpeed();
 	void zeroStopThroughServiceStaysSafe();
 	void stationStatisticsOfSmallPopulations();
 	void passengerRatesAndDwellTerms();
@@ -1499,6 +1502,87 @@ void TestOperationsBuilder::reducedPerformanceDelaysCompletion() {
 	// Reduced performance delays native route completion.
 	QVERIFY(fullPerformanceEnd >= 0);
 	QVERIFY(reducedPerformanceEnd > fullPerformanceEnd);
+}
+
+// Builds scene, sets the speeds at the ends of the arcs from the track speed limits as the signalling does in every step,
+// calls beforeRun, when given, and runs the train through the live movement step that the dispatch loop uses. False when
+// the build fails or makes more or fewer than one train.
+static bool runOneTrain(const SceneModel& scene, const std::function<void(SimulationRun&)>& beforeRun = nullptr) {
+	if (hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene))
+		|| hasErrors(buildOperationsFromScene(defaultRun(), scene, "scenario.base")) || defaultRun().numTrains != 1)
+		return false;
+	for (int r = 0; r < defaultRun().infra.numRoutes; r++)
+		setInfraSpeedLimits(defaultRun().infra.routes[r].sequence_of_block_sections.data(), defaultRun().infra.routes[r].N_Block_Sections);
+	if (beforeRun)
+		beforeRun(defaultRun());
+	for (int t = 0; t < initial_variables.times; t++) {
+		defaultRun().trains[0].trajectoryComputationIncludingMovingBlock(t, signalCode1, signalCode2, signalCode3);
+		defaultRun().trains[0].recordEarliestActiveTrajectoryIndex(t);
+	}
+	return true;
+}
+
+// The lowest and highest of some speeds in m/s; infinity and 0 when there are none.
+struct SpeedRange {
+	double lowest = std::numeric_limits<double>::infinity();
+	double highest = 0.0;
+};
+
+// The lowest and highest speeds (m/s) of the train of the run in the steps that end with its head from from up to to (m).
+static SpeedRange speedsBetween(double from, double to) {
+	const Train& train = defaultRun().trains[0];
+	SpeedRange range;
+	for (std::size_t t = 0; t < train.instant_train_speed.size(); ++t)
+		if (train.instant_spatial_position[t] >= from && train.instant_spatial_position[t] < to) {
+			range.lowest = std::min(range.lowest, train.instant_train_speed[t]);
+			range.highest = std::max(range.highest, train.instant_train_speed[t]);
+		}
+	return range;
+}
+
+// trajectoryPerformanceScene with train units of 80 t and 40 t wagons and a tractive effort of 200 kN up to 40 m/s, so
+// that the train needs some distance to brake. Its maximum speed stays 25 m/s, above the track speed limit of 20 m/s.
+static SceneModel heavyTrainScene(double performancePercent) {
+	SceneModel scene = trajectoryPerformanceScene(performancePercent);
+	for (SceneTrainUnit& trainUnit : scene.trainUnits) {
+		trainUnit.physical.mass_of_traction_unit_kg = 80000.0;
+		trainUnit.physical.mass_of_a_wagon_kg = 40000.0;
+		trainUnit.tractionCurve = {{{0.0, 40.0, 200000.0, 0.0, 0.0}}};
+	}
+	return scene;
+}
+
+// 85 % of the maximum speed of the train, 21.25 m/s, is still above the track speed limit of 20 m/s. Reduced performance
+// still lowers the speed the train runs at to that share of the track speed limit.
+void TestOperationsBuilder::reducedPerformanceLowersTrackSpeed() {
+	QVERIFY(runOneTrain(heavyTrainScene(100.0)));
+	QCOMPARE_EQ(speedsBetween(0.0, 3000.0).highest, 20.0);
+	QVERIFY(runOneTrain(heavyTrainScene(85.0)));
+	QCOMPARE_EQ(speedsBetween(0.0, 3000.0).highest, 17.0);
+}
+
+// Before the last arc, whose track speed limit is 10 m/s, a train at 85 % slows down from 17 m/s to 8.5 m/s before it
+// reaches the arc, not after, and then runs the whole arc at 8.5 m/s.
+void TestOperationsBuilder::reducedPerformanceBrakesBeforeLowerTrackSpeed() {
+	SceneModel scene = heavyTrainScene(85.0);
+	scene.arcs[2].speedLimitMs = 10.0;
+	QVERIFY(runOneTrain(scene));
+	QCOMPARE_EQ(speedsBetween(1000.0, 2000.0).highest, 17.0);
+	const SpeedRange lastArc = speedsBetween(2000.0, 3000.0);
+	QCOMPARE_EQ(lastArc.lowest, 8.5);
+	QCOMPARE_EQ(lastArc.highest, 8.5);
+}
+
+// A signal speed limit applies unscaled: under a signal speed limit of 10 m/s on the second arc a train at 85 % runs at
+// 10 m/s there, not at 8.5 m/s. The speed at the end of the first arc is the lower of the track and signal speed limits of
+// the second, as an aspect sets it.
+void TestOperationsBuilder::reducedPerformanceKeepsSignalSpeed() {
+	QVERIFY(runOneTrain(heavyTrainScene(85.0), [](SimulationRun& run) {
+		Section* sections = run.infra.routes[0].sequence_of_block_sections.data();
+		sections[1].arcs_in_signalling_block_section[0].signalSpeedLimit = 10.0;
+		sections[0].arcs_in_signalling_block_section[sections[0].total_arcs - 1].speedInBraking = 10.0;
+	}));
+	QCOMPARE_EQ(speedsBetween(1000.0, 2000.0).highest, 10.0);
 }
 
 void TestOperationsBuilder::zeroStopThroughServiceStaysSafe() {

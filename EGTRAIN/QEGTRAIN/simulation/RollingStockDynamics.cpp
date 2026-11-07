@@ -15,6 +15,12 @@ double Train::tractiveEffort(double V) {
 	return Ftr * servicePerformancePercent / 100.0;
 }
 
+double Train::trackSpeedLimit(const Arc& arc) const {
+	if (servicePerformancePercent == 100.0)
+		return arc.speedLimit;
+	return arc.speedLimit * servicePerformancePercent / 100.0;
+}
+
 double Train::brakingEffort(double T) {
 	double FBr;
 	if (Jerk * T < max_train_decelaration) {
