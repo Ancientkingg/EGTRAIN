@@ -404,10 +404,11 @@ public:
 	}
 
 	/// A combo of choices is as wide as the label of the entity in the cell, also where the cell is narrower; it then covers
-	/// the cells to its right.
+	/// the cells to its right. The view also places the widgets that facets put in cells through this function; they keep the
+	/// size of their cell.
 	void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
 		QStyledItemDelegate::updateEditorGeometry(editor, option, index);
-		auto* combo = qobject_cast<QComboBox*>(editor);
+		auto* combo = editor == m_editor ? qobject_cast<QComboBox*>(editor) : nullptr;
 		if (!combo)
 			return;
 		const QString id = index.data(Qt::EditRole).toString();

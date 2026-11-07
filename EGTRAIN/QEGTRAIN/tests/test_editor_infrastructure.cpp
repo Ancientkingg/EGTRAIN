@@ -341,6 +341,7 @@ private slots:
 	void returnAndAddLeaveNoEditor();
 	void commitsOpenCellEditor();
 	void leavesOpenEditorDuringOwnEdit();
+	void widensOnlyReferenceEditor();
 	void saysWhatTheCanvasMarks();
 	void toldSelectionIsComplete();
 	void namesNoMarkWithoutPreview();
@@ -1328,6 +1329,61 @@ void TestInfrastructurePanel::leavesOpenEditorDuringOwnEdit() {
 	QCOMPARE(firstColumn(table), QStringList({"T1", "T2", "T3"}));
 	QCOMPARE(panel.selectionId(), "T3");
 	QVERIFY(table->indexWidget(table->model()->index(0, 0)) == nullptr);
+}
+
+// The editor that the table opens on a cell of references is as wide as the label of its entity, over the cells to its
+// right. The combos that facets put in cells stay in their columns, such as the entrance and the exit of a new station
+// boundary in a scene without sections, which offer only "(none)".
+void TestInfrastructurePanel::widensOnlyReferenceEditor() {
+	SceneDocument document;
+	InfrastructurePanel panel;
+	for (auto* makeFacets : {&makeTopologyFacets, &makeStationFacets})
+		for (std::unique_ptr<InfrastructureFacet>& facet : (*makeFacets)())
+			panel.setFacet(std::move(facet));
+	panel.setDocument(&document);
+	// The tracks, nodes and arcs of the scene, without blocks, so that it has no sections yet, as a new case.
+	SceneModel scene = infrastructureScene();
+	scene.blocks.clear();
+	scene.routes.clear();
+	document.replace(scene, false);
+	panel.refresh();
+	panel.resize(700, 400);
+	panel.show();
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
+	QApplication::processEvents();
+	QTableWidget* table = panel.table();
+	// The last pixel of a column; the next column starts after it.
+	const auto columnRight = [table](int column) { return table->columnViewportPosition(column) + table->columnWidth(column) - 1; };
+
+	chooseFacet(panel, "arcs");
+	table->editItem(table->item(0, 2));
+	QApplication::processEvents();
+	auto* from = qobject_cast<QComboBox*>(table->indexWidget(table->model()->index(0, 2)));
+	if (from == nullptr)
+		QFAIL("the start of an arc has no combo");
+	QCOMPARE(from->currentText(), "n11 (0.000 km)");
+	// The combo is wider than its column and covers the next one, so that the label shows in full.
+	QCOMPARE_GT(from->width(), table->columnWidth(2));
+	QCOMPARE_GT(from->geometry().right(), columnRight(2));
+	panel.commitPendingEditors();
+
+	chooseFacet(panel, "station_boundaries");
+	panel.addButton()->click();
+	// The table places the widgets of its cells again in layouts that it queues.
+	for (int pass = 0; pass < 4; ++pass)
+		QApplication::processEvents();
+	QCOMPARE(table->rowCount(), 1);
+	auto* entranceCombo = qobject_cast<QComboBox*>(table->cellWidget(0, 0));
+	auto* exitCombo = qobject_cast<QComboBox*>(table->cellWidget(0, 1));
+	if (entranceCombo == nullptr || exitCombo == nullptr)
+		QFAIL("a station boundary has no section combos");
+	QCOMPARE(entranceCombo->currentText(), "(none)");
+	QCOMPARE(exitCombo->currentText(), "(none)");
+	// Each combo ends in its own column: the arrow of the entrance is not under the exit, and the exit leaves the check
+	// box of the direction free.
+	QCOMPARE_LE(entranceCombo->geometry().right(), columnRight(0));
+	QCOMPARE_LE(exitCombo->geometry().right(), columnRight(1));
 }
 
 // Gives the panel the facets of the window and the document the committed scene Paimpol, with a signal, a block
