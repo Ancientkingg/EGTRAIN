@@ -299,8 +299,9 @@ void IncidentPanel::refresh() {
 }
 
 void IncidentPanel::updateDetail() {
-	const SceneIncident* incident = canEdit() ? shownIncident() : nullptr;
+	const SceneIncident* incident = shownIncident();
 	const bool hasSelection = incident != nullptr;
+	const bool editable = hasSelection && canEdit();
 	const bool isBreakdown = hasSelection && incident->type == "train_breakdown";
 	QString emptyState;
 	if (canEdit() && m_runSelection->selectedScenario(m_document->model()) && !hasSelection) {
@@ -312,7 +313,7 @@ void IncidentPanel::updateDetail() {
 	{
 		const QSignalBlocker blocker(m_idEdit);
 		m_idEdit->setText(hasSelection ? QString::fromStdString(incident->id) : QString());
-		m_idEdit->setEnabled(hasSelection);
+		m_idEdit->setEnabled(editable);
 	}
 
 	{
@@ -324,7 +325,7 @@ void IncidentPanel::updateDetail() {
 		} else {
 			m_typeCombo->setCurrentIndex(0);
 		}
-		m_typeCombo->setEnabled(hasSelection);
+		m_typeCombo->setEnabled(editable);
 	}
 
 	// the target choices depend on the type; refresh the target combo after the
@@ -334,37 +335,37 @@ void IncidentPanel::updateDetail() {
 	{
 		const QSignalBlocker blocker(m_startSecondsEdit);
 		m_startSecondsEdit->setValue(hasSelection ? incident->startSeconds : 0.0);
-		m_startSecondsEdit->setEnabled(hasSelection);
+		m_startSecondsEdit->setEnabled(editable);
 	}
 
 	{
 		const QSignalBlocker blocker(m_endSecondsEdit);
 		m_endSecondsEdit->setValue(hasSelection ? incident->endSeconds : 0.0);
-		m_endSecondsEdit->setEnabled(hasSelection);
+		m_endSecondsEdit->setEnabled(editable);
 	}
 	{
 		const QSignalBlocker blocker(m_hasEndSecondsCheck);
 		m_hasEndSecondsCheck->setChecked(hasSelection && (incident->hasEndSeconds || incident->endSeconds != 0.0));
-		m_hasEndSecondsCheck->setEnabled(hasSelection);
+		m_hasEndSecondsCheck->setEnabled(editable);
 	}
 	{
 		const QSignalBlocker blocker(m_hasReducedSpeedCheck);
 		m_hasReducedSpeedCheck->setChecked(isBreakdown && (incident->hasReducedSpeed || incident->reducedSpeedKmh != 0.0));
-		m_hasReducedSpeedCheck->setEnabled(isBreakdown);
+		m_hasReducedSpeedCheck->setEnabled(editable && isBreakdown);
 	}
 	{
 		const QSignalBlocker blocker(m_reducedSpeedKmhEdit);
 		m_reducedSpeedKmhEdit->setValue(shownReducedSpeed(m_reducedSpeedKmhEdit, hasSelection ? incident : nullptr));
-		m_reducedSpeedKmhEdit->setEnabled(isBreakdown && m_hasReducedSpeedCheck->isChecked());
+		m_reducedSpeedKmhEdit->setEnabled(editable && isBreakdown && m_hasReducedSpeedCheck->isChecked());
 	}
 	{
 		const QSignalBlocker blocker(m_terminateAtDestinationCheck);
 		m_terminateAtDestinationCheck->setChecked(isBreakdown && incident->terminateAtDestination);
-		m_terminateAtDestinationCheck->setEnabled(isBreakdown);
+		m_terminateAtDestinationCheck->setEnabled(editable && isBreakdown);
 	}
 
-	m_duplicateButton->setEnabled(hasSelection);
-	m_deleteButton->setEnabled(hasSelection);
+	m_duplicateButton->setEnabled(editable);
+	m_deleteButton->setEnabled(editable);
 }
 
 void IncidentPanel::refreshTargets() {

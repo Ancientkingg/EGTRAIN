@@ -233,6 +233,7 @@ private slots:
 	void showsNothingWithoutScene();
 	void showsIncidentsOfScenario();
 	void showsBreakdown();
+	void showsIncidentReadOnlyDuringRun();
 	void typeDecidesTargets();
 	void editsAddsAndDeletesIncidents();
 	void showsOtherScenario();
@@ -498,6 +499,32 @@ void TestIncidentPanel::showsBreakdown() {
 	QVERIFY2(f.events.log.empty(), "selecting an incident edits nothing");
 }
 
+// While a run uses the scene, the fields show the selected incident as it is stored, and none of them can be edited.
+void TestIncidentPanel::showsIncidentReadOnlyDuringRun() {
+	SceneModel scene = incidentScene();
+	scene.scenarios[0].incidents[1].terminateAtDestination = true;
+	IncidentFixture f(scene);
+	IncidentPanel& panel = f.panel;
+	panel.listWidget()->setCurrentRow(1);
+	// A run makes the document read-only, and the window then shows the incidents again.
+	f.document.setEditable(false);
+	panel.refresh();
+	QCOMPARE(panel.idEdit()->text(), "i2");
+	QCOMPARE(panel.typeCombo()->currentData().toString(), "train_breakdown");
+	QCOMPARE(panel.targetCombo()->currentIndex(), choice(panel.targetCombo(), "s1", 2));
+	QCOMPARE(panel.startSecondsEdit()->text(), "100");
+	QCOMPARE(panel.endSecondsEdit()->text(), "200");
+	QVERIFY(panel.hasEndSecondsCheck()->isChecked());
+	QVERIFY(panel.hasReducedSpeedCheck()->isChecked());
+	QCOMPARE_EQ(panel.reducedSpeedKmhEdit()->value(), 30.0);
+	QVERIFY(panel.terminateAtDestinationCheck()->isChecked());
+	// The fields that only a breakdown has are disabled as well; editsAddsAndDeletesIncidents checks the others.
+	QVERIFY(!panel.hasReducedSpeedCheck()->isEnabled());
+	QVERIFY(!panel.reducedSpeedKmhEdit()->isEnabled());
+	QVERIFY(!panel.terminateAtDestinationCheck()->isEnabled());
+	QVERIFY2(f.events.log.empty(), "showing an incident during a run edits nothing");
+}
+
 // The type decides which targets are valid.
 void TestIncidentPanel::typeDecidesTargets() {
 	IncidentFixture f;
@@ -734,7 +761,7 @@ void TestIncidentPanel::editsAddsAndDeletesIncidents() {
 	panel.listWidget()->setCurrentRow(0);
 	document.setEditable(false);
 	panel.refresh();
-	// Nothing can be done with the incidents, and the fields are empty, while a run uses the scene.
+	// Nothing can be done with the incidents while a run uses the scene, and the fields show the selected one.
 	QVERIFY(!panel.listWidget()->isEnabled());
 	QVERIFY(!panel.addButton()->isEnabled());
 	QVERIFY(!panel.duplicateButton()->isEnabled());
@@ -747,7 +774,7 @@ void TestIncidentPanel::editsAddsAndDeletesIncidents() {
 	QVERIFY(!panel.hasEndSecondsCheck()->isEnabled());
 	QVERIFY(!panel.hasReducedSpeedCheck()->isEnabled());
 	QVERIFY(!panel.terminateAtDestinationCheck()->isEnabled());
-	QVERIFY(panel.idEdit()->text().isEmpty());
+	QCOMPARE(panel.idEdit()->text(), "i1");
 	panel.idEdit()->setText("while-running");
 	spinText(panel.startSecondsEdit())->setText("1");
 	panel.commitPendingEditors();

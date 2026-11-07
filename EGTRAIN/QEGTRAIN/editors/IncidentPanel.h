@@ -46,7 +46,7 @@ public:
 	void refresh() override;
 	/// Takes the fields that are being edited into the document.
 	void commitPendingEditors() override;
-	/// Shows the fields of the selected incident again.
+	/// Shows the fields of the selected incident again. While a run uses the scene they show it disabled.
 	void updateDetail();
 	/// Lists the choices of targets of the selected incident again.
 	void refreshTargets();
