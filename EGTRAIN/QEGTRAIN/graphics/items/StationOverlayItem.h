@@ -272,15 +272,16 @@ public:
 	/// higher-priority station or that cover part of the drawn pictogram of any other station: a visible plain picture,
 	/// the pictogram rect of a visible mark that draws its pin, and the footprint of the squares of a visible mark in the
 	/// near look. A name goes under the footprint of the squares of its station, or, where its text there crosses a
-	/// visible track line or the pictogram of another station, shown or hidden, to the first of these spots that crosses
-	/// neither: above the pin, right of the footprint, left of it, and above a frame on the top of the box of the node
-	/// centres at the x of the footprint; without one it stays under the footprint. A mark that draws nothing in the near
-	/// look has no pin and no frame there, so its name goes above the footprint instead of above the pin and has no last
-	/// spot. A mark of a centred style has no such frame either, and its name keeps clear of the footprint and of the
-	/// far mark in both looks. A name is placed again only after applyViewScale() moved it. Selected and followed stations
-	/// keep their name. Pictograms stay visible. sceneToViewport is the viewport transform of the view.
+	/// visible track line or the pictogram of another station, shown or hidden, or leaves bounds, to the first of these
+	/// spots where it does none of that: above the pin, right of the footprint, left of it, and above a frame on the top
+	/// of the box of the node centres at the x of the footprint; without one it stays under the footprint. A mark that
+	/// draws nothing in the near look has no pin and no frame there, so its name goes above the footprint instead of above
+	/// the pin and has no last spot. A mark of a centred style has no such frame either, and its name keeps clear of the
+	/// footprint and of the far mark in both looks. A name is placed again only after applyViewScale() moved it. Selected
+	/// and followed stations keep their name. Pictograms stay visible. sceneToViewport is the viewport transform of the
+	/// view, and bounds, in scene coordinates, what the view shows at Fit; empty bounds set no limit.
 	static void resolveNameCollisions(const QList<StationOverlayItem*>& stations,
-		const QTransform& sceneToViewport);
+		const QTransform& sceneToViewport, const QRectF& bounds = QRectF());
 
 protected:
 	/// A press passes on to the items under the overlay.
@@ -290,7 +291,7 @@ private:
 	void rebuildGeometry();
 	void placeArtwork(qreal viewScale, bool nearLook, bool keptPin);
 	void chooseNameSpot(const QList<QPair<const StationOverlayItem*, QRectF>>& pictograms,
-		const QList<QPair<const QGraphicsItem*, QRectF>>& tracks);
+		const QList<QPair<const QGraphicsItem*, QRectF>>& tracks, const QRectF& bounds);
 	QRectF labelRectForSide(LabelSide side) const;
 
 	QString m_stationName;

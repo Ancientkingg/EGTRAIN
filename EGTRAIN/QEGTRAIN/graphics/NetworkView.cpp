@@ -16,6 +16,13 @@ const QColor kGridColor(0x18, 0x28, 0x32);
 constexpr qreal kGridBaseSpacing = 80.0;
 constexpr qreal kGridMinPixels = 24.0;
 constexpr qreal kGridMaxPixels = 96.0;
+
+// The padding that a fit keeps on each side of its bounds, in logical pixels, along a viewport extent pixels long:
+// kFitPadding, or an eighth of the extent when that is less, so that a short or narrow view keeps most of its extent for
+// the network.
+qreal fitPadding(int extent) {
+	return qMin<qreal>(kFitPadding, extent / 8.0);
+}
 }
 
 NetworkView::NetworkView(QWidget* parent)
@@ -150,8 +157,7 @@ QRectF NetworkView::paintedTopologyBounds(bool* hasBounds) const {
 qreal NetworkView::calculateFittedScale() const {
 	if (!m_hasTopologyBounds)
 		return 1.0;
-	// A short or narrow view keeps most of its extent for the network.
-	const auto available = [](int extent) { return qMax<qreal>(1.0, extent - 2.0 * qMin<qreal>(kFitPadding, extent / 8.0)); };
+	const auto available = [](int extent) { return qMax<qreal>(1.0, extent - 2.0 * fitPadding(extent)); };
 	const qreal availableWidth = available(viewport()->width());
 	const qreal availableHeight = available(viewport()->height());
 	const qreal topologyWidth = qMax<qreal>(
@@ -174,6 +180,14 @@ qreal NetworkView::fittedScale() const {
 
 QRectF NetworkView::topologyBounds() const {
 	return m_topologyBounds;
+}
+
+QRectF NetworkView::paddedTopologyBounds() const {
+	if (!m_hasTopologyBounds)
+		return {};
+	const qreal x = fitPadding(viewport()->width()) / m_fittedScale;
+	const qreal y = fitPadding(viewport()->height()) / m_fittedScale;
+	return m_topologyBounds.adjusted(-x, -y, x, y);
 }
 
 bool NetworkView::atFit() const {

@@ -625,12 +625,14 @@ void StationOverlayItem::placeArtwork(qreal viewScale, bool nearLook, bool keptP
 }
 
 void StationOverlayItem::chooseNameSpot(const QList<QPair<const StationOverlayItem*, QRectF>>& pictograms,
-	const QList<QPair<const QGraphicsItem*, QRectF>>& tracks) {
+	const QList<QPair<const QGraphicsItem*, QRectF>>& tracks, const QRectF& bounds) {
 	m_nameSpotChosen = true;
 	if (m_nameSpots.isEmpty())
 		return;
 	const auto free = [&](const QPointF& spot) {
 		const QRectF text = m_nameTextRect.translated(spot);
+		if (!bounds.isEmpty() && !bounds.contains(text))
+			return false;
 		for (const auto& pictogram : pictograms)
 			if (pictogram.first != this && pictogram.second.intersects(text))
 				return false;
@@ -652,7 +654,7 @@ QRectF StationOverlayItem::pictogramSceneRect() const {
 }
 
 void StationOverlayItem::resolveNameCollisions(const QList<StationOverlayItem*>& stations,
-	const QTransform& sceneToViewport) {
+	const QTransform& sceneToViewport, const QRectF& bounds) {
 	// Overlaps are tested in device pixels. The priority order uses a fixed reference point,
 	// so panning cannot reorder it.
 	const QTransform scaling(sceneToViewport.m11(), sceneToViewport.m12(),
@@ -685,7 +687,7 @@ void StationOverlayItem::resolveNameCollisions(const QList<StationOverlayItem*>&
 				tracks.append({item, item->sceneBoundingRect()});
 	for (StationOverlayItem* station : std::as_const(ordered))
 		if (!station->m_nameSpotChosen)
-			station->chooseNameSpot(scenePictograms, tracks);
+			station->chooseNameSpot(scenePictograms, tracks, bounds);
 	std::stable_sort(ordered.begin(), ordered.end(),
 		[](const StationOverlayItem* left, const StationOverlayItem* right) {
 			return priorityLess(*left, *right, QPointF());

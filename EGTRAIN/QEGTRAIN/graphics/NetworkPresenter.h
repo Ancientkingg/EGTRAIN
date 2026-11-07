@@ -364,7 +364,8 @@ public:
 
 	/// Brings the station overlays, the highlight and the trains up to the view: each overlay is marked selected as
 	/// selected tells and followed when it is followed, the items take the scale of the view, the marks and the platform
-	/// bars take the near look when the tracks of a station are far enough apart on screen, and names that collide go.
+	/// bars take the near look when the tracks of a station are far enough apart on screen, the names take their spots
+	/// inside what the view shows at Fit where they can (NetworkView::paddedTopologyBounds()), and names that collide go.
 	/// Does nothing without a view.
 	void updateViewOverlays(const std::function<bool(const StationOverlayItem*)>& selected, const StationOverlayItem* followed);
 	/// Shows or hides the signal heads, posts and bases by the signal layer and puts each head back at its anchor.

@@ -246,8 +246,14 @@ void TestNetworkView::fitsPreviewBounds() {
 	// Explicit fit establishes the preview baseline.
 	QVERIFY(near(view.zoomRatio(), 1.0));
 	QCOMPARE(view.zoomLabel(), "Fit");
+	// The padded bounds hold the bounds of the fit and are inside the viewport at Fit, to the pixel that centring rounds.
+	const QRectF padded = view.paddedTopologyBounds();
+	QVERIFY(padded.contains(previewBounds));
+	QVERIFY(QRectF(view.viewport()->rect()).adjusted(-1.0, -1.0, 1.0, 1.0).contains(view.viewportTransform().mapRect(padded)));
 	view.zoomBy(1.15);
 	QVERIFY2(near(view.zoomRatio(), 1.15, 1e-5), "preview zoom is relative to its fitted baseline");
+	// A zoom keeps the padded bounds of the fit.
+	QCOMPARE(view.paddedTopologyBounds(), padded);
 	view.fitToBounds(previewBounds);
 	// Explicit fit restores the preview baseline.
 	QVERIFY(near(view.zoomRatio(), 1.0));

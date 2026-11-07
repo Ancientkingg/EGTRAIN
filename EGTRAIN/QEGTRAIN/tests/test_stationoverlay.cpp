@@ -197,6 +197,7 @@ private slots:
 	void centredMarkSitsOnFootprint();
 	void markStyleChangePlacesMarkAgain();
 	void nameAvoidsTracks();
+	void nameStaysInsideFitBounds();
 	void spotsOfDiagonalStation();
 	void nameAbovePinInNearLook();
 	void nameGivesWayToOtherMark();
@@ -922,6 +923,35 @@ void TestStationOverlay::nameAvoidsTracks() {
 	scene.addItem(new TrackLineItem(QLineF(leftSpot.center().x(), -2000.0, leftSpot.center().x(), 2000.0)));
 	// A name with no free spot stays under the squares.
 	QCOMPARE(place(), under);
+}
+
+// A station at the left edge of the fit with tracks under its squares, above its mark and right of its squares keeps
+// its name inside the bounds of the fit, where the spot left of its squares would leave them.
+void TestStationOverlay::nameStaysInsideFitBounds() {
+	QGraphicsScene scene;
+	const QTransform far = QTransform::fromScale(0.1, 0.1);
+	const MarkRig rig = addMarkRig(scene, "Alpha", {QPointF(0.0, 0.0), QPointF(0.0, 40.0)});
+	const auto place = [&](const QRectF& bounds) {
+		rig.overlay->applyViewScale(0.2, false);
+		rig.overlay->applyViewScale(0.1, false);
+		StationOverlayItem::resolveNameCollisions({rig.overlay}, far, bounds);
+		return rig.name->sceneBoundingRect();
+	};
+	const QRectF under = place(QRectF());
+	scene.addItem(new TrackLineItem(QLineF(-2000.0, under.center().y(), 2000.0, under.center().y())));
+	const QRectF above = place(QRectF());
+	scene.addItem(new TrackLineItem(QLineF(-2000.0, above.center().y(), 2000.0, above.center().y())));
+	const QRectF rightSpot = place(QRectF());
+	scene.addItem(new TrackLineItem(QLineF(rightSpot.center().x(), -2000.0, rightSpot.center().x(), 2000.0)));
+	// The fit begins just left of the name under the squares, and the tracks push the name left of the squares, out
+	// of the fit.
+	const QRectF fit(under.left() - 10.0, -2000.0, 4000.0, 4000.0);
+	const QRectF leftSpot = place(QRectF());
+	QCOMPARE_LT(leftSpot.right(), stationFootprintRect(rig.mark->nodeCentres(), StationClass::Station, 240.0).left());
+	QCOMPARE_LT(leftSpot.left(), fit.left());
+	// With the bounds of the fit the name stays inside them.
+	const QRectF name = place(fit);
+	QVERIFY2(fit.contains(name), qPrintable(QStringLiteral("name from %1 to %2, fit from %3").arg(name.left()).arg(name.right()).arg(fit.left())));
 }
 
 // The frame of a diagonal station stands on its area, under the top of the box of its node centres. With the four

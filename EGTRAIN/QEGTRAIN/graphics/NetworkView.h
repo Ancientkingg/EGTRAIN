@@ -73,6 +73,9 @@ public:
 	qreal fittedScale() const;
 	/// The bounds in scene coordinates of the last fit.
 	QRectF topologyBounds() const;
+	/// topologyBounds() with the padding that Fit keeps around them in the viewport: the part of the scene that the view
+	/// shows at Fit, whatever the shape of the viewport. Empty without bounds.
+	QRectF paddedTopologyBounds() const;
 	/// The zoom ratio is 1, as after a fit.
 	bool atFit() const;
 	/// The zoom ratio as the view shows it: "Fit", or the ratio with an "x", such as "2x" or "2.5x".
