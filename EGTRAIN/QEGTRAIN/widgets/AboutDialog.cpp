@@ -95,7 +95,6 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent) {
 
 	addText(column, tr("Project links"), true);
 	addLink(tr("EGTRAIN website"), "https://egtrain.samuelbruin.com/", "aboutProjectWebsite");
-	addLink(tr("Source code"), "https://egtrain.samuelbruin.com/source/", "aboutSourceCode");
 	addLink(tr("Report an issue"), "https://egtrain.samuelbruin.com/support/", "aboutReportIssue");
 	column->addWidget(failure);
 
