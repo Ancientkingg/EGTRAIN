@@ -47,7 +47,7 @@ public:
 	void addService();
 	/// Inserts a copy of the selected service, with a new unique id, after it.
 	void duplicateService();
-	/// Deletes the selected service after the user has confirmed it; refused while something refers to it.
+	/// Deletes the selected service and says in the status line that Undo restores it; refused while something refers to it.
 	void deleteService();
 	/// Takes the id from the field. An empty or used id is dropped and the field shows the old id again.
 	void commitIdEdit();

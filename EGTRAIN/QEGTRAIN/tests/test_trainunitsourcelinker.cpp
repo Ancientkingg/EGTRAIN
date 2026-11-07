@@ -123,8 +123,8 @@ static const SceneTrainUnit& unitOf(const SceneDocument& document, std::size_t i
 }
 
 // A Rolling Stock Units panel and a linker on a document that shows unitScene(), connected as the window connects them: a
-// unit that the panel renames takes its links along, and one that it deletes loses them. The question before a delete is
-// answered with Yes. u1 is linked to the two files, which are taken.
+// unit that the panel renames takes its links along, and one that it deletes loses them. u1 is linked to the two files,
+// which are taken.
 struct LinkedUnitFixture {
 	SceneDocument document;
 	TrainUnitSourceLinker linker;
@@ -134,7 +134,6 @@ struct LinkedUnitFixture {
 
 	LinkedUnitFixture(const QString& physicalPath, const QString& tractionPath) {
 		linker.setDocument(&document);
-		prompts.confirmAnswer = true;
 		panel.setPrompts(&prompts);
 		panel.setDocument(&document);
 		QObject::connect(&panel, &TrainUnitPanel::unitRenamed, &linker,

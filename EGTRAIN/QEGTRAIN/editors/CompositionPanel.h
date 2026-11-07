@@ -29,7 +29,7 @@ public:
 	void addComposition();
 	/// Inserts a copy of the selected composition, with a new unique id, after it.
 	void duplicateComposition();
-	/// Deletes the selected composition after the user has confirmed it; refused while a service uses it.
+	/// Deletes the selected composition and says in the status line that Undo restores it; refused while a service uses it.
 	void deleteComposition();
 	/// Takes the id from the field. An empty or used id is dropped and the field shows the old id again.
 	void commitIdEdit();

@@ -128,8 +128,6 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	QObject::connect(m_infrastructurePanel, &InfrastructurePanel::selectionChanged, m_window,
 		[this]() { m_host.infrastructureSelectionChanged(); });
 	QObject::connect(m_infrastructurePanel, &InfrastructurePanel::changed, m_window, [this] { m_host.refreshValidationPanel(); });
-	QObject::connect(m_infrastructurePanel, &InfrastructurePanel::statusMessage, m_window,
-		[this](const QString& text, int timeoutMs) { m_window->statusBar()->showMessage(text, timeoutMs); });
 	// The signal also comes when the tab of the dock comes to the front of its group or goes behind another one.
 	QObject::connect(m_infrastructureDock, &QDockWidget::visibilityChanged, m_window,
 		[this](bool visible) { m_host.infrastructureDockShown(visible); });
@@ -199,8 +197,6 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 		m_host.refreshInputTractionDiagrams(id.toStdString());
 	});
 	QObject::connect(m_trainUnitPanel, &TrainUnitPanel::changed, m_window, [this] { m_host.refreshValidationPanel(); });
-	QObject::connect(m_trainUnitPanel, &TrainUnitPanel::statusMessage, m_window,
-		[this](const QString& text, int timeoutMs) { m_window->statusBar()->showMessage(text, timeoutMs); });
 	const auto plotUnitTraction = [this](const QString& unitId) {
 		if (const SceneTrainUnit* unit = sceneTrainUnitById(m_document->model(), unitId.toStdString()))
 			m_host.plotTrainUnitTraction(*unit);
@@ -302,8 +298,6 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 		m_host.invalidateRunResults();
 		m_host.refreshIncidentPanel();
 	});
-	QObject::connect(m_scenarioPanel, &ScenarioPanel::statusMessage, m_window,
-		[this](const QString& text, int timeoutMs) { m_window->statusBar()->showMessage(text, timeoutMs); });
 	QObject::connect(m_scenarioPanel, &ScenarioPanel::changed, m_window, [this] { m_host.refreshValidationPanel(); });
 	m_incidentPanel->setPrompts(prompts);
 	m_incidentPanel->setRunSelection(&runSelection);
@@ -377,8 +371,6 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	});
 	m_passengerPanel->setDocument(m_document);
 	m_passengerDock->setEnabled(false);
-	QObject::connect(m_passengerPanel, &PassengerPanel::statusMessage, m_window,
-		[this](const QString& text, int timeoutMs) { m_window->statusBar()->showMessage(text, timeoutMs); });
 	QObject::connect(m_passengerPanel, &PassengerPanel::changed, m_window, [this] { m_host.refreshValidationPanel(); });
 
 	m_servicePanel->setPrompts(prompts);
@@ -402,4 +394,7 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	m_serviceDock->setEnabled(false);
 	m_panels = {m_caseSettingsPanel, m_trainUnitPanel, m_infrastructurePanel, m_passengerPanel, m_compositionPanel,
 		m_servicePanel, m_timetableStopsPanel, m_scenarioPanel, m_incidentPanel, m_entranceDelayPanel};
+	for (SceneEditorPanel* panel : m_panels)
+		QObject::connect(panel, &SceneEditorPanel::statusMessage, m_window,
+			[this](const QString& text, int timeoutMs) { m_window->statusBar()->showMessage(text, timeoutMs); });
 }

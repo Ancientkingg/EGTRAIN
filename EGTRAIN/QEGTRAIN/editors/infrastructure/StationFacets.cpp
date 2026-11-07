@@ -316,13 +316,11 @@ public:
 		const std::string id = station.platforms[static_cast<std::size_t>(place.platform)].id;
 		if (id.empty())
 			return;
-		if (!panel.confirmDelete(QString::fromStdString(id), sceneDirectDeleteConsumers(panel.model(), "platforms", id, station.id)))
-			return;
-		panel.setSelectionId(QString());
-		panel.edit(QStringLiteral("Delete platform"), [stationIndex, place](SceneModel& edited) {
-			std::vector<ScenePlatform>& platforms = edited.stations[stationIndex].platforms;
-			platforms.erase(platforms.begin() + place.platform);
-		});
+		panel.deleteRow(QString::fromStdString(id), sceneDirectDeleteConsumers(panel.model(), "platforms", id, station.id),
+			QStringLiteral("Delete platform"), [stationIndex, place](SceneModel& edited) {
+				std::vector<ScenePlatform>& platforms = edited.stations[stationIndex].platforms;
+				platforms.erase(platforms.begin() + place.platform);
+			});
 	}
 
 	// A number field that has been typed in and not left yet takes its value into the model.

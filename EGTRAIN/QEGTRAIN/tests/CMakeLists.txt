@@ -683,6 +683,11 @@ egtrain_add_test(test_editor_infrastructure_topology
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
+egtrain_add_test(test_editor_delete
+	SOURCES ${SRC_DIR}/tests/test_editor_delete.cpp
+	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
+	LABELS unit gui)
+
 egtrain_add_test(test_infrastructureguidance
 	SOURCES ${SRC_DIR}/tests/test_infrastructureguidance.cpp
 	LIBS egtrain_editors Qt::Core

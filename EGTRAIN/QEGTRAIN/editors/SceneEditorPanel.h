@@ -89,6 +89,8 @@ public:
 Q_SIGNALS:
 	/// The panel has changed the document. Emitted after SceneDocument::changed().
 	void changed();
+	/// A message for the status line of the window, shown for `timeoutMs` milliseconds.
+	void statusMessage(const QString& text, int timeoutMs);
 
 protected:
 	/// The document has been replaced. The panel shows it again.
@@ -107,6 +109,13 @@ protected:
 	/// The time in seconds over which the occurrences of a service are counted. The panel must have a document.
 	double occurrenceDuration() const {
 		return m_occurrenceDuration ? m_occurrenceDuration() : m_document->model().settings.durationSeconds;
+	}
+	/// Says in the status line that `what` has been deleted and that Undo restores it: "Deleted scenario 'peak'. Undo
+	/// restores it." `what` names the item and its kind. With `plural` it names more than one item, such as a passenger and
+	/// its journeys, and the message ends in "them".
+	void reportDeleted(const QString& what, bool plural = false) {
+		emit statusMessage(
+			QStringLiteral("Deleted %1. Undo restores %2.").arg(what, plural ? QStringLiteral("them") : QStringLiteral("it")), 8000);
 	}
 
 	/// The document that the panel works on; null without one.

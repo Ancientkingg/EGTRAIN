@@ -118,10 +118,8 @@ public:
 		++removeCount;
 		const int row = panel.table()->currentRow();
 		const QString id = QString::fromStdString(panel.model().tracks[static_cast<std::size_t>(row)].id);
-		if (!panel.confirmDelete(id, id == "T1" ? std::vector<std::string>({"block b1"}) : std::vector<std::string>()))
-			return;
-		panel.setSelectionId(QString());
-		panel.edit("Delete entity", [row](SceneModel& model) { model.tracks.erase(model.tracks.begin() + row); });
+		panel.deleteRow(id, id == "T1" ? std::vector<std::string>({"block b1"}) : std::vector<std::string>(), "Delete entity",
+			[row](SceneModel& model) { model.tracks.erase(model.tracks.begin() + row); });
 	}
 	void commitPendingEdits(InfrastructurePanel&) override { ++pendingCount; }
 
@@ -660,37 +658,33 @@ void TestInfrastructurePanel::editsAddsAndDeletesEntities() {
 		std::vector<std::string> consumers;
 		for (int index = 1; index <= 25; ++index)
 			consumers.push_back("node n" + std::to_string(index));
+		const auto deleteNothing = [](SceneModel&) {};
 		prompts.errorMessage.clear();
-		QVERIFY2(!panel.confirmDelete("T1", consumers), "an entity with many consumers cannot be deleted");
+		QVERIFY2(!panel.deleteRow("T1", consumers, "Delete entity", deleteNothing), "an entity with many consumers cannot be deleted");
 		// The message lists the first ten consumers and counts the others.
 		QVERIFY(prompts.errorMessage.contains("\xE2\x80\xA2 node n10\n"));
 		QVERIFY(!prompts.errorMessage.contains("node n11"));
 		QVERIFY(prompts.errorMessage.contains("\nand 15 more\n"));
 		consumers.resize(10);
 		prompts.errorMessage.clear();
-		panel.confirmDelete("T1", consumers);
+		panel.deleteRow("T1", consumers, "Delete entity", deleteNothing);
 		// Ten consumers are all listed.
 		QVERIFY(prompts.errorMessage.contains("node n10\n"));
 		QVERIFY(!prompts.errorMessage.contains("more"));
 	}
 	panel.table()->setCurrentCell(1, 0);
+	events.messages.clear();
 	panel.deleteButton()->click();
-	// Nothing is deleted when the user answers no.
-	QCOMPARE(prompts.confirmCount, 1);
-	QCOMPARE(prompts.confirmQuestion, "Delete track 'T9'?");
-	QCOMPARE(document.model().tracks.size(), std::size_t(3));
-	QVERIFY(events.log.empty());
-	QCOMPARE(panel.selectionId(), "T9");
-	prompts.confirmAnswer = true;
-	panel.deleteButton()->click();
-	// An entity is deleted when the user answers yes, and the row at its position is selected.
-	QCOMPARE(prompts.confirmCount, 2);
+	// An entity is deleted without a question, the row at its position is selected, and the status line says that Undo
+	// restores the entity.
+	QCOMPARE(prompts.confirmCount, 0);
 	QCOMPARE(document.model().tracks.size(), std::size_t(2));
 	QCOMPARE(document.model().tracks[1].id, "T3");
 	QCOMPARE(events.log, edit);
 	QCOMPARE(document.lastChangeLabel(), "Delete entity");
 	QCOMPARE(panel.table()->currentRow(), 1);
 	QCOMPARE(panel.selectionId(), "T3");
+	QCOMPARE(events.messages, (std::vector<std::pair<QString, int>>({{"Deleted track 'T9'. Undo restores it.", 8000}})));
 	const int removesBefore = trackFacet->removeCount;
 	panel.table()->setCurrentCell(-1, -1);
 	panel.deleteButton()->click();
@@ -1861,12 +1855,11 @@ void TestInfrastructurePanel::editsAndDeletesFilteredRows() {
 	QVERIFY(arcRow > 0);
 	table->setCurrentCell(arcRow, 0);
 	QVERIFY2(f.panel.markLabel()->text().startsWith(arcId + ": arc on B4"), qPrintable(f.panel.markLabel()->text()));
-	prompts.confirmAnswer = true;
 	events.log.clear();
 	f.panel.deleteButton()->click();
 	const std::vector<SceneArc>& arcs = f.document.model().arcs;
-	// Delete asks about the arc of the row and deletes that one only.
-	QCOMPARE(prompts.confirmQuestion, QStringLiteral("Delete arc '%1'?").arg(arcId));
+	// Delete deletes the arc of the row only, and the status line names it.
+	QCOMPARE(events.lastMessage().first, QStringLiteral("Deleted arc '%1'. Undo restores it.").arg(arcId));
 	QCOMPARE(events.log, edit);
 	QCOMPARE(f.document.lastChangeLabel(), "Delete arc");
 	QCOMPARE(arcs.size(), before.arcs.size() - 1);

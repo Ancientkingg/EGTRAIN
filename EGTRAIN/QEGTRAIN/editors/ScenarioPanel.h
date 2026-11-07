@@ -59,8 +59,8 @@ public:
 	/// Appends a copy of the selected scenario, named "Copy of" its name, with new unique ids for it and its incidents,
 	/// and selects it.
 	void duplicateScenario();
-	/// Deletes the selected scenario after the user has confirmed it and selects the default one. The default scenario
-	/// cannot be deleted, nor any while the scene has no valid default.
+	/// Deletes the selected scenario, selects the default one and says in the status line that Undo restores the deleted
+	/// one. The default scenario cannot be deleted, nor any while the scene has no valid default.
 	void deleteScenario();
 	/// Reads a scenario JSON file and appends it; an id that the scene already has, of the scenario or of an incident,
 	/// is made unique.
@@ -101,8 +101,6 @@ Q_SIGNALS:
 	void scenarioSelected(const QString& id);
 	/// The selected scenario or its id or name has changed, or the document is replaced; the argument is headerText().
 	void headerTextChanged(const QString& text);
-	/// A message for the status bar, shown for `timeoutMs` milliseconds.
-	void statusMessage(const QString& text, int timeoutMs);
 
 protected:
 	/// Writes the labels of the list again when scenarios are edited, and shows the scenarios again when the infrastructure

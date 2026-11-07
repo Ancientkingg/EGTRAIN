@@ -102,10 +102,11 @@ static SceneModel serviceScene() {
 
 using Log = std::vector<std::string>;
 
-// The order in which a panel and its document report an edit.
+// The order in which a panel and its document report an edit, and the messages that the panel shows in the status line.
 struct Events {
 	Log log;
 	SceneDocument::ChangeKinds kinds;
+	QStringList status;
 
 	Events(ServicePanel& panel, SceneDocument& document) {
 		QObject::connect(&document, &SceneDocument::changed, &panel, [this](SceneDocument::ChangeKinds changedKinds) {
@@ -119,6 +120,7 @@ struct Events {
 			log.push_back("renamed:" + oldId.toStdString() + ">" + newId.toStdString());
 		});
 		QObject::connect(&panel, &ServicePanel::changed, &panel, [this] { log.push_back("panelChanged"); });
+		QObject::connect(&panel, &ServicePanel::statusMessage, &panel, [this](const QString& text, int) { status << text; });
 	}
 };
 
@@ -755,17 +757,11 @@ void TestServicePanel::renamesAddsAndDeletesServices() {
 	panel.listWidget()->setCurrentRow(3);
 	events.log.clear();
 	selection.setExcluded(SceneServiceOccurrence{"s3", 1}, true);
-	prompts.confirmAnswer = false;
 	panel.deleteService();
-	// Answering No keeps the service.
-	QCOMPARE(prompts.confirmCount, 1);
-	QCOMPARE(prompts.confirmQuestion, "Delete service 's3'?");
-	QCOMPARE(document.model().services.size(), std::size_t(6));
-	QVERIFY(events.log.empty());
-	QVERIFY(selection.isExcluded(SceneServiceOccurrence{"s3", 1}));
-	prompts.confirmAnswer = true;
-	panel.deleteService();
-	// Answering Yes deletes the service, forgets what was left out of it and keeps a row selected.
+	// A service that nothing uses is deleted without a question, what was left out of it is forgotten, a row stays
+	// selected, and the status line names the service.
+	QCOMPARE(prompts.confirmCount, 0);
+	QCOMPARE(events.status, QStringList({"Deleted service 's3'. Undo restores it."}));
 	QCOMPARE(items(panel.listWidget()), QStringList({"s1_renamed", "s2", "s2_copy", "new_service", "new_service_2"}));
 	QCOMPARE(panel.listWidget()->currentRow(), 3);
 	QCOMPARE(events.log.front(), "documentChanged");
@@ -791,7 +787,6 @@ void TestServicePanel::undoKeepsOccurrencesOfDeletedService() {
 	table->item(4, 0)->setCheckState(Qt::Unchecked);
 	QCOMPARE(f.selection.excluded().size(), std::size_t(3));
 	f.panel.listWidget()->setCurrentRow(1);
-	f.prompts.confirmAnswer = true;
 	f.panel.deleteService();
 	// The delete forgets what was left out of s2.
 	QCOMPARE(items(f.panel.listWidget()), QStringList({"s1", "s3"}));
@@ -928,7 +923,6 @@ void TestServicePanel::refusesEditsWhileRunUsesScene() {
 	QStringList reached;
 	for (const auto& [name, commit] : commits) {
 		ServiceFixture f;
-		f.prompts.confirmAnswer = true;
 		f.panel.listWidget()->setCurrentRow(1);
 		f.document.setEditable(false);
 		f.events.log.clear();

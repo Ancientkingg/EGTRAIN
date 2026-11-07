@@ -78,13 +78,14 @@ static bool sameValues(const SceneTrainUnit& a, const SceneTrainUnit& b) {
 			[&a, &b](const SceneTrainPhysicalField& field) { return a.physical.*field.member == b.physical.*field.member; });
 }
 
-// The order in which a panel and its document report an edit.
+// The order in which a panel and its document report an edit, and the messages that the panel shows in the status line.
 struct Events {
 	std::vector<std::string> log;
 	SceneDocument::ChangeKinds kinds;
 	QStringList renamed;
 	QStringList deleted;
 	QStringList plotted;
+	QStringList status;
 	std::vector<std::pair<std::string, bool>> sourceRequests;
 
 	Events(TrainUnitPanel& panel, SceneDocument& document) {
@@ -108,6 +109,7 @@ struct Events {
 			[this](bool traction) { sourceRequests.emplace_back("unlink", traction); });
 		QObject::connect(&panel, &TrainUnitPanel::sourceRetryRequested, &panel,
 			[this](bool traction) { sourceRequests.emplace_back("retry", traction); });
+		QObject::connect(&panel, &TrainUnitPanel::statusMessage, &panel, [this](const QString& text, int) { status << text; });
 	}
 };
 
@@ -230,7 +232,6 @@ void TestTrainUnitPanel::emptyStateFollowsSelection() {
 	SceneDocument document;
 	TrainUnitPanel panel;
 	FakePrompts prompts;
-	prompts.confirmAnswer = true;
 	panel.setPrompts(&prompts);
 	panel.setDocument(&document);
 	document.replace(SceneModel(), false);
@@ -619,16 +620,12 @@ void TestTrainUnitPanel::editsRenamesAddsAndDeletesUnits() {
 	QVERIFY(events.log.empty());
 	QCOMPARE(document.model().trainUnits.size(), std::size_t(4));
 	panel.selectUnit("new_train_unit");
-	prompts.confirmAnswer = false;
+	events.status.clear();
 	panel.deleteUnit();
-	// Answering No keeps the unit.
-	QCOMPARE(prompts.confirmCount, 1);
-	QCOMPARE(prompts.confirmQuestion, "Delete rolling stock unit 'new_train_unit'?");
-	QCOMPARE(document.model().trainUnits.size(), std::size_t(4));
-	QVERIFY(events.log.empty());
-	prompts.confirmAnswer = true;
-	panel.deleteUnit();
-	// Answering Yes deletes the unit and reports it.
+	// A unit that no composition uses is deleted without a question and reported, and the status line says that Undo
+	// restores it.
+	QCOMPARE(prompts.confirmCount, 0);
+	QCOMPARE(events.status, QStringList({"Deleted rolling stock unit 'new_train_unit'. Undo restores it."}));
 	QCOMPARE(items(panel.listWidget()), QStringList({"u1_pending", "u1_pending_copy", "u2"}));
 	QCOMPARE(panel.listWidget()->currentRow(), 2);
 	QCOMPARE(events.log, Log({"documentChanged", "unitDeleted", "panelChanged"}));

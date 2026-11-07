@@ -75,23 +75,21 @@ class FakePrompts : public UserPrompts {
 public:
 	int errorCount = 0;
 	int confirmCount = 0;
-	QString confirmQuestion;
-	bool confirmAnswer = false;
 
 	void showError(QWidget*, const QString&, const QString&, bool = false) override { ++errorCount; }
-	bool confirm(QWidget*, const QString&, const QString& question) override {
+	bool confirm(QWidget*, const QString&, const QString&) override {
 		++confirmCount;
-		confirmQuestion = question;
-		return confirmAnswer;
+		return false;
 	}
 };
 
 using Log = std::vector<std::string>;
 
-// The order in which a panel and its document report an edit.
+// The order in which a panel and its document report an edit, and the messages that the panel shows in the status line.
 struct Events {
 	Log log;
 	SceneDocument::ChangeKinds kinds;
+	QStringList status;
 
 	Events(EntranceDelayPanel& panel, SceneDocument& document) {
 		QObject::connect(&document, &SceneDocument::changed, &panel, [this](SceneDocument::ChangeKinds changedKinds) {
@@ -99,6 +97,7 @@ struct Events {
 			kinds = changedKinds;
 		});
 		QObject::connect(&panel, &EntranceDelayPanel::changed, &panel, [this] { log.push_back("panelChanged"); });
+		QObject::connect(&panel, &EntranceDelayPanel::statusMessage, &panel, [this](const QString& text, int) { status << text; });
 	}
 };
 
@@ -333,17 +332,12 @@ void TestEntranceDelayPanel::editsAddsAndDeletesDelays() {
 	QCOMPARE(panel.listWidget()->currentRow(), 1);
 	QCOMPARE(events.log, edit);
 	QCOMPARE(document.lastChangeLabel(), "Duplicate entrance delay");
-	// Declining the question keeps the delay.
+	// A delay is deleted without a question, and the status line names its service.
 	f.prompts.confirmCount = 0;
 	events.log.clear();
 	panel.deleteEntranceDelay();
-	QCOMPARE(f.prompts.confirmCount, 1);
-	QCOMPARE(f.prompts.confirmQuestion, "Delete entrance delay for service 's1'?");
-	QCOMPARE(document.model().scenarios[0].entranceDelays.size(), std::size_t(4));
-	QVERIFY(events.log.empty());
-	// A deleted delay is removed.
-	f.prompts.confirmAnswer = true;
-	panel.deleteEntranceDelay();
+	QCOMPARE(f.prompts.confirmCount, 0);
+	QCOMPARE(events.status, QStringList({"Deleted entrance delay for service 's1'. Undo restores it."}));
 	QCOMPARE(document.model().scenarios[0].entranceDelays.size(), std::size_t(3));
 	QCOMPARE(panel.listWidget()->count(), 3);
 	QCOMPARE(events.log, edit);

@@ -1182,7 +1182,8 @@ void InfrastructurePanel::refuseEdit(const QString& message) {
 	refreshTable();
 }
 
-bool InfrastructurePanel::confirmDelete(const QString& id, const std::vector<std::string>& consumers) {
+bool InfrastructurePanel::deleteRow(const QString& id, const std::vector<std::string>& consumers, const QString& label,
+	const std::function<void(SceneModel&)>& apply) {
 	const FacetEntry* entry = facetEntry(facetKey());
 	const QString noun = entry ? QString::fromLatin1(entry->noun) : QStringLiteral("Row");
 	const QString titleNoun = entry ? QString::fromLatin1(entry->titleNoun) : QStringLiteral("Row");
@@ -1199,8 +1200,12 @@ bool InfrastructurePanel::confirmDelete(const QString& id, const std::vector<std
 			QString("%1 '%2' is used by:\n• %3\nRemove or change these first.").arg(noun, id, list), true);
 		return false;
 	}
-	return m_prompts->confirm(this, QStringLiteral("Delete %1").arg(titleNoun),
-		QString("Delete %1 '%2'?").arg(noun.toLower(), id));
+	setSelectionId(QString());
+	if (!edit(label, apply))
+		return false;
+	reportDeleted(id.isEmpty() ? QStringLiteral("an incomplete %1").arg(noun.toLower())
+							   : QStringLiteral("%1 '%2'").arg(noun.toLower(), id));
+	return true;
 }
 
 void InfrastructurePanel::populateSectionCombo(QComboBox* combo, const SceneSectionInventory& inventory,

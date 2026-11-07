@@ -145,10 +145,8 @@ public:
 		const std::string id = panel.model().blocks[static_cast<std::size_t>(index)].id;
 		if (id.empty())
 			return;
-		if (!panel.confirmDelete(QString::fromStdString(id), sceneDirectDeleteConsumers(panel.model(), "blocks", id)))
-			return;
-		panel.setSelectionId(QString());
-		panel.edit(QStringLiteral("Delete block"), [index](SceneModel& model) { model.blocks.erase(model.blocks.begin() + index); });
+		panel.deleteRow(QString::fromStdString(id), sceneDirectDeleteConsumers(panel.model(), "blocks", id), QStringLiteral("Delete block"),
+			[index](SceneModel& model) { model.blocks.erase(model.blocks.begin() + index); });
 	}
 
 	// The new block takes the place of the selected one, on its track.

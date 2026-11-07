@@ -206,7 +206,7 @@ static bool writePassengerFolder(const QTemporaryDir& root, const char* dasRows,
 			(std::string("person_id,destination,nb_transfers,r_service_lines_id_1\n") + routeRows).c_str());
 }
 
-// A panel with prompts of its own, which answer Yes, on a document that shows passengerScene(), and the events of both.
+// A panel with prompts of its own on a document that shows passengerScene(), and the events of both.
 struct PassengerFixture {
 	SceneDocument document;
 	PassengerPanel panel;
@@ -214,14 +214,13 @@ struct PassengerFixture {
 	Events events{panel, document};
 
 	PassengerFixture() {
-		prompts.confirmAnswer = true;
 		panel.setPrompts(&prompts);
 		panel.setDocument(&document);
 		document.replace(passengerScene(), false);
 	}
 };
 
-// The passenger panel and a service panel, with prompts that answer Yes, on one document that shows passengerScene(). The
+// The passenger panel and a service panel, with prompts of their own, on one document that shows passengerScene(). The
 // labels and kinds of the changes of the document are kept in their order, by a connection made before those of the
 // panels, as the window keeps its undo steps.
 struct ServiceEditFixture {
@@ -237,7 +236,6 @@ struct ServiceEditFixture {
 			labels.push_back(document.lastChangeLabel().toStdString());
 			kinds.push_back(changedKinds);
 		});
-		prompts.confirmAnswer = true;
 		passengers.setPrompts(&prompts);
 		services.setPrompts(&prompts);
 		passengers.setDocument(&document);
@@ -481,18 +479,13 @@ void TestPassengerPanel::editsAddsAndDeletesPassengers() {
 	QCOMPARE(document.lastChangeLabel(), "Add passenger");
 	QCOMPARE(events.log, oneChange);
 	QCOMPARE(document.revision(), quint64(4));
-	prompts.confirmAnswer = false;
 	events.log.clear();
+	events.status.clear();
 	panel.deletePassengerButton()->click();
-	// A declined delete keeps the passenger.
-	QCOMPARE(prompts.confirmCount, 1);
-	QCOMPARE(prompts.confirmTitle, "Delete Passenger");
-	QCOMPARE(document.model().passengers.size(), std::size_t(3));
-	QVERIFY(events.log.empty());
-	QCOMPARE(document.revision(), quint64(4));
-	prompts.confirmAnswer = true;
-	panel.deletePassengerButton()->click();
-	// A confirmed delete removes the passenger and selects the last one that is left.
+	// Delete removes the passenger without a question, selects the last one that is left, and says in the status line
+	// that Undo restores the passenger.
+	QCOMPARE(prompts.confirmCount, 0);
+	QCOMPARE(events.status, std::vector<std::string>({"Deleted passenger 'new_passenger'. Undo restores it."}));
 	QCOMPARE(items(panel.passengerList()), std::vector<std::string>({"P1", "P2"}));
 	QCOMPARE(panel.passengerList()->currentRow(), 1);
 	QCOMPARE(events.log, oneChange);
@@ -542,14 +535,10 @@ void TestPassengerPanel::editsJourneys() {
 	QCOMPARE(firstPassenger.journeys[2].id, "J4");
 	QCOMPARE(panel.journeyList()->item(2)->text(), "J4 (shopping)");
 	QCOMPARE(events.log, oneChange);
-	prompts.confirmAnswer = false;
+	events.status.clear();
 	panel.deleteJourneyButton()->click();
-	// A declined delete keeps the journey.
-	QCOMPARE(prompts.confirmTitle, "Delete Journey");
-	QCOMPARE(firstPassenger.journeys.size(), std::size_t(3));
-	prompts.confirmAnswer = true;
-	panel.deleteJourneyButton()->click();
-	// A confirmed delete removes the journey.
+	// Delete removes the journey without a question.
+	QCOMPARE(events.status, std::vector<std::string>({"Deleted journey 'J4'. Undo restores it."}));
 	QCOMPARE(firstPassenger.journeys.size(), std::size_t(2));
 	QCOMPARE(panel.journeyList()->currentRow(), 1);
 }
@@ -634,14 +623,11 @@ void TestPassengerPanel::editsLegs() {
 	QCOMPARE(added.id, "L9");
 	QCOMPARE(items(panel.legList()), std::vector<std::string>({"L1", "L2", "L9"}));
 	QCOMPARE(events.log, oneChange);
-	prompts.confirmAnswer = false;
+	events.status.clear();
 	panel.deleteLegButton()->click();
-	// A declined delete keeps the leg.
-	QCOMPARE(prompts.confirmTitle, "Delete Leg");
-	QCOMPARE(firstJourney.legs.size(), std::size_t(3));
-	prompts.confirmAnswer = true;
-	panel.deleteLegButton()->click();
-	QVERIFY2(legIds(firstJourney) == std::vector<std::string>({"L1", "L2"}), "a confirmed delete removes the leg");
+	// Delete removes the leg without a question.
+	QCOMPARE(events.status, std::vector<std::string>({"Deleted passenger leg 'L9'. Undo restores it."}));
+	QVERIFY2(legIds(firstJourney) == std::vector<std::string>({"L1", "L2"}), "Delete removes the leg");
 }
 
 // The callouts of the diagnostics.
@@ -874,7 +860,6 @@ void TestPassengerPanel::forgetsDeletedDocument() {
 	auto* document = new SceneDocument;
 	PassengerPanel panel;
 	FakePrompts prompts;
-	prompts.confirmAnswer = true;
 	panel.setPrompts(&prompts);
 	panel.setDocument(document);
 	document->replace(passengerScene(), false);

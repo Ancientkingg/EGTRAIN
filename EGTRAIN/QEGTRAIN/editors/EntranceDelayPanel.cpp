@@ -297,13 +297,12 @@ void EntranceDelayPanel::deleteEntranceDelay() {
 		return;
 	const int row = m_listWidget->currentRow();
 	const QString description = QString::fromStdString(selected->serviceId);
-	if (!m_prompts->confirm(this, "Delete Entrance Delay", QString("Delete entrance delay for service '%1'?").arg(description)))
-		return;
 	if (!editDelays("Delete entrance delay", [row](std::vector<SceneEntranceDelay>& delays) { delays.erase(delays.begin() + row); }))
 		return;
 
 	refresh();
 	emit changed();
+	reportDeleted(QString("entrance delay for service '%1'").arg(description));
 }
 
 void EntranceDelayPanel::commitService(int index) {

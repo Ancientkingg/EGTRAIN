@@ -151,13 +151,11 @@ public:
 		const std::string id = items[static_cast<std::size_t>(row)].id;
 		if (id.empty())
 			return;
-		if (!panel.confirmDelete(QString::fromStdString(id), sceneDirectDeleteConsumers(panel.model(), "signals", id)))
-			return;
-		panel.setSelectionId(QString());
-		panel.edit(QStringLiteral("Delete signal"), [row](SceneModel& model) {
-			std::vector<SceneSignal>& signalList = sceneSignals(model);
-			signalList.erase(signalList.begin() + row);
-		});
+		panel.deleteRow(QString::fromStdString(id), sceneDirectDeleteConsumers(panel.model(), "signals", id), QStringLiteral("Delete signal"),
+			[row](SceneModel& model) {
+				std::vector<SceneSignal>& signalList = sceneSignals(model);
+				signalList.erase(signalList.begin() + row);
+			});
 	}
 };
 

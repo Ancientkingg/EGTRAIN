@@ -58,7 +58,7 @@ public:
 	QLineEdit* passengerIdEdit() const { return m_passengerIdEdit; }
 	/// The button that adds a passenger without journeys.
 	QPushButton* addPassengerButton() const { return m_addPassengerButton; }
-	/// The button that deletes the selected passenger and its journeys after the user has confirmed it.
+	/// The button that deletes the selected passenger and its journeys.
 	QPushButton* deletePassengerButton() const { return m_deletePassengerButton; }
 	/// The button that appends the passengers of a legacy passenger folder. A passenger whose id, or the id of one of its
 	/// journeys or legs, is already used is left out.
@@ -77,7 +77,7 @@ public:
 	QListWidget* journeyList() const { return m_journeyList; }
 	/// The button that adds a journey to the selected passenger.
 	QPushButton* addJourneyButton() const { return m_addJourneyButton; }
-	/// The button that deletes the selected journey and its legs after the user has confirmed it.
+	/// The button that deletes the selected journey and its legs.
 	QPushButton* deleteJourneyButton() const { return m_deleteJourneyButton; }
 	/// The field of the id of the selected journey, unique in the scene.
 	QLineEdit* journeyIdEdit() const { return m_journeyIdEdit; }
@@ -94,7 +94,7 @@ public:
 	QListWidget* legList() const { return m_legList; }
 	/// The button that appends a leg to the selected journey.
 	QPushButton* addLegButton() const { return m_addLegButton; }
-	/// The button that deletes the selected leg after the user has confirmed it.
+	/// The button that deletes the selected leg.
 	QPushButton* deleteLegButton() const { return m_deleteLegButton; }
 	/// The button that moves the selected leg one place earlier.
 	QPushButton* moveLegUpButton() const { return m_moveLegUpButton; }
@@ -111,10 +111,6 @@ public:
 	/// The occurrence of the service of the selected leg, counted from 1. The field also takes 0, which validation
 	/// reports as an error.
 	QSpinBox* legOccurrenceEdit() const { return m_legOccurrenceEdit; }
-
-Q_SIGNALS:
-	/// A message for the status bar, which it shows for `timeoutMs` milliseconds.
-	void statusMessage(const QString& text, int timeoutMs);
 
 protected:
 	/// Shows the passengers again when the case settings, the infrastructure or the services change.

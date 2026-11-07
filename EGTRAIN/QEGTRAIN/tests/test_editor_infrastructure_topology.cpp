@@ -309,16 +309,12 @@ void TestTopologyFacets::editsTracks() {
 			{"node 'node-a0'", "node 'node-a1'", "node 'node-a2'", "arc 'arc-a1'", "arc 'arc-a2'", "block 'block-a1'",
 				"block 'block-a2'", "signalling area 'area-1'"}));
 	f.select(2);
+	f.messages.clear();
 	f.panel.deleteButton()->click();
-	// Nothing is deleted when the user answers no.
-	QCOMPARE(f.prompts.confirmCount, 1);
-	QCOMPARE(f.prompts.confirmQuestion, "Delete track 'track'?");
-	QCOMPARE(f.model().tracks.size(), std::size_t(4));
-	QVERIFY(f.untouched());
-	f.prompts.confirmAnswer = true;
-	f.panel.deleteButton()->click();
-	// A track that nothing uses is deleted when the user answers yes, and the row at its place is selected.
-	QCOMPARE(f.prompts.confirmCount, 2);
+	// A track that nothing uses is deleted without a question, the row at its place is selected, and the status line
+	// says that Undo restores the track.
+	QCOMPARE(f.prompts.confirmCount, 0);
+	QCOMPARE(f.messages, QStringList({"Deleted track 'track'. Undo restores it."}));
 	QCOMPARE(f.model().tracks.size(), std::size_t(3));
 	QCOMPARE(f.model().tracks[2].id, "track_2");
 	QVERIFY(f.changedOnce("Delete track"));
@@ -413,10 +409,10 @@ void TestTopologyFacets::editsNodes() {
 			{"arc 'arc-a1' endpoint", "arc 'arc-a2' endpoint", "connection 'connection-1' endpoint",
 				"platform 'platform-1' at station 'station-1'"}));
 	f.select(6);
-	f.prompts.confirmAnswer = true;
+	f.messages.clear();
 	f.panel.deleteButton()->click();
-	// A node that nothing uses is deleted when the user answers yes.
-	QCOMPARE(f.prompts.confirmQuestion, "Delete node 'node'?");
+	// A node that nothing uses is deleted at once.
+	QCOMPARE(f.messages, QStringList({"Deleted node 'node'. Undo restores it."}));
 	QCOMPARE(f.model().nodes.size(), std::size_t(6));
 	QVERIFY(f.changedOnce("Delete node"));
 	QCOMPARE(f.panel.selectionId(), "node-b2");
@@ -496,11 +492,11 @@ void TestTopologyFacets::editsArcs() {
 	QCOMPARE(f.table()->currentRow(), f.table()->rowCount() - 1);
 
 	// delete: nothing refers to an arc
-	f.prompts.confirmAnswer = true;
+	f.messages.clear();
 	f.panel.deleteButton()->click();
-	// An arc is deleted when the user answers yes, as nothing uses it.
+	// An arc is deleted at once, as nothing uses it.
 	QCOMPARE(f.prompts.errorCount, 0);
-	QCOMPARE(f.prompts.confirmQuestion, "Delete arc 'arc'?");
+	QCOMPARE(f.messages, QStringList({"Deleted arc 'arc'. Undo restores it."}));
 	QCOMPARE(f.model().arcs.size(), std::size_t(3));
 	QVERIFY(f.changedOnce("Delete arc"));
 }
@@ -613,10 +609,10 @@ void TestTopologyFacets::deletesConnectionThatRouteUses() {
 		blocked("Connection", "connection-1", {QString("route 'route-1' section '%1'").arg(QString::fromStdString(derived))}));
 	used.document.mutableModel().routes[0].blocks.pop_back();
 	used.panel.refresh();
-	used.prompts.confirmAnswer = true;
+	used.messages.clear();
 	used.panel.deleteButton()->click();
-	// A connection that nothing uses is deleted when the user answers yes.
-	QCOMPARE(used.prompts.confirmQuestion, "Delete connection 'connection-1'?");
+	// A connection that nothing uses is deleted at once.
+	QCOMPARE(used.messages, QStringList({"Deleted connection 'connection-1'. Undo restores it."}));
 	QVERIFY(used.model().connections.empty());
 	QVERIFY(used.changedOnce("Delete connection"));
 }
