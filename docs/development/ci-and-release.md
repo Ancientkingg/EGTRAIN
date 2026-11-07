@@ -6,7 +6,8 @@ scripts that build, sign and check the release packages.
 ## CI and release branches
 
 - `main` is the validation branch. Pull requests build the project and run
-  the CTest suite without the tests labelled `network` (those run on Windows only), in parallel, on macOS, Windows (MSVC, vcpkg
+  the CTest suite without the tests labelled `network` (those run on Windows only) and `nightly` (those run in the
+  [leak check](smoke-tests.md#leak-check)), in parallel, on macOS, Windows (MSVC, vcpkg
   x64) and Linux (Ubuntu 24.04), each with Qt 6.8.3, unless every changed file matches the
   documentation rule below. The suite holds the end-to-end smokes of the
   committed scenes (see [Simulation Smoke Test](smoke-tests.md#simulation-smoke-test) and

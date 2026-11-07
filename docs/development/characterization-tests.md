@@ -108,12 +108,18 @@ Three more entries run committed scenes this way: `characterization_repeat_paimp
 `characterization_repeat_milano_paimpol` (Milano-Brescia and Paimpol, alternating)
 and `characterization_repeat_netherlands` (Netherlands, Paimpol, Netherlands, labelled
 `slow`). They fail when a run leaves state behind that changes a later run of the
-same scene, which is what a change to the arrays of the run can cause.
+same scene, which is what a change to the arrays of the run can cause. The first
+two are labelled `nightly`: the build legs of the CMake workflow leave them out,
+because the `--repeat-files` entries below run the same sequences and compare the
+same observations, and the [leak check](smoke-tests.md#leak-check) runs them at
+night. On a pull request, Paimpol and Milano-Brescia therefore run again only
+with the detailed files written: the runs of `--repeat` write no detailed files.
 
 These entries compare the observation of each run: what the test reads from
 memory, and the two station statistics files. The other files of a run are not
-read. `--repeat-files` runs the steps in the same way, but every run writes its
-files into a folder of its own (`run-01`, `run-02` and so on, in a temporary
+read. `--repeat-files` runs the steps and compares their observations in the same
+way, but every run writes its files into a folder of its own (`run-01`, `run-02`
+and so on, in a temporary
 folder), and after the last run every distinct step runs once more in a fresh
 process of the same executable, with the same working directory and
 environment. Every file of every in-process run must then be equal, byte for
@@ -145,9 +151,12 @@ has. They fail when a run in a process writes a file that differs from the file
 of a fresh process, which is what state left behind by an earlier run can cause
 in a file that the entries above never read.
 
-`characterization_aspects_dutch` (labelled `slow`) runs Netherlands and
-Assignment once each with `--aspects` and fails unless at least one route
-section leaves the clear code 270 and returns to it during the run.
+Both modes take `--aspects STEP`, before or after the steps and once for every
+step that it checks. The test then fails unless at least one route section leaves
+the clear code 270 and returns to it during the first run of that step, which has
+to be one of the steps. A later run of the step has the same aspects, or its
+observation differs. `characterization_repeat_netherlands` names Netherlands and
+`characterization_repeat_files_paimpol` names Assignment.
 
 `test_crossover_chain` is a separate executable, because the harness above is
 tied to the line fixture (its length, its block size and the station at 8 km).

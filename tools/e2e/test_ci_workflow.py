@@ -630,8 +630,8 @@ def check_build(checks: Checks, cmake: dict, cmake_text: str, presets: list, pac
     test = step(build, "ctest --test-dir build -C Release --parallel ${{ matrix.jobs }}")
     expect(
         "cmake --build build --config Release" in runs(build)
-        and all(part in test.get("run", "") for part in ("--output-on-failure", "--output-log", "-LE network")),
-        "cmake.yml: each leg builds and runs CTest in parallel with a log, without the network tests",
+        and all(part in test.get("run", "") for part in ("--output-on-failure", "--output-log", "-LE 'network|nightly'")),
+        "cmake.yml: each leg builds and runs CTest in parallel with a log, without the network and nightly tests",
     )
     # The network tests are built for the Windows leg only, and run in a step of their own after the other tests.
     https = step(build, "ctest --test-dir build -C Release -L network --no-tests=error")
@@ -720,6 +720,9 @@ def check_sanitizers(checks: Checks, cmake: dict, release: dict, tests_cmake: st
            "cmake.yml: the leak check detects leaks, with its suppressions")
     expect({"characterization_repeatable", "characterization_repeat_paimpol", "test_networkpresenter", "test_runtimecanvas"} <= set(ctest_names(runs(leak))),
            "cmake.yml: the leak check reloads scenes and rebuilds the canvas")
+    labelled = re.search(r"^set_property\(TEST ([\w ]+) APPEND PROPERTY LABELS nightly\)$", characterization_cmake, re.MULTILINE)
+    expect(labelled and set(labelled.group(1).split()) <= set(ctest_names(runs(leak))),
+           "cmake.yml: the leak check runs the characterization tests labelled nightly, which the build legs leave out")
     targets = re.search(r"cmake --build build --target ([\w ]+)", runs(leak))
     expect(targets and {"test_networkpresenter", "test_runtimecanvas"} <= set(targets.group(1).split()),
            "cmake.yml: the leak check builds the presenter tests that it runs")

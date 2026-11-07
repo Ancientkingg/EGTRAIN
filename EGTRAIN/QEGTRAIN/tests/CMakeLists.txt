@@ -32,6 +32,8 @@ find_package(Qt6 REQUIRED COMPONENTS Test)
 #   gui            needs a Qt platform plugin. The test runs on the offscreen platform, which reads the system fonts on
 #                  Windows; WINDOWS_PLATFORM keeps the windows platform of Qt on Windows.
 #   slow           takes more than 20 seconds on a development machine
+#   nightly        set only in tests/characterization/CMakeLists.txt, on the reload tests that the build legs of the
+#                  CMake workflow leave out and the leak check runs
 #   network        sends a request to a server on the internet
 #   scene-v1, scene-v2, legacy-compat
 #                  the scene tests, see docs/development/testing.md

@@ -213,10 +213,11 @@ jobs:
         shell: pwsh
         run: python tools/release/pe_image_size.py build/QEGTRAIN.exe --max-bytes 4294967295 | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY
 
+      # The tests labelled network run in the next step, and the tests labelled nightly in the leak check.
       - name: Test
         if: needs.changes.outputs.build == 'true'
         shell: bash
-        run: ctest --test-dir build -C Release --parallel ${{ matrix.jobs }} --output-on-failure --output-log "$RUNNER_TEMP/ctest.log" -LE network
+        run: ctest --test-dir build -C Release --parallel ${{ matrix.jobs }} --output-on-failure --output-log "$RUNNER_TEMP/ctest.log" -LE 'network|nightly'
 
       # One real request to the update feed of the EGTRAIN website through the update transport, which is WinHTTP on Windows.
       # It fails when no HTTPS response arrives. When the website refuses the request (403 or 429) or has an outage (5xx), the
@@ -297,7 +298,7 @@ jobs:
         run: python3 tools/e2e/leak_check_smoke.py build/QEGTRAIN "$RUNNER_TEMP/leak-check"
 
       # Each test runs scenes one after the other in one process, so that every run builds its scene,
-      # resets and builds the next one again.
+      # resets and builds the next one again. The build legs leave out the two that are labelled nightly.
       - name: Reload scenes in one process
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: |
