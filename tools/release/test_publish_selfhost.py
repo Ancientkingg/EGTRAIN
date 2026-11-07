@@ -481,7 +481,8 @@ class StubOnly(unittest.TestCase):
                                        "site dir privacy", "site file index.html"])
         for name in ("1.2.3/guides/install.html", "latest/index.html"):
             self.assertEqual((self.root / "site" / name).read_bytes(), (pages / name).read_bytes(), name)
-        for name in ("assets/archivo-latin-wdth-wght.woff2", "support/index.html", "privacy/index.html"):
+        # assets/site.css is the style that release pages published with the earlier layout load.
+        for name in ("assets/archivo-latin-wdth-wght.woff2", "assets/site.css", "support/index.html", "privacy/index.html"):
             self.assertTrue((self.root / "site" / name).is_file(), name)
         self.assertFalse((self.root / "site/dev").exists())
 
