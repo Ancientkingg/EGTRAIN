@@ -27,10 +27,14 @@ EXTRACT_ALL            = YES
 EXTRACT_STATIC         = YES
 # The page names are the same on every system: SceneModel is on struct_scene_model.html.
 CASE_SENSE_NAMES       = NO
-# The reference shows no source code: no source pages, no function bodies and no header listings.
+# The reference shows no source code: no source pages, no function bodies, no header listings and no
+# values of variables or macros.
 SOURCE_BROWSER         = NO
 INLINE_SOURCES         = NO
 VERBATIM_HEADERS       = NO
+MAX_INITIALIZER_LINES  = 0
+# The examples in comments have no copy button, whose script names a code host.
+HTML_COPY_CLIPBOARD    = NO
 
 HAVE_DOT               = YES
 CALL_GRAPH             = YES
