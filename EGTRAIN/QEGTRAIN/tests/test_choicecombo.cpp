@@ -5,6 +5,7 @@
 
 #include <QAbstractItemView>
 #include <QAbstractSpinBox>
+#include <QAccessible>
 #include <QApplication>
 #include <QCheckBox>
 #include <QDialog>
@@ -173,6 +174,8 @@ struct WheelForm {
 		compact->setValue(50);
 		spin = new QDoubleSpinBox(body);
 		spin->setRange(0, 100);
+		// A single step other than 1, so that a guard that gave every box the step 1 would fail accessibleStep.
+		spin->setSingleStep(5);
 		spin->setValue(50);
 		slider = new QSlider(Qt::Horizontal, body);
 		slider->setRange(0, 100);
@@ -208,6 +211,7 @@ struct WheelForm {
 			lateCombo->addItems({QStringLiteral("one"), QStringLiteral("two"), QStringLiteral("three")});
 			lateSpin = new QSpinBox(page);
 			lateSpin->setRange(0, 100);
+			lateSpin->setSingleStep(2);
 			lateSpin->setValue(50);
 			pageLayout->addRow(QStringLiteral("Late choice"), lateCombo);
 			pageLayout->addRow(QStringLiteral("Late number"), lateSpin);
@@ -238,6 +242,7 @@ struct WheelForm {
 
 // The choice combo box of the stop editor and the dialogs fits its form, shows its whole text as a tooltip, elides a
 // long text in the middle, keeps a choice that is not on the route, and leaves the wheel to the form until it has focus.
+// A guarded spin box tells an accessibility client its single step.
 class TestChoiceCombo : public QObject {
 	Q_OBJECT
 
@@ -252,6 +257,8 @@ private slots:
 	void popupHeight();
 	void wheel_data();
 	void wheel();
+	void accessibleStep_data();
+	void accessibleStep();
 };
 
 void TestChoiceCombo::initTestCase() {
@@ -483,6 +490,31 @@ void TestChoiceCombo::wheel() {
 		wheelDown(field);
 		QVERIFY2(f.value(field) != before, qPrintable(name + ": the wheel did not change a field with focus"));
 		QVERIFY2(f.scroll->verticalScrollBar()->value() == 0, qPrintable(name + ": the wheel over a field with focus scrolled the form"));
+	}
+}
+
+void TestChoiceCombo::accessibleStep_data() {
+	wheel_data();
+}
+
+// Qt's accessibility performs an Increment, such as VO+Up of VoiceOver, by adding the step that a spin box reports to
+// its value, and a tenth of the range when the box reports none. Each guarded spin box, a QSpinBox and a QDoubleSpinBox
+// as well as a CompactDoubleSpinBox, reports its single step, and an Increment adds that step.
+void TestChoiceCombo::accessibleStep() {
+	QFETCH(int, kind);
+	WheelForm f(static_cast<FormKind>(kind));
+	for (QWidget* field : f.fields()) {
+		if (!qobject_cast<QAbstractSpinBox*>(field))
+			continue;
+		QAccessibleInterface* accessible = QAccessible::queryAccessibleInterface(field);
+		QAccessibleValueInterface* value = accessible ? accessible->valueInterface() : nullptr;
+		if (value == nullptr)
+			QFAIL("a spin box has no accessible value");
+		const double singleStep = field->property("singleStep").toDouble();
+		QCOMPARE_EQ(value->minimumStepSize().toDouble(), singleStep);
+		const double before = value->currentValue().toDouble();
+		value->setCurrentValue(before + value->minimumStepSize().toDouble());
+		QCOMPARE_EQ(value->currentValue().toDouble(), before + singleStep);
 	}
 }
 

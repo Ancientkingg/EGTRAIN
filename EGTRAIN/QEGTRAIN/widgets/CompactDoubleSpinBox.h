@@ -16,13 +16,22 @@
 /// must not commit its rounded display representation to the canonical model. The wheel changes the value
 /// only while the field has keyboard focus. The compact text has six significant digits, except that a value from
 /// 1e6 up to 1e15 shows all its integer digits without exponent. While the field is not focused, the tooltip shows
-/// the value with its fewest exact digits, after the tooltip of the field, when the compact text is not it.
+/// the value with its fewest exact digits, after the tooltip of the field, when the compact text is not it. An
+/// accessibility client steps the value by the single step, as the arrow keys do.
 class CompactDoubleSpinBox : public QDoubleSpinBox {
 public:
-	/// A spin box whose wheel is guarded by FocusWheel.
+	/// A spin box whose wheel is guarded by FocusWheel, which also gives it the stepSize property.
 	explicit CompactDoubleSpinBox(QWidget* parent = nullptr)
 		: QDoubleSpinBox(parent) {
 		FocusWheel::guard(this);
+	}
+
+	/// Sets the single step, by which the arrows, the arrow keys and the wheel change the value, and the stepSize property
+	/// that FocusWheel::guard gives the field, so that an accessibility client steps by it as well. It hides
+	/// QDoubleSpinBox::setSingleStep, which does not change the property.
+	void setSingleStep(double step) {
+		QDoubleSpinBox::setSingleStep(step);
+		setProperty("stepSize", singleStep());
 	}
 
 	/// The full text, the fewest digits that read back as the value, while the field has focus, else the compact text.
