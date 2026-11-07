@@ -1,5 +1,6 @@
 var NAVTREEINDEX23 =
 {
+"struct_export_folders.html#ae3c9f78f695bc92fdecf7ef03ef0b9c2":[2,0,86,0],
 "struct_export_folders.html#ae4993953c3742fa4cdcd86e8dfb7f650":[2,0,86,1],
 "struct_figure_column.html":[2,0,87],
 "struct_figure_column.html#a2e19d38ed81e9c8560c5dc7f644c7f86":[2,0,87,0],
@@ -193,12 +194,13 @@ var NAVTREEINDEX23 =
 "struct_main_window_test_hooks.html#ae6aaceae17eef5ca6b33526bbd6ee4cc":[2,0,138,16],
 "struct_network_legend_content.html":[2,0,142],
 "struct_network_legend_content.html#a07f55b5908d2becd67e3f5b1d55b391c":[2,0,142,0],
-"struct_network_legend_content.html#a5ba856f093161794004d63145a28d825":[2,0,142,1],
-"struct_network_legend_content.html#a67d747a3d6ab47ad0fcba9865d287147":[2,0,142,6],
-"struct_network_legend_content.html#a7df3f76f400708b03443494cd79f173f":[2,0,142,5],
-"struct_network_legend_content.html#aa5ca6c4549837edad2c8210214b3c430":[2,0,142,2],
-"struct_network_legend_content.html#ac7e286f2dbeb0e6ab0998bdfae1d2892":[2,0,142,4],
-"struct_network_legend_content.html#af1b4ce9a6e5c071b9150ac09d6d6205c":[2,0,142,3],
+"struct_network_legend_content.html#a5ba856f093161794004d63145a28d825":[2,0,142,2],
+"struct_network_legend_content.html#a67d747a3d6ab47ad0fcba9865d287147":[2,0,142,7],
+"struct_network_legend_content.html#a7df3f76f400708b03443494cd79f173f":[2,0,142,6],
+"struct_network_legend_content.html#aa5ca6c4549837edad2c8210214b3c430":[2,0,142,3],
+"struct_network_legend_content.html#ab709f1cb70dc31dcd45183b976be2b40":[2,0,142,1],
+"struct_network_legend_content.html#ac7e286f2dbeb0e6ab0998bdfae1d2892":[2,0,142,5],
+"struct_network_legend_content.html#af1b4ce9a6e5c071b9150ac09d6d6205c":[2,0,142,4],
 "struct_network_legend_entry.html":[2,0,143],
 "struct_network_legend_entry.html#a3163b034e9c1e8d4df31417c6cb9ade3":[2,0,143,0],
 "struct_network_legend_entry.html#a3abcd35bbf4313aefb62cc34a0278d1f":[2,0,143,1],
@@ -247,7 +249,5 @@ var NAVTREEINDEX23 =
 "struct_passenger_import_merge.html#a8acc4a6c298e2f9da8c4d901da64bad4":[2,0,155,4],
 "struct_passenger_import_merge.html#ac538907c45749f755b01f87ba3b96c65":[2,0,155,0],
 "struct_passenger_import_merge.html#acb7bea501c5c5dc330a491f3cbb04714":[2,0,155,3],
-"struct_playback_profiler_1_1_run_config.html":[2,0,161,0],
-"struct_playback_profiler_1_1_run_config.html#a17ae947d5989a3f681cc2feeb79a7833":[2,0,161,0,4],
-"struct_playback_profiler_1_1_run_config.html#a18b62424db404a889a81279c3e79a936":[2,0,161,0,16]
+"struct_playback_profiler_1_1_run_config.html":[2,0,161,0]
 };

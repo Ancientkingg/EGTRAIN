@@ -161,6 +161,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:aa803d9a8c820e98d861d7ae15ce44231"><td class="mdescLeft">&#160;</td><td class="mdescRight">The view scale at Fit in logical pixels per scene unit; 1 before a fit and without bounds.  <br /></td></tr>
 <tr class="memitem:a6f153a2e962a6bd7b823bc37585d25f0" id="r_a6f153a2e962a6bd7b823bc37585d25f0"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a6f153a2e962a6bd7b823bc37585d25f0">topologyBounds</a> () const</td></tr>
 <tr class="memdesc:a6f153a2e962a6bd7b823bc37585d25f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The bounds in scene coordinates of the last fit.  <br /></td></tr>
+<tr class="memitem:aea1fd8816a79dc033ed2640323bfd261" id="r_aea1fd8816a79dc033ed2640323bfd261"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#aea1fd8816a79dc033ed2640323bfd261">paddedTopologyBounds</a> () const</td></tr>
 <tr class="memitem:a1d13e39500ce44511bf5e4713b79c77f" id="r_a1d13e39500ce44511bf5e4713b79c77f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a1d13e39500ce44511bf5e4713b79c77f">atFit</a> () const</td></tr>
 <tr class="memdesc:a1d13e39500ce44511bf5e4713b79c77f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The zoom ratio is 1, as after a fit.  <br /></td></tr>
 <tr class="memitem:a61b2ce4092775b2df89f9101265ae75d" id="r_a61b2ce4092775b2df89f9101265ae75d"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a61b2ce4092775b2df89f9101265ae75d">zoomLabel</a> () const</td></tr>
@@ -560,6 +561,24 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_view_ac364c881dac18f0c3efc98501b2b5d06_cgraph.svg" width="456" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="aea1fd8816a79dc033ed2640323bfd261" name="aea1fd8816a79dc033ed2640323bfd261"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea1fd8816a79dc033ed2640323bfd261">&#9670;&#160;</a></span>paddedTopologyBounds()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QRectF NetworkView::paddedTopologyBounds </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p><a class="el" href="#a6f153a2e962a6bd7b823bc37585d25f0" title="The bounds in scene coordinates of the last fit.">topologyBounds()</a> with the padding that Fit keeps around them in the viewport: the part of the scene that the view shows at Fit, whatever the shape of the viewport. Empty without bounds. </p>
 
 </div>
 </div>

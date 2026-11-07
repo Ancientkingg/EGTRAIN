@@ -222,7 +222,7 @@ var searchData=
   ['resolved_219',['resolved',['../struct_scene_route_traversal.html#ac764fb0bbf92eadeae84745cc5ee53e8',1,'SceneRouteTraversal::resolved'],['../struct_scene_route_stations.html#ab94a98bacf5d5b1985cd0df52aaa6d42',1,'SceneRouteStations::resolved']]],
   ['resolvedpath_220',['resolvedPath',['../namespacescene__save__policy.html#aedd625aae76b1b1d7716d50d4c05956f',1,'scene_save_policy']]],
   ['resolvedsectionids_221',['resolvedSectionIDs',['../struct_simulation_incident.html#a8f56f572e138d9dbf479185d1d0f05f5',1,'SimulationIncident']]],
-  ['resolvenamecollisions_222',['resolveNameCollisions',['../class_station_overlay_item.html#ac82f85c0f28205fa1a5765ec8faa6e33',1,'StationOverlayItem']]],
+  ['resolvenamecollisions_222',['resolveNameCollisions',['../class_station_overlay_item.html#ac3f8121eb826d3ca0d66ffce95e42915',1,'StationOverlayItem']]],
   ['resolveoutputdirectory_223',['resolveOutputDirectory',['../main_8cpp.html#ae6ca41b4597eb4b15649b894f99ba7dd',1,'main.cpp']]],
   ['resolvepath_224',['resolvePath',['../_scene_importer_8cpp.html#a1ab285815ef4815f88f9f0f4ddd46fea',1,'SceneImporter.cpp']]],
   ['resolvepreviewitem_225',['resolvePreviewItem',['../class_inspector_panel.html#a67a007ec5ee5574d0fed91f11e9f71f5',1,'InspectorPanel']]],

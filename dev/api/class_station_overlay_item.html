@@ -218,7 +218,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a734ae5c6831616982d03f6a547648b7f" id="r_a734ae5c6831616982d03f6a547648b7f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a734ae5c6831616982d03f6a547648b7f">setPlatformBars</a> (const QList&lt; QPolygonF &gt; &amp;bars)</td></tr>
 <tr class="memitem:ab81a4d7493651a4531ff135dbc18e4fb" id="r_ab81a4d7493651a4531ff135dbc18e4fb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab81a4d7493651a4531ff135dbc18e4fb">applyViewScale</a> (qreal viewScale, bool nearLook=false)</td></tr>
 <tr class="memitem:ada7869b6534961f7195078726d2d9e7a" id="r_ada7869b6534961f7195078726d2d9e7a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ada7869b6534961f7195078726d2d9e7a">isNameHiddenByCollision</a> () const</td></tr>
-<tr class="memdesc:ada7869b6534961f7195078726d2d9e7a"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="#ac82f85c0f28205fa1a5765ec8faa6e33">resolveNameCollisions()</a> hid the attached name.  <br /></td></tr>
+<tr class="memdesc:ada7869b6534961f7195078726d2d9e7a"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="#ac3f8121eb826d3ca0d66ffce95e42915">resolveNameCollisions()</a> hid the attached name.  <br /></td></tr>
 <tr class="memitem:a8fa420b2b38668b98f78e900488c29dc" id="r_a8fa420b2b38668b98f78e900488c29dc"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a8fa420b2b38668b98f78e900488c29dc">pictogramSceneRect</a> () const</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
@@ -228,7 +228,7 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memdesc:a45c49a31d49da6437338b11fbe53fa59"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same for a std::string.  <br /></td></tr>
 <tr class="memitem:ad46b9e21977474faa59585f9540f0f4c" id="r_ad46b9e21977474faa59585f9540f0f4c"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#ad46b9e21977474faa59585f9540f0f4c">priorityLess</a> (const <a class="el" href="class_station_overlay_item.html">StationOverlayItem</a> &amp;left, const <a class="el" href="class_station_overlay_item.html">StationOverlayItem</a> &amp;right, const QPointF &amp;viewportCenter)</td></tr>
 <tr class="memitem:a6ddc1ec80c93dabd2bfd39e816b3e155" id="r_a6ddc1ec80c93dabd2bfd39e816b3e155"><td class="memItemLeft">static qreal&#160;</td><td class="memItemRight"><a class="el" href="#a6ddc1ec80c93dabd2bfd39e816b3e155">readableItemScale</a> (qreal nativeSizePx, qreal presentationScale, qreal viewScale, qreal minPx)</td></tr>
-<tr class="memitem:ac82f85c0f28205fa1a5765ec8faa6e33" id="r_ac82f85c0f28205fa1a5765ec8faa6e33"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#ac82f85c0f28205fa1a5765ec8faa6e33">resolveNameCollisions</a> (const QList&lt; <a class="el" href="class_station_overlay_item.html">StationOverlayItem</a> * &gt; &amp;stations, const QTransform &amp;sceneToViewport)</td></tr>
+<tr class="memitem:ac3f8121eb826d3ca0d66ffce95e42915" id="r_ac3f8121eb826d3ca0d66ffce95e42915"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#ac3f8121eb826d3ca0d66ffce95e42915">resolveNameCollisions</a> (const QList&lt; <a class="el" href="class_station_overlay_item.html">StationOverlayItem</a> * &gt; &amp;stations, const QTransform &amp;sceneToViewport, const QRectF &amp;bounds=QRectF())</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
@@ -758,7 +758,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p><a class="el" href="#ac82f85c0f28205fa1a5765ec8faa6e33">resolveNameCollisions()</a> hid the attached name. </p>
+<p><a class="el" href="#ac3f8121eb826d3ca0d66ffce95e42915">resolveNameCollisions()</a> hid the attached name. </p>
 
 </div>
 </div>
@@ -1141,8 +1141,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ac82f85c0f28205fa1a5765ec8faa6e33" name="ac82f85c0f28205fa1a5765ec8faa6e33"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac82f85c0f28205fa1a5765ec8faa6e33">&#9670;&#160;</a></span>resolveNameCollisions()</h2>
+<a id="ac3f8121eb826d3ca0d66ffce95e42915" name="ac3f8121eb826d3ca0d66ffce95e42915"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac3f8121eb826d3ca0d66ffce95e42915">&#9670;&#160;</a></span>resolveNameCollisions()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1158,7 +1158,12 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const QTransform &amp;</td>          <td class="paramname"><span class="paramname"><em>sceneToViewport</em></span>&#160;)</td>
+          <td class="paramtype">const QTransform &amp;</td>          <td class="paramname"><span class="paramname"><em>sceneToViewport</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QRectF &amp;</td>          <td class="paramname"><span class="paramname"><em>bounds</em></span><span class="paramdefsep"> = </span><span class="paramdefval">QRectF()</span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -1167,11 +1172,11 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Places the names of station marks and hides the attached names that overlap, on screen, the name of a higher-priority station or that cover part of the drawn pictogram of any other station: a visible plain picture, the pictogram rect of a visible mark that draws its pin, and the footprint of the squares of a visible mark in the near look. A name goes under the footprint of the squares of its station, or, where its text there crosses a visible track line or the pictogram of another station, shown or hidden, to the first of these spots that crosses neither: above the pin, right of the footprint, left of it, and above a frame on the top of the box of the node centres at the x of the footprint; without one it stays under the footprint. A mark that draws nothing in the near look has no pin and no frame there, so its name goes above the footprint instead of above the pin and has no last spot. A mark of a centred style has no such frame either, and its name keeps clear of the footprint and of the far mark in both looks. A name is placed again only after <a class="el" href="#ab81a4d7493651a4531ff135dbc18e4fb">applyViewScale()</a> moved it. Selected and followed stations keep their name. Pictograms stay visible. sceneToViewport is the viewport transform of the view. </p>
+<p>Places the names of station marks and hides the attached names that overlap, on screen, the name of a higher-priority station or that cover part of the drawn pictogram of any other station: a visible plain picture, the pictogram rect of a visible mark that draws its pin, and the footprint of the squares of a visible mark in the near look. A name goes under the footprint of the squares of its station, or, where its text there crosses a visible track line or the pictogram of another station, shown or hidden, or leaves bounds, to the first of these spots where it does none of that: above the pin, right of the footprint, left of it, and above a frame on the top of the box of the node centres at the x of the footprint; without one it stays under the footprint. A mark that draws nothing in the near look has no pin and no frame there, so its name goes above the footprint instead of above the pin and has no last spot. A mark of a centred style has no such frame either, and its name keeps clear of the footprint and of the far mark in both looks. A name is placed again only after <a class="el" href="#ab81a4d7493651a4531ff135dbc18e4fb">applyViewScale()</a> moved it. Selected and followed stations keep their name. Pictograms stay visible. sceneToViewport is the viewport transform of the view, and bounds, in scene coordinates, what the view shows at Fit; empty bounds set no limit. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_station_overlay_item_ac82f85c0f28205fa1a5765ec8faa6e33_cgraph.svg" width="591" height="334"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_station_overlay_item_ac3f8121eb826d3ca0d66ffce95e42915_cgraph.svg" width="591" height="334"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

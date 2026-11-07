@@ -38,7 +38,7 @@ var class_station_overlay_item =
     [ "preferredViewportPlacement", "class_station_overlay_item.html#a71327b212a0a700bde984f17a5600aea", null ],
     [ "priorityLess", "class_station_overlay_item.html#ad46b9e21977474faa59585f9540f0f4c", null ],
     [ "readableItemScale", "class_station_overlay_item.html#a6ddc1ec80c93dabd2bfd39e816b3e155", null ],
-    [ "resolveNameCollisions", "class_station_overlay_item.html#ac82f85c0f28205fa1a5765ec8faa6e33", null ],
+    [ "resolveNameCollisions", "class_station_overlay_item.html#ac3f8121eb826d3ca0d66ffce95e42915", null ],
     [ "setFollowed", "class_station_overlay_item.html#a7ebb5ae6b99a0b375729da99ba995b48", null ],
     [ "setMarkStyle", "class_station_overlay_item.html#af0d1e73b44e265290627d3881a43027a", null ],
     [ "setNameVisible", "class_station_overlay_item.html#a42be28ad0472e4336cfc82af83497094", null ],

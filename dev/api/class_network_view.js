@@ -16,6 +16,7 @@ var class_network_view =
     [ "maximumZoomRatio", "class_network_view.html#af1efa7710811d8837e43eff52971cd3a", null ],
     [ "mousePressEvent", "class_network_view.html#a50f02412e1c7a8f8ef6301e28f94114b", null ],
     [ "mouseReleaseEvent", "class_network_view.html#ac364c881dac18f0c3efc98501b2b5d06", null ],
+    [ "paddedTopologyBounds", "class_network_view.html#aea1fd8816a79dc033ed2640323bfd261", null ],
     [ "playbackProfileBegan", "class_network_view.html#ab2f867c313f3f70dceb0f60a9072ba8a", null ],
     [ "resizeEvent", "class_network_view.html#acb45e6e5ce7165015e76b75e75c68814", null ],
     [ "scrollContentsBy", "class_network_view.html#a0058813b1a235d2975ab24cef4fcad3c", null ],

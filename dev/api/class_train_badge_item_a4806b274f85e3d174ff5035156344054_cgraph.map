@@ -1,5 +1,5 @@
 <map id="TrainBadgeItem::paint" name="TrainBadgeItem::paint">
-<area shape="rect" id="Node000001" title="Draws the speed in white with a dark outline when showsSpeed() is true, and nothing otherwise." alt="" coords="5,56,170,84"/>
+<area shape="rect" id="Node000001" title="Draws the speed in white on its backing in canvasColor() when showsSpeed() is true,..." alt="" coords="5,56,170,84"/>
 <area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#a2e7d09af69daec1cb464c65129b19737" title="The background of the network canvas, RGB (16, 26, 34). The station marks and names take it as their ..." alt="" coords="273,29,374,57"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,58,260,50,255,51,170,63"/>
 <area shape="rect" id="Node000003" href="$class_train_badge_item.html#a887694421ef7fd74a6aedb4c0b0397d5" title="The badge draws the speed: in the Detailed presentation, while the speed is visible and not empty." alt="" coords="218,81,430,109"/>
