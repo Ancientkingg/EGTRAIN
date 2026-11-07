@@ -49,6 +49,7 @@ struct NetworkLegendContent {
 	/// Adds the row of the occupied sections, when hasTracks is set. False for the track preview.
 	bool showOperationalTrackStates = true;
 	bool hasSelectedTrack = false;		   ///< Adds a row for the selected track, when hasTracks is set.
+	bool hasSelectedItem = false;		   ///< Adds a row for the mark of a selected item other than a track, when hasTracks is set.
 	QVector<NetworkLegendTrain> trains;	   ///< One row for the default colour and one per other colour.
 	QVector<StationVisual> stationVisuals; ///< One row per station class that occurs.
 	bool hasSignals = false;			   ///< Adds the rows of the stop, caution, proceed, unavailable and failed signal.

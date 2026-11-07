@@ -682,6 +682,8 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			told = 0;
 			clickAt(pointOf(item));
 		};
+		// The rows of the map key. These clicks select no track, so the key names the mark of the selected row "Selected item".
+		const auto keyLabels = [&w]() { return w.m_networkLegendWidget ? w.m_networkLegendWidget->entryLabels() : QStringList(); };
 		int kinds = 0;
 		for (const char* kind : {"arc", "node", "connection", "station-node", "station", "signal"}) {
 			QGraphicsItem* item = clickInView(kind);
@@ -697,6 +699,8 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 				fail("infrastructure row", QString("a click on a preview %1 moves or zooms the view").arg(kind));
 			else if (!detailsKept(item))
 				fail("infrastructure row", QString("a click on a preview %1 empties the Details dock").arg(kind));
+			else if (!keyLabels().contains(QStringLiteral("Selected item")) || keyLabels().contains(QStringLiteral("Selected track")))
+				fail("infrastructure row", QString("the map key does not name the mark of a preview %1 Selected item").arg(kind));
 		}
 		if (kinds < 3)
 			fail("infrastructure row", QString("only %1 kinds of item in the middle of the view").arg(kinds));
@@ -846,6 +850,8 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 				QApplication::processEvents();
 				if (mark->isVisible())
 					wrong << "a closed dock leaves the mark on the canvas";
+				if (keyLabels().contains(QStringLiteral("Selected item")))
+					wrong << "a closed dock leaves the mark in the map key";
 				dock->show();
 				dock->raise();
 				QApplication::processEvents();
