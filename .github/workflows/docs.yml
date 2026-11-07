@@ -1,12 +1,12 @@
 name: Docs
 
 # Builds the documentation site: the pages of docs/ with Sphinx and the C++ reference with Doxygen. A pull request also
-# fails when it adds undocumented classes or members to the files it changes. A push to main publishes the site to dev/
-# on the gh-pages branch. A successful run of the Release workflow publishes the commit it released to <version>/, and to
-# latest/ when no published version is newer. Each publish also writes the home page, the support, contact and privacy
-# pages and the source/ stub at the root of gh-pages from docs/site/ of main, with the downloads of the newest release in
-# the feed of egtrain.samuelbruin.com, and then publishes the same folders on egtrain.samuelbruin.com with pages written
-# from that feed alone.
+# fails when it adds undocumented classes or members to the files it changes. The site is published on
+# egtrain.samuelbruin.com only. A push to main publishes it to dev/. A successful run of the Release workflow publishes the
+# commit it released to <version>/, and to latest/ when no stable release tag has a higher version. Each publish also
+# writes the home page, the support, contact and privacy pages and the source/ stub from docs/site/ of main and the feed
+# of the website. The same runs keep the gh-pages branch, which GitHub Pages serves at the address that EGTRAIN 1.0.4 and
+# 1.0.5 open from Help, as a redirect to the same paths on egtrain.samuelbruin.com.
 on:
   pull_request:
   push:
@@ -31,17 +31,25 @@ jobs:
     if: github.event_name != 'workflow_run' || (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success')
     outputs:
       version: ${{ steps.version.outputs.version }}
+      latest: ${{ steps.version.outputs.latest }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
 
-      # A release tags the commit it releases with v<version>. A prerelease tag has a suffix and publishes no copy.
+      # A release tags the commit it releases with v<version>. A prerelease tag has a suffix and publishes no copy. The
+      # output latest is true when no stable tag sorts higher, so that a release of an older line leaves latest/ alone.
       - name: Select the release version
         id: version
         if: github.event_name == 'workflow_run'
-        run: echo "version=$(git tag --points-at HEAD | grep -xE 'v[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1 | cut -c 2-)" >> "$GITHUB_OUTPUT"
+        run: |
+          version="$(git tag --points-at HEAD | grep -xE 'v[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1 | cut -c 2-)"
+          newest="$(git tag --list | grep -xE 'v[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1 | cut -c 2-)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [ -n "$version" ] && [ "$version" = "$newest" ]; then
+            echo "latest=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: actions/setup-python@v5
         with:
@@ -84,8 +92,6 @@ jobs:
     if: github.event_name == 'push' || needs.build.outputs.version != ''
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    permissions:
-      contents: write
     # Publishing dev/ waits for an earlier run of main, and a run whose commit is no longer the tip of main skips it.
     concurrency:
       group: docs-publish-${{ github.event_name == 'push' && 'dev' || github.run_id }}
@@ -98,52 +104,30 @@ jobs:
           name: docs-site
           path: site
 
-      # Another run can push to gh-pages first, so a rejected push starts again from its new tip. The output dirs names
-      # the folders that the step published, for the next step.
-      - name: Push to gh-pages
+      # The folders to publish, as copies of the site in pages/: dev/, or <version>/ and, when the build job found no
+      # newer stable release, latest/. The output dirs names them for the next step.
+      - name: Select the folders to publish
         id: pages
         env:
           VERSION: ${{ needs.build.outputs.version }}
+          LATEST: ${{ needs.build.outputs.latest }}
         run: |
           dir="${VERSION:-dev}"
           if [ "$dir" = dev ] && [ "$(git ls-remote origin "$GITHUB_REF" | cut -f1)" != "$GITHUB_SHA" ]; then
             echo "main has advanced; its newer run publishes dev/."
             exit 0
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          for attempt in 1 2 3; do
-            git worktree remove --force pages 2>/dev/null || true
-            if git fetch --depth 1 origin gh-pages; then
-              git worktree add --detach pages FETCH_HEAD
-            else
-              git worktree add --orphan -b gh-pages pages
-            fi
-            rm -rf "pages/$dir"
-            cp -R site "pages/$dir"
-            dirs="$dir"
-            if [ "$dir" != dev ] && [ "$dir" = "$(cd pages && ls -d [0-9]* | sort -V | tail -n 1)" ]; then
-              rm -rf pages/latest
-              cp -R site pages/latest
-              dirs="$dir latest"
-            fi
-            touch pages/.nojekyll
-            python3 tools/docs/home_page.py pages
-            git -C pages add -A
-            if git -C pages diff --cached --quiet; then
-              echo "dirs=$dirs" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            git -C pages commit -q -m "Publish the documentation of $dir"
-            if git -C pages push origin HEAD:refs/heads/gh-pages; then
-              echo "dirs=$dirs" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-          done
-          exit 1
+          mkdir pages
+          cp -R site "pages/$dir"
+          dirs="$dir"
+          if [ "$dir" != dev ] && [ "$LATEST" = true ]; then
+            cp -R site pages/latest
+            dirs="$dir latest"
+          fi
+          echo "dirs=$dirs" >> "$GITHUB_OUTPUT"
 
-      # The folders of the step above. The pages of the website list the versions of its feed, not the folders of this copy
-      # of gh-pages, so a run of main and a run of a release that publish at the same time leave the same pages.
+      # The pages of the website list the versions of its feed, not the folders of this run, so a run of main and a run of
+      # a release that publish at the same time leave the same pages.
       - name: Publish on egtrain.samuelbruin.com
         if: steps.pages.outputs.dirs != ''
         env:
@@ -152,3 +136,49 @@ jobs:
         run: |
           read -ra dirs <<< "$DIRS"
           python3 tools/release/publish_selfhost.py site pages "${dirs[@]}"
+
+  # GitHub Pages serves the gh-pages branch at https://ancientkingg.github.io/EGTRAIN/, the address that EGTRAIN 1.0.4 and
+  # 1.0.5 open from Help. The branch holds only .nojekyll and docs/site/redirect.html as index.html and 404.html, which
+  # send every address under /EGTRAIN/ to the same path on egtrain.samuelbruin.com. A run commits only when the branch
+  # differs from these files, and only while its commit is still the tip of main, so that an older run never writes older
+  # files. Another run can push first, so a rejected push starts again from the new tip.
+  redirect:
+    name: Keep the redirect on gh-pages
+    needs: build
+    if: github.event_name == 'push' || needs.build.outputs.version != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write the redirect to gh-pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3; do
+            if [ "$(git ls-remote origin "$GITHUB_REF" | cut -f1)" != "$GITHUB_SHA" ]; then
+              echo "main has advanced; its newer run writes the redirect."
+              exit 0
+            fi
+            git worktree remove --force pages 2>/dev/null || true
+            if git fetch --depth 1 origin gh-pages; then
+              git worktree add --no-checkout --detach pages FETCH_HEAD
+            else
+              git worktree add --orphan -b gh-pages pages
+            fi
+            cp docs/site/redirect.html pages/index.html
+            cp docs/site/redirect.html pages/404.html
+            touch pages/.nojekyll
+            git -C pages add -A
+            if git -C pages diff --cached --quiet; then
+              echo "gh-pages holds the redirect only."
+              exit 0
+            fi
+            git -C pages commit -q -m "Redirect the documentation to egtrain.samuelbruin.com"
+            if git -C pages push origin HEAD:refs/heads/gh-pages; then
+              exit 0
+            fi
+          done
+          exit 1
