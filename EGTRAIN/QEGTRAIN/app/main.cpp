@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <chrono>
 #include <climits>
+#include <clocale>
 #include <cmath>
 #include <exception>
 #include <iomanip>
@@ -100,6 +101,14 @@ static void keepLightLook() {
 #endif
 	keepLightPalette();
 	QCoreApplication::instance()->installEventFilter(new LightPaletteKeeper(QCoreApplication::instance()));
+}
+
+// On macOS and Linux the application object sets the locale of the C library from LANG and the LC_ variables. A locale
+// such as nl_NL would then make strtod, std::stod and printf read and write numbers with a decimal comma, while scene
+// files, legacy files and run output write them with a full stop in every locale. Qt formats and reads numbers without
+// the C library, so text that Qt formats does not change.
+static void useCLocaleForNumbers() {
+	std::setlocale(LC_NUMERIC, "C");
 }
 
 // Whether this is the creator acceptance run of a test build, which starts without a case study.
@@ -499,6 +508,7 @@ static int runMain(int argc, char* argv[]) {
 	if (gui) {
 		const bool styleChosen = widgetStyleChosen(argc, argv);
 		GuardedApplication application(argc, argv);
+		useCLocaleForNumbers();
 		// Before the palettes, because a new style brings its own.
 		preferWindowsVistaStyle(styleChosen);
 #if EGTRAIN_BUILD_TESTS
@@ -607,6 +617,7 @@ static int runMain(int argc, char* argv[]) {
 	}
 
 	QCoreApplication application(argc, argv);
+	useCLocaleForNumbers();
 	if (!onlyKnownOptions(argc, argv))
 		return 1;
 	const SceneRequest request = readSceneRequest(sceneOption, false);
