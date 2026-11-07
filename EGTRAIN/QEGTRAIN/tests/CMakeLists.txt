@@ -996,13 +996,10 @@ egtrain_add_test(test_station_departure
 	TIMEOUT 300)
 # Release completes in seconds; the ceiling exists for the instrumented
 # sanitizer job, which needs room for the full run plus a short liveness hold.
-# The longest tests start first, so that a parallel run does not end waiting for one of them.
-# Without the timings of an earlier run, ctest orders tests by this cost.
 egtrain_add_test(test_gui_autostart_smoke
 	COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/gui_autostart_smoke.py $<TARGET_FILE:QEGTRAIN>
-	LABELS integration gui slow
+	LABELS integration gui
 	TIMEOUT 420
-	COST 80
 	OWN_SETTINGS)
 egtrain_add_test(test_close_during_run_smoke
 	COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/close_during_run_smoke.py $<TARGET_FILE:QEGTRAIN>
