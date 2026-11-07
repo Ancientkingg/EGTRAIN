@@ -2098,7 +2098,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			// colours.
 			plotOk = plotOk && chart->title().isEmpty() && tractionWarning
 				&& (tractionWarning->text() == QStringLiteral("Part of the curve is below 0 kN and is not shown.")) == fixture.second
-				&& !window->findChild<QWidget*>("diagramDetailsPanel") && window->rollingStockSubject() == QString::fromStdString(unit.id);
+				&& !window->findChild<QWidget*>("diagramDetailsPanel") && window->rollingStockSubject() == QString::fromStdString(unit.id)
+				&& window->windowTitle() == QStringLiteral("Traction curve");
 			if (axis) {
 				const double maximum = axis->max();
 				chart->zoom(2.0);
@@ -2631,6 +2632,15 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						facetFailure(facetOk, "composition", "traction plot disabled for a unit with a curve");
 					if (sampleTractionCurve(tractionUnit->tractionCurve).empty())
 						facetFailure(facetOk, "composition", "traction curve produced no plot samples");
+					const int windowsBefore = static_cast<int>(w.findChildren<DiagramWindow*>().size());
+					compositionPanel(w)->plotTractionButton()->click();
+					QApplication::processEvents();
+					const auto plotWindows = w.findChildren<DiagramWindow*>();
+					if (static_cast<int>(plotWindows.size()) != windowsBefore + 1
+						|| plotWindows.last()->windowTitle() != QStringLiteral("Traction curve"))
+						facetFailure(facetOk, "composition", "traction plot from a composition is not titled Traction curve");
+					if (static_cast<int>(plotWindows.size()) > windowsBefore)
+						plotWindows.last()->close();
 					if (compositionPanel(w)->unitSourceDataLabel() && compositionPanel(w)->unitSourceDataLabel()->text().isEmpty())
 						facetFailure(facetOk, "composition", "unit source data label empty");
 				}

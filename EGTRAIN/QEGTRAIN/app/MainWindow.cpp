@@ -2340,7 +2340,7 @@ void MainWindow::refreshInputTractionDiagrams(const std::string& unitId) {
 			window->close();
 			continue;
 		}
-		window->setPresentation("Traction Curve", inputTractionContext(*unit),
+		window->setPresentation("Traction curve", inputTractionContext(*unit),
 			inputTractionWarning(*unit));
 		window->setChart(buildInputTractionChart(*unit));
 	}
@@ -2358,11 +2358,11 @@ void MainWindow::renameTractionDiagrams(const QString& oldId, const QString& new
 void MainWindow::plotTrainUnitTraction(const SceneTrainUnit& unit) {
 	QChart* chart = buildInputTractionChart(unit);
 
-	DiagramWindow* win = new DiagramWindow("Traction Curve", this);
+	DiagramWindow* win = new DiagramWindow("Traction curve", this);
 	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setRollingStockSubject(QString::fromStdString(unit.id));
 	win->setChart(chart);
-	win->setPresentation("Traction Curve", inputTractionContext(unit), inputTractionWarning(unit));
+	win->setPresentation("Traction curve", inputTractionContext(unit), inputTractionWarning(unit));
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	m_resultViews->addCaseWindow(win);
 	win->show();
