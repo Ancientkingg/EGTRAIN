@@ -33,7 +33,10 @@ struct RouteReferenceChoice {
 
 // Labels the used routes, given as (runtime index, route id) in display order, with
 // the stations each passes in travel order: "route0 --> Gvc - Gdg - Ut". A long
-// label is shortened in the middle and the tooltip keeps the full text.
+// label is shortened in the middle and the tooltip keeps the full text. The tooltip
+// also names the services of the scene that run on the route, as "Used by service A",
+// and labels that read the same apart from the route id end with them, as
+// "route2 --> Guingamp - ... - Paimpol (service A)".
 QVector<RouteReferenceChoice> buildRouteReferenceChoices(const SceneModel& scene,
 	const std::vector<std::pair<int, std::string>>& usedRoutes);
 
