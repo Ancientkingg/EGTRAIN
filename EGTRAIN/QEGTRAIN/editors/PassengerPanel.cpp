@@ -476,8 +476,12 @@ void PassengerPanel::updatePassengerDetail() {
 		for (const auto& diagnostic : *m_diagnostics) {
 			if (!belongsToPassenger(diagnostic, passengerPrefix, passenger->id, journeyIds, legIds))
 				continue;
-			// The colour of the error callout says that its lines are errors; the other callout names the severity.
-			const QString message = QString::fromStdString(diagnostic.message);
+			// The colour of the error callout says that its lines are errors; the other callout names the severity. The item
+			// of a line, such as its journey or leg, follows the message, so the lines of the journeys can be told apart.
+			QString message = QString::fromStdString(diagnostic.message);
+			const std::string item = itemLabel(diagnostic);
+			if (!item.empty())
+				message += QStringLiteral(" (%1)").arg(QString::fromStdString(item));
 			if (diagnostic.severity == SceneSeverity::Error) {
 				errors << message;
 			} else {

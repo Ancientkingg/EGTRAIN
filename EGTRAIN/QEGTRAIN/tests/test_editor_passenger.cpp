@@ -664,12 +664,12 @@ void TestPassengerPanel::showsDiagnosticCallouts() {
 	std::vector<SceneDiagnostic> diagnostics = {legError, journeyWarning, otherPassenger};
 	panel.setDiagnostics(&diagnostics);
 	panel.refresh();
-	// An error goes in the error callout.
+	// An error goes in the error callout. A diagnostic without an item shows its message alone.
 	QCOMPARE(panel.diagnosticLabel()->text(), "Leg service is unknown");
 	QCOMPARE(role(panel.diagnosticLabel()), "error");
 	QVERIFY(!panel.diagnosticLabel()->isHidden());
-	// A warning goes in the warning callout, apart from the error.
-	QCOMPARE(panel.warningLabel()->text(), "Warning: Journey is odd");
+	// A warning goes in the warning callout, apart from the error, and names its journey after the message.
+	QCOMPARE(panel.warningLabel()->text(), "Warning: Journey is odd (journey J1)");
 	QCOMPARE(role(panel.warningLabel()), "warning");
 	QVERIFY(!panel.warningLabel()->isHidden());
 	diagnostics = {legError, otherPassenger};
@@ -682,7 +682,7 @@ void TestPassengerPanel::showsDiagnosticCallouts() {
 	panel.refresh();
 	// A warning alone leaves the error callout hidden.
 	QVERIFY(panel.diagnosticLabel()->isHidden());
-	QCOMPARE(panel.warningLabel()->text(), "Warning: Journey is odd");
+	QCOMPARE(panel.warningLabel()->text(), "Warning: Journey is odd (journey J1)");
 	QCOMPARE(role(panel.warningLabel()), "warning");
 	QVERIFY(!panel.warningLabel()->isHidden());
 	panel.passengerList()->setCurrentRow(1);
@@ -1090,17 +1090,19 @@ void TestPassengerPanel::calloutsShowSelectedPassenger() {
 	QCOMPARE(panel.diagnosticLabel()->toolTip().split('\n').size(), qsizetype(7));
 	QVERIFY(!panel.diagnosticLabel()->toolTip().contains("and 2 more"));
 	const QStringList noteLines = panel.warningLabel()->text().split('\n');
-	// The warnings are those of the passenger, five lines and the count of the rest.
+	// The warnings are those of the passenger, five lines and the count of the rest. Each names its journey, so the
+	// warnings of the journeys can be told apart.
 	QCOMPARE(noteLines.size(), qsizetype(6));
-	QCOMPARE(noteLines.front(), "Warning: Journey has no route-choice legs");
+	QCOMPARE(noteLines.front(), "Warning: Journey has no route-choice legs (journey XJ0)");
+	QCOMPARE(noteLines.at(1), "Warning: Journey has no route-choice legs (journey XJ1)");
 	QCOMPARE(noteLines.back(), "and 3 more");
 	QVERIFY(!panel.warningLabel()->text().contains("Scene"));
 	QVERIFY(!panel.warningLabel()->text().contains("Other"));
 	QVERIFY2(panel.warningLabel()->toolTip().split('\n').size() == 8, "the tooltip of the warning callout lists all of them");
 
 	panel.passengerList()->setCurrentRow(1);
-	// Another passenger shows only its own message, without a tooltip when all of it is shown.
-	QCOMPARE(panel.diagnosticLabel()->text(), "Other passenger error");
+	// Another passenger shows only its own message, with its journey, and without a tooltip when all of it is shown.
+	QCOMPARE(panel.diagnosticLabel()->text(), "Other passenger error (journey OJ)");
 	QVERIFY(panel.diagnosticLabel()->toolTip().isEmpty());
 	QVERIFY(panel.warningLabel()->isHidden());
 	QVERIFY(panel.warningLabel()->toolTip().isEmpty());
