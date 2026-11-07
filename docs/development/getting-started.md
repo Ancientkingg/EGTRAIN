@@ -1,6 +1,6 @@
 # Getting started as a developer
 
-This page takes you from a fresh clone to a built application, a first run, a changed test and the
+This page takes you from a fresh copy of the source tree to a built application, a first run, a changed test and the
 checks a pull request has to pass. It points to the longer guides for details. EGTRAIN is a Qt 6 and
 C++17 desktop application for railway micro-simulation, built with CMake.
 

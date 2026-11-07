@@ -32,7 +32,7 @@ Release dates and versions were read on 2026-10-19 from the release pages of the
 
 | Option | Search | Copy per release | Offline and in the app | Link checking | Maintenance | Effort |
 | --- | --- | --- | --- | --- | --- | --- |
-| Plain Markdown on the code host | The code search of the host only | A Git tag shows the docs of that tag | No HTML, so nothing to show in the app | `check_docs.py` | Not applicable | None, but no manual in the app and no C++ reference |
+| Plain Markdown files | None of its own | A Git tag shows the docs of that tag | No HTML, so nothing to show in the app | `check_docs.py` | Not applicable | None, but no manual in the app and no C++ reference |
 | MkDocs with Material | Built in | `mike` plugin | Offline plugin; the theme needs JavaScript, which Qt's text widgets do not run; no `.qch` | Validation settings | MkDocs 1.6.1 on 2024-08-30 is the last release. Material 9.7.7 on 2026-07-17, maintenance only | Low, plus a second pipeline for the app |
 | Zensical (successor of Material) | Built in | Not built in; a fork of `mike`, described as transitional | Offline plugin; no `.qch` | Reported broken anchors on the current pages | 0.0.71 on 2026-10-16, before its first 0.1 release | Low, but the tool still changes |
 | Sphinx with MyST | Built in | Build each tag into its own folder | `qthelp` builder is part of Sphinx; `qhelpgenerator` comes with Qt | Warnings for missing pages and anchors; `-W` turns them into errors | Sphinx 9.1.0 on 2025-12-31, MyST-Parser 5.1.0 on 2026-05-13, both active | Low to medium |

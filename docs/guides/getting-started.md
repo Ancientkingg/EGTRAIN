@@ -22,7 +22,7 @@ Download the package for your system from the [EGTRAIN website](https://egtrain.
 - Windows: run `EGTRAIN-Setup-<version>-x64.exe` and start **EGTRAIN** from the Start Menu, or unzip `EGTRAIN-Portable-<version>-x64.zip` into a new, empty folder and run `QEGTRAIN.exe`.
 - Linux: make the AppImage executable and run it. It needs glibc 2.38 or later, as on Ubuntu 24.04. On a minimal system that reports a missing library such as `libGL.so.1`, install `libgl1`, `libopengl0`, `libegl1`, `libharfbuzz0b` and `libfontconfig1` first. The AppImage also needs the FUSE 2 library: when it stops with `AppImages require FUSE to run.`, install `libfuse2t64`, or start it with `./QEGTRAIN-linux-x86_64.AppImage --appimage-extract-and-run`.
 
-The packages contain the bundled cases, so you need no separate case file. If you prefer a file, download `Paimpol.egscene` from the page of the release, which the Release notes link below the downloads opens.
+The packages contain the bundled cases, so you need no separate case file. If you prefer a file, download `Paimpol.egscene` from the release page: follow the Release notes link below the downloads on the EGTRAIN website.
 
 ## 2. The first start
 

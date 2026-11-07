@@ -22,8 +22,7 @@ starts on a line of its own. A statement that is wrapped elsewhere comes out as 
 line, so wrap it at one of those places.
 
 `.git-blame-ignore-revs` lists the commits that only changed the format.
-`git config blame.ignoreRevsFile .git-blame-ignore-revs` makes `git blame` skip them, and
-the blame view of the code host skips them without a setting.
+`git config blame.ignoreRevsFile .git-blame-ignore-revs` makes `git blame` skip them.
 
 ## Static checks
 

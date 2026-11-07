@@ -64,7 +64,7 @@ the date, and fills the table. Not recorded means that nothing has been recorded
 
 | Item | Record |
 | --- | --- |
-| Project | Public, owned by a user account, not a fork (from `gh repo view`) |
+| Project | Not recorded |
 | Built where | The CI workflows of the project |
 | Licence | `LICENSE` is the GNU General Public License version 3, and the README names it as GPL-3.0-only for the code |
 | Owner confirms that this is the intended OSI-approved licence | Not recorded |
