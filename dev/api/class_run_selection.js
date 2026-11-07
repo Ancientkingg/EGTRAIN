@@ -7,6 +7,7 @@ var class_run_selection =
     [ "excludeAll", "class_run_selection.html#a3d53bdde6173e14c5fc20e0a9851ece5", null ],
     [ "excluded", "class_run_selection.html#a8cca816811ab5177645f08407fae64f4", null ],
     [ "hasExclusions", "class_run_selection.html#abe01062c0fb1296c56ff477039d5259c", null ],
+    [ "historyRestored", "class_run_selection.html#a0940878fd28e81f1c43be9ef5c2eeefd", null ],
     [ "includeAll", "class_run_selection.html#afbafcaba84f27a6abd22d98255f275d3", null ],
     [ "isExcluded", "class_run_selection.html#abaec58a04e1aa529098fdc4e6433ddd4", null ],
     [ "isScenarioModified", "class_run_selection.html#a028b122d6097a640618a77541c0b7f72", null ],

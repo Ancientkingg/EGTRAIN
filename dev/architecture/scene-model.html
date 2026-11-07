@@ -572,10 +572,11 @@ and <code class="docutils literal notranslate"><span class="pre">redo</span></co
 scene. Each snapshot carries a label that <code class="docutils literal notranslate"><span class="pre">record</span></code> derives from the counts of
 the parts of the scene (<code class="docutils literal notranslate"><span class="pre">Add</span> <span class="pre">service</span></code>, <code class="docutils literal notranslate"><span class="pre">Delete</span> <span class="pre">stop</span></code>, or <code class="docutils literal notranslate"><span class="pre">Edit</span></code> when the change
 is not one part added or removed), the scenarios that differ from the saved
-scene, and its memory as <code class="docutils literal notranslate"><span class="pre">estimateSceneModelBytes</span></code> counts it. That estimate
-adds up the structs, the vectors and the strings too long for the string
-object, so it depends on the standard library and is a bound, not a
-measurement.</p>
+scene, the run selection (the selected scenario and the occurrences left out)
+as <code class="docutils literal notranslate"><span class="pre">keepRunSelection</span></code> kept it when the state was last left, and its memory as
+<code class="docutils literal notranslate"><span class="pre">estimateSceneModelBytes</span></code> counts it. That estimate adds up the structs, the
+vectors and the strings too long for the string object, so it depends on the
+standard library and is a bound, not a measurement.</p>
 <p>The history keeps at most 100 undo steps and an estimated 128 MiB. Both limits
 are parameters of the constructor. When either is exceeded the oldest
 snapshots are dropped; the live one never is, even when it alone is larger than

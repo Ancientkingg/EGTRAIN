@@ -1,5 +1,8 @@
 var NAVTREEINDEX23 =
 {
+"struct_export_folders.html":[2,0,86],
+"struct_export_folders.html#a1877cc8a3d37df832e5d42d790791175":[2,0,86,4],
+"struct_export_folders.html#a67091e3a1d58dc8f252666336235fc4c":[2,0,86,3],
 "struct_export_folders.html#a7546c4066b2c648e42cef20be663fbbe":[2,0,86,5],
 "struct_export_folders.html#a8292d2a9dda4eb61c1c0e7b06809f2fa":[2,0,86,2],
 "struct_export_folders.html#ae3c9f78f695bc92fdecf7ef03ef0b9c2":[2,0,86,0],
@@ -246,8 +249,5 @@ var NAVTREEINDEX23 =
 "struct_network_presenter_1_1_preview_outcome.html#a49ac49ce5f1bd2dc31a4bf05c563d026":[2,0,147,1,0],
 "struct_network_presenter_1_1_preview_outcome.html#aa942c36a8d1095c506cbe48014014f5f":[2,0,147,1,1],
 "struct_passenger_import_merge.html":[2,0,155],
-"struct_passenger_import_merge.html#a193e535df43db68910347f1aea528762":[2,0,155,2],
-"struct_passenger_import_merge.html#a21dec47824e41d74ac73e656264d587c":[2,0,155,1],
-"struct_passenger_import_merge.html#a8acc4a6c298e2f9da8c4d901da64bad4":[2,0,155,4],
-"struct_passenger_import_merge.html#ac538907c45749f755b01f87ba3b96c65":[2,0,155,0]
+"struct_passenger_import_merge.html#a193e535df43db68910347f1aea528762":[2,0,155,2]
 };

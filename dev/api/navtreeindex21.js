@@ -1,5 +1,8 @@
 var NAVTREEINDEX21 =
 {
+"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a823bc4d728e12359abc63b7004103dc1":[1,0,14,19,5],
+"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a8a81a64e1e3728409b8c377eef362796":[1,0,14,19,7],
+"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657aa244ddc17d9605fe956fca75701b5ac2":[1,0,14,19,8],
 "namespacetelemetry.html#a1c527728e9a305d690ee37700e287657aba9952319eb8b6de5151ef934f8e13b8":[1,0,14,19,6],
 "namespacetelemetry.html#a1c527728e9a305d690ee37700e287657abf6f622872734159c1ad15920e24b5ab":[1,0,14,19,3],
 "namespacetelemetry.html#a1c527728e9a305d690ee37700e287657ae35c9498bfa51f9e0a3b615b97a2cead":[1,0,14,19,0],
@@ -246,8 +249,5 @@ var NAVTREEINDEX21 =
 "struct_capacity_analysis_result.html#aaa9a70fd80f30a652936b2852c069aee":[2,0,34,10],
 "struct_capacity_analysis_result.html#ab2bb1531833a9af99bbb185f58d04cca":[2,0,34,6],
 "struct_capacity_analysis_result.html#ab6cb46394965ca36ccedf424dea4931c":[2,0,34,5],
-"struct_capacity_analysis_result.html#ad28b9d1f48c61b5487a333a8c6807801":[2,0,34,3],
-"struct_capacity_analysis_result.html#aee07229ba2471103406f4c2e87c8882a":[2,0,34,8],
-"struct_capacity_analysis_scope.html":[2,0,35],
-"struct_capacity_analysis_scope.html#a2714699baf4443ce76cf1e2c92728389":[2,0,35,3]
+"struct_capacity_analysis_result.html#ad28b9d1f48c61b5487a333a8c6807801":[2,0,34,3]
 };

@@ -12,6 +12,7 @@ var class_scene_document =
       [ "OpenDuringRun", "class_scene_document.html#a91f74e5143e65d144b7e484152ee01d0a2c7155c7dc5deb950ae7c43db96ed159", null ]
     ] ],
     [ "SceneDocument", "class_scene_document.html#a7b376a313d121770604a481647759cee", null ],
+    [ "aboutToEdit", "class_scene_document.html#ac0951bbffb85bf77fb63e0fe05875349", null ],
     [ "changed", "class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f", null ],
     [ "dirtyChanged", "class_scene_document.html#aa264b685cb49af4df36f5c11bc53e71d", null ],
     [ "edit", "class_scene_document.html#a19d593b9d99483a0468c0c17409cb2c8", null ],

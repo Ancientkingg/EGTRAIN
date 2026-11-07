@@ -1,7 +1,9 @@
 <map id="scene/SceneHistory.h" name="scene/SceneHistory.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="100,5,259,33"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="189,5,349,33"/>
 <area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,81,165,109"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,42,103,83,100,78,148,43"/>
-<area shape="rect" id="Node000003" href="$_scene_history_8cpp.html" title=" " alt="" coords="188,81,363,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="210,40,261,81,256,80,208,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="224,40,119,83,117,78,219,38"/>
+<area shape="rect" id="Node000003" href="$_run_selection_8cpp.html" title=" " alt="" coords="188,81,350,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="271,47,271,82,267,79,267,51"/>
+<area shape="rect" id="Node000004" href="$_scene_history_8cpp.html" title=" " alt="" coords="374,81,548,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="318,36,430,80,424,81,317,41"/>
 </map>

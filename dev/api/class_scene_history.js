@@ -6,6 +6,7 @@ var class_scene_history =
     [ "canUndo", "class_scene_history.html#a003b55c3ebb496d09cd76f6f1ee51441", null ],
     [ "head", "class_scene_history.html#a2ae4318a0344c67a5002bed3da043be4", null ],
     [ "isAtSavedPoint", "class_scene_history.html#a12ffe5763b84e5ce9ff1285aaafe64f6", null ],
+    [ "keepRunSelection", "class_scene_history.html#ae221c71c8876a3af776246fabdc6b967", null ],
     [ "limits", "class_scene_history.html#aeb95604a81a0c03866d4358311192af0", null ],
     [ "markSaved", "class_scene_history.html#a73adb86d78f9f0fa6a7e0f433e3c0656", null ],
     [ "record", "class_scene_history.html#ad3e998b2aa300b3fb7a1a011c19805e6", null ],

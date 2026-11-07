@@ -124,6 +124,10 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a5afd0190514f8d2176ab86238c875250" id="r_a5afd0190514f8d2176ab86238c875250"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a5afd0190514f8d2176ab86238c875250">bytes</a> = 0</td></tr>
 <tr class="memitem:abaf1b912a17144af2fee23c4200fe025" id="r_abaf1b912a17144af2fee23c4200fe025"><td class="memItemLeft">std::set&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#abaf1b912a17144af2fee23c4200fe025">modifiedScenarioIds</a></td></tr>
 <tr class="memdesc:abaf1b912a17144af2fee23c4200fe025"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scenarios that differ from the saved scene, as of this state.  <br /></td></tr>
+<tr class="memitem:a6f536b1670129b136cb56abdb74674c4" id="r_a6f536b1670129b136cb56abdb74674c4"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a6f536b1670129b136cb56abdb74674c4">selectedScenarioId</a></td></tr>
+<tr class="memdesc:a6f536b1670129b136cb56abdb74674c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scenario selected for the next run when this state was last left; empty before.  <br /></td></tr>
+<tr class="memitem:a3b0714a2d04ee30e3499e088d26f92c4" id="r_a3b0714a2d04ee30e3499e088d26f92c4"><td class="memItemLeft"><a class="el" href="_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a>&#160;</td><td class="memItemRight"><a class="el" href="#a3b0714a2d04ee30e3499e088d26f92c4">excludedOccurrences</a></td></tr>
+<tr class="memdesc:a3b0714a2d04ee30e3499e088d26f92c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The occurrences that the next run left out when this state was last left.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>One state of the scene. The label names the edit that produced the state from the one before; the root has none. </p>
@@ -140,6 +144,22 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>estimateSceneModelBytes of the scene, in bytes. </p>
+
+</div>
+</div>
+<a id="a3b0714a2d04ee30e3499e088d26f92c4" name="a3b0714a2d04ee30e3499e088d26f92c4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3b0714a2d04ee30e3499e088d26f92c4">&#9670;&#160;</a></span>excludedOccurrences</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a> SceneHistoryEntry::excludedOccurrences</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The occurrences that the next run left out when this state was last left. </p>
 
 </div>
 </div>
@@ -188,6 +208,22 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The scene in this state, shared and immutable. </p>
+
+</div>
+</div>
+<a id="a6f536b1670129b136cb56abdb74674c4" name="a6f536b1670129b136cb56abdb74674c4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6f536b1670129b136cb56abdb74674c4">&#9670;&#160;</a></span>selectedScenarioId</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string SceneHistoryEntry::selectedScenarioId</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The scenario selected for the next run when this state was last left; empty before. </p>
 
 </div>
 </div>

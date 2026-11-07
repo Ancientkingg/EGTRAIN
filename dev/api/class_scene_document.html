@@ -145,6 +145,8 @@ Public Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
+<tr class="memitem:ac0951bbffb85bf77fb63e0fe05875349" id="r_ac0951bbffb85bf77fb63e0fe05875349"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac0951bbffb85bf77fb63e0fe05875349">aboutToEdit</a> ()</td></tr>
+<tr class="memdesc:ac0951bbffb85bf77fb63e0fe05875349"><td class="mdescLeft">&#160;</td><td class="mdescRight">Emitted by an <a class="el" href="#a19d593b9d99483a0468c0c17409cb2c8">edit()</a> that is not refused, before it changes anything.  <br /></td></tr>
 <tr class="memitem:a66de48a8dd0dc3d1036d1ad5ccce450f" id="r_a66de48a8dd0dc3d1036d1ad5ccce450f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a66de48a8dd0dc3d1036d1ad5ccce450f">changed</a> (SceneDocument::ChangeKinds kinds)</td></tr>
 <tr class="memitem:a6b22d47eaed3e5ca1c78c8092ee8bac2" id="r_a6b22d47eaed3e5ca1c78c8092ee8bac2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6b22d47eaed3e5ca1c78c8092ee8bac2">replaced</a> ()</td></tr>
 <tr class="memdesc:a6b22d47eaed3e5ca1c78c8092ee8bac2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Emitted by <a class="el" href="#aa29cf748032512bdadf3efa930a589b4" title="Takes another model: a scene that is opened or created. dirty tells whether it differs from what is s...">replace()</a>, after the whole state is set.  <br /></td></tr>
@@ -190,7 +192,7 @@ Friends</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The scene that the editors work on: the model, whether it is loaded, edited since it was saved and open for edits, and how often it has been changed. The document owns the model by value; the window creates the document as its child.</p>
-<p>An editor changes the model through <a class="el" href="#a19d593b9d99483a0468c0c17409cb2c8">edit()</a>, which applies the change, counts the revision, marks the document dirty and emits <a class="el" href="#a66de48a8dd0dc3d1036d1ad5ccce450f">changed()</a>, and which refuses most edits while a run uses the model. The window keeps the undo history: it records a copy of the model on every <a class="el" href="#a66de48a8dd0dc3d1036d1ad5ccce450f">changed()</a>, and Undo and Redo put a recorded copy back with <a class="el" href="#a5c44c66b76b64e0bd5fd4f95f2017385">restore()</a>, which emits no <a class="el" href="#a66de48a8dd0dc3d1036d1ad5ccce450f">changed()</a>. Opening or creating a scene goes through <a class="el" href="#aa29cf748032512bdadf3efa930a589b4" title="Takes another model: a scene that is opened or created. dirty tells whether it differs from what is s...">replace()</a>, which emits <a class="el" href="#a6b22d47eaed3e5ca1c78c8092ee8bac2" title="Emitted by replace(), after the whole state is set.">replaced()</a>. </p>
+<p>An editor changes the model through <a class="el" href="#a19d593b9d99483a0468c0c17409cb2c8">edit()</a>, which applies the change, counts the revision, marks the document dirty and emits <a class="el" href="#a66de48a8dd0dc3d1036d1ad5ccce450f">changed()</a>, and which refuses most edits while a run uses the model. The window keeps the undo history: it records a copy of the model on every <a class="el" href="#a66de48a8dd0dc3d1036d1ad5ccce450f">changed()</a>, and Undo and Redo put a recorded copy back with <a class="el" href="#a5c44c66b76b64e0bd5fd4f95f2017385">restore()</a>, which emits no <a class="el" href="#a66de48a8dd0dc3d1036d1ad5ccce450f">changed()</a>. On <a class="el" href="#ac0951bbffb85bf77fb63e0fe05875349" title="Emitted by an edit() that is not refused, before it changes anything.">aboutToEdit()</a> the window keeps the run selection of the state that the edit leaves, for Undo to bring back. Opening or creating a scene goes through <a class="el" href="#aa29cf748032512bdadf3efa930a589b4" title="Takes another model: a scene that is opened or created. dirty tells whether it differs from what is s...">replace()</a>, which emits <a class="el" href="#a6b22d47eaed3e5ca1c78c8092ee8bac2" title="Emitted by replace(), after the whole state is set.">replaced()</a>. </p>
 </div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="a91f74e5143e65d144b7e484152ee01d0" name="a91f74e5143e65d144b7e484152ee01d0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a91f74e5143e65d144b7e484152ee01d0">&#9670;&#160;</a></span>Change</h2>
@@ -257,6 +259,33 @@ Friends</h2></td></tr>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a id="ac0951bbffb85bf77fb63e0fe05875349" name="ac0951bbffb85bf77fb63e0fe05875349"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac0951bbffb85bf77fb63e0fe05875349">&#9670;&#160;</a></span>aboutToEdit</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SceneDocument::aboutToEdit </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Emitted by an <a class="el" href="#a19d593b9d99483a0468c0c17409cb2c8">edit()</a> that is not refused, before it changes anything. </p>
+
+</div>
+</div>
 <a id="a66de48a8dd0dc3d1036d1ad5ccce450f" name="a66de48a8dd0dc3d1036d1ad5ccce450f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a66de48a8dd0dc3d1036d1ad5ccce450f">&#9670;&#160;</a></span>changed</h2>
 
@@ -333,11 +362,11 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Changes <span class="tt">kinds</span> of the model with <span class="tt">apply</span> and records the change as <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a> does. While a run uses the model (<a class="el" href="#ae81e4460eb27933960887d597c5cd54c" title="False while a run uses the model.">isEditable()</a> is false) an edit that touches no part of OpenDuringRun is refused: <span class="tt">apply</span> is not called, nothing changes and the result is false. When <span class="tt">apply</span> throws, the model is put back as it was before the edit, nothing is recorded and the exception passes on to the caller. </p>
+<p>Changes <span class="tt">kinds</span> of the model with <span class="tt">apply</span> and records the change as <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a> does. While a run uses the model (<a class="el" href="#ae81e4460eb27933960887d597c5cd54c" title="False while a run uses the model.">isEditable()</a> is false) an edit that touches no part of OpenDuringRun is refused: <span class="tt">apply</span> is not called, nothing changes, nothing is emitted and the result is false. Otherwise <a class="el" href="#ac0951bbffb85bf77fb63e0fe05875349" title="Emitted by an edit() that is not refused, before it changes anything.">aboutToEdit()</a> is emitted before <span class="tt">apply</span> is called. When <span class="tt">apply</span> throws, the model is put back as it was before the edit, nothing is recorded and the exception passes on to the caller. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_document_a19d593b9d99483a0468c0c17409cb2c8_cgraph.svg" width="955" height="91"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_document_a19d593b9d99483a0468c0c17409cb2c8_cgraph.svg" width="955" height="116"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

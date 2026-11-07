@@ -55,12 +55,13 @@ var searchData=
   ['eventtype_52',['eventType',['../struct_blocking_time_planned_reference.html#a78f1cd36a0908e3f4125419a6d6742f6',1,'BlockingTimePlannedReference']]],
   ['every_53',['every',['../struct_dispatch_live.html#a769abc71969ac5c6112e94249d3e4dae',1,'DispatchLive']]],
   ['exactrange_54',['exactRange',['../struct_axis_meta.html#a21b0bc0e0d4b6ad85dbab4d57542d7c1',1,'AxisMeta']]],
-  ['exit_55',['exit',['../class_station_boundary_section.html#a741347ca64d9b88ea1b71ceade4903e2',1,'StationBoundarySection']]],
-  ['exit_5fspeed_56',['exit_speed',['../class_section.html#ac0cc7a63e69d916505a95296af2c9551',1,'Section']]],
-  ['exitblock_57',['exitBlock',['../struct_scene_station_boundary.html#a88cfad991732106c76978421e52c97a9',1,'SceneStationBoundary']]],
-  ['exitcode_58',['exitCode',['../struct_installer_record.html#a76bf6c94f5f305f549ccd3c08631ed0d',1,'InstallerRecord']]],
-  ['exportdetailedtrajectories_59',['exportDetailedTrajectories',['../class_initial_parameters.html#a8e482a8143975a266d04ca8460b8f6e6',1,'InitialParameters']]],
-  ['exportkind_60',['exportKind',['../structtelemetry_1_1_telemetry_event_input.html#a7b54fdbfa2815da62e2415171f9588f3',1,'telemetry::TelemetryEventInput']]],
-  ['extents_61',['extents',['../struct_blocking_time_diagram_data.html#aa308e64921030b2c12f70594c08e5724',1,'BlockingTimeDiagramData']]],
-  ['extrarootpem_62',['extraRootPem',['../struct_http_request.html#ac9aef12c754fef64308bc6013c4765a1',1,'HttpRequest']]]
+  ['excludedoccurrences_55',['excludedOccurrences',['../struct_scene_history_entry.html#a3b0714a2d04ee30e3499e088d26f92c4',1,'SceneHistoryEntry']]],
+  ['exit_56',['exit',['../class_station_boundary_section.html#a741347ca64d9b88ea1b71ceade4903e2',1,'StationBoundarySection']]],
+  ['exit_5fspeed_57',['exit_speed',['../class_section.html#ac0cc7a63e69d916505a95296af2c9551',1,'Section']]],
+  ['exitblock_58',['exitBlock',['../struct_scene_station_boundary.html#a88cfad991732106c76978421e52c97a9',1,'SceneStationBoundary']]],
+  ['exitcode_59',['exitCode',['../struct_installer_record.html#a76bf6c94f5f305f549ccd3c08631ed0d',1,'InstallerRecord']]],
+  ['exportdetailedtrajectories_60',['exportDetailedTrajectories',['../class_initial_parameters.html#a8e482a8143975a266d04ca8460b8f6e6',1,'InitialParameters']]],
+  ['exportkind_61',['exportKind',['../structtelemetry_1_1_telemetry_event_input.html#a7b54fdbfa2815da62e2415171f9588f3',1,'telemetry::TelemetryEventInput']]],
+  ['extents_62',['extents',['../struct_blocking_time_diagram_data.html#aa308e64921030b2c12f70594c08e5724',1,'BlockingTimeDiagramData']]],
+  ['extrarootpem_63',['extraRootPem',['../struct_http_request.html#ac9aef12c754fef64308bc6013c4765a1',1,'HttpRequest']]]
 ];

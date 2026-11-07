@@ -1,5 +1,8 @@
 var NAVTREEINDEX25 =
 {
+"struct_scene_area_signalling.html#aae5ddd881a2c9cd3420049faf023919d":[2,0,214,0],
+"struct_scene_block.html":[2,0,215],
+"struct_scene_block.html#a52db5b3d733ecaab313dd443b6ed57cb":[2,0,215,2],
 "struct_scene_block.html#a5cb631b4d78930c2bf1dae719dbd1343":[2,0,215,0],
 "struct_scene_block.html#ae66b305cf95256a4a2584dd0e0393cf2":[2,0,215,1],
 "struct_scene_block_dependency.html":[2,0,216],
@@ -72,10 +75,12 @@ var NAVTREEINDEX25 =
 "struct_scene_file.html#a981a1e9608d4a2328040b985d7956786":[2,0,231,2],
 "struct_scene_file.html#ad238c928bf496353146e6873edfe38be":[2,0,231,0],
 "struct_scene_history_entry.html":[2,0,233],
-"struct_scene_history_entry.html#a2ed50000e6ccf040e9037b5ebd04868d":[2,0,233,1],
+"struct_scene_history_entry.html#a2ed50000e6ccf040e9037b5ebd04868d":[2,0,233,2],
+"struct_scene_history_entry.html#a3b0714a2d04ee30e3499e088d26f92c4":[2,0,233,1],
 "struct_scene_history_entry.html#a5afd0190514f8d2176ab86238c875250":[2,0,233,0],
-"struct_scene_history_entry.html#abaf1b912a17144af2fee23c4200fe025":[2,0,233,2],
-"struct_scene_history_entry.html#ac07946cd88f9d6ed39c6d6702cbfcba6":[2,0,233,3],
+"struct_scene_history_entry.html#a6f536b1670129b136cb56abdb74674c4":[2,0,233,5],
+"struct_scene_history_entry.html#abaf1b912a17144af2fee23c4200fe025":[2,0,233,3],
+"struct_scene_history_entry.html#ac07946cd88f9d6ed39c6d6702cbfcba6":[2,0,233,4],
 "struct_scene_history_limits.html":[2,0,234],
 "struct_scene_history_limits.html#a8ab3015a43831d0014e9886d7a6c5d2f":[2,0,234,1],
 "struct_scene_history_limits.html#abfb8ad9be0bf34b343c4052b64c8d86c":[2,0,234,0],
@@ -244,10 +249,5 @@ var NAVTREEINDEX25 =
 "struct_scene_section_descriptor.html#a00dd4fac33c24c8803e236a93975462b":[2,0,260,0],
 "struct_scene_section_descriptor.html#a0537afbd3109d6e950b08c02e7b0aee2":[2,0,260,10],
 "struct_scene_section_descriptor.html#a0b06ef1a69b0b2b97fbcda1a7eb60e22":[2,0,260,2],
-"struct_scene_section_descriptor.html#a115043fcd58093ab5e1513bbbd2043b9":[2,0,260,13],
-"struct_scene_section_descriptor.html#a20861d04c86e53889fc97241f1d6798d":[2,0,260,5],
-"struct_scene_section_descriptor.html#a277e88c34eefc4705be625cfbda8851c":[2,0,260,18],
-"struct_scene_section_descriptor.html#a3c6fc16ab84bc5b3ae79956770be4c2a":[2,0,260,3],
-"struct_scene_section_descriptor.html#a447990b1e557f4b3af5008471b3856df":[2,0,260,7],
-"struct_scene_section_descriptor.html#a45ffdc06ec183b5c72777c4cad1f6175":[2,0,260,14]
+"struct_scene_section_descriptor.html#a115043fcd58093ab5e1513bbbd2043b9":[2,0,260,13]
 };
