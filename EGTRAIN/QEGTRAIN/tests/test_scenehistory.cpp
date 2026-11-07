@@ -413,6 +413,22 @@ void TestSceneHistory::savedPoint() {
 	// Saving clears the modified scenarios of the live entry.
 	QVERIFY(entry);
 	QVERIFY(entry->modifiedScenarioIds.empty());
+
+	// The run selection belongs to the entry that was live when it was kept.
+	const SceneRunSelection rootLeftOut{SceneServiceOccurrence{"s1", 1}};
+	const SceneRunSelection oneLeftOut{SceneServiceOccurrence{"s2", 2}};
+	history.reset(named("root"), true);
+	history.keepRunSelection("first", rootLeftOut);
+	history.record(named("one"));
+	history.keepRunSelection("second", oneLeftOut);
+	entry = history.undo();
+	QVERIFY(entry);
+	QCOMPARE(entry->selectedScenarioId, "first");
+	QVERIFY(entry->excludedOccurrences == rootLeftOut);
+	entry = history.redo();
+	QVERIFY(entry);
+	QCOMPARE(entry->selectedScenarioId, "second");
+	QVERIFY(entry->excludedOccurrences == oneLeftOut);
 }
 
 void TestSceneHistory::stepLimit() {

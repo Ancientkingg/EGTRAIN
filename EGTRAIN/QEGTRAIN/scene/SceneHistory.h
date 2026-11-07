@@ -33,6 +33,10 @@ struct SceneHistoryEntry {
 	std::size_t bytes = 0;					 ///< estimateSceneModelBytes of the scene, in bytes.
 	/// Scenarios that differ from the saved scene, as of this state.
 	std::set<std::string> modifiedScenarioIds;
+	/// The scenario selected for the next run when this state was last left; empty before.
+	std::string selectedScenarioId;
+	/// The occurrences that the next run left out when this state was last left.
+	SceneRunSelection excludedOccurrences;
 };
 
 /// Undo and Redo as a position in a list of whole-scene snapshots. The entry at the position is
@@ -59,6 +63,9 @@ public:
 	/// Appends a copy of the scene after an edit. The label is derived from what the edit added
 	/// or removed. `modifiedScenarioIds` is the set that the live scene has after the edit.
 	void record(const SceneModel& after, std::set<std::string> modifiedScenarioIds = {});
+	/// Keeps the run selection with the live entry: the selected scenario and the occurrences left
+	/// out. The window calls it before an edit and before Undo or Redo leave the live state.
+	void keepRunSelection(std::string selectedScenarioId, SceneRunSelection excludedOccurrences);
 
 	bool canUndo() const; ///< True when there is an entry before the position.
 	bool canRedo() const; ///< True when there is an entry after the position.

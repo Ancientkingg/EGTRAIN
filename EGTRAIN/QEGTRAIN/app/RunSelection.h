@@ -8,6 +8,8 @@
 #include <set>
 #include <string>
 
+struct SceneHistoryEntry;
+
 /// How many generated service occurrences the scene has over `durationSeconds` (seconds from the base time of the
 /// scene). The count stops at the largest int.
 int sceneTotalOccurrences(const SceneModel& model, double durationSeconds);
@@ -65,6 +67,11 @@ public:
 	void pruneExcluded(const SceneModel& model, double durationSeconds);
 	/// The exclusions of a service follow it to its new id.
 	void serviceRenamed(const std::string& oldId, const std::string& newId);
+	/// Undo or Redo has put back the state of `entry` in place of the scene `previous`. The edited scenarios become those of
+	/// the entry. A service that comes back has the occurrences left out that the entry keeps for it, and the other services
+	/// keep theirs. The scenario of the entry is selected when it comes back or the selected one is gone; otherwise the
+	/// selection stays, or the default scenario takes the place of one that is gone. Then pruneExcluded() runs.
+	void historyRestored(const SceneModel& previous, const SceneHistoryEntry& entry, double durationSeconds);
 
 	/// The occurrences that the run selects, as the scene builder takes them. The result is empty when nothing is left
 	/// out and when the scene has more occurrences than a run can expand; the builder reads an empty selection as every

@@ -2,6 +2,7 @@
 #include "editors/ScenarioPanel.h"
 
 #include "scene/SceneWriter.h"
+#include "support/EditHistory.h"
 #include "support/FakePrompts.h"
 
 #include <QApplication>
@@ -127,6 +128,7 @@ private slots:
 	void labelsFollowDiagnostics();
 	void selectsEditsAndRenamesScenarios();
 	void addsDeletesImportsAndExportsScenarios();
+	void undoSelectsDeletedScenarioAgain();
 	void keepsScenariosOfSceneWithoutDefault();
 	void showsAnotherScene();
 	void detachedPanelIgnoresDocument();
@@ -610,6 +612,29 @@ void TestScenarioPanel::addsDeletesImportsAndExportsScenarios() {
 	panel.setExportObserver({});
 	panel.exportScenario();
 	QVERIFY2(prompts.errorCount == 2, "an export without an observer still reports the failure to the user");
+}
+
+// Undo of a delete brings the scenario back and selects it again, and Redo deletes it again and selects the default.
+void TestScenarioPanel::undoSelectsDeletedScenarioAgain() {
+	ScenarioFixture f;
+	EditHistory history(f.document, f.selection, f.panel);
+	f.panel.listWidget()->setCurrentRow(1);
+	f.prompts.confirmAnswer = true;
+	f.panel.deleteScenario();
+	QCOMPARE(f.document.model().scenarios.size(), std::size_t(1));
+	QCOMPARE(f.selection.scenarioId(), "base");
+
+	QVERIFY(history.undo());
+	// Undo brings alt back as the selected scenario.
+	QCOMPARE(f.document.model().scenarios.size(), std::size_t(2));
+	QCOMPARE(f.selection.scenarioId(), "alt");
+	QCOMPARE(f.panel.listWidget()->currentRow(), 1);
+	QCOMPARE(f.panel.headerText(), "Scenario: Alternative");
+	QVERIFY(history.redo());
+	// Redo deletes alt again, and the default scenario takes its place.
+	QCOMPARE(f.document.model().scenarios.size(), std::size_t(1));
+	QCOMPARE(f.selection.scenarioId(), "base");
+	QCOMPARE(f.panel.listWidget()->currentRow(), 0);
 }
 
 // A scene that has no default scenario on record cannot lose a scenario.

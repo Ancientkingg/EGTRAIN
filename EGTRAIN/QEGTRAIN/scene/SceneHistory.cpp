@@ -279,6 +279,11 @@ void SceneHistory::record(const SceneModel& after, std::set<std::string> modifie
 	dropOldest();
 }
 
+void SceneHistory::keepRunSelection(std::string selectedScenarioId, SceneRunSelection excludedOccurrences) {
+	m_entries[m_position].selectedScenarioId = std::move(selectedScenarioId);
+	m_entries[m_position].excludedOccurrences = std::move(excludedOccurrences);
+}
+
 void SceneHistory::dropOldest() {
 	while (m_position > 0 && (m_position > m_limits.maxSteps || m_bytes > m_limits.maxBytes)) {
 		m_bytes -= m_entries.front().bytes;

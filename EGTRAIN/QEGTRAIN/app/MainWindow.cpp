@@ -471,6 +471,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connectSceneSession();
 	connectRunController();
 	startRecovery();
+	connect(m_document, &SceneDocument::aboutToEdit, this, &MainWindow::keepRunSelectionInHistory);
 	connect(m_document, &SceneDocument::changed, this, &MainWindow::sceneDocumentChanged);
 	setupEditMenu();
 	m_updateTelemetry = std::make_unique<UpdateTelemetryController>(
@@ -2025,6 +2026,12 @@ void MainWindow::openLoadedDataTarget(const QString& targetType, QTreeWidgetItem
 	}
 }
 
+// The live state of the history keeps the run selection that an edit or a step of Undo or Redo leaves, so that a step back
+// to the state can restore it.
+void MainWindow::keepRunSelectionInHistory() {
+	m_history->keepRunSelection(m_runSelection.scenarioId(), m_runSelection.excluded());
+}
+
 void MainWindow::sceneDocumentChanged() {
 	m_history->record(m_document->model(), modifiedScenarioIds());
 	invalidateAfterSceneChange();
@@ -2156,12 +2163,16 @@ void MainWindow::stepSceneHistory(bool redo) {
 	if (!(redo ? m_history->canRedo() : m_history->canUndo()))
 		return;
 	const QString label = QString::fromStdString(redo ? m_history->redoLabel() : m_history->undoLabel());
+	keepRunSelectionInHistory();
 	// The preview of the restored scene is drawn again, and the view keeps its zoom and centre, as after an edit.
-	drawKeepingView([this, redo] { restoreSceneFromHistory(*(redo ? m_history->redo() : m_history->undo())); });
+	drawKeepingView([this, redo] {
+		const std::shared_ptr<const SceneModel> previous = m_history->head();
+		restoreSceneFromHistory(*previous, *(redo ? m_history->redo() : m_history->undo()));
+	});
 	statusBar()->showMessage(QString("%1 %2").arg(redo ? "Redid" : "Undid", label), 8000);
 }
 
-void MainWindow::restoreSceneFromHistory(const SceneHistoryEntry& entry) {
+void MainWindow::restoreSceneFromHistory(const SceneModel& previous, const SceneHistoryEntry& entry) {
 	const QScopedValueRollback<bool> restoring(m_restoringHistory, true);
 	std::vector<std::string> previousUnitIds;
 	for (const SceneTrainUnit& unit : m_document->model().trainUnits)
@@ -2169,23 +2180,14 @@ void MainWindow::restoreSceneFromHistory(const SceneHistoryEntry& entry) {
 
 	m_document->restore(*entry.scene, !m_history->isAtSavedPoint());
 
-	// What the window keeps about the scene by id follows the restored scene. A rolling stock link stays with a unit that
-	// still has its id, and is dropped for one that is gone.
-	m_runSelection.clearModifiedScenarios();
-	for (const std::string& id : entry.modifiedScenarioIds)
-		m_runSelection.markScenarioModified(id);
-	const bool scenarioKept = std::any_of(m_document->model().scenarios.begin(), m_document->model().scenarios.end(),
-		[this](const SceneScenario& scenario) { return scenario.id == m_runSelection.scenarioId(); });
-	if (!scenarioKept) {
-		const SceneScenario* fallback = defaultScenario(m_document->model());
-		m_runSelection.selectScenario(fallback ? fallback->id : std::string());
-	}
+	// What the window keeps about the scene by id follows the restored scene: the run selection, and the rolling stock
+	// links, which stay with a unit that still has its id and are dropped for one that is gone.
+	m_runSelection.historyRestored(previous, entry, serviceOccurrenceDuration());
 	for (const std::string& id : previousUnitIds) {
 		if (m_editorDocks.trainUnitSourceLinker()->linkOf(id) && !sceneTrainUnitById(m_document->model(), id))
 			m_editorDocks.trainUnitSourceLinker()->forgetUnit(id);
 	}
 	setStartOffset(baseTimeToSeconds(m_document->model().baseTime));
-	m_runSelection.pruneExcluded(m_document->model(), serviceOccurrenceDuration());
 
 	invalidateAfterSceneChange();
 	refreshAllEditorPanels();

@@ -29,7 +29,8 @@ void assignAuthoredScene(SceneModel& live, const SceneModel& snapshot);
 /// An editor changes the model through edit(), which applies the change, counts the revision, marks the document dirty and
 /// emits changed(), and which refuses most edits while a run uses the model. The window keeps the undo history: it records a
 /// copy of the model on every changed(), and Undo and Redo put a recorded copy back with restore(), which emits no changed().
-/// Opening or creating a scene goes through replace(), which emits replaced().
+/// On aboutToEdit() the window keeps the run selection of the state that the edit leaves, for Undo to bring back. Opening or
+/// creating a scene goes through replace(), which emits replaced().
 class SceneDocument : public QObject {
 	Q_OBJECT
 
@@ -92,8 +93,9 @@ public:
 	void markChanged(ChangeKinds kinds, const QString& label = {});
 	/// Changes `kinds` of the model with `apply` and records the change as markChanged() does. While a run uses the model
 	/// (isEditable() is false) an edit that touches no part of OpenDuringRun is refused: `apply` is not called, nothing
-	/// changes and the result is false. When `apply` throws, the model is put back as it was before the edit, nothing is
-	/// recorded and the exception passes on to the caller.
+	/// changes, nothing is emitted and the result is false. Otherwise aboutToEdit() is emitted before `apply` is called. When
+	/// `apply` throws, the model is put back as it was before the edit, nothing is recorded and the exception passes on to
+	/// the caller.
 	bool edit(ChangeKinds kinds, const QString& label, const std::function<void(SceneModel&)>& apply);
 	/// The model is what is saved now: clears the dirty state.
 	void markSaved() { setDirty(false); }
@@ -103,6 +105,8 @@ public:
 	void setEditable(bool editable);
 
 Q_SIGNALS:
+	/// Emitted by an edit() that is not refused, before it changes anything.
+	void aboutToEdit();
 	/// Emitted once for each markChanged() and for each edit() that is neither refused nor ended by an exception, after the
 	/// revision and the dirty state are updated.
 	void changed(SceneDocument::ChangeKinds kinds);
