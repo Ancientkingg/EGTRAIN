@@ -206,9 +206,11 @@ var NAVTREEINDEX0 =
 "_case_chooser_dialog_8cpp.html":[3,0,12,2],
 "_case_chooser_dialog_8cpp.html#a20939c6104a524e256a3bd01b89196d2":[3,0,12,2,0],
 "_case_chooser_dialog_8cpp.html#ad36e4ed5512f6a4760bb55ff7741ed66":[3,0,12,2,1],
+"_case_chooser_dialog_8cpp.html#af554803cb7445cd79e87743e739c3a61":[3,0,12,2,2],
 "_case_chooser_dialog_8h.html":[3,0,12,3],
 "_case_chooser_dialog_8h.html#ad36e4ed5512f6a4760bb55ff7741ed66":[3,0,12,3,3],
 "_case_chooser_dialog_8h.html#aecef6d8030294a964a73cb12ceef8c47":[3,0,12,3,2],
+"_case_chooser_dialog_8h.html#af554803cb7445cd79e87743e739c3a61":[3,0,12,3,4],
 "_case_chooser_dialog_8h_source.html":[3,0,12,3],
 "_case_settings_panel_8cpp.html":[3,0,3,1],
 "_case_settings_panel_8h.html":[3,0,3,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX0 =
 "_completed_run_data_8h.html#a28ef20b66f910d15773edc1894e07444":[3,0,1,21,7],
 "_completed_run_data_8h.html#ac6fa406b949ce6e982f46610520698ef":[3,0,1,21,8],
 "_completed_run_data_8h_source.html":[3,0,1,21],
-"_composition_panel_8cpp.html":[3,0,3,3],
-"_composition_panel_8h.html":[3,0,3,4],
-"_composition_panel_8h_source.html":[3,0,3,4]
+"_composition_panel_8cpp.html":[3,0,3,3]
 };

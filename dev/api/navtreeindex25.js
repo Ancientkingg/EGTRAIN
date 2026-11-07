@@ -1,5 +1,7 @@
 var NAVTREEINDEX25 =
 {
+"struct_scene_block_dependency.html#ac291d3f55e2b13fcd3d84760ecd2ac5d":[2,0,216,1],
+"struct_scene_block_extent.html":[2,0,217],
 "struct_scene_block_extent.html#a78c09ea3e24fa96c93d232d076e3f082":[2,0,217,1],
 "struct_scene_block_extent.html#aa340401d2edd79a4f0720d2f03f0b82e":[2,0,217,2],
 "struct_scene_block_extent.html#af934767f4be913239eed2bec5307e051":[2,0,217,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX25 =
 "struct_scene_section_descriptor.html#a54e756cd2b27098dcf26dfd103b08343":[2,0,260,8],
 "struct_scene_section_descriptor.html#a7c6f8c7d1c4b718ccc0900b58e250380":[2,0,260,12],
 "struct_scene_section_descriptor.html#a90f654fb72100ff01415a5af88ef080b":[2,0,260,15],
-"struct_scene_section_descriptor.html#aa5ac92b6443d6c1c96acf7cfd33e431f":[2,0,260,6],
-"struct_scene_section_descriptor.html#aca7512a51541e4c7f2ed7d6b09039e36":[2,0,260,4],
-"struct_scene_section_descriptor.html#acded44eccf707fd8d0e92091ec571a99":[2,0,260,17]
+"struct_scene_section_descriptor.html#aa5ac92b6443d6c1c96acf7cfd33e431f":[2,0,260,6]
 };

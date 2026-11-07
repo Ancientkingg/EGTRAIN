@@ -1,5 +1,7 @@
 var NAVTREEINDEX1 =
 {
+"_composition_panel_8h.html":[3,0,3,4],
+"_composition_panel_8h_source.html":[3,0,3,4],
 "_connection_item_8cpp.html":[3,0,4,0,0],
 "_connection_item_8h.html":[3,0,4,0,1],
 "_connection_item_8h_source.html":[3,0,4,0,1],
@@ -247,7 +249,5 @@ var NAVTREEINDEX1 =
 "_infrastructure_facet_8h_source.html":[3,0,3,0,2],
 "_infrastructure_guidance_8cpp.html":[3,0,3,0,3],
 "_infrastructure_guidance_8cpp.html#a38d021c05876cb3015e8f9f3f4c94c48":[3,0,3,0,3,0],
-"_infrastructure_guidance_8h.html":[3,0,3,0,4],
-"_infrastructure_guidance_8h.html#a38d021c05876cb3015e8f9f3f4c94c48":[3,0,3,0,4,1],
-"_infrastructure_guidance_8h_source.html":[3,0,3,0,4]
+"_infrastructure_guidance_8h.html":[3,0,3,0,4]
 };

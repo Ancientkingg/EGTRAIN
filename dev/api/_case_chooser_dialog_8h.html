@@ -139,6 +139,7 @@ Classes</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:ad36e4ed5512f6a4760bb55ff7741ed66" id="r_ad36e4ed5512f6a4760bb55ff7741ed66"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ad36e4ed5512f6a4760bb55ff7741ed66">sceneListKey</a> (const QString &amp;path)</td></tr>
 <tr class="memitem:aecef6d8030294a964a73cb12ceef8c47" id="r_aecef6d8030294a964a73cb12ceef8c47"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aecef6d8030294a964a73cb12ceef8c47">sceneDisplayName</a> (const QString &amp;path)</td></tr>
+<tr class="memitem:af554803cb7445cd79e87743e739c3a61" id="r_af554803cb7445cd79e87743e739c3a61"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#af554803cb7445cd79e87743e739c3a61">sceneListLabels</a> (const QStringList &amp;paths)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="aecef6d8030294a964a73cb12ceef8c47" name="aecef6d8030294a964a73cb12ceef8c47"></a>
@@ -155,7 +156,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The label of a scene in a list of cases: the name in the manifest of a scene folder, else the file name without .egscene, with underscores as spaces. </p>
+<p>The name of a scene in a list of cases: the name in the manifest of a scene folder, else the file name without .egscene, with underscores as spaces. A scene that is no longer on disk keeps the underscores of its file name. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -183,6 +184,29 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_case_chooser_dialog_8h_ad36e4ed5512f6a4760bb55ff7741ed66_cgraph.svg" width="118" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="af554803cb7445cd79e87743e739c3a61" name="af554803cb7445cd79e87743e739c3a61"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af554803cb7445cd79e87743e739c3a61">&#9670;&#160;</a></span>sceneListLabels()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QStringList sceneListLabels </td>
+          <td>(</td>
+          <td class="paramtype">const QStringList &amp;</td>          <td class="paramname"><span class="paramname"><em>paths</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The labels of the scenes that one list shows, in the order of paths: each sceneDisplayName, followed in parentheses by the parent folder, shortened in the middle past 44 characters, when another path has the same name, and by the file name as well when that parent folder is the same too. The case chooser labels its rows with it, and the Recent Cases menu its entries. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_case_chooser_dialog_8h_af554803cb7445cd79e87743e739c3a61_cgraph.svg" width="562" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

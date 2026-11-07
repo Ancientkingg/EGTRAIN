@@ -1,5 +1,7 @@
 var NAVTREEINDEX9 =
 {
+"class_case_settings_panel.html#a98fc2e3ca7e313d5fd05fe3cfd172d09":[2,0,45,5],
+"class_case_settings_panel.html#ab626149c6737ccedf70c13e9e5a2722a":[2,0,45,0],
 "class_case_settings_panel.html#acb968dbe3f40db2f385af2b032ac32f9":[2,0,45,11],
 "class_case_settings_panel.html#adf7a9af461fd8312d03f90db5890eae2":[2,0,45,9],
 "class_case_settings_panel.html#ae31fed717086048ee10cb6a42cab286e":[2,0,45,1],
@@ -247,7 +249,5 @@ var NAVTREEINDEX9 =
 "class_entrance_delay_panel.html#ab4f97bfcfa207e578bf6559732c0d06a":[2,0,85,17],
 "class_entrance_delay_panel.html#acd386ab2684633c40d040000b8f615fa":[2,0,85,5],
 "class_entrance_delay_panel.html#ad2721b9ff3daa7064c4787e4325a407a":[2,0,85,20],
-"class_entrance_delay_panel.html#ad33dbbfcaed295c94fdc82c8c9c4c17f":[2,0,85,1],
-"class_entrance_delay_panel.html#ad69251e58aecb776bccfb14fd4cd7a92":[2,0,85,0],
-"class_entrance_delay_panel.html#ae0b84da365cd871666ea6850514c86be":[2,0,85,14]
+"class_entrance_delay_panel.html#ad33dbbfcaed295c94fdc82c8c9c4c17f":[2,0,85,1]
 };
