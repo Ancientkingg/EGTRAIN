@@ -26,6 +26,7 @@ var main_8cpp =
     [ "resolveScenePath", "main_8cpp.html#ab13d1f8855e80edeffbcd6e0c3818eb6", null ],
     [ "runMain", "main_8cpp.html#aed07f9620734e5f118b11140cf0f35dd", null ],
     [ "startLiveStream", "main_8cpp.html#aaf4b2d129f9ea7f2ecab4e56d100c450", null ],
+    [ "useCLocaleForNumbers", "main_8cpp.html#ae79afb3baa2a7526ea0f4bef34fe6dc8", null ],
     [ "valueOptionNames", "main_8cpp.html#a6caecec5e4df584d32201962a4d4f2c6", null ],
     [ "commandLineOptions", "main_8cpp.html#a43d3510ccaa6da5457982709c461e48f", null ],
     [ "kExitRunStopped", "main_8cpp.html#a4063cf2dc7bc926a6d21570c2611b8db", null ]

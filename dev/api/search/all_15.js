@@ -104,12 +104,13 @@ var searchData=
   ['usageinstallationid_101',['usageInstallationId',['../class_telemetry_consent.html#a6d148ada94a92e3d3aa358b5ee7bff06',1,'TelemetryConsent']]],
   ['usageobservation_102',['UsageObservation',['../struct_telemetry_consent_1_1_usage_observation.html',1,'TelemetryConsent']]],
   ['usagerecord_103',['UsageRecord',['../structtelemetry_1_1_usage_record.html',1,'telemetry']]],
-  ['usedroutereferencesfrom_104',['usedRouteReferencesFrom',['../_route_diagram_data_8cpp.html#a23cc6d8743ea6132e2b4601ffaeb5449',1,'usedRouteReferencesFrom(const CompletedRunData &amp;data):&#160;RouteDiagramData.cpp'],['../_route_diagram_data_8h.html#a23cc6d8743ea6132e2b4601ffaeb5449',1,'usedRouteReferencesFrom(const CompletedRunData &amp;data):&#160;RouteDiagramData.cpp']]],
-  ['user_105',['User',['../class_scene_session.html#a4f5bee0dffcffc3436143214fd9e1a6da8f9bfe9d1345237cb3b2b205864da075',1,'SceneSession']]],
-  ['useragent_106',['userAgent',['../struct_http_request.html#aa89ff76ceb327d151813cb15e7e42fe6',1,'HttpRequest']]],
-  ['userprompts_107',['UserPrompts',['../class_user_prompts.html',1,'UserPrompts'],['../class_user_prompts.html#a845441069b8fabe4f8d8dfff13c90888',1,'UserPrompts::UserPrompts()']]],
-  ['userprompts_2eh_108',['UserPrompts.h',['../_user_prompts_8h.html',1,'']]],
-  ['usesinstaller_109',['usesInstaller',['../struct_self_update_capability.html#add7252647dc3654efa5d7c099066fc9b',1,'SelfUpdateCapability::usesInstaller'],['../struct_update_package.html#a3a9fcda7a03d2786a6534c4584a749fa',1,'UpdatePackage::usesInstaller']]],
-  ['utf16toutf8_110',['utf16ToUtf8',['../_scene_importer_8cpp.html#af92da0fe546920ab709f9f36ecb9f07b',1,'SceneImporter.cpp']]],
-  ['utf8path_2eh_111',['Utf8Path.h',['../_utf8_path_8h.html',1,'']]]
+  ['useclocalefornumbers_104',['useCLocaleForNumbers',['../main_8cpp.html#ae79afb3baa2a7526ea0f4bef34fe6dc8',1,'main.cpp']]],
+  ['usedroutereferencesfrom_105',['usedRouteReferencesFrom',['../_route_diagram_data_8cpp.html#a23cc6d8743ea6132e2b4601ffaeb5449',1,'usedRouteReferencesFrom(const CompletedRunData &amp;data):&#160;RouteDiagramData.cpp'],['../_route_diagram_data_8h.html#a23cc6d8743ea6132e2b4601ffaeb5449',1,'usedRouteReferencesFrom(const CompletedRunData &amp;data):&#160;RouteDiagramData.cpp']]],
+  ['user_106',['User',['../class_scene_session.html#a4f5bee0dffcffc3436143214fd9e1a6da8f9bfe9d1345237cb3b2b205864da075',1,'SceneSession']]],
+  ['useragent_107',['userAgent',['../struct_http_request.html#aa89ff76ceb327d151813cb15e7e42fe6',1,'HttpRequest']]],
+  ['userprompts_108',['UserPrompts',['../class_user_prompts.html',1,'UserPrompts'],['../class_user_prompts.html#a845441069b8fabe4f8d8dfff13c90888',1,'UserPrompts::UserPrompts()']]],
+  ['userprompts_2eh_109',['UserPrompts.h',['../_user_prompts_8h.html',1,'']]],
+  ['usesinstaller_110',['usesInstaller',['../struct_self_update_capability.html#add7252647dc3654efa5d7c099066fc9b',1,'SelfUpdateCapability::usesInstaller'],['../struct_update_package.html#a3a9fcda7a03d2786a6534c4584a749fa',1,'UpdatePackage::usesInstaller']]],
+  ['utf16toutf8_111',['utf16ToUtf8',['../_scene_importer_8cpp.html#af92da0fe546920ab709f9f36ecb9f07b',1,'SceneImporter.cpp']]],
+  ['utf8path_2eh_112',['Utf8Path.h',['../_utf8_path_8h.html',1,'']]]
 ];

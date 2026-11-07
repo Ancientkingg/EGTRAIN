@@ -71,19 +71,19 @@
 </a>
 </g>
 </g>
-<!-- Node157 -->
-<g id="Node000157" class="node">
-<title>Node157</title>
-<g id="a_Node000157"><a xlink:href="class_result_panel.html#a1d3894a9b0170f7f623747d886e1a314" target="_top" xlink:title="An empty panel with its readout.">
+<!-- Node158 -->
+<g id="Node000158" class="node">
+<title>Node158</title>
+<g id="a_Node000158"><a xlink:href="class_result_panel.html#a1d3894a9b0170f7f623747d886e1a314" target="_top" xlink:title="An empty panel with its readout.">
 <polygon fill="white" stroke="#666666" points="333.5,-1110.75 197.5,-1110.75 197.5,-1090 333.5,-1090 333.5,-1110.75"/>
 <text xml:space="preserve" text-anchor="middle" x="265.5" y="-1097.25" font-family="Helvetica,sans-Serif" font-size="10.00">ResultPanel::ResultPanel</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node157 -->
-<g id="edge87_Node000001_Node000157" class="edge">
-<title>Node1&#45;&gt;Node157</title>
-<g id="a_edge87_Node000001_Node000157"><a xlink:title=" ">
+<!-- Node1&#45;&gt;Node158 -->
+<g id="edge87_Node000001_Node000158" class="edge">
+<title>Node1&#45;&gt;Node158</title>
+<g id="a_edge87_Node000001_Node000158"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M94.88,-1156.68C116.26,-1146.31 150.29,-1130.67 181,-1120.38 187.68,-1118.14 194.73,-1116.04 201.8,-1114.11"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="202.61,-1117.52 211.41,-1111.61 200.85,-1110.75 202.61,-1117.52"/>
 </a>

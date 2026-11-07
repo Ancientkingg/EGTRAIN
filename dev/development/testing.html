@@ -566,55 +566,61 @@ run there.</p>
 <td><p>no</p></td>
 <td><p>Compares backslash paths with forward-slash paths, writes them into a <code class="docutils literal notranslate"><span class="pre">QSettings</span></code> INI file where backslash is an escape, and creates a directory symlink.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_package_contents_smoke</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_numeric_locale_smoke</span></code></p></td>
+<td><p>yes</p></td>
+<td><p>yes</p></td>
+<td><p>no</p></td>
+<td><p>Starts Paimpol headless and in the window with <code class="docutils literal notranslate"><span class="pre">LANG</span></code> set to a locale with a decimal comma, which Qt applies to the C library on macOS and Linux only. It reports itself as skipped when none of <code class="docutils literal notranslate"><span class="pre">de_DE.UTF-8</span></code>, <code class="docutils literal notranslate"><span class="pre">nl_NL.UTF-8</span></code> and <code class="docutils literal notranslate"><span class="pre">fr_FR.UTF-8</span></code> is installed.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_package_contents_smoke</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>
 <td><p>Checks the <code class="docutils literal notranslate"><span class="pre">.app</span></code> bundle with macOS tools.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_measure_peak_rss</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_measure_peak_rss</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>yes</p></td>
 <td><p>no</p></td>
 <td><p>Tests the collector for the macOS <code class="docutils literal notranslate"><span class="pre">/usr/bin/time</span> <span class="pre">-l</span></code>, without that tool.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_windows_image_size</span></code>, <code class="docutils literal notranslate"><span class="pre">test_windows_default_stack</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_windows_image_size</span></code>, <code class="docutils literal notranslate"><span class="pre">test_windows_default_stack</span></code></p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>
 <td><p>yes</p></td>
 <td><p>Read the PE header of <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code> and <code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_win32_configure_rejected</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_win32_configure_rejected</span></code></p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>
 <td><p>yes</p></td>
 <td><p>Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_verify_signatures</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_verify_signatures</span></code></p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>
 <td><p>yes</p></td>
 <td><p>Needs PowerShell and its Authenticode commands; not registered when no PowerShell is found.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_startup_launch_contract</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_startup_launch_contract</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>yes</p></td>
 <td><p>partly</p></td>
 <td><p>The pseudo-terminal launches, the <code class="docutils literal notranslate"><span class="pre">--interactive</span></code> launches, the window launch with a bundle argument, the open events and the file launches while a window runs need macOS or Linux.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_updatepreparation</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_updatepreparation</span></code></p></td>
 <td><p>partly</p></td>
 <td><p>partly</p></td>
 <td><p>partly</p></td>
 <td><p>The disk image and zip checks run on macOS only and need <code class="docutils literal notranslate"><span class="pre">hdiutil</span></code>, <code class="docutils literal notranslate"><span class="pre">ditto</span></code> and <code class="docutils literal notranslate"><span class="pre">codesign</span></code>; the AppImage check runs on Linux only.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_make_dmg</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_make_dmg</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>partly</p></td>
 <td><p>partly</p></td>
 <td><p>The image, mount and signature checks need <code class="docutils literal notranslate"><span class="pre">hdiutil</span></code>, <code class="docutils literal notranslate"><span class="pre">ditto</span></code> and <code class="docutils literal notranslate"><span class="pre">codesign</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_sign_macos</span></code>, <code class="docutils literal notranslate"><span class="pre">test_package_macos</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_sign_macos</span></code>, <code class="docutils literal notranslate"><span class="pre">test_package_macos</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>

@@ -168,6 +168,7 @@ run there.
 | `test_capture_screenshots` | yes | no | no | Takes the pictures of `docs/images` with the macOS app bundle. |
 | `test_live_stream_smoke` | yes | partly | partly | The second run in one process uses a scripted window run, which is checked on macOS only. |
 | `test_case_chooser_contract` | yes | yes | no | Compares backslash paths with forward-slash paths, writes them into a `QSettings` INI file where backslash is an escape, and creates a directory symlink. |
+| `test_numeric_locale_smoke` | yes | yes | no | Starts Paimpol headless and in the window with `LANG` set to a locale with a decimal comma, which Qt applies to the C library on macOS and Linux only. It reports itself as skipped when none of `de_DE.UTF-8`, `nl_NL.UTF-8` and `fr_FR.UTF-8` is installed. |
 | `test_package_contents_smoke` | yes | no | no | Checks the `.app` bundle with macOS tools. |
 | `test_measure_peak_rss` | yes | yes | no | Tests the collector for the macOS `/usr/bin/time -l`, without that tool. |
 | `test_windows_image_size`, `test_windows_default_stack` | no | no | yes | Read the PE header of `QEGTRAIN.exe` and `scene_tool.exe`. |

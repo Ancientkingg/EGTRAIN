@@ -88,14 +88,14 @@ var NAVTREEINDEX =
 "class_train_unit_panel.html",
 "classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e",
 "globals_enum.html",
-"namespacetelemetry.html#a3791f17c7b0f059e16f8af1cd61d18fe",
-"struct_capacity_analysis_train.html#a30c177b4278d41aaa6b89b36bb7936d2",
-"struct_follow_availability.html#a33ac27566169b089f684515cf96317b5",
-"struct_playback_profiler_1_1_run_config.html#a93939c5473081b4399f85c0e40c8396e",
-"struct_scene_bundle_probe_result.html",
-"struct_scene_section_descriptor.html#adae095d825eda084178023908ae0d195",
-"struct_simulation_run.html#ae2a5df5cc93ca9fd692cc1b43ac8eece",
-"struct_trajectory_chart_result.html"
+"namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cbad8f78ca9a692a9411afbc7584b69d043",
+"struct_capacity_analysis_train.html#a30292457028e91e838a2447d20e605f9",
+"struct_follow_availability.html",
+"struct_playback_profiler_1_1_run_config.html#a930f9fac9758388831f30299c1ad324e",
+"struct_scene_block_extent.html#af934767f4be913239eed2bec5307e051",
+"struct_scene_section_descriptor.html#ad577e460a63bdb6f0f23efd1f3bf7f7d",
+"struct_simulation_run.html#adc132f81dade594bc983b8a8ba642666",
+"struct_train_visual.html#ad6aededd5305419c40695c564da47c7c"
 ];
 
 const SYNCONMSG = 'click to disable panel synchronization';
