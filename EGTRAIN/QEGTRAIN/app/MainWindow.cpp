@@ -956,7 +956,7 @@ void MainWindow::setupLayersDock() {
 		// Without a menu entry a closed Run Results dock stayed unreachable
 		// until the next run finished.
 		if (m_runResultsPanel)
-			ui->menuView->addAction(m_runResultsPanel->dock()->toggleViewAction());
+			addViewDockAction(m_runResultsPanel->dock());
 	}
 	connect(m_stationLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
 		m_presenter->setStationLayerVisible(checked);
@@ -1172,9 +1172,8 @@ void MainWindow::setupLogPane() {
 	m_logPane = new ConsoleWidget(this);
 	addDockWidget(Qt::BottomDockWidgetArea, m_logPane);
 	m_logPane->hide();
-	m_logPane->toggleViewAction()->setShortcut(QKeySequence("Ctrl+Shift+L"));
 	if (ui->menuView)
-		ui->menuView->addAction(m_logPane->toggleViewAction());
+		addViewDockAction(m_logPane)->setShortcut(QKeySequence("Ctrl+Shift+L"));
 }
 
 void MainWindow::setupValidationDocks() {
@@ -1210,9 +1209,8 @@ void MainWindow::setupValidationDocks() {
 	addDockWidget(Qt::BottomDockWidgetArea, m_validationDock);
 	m_validationDock->hide();
 	tabifyDockWidget(m_logPane, m_validationDock);
-	m_validationDock->toggleViewAction()->setShortcut(QKeySequence("Ctrl+Shift+V"));
 	if (ui->menuView)
-		ui->menuView->addAction(m_validationDock->toggleViewAction());
+		addViewDockAction(m_validationDock)->setShortcut(QKeySequence("Ctrl+Shift+V"));
 
 	m_loadedDataDock = new QDockWidget("Loaded Data", this);
 	m_loadedDataDock->setObjectName("loadedDataDock");
@@ -1222,7 +1220,7 @@ void MainWindow::setupValidationDocks() {
 	tabifyDockWidget(m_validationDock, m_loadedDataDock);
 	tabifyDockWidget(m_loadedDataDock, m_runResultsPanel->dock());
 	if (ui->menuView)
-		ui->menuView->addAction(m_loadedDataDock->toggleViewAction());
+		addViewDockAction(m_loadedDataDock);
 }
 
 void MainWindow::setupAdvancedDetailsAction() {
@@ -1413,15 +1411,24 @@ void MainWindow::registerEditorDock(QDockWidget* dock) {
 	dock->addAction(m_redoAction);
 }
 
+QAction* MainWindow::addViewDockAction(QDockWidget* dock) {
+	// An empty capture submits no telemetry.
+	QAction* action = telemetry::registerEditor(dock, ui->menuView, {});
+	m_viewDockActions.insert(dock, action);
+	return action;
+}
+
 QMenu* MainWindow::createPopupMenu() {
 	QMenu* menu = QMainWindow::createPopupMenu();
 	if (!menu) return nullptr;
-	for (auto it = m_editorActions.cbegin(); it != m_editorActions.cend(); ++it) {
-		QAction* original = it.key()->toggleViewAction();
-		if (!menu->actions().contains(original)) continue;
-		menu->insertAction(original, it.value());
-		menu->removeAction(original);
-	}
+	// The menu of a dock title has the entries of the Editors and View menus instead of the built-in actions of the docks.
+	for (const QHash<QDockWidget*, QAction*>* actions : {&m_editorActions, &m_viewDockActions})
+		for (auto it = actions->cbegin(); it != actions->cend(); ++it) {
+			QAction* original = it.key()->toggleViewAction();
+			if (!menu->actions().contains(original)) continue;
+			menu->insertAction(original, it.value());
+			menu->removeAction(original);
+		}
 	return menu;
 }
 
