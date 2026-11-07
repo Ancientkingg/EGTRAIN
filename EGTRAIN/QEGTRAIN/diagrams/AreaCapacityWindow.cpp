@@ -1,5 +1,6 @@
 #include "diagrams/AreaCapacityWindow.h"
 
+#include "diagrams/BlockingTimeScope.h"
 #include "diagrams/CapacityWindow.h"
 #include "diagrams/ResultFrame.h"
 #include "diagrams/RunCsv.h"
@@ -346,11 +347,6 @@ AreaCapacityTrain areaTrainFor(const CompletedRunData& data, const CompletedTrai
 	return result;
 }
 
-QString routeText(const CompletedRoute& route) {
-	const QString id = QString::fromStdString(route.id);
-	return route.corridor.empty() ? id : QString("%1  (%2)").arg(id, QString::fromStdString(route.corridor));
-}
-
 } // namespace
 
 AreaCapacityInput areaCapacityInputFrom(const CompletedRunData& data, const AreaCapacityScope& scope) {
@@ -565,8 +561,9 @@ AreaCapacityScopeDialog::AreaCapacityScopeDialog(const CompletedRunData& data, Q
 	m_secondLastBlock->setObjectName("areaCapacitySecondLastBlock");
 	m_secondRoute->addItem("No second route", -1);
 	for (std::size_t index = 0; index < data.routes.size(); ++index) {
-		m_route->addItem(routeText(data.routes[index]), static_cast<int>(index));
-		m_secondRoute->addItem(routeText(data.routes[index]), static_cast<int>(index));
+		const QString text = blockingTimeScopeRouteText(blockingTimeScopeRouteFrom(data.routes[index]));
+		m_route->addItem(text, static_cast<int>(index));
+		m_secondRoute->addItem(text, static_cast<int>(index));
 	}
 	m_period = new QDoubleSpinBox(body);
 	m_period->setObjectName("areaCapacityPeriod");
