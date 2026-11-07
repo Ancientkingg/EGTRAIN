@@ -797,37 +797,37 @@
 </a>
 </g>
 </g>
-<!-- Node330 -->
-<g id="Node000330" class="node">
-<title>Node330</title>
-<g id="a_Node000330"><a xlink:href="class_train_unit_panel.html#a6f2dcc415fba70e4380cb8998f04734e" target="_top" xlink:title="The unit has got another id. Emitted after the document is marked changed.">
+<!-- Node331 -->
+<g id="Node000331" class="node">
+<title>Node331</title>
+<g id="a_Node000331"><a xlink:href="class_train_unit_panel.html#a6f2dcc415fba70e4380cb8998f04734e" target="_top" xlink:title="The unit has got another id. Emitted after the document is marked changed.">
 <polygon fill="white" stroke="#666666" points="312.5,-77.75 155.5,-77.75 155.5,-57 312.5,-57 312.5,-77.75"/>
 <text xml:space="preserve" text-anchor="middle" x="234" y="-64.25" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::unitRenamed</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node330 -->
-<g id="edge75_Node000001_Node000330" class="edge">
-<title>Node1&#45;&gt;Node330</title>
-<g id="a_edge75_Node000001_Node000330"><a xlink:title=" ">
+<!-- Node1&#45;&gt;Node331 -->
+<g id="edge75_Node000001_Node000331" class="edge">
+<title>Node1&#45;&gt;Node331</title>
+<g id="a_edge75_Node000001_Node000331"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M53.51,-1003.61C55.94,-904.94 76.39,-159.61 140.5,-87.38 142.18,-85.48 144,-83.74 145.93,-82.14"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="147.42,-85.35 153.77,-76.87 143.52,-79.54 147.42,-85.35"/>
 </a>
 </g>
 </g>
-<!-- Node331 -->
-<g id="Node000331" class="node">
-<title>Node331</title>
-<g id="a_Node000331"><a xlink:href="namespace_focus_wheel.html#a287f1fa4355169b7a4c7815a0683875c" target="_top" xlink:title="Creates a Watcher for root, which owns it.">
+<!-- Node332 -->
+<g id="Node000332" class="node">
+<title>Node332</title>
+<g id="a_Node000332"><a xlink:href="namespace_focus_wheel.html#a287f1fa4355169b7a4c7815a0683875c" target="_top" xlink:title="Creates a Watcher for root, which owns it.">
 <polygon fill="#fff0f0" stroke="red" points="288.88,-20.75 179.12,-20.75 179.12,0 288.88,0 288.88,-20.75"/>
 <text xml:space="preserve" text-anchor="middle" x="234" y="-7.25" font-family="Helvetica,sans-Serif" font-size="10.00">FocusWheel::watch</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node331 -->
-<g id="edge76_Node000001_Node000331" class="edge">
-<title>Node1&#45;&gt;Node331</title>
-<g id="a_edge76_Node000001_Node000331"><a xlink:title=" ">
+<!-- Node1&#45;&gt;Node332 -->
+<g id="edge76_Node000001_Node000332" class="edge">
+<title>Node1&#45;&gt;Node332</title>
+<g id="a_edge76_Node000001_Node000332"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M53.55,-1003.55C56.47,-902.71 80.71,-129.43 140.5,-48.38 147.84,-38.43 158.25,-31.07 169.46,-25.64"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="170.7,-28.92 178.52,-21.77 167.95,-22.48 170.7,-28.92"/>
 </a>
@@ -1169,10 +1169,10 @@
 </a>
 </g>
 </g>
-<!-- Node331&#45;&gt;Node331 -->
-<g id="edge77_Node000331_Node000331" class="edge">
-<title>Node331&#45;&gt;Node331</title>
-<g id="a_edge77_Node000331_Node000331"><a xlink:title=" ">
+<!-- Node332&#45;&gt;Node332 -->
+<g id="edge77_Node000332_Node000332" class="edge">
+<title>Node332&#45;&gt;Node332</title>
+<g id="a_edge77_Node000332_Node000332"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M204.71,-21.15C193,-29.81 202.76,-38.75 234,-38.75 251.08,-38.75 261.74,-36.08 265.98,-32.24"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="269.41,-31.51 263.64,-22.62 262.6,-33.16 269.41,-31.51"/>
 </a>

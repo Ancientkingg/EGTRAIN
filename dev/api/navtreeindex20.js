@@ -1,5 +1,6 @@
 var NAVTREEINDEX20 =
 {
+"globals_enum.html":[3,1,4],
 "globals_f.html":[3,1,0,6],
 "globals_func.html":[3,1,1],
 "globals_func.html":[3,1,1,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX20 =
 "namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cbaa247b21f40c7c83496ed67cc742c2524":[1,0,14,17,3],
 "namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cbac82adc7582667b6bbc1e066757aad182":[1,0,14,17,1],
 "namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cbad272d88f548764712769a41765f447f2":[1,0,14,17,2],
-"namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cbad8f78ca9a692a9411afbc7584b69d043":[1,0,14,17,0],
-"namespacetelemetry.html#a3791f17c7b0f059e16f8af1cd61d18fe":[1,0,14,16]
+"namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cbad8f78ca9a692a9411afbc7584b69d043":[1,0,14,17,0]
 };

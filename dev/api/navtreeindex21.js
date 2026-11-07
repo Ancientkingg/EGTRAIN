@@ -1,5 +1,6 @@
 var NAVTREEINDEX21 =
 {
+"namespacetelemetry.html#a3791f17c7b0f059e16f8af1cd61d18fe":[1,0,14,16],
 "namespacetelemetry.html#a3791f17c7b0f059e16f8af1cd61d18fea0b40b4bfb2f70f2bd007b6e2672069bc":[1,0,14,16,4],
 "namespacetelemetry.html#a3791f17c7b0f059e16f8af1cd61d18fea1af19a759287e51ab5a577227dbe5778":[1,0,14,16,1],
 "namespacetelemetry.html#a3791f17c7b0f059e16f8af1cd61d18fea31aa27e7a70e9a30f6a063658fe00bd8":[1,0,14,16,3],
@@ -248,6 +249,5 @@ var NAVTREEINDEX21 =
 "struct_capacity_analysis_scope.html#ab9f9b770bf1b0a49e5785b511b520e3e":[2,0,35,1],
 "struct_capacity_analysis_scope.html#af48c07ffcfcfddd1faf073a7c2747531":[2,0,35,5],
 "struct_capacity_analysis_train.html":[2,0,36],
-"struct_capacity_analysis_train.html#a30292457028e91e838a2447d20e605f9":[2,0,36,5],
-"struct_capacity_analysis_train.html#a30c177b4278d41aaa6b89b36bb7936d2":[2,0,36,4]
+"struct_capacity_analysis_train.html#a30292457028e91e838a2447d20e605f9":[2,0,36,5]
 };

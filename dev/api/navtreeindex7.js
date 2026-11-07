@@ -1,5 +1,6 @@
 var NAVTREEINDEX7 =
 {
+"_startup_timing_8cpp.html#afc4b99469fe5a5e382be0216b6184cdd":[3,0,0,41,7],
 "_startup_timing_8h.html":[3,0,0,42],
 "_startup_timing_8h.html#a0b1472493f7b2cff5992282f4a995a92":[3,0,0,42,6],
 "_startup_timing_8h.html#a103f029459514cde1f55eb5a3f65d10b":[3,0,0,42,5],
@@ -248,6 +249,5 @@ var NAVTREEINDEX7 =
 "_update_settings_8h.html#a35da7659693a1ca3699fe9616d8fea67a00d23a76e43b46dae9ec7aa9dcbebb32":[3,0,10,18,0,1],
 "_update_settings_8h.html#a35da7659693a1ca3699fe9616d8fea67a88183b946cc5f0e8c96b2e66e1c74a7e":[3,0,10,18,0,0],
 "_update_settings_8h.html#a35da7659693a1ca3699fe9616d8fea67ab9f5c797ebbf55adccdd8539a65a0241":[3,0,10,18,0,2],
-"_update_settings_8h.html#a841edd1014624f82e68d783dce07a809":[3,0,10,18,5],
-"_update_settings_8h.html#aa2b2cb64256e4731e74a780c89db57cc":[3,0,10,18,2]
+"_update_settings_8h.html#a841edd1014624f82e68d783dce07a809":[3,0,10,18,5]
 };

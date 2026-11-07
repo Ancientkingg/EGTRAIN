@@ -636,7 +636,8 @@ files and the two sidecars of an export keep their own diagnostics.
 and stops the import, as a missing one does. Any other file gives the warning
 <code class="docutils literal notranslate"><span class="pre">scene.import.read</span></code> and counts as skipped in <code class="docutils literal notranslate"><span class="pre">import_report</span></code>. An unreadable
 <code class="docutils literal notranslate"><span class="pre">trainNames.txt</span></code> is replaced by the files in <code class="docutils literal notranslate"><span class="pre">Trains</span></code>, as a missing one is, and
-an unreadable rollout adds no scenario.</p>
+an unreadable rollout adds no scenario. A UTF-8 byte order mark at the start of
+a legacy file is dropped before its rows are read.</p>
 <p><code class="docutils literal notranslate"><span class="pre">SceneExporter</span></code> writes a legacy case into a staging folder next to the
 destination and publishes it only when the export is complete, so a failed
 export leaves the destination as it was. A new destination is the staging

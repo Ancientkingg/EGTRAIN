@@ -31,6 +31,7 @@ var _scene_importer_8cpp =
     [ "importTrackViews", "_scene_importer_8cpp.html#a7d5432509435d5ef6d050bc3e588510b", null ],
     [ "importTrains", "_scene_importer_8cpp.html#af499a71fe7d0da92626a2321bcb427d0", null ],
     [ "importTrainUnits", "_scene_importer_8cpp.html#a42d765ea4119a96d2071b90b2ff314bb", null ],
+    [ "isAsciiSpace", "_scene_importer_8cpp.html#a9b525f1c5c4de4ce1c2c07b4c5a6a1c6", null ],
     [ "knownCaseFor", "_scene_importer_8cpp.html#a5ed2f60461204687c8f367478c596269", null ],
     [ "locateLegacyPassengerSources", "_scene_importer_8cpp.html#a9e2783e78476e6525d0d2be4a6135b45", null ],
     [ "lowerCopy", "_scene_importer_8cpp.html#a958a60e28b09996849ec7665c6206390", null ],

@@ -2,8 +2,8 @@
 <area shape="rect" id="Node000001" title="The telemetry record of the user action that is going on, which the export of a scenario reports to." alt="" coords="5,1497,205,1542"/>
 <area shape="rect" id="Node000002" href="$class_editor_docks.html#a487374634eaa3430e4e052c5a9e82dce" title=" " alt="" coords="276,1479,415,1507"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,1507,262,1500,259,1504,207,1511"/>
-<area shape="rect" id="Node000334" href="$class_editor_docks.html#a97f43e15fbf8f15c6e250a2af4a79b2c" title="Docks for window, which build() fills. The docks do not own host." alt="" coords="253,1531,438,1559"/>
-<area shape="poly" id="edge67_Node000001_Node000334" title=" " alt="" coords="203,1528,239,1532,235,1535,207,1532"/>
+<area shape="rect" id="Node000335" href="$class_editor_docks.html#a97f43e15fbf8f15c6e250a2af4a79b2c" title="Docks for window, which build() fills. The docks do not own host." alt="" coords="253,1531,438,1559"/>
+<area shape="poly" id="edge67_Node000001_Node000335" title=" " alt="" coords="203,1528,239,1532,235,1535,207,1532"/>
 <area shape="rect" id="Node000003" href="$class_case_settings_panel.html#a5ea1b6d082ad62636f686c1fbcbabb64" title="The base time of the model has been set to this text. Emitted before the document is marked changed." alt="" coords="1039,36,1188,81"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="344,1478,354,1222,379,785,398,557,422,354,435,269,450,199,466,146,484,114,511,88,541,66,573,47,606,33,678,13,753,4,828,4,901,10,1026,33,1022,35,900,15,828,9,754,9,679,18,608,38,575,52,543,70,514,92,488,117,471,148,455,200,440,270,427,355,404,558,385,785,360,1222,350,1479"/>
 <area shape="rect" id="Node000004" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title="Seconds since midnight of an &quot;hh:mm:ss&quot; base time; 0 when the text is empty or not a time of day." alt="" coords="534,374,687,401"/>
@@ -88,10 +88,10 @@
 <area shape="poly" id="edge62_Node000002_Node000314" title=" " alt="" coords="415,1500,440,1518,452,1545,461,1588,469,1713,469,1875,464,2055,460,2234,460,2396,468,2520,477,2562,488,2587,514,2609,509,2609,484,2591,472,2563,463,2520,455,2396,455,2234,459,2054,463,1874,463,1713,455,1589,447,1547,436,1521,416,1505"/>
 <area shape="rect" id="Node000307" href="$class_train_unit_panel.html#aada88fec49c7c65ff35650ce409594ba" title="The unit is gone from the model. Emitted after the document is marked changed." alt="" coords="512,2670,710,2697"/>
 <area shape="poly" id="edge63_Node000002_Node000307" title=" " alt="" coords="415,1500,440,1518,453,1547,462,1593,470,1726,469,1898,463,2090,458,2282,458,2454,466,2585,475,2630,488,2657,500,2670,495,2669,484,2660,470,2632,461,2586,452,2454,453,2282,458,2090,463,1898,464,1726,456,1594,448,1549,436,1521,416,1505"/>
-<area shape="rect" id="Node000331" href="$class_train_unit_panel.html#a6f2dcc415fba70e4380cb8998f04734e" title="The unit has got another id. Emitted after the document is marked changed." alt="" coords="506,2722,715,2749"/>
-<area shape="poly" id="edge64_Node000002_Node000331" title=" " alt="" coords="415,1500,440,1518,454,1548,463,1596,471,1735,469,1915,463,2115,458,2316,457,2495,460,2570,465,2633,475,2679,488,2707,496,2717,491,2716,484,2710,470,2681,460,2633,454,2571,451,2495,452,2316,458,2115,464,1915,465,1735,457,1597,448,1550,436,1521,416,1505"/>
-<area shape="rect" id="Node000332" href="$namespace_focus_wheel.html#a287f1fa4355169b7a4c7815a0683875c" title="Creates a Watcher for root, which owns it." alt="" coords="538,2798,684,2825"/>
-<area shape="poly" id="edge65_Node000002_Node000332" title=" " alt="" coords="415,1500,440,1518,454,1549,464,1599,470,1665,473,1744,472,1930,467,2139,461,2347,460,2535,467,2679,476,2729,488,2760,504,2776,526,2792,521,2791,501,2781,484,2762,471,2730,462,2680,454,2535,456,2347,462,2139,467,1930,468,1744,465,1665,459,1600,449,1551,436,1521,416,1505"/>
+<area shape="rect" id="Node000332" href="$class_train_unit_panel.html#a6f2dcc415fba70e4380cb8998f04734e" title="The unit has got another id. Emitted after the document is marked changed." alt="" coords="506,2722,715,2749"/>
+<area shape="poly" id="edge64_Node000002_Node000332" title=" " alt="" coords="415,1500,440,1518,454,1548,463,1596,471,1735,469,1915,463,2115,458,2316,457,2495,460,2570,465,2633,475,2679,488,2707,496,2717,491,2716,484,2710,470,2681,460,2633,454,2571,451,2495,452,2316,458,2115,464,1915,465,1735,457,1597,448,1550,436,1521,416,1505"/>
+<area shape="rect" id="Node000333" href="$namespace_focus_wheel.html#a287f1fa4355169b7a4c7815a0683875c" title="Creates a Watcher for root, which owns it." alt="" coords="538,2798,684,2825"/>
+<area shape="poly" id="edge65_Node000002_Node000333" title=" " alt="" coords="415,1500,440,1518,454,1549,464,1599,470,1665,473,1744,472,1930,467,2139,461,2347,460,2535,467,2679,476,2729,488,2760,504,2776,526,2792,521,2791,501,2781,484,2762,471,2730,462,2680,454,2535,456,2347,462,2139,467,1930,468,1744,465,1665,459,1600,449,1551,436,1521,416,1505"/>
 <area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="565,374,558,365,564,355,582,349,611,347,642,350,660,357,655,360,640,355,611,352,583,354,567,359,564,365,571,373"/>
 <area shape="rect" id="Node000006" href="$class_case_settings_panel.html#a98fc2e3ca7e313d5fd05fe3cfd172d09" title=" " alt="" coords="812,65,962,110"/>
 <area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="684,131,799,106,795,110,687,135"/>
@@ -115,5 +115,5 @@
 <area shape="poly" id="edge59_Node000292_Node000260" title=" " alt="" coords="700,1916,774,1908,769,1911,702,1920"/>
 <area shape="poly" id="edge60_Node000292_Node000261" title=" " alt="" coords="700,1939,771,1949,766,1951,702,1944"/>
 <area shape="poly" id="edge61_Node000292_Node000291" title=" " alt="" coords="664,1949,784,1998,810,2010,805,2011,782,2003,665,1954"/>
-<area shape="poly" id="edge66_Node000332_Node000332" title=" " alt="" coords="565,2796,558,2789,564,2779,582,2773,611,2771,642,2774,660,2783,655,2782,640,2779,611,2776,583,2778,567,2783,564,2789,570,2798"/>
+<area shape="poly" id="edge66_Node000333_Node000333" title=" " alt="" coords="565,2796,558,2789,564,2779,582,2773,611,2771,642,2774,660,2783,655,2782,640,2779,611,2776,583,2778,567,2783,564,2789,570,2798"/>
 </map>

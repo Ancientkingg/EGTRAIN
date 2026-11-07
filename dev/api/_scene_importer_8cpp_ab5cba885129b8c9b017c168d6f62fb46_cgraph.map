@@ -1,4 +1,7 @@
 <map id="trimRight" name="trimRight">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,88,57"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="31,28,30,12,36,5,47,3,57,5,63,14,58,14,54,10,46,8,39,10,35,14,36,29"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="21,29,18,20,21,11,31,5,47,3,63,5,74,13,68,14,61,10,46,8,32,10,25,14,23,20,27,29"/>
+<area shape="rect" id="Node000002" href="$_scene_importer_8cpp.html#a9b525f1c5c4de4ce1c2c07b4c5a6a1c6" title=" " alt="" coords="136,29,238,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,41,123,43,117,44,88,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="162,28,158,20,161,11,171,5,187,3,204,5,214,14,209,13,202,10,187,8,173,10,165,14,163,20,167,30"/>
 </map>

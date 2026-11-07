@@ -1,5 +1,6 @@
 var NAVTREEINDEX9 =
 {
+"class_case_settings_panel.html#acb968dbe3f40db2f385af2b032ac32f9":[2,0,45,11],
 "class_case_settings_panel.html#adf7a9af461fd8312d03f90db5890eae2":[2,0,45,9],
 "class_case_settings_panel.html#ae31fed717086048ee10cb6a42cab286e":[2,0,45,1],
 "class_case_settings_panel.html#ae3a7929359c0847f8984b9c59303f5aa":[2,0,45,8],
@@ -248,6 +249,5 @@ var NAVTREEINDEX9 =
 "class_entrance_delay_panel.html#ad69251e58aecb776bccfb14fd4cd7a92":[2,0,85,0],
 "class_entrance_delay_panel.html#ae0b84da365cd871666ea6850514c86be":[2,0,85,14],
 "class_entrance_delay_panel.html#af3f1013b6ccdf5e6c6c04c81453518bc":[2,0,85,19],
-"class_find_dialog.html":[2,0,88],
-"class_find_dialog.html#a0292e354306d41db3cee14c9b78b008f":[2,0,88,1]
+"class_find_dialog.html":[2,0,88]
 };
