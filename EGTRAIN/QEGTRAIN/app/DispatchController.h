@@ -10,6 +10,7 @@
 #include <atomic>
 #include <filesystem>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 
@@ -113,6 +114,11 @@ public:
 	void setNextRunOutputFolder(const std::string& folder) { nextRunOutputFolder_ = folder; }
 	/// The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread.
 	const std::string& nextRunOutputFolder() const { return nextRunOutputFolder_; }
+	/// Makes the output folder that prepareScene gives the next run, and its subfolders: the folder of
+	/// setNextRunOutputFolder, else the output folder of initial_variables, else Output. Returns the error
+	/// run.output.folder when one cannot be made. The window calls it before it lets go of the last run, so that a folder
+	/// that cannot be made leaves that run as it was. Call this on the GUI thread.
+	std::optional<SceneDiagnostic> makeNextRunOutputFolders() const;
 
 	/// Starts the live stream (see io/LiveServer.h): every run that follows publishes a hello frame, a state
 	/// frame for every every-th step and the events of its end, and the stream outlives the runs. The endpoint
@@ -148,6 +154,8 @@ private:
 	// The body of runSimulation, which catches what it throws.
 	void runSimulationStages();
 	void beginScenePreparation();
+	// The output folder of the next run, as makeNextRunOutputFolders describes it.
+	std::string resolvedNextRunOutputFolder() const;
 	void publishSimulationSnapshot(int timestep);
 
 	GuiSimulationSnapshotMailbox snapshotMailbox_;

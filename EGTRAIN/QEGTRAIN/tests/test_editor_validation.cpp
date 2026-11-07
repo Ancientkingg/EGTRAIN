@@ -464,9 +464,18 @@ void TestValidationPanel::saysOkOutsideRun() {
 	if (run == nullptr) QFAIL("the case and its data without a problem say OK, and only the run says Ready");
 	QCOMPARE(run->text(3), "Ready");
 	QVERIFY(readyOutsideRun.isEmpty());
+	context.runtimeDiagnostics.push_back(diagnostic(SceneSeverity::Error, "run.output.folder", "Cannot create the output folder"));
+	panel.refreshLoadedData();
+	root = panel.tree()->topLevelItem(0);
+	// An output folder that the run cannot make says nothing about the case, which stays OK.
+	if (root == nullptr) QFAIL("an output folder that the run cannot make says nothing about the case, which stays OK");
+	QCOMPARE(root->text(3), "OK");
 	context.runtimeDiagnostics.insert(context.runtimeDiagnostics.begin(), diagnostic(SceneSeverity::Error, "e2e.fail", "Run error"));
 	panel.refreshLoadedData();
 	root = panel.tree()->topLevelItem(0);
+	// Another error of the run makes the case invalid.
+	if (root == nullptr) QFAIL("another error of the run makes the case invalid");
+	QCOMPARE(root->text(3), "Invalid");
 	run = root ? childRow(root, "Run") : nullptr;
 	QTreeWidgetItem* messages = run ? childRow(run, "Messages") : nullptr;
 	QTreeWidgetItem* failRow = messages ? childRow(messages, "Run error") : nullptr;

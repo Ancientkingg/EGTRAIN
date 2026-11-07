@@ -790,7 +790,6 @@ void RunController::runScene() {
 		return;
 
 	emit runPreparing();
-	m_host.teardownForRun();
 	selectSceneOutputFolder(m_document->model().name);
 	QString outputPath = QString::fromStdString(initial_variables.OutputMainFolder);
 	if (outputPath.isEmpty() || QDir(outputPath).isRelative()) {
@@ -801,6 +800,16 @@ void RunController::runScene() {
 		QDir().mkpath(outputPath);
 		initial_variables.OutputMainFolder = outputPath.toStdString();
 	}
+	// The output folder is made before the last run is let go, so a folder that cannot be made leaves that run, its
+	// results, its replay and its canvas as they were.
+	if (const std::optional<SceneDiagnostic> failure = simulation.makeNextRunOutputFolders()) {
+		operation.failure(telemetry::Operation::Simulation, telemetryDiagnosticError({*failure}));
+		const QString message = QString::fromStdString(failure->message);
+		m_window->statusBar()->showMessage(QStringLiteral("Run not started: %1").arg(message));
+		showError("Cannot Run Case", message);
+		return;
+	}
+	m_host.teardownForRun();
 	initial_variables.GUI = 1;
 	m_host.invalidateRunResults();
 	m_selection.applySelectedScenario();
@@ -825,7 +834,12 @@ void RunController::runScene() {
 		setState(RunState::Failed);
 		emit sceneActionsChanged();
 		m_host.validateScene();
-		showError("Cannot Run Case", firstDiagnosticMessage(diagnostics));
+		// As at the end of a run without results, the panels follow and the window draws the track preview in place of the
+		// canvas that teardownForRun cleared, which clears the status bar.
+		emit runPanelsChanged();
+		const QString message = firstDiagnosticMessage(diagnostics);
+		m_window->statusBar()->showMessage(QStringLiteral("Run not started: %1").arg(message));
+		showError("Cannot Run Case", message);
 		return;
 	}
 	setState(RunState::Ready);

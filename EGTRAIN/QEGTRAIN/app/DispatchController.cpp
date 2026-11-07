@@ -46,20 +46,28 @@ std::error_code removeRunOutput(const string& path) {
 	return error;
 }
 
-// Makes the output folder of a run and its subfolders, and removes the file that Train::printTrainServicePathDiagram
-// appends to, so each run starts without it. Returns the error when one of them fails.
-std::optional<SceneDiagnostic> prepareRunOutput(const string& outputFolder) {
-	SceneDiagnostic diagnostic;
+// Makes the output folder of a run and its subfolders. Returns the error when one of them cannot be made.
+std::optional<SceneDiagnostic> makeRunOutputFolders(const string& outputFolder) {
 	for (const char* subfolder : {"", "/TrainTrajectories", "/PassengerStatus", "/TrainTrajectories/RoutesGenerated"}) {
 		const std::string folder = outputFolder + subfolder;
 		if (const std::error_code error = ensureDirectory(folder)) {
+			SceneDiagnostic diagnostic;
 			diagnostic.code = "run.output.folder";
 			diagnostic.message = "Cannot create the output folder " + folder + ": " + error.message();
 			return diagnostic;
 		}
 	}
+	return std::nullopt;
+}
+
+// Makes the output folder of a run and its subfolders, and removes the file that Train::printTrainServicePathDiagram
+// appends to, so each run starts without it. Returns the error when one of them fails.
+std::optional<SceneDiagnostic> prepareRunOutput(const string& outputFolder) {
+	if (std::optional<SceneDiagnostic> failure = makeRunOutputFolders(outputFolder))
+		return failure;
 	const std::string servicePathDiagram = outputFolder + "/TrainTrajectories/TrainServicePathDiagram.txt";
 	if (const std::error_code error = removeRunOutput(servicePathDiagram)) {
+		SceneDiagnostic diagnostic;
 		diagnostic.code = "run.output.file";
 		diagnostic.message = "Cannot write " + servicePathDiagram + ": " + error.message();
 		return diagnostic;
@@ -325,10 +333,7 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	operationsTime = elapsed(checkpoint, next);
 	checkpoint = next;
 
-	if (!nextRunOutputFolder_.empty())
-		initial_variables.OutputMainFolder = nextRunOutputFolder_;
-	if (initial_variables.OutputMainFolder.empty())
-		initial_variables.OutputMainFolder = "Output";
+	initial_variables.OutputMainFolder = resolvedNextRunOutputFolder();
 	if (std::optional<SceneDiagnostic> failure = prepareRunOutput(initial_variables.OutputMainFolder)) {
 		diagnostics.push_back(std::move(*failure));
 		resetState();
@@ -341,6 +346,16 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	outputTime = elapsed(checkpoint, now());
 	reportDetail("success");
 	return diagnostics;
+}
+
+std::optional<SceneDiagnostic> DispatchController::makeNextRunOutputFolders() const {
+	return makeRunOutputFolders(resolvedNextRunOutputFolder());
+}
+
+std::string DispatchController::resolvedNextRunOutputFolder() const {
+	if (!nextRunOutputFolder_.empty())
+		return nextRunOutputFolder_;
+	return initial_variables.OutputMainFolder.empty() ? std::string("Output") : initial_variables.OutputMainFolder;
 }
 
 // The trains and passengers of the run that the scene replaces are released before the new ones are built.
