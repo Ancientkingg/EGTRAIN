@@ -56,10 +56,12 @@ DOCUMENTATION = (("docs_guides", "User guides", ""), ("docs_developer", "Develop
 # The number of version folders that the documentation table has a column for, newest first, so that the table stays
 # narrower than the page at 601 px, the narrowest screen that shows it as a table, also with longer version numbers.
 VERSION_COLUMNS = 3
-# The pages besides the home page: the folder that each is written to, its title and its description.
+# The pages besides the home page: the folder that each is written to, its title and its description. publish_selfhost.py
+# publishes them in this order. docs/site/layout.html links all three, and the site had support/ and privacy/ before
+# contact/, so contact/ comes first and no published page links a folder that is not there yet.
 SITE_PAGES = {
-    "support": ("Report a problem", "How to report a problem with EGTRAIN and where its documentation is."),
     "contact": ("Contact", "How to contact the maintainer of EGTRAIN."),
+    "support": ("Report a problem", "How to report a problem with EGTRAIN and where its documentation is."),
     "privacy": ("Privacy", "Which data EGTRAIN and its website receive and how long they are kept."),
 }
 # The folder of the earlier source code page, whose index.html, docs/site/source.html, sends the visitor to the home page.
@@ -238,7 +240,7 @@ def home_page(latest: bool, dev: bool, versions: list, release) -> str:
     """The home page. Its documentation table has a column for latest/ and dev/ when they are there and for each of the
     newest VERSION_COLUMNS version folders."""
     version = release_version(release["tag_name"]) if release is not None else None
-    columns = [(name, note) for name, note, shown in (("latest", "newest release", latest), ("dev", "main branch", dev)) if shown]
+    columns = [(name, note) for name, note, shown in (("latest", "newest release", latest), ("dev", "in development", dev)) if shown]
     columns += [(name, "this release" if name == version else "") for name in versions[:VERSION_COLUMNS]]
     main = keep(PAGE.read_text(encoding="utf-8"), "latest", latest)
     main = keep(keep(main, "release", release is not None), "no release", release is None)

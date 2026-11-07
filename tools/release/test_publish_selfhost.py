@@ -481,7 +481,8 @@ class StubOnly(unittest.TestCase):
     def test_site_publishes_the_folders_then_the_pages_then_the_home_page(self):
         pages = self.pages()
         self.publish_site(pages, "1.2.3", "latest")
-        self.assertEqual(self.events, ["site dir 1.2.3", "site dir latest", "site dir assets", "site dir support", "site dir contact",
+        # contact/ is published before the pages that link it.
+        self.assertEqual(self.events, ["site dir 1.2.3", "site dir latest", "site dir assets", "site dir contact", "site dir support",
                                        "site dir privacy", "site dir source", "site file index.html"])
         for name in ("1.2.3/guides/install.html", "latest/index.html"):
             self.assertEqual((self.root / "site" / name).read_bytes(), (pages / name).read_bytes(), name)
@@ -517,7 +518,7 @@ class StubOnly(unittest.TestCase):
     def test_site_without_a_feed_lists_dev_only(self):
         self.publish_site(self.pages())
         text = (self.root / "site/index.html").read_text(encoding="utf-8")
-        self.assertIn('<th scope="col"><b>dev</b>main branch</th>', text)
+        self.assertIn('<th scope="col"><b>dev</b>in development</th>', text)
         self.assertNotIn("latest/", text)
         self.assertNotIn('href="1.2.3/"', text)
         self.assertIn('<p class="empty">No release is published on this site yet.</p>', text)

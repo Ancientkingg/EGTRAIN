@@ -28,7 +28,7 @@ correction after the release is published.
 
 site publishes the folders DIR of PAGES, the copy of the documentation site that docs.yml builds, as the folders of the
 same name of the website. It then reads the feed of the website and publishes the pages that tools/docs/home_page.py
-writes from it alone: assets/, support/, contact/, privacy/, source/ and, last, index.html. Their list of versions is
+writes from it alone: assets/, contact/, support/, privacy/, source/ and, last, index.html. Their list of versions is
 that of the feed, not that of PAGES, so two runs of docs.yml at the same time publish the same pages.
 
 The website takes a folder as a gzip-compressed tar file in PUT /api/publish/dir/<folder>, which replaces the folder, and

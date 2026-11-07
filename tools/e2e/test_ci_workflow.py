@@ -1184,7 +1184,7 @@ def check_home_page(checks: Checks, docs: dict, build_release_assets, home_page)
         (pages / "dev").mkdir()
         home_page.write_home_page(pages, [])
         text = (pages / "index.html").read_text(encoding="utf-8")
-        expect('<th scope="col"><b>dev</b>main branch</th>' in text and '<p class="empty">No release is published on this site yet.</p>' in text
+        expect('<th scope="col"><b>dev</b>in development</th>' in text and '<p class="empty">No release is published on this site yet.</p>' in text
                and not unfilled.search(text) and "latest/" not in text and "/raw/" not in text,
                "tools/docs/home_page.py leaves out the downloads and latest/ when no release is published, and links nothing in their place")
 
