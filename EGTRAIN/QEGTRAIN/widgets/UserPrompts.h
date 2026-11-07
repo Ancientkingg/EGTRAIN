@@ -27,7 +27,8 @@ public:
 	explicit UserPrompts(std::function<bool()> suppressed = {}) : m_suppressed(std::move(suppressed)) {}
 	virtual ~UserPrompts() = default;
 
-	/// An error message in a modal box, with a warning icon instead of the critical one when warningIcon is set. In a
+	/// An error message in a modal box, with a warning icon instead of the critical one when warningIcon is set. The title
+	/// is also the main text of the box, with the message below it, because macOS draws no title on a message box. In a
 	/// suppressed run it writes "QEGTRAIN_DIALOG_SUPPRESSED: title: message" to stderr instead. The title and the message
 	/// also go to the log, at error level in the category app.ui.
 	virtual void showError(QWidget* parent, const QString& title, const QString& message, bool warningIcon = false) {
@@ -37,10 +38,9 @@ public:
 			std::fflush(stderr);
 			return;
 		}
-		if (warningIcon)
-			QMessageBox::warning(parent, title, message);
-		else
-			QMessageBox::critical(parent, title, message);
+		QMessageBox box(warningIcon ? QMessageBox::Warning : QMessageBox::Critical, title, title, QMessageBox::Ok, parent);
+		box.setInformativeText(message);
+		box.exec();
 	}
 
 	/// A message that the user acknowledges. A scripted run has no user to do that, so nothing is shown then.

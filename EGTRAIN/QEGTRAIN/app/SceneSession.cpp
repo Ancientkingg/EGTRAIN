@@ -702,7 +702,7 @@ void SceneSession::actionLoad_Network() {
 	importLegacyCase(sourceDir, destinationDir, operation);
 }
 
-QString SceneSession::legacyImportSummary(const std::vector<SceneDiagnostic>& diagnostics) {
+QString SceneSession::legacyImportSummary(const std::vector<SceneDiagnostic>& diagnostics, bool imported) {
 	constexpr size_t kMaxListed = 4;
 	int errors = 0;
 	int warnings = 0;
@@ -731,7 +731,7 @@ QString SceneSession::legacyImportSummary(const std::vector<SceneDiagnostic>& di
 		counts << countText(warnings, "warning", "warnings");
 	if (notes > 0)
 		counts << countText(notes, "note", "notes");
-	QString summary = "Import: " + counts.join(", ");
+	QString summary = (imported ? "Imported with " : "Not imported: ") + counts.join(", ");
 	for (size_t i = 0; i < ordered.size() && i < kMaxListed; ++i) {
 		QString detail = QString::fromStdString(ordered[i]->message);
 		if (!ordered[i]->file.empty())
@@ -798,7 +798,7 @@ void SceneSession::importLegacyCase(const QString& sourceDir, const QString& des
 		sceneName.toStdString());
 	if (!importResult.success()) {
 		importFailed();
-		showError("Cannot Import Legacy Case", legacyImportSummary(importResult.diagnostics));
+		showError("Cannot Import Legacy Case", legacyImportSummary(importResult.diagnostics, false));
 		return;
 	}
 
@@ -807,14 +807,14 @@ void SceneSession::importLegacyCase(const QString& sourceDir, const QString& des
 	diagnostics.insert(diagnostics.end(), loadResult.diagnostics.begin(), loadResult.diagnostics.end());
 	if (errorDiagnosticCount(loadResult.diagnostics) > 0) {
 		importFailed();
-		showError("Cannot Open Imported Case", legacyImportSummary(diagnostics));
+		showError("Cannot Open Imported Case", legacyImportSummary(diagnostics, true));
 		return;
 	}
 	const auto semanticDiagnostics = validateRunnableScene(loadResult.scene);
 	diagnostics.insert(diagnostics.end(), semanticDiagnostics.begin(), semanticDiagnostics.end());
 	m_window->statusBar()->clearMessage();
 	// An import that found nothing to report opens the case without a box.
-	const QString summary = legacyImportSummary(diagnostics);
+	const QString summary = legacyImportSummary(diagnostics, true);
 	if (!summary.isEmpty())
 		showError("Legacy Case Imported", summary, true);
 	if (m_host.afterRunStopped([this, sceneDir, operation] { openSceneDirectory(sceneDir, operation); }))

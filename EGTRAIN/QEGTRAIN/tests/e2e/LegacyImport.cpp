@@ -14,8 +14,8 @@
 
 // Imports one legacy case into a new scene folder, then tries an import that must fail and checks
 // that the open scene is untouched and that the status bar no longer shows the progress message. It also
-// checks that the counts of the summary of an import match the lines that it lists, and that an import with nothing to
-// report has no summary, so that no box opens for it. The folders come from
+// checks that the summary of an import says whether the case was imported, that its counts match the lines that it
+// lists, and that an import with nothing to report has no summary, so that no box opens for it. The folders come from
 // QEGTRAIN_E2E_LEGACY_SOURCE and _DEST for the import that works, and from _BAD_SOURCE and _BAD_DEST for the
 // one that fails.
 void MainWindowTestAccess::runLegacyImport(MainWindow& w) {
@@ -65,21 +65,21 @@ void MainWindowTestAccess::runLegacyImport(MainWindow& w) {
 		return d;
 	};
 	const QString shortSummary = SceneSession::legacyImportSummary(
-		{diagnostic(SceneSeverity::Info, "note"), diagnostic(SceneSeverity::Warning, "warning"), diagnostic(SceneSeverity::Error, "error")});
-	if (shortSummary != QStringLiteral("Import: 1 error, 1 warning, 1 note\nerror\nwarning\nnote"))
+		{diagnostic(SceneSeverity::Info, "note"), diagnostic(SceneSeverity::Warning, "warning"), diagnostic(SceneSeverity::Error, "error")}, false);
+	if (shortSummary != QStringLiteral("Not imported: 1 error, 1 warning, 1 note\nerror\nwarning\nnote"))
 		fail("short summary: " + shortSummary);
 	std::vector<SceneDiagnostic> many(6, diagnostic(SceneSeverity::Warning, "warning"));
 	many.push_back(diagnostic(SceneSeverity::Error, "error"));
-	const QString longSummary = SceneSession::legacyImportSummary(many);
-	if (longSummary != QStringLiteral("Import: 1 error, 6 warnings\nerror\nwarning\nwarning\nwarning\nand 3 more"))
+	const QString longSummary = SceneSession::legacyImportSummary(many, true);
+	if (longSummary != QStringLiteral("Imported with 1 error, 6 warnings\nerror\nwarning\nwarning\nwarning\nand 3 more"))
 		fail("long summary: " + longSummary);
 	// A count of zero is left out, and an import with nothing to report has no summary, so no box opens.
 	const QString notesOnly = SceneSession::legacyImportSummary(
-		{diagnostic(SceneSeverity::Info, "first note"), diagnostic(SceneSeverity::Info, "second note")});
-	if (notesOnly != QStringLiteral("Import: 2 notes\nfirst note\nsecond note"))
+		{diagnostic(SceneSeverity::Info, "first note"), diagnostic(SceneSeverity::Info, "second note")}, true);
+	if (notesOnly != QStringLiteral("Imported with 2 notes\nfirst note\nsecond note"))
 		fail("summary of notes only: " + notesOnly);
-	if (!SceneSession::legacyImportSummary({}).isEmpty())
-		fail("an import without diagnostics has a summary: " + SceneSession::legacyImportSummary({}));
+	if (!SceneSession::legacyImportSummary({}, true).isEmpty())
+		fail("an import without diagnostics has a summary: " + SceneSession::legacyImportSummary({}, true));
 
 	const bool failedImport = !QFileInfo(QDir(badDestination).filePath("scene.json")).exists();
 	if (failedImport)
