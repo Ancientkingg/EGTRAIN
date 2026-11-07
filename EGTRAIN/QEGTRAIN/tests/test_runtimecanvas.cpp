@@ -825,7 +825,10 @@ void TestRuntimeCanvas::drawsGeometryOfSource() {
 			QCOMPARE(platform->stationId, "B");
 			QCOMPARE(platform->platformId, "P1");
 			QCOMPARE(platform->maxVolume, 40);
-			QVERIFY(platform->textIcon);
+			if (platform->textIcon == nullptr)
+				QFAIL("the run with passengers draws no counter");
+			// The counter says how many passengers wait on the platform and how many it holds.
+			QCOMPARE(platform->textIcon->toPlainText(), "7 waiting (capacity 40)");
 		} else {
 			QVERIFY(platform->stationId.empty());
 			QCOMPARE(platform->maxVolume, 0);
@@ -938,7 +941,7 @@ void TestRuntimeCanvas::applyShowsStepsOfRun() {
 	QCOMPARE(track->operationalState(), TrackOperationalState::Occupied);
 	// The platform shows its passengers.
 	QCOMPARE(platform->passengerIcons.size(), qsizetype(2));
-	QCOMPARE(platformText(), "2 of 40 passengers");
+	QCOMPARE(platformText(), "2 waiting (capacity 40)");
 	// The passengers on the platform show only where its bar shows, with the passenger layer.
 	const auto iconsShown = [platform](bool shown) {
 		return std::all_of(platform->passengerIcons.cbegin(), platform->passengerIcons.cend(),
@@ -1001,7 +1004,7 @@ void TestRuntimeCanvas::applyShowsStepsOfRun() {
 	QCOMPARE(track->operationalState(), TrackOperationalState::Free);
 	// The platform shows the passengers that are left.
 	QCOMPARE(platform->passengerIcons.size(), qsizetype(1));
-	QCOMPARE(platformText(), "1 of 40 passengers");
+	QCOMPARE(platformText(), "1 waiting (capacity 40)");
 	// The message of a virtual coupling shows above the train.
 	QVERIFY(PresenterAccess::vcMessageItems(presenter).contains(0));
 	QVERIFY(PresenterAccess::vcMessageItems(presenter)[0]->isVisible());
@@ -1321,8 +1324,8 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	QCOMPARE(iconIds(*endPlatform), Ids({"p9"}));
 	QVERIFY(middlePlatform->passengerIcons.isEmpty());
 	// The layer that is shown again has the counters of the current step.
-	QCOMPARE(endPlatform->textIcon->toPlainText(), "1 of 40 passengers");
-	QCOMPARE(middlePlatform->textIcon->toPlainText(), "0 of 30 passengers");
+	QCOMPARE(endPlatform->textIcon->toPlainText(), "1 waiting (capacity 40)");
+	QCOMPARE(middlePlatform->textIcon->toPlainText(), "0 waiting (capacity 30)");
 	// The selected icon is forgotten when its passenger has left.
 	QCOMPARE(PresenterAccess::paxIconItem(presenter), nullptr);
 	// No icon of a passenger who left is left on the canvas.
