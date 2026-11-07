@@ -143,13 +143,14 @@ var searchData=
   ['kstopholdbacktolerancem_140',['kStopHoldbackToleranceM',['../_rolling_stock_8h.html#a9f86635ac87cf8141e7bf654ed066448',1,'RollingStock.h']]],
   ['kstriprule_141',['kStripRule',['../_block_section_overlay_8h.html#a9796191b875e40a5fd884326a8606815',1,'BlockSectionOverlay.h']]],
   ['ktargettyperole_142',['kTargetTypeRole',['../class_validation_panel.html#a0b77ddaed7546541308878eddf19968b',1,'ValidationPanel']]],
-  ['ktimedistance_143',['kTimeDistance',['../namespace_result_view_name.html#ab9f9857c7531fc4896a58a9d73c9a1f7',1,'ResultViewName']]],
-  ['ktimetable_144',['kTimetable',['../namespace_result_view_name.html#a117d1472a9d8094a2272784acb0c8286',1,'ResultViewName']]],
-  ['ktimetablegraph_145',['kTimetableGraph',['../namespace_result_view_name.html#afb55a3c84b1af2f717e76edb76a14cc9',1,'ResultViewName']]],
-  ['ktractiveeffortdistance_146',['kTractiveEffortDistance',['../namespace_result_view_name.html#ae1e574443b86d5f7e10d9043ecac853c',1,'ResultViewName']]],
-  ['ktrain_147',['kTrain',['../namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a286a80f06036374b540871928a079703',1,'BlockingTimeCsv']]],
-  ['ktrainpaths_148',['kTrainPaths',['../namespace_result_view_name.html#afc9985a5f77e9d94d65d2e2b08f6d3c6',1,'ResultViewName']]],
-  ['ktreetextcolumnwidth_149',['kTreeTextColumnWidth',['../class_validation_panel.html#ab6efcf29fbd25f3899852f857b9b310a',1,'ValidationPanel']]],
-  ['kunmappedenvelopelayer_150',['kUnmappedEnvelopeLayer',['../_blocking_time_diagram_8h.html#ab7be8972f1871970b1454984f44914ab',1,'BlockingTimeDiagram.h']]],
-  ['kupdateobservems_151',['kUpdateObserveMs',['../_update_timing_8h.html#a5cb6d76a9276d58455f5f4af04477631',1,'UpdateTiming.h']]]
+  ['ktickintervalms_143',['kTickIntervalMs',['../classtelemetry_1_1_telemetry_sender.html#af128348a90aceebb1a203c2c88869c0a',1,'telemetry::TelemetrySender']]],
+  ['ktimedistance_144',['kTimeDistance',['../namespace_result_view_name.html#ab9f9857c7531fc4896a58a9d73c9a1f7',1,'ResultViewName']]],
+  ['ktimetable_145',['kTimetable',['../namespace_result_view_name.html#a117d1472a9d8094a2272784acb0c8286',1,'ResultViewName']]],
+  ['ktimetablegraph_146',['kTimetableGraph',['../namespace_result_view_name.html#afb55a3c84b1af2f717e76edb76a14cc9',1,'ResultViewName']]],
+  ['ktractiveeffortdistance_147',['kTractiveEffortDistance',['../namespace_result_view_name.html#ae1e574443b86d5f7e10d9043ecac853c',1,'ResultViewName']]],
+  ['ktrain_148',['kTrain',['../namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a286a80f06036374b540871928a079703',1,'BlockingTimeCsv']]],
+  ['ktrainpaths_149',['kTrainPaths',['../namespace_result_view_name.html#afc9985a5f77e9d94d65d2e2b08f6d3c6',1,'ResultViewName']]],
+  ['ktreetextcolumnwidth_150',['kTreeTextColumnWidth',['../class_validation_panel.html#ab6efcf29fbd25f3899852f857b9b310a',1,'ValidationPanel']]],
+  ['kunmappedenvelopelayer_151',['kUnmappedEnvelopeLayer',['../_blocking_time_diagram_8h.html#ab7be8972f1871970b1454984f44914ab',1,'BlockingTimeDiagram.h']]],
+  ['kupdateobservems_152',['kUpdateObserveMs',['../_update_timing_8h.html#a5cb6d76a9276d58455f5f4af04477631',1,'UpdateTiming.h']]]
 ];
