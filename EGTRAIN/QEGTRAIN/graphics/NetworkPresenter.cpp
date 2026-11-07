@@ -597,7 +597,7 @@ void NetworkPresenter::updateViewOverlays(const std::function<bool(const Station
 	for (TrainItemGroup* train : std::as_const(allTrains))
 		if (train)
 			train->applyViewScale(viewScale);
-	StationOverlayItem::resolveNameCollisions(m_stationOverlays, m_view->viewportTransform());
+	StationOverlayItem::resolveNameCollisions(m_stationOverlays, m_view->viewportTransform(), m_view->paddedTopologyBounds());
 	for (auto* overlay : std::as_const(m_stationOverlays))
 		if (overlay && overlay->nameItem())
 			overlay->nameItem()->setVisible(m_stationLayerVisible && m_stationNamesVisible
