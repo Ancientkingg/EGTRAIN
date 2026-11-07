@@ -274,7 +274,11 @@ void ValidationPanel::refreshLoadedData() {
 		return new QTreeWidgetItem(owner, QStringList{category, source, count, status});
 	};
 	const SceneDiagnosticCounts validationCounts = countDiagnostics(*m_diagnostics);
-	const SceneDiagnosticCounts runtimeCounts = countDiagnostics(context.runtimeDiagnostics);
+	// An output folder or file that the run cannot write (run.output.*) says nothing about the case.
+	std::vector<SceneDiagnostic> caseRuntimeDiagnostics;
+	std::copy_if(context.runtimeDiagnostics.begin(), context.runtimeDiagnostics.end(), std::back_inserter(caseRuntimeDiagnostics),
+		[](const SceneDiagnostic& diagnostic) { return diagnostic.code.rfind("run.output.", 0) != 0; });
+	const SceneDiagnosticCounts runtimeCounts = countDiagnostics(caseRuntimeDiagnostics);
 	const bool dataInvalid = std::any_of(m_loadedData.begin(), m_loadedData.end(),
 		[](const SceneLoadedData& row) { return row.status == SceneLoadedStatus::Invalid; });
 	const bool dataWarning = std::any_of(m_loadedData.begin(), m_loadedData.end(),

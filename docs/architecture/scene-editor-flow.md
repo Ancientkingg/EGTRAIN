@@ -82,11 +82,16 @@ Simulation parameters are canonical:
 it in the current main window with this sequence:
 
 ```text
+simulation.makeNextRunOutputFolders()
 teardownGUI
 simulation.prepareScene(SceneModel)
 setupGUI
 ```
 
+An output folder that cannot be made stops Run before `teardownGUI`, so the
+earlier run keeps its results, its replay and its canvas. A preparation that
+fails after `teardownGUI` leaves no results, and the window draws the track
+preview again. Both say "Run not started" with the reason in the status bar.
 Only after setup succeeds does the simulation worker start. Opening or creating
 a scene calls `teardownGUI` and `simulation.resetState` before it replaces the
 current scene. Case replacement waits for the old worker to stop and ignores any
@@ -100,7 +105,9 @@ edit, `Ready` after `prepareScene` succeeds, `Running` while the worker runs,
 run before it completes, and `Failed` with builder diagnostics after preparation
 fails. `Failed` also covers a run that ends without results, unless a stop
 request ended it before it completed, and a run whose scene changed while it ran. Completed simulation output
-is reported as available, but remains outside canonical input.
+is reported as available, but remains outside canonical input. The Case row counts the errors and warnings of the
+run with those of the validation and the loaded data, except `run.output.*`: an output folder or file that the run
+cannot write says nothing about the case.
 
 ## Editor panels
 
