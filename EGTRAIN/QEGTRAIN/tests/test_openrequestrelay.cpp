@@ -45,6 +45,10 @@ static void settle(int milliseconds) {
 	waitFor([] { return false; }, milliseconds);
 }
 
+// Lets the relay run a few turns of the event loop. After a request, once no path waits, only a path held for the next
+// turn could still be reported, and this short wait shows it.
+constexpr int kDrainMs = 50;
+
 // The path of a request goes to the child as hexadecimal text of its UTF-8 bytes, so that the
 // locale of the test machine cannot change it on the way.
 static QString encodeArgument(const QString& text) {
@@ -58,8 +62,7 @@ static QString decodeArgument(const QString& text) {
 // The test starts copies of itself as the second process. The result is the exit code of the
 // child, or -1 when it did not end normally in time. The relay of the caller keeps running
 // meanwhile.
-static int runChild(const QStringList& arguments) {
-	QProcess child;
+static int runChild(QProcess& child, const QStringList& arguments) {
 	child.setProcessChannelMode(QProcess::ForwardedErrorChannel);
 	child.start(QCoreApplication::applicationFilePath(), arguments);
 	if (!child.waitForStarted(60000))
@@ -71,6 +74,11 @@ static int runChild(const QStringList& arguments) {
 		return -1;
 	}
 	return child.exitStatus() == QProcess::NormalExit ? child.exitCode() : -1;
+}
+
+static int runChild(const QStringList& arguments) {
+	QProcess child;
+	return runChild(child, arguments);
 }
 
 static int forwardFromChild(const QString& name, const QString& applicationDir, const QString& path) {
@@ -140,7 +148,8 @@ void TestOpenRequestRelay::forwardFromSecondProcess() {
 	// The second process ends with 0 once the path is accepted.
 	QCOMPARE(forwardFromChild(name, kDir, path), 0);
 	QVERIFY2(waitFor([&received] { return !received.paths.isEmpty(); }, 5000), "the first instance receives the path");
-	settle(300);
+	QVERIFY2(!relay.hasPendingRequest(), "nothing waits afterwards");
+	settle(kDrainMs);
 	// The path arrives once and unchanged.
 	QCOMPARE(received.paths, QStringList{path});
 
@@ -163,19 +172,26 @@ void TestOpenRequestRelay::forwardFromSecondProcess() {
 // deletes the connection. The relay must not use the connection when the dialog closes.
 void TestOpenRequestRelay::receiverWithDialog() {
 	const QString name = serverName("dialog");
+	QProcess secondProcess;
 	OpenRequestRelay relay;
 	QVERIFY2(relay.listen(name, kDir), "the instance listens");
 	QStringList paths;
-	QObject::connect(&relay, &OpenRequestRelay::openRequested, &relay, [&paths](const QString& path) {
+	QObject::connect(&relay, &OpenRequestRelay::openRequested, &relay, [&paths, &secondProcess](const QString& path) {
+		// The dialog closes a short while after the second process has ended, so that the end of its connection comes
+		// while the dialog is open.
 		QEventLoop dialog;
-		QTimer::singleShot(1500, &dialog, &QEventLoop::quit);
-		dialog.exec();
+		QObject::connect(&secondProcess, &QProcess::finished, &dialog, [&dialog] { QTimer::singleShot(kDrainMs, &dialog, &QEventLoop::quit); });
+		// A second process that never ends still lets the dialog close, so the test fails instead of hanging.
+		QTimer::singleShot(10000, &dialog, &QEventLoop::quit);
+		if (secondProcess.state() != QProcess::NotRunning)
+			dialog.exec();
 		paths.append(path);
 	});
 	// The sender gets its answer.
-	QCOMPARE(forwardFromChild(name, kDir, QStringLiteral("/data/dialog.egscene")), 0);
+	QCOMPARE(runChild(secondProcess, {QStringLiteral("--child-forward"), name, kDir, encodeArgument(QStringLiteral("/data/dialog.egscene"))}), 0);
 	QVERIFY2(waitFor([&paths] { return !paths.isEmpty(); }, 5000), "the receiver gets the path after its dialog");
-	settle(300);
+	QVERIFY2(!relay.hasPendingRequest(), "nothing waits afterwards");
+	settle(kDrainMs);
 	// Once.
 	QCOMPARE(paths, QStringList{QStringLiteral("/data/dialog.egscene")});
 }
@@ -194,7 +210,8 @@ void TestOpenRequestRelay::otherApplicationDir() {
 	QVERIFY2(relay.listen(name, kDir), "the first instance listens");
 	// An instance of another application folder refuses the request.
 	QCOMPARE(forwardFromChild(name, QStringLiteral("application-folder-b"), QStringLiteral("/data/case.egscene")), 3);
-	settle(300);
+	QVERIFY2(!relay.hasPendingRequest(), "nothing waits afterwards");
+	settle(kDrainMs);
 	QVERIFY2(received.paths.isEmpty(), "and does not report it");
 	// A request of its own folder still arrives afterwards.
 	QCOMPARE(forwardFromChild(name, kDir, QStringLiteral("/data/case.egscene")), 0);
@@ -320,7 +337,8 @@ void TestOpenRequestRelay::postponedPathComesBack() {
 	QVERIFY(received.paths.isEmpty());
 	QVERIFY(relay.hasPendingRequest());
 	QVERIFY2(waitFor([&received] { return !received.paths.isEmpty(); }, 5000), "a postponed path comes back");
-	settle(500);
+	// Longer than the 250 ms after which the relay tries again.
+	settle(300);
 	// Only the newest postponed path comes back, once.
 	QCOMPARE(received.paths, QStringList{QStringLiteral("/data/new.egscene")});
 	QVERIFY2(!relay.hasPendingRequest(), "and is no longer pending");
@@ -339,7 +357,8 @@ void TestOpenRequestRelay::requestReplacesPostponedPath() {
 	socket.write(requestBytes(kDir, QStringLiteral("/data/new.egscene")));
 	socket.flush();
 	QVERIFY2(waitFor([&received] { return !received.paths.isEmpty(); }, 5000), "a request arrives while one waits");
-	settle(800);
+	// Past the time when the waiting path was due, 250 ms after it was postponed.
+	settle(350);
 	// The new request replaces the one that waited.
 	QCOMPARE(received.paths, QStringList{QStringLiteral("/data/new.egscene")});
 }
@@ -368,24 +387,27 @@ void TestOpenRequestRelay::fileOpenEvent() {
 	QVERIFY(received.paths.isEmpty());
 	QVERIFY(relay.hasPendingRequest());
 	QVERIFY2(waitFor([&received] { return !received.paths.isEmpty(); }, 5000), "the request is reported");
-	settle(300);
+	QVERIFY2(!relay.hasPendingRequest(), "and nothing waits afterwards");
+	settle(kDrainMs);
+	QVERIFY(!relay.hasPendingRequest());
 	// Once and unchanged.
 	QCOMPARE(received.paths, QStringList{pathOfEvent(path)});
-	QVERIFY2(!relay.hasPendingRequest(), "and nothing waits afterwards");
 
 	// An event for a URL that names no local file is not for the relay.
 	QVERIFY2(!sendFileOpen(QUrl(QStringLiteral("https://example.com/case.egscene"))), "an open event for a remote URL is left alone");
-	settle(300);
+	QVERIFY(!relay.hasPendingRequest());
+	settle(kDrainMs);
 	// And is not reported.
 	QCOMPARE(received.paths.size(), 1);
-	QVERIFY(!relay.hasPendingRequest());
 
 	// Events of one turn of the event loop leave the newest.
 	// Two open events are taken.
 	QVERIFY(sendFileOpen(QUrl::fromLocalFile(QStringLiteral("/data/old.egscene"))));
 	QVERIFY(sendFileOpen(QUrl::fromLocalFile(QStringLiteral("/data/new.egscene"))));
 	QVERIFY2(waitFor([&received] { return received.paths.size() == 2; }, 5000), "a request is reported");
-	settle(300);
+	QVERIFY(!relay.hasPendingRequest());
+	settle(kDrainMs);
+	QVERIFY(!relay.hasPendingRequest());
 	// The newest of them.
 	QCOMPARE(received.paths.size(), 2);
 	QCOMPARE(received.paths.at(1), pathOfEvent(QStringLiteral("/data/new.egscene")));
@@ -395,15 +417,16 @@ void TestOpenRequestRelay::fileOpenEventWithoutReceiver() {
 	OpenRequestRelay relay;
 	const QString path = QStringLiteral("/data/early.egscene");
 	QVERIFY2(sendFileOpen(QUrl::fromLocalFile(path)), "the relay takes an open event that nothing waits for");
-	// Longer than the time between two attempts to hand the request over.
-	settle(700);
+	// Past the third attempt to hand the request over, at 0, 250 and 500 ms.
+	settle(550);
 	QVERIFY2(relay.hasPendingRequest(), "the request stays while nothing is connected");
 	Received received(relay);
 	QVERIFY2(waitFor([&received] { return !received.paths.isEmpty(); }, 5000), "and is reported once something is connected");
-	settle(300);
+	QVERIFY(!relay.hasPendingRequest());
+	settle(kDrainMs);
+	QVERIFY(!relay.hasPendingRequest());
 	// Once.
 	QCOMPARE(received.paths, QStringList{pathOfEvent(path)});
-	QVERIFY(!relay.hasPendingRequest());
 }
 
 void TestOpenRequestRelay::environmentGuard() {
