@@ -221,6 +221,15 @@ QStringList listed(const AreaCapacityScopeDialog& dialog) {
 	return ids;
 }
 
+// The texts of the entries of the combo box `name` of the dialog.
+QStringList entries(const AreaCapacityScopeDialog& dialog, const char* name) {
+	QStringList texts;
+	const QComboBox* list = combo(dialog, name);
+	for (int index = 0; list && index < list->count(); ++index)
+		texts << list->itemText(index);
+	return texts;
+}
+
 // Handles events until `done` holds, for at most about a second.
 bool waitFor(const std::function<bool()>& done) {
 	for (int round = 0; round < 200 && !done(); ++round) {
@@ -318,6 +327,7 @@ private slots:
 	void keepsWindowInFrontAfterExport();
 	void asksForCsvFileOnExport();
 	void choosesScopeInDialog();
+	void namesRoutesByStations();
 	void reportsScopesWithoutFigures();
 	void opensWindowFromOptions();
 	void namesResourcesByLabels();
@@ -896,6 +906,19 @@ void TestAreaCapacityWindow::choosesScopeInDialog() {
 	QVERIFY(!emptyButtons->button(QDialogButtonBox::Ok)->isEnabled());
 	QCOMPARE(empty.scope().routeIndex, -1);
 	QVERIFY(empty.scope().blockIds.empty());
+}
+
+// The route lists name a route as the Blocking time and Capacity choosers do: by its first and last station and its
+// corridor, and a route without a station by its id and corridor.
+void TestAreaCapacityWindow::namesRoutesByStations() {
+	CompletedRunData data = lineRun();
+	// Alpha at the start of route R, Bravo where its blocks 3 and 4 meet and Delta at its end. Route S has no station.
+	data.routes[0].path.nodes = {{"n0", "a", "Alpha", 0.0}, {"n3", "b", "Bravo", 3.0}, {"n8", "d", "Delta", 8.0}};
+	data.routes[1].corridor = "side";
+	const AreaCapacityScopeDialog dialog(data);
+	// both route lists name the first and last station of R
+	QCOMPARE(entries(dialog, "areaCapacityRoute"), QStringList({"R: Alpha to Delta  (main)", "S  (side)"}));
+	QCOMPARE(entries(dialog, "areaCapacitySecondRoute"), QStringList({"No second route", "R: Alpha to Delta  (main)", "S  (side)"}));
 }
 
 // Scopes that give no figures or leave out traffic, built as the dialog builds them.
