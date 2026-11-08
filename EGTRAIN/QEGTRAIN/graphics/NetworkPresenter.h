@@ -182,11 +182,16 @@ public:
 	/// which show the newest state, can run well ahead of the drawn train. An update that leaves the train at its place
 	/// keeps the glide that runs, and without a new update, as at a pause, the train also goes on to that place; it
 	/// stops there when the glide ends. A train that has just appeared, has another route or direction, runs backwards,
-	/// or has moved further than the visible view since its last update is placed at once, and so is every train of a
-	/// replay.
+	/// or has moved further than the visible view since its last update is placed at once. So is every train of a
+	/// replay, unless setReplayGlideMs() is above 0: then a replay train glides under the same rules, over that time, and
+	/// the motion timer runs for it.
 	void updateTrainPosition(const GuiSimulationSnapshot& snapshot, int t, Playback playback);
 
-	/// Moves every live train that is in motion to where it is at the moment, and tells the host where a promoted one
+	/// The glide of a replay train from one step of Play to the next, in milliseconds; 0 places every replay train at once,
+	/// as a seek does.
+	void setReplayGlideMs(qint64 ms);
+
+	/// Moves every train that is in motion to where it is at the moment, and tells the host where a promoted one
 	/// is drawn. A train far outside the visible scene is drawn again only at the next update or when it stops. A
 	/// timer of the presenter calls it about once a frame while a train moves, at a pace that the updates do not
 	/// change. A live update does not move a train on its way that the last step drew; a test calls it with the clock
@@ -674,6 +679,8 @@ private:
 	std::vector<qint64> m_updateIntervals;
 	// The time of the last live update in milliseconds; negative before the first.
 	qint64 m_lastUpdateMs = -1;
+	// The glide of a replay train over the current step of Play, in milliseconds; 0 places every replay train at once.
+	qint64 m_replayGlideMs = 0;
 	Clock m_clock;
 	QElapsedTimer m_elapsed;
 	// The index of each section of the source by its id. buildTrackIndexes() fills it for the run.

@@ -214,6 +214,18 @@ row keeps its height while the user seeks. A replay seek explicitly restores
 historical operational overlays; normal completion does not. Future or exited
 trains do not appear on layer toggles or drive Follow station emphasis.
 
+Play steps through the run at the speed of the box after the label, 1x, 2x, 5x, 10x (the
+default), 30x or 60x simulated seconds per second of real time. `replayPlaybackStep` turns
+the speed into a step: one second every 1000, 500, 200 or
+100 ms up to 10x, then 3 seconds every 100 ms at 30x and 6 seconds every 100 ms at 60x, so
+the replay is never shown more than ten times a second. Over the interval of a step the
+trains that run glide from where they are drawn to their places of the new second, with the
+rules of a live run (`NetworkPresenter::setReplayGlideMs`); the window sets the glide only
+around the render of a step. A seek by the slider, the keys, the wheel, Start or End, also
+while the replay plays, stops every glide and places every train at once. The speed is kept
+for the session and not saved. `E2E_REPLAY_PLAY_OK` checks the glide with the clock of the
+presenter, the seek during Play and the steps at 60x.
+
 The history (`app/GuiReplayHistory`) records every simulated second of the run, as
 changes. What is the same for the whole run (identity, route and direction and
 capacity of each train, the section and direction of each signal, section ids,
@@ -424,7 +436,7 @@ tests that can run side by side, and `ctest --test-dir build -R test_visual_poli
 | `test_visual_polish_smoke_live` | `dpr1` | The live run of Copenhagen at a device pixel ratio of 1: screenshots, selection cues, the Follow checks, the labels of the timetable window and the absence of the Show Graph action |
 | | `color` | A copy of Copenhagen in which the first service has a colour |
 | | `dpr2` | The live run of Copenhagen at a device pixel ratio of 2 |
-| `test_visual_polish_smoke_replay` | `completion` | The Assignment run to its end: the replay row and the Follow checks of the replay |
+| `test_visual_polish_smoke_replay` | `completion` | The Assignment run to its end: the replay row, the playback (speeds, glide over a step, seek during Play) and the Follow checks of the replay |
 | | `replay` | The whole-run replay of Assignment, Paimpol, Milano_Brescia, Amsterdam_Hilversum_Student and Netherlands |
 | | `discard` | The preview legend after a discarded run |
 | `test_visual_polish_smoke_replay_copenhagen` | `replay-copenhagen` | The whole-run replay of Copenhagen, which takes as long as the other five scenes together |

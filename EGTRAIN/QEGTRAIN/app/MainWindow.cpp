@@ -669,14 +669,25 @@ void MainWindow::setupReplayBar() {
 	replayControls->addWidget(replayEnd);
 	replayControls->addWidget(m_replaySlider, 1);
 	replayControls->addWidget(m_replayLabel);
+	// How many simulated seconds Play shows per second of real time. The choice stays for the session and is not saved.
+	m_replaySpeedCombo = new QComboBox(m_replayBar);
+	m_replaySpeedCombo->setObjectName("completedReplaySpeed");
+	m_replaySpeedCombo->setAccessibleName("Replay speed");
+	m_replaySpeedCombo->setToolTip("Sets how many simulated seconds play per second.");
+	for (const int speed : kReplaySpeeds)
+		m_replaySpeedCombo->addItem(QStringLiteral("%1x").arg(speed), speed);
+	m_replaySpeedCombo->setCurrentIndex(m_replaySpeedCombo->findData(kDefaultReplaySpeed));
+	FocusWheel::guard(m_replaySpeedCombo);
+	replayControls->addWidget(m_replaySpeedCombo);
+	setTabOrder(m_replaySlider, m_replaySpeedCombo);
 	replayLayout->addLayout(replayControls);
 	replayLayout->addWidget(m_replayCoverageLabel);
 	mainLayout->addWidget(m_replayBar);
 	m_replayBar->hide();
 	m_replayTimer = new QTimer(this);
-	// One simulated second per wall second.
-	constexpr int kReplayStepMs = 1000;
-	m_replayTimer->setInterval(kReplayStepMs);
+	m_replayTimer->setInterval(replayPlaybackStep(kDefaultReplaySpeed).intervalMs);
+	connect(m_replaySpeedCombo, &QComboBox::currentIndexChanged, this,
+		[this]() { m_replayTimer->setInterval(replayPlaybackStep(m_replaySpeedCombo->currentData().toInt()).intervalMs); });
 	connect(m_replaySlider, &QSlider::valueChanged, this, &MainWindow::seekReplay);
 	connect(m_replayStartButton, &QPushButton::clicked, this, [this]() { seekReplay(m_completedReplay.firstTime()); });
 	connect(replayEnd, &QPushButton::clicked, this, [this]() { seekReplay(m_completedReplay.lastTime()); });
@@ -689,7 +700,9 @@ void MainWindow::setupReplayBar() {
 		showReplayPlaying(m_replayPlayButton, m_replayTimer->isActive());
 	});
 	connect(m_replayTimer, &QTimer::timeout, this, [this]() {
-		seekReplay(m_replayRequestedTime + 1);
+		// A step moves on by the seconds of the speed, with the trains gliding over the interval to the next step.
+		const ReplayPlaybackStep step = replayPlaybackStep(m_replaySpeedCombo->currentData().toInt());
+		showReplaySecond(qMin(m_replayRequestedTime + step.seconds, m_completedReplay.lastTime()), step.intervalMs);
 		if (m_replayRequestedTime >= m_completedReplay.lastTime()) {
 			m_replayTimer->stop();
 			showReplayPlaying(m_replayPlayButton, false);
@@ -3241,6 +3254,7 @@ void MainWindow::clearReplay() {
 	m_replayActive = false;
 	if (m_replaySlider) m_replaySlider->setEnabled(true);
 	if (m_replayPlayButton) m_replayPlayButton->setEnabled(true);
+	if (m_replaySpeedCombo) m_replaySpeedCombo->setEnabled(true);
 	m_completedReplay.clear();
 	simulation.resetReplayCandidate();
 }
@@ -3270,6 +3284,7 @@ void MainWindow::showReplayBar() {
 	const bool usable = writeReplayText(std::nullopt);
 	m_replaySlider->setEnabled(usable);
 	m_replayPlayButton->setEnabled(usable);
+	m_replaySpeedCombo->setEnabled(usable);
 	m_replayBar->show();
 }
 
@@ -3723,6 +3738,12 @@ void MainWindow::waitForUpdates() {
 }
 
 void MainWindow::seekReplay(int requestedTime) {
+	showReplaySecond(requestedTime, 0);
+}
+
+// Shows the second of the replay. With a glide of 0 every train is placed at once, as a seek does; a step of Play passes
+// the interval to the next step, over which the trains that run glide to their new places.
+void MainWindow::showReplaySecond(int requestedTime, int glideMs) {
 	if (m_completedReplay.empty() || m_runController->running()) return;
 	m_replayRequestedTime = qBound(m_completedReplay.firstTime(), requestedTime, m_completedReplay.lastTime());
 	const auto frame = m_completedReplay.at(m_replayRequestedTime);
@@ -3732,14 +3753,17 @@ void MainWindow::seekReplay(int requestedTime) {
 	// signal selection; the shared renderer refreshes their frame-derived values.
 	m_presenter->removePaxInfoIcon();
 	m_presenter->clearSelectedPassengerIcon();
-	m_presenter->stopTrainAnimations();
+	if (glideMs <= 0) m_presenter->stopTrainAnimations();
 	m_snapshot = frame;
 	{
 		const QSignalBlocker blocker(m_replaySlider);
 		m_replaySlider->setValue(m_replayRequestedTime);
 	}
 	writeReplayText(frame->timestep);
+	// Only this render glides, so that no other render inherits the value.
+	m_presenter->setReplayGlideMs(glideMs);
 	renderSnapshot(true);
+	m_presenter->setReplayGlideMs(0);
 	TrainItemGroup* selectedTrain = m_presenter->selectedTrain();
 	if (selectedTrain && !replayTrainHasPosition(selectedTrain->index))
 		m_presenter->removeTrainPaxInfoIcon();
