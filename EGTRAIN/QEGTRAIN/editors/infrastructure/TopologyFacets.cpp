@@ -4,8 +4,10 @@
 #include "graphics/NetworkPresenter.h"
 #include "scene/RuntimeLimits.h"
 #include "scene/SceneReferences.h"
+#include "scene/SectionInventory.h"
 
 #include <QString>
+#include <QStringList>
 #include <QTableWidget>
 
 #include <algorithm>
@@ -14,6 +16,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace {
@@ -34,8 +37,72 @@ const Item* inRow(const std::vector<Item>& items, int row) {
 class TracksFacet final : public ListFacet<SceneTrack> {
 public:
 	TracksFacet() : ListFacet("tracks", "track", &SceneModel::tracks, {"ID"}) {}
+	// Reverse Track turns a track whose arcs run against its X around, so that they run along it.
+	std::vector<TaskAction> taskActions() const override {
+		return {{QStringLiteral("reverseTrackButton"), QStringLiteral("Reverse Track"),
+			QStringLiteral("Swaps the ends of every arc of the selected track and reverses the order of its blocks.")}};
+	}
+	void runTaskAction(InfrastructurePanel& panel, int index) override {
+		if (index == 0)
+			reverseTrack(panel);
+	}
 
 private:
+	// Swaps the ends of the arcs of the track, negates their gradients and reverses its blocks within the places that
+	// they hold in scene.blocks, in one edit. Nodes, X, block ids and lengths, and every reference stay as they are, so
+	// the routes over the track are only listed, for the user to check against the new block ends.
+	static void reverseTrack(InfrastructurePanel& panel) {
+		const QString trackText = panel.selectionId();
+		const std::string trackId = trackText.toStdString();
+		if (sceneTrackChain(panel.model(), trackId).arcs.empty()) {
+			panel.showStatus(QStringLiteral("Track '%1' is not one line of arcs. Case Validation names what to fix.").arg(trackText));
+			return;
+		}
+		const bool reversed = panel.edit(QStringLiteral("Reverse track"), [&trackId](SceneModel& scene) {
+			for (SceneArc& arc : scene.arcs) {
+				if (arc.trackId != trackId)
+					continue;
+				std::swap(arc.fromNodeId, arc.toNodeId);
+				// The gradient is stored along the direction of the track, so it changes sign with it. 0 stays +0.
+				if (arc.gradientPercent != 0.0)
+					arc.gradientPercent = -arc.gradientPercent;
+			}
+			std::vector<std::size_t> places;
+			for (std::size_t place = 0; place < scene.blocks.size(); ++place)
+				if (scene.blocks[place].trackId == trackId)
+					places.push_back(place);
+			for (std::size_t low = 0, high = places.size(); low + 1 < high; ++low, --high)
+				std::swap(scene.blocks[places[low]], scene.blocks[places[high - 1]]);
+		});
+		if (!reversed)
+			return;
+		std::unordered_set<std::string> blockIds;
+		for (const SceneBlock& block : panel.model().blocks)
+			if (block.trackId == trackId)
+				blockIds.insert(block.id);
+		std::vector<std::string> routes;
+		for (const SceneRoute& route : panel.model().routes)
+			if (std::any_of(route.blocks.begin(), route.blocks.end(), [&blockIds](const std::string& reference) {
+					const std::vector<std::string> components = sceneBlockReferenceComponents(reference);
+					return std::any_of(components.begin(), components.end(),
+						[&blockIds](const std::string& id) { return blockIds.count(id) != 0; });
+				}))
+				routes.push_back(route.id);
+		if (!routes.empty()) {
+			// A box that lists every route can be taller than the screen.
+			constexpr std::size_t kMaxListedRoutes = 10;
+			QStringList lines;
+			for (std::size_t route = 0; route < routes.size() && route < kMaxListedRoutes; ++route)
+				lines << QString::fromStdString(routes[route]);
+			QString list = lines.join("\n• ");
+			if (routes.size() > kMaxListedRoutes)
+				list += QStringLiteral("\nand %1 more").arg(static_cast<int>(routes.size() - kMaxListedRoutes));
+			panel.prompts().showInfo(&panel, QStringLiteral("Track Reversed"),
+				QStringLiteral("Track '%1' is reversed. Check these routes, which run over it:\n• %2").arg(trackText, list));
+		}
+		panel.showStatus(QStringLiteral("Reversed track '%1'. Undo restores it.").arg(trackText), 8000);
+	}
+
 	void fillRow(QTableWidget& table, int row, const SceneTrack& track) const override {
 		setCell(table, row, 0, QString::fromStdString(track.id));
 	}
