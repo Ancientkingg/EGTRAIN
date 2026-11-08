@@ -49,7 +49,7 @@ Choose **View > Case Validation** (Ctrl+Shift+V). The columns are **Severity**, 
 
 - Code `scene.dwell.exceeds_window`, message "Minimum dwell is longer than the time from arrival to departure", path `services[Guin-Paim-EXPRESS-1].stops[1].dwell_seconds`.
 
-![The dock Case Validation after the dwell edit, with the columns Severity, Message and Fix. Row 1 is the warning Minimum dwell is longer than the time from arrival to departure; the rows below it read Journey has no route-choice legs.](../images/how-to-scene-validation.png)
+![The dock Case Validation after the dwell edit, with the columns Severity, Message, Item and Fix. Row 1 is the warning Minimum dwell is longer than the time from arrival to departure, with the item service Guin-Paim-EXPRESS-1; the rows below it read Journey has no route-choice legs, with the items journey 0:1, journey 0:2, journey 1:2, journey 2:1, journey 2:2, journey 3:1 and journey 3:2.](../images/how-to-scene-validation.png)
 
 A warning does not block a run. An error does: **Run** is disabled and the dock **Case and Layers** shows the first error under the name of the case. **Edit > Undo** takes an edit back. Normal mode hides the warning counts in the status bar; **View > Advanced Details** shows them.
 
