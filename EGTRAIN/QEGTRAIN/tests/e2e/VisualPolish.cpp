@@ -1686,13 +1686,17 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		QAction* center = findMenuAction(menu, "Center in view");
 		if (center)
 			center->trigger();
-		QAction* copy = findMenuAction(menu, "Copy train index");
+		QAction* copy = findMenuAction(menu, "Copy train name");
 		if (copy) {
 			copy->trigger();
-			if (!QApplication::clipboard() || QApplication::clipboard()->text() != QString::number(selectedTrain->index)) {
+			const QString expectedTrainName = QString::fromStdString(followTrainName(selectedTrain->trainDescription, selectedTrain->index));
+			if (!QApplication::clipboard() || QApplication::clipboard()->text() != expectedTrainName) {
 				ok = false;
-				failures << "train context copy action did not copy the index";
+				failures << "train context copy action did not copy the name that Details shows";
 			}
+		} else {
+			ok = false;
+			failures << "train context menu has no Copy train name";
 		}
 		QAction* follow = findMenuAction(menu, "Follow train");
 		if (follow) {
@@ -1870,13 +1874,11 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		QAction* copy = findMenuAction(menu, "Copy signal location");
 		if (copy) {
 			copy->trigger();
-			const QString expectedSignalLocation = QString("track %1 @ %2 (%3)")
-													   .arg(visibleSignal->trackID)
-													   .arg(visibleSignal->X, 0, 'g', std::numeric_limits<double>::max_digits10)
-													   .arg(visibleSignal->reversedDirection ? "reverse" : "forward");
+			const QString expectedSignalLocation = visibleSignal->inspectionIdentity()
+				+ (visibleSignal->reversedDirection ? QStringLiteral(", facing left") : QStringLiteral(", facing right"));
 			if (!QApplication::clipboard() || QApplication::clipboard()->text() != expectedSignalLocation) {
 				ok = false;
-				failures << "signal context copy action did not preserve position precision";
+				failures << "signal context copy action did not copy the place and facing of the tooltip";
 			}
 		}
 		// The section of the head by the id that the run uses, not by its label.
@@ -1908,13 +1910,12 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		PresenterAccess::allSignals(*w.m_presenter).push_back(temporarySignal);
 		QMenu* menu = requestContextMenu(temporarySignal->sceneBoundingRect().center(), false);
 		QAction* copy = findMenuAction(menu, "Copy signal location");
-		const QString expectedSignalLocation = QStringLiteral(
-			"track 2147483000 @ 0.12345678901234566 (reverse)");
+		const QString expectedSignalLocation = QStringLiteral("Track 2147483000 at 0.123456789 km, facing left");
 		if (copy) {
 			copy->trigger();
 			if (!QApplication::clipboard() || QApplication::clipboard()->text() != expectedSignalLocation) {
 				ok = false;
-				failures << "temporary signal context copy action did not preserve exact precision";
+				failures << "temporary signal context copy action did not copy the place and facing of the tooltip";
 			}
 		}
 		const QString clipboardBeforeStaleTrigger = QApplication::clipboard()
@@ -2012,6 +2013,9 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		if (!menu || !fit || !clear || !stop) {
 			ok = false;
 			failures << "empty-space context menu is incomplete";
+		} else if (!stop->isEnabled()) {
+			ok = false;
+			failures << "Stop following train is disabled while a train is followed";
 		} else {
 			fit->trigger();
 			QApplication::processEvents();
@@ -2027,6 +2031,13 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			if (temporarySelectionItem->isSelected()) {
 				ok = false;
 				failures << "empty-space context action left a temporary scene item selected";
+			}
+			closeContextMenu();
+			QMenu* unfollowedMenu = requestContextMenu(emptyPos, false);
+			QAction* unfollowedStop = findMenuAction(unfollowedMenu, "Stop following train");
+			if (!unfollowedStop || unfollowedStop->isEnabled()) {
+				ok = false;
+				failures << "Stop following train is enabled while no train is followed";
 			}
 		}
 		closeContextMenu();
