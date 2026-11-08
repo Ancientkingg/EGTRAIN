@@ -671,7 +671,8 @@ problems as <code class="docutils literal notranslate"><span class="pre">SceneDi
 it adds a diagnostic to the vector its function returns or to the <code class="docutils literal notranslate"><span class="pre">diagnostics</span></code> member of
 the result struct (<code class="docutils literal notranslate"><span class="pre">SceneLoadResult</span></code>), and it does not throw to the caller, print or log. An
 exception from a library is caught where it happens: <code class="docutils literal notranslate"><span class="pre">loadScene</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SceneModel.cpp</span></code>
-turns a JSON parse failure into <code class="docutils literal notranslate"><span class="pre">scene.json.parse</span></code> with its local <code class="docutils literal notranslate"><span class="pre">addError</span></code> helper. Put a
+turns a JSON parse failure into <code class="docutils literal notranslate"><span class="pre">scene.json.parse</span></code> with <code class="docutils literal notranslate"><span class="pre">jsonParseDiagnostic</span></code>, which names the file and
+the line and column. Put a
 new check in the layer it belongs to
 (<a class="reference internal" href="../architecture/scene-model.html#validation-layers"><span class="std std-ref">Validation layers</span></a>). Each diagnostic
 carries these fields:</p>

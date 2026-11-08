@@ -1,5 +1,7 @@
 var NAVTREEINDEX18 =
 {
+"classeglog_1_1_line.html#a5231f8d426fd21a84e2d656d550722b4":[2,0,1,0,2],
+"classeglog_1_1_line.html#a62a5d1ab8a5e29f6deb2c2051f5d14fa":[1,0,7,0,0],
 "classeglog_1_1_line.html#a62a5d1ab8a5e29f6deb2c2051f5d14fa":[2,0,1,0,0],
 "classeglog_1_1_line.html#ab044c5aca783c2417d259f96057bcbdf":[1,0,7,0,4],
 "classeglog_1_1_line.html#ab044c5aca783c2417d259f96057bcbdf":[2,0,1,0,4],
@@ -247,7 +249,5 @@ var NAVTREEINDEX18 =
 "functions_c.html":[2,3,0,2],
 "functions_d.html":[2,3,0,3],
 "functions_e.html":[2,3,0,4],
-"functions_enum.html":[2,3,4],
-"functions_eval.html":[2,3,5],
-"functions_f.html":[2,3,0,5]
+"functions_enum.html":[2,3,4]
 };

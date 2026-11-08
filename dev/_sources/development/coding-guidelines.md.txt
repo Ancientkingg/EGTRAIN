@@ -282,7 +282,8 @@ problems as `SceneDiagnostic` values (`scene/SceneDiagnostic.h`). A new check do
 it adds a diagnostic to the vector its function returns or to the `diagnostics` member of
 the result struct (`SceneLoadResult`), and it does not throw to the caller, print or log. An
 exception from a library is caught where it happens: `loadScene` in `scene/SceneModel.cpp`
-turns a JSON parse failure into `scene.json.parse` with its local `addError` helper. Put a
+turns a JSON parse failure into `scene.json.parse` with `jsonParseDiagnostic`, which names the file and
+the line and column. Put a
 new check in the layer it belongs to
 ([Validation layers](../architecture/scene-model.md#validation-layers)). Each diagnostic
 carries these fields:

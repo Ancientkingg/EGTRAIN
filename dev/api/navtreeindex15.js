@@ -1,5 +1,7 @@
 var NAVTREEINDEX15 =
 {
+"class_service_panel.html#afedb2b0383252f1538dc5d4c7ff2be38":[2,0,301,19],
+"class_settings_dialog.html":[2,0,302],
 "class_settings_dialog.html#a82b474f63399b5150af200c4c0ad9955":[2,0,302,1],
 "class_settings_dialog.html#ae1189358d589b3652bf92dfd81e08696":[2,0,302,2],
 "class_settings_dialog.html#afb3feeb24dd3a34f55740bcd6820680e":[2,0,302,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX15 =
 "class_timetable_table_window.html#aebc64c6a1a2e22b532b860361b7c9d9e":[2,0,336,5],
 "class_track_line_item.html":[2,0,337],
 "class_track_line_item.html#a0366781f6553da54896a5699d5e4fcad":[2,0,337,4],
-"class_track_line_item.html#a135b451641170649ed6200d8ebc870e1":[2,0,337,8],
-"class_track_line_item.html#a257ee10133730f3f7318494007ac4ab1":[2,0,337,3],
-"class_track_line_item.html#a321ce4cea8904657d6a7665fb7044334":[2,0,337,13]
+"class_track_line_item.html#a135b451641170649ed6200d8ebc870e1":[2,0,337,8]
 };

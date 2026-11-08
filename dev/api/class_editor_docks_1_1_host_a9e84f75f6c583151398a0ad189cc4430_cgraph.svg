@@ -36,19 +36,19 @@
 </a>
 </g>
 </g>
-<!-- Node334 -->
-<g id="Node000334" class="node">
-<title>Node334</title>
-<g id="a_Node000334"><a xlink:href="class_editor_docks.html#a97f43e15fbf8f15c6e250a2af4a79b2c" target="_top" xlink:title="Docks for window, which build() fills. The docks do not own host.">
+<!-- Node335 -->
+<g id="Node000335" class="node">
+<title>Node335</title>
+<g id="a_Node000335"><a xlink:href="class_editor_docks.html#a97f43e15fbf8f15c6e250a2af4a79b2c" target="_top" xlink:title="Docks for window, which build() fills. The docks do not own host.">
 <polygon fill="white" stroke="#666666" points="324.5,-917.75 185.5,-917.75 185.5,-897 324.5,-897 324.5,-917.75"/>
 <text xml:space="preserve" text-anchor="middle" x="255" y="-904.25" font-family="Helvetica,sans-Serif" font-size="10.00">EditorDocks::EditorDocks</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node334 -->
-<g id="edge79_Node000001_Node000334" class="edge">
-<title>Node1&#45;&gt;Node334</title>
-<g id="a_edge79_Node000001_Node000334"><a xlink:title=" ">
+<!-- Node1&#45;&gt;Node335 -->
+<g id="edge79_Node000001_Node000335" class="edge">
+<title>Node1&#45;&gt;Node335</title>
+<g id="a_edge79_Node000001_Node000335"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M149.8,-918.48C157.73,-917.64 165.82,-916.77 173.82,-915.92"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="173.96,-919.43 183.53,-914.89 173.22,-912.47 173.96,-919.43"/>
 </a>
@@ -535,151 +535,151 @@
 </a>
 </g>
 </g>
-<!-- Node218 -->
-<g id="Node000218" class="node">
-<title>Node218</title>
-<g id="a_Node000218"><a xlink:href="class_service_panel.html#a98efafccb64e54ce3c129d8cf85549fb" target="_top" xlink:title="Makes the widgets, empty until a loaded document is set.">
+<!-- Node220 -->
+<g id="Node000220" class="node">
+<title>Node220</title>
+<g id="a_Node000220"><a xlink:href="class_service_panel.html#a98efafccb64e54ce3c129d8cf85549fb" target="_top" xlink:title="Makes the widgets, empty until a loaded document is set.">
 <polygon fill="#fff0f0" stroke="red" points="527.25,-1603.75 380.75,-1603.75 380.75,-1583 527.25,-1583 527.25,-1603.75"/>
 <text xml:space="preserve" text-anchor="middle" x="454" y="-1590.25" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::ServicePanel</text>
 </a>
 </g>
 </g>
-<!-- Node2&#45;&gt;Node218 -->
-<g id="edge52_Node000002_Node000218" class="edge">
-<title>Node2&#45;&gt;Node218</title>
-<g id="a_edge52_Node000002_Node000218"><a xlink:title=" ">
+<!-- Node2&#45;&gt;Node220 -->
+<g id="edge52_Node000002_Node000220" class="edge">
+<title>Node2&#45;&gt;Node220</title>
+<g id="a_edge52_Node000002_Node000220"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M256.2,-956.92C257.82,-1031.54 271.22,-1479.72 360.5,-1573.38 363.45,-1576.47 366.76,-1579.14 370.32,-1581.45"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="368.45,-1584.42 378.93,-1586.01 371.73,-1578.24 368.45,-1584.42"/>
-</a>
-</g>
-</g>
-<!-- Node260 -->
-<g id="Node000260" class="node">
-<title>Node260</title>
-<g id="a_Node000260"><a xlink:href="class_train_unit_panel.html#adf0ef5738595e9fc20e9e0255cef59c2" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#666666" points="740.5,-549.12 596.25,-549.12 596.25,-515.62 740.5,-515.62 740.5,-549.12"/>
-<text xml:space="preserve" text-anchor="start" x="604.25" y="-535.62" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::sourceLink</text>
-<text xml:space="preserve" text-anchor="middle" x="668.38" y="-522.88" font-family="Helvetica,sans-Serif" font-size="10.00">Requested</text>
-</a>
-</g>
-</g>
-<!-- Node2&#45;&gt;Node260 -->
-<g id="edge55_Node000002_Node000260" class="edge">
-<title>Node2&#45;&gt;Node260</title>
-<g id="a_edge55_Node000002_Node000260"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M307.6,-938.72C314.05,-935.78 319.97,-931.79 324.5,-926.38 420.08,-812.25 260,-703.19 360.5,-593.38 362.43,-591.27 494.73,-565.51 584.96,-548.15"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="585.38,-551.64 594.54,-546.31 584.06,-544.76 585.38,-551.64"/>
-</a>
-</g>
-</g>
-<!-- Node261 -->
-<g id="Node000261" class="node">
-<title>Node261</title>
-<g id="a_Node000261"><a xlink:href="class_train_unit_panel.html#ad4b2eb10354f6fd9c3a023406d8eb36b" target="_top" xlink:title="The user asks to take the linked traction file (traction true) or parameter file of the shown unit ag...">
-<polygon fill="white" stroke="#666666" points="743.5,-417.12 593.25,-417.12 593.25,-383.62 743.5,-383.62 743.5,-417.12"/>
-<text xml:space="preserve" text-anchor="start" x="601.25" y="-403.62" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::sourceRetry</text>
-<text xml:space="preserve" text-anchor="middle" x="668.38" y="-390.88" font-family="Helvetica,sans-Serif" font-size="10.00">Requested</text>
-</a>
-</g>
-</g>
-<!-- Node2&#45;&gt;Node261 -->
-<g id="edge56_Node000002_Node000261" class="edge">
-<title>Node2&#45;&gt;Node261</title>
-<g id="a_edge56_Node000002_Node000261"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M307.49,-939.06C314.04,-936.08 320.01,-931.99 324.5,-926.38 405.53,-824.97 265.93,-432.29 360.5,-343.38 421.05,-286.45 468.19,-318.54 547.5,-343.38 566.09,-349.2 566.27,-359.28 583.5,-368.38 590.61,-372.13 598.25,-375.67 605.93,-378.92"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="604.4,-382.08 614.98,-382.62 607.04,-375.6 604.4,-382.08"/>
 </a>
 </g>
 </g>
 <!-- Node262 -->
 <g id="Node000262" class="node">
 <title>Node262</title>
-<g id="a_Node000262"><a xlink:href="class_train_unit_panel.html#a003f8f0aa7aa9b5b70bb422ebc7de768" target="_top" xlink:title="The user asks to unlink the traction file (traction true) or the parameter file of the shown unit.">
-<polygon fill="white" stroke="#666666" points="746.12,-359.12 590.62,-359.12 590.62,-325.62 746.12,-325.62 746.12,-359.12"/>
-<text xml:space="preserve" text-anchor="start" x="598.62" y="-345.62" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::sourceUnlink</text>
-<text xml:space="preserve" text-anchor="middle" x="668.38" y="-332.88" font-family="Helvetica,sans-Serif" font-size="10.00">Requested</text>
+<g id="a_Node000262"><a xlink:href="class_train_unit_panel.html#adf0ef5738595e9fc20e9e0255cef59c2" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#666666" points="740.5,-549.12 596.25,-549.12 596.25,-515.62 740.5,-515.62 740.5,-549.12"/>
+<text xml:space="preserve" text-anchor="start" x="604.25" y="-535.62" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::sourceLink</text>
+<text xml:space="preserve" text-anchor="middle" x="668.38" y="-522.88" font-family="Helvetica,sans-Serif" font-size="10.00">Requested</text>
 </a>
 </g>
 </g>
 <!-- Node2&#45;&gt;Node262 -->
-<g id="edge57_Node000002_Node000262" class="edge">
+<g id="edge55_Node000002_Node000262" class="edge">
 <title>Node2&#45;&gt;Node262</title>
-<g id="a_edge57_Node000002_Node000262"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M307.54,-939.1C314.08,-936.11 320.04,-932.01 324.5,-926.38 371.01,-867.68 306.15,-304.89 360.5,-253.38 420.82,-196.2 473.71,-215.14 547.5,-253.38 572.13,-266.14 562.12,-286.7 583.5,-304.38 590.76,-310.38 599.13,-315.63 607.7,-320.16"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="605.93,-323.19 616.45,-324.48 609.03,-316.92 605.93,-323.19"/>
+<g id="a_edge55_Node000002_Node000262"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M307.6,-938.72C314.05,-935.78 319.97,-931.79 324.5,-926.38 420.08,-812.25 260,-703.19 360.5,-593.38 362.43,-591.27 494.73,-565.51 584.96,-548.15"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="585.38,-551.64 594.54,-546.31 584.06,-544.76 585.38,-551.64"/>
 </a>
 </g>
 </g>
 <!-- Node263 -->
 <g id="Node000263" class="node">
 <title>Node263</title>
-<g id="a_Node000263"><a xlink:href="class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" target="_top" xlink:title="The status of a link, or a link itself, has changed.">
-<polygon fill="white" stroke="#666666" points="514.88,-494.12 393.12,-494.12 393.12,-460.62 514.88,-460.62 514.88,-494.12"/>
-<text xml:space="preserve" text-anchor="start" x="401.12" y="-480.62" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
-<text xml:space="preserve" text-anchor="middle" x="454" y="-467.88" font-family="Helvetica,sans-Serif" font-size="10.00">::statusChanged</text>
+<g id="a_Node000263"><a xlink:href="class_train_unit_panel.html#ad4b2eb10354f6fd9c3a023406d8eb36b" target="_top" xlink:title="The user asks to take the linked traction file (traction true) or parameter file of the shown unit ag...">
+<polygon fill="white" stroke="#666666" points="743.5,-417.12 593.25,-417.12 593.25,-383.62 743.5,-383.62 743.5,-417.12"/>
+<text xml:space="preserve" text-anchor="start" x="601.25" y="-403.62" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::sourceRetry</text>
+<text xml:space="preserve" text-anchor="middle" x="668.38" y="-390.88" font-family="Helvetica,sans-Serif" font-size="10.00">Requested</text>
 </a>
 </g>
 </g>
 <!-- Node2&#45;&gt;Node263 -->
-<g id="edge58_Node000002_Node000263" class="edge">
+<g id="edge56_Node000002_Node000263" class="edge">
 <title>Node2&#45;&gt;Node263</title>
-<g id="a_edge58_Node000002_Node000263"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M307.72,-938.82C314.15,-935.86 320.03,-931.84 324.5,-926.38 384.25,-853.36 300.39,-576.08 360.5,-503.38 366.39,-496.25 374.08,-490.99 382.49,-487.12"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="383.56,-490.46 391.64,-483.6 381.05,-483.92 383.56,-490.46"/>
+<g id="a_edge56_Node000002_Node000263"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M307.49,-939.06C314.04,-936.08 320.01,-931.99 324.5,-926.38 405.53,-824.97 265.93,-432.29 360.5,-343.38 421.05,-286.45 468.19,-318.54 547.5,-343.38 566.09,-349.2 566.27,-359.28 583.5,-368.38 590.61,-372.13 598.25,-375.67 605.93,-378.92"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="604.4,-382.08 614.98,-382.62 607.04,-375.6 604.4,-382.08"/>
 </a>
 </g>
 </g>
 <!-- Node264 -->
 <g id="Node000264" class="node">
 <title>Node264</title>
-<g id="a_Node000264"><a xlink:href="class_train_unit_source_linker.html#ac19717cc1626f87ada89b940e2a61dd4" target="_top" xlink:title="A message for the status line, shown for milliseconds.">
-<polygon fill="white" stroke="#666666" points="514.88,-442.12 393.12,-442.12 393.12,-408.62 514.88,-408.62 514.88,-442.12"/>
-<text xml:space="preserve" text-anchor="start" x="401.12" y="-428.62" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
-<text xml:space="preserve" text-anchor="middle" x="454" y="-415.88" font-family="Helvetica,sans-Serif" font-size="10.00">::statusMessage</text>
+<g id="a_Node000264"><a xlink:href="class_train_unit_panel.html#a003f8f0aa7aa9b5b70bb422ebc7de768" target="_top" xlink:title="The user asks to unlink the traction file (traction true) or the parameter file of the shown unit.">
+<polygon fill="white" stroke="#666666" points="746.12,-359.12 590.62,-359.12 590.62,-325.62 746.12,-325.62 746.12,-359.12"/>
+<text xml:space="preserve" text-anchor="start" x="598.62" y="-345.62" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::sourceUnlink</text>
+<text xml:space="preserve" text-anchor="middle" x="668.38" y="-332.88" font-family="Helvetica,sans-Serif" font-size="10.00">Requested</text>
 </a>
 </g>
 </g>
 <!-- Node2&#45;&gt;Node264 -->
-<g id="edge59_Node000002_Node000264" class="edge">
+<g id="edge57_Node000002_Node000264" class="edge">
 <title>Node2&#45;&gt;Node264</title>
-<g id="a_edge59_Node000002_Node000264"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M307.42,-939.01C313.98,-936.04 319.98,-931.96 324.5,-926.38 391.16,-844.14 293.43,-533.27 360.5,-451.38 366.36,-444.22 374.02,-438.94 382.43,-435.07"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="383.5,-438.41 391.57,-431.55 380.98,-431.87 383.5,-438.41"/>
+<g id="a_edge57_Node000002_Node000264"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M307.54,-939.1C314.08,-936.11 320.04,-932.01 324.5,-926.38 371.01,-867.68 306.15,-304.89 360.5,-253.38 420.82,-196.2 473.71,-215.14 547.5,-253.38 572.13,-266.14 562.12,-286.7 583.5,-304.38 590.76,-310.38 599.13,-315.63 607.7,-320.16"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="605.93,-323.19 616.45,-324.48 609.03,-316.92 605.93,-323.19"/>
 </a>
 </g>
 </g>
 <!-- Node265 -->
 <g id="Node000265" class="node">
 <title>Node265</title>
-<g id="a_Node000265"><a xlink:href="_update_telemetry_controller_8cpp.html#a6f709333026cc3310b5e305f05f00631" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#666666" points="523.5,-372.75 384.5,-372.75 384.5,-352 523.5,-352 523.5,-372.75"/>
-<text xml:space="preserve" text-anchor="middle" x="454" y="-359.25" font-family="Helvetica,sans-Serif" font-size="10.00">telemetryDiagnosticError</text>
+<g id="a_Node000265"><a xlink:href="class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" target="_top" xlink:title="The status of a link, or a link itself, has changed.">
+<polygon fill="white" stroke="#666666" points="514.88,-494.12 393.12,-494.12 393.12,-460.62 514.88,-460.62 514.88,-494.12"/>
+<text xml:space="preserve" text-anchor="start" x="401.12" y="-480.62" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
+<text xml:space="preserve" text-anchor="middle" x="454" y="-467.88" font-family="Helvetica,sans-Serif" font-size="10.00">::statusChanged</text>
 </a>
 </g>
 </g>
 <!-- Node2&#45;&gt;Node265 -->
-<g id="edge60_Node000002_Node000265" class="edge">
+<g id="edge58_Node000002_Node000265" class="edge">
 <title>Node2&#45;&gt;Node265</title>
-<g id="a_edge60_Node000002_Node000265"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M307.46,-939.04C314.02,-936.06 320,-931.97 324.5,-926.38 398.08,-834.91 291.42,-494.28 360.5,-399.38 367.37,-389.94 377.03,-382.91 387.55,-377.67"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="388.69,-381 396.45,-373.79 385.88,-374.59 388.69,-381"/>
+<g id="a_edge58_Node000002_Node000265"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M307.72,-938.82C314.15,-935.86 320.03,-931.84 324.5,-926.38 384.25,-853.36 300.39,-576.08 360.5,-503.38 366.39,-496.25 374.08,-490.99 382.49,-487.12"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="383.56,-490.46 391.64,-483.6 381.05,-483.92 383.56,-490.46"/>
 </a>
 </g>
 </g>
 <!-- Node266 -->
 <g id="Node000266" class="node">
 <title>Node266</title>
-<g id="a_Node000266"><a xlink:href="class_timetable_stops_panel.html#a3630bb0390a301edcf926b5626349f98" target="_top" xlink:title="Makes the widgets, empty until a loaded document and a service are set.">
+<g id="a_Node000266"><a xlink:href="class_train_unit_source_linker.html#ac19717cc1626f87ada89b940e2a61dd4" target="_top" xlink:title="A message for the status line, shown for milliseconds.">
+<polygon fill="white" stroke="#666666" points="514.88,-442.12 393.12,-442.12 393.12,-408.62 514.88,-408.62 514.88,-442.12"/>
+<text xml:space="preserve" text-anchor="start" x="401.12" y="-428.62" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
+<text xml:space="preserve" text-anchor="middle" x="454" y="-415.88" font-family="Helvetica,sans-Serif" font-size="10.00">::statusMessage</text>
+</a>
+</g>
+</g>
+<!-- Node2&#45;&gt;Node266 -->
+<g id="edge59_Node000002_Node000266" class="edge">
+<title>Node2&#45;&gt;Node266</title>
+<g id="a_edge59_Node000002_Node000266"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M307.42,-939.01C313.98,-936.04 319.98,-931.96 324.5,-926.38 391.16,-844.14 293.43,-533.27 360.5,-451.38 366.36,-444.22 374.02,-438.94 382.43,-435.07"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="383.5,-438.41 391.57,-431.55 380.98,-431.87 383.5,-438.41"/>
+</a>
+</g>
+</g>
+<!-- Node267 -->
+<g id="Node000267" class="node">
+<title>Node267</title>
+<g id="a_Node000267"><a xlink:href="_update_telemetry_controller_8cpp.html#a6f709333026cc3310b5e305f05f00631" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#666666" points="523.5,-372.75 384.5,-372.75 384.5,-352 523.5,-352 523.5,-372.75"/>
+<text xml:space="preserve" text-anchor="middle" x="454" y="-359.25" font-family="Helvetica,sans-Serif" font-size="10.00">telemetryDiagnosticError</text>
+</a>
+</g>
+</g>
+<!-- Node2&#45;&gt;Node267 -->
+<g id="edge60_Node000002_Node000267" class="edge">
+<title>Node2&#45;&gt;Node267</title>
+<g id="a_edge60_Node000002_Node000267"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M307.46,-939.04C314.02,-936.06 320,-931.97 324.5,-926.38 398.08,-834.91 291.42,-494.28 360.5,-399.38 367.37,-389.94 377.03,-382.91 387.55,-377.67"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="388.69,-381 396.45,-373.79 385.88,-374.59 388.69,-381"/>
+</a>
+</g>
+</g>
+<!-- Node268 -->
+<g id="Node000268" class="node">
+<title>Node268</title>
+<g id="a_Node000268"><a xlink:href="class_timetable_stops_panel.html#a3630bb0390a301edcf926b5626349f98" target="_top" xlink:title="Makes the widgets, empty until a loaded document and a service are set.">
 <polygon fill="#fff0f0" stroke="red" points="516.38,-963.12 391.62,-963.12 391.62,-929.62 516.38,-929.62 516.38,-963.12"/>
 <text xml:space="preserve" text-anchor="start" x="399.62" y="-949.62" font-family="Helvetica,sans-Serif" font-size="10.00">TimetableStopsPanel</text>
 <text xml:space="preserve" text-anchor="middle" x="454" y="-936.88" font-family="Helvetica,sans-Serif" font-size="10.00">::TimetableStopsPanel</text>
 </a>
 </g>
 </g>
-<!-- Node2&#45;&gt;Node266 -->
-<g id="edge62_Node000002_Node000266" class="edge">
-<title>Node2&#45;&gt;Node266</title>
-<g id="a_edge62_Node000002_Node000266"><a xlink:title=" ">
+<!-- Node2&#45;&gt;Node268 -->
+<g id="edge62_Node000002_Node000268" class="edge">
+<title>Node2&#45;&gt;Node268</title>
+<g id="a_edge62_Node000002_Node000268"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M307.5,-946.38C329.65,-946.38 355.93,-946.38 380.02,-946.38"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="379.77,-949.88 389.77,-946.38 379.77,-942.88 379.77,-949.88"/>
 </a>
@@ -704,112 +704,112 @@
 </a>
 </g>
 </g>
-<!-- Node290 -->
-<g id="Node000290" class="node">
-<title>Node290</title>
-<g id="a_Node000290"><a xlink:href="class_train_unit_panel.html#ab91dedec627e1e09bf8405f47c6ee3c1" target="_top" xlink:title="The plot of the traction curve of this unit is wanted.">
+<!-- Node292 -->
+<g id="Node000292" class="node">
+<title>Node292</title>
+<g id="a_Node000292"><a xlink:href="class_train_unit_panel.html#ab91dedec627e1e09bf8405f47c6ee3c1" target="_top" xlink:title="The plot of the traction curve of this unit is wanted.">
 <polygon fill="white" stroke="#666666" points="733,-295.12 603.75,-295.12 603.75,-261.62 733,-261.62 733,-295.12"/>
 <text xml:space="preserve" text-anchor="start" x="611.75" y="-281.62" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::traction</text>
 <text xml:space="preserve" text-anchor="middle" x="668.38" y="-268.88" font-family="Helvetica,sans-Serif" font-size="10.00">PlotRequested</text>
 </a>
 </g>
 </g>
-<!-- Node2&#45;&gt;Node290 -->
-<g id="edge65_Node000002_Node000290" class="edge">
-<title>Node2&#45;&gt;Node290</title>
-<g id="a_edge65_Node000002_Node000290"><a xlink:title=" ">
+<!-- Node2&#45;&gt;Node292 -->
+<g id="edge65_Node000002_Node000292" class="edge">
+<title>Node2&#45;&gt;Node292</title>
+<g id="a_edge65_Node000002_Node000292"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M307.55,-939.11C314.09,-936.12 320.05,-932.01 324.5,-926.38 373.67,-864.13 303.01,-268.03 360.5,-213.38 436.55,-141.07 571.98,-214.44 634.31,-255.15"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="632.14,-257.91 642.4,-260.54 636.02,-252.08 632.14,-257.91"/>
 </a>
 </g>
 </g>
-<!-- Node291 -->
-<g id="Node000291" class="node">
-<title>Node291</title>
-<g id="a_Node000291"><a xlink:href="class_train_unit_panel.html#aa715d9ed13fefeb02e2968259bd32c56" target="_top" xlink:title="Makes the widgets, empty until a loaded document is set.">
+<!-- Node293 -->
+<g id="Node000293" class="node">
+<title>Node293</title>
+<g id="a_Node000293"><a xlink:href="class_train_unit_panel.html#aa715d9ed13fefeb02e2968259bd32c56" target="_top" xlink:title="Makes the widgets, empty until a loaded document is set.">
 <polygon fill="#fff0f0" stroke="red" points="521.62,-546.12 386.38,-546.12 386.38,-512.62 521.62,-512.62 521.62,-546.12"/>
 <text xml:space="preserve" text-anchor="start" x="394.38" y="-532.62" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::TrainUnit</text>
 <text xml:space="preserve" text-anchor="middle" x="454" y="-519.88" font-family="Helvetica,sans-Serif" font-size="10.00">Panel</text>
 </a>
 </g>
 </g>
-<!-- Node2&#45;&gt;Node291 -->
-<g id="edge66_Node000002_Node000291" class="edge">
-<title>Node2&#45;&gt;Node291</title>
-<g id="a_edge66_Node000002_Node000291"><a xlink:title=" ">
+<!-- Node2&#45;&gt;Node293 -->
+<g id="edge66_Node000002_Node000293" class="edge">
+<title>Node2&#45;&gt;Node293</title>
+<g id="a_edge66_Node000002_Node000293"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M307.65,-938.76C314.1,-935.82 319.99,-931.81 324.5,-926.38 428.84,-800.56 258.65,-688.21 360.5,-560.38 364.86,-554.9 370.23,-550.38 376.16,-546.66"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="377.4,-549.97 384.55,-542.15 374.09,-543.8 377.4,-549.97"/>
 </a>
 </g>
 </g>
-<!-- Node313 -->
-<g id="Node000313" class="node">
-<title>Node313</title>
-<g id="a_Node000313"><a xlink:href="class_train_unit_source_linker.html#a4a956874976fc131a31095e03150a088" target="_top" xlink:title="A linker without a document and without links.">
+<!-- Node315 -->
+<g id="Node000315" class="node">
+<title>Node315</title>
+<g id="a_Node000315"><a xlink:href="class_train_unit_source_linker.html#a4a956874976fc131a31095e03150a088" target="_top" xlink:title="A linker without a document and without links.">
 <polygon fill="#fff0f0" stroke="red" points="517.88,-168.12 390.12,-168.12 390.12,-134.62 517.88,-134.62 517.88,-168.12"/>
 <text xml:space="preserve" text-anchor="start" x="398.12" y="-154.62" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text xml:space="preserve" text-anchor="middle" x="454" y="-141.88" font-family="Helvetica,sans-Serif" font-size="10.00">::TrainUnitSourceLinker</text>
 </a>
 </g>
 </g>
-<!-- Node2&#45;&gt;Node313 -->
-<g id="edge74_Node000002_Node000313" class="edge">
-<title>Node2&#45;&gt;Node313</title>
-<g id="a_edge74_Node000002_Node000313"><a xlink:title=" ">
+<!-- Node2&#45;&gt;Node315 -->
+<g id="edge74_Node000002_Node000315" class="edge">
+<title>Node2&#45;&gt;Node315</title>
+<g id="a_edge74_Node000002_Node000315"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M307.56,-939.12C314.1,-936.13 320.05,-932.02 324.5,-926.38 426.97,-796.38 260.6,-314.36 360.5,-182.38 365.56,-175.69 372.12,-170.43 379.41,-166.3"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="380.88,-169.47 388.38,-161.98 377.85,-163.17 380.88,-169.47"/>
 </a>
 </g>
 </g>
-<!-- Node306 -->
-<g id="Node000306" class="node">
-<title>Node306</title>
-<g id="a_Node000306"><a xlink:href="class_train_unit_panel.html#aada88fec49c7c65ff35650ce409594ba" target="_top" xlink:title="The unit is gone from the model. Emitted after the document is marked changed.">
+<!-- Node308 -->
+<g id="Node000308" class="node">
+<title>Node308</title>
+<g id="a_Node000308"><a xlink:href="class_train_unit_panel.html#aada88fec49c7c65ff35650ce409594ba" target="_top" xlink:title="The unit is gone from the model. Emitted after the document is marked changed.">
 <polygon fill="white" stroke="#666666" points="528.38,-116.75 379.62,-116.75 379.62,-96 528.38,-96 528.38,-116.75"/>
 <text xml:space="preserve" text-anchor="middle" x="454" y="-103.25" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::unitDeleted</text>
 </a>
 </g>
 </g>
-<!-- Node2&#45;&gt;Node306 -->
-<g id="edge75_Node000002_Node000306" class="edge">
-<title>Node2&#45;&gt;Node306</title>
-<g id="a_edge75_Node000002_Node000306"><a xlink:title=" ">
+<!-- Node2&#45;&gt;Node308 -->
+<g id="edge75_Node000002_Node000308" class="edge">
+<title>Node2&#45;&gt;Node308</title>
+<g id="a_edge75_Node000002_Node000308"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M307.58,-939.13C314.12,-936.14 320.06,-932.03 324.5,-926.38 379.53,-856.31 302.66,-193.14 360.5,-125.38 363.13,-122.29 366.12,-119.62 369.38,-117.32"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="370.87,-120.5 377.84,-112.52 367.41,-114.41 370.87,-120.5"/>
-</a>
-</g>
-</g>
-<!-- Node331 -->
-<g id="Node000331" class="node">
-<title>Node331</title>
-<g id="a_Node000331"><a xlink:href="class_train_unit_panel.html#a6f2dcc415fba70e4380cb8998f04734e" target="_top" xlink:title="The unit has got another id. Emitted after the document is marked changed.">
-<polygon fill="white" stroke="#666666" points="532.5,-77.75 375.5,-77.75 375.5,-57 532.5,-57 532.5,-77.75"/>
-<text xml:space="preserve" text-anchor="middle" x="454" y="-64.25" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::unitRenamed</text>
-</a>
-</g>
-</g>
-<!-- Node2&#45;&gt;Node331 -->
-<g id="edge76_Node000002_Node000331" class="edge">
-<title>Node2&#45;&gt;Node331</title>
-<g id="a_edge76_Node000002_Node000331"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M307.59,-939.14C314.13,-936.15 320.07,-932.03 324.5,-926.38 382.06,-852.94 300.36,-158.72 360.5,-87.38 362.18,-85.38 364,-83.56 365.95,-81.9"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="367.67,-84.96 373.94,-76.42 363.71,-79.19 367.67,-84.96"/>
 </a>
 </g>
 </g>
 <!-- Node332 -->
 <g id="Node000332" class="node">
 <title>Node332</title>
-<g id="a_Node000332"><a xlink:href="namespace_focus_wheel.html#a287f1fa4355169b7a4c7815a0683875c" target="_top" xlink:title="Creates a Watcher for root, which owns it.">
+<g id="a_Node000332"><a xlink:href="class_train_unit_panel.html#a6f2dcc415fba70e4380cb8998f04734e" target="_top" xlink:title="The unit has got another id. Emitted after the document is marked changed.">
+<polygon fill="white" stroke="#666666" points="532.5,-77.75 375.5,-77.75 375.5,-57 532.5,-57 532.5,-77.75"/>
+<text xml:space="preserve" text-anchor="middle" x="454" y="-64.25" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::unitRenamed</text>
+</a>
+</g>
+</g>
+<!-- Node2&#45;&gt;Node332 -->
+<g id="edge76_Node000002_Node000332" class="edge">
+<title>Node2&#45;&gt;Node332</title>
+<g id="a_edge76_Node000002_Node000332"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M307.59,-939.14C314.13,-936.15 320.07,-932.03 324.5,-926.38 382.06,-852.94 300.36,-158.72 360.5,-87.38 362.18,-85.38 364,-83.56 365.95,-81.9"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="367.67,-84.96 373.94,-76.42 363.71,-79.19 367.67,-84.96"/>
+</a>
+</g>
+</g>
+<!-- Node333 -->
+<g id="Node000333" class="node">
+<title>Node333</title>
+<g id="a_Node000333"><a xlink:href="namespace_focus_wheel.html#a287f1fa4355169b7a4c7815a0683875c" target="_top" xlink:title="Creates a Watcher for root, which owns it.">
 <polygon fill="#fff0f0" stroke="red" points="508.88,-20.75 399.12,-20.75 399.12,0 508.88,0 508.88,-20.75"/>
 <text xml:space="preserve" text-anchor="middle" x="454" y="-7.25" font-family="Helvetica,sans-Serif" font-size="10.00">FocusWheel::watch</text>
 </a>
 </g>
 </g>
-<!-- Node2&#45;&gt;Node332 -->
-<g id="edge77_Node000002_Node000332" class="edge">
-<title>Node2&#45;&gt;Node332</title>
-<g id="a_edge77_Node000002_Node000332"><a xlink:title=" ">
+<!-- Node2&#45;&gt;Node333 -->
+<g id="edge77_Node000002_Node000333" class="edge">
+<title>Node2&#45;&gt;Node333</title>
+<g id="a_edge77_Node000002_Node000333"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M307.6,-939.15C314.14,-936.16 320.07,-932.03 324.5,-926.38 384.66,-849.47 304.49,-128.35 360.5,-48.38 367.52,-38.36 377.67,-30.98 388.71,-25.54"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="389.86,-28.86 397.65,-21.67 387.08,-22.43 389.86,-28.86"/>
 </a>
@@ -1088,109 +1088,109 @@
 </a>
 </g>
 </g>
-<!-- Node218&#45;&gt;Node9 -->
-<g id="edge53_Node000218_Node000009" class="edge">
-<title>Node218&#45;&gt;Node9</title>
-<g id="a_edge53_Node000218_Node000009"><a xlink:title=" ">
+<!-- Node220&#45;&gt;Node9 -->
+<g id="edge53_Node000220_Node000009" class="edge">
+<title>Node220&#45;&gt;Node9</title>
+<g id="a_edge53_Node000220_Node000009"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M521.46,-1604.24C530.35,-1606.49 539.24,-1609.18 547.5,-1612.38 583.23,-1626.18 620.63,-1650.08 643.96,-1666.3"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="641.63,-1668.94 651.82,-1671.85 645.67,-1663.22 641.63,-1668.94"/>
 </a>
 </g>
 </g>
-<!-- Node218&#45;&gt;Node13 -->
-<g id="edge54_Node000218_Node000013" class="edge">
-<title>Node218&#45;&gt;Node13</title>
-<g id="a_edge54_Node000218_Node000013"><a xlink:title=" ">
+<!-- Node220&#45;&gt;Node13 -->
+<g id="edge54_Node000220_Node000013" class="edge">
+<title>Node220&#45;&gt;Node13</title>
+<g id="a_edge54_Node000220_Node000013"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M527.31,-1585.62C534.68,-1582.61 541.61,-1578.62 547.5,-1573.38 584.64,-1540.26 561.28,-1511.89 583.5,-1467.38 601.33,-1431.65 628.19,-1394.25 646.68,-1370.2"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="649.25,-1372.6 652.63,-1362.56 643.73,-1368.3 649.25,-1372.6"/>
 </a>
 </g>
 </g>
-<!-- Node265&#45;&gt;Node265 -->
-<g id="edge61_Node000265_Node000265" class="edge">
-<title>Node265&#45;&gt;Node265</title>
-<g id="a_edge61_Node000265_Node000265"><a xlink:title=" ">
+<!-- Node267&#45;&gt;Node267 -->
+<g id="edge61_Node000267_Node000267" class="edge">
+<title>Node267&#45;&gt;Node267</title>
+<g id="a_edge61_Node000267_Node000267"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M421.93,-373.15C409.11,-381.81 419.8,-390.75 454,-390.75 472.7,-390.75 484.38,-388.08 489.02,-384.24"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="492.41,-383.37 486.45,-374.61 485.64,-385.17 492.41,-383.37"/>
 </a>
 </g>
 </g>
-<!-- Node266&#45;&gt;Node13 -->
-<g id="edge63_Node000266_Node000013" class="edge">
-<title>Node266&#45;&gt;Node13</title>
-<g id="a_edge63_Node000266_Node000013"><a xlink:title=" ">
+<!-- Node268&#45;&gt;Node13 -->
+<g id="edge63_Node000268_Node000013" class="edge">
+<title>Node268&#45;&gt;Node13</title>
+<g id="a_edge63_Node000268_Node000013"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M516.74,-954.61C528.05,-958.5 538.97,-964.16 547.5,-972.38 647.09,-1068.28 664.09,-1247.19 666.88,-1316.21"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="663.37,-1316.02 667.19,-1325.9 670.37,-1315.79 663.37,-1316.02"/>
 </a>
 </g>
 </g>
-<!-- Node291&#45;&gt;Node13 -->
-<g id="edge69_Node000291_Node000013" class="edge">
-<title>Node291&#45;&gt;Node13</title>
-<g id="a_edge69_Node000291_Node000013"><a xlink:title=" ">
+<!-- Node293&#45;&gt;Node13 -->
+<g id="edge69_Node000293_Node000013" class="edge">
+<title>Node293&#45;&gt;Node13</title>
+<g id="a_edge69_Node000293_Node000013"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M493.13,-546.53C512.49,-557.23 534.6,-572.88 547.5,-593.38 625.88,-717.87 658.64,-1194.7 665.81,-1316.11"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="662.3,-1316.05 666.37,-1325.83 669.29,-1315.64 662.3,-1316.05"/>
 </a>
 </g>
 </g>
-<!-- Node291&#45;&gt;Node17 -->
-<g id="edge67_Node000291_Node000017" class="edge">
-<title>Node291&#45;&gt;Node17</title>
-<g id="a_edge67_Node000291_Node000017"><a xlink:title=" ">
+<!-- Node293&#45;&gt;Node17 -->
+<g id="edge67_Node000293_Node000017" class="edge">
+<title>Node293&#45;&gt;Node17</title>
+<g id="a_edge67_Node000293_Node000017"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M481.57,-546.57C506.88,-562.29 546.5,-585.18 583.5,-599.38 589.41,-601.64 595.65,-603.71 601.96,-605.57"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="600.56,-608.82 611.14,-608.12 602.44,-602.07 600.56,-608.82"/>
 </a>
 </g>
 </g>
-<!-- Node291&#45;&gt;Node19 -->
-<g id="edge68_Node000291_Node000019" class="edge">
-<title>Node291&#45;&gt;Node19</title>
-<g id="a_edge68_Node000291_Node000019"><a xlink:title=" ">
+<!-- Node293&#45;&gt;Node19 -->
+<g id="edge68_Node000293_Node000019" class="edge">
+<title>Node293&#45;&gt;Node19</title>
+<g id="a_edge68_Node000293_Node000019"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M521.91,-545.44C550.65,-552.34 583.87,-560.32 611.3,-566.91"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="610.26,-570.26 620.81,-569.19 611.9,-563.45 610.26,-570.26"/>
 </a>
 </g>
 </g>
-<!-- Node291&#45;&gt;Node260 -->
-<g id="edge70_Node000291_Node000260" class="edge">
-<title>Node291&#45;&gt;Node260</title>
-<g id="a_edge70_Node000291_Node000260"><a xlink:title=" ">
+<!-- Node293&#45;&gt;Node262 -->
+<g id="edge70_Node000293_Node000262" class="edge">
+<title>Node293&#45;&gt;Node262</title>
+<g id="a_edge70_Node000293_Node000262"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M521.91,-530.32C541.81,-530.6 563.85,-530.91 584.64,-531.21"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="584.47,-534.7 594.52,-531.35 584.57,-527.7 584.47,-534.7"/>
 </a>
 </g>
 </g>
-<!-- Node291&#45;&gt;Node261 -->
-<g id="edge71_Node000291_Node000261" class="edge">
-<title>Node291&#45;&gt;Node261</title>
-<g id="a_edge71_Node000291_Node000261"><a xlink:title=" ">
+<!-- Node293&#45;&gt;Node263 -->
+<g id="edge71_Node000293_Node000263" class="edge">
+<title>Node293&#45;&gt;Node263</title>
+<g id="a_edge71_Node000293_Node000263"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M522.06,-514.3C530.85,-511.25 539.56,-507.63 547.5,-503.38 585.41,-483.06 621.84,-449.01 644.39,-425.66"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="646.66,-428.34 651,-418.68 641.58,-423.53 646.66,-428.34"/>
 </a>
 </g>
 </g>
-<!-- Node291&#45;&gt;Node262 -->
-<g id="edge72_Node000291_Node000262" class="edge">
-<title>Node291&#45;&gt;Node262</title>
-<g id="a_edge72_Node000291_Node000262"><a xlink:title=" ">
+<!-- Node293&#45;&gt;Node264 -->
+<g id="edge72_Node000293_Node000264" class="edge">
+<title>Node293&#45;&gt;Node264</title>
+<g id="a_edge72_Node000293_Node000264"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M521.73,-519.64C531.3,-515.82 540.31,-510.58 547.5,-503.38 589.55,-461.25 543.4,-418.36 583.5,-374.38 586.49,-371.1 589.84,-368.16 593.45,-365.51"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="595.03,-368.66 601.6,-360.35 591.28,-362.75 595.03,-368.66"/>
 </a>
 </g>
 </g>
-<!-- Node291&#45;&gt;Node290 -->
-<g id="edge73_Node000291_Node000290" class="edge">
-<title>Node291&#45;&gt;Node290</title>
-<g id="a_edge73_Node000291_Node000290"><a xlink:title=" ">
+<!-- Node293&#45;&gt;Node292 -->
+<g id="edge73_Node000293_Node000292" class="edge">
+<title>Node293&#45;&gt;Node292</title>
+<g id="a_edge73_Node000293_Node000292"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M521.79,-520.33C531.46,-516.44 540.5,-510.99 547.5,-503.38 604.79,-441.07 531.09,-382.83 583.5,-316.38 588.16,-310.47 593.93,-305.45 600.26,-301.2"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="601.75,-304.38 608.56,-296.26 598.17,-298.37 601.75,-304.38"/>
 </a>
 </g>
 </g>
-<!-- Node332&#45;&gt;Node332 -->
-<g id="edge78_Node000332_Node000332" class="edge">
-<title>Node332&#45;&gt;Node332</title>
-<g id="a_edge78_Node000332_Node000332"><a xlink:title=" ">
+<!-- Node333&#45;&gt;Node333 -->
+<g id="edge78_Node000333_Node000333" class="edge">
+<title>Node333&#45;&gt;Node333</title>
+<g id="a_edge78_Node000333_Node000333"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M421.93,-21.15C409.11,-29.81 419.8,-38.75 454,-38.75 472.7,-38.75 484.38,-36.08 489.02,-32.24"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="492.41,-31.37 486.45,-22.61 485.64,-33.17 492.41,-31.37"/>
 </a>

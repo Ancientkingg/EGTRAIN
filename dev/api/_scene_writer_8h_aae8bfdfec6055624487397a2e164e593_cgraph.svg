@@ -12,17 +12,17 @@
 <g id="Node000001" class="node">
 <title>Node1</title>
 <g id="a_Node000001"><a xlink:title="Reads one scenario from a standalone scenario file.">
-<polygon fill="#999999" stroke="#666666" points="99.25,-214.75 0,-214.75 0,-194 99.25,-194 99.25,-214.75"/>
-<text xml:space="preserve" text-anchor="middle" x="49.62" y="-201.25" font-family="Helvetica,sans-Serif" font-size="10.00">loadScenarioJson</text>
+<polygon fill="#999999" stroke="#666666" points="99.25,-157.75 0,-157.75 0,-137 99.25,-137 99.25,-157.75"/>
+<text xml:space="preserve" text-anchor="middle" x="49.62" y="-144.25" font-family="Helvetica,sans-Serif" font-size="10.00">loadScenarioJson</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node1 -->
-<g id="edge32_Node000001_Node000001" class="edge">
+<g id="edge34_Node000001_Node000001" class="edge">
 <title>Node1&#45;&gt;Node1</title>
-<g id="a_edge32_Node000001_Node000001"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M25.54,-215.15C15.9,-223.81 23.93,-232.75 49.62,-232.75 63.68,-232.75 72.45,-230.08 75.93,-226.24"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="79.4,-225.75 74.01,-216.63 72.54,-227.12 79.4,-225.75"/>
+<g id="a_edge34_Node000001_Node000001"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M25.54,-158.15C15.9,-166.81 23.93,-175.75 49.62,-175.75 63.68,-175.75 72.45,-173.08 75.93,-169.24"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="79.4,-168.75 74.01,-159.63 72.54,-170.12 79.4,-168.75"/>
 </a>
 </g>
 </g>
@@ -39,8 +39,8 @@
 <g id="edge1_Node000001_Node000002" class="edge">
 <title>Node1&#45;&gt;Node2</title>
 <g id="a_edge1_Node000001_Node000002"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M73.7,-215.24C90.57,-222.99 114.09,-233.41 135.25,-241.38 140.34,-243.29 145.71,-245.19 151.07,-247"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="149.96,-250.32 160.56,-250.12 152.15,-243.67 149.96,-250.32"/>
+<path fill="none" stroke="#63b8ff" d="M57.41,-158.08C70.25,-177.5 100.01,-218.64 135.25,-241.38 137.82,-243.04 140.55,-244.57 143.36,-245.98"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="141.87,-249.15 152.43,-249.97 144.69,-242.74 141.87,-249.15"/>
 </a>
 </g>
 </g>
@@ -57,26 +57,62 @@
 <g id="edge3_Node000001_Node000003" class="edge">
 <title>Node1&#45;&gt;Node3</title>
 <g id="a_edge3_Node000001_Node000003"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M99.74,-204.38C110.13,-204.38 121.25,-204.38 132.15,-204.38"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="131.86,-207.88 141.86,-204.38 131.86,-200.88 131.86,-207.88"/>
+<path fill="none" stroke="#63b8ff" d="M73.7,-158.24C90.57,-165.99 114.09,-176.41 135.25,-184.38 140.34,-186.29 145.71,-188.19 151.07,-190"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="149.96,-193.32 160.56,-193.12 152.15,-186.67 149.96,-193.32"/>
 </a>
 </g>
 </g>
 <!-- Node14 -->
 <g id="Node000014" class="node">
 <title>Node14</title>
-<g id="a_Node000014"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,...">
-<polygon fill="white" stroke="#666666" points="240.88,-157.75 157.38,-157.75 157.38,-137 240.88,-137 240.88,-157.75"/>
-<text xml:space="preserve" text-anchor="middle" x="199.12" y="-144.25" font-family="Helvetica,sans-Serif" font-size="10.00">pathFromUtf8</text>
+<g id="a_Node000014"><a xlink:href="_scene_diagnostic_8cpp.html#a4246141099e6d0d258e6248dc317a65a" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#666666" points="256.25,-157.75 142,-157.75 142,-137 256.25,-137 256.25,-157.75"/>
+<text xml:space="preserve" text-anchor="middle" x="199.12" y="-144.25" font-family="Helvetica,sans-Serif" font-size="10.00">jsonParseDiagnostic</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node14 -->
-<g id="edge33_Node000001_Node000014" class="edge">
+<g id="edge32_Node000001_Node000014" class="edge">
 <title>Node1&#45;&gt;Node14</title>
-<g id="a_edge33_Node000001_Node000014"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M78.72,-193.52C101.58,-184.68 134.09,-172.12 159.42,-162.33"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="160.66,-165.6 168.73,-158.74 158.14,-159.08 160.66,-165.6"/>
+<g id="a_edge32_Node000001_Node000014"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M99.74,-147.38C109.48,-147.38 119.87,-147.38 130.11,-147.38"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="130.06,-150.88 140.06,-147.38 130.06,-143.88 130.06,-150.88"/>
+</a>
+</g>
+</g>
+<!-- Node15 -->
+<g id="Node000015" class="node">
+<title>Node15</title>
+<g id="a_Node000015"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,...">
+<polygon fill="white" stroke="#666666" points="240.88,-100.75 157.38,-100.75 157.38,-80 240.88,-80 240.88,-100.75"/>
+<text xml:space="preserve" text-anchor="middle" x="199.12" y="-87.25" font-family="Helvetica,sans-Serif" font-size="10.00">pathFromUtf8</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node15 -->
+<g id="edge35_Node000001_Node000015" class="edge">
+<title>Node1&#45;&gt;Node15</title>
+<g id="a_edge35_Node000001_Node000015"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M78.72,-136.52C101.58,-127.68 134.09,-115.12 159.42,-105.33"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="160.66,-108.6 168.73,-101.74 158.14,-102.08 160.66,-108.6"/>
+</a>
+</g>
+</g>
+<!-- Node16 -->
+<g id="Node000016" class="node">
+<title>Node16</title>
+<g id="a_Node000016"><a xlink:href="_staged_directory_8h.html#a7aa4b7fb80e7c4bde386345c1698840f" target="_top" xlink:title="Reads the whole file at path into content, byte for byte. Returns false when the file cannot be opene...">
+<polygon fill="white" stroke="#666666" points="240.5,-43.75 157.75,-43.75 157.75,-23 240.5,-23 240.5,-43.75"/>
+<text xml:space="preserve" text-anchor="middle" x="199.12" y="-30.25" font-family="Helvetica,sans-Serif" font-size="10.00">readFileBytes</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node16 -->
+<g id="edge37_Node000001_Node000016" class="edge">
+<title>Node1&#45;&gt;Node16</title>
+<g id="a_edge37_Node000001_Node000016"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M61.28,-136.6C76.79,-121.19 106.85,-92.42 135.25,-71.38 145.66,-63.66 157.7,-56.09 168.44,-49.76"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="170.03,-52.89 176.94,-44.86 166.53,-46.82 170.03,-52.89"/>
 </a>
 </g>
 </g>
@@ -435,11 +471,29 @@
 </g>
 </g>
 <!-- Node14&#45;&gt;Node14 -->
-<g id="edge34_Node000014_Node000014" class="edge">
+<g id="edge33_Node000014_Node000014" class="edge">
 <title>Node14&#45;&gt;Node14</title>
-<g id="a_edge34_Node000014_Node000014"><a xlink:title=" ">
+<g id="a_edge33_Node000014_Node000014"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M175.04,-158.15C165.4,-166.81 173.43,-175.75 199.12,-175.75 213.18,-175.75 221.95,-173.08 225.43,-169.24"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="228.9,-168.75 223.51,-159.63 222.04,-170.12 228.9,-168.75"/>
+</a>
+</g>
+</g>
+<!-- Node15&#45;&gt;Node15 -->
+<g id="edge36_Node000015_Node000015" class="edge">
+<title>Node15&#45;&gt;Node15</title>
+<g id="a_edge36_Node000015_Node000015"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M175.04,-101.15C165.4,-109.81 173.43,-118.75 199.12,-118.75 213.18,-118.75 221.95,-116.08 225.43,-112.24"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="228.9,-111.75 223.51,-102.63 222.04,-113.12 228.9,-111.75"/>
+</a>
+</g>
+</g>
+<!-- Node16&#45;&gt;Node16 -->
+<g id="edge38_Node000016_Node000016" class="edge">
+<title>Node16&#45;&gt;Node16</title>
+<g id="a_edge38_Node000016_Node000016"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M175.04,-44.15C165.4,-52.81 173.43,-61.75 199.12,-61.75 213.18,-61.75 221.95,-59.08 225.43,-55.24"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="228.9,-54.75 223.51,-45.63 222.04,-56.12 228.9,-54.75"/>
 </a>
 </g>
 </g>

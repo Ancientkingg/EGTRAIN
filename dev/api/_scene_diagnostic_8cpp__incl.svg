@@ -12,8 +12,8 @@
 <g id="Node000001" class="node">
 <title>Node1</title>
 <g id="a_Node000001"><a xlink:title=" ">
-<polygon fill="#999999" stroke="#666666" points="193.88,-134.25 45.12,-134.25 45.12,-113.5 193.88,-113.5 193.88,-134.25"/>
-<text xml:space="preserve" text-anchor="middle" x="119.5" y="-120.75" font-family="Helvetica,sans-Serif" font-size="10.00">scene/SceneDiagnostic.cpp</text>
+<polygon fill="#999999" stroke="#666666" points="252.88,-134.25 104.12,-134.25 104.12,-113.5 252.88,-113.5 252.88,-134.25"/>
+<text xml:space="preserve" text-anchor="middle" x="178.5" y="-120.75" font-family="Helvetica,sans-Serif" font-size="10.00">scene/SceneDiagnostic.cpp</text>
 </a>
 </g>
 </g>
@@ -30,8 +30,26 @@
 <g id="edge1_Node000001_Node000002" class="edge">
 <title>Node1&#45;&gt;Node2</title>
 <g id="a_edge1_Node000001_Node000002"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M119.5,-113.09C119.5,-106.47 119.5,-97.47 119.5,-89.27"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="123,-89.34 119.5,-79.34 116,-89.34 123,-89.34"/>
+<path fill="none" stroke="#63b8ff" d="M167.95,-113.09C159.73,-105.46 148.1,-94.67 138.3,-85.57"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="140.78,-83.09 131.07,-78.86 136.02,-88.23 140.78,-83.09"/>
+</a>
+</g>
+</g>
+<!-- Node7 -->
+<g id="Node000007" class="node">
+<title>Node7</title>
+<g id="a_Node000007"><a xlink:title=" ">
+<polygon fill="#e0e0e0" stroke="#999999" points="269.12,-77.5 205.88,-77.5 205.88,-56.75 269.12,-56.75 269.12,-77.5"/>
+<text xml:space="preserve" text-anchor="middle" x="237.5" y="-64" font-family="Helvetica,sans-Serif" font-size="10.00">algorithm</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node7 -->
+<g id="edge6_Node000001_Node000007" class="edge">
+<title>Node1&#45;&gt;Node7</title>
+<g id="a_edge6_Node000001_Node000007"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M189.05,-113.09C197.27,-105.46 208.9,-94.67 218.7,-85.57"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="220.98,-88.23 225.93,-78.86 216.22,-83.09 220.98,-88.23"/>
 </a>
 </g>
 </g>
