@@ -551,10 +551,10 @@
 <!-- Node24 -->
 <g id="Node000024" class="node">
 <title>Node24</title>
-<g id="a_Node000024"><a xlink:href="class_infrastructure_panel.html#a22e28927ad36bf4eb7ae077ef3c4ec79" target="_top" xlink:title="A message for the status line, shown for timeoutMs milliseconds.">
-<polygon fill="white" stroke="#666666" points="662.12,-47.5 553.88,-47.5 553.88,-14 662.12,-14 662.12,-47.5"/>
-<text xml:space="preserve" text-anchor="start" x="561.88" y="-34" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
-<text xml:space="preserve" text-anchor="middle" x="608" y="-21.25" font-family="Helvetica,sans-Serif" font-size="10.00">::statusMessage</text>
+<g id="a_Node000024"><a xlink:href="class_scene_editor_panel.html#a1263773d1ae53648a350d0830c44c4f5" target="_top" xlink:title="A message for the status line of the window, shown for timeoutMs milliseconds.">
+<polygon fill="white" stroke="#666666" points="676,-47.5 540,-47.5 540,-14 676,-14 676,-47.5"/>
+<text xml:space="preserve" text-anchor="start" x="548" y="-34" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::status</text>
+<text xml:space="preserve" text-anchor="middle" x="608" y="-21.25" font-family="Helvetica,sans-Serif" font-size="10.00">Message</text>
 </a>
 </g>
 </g>

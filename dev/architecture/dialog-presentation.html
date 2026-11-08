@@ -461,7 +461,7 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::question</span></code></p></td>
-<td><p>The delete functions of the <a class="reference internal" href="#prompts-with-several-buttons-or-a-default-that-matters">prompts table</a>, the questions of <code class="docutils literal notranslate"><span class="pre">SceneSession</span></code> before it replaces a case or a file, <code class="docutils literal notranslate"><span class="pre">savePathWithSuffix</span></code> in <code class="docutils literal notranslate"><span class="pre">widgets/SaveSuffix.h</span></code> and the legacy import question in <code class="docutils literal notranslate"><span class="pre">CaseChooserDialog</span></code></p></td>
+<td><p>The questions of <code class="docutils literal notranslate"><span class="pre">SceneSession</span></code> before it replaces a case or a file, <code class="docutils literal notranslate"><span class="pre">savePathWithSuffix</span></code> in <code class="docutils literal notranslate"><span class="pre">widgets/SaveSuffix.h</span></code> and the legacy import question in <code class="docutils literal notranslate"><span class="pre">CaseChooserDialog</span></code></p></td>
 <td><p>Yes and No buttons. Every call makes No the default button.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox</span></code> with the warning icon through <code class="docutils literal notranslate"><span class="pre">UserPrompts::showError</span></code></p></td>
@@ -506,7 +506,7 @@
 </section>
 <section id="prompts-with-several-buttons-or-a-default-that-matters">
 <h3>Prompts with several buttons or a default that matters<a class="headerlink" href="#prompts-with-several-buttons-or-a-default-that-matters" title="Link to this heading">¶</a></h3>
-<p>Message boxes with custom buttons, a default button that matters, or a failure that a person has to read. A prompt that no test opens needs a scene or an environment that makes the code reach it; “When it opens” says which. The delete prompts need a loaded scene and a selected item. Only <code class="docutils literal notranslate"><span class="pre">test_updatetelemetrycontroller</span></code> reads the default button of one of these prompts, the update prompt. <code class="docutils literal notranslate"><span class="pre">test_dialoglayout</span></code> draws the default button of a question box that it builds, except on Windows. It also checks, at the normal and at 1.5 times the font, that the default button of an update prompt with long button texts is wide enough for its drawn text.</p>
+<p>Message boxes with custom buttons, a default button that matters, or a failure that a person has to read. A prompt that no test opens needs a scene or an environment that makes the code reach it; “When it opens” says which. Only <code class="docutils literal notranslate"><span class="pre">test_updatetelemetrycontroller</span></code> reads the default button of one of these prompts, the update prompt. <code class="docutils literal notranslate"><span class="pre">test_dialoglayout</span></code> draws the default button of a question box that it builds, except on Windows. It also checks, at the normal and at 1.5 times the font, that the default button of an update prompt with long button texts is wide enough for its drawn text.</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -626,71 +626,11 @@
 <td><p>The name from the save dialog lacks the suffix, and the file with the suffix exists. The dialog itself asks about a name that it returns as typed.</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">test_scenesession</span></code> and <code class="docutils literal notranslate"><span class="pre">test_editor_scenario</span></code> answer Yes and No without a dialog; <code class="docutils literal notranslate"><span class="pre">test_diagramwindow</span></code> clicks Yes and No in the box.</p></td>
 </tr>
-<tr class="row-even"><td><p>Delete Passenger</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">PassengerPanel::deletePassenger</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::question</span></code>. Yes and No. No is the default.</p></td>
-<td><p>A passenger is selected and no run is going.</p></td>
-<td><p>The editor smoke answers Yes. <code class="docutils literal notranslate"><span class="pre">test_editor_passenger</span></code> answers Yes and No without a dialog.</p></td>
-</tr>
-<tr class="row-odd"><td><p>Delete Journey</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">PassengerPanel::deleteJourney</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::question</span></code>. Yes and No. No is the default.</p></td>
-<td><p>A journey of the selected passenger is selected and no run is going.</p></td>
-<td><p>The editor smoke answers Yes. <code class="docutils literal notranslate"><span class="pre">test_editor_passenger</span></code> answers Yes and No without a dialog.</p></td>
-</tr>
-<tr class="row-even"><td><p>Delete Leg</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">PassengerPanel::deleteLeg</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::question</span></code>. Yes and No. No is the default.</p></td>
-<td><p>A leg of the selected journey is selected and no run is going.</p></td>
-<td><p>The editor smoke answers Yes. <code class="docutils literal notranslate"><span class="pre">test_editor_passenger</span></code> answers Yes and No without a dialog.</p></td>
-</tr>
-<tr class="row-odd"><td><p>Delete Track, Delete Block and the other kinds of row</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">InfrastructurePanel::confirmDelete</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::question</span></code>. Yes and No. No is the default.</p></td>
-<td><p>A row of the infrastructure table is selected, no run is going and no other item refers to it.</p></td>
-<td><p>The editor smoke answers Yes. <code class="docutils literal notranslate"><span class="pre">test_editor_infrastructure_topology</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_infrastructure_blocks</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_infrastructure_stations</span></code> and <code class="docutils literal notranslate"><span class="pre">test_editor_infrastructure_signals</span></code> answer Yes and No without a dialog.</p></td>
-</tr>
-<tr class="row-even"><td><p>Delete Rolling Stock Unit</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">TrainUnitPanel::deleteUnit</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::question</span></code>. Yes and No. No is the default.</p></td>
-<td><p>A unit is selected and no composition refers to it.</p></td>
-<td><p>The editor smoke answers Yes.</p></td>
-</tr>
-<tr class="row-odd"><td><p>Delete Composition</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">CompositionPanel::deleteComposition</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::question</span></code>. Yes and No. No is the default.</p></td>
-<td><p>A composition is selected and no service refers to it.</p></td>
-<td><p>The editor smoke answers Yes.</p></td>
-</tr>
-<tr class="row-even"><td><p>Delete Service</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">ServicePanel::deleteService</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::question</span></code>. Yes and No. No is the default.</p></td>
-<td><p>A service is selected and no operation reference refers to it.</p></td>
-<td><p>The editor smoke answers Yes.</p></td>
-</tr>
-<tr class="row-odd"><td><p>Delete Entrance Delay</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">EntranceDelayPanel::deleteEntranceDelay</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::question</span></code>. Yes and No. No is the default.</p></td>
-<td><p>An entrance delay of the selected scenario is selected and no run is going.</p></td>
-<td><p>The editor smoke answers Yes. <code class="docutils literal notranslate"><span class="pre">test_editor_entrancedelay</span></code> answers Yes and No without a dialog.</p></td>
-</tr>
-<tr class="row-even"><td><p>Delete Scenario</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">ScenarioPanel::deleteScenario</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::question</span></code>. Yes and No. No is the default.</p></td>
-<td><p>The selected scenario is not the default scenario, the scene names a valid default scenario and no run is going.</p></td>
-<td><p>The editor smoke answers Yes. <code class="docutils literal notranslate"><span class="pre">test_editor_scenario</span></code> answers Yes and No without a dialog.</p></td>
-</tr>
-<tr class="row-odd"><td><p>Scenario ID Adjusted</p></td>
+<tr class="row-even"><td><p>Scenario ID Adjusted</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ScenarioPanel::importScenario</span></code>, through <code class="docutils literal notranslate"><span class="pre">UserPrompts::showInfo</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::information</span></code>. OK only.</p></td>
 <td><p>A scenario is imported and its scenario ID or an incident ID was already used, so the import changed it.</p></td>
 <td><p>No test opens it. The E2E dialog suppression shows nothing. <code class="docutils literal notranslate"><span class="pre">test_editor_scenario</span></code> reads the message without a dialog.</p></td>
-</tr>
-<tr class="row-even"><td><p>Delete Incident</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">IncidentPanel::deleteIncident</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::question</span></code>. Yes and No. No is the default.</p></td>
-<td><p>An incident of the selected scenario is selected and no run is going.</p></td>
-<td><p>The editor smoke answers Yes. <code class="docutils literal notranslate"><span class="pre">test_editor_incident</span></code> answers Yes and No without a dialog.</p></td>
 </tr>
 </tbody>
 </table>

@@ -132,6 +132,8 @@ Signals</h2></td></tr>
 <tr class="inherit_header signals_class_scene_editor_panel"><td colspan="2">Signals inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel" id="r_ab57b6ba8b04710b122cf09ac57e34b52"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52">changed</a> ()</td></tr>
 <tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f">SceneDocument::changed()</a>.  <br /></td></tr>
+<tr class="memitem:a1263773d1ae53648a350d0830c44c4f5 signals_class_scene_editor_panel" id="r_a1263773d1ae53648a350d0830c44c4f5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a1263773d1ae53648a350d0830c44c4f5">statusMessage</a> (const QString &amp;text, int timeoutMs)</td></tr>
+<tr class="memdesc:a1263773d1ae53648a350d0830c44c4f5 signals_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">A message for the status line of the window, shown for <span class="tt">timeoutMs</span> milliseconds.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -152,7 +154,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a3c94766eeee29aa92581d5f646f520c9" id="r_a3c94766eeee29aa92581d5f646f520c9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3c94766eeee29aa92581d5f646f520c9">duplicateService</a> ()</td></tr>
 <tr class="memdesc:a3c94766eeee29aa92581d5f646f520c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts a copy of the selected service, with a new unique id, after it.  <br /></td></tr>
 <tr class="memitem:a8bdbff0bbf3dd4d8c17349885263b254" id="r_a8bdbff0bbf3dd4d8c17349885263b254"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8bdbff0bbf3dd4d8c17349885263b254">deleteService</a> ()</td></tr>
-<tr class="memdesc:a8bdbff0bbf3dd4d8c17349885263b254"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes the selected service after the user has confirmed it; refused while something refers to it.  <br /></td></tr>
+<tr class="memdesc:a8bdbff0bbf3dd4d8c17349885263b254"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes the selected service and says in the status line that Undo restores it; refused while something refers to it.  <br /></td></tr>
 <tr class="memitem:aaf5de4ccfa7af1694719ae9a556e80b9" id="r_aaf5de4ccfa7af1694719ae9a556e80b9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aaf5de4ccfa7af1694719ae9a556e80b9">commitIdEdit</a> ()</td></tr>
 <tr class="memdesc:aaf5de4ccfa7af1694719ae9a556e80b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the id from the field. An empty or used id is dropped and the field shows the old id again.  <br /></td></tr>
 <tr class="memitem:a5927be489e40c621d79f382842ffaaa1" id="r_a5927be489e40c621d79f382842ffaaa1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5927be489e40c621d79f382842ffaaa1">commitOperatingCode</a> ()</td></tr>
@@ -232,7 +234,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae4e33448f57dde18e7d7026f15a4198e" id="r_ae4e33448f57dde18e7d7026f15a4198e"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#ae4e33448f57dde18e7d7026f15a4198e">duplicateButton</a> () const</td></tr>
 <tr class="memdesc:ae4e33448f57dde18e7d7026f15a4198e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a3c94766eeee29aa92581d5f646f520c9" title="Inserts a copy of the selected service, with a new unique id, after it.">duplicateService()</a>.  <br /></td></tr>
 <tr class="memitem:ac7aadfe4592df0327bdaa1151bdf3dfb" id="r_ac7aadfe4592df0327bdaa1151bdf3dfb"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#ac7aadfe4592df0327bdaa1151bdf3dfb">deleteButton</a> () const</td></tr>
-<tr class="memdesc:ac7aadfe4592df0327bdaa1151bdf3dfb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a8bdbff0bbf3dd4d8c17349885263b254" title="Deletes the selected service after the user has confirmed it; refused while something refers to it.">deleteService()</a>.  <br /></td></tr>
+<tr class="memdesc:ac7aadfe4592df0327bdaa1151bdf3dfb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a8bdbff0bbf3dd4d8c17349885263b254" title="Deletes the selected service and says in the status line that Undo restores it; refused while somethi...">deleteService()</a>.  <br /></td></tr>
 <tr class="memitem:a0ec1463afa8706c83471b5808518964b" id="r_a0ec1463afa8706c83471b5808518964b"><td class="memItemLeft">QTabWidget *&#160;</td><td class="memItemRight"><a class="el" href="#a0ec1463afa8706c83471b5808518964b">pages</a> () const</td></tr>
 <tr class="memdesc:a0ec1463afa8706c83471b5808518964b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The Service, Timetable and Run occurrences tabs.  <br /></td></tr>
 <tr class="memitem:a0a9505cf6202e55c6851cf65f9f1e838" id="r_a0a9505cf6202e55c6851cf65f9f1e838"><td class="memItemLeft">QTableWidget *&#160;</td><td class="memItemRight"><a class="el" href="#a0a9505cf6202e55c6851cf65f9f1e838">occurrenceTable</a> () const</td></tr>
@@ -270,6 +272,7 @@ Protected Member Functions</h2></td></tr>
 <tr class="memitem:abd663bc6b6425c64c8b23ef2e1d776a2 pro_methods_class_scene_editor_panel" id="r_abd663bc6b6425c64c8b23ef2e1d776a2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#abd663bc6b6425c64c8b23ef2e1d776a2">takePendingText</a> ()</td></tr>
 <tr class="memitem:af9755fee94e360ddd2d2489013b426ce pro_methods_class_scene_editor_panel" id="r_af9755fee94e360ddd2d2489013b426ce"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#af9755fee94e360ddd2d2489013b426ce">occurrenceDuration</a> () const</td></tr>
 <tr class="memdesc:af9755fee94e360ddd2d2489013b426ce pro_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The time in seconds over which the occurrences of a service are counted. The panel must have a document.  <br /></td></tr>
+<tr class="memitem:a513652f136ab4075ad3018071fc35bf9 pro_methods_class_scene_editor_panel" id="r_a513652f136ab4075ad3018071fc35bf9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a513652f136ab4075ad3018071fc35bf9">reportDeleted</a> (const QString &amp;what, bool plural=false)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-inherited" class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -311,7 +314,7 @@ Additional Inherited Members</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a98efafccb64e54ce3c129d8cf85549fb_cgraph.svg" width="1638" height="1768"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a98efafccb64e54ce3c129d8cf85549fb_cgraph.svg" width="1638" height="1772"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -894,7 +897,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>The button of <a class="el" href="#a8bdbff0bbf3dd4d8c17349885263b254" title="Deletes the selected service after the user has confirmed it; refused while something refers to it.">deleteService()</a>. </p>
+<p>The button of <a class="el" href="#a8bdbff0bbf3dd4d8c17349885263b254" title="Deletes the selected service and says in the status line that Undo restores it; refused while somethi...">deleteService()</a>. </p>
 
 </div>
 </div>
@@ -913,11 +916,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Deletes the selected service after the user has confirmed it; refused while something refers to it. </p>
+<p>Deletes the selected service and says in the status line that Undo restores it; refused while something refers to it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a8bdbff0bbf3dd4d8c17349885263b254_cgraph.svg" width="2734" height="1304"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a8bdbff0bbf3dd4d8c17349885263b254_cgraph.svg" width="2734" height="1596"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

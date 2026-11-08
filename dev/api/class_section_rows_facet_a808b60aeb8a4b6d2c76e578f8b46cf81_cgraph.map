@@ -57,6 +57,6 @@
 <area shape="poly" id="edge32_Node000022_Node000007" title=" " alt="" coords="448,445,513,467,508,469,449,451"/>
 <area shape="rect" id="Node000023" href="$class_infrastructure_panel.html#adceee517b3c2ddee88aa4f085f541b74" title="Shows a message in the status line of the window for timeoutMs milliseconds, through statusMessage()." alt="" coords="525,708,669,753"/>
 <area shape="poly" id="edge33_Node000022_Node000023" title=" " alt="" coords="448,439,479,458,508,499,538,563,586,694,581,692,533,565,503,502,475,462,449,444"/>
-<area shape="rect" id="Node000024" href="$class_infrastructure_panel.html#a22e28927ad36bf4eb7ae077ef3c4ec79" title="A message for the status line, shown for timeoutMs milliseconds." alt="" coords="744,875,888,919"/>
+<area shape="rect" id="Node000024" href="$class_scene_editor_panel.html#a1263773d1ae53648a350d0830c44c4f5" title="A message for the status line of the window, shown for timeoutMs milliseconds." alt="" coords="725,875,907,919"/>
 <area shape="poly" id="edge34_Node000023_Node000024" title=" " alt="" coords="616,750,660,802,688,829,719,853,740,868,734,867,716,858,685,833,656,805,614,755"/>
 </map>

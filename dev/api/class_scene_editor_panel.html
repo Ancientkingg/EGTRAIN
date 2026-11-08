@@ -128,6 +128,8 @@ Collaboration diagram for SceneEditorPanel:</div>
 Signals</h2></td></tr>
 <tr class="memitem:ab57b6ba8b04710b122cf09ac57e34b52" id="r_ab57b6ba8b04710b122cf09ac57e34b52"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab57b6ba8b04710b122cf09ac57e34b52">changed</a> ()</td></tr>
 <tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f">SceneDocument::changed()</a>.  <br /></td></tr>
+<tr class="memitem:a1263773d1ae53648a350d0830c44c4f5" id="r_a1263773d1ae53648a350d0830c44c4f5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1263773d1ae53648a350d0830c44c4f5">statusMessage</a> (const QString &amp;text, int timeoutMs)</td></tr>
+<tr class="memdesc:a1263773d1ae53648a350d0830c44c4f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">A message for the status line of the window, shown for <span class="tt">timeoutMs</span> milliseconds.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -155,6 +157,7 @@ Protected Member Functions</h2></td></tr>
 <tr class="memitem:abd663bc6b6425c64c8b23ef2e1d776a2" id="r_abd663bc6b6425c64c8b23ef2e1d776a2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abd663bc6b6425c64c8b23ef2e1d776a2">takePendingText</a> ()</td></tr>
 <tr class="memitem:af9755fee94e360ddd2d2489013b426ce" id="r_af9755fee94e360ddd2d2489013b426ce"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#af9755fee94e360ddd2d2489013b426ce">occurrenceDuration</a> () const</td></tr>
 <tr class="memdesc:af9755fee94e360ddd2d2489013b426ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">The time in seconds over which the occurrences of a service are counted. The panel must have a document.  <br /></td></tr>
+<tr class="memitem:a513652f136ab4075ad3018071fc35bf9" id="r_a513652f136ab4075ad3018071fc35bf9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a513652f136ab4075ad3018071fc35bf9">reportDeleted</a> (const QString &amp;what, bool plural=false)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-attribs" class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
@@ -430,6 +433,42 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a513652f136ab4075ad3018071fc35bf9" name="a513652f136ab4075ad3018071fc35bf9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a513652f136ab4075ad3018071fc35bf9">&#9670;&#160;</a></span>reportDeleted()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SceneEditorPanel::reportDeleted </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>what</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>plural</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Says in the status line that <span class="tt">what</span> has been deleted and that Undo restores it: "Deleted scenario 'peak'. Undo
+restores it." <span class="tt">what</span> names the item and its kind. With <span class="tt">plural</span> it names more than one item, such as a passenger and its journeys, and the message ends in "them". </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_editor_panel_a513652f136ab4075ad3018071fc35bf9_cgraph.svg" width="420" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a0623bcc36861d2ecf6ad1f0aff59fb7d" name="a0623bcc36861d2ecf6ad1f0aff59fb7d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0623bcc36861d2ecf6ad1f0aff59fb7d">&#9670;&#160;</a></span>setDocument()</h2>
 
@@ -536,6 +575,37 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 <p>The selected scenario, the scenarios that are edited and the occurrences that the next run leaves out are kept here. The panel uses its own until it is given another; null brings its own back. The selection must outlive the panel. </p>
+
+</div>
+</div>
+<a id="a1263773d1ae53648a350d0830c44c4f5" name="a1263773d1ae53648a350d0830c44c4f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1263773d1ae53648a350d0830c44c4f5">&#9670;&#160;</a></span>statusMessage</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SceneEditorPanel::statusMessage </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>text</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>timeoutMs</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>A message for the status line of the window, shown for <span class="tt">timeoutMs</span> milliseconds. </p>
 
 </div>
 </div>

@@ -131,11 +131,11 @@ Classes</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:a9b4bd64176552b66de1c20d4e5dec616" id="r_a9b4bd64176552b66de1c20d4e5dec616"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9b4bd64176552b66de1c20d4e5dec616">selectionChanged</a> (const QString &amp;facet, const QString &amp;id)</td></tr>
-<tr class="memitem:a22e28927ad36bf4eb7ae077ef3c4ec79" id="r_a22e28927ad36bf4eb7ae077ef3c4ec79"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a22e28927ad36bf4eb7ae077ef3c4ec79">statusMessage</a> (const QString &amp;text, int timeoutMs)</td></tr>
-<tr class="memdesc:a22e28927ad36bf4eb7ae077ef3c4ec79"><td class="mdescLeft">&#160;</td><td class="mdescRight">A message for the status line, shown for <span class="tt">timeoutMs</span> milliseconds.  <br /></td></tr>
 <tr class="inherit_header signals_class_scene_editor_panel"><td colspan="2">Signals inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel" id="r_ab57b6ba8b04710b122cf09ac57e34b52"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52">changed</a> ()</td></tr>
 <tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f">SceneDocument::changed()</a>.  <br /></td></tr>
+<tr class="memitem:a1263773d1ae53648a350d0830c44c4f5 signals_class_scene_editor_panel" id="r_a1263773d1ae53648a350d0830c44c4f5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a1263773d1ae53648a350d0830c44c4f5">statusMessage</a> (const QString &amp;text, int timeoutMs)</td></tr>
+<tr class="memdesc:a1263773d1ae53648a350d0830c44c4f5 signals_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">A message for the status line of the window, shown for <span class="tt">timeoutMs</span> milliseconds.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -161,7 +161,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a2fc2a40afe25a35c94491af27737d87a" id="r_a2fc2a40afe25a35c94491af27737d87a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2fc2a40afe25a35c94491af27737d87a">addEntity</a> ()</td></tr>
 <tr class="memdesc:a2fc2a40afe25a35c94491af27737d87a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds an entity of the chosen kind, after clearing the filters.  <br /></td></tr>
 <tr class="memitem:a8963162b471a29e8d0156422d3a45856" id="r_a8963162b471a29e8d0156422d3a45856"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8963162b471a29e8d0156422d3a45856">deleteEntity</a> ()</td></tr>
-<tr class="memdesc:a8963162b471a29e8d0156422d3a45856"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes the entity in the selected row after the user has confirmed it.  <br /></td></tr>
+<tr class="memdesc:a8963162b471a29e8d0156422d3a45856"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes the entity in the selected row.  <br /></td></tr>
 <tr class="memitem:aa37ed4827fec2cc069a6c62d9c0a3876" id="r_aa37ed4827fec2cc069a6c62d9c0a3876"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa37ed4827fec2cc069a6c62d9c0a3876">insertEntity</a> ()</td></tr>
 <tr class="memdesc:aa37ed4827fec2cc069a6c62d9c0a3876"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts an entity before the selected one, after clearing the text filter.  <br /></td></tr>
 <tr class="memitem:ab6fce7b583449030a197a740a611e0b0" id="r_ab6fce7b583449030a197a740a611e0b0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab6fce7b583449030a197a740a611e0b0">moveEntity</a> (int offset)</td></tr>
@@ -187,17 +187,17 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a82af8a411d19611929adaf6d8d328450" id="r_a82af8a411d19611929adaf6d8d328450"><td class="memItemLeft">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a82af8a411d19611929adaf6d8d328450">model</a> () const</td></tr>
 <tr class="memdesc:a82af8a411d19611929adaf6d8d328450"><td class="mdescLeft">&#160;</td><td class="mdescRight">The model of the document; an empty scene without one.  <br /></td></tr>
 <tr class="memitem:adceee517b3c2ddee88aa4f085f541b74" id="r_adceee517b3c2ddee88aa4f085f541b74"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#adceee517b3c2ddee88aa4f085f541b74">showStatus</a> (const QString &amp;text, int timeoutMs=4000)</td></tr>
-<tr class="memdesc:adceee517b3c2ddee88aa4f085f541b74"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows a message in the status line of the window for <span class="tt">timeoutMs</span> milliseconds, through <a class="el" href="#a22e28927ad36bf4eb7ae077ef3c4ec79" title="A message for the status line, shown for timeoutMs milliseconds.">statusMessage()</a>.  <br /></td></tr>
+<tr class="memdesc:adceee517b3c2ddee88aa4f085f541b74"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows a message in the status line of the window for <span class="tt">timeoutMs</span> milliseconds, through <a class="el" href="class_scene_editor_panel.html#a1263773d1ae53648a350d0830c44c4f5" title="A message for the status line of the window, shown for timeoutMs milliseconds.">statusMessage()</a>.  <br /></td></tr>
 <tr class="memitem:a01a8c86d0644b2bdd52829f2ecca4d09" id="r_a01a8c86d0644b2bdd52829f2ecca4d09"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a01a8c86d0644b2bdd52829f2ecca4d09">edit</a> (const QString &amp;label, const std::function&lt; void(<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;)&gt; &amp;apply)</td></tr>
 <tr class="memitem:a43eebc6c38b4a076554d434bc3d42846" id="r_a43eebc6c38b4a076554d434bc3d42846"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a43eebc6c38b4a076554d434bc3d42846">editInPlace</a> (const QString &amp;label, const std::function&lt; void(<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;)&gt; &amp;apply)</td></tr>
 <tr class="memitem:afe771b2db8b9514abd02da5eaba017c0" id="r_afe771b2db8b9514abd02da5eaba017c0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afe771b2db8b9514abd02da5eaba017c0">refuseEdit</a> (const QString &amp;message={})</td></tr>
-<tr class="memitem:a4bbcb9306a3d4e6816b581171adab0ef" id="r_a4bbcb9306a3d4e6816b581171adab0ef"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4bbcb9306a3d4e6816b581171adab0ef">confirmDelete</a> (const QString &amp;id, const std::vector&lt; std::string &gt; &amp;consumers)</td></tr>
+<tr class="memitem:a809dc6a4f6c76d9d3d4029262a6dca0e" id="r_a809dc6a4f6c76d9d3d4029262a6dca0e"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a809dc6a4f6c76d9d3d4029262a6dca0e">deleteRow</a> (const QString &amp;id, const std::vector&lt; std::string &gt; &amp;consumers, const QString &amp;label, const std::function&lt; void(<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;)&gt; &amp;apply)</td></tr>
 <tr class="memitem:a31cb9e682960c3930935790669059c54" id="r_a31cb9e682960c3930935790669059c54"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#a31cb9e682960c3930935790669059c54">facetCombo</a> () const</td></tr>
 <tr class="memdesc:a31cb9e682960c3930935790669059c54"><td class="mdescLeft">&#160;</td><td class="mdescRight">The combo of the kinds of entity, with the key of each facet as its data.  <br /></td></tr>
 <tr class="memitem:af07cdb6e38d3e5f090449110e3fbb225" id="r_af07cdb6e38d3e5f090449110e3fbb225"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#af07cdb6e38d3e5f090449110e3fbb225">addButton</a> () const</td></tr>
 <tr class="memdesc:af07cdb6e38d3e5f090449110e3fbb225"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a2fc2a40afe25a35c94491af27737d87a" title="Adds an entity of the chosen kind, after clearing the filters.">addEntity()</a>.  <br /></td></tr>
 <tr class="memitem:ad55cec35eb8d49b5e8fe20b8a01b6ea7" id="r_ad55cec35eb8d49b5e8fe20b8a01b6ea7"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#ad55cec35eb8d49b5e8fe20b8a01b6ea7">deleteButton</a> () const</td></tr>
-<tr class="memdesc:ad55cec35eb8d49b5e8fe20b8a01b6ea7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a8963162b471a29e8d0156422d3a45856" title="Deletes the entity in the selected row after the user has confirmed it.">deleteEntity()</a>.  <br /></td></tr>
+<tr class="memdesc:ad55cec35eb8d49b5e8fe20b8a01b6ea7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a8963162b471a29e8d0156422d3a45856" title="Deletes the entity in the selected row.">deleteEntity()</a>.  <br /></td></tr>
 <tr class="memitem:afe2a929b6ca5ada5828a376e9d64f199" id="r_afe2a929b6ca5ada5828a376e9d64f199"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#afe2a929b6ca5ada5828a376e9d64f199">guidanceLabel</a> () const</td></tr>
 <tr class="memdesc:afe2a929b6ca5ada5828a376e9d64f199"><td class="mdescLeft">&#160;</td><td class="mdescRight">The sentence about the chosen kind.  <br /></td></tr>
 <tr class="memitem:a8a21d4783ea0a769051737c256f4ec5d" id="r_a8a21d4783ea0a769051737c256f4ec5d"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a8a21d4783ea0a769051737c256f4ec5d">markLabel</a> () const</td></tr>
@@ -256,6 +256,7 @@ Protected Member Functions</h2></td></tr>
 <tr class="memitem:abd663bc6b6425c64c8b23ef2e1d776a2 pro_methods_class_scene_editor_panel" id="r_abd663bc6b6425c64c8b23ef2e1d776a2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#abd663bc6b6425c64c8b23ef2e1d776a2">takePendingText</a> ()</td></tr>
 <tr class="memitem:af9755fee94e360ddd2d2489013b426ce pro_methods_class_scene_editor_panel" id="r_af9755fee94e360ddd2d2489013b426ce"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#af9755fee94e360ddd2d2489013b426ce">occurrenceDuration</a> () const</td></tr>
 <tr class="memdesc:af9755fee94e360ddd2d2489013b426ce pro_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The time in seconds over which the occurrences of a service are counted. The panel must have a document.  <br /></td></tr>
+<tr class="memitem:a513652f136ab4075ad3018071fc35bf9 pro_methods_class_scene_editor_panel" id="r_a513652f136ab4075ad3018071fc35bf9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a513652f136ab4075ad3018071fc35bf9">reportDeleted</a> (const QString &amp;what, bool plural=false)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-inherited" class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -521,33 +522,6 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a4bbcb9306a3d4e6816b581171adab0ef" name="a4bbcb9306a3d4e6816b581171adab0ef"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4bbcb9306a3d4e6816b581171adab0ef">&#9670;&#160;</a></span>confirmDelete()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool InfrastructurePanel::confirmDelete </td>
-          <td>(</td>
-          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>id</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>consumers</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Asks whether to delete the entity <span class="tt">id</span> of the chosen facet. <span class="tt">consumers</span> describes the items that still use it (see sceneDirectDeleteConsumers). An entity that is used cannot be deleted: the user is told which items use it instead, and the answer is no. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_a4bbcb9306a3d4e6816b581171adab0ef_cgraph.svg" width="382" height="159"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
 <a id="ad3fbd3d60689a669323e5417a27b47a4" name="ad3fbd3d60689a669323e5417a27b47a4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad3fbd3d60689a669323e5417a27b47a4">&#9670;&#160;</a></span>countLabel()</h2>
 
@@ -597,7 +571,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>The button of <a class="el" href="#a8963162b471a29e8d0156422d3a45856" title="Deletes the entity in the selected row after the user has confirmed it.">deleteEntity()</a>. </p>
+<p>The button of <a class="el" href="#a8963162b471a29e8d0156422d3a45856" title="Deletes the entity in the selected row.">deleteEntity()</a>. </p>
 
 </div>
 </div>
@@ -616,11 +590,48 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Deletes the entity in the selected row after the user has confirmed it. </p>
+<p>Deletes the entity in the selected row. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_a8963162b471a29e8d0156422d3a45856_cgraph.svg" width="644" height="107"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a809dc6a4f6c76d9d3d4029262a6dca0e" name="a809dc6a4f6c76d9d3d4029262a6dca0e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a809dc6a4f6c76d9d3d4029262a6dca0e">&#9670;&#160;</a></span>deleteRow()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool InfrastructurePanel::deleteRow </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>id</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>consumers</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>label</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::function&lt; void(<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;)&gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>apply</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Deletes the entity <span class="tt">id</span> of the chosen facet with <span class="tt">apply</span>, as one edit under <span class="tt">label</span> (see <a class="el" href="#a01a8c86d0644b2bdd52829f2ecca4d09">edit()</a>), selects the row that takes its place, or else the one before it, and says in the status line that Undo restores the entity. An empty <span class="tt">id</span> stands for a row that is not complete yet. <span class="tt">consumers</span> describes the items that still use the entity (see sceneDirectDeleteConsumers). An entity that is used is not deleted: the user is told which items use it instead. Returns true when the entity was deleted. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_a809dc6a4f6c76d9d3d4029262a6dca0e_cgraph.svg" width="1347" height="978"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1669,43 +1680,12 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Shows a message in the status line of the window for <span class="tt">timeoutMs</span> milliseconds, through <a class="el" href="#a22e28927ad36bf4eb7ae077ef3c4ec79" title="A message for the status line, shown for timeoutMs milliseconds.">statusMessage()</a>. </p>
+<p>Shows a message in the status line of the window for <span class="tt">timeoutMs</span> milliseconds, through <a class="el" href="class_scene_editor_panel.html#a1263773d1ae53648a350d0830c44c4f5" title="A message for the status line of the window, shown for timeoutMs milliseconds.">statusMessage()</a>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_adceee517b3c2ddee88aa4f085f541b74_cgraph.svg" width="348" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_adceee517b3c2ddee88aa4f085f541b74_cgraph.svg" width="384" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-
-</div>
-</div>
-<a id="a22e28927ad36bf4eb7ae077ef3c4ec79" name="a22e28927ad36bf4eb7ae077ef3c4ec79"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a22e28927ad36bf4eb7ae077ef3c4ec79">&#9670;&#160;</a></span>statusMessage</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void InfrastructurePanel::statusMessage </td>
-          <td>(</td>
-          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>text</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>timeoutMs</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>A message for the status line, shown for <span class="tt">timeoutMs</span> milliseconds. </p>
 
 </div>
 </div>

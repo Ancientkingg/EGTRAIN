@@ -106,7 +106,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_infrastructure_panel.html#a8963162b471a29e8d0156422d3a45856" target="_top" xlink:title="Deletes the entity in the selected row after the user has confirmed it.">
+<g id="a_Node000010"><a xlink:href="class_infrastructure_panel.html#a8963162b471a29e8d0156422d3a45856" target="_top" xlink:title="Deletes the entity in the selected row.">
 <polygon fill="white" stroke="#666666" points="476.25,-1175.12 368,-1175.12 368,-1141.62 476.25,-1141.62 476.25,-1175.12"/>
 <text xml:space="preserve" text-anchor="start" x="376" y="-1161.62" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text xml:space="preserve" text-anchor="middle" x="422.12" y="-1148.88" font-family="Helvetica,sans-Serif" font-size="10.00">::deleteEntity</text>
@@ -433,7 +433,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="class_infrastructure_facet.html#ad937cff6135a5a2a9bde611d4a96613b" target="_top" xlink:title="Deletes the entity in the selected row after the user has confirmed it.">
+<g id="a_Node000011"><a xlink:href="class_infrastructure_facet.html#ad937cff6135a5a2a9bde611d4a96613b" target="_top" xlink:title="Deletes the entity in the selected row.">
 <polygon fill="white" stroke="#666666" points="669.62,-1220.12 562.12,-1220.12 562.12,-1186.62 669.62,-1186.62 669.62,-1220.12"/>
 <text xml:space="preserve" text-anchor="start" x="570.12" y="-1206.62" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructureFacet</text>
 <text xml:space="preserve" text-anchor="middle" x="615.88" y="-1193.88" font-family="Helvetica,sans-Serif" font-size="10.00">::remove</text>

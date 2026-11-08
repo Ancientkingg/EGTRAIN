@@ -39,6 +39,6 @@
 <area shape="poly" id="edge21_Node000013_Node000014" title=" " alt="" coords="560,361,644,359,639,361,562,366"/>
 <area shape="rect" id="Node000015" href="$class_infrastructure_panel.html#a1ede3387c827781076354d8e8b2d4173" title="The facet with this key, or null. The panel keeps it." alt="" coords="902,335,1046,379"/>
 <area shape="poly" id="edge22_Node000014_Node000015" title=" " alt="" coords="803,354,889,356,884,358,804,360"/>
-<area shape="rect" id="Node000017" href="$class_infrastructure_panel.html#a22e28927ad36bf4eb7ae077ef3c4ec79" title="A message for the status line, shown for timeoutMs milliseconds." alt="" coords="416,728,561,773"/>
-<area shape="poly" id="edge25_Node000016_Node000017" title=" " alt="" coords="289,613,333,664,361,690,391,713,405,723,400,722,389,718,357,694,329,668,287,618"/>
+<area shape="rect" id="Node000017" href="$class_scene_editor_panel.html#a1263773d1ae53648a350d0830c44c4f5" title="A message for the status line of the window, shown for timeoutMs milliseconds." alt="" coords="398,728,579,773"/>
+<area shape="poly" id="edge25_Node000016_Node000017" title=" " alt="" coords="289,613,333,664,361,690,391,713,401,721,396,720,389,718,357,694,329,668,287,618"/>
 </map>

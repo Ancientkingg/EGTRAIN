@@ -37,7 +37,6 @@ var class_train_unit_panel =
     [ "sourceStatusLabel", "class_train_unit_panel.html#abd40b89b99fd5cf1a4c401eb8d288dc3", null ],
     [ "sourceTractionEdit", "class_train_unit_panel.html#ae1ea8c0456637b3a783d67067069c2e3", null ],
     [ "sourceUnlinkRequested", "class_train_unit_panel.html#a003f8f0aa7aa9b5b70bb422ebc7de768", null ],
-    [ "statusMessage", "class_train_unit_panel.html#af496c8a9dc4ad04a749a5cf977622ba3", null ],
     [ "tabs", "class_train_unit_panel.html#ae7baaf565f9016ae91df5441cb62950b", null ],
     [ "tractionPlotRequested", "class_train_unit_panel.html#ab91dedec627e1e09bf8405f47c6ee3c1", null ],
     [ "tractionTable", "class_train_unit_panel.html#af803843bfd1642279b39cea0b53fea91", null ],

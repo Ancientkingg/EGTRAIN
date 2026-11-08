@@ -36,7 +36,6 @@ var class_passenger_panel =
     [ "selectedPassengerLeg", "class_passenger_panel.html#a902c69ed2c44751353cd5f12b5bb836a", null ],
     [ "setDiagnostics", "class_passenger_panel.html#af076d21ad511203bd6759ad5cfde5be7", null ],
     [ "setImportFolderChooser", "class_passenger_panel.html#a701d6620bf8a34e816329590e96b3250", null ],
-    [ "statusMessage", "class_passenger_panel.html#a48fb2f88337cfa2a3a4f5f1bcb7e7c0a", null ],
     [ "tabs", "class_passenger_panel.html#a53360d94aed37802c3038e12dd71d369", null ],
     [ "warningLabel", "class_passenger_panel.html#a5e3aea6d960b7f6310405730ade58348", null ]
 ];

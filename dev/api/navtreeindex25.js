@@ -1,7 +1,5 @@
 var NAVTREEINDEX25 =
 {
-"struct_scene_passenger_leg.html":[2,0,251],
-"struct_scene_passenger_leg.html#a667339de415bfacd68596945fed3596c":[2,0,251,3],
 "struct_scene_passenger_leg.html#a8db6d2f5f8cb8487540d7d0ee45bc2f2":[2,0,251,1],
 "struct_scene_passenger_leg.html#a8ec921eadb4f3416d23d87c41b98ab62":[2,0,251,2],
 "struct_scene_passenger_leg.html#a924825d79565c9652670826b9bf4b2a4":[2,0,251,4],
@@ -249,5 +247,7 @@ var NAVTREEINDEX25 =
 "struct_self_update_capability.html#a67dc139f320fa0a970de555febd00535":[2,0,297,2],
 "struct_self_update_capability.html#ab369045325e2f2f4a93e5b87e5bb916d":[2,0,297,5],
 "struct_self_update_capability.html#abbfe9ad52a1e7a6114606649717ccbbf":[2,0,297,0],
-"struct_self_update_capability.html#ad04c2f84c38e744a4378d3f4174d622b":[2,0,297,1]
+"struct_self_update_capability.html#ad04c2f84c38e744a4378d3f4174d622b":[2,0,297,1],
+"struct_self_update_capability.html#add7252647dc3654efa5d7c099066fc9b":[2,0,297,6],
+"struct_self_update_capability.html#aecc43cdbf1f461ec131953fe80f0e129":[2,0,297,3]
 };

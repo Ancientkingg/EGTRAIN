@@ -139,7 +139,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a5c823bcc96be1ced821bb72b8e0fc42a" id="r_a5c823bcc96be1ced821bb72b8e0fc42a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5c823bcc96be1ced821bb72b8e0fc42a">add</a> (<a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;panel) override</td></tr>
 <tr class="memdesc:a5c823bcc96be1ced821bb72b8e0fc42a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Appends an empty item and makes its row the current one.  <br /></td></tr>
 <tr class="memitem:a35c67d082b7822de23d512060f1547e9" id="r_a35c67d082b7822de23d512060f1547e9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a35c67d082b7822de23d512060f1547e9">remove</a> (<a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;panel) override</td></tr>
-<tr class="memdesc:a35c67d082b7822de23d512060f1547e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes the selected item when the user confirms it.  <br /></td></tr>
+<tr class="memdesc:a35c67d082b7822de23d512060f1547e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes the selected item.  <br /></td></tr>
 <tr class="inherit_header pub_methods_class_infrastructure_facet"><td colspan="2">Public Member Functions inherited from <a class="el" href="class_infrastructure_facet.html">InfrastructureFacet</a></td></tr>
 <tr class="memitem:a9edf07a88e8287f92ca0898f8d8ade04 pub_methods_class_infrastructure_facet" id="r_a9edf07a88e8287f92ca0898f8d8ade04"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="class_infrastructure_facet.html#a9edf07a88e8287f92ca0898f8d8ade04">InfrastructureFacet</a> ()=default</td></tr>
 <tr class="memdesc:a9edf07a88e8287f92ca0898f8d8ade04 pub_methods_class_infrastructure_facet"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the base of a facet, which holds nothing.  <br /></td></tr>
@@ -184,7 +184,7 @@ Protected Member Functions</h2></td></tr>
 <tr class="memitem:a8bee5e5d5040cb4fb00a8f9a6e4b188f" id="r_a8bee5e5d5040cb4fb00a8f9a6e4b188f"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a8bee5e5d5040cb4fb00a8f9a6e4b188f">fillRow</a> (<a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;panel, const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;inventory, int row, const Item &amp;item) const =0</td></tr>
 <tr class="memdesc:a8bee5e5d5040cb4fb00a8f9a6e4b188f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Puts the cells of the item in <span class="tt">row</span>. <span class="tt">inventory</span> holds the sections of the scene for the combos.  <br /></td></tr>
 <tr class="memitem:a71cb33e4a14aafdd81237178d269fe43" id="r_a71cb33e4a14aafdd81237178d269fe43"><td class="memItemLeft">virtual std::string&#160;</td><td class="memItemRight"><a class="el" href="#a71cb33e4a14aafdd81237178d269fe43">rowTitle</a> (const Item &amp;item) const =0</td></tr>
-<tr class="memdesc:a71cb33e4a14aafdd81237178d269fe43"><td class="mdescLeft">&#160;</td><td class="mdescRight">The section that names the item in the question before it is deleted; empty when the item has none yet.  <br /></td></tr>
+<tr class="memdesc:a71cb33e4a14aafdd81237178d269fe43"><td class="mdescLeft">&#160;</td><td class="mdescRight">The section that names the item in the status message after it is deleted; empty when the item has none yet.  <br /></td></tr>
 <tr class="memitem:ac4cb39998d9c71017f912c4da99226e6" id="r_ac4cb39998d9c71017f912c4da99226e6"><td class="memItemLeft">virtual <a class="el" href="class_infrastructure_facet.html#aeb7ce8db82d9ecedf99d50aed54a0c11">Edit</a>&#160;</td><td class="memItemRight"><a class="el" href="#ac4cb39998d9c71017f912c4da99226e6">editField</a> (Item &amp;, int, const QString &amp;) const</td></tr>
 <tr class="memdesc:ac4cb39998d9c71017f912c4da99226e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the value of a cell that is no combo into the item. The default has no such cell.  <br /></td></tr>
 <tr class="memitem:a955cd6e93d4509e32a7717a78158a2b6" id="r_a955cd6e93d4509e32a7717a78158a2b6"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#a955cd6e93d4509e32a7717a78158a2b6">addSectionCombo</a> (<a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;panel, const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;inventory, int row, int column, const std::string &amp;current, const char *objectName, <a class="el" href="#a5c991bbe7176fa3dbc870cdb602ff651">Assign</a> assign, bool allowNone=false, const QString &amp;noneLabel=QString()) const</td></tr>
@@ -659,13 +659,13 @@ template&lt;typename Item&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>Deletes the selected item when the user confirms it. </p>
+<p>Deletes the selected item. </p>
 
 <p>Implements <a class="el" href="class_infrastructure_facet.html#ad937cff6135a5a2a9bde611d4a96613b">InfrastructureFacet</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_section_rows_facet_a35c67d082b7822de23d512060f1547e9_cgraph.svg" width="1415" height="1078"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_section_rows_facet_a35c67d082b7822de23d512060f1547e9_cgraph.svg" width="1647" height="944"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -695,7 +695,7 @@ template&lt;typename Item&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>The section that names the item in the question before it is deleted; empty when the item has none yet. </p>
+<p>The section that names the item in the status message after it is deleted; empty when the item has none yet. </p>
 
 </div>
 </div>

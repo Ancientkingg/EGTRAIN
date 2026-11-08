@@ -31,7 +31,6 @@ var class_scenario_panel =
     [ "setExportFileChooser", "class_scenario_panel.html#ad8068d1d7994f46bc5ef4bdfaacface8", null ],
     [ "setExportObserver", "class_scenario_panel.html#a841ff390a2c6814cbd2f792853dfa94c", null ],
     [ "setImportFileChooser", "class_scenario_panel.html#adc28ef45e373728492c8e2dcfba3458b", null ],
-    [ "statusMessage", "class_scenario_panel.html#a60432d81a1748551f1afc6e9222a1f69", null ],
     [ "updateDetail", "class_scenario_panel.html#a858854f50371f61585fdc7b305aeab8b", null ],
     [ "updatePresentation", "class_scenario_panel.html#a93b9ded73a07ec40693f62c3ca6286c3", null ]
 ];

@@ -8,7 +8,7 @@
 <area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="83,1023,89,1099,105,1204,120,1261,141,1319,169,1374,205,1426,200,1427,164,1377,136,1321,115,1263,100,1205,84,1100,83,1029"/>
 <area shape="rect" id="Node000008" href="$class_infrastructure_panel.html#a1cdddd1de7b9b429003b2c6dd9a313f2" title="The cell in row and column has been edited; the chosen facet takes it." alt="" coords="243,168,387,212"/>
 <area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="82,980,94,841,118,633,134,524,154,422,177,336,203,274,228,244,260,219,257,224,231,247,208,277,182,338,159,423,140,525,123,634,99,842,87,981"/>
-<area shape="rect" id="Node000010" href="$class_infrastructure_panel.html#a8963162b471a29e8d0156422d3a45856" title="Deletes the entity in the selected row after the user has confirmed it." alt="" coords="243,288,387,332"/>
+<area shape="rect" id="Node000010" href="$class_infrastructure_panel.html#a8963162b471a29e8d0156422d3a45856" title="Deletes the entity in the selected row." alt="" coords="243,288,387,332"/>
 <area shape="poly" id="edge12_Node000001_Node000010" title=" " alt="" coords="82,980,92,852,114,665,131,568,151,478,175,404,189,375,204,352,230,332,228,336,208,356,193,377,180,406,156,480,136,569,120,666,97,853,87,981"/>
 <area shape="rect" id="Node000012" href="$class_infrastructure_panel.html#afb09d53bfc86597cdcee9e0b586e9792" title="The key of the chosen facet, one of facetKeys()." alt="" coords="745,1286,889,1331"/>
 <area shape="poly" id="edge15_Node000001_Node000012" title=" " alt="" coords="94,1023,141,1096,172,1137,208,1175,273,1232,329,1271,390,1300,473,1326,539,1337,606,1339,671,1334,732,1327,727,1329,672,1339,607,1344,538,1342,471,1331,388,1305,326,1276,270,1236,204,1178,168,1140,136,1099,95,1028"/>
@@ -44,7 +44,7 @@
 <area shape="rect" id="Node000009" href="$class_infrastructure_facet.html#ae6e8b73a3c6c40dd3b750f5d4d727288" title="The cell in row and column has been edited: takes its text into the model, or refuses it." alt="" coords="502,108,645,152"/>
 <area shape="poly" id="edge11_Node000008_Node000009" title=" " alt="" coords="386,171,488,148,484,152,389,175"/>
 <area shape="poly" id="edge13_Node000010_Node000004" title=" " alt="" coords="386,313,451,322,524,335,601,355,675,383,709,402,741,423,793,467,788,468,738,428,706,406,673,388,600,361,523,340,450,327,389,318"/>
-<area shape="rect" id="Node000011" href="$class_infrastructure_facet.html#ad937cff6135a5a2a9bde611d4a96613b" title="Deletes the entity in the selected row after the user has confirmed it." alt="" coords="502,228,645,272"/>
+<area shape="rect" id="Node000011" href="$class_infrastructure_facet.html#ad937cff6135a5a2a9bde611d4a96613b" title="Deletes the entity in the selected row." alt="" coords="502,228,645,272"/>
 <area shape="poly" id="edge14_Node000010_Node000011" title=" " alt="" coords="386,291,488,268,484,272,389,295"/>
 <area shape="poly" id="edge17_Node000013_Node000004" title=" " alt="" coords="641,566,673,554,775,511,771,515,675,559,645,570"/>
 <area shape="poly" id="edge19_Node000014_Node000004" title=" " alt="" coords="386,384,523,390,600,400,675,417,734,440,784,469,779,471,731,445,674,422,599,405,522,395,389,389"/>

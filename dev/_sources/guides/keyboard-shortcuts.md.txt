@@ -75,7 +75,7 @@ Esc closes a dialog as its cancel button does. Return or Enter presses the defau
 | **About EGTRAIN** | **Close** | **Close** |
 | **Unsaved Case** | **Save** | **Cancel** |
 | **Save As** | **Case Folder...** when the open case is a case folder; otherwise **Case File...** | **Cancel** |
-| **Save Case As Folder** and the delete questions of the editors, such as **Delete Service** | **No** | **No** |
+| **Save Case As Folder** | **No** | **No** |
 | **Check for EGTRAIN updates automatically?** | **Check Automatically** | **Don't Check Automatically** |
 | EGTRAIN *version* Is Available | **Update and Restart** when EGTRAIN can update itself; otherwise **Open Release Page** | **Later** |
 | **Linked File Changed** | **Keep Edits** | **Keep Edits** |

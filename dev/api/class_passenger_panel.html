@@ -124,14 +124,6 @@ Collaboration diagram for PassengerPanel:</div>
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_passenger_panel__coll__graph.svg" width="384" height="216"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
-Signals</h2></td></tr>
-<tr class="memitem:a48fb2f88337cfa2a3a4f5f1bcb7e7c0a" id="r_a48fb2f88337cfa2a3a4f5f1bcb7e7c0a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a48fb2f88337cfa2a3a4f5f1bcb7e7c0a">statusMessage</a> (const QString &amp;text, int timeoutMs)</td></tr>
-<tr class="memdesc:a48fb2f88337cfa2a3a4f5f1bcb7e7c0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">A message for the status bar, which it shows for <span class="tt">timeoutMs</span> milliseconds.  <br /></td></tr>
-<tr class="inherit_header signals_class_scene_editor_panel"><td colspan="2">Signals inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
-<tr class="memitem:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel" id="r_ab57b6ba8b04710b122cf09ac57e34b52"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52">changed</a> ()</td></tr>
-<tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f">SceneDocument::changed()</a>.  <br /></td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a4b7d519863803eddadbd0decaadbef06" id="r_a4b7d519863803eddadbd0decaadbef06"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a4b7d519863803eddadbd0decaadbef06">PassengerPanel</a> (QWidget *parent=nullptr)</td></tr>
@@ -157,7 +149,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a48fbf2d203d00c6387b896d6be96fd0c" id="r_a48fbf2d203d00c6387b896d6be96fd0c"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a48fbf2d203d00c6387b896d6be96fd0c">addPassengerButton</a> () const</td></tr>
 <tr class="memdesc:a48fbf2d203d00c6387b896d6be96fd0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that adds a passenger without journeys.  <br /></td></tr>
 <tr class="memitem:aca82540dcc6f575c0a798f6fb0cdfd86" id="r_aca82540dcc6f575c0a798f6fb0cdfd86"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#aca82540dcc6f575c0a798f6fb0cdfd86">deletePassengerButton</a> () const</td></tr>
-<tr class="memdesc:aca82540dcc6f575c0a798f6fb0cdfd86"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that deletes the selected passenger and its journeys after the user has confirmed it.  <br /></td></tr>
+<tr class="memdesc:aca82540dcc6f575c0a798f6fb0cdfd86"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that deletes the selected passenger and its journeys.  <br /></td></tr>
 <tr class="memitem:aacc30d21ea760354f6485324bf5d1505" id="r_aacc30d21ea760354f6485324bf5d1505"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#aacc30d21ea760354f6485324bf5d1505">importButton</a> () const</td></tr>
 <tr class="memitem:ac780f774c3fd69334a9fb56b27ff1c4c" id="r_ac780f774c3fd69334a9fb56b27ff1c4c"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#ac780f774c3fd69334a9fb56b27ff1c4c">importResultHeading</a> () const</td></tr>
 <tr class="memdesc:ac780f774c3fd69334a9fb56b27ff1c4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The heading of the import result table.  <br /></td></tr>
@@ -174,7 +166,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a80764b88a8a828b3d180cb0f26343e10" id="r_a80764b88a8a828b3d180cb0f26343e10"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a80764b88a8a828b3d180cb0f26343e10">addJourneyButton</a> () const</td></tr>
 <tr class="memdesc:a80764b88a8a828b3d180cb0f26343e10"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that adds a journey to the selected passenger.  <br /></td></tr>
 <tr class="memitem:ab071f2cf957ab06e025b13476bb86db7" id="r_ab071f2cf957ab06e025b13476bb86db7"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#ab071f2cf957ab06e025b13476bb86db7">deleteJourneyButton</a> () const</td></tr>
-<tr class="memdesc:ab071f2cf957ab06e025b13476bb86db7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that deletes the selected journey and its legs after the user has confirmed it.  <br /></td></tr>
+<tr class="memdesc:ab071f2cf957ab06e025b13476bb86db7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that deletes the selected journey and its legs.  <br /></td></tr>
 <tr class="memitem:ad47fddbb6f9eced110fcf88f85c98470" id="r_ad47fddbb6f9eced110fcf88f85c98470"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#ad47fddbb6f9eced110fcf88f85c98470">journeyIdEdit</a> () const</td></tr>
 <tr class="memdesc:ad47fddbb6f9eced110fcf88f85c98470"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the id of the selected journey, unique in the scene.  <br /></td></tr>
 <tr class="memitem:a6d747c33740f14c80c442f3e81326a3f" id="r_a6d747c33740f14c80c442f3e81326a3f"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#a6d747c33740f14c80c442f3e81326a3f">journeyActivityEdit</a> () const</td></tr>
@@ -189,7 +181,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae0000d24565e301c231ffd45c7f271c9" id="r_ae0000d24565e301c231ffd45c7f271c9"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#ae0000d24565e301c231ffd45c7f271c9">addLegButton</a> () const</td></tr>
 <tr class="memdesc:ae0000d24565e301c231ffd45c7f271c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that appends a leg to the selected journey.  <br /></td></tr>
 <tr class="memitem:a38758abd3c0e6822100b5f2bfb5d8faf" id="r_a38758abd3c0e6822100b5f2bfb5d8faf"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a38758abd3c0e6822100b5f2bfb5d8faf">deleteLegButton</a> () const</td></tr>
-<tr class="memdesc:a38758abd3c0e6822100b5f2bfb5d8faf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that deletes the selected leg after the user has confirmed it.  <br /></td></tr>
+<tr class="memdesc:a38758abd3c0e6822100b5f2bfb5d8faf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that deletes the selected leg.  <br /></td></tr>
 <tr class="memitem:ad5349cecfb942c9786aca2b893eb01f9" id="r_ad5349cecfb942c9786aca2b893eb01f9"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#ad5349cecfb942c9786aca2b893eb01f9">moveLegUpButton</a> () const</td></tr>
 <tr class="memdesc:ad5349cecfb942c9786aca2b893eb01f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that moves the selected leg one place earlier.  <br /></td></tr>
 <tr class="memitem:a3e13312f9f1d062bf6882442fa01df82" id="r_a3e13312f9f1d062bf6882442fa01df82"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a3e13312f9f1d062bf6882442fa01df82">moveLegDownButton</a> () const</td></tr>
@@ -225,9 +217,15 @@ Protected Member Functions</h2></td></tr>
 <tr class="memitem:abd663bc6b6425c64c8b23ef2e1d776a2 pro_methods_class_scene_editor_panel" id="r_abd663bc6b6425c64c8b23ef2e1d776a2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#abd663bc6b6425c64c8b23ef2e1d776a2">takePendingText</a> ()</td></tr>
 <tr class="memitem:af9755fee94e360ddd2d2489013b426ce pro_methods_class_scene_editor_panel" id="r_af9755fee94e360ddd2d2489013b426ce"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#af9755fee94e360ddd2d2489013b426ce">occurrenceDuration</a> () const</td></tr>
 <tr class="memdesc:af9755fee94e360ddd2d2489013b426ce pro_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The time in seconds over which the occurrences of a service are counted. The panel must have a document.  <br /></td></tr>
+<tr class="memitem:a513652f136ab4075ad3018071fc35bf9 pro_methods_class_scene_editor_panel" id="r_a513652f136ab4075ad3018071fc35bf9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a513652f136ab4075ad3018071fc35bf9">reportDeleted</a> (const QString &amp;what, bool plural=false)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-inherited" class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
+<tr class="inherit_header signals_class_scene_editor_panel"><td colspan="2">Signals inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
+<tr class="memitem:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel" id="r_ab57b6ba8b04710b122cf09ac57e34b52"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52">changed</a> ()</td></tr>
+<tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f">SceneDocument::changed()</a>.  <br /></td></tr>
+<tr class="memitem:a1263773d1ae53648a350d0830c44c4f5 signals_class_scene_editor_panel" id="r_a1263773d1ae53648a350d0830c44c4f5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a1263773d1ae53648a350d0830c44c4f5">statusMessage</a> (const QString &amp;text, int timeoutMs)</td></tr>
+<tr class="memdesc:a1263773d1ae53648a350d0830c44c4f5 signals_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">A message for the status line of the window, shown for <span class="tt">timeoutMs</span> milliseconds.  <br /></td></tr>
 <tr class="inherit_header pro_attribs_class_scene_editor_panel"><td colspan="2">Protected Attributes inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:a24c4a36acd25b52de025dbf518d84b94 pro_attribs_class_scene_editor_panel" id="r_a24c4a36acd25b52de025dbf518d84b94"><td class="memItemLeft">QPointer&lt; <a class="el" href="class_scene_document.html">SceneDocument</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a24c4a36acd25b52de025dbf518d84b94">m_document</a></td></tr>
 <tr class="memdesc:a24c4a36acd25b52de025dbf518d84b94 pro_attribs_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The document that the panel works on; null without one.  <br /></td></tr>
@@ -429,7 +427,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>The button that deletes the selected journey and its legs after the user has confirmed it. </p>
+<p>The button that deletes the selected journey and its legs. </p>
 
 </div>
 </div>
@@ -456,7 +454,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>The button that deletes the selected leg after the user has confirmed it. </p>
+<p>The button that deletes the selected leg. </p>
 
 </div>
 </div>
@@ -483,7 +481,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>The button that deletes the selected passenger and its journeys after the user has confirmed it. </p>
+<p>The button that deletes the selected passenger and its journeys. </p>
 
 </div>
 </div>
@@ -1197,42 +1195,6 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>Gives the folder with the legacy passenger files to Import; an empty path cancels. Without one Import asks with a folder dialog. </p>
-
-</div>
-</div>
-<a id="a48fb2f88337cfa2a3a4f5f1bcb7e7c0a" name="a48fb2f88337cfa2a3a4f5f1bcb7e7c0a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a48fb2f88337cfa2a3a4f5f1bcb7e7c0a">&#9670;&#160;</a></span>statusMessage</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void PassengerPanel::statusMessage </td>
-          <td>(</td>
-          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>text</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>timeoutMs</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>A message for the status bar, which it shows for <span class="tt">timeoutMs</span> milliseconds. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_passenger_panel_a48fb2f88337cfa2a3a4f5f1bcb7e7c0a_cgraph.svg" width="1284" height="302"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 
 </div>
 </div>

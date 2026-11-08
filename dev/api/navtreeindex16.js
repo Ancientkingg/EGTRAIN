@@ -1,6 +1,5 @@
 var NAVTREEINDEX16 =
 {
-"class_train.html#a05aa6fd519005ecf7c4c0b642684f101":[2,0,346,160],
 "class_train.html#a09e55bf615f21184e4a57367932d4a61":[2,0,346,89],
 "class_train.html#a0a450bd385a5d28f17000a8bcafe76fd":[2,0,346,84],
 "class_train.html#a0b3a7a8f412e3936ce21373d135fc1b5":[2,0,346,92],
@@ -249,5 +248,6 @@ var NAVTREEINDEX16 =
 "class_train_event.html#a7f0fbeca2cb0c40642eafa1088c0b7db":[2,0,351,9],
 "class_train_event.html#a8a5bc0880c888a60c9176401f81b24c4":[2,0,351,10],
 "class_train_event.html#a941e13b2108d4bdc03da8831515fbd6a":[2,0,351,7],
-"class_train_event.html#a952420c3ff38f3a111827b087fabc97e":[2,0,351,5]
+"class_train_event.html#a952420c3ff38f3a111827b087fabc97e":[2,0,351,5],
+"class_train_event.html#aa6b2bb89b35e8aa55c4efe52b2e7a249":[2,0,351,8]
 };
