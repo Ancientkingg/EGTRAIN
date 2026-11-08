@@ -40,11 +40,16 @@ public:
 	// Reverse Track turns a track whose arcs run against its X around, so that they run along it.
 	std::vector<TaskAction> taskActions() const override {
 		return {{QStringLiteral("reverseTrackButton"), QStringLiteral("Reverse Track"),
-			QStringLiteral("Swaps the ends of every arc of the selected track and reverses the order of its blocks.")}};
+					QStringLiteral("Swaps the ends of every arc of the selected track and reverses the order of its blocks.")},
+			{QStringLiteral("setXFromDistanceButton"), QStringLiteral("Set X from Distance"),
+				QStringLiteral("Sets the X of the nodes of the selected track to the distance along its arcs from the first node, "
+							   "taking X and Y as map coordinates in km, and Y to 0.")}};
 	}
 	void runTaskAction(InfrastructurePanel& panel, int index) override {
 		if (index == 0)
 			reverseTrack(panel);
+		else if (index == 1)
+			setXFromDistance(panel);
 	}
 
 private:
@@ -101,6 +106,141 @@ private:
 				QStringLiteral("Track '%1' is reversed. Check these routes, which run over it:\n• %2").arg(trackText, list));
 		}
 		panel.showStatus(QStringLiteral("Reversed track '%1'. Undo restores it.").arg(trackText), 8000);
+	}
+
+	// The X that the first node of the track gets. It is the one place that fixes the start of the chainage.
+	static constexpr double kStartXKm = 0.0;
+
+	// Sets X of the nodes of the track to the distance along its arcs from the first node, taking the old X and Y as map
+	// coordinates, and Y to 0, in one edit. A station with a position that sat on a platform node of the track follows the
+	// node. Block lengths, signalling areas, connections, section references and stations without platforms stay as they
+	// are, so a box lists the blocks and the stations to check.
+	static void setXFromDistance(InfrastructurePanel& panel) {
+		const QString trackText = panel.selectionId();
+		const std::string trackId = trackText.toStdString();
+		const SceneTrackChain chain = sceneTrackChain(panel.model(), trackId);
+		if (chain.nodes.empty()) {
+			panel.showStatus(QStringLiteral("Track '%1' is not one line of arcs. Case Validation names what to fix.").arg(trackText));
+			return;
+		}
+		std::vector<std::string> nodeIds;
+		std::vector<double> oldX;
+		std::vector<double> newX;
+		bool unchanged = true;
+		for (const SceneNode* node : chain.nodes) {
+			if (!std::isfinite(node->xKm) || !std::isfinite(node->yKm)) {
+				panel.showStatus(QStringLiteral("Node '%1' has no number in X or Y. Set it first.")
+						.arg(QString::fromStdString(node->id)));
+				return;
+			}
+			const double x = newX.empty() ? kStartXKm
+										  : newX.back() + std::hypot(node->xKm - chain.nodes[newX.size() - 1]->xKm, node->yKm - chain.nodes[newX.size() - 1]->yKm);
+			unchanged = unchanged && node->xKm == x && node->yKm == 0.0;
+			nodeIds.push_back(node->id);
+			oldX.push_back(node->xKm);
+			newX.push_back(x);
+		}
+		if (unchanged) {
+			panel.showStatus(QStringLiteral("Track '%1' already has X as the distance along its arcs.").arg(trackText));
+			return;
+		}
+		const auto indexOf = [&nodeIds](const std::string& id) -> std::optional<std::size_t> {
+			const auto found = std::find(nodeIds.begin(), nodeIds.end(), id);
+			if (found == nodeIds.end())
+				return std::nullopt;
+			return static_cast<std::size_t>(found - nodeIds.begin());
+		};
+		// The place in the chain of the first platform node of the station whose old X is its position, if any.
+		const auto followedNode = [&](const SceneStation& station) -> std::optional<std::size_t> {
+			if (!station.hasPosition)
+				return std::nullopt;
+			for (const ScenePlatform& platform : station.platforms)
+				for (const std::string& id : platform.nodeIds) {
+					const std::optional<std::size_t> place = indexOf(id);
+					if (place && std::abs(oldX[*place] - station.positionKm) <= RuntimeLimits::kNativeCoordinateTolerance)
+						return place;
+				}
+			return std::nullopt;
+		};
+		// Stations to check: a position that no node of the track gave a new X to, next to a platform node of the track, or
+		// a station without platforms at the old X of a node of the track. Found before the edit changes the positions.
+		std::vector<std::string> stationsToCheck;
+		for (const SceneStation& station : panel.model().stations) {
+			if (!station.hasPosition || followedNode(station))
+				continue;
+			const bool onTrack = std::any_of(station.platforms.begin(), station.platforms.end(),
+				[&indexOf](const ScenePlatform& platform) {
+					return std::any_of(platform.nodeIds.begin(), platform.nodeIds.end(),
+						[&indexOf](const std::string& id) { return indexOf(id).has_value(); });
+				});
+			const bool atNode = station.platforms.empty()
+				&& std::any_of(oldX.begin(), oldX.end(), [&station](double x) {
+					   return std::abs(x - station.positionKm) <= RuntimeLimits::kNativeCoordinateTolerance;
+				   });
+			if (onTrack || atNode)
+				stationsToCheck.push_back(station.id);
+		}
+		const bool edited = panel.edit(QStringLiteral("Set X from distance"), [&](SceneModel& scene) {
+			for (SceneNode& node : scene.nodes) {
+				const std::optional<std::size_t> place = node.trackId == trackId ? indexOf(node.id) : std::nullopt;
+				if (!place)
+					continue;
+				node.xKm = newX[*place];
+				node.yKm = 0.0;
+			}
+			for (SceneStation& station : scene.stations)
+				if (const std::optional<std::size_t> place = followedNode(station))
+					station.positionKm = newX[*place];
+		});
+		if (!edited)
+			return;
+		std::vector<std::string> blocksToCheck;
+		const SceneSectionInventory inventory = buildSceneSectionInventory(panel.model());
+		for (const SceneSectionDescriptor& section : inventory.sections) {
+			if (section.firstTrackId != trackId || section.connectionDerived)
+				continue;
+			QStringList coverage;
+			if (section.trackCoverageGap)
+				coverage << QStringLiteral("gap");
+			if (section.layoutOverflow)
+				coverage << QStringLiteral("overflow");
+			if (section.clippedToTrackEnd)
+				coverage << QStringLiteral("clipped");
+			if (!coverage.isEmpty())
+				blocksToCheck.push_back(
+					(section.sourceBlockId + " (" + coverage.join(QStringLiteral(", ")).toStdString() + ")"));
+		}
+		if (!blocksToCheck.empty() || !stationsToCheck.empty()) {
+			double blockSumKm = 0.0;
+			for (const SceneBlock& block : panel.model().blocks)
+				if (block.trackId == trackId)
+					blockSumKm += block.lengthKm;
+			QString text = QStringLiteral("Track '%1' is now %2 km long; its blocks add up to %3 km.")
+							   .arg(trackText, QString::number(newX.back(), 'f', 3), QString::number(blockSumKm, 'f', 3));
+			text += listToCheck(QStringLiteral("Blocks to check:"), blocksToCheck);
+			text += listToCheck(QStringLiteral("Stations whose position to check:"), stationsToCheck);
+			text += QStringLiteral("\n\nCase Validation lists the references that the new X values break.");
+			panel.prompts().showInfo(&panel, QStringLiteral("X Set from Distance"), text);
+		}
+		panel.showStatus(QStringLiteral("Set X of %1 nodes of track '%2' from the distance along its arcs. Undo restores them.")
+							 .arg(nodeIds.size())
+							 .arg(trackText),
+			8000);
+	}
+
+	// A heading and one bullet for each of the first ten names, then "and N more"; empty for no names. A box that lists
+	// every name can be taller than the screen.
+	static QString listToCheck(const QString& heading, const std::vector<std::string>& names) {
+		if (names.empty())
+			return {};
+		constexpr std::size_t kMaxListed = 10;
+		QStringList lines;
+		for (std::size_t name = 0; name < names.size() && name < kMaxListed; ++name)
+			lines << QString::fromStdString(names[name]);
+		QString list = lines.join("\n• ");
+		if (names.size() > kMaxListed)
+			list += QStringLiteral("\nand %1 more").arg(static_cast<int>(names.size() - kMaxListed));
+		return QStringLiteral("\n\n%1\n• %2").arg(heading, list);
 	}
 
 	void fillRow(QTableWidget& table, int row, const SceneTrack& track) const override {
