@@ -70,6 +70,8 @@ public:
 	/// The messages and questions of the panel go through these prompts. The panel uses its own until it is given others;
 	/// null brings its own back. The prompts must outlive the panel.
 	void setPrompts(UserPrompts* prompts) { m_prompts = prompts ? prompts : &m_ownPrompts; }
+	/// The prompts of the panel, for the code that asks the user a question on its behalf, such as an infrastructure facet.
+	UserPrompts& prompts() const { return *m_prompts; }
 	/// The selected scenario, the scenarios that are edited and the occurrences that the next run leaves out are kept here.
 	/// The panel uses its own until it is given another; null brings its own back. The selection must outlive the panel.
 	void setRunSelection(RunSelection* selection) { m_runSelection = selection ? selection : &m_ownRunSelection; }

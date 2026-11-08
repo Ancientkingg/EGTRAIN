@@ -3,6 +3,8 @@
 
 #include "scene/SectionInventory.h"
 
+#include "scene/RuntimeLimits.h"
+#include "support/EditHistory.h"
 #include "support/FakePrompts.h"
 
 #include <QApplication>
@@ -194,6 +196,14 @@ private slots:
 	void namesStationOfNodes();
 	void editsReferencesInCombos();
 	void leavesComboWithArrowKeys();
+	void addsStationAtNode();
+	void undoRemovesAddedStation();
+	void refusesStationAtStationNode();
+	void refusesTakenOrBadStationName_data();
+	void refusesTakenOrBadStationName();
+	void refusesStationBeyondLimit();
+	void cancelAddsNoStation();
+	void taskButtonFollowsSelection();
 };
 
 void TestTopologyFacets::offersNetworkFacets() {
@@ -799,6 +809,192 @@ void TestTopologyFacets::leavesComboWithArrowKeys() {
 	QCOMPARE(f.table()->currentRow(), 1);
 	QCOMPARE(f.model().nodes[2].trackId, "track-a");
 	QVERIFY(f.untouched());
+}
+
+// The station ids, names, and platform ids with their nodes, as one text per station, to compare two models.
+static QStringList stationTexts(const SceneModel& model) {
+	QStringList result;
+	for (const SceneStation& station : model.stations) {
+		QStringList platforms;
+		for (const ScenePlatform& platform : station.platforms) {
+			QStringList nodes;
+			for (const std::string& id : platform.nodeIds)
+				nodes << QString::fromStdString(id);
+			platforms << QString::fromStdString(platform.id) + "=" + nodes.join("+");
+		}
+		result << QString::fromStdString(station.id) + "/" + QString::fromStdString(station.name) + ":" + platforms.join(",");
+	}
+	return result;
+}
+
+// Add Station... at node-a2, which no station has, adds the station and its platform in one edit, selects the node
+// again and says that Undo removes the station.
+void TestTopologyFacets::addsStationAtNode() {
+	Fixture fixture;
+	fixture.choose("nodes");
+	fixture.select(2);
+	QCOMPARE(fixture.cell(2, 0), QString("node-a2"));
+	fixture.prompts.answeredText = QString("Halt");
+	QPushButton* button = fixture.panel.taskButton(0);
+	QVERIFY(button);
+	QCOMPARE(button->objectName(), QString("addStationAtNodeButton"));
+	QVERIFY(button->isEnabled());
+
+	button->click();
+
+	QCOMPARE(fixture.prompts.textCount, 1);
+	QCOMPARE(fixture.prompts.textTitle, QString("Add Station"));
+	QCOMPARE(fixture.prompts.textLabel, QString("Name of the new station at node node-a2:"));
+	QVERIFY(fixture.changedOnce("Add station"));
+	QCOMPARE(fixture.model().stations.size(), std::size_t(2));
+	const SceneStation& station = fixture.model().stations.back();
+	QCOMPARE(station.id, std::string("Halt"));
+	QCOMPARE(station.name, std::string("Halt"));
+	QVERIFY(!station.hasPosition);
+	QCOMPARE(station.platforms.size(), std::size_t(1));
+	const ScenePlatform& platform = station.platforms.front();
+	QCOMPARE(platform.id, std::string("Halt.platform.1"));
+	QCOMPARE(platform.nodeIds, std::vector<std::string>({"node-a2"}));
+	QVERIFY(!platform.hasLength);
+	QVERIFY(!platform.hasWidth);
+	QCOMPARE(fixture.cell(2, 1), QString("Halt"));
+	QCOMPARE(fixture.panel.selectionId(), QString("node-a2"));
+	QCOMPARE(fixture.table()->currentRow(), 2);
+	QCOMPARE(fixture.messages, QStringList({"Added station 'Halt' at node 'node-a2'. Undo removes it."}));
+}
+
+// One Undo takes the station and its platform away together.
+void TestTopologyFacets::undoRemovesAddedStation() {
+	Fixture fixture;
+	RunSelection selection;
+	EditHistory history(fixture.document, selection, fixture.panel);
+	const QStringList before = stationTexts(fixture.model());
+	fixture.choose("nodes");
+	fixture.select(2);
+	fixture.prompts.answeredText = QString("Halt");
+	fixture.panel.taskButton(0)->click();
+	QCOMPARE(fixture.model().stations.size(), std::size_t(2));
+
+	QVERIFY(history.undo());
+
+	QCOMPARE(stationTexts(fixture.model()), before);
+	QVERIFY(!history.undo());
+}
+
+// A node that a station has gets no second station, and the user is not asked for a name.
+void TestTopologyFacets::refusesStationAtStationNode() {
+	Fixture fixture;
+	fixture.choose("nodes");
+	fixture.select(1);
+	QCOMPARE(fixture.cell(1, 0), QString("node-a1"));
+	const QStringList before = stationTexts(fixture.model());
+	fixture.prompts.answeredText = QString("Halt");
+
+	fixture.panel.taskButton(0)->click();
+
+	QCOMPARE(fixture.prompts.textCount, 0);
+	QVERIFY(fixture.untouched());
+	QCOMPARE(stationTexts(fixture.model()), before);
+	QCOMPARE(fixture.messages,
+		QStringList({"Node 'node-a1' already belongs to station 'station-1'. Add a platform to that station under Platforms."}));
+}
+
+void TestTopologyFacets::refusesTakenOrBadStationName_data() {
+	QTest::addColumn<QString>("name");
+	QTest::addColumn<QString>("message");
+	const QString taken = "Station '%1' already exists. Add a platform to it under Platforms.";
+	QTest::newRow("empty") << QString() << "Give the station a name.";
+	QTest::newRow("spaces") << QString("  ") << "Give the station a name.";
+	QTest::newRow("id taken") << QString("station-1") << taken.arg("station-1");
+	QTest::newRow("name taken") << QString("Central") << taken.arg("Central");
+	QTest::newRow("name taken after trimming") << QString(" Central ") << taken.arg("Central");
+	QTest::newRow("tab") << QString("A\tB") << "A station name cannot hold a tab or a line break.";
+	QTest::newRow("line break") << QString("A\nB") << "A station name cannot hold a tab or a line break.";
+	QTest::newRow("carriage return") << QString("A\rB") << "A station name cannot hold a tab or a line break.";
+}
+
+// A name that is empty, holds a tab or a line break, or is a station's id or name changes nothing and says why.
+void TestTopologyFacets::refusesTakenOrBadStationName() {
+	QFETCH(QString, name);
+	QFETCH(QString, message);
+	SceneModel scene = topologyScene();
+	scene.stations.front().name = "Central";
+	Fixture fixture(scene);
+	fixture.choose("nodes");
+	fixture.select(2);
+	const QStringList before = stationTexts(fixture.model());
+	fixture.prompts.answeredText = name;
+
+	fixture.panel.taskButton(0)->click();
+
+	QCOMPARE(fixture.prompts.textCount, 1);
+	QVERIFY(fixture.untouched());
+	QCOMPARE(stationTexts(fixture.model()), before);
+	QCOMPARE(fixture.messages, QStringList({message}));
+}
+
+// A case that has the most stations that a run takes gets no more, and the user is not asked for a name.
+void TestTopologyFacets::refusesStationBeyondLimit() {
+	SceneModel scene = topologyScene();
+	while (scene.stations.size() < static_cast<std::size_t>(RuntimeLimits::kNativeMaxStations)) {
+		SceneStation station;
+		station.id = "extra-" + std::to_string(scene.stations.size());
+		station.name = station.id;
+		station.hasPosition = true;
+		station.positionKm = 50.0;
+		scene.stations.push_back(station);
+	}
+	Fixture fixture(scene);
+	fixture.choose("nodes");
+	fixture.select(2);
+	fixture.prompts.answeredText = QString("Halt");
+
+	fixture.panel.taskButton(0)->click();
+
+	QCOMPARE(fixture.prompts.textCount, 0);
+	QVERIFY(fixture.untouched());
+	QCOMPARE(fixture.model().stations.size(), static_cast<std::size_t>(RuntimeLimits::kNativeMaxStations));
+	QCOMPARE(fixture.messages,
+		QStringList({QString("The case already has %1 stations, the most a run takes.").arg(static_cast<int>(RuntimeLimits::kNativeMaxStations))}));
+}
+
+// Cancel in the name box changes nothing and says nothing.
+void TestTopologyFacets::cancelAddsNoStation() {
+	Fixture fixture;
+	fixture.choose("nodes");
+	fixture.select(2);
+	fixture.prompts.answeredText = std::nullopt;
+
+	fixture.panel.taskButton(0)->click();
+
+	QCOMPARE(fixture.prompts.textCount, 1);
+	QVERIFY(fixture.untouched());
+	QCOMPARE(fixture.model().stations.size(), std::size_t(1));
+	QVERIFY(fixture.messages.isEmpty());
+}
+
+// The task row shows under Nodes only, and its button is on while a row is selected and the scene can be edited.
+void TestTopologyFacets::taskButtonFollowsSelection() {
+	Fixture fixture;
+	fixture.choose("nodes");
+	QPushButton* button = fixture.panel.taskButton(0);
+	QVERIFY(button);
+	QVERIFY(!button->isHidden());
+	QVERIFY(!fixture.panel.taskButton(1));
+	QCOMPARE(button->text(), QString("Add Station..."));
+	QCOMPARE(button->toolTip(), QString("Adds a station with one platform at the selected node."));
+	fixture.table()->setCurrentCell(-1, -1);
+	fixture.panel.updateSelection();
+	QVERIFY(!button->isEnabled());
+	fixture.select(0);
+	QVERIFY(button->isEnabled());
+	fixture.document.setEditable(false);
+	fixture.panel.refresh();
+	QVERIFY(!button->isEnabled());
+	fixture.document.setEditable(true);
+	fixture.panel.refresh();
+	fixture.choose("arcs");
+	QVERIFY(!fixture.panel.taskButton(0));
 }
 
 QTEST_MAIN(TestTopologyFacets)

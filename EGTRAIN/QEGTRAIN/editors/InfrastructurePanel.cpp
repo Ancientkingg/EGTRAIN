@@ -588,6 +588,13 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	actions->addWidget(m_moveBlockDownButton);
 	actions->addStretch();
 	tableLayout->addLayout(actions);
+	// The task actions of the chosen kind have a row of their own, so that no kind is wider than the first row makes it.
+	m_taskActionRow = new QWidget(tablePane);
+	m_taskActionRow->setObjectName("infrastructureTaskRow");
+	auto* taskLayout = new QHBoxLayout(m_taskActionRow);
+	taskLayout->setContentsMargins(0, 0, 0, 0);
+	m_taskActionRow->setVisible(false);
+	tableLayout->addWidget(m_taskActionRow);
 	// The buttons of blocks keep their room while another kind hides them. They make the widest controls of any kind, so
 	// the panel is as wide for every kind, and the dock and the canvas beside it keep their width when the kind changes.
 	for (QPushButton* button : {m_insertBlockButton, m_moveBlockUpButton, m_moveBlockDownButton}) {
@@ -836,6 +843,38 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 				[&selectedTrack](const SceneTrack& track) { return track.id == selectedTrack; });
 	}
 	m_addButton->setEnabled(canAdd);
+	refreshTaskButtons();
+}
+
+void InfrastructurePanel::refreshTaskButtons() {
+	// The facets are set after the panel is built, so the buttons are made here, when the kind has changed.
+	const InfrastructureFacet* current = currentFacet();
+	if (current != m_taskFacet) {
+		auto* layout = qobject_cast<QHBoxLayout*>(m_taskActionRow->layout());
+		for (QPushButton* button : m_taskButtons)
+			delete button;
+		m_taskButtons.clear();
+		while (layout->count() > 0)
+			delete layout->takeAt(0);
+		if (current) {
+			const std::vector<InfrastructureFacet::TaskAction> actions = current->taskActions();
+			for (int index = 0; index < static_cast<int>(actions.size()); ++index) {
+				const InfrastructureFacet::TaskAction& action = actions[static_cast<std::size_t>(index)];
+				auto* button = new QPushButton(action.text, m_taskActionRow);
+				button->setObjectName(action.objectName);
+				button->setToolTip(action.toolTip);
+				connect(button, &QPushButton::clicked, this, [this, index] { runTaskAction(index); });
+				layout->addWidget(button);
+				m_taskButtons.push_back(button);
+			}
+			layout->addStretch();
+		}
+		m_taskFacet = current;
+	}
+	m_taskActionRow->setVisible(!m_taskButtons.empty());
+	const bool enabled = canEdit() && m_table->currentRow() >= 0;
+	for (QPushButton* button : m_taskButtons)
+		button->setEnabled(enabled);
 }
 
 void InfrastructurePanel::updateSelection() {
@@ -845,6 +884,8 @@ void InfrastructurePanel::updateSelection() {
 	m_selectionId = row >= 0 && current ? current->selectionId(*m_table, row) : QString();
 	const bool hasRow = canEdit() && row >= 0;
 	m_deleteButton->setEnabled(hasRow);
+	for (QPushButton* button : m_taskButtons)
+		button->setEnabled(hasRow);
 	const bool insertAndMove = currentFacetHas(InfrastructureFacet::InsertAndMove);
 	m_insertBlockButton->setEnabled(hasRow && insertAndMove);
 	QString deleteHint;
@@ -1152,6 +1193,14 @@ void InfrastructurePanel::deleteEntity() {
 		return;
 	if (InfrastructureFacet* current = currentFacet())
 		current->remove(*this);
+}
+
+void InfrastructurePanel::runTaskAction(int index) {
+	commitPendingEditors();
+	if (!canEdit() || m_table->currentRow() < 0 || index < 0 || index >= static_cast<int>(m_taskButtons.size()))
+		return;
+	if (InfrastructureFacet* current = currentFacet())
+		current->runTaskAction(*this, index);
 }
 
 void InfrastructurePanel::insertEntity() {

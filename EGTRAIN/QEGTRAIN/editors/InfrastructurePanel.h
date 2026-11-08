@@ -166,6 +166,15 @@ public:
 	QPushButton* addButton() const { return m_addButton; }
 	/// The button of deleteEntity().
 	QPushButton* deleteButton() const { return m_deleteButton; }
+	/// The button of the task action `index` of the chosen kind (InfrastructureFacet::taskActions); null when the kind has
+	/// no such action.
+	QPushButton* taskButton(int index) const {
+		return index >= 0 && index < static_cast<int>(m_taskButtons.size()) ? m_taskButtons[static_cast<std::size_t>(index)] : nullptr;
+	}
+	/// Runs the task action `index` of the chosen kind on the selected row, as its button does. The cells that are being
+	/// edited are taken first. Does nothing while the scene cannot be edited, without a selected row, and for an index
+	/// that is out of range.
+	void runTaskAction(int index);
 	/// The sentence about the chosen kind.
 	QLabel* guidanceLabel() const { return m_guidanceLabel; }
 	/// The line under the table that says what the canvas marks of the selected row, such as "route2: 124 sections on B3,
@@ -248,6 +257,9 @@ private:
 	// Says on the line under the table what the canvas marks of the selected row.
 	void refreshMarkLabel();
 	InfrastructureFacet* currentFacet() const;
+	// Makes the buttons of the task row when the kind has changed, shows the row only when it has buttons, and enables the
+	// buttons while a row is selected and the scene can be edited.
+	void refreshTaskButtons();
 	// Whether the chosen facet has the capability; false without a facet.
 	bool currentFacetHas(InfrastructureFacet::Capability capability) const;
 
@@ -258,6 +270,9 @@ private:
 	QComboBox* m_facetCombo = nullptr;
 	QPushButton* m_addButton = nullptr;
 	QPushButton* m_deleteButton = nullptr;
+	QWidget* m_taskActionRow = nullptr;
+	std::vector<QPushButton*> m_taskButtons;
+	const InfrastructureFacet* m_taskFacet = nullptr;
 	QComboBox* m_blockTrackFilterCombo = nullptr;
 	QComboBox* m_trackFilterCombo = nullptr;
 	QLineEdit* m_filterEdit = nullptr;
