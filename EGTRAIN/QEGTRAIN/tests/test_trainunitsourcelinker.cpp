@@ -539,13 +539,48 @@ void TestTrainUnitSourceLinker::changeDuringRunNeedsAgreement() {
 	linker.scheduleChange(physicalPath);
 	document.setEditable(true);
 	{
-		DialogAnswerer answer("Keep Edits");
+		DialogAnswerer answer("Keep Current");
 		linker.processChanges();
-		// A file that changed during a run raises a question, and Keep Edits leaves the unit.
+		// A file that changed during a run raises a question, and Keep Current leaves the unit. Nothing was edited, so
+		// the button does not say so, and without results the question does not mention them.
 		QVERIFY(answer.prompted);
-		QCOMPARE(answer.informativeText, QStringLiteral("It changed during the run. Reload it or keep your edits?"));
+		QCOMPARE(answer.informativeText, QStringLiteral("It changed during the run. Reload it or keep the current values?"));
 		QCOMPARE_EQ(unitOf(document, 0).physical.length_m, 71.0);
 	}
+	// results are shown when the run has ended
+	bool resultsShown = true;
+	linker.setResultsShown([&resultsShown] { return resultsShown; });
+	document.setEditable(false);
+	writeFile(physicalPath, physicalFile(82.0));
+	linker.scheduleChange(physicalPath);
+	document.setEditable(true);
+	{
+		DialogAnswerer answer("Keep Current");
+		linker.processChanges();
+		// With results shown, the question says that Reload discards them.
+		QVERIFY(answer.prompted);
+		QVERIFY(answer.informativeText.endsWith("Reloading discards the results of this run."));
+		QCOMPARE_EQ(unitOf(document, 0).physical.length_m, 71.0);
+	}
+	// a hand edit makes the second button Keep Edits
+	document.mutableModel().trainUnits[0].physical.length_m = 99.0;
+	document.markChanged(SceneDocument::TrainUnits);
+	document.setEditable(false);
+	writeFile(physicalPath, physicalFile(83.0));
+	linker.scheduleChange(physicalPath);
+	document.setEditable(true);
+	{
+		DialogAnswerer answer("Keep Edits");
+		linker.processChanges();
+		QVERIFY(answer.prompted);
+		QVERIFY(answer.informativeText.contains("You also edited u1 here"));
+		QVERIFY(answer.informativeText.endsWith("Reloading discards the results of this run."));
+		QCOMPARE_EQ(unitOf(document, 0).physical.length_m, 99.0);
+	}
+	// the unit is as the file was when it was linked, and the file holds 81 again
+	document.mutableModel().trainUnits[0].physical.length_m = 71.0;
+	document.markChanged(SceneDocument::TrainUnits);
+	writeFile(physicalPath, physicalFile(81.0));
 	{
 		DialogAnswerer answer("Reload");
 		linker.retry("u1", false);

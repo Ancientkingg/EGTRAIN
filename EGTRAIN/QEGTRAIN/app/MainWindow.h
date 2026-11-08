@@ -148,7 +148,7 @@ public:
 	void refreshRunResults();
 
 	/// Results of a completed run exist (RunController::hasRunResults()).
-	bool hasRunResults() const;
+	bool hasRunResults() const override;
 	/// Enables the diagram entries and the Run Results dock while results exist; disabled entries tell how to get them.
 	void updateDiagramActions();
 	/// The Editors menu, which is created and put in the menu bar on the first call.

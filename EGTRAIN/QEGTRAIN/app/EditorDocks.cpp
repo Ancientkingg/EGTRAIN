@@ -149,6 +149,7 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	m_trainUnitSourceLinker = new TrainUnitSourceLinker(m_window);
 	m_trainUnitSourceLinker->setDialogParent(m_window);
 	m_trainUnitSourceLinker->setDocument(m_document);
+	m_trainUnitSourceLinker->setResultsShown([this] { return m_host.hasRunResults(); });
 	QObject::connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::statusChanged, m_window,
 		[this] { m_host.updateTrainUnitSourceStatus(); });
 	// A changed file is taken without a user action, so a field that is being typed in another panel keeps its text, also

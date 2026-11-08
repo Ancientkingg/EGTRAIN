@@ -388,6 +388,7 @@ void TrainUnitSourceLinker::processFile(const QString& path, bool traction) {
 	QStringList affectedNames;
 	std::map<std::string, quint64> generations;
 	bool deferredChange = false;
+	bool localEdits = false;
 	for (const std::string& unitId : affected) {
 		const auto it = m_links.find(unitId);
 		if (it == m_links.end() || (traction ? it->second.tractionPath : it->second.dataPath) != path)
@@ -401,6 +402,7 @@ void TrainUnitSourceLinker::processFile(const QString& path, bool traction) {
 		const bool localChanged = traction
 			? (unit->tractionCurve != it->second.acceptedTraction)
 			: (it->second.acceptedPhysical && !sameTrainPhysical(unit->physical, *it->second.acceptedPhysical));
+		localEdits = localEdits || localChanged;
 		const bool candidateChanged = traction
 			? unit->tractionCurve != tractionResult.tractionCurve
 			: !sameTrainPhysical(unit->physical, physicalResult.physical);
@@ -423,11 +425,16 @@ void TrainUnitSourceLinker::processFile(const QString& path, bool traction) {
 		dialog.setText(QString("%1 changed for %2.")
 				.arg(traction ? QStringLiteral("The traction file") : QStringLiteral("The parameter file"),
 					affectedNames.join(", ")));
-		dialog.setInformativeText(conflicts.isEmpty()
-				? QStringLiteral("It changed during the run. Reload it or keep your edits?")
-				: QStringLiteral("You also edited %1 here. Reload the file or keep your edits?").arg(conflicts.join(", ")));
+		QString question = !conflicts.isEmpty()
+			? QStringLiteral("You also edited %1 here. Reload the file or keep your edits?").arg(conflicts.join(", "))
+			: localEdits ? QStringLiteral("It changed during the run. Reload it or keep your edits?")
+						 : QStringLiteral("It changed during the run. Reload it or keep the current values?");
+		// A reload edits the scene, which discards the results that the window shows.
+		if (m_resultsShown && m_resultsShown())
+			question += QStringLiteral(" Reloading discards the results of this run.");
+		dialog.setInformativeText(question);
 		QPushButton* reloadButton = dialog.addButton("Reload", QMessageBox::AcceptRole);
-		QPushButton* keepButton = dialog.addButton("Keep Edits", QMessageBox::RejectRole);
+		QPushButton* keepButton = dialog.addButton(localEdits ? "Keep Edits" : "Keep Current", QMessageBox::RejectRole);
 		dialog.setDefaultButton(keepButton);
 		dialog.exec();
 		reload = dialog.clickedButton() == reloadButton;
