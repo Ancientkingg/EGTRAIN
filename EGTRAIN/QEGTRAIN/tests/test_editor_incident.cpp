@@ -235,6 +235,7 @@ private slots:
 	void showsNothingWithoutScene();
 	void showsIncidentsOfScenario();
 	void showsBreakdown();
+	void endTipFitsType();
 	void showsIncidentReadOnlyDuringRun();
 	void typeDecidesTargets();
 	void editsAddsAndDeletesIncidents();
@@ -479,6 +480,18 @@ void TestIncidentPanel::showsIncidentsOfScenario() {
 	QVERIFY(!f.document.isDirty());
 	QCOMPARE(f.document.revision(), quint64(1));
 	QVERIFY(!f.selection.isScenarioModified("base"));
+}
+
+// The tip of End (s) fits the type of the incident.
+void TestIncidentPanel::endTipFitsType() {
+	IncidentFixture f;
+	IncidentPanel& panel = f.panel;
+	panel.listWidget()->setCurrentRow(0);
+	QCOMPARE(panel.typeCombo()->currentData().toString(), "signal_failure");
+	QCOMPARE(panel.hasEndSecondsCheck()->toolTip(), "A signal failure needs an end.");
+	panel.listWidget()->setCurrentRow(1);
+	QCOMPARE(panel.typeCombo()->currentData().toString(), "train_breakdown");
+	QCOMPARE(panel.hasEndSecondsCheck()->toolTip(), "Leave off to keep a slowed train slow until its destination.");
 }
 
 void TestIncidentPanel::showsBreakdown() {

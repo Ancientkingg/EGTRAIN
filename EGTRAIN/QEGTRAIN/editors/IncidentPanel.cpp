@@ -138,7 +138,6 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	detailLayout->addRow("Start (s)", m_startSecondsEdit);
 	m_hasEndSecondsCheck = new QCheckBox("End (s)", detailPane);
 	m_hasEndSecondsCheck->setObjectName("incidentHasEndSecondsCheck");
-	m_hasEndSecondsCheck->setToolTip("Leave off to keep a slowed train slow until its destination.");
 	m_endSecondsEdit = exactNumberEdit("incidentEndSecondsEdit", detailPane);
 	m_endSecondsEdit->setAccessibleName("End (s)");
 	detailLayout->addRow(m_hasEndSecondsCheck, m_endSecondsEdit);
@@ -347,6 +346,13 @@ void IncidentPanel::updateDetail() {
 		const QSignalBlocker blocker(m_hasEndSecondsCheck);
 		m_hasEndSecondsCheck->setChecked(hasSelection && (incident->hasEndSeconds || incident->endSeconds != 0.0));
 		m_hasEndSecondsCheck->setEnabled(editable);
+		// Only a breakdown with a reduced speed can go without an end.
+		if (!hasSelection)
+			m_hasEndSecondsCheck->setToolTip(QString());
+		else if (isBreakdown)
+			m_hasEndSecondsCheck->setToolTip(QStringLiteral("Leave off to keep a slowed train slow until its destination."));
+		else
+			m_hasEndSecondsCheck->setToolTip(QStringLiteral("A signal failure needs an end."));
 	}
 	{
 		const QSignalBlocker blocker(m_hasReducedSpeedCheck);
