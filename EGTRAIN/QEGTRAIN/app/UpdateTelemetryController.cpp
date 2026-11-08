@@ -282,7 +282,7 @@ void UpdateTelemetryController::showPrivacySettings(bool initialPrompt) {
 	TelemetryConsent& consent = preview || !m_telemetryConsent ? previewConsent : *m_telemetryConsent;
 	if (!consent.available()) {
 		if (!initialPrompt)
-			updatePrompts().showInfo(m_window, QStringLiteral("Privacy & diagnostics"),
+			updatePrompts().showInfo(m_window, QStringLiteral("Privacy & Diagnostics"),
 				QStringLiteral("Usage statistics and diagnostics are unavailable in this build or run. Nothing is collected or sent."));
 		return;
 	}
@@ -301,7 +301,7 @@ void UpdateTelemetryController::maybePromptForUpdateChecks() {
 	const UpdateCheckState state = readUpdateCheckState(settings);
 	if (state == UpdateCheckState::Unknown) {
 		QMessageBox dialog(QMessageBox::Question,
-			QStringLiteral("Automatically Check for EGTRAIN Updates?"),
+			QStringLiteral("EGTRAIN Updates"),
 			update_prompt::automaticChecksQuestion(),
 			QMessageBox::NoButton, m_window);
 		dialog.setInformativeText(update_prompt::automaticChecksDetail());
@@ -381,13 +381,13 @@ void UpdateTelemetryController::handleUpdateCheckFinished(const UpdateCheckResul
 	if (m_selfUpdater && !m_selfUpdater->canSelfUpdate(release)) {
 		const SelfUpdateCapability capability = m_selfUpdater->capability();
 		availability = capability.supported
-			? QStringLiteral("\n\nNo automatic update package is available for this platform. Use the release page to update manually.")
-			: QStringLiteral("\n\n%1 Use the release page to update manually.").arg(capability.reason);
+			? QStringLiteral("\n\nNo automatic update package is available for this platform. Update manually from the release page.")
+			: QStringLiteral("\n\n%1 Update manually from the release page.").arg(capability.reason);
 	} else if (m_selfUpdater && m_selfUpdater->capability().usesInstaller) {
 		availability = QStringLiteral("\n\nEGTRAIN closes while the update installs, then starts again.");
 	}
 	QMessageBox dialog(QMessageBox::Information,
-		QStringLiteral("EGTRAIN %1 Is Available").arg(formatSemanticVersion(release.version)),
+		QStringLiteral("EGTRAIN Update"),
 		update_prompt::availableText(formatSemanticVersion(release.version), formatSemanticVersion(*current)),
 		QMessageBox::NoButton, m_window);
 	setMarkdownInformativeText(dialog,

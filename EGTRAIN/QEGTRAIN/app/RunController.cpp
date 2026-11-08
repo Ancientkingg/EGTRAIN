@@ -754,7 +754,7 @@ void RunController::finishRun() {
 // folder of a run that is already active never changes.
 void RunController::chooseOutputFolder() {
 	const std::string& chosen = simulation.nextRunOutputFolder();
-	QString dir = QFileDialog::getExistingDirectory(m_window, "Choose Output Folder",
+	QString dir = QFileDialog::getExistingDirectory(m_window, "Set Output Folder",
 		QString::fromStdString(chosen.empty() ? initial_variables.OutputMainFolder : chosen));
 	if (dir.isEmpty())
 		return;

@@ -513,7 +513,7 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	m_trackFilterCombo = new QComboBox(this);
 	m_trackFilterCombo->setObjectName("infrastructureTrackFilterCombo");
 	m_trackFilterCombo->setAccessibleName("Track filter");
-	m_trackFilterCombo->setToolTip("Track whose rows to show.");
+	m_trackFilterCombo->setToolTip("Shows only the rows on this track.");
 	// As wide as "All tracks" whatever the ids of the tracks, so that the panel keeps its width.
 	m_trackFilterCombo->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
 	m_trackFilterCombo->setMinimumContentsLength(10);
@@ -522,7 +522,7 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	m_filterEdit->setObjectName("infrastructureFilterEdit");
 	m_filterEdit->setAccessibleName("Filter rows");
 	m_filterEdit->setPlaceholderText("Filter rows");
-	m_filterEdit->setToolTip("Shows the rows that hold every word in their cells.");
+	m_filterEdit->setToolTip("Shows rows that contain every word.");
 	m_filterEdit->setClearButtonEnabled(true);
 	filterRow->addWidget(m_filterEdit, 1);
 	m_countLabel = new QLabel(this);

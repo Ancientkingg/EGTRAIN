@@ -46,10 +46,8 @@ void populateSignallingSystemCombo(QComboBox* combo, int current) {
 	if (!isValidSignallingLevel(current)) {
 		const bool unchosen = current == kSignallingLevelUnset;
 		combo->addItem(unchosen ? QStringLiteral("Choose a signalling system") : QString::fromStdString(signallingLevelName(current)), current);
-		combo->setItemData(0,
-			unchosen ? QStringLiteral("Not chosen yet")
-					 : QString::fromStdString(signallingLevelDescription(current)),
-			Qt::ToolTipRole);
+		if (!unchosen)
+			combo->setItemData(0, QString::fromStdString(signallingLevelDescription(current)), Qt::ToolTipRole);
 	}
 	for (int level = levelValue(SignallingLevel::Atb); level <= levelValue(SignallingLevel::Bacc); ++level) {
 		combo->addItem(QString::fromStdString(signallingLevelName(level)), level);
@@ -202,7 +200,7 @@ private:
 		auto* combo = new NoWheelComboBox(panel.table());
 		combo->setObjectName(QStringLiteral("signallingAreaSystemCombo"));
 		combo->setAccessibleName(QStringLiteral("Signalling system for %1").arg(areaId));
-		combo->setToolTip(QStringLiteral("Choose the signalling system of the sections inside this area"));
+		combo->setToolTip(QStringLiteral("Signalling system of the sections in this area"));
 		combo->setFocusPolicy(Qt::StrongFocus);
 		populateSignallingSystemCombo(combo, level);
 		QObject::connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), &panel, [&panel, row, combo](int) {

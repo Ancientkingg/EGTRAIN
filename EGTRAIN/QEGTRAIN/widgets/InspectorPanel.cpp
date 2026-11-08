@@ -121,7 +121,7 @@ InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, Netwo
 	arcFormLayout->addRow("To node", m_arcSecondNodeIDText);
 	arcFormLayout->addRow("Track", m_arcTrackIDText);
 	arcFormLayout->addRow("Length (m)", m_arcLengthText);
-	arcFormLayout->addRow("Curve radius (m)", m_arcCurvatureText);
+	arcFormLayout->addRow("Curvature radius (m)", m_arcCurvatureText);
 	arcFormLayout->addRow("Gradient (rise/length)", m_arcGradientText);
 	arcFormLayout->addRow("Speed limit (m/s)", m_arcSpeedLimitText);
 	arcFormLayout->addRow("Operational state", m_arcOperationalStateText);

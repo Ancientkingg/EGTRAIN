@@ -123,7 +123,7 @@ void Train::leaveFollowingModeWhenLeaderIsGone(int time_seconds) {
 	EG_LOG(SimEvents, Info) << "At time instant " << time_seconds << " train " << trainDescription << " is decoupled from train " << LeadingTrainInFollowingMode << ", which reports no position any more\n";
 	run_->vcMsgTimestep.push_back(time_seconds);
 	run_->vcMsgTrain.push_back(trainDescription);
-	run_->vcMsgText.push_back("Train is now decoupled");
+	run_->vcMsgText.push_back("Decoupled");
 	MovementAuthority ResetPredictedMAToDecoupleAt;
 	IsTrainInFollowingMode = false;
 	LeadingTrainInFollowingMode = "None";
@@ -690,7 +690,7 @@ bool Train::updateVirtualCoupling(int time_seconds, const MovementAuthority* liv
 		// GUI notification
 		run_->vcMsgTimestep.push_back(time_seconds);
 		run_->vcMsgTrain.push_back(trainDescription);
-		run_->vcMsgText.push_back("Train is now virtually\ncoupled to the leader");
+		run_->vcMsgText.push_back("Virtually coupled");
 		//-------------------------------
 	}
 
@@ -707,7 +707,7 @@ bool Train::updateVirtualCoupling(int time_seconds, const MovementAuthority* liv
 			// GUI notification
 			run_->vcMsgTimestep.push_back(time_seconds);
 			run_->vcMsgTrain.push_back(trainDescription);
-			run_->vcMsgText.push_back("Train is now decoupled");
+			run_->vcMsgText.push_back("Decoupled");
 			//-------------------------------
 
 			MovementAuthority ResetPredictedMAToDecoupleAt;
@@ -735,7 +735,7 @@ bool Train::updateVirtualCoupling(int time_seconds, const MovementAuthority* liv
 			// GUI notification
 			run_->vcMsgTimestep.push_back(time_seconds);
 			run_->vcMsgTrain.push_back(trainDescription);
-			run_->vcMsgText.push_back("Train is now unintentionally\ndecoupling from the leader");
+			run_->vcMsgText.push_back("Unintentional\ndecoupling");
 			//-------------------------------
 		}
 		return true;

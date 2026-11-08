@@ -475,8 +475,7 @@ private:
 				item.exitBlock = hasExit ? section : std::string();
 				return true;
 			},
-			true, QStringLiteral("(none)"))
-			->setToolTip(QStringLiteral("Exit section, or (none)"));
+			true, QStringLiteral("(none)"));
 		setFlagCell(*panel.table(), row, 2, boundary.direction);
 	}
 	std::string rowTitle(const SceneStationBoundary& boundary) const override { return boundary.entranceBlock; }

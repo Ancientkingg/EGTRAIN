@@ -21,7 +21,7 @@ class OperationObservation;
 struct ResultViewEntry {
 	const char* name;			 ///< The name of the view, one of ResultViewName.
 	void (ResultViews::*open)(); ///< The slot of ResultViews that opens the view.
-	bool asksForInput;			 ///< A dialog asks for more input first, so the entry of the Diagrams menu ends in an ellipsis.
+	bool asksForInput;			 ///< A dialog asks for more input first, so its menu entries end in an ellipsis.
 	bool startsGroup;			 ///< A separator comes before the entry.
 };
 

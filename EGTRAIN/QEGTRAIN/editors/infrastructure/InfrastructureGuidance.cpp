@@ -30,7 +30,7 @@ constexpr Guidance kGuidance[] = {
 	{"block_dependencies", "block dependencies", "No block dependencies yet. Add one, then choose a block and the section it depends on.", ""},
 	{"single_track_restrictions", "single-track restrictions",
 		"No single-track restrictions yet. Add one, then choose its start and end sections and the protected start and end.", ""},
-	{"station_boundaries", "station boundaries", "No station boundaries yet. Add one, then choose its entrance section and, if it has one, its exit.", ""},
+	{"station_boundaries", "station boundaries", "No station boundaries yet. Add one, then choose its entrance section and optional exit.", ""},
 };
 
 // The sentence for an empty table whose facet needs an entity that the scene does not have yet; null when it has it.

@@ -2311,7 +2311,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("the timetable picture does not show every column of the table"));
 			return;
 		}
-		QAction* blockingButton = findResultAction(QStringLiteral("Blocking time"));
+		QAction* blockingButton = findResultAction(QStringLiteral("Blocking time..."));
 		if (!blockingButton) {
 			fail(QStringLiteral("blocking-time result control is unavailable"));
 			return;
@@ -2427,7 +2427,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			process();
 			return intact;
 		};
-		QAction* capacityButton = findResultAction(QStringLiteral("Capacity"));
+		QAction* capacityButton = findResultAction(QStringLiteral("Capacity..."));
 		if (!capacityButton) {
 			fail(QStringLiteral("capacity result control is unavailable"));
 			return;
@@ -2708,7 +2708,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		capacity->close();
-		QAction* areaButton = findResultAction(QStringLiteral("Capacity by area"));
+		QAction* areaButton = findResultAction(QStringLiteral("Capacity by area..."));
 		if (!areaButton) {
 			fail(QStringLiteral("capacity by area result control is unavailable"));
 			return;

@@ -58,7 +58,7 @@ void saveCsvInteractive(QWidget* parent, UserPrompts& prompts, const QString& su
 	if (content.empty()) {
 		// The window comes back in front once the message closes.
 		const KeepInFront front(parent);
-		prompts.showInfo(parent, "Nothing to export", "There is no data to export.");
+		prompts.showInfo(parent, "Nothing to Export", "There is no data to export.");
 		return;
 	}
 	const auto csv = [&content]() -> const std::string& { return content; };
@@ -138,7 +138,7 @@ void ResultViews::buildPerTrainDiagram(int mode) {
 void ResultViews::buildPerTrainDiagram(TrajectoryChart kind) {
 	// require a completed run
 	if (!m_runController->hasRunResults()) {
-		m_host.resultMessage("Run a simulation to open diagrams", 5000);
+		m_host.resultMessage("Run the case first", 5000);
 		return;
 	}
 
@@ -179,7 +179,7 @@ void ResultViews::showDelayComparison() {
 
 void ResultViews::showTimetableTable() {
 	if (!m_runController->hasRunResults()) {
-		m_host.resultMessage("Run a simulation to open diagrams", 5000);
+		m_host.resultMessage("Run the case first", 5000);
 		return;
 	}
 
@@ -196,7 +196,7 @@ void ResultViews::showTimetableTable() {
 
 void ResultViews::showDelayDiagram() {
 	if (!m_runController->hasRunResults()) {
-		m_host.resultMessage("Run a simulation to open diagrams", 5000);
+		m_host.resultMessage("Run the case first", 5000);
 		return;
 	}
 
@@ -272,7 +272,7 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 
 void ResultViews::showBlockingTimeDiagram() {
 	if (!m_runController->hasRunResults()) {
-		m_host.resultMessage("Run a simulation to open diagrams", 5000);
+		m_host.resultMessage("Run the case first", 5000);
 		return;
 	}
 
@@ -419,7 +419,7 @@ void ResultViews::sendWindowMarks() {
 
 void ResultViews::showCapacityAnalysis() {
 	if (!m_runController->hasRunResults()) {
-		m_host.resultMessage("Run a simulation to open capacity analysis", 5000);
+		m_host.resultMessage("Run the case first", 5000);
 		return;
 	}
 
@@ -499,7 +499,7 @@ void ResultViews::showCapacityAnalysis() {
 
 void ResultViews::showAreaCapacity() {
 	if (!m_runController->hasRunResults()) {
-		m_host.resultMessage("Run a simulation to open capacity by area", 5000);
+		m_host.resultMessage("Run the case first", 5000);
 		return;
 	}
 	// The options dialog reads the run until it closes, so this call holds it.

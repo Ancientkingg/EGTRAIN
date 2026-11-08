@@ -423,7 +423,7 @@ QString areaCapacityStatusText(const AreaCapacityNote& note, bool shortIds) {
 		case AreaCapacityNoteKind::DuplicateIdentity:
 			return QString("Train %1 appears more than once. Only the first entry is used.").arg(train);
 		case AreaCapacityNoteKind::NoSelectedTraffic:
-			return QStringLiteral("No selected train has an occupation in the area, so there is no chain.");
+			return QStringLiteral("No checked train has an occupation in the area, so there is no chain.");
 		case AreaCapacityNoteKind::IncompleteOccupation:
 			return QString("Train %1 has an incomplete occupation of resource %2. It is not used.").arg(train, resource);
 		case AreaCapacityNoteKind::RepeatedResource:
@@ -440,7 +440,7 @@ QString areaCapacityStatusText(const AreaCapacityNote& note, bool shortIds) {
 		case AreaCapacityNoteKind::ChainConflict:
 			return QStringLiteral("The compressed occupations of the chain overlap, so the chain is not conflict free.");
 		case AreaCapacityNoteKind::UnselectedTraffic:
-			return QString("Train %1 uses the area and is not selected. The figures leave it out.").arg(train);
+			return QString("Train %1 uses the area and is not checked. The figures leave it out.").arg(train);
 	}
 	return QString();
 }
@@ -768,7 +768,7 @@ AreaCapacityWindow::AreaCapacityWindow(AreaCapacityResult result, const QString&
 	auto* exportButton = new QPushButton("CSV...", frame);
 	exportButton->setObjectName("areaCapacityExport");
 	exportButton->setAccessibleName("Export CSV");
-	exportButton->setToolTip("Save the tabs as CSV");
+	exportButton->setToolTip("Save all tabs as CSV");
 	exportButton->setAutoDefault(false);
 	exportButton->setEnabled(!m_result.resources.empty());
 	connect(exportButton, &QPushButton::clicked, this, [this]() { exportCsv(); });

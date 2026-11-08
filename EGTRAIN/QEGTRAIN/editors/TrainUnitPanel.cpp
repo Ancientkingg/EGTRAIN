@@ -475,7 +475,7 @@ void TrainUnitPanel::addFromLibrary() {
 		return;
 	const RollingStockLibrary library = bundledRollingStockLibrary();
 	if (hasErrors(library.diagnostics)) {
-		m_prompts->showError(this, "Rolling Stock Library Not Read", firstDiagnosticDialogText(library.diagnostics), true);
+		m_prompts->showError(this, "Cannot Read Rolling Stock Library", firstDiagnosticDialogText(library.diagnostics), true);
 		return;
 	}
 	RollingStockLibraryDialog dialog(library.units, this);

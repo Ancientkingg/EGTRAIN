@@ -126,7 +126,7 @@ SettingsDialog::SettingsDialog(QSettings& settings, TelemetryConsent& consent, Q
 	m_usage->setEnabled(privacy);
 	m_diagnostics->setEnabled(privacy);
 	if (privacy)
-		addHelp(updates, QStringLiteral("Help > Privacy & diagnostics... says what each choice sends."));
+		addHelp(updates, QStringLiteral("Help > Privacy & Diagnostics... says what each choice sends."));
 	else
 		addHelp(updates, QStringLiteral("Usage statistics and diagnostics are unavailable in this build or run. Nothing is collected or sent."));
 	m_status = new QLabel(body);

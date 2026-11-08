@@ -86,7 +86,7 @@ void addRouteChoice(QComboBox* combo, const SceneModel& model, const SceneRoute&
 		stations << name;
 	}
 	const QString id = QString::fromStdString(route.id);
-	QString text = !traversal.resolved ? QStringLiteral("%1 (cannot be resolved)").arg(id)
+	QString text = !traversal.resolved ? QStringLiteral("%1 (cannot be followed)").arg(id)
 		: stations.isEmpty()		   ? QStringLiteral("%1 (no stations)").arg(id)
 									   : QString("%1 → %2 [%3]").arg(stations.first(), stations.last(), id);
 	if (traversal.resolved && !stations.isEmpty() && traversal.direction < 0)
@@ -652,7 +652,7 @@ void ServicePanel::deleteService() {
 		consumers << QString::fromStdString(consumer);
 	if (!consumers.isEmpty()) {
 		m_prompts->showError(this, "Cannot Delete Service",
-			QString("Service '%1' is used by:\n• %2\nRemove those references first.")
+			QString("Service '%1' is used by:\n• %2\nRemove or change these first.")
 				.arg(QString::fromStdString(id), consumers.join("\n• ")),
 			true);
 		return;

@@ -262,7 +262,7 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 	const auto compatibilityMessage = [&compatibility]() {
 		if (!compatibility.diagnostics.empty())
 			return QString::fromStdString(toDialogText(compatibility.diagnostics.front()));
-		return QStringLiteral("The scene format could not be identified.");
+		return QStringLiteral("The case format could not be identified.");
 	};
 	// Scene compatibility prompts are suppressed only for unattended app/E2E
 	// runs. The update-only disable setting must not hide scene safety prompts.
@@ -277,7 +277,7 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 		dialog.setWindowTitle("Older Case");
 		dialog.setText(QString("%1 was saved by an older version of EGTRAIN.").arg(QFileInfo(scenePath).fileName()));
 		dialog.setInformativeText("Upgrade a copy to open it. The original stays as it is.");
-		QString versions = QString("Scene schema %1, this version uses %2")
+		QString versions = QString("Format version %1, this version uses %2")
 							   .arg(compatibility.schemaVersion)
 							   .arg(kCurrentSceneSchemaVersion);
 		if (compatibility.sourceKind == SceneSourceKind::Bundle && compatibility.bundleVersion)
@@ -335,7 +335,7 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 		dialog.setWindowTitle("Newer Case");
 		dialog.setText("This case was saved by a newer version of EGTRAIN.");
 		dialog.setInformativeText("Update EGTRAIN to open it.");
-		QString versions = QString("Scene schema %1, this version uses %2")
+		QString versions = QString("Format version %1, this version uses %2")
 							   .arg(compatibility.schemaVersion)
 							   .arg(kCurrentSceneSchemaVersion);
 		if (compatibility.bundleVersion)

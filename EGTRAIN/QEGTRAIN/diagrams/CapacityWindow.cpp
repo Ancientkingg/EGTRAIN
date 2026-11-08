@@ -189,7 +189,7 @@ CapacityWindow::CapacityWindow(const CapacityAnalysisResult& result, const QStri
 	m_exportButton = new QPushButton("CSV...", frame);
 	m_exportButton->setObjectName("capacityExport");
 	m_exportButton->setAccessibleName("Export CSV");
-	m_exportButton->setToolTip("Save the tables as CSV");
+	m_exportButton->setToolTip("Save all tabs as CSV");
 	panel->addSection("Export", m_exportButton);
 
 	auto* closeButtons = new QDialogButtonBox(QDialogButtonBox::Close, this);
