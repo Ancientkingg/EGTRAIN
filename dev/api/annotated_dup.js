@@ -310,6 +310,7 @@ var annotated_dup =
     [ "SceneStopInsertionWindow", "struct_scene_stop_insertion_window.html", "struct_scene_stop_insertion_window" ],
     [ "SceneStopResolution", "struct_scene_stop_resolution.html", "struct_scene_stop_resolution" ],
     [ "SceneTrack", "struct_scene_track.html", "struct_scene_track" ],
+    [ "SceneTrackChain", "struct_scene_track_chain.html", "struct_scene_track_chain" ],
     [ "SceneTrackView", "struct_scene_track_view.html", "struct_scene_track_view" ],
     [ "SceneTractionColumn", "struct_scene_traction_column.html", "struct_scene_traction_column" ],
     [ "SceneTrainPhysical", "struct_scene_train_physical.html", "struct_scene_train_physical" ],

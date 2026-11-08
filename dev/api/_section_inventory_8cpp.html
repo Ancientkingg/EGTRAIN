@@ -140,6 +140,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:a64c14cbefafa78e81ec551a43f333429"><td class="mdescLeft">&#160;</td><td class="mdescRight">The labels of the sections of the inventory (see <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a>).  <br /></td></tr>
 <tr class="memitem:aada86a733299e516b7fc5ad92a65eee4" id="r_aada86a733299e516b7fc5ad92a65eee4"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aada86a733299e516b7fc5ad92a65eee4">sceneSignalFailureTarget</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;inventory, const std::string &amp;sectionReference)</td></tr>
 <tr class="memitem:a9cb3de6815c38bfd0cf14a022a187786" id="r_a9cb3de6815c38bfd0cf14a022a187786"><td class="memItemLeft"><a class="el" href="struct_scene_section_transition.html">SceneSectionTransition</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9cb3de6815c38bfd0cf14a022a187786">classifySceneSectionTransition</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;left, const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;right)</td></tr>
+<tr class="memitem:a8a70bbc57dec734cd616377937c1b5bb" id="r_a8a70bbc57dec734cd616377937c1b5bb"><td class="memItemLeft"><a class="el" href="struct_scene_track_chain.html">SceneTrackChain</a>&#160;</td><td class="memItemRight"><a class="el" href="#a8a70bbc57dec734cd616377937c1b5bb">sceneTrackChain</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::string &amp;trackId)</td></tr>
 <tr class="memitem:a0a493a67878c96b3c90d791a1fa68552" id="r_a0a493a67878c96b3c90d791a1fa68552"><td class="memItemLeft"><a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a>&#160;</td><td class="memItemRight"><a class="el" href="#a0a493a67878c96b3c90d791a1fa68552">buildSceneSectionInventory</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memitem:a70ff699bacfd05e1892bd3e5d5378c50" id="r_a70ff699bacfd05e1892bd3e5d5378c50"><td class="memItemLeft"><a class="el" href="struct_scene_block_extent.html">SceneBlockExtent</a>&#160;</td><td class="memItemRight"><a class="el" href="#a70ff699bacfd05e1892bd3e5d5378c50">sceneBlockExtent</a> (const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;inventory, const std::string &amp;trackId)</td></tr>
 <tr class="memdesc:a70ff699bacfd05e1892bd3e5d5378c50"><td class="mdescLeft">&#160;</td><td class="mdescRight">The extent of the block sections of the track, or of all tracks when trackId is empty.  <br /></td></tr>
@@ -564,6 +565,33 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_aada86a733299e516b7fc5ad92a65eee4_cgraph.svg" width="626" height="71"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a8a70bbc57dec734cd616377937c1b5bb" name="a8a70bbc57dec734cd616377937c1b5bb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a70bbc57dec734cd616377937c1b5bb">&#9670;&#160;</a></span>sceneTrackChain()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_scene_track_chain.html">SceneTrackChain</a> sceneTrackChain </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>trackId</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The chain of the track, as the section inventory builds it. Both lists are empty for an unknown track and when the arcs of the track do not form one line (scene.topology.* in the validator). The pointers lead into scene. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a8a70bbc57dec734cd616377937c1b5bb_cgraph.svg" width="142" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

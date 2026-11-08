@@ -426,6 +426,7 @@ var hierarchy =
     [ "SceneStopInsertionWindow", "struct_scene_stop_insertion_window.html", null ],
     [ "SceneStopResolution", "struct_scene_stop_resolution.html", null ],
     [ "SceneTrack", "struct_scene_track.html", null ],
+    [ "SceneTrackChain", "struct_scene_track_chain.html", null ],
     [ "SceneTrackView", "struct_scene_track_view.html", null ],
     [ "SceneTractionColumn", "struct_scene_traction_column.html", null ],
     [ "SceneTrainPhysical", "struct_scene_train_physical.html", null ],

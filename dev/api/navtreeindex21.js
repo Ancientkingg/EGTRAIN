@@ -1,5 +1,7 @@
 var NAVTREEINDEX21 =
 {
+"struct_blocking_time_diagram_input.html#a886f6e1bb62a11e76fa51ff2bca49442":[2,0,20,12],
+"struct_blocking_time_diagram_input.html#a91d894e8480c720a48f32acb6ec2f8ae":[2,0,20,14],
 "struct_blocking_time_diagram_input.html#a9decca35a8a8a656a155d97639d42501":[2,0,20,0],
 "struct_blocking_time_diagram_input.html#aa596106c5fda6c98f4294b3e1aff2ae1":[2,0,20,16],
 "struct_blocking_time_diagram_input.html#aa998312469d2a3e3f2a439593d71d03d":[2,0,20,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX21 =
 "struct_delay_histogram.html#a4e042e089725246e7d1ec7d228ae2688":[2,0,70,4],
 "struct_delay_histogram.html#aa8908837e5220e0c4870dd0cae400793":[2,0,70,2],
 "struct_delay_histogram.html#aa917c93d5865b448efa9eb0d845731a3":[2,0,70,0],
-"struct_delay_histogram.html#ac81a1482879611dcff82274d3dafea73":[2,0,70,3],
-"struct_delay_histogram_class.html":[2,0,71],
-"struct_delay_histogram_class.html#a077f9169031f36ce233518cf2a044985":[2,0,71,2]
+"struct_delay_histogram.html#ac81a1482879611dcff82274d3dafea73":[2,0,70,3]
 };
