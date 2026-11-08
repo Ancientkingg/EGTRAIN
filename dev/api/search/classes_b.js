@@ -8,12 +8,13 @@ var searchData=
   ['lightpalettekeeper_5',['LightPaletteKeeper',['../class_light_palette_keeper.html',1,'']]],
   ['line_6',['Line',['../classeglog_1_1_line.html',1,'eglog']]],
   ['link_7',['Link',['../struct_train_unit_source_linker_1_1_link.html',1,'TrainUnitSourceLinker']]],
-  ['listfacet_8',['ListFacet',['../class_list_facet.html',1,'']]],
-  ['livecommand_9',['LiveCommand',['../struct_live_command.html',1,'']]],
-  ['liverequest_10',['LiveRequest',['../struct_live_request.html',1,'']]],
-  ['liveruninfo_11',['LiveRunInfo',['../struct_live_run_info.html',1,'']]],
-  ['liveserver_12',['LiveServer',['../class_live_server.html',1,'']]],
-  ['liveserverstate_13',['LiveServerState',['../struct_live_server_state.html',1,'']]],
-  ['livestreamguard_14',['LiveStreamGuard',['../struct_live_stream_guard.html',1,'']]],
-  ['loadeddatacontext_15',['LoadedDataContext',['../struct_validation_panel_1_1_loaded_data_context.html',1,'ValidationPanel']]]
+  ['listchoice_8',['ListChoice',['../struct_user_prompts_1_1_list_choice.html',1,'UserPrompts']]],
+  ['listfacet_9',['ListFacet',['../class_list_facet.html',1,'']]],
+  ['livecommand_10',['LiveCommand',['../struct_live_command.html',1,'']]],
+  ['liverequest_11',['LiveRequest',['../struct_live_request.html',1,'']]],
+  ['liveruninfo_12',['LiveRunInfo',['../struct_live_run_info.html',1,'']]],
+  ['liveserver_13',['LiveServer',['../class_live_server.html',1,'']]],
+  ['liveserverstate_14',['LiveServerState',['../struct_live_server_state.html',1,'']]],
+  ['livestreamguard_15',['LiveStreamGuard',['../struct_live_stream_guard.html',1,'']]],
+  ['loadeddatacontext_16',['LoadedDataContext',['../struct_validation_panel_1_1_loaded_data_context.html',1,'ValidationPanel']]]
 ];

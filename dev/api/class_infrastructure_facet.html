@@ -175,6 +175,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a8933cd118adc79cab0129573be920109"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the selected section of the selected route down by <span class="tt">offset</span> places, up when it is negative.  <br /></td></tr>
 <tr class="memitem:adb0ee14b90fe88e8a5a15eb93be7fd35" id="r_adb0ee14b90fe88e8a5a15eb93be7fd35"><td class="memItemLeft">virtual std::vector&lt; <a class="el" href="struct_infrastructure_facet_1_1_task_action.html">TaskAction</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#adb0ee14b90fe88e8a5a15eb93be7fd35">taskActions</a> () const</td></tr>
 <tr class="memitem:ae93659d049b97b5b84011c6634227776" id="r_ae93659d049b97b5b84011c6634227776"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#ae93659d049b97b5b84011c6634227776">runTaskAction</a> (<a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;, int)</td></tr>
+<tr class="memitem:ac8e3a3759375963bb3db6535a0f23363" id="r_ac8e3a3759375963bb3db6535a0f23363"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#ac8e3a3759375963bb3db6535a0f23363">activateCell</a> (<a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;, int, int)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-types" class="groupheader"><a id="pro-types" name="pro-types"></a>
 Protected Types</h2></td></tr>
@@ -357,6 +358,41 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a id="ac8e3a3759375963bb3db6535a0f23363" name="ac8e3a3759375963bb3db6535a0f23363"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac8e3a3759375963bb3db6535a0f23363">&#9670;&#160;</a></span>activateCell()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void InfrastructureFacet::activateCell </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em></em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em></em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The cell in <span class="tt">row</span> and <span class="tt">column</span> was activated, which is a double click on a cell that cannot be edited, and Return on Windows and Linux. The panel calls it from the event loop, only while the scene is open for edits. The default does nothing. </p>
+
+</div>
+</div>
 <a id="a59ef82d561cda5d6590da834599652b2" name="a59ef82d561cda5d6590da834599652b2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a59ef82d561cda5d6590da834599652b2">&#9670;&#160;</a></span>add()</h2>
 

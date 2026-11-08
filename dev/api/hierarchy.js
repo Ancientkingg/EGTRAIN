@@ -135,6 +135,7 @@ var hierarchy =
     [ "LegacyPassengerStationReference", "struct_legacy_passenger_station_reference.html", null ],
     [ "eglog::Line", "classeglog_1_1_line.html", null ],
     [ "TrainUnitSourceLinker::Link", "struct_train_unit_source_linker_1_1_link.html", null ],
+    [ "UserPrompts::ListChoice", "struct_user_prompts_1_1_list_choice.html", null ],
     [ "LiveCommand", "struct_live_command.html", null ],
     [ "LiveRequest", "struct_live_request.html", null ],
     [ "LiveRunInfo", "struct_live_run_info.html", null ],

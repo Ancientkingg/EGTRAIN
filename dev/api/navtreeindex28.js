@@ -1,5 +1,11 @@
 var NAVTREEINDEX28 =
 {
+"structtelemetry_1_1_telemetry_sender_1_1_shared.html#ad43567200d179b37e4eb6d7f6a10e288":[2,0,3,11,1,7],
+"structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html":[1,0,14,11,1,0],
+"structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html":[2,0,3,11,1,0],
+"structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html#a45d3974d233f2d6c01a3093c856fe960":[1,0,14,11,1,0,1],
+"structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html#a45d3974d233f2d6c01a3093c856fe960":[2,0,3,11,1,0,1],
+"structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html#ac0398aaf3300855e15ebaaf4ea83e182":[1,0,14,11,1,0,0],
 "structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html#ac0398aaf3300855e15ebaaf4ea83e182":[2,0,3,11,1,0,0],
 "structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html#af7360560cafb966cd219ee48d76a0276":[1,0,14,11,1,0,2],
 "structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html#af7360560cafb966cd219ee48d76a0276":[2,0,3,11,1,0,2],

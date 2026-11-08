@@ -1,5 +1,7 @@
 var NAVTREEINDEX27 =
 {
+"struct_track_preview_signal.html#a5be5c711acb137b4ba09c55021942143":[2,0,343,1],
+"struct_track_preview_signal.html#a642cca1bb5aeaa3be4a917ad04b02cf8":[2,0,343,3],
 "struct_track_preview_signal.html#a6fefa9c28fb59c9abed558d11f68dc99":[2,0,343,2],
 "struct_track_preview_signal.html#ac7f95b45fe5de11472d4b9a49b19ad37":[2,0,343,0],
 "struct_track_preview_signal.html#aeb7bccbca5be67865e3218858d384975":[2,0,343,5],
@@ -142,6 +144,10 @@ var NAVTREEINDEX27 =
 "struct_update_record_text.html":[2,0,374],
 "struct_update_record_text.html#a1637d33f079a4bb707ad75dded0a72a9":[2,0,374,0],
 "struct_update_record_text.html#a604e2a89f3c258d21a368d2e2c5a0784":[2,0,374,1],
+"struct_user_prompts_1_1_list_choice.html":[2,0,376,0],
+"struct_user_prompts_1_1_list_choice.html#a5b302b1bcf686a0c26813c4fb7760c71":[2,0,376,0,0],
+"struct_user_prompts_1_1_list_choice.html#a94ba8eab34404b22eba8550a6513ef53":[2,0,376,0,1],
+"struct_user_prompts_1_1_list_choice.html#aaaa4e20a152e3d75ef049ad1751457be":[2,0,376,0,2],
 "struct_validation_panel_1_1_loaded_data_context.html":[2,0,377,0],
 "struct_validation_panel_1_1_loaded_data_context.html#a1dd136ecb2386cab89e5a3460919bdde":[2,0,377,0,3],
 "struct_validation_panel_1_1_loaded_data_context.html#a2260f5b8a9ade817e7c87152a691d8f6":[2,0,377,0,2],
@@ -243,11 +249,5 @@ var NAVTREEINDEX27 =
 "structtelemetry_1_1_telemetry_sender_1_1_shared.html#acdadc0b7709e86d0dfeb82cb362e9650":[2,0,3,11,1,9],
 "structtelemetry_1_1_telemetry_sender_1_1_shared.html#ad1194fbac8836a653567128efee9789c":[1,0,14,11,1,1],
 "structtelemetry_1_1_telemetry_sender_1_1_shared.html#ad1194fbac8836a653567128efee9789c":[2,0,3,11,1,1],
-"structtelemetry_1_1_telemetry_sender_1_1_shared.html#ad43567200d179b37e4eb6d7f6a10e288":[1,0,14,11,1,7],
-"structtelemetry_1_1_telemetry_sender_1_1_shared.html#ad43567200d179b37e4eb6d7f6a10e288":[2,0,3,11,1,7],
-"structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html":[1,0,14,11,1,0],
-"structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html":[2,0,3,11,1,0],
-"structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html#a45d3974d233f2d6c01a3093c856fe960":[1,0,14,11,1,0,1],
-"structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html#a45d3974d233f2d6c01a3093c856fe960":[2,0,3,11,1,0,1],
-"structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html#ac0398aaf3300855e15ebaaf4ea83e182":[1,0,14,11,1,0,0]
+"structtelemetry_1_1_telemetry_sender_1_1_shared.html#ad43567200d179b37e4eb6d7f6a10e288":[1,0,14,11,1,7]
 };

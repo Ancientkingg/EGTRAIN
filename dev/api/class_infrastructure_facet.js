@@ -17,6 +17,7 @@ var class_infrastructure_facet =
     [ "InfrastructureFacet", "class_infrastructure_facet.html#a9edf07a88e8287f92ca0898f8d8ade04", null ],
     [ "InfrastructureFacet", "class_infrastructure_facet.html#a8ef00fcdbaebf485141bc6e425d2ee50", null ],
     [ "~InfrastructureFacet", "class_infrastructure_facet.html#a1159b25888d91082ac427a97095813b3", null ],
+    [ "activateCell", "class_infrastructure_facet.html#ac8e3a3759375963bb3db6535a0f23363", null ],
     [ "add", "class_infrastructure_facet.html#a59ef82d561cda5d6590da834599652b2", null ],
     [ "addSection", "class_infrastructure_facet.html#abfeec33ab7ce714e7c67d99115ffe5b5", null ],
     [ "capabilities", "class_infrastructure_facet.html#a1918c6757b3db77a5ea28ed59e76353a", null ],

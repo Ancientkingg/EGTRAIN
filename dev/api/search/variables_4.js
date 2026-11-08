@@ -9,7 +9,7 @@ var searchData=
   ['elapsed_6',['elapsed',['../classtelemetry_1_1_worker.html#a03e175800fb29a3835a12ed4c1d61591',1,'telemetry::Worker']]],
   ['elementinfo_7',['ElementInfo',['../class_infra_event.html#a11dd5b7be2208d3b78a1630630ac4e8a',1,'InfraEvent']]],
   ['emphasispixels_8',['EmphasisPixels',['../class_network_mark_item.html#a2e547cda59e3461a95d90011a29ac063',1,'NetworkMarkItem']]],
-  ['enabled_9',['enabled',['../struct_telemetry_context.html#ac4f0cfe4ab3da5c2c734fc6e3f26adc8',1,'TelemetryContext']]],
+  ['enabled_9',['enabled',['../struct_telemetry_context.html#ac4f0cfe4ab3da5c2c734fc6e3f26adc8',1,'TelemetryContext::enabled'],['../struct_user_prompts_1_1_list_choice.html#a5b302b1bcf686a0c26813c4fb7760c71',1,'UserPrompts::ListChoice::enabled']]],
   ['enabled_5flog_10',['enabled_log',['../class_initial_parameters.html#ae1093cdbee9b2c920ddb26587f5a56c1',1,'InitialParameters']]],
   ['end_5fnode_11',['end_node',['../class_t_d_s.html#ab72a5e17372d3a491481671d76e2cd38',1,'TDS::end_node'],['../class_section.html#a565e1de59d3e57b5489f7b1c6ff556dc',1,'Section::end_node']]],
   ['end_5ftime_12',['End_Time',['../class_train.html#a6ccb40620b3c8ac7776ca81eca9c804d',1,'Train']]],

@@ -114,6 +114,11 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_user_pro
 
 <p><code>#include &lt;widgets/UserPrompts.h&gt;</code></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:ListChoice" id="r_ListChoice"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_user_prompts_1_1_list_choice.html">ListChoice</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One entry of <a class="el" href="#aff28540497be426cde7b7c3411a83ad8">chooseItems()</a>.  <a href="struct_user_prompts_1_1_list_choice.html#details">More...</a><br /></td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a845441069b8fabe4f8d8dfff13c90888" id="r_a845441069b8fabe4f8d8dfff13c90888"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a845441069b8fabe4f8d8dfff13c90888">UserPrompts</a> (std::function&lt; bool()&gt; suppressed={})</td></tr>
@@ -126,6 +131,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a4a4c5ad4f5d69ed7442fbd396fba0afa" id="r_a4a4c5ad4f5d69ed7442fbd396fba0afa"><td class="memItemLeft">virtual int&#160;</td><td class="memItemRight"><a class="el" href="#a4a4c5ad4f5d69ed7442fbd396fba0afa">chooseButton</a> (QWidget *parent, const QString &amp;title, const QString &amp;question, const QStringList &amp;choices, int defaultChoice)</td></tr>
 <tr class="memitem:a00d1b9ed44839b3770d89613eef3edd9" id="r_a00d1b9ed44839b3770d89613eef3edd9"><td class="memItemLeft">virtual QString&#160;</td><td class="memItemRight"><a class="el" href="#a00d1b9ed44839b3770d89613eef3edd9">chooseItem</a> (QWidget *parent, const QString &amp;title, const QString &amp;label, const QStringList &amp;items)</td></tr>
 <tr class="memitem:a573969fb7e17e27e0236f25fa7e5292d" id="r_a573969fb7e17e27e0236f25fa7e5292d"><td class="memItemLeft">virtual std::optional&lt; QString &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a573969fb7e17e27e0236f25fa7e5292d">askText</a> (QWidget *parent, const QString &amp;title, const QString &amp;label, const QString &amp;text={})</td></tr>
+<tr class="memitem:aff28540497be426cde7b7c3411a83ad8" id="r_aff28540497be426cde7b7c3411a83ad8"><td class="memItemLeft">virtual std::optional&lt; QStringList &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aff28540497be426cde7b7c3411a83ad8">chooseItems</a> (QWidget *parent, const QString &amp;title, const QString &amp;context, const std::vector&lt; <a class="el" href="struct_user_prompts_1_1_list_choice.html">ListChoice</a> &gt; &amp;choices, const QStringList &amp;checked)</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The messages and questions that the editors put to the user. A panel gets one from the window, and a test replaces the virtual functions to answer without a dialog. </p>
@@ -304,6 +310,56 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 <p>One of <span class="tt">items</span>, for example the id of a rolling stock unit; empty when the user cancels. It asks also in a suppressed run. The dialog is wide enough for its window title, within the screen. </p>
+
+</div>
+</div>
+<a id="aff28540497be426cde7b7c3411a83ad8" name="aff28540497be426cde7b7c3411a83ad8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aff28540497be426cde7b7c3411a83ad8">&#9670;&#160;</a></span>chooseItems()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual std::optional&lt; QStringList &gt; UserPrompts::chooseItems </td>
+          <td>(</td>
+          <td class="paramtype">QWidget *</td>          <td class="paramname"><span class="paramname"><em>parent</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>title</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_user_prompts_1_1_list_choice.html">ListChoice</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>choices</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QStringList &amp;</td>          <td class="paramname"><span class="paramname"><em>checked</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Several of <span class="tt">choices</span> from a list with a check box for each entry and a filter field above it, which shows the entries that hold every word typed, in any case. <span class="tt">context</span> is the line under the title. <span class="tt">checked</span> lists the ids that are checked at the start. Returns the ids of the checked entries in the order of <span class="tt">choices</span>, or std::nullopt when the user cancels. It asks also in a suppressed run. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_user_prompts_aff28540497be426cde7b7c3411a83ad8_cgraph.svg" width="854" height="192"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
