@@ -1,5 +1,14 @@
 var NAVTREEINDEX26 =
 {
+"struct_section_reference_part.html":[2,0,294],
+"struct_section_reference_part.html#a13cfa1e5c68c74c4c34fa487c7523233":[2,0,294,2],
+"struct_section_reference_part.html#a1aa36bf937271d5c28a3119acca8ae61":[2,0,294,0],
+"struct_section_reference_part.html#accf06dd6b86b0b8adc9a856698fb115a":[2,0,294,1],
+"struct_self_update_capability.html":[2,0,297],
+"struct_self_update_capability.html#a58edf952c89abf3601cdc0c682a016b1":[2,0,297,4],
+"struct_self_update_capability.html#a67dc139f320fa0a970de555febd00535":[2,0,297,2],
+"struct_self_update_capability.html#ab369045325e2f2f4a93e5b87e5bb916d":[2,0,297,5],
+"struct_self_update_capability.html#abbfe9ad52a1e7a6114606649717ccbbf":[2,0,297,0],
 "struct_self_update_capability.html#ad04c2f84c38e744a4378d3f4174d622b":[2,0,297,1],
 "struct_self_update_capability.html#add7252647dc3654efa5d7c099066fc9b":[2,0,297,6],
 "struct_self_update_capability.html#aecc43cdbf1f461ec131953fe80f0e129":[2,0,297,3],
@@ -240,14 +249,5 @@ var NAVTREEINDEX26 =
 "struct_train_1_1_backward_braking_arc_cursor.html#a54de44a95ac9cadef7186db3636d0713":[2,0,346,1,4],
 "struct_train_1_1_backward_braking_arc_cursor.html#a613d11bd1a71875136978b58f68829f8":[2,0,346,1,0],
 "struct_train_1_1_backward_braking_arc_cursor.html#a72eb10ff954eae3c6261db3b5c6d9c06":[2,0,346,1,3],
-"struct_train_1_1_backward_braking_arc_cursor.html#aada328468a1bbcf5c36024b70aa97788":[2,0,346,1,1],
-"struct_train_1_1_backward_braking_arc_cursor.html#af74ccf0fbc39e009bda0a6b2baf9e305":[2,0,346,1,2],
-"struct_train_1_1_braking_arc_cursor.html":[2,0,346,0],
-"struct_train_1_1_braking_arc_cursor.html#a34c2af035d590de6e1d94a0589d91e19":[2,0,346,0,0],
-"struct_train_1_1_braking_arc_cursor.html#a7ed5b43360f8a5af4d9792b51a2f44c4":[2,0,346,0,5],
-"struct_train_1_1_braking_arc_cursor.html#a8e84a6dec5b1e83a0af20bc2b785e714":[2,0,346,0,2],
-"struct_train_1_1_braking_arc_cursor.html#aad9c5724afd55dbcf13a09c8800d974a":[2,0,346,0,3],
-"struct_train_1_1_braking_arc_cursor.html#ac6771dda22432d499fb1acfc435f465b":[2,0,346,0,1],
-"struct_train_1_1_braking_arc_cursor.html#ac86d934bcd47cb1f9a030a7c790bb071":[2,0,346,0,4],
-"struct_train_colour_input.html":[2,0,349]
+"struct_train_1_1_backward_braking_arc_cursor.html#aada328468a1bbcf5c36024b70aa97788":[2,0,346,1,1]
 };

@@ -339,6 +339,7 @@ var hierarchy =
     [ "RouteProjections", "struct_route_projections.html", null ],
     [ "RouteReferenceChoice", "struct_route_reference_choice.html", null ],
     [ "RouteStation", "struct_route_station.html", null ],
+    [ "InfrastructurePanel::RowTarget", "struct_infrastructure_panel_1_1_row_target.html", null ],
     [ "RunCommand", "struct_run_command.html", null ],
     [ "PlaybackProfiler::RunConfig", "struct_playback_profiler_1_1_run_config.html", null ],
     [ "RunControl", "class_run_control.html", null ],

@@ -1,5 +1,6 @@
 var class_infrastructure_panel =
 [
+    [ "RowTarget", "struct_infrastructure_panel_1_1_row_target.html", "struct_infrastructure_panel_1_1_row_target" ],
     [ "CellDelegate", "class_infrastructure_panel_1_1_cell_delegate.html", "class_infrastructure_panel_1_1_cell_delegate" ],
     [ "InfrastructurePanel", "class_infrastructure_panel.html#a4aa7f19138992c4380f878819b623969", null ],
     [ "addButton", "class_infrastructure_panel.html#af07cdb6e38d3e5f090449110e3fbb225", null ],
@@ -48,6 +49,7 @@ var class_infrastructure_panel =
     [ "sectionLabel", "class_infrastructure_panel.html#ac5d00aae72c6711b880e3fb25f64f90b", null ],
     [ "selectCanvasItem", "class_infrastructure_panel.html#ad85b2c876398b024843b4395099916fc", null ],
     [ "selectedRouteSection", "class_infrastructure_panel.html#a242281619a73c633c0c7a89419879025", null ],
+    [ "selectEntity", "class_infrastructure_panel.html#ab53f0c64ac518e5a3258bdf5d8a39511", null ],
     [ "selectionChanged", "class_infrastructure_panel.html#a9b4bd64176552b66de1c20d4e5dec616", null ],
     [ "selectionId", "class_infrastructure_panel.html#a48e660dd5588d81e184553cff6545be8", null ],
     [ "setFacet", "class_infrastructure_panel.html#ac49a032fde9d388f6331f1f409eca5a2", null ],

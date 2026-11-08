@@ -137,6 +137,7 @@ Signals</h2></td></tr>
 <tr class="memdesc:a0276d0961cd849d8dbae4fda9b247df1"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="#aa32685c968df1b6ac1a6b3f6a08fac51">refresh()</a> has written the table, the status and the tree. What depends on the diagnostics follows.  <br /></td></tr>
 <tr class="memitem:a27443c73bf76a8d7726938f1339f0ca6" id="r_a27443c73bf76a8d7726938f1339f0ca6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a27443c73bf76a8d7726938f1339f0ca6">targetActivated</a> (const QString &amp;targetType, QTreeWidgetItem *item)</td></tr>
 <tr class="memdesc:a27443c73bf76a8d7726938f1339f0ca6"><td class="mdescLeft">&#160;</td><td class="mdescRight">A row of the tree with this kind was activated. The tree owns <span class="tt">item</span>.  <br /></td></tr>
+<tr class="memitem:aaedae85282fa7d3cc94c6b3e510c7517" id="r_aaedae85282fa7d3cc94c6b3e510c7517"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aaedae85282fa7d3cc94c6b3e510c7517">itemActivated</a> (const QString &amp;itemType, const QString &amp;itemId)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -163,6 +164,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a0d0c549b58d1239e173dfaff5bb0b16e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes the status from the diagnostics again, and shows the table and the tree as advanced details now say.  <br /></td></tr>
 <tr class="memitem:af865cff10dca3de09804499268e7bde5" id="r_af865cff10dca3de09804499268e7bde5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af865cff10dca3de09804499268e7bde5">activateItem</a> (QTreeWidgetItem *item)</td></tr>
 <tr class="memdesc:af865cff10dca3de09804499268e7bde5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Emits <a class="el" href="#a27443c73bf76a8d7726938f1339f0ca6" title="A row of the tree with this kind was activated. The tree owns item.">targetActivated()</a> for a row of the tree that has a kind.  <br /></td></tr>
+<tr class="memitem:a8e76a70fe027fb78bc83c605d2f89b52" id="r_a8e76a70fe027fb78bc83c605d2f89b52"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8e76a70fe027fb78bc83c605d2f89b52">activateRow</a> (int row)</td></tr>
+<tr class="memdesc:a8e76a70fe027fb78bc83c605d2f89b52"><td class="mdescLeft">&#160;</td><td class="mdescRight">Emits <a class="el" href="#aaedae85282fa7d3cc94c6b3e510c7517">itemActivated()</a> for a row of the table whose diagnostic has an item; a row without one does nothing.  <br /></td></tr>
 <tr class="memitem:a7e8d663c49c1fc8c80c5fdea5450da6f" id="r_a7e8d663c49c1fc8c80c5fdea5450da6f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7e8d663c49c1fc8c80c5fdea5450da6f">selectDiagnosticOfFile</a> (const QString &amp;file)</td></tr>
 <tr class="memdesc:a7e8d663c49c1fc8c80c5fdea5450da6f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects the first row of the table that belongs to this scene file.  <br /></td></tr>
 </table><table class="memberdecls">
@@ -175,6 +178,9 @@ Static Public Attributes</h2></td></tr>
 <tr class="memitem:a0b77ddaed7546541308878eddf19968b" id="r_a0b77ddaed7546541308878eddf19968b"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a0b77ddaed7546541308878eddf19968b">kTargetTypeRole</a></td></tr>
 <tr class="memitem:a5b3420b159c5af238ca5301657656e58" id="r_a5b3420b159c5af238ca5301657656e58"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a5b3420b159c5af238ca5301657656e58">kFileRole</a></td></tr>
 <tr class="memdesc:a5b3420b159c5af238ca5301657656e58"><td class="mdescLeft">&#160;</td><td class="mdescRight">The item data role of the scene file of a diagnostic, on the first cell of its row in the table.  <br /></td></tr>
+<tr class="memitem:a3ac7264c2d8f689d4000bf7ec3d5644c" id="r_a3ac7264c2d8f689d4000bf7ec3d5644c"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a3ac7264c2d8f689d4000bf7ec3d5644c">kItemTypeRole</a></td></tr>
+<tr class="memitem:a82b84dd77a52d4a4617a87027ff97e91" id="r_a82b84dd77a52d4a4617a87027ff97e91"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a82b84dd77a52d4a4617a87027ff97e91">kItemIdRole</a></td></tr>
+<tr class="memdesc:a82b84dd77a52d4a4617a87027ff97e91"><td class="mdescLeft">&#160;</td><td class="mdescRight">The item data role of the id of the item of a diagnostic (<a class="el" href="struct_scene_diagnostic.html#a64c53ec3aa3d61dd220239c8080d7066" title="Id of the affected item; empty if none.">SceneDiagnostic::itemId</a>), on the same cell.  <br /></td></tr>
 <tr class="memitem:ab6efcf29fbd25f3899852f857b9b310a" id="r_ab6efcf29fbd25f3899852f857b9b310a"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ab6efcf29fbd25f3899852f857b9b310a">kTreeTextColumnWidth</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -207,7 +213,7 @@ Static Public Attributes</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_validation_panel_a7732f66ad0f2206d81d1646ca89c9fcf_cgraph.svg" width="744" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_validation_panel_a7732f66ad0f2206d81d1646ca89c9fcf_cgraph.svg" width="744" height="91"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -234,6 +240,60 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_validation_panel_af865cff10dca3de09804499268e7bde5_cgraph.svg" width="502" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a8e76a70fe027fb78bc83c605d2f89b52" name="a8e76a70fe027fb78bc83c605d2f89b52"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8e76a70fe027fb78bc83c605d2f89b52">&#9670;&#160;</a></span>activateRow()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ValidationPanel::activateRow </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>row</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Emits <a class="el" href="#aaedae85282fa7d3cc94c6b3e510c7517">itemActivated()</a> for a row of the table whose diagnostic has an item; a row without one does nothing. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_validation_panel_a8e76a70fe027fb78bc83c605d2f89b52_cgraph.svg" width="491" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aaedae85282fa7d3cc94c6b3e510c7517" name="aaedae85282fa7d3cc94c6b3e510c7517"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaedae85282fa7d3cc94c6b3e510c7517">&#9670;&#160;</a></span>itemActivated</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ValidationPanel::itemActivated </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>itemType</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>itemId</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>A row of the table whose diagnostic names an item was activated, by a double-click or Return. <span class="tt">itemType</span> is the kind of the item, such as "arc", and is empty when the diagnostic gives none. </p>
 
 </div>
 </div>
@@ -668,6 +728,53 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The item data role of the scene file of a diagnostic, on the first cell of its row in the table. </p>
+
+</div>
+</div>
+<a id="a82b84dd77a52d4a4617a87027ff97e91" name="a82b84dd77a52d4a4617a87027ff97e91"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a82b84dd77a52d4a4617a87027ff97e91">&#9670;&#160;</a></span>kItemIdRole</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int ValidationPanel::kItemIdRole</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The item data role of the id of the item of a diagnostic (<a class="el" href="struct_scene_diagnostic.html#a64c53ec3aa3d61dd220239c8080d7066" title="Id of the affected item; empty if none.">SceneDiagnostic::itemId</a>), on the same cell. </p>
+
+</div>
+</div>
+<a id="a3ac7264c2d8f689d4000bf7ec3d5644c" name="a3ac7264c2d8f689d4000bf7ec3d5644c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3ac7264c2d8f689d4000bf7ec3d5644c">&#9670;&#160;</a></span>kItemTypeRole</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int ValidationPanel::kItemTypeRole</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The item data role of the kind of the item of a diagnostic (<a class="el" href="struct_scene_diagnostic.html#a348e9a26f09de9a1085ab7ae475197ee" title="Kind of item: &quot;service&quot;, &quot;station&quot;, &quot;stop&quot;, &quot;incident&quot; and so on; empty if none.">SceneDiagnostic::itemType</a>), on the first cell of its row in the table. </p>
 
 </div>
 </div>

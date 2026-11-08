@@ -1,5 +1,10 @@
 var NAVTREEINDEX19 =
 {
+"functions_func_p.html":[2,3,1,15],
+"functions_func_q.html":[2,3,1,16],
+"functions_func_r.html":[2,3,1,17],
+"functions_func_s.html":[2,3,1,18],
+"functions_func_t.html":[2,3,1,19],
 "functions_func_u.html":[2,3,1,20],
 "functions_func_v.html":[2,3,1,21],
 "functions_func_w.html":[2,3,1,22],
@@ -244,10 +249,5 @@ var NAVTREEINDEX19 =
 "namespacecsv.html#aba9d7f2dca2f249d831ceaa611460c5a":[1,0,2,2],
 "namespacecsv.html#ac42a140daf21e33ead22383e2cc7cc21":[1,0,2,0],
 "namespacecsv.html#acd91ce7525c4a083534a804c9fcc18c9":[1,0,2,3],
-"namespacedialog__folders.html":[1,0,3],
-"namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb":[1,0,3,1],
-"namespacedialog__folders.html#a4c2f846210d5f53a8896ee6ce164d79d":[1,0,3,5],
-"namespacedialog__folders.html#a660745ee767a30562004b68d9628d43a":[1,0,3,6],
-"namespacedialog__folders.html#a67c6efa24fd00113d4923d693077c716":[1,0,3,8],
-"namespacedialog__folders.html#a743abe238a3901e58b6b21d034570fa3":[1,0,3,7]
+"namespacedialog__folders.html":[1,0,3]
 };

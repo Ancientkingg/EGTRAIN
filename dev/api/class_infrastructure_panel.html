@@ -126,6 +126,7 @@ Collaboration diagram for InfrastructurePanel:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:RowTarget" id="r_RowTarget"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_infrastructure_panel_1_1_row_target.html">RowTarget</a></td></tr>
 <tr class="memitem:CellDelegate" id="r_CellDelegate"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_infrastructure_panel_1_1_cell_delegate.html">CellDelegate</a></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
@@ -154,6 +155,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aa5c4d490988f68fa3f7085752c78e400" id="r_aa5c4d490988f68fa3f7085752c78e400"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa5c4d490988f68fa3f7085752c78e400">updateSelection</a> ()</td></tr>
 <tr class="memdesc:aa5c4d490988f68fa3f7085752c78e400"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the selected row as the selection, tells selectionChanged, and shows the controls that depend on it.  <br /></td></tr>
 <tr class="memitem:ad85b2c876398b024843b4395099916fc" id="r_ad85b2c876398b024843b4395099916fc"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad85b2c876398b024843b4395099916fc">selectCanvasItem</a> (const QString &amp;kind, const QString &amp;id, const QString &amp;platform=QString())</td></tr>
+<tr class="memitem:ab53f0c64ac518e5a3258bdf5d8a39511" id="r_ab53f0c64ac518e5a3258bdf5d8a39511"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab53f0c64ac518e5a3258bdf5d8a39511">selectEntity</a> (const QString &amp;kind, const QString &amp;id)</td></tr>
 <tr class="memitem:a372635fb6d8c1c16b14aa9489d21c5f8" id="r_a372635fb6d8c1c16b14aa9489d21c5f8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a372635fb6d8c1c16b14aa9489d21c5f8">refreshBlockTrackFilter</a> ()</td></tr>
 <tr class="memdesc:a372635fb6d8c1c16b14aa9489d21c5f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lists the tracks that blocks can be filtered on again and keeps the chosen track where it still exists.  <br /></td></tr>
 <tr class="memitem:a1cdddd1de7b9b429003b2c6dd9a313f2" id="r_a1cdddd1de7b9b429003b2c6dd9a313f2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1cdddd1de7b9b429003b2c6dd9a313f2">commitCell</a> (int row, int column)</td></tr>
@@ -1506,11 +1508,6 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>Selects the row of the entity that an item of the track preview stands for and scrolls the table to it, choosing its kind in the combo first and clearing a filter that hides the row. <span class="tt">kind</span> and <span class="tt">id</span> are the kind and the id of the item (<a class="el" href="namespace_preview_graphics.html#ab5c908dfa3c9a1a5664ac8a95369fa1faa815b6293885dc7adc9fd0a989eca7cf" title="The kind of item: &quot;track&quot;, &quot;arc&quot;, &quot;connection&quot;, &quot;node&quot;, &quot;station-node&quot;, &quot;station&quot; or &quot;signal&quot;.">PreviewGraphics::Kind</a> and Id), and <span class="tt">platform</span> is the platform of a station node (<a class="el" href="namespace_preview_graphics.html#ab5c908dfa3c9a1a5664ac8a95369fa1fa3fafc5355ebbaefacf9c83c15618249d" title="On a station node: the id of its platform, empty without one.">PreviewGraphics::PlatformId</a>). A node, a track, an arc, a connection and a station are rows of their own kind. A station node is the row of its platform under Platforms, or its row under Nodes when it has no platform. A signal head names a section, and is the row of the block of that section under Blocks, whose track the filter then shows. The cells that are being edited are taken first (<a class="el" href="#a97abf3cc2e21bd76b6cd282d75da1176">commitPendingEditors()</a>). selectionChanged is told once, or not at all when the row was selected already. Returns false and changes nothing while the scene cannot be edited, and for an item of another kind or whose entity the scene does not have. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_ad85b2c876398b024843b4395099916fc_cgraph.svg" width="1116" height="980"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 
 </div>
 </div>
@@ -1529,6 +1526,33 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>For a route, the index into <a class="el" href="struct_scene_route.html#a4f041d5160784ae07f00fda35a0c67ed" title="Section references in travel order.">SceneRoute::blocks</a> of the section selected under <a class="el" href="class_route.html">Route</a> sections; -1 for another kind of entity and without one. </p>
+
+</div>
+</div>
+<a id="ab53f0c64ac518e5a3258bdf5d8a39511" name="ab53f0c64ac518e5a3258bdf5d8a39511"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab53f0c64ac518e5a3258bdf5d8a39511">&#9670;&#160;</a></span>selectEntity()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool InfrastructurePanel::selectEntity </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>kind</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>id</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Selects the row of the entity that a diagnostic names (<a class="el" href="struct_scene_diagnostic.html#a348e9a26f09de9a1085ab7ae475197ee" title="Kind of item: &quot;service&quot;, &quot;station&quot;, &quot;stop&quot;, &quot;incident&quot; and so on; empty if none.">SceneDiagnostic::itemType</a> and itemId), as <a class="el" href="#ad85b2c876398b024843b4395099916fc">selectCanvasItem()</a> does for an item of the preview. <span class="tt">kind</span> is a node, a track, an arc, a connection, a station, a block (its track filter then shows the track of the block), a signal by its id, a signalling area or a route. Returns false and changes nothing while the scene cannot be edited, and for another kind or an entity that the scene does not have. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_ab53f0c64ac518e5a3258bdf5d8a39511_cgraph.svg" width="310" height="71"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>

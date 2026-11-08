@@ -1,5 +1,14 @@
 var NAVTREEINDEX27 =
 {
+"struct_train_1_1_backward_braking_arc_cursor.html#af74ccf0fbc39e009bda0a6b2baf9e305":[2,0,346,1,2],
+"struct_train_1_1_braking_arc_cursor.html":[2,0,346,0],
+"struct_train_1_1_braking_arc_cursor.html#a34c2af035d590de6e1d94a0589d91e19":[2,0,346,0,0],
+"struct_train_1_1_braking_arc_cursor.html#a7ed5b43360f8a5af4d9792b51a2f44c4":[2,0,346,0,5],
+"struct_train_1_1_braking_arc_cursor.html#a8e84a6dec5b1e83a0af20bc2b785e714":[2,0,346,0,2],
+"struct_train_1_1_braking_arc_cursor.html#aad9c5724afd55dbcf13a09c8800d974a":[2,0,346,0,3],
+"struct_train_1_1_braking_arc_cursor.html#ac6771dda22432d499fb1acfc435f465b":[2,0,346,0,1],
+"struct_train_1_1_braking_arc_cursor.html#ac86d934bcd47cb1f9a030a7c790bb071":[2,0,346,0,4],
+"struct_train_colour_input.html":[2,0,349],
 "struct_train_colour_input.html#a3b5e36d3bb7f276bad0b430a5e977402":[2,0,349,1],
 "struct_train_colour_input.html#a5a601b9ce6b320986fc6a30b22edc81a":[2,0,349,3],
 "struct_train_colour_input.html#a912bb61cf5316a2906d98743559acc3d":[2,0,349,2],

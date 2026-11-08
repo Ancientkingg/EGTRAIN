@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['facet_0',['facet',['../class_infrastructure_panel.html#a1ede3387c827781076354d8e8b2d4173',1,'InfrastructurePanel']]],
+  ['facet_0',['facet',['../struct_infrastructure_panel_1_1_row_target.html#a09f35086da2ed5b3c47451092f6b6e24',1,'InfrastructurePanel::RowTarget::facet'],['../class_infrastructure_panel.html#a1ede3387c827781076354d8e8b2d4173',1,'InfrastructurePanel::facet(const QString &amp;key) const']]],
   ['facetcombo_1',['facetCombo',['../class_infrastructure_panel.html#a31cb9e682960c3930935790669059c54',1,'InfrastructurePanel']]],
   ['facetkey_2',['facetKey',['../class_infrastructure_panel.html#afb09d53bfc86597cdcee9e0b586e9792',1,'InfrastructurePanel']]],
   ['facetkeys_3',['facetKeys',['../class_infrastructure_panel.html#a93adee461c3c66c05fcbda41214c7b9e',1,'InfrastructurePanel']]],

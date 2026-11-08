@@ -11,9 +11,9 @@
 <!-- Node0 -->
 <g id="Node000000" class="node">
 <title>Node0</title>
-<g id="a_Node000000"><a xlink:href="struct_scene_section_transition.html" target="_top" xlink:title="How two consecutive sections of a route join.">
-<polygon fill="white" stroke="#666666" points="128.5,-20.75 0,-20.75 0,0 128.5,0 128.5,-20.75"/>
-<text xml:space="preserve" text-anchor="middle" x="64.25" y="-7.25" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSectionTransition</text>
+<g id="a_Node000000"><a xlink:href="struct_scene_section_signalling.html" target="_top" xlink:title="What the signalling areas make of one runtime section.">
+<polygon fill="white" stroke="#666666" points="129.25,-20.75 0,-20.75 0,0 129.25,0 129.25,-20.75"/>
+<text xml:space="preserve" text-anchor="middle" x="64.62" y="-7.25" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSectionSignalling</text>
 </a>
 </g>
 </g>

@@ -137,6 +137,7 @@ var searchData=
   ['isvalidsignallinglevel_134',['isValidSignallingLevel',['../_signalling_level_8h.html#a5b63c8badbe1faee2151f54cffa1d4fe',1,'SignallingLevel.h']]],
   ['isvalidtrajectorysample_135',['isValidTrajectorySample',['../_trajectory_util_8cpp.html#afe4ec1b3791e49b8d8c64a911abe693d',1,'isValidTrajectorySample(int index, int activeFirst, int activeLast, int sampleCount, double positionMeters):&#160;TrajectoryUtil.cpp'],['../_trajectory_util_8h.html#afe4ec1b3791e49b8d8c64a911abe693d',1,'isValidTrajectorySample(int index, int activeFirst, int activeLast, int sampleCount, double positionMeters):&#160;TrajectoryUtil.cpp']]],
   ['isvaluefield_136',['isValueField',['../namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91',1,'FocusWheel']]],
-  ['itemlabel_137',['itemLabel',['../_scene_diagnostic_8cpp.html#a3384f3ec4bd60dc07adad600a2a3e5e4',1,'itemLabel(const SceneDiagnostic &amp;d):&#160;SceneDiagnostic.cpp'],['../_scene_diagnostic_8h.html#a3384f3ec4bd60dc07adad600a2a3e5e4',1,'itemLabel(const SceneDiagnostic &amp;d):&#160;SceneDiagnostic.cpp']]],
-  ['iteration_138',['iteration',['../class_startup_timing_trials.html#a1e49dfff360b44af2b32e3af3aa56731',1,'StartupTimingTrials']]]
+  ['itemactivated_137',['itemActivated',['../class_validation_panel.html#aaedae85282fa7d3cc94c6b3e510c7517',1,'ValidationPanel']]],
+  ['itemlabel_138',['itemLabel',['../_scene_diagnostic_8cpp.html#a3384f3ec4bd60dc07adad600a2a3e5e4',1,'itemLabel(const SceneDiagnostic &amp;d):&#160;SceneDiagnostic.cpp'],['../_scene_diagnostic_8h.html#a3384f3ec4bd60dc07adad600a2a3e5e4',1,'itemLabel(const SceneDiagnostic &amp;d):&#160;SceneDiagnostic.cpp']]],
+  ['iteration_139',['iteration',['../class_startup_timing_trials.html#a1e49dfff360b44af2b32e3af3aa56731',1,'StartupTimingTrials']]]
 ];
