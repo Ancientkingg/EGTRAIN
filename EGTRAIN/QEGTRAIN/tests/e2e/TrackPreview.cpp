@@ -742,11 +742,11 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			startCentre = centre();
 
 			// While the dock is disabled, as during a run, a click selects no row.
-			dock->setEnabled(false);
+			dock->widget()->setEnabled(false);
 			told = 0;
 			if (clickInView("node") && (told != 0 || panel->selectionId() != arcRow))
 				fail("infrastructure row", "a click selects a row while the dock is disabled");
-			dock->setEnabled(true);
+			dock->widget()->setEnabled(true);
 			// Nor does a node that the case does not have, and Edit in Infrastructure says that it has no row.
 			if (QGraphicsItem* node = clickInView("node")) {
 				const QString nodeRow = panel->selectionId();

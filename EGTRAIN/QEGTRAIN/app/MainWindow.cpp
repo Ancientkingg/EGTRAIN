@@ -1936,7 +1936,7 @@ void MainWindow::updateSceneActions() {
 	// refreshInfrastructurePanel() does the same for Infrastructure.
 	for (QDockWidget* dock : {m_editorDocks.serviceDock(), m_editorDocks.passengerDock(), m_editorDocks.incidentDock()}) {
 		if (dock)
-			dock->setEnabled(m_document->isLoaded() && !m_runController->running());
+			dock->widget()->setEnabled(m_document->isLoaded() && !m_runController->running());
 	}
 	updateUndoRedoActions();
 	updateDiagramActions();
@@ -2256,7 +2256,7 @@ void MainWindow::commitCaseSettings() {
 }
 
 void MainWindow::refreshInfrastructurePanel(bool resetSelection) {
-	m_editorDocks.infrastructureDock()->setEnabled(m_document->isLoaded() && !m_runController->running());
+	m_editorDocks.infrastructureDock()->widget()->setEnabled(m_document->isLoaded() && !m_runController->running());
 	m_editorDocks.infrastructurePanel()->refresh(resetSelection);
 }
 
@@ -2293,7 +2293,7 @@ void MainWindow::infrastructureDockShown(bool shown) {
 
 void MainWindow::selectInfrastructureRow(QGraphicsItem* item, bool reveal) {
 	QDockWidget* dock = m_editorDocks.infrastructureDock();
-	if (!item || !m_showingTrackPreview || m_snapshot || !dock || !dock->isEnabled())
+	if (!item || !m_showingTrackPreview || m_snapshot || !dock || !dock->widget()->isEnabled())
 		return;
 	const QString kind = item->data(PreviewGraphics::Kind).toString();
 	const QString id = item->data(PreviewGraphics::Id).toString();
@@ -2981,7 +2981,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 			addIncidentEntry(menu, "signal", target, why);
 		}
 		QAction* edit = menu->addAction("Edit in Infrastructure");
-		edit->setEnabled(m_editorDocks.infrastructureDock()->isEnabled());
+		edit->setEnabled(m_editorDocks.infrastructureDock()->widget()->isEnabled());
 		connect(edit, &QAction::triggered, this, [this, resolve]() {
 			if (auto* current = resolve())
 				selectInfrastructureRow(current, true);
