@@ -42,13 +42,18 @@ have positive width, be ordered, and not overlap.
 The label under **Link File...** shows the state of the link. **Unlinked**
 means no file is linked. A linked file that exists shows `Linked: <file name>`,
 **Up to date** or **Reloaded**, `Not loaded: <reason>` when it cannot be read,
-or **Kept your edits** after Keep Edits. A reload or a retry that has not
-finished shows **Linked** or **Retrying**, and during a run
-**Linked. Loads after the run** or **Retries after the run**.
-`File not found: <path>` replaces all of these when the linked file does not
-exist, also after Keep Edits. It shows the path of the file, and **Retry** stays
-available. A conflict between local edits and a changed file is a question, not
-a label: it asks for Reload or Keep Edits.
+or **Kept your edits** after **Keep Edits** or **Keep Current**. A reload or a
+retry that has not finished shows **Linked** or **Retrying**, and during a run
+**Linked. Loads after the run**, **Retries after the run** or
+**Changed. Reloads after the run**. `File not found: <path>` replaces all of
+these when the linked file does not exist, also after **Keep Edits** or
+**Keep Current**. It shows the path of the file, and **Retry** stays
+available. A conflict between local edits and a changed file is a question,
+not a label: the box **Linked File Changed** asks for **Reload** or
+**Keep Edits**. A file that changed during a run is asked about when the run
+ends; without local edits the second button reads **Keep Current**. While the
+results of a run are shown, the question adds
+`Reloading discards the results of this run.`
 
 Each linked update is applied only after the complete candidate validates.
 Malformed or missing content leaves accepted values unchanged and keeps

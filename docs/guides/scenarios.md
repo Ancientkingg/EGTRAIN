@@ -86,9 +86,8 @@ every step of its glide. At Fit the view stays where it is; zoom in to follow th
 A train that has just appeared, that runs backwards, or that
 has moved further than the visible area since the last update moves to its new position
 at once. In the replay of a completed
-run the trains and the view move at once at every seek and every step of the playback,
-because the replay holds a frame every five seconds and a glide would show motion that
-was not recorded. Switching Follow on and choosing another train also move the view at
+run the trains and the view move at once at every seek. While the replay plays, the trains glide
+from one shown second to the next and the view stays on the followed train. Switching Follow on and choosing another train also move the view at
 once. Dragging the canvas, zooming with the wheel or a pinch and resizing the window do
 not switch Follow off. While you hold the drag, scroll or pinch, the view stays where you
 put it; in a live run it returns to the train after you let go, smoothly over less than
@@ -100,7 +99,7 @@ switching the Trains layer off stop the view where it is.
 
 Click a track, connection, node, station, signal, train or passenger on the
 canvas to select it, in the preview as well as during a run. The matching
-inspector opens, or for a passenger a box of its details above it, and a light
+inspector opens, or for a passenger a box of its details above it (below it when the passenger is near the top of the view), and a light
 blue ring marks the item. Its title names the item: `Node <id>`, `Station <id>`,
 `Arc <id>`, `Track <id>`, `Connection <id>` or `Signal <label>` in the preview, and
 `Node <id>`, `Station <name>`, `Arc <id>`, `Connection`, `Signal` or `Train <name>`

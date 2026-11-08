@@ -60,6 +60,16 @@ F1 opens the section of the manual about the window you are in, when the manual 
 | Return or Enter | Go to the chosen match |
 | Esc | Close the box |
 
+## Network view
+
+While the network view has the keyboard focus:
+
+| Key | Effect |
+| --- | --- |
+| Shift+F10 (⇧F10 on macOS), or the Menu key | Open the context menu of the selected item, or of the empty view when nothing is selected |
+
+Mac keyboards have no Menu key; use ⇧F10 there.
+
 ## Dialogs
 
 Esc closes a dialog as its cancel button does. Return or Enter presses the default button, which these dialogs set. On macOS a message box shows no title, only its question. The table names such a box by the title that Windows and Linux show, except the update question.
@@ -77,8 +87,8 @@ Esc closes a dialog as its cancel button does. Return or Enter presses the defau
 | **Save As** | **Case Folder...** when the open case is a case folder; otherwise **Case File...** | **Cancel** |
 | **Save Case As Folder** | **No** | **No** |
 | **Check for EGTRAIN updates automatically?** | **Check Automatically** | **Don't Check Automatically** |
-| EGTRAIN *version* Is Available | **Update and Restart** when EGTRAIN can update itself; otherwise **Open Release Page** | **Later** |
-| **Linked File Changed** | **Keep Edits** | **Keep Edits** |
+| **EGTRAIN Update** | **Update and Restart** when EGTRAIN can update itself; otherwise **Open Release Page** | **Later** |
+| **Linked File Changed** | **Keep Edits**, or **Keep Current** without local edits | **Keep Edits**, or **Keep Current** without local edits |
 
 ## Result windows
 
