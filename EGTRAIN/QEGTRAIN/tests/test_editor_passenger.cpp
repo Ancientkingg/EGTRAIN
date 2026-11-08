@@ -251,6 +251,7 @@ private slots:
 	void showsNothingWithoutScene();
 	void showsNewScene();
 	void selectsPassengersAndJourneys();
+	void windowsSayTheirZeroPoint();
 	void selectsEntityById();
 	void editsAddsAndDeletesPassengers();
 	void editsJourneys();
@@ -352,6 +353,13 @@ void TestPassengerPanel::showsNewScene() {
 	QVERIFY(f.events.log.empty());
 	QVERIFY(!f.document.isDirty());
 	QCOMPARE(f.document.revision(), quint64(1));
+}
+
+// The four time windows of a journey say that they count from midnight.
+void TestPassengerPanel::windowsSayTheirZeroPoint() {
+	PassengerFixture f;
+	for (const QDoubleSpinBox* edit : f.panel.journeyWindowEdits())
+		QCOMPARE(edit->toolTip(), "Seconds from midnight, not from the base time of the case.");
 }
 
 void TestPassengerPanel::selectsPassengersAndJourneys() {

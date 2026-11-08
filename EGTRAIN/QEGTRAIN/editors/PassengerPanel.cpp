@@ -230,6 +230,8 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 		edit->setDecimals(std::numeric_limits<double>::max_digits10);
 		edit->setSingleStep(1.0);
 		edit->setKeyboardTracking(false);
+		// The incident times of a scenario count from the base time instead.
+		edit->setToolTip(QStringLiteral("Seconds from midnight, not from the base time of the case."));
 		m_journeyWindowEdits[index] = edit;
 		journeyForm->addRow(windowFields[index].first, edit);
 	}

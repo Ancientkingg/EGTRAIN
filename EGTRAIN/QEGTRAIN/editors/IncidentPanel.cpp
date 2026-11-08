@@ -134,11 +134,15 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	targetLayout->addWidget(m_targetCombo, 1);
 	targetLayout->addWidget(m_pickTargetButton);
 	detailLayout->addRow(targetLabel, targetLayout);
+	// The journey times of passengers count from midnight instead.
+	const QString afterBaseTime = QStringLiteral("Seconds after the base time of the case.");
 	m_startSecondsEdit = exactNumberEdit("incidentStartSecondsEdit", detailPane);
+	m_startSecondsEdit->setToolTip(afterBaseTime);
 	detailLayout->addRow("Start (s)", m_startSecondsEdit);
 	m_hasEndSecondsCheck = new QCheckBox("End (s)", detailPane);
 	m_hasEndSecondsCheck->setObjectName("incidentHasEndSecondsCheck");
 	m_endSecondsEdit = exactNumberEdit("incidentEndSecondsEdit", detailPane);
+	m_endSecondsEdit->setToolTip(afterBaseTime);
 	m_endSecondsEdit->setAccessibleName("End (s)");
 	detailLayout->addRow(m_hasEndSecondsCheck, m_endSecondsEdit);
 	m_hasReducedSpeedCheck = new QCheckBox("Reduced speed", detailPane);

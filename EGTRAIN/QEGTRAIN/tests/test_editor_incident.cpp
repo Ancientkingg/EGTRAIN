@@ -235,6 +235,7 @@ private slots:
 	void showsNothingWithoutScene();
 	void showsIncidentsOfScenario();
 	void showsBreakdown();
+	void timesSayTheirZeroPoint();
 	void endTipFitsType();
 	void showsIncidentReadOnlyDuringRun();
 	void typeDecidesTargets();
@@ -492,6 +493,13 @@ void TestIncidentPanel::endTipFitsType() {
 	panel.listWidget()->setCurrentRow(1);
 	QCOMPARE(panel.typeCombo()->currentData().toString(), "train_breakdown");
 	QCOMPARE(panel.hasEndSecondsCheck()->toolTip(), "Leave off to keep a slowed train slow until its destination.");
+}
+
+// The start and end of an incident say that they count from the base time of the case.
+void TestIncidentPanel::timesSayTheirZeroPoint() {
+	IncidentFixture f;
+	QCOMPARE(f.panel.startSecondsEdit()->toolTip(), "Seconds after the base time of the case.");
+	QCOMPARE(f.panel.endSecondsEdit()->toolTip(), "Seconds after the base time of the case.");
 }
 
 void TestIncidentPanel::showsBreakdown() {
