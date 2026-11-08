@@ -3342,6 +3342,8 @@ void MainWindow::showEvent(QShowEvent* e) {
 		reportInstallerUpdate(this);
 		reportInPlaceUpdate(this);
 		m_updateTelemetry->maybePromptForUpdateChecks();
+		if (const auto& afterStartup = mainWindowTestHooks().afterStartup)
+			afterStartup(*this);
 	};
 #ifdef Q_OS_MACOS
 	// Finder hands over the file that started the program as an open event, and that event reaches

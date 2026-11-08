@@ -408,14 +408,14 @@ void MainWindowTestAccess::connectRunSignals(MainWindow& w) {
 #endif
 }
 
-// Starts the run of the case 1.5 s after the first show when QEGTRAIN_AUTOSTART is set, unless the playback profiler starts
-// it. A run with QEGTRAIN_E2E_PAUSE_STEPS goes at almost full speed.
+// Starts the run of the case when the startup has finished (afterStartup) when QEGTRAIN_AUTOSTART is set, unless the playback
+// profiler starts it. A run with QEGTRAIN_E2E_PAUSE_STEPS goes at almost full speed.
 void MainWindowTestAccess::autostart(MainWindow& w) {
 	if (qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART") && !PlaybackProfiler::enabled()) {
 #ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
 		if (!qEnvironmentVariableIsSet("QEGTRAIN_E2E_TELEMETRY_SMOKE"))
 #endif
-			QTimer::singleShot(1500, w.m_runController, &RunController::runCurrent);
+			QTimer::singleShot(0, w.m_runController, &RunController::runCurrent);
 	}
 	// At full speed a short run can end before a pause of the signal head check takes effect.
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_PAUSE_STEPS"))

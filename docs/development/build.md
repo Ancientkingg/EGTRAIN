@@ -296,7 +296,8 @@ no C++ file in `tests/e2e` or `app` prints, such as a misspelt name. That check 
 markers are fixtures.
 
 `PostRun.cpp` holds the autostart and the checks that follow a run. With `QEGTRAIN_AUTOSTART`
-set, the runner starts the run of the case 1.5 s after the first show. The hooks
+set, the runner starts the run of the case when the startup of the window has finished (the hook
+`afterStartup`), and the scenarios of `E2ERunner.cpp` start then too. The hooks
 `snapshotDelivered`, `snapshotDrawn`, `runFinished` and `routeDiagramBuilt` of `MainWindowTestHooks`, and
 the slots that `connectRunSignals` connects to the `refreshed` signal of `RunResultsDock` and the
 `runSettled` signal of `RunController`, call the checks of `QEGTRAIN_E2E_EXPORT_DIR`,

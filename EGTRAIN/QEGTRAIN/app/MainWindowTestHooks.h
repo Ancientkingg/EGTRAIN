@@ -22,6 +22,9 @@ struct MainWindowTestHooks {
 	bool askRunReview = false;
 	/// Called once, at the end of the first showEvent.
 	std::function<void(MainWindow&)> afterFirstShow;
+	/// Called once, at the end of the startup callback that runs after the first show: the recovery offer and the startup
+	/// chooser have closed, so the startup case is loaded and fitted. It does not run when suppressStartupPrompts is set.
+	std::function<void(MainWindow&)> afterStartup;
 	/// Called at the end of every frame that renderSnapshot draws, with whether the frame comes from a replay.
 	/// A plain pointer, so that a normal run pays one test per frame.
 	void (*frameRendered)(MainWindow& window, bool historical) = nullptr;
