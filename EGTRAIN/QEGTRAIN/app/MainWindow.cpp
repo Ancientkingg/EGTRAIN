@@ -2050,6 +2050,7 @@ void MainWindow::sceneDocumentChanged() {
 }
 
 void MainWindow::invalidateAfterSceneChange() {
+	const bool baselineHeld = m_runController->delayBaseline().has_value();
 	if (m_runController->sceneChanged()) {
 		m_validation->refreshLoadedData();
 		updateDiagramActions();
@@ -2060,7 +2061,9 @@ void MainWindow::invalidateAfterSceneChange() {
 			&& statusBar()->currentMessage().startsWith(QLatin1String("Simulation complete"));
 		invalidateRunResults();
 		if (completionShown)
-			statusBar()->showMessage(QStringLiteral("Run results discarded: the case changed."), 8000);
+			statusBar()->showMessage(baselineHeld ? QStringLiteral("Run results discarded and delay baseline cleared: the case changed.")
+												  : QStringLiteral("Run results discarded: the case changed."),
+				8000);
 	}
 	// The first passenger added, or the last one deleted, switches the passengers on or off before the preview redraws.
 	updatePassengerSwitch();

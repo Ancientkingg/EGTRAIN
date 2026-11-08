@@ -1518,6 +1518,22 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			QCoreApplication::exit(2);
 			return;
 		}
+		// A case edit after a run clears the delay baseline. The status bar and the Run Results dock say so, and the dock keeps
+		// saying so for the new results of the edited case.
+		w.m_runController->m_state = RunController::RunState::Completed;
+		w.m_runController->m_delayBaseline = DelayRunSnapshot();
+		w.statusBar()->showMessage(QStringLiteral("Simulation complete"));
+		caseSettingsPanel(w)->descriptionEdit()->setText(QStringLiteral("edited after a run"));
+		w.commitCaseSettings();
+		const QString baselineMessage = w.statusBar()->currentMessage();
+		const QString baselineNote = w.m_runController->delayBaselineState(true).feedback;
+		if (w.m_runController->m_delayBaseline || !baselineMessage.contains(QStringLiteral("delay baseline cleared"))
+			|| baselineNote != QStringLiteral("Baseline cleared: the case changed")) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: after an edit the status bar says '%s' and the baseline note '%s'\n",
+				qPrintable(baselineMessage), qPrintable(baselineNote));
+			QCoreApplication::exit(2);
+			return;
+		}
 		QTimer::singleShot(0, &w, [&w]() {
 			if (w.m_snapshot || simulation.takeSimulationSnapshot()) {
 				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: stale case notification\n");

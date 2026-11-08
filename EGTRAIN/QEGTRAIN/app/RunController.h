@@ -191,7 +191,7 @@ public:
 	/// The run against which Compare delays measures. Empty while none is set.
 	const std::optional<DelayRunSnapshot>& delayBaseline() const { return m_delayBaseline; }
 	/// What the Run Results dock shows and allows about the baseline. `resultsShown` tells whether the dock shows the
-	/// results of a completed run.
+	/// results of a completed run. After an edit cleared the baseline, the feedback says so until a baseline is set.
 	DelayBaselineState delayBaselineState(bool resultsShown) const;
 	/// The completed run as the delay analysis takes it. It has no scenario when no run has completed.
 	DelayRunSnapshot completedDelaySnapshot() const;
