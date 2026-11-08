@@ -480,7 +480,7 @@ RunController::DelayBaselineState RunController::delayBaselineState(bool results
 	// The tooltips of the two buttons say why one is disabled.
 	if (m_delayBaseline)
 		state.feedback = QStringLiteral("Baseline: %1").arg(completedRunContext(m_delayBaseline->provenance));
-	else if (!resultsShown && !m_delayBaselineStatus.isEmpty())
+	else if (!m_delayBaselineStatus.isEmpty())
 		state.feedback = m_delayBaselineStatus;
 	else
 		state.feedback = QStringLiteral("No baseline set");
