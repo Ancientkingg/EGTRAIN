@@ -1,6 +1,7 @@
 #include "scene/SceneReferences.h"
 
 #include "scene/SectionInventory.h"
+#include "scene/SectionReference.h"
 
 #include <algorithm>
 
@@ -19,25 +20,9 @@ void replaceId(std::string& value, const std::string& oldId, const std::string& 
 
 std::vector<std::string> sceneBlockReferenceComponents(const std::string& reference) {
 	std::vector<std::string> components;
-	std::size_t begin = 0;
-	while (begin <= reference.size()) {
-		const std::size_t slash = reference.find('/', begin);
-		std::string part = reference.substr(begin,
-			slash == std::string::npos ? std::string::npos : slash - begin);
-		std::size_t idBegin = 0;
-		std::size_t idEnd = part.find('@');
-		if (!part.empty() && part.front() == '@') {
-			idBegin = 1;
-			idEnd = part.find('@', 1);
-		}
-		if (idEnd == std::string::npos)
-			idEnd = part.size();
-		if (idEnd > idBegin)
-			components.push_back(part.substr(idBegin, idEnd - idBegin));
-		if (slash == std::string::npos)
-			break;
-		begin = slash + 1;
-	}
+	for (const std::string& part : sectionReferenceParts(reference))
+		if (const std::optional<SectionReferencePart> parsed = parseSectionReferencePart(part))
+			components.push_back(parsed->blockId);
 	return components;
 }
 
@@ -47,27 +32,14 @@ std::string sceneRewriteBlockReference(const std::string& reference, const std::
 		return newId;
 
 	std::string rewritten;
-	std::size_t begin = 0;
-	while (begin <= reference.size()) {
-		const std::size_t slash = reference.find('/', begin);
-		std::string part = reference.substr(begin,
-			slash == std::string::npos ? std::string::npos : slash - begin);
-		std::size_t idBegin = 0;
-		std::size_t idEnd = part.find('@');
-		if (!part.empty() && part.front() == '@') {
-			idBegin = 1;
-			idEnd = part.find('@', 1);
-		}
-		if (idEnd == std::string::npos)
-			idEnd = part.size();
-		if (part.substr(idBegin, idEnd - idBegin) == oldId)
-			part.replace(idBegin, idEnd - idBegin, newId);
+	for (std::string part : sectionReferenceParts(reference)) {
+		const std::optional<SectionReferencePart> parsed = parseSectionReferencePart(part);
+		// The block id starts after the '@' of a wrapped part.
+		if (parsed && parsed->blockId == oldId)
+			part.replace(part.front() == '@' ? 1 : 0, oldId.size(), newId);
 		if (!rewritten.empty())
 			rewritten += '/';
 		rewritten += part;
-		if (slash == std::string::npos)
-			break;
-		begin = slash + 1;
 	}
 	return rewritten;
 }

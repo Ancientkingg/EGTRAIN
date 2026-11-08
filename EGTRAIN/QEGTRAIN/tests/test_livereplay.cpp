@@ -3,10 +3,10 @@
 // of a script through a REQ socket from the thread of the run, just before the step that each names,
 // and reads the stream through a SUB socket on another thread.
 //
-//   test_livereplay --fixture DIR --script DIR
+//   test_livereplay
 //
-// The script directory holds JSON-lines files. Each line is {"step": N, "cmd": ..., "args": ...}: the
-// request is sent after step N-1 has run, so the run takes it at the top of step N.
+// The scripts are JSON-lines files in tests/live/commands. Each line is {"step": N, "cmd": ..., "args": ...}:
+// the request is sent after step N-1 has run, so the run takes it at the top of step N.
 //
 // A run that receives only pause, resume and set_delay_ms must give the results of a run that receives
 // nothing: the same files, the same standard output and the same state at every step. A pause here is
@@ -26,7 +26,9 @@
 #endif
 
 #include <QCoreApplication>
+#include <QObject>
 #include <QTemporaryDir>
+#include <QTest>
 
 #include <nlohmann/json.hpp>
 #include <zmq.hpp>
@@ -35,7 +37,6 @@
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
-#include <exception>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -44,6 +45,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -55,15 +57,18 @@ using nlohmann::json;
 namespace fs = std::filesystem;
 using Clock = std::chrono::steady_clock;
 
-// The reader checks from its own thread.
-std::atomic<int> failures{0};
+// The reader checks from its own thread: it records a failure here, and cleanup() fails the slot that
+// recorded one.
+std::mutex recordedMutex;
+std::vector<std::string> recordedFailures;
 
-void check(bool ok, const std::string& what) {
-	if (ok)
-		return;
-	++failures;
-	std::cerr << "failed: " << what << "\n";
+void recordFailure(const std::string& failure) {
+	const std::lock_guard<std::mutex> lock(recordedMutex);
+	recordedFailures.push_back(failure);
 }
+
+const std::string kFixtureDir = EGTRAIN_TEST_SOURCE_DIR "/fixtures/scenes/line";
+const std::string kScriptDir = EGTRAIN_TEST_SOURCE_DIR "/live/commands";
 
 // The fixture is one track of this length (tests/characterization).
 constexpr double kFixtureLengthKm = 16.0;
@@ -227,7 +232,8 @@ private:
 		receiveFor(kStandStillMs);
 		m_statesWhilePaused += states() - before;
 		const json reply = m_requester.ask("reader-resume-" + std::to_string(m_pausesSeen), "resume");
-		check(reply.is_object() && reply.value("status", "") == "accepted", "the reader's resume is accepted: " + reply.dump());
+		if (!reply.is_object() || reply.value("status", "") != "accepted")
+			recordFailure("the reader's resume is accepted: " + reply.dump());
 	}
 
 	void loop() {
@@ -266,13 +272,13 @@ class Stream {
 public:
 	Stream() {
 		if (!m_directory.isValid()) {
-			check(false, "no temporary folder for the stream");
+			m_problem = "no temporary folder for the stream";
 			return;
 		}
 		const fs::path live = fs::path(m_directory.path().toStdString()) / "live";
 		std::string error;
 		if (!simulation.startLive(0, kFrameEvery, true, live, &error)) {
-			check(false, "the live stream does not start: " + error);
+			m_problem = "the live stream does not start: " + error;
 			return;
 		}
 		m_started = true;
@@ -291,6 +297,8 @@ public:
 	Stream& operator=(const Stream&) = delete;
 
 	bool ok() const { return m_started; }
+	// Why the stream did not start, or an empty text.
+	const std::string& problem() const { return m_problem; }
 	Reader& reader() { return *m_reader; }
 	Requester& requester() { return *m_requester; }
 
@@ -301,6 +309,7 @@ private:
 	std::unique_ptr<Reader> m_reader;
 	std::unique_ptr<Requester> m_requester;
 	bool m_started = false;
+	std::string m_problem;
 };
 
 // --- The script ---
@@ -311,7 +320,8 @@ struct Line {
 	json args = nullptr;
 };
 
-std::vector<Line> readScript(const std::string& file) {
+// The lines of a script. The first fault of the file goes to `problem`.
+std::vector<Line> readScript(const std::string& file, std::string& problem) {
 	std::vector<Line> lines;
 	std::ifstream in(file);
 	std::string text;
@@ -320,7 +330,8 @@ std::vector<Line> readScript(const std::string& file) {
 			continue;
 		const json parsed = json::parse(text, nullptr, false);
 		if (!parsed.is_object() || !parsed.contains("step") || !parsed.contains("cmd")) {
-			check(false, "a line of " + file + " is no command: " + text);
+			if (problem.empty())
+				problem = "a line of " + file + " is no command: " + text;
 			continue;
 		}
 		Line line;
@@ -330,7 +341,8 @@ std::vector<Line> readScript(const std::string& file) {
 			line.args = parsed.at("args");
 		lines.push_back(std::move(line));
 	}
-	check(!lines.empty(), "the script " + file + " has no line");
+	if (lines.empty() && problem.empty())
+		problem = "the script " + file + " has no line";
 	return lines;
 }
 
@@ -349,6 +361,8 @@ private:
 
 // What a run leaves that must not depend on the commands it received.
 struct Results {
+	// The first fault of the run or of its requests, empty when there was none.
+	std::string problem;
 	bool ran = false;
 	int horizon = 0;
 	std::map<std::string, std::string> files;
@@ -389,9 +403,13 @@ struct RunOptions {
 // publishes to it and the script is sent to its server.
 Results runFixture(const std::string& fixture, const RunOptions& options, Stream* stream = nullptr) {
 	Results results;
+	const auto fail = [&results](const std::string& problem) {
+		if (results.problem.empty())
+			results.problem = problem;
+	};
 	SceneLoadResult loaded = loadScene(fixture);
 	if (hasErrors(loaded.diagnostics)) {
-		check(false, "cannot load " + fixture);
+		fail("cannot load " + fixture);
 		return results;
 	}
 	SceneSignallingArea area;
@@ -406,7 +424,7 @@ Results runFixture(const std::string& fixture, const RunOptions& options, Stream
 
 	QTemporaryDir work;
 	if (!work.isValid()) {
-		check(false, "no temporary folder");
+		fail("no temporary folder");
 		return results;
 	}
 	const fs::path output = fs::path(work.path().toStdString()) / "output";
@@ -419,7 +437,7 @@ Results runFixture(const std::string& fixture, const RunOptions& options, Stream
 
 	CoutCapture standardOutput;
 	if (hasErrors(simulation.prepareScene(loaded.scene, "signal-failure-forward", selection))) {
-		check(false, "cannot prepare " + fixture);
+		fail("cannot prepare " + fixture);
 		return results;
 	}
 
@@ -434,7 +452,8 @@ Results runFixture(const std::string& fixture, const RunOptions& options, Stream
 	int sent = 0;
 	const auto send = [&](const Line& line) {
 		const json reply = stream->requester().ask("s" + std::to_string(sent++), line.name, line.args);
-		check(reply.is_object() && reply.value("status", "") == "accepted", "the server accepts " + line.name + ": " + reply.dump());
+		if (!reply.is_object() || reply.value("status", "") != "accepted")
+			fail("the server accepts " + line.name + ": " + reply.dump());
 	};
 	for (const Line& line : options.before)
 		send(line);
@@ -454,7 +473,8 @@ Results runFixture(const std::string& fixture, const RunOptions& options, Stream
 				stream->requester().ask("describe", "describe");
 				std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			}
-			check(stream->reader().sawHello(), "the reader gets the hello");
+			if (!stream->reader().sawHello())
+				fail("the reader gets the hello");
 		}
 		if (options.onStep)
 			options.onStep(step);
@@ -482,29 +502,39 @@ Results runFixture(const std::string& fixture, const RunOptions& options, Stream
 // A run that publishes to a stream of its own.
 Results runStreamed(const std::string& fixture, const RunOptions& options) {
 	Stream stream;
-	return stream.ok() ? runFixture(fixture, options, &stream) : Results();
+	if (stream.ok())
+		return runFixture(fixture, options, &stream);
+	Results results;
+	results.problem = stream.problem();
+	return results;
 }
 
 // --- Checks ---
 
-void checkSameResults(const Results& expected, const Results& actual, const std::string& what) {
-	check(actual.ran && expected.ran, what + ": both runs ran");
-	check(actual.standardOutput == expected.standardOutput, what + ": the standard output differs");
-	check(actual.states.size() == expected.states.size(), what + ": the number of steps differs");
+// The first way in which the results of a run differ from the expected ones, or an empty text.
+std::string sameResultsProblem(const Results& expected, const Results& actual, const std::string& what) {
+	if (!actual.ran || !expected.ran)
+		return what + ": both runs ran";
+	if (actual.standardOutput != expected.standardOutput)
+		return what + ": the standard output differs";
+	if (actual.states.size() != expected.states.size())
+		return what + ": the number of steps differs";
 	for (std::size_t i = 0; i < actual.states.size() && i < expected.states.size(); ++i)
-		if (actual.states[i] != expected.states[i]) {
-			check(false, what + ": the state of step " + std::to_string(i) + " differs");
-			break;
-		}
+		if (actual.states[i] != expected.states[i])
+			return what + ": the state of step " + std::to_string(i) + " differs";
 	for (const auto& file : expected.files) {
 		const auto found = actual.files.find(file.first);
-		check(found != actual.files.end(), what + ": " + file.first + " is missing");
-		if (found != actual.files.end())
-			check(found->second == file.second, what + ": " + file.first + " differs");
+		if (found == actual.files.end())
+			return what + ": " + file.first + " is missing";
+		if (found->second != file.second)
+			return what + ": " + file.first + " differs";
 	}
 	for (const auto& file : actual.files)
-		check(expected.files.count(file.first) == 1, what + ": " + file.first + " is extra");
-	check(!expected.files.empty(), what + ": the run left no file");
+		if (expected.files.count(file.first) != 1)
+			return what + ": " + file.first + " is extra";
+	if (expected.files.empty())
+		return what + ": the run left no file";
+	return {};
 }
 
 // The events that report commands, in the order of the stream: kind, cmd, step, reason.
@@ -528,182 +558,255 @@ std::string listOf(const std::vector<std::string>& values) {
 }
 
 // The stream of a run is one hello, then frames in the order of seq, with the same run id; the events
-// of the end are the last two.
-void checkStream(const Results& run, const std::string& what, const std::string& status, int stepsFinished) {
-	check(run.streamFinished, what + ": the stream reaches run_finished");
+// of the end are the last two. Returns the first fault, or an empty text.
+std::string streamProblem(const Results& run, const std::string& what, const std::string& status, int stepsFinished) {
+	if (!run.streamFinished)
+		return what + ": the stream reaches run_finished";
 	std::string runId;
 	std::int64_t lastSeq = -1;
 	int hellos = 0;
 	for (const Frame& frame : run.frames) {
-		if (!frame.body.is_object()) {
-			check(false, what + ": a frame is no JSON object");
-			continue;
-		}
+		if (!frame.body.is_object())
+			return what + ": a frame is no JSON object";
 		hellos += frame.topic == "hello" ? 1 : 0;
 		if (runId.empty())
 			runId = frame.body.value("run_id", "");
-		check(frame.body.value("run_id", "") == runId, what + ": the run id changes");
+		if (frame.body.value("run_id", "") != runId)
+			return what + ": the run id changes";
 		if (frame.topic == "hello" && lastSeq >= 0)
 			continue;
 		const std::int64_t seq = frame.body.value("seq", std::int64_t(-1));
-		check(seq > lastSeq, what + ": seq " + std::to_string(seq) + " does not follow " + std::to_string(lastSeq));
+		if (seq <= lastSeq)
+			return what + ": seq " + std::to_string(seq) + " does not follow " + std::to_string(lastSeq);
 		lastSeq = seq;
 	}
-	check(hellos >= 1, what + ": the reader got the hello");
+	if (hellos < 1)
+		return what + ": the reader got the hello";
 	const std::vector<Frame>& frames = run.frames;
 	if (frames.size() < 2)
-		return;
+		return {};
 	const json& finished = frames[frames.size() - 2].body;
 	const json& end = frames.back().body;
-	check(finished.value("kind", "") == "steps_finished" && finished.value("step", -1) == stepsFinished,
-		what + ": steps_finished says " + finished.dump());
-	check(end.value("kind", "") == "run_finished" && end.value("status", "") == status && end.value("step", -1) == stepsFinished,
-		what + ": run_finished says " + end.dump());
+	if (finished.value("kind", "") != "steps_finished" || finished.value("step", -1) != stepsFinished)
+		return what + ": steps_finished says " + finished.dump();
+	if (end.value("kind", "") != "run_finished" || end.value("status", "") != status || end.value("step", -1) != stepsFinished)
+		return what + ": run_finished says " + end.dump();
+	return {};
 }
 
-void checkEvents(const Results& run, const std::vector<std::string>& expected, const std::string& what) {
+// The command events of the run when they differ from `expected`, or an empty text.
+std::string eventsProblem(const Results& run, const std::vector<std::string>& expected, const std::string& what) {
 	const std::vector<std::string> actual = commandEvents(run.frames);
-	check(actual == expected, what + ": the command events are " + listOf(actual) + " and not " + listOf(expected));
-}
-
-// --- The tests ---
-
-// The hook that lets the owner of a run submit commands from another source, also while it waits.
-void testFetchCommands() {
-	{
-		RunControl control;
-		int calls = 0;
-		control.setDelayMs(0);
-		const bool proceed = control.beginStep([&] {
-			++calls;
-			control.submit({RunCommandKind::SetDelayMs, 7});
-		});
-		check(proceed && calls == 1 && control.delayMs() == 7, "fetch: a command fetched at the top is applied in the same step");
-	}
-	{
-		RunControl control;
-		control.requestPause();
-		int calls = 0;
-		const bool proceed = control.beginStep([&] {
-			// The first call is at the top of the step, before the pause is looked at.
-			if (++calls == 3)
-				control.submit({RunCommandKind::Resume});
-		});
-		check(proceed && calls == 3 && !control.isPauseRequested(), "fetch: a resume that is fetched during a pause ends it");
-	}
-	{
-		RunControl control;
-		control.requestPause();
-		int calls = 0;
-		const bool proceed = control.beginStep([&] {
-			if (++calls == 2)
-				control.submit({RunCommandKind::Stop});
-		});
-		check(!proceed && control.isStopRequested() && control.wasCancellationRequested(), "fetch: a stop that is fetched during a pause ends the run");
-	}
-	{
-		RunControl control;
-		check(control.beginStep() && control.beginStep({}), "fetch: a step without a hook goes on");
-	}
-}
-
-void testReplay(const std::string& fixture, const std::string& scriptDirectory) {
-	RunOptions plain;
-	const Results reference = runFixture(fixture, plain);
-	if (!reference.ran)
-		return;
-	check(reference.horizon == 1500 && reference.completed, "the reference run completes its 1500 steps");
-	check(static_cast<int>(reference.states.size()) == reference.horizon, "the reference run gives a snapshot for every step");
-
-	// Two runs of the same input in one process are equal, so a difference below comes from the commands.
-	checkSameResults(reference, runFixture(fixture, plain), "a second run without commands");
-
-	// pause, resume and set_delay_ms, replayed from the script.
-	{
-		RunOptions options;
-		options.script = readScript(scriptDirectory + "/pause-resume-delay.jsonl");
-		const Results run = runStreamed(fixture, options);
-		checkSameResults(reference, run, "a run with pause, resume and set_delay_ms");
-		check(run.completed, "the run with commands completes");
-		checkStream(run, "pause, resume and set_delay_ms", "completed", run.horizon);
-		checkEvents(run,
-			{"applied set_delay_ms 10", "applied pause 40", "applied resume 40", "applied resume 60", "applied set_delay_ms 200",
-				"applied pause 300", "applied set_delay_ms 300", "applied resume 300", "applied set_delay_ms 301",
-				"rejected pause 1500 run_ended"},
-			"pause, resume and set_delay_ms");
-		check(run.pausesSeen == 2, "the run paused twice: " + std::to_string(run.pausesSeen));
-		check(run.statesWhilePaused == 0, "no state came while the run was paused: " + std::to_string(run.statesWhilePaused));
-	}
-
-	// stop: the run ends as cancelled with the steps that ran.
-	{
-		RunOptions options;
-		options.script = readScript(scriptDirectory + "/stop.jsonl");
-		const Results run = runStreamed(fixture, options);
-		check(run.ran && !run.completed, "a stopped run does not complete");
-		check(run.states.size() == 100, "a stop before step 100 leaves 100 steps: " + std::to_string(run.states.size()));
-		checkStream(run, "stop", "cancelled", 100);
-		checkEvents(run, {"applied stop 100"}, "stop");
-	}
-
-	// A command that arrives while no run goes on is turned down when the next run begins, and does not
-	// reach that run. The first run leaves the reader subscribed, so that it sees the events of the second.
-	{
-		Stream stream;
-		if (stream.ok()) {
-			const Results first = runFixture(fixture, plain, &stream);
-			check(first.streamFinished, "the first run of the stream ends");
-			stream.reader().forget();
-			RunOptions options;
-			options.before = {{0, "pause", nullptr}, {0, "stop", nullptr}};
-			const Results run = runFixture(fixture, options, &stream);
-			checkSameResults(reference, run, "a run after commands that came before it");
-			checkStream(run, "commands before the run", "completed", run.horizon);
-			checkEvents(run, {"rejected pause 0 no_active_run", "rejected stop 0 no_active_run"}, "commands before the run");
-			check(run.pausesSeen == 0, "the run was not paused by a command that came before it");
-		}
-	}
-
-	// A command is turned down when the control of the run already holds as many commands as it takes.
-	{
-		RunOptions options;
-		options.script = {{51, "set_delay_ms", {{"delay_ms", 0}}}, {53, "set_delay_ms", {{"delay_ms", 0}}}};
-		options.onStep = [](int step) {
-			if (step != 50)
-				return;
-			const std::shared_ptr<RunControl> control = simulation.runControl();
-			for (std::size_t i = 0; i < RunControl::kCommandQueueSize; ++i)
-				control->submit({RunCommandKind::SetDelayMs, 0});
-		};
-		const Results run = runStreamed(fixture, options);
-		checkSameResults(reference, run, "a run with a full control");
-		checkEvents(run, {"rejected set_delay_ms 51 queue_full", "applied set_delay_ms 53"}, "a full control");
-	}
+	if (actual == expected)
+		return {};
+	return what + ": the command events are " + listOf(actual) + " and not " + listOf(expected);
 }
 } // namespace
 
-int main(int argc, char** argv) {
-	QCoreApplication application(argc, argv);
-	std::string fixture, scriptDirectory;
-	for (int i = 1; i + 1 < argc; i += 2) {
-		const std::string option = argv[i];
-		if (option == "--fixture")
-			fixture = argv[i + 1];
-		else if (option == "--script")
-			scriptDirectory = argv[i + 1];
+
+class TestLiveReplay : public QObject {
+	Q_OBJECT
+
+private slots:
+	void cleanup();
+	void fetchedCommandIsAppliedInSameStep();
+	void fetchedResumeEndsPause();
+	void fetchedStopEndsRun();
+	void stepWithoutHookGoesOn();
+	void referenceRun();
+	void secondRunWithoutCommands();
+	void pauseResumeAndDelay();
+	void stopEndsRun();
+	void commandsBeforeRun();
+	void fullControl();
+
+private:
+	const Results& reference();
+
+	std::optional<Results> m_reference;
+};
+
+void TestLiveReplay::cleanup() {
+	std::vector<std::string> failures;
+	{
+		const std::lock_guard<std::mutex> lock(recordedMutex);
+		failures.swap(recordedFailures);
 	}
-	if (fixture.empty() || scriptDirectory.empty()) {
-		std::cerr << "usage: test_livereplay --fixture DIR --script DIR\n";
-		return 2;
-	}
-	try {
-		testFetchCommands();
-		testReplay(fixture, scriptDirectory);
-	} catch (const std::exception& error) {
-		std::cerr << "failed: " << error.what() << "\n";
-		return 1;
-	}
-	if (failures)
-		std::cerr << failures << " checks failed\n";
-	return failures ? 1 : 0;
+	std::string text;
+	for (const std::string& failure : failures)
+		text += (text.empty() ? "" : "; ") + failure;
+	QVERIFY2(failures.empty(), text.c_str());
 }
+
+// The run without commands that the others are compared with. It runs when a slot first needs it.
+const Results& TestLiveReplay::reference() {
+	if (!m_reference)
+		m_reference = runFixture(kFixtureDir, RunOptions());
+	return *m_reference;
+}
+
+// The hook that lets the owner of a run submit commands from another source, also while it waits.
+void TestLiveReplay::fetchedCommandIsAppliedInSameStep() {
+	RunControl control;
+	int calls = 0;
+	control.setDelayMs(0);
+	const bool proceed = control.beginStep([&] {
+		++calls;
+		control.submit({RunCommandKind::SetDelayMs, 7});
+	});
+	// fetch: a command fetched at the top is applied in the same step.
+	QVERIFY(proceed);
+	QCOMPARE(calls, 1);
+	QCOMPARE(control.delayMs(), 7);
+}
+
+void TestLiveReplay::fetchedResumeEndsPause() {
+	RunControl control;
+	control.requestPause();
+	int calls = 0;
+	const bool proceed = control.beginStep([&] {
+		// The first call is at the top of the step, before the pause is looked at.
+		if (++calls == 3)
+			control.submit({RunCommandKind::Resume});
+	});
+	// fetch: a resume that is fetched during a pause ends it.
+	QVERIFY(proceed);
+	QCOMPARE(calls, 3);
+	QVERIFY(!control.isPauseRequested());
+}
+
+void TestLiveReplay::fetchedStopEndsRun() {
+	RunControl control;
+	control.requestPause();
+	int calls = 0;
+	const bool proceed = control.beginStep([&] {
+		if (++calls == 2)
+			control.submit({RunCommandKind::Stop});
+	});
+	// fetch: a stop that is fetched during a pause ends the run.
+	QVERIFY(!proceed);
+	QVERIFY(control.isStopRequested());
+	QVERIFY(control.wasCancellationRequested());
+}
+
+void TestLiveReplay::stepWithoutHookGoesOn() {
+	RunControl control;
+	// fetch: a step without a hook goes on.
+	QVERIFY(control.beginStep());
+	QVERIFY(control.beginStep({}));
+}
+
+void TestLiveReplay::referenceRun() {
+	const Results& run = reference();
+	QVERIFY2(run.problem.empty(), run.problem.c_str());
+	// The reference run completes its 1500 steps.
+	QCOMPARE(run.horizon, 1500);
+	QVERIFY(run.completed);
+	// The reference run gives a snapshot for every step.
+	QCOMPARE(static_cast<int>(run.states.size()), run.horizon);
+}
+
+// Two runs of the same input in one process are equal, so a difference in the slots below comes from the commands.
+void TestLiveReplay::secondRunWithoutCommands() {
+	const Results& expected = reference();
+	QVERIFY2(expected.problem.empty(), expected.problem.c_str());
+	const Results run = runFixture(kFixtureDir, RunOptions());
+	QVERIFY2(run.problem.empty(), run.problem.c_str());
+	const std::string problem = sameResultsProblem(expected, run, "a second run without commands");
+	QVERIFY2(problem.empty(), problem.c_str());
+}
+
+// pause, resume and set_delay_ms, replayed from the script.
+void TestLiveReplay::pauseResumeAndDelay() {
+	const Results& expected = reference();
+	QVERIFY2(expected.problem.empty(), expected.problem.c_str());
+	RunOptions options;
+	std::string problem;
+	options.script = readScript(kScriptDir + "/pause-resume-delay.jsonl", problem);
+	QVERIFY2(problem.empty(), problem.c_str());
+	const Results run = runStreamed(kFixtureDir, options);
+	QVERIFY2(run.problem.empty(), run.problem.c_str());
+	problem = sameResultsProblem(expected, run, "a run with pause, resume and set_delay_ms");
+	QVERIFY2(problem.empty(), problem.c_str());
+	QVERIFY2(run.completed, "the run with commands completes");
+	problem = streamProblem(run, "pause, resume and set_delay_ms", "completed", run.horizon);
+	QVERIFY2(problem.empty(), problem.c_str());
+	problem = eventsProblem(run,
+		{"applied set_delay_ms 10", "applied pause 40", "applied resume 40", "applied resume 60", "applied set_delay_ms 200",
+			"applied pause 300", "applied set_delay_ms 300", "applied resume 300", "applied set_delay_ms 301",
+			"rejected pause 1500 run_ended"},
+		"pause, resume and set_delay_ms");
+	QVERIFY2(problem.empty(), problem.c_str());
+	// The run paused twice.
+	QCOMPARE(run.pausesSeen, 2);
+	// No state came while the run was paused.
+	QCOMPARE(run.statesWhilePaused, 0);
+}
+
+// stop: the run ends as cancelled with the steps that ran.
+void TestLiveReplay::stopEndsRun() {
+	RunOptions options;
+	std::string problem;
+	options.script = readScript(kScriptDir + "/stop.jsonl", problem);
+	QVERIFY2(problem.empty(), problem.c_str());
+	const Results run = runStreamed(kFixtureDir, options);
+	QVERIFY2(run.problem.empty(), run.problem.c_str());
+	// A stopped run does not complete.
+	QVERIFY(run.ran);
+	QVERIFY(!run.completed);
+	// A stop before step 100 leaves 100 steps.
+	QCOMPARE(run.states.size(), std::size_t(100));
+	problem = streamProblem(run, "stop", "cancelled", 100);
+	QVERIFY2(problem.empty(), problem.c_str());
+	problem = eventsProblem(run, {"applied stop 100"}, "stop");
+	QVERIFY2(problem.empty(), problem.c_str());
+}
+
+// A command that arrives while no run goes on is turned down when the next run begins, and does not
+// reach that run. The first run leaves the reader subscribed, so that it sees the events of the second.
+void TestLiveReplay::commandsBeforeRun() {
+	const Results& expected = reference();
+	QVERIFY2(expected.problem.empty(), expected.problem.c_str());
+	Stream stream;
+	QVERIFY2(stream.ok(), stream.problem().c_str());
+	const Results first = runFixture(kFixtureDir, RunOptions(), &stream);
+	QVERIFY2(first.problem.empty(), first.problem.c_str());
+	QVERIFY2(first.streamFinished, "the first run of the stream ends");
+	stream.reader().forget();
+	RunOptions options;
+	options.before = {{0, "pause", nullptr}, {0, "stop", nullptr}};
+	const Results run = runFixture(kFixtureDir, options, &stream);
+	QVERIFY2(run.problem.empty(), run.problem.c_str());
+	std::string problem = sameResultsProblem(expected, run, "a run after commands that came before it");
+	QVERIFY2(problem.empty(), problem.c_str());
+	problem = streamProblem(run, "commands before the run", "completed", run.horizon);
+	QVERIFY2(problem.empty(), problem.c_str());
+	problem = eventsProblem(run, {"rejected pause 0 no_active_run", "rejected stop 0 no_active_run"}, "commands before the run");
+	QVERIFY2(problem.empty(), problem.c_str());
+	// The run was not paused by a command that came before it.
+	QCOMPARE(run.pausesSeen, 0);
+}
+
+// A command is turned down when the control of the run already holds as many commands as it takes.
+void TestLiveReplay::fullControl() {
+	const Results& expected = reference();
+	QVERIFY2(expected.problem.empty(), expected.problem.c_str());
+	RunOptions options;
+	options.script = {{51, "set_delay_ms", {{"delay_ms", 0}}}, {53, "set_delay_ms", {{"delay_ms", 0}}}};
+	options.onStep = [](int step) {
+		if (step != 50)
+			return;
+		const std::shared_ptr<RunControl> control = simulation.runControl();
+		for (std::size_t i = 0; i < RunControl::kCommandQueueSize; ++i)
+			control->submit({RunCommandKind::SetDelayMs, 0});
+	};
+	const Results run = runStreamed(kFixtureDir, options);
+	QVERIFY2(run.problem.empty(), run.problem.c_str());
+	std::string problem = sameResultsProblem(expected, run, "a run with a full control");
+	QVERIFY2(problem.empty(), problem.c_str());
+	problem = eventsProblem(run, {"rejected set_delay_ms 51 queue_full", "applied set_delay_ms 53"}, "a full control");
+	QVERIFY2(problem.empty(), problem.c_str());
+}
+
+QTEST_GUILESS_MAIN(TestLiveReplay)
+#include "test_livereplay.moc"

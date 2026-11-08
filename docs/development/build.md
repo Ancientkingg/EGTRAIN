@@ -3,12 +3,12 @@
 This page lists what you need to build EGTRAIN and explains how to configure, build and run it, with the
 common setup failures and their fixes.
 
-Run configure, build, and test commands from the repository root. Run the
+Run configure, build, and test commands from the root of the source tree. Run the
 application itself from `EGTRAIN/QEGTRAIN` so relative scene paths resolve.
 
 ## Requirements
 
-- CMake 3.16 or newer
+- CMake 3.16 or newer, or 3.21 or newer for the presets in `CMakePresets.json`
 - C++17 compiler
 - Qt 6 Core, Gui, Widgets, Charts, Svg, Network and Help, and the Qt tools
   (`qhelpgenerator` builds the manual). CI and the release packages use Qt 6.8.3.
@@ -17,7 +17,7 @@ application itself from `EGTRAIN/QEGTRAIN` so relative scene paths resolve.
   CTest runs its Python tests with that interpreter. On Windows, set
   `PYTHONUTF8=1` for local runs so scripts read program output as UTF-8;
   the Windows presets set it.
-- Git, to clone the repository. On Windows, Git for Windows is a separate install from Visual Studio, and vcpkg
+- Git, to get the source tree. On Windows, Git for Windows is a separate install from Visual Studio, and vcpkg
   uses it to fetch its registry at the `builtin-baseline` of `tools/vcpkg/vcpkg.json`.
 
 Qt Svg is required by the application and must be available with the
@@ -28,16 +28,16 @@ Supported toolchains, as used by CI:
 
 - macOS: Qt 6.8.3 and the Homebrew packages in the configure example below.
 - Windows 10 or 11, x64 only: MSVC (Visual Studio 2022 or newer), Qt 6.8.3
-  `msvc2022_64` with Qt Charts, and vcpkg `zeromq cppzmq nlohmann-json` for the
-  `x64-windows` triplet. 32-bit Windows is not supported.
-- Linux: Ubuntu (the `ubuntu-latest` runner image) with Qt 6.8.3 and the apt
-  packages in the configure example below.
+  `msvc2022_64` with Qt Charts, and the vcpkg manifest `tools/vcpkg/vcpkg.json` (ZeroMQ, cppzmq and
+  nlohmann-json at its `builtin-baseline`) for the `x64-windows` triplet. 32-bit Windows is not supported.
+- Linux: Ubuntu 24.04 (the `ubuntu-24.04` runner image) with Qt 6.8.3 and the apt
+  packages in the configure example below. The AppImage needs the glibc of the
+  system that builds it, so CI builds and tests on 24.04 and not on `ubuntu-latest`.
 
 CI installs Qt 6.8.3 with the Qt Charts module through `jurplel/install-qt-action`, which runs
 [aqtinstall](https://aqtinstall.readthedocs.io/en/latest/getting_started.html). The same
-installer works on a developer machine; the [Qt online installer](https://www.qt.io/download-qt-installer-oss)
-is the other way (choose Qt 6.8.3 with the Qt Charts module). Homebrew's `qt` formula follows the
-newest Qt release, not the 6.8.3 of CI.
+installer works on a developer machine; the [Qt online installer](#qt-online-installer) is the other
+way. Homebrew's `qt` formula follows the newest Qt release, not the 6.8.3 of CI.
 
 aqtinstall goes into a virtual environment, because the Python of Ubuntu 24.04 and of Homebrew does not
 take packages from `pip` directly. On Windows the commands are in `~\aqt-venv\Scripts` instead of
@@ -51,6 +51,25 @@ python3 -m venv ~/aqt-venv
 ~/aqt-venv/bin/aqt install-qt linux_arm64 desktop 6.8.3 linux_gcc_arm64 -m qtcharts -O "$HOME/Qt"  # arm64 Linux: ~/Qt/6.8.3/gcc_arm64
 ~/aqt-venv/bin/aqt install-qt windows desktop 6.8.3 win64_msvc2022_64 -m qtcharts -O C:\Qt  # Windows: C:\Qt\6.8.3\msvc2022_64
 ```
+
+### Qt online installer
+
+The [Qt online installer](https://www.qt.io/development/download-qt-installer-oss) installs the same Qt. On Windows,
+these choices give the Qt that the Windows presets expect:
+
+1. Sign in with a Qt account when the installer asks for one. A free account is enough.
+2. Set the installation folder to `C:\Qt`, so that Qt ends up in `C:\Qt\6.8.3\msvc2022_64`, where the presets look.
+   For Qt in another folder, see the `CMakeUserPresets.json` example under [Visual Studio](#visual-studio).
+3. Choose **Custom installation** instead of the default installation.
+4. Qt 6.8.3 is an older release, so the list may not show it at first. Tick **Archive** in the filter on the right
+   and click **Filter**.
+5. Under **Qt > Qt 6.8.3**, tick **MSVC 2022 64-bit** and, under **Additional Libraries**, **Qt Charts**. Leave
+   everything else unticked: EGTRAIN needs no MinGW, Android or WebAssembly build and no other additional library.
+   The other modules it uses (Svg, Network and Help, and Test for the tests) and the tools that build the manual come
+   with **MSVC 2022 64-bit**.
+
+On macOS and Linux, tick the desktop component of that system in step 5 instead of **MSVC 2022 64-bit**, and pass its
+folder in `CMAKE_PREFIX_PATH` as in [Configure](#configure).
 
 ## Configure
 
@@ -97,9 +116,26 @@ cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
 The configure step then prints `Could NOT find XKB` and `Could NOT find PkgConfig`, which do no harm. CI and
 the packages use 6.8.3, so a difference between the two shows only there.
 
+On macOS and Linux, `CMakePresets.json` also has the presets `macos-debug`, `macos-release`, `linux-debug` and
+`linux-release`. They build with Ninja (`brew install ninja`, or `sudo apt-get install -y ninja-build`) and with the
+tests, each in `out/build/<preset>`. The libraries come from the configure line, as above; the build folder keeps
+them, so later configures need only the preset:
+
+```bash
+cmake --preset macos-release \
+  -DCMAKE_PREFIX_PATH="$HOME/Qt/6.8.3/macos;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)" \
+  -DWrapOpenGL_AGL="$(xcrun --show-sdk-path)/System/Library/Frameworks/OpenGL.framework"
+cmake --build --preset macos-release
+ctest --preset macos-release
+```
+
+On Linux, use `linux-release` and leave out `WrapOpenGL_AGL`. A preset build puts the application in
+`out/build/<preset>`, not in `build/`. CTest gives the smoke tests that path; a smoke script run by hand needs it in
+`QEGTRAIN_APP` (see [Platform coverage](testing.md#platform-coverage)).
+
 On Windows, `CMakePresets.json` holds the settings: Ninja and MSVC for x64, the vcpkg of Visual Studio with the
 `x64-windows` triplet and the manifest `tools/vcpkg/vcpkg.json`, Qt from `C:/Qt/6.8.3/msvc2022_64`, and the tests.
-From an x64 Developer PowerShell for Visual Studio 2022 or newer, in the repository folder:
+From an x64 Developer PowerShell for Visual Studio 2022 or newer, in the root folder of the source tree:
 
 ```powershell
 cmake --preset x64-release
@@ -110,8 +146,14 @@ ctest --preset x64-release
 The `x64-debug` presets make a Debug build. Each preset builds in `out\build\<preset>`. The first configure on a
 machine also builds ZeroMQ, cppzmq and nlohmann-json with vcpkg; later configures restore them from the cache of vcpkg
 in `%LOCALAPPDATA%\vcpkg\archives`. The configure prints `Could NOT find WrapVulkanHeaders` twice, which does no
-harm. CI does not use the presets: it installs the same packages with
-vcpkg in classic mode and passes the toolchain, the triplet and the Qt folder itself, in `.github/workflows/cmake.yml`.
+harm. The Windows leg of CI (the workflow `cmake.yml`) and the Windows package (the workflow `package.yml`)
+install the same manifest with the vcpkg of the runner image: the leg through the `ci-windows` preset, and the package
+job with the same options on its configure line.
+
+The `ci-macos`, `ci-linux` and `ci-windows` presets hold the options that the three CI legs share: a Release build with
+the tests, `EGTRAIN_WARNINGS_AS_ERRORS=ON` and `EGTRAIN_IPO=OFF`, in `build/`. `ci-windows` adds Ninja, `cl` and
+`EGTRAIN_NETWORK_TESTS=ON`. Each configure step of the workflow adds the compiler launcher and the prefix path of its
+runner; see [Configure options](ci-and-release.md#configure-options).
 
 The Start-menu entry **Developer PowerShell for VS** opens a shell that targets 32-bit Windows, and the configure then
 stops with a message that names x64 as the only supported platform. Switch that shell to x64 first.
@@ -129,14 +171,14 @@ when building and testing, as in the next two sections.
 
 ### Visual Studio
 
-The repository has no Visual Studio solution or project file. Visual Studio opens the folder as a CMake project and
+The source tree has no Visual Studio solution or project file. Visual Studio opens the folder as a CMake project and
 uses the presets:
 
 1. Install Visual Studio 2022 or newer with the **Desktop development with C++** workload. Its default components
    include the C++ CMake tools and the vcpkg package manager.
 2. Install Git for Windows and Python 3.9 or newer. Install Qt 6.8.3 `msvc2022_64` with Qt Charts into `C:\Qt`, with
-   aqtinstall or the Qt online installer as in [Requirements](#requirements).
-3. Open the repository folder with **File > Open > Folder**. Visual Studio then configures the `x64-debug` preset. The
+   aqtinstall as in [Requirements](#requirements) or with the [Qt online installer](#qt-online-installer).
+3. Open the root folder of the source tree with **File > Open > Folder**. Visual Studio then configures the `x64-debug` preset. The
    first configure on a machine also builds the vcpkg libraries and takes longer.
 4. For a Release build, pick `x64-release` in the configuration list of the toolbar.
 5. Pick `QEGTRAIN.exe` as the startup item, not `QEGTRAIN.exe (Install)`, and press F5. The default startup item is
@@ -196,7 +238,9 @@ in `QEGTRAIN` and in `test_selfupdater` with `EGTRAIN_UPDATE_TEST_HOOK`, which a
 With `EGTRAIN_BUILD_TESTS=ON`, `QEGTRAIN` also compiles the sources in
 `EGTRAIN/QEGTRAIN/tests/e2e`, the runner for the scripted GUI scenarios. At the
 start of `main()` it redirects the user settings to the folder named by
-`QEGTRAIN_E2E_SETTINGS_DIR`. After the first show of the window it starts a
+`QEGTRAIN_E2E_SETTINGS_DIR`, and the recovery copies and crash notes of a window
+on a screen that runs no scenario to `Recovery` and `Crashes` in that folder.
+After the first show of the window it starts a
 scenario, with blocking dialogs switched off, when the variable of that scenario
 is set. A build without tests, such as the three package builds, compiles none
 of it: in such a build the first show of the window starts no scenario and
@@ -237,8 +281,8 @@ to `1` or `settings` and `QEGTRAIN_E2E_SETTINGS_DIR` set, the `privacyPreview` h
 dialog a fake context, no telemetry starts, and `QEGTRAIN_E2E_SCREENSHOT` names the file that receives a
 picture of the dialog. In the isolated telemetry smoke configuration (`EGTRAIN_ISOLATED_TELEMETRY_SMOKE`,
 described in [Telemetry](../telemetry/README.md)) `TelemetrySmoke.cpp` is compiled too. Its hooks
-`telemetryStart` (which gets the `UpdateTelemetryController` of the window), `observationStep`, `runStarting` and `windowDestroyed` start the telemetry in the
-folder that `QEGTRAIN_E2E_TELEMETRY_SMOKE` names, fail the steps that install the observation of a run,
+`telemetryStart` (which gets the `UpdateTelemetryController` of the window), `observationStep` and `windowDestroyed`, and
+its slot for the `workerReady` signal of `RunController`, start the telemetry in the folder that `QEGTRAIN_E2E_TELEMETRY_SMOKE` names, fail the steps that install the observation of a run,
 stop a run at the point that the mode names, and print `E2E_TELEMETRY_SHUTDOWN`; the actions of each mode
 are in `runTelemetrySmoke`, which `tools/e2e/telemetry_smoke.py` drives.
 
@@ -247,12 +291,16 @@ form that a build without tests compiles holds `QEGTRAIN_E2E_`, `E2E_` or `failu
 `tests/e2e` and the telemetry smoke support are not scanned. Four files are exempt for the text that
 they hold on purpose: `update/UpdateSettings.cpp` and `telemetry/TelemetryConsent.cpp` test the prefix
 `QEGTRAIN_E2E_`, and `app/OpenRequestRelay.cpp` and `app/OpenRequestRelay.h` test it and name
-`QEGTRAIN_E2E_OPEN_RELAY`.
+`QEGTRAIN_E2E_OPEN_RELAY`. The test also fails when a script under `tools/` waits for an `E2E_` marker that
+no C++ file in `tests/e2e` or `app` prints, such as a misspelt name. That check skips the `test_*.py` files, whose
+markers are fixtures.
 
 `PostRun.cpp` holds the autostart and the checks that follow a run. With `QEGTRAIN_AUTOSTART`
-set, the runner starts the run of the case 1.5 s after the first show. The hooks
-`snapshotDelivered`, `snapshotDrawn`, `runResultsRefreshed`, `runFinished`, `runSettled` and
-`routeDiagramBuilt` of `MainWindowTestHooks` call the checks of `QEGTRAIN_E2E_EXPORT_DIR`,
+set, the runner starts the run of the case when the startup of the window has finished (the hook
+`afterStartup`), and the scenarios of `E2ERunner.cpp` start then too. The hooks
+`snapshotDelivered`, `snapshotDrawn`, `runFinished` and `routeDiagramBuilt` of `MainWindowTestHooks`, and
+the slots that `connectRunSignals` connects to the `refreshed` signal of `RunResultsDock` and the
+`runSettled` signal of `RunController`, call the checks of `QEGTRAIN_E2E_EXPORT_DIR`,
 `QEGTRAIN_E2E_ROUTE_DIAGRAM`, `QEGTRAIN_E2E_SIGNAL_HEADS`, `QEGTRAIN_E2E_PAUSE_STEPS`,
 `QEGTRAIN_E2E_OPERATIONAL_COMPLETION`, `QEGTRAIN_E2E_OPERATIONAL_DISCARD`,
 `QEGTRAIN_E2E_REPLAY_WHOLE_RUN` and `QEGTRAIN_E2E_CLOSE_DURING_RUN`, and the markers
@@ -265,7 +313,9 @@ that the window exports with all trains, with the first train and with none (`<w
 `_one`, `_none`). For the blocking-time, the delay and the per-train diagrams it also writes a text dump of the
 chart (`blocking_time_series.txt`, `delay_diagram_series.txt`, `speed_distance_series.txt` and so on: the axes,
 then every series with its properties and points). Two builds of one scene give the same files, so `cmp`
-shows whether a change moved a diagram.
+shows whether a change moved a diagram. It also exports the picture of the delay diagram into a folder that does
+not exist, and fails unless no message box opens and, outside Windows, `QEGTRAIN_DIALOG_SUPPRESSED:` goes to
+standard error.
 
 The hook of `QEGTRAIN_E2E_ROUTE_DIAGRAM` builds the train paths and the timetable graph with each route that trains
 run on as reference. For each of them it writes the text dump of the chart and the CSV of the window with all trains
@@ -308,8 +358,8 @@ Started outside Visual Studio, it needs the Qt `bin` folder on `PATH`, for examp
 These are local build paths; downloaded release packages are documented in [Installing EGTRAIN](../guides/install.md).
 
 Runtime output defaults to
-`<QStandardPaths::AppDataLocation>/Output/<scene>`. It does not always use a
-repository `Output/` directory. Set `QEGTRAIN_OUTPUT_DIR` to override the base
+`<QStandardPaths::AppDataLocation>/Output/<scene>`. It does not always use an
+`Output/` directory in the source tree. Set `QEGTRAIN_OUTPUT_DIR` to override the base
 directory; EGTRAIN then writes `<override>/Output/<scene>`.
 
 ## Common setup failures
@@ -323,7 +373,7 @@ against `CMakeLists.txt` and the scripts but not run.
 | Symptom | Cause | Fix |
 | --- | --- | --- |
 | `EGTRAIN needs Qt 6 with the Charts, Svg and Help modules` | CMake does not look in the folder of Qt 6, or found only Qt 5 | Add the Qt 6 folder to `CMAKE_PREFIX_PATH`, for example `~/Qt/6.8.3/macos` or `C:/Qt/6.8.3/msvc2022_64`. CMake keeps the Qt it found first, so after a wrong first configure delete the `build` folder and configure again |
-| `Could not find a package configuration file provided by "Qt6Charts"` (or `Qt6Svg`), followed by the message above | The module is not installed | `-m qtcharts` for aqtinstall or the Qt Charts module in the Qt online installer; `qt6-charts-dev qt6-svg-dev` with the Qt of Ubuntu |
+| `Could not find a package configuration file provided by "Qt6Charts"` (or `Qt6Svg`), followed by the message above | The module is not installed | `-m qtcharts` for aqtinstall or Qt Charts in the [Qt online installer](#qt-online-installer); `qt6-charts-dev qt6-svg-dev` with the Qt of Ubuntu |
 | `Could not find a package configuration file provided by "cppzmq"` or `"nlohmann_json"` | The package is not installed, or on Windows vcpkg is not given to CMake | Install it as in [Configure](#configure). On Windows use a preset, or pass `CMAKE_TOOLCHAIN_FILE` and `VCPKG_TARGET_TRIPLET=x64-windows` |
 | `Could not find toolchain file: "/scripts/buildsystems/vcpkg.cmake"` | `VCPKG_ROOT` is not set: the shell is not a Developer PowerShell, or Visual Studio lacks the vcpkg package manager | Use an x64 Developer PowerShell, and add the vcpkg package manager in the Visual Studio Installer |
 | `Could NOT find Python3` | No Python 3.9 or newer was found: it is missing from `PATH`, or the one found is older (CMake then names the version it found). Only a configure with `-DEGTRAIN_BUILD_TESTS=ON` looks for it | Install Python 3.9 or newer, or pass `-DPython3_EXECUTABLE=<path>` |

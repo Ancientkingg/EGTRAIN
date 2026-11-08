@@ -1,5 +1,6 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
+#include "editors/CaseSettingsPanel.h"
 #include "recovery/RecoveryController.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneHistory.h"
@@ -132,11 +133,11 @@ void MainWindowTestAccess::runRecovery(MainWindow& w) {
 
 	// Three edits of the case settings, each as the editor commits it.
 	const auto editThreeTimes = [&w]() {
-		w.m_caseNameEdit->setText(kEditedName);
+		caseSettingsPanel(w)->nameEdit()->setText(kEditedName);
 		w.commitPendingCaseSettings();
-		w.m_caseDescriptionEdit->setText(kEditedDescription);
+		caseSettingsPanel(w)->descriptionEdit()->setText(kEditedDescription);
 		w.commitPendingCaseSettings();
-		w.m_caseBaseTimeEdit->setText(kEditedBaseTime);
+		caseSettingsPanel(w)->baseTimeEdit()->setText(kEditedBaseTime);
 		w.commitPendingCaseSettings();
 	};
 	// Waits until the autosave has written the copy of the newest edit.
@@ -215,7 +216,7 @@ void MainWindowTestAccess::runRecovery(MainWindow& w) {
 			[&unavailable](const QString& message) { unavailable += message.startsWith(QLatin1String("Autosave unavailable")) ? 1 : 0; });
 		editThreeTimes();
 		const bool flushed = flushAutosave();
-		w.m_caseNameEdit->setText(QStringLiteral("Recovery smoke case again"));
+		caseSettingsPanel(w)->nameEdit()->setText(QStringLiteral("Recovery smoke case again"));
 		w.commitPendingCaseSettings();
 		const bool flushedAgain = flushAutosave();
 		QObject::disconnect(counter);
@@ -228,7 +229,7 @@ void MainWindowTestAccess::runRecovery(MainWindow& w) {
 		w.m_runController->runScene();
 		if (!w.m_runController->m_worker)
 			return QStringLiteral("the run did not start");
-		if (!waitFor([&w] { return !w.m_runController->m_worker && w.m_runController->m_resultsAvailable; }, kRunWaitMs))
+		if (!waitFor([&w] { return !w.m_runController->m_worker && w.m_runController->resultsAvailable(); }, kRunWaitMs))
 			return QStringLiteral("the run did not complete");
 		return {};
 	};

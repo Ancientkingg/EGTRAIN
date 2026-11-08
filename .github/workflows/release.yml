@@ -85,14 +85,10 @@ jobs:
         with:
           name: ${{ github.job }}-diagnostics
           path: |
-            tools/e2e/headless_case_*.log
+            build/smoke-logs/headless_case_*.log
             ${{ runner.temp }}/ctest.log
-            ${{ runner.temp }}/qegtrain-editor-smoke-e2e.log
+            ${{ runner.temp }}/qegtrain-*-e2e.*/
             ${{ runner.temp }}/qegtrain-incident-*.log
-            ${{ runner.temp }}/qegtrain-scene-render-e2e.log
-            ${{ runner.temp }}/qegtrain-scene-render-e2e.png
-            ${{ runner.temp }}/qegtrain-visual-polish-e2e.log
-            ${{ runner.temp }}/qegtrain-visual-polish-e2e.png
             ${{ runner.temp }}/qegtrain-gui-autostart-smoke.log
           if-no-files-found: ignore
 
@@ -167,6 +163,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      tag: ${{ steps.release-meta.outputs.tag }}
+      name: ${{ steps.release-meta.outputs.name }}
+      prerelease: ${{ steps.release-meta.outputs.prerelease }}
     steps:
       - uses: actions/checkout@v4
 
@@ -238,9 +238,6 @@ jobs:
           body: |
             Automated EGTRAIN build for `${{ steps.release-meta.outputs.name }}`.
 
-            - Commit: ${{ github.sha }}
-            - Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
             Download the package for your platform. The bundled cases are also available as `.egscene` files.
 
       - name: Publish complete release
@@ -249,3 +246,38 @@ jobs:
           RELEASE_TAG: ${{ steps.release-meta.outputs.tag }}
           MAKE_LATEST: ${{ steps.release-meta.outputs.make_latest }}
         run: gh release edit "$RELEASE_TAG" --draft=false --latest="$MAKE_LATEST"
+
+  # A job of its own, so that a failed upload can be run again after the GitHub release exists. The release assets are
+  # built again from the same artifacts, which gives the same files.
+  publish-site:
+    name: Publish on egtrain.samuelbruin.com
+    needs: [version, release]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Build the release assets
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: python3 tools/release/build_release_assets.py --version "$VERSION" --artifacts artifacts --output release-assets
+
+      - name: Upload the files to Zipline and publish the release page and the feed
+        env:
+          ZIPLINE_TOKEN: ${{ secrets.ZIPLINE_TOKEN }}
+          EGTRAIN_PUBLISH_TOKEN: ${{ secrets.EGTRAIN_PUBLISH_TOKEN }}
+          RELEASE_TAG: ${{ needs.release.outputs.tag }}
+          RELEASE_NAME: ${{ needs.release.outputs.name }}
+          PRERELEASE: ${{ needs.release.outputs.prerelease }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: >-
+          python3 tools/release/publish_selfhost.py release --tag "$RELEASE_TAG" --name "$RELEASE_NAME"
+          --prerelease "$PRERELEASE" --assets release-assets --commit "$GITHUB_SHA" --run-url "$RUN_URL"

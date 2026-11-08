@@ -1,0 +1,40 @@
+name: Set up the build dependencies
+description: >
+  Installs Qt 6.8.3 with Qt Charts through install-qt-action and the other libraries of the build: ZeroMQ, cppzmq and
+  nlohmann-json from Homebrew on macOS and from apt on Linux. On Windows it sets up the MSVC environment, and the
+  configure step installs the libraries from the vcpkg manifest.
+
+inputs:
+  apt-packages:
+    description: More apt packages that a Linux job installs with the libraries, separated by spaces.
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    # The action caches the Qt install and sets QT_ROOT_DIR, which the configure steps pass to CMake.
+    - name: Install Qt 6
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.8.3'
+        modules: qtcharts
+        cache: true
+
+    - name: Install dependencies (macOS)
+      if: runner.os == 'macOS'
+      shell: bash
+      run: brew install zeromq cppzmq nlohmann-json
+
+    - name: Install dependencies (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      env:
+        APT_PACKAGES: ${{ inputs.apt-packages }}
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libzmq3-dev cppzmq-dev nlohmann-json3-dev $APT_PACKAGES
+
+    - name: Set up MSVC environment
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1

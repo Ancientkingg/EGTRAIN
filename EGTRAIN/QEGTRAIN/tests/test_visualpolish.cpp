@@ -1,3 +1,7 @@
+// SceneModel.h comes before any Qt header, which defines signals as a keyword.
+#include "scene/SceneModel.h"
+
+#include "app/MainWindowSupport.h"
 #include "graphics/VisualPolish.h"
 
 #include <QGuiApplication>
@@ -12,16 +16,13 @@
 #include "graphics/items/StationOverlayItem.h"
 #include "graphics/SignalGeometry.h"
 
-#include <iostream>
+#include <QTest>
+
 #include <cmath>
+#include <iterator>
 #include <tuple>
 #include <utility>
-
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
+#include <vector>
 
 static QByteArray renderStrokeMask(int width, Qt::PenStyle style) {
 	QImage image(96, 20, QImage::Format_ARGB32_Premultiplied);
@@ -151,198 +152,556 @@ static QString pinColours(const QImage& image) {
 	return colours;
 }
 
-int main(int argc, char* argv[]) {
-	qputenv("QT_QPA_PLATFORM", "offscreen");
-	QGuiApplication app(argc, argv);
-	bool ok = true;
-	const TrackVisual freeBase = freeTrackVisual();
-	ok &= expect(freeBase.color == QColor(120, 120, 120), "local track uses historical gray");
-	ok &= expect(classifyTrackSpeed(200.0 / 3.6).color == QColor(30, 130, 210)
-			&& classifyTrackSpeed(200.0 / 3.6).width == 4,
-		"historical high-speed boundary");
-	ok &= expect(classifyTrackSpeed(120.0 / 3.6).color == QColor(160, 160, 160)
-			&& classifyTrackSpeed(120.0 / 3.6).width == 3,
-		"historical mainline boundary");
-	ok &= expect(classifyTrackSpeed(119.0 / 3.6).color == QColor(120, 120, 120), "historical local boundary");
-	ok &= expect(freeBase.width == 2, "free track uses one documented overview width");
+// The colour class of a pixel of a station mark: W light, B the blue of a major station, D dark as the halo, T
+// transparent, ? anything else such as an edge that antialiasing blends.
+static char markPixelClass(const QImage& image, const QPoint& point) {
+	const QColor colour = image.pixelColor(point);
+	if (colour.alpha() == 0)
+		return 'T';
+	if (colour.alpha() < 255)
+		return '?';
+	if (colour.lightness() > 200)
+		return 'W';
+	if (colour.lightness() < 50)
+		return 'D';
+	return colour.blue() > colour.red() + 80 ? 'B' : '?';
+}
 
+// The classes of the pixels of image at points, in their order.
+static QByteArray markPixelClasses(const QImage& image, const QList<QPoint>& points) {
+	QByteArray row;
+	for (const QPoint& point : points)
+		row.append(markPixelClass(image, point));
+	return row;
+}
+
+// The WCAG contrast ratio of two colours, from 1 to 21.
+static double contrastRatio(const QColor& first, const QColor& second) {
+	const auto luminance = [](const QColor& colour) {
+		const auto channel = [](double value) {
+			value /= 255.0;
+			return value <= 0.03928 ? value / 12.92 : std::pow((value + 0.055) / 1.055, 2.4);
+		};
+		return 0.2126 * channel(colour.red()) + 0.7152 * channel(colour.green()) + 0.0722 * channel(colour.blue());
+	};
+	const double a = luminance(first);
+	const double b = luminance(second);
+	return (std::max(a, b) + 0.05) / (std::min(a, b) + 0.05);
+}
+
+// The colours, line styles, icons and marks with which the network view shows tracks, signals, trains and stations.
+class TestVisualPolish : public QObject {
+	Q_OBJECT
+
+private slots:
+	void trackSpeedClasses();
+	void replayPlaybackSteps();
+	void trackStateUnderlays();
+	void signalAspects();
+	void trainKindsAndIcons();
+	void trainColours_data();
+	void trainColours();
+	void serviceColour();
+	void trainBadgeShapes();
+	void stationClasses();
+	void stationPins_data();
+	void stationPins();
+	void stationMarkStyles_data();
+	void stationMarkStyles();
+	void stationMarksReadableAtSmallestSize();
+	void ringAndBarFillsMajorDisc();
+	void stationMarksFillTheirArea();
+	void stationMenuIcons_data();
+	void stationMenuIcons();
+	void stationSquares();
+	void speedLabels();
+	void trainBadge();
+	void trainSpeedBacking();
+	void signalGeometries();
+	void signalHead();
+	void headStatesWithoutColour();
+	void canvasHeads();
+};
+
+void TestVisualPolish::trackSpeedClasses() {
+	const TrackVisual freeBase = freeTrackVisual();
+	// The local track uses historical gray.
+	QCOMPARE(freeBase.color, QColor(120, 120, 120));
+	// Historical high-speed boundary.
+	QCOMPARE(classifyTrackSpeed(200.0 / 3.6).color, QColor(30, 130, 210));
+	QCOMPARE(classifyTrackSpeed(200.0 / 3.6).width, 4);
+	// Historical mainline boundary.
+	QCOMPARE(classifyTrackSpeed(120.0 / 3.6).color, QColor(160, 160, 160));
+	QCOMPARE(classifyTrackSpeed(120.0 / 3.6).width, 3);
+	// Historical local boundary.
+	QCOMPARE(classifyTrackSpeed(119.0 / 3.6).color, QColor(120, 120, 120));
+	// The free track uses one documented overview width.
+	QCOMPARE(freeBase.width, 2);
+}
+
+void TestVisualPolish::trackStateUnderlays() {
 	const TrackStateVisual freeTrack = classifyTrackState(TrackOperationalState::Free);
 	const TrackStateVisual permissiveTrack = classifyTrackState(TrackOperationalState::Prepared);
 	const TrackStateVisual occupiedTrack = classifyTrackState(TrackOperationalState::Occupied);
 	const TrackStateVisual blockedTrack = classifyTrackState(TrackOperationalState::Blocked);
-	ok &= expect(freeTrack.style == Qt::NoPen && freeTrack.width == 0, "free track has no underlay");
-	ok &= expect(permissiveTrack.style == Qt::DashDotLine && permissiveTrack.width == 5, "permissive signalling underlay");
-	ok &= expect(occupiedTrack.style == Qt::SolidLine && occupiedTrack.width == 6, "occupied track underlay");
-	ok &= expect(blockedTrack.style == Qt::DashLine && blockedTrack.width == 5, "blocked track has non-color cue");
-	ok &= expect(permissiveTrack.color == QColor("#4C8DAE"), "permissive signalling color");
-	ok &= expect(occupiedTrackColor() == QColor(255, 0, 0) && occupiedTrack.color == occupiedTrackColor(),
-		"occupied track color");
-	ok &= expect(blockedTrack.color == QColor("#D6A13A"), "blocked track color");
+	// A free track has no underlay.
+	QCOMPARE(freeTrack.style, Qt::NoPen);
+	QCOMPARE(freeTrack.width, 0);
+	// Permissive signalling underlay.
+	QCOMPARE(permissiveTrack.style, Qt::DashDotLine);
+	QCOMPARE(permissiveTrack.width, 5);
+	// Occupied track underlay.
+	QCOMPARE(occupiedTrack.style, Qt::SolidLine);
+	QCOMPARE(occupiedTrack.width, 6);
+	// A blocked track has a non-color cue.
+	QCOMPARE(blockedTrack.style, Qt::DashLine);
+	QCOMPARE(blockedTrack.width, 5);
+	// Permissive signalling color.
+	QCOMPARE(permissiveTrack.color, QColor("#4C8DAE"));
+	// Occupied track color.
+	QCOMPARE(occupiedTrackColor(), QColor(255, 0, 0));
+	QCOMPARE(occupiedTrack.color, occupiedTrackColor());
+	// Blocked track color.
+	QCOMPARE(blockedTrack.color, QColor("#D6A13A"));
 	const QByteArray permissiveMask = renderStrokeMask(permissiveTrack.width, permissiveTrack.style);
 	const QByteArray occupiedMask = renderStrokeMask(occupiedTrack.width, occupiedTrack.style);
 	const QByteArray blockedMask = renderStrokeMask(blockedTrack.width, blockedTrack.style);
-	ok &= expect(permissiveMask != occupiedMask && occupiedMask != blockedMask
-			&& permissiveMask != blockedMask,
-		"track states remain distinguishable by stroke structure without color");
-	ok &= expect(trackStatePriority(TrackOperationalState::Free) < trackStatePriority(TrackOperationalState::Prepared), "free track priority");
-	ok &= expect(trackStatePriority(TrackOperationalState::Prepared) < trackStatePriority(TrackOperationalState::Occupied), "permissive signalling priority");
-	ok &= expect(trackStatePriority(TrackOperationalState::Occupied) < trackStatePriority(TrackOperationalState::Blocked), "occupied track priority");
+	// Track states remain distinguishable by stroke structure without color.
+	QCOMPARE_NE(permissiveMask, occupiedMask);
+	QCOMPARE_NE(occupiedMask, blockedMask);
+	QCOMPARE_NE(permissiveMask, blockedMask);
+	// Free track priority.
+	QCOMPARE_LT(trackStatePriority(TrackOperationalState::Free), trackStatePriority(TrackOperationalState::Prepared));
+	// Permissive signalling priority.
+	QCOMPARE_LT(trackStatePriority(TrackOperationalState::Prepared), trackStatePriority(TrackOperationalState::Occupied));
+	// Occupied track priority.
+	QCOMPARE_LT(trackStatePriority(TrackOperationalState::Occupied), trackStatePriority(TrackOperationalState::Blocked));
+}
 
+void TestVisualPolish::signalAspects() {
 	const SignalVisual stopSignal = classifySignalAspect(0);
 	const SignalVisual cautionSignal = classifySignalAspect(75);
 	const SignalVisual proceed180Signal = classifySignalAspect(180);
 	const SignalVisual proceed270Signal = classifySignalAspect(270);
-	ok &= expect(stopSignal.lamp == QColor(Qt::red) && stopSignal.cue == SignalCueKind::Stop, "red stop signal cue");
-	ok &= expect(cautionSignal.lamp == QColor(Qt::yellow) && cautionSignal.cue == SignalCueKind::Caution, "yellow caution signal cue");
-	ok &= expect(proceed180Signal.lamp == QColor(Qt::green) && proceed180Signal.cue == SignalCueKind::Proceed, "green proceed signal cue 180");
-	ok &= expect(proceed270Signal.lamp == QColor(Qt::green) && proceed270Signal.cue == SignalCueKind::Proceed, "green proceed signal cue 270");
-	ok &= expect(classifySignalAspect(751).lamp == QColor(Qt::red) && classifySignalAspect(751).cue == SignalCueKind::Stop
-			&& classifySignalAspect(751).iconResource == ":/icons/signal-stop.svg" && classifySignalCue(751) == SignalCueKind::Stop,
-		"code 751 is a stop");
-	ok &= expect(classifySignalCue(-1) == SignalCueKind::Neutral && classifySignalCue(42) == SignalCueKind::Neutral,
-		"unknown codes are neither stop, caution nor proceed");
-	ok &= expect(classifySignalAspect(-1).iconResource == ":/icons/signal-neutral.svg", "neutral signal icon");
-	ok &= expect(classifySignalAspect(0).iconResource == ":/icons/signal-stop.svg", "stop signal icon");
-	ok &= expect(classifySignalAspect(75).iconResource == ":/icons/signal-caution.svg", "caution signal icon");
-	ok &= expect(classifySignalAspect(180).iconResource == ":/icons/signal-proceed.svg", "proceed signal icon");
-	ok &= expect(classifyTrainType("freight", "F01").kind == TrainVisualKind::Freight, "freight train classification");
-	ok &= expect(classifyTrainType("IC", "IC 2201").kind == TrainVisualKind::Intercity, "intercity train classification");
-	ok &= expect(classifyTrainType("", "sprinter 301").kind == TrainVisualKind::Sprinter, "sprinter train classification");
-	ok &= expect(classifyTrainType("", "ICE 10").kind == TrainVisualKind::HighSpeed, "high-speed train classification");
-	ok &= expect(classifyTrainType("", "regional").iconResource == ":/icons/train-passenger.svg", "passenger train icon");
-	ok &= expect(classifyTrainType("", "sprinter 301").iconResource == ":/icons/train-sprinter.svg", "sprinter train icon");
-	ok &= expect(classifyTrainType("IC", "IC 2201").iconResource == ":/icons/train-intercity.svg", "intercity train icon");
-	ok &= expect(classifyTrainType("", "ICE 10").iconResource == ":/icons/train-high-speed.svg", "high-speed train icon");
-	ok &= expect(classifyTrainType("freight", "F01").iconResource == ":/icons/train-freight.svg", "freight train icon");
+	// Red stop signal cue.
+	QCOMPARE(stopSignal.lamp, QColor(Qt::red));
+	QCOMPARE(stopSignal.cue, SignalCueKind::Stop);
+	// Yellow caution signal cue.
+	QCOMPARE(cautionSignal.lamp, QColor(Qt::yellow));
+	QCOMPARE(cautionSignal.cue, SignalCueKind::Caution);
+	// Green proceed signal cue 180.
+	QCOMPARE(proceed180Signal.lamp, QColor(Qt::green));
+	QCOMPARE(proceed180Signal.cue, SignalCueKind::Proceed);
+	// Green proceed signal cue 270.
+	QCOMPARE(proceed270Signal.lamp, QColor(Qt::green));
+	QCOMPARE(proceed270Signal.cue, SignalCueKind::Proceed);
+	// Code 751 is a stop.
+	QCOMPARE(classifySignalAspect(751).lamp, QColor(Qt::red));
+	QCOMPARE(classifySignalAspect(751).cue, SignalCueKind::Stop);
+	QCOMPARE(classifySignalAspect(751).iconResource, QStringLiteral(":/icons/signal-stop.svg"));
+	QCOMPARE(classifySignalCue(751), SignalCueKind::Stop);
+	// Unknown codes are neither stop, caution nor proceed.
+	QCOMPARE(classifySignalCue(-1), SignalCueKind::Neutral);
+	QCOMPARE(classifySignalCue(42), SignalCueKind::Neutral);
+	// Neutral signal icon.
+	QCOMPARE(classifySignalAspect(-1).iconResource, QStringLiteral(":/icons/signal-neutral.svg"));
+	// Stop signal icon.
+	QCOMPARE(classifySignalAspect(0).iconResource, QStringLiteral(":/icons/signal-stop.svg"));
+	// Caution signal icon.
+	QCOMPARE(classifySignalAspect(75).iconResource, QStringLiteral(":/icons/signal-caution.svg"));
+	// Proceed signal icon.
+	QCOMPARE(classifySignalAspect(180).iconResource, QStringLiteral(":/icons/signal-proceed.svg"));
+}
+
+void TestVisualPolish::trainKindsAndIcons() {
+	// Freight train classification.
+	QCOMPARE(classifyTrainType("freight", "F01").kind, TrainVisualKind::Freight);
+	// Intercity train classification.
+	QCOMPARE(classifyTrainType("IC", "IC 2201").kind, TrainVisualKind::Intercity);
+	// Sprinter train classification.
+	QCOMPARE(classifyTrainType("", "sprinter 301").kind, TrainVisualKind::Sprinter);
+	// High-speed train classification.
+	QCOMPARE(classifyTrainType("", "ICE 10").kind, TrainVisualKind::HighSpeed);
+	// Passenger train icon.
+	QCOMPARE(classifyTrainType("", "regional").iconResource, QStringLiteral(":/icons/train-passenger.svg"));
+	// Sprinter train icon.
+	QCOMPARE(classifyTrainType("", "sprinter 301").iconResource, QStringLiteral(":/icons/train-sprinter.svg"));
+	// Intercity train icon.
+	QCOMPARE(classifyTrainType("IC", "IC 2201").iconResource, QStringLiteral(":/icons/train-intercity.svg"));
+	// High-speed train icon.
+	QCOMPARE(classifyTrainType("", "ICE 10").iconResource, QStringLiteral(":/icons/train-high-speed.svg"));
+	// Freight train icon.
+	QCOMPARE(classifyTrainType("freight", "F01").iconResource, QStringLiteral(":/icons/train-freight.svg"));
+	// Default train colours.
+	QCOMPARE(defaultTrainFill(), QColor(235, 210, 55));
+	QCOMPARE(defaultTrainOutline(), QColor(110, 90, 20));
+}
+
+void TestVisualPolish::trainColours_data() {
+	QTest::addColumn<QString>("typeText");
+	QTest::addColumn<QString>("nameText");
+	const std::pair<const char*, const char*> trainInputs[] = {
+		{"freight", "F01"}, {"IC", "IC 2201"}, {"", "sprinter 301"}, {"", "ICE 10"}, {"", "regional"}};
+	for (const auto& input : trainInputs)
+		QTest::newRow(input.second) << QString::fromLatin1(input.first) << QString::fromLatin1(input.second);
+}
+
+void TestVisualPolish::trainColours() {
+	QFETCH(QString, typeText);
+	QFETCH(QString, nameText);
+	const std::string type = typeText.toStdString();
+	const std::string name = nameText.toStdString();
+	const TrainVisual classified = classifyTrainType(type, name);
+	const TrainVisual resolved = resolveTrainVisual(type, name);
+	const TrainVisual invalid = resolveTrainVisual(type, name, QColor());
+	// A classified train uses the default colours whatever its type.
+	QCOMPARE(classified.fill, QColor(235, 210, 55));
+	QCOMPARE(classified.outline, QColor(110, 90, 20));
+	// A resolved train without a service colour uses the default colours.
+	QCOMPARE(resolved.fill, QColor(235, 210, 55));
+	QCOMPARE(resolved.outline, QColor(110, 90, 20));
+	// An invalid service colour gives the default colours.
+	QCOMPARE(invalid.fill, QColor(235, 210, 55));
+	QCOMPARE(invalid.outline, QColor(110, 90, 20));
+	// A resolved train keeps the classified kind, shape and icon.
+	QCOMPARE(resolved.kind, classified.kind);
+	QCOMPARE(resolved.shape, classified.shape);
+	QCOMPARE(resolved.iconResource, classified.iconResource);
+}
+
+void TestVisualPolish::serviceColour() {
+	const QColor serviceColor(40, 130, 210);
+	const TrainVisual coloured = resolveTrainVisual("IC", "IC 2201", serviceColor);
+	// A service colour sets the fill and a darker outline.
+	QCOMPARE(coloured.fill, serviceColor);
+	QCOMPARE(coloured.outline, serviceColor.darker(200));
+	QCOMPARE_NE(coloured.outline, coloured.fill);
+	// A service colour keeps the classified kind and icon.
+	QCOMPARE(coloured.kind, TrainVisualKind::Intercity);
+	QCOMPARE(coloured.iconResource, QStringLiteral(":/icons/train-intercity.svg"));
+}
+
+void TestVisualPolish::trainBadgeShapes() {
 	const TrainVisual intercity = classifyTrainType("IC", "IC 2201");
 	const TrainVisual sprinter = classifyTrainType("", "sprinter 301");
 	const TrainVisual freight = classifyTrainType("freight", "F01");
-	ok &= expect(defaultTrainFill() == QColor(235, 210, 55) && defaultTrainOutline() == QColor(110, 90, 20),
-		"default train colours");
-	const std::pair<const char*, const char*> trainInputs[] = {
-		{"freight", "F01"}, {"IC", "IC 2201"}, {"", "sprinter 301"}, {"", "ICE 10"}, {"", "regional"}};
-	for (const auto& input : trainInputs) {
-		const TrainVisual classified = classifyTrainType(input.first, input.second);
-		const TrainVisual resolved = resolveTrainVisual(input.first, input.second);
-		const TrainVisual invalid = resolveTrainVisual(input.first, input.second, QColor());
-		ok &= expect(classified.fill == QColor(235, 210, 55) && classified.outline == QColor(110, 90, 20),
-			"classified train uses the default colours whatever its type");
-		ok &= expect(resolved.fill == QColor(235, 210, 55) && resolved.outline == QColor(110, 90, 20),
-			"resolved train without a service colour uses the default colours");
-		ok &= expect(invalid.fill == QColor(235, 210, 55) && invalid.outline == QColor(110, 90, 20),
-			"invalid service colour gives the default colours");
-		ok &= expect(resolved.kind == classified.kind && resolved.shape == classified.shape
-				&& resolved.iconResource == classified.iconResource,
-			"resolved train keeps the classified kind, shape and icon");
-	}
-	const QColor serviceColor(40, 130, 210);
-	const TrainVisual coloured = resolveTrainVisual("IC", "IC 2201", serviceColor);
-	ok &= expect(coloured.fill == serviceColor && coloured.outline == serviceColor.darker(200)
-			&& coloured.outline != coloured.fill,
-		"service colour sets the fill and a darker outline");
-	ok &= expect(coloured.kind == TrainVisualKind::Intercity
-			&& coloured.iconResource == ":/icons/train-intercity.svg",
-		"service colour keeps the classified kind and icon");
-	ok &= expect(intercity.shape == TrainBadgeShape::Capsule, "intercity badge shape");
-	ok &= expect(sprinter.shape == TrainBadgeShape::Rounded, "sprinter badge shape");
-	ok &= expect(freight.shape == TrainBadgeShape::Square, "freight badge shape");
-	ok &= expect(intercity.shape != sprinter.shape && intercity.shape != freight.shape && sprinter.shape != freight.shape,
-		"train category silhouettes");
+	// Intercity badge shape.
+	QCOMPARE(intercity.shape, TrainBadgeShape::Capsule);
+	// Sprinter badge shape.
+	QCOMPARE(sprinter.shape, TrainBadgeShape::Rounded);
+	// Freight badge shape.
+	QCOMPARE(freight.shape, TrainBadgeShape::Square);
+	// Train category silhouettes.
+	QCOMPARE_NE(intercity.shape, sprinter.shape);
+	QCOMPARE_NE(intercity.shape, freight.shape);
+	QCOMPARE_NE(sprinter.shape, freight.shape);
+}
 
-	ok &= expect(classifyStation(false, 3).cls == StationClass::Major && classifyStation(true, 0).cls == StationClass::Station
-			&& classifyStation(false, 0).cls == StationClass::Halt,
-		"three connections make a major station, a platform a station, neither a halt");
-	// The colour class of a pixel of a mark painted white with a black halo: W white, B the blue of a major station, D the
-	// halo, T transparent, ? anything else such as an edge that antialiasing blends.
-	const auto pixelClass = [](const QImage& image, int x, int y) {
-		const QColor colour = image.pixelColor(x, y);
-		if (colour.alpha() == 0)
-			return 'T';
-		if (colour.alpha() < 255)
-			return '?';
-		if (colour.lightness() > 200)
-			return 'W';
-		if (colour.lightness() < 50)
-			return 'D';
-		return colour.blue() > colour.red() + 80 ? 'B' : '?';
-	};
-	const auto probeRow = [&pixelClass](const QImage& image, const QList<QPoint>& points) {
-		QByteArray row;
-		for (const QPoint& point : points)
-			row.append(pixelClass(image, point.x(), point.y()));
-		return row;
-	};
-	// The pin in the frame (8, 24, 48, 48) with a halo of 4, so at twice the pixel size: its tip on the bottom centre
-	// (32, 72), its head of radius 0.3 of 48 times the size of the class, centred 0.78 of 48 times the size above the
-	// tip. The probes: the centre of the head, the body below it, the left edge of the head, the halo above the head,
-	// the halo under the tip and the canvas left of, right of and below the tip.
-	for (const auto& [cls, size, expected] :
-		{std::tuple<StationClass, qreal, QByteArray>{StationClass::Major, 1.15, "WBWDDTTT"},
-			std::tuple<StationClass, qreal, QByteArray>{StationClass::Station, 1.0, "DWWDDTTT"},
-			std::tuple<StationClass, qreal, QByteArray>{StationClass::Halt, 0.8, "WDWDDTTT"}}) {
-		const int head = qRound(72.0 - 0.78 * 48.0 * size);
-		const int radius = qRound(0.3 * 48.0 * size);
-		QImage mark(64, 80, QImage::Format_ARGB32_Premultiplied);
-		mark.fill(Qt::transparent);
-		{
-			QPainter painter(&mark);
-			paintStationMark(&painter, QRectF(8.0, 24.0, 48.0, 48.0), cls, Qt::white, Qt::black, 4.0);
-		}
-		const QList<QPoint> pinPoints{{32, head}, {32, head + radius * 7 / 10}, {33 - radius, head},
-			{32, head - radius - 2}, {32, 74}, {24, 74}, {40, 74}, {32, 78}};
-		ok &= expect(probeRow(mark, pinPoints) == expected,
-			"the far mark is a pin with a dark halo and its tip on the bottom centre: blue with a light edge and dot for a "
-			"major station, light with a dark dot for a station, dark with a light edge and dot for a halt");
+void TestVisualPolish::stationClasses() {
+	// Three connections make a major station, a platform a station, neither a halt.
+	QCOMPARE(classifyStation(false, 3).cls, StationClass::Major);
+	QCOMPARE(classifyStation(true, 0).cls, StationClass::Station);
+	QCOMPARE(classifyStation(false, 0).cls, StationClass::Halt);
+}
+
+// The pin in the frame (8, 24, 48, 48) with a halo of 4, so at twice the pixel size: its tip on the bottom centre
+// (32, 72), its head of radius 0.3 of 48 times the size of the class, centred 0.78 of 48 times the size above the
+// tip. The probes: the centre of the head, the body below it, the left edge of the head, the halo above the head,
+// the halo under the tip and the canvas left of, right of and below the tip.
+void TestVisualPolish::stationPins_data() {
+	QTest::addColumn<int>("cls");
+	QTest::addColumn<qreal>("size");
+	QTest::addColumn<QByteArray>("expected");
+	QTest::newRow("major station") << static_cast<int>(StationClass::Major) << qreal(1.15) << QByteArray("WBWDDTTT");
+	QTest::newRow("station") << static_cast<int>(StationClass::Station) << qreal(1.0) << QByteArray("DWWDDTTT");
+	QTest::newRow("halt") << static_cast<int>(StationClass::Halt) << qreal(0.8) << QByteArray("WDWDDTTT");
+}
+
+// The far mark is a pin with a dark halo and its tip on the bottom centre: blue with a light edge and dot for a major
+// station, light with a dark dot for a station, dark with a light edge and dot for a halt.
+void TestVisualPolish::stationPins() {
+	QFETCH(int, cls);
+	QFETCH(qreal, size);
+	QFETCH(QByteArray, expected);
+	const int head = qRound(72.0 - 0.78 * 48.0 * size);
+	const int radius = qRound(0.3 * 48.0 * size);
+	QImage mark(64, 80, QImage::Format_ARGB32_Premultiplied);
+	mark.fill(Qt::transparent);
+	{
+		QPainter painter(&mark);
+		paintStationMark(&painter, QRectF(8.0, 24.0, 48.0, 48.0), static_cast<StationClass>(cls), StationMarkStyle::MapPin,
+			Qt::white, Qt::black, 4.0);
 	}
-	// The menu icon fits the whole pin with its halo and centres it: the outer columns stay empty, and the outer rows hold
-	// at most the dark halo, so that a pin cut at its top or its tip shows there. Only the pin of a major station is blue.
-	// At 32 pixels it has the colours of the pin of its class on the canvas.
-	for (const StationClass cls : {StationClass::Major, StationClass::Station, StationClass::Halt}) {
-		for (const int size : {16, 32}) {
-			const QImage icon = stationMarkIcon(cls).pixmap(QSize(size, size)).toImage();
-			const QRectF area(0.0, 0.0, size, size);
-			const QRectF painted = stationMarkBounds(stationMarkFrameIn(area, cls, size / 16.0), cls, size / 16.0);
-			// Next to nothing, or dark as the halo: the pins are light or blue where they meet the halo.
-			const auto halo = [](const QColor& colour) { return colour.alpha() <= 8 || colour.value() < 96; };
-			bool edgesEmpty = icon.width() == size && icon.height() == size;
-			bool blue = false;
-			for (int y = 0; y < icon.height(); ++y) {
-				edgesEmpty = edgesEmpty && icon.pixelColor(0, y).alpha() == 0
-					&& icon.pixelColor(icon.width() - 1, y).alpha() == 0;
-				for (int x = 0; x < icon.width(); ++x) {
-					blue = blue || icon.pixelColor(x, y) == QColor(80, 120, 210);
-					if (y == 0 || y == icon.height() - 1)
-						edgesEmpty = edgesEmpty && halo(icon.pixelColor(x, y));
-				}
+	const QList<QPoint> pinPoints{{32, head}, {32, head + radius * 7 / 10}, {33 - radius, head},
+		{32, head - radius - 2}, {32, 74}, {24, 74}, {40, 74}, {32, 78}};
+	QCOMPARE(markPixelClasses(mark, pinPoints), expected);
+	// A pin stands on the station with its tip.
+	QCOMPARE(stationMarkAnchor(QRectF(8.0, 24.0, 48.0, 48.0), StationMarkStyle::MapPin), QPointF(32.0, 72.0));
+}
+
+// The marks of the centred styles in the frame (8, 24, 48, 48) with a halo of 4, so at twice the pixel size, centred on
+// (32, 48). The probes of each style go out from the centre; see the comment of each row.
+void TestVisualPolish::stationMarkStyles_data() {
+	QTest::addColumn<int>("style");
+	QTest::addColumn<int>("cls");
+	QTest::addColumn<QList<QPoint>>("points");
+	QTest::addColumn<QByteArray>("expected");
+	const auto row = [](const char* name, StationMarkStyle style, StationClass cls, const QList<QPoint>& points,
+						 const char* expected) {
+		QTest::newRow(name) << static_cast<int>(style) << static_cast<int>(cls) << points << QByteArray(expected);
+	};
+	// Ring and bar, outer radius 17.3 and ring width 5.8: the centre, 9 above it in the hole of a ring, 14 above it on the
+	// ring, and 24 left of it on the bar, which is 49 long and 10 high.
+	const QList<QPoint> ring{{32, 48}, {32, 39}, {32, 34}, {8, 48}};
+	row("ring and bar, major station: a blue disc with the bar", StationMarkStyle::RingAndBar, StationClass::Major, ring, "BBWB");
+	row("ring and bar, station: a ring with the bar", StationMarkStyle::RingAndBar, StationClass::Station, ring, "BDWB");
+	row("ring and bar, halt: a ring without the bar", StationMarkStyle::RingAndBar, StationClass::Halt, ring, "TDWT");
+	// Class marks: the centre, 8 above it, 16 left of it and 22 above it. The bar of a major station is 15.4 wide and 38.4
+	// high, the disc of a station has a radius of 16.8 and the ring of a halt a hole of radius 9.1.
+	const QList<QPoint> marks{{32, 48}, {32, 40}, {16, 48}, {32, 26}};
+	row("class marks, major station: an upright bar", StationMarkStyle::ClassMarks, StationClass::Major, marks, "WWTD");
+	row("class marks, station: a disc", StationMarkStyle::ClassMarks, StationClass::Station, marks, "WWWT");
+	row("class marks, halt: a ring", StationMarkStyle::ClassMarks, StationClass::Halt, marks, "TDWT");
+	// Plain dot, of radius 9.6, 13.4 and 17.3: the centre and 11, 15 and 19 above it.
+	const QList<QPoint> dots{{32, 48}, {32, 37}, {32, 33}, {32, 29}};
+	row("plain dot, major station: the largest dot", StationMarkStyle::PlainDot, StationClass::Major, dots, "WWWD");
+	row("plain dot, station: a smaller dot", StationMarkStyle::PlainDot, StationClass::Station, dots, "WWDT");
+	row("plain dot, halt: the smallest dot", StationMarkStyle::PlainDot, StationClass::Halt, dots, "WDTT");
+}
+
+// The marks of the other styles are centred on the station, in the light colour of the marks with a dark halo, and a
+// blue bar and the blue disc of a major station in a ring and bar. None is red or green. The click target is the mark
+// with the hole of a ring, and not the corners of the frame.
+void TestVisualPolish::stationMarkStyles() {
+	QFETCH(int, style);
+	QFETCH(int, cls);
+	QFETCH(QList<QPoint>, points);
+	QFETCH(QByteArray, expected);
+	const auto markStyle = static_cast<StationMarkStyle>(style);
+	const auto stationClass = static_cast<StationClass>(cls);
+	const QRectF frame(8.0, 24.0, 48.0, 48.0);
+	QImage mark(64, 96, QImage::Format_ARGB32_Premultiplied);
+	mark.fill(Qt::transparent);
+	{
+		QPainter painter(&mark);
+		paintStationMark(&painter, frame, stationClass, markStyle, stationMarkFill(), canvasColor(), 4.0);
+	}
+	QCOMPARE(markPixelClasses(mark, points), expected);
+	// No pixel of a mark is red or green.
+	int redOrGreen = 0;
+	for (int y = 0; y < mark.height(); ++y)
+		for (int x = 0; x < mark.width(); ++x) {
+			const QColor colour = mark.pixelColor(x, y);
+			const int r = colour.red(), g = colour.green(), b = colour.blue();
+			redOrGreen += colour.alpha() > 0 && ((r > g + 40 && r > b + 40) || (g > r + 40 && g > b + 40));
+		}
+	QCOMPARE(redOrGreen, 0);
+	// The mark is centred on the station, and what it paints too.
+	QCOMPARE(stationMarkAnchor(frame, markStyle), frame.center());
+	const QRectF bounds = stationMarkBounds(frame, stationClass, markStyle, 4.0);
+	QCOMPARE_LT(QLineF(bounds.center(), frame.center()).length(), 1e-9);
+	// The click target holds the centre, also of a ring, and lies inside the bounds; a corner of the frame is no part of it.
+	const QPainterPath shape = stationMarkShape(frame, stationClass, markStyle, 4.0);
+	QVERIFY(shape.contains(frame.center()));
+	QVERIFY(!shape.contains(frame.topLeft() + QPointF(2.0, 2.0)));
+	QVERIFY(bounds.contains(shape.boundingRect()));
+}
+
+// In a ring and bar a major station is a filled disc and a station a ring, both crossed by the bar. At the smallest size
+// on the canvas, a frame of 24 pixels with a halo of 2, on the canvas and on the light panel of the map key, the inside
+// of the ring above and below the bar is a fill for a major station that stands out by 3:1 from the background and from
+// what the ring of a station shows there.
+void TestVisualPolish::ringAndBarFillsMajorDisc() {
+	const QRectF frame(8.0, 16.0, 24.0, 24.0);
+	for (const QColor& background : {canvasColor(), QColor(239, 239, 239)}) {
+		// The pixels halfway between the bar, 0.105 of the frame from the centre, and the inner edge of the ring at 0.24.
+		QList<QColor> major;
+		QList<QColor> station;
+		for (const StationClass cls : {StationClass::Major, StationClass::Station}) {
+			QImage image(40, 56, QImage::Format_ARGB32_Premultiplied);
+			image.fill(background);
+			{
+				QPainter painter(&image);
+				paintStationMark(&painter, frame, cls, StationMarkStyle::RingAndBar, stationMarkFill(), canvasColor(), 2.0);
 			}
-			ok &= expect(edgesEmpty && blue == (cls == StationClass::Major)
-					&& area.adjusted(-0.01, -0.01, 0.01, 0.01).contains(painted)
-					&& QLineF(painted.center(), area.center()).length() < 0.01,
-				"the menu icon shows the whole pin, centred, blue only for a major station");
+			for (const qreal offset : {-0.1725, 0.1725}) {
+				const QPointF point = frame.center() + QPointF(0.0, offset * frame.height());
+				(cls == StationClass::Major ? major : station)
+					.append(image.pixelColor(static_cast<int>(point.x()), static_cast<int>(point.y())));
+			}
 		}
-		StationMarkItem canvasPin(cls, 60);
-		QImage canvas(100, 100, QImage::Format_ARGB32_Premultiplied);
-		canvas.fill(Qt::transparent);
-		{
-			QPainter painter(&canvas);
-			painter.translate(20.0, 20.0);
-			canvasPin.paint(&painter, nullptr, nullptr);
+		for (qsizetype index = 0; index < major.size(); ++index) {
+			const QString what = QStringLiteral("on %1, %2 the bar: major %3, station %4")
+									 .arg(background.name(), index == 0 ? QStringLiteral("above") : QStringLiteral("below"),
+										 major.at(index).name(), station.at(index).name());
+			QVERIFY2(contrastRatio(major.at(index), background) >= 3.0, qPrintable(what));
+			QVERIFY2(contrastRatio(major.at(index), station.at(index)) >= 3.0, qPrintable(what));
 		}
-		const QImage icon = stationMarkIcon(cls).pixmap(QSize(32, 32)).toImage();
-		ok &= expect(pinColours(icon) == pinColours(canvas), "the menu icon has the colours of the pin of its class on the canvas");
 	}
-	ok &= expect(classifyStation(true, 0).fill == QColor(70, 70, 70), "platform station square");
-	ok &= expect(classifyStation(false, 3).fill == QColor(80, 120, 210), "interchange station square");
+}
 
-	ok &= expect(simulationSpeedLabel(0) == "Fastest", "fastest speed label");
-	ok &= expect(simulationSpeedLabel(250) == "4.0x", "delayed speed label");
-	ok &= expect(simulationSpeedLabel(10) == "100x", "fast factor speed label");
+// In a swatch of the map key and in a menu icon, the mark of a major station with its halo is as tall or as wide as the
+// area, so the marks are as large as fits, and the mark of every class fits inside the area.
+void TestVisualPolish::stationMarksFillTheirArea() {
+	const std::pair<QRectF, qreal> areas[] = {{QRectF(1.0, 1.0, 44.0, 16.0), 1.0}, {QRectF(0.0, 0.0, 32.0, 32.0), 2.0}};
+	for (const StationMarkStyle style : {StationMarkStyle::MapPin, StationMarkStyle::RingAndBar, StationMarkStyle::ClassMarks,
+			 StationMarkStyle::PlainDot})
+		for (const auto& [area, halo] : areas)
+			for (const StationClass cls : {StationClass::Halt, StationClass::Station, StationClass::Major}) {
+				const QRectF painted = stationMarkBounds(stationMarkFrameIn(area, cls, style, halo), cls, style, halo);
+				const QString what = QStringLiteral("style %1, class %2, area %3 by %4: %5 by %6 painted")
+										 .arg(static_cast<int>(style))
+										 .arg(static_cast<int>(cls))
+										 .arg(area.width())
+										 .arg(area.height())
+										 .arg(painted.width())
+										 .arg(painted.height());
+				QVERIFY2(area.adjusted(-1e-9, -1e-9, 1e-9, 1e-9).contains(painted), qPrintable(what));
+				const bool fills = std::abs(painted.height() - area.height()) < 1e-9
+					|| std::abs(painted.width() - area.width()) < 1e-9;
+				if (cls == StationClass::Major)
+					QVERIFY2(fills, qPrintable(what));
+			}
+}
 
+// At the smallest size of a mark on the canvas, a frame of 24 pixels with a halo of 2, the light or blue part of the mark
+// of every class in every style is at least 8 pixels wide, and the three classes look different.
+void TestVisualPolish::stationMarksReadableAtSmallestSize() {
+	for (const StationMarkStyle style : {StationMarkStyle::MapPin, StationMarkStyle::RingAndBar, StationMarkStyle::ClassMarks,
+			 StationMarkStyle::PlainDot}) {
+		QList<QImage> images;
+		for (const StationClass cls : {StationClass::Halt, StationClass::Station, StationClass::Major}) {
+			QImage image(40, 48, QImage::Format_ARGB32_Premultiplied);
+			image.fill(canvasColor());
+			{
+				QPainter painter(&image);
+				paintStationMark(&painter, QRectF(8.0, 16.0, 24.0, 24.0), cls, style, stationMarkFill(), canvasColor(), 2.0);
+			}
+			int left = image.width();
+			int right = -1;
+			for (int y = 0; y < image.height(); ++y)
+				for (int x = 0; x < image.width(); ++x)
+					if (const QColor colour = image.pixelColor(x, y); colour.lightness() > 120) {
+						left = std::min(left, x);
+						right = std::max(right, x);
+					}
+			const QString what = QStringLiteral("style %1, class %2").arg(static_cast<int>(style)).arg(static_cast<int>(cls));
+			QVERIFY2(right - left + 1 >= 8, qPrintable(what));
+			images.append(image);
+		}
+		// Any two classes differ in at least 20 pixels.
+		for (qsizetype first = 0; first < images.size(); ++first)
+			for (qsizetype second = first + 1; second < images.size(); ++second) {
+				int differing = 0;
+				for (int y = 0; y < images.at(first).height(); ++y)
+					for (int x = 0; x < images.at(first).width(); ++x) {
+						const QColor a = images.at(first).pixelColor(x, y);
+						const QColor b = images.at(second).pixelColor(x, y);
+						differing += std::abs(a.lightness() - b.lightness()) > 60 || std::abs(a.blue() - b.blue()) > 60;
+					}
+				QVERIFY2(differing >= 20, qPrintable(QStringLiteral("style %1").arg(static_cast<int>(style))));
+			}
+	}
+}
+
+void TestVisualPolish::stationMenuIcons_data() {
+	QTest::addColumn<int>("styleValue");
+	QTest::addColumn<int>("classValue");
+	QTest::addColumn<bool>("blue");
+	const std::pair<StationMarkStyle, const char*> styles[] = {{StationMarkStyle::MapPin, "map pin"},
+		{StationMarkStyle::RingAndBar, "ring and bar"}, {StationMarkStyle::ClassMarks, "class marks"},
+		{StationMarkStyle::PlainDot, "plain dot"}};
+	const std::pair<StationClass, const char*> classes[] = {{StationClass::Major, "major station"},
+		{StationClass::Station, "station"}, {StationClass::Halt, "halt"}};
+	for (const auto& [style, styleName] : styles)
+		for (const auto& [cls, className] : classes) {
+			// Blue is the pin of a major station and the bar and the disc of a ring and bar.
+			const bool blue = (style == StationMarkStyle::MapPin && cls == StationClass::Major)
+				|| (style == StationMarkStyle::RingAndBar && cls != StationClass::Halt);
+			QTest::addRow("%s, %s", styleName, className) << static_cast<int>(style) << static_cast<int>(cls) << blue;
+		}
+}
+
+// The menu icon fits the whole mark with its halo and centres it: the outer rows and columns hold at most the dark halo,
+// so that a mark cut at an edge shows there, and the outer columns of a pin, which is taller than wide, stay empty.
+// Blue shows only on the pin of a major station and on the bar and the disc of a ring and bar. At 32 pixels it has the
+// colours of the mark of its class and style on the canvas.
+void TestVisualPolish::stationMenuIcons() {
+	QFETCH(int, styleValue);
+	QFETCH(int, classValue);
+	QFETCH(bool, blue);
+	const auto style = static_cast<StationMarkStyle>(styleValue);
+	const auto cls = static_cast<StationClass>(classValue);
+	for (const int size : {16, 32}) {
+		const QImage icon = stationMarkIcon(cls, style).pixmap(QSize(size, size)).toImage();
+		const QRectF area(0.0, 0.0, size, size);
+		const QRectF painted = stationMarkBounds(stationMarkFrameIn(area, cls, style, size / 16.0), cls, style, size / 16.0);
+		// Next to nothing, or dark as the halo: the marks are light or blue where they meet the halo.
+		const auto halo = [](const QColor& colour) { return colour.alpha() <= 8 || colour.value() < 96; };
+		bool edgesHalo = icon.width() == size && icon.height() == size;
+		bool columnsEmpty = edgesHalo;
+		bool anyBlue = false;
+		for (int y = 0; y < icon.height(); ++y)
+			for (int x = 0; x < icon.width(); ++x) {
+				const QColor colour = icon.pixelColor(x, y);
+				anyBlue = anyBlue || colour == QColor(80, 120, 210);
+				const bool column = x == 0 || x == icon.width() - 1;
+				if (column || y == 0 || y == icon.height() - 1)
+					edgesHalo = edgesHalo && halo(colour);
+				if (column)
+					columnsEmpty = columnsEmpty && colour.alpha() == 0;
+			}
+		// The menu icon shows the whole mark, centred, blue only on a major pin and on a ring and bar with its bar.
+		const QString at = QStringLiteral("at %1 pixels").arg(size);
+		QVERIFY2(edgesHalo, qPrintable(at));
+		if (style == StationMarkStyle::MapPin)
+			QVERIFY2(columnsEmpty, qPrintable(at));
+		QCOMPARE(anyBlue, blue);
+		QVERIFY2(area.adjusted(-0.01, -0.01, 0.01, 0.01).contains(painted), qPrintable(at));
+		QCOMPARE_LT(QLineF(painted.center(), area.center()).length(), 0.01);
+	}
+	StationMarkItem canvasMark(cls, 60);
+	canvasMark.setStyle(style);
+	QImage canvas(100, 100, QImage::Format_ARGB32_Premultiplied);
+	canvas.fill(Qt::transparent);
+	{
+		QPainter painter(&canvas);
+		painter.translate(20.0, 20.0);
+		canvasMark.paint(&painter, nullptr, nullptr);
+	}
+	const QImage icon = stationMarkIcon(cls, style).pixmap(QSize(32, 32)).toImage();
+	// The menu icon has the colours of the mark of its class on the canvas. The main colour of a pin is the same too; that
+	// of a thin ring depends on the width of the halo, which does not grow with the mark.
+	if (style == StationMarkStyle::MapPin)
+		QCOMPARE(pinColours(icon), pinColours(canvas));
+	else
+		QCOMPARE(pinColours(icon).section(QLatin1Char(' '), 1), pinColours(canvas).section(QLatin1Char(' '), 1));
+}
+
+void TestVisualPolish::stationSquares() {
+	// Platform station square.
+	QCOMPARE(classifyStation(true, 0).fill, QColor(70, 70, 70));
+	// Interchange station square.
+	QCOMPARE(classifyStation(false, 3).fill, QColor(80, 120, 210));
+}
+
+void TestVisualPolish::speedLabels() {
+	// Fastest speed label.
+	QCOMPARE(simulationSpeedLabel(0), QStringLiteral("Fastest"));
+	// Delayed speed label.
+	QCOMPARE(simulationSpeedLabel(250), QStringLiteral("4.0x"));
+	// Fast factor speed label.
+	QCOMPARE(simulationSpeedLabel(10), QStringLiteral("100x"));
+}
+
+void TestVisualPolish::trainBadge() {
 	TrainBadgeItem badge;
 	badge.setIdentifier("1725");
 	badge.setTooltipDetails("Intercity 1725 northbound", "1725", "Intercity");
 	badge.setSpeedText("102 km/h");
-	ok &= expect(badge.shape().isEmpty() && badge.toolTip().isEmpty(), "the badge has no shape and no tooltip");
+	// The badge has no shape and no tooltip.
+	QVERIFY(badge.shape().isEmpty());
+	QVERIFY(badge.toolTip().isEmpty());
 	// The badge four times as large on a mainline track, with its position in the middle of the image.
 	const QColor mainline = classifyTrackSpeed(120.0 / 3.6).color;
 	const QTransform badgeScale = QTransform::fromTranslate(240.0, 120.0).scale(4.0, 4.0);
@@ -359,57 +718,106 @@ int main(int argc, char* argv[]) {
 	const auto drawsNothing = [&]() {
 		return badge.boundingRect().isEmpty() && pixelsOfColor(renderBadge(), mainline) == 480 * 240;
 	};
-	ok &= expect(drawsNothing(), "an Overview badge draws nothing");
+	QVERIFY2(drawsNothing(), "an Overview badge draws nothing");
 	badge.setPresentation(TrainBadgeItem::Presentation::Identity);
-	ok &= expect(drawsNothing(), "an Identity badge draws nothing");
+	QVERIFY2(drawsNothing(), "an Identity badge draws nothing");
 	badge.setPresentation(TrainBadgeItem::Presentation::Detailed);
 	const QImage speedImage = renderBadge();
-	ok &= expect(pixelsOfColor(speedImage, Qt::white) > 100 && pixelsOfColor(speedImage, QColor(16, 26, 34)) > 100,
-		"a Detailed badge draws the speed in white with a dark outline");
+	// A Detailed badge draws the speed in white on a dark backing.
+	QCOMPARE_GT(pixelsOfColor(speedImage, Qt::white), 100);
+	QCOMPARE_GT(pixelsOfColor(speedImage, QColor(16, 26, 34)), 100);
 	const QRectF speedBounds = badge.boundingRect();
 	const QRect drawnBounds = badgeScale.mapRect(speedBounds).toAlignedRect();
 	int outside = 0;
 	for (int y = 0; y < speedImage.height(); ++y)
 		for (int x = 0; x < speedImage.width(); ++x)
 			outside += !drawnBounds.contains(x, y) && speedImage.pixelColor(x, y) != mainline;
-	ok &= expect(outside == 0, "the speed stays inside the bounds of the badge");
-	ok &= expect(speedBounds.left() > 0.0 && speedBounds.bottom() < 0.0, "the speed is drawn above and right of the train");
+	// The speed stays inside the bounds of the badge.
+	QCOMPARE(outside, 0);
+	// The speed is drawn above and right of the train.
+	QCOMPARE_GT(speedBounds.left(), 0.0);
+	QCOMPARE_LT(speedBounds.bottom(), 0.0);
 	badge.setSpeedVisible(false);
-	ok &= expect(drawsNothing(), "a badge with the speed hidden draws nothing");
+	QVERIFY2(drawsNothing(), "a badge with the speed hidden draws nothing");
 	badge.setSpeedVisible(true);
 	badge.setSpeedText(QString());
-	ok &= expect(drawsNothing(), "a badge without a speed draws nothing");
+	QVERIFY2(drawsNothing(), "a badge without a speed draws nothing");
 	// The speed, promoted or not, stays under the station names, which stay readable.
-	const bool underNames = badge.zValue() < StationNameItem::NameZValue;
+	const qreal unpromoted = badge.zValue();
 	badge.setPromoted(true);
-	ok &= expect(underNames && badge.zValue() < StationNameItem::NameZValue,
-		"the speed of a train, promoted or not, is stacked under the station names");
+	// The speed of a train, promoted or not, is stacked under the station names.
+	QCOMPARE_LT(unpromoted, StationNameItem::NameZValue);
+	QCOMPARE_LT(badge.zValue(), StationNameItem::NameZValue);
 	badge.setPromoted(false);
+}
 
+// A train that stands at a platform shows "0 km/h" over the white bar of the platform or the red dot of a signal. The
+// badge paints a backing in the canvas colour behind the whole speed, so nothing under it shows between the letters.
+void TestVisualPolish::trainSpeedBacking() {
+	TrainBadgeItem badge;
+	badge.setPresentation(TrainBadgeItem::Presentation::Detailed);
+	badge.setSpeedText("0 km/h");
+	// The badge four times as large, with its position in the middle of the image.
+	const QTransform badgeScale = QTransform::fromTranslate(240.0, 120.0).scale(4.0, 4.0);
+	const auto renderOver = [&badge, &badgeScale](const QColor& under) {
+		QImage image(480, 240, QImage::Format_ARGB32_Premultiplied);
+		image.fill(under);
+		{
+			QPainter painter(&image);
+			painter.setTransform(badgeScale);
+			badge.paint(&painter, nullptr, nullptr);
+		}
+		return image;
+	};
+	const QImage overBar = renderOver(Qt::white);
+	const QImage overSignal = renderOver(Qt::red);
+	const QRect speed = badgeScale.mapRect(badge.speedTextRect()).toAlignedRect();
+	int showing = 0;
+	int backing = 0;
+	int letters = 0;
+	for (int y = speed.top(); y <= speed.bottom(); ++y)
+		for (int x = speed.left(); x <= speed.right(); ++x) {
+			const QColor pixel = overSignal.pixelColor(x, y);
+			showing += overBar.pixelColor(x, y) != pixel;
+			backing += pixel == canvasColor();
+			letters += pixel == QColor(Qt::white);
+		}
+	// Nothing under the speed shows through it.
+	QCOMPARE(showing, 0);
+	// The speed is white letters on the backing, which fills most of its line.
+	QCOMPARE_GT(letters, 100);
+	QCOMPARE_GT(backing, speed.width() * speed.height() / 2);
+}
+
+void TestVisualPolish::signalGeometries() {
 	const SignalGeometry horizontal = signalGeometry(QPointF(), QPointF(-8, 0),
 		QPointF(8, 0), QPointF(0, 1), 150);
-	ok &= expect(horizontal.reversedHead == QPointF(-8, -30)
-			&& horizontal.forwardHead == QPointF(8, 30),
-		"interpolated horizontal endpoints place reversed signal to the left");
+	// Interpolated horizontal endpoints place the reversed signal to the left.
+	QCOMPARE(horizontal.reversedHead, QPointF(-8, -30));
+	QCOMPARE(horizontal.forwardHead, QPointF(8, 30));
 	const SignalGeometry diagonal = signalGeometry(QPointF(40, 20), QPointF(34, 12),
 		QPointF(46, 28), QPointF(-0.8, 0.6), 150);
-	ok &= expect(diagonal.reversedHead == QPointF(58, -6)
-			&& diagonal.forwardHead == QPointF(22, 46),
-		"non-horizontal endpoints preserve direction and authored normal");
+	// Non-horizontal endpoints preserve direction and authored normal.
+	QCOMPARE(diagonal.reversedHead, QPointF(58, -6));
+	QCOMPARE(diagonal.forwardHead, QPointF(22, 46));
 	const qreal presentationScale = 0.45;
 	const SignalGeometry measured = signalGeometry(QPointF(), QPointF(-8, 0),
 		QPointF(8, 0), QPointF(0, 1), 150 * presentationScale);
-	ok &= expect(measured.reversedHead.x() == -8 && measured.forwardHead.x() == 8
-			&& std::fabs(measured.reversedHead.y() + 13.5) < 1e-12
-			&& std::fabs(measured.forwardHead.y() - 13.5) < 1e-12
-			&& std::fabs(measured.forwardBase.length() - 13.5) < 1e-12
-			&& measured.forwardPost.length() == 8,
-		"historical presentation conversion affects lateral separation, not physical longitudinal signal points");
+	// The historical presentation conversion affects lateral separation, not physical longitudinal signal points.
+	QCOMPARE_EQ(measured.reversedHead.x(), -8);
+	QCOMPARE_EQ(measured.forwardHead.x(), 8);
+	QCOMPARE_LT(std::fabs(measured.reversedHead.y() + 13.5), 1e-12);
+	QCOMPARE_LT(std::fabs(measured.forwardHead.y() - 13.5), 1e-12);
+	QCOMPARE_LT(std::fabs(measured.forwardBase.length() - 13.5), 1e-12);
+	QCOMPARE_EQ(measured.forwardPost.length(), 8);
+}
+
+void TestVisualPolish::signalHead() {
 	SignalItem head(QRectF(-10, -10, 20, 20));
 	head.setAspectCode(0);
-	ok &= expect(!head.flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
+	QVERIFY2(!head.flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
 		"signal heads scale with the scene");
-	ok &= expect(head.childItems().isEmpty(),
+	QVERIFY2(head.childItems().isEmpty(),
 		"signal head has no invisible child for every paint to visit; the scene picks it in its pick circle");
 	QImage signalImage(48, 48, QImage::Format_ARGB32_Premultiplied);
 	signalImage.fill(Qt::black);
@@ -418,69 +826,119 @@ int main(int argc, char* argv[]) {
 		painter.translate(24, 24);
 		head.paint(&painter, nullptr, nullptr);
 	}
-	// The stop mark is a bar through the centre, so sample beside it.
-	ok &= expect(signalImage.pixelColor(24, 24 - 5) == QColor(Qt::red),
-		"individual stop head paints its own aspect without sectors or direction ticks");
+	// The stop mark is a bar through the centre, so sample beside it. An individual stop head paints its own aspect
+	// without sectors or direction ticks.
+	QCOMPARE(signalImage.pixelColor(24, 24 - 5), QColor(Qt::red));
+}
 
-	// Every state can be told apart without colour where a mark fits, and only
-	// the colour is left below 6 device pixels.
+// Every state can be told apart without colour where a mark fits, and only the colour is left below 6 device pixels.
+void TestVisualPolish::headStatesWithoutColour() {
 	const QImage stop = renderHead(0, false, 48), bacc = renderHead(751, false, 48);
 	const QImage caution = renderHead(75, false, 48), proceed = renderHead(180, false, 48);
 	const QImage clear = renderHead(270, false, 48), unavailable = renderHead(-1, false, 48);
 	const QImage failed = renderHead(270, true, 48);
 	const int c = stop.width() / 2;
-	ok &= expect(stop.pixelColor(c, c - 10) == QColor(Qt::red) && bacc.pixelColor(c, c - 10) == QColor(Qt::red),
-		"stop and BACC second red heads are red");
-	ok &= expect(caution.pixelColor(c, c - 10) == QColor(Qt::yellow), "caution head is yellow");
-	ok &= expect(proceed.pixelColor(c, c - 10) == QColor(Qt::green) && clear.pixelColor(c, c - 10) == QColor(Qt::green),
-		"codes 180 and 270 are green");
-	ok &= expect(markPixels(proceed) == 0 && markPixels(clear) == 0, "a proceed head has no mark");
-	ok &= expect(stop.pixelColor(c, c) == QColor(30, 30, 30) && stop.pixelColor(c + 10, c) == QColor(30, 30, 30) && stop.pixelColor(c + 10, c - 4) == QColor(Qt::red),
-		"a stop head has a bar through its centre");
-	ok &= expect(caution.pixelColor(c, c) == QColor(30, 30, 30) && caution.pixelColor(c + 10, c) == QColor(Qt::yellow),
-		"a caution head has a dot in its centre and no bar");
-	ok &= expect(markPixels(stop) > 0 && markPixels(caution) > 0 && markPixels(stop) != markPixels(caution),
-		"stop and caution heads carry different marks");
-	ok &= expect(stop == bacc, "code 751 is painted like code 0");
-	ok &= expect(unavailable.pixelColor(c, c - 10) == QColor(Qt::black)
-			&& pixelsOfColor(unavailable, QColor(Qt::red)) + pixelsOfColor(unavailable, QColor(Qt::yellow))
-					+ pixelsOfColor(unavailable, QColor(Qt::green))
-				== 0
-			&& pixelsOfColor(unavailable, QColor(150, 150, 150)) > 40 && unavailable.pixelColor(c, c) == QColor(150, 150, 150),
-		"an unavailable head is an empty gray ring with a dash");
-	ok &= expect(renderHead(42, false, 48) == unavailable, "a code that no aspect uses is painted as unavailable");
-	ok &= expect(failed.pixelColor(c, c - 10) == QColor(Qt::red) && failed.pixelColor(c + 10, c) == QColor(Qt::red)
-			&& failed.pixelColor(c + 6, c + 6) == QColor(Qt::white) && failed.pixelColor(c - 6, c + 6) == QColor(Qt::white)
-			&& failed.pixelColor(c + 6, c - 6) == QColor(Qt::white) && failed.pixelColor(c - 6, c - 6) == QColor(Qt::white),
-		"a failed head is red with a white cross, whatever its code");
-	ok &= expect(renderHead(-1, true, 48) == failed && renderHead(0, true, 48) == failed, "a failed head ignores its code");
-	ok &= expect(markPixels(failed, true) > 0 && markPixels(stop, true) == 0, "a failed head differs from a stop head without colour");
-	for (const int code : {0, 75})
-		ok &= expect(markPixels(renderHead(code, false, 6)) > 0 && markPixels(renderHead(code, false, 5)) == 0,
-			"marks appear at 6 device pixels and not below");
-	ok &= expect(renderHead(-1, false, 6).pixelColor(5, 5) == QColor(150, 150, 150)
-			&& renderHead(-1, false, 5).pixelColor(4, 4) == QColor(Qt::black)
-			&& markPixels(renderHead(75, true, 5), true) == 0 && markPixels(renderHead(75, true, 6), true) > 0,
-		"the dash and the cross follow the same 6 pixel rule");
-	ok &= expect(renderHead(0, false, 5).pixelColor(3, 3) == QColor(Qt::red) && renderHead(75, false, 5).pixelColor(3, 3) == QColor(Qt::yellow)
-			&& renderHead(180, false, 5).pixelColor(3, 3) == QColor(Qt::green),
-		"colour remains below 6 device pixels");
-	// On the canvas a hairline covers a lamp of under a pixel, so a lit or failed head below the mark size is a disc in
-	// its lamp colour (issue #1109). From 6 device pixels the head keeps the hairline of the reference.
+	// Stop and BACC second red heads are red.
+	QCOMPARE(stop.pixelColor(c, c - 10), QColor(Qt::red));
+	QCOMPARE(bacc.pixelColor(c, c - 10), QColor(Qt::red));
+	// The caution head is yellow.
+	QCOMPARE(caution.pixelColor(c, c - 10), QColor(Qt::yellow));
+	// Codes 180 and 270 are green.
+	QCOMPARE(proceed.pixelColor(c, c - 10), QColor(Qt::green));
+	QCOMPARE(clear.pixelColor(c, c - 10), QColor(Qt::green));
+	// A proceed head has no mark.
+	QCOMPARE(markPixels(proceed), 0);
+	QCOMPARE(markPixels(clear), 0);
+	// A stop head has a bar through its centre.
+	QCOMPARE(stop.pixelColor(c, c), QColor(30, 30, 30));
+	QCOMPARE(stop.pixelColor(c + 10, c), QColor(30, 30, 30));
+	QCOMPARE(stop.pixelColor(c + 10, c - 4), QColor(Qt::red));
+	// A caution head has a dot in its centre and no bar.
+	QCOMPARE(caution.pixelColor(c, c), QColor(30, 30, 30));
+	QCOMPARE(caution.pixelColor(c + 10, c), QColor(Qt::yellow));
+	// Stop and caution heads carry different marks.
+	QCOMPARE_GT(markPixels(stop), 0);
+	QCOMPARE_GT(markPixels(caution), 0);
+	QCOMPARE_NE(markPixels(stop), markPixels(caution));
+	QVERIFY2(stop == bacc, "code 751 is painted like code 0");
+	// An unavailable head is an empty gray ring with a dash.
+	QCOMPARE(unavailable.pixelColor(c, c - 10), QColor(Qt::black));
+	QCOMPARE(pixelsOfColor(unavailable, QColor(Qt::red)) + pixelsOfColor(unavailable, QColor(Qt::yellow))
+			+ pixelsOfColor(unavailable, QColor(Qt::green)),
+		0);
+	QCOMPARE_GT(pixelsOfColor(unavailable, QColor(150, 150, 150)), 40);
+	QCOMPARE(unavailable.pixelColor(c, c), QColor(150, 150, 150));
+	QVERIFY2(renderHead(42, false, 48) == unavailable, "a code that no aspect uses is painted as unavailable");
+	// A failed head is red with a white cross, whatever its code.
+	QCOMPARE(failed.pixelColor(c, c - 10), QColor(Qt::red));
+	QCOMPARE(failed.pixelColor(c + 10, c), QColor(Qt::red));
+	QCOMPARE(failed.pixelColor(c + 6, c + 6), QColor(Qt::white));
+	QCOMPARE(failed.pixelColor(c - 6, c + 6), QColor(Qt::white));
+	QCOMPARE(failed.pixelColor(c + 6, c - 6), QColor(Qt::white));
+	QCOMPARE(failed.pixelColor(c - 6, c - 6), QColor(Qt::white));
+	// A failed head ignores its code.
+	QVERIFY(renderHead(-1, true, 48) == failed);
+	QVERIFY(renderHead(0, true, 48) == failed);
+	// A failed head differs from a stop head without colour.
+	QCOMPARE_GT(markPixels(failed, true), 0);
+	QCOMPARE(markPixels(stop, true), 0);
+	for (const int code : {0, 75}) {
+		// Marks appear at 6 device pixels and not below.
+		QCOMPARE_GT(markPixels(renderHead(code, false, 6)), 0);
+		QCOMPARE(markPixels(renderHead(code, false, 5)), 0);
+	}
+	// The dash and the cross follow the same 6 pixel rule.
+	QCOMPARE(renderHead(-1, false, 6).pixelColor(5, 5), QColor(150, 150, 150));
+	QCOMPARE(renderHead(-1, false, 5).pixelColor(4, 4), QColor(Qt::black));
+	QCOMPARE(markPixels(renderHead(75, true, 5), true), 0);
+	QCOMPARE_GT(markPixels(renderHead(75, true, 6), true), 0);
+	// Colour remains below 6 device pixels.
+	QCOMPARE(renderHead(0, false, 5).pixelColor(3, 3), QColor(Qt::red));
+	QCOMPARE(renderHead(75, false, 5).pixelColor(3, 3), QColor(Qt::yellow));
+	QCOMPARE(renderHead(180, false, 5).pixelColor(3, 3), QColor(Qt::green));
+}
+
+// On the canvas a hairline covers a lamp of under a pixel, so a lit or failed head below the mark size is a disc in its
+// lamp colour (issue #1109). From 6 device pixels the head keeps the hairline of the reference.
+void TestVisualPolish::canvasHeads() {
 	const int ringPixels = lampPixels(renderCanvasHead(-1, false, 0.8), QColor(150, 150, 150));
-	ok &= expect(ringPixels > 0, "an unavailable head of 0.8 device pixels shows its grey ring on the canvas");
+	// An unavailable head of 0.8 device pixels shows its grey ring on the canvas.
+	QCOMPARE_GT(ringPixels, 0);
 	for (const auto& [code, failedHead, lamp] : {std::tuple<int, bool, QColor>{180, false, Qt::green}, {0, false, Qt::red},
 			 {75, false, Qt::yellow}, {180, true, Qt::red}})
-		ok &= expect(lampPixels(renderCanvasHead(code, failedHead, 0.8), lamp) >= ringPixels,
-			"a lit or failed head of 0.8 device pixels shows its lamp colour as clearly as an unavailable head its ring");
+		// A lit or failed head of 0.8 device pixels shows its lamp colour as clearly as an unavailable head its ring.
+		QCOMPARE_GE(lampPixels(renderCanvasHead(code, failedHead, 0.8), lamp), ringPixels);
 	for (const qreal size : {6.0, 10.0})
-		ok &= expect(renderCanvasHead(180, false, size) == hairlineLamp(size),
+		QVERIFY2(renderCanvasHead(180, false, size) == hairlineLamp(size),
 			"a proceed head of 6 or 10 device pixels is the green lamp in the hairline of the reference");
-	ok &= expect(renderCanvasHead(180, false, 3.0, 2.0) == hairlineLamp(3.0, 2.0) && renderCanvasHead(180, false, 2.9, 2.0) != hairlineLamp(2.9, 2.0),
-		"on a screen of device pixel ratio 2 a proceed head has the hairline from 3 logical pixels, 6 device pixels");
-	if (!ok)
-		return 1;
-
-	std::cout << "all VisualPolish tests passed\n";
-	return 0;
+	// On a screen of device pixel ratio 2 a proceed head has the hairline from 3 logical pixels, 6 device pixels.
+	QVERIFY(renderCanvasHead(180, false, 3.0, 2.0) == hairlineLamp(3.0, 2.0));
+	QVERIFY(renderCanvasHead(180, false, 2.9, 2.0) != hairlineLamp(2.9, 2.0));
 }
+
+// Play steps once a second up to 2x, every 100 ms from 10x, and never updates more than ten times a second. A step
+// moves on by the seconds that make up the speed.
+void TestVisualPolish::replayPlaybackSteps() {
+	const std::vector<std::pair<int, int>> expected = {{1, 1000}, {1, 500}, {1, 200}, {1, 100}, {3, 100}, {6, 100}};
+	QCOMPARE(std::size(kReplaySpeeds), expected.size());
+	QCOMPARE(kDefaultReplaySpeed, 10);
+	for (std::size_t i = 0; i < expected.size(); ++i) {
+		const int speed = kReplaySpeeds[i];
+		const ReplayPlaybackStep step = replayPlaybackStep(speed);
+		QCOMPARE(step.seconds, expected[i].first);
+		QCOMPARE(step.intervalMs, expected[i].second);
+		QCOMPARE(step.seconds * 1000 / step.intervalMs, speed);
+		QCOMPARE_GE(step.intervalMs, 100);
+	}
+}
+
+// The test paints without widgets, as the network view does, on the offscreen platform also outside CTest. QTEST_MAIN
+// would create a QApplication, so the program keeps this main.
+int main(int argc, char* argv[]) {
+	qputenv("QT_QPA_PLATFORM", "offscreen");
+	QGuiApplication app(argc, argv);
+	TestVisualPolish test;
+	return QTest::qExec(&test, argc, argv);
+}
+
+#include "test_visualpolish.moc"

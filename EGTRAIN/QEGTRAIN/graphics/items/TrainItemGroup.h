@@ -42,9 +42,6 @@ public:
 	/// The train has left the network.
 	bool outOfSimulation;
 
-	/// Not used: it stays null.
-	QGraphicsItemGroup* paxInfoItem;
-
 	/// The body items of the train, from the head. The bodies are children of the group; the group owns
 	/// the list and deletes it in its destructor. A caller that deletes the list itself
 	/// sets this pointer to null first.

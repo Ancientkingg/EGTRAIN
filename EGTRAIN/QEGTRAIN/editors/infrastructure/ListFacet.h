@@ -35,62 +35,64 @@ public:
 			fillRow(table, row, items[static_cast<std::size_t>(row)]);
 	}
 
-	/// Takes the trimmed text of the cell into the item. A new id must be unique in the list and not empty, and renames the
-	/// item and what refers to it; another column goes to editField().
+	/// Takes the value of the cell (cellValue()) into the item. A new id must be unique in the list and not empty, and
+	/// renames the item and what refers to it; another column goes to editField(), and a changed value that refusal()
+	/// refuses is refused with its message.
 	void commitCell(InfrastructurePanel& panel, int row, int column) override {
-		std::vector<Item>& items = panel.mutableModel().*m_list;
+		const std::vector<Item>& items = panel.model().*m_list;
 		if (row >= static_cast<int>(items.size()))
 			return;
-		const QString value = panel.table()->item(row, column)->text().trimmed();
-		Item& item = items[static_cast<std::size_t>(row)];
-		Edit edit = Edit::Unchanged;
+		const QString value = cellValue(*panel.table()->item(row, column));
+		const std::size_t index = static_cast<std::size_t>(row);
 		if (column == 0) {
+			const std::string oldId = items[index].id;
 			const std::string newId = value.toStdString();
-			if (item.id != newId) {
-				if (idCanReplaceRow(items, row, newId)) {
-					const std::string oldId = item.id;
-					item.id = newId;
-					rewriteReferences(panel.mutableModel(), oldId, newId);
-					panel.setSelectionId(value);
-					edit = Edit::Changed;
-				} else {
-					edit = Edit::UnsafeId;
-				}
+			if (oldId == newId)
+				return;
+			if (!idCanReplaceRow(items, row, newId)) {
+				panel.refuseEdit(QStringLiteral("IDs must be unique and not empty"));
+				return;
 			}
-		} else {
-			edit = editField(item, column, value);
+			panel.setSelectionId(value);
+			panel.edit(QStringLiteral("Rename %1").arg(m_noun), [this, index, &oldId, &newId](SceneModel& model) {
+				(model.*m_list)[index].id = newId;
+				rewriteReferences(model, oldId, newId);
+			});
+			return;
 		}
-		if (edit == Edit::Changed)
-			panel.entityChanged((column == 0 ? QStringLiteral("Rename %1") : QStringLiteral("Edit %1")).arg(m_noun));
-		else if (edit == Edit::UnsafeId)
-			panel.refuseEdit(QStringLiteral("IDs must be unique and not empty"));
+		Item edited = items[index];
+		const Edit edit = editField(edited, column, value);
+		const QString refused = edit == Edit::Changed ? refusal(panel.model(), column, value) : QString();
+		if (!refused.isEmpty())
+			panel.refuseEdit(refused);
+		else if (edit == Edit::Changed)
+			panel.edit(QStringLiteral("Edit %1").arg(m_noun), [this, index, &edited](SceneModel& model) { (model.*m_list)[index] = edited; });
 		else if (edit == Edit::Refused)
-			panel.refuseEdit();
+			panel.refuseEdit(refusedValueText(*panel.table(), row, column));
 	}
 
 	/// Appends newItem() with an id made unique from idBase(), and selects it.
 	void add(InfrastructurePanel& panel) override {
-		SceneModel& model = panel.mutableModel();
-		const std::string id = sceneUniqueInfrastructureId(model, idBase(), m_key.toStdString());
-		(model.*m_list).push_back(newItem(model, id));
+		const std::string id = sceneUniqueInfrastructureId(panel.model(), idBase(), m_key.toStdString());
+		Item item = newItem(panel.model(), id);
 		panel.setSelectionId(QString::fromStdString(id));
-		panel.entityChanged(QStringLiteral("Add %1").arg(m_noun));
+		panel.edit(QStringLiteral("Add %1").arg(m_noun), [this, &item](SceneModel& model) { (model.*m_list).push_back(std::move(item)); });
 	}
 
-	/// Deletes the selected item when the user confirms it and nothing uses it. An item with an empty id is kept.
+	/// Deletes the selected item when nothing uses it. An item with an empty id is kept.
 	void remove(InfrastructurePanel& panel) override {
-		std::vector<Item>& items = panel.mutableModel().*m_list;
+		const std::vector<Item>& items = panel.model().*m_list;
 		const int row = panel.table()->currentRow();
 		if (row < 0 || row >= static_cast<int>(items.size()))
 			return;
 		const std::string id = items[static_cast<std::size_t>(row)].id;
 		if (id.empty())
 			return;
-		if (!panel.confirmDelete(QString::fromStdString(id), sceneDirectDeleteConsumers(panel.model(), m_key.toStdString(), id)))
-			return;
-		items.erase(items.begin() + row);
-		panel.setSelectionId(QString());
-		panel.entityChanged(QStringLiteral("Delete %1").arg(m_noun));
+		panel.deleteRow(QString::fromStdString(id), sceneDirectDeleteConsumers(panel.model(), m_key.toStdString(), id),
+			QStringLiteral("Delete %1").arg(m_noun), [this, row](SceneModel& model) {
+				std::vector<Item>& list = model.*m_list;
+				list.erase(list.begin() + row);
+			});
 	}
 
 protected:
@@ -101,8 +103,11 @@ protected:
 
 	/// Puts the cells of the entity in `row`.
 	virtual void fillRow(QTableWidget& table, int row, const Item& item) const = 0;
-	/// Takes the trimmed text of a cell other than the id into the item.
+	/// Takes the value of a cell other than the id into the item.
 	virtual Edit editField(Item& item, int column, const QString& value) const = 0;
+	/// The message that refuses the new `value` of `column`, such as an id that the model does not have; empty when the
+	/// item can take it. The default refuses nothing.
+	virtual QString refusal(const SceneModel&, int /*column*/, const QString& /*value*/) const { return {}; }
 	/// A new item with this id, as the model is now.
 	virtual Item newItem(const SceneModel& model, const std::string& id) const = 0;
 	/// The id that a new item has when no other item has it. The default is the noun.

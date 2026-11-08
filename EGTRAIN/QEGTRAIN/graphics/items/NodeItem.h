@@ -28,7 +28,7 @@ public:
 	int track;
 
 	/// The node of the run, which belongs to the run; null in the preview.
-	Node* node;
+	const Node* node;
 
 	enum { Type = UserType + 2 /**< The item type for qgraphicsitem_cast. */ };
 	/// Returns Type.

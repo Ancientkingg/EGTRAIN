@@ -2,12 +2,7 @@
 #define SERVICEPANEL_H
 
 #include "editors/SceneEditorPanel.h"
-// After SceneEditorPanel.h, which includes the scene model the way RunSelection.h needs it.
-#include "app/RunSelection.h"
-#include "widgets/UserPrompts.h"
 
-#include <QMetaObject>
-#include <QPointer>
 #include <QString>
 
 #include <functional>
@@ -37,17 +32,6 @@ public:
 	/// Makes the widgets, empty until a loaded document is set.
 	explicit ServicePanel(QWidget* parent = nullptr);
 
-	/// Refreshes when the document is replaced.
-	void setDocument(SceneDocument* document) override;
-	/// The messages and questions go through these prompts. The panel uses its own until it is given others; null
-	/// brings its own back. The prompts must outlive the panel.
-	void setPrompts(UserPrompts* prompts);
-	/// The occurrences that the next run leaves out are kept here. The panel uses its own until it is given another;
-	/// null brings its own back. The selection must outlive the panel.
-	void setRunSelection(RunSelection* selection);
-	/// Gives the time in seconds over which the occurrences of a service are counted. Without one the duration of the
-	/// scene settings is used.
-	void setOccurrenceDuration(std::function<double()> duration);
 	/// Puts the timetable of the selected service on the Timetable tab. The widget becomes a child of the panel.
 	void setTimetableWidget(QWidget* widget);
 	/// Lists the services again and shows the selected one.
@@ -63,7 +47,7 @@ public:
 	void addService();
 	/// Inserts a copy of the selected service, with a new unique id, after it.
 	void duplicateService();
-	/// Deletes the selected service after the user has confirmed it; refused while something refers to it.
+	/// Deletes the selected service and says in the status line that Undo restores it; refused while something refers to it.
 	void deleteService();
 	/// Takes the id from the field. An empty or used id is dropped and the field shows the old id again.
 	void commitIdEdit();
@@ -104,9 +88,6 @@ public:
 	/// Leaves every occurrence out of the next run. Nothing happens when there are more occurrences than the table lists.
 	void selectNoneOccurrences();
 
-	/// What a generated service is called in lists: its operating code, or the service id when it has none, its route and
-	/// its scheduled entry in seconds from the base time, such as "1723 (route r1, +600 s)". `occurrence` counts from 1.
-	static QString generatedServiceLabel(const SceneService& service, int occurrence);
 	/// The summary above the occurrence table, such as "3 of 5 selected, 2 in the run period". The run period part is left
 	/// out when every selected occurrence is in the period. When the table shows only the first `shown` of the `total`
 	/// occurrences, a second line says so.
@@ -128,12 +109,12 @@ public:
 	QComboBox* routeCombo() const { return m_routeCombo; }
 	/// Whether the service has an entry time.
 	QCheckBox* hasEntryTimeCheck() const { return m_hasEntryTimeCheck; }
-	/// The entry time in whole seconds from the base time.
-	QLineEdit* entryTimeSecondsEdit() const { return m_entryTimeSecondsEdit; }
+	/// The entry time in seconds from the base time.
+	QDoubleSpinBox* entryTimeSecondsEdit() const { return m_entryTimeSecondsEdit; }
 	/// Whether the service repeats.
 	QCheckBox* hasRepeatCheck() const { return m_hasRepeatCheck; }
-	/// The headway between occurrences in whole seconds.
-	QLineEdit* headwaySecondsEdit() const { return m_headwaySecondsEdit; }
+	/// The headway between occurrences in seconds.
+	QDoubleSpinBox* headwaySecondsEdit() const { return m_headwaySecondsEdit; }
 	/// Whether the number of occurrences is given.
 	QCheckBox* hasRepeatCountCheck() const { return m_hasRepeatCountCheck; }
 	/// The number of occurrences, including the first.
@@ -178,22 +159,23 @@ Q_SIGNALS:
 	/// selected, or the id or the route of the selected one has changed.
 	void selectedServiceChanged(const QString& serviceId);
 
+protected:
+	/// Shows the choices of the fields again when the infrastructure or the compositions change, and the occurrences when the
+	/// case settings change.
+	void documentChanged(SceneDocument::ChangeKinds kinds) override;
+
 private:
-	bool hasScene() const;
-	// False while a run uses the scene.
-	bool canEdit() const;
 	// The selected service, or -1.
 	int selectedRow() const;
-	double occurrenceDuration() const;
+	// The selected service, or null.
+	const SceneService* selectedService() const;
+	// Applies `mutate` to the selected service, which there must be, in one edit of the document. False when the document
+	// refuses the edit.
+	bool editService(const QString& label, const std::function<void(SceneService&)>& mutate);
+	// As editService(), and shows the occurrences again and emits changed().
+	void editSelectedService(const QString& label, const std::function<void(SceneService&)>& mutate);
 	void updateOccurrenceSelection(QTableWidgetItem* item);
 
-	QPointer<SceneDocument> m_document;
-	QMetaObject::Connection m_replacedConnection;
-	UserPrompts m_ownPrompts;
-	UserPrompts* m_prompts = &m_ownPrompts;
-	RunSelection m_ownRunSelection;
-	RunSelection* m_runSelection = &m_ownRunSelection;
-	std::function<double()> m_occurrenceDuration;
 	bool m_updatingOccurrencePreview = false;
 
 	QListWidget* m_listWidget = nullptr;
@@ -207,9 +189,9 @@ private:
 	QComboBox* m_compositionCombo = nullptr;
 	QComboBox* m_routeCombo = nullptr;
 	QCheckBox* m_hasEntryTimeCheck = nullptr;
-	QLineEdit* m_entryTimeSecondsEdit = nullptr;
+	QDoubleSpinBox* m_entryTimeSecondsEdit = nullptr;
 	QCheckBox* m_hasRepeatCheck = nullptr;
-	QLineEdit* m_headwaySecondsEdit = nullptr;
+	QDoubleSpinBox* m_headwaySecondsEdit = nullptr;
 	QCheckBox* m_hasRepeatCountCheck = nullptr;
 	QLineEdit* m_repeatCountEdit = nullptr;
 	QDoubleSpinBox* m_performancePercentEdit = nullptr;

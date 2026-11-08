@@ -8,9 +8,11 @@
 #include "app/OpenRequestRelay.h"
 #include "app/SceneOpenRequest.h"
 #include "app/SceneOutputDirectory.h"
+#include "editors/EditorHelpers.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneCompatibility.h"
 #include "scene/SceneValidator.h"
+#include "scene/Utf8Path.h"
 #include "simulation/SimulationRun.h"
 #if EGTRAIN_BUILD_TESTS
 #include "tests/e2e/E2ERunner.h"
@@ -25,6 +27,8 @@
 #include <algorithm>
 #include <chrono>
 #include <climits>
+#include <clocale>
+#include <cmath>
 #include <exception>
 #include <iomanip>
 #include <iterator>
@@ -97,6 +101,14 @@ static void keepLightLook() {
 #endif
 	keepLightPalette();
 	QCoreApplication::instance()->installEventFilter(new LightPaletteKeeper(QCoreApplication::instance()));
+}
+
+// On macOS and Linux the application object sets the locale of the C library from LANG and the LC_ variables. A locale
+// such as nl_NL would then make strtod, std::stod and printf read and write numbers with a decimal comma, while scene
+// files, legacy files and run output write them with a full stop in every locale. Qt formats and reads numbers without
+// the C library, so text that Qt formats does not change.
+static void useCLocaleForNumbers() {
+	std::setlocale(LC_NUMERIC, "C");
 }
 
 // Whether this is the creator acceptance run of a test build, which starts without a case study.
@@ -180,7 +192,49 @@ static bool onlyKnownOptions(int argc, char* argv[]) {
 	return true;
 }
 
-void parseCmdOptions(int argc, char* argv[]) {
+// Reads a whole number from low to high from the text of an option. Returns false when the text is none.
+static bool readWholeNumber(const char* text, int low, int high, int& value) {
+	bool valid = false;
+	const int number = text ? QString::fromLocal8Bit(text).toInt(&valid) : 0;
+	if (!valid || number < low || number > high)
+		return false;
+	value = number;
+	return true;
+}
+
+// Reads the text of option as readWholeNumber does. When the text is none, it prints on standard error that option
+// requires `requirement` and returns false.
+static bool readWholeNumberOf(const char* option, const char* text, int low, int high, int& value, const char* requirement) {
+	if (readWholeNumber(text, low, high, value))
+		return true;
+	std::cerr << "ERROR: " << option << " requires " << requirement << ".\n";
+	return false;
+}
+
+// Reads a finite decimal number of low or more from the text of option. When the text is none, is not such a number or is
+// below low, it prints on standard error that option requires `requirement` and returns false.
+static bool readDecimalNumberOf(const char* option, const char* text, double low, double& value, const char* requirement) {
+	bool valid = false;
+	const double number = text ? QString::fromLocal8Bit(text).toDouble(&valid) : 0.0;
+	if (valid && std::isfinite(number) && number >= low) {
+		value = number;
+		return true;
+	}
+	std::cerr << "ERROR: " << option << " requires " << requirement << ".\n";
+	return false;
+}
+
+// The next answer on standard input to a question of --interactive, or an empty text when there is none.
+static std::string readAnswer() {
+	std::string answer;
+	std::cin >> answer;
+	return answer;
+}
+
+// Reads the options of the case and of the run, and asks with --interactive for those that are left out. Prints the reason
+// on standard error and returns false when the value of an option or an answer is not a number in the range that a scene
+// allows for it. A value of -n that is not a whole number selects no case, which main reports as an unknown case id.
+bool parseCmdOptions(int argc, char* argv[]) {
 	// Keep the legacy questionnaire opt-in so normal launches open the GUI.
 	const bool promptForMissingOptions = cmdOptionEntered(argv, argv + argc, "--interactive") || cmdOptionEntered(argv, argv + argc, "-interactive");
 	const bool creatorAcceptance = creatorAcceptanceRun();
@@ -189,56 +243,54 @@ void parseCmdOptions(int argc, char* argv[]) {
 	if (creatorAcceptance) {
 		initial_variables.name.clear();
 	} else if (cmdOptionEntered(argv, argv + argc, "-n")) {
-		char* argument = getCmdOption(argv, argv + argc, "-n");
-		if (argument) {
-			initial_variables.set_case(std::atoi(argument));
-			initial_variables.nArgProvided = true;
-		}
+		int caseStudy = 0;
+		readWholeNumber(getCmdOption(argv, argv + argc, "-n"), INT_MIN, INT_MAX, caseStudy);
+		initial_variables.set_case(caseStudy);
+		initial_variables.nArgProvided = true;
 	} else if (promptForMissingOptions) {
-		int case_study;
 		std::cout << "Bundled case (1 Netherlands, 2 Paimpol, 3 Copenhagen, 4 Milano_Brescia, 5 Assignment_Gvc_Gdg_Ut): ";
-		std::cin >> case_study;
-		initial_variables.set_case(case_study);
+		int caseStudy = 0;
+		readWholeNumber(readAnswer().c_str(), INT_MIN, INT_MAX, caseStudy);
+		initial_variables.set_case(caseStudy);
 	} else {
 		initial_variables.set_case(1); // Netherlands
 	}
 
 	// simulation horizon
 	if (cmdOptionEntered(argv, argv + argc, "-h")) {
-		char* argument = getCmdOption(argv, argv + argc, "-h");
-		if (argument) {
-			initial_variables.times = std::atoi(argument);
-			initial_variables.durationOverride = true;
-		}
+		int seconds = 0;
+		if (!readWholeNumberOf("-h", getCmdOption(argv, argv + argc, "-h"), 1, INT_MAX, seconds, "a whole number of 1 or more seconds"))
+			return false;
+		initial_variables.times = seconds;
+		initial_variables.durationOverride = true;
 	}
 
 	// buffer time
 	if (cmdOptionEntered(argv, argv + argc, "-b")) {
-		char* argument = getCmdOption(argv, argv + argc, "-b");
-		if (argument) {
-			initial_variables.bufferTime = std::atof(argument);
-			initial_variables.bufferTimeOverride = true;
-		}
+		if (!readDecimalNumberOf("-b", getCmdOption(argv, argv + argc, "-b"), 0.0, initial_variables.bufferTime, "a number of 0 or more seconds"))
+			return false;
+		initial_variables.bufferTimeOverride = true;
 	}
 
 	// recovery time
 	if (cmdOptionEntered(argv, argv + argc, "-c")) {
-		char* argument = getCmdOption(argv, argv + argc, "-c");
-		if (argument) {
-			initial_variables.recoveryTimePercentage = std::atof(argument);
-			initial_variables.recoveryTimeOverride = true;
-		}
+		if (!readDecimalNumberOf("-c", getCmdOption(argv, argv + argc, "-c"), 0.0, initial_variables.recoveryTimePercentage, "a percentage of 0 or more"))
+			return false;
+		initial_variables.recoveryTimeOverride = true;
 	}
 
 	// utilization of GUI
 	if (cmdOptionEntered(argv, argv + argc, "-g")) {
-		char* argument = getCmdOption(argv, argv + argc, "-g");
-		if (argument) {
-			initial_variables.GUI = std::atoi(argument);
-		}
+		int window = 0;
+		if (!readWholeNumberOf("-g", getCmdOption(argv, argv + argc, "-g"), 0, 1, window, "0 or 1"))
+			return false;
+		initial_variables.GUI = window != 0;
 	} else if (promptForMissingOptions) {
 		std::cout << "Open the window? (1 yes, 0 no): ";
-		std::cin >> initial_variables.GUI;
+		int window = 0;
+		if (!readWholeNumberOf("-g", readAnswer().c_str(), 0, 1, window, "0 or 1"))
+			return false;
+		initial_variables.GUI = window != 0;
 	} else {
 		initial_variables.GUI = 1;
 	}
@@ -246,28 +298,22 @@ void parseCmdOptions(int argc, char* argv[]) {
 	// utilization of passenger GUI
 	if (initial_variables.GUI) {
 		if (cmdOptionEntered(argv, argv + argc, "-pax")) {
-			char* argument = getCmdOption(argv, argv + argc, "-pax");
-			if (argument) {
-				initial_variables.PAX_GUI = std::atoi(argument);
-			}
+			int passengers = 0;
+			if (!readWholeNumberOf("-pax", getCmdOption(argv, argv + argc, "-pax"), 0, 1, passengers, "0 or 1"))
+				return false;
+			initial_variables.PAX_GUI = passengers != 0;
 		} else if (promptForMissingOptions) {
 			std::cout << "Show passengers? (1 yes, 0 no): ";
-			std::cin >> initial_variables.PAX_GUI;
+			int passengers = 0;
+			if (!readWholeNumberOf("-pax", readAnswer().c_str(), 0, 1, passengers, "0 or 1"))
+				return false;
+			initial_variables.PAX_GUI = passengers != 0;
 		} else {
 			initial_variables.PAX_GUI = MainWindow::savedShowPassengers();
 		}
 	}
 
 	initial_variables.exportDetailedTrajectories = cmdOptionEntered(argv, argv + argc, "--detailed-trajectories");
-}
-
-// Reads a whole number from low to high from the text of an option. Returns false when the text is none.
-static bool readWholeNumber(const char* text, int low, int high, int& value) {
-	bool valid = false;
-	const int number = text ? QString::fromLocal8Bit(text).toInt(&valid) : 0;
-	if (!valid || number < low || number > high)
-		return false;
-	value = number;
 	return true;
 }
 
@@ -283,14 +329,13 @@ static bool readLiveOptions(int argc, char* argv[]) {
 		}
 		return true;
 	}
-	if (!readWholeNumber(getCmdOption(argv, argv + argc, "--live"), 0, 65535, initial_variables.livePort)) {
-		std::cerr << "ERROR: --live requires a port from 0 to 65535; 0 takes a free port.\n";
+	if (!readWholeNumberOf("--live", getCmdOption(argv, argv + argc, "--live"), 0, 65535, initial_variables.livePort,
+			"a port from 0 to 65535; 0 takes a free port"))
 		return false;
-	}
-	if (everyEntered && !readWholeNumber(getCmdOption(argv, argv + argc, "--live-every"), 1, INT_MAX, initial_variables.liveEvery)) {
-		std::cerr << "ERROR: --live-every requires a whole number of 1 or more.\n";
+	if (everyEntered
+		&& !readWholeNumberOf("--live-every", getCmdOption(argv, argv + argc, "--live-every"), 1, INT_MAX, initial_variables.liveEvery,
+			"a whole number of 1 or more"))
 		return false;
-	}
 	initial_variables.liveCommands = commands;
 	return true;
 }
@@ -306,7 +351,7 @@ static bool startLiveStream(const std::string& outputFolder, bool showBox) {
 	if (initial_variables.livePort < 0)
 		return true;
 	std::string error;
-	if (!simulation.startLive(initial_variables.livePort, initial_variables.liveEvery, initial_variables.liveCommands, outputFolder, &error)) {
+	if (!simulation.startLive(initial_variables.livePort, initial_variables.liveEvery, initial_variables.liveCommands, pathFromUtf8(outputFolder), &error)) {
 		const QString message = QStringLiteral("Cannot start the live stream: %1").arg(QString::fromStdString(error));
 		std::cerr << "ERROR: " << message.toStdString() << '\n';
 		if (showBox && !updatesSuppressedByEnvironment())
@@ -391,6 +436,9 @@ static SceneRequest readSceneRequest(bool sceneOption, bool showBox) {
 	return request;
 }
 
+// The exit code of a run without a window that a stop ended before it completed.
+constexpr int kExitRunStopped = 3;
+
 static int runMain(int argc, char* argv[]) {
 	beginStartupTiming();
 	const std::string loggingProblems = installConsoleLogging();
@@ -413,7 +461,8 @@ static int runMain(int argc, char* argv[]) {
 	if (!e2e::configureProcess())
 		return 1;
 #endif
-	parseCmdOptions(argc, argv);
+	if (!parseCmdOptions(argc, argv))
+		return 1;
 
 	if (cmdOptionEntered(argv, argv + argc, "--seed")) {
 		const char* seedArgument = getCmdOption(argv, argv + argc, "--seed");
@@ -459,6 +508,7 @@ static int runMain(int argc, char* argv[]) {
 	if (gui) {
 		const bool styleChosen = widgetStyleChosen(argc, argv);
 		GuardedApplication application(argc, argv);
+		useCLocaleForNumbers();
 		// Before the palettes, because a new style brings its own.
 		preferWindowsVistaStyle(styleChosen);
 #if EGTRAIN_BUILD_TESTS
@@ -468,7 +518,7 @@ static int runMain(int argc, char* argv[]) {
 		// Before the first message box, so that a scene that cannot be opened is reported in the look of the window.
 		QFile theme(QStringLiteral(":/styles/egtrain.qss"));
 		if (theme.open(QIODevice::ReadOnly | QIODevice::Text))
-			application.setStyleSheet(QString::fromUtf8(theme.readAll()));
+			application.setStyleSheet(applicationStyleSheet(QString::fromUtf8(theme.readAll()), QApplication::style()->name()));
 		installCrashHandler(crashNoteFolder());
 		if (!onlyKnownOptions(argc, argv))
 			return 1;
@@ -493,8 +543,8 @@ static int runMain(int argc, char* argv[]) {
 		if (relayAllowed && request.positional && QCoreApplication::arguments().size() == 2
 			&& OpenRequestRelay::forward(OpenRequestRelay::defaultServerName(), OpenRequestRelay::currentApplicationDir(), request.path))
 			return 0;
-		bool loadFailed = false; // the last preload could not read the scene
-		const auto preload = [&effectiveDurationOverride, &loadFailed](const QString& path) {
+		bool loadFailed = false; // the last preload could not read the scene; the window lists the run checks of a scene that loads
+		const auto preload = [&loadFailed](const QString& path) {
 			const qint64 preloadStarted = startupTimingEnabled() ? startupTimingNowNanoseconds() : 0;
 			SceneLoadResult loaded = loadScenePath(path.toStdString());
 			if (startupTimingEnabled())
@@ -502,11 +552,6 @@ static int runMain(int argc, char* argv[]) {
 					startupTimingNowNanoseconds() - preloadStarted, QStringLiteral("startup_preload"),
 					QStringLiteral("main"), true);
 			loadFailed = hasErrors(loaded.diagnostics);
-			if (!loadFailed) {
-				const std::vector<SceneDiagnostic> runnable = validateRunnableScene(loaded.scene, {},
-					effectiveDurationOverride);
-				loaded.diagnostics.insert(loaded.diagnostics.end(), runnable.begin(), runnable.end());
-			}
 			return loaded;
 		};
 		QString scenePath = resolveScenePath(request.path, defaultName);
@@ -527,15 +572,17 @@ static int runMain(int argc, char* argv[]) {
 			// A file name that does not load is reported and the usual start follows.
 			printSceneDiagnostics(loaded.diagnostics);
 			reportCannotOpen(scenePath, QString::fromStdString(toDisplayText(loaded.diagnostics.front())), true, loadFailed,
-				QString::fromStdString(toDialogText(loaded.diagnostics.front())));
+				diagnosticsDialogText(loaded.diagnostics));
 			openedFromFileName = false;
 			scenePath = resolveScenePath(QString(), defaultName);
 			loaded = preload(scenePath);
 		}
 		if (hasErrors(loaded.diagnostics)) {
 			printSceneDiagnostics(loaded.diagnostics);
-			QMessageBox::critical(nullptr, "Cannot Start EGTRAIN",
-				QString::fromStdString(toDialogText(loaded.diagnostics.front())));
+			// A script that started the launch has no user to close the box.
+			if (!updatesSuppressedByEnvironment())
+				QMessageBox::critical(nullptr, "Cannot Start EGTRAIN",
+					QString::fromStdString(toDialogText(loaded.diagnostics.front())));
 			return 1;
 		}
 		// An opened file counts as an explicit scene, so the chooser stays closed.
@@ -565,6 +612,7 @@ static int runMain(int argc, char* argv[]) {
 	}
 
 	QCoreApplication application(argc, argv);
+	useCLocaleForNumbers();
 	if (!onlyKnownOptions(argc, argv))
 		return 1;
 	const SceneRequest request = readSceneRequest(sceneOption, false);
@@ -598,24 +646,34 @@ static int runMain(int argc, char* argv[]) {
 	// No window reads the snapshots of this run.
 	simulation.setSnapshotsEnabled(false);
 	simulation.runSimulation();
-	if (simulation.run().numTrains <= 0 || !simulation.lastRunError().empty())
+	if (simulation.run().numTrains <= 0)
 		return 1;
+	// Only a run that completed writes its service path diagram. A failed or stopped run gives its reason on standard
+	// error, where scripts find it, and ends with exit code 1 or kExitRunStopped.
+	std::string failure = simulation.lastRunError();
+	const bool completed = failure.empty() && simulation.lastRunCompleted();
+	if (completed)
+		failure = simulation.printLastTrainServicePathDiagram();
+	if (!completed || !failure.empty()) {
+		std::cerr << "ERROR: " << (failure.empty() ? std::string("The run was stopped before it completed.") : failure) << '\n';
+		return failure.empty() ? kExitRunStopped : 1;
+	}
 	// The line that scripts read for a completed run, without a newline. It does not go through the logging core,
 	// so no logging rule hides it.
-	if (simulation.lastRunCompleted())
-		std::cout << "\n End of Simulation";
-	simulation.printLastTrainServicePathDiagram();
+	std::cout << "\n End of Simulation";
 	return 0;
 }
 
-// An exception that nothing else catches, for example at startup before the event loop runs, is logged and ends the
-// program with exit code 70.
+// An exception that nothing else catches, of any type, for example at startup before the event loop runs, is logged and
+// ends the program with exit code 70.
 int main(int argc, char* argv[]) {
 	try {
 		return runMain(argc, argv);
 	} catch (const std::exception& error) {
 		EG_LOG(AppUi, Error) << "EGTRAIN stopped because of an unexpected error: " << error.what() << '\n';
-		eglog::flush();
-		return 70;
+	} catch (...) {
+		EG_LOG(AppUi, Error) << "EGTRAIN stopped because of an unexpected error: unknown error\n";
 	}
+	eglog::flush();
+	return 70;
 }

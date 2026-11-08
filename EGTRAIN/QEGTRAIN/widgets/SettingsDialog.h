@@ -3,10 +3,12 @@
 #include <QDialog>
 
 class QCheckBox;
+class QComboBox;
 class QLabel;
 class QListWidget;
 class QSettings;
 class TelemetryConsent;
+enum class StationMarkStyle;
 enum class UpdateCheckState;
 
 // The keys of the application settings that the Settings window and the menu entries share. The automatic update
@@ -17,6 +19,12 @@ constexpr const char* kRecentScenesKey = "recentScenes";
 constexpr const char* kAdvancedDetailsKey = "advancedDetails";
 /// The setting that remembers View > Passengers.
 constexpr const char* kShowPassengersKey = "showPassengers";
+/// The setting behind Station marks: the style of the station marks on the canvas, in the map key and in the menus, as
+/// "mapPin", "ringAndBar", "classMarks" or "plainDot".
+constexpr const char* kStationMarkStyleKey = "stationMarkStyle";
+
+/// The station mark style that settings holds under kStationMarkStyleKey; Map pin for a missing or unknown value.
+StationMarkStyle readStationMarkStyle(const QSettings& settings);
 
 /// The Settings window: every application setting in one place. Settings that belong to a case are in Case Settings.
 /// The window reads the settings when it opens and writes them when OK is pressed; the caller then updates the menu
@@ -29,7 +37,8 @@ public:
 	/// Saves the privacy choices first; when that fails, shows the error and keeps the window open. Otherwise writes
 	/// every other setting and closes the window.
 	void accept() override;
-	/// Puts every control at its default: no recent cases, every switch off and the update check choice unset.
+	/// Puts every control at its default: no recent cases, every switch off, map pins for the station marks and the
+	/// update check choice unset.
 	void restoreDefaults();
 
 private:
@@ -38,6 +47,7 @@ private:
 	QListWidget* m_recentCases = nullptr;
 	QCheckBox* m_showPassengers = nullptr;
 	QCheckBox* m_advancedDetails = nullptr;
+	QComboBox* m_stationMarks = nullptr;
 	QCheckBox* m_updateChecks = nullptr;
 	QCheckBox* m_usage = nullptr;
 	QCheckBox* m_diagnostics = nullptr;

@@ -30,6 +30,9 @@ struct ScenarioLoadResult {
 /// the directory into place. On failure the previous directory stays as it was. views.json and
 /// passengers.json are written only when the scene has views or passengers.
 SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir);
+/// Writes the scene files like saveScene, but the new directory replaces a directory at sceneDir with everything in it
+/// and keeps the default mode of a new directory. The legacy importer writes its scene with it.
+SceneSaveResult replaceSceneDirectory(const SceneModel& scene, const std::string& sceneDir);
 /// Writes one scenario as a standalone scenario file, replacing the file at filePath.
 SceneSaveResult saveScenarioJson(const SceneScenario& scenario, const std::string& filePath);
 /// Reads one scenario from a standalone scenario file.

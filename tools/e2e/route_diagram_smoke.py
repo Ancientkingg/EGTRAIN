@@ -57,11 +57,15 @@ with tempfile.TemporaryDirectory(prefix="route-diagram-") as directory:
         sys.exit("no E2E_ROUTE_CHOICE line in the route diagram run")
     listed = set()
     for label in choices:
-        match = re.fullmatch(r"(\S+) --> (.+)", label)
+        match = re.fullmatch(r"(\S+) --> (.+?)(?: \(services? (.+)\))?", label)
         if not match:
             sys.exit(f"route choice is not '<route id> --> <stations>': {label!r}")
         route_id, stations = match.group(1), match.group(2).split(" - ")
         listed.add(route_id)
+        # Both Paimpol routes pass the same stations, so each label names the services that run on its route.
+        named = match.group(3).split(", ") if match.group(3) else []
+        if named != [service["id"] for service in services if service["route"] == route_id]:
+            sys.exit(f"route choice {label!r} does not name the services of {route_id}")
         unknown = [station for station in stations if station not in scene_stations]
         if unknown:
             sys.exit(f"route choice {label!r} lists stations missing from stations.json: {unknown}")
@@ -79,7 +83,7 @@ with tempfile.TemporaryDirectory(prefix="route-diagram-") as directory:
     chooser_png = Path(directory, "route_reference_chooser.png")
     if not chooser_png.is_file() or chooser_png.stat().st_size == 0:
         sys.exit(f"missing route chooser PNG: {chooser_png}")
-    print(f"PASS route chooser lists {len(choices)} routes with their stations in service order")
+    print(f"PASS route chooser lists {len(choices)} routes with their stations in service order and their services")
     expected = ["Train", "Reference route", "Source route", "Event", "Station",
                 "Journey order", "Call", "Elapsed time[s]", "Reference route X[km]"]
     plotted = {}

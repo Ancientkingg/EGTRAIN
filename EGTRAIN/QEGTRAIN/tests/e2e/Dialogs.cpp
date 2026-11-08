@@ -284,6 +284,18 @@ void MainWindowTestAccess::reviewShown(MainWindow& w, QDialog& review) {
 			const QPoint origin = widget->mapTo(&review, QPoint());
 			return QJsonArray{origin.x(), origin.y(), widget->width(), widget->height()};
 		};
+		// Each fact row as the width of its name and of the name's text, the height of the name and of its text, and the height
+		// of the value and of its wrapped text.
+		const auto facts = [&]() {
+			QJsonArray rows;
+			for (int row = 0; row < factLabels.size(); ++row) {
+				const QLabel* name = factLabels[row];
+				const QLabel* value = factValues[row];
+				rows.append(QJsonArray{name->width(), name->sizeHint().width(), name->height(), name->sizeHint().height(),
+					value->height(), value->heightForWidth(value->width())});
+			}
+			return rows;
+		};
 		const auto geometry = [&]() {
 			settle();
 			return QJsonObject{{"dialog", QJsonArray{0, 0, review.width(), review.height()}},
@@ -291,6 +303,7 @@ void MainWindowTestAccess::reviewShown(MainWindow& w, QDialog& review) {
 				{"scroll", rectangle(scroll)}, {"footer", rectangle(buttons)},
 				{"run", rectangle(runButton)}, {"cancel", rectangle(buttons->button(QDialogButtonBox::Cancel))},
 				{"contextHeight", QJsonArray{context->height(), context->heightForWidth(context->width())}},
+				{"facts", facts()},
 				{"scrollMaximum", scroll->verticalScrollBar()->maximum()},
 				{"footerVisible", buttons->isVisible()}, {"fontPoints", review.font().pointSizeF()},
 				{"controlFontPoints",

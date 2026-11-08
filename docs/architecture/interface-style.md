@@ -40,7 +40,7 @@ Contrast ratios follow the WCAG formula for the pair named in the last column.
 | Secondary text | `#5b6871` | help, context lines, small titles, the readout of a result window | 5.1:1 on window, 4.7:1 on band, 5.5:1 on surface |
 | Status text | `#3f4d56` | neutral status label | 7.2:1 on band |
 | Disabled text | `#64717a` | disabled controls and menu items | 4.3:1 on disabled fill, 4.5:1 on window |
-| Accent | `#315a70` | focus of the Run Results table and of the tool buttons outside the toolbar, checked buttons, selected tab, selected row of a list, table or tree with the focus, progress fill, slider, links of About, section headings of the panel of a result window | white on accent 7.4:1, 7.1:1 on surface |
+| Accent | `#315a70` | focus of the Run Results table and of the tool buttons outside the toolbar, checked buttons, selected tab, selected row of a list, table or tree with the focus, progress fill, slider, links of About and the privacy notice link, section headings of the panel of a result window | white on accent 7.4:1, 7.1:1 on surface |
 | Accent dark | `#26495c` | hover of the slider handle | white on it 9.6:1 |
 | Action | `#2e7491` | default button fill, focus border of push buttons, toolbar buttons, the header buttons of a result window, the Run details toggle, fields, and the lists and tables of a dialog, of the editors and of the docks; face of the selected tab of a tab bar with the focus; the text of Clear in the panel of a result window | white on it 5.2:1, 5.2:1 on field, 5.0:1 on surface, 3.4:1 on border |
 | Action hover | `#296882` | default button under the pointer | white on it 6.2:1 |
@@ -81,6 +81,7 @@ The other values of the sheet are state shades of these roles: `#dce6eb` for Ope
 
 - The header is a band: band fill, text colour, weight 600, padding 4 by 8 px, and a border-colour rule to the right of and below each section. The weight is set on `QHeaderView`; the size is the platform header font.
 - Cells are on the field colour with alternate rows and band-coloured grid lines.
+- Under the macOS style and Fusion, `applicationStyleSheet` in `widgets/WidgetStyle.h` ends the style sheet that `main` applies with `QListWidget::item, QTableView::item, QTreeView::item { image: none; }`. The style sheet then draws each item of a list, table or tree whole, so the widget style does not draw its own check box under the styled one, which shows where it is larger, as under the macOS style. Under `windowsvista`, `windows11` and any other style the widget style keeps drawing the items, with the hover highlight of the Windows styles.
 - In a dialog a table has the control border, a 6 px radius and 2 px of padding, so that the header stays inside the rounded corners.
 - Numeric columns are aligned to the right: the times, orders and delays of the timetable results, and the columns that `DelayAnalysisWindow` and `AreaCapacityWindow` name as numeric, and the headways, references, shifts and gaps of the Capacity window. Names, ids, codes and statuses are aligned to the left. The style sheet cannot turn on tabular figures, so digits line up only as far as the platform font has equal digit widths.
 - Delays in the timetable results are signed and coloured with the delay tokens.
@@ -95,13 +96,13 @@ The other values of the sheet are state shades of these roles: `#dce6eb` for Ope
 - **Status labels:** neutral, warning and error keep their colours, with a 6 px radius and 8 px padding.
 - **Default button:** the default button of a dialog footer or a message box is filled with the action colour and has white text. Run simulation in the run review has the same look.
 - **Footer buttons:** the buttons of a dialog footer and of a message box show only their text. The sheet turns off the icons that some desktop themes give OK, Cancel and Close, which would be hard to see on the filled default button.
-- **Links:** the links of About EGTRAIN are underlined accent text without a button face or border, lined up with the text above them. Keyboard focus shows a 2 px border that does not move the text.
+- **Links:** the links of About EGTRAIN and the Privacy notice link of the privacy dialog are underlined accent text without a button face or border, lined up with the text above them. Keyboard focus shows a 2 px border that does not move the text.
 - **Result windows:** a diagram window is a `ResultFrame`, and so are the table windows Timetable, Delay analysis, Capacity and Capacity by area, whose tables lie on white. A white header with a band rule below it lies over the chart, with the context in secondary text and icon buttons that have the face, border, radius and states of a push button, also while the panel button is checked. The panel at the right has the surface colour, a border rule at its left edge and between its sections, section headings in the accent colour, and the readout in secondary text. A key figure of a table window is a semibold value 1.45 times the size of the text over a caption in secondary text. Clear of the selected train, and All and None of the Trains list, are action-coloured text without a face. The Trains list has no frame or background of its own and no row selection: the selected train has the band of a selected row without the focus, `#d8e1e5`, the row with the keyboard focus a 1 px action-coloured border, and the count on the heading is secondary text. A partly checked group has the accent fill of a checked box with a dash, `check-partial.svg`. The icons `zoom-out.svg`, `zoom-in.svg`, `fit.svg` and `panel.svg` are 16 px; without them, as in the unit tests, a header button shows its name.
 
 ## Exceptions
 
 - **Network canvas and railway notation:** drawn in code with their own colours and sizes, described in the [network renderer style map](renderer-style-map.md). Canvas text uses a default `QFont`, not the sheet.
-- **Chart text:** Qt Charts draws axes and ticks with its own fonts; only the brushes and pens are set (`DiagramWindow::applyChartStyle`). A chart has no title, since the window title names it. The Key and the column of an exported figure use the window font.
+- **Chart text:** Qt Charts draws axes and ticks with its own fonts; only the brushes and pens are set (`styleResultChart` in `diagrams/ResultFrame.h`, which the diagram windows and the Punctuality chart of the delay analysis share). A chart has no title, since the window title names it. The Key and the column of an exported figure use the window font.
 - **Console:** fixed-pitch text `#dde3e5` on `#12191f`, 13.7:1.
 
 ## The #409 decision

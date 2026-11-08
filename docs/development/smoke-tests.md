@@ -1,7 +1,7 @@
 # Smoke tests
 
-This page describes the smoke tests that run the application end to end on the committed scenes, and the
-leak and memory checks. It ends with where the tests and runs write their output.
+This page describes the smoke tests that run the application end to end on the committed scenes, the
+leak and memory checks, and the nightly sanitizer runs. It ends with where the tests and runs write their output.
 
 ## Simulation Smoke Test
 
@@ -61,19 +61,20 @@ and fails on any leak or double free. It has four parts:
   and runs scenes one after the other in one process (see [Characterization tests](characterization-tests.md#characterization-tests)),
   which is the scene reload. They cover the line fixture, Paimpol, Assignment,
   Milano-Brescia and Netherlands. Copenhagen and Amsterdam_Hilversum_Student run headless once and are
-  not reloaded.
+  not reloaded. The build legs of the workflow leave out `characterization_repeat_paimpol` and
+  `characterization_repeat_milano_paimpol`, which are labelled `nightly`.
 - CTest runs `test_networkpresenter` and `test_runtimecanvas` on the offscreen platform. They draw the
   track preview and the items of a run on a canvas, apply the steps of a run and of its replay with a
   selection on it, and clear the canvas again, twenty times or more in one process. After each clear
   every registry, every pointer and the scene must be empty, and an item or container that the clear
   does not release is a leak.
-- CTest runs `test_guisimulationsnapshot`. It records, evicts and clears the frames of the replay
+- CTest runs `test_guisimulationsnapshot`. It records, evicts and clears the seconds of the replay
   history and compares the bytes the history counts with the bytes it holds on the heap. Under the
   sanitizer the heap count comes from AddressSanitizer.
 
 The job runs only in the nightly and the manual run, because the sanitizer build and the
 instrumented runs take longer than the pull request checks. To check a branch before a merge,
-start the workflow by hand from the Actions tab, or with `gh workflow run cmake.yml --ref BRANCH`;
+start the workflow by hand, for example with `gh workflow run cmake.yml --ref BRANCH`;
 the other legs start with it. The artifact `leak-check-logs` holds one `SCENE.log` per scene and
 `ctest-reload.log`, `ctest-canvas.log` and `ctest-replay.log`, also when the job fails.
 
@@ -83,6 +84,51 @@ simulation is fixed, not listed.
 
 On macOS, `leaks --atExit -- COMMAND` lists the leaks of one run of a normal build. It exits with
 status 1 when it finds any.
+
+## Nightly sanitizer runs
+
+Two more Linux jobs of the CMake workflow run only in the nightly and the manual run, like the leak
+check. The result job does not wait for them, so they never decide a pull request. They start by hand
+in the same way as the leak check. When a job fails, its artifact `sanitizers-diagnostics` or
+`thread-sanitizer-diagnostics` holds the CTest log.
+
+`sanitizers (Linux)` builds everything in a Debug configuration with `-DEGTRAIN_ENABLE_SANITIZERS=ON`,
+which turns on AddressSanitizer and UndefinedBehaviorSanitizer, and runs all of CTest. It has the
+options and the test environment of the `Sanitizers` job of `release.yml`, which runs the same suite
+on macOS before a release, so that a finding shows the day after the change. Two options of
+`ASAN_OPTIONS` are off by default on macOS and on by default on Linux, and the job turns them off:
+`detect_leaks=0`, because the leak check owns the leaks, and `detect_stack_use_after_return=0`, which
+keeps the frames of returned functions on a fake stack. GCC 13 on Linux on ARM never frees those frames,
+which makes the scene tests hundreds of times slower there. A test without a time limit of its own stops
+after 1500 seconds. `tools/e2e/ubsan_suppressions.txt` lists the known reports of
+UndefinedBehaviorSanitizer, each with its cause and the change that removes it. Apart from these,
+`tools/e2e/test_ci_workflow.py` fails when the options or the environment of the two jobs drift apart.
+
+`thread sanitizer (Linux)` builds the tests of the parts that run on more than one thread with
+`-fsanitize=thread` and runs them: `test_recoverycontroller` for the recovery writer,
+`test_telemetrysender` for the telemetry sender, `test_liveserver` and `test_livereplay` for the live
+server, and `test_simulationworker` for the simulation worker. Qt, libzmq and the C library are not
+instrumented, so `TSAN_OPTIONS` ignores the accesses they make themselves
+(`ignore_noninstrumented_modules=1`), and `tools/e2e/tsan_suppressions.txt` lists the known reports,
+each with its cause (none at present). A race in the code of the application is fixed, not listed.
+`QSemaphore` waits inside Qt, so the sanitizer does not see that a value written before `release()` is
+read after the wait; a test hands values between threads through a `std::mutex`
+(`tests/test_telemetrysender.cpp`).
+
+To run the thread sanitizer tests yourself, in a build directory of its own:
+
+```bash
+cmake -S . -B build-tsan -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_CXX_FLAGS=-fsanitize=thread -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=thread -DEGTRAIN_TEST_TIMEOUT_SCALE=10
+cmake --build build-tsan --target test_recoverycontroller test_telemetrysender test_liveserver test_livereplay \
+  test_simulationworker
+TSAN_OPTIONS=ignore_noninstrumented_modules=1:suppressions=$PWD/tools/e2e/tsan_suppressions.txt \
+  ctest --test-dir build-tsan --output-on-failure \
+  -R '^(test_recoverycontroller|test_telemetrysender|test_liveserver|test_livereplay|test_simulationworker)$'
+```
+
+On a kernel with more address space randomization than ThreadSanitizer supports, it stops at start;
+the job lowers it with `sudo sysctl -w vm.mmap_rnd_bits=28`.
 
 ## Scene Roundtrip Smoke Test
 
@@ -125,7 +171,7 @@ ctest --test-dir build -R '^test_live' --output-on-failure
 | `test_livecommand` | unit | `parseLiveRequest` in `io/LiveCommand.h`: every accepted command, every reason, the limits of size, id and delay, the order of the checks and the id that comes back. It also checks the event frame that reports a command. It uses no socket, thread or run. |
 | `test_liveserver` | unit | `LiveServer` with a synthetic producer and ZeroMQ clients on the loopback address: the endpoint file, the order of frames, the drop policy, a subscriber that never reads, disconnect and reconnect, restart, a port in use, bad requests, a full command queue, the final flush, shutdown with clients connected and producers on four threads. |
 | `test_livereplay` | integration | The commands of a client against a run of the line fixture in the test process. See below. |
-| `test_live_stream_smoke` | integration | The application with `--live` and `build/live_client`: a client that follows a run, sends `set_delay_ms` or leaves, a run that nobody reads, repeated services, a late client, a stopped run, a second run (macOS only) and the options that are refused. Each run with a stream is compared file by file, and by standard output, with a run without one. |
+| `test_live_stream_smoke` | integration | The application with `--live` and `build/live_client`: a client that follows a run, sends `set_delay_ms` or leaves, a run that nobody reads, repeated services, a late client, a stopped window run, a stopped run without a window (exit code 3), a second run (macOS only) and the options that are refused. Each run with a stream is compared file by file, and by standard output, with a run without one. |
 
 `test_livereplay` starts a `LiveServer` with commands inside the test process and acts as the client. It plays the JSON-lines files in `tests/live/commands` against the line fixture. Each line is `{"step": N, "cmd": ..., "args": ...}`. The test sends it from the thread of the run through a REQ socket after step N-1, so the run takes the command at the top of step N. A reader on another thread follows the stream, and it ends each pause with a `resume` once the `applied` event for the pause has come and the run has stood still for a while. The test checks:
 
@@ -135,18 +181,23 @@ ctest --test-dir build -R '^test_live' --output-on-failure
 - A command that is accepted before the run is turned down with `no_active_run` and does not reach the run, and one that is accepted after the last step is turned down with `run_ended`.
 - A command is turned down with `queue_full` when the control of the run holds 16 commands already.
 
-To add a case, add a line to a file in `tests/live/commands` and the events it should give to `testReplay` in `tests/test_livereplay.cpp`.
+To add a case, add a line to a file in `tests/live/commands` and the events it should give to the slot that plays that
+file in `tests/test_livereplay.cpp` (`pauseResumeAndDelay` for `pause-resume-delay.jsonl`, `stopEndsRun` for
+`stop.jsonl`).
 
 ### ThreadSanitizer
 
-CI runs no ThreadSanitizer. Run the live code under it before a change to the threads of the stream (the server, the step loop in `DispatchController` or `RunControl`), in a build directory of its own:
+The `thread sanitizer (Linux)` job runs `test_liveserver` and `test_livereplay` under ThreadSanitizer every night; see [Nightly sanitizer runs](#nightly-sanitizer-runs). Before a change to the threads of the stream (the server, the step loop in `DispatchController` or `RunControl`), run the live code under it yourself, in a build directory of its own:
 
 ```bash
 cmake -S . -B build-tsan -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug \
   -DCMAKE_CXX_FLAGS=-fsanitize=thread -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=thread
 cmake --build build-tsan --target QEGTRAIN live_client test_liveserver test_livecommand test_livereplay
-ctest --test-dir build-tsan -R '^test_live(server|command|replay)$' --output-on-failure
+TSAN_OPTIONS=ignore_noninstrumented_modules=1 \
+  ctest --test-dir build-tsan -R '^test_live(server|command|replay)$' --output-on-failure
 ```
+
+Without `ignore_noninstrumented_modules=1`, ThreadSanitizer reports the messages that libzmq hands to its own I/O thread, because libzmq is not instrumented.
 
 Qt is not instrumented, so a window run reports data races in `ConsoleWidget` and in Qt's queued calls. They do not involve the live code. A run under ThreadSanitizer takes far longer than the limits of `test_live_stream_smoke`. The smoke test stretches its waits by `EGTRAIN_TEST_TIMEOUT_SCALE`, so configure with `-DEGTRAIN_TEST_TIMEOUT_SCALE=100` before you run it, and put `log_path` in `TSAN_OPTIONS` to keep the reports.
 
@@ -163,59 +214,91 @@ row keeps its height while the user seeks. A replay seek explicitly restores
 historical operational overlays; normal completion does not. Future or exited
 trains do not appear on layer toggles or drive Follow station emphasis.
 
-The history (`app/GuiReplayHistory`) records every fifth simulated second and the
-last one, in a compact form. What is the same for the whole run (identity and
-static data of trains, the section and direction of each signal, section ids,
-platforms) is stored once per run in a layout. Each frame stores only flat arrays
-of the values that change: train positions, speeds and occupied arcs, signal codes,
-levels and failure flags, section flags, platform queues, passenger states. Strings
-that vary are stored once in a string table. `atOrBefore` rebuilds an ordinary
-snapshot from this form, so the window uses the same snapshot type as in a live
-run. It keeps the last rebuilt snapshot, and a snapshot that a caller still holds
-is not rebuilt, so asking again for the same frame returns the same object. A
-change of the static data between frames (a different number of trains, a renamed
-train) starts a new layout; older frames keep theirs. Adding a field to a snapshot
-type stops the build of `GuiReplayHistory.cpp` and of the round-trip test until
-the field is stored.
+Play steps through the run at the speed of the box after the label, 1x, 2x, 5x, 10x (the
+default), 30x or 60x simulated seconds per second of real time. `replayPlaybackStep` turns
+the speed into a step: one second every 1000, 500, 200 or
+100 ms up to 10x, then 3 seconds every 100 ms at 30x and 6 seconds every 100 ms at 60x, so
+the replay is never shown more than ten times a second. Over the interval of a step the
+trains that run glide from where they are drawn to their places of the new second, with the
+rules of a live run (`NetworkPresenter::setReplayGlideMs`); the window sets the glide only
+around the render of a step. A seek by the slider, the keys, the wheel, Start or End, also
+while the replay plays, stops every glide and places every train at once. The speed is kept
+for the session and not saved. `E2E_REPLAY_PLAY_OK` checks the glide with the clock of the
+presenter, the seek during Play and the steps at 60x.
 
-The budget is 128 MiB of accounted payload and there is no frame count limit. When
-a run does not fit, the oldest frames are dropped and the history reports the
-interval it still covers (`firstTime`, `lastTime`, `evictedBeforeTime`). Accounting
-includes the layouts, the string table and the capacities of the frame arrays,
-not allocator bookkeeping, container nodes, shared-pointer control blocks or the
-rebuilt snapshots that callers hold, so 128 MiB is **not** a precise
-resident-memory limit; for the scenes below the heap in use was 1.1 times the
-accounted bytes. If one frame, with its layout and strings, exceeds the budget,
-replay is unavailable with an explanation; the simulation continues. A run without
-a window (`-g 0`) builds no snapshots and no replay frames, because nothing reads
-them. `app/ReplayCoverage.h` turns the interval the history still covers into the words of
-the row for a whole run, for a run whose first part was dropped and for a run that cannot
-be replayed, and into the tooltip of Start; the window reads the history, asks for the
-texts and writes them into the two labels and the tooltip.
+The history (`app/GuiReplayHistory`) records every simulated second of the run, as
+changes. What is the same for the whole run (identity, route and direction and
+capacity of each train, the section and direction of each signal, section ids,
+platforms, passenger ids) is stored once per run in a layout. What changes is stored as
+the difference to the second before, one record of 8 bytes (a slot and a new value) for
+each value that changed: signal codes, levels and failure flags, section flags, onboard
+passengers, whether a train has left, the occupied arcs of a train, the passengers on a
+platform and the states of a passenger. Lists and strings are stored once, the lists in
+the table of their interval and the strings in a string table. An interval of 300
+simulated seconds starts with a keyframe, a copy of all values, so a seek applies the
+changes of at most 299 seconds and an interval never refers to another one. `at` rebuilds
+an ordinary snapshot of the chosen second, so the window uses the same snapshot type as in a
+live run. It keeps the last rebuilt snapshot, and a snapshot that a caller still holds is
+not rebuilt, so asking again for the same second returns the same object. A change of a
+count between two seconds, or of a static field that is found at the first second of an
+interval or at the last step, starts the history again at that second; no run does this.
+Adding a field to a snapshot type stops the build of `GuiReplayHistory.cpp` and of the
+round-trip test until the field is stored, derived or declared static.
 
-Measured on a full run of each committed scene at the default horizon (`-g 1`,
-`-pax 0`, Apple silicon, release build). "Complete snapshots" is what the same
-frames would need as ordinary snapshot objects. The rows for Milano_Brescia,
-Copenhagen and Netherlands come from runs without a signalling area; the
-committed scenes have one.
+The positions, speeds and wagon positions of the trains are not recorded. When a run has
+ended, `RunController` gives the history a train source (`makeGuiReplayTrains`): for each
+train the position and speed samples that the completed run holds, shared and not copied
+(`app/ReplayTrajectories.h` builds the pointers), the few samples around them that the
+completed run does not keep, the route geometry that `trainXPositionOf` reads and the virtual
+coupling messages. `at` derives the train fields from it with the same arithmetic as the live
+snapshot, so a seek shows exactly the chosen second. `test_replaylive` runs the line fixture,
+Paimpol with passengers and Milano_Brescia in the test process and compares the replay
+of every 13th second and of both sides of every keyframe with the live snapshot of that
+second, field by field with `==`, after the samples of the trains were freed. A
+history without a train source leaves these fields at their defaults, so no train is drawn.
 
-| Scene | Frames | Covers (s) | Accounted | As complete snapshots |
+`record` runs on the thread that steps the run and nothing else touches the history then.
+The history is moved out after the worker has joined; `setTrains`, `at` and the other
+functions run on the interface thread, and the train source is immutable.
+
+The budget is 128 MiB of accounted payload and there is no limit on the number of seconds.
+It limits what `record` keeps, which is the only part that grows during a run. When a run
+does not fit, the oldest interval is dropped as a whole and the history reports the interval
+it still covers (`firstTime`, `lastTime`, `evictedBeforeTime`). Accounting includes the
+layout, the string table, the keyframes, changes and lists of every interval, the state of
+the last second and the part of the train source that the history owns, all by capacity;
+it does not include allocator bookkeeping, container nodes, shared-pointer control blocks or
+the rebuilt snapshots that callers hold, so 128 MiB is **not** a precise resident-memory
+limit. The samples that the replay shares with the completed run are reported apart
+(`sharedBytes`): the completed run holds them whether or not there is a replay. If the
+interval that is being recorded, with its layout and strings, exceeds the budget, replay is
+unavailable with an explanation; the simulation continues. A run without a window (`-g 0`)
+builds no snapshots and no replay, because nothing reads them. `app/ReplayCoverage.h` turns
+the interval the history still covers into the words of the row for a whole run, for a run
+whose first part was dropped and for a run that cannot be replayed, and into the tooltip of
+Start; the window reads the history, asks for the texts and writes them into the two labels
+and the tooltip.
+
+Measured on a full run of each committed scene at the default horizon (`-g 1`, `-pax 0`,
+Apple silicon, release build) with `QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1`. "Owned payload" is
+`bytes` of the marker, "Shared samples" is `shared`, and "Old accounted payload" is what the
+history before this change counted for the same run, which kept a snapshot every fifth second.
+
+| Scene | Covers (s) | Owned payload | Shared samples | Old accounted payload |
 |---|---|---|---|---|
-| Assignment_Gvc_Gdg_Ut | 2001 | 0-9999 | 4.7 MiB | 32.5 MiB |
-| Paimpol | 1801 | 0-8999 | 12.1 MiB | 155 MiB |
-| Milano_Brescia | 801 | 0-3999 | 13.1 MiB | 68.8 MiB |
-| Copenhagen | 1601 | 0-7999 | 78.9 MiB | 489 MiB |
-| Netherlands | 1601 | 0-7999 | 32.7 MiB | 346 MiB |
+| Assignment_Gvc_Gdg_Ut | 0-9999 | 0.16 MiB | 0.75 MiB | 4.65 MiB |
+| Paimpol | 0-8999 | 0.40 MiB | 0.09 MiB | 12.08 MiB |
+| Milano_Brescia | 0-3999 | 0.37 MiB | 0.94 MiB | 13.06 MiB |
+| Amsterdam_Hilversum_Student | 0-7999 | 0.97 MiB | 0.09 MiB | 22.84 MiB |
+| Copenhagen | 0-7999 | 3.68 MiB | 6.68 MiB | 78.49 MiB |
+| Netherlands | 0-7999 | 1.16 MiB | 0.61 MiB | 30.72 MiB |
 
-Copenhagen is the largest: 196 trains, 78.9 MiB accounted for the whole run, 89 MiB
-of heap in use. A frame holds all the trains of the run, so a longer horizon, which adds
-trains, makes every frame larger: with a horizon of 20000 s (`-h 20000`) Copenhagen has
-476 trains and about 98 KiB a frame, against 50 KiB at the default horizon. The budget then
-holds the last 1340 frames, from 13305 s to 19999 s (134144845 of 134217728 bytes), and the
-row shows the run whose first part was dropped.
-Recording a frame took 1 to 30 microseconds (Copenhagen and Netherlands: 21 to
-30), once per five steps, on the simulation thread; rebuilding a frame took 1 to
-34 microseconds on the interface thread.
+Copenhagen is the largest: 196 trains, 3.68 MiB of owned payload for the whole run in 27
+intervals, against 78.5 MiB before. Paimpol with passengers (`-pax 1`) owns 0.40 MiB. A longer
+horizon adds trains: with a horizon of 20000 s (`-h 20000`) Copenhagen has 476 trains and the
+replay covers the whole run, from 0 s to 19999 s, with 10.1 MiB of owned payload in 67 intervals
+and 19.6 MiB of shared samples. The history before this change had to drop the first part of
+that run: its budget held the last 1340 frames, from 13305 s to 19999 s.
 
 ## Close, New and Open during a run
 
@@ -274,15 +357,16 @@ flag and the revision of the scene stay as they were.
 The smoke passes when the application exits with status 0, prints
 `E2E_EDITOR_SMOKE_OK` and prints the marker of every facet, the last being
 `E2E_EDITOR_UNTOUCHED_OK`. The application output goes to
-`${TMPDIR:-/tmp}/qegtrain-editor-smoke-e2e.log`. On a failure the script prints
+`qegtrain-editor-smoke-e2e.log` in a folder of the run's own below `${TMPDIR:-/tmp}` (see
+[Smoke artifacts](#smoke-artifacts)). On a failure the script prints
 the end of that log, which holds `E2E_EDITOR_SMOKE_FAIL: <facet>: <message>`
 when the application reported the failure.
 
 CTest runs the script as `test_editor_smoke` on macOS and Linux with
 `QT_QPA_PLATFORM=offscreen`. Run it alone with
 `ctest --test-dir build -R test_editor_smoke --output-on-failure`. The script
-takes the application from `QEGTRAIN_APP`. The release workflow also runs it as
-a step of its own.
+takes the application from `QEGTRAIN_APP`. The release workflow runs it through
+CTest too.
 
 ## Recovery Smoke Test
 
@@ -324,6 +408,12 @@ failure prints the end of the output of the run that failed. The scripts of the
 application are in `EGTRAIN/QEGTRAIN/tests/e2e/Recovery.cpp` and the answer to the
 prompt in `Dialogs.cpp`. The editor smoke covers the same paths in one process.
 
+`tools/e2e/run_data_folder_smoke.py` starts the window on the vnc platform, which gives it a screen without a display,
+with crash notes in a stand-in data folder of the user (`XDG_DATA_HOME`) and in its settings folder. Without
+`QEGTRAIN_E2E_SETTINGS_DIR` the start reports the note of the user; with it, the note of the settings folder, and the
+note of the user stays as it was. CTest runs it as `test_run_data_folder_smoke` where Qt has the vnc platform, which is
+Linux.
+
 The recovery folder is below the local application data folder of the user. An
 operating system backup or a sync tool that includes that folder can copy recovery
 files, which hold the case data of the scenes in them.
@@ -336,8 +426,8 @@ tools/e2e/visual_polish_smoke.sh
 
 Run this after UI or rendering changes. The script runs in phases, one after another, and
 runs only the phases named on its command line, for example
-`tools/e2e/visual_polish_smoke.sh signals stations`. Each phase writes file names of its own below
-`${TMPDIR:-/tmp}`, so phases do not disturb each other. On macOS CTest runs the phases as five
+`tools/e2e/visual_polish_smoke.sh signals stations`. Each run writes into a folder of its own below
+`${TMPDIR:-/tmp}`, so runs do not disturb each other. On macOS CTest runs the phases as five
 tests that can run side by side, and `ctest --test-dir build -R test_visual_polish_smoke
 --output-on-failure` starts all five:
 
@@ -346,10 +436,10 @@ tests that can run side by side, and `ctest --test-dir build -R test_visual_poli
 | `test_visual_polish_smoke_live` | `dpr1` | The live run of Copenhagen at a device pixel ratio of 1: screenshots, selection cues, the Follow checks, the labels of the timetable window and the absence of the Show Graph action |
 | | `color` | A copy of Copenhagen in which the first service has a colour |
 | | `dpr2` | The live run of Copenhagen at a device pixel ratio of 2 |
-| `test_visual_polish_smoke_replay` | `completion` | The Assignment run to its end: the replay row and the Follow checks of the replay |
-| | `replay` | The whole-run replay of Assignment, Paimpol, Milano_Brescia and Netherlands |
+| `test_visual_polish_smoke_replay` | `completion` | The Assignment run to its end: the replay row, the playback (speeds, glide over a step, seek during Play) and the Follow checks of the replay |
+| | `replay` | The whole-run replay of Assignment, Paimpol, Milano_Brescia, Amsterdam_Hilversum_Student and Netherlands |
 | | `discard` | The preview legend after a discarded run |
-| `test_visual_polish_smoke_replay_copenhagen` | `replay-copenhagen` | The whole-run replay of Copenhagen, which takes as long as the other four scenes together |
+| `test_visual_polish_smoke_replay_copenhagen` | `replay-copenhagen` | The whole-run replay of Copenhagen, which takes as long as the other five scenes together |
 | `test_visual_polish_smoke_signals` | `signals` | The signal head checks |
 | `test_visual_polish_smoke_stations` | `stations` | The station overlays of the five scenes, and of Copenhagen at a device pixel ratio of 2 |
 | none | `scripts` | `scene_render_smoke.sh` and `legacy_import_smoke.sh`, which are tests of their own |
@@ -360,8 +450,7 @@ and `test_route_diagram_smoke` (see [Platform coverage](testing.md#platform-cove
 `ctest --test-dir build -R <name> --output-on-failure` starts one. CTest gives these
 tests and the five visual tests a settings folder below `build/settings` and an output
 folder below `build/output`; `visual_polish_smoke.sh` replaces the settings folder with a
-temporary one. The release workflow also runs `scene_render_smoke.sh`, `track_preview_smoke.sh` and
-`visual_polish_smoke.sh` as steps of their own. The scripts need an application built with
+temporary one. The release workflow runs these tests through CTest too. The scripts need an application built with
 `EGTRAIN_BUILD_TESTS=ON`, because only that build starts a scenario from its variable at the first
 show of the window and redirects the settings.
 
@@ -398,8 +487,9 @@ replayed, a first kept time of 0, a run of one frame and a clock that wraps over
 
 A real scene is checked with `QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1`. The window runs the scene
 to its end at its own horizon, applies the checks of `E2E_REPLAY_ROW_WHOLE_OK` to the
-history of that run and exits, printing `E2E_REPLAY_WHOLE_RUN_OK` with the number of
-frames, the last time and the accounted bytes and budget. The `replay` and `replay-copenhagen` phases of
+history of that run and exits, printing `E2E_REPLAY_WHOLE_RUN_OK` with `seconds` (the seconds
+the replay covers), `last` (its last time), `bytes` (the payload that the history owns), `shared` (the samples
+that it shares with the completed run), `budget` and `intervals`. The `replay` and `replay-copenhagen` phases of
 `visual_polish_smoke.sh` do so for all six committed scenes, so a history that drops the first part of one of them, or
 ends before the last timestep of the run, fails the script. No committed scene is larger
 than the budget at its own horizon, which is why the dropped row is built from a smaller
@@ -514,34 +604,45 @@ dialog takes its size from the font and style of the platform. CTest runs it on 
 ## Smoke artifacts
 
 Smoke scripts write temporary diagnostics below `${TMPDIR:-/tmp}`; on Windows
-the temporary directory comes from `TEMP` and `TMP`. GitHub Actions routes
+the temporary directory comes from `TEMP` and `TMP`. The CI workflows route
 `TMPDIR` (macOS, Linux) or `TEMP` and `TMP` (Windows) to `$RUNNER_TEMP`
 (`runner.temp`) for CI diagnostics.
-The visual and render smoke artifacts include:
 
-- `qegtrain-visual-polish-e2e.png` and `qegtrain-visual-polish-e2e.log`
-- `qegtrain-scene-render-e2e.png` and `qegtrain-scene-render-e2e.log`
-- `ctest.log`, `qegtrain-editor-smoke-e2e.log`, and
-  `qegtrain-gui-autostart-smoke.log`
+Each run of a Bash smoke with a log writes its logs, screenshots and files into a folder of its own,
+`qegtrain-<smoke>-e2e.<random>`, so two build trees can run the same smoke at the same time. The
+script removes the folder when it passes. When it fails it keeps the folder and prints its name last:
 
-The failure artifact of the pull request check holds only `ctest.log` and the
-GUI autostart log, so the output of a failed smoke is what its script prints into
-`ctest.log`. `visual_polish_smoke.sh` prints a missing-marker line or nothing for
-most of its checks, so run it locally to read its logs.
+| Script | Folder | Files |
+| --- | --- | --- |
+| `visual_polish_smoke.sh` | `qegtrain-visual-polish-e2e.<random>` | `qegtrain-visual-polish-e2e.log` and `.png`, and a log or screenshot of each other check |
+| `scene_render_smoke.sh` | `qegtrain-scene-render-e2e.<random>`, one for each scene | `qegtrain-scene-render-e2e.log` and `.png` |
+| `editor_smoke.sh` | `qegtrain-editor-smoke-e2e.<random>` | `qegtrain-editor-smoke-e2e.log` and the files of the check |
+| `track_preview_smoke.sh` | `qegtrain-track-preview-e2e.<random>` | `qegtrain-track-preview-e2e.log` and the copy of the scene |
+| `legacy_import_smoke.sh` | `qegtrain-legacy-import-e2e.<random>` | `qegtrain-legacy-import-e2e.log`, the legacy case and the imported scenes |
+| `csv_export_smoke.sh` | `qegtrain-csv-export-e2e.<random>` | The logs, exports and run output of the three runs |
+
+The Python smokes name their logs themselves: `qegtrain-gui-autostart-smoke.log` and
+`qegtrain-incident-<tag>.log` below the temporary directory, and `headless_case_<n>.log` as in
+[Where test and run output goes](#where-test-and-run-output-goes).
+
+The failure artifact of the pull request check holds `ctest.log`, those Python logs and the kept
+folders of the Bash smokes. `visual_polish_smoke.sh` prints a missing-marker line or nothing for
+most of its checks, so read the log in its folder.
 
 ## Where test and run output goes
 
 | Output | Where | Set by |
 | --- | --- | --- |
 | Result of a CTest run | `build/Testing/Temporary/LastTest.log`; the names of the failed tests are in `LastTestsFailed.log` in the same folder. `ctest --rerun-failed --output-on-failure` runs those again, and `--output-log FILE` writes the log to a file | CTest |
-| Files of a run in the application or from `QEGTRAIN` | `<QStandardPaths::AppDataLocation>/Output/<scene>`; the files are in [Run output](../guides/run-output.md) | `QEGTRAIN_OUTPUT_DIR` replaces the base folder, and `File > Set Output Folder...` replaces the folder of every later run in that session ([Output folder](../guides/command-line.md#output-folder)) |
+| Files of a run in the application or from `QEGTRAIN` | `<QStandardPaths::AppDataLocation>/Output/<scene>`; the files are in [Run output](../guides/run-output.md) | `QEGTRAIN_OUTPUT_DIR` replaces the base folder, and `Simulation > Set Output Folder...` replaces the folder of every later run in that session ([Output folder](../guides/command-line.md#output-folder)) |
 | Messages of a run | Standard output and error, the **Log** dock, and the file named by `EGTRAIN_LOG_FILE` | `EGTRAIN_LOG`, `EGTRAIN_LOG_FILE` ([Log output](../guides/command-line.md#log-output)) |
 | User settings of a test that starts the window | `build/settings/<test>` | `QEGTRAIN_E2E_SETTINGS_DIR`, set by CMake |
 | Run output of the scene render, track preview, legacy import, route diagram and visual polish tests | `build/output/<test>`. `test_scene_drop` and `test_output_folder` write to `build/scene-drop-test` and `build/output-folder-test` | `QEGTRAIN_OUTPUT_DIR`, set by CMake |
-| Logs and screenshots of the Bash smokes | `${TMPDIR:-/tmp}`, for example `qegtrain-visual-polish-e2e.log`; see [Smoke artifacts](#smoke-artifacts) | `TMPDIR` (`TEMP` and `TMP` on Windows) |
-| Output of `tools/e2e/headless_smoke.py` | `EGTRAIN/QEGTRAIN/Output/<scene>` and `tools/e2e/headless_case_<n>.log`. Git ignores both. The script sets `QEGTRAIN_OUTPUT_DIR` itself | The case numbers on the command line; none runs all six, and Copenhagen alone takes minutes. CTest runs each case as its own test |
+| Logs and screenshots of the Bash smokes | A folder of each run's own below `${TMPDIR:-/tmp}`, kept only when the run fails; see [Smoke artifacts](#smoke-artifacts) | `TMPDIR` (`TEMP` and `TMP` on Windows) |
+| Output of `tools/e2e/headless_smoke.py` | `EGTRAIN/QEGTRAIN/Output/<scene>`, and `headless_case_<n>.log` in `build/smoke-logs` under CTest or in `tools/e2e` for a run by hand. Git ignores the source tree files. The script sets `QEGTRAIN_OUTPUT_DIR` itself | The case numbers on the command line; none runs all six, and Copenhagen alone takes minutes. CTest runs each case as its own test. `QEGTRAIN_SMOKE_LOG_DIR` names the log folder, and CTest sets it |
 | Files of `tools/e2e/roundtrip_smoke.py` | A temporary folder that the script removes when it ends | |
-| Unsaved-work copies that the window keeps | A `Recovery` folder in the local application data folder | `QEGTRAIN_RECOVERY_DIR` ([Scene editor flow](../architecture/scene-editor-flow.md#window-flow)) |
+| Unsaved-work copies that the window keeps | A `Recovery` folder in the local application data folder, or in the folder of `QEGTRAIN_E2E_SETTINGS_DIR` for a test run with a window on a screen. Scripted runs and the offscreen and minimal platforms keep none unless `QEGTRAIN_RECOVERY_DIR` is set | `QEGTRAIN_RECOVERY_DIR` ([Scene editor flow](../architecture/scene-editor-flow.md#window-flow)) |
+| Crash notes of the window | A `Crashes` folder next to the `Recovery` folder, kept under the same rules | `QEGTRAIN_CRASH_DIR` ([Crash notes](error-handling.md#crash-notes)) |
 
 Point `TMPDIR` at a folder outside the checkout when several people test on one machine, so that
 no run reads another run's files. Do the same with `QEGTRAIN_OUTPUT_DIR` for manual runs of the

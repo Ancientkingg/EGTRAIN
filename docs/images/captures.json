@@ -50,6 +50,38 @@
     },
     {
       "case": "Paimpol",
+      "file": "how-to-add-a-service.png",
+      "height": 750,
+      "state": "new_service on route6 with stops at Guingamp and Paimpol, Services on Service",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Paimpol",
+      "file": "how-to-add-a-train.png",
+      "height": 750,
+      "state": "the express repeated after 3600 s for 2 runs, Services on Run occurrences",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Paimpol",
+      "file": "how-to-add-an-incident.png",
+      "height": 750,
+      "state": "a train breakdown of the express from 900 s to 1200 s in Express breakdown, Scenarios on Incidents",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Paimpol",
+      "file": "how-to-change-infrastructure.png",
+      "height": 750,
+      "state": "Infrastructure on Arcs filtered to B0.arc.226, its speed limit 8.333333333 m/s, marked on the view",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Paimpol",
       "file": "how-to-replay-menu.png",
       "height": 750,
       "state": "replay at 3500 s, context menu of the stopping train open",
@@ -65,11 +97,19 @@
       "width": 1200
     },
     {
+      "case": "Paimpol",
+      "file": "how-to-train-paths.png",
+      "height": 750,
+      "state": "Train paths after a run of baseline, on the first route of the run",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
       "case": "Milano_Brescia",
       "file": "readme-main-window.png",
       "height": 750,
-      "manual": "Taken by hand on macOS with a screen at a device pixel ratio of 1: open Milano_Brescia, give the window 1200 by 750 points of content, choose Run at 100x and Pause shortly before 06:45:40, zoom in on Treviglio to 6.2x, set the speed to 2.0x and click Resume and Pause until the clock shows 06:45:40, set 100x again while paused, and save the window without its title bar.",
-      "state": "run paused at 06:45:40 after stepping at 2.0x, speed set back to 100x while paused, zoomed in on Treviglio to 6.2x, dock Case and Layers with its map key on the left",
+      "manual": "Taken by hand on macOS with a screen at a device pixel ratio of 1: open Milano_Brescia, drag the bottom-right corner of the maximized window until its content is 1200 by 750 points, drag the speed slider near its right end and press Left or Right on the focused slider until it reads 100x, click Run and Run simulation, Pause before 06:45:40 (the case runs at about 75x, so this takes a few Resume and Pause steps), click Zoom In 13 times from Fit for 6.2x and drag the view about 801 points right and 8 up so that Treviglio Ovest is near the centre, drag the slider to its left end (2.0x) and click Resume and Pause until the clock shows 06:45:40, click the knob of the slider and press Left or Right until it reads 100x while paused, so that the slider keeps the focus without its hover colour, and save the window without its title bar.",
+      "state": "run of baseline paused at 06:45:40 after stepping at 2.0x, speed slider set back to 100x with the keys while paused and focused, zoomed in to 6.2x with Treviglio Ovest near the centre, dock Case and Layers with its map key on the left",
       "version": "1.0.0",
       "width": 1200
     },

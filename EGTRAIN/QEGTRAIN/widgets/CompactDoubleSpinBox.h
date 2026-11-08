@@ -16,13 +16,22 @@
 /// must not commit its rounded display representation to the canonical model. The wheel changes the value
 /// only while the field has keyboard focus. The compact text has six significant digits, except that a value from
 /// 1e6 up to 1e15 shows all its integer digits without exponent. While the field is not focused, the tooltip shows
-/// the value with its fewest exact digits, after the tooltip of the field, when the compact text is not it.
+/// the value with its fewest exact digits, after the tooltip of the field, when the compact text is not it. An
+/// accessibility client steps the value by the single step, as the arrow keys do.
 class CompactDoubleSpinBox : public QDoubleSpinBox {
 public:
-	/// A spin box whose wheel is guarded by FocusWheel.
+	/// A spin box whose wheel is guarded by FocusWheel, which also gives it the stepSize property.
 	explicit CompactDoubleSpinBox(QWidget* parent = nullptr)
 		: QDoubleSpinBox(parent) {
 		FocusWheel::guard(this);
+	}
+
+	/// Sets the single step, by which the arrows, the arrow keys and the wheel change the value, and the stepSize property
+	/// that FocusWheel::guard gives the field, so that an accessibility client steps by it as well. It hides
+	/// QDoubleSpinBox::setSingleStep, which does not change the property.
+	void setSingleStep(double step) {
+		QDoubleSpinBox::setSingleStep(step);
+		setProperty("stepSize", singleStep());
 	}
 
 	/// The full text, the fewest digits that read back as the value, while the field has focus, else the compact text.
@@ -46,6 +55,14 @@ public:
 		if (magnitude >= 999999.5 && magnitude < 1e15)
 			return QString::number(value, 'f', 0);
 		return QString::number(value, 'g', 6);
+	}
+
+	/// The value with the fewest digits that read back as the same number, such as "8.333333333". From 1e-4 up to 1e15 it
+	/// has no exponent, and other non-zero numbers have one, such as "1e-07".
+	static QString fullText(double value) {
+		const double magnitude = std::fabs(value);
+		const bool plain = magnitude >= 1e-4 && magnitude < 1e15;
+		return QString::number(value, plain ? 'f' : 'g', QLocale::FloatingPointShortest);
 	}
 
 protected:
@@ -80,13 +97,6 @@ protected:
 private:
 	// The full text with the prefix and the suffix of the field.
 	QString shortestValueText() const { return prefix() + fullText(value()) + suffix(); }
-
-	// The value with the fewest digits that read back as the same number. From 1e-4 up to 1e15 it has no exponent.
-	static QString fullText(double value) {
-		const double magnitude = std::fabs(value);
-		const bool plain = magnitude >= 1e-4 && magnitude < 1e15;
-		return QString::number(value, plain ? 'f' : 'g', QLocale::FloatingPointShortest);
-	}
 
 	bool isCurrentText(const QString& text, const QString& number) const {
 		return text == number || text == prefix() + number + suffix();

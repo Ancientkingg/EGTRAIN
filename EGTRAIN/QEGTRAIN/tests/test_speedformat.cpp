@@ -1,23 +1,28 @@
 #include "util/SpeedFormat.h"
 
-#include <iostream>
+#include <QTest>
 
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
+class TestSpeedFormat : public QObject {
+	Q_OBJECT
+
+private slots:
+	void labelsZeroSpeed();
+	void roundsToWholeKilometresPerHour();
+	void clampsNegativeSpeedToZero();
+};
+
+void TestSpeedFormat::labelsZeroSpeed() {
+	QCOMPARE(formatSpeedLabel(0.0), "0 km/h");
 }
 
-int main() {
-	bool ok = true;
-	ok &= expect(formatSpeedLabel(0.0) == "0 km/h", "zero speed label");
-	ok &= expect(formatSpeedLabel(82.6) == "83 km/h", "round speed up");
-	ok &= expect(formatSpeedLabel(82.4) == "82 km/h", "round speed down");
-	ok &= expect(formatSpeedLabel(-3.0) == "0 km/h", "negative speed clamps");
-
-	if (!ok)
-		return 1;
-
-	std::cout << "all SpeedFormat tests passed\n";
-	return 0;
+void TestSpeedFormat::roundsToWholeKilometresPerHour() {
+	QCOMPARE(formatSpeedLabel(82.6), "83 km/h");
+	QCOMPARE(formatSpeedLabel(82.4), "82 km/h");
 }
+
+void TestSpeedFormat::clampsNegativeSpeedToZero() {
+	QCOMPARE(formatSpeedLabel(-3.0), "0 km/h");
+}
+
+QTEST_APPLESS_MAIN(TestSpeedFormat)
+#include "test_speedformat.moc"

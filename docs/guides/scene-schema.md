@@ -24,17 +24,17 @@ for compatibility and are listed in [Historical compatibility aliases](#historic
 legacy case directory, and the exporter may write one when explicitly asked,
 but normal loading and simulation use only the canonical files above.
 
-For a V2 `.egscene` bundle, `scenarios.json` is required; `passengers.json` and
+For a V2 `.egscene` case file, `scenarios.json` is required; `passengers.json` and
 `views.json` are optional entries. `legacy/`, assets, results, and unknown or
 nested ZIP entries are excluded; see
-[V2 Transparent Scene Bundle](scene-bundle.md).
+[Case file format](scene-bundle.md).
 
 ## `scene.json`
 
 Required keys:
 
 - `schema_version`: integer `1`.
-- `name`: non-empty string.
+- `name`: string, which may be empty.
 
 Optional keys:
 
@@ -47,7 +47,7 @@ Optional keys:
   `recovery_time_percent`.
 - `import_report`: array of conversion rows.
 
-Inside a bundle, `format` is the required string `"egscene"` and
+Inside a case file, `format` is the required string `"egscene"` and
 `bundle_version` is the required integer `1`. They are optional transport
 metadata for case folders and do not change the V1 data schema.
 
@@ -67,7 +67,7 @@ The preferred root keys are `tracks`, `nodes`, `arcs`, `blocks`, and
 empty or omitted on input and are emitted by the writer.
 
 - `tracks[]`: `{ "id": string }`.
-- `nodes[]`: `id`, `track`, numeric `x_km`, numeric `y_km`.
+- `nodes[]`: `id`, `track`, numeric `x_km`, numeric `y_km`. `x_km` is the distance along the track in km (chainage), not a map coordinate. Along every arc, `x_km` must not go down from the `from` node to the `to` node, or validation reports the error `scene.topology.order`. `y_km` is a second coordinate in km. The length of an arc is the straight distance between its two nodes in X and Y, so with `y_km` at 0 it is the difference of `x_km`. [Bring in track geometry from GIS](how-to.md#bring-in-track-geometry-from-gis) shows how to get the values from a map.
 - `arcs[]`: `id`, `track`, `from`, `to`, numeric `curvature_radius_m`,
   `gradient_percent`, and `speed_limit_ms`. The simulation uses
   `gradient_percent` unchanged as rise per length: `0.01` means a 1% slope.
@@ -79,10 +79,10 @@ empty or omitted on input and are emitted by the writer.
 
 ## `stations.json`
 
-The root key is `stations`. Each station has required string `id` and `name`,
-optional numeric `position_km`, and optional `platforms`. A platform has an
-`id`, an optional `nodes` array of node IDs, and optional positive finite
-`length_m` and `width_m` values. Missing dimensions retain the V1 compatibility
+The root key is `stations`. Each station has required string `id` and `name`
+(`name` may be empty), optional numeric `position_km`, and optional
+`platforms`. A platform has an `id`, an optional `nodes` array of node IDs,
+and optional positive finite `length_m` and `width_m` values. Missing dimensions retain the V1 compatibility
 defaults of 100 m by 2.5 m. The passenger runtime derives integer platform
 capacity from the effective dimensions and rejects values that produce less
 than one passenger or exceed its integer capacity field.
@@ -263,7 +263,7 @@ display key is `service_id-occurrence`.
 category; the writer omits empty values. The editor offers Intercity, Regional,
 High speed/international, Freight, Metro/urban and Suburban, and preserves
 unknown strings exactly. Category does not affect simulation or inferred train
-display types. Folder and bundle saves preserve it; legacy export omits it
+display types. Case folder and case file saves preserve it; legacy export omits it
 because the old format has no category field.
 
 `visualization_color` is an optional string in schema V1 that sets a display
@@ -271,7 +271,7 @@ colour for the service. The accepted form is `#RRGGBB`, with six hexadecimal
 digits in either case, for example `#3C8DD2`. The loader keeps the text as
 written. It is for display only and does not affect the simulation. The writer
 omits it when unset, so a scene without it is saved unchanged. Folder and
-bundle saves preserve it; legacy export omits it because the old format has
+case file saves preserve it; legacy export omits it because the old format has
 no field for it. Any other non-empty text gives the validation warning
 `scene.service.color.invalid`, and the default train colour is used for that
 service.
@@ -342,8 +342,9 @@ physical running-time predictions.
 ## `scenarios.json`
 
 The preferred root keys are `default_scenario_id` and `scenarios`. The default
-ID selects one named scenario. Each scenario has required `id`, `name`, and
-`incidents` array; it may have `description` and `entrance_delays`.
+ID selects one named scenario. Each scenario has required `id`, `name` (which
+may be empty), and `incidents` array; it may have `description` and
+`entrance_delays`.
 
 Each incident is concrete input with `id`, `type` (`signal_failure` or
 `train_breakdown`), `target`, and finite non-negative `start_seconds`.
@@ -378,7 +379,7 @@ the scenario model to `scenarios.json` and removes the stale flat file.
 ### Standalone scenario JSON
 
 The scenario editor's import/export boundary is one scenario object, not a
-scene bundle and not the `scenarios.json` wrapper:
+case file and not the `scenarios.json` wrapper:
 
 ```json
 {
@@ -458,7 +459,7 @@ accepted, unresolved, malformed, and ID-collision rows before the case is saved.
 
 ## `views.json` and runtime metadata
 
-`views.json` is optional display metadata in directories and bundles. It does not change
+`views.json` is optional display metadata in case folders and case files. It does not change
 topology, signalling, services, or simulation results:
 
 ```json
@@ -497,7 +498,7 @@ file from `GUI/caseStudyTrackData.txt`, `GUI/unusedTracks.txt`, and
 case or folder name, it also sets `double_switch` on the views of the tracks
 with four nodes, which the original drew as double switches. Legacy export omits
 `double_switch`, because the legacy files have no field for it, and warns.
-Directory saves and V2 bundles preserve the file when present.
+Case folder saves and case files preserve the file when present.
 
 `loaded_data` and `sourceFiles` are derived in-memory metadata; they are
 recomputed when a scene is loaded and are not the source of canonical values.
@@ -546,9 +547,9 @@ The reverse exporter remains available for interoperability. It does not make
 legacy files authoritative, and the normal runtime never invokes it. Canonical
 scenario selection and passengers execute directly from [`SceneModel`].
 
-[`InitialParameters`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_initial_parameters.html
-[`Train::computePaxDependentDwellTimeAtStations`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_train.html
-[`SceneModel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_model.html
+[`InitialParameters`]: https://egtrain.samuelbruin.com/latest/api/class_initial_parameters.html
+[`Train::computePaxDependentDwellTimeAtStations`]: https://egtrain.samuelbruin.com/latest/api/class_train.html
+[`SceneModel`]: https://egtrain.samuelbruin.com/latest/api/struct_scene_model.html
 
 ## Case folder
 
@@ -568,7 +569,7 @@ scenario, and passengers are built directly from `SceneModel` in memory.
 | `services.json` | required | route/composition links and planned timetable stops |
 | `scenarios.json` | optional on load; always written | default scenario, named scenarios, incidents, entrance delays |
 | `passengers.json` | optional | journeys, absolute midnight-second windows, and legs |
-| `views.json` | optional display metadata | authored track levels/regions, double switch drawing and station display geometry; preserved in folders and bundles |
+| `views.json` | optional display metadata | authored track levels/regions, double switch drawing and station display geometry; preserved in case folders and case files |
 
 Signalling areas in `signalling.json` give runtime sections their signalling
 level; see [Signalling levels](signalling-levels.md).
@@ -599,21 +600,21 @@ scenario incident   -> signal/block or service target as appropriate
 
 ## Versions
 
-Application version, scene schema version, and bundle version are independent.
+Application version, scene schema version, and `bundle_version` are independent.
 The saved-with application version is provenance and does not by itself prompt
 for an upgrade. An upgrade to a copy is offered only for a scene version that
 has a registered migration, and none exists today; when one is offered, the
-original directory or ZIP remains unchanged. Newer schema or bundle versions
+original directory or ZIP remains unchanged. Newer `schema_version` or `bundle_version` values
 require a newer app.
 
-## Portable bundles
+## Case files
 
 An `.egscene` file packages the canonical JSON files of a scene in a deterministic ZIP archive.
-The bundle version describes the container; `schema_version` still describes
-the canonical data. Bundles include `scenarios.json`, omit generated results
+`bundle_version` describes the container; `schema_version` still describes
+the canonical data. Case files include `scenarios.json`, omit generated results
 and legacy input, and do not replace editable case folders.
 
-Use `scene_tool` to pack, inspect, or unpack a bundle:
+Use `scene_tool` to pack, inspect, or unpack a case file:
 
 ```bash
 ./build/scene_tool pack path/to/case case.egscene
@@ -622,7 +623,7 @@ Use `scene_tool` to pack, inspect, or unpack a bundle:
 ```
 
 See [Opening an `.egscene` case](opening-a-case-study.md) for the student
-workflow and [Scene bundle format](scene-bundle.md) for the
+workflow and [Case file format](scene-bundle.md) for the
 entry allowlist and size limits.
 
 ## Convert a legacy case
@@ -646,6 +647,15 @@ In particular, a timetable
 sentinel of `-1` means the corresponding planned arrival or departure is
 absent; the importer neither synthesizes a result nor changes an inconsistent
 source time.
+
+A legacy file that cannot be opened, or is not valid UTF-16, is reported as
+unreadable (`scene.import.read`) or missing. For most files that is a warning:
+the file counts as skipped and none of its rows is imported. For `Stations.txt`
+and the train, train data, traction, timetable and route files of the trains, it
+is an error, and an import with an error writes no case. The two passenger files
+count only together: when one of them is missing, the other is skipped with the
+warning `scene.import.passengers`, and when both exist but one cannot be read,
+that is an error. A number written as `nan` or `inf` counts as malformed.
 
 A `TrackLines/AreasCaseStudy.txt` is reported in `import_report` and in a
 warning, but its rows are not converted: add the signalling areas in
@@ -969,6 +979,19 @@ The loader accepts these historical forms when the preferred key is absent;
 `Save` writes the canonical files and removes stale flat incident data.
 `loaded_data` is runtime metadata, not an editable source section. `views.json`
 is display-only.
+
+A reference that an editor leaves empty until it is chosen is written as an
+empty string, and the loader accepts it: the `composition` and `route` of a
+service, the `target` of an incident, the `block` and `depends_on` of a block
+dependency, the four blocks of a single-track restriction, the
+`entrance_block` of a station boundary, the `track` of a node, the `track`,
+`from` and `to` of an arc, the `from` and `to` of a connection, the `service`
+and `station` of an entrance delay, the `origin` and `destination` of a
+passenger journey, and the `origin`, `destination` and `service` of a leg. A
+missing key is still an error. Semantic validation reports the empty reference
+as `scene.ref.unresolved` with the entry named, such as `Service new_service
+has no composition`, so the case cannot run, and `scene_tool export` writes no
+legacy files for it, until the reference is chosen.
 
 The editor and simulator use canonical data directly. `legacy/` is not a V1
 scene requirement; import and export are explicit interoperability actions.

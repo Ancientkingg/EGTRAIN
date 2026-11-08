@@ -1,21 +1,14 @@
 #include "diagrams/TimetableTableWindow.h"
-#include "app/DialogFolders.h"
 #include "diagrams/ResultFrame.h"
-#include "diagrams/RunExports.h"
 #include "diagrams/TrainFilterButton.h"
 #include "util/TimeFormat.h"
 
-#include <QBuffer>
 #include <QBrush>
-#include <QFileDialog>
-#include <QFileInfo>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QScreen>
-#include <QMessageBox>
 #include <QPushButton>
-#include <QSaveFile>
 #include <QSet>
 #include <QStyle>
 #include <QStyleOptionHeader>
@@ -29,14 +22,6 @@
 namespace {
 
 constexpr int kSortRole = Qt::UserRole + 1;
-
-bool writeArtifact(const QString& path, const std::string& bytes) {
-	QSaveFile file(path);
-	if (!file.open(QIODevice::WriteOnly))
-		return false;
-	const QByteArray data = QByteArray::fromStdString(bytes);
-	return file.write(data) == data.size() && file.commit();
-}
 
 // Table item that sorts by a numeric key instead of its display text, so time
 // and delay columns order correctly.
@@ -105,7 +90,7 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 	auto* csvButton = new QPushButton("CSV...", exports);
 	csvButton->setObjectName("timetableExportCsv");
 	csvButton->setAccessibleName("Export CSV");
-	csvButton->setToolTip("Save the rows of the visible trains as CSV");
+	csvButton->setToolTip("Save the visible trains as CSV");
 	csvButton->setVisible(static_cast<bool>(m_csvProvider));
 	connect(csvButton, &QPushButton::clicked, this, &TimetableTableWindow::exportCsv);
 	exportRow->addWidget(pngButton, 1);
@@ -156,9 +141,7 @@ void TimetableTableWindow::fillTrainFilter() {
 void TimetableTableWindow::setRunProvenance(RunProvenance provenance) {
 	m_runProvenance = std::move(provenance);
 	m_hasRunProvenance = true;
-	const QString scenario = QString::fromStdString(m_runProvenance.appliedScenario);
-	setPresentation(QStringLiteral("Timetable"),
-		QString::fromStdString(m_runProvenance.caseName) + (scenario.isEmpty() ? QString() : " / " + scenario));
+	setPresentation(QStringLiteral("Timetable"), runContextText(m_runProvenance));
 }
 
 void TimetableTableWindow::setPresentation(const QString& heading, const QString& context) {
@@ -258,29 +241,19 @@ void TimetableTableWindow::applyTrainVisibility() {
 }
 
 void TimetableTableWindow::exportCsv() {
-	// The window comes back in front once the save dialog and its messages close.
-	const KeepInFront front(this);
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	if (!m_csvProvider)
 		return;
 	const std::string content = m_csvProvider(m_trainsButton->visibleTrainIds());
 	if (content.empty()) {
-		QMessageBox::information(this, "Nothing to export",
-			"There is no data to export for the visible trains.");
+		// The window comes back in front once the message closes.
+		const KeepInFront front(this);
+		m_prompts->showInfo(this, "Nothing to Export", "No visible train has data to export.");
 		return;
 	}
-	QString path = QFileDialog::getSaveFileName(this, "Export Data", dialog_folders::suggestedPath("timetable.csv"), "CSV File (*.csv)");
-	if (path.isEmpty())
-		return;
-	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)
-		path += ".csv";
-	const bool written = m_hasRunProvenance
-		? writeRunArtifactWithProvenance(path.toStdString(), "csv", content, m_runProvenance)
-		: writeArtifact(path, content);
-	operation.exportFinished(telemetry::ExportKind::Csv, written, true, telemetry::Error::IoFailure);
-	if (!written)
-		QMessageBox::warning(this, "Export failed",
-			QString("Could not save the data to:\n%1").arg(path));
+	const auto csv = [&content]() -> const std::string& { return content; };
+	saveExportInteractive(this, *m_prompts, telemetry::ExportKind::Csv, "Export Data", "timetable.csv", operation, csv,
+		m_hasRunProvenance ? runProvenanceWriter(m_runProvenance) : ExportWriter());
 }
 
 QImage TimetableTableWindow::tableImage() const {
@@ -288,28 +261,8 @@ QImage TimetableTableWindow::tableImage() const {
 }
 
 void TimetableTableWindow::exportPng() {
-	// The window comes back in front once the save dialog and its messages close.
-	const KeepInFront front(this);
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
-	QString path = QFileDialog::getSaveFileName(this, "Export Table", dialog_folders::suggestedPath("timetable.png"), "PNG Image (*.png)");
-	if (path.isEmpty())
-		return;
-	if (QFileInfo(path).suffix().compare("png", Qt::CaseInsensitive) != 0)
-		path += ".png";
-	QByteArray png;
-	QBuffer buffer(&png);
-	if (!buffer.open(QIODevice::WriteOnly) || !tableImage().save(&buffer, "PNG")) {
-		operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
-		QMessageBox::warning(this, "Export failed",
-			QString("Could not save the image to:\n%1").arg(path));
-		return;
-	}
-	const std::string bytes(png.constData(), static_cast<std::size_t>(png.size()));
-	const bool written = m_hasRunProvenance
-		? writeRunArtifactWithProvenance(path.toStdString(), "png", bytes, m_runProvenance)
-		: writeArtifact(path, bytes);
-	operation.exportFinished(telemetry::ExportKind::Png, written, true, telemetry::Error::IoFailure);
-	if (!written)
-		QMessageBox::warning(this, "Export failed",
-			QString("Could not save the image to:\n%1").arg(path));
+	const auto png = [this] { return pngBytes(tableImage()); };
+	saveExportInteractive(this, *m_prompts, telemetry::ExportKind::Png, "Export Table", "timetable.png", operation, png,
+		m_hasRunProvenance ? runProvenanceWriter(m_runProvenance) : ExportWriter());
 }

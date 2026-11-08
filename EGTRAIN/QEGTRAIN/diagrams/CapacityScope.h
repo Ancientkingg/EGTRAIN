@@ -1,6 +1,7 @@
 #ifndef CAPACITYSCOPE_H
 #define CAPACITYSCOPE_H
 
+#include "diagrams/BlockingTimeScope.h"
 #include "diagrams/CapacityAnalysis.h"
 #include "diagrams/CompletedRunData.h"
 
@@ -76,13 +77,14 @@ QString capacityReferenceOf(const CapacityAnalysisResult& result, const std::str
 /// An analysis period as the capacity windows name it: "1 h" for whole hours, "30 min" for whole minutes, else "90.5 s".
 QString capacityPeriodText(double periodSeconds);
 
-/// Asks for a route, a range of its blocks, a period, the trains to analyse in order and the train that closes the cycle:
-/// the first train one period later or a checked train after the first. The list holds the trains of the range
-/// (capacityInputsFrom) in the order of capacityTrainOrder, all checked, and a new route or range lists them again, with
-/// the trains that were unchecked still unchecked. It opens on the scope when the run has its route: its range, the
-/// trains it names checked and first in their order, the other trains of the range unchecked, and its cycle-closing
-/// train. Else it opens on firstCapacityScopeWithPairFrom. On accept the scope holds the choice. False when the dialog is
-/// cancelled or the run has no route.
-bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, CapacityAnalysisScope& scope);
+/// Asks for a route, a stretch of it (ScopeStretchChoice, as the blocking-time scope asks for them), a period, the trains
+/// to analyse in order and the train that closes the cycle: the first train one period later or a checked train after the
+/// first. The list holds the trains of the stretch (capacityInputsFrom) in the order of capacityTrainOrder, all checked,
+/// and a new route or stretch lists them again, with the trains that were unchecked still unchecked. It opens on the scope
+/// when the run has its route: its blocks, the trains it names checked and first in their order, the other trains of the
+/// blocks unchecked, and its cycle-closing train. Else it opens on firstCapacityScopeWithPairFrom. On accept the scope
+/// holds the choice. False when the dialog is cancelled or the run has no route.
+bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, CapacityAnalysisScope& scope,
+	const ScopeStretchObserver& observer = {});
 
 #endif

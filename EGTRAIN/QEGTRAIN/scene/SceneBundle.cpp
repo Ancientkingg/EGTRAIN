@@ -2,11 +2,10 @@
 
 #include "io/third_party/miniz/miniz.h"
 #include "scene/SceneWriter.h"
+#include "scene/StagedDirectory.h"
 #include "scene/Utf8Path.h"
 
 #include <algorithm>
-#include <array>
-#include <chrono>
 #include <cctype>
 #include <climits>
 #include <cstdint>
@@ -37,29 +36,6 @@ constexpr mz_uint64 kMaxTotalSize = 64ULL * 1024ULL * 1024ULL;
 constexpr mz_uint64 kMaxCompressionRatio = 1000;
 constexpr mz_uint kMaxEntries = 16;
 
-const std::array<const char*, 7> kRequiredEntries = {
-	"scene.json",
-	"infrastructure.json",
-	"stations.json",
-	"signalling.json",
-	"rolling_stock.json",
-	"services.json",
-	"scenarios.json",
-};
-
-struct TempDirectory {
-	fs::path path;
-
-	~TempDirectory() {
-		if (path.empty())
-			return;
-		std::error_code error;
-		fs::remove_all(path, error);
-	}
-
-	void release() { path.clear(); }
-};
-
 struct ZipReader {
 	mz_zip_archive zip{};
 	bool initialized = false;
@@ -83,9 +59,9 @@ struct BundleManifest {
 };
 
 static void addDiagnostic(std::vector<SceneDiagnostic>& diagnostics, const std::string& code,
-	const std::string& message, const std::string& file = "") {
+	const std::string& message, const std::string& file = "", SceneSeverity severity = SceneSeverity::Error) {
 	SceneDiagnostic diagnostic;
-	diagnostic.severity = SceneSeverity::Error;
+	diagnostic.severity = severity;
 	diagnostic.code = code;
 	diagnostic.message = message;
 	diagnostic.file = file;
@@ -150,37 +126,17 @@ static bool specialArchiveFile(const mz_zip_archive_file_stat& stat) {
 	return (stat.m_external_attr & (0x008U | 0x010U | 0x040U | 0x400U)) != 0;
 }
 
-static bool createUniqueDirectory(const fs::path& parent, const std::string& prefix, fs::path& result,
-	bool* writeAttempted = nullptr) {
-	std::error_code ec;
-	for (unsigned int attempt = 0; attempt < 100; ++attempt) {
-		const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-		const fs::path candidate = parent / pathFromUtf8(prefix + std::to_string(stamp) + "-" + std::to_string(attempt));
-		ec.clear();
-		if (writeAttempted) *writeAttempted = true;
-		if (fs::create_directory(candidate, ec)) {
-			ec.clear();
-			fs::permissions(candidate, fs::perms::owner_all, fs::perm_options::replace, ec);
-			if (ec) {
-				std::error_code removeError;
-				fs::remove_all(candidate, removeError);
-				return false;
-			}
-			result = candidate;
-			return true;
-		}
-		if (ec && ec != std::errc::file_exists)
-			return false;
-	}
-	return false;
-}
-
-static bool makeTempDirectory(TempDirectory& temp, std::vector<SceneDiagnostic>& diagnostics,
+static bool makeTempDirectory(StagedDirectory& temp, std::vector<SceneDiagnostic>& diagnostics,
 	bool* writeAttempted = nullptr) {
 	std::error_code ec;
 	const fs::path root = fs::temp_directory_path(ec);
-	if (ec || root.empty() || !createUniqueDirectory(root, "egscene-", temp.path, writeAttempted)) {
-		addDiagnostic(diagnostics, "scene.bundle.temp", "Cannot create a private temporary directory");
+	if (!ec && !root.empty()) {
+		if (writeAttempted)
+			*writeAttempted = true;
+		ec = createStagedDirectory(root, "egscene-", true, temp);
+	}
+	if (ec || root.empty()) {
+		addDiagnostic(diagnostics, "scene.bundle.temp", "Cannot create a temporary folder");
 		return false;
 	}
 	return true;
@@ -191,23 +147,23 @@ static bool readBoundedFile(const fs::path& path, std::string& contents,
 	std::error_code ec;
 	const std::uintmax_t size = fs::file_size(path, ec);
 	if (ec) {
-		addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot stat bundle entry", file);
+		addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot read the size of this file", file);
 		return false;
 	}
 	if (size > kMaxEntrySize) {
-		addDiagnostic(diagnostics, "scene.bundle.entry.size", "Bundle entry exceeds the 16 MiB uncompressed limit", file);
+		addDiagnostic(diagnostics, "scene.bundle.entry.size", "Case file entry exceeds the 16 MiB uncompressed limit", file);
 		return false;
 	}
 	std::ifstream input(path, std::ios::binary);
 	if (!input) {
-		addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot open bundle entry", file);
+		addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot open case file entry", file);
 		return false;
 	}
 	contents.resize(static_cast<std::size_t>(size));
 	if (size != 0) {
 		input.read(contents.data(), static_cast<std::streamsize>(size));
 		if (!input || static_cast<std::uintmax_t>(input.gcount()) != size) {
-			addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot read bundle entry", file);
+			addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot read case file entry", file);
 			return false;
 		}
 	}
@@ -219,51 +175,68 @@ static bool readArchiveFile(const fs::path& path, std::string& contents,
 	std::error_code ec;
 	const auto status = fs::symlink_status(path, ec);
 	if (ec || status.type() != fs::file_type::regular) {
-		addDiagnostic(diagnostics, "scene.bundle.file.missing", "Bundle file is missing or not a regular file",
+		addDiagnostic(diagnostics, "scene.bundle.file.missing", "The case file is missing or is not a file",
 			path.u8string());
 		return false;
 	}
 	const std::uintmax_t size = fs::file_size(path, ec);
 	if (ec) {
-		addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot determine bundle size", path.u8string());
+		addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot read the size of the case file", path.u8string());
 		return false;
 	}
 	if (size > kMaxBundleFileSize) {
-		addDiagnostic(diagnostics, "scene.bundle.size", "Bundle file exceeds the 32 MiB compressed limit",
+		addDiagnostic(diagnostics, "scene.bundle.size", "The case file is larger than 32 MiB",
 			path.u8string());
 		return false;
 	}
 	std::ifstream input(path, std::ios::binary);
 	if (!input) {
-		addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot open bundle file", path.u8string());
+		addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot open the case file", path.u8string());
 		return false;
 	}
 	contents.resize(static_cast<std::size_t>(size));
 	if (size != 0) {
 		input.read(contents.data(), static_cast<std::streamsize>(size));
 		if (!input || static_cast<std::uintmax_t>(input.gcount()) != size) {
-			addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot read bundle file", path.u8string());
+			addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot read the case file", path.u8string());
 			return false;
 		}
 	}
 	return true;
 }
 
-static bool canonicalEntryName(const std::string& name);
+// A bundle holds the files that saveScene writes.
+static bool canonicalEntryName(const std::string& name) {
+	return std::any_of(kSceneFiles.begin(), kSceneFiles.end(), [&name](const SceneFile& file) {
+		return file.write != SceneFileWrite::Never && name == file.name;
+	});
+}
+
+// The first file that saveScene always writes and that entries lacks, or null when entries holds them all.
+static const char* missingRequiredEntry(const std::vector<ArchiveEntry>& entries) {
+	for (const SceneFile& file : kSceneFiles) {
+		if (file.write == SceneFileWrite::Always
+			&& std::none_of(entries.begin(), entries.end(), [&file](const ArchiveEntry& entry) {
+				   return entry.name == file.name;
+			   }))
+			return file.name;
+	}
+	return nullptr;
+}
 
 static bool inspectBundle(const fs::path& path, const std::string& archiveBytes, ZipReader& reader,
 	std::vector<ArchiveEntry>& entries, BundleManifest& manifest,
 	std::vector<SceneDiagnostic>& diagnostics) {
 	const mz_uint64 archiveSize = archiveBytes.size();
 	if (!mz_zip_reader_init_mem(&reader.zip, archiveBytes.data(), archiveBytes.size(), 0)) {
-		addDiagnostic(diagnostics, "scene.bundle.archive", "Cannot open ZIP bundle: " + zipError(reader.zip),
+		addDiagnostic(diagnostics, "scene.bundle.archive", "Cannot open the case file: " + zipError(reader.zip),
 			path.u8string());
 		return false;
 	}
 	reader.initialized = true;
 	const mz_uint fileCount = mz_zip_reader_get_num_files(&reader.zip);
 	if (fileCount > kMaxEntries) {
-		addDiagnostic(diagnostics, "scene.bundle.entries", "Bundle contains more than 16 entries", path.u8string());
+		addDiagnostic(diagnostics, "scene.bundle.entries", "The case file holds more than 16 files", path.u8string());
 		return false;
 	}
 
@@ -302,7 +275,7 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 			return false;
 		}
 		if (stat.m_is_directory) {
-			addDiagnostic(diagnostics, "scene.bundle.entry", "Directory entries are not allowed in a bundle", name);
+			addDiagnostic(diagnostics, "scene.bundle.entry", "Folders are not allowed in a case file", name);
 			return false;
 		}
 		if (stat.m_is_encrypted || (stat.m_bit_flag & 1U) != 0) {
@@ -322,16 +295,16 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 			return false;
 		}
 		if (stat.m_uncomp_size > kMaxEntrySize) {
-			addDiagnostic(diagnostics, "scene.bundle.entry.size", "Bundle entry exceeds the 16 MiB uncompressed limit", name);
+			addDiagnostic(diagnostics, "scene.bundle.entry.size", "Case file entry exceeds the 16 MiB uncompressed limit", name);
 			return false;
 		}
 		if (stat.m_comp_size == 0 ? stat.m_uncomp_size != 0
 								  : stat.m_uncomp_size > stat.m_comp_size * kMaxCompressionRatio) {
-			addDiagnostic(diagnostics, "scene.bundle.ratio", "Bundle entry exceeds the 1000:1 compression-ratio limit", name);
+			addDiagnostic(diagnostics, "scene.bundle.ratio", "Case file entry exceeds the 1000:1 compression-ratio limit", name);
 			return false;
 		}
 		if (totalSize > kMaxTotalSize - stat.m_uncomp_size) {
-			addDiagnostic(diagnostics, "scene.bundle.total-size", "Bundle exceeds the 64 MiB total uncompressed limit", name);
+			addDiagnostic(diagnostics, "scene.bundle.total-size", "The case file exceeds the 64 MiB total uncompressed limit", name);
 			return false;
 		}
 		totalSize += stat.m_uncomp_size;
@@ -346,7 +319,7 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 			return !canonicalEntryName(entry.name);
 		});
 		if (unknown != entries.end()) {
-			addDiagnostic(diagnostics, "scene.bundle.entry", "Unknown ZIP entry is not allowed in v1",
+			addDiagnostic(diagnostics, "scene.bundle.entry", "The case file holds a file that is not part of an EGTRAIN case",
 				unknown->name);
 			return false;
 		}
@@ -356,12 +329,7 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 	std::string manifestText(static_cast<std::size_t>(manifestEntry->stat.m_uncomp_size), '\0');
 	if (!mz_zip_reader_extract_to_mem(&reader.zip, manifestEntry->index,
 			manifestText.empty() ? nullptr : manifestText.data(), manifestText.size(), 0)) {
-		const bool allRequired = std::all_of(kRequiredEntries.begin(), kRequiredEntries.end(),
-			[&entries](const char* required) {
-				return std::any_of(entries.begin(), entries.end(), [required](const ArchiveEntry& entry) {
-					return entry.name == required;
-				});
-			});
+		const bool allRequired = missingRequiredEntry(entries) == nullptr;
 		if (!allRequired)
 			addDiagnostic(diagnostics, "scene.bundle.required", "Required ZIP entry is missing", "scene.json");
 		else
@@ -405,18 +373,13 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 			manifest.savedWithAppVersion = manifestJson["saved_with_app_version"].get<std::string>();
 		}
 	} catch (const json::exception& error) {
-		const bool allRequired = std::all_of(kRequiredEntries.begin(), kRequiredEntries.end(),
-			[&entries](const char* required) {
-				return std::any_of(entries.begin(), entries.end(), [required](const ArchiveEntry& entry) {
-					return entry.name == required;
-				});
-			});
+		const bool allRequired = missingRequiredEntry(entries) == nullptr;
 		if (!allRequired) {
 			const auto unknown = std::find_if(entries.begin(), entries.end(), [](const ArchiveEntry& entry) {
 				return !canonicalEntryName(entry.name);
 			});
 			if (unknown != entries.end())
-				addDiagnostic(diagnostics, "scene.bundle.entry", "Unknown ZIP entry is not allowed in v1", unknown->name);
+				addDiagnostic(diagnostics, "scene.bundle.entry", "The case file holds a file that is not part of an EGTRAIN case", unknown->name);
 			else
 				addDiagnostic(diagnostics, "scene.bundle.required", "Required ZIP entry is missing", "scene.json");
 		} else {
@@ -427,21 +390,14 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 	}
 	if (*manifest.bundleVersion == kCurrentSceneBundleVersion) {
 		for (const auto& entry : entries) {
-			if (entry.name != "passengers.json" && entry.name != "views.json"
-				&& std::none_of(kRequiredEntries.begin(), kRequiredEntries.end(), [&entry](const char* required) {
-					   return entry.name == required;
-				   })) {
-				addDiagnostic(diagnostics, "scene.bundle.entry", "Unknown ZIP entry is not allowed in v1", entry.name);
+			if (!canonicalEntryName(entry.name)) {
+				addDiagnostic(diagnostics, "scene.bundle.entry", "The case file holds a file that is not part of an EGTRAIN case", entry.name);
 				return false;
 			}
 		}
-		for (const char* required : kRequiredEntries) {
-			if (std::none_of(entries.begin(), entries.end(), [required](const ArchiveEntry& entry) {
-					return entry.name == required;
-				})) {
-				addDiagnostic(diagnostics, "scene.bundle.required", "Required ZIP entry is missing", required);
-				return false;
-			}
+		if (const char* missing = missingRequiredEntry(entries)) {
+			addDiagnostic(diagnostics, "scene.bundle.required", "Required ZIP entry is missing", missing);
+			return false;
 		}
 	}
 	if (!mz_zip_validate_archive(&reader.zip, 0)) {
@@ -470,13 +426,6 @@ static bool extractEntries(const ZipReader& reader, const std::vector<ArchiveEnt
 		}
 	}
 	return true;
-}
-
-static bool canonicalEntryName(const std::string& name) {
-	return name == "passengers.json" || name == "views.json"
-		|| std::any_of(kRequiredEntries.begin(), kRequiredEntries.end(), [&name](const char* required) {
-			   return name == required;
-		   });
 }
 
 static bool publishPath(const fs::path& staging, const fs::path& target,
@@ -515,6 +464,12 @@ static bool publishPath(const fs::path& staging, const fs::path& target,
 			target.u8string());
 		return false;
 	}
+	// The parent folder holds the new name; on Windows the rename above is written through instead. The target is in
+	// place already, so a failure here is only a warning.
+	ec = syncToDisk(parent, true);
+	if (ec)
+		addDiagnostic(diagnostics, "scene.bundle.publish", "Cannot flush " + parent.u8string() + " to disk: " + ec.message(),
+			parent.u8string(), SceneSeverity::Warning);
 	return true;
 }
 
@@ -561,7 +516,7 @@ SceneSaveResult extractSceneBundleForMigration(const std::string& bundlePath,
 		return result;
 	if (manifest.bundleVersion && *manifest.bundleVersion > kCurrentSceneBundleVersion) {
 		addDiagnostic(result.diagnostics, "scene.bundle.version",
-			"Newer bundle layouts are not extracted", "scene.json");
+			"Newer case file versions are not extracted", "scene.json");
 		return result;
 	}
 	// Older layouts are eligible for an explicitly registered migration step.
@@ -586,7 +541,7 @@ SceneLoadResult loadSceneBundle(const std::string& bundlePath) {
 	result.bundleVersion = manifest.bundleVersion;
 	if (manifest.bundleVersion != kCurrentSceneBundleVersion) {
 		addDiagnostic(result.diagnostics, "scene.bundle.version",
-			"Unsupported bundle_version; only the current bundle layout can be loaded", "scene.json");
+			"Unsupported bundle_version; only the current case file version can be loaded", "scene.json");
 		return result;
 	}
 	if (manifest.schemaVersion != kCurrentSceneSchemaVersion) {
@@ -595,7 +550,7 @@ SceneLoadResult loadSceneBundle(const std::string& bundlePath) {
 		return result;
 	}
 
-	TempDirectory temp;
+	StagedDirectory temp;
 	if (!makeTempDirectory(temp, result.diagnostics))
 		return result;
 	if (!extractEntries(reader, entries, temp.path, result.diagnostics))
@@ -621,19 +576,20 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 	SceneSaveResult result;
 	if (scene.schemaVersion != kCurrentSceneSchemaVersion) {
 		addDiagnostic(result.diagnostics, "scene.bundle.schema",
-			"Bundle writer requires the current schema_version", "scene.json");
+			"Case file writer requires the current schema_version", "scene.json");
 		return result;
 	}
 	const fs::path target = pathFromUtf8(bundlePath);
 	if (target.empty() || target.filename().empty()) {
-		addDiagnostic(result.diagnostics, "scene.bundle.write", "Bundle output path is empty");
+		addDiagnostic(result.diagnostics, "scene.bundle.write", "Case file output path is empty");
 		return result;
 	}
 
-	TempDirectory temp;
+	StagedDirectory temp;
 	if (!makeTempDirectory(temp, result.diagnostics, &result.writeAttempted))
 		return result;
-	SceneSaveResult directoryResult = saveScene(scene, temp.path.u8string());
+	// The temporary case is removed once it is packed, so it is not flushed to disk.
+	SceneSaveResult directoryResult = writeSceneFiles(scene, temp.path);
 	result.writeAttempted = result.writeAttempted || directoryResult.writeAttempted;
 	result.diagnostics = directoryResult.diagnostics;
 	if (!directoryResult.success())
@@ -668,26 +624,22 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 	}
 
 	std::vector<std::string> names;
-	for (const char* required : kRequiredEntries)
-		names.emplace_back(required);
-	std::error_code ec;
-	if (fs::is_regular_file(temp.path / "passengers.json", ec))
-		names.emplace_back("passengers.json");
-	ec.clear();
-	if (fs::is_regular_file(temp.path / "views.json", ec))
-		names.emplace_back("views.json");
+	for (const SceneFile& file : kSceneFiles)
+		if (sceneFileWritten(file, scene))
+			names.emplace_back(file.name);
 	std::sort(names.begin(), names.end());
+	std::error_code ec;
 
 	fs::path parent = target.parent_path().empty() ? fs::path(".") : target.parent_path();
 	fs::create_directories(parent, ec);
 	if (ec) {
-		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot create bundle output directory: " + ec.message(),
+		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot create case file output folder: " + ec.message(),
 			target.u8string());
 		return result;
 	}
 	const auto targetStatus = fs::symlink_status(target, ec);
 	if (!ec && targetStatus.type() == fs::file_type::directory) {
-		addDiagnostic(result.diagnostics, "scene.bundle.write", "Bundle output path is a directory", target.u8string());
+		addDiagnostic(result.diagnostics, "scene.bundle.write", "Case file output path is a folder", target.u8string());
 		return result;
 	}
 
@@ -696,23 +648,23 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 		ec.clear();
 		const std::uintmax_t size = fs::file_size(temp.path / name, ec);
 		if (ec) {
-			addDiagnostic(result.diagnostics, "scene.bundle.file.read", "Cannot stat bundle entry", name);
+			addDiagnostic(result.diagnostics, "scene.bundle.file.read", "Cannot read the size of this file", name);
 			return result;
 		}
 		if (size > kMaxEntrySize) {
-			addDiagnostic(result.diagnostics, "scene.bundle.entry.size", "Bundle entry exceeds the 16 MiB uncompressed limit", name);
+			addDiagnostic(result.diagnostics, "scene.bundle.entry.size", "Case file entry exceeds the 16 MiB uncompressed limit", name);
 			return result;
 		}
 		if (totalSize > kMaxTotalSize - size) {
-			addDiagnostic(result.diagnostics, "scene.bundle.total-size", "Generated bundle exceeds the 64 MiB total limit", name);
+			addDiagnostic(result.diagnostics, "scene.bundle.total-size", "The case file would be larger than 64 MiB", name);
 			return result;
 		}
 		totalSize += size;
 	}
 
-	TempDirectory stagingContainer;
-	if (!createUniqueDirectory(parent, target.filename().u8string() + ".staging-", stagingContainer.path)) {
-		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot create a private bundle staging directory",
+	StagedDirectory stagingContainer;
+	if (createStagedDirectory(parent, target.filename().u8string() + ".staging-", true, stagingContainer)) {
+		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot create a temporary folder next to the case file",
 			target.u8string());
 		return result;
 	}
@@ -720,7 +672,7 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 	mz_zip_archive writer{};
 	bool writerInitialized = mz_zip_writer_init_file(&writer, staging.u8string().c_str(), 0) != 0;
 	if (!writerInitialized) {
-		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot create ZIP bundle: " + zipError(writer), target.u8string());
+		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot create the case file: " + zipError(writer), target.u8string());
 		return result;
 	}
 	bool archiveOk = true;
@@ -733,11 +685,11 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 		}
 	}
 	if (archiveOk && !mz_zip_writer_finalize_archive(&writer)) {
-		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot finalize ZIP bundle: " + zipError(writer), target.u8string());
+		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot finalize the case file: " + zipError(writer), target.u8string());
 		archiveOk = false;
 	}
 	if (!mz_zip_writer_end(&writer)) {
-		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot close ZIP bundle", target.u8string());
+		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot close the case file", target.u8string());
 		archiveOk = false;
 	}
 	if (!archiveOk) {
@@ -754,7 +706,15 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 		if (!inspectBundle(staging, archiveBytes, checkReader, checkEntries, checkManifest, result.diagnostics))
 			return result;
 	}
-	if (!publishPath(staging, target, result.diagnostics, "bundle", true))
+	// The archive is on disk before it takes the place of the previous bundle.
+	ec = syncToDisk(staging, false);
+	if (ec) {
+		const std::string name = target.filename().u8string();
+		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot flush " + name + " to disk: " + ec.message(),
+			target.u8string());
+		return result;
+	}
+	if (!publishPath(staging, target, result.diagnostics, "case file", true))
 		return result;
 	result.wroteAll = !hasErrors(result.diagnostics);
 	if (result.wroteAll)
@@ -774,7 +734,7 @@ SceneSaveResult unpackSceneBundle(const std::string& bundlePath, const std::stri
 	std::error_code equivalenceError;
 	if (fs::exists(destination, equivalenceError) && !equivalenceError
 		&& fs::equivalent(pathFromUtf8(bundlePath), destination, equivalenceError) && !equivalenceError) {
-		addDiagnostic(result.diagnostics, "scene.bundle.publish", "Extraction destination must differ from the input bundle",
+		addDiagnostic(result.diagnostics, "scene.bundle.publish", "Extraction destination must differ from the input case file",
 			destinationDirectory);
 		return result;
 	}
@@ -790,7 +750,7 @@ SceneSaveResult unpackSceneBundle(const std::string& bundlePath, const std::stri
 	if (manifest.bundleVersion != kCurrentSceneBundleVersion
 		|| manifest.schemaVersion != kCurrentSceneSchemaVersion) {
 		addDiagnostic(result.diagnostics, "scene.bundle.version",
-			"Only the current scene bundle can be unpacked", "scene.json");
+			"Only the current case file can be unpacked", "scene.json");
 		return result;
 	}
 	const fs::path parent = destination.parent_path().empty() ? fs::path(".") : destination.parent_path();
@@ -802,8 +762,8 @@ SceneSaveResult unpackSceneBundle(const std::string& bundlePath, const std::stri
 		return result;
 	}
 
-	TempDirectory staging;
-	if (!createUniqueDirectory(parent, destination.filename().u8string() + ".staging-", staging.path)) {
+	StagedDirectory staging;
+	if (createStagedDirectory(parent, destination.filename().u8string() + ".staging-", true, staging)) {
 		addDiagnostic(result.diagnostics, "scene.bundle.publish", "Cannot create extraction staging directory",
 			destinationDirectory);
 		return result;
@@ -814,6 +774,15 @@ SceneSaveResult unpackSceneBundle(const std::string& bundlePath, const std::stri
 	result.diagnostics.insert(result.diagnostics.end(), loaded.diagnostics.begin(), loaded.diagnostics.end());
 	if (hasErrors(loaded.diagnostics))
 		return result;
+	// The extracted case is on disk before it is renamed into place.
+	fs::path unsynced;
+	ec = syncDirectoryTree(staging.path, unsynced);
+	if (ec) {
+		const fs::path inCase = unsynced.lexically_relative(staging.path);
+		const std::string name = inCase == fs::path(".") ? destinationName : inCase.u8string();
+		addDiagnostic(result.diagnostics, "scene.bundle.extract", "Cannot flush " + name + " to disk: " + ec.message(), name);
+		return result;
+	}
 	if (!publishPath(staging.path, destination, result.diagnostics, "extracted scene", false))
 		return result;
 	staging.release();

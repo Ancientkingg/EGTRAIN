@@ -1,12 +1,11 @@
 #include "simulation/RollingStock.h"
 #include "scene/SceneModel.h"
 #include "scene/SignallingLevel.h"
+#include "simulation/RunOutputFile.h"
 #include "simulation/SimulationRun.h"
 #include "util/Log.h"
 #include "util/timeutil.hpp"
 
-#include <thread>
-#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <algorithm>
@@ -43,8 +42,6 @@ BlockingTimes::BlockingTimes() {
 	NextBlockIDPreviousTrain = "None";
 }
 
-// const int Max_N_Reg = 150;
-
 Train::Train() {
 	velocityIntervals = temp = stop = counter = counter2 = CounterFollowingMode = IsTrainCoupling = 0;
 	BrakStep = -1;
@@ -52,24 +49,18 @@ Train::Train() {
 	numStations = 0;
 	Xobmin = Vobmin = 0;
 	// instant_train_energy_consumption[0] = 0; // moved to function that sets the size of vectors from user input (at this point vector size is zero, can't set value)
-	brakingPoint = 0;
-	delayed = 0;
 	RunStartTime = 0;
 	CanEnter = false;
-	direction = 0;
-	Final_Delay = TotalInputDelays = 0;
-	N_Station_Stopped = 0;
+	TotalInputDelays = 0;
 	indexOfRoute = 0;
 	OutOfSimulation = false;
 	GradientExceptionInBraking = false;
 	IsTrainStoppedForEoA = false;
 	type = "None";
-	ETCS3StoppingPoint = -1;
 	Start_Node_X = -10000;
 	EntranceDelay = 0;
 	N_BlockSections = 0;
 	N_BlockTimeComplete = 0;
-	N_ConflictingTrains = 0;
 	IsTrainInFollowingMode = IsTrainDecoupling = IsInUnintentionalDecoupling = false;
 	LeadingTrainInFollowingMode = "None";
 	CurrentServiceStopPlatform = "None";
@@ -78,7 +69,6 @@ Train::Train() {
 	TotalEnergyConsWithRegBrak = 0;
 	TotalEnergySubstRequestWithRegBrak = 0;
 	EnergyForAuxiliaries = 0;
-	numOverlaps = 0;
 	MAX_OnBoard_Passengers = trainPassengerCapacity(number_of_wagons);
 	Current_OnBoard_Passengers = 0; // It is considered that the train starts with no passengers onboard
 	for (int i = 0; i < kMaxTimetableStations; i++) {
@@ -88,9 +78,6 @@ Train::Train() {
 		StationConsecDelay[i] = -1;
 		StationDisturbance[i] = 0;
 	}
-
-	prevIntendedDepTime = 0; // initialized as 0 to print from t=0 in the 1st service
-	reservedPlatform = -1;
 
 	for (int p = 0; p < 8; p++) {
 		this->GibsonDwellTimeParameters[p] = -1;
@@ -160,9 +147,10 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 	}
 
 	// To apply the dwell time model by Gibson it is required to have the number of people boarding and alighting at each door
-	// We consider that train cars have 2 doors per car + 2 extra doors which pertain to the traction units
+	// We consider that every car, the traction unit included, has 2 doors. The doors are counted from N_cars, the cars the
+	// passengers were split over above, so a fractional number of wagons adds no door.
 	int N_Doors_In_a_Car = 2;
-	int Total_N_Doors_In_Train = N_Doors_In_a_Car * number_of_wagons + N_Doors_In_a_Car;
+	int Total_N_Doors_In_Train = N_Doors_In_a_Car * N_cars;
 
 	// defining list of passengers boarding and alighting from each door in a car
 	// they are defined by randomly drawin the number of passenger boarding or alighting from a door and deriving the remaining of that car from the randomly drawn number
@@ -242,23 +230,6 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 
 	// and returning it as output of the function
 	return Total_Dwell_Time;
-}
-
-Regional::Regional() {
-	g = kSceneGravityMs2;
-	ID = 0;
-	mass_of_traction_unit = 0;
-	mass_of_a_wagon = 0;
-	number_of_wagons = 0;
-	max_train_speed = 0;
-	max_train_decelaration = 1.3;
-	frontal_wagon_area = 1.45;
-	resistanceCoefficient = 0;
-	Jerk = 0;
-	train_length = 0;
-	massPerWagonAxle = mass_of_a_wagon * number_of_wagons;
-	massFactor = sceneTrainMassFactor(SceneTrainPhysical());
-	total_train_mass = mass_of_traction_unit + massPerWagonAxle;
 }
 
 // Function to compute Blocking Times of trains in mixed signalling areas
@@ -411,8 +382,7 @@ void updateSingleTrackLocks(SimulationRun& run, int step) {
 void PrintTimetablePoints(SimulationRun& run, string MainFolder) {
 	string FileName;
 	FileName = FileName + MainFolder + "/TimetablePoints.txt";
-	ofstream OutputFile;
-	OutputFile.open((char*)FileName.c_str(), ios::binary);
+	ofstream OutputFile = openRunOutputFile(FileName, ios::binary);
 
 	for (int i = 0; i < run.numTrains; i++) {
 		OutputFile << run.trains[i].trainDescription << " " << run.trains[i].type << "\n";
@@ -454,14 +424,14 @@ void PrintTimetablePoints(SimulationRun& run, string MainFolder) {
 		}
 		OutputFile << "\n";
 	}
+	closeRunOutputFile(OutputFile, FileName);
 }
 
 // Function to Print out the blocking times of all the Trains
 void PrintTrainBlockingTimes(SimulationRun& run, string MainFolder) {
 	string FileName;
 	FileName = FileName + MainFolder + "/BlockingTimes.txt";
-	ofstream OutputFile;
-	OutputFile.open((char*)FileName.c_str(), ios::binary);
+	ofstream OutputFile = openRunOutputFile(FileName, ios::binary);
 
 	for (int i = 0; i < run.numTrains; i++) {
 		OutputFile << run.trains[i].trainDescription << "\n";
@@ -472,20 +442,12 @@ void PrintTrainBlockingTimes(SimulationRun& run, string MainFolder) {
 		OutputFile << "\n";
 
 		for (int j = 0; j < run.trains[i].N_BlockTimeComplete; j++) {
-			/*if (train_route[regional_train[i].indexOfRoute].reversed_direction==0)
-			OutputFile<<regional_train[i].BlockTime[j].PosStart<<" ";
-			else
-			OutputFile<<train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute-regional_train[i].BlockTime[j].PosEnd<<" ";*/
 			OutputFile << run.trains[i].BlockTime[j].GeoPosStart << " ";
 		}
 
 		OutputFile << "\n";
 
 		for (int j = 0; j < run.trains[i].N_BlockTimeComplete; j++) {
-			/*if (train_route[regional_train[i].indexOfRoute].reversed_direction==0)
-			OutputFile<<regional_train[i].BlockTime[j].PosEnd<<" ";
-			else
-			OutputFile<<train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute-regional_train[i].BlockTime[j].PosStart<<" ";*/
 			OutputFile << run.trains[i].BlockTime[j].GeoPosEnd << " ";
 		}
 
@@ -501,6 +463,7 @@ void PrintTrainBlockingTimes(SimulationRun& run, string MainFolder) {
 		}
 		OutputFile << "\n";
 	}
+	closeRunOutputFile(OutputFile, FileName);
 }
 
 // Function to report the position of the trains in ETCS Level 3
@@ -511,7 +474,7 @@ void ReportAllTrainPositionsToRBC(SimulationRun& run, int i, double ETCS3SafetyM
 }
 
 // check train arrival/departure at/from destination/origin
-void Train::checkTrainArrDep(int trainIdx, int t) {
+void Train::checkTrainArrDep(int t) {
 	if (numStations <= 0 || Stations.empty())
 		return;
 
@@ -543,7 +506,6 @@ void Train::checkTrainArrDep(int trainIdx, int t) {
 	// check arrivals and departures
 	// train stopped at last station
 	if (((std::fabs(X - Stations[numStations - 1].X) < 0.001) || (std::fabs(std::fabs(X - Stations[numStations - 1].X) - train_length / 1000) < 0.001)) && (t >= 2) && (instant_train_speed[t - 2] != 0) && (instant_train_speed[t - 1] == 0) && (instant_train_speed[t] == 0)) { // position tolerance of 1m
-		printTrainArrDepMsg(Stations[numStations - 1].stationName, "arr", trainIdx, t, run_->settings.OutputMainFolder + "/Rescheduling");
 		EG_LOG(SimEvents, Info) << "\n<<< " << trainDescription << " ARRIVED at " << Stations[numStations - 1].stationName << " at t = " << t << " - " << simulationTime(t, run_->settings.startingSimulationTime) << "\n";
 	}
 	// train departing from origin
@@ -555,20 +517,17 @@ void Train::checkTrainArrDep(int trainIdx, int t) {
 // print train service path diagram (append to file)
 void Train::printTrainServicePathDiagram(std::string FolderName, int nextServiceRouteID) {
 	std::string FileName = FolderName + "/TrainServicePathDiagram.txt";
-	std::ofstream FileOutput;
 
 	// avoid different corridor for initial service (entering station for the first time)
-	if (prevIntendedDepTime == 0 && nextServiceRouteID != -1 && run_->infra.routes[indexOfRoute].corridor != run_->infra.routes[nextServiceRouteID].corridor && run_->infra.routes[indexOfRoute].reversed_direction == run_->infra.routes[nextServiceRouteID].reversed_direction) {
+	if (nextServiceRouteID != -1 && run_->infra.routes[indexOfRoute].corridor != run_->infra.routes[nextServiceRouteID].corridor && run_->infra.routes[indexOfRoute].reversed_direction == run_->infra.routes[nextServiceRouteID].reversed_direction) {
 		indexOfRoute = nextServiceRouteID;
 	}
 
-	FileOutput.open((char*)FileName.c_str(), std::ios::binary | std::ios::app); // append
+	std::ofstream FileOutput = openRunOutputFile(FileName, std::ios::binary | std::ios::app); // append
 
-	FileOutput << trainDescription << "\t" << dispLineID << "\t" << run_->infra.routes[indexOfRoute].reversed_direction << "\t" << run_->infra.routes[indexOfRoute].corridor << "\t";
+	FileOutput << trainDescription << "\t" << -1 << "\t" << run_->infra.routes[indexOfRoute].reversed_direction << "\t" << run_->infra.routes[indexOfRoute].corridor << "\t";
 
-	const int activeFirst = earliestActiveTrajectoryIndex < 0
-		? -1
-		: std::max(earliestActiveTrajectoryIndex, prevIntendedDepTime);
+	const int activeFirst = std::max(earliestActiveTrajectoryIndex, -1);
 	const auto exportCells = trajectoryExportCells(instant_spatial_position, activeFirst, End_Time);
 	for (int t = 0; t < run_->settings.times; t++) {
 		const double position = t < static_cast<int>(exportCells.size()) ? exportCells[t] : -9999;
@@ -591,27 +550,7 @@ void Train::printTrainServicePathDiagram(std::string FolderName, int nextService
 	}
 	FileOutput << std::endl;
 
-	FileOutput.close();
-}
-
-// print train arrival at terminal station (append to file)
-void Train::printTrainArrDepMsg(std::string stationName, std::string msgType, int trainIdx, int t, std::string FolderName) {
-	std::string FileName = FolderName + "/EGTRAINOutput.txt";
-	std::ofstream FileOutput;
-
-	FileOutput.open((char*)FileName.c_str(), std::ios::binary | std::ios::app); // append
-
-	if (FileOutput.is_open()) {
-		FileOutput << "egtrain," << stationName << "," << msgType << "," << dispLineID << "," << trainIdx << "," << t << "\n";
-
-		FileOutput.close();
-
-		// temporary solution to avoid file conflicts
-		std::this_thread::sleep_for(std::chrono::milliseconds(5));
-	} else // error opening file
-	{
-		EG_LOG(SimEvents, Error) << "Error2 opening file to write arr/dep message\n";
-	}
+	closeRunOutputFile(FileOutput, FileName);
 }
 
 // computes train X position (works with routes crossing different regions)
@@ -674,43 +613,6 @@ void protectStationAreas(SimulationRun& run, int i) {
 				if (hHead < 0)
 					continue;
 
-				const std::string stationName = run.trains[k].numStations > 0 && !run.trains[k].Stations.empty()
-					? run.trains[k].Stations[run.trains[k].numStations - 1].stationName
-					: std::string();
-				auto platformBookedFor = [&](const StationBoundarySection& boundary) {
-					// Legacy Netherlands dispatcher terminals with integer arrival-platform assignments.
-					if (stationName != "Alm" && stationName != "Asd" && stationName != "Asdz")
-						return false;
-					if (boundary.exit)
-						return false;
-					for (int tr = 0; tr < run.numTrains; tr++) {
-						if (run.trains[tr].ID == run.trains[k].ID && run.trains[tr].type == run.trains[k].type)
-							continue;
-						if (run.trains[tr].numStations <= 0 || run.trains[tr].Stations.empty())
-							continue;
-						if (run.trains[tr].Stations[run.trains[tr].numStations - 1].stationName == stationName
-							&& run.trains[tr].reservedPlatform == run.trains[k].arrivalPlatform)
-							return true;
-
-						// wait for trains leaving the station to prevent deadlocks
-						if (run.trains[tr].Stations[0].stationName != stationName
-							|| run.trains[tr].indexOfRoute < 0
-							|| run.trains[tr].indexOfRoute >= static_cast<int>(run.infra.routes.size())
-							|| i >= static_cast<int>(run.trains[tr].instant_spatial_position.size()))
-							continue;
-						if (run.infra.routes[run.trains[tr].indexOfRoute].reversed_direction != route.reversed_direction) {
-							// if the other train is not booking a platform, it is not at the platform - enough to check position
-							if (!route.reversed_direction && run.trains[tr].numStations > 1
-								&& run.trains[tr].trainXPosition(i) > run.trains[k].trainXPosition(i))
-								return true;
-							if (route.reversed_direction && run.trains[tr].numStations > 1
-								&& run.trains[tr].trainXPosition(i) < run.trains[k].trainXPosition(i))
-								return true;
-						}
-					}
-					return false;
-				};
-
 				// occupy station interlocking area
 				for (int s = 0; s < run.infra.stationBoundaries.size(); s++) {
 					if (!run.infra.stationBoundaries[s].entrance)
@@ -731,8 +633,7 @@ void protectStationAreas(SimulationRun& run, int i) {
 							}
 						}
 
-						run.infra.stationBoundaries[s].protectEntrance(run, hHead + offset, run.trains[k].indexOfRoute,
-							platformBookedFor(run.infra.stationBoundaries[s]));
+						run.infra.stationBoundaries[s].protectEntrance(run, hHead + offset, run.trains[k].indexOfRoute);
 						stationAreaHandled = true;
 						break;
 					}
@@ -745,8 +646,6 @@ void protectStationAreas(SimulationRun& run, int i) {
 						if (run.infra.stationBoundaries[s].exit) {
 							continue;
 						}
-
-						run.trains[k].reservedPlatform = run.trains[k].arrivalPlatform;
 						break;
 					}
 				}
@@ -756,19 +655,18 @@ void protectStationAreas(SimulationRun& run, int i) {
 }
 
 // set vector sizes with length of simulation from user input
-void Train::setTrainVectorSizesFromInput(int vec_size) {
+void Train::setTrainVectorSizesFromInput(int vec_size, bool detailedTrajectory) {
 	End_Time = vec_size - 1;
 	// define vector sizes with length of simulation from user input
 	instant_train_speed = std::vector<double>(vec_size, 0);
 	instant_spatial_position = std::vector<double>(vec_size, 0);
 	instant_train_power_consumption = std::vector<double>(vec_size, 0);
 	instant_train_tractive_effort = std::vector<double>(vec_size, 0);
-	instant_block_section_occupied = std::vector<std::string>(vec_size);
+	instant_block_section_occupied = std::vector<std::int32_t>(vec_size, kNoBlockSection);
 	instant_train_energy_consumption = std::vector<double>(vec_size, 0);
-	BX = std::vector<double>(vec_size, 0);
-	Xob = std::vector<double>(vec_size, 0);
-	Vob = std::vector<double>(vec_size, 0);
-	Eq = std::vector<int>(vec_size, 0);
+	BX = detailedTrajectory ? std::vector<double>(vec_size, 0) : std::vector<double>();
+	previousXob = previousVob = currentXob = currentVob = 0;
+	stepBranch = 0;
 
 	// previously on train class constructor (there won't work because size of vector is zero until user sets length of simulation and constructor is called before that)
 	instant_train_energy_consumption[0] = 0;

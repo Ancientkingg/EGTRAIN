@@ -92,11 +92,10 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent) {
 
 	addSection(tr("Samuel Bruin"), tr("Continued desktop application development and maintenance."));
 	addLink(tr("Website"), "https://samuelbruin.com/", "aboutWebsite");
-	addLink(tr("GitHub"), "https://github.com/Ancientkingg", "aboutGitHub");
 
 	addText(column, tr("Project links"), true);
-	addLink(tr("Source code"), "https://github.com/Ancientkingg/EGTRAIN", "aboutSourceCode");
-	addLink(tr("Report an issue"), "https://github.com/Ancientkingg/EGTRAIN/issues", "aboutReportIssue");
+	addLink(tr("EGTRAIN website"), "https://egtrain.samuelbruin.com/", "aboutProjectWebsite");
+	addLink(tr("Report an issue"), "https://egtrain.samuelbruin.com/support/", "aboutReportIssue");
 	column->addWidget(failure);
 
 	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close);

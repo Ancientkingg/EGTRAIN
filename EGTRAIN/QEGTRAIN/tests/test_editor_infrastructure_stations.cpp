@@ -3,27 +3,25 @@
 
 #include "scene/SectionInventory.h"
 
+#include "support/EditHistory.h"
+#include "support/FakePrompts.h"
+
 #include <QApplication>
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QLineEdit>
+#include <QScopeGuard>
 #include <QPushButton>
 #include <QString>
 #include <QStringList>
 #include <QTableWidget>
+#include <QTest>
 
 #include <cstddef>
-#include <iostream>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
-
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
 
 static SceneNode node(const char* id, const char* trackId, double xKm) {
 	SceneNode result;
@@ -128,25 +126,39 @@ static SceneModel stationScene() {
 	return scene;
 }
 
-// Answers the questions of the panel and records the messages, without a dialog.
-class FakePrompts : public UserPrompts {
-public:
-	int errorCount = 0;
-	QString errorMessage;
-	int confirmCount = 0;
-	QString confirmQuestion;
-	bool confirmAnswer = false;
+// The stations scene with two more nodes on a second track, in front of the others, and a third station without platforms
+// at the second track's first node. The first platform lists node-a1 and node-a2, and the platform of the second station
+// lists node-a0.
+static SceneModel pickerScene() {
+	SceneModel scene = stationScene();
+	scene.tracks.push_back({"track-b"});
+	scene.nodes.insert(scene.nodes.begin(), node("node-b0", "track-b", 0.5));
+	scene.nodes.push_back(node("node-b1", "track-b", 3.0));
+	scene.stations[0].platforms[0].nodeIds = {"node-a1", "node-a2"};
+	scene.stations[1].platforms[0].nodeIds = {"node-a0"};
+	SceneStation third;
+	third.id = "station-3";
+	third.name = "Gamma";
+	third.hasPosition = true;
+	third.positionKm = 0.5;
+	scene.stations.push_back(third);
+	return scene;
+}
 
-	void showError(QWidget*, const QString&, const QString& message, bool = false) override {
-		++errorCount;
-		errorMessage = message;
-	}
-	bool confirm(QWidget*, const QString&, const QString& question) override {
-		++confirmCount;
-		confirmQuestion = question;
-		return confirmAnswer;
-	}
-};
+// The ids that a list of choices offers, and their labels and flags.
+static QStringList labelsOf(const std::vector<UserPrompts::ListChoice>& choices) {
+	QStringList result;
+	for (const UserPrompts::ListChoice& choice : choices)
+		result << choice.label;
+	return result;
+}
+
+static QList<bool> enabledOf(const std::vector<UserPrompts::ListChoice>& choices) {
+	QList<bool> result;
+	for (const UserPrompts::ListChoice& choice : choices)
+		result << choice.enabled;
+	return result;
+}
 
 using Log = std::vector<std::string>;
 
@@ -157,7 +169,6 @@ struct Fixture {
 	InfrastructurePanel panel;
 	FakePrompts prompts;
 	Log log;
-	QStringList entities;
 	SceneDocument::ChangeKinds kinds;
 	QStringList messages;
 
@@ -173,10 +184,6 @@ struct Fixture {
 			kinds = changedKinds;
 		});
 		QObject::connect(&panel, &InfrastructurePanel::changed, &panel, [this] { log.push_back("panelChanged"); });
-		QObject::connect(&panel, &InfrastructurePanel::entitiesChanged, &panel, [this](const QString& facet) {
-			log.push_back("entitiesChanged");
-			entities << facet;
-		});
 		QObject::connect(&panel, &InfrastructurePanel::statusMessage, &panel,
 			[this](const QString& text, int) { messages << text; });
 	}
@@ -218,19 +225,9 @@ struct Fixture {
 		QComboBox* box = combo(row, column);
 		box->setCurrentIndex(box->findData(QString::fromStdString(sectionOf(model(), blockId))));
 	}
-	// True when the document has been changed once, under this label, and the panel has said so, and the table was listed
-	// again for the entities of this facet.
-	bool changedOnce(const char* label, const char* facet) {
-		const bool once = log == Log({"documentChanged", "panelChanged", "entitiesChanged"}) && entities == QStringList({facet})
-			&& kinds == SceneDocument::Infrastructure && document.lastChangeLabel() == label && document.isDirty();
-		log.clear();
-		entities.clear();
-		return once;
-	}
-	// True when the document has been changed once under this label by a widget of the table, so that the facet is not told
-	// that its entities changed.
-	bool editedOnce(const char* label) {
-		const bool once = log == Log({"documentChanged", "panelChanged"}) && entities.isEmpty() && kinds == SceneDocument::Infrastructure
+	// True when the document has been changed once, under this label, and the panel has said so.
+	bool changedOnce(const char* label) {
+		const bool once = log == Log({"documentChanged", "panelChanged"}) && kinds == SceneDocument::Infrastructure
 			&& document.lastChangeLabel() == label && document.isDirty();
 		log.clear();
 		return once;
@@ -248,334 +245,618 @@ static QString blocked(const char* kind, const char* id, const QStringList& cons
 		.arg(QString(kind), QString(id), consumers.join("\n\xE2\x80\xA2 "));
 }
 
-static bool testFacets() {
-	bool ok = true;
+class TestStationFacets : public QObject {
+	Q_OBJECT
+
+private slots:
+	void offersStationFacets();
+	void editsStations();
+	void listsPlatforms();
+	void editsPlatforms();
+	void refusesUnknownPlatformNodes();
+	void choosesPlatformNodes();
+	void undoRestoresPlatformNodes();
+	void cancelOrSameListChangesNothing();
+	void missingNodeCanBeRemoved();
+	void nodeCellOpensPicker();
+	void pickerStaysClosedWhileSceneLocked();
+	void movesPlatforms();
+	void editsPlatformSize();
+	void addsAndDeletesPlatforms();
+	void refusesPlatformWithoutStation();
+	void editsStationBoundaries();
+};
+
+void TestStationFacets::offersStationFacets() {
 	const std::vector<std::unique_ptr<InfrastructureFacet>> facets = makeStationFacets();
 	QStringList keys;
 	for (const std::unique_ptr<InfrastructureFacet>& facet : facets)
 		keys << facet->key();
-	ok &= expect(keys == QStringList({"stations", "platforms", "station_boundaries"}), "the stations have three facets");
+	// The stations have three facets.
+	QCOMPARE(keys, QStringList({"stations", "platforms", "station_boundaries"}));
 
 	Fixture f;
-	ok &= expect(f.panel.facet("stations") && f.panel.facet("platforms") && f.panel.facet("station_boundaries") && !f.panel.facet("blocks")
-			&& !f.panel.facet("tracks"),
-		"the panel has the facets of the stations and no others");
+	// The panel has the facets of the stations and no others.
+	QVERIFY(f.panel.facet("stations"));
+	QVERIFY(f.panel.facet("platforms"));
+	QVERIFY(f.panel.facet("station_boundaries"));
+	QVERIFY(!f.panel.facet("blocks"));
+	QVERIFY(!f.panel.facet("tracks"));
 	f.choose("platforms");
 	f.document.setEditable(false);
 	f.panel.refresh();
 	f.panel.addEntity();
 	f.panel.deleteEntity();
-	f.type(0, 2, "node-a0");
+	f.type(0, 3, "node-a0");
 	f.panel.commitPendingEditors();
-	ok &= expect(f.untouched() && f.model().stations[0].platforms.size() == 2 && f.model().stations[0].platforms[0].nodeIds == std::vector<std::string>({"node-a1"}),
-		"nothing is edited, added or deleted while a run uses the scene");
-	return ok;
+	// Nothing is edited, added or deleted while a run uses the scene.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().stations[0].platforms.size(), std::size_t(2));
+	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-a1"}));
 }
 
-static bool testStations() {
-	bool ok = true;
+void TestStationFacets::editsStations() {
 	Fixture f;
 	f.choose("stations");
-	ok &= expect(f.headers() == QStringList({"ID", "Name", "Has position", "Position km"}) && f.table()->rowCount() == 2
-			&& f.rowTexts(0, 4) == QStringList({"station-1", "Alpha", "true", "0.5"}) && f.rowTexts(1, 4) == QStringList({"station-2", "Beta", "false", "0"}),
-		"stations are listed with their name and position");
-	ok &= expect(f.untouched() && !f.document.isDirty(), "listing stations edits nothing");
+	// Stations are listed with their name and position.
+	QCOMPARE(f.headers(), QStringList({"ID", "Name", "Has position", "Position km"}));
+	QCOMPARE(f.table()->rowCount(), 2);
+	QCOMPARE(f.rowTexts(0, 4), QStringList({"station-1", "Alpha", "", "0.5"}));
+	QCOMPARE(f.rowTexts(1, 4), QStringList({"station-2", "Beta", "", "0"}));
+	// Has position is a check box.
+	QCOMPARE(f.table()->item(0, 2)->checkState(), Qt::Checked);
+	QCOMPARE(f.table()->item(1, 2)->checkState(), Qt::Unchecked);
+	// Listing stations edits nothing.
+	QVERIFY(f.untouched());
+	QVERIFY(!f.document.isDirty());
 
 	// edit
 	f.type(1, 1, "Gamma");
-	ok &= expect(f.model().stations[1].name == "Gamma" && f.changedOnce("Edit station", "stations"), "the name of a station is edited");
-	f.type(1, 2, "TRUE");
-	ok &= expect(f.model().stations[1].hasPosition && f.cell(1, 2) == "true" && f.changedOnce("Edit station", "stations"), "the flag of a station is edited");
+	// The name of a station is edited.
+	QCOMPARE(f.model().stations[1].name, "Gamma");
+	QVERIFY(f.changedOnce("Edit station"));
+	f.table()->item(1, 2)->setCheckState(Qt::Checked);
+	// Checking the box sets the flag of the station.
+	QVERIFY(f.model().stations[1].hasPosition);
+	QCOMPARE(f.table()->item(1, 2)->checkState(), Qt::Checked);
+	QVERIFY(f.changedOnce("Edit station"));
 	f.type(1, 3, "12.25");
-	ok &= expect(f.model().stations[1].positionKm == 12.25 && f.changedOnce("Edit station", "stations"), "the position of a station is edited");
+	// The position of a station is edited.
+	QCOMPARE_EQ(f.model().stations[1].positionKm, 12.25);
+	QVERIFY(f.changedOnce("Edit station"));
 	f.type(1, 1, "Gamma");
-	f.type(1, 2, "true");
+	f.table()->item(1, 2)->setCheckState(Qt::Checked);
 	f.type(1, 3, " 12.25 ");
-	ok &= expect(f.untouched(), "values that are the same change nothing");
-	f.type(1, 2, "yes");
+	QVERIFY2(f.untouched(), "values that are the same change nothing");
+	// The box takes no text.
+	QVERIFY(!f.table()->item(1, 2)->flags().testFlag(Qt::ItemIsEditable));
 	f.type(1, 3, "far");
-	ok &= expect(f.untouched() && f.model().stations[1].hasPosition && f.model().stations[1].positionKm == 12.25 && f.cell(1, 2) == "true" && f.cell(1, 3) == "12.25"
-			&& f.messages.empty(),
-		"a flag and a position that are no values are refused, without a message, and the table shows the model again");
+	// A position that is no number is refused with a message that names the column, and the table shows the model again.
+	QVERIFY(f.untouched());
+	QCOMPARE_EQ(f.model().stations[1].positionKm, 12.25);
+	QCOMPARE(f.cell(1, 3), "12.25");
+	QCOMPARE(f.messages, QStringList({"Position km needs a number, such as 1.5."}));
+	f.messages.clear();
 
 	// rename: stops, entrance delays and passengers refer to a station by its id
 	f.type(0, 0, " station-x ");
 	const SceneModel& model = f.model();
-	ok &= expect(model.stations[0].id == "station-x" && model.services[0].stops[0].stationId == "station-x" && model.services[0].stops[1].stationId == "station-2"
-			&& model.scenarios[0].entranceDelays[0].stationId == "station-x" && model.passengers[0].journeys[0].originStationId == "station-x"
-			&& model.passengers[0].journeys[0].destinationStationId == "station-2" && model.passengers[0].journeys[0].legs[0].originStationId == "station-x"
-			&& model.passengers[0].journeys[0].legs[0].destinationStationId == "station-2",
-		"a renamed station keeps its stops, entrance delays and passengers, and leaves the other station as it is");
-	ok &= expect(f.changedOnce("Rename station", "stations") && f.panel.selectionId() == "station-x" && f.table()->currentRow() == 0,
-		"a rename marks the document once, and the renamed station stays selected");
+	// A renamed station keeps its stops, entrance delays and passengers, and leaves the other station as it is.
+	QCOMPARE(model.stations[0].id, "station-x");
+	QCOMPARE(model.services[0].stops[0].stationId, "station-x");
+	QCOMPARE(model.services[0].stops[1].stationId, "station-2");
+	QCOMPARE(model.scenarios[0].entranceDelays[0].stationId, "station-x");
+	QCOMPARE(model.passengers[0].journeys[0].originStationId, "station-x");
+	QCOMPARE(model.passengers[0].journeys[0].destinationStationId, "station-2");
+	QCOMPARE(model.passengers[0].journeys[0].legs[0].originStationId, "station-x");
+	QCOMPARE(model.passengers[0].journeys[0].legs[0].destinationStationId, "station-2");
+	// A rename marks the document once, and the renamed station stays selected.
+	QVERIFY(f.changedOnce("Rename station"));
+	QCOMPARE(f.panel.selectionId(), "station-x");
+	QCOMPARE(f.table()->currentRow(), 0);
 	f.type(0, 0, "station-2");
-	ok &= expect(f.untouched() && f.model().stations[0].id == "station-x" && f.messages == QStringList({"IDs must be unique and not empty"}),
-		"an id that another station has is refused");
+	// An id that another station has is refused.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().stations[0].id, "station-x");
+	QCOMPARE(f.messages, QStringList({"IDs must be unique and not empty"}));
 	f.type(0, 0, "");
-	ok &= expect(f.untouched() && f.model().stations[0].id == "station-x" && f.messages.size() == 2, "an empty id is refused");
+	// An empty id is refused.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().stations[0].id, "station-x");
+	QCOMPARE(f.messages.size(), qsizetype(2));
 
 	// add
 	f.panel.addButton()->click();
 	const SceneStation& added = f.model().stations.back();
-	ok &= expect(f.model().stations.size() == 3 && added.id == "station" && added.name == "station" && !added.hasPosition && added.platforms.empty()
-			&& f.changedOnce("Add station", "stations") && f.panel.selectionId() == "station" && f.table()->currentRow() == 2,
-		"a station is added with a new id that is also its name, and selected");
+	// A station is added with a new id that is also its name, and selected.
+	QCOMPARE(f.model().stations.size(), std::size_t(3));
+	QCOMPARE(added.id, "station");
+	QCOMPARE(added.name, "station");
+	QVERIFY(!added.hasPosition);
+	QVERIFY(added.platforms.empty());
+	QVERIFY(f.changedOnce("Add station"));
+	QCOMPARE(f.panel.selectionId(), "station");
+	QCOMPARE(f.table()->currentRow(), 2);
 
 	// delete
 	f.select(0);
-	ok &= expect(f.panel.deleteButton()->isEnabled() && f.panel.deleteButton()->toolTip() == "Delete the selected row.",
-		"the delete button of a station that others use has its tooltip");
+	// The delete button of a station that others use has its tooltip.
+	QVERIFY(f.panel.deleteButton()->isEnabled());
+	QCOMPARE(f.panel.deleteButton()->toolTip(), "Delete the selected row.");
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.errorCount == 1 && f.prompts.confirmCount == 0 && f.model().stations.size() == 3 && f.untouched(),
-		"a station that others use cannot be deleted");
-	ok &= expect(f.prompts.errorMessage
-			== blocked("Station", "station-x",
-				{"service 'service-1' stop", "entrance delay for service 'service-1' in scenario 'scenario-1'", "passenger 'passenger-1' journey 'journey-1'",
-					"passenger 'passenger-1' leg 'leg-1'"}),
-		"the message names the stops, entrance delays and passengers that use the station");
+	// A station that others use cannot be deleted.
+	QCOMPARE(f.prompts.errorCount, 1);
+	QCOMPARE(f.prompts.confirmCount, 0);
+	QCOMPARE(f.model().stations.size(), std::size_t(3));
+	QVERIFY(f.untouched());
+	// The message names the stops, entrance delays and passengers that use the station.
+	QCOMPARE(f.prompts.errorMessage,
+		blocked("Station", "station-x",
+			{"service 'service-1' stop", "entrance delay for service 'service-1' in scenario 'scenario-1'", "passenger 'passenger-1' journey 'journey-1'",
+				"passenger 'passenger-1' leg 'leg-1'"}));
 	f.select(2);
+	f.messages.clear();
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmCount == 1 && f.prompts.confirmQuestion == "Delete station 'station'?" && f.model().stations.size() == 3 && f.untouched(),
-		"nothing is deleted when the user answers no");
-	f.prompts.confirmAnswer = true;
-	f.panel.deleteButton()->click();
-	ok &= expect(f.model().stations.size() == 2 && f.changedOnce("Delete station", "stations") && f.panel.selectionId() == "station-2",
-		"a station that nothing uses is deleted when the user answers yes");
-	return ok;
+	// A station that nothing uses is deleted without a question, and the status line names it.
+	QCOMPARE(f.prompts.confirmCount, 0);
+	QCOMPARE(f.messages, QStringList({"Deleted station 'station'. Undo restores it."}));
+	QCOMPARE(f.model().stations.size(), std::size_t(2));
+	QVERIFY(f.changedOnce("Delete station"));
+	QCOMPARE(f.panel.selectionId(), "station-2");
 }
 
-static bool testPlatformList() {
-	bool ok = true;
+void TestStationFacets::listsPlatforms() {
 	Fixture f;
 	f.choose("platforms");
-	ok &= expect(f.headers() == QStringList({"Station ID", "ID", "Nodes", "Length (m)", "Width (m)"}) && f.table()->rowCount() == 4,
-		"platforms are listed under their stations");
-	ok &= expect(f.rowTexts(0, 3) == QStringList({"station-1", "platform-1", "node-a1"}) && f.rowTexts(1, 3) == QStringList({"station-1", "platform-2", ""})
-			&& f.rowTexts(2, 3) == QStringList({"station-2", "platform-3", ""}) && f.rowTexts(3, 3) == QStringList({"station-2", "platform-2", ""}),
-		"each row has its station, id and nodes");
-	ok &= expect(f.spin(0, 3) && f.spin(0, 4) && f.spin(0, 3)->objectName() == "platformLengthEdit" && f.spin(0, 4)->objectName() == "platformWidthEdit",
-		"the length and the width are number fields");
-	ok &= expect(f.spin(0, 3)->value() == 150.0 && f.spin(0, 4)->value() == 2.5 && f.spin(1, 3)->value() == 100.0 && f.spin(1, 4)->value() == 2.5,
-		"a platform that states no size shows the default size");
-	ok &= expect(!f.model().stations[0].platforms[1].hasLength && !f.model().stations[0].platforms[1].hasWidth && f.untouched() && !f.document.isDirty(),
-		"listing platforms edits nothing, and states no size that the scene does not");
+	// Platforms are listed under their stations.
+	QCOMPARE(f.headers(), QStringList({"Station ID", "Station", "ID", "Nodes", "Length (m)", "Width (m)"}));
+	QCOMPARE(f.table()->rowCount(), 4);
+	// Each row has its station, the name of the station, its id and nodes.
+	QCOMPARE(f.rowTexts(0, 4), QStringList({"station-1", "Alpha", "platform-1", "node-a1"}));
+	QCOMPARE(f.rowTexts(1, 4), QStringList({"station-1", "Alpha", "platform-2", ""}));
+	QCOMPARE(f.rowTexts(2, 4), QStringList({"station-2", "Beta", "platform-3", ""}));
+	QCOMPARE(f.rowTexts(3, 4), QStringList({"station-2", "Beta", "platform-2", ""}));
+	// The name of the station is not edited in this table.
+	QVERIFY(!(f.table()->item(0, 1)->flags() & Qt::ItemIsEditable));
+	// The length and the width are number fields.
+	QVERIFY(f.spin(0, 4));
+	QVERIFY(f.spin(0, 5));
+	QCOMPARE(f.spin(0, 4)->objectName(), "platformLengthEdit");
+	QCOMPARE(f.spin(0, 5)->objectName(), "platformWidthEdit");
+	// A platform that states no size shows the default size.
+	QCOMPARE_EQ(f.spin(0, 4)->value(), 150.0);
+	QCOMPARE_EQ(f.spin(0, 5)->value(), 2.5);
+	QCOMPARE_EQ(f.spin(1, 4)->value(), 100.0);
+	QCOMPARE_EQ(f.spin(1, 5)->value(), 2.5);
+	// Listing platforms edits nothing, and states no size that the scene does not.
+	QVERIFY(!f.model().stations[0].platforms[1].hasLength);
+	QVERIFY(!f.model().stations[0].platforms[1].hasWidth);
+	QVERIFY(f.untouched());
+	QVERIFY(!f.document.isDirty());
 
 	// two platforms of different stations may have the same id, and are told apart by their station
 	f.table()->setCurrentCell(3, 0);
-	ok &= expect(f.panel.selectionId() == "station-2\nplatform-2", "a platform is selected by its station and its id");
+	// A platform is selected by its station and its id.
+	QCOMPARE(f.panel.selectionId(), "station-2\nplatform-2");
 	f.table()->setCurrentCell(1, 0);
-	ok &= expect(f.panel.selectionId() == "station-1\nplatform-2", "the other platform with that id has its own selection");
-	return ok;
+	// The other platform with that id has its own selection.
+	QCOMPARE(f.panel.selectionId(), "station-1\nplatform-2");
 }
 
-static bool testPlatformEdit() {
-	bool ok = true;
+void TestStationFacets::editsPlatforms() {
 	Fixture f;
 	f.choose("platforms");
 
 	// nodes
-	f.type(0, 2, " node-a0 , node-a2 ,, ");
-	ok &= expect(f.model().stations[0].platforms[0].nodeIds == std::vector<std::string>({"node-a0", "node-a2"}) && f.changedOnce("Edit platform", "platforms"),
-		"the nodes of a platform are a list that drops empty items");
-	f.type(0, 2, "node-a0,node-a2");
-	ok &= expect(f.untouched(), "the same nodes change nothing");
-	f.type(0, 2, "");
-	ok &= expect(f.model().stations[0].platforms[0].nodeIds.empty() && f.changedOnce("Edit platform", "platforms"), "a platform can have no nodes");
+	f.type(0, 3, " node-a0 , node-a2 ,, ");
+	// The nodes of a platform are a list that drops empty items.
+	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-a0", "node-a2"}));
+	QVERIFY(f.changedOnce("Edit platform"));
+	f.type(0, 3, "node-a0,node-a2");
+	QVERIFY2(f.untouched(), "the same nodes change nothing");
+	f.type(0, 3, "");
+	// A platform can have no nodes.
+	QVERIFY(f.model().stations[0].platforms[0].nodeIds.empty());
+	QVERIFY(f.changedOnce("Edit platform"));
 
 	// rename: only the stops at the platform of that station
-	f.type(1, 1, " platform-x ");
-	ok &= expect(f.model().stations[0].platforms[1].id == "platform-x" && f.model().services[0].stops[2].platformId == "platform-2"
-			&& f.model().services[0].stops[0].platformId == "platform-1" && f.model().stations[1].platforms[1].id == "platform-2",
-		"a renamed platform leaves the stops at the platform of another station with that id as they are");
-	ok &= expect(f.changedOnce("Rename platform", "platforms") && f.panel.selectionId() == "station-1\nplatform-x" && f.table()->currentRow() == 1,
-		"a rename marks the document once, and the renamed platform stays selected");
-	f.type(0, 1, "platform-x");
-	ok &= expect(f.untouched() && f.model().stations[0].platforms[0].id == "platform-1" && f.messages == QStringList({"IDs must be unique and not empty"}),
-		"an id that another platform of the station has is refused");
-	f.type(0, 1, "");
-	ok &= expect(f.untouched() && f.messages.size() == 2, "an empty id is refused");
-	f.type(1, 1, "platform-1");
-	ok &= expect(f.untouched() && f.model().stations[0].platforms[1].id == "platform-x" && f.messages.size() == 3, "the id of another platform of the station is refused");
-	f.type(3, 1, "platform-1");
-	ok &= expect(f.model().stations[1].platforms[1].id == "platform-1" && f.model().services[0].stops[2].platformId == "platform-1"
-			&& f.model().services[0].stops[2].stationId == "station-2" && f.model().services[0].stops[0].stationId == "station-1"
-			&& f.model().services[0].stops[0].platformId == "platform-1" && f.changedOnce("Rename platform", "platforms"),
-		"an id that is free in a station is taken even when another station has it, and only the stops at that station follow");
-	return ok;
+	f.type(1, 2, " platform-x ");
+	// A renamed platform leaves the stops at the platform of another station with that id as they are.
+	QCOMPARE(f.model().stations[0].platforms[1].id, "platform-x");
+	QCOMPARE(f.model().services[0].stops[2].platformId, "platform-2");
+	QCOMPARE(f.model().services[0].stops[0].platformId, "platform-1");
+	QCOMPARE(f.model().stations[1].platforms[1].id, "platform-2");
+	// A rename marks the document once, and the renamed platform stays selected.
+	QVERIFY(f.changedOnce("Rename platform"));
+	QCOMPARE(f.panel.selectionId(), "station-1\nplatform-x");
+	QCOMPARE(f.table()->currentRow(), 1);
+	f.type(0, 2, "platform-x");
+	// An id that another platform of the station has is refused.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().stations[0].platforms[0].id, "platform-1");
+	QCOMPARE(f.messages, QStringList({"IDs must be unique and not empty"}));
+	f.type(0, 2, "");
+	// An empty id is refused.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.messages.size(), qsizetype(2));
+	f.type(1, 2, "platform-1");
+	// The id of another platform of the station is refused.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().stations[0].platforms[1].id, "platform-x");
+	QCOMPARE(f.messages.size(), qsizetype(3));
+	f.type(3, 2, "platform-1");
+	// An id that is free in a station is taken even when another station has it, and only the stops at that station follow.
+	QCOMPARE(f.model().stations[1].platforms[1].id, "platform-1");
+	QCOMPARE(f.model().services[0].stops[2].platformId, "platform-1");
+	QCOMPARE(f.model().services[0].stops[2].stationId, "station-2");
+	QCOMPARE(f.model().services[0].stops[0].stationId, "station-1");
+	QCOMPARE(f.model().services[0].stops[0].platformId, "platform-1");
+	QVERIFY(f.changedOnce("Rename platform"));
 }
 
-static bool testPlatformMove() {
-	bool ok = true;
+// The nodes of a platform stay a list of ids in a text cell. A node that the scene does not have is refused with a message
+// that names it.
+void TestStationFacets::refusesUnknownPlatformNodes() {
+	Fixture f;
+	f.choose("platforms");
+	f.type(0, 3, "node-a0, node-x");
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-a1"}));
+	QCOMPARE(f.messages, QStringList({"Node 'node-x' does not exist"}));
+	QCOMPARE(f.cell(0, 3), "node-a1");
+	f.type(0, 3, "node-y, node-a2, node-x");
+	// Every node that the scene does not have is named.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.messages.back(), "Nodes 'node-y', 'node-x' do not exist");
+	f.type(0, 3, "node-a2");
+	// A node that the scene has is taken.
+	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-a2"}));
+	QVERIFY(f.changedOnce("Edit platform"));
+}
+
+// The picker offers the nodes in the order that keeps a platform near its own tracks, turns off the nodes of other platforms
+// and stations, and one choice is one edit that keeps the old nodes in their order and puts the new ones last.
+void TestStationFacets::choosesPlatformNodes() {
+	Fixture f(pickerScene());
+	f.choose("platforms");
+	f.select(0);
+	QPushButton* button = f.panel.taskButton(0);
+	QVERIFY(button);
+	QCOMPARE(button->objectName(), "choosePlatformNodesButton");
+	QCOMPARE(button->text(), "Choose Nodes...");
+	QCOMPARE(button->toolTip(), "Chooses the nodes of the selected platform from a list.");
+	QVERIFY(button->isEnabled());
+	f.prompts.chosenItems = QStringList({"node-a2", "node-b0", "node-b1"});
+	button->click();
+	QCOMPARE(f.prompts.itemsCount, 1);
+	QCOMPARE(f.prompts.itemsTitle, "Platform Nodes");
+	QCOMPARE(f.prompts.itemsContext, "Nodes of platform 'platform-1' of station 'Alpha'.");
+	// The nodes of the tracks of the station come first, in model order, then the other nodes.
+	QCOMPARE(labelsOf(f.prompts.offeredChoices),
+		QStringList({"node-a0 (track-a, 0.000 km): Beta", "node-a1 (track-a, 1.000 km)", "node-a2 (track-a, 2.000 km)",
+			"node-b0 (track-b, 0.500 km): Gamma", "node-b1 (track-b, 3.000 km)"}));
+	// A node of another platform or station is off.
+	QCOMPARE(enabledOf(f.prompts.offeredChoices), QList<bool>({false, true, true, false, true}));
+	QCOMPARE(f.prompts.offeredChecked, QStringList({"node-a1", "node-a2"}));
+	// node-a1 is gone, node-a2 stays, and the node that is new comes after it.
+	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-a2", "node-b0", "node-b1"}));
+	QVERIFY(f.changedOnce("Edit platform"));
+	QCOMPARE(f.cell(0, 3), "node-a2, node-b0, node-b1");
+	QCOMPARE(f.panel.selectionId(), "station-1\nplatform-1");
+	QCOMPARE(f.table()->currentRow(), 0);
+	// The other platforms are as they were.
+	QCOMPARE(f.model().stations[1].platforms[0].nodeIds, std::vector<std::string>({"node-a0"}));
+}
+
+// One Undo puts the nodes of the platform back.
+void TestStationFacets::undoRestoresPlatformNodes() {
+	Fixture f(pickerScene());
+	RunSelection selection;
+	EditHistory history(f.document, selection, f.panel);
+	f.choose("platforms");
+	f.select(0);
+	f.prompts.chosenItems = QStringList({"node-b1"});
+	f.panel.taskButton(0)->click();
+	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-b1"}));
+	QVERIFY(history.undo());
+	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-a1", "node-a2"}));
+	QVERIFY(!history.undo());
+}
+
+// Cancel and a list that holds the same nodes change nothing, whatever the order of the answer.
+void TestStationFacets::cancelOrSameListChangesNothing() {
+	Fixture f(pickerScene());
+	f.choose("platforms");
+	f.select(0);
+	f.prompts.chosenItems = std::nullopt;
+	f.panel.taskButton(0)->click();
+	QCOMPARE(f.prompts.itemsCount, 1);
+	QVERIFY(f.untouched());
+	f.prompts.chosenItems = QStringList({"node-a1", "node-a2"});
+	f.panel.taskButton(0)->click();
+	QCOMPARE(f.prompts.itemsCount, 2);
+	QVERIFY(f.untouched());
+	f.prompts.chosenItems = QStringList({"node-a2", "node-a1"});
+	f.panel.taskButton(0)->click();
+	QCOMPARE(f.prompts.itemsCount, 3);
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-a1", "node-a2"}));
+}
+
+// A node that the scene does not have is offered first, checked, and unchecking it removes it.
+void TestStationFacets::missingNodeCanBeRemoved() {
+	SceneModel scene = pickerScene();
+	scene.stations[0].platforms[0].nodeIds = {"node-a1", "node-x"};
+	Fixture f(std::move(scene));
+	f.choose("platforms");
+	f.select(0);
+	f.prompts.chosenItems = QStringList({"node-a1"});
+	f.panel.taskButton(0)->click();
+	QVERIFY(!f.prompts.offeredChoices.empty());
+	QCOMPARE(f.prompts.offeredChoices.front().label, "node-x (missing)");
+	QCOMPARE(f.prompts.offeredChoices.front().id, "node-x");
+	QVERIFY(f.prompts.offeredChoices.front().enabled);
+	QCOMPARE(f.prompts.offeredChecked, QStringList({"node-a1", "node-x"}));
+	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-a1"}));
+	QVERIFY(f.changedOnce("Edit platform"));
+}
+
+// The Nodes cell cannot be typed into, and activating it opens the picker. Another cell does not.
+void TestStationFacets::nodeCellOpensPicker() {
+	Fixture f(pickerScene());
+	f.choose("platforms");
+	f.select(0);
+	QVERIFY(!(f.table()->item(0, 3)->flags() & Qt::ItemIsEditable));
+	QCOMPARE(f.cell(0, 3), "node-a1, node-a2");
+	f.prompts.chosenItems = std::nullopt;
+	emit f.table()->cellActivated(0, 2);
+	QTest::qWait(50);
+	QCOMPARE(f.prompts.itemsCount, 0);
+	emit f.table()->cellActivated(0, 3);
+	QTRY_COMPARE(f.prompts.itemsCount, 1);
+}
+
+// While a run uses the scene, neither the action nor the Nodes cell opens the picker, and nothing changes.
+void TestStationFacets::pickerStaysClosedWhileSceneLocked() {
+	Fixture f(pickerScene());
+	f.choose("platforms");
+	f.select(0);
+	f.document.setEditable(false);
+	f.panel.refresh();
+	const quint64 revision = f.document.revision();
+	f.prompts.chosenItems = QStringList({"node-b1"});
+	f.panel.runTaskAction(0);
+	emit f.table()->cellActivated(0, 3);
+	QTest::qWait(50);
+	QCOMPARE(f.prompts.itemsCount, 0);
+	QCOMPARE(f.document.revision(), revision);
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-a1", "node-a2"}));
+}
+
+void TestStationFacets::movesPlatforms() {
 	Fixture f;
 	f.choose("platforms");
 
 	// the platform goes to the end of the platforms of the other station, and its stops go with it
 	f.type(0, 0, "station-2");
 	const SceneModel& model = f.model();
-	ok &= expect(model.stations[0].platforms.size() == 1 && model.stations[0].platforms[0].id == "platform-2" && model.stations[1].platforms.size() == 3
-			&& model.stations[1].platforms[2].id == "platform-1" && model.stations[1].platforms[2].nodeIds == std::vector<std::string>({"node-a1"})
-			&& model.stations[1].platforms[2].hasLength && model.stations[1].platforms[2].lengthM == 150.0,
-		"a platform moves to the station that is named, with its nodes and size");
-	ok &= expect(model.services[0].stops[0].stationId == "station-2" && model.services[0].stops[0].platformId == "platform-1"
-			&& model.services[0].stops[1].stationId == "station-2" && model.services[0].stops[1].platformId == "platform-3",
-		"the stops at the platform move with it");
-	ok &= expect(f.changedOnce("Edit platform", "platforms") && f.panel.selectionId() == "station-2\nplatform-1" && f.table()->currentRow() == 3
-			&& f.rowTexts(3, 2) == QStringList({"station-2", "platform-1"}),
-		"a move marks the document once, and the platform stays selected in its new row");
+	// A platform moves to the station that is named, with its nodes and size.
+	QCOMPARE(model.stations[0].platforms.size(), std::size_t(1));
+	QCOMPARE(model.stations[0].platforms[0].id, "platform-2");
+	QCOMPARE(model.stations[1].platforms.size(), std::size_t(3));
+	QCOMPARE(model.stations[1].platforms[2].id, "platform-1");
+	QCOMPARE(model.stations[1].platforms[2].nodeIds, std::vector<std::string>({"node-a1"}));
+	QVERIFY(model.stations[1].platforms[2].hasLength);
+	QCOMPARE_EQ(model.stations[1].platforms[2].lengthM, 150.0);
+	// The stops at the platform move with it.
+	QCOMPARE(model.services[0].stops[0].stationId, "station-2");
+	QCOMPARE(model.services[0].stops[0].platformId, "platform-1");
+	QCOMPARE(model.services[0].stops[1].stationId, "station-2");
+	QCOMPARE(model.services[0].stops[1].platformId, "platform-3");
+	// A move marks the document once, and the platform stays selected in its new row.
+	QVERIFY(f.changedOnce("Edit platform"));
+	QCOMPARE(f.panel.selectionId(), "station-2\nplatform-1");
+	QCOMPARE(f.table()->currentRow(), 3);
+	QCOMPARE(f.rowTexts(3, 3), QStringList({"station-2", "Beta", "platform-1"}));
 	f.type(3, 0, "station-2");
-	ok &= expect(f.untouched(), "naming the station that the platform is in changes nothing");
+	QVERIFY2(f.untouched(), "naming the station that the platform is in changes nothing");
 
 	// refused
 	f.type(0, 0, "nowhere");
-	ok &= expect(f.untouched() && f.model().stations[0].platforms.size() == 1 && f.cell(0, 0) == "station-1"
-			&& f.messages == QStringList({"Platform Station ID must name an existing station"}),
-		"a station that the scene does not have is refused, with a message, and the table shows the model again");
+	// A station that the scene does not have is refused, with a message, and the table shows the model again.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().stations[0].platforms.size(), std::size_t(1));
+	QCOMPARE(f.cell(0, 0), "station-1");
+	QCOMPARE(f.messages, QStringList({"Platform Station ID must name an existing station"}));
 	f.type(0, 0, "station-2");
-	ok &= expect(f.untouched() && f.model().stations[0].platforms.size() == 1 && f.model().stations[1].platforms.size() == 3
-			&& f.messages.size() == 2 && f.messages.back() == "Platform ID already exists on the target station",
-		"a platform is not moved to a station that has a platform with its id");
-	return ok;
+	// A platform is not moved to a station that has a platform with its id.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().stations[0].platforms.size(), std::size_t(1));
+	QCOMPARE(f.model().stations[1].platforms.size(), std::size_t(3));
+	QCOMPARE(f.messages.size(), qsizetype(2));
+	QCOMPARE(f.messages.back(), "Platform ID already exists on the target station");
 }
 
-static bool testPlatformGeometry() {
-	bool ok = true;
+void TestStationFacets::editsPlatformSize() {
 	Fixture f;
 	f.choose("platforms");
 
 	// a field is the widget that is edited, so the table keeps it
-	QDoubleSpinBox* length = f.spin(1, 3);
+	QDoubleSpinBox* length = f.spin(1, 4);
 	length->setValue(200.5);
 	const ScenePlatform& second = f.model().stations[0].platforms[1];
-	ok &= expect(second.hasLength && second.lengthM == 200.5 && !second.hasWidth && f.editedOnce("Edit platform") && f.spin(1, 3) == length,
-		"a length is taken as soon as the field changes, and the table keeps the field");
-	f.spin(1, 4)->setValue(3.25);
-	ok &= expect(second.hasWidth && second.widthM == 3.25 && f.editedOnce("Edit platform"), "a width is taken the same way");
+	// A length is taken as soon as the field changes, and the table keeps the field.
+	QVERIFY(second.hasLength);
+	QCOMPARE_EQ(second.lengthM, 200.5);
+	QVERIFY(!second.hasWidth);
+	QVERIFY(f.changedOnce("Edit platform"));
+	QCOMPARE(f.spin(1, 4), length);
+	f.spin(1, 5)->setValue(3.25);
+	// A width is taken the same way.
+	QVERIFY(second.hasWidth);
+	QCOMPARE_EQ(second.widthM, 3.25);
+	QVERIFY(f.changedOnce("Edit platform"));
 	length->setValue(200.5);
-	ok &= expect(f.untouched(), "a value that is the same changes nothing");
-	f.spin(0, 4)->setValue(2.75);
-	ok &= expect(f.model().stations[0].platforms[0].hasWidth && f.model().stations[0].platforms[0].widthM == 2.75 && f.editedOnce("Edit platform"),
-		"a size that the scene did not state is stated once the field changes");
+	QVERIFY2(f.untouched(), "a value that is the same changes nothing");
+	f.spin(0, 5)->setValue(2.75);
+	// A size that the scene did not state is stated once the field changes.
+	QVERIFY(f.model().stations[0].platforms[0].hasWidth);
+	QCOMPARE_EQ(f.model().stations[0].platforms[0].widthM, 2.75);
+	QVERIFY(f.changedOnce("Edit platform"));
 
 	// a field that has been typed in and not left
 	f.panel.show();
+	// The panel is hidden before the fixture destroys it, also when a check fails.
+	const auto hide = qScopeGuard([&f] { f.panel.hide(); });
 	f.panel.activateWindow();
 	QApplication::processEvents();
-	QDoubleSpinBox* typed = f.spin(2, 3);
+	QDoubleSpinBox* typed = f.spin(2, 4);
 	typed->setFocus();
 	QApplication::processEvents();
 	QLineEdit* text = typed->findChild<QLineEdit*>();
 	text->setText("77");
 	emit text->textEdited("77");
 	f.panel.commitPendingEditors();
-	ok &= expect(f.model().stations[1].platforms[0].hasLength && f.model().stations[1].platforms[0].lengthM == 77.0 && f.editedOnce("Edit platform"),
-		"a length that has been typed in is taken when the editors are committed");
+	// A length that has been typed in is taken when the editors are committed.
+	QVERIFY(f.model().stations[1].platforms[0].hasLength);
+	QCOMPARE_EQ(f.model().stations[1].platforms[0].lengthM, 77.0);
+	QVERIFY(f.changedOnce("Edit platform"));
 	f.panel.commitPendingEditors();
-	ok &= expect(f.untouched(), "it is taken once");
-	f.panel.hide();
-	return ok;
+	QVERIFY2(f.untouched(), "it is taken once");
 }
 
-static bool testPlatformAddAndDelete() {
-	bool ok = true;
+void TestStationFacets::addsAndDeletesPlatforms() {
 	Fixture f;
 	f.choose("platforms");
 	f.panel.addButton()->click();
 	const ScenePlatform& added = f.model().stations[0].platforms.back();
-	ok &= expect(f.model().stations[0].platforms.size() == 3 && added.id == "platform" && added.nodeIds.empty() && !added.hasLength && !added.hasWidth
-			&& f.changedOnce("Add platform", "platforms") && f.panel.selectionId() == "station-1\nplatform" && f.table()->currentRow() == 2,
-		"a platform is added to the first station, with a new id, and selected");
+	// A platform is added to the first station, with a new id, and selected.
+	QCOMPARE(f.model().stations[0].platforms.size(), std::size_t(3));
+	QCOMPARE(added.id, "platform");
+	QVERIFY(added.nodeIds.empty());
+	QVERIFY(!added.hasLength);
+	QVERIFY(!added.hasWidth);
+	QVERIFY(f.changedOnce("Add platform"));
+	QCOMPARE(f.panel.selectionId(), "station-1\nplatform");
+	QCOMPARE(f.table()->currentRow(), 2);
 
 	// delete
 	f.select(0);
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.errorCount == 1 && f.prompts.confirmCount == 0 && f.model().stations[0].platforms.size() == 3 && f.untouched()
-			&& f.prompts.errorMessage == blocked("Platform", "platform-1", {"service 'service-1' stop at station 'station-1'"}),
-		"a platform that a stop uses cannot be deleted");
+	// A platform that a stop uses cannot be deleted.
+	QCOMPARE(f.prompts.errorCount, 1);
+	QCOMPARE(f.prompts.confirmCount, 0);
+	QCOMPARE(f.model().stations[0].platforms.size(), std::size_t(3));
+	QVERIFY(f.untouched());
+	QCOMPARE(f.prompts.errorMessage, blocked("Platform", "platform-1", {"service 'service-1' stop at station 'station-1'"}));
 	f.select(2);
+	f.messages.clear();
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmCount == 1 && f.prompts.confirmQuestion == "Delete platform 'platform'?" && f.model().stations[0].platforms.size() == 3 && f.untouched(),
-		"nothing is deleted when the user answers no");
-	f.prompts.confirmAnswer = true;
-	f.panel.deleteButton()->click();
-	ok &= expect(f.model().stations[0].platforms.size() == 2 && f.changedOnce("Delete platform", "platforms") && f.panel.selectionId() == "station-2\nplatform-3",
-		"a platform that nothing uses is deleted when the user answers yes");
+	// A platform that nothing uses is deleted without a question, and the status line names it.
+	QCOMPARE(f.prompts.confirmCount, 0);
+	QCOMPARE(f.messages, QStringList({"Deleted platform 'platform'. Undo restores it."}));
+	QCOMPARE(f.model().stations[0].platforms.size(), std::size_t(2));
+	QVERIFY(f.changedOnce("Delete platform"));
+	QCOMPARE(f.panel.selectionId(), "station-2\nplatform-3");
 	// a stop at a platform of the other station with the same id does not block this one
 	f.select(1);
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.errorCount == 1 && f.model().stations[0].platforms.size() == 1 && f.changedOnce("Delete platform", "platforms"),
-		"the stops at a platform of another station with that id do not block the delete");
+	// The stops at a platform of another station with that id do not block the delete.
+	QCOMPARE(f.prompts.errorCount, 1);
+	QCOMPARE(f.model().stations[0].platforms.size(), std::size_t(1));
+	QVERIFY(f.changedOnce("Delete platform"));
+}
 
-	// no station to add to
+void TestStationFacets::refusesPlatformWithoutStation() {
 	Fixture empty;
 	empty.edit().stations.clear();
 	empty.choose("platforms");
 	empty.panel.addEntity();
-	ok &= expect(empty.untouched() && empty.messages == QStringList({"Add a station before adding a platform"}), "a platform is not added without a station");
-	return ok;
+	// A platform is not added without a station.
+	QVERIFY(empty.untouched());
+	QCOMPARE(empty.messages, QStringList({"Add a station before adding a platform"}));
 }
 
-static bool testBoundaries() {
-	bool ok = true;
+void TestStationFacets::editsStationBoundaries() {
 	Fixture f;
 	f.choose("station_boundaries");
 	const std::string a1 = sectionOf(f.model(), "block-a1");
-	ok &= expect(f.headers() == QStringList({"Entrance", "Exit", "Direction"}) && f.table()->rowCount() == 1, "station boundaries are listed with their sections");
-	ok &= expect(f.combo(0, 0) && f.combo(0, 1) && f.combo(0, 0)->objectName() == "boundaryEntranceCombo" && f.combo(0, 1)->objectName() == "boundaryExitCombo"
-			&& f.combo(0, 0)->currentData().toString().toStdString() == a1 && f.combo(0, 1)->currentText() == "(none)" && f.cell(0, 2) == "false",
-		"the entrance and the exit are chosen in combos of the sections, and the exit can be none");
-	ok &= expect(f.untouched() && !f.document.isDirty(), "listing station boundaries edits nothing");
+	// Station boundaries are listed with their sections.
+	QCOMPARE(f.headers(), QStringList({"Entrance", "Exit", "Direction"}));
+	QCOMPARE(f.table()->rowCount(), 1);
+	// The entrance and the exit are chosen in combos of the sections, and the exit can be none.
+	QVERIFY(f.combo(0, 0));
+	QVERIFY(f.combo(0, 1));
+	QCOMPARE(f.combo(0, 0)->objectName(), "boundaryEntranceCombo");
+	QCOMPARE(f.combo(0, 1)->objectName(), "boundaryExitCombo");
+	QCOMPARE(f.combo(0, 0)->currentData().toString().toStdString(), a1);
+	QCOMPARE(f.combo(0, 1)->currentText(), "(none)");
+	// The direction is a check box.
+	QCOMPARE(f.cell(0, 2), "");
+	QCOMPARE(f.table()->item(0, 2)->checkState(), Qt::Unchecked);
+	// Listing station boundaries edits nothing.
+	QVERIFY(f.untouched());
+	QVERIFY(!f.document.isDirty());
 
 	// edit
 	QComboBox* entrance = f.combo(0, 0);
 	f.chooseBlock(0, 0, "block-a2");
-	ok &= expect(f.model().stationBoundaries[0].entranceBlock == sectionOf(f.model(), "block-a2") && f.editedOnce("Edit station boundary") && f.combo(0, 0) == entrance,
-		"another entrance is chosen, which marks the document once and leaves the combo in the table");
+	// Another entrance is chosen, which marks the document once and leaves the combo in the table.
+	QCOMPARE(f.model().stationBoundaries[0].entranceBlock, sectionOf(f.model(), "block-a2"));
+	QVERIFY(f.changedOnce("Edit station boundary"));
+	QCOMPARE(f.combo(0, 0), entrance);
 	f.chooseBlock(0, 1, "block-a1");
 	const SceneStationBoundary& boundary = f.model().stationBoundaries[0];
-	ok &= expect(boundary.hasExitBlock && boundary.exitBlock == a1 && f.editedOnce("Edit station boundary"), "an exit is chosen");
+	// An exit is chosen.
+	QVERIFY(boundary.hasExitBlock);
+	QCOMPARE(boundary.exitBlock, a1);
+	QVERIFY(f.changedOnce("Edit station boundary"));
 	f.chooseBlock(0, 1, "block-a1");
-	ok &= expect(f.untouched(), "choosing the exit that is chosen changes nothing");
+	QVERIFY2(f.untouched(), "choosing the exit that is chosen changes nothing");
 	f.combo(0, 1)->setCurrentIndex(f.combo(0, 1)->findData(QString()));
-	ok &= expect(!boundary.hasExitBlock && boundary.exitBlock.empty() && f.editedOnce("Edit station boundary"), "choosing none clears the exit and its flag together");
-	f.type(0, 2, "True");
-	ok &= expect(boundary.direction && f.cell(0, 2) == "true" && f.changedOnce("Edit station boundary", "station_boundaries"), "the direction is edited");
-	f.type(0, 2, "up");
-	ok &= expect(f.untouched() && boundary.direction && f.cell(0, 2) == "true" && f.messages.empty(),
-		"a direction that is neither true nor false is refused and the table shows the model again");
+	// Choosing none clears the exit and its flag together.
+	QVERIFY(!boundary.hasExitBlock);
+	QVERIFY(boundary.exitBlock.empty());
+	QVERIFY(f.changedOnce("Edit station boundary"));
+	f.table()->item(0, 2)->setCheckState(Qt::Checked);
+	// Checking the box sets the direction.
+	QVERIFY(boundary.direction);
+	QCOMPARE(f.table()->item(0, 2)->checkState(), Qt::Checked);
+	QVERIFY(f.changedOnce("Edit station boundary"));
+	// The box takes no text.
+	QVERIFY(!f.table()->item(0, 2)->flags().testFlag(Qt::ItemIsEditable));
 
 	// add
 	f.panel.addButton()->click();
-	ok &= expect(f.model().stationBoundaries.size() == 2 && f.model().stationBoundaries[1].entranceBlock.empty() && !f.model().stationBoundaries[1].hasExitBlock
-			&& f.changedOnce("Add station boundary", "station_boundaries") && f.table()->currentRow() == 1 && f.panel.selectionId().isEmpty(),
-		"a station boundary is added empty, and its row is selected");
-	ok &= expect(f.combo(1, 0)->currentText() == "(none)" && f.combo(1, 1)->currentText() == "(none)", "an empty entrance and an empty exit show as none");
+	// A station boundary is added empty, and its row is selected.
+	QCOMPARE(f.model().stationBoundaries.size(), std::size_t(2));
+	QVERIFY(f.model().stationBoundaries[1].entranceBlock.empty());
+	QVERIFY(!f.model().stationBoundaries[1].hasExitBlock);
+	QVERIFY(f.changedOnce("Add station boundary"));
+	QCOMPARE(f.table()->currentRow(), 1);
+	// A station boundary has no id, and the selection names it by its row.
+	QCOMPARE(f.panel.selectionId(), "1");
+	// An empty entrance and an empty exit show as none.
+	QCOMPARE(f.combo(1, 0)->currentText(), "(none)");
+	QCOMPARE(f.combo(1, 1)->currentText(), "(none)");
 
 	// delete: nothing refers to a station boundary
+	f.messages.clear();
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.errorCount == 0 && f.prompts.confirmQuestion == "Delete station boundary 'incomplete row'?" && f.model().stationBoundaries.size() == 2
-			&& f.untouched(),
-		"a station boundary that has no entrance yet is named an incomplete row, and stays when the user answers no");
-	f.prompts.confirmAnswer = true;
-	f.panel.deleteButton()->click();
-	ok &= expect(f.model().stationBoundaries.size() == 1 && f.changedOnce("Delete station boundary", "station_boundaries"), "a station boundary is deleted when the user answers yes");
+	// A station boundary that has no entrance yet is deleted at once, and the status line calls it incomplete.
+	QCOMPARE(f.prompts.errorCount, 0);
+	QCOMPARE(f.messages, QStringList({"Deleted an incomplete station boundary. Undo restores it."}));
+	QCOMPARE(f.model().stationBoundaries.size(), std::size_t(1));
+	QVERIFY(f.changedOnce("Delete station boundary"));
 	f.select(0);
+	f.messages.clear();
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmQuestion == QString::fromStdString("Delete station boundary '" + sectionOf(f.model(), "block-a2") + "'?")
-			&& f.model().stationBoundaries.empty(),
-		"a station boundary is named by its entrance");
-	return ok;
+	// A station boundary is named by its entrance.
+	QCOMPARE(f.messages,
+		QStringList({QString::fromStdString("Deleted station boundary '" + sectionOf(f.model(), "block-a2") + "'. Undo restores it.")}));
+	QVERIFY(f.model().stationBoundaries.empty());
 }
 
-int main(int argc, char** argv) {
-	QApplication app(argc, argv);
-	bool ok = true;
-	ok &= testFacets();
-	ok &= testStations();
-	ok &= testPlatformList();
-	ok &= testPlatformEdit();
-	ok &= testPlatformMove();
-	ok &= testPlatformGeometry();
-	ok &= testPlatformAddAndDelete();
-	ok &= testBoundaries();
-	return ok ? 0 : 1;
-}
+QTEST_MAIN(TestStationFacets)
+#include "test_editor_infrastructure_stations.moc"

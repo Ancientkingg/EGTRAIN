@@ -1,24 +1,22 @@
 #include "scene/SectionInventory.h"
+#include "scene/SectionReference.h"
 #include "scene/SignallingLevel.h"
 
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <initializer_list>
 #include <iomanip>
+#include <limits>
 #include <locale>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 
 namespace {
 
 constexpr double kCoordinateTolerance = 1e-8;
-
-std::string runtimeBlockId(const std::string& id) {
-	if (id.empty() || id.front() == '@' || id.find('/') != std::string::npos)
-		return id;
-	return "@" + id + "@";
-}
 
 struct TrackChain {
 	std::vector<const SceneNode*> nodes;
@@ -182,7 +180,7 @@ std::string labelPiece(const std::string& trackId, double fromKm, double toKm) {
 }
 
 // The references that SceneSectionInventory::resolve() matches to this section: its runtime id, its block id
-// and the block id that runtimeBlockId() wraps into its runtime id.
+// and the block id that nativeRuntimeBlockId() wraps into its runtime id.
 std::vector<std::string> sectionReferences(const SceneSectionDescriptor& section) {
 	std::vector<std::string> references = {section.id};
 	if (!section.sourceBlockId.empty())
@@ -253,48 +251,71 @@ SceneSectionLabels sceneSectionLabels(const SceneSectionInventory& inventory) {
 	return labels;
 }
 
-const SceneSectionDescriptor* SceneSectionInventory::exact(const std::string& runtimeId) const {
-	const SceneSectionDescriptor* result = nullptr;
-	for (const auto& section : sections) {
-		if (section.id != runtimeId)
-			continue;
-		if (result != nullptr)
-			return nullptr;
-		result = &section;
+SceneSectionList::SceneSectionList(std::vector<SceneSectionDescriptor> sections) : m_sections(std::move(sections)) {
+	for (std::size_t index = 0; index < m_sections.size(); ++index) {
+		m_byId[m_sections[index].id].push_back(index);
+		m_bySourceBlock[m_sections[index].sourceBlockId].push_back(index);
 	}
-	return result;
+}
+
+const std::vector<std::size_t>* SceneSectionList::withId(const std::string& id) const {
+	const auto found = m_byId.find(id);
+	return found == m_byId.end() ? nullptr : &found->second;
+}
+
+const std::vector<std::size_t>* SceneSectionList::withSourceBlock(const std::string& blockId) const {
+	const auto found = m_bySourceBlock.find(blockId);
+	return found == m_bySourceBlock.end() ? nullptr : &found->second;
+}
+
+namespace {
+
+constexpr std::size_t kNoSection = std::numeric_limits<std::size_t>::max();
+constexpr std::size_t kSeveralSections = kNoSection - 1;
+
+// The position of the one section that the lists name, kNoSection when they name none and kSeveralSections when they name
+// more than one. A list may be null.
+std::size_t onlySection(std::initializer_list<const std::vector<std::size_t>*> lists) {
+	std::size_t found = kNoSection;
+	for (const std::vector<std::size_t>* list : lists) {
+		if (list == nullptr)
+			continue;
+		for (const std::size_t position : *list) {
+			if (found == kNoSection)
+				found = position;
+			else if (position != found)
+				return kSeveralSections;
+		}
+	}
+	return found;
+}
+
+// The position of the one section that matches the reference as a runtime id or, for a reference without '/', as a base-block
+// alias: its source block id, or the id that nativeRuntimeBlockId() makes of the reference. kNoSection when none matches and
+// kSeveralSections when more than one does.
+std::size_t matchingSection(const SceneSectionList& sections, const std::string& reference) {
+	if (reference.find('/') != std::string::npos)
+		return onlySection({sections.withId(reference)});
+	return onlySection({sections.withId(reference), sections.withSourceBlock(reference),
+		sections.withId(nativeRuntimeBlockId(reference))});
+}
+
+} // namespace
+
+const SceneSectionDescriptor* SceneSectionInventory::exact(const std::string& runtimeId) const {
+	const std::vector<std::size_t>* positions = sections.withId(runtimeId);
+	return positions != nullptr && positions->size() == 1 ? &sections[positions->front()] : nullptr;
 }
 
 bool SceneSectionInventory::ambiguous(const std::string& reference) const {
-	std::size_t count = 0;
-	const std::string wrapped = runtimeBlockId(reference);
-	for (const auto& section : sections) {
-		const bool exactMatch = section.id == reference;
-		const bool baseAlias = reference.find('/') == std::string::npos
-			&& (section.sourceBlockId == reference || section.id == wrapped);
-		if (exactMatch || baseAlias)
-			++count;
-	}
-	return count > 1;
+	return matchingSection(sections, reference) == kSeveralSections;
 }
 
 const SceneSectionDescriptor* SceneSectionInventory::resolve(const std::string& reference) const {
-	if (reference.empty() || ambiguous(reference))
+	if (reference.empty())
 		return nullptr;
-	if (const auto* section = exact(reference))
-		return section;
-	if (reference.find('/') != std::string::npos)
-		return nullptr;
-	const std::string wrapped = runtimeBlockId(reference);
-	const SceneSectionDescriptor* result = nullptr;
-	for (const auto& section : sections) {
-		if (section.sourceBlockId == reference || section.id == wrapped) {
-			if (result != nullptr)
-				return nullptr;
-			result = &section;
-		}
-	}
-	return result;
+	const std::size_t position = matchingSection(sections, reference);
+	return position < sections.size() ? &sections[position] : nullptr;
 }
 
 // The validator refuses a signal failure whose target is both the id of a signal and a reference to a section.
@@ -345,8 +366,20 @@ SceneSectionTransition classifySceneSectionTransition(const SceneModel& scene,
 	return transition;
 }
 
+SceneTrackChain sceneTrackChain(const SceneModel& scene, const std::string& trackId) {
+	std::unordered_map<std::string, const SceneNode*> nodesById;
+	for (const auto& node : scene.nodes)
+		nodesById.emplace(node.id, &node);
+	const auto track = std::find_if(scene.tracks.begin(), scene.tracks.end(),
+		[&trackId](const SceneTrack& candidate) { return candidate.id == trackId; });
+	if (track == scene.tracks.end())
+		return {};
+	TrackChain chain = chainForTrack(scene, *track, nodesById);
+	return {std::move(chain.nodes), std::move(chain.arcs)};
+}
+
 SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
-	SceneSectionInventory inventory;
+	std::vector<SceneSectionDescriptor> sections;
 	std::unordered_map<std::string, const SceneNode*> nodesById;
 	for (const auto& node : scene.nodes)
 		nodesById.emplace(node.id, &node);
@@ -403,7 +436,7 @@ SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
 
 	for (const BlockPlan& plan : plans) {
 		SceneSectionDescriptor section;
-		section.id = runtimeBlockId(plan.source->id);
+		section.id = nativeRuntimeBlockId(plan.source->id);
 		section.sourceBlockId = plan.source->id;
 		section.firstTrackId = plan.source->trackId;
 		section.startKm = plan.startKm;
@@ -423,7 +456,7 @@ SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
 				&& nodesById.at(arc->toNodeId)->xKm > plan.startKm + kCoordinateTolerance
 				&& nodesById.at(arc->fromNodeId)->xKm < plan.endKm - kCoordinateTolerance)
 				++section.arcCount;
-		inventory.sections.push_back(std::move(section));
+		sections.push_back(std::move(section));
 	}
 
 	for (const auto& connection : scene.connections) {
@@ -450,8 +483,8 @@ SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
 					|| second->xKm > secondPlan.endKm + kCoordinateTolerance)
 					continue;
 				SceneSectionDescriptor section;
-				section.id = runtimeBlockId(firstPlan.source->id) + "-" + firstX + "/"
-					+ runtimeBlockId(secondPlan.source->id) + "-" + secondX;
+				section.id = nativeRuntimeBlockId(firstPlan.source->id) + "-" + firstX + "/"
+					+ nativeRuntimeBlockId(secondPlan.source->id) + "-" + secondX;
 				section.sourceConnectionId = connection.id;
 				section.firstBlockId = firstPlan.source->id;
 				section.secondBlockId = secondPlan.source->id;
@@ -488,11 +521,11 @@ SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
 						&& end > second->xKm + kCoordinateTolerance)
 						++section.arcCount;
 				}
-				inventory.sections.push_back(std::move(section));
+				sections.push_back(std::move(section));
 			}
 		}
 	}
-	return inventory;
+	return {SceneSectionList(std::move(sections))};
 }
 
 SceneBlockExtent sceneBlockExtent(const SceneSectionInventory& inventory, const std::string& trackId) {

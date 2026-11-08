@@ -62,22 +62,23 @@ ALLOWED = {
     #         reads, the two statements of the --help text, and the line "End of Simulation" that
     #         scripts read.
     #   cerr: the errors of the options, the error of an unknown option, the
-    #         diagnostics of a scene, the endpoint of the live stream and the problems that
-    #         installConsoleLogging returns.
-    "app/main.cpp": {"cout": 8, "cerr": 14},
+    #         diagnostics of a scene, the endpoint of the live stream, the problems that
+    #         installConsoleLogging returns and the reason that a run without a window failed
+    #         or was stopped.
+    "app/main.cpp": {"cout": 8, "cerr": 15},
     # Marker lines of the profiling switches and of scripted runs. Each starts with a fixed word,
     # so no logging rule may hide it and no level or category may come in front of it.
     #   QEGTRAIN_NATIVE_DETAIL: the stage times of the preparation of a scene, written with
     #   QEGTRAIN_STARTUP_NATIVE_DETAIL=1 and QEGTRAIN_STARTUP_TIMING=1.
     "app/DispatchController.cpp": {"fprintf": 1},
-    #   QEGTRAIN_TIMING: the startup timing record, read by startup_launch_contract.py and
-    #   tools/performance/startup_benchmark.py. QEGTRAIN_TIMING_ERROR: why that timing failed.
     #   QEGTRAIN_PLAYBACK_PROFILE: the error record of the playback profile for a startup timing
     #   run, which tools/performance/playback_profile.py reads.
-    "app/MainWindow.cpp": {"fprintf": 3},
+    "app/MainWindow.cpp": {"fprintf": 1},
+    #   QEGTRAIN_TIMING: the startup timing record, read by startup_launch_contract.py and
+    #   tools/performance/startup_benchmark.py. QEGTRAIN_TIMING_ERROR: why that timing failed.
     #   QEGTRAIN_PLAYBACK_PROFILE: the error record of the playback profile for a scenario that
     #   the scene does not have, which tools/performance/playback_profile.py reads.
-    "app/RunController.cpp": {"fprintf": 1},
+    "app/StartupTiming.cpp": {"fprintf": 3},
     #   QEGTRAIN_PLAYBACK_PROFILE: the records of the playback profile.
     "util/PlaybackProfiler.cpp": {"fprintf": 1},
     #   QEGTRAIN_DIALOG_SUPPRESSED: the message of a dialog that a scripted run suppresses.

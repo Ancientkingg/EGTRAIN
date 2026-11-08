@@ -7,7 +7,7 @@
 // of the application into the run, and the run goes on with the copy. The scene is built into a run of its own that replaces the
 // run of the controller, and the snapshot of a step is made from the run that it is given.
 //
-//   test_simulationrun LINE_SCENE_DIR PASSENGER_SCENE_DIR
+// The scenes are the line fixture of tests/fixtures/scenes and Scenes/Paimpol.
 
 #include "app/DispatchController.h"
 #include "scene/SceneModel.h"
@@ -18,14 +18,15 @@
 #include "simulation/Signalling.h"
 #include "simulation/Simulation.h"
 #include "simulation/SimulationRun.h"
-#include "simulation/builders/InfrastructureBuilderInternal.h"
 #ifdef signals
 #undef signals
 #endif
 
 #include <QCoreApplication>
 #include <QObject>
+#include <QScopeGuard>
 #include <QTemporaryDir>
+#include <QTest>
 
 #include <algorithm>
 #include <filesystem>
@@ -40,12 +41,6 @@
 #include <vector>
 
 namespace {
-
-bool expect(bool condition, const std::string& message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
 
 class CoutSilencer {
 public:
@@ -70,7 +65,8 @@ std::string arrayText(const std::vector<Element>& elements, Used used) {
 
 Description describeInfrastructure(const RunInfrastructure& infrastructure) {
 	const auto& [tracks, links, stationArray, trackCount, linkCount, stationCount, sections, blockCount, detectionSections, infraEvents,
-		exceedPlan, limits, held, reservations, zones, zoneLimits, zoneRoutes, routeZone, zonesDerived, boundaries, routes, routeCount] = infrastructure;
+		exceedPlan, limits, held, reservations, zones, zoneLimits, zoneRoutes, routeZone, zonesDerived, boundaries, routes, routeCount,
+		sectionIdNumbers, routeSectionNumbers] = infrastructure;
 	return {{"infra.blockSets", arrayText(tracks, [](const BlockSet& track) { return !track.sceneTrackId.empty() || !track.N.empty(); })},
 		{"infra.connections", arrayText(links, [](const Connections& link) { return !link.ID.empty(); })},
 		{"infra.stations", arrayText(stationArray, [](const Stations& station) { return !station.stationName.empty(); })},
@@ -92,15 +88,17 @@ Description describeInfrastructure(const RunInfrastructure& infrastructure) {
 		{"infra.singleTrackZonesDerived", std::to_string(zonesDerived)},
 		{"infra.stationBoundaries", std::to_string(boundaries.size())},
 		{"infra.routes", std::to_string(routes.size())},
-		{"infra.numRoutes", std::to_string(routeCount)}};
+		{"infra.numRoutes", std::to_string(routeCount)},
+		{"infra.sectionIdNumbers", std::to_string(sectionIdNumbers.size())},
+		{"infra.routeSectionNumbers", std::to_string(routeSectionNumbers.size())}};
 }
 
 Description describe(const SimulationRun& run) {
 	const auto& [settings, occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers,
 		numPassengers, passengerIndex, platformIndex, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay,
 		egtrainTime, romaTime, infrastructure] = run;
-	const auto station = [](const Stations& s) {
-		return s.stationName + "/" + std::to_string(s.N_Stopped_Trains) + "/" + std::to_string(s.totalArrivalDelay);
+	const auto statistics = [](const DelayStats& s) {
+		return std::to_string(s.N_Stopped_Trains) + "/" + std::to_string(s.totalArrivalDelay);
 	};
 	NumberGenerator draws = generator;
 	const std::string draw = std::to_string(draws.getUniformFloat()) + "/" + std::to_string(draws.getGaussianFloat());
@@ -118,10 +116,10 @@ Description describe(const SimulationRun& run) {
 		{"numPassengers", std::to_string(numPassengers)},
 		{"passengerIndex", std::to_string(passengerIndex.covers(passengers))},
 		{"platformIndex", std::to_string(platformIndex.covers(platforms))},
-		{"totalInputDelays", station(totalDelays)},
-		{"entranceInputDelays", station(entranceDelays)},
-		{"disturbanceInput", station(disturbances)},
-		{"finalStation", station(finalStation)},
+		{"totalInputDelays", statistics(totalDelays)},
+		{"entranceInputDelays", statistics(entranceDelays)},
+		{"disturbanceInput", statistics(disturbances)},
+		{"finalStation", statistics(finalStation)},
 		{"trains", std::to_string(trains.size()) + "/" + std::to_string(trains.capacity())},
 		{"numTrains", std::to_string(numTrains)},
 		{"numberGenerator", draw},
@@ -163,10 +161,10 @@ bool infrastructureIs(const SimulationRun& run, bool isNew) {
 }
 
 // True when the run is as a new run in every member that the builders do not fill. A prepared scene has its settings, infrastructure,
-// platforms, passengers, incidents and seeded generator, and the name of the final station.
+// platforms, passengers, incidents and seeded generator.
 bool carriesNothingOver(const SimulationRun& run) {
 	const std::set<std::string> builderState = {"settings", "incidents", "platforms", "numPlatforms", "passengers", "numPassengers",
-		"passengerIndex", "platformIndex", "finalStation", "trains", "numTrains", "numberGenerator"};
+		"passengerIndex", "platformIndex", "trains", "numTrains", "numberGenerator"};
 	const std::vector<std::string> unchanged = membersOfNewRun(run);
 	for (const auto& [name, text] : describe(run))
 		if (!isInfrastructureMember(name) && builderState.count(name) == 0
@@ -199,10 +197,9 @@ void fill(SimulationRun& run) {
 	numPassengers = 1;
 	passengerIndex.build(passengers);
 	platformIndex.build(platforms);
-	for (Stations* station : {&totalDelays, &entranceDelays, &disturbances, &finalStation}) {
-		station->stationName = "Final_Station";
-		station->N_Stopped_Trains = 4;
-		station->totalArrivalDelay = 30;
+	for (DelayStats* statistics : {&totalDelays, &entranceDelays, &disturbances, &finalStation}) {
+		statistics->N_Stopped_Trains = 4;
+		statistics->totalArrivalDelay = 30;
 	}
 	trains.resize(2);
 	numTrains = 2;
@@ -231,53 +228,8 @@ void fill(SimulationRun& run) {
 	infrastructure.stationBoundaries.emplace_back(&infrastructure.sections[0], false, nullptr);
 	infrastructure.routes.resize(1);
 	infrastructure.numRoutes = 1;
-}
-
-bool resetTests() {
-	bool ok = true;
-	SimulationRun& run = defaultRun();
-	SimulationRun* const address = &run;
-	ok &= expect(isNewRun(run), "the run of the process starts as a new run");
-
-	fill(run);
-	ok &= expect(membersOfNewRun(run).empty(), "the test fills every member");
-	RunInfrastructure& infra = run.infra;
-	ok &= expect(infra.blockSets.size() == static_cast<std::size_t>(kMaxTrackLines)
-			&& infra.connections.size() == static_cast<std::size_t>(kMaxConnections)
-			&& infra.stations.size() == static_cast<std::size_t>(kMaxStations),
-		"the arrays of the network have their full number of elements");
-	ok &= expect(infra.blockSets[0].sceneTrackId == "line" && infra.connections[0].ID == "switch"
-			&& infra.stations[0].stationName == "Station" && infra.numBlocks == 2 && infra.sections.size() == 2
-			&& infra.detectionSections.size() == 1 && infra.routes.size() == 1 && infra.numRoutes == 1,
-		"the infrastructure shows the values that the test set");
-	ok &= expect(run.blocksOccupied.size() == 1 && run.etcsMa.size() == 1 && run.incidents.size() == 1 && run.vcMsgText.size() == 1
-			&& run.passengers.size() == 1 && run.numPlatforms == 1 && run.finalStation.N_Stopped_Trains == 4 && run.numTrains == 2
-			&& run.trains.size() == 2 && run.signallingDelay == 2,
-		"the members show the values that the test set");
-
-	// The elements of the arrays of the network stay where they are when the infrastructure is reset.
-	const BlockSet* const firstTrack = &infra.blockSets[0];
-	const Connections* const firstConnection = &infra.connections[0];
-	const Stations* const firstStation = &infra.stations[0];
-
-	run.reset();
-	ok &= expect(infrastructureIs(run, false) && infra.numBlocks == 2 && infra.routes.size() == 1,
-		"reset leaves the infrastructure in place, because the scene builder replaces it");
-
-	run.resetInfrastructure();
-	ok &= expect(isNewRun(run), "reset and resetInfrastructure return every member to the state of a new run");
-	ok &= expect(&defaultRun() == address && run.blocksOccupied.empty() && run.etcsMa.empty() && run.passengers.empty() && run.trains.empty()
-			&& run.numTrains == 0 && run.signallingDelay == 0 && infra.numBlocks == 0 && infra.routes.empty() && infra.numRoutes == 0
-			&& infra.detectionSections.empty(),
-		"a reset keeps the run at its address");
-	ok &= expect(firstTrack == &infra.blockSets[0] && firstConnection == &infra.connections[0] && firstStation == &infra.stations[0],
-		"the arrays of the network keep their address when the infrastructure is reset");
-
-	// The generator of a seeded run starts again from the default seed.
-	run.numberGenerator = NumberGenerator(5);
-	run.reset();
-	ok &= expect(isNewRun(run), "reset returns the generator to the default seed");
-	return ok;
+	infrastructure.sectionIdNumbers.emplace("1-B0", 0);
+	infrastructure.routeSectionNumbers.push_back({0});
 }
 
 // The files a run wrote, by path below its output folder, with their content.
@@ -292,8 +244,21 @@ struct Outcome {
 	bool adopted = false;
 	// The snapshot of the last step that the controller published.
 	std::shared_ptr<const GuiSimulationSnapshot> lastSnapshot;
+	// The branch of each step of each train, kept when the snapshot of the step is published; -1 for a step without one.
+	std::vector<std::vector<int>> stepBranches;
 	Files files;
 };
+
+// Keeps in branches the branch that each train of run took in step `step`.
+void recordStepBranches(const SimulationRun& run, int step, std::vector<std::vector<int>>& branches) {
+	branches.resize(run.trains.size());
+	for (std::size_t i = 0; i < run.trains.size(); ++i) {
+		std::vector<int>& train = branches[i];
+		if (train.size() <= static_cast<std::size_t>(step))
+			train.resize(static_cast<std::size_t>(step) + 1, -1);
+		train[static_cast<std::size_t>(step)] = run.trains[i].stepBranch;
+	}
+}
 
 // Reads the files below root, except Computing_Times.txt, whose wall-clock timings differ between any two runs.
 Files readFiles(const std::filesystem::path& root) {
@@ -357,29 +322,16 @@ Outcome runScene(const RunSetup& setup) {
 	QObject context;
 	QObject::connect(&simulation, &DispatchController::snapshotAvailable, &context, [&] {
 		// The mailbox only emits again once the snapshot has been taken.
-		if (const auto snapshot = simulation.takeSimulationSnapshot())
+		if (const auto snapshot = simulation.takeSimulationSnapshot()) {
 			outcome.lastSnapshot = snapshot;
+			recordStepBranches(simulation.run(), snapshot->timestep, outcome.stepBranches);
+		}
 		if (++snapshots == setup.stopAtSnapshot)
 			simulation.runControl()->requestStop(); }, Qt::DirectConnection);
 	simulation.runSimulation();
 	outcome.completed = simulation.lastRunCompleted();
 	outcome.files = readFiles(output.path().toStdString());
 	return outcome;
-}
-
-bool sameFiles(const std::string& label, const Outcome& expected, const Outcome& actual) {
-	bool ok = expect(actual.prepared && actual.completed, label + ": the run completes");
-	ok &= expect(actual.startedClean, label + ": nothing of an earlier run is left when the run starts");
-	ok &= expect(actual.adopted, label + ": the prepared run is whole in the place of the earlier one");
-	ok &= expect(!expected.files.empty() && actual.files.size() == expected.files.size(), label + ": the run writes the same files");
-	for (const auto& [name, content] : expected.files) {
-		const auto found = actual.files.find(name);
-		if (found == actual.files.end())
-			ok &= expect(false, label + ": " + name + " is missing");
-		else if (found->second != content)
-			ok &= expect(false, label + ": " + name + " differs");
-	}
-	return ok;
 }
 
 // One network-wide area at ETCS level 3, so that the trains report their positions to the RBC at every step.
@@ -394,112 +346,23 @@ SceneModel movingBlockLine(const SceneModel& line) {
 	return scene;
 }
 
-bool gapTests(const SceneModel& line, const SceneModel& passengerScene) {
-	bool ok = true;
-	const SceneModel movingBlock = movingBlockLine(line);
-	RunSetup lineRun;
-	lineRun.scene = &movingBlock;
-	lineRun.selection = {{"T1", 1}};
-	lineRun.horizonSeconds = 1500;
-	lineRun.detailedFiles = true;
-	RunSetup passengerRun;
-	passengerRun.scene = &passengerScene;
-	passengerRun.horizonSeconds = 2400;
-	passengerRun.passengerGui = true;
-
-	// The first runs of the process: the files that later runs have to write again.
-	const Outcome firstLine = runScene(lineRun);
-	ok &= expect(firstLine.prepared && firstLine.completed && !firstLine.files.empty(), "the line scene runs");
-	const Outcome firstPassengers = runScene(passengerRun);
-	ok &= expect(firstPassengers.prepared && firstPassengers.completed && !simulation.run().passengers.empty(), "the passenger scene runs");
-
-	ok &= sameFiles("passengers, second run", firstPassengers, runScene(passengerRun));
-
-	// The routines of the run read its settings, so settings of the application that change after preparation reach no file.
-	RunSetup changedRun = lineRun;
-	changedRun.changeSettingsAfterPreparation = true;
-	ok &= sameFiles("a change of the settings after preparation", firstLine, runScene(changedRun));
-
-	RunSetup stoppedRun = lineRun;
-	stoppedRun.stopAtSnapshot = 300;
-	const Outcome stopped = runScene(stoppedRun);
-	ok &= expect(stopped.prepared && !stopped.completed, "the line run stops part way");
-	ok &= expect(!simulation.run().etcsMa.empty(), "the stopped run leaves movement authorities behind");
-	ok &= sameFiles("a scene after a stopped run", firstPassengers, runScene(passengerRun));
-
-	// A preparation that fails after the run state was used. The state has to be gone when the next scene prepares.
-	fill(defaultRun());
-	const std::vector<SceneDiagnostic> rejected = simulation.prepareScene(line, "no.such.scenario");
-	ok &= expect(hasErrors(rejected), "a scene with an unknown scenario is rejected");
-	ok &= expect(isNewRun(defaultRun()), "a rejected preparation leaves a new run");
-	ok &= sameFiles("a scene after a failed preparation", firstLine, runScene(lineRun));
-	return ok;
-}
-
-// prepareScene copies the settings of the application into the run, and the controller goes on with the copy when the application
-// changes its settings. The buffer time, the recovery time and the output folder are the ones that the files of the run show.
-bool settingsTests(const SceneModel& line) {
-	bool ok = true;
-	QTemporaryDir prepared;
-	QTemporaryDir changed;
-	initial_variables.GUI = 0;
-	initial_variables.PAX_GUI = false;
-	initial_variables.durationOverride = true;
-	initial_variables.times = 600;
-	initial_variables.exportDetailedTrajectories = false;
-	initial_variables.bufferTimeOverride = true;
-	initial_variables.bufferTime = 2.5;
-	initial_variables.recoveryTimeOverride = true;
-	initial_variables.recoveryTimePercentage = 3.5;
-	initial_variables.OutputMainFolder = prepared.path().toStdString();
-
-	CoutSilencer silencer;
-	ok &= expect(!hasErrors(simulation.prepareScene(line, "baseline", {{"T1", 1}})) && simulation.run().numTrains > 0, "the scene is prepared");
-	const InitialParameters& settings = defaultRun().settings;
-	ok &= expect(settings.times == 600 && settings.bufferTime == 2.5 && settings.recoveryTimePercentage == 3.5
-			&& settings.OutputMainFolder == prepared.path().toStdString() && settings.name == line.name,
-		"prepareScene copies the settings, with the buffer time, the recovery time and the output folder");
-
-	initial_variables.bufferTime = 9;
-	initial_variables.recoveryTimePercentage = 9;
-	initial_variables.OutputMainFolder = changed.path().toStdString();
-	ok &= expect(settings.bufferTime == 2.5 && settings.recoveryTimePercentage == 3.5 && settings.OutputMainFolder == prepared.path().toStdString(),
-		"a change to the settings of the application does not reach the copy");
-	simulation.runSimulation();
-	const std::filesystem::path trajectories = std::filesystem::path(prepared.path().toStdString()) / "TrainTrajectories";
-	ok &= expect(simulation.lastRunCompleted() && std::filesystem::exists(trajectories / "Stats_Stations.txt")
-			&& !std::filesystem::exists(std::filesystem::path(changed.path().toStdString()) / "TrainTrajectories"),
-		"the run writes to the output folder of the copy");
-
-	simulation.resetState();
-	ok &= expect(isNewRun(defaultRun()), "a reset returns the settings of the run to those of a new run");
-	initial_variables.bufferTimeOverride = false;
-	initial_variables.recoveryTimeOverride = false;
-	return ok;
-}
-
-// The steps of a run that DispatchController runs for the trains and the signalling, on the run that is given.
-void stepRun(SimulationRun& run, int t) {
-	for (std::size_t index = 0; index < run.trains.size(); ++index) {
-		Regional& train = run.trains[index];
-		train.trajectoryComputationIncludingMovingBlock(t, signalCode1, signalCode2, signalCode3);
-		train.recordEarliestActiveTrajectoryIndex(t);
-		train.recordStationPassagesAtTime(t);
-		train.checkTrainArrDep(static_cast<int>(index), t);
+// The run completes in the place of the earlier run and writes the files of the expected run. A failed check ends this
+// function only, so the caller checks QTest::currentTestFailed() when more checks follow.
+void checkSameFiles(const std::string& label, const Outcome& expected, const Outcome& actual) {
+	// The run completes.
+	QVERIFY2(actual.prepared, (label + ": the run completes").c_str());
+	QVERIFY2(actual.completed, (label + ": the run completes").c_str());
+	QVERIFY2(actual.startedClean, (label + ": nothing of an earlier run is left when the run starts").c_str());
+	QVERIFY2(actual.adopted, (label + ": the prepared run is whole in the place of the earlier one").c_str());
+	// The run writes the same files.
+	QVERIFY2(!expected.files.empty(), (label + ": the run writes the same files").c_str());
+	QVERIFY2(actual.files.size() == expected.files.size(), (label + ": the run writes the same files").c_str());
+	for (const auto& [name, content] : expected.files) {
+		const auto found = actual.files.find(name);
+		if (found == actual.files.end())
+			QFAIL((label + ": " + name + " is missing").c_str());
+		QVERIFY2(found->second == content, (label + ": " + name + " differs").c_str());
 	}
-	for (Regional& train : run.trains)
-		Simulate_Train_Passenger_Interactions(run, t, run.settings.startingSimulationTime, train, run.passengers, run.platforms);
-	run.etcsMa.clear();
-	Occupy_Block_Sections_Of_Route(run, t);
-	Apply_Signal_Failures_Mixed_Signalling(run, t);
-	Apply_Single_Track_Authorities_Mixed_Signalling(run);
-	ReportAllTrainPositionsToRBC(run, t, 50);
-	protectStationAreas(run, t);
-	releaseMixedSignallingSystem(run);
-	activateMixedSignallingSystem(run);
-	unlockDoubleSwitches(run);
-	run.blocksOccupied.clear();
-	run.blocksConnected.clear();
 }
 
 // The parts of two snapshots that the window draws, compared field by field.
@@ -524,75 +387,387 @@ bool sameSnapshot(const GuiSimulationSnapshot& a, const GuiSimulationSnapshot& b
 		&& a.platforms.size() == b.platforms.size() && a.passengers.size() == b.passengers.size();
 }
 
+} // namespace
+
+// The slots share the run of the process and run in the order of their declaration.
+class TestSimulationRun : public QObject {
+	Q_OBJECT
+
+private slots:
+	void initTestCase();
+	void resetReturnsNewRun();
+	void laterRunsWriteFilesOfFirstRun();
+	void runKeepsCopyOfSettings();
+	void secondRunFollowsRunOfProcess();
+	void stepsRunWithoutController();
+
+private:
+	SceneModel m_line;
+	SceneModel m_passengers;
+};
+
+void TestSimulationRun::initTestCase() {
+	SceneLoadResult line = loadScene(EGTRAIN_TEST_SOURCE_DIR "/fixtures/scenes/line");
+	SceneLoadResult passengers = loadScene(EGTRAIN_SCENES_DIR "/Paimpol");
+	// The scenes load.
+	QVERIFY(!hasErrors(line.diagnostics));
+	QVERIFY(!hasErrors(passengers.diagnostics));
+	m_line = std::move(line.scene);
+	m_passengers = std::move(passengers.scene);
+}
+
+void TestSimulationRun::resetReturnsNewRun() {
+	SimulationRun& run = defaultRun();
+	SimulationRun* const address = &run;
+	QVERIFY2(isNewRun(run), "the run of the process starts as a new run");
+
+	fill(run);
+	QVERIFY2(membersOfNewRun(run).empty(), "the test fills every member");
+	RunInfrastructure& infra = run.infra;
+	// The arrays of the network have their full number of elements.
+	QCOMPARE(infra.blockSets.size(), static_cast<std::size_t>(kMaxTrackLines));
+	QCOMPARE(infra.connections.size(), static_cast<std::size_t>(kMaxConnections));
+	QCOMPARE(infra.stations.size(), static_cast<std::size_t>(kMaxStations));
+	// The infrastructure shows the values that the test set.
+	QCOMPARE(infra.blockSets[0].sceneTrackId, "line");
+	QCOMPARE(infra.connections[0].ID, "switch");
+	QCOMPARE(infra.stations[0].stationName, "Station");
+	QCOMPARE(infra.numBlocks, 2);
+	QCOMPARE(infra.sections.size(), std::size_t(2));
+	QCOMPARE(infra.detectionSections.size(), std::size_t(1));
+	QCOMPARE(infra.routes.size(), std::size_t(1));
+	QCOMPARE(infra.numRoutes, 1);
+	// The members show the values that the test set.
+	QCOMPARE(run.blocksOccupied.size(), std::size_t(1));
+	QCOMPARE(run.etcsMa.size(), std::size_t(1));
+	QCOMPARE(run.incidents.size(), std::size_t(1));
+	QCOMPARE(run.vcMsgText.size(), std::size_t(1));
+	QCOMPARE(run.passengers.size(), std::size_t(1));
+	QCOMPARE(run.numPlatforms, 1);
+	QCOMPARE(run.finalStation.N_Stopped_Trains, 4);
+	QCOMPARE(run.numTrains, 2);
+	QCOMPARE(run.trains.size(), std::size_t(2));
+	QCOMPARE_EQ(run.signallingDelay, 2.0);
+
+	// The elements of the arrays of the network stay where they are when the infrastructure is reset.
+	const BlockSet* const firstTrack = &infra.blockSets[0];
+	const Connections* const firstConnection = &infra.connections[0];
+	const Stations* const firstStation = &infra.stations[0];
+
+	run.reset();
+	// Reset leaves the infrastructure in place, because the scene builder replaces it.
+	QVERIFY(infrastructureIs(run, false));
+	QCOMPARE(infra.numBlocks, 2);
+	QCOMPARE(infra.routes.size(), std::size_t(1));
+
+	run.resetInfrastructure();
+	QVERIFY2(isNewRun(run), "reset and resetInfrastructure return every member to the state of a new run");
+	// A reset keeps the run at its address.
+	QCOMPARE(&defaultRun(), address);
+	QVERIFY(run.blocksOccupied.empty());
+	QVERIFY(run.etcsMa.empty());
+	QVERIFY(run.passengers.empty());
+	QVERIFY(run.trains.empty());
+	QCOMPARE(run.numTrains, 0);
+	QCOMPARE_EQ(run.signallingDelay, 0.0);
+	QCOMPARE(infra.numBlocks, 0);
+	QVERIFY(infra.routes.empty());
+	QCOMPARE(infra.numRoutes, 0);
+	QVERIFY(infra.detectionSections.empty());
+	// The arrays of the network keep their address when the infrastructure is reset.
+	QVERIFY(firstTrack == &infra.blockSets[0]);
+	QVERIFY(firstConnection == &infra.connections[0]);
+	QVERIFY(firstStation == &infra.stations[0]);
+
+	// The generator of a seeded run starts again from the default seed.
+	run.numberGenerator = NumberGenerator(5);
+	run.reset();
+	QVERIFY2(isNewRun(run), "reset returns the generator to the default seed");
+}
+
+void TestSimulationRun::laterRunsWriteFilesOfFirstRun() {
+	const SceneModel movingBlock = movingBlockLine(m_line);
+	RunSetup lineRun;
+	lineRun.scene = &movingBlock;
+	lineRun.selection = {{"T1", 1}};
+	lineRun.horizonSeconds = 1500;
+	lineRun.detailedFiles = true;
+	RunSetup passengerRun;
+	passengerRun.scene = &m_passengers;
+	passengerRun.horizonSeconds = 2400;
+	passengerRun.passengerGui = true;
+
+	// The first runs of the process: the files that later runs have to write again.
+	const Outcome firstLine = runScene(lineRun);
+	// The line scene runs.
+	QVERIFY(firstLine.prepared);
+	QVERIFY(firstLine.completed);
+	QVERIFY(!firstLine.files.empty());
+	const Outcome firstPassengers = runScene(passengerRun);
+	// The passenger scene runs.
+	QVERIFY(firstPassengers.prepared);
+	QVERIFY(firstPassengers.completed);
+	QVERIFY(!simulation.run().passengers.empty());
+
+	checkSameFiles("passengers, second run", firstPassengers, runScene(passengerRun));
+	if (QTest::currentTestFailed())
+		return;
+
+	// The routines of the run read its settings, so settings of the application that change after preparation reach no file.
+	RunSetup changedRun = lineRun;
+	changedRun.changeSettingsAfterPreparation = true;
+	checkSameFiles("a change of the settings after preparation", firstLine, runScene(changedRun));
+	if (QTest::currentTestFailed())
+		return;
+
+	RunSetup stoppedRun = lineRun;
+	stoppedRun.stopAtSnapshot = 300;
+	const Outcome stopped = runScene(stoppedRun);
+	// The line run stops part way.
+	QVERIFY(stopped.prepared);
+	QVERIFY(!stopped.completed);
+	QVERIFY2(!simulation.run().etcsMa.empty(), "the stopped run leaves movement authorities behind");
+	checkSameFiles("a scene after a stopped run", firstPassengers, runScene(passengerRun));
+	if (QTest::currentTestFailed())
+		return;
+
+	// A preparation that fails after the run state was used. The state has to be gone when the next scene prepares.
+	fill(defaultRun());
+	const std::vector<SceneDiagnostic> rejected = simulation.prepareScene(m_line, "no.such.scenario");
+	QVERIFY2(hasErrors(rejected), "a scene with an unknown scenario is rejected");
+	QVERIFY2(isNewRun(defaultRun()), "a rejected preparation leaves a new run");
+	checkSameFiles("a scene after a failed preparation", firstLine, runScene(lineRun));
+}
+
+// prepareScene copies the settings of the application into the run, and the controller goes on with the copy when the application
+// changes its settings. The buffer time, the recovery time and the output folder are the ones that the files of the run show.
+void TestSimulationRun::runKeepsCopyOfSettings() {
+	QTemporaryDir prepared;
+	QTemporaryDir changed;
+	initial_variables.GUI = 0;
+	initial_variables.PAX_GUI = false;
+	initial_variables.durationOverride = true;
+	initial_variables.times = 600;
+	initial_variables.exportDetailedTrajectories = false;
+	initial_variables.bufferTimeOverride = true;
+	initial_variables.bufferTime = 2.5;
+	initial_variables.recoveryTimeOverride = true;
+	initial_variables.recoveryTimePercentage = 3.5;
+	initial_variables.OutputMainFolder = prepared.path().toStdString();
+	const auto clearOverrides = qScopeGuard([] {
+		initial_variables.bufferTimeOverride = false;
+		initial_variables.recoveryTimeOverride = false;
+	});
+
+	CoutSilencer silencer;
+	// The scene is prepared.
+	QVERIFY(!hasErrors(simulation.prepareScene(m_line, "baseline", {{"T1", 1}})));
+	QCOMPARE_GT(simulation.run().numTrains, 0);
+	const InitialParameters& settings = defaultRun().settings;
+	// prepareScene copies the settings, with the buffer time, the recovery time and the output folder.
+	QCOMPARE_EQ(settings.times, 600.0);
+	QCOMPARE_EQ(settings.bufferTime, 2.5);
+	QCOMPARE_EQ(settings.recoveryTimePercentage, 3.5);
+	QCOMPARE(settings.OutputMainFolder, prepared.path().toStdString());
+	QCOMPARE(settings.name, m_line.name);
+
+	initial_variables.bufferTime = 9;
+	initial_variables.recoveryTimePercentage = 9;
+	initial_variables.OutputMainFolder = changed.path().toStdString();
+	// A change to the settings of the application does not reach the copy.
+	QCOMPARE_EQ(settings.bufferTime, 2.5);
+	QCOMPARE_EQ(settings.recoveryTimePercentage, 3.5);
+	QCOMPARE(settings.OutputMainFolder, prepared.path().toStdString());
+	simulation.runSimulation();
+	const std::filesystem::path trajectories = std::filesystem::path(prepared.path().toStdString()) / "TrainTrajectories";
+	// The run writes to the output folder of the copy.
+	QVERIFY(simulation.lastRunCompleted());
+	QVERIFY(std::filesystem::exists(trajectories / "Stats_Stations.txt"));
+	QVERIFY(!std::filesystem::exists(std::filesystem::path(changed.path().toStdString()) / "TrainTrajectories"));
+
+	simulation.resetState();
+	QVERIFY2(isNewRun(defaultRun()), "a reset returns the settings of the run to those of a new run");
+}
+
 // The builders and the routines of a step work on the run that they are given. A second run, built from the scene and stepped while
 // the run of the process is a new run, follows the trajectory that the controller gives the same scene in the run of the process, and
 // leaves the run of the process as it was.
-bool explicitRunTests(const SceneModel& line) {
-	bool ok = true;
-	const SceneModel movingBlock = movingBlockLine(line);
+void TestSimulationRun::secondRunFollowsRunOfProcess() {
+	const SceneModel movingBlock = movingBlockLine(m_line);
 	RunSetup setup;
 	setup.scene = &movingBlock;
 	setup.selection = {{"T1", 1}};
 	setup.horizonSeconds = 600;
 	const Outcome reference = runScene(setup);
-	ok &= expect(reference.prepared && reference.completed && !defaultRun().trains.empty(), "the controller runs the scene in the run of the process");
-	if (!reference.completed || defaultRun().trains.empty())
-		return false;
+	// The controller runs the scene in the run of the process.
+	QVERIFY(reference.prepared);
+	QVERIFY(reference.completed);
+	QVERIFY(!defaultRun().trains.empty());
 	const std::vector<double> positions = defaultRun().trains[0].instant_spatial_position;
 	const std::vector<double> speeds = defaultRun().trains[0].instant_train_speed;
 	const std::string description = defaultRun().trains[0].trainDescription;
 
 	CoutSilencer silencer;
 	simulation.resetState();
-	ok &= expect(isNewRun(defaultRun()), "the run of the process is a new run before the second run is built");
+	QVERIFY2(isNewRun(defaultRun()), "the run of the process is a new run before the second run is built");
 	const auto other = std::make_unique<SimulationRun>();
-	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(*other, movingBlock)), "the infrastructure is built into a run of its own");
-	ok &= expect(!hasErrors(buildOperationsFromScene(*other, movingBlock, "baseline", setup.selection)), "the operations are built into a run of its own");
-	ok &= expect(other->numTrains == 1 && other->infra.numBlocks > 0 && !other->infra.routes.empty(), "the second run holds the trains and the infrastructure");
-	ok &= expect(!other->trains.empty() && other->trains[0].run_ == other.get(), "a train of the second run belongs to it");
+	QVERIFY2(!hasErrors(buildInfrastructureAndSignallingFromScene(*other, movingBlock)), "the infrastructure is built into a run of its own");
+	QVERIFY2(!hasErrors(buildOperationsFromScene(*other, movingBlock, "baseline", setup.selection)), "the operations are built into a run of its own");
+	// The second run holds the trains and the infrastructure.
+	QCOMPARE(other->numTrains, 1);
+	QCOMPARE_GT(other->infra.numBlocks, 0);
+	QVERIFY(!other->infra.routes.empty());
+	// A train of the second run belongs to it.
+	QVERIFY(!other->trains.empty());
+	QVERIFY(other->trains[0].run_ == other.get());
 	other->settings = initial_variables;
 	for (Regional& train : other->trains)
 		train.departure_time = train.scheduled_departure_time;
+	TrainMovementOrder order(*other);
 	for (int t = 0; t < setup.horizonSeconds; ++t)
-		stepRun(*other, t);
-	ok &= expect(other->trains[0].trainDescription == description && other->trains[0].instant_spatial_position == positions
-			&& other->trains[0].instant_train_speed == speeds,
-		"the second run follows the trajectory of the same scene in the run of the process");
-	ok &= expect(isNewRun(defaultRun()), "building and stepping another run leaves the run of the process as it was");
+		runSimulationStep(*other, t, order);
+	// The second run follows the trajectory of the same scene in the run of the process.
+	QCOMPARE(other->trains[0].trainDescription, description);
+	QVERIFY(other->trains[0].instant_spatial_position == positions);
+	QVERIFY(other->trains[0].instant_train_speed == speeds);
+	QVERIFY2(isNewRun(defaultRun()), "building and stepping another run leaves the run of the process as it was");
 
 	// The snapshot is made from the run that is given: the second run shows its trains and signals, the new run of the process
 	// shows none, and the snapshot equals the one that the controller published for the last step of the same scene.
 	const int lastStep = setup.horizonSeconds - 1;
 	const GuiSimulationSnapshot fromOther = buildGuiSimulationSnapshot(*other, lastStep);
 	const GuiSimulationSnapshot fromProcess = buildGuiSimulationSnapshot(defaultRun(), lastStep);
-	ok &= expect(fromOther.trains.size() == 1 && fromOther.trains[0].description == description
-			&& fromOther.trains[0].routeAxisPosition == positions[lastStep] && fromOther.totalTimesteps == setup.horizonSeconds
-			&& !fromOther.signalStates.empty() && !fromOther.sectionStates.empty(),
-		"the snapshot shows the run that it is made from");
-	ok &= expect(fromProcess.trains.empty() && fromProcess.signalStates.empty() && fromProcess.sectionStates.empty()
-			&& fromProcess.totalTimesteps == 0,
-		"the snapshot of the new run of the process shows nothing of the second run");
-	ok &= expect(reference.lastSnapshot && reference.lastSnapshot->timestep == lastStep && sameSnapshot(*reference.lastSnapshot, fromOther),
-		"the snapshot of the second run equals the one that the controller published for the same scene");
-	return ok;
+	// The snapshot shows the run that it is made from.
+	QCOMPARE(fromOther.trains.size(), std::size_t(1));
+	QCOMPARE(fromOther.trains[0].description, description);
+	QCOMPARE_EQ(fromOther.trains[0].routeAxisPosition, positions[lastStep]);
+	QCOMPARE(fromOther.totalTimesteps, setup.horizonSeconds);
+	QVERIFY(!fromOther.signalStates.empty());
+	QVERIFY(!fromOther.sectionStates.empty());
+	// The snapshot of the new run of the process shows nothing of the second run.
+	QVERIFY(fromProcess.trains.empty());
+	QVERIFY(fromProcess.signalStates.empty());
+	QVERIFY(fromProcess.sectionStates.empty());
+	QCOMPARE(fromProcess.totalTimesteps, 0);
+	// The snapshot of the second run equals the one that the controller published for the same scene.
+	if (reference.lastSnapshot == nullptr)
+		QFAIL("the controller published no snapshot");
+	QCOMPARE(reference.lastSnapshot->timestep, lastStep);
+	QVERIFY(sameSnapshot(*reference.lastSnapshot, fromOther));
 }
 
-} // namespace
+// The simulation library runs a case without the controller. A run that the builders make and that runSimulationStep steps, from
+// the first step to the last, moves the trains and the passengers of the passenger scene as the controller does in the run of the
+// process, to the end of the routes. runSimulationPostprocessing then gives it the blocking times and the files of that run.
+void TestSimulationRun::stepsRunWithoutController() {
+	RunSetup setup;
+	setup.scene = &m_passengers;
+	// The duration of the scene, in which both trains reach the end of their routes.
+	setup.horizonSeconds = 9000;
+	setup.passengerGui = true;
+	const Outcome reference = runScene(setup);
+	// The controller runs the scene in the run of the process.
+	QVERIFY(reference.prepared);
+	QVERIFY(reference.completed);
+	const SimulationRun& controlled = defaultRun();
+	QCOMPARE_GT(controlled.numTrains, 1);
+	QVERIFY(!controlled.passengers.empty());
 
-int main(int argc, char** argv) {
-	QCoreApplication application(argc, argv);
-	if (argc < 3) {
-		std::cerr << "usage: test_simulationrun LINE_SCENE_DIR PASSENGER_SCENE_DIR\n";
-		return 2;
+	CoutSilencer silencer;
+	const auto other = std::make_unique<SimulationRun>();
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(*other, m_passengers)));
+	QVERIFY(!hasErrors(buildOperationsFromScene(*other, m_passengers, "baseline", setup.selection)));
+	other->settings = initial_variables;
+	QCOMPARE_EQ(other->settings.times, controlled.settings.times);
+	QVERIFY(other->settings.PAX_GUI);
+	TrainMovementOrder order(*other);
+	std::vector<std::vector<int>> stepBranches;
+	for (int t = 0; t < other->settings.times; ++t) {
+		runSimulationStep(*other, t, order);
+		recordStepBranches(*other, t, stepBranches);
 	}
-	bool ok = resetTests();
 
-	SceneLoadResult line = loadScene(argv[1]);
-	SceneLoadResult passengers = loadScene(argv[2]);
-	if (!expect(!hasErrors(line.diagnostics) && !hasErrors(passengers.diagnostics), "the scenes load"))
-		return 1;
-	ok &= gapTests(line.scene, passengers.scene);
-	ok &= settingsTests(line.scene);
-	ok &= explicitRunTests(line.scene);
-	return ok ? 0 : 1;
+	// Every train moves as in the run of the controller, and the run ends with the trains out of the network.
+	QCOMPARE(other->numTrains, controlled.numTrains);
+	int finished = 0;
+	for (int i = 0; i < controlled.numTrains; ++i) {
+		const Regional& expected = controlled.trains[i];
+		const Regional& actual = other->trains[i];
+		const std::string label = expected.trainDescription;
+		QCOMPARE(actual.trainDescription, expected.trainDescription);
+		QVERIFY2(actual.instant_spatial_position == expected.instant_spatial_position, (label + ": positions").c_str());
+		QVERIFY2(actual.instant_train_speed == expected.instant_train_speed, (label + ": speeds").c_str());
+		QVERIFY2(stepBranches[static_cast<std::size_t>(i)] == reference.stepBranches[static_cast<std::size_t>(i)],
+			(label + ": branches of the steps").c_str());
+		QCOMPARE(actual.End_Time, expected.End_Time);
+		QCOMPARE(actual.OutOfSimulation, expected.OutOfSimulation);
+		QCOMPARE(actual.Current_OnBoard_Passengers, expected.Current_OnBoard_Passengers);
+		finished += actual.OutOfSimulation ? 1 : 0;
+	}
+	QCOMPARE_GT(finished, 0);
+	// Every passenger ends the run where the passenger ends it in the run of the controller.
+	QCOMPARE(other->passengers.size(), controlled.passengers.size());
+	int exited = 0;
+	auto expectedPassenger = controlled.passengers.begin();
+	for (const Passenger& actual : other->passengers) {
+		QCOMPARE(actual.ID, expectedPassenger->ID);
+		QCOMPARE(actual.CurrentStatus, expectedPassenger->CurrentStatus);
+		QCOMPARE(actual.IsIntheNetwork, expectedPassenger->IsIntheNetwork);
+		QCOMPARE_EQ(actual.TimeExitedTheNetwork, expectedPassenger->TimeExitedTheNetwork);
+		exited += !actual.IsIntheNetwork && actual.TimeExitedTheNetwork > 0 ? 1 : 0;
+		++expectedPassenger;
+	}
+	QCOMPARE_GT(exited, 0);
+	// The trains and the signalling of the last step are those of the run of the controller.
+	if (reference.lastSnapshot == nullptr)
+		QFAIL("the controller published no snapshot");
+	const int lastStep = static_cast<int>(other->settings.times) - 1;
+	QCOMPARE(reference.lastSnapshot->timestep, lastStep);
+	QVERIFY(sameSnapshot(*reference.lastSnapshot, buildGuiSimulationSnapshot(*other, lastStep)));
+
+	// The stages after the steps also need no controller. They give every train the blocking times of the run of the controller and
+	// write its files, except PassengerStatus.txt, which the controller writes after the steps. Without detailed files they look for
+	// a stop four times.
+	QTemporaryDir output;
+	const std::filesystem::path outputFolder = output.path().toStdString();
+	std::filesystem::create_directories(outputFolder / "TrainTrajectories");
+	std::filesystem::create_directories(outputFolder / "PassengerStatus");
+	other->settings.OutputMainFolder = outputFolder.string();
+	int stopChecks = 0;
+	const bool stagesEnded = runSimulationPostprocessing(*other, [&stopChecks] {
+		++stopChecks;
+		return false;
+	});
+	QVERIFY(stagesEnded);
+	QCOMPARE(stopChecks, 4);
+	int blockingTimes = 0;
+	for (int i = 0; i < controlled.numTrains; ++i) {
+		QCOMPARE(other->trains[i].N_BlockSections, controlled.trains[i].N_BlockSections);
+		blockingTimes += other->trains[i].N_BlockSections;
+	}
+	QCOMPARE_GT(blockingTimes, 0);
+	const Files written = readFiles(outputFolder);
+	QVERIFY(written.count("TrainTrajectories/TimetablePoints.txt") == 1);
+	QVERIFY(written.count("TrainTrajectories/Stats_Stations.txt") == 1);
+	QVERIFY(written.count("TrainTrajectories/Pos&Neg_Stats_Stations.txt") == 1);
+	QVERIFY(written.count("TrainTrajectories/BlockingTimes.txt") == 1);
+	QVERIFY(written.count("PassengerStatus/JourneyDelays.txt") == 1);
+	for (const auto& [name, content] : written) {
+		const auto found = reference.files.find(name);
+		if (found == reference.files.end())
+			QFAIL((name + " is not a file of the run of the controller").c_str());
+		QVERIFY2(found->second == content, (name + " differs").c_str());
+	}
+
+	// A stop at the first check ends the stages after the energy files.
+	QTemporaryDir stoppedOutput;
+	other->settings.OutputMainFolder = stoppedOutput.path().toStdString();
+	QVERIFY(!runSimulationPostprocessing(*other, [] { return true; }));
+	const Files stoppedFiles = readFiles(stoppedOutput.path().toStdString());
+	QCOMPARE(stoppedFiles.size(), std::size_t(2));
+	QVERIFY(stoppedFiles.count("EnergyConsumptionPerTrain.txt") == 1);
+	QVERIFY(stoppedFiles.count("TotalEnergyConsumption.txt") == 1);
 }
+
+QTEST_GUILESS_MAIN(TestSimulationRun)
+#include "test_simulationrun.moc"

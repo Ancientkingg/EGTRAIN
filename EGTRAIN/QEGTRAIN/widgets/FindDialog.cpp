@@ -51,17 +51,20 @@ bool FindDialog::eventFilter(QObject* watched, QEvent* event) {
 	return QDialog::eventFilter(watched, event);
 }
 
+bool FindDialog::matches(const QString& text, const QStringList& texts) {
+	const QStringList terms = text.split(QLatin1Char(' '), Qt::SkipEmptyParts);
+	return std::all_of(terms.cbegin(), terms.cend(), [&texts](const QString& term) {
+		return std::any_of(texts.cbegin(), texts.cend(), [&term](const QString& candidate) { return candidate.contains(term, Qt::CaseInsensitive); });
+	});
+}
+
 void FindDialog::filter(const QString& text) {
 	m_results->clear();
-	const QStringList terms = text.split(QLatin1Char(' '), Qt::SkipEmptyParts);
-	if (terms.isEmpty())
+	if (text.trimmed().isEmpty())
 		return;
 	for (qsizetype i = 0; i < m_labels.size(); ++i) {
 		const QString& label = m_labels.at(i);
-		const QString keys = m_keys.value(i);
-		if (std::all_of(terms.cbegin(), terms.cend(), [&label, &keys](const QString& term) {
-				return label.contains(term, Qt::CaseInsensitive) || keys.contains(term, Qt::CaseInsensitive);
-			}))
+		if (matches(text, {label, m_keys.value(i)}))
 			m_results->addItem(label);
 	}
 	m_results->setCurrentRow(0);

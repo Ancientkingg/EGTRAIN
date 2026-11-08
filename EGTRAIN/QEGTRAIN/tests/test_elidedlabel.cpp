@@ -4,59 +4,95 @@
 #include <QImage>
 #include <QMainWindow>
 #include <QStatusBar>
-#include <iostream>
+#include <QTest>
 
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
+// An elided label draws as much of its sentence as fits, ending in an ellipsis, and keeps the whole text.
+class TestElidedLabel : public QObject {
+	Q_OBJECT
+
+private slots:
+	void sizeHints();
+	void wideLabelDrawsSentence();
+	void narrowLabelElidesEnd();
+	void paintsDisplayText();
+	void shortTextIsNotChanged();
+	void statusBarKeepsItsWidth();
+
+private:
+	const QString m_sentence = QStringLiteral("Rail-1 is scheduled to enter at 08:25:50. Follow starts when it enters.");
+};
+
+void TestElidedLabel::sizeHints() {
+	ElidedLabel label;
+	label.setText(m_sentence);
+	const int full = label.fontMetrics().horizontalAdvance(m_sentence);
+	// The size hint shows the whole sentence.
+	QCOMPARE_GE(label.sizeHint().width(), full);
+	// The label can shrink below its sentence.
+	QCOMPARE(label.minimumSizeHint().width(), 0);
 }
 
-int main(int argc, char** argv) {
-	QApplication app(argc, argv);
-	const QString sentence = QStringLiteral("Rail-1 is scheduled to enter at 08:25:50. Follow starts when it enters.");
-	bool ok = true;
-
+// A label that is wide enough draws the sentence as it is.
+void TestElidedLabel::wideLabelDrawsSentence() {
 	ElidedLabel label;
-	label.setText(sentence);
-	const int full = label.fontMetrics().horizontalAdvance(sentence);
-	ok &= expect(label.sizeHint().width() >= full, "the size hint shows the whole sentence");
-	ok &= expect(label.minimumSizeHint().width() == 0, "the label can shrink below its sentence");
+	label.setText(m_sentence);
+	label.resize(label.fontMetrics().horizontalAdvance(m_sentence) + 10, 24);
+	// A wide label does not elide its sentence.
+	QCOMPARE(label.displayText(), m_sentence);
+}
 
-	// A label that is wide enough draws the sentence as it is.
-	label.resize(full + 10, 24);
-	ok &= expect(label.displayText() == sentence, "a wide label elided its sentence");
-
-	// A narrow label draws the beginning and an ellipsis, and keeps the whole text.
+// A narrow label draws the beginning and an ellipsis, and keeps the whole text.
+void TestElidedLabel::narrowLabelElidesEnd() {
+	ElidedLabel label;
+	label.setText(m_sentence);
 	label.resize(150, 24);
 	const QString shown = label.displayText();
-	ok &= expect(shown != sentence && shown.endsWith(QChar(0x2026)) && sentence.startsWith(shown.left(shown.size() - 1)),
-		"a narrow label did not elide the end of its sentence");
-	ok &= expect(label.fontMetrics().horizontalAdvance(shown) <= 150, "the elided text is wider than the label");
-	ok &= expect(label.text() == sentence, "eliding changed the text of the label");
+	// A narrow label elides the end of its sentence.
+	QCOMPARE_NE(shown, m_sentence);
+	QVERIFY(shown.endsWith(QChar(0x2026)));
+	QVERIFY(m_sentence.startsWith(shown.left(shown.size() - 1)));
+	// The elided text is not wider than the label.
+	QCOMPARE_LE(label.fontMetrics().horizontalAdvance(shown), 150);
+	// Eliding does not change the text of the label.
+	QCOMPARE(label.text(), m_sentence);
+}
 
-	// The label paints what displayText() says. A plain label that holds that text paints the same.
+// The label paints what displayText() says. A plain label that holds that text paints the same.
+void TestElidedLabel::paintsDisplayText() {
+	ElidedLabel label;
+	label.setText(m_sentence);
+	const int full = label.fontMetrics().horizontalAdvance(m_sentence);
+	label.resize(150, 24);
+	const QString shown = label.displayText();
 	QLabel plain;
 	plain.setTextFormat(Qt::PlainText);
 	plain.setText(shown);
 	plain.resize(150, 24);
 	const QImage painted = label.grab().toImage();
 	const QImage expected = plain.grab().toImage();
-	ok &= expect(painted.size() == expected.size() && painted == expected, "the label does not paint its elided text");
+	// The label paints its elided text.
+	QCOMPARE(painted.size(), expected.size());
+	QVERIFY(painted == expected);
 	QLabel blank;
 	blank.resize(150, 24);
-	ok &= expect(painted != blank.grab().toImage(), "the label paints nothing");
+	QVERIFY2(painted != blank.grab().toImage(), "the label paints nothing");
 	label.resize(full + 10, 24);
-	plain.setText(sentence);
+	plain.setText(m_sentence);
 	plain.resize(full + 10, 24);
-	ok &= expect(label.grab().toImage() == plain.grab().toImage(), "the label does not paint a text that fits");
+	QVERIFY2(label.grab().toImage() == plain.grab().toImage(), "the label does not paint a text that fits");
+}
 
-	// A short text is not changed.
+// A short text is not changed.
+void TestElidedLabel::shortTextIsNotChanged() {
+	ElidedLabel label;
 	label.setText(QStringLiteral("Rail-1 is running."));
 	label.resize(150, 24);
-	ok &= expect(label.displayText() == label.text(), "a short sentence was elided");
+	// A short sentence is not elided.
+	QCOMPARE(label.displayText(), label.text());
+}
 
-	// In a status bar a long sentence does not raise the width that the bar asks for.
+// In a status bar a long sentence does not raise the width that the bar asks for.
+void TestElidedLabel::statusBarKeepsItsWidth() {
 	QMainWindow window;
 	window.setCentralWidget(new QWidget);
 	auto* shortLabel = new ElidedLabel;
@@ -65,9 +101,11 @@ int main(int argc, char** argv) {
 	window.show();
 	QApplication::processEvents();
 	const int shortBar = window.statusBar()->minimumSizeHint().width();
-	shortLabel->setText(sentence);
+	shortLabel->setText(m_sentence);
 	QApplication::processEvents();
-	ok &= expect(window.statusBar()->minimumSizeHint().width() == shortBar, "a long sentence widened the status bar");
-
-	return ok ? 0 : 1;
+	// A long sentence does not widen the status bar.
+	QCOMPARE(window.statusBar()->minimumSizeHint().width(), shortBar);
 }
+
+QTEST_MAIN(TestElidedLabel)
+#include "test_elidedlabel.moc"

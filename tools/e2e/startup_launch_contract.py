@@ -357,11 +357,54 @@ def assert_help_and_unknown_option(app: Path) -> None:
         returncode, output = run_app(app, ["--help"], root / "run-help", "--help launch")
         if returncode != 0 or "--scene" not in output or "(default: " not in output or "Graphical user interface" in output:
             raise SystemExit(f"--help exited with {returncode}, or did not list --scene with its default, or started the program\n{tail(output)}")
-        # Qt removes -platform, and a negative number after an option with a value is its value, so only --bogus is unknown.
-        returncode, output = run_app(app, ["-platform", "offscreen", "-b", "-5", "--bogus"], root / "run-unknown", "unknown option launch")
+        # Qt removes -platform, and a value after an option with a value is its value, also when it starts with a minus
+        # sign as -0 does, so only --bogus is unknown.
+        returncode, output = run_app(app, ["-platform", "offscreen", "-b", "-0", "--bogus"], root / "run-unknown", "unknown option launch")
         if returncode == 0 or "Unknown option --bogus" not in output or "--help" not in output:
             raise SystemExit(f"an unknown option exited with {returncode}, or the error did not name --bogus and --help\n{tail(output)}")
         print("--help lists the options and exits with 0; an unknown option exits with an error that names --help")
+
+
+def assert_invalid_numbers_stop_the_start(app: Path) -> None:
+    with tempfile.TemporaryDirectory(prefix="qegtrain-numbers-") as root_name:
+        root = Path(root_name)
+        # The first value of an option is the one that counts, so the value that is not valid comes first. -pax is read
+        # only with the window, and the start stops before the window opens. A value outside the range that a case allows
+        # for it stops the start as well. A duration whose trains would need more than 4 GiB is refused when the run is
+        # prepared, and the error names -h, not the duration of the case.
+        cases = [
+            (["-n", "2x"], "ERROR: Unknown bundled case id"),
+            (["-h", "abc"], "ERROR: -h requires a whole number of 1 or more seconds."),
+            (["-h", "1.5"], "ERROR: -h requires a whole number of 1 or more seconds."),
+            (["-h", "0"], "ERROR: -h requires a whole number of 1 or more seconds."),
+            (["-h", "-5"], "ERROR: -h requires a whole number of 1 or more seconds."),
+            (["-b", "abc"], "ERROR: -b requires a number of 0 or more seconds."),
+            (["-b", "-30"], "ERROR: -b requires a number of 0 or more seconds."),
+            (["-c", "5%"], "ERROR: -c requires a percentage of 0 or more."),
+            (["-c", "-50"], "ERROR: -c requires a percentage of 0 or more."),
+            (["-g", "yes"], "ERROR: -g requires 0 or 1."),
+            (["-g", "2"], "ERROR: -g requires 0 or 1."),
+            (["-pax", "on", "-g", "1"], "ERROR: -pax requires 0 or 1."),
+            (["-pax", "7", "-g", "1"], "ERROR: -pax requires 0 or 1."),
+            (["-n", "2", "-h", "3000000"], "error [scene.native.memory.limit]: The run needs about "),
+        ]
+        for index, (args, message) in enumerate(cases):
+            label = f"{' '.join(args)} launch"
+            returncode, output = run_app(app, [*args, *HEADLESS_OPTIONS], root / f"run-{index}", label,
+                                         extra_env={"QEGTRAIN_AUTOSTART": "1"})
+            if returncode != 1 or message not in output or "settings.duration_seconds" in output:
+                raise SystemExit(f"{label} exited with {returncode}, expected 1 and {message!r}\n{tail(output)}")
+        # A case that does not load in a scripted window launch is reported on standard error, without a message box that
+        # nobody would close.
+        damaged = root / "damaged"
+        damaged.mkdir()
+        (damaged / "scene.json").write_text("{", encoding="utf-8")
+        label = "window launch of a damaged case"
+        returncode, output = run_app(app, ["--scene", str(damaged), "-g", "1", "-pax", "0"], root / "run-damaged", label,
+                                     extra_env={"QEGTRAIN_AUTOSTART": "1"})
+        if returncode != 1 or "scene.json.parse" not in output:
+            raise SystemExit(f"{label} exited with {returncode}, expected 1 and the parse error\n{tail(output)}")
+        print("a value that is not a number or out of range stops the start with exit code 1 and names its option; a scripted window launch of a damaged case shows no box")
 
 
 def assert_interactive_questions(app: Path) -> None:
@@ -377,7 +420,15 @@ def assert_interactive_questions(app: Path) -> None:
         if (returncode != 0 or "Bundled case (1 Netherlands" not in output or "Open the window?" in output
                 or not (run / "out/Output/Paimpol").is_dir()):
             raise SystemExit(f"-interactive with -g exited with {returncode}, did not ask for -n, asked for -g or did not run Paimpol\n{tail(output)}")
-        print("--interactive and -interactive ask for -n and -g when they are left out and not when they are given")
+        # An answer that its question does not accept stops the start, as the same value of its option does.
+        for answers, message in (("2\nyes\n", "ERROR: -g requires 0 or 1."), ("2\n", "ERROR: -g requires 0 or 1."),
+                                 ("Paimpol\n0\n", "ERROR: Unknown bundled case id")):
+            run = root / "run-unanswered"
+            returncode, output = run_app(app, ["--interactive", "-h", "1", "-pax", "0"], run, "--interactive launch with a bad answer",
+                                         answers=answers)
+            if returncode != 1 or message not in output or (run / "out/Output/Paimpol").is_dir():
+                raise SystemExit(f"--interactive with the answers {answers!r} exited with {returncode}, expected 1 and {message!r}\n{tail(output)}")
+        print("--interactive and -interactive ask for -n and -g when they are left out and not when they are given; an answer that is not valid stops the start")
 
 
 def make_bundles(scene_tool: Path, root: Path) -> tuple[Path, Path, Path]:
@@ -468,7 +519,7 @@ def assert_version_rejections_name_the_reason(app: Path) -> None:
         cases = (
             ("a draft scene", ["--scene", str(draft)], ["scene.compatibility.draft", "2026-08-08", "Import Legacy Case"]),
             ("a newer scene", ["--scene", str(newer)], ["scene.compatibility.newer", "schema 2 (saved with EGTRAIN 9.9)"]),
-            ("a newer bundle", [str(newer_bundle)], ["scene.compatibility.newer", "schema 1, bundle layout 2"]),
+            ("a newer bundle", [str(newer_bundle)], ["scene.compatibility.newer", "schema 1, case file version 2"]),
         )
         for index, (name, args, details) in enumerate(cases):
             label = f"headless launch with {name}"
@@ -736,6 +787,36 @@ def assert_open_argument_contract(app: Path, scene_tool: Path) -> None:
             print("file launches while a window runs were taken by that window, which closed its chooser and kept a malformed file out of the recent cases; a scripted launch kept its own window")
 
 
+def assert_case_with_errors_opens(app: Path, scene_tool: Path) -> None:
+    with tempfile.TemporaryDirectory(prefix="qegtrain-case-errors-") as root_name:
+        root = Path(root_name)
+        # A service whose composition does not exist: the case loads, and its checks report an error.
+        broken = root / "broken"
+        shutil.copytree(SCENE, broken)
+        services = broken / "services.json"
+        services.write_text(services.read_text(encoding="utf-8").replace('"composition": "Draisy"', '"composition": "NoSuchStock"'), encoding="utf-8")
+        bundle = root / "Broken.egscene"
+        proc = subprocess.run([str(scene_tool), "pack", str(broken), str(bundle)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                              text=True, encoding="utf-8", errors="replace", timeout=LAUNCH_TIMEOUT_SECONDS)
+        if proc.returncode != 0 or not bundle.is_file():
+            raise SystemExit(f"scene_tool could not pack the case with errors\n{tail(proc.stdout)}")
+        # Without a window the run cannot start, so the launch ends with 1 and names the error.
+        for name, args in (("--scene", ["--scene", str(broken)]), ("a file name", [str(bundle)])):
+            label = f"headless launch with {name} of a case with errors"
+            returncode, output = run_app(app, args + HEADLESS_OPTIONS, root / f"run-headless-{len(name)}", label)
+            if returncode != 1 or "scene.ref.unresolved" not in output:
+                raise SystemExit(f"{label} exited with {returncode}, expected 1 and the error\n{tail(output)}")
+        if os.name == "nt":
+            print("window launches with a case with errors skipped on Windows: the settings file escapes backslashes")
+            return
+        # With a window the case opens, and Case Validation lists its errors.
+        assert_window_opens_files(app, ["--scene", str(broken)], None, "", [broken], [], root / "run-window-scene",
+            "window launch with --scene of a case with errors")
+        assert_window_opens_files(app, [str(bundle)], None, "", [bundle], [], root / "run-window-file",
+            "window launch with a file name of a case with errors")
+        print("headless launches of a case with errors exit with 1; window launches with --scene and with a file name opened it")
+
+
 def main() -> None:
     if len(sys.argv) != 3:
         raise SystemExit("usage: startup_launch_contract.py PATH_TO_QEGTRAIN PATH_TO_SCENE_TOOL")
@@ -755,10 +836,12 @@ def main() -> None:
             raise SystemExit(f"{name} refits the growing startup scene instead of deferring one final fit")
     assert_option_list_matches_reads()
     assert_help_and_unknown_option(app)
+    assert_invalid_numbers_stop_the_start(app)
     assert_startup_timing_contract(app)
     assert_no_argument_chooser_continuation(app)
     assert_open_argument_contract(app, scene_tool)
     assert_version_rejections_name_the_reason(app)
+    assert_case_with_errors_opens(app, scene_tool)
     if os.name == "nt":
         print("startup launch PTY checks skipped on Windows")
         return

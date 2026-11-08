@@ -56,8 +56,9 @@ ellipsis. Its tooltip, and the tooltips of **Follow** and of the list, say in fu
 whether the train is followed and why not. A train that has not entered yet remains armed: the view does
 not move, and Follow starts when the train enters. While the Trains layer is off
 the view does not move either, and the nearest station is not emphasised; both
-return when the layer is switched on. Before a case has run, and in a case
-without services, **Follow** is disabled and its tooltip says why.
+return when the layer is switched on. Before a case has run, after an edit or a
+switch of scenario that discards the results of a run, and in a case without
+services, **Follow** is disabled and its tooltip says why.
 
 In a live run Follow is switched off when the selected train leaves the network.
 The train stays in the list, but Follow cannot be switched on for it. In the
@@ -81,12 +82,12 @@ Fastest that is about two minutes of simulated time, so its occupied track and i
 signals, which show the newest state, can run ahead of it. When the train stops, or the run is
 paused, the train reaches its last position and stops there.
 The followed train stays in the middle of the view: the view moves with the train at
-every step of its glide. A train that has just appeared, that runs backwards, or that
+every step of its glide. At Fit the view stays where it is; zoom in to follow the train.
+A train that has just appeared, that runs backwards, or that
 has moved further than the visible area since the last update moves to its new position
 at once. In the replay of a completed
-run the trains and the view move at once at every seek and every step of the playback,
-because the replay holds a frame every five seconds and a glide would show motion that
-was not recorded. Switching Follow on and choosing another train also move the view at
+run the trains and the view move at once at every seek. While the replay plays, the trains glide
+from one shown second to the next and the view stays on the followed train. Switching Follow on and choosing another train also move the view at
 once. Dragging the canvas, zooming with the wheel or a pinch and resizing the window do
 not switch Follow off. While you hold the drag, scroll or pinch, the view stays where you
 put it; in a live run it returns to the train after you let go, smoothly over less than
@@ -98,7 +99,7 @@ switching the Trains layer off stop the view where it is.
 
 Click a track, connection, node, station, signal, train or passenger on the
 canvas to select it, in the preview as well as during a run. The matching
-inspector opens, or for a passenger a box of its details above it, and a light
+inspector opens, or for a passenger a box of its details above it (below it when the passenger is near the top of the view), and a light
 blue ring marks the item. Its title names the item: `Node <id>`, `Station <id>`,
 `Arc <id>`, `Track <id>`, `Connection <id>` or `Signal <label>` in the preview, and
 `Node <id>`, `Station <name>`, `Arc <id>`, `Connection`, `Signal` or `Train <name>`
@@ -135,8 +136,8 @@ the direction and the place of the head, as in `Proceed, facing right` over
 A completed run without incidents or entrance delays can be frozen with **Set
 delay baseline**. The results panel confirms the completed run identity and
 places the next action or disabled reason beside the baseline controls.
-Selecting another scenario keeps the baseline, discards the results and closes
-the dock **Run Results**. Opened again from the menu **View**, the dock reads
+Selecting another scenario keeps the baseline, discards the results, closes
+the dock **Run Results** and shows the case on the network view without the run. Opened again from the menu **View**, the dock reads
 `No results yet` and `Baseline: <case> / <scenario>`. An edit of the case clears the
 baseline, and the line then reads `Baseline cleared: the case changed`; **File > New Case...**
 gives `Baseline cleared: a new case was created` and opening another case gives

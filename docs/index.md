@@ -6,11 +6,13 @@ EGTRAIN is a railway micro-simulation desktop application. The manual is for peo
 :caption: Run existing cases
 :maxdepth: 1
 
+guides/getting-started
+guides/how-to
+guides/common-questions
 README
 guides/install
-guides/getting-started
 guides/case-studies
-guides/how-to
+guides/case-data
 guides/opening-a-case-study
 guides/main-window
 guides/updates
@@ -46,7 +48,7 @@ guides/signalling-levels
 guides/assignment-workflow
 ```
 
-The developer pages explain how the application is built, tested and structured, next to the [C++ reference](https://ancientkingg.github.io/EGTRAIN/latest/api/index.html).
+The developer pages explain how the application is built, tested and structured, next to the [C++ reference](https://egtrain.samuelbruin.com/latest/api/index.html).
 
 ```{toctree}
 :caption: Develop or contribute
@@ -61,7 +63,6 @@ development/ci-and-release
 development/coding-guidelines
 development/error-handling
 development/documentation-decision
-development/code-documentation-investigation
 development/readable-ids-decision
 architecture/source-layout
 architecture/scene-model
@@ -76,7 +77,6 @@ architecture/renderer-style-map
 architecture/historical-track-comparison
 development/playback-profiling
 development/memory-baselines
-development/qt6-migration-study
 ```
 
 ```{toctree}
@@ -89,7 +89,7 @@ development/code-signing
 development/windows-installer
 ```
 
-Each of these pages records one conversion, comparison, rehearsal or check. They are not guides for the current release.
+Each of these pages records one conversion, comparison, rehearsal, check or study. They are not guides for the current release.
 
 ```{toctree}
 :caption: Records
@@ -100,4 +100,6 @@ development/records/original-case-runtime-parity
 development/records/release-rehearsal-2026-10-17
 development/records/dialog-sheet-2026-10-17
 development/records/feature-status-2026-10-17
+development/records/qt6-migration-study
+development/records/code-documentation-investigation
 ```

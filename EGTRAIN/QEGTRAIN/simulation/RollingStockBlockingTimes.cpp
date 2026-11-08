@@ -4,52 +4,13 @@
 #include "util/Log.h"
 
 #include <cmath>
+#include <iterator>
 #include <list>
 #include <string>
 
 using namespace std;
 
-BlockingTimes& BlockingTimes::operator=(const BlockingTimes& obj2) {
-	BlockID = obj2.BlockID;
-	trainDescription = obj2.trainDescription;
-	StartRunTime = obj2.StartRunTime;
-	EndRunTime = obj2.EndRunTime;
-	NextBlockID = obj2.NextBlockID;
-	this->NextBlockIDPreviousTrain = obj2.NextBlockIDPreviousTrain;
-	StartApproachTime = obj2.StartApproachTime;
-	EndApproachTime = obj2.EndApproachTime;
-	StartClearTime = obj2.StartClearTime;
-	EndClearTime = obj2.EndClearTime;
-	length = obj2.length;
-	StartOccTime = obj2.StartOccTime;
-	EndOccTime = obj2.EndOccTime;
-	setupTime = obj2.setupTime;
-	sightReacTime = obj2.sightReacTime;
-	ApproachTime = obj2.ApproachTime;
-	RunTime = obj2.RunTime;
-	clearingTime = obj2.clearingTime;
-	ReleaseTime = obj2.ReleaseTime;
-	RunTimeMargin = obj2.RunTimeMargin;
-	PosStart = obj2.PosStart;
-	PosEnd = obj2.PosEnd;
-	SignallingLevel = obj2.SignallingLevel;
-	stationName = obj2.stationName;
-	IsComplete = obj2.IsComplete;
-	GeoPosStart = obj2.GeoPosStart;
-	GeoPosEnd = obj2.GeoPosEnd;
-	this->LocationWithSwitch = obj2.LocationWithSwitch;
-	this->SpeedPreviousTrain = obj2.SpeedPreviousTrain;
-	this->ConnectedBlockingTimeID = obj2.ConnectedBlockingTimeID;
-	this->InfraElementInPositionForTrain = obj2.InfraElementInPositionForTrain;
-	this->SwitchName = obj2.SwitchName;
-	IsAlreadyUniformedToConnectedSwitch = obj2.IsAlreadyUniformedToConnectedSwitch;
-	NamePreviousTrain = obj2.NamePreviousTrain;
-	this->PosConnectedBlockingTime = obj2.PosConnectedBlockingTime;
-	this->IsEndOfDivSwitchBeingStartOfADivSwitch = obj2.IsEndOfDivSwitchBeingStartOfADivSwitch;
-	return *this;
-}
-
-void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds(string TrainName, list<InfraEvent> ListAllInfraEvents) {
+void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds(const string& TrainName, const list<InfraEvent>& ListAllInfraEvents) {
 	bool IsStatusInfraElementFound = false; // this variable becomes true only when we have found the status of the infrastructure element we are computing the blocking times for, given a train
 	string NameOfInfraElement;
 	string NeededInfraElementPosition;
@@ -92,14 +53,14 @@ void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds(string T
 
 	// Now Determining the last status of the infrastructure element as resulting from the simulation
 	if (ListAllInfraEvents.size() > 0) {
-		for (list<InfraEvent>::iterator i = ListAllInfraEvents.begin(); i != ListAllInfraEvents.end(); i++) {
+		for (list<InfraEvent>::const_iterator i = ListAllInfraEvents.begin(); i != ListAllInfraEvents.end(); i++) {
 			if (i->ElementInfo.ID == NameOfInfraElement) {
 
 				ElementFound = true;
 
 				if (i->RecordedEvent.size() > 0) {
 
-					for (list<TrainEvent>::iterator t = i->RecordedEvent.begin(); t != i->RecordedEvent.end(); t++) {
+					for (list<TrainEvent>::const_iterator t = i->RecordedEvent.begin(); t != i->RecordedEvent.end(); t++) {
 
 						if (t->trainDescription == TrainName) {
 							if (t == i->RecordedEvent.begin()) { // In case TrainName is the first train of the recorded list
@@ -115,7 +76,7 @@ void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds(string T
 									LastInfraElementPosition = "None";
 								}
 							} else { // if TrainName is not the first train to cross the infrastructure element
-								list<TrainEvent>::iterator u = t;
+								list<TrainEvent>::const_iterator u = t;
 								u--;											 // iterator u points at the element before t in the list of recorded event of the infrastructure element
 								this->SpeedPreviousTrain = u->TrainSpeed;		 // taking the speed of the previous train crossing the infrastructure element i
 								this->NamePreviousTrain = u->trainDescription;	 // taking the trainDescription of the previous train crossing i
@@ -152,7 +113,7 @@ void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds(string T
 	}
 }
 
-void Train::ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, string SignallingType, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double AbsoluteRTSupplement, double PercentageRTSupplement) {
+void Train::ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, BlockingTimeMethod method, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double AbsoluteRTSupplement, double PercentageRTSupplement) {
 
 	BlockTime[N_BlockSections].BlockID = run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].ID;
 	BlockTime[N_BlockSections].length = run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].length;
@@ -180,12 +141,12 @@ void Train::ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, string Sign
 		}
 
 		if (IndexCurrentBS > 0) {
-			if (SignallingType == "Conventional") {
+			if (method == BlockingTimeMethod::Conventional) {
 				if ((instant_spatial_position[p - 1] <= run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS - 1].start_node.X * 1000) && (instant_spatial_position[p] > run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS - 1].start_node.X * 1000)) {
 					BlockTime[N_BlockSections].StartApproachTime = p - 1;
 				}
 
-			} else if (SignallingType == "ETCS2") {
+			} else if (method == BlockingTimeMethod::Etcs2) {
 				if (FoundApprTimeETCS2 == 0) {																															   // if the startApproach time of ETCS level 2 has not been fund yet
 					double BrakingDistance = pow(instant_train_speed[p], 2) / (2 * max_train_decelaration);																   // Computing the braking curve from the speed instant_train_speed[p]
 					if (instant_spatial_position[p] + BrakingDistance > run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].start_node.X * 1000) { // if at instant p the instant_spatial_position[p]+BrakingDistance overcomes the entry signal of block section signalling_block_sections[i] then the StartApproachTime is instant p-1
@@ -389,7 +350,7 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 				}
 
 				if (RunTimeBetweenConsLocations < 0) { // Throwing an exception in case of negative running time between two consecutive infrastructure elements
-					EG_LOG(SimSetup, Warning) << "Warning 987: Train " << this->trainDescription << " has a negative running time between infrastructure element " << BlockTime[0].ConnectedBlockingTimeID << " and the previous infrastructure element on the route. Please check what happened\n";
+					EG_LOG(SimSetup, Warning) << "Train " << this->trainDescription << " has a negative running time between infrastructure element " << BlockTime[0].ConnectedBlockingTimeID << " and the previous one on its route";
 				}
 				// In this way the RunTimeBetweenConsecutive locations will be 0 for the first location and different from 0 for the other locations
 				BlockTime[N_BlockSections].RunTimeMargin = ceil(RunTimeBetweenConsLocations * PercentRTSupplement / 100);
@@ -428,7 +389,7 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 				BlockTime[N_BlockSections].sightReacTime = 0;
 			}
 
-			if ((N_BlockSections == N_FinalLocationList - 1) && (IndexCurrentBS == run_->infra.routes[indexOfRoute].N_Block_Sections)) { // for the last block section we do not have clearing time since the train unblocks the section as soon as its head arrives at the final point of the network
+			if ((std::next(it) == FinalLocationList.end()) && (IndexCurrentBS == run_->infra.routes[indexOfRoute].N_Block_Sections - 1)) { // for the last block section we do not have clearing time since the train unblocks the section as soon as its head arrives at the final point of the network
 				BlockTime[N_BlockSections].EndClearTime = BlockTime[N_BlockSections].EndRunTime;
 				BlockTime[N_BlockSections].StartClearTime = BlockTime[N_BlockSections].EndClearTime;
 			}
@@ -705,16 +666,12 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 				}
 
 				if (RunTimeBetweenConsLocations < 0) { // Throwing an exception in case of negative running time between two consecutive infrastructure elements
-					EG_LOG(SimSetup, Warning) << "Warning: Train " << this->trainDescription << " has a negative running time between infrastructure element " << BlockTime[0].ConnectedBlockingTimeID << " and the previous infrastructure element on the route. Please check what happened\n";
+					EG_LOG(SimSetup, Warning) << "Train " << this->trainDescription << " has a negative running time between infrastructure element " << BlockTime[0].ConnectedBlockingTimeID << " and the previous one on its route";
 				}
 				// In this way the RunTimeBetweenConsecutive locations will be 0 for the first location and different from 0 for the other locations
 				BlockTime[N_BlockSections].RunTimeMargin = ceil(RunTimeBetweenConsLocations * PercentRTSupplement / 100);
 				// Shift the EndOccTime of the RunTimeMargin only if the block section is not the first
 				BlockTime[N_BlockSections].EndRunTime = BlockTime[N_BlockSections].EndRunTime + BlockTime[N_BlockSections].RunTimeMargin;
-			}
-
-			else {
-				EG_LOG(SimSetup, Warning) << "\n\nWARNING 5: Percentage and absolute Running Time Supplements are both equal to 0 or both different from 0\n\n";
 			}
 
 			// In some case it can happen an exception when the station is too close to the end of the train journey (i.e. the end of its route) and the train length is longer than the distance between the station and the end of the journey
@@ -748,7 +705,7 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 				BlockTime[N_BlockSections].sightReacTime = 0;
 			}
 
-			if ((N_BlockSections == N_FinalLocationList - 1) && (IndexCurrentBS == run_->infra.routes[indexOfRoute].N_Block_Sections)) { // for the last block section we do not have clearing time since the train unblocks the section as soon as its head arrives at the final point of the network
+			if ((std::next(it) == FinalLocationList.end()) && (IndexCurrentBS == run_->infra.routes[indexOfRoute].N_Block_Sections - 1)) { // for the last block section we do not have clearing time since the train unblocks the section as soon as its head arrives at the final point of the network
 				BlockTime[N_BlockSections].EndClearTime = BlockTime[N_BlockSections].EndRunTime;
 				BlockTime[N_BlockSections].StartClearTime = BlockTime[N_BlockSections].EndClearTime;
 			}
@@ -859,9 +816,9 @@ void Train::ComputeBlockingTimesInMixedSignallingAreas(double SetupTime, double 
 		for (int i = 0; i < run_->infra.routes[indexOfRoute].N_Block_Sections; i++) {
 			const int level = run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].SignallingLevel;
 			if (level == levelValue(SignallingLevel::Atb)) { // if block sections have Signalling level 0 then we must apply the conventional signalling rules
-				this->ComputeBlockingTimeForSingleLocation(i, "Conventional", EntryTime, SetupTime, ReleaseTime, SightReacTime, AbsRTSupp, PercRTSupp);
+				this->ComputeBlockingTimeForSingleLocation(i, BlockingTimeMethod::Conventional, EntryTime, SetupTime, ReleaseTime, SightReacTime, AbsRTSupp, PercRTSupp);
 			} else if (level == levelValue(SignallingLevel::EtcsLevel2)) { // if Signalling level is 2 apply ETCS Level 2 rules
-				this->ComputeBlockingTimeForSingleLocation(i, "ETCS2", EntryTime, SetupTime, ReleaseTime, SightReacTime, AbsRTSupp, PercRTSupp);
+				this->ComputeBlockingTimeForSingleLocation(i, BlockingTimeMethod::Etcs2, EntryTime, SetupTime, ReleaseTime, SightReacTime, AbsRTSupp, PercRTSupp);
 			} else if (level == levelValue(SignallingLevel::EtcsLevel3)) { // if Signalling Level is 3 Apply ETCS Level 3 rules
 				this->ComputeBlockTime_ETCSLevel_3_ForSection(i, EntryTime, SetupTime, ReleaseTime, SightReacTime, SafetyMargin, AbsRTSupp, PercRTSupp);
 			} else if (level == levelValue(SignallingLevel::VirtualCoupling)) {

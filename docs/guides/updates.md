@@ -14,7 +14,9 @@ permissions instead. On macOS, EGTRAIN cannot update itself while it runs from a
 disk image or another read-only location; move it to the Applications folder
 first.
 
-When a newer release exists, a message reads `EGTRAIN <new version> is available. You are using <your version>.` (on Windows and Linux its title is `EGTRAIN <new version> Is Available`) and shows the release notes with their line breaks and lists. Long notes end at a word and point to the release page. The buttons are **Update and Restart** (when this copy can update itself), **Open Release Page**, **Later** and **Stop Checking**.
+EGTRAIN looks for a newer release in the list of releases on the [EGTRAIN website](https://egtrain.samuelbruin.com/) and downloads an update from `bin.samuelbruin.com`, where the website keeps the release files. Checks and downloads do not depend on the choices of [Privacy and diagnostics](privacy-and-diagnostics.md). The server of the website logs them as it logs every request; the [privacy page](https://egtrain.samuelbruin.com/privacy/) says what the log holds and how long it is kept. EGTRAIN 1.0.5 and earlier look for releases at their earlier address, where the first release that looks on the website is also published, so they update as before.
+
+When a newer release exists, a message reads `EGTRAIN <new version> is available. You are using <your version>.` (on Windows and Linux its title is `EGTRAIN Update`) and shows the release notes with their line breaks and lists. Long notes end at a word and point to the release page, which is on the website: `https://egtrain.samuelbruin.com/releases/<version>/`. The buttons are **Update and Restart** (when this copy can update itself), **Open Release Page**, **Later** and **Stop Checking**.
 
 Production updates are stable versioned releases. With automatic checks enabled,
 EGTRAIN offers newer releases on the next application start; it does not interrupt
@@ -68,10 +70,13 @@ When the new version cannot be started, the update helper puts the previous
 version back, removes the staging folder and starts it again. That version then tells you once which version
 could not be started. Automatic checks do not offer that version again, a newer
 version is offered as usual, and **Help > Check for Updates...** still offers it.
+If the helper cannot move the new version aside to do that, the new version stays
+installed and the helper starts it once more.
 
 The helper tries again for a few seconds when it cannot rename the installation,
 because on Windows a file of the application that just ended can stay locked for a
-short time. If the files still cannot be replaced, the previous version stays
+short time. If the files still cannot be replaced, or EGTRAIN does not close within
+five minutes after **Update and Restart**, the previous version stays
 installed and starts again, and the helper removes the staging folder (on
 Windows the helper itself stays until the next start removes it). That
 version then tells you once that the update to the new version could not be

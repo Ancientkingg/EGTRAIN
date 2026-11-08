@@ -1,24 +1,46 @@
 #include "diagrams/ResultFrame.h"
 
+#include "app/DialogFolders.h"
+#include "app/PathMessages.h"
+#include "diagrams/RunResults.h"
+#include "telemetry/TelemetryOperation.h"
 #include "widgets/DialogLayout.h"
 #include "widgets/EditorLayout.h"
 #include "widgets/ElidedLabel.h"
 #include "widgets/PlainToolTip.h"
+#include "widgets/SaveSuffix.h"
+#include "widgets/UserPrompts.h"
 
+#include <QAbstractItemModel>
+#include <QBuffer>
+#include <QByteArray>
+#include <QColor>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QEvent>
 #include <QFile>
+#include <QFileDialog>
 #include <QFont>
 #include <QFrame>
 #include <QHBoxLayout>
+#include <QHeaderView>
 #include <QIcon>
+#include <QImage>
 #include <QLabel>
+#include <QPalette>
+#include <QPen>
+#include <QSaveFile>
 #include <QSplitter>
+#include <QStyle>
+#include <QTableView>
 #include <QToolButton>
 #include <QVBoxLayout>
+#include <QtCharts/QAbstractAxis>
+#include <QtCharts/QChart>
 
 #include <algorithm>
+#include <initializer_list>
+#include <utility>
 
 namespace {
 // The width of the panel, and the narrower width of the panel while the window is narrower than kNarrowWindow.
@@ -27,6 +49,16 @@ constexpr int kNarrowPanelWidth = 200;
 constexpr int kNarrowWindow = 1000;
 // The value of a key figure is this much larger than the text of the panel.
 constexpr qreal kFigureScale = 1.45;
+constexpr QMargins kChartMargins(12, 8, 12, 8);
+
+// Writes bytes to path, so that a failed write leaves no part of a file. Returns why it failed, or an empty string.
+QString writeAtomically(const QString& path, const std::string& bytes) {
+	QSaveFile file(path);
+	const QByteArray data = QByteArray::fromStdString(bytes);
+	if (file.open(QIODevice::WriteOnly) && file.write(data) == data.size() && file.commit())
+		return {};
+	return file.errorString();
+}
 } // namespace
 
 ResultPanel::ResultPanel(QWidget* parent)
@@ -295,6 +327,112 @@ KeepInFront::~KeepInFront() {
 	QWidget* window = m_widget->window();
 	window->raise();
 	window->activateWindow();
+}
+
+void styleResultChart(QChart* chart, const QPalette& palette) {
+	chart->setBackgroundRoundness(0);
+	chart->setBackgroundBrush(palette.brush(QPalette::Base));
+	chart->setMargins(kChartMargins);
+	QColor gridColor = palette.color(QPalette::WindowText);
+	gridColor.setAlpha(30);
+	QColor lineColor = palette.color(QPalette::WindowText);
+	lineColor.setAlpha(90);
+	for (QAbstractAxis* axis : chart->axes()) {
+		axis->setGridLinePen(QPen(gridColor));
+		axis->setLabelsBrush(palette.brush(QPalette::WindowText));
+		axis->setTitleBrush(palette.brush(QPalette::WindowText));
+		axis->setLinePen(QPen(lineColor));
+	}
+}
+
+QString saveExportInteractive(QWidget* parent, UserPrompts& prompts, telemetry::ExportKind kind, const QString& title,
+	const QString& suggestedName, const telemetry::OperationObservation& operation,
+	const std::function<std::optional<std::string>()>& bytes, const ExportWriter& write) {
+	// The window comes back in front once the save dialog and its messages close.
+	const KeepInFront front(parent);
+	const bool image = kind == telemetry::ExportKind::Png;
+	const char* suffix = image ? "png" : "csv";
+	QString path = QFileDialog::getSaveFileName(parent, title, dialog_folders::suggestedPath(suggestedName),
+		image ? QStringLiteral("PNG Image (*.png)") : QStringLiteral("CSV File (*.csv)"));
+	if (path.isEmpty())
+		return QString(); // cancelled: no file is written
+	path = savePathWithSuffix(parent, prompts, title, path, QLatin1String(suffix));
+	if (path.isEmpty())
+		return QString(); // the file of that name is kept
+	// The message names the path, and the reason on the line below.
+	const auto showFailure = [&](const QString& reason) {
+		const QString failed = image ? QStringLiteral("save the image to") : QStringLiteral("save the data to");
+		prompts.showError(parent, "Export failed", path_message::writeFailed(failed, path) + '\n' + reason, true);
+	};
+	const std::optional<std::string> content = bytes();
+	if (!content) {
+		operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
+		showFailure(image ? QStringLiteral("The image could not be made.") : QStringLiteral("The data could not be made."));
+		return QString();
+	}
+	QString error = QStringLiteral("There is no data to export.");
+	if (!content->empty())
+		error = write ? write(path, suffix, *content) : writeAtomically(path, *content);
+	operation.exportFinished(kind, error.isEmpty(), true, telemetry::Error::IoFailure);
+	if (!error.isEmpty()) {
+		showFailure(error);
+		return QString();
+	}
+	return path;
+}
+
+std::optional<std::string> pngBytes(const QImage& image) {
+	QByteArray png;
+	QBuffer buffer(&png);
+	if (!buffer.open(QIODevice::WriteOnly) || !image.save(&buffer, "PNG"))
+		return std::nullopt;
+	return std::string(png.constData(), static_cast<std::size_t>(png.size()));
+}
+
+QImage fullTableImage(const QTableView& table) {
+	// A copy of the view on the same model with the sections of the table at their sizes but no scroll bars, so that
+	// the width of the dock and the scrolling do not matter.
+	QTableView full;
+	full.setModel(table.model());
+	full.setFont(table.font());
+	full.setPalette(table.palette());
+	full.setAlternatingRowColors(table.alternatingRowColors());
+	full.setShowGrid(table.showGrid());
+	full.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	full.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	full.horizontalHeader()->setStretchLastSection(false);
+	full.horizontalHeader()->setFixedHeight(table.horizontalHeader()->height());
+	full.verticalHeader()->setFixedWidth(table.verticalHeader()->width());
+	for (int column = 0; column < table.model()->columnCount(); ++column)
+		full.setColumnWidth(column, table.columnWidth(column));
+	for (int row = 0; row < table.model()->rowCount(); ++row)
+		full.setRowHeight(row, table.rowHeight(row));
+	// A header paints its text in the font of its viewport. Under the application style sheet the first polish leaves that
+	// viewport the application font when headers have a font of their own, such as the smaller one of macOS, and the text
+	// then overflows the widths measured with the header font. Polishing the headers again gives their viewports that font.
+	full.ensurePolished();
+	for (QHeaderView* header : {full.horizontalHeader(), full.verticalHeader()}) {
+		full.style()->unpolish(header);
+		full.style()->polish(header);
+	}
+	const int frame = 2 * full.frameWidth();
+	full.resize(full.verticalHeader()->width() + full.horizontalHeader()->length() + frame,
+		full.horizontalHeader()->height() + full.verticalHeader()->length() + frame);
+	return full.grab().toImage();
+}
+
+ExportWriter runProvenanceWriter(RunProvenance provenance) {
+	return [provenance = std::move(provenance)](const QString& path, const char* suffix, const std::string& bytes) {
+		return QString::fromStdString(writeRunArtifactWithProvenance(path.toStdString(), suffix, bytes, provenance));
+	};
+}
+
+QString runContextText(const RunProvenance& provenance) {
+	const QString caseName = QString::fromStdString(provenance.caseName);
+	const QString scenario = QString::fromStdString(provenance.appliedScenario);
+	if (caseName.isEmpty())
+		return scenario.isEmpty() ? QStringLiteral("(none)") : scenario;
+	return scenario.isEmpty() ? caseName : QStringLiteral("%1 / %2").arg(caseName, scenario);
 }
 
 QWidget* resultTableArea(const QList<QWidget*>& widgets) {

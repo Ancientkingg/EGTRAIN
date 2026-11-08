@@ -1,0 +1,22 @@
+    <h1>{name}</h1>
+    <p>Published on {date}.<!-- prerelease --> This is a prerelease, which EGTRAIN does not offer as an update.<!-- /prerelease --></p>
+
+    <section id="notes">
+      <h2>Release notes</h2>
+{notes}
+    </section>
+
+    <section id="files">
+      <h2>Files</h2>
+      <table class="files">
+        <thead>
+          <tr><th scope="col">File</th><th scope="col">Size</th></tr>
+        </thead>
+        <tbody>
+{files}
+        </tbody>
+      </table>
+      <!-- documentation -->
+      <p><a href="{root}{version}/guides/install.html">Installing EGTRAIN</a> has the steps for each system. The <a href="{root}{version}/">documentation of EGTRAIN {version}</a> has the user guides, developer pages and C++ reference of this release.</p>
+      <!-- /documentation -->
+    </section>

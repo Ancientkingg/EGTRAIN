@@ -13,7 +13,7 @@ void InitialParameters::set_case(int caseStudy) {
 		"", "Netherlands", "Paimpol", "Copenhagen", "Milano_Brescia", "Assignment_Gvc_Gdg_Ut"};
 	if (caseStudy < 1 || caseStudy >= static_cast<int>(sizeof(names) / sizeof(names[0]))) {
 		name.clear();
-		EG_LOG(SimSetup, Warning) << "No case selected";
+		EG_LOG(SimSetup, Warning) << "No case selected\n";
 		return;
 	}
 	name = names[caseStudy];

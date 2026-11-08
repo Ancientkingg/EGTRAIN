@@ -64,6 +64,7 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	sf-retarget-level-0
 	late-leader-level-3
 	late-leader-level-4
+	skip-stop-level-0
 	single-track-level-none
 	single-track-level-0
 	single-track-level-1
@@ -187,6 +188,8 @@ list(APPEND EGTRAIN_CHARACTERIZATION_TESTS characterization_repeatable)
 
 # Committed scenes run back to back in one process. A scene that runs again,
 # directly or after another scene, must give the same result as its first run.
+# The first run of a scene named with --aspects must change an aspect: a route
+# section leaves the code 270 and returns to it, as in the Dutch scenes.
 set(EGTRAIN_COMMITTED_SCENES ${SRC_DIR}/Scenes)
 add_test(NAME characterization_repeat_paimpol
 	COMMAND test_characterization --repeat
@@ -207,17 +210,20 @@ add_test(NAME characterization_repeat_netherlands
 		${EGTRAIN_COMMITTED_SCENES}/Netherlands
 		${EGTRAIN_COMMITTED_SCENES}/Paimpol
 		${EGTRAIN_COMMITTED_SCENES}/Netherlands
+		--aspects ${EGTRAIN_COMMITTED_SCENES}/Netherlands
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 # The same kind of sequences, each run writing its files into a folder of its own.
-# Every distinct step then runs once more in a fresh process, and every file of
-# every run must be byte for byte equal to the file of that process.
+# A scene that runs again must give the same result as above. Every distinct step
+# then runs once more in a fresh process, and every file of every run must be byte
+# for byte equal to the file of that process.
 add_test(NAME characterization_repeat_files_paimpol
 	COMMAND test_characterization --repeat-files
 		${EGTRAIN_COMMITTED_SCENES}/Paimpol
 		${EGTRAIN_COMMITTED_SCENES}/Paimpol
 		${EGTRAIN_COMMITTED_SCENES}/Assignment_Gvc_Gdg_Ut
 		${EGTRAIN_COMMITTED_SCENES}/Paimpol
+		--aspects ${EGTRAIN_COMMITTED_SCENES}/Assignment_Gvc_Gdg_Ut
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 add_test(NAME characterization_repeat_files_milano_paimpol
 	COMMAND test_characterization --repeat-files
@@ -233,20 +239,13 @@ add_test(NAME characterization_repeat_files_fixture
 		"${EGTRAIN_CHARACTERIZATION_FIXTURE}#single-track-level-4"
 		"${EGTRAIN_CHARACTERIZATION_FIXTURE}#sf-forward-level-3"
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-# The Dutch scenes change an aspect during their run: a route section leaves the code 270 and returns to it.
-add_test(NAME characterization_aspects_dutch
-	COMMAND test_characterization --aspects
-		${EGTRAIN_COMMITTED_SCENES}/Netherlands
-		${EGTRAIN_COMMITTED_SCENES}/Assignment_Gvc_Gdg_Ut
-	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set(EGTRAIN_CHARACTERIZATION_SCENE_TESTS
 	characterization_repeat_paimpol
 	characterization_repeat_milano_paimpol
 	characterization_repeat_netherlands
 	characterization_repeat_files_paimpol
 	characterization_repeat_files_milano_paimpol
-	characterization_repeat_files_fixture
-	characterization_aspects_dutch)
+	characterization_repeat_files_fixture)
 
 set_tests_properties(${EGTRAIN_CHARACTERIZATION_TESTS} PROPERTIES
 	LABELS "characterization;unit"
@@ -260,7 +259,10 @@ set_tests_properties(${EGTRAIN_CHARACTERIZATION_SCENE_TESTS} PROPERTIES
 	LABELS "characterization;unit"
 	TIMEOUT ${EGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT}
 	ENVIRONMENT "QT_QPA_PLATFORM=offscreen;EGTRAIN_FRESH_PROCESS_SECONDS=${egtrain_fresh_process_seconds}")
-set_property(TEST characterization_repeat_netherlands characterization_repeat_files_paimpol characterization_aspects_dutch APPEND PROPERTY LABELS slow)
+set_property(TEST characterization_repeat_netherlands characterization_repeat_files_paimpol APPEND PROPERTY LABELS slow)
+# The --repeat-files entries for Paimpol and Milano_Brescia run the same sequences and compare the same observations,
+# so the build legs of the CMake workflow leave these two out. The leak check still runs them.
+set_property(TEST characterization_repeat_paimpol characterization_repeat_milano_paimpol APPEND PROPERTY LABELS nightly)
 # It is the longest of these tests and starts first in a parallel run.
 set_tests_properties(characterization_repeat_netherlands PROPERTIES COST 40)
 

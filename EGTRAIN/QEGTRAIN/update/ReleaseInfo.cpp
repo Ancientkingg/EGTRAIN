@@ -90,11 +90,10 @@ bool isKnownPackageName(const QString& name, const QString& version) {
 	return false;
 }
 
-bool validHttpsGitHubUrl(const QUrl& url) {
-	return url.isValid() && url.scheme() == QStringLiteral("https")
-		&& url.host().compare(QStringLiteral("github.com"), Qt::CaseInsensitive) == 0
-		&& url.userInfo().isEmpty() && url.port(-1) == -1
-		&& url.query().isEmpty() && url.fragment().isEmpty();
+// True when text is not empty and holds only letters, digits, ".", "_" and "-".
+bool isPlainReleaseName(const QString& text) {
+	static const QRegularExpression plain(QStringLiteral("^[A-Za-z0-9._-]+$"));
+	return plain.match(text).hasMatch();
 }
 
 void setManifestError(QString* error, const QString& message) {
@@ -183,27 +182,28 @@ bool releaseHasUpdatePackage(const StableRelease& release, const QString& distri
 	return false;
 }
 
-bool isExpectedReleaseAssetUrl(const QString& tag, const QString& name, const QUrl& url) {
-	return validHttpsGitHubUrl(url)
-		&& url.path() == QStringLiteral("/Ancientkingg/EGTRAIN/releases/download/%1/%2").arg(tag, name);
+bool isExpectedReleaseAssetUrl(const QString& tag, const QString& name, const QUrl& url, const QString& base) {
+	// The whole encoded address is compared, so another scheme, host, port, user, path, query or fragment differs.
+	return isPlainReleaseName(tag) && isPlainReleaseName(name) && url.isValid()
+		&& url.toString(QUrl::FullyEncoded) == QStringLiteral("%1/egtrain-%2-%3").arg(base, tag, name);
 }
 
 std::optional<StableRelease> parseLatestStableRelease(const QByteArray& json, QString* error) {
 	QJsonParseError parseError;
 	const QJsonDocument document = QJsonDocument::fromJson(json, &parseError);
 	if (parseError.error != QJsonParseError::NoError) {
-		setError(error, QStringLiteral("Invalid GitHub release JSON: %1").arg(parseError.errorString()));
+		setError(error, QStringLiteral("The release list from the EGTRAIN website is not valid JSON: %1").arg(parseError.errorString()));
 		return std::nullopt;
 	}
 
 	if (!document.isArray()) {
-		setError(error, QStringLiteral("GitHub returned an invalid release list."));
+		setError(error, QStringLiteral("The EGTRAIN website returned an invalid release list."));
 		return std::nullopt;
 	}
 	const QJsonArray releases = document.array();
 	if (releases.isEmpty()) {
 		if (error && error->isEmpty())
-			*error = QStringLiteral("GitHub returned no releases.");
+			*error = QStringLiteral("The EGTRAIN website returned no releases.");
 		return std::nullopt;
 	}
 
@@ -223,10 +223,8 @@ std::optional<StableRelease> parseLatestStableRelease(const QByteArray& json, QS
 		if (!version || (latest && !((*latest).version < *version)))
 			continue;
 
-		QUrl releasePage(object.value(QStringLiteral("html_url")).toString());
-		const QUrl expectedPage(QStringLiteral("https://github.com/Ancientkingg/EGTRAIN/releases/tag/") + tag);
-		if (!validHttpsGitHubUrl(releasePage) || releasePage.path() != expectedPage.path())
-			releasePage = expectedPage;
+		// The release page is always the page of this version on the website, so html_url is not read.
+		const QUrl releasePage(QStringLiteral("https://egtrain.samuelbruin.com/releases/%1/").arg(tag.mid(1)));
 
 		QList<ReleaseAsset> assets;
 		const QJsonValue rawAssets = object.value(QStringLiteral("assets"));
@@ -247,7 +245,7 @@ std::optional<StableRelease> parseLatestStableRelease(const QByteArray& json, QS
 	}
 
 	if (!latest)
-		setError(error, QStringLiteral("No stable vX.Y.Z GitHub release was found."));
+		setError(error, QStringLiteral("The EGTRAIN website lists no stable release."));
 	return latest;
 }
 

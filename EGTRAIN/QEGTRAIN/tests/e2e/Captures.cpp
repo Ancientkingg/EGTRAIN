@@ -1,13 +1,21 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
-#include "app/GuiSimulationSnapshot.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "app/MainWindowTestHooks.h"
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/TrainKeyList.h"
+#include "editors/CaseSettingsPanel.h"
+#include "editors/CompositionPanel.h"
+#include "editors/IncidentPanel.h"
+#include "editors/InfrastructurePanel.h"
+#include "editors/ScenarioPanel.h"
+#include "editors/ServicePanel.h"
 #include "editors/TimetableStopsPanel.h"
+#include "editors/TrainUnitPanel.h"
 #include "graphics/NetworkPresenter.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/NetworkView.h"
+#include "graphics/items/NetworkMarkItem.h"
 #include "graphics/items/TrainBodyItem.h"
 #include "graphics/items/TrainItemGroup.h"
 #include "simulation/SimulationWorker.h"
@@ -23,6 +31,7 @@
 #include <QEvent>
 #include <QFile>
 #include <QFileInfo>
+#include <QHeaderView>
 #include <QItemSelectionModel>
 #include <QModelIndex>
 #include <QGraphicsSceneContextMenuEvent>
@@ -44,12 +53,16 @@
 #include <QPointer>
 #include <QPushButton>
 #include <QRgb>
+#include <QScrollArea>
 #include <QSize>
+#include <QSplitter>
 #include <QString>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTimer>
 #include <QToolButton>
+#include <QTreeWidget>
+#include <algorithm>
 #include <array>
 #include <cstdlib>
 #include <cstddef>
@@ -67,6 +80,10 @@ constexpr double kFollowZoom = 25.0;
 // The trains that Speed / distance shows. With all of them the lines overlap so much that the order in which they are
 // drawn, which changes from run to run, changes a tenth of the picture.
 constexpr int kShownTrains = 6;
+// The headway that gives the express of Paimpol its second run, and the zoom of the view on the arc whose speed limit
+// the how-to lowers.
+constexpr double kSecondRunHeadway = 3600.0;
+constexpr double kArcZoom = 20.0;
 // The pause between two steps, and between two looks at a step that waits.
 constexpr int kStepPauseMs = 300;
 constexpr int kPollMs = 50;
@@ -259,6 +276,15 @@ bool editLine(QLineEdit* edit, const QString& value) {
 	return edit->text() == value;
 }
 
+bool editNumber(QDoubleSpinBox* edit, double value) {
+	if (!edit)
+		return false;
+	edit->setValue(value);
+	QMetaObject::invokeMethod(edit, "editingFinished", Qt::DirectConnection);
+	settle();
+	return edit->value() == value;
+}
+
 // Chooses the item whose data is this text, or else the first whose text starts with it.
 bool chooseText(QComboBox* combo, const QString& text) {
 	int index = combo ? combo->findData(text) : -1;
@@ -282,10 +308,11 @@ int rowWithText(const QTableWidget* table, int column, const QString& text) {
 
 // Takes the pictures of docs/images into the folder that QEGTRAIN_E2E_CAPTURES names, with captures.json, which lists for
 // each its case, its state, its size and the version of the program. The run starts with Netherlands loaded, opens
-// Paimpol from Open a Case, runs it, edits it as the tutorial on modifying a case does, then opens and runs Milano_Brescia
-// and builds the case of the tutorial on the smallest scene. Nothing is saved to a case. With QEGTRAIN_E2E_CAPTURE_COMPARE
-// it compares the pictures with the ones of that folder afterwards. The run prints E2E_CAPTURES_OK and exits with 0, or
-// prints E2E_CAPTURE_FAIL with the reason and exits with 2.
+// Paimpol from Open a Case, runs it, edits it as the tutorial on modifying a case does, then opens and runs Milano_Brescia,
+// builds the case of the tutorial on the smallest scene, and opens, runs and edits Paimpol again as the recipes of the
+// how-to page do. Nothing is saved to a case. With QEGTRAIN_E2E_CAPTURE_COMPARE it compares the pictures with the ones
+// of that folder afterwards. The run prints E2E_CAPTURES_OK and exits with 0, or prints E2E_CAPTURE_FAIL with the reason
+// and exits with 2.
 void MainWindowTestAccess::runCaptures(MainWindow& w) {
 	captureRun.folder = qEnvironmentVariable("QEGTRAIN_E2E_CAPTURES");
 	if (!QDir().mkpath(captureRun.folder)) {
@@ -332,7 +359,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 	// a focused table, with no editor open on one of its cells. Clearing the current cell first closes an editor that an
 	// earlier edit left open.
 	const auto selectRow = [&w](int row) {
-		QTableWidget* table = w.m_infrastructureTable;
+		QTableWidget* table = infrastructurePanel(w)->table();
 		const QAbstractItemView::EditTriggers triggers = table->editTriggers();
 		table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 		table->setCurrentIndex(QModelIndex());
@@ -341,11 +368,11 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		table->setFocus(Qt::MouseFocusReason);
 		table->setEditTriggers(triggers);
 		settle();
-		return w.m_deleteInfrastructureButton->isEnabled();
+		return infrastructurePanel(w)->deleteButton()->isEnabled();
 	};
 	const auto facet = [&w](const char* name) {
-		const int index = w.m_infrastructureFacetCombo->findData(QString::fromLatin1(name));
-		w.m_infrastructureFacetCombo->setCurrentIndex(index);
+		const int index = infrastructurePanel(w)->facetCombo()->findData(QString::fromLatin1(name));
+		infrastructurePanel(w)->facetCombo()->setCurrentIndex(index);
 		settle();
 		return index >= 0;
 	};
@@ -353,16 +380,16 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		if (!facet(name))
 			return false;
 		for (int row = 0; row < count; ++row) {
-			w.m_addInfrastructureButton->click();
+			infrastructurePanel(w)->addButton()->click();
 			settle();
 		}
 		return true;
 	};
 	const auto setCell = [&w](int row, int column, const QString& value) {
-		QTableWidgetItem* item = w.m_infrastructureTable->item(row, column);
+		QTableWidgetItem* item = infrastructurePanel(w)->table()->item(row, column);
 		if (!item)
 			return false;
-		w.m_infrastructureTable->setCurrentCell(row, column);
+		infrastructurePanel(w)->table()->setCurrentCell(row, column);
 		item->setText(value);
 		settle();
 		return true;
@@ -385,7 +412,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 				if (dialog.isVisible())
 					dialog.reject();
 			});
-		w.m_addStopButton->click();
+		timetableStopsPanel(w)->addButton()->click();
 		return dialogOpened(poll, QStringLiteral("Add Timetable Stop")) && chosen;
 	};
 
@@ -467,7 +494,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 
 	// The results: the menu Open result view of Run Results, and the context menu of a train in the replay at 3500 s.
 	steps.push_back([&w, showOnly] {
-		showOnly({w.m_runResultsDock});
+		showOnly({w.m_runResultsPanel->dock()});
 		w.fitView();
 		auto* button = w.findChild<QToolButton*>(QStringLiteral("runResultsViewsButton"));
 		if (!button || !button->menu())
@@ -488,7 +515,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 	});
 	steps.push_back([&w] {
 		const TrainBodyItem* body = nullptr;
-		for (const TrainItemGroup* train : w.m_presenter->allTrains)
+		for (const TrainItemGroup* train : w.m_presenter->runTrains())
 			if (train && train->isVisible() && train->trainPolygonItemList
 				&& QString::fromStdString(train->trainDescription).contains(QStringLiteral("ALL-STOPS")))
 				for (const TrainBodyItem* candidate : *train->trainPolygonItemList)
@@ -518,15 +545,15 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 	// Modify a case: the case gets the name of the copy, then the stop Pontrieaux of the express in Edit Timetable Stop,
 	// whose dwell becomes 180 s, and the warning that this gives in Case Validation.
 	steps.push_back([&w] {
-		if (!editLine(w.m_caseNameEdit, QStringLiteral("Paimpol practice")))
+		if (!editLine(caseSettingsPanel(w)->nameEdit(), QStringLiteral("Paimpol practice")))
 			return failCaptures(QStringLiteral("the case could not be named Paimpol practice"));
-		w.revealEditorDock(w.m_serviceDock);
-		const QList<QListWidgetItem*> services = w.m_serviceListWidget->findItems(QStringLiteral("Guin-Paim-EXPRESS-1"), Qt::MatchExactly);
+		w.revealEditorDock(serviceDock(w));
+		const QList<QListWidgetItem*> services = servicePanel(w)->listWidget()->findItems(QStringLiteral("Guin-Paim-EXPRESS-1"), Qt::MatchExactly);
 		if (services.isEmpty())
 			return failCaptures(QStringLiteral("Services lists no Guin-Paim-EXPRESS-1"));
-		w.m_serviceListWidget->setCurrentItem(services.first());
-		showTab(w.m_serviceDock, QStringLiteral("Timetable"));
-		const int row = rowWithText(w.m_stopTableWidget, 0, QStringLiteral("Pontrieaux"));
+		servicePanel(w)->listWidget()->setCurrentItem(services.first());
+		showTab(serviceDock(w), QStringLiteral("Timetable"));
+		const int row = rowWithText(timetableStopsPanel(w)->table(), 0, QStringLiteral("Pontrieaux"));
 		if (row < 0)
 			return failCaptures(QStringLiteral("the express has no stop Pontrieaux"));
 		const QPointer<QTimer> poll = whenShown(
@@ -540,7 +567,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 				if (dialog.isVisible())
 					dialog.reject();
 			});
-		w.m_timetableStopsPanel->editStop(row);
+		timetableStopsPanel(w)->editStop(row);
 		return dialogOpened(poll, QStringLiteral("Edit Timetable Stop"));
 	});
 	steps.push_back([&w, showOnly, windowShot] {
@@ -551,26 +578,26 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 
 	// Modify a case: the scenario Express breakdown with its incident, after a run of baseline that is the delay baseline.
 	steps.push_back([&w, showOnly] {
-		showOnly({w.m_incidentDock, w.m_runResultsDock});
-		w.revealEditorDock(w.m_incidentDock);
-		w.m_scenarioListWidget->setCurrentRow(0);
-		w.m_duplicateScenarioButton->click();
+		showOnly({incidentDock(w), w.m_runResultsPanel->dock()});
+		w.revealEditorDock(incidentDock(w));
+		scenarioPanel(w)->listWidget()->setCurrentRow(0);
+		scenarioPanel(w)->duplicateButton()->click();
 		settle();
-		bool ok = editLine(w.m_scenarioNameEdit, QStringLiteral("Express breakdown"));
-		showTab(w.m_incidentDock, QStringLiteral("Incidents"));
-		w.m_addIncidentButton->click();
+		bool ok = editLine(scenarioPanel(w)->nameEdit(), QStringLiteral("Express breakdown"));
+		showTab(incidentDock(w), QStringLiteral("Incidents"));
+		incidentPanel(w)->addButton()->click();
 		settle();
-		ok = ok && chooseText(w.m_incidentTypeCombo, QStringLiteral("Train breakdown"))
-			&& chooseText(w.m_incidentTargetCombo, QStringLiteral("Guin-Paim-EXPRESS-1-1 (route route6, +10 s)"))
-			&& editLine(w.m_incidentStartSecondsEdit, QStringLiteral("900"));
-		w.m_incidentHasEndSecondsCheck->setChecked(true);
-		ok = ok && editLine(w.m_incidentEndSecondsEdit, QStringLiteral("1200"));
+		ok = ok && chooseText(incidentPanel(w)->typeCombo(), QStringLiteral("Train breakdown"))
+			&& chooseText(incidentPanel(w)->targetCombo(), QStringLiteral("Guin-Paim-EXPRESS-1-1 (route route6, +10 s)"))
+			&& editNumber(incidentPanel(w)->startSecondsEdit(), 900);
+		incidentPanel(w)->hasEndSecondsCheck()->setChecked(true);
+		ok = ok && editNumber(incidentPanel(w)->endSecondsEdit(), 1200);
 		if (!ok)
 			return failCaptures(QStringLiteral("the incident of Express breakdown could not be entered"));
 		// The tutorial saves the case here. Saving is not needed for the pictures, and the case on disk stays as it is.
 		w.m_runSelection.clearModifiedScenarios();
 		w.m_document->markSaved();
-		w.m_scenarioListWidget->setCurrentRow(0);
+		scenarioPanel(w)->listWidget()->setCurrentRow(0);
 		settle();
 		w.m_runController->runCurrent();
 		return true;
@@ -578,9 +605,9 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 	steps.push_back(runEnded);
 	steps.push_back([&w, showOnly, windowShot] {
 		w.m_runController->setDelayBaseline();
-		w.m_scenarioListWidget->setCurrentRow(1);
-		showOnly({w.m_incidentDock, w.m_runResultsDock});
-		showTab(w.m_incidentDock, QStringLiteral("Scenario"));
+		scenarioPanel(w)->listWidget()->setCurrentRow(1);
+		showOnly({incidentDock(w), w.m_runResultsPanel->dock()});
+		showTab(incidentDock(w), QStringLiteral("Scenario"));
 		return saveCapture(windowShot(), QStringLiteral("tutorial-modify-incident-baseline.png"), QStringLiteral("Paimpol"),
 			QStringLiteral("Express breakdown selected after a run of baseline set the delay baseline"));
 	});
@@ -627,8 +654,8 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		return true;
 	});
 	steps.push_back([&w, showOnly, windowShot, addRows, selectRow] {
-		const bool built = editLine(w.m_caseNameEdit, QStringLiteral("Minimal line")) && addRows("tracks", 1) && addRows("nodes", 3);
-		showOnly({w.m_infrastructureDock});
+		const bool built = editLine(caseSettingsPanel(w)->nameEdit(), QStringLiteral("Minimal line")) && addRows("tracks", 1) && addRows("nodes", 3);
+		showOnly({infrastructureDock(w)});
 		return built && selectRow(2)
 			? saveCapture(windowShot(), QStringLiteral("tutorial-minimal-nodes.png"), QStringLiteral("Minimal line"),
 				  QStringLiteral("new case with one track and three nodes, Infrastructure on Nodes"))
@@ -636,49 +663,59 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 	});
 	steps.push_back([&w, windowShot, facet, addRows, setCell, selectRow] {
 		bool built = addRows("arcs", 2) && facet("blocks");
-		const int track = w.m_blockTrackFilterCombo->findData(QStringLiteral("track"));
-		w.m_blockTrackFilterCombo->setCurrentIndex(track);
+		const int track = infrastructurePanel(w)->blockTrackFilterCombo()->findData(QStringLiteral("track"));
+		infrastructurePanel(w)->blockTrackFilterCombo()->setCurrentIndex(track);
 		built = built && track >= 0 && addRows("blocks", 2) && addRows("stations", 2) && addRows("platforms", 2)
-			&& setCell(1, 0, QStringLiteral("station_2")) && setCell(0, 2, QStringLiteral("node")) && setCell(1, 2, QStringLiteral("node_3"));
-		return built && selectRow(1)
-			? saveCapture(windowShot(), QStringLiteral("tutorial-minimal-platforms.png"), QStringLiteral("Minimal line"),
-				  QStringLiteral("two stations with a platform at each end node, Infrastructure on Platforms"))
-			: failCaptures(QStringLiteral("the arcs, blocks, stations and platforms of Minimal line could not be added and selected"));
+			&& setCell(1, 0, QStringLiteral("station_2")) && setCell(0, 3, QStringLiteral("node")) && setCell(1, 3, QStringLiteral("node_3"));
+		if (!built || !selectRow(1))
+			return failCaptures(QStringLiteral("the arcs, blocks, stations and platforms of Minimal line could not be added and selected"));
+		// Width (m), the last column, is beyond the width of the dock. The dock is widened, as a drag of its edge does, until
+		// the table shows every column, and gets its width back after the picture.
+		QDockWidget* dock = infrastructureDock(w);
+		const QHeaderView* columns = infrastructurePanel(w)->table()->horizontalHeader();
+		const int width = dock->width();
+		w.resizeDocks({dock}, {width + std::max(0, columns->length() - columns->width())}, Qt::Horizontal);
+		settle();
+		const bool saved = saveCapture(windowShot(), QStringLiteral("tutorial-minimal-platforms.png"), QStringLiteral("Minimal line"),
+			QStringLiteral("two stations with a platform at each end node, Infrastructure on Platforms"));
+		w.resizeDocks({dock}, {width}, Qt::Horizontal);
+		settle();
+		return saved;
 	});
 	steps.push_back([&w, addRows] {
 		bool built = addRows("signalling_areas", 1);
-		auto* system = qobject_cast<QComboBox*>(w.m_infrastructureTable->cellWidget(0, 3));
+		auto* system = qobject_cast<QComboBox*>(infrastructurePanel(w)->table()->cellWidget(0, 3));
 		built = built && system && chooseText(system, QStringLiteral("0 ATB fixed block")) && addRows("routes", 1);
 		for (const QString& section : {QStringLiteral("track 0.000 to 1.000 km"), QStringLiteral("track 1.000 to 2.000 km")}) {
-			built = built && chooseText(w.m_routeSectionCatalogCombo, section);
-			w.m_addRouteSectionButton->click();
+			built = built && chooseText(infrastructurePanel(w)->routeSectionCatalogCombo(), section);
+			infrastructurePanel(w)->addRouteSectionButton()->click();
 			settle();
 		}
 		return built || failCaptures(QStringLiteral("the signalling and route of Minimal line could not be added"));
 	});
 	// The placeholder unit SLT_Sprinter of Assignment_Gvc_Gdg_Ut, as the tutorial copies it.
 	steps.push_back([&w] {
-		w.revealEditorDock(w.m_trainUnitDock);
-		w.m_addTrainUnitButton->click();
+		w.revealEditorDock(trainUnitDock(w));
+		trainUnitPanel(w)->addButton()->click();
 		settle();
 		const std::array<double, 9> physical = {151000, 0, 0, 36.111111111111, 0.75, 1.45, 0.004, 0.75, 70};
-		for (std::size_t field = 0; field < w.m_trainUnitPhysicalEdits.size(); ++field)
-			w.m_trainUnitPhysicalEdits[field]->setValue(physical[field]);
+		for (std::size_t field = 0; field < trainUnitPanel(w)->physicalEdits().size(); ++field)
+			trainUnitPanel(w)->physicalEdits()[field]->setValue(physical[field]);
 		const std::array<std::array<double, 5>, 2> traction = {
 			{{0, 8.611111111111, 209000, 0, 0}, {8.611111111111, 36.111111111111, 324607.2915, -17671.4923, 292.9005}}};
 		for (int row = 0; row < 2; ++row) {
-			w.m_addTrainUnitTractionButton->click();
+			trainUnitPanel(w)->addTractionRowButton()->click();
 			settle();
 			for (int column = 0; column < 5; ++column) {
-				QTableWidgetItem* tractionCell = w.m_trainUnitTractionTable->item(row, column);
+				QTableWidgetItem* tractionCell = trainUnitPanel(w)->tractionTable()->item(row, column);
 				if (!tractionCell)
 					return failCaptures(QStringLiteral("the traction table of new_train_unit has no row %1").arg(row + 1));
 				tractionCell->setData(Qt::EditRole, traction[static_cast<std::size_t>(row)][static_cast<std::size_t>(column)]);
 			}
 		}
 		settle();
-		w.revealEditorDock(w.m_compositionDock);
-		w.m_addCompositionButton->click();
+		w.revealEditorDock(compositionDock(w));
+		compositionPanel(w)->addButton()->click();
 		settle();
 		const QPointer<QTimer> poll = whenShown(
 			w, [] { return qobject_cast<QDialog*>(QApplication::activeModalWidget()); },
@@ -691,24 +728,157 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 				input->setTextValue(QStringLiteral("new_train_unit"));
 				dialog.accept();
 			});
-		w.m_addUnitButton->click();
+		compositionPanel(w)->addUnitButton()->click();
 		return dialogOpened(poll, QStringLiteral("Add Rolling Stock Unit"));
 	});
 	steps.push_back([&w, showOnly, windowShot, addStop] {
-		w.revealEditorDock(w.m_serviceDock);
-		w.m_addServiceButton->click();
+		w.revealEditorDock(serviceDock(w));
+		servicePanel(w)->addButton()->click();
 		settle();
-		if (!chooseText(w.m_serviceCompositionCombo, QStringLiteral("new_composition"))
-			|| !chooseText(w.m_serviceRouteCombo, QStringLiteral("route")))
+		if (!chooseText(servicePanel(w)->compositionCombo(), QStringLiteral("new_composition"))
+			|| !chooseText(servicePanel(w)->routeCombo(), QStringLiteral("route")))
 			return failCaptures(QStringLiteral("new_service cannot take new_composition and route"));
-		showTab(w.m_serviceDock, QStringLiteral("Timetable"));
+		showTab(serviceDock(w), QStringLiteral("Timetable"));
 		if (!addStop(QStringLiteral("station"), QStringLiteral("platform"), -1, 120)
 			|| !addStop(QStringLiteral("station_2"), QStringLiteral("platform_2"), 250, -1))
 			return failCaptures(QStringLiteral("the stops of new_service could not be added"));
-		showOnly({w.m_trainUnitDock, w.m_compositionDock, w.m_serviceDock});
-		w.resizeDocks({w.m_serviceDock}, {760}, Qt::Horizontal);
+		showOnly({trainUnitDock(w), compositionDock(w), serviceDock(w)});
+		w.resizeDocks({serviceDock(w)}, {760}, Qt::Horizontal);
 		return saveCapture(windowShot(), QStringLiteral("tutorial-minimal-service.png"), QStringLiteral("Minimal line"),
 			QStringLiteral("the finished case, Services on the timetable of new_service"));
+	});
+
+	// How-to: the recipes, on Paimpol as it is committed. A run of baseline gives Train paths, and then the express gets a
+	// second run, a new service is added, an arc gets a lower speed limit and a copy of baseline gets an incident.
+	steps.push_back([&w, scenes] {
+		w.m_document->markSaved();
+		return w.openSceneDirectory(QDir(scenes).filePath(QStringLiteral("Paimpol"))) || failCaptures(QStringLiteral("cannot open Paimpol again"));
+	});
+	steps.push_back([caseIs] { return caseIs("Paimpol"); });
+	steps.push_back([&w, showOnly] {
+		showOnly({});
+		w.m_runController->runCurrent();
+		return true;
+	});
+	steps.push_back(runEnded);
+	steps.push_back([&w] {
+		// A scripted run suppresses the dialog Reference route, so the chart follows the first route of the run.
+		w.m_resultViews->displayTrainPathDiagrams();
+		const QList<DiagramWindow*> diagrams = w.findChildren<DiagramWindow*>();
+		if (diagrams.isEmpty())
+			return failCaptures(QStringLiteral("Train paths did not open"));
+		DiagramWindow* diagram = diagrams.last();
+		diagram->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+		diagram->resize(kWindowSize);
+		settle();
+		// A train name can be wider than the panel, which then cuts it short. The panel is widened, as a drag of the
+		// splitter does, until the list of trains shows the whole names.
+		auto* splitter = diagram->findChild<QSplitter*>(QStringLiteral("resultSplitter"));
+		auto* trains = diagram->findChild<TrainKeyList*>();
+		if (!splitter || splitter->count() != 2 || !trains)
+			return failCaptures(QStringLiteral("Train paths has no panel with a list of trains"));
+		const QTreeWidget* names = trains->tree();
+		// QTreeView keeps its override protected; the one of QAbstractItemView is public.
+		const int wider = std::max(0, static_cast<const QAbstractItemView*>(names)->sizeHintForColumn(0) - names->columnWidth(0));
+		const QList<int> sizes = splitter->sizes();
+		splitter->setSizes({sizes[0] - wider, sizes[1] + wider});
+		settle();
+		const bool saved = saveCapture(diagram->grab(), QStringLiteral("how-to-train-paths.png"), QStringLiteral("Paimpol"),
+			QStringLiteral("Train paths after a run of baseline, on the first route of the run"));
+		diagram->close();
+		return saved;
+	});
+	steps.push_back([&w, showOnly, windowShot] {
+		w.revealEditorDock(serviceDock(w));
+		const QList<QListWidgetItem*> services = servicePanel(w)->listWidget()->findItems(QStringLiteral("Guin-Paim-EXPRESS-1"), Qt::MatchExactly);
+		if (services.isEmpty())
+			return failCaptures(QStringLiteral("Services lists no Guin-Paim-EXPRESS-1"));
+		servicePanel(w)->listWidget()->setCurrentItem(services.first());
+		showTab(serviceDock(w), QStringLiteral("Service"));
+		servicePanel(w)->hasRepeatCountCheck()->setChecked(true);
+		settle();
+		const bool repeated = editNumber(servicePanel(w)->headwaySecondsEdit(), kSecondRunHeadway)
+			&& editLine(servicePanel(w)->repeatCountEdit(), QStringLiteral("2"));
+		showTab(serviceDock(w), QStringLiteral("Run occurrences"));
+		showOnly({serviceDock(w)});
+		w.resizeDocks({serviceDock(w)}, {760}, Qt::Horizontal);
+		return repeated && servicePanel(w)->occurrenceTable()->rowCount() == 3
+			? saveCapture(windowShot(), QStringLiteral("how-to-add-a-train.png"), QStringLiteral("Paimpol"),
+				  QStringLiteral("the express repeated after 3600 s for 2 runs, Services on Run occurrences"))
+			: failCaptures(QStringLiteral("the express could not be given a second run"));
+	});
+	steps.push_back([&w, showOnly, windowShot, addStop] {
+		servicePanel(w)->addButton()->click();
+		settle();
+		if (!chooseText(servicePanel(w)->compositionCombo(), QStringLiteral("Draisy"))
+			|| !chooseText(servicePanel(w)->routeCombo(), QStringLiteral("route6")))
+			return failCaptures(QStringLiteral("new_service cannot take Draisy and route6"));
+		showTab(serviceDock(w), QStringLiteral("Timetable"));
+		if (!addStop(QStringLiteral("Guingamp"), QStringLiteral("Guingamp.platform.1"), -1, 5000)
+			|| !addStop(QStringLiteral("Paimpol"), QStringLiteral("Paimpol.platform.1"), 7599, -1))
+			return failCaptures(QStringLiteral("the stops of new_service could not be added"));
+		showTab(serviceDock(w), QStringLiteral("Service"));
+		showOnly({serviceDock(w)});
+		w.resizeDocks({serviceDock(w)}, {760}, Qt::Horizontal);
+		return saveCapture(windowShot(), QStringLiteral("how-to-add-a-service.png"), QStringLiteral("Paimpol"),
+			QStringLiteral("new_service on route6 with stops at Guingamp and Paimpol, Services on Service"));
+	});
+	steps.push_back([&w, showOnly, windowShot, facet, setCell, selectRow] {
+		w.revealEditorDock(infrastructureDock(w));
+		bool edited = facet("arcs");
+		infrastructurePanel(w)->filterEdit()->setText(QStringLiteral("B0.arc.226"));
+		settle();
+		const int row = rowWithText(infrastructurePanel(w)->table(), 0, QStringLiteral("B0.arc.226"));
+		edited = edited && row >= 0 && setCell(row, 6, QStringLiteral("8.333333333")) && selectRow(row);
+		showOnly({infrastructureDock(w)});
+		w.resizeDocks({infrastructureDock(w)}, {760}, Qt::Horizontal);
+		w.resize(kWindowSize);
+		settle();
+		// Speed limit (m/s) is the last column, beyond the width of the dock.
+		infrastructurePanel(w)->table()->scrollTo(infrastructurePanel(w)->table()->model()->index(row, 6));
+		const NetworkMarkItem* mark = w.m_presenter->selectionMark();
+		if (!edited || !mark)
+			return failCaptures(QStringLiteral("the speed limit of B0.arc.226 could not be changed and marked"));
+		w.networkView->zoomBy(kArcZoom / w.networkView->zoomRatio());
+		w.networkView->centerOn(mark->sceneBoundingRect().center());
+		return saveCapture(windowShot(), QStringLiteral("how-to-change-infrastructure.png"), QStringLiteral("Paimpol"),
+			QStringLiteral("Infrastructure on Arcs filtered to B0.arc.226, its speed limit 8.333333333 m/s, marked on the view"));
+	});
+	steps.push_back([&w, showOnly, windowShot] {
+		// No row of Infrastructure is selected, so the view marks no arc, and the whole line is in view again for the picture
+		// of the incident.
+		infrastructurePanel(w)->table()->setCurrentCell(-1, -1);
+		w.networkView->fitToTopology();
+		w.revealEditorDock(incidentDock(w));
+		scenarioPanel(w)->listWidget()->setCurrentRow(0);
+		scenarioPanel(w)->duplicateButton()->click();
+		settle();
+		bool ok = editLine(scenarioPanel(w)->nameEdit(), QStringLiteral("Express breakdown"));
+		showTab(incidentDock(w), QStringLiteral("Incidents"));
+		incidentPanel(w)->addButton()->click();
+		settle();
+		ok = ok && chooseText(incidentPanel(w)->typeCombo(), QStringLiteral("Train breakdown"))
+			&& chooseText(incidentPanel(w)->targetCombo(), QStringLiteral("Guin-Paim-EXPRESS-1-1 (route route6, +10 s)"))
+			&& editNumber(incidentPanel(w)->startSecondsEdit(), 900);
+		incidentPanel(w)->hasEndSecondsCheck()->setChecked(true);
+		ok = ok && editNumber(incidentPanel(w)->endSecondsEdit(), 1200);
+		showOnly({incidentDock(w)});
+		w.resizeDocks({incidentDock(w)}, {480}, Qt::Horizontal);
+		settle();
+		// The form scrolls when it is taller than the dock. It is scrolled to show Terminate at destination, as Tab does
+		// when it reaches the check box.
+		QCheckBox* terminate = incidentPanel(w)->terminateAtDestinationCheck();
+		for (QWidget* parent = terminate->parentWidget(); parent; parent = parent->parentWidget())
+			if (auto* form = qobject_cast<QScrollArea*>(parent)) {
+				form->ensureWidgetVisible(terminate);
+				break;
+			}
+		settle();
+		if (w.m_presenter->selectionMark())
+			return failCaptures(QStringLiteral("the view still marks a row of Infrastructure"));
+		return ok ? saveCapture(windowShot(), QStringLiteral("how-to-add-an-incident.png"), QStringLiteral("Paimpol"),
+						QStringLiteral("a train breakdown of the express from 900 s to 1200 s in Express breakdown, Scenarios on Incidents"))
+				  : failCaptures(QStringLiteral("the incident of Express breakdown could not be entered"));
 	});
 
 	advanceCaptures(w);

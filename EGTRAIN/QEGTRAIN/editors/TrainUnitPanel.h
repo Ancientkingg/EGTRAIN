@@ -2,10 +2,8 @@
 #define TRAINUNITPANEL_H
 
 #include "editors/SceneEditorPanel.h"
-#include "widgets/UserPrompts.h"
+#include "widgets/EditorLayout.h"
 
-#include <QMetaObject>
-#include <QPointer>
 #include <QString>
 
 #include <array>
@@ -26,7 +24,7 @@ class QTableWidget;
 /// the wagon resistance; no unit is stated), jerk (m/s³) and length (m). A traction curve row holds the lower and upper
 /// speed of its band in m/s and the coefficients c0, c1 and c2 of the tractive effort c0 + c1 v + c2 v² in N, with v in
 /// m/s.
-class TrainUnitPanel : public SceneEditorPanel {
+class TrainUnitPanel : public SceneEditorPanel, public EditorLayout::PreferredWidth {
 	Q_OBJECT
 
 public:
@@ -36,11 +34,10 @@ public:
 	/// Makes the widgets, empty until a loaded document is set.
 	explicit TrainUnitPanel(QWidget* parent = nullptr);
 
-	/// Refreshes when the document is replaced.
-	void setDocument(SceneDocument* document) override;
-	/// The messages and questions go through these prompts. The panel uses its own until it is given others; null
-	/// brings its own back. The prompts must outlive the panel.
-	void setPrompts(UserPrompts* prompts);
+	/// The width of the panel with every column of the traction table in view, which a dock opens with. The panel works in a
+	/// narrower dock, where the table scrolls sideways.
+	int preferredWidth() const override { return sizeHint().width(); }
+
 	/// Lists the units again and shows the selected one.
 	void refresh() override;
 	/// Takes the id, the source references, the number field that has focus and the open editor of the traction curve into
@@ -49,9 +46,17 @@ public:
 
 	/// Appends a unit with a new unique id and selects it.
 	void addUnit();
+	/// Lists the units of the bundled cases in a dialog and adds the one the user chooses with addLibraryUnit().
+	void addFromLibrary();
+	/// Appends a copy of `libraryUnit`, a unit of the library, with its physical values, traction curve and source references,
+	/// and with `withComposition` a composition with only that unit, as one edit. When the case has a unit with the same id
+	/// and the same values, nothing is copied. A unit with the same id and other values stays as it is, and the copy gets the
+	/// next free id. The composition takes the id of the copy, or the next free id when a composition with other units has
+	/// it. Selects the unit and says what happened through statusMessage(), and also in a message box when an id was taken.
+	void addLibraryUnit(const SceneTrainUnit& libraryUnit, bool withComposition);
 	/// Inserts a copy of the selected unit, with a new unique id, after it.
 	void duplicateUnit();
-	/// Deletes the selected unit after the user has confirmed it; refused while a composition uses it.
+	/// Deletes the selected unit and says in the status line that Undo restores it; refused while a composition uses it.
 	void deleteUnit();
 	/// Takes the id from the field. An empty or used id is dropped and the field shows the old id again.
 	void commitIdEdit();
@@ -95,6 +100,8 @@ public:
 	QTableWidget* tractionTable() const { return m_tractionTable; }
 	/// The button of addUnit().
 	QPushButton* addButton() const { return m_addButton; }
+	/// The button of addFromLibrary().
+	QPushButton* libraryButton() const { return m_libraryButton; }
 	/// The button of duplicateUnit().
 	QPushButton* duplicateButton() const { return m_duplicateButton; }
 	/// The button of deleteUnit().
@@ -115,11 +122,6 @@ public:
 	QLabel* sourceStatusLabel(bool traction) const { return traction ? m_sourceTractionStatusLabel : m_sourceDataStatusLabel; }
 
 Q_SIGNALS:
-	/// A unit has been added, duplicated, deleted or renamed. The compositions list units by id.
-	/// Emitted after the document is marked changed and before changed().
-	void trainUnitsChanged();
-	/// The references to the source files of the shown unit have changed.
-	void sourceReferencesChanged();
 	/// The unit has got another id. Emitted after the document is marked changed.
 	void unitRenamed(const QString& oldId, const QString& newId);
 	/// The unit is gone from the model. Emitted after the document is marked changed.
@@ -137,16 +139,11 @@ Q_SIGNALS:
 	void sourceRetryRequested(bool traction);
 
 private:
-	bool hasScene() const;
 	// The row of the shown unit, or -1.
 	int selectedRow() const;
 	void updateDetail();
 	void refreshTractionTable();
 
-	QPointer<SceneDocument> m_document;
-	QMetaObject::Connection m_replacedConnection;
-	UserPrompts m_ownPrompts;
-	UserPrompts* m_prompts = &m_ownPrompts;
 	QListWidget* m_listWidget = nullptr;
 	QLineEdit* m_idEdit = nullptr;
 	QLabel* m_emptyStateLabel = nullptr;
@@ -164,6 +161,7 @@ private:
 	QLabel* m_sourceTractionStatusLabel = nullptr;
 	QTableWidget* m_tractionTable = nullptr;
 	QPushButton* m_addButton = nullptr;
+	QPushButton* m_libraryButton = nullptr;
 	QPushButton* m_duplicateButton = nullptr;
 	QPushButton* m_deleteButton = nullptr;
 	QPushButton* m_addTractionRowButton = nullptr;

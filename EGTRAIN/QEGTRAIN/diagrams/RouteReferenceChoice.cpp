@@ -25,12 +25,27 @@ QString elideMiddle(const QString& text, int maxChars) {
 	return text.left(kept - kept / 2) + QChar(0x2026) + text.right(kept / 2);
 }
 
+// The services of the scene that run on the route, in scene order: "service A" or "services A, B". Empty when there
+// is none.
+QString servicesOn(const SceneModel& scene, const std::string& routeId) {
+	QStringList ids;
+	for (const SceneService& service : scene.services)
+		if (service.route == routeId)
+			ids << QString::fromStdString(service.id);
+	if (ids.isEmpty())
+		return {};
+	return QString("%1 %2").arg(ids.size() == 1 ? "service" : "services", ids.join(QStringLiteral(", ")));
+}
+
 } // namespace
 
 QVector<RouteReferenceChoice> buildRouteReferenceChoices(const SceneModel& scene,
 	const std::vector<std::pair<int, std::string>>& usedRoutes) {
 	const SceneSectionInventory inventory = buildSceneSectionInventory(scene);
 	QVector<RouteReferenceChoice> choices;
+	// The tooltips without their route id. A tooltip holds its label in full, so two equal ones mark labels that read
+	// the same.
+	QStringList descriptions;
 	for (const auto& used : usedRoutes) {
 		RouteReferenceChoice choice;
 		choice.runtimeIndex = used.first;
@@ -42,7 +57,7 @@ QVector<RouteReferenceChoice> buildRouteReferenceChoices(const SceneModel& scene
 			: sceneRouteStations(scene, *sceneRoute, inventory);
 		if (!stations.resolved) {
 			choice.label = QString("%1 (station order unavailable)").arg(choice.routeId);
-			choice.toolTip = QString("%1: station order unavailable.").arg(choice.routeId);
+			choice.toolTip = choice.label;
 		} else if (stations.stationIds.empty()) {
 			choice.label = QString("%1 (no stations on this route)").arg(choice.routeId);
 			choice.toolTip = choice.label;
@@ -54,7 +69,18 @@ QVector<RouteReferenceChoice> buildRouteReferenceChoices(const SceneModel& scene
 			choice.label = elideMiddle(full, kMaxLabelChars);
 			choice.toolTip = full;
 		}
+		descriptions << choice.toolTip.mid(choice.routeId.size());
 		choices.append(choice);
+	}
+	// Labels that read the same apart from the route id, such as those of two routes over the same stations, name the
+	// services of their route. Every tooltip names them.
+	for (qsizetype i = 0; i < choices.size(); ++i) {
+		const QString services = servicesOn(scene, usedRoutes[static_cast<std::size_t>(i)].second);
+		if (services.isEmpty())
+			continue;
+		if (descriptions.count(descriptions[i]) > 1)
+			choices[i].label += QString(" (%1)").arg(services);
+		choices[i].toolTip += "\nUsed by " + services;
 	}
 	return choices;
 }

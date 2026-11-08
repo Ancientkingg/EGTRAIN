@@ -2,6 +2,19 @@
 
 #include <algorithm>
 #include <cmath>
+#include <random>
+
+std::string randomHex(int words) {
+	static const char digits[] = "0123456789abcdef";
+	std::random_device random;
+	std::string hex;
+	for (int word = 0; word < words; ++word) {
+		const std::uint32_t bits = random();
+		for (int shift = 28; shift >= 0; shift -= 4)
+			hex += digits[(bits >> shift) & 0xF];
+	}
+	return hex;
+}
 
 using nlohmann::json;
 

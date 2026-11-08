@@ -23,7 +23,8 @@ public:
 	SignalItem(const QRectF& rect, QGraphicsItem* parent = nullptr);
 	~SignalItem() override;
 
-	/// Sets the aspect code of the head, which gives the colour of its lamp through classifySignalAspect().
+	/// Sets the aspect code of the head, which gives the colour of its lamp through classifySignalAspect() and the state
+	/// in its tooltip.
 	void setAspectCode(int code);
 	/// The aspect code of the head.
 	int aspectCode() const;
@@ -39,10 +40,17 @@ public:
 	/// The number of heads grouped with this one.
 	int groupedSignalCount() const { return static_cast<int>(m_groupedSignals.size()); }
 	/// Sets the text that names the head in its tooltip, the inspector and Find.
-	void setInspectionIdentity(const QString& identity) { m_inspectionIdentity = identity; }
+	void setInspectionIdentity(const QString& identity) {
+		m_inspectionIdentity = identity;
+		updateToolTip();
+	}
 	/// That text, or without one the track line and the position in kilometres: "Track B0 at 0.23 km". The track is
 	/// named by sceneTrackId, or by its number without one.
 	QString inspectionIdentity() const;
+	/// Sets the tooltip, such as "Proceed, facing right\nTrack B0 at 0.23 km": the state that signalAspectLabel() gives,
+	/// the direction and inspectionIdentity(). The setters of the head call it; whoever sets trackID, sceneTrackId or X
+	/// calls it after.
+	void updateToolTip();
 	/// The head with a margin of 2 scene units.
 	QRectF boundingRect() const override;
 

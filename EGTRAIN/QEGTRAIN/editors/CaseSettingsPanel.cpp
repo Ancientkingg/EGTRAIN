@@ -1,18 +1,24 @@
 #include "editors/CaseSettingsPanel.h"
 
-#include "widgets/CompactDoubleSpinBox.h"
+#include "editors/EditorHelpers.h"
 
 #include <QDoubleSpinBox>
 #include <QFormLayout>
+#include <QLabel>
 #include <QLineEdit>
 #include <QSignalBlocker>
+#include <QStringList>
 
-#include <limits>
 #include <string>
 
 CaseSettingsPanel::CaseSettingsPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("caseSettingsPanel");
 	QFormLayout* layout = new QFormLayout(this);
+	m_overrideNotice = new QLabel(this);
+	m_overrideNotice->setObjectName("caseOverrideNotice");
+	m_overrideNotice->setWordWrap(true);
+	m_overrideNotice->hide();
+	layout->addRow(m_overrideNotice);
 	m_nameEdit = new QLineEdit(this);
 	m_nameEdit->setObjectName("caseNameEdit");
 	m_descriptionEdit = new QLineEdit(this);
@@ -23,18 +29,9 @@ CaseSettingsPanel::CaseSettingsPanel(QWidget* parent) : SceneEditorPanel(parent)
 	layout->addRow("Name", m_nameEdit);
 	layout->addRow("Description", m_descriptionEdit);
 	layout->addRow("Base time", m_baseTimeEdit);
-	const auto makeSpinBox = [this](const char* widgetName) {
-		auto* edit = new CompactDoubleSpinBox(this);
-		edit->setObjectName(widgetName);
-		edit->setRange(0.0, std::numeric_limits<double>::max());
-		edit->setDecimals(std::numeric_limits<double>::max_digits10);
-		edit->setSingleStep(1.0);
-		edit->setKeyboardTracking(false);
-		return edit;
-	};
-	m_durationSecondsEdit = makeSpinBox("caseDurationSecondsEdit");
-	m_bufferSecondsEdit = makeSpinBox("caseBufferSecondsEdit");
-	m_recoveryPercentEdit = makeSpinBox("caseRecoveryPercentEdit");
+	m_durationSecondsEdit = exactNumberEdit("caseDurationSecondsEdit", this);
+	m_bufferSecondsEdit = exactNumberEdit("caseBufferSecondsEdit", this);
+	m_recoveryPercentEdit = exactNumberEdit("caseRecoveryPercentEdit", this);
 	layout->addRow("Duration (s)", m_durationSecondsEdit);
 	layout->addRow("Buffer (s)", m_bufferSecondsEdit);
 	layout->addRow("Recovery (%)", m_recoveryPercentEdit);
@@ -56,64 +53,77 @@ CaseSettingsPanel::~CaseSettingsPanel() {
 		field->disconnect(this);
 }
 
-void CaseSettingsPanel::setDocument(SceneDocument* document) {
-	QObject::disconnect(m_replacedConnection);
-	m_document = document;
-	if (m_document)
-		m_replacedConnection = connect(m_document, &SceneDocument::replaced, this, &CaseSettingsPanel::refresh);
-	refresh();
+void CaseSettingsPanel::setCommandLineOverrides(std::optional<double> durationSeconds, std::optional<double> bufferSeconds,
+	std::optional<double> recoveryPercent) {
+	QStringList options;
+	const auto add = [&options](const char* option, const std::optional<double>& value) {
+		if (value)
+			options << QStringLiteral("%1 %2").arg(option).arg(*value, 0, 'g', 12);
+	};
+	add("-h", durationSeconds);
+	add("-b", bufferSeconds);
+	add("-c", recoveryPercent);
+	const QString last = options.isEmpty() ? QString() : options.takeLast();
+	const QString listed = options.isEmpty() ? last : options.join(QStringLiteral(", ")) + QStringLiteral(" and ") + last;
+	m_overrideNotice->setText(listed.isEmpty() ? QString()
+											   : QStringLiteral("This session uses %1 from the command line instead of the values of "
+																"the case, for every run and every case it opens.")
+													 .arg(listed));
+	m_overrideNotice->setVisible(!listed.isEmpty());
 }
 
 void CaseSettingsPanel::refresh() {
-	const bool hasScene = m_document && m_document->isLoaded();
+	const bool loaded = hasScene();
 	const SceneModel empty;
-	const SceneModel& model = hasScene ? m_document->model() : empty;
+	const SceneModel& model = loaded ? m_document->model() : empty;
 	{
 		const QSignalBlocker blocker(m_nameEdit);
 		m_nameEdit->setText(QString::fromStdString(model.name));
 		// The field shows the start of a text that is longer than the field.
 		m_nameEdit->setCursorPosition(0);
-		m_nameEdit->setEnabled(hasScene);
+		m_nameEdit->setEnabled(loaded);
 	}
 	{
 		const QSignalBlocker blocker(m_descriptionEdit);
 		m_descriptionEdit->setText(QString::fromStdString(model.description));
 		m_descriptionEdit->setCursorPosition(0);
-		m_descriptionEdit->setEnabled(hasScene);
+		m_descriptionEdit->setEnabled(loaded);
 	}
 	{
 		const QSignalBlocker blocker(m_baseTimeEdit);
 		m_baseTimeEdit->setText(QString::fromStdString(model.baseTime));
-		m_baseTimeEdit->setEnabled(hasScene);
+		m_baseTimeEdit->setEnabled(loaded);
 	}
 	{
 		const QSignalBlocker blocker(m_durationSecondsEdit);
 		m_durationSecondsEdit->setValue(model.settings.durationSeconds);
-		m_durationSecondsEdit->setEnabled(hasScene);
+		m_durationSecondsEdit->setEnabled(loaded);
 	}
 	{
 		const QSignalBlocker blocker(m_bufferSecondsEdit);
 		m_bufferSecondsEdit->setValue(model.settings.bufferTimeSeconds);
-		m_bufferSecondsEdit->setEnabled(hasScene);
+		m_bufferSecondsEdit->setEnabled(loaded);
 	}
 	{
 		const QSignalBlocker blocker(m_recoveryPercentEdit);
 		m_recoveryPercentEdit->setValue(model.settings.recoveryTimePercent);
-		m_recoveryPercentEdit->setEnabled(hasScene);
+		m_recoveryPercentEdit->setEnabled(loaded);
 	}
 }
 
 void CaseSettingsPanel::commitPendingEditors() {
-	m_durationSecondsEdit->interpretText();
-	m_bufferSecondsEdit->interpretText();
-	m_recoveryPercentEdit->interpretText();
+	// A number field commits only the text that is being typed in it, so that a value the user did not edit is kept.
+	for (QDoubleSpinBox* edit : {m_durationSecondsEdit, m_bufferSecondsEdit, m_recoveryPercentEdit}) {
+		if (hasEditorFocus(edit))
+			edit->interpretText();
+	}
 	commit();
 }
 
 void CaseSettingsPanel::commit() {
-	if (!m_document || !m_document->isLoaded())
+	if (!hasScene())
 		return;
-	SceneModel& model = m_document->mutableModel();
+	const SceneModel& model = m_document->model();
 	const std::string name = m_nameEdit->text().toStdString();
 	const std::string description = m_descriptionEdit->text().toStdString();
 	const std::string baseTime = m_baseTimeEdit->text().toStdString();
@@ -121,24 +131,33 @@ void CaseSettingsPanel::commit() {
 	const double bufferSeconds = m_bufferSecondsEdit->value();
 	const double recoveryPercent = m_recoveryPercentEdit->value();
 	const bool baseTimeEdited = model.baseTime != baseTime;
-	const bool durationEdited = model.settings.durationSeconds != durationSeconds;
-	const bool bufferEdited = model.settings.bufferTimeSeconds != bufferSeconds;
-	const bool recoveryEdited = model.settings.recoveryTimePercent != recoveryPercent;
+	// A number field shows a stored value outside its range at the nearest limit, which is not an edit.
+	const bool durationEdited = shownValue(m_durationSecondsEdit, model.settings.durationSeconds) != durationSeconds;
+	const bool bufferEdited = shownValue(m_bufferSecondsEdit, model.settings.bufferTimeSeconds) != bufferSeconds;
+	const bool recoveryEdited = shownValue(m_recoveryPercentEdit, model.settings.recoveryTimePercent) != recoveryPercent;
 	if (model.name == name && model.description == description && !baseTimeEdited && !durationEdited
 		&& !bufferEdited && !recoveryEdited)
 		return;
 
-	model.name = name;
-	model.description = description;
-	model.baseTime = baseTime;
-	model.settings.hasDuration = model.settings.hasDuration || durationEdited;
-	model.settings.durationSeconds = durationSeconds;
-	model.settings.hasBufferTime = model.settings.hasBufferTime || bufferEdited;
-	model.settings.bufferTimeSeconds = bufferSeconds;
-	model.settings.hasRecoveryTime = model.settings.hasRecoveryTime || recoveryEdited;
-	model.settings.recoveryTimePercent = recoveryPercent;
-	if (baseTimeEdited)
-		emit baseTimeChanged(m_baseTimeEdit->text());
-	m_document->markChanged(SceneDocument::CaseSettings, "Edit case settings");
+	if (!m_document->edit(SceneDocument::CaseSettings, "Edit case settings", [&](SceneModel& edited) {
+			edited.name = name;
+			edited.description = description;
+			edited.baseTime = baseTime;
+			if (durationEdited) {
+				edited.settings.hasDuration = true;
+				edited.settings.durationSeconds = durationSeconds;
+			}
+			if (bufferEdited) {
+				edited.settings.hasBufferTime = true;
+				edited.settings.bufferTimeSeconds = bufferSeconds;
+			}
+			if (recoveryEdited) {
+				edited.settings.hasRecoveryTime = true;
+				edited.settings.recoveryTimePercent = recoveryPercent;
+			}
+			if (baseTimeEdited)
+				emit baseTimeChanged(m_baseTimeEdit->text());
+		}))
+		return;
 	emit changed();
 }

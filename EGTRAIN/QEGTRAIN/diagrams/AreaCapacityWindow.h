@@ -5,6 +5,7 @@
 #include "diagrams/CompletedRunData.h"
 #include "diagrams/RunResults.h"
 #include "telemetry/TelemetryOperation.h"
+#include "widgets/UserPrompts.h"
 
 #include <QDialog>
 #include <QString>
@@ -27,7 +28,7 @@ class QListWidget;
 /// optionally, the block range of a second one.
 struct AreaCapacityScope {
 	int routeIndex = -1;					 ///< Index into CompletedRunData::routes
-	std::vector<std::string> blockIds;		 ///< Range of the first route; its first block is the reference of each train
+	std::vector<std::string> blockIds;		 ///< Range of the first route
 	std::vector<int> sectionIndices;		 ///< Positions of those blocks in the route, from 0; empty when unknown
 	int secondRouteIndex = -1;				 ///< -1 for no second route
 	std::vector<std::string> secondBlockIds; ///< The range of the second route, empty for none
@@ -38,8 +39,9 @@ struct AreaCapacityScope {
 };
 
 /// The input of analyzeAreaCapacity for the scope: the selected trains in the order of the scope and every
-/// other train of the run as other traffic. Occupations are passed as the run holds them, so that the
-/// analysis reports the unusable ones.
+/// other train of the run as other traffic. The reference time of a train lies where it enters the area: at its
+/// first occupation of a resource of either range, by the rules of capacityInputFrom. Occupations are passed as
+/// the run holds them, so that the analysis reports the unusable ones.
 AreaCapacityInput areaCapacityInputFrom(const CompletedRunData& data, const AreaCapacityScope& scope);
 /// The route and block range of the scope by block ids, as the export names the area.
 QString areaCapacityLabel(const CompletedRunData& data, const AreaCapacityScope& scope);
@@ -96,6 +98,9 @@ public:
 		QWidget* parent = nullptr, const QString& areaText = QString(), const SceneSectionLabels& labels = SceneSectionLabels());
 	/// Sets the function that gives the telemetry observation of an export; empty for none.
 	void setTelemetryCapture(telemetry::CaptureOperation capture) { m_telemetryCapture = std::move(capture); }
+	/// Sets the prompts of the export, which ask whether to replace a file and show what went wrong. Null restores the
+	/// prompts of the window, which show every message.
+	void setPrompts(UserPrompts* prompts) { m_prompts = prompts ? prompts : &m_ownPrompts; }
 	/// Writes area_capacity.csv and the provenance sidecar. False when the result has no resource row or a write fails.
 	bool exportCsvTo(const QString& path) const;
 
@@ -106,6 +111,8 @@ private:
 	QString m_areaLabel;
 	RunProvenance m_provenance;
 	telemetry::CaptureOperation m_telemetryCapture;
+	UserPrompts m_ownPrompts;
+	UserPrompts* m_prompts = &m_ownPrompts;
 };
 
 /// Asks for the scope, analyses it and opens the window, which deletes itself on close. Null when the person cancels.

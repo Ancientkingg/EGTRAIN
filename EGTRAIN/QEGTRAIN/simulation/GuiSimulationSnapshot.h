@@ -223,6 +223,15 @@ struct GuiVirtualCouplingState {
 	std::string message;		  ///< The text of the message.
 };
 
+/// A message of virtual coupling shows in the snapshots of this many seconds after its step.
+constexpr int kGuiVirtualCouplingMessageSeconds = 40;
+
+/// A message of the step `messageStep` is in the snapshot of the step `timestep`: from its own step up to and including
+/// kGuiVirtualCouplingMessageSeconds seconds after it.
+inline bool guiVirtualCouplingMessageShown(int messageStep, int timestep) {
+	return timestep >= messageStep && timestep <= messageStep + kGuiVirtualCouplingMessageSeconds;
+}
+
 /// The state of a run at one step: what the canvas, the panels, the replay and the live stream show.
 struct GuiSimulationSnapshot {
 	int timestep = 0;											  ///< The step, in seconds from the start of the run.
@@ -234,12 +243,6 @@ struct GuiSimulationSnapshot {
 	std::vector<GuiPassengerState> passengers;					  ///< Every passenger of the run.
 	std::vector<GuiVirtualCouplingState> virtualCouplingMessages; ///< The messages of the last 40 seconds.
 };
-
-struct SimulationRun;
-
-/// The snapshot of a run at a step. It reads the run and changes nothing, and it is defined in app/DispatchController.cpp. The
-/// thread that steps the run builds it, and the window and the live stream see the run through it.
-GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int timestep);
 
 /// Hands the latest snapshot from the thread that steps the run to the window. It holds one snapshot: a newer one
 /// replaces an older one that was not taken. Both functions may be called from any thread.

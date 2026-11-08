@@ -1,5 +1,7 @@
 #include "graphics/NetworkScene.h"
 
+#include "graphics/items/StationOverlayItem.h"
+
 #include <QApplication>
 #include <QGraphicsView>
 #include <QPainterPath>
@@ -34,6 +36,13 @@ NetworkScene::NetworkScene(QObject* parent)
 }
 
 NetworkScene::~NetworkScene() {
+}
+
+void NetworkScene::setStationMarkStyle(StationMarkStyle style) {
+	m_stationMarkStyle = style;
+	for (QGraphicsItem* item : items())
+		if (auto* station = qgraphicsitem_cast<StationOverlayItem*>(item))
+			station->setMarkStyle(style);
 }
 
 QTransform NetworkScene::viewTransformFor(QWidget* widget) const {
@@ -100,6 +109,7 @@ QGraphicsItem* NetworkScene::semanticItemAt(const QPointF& scenePos, QWidget* wi
 }
 
 void NetworkScene::select(QGraphicsItem* item) {
+	m_selectedItem = item;
 	if (item && item->data(PreviewGraphics::Kind).isValid())
 		emit MousePressedOnPreview(item);
 	else if (NodeItem* node = qgraphicsitem_cast<NodeItem*>(item))
@@ -147,7 +157,28 @@ void NetworkScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 		emit DisableHighlight();
 }
 
+QGraphicsItem* NetworkScene::selectedItem() const {
+	return m_selectedItem && items().contains(m_selectedItem) ? m_selectedItem : nullptr;
+}
+
+void NetworkScene::requestKeyboardContextMenu(QWidget* widget) {
+	QGraphicsView* view = widget ? qobject_cast<QGraphicsView*>(widget->parentWidget()) : nullptr;
+	if (!view && !views().isEmpty())
+		view = views().first();
+	if (!view)
+		return;
+	QGraphicsItem* item = selectedItem();
+	const QPointF scenePos = item ? item->sceneBoundingRect().center() : view->mapToScene(view->viewport()->rect().center());
+	const QPoint screenPos = view->viewport()->mapToGlobal(view->mapFromScene(scenePos));
+	emit ContextMenuRequested(item, scenePos, screenPos, true);
+}
+
 void NetworkScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
+	if (event->reason() == QGraphicsSceneContextMenuEvent::Keyboard) {
+		requestKeyboardContextMenu(event->widget());
+		event->accept();
+		return;
+	}
 	QGraphicsItem* item = semanticItemAt(event->scenePos(), event->widget());
 	emit ContextMenuRequested(item, event->scenePos(), event->screenPos(),
 		event->reason() == QGraphicsSceneContextMenuEvent::Keyboard);

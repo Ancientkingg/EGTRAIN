@@ -9,6 +9,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QHash>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLabel>
@@ -41,7 +42,38 @@ QString sceneDisplayName(const QString& rawPath) {
 	}
 	const bool bundle = info.suffix().compare(QLatin1String("egscene"), Qt::CaseInsensitive) == 0;
 	QString fallback = bundle ? info.completeBaseName() : info.fileName();
+	// A case that is no longer on disk keeps its file name as it was, so that the person can recognise it.
+	if (!info.exists())
+		return fallback;
 	return fallback.replace(QLatin1Char('_'), QLatin1Char(' '));
+}
+
+QStringList sceneListLabels(const QStringList& paths) {
+	QStringList labels;
+	QHash<QString, int> nameCount;
+	for (const QString& path : paths) {
+		labels << sceneDisplayName(path);
+		++nameCount[labels.last()];
+	}
+	// A name that several paths have is followed by the parent path, shortened in the middle when it is long.
+	QHash<QString, int> labelCount;
+	for (qsizetype i = 0; i < paths.size(); ++i) {
+		if (nameCount.value(labels.at(i)) > 1) {
+			QString parent = display_path::format(QFileInfo(paths.at(i)).dir().path());
+			if (parent.length() > 44)
+				parent = parent.left(20) + "..." + parent.right(20);
+			labels[i] = QString("%1 (%2)").arg(labels.at(i), parent);
+		}
+		++labelCount[labels.at(i)];
+	}
+	// The file name tells them apart when the parent path is the same too.
+	for (qsizetype i = 0; i < paths.size(); ++i) {
+		if (labelCount.value(labels.at(i)) > 1) {
+			labels[i].chop(1);
+			labels[i] += display_path::format("/" + QFileInfo(paths.at(i)).fileName()) + ")";
+		}
+	}
+	return labels;
 }
 
 namespace {
@@ -64,33 +96,49 @@ QListWidgetItem* addLabelRow(QListWidget* list, const QString& text, bool headin
 	return item;
 }
 
-// The tooltip of a row: the whole name and the whole path, because the row itself may show the name elided. The path shows
+// The tooltip of a row: the whole label and the whole path, because the row itself may show the label elided. The path shows
 // with the separators of this system.
-QString rowToolTip(const QString& name, const QString& path) {
-	return plainToolTip(name + QLatin1Char('\n') + display_path::format(path));
+QString rowToolTip(const QString& label, const QString& path) {
+	return plainToolTip(label + QLatin1Char('\n') + display_path::format(path));
 }
 
-void addGroup(QListWidget* list, const QString& title) {
+// Adds the heading and a row for each path, unless there is no path. A path that holds no case is listed as unavailable.
+void addGroup(QListWidget* list, const QString& title, const QStringList& paths, const QStringList& labels) {
+	if (paths.isEmpty())
+		return;
 	addLabelRow(list, title, true)->setData(Qt::UserRole, QString());
+	for (qsizetype i = 0; i < paths.size(); ++i) {
+		const QString& path = paths.at(i);
+		const QString& label = labels.at(i);
+		const QFileInfo info(path);
+		if ((info.isDir() && QFileInfo(QDir(path).filePath("scene.json")).exists())
+			|| (info.isFile() && info.suffix().compare("egscene", Qt::CaseInsensitive) == 0)) {
+			auto* item = new QListWidgetItem(label, list);
+			item->setData(Qt::UserRole, path);
+			item->setToolTip(rowToolTip(label, path));
+		} else {
+			QListWidgetItem* item = addLabelRow(list, QString("Unavailable: %1").arg(label), false);
+			// The row can be selected, so that its reason shows, but it has no path to open.
+			item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+			item->setToolTip(rowToolTip(label, path));
+			item->setData(kReasonRole, QStringLiteral("This case was moved or deleted."));
+		}
+	}
 }
 
-// Adds a row for the scene unless the same file is already listed.
-bool addSceneItem(QListWidget* list, QSet<QString>& seen, const QString& path) {
+// Adds the path unless the same file is already listed.
+void addPath(QStringList& paths, QSet<QString>& seen, const QString& path) {
 	const QString key = sceneListKey(path);
 	if (seen.contains(key))
-		return false;
+		return;
 	seen.insert(key);
-	const QString name = sceneDisplayName(path);
-	auto* item = new QListWidgetItem(name, list);
-	item->setData(Qt::UserRole, path);
-	item->setToolTip(rowToolTip(name, path));
-	return true;
+	paths << path;
 }
 
 void fillList(QListWidget* list, const QStringList& sceneRoots, const QStringList& recentPaths) {
 	QSet<QString> seen;
 	QSet<QString> bundledNames;
-	bool bundledHeader = false;
+	QStringList bundled;
 	for (const QString& root : sceneRoots) {
 		QDir dir(root);
 		if (!dir.exists()) continue;
@@ -104,36 +152,16 @@ void fillList(QListWidget* list, const QStringList& sceneRoots, const QStringLis
 				continue;
 			}
 			bundledNames.insert(entry.fileName().toCaseFolded());
-			if (!bundledHeader) {
-				addGroup(list, "Bundled cases");
-				bundledHeader = true;
-			}
-			addSceneItem(list, seen, entry.absoluteFilePath());
+			addPath(bundled, seen, entry.absoluteFilePath());
 		}
 	}
-	bool recentHeader = false;
-	for (const QString& path : recentPaths) {
-		const QFileInfo info(path);
-		const bool valid = (info.isDir() && QFileInfo(QDir(path).filePath("scene.json")).exists())
-			|| (info.isFile() && info.suffix().compare("egscene", Qt::CaseInsensitive) == 0);
-		if (seen.contains(sceneListKey(path)))
-			continue;
-		if (!recentHeader) {
-			addGroup(list, "Recent cases");
-			recentHeader = true;
-		}
-		if (valid) {
-			addSceneItem(list, seen, path);
-		} else {
-			seen.insert(sceneListKey(path));
-			const QString name = sceneDisplayName(path);
-			QListWidgetItem* item = addLabelRow(list, QString("Unavailable: %1").arg(name), false);
-			// The row can be selected, so that its reason shows, but it has no path to open.
-			item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-			item->setToolTip(rowToolTip(name, path));
-			item->setData(kReasonRole, QStringLiteral("This case was moved or deleted."));
-		}
-	}
+	QStringList recent;
+	for (const QString& path : recentPaths)
+		addPath(recent, seen, path);
+	// One set of labels for both groups, so that two cases of one name read differently wherever they are listed.
+	const QStringList labels = sceneListLabels(bundled + recent);
+	addGroup(list, "Bundled cases", bundled, labels.mid(0, bundled.size()));
+	addGroup(list, "Recent cases", recent, labels.mid(bundled.size()));
 	if (list->count() == 0) {
 		const QString hint = QStringLiteral("No cases found. Use Other ways to open... below.");
 		// The row can be elided in a narrow dialog, so the tooltip holds the whole sentence.
@@ -171,9 +199,9 @@ CaseChooserDialog::CaseChooserDialog(const Options& options, QWidget* parent) : 
 	moreButton->setAutoDefault(false);
 	m_otherMenu = new QMenu(moreButton);
 	QAction* newCase = m_otherMenu->addAction("New Case...");
+	QAction* browseFile = m_otherMenu->addAction("Open Case File...");
 	QAction* browseScene = m_otherMenu->addAction("Open Case Folder...");
 	QAction* legacy = m_otherMenu->addAction("Import Legacy Case...");
-	legacy->setToolTip("Convert a case from the original text files");
 	moreButton->setMenu(m_otherMenu);
 	bodyLayout->addWidget(moreButton, 0, Qt::AlignLeft);
 
@@ -200,6 +228,7 @@ CaseChooserDialog::CaseChooserDialog(const Options& options, QWidget* parent) : 
 	});
 	connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 	connect(newCase, &QAction::triggered, this, [this]() { choose(Outcome::NewCase); });
+	connect(browseFile, &QAction::triggered, this, [this]() { choose(Outcome::BrowseFile); });
 	connect(browseScene, &QAction::triggered, this, [this]() { choose(Outcome::BrowseFolder); });
 	connect(legacy, &QAction::triggered, this, [this]() { choose(Outcome::ImportLegacy); });
 	DialogLayout::install(*this, "Open a Case",

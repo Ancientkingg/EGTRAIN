@@ -15,12 +15,19 @@ namespace telemetry {
 /// Sends usage and diagnostic events to the compiled receiver from a worker thread of its own.
 /// Producers on any thread hand events to an in-memory ring of 128 entries without waiting. Once a
 /// second the worker re-reads consent through its own TelemetryConsent, stores events in a
-/// TelemetryQueue and posts batches over HTTPS, handling each response as the HTTP outcomes of
+/// TelemetryQueue and posts batches over HTTPS with the User-Agent EGTRAIN/<version>, handling each response as the HTTP outcomes of
 /// docs/telemetry/README.md say. Only the process that owns the queue sends; in others every event
 /// is dropped. A sender whose context is not capable, or whose construction fails, starts no thread
-/// and accepts nothing.
+/// and accepts nothing. The worker exits by itself once it can send nothing more in this run: after
+/// a receiver change, a 410 response, or a failed consent read or storage operation. When only a file
+/// write or a space check of the queue failed (TelemetryQueue::storageFailed()), it keeps the queue
+/// open but takes in nothing, reads consent once a second and at requestConsentRefresh(), and once
+/// the consent of either category has changed, removes the disabled marker and opens the queue again.
 class TelemetrySender {
 public:
+	/// Interval of the worker's timer in milliseconds. Each tick the worker applies revocations and refresh requests,
+	/// stores the waiting events and sends a batch that is due.
+	static constexpr int kTickIntervalMs = 50;
 	/// Internal ingress state retained by the worker until it exits.
 	struct Shared;
 	/// Default-invalid authorization for one sender, independently per category.
@@ -33,7 +40,6 @@ public:
 		friend class TelemetrySender;
 		std::weak_ptr<Shared> sender;
 		quint64 epoch[2] = {0, 0};
-		quint64 invalidation[2] = {0, 0};
 		bool eligible[2] = {false, false};
 	};
 #ifdef EGTRAIN_SENDER_TEST_HOOK
@@ -58,7 +64,8 @@ public:
 		bool failConstruction = false;					   ///< The constructor fails as on an allocation failure.
 		QByteArray loopbackRootPem;						   ///< The root certificate that a loopback server is checked against.
 		int requestTimeoutMs;							   ///< Time limit of one request in milliseconds, 1 to 10000.
-		TestOptions() : requestTimeoutMs(10000) {}
+		int tickIntervalMs;								   ///< Interval of the worker's timer in milliseconds, 1 to kTickIntervalMs.
+		TestOptions() : requestTimeoutMs(10000), tickIntervalMs(kTickIntervalMs) {}
 		/// Worker-thread callback; reply ownership is transferred to the sender.
 		std::function<QNetworkReply*(QNetworkAccessManager&, const QNetworkRequest&, const QByteArray&)> post;
 	};
@@ -89,12 +96,14 @@ public:
 	/// Explicit interactive lifetime request, attempted once at first enabled usage: the worker then
 	/// stores one session.started event. Ignored when the context is not interactive.
 	void requestInteractiveSession() noexcept;
-	/// Closes the named categories at once, drops their waiting events and invalidates tokens taken
-	/// before; the worker purges their queued events and opens them again after its next consent read.
-	/// Connected directly to TelemetryConsent::revoked. Never waits.
+	/// Refuses the named categories at once and invalidates tokens taken before. The worker's next pump
+	/// drops every waiting event, not only those of the named categories, and purges the queued events
+	/// of the named categories. They open again at the first consent read after that pump that finds
+	/// them enabled while no revocation is pending. Connected directly to TelemetryConsent::revoked.
+	/// Never waits.
 	void invalidateConsent(bool usage, bool diagnostics) noexcept;
-	/// Invalidates both categories; the worker purges every queued event and sends nothing more in this
-	/// run. Connected directly to TelemetryConsent::receiverChanged. Never waits.
+	/// Invalidates both categories; the worker purges every queued event and exits, so it sends nothing
+	/// more in this run. Connected directly to TelemetryConsent::receiverChanged. Never waits.
 	void invalidateReceiver() noexcept;
 	/// Asks the worker to re-read consent at its next tick, within about 50 ms, instead of at its next
 	/// poll.

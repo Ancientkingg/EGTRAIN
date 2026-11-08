@@ -1,10 +1,13 @@
 #ifndef RESULTVIEWS_H
 #define RESULTVIEWS_H
 
+#include "widgets/UserPrompts.h"
+
 #include <QList>
 #include <QObject>
 #include <QPointer>
 #include <QString>
+#include <QStringList>
 
 #include <functional>
 #include <memory>
@@ -13,18 +16,22 @@
 
 class QWidget;
 class RunController;
+class ScopeStretchChoice;
 struct BlockingTimeDiagramData;
 struct CompletedRunData;
 struct SceneModel;
+enum class TrajectoryChart;
 namespace telemetry {
 class OperationObservation;
 } // namespace telemetry
 
 /// Asks for a path and writes CSV text atomically. A cancelled dialog or a failed write never leaves a partial file behind.
-/// provider gives the text, and artifactWriter writes it together with its provenance and returns whether it succeeded.
-/// Empty text writes nothing and says that there is no data. ".csv" is added to a path without it.
-void saveCsvInteractive(QWidget* parent, const QString& suggestedName, const telemetry::OperationObservation& operation,
-	const std::function<std::string()>& provider, const std::function<bool(const QString&, const std::string&)>& artifactWriter);
+/// provider gives the text, and artifactWriter writes it together with its provenance and returns why it failed, or an
+/// empty string. Empty text writes nothing and says that there is no data. ".csv" is added to a path without it. The
+/// questions and messages go through `prompts` (saveExportInteractive).
+void saveCsvInteractive(QWidget* parent, UserPrompts& prompts, const QString& suggestedName,
+	const telemetry::OperationObservation& operation, const std::function<std::string()>& provider,
+	const std::function<QString(const QString&, const std::string&)>& artifactWriter);
 
 /// The name of each result view. The Diagrams menu, the Run Results menu and the window titles use these names.
 namespace ResultViewName {
@@ -71,8 +78,20 @@ public:
 	/// Opens the window of a route diagram: the train paths, or with timetable the planned and simulated stops.
 	/// referenceIndex is the runtime index of the route that gives the horizontal axis.
 	void buildRouteDiagram(const std::shared_ptr<const CompletedRunData>& run, bool timetable, int referenceIndex);
-	/// Opens the chart of the trajectories: 0 speed/distance, 1 speed/time, 2 time/distance, 3 simulated effort/distance.
+	/// Opens the chart of the trajectories of the trains that `kind` names.
+	void buildPerTrainDiagram(TrajectoryChart kind);
+	/// Opens the chart of the trajectories at `mode` in the order of TrajectoryChart, from 0 for speed against distance
+	/// to 3, as the test hook of MainWindow gives it. Another number opens nothing.
 	void buildPerTrainDiagram(int mode);
+	/// Adds a window that shows data of the case, such as the traction curve of a rolling stock unit, to the windows that
+	/// closeAll() closes. The window keeps its own place on the screen. A DiagramWindow gets the prompts().
+	void addCaseWindow(QWidget* window);
+	/// The prompts of the result windows and of their exports. They show no message while Host::dialogsSuppressed() is
+	/// true, and log the errors.
+	UserPrompts& prompts() { return m_prompts; }
+	/// Closes every result window and every window of addCaseWindow() that is still open, because they show another
+	/// case than the one that replaces it. The windows stay open from one run of a case to the next.
+	void closeAll();
 
 public slots:
 	/// Opens ResultViewName::kSpeedDistance.
@@ -107,13 +126,18 @@ public slots:
 signals:
 	/// A train was selected in one of the windows.
 	void trainSelected(const QString& trainId);
+	/// The block sections that the network view marks changed. While a Blocking time or Capacity scope dialog is open
+	/// they are the stretch that it chooses, with the sections of the entry under the pointer as `emphasisIds`; once it
+	/// closes, with OK or Cancel, they are the blocks of the boxes that the blocking time windows select, with those of the
+	/// cell or box under the pointer as `emphasisIds`. Runtime section ids of the run; both empty for no mark.
+	void sectionsMarked(const QStringList& sectionIds, const QStringList& emphasisIds);
 
 private:
-	// Opens a window on a blocking-time diagram of the run, with `context` as its context line and `contextToolTip` as
-	// its tooltip. The compressed diagram of a capacity result has its own title, CSV name and manual section, draws the
-	// capacity-critical blocks amber and has Critical block in place of Conflict in its Key.
-	void showBlockingTimeWindow(const std::shared_ptr<const CompletedRunData>& run, const BlockingTimeDiagramData& diagram,
-		bool compressed, const QString& context, const QString& contextToolTip);
+	// Opens a window on the blocking-time diagram `data` of the run, with `context` as its context line. The window keeps
+	// `data` for its export. The compressed diagram of a capacity result has its own title, CSV name and manual section,
+	// draws the capacity-critical blocks amber and has Critical block in place of Conflict in its Key.
+	void showBlockingTimeWindow(const std::shared_ptr<const CompletedRunData>& run,
+		const std::shared_ptr<const BlockingTimeDiagramData>& data, bool compressed, const QString& context);
 	// The runtime index of the route that the user picks from the routes the run used, -1 when there is none or the user
 	// cancels.
 	int chooseRouteDiagramReference(const CompletedRunData& run, const QString& purpose) const;
@@ -122,12 +146,30 @@ private:
 	// it over the main window. The delay analysis and capacity by area windows, which their openers show, move there
 	// after they appear.
 	void showWindow(QWidget* window);
+	// Runs `ask`, which opens a scope dialog with the observer it is given, while sectionsMarked follows the stretch of the
+	// dialog. Gives back what `ask` gives.
+	bool askMarkingStretch(const std::function<bool(const std::function<void(ScopeStretchChoice&)>&)>& ask);
+	// Keeps what a blocking time window points to (DiagramWindow::sectionsMarked) and sends the marks of the windows.
+	void markWindowSections(QWidget* window, const QStringList& selected, const QStringList& hovered);
+	// Sends the marks of the blocking time windows, unless a scope dialog is open.
+	void sendWindowMarks();
 
 	QWidget* const m_window;
 	RunController* const m_runController;
 	Host& m_host;
+	UserPrompts m_prompts;
 	// The result windows that showWindow() opened, oldest first; a closed window is deleted and leaves a null entry.
 	QList<QPointer<QWidget>> m_windows;
+	// The windows of addCaseWindow(), which showWindow() does not place.
+	QList<QPointer<QWidget>> m_caseWindows;
+	// What each blocking time window that points to block sections points to.
+	struct WindowMark {
+		QPointer<QWidget> window;
+		QStringList selected;
+		QStringList hovered;
+	};
+	std::vector<WindowMark> m_windowMarks;
+	bool m_scopeDialogOpen = false; // sectionsMarked follows the stretch of a scope dialog
 };
 
 #endif // RESULTVIEWS_H

@@ -116,12 +116,12 @@ TrainKeyList::TrainKeyList(QWidget* parent)
 	m_all = new QPushButton("All", m_searchRow);
 	m_all->setObjectName("trainKeyAll");
 	m_all->setAccessibleName("Show listed trains");
-	m_all->setToolTip("Show the trains of the rows in the list");
+	m_all->setToolTip("Show listed trains");
 	connect(m_all, &QPushButton::clicked, this, [this] { setSearchedVisible(true); });
 	m_none = new QPushButton("None", m_searchRow);
 	m_none->setObjectName("trainKeyNone");
 	m_none->setAccessibleName("Hide listed trains");
-	m_none->setToolTip("Hide the trains of the rows in the list");
+	m_none->setToolTip("Hide listed trains");
 	connect(m_none, &QPushButton::clicked, this, [this] { setSearchedVisible(false); });
 	searchLayout->addWidget(m_search, 1);
 	searchLayout->addWidget(m_all);

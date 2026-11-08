@@ -1,0 +1,9 @@
+# Known reports for the thread sanitizer job of .github/workflows/cmake.yml.
+# See "Nightly sanitizer runs" in docs/development/smoke-tests.md.
+#
+# A rule is a line "race:PATTERN". ThreadSanitizer ignores a data race when PATTERN is part of a function
+# name, a source file name or a library name in a stack of the report, which includes the stack that
+# started each thread of the race.
+#
+# Add one rule for each known report, and put a comment above it with the cause and the change that
+# removes the rule. A race in the code of the application is fixed, not listed here.

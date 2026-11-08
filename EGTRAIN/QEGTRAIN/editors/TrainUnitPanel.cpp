@@ -1,5 +1,7 @@
 #include "editors/TrainUnitPanel.h"
 
+#include "editors/EditorHelpers.h"
+#include "editors/RollingStockLibraryDialog.h"
 #include "scene/SceneFields.h"
 #include "scene/SceneIds.h"
 #include "scene/SceneReferences.h"
@@ -17,6 +19,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
+#include <QScrollBar>
 #include <QSignalBlocker>
 #include <QStringList>
 #include <QStyledItemDelegate>
@@ -34,10 +37,22 @@ namespace {
 static_assert(static_cast<std::size_t>(TrainUnitPanel::PhysicalFieldCount) == kSceneTrainPhysicalFields.size(),
 	"one range for each physical field");
 
-bool hasEditorFocus(const QWidget* editor) {
-	const QWidget* focus = QApplication::focusWidget();
-	return editor && (editor->hasFocus() || (focus && editor->isAncestorOf(focus)));
-}
+// The traction table, which prefers the width of its columns so that a dock can open with every column visible. Its
+// minimum width stays that of any table, so a narrow dock scrolls the table and not the whole panel.
+class TractionTable : public QTableWidget {
+public:
+	using QTableWidget::QTableWidget;
+
+	QSize sizeHint() const override {
+		QSize hint = QTableWidget::sizeHint();
+		const QHeaderView* header = horizontalHeader();
+		int width = 2 * frameWidth() + verticalScrollBar()->sizeHint().width();
+		for (int section = 0; section < header->count(); ++section)
+			width += std::max(header->sectionSizeHint(section), sizeHintForColumn(section));
+		hint.setWidth(std::max(hint.width(), width));
+		return hint;
+	}
+};
 
 // Edits a number of the traction table in a CompactDoubleSpinBox with the range of its column. A cell shows its number as
 // such a field shows it without the focus.
@@ -87,6 +102,15 @@ private:
 	static constexpr int kDecimals = std::numeric_limits<double>::max_digits10;
 };
 
+// Whether two units have the same values apart from their ids: the physical values, the traction curve and the source
+// references.
+bool sameValues(const SceneTrainUnit& a, const SceneTrainUnit& b) {
+	if (a.hasPhysical != b.hasPhysical || a.tractionCurve != b.tractionCurve || a.sourceDataFile != b.sourceDataFile
+		|| a.sourceTractionFile != b.sourceTractionFile)
+		return false;
+	return !a.hasPhysical || std::all_of(kSceneTrainPhysicalFields.begin(), kSceneTrainPhysicalFields.end(), [&a, &b](const SceneTrainPhysicalField& field) { return a.physical.*field.member == b.physical.*field.member; });
+}
+
 // The path as the person reads it on this system, with a zero-width space after each separator and underscore so
 // that a label can wrap it. The characters are not drawn.
 QString breakablePath(const QString& path) {
@@ -101,8 +125,9 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("trainUnitPanel");
 	QVBoxLayout* layout = new QVBoxLayout(this);
 
-	// top: the list of units and the buttons that manage it, in one row. The title of the dock names the list, which
-	// shows about three rows, so that the fields below keep the height of a short dock.
+	// top: the list of units and the buttons that manage it, Add Unit, Duplicate and Delete in one row and Add from Library
+	// under them. The title of the dock names the list, which shows about three rows, so that the fields below keep the
+	// height of a short dock.
 	QWidget* listPane = new QWidget(this);
 	QVBoxLayout* listLayout = new QVBoxLayout(listPane);
 	listLayout->setContentsMargins(0, 0, 0, 0);
@@ -121,6 +146,9 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	buttonLayout->addWidget(m_addButton, 0, 0);
 	buttonLayout->addWidget(m_duplicateButton, 0, 1);
 	buttonLayout->addWidget(m_deleteButton, 0, 2);
+	m_libraryButton = new QPushButton("Add from Library...", listPane);
+	m_libraryButton->setObjectName("addTrainUnitFromLibraryButton");
+	buttonLayout->addWidget(m_libraryButton, 1, 0, 1, 3);
 	listLayout->addLayout(buttonLayout);
 	layout->addWidget(listPane);
 
@@ -164,8 +192,10 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 
 	QWidget* tractionPage = new QWidget(m_tabs);
 	QVBoxLayout* tractionLayout = new QVBoxLayout(tractionPage);
-	tractionLayout->addWidget(new QLabel("Traction file", tractionPage));
+	QLabel* tractionFileLabel = new QLabel("Traction file", tractionPage);
+	tractionLayout->addWidget(tractionFileLabel);
 	m_sourceTractionEdit = new QLineEdit(tractionPage);
+	tractionFileLabel->setBuddy(m_sourceTractionEdit);
 	m_sourceTractionEdit->setObjectName("trainUnitSourceTractionEdit");
 	m_sourceTractionEdit->setPlaceholderText("Optional");
 	tractionLayout->addWidget(m_sourceTractionEdit);
@@ -173,7 +203,8 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 		m_unlinkTractionButton, m_retryTractionButton, m_sourceTractionStatusLabel);
 
 	tractionLayout->addWidget(new QLabel("Traction curve", tractionPage));
-	m_tractionTable = new QTableWidget(0, 5, tractionPage);
+	m_tractionTable = new TractionTable(0, 5, tractionPage);
+	m_tractionTable->setAccessibleName("Traction curve");
 	m_tractionTable->setObjectName("trainUnitTractionTable");
 	m_tractionTable->setHorizontalHeaderLabels(QStringList()
 		<< "Lower speed (m/s)" << "Upper speed (m/s)" << "C0" << "C1" << "C2");
@@ -186,7 +217,7 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_tractionTable->setSelectionMode(QAbstractItemView::SingleSelection);
 	// size columns to their headers so "Lower speed (m/s)" is never clipped
 	m_tractionTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-	m_tractionTable->horizontalHeader()->setStretchLastSection(true);
+	m_tractionTable->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Stretch);
 	m_tractionTable->setMinimumHeight(m_tractionTable->fontMetrics().lineSpacing() * 8);
 	tractionLayout->addWidget(m_tractionTable, 1);
 	QGridLayout* tractionButtonLayout = new QGridLayout();
@@ -220,11 +251,13 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 		edit->setSingleStep(i == 2 ? 1.0 : 0.1);
 		edit->setKeyboardTracking(false);
 		m_physicalEdits[static_cast<std::size_t>(i)] = edit;
-		physicalLayout->addRow(new QLabel(physicalLabels[i], physicalPage), edit);
+		physicalLayout->addRow(physicalLabels[i], edit);
 	}
 	physicalPageLayout->addLayout(physicalLayout);
-	physicalPageLayout->addWidget(new QLabel("Parameter file", physicalPage));
+	QLabel* parameterFileLabel = new QLabel("Parameter file", physicalPage);
+	physicalPageLayout->addWidget(parameterFileLabel);
 	m_sourceDataEdit = new QLineEdit(physicalPage);
+	parameterFileLabel->setBuddy(m_sourceDataEdit);
 	m_sourceDataEdit->setObjectName("trainUnitSourceDataEdit");
 	m_sourceDataEdit->setPlaceholderText("Optional");
 	physicalPageLayout->addWidget(m_sourceDataEdit);
@@ -250,6 +283,7 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 			[this, i](double) { commitPhysical(i); });
 	}
 	connect(m_addButton, &QPushButton::clicked, this, &TrainUnitPanel::addUnit);
+	connect(m_libraryButton, &QPushButton::clicked, this, &TrainUnitPanel::addFromLibrary);
 	connect(m_duplicateButton, &QPushButton::clicked, this, &TrainUnitPanel::duplicateUnit);
 	connect(m_deleteButton, &QPushButton::clicked, this, &TrainUnitPanel::deleteUnit);
 	connect(m_addTractionRowButton, &QPushButton::clicked, this, &TrainUnitPanel::addTractionRow);
@@ -265,22 +299,6 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 		commitTractionCell(row, column, m_tractionTable->item(row, column)->data(Qt::EditRole).toDouble());
 	});
 	refresh();
-}
-
-void TrainUnitPanel::setDocument(SceneDocument* document) {
-	QObject::disconnect(m_replacedConnection);
-	m_document = document;
-	if (m_document)
-		m_replacedConnection = connect(m_document, &SceneDocument::replaced, this, &TrainUnitPanel::refresh);
-	refresh();
-}
-
-void TrainUnitPanel::setPrompts(UserPrompts* prompts) {
-	m_prompts = prompts ? prompts : &m_ownPrompts;
-}
-
-bool TrainUnitPanel::hasScene() const {
-	return m_document && m_document->isLoaded();
 }
 
 int TrainUnitPanel::selectedRow() const {
@@ -306,16 +324,11 @@ void TrainUnitPanel::refresh() {
 			for (const auto& unit : m_document->model().trainUnits)
 				m_listWidget->addItem(QString::fromStdString(unit.id));
 		}
-		const int rowCount = m_listWidget->count();
-		int rowToSelect = -1;
-		if (rowCount > 0)
-			rowToSelect = previousRow < 0 ? 0 : std::min(previousRow, rowCount - 1);
-		if (const int sameUnit = rowOfEntry(m_listWidget, previousId, previousRow); sameUnit >= 0)
-			rowToSelect = sameUnit;
-		m_listWidget->setCurrentRow(rowToSelect);
+		restoreListSelection(m_listWidget, previousId, previousRow);
 		m_listWidget->setEnabled(loaded);
 	}
 	m_addButton->setEnabled(loaded);
+	m_libraryButton->setEnabled(loaded);
 	updateDetail();
 }
 
@@ -385,6 +398,8 @@ void TrainUnitPanel::refreshTractionTable() {
 		}
 	}
 	m_tractionTable->setEnabled(true);
+	// The width that the cells ask for changes with the curve, and so does the width that the dock opens with.
+	m_tractionTable->updateGeometry();
 	if (!curve.empty())
 		m_tractionTable->setCurrentCell(std::min(previousRow < 0 ? 0 : previousRow, static_cast<int>(curve.size()) - 1), 0);
 	m_removeTractionRowButton->setEnabled(m_tractionTable->currentRow() >= 0);
@@ -397,6 +412,8 @@ void TrainUnitPanel::setSourceState(bool traction, const QString& linkedPath, co
 	unlinkButton(traction)->setEnabled(linked);
 	retryButton(traction)->setEnabled(linked);
 	QLabel* statusLabel = sourceStatusLabel(traction);
+	// The text of a missing file holds break opportunities that a screen reader would read, so that state names itself.
+	statusLabel->setAccessibleName(QString());
 	if (!hasSelection) {
 		statusLabel->setText(QStringLiteral("No unit selected"));
 		statusLabel->setToolTip(QString());
@@ -407,6 +424,7 @@ void TrainUnitPanel::setSourceState(bool traction, const QString& linkedPath, co
 		// A file that is gone is missing whatever the last answer to its changes was, also after Keep Edits.
 		statusLabel->setText(QStringLiteral("File not found: %1").arg(breakablePath(linkedPath)));
 		statusLabel->setToolTip(display_path::format(linkedPath));
+		statusLabel->setAccessibleName(QStringLiteral("File not found: %1").arg(display_path::format(linkedPath)));
 	} else {
 		statusLabel->setText(status.isEmpty() ? QStringLiteral("Linked: %1").arg(QFileInfo(linkedPath).fileName()) : status);
 		statusLabel->setToolTip(display_path::format(linkedPath));
@@ -440,31 +458,90 @@ void TrainUnitPanel::commitPendingEditors() {
 void TrainUnitPanel::addUnit() {
 	if (!hasScene())
 		return;
-	SceneModel& model = m_document->mutableModel();
 	SceneTrainUnit unit;
-	unit.id = sceneUniqueTrainUnitId(model, "new_train_unit");
-	model.trainUnits.push_back(unit);
+	unit.id = sceneUniqueTrainUnitId(m_document->model(), "new_train_unit");
+	if (!m_document->edit(SceneDocument::TrainUnits, "Add rolling stock unit",
+			[&unit](SceneModel& model) { model.trainUnits.push_back(unit); }))
+		return;
 
-	m_document->markChanged(SceneDocument::TrainUnits, "Add rolling stock unit");
 	refresh();
-	emit trainUnitsChanged();
 	emit changed();
 
-	m_listWidget->setCurrentRow(static_cast<int>(model.trainUnits.size()) - 1);
+	m_listWidget->setCurrentRow(static_cast<int>(m_document->model().trainUnits.size()) - 1);
+}
+
+void TrainUnitPanel::addFromLibrary() {
+	if (!hasScene())
+		return;
+	const RollingStockLibrary library = bundledRollingStockLibrary();
+	if (hasErrors(library.diagnostics)) {
+		m_prompts->showError(this, "Cannot Read Rolling Stock Library", firstDiagnosticDialogText(library.diagnostics), true);
+		return;
+	}
+	RollingStockLibraryDialog dialog(library.units, this);
+	if (dialog.exec() != QDialog::Accepted || dialog.selectedUnit() == nullptr)
+		return;
+	addLibraryUnit(dialog.selectedUnit()->unit, dialog.addsComposition());
+}
+
+void TrainUnitPanel::addLibraryUnit(const SceneTrainUnit& libraryUnit, bool withComposition) {
+	if (!hasScene())
+		return;
+	const SceneModel& model = m_document->model();
+	const QString requestedId = QString::fromStdString(libraryUnit.id);
+	const SceneTrainUnit* existing = sceneTrainUnitById(model, libraryUnit.id);
+	if (existing != nullptr && sameValues(*existing, libraryUnit)) {
+		selectUnit(requestedId);
+		emit statusMessage(
+			QString("Rolling stock unit %1 is already in this case with the same values. Nothing was added.").arg(requestedId), 7000);
+		return;
+	}
+	SceneTrainUnit unit = libraryUnit;
+	unit.id = sceneUniqueTrainUnitId(model, libraryUnit.id);
+	SceneComposition composition;
+	composition.id = sceneUniqueCompositionId(model, unit.id);
+	composition.units = {unit.id};
+	const bool addsComposition = withComposition;
+	SceneDocument::ChangeKinds kinds(SceneDocument::TrainUnits);
+	if (addsComposition)
+		kinds |= SceneDocument::Compositions;
+	if (!m_document->edit(kinds, "Add rolling stock unit from library", [&unit, &composition, addsComposition](SceneModel& edited) {
+			edited.trainUnits.push_back(unit);
+			if (addsComposition)
+				edited.compositions.push_back(composition);
+		}))
+		return;
+	refresh();
+	emit changed();
+	selectUnit(QString::fromStdString(unit.id));
+
+	const QString unitId = QString::fromStdString(unit.id);
+	const QString compositionId = QString::fromStdString(composition.id);
+	QString message = addsComposition ? QString("Added rolling stock unit %1 and composition %2.").arg(unitId, compositionId)
+									  : QString("Added rolling stock unit %1.").arg(unitId);
+	const bool unitIdTaken = unit.id != libraryUnit.id;
+	const bool compositionIdTaken = addsComposition && composition.id != unit.id;
+	if (unitIdTaken)
+		message += QString(" %1 was taken, so it is now %2.").arg(requestedId, unitId);
+	if (compositionIdTaken)
+		message += QString(" Composition %1 was taken, so it is now %2.").arg(unitId, compositionId);
+	emit statusMessage(message, 7000);
+	if (unitIdTaken || compositionIdTaken)
+		m_prompts->showInfo(this, "Rolling Stock ID Adjusted", message);
 }
 
 void TrainUnitPanel::duplicateUnit() {
 	const int row = selectedRow();
 	if (row < 0)
 		return;
-	SceneModel& model = m_document->mutableModel();
-	SceneTrainUnit duplicate = model.trainUnits[static_cast<std::size_t>(row)];
-	duplicate.id = sceneUniqueTrainUnitId(model, duplicate.id + "_copy");
-	model.trainUnits.insert(model.trainUnits.begin() + row + 1, duplicate);
+	SceneTrainUnit duplicate = m_document->model().trainUnits[static_cast<std::size_t>(row)];
+	duplicate.id = sceneUniqueTrainUnitId(m_document->model(), duplicate.id + "_copy");
+	if (!m_document->edit(SceneDocument::TrainUnits, "Duplicate rolling stock unit", [row, &duplicate](SceneModel& model) {
+			model.trainUnits.insert(model.trainUnits.begin() + row + 1, duplicate);
+		}))
+		return;
 
-	m_document->markChanged(SceneDocument::TrainUnits, "Duplicate rolling stock unit");
 	refresh();
-	emit trainUnitsChanged();
 	emit changed();
 
 	m_listWidget->setCurrentRow(row + 1);
@@ -474,7 +551,7 @@ void TrainUnitPanel::deleteUnit() {
 	const int row = selectedRow();
 	if (row < 0)
 		return;
-	SceneModel& model = m_document->mutableModel();
+	const SceneModel& model = m_document->model();
 	const std::string id = model.trainUnits[static_cast<std::size_t>(row)].id;
 	QStringList consumers;
 	for (const std::string& consumer : sceneDirectDeleteConsumers(model, "train_unit", id))
@@ -486,30 +563,27 @@ void TrainUnitPanel::deleteUnit() {
 			true);
 		return;
 	}
-	if (!m_prompts->confirm(this, "Delete Rolling Stock Unit",
-			QString("Delete rolling stock unit '%1'?").arg(QString::fromStdString(id))))
+	if (!m_document->edit(SceneDocument::TrainUnits, "Delete rolling stock unit",
+			[row](SceneModel& edited) { edited.trainUnits.erase(edited.trainUnits.begin() + row); }))
 		return;
 
-	model.trainUnits.erase(model.trainUnits.begin() + row);
-
-	m_document->markChanged(SceneDocument::TrainUnits, "Delete rolling stock unit");
 	emit unitDeleted(QString::fromStdString(id));
 	refresh();
-	emit trainUnitsChanged();
 	emit changed();
+	reportDeleted(QString("rolling stock unit '%1'").arg(QString::fromStdString(id)));
 }
 
 void TrainUnitPanel::commitIdEdit() {
 	const int row = selectedRow();
 	if (row < 0)
 		return;
-	SceneModel& model = m_document->mutableModel();
-	SceneTrainUnit& unit = model.trainUnits[static_cast<std::size_t>(row)];
-	const std::string oldId = unit.id;
+	const SceneModel& model = m_document->model();
+	const std::string oldId = model.trainUnits[static_cast<std::size_t>(row)].id;
 	const std::string newId = m_idEdit->text().trimmed().toStdString();
 	if (newId.empty()) {
 		const QSignalBlocker blocker(m_idEdit);
 		m_idEdit->setText(QString::fromStdString(oldId));
+		m_prompts->showError(this, "Invalid Rolling Stock Unit ID", "Rolling stock unit IDs must not be empty.", true);
 		return;
 	}
 	if (newId == oldId)
@@ -518,20 +592,22 @@ void TrainUnitPanel::commitIdEdit() {
 		if (index != row && model.trainUnits[static_cast<std::size_t>(index)].id == newId) {
 			const QSignalBlocker blocker(m_idEdit);
 			m_idEdit->setText(QString::fromStdString(oldId));
+			m_prompts->showError(this, "Duplicate Rolling Stock Unit ID", "Choose a unique rolling stock unit ID.", true);
 			return;
 		}
 	}
 
-	unit.id = newId;
-	sceneRewriteTrainUnitReferences(model, oldId, newId);
-	if (QListWidgetItem* item = m_listWidget->item(row)) {
-		const QSignalBlocker blocker(m_listWidget);
-		item->setText(QString::fromStdString(newId));
-	}
+	if (!m_document->edit(SceneDocument::TrainUnits | SceneDocument::Compositions, "Rename rolling stock unit", [&](SceneModel& edited) {
+			edited.trainUnits[static_cast<std::size_t>(row)].id = newId;
+			sceneRewriteTrainUnitReferences(edited, oldId, newId);
+			if (QListWidgetItem* item = m_listWidget->item(row)) {
+				const QSignalBlocker blocker(m_listWidget);
+				item->setText(QString::fromStdString(newId));
+			}
+		}))
+		return;
 
-	m_document->markChanged(SceneDocument::TrainUnits | SceneDocument::Compositions, "Rename rolling stock unit");
 	emit unitRenamed(QString::fromStdString(oldId), QString::fromStdString(newId));
-	emit trainUnitsChanged();
 	emit changed();
 }
 
@@ -539,16 +615,18 @@ void TrainUnitPanel::commitSources() {
 	const int row = selectedRow();
 	if (row < 0)
 		return;
-	SceneTrainUnit& unit = m_document->mutableModel().trainUnits[static_cast<std::size_t>(row)];
+	const SceneTrainUnit& unit = m_document->model().trainUnits[static_cast<std::size_t>(row)];
 	const std::string sourceDataFile = m_sourceDataEdit->text().toStdString();
 	const std::string sourceTractionFile = m_sourceTractionEdit->text().toStdString();
 	if (unit.sourceDataFile == sourceDataFile && unit.sourceTractionFile == sourceTractionFile)
 		return;
-	unit.sourceDataFile = sourceDataFile;
-	unit.sourceTractionFile = sourceTractionFile;
+	if (!m_document->edit(SceneDocument::TrainUnits, "Edit rolling stock unit sources", [&](SceneModel& model) {
+			SceneTrainUnit& edited = model.trainUnits[static_cast<std::size_t>(row)];
+			edited.sourceDataFile = sourceDataFile;
+			edited.sourceTractionFile = sourceTractionFile;
+		}))
+		return;
 
-	m_document->markChanged(SceneDocument::TrainUnits, "Edit rolling stock unit sources");
-	emit sourceReferencesChanged();
 	emit changed();
 }
 
@@ -556,21 +634,20 @@ void TrainUnitPanel::commitPhysical(int fieldIndex) {
 	const int row = selectedRow();
 	if (row < 0 || fieldIndex < 0 || fieldIndex >= PhysicalFieldCount)
 		return;
-	SceneTrainUnit& unit = m_document->mutableModel().trainUnits[static_cast<std::size_t>(row)];
-	SceneTrainPhysical& physical = unit.physical;
-	double* values[PhysicalFieldCount] = {
-		&physical.mass_of_traction_unit_kg, &physical.mass_of_a_wagon_kg, &physical.number_of_wagons,
-		&physical.max_speed_ms, &physical.max_deceleration_ms2, &physical.frontal_area_m2,
-		&physical.resistance_coefficient, &physical.jerk_ms3, &physical.length_m};
+	const SceneTrainUnit& unit = m_document->model().trainUnits[static_cast<std::size_t>(row)];
+	const SceneTrainPhysicalField& field = kSceneTrainPhysicalFields[static_cast<std::size_t>(fieldIndex)];
 	const double value = m_physicalEdits[static_cast<std::size_t>(fieldIndex)]->value();
 	// A stored value outside the range is shown at the nearest limit. Showing it is not an edit.
-	const SceneValueRange& range = kSceneTrainPhysicalFields[static_cast<std::size_t>(fieldIndex)].range;
-	if (std::clamp(*values[fieldIndex], range.min, range.max) == value && unit.hasPhysical)
+	if (std::clamp(unit.physical.*field.member, field.range.min, field.range.max) == value && unit.hasPhysical)
 		return;
-	*values[fieldIndex] = value;
-	unit.hasPhysical = true;
 
-	m_document->markChanged(SceneDocument::TrainUnits, "Edit rolling stock unit");
+	if (!m_document->edit(SceneDocument::TrainUnits, "Edit rolling stock unit", [row, &field, value](SceneModel& model) {
+			SceneTrainUnit& edited = model.trainUnits[static_cast<std::size_t>(row)];
+			edited.physical.*field.member = value;
+			edited.hasPhysical = true;
+		}))
+		return;
+
 	emit changed();
 }
 
@@ -578,15 +655,17 @@ void TrainUnitPanel::addTractionRow() {
 	const int unitRow = selectedRow();
 	if (unitRow < 0)
 		return;
-	std::vector<std::array<double, 5>>& curve = m_document->mutableModel().trainUnits[static_cast<std::size_t>(unitRow)].tractionCurve;
-	std::array<double, 5> row = {{0.0, 1.0, 0.0, 0.0, 0.0}};
-	if (!curve.empty()) {
-		row[0] = curve.back()[1];
-		row[1] = row[0] + 1.0;
-	}
-	curve.push_back(row);
+	if (!m_document->edit(SceneDocument::TrainUnits, "Add traction row", [unitRow](SceneModel& model) {
+			std::vector<std::array<double, 5>>& curve = model.trainUnits[static_cast<std::size_t>(unitRow)].tractionCurve;
+			std::array<double, 5> row = {{0.0, 1.0, 0.0, 0.0, 0.0}};
+			if (!curve.empty()) {
+				row[0] = curve.back()[1];
+				row[1] = row[0] + 1.0;
+			}
+			curve.push_back(row);
+		}))
+		return;
 
-	m_document->markChanged(SceneDocument::TrainUnits, "Add traction row");
 	emit changed();
 	refreshTractionTable();
 	m_tractionTable->setCurrentCell(m_tractionTable->rowCount() - 1, 0);
@@ -597,12 +676,14 @@ void TrainUnitPanel::removeTractionRow() {
 	const int curveRow = m_tractionTable->currentRow();
 	if (unitRow < 0)
 		return;
-	std::vector<std::array<double, 5>>& curve = m_document->mutableModel().trainUnits[static_cast<std::size_t>(unitRow)].tractionCurve;
-	if (curveRow < 0 || curveRow >= static_cast<int>(curve.size()))
+	if (curveRow < 0 || curveRow >= static_cast<int>(m_document->model().trainUnits[static_cast<std::size_t>(unitRow)].tractionCurve.size()))
 		return;
-	curve.erase(curve.begin() + curveRow);
+	if (!m_document->edit(SceneDocument::TrainUnits, "Delete traction row", [unitRow, curveRow](SceneModel& model) {
+			std::vector<std::array<double, 5>>& curve = model.trainUnits[static_cast<std::size_t>(unitRow)].tractionCurve;
+			curve.erase(curve.begin() + curveRow);
+		}))
+		return;
 
-	m_document->markChanged(SceneDocument::TrainUnits, "Delete traction row");
 	emit changed();
 	updateDetail();
 }
@@ -611,14 +692,17 @@ void TrainUnitPanel::commitTractionCell(int row, int column, double value) {
 	const int unitRow = selectedRow();
 	if (unitRow < 0 || row < 0 || column < 0 || column >= 5)
 		return;
-	std::vector<std::array<double, 5>>& curve = m_document->mutableModel().trainUnits[static_cast<std::size_t>(unitRow)].tractionCurve;
+	const std::vector<std::array<double, 5>>& curve = m_document->model().trainUnits[static_cast<std::size_t>(unitRow)].tractionCurve;
 	if (row >= static_cast<int>(curve.size()))
 		return;
 	const SceneValueRange& range = kSceneTractionColumns[static_cast<std::size_t>(column)].range;
 	if (std::clamp(curve[static_cast<std::size_t>(row)][static_cast<std::size_t>(column)], range.min, range.max) == value)
 		return;
-	curve[static_cast<std::size_t>(row)][static_cast<std::size_t>(column)] = value;
 
-	m_document->markChanged(SceneDocument::TrainUnits, "Edit traction curve");
+	if (!m_document->edit(SceneDocument::TrainUnits, "Edit traction curve", [unitRow, row, column, value](SceneModel& model) {
+			model.trainUnits[static_cast<std::size_t>(unitRow)].tractionCurve[static_cast<std::size_t>(row)][static_cast<std::size_t>(column)] = value;
+		}))
+		return;
+
 	emit changed();
 }

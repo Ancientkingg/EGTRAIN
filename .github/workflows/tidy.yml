@@ -33,25 +33,11 @@ jobs:
         with:
           fetch-depth: 2
 
-      # The merge commit of a pull request has the base branch as its first parent. A failure here fails the job.
+      # The merge commit of a pull request has the base branch as its first parent. The rule is the tidy entry of the
+      # script. A failure here fails the job.
       - name: Select the tidy job from the changed files
         id: select
-        run: |
-          tidy=true
-          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
-            files=$(git -c core.quotepath=false diff --name-only --no-renames HEAD^1 HEAD)
-            tidy=false
-            while IFS= read -r file; do
-              case "$file" in
-                EGTRAIN/QEGTRAIN/*) tidy=true ;;
-                CMakeLists.txt) tidy=true ;;
-                .clang-tidy) tidy=true ;;
-                tools/tidy.py) tidy=true ;;
-                .github/workflows/tidy.yml) tidy=true ;;
-              esac
-            done <<< "$files"
-          fi
-          echo "tidy=$tidy" >> "$GITHUB_OUTPUT"
+        run: python3 tools/ci/changed_files.py tidy HEAD^1 HEAD --event "$GITHUB_EVENT_NAME" >> "$GITHUB_OUTPUT"
 
   check:
     name: tidy
@@ -67,18 +53,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      # The compile database is made with the Qt of the CMake workflow.
-      - name: Install Qt 6
-        uses: jurplel/install-qt-action@v4
+      # The compile database is made with the Qt and the libraries of the CMake workflow.
+      - name: Set up the dependencies
+        uses: ./.github/actions/setup-deps
         with:
-          version: '6.8.3'
-          modules: qtcharts
-          cache: true
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ninja-build libzmq3-dev cppzmq-dev nlohmann-json3-dev
+          apt-packages: ninja-build
 
       # PyPI stops at clang-tidy 22 and the runner image has an older release, so the 23.1 release comes from apt.llvm.org,
       # which is the version that tools/tidy.py accepts. The script of apt.llvm.org adds the repository, and clang-tidy is a package of its own.

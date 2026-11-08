@@ -1,6 +1,6 @@
 #include "widgets/NetworkLegendWidget.h"
 
-#include "graphics/items/SelectionCueItem.h"
+#include "graphics/items/NetworkMarkItem.h"
 
 #include <QEvent>
 #include <QHBoxLayout>
@@ -77,11 +77,11 @@ protected:
 		}
 
 		if (m_entry.kind == NetworkLegendEntryKind::Station) {
-			// The pin of the class in the colours of the canvas, whole and centred in the swatch, a pixel clear of its edges.
-			// Its dark halo outlines it on the light panel.
+			// The mark of the class in its style and the colours of the canvas, whole and centred in the swatch, a pixel
+			// clear of its edges. Its dark halo outlines it on the light panel.
 			const QRectF area = QRectF(rect()).adjusted(1.0, 1.0, -1.0, -1.0);
-			paintStationMark(&painter, stationMarkFrameIn(area, m_entry.stationClass, 1.0), m_entry.stationClass,
-				stationMarkFill(), canvasColor(), 1.0);
+			paintStationMark(&painter, stationMarkFrameIn(area, m_entry.stationClass, m_entry.stationMarkStyle, 1.0),
+				m_entry.stationClass, m_entry.stationMarkStyle, stationMarkFill(), canvasColor(), 1.0);
 			return;
 		}
 
@@ -244,11 +244,12 @@ QVector<NetworkLegendEntry> trainEntries(const QVector<NetworkLegendTrain>& trai
 	return entries;
 }
 
-NetworkLegendEntry stationEntry(const QString& label, StationClass cls) {
+NetworkLegendEntry stationEntry(const QString& label, StationClass cls, StationMarkStyle style) {
 	NetworkLegendEntry entry;
 	entry.kind = NetworkLegendEntryKind::Station;
 	entry.label = label;
 	entry.stationClass = cls;
+	entry.stationMarkStyle = style;
 	return entry;
 }
 
@@ -324,10 +325,12 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 			occupied.color = occupiedTrackColor();
 			m_entries << occupied;
 		}
-		if (content.hasSelectedTrack) {
-			NetworkLegendEntry selected = trackEntry("Selected track", TrackOperationalState::Free);
-			selected.color = kSelectionCueColor;
-			selected.lineWidth = 4;
+		if (content.hasSelectedTrack || content.hasSelectedItem) {
+			// The band of the mark that the preview draws along the track of the selected row. The mark of a row of another
+			// kind has the same violet.
+			NetworkLegendEntry selected = trackEntry(content.hasSelectedTrack ? "Selected track" : "Selected item", TrackOperationalState::Free);
+			selected.color = kNetworkMarkColor;
+			selected.lineWidth = qRound(NetworkMarkItem::BandPixels);
 			m_entries << selected;
 		}
 	}
@@ -338,7 +341,7 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 			 std::make_pair(StationClass::Halt, "Halt")}) {
 		if (std::any_of(content.stationVisuals.cbegin(), content.stationVisuals.cend(),
 				[&row](const StationVisual& visual) { return visual.cls == row.first; }))
-			m_entries << stationEntry(row.second, row.first);
+			m_entries << stationEntry(row.second, row.first, m_stationMarkStyle);
 	}
 
 	if (content.hasSignals) {
@@ -355,6 +358,13 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 		entry.iconResource = ":/icons/pax_icon.png";
 		m_entries << entry;
 	}
+	rebuildRows();
+}
+
+void NetworkLegendWidget::setStationMarkStyle(StationMarkStyle style) {
+	m_stationMarkStyle = style;
+	for (NetworkLegendEntry& entry : m_entries)
+		entry.stationMarkStyle = style;
 	rebuildRows();
 }
 
@@ -399,7 +409,8 @@ void NetworkLegendWidget::rebuildRows() {
 		label->setObjectName(QString("mapKeyEntry%1").arg(i));
 		label->setMaximumWidth(121);
 		label->setWordWrap(true);
-		label->setToolTip(entry.toolTip.isEmpty() ? entry.label : entry.toolTip);
+		if (!entry.toolTip.isEmpty())
+			label->setToolTip(entry.toolTip);
 		rowLayout->addWidget(label, 1);
 		layout->addWidget(row);
 	}

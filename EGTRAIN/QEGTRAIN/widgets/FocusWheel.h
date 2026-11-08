@@ -3,16 +3,19 @@
 #include <QAbstractSpinBox>
 #include <QChildEvent>
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QEvent>
 #include <QFocusEvent>
 #include <QLineEdit>
 #include <QObject>
 #include <QSlider>
+#include <QSpinBox>
 #include <QWidget>
 
 /// Lets the mouse wheel change a combo box, spin box or slider only while it has keyboard focus. Otherwise the wheel
 /// passes to the parent, so that it scrolls a form instead of changing a value on the way. The box takes focus
-/// from a click or the tab key but not from the wheel.
+/// from a click or the tab key but not from the wheel. An accessibility client steps a guarded spin box by its single
+/// step.
 namespace FocusWheel {
 
 /// The event filter that guard installs; the box owns it.
@@ -31,9 +34,16 @@ protected:
 	}
 };
 
-/// Guards box: gives it strong focus and installs a Filter, once.
+/// Guards box: gives it strong focus and installs a Filter, once. A spin box also gets its single step as the stepSize
+/// property. Qt's accessibility steps a spin box by that property for an Increment or Decrement, such as VO+Up of
+/// VoiceOver; QSpinBox and QDoubleSpinBox do not have it, and without it the step is a tenth of the range. The property
+/// keeps the single step that the box has now, except that CompactDoubleSpinBox::setSingleStep updates it.
 inline void guard(QWidget* box) {
 	box->setFocusPolicy(Qt::StrongFocus);
+	if (const auto* integerBox = qobject_cast<const QSpinBox*>(box))
+		box->setProperty("stepSize", integerBox->singleStep());
+	else if (const auto* numberBox = qobject_cast<const QDoubleSpinBox*>(box))
+		box->setProperty("stepSize", numberBox->singleStep());
 	// A box that guards itself is visited again by guardAll; the property keeps it from getting a second filter.
 	if (box->property("focusWheelGuard").toBool())
 		return;

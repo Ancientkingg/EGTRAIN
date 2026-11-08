@@ -108,3 +108,155 @@ Three runs of the same executable gave a `maximum resident set size` of
 Release v1.0.2 reached about 1.7 GB of resident memory in the same start,
 because static constructors touched the fixed arrays before any scene was
 loaded (#463).
+
+## Result windows after a window run, recorded 2026-10-31
+
+The route and blocking-time windows used to keep a preformatted CSV row for each
+sample they draw, and the simulation kept the samples of every train and step
+after the run had been copied into `CompletedRunData`. These numbers compare a
+Release executable (Qt 6.8.3, macOS 27.0, arm64) built from `main` at
+`d0bb18097` with one that makes the CSV rows only on export and frees the
+samples of the trains when the run ends. Each pair ran one after the other at a
+load average of about 2 to 3, so the elapsed times are not compared.
+
+The scripted window runs of [build.md](build.md) open the windows and write their
+CSV files. Both run from `EGTRAIN/QEGTRAIN`:
+
+```text
+QT_QPA_PLATFORM=offscreen QEGTRAIN_AUTOSTART=1 QEGTRAIN_E2E_ROUTE_DIAGRAM=<dir> \
+  /usr/bin/time -l <app> --scene Scenes/<case> -g 1 -pax 0
+QT_QPA_PLATFORM=offscreen QEGTRAIN_AUTOSTART=1 QEGTRAIN_E2E_EXPORT_DIR=<dir> \
+  /usr/bin/time -l <app> --scene Scenes/<case> -g 1 -pax 0
+```
+
+`QEGTRAIN_E2E_ROUTE_DIAGRAM` opens Train paths and Timetable graph for every route
+that trains use; `QEGTRAIN_E2E_EXPORT_DIR` opens the blocking-time window and the
+other result views. Both write their files before the run has finished in the
+window, so they show what the windows hold, not the freed samples. The CSV files of
+both executables were the same byte for byte.
+
+| Case | Hook | Peak RSS before (MiB) | Peak RSS after (MiB) | Peak footprint before (MiB) | Peak footprint after (MiB) |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Copenhagen | route diagram | 1,982.6 | 1,411.6 | 1,466.0 | 1,001.4 |
+| Copenhagen | export | 2,378.6 | 2,180.3 | 1,827.3 | 1,676.8 |
+| Netherlands | route diagram | 500.0 | 457.2 | 403.5 | 357.6 |
+| Netherlands | export | 536.1 | 520.3 | 426.5 | 409.0 |
+| Paimpol | route diagram | 189.6 | 187.7 | 147.0 | 145.0 |
+| Paimpol | export | 207.6 | 203.2 | 165.1 | 160.5 |
+
+The Netherlands route diagram run exits with 2 in both executables, because its
+timetable graph has no planned series; it has written its files by then.
+
+After a run with only `QEGTRAIN_AUTOSTART=1`, `vmmap --summary <pid>` 30 s after
+the Run Results table appeared gave these allocated bytes of the default malloc
+zone:
+
+| Case | Allocated before (MB) | Allocated after (MB) |
+| --- | ---: | ---: |
+| Copenhagen | 532.3 | 391.2 |
+| Netherlands | 304.1 | 275.1 |
+
+`footprint <pid>` did not fall with them: malloc keeps the freed pages of its
+small regions for the next allocations of the process, such as the result
+windows and the next run.
+
+## Train step vectors, recorded 2026-11-06
+
+Every train kept ten vectors with one entry for each step of the run: eight
+doubles, a `std::string` and an `int`, 92 bytes per step. It now keeps five
+doubles and a 32-bit section index, 44 bytes per step. The braking target
+(`Xob`, `Vob`) is kept for the previous and the current step only, the branch
+of the step (`Eq`) for the current step only, and the occupied section is an
+index into the route of the train. `BX` is kept only in a run that exports
+detailed trajectories, which adds 8 bytes per step.
+
+These numbers compare a Release executable (Qt 6.8.3, macOS 27.0.1, arm64,
+`EGTRAIN_IPO=OFF`) built from `main` after #1211 with one that has these
+changes. Each scene ran headless and alone, three times for each executable,
+with `OMP_NUM_THREADS=4` and `QT_QPA_PLATFORM=offscreen`, at a one-minute load
+average of 2.0 to 3.6:
+
+```text
+/usr/bin/time -l <app> --scene <absolute-scene-directory> -g 0
+```
+
+| Case | Peak RSS before (MiB) | Peak RSS after (MiB) | Peak footprint before (MiB) | Peak footprint after (MiB) | Elapsed before (s) | Elapsed after (s) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Copenhagen | 316.5 | 241.9 | 302.4 | 227.8 | 7.15 | 6.97 |
+| Netherlands | 215.0 | 201.1 | 200.9 | 187.0 | 1.61 | 1.58 |
+
+Each value is the median of three runs. The peak RSS fell by 74.6 MiB
+(24 percent) for Copenhagen and by 13.9 MiB (6 percent) for Netherlands. That
+is close to the 48 bytes per step that the vectors no longer take: 71.8 MiB for
+the 196 trains of Copenhagen and 14.7 MiB for the 40 trains of Netherlands,
+both over 8000 steps. The instructions retired fell by less than 0.3 percent,
+so these runs show no change in run time. Every output file and the standard
+output of every committed scene stayed the same byte for byte, also with
+detailed trajectories.
+
+## Section arcs, recorded 2026-11-06
+
+Every block section (`Section` in `simulation/Signalling.h`) held room for
+20 arcs inside itself, 13,920 of its 14,944 bytes, while the sections of the
+committed scenes have 1.0 to 4.2 arcs on average (Copenhagen 3.8 in the
+infrastructure and 4.2 in the routes, Netherlands 2.8 and 2.7). The run keeps
+sections in `RunInfrastructure::sections`, in each route
+(`sequence_of_block_sections`) and in each train (`Train::Bs`). The arcs are
+now a vector that holds exactly the arcs of the section, so a section takes
+1,048 bytes plus 696 bytes for each arc. The limit of 20 arcs for a scene
+section stays, with the same diagnostics.
+
+These numbers compare a Release executable (Qt 6.8.3, macOS 27.0.1, arm64,
+`EGTRAIN_IPO=OFF`) with the train step vectors of the previous section with
+one that also has this change. The two ran in turns, each scene headless and
+alone, three times for each executable, with `OMP_NUM_THREADS=4` and
+`QT_QPA_PLATFORM=offscreen`, at a one-minute load average of 3.2 to 4.0:
+
+```text
+/usr/bin/time -l <app> --scene <absolute-scene-directory> -g 0
+```
+
+| Case | Peak RSS before (MiB) | Peak RSS after (MiB) | Peak footprint before (MiB) | Peak footprint after (MiB) | Elapsed before (s) | Elapsed after (s) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Copenhagen | 239.3 | 180.5 | 225.2 | 166.3 | 7.19 | 7.14 |
+| Netherlands | 199.6 | 101.7 | 185.4 | 87.4 | 1.60 | 1.42 |
+
+Each value is the median of three runs. The peak RSS fell by 58.8 MiB
+(25 percent) for Copenhagen and by 97.9 MiB (49 percent) for Netherlands. The
+instructions retired fell by 1.7 percent for Copenhagen and by 5.7 percent for
+Netherlands, so the copy of the section that a train takes in each step does
+not slow the run. Every output file and the standard output of every
+committed scene stayed the same byte for byte, also with detailed
+trajectories.
+
+## Replay history, recorded 2026-11-08
+
+The window kept a complete picture of the run every fifth simulated second for the
+replay: 78.5 MiB of accounted payload for Copenhagen, 30.7 MiB for Netherlands. It now
+keeps, for every second, the values that changed against the second before, with a full
+copy every 300 seconds, and takes the positions and speeds of the trains from the samples
+that the completed run holds (`CompletedRunData`), without a copy of them. Copenhagen
+owns 3.68 MiB of replay payload and shares 6.68 MiB of samples with the completed run;
+Netherlands owns 1.16 MiB and shares 0.61 MiB.
+
+These numbers compare a Release executable (Qt 6.8.3, macOS 27.0.1, arm64,
+`EGTRAIN_IPO=OFF`) built from `main` after #1335 with one that has this change. The two
+ran in turns, three times each, with `OMP_NUM_THREADS=4` and `QT_QPA_PLATFORM=offscreen`,
+at a one-minute load average of 12.1 to 16.8. Both ran from `EGTRAIN/QEGTRAIN` a window run
+with the whole-run replay hook, which runs the scene to its end and exits:
+
+```text
+QT_QPA_PLATFORM=offscreen QEGTRAIN_AUTOSTART=1 QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1 \
+  /usr/bin/time -l <app> --scene Scenes/<case> -g 1 -pax 0
+```
+
+| Case | Peak RSS before (MiB) | Peak RSS after (MiB) | Peak footprint before (MiB) | Peak footprint after (MiB) | Elapsed before (s) | Elapsed after (s) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Copenhagen | 488.5 | 397.3 | 364.6 | 271.6 | 26.25 | 24.05 |
+| Netherlands | 275.9 | 240.0 | 174.3 | 142.8 | 13.47 | 8.55 |
+
+Each value is the median of three runs. The peak RSS fell by 91.2 MiB (19 percent) for
+Copenhagen and by 35.9 MiB (13 percent) for Netherlands, and the peak footprint by 93.0 and
+31.5 MiB. The machine was busy with other jobs, and the elapsed time of one executable
+varied between 15.6 and 37.3 s for Copenhagen, so the elapsed times are not compared. The
+simulation output of every committed scene stayed the same byte for byte.

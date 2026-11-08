@@ -1,5 +1,7 @@
 #include "simulation/Passengers.h"
+#include "simulation/RunOutputFile.h"
 #include <algorithm>
+#include <limits>
 
 using namespace std;
 
@@ -57,8 +59,7 @@ void printCurrentPassengerStatus(int t, int StartSimulationTime, const list<Pass
 	string FileName;
 
 	FileName = FileName + MainFolder + "/PassengerStatus.txt";
-	ofstream OutputFile;
-	OutputFile.open((char*)FileName.c_str(), ios::binary);
+	ofstream OutputFile = openRunOutputFile(FileName, ios::binary);
 
 	OutputFile << "Time PaxID IsInNetwork JourneyID TripID CurrentStatus CurrentWaitingStationID CurrentWaitingPlatformID CurrentWaitingTrain CurrentBoardedTrain CurrentArrivalStation\n";
 
@@ -69,7 +70,7 @@ void printCurrentPassengerStatus(int t, int StartSimulationTime, const list<Pass
 			}
 		}
 	}
-	OutputFile.close();
+	closeRunOutputFile(OutputFile, FileName);
 }
 
 // Function to print the delay of all completed journeys for all passengers.
@@ -77,8 +78,7 @@ void printPassengerTotalJourneyDelay(const list<Passenger>& ALLPAX, string MainF
 	string FileName;
 
 	FileName = FileName + MainFolder + "/JourneyDelays.txt";
-	ofstream OutputFile;
-	OutputFile.open((char*)FileName.c_str(), ios::binary);
+	ofstream OutputFile = openRunOutputFile(FileName, ios::binary);
 
 	OutputFile << "PaxID JourneyID TotalArrivalDelay[s]\n";
 
@@ -94,7 +94,19 @@ void printPassengerTotalJourneyDelay(const list<Passenger>& ALLPAX, string MainF
 			}
 		}
 	}
-	OutputFile.close();
+	closeRunOutputFile(OutputFile, FileName);
+}
+
+int platformNumber(const string& platformId) {
+	const string prefix = "Platform_";
+	string number = platformId;
+	const size_t index = number.find(prefix);
+	if (index != string::npos)
+		number.erase(index, prefix.length());
+	const double value = atof(number.c_str());
+	// The cast is undefined outside this range, and NaN fails both comparisons.
+	const bool fitsInt = value > numeric_limits<int>::min() - 1.0 && value < numeric_limits<int>::max() + 1.0;
+	return fitsInt ? static_cast<int>(value) : 0;
 }
 
 // When using this function it is necessary that the list of passengers is ordered by entrance time on the network, i.e. by the starting time of the currently selected journey

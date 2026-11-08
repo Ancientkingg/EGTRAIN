@@ -19,16 +19,24 @@ namespace {
 
 // The table columns that only advanced details show.
 constexpr int kCodeColumn = 1;
-constexpr int kFileColumn = 3;
-constexpr int kPathColumn = 4;
+constexpr int kFileColumn = 4;
+constexpr int kPathColumn = 5;
 
 // What the status column says for a status of the loaded data: one word for data without a problem.
-QString loadedStatusText(const std::string& status) {
-	if (status == "Parsed" || status == "Loaded" || status == "Ready")
-		return QStringLiteral("OK");
-	if (status == "Missing optional")
-		return QStringLiteral("Not present");
-	return QString::fromStdString(status);
+QString loadedStatusText(SceneLoadedStatus status) {
+	switch (status) {
+		case SceneLoadedStatus::Parsed:
+		case SceneLoadedStatus::Loaded:
+		case SceneLoadedStatus::Ready:
+			return QStringLiteral("OK");
+		case SceneLoadedStatus::Warning:
+			return QStringLiteral("Warning");
+		case SceneLoadedStatus::Invalid:
+			return QStringLiteral("Invalid");
+		case SceneLoadedStatus::MissingOptional:
+			return QStringLiteral("Not present");
+	}
+	return {};
 }
 
 // The severity of a diagnostic on screen, with a capital: "Error", "Warning" or "Info".
@@ -108,9 +116,9 @@ void addLoadedDataTreeItem(QTreeWidget* tree, QTreeWidgetItem* parent, const Sce
 } // namespace
 
 ValidationPanel::ValidationPanel(QWidget* parent) : QObject(parent) {
-	m_table = new QTableWidget(0, 6, parent);
+	m_table = new QTableWidget(0, 7, parent);
 	QStringList validationHeaders;
-	validationHeaders << "Severity" << "Code" << "Message" << "File" << "Path" << "Fix";
+	validationHeaders << "Severity" << "Code" << "Message" << "Item" << "File" << "Path" << "Fix";
 	m_table->setHorizontalHeaderLabels(validationHeaders);
 	m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -118,6 +126,7 @@ ValidationPanel::ValidationPanel(QWidget* parent) : QObject(parent) {
 	m_table->setTabKeyNavigation(false);
 	m_table->horizontalHeader()->setStretchLastSection(true);
 	m_table->resizeColumnsToContents();
+	connect(m_table, &QTableWidget::cellActivated, this, [this](int row, int) { activateRow(row); });
 
 	m_tree = new QTreeWidget(parent);
 	m_tree->setColumnCount(4);
@@ -139,6 +148,7 @@ ValidationPanel::ValidationPanel(QWidget* parent) : QObject(parent) {
 
 void ValidationPanel::setDocument(SceneDocument* document) {
 	m_document = document;
+	m_lastValidation.reset();
 }
 
 void ValidationPanel::setDiagnostics(std::vector<SceneDiagnostic>* diagnostics) {
@@ -178,8 +188,13 @@ QString ValidationPanel::statusText(const SceneDiagnosticCounts& counts, bool ad
 
 void ValidationPanel::showAdvancedColumns() {
 	const bool advanced = advancedDetails();
-	for (const int column : {kCodeColumn, kFileColumn, kPathColumn})
+	for (const int column : {kCodeColumn, kFileColumn, kPathColumn}) {
+		const bool comesIntoView = advanced && m_table->isColumnHidden(column);
 		m_table->setColumnHidden(column, !advanced);
+		// resizeColumnsToContents() in refresh() skips hidden columns, so a column fits its content when it shows.
+		if (comesIntoView)
+			m_table->resizeColumnToContents(column);
+	}
 }
 
 void ValidationPanel::updateStatus() {
@@ -203,7 +218,16 @@ void ValidationPanel::refresh() {
 	}
 
 	const std::optional<double> effectiveDurationOverride = m_durationOverride ? m_durationOverride() : std::nullopt;
-	*m_diagnostics = validateRunnableScene(m_document->model(), {}, effectiveDurationOverride);
+	// validateRunnableScene reads only the model and its arguments, so its result holds while the model and the override
+	// stay the same.
+	const quint64 generation = m_document->modelGeneration();
+	if (!m_lastValidation || m_lastValidation->modelGeneration != generation
+		|| m_lastValidation->durationOverride != effectiveDurationOverride) {
+		m_lastValidation = Validation{generation, effectiveDurationOverride,
+			validateRunnableScene(m_document->model(), {}, effectiveDurationOverride)};
+		++m_validationCount;
+	}
+	*m_diagnostics = m_lastValidation->diagnostics;
 
 	std::vector<SceneDiagnostic> ordered = *m_diagnostics;
 	std::stable_sort(ordered.begin(), ordered.end(), [](const SceneDiagnostic& a, const SceneDiagnostic& b) {
@@ -217,12 +241,16 @@ void ValidationPanel::refresh() {
 		const QString file = QString::fromStdString(d.file);
 		auto* severityItem = new QTableWidgetItem(severityText(d.severity));
 		severityItem->setData(kFileRole, file);
+		severityItem->setData(kItemTypeRole, QString::fromStdString(d.itemType));
+		severityItem->setData(kItemIdRole, QString::fromStdString(d.itemId));
 		m_table->setItem(row, 0, severityItem);
 		m_table->setItem(row, kCodeColumn, new QTableWidgetItem(QString::fromStdString(d.code)));
 		m_table->setItem(row, 2, new QTableWidgetItem(QString::fromStdString(d.message)));
+		// The item tells apart rows with the same message, such as the journeys without legs.
+		m_table->setItem(row, 3, new QTableWidgetItem(QString::fromStdString(itemLabel(d))));
 		m_table->setItem(row, kFileColumn, new QTableWidgetItem(file));
 		m_table->setItem(row, kPathColumn, new QTableWidgetItem(QString::fromStdString(d.path)));
-		m_table->setItem(row, 5, new QTableWidgetItem(QString::fromStdString(d.suggestedFix)));
+		m_table->setItem(row, 6, new QTableWidgetItem(QString::fromStdString(d.suggestedFix)));
 		// The code, the file and the path, one per line, for a table that does not show their columns.
 		QStringList details{QStringLiteral("Code: %1").arg(QString::fromStdString(d.code))};
 		if (!file.isEmpty())
@@ -242,25 +270,29 @@ void ValidationPanel::refresh() {
 void ValidationPanel::refreshLoadedData() {
 	m_tree->clear();
 	m_treeAdvanced.reset();
+	m_loadedData.clear();
 	if (!m_document || !m_document->isLoaded())
 		return;
 	const bool advanced = advancedDetails();
 	m_treeAdvanced = advanced;
 
 	const LoadedDataContext context = m_loadedDataContext ? m_loadedDataContext() : LoadedDataContext();
-	SceneModel& model = m_document->mutableModel();
-	refreshLoadedDataSummary(model);
-	refreshLoadedDataDiagnostics(model, *m_diagnostics);
+	const SceneModel& model = m_document->model();
+	m_loadedData = buildLoadedDataSummary(model, model.sourceFiles, *m_diagnostics);
 	auto addRow = [](QTreeWidgetItem* owner, const QString& category, const QString& source,
 					  const QString& count, const QString& status) {
 		return new QTreeWidgetItem(owner, QStringList{category, source, count, status});
 	};
 	const SceneDiagnosticCounts validationCounts = countDiagnostics(*m_diagnostics);
-	const SceneDiagnosticCounts runtimeCounts = countDiagnostics(context.runtimeDiagnostics);
-	const bool dataInvalid = std::any_of(model.loadedData.begin(), model.loadedData.end(),
-		[](const SceneLoadedData& row) { return row.status == "Invalid"; });
-	const bool dataWarning = std::any_of(model.loadedData.begin(), model.loadedData.end(),
-		[](const SceneLoadedData& row) { return row.status == "Warning"; });
+	// An output folder or file that the run cannot write (run.output.*) says nothing about the case.
+	std::vector<SceneDiagnostic> caseRuntimeDiagnostics;
+	std::copy_if(context.runtimeDiagnostics.begin(), context.runtimeDiagnostics.end(), std::back_inserter(caseRuntimeDiagnostics),
+		[](const SceneDiagnostic& diagnostic) { return diagnostic.code.rfind("run.output.", 0) != 0; });
+	const SceneDiagnosticCounts runtimeCounts = countDiagnostics(caseRuntimeDiagnostics);
+	const bool dataInvalid = std::any_of(m_loadedData.begin(), m_loadedData.end(),
+		[](const SceneLoadedData& row) { return row.status == SceneLoadedStatus::Invalid; });
+	const bool dataWarning = std::any_of(m_loadedData.begin(), m_loadedData.end(),
+		[](const SceneLoadedData& row) { return row.status == SceneLoadedStatus::Warning; });
 	const QString caseStatus = validationCounts.errors > 0 || runtimeCounts.errors > 0 || dataInvalid
 		? QStringLiteral("Invalid")
 		: (validationCounts.warnings > 0 || runtimeCounts.warnings > 0 || dataWarning
@@ -282,7 +314,7 @@ void ValidationPanel::refreshLoadedData() {
 			model.savedWithAppVersion.empty() ? QStringLiteral("-") : QString::fromStdString(model.savedWithAppVersion),
 			QString(), model.savedWithAppVersion.empty() ? QStringLiteral("Not present") : QStringLiteral("OK"));
 		if (context.sceneIsBundle)
-			addRow(caseRoot, "Bundle version", context.bundleVersion ? QString::number(*context.bundleVersion) : QStringLiteral("-"),
+			addRow(caseRoot, "Case file version", context.bundleVersion ? QString::number(*context.bundleVersion) : QStringLiteral("-"),
 				QString::number(kCurrentSceneBundleVersion),
 				context.bundleVersion ? QStringLiteral("OK") : QStringLiteral("Not present"));
 
@@ -293,7 +325,7 @@ void ValidationPanel::refreshLoadedData() {
 				QStringLiteral("OK"));
 		}
 	}
-	for (const auto& item : model.loadedData) {
+	for (const auto& item : m_loadedData) {
 		addLoadedDataTreeItem(m_tree, caseRoot, item, advanced);
 	}
 	const QString runStatus = runStatusText(context.runtimeStatus);
@@ -328,6 +360,15 @@ void ValidationPanel::activateItem(QTreeWidgetItem* item) {
 	const QString targetType = item->data(0, kTargetTypeRole).toString();
 	if (!targetType.isEmpty())
 		Q_EMIT targetActivated(targetType, item);
+}
+
+void ValidationPanel::activateRow(int row) {
+	const QTableWidgetItem* cell = m_table->item(row, 0);
+	if (!cell)
+		return;
+	const QString itemId = cell->data(kItemIdRole).toString();
+	if (!itemId.isEmpty())
+		Q_EMIT itemActivated(cell->data(kItemTypeRole).toString(), itemId);
 }
 
 void ValidationPanel::selectDiagnosticOfFile(const QString& file) {

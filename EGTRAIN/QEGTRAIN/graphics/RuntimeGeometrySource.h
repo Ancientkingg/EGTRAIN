@@ -12,10 +12,12 @@ class Stations;
 
 /// Where NetworkPresenter takes the infrastructure of a run from: the track lines with their arcs
 /// and nodes, the stations, the connections between track lines, the signalling block sections, the
-/// routes of the trains and the platforms of the stations. The presenter works out scene
-/// coordinates and display levels and writes them into the same objects, so the objects stay where
-/// they are until the presenter has cleared the scene, because the items on the canvas point to
-/// their arcs and nodes. The objects belong to the run, not to the presenter.
+/// routes of the trains and the platforms of the stations. The presenter only reads the objects: it
+/// keeps the display levels of the track lines and the layout of the stations that it works out from
+/// them in two tables of its own, and works out the points of the nodes and the connections when it
+/// draws them. The objects still stay where they are until the presenter has cleared the scene,
+/// because the items on the canvas point to their arcs, nodes and connections. The objects belong to
+/// the run, not to the presenter.
 ///
 /// An index is at least 0 and below the matching count. The source does not check it.
 class RuntimeGeometrySource {
@@ -25,19 +27,19 @@ public:
 	/// The number of track lines.
 	virtual int trackCount() const = 0;
 	/// The track line with this index.
-	virtual BlockSet& track(int index) const = 0;
+	virtual const BlockSet& track(int index) const = 0;
 	/// The region of the track line with this index.
 	virtual int regionOfTrack(int index) const = 0;
 
 	/// The number of stations.
 	virtual int stationCount() const = 0;
 	/// The station with this index.
-	virtual Stations& station(int index) const = 0;
+	virtual const Stations& station(int index) const = 0;
 
 	/// The number of connections between track lines.
 	virtual int connectionCount() const = 0;
 	/// The connection with this index.
-	virtual Connections& connection(int index) const = 0;
+	virtual const Connections& connection(int index) const = 0;
 
 	/// The number of signalling block sections.
 	virtual int sectionCount() const = 0;

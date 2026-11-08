@@ -1,6 +1,6 @@
 # Getting started as a developer
 
-This page takes you from a fresh clone to a built application, a first run, a changed test and the
+This page takes you from a fresh copy of the source tree to a built application, a first run, a changed test and the
 checks a pull request has to pass. It points to the longer guides for details. EGTRAIN is a Qt 6 and
 C++17 desktop application for railway micro-simulation, built with CMake.
 
@@ -24,7 +24,7 @@ is not what CI uses and was not checked for this page.
 | Tool | Version | Notes |
 | --- | --- | --- |
 | Git | any recent release | |
-| CMake | 3.16 or newer | `CMakeLists.txt` at the repository root |
+| CMake | 3.16 or newer | `CMakeLists.txt` at the root of the source tree |
 | C++ compiler | C++17 | Apple Clang on macOS, MSVC 2022 or newer on Windows (x64 only), GCC on Ubuntu |
 | Qt 6 | Core, Gui, Widgets, Charts, Svg, Network and Help | CI uses Qt 6.8.3 from aqtinstall on all three systems; the Qt 6.4.2 of Ubuntu 24.04 also builds |
 | ZeroMQ, cppzmq, nlohmann-json | any release that CMake finds | `libzmq3-dev cppzmq-dev nlohmann-json3-dev` on Ubuntu, vcpkg on Windows |
@@ -35,17 +35,12 @@ is not what CI uses and was not checked for this page.
 [Requirements](build.md#requirements) lists the supported toolchains and the exact install
 commands for each system.
 
-## Clone, configure and build
+## Configure and build
 
-Clone the repository and change into it:
-
-```bash
-git clone https://github.com/Ancientkingg/EGTRAIN.git
-cd EGTRAIN
-```
+Run the commands below in the root folder of the source tree, the folder that holds `CMakeLists.txt`.
 
 On macOS, install Qt 6.8.3 with [aqtinstall](https://aqtinstall.readthedocs.io/en/latest/getting_started.html)
-(or the Qt online installer) and the other libraries with Homebrew:
+(or the [Qt online installer](build.md#qt-online-installer)) and the other libraries with Homebrew:
 
 ```bash
 python3 -m venv ~/aqt-venv
@@ -128,12 +123,12 @@ of folders, the libraries and the renames.
 | To find | Look in |
 | --- | --- |
 | Start of the program, the command line | `app/main.cpp` |
-| The main window, menus, docks and the glue between them | `app/MainWindow.cpp`, `app/MainWindow.h` |
+| The main window, menus, docks and the glue between them | `app/MainWindow.cpp`, `app/MainWindow.h`; the editor docks and the wiring of their panels in `app/EditorDocks.cpp` |
 | The scene editor panels and the open scene with its unsaved state | `editors/` (`SceneDocument`, `*Panel`, `infrastructure/`) |
 | Loading, validating, saving, bundling, importing and exporting scenes | `scene/` (`SceneModel`, `SceneBundle`, `SceneValidator`, `SceneWriter`, `SceneImporter`, `SceneExporter`) |
 | Turning a scene into a runnable simulation | `simulation/builders/` (`InfrastructureBuilder`, `OperationsBuilder`) and `app/DispatchController.cpp` |
 | The simulation itself: trains, signalling, dynamics | `simulation/` |
-| Results, charts, analysis windows, CSV export | `diagrams/` (`CompletedRunCapture`, `RunResults`, `RunExports`) |
+| Results, charts, analysis windows, CSV export | `diagrams/` (`CompletedRunCapture`, `RunResults`, `RunCsv`, `BlockingTimeData`, `RouteDiagramData`) |
 | The network canvas | `graphics/` and `graphics/items/` |
 | Dock widgets, dialogs, small controls | `widgets/` |
 | Logging, time and number formatting | `util/` |
@@ -148,15 +143,15 @@ This is the path of one case through the code, in the order a user takes it. It 
 into `MainWindow.cpp`. [Scene editor flow](../architecture/scene-editor-flow.md) describes the same
 path from the user's side, and [Scene model](../architecture/scene-model.md) describes the data.
 
-1. **Open.** `File > Open Case...` (a `.egscene` bundle), `File > Open Case Folder...` or the
-   case chooser lead to `SceneSession::openSceneDirectory`. It probes the scene format, and the window
+1. **Open.** `File > Open Case...` and the toolbar button `Open Case` show the case chooser. Its rows,
+   `Open Case File...` (a `.egscene` bundle) and `Open Case Folder...` lead to `SceneSession::openSceneDirectory`. It probes the scene format, and the window
    loads the scene with `loadScenePath` into a `SceneModel` and hands it to its `SceneDocument`.
-2. **Edit.** An editor panel changes the model in place and calls `SceneDocument::markChanged`.
+2. **Edit.** An editor panel changes the model with `SceneDocument::edit`, which refuses most edits while a run uses the scene.
    `MainWindow::sceneDocumentChanged` records the step for Undo and Redo, discards the results of an
    earlier run and schedules the recovery copy.
 3. **Validate.** `MainWindow::refreshValidationPanel` asks `ValidationPanel::refresh`, which calls
    `validateRunnableScene` and fills the validation table. Error diagnostics block Run; warnings do not.
-4. **Run.** `Run` in the toolbar (Ctrl+R) or `File > Run` reaches `RunController::runScene`, which
+4. **Run.** `Run` in the toolbar or `Simulation > Run` (Ctrl+R) reaches `RunController::runScene`, which
    validates again and opens the review window **Run simulation**. Its button goes on to
    `DispatchController::prepareScene`, which validates, builds the infrastructure and the operations
    with `buildInfrastructureAndSignallingFromScene` and `buildOperationsFromScene`, and then to
@@ -168,7 +163,8 @@ path from the user's side, and [Scene model](../architecture/scene-model.md) des
    window. The output files are written to the [output folder](../guides/command-line.md#output-folder).
 6. **Save.** `File > Save` goes through `SceneSession::saveSceneToCurrentDir` to `saveSceneBundle`
    or `saveScene` (`scene/SceneWriter`), and `SceneSession::finishSceneSave` marks the scene saved. A bundled case
-   in the installation folder is never overwritten: Save leads to `Save As...`.
+   in the installation folder is never overwritten: Save leads to the dialog of a new case file, as
+   `Case File...` of `Save As...` does.
 
 Messages go through the logging core in `util/Log`. Switch categories on with `EGTRAIN_LOG` and
 read them in the **Log** dock (`View > Log`); see
@@ -187,10 +183,10 @@ is the full rule.
 | Simulation, scene model, conversion or memory | the whole suite, which runs `tools/e2e/headless_smoke.py` and `tools/e2e/roundtrip_smoke.py` |
 | Scene format | the same, and validate and export the committed scenes with `build/scene_tool` |
 
-CI configures with `-DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_IPO=OFF` on all three systems; the
-warnings option is off by default. Add it to your configure line to see the warnings that CI rejects.
-The Windows leg also uses Ninja with `cl`, `-DCMAKE_BUILD_TYPE=Release` and
-`-DEGTRAIN_NETWORK_TESTS=ON`; see `.github/workflows/cmake.yml`.
+CI configures a Release build with `-DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_IPO=OFF` on all three systems, through
+the presets `ci-macos`, `ci-linux` and `ci-windows` of `CMakePresets.json`; the warnings option is off by default. Add
+it to your configure line to see the warnings that CI rejects. The `ci-windows` preset also uses Ninja with `cl` and
+`-DEGTRAIN_NETWORK_TESTS=ON`; see [Configure options](ci-and-release.md#configure-options).
 
 The two Python smokes read the application that `QEGTRAIN_APP` names, and otherwise the executable in
 `build/` for the system: `build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` on macOS, `build/QEGTRAIN` on
@@ -209,12 +205,12 @@ sources, and `python3 tools/tidy.py` for the sources outside `simulation/`.
 This changes no product behavior. It shows the build, test and failure loop on `util/TimeFormat`,
 which has no Qt dependency and builds quickly. It starts from the finished build above.
 
-1. Open `EGTRAIN/QEGTRAIN/tests/test_timeformat.cpp`. Tests here are plain programs with a `main()` and a
-   local `expect(bool, message)`. After the line `formatSimTime negative clamp`, add an assertion that
-   is wrong on purpose:
+1. Open `EGTRAIN/QEGTRAIN/tests/test_timeformat.cpp`. It is a Qt Test class
+   ([Writing a test](testing.md#writing-a-test)). In `formatsSimTime_data()`, after the row
+   `negative clamp`, add a row that is wrong on purpose:
 
    ```cpp
-   ok &= expect(formatSimTime(7200) == "02:00:01", "formatSimTime two hours");
+   QTest::newRow("two hours") << 7200LL << 0LL << "02:00:01";
    ```
 
 2. Build and run only that test (with a multi-config generator, add `--config Release` and
@@ -225,7 +221,9 @@ which has no Qt dependency and builds quickly. It starts from the finished build
    ctest --test-dir build -R '^test_timeformat$' --output-on-failure
    ```
 
-   CTest reports the test as failed and the output has the line `failed: formatSimTime two hours`.
+   CTest reports the test as failed, and the output has the line
+   `FAIL!  : TestTimeFormat::formatsSimTime(two hours) Compared values are not the same`, followed by
+   the actual and the expected text.
 
 3. Correct the expected text to `"02:00:00"` and run the two commands again. The test passes.
 
@@ -239,9 +237,10 @@ which has no Qt dependency and builds quickly. It starts from the finished build
 5. Format the file if you keep the change (`python3 tools/format.py --fix`), or drop it with
    `git restore EGTRAIN/QEGTRAIN/tests/test_timeformat.cpp`.
 
-For a validation rule, follow the same steps with `tests/test_scenevalidator.cpp`: build a model that
-breaks the rule and check the diagnostic with `hasCodeAndSeverity`. A new test needs an entry in the
-root `CMakeLists.txt` and a label; [Tests](coding-guidelines.md#tests) shows how.
+For a validation rule, follow the same steps in a new slot of `tests/test_scenevalidator.cpp`: build a
+model that breaks the rule and check the diagnostic with `hasCodeAndSeverity`. A new test needs an
+`egtrain_add_test` entry with its labels in `EGTRAIN/QEGTRAIN/tests/CMakeLists.txt`;
+[Tests](coding-guidelines.md#tests) shows how.
 
 ## Where output goes
 
@@ -250,10 +249,11 @@ run, CTest and each smoke write their files.
 
 ## Contributing
 
-What the repository itself shows:
+What the source tree itself shows:
 
 - Pull requests go to `main`. CI builds and runs the CTest suite on macOS, Windows and Linux without
-  the tests labelled `network`, which run on Windows only, unless every changed file is documentation. The format and tidy checks run when C++ sources change.
+  the tests labelled `network`, which run on Windows only, and `nightly`, which the leak check runs, unless every
+  changed file is documentation. The format and tidy checks run when C++ sources change.
   [CI and release branches](ci-and-release.md#ci-and-release-branches) lists the workflows, and
   [Required checks on `main`](ci-and-release.md#required-checks-on-main) the checks that must pass.
 - Code follows [Coding guidelines](coding-guidelines.md). `.clang-format` and `.editorconfig` set the

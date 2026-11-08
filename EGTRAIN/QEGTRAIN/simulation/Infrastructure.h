@@ -13,6 +13,7 @@
 #include <sstream>
 #include <map>
 #include <algorithm>
+#include "scene/RuntimeLimits.h"
 #include "simulation/NumberGenerator.h"
 #include <vector>
 #include "util/portability.h"
@@ -56,27 +57,6 @@ public:
 
 	/// Sets the strings to "None", the flags to false and the coordinates to -1.
 	InfraElement();
-
-	/// Copies every member.
-	InfraElement& operator=(const InfraElement& ob2) {
-		this->ID = ob2.ID;
-		this->SectionID = ob2.SectionID;
-		this->IsSignal = ob2.IsSignal;
-		this->isStation = ob2.isStation;
-		this->IsSwitch = ob2.IsSwitch;
-		this->IsTrackDetSecBorder = ob2.IsTrackDetSecBorder;
-		this->stationName = ob2.stationName;
-		this->SwitchName = ob2.SwitchName;
-		this->withSwitchDiv = ob2.withSwitchDiv;
-		this->XCoordinate = ob2.XCoordinate;
-		this->YCoordinate = ob2.YCoordinate;
-		this->GeoXCoord = ob2.GeoXCoord;
-		this->GeoYCoord = ob2.GeoYCoord;
-		this->ConnectedPoint = ob2.ConnectedPoint;
-		this->isEndOfDivSwitchStartOfADivSwitch = ob2.isEndOfDivSwitchStartOfADivSwitch;
-		this->XConnectedPoint = ob2.XConnectedPoint;
-		return *this;
-	}
 };
 
 /// A point of the network. A track is a chain of nodes joined by arcs. A train also keeps copies of its stop nodes
@@ -93,7 +73,7 @@ public:
 	/// True on a braking target node that is an end of authority; its X is then a route position in metres. Nodes of the
 	/// infrastructure keep false.
 	bool isSignalled;
-	bool station; ///< True when a train stops at the node: a platform node, or a stop of the train.
+	bool station; ///< True on a node of a station of the scene: a platform node, or a node at the position of a station.
 	/// True when a train stopping at the node may leave only when the aspect of its section is not restrictive. Nothing
 	/// outside the tests sets it.
 	bool respectOrder;
@@ -103,9 +83,10 @@ public:
 	int StepStopped;		  ///< Number of steps the train has stood at this stop; 0 before it arrives.
 	bool virtualCouplingNode; ///< True on a braking target node where the train can couple virtually to the train ahead.
 	int indexOrderList;		  ///< Not used by the simulation; -1 by default.
-	/// Track slot of the track at the other end of each connection at this node. Up to 6 (RuntimeLimits::kNativeMaxNodeConnections).
-	int connectIdBlockSet[6];
-	double connectXNode[6];					  ///< X in kilometres of the node at the other end of each connection.
+	/// Track slot of the track at the other end of each connection at this node.
+	int connectIdBlockSet[RuntimeLimits::kNativeMaxNodeConnections];
+	/// X in kilometres of the node at the other end of each connection.
+	double connectXNode[RuntimeLimits::kNativeMaxNodeConnections];
 	int numConnections;						  ///< Number of connections at this node, the used entries of the two arrays above.
 	std::list<std::string> IDConnectedBlocks; ///< IDs of the block sections that leave this node through a connection.
 	/// Speed in m/s to reach at this node when it is a braking target: the speedInBraking of the arc that ends here.
@@ -117,71 +98,25 @@ public:
 	double tdsbGeoCoordY;						///< Y of the border in metres; -1 when unset.
 	/// Not set for a node; Stations has its own latitude and longitude.
 	double latitude, longitude; ///< Not set for a node.
-	/// X on the canvas, which the network presenter sets for the nodes of BlockSet::member; 0 otherwise.
-	double graphX, graphY; ///< Y on the canvas, set like graphX.
-	bool virtualSignal;	   ///< True for the signal in the middle of a double switch, which setVirtualSignals marks.
+	bool virtualSignal;			///< True for the signal in the middle of a double switch, which setVirtualSignals marks.
 
 	/// Sets the numbers to 0, the flags to false, indexOrderList and the border coordinates to -1.
 	Node();
 
-	/// Copies every member.
-	Node& operator=(const Node& ob2) {
-		sceneNodeId = ob2.sceneNodeId;
-		ID = ob2.ID;
-		X = ob2.X;
-		Y = ob2.Y;
-		isSignalled = ob2.isSignalled;
-		virtualCouplingNode = ob2.virtualCouplingNode;
-		station = ob2.station;
-		arcSpeedLimit = ob2.arcSpeedLimit;
-		indexOrderList = ob2.indexOrderList;
-		respectOrder = ob2.respectOrder;
-		stationName = ob2.stationName;
-		stationPlatformId = ob2.stationPlatformId;
-		dwellTime = ob2.dwellTime;
-		numConnections = ob2.numConnections;
-		tdsbId = ob2.tdsbId;
-		tdsbGeoCoordX = ob2.tdsbGeoCoordX;
-		tdsbGeoCoordY = ob2.tdsbGeoCoordY;
-		StopTime = ob2.StopTime;
-		StepStopped = ob2.StepStopped;
-		latitude = ob2.latitude;
-		longitude = ob2.longitude;
-		graphX = ob2.graphX;
-		graphY = ob2.graphY;
-		virtualSignal = ob2.virtualSignal;
-		for (int i = 0; i < 6; i++) {
-			connectIdBlockSet[i] = ob2.connectIdBlockSet[i];
-			connectXNode[i] = ob2.connectXNode[i];
-		}
-		if (this != &ob2) {
-			this->IDConnectedBlocks.clear();
-			if (ob2.IDConnectedBlocks.size() > 0) {
-				for (std::list<std::string>::const_iterator it = ob2.IDConnectedBlocks.begin(); it != ob2.IDConnectedBlocks.end(); it++) {
-					this->IDConnectedBlocks.push_back(*it);
-				}
-			}
-		}
-		return *this;
-	}
-
 	/// True when ID, X, Y, isSignalled, station and dwellTime are equal.
-	bool operator==(const Node& ob2) {
+	bool operator==(const Node& ob2) const {
 		if ((ID == ob2.ID) && (X == ob2.X) && (Y == ob2.Y) && (isSignalled == ob2.isSignalled) && (station == ob2.station) && (dwellTime == ob2.dwellTime))
 			return true;
 		else
 			return false;
 	}
-
-	/// Fills IDConnectedBlocks from the given block section IDs, choosing for each connection the ID that names its track
-	/// and node position.
-	void initialiseIdConnectedBlocks(std::string* IDConnectedBSofBlock, int N_IDConnectedBSofBlock);
 };
 
 /// A directed piece of track between two nodes.
 class Arc {
 public:
-	double ID; ///< Index of the arc along its track.
+	std::string sceneArcId; ///< Scene arc identity, when built from a SceneModel; empty otherwise.
+	double ID;				///< Index of the arc along its track.
 	/// Node at the start of the arc.
 	Node startNode, endNode; ///< Node at the end of the arc.
 	/// Length of the arc. Metres for the arcs of a track (arcLength). The arcs of a section hold the difference of the X of
@@ -208,26 +143,11 @@ public:
 	void arcLength();
 
 	/// True when every member but the nodes is equal and the nodes have the same IDs.
-	bool operator==(const Arc& ob2) {
+	bool operator==(const Arc& ob2) const {
 		if ((ID == ob2.ID) && (length == ob2.length) && (startNode.ID == ob2.startNode.ID) && (endNode.ID == ob2.endNode.ID) && (speedLimit == ob2.speedLimit) && (gradient == ob2.gradient) && (curvature == ob2.curvature) && (fs == ob2.fs) && (brakingDistance == ob2.brakingDistance) && (speedInBraking == ob2.speedInBraking) && (signalSpeedLimit == ob2.signalSpeedLimit))
 			return true;
 		else
 			return false;
-	}
-	/// Copies every member.
-	Arc& operator=(const Arc& ob2) {
-		ID = ob2.ID;
-		startNode = ob2.startNode;
-		endNode = ob2.endNode;
-		curvature = ob2.curvature;
-		gradient = ob2.gradient;
-		speedLimit = ob2.speedLimit;
-		length = ob2.length;
-		fs = ob2.fs;
-		brakingDistance = ob2.brakingDistance;
-		speedInBraking = ob2.speedInBraking;
-		signalSpeedLimit = ob2.signalSpeedLimit;
-		return *this;
 	}
 };
 
@@ -246,7 +166,7 @@ public:
 	std::vector<Arc> A;		 ///< Runtime arcs populated from the scene model
 	std::vector<Node> N;	 ///< Runtime nodes populated from the scene model
 	std::vector<Arc> member; ///< A second copy of the arcs, which the canvas draws and setVirtualSignals reads.
-	int graphID;			 ///< Display level of the track on the canvas; -1 until set.
+	int graphID;			 ///< Display level of the track on the canvas from the scene views; -1 when they give none.
 	bool hasGraphLayout;	 ///< Whether graphID/region came from authored view data
 	int region;				 ///< Display region of the track; 0 by default.
 	/// Not set by the builders; -1 by default.
@@ -255,10 +175,13 @@ public:
 	BlockSet();
 };
 
-/// The number of elements of the arrays of tracks, connections and stations. The builder rejects a scene that needs more.
-inline constexpr int kMaxTrackLines = 268;
-inline constexpr int kMaxConnections = 708; ///< See kMaxTrackLines.
-inline constexpr int kMaxStations = 95;		///< See kMaxTrackLines.
+/// The number of elements of the arrays of tracks, connections and stations, from RuntimeLimits. The builder rejects a
+/// scene that needs more.
+inline constexpr int kMaxTrackLines = static_cast<int>(RuntimeLimits::kNativeMaxTracks);
+/// See kMaxTrackLines.
+inline constexpr int kMaxConnections = static_cast<int>(RuntimeLimits::kNativeMaxConnections);
+/// See kMaxTrackLines.
+inline constexpr int kMaxStations = static_cast<int>(RuntimeLimits::kNativeMaxStations);
 
 /// A connection between two tracks, such as a switch.
 class Connections {
@@ -271,13 +194,6 @@ public:
 	/// X of the first node in kilometres.
 	double xFirstNode, xSecondNode; ///< X of the second node in kilometres.
 	double speedlimit;				///< Speed limit in m/s; 16.667 (60 km/h) when the scene gives none.
-	/// Canvas coordinates of the two ends of the connection. The builder copies them from Node::graphX and graphY, which
-	/// are 0 at that point, and the network presenter sets them (egtrainPoint2Screen) before it draws the connection.
-	double graphXFirstNode, graphYFirstNode, graphXSecondNode, graphYSecondNode; ///< See graphXFirstNode.
-	/// \var Connections::graphYFirstNode
-	/// See graphXFirstNode.
-	/// \var Connections::graphXSecondNode
-	/// See graphXFirstNode.
 
 	/// Sets the numbers to 0 and speedlimit to 16.667 m/s.
 	Connections();
@@ -316,52 +232,45 @@ public:
 
 bool orderPassengerListOnPlatform(std::pair<std::string, double>& A, std::pair<std::string, double>& blockSets);
 
-/// A station, with the delay statistics of the trains that stop there. Delays are in seconds and percentages in percent.
-/// The statistics stay -1 until they are computed.
-class Stations : public Node {
+/// The name that the station statistics files give to the statistics at the last stop of every train, SimulationRun::finalStation.
+inline constexpr char kFinalStationName[] = "Final_Station";
+
+/// The delay statistics of a set of trains. Delays are in seconds and percentages in percent. The statistics stay -1 until they are
+/// computed, and totalArrivalDelay stays 0.
+struct DelayStats {
+	double Av_Arrival_Delay = -1;	 ///< Average arrival delay
+	double Std_Arrival_Delay = -1;	 ///< Standard deviation of arrival delay
+	double totalArrivalDelay = 0;	 ///< Sum of arrival delays across all trains
+	double Max_TotalDelay = -1;		 ///< Maximum total delay
+	double Tot_Consec_Delay = -1;	 ///< Total consecutive delay (total delay minus entrance delay and previous stochastic delays)
+	double Max_Cons_Delay = -1;		 ///< Maximum consecutive delay
+	int N_Stopped_Trains = -1;		 ///< Number of trains that stopped at this station
+	int N_Delayed_Arr = -1;			 ///< Number of delayed arrivals
+	int N_Delayed_Arr_3min = -1;	 ///< Number of arrivals delayed >3 minutes
+	int N_Delayed_Arr_5min = -1;	 ///< Number of arrivals delayed >5 minutes
+	double Perc_Delayed_T = -1;		 ///< Percentage of trains delayed
+	double Perc_Delayed_T_3min = -1; ///< Percentage delayed >3 minutes
+	double Perc_Delayed_T_5min = -1; ///< Percentage delayed >5 minutes
+};
+
+/// A station, with the delay statistics of the trains that stop there.
+class Stations : public DelayStats {
 public:
-	int N_StationPlatforms;					   ///< Number of platforms of the station.
+	std::string stationName;				   ///< Name of the station, or its ID when it has no name.
+	double X = 0;							   ///< Position along the track in kilometres.
+	double Y = 0;							   ///< Y coordinate of the first node of the first platform in kilometres; 0 for a station with a position.
+	int N_StationPlatforms = 0;				   ///< Number of platforms of the station.
 	std::list<std::string> StationPlatformIDs; ///< IDs of platforms at this station
-	double Av_Arrival_Delay;				   ///< Average arrival delay
-	double Std_Arrival_Delay;				   ///< Standard deviation of arrival delay
-	double totalArrivalDelay;				   ///< Sum of arrival delays across all trains
-	double Max_TotalDelay;					   ///< Maximum total delay
-	double Tot_Consec_Delay;				   ///< Total consecutive delay (total delay minus entrance delay and previous stochastic delays)
-	double Max_Cons_Delay;					   ///< Maximum consecutive delay
-	int N_Stopped_Trains;					   ///< Number of trains that stopped at this station
-	int N_Delayed_Arr;						   ///< Number of delayed arrivals
-	int N_Delayed_Arr_3min;					   ///< Number of arrivals delayed >3 minutes
-	int N_Delayed_Arr_5min;					   ///< Number of arrivals delayed >5 minutes
-	double Perc_Delayed_T;					   ///< Percentage of trains delayed
-	double Perc_Delayed_T_3min;				   ///< Percentage delayed >3 minutes
-	double Perc_Delayed_T_5min;				   ///< Percentage delayed >5 minutes
 	/// Latitude in degrees from the scene views; 0 when there is none.
-	double latitude, longitude; ///< Longitude in degrees from the scene views; 0 when there is none.
-	/// X of the station on the canvas, which the network presenter sets.
-	double graphX, graphY; ///< Y of the station on the canvas, which the network presenter sets.
-	/// Per display region, the unit vector along which the canvas shifts the display levels of the tracks at the station.
-	std::map<int, double> shiftX, shiftY; ///< See shiftX.
-	/// Per display region, the unit vector along which the canvas places trackside signals at the station.
-	std::map<int, double> signalDeltaX, signalDeltaY; ///< See signalDeltaX.
-	std::vector<int> regions;						  ///< Display regions of the station from the scene views.
-	std::map<int, double> regionX;					  ///< Position in kilometres of the station in each display region.
-	std::vector<std::string> corridors;				  ///< Corridors of the station from the scene views.
-
-	/// Sets the statistics to -1, totalArrivalDelay and the coordinates to 0.
-	Stations();
+	double latitude = 0, longitude = 0; ///< Longitude in degrees from the scene views; 0 when there is none.
+	std::vector<int> regions;			///< Display regions of the station from the scene views.
+	std::map<int, double> regionX;		///< Position in kilometres of the station in each display region.
+	std::vector<std::string> corridors; ///< Corridors of the station from the scene views.
 };
 
+/// Writes the delay statistics of the stations to Name_StationDelay/Stats_Stations.txt for kindofdelay "pos" and to
+/// Name_StationDelay/Pos&Neg_Stats_Stations.txt for "pos&neg". Throws std::runtime_error when the file cannot be written
+/// (simulation/RunOutputFile.h).
 void Print_Station_Delay_Stats(const SimulationRun& run, std::string Name_StationDelay, std::string kindofdelay);
-
-/// A block section or station on the route of a train. Train::LocationNames holds these, and nothing fills it.
-class Location {
-public:
-	std::string Name;				 ///< Not set or read by the simulation.
-	double MaxHW;					 ///< Not set or read by the simulation.
-	double MinHW;					 ///< Not set or read by the simulation.
-	double Position;				 ///< Not set or read by the simulation.
-	std::string MinimumTrainCouple;	 ///< Not set or read by the simulation.
-	std::string CriticalTrainCouple; ///< Not set or read by the simulation.
-};
 
 #endif

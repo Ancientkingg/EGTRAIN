@@ -19,6 +19,8 @@
 #include <QVBoxLayout>
 #include <QtGlobal>
 
+#include <memory>
+
 #include "widgets/FocusWheel.h"
 
 /// The common layout of the dialogs: the window title, an optional context line, a body that scrolls and a footer of
@@ -204,6 +206,41 @@ inline void fitWidthToContent(QDialog& dialog) {
 		+ scroll->widget()->sizeHint().width() + scroll->verticalScrollBar()->sizeHint().width();
 	const int width = qMin(dialog.maximumWidth(), qMax(dialog.width(), needed));
 	dialog.resize(width, qMin(dialog.maximumHeight(), qMax(dialog.height(), detail::heightForContent(dialog, width))));
+}
+
+/// Shows details while the checkable toggle is checked and hides them while it is not, with the arrow of toggle pointing
+/// down or right. Once the layout has made room for the details, the dialog grows to show them as fitWidthToContent
+/// makes it. Once it has hidden them again, the dialog returns to the size it had before they showed, or, when its size
+/// changed while they showed, as when the user resized it, keeps its width and gives back the height that the details
+/// added, down to the height it had before they showed. Call it for a dialog that install lays out, with toggle and
+/// details in its body.
+inline void connectDetailsToggle(QDialog& dialog, QToolButton* toggle, QWidget* details) {
+	// The size of the dialog before the details showed and after it grew for them, until the details have hidden again.
+	struct Sizes {
+		QSize collapsed;
+		QSize expanded;
+	};
+	auto sizes = std::make_shared<Sizes>();
+	QObject::connect(toggle, &QToolButton::toggled, &dialog, [&dialog, toggle, details, sizes](bool shown) {
+		toggle->setArrowType(shown ? Qt::DownArrow : Qt::RightArrow);
+		details->setVisible(shown);
+		if (shown && !sizes->collapsed.isValid())
+			sizes->collapsed = dialog.size();
+		QTimer::singleShot(0, &dialog, [&dialog, toggle, sizes] {
+			if (toggle->isChecked()) {
+				fitWidthToContent(dialog);
+				sizes->expanded = dialog.size();
+			} else if (sizes->collapsed.isValid()) {
+				if (!sizes->expanded.isValid() || dialog.size() == sizes->expanded) {
+					dialog.resize(sizes->collapsed);
+				} else {
+					const int added = sizes->expanded.height() - sizes->collapsed.height();
+					dialog.resize(dialog.width(), qMax(dialog.height() - added, qMin(dialog.height(), sizes->collapsed.height())));
+				}
+				*sizes = Sizes();
+			}
+		});
+	});
 }
 
 /// How serious an inline message is. Each value selects one callout of the stylesheet.

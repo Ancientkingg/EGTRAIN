@@ -3,8 +3,6 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
-OUT="${TMPDIR:-/tmp}/qegtrain-scene-render-e2e.log"
-SHOT="${TMPDIR:-/tmp}/qegtrain-scene-render-e2e.png"
 
 if [[ ! -x "$APP" ]]; then
 	echo "QEGTRAIN app is not built" >&2
@@ -17,10 +15,24 @@ else
 	SCENE="$ROOT/EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut"
 fi
 
-rm -f "$SHOT"
+# The log and the screenshot go into a folder of each run's own, which is kept when the check fails.
+WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-scene-render-e2e.XXXXXX")"
+OUT="$WORK_DIR/qegtrain-scene-render-e2e.log"
+SHOT="$WORK_DIR/qegtrain-scene-render-e2e.png"
 # The check turns View > Passengers on and off, which the program remembers in its settings.
 SETTINGS_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-scene-render-settings.XXXXXX")"
-trap 'rm -rf "$SETTINGS_DIR"' EXIT
+cleanup() {
+	local exit_code=$?
+	trap - EXIT
+	rm -rf "$SETTINGS_DIR"
+	if [[ "$exit_code" -eq 0 ]]; then
+		rm -rf "$WORK_DIR"
+	else
+		echo "the log and the screenshot of this run are in $WORK_DIR" >&2
+	fi
+	exit "$exit_code"
+}
+trap cleanup EXIT
 cd "$ROOT/EGTRAIN/QEGTRAIN"
 QEGTRAIN_E2E_SETTINGS_DIR="$SETTINGS_DIR" \
 QEGTRAIN_E2E_SCENE_RUN=1 \
@@ -65,7 +77,7 @@ else
 	grep -q "E2E_PASSENGERS_DISABLED_OK" "$OUT" || fail_render "E2E_PASSENGERS_DISABLED_OK is missing"
 fi
 test -s "$SHOT" || fail_render "no screenshot at $SHOT"
-echo "scene render e2e passed: $SHOT"
+echo "scene render e2e passed: $SCENE"
 # The default scene has no passengers; the one with passengers runs next.
 if [[ $# -eq 0 ]]; then
 	bash "$ROOT/tools/e2e/scene_render_smoke.sh" "$ROOT/EGTRAIN/QEGTRAIN/Scenes/Paimpol"

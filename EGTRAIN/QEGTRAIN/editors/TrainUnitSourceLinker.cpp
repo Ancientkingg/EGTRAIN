@@ -1,5 +1,6 @@
 #include "editors/TrainUnitSourceLinker.h"
 
+#include "scene/SceneHistory.h"
 #include "scene/SceneImporter.h"
 #include "scene/SceneReferences.h"
 
@@ -13,6 +14,7 @@
 #include <QScopedValueRollback>
 
 #include <algorithm>
+#include <any>
 #include <set>
 #include <utility>
 
@@ -184,6 +186,33 @@ void TrainUnitSourceLinker::forgetUnit(const std::string& unitId) {
 	emit statusChanged();
 }
 
+void TrainUnitSourceLinker::historyRestored(const SceneModel& previous, const SceneHistoryEntry& entry) {
+	const SceneModel& restored = *entry.scene;
+	for (auto it = m_links.begin(); it != m_links.end();) {
+		if (sceneTrainUnitById(restored, it->first))
+			++it;
+		else
+			it = m_links.erase(it);
+	}
+	if (const Links* kept = std::any_cast<Links>(&entry.trainUnitSourceLinks)) {
+		for (const auto& [unitId, state] : *kept) {
+			if (!sceneTrainUnitById(restored, unitId) || sceneTrainUnitById(previous, unitId))
+				continue;
+			m_links[unitId] = state;
+			// The files may have changed while the unit was gone. One that holds what it held when it was last handled is
+			// not taken again.
+			for (const QString& path : {state.dataPath, state.tractionPath}) {
+				if (!path.isEmpty())
+					m_pendingPaths.insert(path);
+			}
+		}
+	}
+	refreshWatches();
+	if (!m_pendingPaths.isEmpty())
+		m_debounceTimer.start();
+	emit statusChanged();
+}
+
 void TrainUnitSourceLinker::clear() {
 	m_debounceTimer.stop();
 	m_pendingPaths.clear();
@@ -284,13 +313,16 @@ void TrainUnitSourceLinker::processChanges() {
 void TrainUnitSourceLinker::processFile(const QString& path, bool traction) {
 	if (!loaded() || runActive())
 		return;
-	emit commitPendingEditsRequested();
-	std::vector<std::string> affected;
-	for (const auto& entry : m_links) {
-		const QString linkedPath = traction ? entry.second.tractionPath : entry.second.dataPath;
-		if (linkedPath == path)
-			affected.push_back(entry.first);
-	}
+	const auto linkedUnits = [this, &path, traction]() {
+		std::vector<std::string> units;
+		for (const auto& entry : m_links) {
+			const QString linkedPath = traction ? entry.second.tractionPath : entry.second.dataPath;
+			if (linkedPath == path)
+				units.push_back(entry.first);
+		}
+		return units;
+	};
+	std::vector<std::string> affected = linkedUnits();
 	if (affected.empty()) {
 		refreshWatches();
 		return;
@@ -317,6 +349,10 @@ void TrainUnitSourceLinker::processFile(const QString& path, bool traction) {
 		emit statusChanged();
 		return;
 	}
+	// The units are first read below, so a file that holds what it held before, or a change of another file in its folder,
+	// takes no text. An id that is still being typed renames its unit when it is taken, and its links go with it.
+	emit commitPendingEditsRequested();
+	affected = linkedUnits();
 
 	SceneTrainPhysicalSourceResult physicalResult;
 	SceneTrainTractionSourceResult tractionResult;
@@ -352,6 +388,7 @@ void TrainUnitSourceLinker::processFile(const QString& path, bool traction) {
 	QStringList affectedNames;
 	std::map<std::string, quint64> generations;
 	bool deferredChange = false;
+	bool localEdits = false;
 	for (const std::string& unitId : affected) {
 		const auto it = m_links.find(unitId);
 		if (it == m_links.end() || (traction ? it->second.tractionPath : it->second.dataPath) != path)
@@ -365,6 +402,7 @@ void TrainUnitSourceLinker::processFile(const QString& path, bool traction) {
 		const bool localChanged = traction
 			? (unit->tractionCurve != it->second.acceptedTraction)
 			: (it->second.acceptedPhysical && !sameTrainPhysical(unit->physical, *it->second.acceptedPhysical));
+		localEdits = localEdits || localChanged;
 		const bool candidateChanged = traction
 			? unit->tractionCurve != tractionResult.tractionCurve
 			: !sameTrainPhysical(unit->physical, physicalResult.physical);
@@ -375,20 +413,28 @@ void TrainUnitSourceLinker::processFile(const QString& path, bool traction) {
 		refreshWatches();
 		return;
 	}
+	const bool asks = !conflicts.isEmpty() || deferredChange;
+	if (asks)
+		emit commitAllPendingEditsRequested();
 	const quint64 sceneRevisionAtDecision = m_document->revision();
 	bool reload = true;
-	if (!conflicts.isEmpty() || deferredChange) {
+	if (asks) {
 		QMessageBox dialog(m_dialogParent);
 		dialog.setIcon(QMessageBox::Question);
 		dialog.setWindowTitle("Linked File Changed");
 		dialog.setText(QString("%1 changed for %2.")
 				.arg(traction ? QStringLiteral("The traction file") : QStringLiteral("The parameter file"),
 					affectedNames.join(", ")));
-		dialog.setInformativeText(conflicts.isEmpty()
-				? QStringLiteral("It changed during the run. Reload it or keep your edits?")
-				: QStringLiteral("You also edited %1 here. Reload the file or keep your edits?").arg(conflicts.join(", ")));
+		QString question = !conflicts.isEmpty()
+			? QStringLiteral("You also edited %1 here. Reload the file or keep your edits?").arg(conflicts.join(", "))
+			: localEdits ? QStringLiteral("It changed during the run. Reload it or keep your edits?")
+						 : QStringLiteral("It changed during the run. Reload it or keep the current values?");
+		// A reload edits the scene, which discards the results that the window shows.
+		if (m_resultsShown && m_resultsShown())
+			question += QStringLiteral(" Reloading discards the results of this run.");
+		dialog.setInformativeText(question);
 		QPushButton* reloadButton = dialog.addButton("Reload", QMessageBox::AcceptRole);
-		QPushButton* keepButton = dialog.addButton("Keep Edits", QMessageBox::RejectRole);
+		QPushButton* keepButton = dialog.addButton(localEdits ? "Keep Edits" : "Keep Current", QMessageBox::RejectRole);
 		dialog.setDefaultButton(keepButton);
 		dialog.exec();
 		reload = dialog.clickedButton() == reloadButton;

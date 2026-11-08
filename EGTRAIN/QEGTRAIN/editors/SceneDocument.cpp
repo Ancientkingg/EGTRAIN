@@ -4,7 +4,6 @@
 
 void assignAuthoredScene(SceneModel& live, const SceneModel& snapshot) {
 	SceneModel next = snapshot;
-	next.loadedData = std::move(live.loadedData);
 	next.sourceFiles = std::move(live.sourceFiles);
 	next.savedWithAppVersion = std::move(live.savedWithAppVersion);
 	live = std::move(next);
@@ -16,6 +15,7 @@ void SceneDocument::replace(SceneModel newModel, bool dirty) {
 	m_model = std::move(newModel);
 	m_loaded = true;
 	++m_revision;
+	++m_modelGeneration;
 	setDirty(dirty);
 	emit replaced();
 }
@@ -23,14 +23,33 @@ void SceneDocument::replace(SceneModel newModel, bool dirty) {
 void SceneDocument::restore(const SceneModel& snapshot, bool dirty) {
 	assignAuthoredScene(m_model, snapshot);
 	++m_revision;
+	++m_modelGeneration;
 	setDirty(dirty);
 }
 
 void SceneDocument::markChanged(ChangeKinds kinds, const QString& label) {
 	++m_revision;
+	++m_modelGeneration;
 	m_lastChangeLabel = label;
 	setDirty(true);
 	emit changed(kinds);
+}
+
+bool SceneDocument::edit(ChangeKinds kinds, const QString& label, const std::function<void(SceneModel&)>& apply) {
+	if (!m_editable && !(kinds & OpenDuringRun))
+		return false;
+	emit aboutToEdit();
+	// The edit changes the model in place, so that what the panels hold of it stays valid, and the copy puts the model
+	// back when the edit throws partway.
+	SceneModel before = m_model;
+	try {
+		apply(m_model);
+	} catch (...) {
+		m_model = std::move(before);
+		throw;
+	}
+	markChanged(kinds, label);
+	return true;
 }
 
 void SceneDocument::setDirty(bool dirty) {

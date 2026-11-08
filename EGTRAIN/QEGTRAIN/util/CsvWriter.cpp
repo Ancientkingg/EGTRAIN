@@ -1,10 +1,8 @@
 #include "util/CsvWriter.h"
 
+#include <charconv>
 #include <cmath>
-#include <iomanip>
 #include <limits>
-#include <locale>
-#include <sstream>
 
 namespace csv {
 
@@ -34,13 +32,15 @@ std::string escapeField(const std::string& field) {
 	return quoted;
 }
 
+// The text of printf's %.17g in the C locale, as a stream with the classic locale and precision 17 writes it.
 std::string formatDouble(double value) {
 	if (!std::isfinite(value))
 		return kMissingValue;
-	std::ostringstream stream;
-	stream.imbue(std::locale::classic());
-	stream << std::setprecision(std::numeric_limits<double>::max_digits10) << value;
-	return stream.str();
+	// At most a sign, 17 digits, a decimal point and an exponent such as e-308.
+	char text[32];
+	const std::to_chars_result written = std::to_chars(text, text + sizeof(text), value, std::chars_format::general,
+		std::numeric_limits<double>::max_digits10);
+	return std::string(text, written.ptr);
 }
 
 std::string makeRow(const std::vector<std::string>& fields) {

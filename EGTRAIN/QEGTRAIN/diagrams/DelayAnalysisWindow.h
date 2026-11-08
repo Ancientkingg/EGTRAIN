@@ -4,6 +4,7 @@
 #include "diagrams/DelayAnalysis.h"
 #include "diagrams/RunResults.h"
 #include "telemetry/TelemetryOperation.h"
+#include "widgets/UserPrompts.h"
 
 #include <QDialog>
 #include <QString>
@@ -62,6 +63,9 @@ public:
 	DelayAnalysisWindow(DelayRunSnapshot scenario, std::optional<DelayRunSnapshot> baseline, QWidget* parent = nullptr);
 	/// Sets the function that gives the telemetry observation of an export; empty for none.
 	void setTelemetryCapture(telemetry::CaptureOperation capture) { m_telemetryCapture = std::move(capture); }
+	/// Sets the prompts of the export, which ask whether to replace a file and show what went wrong. Null restores the
+	/// prompts of the window, which show every message.
+	void setPrompts(UserPrompts* prompts) { m_prompts = prompts ? prompts : &m_ownPrompts; }
 	/// Shows the Against baseline tab. The window opens on the Calls tab.
 	void showBaselineTab();
 	/// The file name that the export offers for the visible tab: delay_histogram.csv for Punctuality,
@@ -84,6 +88,7 @@ private:
 	void fillBaseline();
 	void updateExport();
 	std::string currentCsv() const;
+	QString writeCsv(const QString& path, const std::string& content) const;
 	void exportCsv();
 	QString histogramToolTip(int index) const;
 
@@ -124,6 +129,8 @@ private:
 	ResultFigure* m_meanFigure = nullptr;
 	ResultFigure* m_earlyLateFigure = nullptr;
 	telemetry::CaptureOperation m_telemetryCapture;
+	UserPrompts m_ownPrompts;
+	UserPrompts* m_prompts = &m_ownPrompts;
 };
 
 #endif // DELAYANALYSISWINDOW_H

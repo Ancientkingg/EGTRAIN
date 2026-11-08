@@ -7,8 +7,10 @@
 namespace {
 constexpr qreal kAnchorOffsetX = 8.0;
 constexpr qreal kAnchorGapY = 8.0;
-// The outline of the speed reaches this far beyond its glyphs, in logical pixels.
-constexpr qreal kOutlineWidth = 1.0;
+// The backing of the speed reaches this far past the ends of its line and this far above and below it, in logical
+// pixels.
+constexpr qreal kBackingPaddingX = 2.0;
+constexpr qreal kBackingPaddingY = 1.0;
 // Over the trains (z 4) and under the notices of a virtual coupling (z 4.4), the station names
 // (StationNameItem::NameZValue, 4.5), which stay readable, and the callouts of the trains and the details of a passenger
 // (z 5). A promoted badge goes over the others.
@@ -92,10 +94,12 @@ QRectF TrainBadgeItem::speedTextRect() const {
 	if (!showsSpeed()) return QRectF();
 	return QFontMetricsF(speedFont()).boundingRect(m_speedText).translated(speedBaseline());
 }
+QRectF TrainBadgeItem::speedBackingRect() const {
+	return speedTextRect().adjusted(-kBackingPaddingX, -kBackingPaddingY, kBackingPaddingX, kBackingPaddingY);
+}
 QRectF TrainBadgeItem::boundingRect() const {
 	if (!showsSpeed()) return QRectF();
-	const qreal margin = kOutlineWidth + 1.0;
-	return speedTextRect().adjusted(-margin, -margin, margin, margin);
+	return speedBackingRect().adjusted(-1.0, -1.0, 1.0, 1.0);
 }
 QPainterPath TrainBadgeItem::shape() const { return QPainterPath(); }
 
@@ -103,12 +107,12 @@ void TrainBadgeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
 	Q_UNUSED(option);
 	Q_UNUSED(widget);
 	if (!showsSpeed()) return;
-	// The bodies of the train show the train itself, so the badge adds only the speed. The outline keeps the
-	// white text readable over the light grey tracks and over the trains.
+	// The bodies of the train show the train itself, so the badge adds only the speed. The backing keeps the white
+	// text readable over whatever lies under it: tracks, trains, the bar and passenger count of a platform, or a signal.
+	painter->setRenderHint(QPainter::Antialiasing);
+	painter->fillRect(speedBackingRect(), canvasColor());
 	QPainterPath text;
 	text.addText(speedBaseline(), speedFont(), m_speedText);
-	painter->setRenderHint(QPainter::Antialiasing);
-	painter->strokePath(text, QPen(canvasColor(), 2.0 * kOutlineWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
 	painter->fillPath(text, QColor(Qt::white));
 }
 

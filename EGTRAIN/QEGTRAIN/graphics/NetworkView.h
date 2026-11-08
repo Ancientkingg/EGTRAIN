@@ -24,7 +24,9 @@
 /// The view of the network canvas. Items have their positions and sizes in scene units. The view scale,
 /// the m11() of transform(), is in logical pixels per scene unit. One logical pixel is as wide as the device
 /// pixel ratio of the screen in device pixels. The view fits the track to the viewport and zooms between
-/// that Fit scale and maximumZoomRatio() times it. A left drag pans the view.
+/// that Fit scale and maximumZoomRatio() times it. A left drag pans the view. At every zoom, Fit included, the
+/// scene rectangle is the bounds of the last fit with half the visible scene on each side, so the view pans until
+/// an edge of the bounds reaches the middle of the viewport, and no further.
 class NetworkView : public QGraphicsView {
 	Q_OBJECT
 
@@ -55,8 +57,9 @@ public:
 	/// Fits the view, as fitToBounds() does, to the ends of the track lines and connections in the scene.
 	void fitToTopology();
 	/// Fits the view to bounds in scene coordinates, with padding on each side of 24 logical pixels, or of an
-	/// eighth of the width or height of the viewport when that is less, and makes it the scene rectangle. Empty
-	/// bounds reset the view to scale 1 around the origin.
+	/// eighth of the width or height of the viewport when that is less, and centres the view on them. The scene
+	/// rectangle is the bounds with half the visible scene on each side. Empty bounds reset the view to scale 1
+	/// around the origin.
 	void fitToBounds(const QRectF& bounds);
 	/// Multiplies the zoom ratio by factor, kept between 1 and maximumZoomRatio(). viewportAnchor, in logical
 	/// pixels of the viewport, stays over the same scene point; a negative coordinate means the centre of the
@@ -70,6 +73,11 @@ public:
 	qreal fittedScale() const;
 	/// The bounds in scene coordinates of the last fit.
 	QRectF topologyBounds() const;
+	/// topologyBounds() with the padding that Fit keeps around them in the viewport: the part of the scene that the view
+	/// shows at Fit, whatever the shape of the viewport. Empty without bounds.
+	QRectF paddedTopologyBounds() const;
+	/// The zoom ratio is 1, as after a fit.
+	bool atFit() const;
 	/// The zoom ratio as the view shows it: "Fit", or the ratio with an "x", such as "2x" or "2.5x".
 	QString zoomLabel() const;
 	/// Starts a timer and asks for the next paint of the viewport, which emits timingPaintCompleted() with
@@ -86,7 +94,8 @@ protected:
 	/// Fills the canvas and draws a grid of lines one device pixel wide on multiples of a spacing in scene
 	/// units. The spacing starts at 80 and is doubled or halved until it is 24 to 96 logical pixels on screen.
 	void drawBackground(QPainter* painter, const QRectF& rect) override;
-	/// Keeps a view at Fit fitted to the new size, and keeps the zoom ratio and the centre of any other view.
+	/// Keeps a view at Fit fitted to the new size and the zoom ratio of any other view, and keeps the centre of the
+	/// view.
 	void resizeEvent(QResizeEvent* event) override;
 	/// Records the new centre and emits viewportChanged(), except while the view moves itself.
 	void scrollContentsBy(int dx, int dy) override;
@@ -97,7 +106,7 @@ private:
 	void centerOnScene(const QPointF& scenePos);
 	void moveCenter(const std::function<void()>& move);
 	qreal calculateFittedScale() const;
-	bool atFit() const;
+	void updateSceneRect();
 
 	QRectF m_topologyBounds;
 	qreal m_fittedScale = 1.0;

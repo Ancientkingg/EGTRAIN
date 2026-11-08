@@ -19,6 +19,9 @@ public:
 	/// The names to search, and by index the keys that find a name without being shown, such as the ids of the
 	/// sections that a signal names by their labels. The field and the list start empty.
 	void setLabels(const QStringList& labels, const QStringList& keys = QStringList());
+	/// Whether every word of `text`, the parts between spaces, occurs in one of `texts`, ignoring case: the rule by which
+	/// the list shows a name with its keys. True when `text` has no word.
+	static bool matches(const QString& text, const QStringList& texts);
 
 signals:
 	/// The name the user chose, emitted after the dialog is accepted.

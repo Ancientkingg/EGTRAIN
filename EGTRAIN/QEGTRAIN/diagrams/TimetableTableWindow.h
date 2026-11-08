@@ -8,6 +8,7 @@
 #include <QHash>
 #include <QImage>
 #include "telemetry/TelemetryOperation.h"
+#include "widgets/UserPrompts.h"
 #include <QPointer>
 #include <QStringList>
 
@@ -30,7 +31,7 @@ public:
 		long long startOffsetSeconds,
 		std::function<std::string(const QStringList&)> csvProvider,
 		QWidget* parent = nullptr);
-	/// Writes `provenance` as a sidecar with every export and shows its case and scenario as the context.
+	/// Writes `provenance` as a sidecar with every export and shows the run in the header, as runContextText names it.
 	void setRunProvenance(RunProvenance provenance);
 	/// Sets the window title to `heading` and shows `context` in the header in one line; an empty context hides it.
 	void setPresentation(const QString& heading, const QString& context);
@@ -44,6 +45,9 @@ public:
 public:
 	/// Sets the function that gives the telemetry observation of an export; empty for none.
 	void setTelemetryCapture(telemetry::CaptureOperation capture) { m_telemetryCapture = std::move(capture); }
+	/// Sets the prompts of the exports, which ask whether to replace a file and show what went wrong. Null restores the
+	/// prompts of the window, which show every message.
+	void setPrompts(UserPrompts* prompts) { m_prompts = prompts ? prompts : &m_ownPrompts; }
 
 private slots:
 	void applyTrainVisibility();
@@ -52,6 +56,8 @@ private slots:
 
 private:
 	telemetry::CaptureOperation m_telemetryCapture;
+	UserPrompts m_ownPrompts;
+	UserPrompts* m_prompts = &m_ownPrompts;
 	void fillTable();
 	void fillTrainFilter();
 

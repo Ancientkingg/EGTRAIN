@@ -3,11 +3,12 @@
 
 #include "editors/SceneEditorPanel.h"
 
-#include <QMetaObject>
-#include <QPointer>
 #include <QString>
 
+#include <optional>
+
 class QDoubleSpinBox;
+class QLabel;
 class QLineEdit;
 
 /// The six scene-level values: name, description, base time (HH:MM:SS), duration and buffer time in seconds and recovery
@@ -21,14 +22,22 @@ public:
 	/// Lets go of the fields first, so that a field that loses the focus later in the teardown edits nothing.
 	~CaseSettingsPanel() override;
 
-	/// Refreshes when the document is replaced.
-	void setDocument(SceneDocument* document) override;
 	void refresh() override;
+	/// Commits the text fields and the number field with the focus.
 	void commitPendingEditors() override;
-	/// Takes the values of the fields into the document, when one differs from the model, as one change "Edit case
-	/// settings". The fields call it when editing finishes. A duration, buffer or recovery value that is set this way
-	/// counts as given in the scene from then on.
+	/// Takes the values of the fields into the document, when one differs from what the field shows of the model, as one
+	/// change "Edit case settings". The fields call it when editing finishes. A stored number outside the range of its
+	/// field, which the field shows at the nearest limit, stays as it is until the user edits it. A duration, buffer or
+	/// recovery value that is set this way counts as given in the scene from then on.
 	void commit();
+
+	/// Names the values that the command line (-h, -b and -c) replaces in every run of the session, in a line above the
+	/// fields. A value without a number is not overridden, and no line shows when none is. The fields keep showing the
+	/// values of the case.
+	void setCommandLineOverrides(std::optional<double> durationSeconds, std::optional<double> bufferSeconds,
+		std::optional<double> recoveryPercent);
+	/// The line that names the command-line overrides; hidden while there are none.
+	QLabel* overrideNotice() const { return m_overrideNotice; }
 
 	/// The field of the scene name.
 	QLineEdit* nameEdit() const { return m_nameEdit; }
@@ -49,8 +58,7 @@ Q_SIGNALS:
 	void baseTimeChanged(const QString& baseTime);
 
 private:
-	QPointer<SceneDocument> m_document;
-	QMetaObject::Connection m_replacedConnection;
+	QLabel* m_overrideNotice = nullptr;
 	QLineEdit* m_nameEdit = nullptr;
 	QLineEdit* m_descriptionEdit = nullptr;
 	QLineEdit* m_baseTimeEdit = nullptr;

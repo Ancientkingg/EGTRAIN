@@ -11,13 +11,18 @@
 
 /// The record that the update helper leaves after it replaced the installation, or tried to. The helper
 /// writes it in update/UpdateHelper.cpp, which holds the same format. A text file in updateRecordPath() of
-/// three lines, each ended by a line feed:
+/// three lines, each ended by a line feed, and a fourth for not-applied:
 ///   outcome=applied, rolled-back or not-applied
 ///   version=X.Y.Z
 ///   time=YYYY-MM-DDTHH:MM:SSZ
 /// applied: the new version is in place; the helper writes this before it starts that version.
 /// rolled-back: the new version failed to start and the previous installation was put back.
-/// not-applied: the installation could not be renamed, so the previous installation was never replaced.
+/// not-applied: the update ended otherwise. Mostly the previous installation was never replaced; it is also
+/// written when the new version failed to start and the previous one could not be put back. A fourth line,
+/// reason=, names the step that failed (update/UpdateHelper.cpp lists them); the reader ignores it. When
+/// the failed new version stays in place (failed-version-not-moved, or backup-not-restored after the failed
+/// version was put back), the record names the version that is installed, so takeUpdateRecord drops it as
+/// stale and nothing is shown to the user.
 /// The version is the one that was to be installed and the time is the UTC time of the write. Versions
 /// up to 1.0.4 know no applied record: their takeUpdateRecord removes it and returns nothing.
 /// In installer mode the helper runs the installer of an installer-managed copy instead and leaves
@@ -25,6 +30,8 @@
 /// version (the one to install) and time. A failed installer that ended with an exit code adds a fourth
 /// line, exit-code=N. Only the first three records are an UpdateRecord: parseUpdateRecord does not accept the
 /// others, so they never produce the message about an update in place. The others are an InstallerRecord.
+/// When the application does not end in time, installer mode also leaves not-applied with
+/// reason=parent-still-running, as an update in place does.
 enum class UpdateOutcome {
 	RolledBack, ///< outcome=rolled-back.
 	NotApplied, ///< outcome=not-applied.
@@ -87,7 +94,9 @@ QString updateRecordPath();
 /// Reads the record at path and removes the file, whether or not it could be read. Returns the record
 /// only when it is valid and names the installed version (applied) or a newer one (rolled-back and
 /// not-applied); any other record is stale. The helper replaces an applied record when it puts the
-/// previous version back, so an applied record that names another version is out of date.
+/// previous version back, so an applied record that names another version is out of date. A not-applied
+/// record that names the installed version, which the helper leaves when the failed new version stays in
+/// place, is stale as well, so nothing is shown for it.
 /// Nothing is done unless path is a regular file, and a file of more than 4096 bytes is not a record.
 /// A file that cannot be removed does not stop the record from being returned.
 std::optional<UpdateRecord> takeUpdateRecord(const QString& path, const SemanticVersion& installed);

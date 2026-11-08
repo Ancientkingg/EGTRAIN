@@ -11,6 +11,7 @@
 #include <QCoreApplication>
 #include <QDialog>
 #include <QDir>
+#include <QElapsedTimer>
 #include <QFileInfo>
 #include <QFileOpenEvent>
 #include <QPalette>
@@ -28,11 +29,12 @@
 
 namespace {
 
-// A scenario starts delayMs after the first show of the window when its variable is set.
+// A scenario starts when the startup of the window has finished, with the startup case loaded and fitted, when its variable
+// is set. One that answers a startup prompt itself, inPrompt, starts as soon as a prompt that nothing else answers is open.
 struct Scenario {
 	const char* variable;
-	int delayMs;
 	void (*run)(MainWindow&);
+	bool inPrompt = false;
 };
 
 constexpr const char* kVisualPolish = "QEGTRAIN_E2E_VISUAL_POLISH";
@@ -40,18 +42,17 @@ constexpr const char* kDarkPalette = "QEGTRAIN_E2E_DARK_PALETTE";
 constexpr const char* kCreatorAcceptance = "QEGTRAIN_E2E_CREATOR_ACCEPTANCE";
 
 const Scenario kScenarios[] = {
-	{kVisualPolish, 2600, &MainWindowTestAccess::runVisualPolish},
-	{"QEGTRAIN_E2E_STATION_OVERLAYS", 1000, &MainWindowTestAccess::runStationOverlay},
-	// let the startup case load and the docks settle before the smoke runs
-	{"QEGTRAIN_E2E_EDITOR_SMOKE", 1000, &MainWindowTestAccess::runEditorSmoke},
-	{"QEGTRAIN_E2E_SCENE_RUN", 1000, &MainWindowTestAccess::runSceneRender},
-	{"QEGTRAIN_E2E_TRACK_PREVIEW", 1000, &MainWindowTestAccess::runTrackPreview},
-	{"QEGTRAIN_E2E_LEGACY_IMPORT", 1000, &MainWindowTestAccess::runLegacyImport},
-	{"QEGTRAIN_E2E_SCENE_DROP", 100, &MainWindowTestAccess::runSceneDrop},
-	{"QEGTRAIN_E2E_OUTPUT_FOLDER", 1000, &MainWindowTestAccess::runOutputFolder},
-	{"QEGTRAIN_E2E_RECOVERY", 1000, &MainWindowTestAccess::runRecovery},
-	{"QEGTRAIN_E2E_CAPTURES", 1000, &MainWindowTestAccess::runCaptures},
-	{kCreatorAcceptance, 0, &MainWindowTestAccess::runCreatorAcceptance},
+	{kVisualPolish, &MainWindowTestAccess::runVisualPolish},
+	{"QEGTRAIN_E2E_STATION_OVERLAYS", &MainWindowTestAccess::runStationOverlay},
+	{"QEGTRAIN_E2E_EDITOR_SMOKE", &MainWindowTestAccess::runEditorSmoke},
+	{"QEGTRAIN_E2E_SCENE_RUN", &MainWindowTestAccess::runSceneRender},
+	{"QEGTRAIN_E2E_TRACK_PREVIEW", &MainWindowTestAccess::runTrackPreview},
+	{"QEGTRAIN_E2E_LEGACY_IMPORT", &MainWindowTestAccess::runLegacyImport},
+	{"QEGTRAIN_E2E_SCENE_DROP", &MainWindowTestAccess::runSceneDrop},
+	{"QEGTRAIN_E2E_OUTPUT_FOLDER", &MainWindowTestAccess::runOutputFolder},
+	{"QEGTRAIN_E2E_RECOVERY", &MainWindowTestAccess::runRecovery, true},
+	{"QEGTRAIN_E2E_CAPTURES", &MainWindowTestAccess::runCaptures},
+	{kCreatorAcceptance, &MainWindowTestAccess::runCreatorAcceptance},
 };
 
 // QEGTRAIN_E2E_OPEN_REQUEST names a file that the run hands to the application as the system does
@@ -176,7 +177,36 @@ void checkLightLook() {
 	std::fflush(stdout);
 }
 
+// Whether the startup of the window has finished.
+bool startupFinished = false;
+
+// Runs the scenario once the startup has finished, or once a prompt of the startup is open that nothing answers, which
+// holds the startup until the scenario closes it. QEGTRAIN_E2E_RECOVERY_ANSWER makes the recovery prompt answer itself.
+void startInPrompt(MainWindow& window, void (*run)(MainWindow&)) {
+	constexpr int kPromptPollMs = 20;
+	constexpr int kPromptWaitMs = 60000;
+	auto* poll = new QTimer(&window);
+	QElapsedTimer waited;
+	waited.start();
+	QObject::connect(poll, &QTimer::timeout, &window, [&window, poll, waited, run] {
+		const bool promptOpen = QApplication::activeModalWidget() && !qEnvironmentVariableIsSet("QEGTRAIN_E2E_RECOVERY_ANSWER");
+		if (!startupFinished && !promptOpen) {
+			if (waited.elapsed() < kPromptWaitMs)
+				return;
+			std::fprintf(stderr, "E2E_FAIL: the startup did not finish within %d ms and no prompt waits for an answer\n", kPromptWaitMs);
+			std::fflush(stderr);
+			QCoreApplication::exit(2);
+		}
+		poll->stop();
+		poll->deleteLater();
+		if (startupFinished || promptOpen)
+			run(window);
+	});
+	poll->start(kPromptPollMs);
+}
+
 void startScenarios(MainWindow& window) {
+	MainWindowTestAccess::connectRunSignals(window);
 	// The scripts of Dialogs.cpp act on the dialogs for which the variables of their scenario are set.
 	mainWindowTestHooks().dialogShown = [&window](QDialog& dialog, const char* kind) {
 		MainWindowTestAccess::dialogShown(window, dialog, kind);
@@ -184,21 +214,32 @@ void startScenarios(MainWindow& window) {
 	mainWindowTestHooks().dialogClosed = [&window](QDialog& dialog, const char* kind) {
 		MainWindowTestAccess::dialogClosed(window, dialog, kind);
 	};
-	// A window without a scene has no run to start.
-	if (!mainWindowTestHooks().suppressStartupPrompts)
-		MainWindowTestAccess::autostart(window);
+	// The run and the scenarios start when the startup has finished, with the startup case loaded and fitted. A window
+	// without a scene has no run to start and no startup, so its scenarios start now.
+	startupFinished = false;
+	const auto afterStartup = [&window] {
+		startupFinished = true;
+		if (!mainWindowTestHooks().suppressStartupPrompts)
+			MainWindowTestAccess::autostart(window);
+		for (const Scenario& scenario : kScenarios) {
+			if (qEnvironmentVariableIsSet(scenario.variable) && !scenario.inPrompt)
+				QTimer::singleShot(0, &window, [&window, run = scenario.run] { run(window); });
+		}
+	};
+	if (mainWindowTestHooks().suppressStartupPrompts)
+		afterStartup();
+	else
+		mainWindowTestHooks().afterStartup = [afterStartup](MainWindow&) { afterStartup(); };
+	for (const Scenario& scenario : kScenarios) {
+		if (qEnvironmentVariableIsSet(scenario.variable) && scenario.inPrompt)
+			startInPrompt(window, scenario.run);
+	}
 	// A desktop can also hand over its dark palette after start, as a dark XDG desktop portal does.
 	if (qEnvironmentVariableIsSet(kDarkPalette))
 		QTimer::singleShot(0, &window, [&window] {
 			e2e::configureApplication();
 			QTimer::singleShot(0, &window, [] { checkLightLook(); });
 		});
-	for (const Scenario& scenario : kScenarios) {
-		if (!qEnvironmentVariableIsSet(scenario.variable))
-			continue;
-		const auto run = scenario.run;
-		QTimer::singleShot(scenario.delayMs, &window, [&window, run] { run(window); });
-	}
 	if (!qEnvironmentVariableIsSet(kOpenRequest))
 		return;
 	const QString file = qEnvironmentVariable(kOpenRequest);
@@ -228,6 +269,8 @@ bool configureProcess() {
 		const QString absoluteSettingsDir = QDir(settingsDir).absolutePath();
 		QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, absoluteSettingsDir);
 		QSettings::setPath(QSettings::IniFormat, QSettings::SystemScope, absoluteSettingsDir);
+		// A run with a window on a screen keeps its recovery copies and crash notes there too, away from those of the user.
+		mainWindowTestHooks().runDataFolder = absoluteSettingsDir;
 	}
 	const QString openRequestAt = qEnvironmentVariable(kOpenRequestAt);
 	if (!openRequestAt.isEmpty() && openRequestAt != QLatin1String("launch") && openRequestAt != QLatin1String("startup")
@@ -245,10 +288,8 @@ bool configureProcess() {
 	if (qEnvironmentVariableIsSet(kVisualPolish))
 		mainWindowTestHooks().frameRendered = &MainWindowTestAccess::visualPolishFrame;
 	mainWindowTestHooks().snapshotDelivered = &MainWindowTestAccess::snapshotDelivered;
-	mainWindowTestHooks().snapshotDrawn = &MainWindowTestAccess::checkSignalHeads;
-	mainWindowTestHooks().runResultsRefreshed = &MainWindowTestAccess::runResultsRefreshed;
+	mainWindowTestHooks().snapshotDrawn = &MainWindowTestAccess::snapshotDrawn;
 	mainWindowTestHooks().runFinished = &MainWindowTestAccess::runFinished;
-	mainWindowTestHooks().runSettled = &MainWindowTestAccess::runSettled;
 	mainWindowTestHooks().routeDiagramBuilt = &MainWindowTestAccess::routeDiagramBuilt;
 	// A script that answers the run review needs it to open although dialogs are suppressed.
 	mainWindowTestHooks().askRunReview = qEnvironmentVariableIsSet("QEGTRAIN_E2E_REVIEW_CANCEL");
@@ -261,7 +302,6 @@ bool configureProcess() {
 		if (!mainWindowTestHooks().telemetryStart)
 			mainWindowTestHooks().telemetryStart = &MainWindowTestAccess::startTelemetrySmoke;
 		mainWindowTestHooks().observationStep = &MainWindowTestAccess::telemetryObservationStep;
-		mainWindowTestHooks().runStarting = &MainWindowTestAccess::telemetryRunStarting;
 		mainWindowTestHooks().windowDestroyed = &MainWindowTestAccess::telemetryWindowDestroyed;
 	}
 #endif

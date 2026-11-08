@@ -14,8 +14,8 @@ inline QString automaticChecksQuestion() {
 
 /// Below the question: what the check does and where to change the answer.
 inline QString automaticChecksDetail() {
-	return QStringLiteral("EGTRAIN can check GitHub for a new version each time it starts. You can change this later in the "
-						  "Help menu.");
+	return QStringLiteral("EGTRAIN can check its website for a new version each time it starts. You can change this later in "
+						  "the Help menu.");
 }
 
 /// The main text of the second message box: the version on offer and the installed version.

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "diagrams/RunExports.h"
+#include "diagrams/RunCsv.h"
 #include "diagrams/RunResults.h"
 #include "graphics/AnnotationPlacement.h"
 #include "graphics/NetworkView.h"
@@ -50,6 +50,24 @@ constexpr int kMaxStepDelayMs = 500;
 /// The delay between two steps, in milliseconds: how far `sliderValue` is from the fast end of the speed slider.
 inline int stepDelayForSlider(int sliderValue) {
 	return kMaxStepDelayMs - sliderValue;
+}
+
+/// The speeds of the replay of a finished run that the speed box offers, in simulated seconds per second of real time.
+inline constexpr int kReplaySpeeds[] = {1, 2, 5, 10, 30, 60};
+/// The speed of the replay that the speed box starts with.
+inline constexpr int kDefaultReplaySpeed = 10;
+
+/// One step of Play: the simulated seconds it moves on and the real milliseconds between two steps.
+struct ReplayPlaybackStep {
+	int seconds = 1;	   ///< Simulated seconds from one shown second to the next.
+	int intervalMs = 1000; ///< Real milliseconds between two steps.
+};
+/// The step of Play at a replay speed in simulated seconds per second of real time: one second per step up to 10x, so
+/// that a step comes at most every 100 ms, and then a step of speed / 10 seconds every 100 ms. That is 1 s per 1000 ms,
+/// 1 per 500, 1 per 200, 1 per 100, 3 per 100 and 6 per 100, never more than ten updates per second.
+inline ReplayPlaybackStep replayPlaybackStep(int speed) {
+	const int seconds = std::max(1, speed / 10);
+	return {seconds, 1000 * seconds / speed};
 }
 
 /// What the train list reports while 'frames' shows frames that change no state. Every row gets a

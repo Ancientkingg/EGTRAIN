@@ -25,7 +25,6 @@
 
 namespace {
 
-constexpr int kMaxRedirects = 10;
 constexpr DWORD kReadChunkBytes = 64 * 1024;
 // WinHTTP ends a name lookup, a connection or a transfer that stalls after these times, so that the
 // thread of a reply that nobody cancels ends too.
@@ -43,10 +42,6 @@ QString describeError(DWORD code) {
 	if (message.isEmpty())
 		return QStringLiteral("Network error %1.").arg(code);
 	return QStringLiteral("%1 (error %2)").arg(message, QString::number(code));
-}
-
-bool isRedirect(DWORD status) {
-	return status == 301 || status == 302 || status == 303 || status == 307 || status == 308;
 }
 
 bool isLoopback(const QUrl& url) {
@@ -254,8 +249,8 @@ private:
 		return m_allowLoopbackHttp && url.scheme() == QLatin1String("http") && isLoopback(url);
 	}
 
-	// Follows the redirects of a get, then reads the body. Returns false with the error text when the request
-	// fails, and false without one when cancelWork() has closed a handle.
+	// Sends the request and reads the body. Returns false with the error text when the request fails, and false
+	// without one when cancelWork() has closed a handle.
 	bool transfer(const HttpRequest& request, QString* error) {
 		const std::wstring userAgent = QString::fromLatin1(request.userAgent).toStdWString();
 		HINTERNET session = WinHttpOpen(userAgent.empty() ? nullptr : userAgent.c_str(), WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, nullptr, nullptr, 0);
@@ -273,35 +268,22 @@ private:
 			WinHttpSetOption(session, WINHTTP_OPTION_SECURE_PROTOCOLS, &protocols, static_cast<DWORD>(sizeof(protocols)));
 		}
 
-		QUrl url = request.url;
+		if (!isAllowed(request.url)) {
+			*error = QStringLiteral("The address is not an https address: %1").arg(request.url.toString());
+			return false;
+		}
 		HINTERNET handle = nullptr;
 		DWORD status = 0;
-		for (int redirects = 0;; ++redirects) {
-			if (!isAllowed(url)) {
-				*error = QStringLiteral("The address is not an https address: %1").arg(url.toString());
-				return false;
-			}
-			if (!sendRequest(session, url, request, &handle, &status, error))
-				return false;
-			if (!isRedirect(status) || m_isPost)
-				break;
-			if (redirects == kMaxRedirects) {
-				*error = QStringLiteral("The server redirected the request too many times.");
-				return false;
-			}
-			const QString location = headerText(handle, WINHTTP_QUERY_LOCATION);
-			if (location.isEmpty()) {
-				*error = QStringLiteral("The server redirected the request without an address.");
-				return false;
-			}
-			url = url.resolved(QUrl(location));
-			release(m_request);
-			release(m_connection);
-		}
+		if (!sendRequest(session, request.url, request, &handle, &status, error))
+			return false;
 
+		// The length in the header of an encoded body is that of the encoded bytes, not of the decoded ones that the
+		// reads give, so it is used only for a body without an encoding.
 		DWORD length = 0;
 		DWORD lengthBytes = static_cast<DWORD>(sizeof(length));
-		const bool hasLength = WinHttpQueryHeaders(handle, WINHTTP_QUERY_CONTENT_LENGTH | WINHTTP_QUERY_FLAG_NUMBER, nullptr, &length, &lengthBytes, nullptr) != FALSE;
+		const bool encoded = !headerText(handle, WINHTTP_QUERY_CONTENT_ENCODING).isEmpty();
+		const bool hasLength = !encoded
+			&& WinHttpQueryHeaders(handle, WINHTTP_QUERY_CONTENT_LENGTH | WINHTTP_QUERY_FLAG_NUMBER, nullptr, &length, &lengthBytes, nullptr) != FALSE;
 		{
 			std::lock_guard<std::mutex> lock(m_mutex);
 			m_status = static_cast<int>(status);
@@ -347,7 +329,7 @@ private:
 	}
 
 	// Sends the request for url and waits for the response headers. The handle of the request stays
-	// open, for the redirect address and the body.
+	// open for the body.
 	bool sendRequest(HINTERNET session, const QUrl& url, const HttpRequest& request, HINTERNET* handle, DWORD* status, QString* error) {
 		const bool secure = url.scheme() == QLatin1String("https");
 		const std::wstring host = url.host(QUrl::FullyEncoded).toStdWString();
@@ -376,9 +358,13 @@ private:
 			return false;
 		*handle = opened;
 
-		// The redirects are followed here, where each address is checked.
+		// A redirect is not followed: its reply is the reply of the request.
 		DWORD policy = WINHTTP_OPTION_REDIRECT_POLICY_NEVER;
 		WinHttpSetOption(opened, WINHTTP_OPTION_REDIRECT_POLICY, &policy, static_cast<DWORD>(sizeof(policy)));
+		// WinHTTP asks for a gzip or deflate body and hands it over decoded. Windows before 8.1 refuses the
+		// option and gets the body as it is.
+		DWORD decompression = WINHTTP_DECOMPRESSION_FLAG_ALL;
+		WinHttpSetOption(opened, WINHTTP_OPTION_DECOMPRESSION, &decompression, static_cast<DWORD>(sizeof(decompression)));
 
 		const bool extraRoot = m_isPost && !request.extraRootPem.isEmpty();
 		if (m_isPost) {

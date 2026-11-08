@@ -1,15 +1,16 @@
 #ifndef DISPATCHCONTROLLER_H
 #define DISPATCHCONTROLLER_H
 
-#include "app/GuiSimulationSnapshot.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "app/GuiReplayHistory.h"
-#include "simulation/Optimisation.h"
+#include "simulation/RollingStock.h"
 #include "simulation/RunControl.h"
 
 #include <QObject>
 #include <atomic>
 #include <filesystem>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 
@@ -27,6 +28,10 @@
 
 struct DispatchLive;
 struct SimulationRun;
+
+/// The snapshot of a run at a step. It reads the run and changes nothing. The thread that steps the run builds it, and the
+/// window and the live stream see the run through it.
+GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int timestep);
 
 /// Prepares a scene into the run of the process and runs it.
 ///
@@ -49,8 +54,8 @@ public:
 	/// selectedScenarioId names the scenario whose incidents and delays apply; empty takes the default scenario of the scene,
 	/// or its first. selectedOccurrences lists the service occurrences that run; empty runs them all. The run takes a copy of
 	/// initial_variables as its settings, writes to its output folder, which is made if needed, and starts without the files
-	/// that a run appends to. Returns the diagnostics of the validation and the builders, and the error run.output.folder
-	/// when the output folder cannot be made.
+	/// that a run appends to. Returns the diagnostics of the validation and the builders, the error run.output.folder
+	/// when the output folder cannot be made, and the error run.output.file when such a file cannot be removed.
 	std::vector<SceneDiagnostic> prepareScene(const SceneModel& scene,
 		const std::string& selectedScenarioId = {},
 		const SceneRunSelection& selectedOccurrences = {});
@@ -61,33 +66,29 @@ public:
 
 	/// The run that prepareScene made, with the results after it has been run. While a SimulationWorker is running,
 	/// the thread that steps the run owns its state, and the window reads only what a step does not change (the
-	/// infrastructure and the layout of the canvas) and sees the rest through the snapshots. Results are read after the
-	/// worker has joined.
+	/// infrastructure) and sees the rest through the snapshots. Results are read after the worker has joined.
 	const SimulationRun& run() const;
-	/// The same run for the canvas, which writes the positions of the layout into the tracks, stations and connections. The
-	/// thread rules of run() apply.
+	/// The same run with write access, for the stages of the controller and for tests. The thread rules of run() apply.
 	SimulationRun& mutableRun();
 
 	/// Runs the prepared run on the calling thread: the steps, then the energy, the timetable points, the delay statistics,
 	/// the blocking times and the output files. A stop is checked between these stages and ends the run there. A run without
 	/// trains is not run: it emits executionRejected and logs an error. The control of the run is that of
-	/// SimulationWorker::active(), or a new one when there is no worker. An exception ends the run: its text goes to
-	/// lastRunError() and the log, and executionFailed is emitted. The function itself does not throw.
+	/// SimulationWorker::active(), or a new one when there is no worker. An exception ends the run, also an output file that
+	/// cannot be written ("Cannot write <path>: <reason>"): its text goes to lastRunError() and the log, and executionFailed is
+	/// emitted. The function itself does not throw.
 	void runSimulation();
 
-	/// The steps of a run, t from 0 while t < settings.times, each in seconds from the start of the run. v1, v2 and v3 go to
-	/// Train::trajectoryComputationIncludingMovingBlock; runSimulation passes signalCode1 to signalCode3, in m/s. Called by
-	/// runSimulation, which sets the control of the run first.
-	void Train_Simulation_Mixed_Signalling_With_Passengers(double v1, double v2, double v3);
+	/// The steps of a run, t from 0 while t < settings.times, each in seconds from the start of the run. Before a step the control
+	/// of the run applies its commands, pause, stop and step delay; runSimulationStep (simulation/Simulation.h) runs the step, and the
+	/// snapshot of the step is published after it. Called by runSimulation, which sets the control of the run first.
+	void Train_Simulation_Mixed_Signalling_With_Passengers();
 
 	/// Appends the service path diagram of each train that departs before the end of the run to
-	/// TrainTrajectories/TrainServicePathDiagram.txt in the output folder of the run. The window calls it after a run that was not
-	/// stopped, and main after its run.
-	void printLastTrainServicePathDiagram();
-
-	/// Gives the per-step vectors of every train vec_size entries of 0 and sets their End_Time to vec_size - 1. Nothing in the
-	/// program calls it; the operations builder sizes the vectors.
-	void setVectorSizesFromInput(int vec_size);
+	/// TrainTrajectories/TrainServicePathDiagram.txt in the output folder of the run. The window calls it after a run that was
+	/// neither stopped nor failed, and main after a run that completed. Returns "Cannot write <path>: <reason>", which also goes
+	/// to the log, when the file cannot be written, and an empty string otherwise.
+	std::string printLastTrainServicePathDiagram();
 
 	/// Takes the newest snapshot that a step published, or nullptr when none waits. The GUI thread calls it after
 	/// snapshotAvailable.
@@ -113,6 +114,11 @@ public:
 	void setNextRunOutputFolder(const std::string& folder) { nextRunOutputFolder_ = folder; }
 	/// The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread.
 	const std::string& nextRunOutputFolder() const { return nextRunOutputFolder_; }
+	/// Makes the output folder that prepareScene gives the next run, and its subfolders: the folder of
+	/// setNextRunOutputFolder, else the output folder of initial_variables, else Output. Returns the error
+	/// run.output.folder when one cannot be made. The window calls it before it lets go of the last run, so that a folder
+	/// that cannot be made leaves that run as it was. Call this on the GUI thread.
+	std::optional<SceneDiagnostic> makeNextRunOutputFolders() const;
 
 	/// Starts the live stream (see io/LiveServer.h): every run that follows publishes a hello frame, a state
 	/// frame for every every-th step and the events of its end, and the stream outlives the runs. The endpoint
@@ -129,12 +135,8 @@ public:
 	std::string liveEndpoint() const;
 
 signals:
-	/// Nothing emits this signal.
-	void iterationFinished(int timestep);
 	/// A step has published a snapshot and no earlier one waits to be taken. Fetch it with takeSimulationSnapshot.
 	void snapshotAvailable();
-	/// Nothing emits this signal. SimulationWorker::simulationFinished marks the end of a run in the window.
-	void simulationFinished();
 	/// Execution-thread observations, independent of GUI result availability: runSimulation turns down a run without trains.
 	void executionRejected();
 	/// Execution-thread observation: runSimulation starts the run.
@@ -152,6 +154,8 @@ private:
 	// The body of runSimulation, which catches what it throws.
 	void runSimulationStages();
 	void beginScenePreparation();
+	// The output folder of the next run, as makeNextRunOutputFolders describes it.
+	std::string resolvedNextRunOutputFolder() const;
 	void publishSimulationSnapshot(int timestep);
 
 	GuiSimulationSnapshotMailbox snapshotMailbox_;

@@ -14,9 +14,15 @@ class QPushButton;
 /// else the cleaned absolute path, and case-folded on Windows.
 QString sceneListKey(const QString& path);
 
-/// The label of a scene in a list of cases: the name in the manifest of a scene folder, else the file name without
-/// .egscene, with underscores as spaces.
+/// The name of a scene in a list of cases: the name in the manifest of a scene folder, else the file name without
+/// .egscene, with underscores as spaces. A scene that is no longer on disk keeps the underscores of its file name.
 QString sceneDisplayName(const QString& path);
+
+/// The labels of the scenes that one list shows, in the order of paths: each sceneDisplayName, followed in parentheses by
+/// the parent folder, shortened in the middle past 44 characters, when another path has the same name, and by the file
+/// name as well when that parent folder is the same too. The case chooser labels its rows with it, and the Recent Cases
+/// menu its entries.
+QStringList sceneListLabels(const QStringList& paths);
 
 /// The "Open a Case" dialog: bundled and recent cases in one list, and a menu with
 /// the other ways to open. It records what the person chose and changes nothing
@@ -27,6 +33,7 @@ public:
 	enum class Outcome {
 		Continue,	  ///< Continue, Cancel or the close button of the window.
 		OpenSelected, ///< Open, or a double click on a case; chosenPath() names it.
+		BrowseFile,	  ///< "Open Case File..." in the menu.
 		BrowseFolder, ///< "Open Case Folder..." in the menu.
 		ImportLegacy, ///< "Import Legacy Case..." in the menu.
 		NewCase		  ///< "New Case..." in the menu.

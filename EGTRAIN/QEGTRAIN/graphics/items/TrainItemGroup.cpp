@@ -14,7 +14,6 @@ TrainItemGroup::TrainItemGroup(QGraphicsItem* parent)
 	maxOnboardPassengers = 0;
 	outOfSimulation = false;
 	trainPolygonItemList = nullptr;
-	paxInfoItem = nullptr;
 }
 
 TrainItemGroup::~TrainItemGroup() {

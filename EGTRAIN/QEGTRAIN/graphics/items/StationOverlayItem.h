@@ -14,31 +14,34 @@
 #include <QString>
 #include <QTransform>
 
-#include <functional>
-
 #include "graphics/VisualPolish.h"
 
 /// The scene-space mark of a station. In the far look the transparent pixmap only gives the size and anchor
-/// that StationOverlayItem enlarges, and paint draws the pin of the station class over it. In the near look
-/// the mark draws nothing and the station squares show.
+/// that StationOverlayItem enlarges, and paint draws the mark of the station class in its style over it. In the near
+/// look the mark draws nothing and the station squares show.
 class StationMarkItem : public QGraphicsPixmapItem {
 public:
 	/// The z value of the station square that holds the mark: over the other squares (z 1), which the pin can
 	/// cover, and under platform bars and signals (z 2), trains and names.
 	static constexpr qreal HostZValue = 1.05;
 
-	/// A mark of class cls in a transparent pixmap of size by size pixels, one scene unit per pixel before the
+	/// A map pin of class cls in a transparent pixmap of size by size pixels, one scene unit per pixel before the
 	/// scale of the item.
 	StationMarkItem(StationClass cls, int size, QGraphicsItem* parent = nullptr);
 
-	/// The pixmap and the pin that reaches past it in the far look; empty in the near look.
+	/// What the mark paints in the far look, with the pixmap for a map pin; empty in the near look.
 	QRectF boundingRect() const override;
-	/// The pin with its edge, the click target, in the far look (stationMarkShape()); empty in the near look.
+	/// The mark with its edges, the click target, in the far look (stationMarkShape()); empty in the near look.
 	QPainterPath shape() const override;
-	/// Paints the pin of the class over the pixmap with a halo of 2 logical pixels; nothing in the near look.
+	/// Paints the mark of the class in its style over the pixmap with a halo of 2 logical pixels; nothing in the near
+	/// look.
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
 	/// The class of the station.
 	StationClass stationClass() const { return m_class; }
+	/// The style of the mark.
+	StationMarkStyle style() const { return m_style; }
+	/// Draws the mark in style; StationOverlayItem::setMarkStyle() sets it and places the mark by its anchor.
+	void setStyle(StationMarkStyle style);
 	/// The centres of the station squares at the place of the station in scene coordinates, in the order of its
 	/// nodes, or none; StationOverlayItem::setNodeCentres() sets them.
 	QList<QPointF> nodeCentres() const { return m_nodeCentres; }
@@ -48,11 +51,14 @@ public:
 	void setNearLook(bool nearLook);
 	/// The mark draws nothing.
 	bool isNearLook() const { return m_nearLook; }
-	/// The pixmap and the pin that reaches past it, in item coordinates: boundingRect() in the far look.
+	/// What the mark paints, with the pixmap for a map pin, in item coordinates: boundingRect() in the far look.
 	QRectF farBoundingRect() const { return m_farBounds; }
 
 private:
+	void updateFarLook();
+
 	StationClass m_class;
+	StationMarkStyle m_style = StationMarkStyle::MapPin;
 	QList<QPointF> m_nodeCentres;
 	bool m_nearLook = false;
 	QRectF m_farBounds;
@@ -86,7 +92,7 @@ private:
 /// The overlay of a station at its anchor in the scene. It ignores the transformation of the view, so its own
 /// geometry is in logical pixels around the anchor. On the network canvas it is a scene decoration: it draws
 /// nothing itself and keeps the scene-space picture and name of the station readable (attachArtwork()).
-/// Otherwise it draws its own mark and label, which can be placed in the viewport.
+/// Otherwise it draws its own mark and label.
 class StationOverlayItem : public QGraphicsItem {
 public:
 	/// The side of the mark on which the label sits.
@@ -124,7 +130,7 @@ public:
 	QRectF boundingRect() const override;
 	/// The visible mark and label; empty for a scene decoration.
 	QPainterPath shape() const override;
-	/// Draws the mark and the label; a scene decoration draws nothing.
+	/// Draws the mark in its style and the label; a scene decoration draws nothing.
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
 
 	/// The name of the station as given.
@@ -136,35 +142,11 @@ public:
 	static QString displayName(const QString& stationName);
 	/// The same for a std::string.
 	static QString displayName(const std::string& stationName);
-	/// The factor of the label font, from 1 to 3.
-	qreal labelScale() const;
-	/// Sets the factor of the label font, kept from 1 to 3. The font is 11 pixels times both scales.
-	void setLabelScale(qreal scale);
-	/// The factor of the mark, the label and the gap between them, from 0.1 to 1.
-	qreal visualScale() const { return m_visualScale; }
-	/// Sets the factor of the mark, the label and the gap, kept from 0.1 to 1.
-	void setVisualScale(qreal scale);
 
 	/// The position of the station in scene coordinates.
 	QPointF stableAnchor() const { return m_stableAnchor; }
-	/// The move of the mark and the label in logical pixels.
-	QPointF viewportOffset() const { return m_viewportOffset; }
-	/// Sets the move of the mark and the label in logical pixels.
-	void setViewportOffset(const QPointF& offset);
-	/// The further move of the mark alone in logical pixels, which keeps it clear of other marks at Fit.
-	QPointF fitCollisionOffset() const { return m_fitCollisionOffset; }
-	/// Sets that move. While it is not zero, a click on the moved mark calls the displaced click handler.
-	void setFitCollisionOffset(const QPointF& offset);
-	/// The mark is drawn.
-	bool isFitSymbolVisible() const { return m_fitSymbolVisible; }
-	/// Shows or hides the mark.
-	void setFitSymbolVisible(bool visible);
-	/// Sets the function that a click on the moved mark calls with the station name; empty for none.
-	void setDisplacedClickHandler(std::function<void(const QString&)> handler);
 	/// Sets the nodes of the run that the station stands for.
 	void setSourceIdentities(const QList<SourceIdentity>& identities);
-	/// Forgets the nodes of the run.
-	void clearSourceIdentities();
 	/// The station stands for a node of the run.
 	bool hasSourceIdentity() const { return !m_sourceIdentities.isEmpty(); }
 	/// The number of nodes of the run that the station stands for.
@@ -175,16 +157,7 @@ public:
 	double sourceNodeId() const;
 	/// The track line of the first node; -1 without one.
 	int sourceTrack() const;
-	/// The first move of symbolRect, from none to 40 logical pixels along the axes and the diagonals, that keeps
-	/// it in viewportInset and clear of occupiedSymbols and blockedRects. found tells whether there is one;
-	/// without one the move is zero.
-	static QPointF firstFitCollisionOffset(const QRectF& symbolRect, const QRectF& viewportInset,
-		const QList<QRectF>& occupiedSymbols, const QList<QRectF>& blockedRects, bool* found);
 
-	/// The side of the mark on which the label sits.
-	LabelSide labelSide() const { return m_labelSide; }
-	/// Puts the label on this side of the mark.
-	void setLabelSide(LabelSide side);
 	/// The placement for a label side with the anchor at deviceAnchor in the viewport, inside viewportInset.
 	ViewportPlacement placementForSide(LabelSide side, const QPointF& deviceAnchor,
 		const QRectF& viewportInset) const;
@@ -192,21 +165,13 @@ public:
 	/// side that overflows less, the right on a tie.
 	ViewportPlacement preferredViewportPlacement(const QPointF& deviceAnchor,
 		const QRectF& viewportInset) const;
-	/// The mark around the anchor, in logical pixels, before its moves.
+	/// The mark around the anchor, in logical pixels.
 	QRectF symbolRect() const { return m_symbolRect; }
-	/// The label, in logical pixels, before its move.
+	/// The label to the right of the mark, in logical pixels.
 	QRectF labelRect() const { return m_labelRect; }
-	/// The label and the visible mark after their moves.
+	/// The label and the mark.
 	QRectF combinedRect() const;
-	/// The mark after its moves.
-	QRectF deviceSymbolRect() const { return translatedSymbol(m_symbolRect); }
-	/// The label after its move.
-	QRectF deviceLabelRect() const { return translated(m_labelRect); }
-	/// The same as combinedRect().
-	QRectF deviceCombinedRect() const { return combinedRect(); }
 
-	/// The layout shows the label. Hovering and selecting show it anyway.
-	void setLayoutVisible(bool visible);
 	/// The name may show at all.
 	void setNameVisible(bool visible);
 	/// A scene decoration draws nothing and takes no click; otherwise the overlay takes left clicks.
@@ -215,26 +180,19 @@ public:
 		setAcceptedMouseButtons(sceneDecoration ? Qt::NoButton : Qt::LeftButton);
 		update();
 	}
-	/// Hides the label because it collides with another, unless it is hovered or selected.
-	void setCollisionBlocked(bool blocked);
-	/// The layout shows the label.
-	bool isLayoutVisible() const { return m_layoutVisible; }
-	/// The label is hidden because it collides.
-	bool isCollisionBlocked() const { return m_collisionBlocked; }
-	/// The same as isLayoutVisible().
-	bool isLabelLayoutVisible() const { return m_layoutVisible; }
-	/// The label is drawn.
-	bool isLabelVisible() const;
-	/// The pointer is over the overlay.
-	bool isHovered() const { return m_hovered; }
+	/// The label is drawn: the name may show (setNameVisible()).
+	bool isLabelVisible() const { return m_nameVisible; }
 	/// Marks the station as followed; the window marks the station nearest to the followed train.
 	void setFollowed(bool followed);
 	/// The station is marked as followed.
 	bool isFollowed() const { return m_followed; }
+	/// The style of the station mark; StationMarkStyle::MapPin until setMarkStyle() or attachArtwork() sets another.
+	StationMarkStyle markStyle() const { return m_markStyle; }
+	/// Draws the mark in style, also the attached station mark, which the next applyViewScale() places by the anchor of
+	/// style, with its name.
+	void setMarkStyle(StationMarkStyle style);
 	/// The number of connections at the station.
 	int degree() const { return m_degree; }
-	/// Sets the number of connections; three or more make an interchange and one an endpoint.
-	void setDegree(int degree);
 	/// Sets the number of connections, and marks an interchange or an endpoint also when the degree does not.
 	void setNetworkDegree(int degree, bool interchange, bool endpoint);
 	/// The colours and the class of the station.
@@ -267,14 +225,15 @@ public:
 	static qreal readableItemScale(qreal nativeSizePx, qreal presentationScale,
 		qreal viewScale, qreal minPx);
 	/// Links the scene-space pictogram and name of this station. The items stay owned
-	/// by the scene; both are enlarged about their anchor (bottom centre of the pictogram,
-	/// top centre of the name) through their item transform, which stays the identity at
-	/// their scene size. For a station mark the transform also moves these anchors to the
-	/// station nodes (applyViewScale()). Attach the items to their parents before the first
-	/// applyViewScale: the transform moves scenePos() of an enlarged item. More platforms
-	/// rank a station higher when names collide.
+	/// by the scene; both are enlarged about their anchor (bottom centre of the pictogram or the
+	/// stationMarkAnchor() of a station mark, top centre of the name) through their item
+	/// transform, which stays the identity at their scene size. For a station mark the
+	/// transform also moves these anchors to the station nodes (applyViewScale()). Attach the
+	/// items to their parents before the first applyViewScale: the transform moves scenePos()
+	/// of an enlarged item. More platforms rank a station higher when names collide.
 	/// For a StationMarkItem that is in a scene it also adds the area of the station to the scene, a path item at
-	/// AreaZValue in stationAreaColor() that takes no mouse input.
+	/// AreaZValue in stationAreaColor() that takes no mouse input, and, in a NetworkScene, takes the style of the
+	/// station marks of that scene (setMarkStyle()).
 	void attachArtwork(QGraphicsPixmapItem* picture, QGraphicsTextItem* name, int platformCount);
 	/// The attached pictogram, or null.
 	QGraphicsPixmapItem* pictureItem() const { return m_picture; }
@@ -291,73 +250,62 @@ public:
 	/// Gives the area of the attached station mark the platform bars of the station, each in scene coordinates, of
 	/// which it keeps those whose centre is at the place of the anchor, as setNodeCentres() does.
 	void setPlatformBars(const QList<QPolygonF>& bars);
-	/// Scales the attached items for the view scale (logical pixels per scene unit). A station mark stands with the
-	/// bottom centre of its frame on the top edge of the convex hull of its node centres, or on its anchor without them,
-	/// at the x of the centre of the footprint of its squares (stationFootprintRect()): a station or major station on the
-	/// top centre of their box for a single centre, a row or a stack, a halt on its first square, and a diagonal station
-	/// on its own area. It stands there in both looks and draws nothing in the near look, which a mark without node
-	/// centres does not take: it keeps its pin as the only thing to see and click, and there the pin and the name keep
-	/// their smallest size on screen, MinPictogramPixels and MinNamePixels, at every zoom. Its name sits under the
-	/// footprint in both looks, so that mark and name share their x. The area of the station is shown while the mark is
-	/// visible: in the far look the hull of its node centres widened by AreaMarginPixels on screen, and in the near look
-	/// the hull of its node centres and platform bars widened by as much. A plain picture keeps the far look and, like its
-	/// name, its artwork point.
+	/// Scales the attached items for the view scale (logical pixels per scene unit). A map pin stands with the bottom
+	/// centre of its frame on the top edge of the convex hull of its node centres, or on its anchor without them, at the
+	/// x of the centre of the footprint of its squares (stationFootprintRect()): a station or major station on the top
+	/// centre of their box for a single centre, a row or a stack, a halt on its first square, and a diagonal station on
+	/// its own area. The marks of the other styles have the centre of their frame on the centre of the footprint
+	/// (stationMarkAnchor()). A mark stays there in both looks and draws nothing in the near look, which a mark without
+	/// node centres does not take: it keeps its mark as the only thing to see and click, and there the mark and the name
+	/// keep their smallest size on screen, MinPictogramPixels and MinNamePixels, at every zoom. Its name sits under the
+	/// footprint in both looks, and under the mark of a centred style where that reaches lower, so that mark and name
+	/// share their x. The area of the station is shown while the mark is visible: in the far look the hull of its node
+	/// centres widened by AreaMarginPixels on screen, and in the near look the hull of its node centres and platform bars
+	/// widened by as much. A plain picture keeps the far look and, like its name, its artwork point.
 	void applyViewScale(qreal viewScale, bool nearLook = false);
 	/// resolveNameCollisions() hid the attached name.
 	bool isNameHiddenByCollision() const { return m_nameHiddenByCollision; }
-	/// The area in scene coordinates of the pin of a station mark at the applied view scale, its halo included, and of
-	/// the footprint of its squares, the same in either look; the scene bounds of a plain picture.
+	/// The area in scene coordinates of the far mark of a station mark at the applied view scale, its halo included, and
+	/// of the footprint of its squares, the same in either look; the scene bounds of a plain picture.
 	QRectF pictogramSceneRect() const;
 	/// Places the names of station marks and hides the attached names that overlap, on screen, the name of a
 	/// higher-priority station or that cover part of the drawn pictogram of any other station: a visible plain picture,
 	/// the pictogram rect of a visible mark that draws its pin, and the footprint of the squares of a visible mark in the
 	/// near look. A name goes under the footprint of the squares of its station, or, where its text there crosses a
-	/// visible track line or the pictogram of another station, shown or hidden, to the first of these spots that crosses
-	/// neither: above the pin, right of the footprint, left of it, and above a frame on the top of the box of the node
-	/// centres at the x of the footprint; without one it stays under the footprint. A mark that draws nothing in the near
-	/// look has no pin and no frame there, so its name goes above the footprint instead of above the pin and has no last
-	/// spot. A name is placed again only after applyViewScale() moved it. Selected and followed stations keep their name.
-	/// Pictograms stay visible. sceneToViewport is the viewport transform of the view.
+	/// visible track line or the pictogram of another station, shown or hidden, or leaves bounds, to the first of these
+	/// spots where it does none of that: above the pin, right of the footprint, left of it, and above a frame on the top
+	/// of the box of the node centres at the x of the footprint; without one it stays under the footprint. A mark that
+	/// draws nothing in the near look has no pin and no frame there, so its name goes above the footprint instead of above
+	/// the pin and has no last spot. A mark of a centred style has no such frame either, and its name keeps clear of the
+	/// footprint and of the far mark in both looks. A name is placed again only after applyViewScale() moved it. Selected
+	/// and followed stations keep their name. Pictograms stay visible. sceneToViewport is the viewport transform of the
+	/// view, and bounds, in scene coordinates, what the view shows at Fit; empty bounds set no limit.
 	static void resolveNameCollisions(const QList<StationOverlayItem*>& stations,
-		const QTransform& sceneToViewport);
+		const QTransform& sceneToViewport, const QRectF& bounds = QRectF());
 
 protected:
-	/// Shows the label while the pointer is over the overlay.
-	void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
-	/// Ends the hover.
-	void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
-	/// A left click on the moved mark calls the displaced click handler; any other press passes on.
+	/// A press passes on to the items under the overlay.
 	void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
 
 private:
 	void rebuildGeometry();
 	void placeArtwork(qreal viewScale, bool nearLook, bool keptPin);
 	void chooseNameSpot(const QList<QPair<const StationOverlayItem*, QRectF>>& pictograms,
-		const QList<QPair<const QGraphicsItem*, QRectF>>& tracks);
+		const QList<QPair<const QGraphicsItem*, QRectF>>& tracks, const QRectF& bounds);
 	QRectF labelRectForSide(LabelSide side) const;
-	QRectF translated(const QRectF& rect) const;
-	QRectF translatedSymbol(const QRectF& rect) const;
 
 	QString m_stationName;
 	QString m_displayName;
 	QPointF m_stableAnchor;
-	QPointF m_viewportOffset;
-	QPointF m_fitCollisionOffset;
 	StationVisual m_visual;
 	QFont m_labelFont;
-	qreal m_labelScale = 1.0;
-	qreal m_visualScale = 1.0;
 	QRectF m_symbolRect;
 	QRectF m_labelRect;
-	LabelSide m_labelSide = LabelSide::Right;
-	bool m_layoutVisible = true;
 	bool m_nameVisible = true;
 	bool m_sceneDecoration = false;
-	bool m_collisionBlocked = false;
-	bool m_fitSymbolVisible = true;
-	bool m_hovered = false;
 	bool m_followed = false;
 	int m_degree = 0;
+	StationMarkStyle m_markStyle = StationMarkStyle::MapPin;
 	bool m_interchange = false;
 	bool m_endpoint = false;
 	QList<SourceIdentity> m_sourceIdentities;
@@ -388,7 +336,6 @@ private:
 	bool m_nameSpotChosen = true;
 	int m_platformCount = 0;
 	bool m_nameHiddenByCollision = false;
-	std::function<void(const QString&)> m_displacedClickHandler;
 };
 
 #endif // STATIONOVERLAYITEM_H

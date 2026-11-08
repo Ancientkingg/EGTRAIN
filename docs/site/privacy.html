@@ -1,0 +1,34 @@
+    <h1>Privacy</h1>
+    <p>This page says which data EGTRAIN and this website receive, what they are used for and how long they are kept. It covers egtrain.samuelbruin.com, the release files on bin.samuelbruin.com and the requests that EGTRAIN itself makes.</p>
+
+    <section id="server-logs">
+      <h2>Server logs</h2>
+      <p>Cloudflare is in front of egtrain.samuelbruin.com and bin.samuelbruin.com, so every request passes through Cloudflare before it reaches the server. The proxy of the server logs every request, such as a page view, an update check, a download or a telemetry upload, with the IP address, an approximate location and the User-Agent header of the request. These logs are kept for 30 days.</p>
+    </section>
+
+    <section id="updates">
+      <h2>Update checks and downloads</h2>
+      <p>EGTRAIN looks for a newer release on egtrain.samuelbruin.com: automatically when you agreed to automatic checks at the first start, and whenever you choose <strong>Help &gt; Check for Updates...</strong>. The release files, and the update that <strong>Update and Restart</strong> downloads, come from bin.samuelbruin.com. Update checks and downloads do not depend on the choices for usage statistics and diagnostic reports below, so they are logged as described above even when you share neither.</p>
+    </section>
+
+    <section id="telemetry">
+      <h2>Usage statistics and diagnostic reports</h2>
+      <p>The release packages of EGTRAIN can send usage statistics and diagnostic reports to egtrain.samuelbruin.com. Both are optional and nothing is sent until you agree. EGTRAIN asks once, in the dialog <strong>Help improve EGTRAIN</strong>, with two separate choices: <strong>Share usage statistics</strong> and <strong>Share diagnostic reports</strong>. Neither takes effect until you click <strong>Save choices</strong>, and <strong>Not now</strong> switches both off. You can change them at any time in <strong>Help &gt; Privacy &amp; diagnostics...</strong>. Development builds and runs without a window, such as tests and automation, never send anything.</p>
+      <p>Both choices send the version of EGTRAIN, the platform and the processor architecture with each batch of events. <strong>Share usage statistics</strong> sends these events:</p>
+      <ul>
+        <li>a session started;</li>
+        <li>a case opened, as a bundled <code>.egscene</code> file or a local folder;</li>
+        <li>an editor opened;</li>
+        <li>a run started, completed or failed, with its duration in one of five ranges: under 1 s, 1 s to 10 s, 10 s to 1 minute, 1 to 10 minutes, or 10 minutes or more;</li>
+        <li>an export completed or failed, with its kind: scene bundle, legacy, CSV or PNG.</li>
+      </ul>
+      <p>Usage events carry a random installation ID. It counts installations that take part, not people. EGTRAIN makes it when you switch usage statistics on and removes it when you switch them off; switching them on again makes a new one.</p>
+      <p><strong>Share diagnostic reports</strong> sends one event when opening a case, a run or an export fails, with the kind of failure: invalid input, unsupported format, a file failure or an internal failure. Diagnostic events carry no installation ID and are sent separately from usage events.</p>
+      <p>Neither choice sends text from your cases, file names, paths, simulation input, logs, error messages, crash dumps, an email address or a device identifier. Events that cannot be sent wait on your computer for at most seven days.</p>
+      <p>The receiver stores the events it accepts without the IP address and without the headers of the request, and keeps them for 400 days. The request itself is logged by the proxy as described under <a href="#server-logs">Server logs</a>. EGTRAIN cannot recall events that were sent already.</p>
+    </section>
+
+    <section id="contact">
+      <h2>Who is responsible</h2>
+      <p>Samuel Bruin runs egtrain.samuelbruin.com and bin.samuelbruin.com and is responsible for the data described on this page. For questions about it, email <a href="mailto:egtrain@samuelbruin.com">egtrain@samuelbruin.com</a> or use the <a href="{root}contact/">contact page</a>.</p>
+    </section>

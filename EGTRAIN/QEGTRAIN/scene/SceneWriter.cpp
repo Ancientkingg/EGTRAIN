@@ -9,6 +9,18 @@
 #include <nlohmann/json.hpp>
 #include <system_error>
 #include <utility>
+#include <vector>
+
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#else
+#include <cerrno>
+#include <fcntl.h>
+#include <unistd.h>
+#endif
 
 using json = nlohmann::json;
 namespace fs = std::filesystem;
@@ -52,7 +64,7 @@ static bool inspectDestination(const fs::path& destination, bool& exists,
 	exists = !ec && status.type() != fs::file_type::not_found;
 	if (exists && status.type() != fs::file_type::directory) {
 		addWriteError(result, destination.u8string(),
-			"Case destination must be a directory and cannot be a symlink");
+			"Case destination must be a folder, not a link");
 		return false;
 	}
 	return true;
@@ -85,6 +97,93 @@ static bool writeBytes(SceneSaveResult& result, const std::string& filename, con
 	return true;
 }
 
+// Closing a std::ofstream only hands its bytes to the system, and the standard library has no flush to disk, so this calls
+// the system. On Windows a directory is not flushed; publishStagedDirectory and the bundle code write their renames
+// through instead.
+std::error_code syncToDisk(const fs::path& path, bool directory) {
+	if (const auto& hook = syncToDiskHook())
+		return hook(path, directory);
+#ifdef _WIN32
+	if (directory)
+		return std::error_code();
+	const HANDLE file = CreateFileW(path.c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+		nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	if (file == INVALID_HANDLE_VALUE) {
+		const DWORD error = GetLastError();
+		// The flush needs write access, which a file with the read-only attribute refuses; such a file is left as it is.
+		const DWORD attributes = GetFileAttributesW(path.c_str());
+		if (error == ERROR_ACCESS_DENIED && attributes != INVALID_FILE_ATTRIBUTES
+			&& (attributes & FILE_ATTRIBUTE_READONLY) != 0)
+			return std::error_code();
+		return std::error_code(static_cast<int>(error), std::system_category());
+	}
+	std::error_code ec;
+	if (FlushFileBuffers(file) == 0)
+		ec = std::error_code(static_cast<int>(GetLastError()), std::system_category());
+	CloseHandle(file);
+	return ec;
+#else
+	int descriptor = -1;
+	do {
+		descriptor = ::open(path.c_str(), O_RDONLY | O_CLOEXEC);
+	} while (descriptor < 0 && errno == EINTR);
+	// A folder the user may write but not read cannot be opened to flush it, and nothing more can be done there.
+	if (descriptor < 0)
+		return directory && errno == EACCES ? std::error_code() : std::error_code(errno, std::generic_category());
+	int synced = -1;
+#ifdef __APPLE__
+	// On macOS fsync only hands the data to the drive, which can keep it in its cache and lose it in a power cut.
+	// F_FULLFSYNC also has the drive write its cache to permanent storage. When it fails, as on a file system that cannot
+	// do that, fsync is the best that is left.
+	do {
+		synced = ::fcntl(descriptor, F_FULLFSYNC);
+	} while (synced == -1 && errno == EINTR);
+#endif
+	if (synced == -1) {
+		do {
+			synced = ::fsync(descriptor);
+		} while (synced == -1 && errno == EINTR);
+	}
+	const int error = synced == -1 ? errno : 0;
+	::close(descriptor);
+	// A file system that cannot flush a directory says so with EINVAL or EBADF, and nothing more can be done there.
+	if (error == 0 || (directory && (error == EINVAL || error == EBADF)))
+		return std::error_code();
+	return std::error_code(error, std::generic_category());
+#endif
+}
+
+std::error_code syncDirectoryTree(const fs::path& directory, fs::path& failed) {
+	std::vector<fs::path> folders{directory};
+	std::error_code ec;
+	for (fs::recursive_directory_iterator entry(directory, ec), end; !ec && entry != end; entry.increment(ec)) {
+		const fs::file_status status = entry->symlink_status(ec);
+		if (ec)
+			break;
+		if (fs::is_directory(status)) {
+			folders.push_back(entry->path());
+		} else if (fs::is_regular_file(status)) {
+			ec = syncToDisk(entry->path(), false);
+			if (ec) {
+				failed = entry->path();
+				return ec;
+			}
+		}
+	}
+	if (ec) {
+		failed = directory;
+		return ec;
+	}
+	for (auto folder = folders.rbegin(); folder != folders.rend(); ++folder) {
+		ec = syncToDisk(*folder, true);
+		if (ec) {
+			failed = *folder;
+			return ec;
+		}
+	}
+	return ec;
+}
+
 // Writes into a scene directory that is private to the save, so truncating is safe.
 static bool writeJsonFile(SceneSaveResult& result, const fs::path& scenePath,
 	const std::string& filename, const json& value) {
@@ -95,7 +194,7 @@ static bool writeJsonFile(SceneSaveResult& result, const fs::path& scenePath,
 	return writeBytes(result, filename, scenePath / filename, bytes);
 }
 
-// Writes a file that may already exist: the old content stays until the new content is complete.
+// Writes a file that may already exist: the old content stays until the new content is complete and on disk.
 static bool writeJsonFileReplacing(SceneSaveResult& result, const fs::path& path,
 	const json& value) {
 	const std::string filename = path.filename().u8string();
@@ -129,18 +228,29 @@ static bool writeJsonFileReplacing(SceneSaveResult& result, const fs::path& path
 		const fs::file_status existing = fs::status(target, ec);
 		if (!ec && fs::is_regular_file(existing))
 			fs::permissions(temporary, existing.permissions(), fs::perm_options::replace, ec);
-		ec.clear();
-		fs::rename(temporary, target, ec);
-		if (ec)
-			addWriteError(result, filename, "Cannot replace " + filename + ": " + ec.message());
-		else
-			published = true;
+		ec = syncToDisk(temporary, false);
+		if (ec) {
+			addWriteError(result, filename, "Cannot flush " + filename + " to disk: " + ec.message());
+		} else {
+			fs::rename(temporary, target, ec);
+			if (ec)
+				addWriteError(result, filename, "Cannot replace " + filename + ": " + ec.message());
+			else
+				published = true;
+		}
 	}
 	if (!published) {
 		ec.clear();
 		fs::remove(temporary, ec);
+		return false;
 	}
-	return published;
+	// The parent folder holds the new name. Windows flushes no folder, and std::filesystem::rename does not write the
+	// rename through. The file is in place already, so a failure here is only a warning.
+	const fs::path parent = target.parent_path().empty() ? fs::path(".") : target.parent_path();
+	ec = syncToDisk(parent, true);
+	if (ec)
+		addCleanupWarning(result, parent, "Cannot flush " + parent.u8string() + " to disk: " + ec.message());
+	return true;
 }
 
 static bool copyExistingSceneContents(const fs::path& source, const fs::path& staging,
@@ -148,16 +258,14 @@ static bool copyExistingSceneContents(const fs::path& source, const fs::path& st
 	std::error_code ec;
 	fs::copy(source, staging, fs::copy_options::recursive | fs::copy_options::copy_symlinks, ec);
 	if (ec) {
-		addWriteError(result, source.u8string(), "Cannot stage the previous case contents: " + ec.message());
+		addWriteError(result, source.u8string(), "Cannot copy the files of the previous case: " + ec.message());
 		return false;
 	}
-	for (const char* filename : {"scene.json", "infrastructure.json", "stations.json",
-			 "signalling.json", "rolling_stock.json", "services.json", "scenarios.json",
-			 "passengers.json", "views.json", "incidents.json"}) {
+	for (const SceneFile& file : kSceneFiles) {
 		ec.clear();
-		fs::remove_all(staging / filename, ec);
+		fs::remove_all(staging / file.name, ec);
 		if (ec) {
-			addWriteError(result, filename, "Cannot prepare staged case file: " + ec.message());
+			addWriteError(result, file.name, "Cannot prepare the case files for saving: " + ec.message());
 			return false;
 		}
 	}
@@ -387,8 +495,8 @@ SceneSaveResult saveScenarioJson(const SceneScenario& scenario, const std::strin
 
 ScenarioLoadResult loadScenarioJson(const std::string& filePath) {
 	ScenarioLoadResult result;
-	std::ifstream input{pathFromUtf8(filePath)};
-	if (!input) {
+	std::string content;
+	if (!readFileBytes(pathFromUtf8(filePath), content)) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.file.missing",
 			"Cannot open scenario JSON");
 		return result;
@@ -396,10 +504,11 @@ ScenarioLoadResult loadScenarioJson(const std::string& filePath) {
 
 	json value;
 	try {
-		input >> value;
+		value = json::parse(content);
 	} catch (const json::parse_error& error) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.json.parse",
-			std::string("JSON parse error: ") + error.what());
+		SceneDiagnostic diagnostic = jsonParseDiagnostic("scene.scenario.json.parse", pathFromUtf8(filePath).filename().u8string(),
+			"scenario.json", content, error);
+		result.diagnostics.push_back(std::move(diagnostic));
 		return result;
 	}
 	if (!value.is_object()) {
@@ -583,38 +692,95 @@ json encodeSceneMetadata(const SceneModel& scene) {
 	return metadata;
 }
 
+// The content of a scene file that saveScene writes; an empty object for a file that it never writes.
+static json encodeSceneFile(const std::string& name, const SceneModel& scene) {
+	if (name == "scene.json")
+		return encodeSceneMetadata(scene);
+	if (name == "infrastructure.json")
+		return encodeInfrastructure(scene);
+	if (name == "stations.json")
+		return encodeStations(scene);
+	if (name == "signalling.json")
+		return encodeSignalling(scene);
+	if (name == "rolling_stock.json")
+		return encodeRollingStock(scene);
+	if (name == "services.json")
+		return encodeServices(scene);
+	if (name == "scenarios.json")
+		return encodeScenarios(scene);
+	if (name == "views.json")
+		return encodeViews(scene);
+	if (name == "passengers.json")
+		return encodePassengers(scene.passengers);
+	return json::object();
+}
+
 static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::path& scenePath) {
 	SceneSaveResult result;
-
-	const auto writeCanonical = [&](const std::string& filename, const json& value) {
-		return writeJsonFile(result, scenePath, filename, value);
-	};
 	bool wroteAll = true;
-	wroteAll = writeCanonical("scene.json", encodeSceneMetadata(scene)) && wroteAll;
-	wroteAll = writeCanonical("infrastructure.json", encodeInfrastructure(scene)) && wroteAll;
-	wroteAll = writeCanonical("stations.json", encodeStations(scene)) && wroteAll;
-	wroteAll = writeCanonical("signalling.json", encodeSignalling(scene)) && wroteAll;
-	wroteAll = writeCanonical("rolling_stock.json", encodeRollingStock(scene)) && wroteAll;
-	wroteAll = writeCanonical("services.json", encodeServices(scene)) && wroteAll;
-	wroteAll = writeCanonical("scenarios.json", encodeScenarios(scene)) && wroteAll;
-	const bool hasViews = !scene.trackViews.empty() || !scene.stationViews.empty();
-	if (hasViews)
-		wroteAll = writeCanonical("views.json", encodeViews(scene)) && wroteAll;
-	if (!scene.passengers.empty()) {
-		wroteAll = writeCanonical("passengers.json", encodePassengers(scene.passengers)) && wroteAll;
-	}
-
+	for (const SceneFile& file : kSceneFiles)
+		if (sceneFileWritten(file, scene))
+			wroteAll = writeJsonFile(result, scenePath, file.name, encodeSceneFile(file.name, scene)) && wroteAll;
 	result.wroteAll = wroteAll && !hasErrors(result.diagnostics);
 	return result;
 }
 
-SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) {
+SceneSaveResult writeSceneFiles(const SceneModel& scene, const fs::path& directory) {
+	SceneSaveResult result = writeSceneGeneration(scene, directory);
+	if (!result.success())
+		return result;
+	SceneLoadResult loaded = loadScene(directory.u8string());
+	result.diagnostics.insert(result.diagnostics.end(), loaded.diagnostics.begin(), loaded.diagnostics.end());
+	if (hasErrors(loaded.diagnostics)) {
+		result.wroteAll = false;
+		return result;
+	}
+	result.inputSnapshot = std::move(loaded.inputSnapshot);
+	return result;
+}
+
+StagedPublishResult publishStagedDirectory(StagedDirectory& staged, const fs::path& destination, const fs::path& backup) {
+	StagedPublishResult result;
+	if (!backup.empty()) {
+		fs::rename(destination, backup, result.error);
+		if (result.error) {
+			result.step = StagedPublishStep::MoveToBackup;
+			return result;
+		}
+	}
+#ifdef _WIN32
+	// std::filesystem::rename calls MoveFileExW without MOVEFILE_WRITE_THROUGH.
+	if (MoveFileExW(staged.path.c_str(), destination.c_str(), MOVEFILE_WRITE_THROUGH) == 0)
+		result.error = std::error_code(static_cast<int>(GetLastError()), std::system_category());
+#else
+	fs::rename(staged.path, destination, result.error);
+#endif
+	if (result.error) {
+		result.step = StagedPublishStep::Rename;
+		if (!backup.empty())
+			fs::rename(backup, destination, result.restoreError);
+		return result;
+	}
+	staged.release();
+	// The parent folder holds the new name, and the backup goes only once that is on disk.
+	result.syncError = syncToDisk(destination.parent_path().empty() ? fs::path(".") : destination.parent_path(), true);
+	if (!backup.empty() && !result.syncError)
+		fs::remove_all(backup, result.removeBackupError);
+	return result;
+}
+
+// Writes the scene into a staging directory next to sceneDir, loads it back, flushes it to disk and renames it into
+// place. With keepOtherFiles the staging directory is limited to its owner and takes the files of the previous directory
+// that are not scene files; without it the previous directory is replaced with everything in it and the new one keeps
+// the default mode of a new directory.
+static SceneSaveResult writeSceneDirectory(const SceneModel& scene, const std::string& sceneDir,
+	bool keepOtherFiles) {
 	SceneSaveResult result;
 	const fs::path destination = pathFromUtf8(sceneDir);
 	const std::string destinationName = destination.filename().u8string();
 	if (destination.empty() || destinationName.empty() || destinationName == "."
 		|| destinationName == "..") {
-		addWriteError(result, sceneDir, "Case destination must be a named directory");
+		addWriteError(result, sceneDir, "Case destination must have a name");
 		return result;
 	}
 
@@ -624,13 +790,13 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 	result.writeAttempted = true;
 	fs::create_directories(parent, ec);
 	if (ec) {
-		addWriteError(result, parent.u8string(), "Cannot create case parent directory: " + ec.message());
+		addWriteError(result, parent.u8string(), "Cannot create the parent folder of the case: " + ec.message());
 		return result;
 	}
 	ec.clear();
 	const auto parentStatus = fs::symlink_status(parent, ec);
 	if (ec || parentStatus.type() != fs::file_type::directory) {
-		addWriteError(result, parent.u8string(), "Case destination parent must be a directory");
+		addWriteError(result, parent.u8string(), "The parent of the case destination must be a folder");
 		return result;
 	}
 
@@ -639,26 +805,30 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 		return result;
 
 	StagedDirectory staging;
-	ec = createStagedDirectory(parent, destinationName + ".staging-", true, staging);
+	ec = createStagedDirectory(parent, destinationName + ".staging-", keepOtherFiles, staging);
 	if (ec) {
-		addWriteError(result, destination.u8string(), "Cannot create a private case staging directory");
+		addWriteError(result, destination.u8string(), "Cannot create a private case staging directory: " + ec.message());
 		return result;
 	}
-	if (hadDestination && !copyExistingSceneContents(destination, staging.path, result))
+	if (keepOtherFiles && hadDestination && !copyExistingSceneContents(destination, staging.path, result))
 		return result;
 	const bool stagingAttempted = result.writeAttempted;
-	result = writeSceneGeneration(scene, staging.path);
+	result = writeSceneFiles(scene, staging.path);
 	result.writeAttempted = result.writeAttempted || stagingAttempted;
-	if (!result.wroteAll || hasErrors(result.diagnostics))
+	if (!result.success())
 		return result;
-
-	const SceneLoadResult staged = loadScene(staging.path.u8string());
-	result.diagnostics.insert(result.diagnostics.end(), staged.diagnostics.begin(), staged.diagnostics.end());
-	if (hasErrors(staged.diagnostics)) {
+	// The snapshot is the result only once the case is published.
+	std::string stagedSnapshot;
+	stagedSnapshot.swap(result.inputSnapshot);
+	fs::path unsynced;
+	ec = syncDirectoryTree(staging.path, unsynced);
+	if (ec) {
+		const fs::path inCase = unsynced.lexically_relative(staging.path);
+		const std::string name = inCase == fs::path(".") ? destinationName : inCase.u8string();
+		addWriteError(result, name, "Cannot flush " + name + " to disk: " + ec.message());
 		result.wroteAll = false;
 		return result;
 	}
-	const std::string stagedSnapshot = staged.inputSnapshot;
 
 	if (!inspectDestination(destination, hadDestination, result)) {
 		result.wroteAll = false;
@@ -669,7 +839,7 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 	if (hadDestination) {
 		ec = uniqueSiblingPath(parent, destinationName + ".backup-", backup);
 		if (ec) {
-			addWriteError(result, destination.u8string(), "Cannot reserve a private case backup path");
+			addWriteError(result, destination.u8string(), "Cannot choose a backup name for the previous case");
 			result.wroteAll = false;
 			return result;
 		}
@@ -677,17 +847,25 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 
 	const StagedPublishResult published = publishStagedDirectory(staging, destination, backup);
 	if (published.step == StagedPublishStep::MoveToBackup) {
-		addWriteError(result, destination.u8string(), "Cannot move the previous case generation: " + published.error.message());
+		addWriteError(result, destination.u8string(), "Cannot move the previous version of the case aside: " + published.error.message());
 		result.wroteAll = false;
 		return result;
 	}
 	if (published.step == StagedPublishStep::Rename) {
-		addWriteError(result, destination.u8string(), "Cannot publish case generation: " + published.error.message());
+		// When the previous case cannot be moved back, it stays under the backup name, which the first error names.
 		if (published.restoreError)
-			addWriteError(result, destination.u8string(), "Cannot restore the previous case generation: " + published.restoreError.message());
+			addWriteError(result, backup.u8string(),
+				"The previous case is now in " + backup.u8string()
+					+ " and cannot be moved back: " + published.restoreError.message());
+		addWriteError(result, destination.u8string(), "Cannot put the saved case in place: " + published.error.message());
 		result.wroteAll = false;
 		return result;
 	}
+	if (published.syncError)
+		addCleanupWarning(result, backup.empty() ? parent : backup,
+			"Cannot flush " + parent.u8string() + " to disk"
+				+ (backup.empty() ? std::string() : ", so the previous case stays in " + backup.u8string()) + ": "
+				+ published.syncError.message());
 	if (published.removeBackupError)
 		addCleanupWarning(result, backup,
 			"Cannot remove the previous case generation: " + published.removeBackupError.message());
@@ -696,4 +874,12 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 	if (result.wroteAll)
 		result.inputSnapshot = stagedSnapshot;
 	return result;
+}
+
+SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) {
+	return writeSceneDirectory(scene, sceneDir, true);
+}
+
+SceneSaveResult replaceSceneDirectory(const SceneModel& scene, const std::string& sceneDir) {
+	return writeSceneDirectory(scene, sceneDir, false);
 }

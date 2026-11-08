@@ -54,11 +54,20 @@ inline bool readJsonInt(const nlohmann::json& value, int min, int max, int& outp
 }
 
 std::string severityLabel(SceneSeverity s); ///< "error", "warning" or "info".
+/// The kind and the id of the item, such as "journey 0:2" or "arc B0.arc.108", with "item" as the kind when it is not set;
+/// empty when the diagnostic has no item id.
+std::string itemLabel(const SceneDiagnostic& d);
 /// One line for the log and the console: severity, code, file, item, path, message and suggested fix.
 std::string toDisplayText(const SceneDiagnostic& d);
 /// The text of a dialog that shows the diagnostic: the message, and the suggested fix as a second paragraph when there is
 /// one.
 std::string toDialogText(const SceneDiagnostic& d);
+/// The error diagnostic for `content`, the text of the file `name`, that is not valid JSON, from the parse error that
+/// reading it threw. The message names the file and the line and column of the first fault, without the text of the
+/// parser; the suggested fix says to correct the file or restore a copy. `file` is the file field, which a dialog shows
+/// as its "File:" line when the message does not contain it.
+SceneDiagnostic jsonParseDiagnostic(const std::string& code, const std::string& name, const std::string& file,
+	const std::string& content, const nlohmann::json::parse_error& error);
 /// An object with every field of the diagnostic, the severity as its label, for tools and tests.
 nlohmann::json toJson(const SceneDiagnostic& d);
 /// True when a diagnostic has severity Error.

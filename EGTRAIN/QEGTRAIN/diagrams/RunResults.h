@@ -55,12 +55,13 @@ std::string hashSceneInputSnapshot(const std::string& snapshot);
 RunInputProvenance captureSavedInput(const std::string& savedPath, const std::string& inputKind,
 	bool dirty, const std::string& savedSha256);
 /// Writes the artifact and its sidecar `<artifactPath>.provenance.json`. `artifactKind` names the artifact in the
-/// sidecar, such as "csv" or "png". False when a write fails; the artifact is then not replaced.
-bool writeRunArtifactWithProvenance(const std::string& artifactPath,
+/// sidecar, such as "csv" or "png". Returns why a write failed, after the file name of the sidecar when it was the
+/// sidecar, or an empty string when both were written. A failed write does not replace the artifact.
+std::string writeRunArtifactWithProvenance(const std::string& artifactPath,
 	const std::string& artifactKind, const std::string& artifactBytes,
 	const RunProvenance& run);
 /// As writeRunArtifactWithProvenance, with the provenance of both runs of a delay comparison in the sidecar.
-bool writeDelayArtifactWithProvenance(const std::string& artifactPath,
+std::string writeDelayArtifactWithProvenance(const std::string& artifactPath,
 	const std::string& artifactKind, const std::string& artifactBytes,
 	const RunProvenance& baselineRun, const RunProvenance& scenarioRun);
 
@@ -76,7 +77,7 @@ struct TrainRunResult {
 	std::string operatingCode;				///< Operating code of the service
 	std::string serviceId;					///< Scene service of the train
 	int occurrence = 1;						///< Occurrence of the service, from 1
-	double performancePercent = 100.0;		///< Share of the tractive effort and maximum speed the service uses, in percent
+	double performancePercent = 100.0;		///< Share of the tractive effort, maximum speed and track speed limits the service uses, in percent
 	bool hasConfiguredMaximumSpeed = false; ///< True when the service sets a maximum speed
 	double configuredMaximumSpeedKmh = 0.0; ///< Maximum speed of the service in km/h; meaningful only when hasConfiguredMaximumSpeed
 	double compositionMaximumSpeedMs = 0.0; ///< Maximum speed of the composition in m/s

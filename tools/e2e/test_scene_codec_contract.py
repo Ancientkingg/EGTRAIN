@@ -206,7 +206,7 @@ def main():
         print("\n".join(problems), file=sys.stderr)
         return 1
     writes, reads, _ = key_sites(files["SceneWriter.cpp"])
-    loader_reads = key_sites(files["SceneModel.cpp"])[1]
+    loader_reads = key_sites(files["SceneModel.cpp"])[1] | key_sites(files["SceneFieldReader.cpp"])[1]
     if len(writes) < 50 or len(loader_reads) < 50:
         problems.append(f"the census found {len(writes)} written and {len(loader_reads)} read keys; the patterns no longer match the code")
     problems += check_codec(files)

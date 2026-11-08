@@ -3,6 +3,7 @@
 
 #include <QElapsedTimer>
 #include <QGraphicsScene>
+#include <QLineF>
 #include <QList>
 #include <QMap>
 #include <QPen>
@@ -12,19 +13,21 @@
 #include <QPolygonF>
 #include <QRectF>
 #include <QString>
+#include <QStringList>
 #include <QTimer>
 
 #include <functional>
 #include <limits>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
-#include "app/GuiSimulationSnapshot.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "graphics/NetworkView.h"
 #include "graphics/items/HighlightEffect.h"
 #include "scene/SectionLabels.h"
@@ -32,6 +35,7 @@
 
 class Arc;
 class Connections;
+class NetworkMarkItem;
 class Node;
 class PassengerItem;
 class PlatformItem;
@@ -50,12 +54,15 @@ struct GuiPassengerState;
 struct GuiPlatformState;
 struct GuiSignalState;
 struct SceneModel;
+struct SceneSectionDescriptor;
+struct SceneSectionInventory;
 struct SceneStationView;
 struct StationVisual;
 
 /// Draws the track preview and the items of a run on the network canvas and keeps track of the items on
-/// it. The scene owns every item; the lists, maps and pointers below only observe them and are never
-/// used to delete one. They are public until all the code that fills them is in this class.
+/// it. The scene owns every item; the lists, maps and pointers of the class only observe them and are never
+/// used to delete one. Only this class fills them: callers read them through const getters and change them through
+/// named actions.
 ///
 /// clear() deletes every item of the scene and then forgets all the pointers to them. A pointer
 /// that stays after the scene is cleared would dangle, so the registries belong with the code that
@@ -70,14 +77,18 @@ class NetworkPresenter {
 public:
 	/// What the preview needs to know besides the model.
 	struct PreviewOptions {
-		/// The facet of the row that the infrastructure panel selects: "tracks", "nodes", "arcs", "blocks",
-		/// "connections", "stations", "platforms" or "routes". Empty without one.
+		/// The facet of the row that the infrastructure panel selects, one of InfrastructurePanel::facetKeys(), such as
+		/// "tracks" or "station_boundaries". Empty without one.
 		std::string selectedFacet;
-		/// The id of that row; for a platform the station id and the platform id with a newline between
-		/// them. Empty without one.
+		/// The id of that row; for a platform the station id and the platform id with a newline between them, and for a
+		/// block dependency, a single-track restriction or a station boundary, which have no id, the row number. Empty
+		/// without one.
 		std::string selectedId;
-		/// The infrastructure panel is shown, so the arc or connection that it selects is marked.
-		bool markSelection = false;
+		/// For a route, the index into SceneRoute::blocks of the section chosen under Route sections; -1 without one.
+		int selectedRouteSection = -1;
+		/// The model generation (SceneDocument::modelGeneration()) of the model that is drawn; none when the caller does
+		/// not know it. markPreviewSelection() marks only on a preview drawn from the same generation.
+		std::optional<quint64> modelGeneration;
 	};
 
 	/// What showPreview drew.
@@ -171,11 +182,16 @@ public:
 	/// which show the newest state, can run well ahead of the drawn train. An update that leaves the train at its place
 	/// keeps the glide that runs, and without a new update, as at a pause, the train also goes on to that place; it
 	/// stops there when the glide ends. A train that has just appeared, has another route or direction, runs backwards,
-	/// or has moved further than the visible view since its last update is placed at once, and so is every train of a
-	/// replay.
+	/// or has moved further than the visible view since its last update is placed at once. So is every train of a
+	/// replay, unless setReplayGlideMs() is above 0: then a replay train glides under the same rules, over that time, and
+	/// the motion timer runs for it.
 	void updateTrainPosition(const GuiSimulationSnapshot& snapshot, int t, Playback playback);
 
-	/// Moves every live train that is in motion to where it is at the moment, and tells the host where a promoted one
+	/// The glide of a replay train from one step of Play to the next, in milliseconds; 0 places every replay train at once,
+	/// as a seek does.
+	void setReplayGlideMs(qint64 ms);
+
+	/// Moves every train that is in motion to where it is at the moment, and tells the host where a promoted one
 	/// is drawn. A train far outside the visible scene is drawn again only at the next update or when it stops. A
 	/// timer of the presenter calls it about once a frame while a train moves, at a pace that the updates do not
 	/// change. A live update does not move a train on its way that the last step drew; a test calls it with the clock
@@ -193,11 +209,13 @@ public:
 	/// place of its last update at the next step.
 	void setClock(Clock clock);
 
-	/// Draws the passenger information of the selected train again, or hides it while the passenger layer is hidden.
+	/// Brings the passenger information of the selected train up to date, or hides it while the passenger layer is
+	/// hidden.
 	void updateTrainPaxInfo();
-	/// Draws the passenger information of the selected passenger icon again, or hides it while the passenger layer is
-	/// hidden. The snapshot gives the details of the passenger and can be null. When the passenger layer is shown after
-	/// steps were applied while it was hidden, the snapshot also brings the platforms up to date.
+	/// Brings the passenger information of the selected passenger icon up to date, or hides it while the passenger layer
+	/// is hidden; it goes when the icon has gone. The snapshot gives the details of the passenger and can be null. When
+	/// the passenger layer is shown after steps were applied while it was hidden, the snapshot also brings the platforms
+	/// up to date.
 	void updatePaxIconInfo(const GuiSimulationSnapshot* snapshot, Playback playback);
 	/// Deletes the passenger information of the selected train. The train stays selected.
 	void removeTrainPaxInfoIcon();
@@ -221,8 +239,8 @@ public:
 	/// The id in the scene of the track line with this index in the run; empty when the run has none for it.
 	std::string sceneTrackId(int track) const;
 
-	/// Adds a train of the run with its badge and train.wagonCount + 1 bodies of equal length, the first at
-	/// the head. The train is promoted when it is selected or followed.
+	/// Adds a train of the run with train.wagonCount + 1 bodies of equal length, the first at the head, and its badge
+	/// at its centre, as trainCenter() finds it. The train is promoted when it is selected or followed.
 	void paintTrain(const GuiTrainState& train, const SceneModel& sceneModel, bool promoted);
 	/// The train group of the run with this index, or null.
 	TrainItemGroup* trainGroup(int train) const;
@@ -237,32 +255,153 @@ public:
 	/// tells whether one of them has a shape.
 	bool getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, const GuiTrainState& train);
 
-	/// The shape, in scene coordinates, of one body of a train, counted from 0 at the head. The polygon
-	/// stays empty when the train has no route or the wagon has no position.
+	/// The shape, in scene coordinates, of one body of a train, counted from 0 at the head: the drawn track under the
+	/// part of the wagon that is on its route, stroked at the width of a body with flat ends and mitred corners. Its
+	/// corners run from the front of the body along its right side to the back and along its left side back to the
+	/// front, so the first and the last are the corners of the front. The polygon stays empty when the train has no
+	/// route, the wagon has no position or no part on its route, or the track under it is not drawn.
 	void getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTrainState& train);
 
 	/// Adds the square of a station node of a track line, centred on coord. size is its side in scene
 	/// units, times the presentation scale when the track line has a line in the preview. The item points
 	/// to node, which belongs to the run. The node is darker at the end of a line when its platform
 	/// is known.
-	void paintStationNode(QPointF coord, int size, int track, Node* node, bool lineEnd);
+	void paintStationNode(QPointF coord, int size, int track, const Node* node, bool lineEnd);
 
-	/// Shows the passengers on board above a train.
+	/// Shows the passengers on board above the front of a train, or below it when they would reach above the view, and
+	/// selects the train. A train without a shape shows none, and the passenger information is deleted. The group of the
+	/// information is made once and then reused.
 	void paintTrainPassengerInfo(TrainItemGroup* trainItem);
-	/// Shows the details of a passenger above its icon; a replay adds that the journey details are unavailable.
+	/// Shows the details of a passenger in words above its icon, or below it when they would reach above the view, and
+	/// selects the icon. A passenger on a platform waits at it, such as "Waiting at Guingamp, platform 2", one on a train
+	/// is on board, and one outside the network has arrived; a replay adds that the journey details are unavailable. The
+	/// group of the details is made once and then reused.
 	void paintPassengerInfoIcon(PassengerItem* paxItem, const GuiPassengerState& passenger, bool replayActive);
-	/// Shows the message of a virtual coupling above a train.
+	/// Shows the message of a virtual coupling above a train, in a group that is made once for the train.
 	void paintVCouplingMsg(TrainItemGroup* trainItem, const std::string& message);
 
 	/// Draws the track lines, the connections, the nodes, the station overlays and the signals of the
 	/// model on the scene, which holds no item, and fits the view to them. The caller clears the
 	/// scene first.
 	PreviewOutcome showPreview(const SceneModel& sceneModel);
-	/// The same, with the selection of the infrastructure panel of options.
+	/// The same, and marks the row of the infrastructure panel that options selects (see markPreviewSelection()).
 	PreviewOutcome showPreview(const SceneModel& sceneModel, const PreviewOptions& options);
+	/// Marks the row of the infrastructure panel that options selects on the preview that is shown, in place of the mark
+	/// of the row before, and leaves the rest of the scene and the view as they are. A view that shows no part of the
+	/// new mark is centred on the point of the mark nearest to its centre, at the same zoom. The mark of each kind of
+	/// row: the whole drawn track of a track, a ring around a node, the line between its ends for an arc and a
+	/// connection, the course of its section for a block (previewSectionCourse()), rings on the station mark and the
+	/// squares of the platform nodes of a station, rings on the squares and halos on the bars of a platform, the
+	/// courses of the sections of a route in travel order with a disc at its start and an arrowhead at its end when its
+	/// direction is known, rings on the heads of a signal, the kilometres of a signalling area on its track or on every
+	/// track, and the courses of the sections that a single-track restriction, a station boundary or a block dependency
+	/// names; for a single-track restriction also the block sections between its start and its end. The section chosen
+	/// under Route sections is drawn over the route in the second colour. Returns false and changes nothing when no
+	/// preview is shown or options has no model generation or another one than the preview: the caller draws the
+	/// preview again. A hidden mark (setSelectionMarkShown()) leaves the view as it is.
+	bool markPreviewSelection(const SceneModel& sceneModel, const PreviewOptions& options);
+	/// The scene shows a preview with track lines: showPreview() drew one and neither clear() nor showRuntime() ran since.
+	bool previewShown() const { return m_previewShown; }
+	/// The mark of the selected row of the infrastructure panel; null without one.
+	const NetworkMarkItem* selectionMark() const { return m_selectionMark; }
+	/// Shows or hides the mark of the selected row, the one that is placed now and the ones that are placed later, and
+	/// leaves the rest of the scene and the view as they are. A hidden mark keeps its row, so showing it again draws the
+	/// same mark. The mark is shown until this hides it.
+	void setSelectionMarkShown(bool shown);
+	/// The mark of the selected row is shown (setSelectionMarkShown()).
+	bool selectionMarkShown() const { return m_selectionMarkShown; }
+	/// Marks block sections of the run that the canvas shows, such as the stretch of a scope dialog or a block of a
+	/// blocking time window: the courses of sectionIds on the track preview that the run is drawn on
+	/// (previewSectionCourses()) as the band of a NetworkMarkItem, and the courses of emphasisIds as its emphasis. The ids
+	/// are runtime section ids of the scene of the run. The mark replaces the one of the call before; it goes when no id
+	/// has a course. The view, the follow camera and the rest of the scene stay as they are. Does nothing without a run;
+	/// clear() removes the mark.
+	void markRunSections(const QStringList& sectionIds, const QStringList& emphasisIds);
+	/// The mark of markRunSections(); null without one.
+	const NetworkMarkItem* runSectionMark() const { return m_runSectionMark; }
 
 	/// Forgets the fit and the selection of the last preview; the preview itself stays.
 	void resetPreviewFit();
+
+	/// How the view fits the preview.
+	struct PreviewFit {
+		/// The scene rectangle, margins included, that the view fits the preview to; empty without one.
+		QRectF bounds;
+		/// The point of the drawn track lines nearest to the centre of the preview, in scene coordinates.
+		QPointF zoomFocus;
+	};
+	/// The fit of the last preview.
+	PreviewFit previewFit() const { return {m_previewFitBounds, m_previewZoomFocus}; }
+	/// Puts back a fit that previewFit() returned, after a clear that the view of a run must not see.
+	void restorePreviewFit(const PreviewFit& fit);
+	/// The preview that the scene shows.
+	const TrackPreviewResult& trackPreview() const { return m_cachedTrackPreview; }
+	/// The preview shows the mark of a selected track.
+	bool previewHasSelectedTrack() const { return m_previewHasSelectedTrack && m_selectionMarkShown; }
+	/// The last preview has signals.
+	bool previewHasSignals() const { return m_previewHasSignals; }
+
+	/// The canvas shows something that clear() has to remove: an item that a registry holds, or a train in motion. A
+	/// preview of track lines alone is not such content.
+	bool hasContent() const;
+	/// The train groups of the run, in the order in which they were added.
+	const QList<TrainItemGroup*>& runTrains() const { return allTrains; }
+	/// The signal heads of the run.
+	const QList<SignalItem*>& runSignals() const { return allSignals; }
+	/// The station overlays of the preview and of the run.
+	const QList<StationOverlayItem*>& stationOverlays() const { return m_stationOverlays; }
+
+	/// Shows or hides the station layer: the overlays, their pictures and their names.
+	void setStationLayerVisible(bool visible);
+	/// Shows or hides the station names.
+	void setStationNamesVisible(bool visible);
+	/// Shows or hides the train layer. Shown, a train and its badge appear when present tells that the train has a place
+	/// at the step on the canvas.
+	void setTrainLayerVisible(bool visible, const std::function<bool(const TrainItemGroup&)>& present);
+	/// The train layer is shown.
+	bool trainLayerVisible() const { return m_trainLayerVisible; }
+	/// Shows or hides the speed on the badges of the trains.
+	void setTrainSpeedLabelsVisible(bool visible);
+	/// Sets whether the signal layer is shown. updateSignalCues() shows or hides the signals.
+	void setSignalLayerVisible(bool visible);
+	/// Shows or hides the passenger layer: the passengers on the platforms and the passenger information of the
+	/// selected train.
+	void setPassengerLayerVisible(bool visible);
+	/// The passenger layer is shown.
+	bool passengerLayerVisible() const { return m_passengerLayerVisible; }
+
+	/// Brings the station overlays, the highlight and the trains up to the view: each overlay is marked selected as
+	/// selected tells and followed when it is followed, the items take the scale of the view, the marks and the platform
+	/// bars take the near look when the tracks of a station are far enough apart on screen, the names take their spots
+	/// inside what the view shows at Fit where they can (NetworkView::paddedTopologyBounds()), and names that collide go.
+	/// Does nothing without a view.
+	void updateViewOverlays(const std::function<bool(const StationOverlayItem*)>& selected, const StationOverlayItem* followed);
+	/// Shows or hides the signal heads, posts and bases by the signal layer and puts each head back at its anchor.
+	void updateSignalCues();
+	/// Gives each train badge the look of the zoom of the view, promoted for a train that the frame host promotes. Does
+	/// nothing without a view.
+	void updateTrainBadges();
+
+	/// Puts the highlight on item, which replaces it on any other item. The item keeps it until it is deleted.
+	void setHighlight(QGraphicsItem* item);
+	/// Removes the highlight from its item.
+	void clearHighlight();
+	/// An item has the highlight.
+	bool hasHighlight() const { return !effect.isNull(); }
+
+	/// The signal whose details are shown, or null, also for a signal that is no longer on the canvas.
+	SignalItem* inspectedSignal() const;
+	/// Sets the signal whose details are shown, or none for null.
+	void setInspectedSignal(SignalItem* signal);
+	/// The selected train, or null.
+	TrainItemGroup* selectedTrain() const { return trainPaxItem; }
+	/// Forgets the selected train. Its passenger information stays until removeTrainPaxInfoIcon().
+	void clearSelectedTrain();
+	/// The passenger information of the selected train is on the canvas.
+	bool hasTrainPaxInfo() const { return trainPaxInfoItem != nullptr; }
+	/// Forgets the selected passenger icon. Its information stays until removePaxInfoIcon().
+	void clearSelectedPassengerIcon();
+
 
 	/// An item that Find offers.
 	struct FindTarget {
@@ -293,6 +432,14 @@ public:
 	/// picture and the name by the station nodes instead. More platforms rank a name higher when names collide.
 	void paintStationOverlay(QPointF coord, const StationVisual& visual, const std::string& sname,
 		qreal scale = 1.0, QPointF decorationOffset = QPointF(), int platformCount = 0);
+	/// Gives each station overlay the station nodes that belong to it: the nearest overlay with the name of the node. Its
+	/// source identities then name them, its picture hangs on the nearest of them, and its mark and area are placed by
+	/// them and their platform bars. Then measures the track spacing of the stations. showRuntime() has drawn the items.
+	void bindStationOverlaySources();
+	/// Gives each station overlay the highest number of drawn track lines and connections that end at a node of it. The
+	/// look of a station without a preview follows from it.
+	void updateStationOverlayDegrees();
+
 	/// The move in scene units of the picture and the name of a station from its anchor on line: the
 	/// stationDecorationOffset() times the presentation scale. On a schematic line, whose points come from the
 	/// station views and whose display offset holds its level, the move counts from level 0, as in the original, and
@@ -301,126 +448,158 @@ public:
 	QPointF stationArtworkOffset(const TrackPreviewLine& line, const std::vector<SceneStationView>& views,
 		const std::string& stationId, const std::string& name) const;
 
-	/// The train groups of the run, in the order in which they were added.
-	QList<TrainItemGroup*> allTrains;
-	/// The badge of each train by train index.
-	QMap<int, TrainBadgeItem*> m_trainBadges;
-
-	/// The signal heads of a run.
-	QList<SignalItem*> allSignals;
-	/// The signal heads of a run by the id of the section ahead of them.
-	std::unordered_map<std::string, QList<SignalItem*>> m_signalsByAheadId;
-	/// The heads, posts and bases of the signals of the preview and of a run.
-	QList<QGraphicsItem*> m_signalDecorations;
-
-	/// The track lines of a run.
-	QList<TrackLineItem*> allArcs;
-	/// The track lines of each signalling section by section id.
-	std::map<std::string, std::vector<TrackLineItem*>> m_tracksBySectionId;
-	/// The track line of each arc by track line index and the position of the start node of the arc in kilometres.
-	std::map<std::pair<int, double>, TrackLineItem*> m_tracksByOccupiedArc;
-	/// The track lines whose state is not free.
-	std::set<TrackLineItem*> m_activeTrackItems;
-
-	/// The platforms of a run.
-	QList<PlatformItem*> allPlatforms;
-	/// The station overlays of the preview and of a run.
-	QList<StationOverlayItem*> m_stationOverlays;
-	/// Everything that the station layer shows.
-	QList<QGraphicsItem*> m_stationDecorations;
-	/// The station names.
-	QList<QGraphicsItem*> m_stationLabels;
-	/// The picture of each overlay.
-	QMap<StationOverlayItem*, QGraphicsPixmapItem*> m_stationPictures;
-	/// The spacing of the tracks at the stations in scene units, which chooses the look of the station marks:
-	/// the median, over the stations with two or more station nodes, of the smallest distance between two of
-	/// their nodes. measureStationTrackSpacing() sets it and clear() resets it to 0.
-	qreal m_stationTrackSpacing = 0.0;
-	/// Measures m_stationTrackSpacing from the node centres of the station marks; track_separation times the
-	/// presentation scale when no station has two nodes.
-	void measureStationTrackSpacing();
-	/// The station marks are in the near look, in which the platform bars show. setStationNearLook() sets it and clear()
-	/// resets it to false.
-	bool m_stationNearLook = false;
-	/// Sets m_stationNearLook and shows or hides the platform bars and the passengers on them (applyPlatformVisibility()).
-	void setStationNearLook(bool nearLook);
-	/// Shows or hides the platform bars by platformBarsVisible(), the icons of the passengers on them by
-	/// platformPassengersVisible() and their counters by paxTextVisible(). Call it after a change of a layer.
-	void applyPlatformVisibility();
-
-	/// The virtual coupling message of each train by train index.
-	QMap<int, QGraphicsItemGroup*> m_vcMessageItems;
-
-	/// The signal whose details are shown, or null.
-	SignalItem* m_inspectedSignal = nullptr;
-	/// The selected train, or null.
-	TrainItemGroup* trainPaxItem = nullptr;
-	/// The group that shows the passenger information of the selected train, or null.
-	QGraphicsItemGroup* trainPaxInfoItem = nullptr;
-	/// The selected passenger icon, or null.
-	PassengerItem* paxIconItem = nullptr;
-	/// The group that shows the information of the selected passenger icon, or null.
-	QGraphicsItemGroup* paxIconInfoItem = nullptr;
-
-	/// The effect on the item selected last. The item deletes it with itself.
-	QPointer<HighlightEffect> effect;
-
-	/// The preview that the scene shows.
-	TrackPreviewResult m_cachedTrackPreview;
-	/// The scene rectangle, margins included, that the view fits the preview to; empty without one.
-	QRectF m_previewFitBounds;
-	/// The point of the drawn track lines nearest to the centre of the preview, in scene coordinates.
-	QPointF m_previewZoomFocus;
-	/// The preview marks a selected track.
-	bool m_previewHasSelectedTrack = false;
-	/// The preview has signals.
-	bool m_previewHasSignals = false;
-
 	// scene item sizes
 	/// The factor of the sizes below.
-	int global_scale = 10;
-	/// The diameter of a node and of a signal head in scene units. The cast truncates 2.8 to 2, so it is 20.
-	int node_size = (int)2.8 * global_scale;
-	/// The side of the square of a station node in scene units. The cast truncates 2.5 to 2, so it is 40.
-	int station_node_size = (int)2.5 * node_size;
+	static constexpr int global_scale = 10;
+	/// The diameter of a node and of a signal head in scene units: 20. It was once written as 2.8 times
+	/// global_scale with a cast that truncated 2.8 to 2.
+	static constexpr int node_size = 2 * global_scale;
+	/// The side of the square of a station node in scene units: 40. It was once written as 2.5 times node_size
+	/// with a cast that truncated 2.5 to 2.
+	static constexpr int station_node_size = 2 * node_size;
 	/// The multiple of track_separation by which a run without the preview moves the picture and the name of a
 	/// station along the shift of its region; negative puts them on the side opposite the shifted track lines.
-	int station_name_graphID = -8;
+	static constexpr int station_name_graphID = -8;
 	/// The width in pixels of the cosmetic pens of connections, signal posts and callout lines, and the smallest
 	/// width of a track line.
-	int line_width = 2;
+	static constexpr int line_width = 2;
 	/// The distance in scene units between two display levels of track lines. Signal posts, train bodies and
 	/// callout lines are sized from it.
-	int track_separation = 15 * global_scale;
+	static constexpr int track_separation = 15 * global_scale;
 	/// The height of a station picture in scene units. A station name uses a font of a fifth of it in pixels,
 	/// the labels of platforms and the passenger information a fifteenth.
-	int station_size = 30 * global_scale;
+	static constexpr int station_size = 30 * global_scale;
 	/// The factor of the Mercator projection that places a station with a latitude and longitude in a run
 	/// without the preview. The projection also uses the width and height of the view in pixels.
-	int geo_scale = 80000 * global_scale;
-
-	/// The icon of a passenger on a platform, a tenth of station_size in pixels on each side. It is null when the
-	/// application resource is missing.
-	QPixmap pax_pixmap_scaled;
-
-	/// The station layer is shown.
-	bool m_stationLayerVisible = true;
-	/// The station names are shown.
-	bool m_stationNamesVisible = true;
-	/// The train layer is shown.
-	bool m_trainLayerVisible = true;
-	/// The badges of the trains hold their speed.
-	bool m_trainSpeedLabelsVisible = true;
-	/// The signal layer is shown.
-	bool m_signalLayerVisible = true;
-	/// The passenger layer is shown.
-	bool m_passengerLayerVisible = true;
-	/// A platform bar shows with the stations in the near look.
-	bool platformBarsVisible() const { return m_stationLayerVisible && m_stationNearLook; }
-	/// The passengers on a platform show where its bar shows, with the passenger layer.
-	bool platformPassengersVisible() const { return platformBarsVisible() && m_passengerLayerVisible; }
+	static constexpr int geo_scale = 80000 * global_scale;
 
 private:
+	// the tests of the canvas and the scripted GUI runs in tests/e2e
+	friend class NetworkPresenterTestAccess;
+
+	// The train groups of the run, in the order in which they were added.
+	QList<TrainItemGroup*> allTrains;
+	// The badge of each train by train index.
+	QMap<int, TrainBadgeItem*> m_trainBadges;
+
+	// The signal heads of a run.
+	QList<SignalItem*> allSignals;
+	// The signal heads of a run by the id of the section ahead of them.
+	std::unordered_map<std::string, QList<SignalItem*>> m_signalsByAheadId;
+	// The heads, posts and bases of the signals of the preview and of a run.
+	QList<QGraphicsItem*> m_signalDecorations;
+
+	// The track lines of a run.
+	QList<TrackLineItem*> allArcs;
+	// The track lines of each signalling section by section id.
+	std::map<std::string, std::vector<TrackLineItem*>> m_tracksBySectionId;
+	// The track line of each arc by track line index and the position of the start node of the arc in kilometres.
+	std::map<std::pair<int, double>, TrackLineItem*> m_tracksByOccupiedArc;
+	// The track lines whose state is not free.
+	std::set<TrackLineItem*> m_activeTrackItems;
+
+	// The platforms of a run.
+	QList<PlatformItem*> allPlatforms;
+	// The station overlays of the preview and of a run.
+	QList<StationOverlayItem*> m_stationOverlays;
+	// Everything that the station layer shows.
+	QList<QGraphicsItem*> m_stationDecorations;
+	// The station names.
+	QList<QGraphicsItem*> m_stationLabels;
+	// The picture of each overlay.
+	QMap<StationOverlayItem*, QGraphicsPixmapItem*> m_stationPictures;
+	// The spacing of the tracks at the stations in scene units, which chooses the look of the station marks:
+	// the median, over the stations with two or more station nodes, of the smallest distance between two of
+	// their nodes. measureStationTrackSpacing() sets it and clear() resets it to 0.
+	qreal m_stationTrackSpacing = 0.0;
+	// Measures m_stationTrackSpacing from the node centres of the station marks; track_separation times the
+	// presentation scale when no station has two nodes.
+	void measureStationTrackSpacing();
+	// The station marks are in the near look, in which the platform bars show. setStationNearLook() sets it and clear()
+	// resets it to false.
+	bool m_stationNearLook = false;
+	// Sets m_stationNearLook and shows or hides the platform bars and the passengers on them (applyPlatformVisibility()).
+	void setStationNearLook(bool nearLook);
+	// Shows or hides the platform bars by platformBarsVisible(), the icons of the passengers on them by
+	// platformPassengersVisible() and their counters by paxTextVisible(). Call it after a change of a layer.
+	void applyPlatformVisibility();
+
+	// The virtual coupling message of each train by train index.
+	QMap<int, QGraphicsItemGroup*> m_vcMessageItems;
+
+	// The signal whose details are shown, or null.
+	SignalItem* m_inspectedSignal = nullptr;
+	// The selected train, or null.
+	TrainItemGroup* trainPaxItem = nullptr;
+	// The group that shows the passenger information of the selected train, or null.
+	QGraphicsItemGroup* trainPaxInfoItem = nullptr;
+	// The selected passenger icon, or null.
+	PassengerItem* paxIconItem = nullptr;
+	// The group that shows the information of the selected passenger icon, or null.
+	QGraphicsItemGroup* paxIconInfoItem = nullptr;
+
+	// The effect on the item selected last. The item deletes it with itself.
+	QPointer<HighlightEffect> effect;
+
+	// The preview that the scene shows.
+	TrackPreviewResult m_cachedTrackPreview;
+	// The scene rectangle, margins included, that the view fits the preview to; empty without one.
+	QRectF m_previewFitBounds;
+	// The point of the drawn track lines nearest to the centre of the preview, in scene coordinates.
+	QPointF m_previewZoomFocus;
+	// The preview marks a selected track.
+	bool m_previewHasSelectedTrack = false;
+	// The preview has signals.
+	bool m_previewHasSignals = false;
+	// showPreview() drew track lines, and neither clear() nor showRuntime() ran since.
+	bool m_previewShown = false;
+	// The model generation of the preview, from PreviewOptions::modelGeneration.
+	std::optional<quint64> m_previewGeneration;
+	// The item of each node of the preview, by node id.
+	std::map<std::string, QGraphicsItem*> m_previewNodeItems;
+	// The platform bar of each station node of the preview, by node id.
+	std::map<std::string, const PlatformItem*> m_previewPlatformBars;
+	// The mark of the selected row of the infrastructure panel, or null.
+	NetworkMarkItem* m_selectionMark = nullptr;
+	// The mark of the selected row is shown.
+	bool m_selectionMarkShown = true;
+
+	// The stages of showPreview(), in the order in which it runs them, and what they share. Between drawPreviewStations()
+	// and drawPreviewSignals() it also runs measureStationTrackSpacing(), declared above, and after fitPreview() it places
+	// the mark of the selected row with placeSelectionMark().
+	struct PreviewDrawing;
+	void collectPreviewLines(PreviewDrawing& drawing) const;
+	void drawPreviewConnections(PreviewDrawing& drawing);
+	void drawPreviewTrackLines(const SceneModel& sceneModel, const PreviewDrawing& drawing);
+	void drawPreviewNodes(const SceneModel& sceneModel, PreviewDrawing& drawing);
+	void drawPreviewStations(const SceneModel& sceneModel, const PreviewDrawing& drawing);
+	void drawPreviewSignals(const SceneModel& sceneModel, const PreviewDrawing& drawing);
+	void fitPreview(const PreviewDrawing& drawing);
+	// Replaces the mark of the selected row by the mark of the row that options selects, at the scale of the view, and sets
+	// m_previewHasSelectedTrack.
+	void placeSelectionMark(const SceneModel& sceneModel, const PreviewOptions& options);
+
+	// The icon of a passenger on a platform, a tenth of station_size in pixels on each side. It is null when the
+	// application resource is missing.
+	QPixmap pax_pixmap_scaled;
+
+	// The station layer is shown.
+	bool m_stationLayerVisible = true;
+	// The station names are shown.
+	bool m_stationNamesVisible = true;
+	// The train layer is shown.
+	bool m_trainLayerVisible = true;
+	// The badges of the trains hold their speed.
+	bool m_trainSpeedLabelsVisible = true;
+	// The signal layer is shown.
+	bool m_signalLayerVisible = true;
+	// The passenger layer is shown.
+	bool m_passengerLayerVisible = true;
+	// A platform bar shows with the stations in the near look.
+	bool platformBarsVisible() const { return m_stationLayerVisible && m_stationNearLook; }
+	// The passengers on a platform show where its bar shows, with the passenger layer.
+	bool platformPassengersVisible() const { return platformBarsVisible() && m_passengerLayerVisible; }
+
 	QPointer<QGraphicsScene> m_scene;
 	QPointer<NetworkView> m_view;
 
@@ -428,6 +607,30 @@ private:
 	// position along the track.
 	std::unique_ptr<RuntimeGeometrySource> m_source;
 	std::vector<std::vector<int>> m_regionStations;
+
+	// The layout of a station on the canvas of a run, for the places that no line of the preview covers: its point, its
+	// display regions, those of the source or else region 0, with its position in kilometres in each, and per region the
+	// unit vector along which the display levels of the tracks shift at the station and the one along which the signals
+	// stand beside the track.
+	struct StationLayout {
+		double graphX = 0.0;
+		double graphY = 0.0;
+		std::vector<int> regions;
+		std::map<int, double> regionX;
+		std::map<int, double> shiftX, shiftY;
+		std::map<int, double> signalDeltaX, signalDeltaY;
+	};
+	// The layout of the run, which showRuntime() works out from the source and the source does not hold: the display level
+	// of each track, the authored level of the source or else the first level free over its span, 0 for a track without
+	// arcs, and the layout of each station, both indexed like the source. Each showRuntime() fills them anew and clear()
+	// empties them. A station with a latitude and a longitude is projected with the size of the view at that moment, so a
+	// later resize of the view does not move it.
+	std::vector<int> m_trackLevels;
+	std::vector<StationLayout> m_stationLayouts;
+	// The display level of the track with this index, or the graphID of the source when the layout has no level for it.
+	int trackLevel(int track) const;
+	// The layout of the station with this index, or one whose values all read 0 when the layout has none for it.
+	const StationLayout& stationLayout(int index) const;
 
 	// The train groups by train index, and the platforms by station id and platform id. paintTrain and
 	// paintStationPlatform fill them and clear() empties them.
@@ -440,6 +643,10 @@ private:
 	// The scene of the run, which gives the colour of each service for the trains that apply() adds. It is the
 	// model that showRuntime drew, and the caller keeps it until the next clear().
 	const SceneModel* m_runModel = nullptr;
+	// The sections of the scene of the run, which markRunSections() resolves the ids against; null without a run.
+	std::unique_ptr<SceneSectionInventory> m_runSections;
+	// The mark of markRunSections(), or null.
+	NetworkMarkItem* m_runSectionMark = nullptr;
 	// Who takes the parts of a frame that are not on the canvas. It is never null.
 	FrameHost* m_host;
 
@@ -453,8 +660,8 @@ private:
 	};
 	// A train that is drawn on its route: the state of its last update, and its glide from fromHead, the position of its
 	// head along the route in metres at the time fromMs, to the head of that state at toMs. It is drawn with its head at
-	// drawnHead, from drawn, the state of the last update with the positions of the wagons there. drawnMs is the time of
-	// the last step if that step drew the train and no update came since, and otherwise the oldest time.
+	// drawnHead, from drawn, the state of the last update with its head moved to drawnHead. drawnMs is the time of the
+	// last step if that step drew the train and no update came since, and otherwise the oldest time.
 	struct TrainMotion {
 		GuiTrainState newest;
 		GuiTrainState drawn;
@@ -472,10 +679,34 @@ private:
 	std::vector<qint64> m_updateIntervals;
 	// The time of the last live update in milliseconds; negative before the first.
 	qint64 m_lastUpdateMs = -1;
+	// The glide of a replay train over the current step of Play, in milliseconds; 0 places every replay train at once.
+	qint64 m_replayGlideMs = 0;
 	Clock m_clock;
 	QElapsedTimer m_elapsed;
 	// The index of each section of the source by its id. buildTrackIndexes() fills it for the run.
 	std::unordered_map<std::string, int> m_sectionIndexById;
+	// The ends that switchSectionEnds() read from the id of a section derived at a switch, by that id: the indexes in
+	// m_sectionIndexById of the sections of the two tracks, -1 for one that the source lacks, and the X in kilometres of
+	// the connection on each. parsed is false for an id of another form. Emptied with m_sectionIndexById.
+	struct SwitchEnds {
+		bool parsed = false;
+		int first = -1;
+		int second = -1;
+		double firstX = 0.0;
+		double secondX = 0.0;
+	};
+	mutable std::unordered_map<std::string, SwitchEnds> m_switchEnds;
+	// The lines of m_cachedTrackPreview by their track id, the first line of each id. showPreview() fills both.
+	std::unordered_map<std::string, const TrackPreviewLine*> m_previewLinesById;
+	// The drawn track under one wagon and the middle line of its body that getTrainPolygon() works with, and the shapes
+	// of the wagons of one train in getTrainPolygonItemList(), kept from wagon to wagon and from frame to frame so that
+	// their memory is reused.
+	struct WagonScratch {
+		RoutePath path;
+		std::vector<QPointF> line;
+	};
+	WagonScratch m_wagonScratch;
+	std::vector<QPolygonF> m_wagonPolygons;
 
 	qint64 nowMs() const;
 	void noteLiveUpdate();
@@ -498,20 +729,23 @@ private:
 	bool sectionPointAt(const Section& section, double x, QPointF& point) const;
 	void addSectionCorners(const Section& section, double fromX, double toX, std::vector<double>& xs) const;
 	bool routePath(int routeIndex, bool reversed, double from, double to, RoutePath& path) const;
+	bool centreOnRoute(const GuiTrainState& state, double head, QPointF& centre) const;
 
 	QPointF Coord2ScreenPoint(double x, double y, double factor) const;
 	void calculateStationCoordAndShift();
 	bool hasTrackGeometry(int track) const;
 	void neighbourStations(double X, int tracklineID, int* stationIdx) const;
+	QPointF interpolateBetweenStations(int firstIndex, int secondIndex, int region, double X, double level,
+		double separation) const;
 	void egtrainPoint2Screen(double X, int track, double separation, double& graphX, double& graphY) const;
-	void egtrainPoint2Screen(Node* node, int track, double separation) const;
-	void egtrainPoint2Screen(Connections* connection, int track1, int track2, double separation) const;
-	void paintNode(QPointF coord, int size, int track, Node* node);
+	QPointF egtrainPoint2Screen(const Node& node, int track, double separation) const;
+	QLineF egtrainPoint2Screen(const Connections& connection, int track1, int track2, double separation) const;
+	void paintNode(QPointF coord, int size, int track, const Node* node);
 	PlatformItem* addPlatformBar(QPointF before, QPointF node, QPointF after, qreal size);
-	void paintStationPlatform(QPointF before, QPointF coord, QPointF after, int size, Node* node);
-	void paintArc(QPointF start, QPointF end, int penWidth, int track, Arc* arc);
-	void arcDrawing(QPointF start, QPointF end, int penWidth, int track, Arc* arc);
-	void paintConnection(QPointF start, QPointF end, int penWidth, Connections* connection);
+	void paintStationPlatform(QPointF before, QPointF coord, QPointF after, int size, const Node* node);
+	void paintArc(QPointF start, QPointF end, int penWidth, int track, const Arc* arc);
+	void arcDrawing(QPointF start, QPointF end, int penWidth, int track, const Arc* arc);
+	void paintConnection(QPointF start, QPointF end, int penWidth, const Connections* connection);
 	void paintSignal(double X, int size, int penWidth, int track, int separation, int sectionIndex,
 		const SceneSectionLabels& labels);
 	void buildSignalIndex();
@@ -556,6 +790,15 @@ bool previewPointAtNode(const TrackPreviewLine& line, const std::string& nodeId,
 /// The point of a preview line at the position x in kilometres, interpolated between its points, with offset scene
 /// units added to its y. Outside the line it is the nearest point. Returns false when there is no finite point.
 bool previewPointAtX(const TrackPreviewLine& line, double x, qreal offset, QPointF& point);
+
+/// The course of a section on the preview in scene coordinates, the polyline of trackPreviewSectionCourse(); empty when
+/// the course is not on the preview or has a point that is not finite.
+QPolygonF previewSectionCourse(const TrackPreviewResult& preview, const SceneSectionDescriptor& section);
+/// The courses of sections on the preview in scene coordinates, one per reference in order: the course of the section
+/// that the reference resolves to (SceneSectionInventory::resolve), empty for a reference that resolves to none. The
+/// preview is the one the canvas shows (NetworkPresenter::trackPreview()), and a NetworkMarkItem draws the courses.
+QList<QPolygonF> previewSectionCourses(const TrackPreviewResult& preview, const SceneSectionInventory& inventory,
+	const std::vector<std::string>& references);
 
 /// The unit normal of a preview line at the position rawX in kilometres, which tells the side of a signal head.
 /// Returns false when no segment of the line covers rawX.

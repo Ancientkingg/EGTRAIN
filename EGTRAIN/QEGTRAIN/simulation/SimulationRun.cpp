@@ -31,6 +31,22 @@ void RunInfrastructure::reset() {
 	stationBoundaries.clear();
 	routes.clear();
 	numRoutes = 0;
+	sectionIdNumbers.clear();
+	routeSectionNumbers.clear();
+}
+
+void RunInfrastructure::numberRouteSections() {
+	sectionIdNumbers.clear();
+	routeSectionNumbers.assign(routes.size(), {});
+	for (std::size_t r = 0; r < routes.size(); ++r) {
+		const Route& route = routes[r];
+		std::vector<int>& numbers = routeSectionNumbers[r];
+		numbers.reserve(static_cast<std::size_t>(route.N_Block_Sections));
+		for (int h = 0; h < route.N_Block_Sections; ++h) {
+			const int next = static_cast<int>(sectionIdNumbers.size());
+			numbers.push_back(sectionIdNumbers.try_emplace(route.sequence_of_block_sections[h].ID, next).first->second);
+		}
+	}
 }
 
 void SimulationRun::reset() {
@@ -48,11 +64,11 @@ void SimulationRun::reset() {
 	numPassengers = 0;
 	passengerIndex.clear();
 	platformIndex.clear();
-	totalInputDelays = Stations();
-	entranceInputDelays = Stations();
-	disturbanceInput = Stations();
-	finalStation = Stations();
-	std::vector<Regional>().swap(trains);
+	totalInputDelays = DelayStats();
+	entranceInputDelays = DelayStats();
+	disturbanceInput = DelayStats();
+	finalStation = DelayStats();
+	std::vector<Train>().swap(trains);
 	numTrains = 0;
 	numberGenerator = NumberGenerator(kDefaultRandomSeed);
 	signallingDelay = 0;
@@ -66,7 +82,7 @@ void SimulationRun::resetInfrastructure() {
 
 void SimulationRun::adopt(SimulationRun&& staged) {
 	*this = std::move(staged);
-	for (Regional& train : trains)
+	for (Train& train : trains)
 		train.run_ = this;
 	// An index remembers the list it was built for, and the lists are now those of this run.
 	platformIndex.build(platforms);

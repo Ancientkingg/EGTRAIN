@@ -1,0 +1,88 @@
+#ifndef ROUTECHARTS_H
+#define ROUTECHARTS_H
+
+#include "diagrams/BlockingTimeData.h"
+#include "diagrams/DiagramWindow.h"
+#include "diagrams/RouteDiagramData.h"
+
+#include <QString>
+#include <QStringList>
+
+#include <vector>
+
+// The charts of a finished run: each function turns run data into a QChart with its series, their descriptions and its
+// axes. A chart that a function returns belongs to the caller until DiagramWindow::setChart takes it. The functions read
+// nothing but their arguments and open no window.
+
+/// The charts of the trajectories of the trains.
+enum class TrajectoryChart {
+	SpeedDistance,		   ///< Speed against distance.
+	SpeedTime,			   ///< Speed against time.
+	TimeDistance,		   ///< Distance against time.
+	TractiveEffortDistance ///< Simulated tractive effort against distance.
+};
+
+/// A chart of the trajectories and what its window needs next.
+struct TrajectoryChartResult {
+	QChart* chart = nullptr; ///< The chart.
+	bool timeAxis = false;	 ///< Time runs along the horizontal axis, for DiagramWindow::setTimeAxisX.
+};
+
+/// A chart along a reference route and what its window needs next.
+struct RouteChart {
+	QChart* chart = nullptr;			   ///< The chart.
+	QCategoryAxis* stationAxis = nullptr;  ///< For DiagramWindow::setStationAxis; null when the route has no station.
+	std::vector<StationTick> stationTicks; ///< The stations of `stationAxis`.
+	/// The reference route for the header of the window: "route0", with ", right to left" when the route runs that way.
+	QString referenceRoute;
+};
+
+/// One series per contiguous segment of every train of the run, along the axes of `kind`. A sample without a value leaves
+/// out the point of the tractive effort chart, and counts as 0 in the others.
+TrajectoryChartResult buildTrajectoryChart(const CompletedRunData& run, TrajectoryChart kind);
+
+/// The Delays chart: for each train with an arrival delay at a station of the reference route, a line with a marker per
+/// such call.
+RouteChart buildDelayChart(const DelayDiagramData& diagram);
+
+/// The route diagram: the lines of `diagram` over the distance along its reference route and the time of the run. The
+/// time axis runs from 0 to `horizonSeconds`, and to at least 1 s. `calls` gives the stops of the trains that count at
+/// each station, so that the busiest stations are named first; a train path chart passes the timetable graph of its
+/// reference route, a timetable graph itself.
+RouteChart buildRouteDiagramChart(const RouteDiagramData& diagram, const RouteDiagramData& calls, double horizonSeconds);
+
+/// The blocking-time chart: the blocks, the planned lines and the simulated lines of `diagram`, over the route distance
+/// exactly over the sections of the scope and the time range of the diagram. `compressed` is for the compressed diagram of
+/// a capacity result. `startOffsetSeconds`, the clock time of second 0 in seconds since midnight, gives the clock times
+/// in the hover of a block.
+QChart* buildBlockingTimeChart(const BlockingTimeDiagramData& diagram, bool compressed, long long startOffsetSeconds);
+
+/// The axes of a chart along a reference route: the distance along the bottom, spanning the route exactly, and the
+/// stations above the plot, both attached to every series. Gives the station axis and its ticks for
+/// DiagramWindow::setStationAxis, or null when the route has no station. Each of `callPositions`, the route distances of
+/// the calls that the chart shows, counts as a call at the station nearest to it.
+QCategoryAxis* addRouteAxes(QChart* chart, const RouteDiagramPath& referencePath, std::vector<StationTick>& stationTicks,
+	const std::vector<double>& callPositions);
+
+/// The parts of the blocking time of a block, one per line: "Approach 12 s", "Run 18 s", "Clearance 3 s", "Setup 2 s",
+/// "Sight and reaction 9 s", "Release 1 s" and "Run margin 0 s". The approach lasts from its start to the start of the
+/// run, the run to its end and the clearance from there to the end of the clearance. A part that the run did not record
+/// has no line. The parts are durations, so a compression, which moves the block, leaves them as they are.
+QStringList blockingComponentLines(const BlockingTimeDiagramSegment& segment);
+
+/// Adds a filled box and its outline for each of `segments`, and only the outline of a block of no width. The legend keeps
+/// one marker per train and type of block, and none for a fill. `useCapacityCriticalStyle` draws the capacity-critical
+/// blocks of a compressed chart. The hover of a block names the train and the block by its short id (shortBlockId), then
+/// gives the blocked interval in clock time from `startOffsetSeconds` and the kind of a block that is not an ordinary
+/// one. After an empty line follow the parts of the blocking time (blockingComponentLines), which only Selected shows.
+/// The outline names the block in DiagramWindow::kBoxBlockProperty.
+void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramSegment>& segments,
+	bool useCapacityCriticalStyle, long long startOffsetSeconds);
+
+/// Real identities retained in the immutable export, including trains with no projectable series.
+QStringList blockingTimeTrainIds(const std::vector<BlockingTimeDiagramSegment>& segments,
+	const std::vector<BlockingTimePlannedReference>& references,
+	const std::vector<std::vector<std::string>>& trajectories,
+	const std::vector<BlockingTimeDiagramSegment>& unmapped);
+
+#endif // ROUTECHARTS_H

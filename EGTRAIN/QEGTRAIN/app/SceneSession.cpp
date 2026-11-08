@@ -1,6 +1,7 @@
 #include "app/SceneSession.h"
 // This header brings in SceneModel.h in the way that the member named signals needs, before the other scene headers do.
 #include "editors/CountText.h"
+#include "editors/EditorHelpers.h"
 #include "editors/SceneDocument.h"
 #include "app/CannotOpenMessage.h"
 #include "app/DialogFolders.h"
@@ -15,18 +16,18 @@
 #include "scene/SceneWriter.h"
 #include "widgets/CaseChooserDialog.h"
 #include "widgets/DisplayPath.h"
+#include "widgets/SaveSuffix.h"
 #include "widgets/SettingsDialog.h"
 #include "widgets/UserPrompts.h"
 #include <QAction>
 #include <QApplication>
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QDir>
 #include <QDragEnterEvent>
 #include <QDropEvent>
-#include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
-#include <QHash>
 #include <QMainWindow>
 #include <QMenu>
 #include <QMessageBox>
@@ -97,27 +98,58 @@ int errorDiagnosticCount(const std::vector<SceneDiagnostic>& diagnostics) {
 	return count;
 }
 
+// Whether the folder `path` holds anything that an import, which replaces the folder with everything in it, would
+// delete. Hidden files count. A .DS_Store, which Finder leaves in a folder that it has shown, holds no work.
+bool holdsFiles(const QString& path) {
+	const QStringList entries = QDir(path).entryList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System);
+	return std::any_of(entries.begin(), entries.end(), [](const QString& entry) { return entry != QLatin1String(".DS_Store"); });
+}
+
+// The canonical form of `path`, or its clean absolute form when it does not exist.
+QString resolvedFolder(const QString& path) {
+	const QString canonical = QFileInfo(path).canonicalFilePath();
+	return canonical.isEmpty() ? QDir::cleanPath(QFileInfo(path).absoluteFilePath()) : canonical;
+}
+
 } // namespace
 
 QString firstDiagnosticMessage(const std::vector<SceneDiagnostic>& diagnostics) {
-	for (const auto& d : diagnostics) {
-		if (d.severity == SceneSeverity::Error)
-			return QString::fromStdString(d.message);
-	}
-	if (!diagnostics.empty())
-		return QString::fromStdString(diagnostics.front().message);
-	return QString();
+	const SceneDiagnostic* diagnostic = firstDiagnostic(diagnostics);
+	return diagnostic ? QString::fromStdString(diagnostic->message) : QString();
 }
 
 SceneSession::SceneSession(QMainWindow* window, SceneDocument* document, Host& host)
 	: QObject(window), m_window(window), m_document(document), m_host(host),
-	  m_recentScenesMenu(new QMenu("Recent Cases", window)) {
+	  m_recentScenesMenu(new QMenu("Recent Cases", window)), m_ownPrompts([this] { return m_host.dialogsSuppressed(); }) {
 	// A case can be deleted while the menu is closed, so the entries are checked again as the menu opens.
 	connect(m_recentScenesMenu, &QMenu::aboutToShow, this, &SceneSession::refreshRecentSceneAvailability);
 }
 
 void SceneSession::showError(const QString& title, const QString& message, bool warningIcon) {
-	UserPrompts([this] { return m_host.dialogsSuppressed(); }).showError(m_window, title, message, warningIcon);
+	m_prompts->showError(m_window, title, message, warningIcon);
+}
+
+std::vector<SceneSession::DiskFile> SceneSession::diskFiles(const QString& path, bool bundle) {
+	const auto file = [](const QString& name, const QString& filePath) {
+		const QFileInfo info(filePath);
+		DiskFile disk;
+		disk.name = name;
+		disk.exists = info.exists();
+		if (disk.exists) {
+			disk.size = info.size();
+			disk.modifiedMs = info.lastModified().toMSecsSinceEpoch();
+		}
+		return disk;
+	};
+	std::vector<DiskFile> files;
+	if (bundle) {
+		files.push_back(file(QFileInfo(path).fileName(), path));
+		return files;
+	}
+	const QDir folder(path);
+	for (const SceneFile& sceneFile : kSceneFiles)
+		files.push_back(file(QString::fromLatin1(sceneFile.name), folder.filePath(QString::fromLatin1(sceneFile.name))));
+	return files;
 }
 
 void SceneSession::dragEnter(QDragEnterEvent* event) {
@@ -167,14 +199,16 @@ void SceneSession::newScene() {
 }
 
 void SceneSession::createNewScene(const telemetry::OperationObservation& operation) {
-	m_host.sceneWillBeReplaced();
+	// The window ends the run and the canvas of the scene that goes before the document replaces it.
+	emit sceneWillBeReplaced();
 	m_sceneDir.clear();
+	m_savedFiles.clear();
 	m_savedSceneSha256.clear();
 	m_document->replace(makeNewSceneModel(), true);
 	m_sceneIsBundle = false;
 	m_sceneBundleVersion.reset();
 	m_sceneDiagnostics.clear();
-	m_host.sceneCreated(operation);
+	emit sceneCreated(operation);
 }
 
 void SceneSession::openSceneDialog() {
@@ -228,7 +262,7 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 	const auto compatibilityMessage = [&compatibility]() {
 		if (!compatibility.diagnostics.empty())
 			return QString::fromStdString(toDialogText(compatibility.diagnostics.front()));
-		return QStringLiteral("The scene format could not be identified.");
+		return QStringLiteral("The case format could not be identified.");
 	};
 	// Scene compatibility prompts are suppressed only for unattended app/E2E
 	// runs. The update-only disable setting must not hide scene safety prompts.
@@ -243,11 +277,11 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 		dialog.setWindowTitle("Older Case");
 		dialog.setText(QString("%1 was saved by an older version of EGTRAIN.").arg(QFileInfo(scenePath).fileName()));
 		dialog.setInformativeText("Upgrade a copy to open it. The original stays as it is.");
-		QString versions = QString("Scene schema %1, this version uses %2")
+		QString versions = QString("Format version %1, this version uses %2")
 							   .arg(compatibility.schemaVersion)
 							   .arg(kCurrentSceneSchemaVersion);
 		if (compatibility.sourceKind == SceneSourceKind::Bundle && compatibility.bundleVersion)
-			versions += QString("\nBundle layout %1, this version uses %2")
+			versions += QString("\nCase file version %1, this version uses %2")
 							.arg(*compatibility.bundleVersion)
 							.arg(kCurrentSceneBundleVersion);
 		dialog.setDetailedText(versions);
@@ -301,11 +335,11 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 		dialog.setWindowTitle("Newer Case");
 		dialog.setText("This case was saved by a newer version of EGTRAIN.");
 		dialog.setInformativeText("Update EGTRAIN to open it.");
-		QString versions = QString("Scene schema %1, this version uses %2")
+		QString versions = QString("Format version %1, this version uses %2")
 							   .arg(compatibility.schemaVersion)
 							   .arg(kCurrentSceneSchemaVersion);
 		if (compatibility.bundleVersion)
-			versions += QString("\nBundle layout %1, this version uses %2")
+			versions += QString("\nCase file version %1, this version uses %2")
 							.arg(*compatibility.bundleVersion)
 							.arg(kCurrentSceneBundleVersion);
 		dialog.setDetailedText(versions);
@@ -320,8 +354,10 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 	}
 	if (compatibility.classification == SceneCompatibilityClass::Malformed) {
 		operation.failure(telemetry::Operation::SceneOpen, telemetryDiagnosticError(compatibility.diagnostics));
-		if (!noCompatibilityDialogs)
-			showError(cannot_open::title(), cannot_open::text(scenePath, compatibilityMessage()));
+		if (!noCompatibilityDialogs) {
+			const QString message = diagnosticsDialogText(compatibility.diagnostics);
+			showError(cannot_open::title(), cannot_open::text(scenePath, message.isEmpty() ? compatibilityMessage() : message));
+		}
 		return false;
 	}
 	const bool sceneIsBundle = compatibility.sourceKind == SceneSourceKind::Bundle;
@@ -329,6 +365,8 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 	const bool reloadingSameScene = !recovered && m_document->isLoaded()
 		&& QFileInfo(m_sceneDir).absoluteFilePath() == scenePath;
 	bool timingIdentityOk = true;
+	// Taken before the read, so that a change during the read counts as a change since the open.
+	std::vector<DiskFile> files = recovered ? std::vector<DiskFile>() : diskFiles(scenePath, sceneIsBundle);
 	SceneLoadResult result;
 	try {
 		result = m_host.readScene(scenePath, timingIdentityOk);
@@ -338,20 +376,16 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 		diagnostic.message = std::string("Cannot read the case: ") + error.what();
 		result.diagnostics.push_back(std::move(diagnostic));
 	}
-	int errorCount = errorDiagnosticCount(result.diagnostics);
-	if (errorCount > 0) {
+	if (errorDiagnosticCount(result.diagnostics) > 0) {
 		operation.failure(telemetry::Operation::SceneOpen, telemetryDiagnosticError(result.diagnostics));
-		QString message = firstDiagnosticMessage(result.diagnostics);
-		if (message.isEmpty())
-			message = "The case could not be opened.";
-		if (errorCount > 1)
-			message += "\n\n" + countText(errorCount - 1, "more error", "more errors");
-		showError(cannot_open::title(), cannot_open::text(scenePath, message));
+		showError(cannot_open::title(), cannot_open::text(scenePath, diagnosticsDialogText(result.diagnostics)));
 		return false;
 	}
 
-	m_host.sceneWillBeReplaced();
+	// As in createNewScene(), the window has ended the run of the scene that goes when this returns.
+	emit sceneWillBeReplaced();
 	m_sceneDir = recovered ? QString() : scenePath;
+	m_savedFiles = std::move(files);
 	m_document->replace(result.scene, recovered);
 	m_sceneIsBundle = sceneIsBundle && !recovered;
 	m_sceneBundleVersion = recovered ? std::nullopt : result.bundleVersion;
@@ -383,7 +417,7 @@ bool SceneSession::finishSceneSave(const SceneSaveResult& result,
 		error = telemetry::Error::UnsupportedFormat;
 	operation.exportFinished(kind, result.success(), result.writeAttempted, error);
 	if (!result.success()) {
-		QString message = firstDiagnosticMessage(result.diagnostics);
+		QString message = diagnosticsDialogText(result.diagnostics);
 		if (message.isEmpty())
 			message = "The case could not be saved.";
 		showError("Cannot Save Case", message);
@@ -393,9 +427,10 @@ bool SceneSession::finishSceneSave(const SceneSaveResult& result,
 	refreshSavedSceneMetadata(m_document->mutableModel());
 	m_document->mutableModel().savedWithAppVersion = EGTRAIN_APP_VERSION;
 	m_savedSceneSha256 = hashSceneInputSnapshot(result.inputSnapshot);
+	m_savedFiles = m_sceneDir.isEmpty() ? std::vector<DiskFile>() : diskFiles(m_sceneDir, m_sceneIsBundle);
 	// A saved folder case may carry a new name, which Recent Cases shows.
 	rebuildRecentScenesMenu();
-	m_host.sceneSaved();
+	emit sceneSaved();
 	return true;
 }
 
@@ -407,6 +442,14 @@ bool SceneSession::saveSceneToCurrentDir() {
 	if (m_sceneDir.isEmpty() || isInstalledScenePath(m_sceneDir, QCoreApplication::applicationDirPath()))
 		return saveSceneAsToBundle(operation);
 
+	// A hand edit, a sync client or another window may have changed the case since it was opened or saved.
+	if (!m_savedFiles.empty() && diskFiles(m_sceneDir, m_sceneIsBundle) != m_savedFiles
+		&& !m_prompts->confirm(m_window, "Case Changed on Disk",
+			QString("%1 has changed on disk since it was opened or last saved.\n\nReplace the case on disk with this "
+					"version? To keep both, choose No and use Save As.")
+				.arg(display_path::format(m_sceneDir))))
+		return false;
+
 	auto result = m_sceneIsBundle
 		? saveSceneBundle(m_document->model(), m_sceneDir.toStdString())
 		: ::saveScene(m_document->model(), m_sceneDir.toStdString());
@@ -414,7 +457,17 @@ bool SceneSession::saveSceneToCurrentDir() {
 }
 
 void SceneSession::saveSceneAs() {
-	saveSceneAsToBundle();
+	if (!m_document->isLoaded())
+		return;
+	// A save dialog chooses either a file or a folder, so the format comes first.
+	const bool folder = !m_sceneIsBundle && !m_sceneDir.isEmpty();
+	const int format = m_prompts->chooseButton(m_window, "Save As",
+		"Save the case as one case file (.egscene) or as a case folder of JSON files?", {"Case File...", "Case Folder..."},
+		folder ? 1 : 0);
+	if (format == 0)
+		saveSceneAsToBundle();
+	else if (format == 1)
+		saveSceneAsToDirectory();
 }
 
 bool SceneSession::saveSceneAsToBundle() {
@@ -431,8 +484,9 @@ bool SceneSession::saveSceneAsToBundle(const telemetry::OperationObservation& op
 		"EGTRAIN Case (*.egscene)");
 	if (targetPath.isEmpty())
 		return false;
-	if (!targetPath.endsWith(".egscene", Qt::CaseInsensitive))
-		targetPath += ".egscene";
+	targetPath = savePathWithSuffix(m_window, *m_prompts, "Save Case As", targetPath, "egscene");
+	if (targetPath.isEmpty())
+		return false;
 	targetPath = QDir::cleanPath(QFileInfo(targetPath).absoluteFilePath());
 	if (isInstalledScenePath(targetPath, QCoreApplication::applicationDirPath())) {
 		operation.exportFinished(telemetry::ExportKind::SceneBundle, false, false, telemetry::Error::InvalidInput);
@@ -472,18 +526,18 @@ bool SceneSession::saveSceneAsToDirectory() {
 	if (targetDir.exists()) {
 		bool isNonEmpty = !targetDir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).isEmpty();
 		bool hasSceneJson = QFileInfo(targetDir.filePath("scene.json")).exists();
-		if (isNonEmpty && !hasSceneJson) {
-			auto response = QMessageBox::question(m_window,
-				"Save Case As Folder",
-				"The folder is not empty. Save the case there anyway?",
-				QMessageBox::Yes | QMessageBox::No,
-				QMessageBox::No);
-			if (response != QMessageBox::Yes)
+		const bool currentFolder = !m_sceneIsBundle && !m_sceneDir.isEmpty() && resolvedFolder(m_sceneDir) == resolvedFolder(targetPath);
+		if (hasSceneJson && !currentFolder) {
+			if (!m_prompts->confirm(m_window, "Save Case As Folder",
+					QString("%1 holds another case. Replace that case with this one?").arg(display_path::format(targetPath))))
+				return false;
+		} else if (isNonEmpty && !hasSceneJson) {
+			if (!m_prompts->confirm(m_window, "Save Case As Folder", "The folder is not empty. Save the case there anyway?"))
 				return false;
 		}
 	}
 
-	if (!copyScenePassthroughFiles(targetPath, operation))
+	if (!prepareSaveFolder(targetPath, operation))
 		return false;
 
 	auto result = ::saveScene(m_document->model(), targetPath.toStdString());
@@ -497,7 +551,9 @@ bool SceneSession::saveSceneAsToDirectory() {
 	return finishSceneSave(result, operation, std::nullopt);
 }
 
-bool SceneSession::copyScenePassthroughFiles(const QString& targetDir, const telemetry::OperationObservation& operation) {
+// Creates the folder `targetDir` for a scene that came from a folder, and refuses a folder inside that one. The save
+// writes every scene file, views.json included, from the model.
+bool SceneSession::prepareSaveFolder(const QString& targetDir, const telemetry::OperationObservation& operation) {
 	if (m_sceneDir.isEmpty() || m_sceneIsBundle || !QFileInfo(m_sceneDir).isDir())
 		return true;
 
@@ -507,32 +563,16 @@ bool SceneSession::copyScenePassthroughFiles(const QString& targetDir, const tel
 	QDir target(targetPath);
 	if (!target.exists() && !QDir().mkpath(targetPath)) {
 		operation.failure(telemetry::Operation::Export, telemetry::Error::IoFailure);
-		QMessageBox::critical(m_window, "Cannot Save Case", QString("Could not create the folder %1.").arg(display_path::format(targetPath)));
+		showError("Cannot Save Case", QString("Could not create the folder %1.").arg(display_path::format(targetPath)));
 		return false;
 	}
 
 	QString sourceCanonical = QDir(sourcePath).canonicalPath();
 	QString targetCanonical = QDir(targetPath).canonicalPath();
-	if (!sourceCanonical.isEmpty() && sourceCanonical == targetCanonical)
-		return true;
 	if (!sourceCanonical.isEmpty() && targetCanonical.startsWith(sourceCanonical + "/")) {
-		QMessageBox::critical(m_window, "Cannot Save Case", "Choose a folder outside the current case folder.");
+		showError("Cannot Save Case", "Choose a folder outside the current case folder.");
 		return false;
 	}
-
-	QDir sourceDir(sourcePath);
-
-	QString sourceViews = sourceDir.filePath("views.json");
-	if (QFileInfo(sourceViews).exists()) {
-		QString targetViews = target.filePath("views.json");
-		QFile::remove(targetViews);
-		if (!QFile::copy(sourceViews, targetViews)) {
-			operation.failure(telemetry::Operation::Export, telemetry::Error::IoFailure);
-			QMessageBox::critical(m_window, "Cannot Save Case", "Cannot copy views.json.");
-			return false;
-		}
-	}
-
 	return true;
 }
 
@@ -555,11 +595,13 @@ bool SceneSession::maybeSaveScene() {
 }
 
 QString SceneSession::saveSceneAsStartPath() const {
-	// A recovered scene has no file of its own, so the dialog starts at the file that it is a copy of.
+	// A recovered scene has no file of its own, so the dialog starts at the case that it is a copy of.
 	const QString recoveredSource = m_host.recoveredSceneSource();
-	if (m_sceneDir.isEmpty() && !recoveredSource.isEmpty())
-		return dialog_folders::suggestedPath(QFileInfo(recoveredSource).fileName(), recoveredSource);
-	return dialog_folders::suggestedPath(m_sceneIsBundle ? QFileInfo(m_sceneDir).fileName() : QString(), m_sceneDir);
+	const QString casePath = m_sceneDir.isEmpty() && !recoveredSource.isEmpty() ? recoveredSource : m_sceneDir;
+	// A case file is suggested under its own name, and a case folder as a case file of its name beside it.
+	const QFileInfo info(casePath);
+	const QString name = info.isDir() ? QDir(casePath).dirName() + ".egscene" : info.fileName();
+	return dialog_folders::suggestedPath(name, casePath);
 }
 
 QMenu* SceneSession::recentScenesMenu() const {
@@ -596,7 +638,7 @@ void SceneSession::addRecentScene(const QString& path) {
 		recent.removeLast();
 	settings.setValue(kRecentScenesKey, recent);
 	rebuildRecentScenesMenu();
-	m_host.sceneActionsChanged();
+	emit sceneActionsChanged();
 }
 
 void SceneSession::rebuildRecentScenesMenu() {
@@ -605,35 +647,11 @@ void SceneSession::rebuildRecentScenesMenu() {
 
 	m_recentScenesMenu->clear();
 	const QStringList recent = recentScenes();
-	// Label entries as the chooser does; the full path stays in the status tip. When two entries
-	// share a label, a shortened parent path tells them apart, and the file name when the parent is
-	// the same too.
-	QHash<QString, int> nameCount;
-	QStringList names;
-	for (const QString& path : recent) {
-		names << sceneDisplayName(path);
-		++nameCount[names.last()];
-	}
-	QStringList labels;
-	QHash<QString, int> labelCount;
-	for (int i = 0; i < recent.size(); ++i) {
-		QString label = names.at(i);
-		if (nameCount.value(label) > 1) {
-			QString parent = display_path::format(QFileInfo(recent.at(i)).dir().path());
-			if (parent.length() > 44)
-				parent = parent.left(20) + "..." + parent.right(20);
-			label = QString("%1 (%2)").arg(label, parent);
-		}
-		labels << label;
-		++labelCount[label];
-	}
+	// Label entries as the chooser does; the full path stays in the status tip.
+	const QStringList labels = sceneListLabels(recent);
 	for (int i = 0; i < recent.size(); ++i) {
 		const QString& path = recent.at(i);
 		QString label = labels.at(i);
-		if (labelCount.value(label) > 1) {
-			label.chop(1);
-			label += display_path::format("/" + QFileInfo(path).fileName()) + ")";
-		}
 		// A scene name may hold '&', which a menu would read as a mnemonic.
 		label.replace('&', "&&");
 		const bool exists = recentSceneExists(path);
@@ -651,7 +669,7 @@ void SceneSession::rebuildRecentScenesMenu() {
 		QAction* emptyAction = m_recentScenesMenu->addAction("No Recent Cases");
 		emptyAction->setEnabled(false);
 	}
-	m_host.sceneActionsChanged();
+	emit sceneActionsChanged();
 }
 
 void SceneSession::refreshRecentSceneAvailability() {
@@ -677,14 +695,16 @@ void SceneSession::updateSceneWindowTitle() {
 
 void SceneSession::actionLoad_Network() {
 	const auto operation = m_host.captureTelemetryOperation();
-	const QString sourceDir = QFileDialog::getExistingDirectory(m_window, "Select Legacy Case Folder", QDir::homePath());
+	const QString startDir = dialog_folders::openStartFolder(m_sceneDir);
+	const QString sourceDir = QFileDialog::getExistingDirectory(m_window, "Select Legacy Case Folder", startDir);
 	if (sourceDir.isEmpty())
 		return;
-	const QString destinationDir = QFileDialog::getExistingDirectory(m_window, "Select Case Destination", QDir::homePath());
+	const QString destinationDir =
+		QFileDialog::getExistingDirectory(m_window, "Select Case Destination", QFileInfo(sourceDir).absolutePath());
 	importLegacyCase(sourceDir, destinationDir, operation);
 }
 
-QString SceneSession::legacyImportSummary(const std::vector<SceneDiagnostic>& diagnostics) {
+QString SceneSession::legacyImportSummary(const std::vector<SceneDiagnostic>& diagnostics, bool imported) {
 	constexpr size_t kMaxListed = 4;
 	int errors = 0;
 	int warnings = 0;
@@ -713,7 +733,7 @@ QString SceneSession::legacyImportSummary(const std::vector<SceneDiagnostic>& di
 		counts << countText(warnings, "warning", "warnings");
 	if (notes > 0)
 		counts << countText(notes, "note", "notes");
-	QString summary = "Import: " + counts.join(", ");
+	QString summary = (imported ? "Imported with " : "Not imported: ") + counts.join(", ");
 	for (size_t i = 0; i < ordered.size() && i < kMaxListed; ++i) {
 		QString detail = QString::fromStdString(ordered[i]->message);
 		if (!ordered[i]->file.empty())
@@ -742,6 +762,30 @@ void SceneSession::importLegacyCase(const QString& sourceDir, const QString& des
 		return;
 	}
 
+	const QString sceneName = QFileInfo(sourcePath).fileName().isEmpty()
+		? QString("Imported Legacy Case")
+		: QFileInfo(sourcePath).fileName();
+	// The import replaces the folder that it writes with everything in it.
+	QString sceneDir = destinationPath;
+	if (QFileInfo(QDir(destinationPath).filePath("scene.json")).exists()) {
+		if (!m_prompts->confirm(m_window, "Import Legacy Case",
+				QString("%1 holds another case. Replace that case and everything else in the folder with the imported one?")
+					.arg(display_path::format(destinationPath))))
+			return;
+	} else if (holdsFiles(destinationPath)) {
+		if (!m_prompts->confirm(m_window, "Import Legacy Case",
+				QString("%1 is not empty. Import the case into a new folder %2 inside it?")
+					.arg(display_path::format(destinationPath), sceneName)))
+			return;
+		sceneDir = QDir(destinationPath).filePath(sceneName);
+		const QFileInfo caseFolder(sceneDir);
+		if (caseFolder.exists() && (!caseFolder.isDir() || holdsFiles(sceneDir))) {
+			showError("Cannot Import Legacy Case",
+				QString("%1 already exists and is not empty. Choose another destination.").arg(display_path::format(sceneDir)));
+			return;
+		}
+	}
+
 	if (!maybeSaveScene())
 		return;
 
@@ -752,33 +796,30 @@ void SceneSession::importLegacyCase(const QString& sourceDir, const QString& des
 		m_window->statusBar()->showMessage("Legacy import failed", 8000);
 	};
 
-	const QString sceneName = QFileInfo(sourcePath).fileName().isEmpty()
-		? QString("Imported Legacy Case")
-		: QFileInfo(sourcePath).fileName();
-	SceneImportResult importResult = importLegacyScene(sourcePath.toStdString(), destinationPath.toStdString(),
+	SceneImportResult importResult = importLegacyScene(sourcePath.toStdString(), sceneDir.toStdString(),
 		sceneName.toStdString());
 	if (!importResult.success()) {
 		importFailed();
-		showError("Cannot Import Legacy Case", legacyImportSummary(importResult.diagnostics));
+		showError("Cannot Import Legacy Case", legacyImportSummary(importResult.diagnostics, false));
 		return;
 	}
 
-	SceneLoadResult loadResult = loadScene(destinationPath.toStdString());
+	SceneLoadResult loadResult = loadScene(sceneDir.toStdString());
 	std::vector<SceneDiagnostic> diagnostics = importResult.diagnostics;
 	diagnostics.insert(diagnostics.end(), loadResult.diagnostics.begin(), loadResult.diagnostics.end());
 	if (errorDiagnosticCount(loadResult.diagnostics) > 0) {
 		importFailed();
-		showError("Cannot Open Imported Case", legacyImportSummary(diagnostics));
+		showError("Cannot Open Imported Case", legacyImportSummary(diagnostics, true));
 		return;
 	}
 	const auto semanticDiagnostics = validateRunnableScene(loadResult.scene);
 	diagnostics.insert(diagnostics.end(), semanticDiagnostics.begin(), semanticDiagnostics.end());
 	m_window->statusBar()->clearMessage();
 	// An import that found nothing to report opens the case without a box.
-	const QString summary = legacyImportSummary(diagnostics);
+	const QString summary = legacyImportSummary(diagnostics, true);
 	if (!summary.isEmpty())
 		showError("Legacy Case Imported", summary, true);
-	if (m_host.afterRunStopped([this, destinationPath, operation] { openSceneDirectory(destinationPath, operation); }))
+	if (m_host.afterRunStopped([this, sceneDir, operation] { openSceneDirectory(sceneDir, operation); }))
 		return;
-	openSceneDirectory(destinationPath, operation);
+	openSceneDirectory(sceneDir, operation);
 }

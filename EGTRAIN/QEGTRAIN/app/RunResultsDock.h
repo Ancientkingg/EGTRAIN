@@ -1,23 +1,53 @@
 #ifndef RUNRESULTSDOCK_H
 #define RUNRESULTSDOCK_H
 
+#include "app/ResultViews.h"
+
+#include <QObject>
 #include <QString>
+#include <array>
 
 class QDockWidget;
 class QLabel;
 class QMainWindow;
 class QPushButton;
 class QTableWidget;
-class ResultViews;
 class RunController;
 namespace telemetry {
 class OperationObservation;
 } // namespace telemetry
 
+/// A result view as the Diagrams menu and the result view menu of the Run Results dock list it.
+struct ResultViewEntry {
+	const char* name;			 ///< The name of the view, one of ResultViewName.
+	void (ResultViews::*open)(); ///< The slot of ResultViews that opens the view.
+	bool asksForInput;			 ///< A dialog asks for more input first, so its menu entries end in an ellipsis.
+	bool startsGroup;			 ///< A separator comes before the entry.
+};
+
+/// The result views in the order of both menus, in three groups: the timetable and the delays, the charts of each train,
+/// and the train paths, the blocking times and the capacity.
+inline constexpr std::array<ResultViewEntry, 12> kResultViewEntries{{
+	{ResultViewName::kTimetable, &ResultViews::showTimetableTable, false, false},
+	{ResultViewName::kTimetableGraph, &ResultViews::showTimetableGraph, true, false},
+	{ResultViewName::kDelays, &ResultViews::showDelayDiagram, true, false},
+	{ResultViewName::kDelayAnalysis, &ResultViews::showDelayAnalysis, false, false},
+	{ResultViewName::kSpeedDistance, &ResultViews::showSpeedDistanceDiagram, false, true},
+	{ResultViewName::kSpeedTime, &ResultViews::showSpeedTimeDiagram, false, false},
+	{ResultViewName::kTimeDistance, &ResultViews::showTimeDistanceDiagram, false, false},
+	{ResultViewName::kTractiveEffortDistance, &ResultViews::showTractiveEffortDistanceDiagram, false, false},
+	{ResultViewName::kTrainPaths, &ResultViews::displayTrainPathDiagrams, true, true},
+	{ResultViewName::kBlockingTime, &ResultViews::showBlockingTimeDiagram, true, false},
+	{ResultViewName::kCapacity, &ResultViews::showCapacityAnalysis, true, false},
+	{ResultViewName::kCapacityByArea, &ResultViews::showAreaCapacity, true, false},
+}};
+
 /// The Run Results dock: the table of the completed run, the lines that say which run it is, the menu that opens the result
 /// views, the exports of the table, and the delay baseline. It sits at the bottom of the window and stays hidden until a
 /// run has results.
-class RunResultsDock {
+class RunResultsDock : public QObject {
+	Q_OBJECT
+
 public:
 	/// What the dock asks of the window.
 	class Host {
@@ -28,12 +58,11 @@ public:
 		virtual telemetry::OperationObservation captureTelemetryOperation() const noexcept = 0;
 		/// The summary adds the incident evidence and the number of destination terminations.
 		virtual bool advancedDetailsEnabled() const = 0;
-		/// The table of a completed run has been written and the dock is shown.
-		virtual void runResultsRefreshed() = 0;
 	};
 
 	/// Builds the dock and adds it to the bottom of the window, hidden. The entries of its result view menu open the
-	/// windows of views. The window owns the widgets; the dock does not own `runController`, `views` or `host`.
+	/// windows of views, and the exports of the table go through the prompts of views. The window owns the widgets; the
+	/// dock does not own `runController`, `views` or `host`.
 	RunResultsDock(QMainWindow* window, RunController* runController, ResultViews* views, Host& host);
 
 	/// The dock widget, which the window owns.
@@ -62,10 +91,15 @@ public:
 	/// A number of seconds as H:MM:SS. The hours do not wrap at a day.
 	static QString durationText(long long seconds);
 
+signals:
+	/// The table of a completed run has been written and the dock is shown.
+	void refreshed();
+
 private:
 	QMainWindow* const m_window;
 	RunController* const m_runController;
 	Host& m_host;
+	UserPrompts& m_prompts;
 	QDockWidget* m_dock = nullptr;
 	QTableWidget* m_table = nullptr;
 	QLabel* m_summaryLabel = nullptr;

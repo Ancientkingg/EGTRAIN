@@ -1,17 +1,12 @@
 #include "diagrams/TrainColors.h"
 
 #include <QStringList>
+#include <QTest>
 
 #include <array>
-#include <iostream>
 #include <utility>
 
 namespace {
-
-bool expect(bool condition, const char* message) {
-	if (!condition) std::cerr << "failed: " << message << "\n";
-	return condition;
-}
 
 const std::array<QColor, 6> kPalette{QColor("#2a78d6"), QColor("#c2448a"), QColor("#4c8a12"), QColor("#6127b1"), QColor("#e35b6b"),
 	QColor("#842a65")};
@@ -34,135 +29,158 @@ QVector<TrainColourInput> assignmentTrains() {
 	return trains;
 }
 
+} // namespace
+
+class TestTrainColours : public QObject {
+	Q_OBJECT
+
+private slots:
+	void coloursPerTrain();
+	void colourPerService();
+	void greyWithSelectedTrain();
+	void sceneColoursWin();
+	void copiesTakeColourOfTheirTrain();
+};
+
 // Six shown trains or fewer take the palette in their order; while the window has six trains or fewer a train keeps its
 // colour when another is hidden, and with more trains the shown ones take the palette in their order.
-bool exercisePerTrain() {
-	bool ok = true;
+void TestTrainColours::coloursPerTrain() {
 	const TrainColourPlan three = trainColourPlan(numberedTrains(3), {});
-	ok &= expect(three.mode == TrainColourPlan::Mode::PerTrain && three.colours.size() == 3 && three.colours.value("T0") == kPalette[0]
-			&& three.colours.value("T1") == kPalette[1] && three.colours.value("T2") == kPalette[2],
-		"3 trains get the palette entries 0 to 2");
+	// 3 trains get the palette entries 0 to 2.
+	QCOMPARE(three.mode, TrainColourPlan::Mode::PerTrain);
+	QCOMPARE(three.colours.size(), qsizetype(3));
+	QCOMPARE(three.colours.value("T0"), kPalette[0]);
+	QCOMPARE(three.colours.value("T1"), kPalette[1]);
+	QCOMPARE(three.colours.value("T2"), kPalette[2]);
 	QVector<TrainColourInput> six = numberedTrains(6);
 	six[1].shown = false;
 	const TrainColourPlan fiveOfSix = trainColourPlan(six, {});
-	ok &= expect(fiveOfSix.colours.value("T1") == kHidden && fiveOfSix.colours.value("T2") == kPalette[2]
-			&& fiveOfSix.colours.value("T5") == kPalette[5],
-		"of six trains a hidden one is light grey and the others keep their colours");
+	// Of six trains a hidden one is light grey and the others keep their colours.
+	QCOMPARE(fiveOfSix.colours.value("T1"), kHidden);
+	QCOMPARE(fiveOfSix.colours.value("T2"), kPalette[2]);
+	QCOMPARE(fiveOfSix.colours.value("T5"), kPalette[5]);
 	QVector<TrainColourInput> sixInTwo = numberedTrains(6);
 	for (int i = 0; i < 6; ++i) sixInTwo[i].service = i < 3 ? "A" : "B";
 	const TrainColourPlan two = trainColourPlan(sixInTwo, {});
-	ok &= expect(two.mode == TrainColourPlan::Mode::PerTrain && two.colours.value("T1") == kPalette[1] && two.colours.value("T5") == kPalette[5],
-		"six trains in two services take a colour each");
+	// Six trains in two services take a colour each.
+	QCOMPARE(two.mode, TrainColourPlan::Mode::PerTrain);
+	QCOMPARE(two.colours.value("T1"), kPalette[1]);
+	QCOMPARE(two.colours.value("T5"), kPalette[5]);
 	QVector<TrainColourInput> many = numberedTrains(47);
 	for (int i = 0; i < 47; ++i) many[i].shown = i == 3 || i == 20 || i == 46;
 	const TrainColourPlan threeOf47 = trainColourPlan(many, {});
-	ok &= expect(threeOf47.mode == TrainColourPlan::Mode::PerTrain && threeOf47.colours.value("T3") == kPalette[0]
-			&& threeOf47.colours.value("T20") == kPalette[1] && threeOf47.colours.value("T46") == kPalette[2]
-			&& threeOf47.colours.value("T0") == kHidden && threeOf47.colours.size() == 47,
-		"3 shown trains of 47 take the palette entries 0 to 2 in their order, and the hidden ones are light grey");
-	return ok;
+	// 3 shown trains of 47 take the palette entries 0 to 2 in their order, and the hidden ones are light grey.
+	QCOMPARE(threeOf47.mode, TrainColourPlan::Mode::PerTrain);
+	QCOMPARE(threeOf47.colours.value("T3"), kPalette[0]);
+	QCOMPARE(threeOf47.colours.value("T20"), kPalette[1]);
+	QCOMPARE(threeOf47.colours.value("T46"), kPalette[2]);
+	QCOMPARE(threeOf47.colours.value("T0"), kHidden);
+	QCOMPARE(threeOf47.colours.size(), qsizetype(47));
 }
 
 // More than six shown trains in six services or fewer take a colour for each service; while the window has six services
 // or fewer a service keeps its colour when another service is hidden.
-bool exercisePerService() {
-	bool ok = true;
+void TestTrainColours::colourPerService() {
 	const TrainColourPlan assignment = trainColourPlan(assignmentTrains(), {});
-	ok &= expect(assignment.mode == TrainColourPlan::Mode::PerService && assignment.colours.value("IC1723-1") == kPalette[0]
-			&& assignment.colours.value("IC1723-6") == kPalette[0] && assignment.colours.value("S19825-3") == kPalette[1]
-			&& assignment.colours.value("IC2025-5") == kPalette[2] && assignment.colours.value("S9827-1") == kPalette[3],
-		"22 trains in 4 services get one colour for each service");
+	// 22 trains in 4 services get one colour for each service.
+	QCOMPARE(assignment.mode, TrainColourPlan::Mode::PerService);
+	QCOMPARE(assignment.colours.value("IC1723-1"), kPalette[0]);
+	QCOMPARE(assignment.colours.value("IC1723-6"), kPalette[0]);
+	QCOMPARE(assignment.colours.value("S19825-3"), kPalette[1]);
+	QCOMPARE(assignment.colours.value("IC2025-5"), kPalette[2]);
+	QCOMPARE(assignment.colours.value("S9827-1"), kPalette[3]);
 	QVector<TrainColourInput> withoutS19825 = assignmentTrains();
 	for (TrainColourInput& train : withoutS19825) train.shown = !train.id.startsWith("S19825");
 	const TrainColourPlan sixteen = trainColourPlan(withoutS19825, {});
-	ok &= expect(sixteen.mode == TrainColourPlan::Mode::PerService && sixteen.colours.value("IC2025-1") == kPalette[2]
-			&& sixteen.colours.value("S9827-5") == kPalette[3] && sixteen.colours.value("S19825-1") == kHidden,
-		"hiding a service keeps the colours of the other services");
+	// Hiding a service keeps the colours of the other services.
+	QCOMPARE(sixteen.mode, TrainColourPlan::Mode::PerService);
+	QCOMPARE(sixteen.colours.value("IC2025-1"), kPalette[2]);
+	QCOMPARE(sixteen.colours.value("S9827-5"), kPalette[3]);
+	QCOMPARE(sixteen.colours.value("S19825-1"), kHidden);
 	QVector<TrainColourInput> sevenServices = numberedTrains(7);
 	const TrainColourPlan seven = trainColourPlan(sevenServices, {});
-	ok &= expect(seven.mode == TrainColourPlan::Mode::Grey && seven.colours.value("T0") == kGrey,
-		"7 trains in 7 services, each train a service of its own, are grey");
-	return ok;
+	// 7 trains in 7 services, each train a service of its own, are grey.
+	QCOMPARE(seven.mode, TrainColourPlan::Mode::Grey);
+	QCOMPARE(seven.colours.value("T0"), kGrey);
 }
 
 // More shown trains in more than six services are grey, and the selected train takes the first colour of the palette.
-bool exerciseGrey() {
-	bool ok = true;
+void TestTrainColours::greyWithSelectedTrain() {
 	const TrainColourPlan many = trainColourPlan(numberedTrains(47), {}, "T10");
 	bool grey = true;
 	for (int i = 0; i < 47; ++i)
 		if (i != 10) grey &= many.colours.value(QString("T%1").arg(i)) == kGrey;
-	ok &= expect(many.mode == TrainColourPlan::Mode::Grey && grey && many.colours.value("T10") == kPalette[0],
-		"47 trains are grey with the selected one blue");
+	// 47 trains are grey with the selected one blue.
+	QCOMPARE(many.mode, TrainColourPlan::Mode::Grey);
+	QVERIFY(grey);
+	QCOMPARE(many.colours.value("T10"), kPalette[0]);
 	QVector<TrainColourInput> hiddenSelected = numberedTrains(47);
 	hiddenSelected[10].shown = false;
-	ok &= expect(trainColourPlan(hiddenSelected, {}, "T10").colours.value("T10") == kHidden && trainColourPlan(numberedTrains(47), {}, "X").colours.size() == 47,
-		"a hidden or unknown selected train takes no colour");
-	return ok;
+	// A hidden or unknown selected train takes no colour.
+	QCOMPARE(trainColourPlan(hiddenSelected, {}, "T10").colours.value("T10"), kHidden);
+	QCOMPARE(trainColourPlan(numberedTrains(47), {}, "X").colours.size(), qsizetype(47));
 }
 
 // The colour of the service of a train in the case wins over the palette, for a train, a service and the selected train.
-bool exerciseSceneColours() {
-	bool ok = true;
+void TestTrainColours::sceneColoursWin() {
 	const QColor red(200, 30, 30);
 	const TrainColourPlan three = trainColourPlan(numberedTrains(3), {{"T1", red}, {"T2", QColor()}});
-	ok &= expect(three.colours.value("T0") == kPalette[0] && three.colours.value("T1") == red && three.colours.value("T2") == kPalette[2],
-		"a service colour of the case wins over the palette, and the next train keeps its place in the palette");
+	// A service colour of the case wins over the palette, and the next train keeps its place in the palette.
+	QCOMPARE(three.colours.value("T0"), kPalette[0]);
+	QCOMPARE(three.colours.value("T1"), red);
+	QCOMPARE(three.colours.value("T2"), kPalette[2]);
 	QHash<QString, QColor> s19825;
 	for (int i = 1; i <= 6; ++i) s19825.insert(QString("S19825-%1").arg(i), red);
 	const TrainColourPlan assignment = trainColourPlan(assignmentTrains(), s19825);
-	ok &= expect(assignment.colours.value("S19825-1") == red && assignment.colours.value("S19825-6") == red
-			&& assignment.colours.value("IC2025-1") == kPalette[2],
-		"a service colour of the case wins over the palette colour of its service");
+	// A service colour of the case wins over the palette colour of its service.
+	QCOMPARE(assignment.colours.value("S19825-1"), red);
+	QCOMPARE(assignment.colours.value("S19825-6"), red);
+	QCOMPARE(assignment.colours.value("IC2025-1"), kPalette[2]);
 	const TrainColourPlan many = trainColourPlan(numberedTrains(47), {{"T10", red}, {"T11", red}}, "T10");
-	ok &= expect(many.colours.value("T10") == red && many.colours.value("T11") == kGrey,
-		"among many grey trains the selected one takes the colour of its service in the case");
+	// Among many grey trains the selected one takes the colour of its service in the case.
+	QCOMPARE(many.colours.value("T10"), red);
+	QCOMPARE(many.colours.value("T11"), kGrey);
 	QVector<TrainColourInput> hidden = numberedTrains(3);
 	hidden[1].shown = false;
-	ok &= expect(trainColourPlan(hidden, {{"T1", red}}).colours.value("T1") == kHidden, "a hidden train is light grey also with a colour in the case");
-	return ok;
+	// A hidden train is light grey also with a colour in the case.
+	QCOMPARE(trainColourPlan(hidden, {{"T1", red}}).colours.value("T1"), kHidden);
 }
 
 // A copy, such as the first train of a capacity cycle one period later, takes the colour of its train and counts as
 // that train.
-bool exerciseCopies() {
-	bool ok = true;
+void TestTrainColours::copiesTakeColourOfTheirTrain() {
 	QVector<TrainColourInput> cycle = numberedTrains(31);
 	cycle.append({"T0 (next period)", QString(), true, "T0"});
 	for (TrainColourInput& train : cycle) train.shown = train.id.startsWith("T0");
 	const TrainColourPlan two = trainColourPlan(cycle, {});
-	ok &= expect(two.mode == TrainColourPlan::Mode::PerTrain && two.colours.value("T0") == kPalette[0]
-			&& two.colours.value("T0 (next period)") == kPalette[0],
-		"of 31 trains the first train and its copy, both shown, take the first colour");
+	// Of 31 trains the first train and its copy, both shown, take the first colour.
+	QCOMPARE(two.mode, TrainColourPlan::Mode::PerTrain);
+	QCOMPARE(two.colours.value("T0"), kPalette[0]);
+	QCOMPARE(two.colours.value("T0 (next period)"), kPalette[0]);
 	cycle[0].shown = false;
 	const TrainColourPlan copyOnly = trainColourPlan(cycle, {});
-	ok &= expect(copyOnly.colours.value("T0") == kHidden && copyOnly.colours.value("T0 (next period)") == kPalette[0],
-		"a shown copy of a hidden train takes the colour of its train, which stays light grey");
+	// A shown copy of a hidden train takes the colour of its train, which stays light grey.
+	QCOMPARE(copyOnly.colours.value("T0"), kHidden);
+	QCOMPARE(copyOnly.colours.value("T0 (next period)"), kPalette[0]);
 	QVector<TrainColourInput> six = numberedTrains(6);
 	six.append({"T2 (next period)", QString(), true, "T2"});
 	const TrainColourPlan sixAndCopy = trainColourPlan(six, {});
-	ok &= expect(sixAndCopy.mode == TrainColourPlan::Mode::PerTrain && sixAndCopy.colours.value("T2 (next period)") == kPalette[2]
-			&& sixAndCopy.colours.value("T5") == kPalette[5],
-		"six trains and a copy keep a colour each, and the copy takes that of its train");
+	// Six trains and a copy keep a colour each, and the copy takes that of its train.
+	QCOMPARE(sixAndCopy.mode, TrainColourPlan::Mode::PerTrain);
+	QCOMPARE(sixAndCopy.colours.value("T2 (next period)"), kPalette[2]);
+	QCOMPARE(sixAndCopy.colours.value("T5"), kPalette[5]);
 	six.back().shown = false;
-	ok &= expect(trainColourPlan(six, {}).colours.value("T2 (next period)") == kHidden, "a hidden copy is light grey");
+	// A hidden copy is light grey.
+	QCOMPARE(trainColourPlan(six, {}).colours.value("T2 (next period)"), kHidden);
 	QVector<TrainColourInput> many = numberedTrains(47);
 	many.append({"T10 (next period)", QString(), true, "T10"});
 	const TrainColourPlan selectedCopy = trainColourPlan(many, {}, "T10 (next period)");
-	ok &= expect(selectedCopy.mode == TrainColourPlan::Mode::Grey && selectedCopy.colours.value("T10") == kPalette[0]
-			&& selectedCopy.colours.value("T10 (next period)") == kPalette[0] && selectedCopy.colours.value("T11") == kGrey,
-		"selecting a copy among many grey trains colours the copy and its train");
-	return ok;
+	// Selecting a copy among many grey trains colours the copy and its train.
+	QCOMPARE(selectedCopy.mode, TrainColourPlan::Mode::Grey);
+	QCOMPARE(selectedCopy.colours.value("T10"), kPalette[0]);
+	QCOMPARE(selectedCopy.colours.value("T10 (next period)"), kPalette[0]);
+	QCOMPARE(selectedCopy.colours.value("T11"), kGrey);
 }
 
-} // namespace
-
-int main() {
-	bool ok = exercisePerTrain();
-	ok &= exercisePerService();
-	ok &= exerciseGrey();
-	ok &= exerciseSceneColours();
-	ok &= exerciseCopies();
-	std::cout << (ok ? "test_traincolours passed\n" : "test_traincolours FAILED\n");
-	return ok ? 0 : 1;
-}
+QTEST_APPLESS_MAIN(TestTrainColours)
+#include "test_traincolours.moc"

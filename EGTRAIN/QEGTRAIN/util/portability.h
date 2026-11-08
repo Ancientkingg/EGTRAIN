@@ -3,7 +3,7 @@
 
 /// \file
 /// Cross-platform portability shims for EGTRAIN.
-/// The codebase mixes MSVC names (_s functions, _mkdir) and POSIX names
+/// The codebase mixes MSVC names (_s functions) and POSIX names
 /// (localtime_r, unistd.h). This header maps whichever set is missing on the
 /// current compiler onto the one that is available.
 
@@ -13,9 +13,8 @@
 
 #if defined(_MSC_VER)
 
-#include <io.h>		// _isatty
-#include <direct.h> // _mkdir
-#include <ctime>	// localtime_s
+#include <io.h>	 // _isatty
+#include <ctime> // localtime_s
 
 /// POSIX isatty() as the MSVC _isatty().
 #define isatty _isatty
@@ -31,9 +30,6 @@ static inline struct tm* localtime_r(const time_t* timep, struct tm* result) {
 #else
 
 #include <unistd.h> // isatty, STDIN_FILENO
-
-/// _mkdir(path) -> mkdir(path, 0777) (POSIX needs a mode argument)
-#define _mkdir(path) mkdir(path, 0777)
 
 #endif
 

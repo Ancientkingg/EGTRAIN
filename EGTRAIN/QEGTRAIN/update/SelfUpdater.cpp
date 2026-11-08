@@ -50,7 +50,7 @@ constexpr bool kAllowLoopbackHttp = false;
 bool isTrustedPackageUrl(const QString& tag, const QString& name, const QUrl& url) {
 #ifdef EGTRAIN_UPDATE_TEST_HOOK
 	if (!testHook().releaseBase.isEmpty())
-		return url == QUrl(QStringLiteral("%1/%2/%3").arg(testHook().releaseBase, tag, name));
+		return isExpectedReleaseAssetUrl(tag, name, url, testHook().releaseBase);
 #endif
 	return isExpectedReleaseAssetUrl(tag, name, url);
 }
@@ -185,7 +185,7 @@ SelfUpdateCapability SelfUpdater::capability() {
 	result.manifestKey = package.manifestKey;
 	result.usesInstaller = package.usesInstaller;
 	if (!QFileInfo(result.helperPath).isFile()) {
-		result.reason = QStringLiteral("The packaged update helper is missing.");
+		result.reason = QStringLiteral("The update helper is missing from this installation.");
 		return result;
 	}
 	if (!canCreateFilesIn(QFileInfo(result.currentPath).absolutePath())) {
@@ -252,7 +252,7 @@ void SelfUpdater::start(const StableRelease& release) {
 void SelfUpdater::requestManifest() {
 	const ReleaseAsset* asset = m_release.asset(updateManifestAssetName());
 	if (!asset) {
-		fail(QStringLiteral("The release manifest is missing."));
+		fail(QStringLiteral("The update manifest is missing."));
 		return;
 	}
 	HttpRequest request;
@@ -289,7 +289,7 @@ void SelfUpdater::requestPackage(const UpdateManifest& manifest) {
 	}
 	QTemporaryDir staging(QDir(QFileInfo(m_currentPath).absolutePath()).filePath(QStringLiteral(".qegtrain-update-XXXXXX")));
 	if (!staging.isValid()) {
-		fail(QStringLiteral("Could not create update staging storage."));
+		fail(QStringLiteral("Could not create a folder for the update next to EGTRAIN."));
 		return;
 	}
 	staging.setAutoRemove(false);
@@ -355,7 +355,7 @@ void SelfUpdater::handleReply(HttpReply* reply, bool manifestReply) {
 	const int status = reply->statusCode();
 	if (status < 200 || status >= 300) {
 		reply->deleteLater();
-		fail(QStringLiteral("GitHub returned HTTP %1 while downloading the update.").arg(status));
+		fail(QStringLiteral("The download server returned HTTP %1 while downloading the update.").arg(status));
 		return;
 	}
 	if (manifestReply) {
@@ -434,7 +434,7 @@ void SelfUpdater::cancel() {
 
 void SelfUpdater::startPreparation() {
 	if (m_stagingRoot.isEmpty() || m_preparationThread) {
-		fail(QStringLiteral("Update staging storage is unavailable."));
+		fail(QStringLiteral("Could not prepare the downloaded update."));
 		return;
 	}
 	UpdatePreparationInput input;

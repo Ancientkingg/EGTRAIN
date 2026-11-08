@@ -63,10 +63,10 @@ UpdateRecordText describeUpdateRecord(const UpdateRecord& record) {
 	if (record.outcome == UpdateOutcome::NotApplied)
 		return {QStringLiteral("The update to EGTRAIN %1 could not be applied. The previous version is still installed.")
 					.arg(version),
-			QStringLiteral("Nothing was changed. Choose Check for Updates in the Help menu to try again.")};
-	return {QStringLiteral("The update to EGTRAIN %1 could not be started, so the previous version was restored.")
+			QStringLiteral("Choose Help > Check for Updates... to try again.")};
+	return {QStringLiteral("EGTRAIN %1 could not be started, so the previous version was restored.")
 				.arg(version),
-		QStringLiteral("EGTRAIN will not offer %1 again on its own. Check for Updates in the Help menu still offers it.")
+		QStringLiteral("Automatic update checks will skip %1. Help > Check for Updates... still offers it.")
 			.arg(version)};
 }
 

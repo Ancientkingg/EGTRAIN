@@ -3,79 +3,121 @@
 #include <QApplication>
 #include <QPushButton>
 #include <QStringList>
+#include <QTest>
 
-#include <iostream>
-
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
+// Records each colorChanged text, an empty one as <default>.
+static void record(ColorChoiceButton& button, QStringList& emitted) {
+	QObject::connect(&button, &ColorChoiceButton::colorChanged,
+		[&emitted](const QString& text) { emitted << (text.isEmpty() ? QStringLiteral("<default>") : text); });
 }
 
-int main(int argc, char* argv[]) {
-	qputenv("QT_QPA_PLATFORM", "offscreen");
-	QApplication app(argc, argv);
-	bool ok = true;
+// The colour button shows the colour text of a service with its swatch, and emits only for a user action.
+class TestColorChoiceButton : public QObject {
+	Q_OBJECT
 
+private slots:
+	void objectNamesAndLabels();
+	void setColorNeverEmits();
+	void userActionsEmitOnce();
+};
+
+void TestColorChoiceButton::objectNamesAndLabels() {
+	ColorChoiceButton button;
+	button.show();
+	QApplication::processEvents();
+	auto* chooseButton = button.findChild<QPushButton*>("serviceColorChooseButton");
+	auto* defaultButton = button.findChild<QPushButton*>("serviceColorDefaultButton");
+	// The widget and its parts have their object names and labels.
+	QCOMPARE(button.objectName(), QStringLiteral("serviceColorButton"));
+	QVERIFY(button.findChild<QWidget*>("serviceColorSwatch") != nullptr);
+	if (chooseButton == nullptr)
+		QFAIL("the widget and its parts have their object names and labels");
+	QCOMPARE(chooseButton->text(), QStringLiteral("Choose..."));
+	if (defaultButton == nullptr)
+		QFAIL("the widget and its parts have their object names and labels");
+	QCOMPARE(defaultButton->text(), QStringLiteral("Default"));
+}
+
+void TestColorChoiceButton::setColorNeverEmits() {
 	ColorChoiceButton button;
 	button.show();
 	QApplication::processEvents();
 	QStringList emitted;
-	QObject::connect(&button, &ColorChoiceButton::colorChanged, [&emitted](const QString& text) {
-		emitted << (text.isEmpty() ? QStringLiteral("<default>") : text);
-	});
-	auto* chooseButton = button.findChild<QPushButton*>("serviceColorChooseButton");
-	auto* defaultButton = button.findChild<QPushButton*>("serviceColorDefaultButton");
-	ok &= expect(button.objectName() == "serviceColorButton" && button.findChild<QWidget*>("serviceColorSwatch")
-			&& chooseButton && chooseButton->text() == "Choose..." && defaultButton
-			&& defaultButton->text() == "Default",
-		"the widget and its parts have their object names and labels");
-
-	ok &= expect(button.valueText() == "Default" && !button.swatchColor().isValid(),
-		"a new widget shows the default look");
+	record(button, emitted);
+	// A new widget shows the default look.
+	QCOMPARE(button.valueText(), QStringLiteral("Default"));
+	QVERIFY(!button.swatchColor().isValid());
 	button.setColor("#3C8DD2");
-	ok &= expect(button.valueText() == "#3C8DD2" && button.swatchColor() == QColor(0x3C, 0x8D, 0xD2),
-		"a valid text shows its swatch and is not rewritten");
+	// A valid text shows its swatch and is not rewritten.
+	QCOMPARE(button.valueText(), QStringLiteral("#3C8DD2"));
+	QCOMPARE(button.swatchColor(), QColor(0x3C, 0x8D, 0xD2));
 	button.setColor("");
-	ok &= expect(button.valueText() == "Default" && !button.swatchColor().isValid(),
-		"an empty text shows the default look");
+	// An empty text shows the default look.
+	QCOMPARE(button.valueText(), QStringLiteral("Default"));
+	QVERIFY(!button.swatchColor().isValid());
 	button.setColor("red");
-	ok &= expect(button.valueText() == "Invalid: red" && !button.swatchColor().isValid(),
-		"another text is shown as invalid");
+	// Another text is shown as invalid.
+	QCOMPARE(button.valueText(), QStringLiteral("Invalid: red"));
+	QVERIFY(!button.swatchColor().isValid());
 	button.setColor("#12345");
-	ok &= expect(button.valueText() == "Invalid: #12345", "a short hex text is shown as invalid");
-	ok &= expect(emitted.isEmpty(), "setColor never emits");
+	// A short hex text is shown as invalid.
+	QCOMPARE(button.valueText(), QStringLiteral("Invalid: #12345"));
+	QVERIFY2(emitted.isEmpty(), "setColor never emits");
+}
 
-	// An invalid stored text stays until a user action.
+// An invalid stored text stays until a user action. Choose and Default then emit once each.
+void TestColorChoiceButton::userActionsEmitOnce() {
+	ColorChoiceButton button;
+	button.show();
+	QApplication::processEvents();
+	QStringList emitted;
+	record(button, emitted);
+	auto* defaultButton = button.findChild<QPushButton*>("serviceColorDefaultButton");
+	if (defaultButton == nullptr)
+		QFAIL("the widget has no Default button");
+
 	button.setColor("not-a-colour");
-	ok &= expect(button.valueText() == "Invalid: not-a-colour" && emitted.isEmpty(),
-		"an invalid text stays shown without a user action");
+	// An invalid text stays shown without a user action.
+	QCOMPARE(button.valueText(), QStringLiteral("Invalid: not-a-colour"));
+	QVERIFY(emitted.isEmpty());
 	button.chooseColor(QColor());
-	ok &= expect(button.valueText() == "Invalid: not-a-colour" && emitted.isEmpty(),
-		"cancelling the colour dialog keeps the invalid text");
+	// Cancelling the colour dialog keeps the invalid text.
+	QCOMPARE(button.valueText(), QStringLiteral("Invalid: not-a-colour"));
+	QVERIFY(emitted.isEmpty());
 	button.chooseColor(QColor(0xAB, 0xCD, 0xEF));
-	ok &= expect(emitted == QStringList{"#abcdef"}
-			&& button.valueText() == "#abcdef" && button.swatchColor() == QColor(0xAB, 0xCD, 0xEF),
-		"choosing a colour emits once with the lower-case text and shows it");
+	// Choosing a colour emits once with the lower-case text and shows it.
+	QCOMPARE(emitted, QStringList{"#abcdef"});
+	QCOMPARE(button.valueText(), QStringLiteral("#abcdef"));
+	QCOMPARE(button.swatchColor(), QColor(0xAB, 0xCD, 0xEF));
 
 	emitted.clear();
 	defaultButton->click();
-	ok &= expect(emitted == QStringList{"<default>"} && button.valueText() == "Default"
-			&& !button.swatchColor().isValid(),
-		"Default emits once with an empty text and shows the default look");
+	// Default emits once with an empty text and shows the default look.
+	QCOMPARE(emitted, QStringList{"<default>"});
+	QCOMPARE(button.valueText(), QStringLiteral("Default"));
+	QVERIFY(!button.swatchColor().isValid());
 	emitted.clear();
 	defaultButton->click();
-	ok &= expect(emitted.isEmpty(), "Default does nothing when no colour is set");
+	QVERIFY2(emitted.isEmpty(), "Default does nothing when no colour is set");
 
 	button.setColor("not-a-colour");
 	defaultButton->click();
-	ok &= expect(emitted == QStringList{"<default>"} && button.valueText() == "Default",
-		"Default replaces an invalid text");
+	// Default replaces an invalid text.
+	QCOMPARE(emitted, QStringList{"<default>"});
+	QCOMPARE(button.valueText(), QStringLiteral("Default"));
 
 	emitted.clear();
 	button.chooseColor(QColor(Qt::black));
-	ok &= expect(emitted == QStringList{"#000000"},
-		"black is a colour like any other");
-
-	return ok ? 0 : 1;
+	// Black is a colour like any other.
+	QCOMPARE(emitted, QStringList{"#000000"});
 }
+
+// The test runs offscreen also outside CTest, so the platform is set before the application exists.
+int main(int argc, char* argv[]) {
+	qputenv("QT_QPA_PLATFORM", "offscreen");
+	QApplication app(argc, argv);
+	TestColorChoiceButton test;
+	return QTest::qExec(&test, argc, argv);
+}
+
+#include "test_colorchoicebutton.moc"

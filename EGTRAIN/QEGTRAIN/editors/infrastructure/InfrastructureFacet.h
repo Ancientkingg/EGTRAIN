@@ -1,6 +1,7 @@
 #ifndef INFRASTRUCTUREFACET_H
 #define INFRASTRUCTUREFACET_H
 
+#include <QFlags>
 #include <QString>
 #include <QStringList>
 #include <QTableWidget>
@@ -8,18 +9,22 @@
 
 #include <cmath>
 #include <cstddef>
-#include <limits>
 #include <string>
 #include <vector>
+
+#include "widgets/CompactDoubleSpinBox.h"
 
 class InfrastructurePanel;
 
 /// One kind of entity that the infrastructure panel lists, such as the tracks. The panel owns the facet combo, the
 /// table, the selection and the facets. A facet knows the columns of the table, the rows that show the entities of the
-/// scene, and what an edited cell, an addition and a deletion do to the model of the panel's document. When it has
-/// changed the model it calls InfrastructurePanel::entityChanged, and when it refuses an edit
-/// InfrastructurePanel::refuseEdit. The panel calls a facet only while the scene is loaded and open for edits, except
-/// for fillRows.
+/// scene, and what an edited cell, an addition and a deletion do to the model of the panel's document. It changes the
+/// model only through InfrastructurePanel::edit or InfrastructurePanel::editInPlace, which refuse while the document is
+/// not open for edits, and when it refuses an edit it calls InfrastructurePanel::refuseEdit. The panel calls key(),
+/// capabilities(), columns(), fillRows(), selectionId(), rowOnTrack(), choices() and commitPendingEdits() at any time, and
+/// commitCell(), add(), remove(), insert(), move(), addSection(), removeSection() and moveSection() only while the scene is
+/// loaded and open for edits. A widget that a facet puts in the table can still change while the scene is closed for
+/// edits.
 class InfrastructureFacet {
 public:
 	/// Makes the base of a facet, which holds nothing.
@@ -31,8 +36,26 @@ public:
 	/// The panel deletes its facets through this base.
 	virtual ~InfrastructureFacet() = default;
 
+	/// The controls next to the table that a facet uses besides the Add and Delete buttons.
+	enum Capability {
+		/// The filter on a track above the table. Add then needs a track of the scene chosen in it.
+		TrackFilter = 0x1,
+		/// The Insert, Move Up and Move Down buttons, which call insert() and move().
+		InsertAndMove = 0x2,
+		/// The sections of the selected route below the table, whose buttons call addSection(), removeSection() and
+		/// moveSection().
+		RouteSections = 0x4,
+		/// The filter on a track above the table that hides the rows that are not on the chosen track (rowOnTrack()). Add
+		/// does not use it.
+		TrackRowFilter = 0x8,
+	};
+	// A combination of Capability values.
+	Q_DECLARE_FLAGS(Capabilities, Capability)
+
 	/// The value that the facet combo stores for this facet, such as "tracks".
 	virtual QString key() const = 0;
+	/// The controls that the panel shows for this facet. The default is none.
+	virtual Capabilities capabilities() const { return {}; }
 	/// The headers of the table.
 	virtual QStringList columns() const = 0;
 	/// Sets the rows of the table of the panel, one for each entity of the model. The columns are set and the cells are
@@ -44,16 +67,31 @@ public:
 		const QTableWidgetItem* item = table.item(row, 0);
 		return item ? item->text() : QString();
 	}
+	/// Whether the entity in `row` lies on the track `trackId`, for the filter of TrackRowFilter. The default is true.
+	virtual bool rowOnTrack(const InfrastructurePanel&, int /*row*/, const std::string& /*trackId*/) const { return true; }
+	/// An entity that a cell can refer to: the text that names it in a list, and the id that the cell takes.
+	struct Choice {
+		/// The text in the list, such as "B0.node.41 (B0)".
+		QString label;
+		/// The id that the cell takes when the entity is chosen.
+		QString id;
+	};
+	/// The entities that the cell in `row` and `column` can refer to, in the order of the list. The editor of such a cell
+	/// is a combo of their labels in which the user can also type, and which completes what is typed from any part of a
+	/// label, ignoring case. The cell takes the id of the chosen entity, or the text when it is no label. The default, for
+	/// a cell that takes any text, is none.
+	virtual std::vector<Choice> choices(const InfrastructurePanel&, int /*row*/, int /*column*/) const { return {}; }
 	/// The cell in `row` and `column` has been edited: takes its text into the model, or refuses it.
 	virtual void commitCell(InfrastructurePanel& panel, int row, int column) = 0;
 	/// Adds an entity.
 	virtual void add(InfrastructurePanel& panel) = 0;
-	/// Deletes the entity in the selected row after the user has confirmed it.
+	/// Deletes the entity in the selected row.
 	virtual void remove(InfrastructurePanel& panel) = 0;
 	/// Takes the values of the cells that are being edited into the model, as if the user had left them. The default does
 	/// nothing.
 	virtual void commitPendingEdits(InfrastructurePanel&) {}
-	// The next five belong to buttons that only some facets have, and do nothing for the others.
+	// The next five belong to the buttons of InsertAndMove and RouteSections. The panel calls them only for a facet with
+	// that capability, and they do nothing by default.
 	/// Inserts an entity before the selected one.
 	virtual void insert(InfrastructurePanel&) {}
 	/// Moves the selected entity down by `offset` rows, up when it is negative.
@@ -64,6 +102,27 @@ public:
 	virtual void removeSection(InfrastructurePanel&) {}
 	/// Moves the selected section of the selected route down by `offset` places, up when it is negative.
 	virtual void moveSection(InfrastructurePanel&, int /*offset*/) {}
+
+	/// A button of the task row under the Add and Delete buttons.
+	struct TaskAction {
+		/// The object name of the button, for tests and scripts.
+		QString objectName;
+		/// The text of the button, such as "Add Station...".
+		QString text;
+		/// The tooltip of the button.
+		QString toolTip;
+	};
+	/// The task actions of this kind, one button each in this order. A task action works on the selected row and changes
+	/// the model in one InfrastructurePanel::edit, so in one undo step. The default is none, which hides the row.
+	virtual std::vector<TaskAction> taskActions() const { return {}; }
+	/// Runs the task action `index` of taskActions() on the selected row. The panel calls it only while the scene is open
+	/// for edits, a row is selected and `index` is in range, after taking the cells that are being edited. The default does
+	/// nothing.
+	virtual void runTaskAction(InfrastructurePanel&, int /*index*/) {}
+	/// The cell in `row` and `column` was activated, which is a double click on a cell that cannot be edited, and Return on
+	/// Windows and Linux. The panel calls it from the event loop, only while the scene is open for edits. The default does
+	/// nothing.
+	virtual void activateCell(InfrastructurePanel&, int /*row*/, int /*column*/) {}
 
 protected:
 	/// What came of the text of an edited cell.
@@ -86,10 +145,49 @@ protected:
 		table.setItem(row, column, item);
 	}
 
-	/// The text of a number with enough digits to give the number back.
-	static QString numberText(double value) {
-		return QString::number(value, 'g', std::numeric_limits<double>::max_digits10);
+	/// Puts a check box for a flag in the table, which owns it. The cell has no text and takes none; a click on the box
+	/// changes the flag, and cellValue() reads it as flagText() does.
+	static void setFlagCell(QTableWidget& table, int row, int column, bool value) {
+		auto* item = new QTableWidgetItem();
+		item->setFlags((item->flags() | Qt::ItemIsUserCheckable) & ~Qt::ItemIsEditable);
+		item->setCheckState(value ? Qt::Checked : Qt::Unchecked);
+		table.setItem(row, column, item);
 	}
+
+	/// What an edited cell holds: its trimmed text, or for a check box (a cell with a check state) "true" or "false".
+	static QString cellValue(const QTableWidgetItem& item) {
+		if (item.data(Qt::CheckStateRole).isValid())
+			return flagText(item.checkState() == Qt::Checked);
+		return item.text().trimmed();
+	}
+
+	/// The message that refuses the text of the cell in `row` and `column` of the table, which setNumber() or setFlag()
+	/// did not read, named by the header of the column: "X (km) needs a number, such as 1.5." or "Reversed needs true or
+	/// false.".
+	static QString refusedValueText(const QTableWidget& table, int row, int column) {
+		const QTableWidgetItem* header = table.horizontalHeaderItem(column);
+		const QString name = header ? header->text() : QStringLiteral("This cell");
+		const QTableWidgetItem* item = table.item(row, column);
+		if (item && item->data(Qt::CheckStateRole).isValid())
+			return QStringLiteral("%1 needs true or false.").arg(name);
+		return QStringLiteral("%1 needs a number, such as 1.5.").arg(name);
+	}
+
+	/// The message that refuses ids that the scene does not have. `noun` names one entity of their kind, such as "Node":
+	/// "Node 'n9' does not exist" or "Nodes 'n8', 'n9' do not exist". An empty id asks for one: "Choose a node".
+	static QString missingIdsText(const QString& noun, const QStringList& ids) {
+		if (ids.size() == 1 && ids.front().isEmpty())
+			return QStringLiteral("Choose a %1").arg(noun.toLower());
+		QStringList quoted;
+		for (const QString& id : ids)
+			quoted << QStringLiteral("'%1'").arg(id);
+		return ids.size() == 1 ? QStringLiteral("%1 %2 does not exist").arg(noun, quoted.join(QString()))
+							   : QStringLiteral("%1s %2 do not exist").arg(noun, quoted.join(QStringLiteral(", ")));
+	}
+
+	/// The text of a number in the fewest digits that read back as the same number, as the number fields of the editors
+	/// show it while they are edited (CompactDoubleSpinBox::fullText).
+	static QString numberText(double value) { return CompactDoubleSpinBox::fullText(value); }
 
 	/// The text of a flag: "true" or "false".
 	static QString flagText(bool value) { return value ? QStringLiteral("true") : QStringLiteral("false"); }
@@ -138,5 +236,7 @@ protected:
 		return true;
 	}
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(InfrastructureFacet::Capabilities)
 
 #endif // INFRASTRUCTUREFACET_H

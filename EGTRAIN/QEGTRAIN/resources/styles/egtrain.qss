@@ -245,7 +245,6 @@ QTreeView::indicator:checked:disabled {
 
 QCheckBox[secondaryLayerToggle="true"] {
     color: #5b6871;
-    margin-left: 16px;
 }
 
 QCheckBox:disabled {
@@ -507,9 +506,10 @@ QLabel[dialogStatus="error"] {
     padding: 8px;
 }
 
-/* A link of the About dialog reads as a link: underlined text without the face and border of a button. Its 2 px border
-   shows only with keyboard focus, so the text does not move. */
-QDialog#aboutDialog QPushButton[aboutLink="true"] {
+/* A link of the About dialog, and the privacy notice link of the privacy dialog, reads as a link: underlined text without
+   the face and border of a button. Its 2 px border shows only with keyboard focus, so the text does not move. */
+QDialog#aboutDialog QPushButton[aboutLink="true"],
+QDialog#telemetryConsentDialog QPushButton#telemetryPrivacyNotice {
     background: transparent;
     border: 2px solid transparent;
     color: #315a70;
@@ -518,7 +518,8 @@ QDialog#aboutDialog QPushButton[aboutLink="true"] {
     padding: 1px;
 }
 
-QDialog#aboutDialog QPushButton[aboutLink="true"]:focus {
+QDialog#aboutDialog QPushButton[aboutLink="true"]:focus,
+QDialog#telemetryConsentDialog QPushButton#telemetryPrivacyNotice:focus {
     border-color: #2e7491;
 }
 

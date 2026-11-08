@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -136,9 +137,35 @@ def check_executable_lookup() -> None:
                 raise SystemExit("the Linux build is not found without QEGTRAIN_APP")
 
 
+def check_case_logs() -> None:
+    """A case writes its log into the folder that QEGTRAIN_SMOKE_LOG_DIR names, which it creates, and names the log on a
+    failure. Without the variable the log goes to tools/e2e."""
+    with tempfile.TemporaryDirectory() as tmp, mock.patch.object(headless_smoke, "ROOT", Path(tmp)), mock.patch.object(
+        headless_smoke, "find_executable", return_value=Path("QEGTRAIN")
+    ):
+        (Path(tmp) / "tools/e2e").mkdir(parents=True)
+        for variable, folder in ((str(Path(tmp) / "build/smoke-logs"), "build/smoke-logs"), ("", "tools/e2e")):
+            log = Path(tmp) / folder / "headless_case_2.log"
+            for returncode in (0, 1):
+                result = subprocess.CompletedProcess([], returncode, f"output {returncode}\n", b"")
+                with mock.patch.dict(os.environ, {"QEGTRAIN_SMOKE_LOG_DIR": variable}), mock.patch.object(
+                    headless_smoke, "run_command", return_value=result
+                ):
+                    try:
+                        headless_smoke.run_case(2, cwd=Path(tmp), out_base=Path(tmp))
+                        message = ""
+                    except SystemExit as exc:
+                        message = str(exc.code)
+                if not log.is_file() or log.read_text(encoding="utf-8") != f"output {returncode}\n":
+                    raise SystemExit(f"the log of a case with exit code {returncode} is not {log}")
+                if returncode and str(log) not in message:
+                    raise SystemExit(f"a failed case does not name its log {log}: {message!r}")
+
+
 def main() -> None:
     check_position_cases()
     check_executable_lookup()
+    check_case_logs()
     for case_id in range(1, 5):
         check_scene_structure(case_id)
     check_scene_matches_netherlands(7)

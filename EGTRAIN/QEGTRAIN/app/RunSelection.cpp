@@ -1,6 +1,7 @@
 #include "app/RunSelection.h"
 
 #include "scene/RuntimeLimits.h"
+#include "scene/SceneHistory.h"
 
 #include <algorithm>
 #include <cmath>
@@ -13,6 +14,11 @@ constexpr int kMaxOccurrences = RuntimeLimits::kMaxExpandedTrains;
 
 int occurrenceCount(const SceneService& service, double durationSeconds) {
 	return std::max(0, sceneServiceOccurrenceCount(service, durationSeconds));
+}
+
+bool hasScenario(const SceneModel& model, const std::string& id) {
+	return std::any_of(model.scenarios.begin(), model.scenarios.end(),
+		[&id](const SceneScenario& scenario) { return scenario.id == id; });
 }
 
 } // namespace
@@ -107,6 +113,39 @@ void RunSelection::serviceRenamed(const std::string& oldId, const std::string& n
 		migrated.insert(replacement);
 	}
 	m_excluded.swap(migrated);
+}
+
+void RunSelection::historyRestored(const SceneModel& previous, const SceneHistoryEntry& entry, double durationSeconds) {
+	const SceneModel& restored = *entry.scene;
+	m_modifiedScenarioIds = entry.modifiedScenarioIds;
+
+	const std::string& kept = entry.selectedScenarioId;
+	if (hasScenario(restored, kept) && (!hasScenario(previous, kept) || !hasScenario(restored, m_scenarioId))) {
+		m_scenarioId = kept;
+	} else if (!hasScenario(restored, m_scenarioId)) {
+		const SceneScenario* fallback = defaultScenario(restored);
+		m_scenarioId = fallback ? fallback->id : std::string();
+	}
+
+	std::set<std::string> previousServices;
+	for (const SceneService& service : previous.services)
+		previousServices.insert(service.id);
+	std::set<std::string> returning;
+	for (const SceneService& service : restored.services) {
+		if (previousServices.count(service.id) == 0)
+			returning.insert(service.id);
+	}
+	SceneRunSelection excluded;
+	for (const SceneServiceOccurrence& value : m_excluded) {
+		if (returning.count(value.serviceId) == 0)
+			excluded.insert(value);
+	}
+	for (const SceneServiceOccurrence& value : entry.excludedOccurrences) {
+		if (returning.count(value.serviceId) > 0)
+			excluded.insert(value);
+	}
+	m_excluded.swap(excluded);
+	pruneExcluded(restored, durationSeconds);
 }
 
 SceneRunSelection RunSelection::selectedOccurrences(const SceneModel& model, double durationSeconds) const {

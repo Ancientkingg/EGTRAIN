@@ -116,6 +116,7 @@ public:
 	~SavedRunState() {
 		defaultRun().infra.routes = std::move(m_routes);
 		defaultRun().infra.numRoutes = m_routeCount;
+		defaultRun().infra.numberRouteSections();
 		defaultRun().blocksOccupied = m_occupied;
 		defaultRun().blocksConnected = m_connected;
 		defaultRun().infra.singleTrackLimits = m_limits;
@@ -138,6 +139,7 @@ private:
 void setRoutes(std::vector<Route>&& routes) {
 	defaultRun().infra.routes = std::move(routes);
 	defaultRun().infra.numRoutes = static_cast<int>(defaultRun().infra.routes.size());
+	defaultRun().infra.numberRouteSections();
 }
 
 const std::vector<Section>& sectionsOf(std::size_t route) {
@@ -236,6 +238,7 @@ Route makeRoute(const RouteSpec& spec) {
 		section.ID = idOf(spec.reversedIds ? count - 1 - i : i);
 		section.SignallingLevel = spec.levels[i];
 		section.total_arcs = arcCount(spec.shape, i);
+		section.arcs_in_signalling_block_section.resize(static_cast<std::size_t>(section.total_arcs));
 		if (dirty) {
 			section.code = kDirtyCode;
 			section.state = kDirtyState;

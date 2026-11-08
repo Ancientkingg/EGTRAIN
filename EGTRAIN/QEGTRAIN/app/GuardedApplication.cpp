@@ -21,7 +21,7 @@ void showUnexpectedError(const QString& what) {
 	UserPrompts([] { return mainWindowTestHooks().dialogsSuppressed; })
 		.showError(QApplication::activeWindow(), QStringLiteral("Unexpected Error"),
 			QStringLiteral("EGTRAIN could not finish the last action because of an internal error:\n\n%1\n\n"
-						   "The case is still open. Save it to keep your edits.")
+						   "The case is still open. An edit that the error interrupted was undone.")
 				.arg(what));
 }
 

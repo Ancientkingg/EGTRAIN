@@ -187,6 +187,12 @@ def check_review(review: dict, scene: Path, advanced: bool, cancellation: str,
         assert geometry["contextHeight"][0] == geometry["contextHeight"][1], geometry
         assert contains(footer, geometry["run"]) and contains(footer, geometry["cancel"]), geometry
         assert contains(dialog, scroll) and scroll[1] + scroll[3] <= footer[1], geometry
+        # The facts keep the height of their text and the names the width of the widest name, also in a dialog larger
+        # than its content: the end of the body and the value column take the spare room.
+        name_width = max(fact[1] for fact in geometry["facts"])
+        for width, _, name_height, name_text, value_height, value_text in geometry["facts"]:
+            assert width == name_width, geometry
+            assert name_height == value_height == max(name_text, value_text), geometry
         if enlarged:
             assert geometry["fontPoints"] == 18 and dialog[2] <= 560 and dialog[3] <= 420, geometry
             assert geometry["controlFontPoints"] == [18, 18, 18, 18], geometry
@@ -196,6 +202,8 @@ def check_review(review: dict, scene: Path, advanced: bool, cancellation: str,
     assert expanded_geometry["dialog"][3] >= collapsed_geometry["dialog"][3], rendered
     assert (expanded_geometry["scrollMaximum"] == 0
             or expanded_geometry["dialog"][3] == expanded_geometry["maximum"][1]), rendered
+    # Closing Run details returns the dialog to the size it had before they opened.
+    assert rendered["recollapsedGeometry"]["dialog"] == collapsed_geometry["dialog"], rendered
     keyboard = rendered["keyboard"]
     assert keyboard["bodyFocus"] == (["Loaded Data", "Validation"] if advanced else []), keyboard
     assert keyboard["tabReachedFooter"] and keyboard["backtabReturned"], keyboard

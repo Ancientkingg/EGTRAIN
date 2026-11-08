@@ -5,7 +5,7 @@
 #include "util/portability.h" // localtime_r shim on MSVC
 
 /// \file
-/// Text forms of simulation times and of the current local date and time.
+/// Text forms of simulation times and of a local date and time.
 
 /// The local date and time of step \p t as "YYYY-MM-DD HH:MM:SS", without a time zone: midnight of
 /// the current day of the computer plus \p startingSimulationTime plus \p t. \p t is seconds from
@@ -110,20 +110,4 @@ inline std::string formatDateTimeFilename(const tm& tm) {
 		ss << tm.tm_sec;
 
 	return ss.str();
-}
-
-/// The current local date and time in the form of formatDateTime(), "Mon 01.01.1900 12:00:00".
-inline std::string getDateTimeStr() {
-	time_t t = time(nullptr);
-	tm now;
-	localtime_r(&t, &now);
-	return formatDateTime(now);
-}
-
-/// The current local date and time in the form of formatDateTimeFilename(), "1900_01_01_12_00_00".
-inline std::string getDateTimeFilenameStr() {
-	time_t t = time(nullptr);
-	tm now;
-	localtime_r(&t, &now);
-	return formatDateTimeFilename(now);
 }

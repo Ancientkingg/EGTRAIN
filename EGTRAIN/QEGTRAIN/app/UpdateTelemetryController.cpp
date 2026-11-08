@@ -9,10 +9,11 @@
 #include "update/SelfUpdater.h"
 #include "update/UpdateChecker.h"
 #include "update/UpdateSettings.h"
+#include "util/Log.h"
+#include "widgets/UserPrompts.h"
 
 #include <QAction>
 #include <QCoreApplication>
-#include <QDebug>
 #include <QDesktopServices>
 #include <QDir>
 #include <QMenu>
@@ -157,6 +158,27 @@ std::optional<telemetry::Error> telemetryDiagnosticError(const std::vector<Scene
 	return selected;
 }
 
+namespace {
+
+// The prompts of the update messages, which write the errors to stderr and show no message in a scripted run.
+UserPrompts updatePrompts() {
+	return UserPrompts([] { return mainWindowTestHooks().dialogsSuppressed; });
+}
+
+// Logs why an update step failed, as a warning in the category update, and shows it.
+void showUpdateFailure(QWidget* window, const QString& title, const QString& message) {
+	EG_LOG(Update, Warning) << title.toStdString() << ": " << message.toStdString() << '\n';
+	updatePrompts().showError(window, title, message, true);
+}
+
+// Logs a notice about updates in the category update and shows it.
+void showUpdateNotice(QWidget* window, const QString& title, const QString& message) {
+	EG_LOG(Update, Info) << title.toStdString() << ": " << message.toStdString() << '\n';
+	updatePrompts().showInfo(window, title, message);
+}
+
+} // namespace
+
 UpdateTelemetryController::UpdateTelemetryController(QWidget* window, std::function<bool()> askToSaveScene,
 	std::function<void()> beforeQuit)
 	: m_window(window), m_askToSaveScene(std::move(askToSaveScene)), m_beforeQuit(std::move(beforeQuit)) {}
@@ -260,7 +282,7 @@ void UpdateTelemetryController::showPrivacySettings(bool initialPrompt) {
 	TelemetryConsent& consent = preview || !m_telemetryConsent ? previewConsent : *m_telemetryConsent;
 	if (!consent.available()) {
 		if (!initialPrompt)
-			QMessageBox::information(m_window, QStringLiteral("Privacy & diagnostics"),
+			updatePrompts().showInfo(m_window, QStringLiteral("Privacy & Diagnostics"),
 				QStringLiteral("Usage statistics and diagnostics are unavailable in this build or run. Nothing is collected or sent."));
 		return;
 	}
@@ -279,7 +301,7 @@ void UpdateTelemetryController::maybePromptForUpdateChecks() {
 	const UpdateCheckState state = readUpdateCheckState(settings);
 	if (state == UpdateCheckState::Unknown) {
 		QMessageBox dialog(QMessageBox::Question,
-			QStringLiteral("Automatically Check for EGTRAIN Updates?"),
+			QStringLiteral("EGTRAIN Updates"),
 			update_prompt::automaticChecksQuestion(),
 			QMessageBox::NoButton, m_window);
 		dialog.setInformativeText(update_prompt::automaticChecksDetail());
@@ -322,11 +344,12 @@ void UpdateTelemetryController::handleUpdateCheckFinished(const UpdateCheckResul
 	m_manualUpdateCheck = false;
 	if (!result.success || !result.release) {
 		if (manual) {
-			QMessageBox::warning(m_window, QStringLiteral("Check for Updates"),
+			showUpdateFailure(m_window, QStringLiteral("Check for Updates"),
 				result.error.isEmpty() ? QStringLiteral("Could not check for updates.") : result.error);
 		} else {
-			qWarning().noquote() << "Automatic update check failed:"
-								 << (result.error.isEmpty() ? QStringLiteral("unknown error") : result.error);
+			EG_LOG(Update, Warning) << "Automatic update check failed: "
+									<< (result.error.isEmpty() ? std::string("unknown error") : result.error.toStdString())
+									<< '\n';
 		}
 		return;
 	}
@@ -336,14 +359,14 @@ void UpdateTelemetryController::handleUpdateCheckFinished(const UpdateCheckResul
 	if (!current) {
 		const QString error = QStringLiteral("The installed application version is invalid.");
 		if (manual)
-			QMessageBox::warning(m_window, QStringLiteral("Check for Updates"), error);
+			showUpdateFailure(m_window, QStringLiteral("Check for Updates"), error);
 		else
-			qWarning().noquote() << "Automatic update check failed:" << error;
+			EG_LOG(Update, Warning) << "Automatic update check failed: " << error.toStdString() << '\n';
 		return;
 	}
 	if (!isUpdateAvailable(*current, *result.release)) {
 		if (manual)
-			QMessageBox::information(m_window, QStringLiteral("Check for Updates"),
+			showUpdateNotice(m_window, QStringLiteral("Check for Updates"),
 				QStringLiteral("EGTRAIN %1 is up to date.").arg(formatSemanticVersion(*current)));
 		return;
 	}
@@ -358,13 +381,13 @@ void UpdateTelemetryController::handleUpdateCheckFinished(const UpdateCheckResul
 	if (m_selfUpdater && !m_selfUpdater->canSelfUpdate(release)) {
 		const SelfUpdateCapability capability = m_selfUpdater->capability();
 		availability = capability.supported
-			? QStringLiteral("\n\nNo automatic update package is available for this platform. Use the release page to update manually.")
-			: QStringLiteral("\n\n%1 Use the release page to update manually.").arg(capability.reason);
+			? QStringLiteral("\n\nNo automatic update package is available for this platform. Update manually from the release page.")
+			: QStringLiteral("\n\n%1 Update manually from the release page.").arg(capability.reason);
 	} else if (m_selfUpdater && m_selfUpdater->capability().usesInstaller) {
 		availability = QStringLiteral("\n\nEGTRAIN closes while the update installs, then starts again.");
 	}
 	QMessageBox dialog(QMessageBox::Information,
-		QStringLiteral("EGTRAIN %1 Is Available").arg(formatSemanticVersion(release.version)),
+		QStringLiteral("EGTRAIN Update"),
 		update_prompt::availableText(formatSemanticVersion(release.version), formatSemanticVersion(*current)),
 		QMessageBox::NoButton, m_window);
 	setMarkdownInformativeText(dialog,
@@ -394,7 +417,7 @@ void UpdateTelemetryController::handleUpdateCheckFinished(const UpdateCheckResul
 		}
 	} else if (clickedButton == openButton
 		&& !QDesktopServices::openUrl(release.releasePage)) {
-		QMessageBox::warning(m_window, QStringLiteral("Open Release Page"),
+		showUpdateFailure(m_window, QStringLiteral("Open Release Page"),
 			QStringLiteral("Could not open the release page:\n%1").arg(release.releasePage.toString()));
 	}
 }
@@ -433,16 +456,16 @@ void UpdateTelemetryController::handleSelfUpdateFinished(bool success, const QSt
 		m_updateProgress = nullptr;
 	}
 	if (!success) {
-		QMessageBox::warning(m_window, QStringLiteral("EGTRAIN Update"),
+		showUpdateFailure(m_window, QStringLiteral("EGTRAIN Update"),
 			error.isEmpty() ? QStringLiteral("The update was not installed. EGTRAIN is unchanged.") : error);
 		return;
 	}
 	const bool installer = m_selfUpdater && m_selfUpdater->capability().usesInstaller;
-	QMessageBox::information(m_window, QStringLiteral("EGTRAIN Update"),
+	showUpdateNotice(m_window, QStringLiteral("EGTRAIN Update"),
 		installer ? QStringLiteral("The installer is ready. EGTRAIN will close now, run the installer and start again.")
 				  : QStringLiteral("The update is ready. EGTRAIN will restart now."));
 	if (!m_selfUpdater || !m_selfUpdater->restart()) {
-		QMessageBox::warning(m_window, QStringLiteral("EGTRAIN Update"),
+		showUpdateFailure(m_window, QStringLiteral("EGTRAIN Update"),
 			QStringLiteral("Could not start the update installer. EGTRAIN is unchanged."));
 		return;
 	}

@@ -46,10 +46,8 @@ void populateSignallingSystemCombo(QComboBox* combo, int current) {
 	if (!isValidSignallingLevel(current)) {
 		const bool unchosen = current == kSignallingLevelUnset;
 		combo->addItem(unchosen ? QStringLiteral("Choose a signalling system") : QString::fromStdString(signallingLevelName(current)), current);
-		combo->setItemData(0,
-			unchosen ? QStringLiteral("Not chosen yet")
-					 : QString::fromStdString(signallingLevelDescription(current)),
-			Qt::ToolTipRole);
+		if (!unchosen)
+			combo->setItemData(0, QString::fromStdString(signallingLevelDescription(current)), Qt::ToolTipRole);
 	}
 	for (int level = levelValue(SignallingLevel::Atb); level <= levelValue(SignallingLevel::Bacc); ++level) {
 		combo->addItem(QString::fromStdString(signallingLevelName(level)), level);
@@ -103,60 +101,59 @@ public:
 				InfrastructurePanel::populateSectionCombo(combo, inventory, item.protectedSection, true, QStringLiteral("(unbound)"));
 			}
 			QObject::connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), &panel, [&panel, row, combo](int) {
-				std::vector<SceneSignal>& current = sceneSignals(panel.mutableModel());
+				const std::vector<SceneSignal>& current = sceneSignals(panel.model());
 				if (row < 0 || row >= static_cast<int>(current.size()))
 					return;
+				const std::size_t index = static_cast<std::size_t>(row);
 				const std::string section = combo->currentData().toString().toStdString();
-				SceneSignal& edited = current[static_cast<std::size_t>(row)];
-				if (edited.protectedSection == section)
+				if (current[index].protectedSection == section)
 					return;
-				edited.protectedSection = section;
-				panel.entityEdited(QStringLiteral("Edit signal"));
+				panel.editInPlace(QStringLiteral("Edit signal"),
+					[index, &section](SceneModel& model) { sceneSignals(model)[index].protectedSection = section; });
 			});
 			table.setCellWidget(row, 1, combo);
 		}
 	}
 
 	void commitCell(InfrastructurePanel& panel, int row, int column) override {
-		std::vector<SceneSignal>& items = sceneSignals(panel.mutableModel());
+		const std::vector<SceneSignal>& items = sceneSignals(panel.model());
 		if (column != 0 || row >= static_cast<int>(items.size()))
 			return;
-		SceneSignal& item = items[static_cast<std::size_t>(row)];
+		const std::size_t index = static_cast<std::size_t>(row);
+		const std::string oldId = items[index].id;
 		const std::string newId = panel.table()->item(row, column)->text().trimmed().toStdString();
-		if (item.id == newId)
+		if (oldId == newId)
 			return;
 		if (!idCanReplaceRow(items, row, newId)) {
 			panel.refuseEdit(QStringLiteral("IDs must be unique and not empty"));
 			return;
 		}
-		const std::string oldId = item.id;
-		item.id = newId;
-		sceneRewriteSignalReferences(panel.mutableModel(), oldId, newId);
 		panel.setSelectionId(QString::fromStdString(newId));
-		panel.entityChanged(QStringLiteral("Rename signal"));
+		panel.edit(QStringLiteral("Rename signal"), [index, &oldId, &newId](SceneModel& model) {
+			sceneSignals(model)[index].id = newId;
+			sceneRewriteSignalReferences(model, oldId, newId);
+		});
 	}
 
 	void add(InfrastructurePanel& panel) override {
-		SceneModel& model = panel.mutableModel();
-		const std::string id = sceneUniqueInfrastructureId(model, "signal", "signals");
-		sceneSignals(model).push_back({id, {}});
+		const std::string id = sceneUniqueInfrastructureId(panel.model(), "signal", "signals");
 		panel.setSelectionId(QString::fromStdString(id));
-		panel.entityChanged(QStringLiteral("Add signal"));
+		panel.edit(QStringLiteral("Add signal"), [&id](SceneModel& model) { sceneSignals(model).push_back({id, {}}); });
 	}
 
 	void remove(InfrastructurePanel& panel) override {
-		std::vector<SceneSignal>& items = sceneSignals(panel.mutableModel());
+		const std::vector<SceneSignal>& items = sceneSignals(panel.model());
 		const int row = panel.table()->currentRow();
 		if (row < 0 || row >= static_cast<int>(items.size()))
 			return;
 		const std::string id = items[static_cast<std::size_t>(row)].id;
 		if (id.empty())
 			return;
-		if (!panel.confirmDelete(QString::fromStdString(id), sceneDirectDeleteConsumers(panel.model(), "signals", id)))
-			return;
-		items.erase(items.begin() + row);
-		panel.setSelectionId(QString());
-		panel.entityChanged(QStringLiteral("Delete signal"));
+		panel.deleteRow(QString::fromStdString(id), sceneDirectDeleteConsumers(panel.model(), "signals", id), QStringLiteral("Delete signal"),
+			[row](SceneModel& model) {
+				std::vector<SceneSignal>& signalList = sceneSignals(model);
+				signalList.erase(signalList.begin() + row);
+			});
 	}
 };
 
@@ -203,27 +200,26 @@ private:
 		auto* combo = new NoWheelComboBox(panel.table());
 		combo->setObjectName(QStringLiteral("signallingAreaSystemCombo"));
 		combo->setAccessibleName(QStringLiteral("Signalling system for %1").arg(areaId));
-		combo->setToolTip(QStringLiteral("Choose the signalling system of the sections inside this area"));
+		combo->setToolTip(QStringLiteral("Signalling system of the sections in this area"));
 		combo->setFocusPolicy(Qt::StrongFocus);
 		populateSignallingSystemCombo(combo, level);
 		QObject::connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), &panel, [&panel, row, combo](int) {
-			std::vector<SceneSignallingArea>& areas = panel.mutableModel().signallingAreas;
+			const std::vector<SceneSignallingArea>& areas = panel.model().signallingAreas;
 			if (row < 0 || row >= static_cast<int>(areas.size()))
 				return;
+			const std::size_t area = static_cast<std::size_t>(row);
 			const int chosen = combo->currentData().toInt();
-			SceneSignallingArea& edited = areas[static_cast<std::size_t>(row)];
-			if (edited.level == chosen)
+			if (areas[area].level == chosen)
 				return;
-			edited.level = chosen;
+			if (!panel.editInPlace(QStringLiteral("Edit signalling area"),
+					[area, chosen](SceneModel& model) { model.signallingAreas[area].level = chosen; }))
+				return;
 			// The item that stood for a level that is no system is no longer needed.
-			{
-				const QSignalBlocker blocker(combo);
-				for (int index = combo->count() - 1; index >= 0; --index)
-					if (!isValidSignallingLevel(combo->itemData(index).toInt()))
-						combo->removeItem(index);
-				combo->setCurrentIndex(combo->findData(chosen));
-			}
-			panel.entityEdited(QStringLiteral("Edit signalling area"));
+			const QSignalBlocker blocker(combo);
+			for (int index = combo->count() - 1; index >= 0; --index)
+				if (!isValidSignallingLevel(combo->itemData(index).toInt()))
+					combo->removeItem(index);
+			combo->setCurrentIndex(combo->findData(chosen));
 		});
 		return combo;
 	}
@@ -237,25 +233,24 @@ private:
 		combo->setFocusPolicy(Qt::StrongFocus);
 		populateSignallingAreaTrackCombo(combo, panel.model(), inventory, trackId);
 		QObject::connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), &panel, [&panel, row, combo](int) {
-			std::vector<SceneSignallingArea>& areas = panel.mutableModel().signallingAreas;
+			const std::vector<SceneSignallingArea>& areas = panel.model().signallingAreas;
 			if (row < 0 || row >= static_cast<int>(areas.size()))
 				return;
+			const std::size_t area = static_cast<std::size_t>(row);
 			const std::string chosen = combo->currentData().toString().toStdString();
-			SceneSignallingArea& edited = areas[static_cast<std::size_t>(row)];
-			if (edited.trackId == chosen)
+			if (areas[area].trackId == chosen)
 				return;
-			edited.trackId = chosen;
+			if (!panel.editInPlace(QStringLiteral("Edit signalling area"),
+					[area, &chosen](SceneModel& model) { model.signallingAreas[area].trackId = chosen; }))
+				return;
 			// The item that stood for a track that is no track of the scene is no longer needed.
-			{
-				const QSignalBlocker blocker(combo);
-				for (int index = combo->count() - 1; index >= 0; --index) {
-					const std::string itemTrack = combo->itemData(index).toString().toStdString();
-					if (!itemTrack.empty() && !sceneHasTrack(panel.model(), itemTrack))
-						combo->removeItem(index);
-				}
-				combo->setCurrentIndex(combo->findData(QString::fromStdString(chosen)));
+			const QSignalBlocker blocker(combo);
+			for (int index = combo->count() - 1; index >= 0; --index) {
+				const std::string itemTrack = combo->itemData(index).toString().toStdString();
+				if (!itemTrack.empty() && !sceneHasTrack(panel.model(), itemTrack))
+					combo->removeItem(index);
 			}
-			panel.entityEdited(QStringLiteral("Edit signalling area"));
+			combo->setCurrentIndex(combo->findData(QString::fromStdString(chosen)));
 		});
 		return combo;
 	}

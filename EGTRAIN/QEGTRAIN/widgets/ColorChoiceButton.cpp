@@ -137,7 +137,7 @@ void ColorChoiceButton::resetColor() {
 
 void ColorChoiceButton::openColorDialog() {
 	QColorDialog dialog(this);
-	dialog.setWindowTitle("Service visualization colour");
+	dialog.setWindowTitle("Service colour");
 	// The colour is set after the option: a dialog that switches from the native
 	// panel to the Qt one does not keep a colour it was given before.
 	dialog.setOption(QColorDialog::DontUseNativeDialog);

@@ -13,9 +13,8 @@
 //
 //   test_characterization --fixture DIR --expect DIR --case NAME
 //   test_characterization --fixture DIR --expect DIR --pair BASELINE_CASE INCIDENT_CASE
-//   test_characterization --repeat SCENE[#CASE]...
-//   test_characterization --repeat-files SCENE[#CASE]...
-//   test_characterization --aspects SCENE[#CASE]...
+//   test_characterization --repeat [--aspects SCENE[#CASE]]... SCENE[#CASE]...
+//   test_characterization --repeat-files [--aspects SCENE[#CASE]]... SCENE[#CASE]...
 //   test_characterization --single SCENE[#CASE] --output-dir DIR
 //
 // --pair runs two cases of the table in this process and compares the delays of
@@ -28,14 +27,17 @@
 // with it, CASE is a name from the case table and sets scenario, services and
 // signalling level.
 //
-// --repeat-files runs the steps the same way, each run writing its files into
-// a folder of its own, then runs every distinct step once in a fresh process
-// and requires that every file of every run equals the file of the fresh run
-// byte for byte, except the timings in Computing_Times.txt.
+// --repeat-files runs the steps the same way and compares the observations in
+// the same way, but each run writes its files into a folder of its own. Then it
+// runs every distinct step once in a fresh process and requires that every file
+// of every run equals the file of the fresh run byte for byte, except the
+// timings in Computing_Times.txt.
 //
-// --aspects runs each step once and requires that at least one route section
-// leaves the clear code 270 and returns to it, which shows that the signalling
-// of the scene changed an aspect during the run.
+// --aspects STEP, with either of them, requires that at least one route section
+// leaves the clear code 270 and returns to it in the first run of STEP, which
+// shows that the signalling of the scene changed an aspect during the run. A
+// later run of STEP has the same aspects, or its observation differs. STEP must
+// be one of the steps.
 //
 // --single runs one step in this process and keeps its files in DIR, which
 // must not exist yet. --repeat-files starts it for the fresh runs.
@@ -50,7 +52,6 @@
 #include "diagrams/RunResults.h"
 #include "simulation/InitialParameters.h"
 #include "simulation/Infrastructure.h"
-#include "simulation/Optimisation.h"
 #include "simulation/Passengers.h"
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
@@ -229,6 +230,8 @@ struct CaseSpec {
 	// routeStubIn and routeStubOut and the services U1 (runs into the stub) and D1 (runs out of it) to the scene, due
 	// at these times in seconds. Each route lies inside the stub.
 	bool stub = false;
+	// Adds the service E1 to the scene: F1 without its stop at B.
+	bool skipStop = false;
 	bool runningConflict = false;
 	bool runningThrough = false;
 	double arrivalEntry = 0.0;
@@ -237,7 +240,7 @@ struct CaseSpec {
 	// The border has to lie on a section edge.
 	double borderKm = kNoBorder;
 	int secondLevel = kNoSignallingArea;
-	std::string passengers;
+	std::string passengers = "";
 	bool paxGui = false;
 	int capacity = 0;
 	// Writes the capacity lines of the two trains of the case. They are written only when both trains run on one route
@@ -302,6 +305,10 @@ std::vector<CaseSpec> buildCaseTable() {
 	// L1 stays 100 s at C, so F2 is held behind it at C.
 	for (int level = 3; level <= 4; ++level)
 		cases.push_back({"late-leader-level-" + std::to_string(level), "baseline", {"L1", "F2"}, level, ""});
+	// E1 does not stop at B. F2 stops there and moves first in every step, while E1 runs ahead of it towards B.
+	CaseSpec skipStop{"skip-stop-level-0", "baseline", {"F2", "E1"}, 0, ""};
+	skipStop.skipStop = true;
+	cases.push_back(skipStop);
 	// S1 runs from A to B and R1 from C to A over the restricted section: R1 has to wait in front of it.
 	const std::string singleTrackNone = "single-track-level-none";
 	cases.push_back({singleTrackNone, "baseline", {"S1", "R1"}, kNoSignallingArea, knownWrongMarker(singleTrackNone), true});
@@ -342,7 +349,7 @@ std::vector<CaseSpec> buildCaseTable() {
 	// Both trains approach an interior restriction at line speed. Asymmetric entries exercise each winner and a
 	// follower that commits while its leader still holds the stretch.
 	for (int level = 0; level <= 5; ++level) {
-		for (const std::string& variant : {"tie", "forward-first", "reverse-first", "follower"}) {
+		for (const std::string variant : {"tie", "forward-first", "reverse-first", "follower"}) {
 			CaseSpec spec{"running-" + variant + "-level-" + std::to_string(level), "baseline",
 				variant == "follower" ? std::vector<std::string>{"S1", "F2", "R1"} : std::vector<std::string>{"S1", "R1"}, level, "", true};
 			spec.restriction = {"3-B0", "4-B0", "2-B0", "5-B0"};
@@ -393,7 +400,7 @@ std::vector<CaseSpec> buildCaseTable() {
 		spec.secondLevel = border.east;
 		cases.push_back(spec);
 	}
-	for (const std::string& set : {"board", "full", "transfer"}) {
+	for (const std::string set : {"board", "full", "transfer"}) {
 		for (bool gui : {false, true}) {
 			CaseSpec spec{"pax-" + set + "-gui" + (gui ? "1" : "0"), "baseline",
 				set == "transfer" ? std::vector<std::string>{"Q1", "Q2", "Q3"} : std::vector<std::string>{"Q1"}, kNoSignallingArea, ""};
@@ -1389,6 +1396,20 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		loaded.scene.services.push_back(stubService("U1", in.id, spec.arrivalEntry, "B", "C"));
 		loaded.scene.services.push_back(stubService("D1", out.id, spec.departureEntry, "C", "B"));
 	}
+	if (spec.skipStop) {
+		const auto f1 = std::find_if(loaded.scene.services.begin(), loaded.scene.services.end(), [](const SceneService& service) {
+			return service.id == "F1";
+		});
+		if (f1 != loaded.scene.services.end()) {
+			SceneService express = *f1;
+			express.id = express.operatingCode = "E1";
+			express.stops.erase(std::remove_if(express.stops.begin(), express.stops.end(), [](const SceneStop& stop) {
+				return stop.stationId == "B";
+			}),
+				express.stops.end());
+			loaded.scene.services.push_back(express);
+		}
+	}
 	if (spec.runningConflict && !spec.runningThrough) {
 		SceneRoute reverse;
 		reverse.id = "routeCB";
@@ -1697,7 +1718,7 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 							integerField("delay", trip.totalArrivalDelay)});
 			}
 		}
-		for (const std::string& name : {"PassengerStatus.txt", "JourneyDelays.txt"}) {
+		for (const std::string name : {"PassengerStatus.txt", "JourneyDelays.txt"}) {
 			std::ifstream in(outputDir + "/PassengerStatus/" + name);
 			if (!in) {
 				outcome.error = "the run wrote no PassengerStatus/" + name + "\n";
@@ -2197,71 +2218,60 @@ int runPairMode(const std::string& fixture, const std::string& expectDir, const 
 	return finishGolden(pairName, expectDir + "/" + pairName + ".txt", update, header, observation);
 }
 
-int runRepeatMode(const std::vector<std::string>& steps) {
+// What both repeat modes check after a run of step. The first run of a step keeps its observation in first and, when
+// aspectSteps holds the step, must have a route section that left the code 270 and returned to it. A later run must give
+// the observation of the first run. Prints the differing lines and returns what is wrong, or an empty string.
+std::string checkRepeatedRun(const std::string& step, RunOutcome& outcome, const std::set<std::string>& aspectSteps,
+	std::map<std::string, Observation>& first) {
+	const auto previous = first.find(step);
+	if (previous == first.end()) {
+		if (aspectSteps.count(step)) {
+			if (outcome.aspectCycles == 0)
+				return "no route section left the code 270 and returned to it\n";
+			std::cout << step << ": " << outcome.aspectCycles << " route sections left the code 270 and returned to it\n";
+		}
+		first[step] = std::move(outcome.observation);
+		return std::string();
+	}
+	const Observation& before = previous->second;
+	const Observation& after = outcome.observation;
+	size_t differences = 0;
+	for (size_t i = 0; i < std::max(before.size(), after.size()); ++i) {
+		if (i < before.size() && i < after.size() && sameLine(before[i], after[i]))
+			continue;
+		if (++differences <= 20)
+			std::cerr << "  line " << i + 1 << "\n    first run:  "
+					  << (i < before.size() ? renderLine(before[i]) : "(missing)") << "\n    second run: "
+					  << (i < after.size() ? renderLine(after[i]) : "(missing)") << "\n";
+	}
+	if (differences == 0)
+		return std::string();
+	return "the second run differs from the first in " + std::to_string(differences) + " lines\n";
+}
+
+int runRepeatMode(const std::vector<std::string>& steps, const std::set<std::string>& aspectSteps) {
 	const std::vector<CaseSpec> cases = buildCaseTable();
 	std::map<std::string, Observation> first;
-	int repeats = 0;
 	for (const std::string& step : steps) {
 		std::string sceneDir;
 		CaseSpec spec;
 		if (!parseStep(cases, step, sceneDir, spec))
 			return 2;
 		RunOutcome outcome = runCase(sceneDir, spec, false);
+		if (outcome.error.empty())
+			outcome.error = checkRepeatedRun(step, outcome, aspectSteps, first);
 		if (!outcome.error.empty()) {
 			std::cerr << "FAIL " << step << ": " << outcome.error;
 			return 1;
 		}
-		const auto previous = first.find(step);
-		if (previous == first.end()) {
-			first[step] = std::move(outcome.observation);
-			continue;
-		}
-		++repeats;
-		const Observation& before = previous->second;
-		const Observation& after = outcome.observation;
-		size_t differences = 0;
-		for (size_t i = 0; i < std::max(before.size(), after.size()); ++i) {
-			if (i < before.size() && i < after.size() && sameLine(before[i], after[i]))
-				continue;
-			if (++differences <= 20)
-				std::cerr << "  line " << i + 1 << "\n    first run:  "
-						  << (i < before.size() ? renderLine(before[i]) : "(missing)") << "\n    second run: "
-						  << (i < after.size() ? renderLine(after[i]) : "(missing)") << "\n";
-		}
-		if (differences) {
-			std::cerr << "FAIL " << step << ": the second run differs from the first in " << differences
-					  << " lines\n";
-			return 1;
-		}
 	}
+	const size_t repeats = steps.size() - first.size();
 	if (repeats == 0) {
 		std::cerr << "FAIL no step appears twice, nothing was compared\n";
 		return 1;
 	}
 	std::cout << "PASS " << repeats << " repeated runs identical\n";
 	return 0;
-}
-
-int runAspectsMode(const std::vector<std::string>& steps) {
-	const std::vector<CaseSpec> cases = buildCaseTable();
-	int failures = 0;
-	for (const std::string& step : steps) {
-		std::string sceneDir;
-		CaseSpec spec;
-		if (!parseStep(cases, step, sceneDir, spec))
-			return 2;
-		const RunOutcome outcome = runCase(sceneDir, spec, false);
-		if (!outcome.error.empty()) {
-			std::cerr << "FAIL " << step << ": " << outcome.error;
-			++failures;
-		} else if (outcome.aspectCycles == 0) {
-			std::cerr << "FAIL " << step << ": no route section left the code 270 and returned to it\n";
-			++failures;
-		} else {
-			std::cout << "PASS " << step << ": " << outcome.aspectCycles << " route sections left the code 270 and returned to it\n";
-		}
-	}
-	return failures == 0 ? 0 : 1;
 }
 
 int runSingleMode(const std::string& step, const std::string& outputDir) {
@@ -2278,7 +2288,7 @@ int runSingleMode(const std::string& step, const std::string& outputDir) {
 	return 0;
 }
 
-int runRepeatFilesMode(const std::vector<std::string>& steps) {
+int runRepeatFilesMode(const std::vector<std::string>& steps, const std::set<std::string>& aspectSteps) {
 	// The distinct steps, numbered in order of first appearance.
 	std::vector<std::string> distinct;
 	std::map<std::string, size_t> freshNumber;
@@ -2308,12 +2318,15 @@ int runRepeatFilesMode(const std::vector<std::string>& steps) {
 	};
 
 	const std::vector<CaseSpec> cases = buildCaseTable();
+	std::map<std::string, Observation> first;
 	for (size_t i = 0; i < steps.size(); ++i) {
 		std::string sceneDir;
 		CaseSpec spec;
 		if (!parseStep(cases, steps[i], sceneDir, spec))
 			return 2;
-		const RunOutcome outcome = runCase(sceneDir, spec, false, numberedFolder(base, "run", i + 1));
+		RunOutcome outcome = runCase(sceneDir, spec, false, numberedFolder(base, "run", i + 1));
+		if (outcome.error.empty())
+			outcome.error = checkRepeatedRun(steps[i], outcome, aspectSteps, first);
 		if (!outcome.error.empty())
 			return fail(steps[i] + ": " + outcome.error);
 	}
@@ -2346,7 +2359,7 @@ int runRepeatFilesMode(const std::vector<std::string>& steps) {
 		std::cout << *range.first << " files each";
 	else
 		std::cout << *range.first << " to " << *range.second << " files per run";
-	std::cout << ", identical to a fresh process\n";
+	std::cout << ", identical to a fresh process; " << steps.size() - distinct.size() << " repeated runs identical\n";
 	return 0;
 }
 
@@ -2357,9 +2370,9 @@ int main(int argc, char** argv) {
 
 	std::string fixture, expect, caseName, singleStep, outputDir, pairBaseline, pairIncident;
 	std::vector<std::string> steps;
+	std::set<std::string> aspectSteps;
 	bool repeat = false;
 	bool repeatFiles = false;
-	bool aspects = false;
 	for (int i = 1; i < argc; ++i) {
 		const std::string arg = argv[i];
 		auto value = [&]() -> std::string { return i + 1 < argc ? std::string(argv[++i]) : std::string(); };
@@ -2381,31 +2394,32 @@ int main(int argc, char** argv) {
 		else if (arg == "--repeat-files")
 			repeatFiles = true;
 		else if (arg == "--aspects")
-			aspects = true;
-		else if (repeat || repeatFiles || aspects)
+			aspectSteps.insert(value());
+		else if (repeat || repeatFiles)
 			steps.push_back(arg);
 		else {
 			std::cerr << "unknown argument '" << arg << "'\n";
 			return 2;
 		}
 	}
-	if (repeat && !steps.empty())
-		return runRepeatMode(steps);
-	if (repeatFiles && !steps.empty())
-		return runRepeatFilesMode(steps);
-	if (aspects && !steps.empty())
-		return runAspectsMode(steps);
+	if ((repeat || repeatFiles) && !steps.empty()) {
+		for (const std::string& step : aspectSteps)
+			if (std::find(steps.begin(), steps.end(), step) == steps.end()) {
+				std::cerr << "--aspects names '" << step << "', which is not one of the steps\n";
+				return 2;
+			}
+		return repeat ? runRepeatMode(steps, aspectSteps) : runRepeatFilesMode(steps, aspectSteps);
+	}
 	if (!singleStep.empty() && !outputDir.empty())
 		return runSingleMode(singleStep, outputDir);
-	if (!repeat && !repeatFiles && !aspects && !fixture.empty() && !expect.empty() && !caseName.empty())
+	if (!repeat && !repeatFiles && aspectSteps.empty() && !fixture.empty() && !expect.empty() && !caseName.empty())
 		return runGoldenMode(fixture, expect, caseName);
-	if (!repeat && !repeatFiles && !aspects && !fixture.empty() && !expect.empty() && !pairBaseline.empty() && !pairIncident.empty())
+	if (!repeat && !repeatFiles && aspectSteps.empty() && !fixture.empty() && !expect.empty() && !pairBaseline.empty() && !pairIncident.empty())
 		return runPairMode(fixture, expect, pairBaseline, pairIncident);
 	std::cerr << "usage: test_characterization --fixture DIR --expect DIR --case NAME\n"
 				 "       test_characterization --fixture DIR --expect DIR --pair BASELINE_CASE INCIDENT_CASE\n"
-				 "       test_characterization --repeat SCENE[#CASE]...\n"
-				 "       test_characterization --repeat-files SCENE[#CASE]...\n"
-				 "       test_characterization --aspects SCENE[#CASE]...\n"
+				 "       test_characterization --repeat [--aspects SCENE[#CASE]]... SCENE[#CASE]...\n"
+				 "       test_characterization --repeat-files [--aspects SCENE[#CASE]]... SCENE[#CASE]...\n"
 				 "       test_characterization --single SCENE[#CASE] --output-dir DIR\n";
 	return 2;
 }

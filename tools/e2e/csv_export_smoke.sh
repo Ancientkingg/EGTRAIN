@@ -6,27 +6,39 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
 SCENE="$ROOT/EGTRAIN/QEGTRAIN/Scenes/Paimpol"
-OUTDIR="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e"
-RUN_OUTPUT="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e-run"
-LOG="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e.log"
 # Known block endpoints: every block of this scene has a length in infrastructure.json.
 ASSIGNMENT_SCENE="$ROOT/EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut"
-ASSIGNMENT_OUTDIR="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e-assignment"
-ASSIGNMENT_RUN_OUTPUT="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e-assignment-run"
-ASSIGNMENT_LOG="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e-assignment.log"
-UNRELATED_OUTDIR="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e-unrelated"
-UNRELATED_RUN_OUTPUT="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e-unrelated-run"
-UNRELATED_LOG="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e-unrelated.log"
 
 if [[ ! -x "$APP" ]]; then
 	echo "QEGTRAIN app not found or not executable: $APP" >&2
 	exit 1
 fi
 
-rm -rf "$OUTDIR" "$RUN_OUTPUT" "$ASSIGNMENT_OUTDIR" "$ASSIGNMENT_RUN_OUTPUT" "$UNRELATED_OUTDIR" "$UNRELATED_RUN_OUTPUT"
-mkdir -p "$OUTDIR" "$ASSIGNMENT_OUTDIR" "$UNRELATED_OUTDIR"
+# The logs, the exports and the run output go into a folder of the run's own, which is kept when the check fails.
+WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-csv-export-e2e.XXXXXX")"
 UNRELATED_SCENE="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-csv-unrelated-scene.XXXXXX")"
-trap 'rm -rf "$UNRELATED_SCENE"' EXIT
+cleanup() {
+	local exit_code=$?
+	trap - EXIT
+	rm -rf "$UNRELATED_SCENE"
+	if [[ "$exit_code" -eq 0 ]]; then
+		rm -rf "$WORK_DIR"
+	else
+		echo "the logs and the exports of this run are in $WORK_DIR" >&2
+	fi
+	exit "$exit_code"
+}
+trap cleanup EXIT
+OUTDIR="$WORK_DIR/qegtrain-csv-export-e2e"
+RUN_OUTPUT="$WORK_DIR/qegtrain-csv-export-e2e-run"
+LOG="$WORK_DIR/qegtrain-csv-export-e2e.log"
+ASSIGNMENT_OUTDIR="$WORK_DIR/qegtrain-csv-export-e2e-assignment"
+ASSIGNMENT_RUN_OUTPUT="$WORK_DIR/qegtrain-csv-export-e2e-assignment-run"
+ASSIGNMENT_LOG="$WORK_DIR/qegtrain-csv-export-e2e-assignment.log"
+UNRELATED_OUTDIR="$WORK_DIR/qegtrain-csv-export-e2e-unrelated"
+UNRELATED_RUN_OUTPUT="$WORK_DIR/qegtrain-csv-export-e2e-unrelated-run"
+UNRELATED_LOG="$WORK_DIR/qegtrain-csv-export-e2e-unrelated.log"
+mkdir -p "$OUTDIR" "$ASSIGNMENT_OUTDIR" "$UNRELATED_OUTDIR"
 # Temporary regression fixture only: the second service has no shared node/station anchors
 # and no planned stops. Its calculated envelopes cannot form any chart series on route0.
 python3 - "$ASSIGNMENT_SCENE" "$UNRELATED_SCENE" <<'PY_FIXTURE'
@@ -341,8 +353,9 @@ assert all(row["Train"].startswith(express_id + "-") and not row["Position[km]"]
            and not row["End X[km]"] and not row["Reference section"] and not row["Geo position[km]"]
            and not row["Start geo X[km]"] and not row["End geo X[km]"] for row in unmapped), \
     "an unmapped Paimpol envelope carries a coordinate or belongs to another service"
-# The projection does not extrapolate: these express blocks lie before the first or after the last node both routes share.
-assert sorted(row["Block"] for row in unmapped) == ["@0-B0@", "@1-B0@", "@122-B0@", "@123-B0@", "@124-B0@"], \
+# The projection uses the nodes and the stations that both routes share and does not extrapolate: these express blocks
+# lie before the first or after the last of them.
+assert sorted(row["Block"] for row in unmapped) == ["@0-B0@", "@123-B0@", "@124-B0@"], \
     "unexpected unmapped Paimpol envelopes"
 shown = [row["Block"] for row in rows if row["Train"].startswith(express_id + "-") and row["Layer"] in (ENVELOPE, UNMAPPED)]
 assert sorted(shown) == sorted(f"@{block}@" for block in express), "an express envelope is neither shown nor unmapped"
@@ -378,15 +391,13 @@ for output in sys.argv[1:]:
     recorded = [row for row in documents["all"] if row["Layer"] == "recorded trajectory"]
     assert recorded and all(row["Position[km]"] and row["Geo position[km]"] and not row["Start geo X[km]"] for row in recorded), \
         f"{output}: a recorded sample lacks the geo X of its position"
-# With no chart series or planned events for the unrelated train, its id must still
-# reach the actual provider from the train filter. Compare with the retained raw rows.
-output = sys.argv[3]
-with open(os.path.join(output, "blocking_time.csv"), newline="", encoding="utf-8") as stream:
-    retained = list(csv.DictReader(stream))
-unmapped = [row for row in retained if row["Layer"] == "unmapped blocking envelope"]
-assert unmapped and all(row["Train"].startswith("S19825-") for row in unmapped), "fixture lacks wholly unmapped train"
-assert unmapped == [row for row in documents["all"] if row["Train"].startswith("S19825-")], \
-    "actual window silently dropped the wholly unmapped train"
+# With no chart series or planned events for the unrelated train, its id must still reach the actual provider from
+# the train filter, and its envelopes stay in the export as unmapped rows. After the loop, documents holds the exports
+# of the unrelated scene, the last output.
+unrelated = [row for row in documents["all"] if row["Train"].startswith("S19825-")]
+assert {row["Train"] for row in unrelated} == {"S19825-1"}, "actual window silently dropped the wholly unmapped train"
+assert all(row["Layer"] == "unmapped blocking envelope" for row in unrelated), \
+    "a row of the wholly unmapped train is not an unmapped envelope"
 assert not any(row["Train"].startswith("S19825-") for row in documents["one"] + documents["none"]), \
     "hidden unmapped train was exported"
 print("actual blocking-time window provider passed: all/one/no visible trains, sections once, wholly unrelated route retained")
@@ -450,4 +461,4 @@ END {
 grep -q "^Network total," "$OUTDIR/run_summary.csv" \
 	|| { echo "run_summary.csv missing network totals row" >&2; exit 1; }
 
-echo "csv export e2e passed: $traj_rows trajectory rows, $tt_rows timetable rows in $OUTDIR"
+echo "csv export e2e passed: $traj_rows trajectory rows, $tt_rows timetable rows"

@@ -1,6 +1,7 @@
 #include "widgets/ManualWindow.h"
 
 #include <QApplication>
+#include <QDesktopServices>
 #include <QDir>
 #include <QElapsedTimer>
 #include <QFile>
@@ -9,24 +10,23 @@
 #include <QHelpEngine>
 #include <QHelpSearchEngine>
 #include <QImage>
+#include <QMessageBox>
 #include <QProcess>
+#include <QRegularExpression>
+#include <QScopeGuard>
 #include <QScreen>
 #include <QScrollBar>
 #include <QTemporaryDir>
+#include <QTest>
 #include <QTextBlock>
 #include <QTextBrowser>
 #include <QTextObjectInterface>
 #include <QThread>
+#include <QTimer>
 
 #include <cmath>
 #include <functional>
 #include <iostream>
-
-static bool check(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << message << '\n';
-	return condition;
-}
 
 static bool writeFile(const QString& path, const QByteArray& text) {
 	QDir().mkpath(QFileInfo(path).absolutePath());
@@ -53,6 +53,27 @@ static QVector<QSizeF> pictureSizes(QTextDocument* page) {
 			if (it.fragment().charFormat().isImageFormat())
 				sizes.append(pictures->intrinsicSize(page, it.fragment().position(), it.fragment().charFormat()));
 	return sizes;
+}
+
+// The text of each message box that shows while `act` runs, and whether its text can be selected. The boxes are closed.
+struct ShownMessages {
+	QStringList texts;
+	bool selectable = true;
+};
+
+static ShownMessages closeMessages(const std::function<void()>& act) {
+	ShownMessages shown;
+	QTimer timer;
+	QObject::connect(&timer, &QTimer::timeout, [&shown] {
+		if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+			shown.texts << box->text();
+			shown.selectable = shown.selectable && box->textInteractionFlags().testFlag(Qt::TextSelectableByMouse);
+			box->accept();
+		}
+	});
+	timer.start(0);
+	act();
+	return shown;
 }
 
 // Builds a help file with a start page, the page of the section case-settings and a page of pictures, the way the build
@@ -88,44 +109,75 @@ static QString buildHelpFile(const QString& folder) {
 	return helpFile;
 }
 
-int main(int argc, char** argv) {
-	QApplication app(argc, argv);
-	QTemporaryDir folder;
-	const QString helpFile = folder.isValid() ? buildHelpFile(folder.path()) : QString();
-	if (!check(!helpFile.isEmpty(), "qhelpgenerator did not build the test help file"))
-		return 1;
+// The manual window reads a help file that qhelpgenerator builds as the build makes EGTRAIN.qch: its title, sections,
+// contents, search and pictures.
+class TestManualWindow : public QObject {
+	Q_OBJECT
 
-	bool ok = true;
+private slots:
+	void initTestCase();
+	void titleNamesVersionAndFitsScreen();
+	void sectionOpensItsPage();
+	void contentsAndSearchReadHelpFile();
+	void picturesFitPage();
+	void widgetTakesSectionOfParent();
+	void missingHelpFileOpensNothing();
+	void browserFailureShowsAddress();
+
+private:
+	QTemporaryDir m_folder;
+	QString m_helpFile;
+};
+
+void TestManualWindow::initTestCase() {
+	m_helpFile = m_folder.isValid() ? buildHelpFile(m_folder.path()) : QString();
+	QVERIFY2(!m_helpFile.isEmpty(), "qhelpgenerator did not build the test help file");
 	QCoreApplication::setApplicationVersion(QStringLiteral("1.2.3"));
-	ManualWindow window(helpFile);
-	// The title names the version, and the window opens inside the screen area.
-	ok &= check(window.windowTitle() == QStringLiteral("EGTRAIN 1.2.3 Manual"), "the title does not name the version");
-	ok &= check(window.screen()->availableGeometry().contains(window.geometry()), "the window is larger than the screen area");
-	auto* engine = window.findChild<QHelpEngine*>();
+}
+
+// The title names the version, and the window opens inside the screen area.
+void TestManualWindow::titleNamesVersionAndFitsScreen() {
+	ManualWindow window(m_helpFile);
+	// The title names the version.
+	QCOMPARE(window.windowTitle(), QStringLiteral("EGTRAIN 1.2.3 Manual"));
+	QVERIFY2(window.screen()->availableGeometry().contains(window.geometry()), "the window is larger than the screen area");
+}
+
+void TestManualWindow::sectionOpensItsPage() {
+	ManualWindow window(m_helpFile);
 	auto* browser = window.findChild<QTextBrowser*>();
+	// A section opens its page at its anchor.
+	QVERIFY2(window.showSection(QStringLiteral("case-settings")), "the help file did not open");
+	// case-settings opens its page.
+	QCOMPARE(browser->source(), QUrl(QStringLiteral("qthelp://org.egtrain.test/doc/guides/glossary.html#case-settings")));
+	QVERIFY2(browser->toPlainText().contains(QStringLiteral("The base time of a timetable.")), "the page text is missing");
+	// A section whose page is not in the help file opens the start page.
+	window.showSection(QStringLiteral("main-window"));
+	QCOMPARE(browser->source(), QUrl(QStringLiteral("qthelp://org.egtrain.test/doc/index.html")));
+}
+
+// Contents and search read the help file.
+void TestManualWindow::contentsAndSearchReadHelpFile() {
+	ManualWindow window(m_helpFile);
+	auto* engine = window.findChild<QHelpEngine*>();
 	bool indexed = false;
 	int hits = -1;
 	QObject::connect(engine->searchEngine(), &QHelpSearchEngine::indexingFinished, [&indexed] { indexed = true; });
 	QObject::connect(engine->searchEngine(), &QHelpSearchEngine::searchingFinished, [&hits](int count) { hits = count; });
-
-	// A section opens its page at its anchor.
-	ok &= check(window.showSection(QStringLiteral("case-settings")), "the help file did not open");
-	ok &= check(browser->source() == QUrl(QStringLiteral("qthelp://org.egtrain.test/doc/guides/glossary.html#case-settings")),
-		"case-settings did not open its page");
-	ok &= check(browser->toPlainText().contains(QStringLiteral("The base time of a timetable.")), "the page text is missing");
-	// A section whose page is not in the help file opens the start page.
-	window.showSection(QStringLiteral("main-window"));
-	ok &= check(browser->source() == QUrl(QStringLiteral("qthelp://org.egtrain.test/doc/index.html")), "a missing page did not open the start page");
-
-	// Contents and search read the help file.
-	ok &= check(waitFor([engine] { return engine->contentModel()->rowCount() == 1; }), "the contents are empty");
-	ok &= check(waitFor([&indexed] { return indexed; }), "the search index was not built");
+	QVERIFY2(waitFor([engine] { return engine->contentModel()->rowCount() == 1; }), "the contents are empty");
+	QVERIFY2(waitFor([&indexed] { return indexed; }), "the search index was not built");
 	engine->searchEngine()->search(QStringLiteral("timetable"));
-	ok &= check(waitFor([&hits] { return hits >= 0; }) && hits == 1, "the search did not find the page");
+	// The search finds the page.
+	QVERIFY(waitFor([&hits] { return hits >= 0; }));
+	QCOMPARE(hits, 1);
+}
 
-	// A picture wider than its line shows at the width of the line with its aspect ratio, also at the end of a long page and
-	// after the window narrows, and a narrower picture keeps its size. The page still opens at its anchor below the pictures.
-	// The scroll bar stays, as on macOS, so the page keeps its width when it loads.
+// A picture wider than its line shows at the width of the line with its aspect ratio, also at the end of a long page and
+// after the window narrows, and a narrower picture keeps its size. The page still opens at its anchor below the pictures.
+// The scroll bar stays, as on macOS, so the page keeps its width when it loads.
+void TestManualWindow::picturesFitPage() {
+	ManualWindow window(m_helpFile);
+	auto* browser = window.findChild<QTextBrowser*>();
 	browser->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 	window.show();
 	browser->setSource(QUrl(QStringLiteral("qthelp://org.egtrain.test/doc/guides/pictures.html#end")));
@@ -136,23 +188,62 @@ int main(int argc, char** argv) {
 			&& std::abs(sizes[0].height() - room * 750 / 1200) <= 1 && sizes[1].width() < room && sizes[2] == QSizeF(100, 50)
 			&& sizes[3] == sizes[0];
 	};
-	ok &= check(waitFor(fits), "a picture does not fit the page");
-	ok &= check(browser->cursorForPosition(QPoint(0, 4)).block().text() == QStringLiteral("End"), "the page did not open at its anchor");
+	QVERIFY2(waitFor(fits), "a picture does not fit the page");
+	// The page opens at its anchor.
+	QCOMPARE(browser->cursorForPosition(QPoint(0, 4)).block().text(), QStringLiteral("End"));
 	const int wideViewport = browser->viewport()->width();
 	window.resize(window.width() - 200, window.height());
-	ok &= check(waitFor([&] { return browser->viewport()->width() < wideViewport && fits(); }), "a picture does not fit the narrower page");
+	QVERIFY2(waitFor([&] { return browser->viewport()->width() < wideViewport && fits(); }), "a picture does not fit the narrower page");
+}
 
-	// A widget takes the section of its nearest parent that names one.
+// A widget takes the section of its nearest parent that names one.
+void TestManualWindow::widgetTakesSectionOfParent() {
 	QWidget dock;
 	dock.setProperty("manualSection", QStringLiteral("case-settings"));
 	auto* field = new QWidget(&dock);
-	ok &= check(ManualWindow::sectionOf(field) == QStringLiteral("case-settings"), "a child did not take the section of its parent");
-
-	// Without a help file the window shows nothing, so the application opens the published guides instead.
-	ManualWindow missing(folder.path() + QStringLiteral("/missing.qch"));
-	ok &= check(!missing.showSection(QStringLiteral("case-settings")), "a missing help file opened");
-
-	if (ok)
-		std::cout << "test_manualwindow passed\n";
-	return ok ? 0 : 1;
+	// A child takes the section of its parent.
+	QCOMPARE(ManualWindow::sectionOf(field), QStringLiteral("case-settings"));
 }
+
+// Without a help file the window shows nothing, so the application opens the published guides instead.
+void TestManualWindow::missingHelpFileOpensNothing() {
+	ManualWindow missing(m_folder.path() + QStringLiteral("/missing.qch"));
+	QVERIFY2(!missing.showSection(QStringLiteral("case-settings")), "a missing help file opened");
+}
+
+// A link and the published manual that the browser cannot open show their address in a message whose text can be
+// selected. The test lets QDesktopServices::openUrl fail on every platform, without a browser: the handler of https that
+// it registers has no method of the given name, so the call to the handler fails.
+void TestManualWindow::browserFailureShowsAddress() {
+	QObject receiver;
+	QDesktopServices::setUrlHandler(QStringLiteral("https"), &receiver, "missingMethod");
+	const auto restore = qScopeGuard([] { QDesktopServices::unsetUrlHandler(QStringLiteral("https")); });
+	const QRegularExpression noMethod(QStringLiteral("No such method"));
+
+	ManualWindow window(m_helpFile);
+	auto* browser = window.findChild<QTextBrowser*>();
+	QVERIFY(browser);
+	const QUrl link(QStringLiteral("https://example.org/egtrain-test-link"));
+	QTest::ignoreMessage(QtWarningMsg, noMethod);
+	const ShownMessages linkMessages = closeMessages([browser, &link] { emit browser->anchorClicked(link); });
+	// a link that does not open shows its address in a message whose text can be selected
+	QCOMPARE(linkMessages.texts,
+		QStringList(QStringLiteral("Could not open the link in your browser. Address: ") + link.toString()));
+	QVERIFY(linkMessages.selectable);
+
+	// Without a help file next to the program, Help > Manual opens the published guides.
+	const QDir programFolder(QCoreApplication::applicationDirPath());
+	if (programFolder.exists(QStringLiteral("EGTRAIN.qch")) || programFolder.exists(QStringLiteral("../Resources/EGTRAIN.qch")))
+		QSKIP("a help file is next to the test program");
+	QWidget parent;
+	QTest::ignoreMessage(QtWarningMsg, noMethod);
+	const ShownMessages manualMessages = closeMessages([&parent] { ManualWindow::open(&parent, QStringLiteral("capacity")); });
+	// the published manual that does not open shows its address in a message whose text can be selected
+	QCOMPARE(manualMessages.texts,
+		QStringList(QStringLiteral("Could not open the manual in your browser. Address: "
+								   "https://egtrain.samuelbruin.com/latest/guides/capacity-analysis.html")));
+	QVERIFY(manualMessages.selectable);
+}
+
+QTEST_MAIN(TestManualWindow)
+#include "test_manualwindow.moc"

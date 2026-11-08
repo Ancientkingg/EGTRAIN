@@ -1,5 +1,7 @@
 #include "scene/SceneDiagnostic.h"
 
+#include <algorithm>
+
 std::string severityLabel(SceneSeverity s) {
 	switch (s) {
 		case SceneSeverity::Info:
@@ -12,13 +14,18 @@ std::string severityLabel(SceneSeverity s) {
 	return "unknown";
 }
 
+std::string itemLabel(const SceneDiagnostic& d) {
+	if (d.itemId.empty())
+		return {};
+	return (d.itemType.empty() ? "item" : d.itemType) + " " + d.itemId;
+}
+
 std::string toDisplayText(const SceneDiagnostic& d) {
 	std::string text = severityLabel(d.severity) + " [" + d.code + "]";
 	if (!d.file.empty())
 		text += " in " + d.file;
-	if (!d.itemId.empty()) {
-		text += " (" + (d.itemType.empty() ? "item" : d.itemType) + " " + d.itemId + ")";
-	}
+	if (!d.itemId.empty())
+		text += " (" + itemLabel(d) + ")";
 	if (!d.path.empty())
 		text += " at " + d.path;
 	text += ": " + d.message;
@@ -29,6 +36,21 @@ std::string toDisplayText(const SceneDiagnostic& d) {
 
 std::string toDialogText(const SceneDiagnostic& d) {
 	return d.suggestedFix.empty() ? d.message : d.message + "\n\n" + d.suggestedFix;
+}
+
+SceneDiagnostic jsonParseDiagnostic(const std::string& code, const std::string& name, const std::string& file,
+	const std::string& content, const nlohmann::json::parse_error& error) {
+	// error.byte counts the characters the parser read, the one it stopped at included.
+	const std::size_t read = std::min(error.byte, content.size());
+	const std::size_t lineStart = content.rfind('\n', read == 0 ? std::string::npos : read - 1);
+	const std::size_t newlines = static_cast<std::size_t>(std::count(content.begin(), content.begin() + static_cast<std::ptrdiff_t>(read), '\n'));
+	const std::size_t column = lineStart == std::string::npos || read == 0 ? read : read - (lineStart + 1);
+	SceneDiagnostic diagnostic;
+	diagnostic.code = code;
+	diagnostic.file = file;
+	diagnostic.message = name + " is not valid JSON (line " + std::to_string(newlines + 1) + ", column " + std::to_string(column) + ").";
+	diagnostic.suggestedFix = "Correct the file at that line or restore it from a copy.";
+	return diagnostic;
 }
 
 nlohmann::json toJson(const SceneDiagnostic& d) {

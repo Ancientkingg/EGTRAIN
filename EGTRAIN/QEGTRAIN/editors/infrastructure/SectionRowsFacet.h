@@ -20,8 +20,9 @@
 
 /// A facet over one list of the model whose items have no id and name sections instead, such as the dependencies between
 /// blocks. A section is chosen in a combo of the sections of the scene, which writes the model as soon as another
-/// section is chosen. The other cells are text. A new item is empty, and a row is named by its first section when it is
-/// deleted. Nothing else refers to these items. `Item` is the type of the items.
+/// section is chosen. The other cells are text or check boxes. A new item is empty, the selection names an item by its
+/// row number, and a row is named by its first section when it is deleted. Nothing else refers to these items. `Item` is
+/// the type of the items.
 template <typename Item>
 class SectionRowsFacet : public InfrastructureFacet {
 public:
@@ -29,6 +30,8 @@ public:
 	QString key() const override { return m_key; }
 	/// The headers given to the constructor.
 	QStringList columns() const override { return m_columns; }
+	/// The number of the row, which is the index of its item in the list.
+	QString selectionId(const QTableWidget&, int row) const override { return QString::number(row); }
 
 	/// One row for each item, filled by fillRow() with the sections of the scene.
 	void fillRows(InfrastructurePanel& panel) override {
@@ -39,43 +42,42 @@ public:
 			fillRow(panel, inventory, row, items[static_cast<std::size_t>(row)]);
 	}
 
-	/// Takes the trimmed text of a text cell into the item through editField().
+	/// Takes the value of a cell that is no combo (cellValue()) into the item through editField().
 	void commitCell(InfrastructurePanel& panel, int row, int column) override {
-		std::vector<Item>& items = panel.mutableModel().*m_list;
+		const std::vector<Item>& items = panel.model().*m_list;
 		if (row >= static_cast<int>(items.size()))
 			return;
-		const QString value = panel.table()->item(row, column)->text().trimmed();
-		const Edit edit = editField(items[static_cast<std::size_t>(row)], column, value);
+		const QString value = cellValue(*panel.table()->item(row, column));
+		const std::size_t index = static_cast<std::size_t>(row);
+		Item edited = items[index];
+		const Edit edit = editField(edited, column, value);
 		if (edit == Edit::Changed)
-			panel.entityChanged(editLabel());
+			panel.edit(editLabel(), [this, index, &edited](SceneModel& model) { (model.*m_list)[index] = edited; });
 		else if (edit == Edit::Refused)
-			panel.refuseEdit();
+			panel.refuseEdit(refusedValueText(*panel.table(), row, column));
 	}
 
 	/// Appends an empty item and makes its row the current one.
 	void add(InfrastructurePanel& panel) override {
-		std::vector<Item>& items = panel.mutableModel().*m_list;
-		items.push_back(Item());
-		const int newRow = static_cast<int>(items.size()) - 1;
+		const int newRow = static_cast<int>((panel.model().*m_list).size());
 		panel.setSelectionId(QString());
-		panel.entityChanged(QStringLiteral("Add %1").arg(m_noun));
+		if (!panel.edit(QStringLiteral("Add %1").arg(m_noun), [this](SceneModel& model) { (model.*m_list).push_back(Item()); }))
+			return;
 		if (newRow < panel.table()->rowCount())
 			panel.table()->setCurrentCell(newRow, 0);
 	}
 
-	/// Deletes the selected item when the user confirms it.
+	/// Deletes the selected item.
 	void remove(InfrastructurePanel& panel) override {
-		std::vector<Item>& items = panel.mutableModel().*m_list;
+		const std::vector<Item>& items = panel.model().*m_list;
 		const int row = panel.table()->currentRow();
 		if (row < 0 || row >= static_cast<int>(items.size()))
 			return;
-		const std::string title = rowTitle(items[static_cast<std::size_t>(row)]);
-		const QString name = title.empty() ? QStringLiteral("incomplete row") : QString::fromStdString(title);
-		if (!panel.confirmDelete(name, {}))
-			return;
-		items.erase(items.begin() + row);
-		panel.setSelectionId(QString());
-		panel.entityChanged(QStringLiteral("Delete %1").arg(m_noun));
+		panel.deleteRow(QString::fromStdString(rowTitle(items[static_cast<std::size_t>(row)])), {},
+			QStringLiteral("Delete %1").arg(m_noun), [this, row](SceneModel& model) {
+				std::vector<Item>& list = model.*m_list;
+				list.erase(list.begin() + row);
+			});
 	}
 
 protected:
@@ -89,9 +91,9 @@ protected:
 
 	/// Puts the cells of the item in `row`. `inventory` holds the sections of the scene for the combos.
 	virtual void fillRow(InfrastructurePanel& panel, const SceneSectionInventory& inventory, int row, const Item& item) const = 0;
-	/// The section that names the item in the question before it is deleted; empty when the item has none yet.
+	/// The section that names the item in the status message after it is deleted; empty when the item has none yet.
 	virtual std::string rowTitle(const Item& item) const = 0;
-	/// Takes the text of a cell that is no combo into the item. The default has no such cell.
+	/// Takes the value of a cell that is no combo into the item. The default has no such cell.
 	virtual Edit editField(Item&, int, const QString&) const { return Edit::Unchanged; }
 
 	/// Puts a combo of the sections in `column` of `row`; the table owns it. `current` is the section that it shows at first,
@@ -109,11 +111,13 @@ protected:
 		}
 		QObject::connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), &panel,
 			[&panel, list = m_list, label = editLabel(), row, combo, assign = std::move(assign)](int) {
-				std::vector<Item>& items = panel.mutableModel().*list;
+				const std::vector<Item>& items = panel.model().*list;
 				if (row < 0 || row >= static_cast<int>(items.size()))
 					return;
-				if (assign(items[static_cast<std::size_t>(row)], combo->currentData().toString().toStdString()))
-					panel.entityEdited(label);
+				const std::size_t index = static_cast<std::size_t>(row);
+				Item edited = items[index];
+				if (assign(edited, combo->currentData().toString().toStdString()))
+					panel.editInPlace(label, [list, index, &edited](SceneModel& model) { (model.*list)[index] = edited; });
 			});
 		table.setCellWidget(row, column, combo);
 		return combo;

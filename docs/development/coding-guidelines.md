@@ -6,7 +6,7 @@ This guide records the conventions that new code follows. The newer modules (`sc
 `std::list` containers; new code follows the newer modules, including when it is added to
 `simulation/`. These rules do not ask for a rename of legacy code.
 
-Formatting follows `.clang-format` and `.editorconfig` in the repository root.
+Formatting follows `.clang-format` and `.editorconfig` in the root of the source tree.
 `python3 tools/format.py --fix` formats every C++ source under `EGTRAIN/QEGTRAIN`, and
 `python3 tools/format.py` checks them and lists the files that differ. The pull request
 checks run the same check. The script needs clang-format 23.1.3, because other releases
@@ -22,8 +22,7 @@ starts on a line of its own. A statement that is wrapped elsewhere comes out as 
 line, so wrap it at one of those places.
 
 `.git-blame-ignore-revs` lists the commits that only changed the format.
-`git config blame.ignoreRevsFile .git-blame-ignore-revs` makes `git blame` skip them, and
-the blame view of GitHub skips them without a setting.
+`git config blame.ignoreRevsFile .git-blame-ignore-revs` makes `git blame` skip them.
 
 ## Static checks
 
@@ -67,7 +66,7 @@ cannot see how Qt owns objects.
 | `bugprone-exception-escape` | `main`, destructors and lambdas of slots; the application does not throw across them |
 | `bugprone-throwing-static-initialization` | Statics that hold a `std::string` or a mutex |
 | `bugprone-implicit-widening-of-multiplication-result` | Products of small values, such as milliseconds per second |
-| `bugprone-unchecked-string-to-number-conversion` | `atoi` and `atof` on command line values in `app/main.cpp` |
+| `bugprone-unchecked-string-to-number-conversion` | `atof` on legacy text fields in `graphics/NetworkPresenter.cpp` and `scene/SceneExporter.cpp` |
 | `bugprone-nondeterministic-pointer-iteration-order` | Vectors of pointers that are sorted by a field, not by address |
 | `bugprone-derived-method-shadowing-base-method` | `NetworkView::centerOn` hides the Qt method on purpose |
 | `bugprone-misplaced-widening-cast` | `static_cast<std::size_t>(index + 1)` on a checked index |
@@ -95,22 +94,25 @@ target that links a library does not get them.
 
 - Strict targets build without a warning: `egtrain_util`, `egtrain_scene`, `egtrain_live`, `egtrain_http`, `egtrain_update`,
   `egtrain_sceneopen`, `egtrain_openrelay`, `egtrain_recovery`, `egtrain_graphics`, `egtrain_widgets`, the `egtrain_telemetry` libraries, `egtrain_diagrams`,
-  `scene_tool`, `egtrain_update_helper` and the tests that use only these libraries. When
+  `scene_tool`, `egtrain_update_helper` and the test executables. When
   `EGTRAIN_WARNINGS_AS_ERRORS` is ON they also get `-Werror` (`/WX` with MSVC), so a new
   warning fails the build.
 - `egtrain_dispatch` has the flags only. Its own sources are clean, and the warnings in its
   build log come from the simulation headers.
 - These have no flags: the vendored `egtrain_miniz`, the legacy
-  `egtrain_sim`, `QEGTRAIN`, and the test executables that use the
-  simulation. A comment next to the calls gives the number of warnings.
+  `egtrain_sim` and `QEGTRAIN`. A comment next to the calls gives the number of warnings.
+- A test that includes the simulation headers passes `SIMULATION_HEADERS` to `egtrain_add_test`.
+  The headers below `SRC_DIR` are then system headers for that test, so the warnings of the
+  simulation headers do not count, and the test file itself still builds without a warning.
+  The characterization programs build the same way.
 - `update/SelfUpdater.cpp`, `update/UpdateNotices.cpp`, `app/main.cpp`, `app/UpdateTelemetryController.cpp` and
   `telemetry/TelemetryConsentDialog.cpp` build inside `QEGTRAIN`, so they get no flags yet.
   `update/SelfUpdater.cpp` is the exception in the strict `test_selfupdater`, and `app/UpdateTelemetryController.cpp` in the strict
   `test_updatetelemetrycontroller`, which compile them with the flags.
 
 To give a new target the flags, call `egtrain_target_warnings(<target> STRICT)` after its
-`add_library` or `add_executable`, or add a test to the list of strict tests in the test block,
-and fix its warnings first. A source in a strict target that needs `simulation/RollingStock.h`
+`add_library` or `add_executable`, and fix its warnings first; `egtrain_add_test` does this for
+a test. A source of a strict library that needs `simulation/RollingStock.h`
 or `simulation/Signalling.h` includes `diagrams/SimulationHeaders.h` instead, because those
 headers still give warnings and that header keeps them out of the build. A function that a
 platform does not use, such as the update stagers in `update/UpdatePreparation.cpp`, is marked
@@ -153,7 +155,7 @@ convention. Use this table to decide where a new file goes. Paths are relative t
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events, see the [wire contract](../telemetry/README.md) |
 | `recovery/` | Recovery copies of a scene with unsaved edits, kept below a folder that the caller names, and the controller that writes them in the background |
 | `tests/` | C++ test executables, one per file, with data in `tests/fixtures/`. The folder `tests/e2e/` is the runner of the scripted GUI scenarios, compiled into `QEGTRAIN` itself and not a test executable |
-| `tools/` | At the repository root: Python and shell tests and helpers (`e2e/`, `memory/`, `performance/`, `release/`) |
+| `tools/` | At the root of the source tree: Python and shell tests and helpers (`e2e/`, `memory/`, `performance/`, `release/`) |
 
 - Add a new `.cpp` to the library that holds its folder ([Libraries](../architecture/source-layout.md#libraries)),
   or to `EGTRAIN_SOURCES` when only the application uses it. Add a new `.h` to `EGTRAIN_HEADERS`
@@ -174,7 +176,9 @@ convention. Use this table to decide where a new file goes. Paths are relative t
   `main.cpp`, `util/portability.h` and `util/timeutil.hpp`.
 - Types: PascalCase (`UpdateChecker`, `SceneDiagnostic`). New enumerations are
   `enum class` with PascalCase values (`SceneSeverity::Warning`). Plain enums appear where
-  Qt expects integers, such as `enum { Type = UserType + N }` in `graphics/items/`.
+  Qt expects integers, such as `enum { Type = UserType + N }` in `graphics/items/`, and for the
+  columns of a CSV row, an `enum Column : std::size_t` with `k` values inside a namespace or a
+  function that indexes the row directly (`BlockingTimeCsv::Column`).
 - Functions, methods, variables and parameters: camelCase (`loadScene`,
   `classifyTrackSpeed`). Accessors have no `get` prefix (`stationName()`), setters start
   with `set`, and boolean queries start with `is` or `has` (`isChecking()`).
@@ -204,7 +208,9 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   gets its parent item when it is created (`graphics/items/SignalItem.cpp`). Pointers to
   scene items held elsewhere only observe them: `NetworkPresenter::clear` calls
   `scene->clear()`, which deletes the items, then clears the lists that point at them
-  (`graphics/NetworkPresenter.cpp`, documented in `graphics/NetworkPresenter.h`).
+  (`graphics/NetworkPresenter.cpp`, documented in `graphics/NetworkPresenter.h`). Those lists are
+  private: only the presenter fills them, and the window and the inspector use its const getters
+  and named actions such as `setHighlight`.
 - Everything else: `std::vector` for collections and arrays, `std::unique_ptr` for one owned
   object that is not a QObject. `SceneModel` holds its entity lists in `std::vector` members,
   `widgets/ConsoleWidget.h` owns a `std::unique_ptr<ConsoleStreambuf>`, and
@@ -217,8 +223,10 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   The routines of `simulation/` take the run they work on as a `SimulationRun&` parameter, and the
   member functions of a `Train` reach it through `Train::run_`, which `buildOperationsFromScene`
   sets. The window and `main.cpp` read the run
-  through `DispatchController::run()`, and `captureCompletedRun` takes it as a parameter. The canvas takes
-  `mutableRun()` because it writes its layout into the tracks, stations and connections. A test that
+  through `DispatchController::run()`, and `captureCompletedRun` takes it as a parameter. The canvas
+  reads it through `run()` as well. It keeps the levels of the tracks and the layout of the stations in
+  tables of its own and works out the points of the nodes and connections when it draws them, so it
+  writes nothing into the tracks, stations and connections. A test that
   calls the builders itself passes them `defaultRun()` or a `SimulationRun` of its own.
   `SimulationRun::settings` is the copy of `initial_variables` that `DispatchController::prepareScene`
   takes once the scene is built. `DispatchController` and the routines of `simulation/` read the
@@ -235,13 +243,16 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   The infrastructure and the routes are `SimulationRun::infra`, a `RunInfrastructure`: the
   tracks, connections and stations (`blockSets`, `connections` and `stations`, vectors with
   a fixed number of elements that nothing resizes), the block sections, the detection sections,
-  the single-track data, with the zones that `singleTrackZone` derives from it, and the routes.
+  the single-track data, with the zones that `singleTrackZone` derives from it, and the routes,
+  with a number for each section ID by which the signalling step finds the occupied sections.
   The scene builder replaces them and the previous ones
   stay until then, so `resetInfrastructure()` is a separate call, and a build that fails puts the
   earlier infrastructure back as it was. The canvas keeps `Node*`, `Arc*` and `Connections*` into
   the arrays, so `MainWindow` removes its items before a reset or a build. A new member of the
-  infrastructure needs a line in `RunInfrastructure::reset()`.
-  `SimulationRun::trains` is the `std::vector<Regional>` of the run, created with the
+  infrastructure needs a line in `RunInfrastructure::reset()`. `setUpRoutesFromScene` numbers the
+  section IDs of the routes with `RunInfrastructure::numberRouteSections()`, and code that changes
+  the routes afterwards, as some tests do, calls it again.
+  `SimulationRun::trains` is the `std::vector<Train>` of the run, created with the
   number of trains of the scene; `Max_N_Reg` is
   only the limit that validation and the editor enforce on that number. A `Train` keeps
   the stops of its service in a `std::vector<Node>`, and `trains` is created once
@@ -258,7 +269,7 @@ the pointers known to be non-owning. `test_ownership_inventory` runs the scanner
 tree and a fixture, and `test_raii_contract` checks that the delay statistics in
 `simulation/Simulation.cpp` use `std::vector` instead of `new double[]`, that the retired
 `setupEgtrain` and `prepareSimulation` stay out of `app/DispatchController.cpp` and that
-`runSimulation` writes each train trajectory file once, as its last stage, and leaves
+`runSimulationPostprocessing` writes each train trajectory file once, as its last stage, and leaves
 `BlockingTimes.txt` to `ComputeBlockingTimesInMixedSignallingForAllTrains`. When
 `test_raii_contract` fails, remove the raw allocation, the restored path or the repeated
 write instead of editing the test; when `test_ownership_inventory` fails after a pointer in
@@ -271,7 +282,8 @@ problems as `SceneDiagnostic` values (`scene/SceneDiagnostic.h`). A new check do
 it adds a diagnostic to the vector its function returns or to the `diagnostics` member of
 the result struct (`SceneLoadResult`), and it does not throw to the caller, print or log. An
 exception from a library is caught where it happens: `loadScene` in `scene/SceneModel.cpp`
-turns a JSON parse failure into `scene.json.parse` with its local `addError` helper. Put a
+turns a JSON parse failure into `scene.json.parse` with `jsonParseDiagnostic`, which names the file and
+the line and column. Put a
 new check in the layer it belongs to
 ([Validation layers](../architecture/scene-model.md#validation-layers)). Each diagnostic
 carries these fields:
@@ -292,12 +304,17 @@ carries these fields:
 severity chosen by `error` or `warning`:
 
 ```cpp
-if (!hasId(trackIds, node.trackId)) {
-	diagnostics.error("scene.ref.unresolved", "Node refers to unknown track", "infrastructure.json",
-			"node", node.id, path + ".track", node.trackId,
-			"Add track " + node.trackId + " or reference an existing track");
+if (!hasId(blockIds, component)) {
+	diagnostics.error("scene.ref.unresolved", "Route refers to unknown block",
+		"signalling.json", "route", route.id, blockPath, component,
+		"Add block " + component + " or fix the route");
 }
 ```
+
+A reference that an editor leaves empty until it is chosen, such as the track of a node, goes
+through `DiagnosticBuilder::unresolved`. An empty reference names the entry instead
+(`Node n1 has no track`, with the fix `Choose the track` and no `relatedId`); any other
+reference gets the message and fix that the call passes.
 
 ## Logging
 
@@ -337,9 +354,9 @@ to the console directly.
   applies. A `qFatal()` message is never filtered. The handler writes to the console streams
   only, not to the system log.
 - `simulation/`, `io/` and `app/DispatchController.cpp` write through `EG_LOG`, except for the
-  marker line `QEGTRAIN_NATIVE_DETAIL`. `BlockingTimeList::checkIndex` logs a negative index as
-  `sim.setup` at `error` and calls `eglog::flush()`, which flushes `std::cout` and `std::cerr`,
-  before `std::abort()`: the sinks write `std::cout` without a flush. The command-line entry
+  marker line `QEGTRAIN_NATIVE_DETAIL`. The sinks write `std::cout` without a flush;
+  `eglog::flush()` flushes `std::cout` and `std::cerr` for a caller that ends the process
+  without leaving `main()`. The command-line entry
   points (`app/main.cpp`, `scene/SceneTool.cpp`) write to `std::cerr`. `app/main.cpp` also
   writes the line `End of Simulation` of a run without a window to `std::cout` itself: scripts
   read it, so no logging rule may hide it. A run in the window logs the same line as `app.run`.
@@ -350,8 +367,10 @@ to the console directly.
   `sim.step` at `debug`, which is off by default, for messages written once per step by a
   train in the trajectory code, and `sim.pax` for passengers. The application uses `app.run`
   for the banners and the progress of a run. The live server (`io/LiveServer.cpp`) uses
-  `io.zmq`.
-- `scene/`, `update/` and `telemetry/` neither log nor print, apart from their entry points.
+  `io.zmq`. The update messages of `app/UpdateTelemetryController.cpp` and the startup
+  notices of `update/UpdateNotices.cpp` use `update`, at `warning` for a failure.
+- `scene/`, `update/` and `telemetry/` neither log nor print, apart from their entry points,
+  such as the startup notices of `update/UpdateNotices.cpp`.
   They return the problem, as a `SceneDiagnostic` or an `error` field (`UpdateCheckResult`).
 - `tools/e2e/test_logging_contract.py` counts the console write statements per file
   (`cout`, `cerr`, `clog`, `printf` and `fprintf` to `stdout` or `stderr`)
@@ -372,29 +391,32 @@ Do not add another logging helper.
 ## Tests
 
 C++ tests live in `EGTRAIN/QEGTRAIN/tests/` as `test_<name>.cpp`, one executable each, with
-shared data in `tests/fixtures/`. Register one in the `if(EGTRAIN_BUILD_TESTS)` block of the
-root `CMakeLists.txt`. The executable links the library that holds the code it tests
+shared data in `tests/fixtures/`. Register one with `egtrain_add_test` in
+`EGTRAIN/QEGTRAIN/tests/CMakeLists.txt`. The executable links the library that holds the code it tests
 ([Libraries](../architecture/source-layout.md#libraries)), or lists the sources itself when
 they are in no library, instead of linking the application. The telemetry tests that use a test
 hook link `egtrain_telemetry_hooks`. The CTest name equals the target name:
 
 ```cmake
-add_executable(test_timeformat ${SRC_DIR}/tests/test_timeformat.cpp)
-target_link_libraries(test_timeformat PRIVATE egtrain_util)
-add_test(NAME test_timeformat COMMAND test_timeformat)
+egtrain_add_test(test_timeformat
+	SOURCES ${SRC_DIR}/tests/test_timeformat.cpp
+	LIBS egtrain_util
+	LABELS unit)
 ```
 
-Then add the name to `egtrain_label_tests(unit ...)` or `egtrain_label_tests(integration ...)`
-lower in that block, and to the `gui` and `slow` lists where they apply
-([Test labels](testing.md#test-labels)). Configuration fails when a test has neither
-`unit` nor `integration`, or both. A test that needs a Qt platform plugin also sets
-`ENVIRONMENT "QT_QPA_PLATFORM=offscreen"`.
+`LABELS` names exactly one of `unit` and `integration`, and `gui`, `slow` or a scene label
+where they apply ([Test labels](testing.md#test-labels)). Configuration fails on a test without
+exactly one of `unit` and `integration`, and on an unknown label. A `gui` test runs on the
+`offscreen` platform. The executable is a strict target ([Warnings](#warnings)). `COMMAND` sets
+the arguments or runs a script instead, and options such as `TIMEOUT` and `ENVIRONMENT` set the
+test properties; the comment above the function lists them all.
 
-- Tests are plain programs with a `main()` and no test framework. Most define a local
-  `expect(bool, const char*)` that prints `failed: <message>`, combine results with
-  `ok &= expect(...)` and return a non-zero exit code on failure (`tests/test_timeformat.cpp`).
-- Assertions must still run in a Release build, the default. The telemetry tests put
-  `#undef NDEBUG` before `#include <cassert>` (`tests/test_telemetryqueue.cpp`).
+- The tests use Qt Test. A test file is one test class, as
+  [Writing a test](testing.md#writing-a-test) describes (`tests/test_timeformat.cpp`).
+  `tests/test_updatetransport_https.cpp` and the three programs in `tests/characterization/` are
+  plain programs with a `main()`.
+- Checks must still run in a Release build, the default, so a test does not use `assert`, which
+  `NDEBUG` removes there.
 - A logic change comes with the smallest test that fails without it. For a validation rule,
   build a model that breaks the rule and assert the diagnostic code, plus severity or path
   where they matter (`hasCodeAndSeverity` in `tests/test_scenevalidator.cpp`).
@@ -407,8 +429,14 @@ own file there (`LegacyImport.cpp`, `SceneDrop.cpp`, `OutputFolder.cpp`, `SceneR
 `StationOverlay.cpp`, `TrackPreview.cpp`, `VisualPolish.cpp`, `EditorSmoke.cpp`,
 `CreatorAcceptance.cpp`) is a member of
 it, and the table in `tests/e2e/E2ERunner.cpp` starts a scenario from its `QEGTRAIN_E2E_` variable.
+A scenario reaches an editor panel or its dock through the getters of `MainWindowTestAccess`, such as
+`servicePanel(w)` and `serviceDock(w)`, and the fields of a panel through the accessors of the panel
+(`servicePanel(w)->idEdit()`). Do not copy such a pointer into a member of the window for a scenario.
+A scenario and a test of the canvas read the presenter through its const getters. `NetworkPresenterTestAccess`
+(`tests/NetworkPresenterTestAccess.h`) is the friend of `NetworkPresenter` for a value that no product code
+reads and for a test that puts items in a registry itself.
 `PostRun.cpp` holds the autostart and the checks that follow a run, which the window calls through
-the hooks of `MainWindowTestHooks`, and `Dialogs.cpp` answers the dialogs that the window opens. A source
+the hooks of `MainWindowTestHooks` and the signals of `RunController` and `RunResultsDock`, and `Dialogs.cpp` answers the dialogs that the window opens. A source
 that a build without tests compiles must not name a `QEGTRAIN_E2E_` variable, print an `E2E_` marker or
 assert with `failures <<`: put such code in `tests/e2e` and give the window a hook.
 `tools/e2e/test_no_e2e_in_product.py` fails otherwise.

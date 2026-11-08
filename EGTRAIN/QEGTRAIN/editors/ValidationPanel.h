@@ -2,6 +2,7 @@
 #define VALIDATIONPANEL_H
 
 #include "editors/SceneDocument.h"
+#include "scene/LoadedDataSummary.h"
 #include "scene/SceneDiagnostic.h"
 
 #include <QObject>
@@ -31,6 +32,11 @@ public:
 	static constexpr int kTargetTypeRole = Qt::UserRole;
 	/// The item data role of the scene file of a diagnostic, on the first cell of its row in the table.
 	static constexpr int kFileRole = Qt::UserRole;
+	/// The item data role of the kind of the item of a diagnostic (SceneDiagnostic::itemType), on the first cell of its
+	/// row in the table.
+	static constexpr int kItemTypeRole = Qt::UserRole + 1;
+	/// The item data role of the id of the item of a diagnostic (SceneDiagnostic::itemId), on the same cell.
+	static constexpr int kItemIdRole = Qt::UserRole + 2;
 	/// The widest that the Category and Source columns of the tree grow to fit their rows, so that Count and Status stay
 	/// in view. The names of the categories fit within it.
 	static constexpr int kTreeTextColumnWidth = 360;
@@ -65,8 +71,8 @@ public:
 	/// Gives the context of the tree whenever it is written. Without it the scene came from nowhere and no run was made.
 	void setLoadedDataContext(std::function<LoadedDataContext()> context);
 
-	/// The diagnostics, errors first: severity, code, message, file, path and fix. The code, file and path columns show
-	/// only with advanced details; the tooltip of a row gives them.
+	/// The diagnostics, errors first: severity, code, message, item (its kind and id, see itemLabel()), file, path and
+	/// fix. The code, file and path columns show only with advanced details; the tooltip of a row gives them.
 	QTableWidget* table() const { return m_table; }
 	/// The case, its source files and the state of the run.
 	QTreeWidget* tree() const { return m_tree; }
@@ -74,9 +80,13 @@ public:
 	QLabel* statusLabel() const { return m_statusLabel; }
 
 	/// Validates the scene of the document, shows the diagnostics and the loaded data, and says so with refreshed(). With no
-	/// scene it clears them.
+	/// scene it clears them. The scene is validated again only when its model (SceneDocument::modelGeneration()) or the
+	/// duration override has changed since the panel last validated it; otherwise the diagnostics of that validation are
+	/// shown again.
 	void refresh();
-	/// Writes the tree again.
+	/// How often refresh() has validated the scene. Tests read it to tell a validation from a refresh that reused one.
+	int validationCount() const { return m_validationCount; }
+	/// Builds the loaded data summary of the scene with the diagnostics again and writes the tree.
 	void refreshLoadedData();
 	/// Writes the status from the diagnostics again, and shows the table and the tree as advanced details now say.
 	void updateStatus();
@@ -85,6 +95,8 @@ public:
 	static QString statusText(const SceneDiagnosticCounts& counts, bool advanced);
 	/// Emits targetActivated() for a row of the tree that has a kind.
 	void activateItem(QTreeWidgetItem* item);
+	/// Emits itemActivated() for a row of the table whose diagnostic has an item; a row without one does nothing.
+	void activateRow(int row);
 	/// Selects the first row of the table that belongs to this scene file.
 	void selectDiagnosticOfFile(const QString& file);
 
@@ -95,18 +107,34 @@ Q_SIGNALS:
 	void refreshed();
 	/// A row of the tree with this kind was activated. The tree owns `item`.
 	void targetActivated(const QString& targetType, QTreeWidgetItem* item);
+	/// A row of the table whose diagnostic names an item was activated, by a double-click or Return. `itemType` is the kind
+	/// of the item, such as "arc", and is empty when the diagnostic gives none.
+	void itemActivated(const QString& itemType, const QString& itemId);
 
 private:
 	bool advancedDetails() const;
-	// Shows the code, file and path columns of the table only with advanced details.
+	// Shows the code, file and path columns of the table only with advanced details; a column that comes into view fits
+	// its content.
 	void showAdvancedColumns();
 
+	// The latest validation of the scene and what it was computed from.
+	struct Validation {
+		quint64 modelGeneration = 0;
+		std::optional<double> durationOverride;
+		std::vector<SceneDiagnostic> diagnostics;
+	};
+
 	QPointer<SceneDocument> m_document;
+	// Empty until refresh() validates the scene of the document.
+	std::optional<Validation> m_lastValidation;
+	int m_validationCount = 0;
 	std::vector<SceneDiagnostic> m_ownDiagnostics;
 	std::vector<SceneDiagnostic>* m_diagnostics = &m_ownDiagnostics;
 	std::function<bool()> m_advancedDetails;
 	std::function<std::optional<double>()> m_durationOverride;
 	std::function<LoadedDataContext()> m_loadedDataContext;
+	// The loaded data summary that the tree shows; empty while it shows no scene.
+	std::vector<SceneLoadedData> m_loadedData;
 	// Whether the tree was written with advanced details; empty while it shows no scene.
 	std::optional<bool> m_treeAdvanced;
 

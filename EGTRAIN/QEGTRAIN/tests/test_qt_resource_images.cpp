@@ -1,12 +1,23 @@
-#include <QGuiApplication>
 #include <QImage>
 #include <QSize>
+#include <QTest>
 
 #include <array>
 #include <utility>
 
-int main(int argc, char** argv) {
-	QGuiApplication application(argc, argv);
+// The icons in the Qt resources load at their size and have an alpha channel.
+class TestQtResourceImages : public QObject {
+	Q_OBJECT
+
+private slots:
+	void loadsAtItsSize_data();
+	void loadsAtItsSize();
+};
+
+void TestQtResourceImages::loadsAtItsSize_data() {
+	QTest::addColumn<QString>("path");
+	QTest::addColumn<int>("size");
+	const auto add = [](const char* path, int size) { QTest::newRow(path) << QString::fromLatin1(path) << size; };
 	const std::array<std::pair<const char*, int>, 8> icons{{
 		{":/app/egtrain-16.png", 16},
 		{":/app/egtrain-32.png", 32},
@@ -17,11 +28,8 @@ int main(int argc, char** argv) {
 		{":/app/egtrain-512.png", 512},
 		{":/app/egtrain-1024.png", 1024},
 	}};
-	for (const auto& [path, size] : icons) {
-		const QImage image(path);
-		if (image.isNull() || image.size() != QSize(size, size) || !image.hasAlphaChannel())
-			return 1;
-	}
+	for (const auto& [path, size] : icons)
+		add(path, size);
 	const std::array<const char*, 10> entity_icons{
 		":/icons/passenger.svg",
 		":/icons/train-passenger.svg",
@@ -34,15 +42,9 @@ int main(int argc, char** argv) {
 		":/icons/signal-caution.svg",
 		":/icons/signal-proceed.svg",
 	};
-	for (const char* path : entity_icons) {
-		const QImage image(path);
-		if (image.isNull() || image.size() != QSize(24, 24) || !image.hasAlphaChannel())
-			return 1;
-	}
-	const QImage historicalPassenger(":/icons/pax_icon.png");
-	if (historicalPassenger.isNull() || historicalPassenger.size() != QSize(1200, 1200)
-		|| !historicalPassenger.hasAlphaChannel())
-		return 1;
+	for (const char* path : entity_icons)
+		add(path, 24);
+	add(":/icons/pax_icon.png", 1200);
 	const std::array<const char*, 11> command_icons{
 		":/icons/run.svg",
 		":/icons/pause.svg",
@@ -56,16 +58,21 @@ int main(int argc, char** argv) {
 		":/icons/follow.svg",
 		":/icons/pick-target.svg",
 	};
-	for (const char* path : command_icons) {
-		const QImage image(path);
-		if (image.isNull() || image.size() != QSize(16, 16) || !image.hasAlphaChannel())
-			return 1;
-	}
+	for (const char* path : command_icons)
+		add(path, 16);
 	// The marks of a checked and of a partly checked check box in a list or a tree.
-	for (const char* path : {":/icons/check-mark.svg", ":/icons/check-partial.svg"}) {
-		const QImage image(path);
-		if (image.isNull() || image.size() != QSize(16, 16) || !image.hasAlphaChannel())
-			return 1;
-	}
-	return 0;
+	for (const char* path : {":/icons/check-mark.svg", ":/icons/check-partial.svg"})
+		add(path, 16);
 }
+
+void TestQtResourceImages::loadsAtItsSize() {
+	QFETCH(QString, path);
+	QFETCH(int, size);
+	const QImage image(path);
+	QVERIFY2(!image.isNull(), "the image does not load");
+	QCOMPARE(image.size(), QSize(size, size));
+	QVERIFY2(image.hasAlphaChannel(), "the image has no alpha channel");
+}
+
+QTEST_MAIN(TestQtResourceImages)
+#include "test_qt_resource_images.moc"

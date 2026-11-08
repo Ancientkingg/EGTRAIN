@@ -14,6 +14,7 @@
 #include <QDebug>
 #include <QPen>
 
+#include "graphics/VisualPolish.h"
 #include "graphics/items/TrackLineItem.h"
 #include "graphics/items/NodeItem.h"
 #include "graphics/items/StationNodeItem.h"
@@ -54,12 +55,28 @@ public:
 	/// A left click on empty canvas emits DisableHighlight(). A drag that starts there pans the view and keeps
 	/// the selection.
 	void mouseReleaseEvent(QGraphicsSceneMouseEvent* mouseEvent) override;
-	/// Emits ContextMenuRequested() with the item that a left click at the same point would select, or null.
+	/// Emits ContextMenuRequested() with the item that a left click at the same point would select, or null. A request
+	/// by key goes to requestKeyboardContextMenu() instead.
 	void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
-	/// Selects the item as a left click on it does: emits the MousePressedOn signal of its kind. Nothing happens for null
-	/// or an item of another kind.
+	/// Selects the item as a left click on it does: emits the MousePressedOn signal of its kind. Null clears the selection
+	/// without a signal; an item of another kind emits nothing.
 	void select(QGraphicsItem* item);
+
+	/// The item that select() chose last, or null when none was chosen, the selection was cleared or the item has left
+	/// the scene.
+	QGraphicsItem* selectedItem() const;
+
+	/// Emits ContextMenuRequested() for a key: with selectedItem() and the centre of the item as the point, or with null and
+	/// the centre of the view when nothing is selected. widget is the view that shows the scene; null takes its first view.
+	void requestKeyboardContextMenu(QWidget* widget = nullptr);
+
+	/// The style of the station marks of the scene; StationMarkStyle::MapPin until setStationMarkStyle().
+	StationMarkStyle stationMarkStyle() const { return m_stationMarkStyle; }
+	/// Draws the station marks of the scene in style, and those that stations attach later
+	/// (StationOverlayItem::attachArtwork()). The next view scale that the stations apply places them by the anchor of
+	/// style.
+	void setStationMarkStyle(StationMarkStyle style);
 
 signals:
 	/// A mouse button was pressed on the scene.
@@ -91,6 +108,9 @@ private:
 	QGraphicsItem* semanticItemAt(const QPointF& scenePos, QWidget* widget) const;
 
 	bool m_pressedOnEmptyCanvas = false;
+	// The item that select() chose last. Items leave the scene without notice, so selectedItem() checks it.
+	QGraphicsItem* m_selectedItem = nullptr;
+	StationMarkStyle m_stationMarkStyle = StationMarkStyle::MapPin;
 };
 
 #endif // NETWORKSCENE_H

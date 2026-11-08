@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <limits>
 #include <list>
 #include <string>
@@ -12,23 +13,63 @@
 
 using namespace std;
 
-double Train::BrakingDistanceFastComputation(double V1, double V2, double X1, double X2, Section* BS, int N_BS) {
-	double AverageGradient = 0;
-	double AverageCurvature = 0;
-	int N_arcs = 0;
+namespace {
 
+// A braking curve ends this far (m) before its target, so that a train that brakes along it stays short of the target.
+constexpr double kBrakingCurveEndMarginM = 0.002;
+
+// True when the two values have the same bits, so that 0.0 and -0.0 differ and a NaN matches itself.
+bool sameBits(double a, double b) {
+	return std::memcmp(&a, &b, sizeof(double)) == 0;
+}
+
+bool sameQuery(const TrainStepCache::BrakingQuery& a, const TrainStepCache::BrakingQuery& b) {
+	return a.sections == b.sections && a.count == b.count && sameBits(a.fromSpeed, b.fromSpeed) && sameBits(a.toSpeed, b.toSpeed)
+		&& sameBits(a.target, b.target) && sameBits(a.cutoff, b.cutoff);
+}
+
+struct GradientAndCurvature {
+	double gradient = 0.0;
+	double curvature = 0.0;
+};
+
+// The mean gradient and curvature radius of the arcs of the N_BS sections BS that end in (X1, X2] (m). When no arc ends there, the
+// values are those of the arc that holds X1, or 0 when no arc holds it.
+GradientAndCurvature meanGradientAndCurvature(double X1, double X2, const Section* BS, int N_BS) {
+	GradientAndCurvature mean;
+	int N_arcs = 0;
 	for (int i = 0; i < N_BS; i++) {
 		for (int j = 0; j < BS[i].total_arcs; j++) {
-			if ((BS[i].arcs_in_signalling_block_section[j].endNode.X * 1000 > X1) && (BS[i].arcs_in_signalling_block_section[j].endNode.X * 1000 <= X2)) {
-				AverageGradient = AverageGradient + BS[i].arcs_in_signalling_block_section[j].gradient;
-				AverageCurvature = AverageCurvature + BS[i].arcs_in_signalling_block_section[j].curvature;
+			const Arc& arc = BS[i].arcs_in_signalling_block_section[j];
+			if ((arc.endNode.X * 1000 > X1) && (arc.endNode.X * 1000 <= X2)) {
+				mean.gradient = mean.gradient + arc.gradient;
+				mean.curvature = mean.curvature + arc.curvature;
 				N_arcs++;
 			}
 		}
 	}
+	if (N_arcs > 0) {
+		mean.gradient = mean.gradient / N_arcs;
+		mean.curvature = mean.curvature / N_arcs;
+		return mean;
+	}
+	for (int i = 0; i < N_BS; i++) {
+		for (int j = 0; j < BS[i].total_arcs; j++) {
+			const Arc& arc = BS[i].arcs_in_signalling_block_section[j];
+			if ((arc.startNode.X * 1000 <= X1) && (arc.endNode.X * 1000 > X1))
+				return {arc.gradient, arc.curvature};
+		}
+	}
+	return mean;
+}
+
+} // namespace
+
+double Train::BrakingDistanceFastComputation(double V1, double V2, double X1, double X2, Section* BS, int N_BS) {
 	// Computing Average Gradient and Average Curvature Radii
-	AverageGradient = AverageGradient / N_arcs;
-	AverageCurvature = AverageCurvature / N_arcs;
+	const GradientAndCurvature mean = meanGradientAndCurvature(X1, X2, BS, N_BS);
+	const double AverageGradient = mean.gradient;
+	const double AverageCurvature = mean.curvature;
 
 	// Computing the braking curve with closed formula
 	double BrakingDistance;
@@ -40,27 +81,10 @@ double Train::BrakingDistanceFastComputation(double V1, double V2, double X1, do
 }
 
 double Train::AccelerationTimeFollowingMode(double V1, double V2, double X1, double X2, Section* BS, int N_BS) {
-	double AverageGradient = 0;
-	double AverageCurvature = 0;
-	int N_arcs = 0;
-
-	for (int i = 0; i < N_BS; i++) {
-
-		for (int j = 0; j < BS[i].total_arcs; j++) {
-
-			if ((BS[i].arcs_in_signalling_block_section[j].endNode.X * 1000 > X1) && (BS[i].arcs_in_signalling_block_section[j].endNode.X * 1000 <= X2)) {
-
-				AverageGradient = AverageGradient + BS[i].arcs_in_signalling_block_section[j].gradient;
-
-				AverageCurvature = AverageCurvature + BS[i].arcs_in_signalling_block_section[j].curvature;
-
-				N_arcs++;
-			}
-		}
-	}
 	// Computing Average Gradient and Average Curvature Radii
-	AverageGradient = AverageGradient / N_arcs;
-	AverageCurvature = AverageCurvature / N_arcs;
+	const GradientAndCurvature mean = meanGradientAndCurvature(X1, X2, BS, N_BS);
+	const double AverageGradient = mean.gradient;
+	const double AverageCurvature = mean.curvature;
 
 	// Computing the acceleration curve of the train
 
@@ -165,9 +189,57 @@ const Arc* Train::brakingArc(double head, Section* sections, int count, double* 
 	return cursor.find(head, sections, count, safeUpper);
 }
 
-bool Train::inverseBrakingStep(double nextHead, double nextSpeed, Section* sections, int count, double& head, double& speed) {
+const Arc* Train::BackwardBrakingArcCursor::find(double head, Section* sections, int count) {
+	if (arc && ordered) {
+		if (head >= arc->startNode.X * 1000) {
+			if (head < arc->endNode.X * 1000)
+				return arc;
+		} else {
+			// The first arc back from arc that starts at or before head is the only one up to arc that can hold it.
+			int s = section, a = arcIndex;
+			for (;;) {
+				if (--a < 0) {
+					--s;
+					while (s >= 0 && sections[s].total_arcs <= 0)
+						--s;
+					if (s < 0)
+						break;
+					a = sections[s].total_arcs - 1;
+				}
+				const Arc& candidate = sections[s].arcs_in_signalling_block_section[a];
+				if (head >= candidate.startNode.X * 1000) {
+					if (head < candidate.endNode.X * 1000) {
+						arc = &candidate;
+						section = s;
+						arcIndex = a;
+						return arc;
+					}
+					break;
+				}
+			}
+		}
+	}
+	arc = nullptr;
+	ordered = true;
+	double previousEnd = -std::numeric_limits<double>::infinity();
+	for (section = 0; section < count; ++section)
+		for (arcIndex = 0; arcIndex < sections[section].total_arcs; ++arcIndex) {
+			const Arc& candidate = sections[section].arcs_in_signalling_block_section[arcIndex];
+			const double start = candidate.startNode.X * 1000, end = candidate.endNode.X * 1000;
+			ordered = ordered && previousEnd <= start && start <= end;
+			previousEnd = end;
+			if (head >= start && head < end) {
+				arc = &candidate;
+				return arc;
+			}
+		}
+	return nullptr;
+}
+
+bool Train::inverseBrakingStep(double nextHead, double nextSpeed, Section* sections, int count, double& head, double& speed,
+	BackwardBrakingArcCursor* cursor) {
 	head = nextHead - nextSpeed * timestep;
-	const Arc* arc = brakingArc(head, sections, count);
+	const Arc* arc = cursor ? cursor->find(head, sections, count) : brakingArc(head, sections, count);
 	if (!arc || total_train_mass <= 0 || massFactor <= 0 || timestep <= 0 || nextSpeed < 0)
 		return false;
 	const double mass = total_train_mass * massFactor;
@@ -210,8 +282,8 @@ bool Train::inverseBrakingStep(double nextHead, double nextSpeed, Section* secti
 }
 
 bool Train::predictBraking(double head, double speed, double targetSpeed, Section* sections, int count,
-	double& end, std::vector<double>* positions, std::vector<double>* speeds) {
-	BrakingArcCursor cursor;
+	double& end, std::vector<double>* positions, std::vector<double>* speeds, const BrakingArcCursor* from) {
+	BrakingArcCursor cursor = from ? *from : BrakingArcCursor{};
 	for (int step = 0; step < 1999; ++step) {
 		end = head; // An above-target route exit can reject a shooting bracket, never validate a plan.
 		if (!std::isfinite(head) || !std::isfinite(speed) || speed < 0)
@@ -234,10 +306,10 @@ bool Train::predictBraking(double head, double speed, double targetSpeed, Sectio
 }
 
 bool Train::predictBrakingPrefix(double head, double speed, int steps, Section* sections, int count,
-	double& end, double& endSpeed, std::vector<double>* positions, std::vector<double>* speeds) {
+	double& end, double& endSpeed, std::vector<double>* positions, std::vector<double>* speeds, const BrakingArcCursor* from) {
 	if (steps < 0 || steps >= 1999)
 		return false;
-	BrakingArcCursor cursor;
+	BrakingArcCursor cursor = from ? *from : BrakingArcCursor{};
 	for (int step = 0; step <= steps; ++step) {
 		end = head;
 		endSpeed = speed;
@@ -258,8 +330,10 @@ bool Train::predictBrakingPrefix(double head, double speed, int steps, Section* 
 	return false;
 }
 
-bool Train::brakingTerminalUpper(double head, double speed, double ceiling, Section* sections, int count, double& upper) {
-	const Arc* arc = brakingArc(head, sections, count);
+bool Train::brakingTerminalUpper(double head, double speed, double ceiling, Section* sections, int count, double& upper,
+	const BrakingArcCursor* from) {
+	BrakingArcCursor cursor = from ? *from : BrakingArcCursor{};
+	const Arc* arc = cursor.find(head, sections, count);
 	if (!arc) {
 		upper = head;
 		return false;
@@ -269,8 +343,10 @@ bool Train::brakingTerminalUpper(double head, double speed, double ceiling, Sect
 	return std::isfinite(upper);
 }
 
-bool Train::constructBrakingTerminal(double head, double speed, double anchor, double ceiling, Section* sections, int count, double& terminal) {
-	const Arc* arc = brakingArc(head, sections, count);
+bool Train::constructBrakingTerminal(double head, double speed, double anchor, double ceiling, Section* sections, int count, double& terminal,
+	const BrakingArcCursor* from) {
+	BrakingArcCursor cursor = from ? *from : BrakingArcCursor{};
+	const Arc* arc = cursor.find(head, sections, count);
 	if (!arc || !std::isfinite(head) || !std::isfinite(speed) || speed < 0 || !std::isfinite(anchor)
 		|| anchor < head || !std::isfinite(ceiling) || ceiling < 0 || timestep <= 0 || total_train_mass <= 0 || massFactor <= 0)
 		return false;
@@ -291,7 +367,7 @@ bool Train::constructBrakingTerminal(double head, double speed, double anchor, d
 bool Train::planPositiveBraking(double head, double speed, const Arc& arc, Section* sections, int count, int suggested) {
 	const double firstMinimum = brakingCurveSpeed(speed, arc);
 	const double firstMaximum = std::max(0.0, speed + (tractiveEffort(speed) - total_train_resistances(speed, arc.gradient, arc.curvature)) / (total_train_mass * massFactor) * timestep);
-	const double anchor = Xobmin - 0.002;
+	const double anchor = Xobmin - kBrakingCurveEndMarginM;
 	const double roundoff = 8 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::fabs(anchor));
 	double minimumNative = Vobmin;
 	for (int k = 0; k <= BrakStep; ++k)
@@ -349,13 +425,73 @@ bool Train::planPositiveBraking(double head, double speed, const Arc& arc, Secti
 	return false;
 }
 
+TrainStepCache::TrainStepCache(const TrainStepCache&) {}
+
+TrainStepCache& TrainStepCache::operator=(const TrainStepCache&) {
+	m_brakingStarts.clear();
+	m_previousBrakingStarts.clear();
+	m_stationPositions.clear();
+	m_step = 0;
+	m_inStep = m_hasStep = false;
+	return *this;
+}
+
+void TrainStepCache::beginStep(int step) {
+	if (m_hasStep && step == m_step + 1) {
+		m_previousBrakingStarts.swap(m_brakingStarts);
+	} else {
+		m_previousBrakingStarts.clear();
+		m_stationPositions.clear();
+	}
+	m_brakingStarts.clear();
+	m_step = step;
+	m_inStep = m_hasStep = true;
+}
+
+void TrainStepCache::endStep() {
+	m_inStep = false;
+}
+
+bool TrainStepCache::findBrakingStart(const BrakingQuery& query, double& start) {
+	if (!m_inStep)
+		return false;
+	for (const BrakingEntry& entry : m_brakingStarts)
+		if (sameQuery(entry.query, query)) {
+			start = entry.start;
+			return true;
+		}
+	for (const BrakingEntry& entry : m_previousBrakingStarts)
+		if (sameQuery(entry.query, query)) {
+			start = entry.start;
+			m_brakingStarts.push_back(entry); // so that the next step finds it too
+			return true;
+		}
+	return false;
+}
+
+void TrainStepCache::storeBrakingStart(const BrakingQuery& query, double start) {
+	if (m_inStep)
+		m_brakingStarts.push_back({query, start});
+}
+
 double Train::BrakDist_Block(double V1, double V2, double X0, Section* BS, int Blocks, double cutoff) {
+	const TrainStepCache::BrakingQuery query{BS, Blocks, V1, V2, X0, cutoff};
+	double start = 0.0;
+	if (stepCache.findBrakingStart(query, start))
+		return start;
+	start = uncachedBrakDistBlock(V1, V2, X0, BS, Blocks, cutoff);
+	stepCache.storeBrakingStart(query, start);
+	return start;
+}
+
+double Train::uncachedBrakDistBlock(double V1, double V2, double X0, Section* BS, int Blocks, double cutoff) {
 	if (V1 <= V2)
 		return X0;
-	double nextHead = X0 - 0.002, nextSpeed = V2;
+	double nextHead = X0 - kBrakingCurveEndMarginM, nextSpeed = V2;
+	BackwardBrakingArcCursor cursor;
 	for (int step = 1; step < 2000; ++step) {
 		double head, speed;
-		if (!inverseBrakingStep(nextHead, nextSpeed, BS, Blocks, head, speed)) {
+		if (!inverseBrakingStep(nextHead, nextSpeed, BS, Blocks, head, speed, &cursor)) {
 			if (head < BS[0].start_node.X * 1000)
 				return head;
 			return -1;
@@ -363,12 +499,16 @@ double Train::BrakDist_Block(double V1, double V2, double X0, Section* BS, int B
 		if (speed >= V1) {
 			if (head >= cutoff)
 				return head; // The refined point is -1 or lies in [head, nextHead].
+			// Every arc lookup of the search below is at head or beyond, so each starts from a copy of a cursor at the arc of head.
+			BrakingArcCursor fromHead;
+			fromHead.find(head, BS, Blocks);
 			if (V2 > 0) {
-				const double anchor = X0 - 0.002;
+				const double anchor = X0 - kBrakingCurveEndMarginM;
 				double low = head, high = nextHead, end, endSpeed, upper;
-				if (!predictBrakingPrefix(low, V1, step - 1, BS, Blocks, end, endSpeed) || !brakingTerminalUpper(end, endSpeed, V2, BS, Blocks, upper) || upper > anchor) return -1;
-				const bool completeUpper = predictBrakingPrefix(high, V1, step - 1, BS, Blocks, end, endSpeed);
-				if (!completeUpper || !brakingTerminalUpper(end, endSpeed, V2, BS, Blocks, upper)) {
+				if (!predictBrakingPrefix(low, V1, step - 1, BS, Blocks, end, endSpeed, nullptr, nullptr, &fromHead)
+					|| !brakingTerminalUpper(end, endSpeed, V2, BS, Blocks, upper, &fromHead) || upper > anchor) return -1;
+				const bool completeUpper = predictBrakingPrefix(high, V1, step - 1, BS, Blocks, end, endSpeed, nullptr, nullptr, &fromHead);
+				if (!completeUpper || !brakingTerminalUpper(end, endSpeed, V2, BS, Blocks, upper, &fromHead)) {
 					if (!(end > anchor)) return -1;
 					upper = end;
 				}
@@ -376,33 +516,33 @@ double Train::BrakDist_Block(double V1, double V2, double X0, Section* BS, int B
 				for (int iteration = 0; iteration < 64; ++iteration) {
 					const double middle = low + (high - low) / 2;
 					if (middle == low || middle == high) break;
-					const bool complete = predictBrakingPrefix(middle, V1, step - 1, BS, Blocks, end, endSpeed);
-					if (!complete || !brakingTerminalUpper(end, endSpeed, V2, BS, Blocks, upper)) {
+					const bool complete = predictBrakingPrefix(middle, V1, step - 1, BS, Blocks, end, endSpeed, nullptr, nullptr, &fromHead);
+					if (!complete || !brakingTerminalUpper(end, endSpeed, V2, BS, Blocks, upper, &fromHead)) {
 						if (!(end > anchor)) return -1;
 						upper = end;
 					}
 					if (upper < anchor) low = middle;
 					else high = middle;
 				}
-				if (!predictBrakingPrefix(high, V1, step - 1, BS, Blocks, end, endSpeed)) return -1;
+				if (!predictBrakingPrefix(high, V1, step - 1, BS, Blocks, end, endSpeed, nullptr, nullptr, &fromHead)) return -1;
 				double terminal;
-				if (!constructBrakingTerminal(end, endSpeed, anchor, V2, BS, Blocks, terminal)) return -1;
+				if (!constructBrakingTerminal(end, endSpeed, anchor, V2, BS, Blocks, terminal, &fromHead)) return -1;
 				return high;
 			}
 			double low = head, high = nextHead, end;
-			const double roundoff = 8 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::fabs(X0 - 0.002));
-			if (!predictBraking(low, V1, V2, BS, Blocks, end) || end > X0 - 0.002 + roundoff)
+			const double roundoff = 8 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::fabs(X0 - kBrakingCurveEndMarginM));
+			if (!predictBraking(low, V1, V2, BS, Blocks, end, nullptr, nullptr, &fromHead) || end > X0 - kBrakingCurveEndMarginM + roundoff)
 				return -1;
-			const bool completeUpper = predictBraking(high, V1, V2, BS, Blocks, end);
-			if ((!completeUpper && !(end > X0 - 0.002)) || end < X0 - 0.002 - roundoff)
+			const bool completeUpper = predictBraking(high, V1, V2, BS, Blocks, end, nullptr, nullptr, &fromHead);
+			if ((!completeUpper && !(end > X0 - kBrakingCurveEndMarginM)) || end < X0 - kBrakingCurveEndMarginM - roundoff)
 				return -1;
 			for (int iteration = 0; iteration < 64; ++iteration) {
 				const double middle = low + (high - low) / 2;
 				if (middle == low || middle == high)
 					break;
-				if (!predictBraking(middle, V1, V2, BS, Blocks, end) && !(end > X0 - 0.002))
+				if (!predictBraking(middle, V1, V2, BS, Blocks, end, nullptr, nullptr, &fromHead) && !(end > X0 - kBrakingCurveEndMarginM))
 					return -1;
-				if (end <= X0 - 0.002)
+				if (end <= X0 - kBrakingCurveEndMarginM)
 					low = middle;
 				else
 					high = middle;
@@ -472,8 +612,7 @@ bool Train::needsSingleTrackReservation(double head, double speed, double entry,
 }
 
 int Train::cachedBrakingSuccessor(int previousInstant, const Arc& arc, double target, double targetSpeed) {
-	if (counter <= 0 || BrakStep <= 0 || BrakStep >= static_cast<int>(Sbrak.size())
-		|| (previousInstant < static_cast<int>(Xob.size()) && (Xob[previousInstant] != target || Vob[previousInstant] != targetSpeed)))
+	if (counter <= 0 || BrakStep <= 0 || BrakStep >= static_cast<int>(Sbrak.size()) || previousXob != target || previousVob != targetSpeed)
 		return -1;
 	const double head = instant_spatial_position[previousInstant], speed = instant_train_speed[previousInstant];
 	for (int k = 0; k < BrakStep; ++k) {
@@ -490,6 +629,144 @@ int Train::cachedBrakingSuccessor(int previousInstant, const Arc& arc, double ta
 	return -1;
 }
 
+Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority, Section* BS, int Blocks, int section, double S, double V) {
+	AuthorityTarget target;
+	target.position = authorityRoutePosition(authority, BS[section]);
+	// A behind or front end cannot become a forward leader through virtual projection.
+	if (BS[section].SignallingLevel == levelValue(SignallingLevel::VirtualCoupling) && authority.type == "TrainEnd"
+		&& authority.ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction
+		&& (authority.typePart != "Tale" || !(target.position > S)))
+		return target;
+
+	if (authority.type == "SignalFailure") {
+		// a failed signal or a held single-track section is a stop target at every signalling level
+		target.speed = 0;
+	} else if (BS[section].SignallingLevel == levelValue(SignallingLevel::EtcsLevel3)) {
+		target.speed = 0;
+
+	} else if (BS[section].SignallingLevel == levelValue(SignallingLevel::VirtualCoupling)) {
+		string NextBlockID;
+		if (section == run_->infra.routes[this->indexOfRoute].N_Block_Sections - 1) { // if the block is the last of the train route then the ID of the Next Block is None
+			NextBlockID = "None";
+		} else {
+			NextBlockID = BS[section + 1].ID;
+		}
+		if (authority.type == "DivergingSwitchOccupied") {
+			if ((authority.TrainInfo.NextSectionID != NextBlockID) || ((authority.TrainInfo.CurrentSectionID != BS[section].ID) && (authority.TrainInfo.NextSectionID == NextBlockID))) {
+				target.speed = 0;
+			}
+		} else if (authority.type == "TrainEnd") {
+			// In case the MA is a Train End the Speed shall be 0 if the train ahead is going in the opposite direction
+			if (authority.ReversedDirection != run_->infra.routes[this->indexOfRoute].reversed_direction) {
+				target.speed = 0;
+
+			}
+			// Otherwise
+			else {
+				if ((authority.TrainInfo.NextSectionID == NextBlockID) || (authority.TrainInfo.NextSectionID == "None")) { // when the trains have the same next block section or the leading train is approahing the end of its route
+					target.speed = authority.TrainInfo.TrainSpeed;														   // the speed is the one of the train ahead if the trains are following the same direction and ahve at least one more block section in common
+
+					if ((this->IsTrainInFollowingMode == 0) && (authority.TrainInfo.Acceleration < 0)) {
+						// A leader that brakes stops where this train would stop from the speed of the leader. A train that is not coupled yet
+						// stops behind that point instead of matching the speed of the leader. Without a braking distance (-1) the end of
+						// authority stays where the leader reported it.
+						const double LeaderBrakingStart = BrakDist_Block(authority.TrainInfo.TrainSpeed, 0, target.position, BS, Blocks);
+						// The inverse ends at X - kBrakingCurveEndMarginM; its holdback is not forward travel.
+						const double LeaderStandstill = LeaderBrakingStart < 0 || authority.TrainInfo.TrainSpeed == 0
+							? target.position
+							: std::min(target.position + ((target.position - kBrakingCurveEndMarginM) - LeaderBrakingStart), run_->infra.routes[this->indexOfRoute].x_of_end_node * 1000);
+						target.distance = LeaderStandstill - target.position;
+						target.position = LeaderStandstill;
+						target.moved = true;
+						target.speed = 0;
+					} else if ((this->IsTrainInFollowingMode == 0) || ((this->IsInUnintentionalDecoupling == 1) && (authority.TrainInfo.Acceleration >= 0))) { // if the train is not yet in following mode then
+						if (V > target.speed) {
+							target.canCouple = true;											// This is the only case when trains can start linking to be virtually coupled, if they are not coupled already
+							double TimeToBrake = ((V - target.speed) / max_train_decelaration); // +(1 * timestep);  //This is the time needed by the train to reach the speed of the train ahead, plus 1 is needed to cover up for the integration delay of 1 step
+							target.distance = authority.TrainInfo.TrainSpeed * TimeToBrake;
+							// With the statement below trains will always try to couple with a train ahead if that is possible
+							if ((target.position + target.distance) <= run_->infra.routes[this->indexOfRoute].x_of_end_node * 1000) { // if with the predicted distance the Braking Point is still within the limits of train route then
+								target.position = target.position + target.distance;												  // Change the distance of the BrakingPoint. We chang it here so that the function can also detect other EoA for other train that might pop up between the real BrakingPoint.X and the prediction distance
+								target.moved = true;
+							}
+						}
+					}
+				} else { // or if the trains do not have the next block section in common the trains need to split apart and this train will separate from the previous by means of an absolute braking distance
+					target.speed = 0;
+				}
+			}
+		}
+	}
+	return target;
+}
+
+void Train::closestEndOfAuthority(double S, double V, Section* BS, int Blocks, int first, int last, Node& closest, double& closestSpeed, std::list<Node>& decouplingPoints) {
+	double ClosestPointToBrakeForETCS = 9999999999; // This is the value of the closese Point to Brake For ETCS
+	for (int section = first; section <= last; section++) {
+		// A SignalFailure EoA applies at every signalling level, so scan the MA list on any section carrying one
+		bool hasSignalFailureMa = false;
+		for (const MovementAuthority& authority : run_->etcsMa) {
+			if ((authority.type == "SignalFailure") && (authority.BSID == BS[section].ID) && obeysAuthority(authority)) {
+				hasSignalFailureMa = true;
+				break;
+			}
+		}
+		if (!isMovingBlockLevel(BS[section].SignallingLevel) && !hasSignalFailureMa)
+			continue;
+		// Identifying Braking Points computed by the EVC if the train is virtually coupled to a train ahead
+		if (IsTrainInFollowingMode == 1 && (Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription != "None")
+			&& (Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription == LeadingTrainInFollowingMode) && BS[section].ID == Predicted_MA_To_DecoupleAt.BSID) {
+			Node DecouplingBrakingPoint;
+			DecouplingBrakingPoint.X = Predicted_MA_To_DecoupleAt.RelativePosEoA;
+			DecouplingBrakingPoint.isSignalled = true;
+			decouplingPoints.push_back(DecouplingBrakingPoint);
+		}
+		// Now identifying braking points due to ETCS MA
+		for (const MovementAuthority& authority : run_->etcsMa) {
+			if ((authority.BSID != BS[section].ID) || (authority.TrainInfo.trainDescription == trainDescription) || !obeysAuthority(authority))
+				continue;
+			const AuthorityTarget target = authorityTarget(authority, BS, Blocks, section, S, V);
+			if (target.speed > -1) { // if we have a valid MA and the SpeedForEoa is therefore different from -1
+				// let us compute the approximate abscissa to Brake at for EoA
+				const double AbscissaToBrakeAtForEoA = target.position - (pow(V, 2) - pow(target.speed, 2)) / (2 * this->max_train_decelaration);
+
+				if ((target.position > S) && (AbscissaToBrakeAtForEoA < ClosestPointToBrakeForETCS)) {
+					ClosestPointToBrakeForETCS = AbscissaToBrakeAtForEoA; // if the AbscissaToBrakeAtForEoA is lower then ClosestPointToBrakeForETCS then this one becomes the ClosestPointToBrakeAt
+					closestSpeed = target.speed;						  // The TargetSpeed for MA becomes the Speed ForEoA
+					closest = Node();
+					closest.X = target.position;
+					closest.isSignalled = true; // putting isSignalled to true, gives a way to the Braking point to be recognised as an End of Authority
+
+					// if the train can link with a train ahead
+					closest.virtualCouplingNode = target.canCouple;
+					// Assigning the last received MA
+					this->Last_Received_MA = authority;
+					Last_Received_MA.RelativePosEoA = target.position; // Setting the Relative position of the EoA on the route of the train
+					// In case the distance of ETCSBrakingPoint was modified then we need to subtract the Predicted Distance from it
+					if (target.moved) {
+						Last_Received_MA.RelativePosEoA = target.position - target.distance;
+					}
+					if (closest.virtualCouplingNode == 1) { // In case the train is not in following mode and can couple at a train ahead
+						// Assigning the Predicted MA to link at
+						this->Predicted_MA_To_CoupleAt = authority;
+						Predicted_MA_To_CoupleAt.RelativePosEoA = target.position;
+					}
+				}
+			}
+		}
+	}
+}
+
+double Train::arcEndTargetSpeed(const Section* BS, int Blocks, int section, int arc) const {
+	const Arc& current = BS[section].arcs_in_signalling_block_section[arc];
+	if (servicePerformancePercent == 100.0)
+		return current.speedInBraking;
+	const Arc& next = arc + 1 < BS[section].total_arcs ? BS[section].arcs_in_signalling_block_section[arc + 1]
+		: section + 1 < Blocks						   ? BS[section + 1].arcs_in_signalling_block_section[0]
+													   : current;
+	return std::min(current.speedInBraking, trackSpeedLimit(next));
+}
+
 double Train::europeanVitalComputerWithListsImproved(double S, double V, int PreviousInstant, Section* BS, int Blocks, bool& continueCached) {
 	continueCached = false;
 	IsTrainCoupling = false;
@@ -498,14 +775,18 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 	int BlockPos = 0;
 	double MinBX = 99999999999; // Number of Braking points in the Block Section occupied by the train, Index of the Arc of the signalling_block_sections occupied by the train, Index of the signalling_block_sections occupied by the train, Matrix of all Brak Distance of the Braking point of the Block Section occupied by the train, Minimum Braking Abscissa, Braking Abscissa of the block section arcs which follows the signalling_block_sections occupied by the train
 	Node ClosestETCSBrakingPoint;
-	ClosestETCSBrakingPoint.X = 9999999999;			 // This is the closest ETCS braking point. In this case the closestpoint is not the MA having teh closest abscissa to the current position of the train but it is the MA which requirest the train to brake the earliest to be met
-	double TargetSpeedForMA = -1;					 // This is the Speed the train needs to target to meet the most restrictive MA
-	double ClosestPointToBrakeForETCS = 9999999999;	 // This is the value of the closese Point to Brake For ETCS
-	int SignallingLevelClosestETCSBrakingPoint = -1; // This is the signalling level of the closest ETCS Braking Point
+	ClosestETCSBrakingPoint.X = 9999999999; // This is the closest ETCS braking point. In this case the closestpoint is not the MA having teh closest abscissa to the current position of the train but it is the MA which requirest the train to brake the earliest to be met
+	double TargetSpeedForMA = -1;			// This is the Speed the train needs to target to meet the most restrictive MA
 
-	Node ETCSBrakingPoint; // Node to collect all the information of the ETCS BrakingPoints
-
-	list<Node> BrakingPoints; // This is the list of the nodes constituting braking points
+	// The braking points: end nodes of the arcs of the route, decoupling points and the closest end of authority. The list
+	// points to them instead of copying them; stop marks a stop of this train and decoupling a decoupling point.
+	struct BrakingPoint {
+		const Node* node;
+		bool stop;
+		bool decoupling;
+	};
+	std::vector<BrakingPoint> BrakingPoints;
+	std::list<Node> DecouplingBrakingPoints; // The decoupling points of BrakingPoints; a list keeps their addresses
 
 	for (int h = 0; h < Blocks; h++) {
 		if ((S < BS[h].end_node.X * 1000) && (S >= BS[h].start_node.X * 1000)) {
@@ -521,11 +802,19 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 	}
 	N_BrakP = BS[BlockPos].total_arcs - ArcPos; // Initializing dimensions of Braking points vectors
 
+	// A stop of this train that is not behind it is a target of speed 0. Only the braking point gets the 0, because the
+	// trains of a route share its sections.
+	const auto targetStop = [&](int section, int arc) {
+		if (BrakingPoints.back().node->X * 1000 >= S && isStopArc(section, arc))
+			BrakingPoints.back().stop = true;
+	};
+
 	// Putting in the list of braking points the nodes of the Arc where the train currently is
 	for (int p = ArcPos; p < BS[BlockPos].total_arcs; p++) {
-		// Setting the current Arc speedInBraking to the final Node of Arc
-		BS[BlockPos].arcs_in_signalling_block_section[p].endNode.arcSpeedLimit = BS[BlockPos].arcs_in_signalling_block_section[p].speedInBraking;
-		BrakingPoints.push_back(BS[BlockPos].arcs_in_signalling_block_section[p].endNode);
+		// Setting the target speed at the end of the current Arc to its final Node
+		BS[BlockPos].arcs_in_signalling_block_section[p].endNode.arcSpeedLimit = arcEndTargetSpeed(BS, Blocks, BlockPos, p);
+		BrakingPoints.push_back({&BS[BlockPos].arcs_in_signalling_block_section[p].endNode, false, false});
+		targetStop(BlockPos, p);
 	}
 
 	// Calculating the total number of breaking points to find the minimum breaking distance (all the arcs of the block section which follows the occupied one are also considered)
@@ -537,162 +826,38 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 	// Putting in list of Braking Points all the nodes belonging to the other block sections
 	for (int z = 0; z < Cons_Block; z++) {
 		for (int p = 0; p < BS[z + BlockPos + 1].total_arcs; p++) {
-			BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].endNode.arcSpeedLimit = BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].speedInBraking;
-			BrakingPoints.push_back(BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].endNode);
+			BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].endNode.arcSpeedLimit = arcEndTargetSpeed(BS, Blocks, z + BlockPos + 1, p);
+			BrakingPoints.push_back({&BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].endNode, false, false});
+			targetStop(z + BlockPos + 1, p);
 		}
 	}
 
 	// Identification of the closest EoA where the train needs to brake at (i.e. the EoA for which the train needs to brake the earliest to meet it)
-	for (int z = 0; z <= Cons_Block; z++) {
-		// A SignalFailure EoA applies at every signalling level, so scan the MA list on any section carrying one
-		bool hasSignalFailureMa = false;
-		for (list<MovementAuthority>::iterator it = run_->etcsMa.begin(); it != run_->etcsMa.end(); it++) {
-			if ((it->type == "SignalFailure") && (it->BSID == BS[z + BlockPos].ID) && obeysAuthority(*it)) {
-				hasSignalFailureMa = true;
-				break;
-			}
-		}
-		if (isMovingBlockLevel(BS[z + BlockPos].SignallingLevel) || hasSignalFailureMa) {
-			// Identifying Braking Points computed by the EVC if the train is virtually coupled to a train ahead
-			if (IsTrainInFollowingMode == 1) { // if the train is in following mode
-				if ((Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription != "None") && (Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription == LeadingTrainInFollowingMode)) {
-					if (BS[z + BlockPos].ID == Predicted_MA_To_DecoupleAt.BSID) {
-						Node DecouplingBrakingPoint;
-						DecouplingBrakingPoint.X = Predicted_MA_To_DecoupleAt.RelativePosEoA;
-						DecouplingBrakingPoint.isSignalled = true;
-						DecouplingBrakingPoint.stationName = "DecoupleTrain"; // For a Decoupling Point as a convention we say that it has a station name DecoupleTrain. We did so not to increase the number of variables of the class Node
-						BrakingPoints.push_back(DecouplingBrakingPoint);
-					}
-				}
-			}
-			// Now identifying braking points due to ETCS MA
-			if (run_->etcsMa.size() > 0) {
-				for (list<MovementAuthority>::iterator it = run_->etcsMa.begin(); it != run_->etcsMa.end(); it++) {
-					if ((it->BSID == BS[z + BlockPos].ID) && (it->TrainInfo.trainDescription != trainDescription) && obeysAuthority(*it)) {
-						double AbscissaToBrakeAtForEoA = -1;	// This is the progressive the train needs to start braking at to meet the EoA
-						double SpeedForEoA = -1;				// This is the speed to be met to respect the MA
-						bool BrakingForEoAModified = false;		// This variable is true when we modify the BrakingPoint because of a prediction distance to allow the train to couple with the one ahead
-						bool CanTrainLinkForCoupling = false;	// This variable is a local variable to state whether the train is linking to another train ahead for virtual coupling. This boolean is true only when the closest breaking point is the Train End of a train in the same direction having the next Route section in common on a Bs with Signalling Level 4
-						double PredictedDistanceToCoupling = 0; // This is the Distance need by the train to Couple with the train ahead
-
-						ETCSBrakingPoint.X = authorityRoutePosition(*it, BS[z + BlockPos]);
-						// A behind or front end cannot become a forward leader through virtual projection.
-						if (BS[z + BlockPos].SignallingLevel == levelValue(SignallingLevel::VirtualCoupling) && it->type == "TrainEnd"
-							&& it->ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction
-							&& (it->typePart != "Tale" || !(ETCSBrakingPoint.X > S)))
-							continue;
-
-						if (it->type == "SignalFailure") {
-							// a failed signal or a held single-track section is a stop target at every signalling level
-							SpeedForEoA = 0;
-						} else if (BS[z + BlockPos].SignallingLevel == levelValue(SignallingLevel::EtcsLevel3)) {
-							SpeedForEoA = 0;
-
-						} else if (BS[z + BlockPos].SignallingLevel == levelValue(SignallingLevel::VirtualCoupling)) {
-							string NextBlockID;
-							if (z + BlockPos == run_->infra.routes[this->indexOfRoute].N_Block_Sections - 1) { // if the block is the last of the train route then the ID of the Next Block is None
-								NextBlockID = "None";
-							} else {
-								NextBlockID = BS[z + BlockPos + 1].ID;
-							}
-							if (it->type == "DivergingSwitchOccupied") {
-								if ((it->TrainInfo.NextSectionID != NextBlockID) || ((it->TrainInfo.CurrentSectionID != BS[z + BlockPos].ID) && (it->TrainInfo.NextSectionID == NextBlockID))) {
-									SpeedForEoA = 0;
-								}
-							} else if (it->type == "TrainEnd") {
-								// In case the MA is a Train End the Speed shall be 0 if the train ahead is going in the opposite direction
-								if (it->ReversedDirection != run_->infra.routes[this->indexOfRoute].reversed_direction) {
-									SpeedForEoA = 0;
-
-								}
-								// Otherwise
-								else {
-									if ((it->TrainInfo.NextSectionID == NextBlockID) || (it->TrainInfo.NextSectionID == "None")) { // when the trains have the same next block section or the leading train is approahing the end of its route
-										SpeedForEoA = it->TrainInfo.TrainSpeed;													   // the speed is the one of the train ahead if the trains are following the same direction and ahve at least one more block section in common
-
-										if ((this->IsTrainInFollowingMode == 0) && (it->TrainInfo.Acceleration < 0)) {
-											// A leader that brakes stops where this train would stop from the speed of the leader. A train that is not coupled yet
-											// stops behind that point instead of matching the speed of the leader. Without a braking distance (-1) the end of
-											// authority stays where the leader reported it.
-											const double LeaderBrakingStart = BrakDist_Block(it->TrainInfo.TrainSpeed, 0, ETCSBrakingPoint.X, BS, Blocks);
-											// The inverse ends at X - 0.002; its holdback is not forward travel.
-											const double LeaderStandstill = LeaderBrakingStart < 0 || it->TrainInfo.TrainSpeed == 0
-												? ETCSBrakingPoint.X
-												: std::min(ETCSBrakingPoint.X + ((ETCSBrakingPoint.X - 0.002) - LeaderBrakingStart), run_->infra.routes[this->indexOfRoute].x_of_end_node * 1000);
-											PredictedDistanceToCoupling = LeaderStandstill - ETCSBrakingPoint.X;
-											ETCSBrakingPoint.X = LeaderStandstill;
-											BrakingForEoAModified = true;
-											SpeedForEoA = 0;
-										} else if ((this->IsTrainInFollowingMode == 0) || ((this->IsInUnintentionalDecoupling == 1) && (it->TrainInfo.Acceleration >= 0))) { // if the train is not yet in following mode then
-											if (V > SpeedForEoA) {
-												CanTrainLinkForCoupling = true;									   // This is the only case when trains can start linking to be virtually coupled, if they are not coupled already
-												double TimeToBrake = ((V - SpeedForEoA) / max_train_decelaration); // +(1 * timestep);  //This is the time needed by the train to reach the speed of the train ahead, plus 1 is needed to cover up for the integration delay of 1 step
-												PredictedDistanceToCoupling = it->TrainInfo.TrainSpeed * TimeToBrake;
-												// With the statement below trains will always try to couple with a train ahead if that is possible
-												if ((ETCSBrakingPoint.X + PredictedDistanceToCoupling) <= run_->infra.routes[this->indexOfRoute].x_of_end_node * 1000) { // if with the predicted distance the Braking Point is still within the limits of train route then
-													ETCSBrakingPoint.X = ETCSBrakingPoint.X + PredictedDistanceToCoupling;												 // Change the distance of the BrakingPoint. We chang it here so that the function can also detect other EoA for other train that might pop up between the real BrakingPoint.X and the prediction distance
-													BrakingForEoAModified = true;
-												}
-											}
-										}
-									} else { // or if the trains do not have the next block section in common the trains need to split apart and this train will separate from the previous by means of an absolute braking distance
-										SpeedForEoA = 0;
-									}
-								}
-							}
-						}
-
-						if (SpeedForEoA > -1) { // if we have a valid MA and the SpeedForEoa is therefore different from -1
-							// let us compute the approximate abscissa to Brake at for EoA
-							AbscissaToBrakeAtForEoA = ETCSBrakingPoint.X - (pow(V, 2) - pow(SpeedForEoA, 2) / (2 * this->max_train_decelaration));
-
-							if ((ETCSBrakingPoint.X > S) && (AbscissaToBrakeAtForEoA < ClosestPointToBrakeForETCS)) {
-								ClosestPointToBrakeForETCS = AbscissaToBrakeAtForEoA; // if the AbscissaToBrakeAtForEoA is lower then ClosestPointToBrakeForETCS then this one becomes the ClosestPointToBrakeAt
-								TargetSpeedForMA = SpeedForEoA;						  // The TargetSpeed for MA becomes the Speed ForEoA
-								ClosestETCSBrakingPoint = ETCSBrakingPoint;
-								ClosestETCSBrakingPoint.isSignalled = true; // putting isSignalled to true, gives a way to the Braking point to be recognised as an End of Authority
-								SignallingLevelClosestETCSBrakingPoint = BS[z + BlockPos].SignallingLevel;
-
-								// if the train can link with a train ahead
-								ClosestETCSBrakingPoint.virtualCouplingNode = CanTrainLinkForCoupling;
-								// Assigning the last received MA
-								this->Last_Received_MA = *it;
-								Last_Received_MA.RelativePosEoA = ETCSBrakingPoint.X; // Setting the Relative position of the EoA on the route of the train
-								// In case the distance of ETCSBrakingPoint was modified then we need to subtract the Predicted Distance from it
-								if (BrakingForEoAModified == 1) {
-									Last_Received_MA.RelativePosEoA = ETCSBrakingPoint.X - PredictedDistanceToCoupling;
-								}
-								if (ClosestETCSBrakingPoint.virtualCouplingNode == 1) { // In case the train is not in following mode and can couple at a train ahead
-									// Assigning the Predicted MA to link at
-									this->Predicted_MA_To_CoupleAt = *it;
-									Predicted_MA_To_CoupleAt.RelativePosEoA = ETCSBrakingPoint.X;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+	closestEndOfAuthority(S, V, BS, Blocks, BlockPos, BlockPos + Cons_Block, ClosestETCSBrakingPoint, TargetSpeedForMA, DecouplingBrakingPoints);
+	for (const Node& point : DecouplingBrakingPoints)
+		BrakingPoints.push_back({&point, false, true});
 	// if there is a Closest ETCS Braking point that has been assigned, then add it to the list of braking points
 	if (ClosestETCSBrakingPoint.X != 9999999999) {
-		BrakingPoints.push_back(ClosestETCSBrakingPoint);
+		BrakingPoints.push_back({&ClosestETCSBrakingPoint, false, false});
 	}
 
 	// Resolve each collected target once, before deciding whether the incumbent is still live.
 	struct Target {
-		Node node;
+		const Node* node;
 		double position, speed;
+		bool decoupling;
 	};
 	std::vector<Target> targets;
 	int incumbent = -1;
-	for (const Node& node : BrakingPoints) {
+	for (const BrakingPoint& point : BrakingPoints) {
+		const Node& node = *point.node;
 		const double position = node.isSignalled ? node.X : node.X * 1000;
-		const double speed = node.isSignalled && node.stationName == "DecoupleTrain" ? 0
-			: node.isSignalled														 ? TargetSpeedForMA
-																					 : node.arcSpeedLimit;
-		targets.push_back({node, position, speed});
-		if (position > S && position == Xob[PreviousInstant] && speed == Vob[PreviousInstant])
+		const double speed = point.decoupling ? 0
+			: node.isSignalled				  ? TargetSpeedForMA
+			: point.stop					  ? 0
+											  : node.arcSpeedLimit;
+		targets.push_back({&node, position, speed, point.decoupling});
+		if (position > S && position == previousXob && speed == previousVob)
 			incumbent = static_cast<int>(targets.size()) - 1;
 	}
 	const Arc& arc = BS[BlockPos].arcs_in_signalling_block_section[ArcPos];
@@ -710,14 +875,14 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 			continue;
 		if (successor >= 0 && index == incumbent)
 			continue;
-		const bool stopWithinStep = target.node.isSignalled && target.speed == 0 && S + V * timestep >= target.position;
+		const bool stopWithinStep = target.node->isSignalled && target.speed == 0 && S + V * timestep >= target.position;
 		// Without a cached plan only a point below MinBX is used, so the search stops at MinBX.
 		double point = BrakDist_Block(proposedSpeed, target.speed, target.position, BS, Blocks,
 			successor < 0 && !stopWithinStep ? MinBX : std::numeric_limits<double>::infinity());
 		if (successor >= 0) {
 			if (target.speed == 0) {
 				double end;
-				const double anchor = target.position - 0.002;
+				const double anchor = target.position - kBrakingCurveEndMarginM;
 				const double roundoff = 8 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::fabs(anchor));
 				if (predictBraking(proposedHead, proposedSpeed, 0, BS, Blocks, end) && end <= anchor + roundoff)
 					continue;
@@ -747,22 +912,23 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 		const Target& target = targets[selected];
 		Xobmin = target.position;
 		Vobmin = target.speed;
-		BrakingForEoA = target.node.isSignalled;
-		IsTrainCoupling = target.node.virtualCouplingNode;
+		BrakingForEoA = target.node->isSignalled;
+		IsTrainCoupling = target.node->virtualCouplingNode;
 		if (IsTrainInFollowingMode == 1)
-			IsTrainDecoupling = target.node.stationName == "DecoupleTrain";
+			IsTrainDecoupling = target.decoupling;
 	}
 	return MinBX;
 }
 
 bool Train::DrawBrakingCurve(double V1, double V2, double X0, Section* BS, int Blocks) {
-	std::vector<double> positions{X0 - 0.002}, speeds{V2};
+	std::vector<double> positions{X0 - kBrakingCurveEndMarginM}, speeds{V2};
 	BrakStep = -1;
 	if (V1 <= V2)
 		return false;
+	BackwardBrakingArcCursor cursor;
 	for (int step = 1; step < 2000; ++step) {
 		double head, speed;
-		if (!inverseBrakingStep(positions.back(), speeds.back(), BS, Blocks, head, speed))
+		if (!inverseBrakingStep(positions.back(), speeds.back(), BS, Blocks, head, speed, &cursor))
 			return false;
 		positions.push_back(head);
 		speeds.push_back(speed);
@@ -781,7 +947,7 @@ bool Train::planBraking(double head, double speed, const Arc& arc, Section* sect
 	const double resistance = total_train_resistances(speed, arc.gradient, arc.curvature);
 	double low = brakingCurveSpeed(speed, arc);
 	double high = std::max(0.0, speed + (tractiveEffort(speed) - resistance) / mass * timestep);
-	const double anchor = Xobmin - 0.002;
+	const double anchor = Xobmin - kBrakingCurveEndMarginM;
 	const double roundoff = 8 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::fabs(anchor));
 	double end;
 	if (!std::isfinite(low) || !std::isfinite(high) || high < low
@@ -820,15 +986,13 @@ bool Train::planBraking(double head, double speed, const Arc& arc, Section* sect
 void Train::brakingStep(int time_seconds, const Arc& As, Section* BS, int Blocks) {
 	const double head = instant_spatial_position[time_seconds - 1];
 	const double speed = instant_train_speed[time_seconds - 1];
-	const bool changedTarget = time_seconds - 1 < static_cast<int>(Xob.size())
-		&& (Xob[time_seconds - 1] != Xobmin || Vob[time_seconds - 1] != Vobmin);
+	const bool changedTarget = previousXob != Xobmin || previousVob != Vobmin;
 	// Retain a native or forward plan only at a real stored state, never by interpolation.
 	const int successor = cachedBrakingSuccessor(time_seconds - 1, As, Xobmin, Vobmin);
 	if (successor >= 0) {
 		instant_train_speed[time_seconds] = Vbrak[successor];
 		instant_spatial_position[time_seconds] = Sbrak[successor];
-		brakingPoint = successor;
-		Eq[time_seconds] = 52;
+		setStepBranch(TrajectoryBranch::FollowBrakingPlan);
 		GradientExceptionInBraking = Vbrak[successor] < Vobmin && successor < BrakStep;
 		return;
 	}
@@ -845,8 +1009,7 @@ void Train::brakingStep(int time_seconds, const Arc& As, Section* BS, int Blocks
 	if (planned) {
 		instant_train_speed[time_seconds] = Vbrak[1];
 		instant_spatial_position[time_seconds] = Sbrak[1];
-		brakingPoint = 1;
-		Eq[time_seconds] = newCurve ? 55 : 53;
+		setStepBranch(newCurve ? TrajectoryBranch::NewBrakingCurve : TrajectoryBranch::ReplanBraking);
 		counter = 1;
 		GradientExceptionInBraking = Vbrak[1] < Vobmin && BrakStep > 1;
 		return;
@@ -863,5 +1026,5 @@ void Train::fullBrakingStep(int time_seconds, const Arc& As) {
 	instant_train_speed[time_seconds] = std::max(0.0, speed - deceleration * timestep);
 	instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1] + (speed + instant_train_speed[time_seconds]) / 2 * timestep;
 	GradientExceptionInBraking = false;
-	Eq[time_seconds] = 54;
+	setStepBranch(TrajectoryBranch::FullBraking);
 }

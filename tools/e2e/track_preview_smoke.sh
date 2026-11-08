@@ -3,19 +3,31 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
-LOG="${TMPDIR:-/tmp}/qegtrain-track-preview-e2e.log"
-TMP_ROOT=""
 
 if [[ ! -x "$APP" ]]; then
 	echo "QEGTRAIN app not found or not executable: $APP" >&2
 	exit 1
 fi
 
+# The log, and the copy of the scene when none is given, go into a folder of the run's own, which is kept when the check
+# fails.
+TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-track-preview-e2e.XXXXXX")"
+cleanup() {
+	local exit_code=$?
+	trap - EXIT
+	if [[ "$exit_code" -eq 0 ]]; then
+		rm -rf "$TMP_ROOT"
+	else
+		echo "the log of this run is in $TMP_ROOT" >&2
+	fi
+	exit "$exit_code"
+}
+trap cleanup EXIT
+LOG="$TMP_ROOT/qegtrain-track-preview-e2e.log"
+
 if [[ $# -gt 0 ]]; then
 	SCENE="$1"
 else
-	TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-track-preview.XXXXXX")"
-	trap 'rm -rf "$TMP_ROOT"' EXIT
 	SCENE="$TMP_ROOT/scene"
 	cp -R "$ROOT/EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut" "$SCENE"
 	python3 -c 'from pathlib import Path; import json, sys; Path(sys.argv[1]).write_text(json.dumps({"services": []}))' "$SCENE/services.json"

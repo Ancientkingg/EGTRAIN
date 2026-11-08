@@ -17,9 +17,10 @@ and the area. Its frame on screen is at least 24 px and the name at least 12 px,
 so stations stay locatable at Fit; above that the scene size applies. The name
 goes under the squares, or off the tracks above the pin or beside the squares.
 Overlapping names are hidden by priority and marks are never hidden. The
-historical passenger PNG is restored as a separate resource. Train polygons keep
-the historical construction; their colour is one default yellow, or the colour
-of the service. The original renderer did not paint a train category badge over
+historical passenger PNG is restored as a separate resource. A train body is the
+drawn track under its wagon at an even width, around bends and over switch
+connections, instead of the historical polygon through the ends of the wagon;
+its colour is one default yellow, or the colour of the service. The original renderer did not paint a train category badge over
 the locomotive.
 
 ## Intentional differences
@@ -84,8 +85,8 @@ requests that made the change, or the issue where none did.
   committed scenes this changes 4 of the 10 names in Paimpol and 5 of the 94 in
   Copenhagen.
 - Train speed. From a zoom of 3x, and for a selected or followed train at any
-  zoom, the speed of a train is white 8 pt text with a dark (16,26,34) outline
-  of 1 logical pixel, 8 logical pixels right of and above the centre of the
+  zoom, the speed of a train is white 8 pt text on a backing in the canvas
+  colour (16,26,34), 8 logical pixels right of and above the centre of the
   train, at the same size at every zoom. **Train speed labels** hides it. The
   reference drew a black `addSimpleText` label at scene scale beside every
   running train, at its centre plus (6,-18) scene units.

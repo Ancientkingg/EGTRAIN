@@ -13,7 +13,7 @@
 #undef EGTRAIN_RESTORE_SIGNALS_KEYWORD
 #endif
 
-#include "app/GuiSimulationSnapshot.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "graphics/AnnotationPlacement.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/NetworkView.h"
@@ -21,6 +21,8 @@
 #include "graphics/SignalGeometry.h"
 #include "graphics/VisualPolish.h"
 #include "graphics/items/ConnectionItem.h"
+#include "graphics/items/HighlightEffect.h"
+#include "graphics/items/NetworkMarkItem.h"
 #include "graphics/items/NodeItem.h"
 #include "graphics/items/PassengerItem.h"
 #include "graphics/items/PlatformItem.h"
@@ -31,6 +33,7 @@
 #include "graphics/items/TrainBadgeItem.h"
 #include "graphics/items/TrainBodyItem.h"
 #include "graphics/items/TrainItemGroup.h"
+#include "graphics/items/VirtualArcItem.h"
 #include "scene/SceneReferences.h"
 #include "util/PlaybackProfiler.h"
 #include "util/SpeedFormat.h"
@@ -73,13 +76,10 @@
 #include <QtMath>
 
 #include <algorithm>
-#include <cfloat>
-#include <climits>
 #include <cmath>
 #include <cstdlib>
 #include <limits>
 #include <optional>
-#include <sstream>
 #include <string_view>
 #include <tuple>
 #include <unordered_map>
@@ -93,15 +93,128 @@ constexpr double kPi = 3.14159265;
 // The zoom of the view from which the labels of the platforms are legible.
 constexpr qreal kDenseDetailZoom = 3.0;
 
+// The diameter of the nodes of a double switch, which keep their item but show no dot. It was once written as a
+// cast of 0.1, which truncates to 0.
+constexpr int kHiddenNodeSize = 0;
+
+// The number of seconds after its step for which a message of virtual coupling shows at its train.
+constexpr int kVirtualCouplingMessageSeconds = 40;
+
+// The look of a callout: a line from the origin of its group to a box with a text in it, up to the bottom centre of the
+// box, or down to its top centre when the callout hangs (drawCallout()).
+struct CalloutLook {
+	qreal rise;		  // The length of the line, in track separations.
+	int fontDivisor;  // The pixel size of the font is station_size divided by this.
+	qreal boxFactor;  // The box is this much wider and taller than the text.
+	QColor textColor; // The colour of the text.
+	qreal z;		  // The stacking of the callout.
+};
+
+// The passengers on board of the selected train.
+const CalloutLook kTrainPassengersCallout{1.0, 15, 1.15, Qt::black, 5.0};
+// The details of the selected passenger.
+const CalloutLook kPassengerCallout{0.75, 15, 1.15, Qt::black, 5.0};
+// The message of a virtual coupling, over the trains (z 4) and their speed (z 4.2 and 4.3), and under the station
+// names (z 4.5): it shows by itself, and only what a click opens may cover a name.
+const CalloutLook kVirtualCouplingCallout{2.0, 6, 1.25, Qt::white, 4.4};
+
+// The orange of the line and the box of a callout.
+const QColor kCalloutColor(242, 161, 106);
+
+// The scene y of the top of the part of the scene that the view shows; minus infinity without a view.
+qreal visibleTop(const QGraphicsView* view) {
+	return view ? view->mapToScene(view->viewport()->rect()).boundingRect().top() : -std::numeric_limits<qreal>::infinity();
+}
+
+// Shows text in the callout group, which is made and added to scene when it is null, and returns the group. The callout
+// points at target, a rectangle in scene coordinates: it stands on the middle of its top edge, or, when its box would
+// then reach above the scene y ceiling, hangs from the middle of its bottom edge. The group goes to the start of its line.
+// The text is laid out again only when it or the scale changes.
+QGraphicsItemGroup* drawCallout(QGraphicsScene* scene, QGraphicsItemGroup* group, const CalloutLook& look,
+	const QString& text, qreal scale, const QRectF& target, qreal ceiling = -std::numeric_limits<qreal>::infinity()) {
+	const bool fresh = !group;
+	QGraphicsLineItem* line = nullptr;
+	QGraphicsRectItem* box = nullptr;
+	QGraphicsTextItem* label = nullptr;
+	if (fresh) {
+		group = new QGraphicsItemGroup;
+		line = new QGraphicsLineItem;
+		box = new QGraphicsRectItem;
+		label = new QGraphicsTextItem;
+		QPen pen(kCalloutColor);
+		pen.setWidth(NetworkPresenter::line_width);
+		pen.setCosmetic(true);
+		line->setPen(pen);
+		box->setBrush(kCalloutColor);
+		QFont font;
+		font.setPixelSize(NetworkPresenter::station_size / look.fontDivisor);
+		label->setFont(font);
+		label->setDefaultTextColor(look.textColor);
+		group->addToGroup(line);
+		group->addToGroup(box);
+		group->addToGroup(label);
+		group->setZValue(look.z);
+		scene->addItem(group);
+	} else {
+		for (QGraphicsItem* child : group->childItems()) {
+			if (auto* lineChild = qgraphicsitem_cast<QGraphicsLineItem*>(child))
+				line = lineChild;
+			else if (auto* boxChild = qgraphicsitem_cast<QGraphicsRectItem*>(child))
+				box = boxChild;
+			else if (auto* textChild = qgraphicsitem_cast<QGraphicsTextItem*>(child))
+				label = textChild;
+		}
+	}
+	if (!line || !box || !label)
+		return group;
+	if (fresh || label->toPlainText() != text || label->scale() != scale) {
+		label->setPlainText(text);
+		label->setScale(scale);
+		const QRectF textRect = label->boundingRect();
+		box->setRect(QRectF(0, 0, look.boxFactor * (textRect.width() * scale), look.boxFactor * (textRect.height() * scale)));
+		QPen boxPen = box->pen();
+		boxPen.setWidthF(scale);
+		box->setPen(boxPen);
+	}
+
+	// the box stands on the end of the line, or hangs from it, and the text is in its centre
+	const qreal rise = look.rise * NetworkPresenter::track_separation * scale;
+	const QRectF textRect = label->boundingRect();
+	const QRectF boxRect = box->boundingRect();
+	const bool hangs = target.top() - rise - boxRect.height() < ceiling;
+	const QPointF end(0.0, hangs ? rise : -rise);
+	line->setLine(QLineF(QPointF(), end));
+	box->setPos(end.x() - boxRect.width() / 2, hangs ? end.y() : end.y() - boxRect.height());
+	label->setPos(box->pos()
+		+ QPointF(0.5 * (boxRect.width() - textRect.width() * scale), 0.5 * (boxRect.height() - textRect.height() * scale)));
+	group->setPos(target.center().x(), hangs ? target.bottom() : target.top());
+	return group;
+}
+
 // A station node stands for a platform: its platform id is neither empty nor "None".
 bool hasPlatformId(const std::string& platformId) {
 	return !platformId.empty() && platformId != "None";
+}
+
+// A platform in words: "Guingamp, platform 2" for "Guingamp.platform.2", the form in which the import names the
+// platforms of a station, and any other id as it is.
+std::string platformWords(const std::string& platformId) {
+	const std::string separator = ".platform.";
+	const std::size_t at = platformId.rfind(separator);
+	if (at == std::string::npos || at == 0 || at + separator.size() == platformId.size())
+		return platformId;
+	return platformId.substr(0, at) + ", platform " + platformId.substr(at + separator.size());
 }
 
 // A station node gets a platform bar for a platform of a station that is not virtual: its name does not hold "virtual",
 // as for the station overlays.
 bool hasPlatformBar(const std::string& stationName, const std::string& platformId) {
 	return hasPlatformId(platformId) && stationName.find("virtual") == std::string::npos;
+}
+
+// The counter of a platform: how many passengers wait on it and how many it holds, such as "3 waiting (capacity 99)".
+QString platformCounterText(int waiting, int capacity) {
+	return QStringLiteral("%1 waiting (capacity %2)").arg(waiting).arg(capacity);
 }
 
 // The glide of a train between two live updates lasts this many times the longest of the last update intervals but
@@ -123,20 +236,6 @@ constexpr std::size_t kMeasuredIntervals = 8;
 // train moves, whenever the updates come. An update leaves a gliding train that the last step drew where it is, so
 // that a frame that follows an update shows no more motion than another.
 constexpr int kMotionStepMs = 16;
-
-// The X in kilometres of the point at the position q along a route, in metres, as the simulation finds the end of a
-// wagon (trainXPositionOf()): on the first section of the route that holds it, or -1 where it is on none.
-double routeXAt(const Route& route, bool reversed, double q) {
-	const int sections = std::min(route.N_Block_Sections, static_cast<int>(route.sequence_of_block_sections.size()));
-	for (int i = 0; i < sections; ++i) {
-		const Section& section = route.sequence_of_block_sections[static_cast<std::size_t>(i)];
-		if (q >= section.start_node.X * 1000 && q < section.end_node.X * 1000) {
-			const double portion = q - section.start_node.X * 1000;
-			return (reversed ? section.GeoXBegNode - portion : section.GeoXBegNode + portion) / 1000;
-		}
-	}
-	return -1.0;
-}
 
 // The middle of the front of a train as it is drawn, in scene coordinates, where its callouts start. Returns false while
 // its head has no shape.
@@ -195,19 +294,128 @@ NoFrameHost& noFrameHost() {
 	return host;
 }
 
-// The point at the position X of a track line, shifted to its display level: a linear interpolation of the
-// shifted stations on both sides of X in the region of the track line.
-void interpolateBetweenStations(Stations& first, Stations& second, int region, double X, double level, double separation,
-	double& graphX, double& graphY) {
-	// shifted stations
-	const double x1 = first.graphX + first.shiftX[region] * level * separation;
-	const double x2 = second.graphX + second.shiftX[region] * level * separation;
-	const double y1 = first.graphY + first.shiftY[region] * level * separation;
-	const double y2 = second.graphY + second.shiftY[region] * level * separation;
+// The value of a display region in a map of the layout of a station, or 0 for a region that the map lacks.
+double regionValue(const std::map<int, double>& values, int region) {
+	const auto found = values.find(region);
+	return found == values.end() ? 0.0 : found->second;
+}
 
-	// linear interpolation of geodetic coordinates using known coordinates of closest stations
-	graphX = x1 + (((X - first.regionX[region]) / (second.regionX[region] - first.regionX[region])) * (x2 - x1));
-	graphY = y1 + (((X - first.regionX[region]) / (second.regionX[region] - first.regionX[region])) * (y2 - y1));
+// The unit vector along which the display levels of the tracks shift at middle, on a line from previous through middle
+// to next: the direction of the bisector of the angle at middle. The angle of the shift counts from the x axis of the
+// screen and, because the y axis points down, is positive clockwise.
+QPointF bisectorShift(const QPointF& previous, const QPointF& middle, const QPointF& next) {
+	const double x1 = previous.x();
+	const double y1 = previous.y();
+	const double x2 = middle.x();
+	const double y2 = middle.y();
+	const double x3 = next.x();
+	const double y3 = next.y();
+	const double dot = (x1 - x2) * (x3 - x2) + (y1 - y2) * (y3 - y2); // dot product
+	const double det = (x1 - x2) * (y3 - y2) - (y1 - y2) * (x3 - x2); // determinant
+	// the angle between the two arcs, in the range 0 to 2 * kPi
+	double alpha = atan2(det, dot);
+	if (alpha < 0)
+		alpha += 2 * kPi;
+	// the angle between the first arc and the x axis of the screen
+	const double beta = atan2(-(y1 - y2), (x1 - x2));
+	const double gamma = alpha / 2 - beta;
+	return QPointF(cos(gamma), sin(gamma));
+}
+
+// The longest that a mitre of the outline of a body reaches from its corner, in half widths of the body: twice the width,
+// the default miter limit of QPainterPathStroker.
+constexpr qreal kMitreLimit = 4.0;
+
+// The middle line of a body along the drawn track of a route, from the points of that track from the back of the body
+// to its front and their positions along the route: the points from the front, without a point within same of the one
+// before it and without one on the straight way from its neighbours. Where the drawn track steps from one track to
+// another at a single position, between two sections, the line leaves out both sides of the step, unless one is an end of
+// the body, and runs straight from the point before it to the point after it, so that the step is not part of the body.
+void bodyLine(const std::vector<QPointF>& points, const std::vector<double>& positions, qreal same,
+	std::vector<QPointF>& line) {
+	line.clear();
+	for (std::size_t k = points.size(); k-- > 0;) {
+		const QPointF& point = points[k];
+		if (!line.empty() && QLineF(line.back(), point).length() <= same)
+			continue;
+		if (k + 1 < points.size() && positions[k] >= positions[k + 1] - 1e-6) {
+			if (line.size() > 1)
+				line.pop_back();
+			if (k > 0)
+				continue;
+		}
+		if (line.size() >= 2) {
+			const QPointF in = line.back() - line[line.size() - 2];
+			const QPointF out = point - line.back();
+			const qreal cross = in.x() * out.y() - in.y() * out.x();
+			if (std::fabs(cross) <= 1e-9 * std::hypot(in.x(), in.y()) * std::hypot(out.x(), out.y())
+				&& QPointF::dotProduct(in, out) > 0.0)
+				line.pop_back();
+		}
+		line.push_back(point);
+	}
+}
+
+// The outline of a body whose middle runs along line, from its front to its back: the line stroked at twice half wide,
+// with flat ends and mitred corners, as QPainterPathStroker strokes it with Qt::FlatCap and Qt::MiterJoin. A mitre
+// reaches at most kMitreLimit half widths from its corner. A piece at an end of the line that is shorter than the inside
+// of the corner at its other end reaches along it is left out, so that the body ends at that corner, square to the piece
+// after it and at its full width. On the inside of a corner between two other pieces the outline reaches along neither
+// piece past its middle, so that it does not fold over itself. The corners of the outline run along the right of the
+// train from the front to the back and then along its left back to the front, so that the first and the last are the
+// corners of its front. A line of fewer than two points has no outline.
+void bodyOutline(const std::vector<QPointF>& line, qreal half, QPolygonF& outline) {
+	outline.clear();
+	if (line.size() < 2)
+		return;
+	const auto length = [&line](std::size_t piece) { return QLineF(line[piece], line[piece + 1]).length(); };
+	// The direction of a piece from the front towards the back, and the side to the right of the train, which runs the
+	// other way.
+	const auto direction = [&line, &length](std::size_t piece) { return (line[piece + 1] - line[piece]) / length(piece); };
+	const auto rightOf = [](const QPointF& along) { return QPointF(along.y(), -along.x()); };
+	// The mitre of the corner at a point between two pieces, to the right of the train and in half widths.
+	const auto mitreAt = [&direction, &rightOf](std::size_t corner) {
+		const QPointF normals = rightOf(direction(corner - 1)) + rightOf(direction(corner));
+		const qreal sum = std::hypot(normals.x(), normals.y());
+		// normals has the length 2 cos(a / 2) for a turn by a, and the mitre the length 1 / cos(a / 2).
+		if (sum * kMitreLimit >= 2.0)
+			return normals * (2.0 / (sum * sum));
+		return sum > 0.0 ? normals * (kMitreLimit / sum) : QPointF();
+	};
+	// How far the inside of a corner reaches back along the piece before it, as far as it reaches along the piece after it.
+	const auto reachAt = [&mitreAt, &direction, half](std::size_t corner) {
+		return half * std::fabs(QPointF::dotProduct(mitreAt(corner), direction(corner - 1)));
+	};
+	std::size_t first = 0;
+	std::size_t last = line.size() - 1;
+	while (last - first >= 2 && length(first) < reachAt(first + 1))
+		++first;
+	while (last - first >= 2 && length(last - 1) < reachAt(last - 1))
+		--last;
+	// How far a corner on the inside may reach along a piece: all of it at an end of the body, otherwise half of it.
+	const auto room = [&length, first, last](std::size_t piece) {
+		return piece == first || piece + 1 == last ? length(piece) : length(piece) / 2.0;
+	};
+	const std::size_t points = last - first + 1;
+	outline.resize(static_cast<qsizetype>(2 * points));
+	for (std::size_t i = first; i <= last; ++i) {
+		QPointF right;
+		QPointF left;
+		if (i == first || i == last) {
+			right = rightOf(direction(i == first ? first : last - 1));
+			left = -right;
+		} else {
+			const QPointF mitre = mitreAt(i);
+			// The corner on the inside lies back along the piece before it, as far as it lies along the piece after it.
+			const qreal back = QPointF::dotProduct(mitre, direction(i - 1));
+			const qreal reach = half * std::fabs(back);
+			const qreal inside = reach > 0.0 ? std::min(1.0, std::min(room(i - 1), room(i)) / reach) : 1.0;
+			right = mitre * (back < 0.0 ? inside : 1.0);
+			left = -mitre * (back < 0.0 ? 1.0 : inside);
+		}
+		outline[static_cast<qsizetype>(i - first)] = line[i] + right * half;
+		outline[static_cast<qsizetype>(2 * points - 1 - (i - first))] = line[i] + left * half;
+	}
 }
 
 void tagPreviewItem(QGraphicsItem* item, const QString& kind, const std::string& id) {
@@ -287,9 +495,12 @@ void NetworkPresenter::clear() {
 	allPlatforms.clear();
 	m_tracksBySectionId.clear();
 	m_sectionIndexById.clear();
+	m_switchEnds.clear();
 	m_tracksByOccupiedArc.clear();
 	m_activeTrackItems.clear();
 	m_regionStations.clear();
+	m_trackLevels.clear();
+	m_stationLayouts.clear();
 	m_trainsByIndex.clear();
 	m_platformsById.clear();
 	m_platformsStale = false;
@@ -298,6 +509,13 @@ void NetworkPresenter::clear() {
 	paxIconInfoItem = nullptr;
 	paxIconItem = nullptr;
 	effect = nullptr;
+	m_selectionMark = nullptr;
+	m_runSectionMark = nullptr;
+	m_runSections.reset();
+	m_previewNodeItems.clear();
+	m_previewPlatformBars.clear();
+	m_previewShown = false;
+	m_previewGeneration.reset();
 }
 
 void NetworkPresenter::setGeometrySource(std::unique_ptr<RuntimeGeometrySource> source) {
@@ -308,6 +526,172 @@ void NetworkPresenter::resetPreviewFit() {
 	m_previewFitBounds = QRectF();
 	m_previewHasSelectedTrack = false;
 	m_previewHasSignals = false;
+}
+
+void NetworkPresenter::restorePreviewFit(const PreviewFit& fit) {
+	m_previewFitBounds = fit.bounds;
+	m_previewZoomFocus = fit.zoomFocus;
+}
+
+bool NetworkPresenter::hasContent() const {
+	return !allTrains.isEmpty() || !allArcs.isEmpty() || !allSignals.isEmpty() || !allPlatforms.isEmpty()
+		|| !m_stationOverlays.isEmpty() || !m_stationDecorations.isEmpty() || !m_signalDecorations.isEmpty()
+		|| !m_vcMessageItems.isEmpty() || trainsMoving() || !m_tracksBySectionId.empty()
+		|| !m_tracksByOccupiedArc.empty() || !m_activeTrackItems.empty();
+}
+
+void NetworkPresenter::setStationLayerVisible(bool visible) {
+	m_stationLayerVisible = visible;
+	for (auto* item : std::as_const(m_stationDecorations))
+		if (item)
+			item->setVisible(visible);
+	for (auto* label : std::as_const(m_stationLabels))
+		if (label)
+			label->setVisible(visible && m_stationNamesVisible);
+	if (m_selectionMark)
+		m_selectionMark->sync();
+}
+
+void NetworkPresenter::setStationNamesVisible(bool visible) {
+	m_stationNamesVisible = visible;
+	for (auto* overlay : std::as_const(m_stationOverlays))
+		if (overlay)
+			overlay->setNameVisible(visible);
+	for (auto* label : std::as_const(m_stationLabels))
+		if (label)
+			label->setVisible(visible && m_stationLayerVisible);
+}
+
+void NetworkPresenter::setTrainLayerVisible(bool visible, const std::function<bool(const TrainItemGroup&)>& present) {
+	m_trainLayerVisible = visible;
+	for (auto* train : std::as_const(allTrains))
+		if (train)
+			train->setVisible(visible && present(*train));
+	for (auto it = m_trainBadges.cbegin(); it != m_trainBadges.cend(); ++it) {
+		if (!it.value())
+			continue;
+		auto trainIt = std::find_if(allTrains.cbegin(), allTrains.cend(),
+			[it](const TrainItemGroup* train) { return train && train->index == it.key(); });
+		it.value()->setVisible(visible && trainIt != allTrains.cend() && present(**trainIt));
+	}
+}
+
+void NetworkPresenter::setTrainSpeedLabelsVisible(bool visible) {
+	m_trainSpeedLabelsVisible = visible;
+	for (auto* badge : std::as_const(m_trainBadges))
+		if (badge)
+			badge->setSpeedVisible(visible);
+}
+
+void NetworkPresenter::setSignalLayerVisible(bool visible) {
+	m_signalLayerVisible = visible;
+}
+
+void NetworkPresenter::setPassengerLayerVisible(bool visible) {
+	m_passengerLayerVisible = visible;
+	applyPlatformVisibility();
+	if (trainPaxInfoItem)
+		trainPaxInfoItem->setVisible(visible);
+}
+
+void NetworkPresenter::updateViewOverlays(const std::function<bool(const StationOverlayItem*)>& selected,
+	const StationOverlayItem* followed) {
+	if (!m_view)
+		return;
+	for (auto* overlay : std::as_const(m_stationOverlays)) {
+		if (!overlay)
+			continue;
+		overlay->setSelected(selected(overlay));
+		overlay->setVisible(m_stationLayerVisible);
+		overlay->setFollowed(overlay == followed);
+	}
+	const qreal viewScale = std::abs(m_view->transform().m11());
+	if (effect)
+		effect->setViewScale(viewScale);
+	// The station marks give way to the station squares and the platform bars once the tracks of a station are far
+	// enough apart on screen.
+	const bool nearLook = m_stationTrackSpacing * viewScale >= StationOverlayItem::NearTrackSpacingPixels;
+	setStationNearLook(nearLook);
+	for (auto* overlay : std::as_const(m_stationOverlays))
+		if (overlay)
+			overlay->applyViewScale(viewScale, nearLook);
+	// The mark follows the bars and the station marks, which the near look shows and hides.
+	if (m_selectionMark) {
+		m_selectionMark->setViewScale(viewScale);
+		m_selectionMark->sync();
+	}
+	if (m_runSectionMark)
+		m_runSectionMark->setViewScale(viewScale);
+	for (TrainItemGroup* train : std::as_const(allTrains))
+		if (train)
+			train->applyViewScale(viewScale);
+	StationOverlayItem::resolveNameCollisions(m_stationOverlays, m_view->viewportTransform(), m_view->paddedTopologyBounds());
+	for (auto* overlay : std::as_const(m_stationOverlays))
+		if (overlay && overlay->nameItem())
+			overlay->nameItem()->setVisible(m_stationLayerVisible && m_stationNamesVisible
+				&& !overlay->isNameHiddenByCollision());
+}
+
+// Keep every authored signal at its own anchor, including opposing heads.
+// The decoration list also owns the posts and bases in preview and playback.
+void NetworkPresenter::updateSignalCues() {
+	for (QGraphicsItem* item : std::as_const(m_signalDecorations)) {
+		if (!item)
+			continue;
+		const bool visible = m_signalLayerVisible && item->data(kSignalBaseVisibleRole).toBool();
+		auto* signal = qgraphicsitem_cast<SignalItem*>(item);
+		if (signal) {
+			signal->setGroupedSignals({});
+			if (item->data(kSignalAnchorRole).isValid())
+				signal->setPos(item->data(kSignalAnchorRole).toPointF());
+		}
+		item->setVisible(visible);
+	}
+	if (m_selectionMark)
+		m_selectionMark->sync();
+}
+
+void NetworkPresenter::updateTrainBadges() {
+	if (!m_view)
+		return;
+	for (auto it = m_trainBadges.cbegin(); it != m_trainBadges.cend(); ++it) {
+		if (!it.value())
+			continue;
+		const bool promoted = m_host->isTrainOverlayPromoted(it.key());
+		it.value()->setPromoted(promoted);
+		it.value()->setPresentation(
+			TrainBadgeItem::presentationForZoom(m_view->zoomRatio(), promoted));
+	}
+}
+
+void NetworkPresenter::setHighlight(QGraphicsItem* item) {
+	if (!effect) {
+		effect = new HighlightEffect(Qt::blue, 1);
+	}
+	item->setGraphicsEffect(effect);
+}
+
+void NetworkPresenter::clearHighlight() {
+	if (effect) {
+		delete effect;
+		effect = nullptr;
+	}
+}
+
+SignalItem* NetworkPresenter::inspectedSignal() const {
+	return m_inspectedSignal && m_signalDecorations.contains(m_inspectedSignal) ? m_inspectedSignal : nullptr;
+}
+
+void NetworkPresenter::setInspectedSignal(SignalItem* signal) {
+	m_inspectedSignal = signal;
+}
+
+void NetworkPresenter::clearSelectedTrain() {
+	trainPaxItem = nullptr;
+}
+
+void NetworkPresenter::clearSelectedPassengerIcon() {
+	paxIconItem = nullptr;
 }
 
 QList<NetworkPresenter::FindTarget> NetworkPresenter::findTargets() const {
@@ -369,11 +753,8 @@ QList<NetworkPresenter::FindTarget> NetworkPresenter::findTargets() const {
 }
 
 const TrackPreviewLine* NetworkPresenter::trackLine(const std::string& sceneTrackId) const {
-	const auto line = std::find_if(m_cachedTrackPreview.lines.begin(),
-		m_cachedTrackPreview.lines.end(), [&sceneTrackId](const TrackPreviewLine& candidate) {
-			return candidate.id == sceneTrackId;
-		});
-	return line == m_cachedTrackPreview.lines.end() ? nullptr : &*line;
+	const auto line = m_previewLinesById.find(sceneTrackId);
+	return line == m_previewLinesById.end() ? nullptr : line->second;
 }
 
 const TrackPreviewSignal* NetworkPresenter::previewSignal(const std::string& trackId, const std::string& sectionId) const {
@@ -400,91 +781,21 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 	return showPreview(sceneModel, PreviewOptions());
 }
 
-NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel& sceneModel, const PreviewOptions& options) {
-	QGraphicsScene* const scene = m_scene;
-	resetPreviewFit();
-	const std::string& selectedFacet = options.selectedFacet;
-	const std::string& selectedId = options.selectedId;
-	std::set<std::string> selectedTrackIds;
-	const auto selectTrack = [&selectedTrackIds](const std::string& id) {
-		if (!id.empty())
-			selectedTrackIds.insert(id);
-	};
-	const auto selectNode = [&selectTrack, &sceneModel](const std::string& id) {
-		if (id.empty())
-			return;
-		for (const auto& node : sceneModel.nodes)
-			if (node.id == id)
-				selectTrack(node.trackId);
-	};
-	if (selectedFacet == "tracks") {
-		selectTrack(selectedId);
-	} else if (selectedFacet == "nodes") {
-		selectNode(selectedId);
-	} else if (selectedFacet == "arcs") {
-		for (const auto& arc : sceneModel.arcs)
-			if (arc.id == selectedId)
-				selectTrack(arc.trackId);
-	} else if (selectedFacet == "blocks") {
-		for (const auto& block : sceneModel.blocks)
-			if (block.id == selectedId)
-				selectTrack(block.trackId);
-	} else if (selectedFacet == "connections") {
-		for (const auto& connection : sceneModel.connections) {
-			if (connection.id != selectedId)
-				continue;
-			for (const auto& node : sceneModel.nodes) {
-				if (node.id == connection.fromNodeId || node.id == connection.toNodeId)
-					selectTrack(node.trackId);
-			}
-		}
-	} else if (selectedFacet == "stations") {
-		for (const auto& station : sceneModel.stations) {
-			if (station.id != selectedId)
-				continue;
-			for (const auto& platform : station.platforms)
-				for (const auto& nodeId : platform.nodeIds)
-					selectNode(nodeId);
-		}
-	} else if (selectedFacet == "platforms") {
-		const std::size_t separator = selectedId.find('\n');
-		if (separator != std::string::npos) {
-			const std::string stationId = selectedId.substr(0, separator);
-			const std::string platformId = selectedId.substr(separator + 1);
-			for (const auto& station : sceneModel.stations) {
-				if (station.id != stationId)
-					continue;
-				for (const auto& platform : station.platforms)
-					if (platform.id == platformId)
-						for (const auto& nodeId : platform.nodeIds)
-							selectNode(nodeId);
-			}
-		}
-	} else if (selectedFacet == "routes") {
-		for (const auto& route : sceneModel.routes) {
-			if (route.id != selectedId)
-				continue;
-			for (const auto& token : route.blocks) {
-				for (const auto& component : sceneBlockReferenceComponents(token)) {
-					for (const auto& block : sceneModel.blocks)
-						if (block.id == component)
-							selectTrack(block.trackId);
-				}
-			}
-		}
-	}
-	m_previewHasSelectedTrack = !selectedTrackIds.empty();
-	m_cachedTrackPreview = normalizeTrackPreview(loadTrackPreview(sceneModel));
-	const TrackPreviewResult& preview = m_cachedTrackPreview;
-	if (preview.lines.empty()) {
-		if (scene)
-			scene->setSceneRect(QRectF());
-		return {};
-	}
-
+/// What the stages of showPreview() share.
+struct NetworkPresenter::PreviewDrawing {
+	/// The line of each track that has a drawable shape, by track id, with its display offset.
+	std::map<std::string, std::pair<const TrackPreviewLine*, qreal>> tracks;
+	/// The same lines in the order of the preview.
+	std::vector<const TrackPreviewLine*> drawnLines;
+	/// The bounds of the points of the drawn lines and connections; empty until hasPreviewBounds.
 	QRectF previewBounds;
+	/// Whether previewBounds holds a point yet.
 	bool hasPreviewBounds = false;
-	const auto includePreviewPoint = [&previewBounds, &hasPreviewBounds](const QPointF& point) {
+	/// The station and the platform of each node, by node id.
+	std::map<std::string, PreviewStationMembership> memberships;
+
+	/// Extends the bounds to point.
+	void includePreviewPoint(const QPointF& point) {
 		if (!hasPreviewBounds) {
 			previewBounds = QRectF(point, point);
 			hasPreviewBounds = true;
@@ -494,9 +805,50 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 		previewBounds.setRight(qMax(previewBounds.right(), point.x()));
 		previewBounds.setTop(qMin(previewBounds.top(), point.y()));
 		previewBounds.setBottom(qMax(previewBounds.bottom(), point.y()));
-	};
-	std::map<std::string, std::pair<const TrackPreviewLine*, qreal>> tracks;
-	std::vector<const TrackPreviewLine*> drawnLines;
+	}
+};
+
+NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel& sceneModel, const PreviewOptions& options) {
+	QGraphicsScene* const scene = m_scene;
+	resetPreviewFit();
+	PreviewDrawing drawing;
+	m_previewShown = false;
+	m_previewGeneration = options.modelGeneration;
+	m_previewNodeItems.clear();
+	m_previewPlatformBars.clear();
+	m_selectionMark = nullptr;
+	m_cachedTrackPreview = normalizeTrackPreview(loadTrackPreview(sceneModel));
+	m_previewLinesById.clear();
+	for (const TrackPreviewLine& line : m_cachedTrackPreview.lines)
+		m_previewLinesById.emplace(line.id, &line);
+	if (m_cachedTrackPreview.lines.empty()) {
+		if (scene)
+			scene->setSceneRect(QRectF());
+		return {};
+	}
+
+	collectPreviewLines(drawing);
+	drawPreviewConnections(drawing);
+	drawPreviewTrackLines(sceneModel, drawing);
+	drawPreviewNodes(sceneModel, drawing);
+	drawPreviewStations(sceneModel, drawing);
+	measureStationTrackSpacing();
+	drawPreviewSignals(sceneModel, drawing);
+	fitPreview(drawing);
+	m_previewShown = true;
+	// The mark takes the scale of the fitted view.
+	placeSelectionMark(sceneModel, options);
+	// The scene queues every added item for polishing until the event loop runs, and deleting a queued item
+	// leaves an entry that each later deletion searches past. Previews drawn back to back would get slower with
+	// every call, so run the queued work now.
+	QCoreApplication::sendPostedEvents(scene, QEvent::MetaCall);
+	return {true, static_cast<int>(drawing.tracks.size()), drawing.hasPreviewBounds};
+}
+
+// Takes the lines of the preview that have a drawable shape, at least two points and all of them finite, and the bounds
+// of their points.
+void NetworkPresenter::collectPreviewLines(PreviewDrawing& drawing) const {
+	const TrackPreviewResult& preview = m_cachedTrackPreview;
 	for (std::size_t index = 0; index < preview.lines.size(); ++index) {
 		const auto& line = preview.lines[index];
 		if (line.points.size() < 2 || std::any_of(line.points.begin(), line.points.end(), [](const auto& point) {
@@ -504,13 +856,17 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 			}))
 			continue;
 		const qreal offset = static_cast<qreal>(line.displayOffset);
-		tracks[line.id] = {&line, offset};
-		drawnLines.push_back(&line);
+		drawing.tracks[line.id] = {&line, offset};
+		drawing.drawnLines.push_back(&line);
 		for (const auto& point : line.points)
-			includePreviewPoint(QPointF(point.x, point.y + offset));
+			drawing.includePreviewPoint(QPointF(point.x, point.y + offset));
 	}
+}
 
-	for (const auto& connection : preview.connections) {
+// Draws the connections between two drawn lines, which extend the bounds.
+void NetworkPresenter::drawPreviewConnections(PreviewDrawing& drawing) {
+	const auto& tracks = drawing.tracks;
+	for (const auto& connection : m_cachedTrackPreview.connections) {
 		const auto first = tracks.find(connection.firstTrackId);
 		const auto second = tracks.find(connection.secondTrackId);
 		if (first == tracks.end() || second == tracks.end())
@@ -525,49 +881,58 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 		auto* item = new ConnectionItem(QLineF(start, end));
 		item->setPen(connectionPen(line_width));
 		tagPreviewItem(item, "connection", connection.id);
-		scene->addItem(item);
-		includePreviewPoint(start);
-		includePreviewPoint(end);
+		m_scene->addItem(item);
+		drawing.includePreviewPoint(start);
+		drawing.includePreviewPoint(end);
 	}
+}
 
+// Draws the drawn lines arc by arc, in the colour and width of the speed limit of the arc.
+void NetworkPresenter::drawPreviewTrackLines(const SceneModel& sceneModel, const PreviewDrawing& drawing) {
+	// The first arc of a track between two nodes, in either direction.
+	std::map<std::tuple<std::string_view, std::string_view, std::string_view>, const SceneArc*> arcsByNodes;
+	for (const SceneArc& arc : sceneModel.arcs) {
+		const std::string_view from = arc.fromNodeId;
+		const std::string_view to = arc.toNodeId;
+		arcsByNodes.emplace(std::make_tuple(std::string_view(arc.trackId), std::min(from, to), std::max(from, to)), &arc);
+	}
 	// A run adds the connections first and the track lines after them, so a track is drawn over a connection.
-	for (const TrackPreviewLine* drawn : drawnLines) {
+	for (const TrackPreviewLine* drawn : drawing.drawnLines) {
 		const auto& line = *drawn;
 		const qreal offset = static_cast<qreal>(line.displayOffset);
 		const bool doubleSwitch = drawnAsDoubleSwitch(sceneModel, line.id);
 		for (std::size_t point = 1; point < line.points.size(); ++point) {
 			if (doubleSwitch && (point == 1 || point + 1 == line.points.size()))
 				continue;
-			const auto arc = std::find_if(sceneModel.arcs.begin(), sceneModel.arcs.end(), [&](const SceneArc& candidate) {
-				return candidate.trackId == line.id
-					&& ((candidate.fromNodeId == line.points[point - 1].nodeId
-							&& candidate.toNodeId == line.points[point].nodeId)
-						|| (candidate.toNodeId == line.points[point - 1].nodeId
-							&& candidate.fromNodeId == line.points[point].nodeId));
-			});
-			const TrackVisual visual = classifyTrackSpeed(arc == sceneModel.arcs.end() ? 0.0 : arc->speedLimitMs);
-			QPen pen(selectedTrackIds.count(line.id) > 0 ? kSelectionCueColor : visual.color);
-			pen.setWidth(selectedTrackIds.count(line.id) > 0 ? 4 : visual.width);
+			const std::string_view from = line.points[point - 1].nodeId;
+			const std::string_view to = line.points[point].nodeId;
+			const auto found = arcsByNodes.find(std::make_tuple(std::string_view(line.id), std::min(from, to), std::max(from, to)));
+			const SceneArc* const arc = found == arcsByNodes.end() ? nullptr : found->second;
+			const TrackVisual visual = classifyTrackSpeed(arc ? arc->speedLimitMs : 0.0);
+			QPen pen(visual.color);
+			pen.setWidth(visual.width);
 			pen.setCosmetic(true);
 			auto* item = new TrackLineItem(QLineF(line.points[point - 1].x, line.points[point - 1].y + offset,
 				line.points[point].x, line.points[point].y + offset));
 			item->setPen(pen);
-			tagPreviewItem(item, arc == sceneModel.arcs.end() ? "track" : "arc",
-				arc == sceneModel.arcs.end() ? line.id : arc->id);
-			scene->addItem(item);
+			tagPreviewItem(item, arc ? "arc" : "track", arc ? arc->id : line.id);
+			m_scene->addItem(item);
 		}
 	}
+}
 
-	const auto memberships = previewStationMemberships(sceneModel);
+// Draws the node at each point of a drawn line: the square of a station node, with the bar of its platform, or the dot
+// of another node.
+void NetworkPresenter::drawPreviewNodes(const SceneModel& sceneModel, PreviewDrawing& drawing) {
+	drawing.memberships = previewStationMemberships(sceneModel);
+	const auto& memberships = drawing.memberships;
 	std::map<std::string, int> connectionDegrees;
 	for (const auto& connection : sceneModel.connections) {
 		++connectionDegrees[connection.fromNodeId];
 		++connectionDegrees[connection.toNodeId];
 	}
-	std::map<std::string, QGraphicsItem*> nodeItems;
-	std::map<std::string, const PlatformItem*> platformBars;
-	for (const auto& line : preview.lines) {
-		if (!tracks.count(line.id))
+	for (const auto& line : m_cachedTrackPreview.lines) {
+		if (!drawing.tracks.count(line.id))
 			continue;
 		const bool doubleSwitch = drawnAsDoubleSwitch(sceneModel, line.id);
 		for (std::size_t index = 0; index < line.points.size(); ++index) {
@@ -599,7 +964,7 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 					const auto pointAt = [&line](std::size_t at) {
 						return QPointF(line.points[at].x, line.points[at].y + line.displayOffset);
 					};
-					platformBars[point.nodeId] =
+					m_previewPlatformBars[point.nodeId] =
 						addPlatformBar(pointAt(index - 1), pointAt(index), lineEnd ? pointAt(index) : pointAt(index + 1), size);
 				}
 			} else {
@@ -611,68 +976,304 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 			QPen pen = item->pen();
 			pen.setCosmetic(true);
 			item->setPen(pen);
-			scene->addItem(item);
-			nodeItems[point.nodeId] = item;
+			m_scene->addItem(item);
+			m_previewNodeItems[point.nodeId] = item;
+		}
+	}
+}
+
+namespace {
+// The polyline of a course on the preview in scene coordinates; empty when a point is not finite.
+QPolygonF finitePolyline(const std::vector<TrackPreviewPoint>& course) {
+	QPolygonF polyline;
+	for (const TrackPreviewPoint& point : course) {
+		if (!std::isfinite(point.x) || !std::isfinite(point.y))
+			return {};
+		polyline.append(QPointF(point.x, point.y));
+	}
+	return polyline;
+}
+
+// The courses of the sections that the reference names: the section that it resolves to, or else the block sections of
+// the blocks that it names (sceneBlockReferenceComponents). None for an empty reference.
+QList<QPolygonF> referenceCourses(const TrackPreviewResult& preview, const SceneSectionInventory& inventory,
+	const std::string& reference) {
+	QList<QPolygonF> courses;
+	if (reference.empty())
+		return courses;
+	if (const SceneSectionDescriptor* section = inventory.resolve(reference)) {
+		courses.append(previewSectionCourse(preview, *section));
+		return courses;
+	}
+	for (const std::string& component : sceneBlockReferenceComponents(reference))
+		if (const std::vector<std::size_t>* positions = inventory.sections.withSourceBlock(component))
+			for (const std::size_t position : *positions)
+				courses.append(previewSectionCourse(preview, inventory.sections[position]));
+	return courses;
+}
+
+// The item with the id, or null.
+template <typename Item>
+const Item* itemWithId(const std::vector<Item>& items, const std::string& id) {
+	const auto found = std::find_if(items.begin(), items.end(), [&id](const Item& item) { return item.id == id; });
+	return found == items.end() ? nullptr : &*found;
+}
+
+// The item in the row that the id names by its number, or null.
+template <typename Item>
+const Item* itemInRow(const std::vector<Item>& items, const std::string& id) {
+	bool ok = false;
+	const int row = QString::fromStdString(id).toInt(&ok);
+	return ok && row >= 0 && row < static_cast<int>(items.size()) ? &items[static_cast<std::size_t>(row)] : nullptr;
+}
+
+// What the mark of a selected row draws, before it is put in a NetworkMarkItem.
+struct SelectionMarkParts {
+	QList<QPolygonF> stretches;
+	QList<QPolygonF> emphasis;
+	bool directed = false;
+	QList<const QGraphicsItem*> rings;
+	QList<const QGraphicsItem*> halos;
+	bool track = false;
+};
+} // namespace
+
+void NetworkPresenter::placeSelectionMark(const SceneModel& sceneModel, const PreviewOptions& options) {
+	delete m_selectionMark;
+	m_selectionMark = nullptr;
+	m_previewHasSelectedTrack = false;
+	const std::string& facet = options.selectedFacet;
+	const std::string& id = options.selectedId;
+	if (!m_scene || !m_previewShown || facet.empty() || id.empty())
+		return;
+	const TrackPreviewResult& preview = m_cachedTrackPreview;
+	SelectionMarkParts parts;
+	const auto ringNode = [this, &parts](const std::string& nodeId) {
+		if (const auto node = m_previewNodeItems.find(nodeId); node != m_previewNodeItems.end())
+			parts.rings.append(node->second);
+	};
+	// The line between two nodes, each on the line of its own track.
+	const auto addLine = [this, &parts, &sceneModel](const std::string& fromNodeId, const std::string& toNodeId) {
+		QPolygonF line;
+		for (const std::string& nodeId : {fromNodeId, toNodeId}) {
+			const SceneNode* node = itemWithId(sceneModel.nodes, nodeId);
+			const TrackPreviewLine* drawn = node ? trackLine(node->trackId) : nullptr;
+			QPointF point;
+			if (!drawn || !previewPointAtNode(*drawn, nodeId, drawn->displayOffset, point))
+				return;
+			line.append(point);
+		}
+		parts.stretches.append(line);
+	};
+	// The sections of the model, built for the kinds that need them.
+	std::optional<SceneSectionInventory> built;
+	const auto inventory = [&built, &sceneModel]() -> const SceneSectionInventory& {
+		if (!built)
+			built = buildSceneSectionInventory(sceneModel);
+		return *built;
+	};
+	const auto addReference = [&](const std::string& reference) {
+		parts.stretches.append(referenceCourses(preview, inventory(), reference));
+	};
+
+	if (facet == "tracks") {
+		// The track as it is drawn: a double switch without its first and last arc.
+		if (const TrackPreviewLine* line = trackLine(id)) {
+			const bool doubleSwitch = drawnAsDoubleSwitch(sceneModel, id);
+			const std::size_t skip = doubleSwitch ? 1 : 0;
+			QPolygonF course;
+			for (std::size_t index = skip; index + skip < line->points.size(); ++index)
+				course.append(QPointF(line->points[index].x, line->points[index].y + line->displayOffset));
+			const bool finite = std::all_of(course.cbegin(), course.cend(),
+				[](const QPointF& point) { return std::isfinite(point.x()) && std::isfinite(point.y()); });
+			if (course.size() >= 2 && finite) {
+				parts.stretches.append(course);
+				parts.track = true;
+			}
+		}
+	} else if (facet == "nodes") {
+		ringNode(id);
+	} else if (facet == "arcs") {
+		if (const SceneArc* arc = itemWithId(sceneModel.arcs, id))
+			addLine(arc->fromNodeId, arc->toNodeId);
+	} else if (facet == "connections") {
+		if (const SceneConnection* connection = itemWithId(sceneModel.connections, id))
+			addLine(connection->fromNodeId, connection->toNodeId);
+	} else if (facet == "blocks") {
+		if (const std::vector<std::size_t>* positions = inventory().sections.withSourceBlock(id))
+			for (const std::size_t position : *positions)
+				parts.stretches.append(previewSectionCourse(preview, inventory().sections[position]));
+	} else if (facet == "stations") {
+		if (const SceneStation* station = itemWithId(sceneModel.stations, id)) {
+			for (StationOverlayItem* overlay : std::as_const(m_stationOverlays))
+				if (overlay && overlay->data(PreviewGraphics::Id).toString().toStdString() == id)
+					if (const QGraphicsPixmapItem* picture = m_stationPictures.value(overlay, nullptr))
+						parts.rings.append(picture);
+			for (const ScenePlatform& platform : station->platforms)
+				for (const std::string& nodeId : platform.nodeIds)
+					ringNode(nodeId);
+			// A station without platforms has the squares of the nodes at its position.
+			if (station->platforms.empty())
+				for (const auto& [nodeId, membership] : previewStationMemberships(sceneModel))
+					if (membership.stationId == id)
+						ringNode(nodeId);
+		}
+	} else if (facet == "platforms") {
+		const std::size_t separator = id.find('\n');
+		const SceneStation* station = separator == std::string::npos ? nullptr : itemWithId(sceneModel.stations, id.substr(0, separator));
+		if (const ScenePlatform* platform = station ? itemWithId(station->platforms, id.substr(separator + 1)) : nullptr) {
+			for (const std::string& nodeId : platform->nodeIds) {
+				ringNode(nodeId);
+				if (const auto bar = m_previewPlatformBars.find(nodeId); bar != m_previewPlatformBars.end())
+					parts.halos.append(bar->second);
+			}
+		}
+	} else if (facet == "signals") {
+		if (const SceneSignal* signal = itemWithId(sceneSignals(sceneModel), id)) {
+			// The heads at the start of the protected section; the section itself when the preview draws no head there, as
+			// at the start of a track.
+			if (const SceneSectionDescriptor* section = inventory().resolve(signal->protectedSection)) {
+				for (QGraphicsItem* item : std::as_const(m_signalDecorations))
+					if (qgraphicsitem_cast<SignalItem*>(item) && item->data(PreviewGraphics::Id).toString().toStdString() == section->id)
+						parts.rings.append(item);
+				if (parts.rings.isEmpty())
+					parts.stretches.append(previewSectionCourse(preview, *section));
+			}
+		}
+	} else if (facet == "signalling_areas") {
+		if (const SceneSignallingArea* area = itemWithId(sceneModel.signallingAreas, id)) {
+			for (const TrackPreviewLine& line : preview.lines)
+				if (area->trackId.empty() || line.id == area->trackId)
+					parts.stretches.append(finitePolyline(trackPreviewChainageCourse(line, area->startKm, area->endKm)));
+		}
+	} else if (facet == "routes") {
+		if (const SceneRoute* route = itemWithId(sceneModel.routes, id)) {
+			const SceneRouteTraversal traversal = buildSceneRouteTraversal(sceneModel, *route, inventory());
+			// The courses in travel order: against the chainage on a route driven in reverse.
+			for (std::size_t index = 0; index < route->blocks.size(); ++index) {
+				QList<QPolygonF> courses = referenceCourses(preview, inventory(), route->blocks[index]);
+				if (traversal.direction < 0)
+					for (QPolygonF& course : courses)
+						std::reverse(course.begin(), course.end());
+				if (static_cast<int>(index) == options.selectedRouteSection)
+					parts.emphasis.append(courses);
+				parts.stretches.append(courses);
+			}
+			parts.directed = traversal.direction != 0;
+		}
+	} else if (facet == "single_track_restrictions") {
+		if (const SceneSingleTrackRestriction* restriction = itemInRow(sceneModel.singleTrackRestrictions, id)) {
+			// The block sections from the start to the end on one track, in the order of the inventory, which lists the
+			// block sections of a track along it.
+			const SceneSectionInventory& sections = inventory();
+			const SceneSectionDescriptor* start = sections.resolve(restriction->startBlock);
+			const SceneSectionDescriptor* end = sections.resolve(restriction->endBlock);
+			const std::vector<std::size_t>* starts = start ? sections.sections.withId(start->id) : nullptr;
+			const std::vector<std::size_t>* ends = end ? sections.sections.withId(end->id) : nullptr;
+			if (starts && ends && !start->connectionDerived && !end->connectionDerived && start->firstTrackId == end->firstTrackId) {
+				const std::size_t from = std::min(starts->front(), ends->front());
+				const std::size_t to = std::max(starts->front(), ends->front());
+				for (std::size_t position = from; position <= to; ++position)
+					if (!sections.sections[position].connectionDerived && sections.sections[position].firstTrackId == start->firstTrackId)
+						parts.stretches.append(previewSectionCourse(preview, sections.sections[position]));
+			} else {
+				addReference(restriction->startBlock);
+				addReference(restriction->endBlock);
+			}
+			addReference(restriction->protectedStartBlock);
+			addReference(restriction->protectedEndBlock);
+		}
+	} else if (facet == "station_boundaries") {
+		if (const SceneStationBoundary* boundary = itemInRow(sceneModel.stationBoundaries, id)) {
+			addReference(boundary->entranceBlock);
+			if (boundary->hasExitBlock)
+				addReference(boundary->exitBlock);
+		}
+	} else if (facet == "block_dependencies") {
+		if (const SceneBlockDependency* dependency = itemInRow(sceneModel.blockDependencies, id)) {
+			addReference(dependency->block);
+			addReference(dependency->dependsOn);
 		}
 	}
 
-	// Selected-only editor emphasis is separate from structural boundary marks.
-	if (options.markSelection) {
-		if (selectedFacet == "arcs") {
-			for (const auto& arc : sceneModel.arcs) {
-				if (arc.id != selectedId)
-					continue;
-				const auto track = tracks.find(arc.trackId);
-				if (track == tracks.end())
-					break;
-				QPointF start;
-				QPointF end;
-				if (!previewPointAtNode(*track->second.first, arc.fromNodeId, track->second.second, start)
-					|| !previewPointAtNode(*track->second.first, arc.toNodeId, track->second.second, end))
-					break;
-				QPainterPath path(start);
-				path.lineTo(end);
-				QPen highlight(QColor(255, 110, 90));
-				highlight.setWidthF(6.0);
-				highlight.setCosmetic(true);
-				auto* item = scene->addPath(path, highlight);
-				item->setAcceptedMouseButtons(Qt::NoButton);
-				break;
-			}
-		}
-
-		if (selectedFacet == "connections") {
-			for (const auto& connection : sceneModel.connections) {
-				if (connection.id != selectedId)
-					continue;
-				const auto fromNode = std::find_if(sceneModel.nodes.begin(), sceneModel.nodes.end(),
-					[&connection](const SceneNode& node) { return node.id == connection.fromNodeId; });
-				const auto toNode = std::find_if(sceneModel.nodes.begin(), sceneModel.nodes.end(),
-					[&connection](const SceneNode& node) { return node.id == connection.toNodeId; });
-				if (fromNode == sceneModel.nodes.end() || toNode == sceneModel.nodes.end())
-					break;
-				const auto first = tracks.find(fromNode->trackId);
-				const auto second = tracks.find(toNode->trackId);
-				if (first == tracks.end() || second == tracks.end())
-					break;
-				QPointF start;
-				QPointF end;
-				if (!previewPointAtNode(*first->second.first, fromNode->id, first->second.second, start)
-					|| !previewPointAtNode(*second->second.first, toNode->id, second->second.second, end))
-					break;
-				QPainterPath path(start);
-				path.lineTo(end);
-				QPen highlight(QColor(255, 110, 90));
-				highlight.setWidthF(6.0);
-				highlight.setCosmetic(true);
-				auto* item = scene->addPath(path, highlight);
-				item->setAcceptedMouseButtons(Qt::NoButton);
-				break;
-			}
-		}
+	auto* mark = new NetworkMarkItem();
+	m_scene->addItem(mark);
+	if (m_view)
+		mark->setViewScale(std::abs(m_view->transform().m11()));
+	mark->setStretches(parts.stretches);
+	mark->setEmphasis(parts.emphasis);
+	mark->setDirected(parts.directed);
+	mark->setRingTargets(parts.rings);
+	mark->setHaloTargets(parts.halos);
+	// The mark leaves out the empty courses; a row with nothing on the preview has no mark.
+	if (mark->isEmpty()) {
+		delete mark;
+		return;
 	}
+	mark->setVisible(m_selectionMarkShown);
+	m_selectionMark = mark;
+	m_previewHasSelectedTrack = parts.track;
+}
 
-	// Station anchors: one fixed-size marker and name per canonical station.
+bool NetworkPresenter::markPreviewSelection(const SceneModel& sceneModel, const PreviewOptions& options) {
+	if (!m_previewShown || !options.modelGeneration || options.modelGeneration != m_previewGeneration)
+		return false;
+	placeSelectionMark(sceneModel, options);
+	if (!m_view || !m_selectionMark || !m_selectionMarkShown)
+		return true;
+	// The view keeps its zoom and moves only when it shows nothing of the mark.
+	const QRectF visible = m_view->mapToScene(m_view->viewport()->rect()).boundingRect();
+	QPointF nearest;
+	if (!m_selectionMark->intersects(visible) && m_selectionMark->nearestPoint(visible.center(), &nearest))
+		m_view->centerOn(nearest);
+	return true;
+}
+
+void NetworkPresenter::setSelectionMarkShown(bool shown) {
+	m_selectionMarkShown = shown;
+	if (m_selectionMark)
+		m_selectionMark->setVisible(shown);
+}
+
+void NetworkPresenter::markRunSections(const QStringList& sectionIds, const QStringList& emphasisIds) {
+	if (!m_scene || !m_runModel || !m_runSections)
+		return;
+	// The run is drawn on the track preview where it has one, so the courses of the preview lie on its tracks.
+	const auto courses = [this](const QStringList& ids) {
+		std::vector<std::string> references;
+		references.reserve(static_cast<std::size_t>(ids.size()));
+		for (const QString& id : ids)
+			references.push_back(id.toStdString());
+		return previewSectionCourses(m_cachedTrackPreview, *m_runSections, references);
+	};
+	const QList<QPolygonF> stretches = courses(sectionIds);
+	const QList<QPolygonF> emphasis = courses(emphasisIds);
+	const auto drawn = [](const QList<QPolygonF>& lines) {
+		return std::any_of(lines.begin(), lines.end(), [](const QPolygonF& line) { return !line.isEmpty(); });
+	};
+	// Nothing to draw adds no item to the scene.
+	if (!drawn(stretches) && !drawn(emphasis)) {
+		delete m_runSectionMark;
+		m_runSectionMark = nullptr;
+		return;
+	}
+	if (!m_runSectionMark) {
+		m_runSectionMark = new NetworkMarkItem();
+		if (m_view)
+			m_runSectionMark->setViewScale(std::abs(m_view->transform().m11()));
+		m_scene->addItem(m_runSectionMark);
+	}
+	m_runSectionMark->setStretches(stretches);
+	m_runSectionMark->setEmphasis(emphasis);
+}
+
+// Draws the station anchors: one fixed-size marker and name per canonical station.
+void NetworkPresenter::drawPreviewStations(const SceneModel& sceneModel, const PreviewDrawing& drawing) {
+	const TrackPreviewResult& preview = m_cachedTrackPreview;
+	const auto& tracks = drawing.tracks;
+	const auto& memberships = drawing.memberships;
+	const auto& nodeItems = m_previewNodeItems;
+	const auto& platformBars = m_previewPlatformBars;
 	for (const auto& station : preview.stations) {
 		if (station.name.find("virtual") != std::string::npos)
 			continue;
@@ -745,10 +1346,16 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 			break;
 		}
 	}
-	measureStationTrackSpacing();
+}
 
-	// Preview signals are derived from canonical block boundaries.  They stay
-	// in the existing decoration list so the layer toggle and teardown own them.
+// Draws the signals of the preview, which are derived from canonical block boundaries. They stay in the existing
+// decoration list so the layer toggle and teardown own them.
+void NetworkPresenter::drawPreviewSignals(const SceneModel& sceneModel, const PreviewDrawing& drawing) {
+	const TrackPreviewResult& preview = m_cachedTrackPreview;
+	const auto& tracks = drawing.tracks;
+	std::map<std::string, QStringList> signalIdsBySection;
+	for (const SceneSignal& source : sceneSignals(sceneModel))
+		signalIdsBySection[source.protectedSection].append(QString::fromStdString(source.id));
 	for (const auto& signal : preview.previewSignals) {
 		const auto track = tracks.find(signal.trackId);
 		if (track == tracks.end())
@@ -765,10 +1372,8 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 		if (!previewSignalNormal(*track->second.first, signal.rawX, normal))
 			continue;
 
-		QStringList canonicalIds;
-		for (const SceneSignal& source : sceneSignals(sceneModel))
-			if (source.protectedSection == signal.sectionId)
-				canonicalIds.append(QString::fromStdString(source.id));
+		const auto signalIds = signalIdsBySection.find(signal.sectionId);
+		const QStringList canonicalIds = signalIds == signalIdsBySection.end() ? QStringList() : signalIds->second;
 		QPointF before, after;
 		if (!previewPointAtX(*track->second.first, signal.rawX - 0.008,
 				track->second.second, before)
@@ -783,7 +1388,7 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 			QPen white(Qt::white, line_width);
 			white.setCosmetic(true);
 			for (const QLineF& stroke : {base, post}) {
-				auto* line = scene->addLine(stroke, white);
+				auto* line = m_scene->addLine(stroke, white);
 				line->setData(kSignalDecorationRole, true);
 				line->setData(kSignalTrackRole, -1);
 				line->setData(kSignalBaseVisibleRole, true);
@@ -815,7 +1420,7 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 			glyph->setData(kSignalBaseVisibleRole, true);
 			glyph->setData(kSignalAnchorRole, head);
 			glyph->setAcceptedMouseButtons(Qt::NoButton);
-			scene->addItem(glyph);
+			m_scene->addItem(glyph);
 			m_signalDecorations.push_back(glyph);
 			glyph->setVisible(m_signalLayerVisible);
 		}
@@ -823,49 +1428,49 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 	m_previewHasSignals = !preview.previewSignals.empty()
 		&& std::any_of(m_signalDecorations.cbegin(), m_signalDecorations.cend(),
 			[](QGraphicsItem* item) { return qgraphicsitem_cast<SignalItem*>(item) != nullptr; });
+}
 
+// Fits the view to the bounds of what the preview drew, with margins, and keeps the point of the drawn lines nearest to
+// the centre of the bounds as the zoom focus. Does nothing without bounds.
+void NetworkPresenter::fitPreview(const PreviewDrawing& drawing) {
+	if (!drawing.hasPreviewBounds)
+		return;
 	// Fit the drawn geometry directly; the generic fitView minimum-scale clamp
 	// is tuned for case-study coordinates and crops these kilometre-scale paths.
-	if (hasPreviewBounds) {
-		const QPointF target = previewBounds.center();
-		qreal bestDistance = std::numeric_limits<qreal>::max();
-		for (const auto& track : tracks) {
-			const auto& line = *track.second.first;
-			const qreal offset = track.second.second;
-			for (std::size_t index = 1; index < line.points.size(); ++index) {
-				const QPointF first(line.points[index - 1].x, line.points[index - 1].y + offset);
-				const QPointF second(line.points[index].x, line.points[index].y + offset);
-				const QPointF segment = second - first;
-				const qreal lengthSquared = QPointF::dotProduct(segment, segment);
-				const qreal ratio = lengthSquared > 0.0
-					? qBound<qreal>(0.0, QPointF::dotProduct(target - first, segment) / lengthSquared, 1.0)
-					: 0.0;
-				const QPointF candidate = first + ratio * segment;
-				const QPointF delta = candidate - target;
-				const qreal distance = QPointF::dotProduct(delta, delta);
-				if (distance < bestDistance) {
-					bestDistance = distance;
-					m_previewZoomFocus = candidate;
-				}
+	QRectF previewBounds = drawing.previewBounds;
+	const QPointF target = previewBounds.center();
+	qreal bestDistance = std::numeric_limits<qreal>::max();
+	for (const auto& track : drawing.tracks) {
+		const auto& line = *track.second.first;
+		const qreal offset = track.second.second;
+		for (std::size_t index = 1; index < line.points.size(); ++index) {
+			const QPointF first(line.points[index - 1].x, line.points[index - 1].y + offset);
+			const QPointF second(line.points[index].x, line.points[index].y + offset);
+			const QPointF segment = second - first;
+			const qreal lengthSquared = QPointF::dotProduct(segment, segment);
+			const qreal ratio = lengthSquared > 0.0
+				? qBound<qreal>(0.0, QPointF::dotProduct(target - first, segment) / lengthSquared, 1.0)
+				: 0.0;
+			const QPointF candidate = first + ratio * segment;
+			const QPointF delta = candidate - target;
+			const qreal distance = QPointF::dotProduct(delta, delta);
+			if (distance < bestDistance) {
+				bestDistance = distance;
+				m_previewZoomFocus = candidate;
 			}
 		}
-		if (previewBounds.height() < previewBounds.width() * 0.2) {
-			const qreal grow = previewBounds.width() * 0.2 - previewBounds.height();
-			previewBounds.adjust(0, -grow / 2.0, 0, grow / 2.0);
-		}
-		const qreal marginX = previewBounds.width() * 0.05;
-		const qreal marginY = previewBounds.height() * 0.1;
-		previewBounds.adjust(-marginX, -marginY, marginX, marginY);
-		m_previewFitBounds = previewBounds;
-		scene->setSceneRect(previewBounds);
-		if (m_view)
-			m_view->fitToBounds(previewBounds);
 	}
-	// The scene queues every added item for polishing until the event loop runs, and deleting a queued item
-	// leaves an entry that each later deletion searches past. Previews drawn back to back would get slower with
-	// every call, so run the queued work now.
-	QCoreApplication::sendPostedEvents(scene, QEvent::MetaCall);
-	return {true, static_cast<int>(tracks.size()), hasPreviewBounds};
+	if (previewBounds.height() < previewBounds.width() * 0.2) {
+		const qreal grow = previewBounds.width() * 0.2 - previewBounds.height();
+		previewBounds.adjust(0, -grow / 2.0, 0, grow / 2.0);
+	}
+	const qreal marginX = previewBounds.width() * 0.05;
+	const qreal marginY = previewBounds.height() * 0.1;
+	previewBounds.adjust(-marginX, -marginY, marginX, marginY);
+	m_previewFitBounds = previewBounds;
+	m_scene->setSceneRect(previewBounds);
+	if (m_view)
+		m_view->fitToBounds(previewBounds);
 }
 
 // Keep native font/pixmap metrics and scale their scene-space presentation. The
@@ -964,10 +1569,164 @@ QPointF NetworkPresenter::stationArtworkOffset(const TrackPreviewLine& line,
 	return offset * scale - QPointF(0.0, line.displayOffset);
 }
 
+void NetworkPresenter::bindStationOverlaySources() {
+	if (!m_scene)
+		return;
+	QList<StationNodeItem*> stationNodes;
+	for (QGraphicsItem* item : m_scene->items()) {
+		auto* station = qgraphicsitem_cast<StationNodeItem*>(item);
+		if (station && station->node)
+			stationNodes.append(station);
+	}
+	QList<QList<StationNodeItem*>> assignments;
+	assignments.reserve(m_stationOverlays.size());
+	for (int index = 0; index < m_stationOverlays.size(); ++index)
+		assignments.append(QList<StationNodeItem*>());
+	for (auto* station : stationNodes) {
+		const QString stationName = QString::fromStdString(station->node->stationName);
+		const QPointF stationCenter = station->sceneBoundingRect().center();
+		int nearestIndex = -1;
+		qreal nearestDistance = std::numeric_limits<qreal>::max();
+		for (int index = 0; index < m_stationOverlays.size(); ++index) {
+			const auto* overlay = m_stationOverlays.at(index);
+			if (!overlay || overlay->stationName() != stationName)
+				continue;
+			const QPointF delta = stationCenter - overlay->stableAnchor();
+			const qreal distance = delta.x() * delta.x() + delta.y() * delta.y();
+			bool nearer = nearestIndex < 0 || distance < nearestDistance;
+			if (!nearer && distance == nearestDistance) {
+				const QPointF currentAnchor = m_stationOverlays.at(nearestIndex)->stableAnchor();
+				const QPointF candidateAnchor = overlay->stableAnchor();
+				nearer = candidateAnchor.x() < currentAnchor.x()
+					|| (candidateAnchor.x() == currentAnchor.x()
+						&& candidateAnchor.y() < currentAnchor.y());
+			}
+			if (nearer) {
+				nearestIndex = index;
+				nearestDistance = distance;
+			}
+		}
+		if (nearestIndex >= 0)
+			assignments[nearestIndex].append(station);
+	}
+
+	for (int index = 0; index < m_stationOverlays.size(); ++index) {
+		auto* overlay = m_stationOverlays.at(index);
+		if (!overlay)
+			continue;
+		auto& assigned = assignments[index];
+		std::sort(assigned.begin(), assigned.end(), [overlay](const auto* left, const auto* right) {
+			const QPointF leftDelta = left->sceneBoundingRect().center() - overlay->stableAnchor();
+			const QPointF rightDelta = right->sceneBoundingRect().center() - overlay->stableAnchor();
+			const qreal leftDistance = leftDelta.x() * leftDelta.x() + leftDelta.y() * leftDelta.y();
+			const qreal rightDistance = rightDelta.x() * rightDelta.x() + rightDelta.y() * rightDelta.y();
+			if (leftDistance != rightDistance)
+				return leftDistance < rightDistance;
+			if (left->track != right->track)
+				return left->track < right->track;
+			return left->node->ID < right->node->ID;
+		});
+		QList<StationOverlayItem::SourceIdentity> identities;
+		for (const auto* station : assigned)
+			identities.append({station->node->ID, station->track});
+		overlay->setSourceIdentities(identities);
+		// The scene-sized artwork belongs to the real semantic station node.
+		// It can be picked at its painted location, not at a stale screen-space
+		// collision slot owned by the decorative overlay.
+		if (QGraphicsPixmapItem* picture = m_stationPictures.value(overlay, nullptr)) {
+			const QPointF scenePosition = picture->scenePos();
+			StationNodeItem* target = assigned.isEmpty() ? nullptr : assigned.first();
+			picture->setParentItem(target);
+			picture->setPos(target ? target->mapFromScene(scenePosition) : scenePosition);
+			if (target)
+				target->setZValue(StationMarkItem::HostZValue);
+			// The mark and its area are placed by the assigned station squares, and the area covers their platform bars.
+			QList<QPointF> centres;
+			for (const auto* station : assigned)
+				centres.append(station->sceneBoundingRect().center());
+			overlay->setNodeCentres(centres);
+			QList<QPolygonF> bars;
+			for (const auto* platform : std::as_const(allPlatforms))
+				for (const auto* station : assigned)
+					if (platform && platform->node == station->node)
+						bars.append(platform->mapToScene(platform->rect()));
+			overlay->setPlatformBars(bars);
+		}
+	}
+	measureStationTrackSpacing();
+}
+
+void NetworkPresenter::updateStationOverlayDegrees() {
+	if (!m_scene)
+		return;
+	const auto atEndpoint = [](const QPointF& point, const QPointF& endpoint) {
+		return QLineF(point, endpoint).length() <= 1e-4;
+	};
+	const auto segmentDegree = [&](QGraphicsItem* item, const QLineF& line, const QPointF& point) {
+		const QPointF first = item->mapToScene(line.p1());
+		const QPointF second = item->mapToScene(line.p2());
+		return (atEndpoint(point, first) || atEndpoint(point, second)) ? 1 : 0;
+	};
+	QList<StationNodeItem*> stationNodes;
+	QList<QGraphicsItem*> edges;
+	for (QGraphicsItem* item : m_scene->items()) {
+		if (!item || !item->isVisible())
+			continue;
+		if (auto* station = qgraphicsitem_cast<StationNodeItem*>(item)) {
+			if (station->node)
+				stationNodes.append(station);
+		} else if (qgraphicsitem_cast<TrackLineItem*>(item)
+			|| qgraphicsitem_cast<ConnectionItem*>(item)) {
+			edges.append(item);
+		}
+	}
+
+	for (auto* overlay : std::as_const(m_stationOverlays)) {
+		if (!overlay)
+			continue;
+		int highestDegree = 0;
+		bool hasInterchange = false;
+		bool hasEndpoint = false;
+		for (auto* station : stationNodes) {
+			const bool assigned = overlay->hasSourceIdentity()
+				? overlay->matchesSourceIdentity(station->node->ID, station->track)
+				: QString::fromStdString(station->node->stationName) == overlay->stationName();
+			if (!assigned)
+				continue;
+			const QPointF point = station->sceneBoundingRect().center();
+			int degree = 0;
+			for (auto* edge : edges) {
+				if (auto* track = qgraphicsitem_cast<TrackLineItem*>(edge)) {
+					degree += segmentDegree(track, track->line(), point);
+					if (auto* virtualArc = dynamic_cast<VirtualArcItem*>(track))
+						degree += segmentDegree(virtualArc, virtualArc->secondPaintedLine(), point);
+				} else if (auto* connection = qgraphicsitem_cast<ConnectionItem*>(edge)) {
+					degree += segmentDegree(connection, connection->line(), point);
+				}
+			}
+			highestDegree = std::max(highestDegree, degree);
+			hasInterchange = hasInterchange || degree >= 3;
+			hasEndpoint = hasEndpoint || degree == 1;
+		}
+		overlay->setNetworkDegree(highestDegree, hasInterchange, hasEndpoint);
+	}
+}
+
 void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 	if (!m_source)
 		return;
 	m_runModel = &sceneModel;
+	m_previewShown = false;
+	// The caller has cleared the scene, which took the mark of an earlier run.
+	m_runSectionMark = nullptr;
+
+	// The layout of this run, which starts from the authored levels and regions of the source. The track levels, the
+	// station layouts and the stations of each region are renewed together, so that nothing of an earlier call is left.
+	m_regionStations.clear();
+	m_trackLevels.clear();
+	for (int track = 0; track < m_source->trackCount(); ++track)
+		m_trackLevels.push_back(m_source->track(track).graphID);
+	m_stationLayouts.assign(static_cast<std::size_t>(m_source->stationCount()), StationLayout());
 
 	// Reuse drawing levels once track spans stop overlapping when the scene has
 	// no authored display layout.
@@ -978,11 +1737,11 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 	};
 	std::vector<TrackSpan> trackSpans;
 	for (int track = 0; track < m_source->trackCount(); ++track) {
-		BlockSet& trackSet = m_source->track(track);
+		const BlockSet& trackSet = m_source->track(track);
 		if (trackSet.hasGraphLayout)
 			continue;
 		if (trackSet.len <= 0) {
-			trackSet.graphID = 0;
+			m_trackLevels[static_cast<std::size_t>(track)] = 0;
 			continue;
 		}
 		double begin = std::numeric_limits<double>::max();
@@ -1002,19 +1761,22 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 			return end < span.begin;
 		});
 		if (available == levelEnds.end()) {
-			m_source->track(span.track).graphID = static_cast<int>(levelEnds.size());
+			m_trackLevels[static_cast<std::size_t>(span.track)] = static_cast<int>(levelEnds.size());
 			levelEnds.push_back(span.end);
 		} else {
-			m_source->track(span.track).graphID = static_cast<int>(std::distance(levelEnds.begin(), available));
+			m_trackLevels[static_cast<std::size_t>(span.track)] = static_cast<int>(std::distance(levelEnds.begin(), available));
 			*available = span.end;
 		}
 	}
 	// Use a single fallback region for stations without authored view metadata.
 	for (int stationIndex = 0; stationIndex < m_source->stationCount(); ++stationIndex) {
-		Stations& legacyStation = m_source->station(stationIndex);
-		if (legacyStation.regions.empty()) {
-			legacyStation.regions.push_back(0);
-			legacyStation.regionX[0] = legacyStation.X;
+		const Stations& legacyStation = m_source->station(stationIndex);
+		StationLayout& layout = m_stationLayouts[static_cast<std::size_t>(stationIndex)];
+		layout.regions = legacyStation.regions;
+		layout.regionX = legacyStation.regionX;
+		if (layout.regions.empty()) {
+			layout.regions.push_back(0);
+			layout.regionX[0] = legacyStation.X;
 		}
 	}
 
@@ -1060,7 +1822,8 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 	// draw station icons and print names
 	QPointF pt;
 	for (int i = 0; i < m_source->stationCount(); i++) {
-		Stations& legacyStation = m_source->station(i);
+		const Stations& legacyStation = m_source->station(i);
+		const StationLayout& layout = m_stationLayouts[static_cast<std::size_t>(i)];
 		// ignore virtual stations (name contains "virtual")
 		if (legacyStation.stationName.find("virtual") != std::string::npos) {
 			continue;
@@ -1080,12 +1843,12 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 		}
 
 		// Keep the native graph position as the source anchor when no shared line resolves.
-		pt = QPointF(legacyStation.graphX, legacyStation.graphY);
+		pt = QPointF(layout.graphX, layout.graphY);
 		QPointF averageShift;
 		int validRegions = 0;
-		for (int region : legacyStation.regions) {
-			const double x = legacyStation.shiftX[region];
-			const double y = legacyStation.shiftY[region];
+		for (int region : layout.regions) {
+			const double x = regionValue(layout.shiftX, region);
+			const double y = regionValue(layout.shiftY, region);
 			if (std::isfinite(x) && std::isfinite(y)) {
 				averageShift += QPointF(x, y);
 				++validRegions;
@@ -1104,19 +1867,13 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 	}
 
 	// draw connections
-	QPointF ptc1, ptc2;
 	for (int c = 0; c < m_source->connectionCount(); c++) {
-		Connections& connection = m_source->connection(c);
+		const Connections& connection = m_source->connection(c);
 		if (hasSharedPreview && (!cachedTrackLine(connection.idFirstTrackLine) || !cachedTrackLine(connection.idSecondTrackLine)))
 			continue;
 		// get shifted connections
-		egtrainPoint2Screen(&connection, connection.idFirstTrackLine, connection.idSecondTrackLine, track_separation);
-		ptc1.setX(connection.graphXFirstNode);
-		ptc1.setY(connection.graphYFirstNode);
-		ptc2.setX(connection.graphXSecondNode);
-		ptc2.setY(connection.graphYSecondNode);
-
-		paintConnection(ptc1, ptc2, line_width, &connection);
+		const QLineF ends = egtrainPoint2Screen(connection, connection.idFirstTrackLine, connection.idSecondTrackLine, track_separation);
+		paintConnection(ends.p1(), ends.p2(), line_width, &connection);
 	}
 
 	// draw tracklines
@@ -1124,18 +1881,14 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 	for (int track = 0; track < m_source->trackCount(); track++) {
 		if (hasSharedPreview && !cachedTrackLine(track))
 			continue;
-		BlockSet& trackSet = m_source->track(track);
+		const BlockSet& trackSet = m_source->track(track);
 		// a double switch is drawn without its first and last arc and without ordinary node dots
 		const bool doubleSwitch = drawnAsDoubleSwitch(sceneModel, trackSet.sceneTrackId);
 		// run over all arcs
 		for (int i = 0; i < trackSet.len; i++) {
 			// get shifted nodes
-			egtrainPoint2Screen(&trackSet.member[i].startNode, track, track_separation);
-			egtrainPoint2Screen(&trackSet.member[i].endNode, track, track_separation);
-			pt.setX(trackSet.member[i].startNode.graphX);
-			pt.setY(trackSet.member[i].startNode.graphY);
-			pte.setX(trackSet.member[i].endNode.graphX);
-			pte.setY(trackSet.member[i].endNode.graphY);
+			pt = egtrainPoint2Screen(trackSet.member[i].startNode, track, track_separation);
+			pte = egtrainPoint2Screen(trackSet.member[i].endNode, track, track_separation);
 
 			// draw nodes
 			if (i > 0 && !trackSet.member[i - 1].endNode.stationName.empty()) { // station Node (only visible from end nodes [end_node] -> i>1)
@@ -1146,7 +1899,7 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 			}
 			// if it is a double switch then do not paint nodes Copenhagen case
 			else if (doubleSwitch || trackSet.numNodes == 4) {
-				paintNode(pt, static_cast<int>(0.1), track, &trackSet.member[i].startNode);
+				paintNode(pt, kHiddenNodeSize, track, &trackSet.member[i].startNode);
 			} else {
 				paintNode(pt, node_size, track, &trackSet.member[i].startNode);
 			}
@@ -1178,7 +1931,8 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 	}
 
 	// draw signalling; the signals name their sections by the labels of the scene of the run
-	const SceneSectionLabels sectionLabels = sceneSectionLabels(buildSceneSectionInventory(sceneModel));
+	m_runSections = std::make_unique<SceneSectionInventory>(buildSceneSectionInventory(sceneModel));
+	const SceneSectionLabels sectionLabels = sceneSectionLabels(*m_runSections);
 	for (int i = 0; i < m_source->sectionCount(); i++) {
 		const Section& section = m_source->section(i);
 		// draw signal
@@ -1206,7 +1960,7 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 }
 
 // draws a Node
-void NetworkPresenter::paintNode(QPointF coord, int size, int track, Node* node) {
+void NetworkPresenter::paintNode(QPointF coord, int size, int track, const Node* node) {
 	QPen pen = QPen(Qt::lightGray);
 	pen.setWidth(0);
 	pen.setCosmetic(true);
@@ -1229,7 +1983,7 @@ void NetworkPresenter::paintNode(QPointF coord, int size, int track, Node* node)
 }
 
 // draws a station Node; its platform id darkens the square only at the end of a line
-void NetworkPresenter::paintStationNode(QPointF coord, int size, int track, Node* node, bool lineEnd) {
+void NetworkPresenter::paintStationNode(QPointF coord, int size, int track, const Node* node, bool lineEnd) {
 	const bool hasPlatform = lineEnd && node && hasPlatformId(node->stationPlatformId);
 	StationVisual visual = classifyStation(hasPlatform, node ? node->numConnections : 0);
 	QPen pen = QPen(visual.outline);
@@ -1272,7 +2026,7 @@ PlatformItem* NetworkPresenter::addPlatformBar(QPointF before, QPointF node, QPo
 }
 
 // paint platform next to station Node (upper side), along the track from before through coord to after
-void NetworkPresenter::paintStationPlatform(QPointF before, QPointF coord, QPointF after, int size, Node* node) {
+void NetworkPresenter::paintStationPlatform(QPointF before, QPointF coord, QPointF after, int size, const Node* node) {
 	PlatformItem* platformItem = addPlatformBar(before, coord, after, size * presentationScale());
 	platformItem->node = node;
 	allPlatforms.push_back(platformItem);
@@ -1290,12 +2044,7 @@ void NetworkPresenter::paintStationPlatform(QPointF before, QPointF coord, QPoin
 		platformItem->maxVolume = platform->Max_Passenger_Volume;
 	}
 
-	// string with pax counter
-	std::stringstream ss;
-	ss << (platform ? platform->Current_N_Passengers : 0) << " of " << platformItem->maxVolume << " passengers";
-
-	// convert string
-	QString text = QString::fromStdString(ss.str());
+	const QString text = platformCounterText(platform ? platform->Current_N_Passengers : 0, platformItem->maxVolume);
 
 	// set text size
 	QFont font = QFont();
@@ -1324,161 +2073,53 @@ void NetworkPresenter::paintStationPlatform(QPointF before, QPointF coord, QPoin
 
 // paint train passenger info on top of train
 void NetworkPresenter::paintTrainPassengerInfo(TrainItemGroup* trainItem) {
-	// train head graphical coordinates
-	TrainBodyItem* headPolygon = trainItem->trainPolygonItemList->at(0);
-	QPointF frontUp = headPolygon->polygon().first();
-	QPointF frontDown = headPolygon->polygon().last();
-
-	// create line from train to message, drawn from the front of the train, where the group is
-	const QPointF front = headPolygon->mapToScene((frontUp + frontDown) / 2);
-	const QPointF start;
-	qreal dx = 0;
-	qreal dy = -1 * track_separation * presentationScale();
-	QPointF end = start + QPointF(dx, dy);
-
-	// paint line
-	QPen pen = QPen(QColor(242, 161, 106));
-	pen.setWidth(line_width);
-	pen.setCosmetic(true);
-
-	// draws a line from start to end with a given line width
-	QGraphicsLineItem* line = new QGraphicsLineItem(QLineF(start.x(), start.y(), end.x(), end.y()));
-	line->setPen(pen);
-
-	// text box position
-	QPointF coord = end; // coord is the center of box and text in x-axis and bottom of box in y-axis
-
-	// set text size
-	QFont font = QFont();
-	font.setPixelSize((int)station_size / 15);
-
-	// string to display
-	std::stringstream ss;
-	ss << trainItem->currentOnboardPassengers << " of " << trainItem->maxOnboardPassengers << " on board";
-
-	// paint text
-	QGraphicsTextItem* text = new QGraphicsTextItem;
-	text->setPlainText(QString::fromStdString(ss.str())); // text without background
-	text->setDefaultTextColor(Qt::black);
-	text->setFont(font);
-	text->setScale(presentationScale());
-
-	// draw box around text
-	QGraphicsRectItem* textBox = new QGraphicsRectItem;
-	// box 15% bigger than text rect on both directions
-	textBox->setRect(QRectF(0, 0, 1.15 * (text->boundingRect().width() * presentationScale()),
-		1.15 * (text->boundingRect().height() * presentationScale())));
-	textBox->setBrush(QColor(242, 161, 106));
-	QPen boxPen = textBox->pen();
-	boxPen.setWidthF(presentationScale());
-	textBox->setPen(boxPen);
-	textBox->setPos(coord.x() - (textBox->boundingRect().width() / 2), coord.y() - (textBox->boundingRect().height()));
-
-	// set text position (center of text box)
-	QPointF textPos = textBox->pos();
-	textPos.rx() += 0.5 * (textBox->boundingRect().width() - (text->boundingRect().width() * presentationScale()));
-	textPos.ry() += 0.5 * (textBox->boundingRect().height() - (text->boundingRect().height() * presentationScale()));
-	text->setPos(textPos);
-
-	// create group
-	QGraphicsItemGroup* msgGroup = new QGraphicsItemGroup;
-	msgGroup->addToGroup(line);
-	msgGroup->addToGroup(textBox);
-	msgGroup->addToGroup(text);
-	msgGroup->setZValue(5);
-	msgGroup->setPos(front);
-
-	// add group to scene
-	m_scene->addItem(msgGroup);
-
-	// set current items
-	trainPaxInfoItem = msgGroup;
+	// The train is selected also while it has no shape, and then shows no passengers.
 	trainPaxItem = trainItem;
+	QPointF front;
+	if (!trainItem || !trainFront(*trainItem, front)) {
+		removeTrainPaxInfoIcon();
+		return;
+	}
+	// drawn from the front of the train, where the group is, above it or, at the top edge of the view, below it
+	trainPaxInfoItem = drawCallout(m_scene, trainPaxInfoItem, kTrainPassengersCallout,
+		QStringLiteral("%1 of %2 on board").arg(trainItem->currentOnboardPassengers).arg(trainItem->maxOnboardPassengers),
+		presentationScale(), QRectF(front, front), visibleTop(m_view));
+	trainPaxInfoItem->setVisible(true);
 }
 
 // paint passenger info on top of passenger icon
 void NetworkPresenter::paintPassengerInfoIcon(PassengerItem* paxItem, const GuiPassengerState& passenger, bool replayActive) {
-	// create line from icon to message
-	QPointF start = QPointF(paxItem->sceneBoundingRect().center().x(), paxItem->sceneBoundingRect().top());
-	qreal dx = 0;
-	qreal dy = -0.75 * track_separation * presentationScale();
-	QPointF end = start + QPointF(dx, dy);
-
-	// paint line
-	QPen pen = QPen(QColor(242, 161, 106));
-	pen.setWidth(line_width);
-	pen.setCosmetic(true);
-
-	// draws a line from start to end with a given line width
-	QGraphicsLineItem* line = new QGraphicsLineItem(QLineF(start.x(), start.y(), end.x(), end.y()));
-	line->setPen(pen);
-
-	// text box position
-	QPointF coord = end; // coord is the center of box and text in x-axis and bottom of box in y-axis
-
-	// set text size
-	QFont font = QFont();
-	font.setPixelSize((int)station_size / 15);
-
-	// string to display
-	std::stringstream ss;
-	ss << "Passenger " << passenger.id << "\nStatus: " << passenger.status
-	   << " (" << passenger.waitingPlatform << ")"
-	   << "\nNext train: " << passenger.nextTrain;
-
-	if (!passenger.nextDestination.empty()) {
-		ss << "\nNext destination: " << passenger.nextDestination;
-	}
+	// The run writes "None" for what it does not have.
+	const auto known = [](const std::string& value) { return !value.empty() && value != "None"; };
+	std::string text = "Passenger " + passenger.id;
+	if (passenger.status == "OnPlatform")
+		text += known(passenger.waitingPlatform) ? "\nWaiting at " + platformWords(passenger.waitingPlatform) : "\nWaiting";
+	else if (passenger.status == "OnBoard")
+		text += "\nOn board";
+	else if (passenger.status == "None") // outside the network a passenger has an icon only where its journey ended
+		text += "\nArrived";
+	if (known(passenger.nextTrain))
+		text += "\nNext train: " + passenger.nextTrain;
+	if (!passenger.nextDestination.empty())
+		text += "\nNext destination: " + passenger.nextDestination;
 	if (replayActive)
-		ss << "\nJourney not shown in the replay";
+		text += "\nJourney not shown in the replay";
 
-	// paint text
-	QGraphicsTextItem* text = new QGraphicsTextItem;
-	text->setPlainText(QString::fromStdString(ss.str())); // text without background
-	text->setDefaultTextColor(Qt::black);
-	text->setFont(font);
-	text->setScale(presentationScale());
-
-	// draw box around text
-	QGraphicsRectItem* textBox = new QGraphicsRectItem;
-	// box 15% bigger than text rect on both directions
-	textBox->setRect(QRectF(0, 0, 1.15 * (text->boundingRect().width() * presentationScale()),
-		1.15 * (text->boundingRect().height() * presentationScale())));
-	textBox->setBrush(QColor(242, 161, 106));
-	QPen boxPen = textBox->pen();
-	boxPen.setWidthF(presentationScale());
-	textBox->setPen(boxPen);
-	textBox->setPos(coord.x() - (textBox->boundingRect().width() / 2), coord.y() - (textBox->boundingRect().height()));
-
-	// set text position (center of text box)
-	QPointF textPos = textBox->pos();
-	textPos.rx() += 0.5 * (textBox->boundingRect().width() - (text->boundingRect().width() * presentationScale()));
-	textPos.ry() += 0.5 * (textBox->boundingRect().height() - (text->boundingRect().height() * presentationScale()));
-	text->setPos(textPos);
-
-	// create group
-	QGraphicsItemGroup* msgGroup = new QGraphicsItemGroup;
-	msgGroup->addToGroup(line);
-	msgGroup->addToGroup(textBox);
-	msgGroup->addToGroup(text);
-	msgGroup->setZValue(5);
-
-	// add group to scene
-	m_scene->addItem(msgGroup);
-
-	// set current items
-	paxIconInfoItem = msgGroup;
+	// drawn from the top centre of the icon or, at the top edge of the view, from its bottom centre
+	paxIconInfoItem = drawCallout(m_scene, paxIconInfoItem, kPassengerCallout, QString::fromStdString(text), presentationScale(),
+		paxItem->sceneBoundingRect(), visibleTop(m_view));
+	paxIconInfoItem->setVisible(true);
 	paxIconItem = paxItem;
 }
 
 
 // draws an Arc
-void NetworkPresenter::paintArc(QPointF start, QPointF end, int penWidth, int track, Arc* arc) {
+void NetworkPresenter::paintArc(QPointF start, QPointF end, int penWidth, int track, const Arc* arc) {
 	arcDrawing(start, end, penWidth, track, arc);
 }
 
 // Arc drawing
-void NetworkPresenter::arcDrawing(QPointF start, QPointF end, int penWidth, int track, Arc* arc) {
+void NetworkPresenter::arcDrawing(QPointF start, QPointF end, int penWidth, int track, const Arc* arc) {
 	TrackVisual visual = classifyTrackSpeed(arc ? arc->speedLimit : 0.0);
 	QPen pen = QPen(visual.color);
 	pen.setWidth(std::max(penWidth, visual.width));
@@ -1500,7 +2141,7 @@ void NetworkPresenter::arcDrawing(QPointF start, QPointF end, int penWidth, int 
 }
 
 // draws a connection
-void NetworkPresenter::paintConnection(QPointF start, QPointF end, int penWidth, Connections* connection) {
+void NetworkPresenter::paintConnection(QPointF start, QPointF end, int penWidth, const Connections* connection) {
 	// draws a line from start to end with a given line width
 	ConnectionItem* line = new ConnectionItem(QLineF(start.x(), start.y(), end.x(), end.y()));
 	line->setPen(connectionPen(penWidth));
@@ -1531,9 +2172,9 @@ void NetworkPresenter::paintSignal(double X, int size, int penWidth, int track, 
 	} else {
 		int stationIdx[2];
 		neighbourStations(X, track, stationIdx);
-		const int index = stationIdx[1];
-		normal = QPointF(m_source->station(index).signalDeltaX[m_source->track(track).region],
-			m_source->station(index).signalDeltaY[m_source->track(track).region]);
+		const StationLayout& station = stationLayout(stationIdx[1]);
+		normal = QPointF(regionValue(station.signalDeltaX, m_source->track(track).region),
+			regionValue(station.signalDeltaY, m_source->track(track).region));
 	}
 	const SignalGeometry geometry = signalGeometry(QPointF(centerX, centerY),
 		QPointF(beforeX, beforeY), QPointF(afterX, afterY), normal,
@@ -1632,6 +2273,7 @@ void NetworkPresenter::paintSignal(double X, int size, int penWidth, int track, 
 			plate->sectionAheadLabel = labels.label(plate->sectionAheadId);
 		if (!plate->sectionBehindId.empty())
 			plate->sectionBehindLabel = labels.label(plate->sectionBehindId);
+		plate->updateToolTip();
 	}
 
 	const auto addSignalDecoration = [this, track](QGraphicsItem* item) {
@@ -1733,7 +2375,9 @@ void NetworkPresenter::paintTrain(const GuiTrainState& train, const SceneModel& 
 		m_view ? m_view->zoomRatio() : 1.0, promoted));
 	m_scene->addItem(badge);
 	badge->setVisible(m_trainLayerVisible && !train.outOfSimulation && hasVisibleGeometry);
-	badge->setPos(trainPolygonGroup->sceneBoundingRect().center());
+	QPointF centre;
+	badge->setPos(centreOnRoute(train, train.routeAxisPosition, centre) ? centre
+																		: trainPolygonGroup->sceneBoundingRect().center());
 	m_trainBadges[train.index] = badge;
 }
 
@@ -1747,30 +2391,36 @@ QPointF NetworkPresenter::trainCenter(int train) const {
 	if (!group)
 		return QPointF();
 	const auto found = m_trainMotions.find(train);
-	if (found != m_trainMotions.end()) {
-		const GuiTrainState& state = found->second.newest;
-		const double head = found->second.drawnHead;
-		double start = 0.0;
-		double end = 0.0;
-		RoutePath path;
-		if (routeExtent(m_source ? m_source->route(state.routeIndex) : nullptr, start, end)
-			&& routePath(state.routeIndex, state.reversedDirection, std::clamp(head - state.length, start, end),
-				std::clamp(head, start, end), path)) {
-			QPointF sum;
-			qreal drawn = 0.0;
-			for (std::size_t i = 1; i < path.points.size(); ++i) {
-				// Where two sections meet, the path can step from one drawn track to another at a single position.
-				// That step is not part of the train.
-				if (path.positions[i] <= path.positions[i - 1] + 1e-6)
-					continue;
-				const qreal length = path.lengths[i] - path.lengths[i - 1];
-				sum += (path.points[i - 1] + path.points[i]) * (length / 2.0);
-				drawn += length;
-			}
-			return drawn > 0.0 ? sum / drawn : path.points.back();
-		}
-	}
+	QPointF centre;
+	if (found != m_trainMotions.end() && centreOnRoute(found->second.newest, found->second.drawnHead, centre))
+		return centre;
 	return group->sceneBoundingRect().center();
+}
+
+// The centre of the drawn track under the part of a train on its route, with the route and the length of state and
+// its head at head, in metres along the route, each piece weighted by its drawn length (trainCenter()). Returns false
+// when the train has no place on its route or the track under it is not drawn.
+bool NetworkPresenter::centreOnRoute(const GuiTrainState& state, double head, QPointF& centre) const {
+	double start = 0.0;
+	double end = 0.0;
+	RoutePath path;
+	if (!routeExtent(m_source ? m_source->route(state.routeIndex) : nullptr, start, end)
+		|| !routePath(state.routeIndex, state.reversedDirection, std::clamp(head - state.length, start, end),
+			std::clamp(head, start, end), path))
+		return false;
+	QPointF sum;
+	qreal drawn = 0.0;
+	for (std::size_t i = 1; i < path.points.size(); ++i) {
+		// Where two sections meet, the path can step from one drawn track to another at a single position. That step
+		// is not part of the train.
+		if (path.positions[i] <= path.positions[i - 1] + 1e-6)
+			continue;
+		const qreal length = path.lengths[i] - path.lengths[i - 1];
+		sum += (path.points[i - 1] + path.points[i]) * (length / 2.0);
+		drawn += length;
+	}
+	centre = drawn > 0.0 ? sum / drawn : path.points.back();
+	return true;
 }
 
 // converts geodetic to cartesian coordinates
@@ -1791,28 +2441,24 @@ QPointF NetworkPresenter::Coord2ScreenPoint(double x, double y, double factor) c
 // find shift vector for each station/region
 // find delta X,Y to place trackside signals
 void NetworkPresenter::calculateStationCoordAndShift() {
-	const auto stationAt = [this](int index) -> Stations& { return m_source->station(index); };
-	double alpha;	 // angle between two arcs (with a station in the middle)
-	double gamma;	 // angle for shift (considered to be the angle with screen x axis (pointing down), being positive clockwise)
-	double beta;	 // angle between first Arc and screen x axis
-	double dot, det; // dot product and determinant
+	const auto stationAt = [this](int index) -> StationLayout& { return m_stationLayouts[static_cast<std::size_t>(index)]; };
+	double beta; // angle between first Arc and screen x axis
 	double x1, x2, x3;
 	double y1, y2, y3;
 	QPointF pt;
 
 	// get station screen coordinates
 	for (int i = 0; i < m_source->stationCount(); i++) { // need a separate for as the one below accesses positions ahead of i
-		if (std::fabs(stationAt(i).latitude) > 1e-12 || std::fabs(stationAt(i).longitude) > 1e-12) {
-			pt = Coord2ScreenPoint(stationAt(i).latitude, stationAt(i).longitude, geo_scale);
+		const Stations& station = m_source->station(i);
+		if (std::fabs(station.latitude) > 1e-12 || std::fabs(station.longitude) > 1e-12) {
+			pt = Coord2ScreenPoint(station.latitude, station.longitude, geo_scale);
 			stationAt(i).graphX = pt.x();
 			stationAt(i).graphY = pt.y();
 		} else {
 			// Native scenes may intentionally omit legacy geographic metadata.
-			stationAt(i).graphX = stationAt(i).X * 1000.0;
-			stationAt(i).graphY = stationAt(i).Y * 1000.0;
+			stationAt(i).graphX = station.X * 1000.0;
+			stationAt(i).graphY = station.Y * 1000.0;
 		}
-		if (stationAt(i).regions.empty())
-			stationAt(i).regions.push_back(0);
 	}
 
 	// find number of regions
@@ -1827,12 +2473,8 @@ void NetworkPresenter::calculateStationCoordAndShift() {
 	}
 
 	// create X-ordered array of stations per region
-	for (int i = 0; i < static_cast<int>(m_regionStations.size()); i++) {
-		for (int j = 0; j < static_cast<int>(m_regionStations[i].size()); j++) {
-			std::sort(m_regionStations[i].begin(), m_regionStations[i].end(),
-				[&stationAt](const int& a, const int& b) -> bool { return stationAt(a).X < stationAt(b).X; });
-		}
-	}
+	for (auto& region : m_regionStations)
+		std::sort(region.begin(), region.end(), [this](int a, int b) { return m_source->station(a).X < m_source->station(b).X; });
 
 	// calculate shifts and signal deltas per region
 	for (int r = 0; r < static_cast<int>(m_regionStations.size()); r++) {
@@ -1860,8 +2502,8 @@ void NetworkPresenter::calculateStationCoordAndShift() {
 		for (int i = 0; i < static_cast<int>(m_regionStations[r].size()); i++) {
 			if (i == static_cast<int>(m_regionStations[r].size()) - 1) { // special case - last Arc
 				// use shifts of previous Arc
-				stationAt(m_regionStations[r][i]).shiftX[r] = stationAt(m_regionStations[r][i - 1]).shiftX[r];
-				stationAt(m_regionStations[r][i]).shiftY[r] = stationAt(m_regionStations[r][i - 1]).shiftY[r];
+				stationAt(m_regionStations[r][i]).shiftX[r] = regionValue(stationAt(m_regionStations[r][i - 1]).shiftX, r);
+				stationAt(m_regionStations[r][i]).shiftY[r] = regionValue(stationAt(m_regionStations[r][i - 1]).shiftY, r);
 
 				// special case for signal deltas (need to use next Arc)
 				x1 = stationAt(m_regionStations[r][i - 1]).graphX;
@@ -1892,26 +2534,16 @@ void NetworkPresenter::calculateStationCoordAndShift() {
 					y3 = stationAt(m_regionStations[r][i + 1]).graphY;
 				}
 
-				dot = (x1 - x2) * (x3 - x2) + (y1 - y2) * (y3 - y2); // dot product
-				det = (x1 - x2) * (y3 - y2) - (y1 - y2) * (x3 - x2); // determinant
-				alpha = atan2(det, dot);							 // atan2(y, x)
-
-				// adjust alpha to 0 to 2*kPi range
-				if (alpha < 0) {
-					alpha += 2 * kPi;
-				}
-
 				beta = atan2(-(y1 - y2), (x1 - x2));
-
-				gamma = alpha / 2 - beta;
 
 				// calculate trackside signal deltas
 				stationAt(m_regionStations[r][i]).signalDeltaX[r] = sin(beta);
 				stationAt(m_regionStations[r][i]).signalDeltaY[r] = cos(beta);
 
 				// calculate shifts
-				stationAt(m_regionStations[r][i]).shiftX[r] = cos(gamma);
-				stationAt(m_regionStations[r][i]).shiftY[r] = sin(gamma);
+				const QPointF shift = bisectorShift(QPointF(x1, y1), QPointF(x2, y2), QPointF(x3, y3));
+				stationAt(m_regionStations[r][i]).shiftX[r] = shift.x();
+				stationAt(m_regionStations[r][i]).shiftY[r] = shift.y();
 			}
 		}
 	}
@@ -1932,8 +2564,8 @@ void NetworkPresenter::neighbourStations(double X, int tracklineID, int* station
 	if (!hasTrackGeometry(tracklineID))
 		return;
 	const int region = m_source->track(tracklineID).region;
-	std::vector<int> trackStIdx = m_regionStations[region];
-	const auto regionX = [this, region](int index) { return m_source->station(index).regionX[region]; };
+	const std::vector<int>& trackStIdx = m_regionStations[region];
+	const auto regionX = [this, region](int index) { return regionValue(stationLayout(index).regionX, region); };
 
 	// find neighbour stations
 	// check if value is inside/outside X range of stations
@@ -1955,6 +2587,37 @@ void NetworkPresenter::neighbourStations(double X, int tracklineID, int* station
 	}
 }
 
+int NetworkPresenter::trackLevel(int track) const {
+	if (track >= 0 && track < static_cast<int>(m_trackLevels.size()))
+		return m_trackLevels[static_cast<std::size_t>(track)];
+	return m_source->track(track).graphID;
+}
+
+const NetworkPresenter::StationLayout& NetworkPresenter::stationLayout(int index) const {
+	static const StationLayout none;
+	if (index < 0 || index >= static_cast<int>(m_stationLayouts.size()))
+		return none;
+	return m_stationLayouts[static_cast<std::size_t>(index)];
+}
+
+// The point at the position X of a track line, shifted to its display level: a linear interpolation of the
+// shifted stations on both sides of X in the region of the track line.
+QPointF NetworkPresenter::interpolateBetweenStations(int firstIndex, int secondIndex, int region, double X, double level,
+	double separation) const {
+	const StationLayout& first = stationLayout(firstIndex);
+	const StationLayout& second = stationLayout(secondIndex);
+	// shifted stations
+	const double x1 = first.graphX + regionValue(first.shiftX, region) * level * separation;
+	const double x2 = second.graphX + regionValue(second.shiftX, region) * level * separation;
+	const double y1 = first.graphY + regionValue(first.shiftY, region) * level * separation;
+	const double y2 = second.graphY + regionValue(second.shiftY, region) * level * separation;
+
+	// linear interpolation of geodetic coordinates using known coordinates of closest stations
+	const double firstX = regionValue(first.regionX, region);
+	const double secondX = regionValue(second.regionX, region);
+	return QPointF(x1 + (((X - firstX) / (secondX - firstX)) * (x2 - x1)), y1 + (((X - firstX) / (secondX - firstX)) * (y2 - y1)));
+}
+
 // get shifted screen coordinates of a point (given 1D X coordinate)
 void NetworkPresenter::egtrainPoint2Screen(double X, int track, double separation, double& graphX, double& graphY) const {
 	if (const auto* line = cachedTrackLine(track)) {
@@ -1967,107 +2630,106 @@ void NetworkPresenter::egtrainPoint2Screen(double X, int track, double separatio
 	}
 	if (!hasTrackGeometry(track)) {
 		graphX = X * 1000.0;
-		graphY = -static_cast<double>(m_source->track(track).graphID) * separation;
+		graphY = -static_cast<double>(trackLevel(track)) * separation;
 		return;
 	}
-	double graphID = (double)m_source->track(track).graphID;
+	double graphID = (double)trackLevel(track);
 
 	// find index of closest stations
 	int stationIdx[2];
 	neighbourStations(X, track, stationIdx);
 
-	interpolateBetweenStations(m_source->station(stationIdx[0]), m_source->station(stationIdx[1]),
-		m_source->track(track).region, X, graphID, separation, graphX, graphY);
+	const QPointF point = interpolateBetweenStations(stationIdx[0], stationIdx[1], m_source->track(track).region, X, graphID, separation);
+	graphX = point.x();
+	graphY = point.y();
 }
 
 // get shifted screen coordinates of a Node
-void NetworkPresenter::egtrainPoint2Screen(Node* node, int track, double separation) const {
+QPointF NetworkPresenter::egtrainPoint2Screen(const Node& node, int track, double separation) const {
 	if (const auto* line = cachedTrackLine(track)) {
 		TrackPreviewPoint point;
-		if ((!node->sceneNodeId.empty()
-				&& trackPreviewPointAtNode(*line, node->sceneNodeId, point))
-			|| trackPreviewPointAtX(*line, node->X, point)) {
-			node->graphX = point.x;
-			node->graphY = point.y + line->displayOffset;
-			return;
+		if ((!node.sceneNodeId.empty()
+				&& trackPreviewPointAtNode(*line, node.sceneNodeId, point))
+			|| trackPreviewPointAtX(*line, node.X, point)) {
+			return QPointF(point.x, point.y + line->displayOffset);
 		}
 	}
-	if (!hasTrackGeometry(track)) {
-		node->graphX = node->X * 1000.0;
-		node->graphY = node->Y * 1000.0 - static_cast<double>(m_source->track(track).graphID) * separation;
-		return;
-	}
+	if (!hasTrackGeometry(track))
+		return QPointF(node.X * 1000.0, node.Y * 1000.0 - static_cast<double>(trackLevel(track)) * separation);
 	int stationIdx[2];
-	neighbourStations(node->X, track, stationIdx);
-	int graphID = m_source->track(track).graphID;
+	neighbourStations(node.X, track, stationIdx);
+	int graphID = trackLevel(track);
 
-	interpolateBetweenStations(m_source->station(stationIdx[0]), m_source->station(stationIdx[1]),
-		m_source->track(track).region, node->X, graphID, separation, node->graphX, node->graphY);
+	return interpolateBetweenStations(stationIdx[0], stationIdx[1], m_source->track(track).region, node.X, graphID, separation);
 }
 
-// get shifted screen coordinates of the two ends of a connection
-void NetworkPresenter::egtrainPoint2Screen(Connections* connection, int track1, int track2, double separation) const {
+// get shifted screen coordinates of the two ends of a connection, from the first node to the second
+QLineF NetworkPresenter::egtrainPoint2Screen(const Connections& connection, int track1, int track2, double separation) const {
 	if (const auto* firstLine = cachedTrackLine(track1)) {
 		if (const auto* secondLine = cachedTrackLine(track2)) {
 			TrackPreviewPoint first;
 			TrackPreviewPoint second;
-			const bool hasFirst = (!connection->sceneFirstNodeId.empty()
-									  && trackPreviewPointAtNode(*firstLine, connection->sceneFirstNodeId, first))
-				|| trackPreviewPointAtX(*firstLine, connection->xFirstNode, first);
-			const bool hasSecond = (!connection->sceneSecondNodeId.empty()
-									   && trackPreviewPointAtNode(*secondLine, connection->sceneSecondNodeId, second))
-				|| trackPreviewPointAtX(*secondLine, connection->xSecondNode, second);
-			if (hasFirst && hasSecond) {
-				connection->graphXFirstNode = first.x;
-				connection->graphYFirstNode = first.y + firstLine->displayOffset;
-				connection->graphXSecondNode = second.x;
-				connection->graphYSecondNode = second.y + secondLine->displayOffset;
-				return;
-			}
+			const bool hasFirst = (!connection.sceneFirstNodeId.empty()
+									  && trackPreviewPointAtNode(*firstLine, connection.sceneFirstNodeId, first))
+				|| trackPreviewPointAtX(*firstLine, connection.xFirstNode, first);
+			const bool hasSecond = (!connection.sceneSecondNodeId.empty()
+									   && trackPreviewPointAtNode(*secondLine, connection.sceneSecondNodeId, second))
+				|| trackPreviewPointAtX(*secondLine, connection.xSecondNode, second);
+			if (hasFirst && hasSecond)
+				return QLineF(first.x, first.y + firstLine->displayOffset, second.x, second.y + secondLine->displayOffset);
 		}
 	}
 	if (!hasTrackGeometry(track1) || !hasTrackGeometry(track2)) {
-		connection->graphXFirstNode = connection->xFirstNode * 1000.0;
-		connection->graphYFirstNode = -static_cast<double>(m_source->track(track1).graphID) * separation;
-		connection->graphXSecondNode = connection->xSecondNode * 1000.0;
-		connection->graphYSecondNode = -static_cast<double>(m_source->track(track2).graphID) * separation;
-		return;
+		return QLineF(connection.xFirstNode * 1000.0, -static_cast<double>(trackLevel(track1)) * separation,
+			connection.xSecondNode * 1000.0, -static_cast<double>(trackLevel(track2)) * separation);
 	}
-	int graphID1 = m_source->track(track1).graphID;
-	int graphID2 = m_source->track(track2).graphID;
+	int graphID1 = trackLevel(track1);
+	int graphID2 = trackLevel(track2);
 
 	// find index of closest stations
 	int stationIdx[2];
-	neighbourStations(connection->xFirstNode, track1, stationIdx);
-	interpolateBetweenStations(m_source->station(stationIdx[0]), m_source->station(stationIdx[1]),
-		m_source->track(track1).region, connection->xFirstNode, graphID1, separation,
-		connection->graphXFirstNode, connection->graphYFirstNode);
+	neighbourStations(connection.xFirstNode, track1, stationIdx);
+	const QPointF first = interpolateBetweenStations(stationIdx[0], stationIdx[1], m_source->track(track1).region,
+		connection.xFirstNode, graphID1, separation);
 
 	// find index of closest stations
-	neighbourStations(connection->xSecondNode, track2, stationIdx);
-	interpolateBetweenStations(m_source->station(stationIdx[0]), m_source->station(stationIdx[1]),
-		m_source->track(track2).region, connection->xSecondNode, graphID2, separation,
-		connection->graphXSecondNode, connection->graphYSecondNode);
+	neighbourStations(connection.xSecondNode, track2, stationIdx);
+	const QPointF second = interpolateBetweenStations(stationIdx[0], stationIdx[1], m_source->track(track2).region,
+		connection.xSecondNode, graphID2, separation);
+	return QLineF(first, second);
 }
 
 // The ends of the connection of a section derived at a switch, whose id is "<first id>@-<x1>/@<second id>@-<x2>": the
 // sections of the two tracks that it joins and the X in kilometres of the connection on each. Returns false for another
-// section and when the source lacks one of the two sections.
+// section and when the source lacks one of the two sections. The id is read once and its ends kept in m_switchEnds.
 bool NetworkPresenter::switchSectionEnds(const Section& section, const Section*& first, const Section*& second,
 	double& firstX, double& secondX) const {
-	const std::size_t index1 = section.ID.find("@-");
-	const std::size_t index2 = section.ID.find("/@", index1 + 1);
-	const std::size_t index3 = section.ID.find("@-", index2 + 1);
-	if (index1 == std::string::npos || index2 == std::string::npos || index3 == std::string::npos)
+	auto ends = m_switchEnds.find(section.ID);
+	if (ends == m_switchEnds.end()) {
+		SwitchEnds fresh;
+		const std::size_t index1 = section.ID.find("@-");
+		const std::size_t index2 = section.ID.find("/@", index1 + 1);
+		const std::size_t index3 = section.ID.find("@-", index2 + 1);
+		fresh.parsed = index1 != std::string::npos && index2 != std::string::npos && index3 != std::string::npos;
+		if (fresh.parsed) {
+			fresh.firstX = atof(section.ID.substr(index1 + 2, index2 - index1 - 2).c_str());
+			fresh.secondX = atof(section.ID.substr(index3 + 2, std::string::npos).c_str());
+			const auto indexOf = [this](const std::string& id) {
+				const auto found = m_sectionIndexById.find(id);
+				return found == m_sectionIndexById.end() ? -1 : found->second;
+			};
+			fresh.first = indexOf(section.ID.substr(0, index1 + 1));
+			fresh.second = indexOf(section.ID.substr(index2 + 1, index3 - index2));
+		}
+		ends = m_switchEnds.emplace(section.ID, fresh).first;
+	}
+	const SwitchEnds& read = ends->second;
+	if (!read.parsed)
 		return false;
-	firstX = atof(section.ID.substr(index1 + 2, index2 - index1 - 2).c_str());
-	secondX = atof(section.ID.substr(index3 + 2, std::string::npos).c_str());
-	const auto sectionWith = [this](const std::string& id) -> const Section* {
-		const auto found = m_sectionIndexById.find(id);
-		return found == m_sectionIndexById.end() ? nullptr : &m_source->section(found->second);
-	};
-	first = sectionWith(section.ID.substr(0, index1 + 1));
-	second = sectionWith(section.ID.substr(index2 + 1, index3 - index2));
+	firstX = read.firstX;
+	secondX = read.secondX;
+	first = read.first < 0 ? nullptr : &m_source->section(read.first);
+	second = read.second < 0 ? nullptr : &m_source->section(read.second);
 	return first && second && first != second;
 }
 
@@ -2157,7 +2819,9 @@ bool NetworkPresenter::routePath(int routeIndex, bool reversed, double from, dou
 	const Route* route = m_source ? m_source->route(routeIndex) : nullptr;
 	if (!route || to < from)
 		return false;
-	path = RoutePath();
+	path.points.clear();
+	path.positions.clear();
+	path.lengths.clear();
 	// The sections of a reversed route run against their X.
 	const double sign = reversed ? -1.0 : 1.0;
 	const auto add = [this, &path](const Section& section, double position, double x) {
@@ -2287,10 +2951,10 @@ void NetworkPresenter::startGlide(TrainMotion& motion, const GuiTrainState& stat
 	motion.toMs = now + glideMs;
 }
 
-// Draws a train with its head at head along its route: at the place of its last update with the positions of the wagons
-// there, and elsewhere with every end of a wagon at its distance from the head along the route, found as the simulation
-// finds it, -1 where it is on no section of the route. The badge goes to the centre of the bodies and the callouts to
-// the front of the train. Tells whether a body has a shape.
+// Draws a train with its head at head along its route, from the state of its last update with the head moved there:
+// every wagon of that update at its distance from the head along the drawn route (getTrainPolygon()). The badge goes to
+// the centre of the train, as trainCenter() finds it, and the callouts to the front of the train. Tells whether a body
+// has a shape.
 bool NetworkPresenter::drawTrain(TrainItemGroup& trainItem, TrainMotion& motion, double head) {
 	const GuiTrainState& newest = motion.newest;
 	const GuiTrainState* state = &newest;
@@ -2301,16 +2965,8 @@ bool NetworkPresenter::drawTrain(TrainItemGroup& trainItem, TrainMotion& motion,
 		drawn.wagonCount = newest.wagonCount;
 		drawn.length = newest.length;
 		drawn.routeAxisPosition = head;
-		const Route* route = m_source ? m_source->route(newest.routeIndex) : nullptr;
-		const std::size_t wagons = static_cast<std::size_t>(std::max(newest.wagonCount + 1, 0));
-		const double wagonLength = newest.length / (newest.wagonCount + 1);
-		drawn.wagonHeadPositions.resize(wagons);
-		drawn.wagonTailPositions.resize(wagons);
-		for (std::size_t wagon = 0; wagon < wagons; ++wagon) {
-			const double front = head - static_cast<double>(wagon) * wagonLength;
-			drawn.wagonHeadPositions[wagon] = route ? routeXAt(*route, newest.reversedDirection, front) : -1.0;
-			drawn.wagonTailPositions[wagon] = route ? routeXAt(*route, newest.reversedDirection, front - wagonLength) : -1.0;
-		}
+		drawn.wagonHeadPositions = newest.wagonHeadPositions;
+		drawn.wagonTailPositions = newest.wagonTailPositions;
 		state = &drawn;
 	}
 	motion.drawnHead = head;
@@ -2318,7 +2974,8 @@ bool NetworkPresenter::drawTrain(TrainItemGroup& trainItem, TrainMotion& motion,
 	trainItem.setVisible(m_trainLayerVisible && hasVisibleGeometry);
 	if (TrainBadgeItem* badge = m_trainBadges.value(trainItem.index, nullptr)) {
 		badge->setVisible(m_trainLayerVisible && hasVisibleGeometry);
-		badge->setPos(trainItem.sceneBoundingRect().center());
+		QPointF centre;
+		badge->setPos(centreOnRoute(newest, head, centre) ? centre : trainItem.sceneBoundingRect().center());
 	}
 	moveTrainCallouts(trainItem);
 	return hasVisibleGeometry;
@@ -2399,11 +3056,13 @@ bool NetworkPresenter::getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolyg
 		return false;
 	// get the polygon of each wagon
 	const int wagons = std::min(train.wagonCount + 1, static_cast<int>(trainPolygonItemList->size()));
-	std::vector<QPolygonF> polygons(static_cast<std::size_t>(std::max(wagons, 0)));
+	std::vector<QPolygonF>& polygons = m_wagonPolygons;
+	polygons.resize(static_cast<std::size_t>(std::max(wagons, 0)));
 	bool changed = false;
 	bool hasVisibleGeometry = false;
 	for (int wagon = 0; wagon < wagons; wagon++) {
 		QPolygonF& trainPolygon = polygons[static_cast<std::size_t>(wagon)];
+		trainPolygon.clear();
 		getTrainPolygon(&trainPolygon, wagon, train);
 		changed = changed || trainPolygon != trainPolygonItemList->at(wagon)->polygon();
 		hasVisibleGeometry = hasVisibleGeometry || !trainPolygon.isEmpty();
@@ -2423,327 +3082,29 @@ bool NetworkPresenter::getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolyg
 	return hasVisibleGeometry;
 }
 
-// returns the shape of an one-wagon train (polygon)
-// used to get each wagon of a multi-wagon train
+// The drawn track under the wagon, from its back to its front, stroked at the width of a body (bodyOutline()). The part
+// of the wagon that is off its route, as while the train enters it, is left out.
 void NetworkPresenter::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTrainState& train) {
-	const Route* trainRoute = m_source ? m_source->route(train.routeIndex) : nullptr;
-	if (!trainPolygon || !trainRoute)
+	if (!trainPolygon)
 		return;
-	double headX, tailX, connectionX1, connectionX2, x0, x1, x2, x3, y0, y1, y2, y3;
-	double dot, det, beta, alpha, gamma;
-	std::vector<double> posX, routeX;
-	QPointF ptTrainEdge, ptConnection1, ptConnection2, ptBegin1, ptEnd2;
-	const Section* currBS = nullptr;
-	const Section* BS1 = nullptr;
-	const Section* BS2 = nullptr;
-	QVector<QPointF> trainPointsUp, trainPointsDown, trainPointsComplete;
-	QVector<int> trainPointsStIndex, trainPointsStRegion, trainPointsGraphID;
-	int revStIndex = 0; // used to add station points to the polygon (needed for reversed routes)
-	double total_nW = train.wagonCount + 1;
-	const auto addPreviewPoint = [&](const TrackPreviewLine* line, double rawX,
-									 const QPointF& point) {
-		QPointF normal;
-		if (!line || !previewSignalNormal(*line, rawX, normal))
-			return false;
-		const QPointF offset = normal * (0.10 * track_separation * presentationScale());
-		trainPointsUp.push_back(point - offset);
-		trainPointsDown.push_front(point + offset);
-		trainPointsStIndex.push_back(-1);
-		trainPointsStRegion.push_back(-1);
-		trainPointsGraphID.push_back(INT_MIN);
-		return true;
-	};
-	const auto addTrackPoint = [&](const QPointF& point, int track, double rawX) {
-		if (const auto* line = cachedTrackLine(track))
-			return addPreviewPoint(line, rawX, point);
-		int stationIdx[2];
-		neighbourStations(rawX, track, stationIdx);
-		const int prevIndex = stationIdx[0];
-		const int index = stationIdx[1];
-		const int revPrevIndex = index * (1 - revStIndex) + prevIndex * revStIndex;
-		const int region = m_source->track(track).region;
-		trainPointsUp.push_back(QPointF(point.x()
-				- m_source->station(index).signalDeltaX[region] * 0.10 * track_separation,
-			point.y() - m_source->station(index).signalDeltaY[region] * 0.10 * track_separation));
-		trainPointsDown.push_front(QPointF(point.x()
-				+ m_source->station(index).signalDeltaX[region] * 0.10 * track_separation,
-			point.y() + m_source->station(index).signalDeltaY[region] * 0.10 * track_separation));
-		trainPointsStIndex.push_back(revPrevIndex);
-		trainPointsStRegion.push_back(region);
-		trainPointsGraphID.push_back(m_source->track(track).graphID);
-		return true;
-	};
-
-	// train position on X axis
-	// reversed route
-	if (wagon >= static_cast<int>(train.wagonHeadPositions.size()) || wagon >= static_cast<int>(train.wagonTailPositions.size()))
+	trainPolygon->clear();
+	double start = 0.0;
+	double end = 0.0;
+	if (wagon < 0 || wagon > train.wagonCount || wagon >= static_cast<int>(train.wagonHeadPositions.size())
+		|| wagon >= static_cast<int>(train.wagonTailPositions.size())
+		|| !routeExtent(m_source ? m_source->route(train.routeIndex) : nullptr, start, end))
 		return;
-	headX = train.wagonHeadPositions[static_cast<std::size_t>(wagon)];
-	tailX = train.wagonTailPositions[static_cast<std::size_t>(wagon)];
-	revStIndex = train.reversedDirection ? 1 : 0;
-	const Route& route = *trainRoute;
-	const double routePosition = train.routeAxisPosition;
-
-	// get occupied block sections (list of index on SeqBS)
-	std::vector<int> occupiedBS; // we already know head block sections but not the index on SeqBS
-
-	// find block sections where the train is (full length)
-	int headIndex = -1, tailIndex = -1;
-	for (int h = route.N_Block_Sections - 1; h >= 0; h--) {
-		if (((routePosition - wagon * (train.length / total_nW)) < route.sequence_of_block_sections[h].end_node.X * 1000)
-			&& ((routePosition - wagon * (train.length / total_nW)) >= route.sequence_of_block_sections[h].start_node.X * 1000)) {
-			occupiedBS.push_back(h);
-			headIndex = h;
-		}
-		if (((routePosition - (wagon + 1) * (train.length / total_nW)) < route.sequence_of_block_sections[h].end_node.X * 1000)
-			&& ((routePosition - (wagon + 1) * (train.length / total_nW)) >= route.sequence_of_block_sections[h].start_node.X * 1000)) {
-			if (h != headIndex) {
-				occupiedBS.push_back(h);
-			} // avoid adding the same block sections twice (entire train in the same block sections)
-			tailIndex = h;
-			break;
-		}
-		// section in between
-		else if (h != headIndex && headIndex != -1) { // already added head block sections
-			occupiedBS.push_back(h);
-		}
-	}
-
-	// get all relevant points from occupied block sections (head, tail and also connection points)
-	for (int i = 0; i < static_cast<int>(occupiedBS.size()); i++) { // run from head block sections to tail block sections (can be the same)
-		currBS = &route.sequence_of_block_sections[occupiedBS[i]];
-
-		if (headIndex == tailIndex && tailIndex == occupiedBS[i]) {
-			posX = {headX, tailX};
-			routeX = {(routePosition / 1000) - wagon * ((train.length / 1000) / total_nW), (routePosition / 1000) - (wagon + 1) * ((train.length / 1000) / total_nW)};
-		} // head and tail in this section
-		else if (occupiedBS[i] == headIndex) {
-			posX = {headX};
-			routeX = {(routePosition / 1000) - wagon * ((train.length / 1000) / total_nW)};
-		} // only head
-		else if (occupiedBS[i] == tailIndex) {
-			posX = {tailX};
-			routeX = {(routePosition / 1000) - (wagon + 1) * ((train.length / 1000) / total_nW)};
-		} // only tail
-		else {
-			posX = {-DBL_MAX};
-			routeX = {-DBL_MAX};
-		} // section in between (no head or tail)
-
-		// in case head and tail in the same block sections (need to get both)
-		for (int j = 0; j < static_cast<int>(posX.size()); j++) {
-			// single block sections -> get head or tail
-			if (currBS->ID.find('/') == std::string::npos) {
-				if (occupiedBS[i] != headIndex && occupiedBS[i] != tailIndex) {
-					continue;
-				} // single section in between (no relevant points)
-
-				// get point
-				if (!sectionPointAt(*currBS, posX[j], ptTrainEdge))
-					continue;
-				if (!addTrackPoint(ptTrainEdge, currBS->trackLineId, posX[j]))
-					return;
-			}
-			// compound block sections -> get connection points and/or tail or head
-			else {
-				// the single block sections are needed for the graphID's
-				if (switchSectionEnds(*currBS, BS1, BS2, connectionX1, connectionX2)) {
-					const TrackPreviewLine* previewLine1 = cachedTrackLine(BS1->trackLineId);
-					const TrackPreviewLine* previewLine2 = cachedTrackLine(BS2->trackLineId);
-					const bool hasPreview = !m_cachedTrackPreview.lines.empty();
-					const qreal lateralSeparation = track_separation * (hasPreview ? presentationScale() : 1.0);
-					if ((hasPreview && (!previewLine1 || !previewLine2))
-						|| (!hasPreview && (!hasTrackGeometry(BS1->trackLineId) || !hasTrackGeometry(BS2->trackLineId))))
-						continue;
-
-					// adds the point of a connection to the polygon, moved to both sides of the track by its shift
-					const auto addConnectionPoint = [&](const QPointF& point, double shiftX, double shiftY, int stationIndex,
-														const Section* section) {
-						trainPointsUp.push_back(QPointF(point.x() - shiftX * 0.10 * lateralSeparation, point.y() - shiftY * 0.10 * lateralSeparation));
-						trainPointsDown.push_front(QPointF(point.x() + shiftX * 0.10 * lateralSeparation, point.y() + shiftY * 0.10 * lateralSeparation));
-						trainPointsStIndex.push_back(stationIndex);
-						trainPointsStRegion.push_back(m_source->track(section->trackLineId).region);
-						trainPointsGraphID.push_back(m_source->track(section->trackLineId).graphID);
-					};
-
-					// get beginning and end of connection to interpolate
-					egtrainPoint2Screen(connectionX1, BS1->trackLineId, track_separation, ptConnection1.rx(), ptConnection1.ry());
-					egtrainPoint2Screen(connectionX2, BS2->trackLineId, track_separation, ptConnection2.rx(), ptConnection2.ry());
-
-					// get beginning of BS1 and end of BS2 to calculate shifts
-					egtrainPoint2Screen(BS1->start_node.X, BS1->trackLineId, track_separation, ptBegin1.rx(), ptBegin1.ry());
-					egtrainPoint2Screen(BS2->end_node.X, BS2->trackLineId, track_separation, ptEnd2.rx(), ptEnd2.ry());
-
-					int revPrevIndexConnection1 = -1;
-					int revPrevIndexConnection2 = -1;
-					if (!hasPreview) {
-						// get station indexes (used to add station points)
-						int stationIdx[2];
-						neighbourStations(connectionX1, BS1->trackLineId, stationIdx);
-						revPrevIndexConnection1 = stationIdx[1] * (1 - revStIndex) + stationIdx[0] * revStIndex;
-						neighbourStations(connectionX2, BS2->trackLineId, stationIdx);
-						revPrevIndexConnection2 = stationIdx[1] * (1 - revStIndex) + stationIdx[0] * revStIndex;
-					}
-
-					// linear interpolation of geodetic coordinates using known coordinates of closest stations
-					x0 = ptBegin1.x();
-					y0 = ptBegin1.y();
-					x1 = ptConnection1.x();
-					y1 = ptConnection1.y();
-					x2 = ptConnection2.x();
-					y2 = ptConnection2.y();
-					x3 = ptEnd2.x();
-					y3 = ptEnd2.y();
-
-					// shift on beginning of connection
-					dot = (x0 - x1) * (x2 - x1) + (y0 - y1) * (y2 - y1); // dot product
-					det = (x0 - x1) * (y2 - y1) - (y0 - y1) * (x2 - x1); // determinant
-					alpha = atan2(det, dot);							 // atan2(y, x)
-					if (alpha < 0) {
-						alpha += 2 * kPi;
-					} // adjust alpha to 0 to 2*kPi range
-					beta = atan2(-(y0 - y1), (x0 - x1));
-					gamma = alpha / 2 - beta;
-					double connectionStartShiftX = cos(gamma);
-					double connectionStartShiftY = sin(gamma);
-
-					// shift on end of connection
-					dot = (x1 - x2) * (x3 - x2) + (y1 - y2) * (y3 - y2); // dot product
-					det = (x1 - x2) * (y3 - y2) - (y1 - y2) * (x3 - x2); // determinant
-					alpha = atan2(det, dot);							 // atan2(y, x)
-					if (alpha < 0) {
-						alpha += 2 * kPi;
-					} // adjust alpha to 0 to 2*kPi range
-					beta = atan2(-(y1 - y2), (x1 - x2));
-					gamma = alpha / 2 - beta;
-					double connectionEndShiftX = cos(gamma);
-					double connectionEndShiftY = sin(gamma);
-					if (hasPreview) {
-						QPointF normal;
-						if (!previewSignalNormal(*previewLine1, connectionX1, normal))
-							return;
-						connectionStartShiftX = normal.x();
-						connectionStartShiftY = normal.y();
-						if (!previewSignalNormal(*previewLine2, connectionX2, normal))
-							return;
-						connectionEndShiftX = normal.x();
-						connectionEndShiftY = normal.y();
-					}
-
-					// calculate connection deltas (inside connection)
-					beta = atan2(-(y1 - y2), (x1 - x2));
-					double connectionDeltaX = sin(beta);
-					double connectionDeltaY = cos(beta);
-
-					// add connection points if it is a middle section
-					// add connection points if it is the tail block sections and head already added
-					if ((posX[j] == -DBL_MAX) || (posX.size() == 1 && occupiedBS[i] == tailIndex)) { // adding connection points before adding tail of the train
-						// non-reversed route (add first connection 2)
-						if (!train.reversedDirection) {
-							if (headX > connectionX2 && tailX < connectionX2) {
-								addConnectionPoint(ptConnection2, connectionEndShiftX, connectionEndShiftY, revPrevIndexConnection2, BS2);
-							}
-							if (headX > connectionX1 && tailX < connectionX1) {
-								addConnectionPoint(ptConnection1, connectionStartShiftX, connectionStartShiftY, revPrevIndexConnection1, BS1);
-							}
-						}
-						// reversed route (add first connection 1)
-						else {
-							if (tailX > connectionX1 && headX < connectionX1) {
-								addConnectionPoint(ptConnection1, connectionStartShiftX, connectionStartShiftY, revPrevIndexConnection1, BS1);
-							}
-							if (tailX > connectionX2 && headX < connectionX2) {
-								addConnectionPoint(ptConnection2, connectionEndShiftX, connectionEndShiftY, revPrevIndexConnection2, BS2);
-							}
-						}
-					}
-
-					// head/tail in the 1st track and before connection
-					if (routeX[j] >= currBS->start_node.X && posX[j] <= connectionX1) {
-						if (!sectionPointAt(*currBS, posX[j], ptTrainEdge) || !addTrackPoint(ptTrainEdge, BS1->trackLineId, posX[j]))
-							return;
-					}
-					// head/tail inside the connection
-					else if (posX[j] > connectionX1 && posX[j] < connectionX2) {
-						if (!sectionPointAt(*currBS, posX[j], ptTrainEdge))
-							return;
-
-						// train polygon
-						trainPointsUp.push_back(QPointF(ptTrainEdge.x() - connectionDeltaX * 0.10 * lateralSeparation,
-							ptTrainEdge.y() - connectionDeltaY * 0.10 * lateralSeparation));
-						trainPointsDown.push_front(QPointF(ptTrainEdge.x() + connectionDeltaX * 0.10 * lateralSeparation,
-							ptTrainEdge.y() + connectionDeltaY * 0.10 * lateralSeparation));
-						trainPointsStIndex.push_back(-1);
-						trainPointsStRegion.push_back(-1);
-						trainPointsGraphID.push_back(INT_MIN);
-					}
-					// head/tail in the 2nd track and after connection
-					else if (posX[j] >= connectionX2 && routeX[j] < currBS->end_node.X) {
-						if (!sectionPointAt(*currBS, posX[j], ptTrainEdge) || !addTrackPoint(ptTrainEdge, BS2->trackLineId, posX[j]))
-							return;
-					}
-
-					// add connection points if it is head section and tail is in another block sections
-					// add connection points if head and tail in the same section
-					if ((occupiedBS[i] == headIndex && headIndex != tailIndex) || (posX.size() == 2 && j == 0)) { // adding connection points after adding head of the train
-						// non-reversed route (add first connection 2)
-						if (!train.reversedDirection) {
-							if (headX > connectionX2 && tailX < connectionX2) {
-								addConnectionPoint(ptConnection2, connectionEndShiftX, connectionEndShiftY, revPrevIndexConnection2, BS2);
-							}
-							if (headX > connectionX1 && tailX < connectionX1) {
-								addConnectionPoint(ptConnection1, connectionStartShiftX, connectionStartShiftY, revPrevIndexConnection1, BS1);
-							}
-						}
-						// reversed route (add first connection 1)
-						else {
-							if (tailX > connectionX1 && headX < connectionX1) {
-								addConnectionPoint(ptConnection1, connectionStartShiftX, connectionStartShiftY, revPrevIndexConnection1, BS1);
-							}
-							if (tailX > connectionX2 && headX < connectionX2) {
-								addConnectionPoint(ptConnection2, connectionEndShiftX, connectionEndShiftY, revPrevIndexConnection2, BS2);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	// add station points to polygon when necessary (change in shifts)
-	int added = 0; // needed when adding new points to the vectors
-	for (int i = 1; i < static_cast<int>(trainPointsStIndex.size()); i++) {
-		// inside connection (no change in shift)
-		if (trainPointsStIndex[i] == -1) {
-			continue;
-		}
-
-		// change in shift when previous point is a connection (assuming no consecutive points inside connection)
-		// change in shift when previous point is not a connection
-		// ignore change in shift if region also changes
-		if ((trainPointsStIndex[i - 1] == -1 && i >= 2 && trainPointsStIndex[i] != trainPointsStIndex[i - 2]
-				&& trainPointsStRegion[i] == trainPointsStRegion[i - 2])
-			|| (trainPointsStIndex[i - 1] != -1 && trainPointsStIndex[i] != trainPointsStIndex[i - 1]
-				&& trainPointsStRegion[i] == trainPointsStRegion[i - 1])) {
-
-			Stations& shiftedStation = m_source->station(trainPointsStIndex[i]);
-			const int stationRegion = trainPointsStRegion[i];
-			QPointF stationUp = QPointF(shiftedStation.graphX + shiftedStation.shiftX[stationRegion] * track_separation * (trainPointsGraphID[i] - 0.10),
-				shiftedStation.graphY + shiftedStation.shiftY[stationRegion] * track_separation * (trainPointsGraphID[i] - 0.10));
-			QPointF stationDown = QPointF(shiftedStation.graphX + shiftedStation.shiftX[stationRegion] * track_separation * (trainPointsGraphID[i] + 0.10),
-				shiftedStation.graphY + shiftedStation.shiftY[stationRegion] * track_separation * (trainPointsGraphID[i] + 0.10));
-			trainPointsUp.insert(i + added, stationUp);
-			trainPointsDown.insert(i + added, stationDown);
-			added++;
-		}
-	}
-
-	// join Up and Down vectors to build the polygon
-	trainPointsComplete.append(trainPointsUp);
-	trainPointsComplete.append(trainPointsDown);
-
-	QPolygonF UpdatedTrainPolygon(trainPointsComplete);
-	trainPolygon->swap(UpdatedTrainPolygon);
+	const double wagonLength = train.length / (train.wagonCount + 1);
+	const double head = train.routeAxisPosition - wagon * wagonLength;
+	const double front = std::clamp(head, start, end);
+	const double back = std::clamp(head - wagonLength, start, end);
+	RoutePath& path = m_wagonScratch.path;
+	if (back >= front || !routePath(train.routeIndex, train.reversedDirection, back, front, path))
+		return;
+	const bool hasPreview = !m_cachedTrackPreview.lines.empty();
+	const qreal half = 0.10 * track_separation * (hasPreview ? presentationScale() : 1.0);
+	bodyLine(path.points, path.positions, 1e-3 * half, m_wagonScratch.line);
+	bodyOutline(m_wagonScratch.line, half, *trainPolygon);
 }
 
 // paint VCoupling notification
@@ -2758,64 +3119,9 @@ void NetworkPresenter::paintVCouplingMsg(TrainItemGroup* trainItem, const std::s
 
 	// The message is drawn from the front of the train, where the group is.
 	const QPointF front = headPolygon->mapToScene((frontUp + frontDown) / 2);
-	const QPointF start;
-	QPointF end = start + QPointF(0, -2 * track_separation * presentationScale());
-
-	QPen pen = QPen(QColor(242, 161, 106));
-	pen.setWidth(line_width);
-	pen.setCosmetic(true);
-	QGraphicsItemGroup* msgGroup = m_vcMessageItems.value(trainItem->index, nullptr);
-	QGraphicsLineItem* line = nullptr;
-	QGraphicsTextItem* text = nullptr;
-	QGraphicsRectItem* textBox = nullptr;
-	if (!msgGroup) {
-		msgGroup = new QGraphicsItemGroup;
-		line = new QGraphicsLineItem;
-		textBox = new QGraphicsRectItem;
-		text = new QGraphicsTextItem;
-		msgGroup->addToGroup(line);
-		msgGroup->addToGroup(textBox);
-		msgGroup->addToGroup(text);
-		// Over the trains (z 4) and their speed (z 4.2 and 4.3), and under the station names (z 4.5): the notice shows
-		// by itself, and only what a click opens may cover a name.
-		msgGroup->setZValue(4.4);
-		m_scene->addItem(msgGroup);
-		m_vcMessageItems.insert(trainItem->index, msgGroup);
-	} else {
-		for (QGraphicsItem* child : msgGroup->childItems()) {
-			if (auto* lineChild = qgraphicsitem_cast<QGraphicsLineItem*>(child))
-				line = lineChild;
-			else if (auto* boxChild = qgraphicsitem_cast<QGraphicsRectItem*>(child))
-				textBox = boxChild;
-			else if (auto* textChild = qgraphicsitem_cast<QGraphicsTextItem*>(child))
-				text = textChild;
-		}
-	}
-	if (!line || !text || !textBox)
-		return;
-
-	line->setLine(QLineF(start.x(), start.y(), end.x(), end.y()));
-	line->setPen(pen);
-
-	QFont font = QFont();
-	font.setPixelSize((int)station_size / 6);
-	text->setPlainText(QString::fromStdString(message));
-	text->setDefaultTextColor(Qt::white);
-	text->setFont(font);
-	text->setScale(presentationScale());
-
-	textBox->setRect(QRectF(0, 0, 1.25 * (text->boundingRect().width() * presentationScale()), 1.25 * (text->boundingRect().height() * presentationScale())));
-	textBox->setBrush(QColor(242, 161, 106));
-	QPen boxPen = textBox->pen();
-	boxPen.setWidthF(presentationScale());
-	textBox->setPen(boxPen);
-	textBox->setPos(end.x() - (textBox->boundingRect().width() / 2), end.y() - textBox->boundingRect().height());
-
-	QPointF textPos = textBox->pos();
-	textPos.rx() += 0.5 * (textBox->boundingRect().width() - (text->boundingRect().width() * presentationScale()));
-	textPos.ry() += 0.5 * (textBox->boundingRect().height() - (text->boundingRect().height() * presentationScale()));
-	text->setPos(textPos);
-	msgGroup->setPos(front);
+	QGraphicsItemGroup*& msgGroup = m_vcMessageItems[trainItem->index];
+	msgGroup = drawCallout(m_scene, msgGroup, kVirtualCouplingCallout, QString::fromStdString(message), presentationScale(),
+		QRectF(front, front));
 	msgGroup->setVisible(true);
 }
 
@@ -2936,12 +3242,7 @@ void NetworkPresenter::updatePlatform(PlatformItem* platform, const GuiPlatformS
 	const auto& passengerIds = state.passengerIds;
 	const int nPaxIcons = static_cast<int>(passengerIds.size());
 
-	// string with pax counter
-	std::stringstream ss;
-	ss << nPaxIcons << " of " << state.maxVolume << " passengers";
-
-	// convert string
-	QString text = QString::fromStdString(ss.str());
+	const QString text = platformCounterText(nPaxIcons, state.maxVolume);
 
 	// update text item
 	if (platform->textIcon->toPlainText() != text) {
@@ -3041,12 +3342,8 @@ void NetworkPresenter::updateTrainPaxInfo() {
 			trainPaxInfoItem->setVisible(false);
 		return;
 	}
-	if (trainPaxInfoItem) {
-		// remove existing item
-		removeTrainPaxInfoIcon();
-		if (trainPaxItem)
-			paintTrainPassengerInfo(trainPaxItem);
-	}
+	if (trainPaxInfoItem)
+		paintTrainPassengerInfo(trainPaxItem);
 }
 
 // update the passenger info of the selected passenger icon
@@ -3058,15 +3355,15 @@ void NetworkPresenter::updatePaxIconInfo(const GuiSimulationSnapshot* snapshot, 
 	}
 	if (m_platformsStale && snapshot)
 		updatePlatforms(*snapshot);
-	if (paxIconInfoItem) {
-		// remove existing item
+	if (!paxIconInfoItem)
+		return;
+	// the details go with the icon of the passenger, and with the passenger when it left
+	if (!paxIconItem) {
 		removePaxInfoIcon();
-		if (paxIconItem)
-			paintPassengerInfoIcon(paxIconItem, passengerStateIn(snapshot, paxIconItem->passengerId),
-				playback == Playback::Replay);
-		if (paxIconInfoItem)
-			paxIconInfoItem->setVisible(platformPassengersVisible());
+		return;
 	}
+	paintPassengerInfoIcon(paxIconItem, passengerStateIn(snapshot, paxIconItem->passengerId), playback == Playback::Replay);
+	paxIconInfoItem->setVisible(platformPassengersVisible());
 }
 
 void NetworkPresenter::removeTrainPaxInfoIcon() {
@@ -3150,6 +3447,10 @@ void NetworkPresenter::stopTrainAnimation(int train) {
 	m_trainMotions.erase(train);
 }
 
+void NetworkPresenter::setReplayGlideMs(qint64 ms) {
+	m_replayGlideMs = std::max<qint64>(ms, 0);
+}
+
 void NetworkPresenter::stopTrainAnimations() {
 	m_motionTimer.stop();
 	m_trainMotions.clear();
@@ -3186,11 +3487,12 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 				m_trainBadges[train]->hide();
 			// update train position
 			if (!state.outOfSimulation && (!replay || hasPosition)) {
-				// A live train goes on from where it is drawn now, unless it was placed otherwise, has another route,
-				// direction or shape, runs backwards, or has jumped further than the visible view since the last update.
+				// A live train, and a replay train while Play glides, goes on from where it is drawn now, unless it was
+				// placed otherwise, has another route, direction or shape, runs backwards, or has jumped further than
+				// the visible view since the last update.
 				const auto found = m_trainMotions.find(train);
 				const TrainMotion* last = found == m_trainMotions.end() ? nullptr : &found->second;
-				bool moves = !replay && last && last->newest.routeIndex == state.routeIndex
+				bool moves = (!replay || m_replayGlideMs > 0) && last && last->newest.routeIndex == state.routeIndex
 					&& last->newest.reversedDirection == state.reversedDirection && last->newest.wagonCount == state.wagonCount
 					&& last->newest.length == state.length && state.routeAxisPosition >= last->newest.routeAxisPosition - 1e-6;
 				if (moves) {
@@ -3217,7 +3519,7 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 				if (moves && state.routeAxisPosition == motion.newest.routeAxisPosition)
 					startGlide(motion, state, motion.fromMs, motion.fromHead, motion.toMs - motion.fromMs);
 				else
-					startGlide(motion, state, from, drawnHead, moves ? glideDurationMs() : 0);
+					startGlide(motion, state, from, drawnHead, moves ? (replay ? m_replayGlideMs : glideDurationMs()) : 0);
 				motion.drawnMs = std::numeric_limits<qint64>::min();
 				const bool hasVisibleGeometry = drawTrain(*trainItem, motion, drawnHead);
 				checkVCouplingMsg(trainItem, state, snapshot, t);
@@ -3263,7 +3565,7 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 				followedTrainMoved = true;
 		}
 	}
-	if (!replay && trainsMoving() && !m_motionTimer.isActive())
+	if ((!replay || m_replayGlideMs > 0) && trainsMoving() && !m_motionTimer.isActive())
 		m_motionTimer.start();
 	m_host->trainsApplied(legendNeedsUpdate, followedTrainMoved);
 }
@@ -3272,7 +3574,7 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 void NetworkPresenter::checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainState& train,
 	const GuiSimulationSnapshot& snapshot, int t) {
 	for (auto it = snapshot.virtualCouplingMessages.rbegin(); it != snapshot.virtualCouplingMessages.rend(); ++it) {
-		if (it->trainDescription == train.description && t >= it->timestep && t <= it->timestep + 40) {
+		if (it->trainDescription == train.description && t >= it->timestep && t <= it->timestep + kVirtualCouplingMessageSeconds) {
 			paintVCouplingMsg(trainItem, it->message);
 			break;
 		}
@@ -3291,6 +3593,7 @@ void NetworkPresenter::buildSignalIndex() {
 void NetworkPresenter::buildTrackIndexes() {
 	m_tracksBySectionId.clear();
 	m_sectionIndexById.clear();
+	m_switchEnds.clear();
 	m_tracksByOccupiedArc.clear();
 
 	for (auto* item : allArcs) {
@@ -3304,20 +3607,29 @@ void NetworkPresenter::buildTrackIndexes() {
 			|| (left.startNode.X == right.startNode.X && left.endNode.X == right.endNode.X
 				&& left.length == right.length);
 	};
+	// The same arcs have the same X at both ends, so a section arc is compared only with the arcs with its ends, in the
+	// order of allArcs. An end at NaN is equal to none.
+	const auto hasEnds = [](const Arc& arc) { return !std::isnan(arc.startNode.X) && !std::isnan(arc.endNode.X); };
+	std::map<std::pair<double, double>, std::vector<TrackLineItem*>> arcsByEnds;
+	for (auto* item : allArcs)
+		if (item && item->arc && hasEnds(*item->arc))
+			arcsByEnds[{item->arc->startNode.X, item->arc->endNode.X}].push_back(item);
 	for (int sectionIndex = 0; sectionIndex < m_source->sectionCount(); ++sectionIndex) {
 		const Section& section = m_source->section(sectionIndex);
 		if (section.ID.empty())
 			continue;
 		// the last section with the id
 		m_sectionIndexById[section.ID] = sectionIndex;
-		const int arcCount = std::min(section.total_arcs,
-			static_cast<int>(sizeof(section.arcs_in_signalling_block_section)
-				/ sizeof(section.arcs_in_signalling_block_section[0])));
+		const int arcCount = std::min(section.total_arcs, static_cast<int>(section.arcs_in_signalling_block_section.size()));
 		auto& tracks = m_tracksBySectionId[section.ID];
 		for (int arcIndex = 0; arcIndex < arcCount; ++arcIndex) {
 			const Arc& sectionArc = section.arcs_in_signalling_block_section[arcIndex];
-			for (auto* item : allArcs) {
-				if (!item || !item->arc || !sameArc(*item->arc, sectionArc))
+			const auto candidates = hasEnds(sectionArc) ? arcsByEnds.find({sectionArc.startNode.X, sectionArc.endNode.X})
+														: arcsByEnds.end();
+			if (candidates == arcsByEnds.end())
+				continue;
+			for (auto* item : candidates->second) {
+				if (!sameArc(*item->arc, sectionArc))
 					continue;
 				const bool trackMatches = section.trackLineId < 0
 					|| item->track == section.trackLineId
@@ -3386,6 +3698,20 @@ bool previewPointAtX(const TrackPreviewLine& line, double x, qreal offset, QPoin
 		return false;
 	point = QPointF(candidate.x, candidate.y + offset);
 	return true;
+}
+
+QPolygonF previewSectionCourse(const TrackPreviewResult& preview, const SceneSectionDescriptor& section) {
+	return finitePolyline(trackPreviewSectionCourse(preview, section));
+}
+
+QList<QPolygonF> previewSectionCourses(const TrackPreviewResult& preview, const SceneSectionInventory& inventory,
+	const std::vector<std::string>& references) {
+	QList<QPolygonF> courses;
+	for (const std::string& reference : references) {
+		const SceneSectionDescriptor* section = inventory.resolve(reference);
+		courses.append(section ? previewSectionCourse(preview, *section) : QPolygonF());
+	}
+	return courses;
 }
 
 QPointF stationDecorationOffset(const std::vector<SceneStationView>& views,

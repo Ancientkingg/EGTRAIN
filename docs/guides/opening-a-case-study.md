@@ -2,15 +2,15 @@
 
 An `.egscene` file contains one case. It is a ZIP archive with the same
 JSON files that EGTRAIN loads from a case folder. This page is about the
-bundle: how to open one, which versions open, what happens when a file is
-opened by double-click, and how to handle bundles from the command line.
+case file: how to open one, which versions open, what happens when a file is
+opened by double-click, and how to handle case files from the command line.
 [Getting started](getting-started.md) takes you from a download through a first
 run, and [How-to](how-to.md) has the recipes for everyday tasks.
 
-Opening a bundle does not run it or modify the downloaded file. To run it,
+Opening a case file does not run it or modify the downloaded file. To run it,
 follow [Getting started](getting-started.md#4-run-the-simulation). Use
-**File > Save As...** to create a new `.egscene` after editing the
-case.
+**File > Save As...** and **Case File...** to create a new `.egscene` after
+editing the case.
 
 ## Cases that do not open
 
@@ -22,16 +22,18 @@ report a case that does not open:
   EGTRAIN can read, or it has the draft layout. No older version can be
   upgraded today. The message names the version numbers of the case and the
   EGTRAIN version that saved it, when the case records that. Download the
-  current case from the releases page.
+  current case from the page of the newest release: the Release notes link
+  under the downloads of the [EGTRAIN website](https://egtrain.samuelbruin.com/#download) opens it.
 - **Newer Case**: the case was saved with a newer EGTRAIN. Choose
   **Check for Updates...** to look for the newer release.
 - **Cannot Open Case**: the version cannot be read, the file is not a
-  valid case folder or bundle, or loading the case reports errors. The message gives
+  valid case folder or case file, or loading the case reports errors. The message gives
   the file name and says that the file is damaged or is not an EGTRAIN case,
-  and the first problem follows it; keep it. A folder gets its own
-  sentence: it holds no EGTRAIN case (a case folder holds a `scene.json` file),
-  or the `scene.json` in it is damaged. The same message appears when EGTRAIN starts
-  with that file.
+  and up to three problems follow it, each with its fix and the file and place
+  in the file that it is about, then the number of other errors; keep it. A
+  folder gets its own sentence: it holds no EGTRAIN case (a case folder holds a
+  `scene.json` file), or the `scene.json` in it is damaged. The same message
+  appears when EGTRAIN starts with that file.
 
 Cases written by builds before 2026-08-08 use an older layout under the same
 version number. EGTRAIN recognises that draft layout, reports it in the
@@ -41,7 +43,7 @@ Legacy Case...**.
 
 If EGTRAIN rejects a downloaded file, keep the diagnostic message and download
 the file again. The reader rejects truncated archives, unknown files, unsafe
-paths, duplicate entries, and files that exceed the documented bundle limits.
+paths, duplicate entries, and files that exceed the documented case file limits.
 
 ## Open by double-click
 
@@ -93,9 +95,10 @@ Uninstalling EGTRAIN removes the registration that Setup made and leaves your
 
 The portable archive registers nothing, not even when you run it, so a
 double-click does not start a portable copy. In a portable copy, open a case
-with **File > Open Case...**, drag the file onto the window, or give
-the file name to `QEGTRAIN.exe` on the command line. If an installed copy exists
-as well, a double-click starts that one, also while the portable copy is open.
+with **File > Open Case...** and **Other ways to open... > Open Case File...**,
+drag the file onto the window, or give the file name to `QEGTRAIN.exe` on the
+command line. If an installed copy exists as well, a double-click starts that
+one, also while the portable copy is open.
 
 ### macOS
 
@@ -117,7 +120,8 @@ it yourself:
 
 ### Linux
 
-The AppImage registers no file type. Use **File > Open Case...**.
+The AppImage registers no file type. Use **File > Open Case...** and
+**Other ways to open... > Open Case File...**.
 
 ## Instructor and command-line use
 
@@ -133,13 +137,13 @@ scene_tool unpack case.egscene path/to/unpacked-case
 The unpack destination must be a new path; the tool does not replace an
 existing file or directory.
 
-The simulator also accepts a bundle directly:
+The simulator also accepts a case file directly:
 
 ```bash
 QEGTRAIN --scene case.egscene -g 0
 ```
 
-A file name without `--scene` opens the bundle in the same way:
+A file name without `--scene` opens the case file in the same way:
 
 ```bash
 QEGTRAIN case.egscene
@@ -150,5 +154,5 @@ are reported and the usual start follows; with `-g 0` the program exits with
 status 1 instead. When `--scene` is also given, `--scene` wins and the file name
 is ignored.
 
-See the [bundle specification](scene-bundle.md) for the ZIP
+See the [case file format](scene-bundle.md) for the ZIP
 layout, version fields, entry limits, and safety rules.

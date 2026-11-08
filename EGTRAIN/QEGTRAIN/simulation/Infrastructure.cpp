@@ -1,5 +1,5 @@
 #include "simulation/Infrastructure.h"
-#include "scene/SectionInventory.h"
+#include "simulation/RunOutputFile.h"
 #include "simulation/SimulationRun.h"
 #include <cstdio>
 #include <cfloat>
@@ -32,34 +32,12 @@ Node::Node() {
 	indexOrderList = -1;
 	tdsbGeoCoordX = tdsbGeoCoordY = -1;
 	arcSpeedLimit = 0;
-	latitude = longitude = graphX = graphY = 0;
+	latitude = longitude = 0;
 	virtualSignal = false;
 	stationPlatformId = "None";
-	for (int i = 0; i < 6; i++) {
+	for (std::size_t i = 0; i < RuntimeLimits::kNativeMaxNodeConnections; i++) {
 		connectIdBlockSet[i] = 0;
 		connectXNode[i] = 0;
-	}
-}
-
-void Node::initialiseIdConnectedBlocks(string* IDConnectedBSofBlock, int N_IDConnectedBSofBlock) {
-	if (this->numConnections > 0) {
-		for (int i = 0; i < this->numConnections; i++) {
-			string NameToSearch;
-			const std::string blockSetId = std::to_string(this->connectIdBlockSet[i]);
-			const std::string XNode = formatSceneSectionCoordinate(this->connectXNode[i]);
-
-			NameToSearch = NameToSearch + "-B" + blockSetId + "@-" + XNode;
-			if (N_IDConnectedBSofBlock > 0) {
-				for (int h = 0; h < N_IDConnectedBSofBlock; h++) {
-					string Prova = IDConnectedBSofBlock[h];
-					IDConnectedBSofBlock[h].find(NameToSearch, 0);
-					if (IDConnectedBSofBlock[h].find(NameToSearch, 0) != -1) {
-						this->IDConnectedBlocks.push_back(IDConnectedBSofBlock[h]);
-						break; // break the for loop on the strings of the connected blocks of the block section
-					}
-				}
-			}
-		}
 	}
 }
 
@@ -94,7 +72,6 @@ Connections::Connections() {
 	idFirstTrackLine = idSecondTrackLine = 0;
 	xFirstNode = xSecondNode = 0;
 	speedlimit = 16.667; // by default the speedlimit on a switch is set to 16.667 m /s; i.e. 60 km/h
-	graphXFirstNode = graphYFirstNode = graphXSecondNode = graphYSecondNode = 0;
 }
 
 // Function to order pairs of elements
@@ -106,22 +83,13 @@ bool orderPassengerListOnPlatform(pair<string, double>& A, pair<string, double>&
 }
 
 
-Stations::Stations() {
-	Av_Arrival_Delay = Std_Arrival_Delay = Tot_Consec_Delay = Perc_Delayed_T_5min = Perc_Delayed_T_3min = Perc_Delayed_T = Max_TotalDelay = Max_Cons_Delay = -1;
-	totalArrivalDelay = 0;
-	N_Stopped_Trains = N_Delayed_Arr = N_Delayed_Arr_3min = N_Delayed_Arr_5min = -1;
-	latitude = longitude = graphX = graphY = 0;
-	N_StationPlatforms = 0;
-}
-
 void Print_Station_Delay_Stats(const SimulationRun& run, string Name_StationDelay, string kindofdelay) {
-	ofstream FileOutput;
 	string FileOutName;
 	if (kindofdelay == "pos")
 		FileOutName = FileOutName + Name_StationDelay + "/Stats_Stations.txt";
 	else if (kindofdelay == "pos&neg")
 		FileOutName = FileOutName + Name_StationDelay + "/Pos&Neg_Stats_Stations.txt";
-	FileOutput.open((char*)FileOutName.c_str());
+	ofstream FileOutput = openRunOutputFile(FileOutName);
 	FileOutput << "StName" << " " << "Av_Delay" << " " << "Std_Delay" << " " << "Total_Delay" << " " << "Max_Tot_Delay" << " " << "Cum_Cons_Delay" << " " << "Max_Cons_Delay" << " " << "Perc_Delayed" << " " << "Perc_Delayed_3min" << " " << "Perc_Delayed_5min" << " " << "N_StopTrains" << " " << "N_DelTrains" << "\n";
 	// Print first the amount of Entrance delay and disturbances to dwell times in input
 	FileOutput << "Ent_Del+DwT_Dist" << " " << run.totalInputDelays.Av_Arrival_Delay << " " << run.totalInputDelays.Std_Arrival_Delay << " " << run.totalInputDelays.totalArrivalDelay << " " << run.totalInputDelays.Max_TotalDelay << " " << "N/D" << " " << "N/D" << " " << run.totalInputDelays.Perc_Delayed_T << " " << run.totalInputDelays.Perc_Delayed_T_3min << " " << run.totalInputDelays.Perc_Delayed_T_5min << " " << run.totalInputDelays.N_Stopped_Trains << " " << run.totalInputDelays.N_Delayed_Arr << "\n";
@@ -174,7 +142,7 @@ void Print_Station_Delay_Stats(const SimulationRun& run, string Name_StationDela
 
 	FileOutput << "TOTALS" << " " << TotalAV << " " << TotalStd << " " << TOTDelay << " " << MAX_TOTDelay << " " << TOTCONSDelay << " " << MAX_CONSDelay << " " << AV_Punct << " " << AV_Punct_3min << " " << AV_Punct_5min << "\n";
 	// Printing the Final_Delay fittitious station
-	FileOutput << run.finalStation.stationName << " " << run.finalStation.Av_Arrival_Delay << " " << run.finalStation.Std_Arrival_Delay << " " << run.finalStation.totalArrivalDelay << " " << run.finalStation.Max_TotalDelay << " " << run.finalStation.Tot_Consec_Delay << " " << run.finalStation.Max_Cons_Delay << " " << run.finalStation.Perc_Delayed_T << " " << run.finalStation.Perc_Delayed_T_3min << " " << run.finalStation.Perc_Delayed_T_5min << " " << run.finalStation.N_Stopped_Trains << " " << run.finalStation.N_Delayed_Arr << "\n";
+	FileOutput << kFinalStationName << " " << run.finalStation.Av_Arrival_Delay << " " << run.finalStation.Std_Arrival_Delay << " " << run.finalStation.totalArrivalDelay << " " << run.finalStation.Max_TotalDelay << " " << run.finalStation.Tot_Consec_Delay << " " << run.finalStation.Max_Cons_Delay << " " << run.finalStation.Perc_Delayed_T << " " << run.finalStation.Perc_Delayed_T_3min << " " << run.finalStation.Perc_Delayed_T_5min << " " << run.finalStation.N_Stopped_Trains << " " << run.finalStation.N_Delayed_Arr << "\n";
 
-	FileOutput.close();
+	closeRunOutputFile(FileOutput, FileOutName);
 }

@@ -32,10 +32,17 @@ struct PreparedBatch {
 /// events give way first when a category is full; going over the directory limit is a storage
 /// failure. An event expires seven days after it occurred. All times are UTC.
 ///
-/// One worker owns this object and all methods. An unsuccessful storage operation fails closed; the
+/// One worker owns this object and all methods. A file write that fails is tried once more after 100 ms.
+/// An unsuccessful storage operation, including a write that fails twice, fails closed; the
 /// caller must close ingress and abandon outstanding RAM work. It also tries to leave a disabled
 /// marker file, after which every later open() that takes owner.lock discards the queued events
-/// and returns Disabled.
+/// and returns Disabled. The second line of the marker names the failure: storage (a file write or
+/// space check), retirement (a retirement that control.json does not record), ledger (control.json
+/// is damaged, or missing next to category data) or time (a time that is not UTC). Older versions
+/// write no second line, and every version only tests that the file exists. Only
+/// clearStorageFailure() removes a marker, and only a storage one. When open() finds a storage
+/// marker next to category data and no control.json, it makes it a ledger marker before it
+/// discards the data, so that the marker stays.
 class TelemetryQueue {
 public:
 	/// Result of open().
@@ -92,9 +99,17 @@ public:
 	bool isRetired(const QString& endpoint) const;
 	/// True while this object holds owner.lock and no storage operation has failed.
 	bool healthy() const { return m_owner && !m_failed; }
+	/// True while this object holds owner.lock after a failure, the disabled marker is a storage one
+	/// and control.json exists or no category data does.
+	bool storageFailed() const;
+	/// When storageFailed(), removes the category files and then the disabled marker, so that the next
+	/// open() starts again. control.json, the retirement ledger, stays as it is, and so does this
+	/// object until it is opened again. False when nothing or not everything was removed.
+	bool clearStorageFailure();
 #ifdef EGTRAIN_TELEMETRY_TEST_HOOK
-	/// Test hook: the next file write fails as a storage failure would.
-	void failNextWriteForTesting() { m_failNextWrite = true; }
+	/// Test hook: the next attempts file writes fail as a storage failure would. A failed write is tried
+	/// twice, so 2 makes one storage operation fail.
+	void failNextWritesForTesting(int attempts) { m_failingWrites = attempts; }
 #endif
 	/// Releases owner.lock and drops the events held in memory. The files stay.
 	void close();
@@ -103,10 +118,21 @@ private:
 		TelemetryEvent event;
 		QString stamp;
 	};
+	// The first failure since open(), which the second line of the disabled marker names.
+	enum class Failure { Storage, // storage: a file write or a space check failed.
+		Retirement,				  // retirement: control.json does not record a retirement.
+		Ledger,					  // ledger: control.json is damaged, or missing next to category data.
+		Time					  // time: a time is not UTC.
+	};
+	bool enqueue(Category category, const Stored& item, const QDateTime& now);
+	QByteArray categoryBytes(Category category) const;
 	bool saveCategory(Category category);
-	bool saveControl();
-	bool replace(const QString& file, const QByteArray& bytes, qint64 limit);
-	bool fail();
+	bool saveControl(Failure failure = Failure::Storage);
+	bool replace(const QString& file, const QByteArray& bytes, qint64 limit, Failure failure = Failure::Storage);
+	bool fail(Failure failure = Failure::Storage);
+	bool writeMarker(const QByteArray& bytes);
+	bool storageMarker() const;
+	bool ledgerMissing() const;
 	bool checkSpace(qint64 incomingBytes = 0) const;
 	bool loadCategory(Category category);
 	bool loadControl();
@@ -119,8 +145,9 @@ private:
 	RetryState m_retry;
 	QDateTime m_lastSeen, m_lastCheckpoint;
 	bool m_owner = false, m_failed = false;
+	Failure m_failure = Failure::Storage;
 #ifdef EGTRAIN_TELEMETRY_TEST_HOOK
-	bool m_failNextWrite = false;
+	int m_failingWrites = 0;
 #endif
 };
 }

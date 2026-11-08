@@ -16,6 +16,13 @@ const QColor kGridColor(0x18, 0x28, 0x32);
 constexpr qreal kGridBaseSpacing = 80.0;
 constexpr qreal kGridMinPixels = 24.0;
 constexpr qreal kGridMaxPixels = 96.0;
+
+// The padding that a fit keeps on each side of its bounds, in logical pixels, along a viewport extent pixels long:
+// kFitPadding, or an eighth of the extent when that is less, so that a short or narrow view keeps most of its extent for
+// the network.
+qreal fitPadding(int extent) {
+	return qMin<qreal>(kFitPadding, extent / 8.0);
+}
 }
 
 NetworkView::NetworkView(QWidget* parent)
@@ -150,8 +157,7 @@ QRectF NetworkView::paintedTopologyBounds(bool* hasBounds) const {
 qreal NetworkView::calculateFittedScale() const {
 	if (!m_hasTopologyBounds)
 		return 1.0;
-	// A short or narrow view keeps most of its extent for the network.
-	const auto available = [](int extent) { return qMax<qreal>(1.0, extent - 2.0 * qMin<qreal>(kFitPadding, extent / 8.0)); };
+	const auto available = [](int extent) { return qMax<qreal>(1.0, extent - 2.0 * fitPadding(extent)); };
 	const qreal availableWidth = available(viewport()->width());
 	const qreal availableHeight = available(viewport()->height());
 	const qreal topologyWidth = qMax<qreal>(
@@ -176,8 +182,27 @@ QRectF NetworkView::topologyBounds() const {
 	return m_topologyBounds;
 }
 
+QRectF NetworkView::paddedTopologyBounds() const {
+	if (!m_hasTopologyBounds)
+		return {};
+	const qreal x = fitPadding(viewport()->width()) / m_fittedScale;
+	const qreal y = fitPadding(viewport()->height()) / m_fittedScale;
+	return m_topologyBounds.adjusted(-x, -y, x, y);
+}
+
 bool NetworkView::atFit() const {
 	return zoomRatio() <= 1.0 + 1e-6;
+}
+
+// The bounds of the last fit with half the visible scene on each side, at the scale of the view and the size of the
+// viewport. The centre of the view then reaches every point of the bounds and no point outside them. Without bounds the
+// scene rectangle stays as it is.
+void NetworkView::updateSceneRect() {
+	if (!m_hasTopologyBounds)
+		return;
+	const qreal halfWidth = viewport()->width() / (2.0 * qAbs(transform().m11()));
+	const qreal halfHeight = viewport()->height() / (2.0 * qAbs(transform().m22()));
+	setSceneRect(m_topologyBounds.adjusted(-halfWidth, -halfHeight, halfWidth, halfHeight));
 }
 
 QString NetworkView::zoomLabel() const {
@@ -208,9 +233,9 @@ void NetworkView::applyFit(const QRectF& bounds, bool hasBounds) {
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	if (m_hasTopologyBounds) {
-		setSceneRect(m_topologyBounds);
 		m_fittedScale = calculateFittedScale();
 		setTransform(QTransform::fromScale(m_fittedScale, m_fittedScale));
+		updateSceneRect();
 		QGraphicsView::centerOn(m_topologyBounds.center());
 		m_viewCenter = mapToScene(viewport()->rect().center());
 		m_hasViewCenter = true;
@@ -238,23 +263,20 @@ bool NetworkView::zoomBy(qreal factor, const QPointF& viewportAnchor) {
 	const QPoint viewportCenter = this->viewport()->rect().center();
 	const bool hasAnchor = viewportAnchor.x() >= 0.0 && viewportAnchor.y() >= 0.0;
 	const QPoint anchorPoint = hasAnchor ? viewportAnchor.toPoint() : viewportCenter;
-	const QPointF anchorScene = mapToScene(anchorPoint);
 	const QPointF centerScene = m_hasViewCenter ? m_viewCenter : mapToScene(viewportCenter);
+	const qreal scale = m_fittedScale * targetRatio;
+	// The scene point under the anchor stays under it, to a fraction of a pixel.
+	const QPointF newCenter = hasAnchor ? mapToScene(anchorPoint) - QPointF(anchorPoint - viewportCenter) / scale : centerScene;
 
 	const bool wasSuppressed = m_suppressViewportChanged;
 	m_suppressViewportChanged = true;
-	setTransform(QTransform::fromScale(m_fittedScale * targetRatio, m_fittedScale * targetRatio));
+	setTransform(QTransform::fromScale(scale, scale));
 	if (targetRatio <= 1.0 + 1e-6) {
 		setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	}
-	QGraphicsView::centerOn(centerScene);
-	if (hasAnchor) {
-		const QPointF newAnchorScene = mapToScene(anchorPoint);
-		QGraphicsView::centerOn(centerScene + anchorScene - newAnchorScene);
-	}
-	m_viewCenter = mapToScene(viewport()->rect().center());
-	m_hasViewCenter = true;
+	updateSceneRect();
+	centerOnExactly(newCenter);
 	m_suppressViewportChanged = wasSuppressed;
 	if (!wasSuppressed)
 		emit viewportChanged();
@@ -379,9 +401,9 @@ void NetworkView::resizeEvent(QResizeEvent* event) {
 			setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		}
 		setTransform(QTransform::fromScale(m_fittedScale * ratio, m_fittedScale * ratio));
-		QGraphicsView::centerOn(preserveFit ? m_topologyBounds.center() : previousCenter);
-		m_viewCenter = mapToScene(viewport()->rect().center());
-		m_hasViewCenter = true;
+		updateSceneRect();
+		// To a fraction of a pixel, so that the centre does not creep while the window is resized.
+		centerOnExactly(previousCenter);
 	}
 	m_suppressViewportChanged = wasSuppressed;
 	if (!wasSuppressed)
