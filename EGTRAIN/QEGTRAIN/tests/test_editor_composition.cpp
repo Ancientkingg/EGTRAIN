@@ -280,14 +280,22 @@ void TestCompositionPanel::renamesAddsAndDeletesCompositions() {
 	const quint64 revisionBeforeRejected = document.revision();
 	panel.idEdit()->setText("");
 	panel.commitIdEdit();
-	// An empty id is dropped and the field shows the old id.
+	// An empty id is dropped, the field shows the old id and a message says why.
 	QCOMPARE(panel.idEdit()->text(), "c1");
 	QCOMPARE(document.model().compositions[0].id, "c1");
+	QCOMPARE(prompts.errorCount, 1);
+	QVERIFY(prompts.errorWarning);
+	QCOMPARE(prompts.errorTitle, "Invalid Composition ID");
+	QCOMPARE(prompts.errorMessage, "Composition IDs must not be empty.");
 	panel.idEdit()->setText("c2");
 	panel.commitIdEdit();
-	// An id that another composition has is dropped and the field shows the old id.
+	// An id that another composition has is dropped, the field shows the old id and a message says why.
 	QCOMPARE(panel.idEdit()->text(), "c1");
 	QCOMPARE(document.model().compositions[0].id, "c1");
+	QCOMPARE(prompts.errorCount, 2);
+	QVERIFY(prompts.errorWarning);
+	QCOMPARE(prompts.errorTitle, "Duplicate Composition ID");
+	QCOMPARE(prompts.errorMessage, "Choose a unique composition ID.");
 	QCOMPARE(document.model().compositions[1].id, "c2");
 	panel.idEdit()->setText("  c1  ");
 	panel.commitIdEdit();
@@ -366,7 +374,7 @@ void TestCompositionPanel::renamesAddsAndDeletesCompositions() {
 	panel.listWidget()->setCurrentRow(0);
 	panel.deleteComposition();
 	// A composition that services use is refused, naming the services.
-	QCOMPARE(prompts.errorCount, 1);
+	QCOMPARE(prompts.errorCount, 3);
 	QVERIFY(prompts.errorWarning);
 	QCOMPARE(prompts.errorTitle, "Cannot Delete Composition");
 	QVERIFY(prompts.errorMessage.contains("c1_pending"));
@@ -393,7 +401,7 @@ void TestCompositionPanel::renamesAddsAndDeletesCompositions() {
 	panel.deleteComposition();
 	// Deleting from the end stops at the composition that a service uses.
 	QCOMPARE(items(panel.listWidget()), QStringList({"c1_pending", "c2"}));
-	QCOMPARE(prompts.errorCount, 2);
+	QCOMPARE(prompts.errorCount, 4);
 	QCOMPARE(panel.listWidget()->currentRow(), 1);
 }
 

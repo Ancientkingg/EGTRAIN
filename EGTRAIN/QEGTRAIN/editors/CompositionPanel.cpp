@@ -287,9 +287,13 @@ void CompositionPanel::commitIdEdit() {
 	const std::string newId = m_idEdit->text().trimmed().toStdString();
 	if (newId == oldId)
 		return;
-	const bool duplicate = newId.empty() || sceneUniqueCompositionId(model, newId) != newId;
-	if (duplicate) {
+	const bool empty = newId.empty();
+	if (empty || sceneUniqueCompositionId(model, newId) != newId) {
 		m_idEdit->setText(QString::fromStdString(oldId));
+		if (empty)
+			m_prompts->showError(this, "Invalid Composition ID", "Composition IDs must not be empty.", true);
+		else
+			m_prompts->showError(this, "Duplicate Composition ID", "Choose a unique composition ID.", true);
 		return;
 	}
 

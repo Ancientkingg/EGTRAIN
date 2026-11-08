@@ -530,14 +530,22 @@ void TestTrainUnitPanel::editsRenamesAddsAndDeletesUnits() {
 	const quint64 revisionBeforeRejected = document.revision();
 	panel.idEdit()->setText("   ");
 	panel.commitIdEdit();
-	// An empty id is dropped and the field shows the old id.
+	// An empty id is dropped, the field shows the old id and a message says why.
 	QCOMPARE(panel.idEdit()->text(), "u1");
 	QCOMPARE(document.model().trainUnits[0].id, "u1");
+	QCOMPARE(prompts.errorCount, 1);
+	QVERIFY(prompts.errorWarning);
+	QCOMPARE(prompts.errorTitle, "Invalid Rolling Stock Unit ID");
+	QCOMPARE(prompts.errorMessage, "Rolling stock unit IDs must not be empty.");
 	panel.idEdit()->setText("u2");
 	panel.commitIdEdit();
-	// An id that another unit has is dropped and the field shows the old id.
+	// An id that another unit has is dropped, the field shows the old id and a message says why.
 	QCOMPARE(panel.idEdit()->text(), "u1");
 	QCOMPARE(document.model().trainUnits[0].id, "u1");
+	QCOMPARE(prompts.errorCount, 2);
+	QVERIFY(prompts.errorWarning);
+	QCOMPARE(prompts.errorTitle, "Duplicate Rolling Stock Unit ID");
+	QCOMPARE(prompts.errorMessage, "Choose a unique rolling stock unit ID.");
 	QCOMPARE(document.revision(), revisionBeforeRejected);
 	QVERIFY(events.log.empty());
 	panel.idEdit()->setText("u1_renamed");
@@ -612,7 +620,7 @@ void TestTrainUnitPanel::editsRenamesAddsAndDeletesUnits() {
 	panel.selectUnit("u1_pending");
 	panel.deleteUnit();
 	// A unit that a composition uses is refused, naming the composition.
-	QCOMPARE(prompts.errorCount, 1);
+	QCOMPARE(prompts.errorCount, 3);
 	QVERIFY(prompts.errorWarning);
 	QCOMPARE(prompts.errorTitle, "Cannot Delete Rolling Stock Unit");
 	QVERIFY(prompts.errorMessage.contains("c1"));
