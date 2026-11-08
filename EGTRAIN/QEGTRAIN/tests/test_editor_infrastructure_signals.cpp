@@ -416,11 +416,12 @@ void TestSignalFacets::editsAreas() {
 	f.type(0, 1, " 0.25 ");
 	QVERIFY2(f.untouched(), "a value that is the same changes nothing");
 	f.type(0, 2, "far");
-	// An end that is no number is refused, without a message, and the table shows the model again.
+	// An end that is no number is refused with a message that names the column, and the table shows the model again.
 	QVERIFY(f.untouched());
 	QCOMPARE_EQ(f.model().signallingAreas[0].endKm, 1.75);
 	QCOMPARE(f.cell(0, 2), "1.75");
-	QVERIFY(f.messages.empty());
+	QCOMPARE(f.messages, QStringList({"End km needs a number, such as 1.5."}));
+	f.messages.clear();
 
 	// rename: nothing refers to an area
 	f.type(1, 0, " area-x ");

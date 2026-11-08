@@ -161,6 +161,18 @@ protected:
 		return item.text().trimmed();
 	}
 
+	/// The message that refuses the text of the cell in `row` and `column` of the table, which setNumber() or setFlag()
+	/// did not read, named by the header of the column: "X (km) needs a number, such as 1.5." or "Reversed needs true or
+	/// false.".
+	static QString refusedValueText(const QTableWidget& table, int row, int column) {
+		const QTableWidgetItem* header = table.horizontalHeaderItem(column);
+		const QString name = header ? header->text() : QStringLiteral("This cell");
+		const QTableWidgetItem* item = table.item(row, column);
+		if (item && item->data(Qt::CheckStateRole).isValid())
+			return QStringLiteral("%1 needs true or false.").arg(name);
+		return QStringLiteral("%1 needs a number, such as 1.5.").arg(name);
+	}
+
 	/// The message that refuses ids that the scene does not have. `noun` names one entity of their kind, such as "Node":
 	/// "Node 'n9' does not exist" or "Nodes 'n8', 'n9' do not exist". An empty id asks for one: "Choose a node".
 	static QString missingIdsText(const QString& noun, const QStringList& ids) {

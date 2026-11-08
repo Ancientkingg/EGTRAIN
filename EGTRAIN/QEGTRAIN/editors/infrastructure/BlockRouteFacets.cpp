@@ -101,7 +101,7 @@ public:
 		else if (column == 2)
 			edit = setNumber(value, edited.lengthKm);
 		if (edit == Edit::Refused) {
-			panel.refuseEdit();
+			panel.refuseEdit(refusedValueText(*panel.table(), row, column));
 			return;
 		}
 		if (edit != Edit::Changed)

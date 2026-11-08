@@ -68,7 +68,7 @@ public:
 		else if (edit == Edit::Changed)
 			panel.edit(QStringLiteral("Edit %1").arg(m_noun), [this, index, &edited](SceneModel& model) { (model.*m_list)[index] = edited; });
 		else if (edit == Edit::Refused)
-			panel.refuseEdit();
+			panel.refuseEdit(refusedValueText(*panel.table(), row, column));
 	}
 
 	/// Appends newItem() with an id made unique from idBase(), and selects it.
