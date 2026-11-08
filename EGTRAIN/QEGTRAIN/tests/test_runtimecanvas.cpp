@@ -2015,6 +2015,25 @@ void TestRuntimeCanvas::replayPlayGlidesOverStep() {
 	QVERIFY(near(half, from + (to - from) / 2.0));
 	QVERIFY(!presenter.trainMoving(0));
 	QVERIFY(near(to, from + 40.0));
+
+	// A step that comes while the glide still runs, as the timer can fire early, goes on from where the train is drawn:
+	// the head never moves back and reaches the new place when that step's glide ends.
+	deliver(1.08);
+	const qint64 second = f.now;
+	stepTo(second + 100);
+	double previous = f.drawnHead();
+	deliver(1.12);
+	const qint64 third = f.now;
+	QCOMPARE_GE(f.drawnHead(), previous - 1e-6);
+	bool onward = true;
+	for (qint64 at = third + 10; at <= third + 200; at += 10) {
+		stepTo(at);
+		onward &= f.drawnHead() >= previous - 1e-6;
+		previous = f.drawnHead();
+	}
+	QVERIFY(onward);
+	QVERIFY(!presenter.trainMoving(0));
+	QVERIFY(near(f.drawnHead(), from + 120.0));
 }
 
 // A seek places the train at its new place at once, with no glide to run, also after a glide has started.

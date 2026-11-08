@@ -59,7 +59,7 @@ inline constexpr int kDefaultReplaySpeed = 10;
 
 /// One step of Play: the simulated seconds it moves on and the real milliseconds between two steps.
 struct ReplayPlaybackStep {
-	int seconds = 1;	///< Simulated seconds from one shown second to the next.
+	int seconds = 1;	   ///< Simulated seconds from one shown second to the next.
 	int intervalMs = 1000; ///< Real milliseconds between two steps.
 };
 /// The step of Play at a replay speed in simulated seconds per second of real time: one second per step up to 10x, so
