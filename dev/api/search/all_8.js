@@ -59,7 +59,7 @@ var searchData=
   ['hasroute_56',['hasRoute',['../struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8',1,'CompletedRunData']]],
   ['hasroutechoice_57',['hasRouteChoice',['../struct_legacy_passenger_sources.html#afd3440e7b8ae02c5fa1b65e86d12eaaf',1,'LegacyPassengerSources']]],
   ['hasrun_58',['hasRun',['../struct_follow_availability_input.html#a43da6cb2fce127f8b63084d925c47a74',1,'FollowAvailabilityInput']]],
-  ['hasrunresults_59',['hasRunResults',['../class_main_window.html#aef45acf99c67d0bec5dfd949ee5a0c12',1,'MainWindow::hasRunResults()'],['../class_run_controller.html#a1b24e9db44b435144c53d862a196d7f8',1,'RunController::hasRunResults()']]],
+  ['hasrunresults_59',['hasRunResults',['../class_editor_docks_1_1_host.html#aa1da20c663aca05602d9f8d95a5aa794',1,'EditorDocks::Host::hasRunResults()'],['../class_main_window.html#ad4fe755a4a294f4bdc6e2ec50fe55e77',1,'MainWindow::hasRunResults()'],['../class_run_controller.html#a1b24e9db44b435144c53d862a196d7f8',1,'RunController::hasRunResults()']]],
   ['hasscene_60',['hasScene',['../class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f',1,'SceneEditorPanel']]],
   ['hasselecteditem_61',['hasSelectedItem',['../struct_network_legend_content.html#ab709f1cb70dc31dcd45183b976be2b40',1,'NetworkLegendContent']]],
   ['hasselectedtrack_62',['hasSelectedTrack',['../struct_network_legend_content.html#a5ba856f093161794004d63145a28d825',1,'NetworkLegendContent']]],

@@ -11,7 +11,7 @@ var class_main_window =
     [ "fitView", "class_main_window.html#a2cfd0971aa8a2a72f60e7213ef421867", null ],
     [ "focusNextPrevChild", "class_main_window.html#af4c3fd241765e0e59c9f82ef0dcd894d", null ],
     [ "handleHelpAbout", "class_main_window.html#af6401b80180a8574e05f043fedea8bfb", null ],
-    [ "hasRunResults", "class_main_window.html#aef45acf99c67d0bec5dfd949ee5a0c12", null ],
+    [ "hasRunResults", "class_main_window.html#ad4fe755a4a294f4bdc6e2ec50fe55e77", null ],
     [ "openGUI", "class_main_window.html#a07d2c6f665c664cf1357596a70560615", null ],
     [ "openSceneDirectory", "class_main_window.html#acde9f513d29189eea7b7488e569ae63e", null ],
     [ "refreshRunResults", "class_main_window.html#ab96f59ad0c19c14c1d01176eb629460a", null ],

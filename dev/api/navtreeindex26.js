@@ -1,5 +1,7 @@
 var NAVTREEINDEX26 =
 {
+"struct_scene_value_range.html#aab2bf9b52904f13f99d162856ea6f275":[2,0,291,0],
+"struct_scene_value_range.html#ac4435d641fc6c08aec291f301786d730":[2,0,291,2],
 "struct_section_reference_part.html":[2,0,294],
 "struct_section_reference_part.html#a13cfa1e5c68c74c4c34fa487c7523233":[2,0,294,2],
 "struct_section_reference_part.html#a1aa36bf937271d5c28a3119acca8ae61":[2,0,294,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX26 =
 "struct_train_1_1_authority_target.html#ab9f4e486dd46b7546b34c60335a70db4":[2,0,346,2,4],
 "struct_train_1_1_backward_braking_arc_cursor.html":[2,0,346,1],
 "struct_train_1_1_backward_braking_arc_cursor.html#a54de44a95ac9cadef7186db3636d0713":[2,0,346,1,4],
-"struct_train_1_1_backward_braking_arc_cursor.html#a613d11bd1a71875136978b58f68829f8":[2,0,346,1,0],
-"struct_train_1_1_backward_braking_arc_cursor.html#a72eb10ff954eae3c6261db3b5c6d9c06":[2,0,346,1,3],
-"struct_train_1_1_backward_braking_arc_cursor.html#aada328468a1bbcf5c36024b70aa97788":[2,0,346,1,1]
+"struct_train_1_1_backward_braking_arc_cursor.html#a613d11bd1a71875136978b58f68829f8":[2,0,346,1,0]
 };

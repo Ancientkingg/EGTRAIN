@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_main_window.html#aef45acf99c67d0bec5dfd949ee5a0c12" target="_top" xlink:title="Results of a completed run exist (RunController::hasRunResults()).">
+<g id="a_Node000002"><a xlink:href="class_main_window.html#ad4fe755a4a294f4bdc6e2ec50fe55e77" target="_top" xlink:title="Results of a completed run exist (RunController::hasRunResults()).">
 <polygon fill="white" stroke="#666666" points="352.25,-27.12 196,-27.12 196,-6.38 352.25,-6.38 352.25,-27.12"/>
 <text xml:space="preserve" text-anchor="middle" x="274.12" y="-13.62" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::hasRunResults</text>
 </a>

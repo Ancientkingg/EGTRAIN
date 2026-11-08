@@ -23,6 +23,7 @@ var class_train_unit_source_linker =
     [ "scheduleChange", "class_train_unit_source_linker.html#a8ba1c11aba1ff4f4a64efb43329f88c1", null ],
     [ "setDialogParent", "class_train_unit_source_linker.html#a72e6ff502031c2dee5f7f81e771d375e", null ],
     [ "setDocument", "class_train_unit_source_linker.html#ad7adbeb2b93d7a7b575fb8056f38f1e7", null ],
+    [ "setResultsShown", "class_train_unit_source_linker.html#a488a0d8eeaf72ead6e533d6a806a9c5d", null ],
     [ "statusChanged", "class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6", null ],
     [ "statusMessage", "class_train_unit_source_linker.html#ac19717cc1626f87ada89b940e2a61dd4", null ],
     [ "unlink", "class_train_unit_source_linker.html#aef0091e88c9f4604be8245b216d56607", null ],

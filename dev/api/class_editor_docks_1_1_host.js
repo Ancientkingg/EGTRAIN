@@ -5,6 +5,7 @@ var class_editor_docks_1_1_host =
     [ "captureTelemetryOperation", "class_editor_docks_1_1_host.html#a9e84f75f6c583151398a0ad189cc4430", null ],
     [ "commitPendingEditorValues", "class_editor_docks_1_1_host.html#a3bbad74af04d129633c1025d85cdcdac", null ],
     [ "commitScenarioAndPassengerEditsAndValidate", "class_editor_docks_1_1_host.html#ada92dcc69444aa746820a75f5e39dc2b", null ],
+    [ "hasRunResults", "class_editor_docks_1_1_host.html#aa1da20c663aca05602d9f8d95a5aa794", null ],
     [ "infrastructureDockShown", "class_editor_docks_1_1_host.html#ad4922c4ed744ba5cd200e0802cf9e886", null ],
     [ "infrastructureSelectionChanged", "class_editor_docks_1_1_host.html#a26f4d178b02d192cb844986721d0d763", null ],
     [ "invalidateRunResults", "class_editor_docks_1_1_host.html#a1b0702f094581bb1ec7d6e7a6026c941", null ],

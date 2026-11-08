@@ -24,7 +24,7 @@ var searchData=
   ['hasrepeatcheck_21',['hasRepeatCheck',['../class_service_panel.html#a15a084dd4323ee8325e0a2d08b3cc18c',1,'ServicePanel']]],
   ['hasrepeatcountcheck_22',['hasRepeatCountCheck',['../class_service_panel.html#a1db617b35f22bd9457b63a8ec6402242',1,'ServicePanel']]],
   ['hasroute_23',['hasRoute',['../struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8',1,'CompletedRunData']]],
-  ['hasrunresults_24',['hasRunResults',['../class_main_window.html#aef45acf99c67d0bec5dfd949ee5a0c12',1,'MainWindow::hasRunResults()'],['../class_run_controller.html#a1b24e9db44b435144c53d862a196d7f8',1,'RunController::hasRunResults()']]],
+  ['hasrunresults_24',['hasRunResults',['../class_editor_docks_1_1_host.html#aa1da20c663aca05602d9f8d95a5aa794',1,'EditorDocks::Host::hasRunResults()'],['../class_main_window.html#ad4fe755a4a294f4bdc6e2ec50fe55e77',1,'MainWindow::hasRunResults()'],['../class_run_controller.html#a1b24e9db44b435144c53d862a196d7f8',1,'RunController::hasRunResults()']]],
   ['hasscene_25',['hasScene',['../class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f',1,'SceneEditorPanel']]],
   ['hassourceidentity_26',['hasSourceIdentity',['../class_station_overlay_item.html#a15a99bf2d5436f07027e68886ddac9b8',1,'StationOverlayItem']]],
   ['hastarget_27',['hasTarget',['../class_follow_camera.html#af63c6d27c2da4e5f0105e306ced0fccb',1,'FollowCamera']]],

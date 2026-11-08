@@ -154,6 +154,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ad7adbeb2b93d7a7b575fb8056f38f1e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The linker works on the model of this document and drops its links when the document is replaced.  <br /></td></tr>
 <tr class="memitem:a72e6ff502031c2dee5f7f81e771d375e" id="r_a72e6ff502031c2dee5f7f81e771d375e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a72e6ff502031c2dee5f7f81e771d375e">setDialogParent</a> (QWidget *parent)</td></tr>
 <tr class="memdesc:a72e6ff502031c2dee5f7f81e771d375e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The questions of the linker are put in front of this window.  <br /></td></tr>
+<tr class="memitem:a488a0d8eeaf72ead6e533d6a806a9c5d" id="r_a488a0d8eeaf72ead6e533d6a806a9c5d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a488a0d8eeaf72ead6e533d6a806a9c5d">setResultsShown</a> (std::function&lt; bool()&gt; resultsShown)</td></tr>
 <tr class="memitem:a60ac49edaa0700895d414683ed36f587" id="r_a60ac49edaa0700895d414683ed36f587"><td class="memItemLeft">const <a class="el" href="struct_train_unit_source_linker_1_1_link.html">Link</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a60ac49edaa0700895d414683ed36f587">linkOf</a> (const std::string &amp;unitId) const</td></tr>
 <tr class="memdesc:a60ac49edaa0700895d414683ed36f587"><td class="mdescLeft">&#160;</td><td class="mdescRight">The links of a unit, or null. The pointer is valid until the links change.  <br /></td></tr>
 <tr class="memitem:a569d79c49b98054057b2f21db22d3b7c" id="r_a569d79c49b98054057b2f21db22d3b7c"><td class="memItemLeft">const <a class="el" href="#ac1dce0f3a15cd61daf03a73f6b1710ae">Links</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a569d79c49b98054057b2f21db22d3b7c">links</a> () const</td></tr>
@@ -756,6 +757,32 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_unit_source_linker_ad7adbeb2b93d7a7b575fb8056f38f1e7_cgraph.svg" width="623" height="142"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a488a0d8eeaf72ead6e533d6a806a9c5d" name="a488a0d8eeaf72ead6e533d6a806a9c5d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a488a0d8eeaf72ead6e533d6a806a9c5d">&#9670;&#160;</a></span>setResultsShown()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TrainUnitSourceLinker::setResultsShown </td>
+          <td>(</td>
+          <td class="paramtype">std::function&lt; bool()&gt;</td>          <td class="paramname"><span class="paramname"><em>resultsShown</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Tells whether the window shows the results of a run. The question about a changed file then warns that reloading discards them. Without it the question does not mention results. </p>
 
 </div>
 </div>

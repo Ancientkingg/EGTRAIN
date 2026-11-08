@@ -143,6 +143,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a68080cfdba4790ffca4f138c75447186"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the scenarios, the incidents and the entrance delays again.  <br /></td></tr>
 <tr class="memitem:a1b0702f094581bb1ec7d6e7a6026c941" id="r_a1b0702f094581bb1ec7d6e7a6026c941"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a1b0702f094581bb1ec7d6e7a6026c941">invalidateRunResults</a> ()=0</td></tr>
 <tr class="memdesc:a1b0702f094581bb1ec7d6e7a6026c941"><td class="mdescLeft">&#160;</td><td class="mdescRight">The selected scenario changed, so the results of the last run no longer match the next run.  <br /></td></tr>
+<tr class="memitem:aa1da20c663aca05602d9f8d95a5aa794" id="r_aa1da20c663aca05602d9f8d95a5aa794"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#aa1da20c663aca05602d9f8d95a5aa794">hasRunResults</a> () const =0</td></tr>
+<tr class="memdesc:aa1da20c663aca05602d9f8d95a5aa794"><td class="mdescLeft">&#160;</td><td class="mdescRight">The window shows the results of a completed run.  <br /></td></tr>
 <tr class="memitem:a299cc8f572a4d15fc94154c5d4039f40" id="r_a299cc8f572a4d15fc94154c5d4039f40"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a299cc8f572a4d15fc94154c5d4039f40">updateTrainUnitSourceStatus</a> ()=0</td></tr>
 <tr class="memdesc:a299cc8f572a4d15fc94154c5d4039f40"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the source files of the selected train unit and how they were read.  <br /></td></tr>
 <tr class="memitem:a3da776e338d6cc0eb89ff33140028741" id="r_a3da776e338d6cc0eb89ff33140028741"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a3da776e338d6cc0eb89ff33140028741">plotTrainUnitTraction</a> (const <a class="el" href="struct_scene_train_unit.html">SceneTrainUnit</a> &amp;unit)=0</td></tr>
@@ -296,6 +298,35 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 <p>Takes the pending edits of the Scenario and <a class="el" href="class_passenger.html">Passenger</a> panels only, which validation shows again from the scene, and validates the scene again, after a change that no user action made, such as the reload of a linked file. A field that is being typed in another panel keeps its text. </p>
+
+</div>
+</div>
+<a id="aa1da20c663aca05602d9f8d95a5aa794" name="aa1da20c663aca05602d9f8d95a5aa794"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa1da20c663aca05602d9f8d95a5aa794">&#9670;&#160;</a></span>hasRunResults()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool EditorDocks::Host::hasRunResults </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel pure-virtual">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The window shows the results of a completed run. </p>
+
+<p>Implemented in <a class="el" href="class_main_window.html#ad4fe755a4a294f4bdc6e2ec50fe55e77">MainWindow</a>.</p>
 
 </div>
 </div>
