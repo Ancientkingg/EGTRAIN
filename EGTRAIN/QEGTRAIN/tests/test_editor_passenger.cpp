@@ -251,6 +251,7 @@ private slots:
 	void showsNothingWithoutScene();
 	void showsNewScene();
 	void selectsPassengersAndJourneys();
+	void selectsEntityById();
 	void editsAddsAndDeletesPassengers();
 	void editsJourneys();
 	void movesLegs();
@@ -404,6 +405,32 @@ void TestPassengerPanel::selectsPassengersAndJourneys() {
 	QCOMPARE(panel.legOriginCombo()->itemText(0), "Select a journey or leg");
 	panel.refresh();
 	QVERIFY2(panel.journeyList()->currentRow() == 1, "refreshing keeps the selected journey");
+}
+
+// A validation row names a passenger, journey or leg by id: the panel shows its row without editing.
+void TestPassengerPanel::selectsEntityById() {
+	PassengerFixture f;
+	PassengerPanel& panel = f.panel;
+	QVERIFY(panel.selectEntity("leg", "L3"));
+	QCOMPARE(panel.passengerList()->currentRow(), 1);
+	QCOMPARE(panel.selectedPassengerLeg()->id, std::string("L3"));
+	QCOMPARE(panel.tabs()->currentIndex(), 1);
+	QVERIFY(panel.selectEntity("journey", "J2"));
+	QCOMPARE(panel.passengerList()->currentRow(), 0);
+	QCOMPARE(panel.selectedPassengerJourney()->id, std::string("J2"));
+	QCOMPARE(panel.tabs()->currentIndex(), 0);
+	QVERIFY(panel.selectEntity("leg", "L2"));
+	QCOMPARE(panel.selectedPassengerJourney()->id, std::string("J1"));
+	QCOMPARE(panel.selectedPassengerLeg()->id, std::string("L2"));
+	QVERIFY(panel.selectEntity("passenger", "P2"));
+	QCOMPARE(panel.selectedPassenger()->id, std::string("P2"));
+	// An unknown id or another kind leaves the selection alone, and nothing is edited.
+	QVERIFY(!panel.selectEntity("leg", "J1"));
+	QVERIFY(!panel.selectEntity("journey", "nope"));
+	QVERIFY(!panel.selectEntity("service", "S1"));
+	QCOMPARE(panel.selectedPassenger()->id, std::string("P2"));
+	QVERIFY(f.events.log.empty());
+	QCOMPARE(f.document.revision(), quint64(1));
 }
 
 // The edits of a passenger, then pending text, Add and Delete, which see the id and the revision that the edits left.
