@@ -5,6 +5,7 @@
 #include "support/FakePrompts.h"
 #include "widgets/CompactDoubleSpinBox.h"
 #include "widgets/DisplayPath.h"
+#include "widgets/EditorLayout.h"
 
 #include <QAccessible>
 #include <QApplication>
@@ -14,10 +15,14 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QDockWidget>
+#include <QHeaderView>
 #include <QLocale>
+#include <QMainWindow>
 #include <QPushButton>
 #include <QScopeGuard>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QSignalSpy>
 #include <QString>
 #include <QStringList>
@@ -190,6 +195,7 @@ private slots:
 	void namesFieldsAfterLabels();
 	void buttonsFitNarrowPanel_data();
 	void buttonsFitNarrowPanel();
+	void dockOpensWideEnoughForTractionColumns();
 	void focusDecidesPendingEdits();
 	void numberFieldsStopAtRanges();
 	void accessibilityStepsBySingleStep();
@@ -823,6 +829,51 @@ void TestTrainUnitPanel::buttonsFitNarrowPanel() {
 }
 
 // Focus decides which number fields are pending edits.
+// The dock opens wide enough for all columns of the traction table, and a dock of 480 pixels scrolls the table and not
+// the panel.
+void TestTrainUnitPanel::dockOpensWideEnoughForTractionColumns() {
+	SceneDocument document;
+	QMainWindow window;
+	auto* dock = new QDockWidget("Rolling Stock Units", &window);
+	auto* panel = new TrainUnitPanel;
+	auto* scroll = new EditorLayout::DockScrollArea(dock);
+	scroll->setWidgetResizable(true);
+	scroll->setMinimumSize(0, 0);
+	scroll->setWidget(panel);
+	dock->setWidget(scroll);
+	window.addDockWidget(Qt::RightDockWidgetArea, dock);
+	window.setCentralWidget(new QWidget(&window));
+	panel->setDocument(&document);
+	document.replace(unitScene(), false);
+	panel->tabs()->setCurrentIndex(0);
+	window.resize(1280, 800);
+	window.show();
+	// The window is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&window] { window.hide(); });
+	for (int pass = 0; pass < 8; ++pass)
+		QApplication::processEvents();
+	QTableWidget* table = panel->tractionTable();
+	// The main window gives the dock the width of its hint once the dock is placed.
+	panel->updateGeometry();
+	window.resizeDocks({dock}, {scroll->sizeHint().width()}, Qt::Horizontal);
+	for (int pass = 0; pass < 8; ++pass)
+		QApplication::processEvents();
+	// The last column stretches, so the width that the columns need is that of the others and the header of the last.
+	const QHeaderView* header = table->horizontalHeader();
+	int columns = header->sectionSizeHint(header->count() - 1);
+	for (int section = 0; section + 1 < header->count(); ++section)
+		columns += header->sectionSize(section);
+	QCOMPARE_GE(scroll->sizeHint().width(), columns + 2 * table->frameWidth());
+	QCOMPARE_GE(table->viewport()->width(), columns);
+	QVERIFY(!table->horizontalScrollBar()->isVisible());
+	// In a dock of 480 pixels the table scrolls its own columns, and the dock does not scroll sideways.
+	window.resizeDocks({dock}, {480}, Qt::Horizontal);
+	for (int pass = 0; pass < 8; ++pass)
+		QApplication::processEvents();
+	QCOMPARE_LE(panel->minimumSizeHint().width(), 480);
+	QVERIFY(!scroll->horizontalScrollBar()->isVisible());
+}
+
 void TestTrainUnitPanel::focusDecidesPendingEdits() {
 	SceneDocument document;
 	TrainUnitPanel panel;

@@ -19,6 +19,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
+#include <QScrollBar>
 #include <QSignalBlocker>
 #include <QStringList>
 #include <QStyledItemDelegate>
@@ -35,6 +36,23 @@ namespace {
 
 static_assert(static_cast<std::size_t>(TrainUnitPanel::PhysicalFieldCount) == kSceneTrainPhysicalFields.size(),
 	"one range for each physical field");
+
+// The traction table, which prefers the width of its columns so that a dock can open with every column visible. Its
+// minimum width stays that of any table, so a narrow dock scrolls the table and not the whole panel.
+class TractionTable : public QTableWidget {
+public:
+	using QTableWidget::QTableWidget;
+
+	QSize sizeHint() const override {
+		QSize hint = QTableWidget::sizeHint();
+		const QHeaderView* header = horizontalHeader();
+		int width = 2 * frameWidth() + verticalScrollBar()->sizeHint().width();
+		for (int section = 0; section < header->count(); ++section)
+			width += std::max(header->sectionSizeHint(section), sizeHintForColumn(section));
+		hint.setWidth(std::max(hint.width(), width));
+		return hint;
+	}
+};
 
 // Edits a number of the traction table in a CompactDoubleSpinBox with the range of its column. A cell shows its number as
 // such a field shows it without the focus.
@@ -185,7 +203,7 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 		m_unlinkTractionButton, m_retryTractionButton, m_sourceTractionStatusLabel);
 
 	tractionLayout->addWidget(new QLabel("Traction curve", tractionPage));
-	m_tractionTable = new QTableWidget(0, 5, tractionPage);
+	m_tractionTable = new TractionTable(0, 5, tractionPage);
 	m_tractionTable->setAccessibleName("Traction curve");
 	m_tractionTable->setObjectName("trainUnitTractionTable");
 	m_tractionTable->setHorizontalHeaderLabels(QStringList()
@@ -199,7 +217,7 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_tractionTable->setSelectionMode(QAbstractItemView::SingleSelection);
 	// size columns to their headers so "Lower speed (m/s)" is never clipped
 	m_tractionTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-	m_tractionTable->horizontalHeader()->setStretchLastSection(true);
+	m_tractionTable->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Stretch);
 	m_tractionTable->setMinimumHeight(m_tractionTable->fontMetrics().lineSpacing() * 8);
 	tractionLayout->addWidget(m_tractionTable, 1);
 	QGridLayout* tractionButtonLayout = new QGridLayout();
@@ -380,6 +398,8 @@ void TrainUnitPanel::refreshTractionTable() {
 		}
 	}
 	m_tractionTable->setEnabled(true);
+	// The width that the cells ask for changes with the curve, and so does the width that the dock opens with.
+	m_tractionTable->updateGeometry();
 	if (!curve.empty())
 		m_tractionTable->setCurrentCell(std::min(previousRow < 0 ? 0 : previousRow, static_cast<int>(curve.size()) - 1), 0);
 	m_removeTractionRowButton->setEnabled(m_tractionTable->currentRow() >= 0);
