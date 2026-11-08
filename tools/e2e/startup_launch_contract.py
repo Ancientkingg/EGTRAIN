@@ -787,6 +787,36 @@ def assert_open_argument_contract(app: Path, scene_tool: Path) -> None:
             print("file launches while a window runs were taken by that window, which closed its chooser and kept a malformed file out of the recent cases; a scripted launch kept its own window")
 
 
+def assert_case_with_errors_opens(app: Path, scene_tool: Path) -> None:
+    with tempfile.TemporaryDirectory(prefix="qegtrain-case-errors-") as root_name:
+        root = Path(root_name)
+        # A service whose composition does not exist: the case loads, and its checks report an error.
+        broken = root / "broken"
+        shutil.copytree(SCENE, broken)
+        services = broken / "services.json"
+        services.write_text(services.read_text(encoding="utf-8").replace('"composition": "Draisy"', '"composition": "NoSuchStock"'), encoding="utf-8")
+        bundle = root / "Broken.egscene"
+        proc = subprocess.run([str(scene_tool), "pack", str(broken), str(bundle)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                              text=True, encoding="utf-8", errors="replace", timeout=LAUNCH_TIMEOUT_SECONDS)
+        if proc.returncode != 0 or not bundle.is_file():
+            raise SystemExit(f"scene_tool could not pack the case with errors\n{tail(proc.stdout)}")
+        # Without a window the run cannot start, so the launch ends with 1 and names the error.
+        for name, args in (("--scene", ["--scene", str(broken)]), ("a file name", [str(bundle)])):
+            label = f"headless launch with {name} of a case with errors"
+            returncode, output = run_app(app, args + HEADLESS_OPTIONS, root / f"run-headless-{len(name)}", label)
+            if returncode != 1 or "scene.ref.unresolved" not in output:
+                raise SystemExit(f"{label} exited with {returncode}, expected 1 and the error\n{tail(output)}")
+        if os.name == "nt":
+            print("window launches with a case with errors skipped on Windows: the settings file escapes backslashes")
+            return
+        # With a window the case opens, and Case Validation lists its errors.
+        assert_window_opens_files(app, ["--scene", str(broken)], None, "", [broken], [], root / "run-window-scene",
+            "window launch with --scene of a case with errors")
+        assert_window_opens_files(app, [str(bundle)], None, "", [bundle], [], root / "run-window-file",
+            "window launch with a file name of a case with errors")
+        print("headless launches of a case with errors exit with 1; window launches with --scene and with a file name opened it")
+
+
 def main() -> None:
     if len(sys.argv) != 3:
         raise SystemExit("usage: startup_launch_contract.py PATH_TO_QEGTRAIN PATH_TO_SCENE_TOOL")
@@ -811,6 +841,7 @@ def main() -> None:
     assert_no_argument_chooser_continuation(app)
     assert_open_argument_contract(app, scene_tool)
     assert_version_rejections_name_the_reason(app)
+    assert_case_with_errors_opens(app, scene_tool)
     if os.name == "nt":
         print("startup launch PTY checks skipped on Windows")
         return
