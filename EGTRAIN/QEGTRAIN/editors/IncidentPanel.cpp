@@ -276,7 +276,16 @@ bool IncidentPanel::editIncidents(const QString& label, const std::function<void
 
 bool IncidentPanel::editSelected(const QString& label, const std::function<void(SceneIncident&)>& mutate) {
 	const auto row = static_cast<std::size_t>(m_listWidget->currentRow());
-	return editIncidents(label, [row, &mutate](std::vector<SceneIncident>& incidents) { mutate(incidents[row]); });
+	if (!editIncidents(label, [row, &mutate](std::vector<SceneIncident>& incidents) { mutate(incidents[row]); }))
+		return false;
+	// The row label follows the edit in place instead of a rebuilt list, so a focus-out that lands on another control
+	// keeps that pending click intact.
+	const SceneIncident* incident = shownIncident();
+	if (QListWidgetItem* item = m_listWidget->currentItem(); item && incident) {
+		const QSignalBlocker blocker(m_listWidget);
+		item->setText(rowLabel(*incident));
+	}
+	return true;
 }
 
 void IncidentPanel::refresh() {
@@ -483,16 +492,7 @@ void IncidentPanel::commitIdEdit() {
 		return;
 	}
 
-	if (!editSelected("Rename incident", [this, &newId](SceneIncident& edited) {
-			edited.id = newId;
-
-			// update the list row label in place instead of rebuilding the panel, so a
-			// focus-out that lands on another control keeps that pending click intact
-			if (QListWidgetItem* item = m_listWidget->currentItem()) {
-				const QSignalBlocker blocker(m_listWidget);
-				item->setText(rowLabel(edited));
-			}
-		}))
+	if (!editSelected("Rename incident", [&newId](SceneIncident& edited) { edited.id = newId; }))
 		return;
 
 	emit changed();
@@ -506,15 +506,7 @@ void IncidentPanel::commitType(const QString& type) {
 	if (newType == incident->type)
 		return;
 
-	if (!editSelected("Change incident type", [this, &newType](SceneIncident& edited) {
-			changeType(edited, newType);
-
-			// update the list row label in place to reflect the new type
-			if (QListWidgetItem* item = m_listWidget->currentItem()) {
-				const QSignalBlocker blocker(m_listWidget);
-				item->setText(rowLabel(edited));
-			}
-		}))
+	if (!editSelected("Change incident type", [this, &newType](SceneIncident& edited) { changeType(edited, newType); }))
 		return;
 
 	// The target choices and breakdown-only controls both depend on the type.
@@ -547,13 +539,7 @@ bool IncidentPanel::applyTarget(const IncidentTarget& target) {
 		changeType(updated, type);
 	if (!setTarget(updated, target.id.toStdString(), target.occurrence) && !typeChanged)
 		return true;
-	if (!editSelected("Change incident target", [this, &updated](SceneIncident& edited) {
-			edited = updated;
-			if (QListWidgetItem* item = m_listWidget->currentItem()) {
-				const QSignalBlocker blocker(m_listWidget);
-				item->setText(rowLabel(edited));
-			}
-		}))
+	if (!editSelected("Change incident target", [&updated](SceneIncident& edited) { edited = updated; }))
 		return false;
 	updateDetail();
 	emit changed();

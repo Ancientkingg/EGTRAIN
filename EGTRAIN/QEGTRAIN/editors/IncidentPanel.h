@@ -157,7 +157,8 @@ private:
 	// Applies `mutate` to the incidents of the selected scenario in one edit of the document and records that the scenario is
 	// edited. A scene without a scenario gets the baseline scenario first. False when the document refuses the edit.
 	bool editIncidents(const QString& label, const std::function<void(std::vector<SceneIncident>&)>& mutate);
-	// As editIncidents(), for the incident in the selected row of the list, which there must be.
+	// As editIncidents(), for the incident in the selected row of the list, which there must be. The row shows the edited
+	// incident afterwards.
 	bool editSelected(const QString& label, const std::function<void(SceneIncident&)>& mutate);
 	// Appends and selects a new incident with the target, or a signal failure without one for an empty type, in one edit.
 	// The scene must be editable and have the selected scenario.
