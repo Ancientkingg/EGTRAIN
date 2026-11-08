@@ -8,10 +8,10 @@ of any signing service: every fact that only the owner can give is a field that 
 
 - No Windows file is signed, and the owner has decided to release them unsigned for now (see
   [Windows releases](#windows-releases)). The package workflow has two jobs that sign the three program files and then
-  the installer through SignPath, and both are skipped unless the repository variable `WINDOWS_SIGNING` is `signpath`
+  the installer through SignPath, and both are skipped unless the CI variable `WINDOWS_SIGNING` is `signpath`
   (see [Signing in CI](#signing-in-ci)). Every run of
   the package workflow reports the signature state of the program files with `tools/release/verify_signatures.ps1` and
-  fails for no file. Without the setup, the workflows use no credential other than the token that GitHub gives to each
+  fails for no file. Without the setup, the workflows use no credential other than the token that the CI gives to each
   run.
 - The Windows downloads are the installer `EGTRAIN-Setup-<version>-x64.exe` and the portable ZIP
   `EGTRAIN-Portable-<version>-x64.zip`.
@@ -27,9 +27,9 @@ of any signing service: every fact that only the owner can give is a field that 
   of the same release. On Windows it checks no signature, so these checks detect a damaged download and do not show who
   published the package. On macOS the staged app is also checked with `codesign --verify`, which an ad-hoc signature
   passes.
-- A release page does not say whether the macOS app is notarized or whether the Windows files are signed. The release
-  text, built by the Prepare release step of the release job in `.github/workflows/release.yml`, says nothing about
-  signing. [Release text](#release-text) has the lines for macOS.
+- Neither the release nor its page on egtrain.samuelbruin.com says whether the macOS app is notarized or whether the
+  Windows files are signed. The release text, built by the Prepare release step of the release job in the workflow
+  `release.yml` and copied to the website by `tools/release/publish_selfhost.py`, says nothing about signing. [Release text](#release-text) has the lines for macOS.
 
 ## What would be signed
 
@@ -55,7 +55,7 @@ The first choice is the SignPath Foundation free programme for open-source proje
 conditions.
 
 The fallback is a paid service or certificate. It is chosen only after the reason the free path does not work is written
-in the fallback record below, and then it is the lowest-cost option that works with GitHub Actions.
+in the fallback record below, and then it is the lowest-cost option that works with the CI workflows.
 
 ### Eligibility record
 
@@ -64,9 +64,9 @@ the date, and fills the table. Not recorded means that nothing has been recorded
 
 | Item | Record |
 | --- | --- |
-| Repository | Public, owned by the GitHub user account Ancientkingg, not a fork (from `gh repo view`) |
-| Built where | GitHub Actions workflows in the repository |
-| Licence in the repository | `LICENSE` is the GNU General Public License version 3, and the README names it as GPL-3.0-only for the source code |
+| Project | Not recorded |
+| Built where | The CI workflows of the project |
+| Licence | `LICENSE` is the GNU General Public License version 3, and the README names it as GPL-3.0-only for the code |
 | Owner confirms that this is the intended OSI-approved licence | Not recorded |
 | `LICENSE` in the commits that a release is built from (the release workflow builds pushes to `production` and `v*` tags). Check: `git fetch`, then `git ls-tree origin/production LICENSE` prints one line when the file is there and nothing when it is not | Not recorded |
 | Third-party components in the Windows package and their licences | Not recorded |
@@ -99,19 +99,19 @@ Fill this before any paid option is chosen.
 
 | Role | Held by | Responsible for |
 | --- | --- | --- |
-| Signing owner (the repository owner) | Not recorded | Applies to the programme or buys the service, accepts its terms, receives its mail, creates and maintains the protected environment and its credentials in the repository settings, and answers any approval step the service requires |
+| Signing owner (the project owner) | Not recorded | Applies to the programme or buys the service, accepts its terms, receives its mail, creates and maintains the protected environment and its credentials in the CI settings, and answers any approval step the service requires |
 | Second contact with access | Not recorded | Takes over if the owner is not available |
 | Maintainers | Anyone who changes the workflows | Change the workflows and the signature check; never handle credentials |
 | Reviewers | Anyone who reviews such a change | Check that no change exposes a credential |
 
 Nobody but the signing owner and the second contact may hold the credentials.
 
-## Repository authorization
+## Authorization rules
 
-These rules apply to any signing that is set up for this repository.
+These rules apply to any signing that is set up for this project.
 
-- Credentials exist only in the GitHub environments `windows-signing` and `macos-signing`, which only the `production`
-  branch and `v*` tags may use. They are never in the repository, in workflow logs, in workflow artifacts or in release
+- Credentials exist only in the CI environments `windows-signing` and `macos-signing`, which only the `production`
+  branch and `v*` tags may use. They are never in the source tree, in workflow logs, in workflow artifacts or in release
   assets. No certificate, private key, password or token is committed.
 - Signing runs only for pushes to `production` and for `v*` tags. Pull requests, including pull requests from forks and
   the pull request from `main` to `production`, and manual runs never sign and never need credentials. Ordinary
@@ -124,9 +124,9 @@ These rules apply to any signing that is set up for this repository.
 
 ## Signing in CI
 
-The `sign-windows` job of `.github/workflows/package.yml` signs `QEGTRAIN.exe`, `egtrain_update_helper.exe` and
-`scene_tool.exe` through the SignPath action `signpath/github-action-submit-signing-request`. It runs only for a push
-to `production` or a `v*` tag, and only when the repository variable `WINDOWS_SIGNING` is `signpath`. In every other run
+The `sign-windows` job of the workflow `package.yml` signs `QEGTRAIN.exe`, `egtrain_update_helper.exe` and
+`scene_tool.exe` through the action of SignPath that submits a signing request. It runs only for a push to `production`
+or a `v*` tag, and only when the CI variable `WINDOWS_SIGNING` is `signpath`. In every other run
 it is skipped, and the Windows finalize job builds the installer and the ZIP from the unsigned files.
 
 The job downloads the payload artifact, uploads the three program files alone as the artifact
@@ -149,20 +149,20 @@ compiled installer is signed here; whether the uninstaller that Setup writes car
 SignPath Foundation needs a person to approve each request, so a signed release needs two approvals, one for the program
 files and one for the installer, and each signing step waits up to one hour for its approval.
 
-The names below are the placeholders that the workflow reads. The owner creates them in the repository settings and in
-SignPath. The SignPath documentation (https://docs.signpath.io/trusted-build-systems/github) describes the inputs. It
-asks for the predefined GitHub.com trusted build system to be added to the SignPath organization and linked to the
-project, and for the SignPath GitHub App to be installed when audit log checks are used.
+The names below are the placeholders that the workflow reads. The owner creates them in the CI settings and in
+SignPath. The page on trusted build systems of the SignPath documentation describes the inputs. It asks for the
+predefined trusted build system of the CI service to be added to the SignPath organization and linked to the project,
+and for the SignPath app of the CI service to be installed when audit log checks are used.
 
 | Name | Kind | Value |
 | --- | --- | --- |
-| `WINDOWS_SIGNING` | Repository variable | `signpath` turns the job on. Anything else, or nothing, leaves it off |
-| `SIGNPATH_ORGANIZATION_ID` | Repository variable | The organization id that SignPath issues |
-| `SIGNPATH_PROJECT_SLUG` | Repository variable | The project slug that SignPath issues |
-| `SIGNPATH_SIGNING_POLICY_SLUG` | Repository variable | The slug of the release signing policy |
-| `SIGNPATH_ARTIFACT_CONFIGURATION_SLUG` | Repository variable | The slug of the artifact configuration of the program files below. It must be set |
-| `SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG` | Repository variable | The slug of the artifact configuration of the installer below. It must be set |
-| `WINDOWS_SIGNING_SUBJECT` | Repository variable | The subject of the signing certificate as `Get-AuthenticodeSignature` prints it. The check fails for any other signer |
+| `WINDOWS_SIGNING` | CI variable | `signpath` turns the job on. Anything else, or nothing, leaves it off |
+| `SIGNPATH_ORGANIZATION_ID` | CI variable | The organization id that SignPath issues |
+| `SIGNPATH_PROJECT_SLUG` | CI variable | The project slug that SignPath issues |
+| `SIGNPATH_SIGNING_POLICY_SLUG` | CI variable | The slug of the release signing policy |
+| `SIGNPATH_ARTIFACT_CONFIGURATION_SLUG` | CI variable | The slug of the artifact configuration of the program files below. It must be set |
+| `SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG` | CI variable | The slug of the artifact configuration of the installer below. It must be set |
+| `WINDOWS_SIGNING_SUBJECT` | CI variable | The subject of the signing certificate as `Get-AuthenticodeSignature` prints it. The check fails for any other signer |
 | `SIGNPATH_API_TOKEN` | Secret of the environment `windows-signing` | The API token of a SignPath user who may submit requests for the policy |
 | `windows-signing` | Environment | Deployment branches and tags limited to `production` and `v*` |
 
@@ -178,7 +178,7 @@ and the `package` job of the package check have the same block. No workflow has 
 job (`contents: write`).
 
 The artifact configuration of the program files in SignPath lists exactly the three program files at the top of the
-artifact, which GitHub uploads as a ZIP file:
+artifact, which the CI uploads as a ZIP file:
 
 ```xml
 <artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
@@ -221,7 +221,7 @@ installer and again on the payload.
 store of the current user, signs copies of `scene_tool.exe` with it and expects the check to pass for a SHA-256
 signature and to fail for an unsigned copy, a SHA-1 signature, another signer, a missing file, an untrusted chain and a
 missing timestamp. The certificate is never exported or trusted, and it is removed when the test ends. The test runs in
-the Windows leg of the pull request checks. `tools/e2e/test_ci_workflow.py` reads `package.yml` and pins the order of the
+the Windows leg of the pull request checks. `tools/e2e/test_ci_workflow.py` reads `package.yml` and checks the order of the
 signing: the finalize job reads the payload that `sign-windows` replaced and signs nothing, the installer job runs only
 after a successful `sign-windows`, checks the installer and the program files before it replaces the installer artifact,
 and the release job runs only after the whole package workflow succeeded. The signing requests themselves have not run
@@ -234,7 +234,7 @@ against a real SignPath project, and a pull request run shows the signing jobs a
 | Validity period of the certificate or of the service agreement | Not recorded |
 | Who watches the expiry, and how | Not recorded |
 | Rotation of the access token of the signing service (interval, last done, next due) | Not recorded |
-| What to update when the signer name or the service changes (the repository variable `WINDOWS_SIGNING_SUBJECT`, which holds the expected signer name used by the check, and the SignPath names in the table above) | Not recorded |
+| What to update when the signer name or the service changes (the CI variable `WINDOWS_SIGNING_SUBJECT`, which holds the expected signer name used by the check, and the SignPath names in the table above) | Not recorded |
 
 If no signing is configured when a release is due, the release is published unsigned and its release text says so. No
 other certificate is used unless the fallback record is filled first.
@@ -254,8 +254,8 @@ no Authenticode signature, and Windows shows no publisher for them.
 
 On 2026-10-16 the owner decided to ship Windows releases unsigned. Neither the SignPath Foundation programme nor a paid
 certificate is pursued for now. The [fallback record](#fallback-record) stays empty, because no paid option was chosen.
-The signing jobs `sign-windows` and `sign-windows-installer` stay in `.github/workflows/package.yml` and are skipped
-unless the repository variable `WINDOWS_SIGNING` is `signpath`, so releases and pull request checks need nothing extra.
+The signing jobs `sign-windows` and `sign-windows-installer` stay in the workflow `package.yml` and are skipped
+unless the CI variable `WINDOWS_SIGNING` is `signpath`, so releases and pull request checks need nothing extra.
 
 To enable signing later, the owner:
 
@@ -297,7 +297,7 @@ notarized.
 
 ### What the owner adds
 
-The owner adds these to the environment `macos-signing` in the repository settings and limits the environment to the
+The owner adds these to the environment `macos-signing` in the CI settings and limits the environment to the
 `production` branch and `v*` tags, the runs that use it. A secret is stored as a secret of the environment and a
 variable as a variable of it. None of them is committed, and the scripts print none of the values. The job imports the
 certificate into a keychain of its own and deletes that keychain in its last step.
@@ -319,7 +319,7 @@ complete. A group that is only partly set, with the other group not complete, fa
 A certificate without its password or without the identity name fails it too. The scripts are described in
 [macOS signing script](ci-and-release.md#macos-signing-script) and
 [macOS notarization script](ci-and-release.md#macos-notarization-script). The roles in [Ownership](#ownership) and the
-rules in [Repository authorization](#repository-authorization) apply to these values.
+rules in [Authorization rules](#authorization-rules) apply to these values.
 
 ### Apple Developer identity record
 
@@ -357,19 +357,31 @@ EGTRAIN has been built in this mode, so this has not been observed. Row M5 of th
 ### Release text
 
 The release text that the Prepare release step writes says nothing about signing. After a release is published, the owner
-adds one of these paragraphs to its description on the releases page. The first is for a release whose app is signed ad
+adds one of these paragraphs to its release notes. The first is for a release whose app is signed ad
 hoc: the log of the step **Verify the signature** of the package job shows `Signature=adhoc`. The second is only for one
 whose app and image are notarized: the logs of the steps **Notarize the app** and **Notarize the disk image** each end
 with a line `OK: ... is notarized, stapled and accepted by Gatekeeper`. A Developer ID signature with the line
 `Notarization skipped` is neither, and needs a sentence of its own.
 
 ```text
-macOS: the app is signed ad hoc and is not notarized by Apple, so macOS refuses the first start. To allow it, choose Open Anyway for QEGTRAIN in System Settings > Privacy & Security. macOS then asks for an administrator's name and password. See "macOS disk image" in the manual: https://ancientkingg.github.io/EGTRAIN/latest/guides/install.html#macos-disk-image
+macOS: the app is signed ad hoc and is not notarized by Apple, so macOS refuses the first start. To allow it, choose Open Anyway for QEGTRAIN in System Settings > Privacy & Security. macOS then asks for an administrator's name and password. See "macOS disk image" in the manual: https://egtrain.samuelbruin.com/latest/guides/install.html#macos-disk-image
 ```
 
 ```text
 macOS: the app and the disk image are signed with a Developer ID and notarized by Apple. macOS is expected to ask only for the usual confirmation for an app that was downloaded.
 ```
+
+The release notes are in two places, and the paragraph goes into both: the description of the release that the release
+job creates, and the notes on the website, which the update check of the application shows. For the website, save the whole text, the notes
+of the release with the paragraph, in a Markdown file and run this command with the publish token of the website in the
+environment variable `EGTRAIN_PUBLISH_TOKEN`:
+
+```bash
+python3 tools/release/publish_selfhost.py notes v<version> notes.md
+```
+
+It replaces the notes in the update feed `releases/feed.json` and on the release page `releases/<version>/`, and leaves
+the files of the release as they are.
 
 ### Checking a macOS download
 

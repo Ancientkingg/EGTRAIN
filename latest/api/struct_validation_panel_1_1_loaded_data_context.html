@@ -8,7 +8,6 @@
 <title>EGTRAIN: ValidationPanel::LoadedDataContext Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,22 +115,22 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_validat
 <p>What the tree shows besides the scene: where the scene came from and the state of the run.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_validation_panel_8h_source.html">editors/ValidationPanel.h</a>&gt;</code></p>
+<p><code>#include &lt;editors/ValidationPanel.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a5ed4c2898fce58d8f0facc965d0885f3" id="r_a5ed4c2898fce58d8f0facc965d0885f3"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a5ed4c2898fce58d8f0facc965d0885f3">sceneDir</a></td></tr>
 <tr class="memdesc:a5ed4c2898fce58d8f0facc965d0885f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The folder or bundle of the scene; empty for a scene that has none.  <br /></td></tr>
-<tr class="memitem:aa2ca5b032cd1e7782c11be4d09922f5b" id="r_aa2ca5b032cd1e7782c11be4d09922f5b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aa2ca5b032cd1e7782c11be4d09922f5b">sceneIsBundle</a> = false</td></tr>
+<tr class="memitem:aa2ca5b032cd1e7782c11be4d09922f5b" id="r_aa2ca5b032cd1e7782c11be4d09922f5b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aa2ca5b032cd1e7782c11be4d09922f5b">sceneIsBundle</a></td></tr>
 <tr class="memdesc:aa2ca5b032cd1e7782c11be4d09922f5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the scene is a bundle file rather than a folder.  <br /></td></tr>
 <tr class="memitem:a4d00ccc20a5ab9ad294e950402d1a3bd" id="r_a4d00ccc20a5ab9ad294e950402d1a3bd"><td class="memItemLeft">std::optional&lt; int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a4d00ccc20a5ab9ad294e950402d1a3bd">bundleVersion</a></td></tr>
-<tr class="memitem:a81cc940d1b967be66af112249950a1e4" id="r_a81cc940d1b967be66af112249950a1e4"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a81cc940d1b967be66af112249950a1e4">runtimeStatus</a> = QStringLiteral(&quot;Not built&quot;)</td></tr>
+<tr class="memitem:a81cc940d1b967be66af112249950a1e4" id="r_a81cc940d1b967be66af112249950a1e4"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a81cc940d1b967be66af112249950a1e4">runtimeStatus</a></td></tr>
 <tr class="memdesc:a81cc940d1b967be66af112249950a1e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The state of the run: "Not built", "Ready", "Running", "Completed", "Stopped" or "Failed".  <br /></td></tr>
 <tr class="memitem:a1dd136ecb2386cab89e5a3460919bdde" id="r_a1dd136ecb2386cab89e5a3460919bdde"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a1dd136ecb2386cab89e5a3460919bdde">runtimeDiagnostics</a></td></tr>
 <tr class="memdesc:a1dd136ecb2386cab89e5a3460919bdde"><td class="mdescLeft">&#160;</td><td class="mdescRight">What building the run reported.  <br /></td></tr>
 <tr class="memitem:abd499c2cc66c4834d712890d1e8fd55b" id="r_abd499c2cc66c4834d712890d1e8fd55b"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#abd499c2cc66c4834d712890d1e8fd55b">appliedScenarioId</a></td></tr>
 <tr class="memdesc:abd499c2cc66c4834d712890d1e8fd55b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scenario of the latest run; empty while no run's results are kept.  <br /></td></tr>
-<tr class="memitem:a2260f5b8a9ade817e7c87152a691d8f6" id="r_a2260f5b8a9ade817e7c87152a691d8f6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2260f5b8a9ade817e7c87152a691d8f6">resultsAvailable</a> = false</td></tr>
+<tr class="memitem:a2260f5b8a9ade817e7c87152a691d8f6" id="r_a2260f5b8a9ade817e7c87152a691d8f6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2260f5b8a9ade817e7c87152a691d8f6">resultsAvailable</a></td></tr>
 <tr class="memdesc:a2260f5b8a9ade817e7c87152a691d8f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">True while the results of a run are kept.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -175,7 +174,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool ValidationPanel::LoadedDataContext::resultsAvailable = false</td>
+          <td class="memname">bool ValidationPanel::LoadedDataContext::resultsAvailable</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -207,7 +206,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">QString ValidationPanel::LoadedDataContext::runtimeStatus = QStringLiteral(&quot;Not built&quot;)</td>
+          <td class="memname">QString ValidationPanel::LoadedDataContext::runtimeStatus</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -239,7 +238,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool ValidationPanel::LoadedDataContext::sceneIsBundle = false</td>
+          <td class="memname">bool ValidationPanel::LoadedDataContext::sceneIsBundle</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -249,7 +248,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>editors/<a class="el" href="_validation_panel_8h_source.html">ValidationPanel.h</a></li>
+<li>editors/<a class="el" href="_validation_panel_8h.html">ValidationPanel.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

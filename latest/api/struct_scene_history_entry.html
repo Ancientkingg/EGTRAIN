@@ -8,7 +8,6 @@
 <title>EGTRAIN: SceneHistoryEntry Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,7 +112,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_h
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_scene_history_8h_source.html">scene/SceneHistory.h</a>&gt;</code></p>
+<p><code>#include &lt;scene/SceneHistory.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -121,9 +120,14 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:ac07946cd88f9d6ed39c6d6702cbfcba6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene in this state, shared and immutable.  <br /></td></tr>
 <tr class="memitem:a2ed50000e6ccf040e9037b5ebd04868d" id="r_a2ed50000e6ccf040e9037b5ebd04868d"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a2ed50000e6ccf040e9037b5ebd04868d">label</a></td></tr>
 <tr class="memdesc:a2ed50000e6ccf040e9037b5ebd04868d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the edit that produced it; empty for the root.  <br /></td></tr>
-<tr class="memitem:a5afd0190514f8d2176ab86238c875250" id="r_a5afd0190514f8d2176ab86238c875250"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a5afd0190514f8d2176ab86238c875250">bytes</a> = 0</td></tr>
+<tr class="memitem:a5afd0190514f8d2176ab86238c875250" id="r_a5afd0190514f8d2176ab86238c875250"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a5afd0190514f8d2176ab86238c875250">bytes</a></td></tr>
 <tr class="memitem:abaf1b912a17144af2fee23c4200fe025" id="r_abaf1b912a17144af2fee23c4200fe025"><td class="memItemLeft">std::set&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#abaf1b912a17144af2fee23c4200fe025">modifiedScenarioIds</a></td></tr>
 <tr class="memdesc:abaf1b912a17144af2fee23c4200fe025"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scenarios that differ from the saved scene, as of this state.  <br /></td></tr>
+<tr class="memitem:a6f536b1670129b136cb56abdb74674c4" id="r_a6f536b1670129b136cb56abdb74674c4"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a6f536b1670129b136cb56abdb74674c4">selectedScenarioId</a></td></tr>
+<tr class="memdesc:a6f536b1670129b136cb56abdb74674c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scenario selected for the next run when this state was last left; empty before.  <br /></td></tr>
+<tr class="memitem:a3b0714a2d04ee30e3499e088d26f92c4" id="r_a3b0714a2d04ee30e3499e088d26f92c4"><td class="memItemLeft"><a class="el" href="_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a>&#160;</td><td class="memItemRight"><a class="el" href="#a3b0714a2d04ee30e3499e088d26f92c4">excludedOccurrences</a></td></tr>
+<tr class="memdesc:a3b0714a2d04ee30e3499e088d26f92c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The occurrences that the next run left out when this state was last left.  <br /></td></tr>
+<tr class="memitem:a6e632e85c0f8922abdbb1daa4de06c3f" id="r_a6e632e85c0f8922abdbb1daa4de06c3f"><td class="memItemLeft">std::any&#160;</td><td class="memItemRight"><a class="el" href="#a6e632e85c0f8922abdbb1daa4de06c3f">trainUnitSourceLinks</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>One state of the scene. The label names the edit that produced the state from the one before; the root has none. </p>
@@ -135,11 +139,27 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::size_t SceneHistoryEntry::bytes = 0</td>
+          <td class="memname">std::size_t SceneHistoryEntry::bytes</td>
         </tr>
       </table>
 </div><div class="memdoc">
 <p>estimateSceneModelBytes of the scene, in bytes. </p>
+
+</div>
+</div>
+<a id="a3b0714a2d04ee30e3499e088d26f92c4" name="a3b0714a2d04ee30e3499e088d26f92c4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3b0714a2d04ee30e3499e088d26f92c4">&#9670;&#160;</a></span>excludedOccurrences</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a> SceneHistoryEntry::excludedOccurrences</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The occurrences that the next run left out when this state was last left. </p>
 
 </div>
 </div>
@@ -191,8 +211,39 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a6f536b1670129b136cb56abdb74674c4" name="a6f536b1670129b136cb56abdb74674c4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6f536b1670129b136cb56abdb74674c4">&#9670;&#160;</a></span>selectedScenarioId</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string SceneHistoryEntry::selectedScenarioId</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The scenario selected for the next run when this state was last left; empty before. </p>
+
+</div>
+</div>
+<a id="a6e632e85c0f8922abdbb1daa4de06c3f" name="a6e632e85c0f8922abdbb1daa4de06c3f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6e632e85c0f8922abdbb1daa4de06c3f">&#9670;&#160;</a></span>trainUnitSourceLinks</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::any SceneHistoryEntry::trainUnitSourceLinks</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The links of the rolling stock units to their source files when this state was last left, as <a class="el" href="class_train_unit_source_linker.html#ac1dce0f3a15cd61daf03a73f6b1710ae" title="The links of the units by their id.">TrainUnitSourceLinker::Links</a>; empty before. The history has no Qt, so it holds them without their type. </p>
+
+</div>
+</div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>scene/<a class="el" href="_scene_history_8h_source.html">SceneHistory.h</a></li>
+<li>scene/<a class="el" href="_scene_history_8h.html">SceneHistory.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

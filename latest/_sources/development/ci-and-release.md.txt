@@ -6,18 +6,19 @@ scripts that build, sign and check the release packages.
 ## CI and release branches
 
 - `main` is the validation branch. Pull requests build the project and run
-  the CTest suite without the tests labelled `network` (those run on Windows only), in parallel, on macOS, Windows (MSVC, vcpkg
-  x64) and Linux (Ubuntu), each with Qt 6.8.3, unless every changed file matches the
+  the CTest suite without the tests labelled `network` (those run on Windows only) and `nightly` (those run in the
+  [leak check](smoke-tests.md#leak-check)), in parallel, on macOS, Windows (MSVC, vcpkg
+  x64) and Linux (Ubuntu 24.04), each with Qt 6.8.3, unless every changed file matches the
   documentation rule below. The suite holds the end-to-end smokes of the
   committed scenes (see [Simulation Smoke Test](smoke-tests.md#simulation-smoke-test) and
   [Scene Roundtrip Smoke Test](smoke-tests.md#scene-roundtrip-smoke-test)). The `docs` job runs
   `tools/docs/check_docs.py` on every pull request, documentation-only ones
   included. The same checks run on `main` once a night (02:17 UTC)
-  and when started by hand from the Actions tab (`workflow_dispatch`); both
-  always build, and both also start the [leak check](smoke-tests.md#leak-check) on Linux.
+  and when started by hand (`workflow_dispatch`); both
+  always build, and both also start the [leak check](smoke-tests.md#leak-check) and the [nightly sanitizer runs](smoke-tests.md#nightly-sanitizer-runs) on Linux.
   A push to `main` starts no run. A scheduled workflow runs
-  on the default branch only, and GitHub pauses schedules in a repository
-  without activity for 60 days. The three legs run independently
+  on the default branch only, and the CI pauses schedules after 60 days
+  without activity. The three legs run independently
   (`fail-fast: false`) and follow the same rule. A newer push to a pull
   request cancels its running checks; a scheduled or manual run is never
   cancelled. After the tests, the Windows leg also makes the request of the
@@ -29,19 +30,39 @@ scripts that build, sign and check the release packages.
   `main` that changes `EGTRAIN/QEGTRAIN/`, `.clang-format`, `.clang-format-ignore`,
   `tools/format.py` or `format.yml`, and when started by hand.
 - The tidy check (`tidy.yml`) runs `tools/tidy.py` for a pull request to `main` that
-  changes `EGTRAIN/QEGTRAIN/`, the root `CMakeLists.txt`, `.clang-tidy`, `tools/tidy.py` or
-  `tidy.yml`. A pull request analyses the changed sources and the sources that include a
+  changes `EGTRAIN/QEGTRAIN/`, the root `CMakeLists.txt`, `.clang-tidy`, `tools/tidy.py`,
+  `tidy.yml` or the setup action `setup-deps`. A pull request analyses the changed sources and the sources that include a
   changed header; the nightly run (02:37 UTC) and a manual start analyse every source. The
   run installs clang-tidy 23.1 from apt.llvm.org and lists the findings; the local command
   and the checks are described in the [coding guidelines](coding-guidelines.md#static-checks).
   The result check is named `Tidy result`.
 - The documentation workflow (`docs.yml`) builds the [documentation site](testing.md#documentation-site)
   for every pull request, fails a pull request that adds undocumented classes or members to the
-  files it changes, and publishes the site to `gh-pages`: `dev/` from `main`, and `<version>/`
-  and `latest/` after a successful release.
+  files it changes, and publishes the site to `gh-pages` and to egtrain.samuelbruin.com: `dev/` from
+  `main`, and `<version>/` and `latest/` after a successful release. Each publish also writes the home
+  page, the pages `support/` (Report a problem), `contact/` and `privacy/`, and the stub `source/`,
+  which sends a visitor to the home page, at the root with `tools/docs/home_page.py`, from
+  `docs/site/` of `main`: the downloads of the newest stable release in the update feed of the
+  website, a table of the guides, developer pages and C++ reference of `latest/`, `dev/` and the
+  three newest versions, and a train graph and a playback of a run of the bundled case
+  Milano_Brescia. Their values are in `docs/site/home-data.json`, which `tools/docs/home_data.py`
+  writes from the case and a run of it (its docstring has the commands), so the publish runs no
+  simulation. After the push to
+  `gh-pages`, the step **Publish on egtrain.samuelbruin.com** sends the same folders to the website
+  with `tools/release/publish_selfhost.py site` (see
+  [Self-hosted publication](#self-hosted-publication)), and then the pages, the home page last. The
+  website gets pages written from its feed alone, not from the copy of `gh-pages`, so that a run of
+  `main` and a run of a release that publish at the same time leave the same pages. A version folder
+  that `gh-pages` had before, such as `1.0.5/`, reaches the website only when it is published once by
+  hand ([Filling a new site](#filling-a-new-site)). `test_ci_workflow`, which the documentation workflow also runs, checks that the
+  downloads are the files that `tools/release/build_release_assets.py` names. The page links the names
+  of `main` with the files of the newest release, and `home_page.py` stops on a name that the release
+  does not have, so a renamed package stops the publish of the site until the next release: merge a
+  rename together with a release.
 - A pull request to `main` that changes a packaging input also runs the
   package check (`package-check.yml`). The inputs are the workflow files
-  `package-check.yml`, `package.yml` and `release.yml`, `tools/release/`,
+  `package-check.yml`, `package.yml` and `release.yml`, the setup action `setup-deps`, `tools/release/`, the
+  vcpkg manifest in `tools/vcpkg/`,
   `installer/`, `Info.plist.in`, `EGTRAIN/QEGTRAIN/update/` and
   `EGTRAIN/QEGTRAIN/app/main.cpp`. The check also runs once a night on `main`
   and can be started by hand, which covers changes that reach the packages
@@ -59,7 +80,7 @@ scripts that build, sign and check the release packages.
   bytes of the package in its job summary. It also prints the signature state of
   `QEGTRAIN.exe`, `egtrain_update_helper.exe` and `scene_tool.exe` with
   `tools/release/verify_signatures.ps1 -Report`, which fails for no file. A push
-  to `production` or a `v*` tag runs the job `sign-windows` when the repository
+  to `production` or a `v*` tag runs the job `sign-windows` when the CI
   variable `WINDOWS_SIGNING` is `signpath`; it signs those three files and
   replaces the uploaded directory with one that holds them (see
   [Code signing](code-signing.md#signing-in-ci)). Every other run skips it. The
@@ -94,6 +115,8 @@ scripts that build, sign and check the release packages.
   the app, runs `scene_tool` on the Paimpol scene of the app without
   the GUI, starts a copy of the app with the same script, and prints the number
   of files and bytes of the app before and after the removal in its job summary.
+  The steps that fill, trim and check the app call `tools/release/package_macos.sh` (see
+  [macOS packaging script](#macos-packaging-script)).
   In a push to `production` or a `v*` tag it then notarizes and staples the app
   when the environment holds notarization credentials (see
   [macOS notarization script](#macos-notarization-script)). It builds
@@ -115,7 +138,10 @@ scripts that build, sign and check the release packages.
   made. The Linux package job extracts its AppImage and starts the extracted
   image with the same script on a virtual display, after the script has checked
   that every Qt and ZeroMQ library of the programs and plugins comes from the
-  image. The start in each of the three package jobs is the headless run and the
+  image. That job runs on `ubuntu-24.04`, not `ubuntu-latest`, because the
+  AppImage needs the glibc of the system that built it; the workflow test
+  requires a named Ubuntu release no newer than the one of the rehearsal job
+  `rehearse-linux`. The start in each of the three package jobs is the headless run and the
   window start, with no CSV or PNG export, because a release build has no test
   hooks to ask for one. The check does not show how the SVG icons look, typing
   into text fields, the native file dialogs, how Finder presents the disk
@@ -158,7 +184,7 @@ scripts that build, sign and check the release packages.
   Windows, and Linux applications, runs CTest, which holds the smoke suite,
   and the sanitizers, validates the scene bundles, and publishes a stable `vX.Y.Z`
   release. The three package jobs and the Rehearse Linux job, which runs the
-  clean-install steps on the Linux package, are in `.github/workflows/package.yml`, which
+  clean-install steps on the Linux package, are in the workflow `package.yml`, which
   `release.yml` calls from its `package` job with the selected version. The
   Windows package job uploads the assembled directory as the artifact
   `QEGTRAIN-windows-x64-payload`, and the Windows finalize job builds the
@@ -166,7 +192,11 @@ scripts that build, sign and check the release packages.
   `EGTRAIN-windows-x64-installer` and `EGTRAIN-windows-x64-portable`. The release
   job builds the files of the release from the downloaded artifacts with
   `tools/release/build_release_assets.py` and publishes the files it writes; the
-  portable archive is written only by the script. Before
+  portable archive is written only by the script. The job `publish-site` then
+  builds the same files from the same artifacts and publishes them on
+  egtrain.samuelbruin.com with `tools/release/publish_selfhost.py release` (see
+  [Self-hosted publication](#self-hosted-publication)). It is a job of its own,
+  so that it can run again after the release exists. Before
   building, the pipeline increments the highest patch version
   among the CMake baseline, existing stable tags, and reserved release versions.
   Every build job, the package metadata and the update manifest use that same version. Local builds use the
@@ -220,11 +250,13 @@ scripts that build, sign and check the release packages.
   prerelease suffix remain prereleases and are not offered by the updater.
   `workflow_dispatch` validates the pipeline without publishing.
 - Releases remain drafts until every package and scene bundle is uploaded.
-  Stable production releases then appear in the application's update checks.
+  A stable release appears in the update checks of the application once the job
+  `publish-site` has added it to the update feed of the website, after its files.
+  Copies of EGTRAIN 1.0.5 and earlier read the releases that the release job creates instead.
 
 Pushes and pull requests to `production` skip the release workflow when changes
 are limited to Markdown files (`**.md`), `docs/`, the root `LICENSE`, or
-`.github/ISSUE_TEMPLATE/`. Mixed changes still run the full workflow, as do
+the issue templates. Mixed changes still run the full workflow, as do
 changes to source, tests, scenes, build settings, or workflows.
 Documentation-only production pushes do not publish a new release. Updated
 packaged guides ship with the next release; `v*` tags and manual release runs
@@ -232,17 +264,28 @@ are not filtered by changed paths.
 
 ### Required checks on `main`
 
-Every pull request to `main` starts the CMake, Format and Package check
+Every pull request to `main` starts the CMake, Format, Tidy and Package check
 workflows; their triggers have no path filter. The first job of each, `changes`,
 compares the files of the pull request with the rule of the workflow, and the
 real jobs skip when the rule selects nothing:
 
 - CMake builds unless every changed file is a Markdown file (`**.md`), under
-  `docs/` or `.github/ISSUE_TEMPLATE/`, or the root `LICENSE`. Its `docs` job
+  `docs/` or in the issue templates, or the root `LICENSE`. Its `docs` job
   checks the documentation on every pull request.
 - Format runs for the files of the format check, listed above.
 - Tidy runs for the files of the tidy check, listed above.
 - The package check runs its jobs for the packaging inputs, listed above.
+
+The CMake, Tidy and Package check workflows read their rule from `tools/ci/changed_files.py`, which holds one
+entry per workflow and prints the output line of the `changes` job. The Format workflow keeps the same patterns in a
+`case` statement of `format.yml`. To see what a branch selects:
+
+```sh
+python3 tools/ci/changed_files.py tidy origin/main HEAD
+```
+
+`tools/ci/test_changed_files.py` (CTest `test_changed_files`) checks the rules on sample paths and runs the script on
+the commits of a temporary repository.
 
 A nightly or manual run always does its jobs. The condition of a job is
 evaluated before its matrix is expanded, so a skipped `build` job would be
@@ -257,6 +300,42 @@ build when the documentation check finds nothing. `main` requires these four che
 merge automatically when they are green. Do not require the build legs, the
 format job, the tidy job or the package jobs: a required check that no run reports under its
 own name leaves the pull request waiting forever.
+
+### Workflow test
+
+`tools/e2e/test_ci_workflow.py` (CTest `test_ci_workflow`) reads the workflows and checks the properties that every
+workflow keeps:
+
+- The result job of each required workflow is its last job, always runs, needs every job of a pull request and fails
+  when one of them failed or was cancelled. Each `changes` job runs `tools/ci/changed_files.py`.
+- Every job that does not call a reusable workflow has `timeout-minutes`. The macOS package job allows 150 minutes,
+  because its two notarization steps may wait an hour each.
+- The permissions at the top of a workflow only read. The permissions of a job are a mapping of scopes, not `write-all`,
+  and a job writes exactly the scopes that `WRITE_PERMISSIONS` in the test lists for it with the reason: `contents` in the
+  `publish` job of `docs.yml` and in the `release` job of `release.yml`.
+- A workflow that a pull request starts has a concurrency group in which only a newer push to the same pull request
+  cancels a run. No two scheduled workflows start at the same time, and none starts on the hour.
+- A credential or an environment reaches only a job or a step of a push to `production` or a `v*` tag. Such a job has
+  that condition or runs only when such a job succeeded; the Windows finalize job, which also runs when the signing was
+  skipped, is not one. In any other job only a step with that condition reads a credential: no other key of the job,
+  such as `env`, `container` or `services`, reads one, except the `secrets` of a call of another of these workflows,
+  whose jobs this rule checks in turn. The top-level `env` of a workflow reads none either. A call of `package.yml`
+  passes the inputs and credentials that it declares, by name, and grants the permissions that its jobs ask for.
+- The one exception is the `publish` job of `docs.yml`, which `MAIN_CREDENTIALS` lists: its steps may read
+  `EGTRAIN_PUBLISH_TOKEN` and no other credential. The job runs only for a push to `main` or after a successful run of
+  the release workflow for a push, and it runs the scripts of `main`: a `workflow_run` event runs the workflow of the
+  default branch, and the job checks out no other commit. The test checks the triggers, the conditions of the job and
+  of the build job that sets its version, and the checkout.
+- The files, actions and tests that the workflows name exist, and every test script in `tools/ci/` and
+  `tools/release/` is registered in CTest or run by a workflow.
+
+`KNOWN_GAPS` in the test lists the workflows that lack one of these properties, such as the job time limits of
+`release.yml`. The test fails when one of them gets the property, so the entry goes with the change. The test then
+checks the properties of the build, package and release jobs that this page describes. It finds a step by what the
+step runs, not by its name, so a step can be renamed or moved as long as the property holds. It reads the workflows
+with a small reader of the YAML that they use, which needs no package and stops at what it cannot read. The test runs
+a few cases of the reader every time; where PyYAML is installed, it also checks that the reader reads every workflow
+as PyYAML does.
 
 ### Release assets script
 
@@ -327,6 +406,70 @@ tree, with the portable archive written by the script, runs the script on it and
 checks the rules directly. Run it with
 `ctest --test-dir build -R test_release_assets --output-on-failure`.
 
+### Self-hosted publication
+
+`tools/release/publish_selfhost.py` publishes a release and the documentation site on egtrain.samuelbruin.com, and the
+release files on bin.samuelbruin.com, a Zipline 4.8.1 server:
+
+```bash
+python3 tools/release/publish_selfhost.py release --tag TAG --name NAME --prerelease true|false --assets DIR [--new-feed]
+python3 tools/release/publish_selfhost.py import TAG [--new-feed]
+python3 tools/release/publish_selfhost.py notes TAG FILE
+python3 tools/release/publish_selfhost.py site PAGES [DIR ...]
+```
+
+`release` uploads each file of `--assets`, the folder that the release assets script writes, to Zipline as
+`egtrain-<tag>-<name>`, which Zipline serves at `https://bin.samuelbruin.com/raw/egtrain-<tag>-<name>`. It downloads
+each file from that address and compares its size with the file. A name that Zipline has already is not uploaded again
+when the file there has the same size, so a second run adds nothing. Another size stops the script: delete the file on
+Zipline first. After the files, the script publishes the release page `releases/<version>/` with the notes, the files
+and their sizes, and last the entry of the release in the update feed `releases/feed.json`, newest release first. The
+entry has the fields of a release that the application reads, the release text as its notes and the Zipline addresses
+as its downloads. The release text is the body that the release job of `release.yml` writes: it names the build, points
+to the packages and the case files, and links neither the commit nor the run. The job still passes `--commit` and
+`--run-url`, which the script accepts and does not use. A second run keeps the time of the first.
+When the website answers 404 for the feed, `release` stops before it publishes the page: a feed that was lost, for
+example with the volume of the website, must be restored, not replaced by one that has only the new release. Only the
+first release on a new site passes `--new-feed`, which starts a feed when there is none.
+
+`import` publishes, in the same way, a release that the release job has already created. It reads the name, the
+notes, the publication time and the files of the release with `gh`. A second run uploads no file again and writes the same
+page and entry.
+
+`notes` replaces the notes of a published release (see [Release text](code-signing.md#release-text)). `site` publishes
+folders of the documentation site, and then the pages that `tools/docs/home_page.py` writes from the feed of the
+website: `assets/`, `support/` (Report a problem), `contact/`, `privacy/`, the stub `source/`, which sends a visitor to
+the home page, and, last, the home page. Their list of versions has `dev/`, and `latest/` and a folder for each stable
+release in the feed when it has one. `assets/` keeps `site.css`, the style of the earlier layout, because the release
+pages published with that layout load it; `import` publishes such a page again in the current layout.
+
+The script reads the Zipline token from `ZIPLINE_TOKEN` and the token of the publish API of the website from
+`EGTRAIN_PUBLISH_TOKEN`, prints neither and follows no redirect. Zipline takes its token as the `Authorization` header
+and accepts 10 uploads a minute from a user who is not an administrator, so a release of 12 files waits once for the
+time that Zipline names. A file may have up to 95 MiB, which Zipline takes in one request, and a request to the publish
+API up to 90 MB. `tools/release/test_publish_selfhost.py`, which the documentation workflow runs, tests the script
+against a stub of the publish API and of the upload API of Zipline. With `ZIPLINE_TEST_URL` and `ZIPLINE_TEST_TOKEN` it
+also runs against a real Zipline server; its docstring says how to start one with Docker. CTest runs it as
+`test_publish_selfhost`.
+
+#### Filling a new site
+
+The first release that the release workflow publishes on the website needs a feed to add to. Fill a new site once, from
+a Git checkout of the source tree, with `gh` logged in, and with the tokens in `ZIPLINE_TOKEN` and `EGTRAIN_PUBLISH_TOKEN`:
+
+```bash
+python3 tools/release/publish_selfhost.py import v1.0.5 --new-feed
+git fetch origin gh-pages
+git worktree add --detach "$TMPDIR/gh-pages" FETCH_HEAD
+python3 tools/release/publish_selfhost.py site "$TMPDIR/gh-pages" dev 1.0.4 1.0.5 latest
+git worktree remove "$TMPDIR/gh-pages"
+```
+
+`import` publishes the release v1.0.5 with its files, notes and page, and starts the feed. `site` publishes the
+documentation folders of the copy of `gh-pages` on the website, and then the pages. Both can be run again. The home page
+lists `latest/`, `dev/` and the versions of the feed, so `1.0.4/` is listed only when v1.0.4 is imported too, with
+`python3 tools/release/publish_selfhost.py import v1.0.4`.
+
 ### Disk image script
 
 `tools/release/make_dmg.py` builds the macOS disk image from a finished
@@ -352,7 +495,7 @@ bar and status bar, with `QEGTRAIN.app` on the left and `Applications` on the ri
 at the same height. There is no background picture and no volume icon. Without
 `--layout` Finder places the two icons itself. The file is written without
 Finder by `tools/release/dmg/make_ds_store.py`, which needs the `ds_store`
-package. The package is not a dependency of the repository or of CI, so run the
+package. The package is not a dependency of the project or of CI, so run the
 script in a throwaway environment and commit the result:
 
 ```bash
@@ -405,6 +548,52 @@ message for a missing tool, and the command lines, the link, the staged
 for `ditto` and `hdiutil`, and that the committed layout file names the app and
 the link. Run it with
 `ctest --test-dir build -R test_make_dmg --output-on-failure`.
+
+### macOS packaging script
+
+`tools/release/package_macos.sh <step> <app>` runs one step of the macOS package job on the app in the build folder,
+`build/QEGTRAIN.app` in the job. Each step of the job is one call:
+
+| Step | Job step | What it does |
+| --- | --- | --- |
+| `bundle` | Bundle Qt and dependencies into the app | Runs `macdeployqt` from `$QT_ROOT_DIR` on the app and copies `egtrain_update_helper` of the build folder into `Contents/MacOS`. A Homebrew library can name a dependency as `@rpath/<name>`, which `macdeployqt` does not copy: the step copies it from the Homebrew prefix and points the reference at the copy, until nothing is missing. |
+| `add-files` | Add scene_tool and the licence files to the app | Copies `scene_tool` of the build folder into `Contents/MacOS`, and `LICENSE` and `THIRD_PARTY_NOTICES.md` into `Contents/Resources`. |
+| `trim` | Remove unused Qt modules and plugins | Removes the virtual keyboard and input context plugins, the Quick and QML frameworks, the WebP and TIFF plugins with their libraries and the database drivers other than SQLite, and prints the number of files and bytes of the app before and after. |
+| `thin` | Keep only the arm64 code of the Qt 6 libraries | Keeps the arm64 code of every universal file. |
+| `strip-paths` | Remove build machine paths | Runs `tools/release/macos_build_paths.py fix`. |
+| `min-version` | Set the minimum macOS version | Writes the minimum system version of the executable into `LSMinimumSystemVersion`. |
+| `verify-contents` | Verify the app is self-contained | Requires the Qt frameworks, the cocoa platform plugin, the SVG plugins, the macOS style, the SQLite driver, the icon and ZeroMQ, fails on a removed file and on a build machine path (`macos_build_paths.py check`), and runs `codesign --verify --deep --strict`. |
+| `verify-signature` | Verify the signature | Prints the identifier, the authority and the team, and requires an ad-hoc signature without `MACOS_SIGNING_IDENTITY` and a Developer ID Application authority, a team, the hardened runtime and a timestamp with it. |
+| `verify-package` | Verify the packaged app | Requires the three programs, the licence files, the manual and the Paimpol scene, and runs `scene_tool validate` on that scene. |
+
+The first six steps change the app, so they come before the signature, and the last three check the signed app. The app
+first runs in the next step, **Start the package**, from a copy. `bundle` and `add-files` take the programs from the
+folder that holds the app, which is the build folder. `bundle` needs `QT_ROOT_DIR` and Homebrew. `trim` and
+`min-version` also write their lines into the job summary when the workflow gives the job one, and skip it outside a
+workflow, so every step also runs there. To package a local build, copy the app and the two programs into a new folder
+and run the steps in the order of the table, with `tools/release/sign_macos.sh` between `min-version` and
+`verify-contents`:
+
+```bash
+mkdir -p /tmp/package/build
+ditto build/QEGTRAIN.app /tmp/package/build/QEGTRAIN.app
+cp build/scene_tool build/egtrain_update_helper /tmp/package/build/
+QT_ROOT_DIR="$HOME/Qt/6.8.3/macos" bash tools/release/package_macos.sh bundle /tmp/package/build/QEGTRAIN.app
+```
+
+A build without the Sphinx environment of the manual has no `EGTRAIN.qch`, and `verify-package` then fails.
+
+The test is `tools/release/test_package_macos.sh`. It builds a fixture build folder whose app holds what `macdeployqt`
+leaves: frameworks, plugins and libraries, among them the files that `trim` removes, a universal program built for
+macOS 26 with a run path into the Homebrew Cellar, and a `scene_tool` that fails on request. It runs every step but
+`bundle` in the order of the job, signs the app ad hoc with `sign_macos.sh` in between, and checks the result of each:
+the copied files, the removed and the kept files, the size lines in a job summary and a run without one, the arm64
+program, the removed run path, the minimum version, and the three checks. Then it requires `verify-contents` to fail
+for a missing SVG icon engine, a missing Qt Svg framework, a WebP plugin, a run path into the Homebrew Cellar and a file
+changed after the signature, `verify-signature` to fail when an identity is set and the signature is ad hoc, and
+`verify-package` to fail for a missing manual and a scene that does not validate. It does not run `bundle`, which needs
+`macdeployqt`, Qt and Homebrew, or sign with an identity. Run it with
+`ctest --test-dir build -R test_package_macos --output-on-failure`.
 
 ### macOS signing script
 
@@ -538,8 +727,8 @@ Windows finalize job of `package.yml` compiles the script, and
 
 The test is `tools/release/test_installer_script.py`. It reads the script,
 `installer/installed-by-setup.ini`, `docs/development/windows-installer.md`, `kAssetPatterns`
-in `update/ReleaseInfo.cpp`, `LICENSE` and the Windows package job of
-`.github/workflows/package.yml` as text, looks for the icon file, and checks
+in `update/ReleaseInfo.cpp`, `LICENSE` and the Windows package job of the
+workflow `package.yml` as text, looks for the icon file, and checks
 that the script names `LICENSE` as its licence file and the package job copies
 and checks it, and that:
 
@@ -666,18 +855,44 @@ The certificate is never exported or added to a trusted root, and the test
 removes it with its key. Run it by hand with
 `ctest --test-dir build -C Release -R test_verify_signatures --output-on-failure`.
 
+### Configure options
+
+The three legs of `cmake.yml` configure with the presets `ci-macos`, `ci-linux` and `ci-windows` of
+`CMakePresets.json`. They inherit `ci-base`: a Release build with the tests, `EGTRAIN_WARNINGS_AS_ERRORS=ON` and
+`EGTRAIN_IPO=OFF`, in `build/`, where the later steps look. The configure step of each leg adds the compiler launcher of
+the matrix and the prefix path of its runner, and macOS also passes `WrapOpenGL_AGL`. A configure step names no
+generator and no variable that its preset sets. The leak check and the nightly sanitizer jobs keep configure lines of
+their own.
+
+`ci-windows` also holds Ninja, the `cl` compilers, `EGTRAIN_NETWORK_TESTS=ON` and the vcpkg options: the toolchain of the
+vcpkg of the runner image (`VCPKG_INSTALLATION_ROOT`), the `x64-windows` triplet, the manifest `tools/vcpkg/vcpkg.json`
+and no DLL copy after each link (`VCPKG_APPLOCAL_DEPS=OFF`; the job puts the DLL folders on `PATH`). The configure step
+installs the packages of the manifest at its `builtin-baseline`, into the `installed` folder of that vcpkg
+(`VCPKG_INSTALLED_DIR`), where the DLL steps of the job read them. The Windows package job of `package.yml` passes the
+same vcpkg options on its configure line. The
+runner image clones vcpkg in full and a new image updates the clone, so the checkout holds the baseline commit. A
+baseline newer than the checkout of the image fails the configure step, because vcpkg reads the port versions from that
+checkout.
+
 ### Dependency caches
+
+The build legs, the leak check, the nightly sanitizer jobs, the tidy check and the package jobs set up their
+dependencies with the local action `setup-deps`. It installs Qt 6.8.3 with Qt Charts through
+`jurplel/install-qt-action`, ZeroMQ, cppzmq and nlohmann-json from Homebrew on macOS and from apt on Linux, with the
+extra apt packages of its `apt-packages` input, and sets up the MSVC environment on Windows. The `validation` and
+`sanitizer` jobs of `release.yml` install the same Qt and Homebrew packages in steps of their own.
 
 Every leg caches the Qt install (through `jurplel/install-qt-action`, with the
 same cache entries as the package jobs), and the Windows leg also caches the vcpkg
-binary archives in `runner.temp/vcpkg-binary-cache`. vcpkg names an archive by a hash
+binary archives in `runner.temp/vcpkg-binary-cache`, which its configure step names in
+`VCPKG_BINARY_SOURCES`. vcpkg names an archive by a hash
 that covers its own checkout, its CMake and the compiler, and the runner image fixes all three.
 The key of the vcpkg cache is therefore
-`vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-<image>-v1`, where `<image>` is
-`ImageOS` and `ImageVersion` of the runner. A new image writes a new entry, and
-the save step runs when the restore found no entry with the exact key. To start
-over, for example after changing the vcpkg package list, raise the `-v1` suffix
-by hand in the restore and save steps. An existing key is never overwritten.
+`vcpkg-x64-windows-<packages>-<baseline>-<image>-v1`: the packages and the `builtin-baseline` of
+`tools/vcpkg/vcpkg.json`, which the step `Read the vcpkg manifest` reads, and `ImageOS` and `ImageVersion` of the
+runner. A new image or a change to the packages or the baseline writes a new entry. The save step follows the
+configure step, which installs the packages, and runs when the restore found no entry with the exact key. To start
+over, raise the `-v1` suffix by hand in the restore and save steps. An existing key is never overwritten.
 Homebrew and apt packages are not cached.
 
 All three legs also keep a compiler cache, set up by `hendrikmuhs/ccache-action`
@@ -692,10 +907,10 @@ cache is the leg and the runner image, and the action adds a timestamp, so every
 run saves a new entry. A run restores the newest entry of its leg and image, or
 else the newest of its leg. The post step of the action (`Post Set up compiler
 cache`) prints the hits and misses of the job. Each entry holds at most 500 MB,
-and GitHub keeps 10 GB for the repository and removes the entries used least
+and the CI keeps 10 GB of caches in all and removes the entries used least
 recently first.
 
-The three legs configure with `-DEGTRAIN_IPO=OFF`. A Release build links with
+The ci presets of the three legs set `EGTRAIN_IPO=OFF`. A Release build links with
 interprocedural optimization by default (link-time optimization, or LTCG with
 MSVC) when the toolchain supports it; with the option OFF the build skips it.
 The optimized link generates the code of the whole program again for every test
@@ -710,5 +925,5 @@ run, so only the nightly or manual run on `main` writes the caches that the
 first run of a pull request uses. That is enough: the newest compiler cache of
 `main` is about a day old, so a pull request compiles again only what the
 changes since then affect, and its later runs restore its own cache. The first
-run after a key change is cold. GitHub removes a cache that no run has used for
+run after a key change is cold. The CI removes a cache that no run has used for
 seven days; the nightly run keeps the entries in use.

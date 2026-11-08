@@ -1,0 +1,9 @@
+<map id="SceneSession::openSceneFolderDialog" name="SceneSession::openSceneFolderDialog">
+<area shape="rect" id="Node000001" title="Asks for a scene folder and opens it." alt="" coords="5,76,235,121"/>
+<area shape="rect" id="Node000002" href="$namespacedialog__folders.html#a4c2f846210d5f53a8896ee6ce164d79d" title=" " alt="" coords="291,29,476,74"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="235,75,278,70,273,71,236,81"/>
+<area shape="rect" id="Node000003" href="$class_scene_session.html#a2176c2bafa9f6d1f6ffaf4d6bfeb1b8f" title=" " alt="" coords="283,123,484,167"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="235,116,270,124,265,125,235,121"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="334,28,332,19,340,10,358,5,383,3,412,5,430,14,425,14,410,10,383,8,359,10,343,15,337,21,338,30"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="334,121,332,112,340,104,358,98,383,96,412,98,430,108,425,107,410,104,383,101,359,103,343,108,337,114,338,124"/>
+</map>

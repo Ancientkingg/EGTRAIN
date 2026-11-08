@@ -8,7 +8,6 @@
 <title>EGTRAIN: scene/SceneDiagnostic.cpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,20 +111,23 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_diagnos
   <div class="headertitle"><div class="title">SceneDiagnostic.cpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_scene_diagnostic_8h_source.html">scene/SceneDiagnostic.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_scene_diagnostic_8h.html">scene/SceneDiagnostic.h</a>&quot;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for SceneDiagnostic.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_diagnostic_8cpp__incl.svg" width="419" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_diagnostic_8cpp__incl.svg" width="414" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a8d88ff4b3062ad07eacd7e35c5be6426" id="r_a8d88ff4b3062ad07eacd7e35c5be6426"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a8d88ff4b3062ad07eacd7e35c5be6426">severityLabel</a> (<a class="el" href="_scene_diagnostic_8h.html#ad54a3c52947445d98edbf5629d80a29d">SceneSeverity</a> s)</td></tr>
+<tr class="memitem:a3384f3ec4bd60dc07adad600a2a3e5e4" id="r_a3384f3ec4bd60dc07adad600a2a3e5e4"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a3384f3ec4bd60dc07adad600a2a3e5e4">itemLabel</a> (const <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &amp;d)</td></tr>
 <tr class="memitem:a610ae58f0e5af2938f73ae86e01c9eec" id="r_a610ae58f0e5af2938f73ae86e01c9eec"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a610ae58f0e5af2938f73ae86e01c9eec">toDisplayText</a> (const <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &amp;d)</td></tr>
 <tr class="memdesc:a610ae58f0e5af2938f73ae86e01c9eec"><td class="mdescLeft">&#160;</td><td class="mdescRight">One line for the log and the console: severity, code, file, item, path, message and suggested fix.  <br /></td></tr>
 <tr class="memitem:a757664039e68baa3d8e4d84eb8f0fb9a" id="r_a757664039e68baa3d8e4d84eb8f0fb9a"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a757664039e68baa3d8e4d84eb8f0fb9a">toDialogText</a> (const <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &amp;d)</td></tr>
-<tr class="memitem:af8736eefee86fcaf8b1756cc43b7edee" id="r_af8736eefee86fcaf8b1756cc43b7edee"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">nlohmann::json</a>&#160;</td><td class="memItemRight"><a class="el" href="#af8736eefee86fcaf8b1756cc43b7edee">toJson</a> (const <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &amp;d)</td></tr>
+<tr class="memitem:a4246141099e6d0d258e6248dc317a65a" id="r_a4246141099e6d0d258e6248dc317a65a"><td class="memItemLeft"><a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a>&#160;</td><td class="memItemRight"><a class="el" href="#a4246141099e6d0d258e6248dc317a65a">jsonParseDiagnostic</a> (const std::string &amp;code, const std::string &amp;name, const std::string &amp;file, const std::string &amp;content, const nlohmann::json::parse_error &amp;error)</td></tr>
+<tr class="memitem:af8736eefee86fcaf8b1756cc43b7edee" id="r_af8736eefee86fcaf8b1756cc43b7edee"><td class="memItemLeft"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">nlohmann::json</a>&#160;</td><td class="memItemRight"><a class="el" href="#af8736eefee86fcaf8b1756cc43b7edee">toJson</a> (const <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &amp;d)</td></tr>
 <tr class="memdesc:af8736eefee86fcaf8b1756cc43b7edee"><td class="mdescLeft">&#160;</td><td class="mdescRight">An object with every field of the diagnostic, the severity as its label, for tools and tests.  <br /></td></tr>
 <tr class="memitem:a371a00fbe71f997f368bf0c4e90b61f6" id="r_a371a00fbe71f997f368bf0c4e90b61f6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a371a00fbe71f997f368bf0c4e90b61f6">hasErrors</a> (const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;ds)</td></tr>
 <tr class="memdesc:a371a00fbe71f997f368bf0c4e90b61f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when a diagnostic has severity Error.  <br /></td></tr>
@@ -152,7 +154,7 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_diagnostic_8cpp_a55d945265c11d83d18049f47613929b4_cgraph.svg" width="146" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_diagnostic_8cpp_a55d945265c11d83d18049f47613929b4_cgraph.svg" width="144" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -176,7 +178,72 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_diagnostic_8cpp_a371a00fbe71f997f368bf0c4e90b61f6_cgraph.svg" width="94" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_diagnostic_8cpp_a371a00fbe71f997f368bf0c4e90b61f6_cgraph.svg" width="94" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a3384f3ec4bd60dc07adad600a2a3e5e4" name="a3384f3ec4bd60dc07adad600a2a3e5e4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3384f3ec4bd60dc07adad600a2a3e5e4">&#9670;&#160;</a></span>itemLabel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string itemLabel </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>d</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The kind and the id of the item, such as "journey 0:2" or "arc B0.arc.108", with "item" as the kind when it is not set; empty when the diagnostic has no item id. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_diagnostic_8cpp_a3384f3ec4bd60dc07adad600a2a3e5e4_cgraph.svg" width="98" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a4246141099e6d0d258e6248dc317a65a" name="a4246141099e6d0d258e6248dc317a65a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4246141099e6d0d258e6248dc317a65a">&#9670;&#160;</a></span>jsonParseDiagnostic()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> jsonParseDiagnostic </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>code</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>name</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>file</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>content</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const nlohmann::json::parse_error &amp;</td>          <td class="paramname"><span class="paramname"><em>error</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The error diagnostic for <span class="tt">content</span>, the text of the file <span class="tt">name</span>, that is not valid JSON, from the parse error that reading it threw. The message names the file and the line and column of the first fault, without the text of the parser; the suggested fix says to correct the file or restore a copy. <span class="tt">file</span> is the file field, which a dialog shows as its "File:" line when the message does not contain it. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_diagnostic_8cpp_a4246141099e6d0d258e6248dc317a65a_cgraph.svg" width="163" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -199,7 +266,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_diagnostic_8cpp_a8d88ff4b3062ad07eacd7e35c5be6426_cgraph.svg" width="122" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_diagnostic_8cpp_a8d88ff4b3062ad07eacd7e35c5be6426_cgraph.svg" width="120" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -222,7 +289,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_diagnostic_8cpp_a757664039e68baa3d8e4d84eb8f0fb9a_cgraph.svg" width="115" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_diagnostic_8cpp_a757664039e68baa3d8e4d84eb8f0fb9a_cgraph.svg" width="115" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -246,7 +313,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_diagnostic_8cpp_a610ae58f0e5af2938f73ae86e01c9eec_cgraph.svg" width="280" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_diagnostic_8cpp_a610ae58f0e5af2938f73ae86e01c9eec_cgraph.svg" width="279" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -258,7 +325,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">nlohmann::json</a> toJson </td>
+          <td class="memname"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">nlohmann::json</a> toJson </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>d</em></span></td><td>)</td>
           <td></td>
@@ -270,7 +337,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_diagnostic_8cpp_af8736eefee86fcaf8b1756cc43b7edee_cgraph.svg" width="232" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_diagnostic_8cpp_af8736eefee86fcaf8b1756cc43b7edee_cgraph.svg" width="230" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

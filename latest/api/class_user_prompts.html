@@ -8,7 +8,6 @@
 <title>EGTRAIN: UserPrompts Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,8 +112,13 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_user_pro
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_user_prompts_8h_source.html">widgets/UserPrompts.h</a>&gt;</code></p>
+<p><code>#include &lt;widgets/UserPrompts.h&gt;</code></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:ListChoice" id="r_ListChoice"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_user_prompts_1_1_list_choice.html">ListChoice</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One entry of <a class="el" href="#aff28540497be426cde7b7c3411a83ad8">chooseItems()</a>.  <a href="struct_user_prompts_1_1_list_choice.html#details">More...</a><br /></td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a845441069b8fabe4f8d8dfff13c90888" id="r_a845441069b8fabe4f8d8dfff13c90888"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a845441069b8fabe4f8d8dfff13c90888">UserPrompts</a> (std::function&lt; bool()&gt; suppressed={})</td></tr>
@@ -124,7 +128,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a291a8f1c4f80fb446f22c09a97f9885f"><td class="mdescLeft">&#160;</td><td class="mdescRight">A message that the user acknowledges. A scripted run has no user to do that, so nothing is shown then.  <br /></td></tr>
 <tr class="memitem:aa74a16f2f04874e3e7910b1e8d422407" id="r_aa74a16f2f04874e3e7910b1e8d422407"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#aa74a16f2f04874e3e7910b1e8d422407">confirm</a> (QWidget *parent, const QString &amp;title, const QString &amp;question)</td></tr>
 <tr class="memdesc:aa74a16f2f04874e3e7910b1e8d422407"><td class="mdescLeft">&#160;</td><td class="mdescRight">A Yes or No question whose default answer is No; true for Yes. It asks also in a suppressed run.  <br /></td></tr>
+<tr class="memitem:a4a4c5ad4f5d69ed7442fbd396fba0afa" id="r_a4a4c5ad4f5d69ed7442fbd396fba0afa"><td class="memItemLeft">virtual int&#160;</td><td class="memItemRight"><a class="el" href="#a4a4c5ad4f5d69ed7442fbd396fba0afa">chooseButton</a> (QWidget *parent, const QString &amp;title, const QString &amp;question, const QStringList &amp;choices, int defaultChoice)</td></tr>
 <tr class="memitem:a00d1b9ed44839b3770d89613eef3edd9" id="r_a00d1b9ed44839b3770d89613eef3edd9"><td class="memItemLeft">virtual QString&#160;</td><td class="memItemRight"><a class="el" href="#a00d1b9ed44839b3770d89613eef3edd9">chooseItem</a> (QWidget *parent, const QString &amp;title, const QString &amp;label, const QStringList &amp;items)</td></tr>
+<tr class="memitem:a573969fb7e17e27e0236f25fa7e5292d" id="r_a573969fb7e17e27e0236f25fa7e5292d"><td class="memItemLeft">virtual std::optional&lt; QString &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a573969fb7e17e27e0236f25fa7e5292d">askText</a> (QWidget *parent, const QString &amp;title, const QString &amp;label, const QString &amp;text={})</td></tr>
+<tr class="memitem:aff28540497be426cde7b7c3411a83ad8" id="r_aff28540497be426cde7b7c3411a83ad8"><td class="memItemLeft">virtual std::optional&lt; QStringList &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aff28540497be426cde7b7c3411a83ad8">chooseItems</a> (QWidget *parent, const QString &amp;title, const QString &amp;context, const std::vector&lt; <a class="el" href="struct_user_prompts_1_1_list_choice.html">ListChoice</a> &gt; &amp;choices, const QStringList &amp;checked)</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The messages and questions that the editors put to the user. A panel gets one from the window, and a test replaces the virtual functions to answer without a dialog. </p>
@@ -181,6 +188,91 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a id="a573969fb7e17e27e0236f25fa7e5292d" name="a573969fb7e17e27e0236f25fa7e5292d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a573969fb7e17e27e0236f25fa7e5292d">&#9670;&#160;</a></span>askText()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual std::optional&lt; QString &gt; UserPrompts::askText </td>
+          <td>(</td>
+          <td class="paramtype">QWidget *</td>          <td class="paramname"><span class="paramname"><em>parent</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>title</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>label</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>text</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>A line of text that the user types, such as the name of a new station, starting with <span class="tt">text</span>; std::nullopt when the user cancels. It asks also in a suppressed run. The dialog is wide enough for its window title, within the screen. </p>
+
+</div>
+</div>
+<a id="a4a4c5ad4f5d69ed7442fbd396fba0afa" name="a4a4c5ad4f5d69ed7442fbd396fba0afa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4a4c5ad4f5d69ed7442fbd396fba0afa">&#9670;&#160;</a></span>chooseButton()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual int UserPrompts::chooseButton </td>
+          <td>(</td>
+          <td class="paramtype">QWidget *</td>          <td class="paramname"><span class="paramname"><em>parent</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>title</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>question</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QStringList &amp;</td>          <td class="paramname"><span class="paramname"><em>choices</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>defaultChoice</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>A question with a button for each of <span class="tt">choices</span> and a Cancel button. Returns the index of the chosen button in <span class="tt">choices</span>, or -1 for Cancel. The button of <span class="tt">defaultChoice</span> is the default. It asks also in a suppressed run. </p>
+
+</div>
+</div>
 <a id="a00d1b9ed44839b3770d89613eef3edd9" name="a00d1b9ed44839b3770d89613eef3edd9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a00d1b9ed44839b3770d89613eef3edd9">&#9670;&#160;</a></span>chooseItem()</h2>
 
@@ -218,6 +310,56 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 <p>One of <span class="tt">items</span>, for example the id of a rolling stock unit; empty when the user cancels. It asks also in a suppressed run. The dialog is wide enough for its window title, within the screen. </p>
+
+</div>
+</div>
+<a id="aff28540497be426cde7b7c3411a83ad8" name="aff28540497be426cde7b7c3411a83ad8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aff28540497be426cde7b7c3411a83ad8">&#9670;&#160;</a></span>chooseItems()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual std::optional&lt; QStringList &gt; UserPrompts::chooseItems </td>
+          <td>(</td>
+          <td class="paramtype">QWidget *</td>          <td class="paramname"><span class="paramname"><em>parent</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>title</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_user_prompts_1_1_list_choice.html">ListChoice</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>choices</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QStringList &amp;</td>          <td class="paramname"><span class="paramname"><em>checked</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Several of <span class="tt">choices</span> from a list with a check box for each entry and a filter field above it, which shows the entries that hold every word typed, in any case. <span class="tt">context</span> is the line under the title. <span class="tt">checked</span> lists the ids that are checked at the start. Returns the ids of the checked entries in the order of <span class="tt">choices</span>, or std::nullopt when the user cancels. It asks also in a suppressed run. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_user_prompts_aff28540497be426cde7b7c3411a83ad8_cgraph.svg" width="854" height="192"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -293,7 +435,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>An error message in a modal box, with a warning icon instead of the critical one when warningIcon is set. In a suppressed run it writes "QEGTRAIN_DIALOG_SUPPRESSED: title: message" to stderr instead. The title and the message also go to the log, at error level in the category app.ui. </p>
+<p>An error message in a modal box, with a warning icon instead of the critical one when warningIcon is set. The title is also the main text of the box, with the message below it, because macOS draws no title on a message box. In a suppressed run it writes "QEGTRAIN_DIALOG_SUPPRESSED: title: message" to stderr instead. The title and the message also go to the log, at error level in the category app.ui. </p>
 
 </div>
 </div>
@@ -334,7 +476,7 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>widgets/<a class="el" href="_user_prompts_8h_source.html">UserPrompts.h</a></li>
+<li>widgets/<a class="el" href="_user_prompts_8h.html">UserPrompts.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

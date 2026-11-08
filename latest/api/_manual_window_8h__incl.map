@@ -1,7 +1,7 @@
 <map id="widgets/ManualWindow.h" name="widgets/ManualWindow.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="33,5,221,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,125,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,33,86,70,82,66,115,29"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="150,79,229,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="139,29,172,66,168,70,135,33"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="33,5,220,33"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,81,125,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="118,32,87,71,84,67,113,35"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="149,81,226,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="138,31,170,69,165,69,136,36"/>
 </map>

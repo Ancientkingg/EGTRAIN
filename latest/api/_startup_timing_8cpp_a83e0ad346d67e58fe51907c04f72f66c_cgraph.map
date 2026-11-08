@@ -1,0 +1,7 @@
+<map id="beginStartupTiming" name="beginStartupTiming">
+<area shape="rect" id="Node000001" title="Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing i..." alt="" coords="5,29,155,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="44,29,39,20,44,11,57,5,80,3,104,5,119,14,113,14,103,10,80,8,59,10,47,15,44,20,50,29"/>
+<area shape="rect" id="Node000002" href="$_startup_timing_8cpp.html#afc4b99469fe5a5e382be0216b6184cdd" title="Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is &quot;1&quot;." alt="" coords="203,29,367,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="155,41,190,43,184,43,155,46"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="249,28,244,20,248,11,262,5,285,3,309,5,324,14,318,14,308,10,285,8,264,10,252,15,249,20,254,30"/>
+</map>

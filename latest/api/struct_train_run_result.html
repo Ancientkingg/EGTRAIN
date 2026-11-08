@@ -8,7 +8,6 @@
 <title>EGTRAIN: TrainRunResult Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,11 +115,11 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_train_r
 <p>One row of the Run Results table: one train.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_run_results_8h_source.html">diagrams/RunResults.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/RunResults.h&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for TrainRunResult:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="struct_train_run_result__coll__graph.svg" width="254" height="292"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="struct_train_run_result__coll__graph.svg" width="252" height="318"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -131,17 +130,17 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a27078601b0b2ce2e5305c22abd25f8be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Operating code of the service.  <br /></td></tr>
 <tr class="memitem:a6a1d1c08ab0c89debdcbb96b85111c29" id="r_a6a1d1c08ab0c89debdcbb96b85111c29"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a6a1d1c08ab0c89debdcbb96b85111c29">serviceId</a></td></tr>
 <tr class="memdesc:a6a1d1c08ab0c89debdcbb96b85111c29"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scene service of the train.  <br /></td></tr>
-<tr class="memitem:ab1ecd4e0697166e80a1fd4fc00e5946b" id="r_ab1ecd4e0697166e80a1fd4fc00e5946b"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ab1ecd4e0697166e80a1fd4fc00e5946b">occurrence</a> = 1</td></tr>
+<tr class="memitem:ab1ecd4e0697166e80a1fd4fc00e5946b" id="r_ab1ecd4e0697166e80a1fd4fc00e5946b"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ab1ecd4e0697166e80a1fd4fc00e5946b">occurrence</a></td></tr>
 <tr class="memdesc:ab1ecd4e0697166e80a1fd4fc00e5946b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Occurrence of the service, from 1.  <br /></td></tr>
-<tr class="memitem:a04ea697d7f9aaeafeaa1483b2660a19c" id="r_a04ea697d7f9aaeafeaa1483b2660a19c"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a04ea697d7f9aaeafeaa1483b2660a19c">performancePercent</a> = 100.0</td></tr>
-<tr class="memdesc:a04ea697d7f9aaeafeaa1483b2660a19c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Share of the tractive effort and maximum speed the service uses, in percent.  <br /></td></tr>
-<tr class="memitem:adda5047e93044128d0f0a44a54e79104" id="r_adda5047e93044128d0f0a44a54e79104"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#adda5047e93044128d0f0a44a54e79104">hasConfiguredMaximumSpeed</a> = false</td></tr>
+<tr class="memitem:a04ea697d7f9aaeafeaa1483b2660a19c" id="r_a04ea697d7f9aaeafeaa1483b2660a19c"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a04ea697d7f9aaeafeaa1483b2660a19c">performancePercent</a></td></tr>
+<tr class="memdesc:a04ea697d7f9aaeafeaa1483b2660a19c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Share of the tractive effort, maximum speed and track speed limits the service uses, in percent.  <br /></td></tr>
+<tr class="memitem:adda5047e93044128d0f0a44a54e79104" id="r_adda5047e93044128d0f0a44a54e79104"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#adda5047e93044128d0f0a44a54e79104">hasConfiguredMaximumSpeed</a></td></tr>
 <tr class="memdesc:adda5047e93044128d0f0a44a54e79104"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the service sets a maximum speed.  <br /></td></tr>
-<tr class="memitem:a654e09478cae49bb9bcbb3ba56268052" id="r_a654e09478cae49bb9bcbb3ba56268052"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a654e09478cae49bb9bcbb3ba56268052">configuredMaximumSpeedKmh</a> = 0.0</td></tr>
+<tr class="memitem:a654e09478cae49bb9bcbb3ba56268052" id="r_a654e09478cae49bb9bcbb3ba56268052"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a654e09478cae49bb9bcbb3ba56268052">configuredMaximumSpeedKmh</a></td></tr>
 <tr class="memdesc:a654e09478cae49bb9bcbb3ba56268052"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum speed of the service in km/h; meaningful only when hasConfiguredMaximumSpeed.  <br /></td></tr>
-<tr class="memitem:a466c854e0a174ab5b4d0708c8f1817ac" id="r_a466c854e0a174ab5b4d0708c8f1817ac"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a466c854e0a174ab5b4d0708c8f1817ac">compositionMaximumSpeedMs</a> = 0.0</td></tr>
-<tr class="memitem:af9c3c7aaa5575a765c08fa18b752a438" id="r_af9c3c7aaa5575a765c08fa18b752a438"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#af9c3c7aaa5575a765c08fa18b752a438">appliedMaximumSpeedMs</a> = 0.0</td></tr>
-<tr class="memitem:a63f56cb37bac7978a4c44be6b062ff83" id="r_a63f56cb37bac7978a4c44be6b062ff83"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a63f56cb37bac7978a4c44be6b062ff83">appliedMaximumSpeedKmh</a> = 0.0</td></tr>
+<tr class="memitem:a466c854e0a174ab5b4d0708c8f1817ac" id="r_a466c854e0a174ab5b4d0708c8f1817ac"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a466c854e0a174ab5b4d0708c8f1817ac">compositionMaximumSpeedMs</a></td></tr>
+<tr class="memitem:af9c3c7aaa5575a765c08fa18b752a438" id="r_af9c3c7aaa5575a765c08fa18b752a438"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#af9c3c7aaa5575a765c08fa18b752a438">appliedMaximumSpeedMs</a></td></tr>
+<tr class="memitem:a63f56cb37bac7978a4c44be6b062ff83" id="r_a63f56cb37bac7978a4c44be6b062ff83"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a63f56cb37bac7978a4c44be6b062ff83">appliedMaximumSpeedKmh</a></td></tr>
 <tr class="memdesc:a63f56cb37bac7978a4c44be6b062ff83"><td class="mdescLeft">&#160;</td><td class="mdescRight">appliedMaximumSpeedMs in km/h  <br /></td></tr>
 <tr class="memitem:a0ba9359588e9ff9d1ebf06e4c8227232" id="r_a0ba9359588e9ff9d1ebf06e4c8227232"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#a0ba9359588e9ff9d1ebf06e4c8227232">startSeconds</a></td></tr>
 <tr class="memdesc:a0ba9359588e9ff9d1ebf06e4c8227232"><td class="mdescLeft">&#160;</td><td class="mdescRight">First valid position sample, in seconds of the run.  <br /></td></tr>
@@ -162,11 +161,11 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:abae1bce8f4afc1def1aa611e754763e7" id="r_abae1bce8f4afc1def1aa611e754763e7"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#abae1bce8f4afc1def1aa611e754763e7">firstDirectIncidentTime</a></td></tr>
 <tr class="memitem:aa91cf11788218087e5ef699f2f1d5863" id="r_aa91cf11788218087e5ef699f2f1d5863"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa91cf11788218087e5ef699f2f1d5863">firstDirectIncidentLocation</a></td></tr>
 <tr class="memdesc:aa91cf11788218087e5ef699f2f1d5863"><td class="mdescLeft">&#160;</td><td class="mdescRight">Head position of the train, or the end of its authority, at that effect, in m.  <br /></td></tr>
-<tr class="memitem:aea4402702a840c8937d286d1dba174bb" id="r_aea4402702a840c8937d286d1dba174bb"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aea4402702a840c8937d286d1dba174bb">destinationTerminationRequested</a> = false</td></tr>
+<tr class="memitem:aea4402702a840c8937d286d1dba174bb" id="r_aea4402702a840c8937d286d1dba174bb"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aea4402702a840c8937d286d1dba174bb">destinationTerminationRequested</a></td></tr>
 <tr class="memdesc:aea4402702a840c8937d286d1dba174bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when a train breakdown of the scenario asks the train to terminate at its destination.  <br /></td></tr>
-<tr class="memitem:a620ff54a239879f1eda7a3f8c56b6724" id="r_a620ff54a239879f1eda7a3f8c56b6724"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a620ff54a239879f1eda7a3f8c56b6724">destinationTerminated</a> = false</td></tr>
+<tr class="memitem:a620ff54a239879f1eda7a3f8c56b6724" id="r_a620ff54a239879f1eda7a3f8c56b6724"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a620ff54a239879f1eda7a3f8c56b6724">destinationTerminated</a></td></tr>
 <tr class="memdesc:a620ff54a239879f1eda7a3f8c56b6724"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the request was set and the train reached the end of its route.  <br /></td></tr>
-<tr class="memitem:aa3aaf2b7c1b3d5cdf2e6f0400285faad" id="r_aa3aaf2b7c1b3d5cdf2e6f0400285faad"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aa3aaf2b7c1b3d5cdf2e6f0400285faad">entranceDelaySeconds</a> = 0.0</td></tr>
+<tr class="memitem:aa3aaf2b7c1b3d5cdf2e6f0400285faad" id="r_aa3aaf2b7c1b3d5cdf2e6f0400285faad"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aa3aaf2b7c1b3d5cdf2e6f0400285faad">entranceDelaySeconds</a></td></tr>
 <tr class="memitem:a933be1ebf1be095e2e6973848e6aa963" id="r_a933be1ebf1be095e2e6973848e6aa963"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a933be1ebf1be095e2e6973848e6aa963">entranceDelayStationId</a></td></tr>
 <tr class="memdesc:a933be1ebf1be095e2e6973848e6aa963"><td class="mdescLeft">&#160;</td><td class="mdescRight">Station of the entrance delay, empty for none.  <br /></td></tr>
 </table>
@@ -180,7 +179,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double TrainRunResult::appliedMaximumSpeedKmh = 0.0</td>
+          <td class="memname">double TrainRunResult::appliedMaximumSpeedKmh</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -196,7 +195,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double TrainRunResult::appliedMaximumSpeedMs = 0.0</td>
+          <td class="memname">double TrainRunResult::appliedMaximumSpeedMs</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -211,7 +210,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double TrainRunResult::compositionMaximumSpeedMs = 0.0</td>
+          <td class="memname">double TrainRunResult::compositionMaximumSpeedMs</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -226,7 +225,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double TrainRunResult::configuredMaximumSpeedKmh = 0.0</td>
+          <td class="memname">double TrainRunResult::configuredMaximumSpeedKmh</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -242,7 +241,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool TrainRunResult::destinationTerminated = false</td>
+          <td class="memname">bool TrainRunResult::destinationTerminated</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -258,7 +257,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool TrainRunResult::destinationTerminationRequested = false</td>
+          <td class="memname">bool TrainRunResult::destinationTerminationRequested</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -338,7 +337,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double TrainRunResult::entranceDelaySeconds = 0.0</td>
+          <td class="memname">double TrainRunResult::entranceDelaySeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -400,7 +399,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool TrainRunResult::hasConfiguredMaximumSpeed = false</td>
+          <td class="memname">bool TrainRunResult::hasConfiguredMaximumSpeed</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -416,7 +415,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int TrainRunResult::occurrence = 1</td>
+          <td class="memname">int TrainRunResult::occurrence</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -448,12 +447,12 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double TrainRunResult::performancePercent = 100.0</td>
+          <td class="memname">double TrainRunResult::performancePercent</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Share of the tractive effort and maximum speed the service uses, in percent. </p>
+<p>Share of the tractive effort, maximum speed and track speed limits the service uses, in percent. </p>
 
 </div>
 </div>
@@ -554,7 +553,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_run_results_8h_source.html">RunResults.h</a></li>
+<li>diagrams/<a class="el" href="_run_results_8h.html">RunResults.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

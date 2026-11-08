@@ -8,7 +8,6 @@
 <title>EGTRAIN: AreaCapacityResult Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,25 +115,25 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_area_ca
 <p>The result of analyzeAreaCapacity.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_area_capacity_8h_source.html">diagrams/AreaCapacity.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/AreaCapacity.h&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for AreaCapacityResult:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="struct_area_capacity_result__coll__graph.svg" width="186" height="132"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="struct_area_capacity_result__coll__graph.svg" width="186" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a5c348d3467b1b264b6346700064f1f71" id="r_a5c348d3467b1b264b6346700064f1f71"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a5c348d3467b1b264b6346700064f1f71">periodSeconds</a> = -1.0</td></tr>
+<tr class="memitem:a5c348d3467b1b264b6346700064f1f71" id="r_a5c348d3467b1b264b6346700064f1f71"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a5c348d3467b1b264b6346700064f1f71">periodSeconds</a></td></tr>
 <tr class="memdesc:a5c348d3467b1b264b6346700064f1f71"><td class="mdescLeft">&#160;</td><td class="mdescRight">The period of the input when it is valid, else -1.0.  <br /></td></tr>
 <tr class="memitem:ad42dc69fa36a0a2078e1b5f2c7a15581" id="r_ad42dc69fa36a0a2078e1b5f2c7a15581"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_area_capacity_resource.html">AreaCapacityResource</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad42dc69fa36a0a2078e1b5f2c7a15581">resources</a></td></tr>
 <tr class="memdesc:ad42dc69fa36a0a2078e1b5f2c7a15581"><td class="mdescLeft">&#160;</td><td class="mdescRight">In the order of <a class="el" href="struct_area_capacity_input.html#ad5c2a5754a6b40a82affcea0c24bf8cf" title="Empty ids, &quot;None&quot; and ids that repeat an earlier entry are ignored.">AreaCapacityInput::resourceIds</a>.  <br /></td></tr>
-<tr class="memitem:a28b4aca0b5854d8fd032d042b932204e" id="r_a28b4aca0b5854d8fd032d042b932204e"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a28b4aca0b5854d8fd032d042b932204e">envelopeSeconds</a> = -1.0</td></tr>
-<tr class="memitem:a2d0b5ca9389aca0aef9a5889c6639ed6" id="r_a2d0b5ca9389aca0aef9a5889c6639ed6"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a2d0b5ca9389aca0aef9a5889c6639ed6">envelopePercentage</a> = -1.0</td></tr>
+<tr class="memitem:a28b4aca0b5854d8fd032d042b932204e" id="r_a28b4aca0b5854d8fd032d042b932204e"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a28b4aca0b5854d8fd032d042b932204e">envelopeSeconds</a></td></tr>
+<tr class="memitem:a2d0b5ca9389aca0aef9a5889c6639ed6" id="r_a2d0b5ca9389aca0aef9a5889c6639ed6"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a2d0b5ca9389aca0aef9a5889c6639ed6">envelopePercentage</a></td></tr>
 <tr class="memdesc:a2d0b5ca9389aca0aef9a5889c6639ed6"><td class="mdescLeft">&#160;</td><td class="mdescRight">envelopeSeconds / period * 100; -1.0 without a value or a valid period.  <br /></td></tr>
 <tr class="memitem:a77ffe93a3941003e1b95bf19c741c895" id="r_a77ffe93a3941003e1b95bf19c741c895"><td class="memItemLeft"><a class="el" href="struct_capacity_analysis_result.html">CapacityAnalysisResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a77ffe93a3941003e1b95bf19c741c895">chain</a></td></tr>
 <tr class="memdesc:a77ffe93a3941003e1b95bf19c741c895"><td class="mdescLeft">&#160;</td><td class="mdescRight">analyzeCapacity for the selected trains that run in the direction of the first one.  <br /></td></tr>
-<tr class="memitem:aa54747e0c696c20b6079f7d025420b4a" id="r_aa54747e0c696c20b6079f7d025420b4a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aa54747e0c696c20b6079f7d025420b4a">complete</a> = false</td></tr>
+<tr class="memitem:aa54747e0c696c20b6079f7d025420b4a" id="r_aa54747e0c696c20b6079f7d025420b4a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aa54747e0c696c20b6079f7d025420b4a">complete</a></td></tr>
 <tr class="memitem:a5fe57fc811da75f3d89329beb603da56" id="r_a5fe57fc811da75f3d89329beb603da56"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_area_capacity_note.html">AreaCapacityNote</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a5fe57fc811da75f3d89329beb603da56">notes</a></td></tr>
 <tr class="memdesc:a5fe57fc811da75f3d89329beb603da56"><td class="mdescLeft">&#160;</td><td class="mdescRight">In the order of the steps of the calculation.  <br /></td></tr>
 </table>
@@ -164,7 +163,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool AreaCapacityResult::complete = false</td>
+          <td class="memname">bool AreaCapacityResult::complete</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -179,7 +178,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double AreaCapacityResult::envelopePercentage = -1.0</td>
+          <td class="memname">double AreaCapacityResult::envelopePercentage</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -195,7 +194,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double AreaCapacityResult::envelopeSeconds = -1.0</td>
+          <td class="memname">double AreaCapacityResult::envelopeSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -226,7 +225,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double AreaCapacityResult::periodSeconds = -1.0</td>
+          <td class="memname">double AreaCapacityResult::periodSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -252,7 +251,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_area_capacity_8h_source.html">AreaCapacity.h</a></li>
+<li>diagrams/<a class="el" href="_area_capacity_8h.html">AreaCapacity.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

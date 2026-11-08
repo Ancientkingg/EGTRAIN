@@ -1,16 +1,16 @@
 <map id="buildRunResults" name="buildRunResults">
-<area shape="rect" id="Node000001" title="The Run Results of the trains. timestepSeconds turns sample indices into seconds; a null train is ski..." alt="" coords="5,103,132,128"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="35,104,28,94,32,84,46,78,69,76,97,80,108,89,105,93,95,85,69,81,47,83,36,88,33,94,40,101"/>
-<area shape="rect" id="Node000002" href="$_run_results_8h.html#ad86fae6b844959d443eb855f68338ba5" title="An energy in MJ as kWh, with kEnergyMJToKWh." alt="" coords="215,29,327,55"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="94,100,179,64,203,56,204,61,181,68,96,105"/>
-<area shape="rect" id="Node000003" href="$_trajectory_util_8cpp.html#aca18c471979da03136d004ac005bad56" title=" " alt="" coords="185,103,357,128"/>
-<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="132,113,172,113,172,118,132,118"/>
-<area shape="rect" id="Node000004" href="$_trajectory_util_8cpp.html#a3628a4e34ea58c9a4584537a7a605751" title=" " alt="" coords="180,176,363,201"/>
-<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="106,126,223,169,222,174,104,131"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="238,31,231,21,235,11,248,5,271,3,300,6,311,16,307,20,297,11,271,8,250,10,238,15,236,20,242,28"/>
-<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="238,104,231,94,235,84,248,78,271,76,300,80,311,89,307,93,297,85,271,81,250,83,238,88,236,94,242,101"/>
-<area shape="poly" id="edge9_Node000004_Node000004" title=" " alt="" coords="238,178,231,168,235,158,248,152,271,149,300,153,311,162,307,166,297,158,271,155,250,157,238,161,236,167,242,174"/>
-<area shape="rect" id="Node000005" href="$_trajectory_util_8cpp.html#afe4ec1b3791e49b8d8c64a911abe693d" title=" " alt="" coords="411,176,589,201"/>
-<area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="363,186,397,186,397,191,363,191"/>
-<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="463,178,455,168,459,158,475,152,500,149,532,153,544,163,541,167,530,158,500,155,476,157,463,162,460,167,467,174"/>
+<area shape="rect" id="Node000001" title="The Run Results of the trains. timestepSeconds turns sample indices into seconds; a null train is ski..." alt="" coords="5,105,132,133"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="33,105,28,96,32,87,46,81,69,79,92,81,107,89,102,91,91,86,68,84,48,86,36,91,33,96,39,104"/>
+<area shape="rect" id="Node000002" href="$_run_results_8h.html#ad86fae6b844959d443eb855f68338ba5" title="An energy in MJ as kWh, with kEnergyMJToKWh." alt="" coords="215,29,326,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="98,102,179,67,204,61,200,63,181,72,101,107"/>
+<area shape="rect" id="Node000003" href="$_trajectory_util_8cpp.html#aca18c471979da03136d004ac005bad56" title=" " alt="" coords="185,105,356,133"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="131,117,172,118,167,120,132,122"/>
+<area shape="rect" id="Node000004" href="$_trajectory_util_8cpp.html#a3628a4e34ea58c9a4584537a7a605751" title=" " alt="" coords="180,181,362,209"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="108,131,220,174,215,177,107,136"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="236,28,230,20,235,11,249,5,271,3,295,5,309,14,304,14,293,10,271,8,250,10,238,15,236,20,241,29"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="236,104,230,96,235,87,249,81,271,79,295,81,309,90,304,90,293,86,271,84,250,86,238,91,236,96,241,105"/>
+<area shape="poly" id="edge9_Node000004_Node000004" title=" " alt="" coords="236,180,230,172,235,163,249,157,271,155,295,157,309,166,304,166,293,162,271,160,250,162,238,167,236,172,241,182"/>
+<area shape="rect" id="Node000005" href="$_trajectory_util_8cpp.html#afe4ec1b3791e49b8d8c64a911abe693d" title=" " alt="" coords="410,181,587,209"/>
+<area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="362,193,397,195,392,195,362,198"/>
+<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="460,180,453,172,458,163,474,157,499,155,525,157,541,166,536,166,524,162,499,160,475,162,462,167,459,172,464,182"/>
 </map>

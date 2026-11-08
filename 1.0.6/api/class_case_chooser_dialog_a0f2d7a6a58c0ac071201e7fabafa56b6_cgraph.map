@@ -1,0 +1,30 @@
+<map id="CaseChooserDialog::CaseChooserDialog" name="CaseChooserDialog::CaseChooserDialog">
+<area shape="rect" id="Node000001" title="Fills the list and selects its first case that can be opened." alt="" coords="5,157,162,202"/>
+<area shape="rect" id="Node000002" href="$namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874" title=" " alt="" coords="220,105,376,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,155,233,136,229,139,163,160"/>
+<area shape="rect" id="Node000007" href="$class_case_chooser_dialog.html#aaee34ec1d3e01474c06fa787addbee54" title="The path of the current row; empty for a heading or an unavailable case. The status label names the r..." alt="" coords="220,157,376,202"/>
+<area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="161,177,207,178,202,180,162,182"/>
+<area shape="rect" id="Node000008" href="$namespace_dialog_layout.html#a66a7d42bda10000c79c85ab652f8805e" title=" " alt="" coords="210,249,386,277"/>
+<area shape="poly" id="edge12_Node000001_Node000008" title=" " alt="" coords="143,200,248,242,244,244,142,205"/>
+<area shape="poly" id="edge10_Node000002_Node000002" title=" " alt="" coords="261,104,255,96,260,87,274,81,298,79,323,81,338,90,333,90,322,86,298,84,276,86,263,91,260,96,266,105"/>
+<area shape="rect" id="Node000003" href="$namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" title="Guards every combo box, spin box and slider inside root." alt="" coords="434,105,595,133"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="375,117,421,119,416,120,376,122"/>
+<area shape="rect" id="Node000006" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="877,194,1029,239"/>
+<area shape="poly" id="edge8_Node000002_Node000006" title=" " alt="" coords="372,131,434,142,631,171,829,197,864,204,859,204,828,202,631,176,434,147,373,136"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="477,104,471,96,476,87,491,81,515,79,540,81,555,90,550,90,539,86,515,84,492,86,480,91,477,96,482,106"/>
+<area shape="rect" id="Node000004" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title=" " alt="" coords="664,29,808,57"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="550,102,642,67,670,61,665,63,644,72,552,107"/>
+<area shape="rect" id="Node000005" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ..." alt="" coords="643,105,829,133"/>
+<area shape="poly" id="edge6_Node000003_Node000005" title=" " alt="" coords="595,117,630,119,625,120,596,122"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="699,28,693,20,698,11,712,5,736,3,762,5,777,14,771,14,760,10,736,8,713,10,701,15,698,20,704,30"/>
+<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="699,104,693,96,698,87,712,81,736,79,762,81,777,90,771,90,760,86,736,84,713,86,701,91,698,96,704,106"/>
+<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="912,192,910,184,917,175,931,170,953,168,976,170,992,179,987,179,975,175,953,173,933,175,920,179,915,185,916,195"/>
+<area shape="poly" id="edge13_Node000008_Node000008" title=" " alt="" coords="261,248,255,240,260,231,274,225,298,223,323,225,338,234,333,234,322,230,298,228,276,230,263,235,260,240,266,250"/>
+<area shape="rect" id="Node000009" href="$namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734" title=" " alt="" coords="438,240,591,284"/>
+<area shape="poly" id="edge14_Node000008_Node000009" title=" " alt="" coords="386,260,426,262,420,262,386,265"/>
+<area shape="poly" id="edge18_Node000009_Node000009" title=" " alt="" coords="474,237,472,229,479,220,493,215,515,213,538,215,554,225,548,224,537,220,515,218,494,220,482,225,477,231,478,241"/>
+<area shape="rect" id="Node000010" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="646,236,826,280"/>
+<area shape="poly" id="edge15_Node000009_Node000010" title=" " alt="" coords="591,258,633,260,627,260,591,263"/>
+<area shape="poly" id="edge17_Node000010_Node000006" title=" " alt="" coords="826,238,858,234,864,234,827,243"/>
+<area shape="poly" id="edge16_Node000010_Node000010" title=" " alt="" coords="695,233,693,225,700,216,715,211,736,209,760,211,775,221,770,220,758,216,736,214,716,216,703,221,698,227,699,237"/>
+</map>

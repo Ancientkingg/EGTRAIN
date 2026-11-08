@@ -8,7 +8,6 @@
 <title>EGTRAIN: TrainFilterButton Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,16 +112,16 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_train_fi
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_train_filter_button_8h_source.html">diagrams/TrainFilterButton.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/TrainFilterButton.h&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for TrainFilterButton:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_filter_button__inherit__graph.svg" width="140" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_filter_button__inherit__graph.svg" width="139" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
 Collaboration diagram for TrainFilterButton:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_filter_button__coll__graph.svg" width="140" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_filter_button__coll__graph.svg" width="139" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
@@ -135,6 +134,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a6acd6c728f54da888367c3d8b7e7e29c" id="r_a6acd6c728f54da888367c3d8b7e7e29c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6acd6c728f54da888367c3d8b7e7e29c">setTrains</a> (const QVector&lt; QPair&lt; QString, QColor &gt; &gt; &amp;trains)</td></tr>
 <tr class="memitem:a1bdd26f68b8a7bb21ad71e0b8a1cfb0e" id="r_a1bdd26f68b8a7bb21ad71e0b8a1cfb0e"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#a1bdd26f68b8a7bb21ad71e0b8a1cfb0e">visibleTrainIds</a> () const</td></tr>
 <tr class="memitem:a8a221b303ca4b6d225bb0552ba5e1117" id="r_a8a221b303ca4b6d225bb0552ba5e1117"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a8a221b303ca4b6d225bb0552ba5e1117">isTrainVisible</a> (const QString &amp;trainId) const</td></tr>
+<tr class="memitem:aadf1a8b00c01a38ead935c2e44b775b6" id="r_aadf1a8b00c01a38ead935c2e44b775b6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aadf1a8b00c01a38ead935c2e44b775b6">setSearchPlaceholder</a> (const QString &amp;text)</td></tr>
+<tr class="memdesc:aadf1a8b00c01a38ead935c2e44b775b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the grey text of the empty search box, which is "Search trains..." until it is set.  <br /></td></tr>
 </table>
 <a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a63cb6ba918cf5701ce73849f4a366252" name="a63cb6ba918cf5701ce73849f4a366252"></a>
@@ -162,7 +163,7 @@ Public Member Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_filter_button_a63cb6ba918cf5701ce73849f4a366252_cgraph.svg" width="335" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_filter_button_a63cb6ba918cf5701ce73849f4a366252_cgraph.svg" width="332" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -210,6 +211,25 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="aadf1a8b00c01a38ead935c2e44b775b6" name="aadf1a8b00c01a38ead935c2e44b775b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aadf1a8b00c01a38ead935c2e44b775b6">&#9670;&#160;</a></span>setSearchPlaceholder()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TrainFilterButton::setSearchPlaceholder </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>text</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the grey text of the empty search box, which is "Search trains..." until it is set. </p>
+
+</div>
+</div>
 <a id="a6acd6c728f54da888367c3d8b7e7e29c" name="a6acd6c728f54da888367c3d8b7e7e29c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6acd6c728f54da888367c3d8b7e7e29c">&#9670;&#160;</a></span>setTrains()</h2>
 
@@ -245,7 +265,7 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>diagrams/<a class="el" href="_train_filter_button_8h_source.html">TrainFilterButton.h</a></li>
+<li>diagrams/<a class="el" href="_train_filter_button_8h.html">TrainFilterButton.h</a></li>
 <li>diagrams/<a class="el" href="_train_filter_button_8cpp.html">TrainFilterButton.cpp</a></li>
 </ul>
 </div><!-- contents -->

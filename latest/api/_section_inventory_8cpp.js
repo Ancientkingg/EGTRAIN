@@ -13,5 +13,6 @@ var _section_inventory_8cpp =
     [ "sceneSectionLabel", "_section_inventory_8cpp.html#a51767c3e1d490b330b50d4a4ba4d4388", null ],
     [ "sceneSectionLabels", "_section_inventory_8cpp.html#a64c14cbefafa78e81ec551a43f333429", null ],
     [ "sceneSectionsOverlap", "_section_inventory_8cpp.html#a27f18250734df7f228d6cc0fdb9b6ad6", null ],
-    [ "sceneSignalFailureTarget", "_section_inventory_8cpp.html#aada86a733299e516b7fc5ad92a65eee4", null ]
+    [ "sceneSignalFailureTarget", "_section_inventory_8cpp.html#aada86a733299e516b7fc5ad92a65eee4", null ],
+    [ "sceneTrackChain", "_section_inventory_8cpp.html#a8a70bbc57dec734cd616377937c1b5bb", null ]
 ];

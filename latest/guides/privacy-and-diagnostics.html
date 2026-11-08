@@ -192,11 +192,13 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="common-questions.html">Common questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
-<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
@@ -220,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -236,7 +238,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +252,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +267,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -310,9 +312,9 @@
 <p>This page says what EGTRAIN can send about its use and its errors, when it sends it, and how you switch it off.</p>
 <section id="when-anything-is-sent">
 <h2>When anything is sent<a class="headerlink" href="#when-anything-is-sent" title="Link to this heading">¶</a></h2>
-<p>EGTRAIN sends usage statistics and diagnostic reports only to a receiver whose exact HTTPS address is built into the program, and only after you agree. No receiver is configured today, so EGTRAIN sends nothing. Development builds and runs without a window, such as headless runs, tests and automation, never send anything, whatever the saved choices are.</p>
+<p>EGTRAIN sends usage statistics and diagnostic reports only to a receiver whose exact HTTPS address is built into the program, and only after you agree. The release packages have the receiver <code class="docutils literal notranslate"><span class="pre">https://egtrain.samuelbruin.com/api/telemetry/v1</span></code>. Other builds send nothing: usage statistics and diagnostic reports are off in a build unless it is configured with them on. Development builds and runs without a window, such as headless runs, tests and automation, never send anything, whatever the saved choices are.</p>
 <p>When nothing can be sent, <strong>Help &gt; Privacy &amp; diagnostics…</strong> says <code class="docutils literal notranslate"><span class="pre">Usage</span> <span class="pre">statistics</span> <span class="pre">and</span> <span class="pre">diagnostics</span> <span class="pre">are</span> <span class="pre">unavailable</span> <span class="pre">in</span> <span class="pre">this</span> <span class="pre">build</span> <span class="pre">or</span> <span class="pre">run.</span> <span class="pre">Nothing</span> <span class="pre">is</span> <span class="pre">collected</span> <span class="pre">or</span> <span class="pre">sent.</span></code></p>
-<p>In a build with a receiver, EGTRAIN asks once in the dialog <strong>Help improve EGTRAIN</strong>. It has two separate choices, <strong>Share usage statistics</strong> and <strong>Share diagnostic reports</strong>. Both are ticked when the dialog opens, but neither takes effect until you click <strong>Save choices</strong>. <strong>Not now</strong>, Escape and closing the dialog switch both off. A new receiver address or new terms of collection ask again.</p>
+<p>In a build that can send anything, such as a release package, EGTRAIN asks once in the dialog <strong>Help improve EGTRAIN</strong>. It has two separate choices, <strong>Share usage statistics</strong> and <strong>Share diagnostic reports</strong>. Both are ticked when the dialog opens, but neither takes effect until you click <strong>Save choices</strong>. <strong>Not now</strong>, Escape and closing the dialog switch both off. A new receiver address or new terms of collection ask again.</p>
 </section>
 <section id="what-each-choice-sends">
 <h2>What each choice sends<a class="headerlink" href="#what-each-choice-sends" title="Link to this heading">¶</a></h2>
@@ -322,11 +324,11 @@
 <li><p>a case opened, as a bundled <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file or a local folder;</p></li>
 <li><p>an editor opened;</p></li>
 <li><p>a run started, completed or failed, with its duration in one of five ranges: under 1 s, 1 s to 10 s, 10 s to 1 minute, 1 to 10 minutes, or 10 minutes or more;</p></li>
-<li><p>an export completed or failed, with its kind: scene bundle, legacy, CSV or PNG.</p></li>
+<li><p>an export completed or failed, with its kind: case file, legacy, CSV or PNG.</p></li>
 </ul>
 <p>Usage events carry a random installation ID. It counts installations that take part, not people. It is made when you switch usage statistics on, and removed when you switch them off; switching them on again makes a new one.</p>
 <p><strong>Share diagnostic reports</strong> sends one event when opening a case, a run or an export fails, with the kind of failure: invalid input, unsupported format, a file failure or an internal failure. Diagnostic events carry no installation ID and are sent separately from usage events.</p>
-<p>Neither choice sends text from your cases, file names, paths, simulation input, logs, error messages, crash dumps, an email address or a device identifier. The receiver can see the IP address of your network. Events that cannot be sent wait on your computer for at most seven days.</p>
+<p>Neither choice sends text from your cases, file names, paths, simulation input, logs, error messages, crash dumps, an email address or a device identifier. The receiver can see the IP address of your network. The <a class="reference external" href="https://egtrain.samuelbruin.com/privacy/">privacy page</a> of the website says what the receiver and the server keep and for how long. Events that cannot be sent wait on your computer for at most seven days.</p>
 <p>The recovery copies that EGTRAIN keeps of unsaved edits stay on your computer and are never sent.</p>
 </section>
 <section id="switch-it-off">
@@ -335,7 +337,7 @@
 <li><p>Choose <strong>Help &gt; Privacy &amp; diagnostics…</strong>. The dialog shows your saved choices.</p></li>
 <li><p>Untick <strong>Share usage statistics</strong>, <strong>Share diagnostic reports</strong> or both, and click <strong>Save choices</strong>.</p></li>
 </ol>
-<p>Closing the dialog without saving keeps the saved choices. In a build without a receiver, as today, <strong>Help &gt; Privacy &amp; diagnostics…</strong> shows only the sentence of <a class="reference internal" href="#when-anything-is-sent">When anything is sent</a>, and there is nothing to switch off. Events that were sent already cannot be recalled. EGTRAIN supplies no privacy notice yet.</p>
+<p>Closing the dialog without saving keeps the saved choices. In a build that sends nothing, <strong>Help &gt; Privacy &amp; diagnostics…</strong> shows only the sentence of <a class="reference internal" href="#when-anything-is-sent">When anything is sent</a>, and there is nothing to switch off. Events that were sent already cannot be recalled.</p>
 </section>
 </section>
 
@@ -372,7 +374,7 @@
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

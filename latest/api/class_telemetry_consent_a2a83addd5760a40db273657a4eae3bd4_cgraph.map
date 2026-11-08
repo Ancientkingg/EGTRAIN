@@ -1,5 +1,5 @@
 <map id="TelemetryConsent::promptRequired" name="TelemetryConsent::promptRequired">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,200,45"/>
-<area shape="rect" id="Node000002" href="$class_telemetry_consent.html#a6d46f1ab5ddcb998a52dec6a81a8a1f1" title="True when the context is capable, so the choices can be asked for and saved." alt="" coords="248,13,456,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,23,234,23,234,28,200,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,200,50"/>
+<area shape="rect" id="Node000002" href="$class_telemetry_consent.html#a6d46f1ab5ddcb998a52dec6a81a8a1f1" title="True when the context is capable, so the choices can be asked for and saved." alt="" coords="248,14,455,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,25,235,27,230,28,200,30"/>
 </map>

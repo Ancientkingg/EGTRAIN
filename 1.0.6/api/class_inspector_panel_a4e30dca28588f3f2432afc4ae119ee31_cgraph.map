@@ -1,0 +1,5 @@
+<map id="InspectorPanel::displayStationNodeInfo" name="InspectorPanel::displayStationNodeInfo">
+<area shape="rect" id="Node000001" title="Shows the form of a station node of the run and selects its station." alt="" coords="5,5,223,50"/>
+<area shape="rect" id="Node000002" href="$class_inspector_panel.html#a86ad792c418b9b49fd790e9ff05e27df" title=" " alt="" coords="271,5,475,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,25,258,28,253,28,223,30"/>
+</map>

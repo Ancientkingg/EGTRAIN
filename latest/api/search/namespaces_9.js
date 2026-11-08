@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['windowsstaging_0',['WindowsStaging',['../namespace_windows_staging.html',1,'']]]
+  ['ui_0',['Ui',['../namespace_ui.html',1,'']]],
+  ['update_5fprompt_1',['update_prompt',['../namespaceupdate__prompt.html',1,'']]]
 ];

@@ -23,7 +23,7 @@ var _run_results_8h =
     [ "hashSceneDirectory", "_run_results_8h.html#a298fc7d7a9698c7bca2b51c0c055c67e", null ],
     [ "hashSceneInputSnapshot", "_run_results_8h.html#ad21c06972d1d8dc61ccce5ecd60a423f", null ],
     [ "runOccurrencesText", "_run_results_8h.html#a1f8947330931b9b59f169c0e5363a54a", null ],
-    [ "writeDelayArtifactWithProvenance", "_run_results_8h.html#a689f181d06a78f826fe918f82aa990f8", null ],
-    [ "writeRunArtifactWithProvenance", "_run_results_8h.html#a2da8b4613133af536cad7cc3a2703daa", null ],
+    [ "writeDelayArtifactWithProvenance", "_run_results_8h.html#a1f7fb0a7f04b4a9398964cbafa40b8fa", null ],
+    [ "writeRunArtifactWithProvenance", "_run_results_8h.html#aef45206a92cadde90e29fd2c9a7cea69", null ],
     [ "kEnergyMJToKWh", "_run_results_8h.html#ab6fa29a23b065e097afed9c0d4a1d75f", null ]
 ];

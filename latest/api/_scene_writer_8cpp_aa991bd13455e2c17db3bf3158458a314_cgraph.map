@@ -1,7 +1,7 @@
 <map id="encodeRollingStock" name="encodeRollingStock">
-<area shape="rect" id="Node000001" title="The content of rolling_stock.json." alt="" coords="5,29,156,55"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="51,31,45,21,48,11,61,5,81,3,105,6,115,15,112,19,103,11,81,8,62,10,52,15,50,20,56,28"/>
-<area shape="rect" id="Node000002" href="$_scene_writer_8cpp.html#a9f704ed2bf3a6d752874400c6a256212" title=" " alt="" coords="204,29,313,55"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="156,39,190,39,190,45,156,45"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="229,31,223,21,226,11,239,5,259,3,283,6,293,15,290,19,281,11,259,8,240,10,230,15,228,20,234,28"/>
+<area shape="rect" id="Node000001" title="The content of rolling_stock.json." alt="" coords="5,29,155,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="49,29,44,20,48,11,60,5,80,3,101,5,114,14,108,14,99,10,80,8,62,10,52,15,50,20,54,29"/>
+<area shape="rect" id="Node000002" href="$_scene_writer_8cpp.html#a9f704ed2bf3a6d752874400c6a256212" title=" " alt="" coords="203,29,311,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="155,41,190,43,184,43,155,46"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="226,28,221,20,225,11,237,5,257,3,278,5,291,14,285,14,276,10,257,8,239,10,229,15,226,20,231,30"/>
 </map>

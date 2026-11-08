@@ -1,11 +1,11 @@
 <map id="RunControl::applyQueuedCommands" name="RunControl::applyQueuedCommands">
-<area shape="rect" id="Node000001" title="Applies the waiting commands in the order in which they were submitted." alt="" coords="5,80,268,105"/>
-<area shape="rect" id="Node000002" href="$class_run_control.html#ac27176214de3727467a1d693ed3f8244" title="Makes beginStep wait until requestResume or requestStop." alt="" coords="323,5,513,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,77,315,39,348,31,349,36,317,45,181,83"/>
-<area shape="rect" id="Node000003" href="$class_run_control.html#af93602ad79e44e20c5880349947ca547" title="Ends a pause." alt="" coords="316,55,520,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="268,78,302,75,302,80,269,83"/>
-<area shape="rect" id="Node000004" href="$class_run_control.html#ad69943f1439178b66728fb189df687be" title=" " alt="" coords="328,104,508,129"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="269,101,314,105,314,111,268,107"/>
-<area shape="rect" id="Node000005" href="$class_run_control.html#a01ceda6941f94f27986a6bce1b7a51b4" title="Sets the wait before each step in milliseconds. 0 means no wait." alt="" coords="329,153,507,179"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="185,103,317,138,353,147,351,153,315,143,184,108"/>
+<area shape="rect" id="Node000001" title="Applies the waiting commands in the order in which they were submitted." alt="" coords="5,84,267,112"/>
+<area shape="rect" id="Node000002" href="$class_run_control.html#ac27176214de3727467a1d693ed3f8244" title="Makes beginStep wait until requestResume or requestStop." alt="" coords="322,5,510,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,81,314,43,348,37,343,38,315,48,186,86"/>
+<area shape="rect" id="Node000003" href="$class_run_control.html#af93602ad79e44e20c5880349947ca547" title="Ends a pause." alt="" coords="315,57,518,85"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="267,83,302,82,296,83,268,88"/>
+<area shape="rect" id="Node000004" href="$class_run_control.html#ad69943f1439178b66728fb189df687be" title=" " alt="" coords="327,109,506,137"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="267,107,313,113,308,114,267,112"/>
+<area shape="rect" id="Node000005" href="$class_run_control.html#a01ceda6941f94f27986a6bce1b7a51b4" title="Sets the wait before each step in milliseconds. 0 means no wait." alt="" coords="327,161,506,189"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="187,110,315,146,348,157,342,157,314,151,187,115"/>
 </map>

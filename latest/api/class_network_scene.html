@@ -8,7 +8,6 @@
 <title>EGTRAIN: NetworkScene Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,16 +112,16 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_network_
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_network_scene_8h_source.html">graphics/NetworkScene.h</a>&gt;</code></p>
+<p><code>#include &lt;graphics/NetworkScene.h&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for NetworkScene:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_scene__inherit__graph.svg" width="139" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_scene__inherit__graph.svg" width="139" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
 Collaboration diagram for NetworkScene:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_scene__coll__graph.svg" width="139" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_scene__coll__graph.svg" width="139" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
@@ -158,8 +157,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a0c21e51250f170e52667c7b12879e096"><td class="mdescLeft">&#160;</td><td class="mdescRight">A left click selects the item under it as <a class="el" href="#ad316fbfe52b5958b0a80b66f12b84fe9">select()</a> does. Every press then emits <a class="el" href="#a4b27b56ae596fe530b6ca3a14a88e0c4" title="A mouse button was pressed on the scene.">MousePressedOnScene()</a>.  <br /></td></tr>
 <tr class="memitem:a16d457a6149a2ea75664b319999c7b40" id="r_a16d457a6149a2ea75664b319999c7b40"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a16d457a6149a2ea75664b319999c7b40">mouseReleaseEvent</a> (QGraphicsSceneMouseEvent *mouseEvent) override</td></tr>
 <tr class="memitem:ad398083cffb7cd26400eaee28d7e6358" id="r_ad398083cffb7cd26400eaee28d7e6358"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad398083cffb7cd26400eaee28d7e6358">contextMenuEvent</a> (QGraphicsSceneContextMenuEvent *event) override</td></tr>
-<tr class="memdesc:ad398083cffb7cd26400eaee28d7e6358"><td class="mdescLeft">&#160;</td><td class="mdescRight">Emits <a class="el" href="#a30830e690c649b9447bed87be1cc9b13">ContextMenuRequested()</a> with the item that a left click at the same point would select, or null.  <br /></td></tr>
 <tr class="memitem:ad316fbfe52b5958b0a80b66f12b84fe9" id="r_ad316fbfe52b5958b0a80b66f12b84fe9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad316fbfe52b5958b0a80b66f12b84fe9">select</a> (QGraphicsItem *item)</td></tr>
+<tr class="memitem:a9355378eedb4468bd5036d6407590616" id="r_a9355378eedb4468bd5036d6407590616"><td class="memItemLeft">QGraphicsItem *&#160;</td><td class="memItemRight"><a class="el" href="#a9355378eedb4468bd5036d6407590616">selectedItem</a> () const</td></tr>
+<tr class="memitem:acf8f5e3f30f3583a105b96246844d4a8" id="r_acf8f5e3f30f3583a105b96246844d4a8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acf8f5e3f30f3583a105b96246844d4a8">requestKeyboardContextMenu</a> (QWidget *widget=nullptr)</td></tr>
+<tr class="memitem:af1ea4dbb4704f7f5aaaf9d4ecb715e4e" id="r_af1ea4dbb4704f7f5aaaf9d4ecb715e4e"><td class="memItemLeft"><a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a>&#160;</td><td class="memItemRight"><a class="el" href="#af1ea4dbb4704f7f5aaaf9d4ecb715e4e">stationMarkStyle</a> () const</td></tr>
+<tr class="memdesc:af1ea4dbb4704f7f5aaaf9d4ecb715e4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The style of the station marks of the scene; <a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8a38f03d45e9b45580235ad8c79f777451" title="A map pin that stands on the station, its class told by size and colour: the default.">StationMarkStyle::MapPin</a> until <a class="el" href="#a3cc8510fbba8b2c1f57edf5883538d87">setStationMarkStyle()</a>.  <br /></td></tr>
+<tr class="memitem:a3cc8510fbba8b2c1f57edf5883538d87" id="r_a3cc8510fbba8b2c1f57edf5883538d87"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3cc8510fbba8b2c1f57edf5883538d87">setStationMarkStyle</a> (<a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a> style)</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The scene of the network canvas. It picks the item under a click by what it stands for rather than by the stacking order alone, and tells the window what was clicked through its signals. </p>
@@ -231,12 +234,11 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Emits <a class="el" href="#a30830e690c649b9447bed87be1cc9b13">ContextMenuRequested()</a> with the item that a left click at the same point would select, or null. </p>
+<p>Emits <a class="el" href="#a30830e690c649b9447bed87be1cc9b13">ContextMenuRequested()</a> with the item that a left click at the same point would select, or null. A request by key goes to <a class="el" href="#acf8f5e3f30f3583a105b96246844d4a8">requestKeyboardContextMenu()</a> instead. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_scene_ad398083cffb7cd26400eaee28d7e6358_cgraph.svg" width="479" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_scene_ad398083cffb7cd26400eaee28d7e6358_cgraph.svg" width="759" height="116"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -578,7 +580,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_scene_a0c21e51250f170e52667c7b12879e096_cgraph.svg" width="747" height="499"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_scene_a0c21e51250f170e52667c7b12879e096_cgraph.svg" width="744" height="542"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -609,7 +611,30 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_scene_a16d457a6149a2ea75664b319999c7b40_cgraph.svg" width="511" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_scene_a16d457a6149a2ea75664b319999c7b40_cgraph.svg" width="510" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="acf8f5e3f30f3583a105b96246844d4a8" name="acf8f5e3f30f3583a105b96246844d4a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acf8f5e3f30f3583a105b96246844d4a8">&#9670;&#160;</a></span>requestKeyboardContextMenu()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkScene::requestKeyboardContextMenu </td>
+          <td>(</td>
+          <td class="paramtype">QWidget *</td>          <td class="paramname"><span class="paramname"><em>widget</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Emits <a class="el" href="#a30830e690c649b9447bed87be1cc9b13">ContextMenuRequested()</a> for a key: with <a class="el" href="#a9355378eedb4468bd5036d6407590616">selectedItem()</a> and the centre of the item as the point, or with null and the centre of the view when nothing is selected. widget is the view that shows the scene; null takes its first view. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_scene_acf8f5e3f30f3583a105b96246844d4a8_cgraph.svg" width="503" height="107"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -628,17 +653,80 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Selects the item as a left click on it does: emits the MousePressedOn signal of its kind. Nothing happens for null or an item of another kind. </p>
+<p>Selects the item as a left click on it does: emits the MousePressedOn signal of its kind. Null clears the selection without a signal; an item of another kind emits nothing. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_scene_ad316fbfe52b5958b0a80b66f12b84fe9_cgraph.svg" width="440" height="499"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_scene_ad316fbfe52b5958b0a80b66f12b84fe9_cgraph.svg" width="439" height="542"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
+<a id="a9355378eedb4468bd5036d6407590616" name="a9355378eedb4468bd5036d6407590616"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9355378eedb4468bd5036d6407590616">&#9670;&#160;</a></span>selectedItem()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QGraphicsItem * NetworkScene::selectedItem </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The item that <a class="el" href="#ad316fbfe52b5958b0a80b66f12b84fe9">select()</a> chose last, or null when none was chosen, the selection was cleared or the item has left the scene. </p>
+
+</div>
+</div>
+<a id="a3cc8510fbba8b2c1f57edf5883538d87" name="a3cc8510fbba8b2c1f57edf5883538d87"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3cc8510fbba8b2c1f57edf5883538d87">&#9670;&#160;</a></span>setStationMarkStyle()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkScene::setStationMarkStyle </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a></td>          <td class="paramname"><span class="paramname"><em>style</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Draws the station marks of the scene in style, and those that stations attach later (<a class="el" href="class_station_overlay_item.html#aa2ff92888b98e93a94532d6504053e0b">StationOverlayItem::attachArtwork()</a>). The next view scale that the stations apply places them by the anchor of style. </p>
+
+</div>
+</div>
+<a id="af1ea4dbb4704f7f5aaaf9d4ecb715e4e" name="af1ea4dbb4704f7f5aaaf9d4ecb715e4e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af1ea4dbb4704f7f5aaaf9d4ecb715e4e">&#9670;&#160;</a></span>stationMarkStyle()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a> NetworkScene::stationMarkStyle </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The style of the station marks of the scene; <a class="el" href="_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8a38f03d45e9b45580235ad8c79f777451" title="A map pin that stands on the station, its class told by size and colour: the default.">StationMarkStyle::MapPin</a> until <a class="el" href="#a3cc8510fbba8b2c1f57edf5883538d87">setStationMarkStyle()</a>. </p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>graphics/<a class="el" href="_network_scene_8h_source.html">NetworkScene.h</a></li>
+<li>graphics/<a class="el" href="_network_scene_8h.html">NetworkScene.h</a></li>
 <li>graphics/<a class="el" href="_network_scene_8cpp.html">NetworkScene.cpp</a></li>
 </ul>
 </div><!-- contents -->

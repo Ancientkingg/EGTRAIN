@@ -1,0 +1,15 @@
+<map id="Train::accelerationCandidate" name="Train::accelerationCandidate">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,119,212,146"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title=" " alt="" coords="269,80,396,124"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="211,116,256,112,251,113,213,121"/>
+<area shape="rect" id="Node000007" href="$class_train.html#a0d15f6d3dc453d6aba319e852f21714e" title=" " alt="" coords="260,148,405,176"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="212,143,247,150,242,151,212,149"/>
+<area shape="rect" id="Node000003" href="$class_train.html#aaaf0df103f25cbe3d3289775c570d18e" title="Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0)." alt="" coords="453,5,656,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="377,76,452,43,480,37,475,39,454,48,379,81"/>
+<area shape="rect" id="Node000004" href="$class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" title="Resistance in N of the gradient G, as rise per length (Arc::gradient)." alt="" coords="457,57,652,85"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="396,90,444,86,439,87,397,96"/>
+<area shape="rect" id="Node000005" href="$class_train.html#ab101610ad7c3a484b47d1b921a06748c" title=" " alt="" coords="484,109,626,154"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="397,108,471,120,465,120,397,113"/>
+<area shape="rect" id="Node000006" href="$class_train.html#adc2f8f8003ca203b515b9e1e497464b8" title="Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula." alt="" coords="459,177,650,205"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="383,122,406,134,430,150,454,163,473,173,467,172,452,168,427,154,404,139,382,127"/>
+</map>

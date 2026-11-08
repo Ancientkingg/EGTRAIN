@@ -1,5 +1,5 @@
 <map id="NetworkScene::mouseReleaseEvent" name="NetworkScene::mouseReleaseEvent">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,225,45"/>
-<area shape="rect" id="Node000002" href="$class_network_scene.html#a6b490501e98c222100cd704a131635de" title="A click on empty canvas clears the selection." alt="" coords="273,13,505,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="225,23,260,23,260,28,225,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,225,50"/>
+<area shape="rect" id="Node000002" href="$class_network_scene.html#a6b490501e98c222100cd704a131635de" title="A click on empty canvas clears the selection." alt="" coords="273,14,504,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="225,25,260,28,254,28,225,30"/>
 </map>

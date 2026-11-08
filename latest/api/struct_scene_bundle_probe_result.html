@@ -8,7 +8,6 @@
 <title>EGTRAIN: SceneBundleProbeResult Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,17 +115,17 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_b
 <p>What the manifest of an .egscene bundle says, read without extracting the bundle.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_scene_bundle_8h_source.html">scene/SceneBundle.h</a>&gt;</code></p>
+<p><code>#include &lt;scene/SceneBundle.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a719828cb1696080c37b94486e1f73fb6" id="r_a719828cb1696080c37b94486e1f73fb6"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a719828cb1696080c37b94486e1f73fb6">schemaVersion</a> = 0</td></tr>
+<tr class="memitem:a719828cb1696080c37b94486e1f73fb6" id="r_a719828cb1696080c37b94486e1f73fb6"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a719828cb1696080c37b94486e1f73fb6">schemaVersion</a></td></tr>
 <tr class="memdesc:a719828cb1696080c37b94486e1f73fb6"><td class="mdescLeft">&#160;</td><td class="mdescRight">schema_version of the manifest; 0 when not read.  <br /></td></tr>
 <tr class="memitem:a8adf83bfeaac3b2311f8ad65a9add8e2" id="r_a8adf83bfeaac3b2311f8ad65a9add8e2"><td class="memItemLeft">std::optional&lt; int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a8adf83bfeaac3b2311f8ad65a9add8e2">bundleVersion</a></td></tr>
 <tr class="memdesc:a8adf83bfeaac3b2311f8ad65a9add8e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">bundle_version of the manifest; empty when not read.  <br /></td></tr>
 <tr class="memitem:ae7dac273999795524e30e0000d1e0f3f" id="r_ae7dac273999795524e30e0000d1e0f3f"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ae7dac273999795524e30e0000d1e0f3f">savedWithAppVersion</a></td></tr>
 <tr class="memdesc:ae7dac273999795524e30e0000d1e0f3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Version of the application that saved the bundle; empty when not recorded.  <br /></td></tr>
-<tr class="memitem:aebb34f4fb77c5c5f9ef46695e8a70e25" id="r_aebb34f4fb77c5c5f9ef46695e8a70e25"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aebb34f4fb77c5c5f9ef46695e8a70e25">structurallyValid</a> = false</td></tr>
+<tr class="memitem:aebb34f4fb77c5c5f9ef46695e8a70e25" id="r_aebb34f4fb77c5c5f9ef46695e8a70e25"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aebb34f4fb77c5c5f9ef46695e8a70e25">structurallyValid</a></td></tr>
 <tr class="memdesc:aebb34f4fb77c5c5f9ef46695e8a70e25"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the archive and its manifest passed the checks.  <br /></td></tr>
 <tr class="memitem:a137e598ba0a2ea3c75f27abc1c0cdd3d" id="r_a137e598ba0a2ea3c75f27abc1c0cdd3d"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a137e598ba0a2ea3c75f27abc1c0cdd3d">diagnostics</a></td></tr>
 <tr class="memdesc:a137e598ba0a2ea3c75f27abc1c0cdd3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Problems found.  <br /></td></tr>
@@ -189,7 +188,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int SceneBundleProbeResult::schemaVersion = 0</td>
+          <td class="memname">int SceneBundleProbeResult::schemaVersion</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -205,7 +204,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool SceneBundleProbeResult::structurallyValid = false</td>
+          <td class="memname">bool SceneBundleProbeResult::structurallyValid</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -215,7 +214,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>scene/<a class="el" href="_scene_bundle_8h_source.html">SceneBundle.h</a></li>
+<li>scene/<a class="el" href="_scene_bundle_8h.html">SceneBundle.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

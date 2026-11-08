@@ -1,9 +1,9 @@
 <map id="ResultFigure::ResultFigure" name="ResultFigure::ResultFigure">
-<area shape="rect" id="Node000001" title="An empty figure with the object name name." alt="" coords="5,55,197,80"/>
-<area shape="rect" id="Node000002" href="$class_result_figure.html#adfb8e557bd581188e04593f6b160736f" title="The caption under the value, such as &quot;Cycle&quot;." alt="" coords="256,5,415,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,52,260,31,261,36,163,57"/>
-<area shape="rect" id="Node000003" href="$class_elided_label.html#acbacffeeff11ee0f3c9900c1511ee3f9" title="A label for plain text." alt="" coords="245,55,425,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="197,65,231,65,231,70,197,70"/>
-<area shape="rect" id="Node000004" href="$class_result_figure.html#ae3ab2f1266b72f09db848c5f0fffbdd5" title="The value, such as &quot;471.5 s&quot;." alt="" coords="262,104,409,129"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="163,77,261,98,260,104,162,83"/>
+<area shape="rect" id="Node000001" title="An empty figure with the object name name." alt="" coords="5,57,197,85"/>
+<area shape="rect" id="Node000002" href="$class_result_figure.html#adfb8e557bd581188e04593f6b160736f" title="The caption under the value, such as &quot;Cycle&quot;." alt="" coords="255,5,414,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,54,256,36,251,38,167,59"/>
+<area shape="rect" id="Node000003" href="$class_elided_label.html#acbacffeeff11ee0f3c9900c1511ee3f9" title="A label for plain text." alt="" coords="245,57,424,85"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="196,69,232,71,227,72,197,74"/>
+<area shape="rect" id="Node000004" href="$class_result_figure.html#ae3ab2f1266b72f09db848c5f0fffbdd5" title="The value, such as &quot;471.5 s&quot;." alt="" coords="261,109,408,137"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="167,83,256,105,251,106,166,88"/>
 </map>

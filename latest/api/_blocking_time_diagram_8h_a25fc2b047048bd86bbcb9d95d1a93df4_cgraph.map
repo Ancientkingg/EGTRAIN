@@ -1,7 +1,7 @@
 <map id="shareBlockingTimeResource" name="shareBlockingTimeResource">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,212,55"/>
-<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="70,31,61,21,66,11,82,5,109,3,142,7,155,16,152,20,140,11,109,8,83,10,69,15,67,20,74,27"/>
-<area shape="rect" id="Node000002" href="$_blocking_time_diagram_8cpp.html#aaaaf79ea1a3e7a4f74ca8d1e1907e458" title=" " alt="" coords="260,29,439,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,39,246,39,246,45,212,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="310,31,302,21,306,11,322,5,349,3,383,7,396,16,393,20,381,11,349,8,324,10,310,15,307,20,314,27"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,212,57"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="67,29,61,20,66,11,82,5,109,3,137,5,153,14,148,14,135,10,108,8,83,10,70,15,66,20,72,29"/>
+<area shape="rect" id="Node000002" href="$_blocking_time_diagram_8cpp.html#aaaaf79ea1a3e7a4f74ca8d1e1907e458" title=" " alt="" coords="260,29,438,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,41,247,43,241,43,212,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="308,28,301,20,306,11,323,5,349,3,377,5,394,14,388,14,376,10,349,8,324,10,310,15,306,20,313,30"/>
 </map>

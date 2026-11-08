@@ -2,14 +2,14 @@
 
 This tutorial changes a copy of the bundled case Paimpol and follows the change through validation, saving, reopening, a run and a comparison of delays. You learn how to edit a case without touching the bundled one, which edits clear results, and how to see that a saved edit is still there after you quit and start again.
 
-You need EGTRAIN running with the case Paimpol available, and you should have done [Getting started](getting-started.md) once, so that opening a case, running it and reading the Run Results are familiar. The words case, scenario and baseline are in the [glossary](glossary.md). The steps take the Paimpol timetable as it is committed and use the labels of the current program.
+You need EGTRAIN running with the case Paimpol available, and you should have done [Getting started](getting-started.md) once, so that opening a case, running it and reading the Run Results are familiar. The words case, scenario and baseline are in the [glossary](glossary.md). The steps take the Paimpol timetable as it is bundled and use the labels of the current program.
 
-Save the bundled case under a new name with **File > Save As...** before you change anything, and never save into the bundled case. The bundled cases of an installed copy are protected: **File > Save** on one of them asks for a new bundle name instead of writing. A case folder anywhere else is not protected, for example the `Scenes` folder of a source checkout, where **Save** writes into the committed files.
+Save the bundled case under a new name with **File > Save As...** before you change anything, and never save into the bundled case. The bundled cases of an installed copy are protected: **File > Save** on one of them asks for a new case file name instead of writing. A case folder anywhere else is not protected: **Save** writes into its files.
 
 ## 1. Open Paimpol and save a working copy
 
 1. Open `Paimpol` from **Bundled cases** in the **Open a Case** window (toolbar button **Open Case**), as in [Getting started](getting-started.md). The title bar reads `EGTRAIN - Paimpol` and the dock **Case and Layers** shows no error under the name of the case.
-2. Choose **File > Save As...**. The dialog **Save Case As** starts in your Documents folder when the case comes from the installation, or in your home folder when there is no Documents folder. Name the file `paimpol-practice.egscene` and save it. EGTRAIN adds `.egscene` when you leave it out.
+2. Choose **File > Save As...** and click **Case File...**. The dialog **Save Case As** starts in your Documents folder when the case comes from the installation, or in your home folder when there is no Documents folder. Name the file `paimpol-practice.egscene` and save it. EGTRAIN adds `.egscene` when you leave it out.
 3. The window now holds the copy: **File > Save** writes to `paimpol-practice.egscene`, and **File > Recent Cases** lists it. The case inside still has the name `Paimpol`, so the title bar does not tell the copy from the original, and a run of the copy would write to the same output folder as a run of the original ([Output folder](command-line.md#output-folder)).
 4. Give the copy its own name. Open the dock **Case Settings** (**Editors > Case Settings**), replace **Name** with `Paimpol practice` and press Enter. The title bar now reads `EGTRAIN - Paimpol practice`, with the platform's mark for unsaved changes.
 5. Choose **File > Save**. The mark goes and the status bar reads "Case saved".
@@ -36,20 +36,20 @@ Both edits are to the service `Guin-Paim-EXPRESS-1`, the train that runs from Gu
 1. Open the dock **Services** (**Editors > Services**) and choose `Guin-Paim-EXPRESS-1` in the list. The dock has the tabs **Service**, **Timetable** and **Run occurrences**.
 2. Open the tab **Timetable** and click the row `Pontrieaux` in the table of stops. The dialog **Edit Timetable Stop** opens.
 
-   ![The dialog Edit Timetable Stop for the stop Pontrieaux of Guin-Paim-EXPRESS-1 as committed: Compatible platform (no platform), Planned arrival 1567, Planned departure 1627 and Minimum dwell (s) 60, with the buttons OK and Cancel.](../images/tutorial-modify-edit-timetable-stop.png)
+   ![The dialog Edit Timetable Stop for the stop Pontrieaux of Guin-Paim-EXPRESS-1 as bundled: Compatible platform (no platform), Planned arrival 1567, Planned departure 1627 and Minimum dwell (s) 60, with the buttons OK and Cancel.](../images/tutorial-modify-edit-timetable-stop.png)
 3. Try **Cancel** first: change **Minimum dwell (s)** from 60 to 999 and choose **Cancel**. The row still shows 60 and the title bar shows no mark for unsaved changes.
 4. Click the row again, enter `180` in **Minimum dwell (s)** and choose **OK**. **OK** applies all fields of the dialog together. The row shows 180 and the title bar shows the mark.
-5. Open the tab **Service**, set **Performance (%)** to `80` and press Enter. The field accepts 1 to 100; 100 is the committed value.
+5. Open the tab **Service**, set **Performance (%)** to `80` and press Enter. The field accepts 1 to 100; 100 is the value of the bundled case.
 
 A dwell longer than the window between the planned arrival and departure is allowed but is reported, as the next step shows.
 
 ## 4. Validate
 
-Choose **View > Case Validation** (Ctrl+Shift+V). The columns are **Severity**, **Message** and **Fix**, and the tooltip of a row names its **Code**, **File** and **Path**. Paimpol opens with no errors and 371 warnings: 369 passenger journeys without route-choice legs and 2 final blocks that are clipped. `scene_tool validate --runnable` counts them in the same way. Your edit adds one warning:
+Choose **View > Case Validation** (Ctrl+Shift+V). The columns are **Severity**, **Message**, **Item** and **Fix**, and the tooltip of a row names its **Code**, **File** and **Path**. Paimpol opens with no errors and 371 warnings: 369 passenger journeys without route-choice legs and 2 final blocks that are clipped. `scene_tool validate --runnable` counts them in the same way. Your edit adds one warning:
 
 - Code `scene.dwell.exceeds_window`, message "Minimum dwell is longer than the time from arrival to departure", path `services[Guin-Paim-EXPRESS-1].stops[1].dwell_seconds`.
 
-![The dock Case Validation after the dwell edit, with the columns Severity, Message and Fix. Row 1 is the warning Minimum dwell is longer than the time from arrival to departure; the rows below it read Journey has no route-choice legs.](../images/how-to-scene-validation.png)
+![The dock Case Validation after the dwell edit, with the columns Severity, Message, Item and Fix. Row 1 is the warning Minimum dwell is longer than the time from arrival to departure, with the item service Guin-Paim-EXPRESS-1; the rows below it read Journey has no route-choice legs, with the items journey 0:1, journey 0:2, journey 1:2, journey 2:1, journey 2:2, journey 3:1 and journey 3:2.](../images/how-to-scene-validation.png)
 
 A warning does not block a run. An error does: **Run** is disabled and the dock **Case and Layers** shows the first error under the name of the case. **Edit > Undo** takes an edit back. Normal mode hides the warning counts in the status bar; **View > Advanced Details** shows them.
 
@@ -59,7 +59,7 @@ A warning does not block a run. An error does: **Run** is disabled and the dock 
 2. Open the original: choose **Open Case** in the toolbar, then `Paimpol` under **Bundled cases**. Open the dock **Services** again and choose `Guin-Paim-EXPRESS-1` in the list. On the tab **Service**, **Performance (%)** is 100. On the tab **Timetable**, the row Pontrieaux has dwell 60. The original is as it was.
 3. Choose **File > Recent Cases** > `paimpol-practice`, then `Guin-Paim-EXPRESS-1` in the list in the dock **Services**. The row Pontrieaux has dwell 180 and the performance is 80. The title bar reads `EGTRAIN - Paimpol practice`.
 
-The bundled case is a case folder, not a file, and the second step above shows that its values are as they were. In a source checkout, a save into that folder rewrites its JSON files with the indentation that EGTRAIN writes, so `git status` lists the files whose committed layout differs, such as `rolling_stock.json` and `passengers.json`, even when no value changed. `git checkout -- EGTRAIN/QEGTRAIN/Scenes/Paimpol` restores the committed files.
+The bundled case is a case folder, not a file, and the second step above shows that its values are as they were.
 
 In an installed copy, copy the folder before step 1 and compare it with the installed folder afterwards. On macOS the installed folder is `/Applications/QEGTRAIN.app/Contents/Resources/Scenes/Paimpol`:
 
@@ -106,7 +106,7 @@ Results are the Run Results table, the result windows opened from it and the rep
 | Choosing another scenario in the dock **Scenarios** | Cleared | Kept |
 | Starting a run | Replaced by the new run | Kept |
 | A run that you stop | None kept | Kept |
-| **File > Save**, **Save As...**, **Save As Folder...** | Kept | Kept |
+| **File > Save**, **Save As...** | Kept | Kept |
 | Opening a case (also from **Recent Cases**), **New Case...**, **Import Legacy Case...**, recovering unsaved work | Cleared | Cleared |
 | Opening a result window, **Export CSV...**, **Compare delays** | Kept | Kept |
 | Quitting EGTRAIN | Lost | Lost |
@@ -120,7 +120,7 @@ Results are the Run Results table, the result windows opened from it and the rep
 
 ## Check the copy outside the window
 
-The saved bundle is an ordinary case ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. In a build from source, run from `EGTRAIN/QEGTRAIN` and use `../../build/scene_tool` and `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` (on Linux `../../build/QEGTRAIN`). With the macOS app and the bundle in the current folder:
+The saved case file is an ordinary case ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. With the macOS app and the case file in the current folder:
 
 ```bash
 APP=/Applications/QEGTRAIN.app/Contents/MacOS
@@ -128,12 +128,12 @@ APP=/Applications/QEGTRAIN.app/Contents/MacOS
 "$APP/QEGTRAIN" --scene paimpol-practice.egscene -g 0
 ```
 
-The first command prints the diagnostics and exits with 0 when there is no error. The second runs the default scenario, `baseline`, without a window, and writes the [run output](run-output.md) to the folder named `Paimpol practice`. To run the scenario `baseline_copy` this way, make it the default scenario in `scenarios.json` of a folder saved with **Save As Folder...**, as in the next section.
+The first command prints the diagnostics and exits with 0 when there is no error. The second runs the default scenario, `baseline`, without a window, and writes the [run output](run-output.md) to the folder named `Paimpol practice`. To run the scenario `baseline_copy` this way, make it the default scenario in `scenarios.json` of a folder saved with **Case Folder...** of **Save As...**, as in the next section.
 
 ## Limits and the JSON route
 
-- The editors are tables, lists and dialogs. The network view can give an incident its target, with **Pick** beside **Target**, and add one with **Add signal failure** in the context menu of a signal head or **Add train breakdown** in that of a train after a run. You set the other fields of the incident in the dock.
-- This tutorial changes one value at a time. For many changes at once, save the case with **File > Save As Folder...** and edit the JSON files, then validate with `scene_tool validate`. The keys are in [editing examples](scene-schema.md#editing-examples) and the [schema reference](scene-schema.md).
+- The editors are tables, lists and dialogs. When the view shows no run, a click on an item of the network view selects its row in the dock **Infrastructure**. The network view can give an incident its target, with **Pick** beside **Target**, and add one with **Add signal failure** in the context menu of a signal head or **Add train breakdown** in that of a train after a run. You set the other fields of the incident in the dock.
+- This tutorial changes one value at a time. For many changes at once, save the case with **File > Save As...** and **Case Folder...**, and edit the JSON files, then validate with `scene_tool validate`. The keys are in [editing examples](scene-schema.md#editing-examples) and the [schema reference](scene-schema.md).
 - The same two edits in `services.json` are `"performance_percent": 80` on the service and `"dwell_seconds": 180` on its second stop.
 - The same scenario is the object below in the list `scenarios` of `scenarios.json`. It has the incident id that the editor proposes (`new_incident`) and the scenario id that **Duplicate** proposes. The key `default_scenario_id` in that file names the scenario that a run without a window uses; set it to `baseline_copy` for that run.
 

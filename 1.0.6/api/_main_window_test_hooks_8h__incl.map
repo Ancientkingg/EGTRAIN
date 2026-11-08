@@ -1,0 +1,11 @@
+<map id="app/MainWindowTestHooks.h" name="app/MainWindowTestHooks.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="95,5,308,33"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,81,75,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,36,83,77,81,72,171,31"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="99,81,192,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="194,32,166,71,163,67,189,35"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="216,81,302,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="213,31,242,69,237,68,210,36"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="326,81,384,109"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="229,31,316,74,311,74,228,36"/>
+</map>

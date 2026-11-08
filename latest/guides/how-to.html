@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Opening an .egscene case" href="opening-a-case-study.html"><link rel="prev" title="Bundled cases" href="case-studies.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Common questions" href="common-questions.html"><link rel="prev" title="Getting started" href="getting-started.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>How-to - EGTRAIN documentation</title>
@@ -192,11 +192,13 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="common-questions.html">Common questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
@@ -220,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -236,7 +238,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +252,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +267,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -307,39 +309,65 @@
         <article role="main" id="furo-main-content">
           <section id="how-to">
 <h1>How-to<a class="headerlink" href="#how-to" title="Link to this heading">¶</a></h1>
-<p>Short recipes for the common tasks. Each says what you need, what to do and what you should see. <a class="reference internal" href="getting-started.html"><span class="std std-doc">Getting started</span></a> is the walk from a download to a first run, and the <a class="reference internal" href="glossary.html"><span class="std std-doc">glossary</span></a> defines the words. On macOS the key Ctrl in a shortcut is the Command key, and <a class="reference internal" href="keyboard-shortcuts.html"><span class="std std-doc">Keyboard shortcuts</span></a> lists every shortcut.</p>
+<p>Short recipes for the common tasks. Each says what you need, what to do and what you should see. <a class="reference internal" href="getting-started.html"><span class="std std-doc">Getting started</span></a> is the walk from a download to a first run, the <a class="reference internal" href="glossary.html"><span class="std std-doc">glossary</span></a> defines the words, and <a class="reference internal" href="common-questions.html"><span class="std std-doc">Common questions</span></a> answers short questions. On macOS the key Ctrl in a shortcut is the Command key, and <a class="reference internal" href="keyboard-shortcuts.html"><span class="std std-doc">Keyboard shortcuts</span></a> lists every shortcut.</p>
 <ul class="simple">
+<li><p>Open and save</p>
+<ul>
 <li><p><a class="reference internal" href="#open-a-case">Open a case</a></p></li>
 <li><p><a class="reference internal" href="#copy-and-save-a-case">Copy and save a case</a></p></li>
-<li><p><a class="reference internal" href="#fix-validation-errors">Fix validation errors</a></p></li>
-<li><p><a class="reference internal" href="#run-a-case">Run a case</a></p></li>
 <li><p><a class="reference internal" href="#answer-the-unsaved-changes-question">Answer the unsaved changes question</a></p></li>
-<li><p><a class="reference internal" href="#edit-a-timetable-stop">Edit a timetable stop</a></p></li>
-<li><p><a class="reference internal" href="#edit-rolling-stock">Edit rolling stock</a></p></li>
-<li><p><a class="reference internal" href="#compare-a-scenario-with-a-baseline">Compare a scenario with a baseline</a></p></li>
+<li><p><a class="reference internal" href="#convert-a-legacy-case-and-write-legacy-files">Convert a legacy case and write legacy files</a></p></li>
+</ul>
+</li>
+<li><p>Run and watch</p>
+<ul>
+<li><p><a class="reference internal" href="#run-a-case">Run a case</a></p></li>
+<li><p><a class="reference internal" href="#fix-validation-errors">Fix validation errors</a></p></li>
 <li><p><a class="reference internal" href="#move-around-the-network-view-and-follow-a-train">Move around the network view and follow a train</a></p></li>
 <li><p><a class="reference internal" href="#replay-a-completed-run">Replay a completed run</a></p></li>
-<li><p><a class="reference internal" href="#results-and-exports">Results and exports</a></p></li>
-<li><p><a class="reference internal" href="#convert-a-legacy-case-and-write-legacy-files">Convert a legacy case and write legacy files</a></p></li>
 <li><p><a class="reference internal" href="#close-start-a-new-case-or-open-another-during-a-run">Close, start a new case or open another during a run</a></p></li>
+</ul>
+</li>
+<li><p>Change a case</p>
+<ul>
+<li><p><a class="reference internal" href="#edit-a-timetable-stop">Edit a timetable stop</a></p></li>
+<li><p><a class="reference internal" href="#add-a-train">Add a train</a></p></li>
+<li><p><a class="reference internal" href="#add-a-service">Add a service</a></p></li>
+<li><p><a class="reference internal" href="#edit-rolling-stock">Edit rolling stock</a></p></li>
+<li><p><a class="reference internal" href="#change-the-infrastructure-of-a-case">Change the infrastructure of a case</a></p></li>
+<li><p><a class="reference internal" href="#bring-in-track-geometry-from-gis">Bring in track geometry from GIS</a></p></li>
+<li><p><a class="reference internal" href="#add-an-incident-or-an-entrance-delay">Add an incident or an entrance delay</a></p></li>
+</ul>
+</li>
+<li><p>Results</p>
+<ul>
+<li><p><a class="reference internal" href="#results-and-exports">Results and exports</a></p></li>
+<li><p><a class="reference internal" href="#view-a-graph-of-a-run">View a graph of a run</a></p></li>
+<li><p><a class="reference internal" href="#compare-a-scenario-with-a-baseline">Compare a scenario with a baseline</a></p></li>
+</ul>
+</li>
+<li><p>Settings and problems</p>
+<ul>
 <li><p><a class="reference internal" href="#change-the-application-settings">Change the application settings</a></p></li>
 <li><p><a class="reference internal" href="#if-egtrain-closes-unexpectedly">If EGTRAIN closes unexpectedly</a></p></li>
 <li><p><a class="reference internal" href="#why-a-command-is-disabled">Why a command is disabled</a></p></li>
+</ul>
+</li>
 </ul>
 <section id="open-a-case">
 <h2>Open a case<a class="headerlink" href="#open-a-case" title="Link to this heading">¶</a></h2>
 <p>You need a case: a bundled case, an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file or a case folder.</p>
 <p>Use one of these:</p>
 <ul class="simple">
-<li><p>Click <strong>Open Case</strong> in the toolbar. In <strong>Open a Case</strong>, select an entry under <strong>Bundled cases</strong> or <strong>Recent cases</strong> and click <strong>Open</strong>. A long case name is shortened in the middle of the row; hold the pointer over the row to see the whole name and the path. <strong>Other ways to open…</strong> offers <strong>New Case…</strong>, <strong>Open Case Folder…</strong> and <strong>Import Legacy Case…</strong>.</p></li>
-<li><p>Choose <strong>File &gt; Open Case…</strong> (Ctrl+O) and select an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file.</p></li>
-<li><p>Choose <strong>File &gt; Open Case Folder…</strong> and select a folder that holds <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>.</p></li>
-<li><p>Choose <strong>File &gt; Recent Cases</strong>. It lists the last 8 cases you opened or saved, each under the name that <strong>Open a Case</strong> shows (a saved <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file without its extension). The bundled cases are not listed there; <strong>Open a Case</strong> has them under <strong>Bundled cases</strong>. The menu checks the files each time it opens. An entry whose file is gone reads <code class="docutils literal notranslate"><span class="pre">Unavailable:</span></code> and is disabled, and the menu is greyed out while the list is empty.</p></li>
+<li><p>Click <strong>Open Case</strong> in the toolbar, or choose <strong>File &gt; Open Case…</strong> (Ctrl+O). In <strong>Open a Case</strong>, select an entry under <strong>Bundled cases</strong> or <strong>Recent cases</strong> and click <strong>Open</strong>. A long case name is shortened in the middle of the row; hold the pointer over the row to see the whole name and the path. <strong>Other ways to open…</strong> offers <strong>New Case…</strong>, <strong>Open Case File…</strong>, <strong>Open Case Folder…</strong> and <strong>Import Legacy Case…</strong>.</p></li>
+<li><p>In <strong>Open a Case</strong>, choose <strong>Other ways to open… &gt; Open Case File…</strong> and select an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file.</p></li>
+<li><p>In <strong>Open a Case</strong>, choose <strong>Other ways to open… &gt; Open Case Folder…</strong> and select a folder that holds <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>.</p></li>
+<li><p>Choose <strong>File &gt; Recent Cases</strong>. It lists the last 8 cases you opened or saved, each under the name of its case: the name stored in a case folder, or the file name of a case file without <code class="docutils literal notranslate"><span class="pre">.egscene</span></code>, with underscores shown as spaces. Entries with the same name add their folder in parentheses. The bundled cases are not listed there; <strong>Open a Case</strong> has them under <strong>Bundled cases</strong>. The menu checks the files each time it opens. An entry whose file is gone reads <code class="docutils literal notranslate"><span class="pre">Unavailable:</span></code> and is disabled, and the menu is greyed out while the list is empty.</p></li>
 <li><p>Drag one <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file onto the window. A folder or several files are refused with <code class="docutils literal notranslate"><span class="pre">Cannot</span> <span class="pre">open</span> <span class="pre">the</span> <span class="pre">dropped</span> <span class="pre">file:</span> <span class="pre">&lt;reason&gt;</span></code> in the status bar.</p></li>
 <li><p>On Windows and macOS, double-click an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file (<a class="reference internal" href="opening-a-case-study.html#open-by-double-click"><span class="std std-ref">Open by double-click</span></a>).</p></li>
-<li><p>From a terminal, <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span> <span class="pre">--scene</span> <span class="pre">path/to/case.egscene</span></code> opens a bundle or a case folder, and <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span> <span class="pre">path/to/case.egscene</span></code> opens a bundle (<a class="reference internal" href="command-line.html"><span class="std std-doc">command-line options</span></a>).</p></li>
+<li><p>From a terminal, <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span> <span class="pre">--scene</span> <span class="pre">path/to/case.egscene</span></code> opens a case file or a case folder, and <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span> <span class="pre">path/to/case.egscene</span></code> opens a case file (<a class="reference internal" href="command-line.html"><span class="std std-doc">command-line options</span></a>).</p></li>
 </ul>
-<p>The dialogs of <strong>Open Case…</strong> and <strong>Open Case Folder…</strong> start in the folder above the open case. With no case open, they start in the <code class="docutils literal notranslate"><span class="pre">Scenes</span></code> folder of the app on macOS, and in your home folder on other systems.</p>
+<p>The dialogs of <strong>Open Case File…</strong> and <strong>Open Case Folder…</strong> start in the folder above the open case. With no case open, they start in the <code class="docutils literal notranslate"><span class="pre">Scenes</span></code> folder of the app on macOS, and in your home folder on other systems.</p>
 <p>You should see the window title <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">-</span> <span class="pre">&lt;case</span> <span class="pre">name&gt;</span></code>, the network in the view and the status bar <code class="docutils literal notranslate"><span class="pre">Opened</span> <span class="pre">&lt;case</span> <span class="pre">name&gt;</span></code>. Opening a case does not run it and does not change the file.</p>
 <p>If the case does not open, a dialog says why: <strong>Cannot Open Case</strong>, <strong>Older Case Not Supported</strong> or <strong>Newer Case</strong>. <a class="reference internal" href="opening-a-case-study.html"><span class="std std-doc">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</span></a> explains each. While the current case has unsaved edits, see <a class="reference internal" href="#answer-the-unsaved-changes-question">the unsaved changes question</a>.</p>
 <p>Normal mode keeps the network view and the editors uncluttered. <strong>View &gt; Advanced Details</strong> switches to advanced mode, which raises the dock <strong>Loaded Data</strong> automatically after a case opens and shows the full validation counts, the non-blocking warnings and the technical inventories. In normal mode <strong>View &gt; Loaded Data</strong> and <strong>View &gt; Case Validation</strong> still open those docks. The choice changes what is shown, not what a run does.</p>
@@ -348,18 +376,43 @@
 <h2>Copy and save a case<a class="headerlink" href="#copy-and-save-a-case" title="Link to this heading">¶</a></h2>
 <p>A bundled case is read-only in practice: EGTRAIN never saves into the installation. Make your own copy before you edit.</p>
 <ol class="arabic simple">
-<li><p>Choose <strong>File &gt; Save As…</strong>.</p></li>
-<li><p>Choose a folder of your own and a file name. EGTRAIN adds <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> when you leave it off. The dialog starts in the folder of your open case, or in your Documents folder for a bundled case.</p></li>
+<li><p>Choose <strong>File &gt; Save As…</strong> and click <strong>Case File…</strong>. The question also offers <strong>Case Folder…</strong>, and its default button is the format of the open case.</p></li>
+<li><p>Choose a folder of your own and a file name. EGTRAIN adds <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> when you leave it off, and asks before that name replaces a file. The dialog starts in the folder of your open case, or in your Documents folder for a bundled case.</p></li>
 <li><p>Save.</p></li>
 </ol>
 <p>You should see <code class="docutils literal notranslate"><span class="pre">Case</span> <span class="pre">saved</span></code> in the status bar. Your file is now the open case, and it appears in <strong>File &gt; Recent Cases</strong>. The original is unchanged. The file holds the inputs of the case and no results, replay or delay baseline.</p>
 <p>Other ways to save:</p>
 <ul class="simple">
-<li><p><strong>File &gt; Save</strong> (Ctrl+S) writes the case back to the bundle or case folder it came from. For a bundled case, and for a new case that has no file yet, it asks for a new <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file instead, as <strong>Save As…</strong> does, and Cancel keeps the edit. A case folder outside the installation, such as one in a source checkout, is saved in place.</p></li>
-<li><p><strong>File &gt; Save As Folder…</strong> writes the case as a folder of JSON files, which you can edit by hand. If the folder you choose is not empty and holds no <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>, EGTRAIN asks <code class="docutils literal notranslate"><span class="pre">The</span> <span class="pre">folder</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">empty.</span> <span class="pre">Save</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">there</span> <span class="pre">anyway?</span></code>. A folder that already holds a <code class="docutils literal notranslate"><span class="pre">scene.json</span></code> is written over without a question; other files in it are kept.</p></li>
+<li><p><strong>File &gt; Save</strong> (Ctrl+S) writes the case back to the case file or case folder it came from. For a bundled case, and for a new case that has no file yet, it asks for a new <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file instead, as <strong>Case File…</strong> of <strong>Save As…</strong> does, and Cancel keeps the edit. A case folder outside the installation is saved in place. If the files of the case changed on disk since you opened or last saved it, for example by a hand edit or another EGTRAIN window, the question <strong>Case Changed on Disk</strong> asks whether to replace the case on disk with your version. No cancels the save and keeps your edits; <strong>Save As…</strong> then keeps both versions.</p></li>
+<li><p><strong>File &gt; Save As…</strong> with <strong>Case Folder…</strong> writes the case as a folder of JSON files, which you can edit by hand. If the folder you choose is not empty and holds no <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>, EGTRAIN asks <code class="docutils literal notranslate"><span class="pre">The</span> <span class="pre">folder</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">empty.</span> <span class="pre">Save</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">there</span> <span class="pre">anyway?</span></code>. If it holds another case, EGTRAIN asks whether to replace that case. Either way other files in the folder are kept, and the folder of the open case is saved again without a question.</p></li>
 <li><p>A destination inside the installation is refused with <strong>Cannot Save Case</strong>: <code class="docutils literal notranslate"><span class="pre">Bundled</span> <span class="pre">cases</span> <span class="pre">cannot</span> <span class="pre">be</span> <span class="pre">overwritten.</span> <span class="pre">Choose</span> <span class="pre">a</span> <span class="pre">location</span> <span class="pre">outside</span> <span class="pre">the</span> <span class="pre">EGTRAIN</span> <span class="pre">installation.</span></code></p></li>
 </ul>
-<p>To check a saved case, open it again from <strong>File &gt; Recent Cases</strong>. The three save commands are enabled whenever a case is open, also during a run.</p>
+<p>To check a saved case, open it again from <strong>File &gt; Recent Cases</strong>. <strong>Save</strong> and <strong>Save As…</strong> are enabled whenever a case is open, also during a run.</p>
+</section>
+<section id="answer-the-unsaved-changes-question">
+<h2>Answer the unsaved changes question<a class="headerlink" href="#answer-the-unsaved-changes-question" title="Link to this heading">¶</a></h2>
+<p>After an edit the case is unsaved. EGTRAIN then asks (<code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">the</span> <span class="pre">changes</span> <span class="pre">to</span> <span class="pre">&lt;case</span> <span class="pre">name&gt;?</span></code>) before it replaces the case, which happens when you open another case, choose <strong>New Case…</strong>, load a legacy case or close the window. On Windows and Linux the box is titled <strong>Unsaved Case</strong> and offers <strong>Save</strong>, <strong>Discard</strong> and <strong>Cancel</strong>. On macOS it is a sheet without a title that offers <strong>Save</strong>, <strong>Cancel</strong> and <strong>Don’t Save</strong>, which does what <strong>Discard</strong> does.</p>
+<ul class="simple">
+<li><p><strong>Save</strong> saves the case first. For a bundled case or a new case it asks for a new <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file, and if you cancel that dialog, the open or close is cancelled too. The same holds when you answer No to <strong>Case Changed on Disk</strong>.</p></li>
+<li><p><strong>Discard</strong> (<strong>Don’t Save</strong> on macOS) drops the edits.</p></li>
+<li><p><strong>Cancel</strong> keeps the case and its edits.</p></li>
+</ul>
+<p>If EGTRAIN closes without an answer, for example after a crash, it offers the edits again at the next start in <strong>Recover Unsaved Work</strong> (see <a class="reference internal" href="getting-started.html#if-something-goes-wrong"><span class="std std-ref">Getting started</span></a>). <strong>Edit &gt; Undo</strong> and <strong>Edit &gt; Redo</strong> step through the edits of the session.</p>
+</section>
+<section id="convert-a-legacy-case-and-write-legacy-files">
+<h2>Convert a legacy case and write legacy files<a class="headerlink" href="#convert-a-legacy-case-and-write-legacy-files" title="Link to this heading">¶</a></h2>
+<p>A legacy case is the input folder of earlier versions. EGTRAIN converts it into a new case folder and leaves the source unchanged.</p>
+<ol class="arabic simple">
+<li><p>Choose <strong>File &gt; Import Legacy Case…</strong>, or <strong>Other ways to open… &gt; Import Legacy Case…</strong> in <strong>Open a Case</strong>. Both go straight to the folder dialogs.</p></li>
+<li><p>Select the legacy case folder in <strong>Select Legacy Case Folder</strong>, then a destination in <strong>Select Case Destination</strong>. The destination must already exist; a name that does not exist gives <code class="docutils literal notranslate"><span class="pre">Directory</span> <span class="pre">not</span> <span class="pre">found</span></code>. An empty folder takes the case (the folder dialog has a button for a new folder). A folder that holds other files is left alone: EGTRAIN offers to import into a new folder inside it, named after the legacy folder, and if a folder of that name already holds files, <strong>Cannot Import Legacy Case</strong> says so and nothing is written. A folder that holds another case (a <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>) is replaced, with everything in it, only if you answer Yes. The destination must be separate from the source and outside it, or <strong>Cannot Import Legacy Case</strong> says so. If the open case has unsaved edits, EGTRAIN asks about them after you have chosen both folders and before it imports.</p></li>
+<li><p>If the import reports errors, warnings or notes, the box <strong>Legacy Case Imported</strong> counts them, for example <code class="docutils literal notranslate"><span class="pre">Imported</span> <span class="pre">with</span> <span class="pre">1</span> <span class="pre">error,</span> <span class="pre">2</span> <span class="pre">warnings</span></code>, and lists the first findings. An import without findings shows no box. The converted case then opens. <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">export</span></code> writes the base time and the simulation settings to <code class="docutils literal notranslate"><span class="pre">EGTRAINInitialParameters.json</span></code>, and the import reads that file. A legacy case without it whose name is not a known case has no base time and no duration: the case reports two validation errors and cannot run until you set both in <strong>Editors &gt; Case Settings</strong>. The details are in <code class="docutils literal notranslate"><span class="pre">import_report</span></code> in <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>, and the dock <strong>Loaded Data</strong> shows the counts.</p></li>
+</ol>
+<p>From a terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scene_tool<span class="w"> </span>import<span class="w"> </span>path/to/legacy-case<span class="w"> </span>path/to/new-case<span class="w"> </span>CaseName
+scene_tool<span class="w"> </span>validate<span class="w"> </span>path/to/new-case
+</pre></div>
+</div>
+<p>The window cannot write legacy files. <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">export</span> <span class="pre">path/to/case</span> <span class="pre">path/to/legacy-output</span></code> writes them for another tool, and edits to those files do not flow back into the case. <a class="reference internal" href="scene-schema.html#convert-a-legacy-case"><span class="std std-ref">Convert a legacy case</span></a> lists what the conversion preserves, and the <a class="reference internal" href="v1-scene-migration-matrix.html"><span class="std std-doc">migration matrix</span></a> says what each legacy file becomes.</p>
 </section>
 <section id="run-a-case">
 <h2>Run a case<a class="headerlink" href="#run-a-case" title="Link to this heading">¶</a></h2>
@@ -376,29 +429,50 @@
 <p>You need an open case. EGTRAIN checks it when it opens, after every edit and before every run. An error disables <strong>Run</strong> and a warning does not.</p>
 <ol class="arabic">
 <li><p>Look in the dock <strong>Case and Layers</strong>. It names the case, and when an error blocks the run, the line under the name shows the first error.</p></li>
-<li><p>Choose <strong>View &gt; Case Validation</strong> (Ctrl+Shift+V). The table lists the findings, errors first, with <strong>Severity</strong>, <strong>Code</strong>, <strong>Message</strong>, <strong>File</strong>, <strong>Path</strong> and <strong>Fix</strong>. Without <strong>View &gt; Advanced Details</strong>, <strong>Code</strong>, <strong>File</strong> and <strong>Path</strong> are in the tooltip of a row instead.</p>
-<p><img alt="The dock Case Validation of Paimpol practice, a copy of Paimpol, after a dwell edit, with the columns Severity, Message and Fix. Row 1 is the warning Minimum dwell is longer than the time from arrival to departure; the rows below it read Journey has no route-choice legs." src="../_images/how-to-scene-validation.png" /></p>
+<li><p>Choose <strong>View &gt; Case Validation</strong> (Ctrl+Shift+V). The table lists the findings, errors first, with <strong>Severity</strong>, <strong>Code</strong>, <strong>Message</strong>, <strong>Item</strong>, <strong>File</strong>, <strong>Path</strong> and <strong>Fix</strong>. <strong>Item</strong> names the record that a finding is about, such as a journey or an arc, so that rows with the same message can be told apart. Without <strong>View &gt; Advanced Details</strong>, <strong>Code</strong>, <strong>File</strong> and <strong>Path</strong> are in the tooltip of a row instead.</p>
+<p><img alt="The dock Case Validation of Paimpol practice, a copy of Paimpol, after a dwell edit, with the columns Severity, Message, Item and Fix. Row 1 is the warning Minimum dwell is longer than the time from arrival to departure, with the item service Guin-Paim-EXPRESS-1; the rows below it read Journey has no route-choice legs, with the items journey 0:1, journey 0:2, journey 1:2, journey 2:1, journey 2:2, journey 3:1 and journey 3:2." src="../_images/how-to-scene-validation.png" /></p>
 </li>
-<li><p>Fix the first error in the editor that matches its <strong>File</strong> and <strong>Path</strong> (menu <strong>Editors</strong>), and read the table again. It updates after each edit.</p></li>
+<li><p>Double-click a row, or select it and press Return, to go to its item: the dock <strong>Infrastructure</strong>, <strong>Rolling Stock Units</strong>, <strong>Compositions</strong>, <strong>Services</strong>, <strong>Scenarios</strong> (for an incident) or <strong>Passengers</strong> comes to the front with that item selected. A row without an item does nothing. Fix the first error there, or in the editor that matches its <strong>File</strong> and <strong>Path</strong> (menu <strong>Editors</strong>), and read the table again. It updates after each edit.</p></li>
 <li><p>Repeat until no error is left. <strong>Run</strong> is then enabled.</p></li>
 </ol>
-<p>You can save a case that has errors. Warnings do not stop a run, but read them: the dialog <strong>Run simulation</strong> repeats the one about route sections that have no signalling level. Examples of errors and their usual fixes:</p>
+<p>The error <code class="docutils literal notranslate"><span class="pre">X</span> <span class="pre">goes</span> <span class="pre">down</span> <span class="pre">from</span> <span class="pre">&lt;x&gt;</span> <span class="pre">km</span> <span class="pre">at</span> <span class="pre">node</span> <span class="pre">&lt;node&gt;</span> <span class="pre">to</span> <span class="pre">&lt;x&gt;</span> <span class="pre">km</span> <span class="pre">at</span> <span class="pre">node</span> <span class="pre">&lt;node&gt;</span> <span class="pre">on</span> <span class="pre">arc</span> <span class="pre">&lt;arc&gt;</span> <span class="pre">of</span> <span class="pre">track</span> <span class="pre">&lt;track&gt;</span></code> (code <code class="docutils literal notranslate"><span class="pre">scene.topology.order</span></code>) means that the X of the nodes is not the distance along the track. <a class="reference internal" href="#bring-in-track-geometry-from-gis">Bring in track geometry from GIS</a> shows how to set it, and <strong>Reverse Track</strong> under <strong>Tracks</strong> turns around a track whose arcs all run against its X (<a class="reference internal" href="editing-a-case.html#tasks-of-tracks-nodes-and-platforms"><span class="std std-ref">editing a case</span></a>).</p>
+<p>You can save a case that has errors, also one with a new service, incident or row whose references you have not chosen yet; the table names that entry, such as <code class="docutils literal notranslate"><span class="pre">Service</span> <span class="pre">new_service</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">composition</span></code>. Warnings do not stop a run, but read them: the dialog <strong>Run simulation</strong> repeats the one about route sections that have no signalling level. Examples of errors and their usual fixes:</p>
 <ul class="simple">
-<li><p>A service names a composition or a route that does not exist. Choose an existing one in <strong>Services</strong>, or add the missing record.</p></li>
+<li><p>A service has no composition or route, or names one that does not exist. Choose an existing one in <strong>Services</strong>, or add the missing record.</p></li>
 <li><p>A stop names a platform that the route does not reach, or the stops are out of route order. Correct the stop on the tab <strong>Timetable</strong> of <strong>Services</strong>.</p></li>
 <li><p>A rolling stock unit has no traction rows, or its rows overlap, are out of order or have a lower speed that is not below the upper speed. Correct them in <strong>Rolling Stock Units</strong>.</p></li>
 </ul>
 <p><strong>Run</strong> stays disabled while any error remains. From a terminal, <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">validate</span> <span class="pre">--runnable</span> <span class="pre">path/to/case</span></code> prints the same findings (<a class="reference internal" href="command-line.html#scene-tool"><span class="std std-ref">scene_tool</span></a>).</p>
 </section>
-<section id="answer-the-unsaved-changes-question">
-<h2>Answer the unsaved changes question<a class="headerlink" href="#answer-the-unsaved-changes-question" title="Link to this heading">¶</a></h2>
-<p>After an edit the case is unsaved. EGTRAIN then asks (<code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">the</span> <span class="pre">changes</span> <span class="pre">to</span> <span class="pre">&lt;case</span> <span class="pre">name&gt;?</span></code>) before it replaces the case, which happens when you open another case, choose <strong>New Case…</strong>, load a legacy case or close the window. On Windows and Linux the box is titled <strong>Unsaved Case</strong> and offers <strong>Save</strong>, <strong>Discard</strong> and <strong>Cancel</strong>. On macOS it is a sheet without a title that offers <strong>Save</strong>, <strong>Cancel</strong> and <strong>Don’t Save</strong>, which does what <strong>Discard</strong> does.</p>
+<section id="move-around-the-network-view-and-follow-a-train">
+<h2>Move around the network view and follow a train<a class="headerlink" href="#move-around-the-network-view-and-follow-a-train" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p><strong>Save</strong> saves the case first. For a bundled case or a new case it asks for a new <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file, and if you cancel that dialog, the open or close is cancelled too.</p></li>
-<li><p><strong>Discard</strong> (<strong>Don’t Save</strong> on macOS) drops the edits.</p></li>
-<li><p><strong>Cancel</strong> keeps the case and its edits.</p></li>
+<li><p><strong>Zoom.</strong> Turn the mouse wheel to zoom around the pointer, or use the zoom buttons of the toolbar (Ctrl++ and Ctrl+-). On a trackpad, a pinch zooms. <strong>Fit</strong> (Ctrl+0) shows the whole network.</p></li>
+<li><p><strong>Pan.</strong> Drag the view, also at Fit. On a trackpad, two fingers move it. The view stops when the edge of the network reaches the middle of the view.</p></li>
+<li><p><strong>Select.</strong> Click a track, connection, node, station, signal, train or passenger. The information panel for it opens, or for a passenger a box of its details above it (below it when the passenger is near the top of the view), and a light blue ring marks the item. Click an empty part of the view, or close the panel, to remove the ring. When the view shows no run, the click also selects the row of the item in the dock <strong>Infrastructure</strong>, whose list switches to that kind, such as <strong>Nodes</strong>; a signal head selects the block of its section under <strong>Blocks</strong>.</p></li>
+<li><p><strong>Find.</strong> Choose <strong>Edit &gt; Find…</strong> (Ctrl+F) and type part of the name or ID of a station, signal or train. A signal is listed by its track, its place and its direction, such as <code class="docutils literal notranslate"><span class="pre">Signal:</span> <span class="pre">track</span> <span class="pre">B0</span> <span class="pre">at</span> <span class="pre">0.23</span> <span class="pre">km,</span> <span class="pre">facing</span> <span class="pre">right</span></code>; during a run the list adds the ids of the signals of the case that protect its section, such as <code class="docutils literal notranslate"><span class="pre">Signal</span> <span class="pre">S1:</span> <span class="pre">track</span> <span class="pre">B0</span> <span class="pre">at</span> <span class="pre">0.23</span> <span class="pre">km,</span> <span class="pre">facing</span> <span class="pre">right</span></code>. The label or the id of one of its sections, such as <code class="docutils literal notranslate"><span class="pre">&#64;1-B0&#64;</span></code>, finds it too. Up and Down choose one in the list and Enter goes to it: the view centres on the item, zooms in so that it can be read, and selects it as a click does, so a running train is also followed. Esc closes the box. Trains are listed while a run or a replay shows them; signals are not listed while the Signals layer is off.</p></li>
+<li><p><strong>Context menu.</strong> Right-click an item. A train offers <strong>Show details</strong>, <strong>Add train breakdown</strong>, <strong>Center in view</strong>, <strong>Follow train</strong> and <strong>Copy train name</strong>. When the view shows no run, a track, node, connection, station or signal head offers <strong>Show details</strong>, <strong>Edit in Infrastructure</strong>, <strong>Center in view</strong> and <strong>Copy ID</strong>. <strong>Edit in Infrastructure</strong> selects the row of the item in the dock <strong>Infrastructure</strong> and brings the dock to the front. During a run the other items offer <strong>Show details</strong>, <strong>Center in view</strong> and a copy command. A signal head also offers <strong>Add signal failure</strong> after <strong>Show details</strong> (<a class="reference internal" href="#add-an-incident-or-an-entrance-delay">add an incident</a>). During a run a signal head offers <strong>Copy signal location</strong> and <strong>Copy section ID</strong>, which copies the id of the section that <strong>Protected section</strong> shows in its information panel. Right-click the empty view for <strong>Fit whole network</strong>, <strong>Clear selection</strong> and <strong>Stop following train</strong>, which is off while no train is followed. <strong>Copy train name</strong> copies the name that <strong>Details</strong> and the list next to <strong>Follow</strong> show, and <strong>Copy signal location</strong> copies the place of the signal head as its tooltip names it, such as <code class="docutils literal notranslate"><span class="pre">Track</span> <span class="pre">B0</span> <span class="pre">at</span> <span class="pre">0.23</span> <span class="pre">km,</span> <span class="pre">facing</span> <span class="pre">right</span></code>. While the network view has the keyboard focus, Shift+F10 or the Menu key opens the menu of the selected item, or of the empty view when nothing is selected (<a class="reference internal" href="keyboard-shortcuts.html#network-view"><span class="std std-ref">keyboard shortcuts</span></a>).</p></li>
+<li><p><strong>Layers.</strong> The check boxes in <strong>Case and Layers</strong> hide stations, station names, trains, speed labels, signals and passengers. <strong>Passengers</strong> is the same switch as <strong>View &gt; Passengers</strong>. It is off at the first start and keeps the last choice; turning it on takes effect from the next run.</p></li>
+<li><p><strong>Follow.</strong> Choose a train in the list next to <strong>Follow</strong> in the toolbar and click <strong>Follow</strong>. The view moves with the train, also while the run is paused. At Fit the view stays where it is; zoom in to follow the train. Click <strong>Follow</strong> again, or choose <strong>Stop following train</strong>, to stop.</p></li>
 </ul>
-<p>If EGTRAIN closes without an answer, for example after a crash, it offers the edits again at the next start in <strong>Recover Unsaved Work</strong> (see <a class="reference internal" href="getting-started.html#if-something-goes-wrong"><span class="std std-ref">Getting started</span></a>). <strong>Edit &gt; Undo</strong> and <strong>Edit &gt; Redo</strong> step through the edits of the session.</p>
+<p><strong>Follow</strong> is disabled before a run, after an edit or a switch of scenario that discards the results of a run, and in a case without services, and its tooltip says why. A train that has not entered the network is listed with its scheduled entry time, for example <code class="docutils literal notranslate"><span class="pre">Rail-1</span> <span class="pre">(scheduled</span> <span class="pre">08:25:50)</span></code>, and Follow starts when it enters. The label at the right of the status bar names the state of the selected train, and its tooltip says whether the train is followed and why not. In a live run Follow switches off when the train leaves the network. In the replay of a completed run it stays on after the train has left, and it continues when you go back in time. <a class="reference internal" href="scenarios.html"><span class="std std-doc">Scenario library and student loop</span></a> describes the camera in detail. For the result windows, see <a class="reference internal" href="diagram-navigation.html"><span class="std std-doc">Inspecting diagrams</span></a>.</p>
+</section>
+<section id="replay-a-completed-run">
+<h2>Replay a completed run<a class="headerlink" href="#replay-a-completed-run" title="Link to this heading">¶</a></h2>
+<p>You need a run that reached its end. A stopped or failed run has no replay, and a stopped run keeps no results either.</p>
+<ol class="arabic">
+<li><p>When the run has ended, the <strong>Replay</strong> row appears under the network. Click <strong>Start</strong>, <strong>Play</strong> or <strong>End</strong>, the icon buttons left of the slider, or move the slider. The arrow keys and the mouse wheel move the slider too.</p></li>
+<li><p>Each selection shows the network as it was at that second. The label beside the slider shows the clock time in the format of the progress bar, for example <code class="docutils literal notranslate"><span class="pre">08:20:30</span></code>. <strong>Play</strong> plays the run at the speed in the box after the label: 1x, 2x, 5x, 10x, 30x or 60x, the simulated seconds for each second of real time. It starts at 10x and keeps your choice until EGTRAIN quits. While the replay plays, the trains glide from one shown second to the next, and the button turns into <strong>Pause</strong>. A move of the slider, the arrow keys, the mouse wheel, <strong>Start</strong> and <strong>End</strong> place the trains at once.</p></li>
+<li><p>When the replay holds the whole run, the row has no further text. The replay keeps every second of the run.</p>
+<p><img alt="The Replay row under the network after a run of Paimpol, with Start, Play, End, the slider, the time 08:09:00 and the speed box at 10x, Follow on Guin-Paim-ALL-STOPS-1-1, and the context menu of that train open: Show details, Add train breakdown, Center in view, Follow train and Copy train name." src="../_images/how-to-replay-menu.png" /></p>
+</li>
+</ol>
+<p>The replay has 128 MiB of memory. A run that is larger loses its first part. A line under the controls then says from which time the replay starts, for example <code class="docutils literal notranslate"><span class="pre">Replay</span> <span class="pre">starts</span> <span class="pre">at</span> <span class="pre">10:00:20.</span> <span class="pre">Earlier</span> <span class="pre">times</span> <span class="pre">did</span> <span class="pre">not</span> <span class="pre">fit</span> <span class="pre">in</span> <span class="pre">memory.</span></code> The slider covers only the kept part, and <strong>Start</strong> goes to its first time. The tooltip of <strong>Start</strong> says so. If not even one moment fits, the row says <code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">replay</span></code> and <code class="docutils literal notranslate"><span class="pre">This</span> <span class="pre">run</span> <span class="pre">is</span> <span class="pre">too</span> <span class="pre">large</span> <span class="pre">to</span> <span class="pre">replay.</span></code>, and the slider and <strong>Play</strong> are disabled.</p>
+<p>Train, station and signal selections stay across seeks. A train that has no position at the selected time is not drawn. Passenger journey details are not available in a replay, but the counts and statuses are. A run that starts, an edit of the case or another scenario clears the replay and returns the view to the preview. A run that is refused before it starts, for validation errors, no ticked occurrence, <strong>Cancel</strong> in <strong>Run simulation</strong> or an output folder that cannot be made, keeps the results and the replay. An edit or another scenario also closes the info dock of the selection.</p>
+</section>
+<section id="close-start-a-new-case-or-open-another-during-a-run">
+<h2>Close, start a new case or open another during a run<a class="headerlink" href="#close-start-a-new-case-or-open-another-during-a-run" title="Link to this heading">¶</a></h2>
+<p>Closing the window, <strong>New Case…</strong>, the open commands and <strong>Import Legacy Case…</strong> first ask for the unsaved changes question if the case has edits. They then ask the running simulation to stop. The status bar shows <code class="docutils literal notranslate"><span class="pre">Stopping</span> <span class="pre">simulation...</span></code> and the window stays usable. The command goes on when the run has stopped, and the current case is replaced only then, so an open that fails leaves it in place. A stopped run leaves no results.</p>
 </section>
 <section id="edit-a-timetable-stop">
 <h2>Edit a timetable stop<a class="headerlink" href="#edit-a-timetable-stop" title="Link to this heading">¶</a></h2>
@@ -412,53 +486,92 @@
 <p>The buttons <strong>Add Stop</strong>, <strong>Insert After Selected</strong>, <strong>Remove Stop</strong>, <strong>Move Up</strong> and <strong>Move Down</strong> change the list of stops. After an edit the validation runs again, and the results, the replay and the delay baseline are discarded. Run again to see the effect. <strong>Edit &gt; Undo</strong> reverts the edit. The rules for the times, the platforms and the insert positions are in <a class="reference internal" href="editing-a-case.html"><span class="std std-doc">Edit and validate</span></a>.</p>
 <p>For the whole exercise of changing a copy, saving it, opening it again, validating it and running it while the original stays as it was, follow the <a class="reference internal" href="tutorial-modify-a-case.html"><span class="std std-doc">tutorial</span></a>.</p>
 </section>
+<section id="add-a-train">
+<h2>Add a train<a class="headerlink" href="#add-a-train" title="Link to this heading">¶</a></h2>
+<p>A train is one run of a service, an <a class="reference internal" href="glossary.html#occurrence"><span class="std std-ref">occurrence</span></a>. You need an open case that you have copied (<a class="reference internal" href="#copy-and-save-a-case">Copy and save a case</a>) and no active run. Repeat a service to run it more than once, or duplicate it to give the new train its own times.</p>
+<p>To repeat a service:</p>
+<ol class="arabic">
+<li><p>Choose <strong>Editors &gt; Services</strong>, select the service in the list at the top of the dock and open the tab <strong>Service</strong>.</p></li>
+<li><p>Tick <strong>Repeat every (s)</strong> if it is not ticked yet; a click on a ticked box turns the repeat off. Type the time from one run to the next in its field and press Enter. On Paimpol the box is ticked for both services, with 9999 s, which is longer than the 9000 s that the case runs, so each service runs once.</p></li>
+<li><p>Tick <strong>Repeat count</strong>, type the number of runs and press Enter. Without <strong>Repeat count</strong>, the number of runs is the <strong>Duration (s)</strong> of <strong>Editors &gt; Case Settings</strong> divided by the time between the runs, rounded up.</p></li>
+<li><p>Open the tab <strong>Run occurrences</strong>. It has a row for each run, ticked, with the run number added to the operating code and the entry time under <strong>Entry</strong>.</p>
+<p><img alt="The dock Services of Paimpol on the tab Run occurrences, reading 3 of 3 selected, with three ticked rows: Guin-Paim-ALL-STOPS-1-1 on route2 at +1550 s, Guin-Paim-EXPRESS-1-1 on route6 at +10 s and Guin-Paim-EXPRESS-1-2 on route6 at +3610 s, each with performance 100." src="../_images/how-to-add-a-train.png" /></p>
+</li>
+</ol>
+<p>The picture shows Paimpol after the express <code class="docutils literal notranslate"><span class="pre">Guin-Paim-EXPRESS-1</span></code> got <strong>Repeat every (s)</strong> 3600 and <strong>Repeat count</strong> 2. Its second run, <code class="docutils literal notranslate"><span class="pre">Guin-Paim-EXPRESS-1-2</span></code>, enters 3600 s after the first, at <code class="docutils literal notranslate"><span class="pre">+3610</span> <span class="pre">s</span></code>. In a run without a window of this change, it reached Paimpol exactly 3600 s after the first express. When the operating code is a number, <strong>Code step</strong> numbers the runs instead, for example 1723, 1725 and 1727 with a step of 2.</p>
+<p>To add a train with other times, select the service and click <strong>Duplicate</strong>. The copy, named after the service with <code class="docutils literal notranslate"><span class="pre">_copy</span></code> at the end, comes after it in the list and is selected. It keeps every field of the service, the <strong>Operating code</strong> too, so give it a code of its own to tell its trains apart in <strong>Run occurrences</strong>. Then change its <strong>Entry time (s)</strong> and, on the tab <strong>Timetable</strong>, the planned times of its stops (<a class="reference internal" href="#edit-a-timetable-stop">Edit a timetable stop</a>).</p>
+<p>A new occurrence is ticked on the tab <strong>Run occurrences</strong>, so the next run includes it. Run the case to see the new train.</p>
+</section>
+<section id="add-a-service">
+<h2>Add a service<a class="headerlink" href="#add-a-service" title="Link to this heading">¶</a></h2>
+<p>You need an open case that you have copied, with a composition and a route for the new service, and no active run. <a class="reference internal" href="#edit-rolling-stock">Edit rolling stock</a> adds a composition, and the routes are in <strong>Editors &gt; Infrastructure</strong> under <strong>Routes</strong>.</p>
+<ol class="arabic">
+<li><p>Choose <strong>Editors &gt; Services</strong> and click <strong>Add Service</strong>. The service <code class="docutils literal notranslate"><span class="pre">new_service</span></code> is added at the end of the list and selected. Until it has a composition and a route, <strong>Case Validation</strong> names what is missing, such as <code class="docutils literal notranslate"><span class="pre">Service</span> <span class="pre">new_service</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">composition</span></code>.</p></li>
+<li><p>On the tab <strong>Service</strong>, choose the <strong>Composition</strong> and the <strong>Route</strong>. The list <strong>Route</strong> names each route by its first and last station and its ID, such as <code class="docutils literal notranslate"><span class="pre">Guingamp</span> <span class="pre">→</span> <span class="pre">Paimpol</span> <span class="pre">[route6]</span></code>. Without <strong>Entry time (s)</strong>, the train enters at the planned departure of its first stop.</p></li>
+<li><p>Open the tab <strong>Timetable</strong> and click <strong>Add Stop</strong> for each stop, in the order of the route. In the dialog <strong>Add Timetable Stop</strong>, choose the <strong>Station</strong> and the <strong>Compatible platform</strong>, tick <strong>Planned departure</strong> or <strong>Planned arrival</strong>, type the time in seconds after the base time of the case and click <strong>OK</strong>. Give the first stop a departure and the last stop an arrival.</p></li>
+<li><p>Choose <strong>View &gt; Case Validation</strong> and fix what it lists (<a class="reference internal" href="#fix-validation-errors">Fix validation errors</a>). Then run the case.</p>
+<p><img alt="The dock Services of Paimpol on the tab Service for new_service, the third service: Composition Draisy, Route Guingamp → Paimpol [route6], Entry time (s) and Repeat every (s) unticked, Repeat count dimmed, and Performance (%) 100." src="../_images/how-to-add-a-service.png" /></p>
+</li>
+</ol>
+<p>The picture shows the tab <strong>Service</strong> of <code class="docutils literal notranslate"><span class="pre">new_service</span></code> on Paimpol, with the composition <code class="docutils literal notranslate"><span class="pre">Draisy</span></code> and the route <code class="docutils literal notranslate"><span class="pre">route6</span></code>. Its stops are Guingamp, with a departure at 5000 s from <code class="docutils literal notranslate"><span class="pre">Guingamp.platform.1</span></code>, and Paimpol, with an arrival at 7599 s on <code class="docutils literal notranslate"><span class="pre">Paimpol.platform.1</span></code>. A run without a window of this case completed with the train <code class="docutils literal notranslate"><span class="pre">new_service-1</span></code>, which reached Paimpol at 7528 s. The fields of a service are explained in <a class="reference internal" href="editing-a-case.html#services"><span class="std std-ref">Editing and validating a case</span></a>.</p>
+</section>
 <section id="edit-rolling-stock">
 <h2>Edit rolling stock<a class="headerlink" href="#edit-rolling-stock" title="Link to this heading">¶</a></h2>
 <p>You need an open case that you have copied and no active run. The editors <strong>Rolling Stock Units</strong> and <strong>Compositions</strong> are not disabled during a run, but an edit there discards the results of that run.</p>
 <ol class="arabic simple">
-<li><p>Choose <strong>Editors &gt; Rolling Stock Units</strong>. <strong>Add Unit</strong>, <strong>Duplicate</strong> and <strong>Delete</strong> change the list. Select a unit to edit its physical values and its traction rows (<strong>Add Row</strong>, <strong>Delete Row</strong>). <strong>Plot Traction Curve</strong> plots the curve. The number fields stop at wide limits, and a number that no rail vehicle has, for example one read from a file, gives the warning <code class="docutils literal notranslate"><span class="pre">scene.train.value.implausible</span></code> in <strong>Case Validation</strong>. The limits are in <a class="reference internal" href="scene-schema.html#rolling-stock"><span class="std std-ref">Rolling stock</span></a>.</p></li>
+<li><p>Choose <strong>Editors &gt; Rolling Stock Units</strong>. <strong>Add Unit</strong>, <strong>Add from Library…</strong>, <strong>Duplicate</strong> and <strong>Delete</strong> change the list. Select a unit to edit its physical values and its traction rows (<strong>Add Row</strong>, <strong>Delete Row</strong>). <strong>Plot Traction Curve</strong> plots the curve. The number fields stop at wide limits, and a number that no rail vehicle has, for example one read from a file, gives the warning <code class="docutils literal notranslate"><span class="pre">scene.train.value.implausible</span></code> in <strong>Case Validation</strong>. The limits are in <a class="reference internal" href="scene-schema.html#rolling-stock"><span class="std std-ref">Rolling stock</span></a>.</p></li>
 <li><p>Choose <strong>Editors &gt; Compositions</strong> to put units in order for a train: <strong>Add Composition</strong>, <strong>Add Unit</strong>, <strong>Remove Unit</strong>, <strong>Move Up</strong>, <strong>Move Down</strong>.</p></li>
 <li><p>Choose the composition of a service in <strong>Editors &gt; Services</strong>.</p></li>
 </ol>
+<p><strong>Add from Library…</strong> lists the rolling stock units of the bundled cases under the case that holds them, with their maximum speed, length and number of traction rows. <strong>Add</strong> copies the selected unit into the open case with its physical values, its traction curve and its source references. While <strong>Also add a composition with only this unit</strong> is ticked, as it is at first, a composition of the unit alone comes with it, under the ID of the unit. One <strong>Edit &gt; Undo</strong> takes back both. When the case already has a unit with that ID and the same values, nothing is copied: that unit is selected and the status bar says so. A unit with that ID and other values stays as it is, and the copy gets the next free ID, such as <code class="docutils literal notranslate"><span class="pre">SLT06_2</span></code>; the message <strong>Rolling Stock ID Adjusted</strong> says <code class="docutils literal notranslate"><span class="pre">SLT06</span> <span class="pre">was</span> <span class="pre">taken,</span> <span class="pre">so</span> <span class="pre">it</span> <span class="pre">is</span> <span class="pre">now</span> <span class="pre">SLT06_2</span></code>. A composition with that ID and other units also stays, and the new composition gets the next free ID. Where the units of each case come from is in <a class="reference internal" href="case-data.html"><span class="std std-doc">Data of the bundled cases</span></a>.</p>
 <p><strong>Link File…</strong> on the tabs <strong>Physical</strong> and <strong>Traction</strong> of the editor of a unit reads the values of a unit from a parameter file or a traction file. The links last for the session: <strong>Unlink</strong> removes one, and reopening or replacing the case clears them. <a class="reference internal" href="main-window.html#review-what-loaded"><span class="std std-ref">Review what loaded</span></a> gives the file formats and the rules for a changed file.</p>
 </section>
-<section id="compare-a-scenario-with-a-baseline">
-<h2>Compare a scenario with a baseline<a class="headerlink" href="#compare-a-scenario-with-a-baseline" title="Link to this heading">¶</a></h2>
-<p>A scenario is a named set of incidents and entrance delays. <strong>Set delay baseline</strong> freezes a completed run without them, and <strong>Compare delays</strong> shows how much later or earlier each call of a run with them is. Any edit of the case clears the baseline, so build the scenario before you run the baseline.</p>
+<section id="change-the-infrastructure-of-a-case">
+<h2>Change the infrastructure of a case<a class="headerlink" href="#change-the-infrastructure-of-a-case" title="Link to this heading">¶</a></h2>
+<p>You need an open case that you have copied, because a bundled case is not saved in place (<a class="reference internal" href="#copy-and-save-a-case">Copy and save a case</a>), and no active run: the contents of the dock <strong>Infrastructure</strong> are disabled during a run. Choose <strong>Editors &gt; Infrastructure</strong>. The list above the table chooses what the table shows, such as <strong>Arcs</strong> or <strong>Platforms</strong>. <a class="reference internal" href="editing-a-case.html#infrastructure"><span class="std std-ref">Editing and validating a case</span></a> describes the tables.</p>
+<p>To change the speed limit of an arc:</p>
 <ol class="arabic simple">
-<li><p>Choose <strong>Editors &gt; Scenarios</strong>. The list <strong>Scenarios</strong> holds each scenario. Click <strong>New</strong>, or select a scenario and click <strong>Duplicate</strong>, to create the scenario to test.</p></li>
-<li><p>In the incident editor of the dock, click <strong>Add Incident</strong> and fill its fields. A signal head or a train that is selected on the network view becomes the target of the new incident. The icon button <strong>Pick</strong> beside <strong>Target</strong> waits for the next one that you click and takes it as the target; Esc or a second click on <strong>Pick</strong> stops the wait. A signal head gives a signal failure of its block, or of the authored signal when exactly one protects its section, and a train of a completed run gives a breakdown of its occurrence. You can also start on the network view: right-click a signal head and choose <strong>Add signal failure</strong>, or right-click a train after a run and choose <strong>Add train breakdown</strong>. The information panel of a signal or a train has the same action as a button under its fields. It adds the incident to the selected scenario as one edit, which Undo takes back, opens the tab <strong>Incidents</strong> with the new incident selected and puts the cursor in <strong>Start (s)</strong>. It is disabled while the case runs and when the item gives no target, and its tooltip says why. After a run the new incident discards the results, as any edit does, and the status bar says so. For an entrance delay, open the tab <strong>Entrance delays</strong> and click <strong>Add</strong>. This adds a row for the first service that has a planned departure, at its first stop with one, with a delay of 0 s. With the row selected, change <strong>Service</strong>, <strong>Occurrence</strong>, <strong>Station</strong> and <strong>Delay (s)</strong>; the line in the list follows each change, and <strong>Delay (s)</strong> takes effect when you press Enter or leave the field.</p></li>
-<li><p>Select the scenario without incidents and entrance delays (the bundled cases have one, <code class="docutils literal notranslate"><span class="pre">baseline</span></code>). Click <strong>Run</strong>, and <strong>Run simulation</strong>. When the run has ended, click <strong>Set delay baseline</strong> in the dock <strong>Run Results</strong>. The line under <strong>Delay comparison</strong> names the baseline.</p></li>
-<li><p>Select the scenario with the incident in the list <strong>Scenarios</strong>. This keeps the baseline and discards the results. Run it.</p></li>
-<li><p>Click <strong>Compare delays</strong>. The window <strong>Delay analysis</strong> opens on the tab <strong>Against baseline</strong>.</p></li>
+<li><p>Choose <strong>Arcs</strong> in the list above the table.</p></li>
+<li><p>Type the ID of the arc in the filter field beside the track list, such as <code class="docutils literal notranslate"><span class="pre">B0.arc.226</span></code> on Paimpol. The table then shows that arc only, and the count beside the field reads <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">of</span> <span class="pre">393</span> <span class="pre">arcs</span></code>.</p></li>
+<li><p>Click the cell of the arc in the column <strong>Speed limit (m/s)</strong>, type the new limit and press Enter. The table may need a scroll to the right to show that column.</p></li>
 </ol>
-<p>The two buttons say why they are disabled in their tooltips and in the line above them. <strong>Set delay baseline</strong> needs a completed run whose scenario has no incident and no entrance delay. <strong>Compare delays</strong> needs a baseline and a completed run whose scenario has at least one of them. The tab lists every reason when the baseline does not fit the run: the runs need different scenarios and the same case revision, base time, duration, timestep and occurrences. <a class="reference internal" href="delay-analysis.html#delay-comparison-against-a-baseline"><span class="std std-ref">How delays are calculated</span></a> has the rules. <a class="reference internal" href="scenarios.html"><span class="std std-doc">Scenario library and student loop</span></a> describes the library. <strong>Import…</strong> and <strong>Export…</strong> in the dock move a single scenario between cases.</p>
-</section>
-<section id="move-around-the-network-view-and-follow-a-train">
-<h2>Move around the network view and follow a train<a class="headerlink" href="#move-around-the-network-view-and-follow-a-train" title="Link to this heading">¶</a></h2>
-<ul class="simple">
-<li><p><strong>Zoom.</strong> Turn the mouse wheel to zoom around the pointer, or use the zoom buttons of the toolbar (Ctrl++ and Ctrl+-). On a trackpad, a pinch zooms. <strong>Fit</strong> (Ctrl+0) shows the whole network. A network that is fitted has no room to move, so zoom in first.</p></li>
-<li><p><strong>Pan.</strong> Drag the view. On a trackpad, two fingers move it.</p></li>
-<li><p><strong>Select.</strong> Click a track, connection, node, station, signal, train or passenger. The information panel for it opens, or for a passenger a box of its details above it, and a light blue ring marks the item. Click an empty part of the view, or close the panel, to remove the ring.</p></li>
-<li><p><strong>Find.</strong> Choose <strong>Edit &gt; Find…</strong> (Ctrl+F) and type part of the name or ID of a station, signal or train. A signal is listed by its track, its place and its direction, such as <code class="docutils literal notranslate"><span class="pre">Signal:</span> <span class="pre">track</span> <span class="pre">B0</span> <span class="pre">at</span> <span class="pre">0.23</span> <span class="pre">km,</span> <span class="pre">facing</span> <span class="pre">right</span></code>; during a run the list adds the ids of the signals of the case that protect its section, such as <code class="docutils literal notranslate"><span class="pre">Signal</span> <span class="pre">S1:</span> <span class="pre">track</span> <span class="pre">B0</span> <span class="pre">at</span> <span class="pre">0.23</span> <span class="pre">km,</span> <span class="pre">facing</span> <span class="pre">right</span></code>. The label or the id of one of its sections, such as <code class="docutils literal notranslate"><span class="pre">&#64;1-B0&#64;</span></code>, finds it too. Up and Down choose one in the list and Enter goes to it: the view centres on the item, zooms in so that it can be read, and selects it as a click does, so a running train is also followed. Esc closes the box. Trains are listed while a run or a replay shows them; signals are not listed while the Signals layer is off.</p></li>
-<li><p><strong>Context menu.</strong> Right-click an item. A train offers <strong>Show details</strong>, <strong>Add train breakdown</strong>, <strong>Center in view</strong>, <strong>Follow train</strong> and <strong>Copy train index</strong>. Most other items offer <strong>Show details</strong>, <strong>Center in view</strong> and a copy command, and a signal head also offers <strong>Add signal failure</strong> after <strong>Show details</strong> (<a class="reference internal" href="#compare-a-scenario-with-a-baseline">compare a scenario</a>). During a run a signal head offers <strong>Copy signal location</strong> and <strong>Copy section ID</strong>, which copies the id of the section that <strong>Protected section</strong> shows in its information panel. Right-click the empty view for <strong>Fit whole network</strong>, <strong>Clear selection</strong> and <strong>Stop following train</strong>.</p></li>
-<li><p><strong>Layers.</strong> The check boxes in <strong>Case and Layers</strong> hide stations, station names, trains, speed labels, signals and passengers. <strong>Passengers</strong> is the same switch as <strong>View &gt; Passengers</strong>. It is off at the first start and keeps the last choice; turning it on takes effect from the next run.</p></li>
-<li><p><strong>Follow.</strong> Choose a train in the list next to <strong>Follow</strong> in the toolbar and click <strong>Follow</strong>. The view moves with the train, also while the run is paused. Click <strong>Follow</strong> again, or choose <strong>Stop following train</strong>, to stop.</p></li>
-</ul>
-<p><strong>Follow</strong> is disabled before a run and in a case without services, and its tooltip says why. A train that has not entered the network is listed with its scheduled entry time, for example <code class="docutils literal notranslate"><span class="pre">Rail-1</span> <span class="pre">(scheduled</span> <span class="pre">08:25:50)</span></code>, and Follow starts when it enters. The label at the right of the status bar names the state of the selected train, and its tooltip says whether the train is followed and why not. In a live run Follow switches off when the train leaves the network. In the replay of a completed run it stays on after the train has left, and it continues when you go back in time. <a class="reference internal" href="scenarios.html"><span class="std std-doc">Scenario library and student loop</span></a> describes the camera in detail. For the result windows, see <a class="reference internal" href="diagram-navigation.html"><span class="std std-doc">Inspecting diagrams</span></a>.</p>
-</section>
-<section id="replay-a-completed-run">
-<h2>Replay a completed run<a class="headerlink" href="#replay-a-completed-run" title="Link to this heading">¶</a></h2>
-<p>You need a run that reached its end. A stopped or failed run has no replay, and a stopped run keeps no results either.</p>
-<ol class="arabic">
-<li><p>When the run has ended, the <strong>Replay</strong> row appears under the network. Click <strong>Start</strong>, <strong>Play</strong> or <strong>End</strong>, the icon buttons left of the slider, or move the slider. The arrow keys and the mouse wheel move the slider too.</p></li>
-<li><p>Each selection shows the last recorded frame at or before the chosen time, not an interpolated position. The label beside the slider shows the clock time of the frame in the format of the progress bar, for example <code class="docutils literal notranslate"><span class="pre">08:20:30</span></code>. <strong>Play</strong> advances one simulated second for each second of real time, and the button then turns into <strong>Pause</strong>.</p></li>
-<li><p>When the replay holds the whole run, the row has no further text. A frame is recorded every 5 simulated seconds.</p>
-<p><img alt="The Replay row under the network after a run of Paimpol, with Start, Play, End and the slider at 08:09:00, Follow on Guin-Paim-ALL-STOPS-1-1, and the context menu of that train open: Show details, Add train breakdown, Center in view, Follow train and Copy train index." src="../_images/how-to-replay-menu.png" /></p>
-</li>
+<p>The line under the table names the selected arc and where it lies, and the network view marks the arc with a violet band.</p>
+<p><img alt="The dock Infrastructure on Arcs, filtered to B0.arc.226 (1 of 393 arcs): Track ID B0, From node B0.node.127, To node B0.node.128, Curvature radius (m) 10000, Gradient (rise/length) -0.012 and Speed limit (m/s) 8.333333333. The line under the table reads B0.arc.226: arc on B0 from 12.755 to 13.140 km, and the view at 20x shows the arc as a violet band." src="../_images/how-to-change-infrastructure.png" /></p>
+<p>The picture shows <code class="docutils literal notranslate"><span class="pre">B0.arc.226</span></code> of Paimpol, which runs from 12.755 to 13.140 km, with its limit lowered from 19.444 m/s (70 km/h) to 8.333333333 m/s (30 km/h), the limit of the next arc, <code class="docutils literal notranslate"><span class="pre">B0.arc.227</span></code>. In a run without a window of Paimpol with this one change, the express reached Paimpol 24 s later than before, at 2700 s instead of 2676 s.</p>
+<p>To add a platform to a station:</p>
+<ol class="arabic simple">
+<li><p>Choose <strong>Platforms</strong> and click <strong>Add</strong>. The new platform, <code class="docutils literal notranslate"><span class="pre">platform</span></code>, goes to the first station of the case and has no node yet, so <strong>Case Validation</strong> reports <code class="docutils literal notranslate"><span class="pre">Platform</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">bound</span> <span class="pre">nodes</span></code>.</p></li>
+<li><p>In its row, set <strong>Station ID</strong> to the station, such as <code class="docutils literal notranslate"><span class="pre">Gourland</span></code> on Paimpol. The platform moves to that station.</p></li>
+<li><p>Choose <strong>Choose Nodes…</strong> under the table, or double-click the <strong>Nodes</strong> cell of the platform. <strong>Platform Nodes</strong> lists the nodes of the case as <code class="docutils literal notranslate"><span class="pre">&lt;node&gt;</span> <span class="pre">(&lt;track&gt;,</span> <span class="pre">&lt;x&gt;</span> <span class="pre">km)</span></code>, with a filter field; check the node of the platform, or several, such as <code class="docutils literal notranslate"><span class="pre">B0.node.42</span></code>, the node at 2.581 km next to <code class="docutils literal notranslate"><span class="pre">B0.node.41</span></code> of <code class="docutils literal notranslate"><span class="pre">Gourland.platform.1</span></code>, and click <strong>OK</strong>. A node of another platform or station shows that name and cannot be checked.</p></li>
+<li><p>Read <strong>Case Validation</strong>. A service that stops at the station without a platform now gives the error <code class="docutils literal notranslate"><span class="pre">Stop</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">platform</span> <span class="pre">and</span> <span class="pre">the</span> <span class="pre">route</span> <span class="pre">reaches</span> <span class="pre">more</span> <span class="pre">than</span> <span class="pre">one</span> <span class="pre">here</span></code>, and its <strong>Fix</strong> names one of the platforms. On Paimpol this is the stop of <code class="docutils literal notranslate"><span class="pre">Guin-Paim-ALL-STOPS-1</span></code> at Gourland. Open that stop on the tab <strong>Timetable</strong> of <strong>Services</strong> (<a class="reference internal" href="#edit-a-timetable-stop">Edit a timetable stop</a>), choose a <strong>Compatible platform</strong> and click <strong>OK</strong>.</p></li>
 </ol>
-<p>The replay has 128 MiB of memory. A run that is larger loses its oldest frames. A line under the controls then says from which time the replay starts, for example <code class="docutils literal notranslate"><span class="pre">Replay</span> <span class="pre">starts</span> <span class="pre">at</span> <span class="pre">10:00:20.</span> <span class="pre">Earlier</span> <span class="pre">times</span> <span class="pre">did</span> <span class="pre">not</span> <span class="pre">fit</span> <span class="pre">in</span> <span class="pre">memory.</span></code> The slider covers only the kept part, and <strong>Start</strong> goes to its first time. The tooltip of <strong>Start</strong> says so. If not even one moment fits, the row says <code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">replay</span></code> and <code class="docutils literal notranslate"><span class="pre">This</span> <span class="pre">run</span> <span class="pre">is</span> <span class="pre">too</span> <span class="pre">large</span> <span class="pre">to</span> <span class="pre">replay.</span></code>, and the slider and <strong>Play</strong> are disabled.</p>
-<p>Train, station and signal selections stay across seeks. A train that has no position at the selected time is not drawn. Passenger journey details are not available in a replay, but the counts and statuses are. A new run, an edit of the case or another scenario clears the replay and returns the view to the preview. An edit or another scenario also closes the info dock of the selection.</p>
+<p>With a platform for that stop, the case validates and runs again. Save the copy to keep the change.</p>
+</section>
+<section id="bring-in-track-geometry-from-gis">
+<h2>Bring in track geometry from GIS<a class="headerlink" href="#bring-in-track-geometry-from-gis" title="Link to this heading">¶</a></h2>
+<p>You need a track drawn in GIS software, such as QGIS, and a case with that track, its nodes and its arcs.</p>
+<ol class="arabic simple">
+<li><p>In the GIS software, use a projected coordinate system in metres, such as a national grid or a UTM zone, not latitude and longitude. Draw each track as one line, in the direction in which its arcs run.</p></li>
+<li><p>Take the vertices of each line as points with their distance along the line in metres, for example with the tool Extract Vertices of QGIS.</p></li>
+<li><p>Under <strong>Nodes</strong> in <strong>Editors &gt; Infrastructure</strong>, give each point a node of the track. Set <strong>X (km)</strong> to the distance divided by 1000 and <strong>Y (km)</strong> to 0. X is the distance along the track, not a map coordinate: along every arc it must not go down from the From node to the To node. An arc is as long as the straight distance between its nodes in X and Y, so with Y at 0 its length is the difference of X.</p></li>
+<li><p>Instead of step 3 you can enter the map coordinates: X (km) as easting / 1000 and Y (km) as northing / 1000. Then select the track under <strong>Tracks</strong> and choose <strong>Set X from Distance</strong>, which sets X to the distance along the arcs from the first node and Y to 0 (<a class="reference internal" href="editing-a-case.html#tasks-of-tracks-nodes-and-platforms"><span class="std std-ref">editing a case</span></a>).</p></li>
+<li><p>Under <strong>Blocks</strong>, give the blocks of the track lengths that add up to its length, the X of its last node. <strong>Set X from Distance</strong> names the blocks and stations to check.</p></li>
+<li><p>For a network view that looks like the map, give each station its <code class="docutils literal notranslate"><span class="pre">latitude</span></code> and <code class="docutils literal notranslate"><span class="pre">longitude</span></code> in <code class="docutils literal notranslate"><span class="pre">views.json</span></code> (<a class="reference internal" href="scene-schema.html#views-json-and-runtime-metadata"><span class="std std-ref">views.json</span></a>).</p></li>
+</ol>
+<p>Read <strong>Case Validation</strong> after each step (<a class="reference internal" href="#fix-validation-errors">fix validation errors</a>).</p>
+</section>
+<section id="add-an-incident-or-an-entrance-delay">
+<h2>Add an incident or an entrance delay<a class="headerlink" href="#add-an-incident-or-an-entrance-delay" title="Link to this heading">¶</a></h2>
+<p>Incidents, which are signal failures and train breakdowns, and entrance delays belong to a scenario, not to the whole case (<a class="reference internal" href="glossary.html#incident"><span class="std std-ref">glossary</span></a>). You need an open case that you have copied and no active run: the contents of the dock <strong>Scenarios</strong> are disabled during a run. Keep the scenario without them, such as <code class="docutils literal notranslate"><span class="pre">baseline</span></code>, to compare with (<a class="reference internal" href="#compare-a-scenario-with-a-baseline">Compare a scenario with a baseline</a>).</p>
+<ol class="arabic simple">
+<li><p>Choose <strong>Editors &gt; Scenarios</strong>. On the tab <strong>Scenario</strong>, select a scenario and click <strong>Duplicate</strong>, or click <strong>New</strong> for an empty one. The new scenario is selected. Give it a <strong>Name</strong>, such as <code class="docutils literal notranslate"><span class="pre">Express</span> <span class="pre">breakdown</span></code>.</p></li>
+<li><p>Open the tab <strong>Incidents</strong> and click <strong>Add Incident</strong>. Set <strong>Type</strong> to <strong>Signal failure</strong> or <strong>Train breakdown</strong>, choose the <strong>Target</strong> and enter <strong>Start (s)</strong>. <strong>End (s)</strong> is ticked on a new incident; enter the end in its field. A signal failure always needs an end. A train breakdown holds the train in place from its start to its end, and needs an end too, unless you tick <strong>Reduced speed</strong>: the breakdown then limits the speed of the train to the speed in that field, in km/h (40 km/h at first), instead of stopping it. Untick <strong>End (s)</strong> to keep that limit until the train reaches the end of its route. Press Enter after each number. The times are seconds after the base time of the case.</p></li>
+<li><p>To take the target from the network view instead, select a signal head or a train there before you click <strong>Add Incident</strong>: it becomes the target of the new incident. The icon button <strong>Pick</strong> beside <strong>Target</strong> waits for the next one that you click and takes it as the target; Esc or a second click on <strong>Pick</strong> stops the wait. A signal head gives a signal failure of its block, or of the authored signal when exactly one protects its section, and a train of a completed run gives a breakdown of its occurrence.</p></li>
+<li><p>For an entrance delay, open the tab <strong>Entrance delays</strong> and click <strong>Add</strong>. This adds a row for the first service that has a planned departure, at its first stop with one, with a delay of 0 s. With the row selected, change <strong>Service</strong>, <strong>Occurrence</strong>, <strong>Station</strong> and <strong>Delay (s)</strong>; the line in the list follows each change, and <strong>Delay (s)</strong> takes effect when you press Enter or leave the field.</p></li>
+</ol>
+<p>You can also start on the network view: right-click a signal head and choose <strong>Add signal failure</strong>, or right-click a train after a run and choose <strong>Add train breakdown</strong>. The information panel of a signal or a train has the same action as a button under its fields. It adds the incident to the selected scenario as one edit, which Undo takes back, opens the tab <strong>Incidents</strong> with the new incident selected and puts the cursor in <strong>Start (s)</strong>. It is disabled while the case runs and when the item gives no target, and its tooltip says why. After a run the new incident discards the results, as any edit does, and the status bar says so.</p>
+<p><img alt="The dock Scenarios of Paimpol on the tab Incidents of Express breakdown: new_incident, a Train breakdown of Guin-Paim-EXPRESS-1-1 (route route6, +10 s), Start (s) 900, End (s) ticked with 1200, and Reduced speed (40 km/h dimmed) and Terminate at destination unticked." src="../_images/how-to-add-an-incident.png" /></p>
+<p>The picture shows the scenario <code class="docutils literal notranslate"><span class="pre">Express</span> <span class="pre">breakdown</span></code>, a duplicate of <code class="docutils literal notranslate"><span class="pre">baseline</span></code> of Paimpol, with one train breakdown of the express from 900 s to 1200 s. The <a class="reference internal" href="tutorial-modify-a-case.html"><span class="std std-doc">tutorial</span></a> adds the same incident and compares its run with <code class="docutils literal notranslate"><span class="pre">baseline</span></code>.</p>
 </section>
 <section id="results-and-exports">
 <h2>Results and exports<a class="headerlink" href="#results-and-exports" title="Link to this heading">¶</a></h2>
@@ -466,40 +579,104 @@
 <ol class="arabic simple">
 <li><p>The dock <strong>Run Results</strong> opens when the run ends. If it is closed, choose its entry in the menu <strong>View</strong>, which starts with Run Results.</p></li>
 <li><p>Click <strong>Open result view…</strong> and choose an entry, or use the menu <strong>Diagrams</strong>. An entry in <strong>Diagrams</strong> that asks for more input ends in an ellipsis.</p></li>
-<li><p><strong>Timetable graph</strong>, <strong>Train paths</strong> and <strong>Delays</strong> first ask for a reference route, and <strong>Blocking time</strong> asks for its scope. <strong>Capacity</strong> needs at least two trains on the chosen blocks: choose a route, a From block and a To block, which default to the whole route, and check the trains. All the trains on these blocks are checked at first.</p></li>
+<li><p>Some views ask for a reference route or a scope first; <a class="reference internal" href="#view-a-graph-of-a-run">View a graph of a run</a> lists the views and what each asks for.</p></li>
 <li><p>In a chart window, <strong>Fit</strong> in the header returns to the full chart. The panel at the right has <strong>Trains</strong>, which filters the trains, and <strong>CSV…</strong> and <strong>PNG…</strong>, which save the data and the picture of the visible trains. After a CSV export, the status bar of the main window names the saved file for a few seconds. Hover, click, zoom and pan are described in <a class="reference internal" href="diagram-navigation.html"><span class="std std-doc">Inspecting diagrams</span></a>.</p></li>
 </ol>
-<p>The buttons <strong>Export CSV…</strong> and <strong>Export PNG…</strong> in the dock save the summary table as <code class="docutils literal notranslate"><span class="pre">run_summary.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">run_summary.png</span></code>. Each export asks for a path, adds the extension when you leave it off and writes a second file, <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;.provenance.json</span></code>, that records the run. Exports are not written to the output folder, and they are not part of the case. An export dialog starts in your Documents folder, or in your home folder when there is none. A window keeps the run it was opened for, so a later run does not change it. If the write fails, the message <strong>Export failed</strong> names the path.</p>
+<p>The buttons <strong>Export CSV…</strong> and <strong>Export PNG…</strong> in the dock save the summary table as <code class="docutils literal notranslate"><span class="pre">run_summary.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">run_summary.png</span></code>. Each export asks for a path, adds the extension when you leave it off (and asks before that name replaces a file) and writes a second file, <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;.provenance.json</span></code>, that records the run. Exports are not written to the output folder, and they are not part of the case. An export dialog starts in your Documents folder, or in your home folder when there is none. A window keeps the run it was opened for, so a later run does not change it. Creating or opening another case closes the result windows. If the write fails, the message <strong>Export failed</strong> names the path and, on the line below, the reason.</p>
 <p>Delay figures are explained in <a class="reference internal" href="delay-analysis.html"><span class="std std-doc">How delays are calculated</span></a>, capacity in <a class="reference internal" href="capacity-analysis.html"><span class="std std-doc">How capacity is analysed</span></a> and the text files of a run in <a class="reference internal" href="run-output.html"><span class="std std-doc">Run output</span></a>.</p>
 </section>
-<section id="convert-a-legacy-case-and-write-legacy-files">
-<h2>Convert a legacy case and write legacy files<a class="headerlink" href="#convert-a-legacy-case-and-write-legacy-files" title="Link to this heading">¶</a></h2>
-<p>A legacy case is the input folder of earlier versions. EGTRAIN converts it into a new case folder and leaves the source unchanged.</p>
+<section id="view-a-graph-of-a-run">
+<h2>View a graph of a run<a class="headerlink" href="#view-a-graph-of-a-run" title="Link to this heading">¶</a></h2>
+<p>You need a run that reached its end (<a class="reference internal" href="#run-a-case">Run a case</a>). Each view opens in a window of its own.</p>
 <ol class="arabic simple">
-<li><p>Choose <strong>File &gt; Import Legacy Case…</strong>, or <strong>Other ways to open… &gt; Import Legacy Case…</strong> in <strong>Open a Case</strong>. Both go straight to the folder dialogs.</p></li>
-<li><p>Select the legacy case folder in <strong>Select Legacy Case Folder</strong>, then a destination in <strong>Select Case Destination</strong>. The destination must already exist, so create an empty folder for it first (the folder dialog has a button for a new folder); a name that does not exist gives <code class="docutils literal notranslate"><span class="pre">Directory</span> <span class="pre">not</span> <span class="pre">found</span></code>. It must be separate from the source and outside it, or <strong>Cannot Import Legacy Case</strong> says so. If the open case has unsaved edits, EGTRAIN asks about them after you have chosen both folders and before it imports.</p></li>
-<li><p>If the import reports errors, warnings or notes, the box <strong>Legacy Case Imported</strong> counts them, for example <code class="docutils literal notranslate"><span class="pre">Import:</span> <span class="pre">1</span> <span class="pre">error,</span> <span class="pre">2</span> <span class="pre">warnings</span></code>, and lists the first findings. An import without findings shows no box. The converted case then opens. <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">export</span></code> writes the base time and the simulation settings to <code class="docutils literal notranslate"><span class="pre">EGTRAINInitialParameters.json</span></code>, and the import reads that file. A legacy case without it whose name is not a known case has no base time and no duration: the case reports two validation errors and cannot run until you set both in <strong>Editors &gt; Case Settings</strong>. The details are in <code class="docutils literal notranslate"><span class="pre">import_report</span></code> in <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>, and the dock <strong>Loaded Data</strong> shows the counts.</p></li>
+<li><p>Choose the view in the menu <strong>Diagrams</strong>, or click <strong>Open result view…</strong> in the dock <strong>Run Results</strong> and choose it there. Both list the views below in this order.</p></li>
+<li><p>An entry of <strong>Diagrams</strong> that ends in an ellipsis asks for input first. For <strong>Timetable graph…</strong>, <strong>Delays…</strong> and <strong>Train paths…</strong>, the dialog <strong>Reference route</strong> lists the routes that the trains of the run used, each with its stations; routes that would read the same also name their services. Choose the route that the distance axis follows and click <strong>OK</strong>.</p></li>
+<li><p><strong>Blocking time…</strong> asks for a route, a stretch and a time range. <strong>Capacity…</strong> needs at least two trains on the chosen blocks: choose a route and a stretch, from station to station or from block to block, which defaults to the whole route, and check the trains. All the trains on these blocks are checked at first. <strong>Capacity by area…</strong> asks for a range of blocks on one route, or on two, and a period.</p></li>
 </ol>
-<p>From a terminal:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scene_tool<span class="w"> </span>import<span class="w"> </span>path/to/legacy-case<span class="w"> </span>path/to/new-case<span class="w"> </span>CaseName
-scene_tool<span class="w"> </span>validate<span class="w"> </span>path/to/new-case
-</pre></div>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>View</p></th>
+<th class="head"><p>What it shows</p></th>
+<th class="head"><p>Asks first for</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Timetable</strong></p></td>
+<td><p>The planned and simulated times of each train at its stops, in a table</p></td>
+<td><p>Nothing</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Timetable graph</strong></p></td>
+<td><p>The planned and simulated stops of the trains on one route, with distance across and time downward</p></td>
+<td><p>A reference route</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Delays</strong></p></td>
+<td><p>The arrival delay of each train at its stops, in minutes, along one route</p></td>
+<td><p>A reference route</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Delay analysis</strong></p></td>
+<td><p>The delay of every call, a summary, the punctuality and the comparison with a delay baseline</p></td>
+<td><p>Nothing</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Speed / distance</strong></p></td>
+<td><p>The speed of each train against the distance it has covered</p></td>
+<td><p>Nothing</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Speed / time</strong></p></td>
+<td><p>The speed of each train against the time</p></td>
+<td><p>Nothing</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Time / distance</strong></p></td>
+<td><p>The distance each train has covered against the time</p></td>
+<td><p>Nothing</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Tractive effort / distance</strong></p></td>
+<td><p>The simulated tractive effort of each train against the distance it has covered</p></td>
+<td><p>Nothing</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Train paths</strong></p></td>
+<td><p>The path of every train on one route, with distance across and time downward</p></td>
+<td><p>A reference route</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Blocking time</strong></p></td>
+<td><p>The blocking times of the trains on a stretch of a route</p></td>
+<td><p>A route, a stretch and a time range</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Capacity</strong></p></td>
+<td><p>The minimum headways and the cycle of a chain of trains on a stretch</p></td>
+<td><p>A route, a stretch and the trains</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Capacity by area</strong></p></td>
+<td><p>The occupation of the blocks of an area by the trains</p></td>
+<td><p>One or two block ranges and a period</p></td>
+</tr>
+</tbody>
+</table>
 </div>
-<p>The window cannot write legacy files. <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">export</span> <span class="pre">path/to/case</span> <span class="pre">path/to/legacy-output</span></code> writes them for another tool, and edits to those files do not flow back into the case. <a class="reference internal" href="scene-schema.html#convert-a-legacy-case"><span class="std std-ref">Convert a legacy case</span></a> lists what the conversion preserves, and the <a class="reference internal" href="v1-scene-migration-matrix.html"><span class="std std-doc">migration matrix</span></a> says what each legacy file becomes.</p>
+<p><img alt="The window Train paths, headed Paimpol / baseline · route2: Guingamp (0.20 km), Brelidy-Plouec, Pontrieaux (21.58 km) and Paimpol across the top, Distance (km) along the bottom and Time (hh:mm) down from 07:10:40. The panel lists Trains 2 of 2, Guin-Paim-ALL-STOPS-1-1 with a blue line and Guin-Paim-EXPRESS-1-1 with a pink one, and Export with PNG... and CSV...." src="../_images/how-to-train-paths.png" /></p>
+<p>The picture shows <strong>Train paths</strong> after a run of <code class="docutils literal notranslate"><span class="pre">baseline</span></code> of Paimpol, on <code class="docutils literal notranslate"><span class="pre">route2</span></code>, the first route of the list. The line of each train runs down the window as time passes, and it is vertical where the train stands at a station. <a class="reference internal" href="diagram-navigation.html#timetable-graphs-and-train-paths"><span class="std std-ref">Inspecting diagrams</span></a> explains how to read and move such a chart, and <a class="reference internal" href="#results-and-exports">Results and exports</a> how to save it.</p>
 </section>
-<section id="close-start-a-new-case-or-open-another-during-a-run">
-<h2>Close, start a new case or open another during a run<a class="headerlink" href="#close-start-a-new-case-or-open-another-during-a-run" title="Link to this heading">¶</a></h2>
-<p>Closing the window, <strong>New Case…</strong>, the open commands and <strong>Import Legacy Case…</strong> first ask for the unsaved changes question if the case has edits. They then ask the running simulation to stop. The status bar shows <code class="docutils literal notranslate"><span class="pre">Stopping</span> <span class="pre">simulation...</span></code> and the window stays usable. The command goes on when the run has stopped, and the current case is replaced only then, so an open that fails leaves it in place. A stopped run leaves no results.</p>
+<section id="compare-a-scenario-with-a-baseline">
+<h2>Compare a scenario with a baseline<a class="headerlink" href="#compare-a-scenario-with-a-baseline" title="Link to this heading">¶</a></h2>
+<p>A scenario is a named set of incidents and entrance delays. <strong>Set delay baseline</strong> freezes a completed run without them, and <strong>Compare delays</strong> shows how much later or earlier each call of a run with them is. Any edit of the case clears the baseline, so build the scenario before you run the baseline.</p>
+<ol class="arabic simple">
+<li><p>Choose <strong>Editors &gt; Scenarios</strong>. The list <strong>Scenarios</strong> holds each scenario. Click <strong>New</strong>, or select a scenario and click <strong>Duplicate</strong>, to create the scenario to test.</p></li>
+<li><p>Add the incidents and entrance delays to that scenario (<a class="reference internal" href="#add-an-incident-or-an-entrance-delay">Add an incident or an entrance delay</a>).</p></li>
+<li><p>Select the scenario without incidents and entrance delays (the bundled cases have one, <code class="docutils literal notranslate"><span class="pre">baseline</span></code>). Click <strong>Run</strong>, and <strong>Run simulation</strong>. When the run has ended, click <strong>Set delay baseline</strong> in the dock <strong>Run Results</strong>. The line under <strong>Delay comparison</strong> names the baseline.</p></li>
+<li><p>Select the scenario with the incident in the list <strong>Scenarios</strong>. This keeps the baseline and discards the results. Run it.</p></li>
+<li><p>Click <strong>Compare delays</strong>. The window <strong>Delay analysis</strong> opens on the tab <strong>Against baseline</strong>.</p></li>
+</ol>
+<p>The two buttons say why they are disabled in their tooltips and in the line above them. <strong>Set delay baseline</strong> needs a completed run whose scenario has no incident and no entrance delay. <strong>Compare delays</strong> needs a baseline and a completed run whose scenario has at least one of them. The tab lists every reason when the baseline does not fit the run: the runs need different scenarios and the same case revision, base time, duration, timestep and occurrences. <a class="reference internal" href="delay-analysis.html#delay-comparison-against-a-baseline"><span class="std std-ref">How delays are calculated</span></a> has the rules. <a class="reference internal" href="scenarios.html"><span class="std std-doc">Scenario library and student loop</span></a> describes the library. <strong>Import…</strong> and <strong>Export…</strong> in the dock move a single scenario between cases.</p>
 </section>
 <section id="change-the-application-settings">
 <h2>Change the application settings<a class="headerlink" href="#change-the-application-settings" title="Link to this heading">¶</a></h2>
 <p><strong>Edit &gt; Settings…</strong> opens the window <strong>Settings</strong>. On macOS the entry is in the <strong>EGTRAIN</strong> menu (Command+,). The window holds the settings that apply to every case:</p>
 <ul class="simple">
 <li><p><strong>General</strong>: the recent cases that <strong>File &gt; Recent Cases</strong> and <strong>Open a Case</strong> offer, and <strong>Clear Recent Cases</strong>.</p></li>
-<li><p><strong>Display</strong>: <strong>Show passengers</strong>, the same switch as <strong>View &gt; Passengers</strong>, and <strong>Show advanced details</strong>, the same as <strong>View &gt; Advanced Details</strong>.</p></li>
+<li><p><strong>Display</strong>: <strong>Show passengers</strong>, the same switch as <strong>View &gt; Passengers</strong>, <strong>Show advanced details</strong>, the same as <strong>View &gt; Advanced Details</strong>, and <strong>Station marks</strong>, the look of the stations on the canvas and in the map key: <strong>Map pin</strong>, a pin that stands on the station, or <strong>Ring and bar</strong>, <strong>Class marks</strong> or <strong>Plain dot</strong>, which sit on the station. Plain dot tells the station classes apart by size only.</p></li>
 <li><p><strong>Updates and privacy</strong>: <strong>Automatically check for updates</strong>, the same as the Help entry, and the two choices of <strong>Help &gt; Privacy &amp; diagnostics…</strong>. A build that collects nothing shows them disabled.</p></li>
 </ul>
-<p><strong>OK</strong> saves the changes, and the menu entries show them at once. <strong>Restore Defaults</strong> clears the recent cases and turns every switch off; EGTRAIN then asks about automatic update checks again at the next start. It too takes effect with <strong>OK</strong>. The settings of the open case, such as its base time and duration, are in <strong>Case Settings</strong>.</p>
+<p><strong>OK</strong> saves the changes, and the menu entries, the canvas and the map key show them at once. <strong>Restore Defaults</strong> clears the recent cases, turns every switch off and sets <strong>Station marks</strong> to <strong>Map pin</strong>; EGTRAIN then asks about automatic update checks again at the next start. It too takes effect with <strong>OK</strong>. The settings of the open case, such as its base time and duration, are in <strong>Case Settings</strong>.</p>
 </section>
 <section id="if-egtrain-closes-unexpectedly">
 <h2>If EGTRAIN closes unexpectedly<a class="headerlink" href="#if-egtrain-closes-unexpectedly" title="Link to this heading">¶</a></h2>
@@ -537,7 +714,7 @@ scene_tool<span class="w"> </span>validate<span class="w"> </span>path/to/new-ca
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><strong>Run</strong> (toolbar), <strong>Simulation &gt; Run</strong>, <strong>File &gt; Run</strong></p></td>
+<tr class="row-even"><td><p><strong>Run</strong> (toolbar), <strong>Simulation &gt; Run</strong></p></td>
 <td><p>No case is open, a run is active, or validation reports an error</p></td>
 <td><p>Read the first error in <strong>View &gt; Case Validation</strong> (<a class="reference internal" href="#fix-validation-errors">fix validation errors</a>) or wait for the run</p></td>
 </tr>
@@ -545,11 +722,11 @@ scene_tool<span class="w"> </span>validate<span class="w"> </span>path/to/new-ca
 <td><p>No run is active, or the run is already stopping</p></td>
 <td><p>Start a run, or wait for the run to stop</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>File &gt; Save</strong>, <strong>Save As…</strong>, <strong>Save As Folder…</strong></p></td>
+<tr class="row-even"><td><p><strong>File &gt; Save</strong>, <strong>Save As…</strong></p></td>
 <td><p>No case is open</p></td>
 <td><p>Open or create a case. A normal start always has one open</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>File &gt; Set Output Folder…</strong></p></td>
+<tr class="row-odd"><td><p><strong>Simulation &gt; Set Output Folder…</strong></p></td>
 <td><p>A run is active</p></td>
 <td><p>Wait for the run to end. The folder applies from the next run</p></td>
 </tr>
@@ -561,20 +738,24 @@ scene_tool<span class="w"> </span>validate<span class="w"> </span>path/to/new-ca
 <td><p>A run uses the case, or there is nothing to undo or redo</p></td>
 <td><p>Stop the run or wait</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Diagrams</strong> entries, <strong>Open result view…</strong>, <strong>Export CSV…</strong>, <strong>Export PNG…</strong> in <strong>Run Results</strong></p></td>
+<tr class="row-even"><td><p><strong>Reverse Track</strong>, <strong>Set X from Distance</strong>, <strong>Add Station…</strong>, <strong>Choose Nodes…</strong> in <strong>Infrastructure</strong></p></td>
+<td><p>No row is selected, or a run uses the case</p></td>
+<td><p>Select a row of the table, or stop the run or wait</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Diagrams</strong> entries, <strong>Open result view…</strong>, <strong>Export CSV…</strong>, <strong>Export PNG…</strong> in <strong>Run Results</strong></p></td>
 <td><p>No run has reached its end since the last edit</p></td>
 <td><p>Run again. A stopped run, an edit, a new case and another scenario all discard results</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Set delay baseline</strong></p></td>
+<tr class="row-even"><td><p><strong>Set delay baseline</strong></p></td>
 <td><p>There is no completed run, or its scenario has an incident or an entrance delay</p></td>
 <td><p><a class="reference internal" href="#compare-a-scenario-with-a-baseline">Compare a scenario with a baseline</a></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Compare delays</strong></p></td>
+<tr class="row-odd"><td><p><strong>Compare delays</strong></p></td>
 <td><p>There is no baseline, or the completed run has neither an incident nor an entrance delay</p></td>
 <td><p>Same</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Follow</strong></p></td>
-<td><p>No run has started, or the case has no services</p></td>
+<tr class="row-even"><td><p><strong>Follow</strong></p></td>
+<td><p>No run has started since the last edit or switch of scenario, or the case has no services</p></td>
 <td><p>Run the case and choose a train</p></td>
 </tr>
 </tbody>
@@ -589,23 +770,23 @@ scene_tool<span class="w"> </span>validate<span class="w"> </span>path/to/new-ca
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="opening-a-case-study.html">
+          <a class="next-page" href="common-questions.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</div>
+                <div class="title">Common questions</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="case-studies.html">
+          <a class="prev-page" href="getting-started.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Bundled cases</div>
+                <div class="title">Getting started</div>
                 
               </div>
             </a>
@@ -617,7 +798,7 @@ scene_tool<span class="w"> </span>validate<span class="w"> </span>path/to/new-ca
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">
@@ -642,17 +823,23 @@ scene_tool<span class="w"> </span>validate<span class="w"> </span>path/to/new-ca
 <li><a class="reference internal" href="#">How-to</a><ul>
 <li><a class="reference internal" href="#open-a-case">Open a case</a></li>
 <li><a class="reference internal" href="#copy-and-save-a-case">Copy and save a case</a></li>
+<li><a class="reference internal" href="#answer-the-unsaved-changes-question">Answer the unsaved changes question</a></li>
+<li><a class="reference internal" href="#convert-a-legacy-case-and-write-legacy-files">Convert a legacy case and write legacy files</a></li>
 <li><a class="reference internal" href="#run-a-case">Run a case</a></li>
 <li><a class="reference internal" href="#fix-validation-errors">Fix validation errors</a></li>
-<li><a class="reference internal" href="#answer-the-unsaved-changes-question">Answer the unsaved changes question</a></li>
-<li><a class="reference internal" href="#edit-a-timetable-stop">Edit a timetable stop</a></li>
-<li><a class="reference internal" href="#edit-rolling-stock">Edit rolling stock</a></li>
-<li><a class="reference internal" href="#compare-a-scenario-with-a-baseline">Compare a scenario with a baseline</a></li>
 <li><a class="reference internal" href="#move-around-the-network-view-and-follow-a-train">Move around the network view and follow a train</a></li>
 <li><a class="reference internal" href="#replay-a-completed-run">Replay a completed run</a></li>
-<li><a class="reference internal" href="#results-and-exports">Results and exports</a></li>
-<li><a class="reference internal" href="#convert-a-legacy-case-and-write-legacy-files">Convert a legacy case and write legacy files</a></li>
 <li><a class="reference internal" href="#close-start-a-new-case-or-open-another-during-a-run">Close, start a new case or open another during a run</a></li>
+<li><a class="reference internal" href="#edit-a-timetable-stop">Edit a timetable stop</a></li>
+<li><a class="reference internal" href="#add-a-train">Add a train</a></li>
+<li><a class="reference internal" href="#add-a-service">Add a service</a></li>
+<li><a class="reference internal" href="#edit-rolling-stock">Edit rolling stock</a></li>
+<li><a class="reference internal" href="#change-the-infrastructure-of-a-case">Change the infrastructure of a case</a></li>
+<li><a class="reference internal" href="#bring-in-track-geometry-from-gis">Bring in track geometry from GIS</a></li>
+<li><a class="reference internal" href="#add-an-incident-or-an-entrance-delay">Add an incident or an entrance delay</a></li>
+<li><a class="reference internal" href="#results-and-exports">Results and exports</a></li>
+<li><a class="reference internal" href="#view-a-graph-of-a-run">View a graph of a run</a></li>
+<li><a class="reference internal" href="#compare-a-scenario-with-a-baseline">Compare a scenario with a baseline</a></li>
 <li><a class="reference internal" href="#change-the-application-settings">Change the application settings</a></li>
 <li><a class="reference internal" href="#if-egtrain-closes-unexpectedly">If EGTRAIN closes unexpectedly</a></li>
 <li><a class="reference internal" href="#why-a-command-is-disabled">Why a command is disabled</a></li>

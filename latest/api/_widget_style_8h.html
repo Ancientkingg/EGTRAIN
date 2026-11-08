@@ -8,7 +8,6 @@
 <title>EGTRAIN: widgets/WidgetStyle.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -114,28 +113,63 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_widget_style_
 <div class="contents">
 <div class="textblock"><code>#include &lt;QApplication&gt;</code><br />
 <code>#include &lt;QLatin1String&gt;</code><br />
+<code>#include &lt;QString&gt;</code><br />
 <code>#include &lt;QStyle&gt;</code><br />
 <code>#include &lt;QStyleFactory&gt;</code><br />
 <code>#include &lt;cstring&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for WidgetStyle.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_widget_style_8h__incl.svg" width="568" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_widget_style_8h__incl.svg" width="655" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_widget_style_8h__dep__incl.svg" width="179" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_widget_style_8h__dep__incl.svg" width="179" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-</div>
-<p><a href="_widget_style_8h_source.html">Go to the source code of this file.</a></p>
-<table class="memberdecls">
+</div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a402e3212deea5cf475cdbc282b777d06" id="r_a402e3212deea5cf475cdbc282b777d06"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a402e3212deea5cf475cdbc282b777d06">widgetStyleChosen</a> (int argc, char **argv)</td></tr>
 <tr class="memitem:adbd28c269bad50e657be6299fadc1f2f" id="r_adbd28c269bad50e657be6299fadc1f2f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#adbd28c269bad50e657be6299fadc1f2f">preferWindowsVistaStyle</a> (bool styleChosen)</td></tr>
+<tr class="memitem:ac8a702e7623e3b80775b4987aa3d809a" id="r_ac8a702e7623e3b80775b4987aa3d809a"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ac8a702e7623e3b80775b4987aa3d809a">applicationStyleSheet</a> (const QString &amp;sheet, const QString &amp;styleName)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="ac8a702e7623e3b80775b4987aa3d809a" name="ac8a702e7623e3b80775b4987aa3d809a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac8a702e7623e3b80775b4987aa3d809a">&#9670;&#160;</a></span>applicationStyleSheet()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString applicationStyleSheet </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>sheet</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>styleName</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The application style sheet sheet as EGTRAIN applies it under the widget style named styleName (QStyle::name()). Under the macOS style and Fusion it ends with a rule that has the style sheet draw each item of a list, table or tree whole; under any other style, windowsvista and windows11 among them, it is sheet. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_widget_style_8h_ac8a702e7623e3b80775b4987aa3d809a_cgraph.svg" width="175" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="adbd28c269bad50e657be6299fadc1f2f" name="adbd28c269bad50e657be6299fadc1f2f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adbd28c269bad50e657be6299fadc1f2f">&#9670;&#160;</a></span>preferWindowsVistaStyle()</h2>
 
@@ -162,7 +196,7 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_widget_style_8h_adbd28c269bad50e657be6299fadc1f2f_cgraph.svg" width="198" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_widget_style_8h_adbd28c269bad50e657be6299fadc1f2f_cgraph.svg" width="196" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -197,7 +231,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_widget_style_8h_a402e3212deea5cf475cdbc282b777d06_cgraph.svg" width="158" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_widget_style_8h_a402e3212deea5cf475cdbc282b777d06_cgraph.svg" width="158" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

@@ -1,0 +1,9 @@
+<map id="SortRecordedEventsForAllInfrastructureElements" name="SortRecordedEventsForAllInfrastructureElements">
+<area shape="rect" id="Node000001" title="Sorts the recorded events of every element with orderListOfTrainEvents." alt="" coords="5,29,195,74"/>
+<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a3bfce1c13c0402a88b9253e677105b9a" title=" " alt="" coords="243,29,432,74"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,49,230,51,224,52,195,54"/>
+<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="294,27,293,19,300,10,315,5,337,3,362,5,378,14,373,14,361,10,337,8,316,10,303,15,298,21,299,30"/>
+<area shape="rect" id="Node000003" href="$_signalling_8cpp.html#a83551e4431b445f64b467e1beaeaa11b" title=" " alt="" coords="480,38,648,66"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="432,49,467,52,461,52,432,54"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="525,36,519,29,524,19,539,13,564,11,591,14,607,23,601,22,589,19,564,16,541,18,528,23,524,29,530,38"/>
+</map>

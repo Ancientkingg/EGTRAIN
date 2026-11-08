@@ -8,7 +8,6 @@
 <title>EGTRAIN: StationOverlayItem::ViewportPlacement Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,11 +115,11 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_station
 <p>Where the mark and the label go for one label side, in logical pixels of the viewport.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_station_overlay_item_8h_source.html">graphics/items/StationOverlayItem.h</a>&gt;</code></p>
+<p><code>#include &lt;graphics/items/StationOverlayItem.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a42008f91f400e418ba7195fe6eb73848" id="r_a42008f91f400e418ba7195fe6eb73848"><td class="memItemLeft"><a class="el" href="class_station_overlay_item.html#a0af9fa9f950f04263d448e47806e9f2f">LabelSide</a>&#160;</td><td class="memItemRight"><a class="el" href="#a42008f91f400e418ba7195fe6eb73848">side</a> = <a class="el" href="class_station_overlay_item.html#a0af9fa9f950f04263d448e47806e9f2fa92b09c7c48c520c3c55e497875da437c">LabelSide::Right</a></td></tr>
+<tr class="memitem:a42008f91f400e418ba7195fe6eb73848" id="r_a42008f91f400e418ba7195fe6eb73848"><td class="memItemLeft"><a class="el" href="class_station_overlay_item.html#a0af9fa9f950f04263d448e47806e9f2f">LabelSide</a>&#160;</td><td class="memItemRight"><a class="el" href="#a42008f91f400e418ba7195fe6eb73848">side</a></td></tr>
 <tr class="memdesc:a42008f91f400e418ba7195fe6eb73848"><td class="mdescLeft">&#160;</td><td class="mdescRight">The side of the label.  <br /></td></tr>
 <tr class="memitem:ae4ce167ae3ce466a4ef3bd14c0896252" id="r_ae4ce167ae3ce466a4ef3bd14c0896252"><td class="memItemLeft">QPointF&#160;</td><td class="memItemRight"><a class="el" href="#ae4ce167ae3ce466a4ef3bd14c0896252">offset</a></td></tr>
 <tr class="memdesc:ae4ce167ae3ce466a4ef3bd14c0896252"><td class="mdescLeft">&#160;</td><td class="mdescRight">The move that keeps the mark and the label in the inset; zero when the anchor is too far out.  <br /></td></tr>
@@ -130,11 +129,11 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a916752976edbaf2f1b35ab099ff8250e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The label after the move.  <br /></td></tr>
 <tr class="memitem:a3e396fed304e8e3d668605b348fa6697" id="r_a3e396fed304e8e3d668605b348fa6697"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a3e396fed304e8e3d668605b348fa6697">combinedRect</a></td></tr>
 <tr class="memdesc:a3e396fed304e8e3d668605b348fa6697"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mark and the label after the move.  <br /></td></tr>
-<tr class="memitem:a3758362ffd514d62cbd24aa0f4f9dc91" id="r_a3758362ffd514d62cbd24aa0f4f9dc91"><td class="memItemLeft">qreal&#160;</td><td class="memItemRight"><a class="el" href="#a3758362ffd514d62cbd24aa0f4f9dc91">overflow</a> = 0.0</td></tr>
+<tr class="memitem:a3758362ffd514d62cbd24aa0f4f9dc91" id="r_a3758362ffd514d62cbd24aa0f4f9dc91"><td class="memItemLeft">qreal&#160;</td><td class="memItemRight"><a class="el" href="#a3758362ffd514d62cbd24aa0f4f9dc91">overflow</a></td></tr>
 <tr class="memdesc:a3758362ffd514d62cbd24aa0f4f9dc91"><td class="mdescLeft">&#160;</td><td class="mdescRight">How far the mark and the label reach outside the inset before the move, summed over the four sides.  <br /></td></tr>
-<tr class="memitem:a53b99afa67ab3c7538321fc6ff9fc919" id="r_a53b99afa67ab3c7538321fc6ff9fc919"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a53b99afa67ab3c7538321fc6ff9fc919">fitsBeforeClamp</a> = false</td></tr>
+<tr class="memitem:a53b99afa67ab3c7538321fc6ff9fc919" id="r_a53b99afa67ab3c7538321fc6ff9fc919"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a53b99afa67ab3c7538321fc6ff9fc919">fitsBeforeClamp</a></td></tr>
 <tr class="memdesc:a53b99afa67ab3c7538321fc6ff9fc919"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mark and the label fit in the inset without the move.  <br /></td></tr>
-<tr class="memitem:a5265e9711429efeaa5e4074011fc8946" id="r_a5265e9711429efeaa5e4074011fc8946"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a5265e9711429efeaa5e4074011fc8946">fits</a> = false</td></tr>
+<tr class="memitem:a5265e9711429efeaa5e4074011fc8946" id="r_a5265e9711429efeaa5e4074011fc8946"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a5265e9711429efeaa5e4074011fc8946">fits</a></td></tr>
 <tr class="memdesc:a5265e9711429efeaa5e4074011fc8946"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mark and the label fit in the inset after the move.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -163,7 +162,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool StationOverlayItem::ViewportPlacement::fits = false</td>
+          <td class="memname">bool StationOverlayItem::ViewportPlacement::fits</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -179,7 +178,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool StationOverlayItem::ViewportPlacement::fitsBeforeClamp = false</td>
+          <td class="memname">bool StationOverlayItem::ViewportPlacement::fitsBeforeClamp</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -227,7 +226,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">qreal StationOverlayItem::ViewportPlacement::overflow = 0.0</td>
+          <td class="memname">qreal StationOverlayItem::ViewportPlacement::overflow</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -243,7 +242,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="class_station_overlay_item.html#a0af9fa9f950f04263d448e47806e9f2f">LabelSide</a> StationOverlayItem::ViewportPlacement::side = <a class="el" href="class_station_overlay_item.html#a0af9fa9f950f04263d448e47806e9f2fa92b09c7c48c520c3c55e497875da437c">LabelSide::Right</a></td>
+          <td class="memname"><a class="el" href="class_station_overlay_item.html#a0af9fa9f950f04263d448e47806e9f2f">LabelSide</a> StationOverlayItem::ViewportPlacement::side</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -269,7 +268,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>graphics/items/<a class="el" href="_station_overlay_item_8h_source.html">StationOverlayItem.h</a></li>
+<li>graphics/items/<a class="el" href="_station_overlay_item_8h.html">StationOverlayItem.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

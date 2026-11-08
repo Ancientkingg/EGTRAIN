@@ -1,5 +1,5 @@
 <map id="RecoveryStore::RecoveryStore" name="RecoveryStore::RecoveryStore">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,225,31"/>
-<area shape="rect" id="Node000002" href="$class_recovery_store.html#a9a12849494955131dc4010497628b7ef" title="root is the folder that holds the instance folders. Nothing is created until open()." alt="" coords="273,5,493,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="225,15,260,15,260,21,225,21"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,225,33"/>
+<area shape="rect" id="Node000002" href="$class_recovery_store.html#a9a12849494955131dc4010497628b7ef" title="root is the folder that holds the instance folders. Nothing is created until open()." alt="" coords="273,5,492,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="225,17,260,19,254,19,225,22"/>
 </map>

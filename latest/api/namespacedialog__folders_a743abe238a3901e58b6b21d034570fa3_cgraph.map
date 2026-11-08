@@ -1,28 +1,28 @@
 <map id="dialog_folders::startFolder" name="dialog_folders::startFolder">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,92,197,117"/>
-<area shape="poly" id="edge18_Node000001_Node000001" title=" " alt="" coords="62,94,53,84,57,74,74,68,101,65,136,69,146,74,150,80,145,83,142,78,135,74,101,71,75,73,61,78,58,83,65,90"/>
-<area shape="rect" id="Node000002" href="$namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb" title="The folder that holds the case at casePath, a scene folder or a bundle, or the empty string." alt="" coords="245,55,452,80"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,89,250,79,251,85,186,95"/>
-<area shape="rect" id="Node000005" href="$namespacedialog__folders.html#ae19dff647096a30a99da1bb19ea46242" title=" " alt="" coords="245,128,452,153"/>
-<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="189,115,248,123,247,129,189,120"/>
-<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="309,56,300,46,305,36,321,30,349,28,383,32,393,37,397,42,392,45,390,41,382,37,349,33,322,35,308,40,306,46,313,53"/>
-<area shape="rect" id="Node000003" href="$namespacedialog__folders.html#a89df3db14c75cb7ac0d4a9e999ccde1d" title=" " alt="" coords="508,29,687,55"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="452,54,494,50,495,55,452,59"/>
-<area shape="rect" id="Node000004" href="$namespacedialog__folders.html#ab86e736f34d54930599b38b2b6e4120e" title=" " alt="" coords="500,103,695,128"/>
-<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="416,77,518,97,517,103,415,83"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="562,31,554,21,558,11,573,5,597,3,628,6,640,15,637,20,626,11,597,8,574,10,562,15,559,20,566,28"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="562,104,554,94,558,84,573,78,597,76,628,80,640,89,637,93,626,85,597,81,574,83,562,88,559,94,566,101"/>
-<area shape="poly" id="edge8_Node000005_Node000003" title=" " alt="" coords="376,126,451,89,474,75,499,64,522,56,523,61,501,68,477,80,453,94,378,130"/>
-<area shape="poly" id="edge17_Node000005_Node000004" title=" " alt="" coords="452,127,486,124,486,129,452,133"/>
-<area shape="poly" id="edge11_Node000005_Node000005" title=" " alt="" coords="309,130,300,120,305,110,321,104,349,101,383,105,393,110,397,116,392,119,390,114,382,110,349,107,322,109,308,114,306,119,313,126"/>
-<area shape="rect" id="Node000006" href="$namespacescene__save__policy.html#a803871a44577cb4b466b401a0cf2de79" title=" " alt="" coords="743,146,893,186"/>
-<area shape="poly" id="edge9_Node000005_Node000006" title=" " alt="" coords="453,144,729,159,728,164,452,149"/>
-<area shape="rect" id="Node000007" href="$_scene_save_policy_8h.html#a9a9a7226bd3f4dcae503800dae27fff2" title=" " alt="" coords="519,228,675,253"/>
-<area shape="poly" id="edge12_Node000005_Node000007" title=" " alt="" coords="383,151,553,220,551,225,381,156"/>
-<area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="777,146,775,136,781,127,796,121,818,119,844,122,858,130,855,134,842,127,818,125,797,127,784,131,780,137,782,145"/>
-<area shape="poly" id="edge13_Node000007_Node000006" title=" " alt="" coords="635,225,744,188,746,193,637,230"/>
-<area shape="poly" id="edge14_Node000007_Node000007" title=" " alt="" coords="562,230,554,220,558,210,573,204,597,201,628,205,640,214,637,218,626,210,597,207,574,209,562,214,559,219,566,226"/>
-<area shape="rect" id="Node000008" href="$namespacescene__save__policy.html#aedd625aae76b1b1d7716d50d4c05956f" title=" " alt="" coords="743,234,893,274"/>
-<area shape="poly" id="edge15_Node000007_Node000008" title=" " alt="" coords="676,243,729,246,729,251,675,248"/>
-<area shape="poly" id="edge16_Node000008_Node000008" title=" " alt="" coords="777,234,775,224,781,215,796,209,818,207,844,210,858,218,855,222,842,215,818,213,797,215,784,219,780,225,782,233"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,93,197,121"/>
+<area shape="poly" id="edge18_Node000001_Node000001" title=" " alt="" coords="59,93,52,84,58,75,74,69,101,67,130,69,147,77,142,79,129,74,101,72,75,74,61,79,57,84,64,92"/>
+<area shape="rect" id="Node000002" href="$namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb" title="The folder that holds the case at casePath, a scene folder or a bundle, or the empty string." alt="" coords="245,55,451,82"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,90,242,84,238,87,195,95"/>
+<area shape="rect" id="Node000005" href="$namespacedialog__folders.html#ae19dff647096a30a99da1bb19ea46242" title=" " alt="" coords="245,131,451,158"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="197,119,239,127,234,129,198,124"/>
+<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="305,54,299,46,304,36,321,30,348,28,377,30,394,39,389,40,375,36,348,33,322,35,308,40,304,45,311,54"/>
+<area shape="rect" id="Node000003" href="$namespacedialog__folders.html#a89df3db14c75cb7ac0d4a9e999ccde1d" title=" " alt="" coords="508,29,685,57"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="451,55,495,53,490,55,452,61"/>
+<area shape="rect" id="Node000004" href="$namespacedialog__folders.html#ab86e736f34d54930599b38b2b6e4120e" title=" " alt="" coords="499,105,693,133"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="419,80,513,101,508,102,419,86"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="558,28,552,20,557,11,572,5,596,3,622,5,638,14,632,14,621,10,596,8,573,10,561,15,558,20,563,29"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="558,104,552,96,557,87,572,81,596,79,622,81,638,90,632,90,621,86,596,84,573,86,561,91,558,96,563,106"/>
+<area shape="poly" id="edge8_Node000005_Node000003" title=" " alt="" coords="377,128,450,91,498,67,524,61,519,63,500,72,452,96,379,133"/>
+<area shape="poly" id="edge17_Node000005_Node000004" title=" " alt="" coords="451,131,486,130,481,131,452,137"/>
+<area shape="poly" id="edge11_Node000005_Node000005" title=" " alt="" coords="305,130,299,122,304,112,321,106,348,104,377,106,394,115,389,115,375,112,348,109,322,111,308,116,304,121,311,131"/>
+<area shape="rect" id="Node000006" href="$namespacescene__save__policy.html#a803871a44577cb4b466b401a0cf2de79" title=" " alt="" coords="741,148,892,192"/>
+<area shape="poly" id="edge9_Node000005_Node000006" title=" " alt="" coords="451,147,728,164,723,166,452,153"/>
+<area shape="rect" id="Node000007" href="$_scene_save_policy_8h.html#a9a9a7226bd3f4dcae503800dae27fff2" title=" " alt="" coords="518,231,674,258"/>
+<area shape="poly" id="edge12_Node000005_Node000007" title=" " alt="" coords="385,156,548,224,543,225,384,161"/>
+<area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="775,145,773,137,780,128,795,123,817,121,840,123,856,133,851,132,839,128,816,126,796,128,783,133,778,139,779,148"/>
+<area shape="poly" id="edge13_Node000007_Node000006" title=" " alt="" coords="639,228,731,198,737,197,640,233"/>
+<area shape="poly" id="edge14_Node000007_Node000007" title=" " alt="" coords="558,229,552,222,557,212,572,206,596,204,622,207,638,216,632,215,621,212,596,209,573,211,561,216,558,221,563,231"/>
+<area shape="rect" id="Node000008" href="$namespacescene__save__policy.html#aedd625aae76b1b1d7716d50d4c05956f" title=" " alt="" coords="741,241,892,286"/>
+<area shape="poly" id="edge15_Node000007_Node000008" title=" " alt="" coords="674,248,729,256,723,255,674,254"/>
+<area shape="poly" id="edge16_Node000008_Node000008" title=" " alt="" coords="775,239,773,231,780,222,795,216,817,214,840,217,856,226,851,225,839,222,816,219,796,221,783,226,778,232,779,242"/>
 </map>

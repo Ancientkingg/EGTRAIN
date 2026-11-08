@@ -1,9 +1,9 @@
 <map id="app/GuardedApplication.h" name="app/GuardedApplication.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="75,5,265,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,111,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,33,90,73,87,69,151,28"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="135,79,205,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,31,173,65,167,65,167,31"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="229,79,316,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="188,28,246,68,243,73,185,33"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="74,5,263,33"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,81,110,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,33,91,75,88,70,146,34"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="134,81,203,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="170,32,171,67,166,64,166,36"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="226,81,313,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="187,31,242,72,237,72,185,36"/>
 </map>

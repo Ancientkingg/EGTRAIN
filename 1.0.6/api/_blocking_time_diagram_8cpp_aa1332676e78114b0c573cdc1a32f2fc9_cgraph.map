@@ -1,0 +1,10 @@
+<map id="matchBlockingSegmentsToSections" name="matchBlockingSegmentsToSections">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,258,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="84,28,77,20,83,11,101,5,132,3,164,5,183,14,178,14,163,10,131,8,102,10,86,15,82,20,89,29"/>
+<area shape="rect" id="Node000002" href="$_blocking_time_diagram_8cpp.html#a71bdbb3a6346dc3f078b5fe2183ffa2d" title=" " alt="" coords="306,29,512,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="258,41,292,43,287,43,258,46"/>
+<area shape="poly" id="edge5_Node000002_Node000002" title=" " alt="" coords="368,28,361,20,366,11,383,5,409,3,437,5,454,14,448,14,436,10,409,8,384,10,370,15,366,20,373,30"/>
+<area shape="rect" id="Node000003" href="$_blocking_time_diagram_8cpp.html#aaaaf79ea1a3e7a4f74ca8d1e1907e458" title=" " alt="" coords="560,29,738,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="512,41,547,43,542,43,512,46"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="608,28,601,20,607,11,623,5,649,3,677,5,694,14,689,14,676,10,649,8,624,10,610,15,607,20,613,30"/>
+</map>

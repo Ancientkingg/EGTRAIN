@@ -8,7 +8,6 @@
 <title>EGTRAIN: GuiSimulationSnapshot Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,13 +115,13 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_gui_sim
 <p>The state of a run at one step: what the canvas, the panels, the replay and the live stream show.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_gui_simulation_snapshot_8h_source.html">app/GuiSimulationSnapshot.h</a>&gt;</code></p>
+<p><code>#include &lt;simulation/GuiSimulationSnapshot.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a1f762f2e92b76e4e309674e99748ecd4" id="r_a1f762f2e92b76e4e309674e99748ecd4"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a1f762f2e92b76e4e309674e99748ecd4">timestep</a> = 0</td></tr>
+<tr class="memitem:a1f762f2e92b76e4e309674e99748ecd4" id="r_a1f762f2e92b76e4e309674e99748ecd4"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a1f762f2e92b76e4e309674e99748ecd4">timestep</a></td></tr>
 <tr class="memdesc:a1f762f2e92b76e4e309674e99748ecd4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The step, in seconds from the start of the run.  <br /></td></tr>
-<tr class="memitem:ad6ad88ed89d37e2cd4db2f3dfd599a0a" id="r_ad6ad88ed89d37e2cd4db2f3dfd599a0a"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ad6ad88ed89d37e2cd4db2f3dfd599a0a">totalTimesteps</a> = 0</td></tr>
+<tr class="memitem:ad6ad88ed89d37e2cd4db2f3dfd599a0a" id="r_ad6ad88ed89d37e2cd4db2f3dfd599a0a"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ad6ad88ed89d37e2cd4db2f3dfd599a0a">totalTimesteps</a></td></tr>
 <tr class="memdesc:ad6ad88ed89d37e2cd4db2f3dfd599a0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of steps of the run, which is its duration in seconds.  <br /></td></tr>
 <tr class="memitem:a72b57fbb118f5b479088e8543565fe82" id="r_a72b57fbb118f5b479088e8543565fe82"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_gui_train_state.html">GuiTrainState</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a72b57fbb118f5b479088e8543565fe82">trains</a></td></tr>
 <tr class="memdesc:a72b57fbb118f5b479088e8543565fe82"><td class="mdescLeft">&#160;</td><td class="mdescRight">Every train of the run, in the order of the run.  <br /></td></tr>
@@ -211,7 +210,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int GuiSimulationSnapshot::timestep = 0</td>
+          <td class="memname">int GuiSimulationSnapshot::timestep</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -227,7 +226,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int GuiSimulationSnapshot::totalTimesteps = 0</td>
+          <td class="memname">int GuiSimulationSnapshot::totalTimesteps</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -269,7 +268,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>app/<a class="el" href="_gui_simulation_snapshot_8h_source.html">GuiSimulationSnapshot.h</a></li>
+<li>simulation/<a class="el" href="_gui_simulation_snapshot_8h.html">GuiSimulationSnapshot.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

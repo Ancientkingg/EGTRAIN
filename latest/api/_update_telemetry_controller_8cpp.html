@@ -8,7 +8,6 @@
 <title>EGTRAIN: app/UpdateTelemetryController.cpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,20 +111,21 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_update_teleme
   <div class="headertitle"><div class="title">UpdateTelemetryController.cpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_update_telemetry_controller_8h_source.html">app/UpdateTelemetryController.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_main_window_test_hooks_8h_source.html">app/MainWindowTestHooks.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_release_notes_text_8h_source.html">app/ReleaseNotesText.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_update_prompt_text_8h_source.html">app/UpdatePromptText.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_telemetry_consent_8h_source.html">telemetry/TelemetryConsent.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_telemetry_consent_dialog_8h_source.html">telemetry/TelemetryConsentDialog.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_telemetry_sender_8h_source.html">telemetry/TelemetrySender.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_release_info_8h_source.html">update/ReleaseInfo.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_self_updater_8h_source.html">update/SelfUpdater.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_update_checker_8h_source.html">update/UpdateChecker.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_update_settings_8h_source.html">update/UpdateSettings.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_update_telemetry_controller_8h.html">app/UpdateTelemetryController.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_main_window_test_hooks_8h.html">app/MainWindowTestHooks.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_release_notes_text_8h.html">app/ReleaseNotesText.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_update_prompt_text_8h.html">app/UpdatePromptText.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_telemetry_consent_8h.html">telemetry/TelemetryConsent.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_telemetry_consent_dialog_8h.html">telemetry/TelemetryConsentDialog.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_telemetry_sender_8h.html">telemetry/TelemetrySender.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_release_info_8h.html">update/ReleaseInfo.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_self_updater_8h.html">update/SelfUpdater.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_update_checker_8h.html">update/UpdateChecker.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_update_settings_8h.html">update/UpdateSettings.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_log_8h.html">util/Log.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_user_prompts_8h.html">widgets/UserPrompts.h</a>&quot;</code><br />
 <code>#include &lt;QAction&gt;</code><br />
 <code>#include &lt;QCoreApplication&gt;</code><br />
-<code>#include &lt;QDebug&gt;</code><br />
 <code>#include &lt;QDesktopServices&gt;</code><br />
 <code>#include &lt;QDir&gt;</code><br />
 <code>#include &lt;QMenu&gt;</code><br />
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_update_teleme
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for UpdateTelemetryController.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_telemetry_controller_8cpp__incl.svg" width="4466" height="418"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_telemetry_controller_8cpp__incl.svg" width="4334" height="434"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -169,7 +169,7 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_telemetry_controller_8cpp_a6f709333026cc3310b5e305f05f00631_cgraph.svg" width="198" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_telemetry_controller_8cpp_a6f709333026cc3310b5e305f05f00631_cgraph.svg" width="196" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

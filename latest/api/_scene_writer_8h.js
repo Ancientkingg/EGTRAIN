@@ -13,6 +13,7 @@ var _scene_writer_8h =
     [ "encodeStations", "_scene_writer_8h.html#a7074c253dbbb571b9bedf95058d4117b", null ],
     [ "encodeViews", "_scene_writer_8h.html#a426269bb86eec813702015d44517a7e7", null ],
     [ "loadScenarioJson", "_scene_writer_8h.html#aae8bfdfec6055624487397a2e164e593", null ],
+    [ "replaceSceneDirectory", "_scene_writer_8h.html#a14d13a5dbe40153deb002c8e543d98b5", null ],
     [ "saveScenarioJson", "_scene_writer_8h.html#a786a7acd10c619ec634411db420b77ae", null ],
     [ "saveScene", "_scene_writer_8h.html#a45802402f953087d9d858f26a4b92e6b", null ]
 ];

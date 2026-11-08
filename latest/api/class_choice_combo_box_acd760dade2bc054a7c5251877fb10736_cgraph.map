@@ -1,5 +1,5 @@
 <map id="ChoiceComboBox::paintEvent" name="ChoiceComboBox::paintEvent">
-<area shape="rect" id="Node000001" title="Draws the field with displayText()." alt="" coords="5,5,220,31"/>
-<area shape="rect" id="Node000002" href="$class_choice_combo_box.html#a30c6b7dd84eda2085cca64e355210f51" title="The current text as the field draws it." alt="" coords="268,5,487,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,15,255,15,255,21,220,21"/>
+<area shape="rect" id="Node000001" title="Draws the field with displayText()." alt="" coords="5,5,220,33"/>
+<area shape="rect" id="Node000002" href="$class_choice_combo_box.html#a30c6b7dd84eda2085cca64e355210f51" title="The current text as the field draws it." alt="" coords="268,5,486,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,17,254,19,249,19,220,22"/>
 </map>

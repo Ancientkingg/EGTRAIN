@@ -8,7 +8,6 @@
 <title>EGTRAIN: telemetry::Worker Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -115,7 +114,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('classtelemetry
 <div class="dynheader">
 Collaboration diagram for telemetry::Worker:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker__coll__graph.svg" width="534" height="228"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker__coll__graph.svg" width="532" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -123,15 +122,20 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae2472f5f960d646fecda3ee4fc28aa2e" id="r_ae2472f5f960d646fecda3ee4fc28aa2e"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ae2472f5f960d646fecda3ee4fc28aa2e">Worker</a> (std::shared_ptr&lt; <a class="el" href="structtelemetry_1_1_telemetry_sender_1_1_shared.html">TelemetrySender::Shared</a> &gt; state)</td></tr>
 <tr class="memitem:a05283aff80c1f0236c3c0964cd56df85" id="r_a05283aff80c1f0236c3c0964cd56df85"><td class="memItemLeft">qint64&#160;</td><td class="memItemRight"><a class="el" href="#a05283aff80c1f0236c3c0964cd56df85">monotonic</a> () const</td></tr>
 <tr class="memitem:a331a2ed413fd225039b13d3b46020c61" id="r_a331a2ed413fd225039b13d3b46020c61"><td class="memItemLeft">QDateTime&#160;</td><td class="memItemRight"><a class="el" href="#a331a2ed413fd225039b13d3b46020c61">now</a> () const</td></tr>
+<tr class="memitem:a68bfa203c3d8a4b325808975335afc72" id="r_a68bfa203c3d8a4b325808975335afc72"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a68bfa203c3d8a4b325808975335afc72">closeIngress</a> ()</td></tr>
+<tr class="memdesc:a68bfa203c3d8a4b325808975335afc72"><td class="mdescLeft">&#160;</td><td class="mdescRight">Closes the gates, empties the ring and abandons a running request. The queue stays as it is.  <br /></td></tr>
 <tr class="memitem:a1e1845e9e51c21862c29806193005b78" id="r_a1e1845e9e51c21862c29806193005b78"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1e1845e9e51c21862c29806193005b78">close</a> ()</td></tr>
 <tr class="memitem:abafe4cf5a4c981445f62ae9747accb9f" id="r_abafe4cf5a4c981445f62ae9747accb9f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abafe4cf5a4c981445f62ae9747accb9f">disable</a> ()</td></tr>
+<tr class="memitem:a42368f27e708902b77836d30e8b99e9a" id="r_a42368f27e708902b77836d30e8b99e9a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a42368f27e708902b77836d30e8b99e9a">readConsent</a> (QString(&amp;values)[2])</td></tr>
+<tr class="memitem:af26dd88bad2d9bd41280c3ae3877bee9" id="r_af26dd88bad2d9bd41280c3ae3877bee9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af26dd88bad2d9bd41280c3ae3877bee9">closeAfterFailure</a> ()</td></tr>
 <tr class="memitem:a9aad91dbf9c43cc4bfbfea8705f8d776" id="r_a9aad91dbf9c43cc4bfbfea8705f8d776"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9aad91dbf9c43cc4bfbfea8705f8d776">failClosed</a> () noexcept</td></tr>
 <tr class="memitem:ad52466496e349dcb76e5e28e0eee41ef" id="r_ad52466496e349dcb76e5e28e0eee41ef"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad52466496e349dcb76e5e28e0eee41ef">refresh</a> ()</td></tr>
 <tr class="memitem:a4226b0e0877dfcdea0b4e09d1e717f46" id="r_a4226b0e0877dfcdea0b4e09d1e717f46"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4226b0e0877dfcdea0b4e09d1e717f46">attemptInteractiveSession</a> ()</td></tr>
-<tr class="memitem:af69c3e1d64c6f01b1d4cbb34e318c2f1" id="r_af69c3e1d64c6f01b1d4cbb34e318c2f1"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af69c3e1d64c6f01b1d4cbb34e318c2f1">authorized</a> (int index, const QString &amp;selectedStamp, quint64 epoch, quint64 permitVersion)</td></tr>
+<tr class="memitem:a7059c1f8d1980b7b4a0c8bcd144351dc" id="r_a7059c1f8d1980b7b4a0c8bcd144351dc"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a7059c1f8d1980b7b4a0c8bcd144351dc">authorized</a> (int index, const QString &amp;selectedStamp, quint64 epoch)</td></tr>
 <tr class="memitem:a65745d9bd123911e4ccf94928319e419" id="r_a65745d9bd123911e4ccf94928319e419"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a65745d9bd123911e4ccf94928319e419">reserve</a> (qint64 delay, int failures, int usageLimit=-1, int diagnosticLimit=-1)</td></tr>
 <tr class="memitem:aa4bede92e4f0dc36f2e3e2e75487c1a5" id="r_aa4bede92e4f0dc36f2e3e2e75487c1a5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa4bede92e4f0dc36f2e3e2e75487c1a5">onFinished</a> ()</td></tr>
 <tr class="memitem:acc56f4f17d7f654bf8669d8eae45d0fc" id="r_acc56f4f17d7f654bf8669d8eae45d0fc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acc56f4f17d7f654bf8669d8eae45d0fc">send</a> ()</td></tr>
+<tr class="memitem:a7434402ceb56a8f55e68b8450496f422" id="r_a7434402ceb56a8f55e68b8450496f422"><td class="memItemLeft">unsigned&#160;</td><td class="memItemRight"><a class="el" href="#a7434402ceb56a8f55e68b8450496f422">takeFlags</a> ()</td></tr>
 <tr class="memitem:a1f136a06f23ad6db74ef4dc30c9a0f6a" id="r_a1f136a06f23ad6db74ef4dc30c9a0f6a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1f136a06f23ad6db74ef4dc30c9a0f6a">pump</a> ()</td></tr>
 <tr class="memitem:ae10987671ac7e6c0b1c26d40c3284192" id="r_ae10987671ac7e6c0b1c26d40c3284192"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae10987671ac7e6c0b1c26d40c3284192">run</a> ()</td></tr>
 </table><table class="memberdecls">
@@ -141,26 +145,30 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:af4ed814cad7bac5fecd430d2587f2acf" id="r_af4ed814cad7bac5fecd430d2587f2acf"><td class="memItemLeft"><a class="el" href="classtelemetry_1_1_telemetry_queue.html">TelemetryQueue</a>&#160;</td><td class="memItemRight"><a class="el" href="#af4ed814cad7bac5fecd430d2587f2acf">queue</a></td></tr>
 <tr class="memitem:a94fe797b8dcc50107e1b109784447186" id="r_a94fe797b8dcc50107e1b109784447186"><td class="memItemLeft">std::unique_ptr&lt; QSettings &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a94fe797b8dcc50107e1b109784447186">settings</a></td></tr>
 <tr class="memitem:a12dbfdeba71419000d7ce00064bcbdd8" id="r_a12dbfdeba71419000d7ce00064bcbdd8"><td class="memItemLeft">std::unique_ptr&lt; <a class="el" href="class_telemetry_consent.html">TelemetryConsent</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a12dbfdeba71419000d7ce00064bcbdd8">consent</a></td></tr>
-<tr class="memitem:a2c253b790d447afeebf8c204518acbfe" id="r_a2c253b790d447afeebf8c204518acbfe"><td class="memItemLeft">std::unique_ptr&lt; <a class="el" href="class_http_transport.html">HttpTransport</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a2c253b790d447afeebf8c204518acbfe">transport</a> {<a class="el" href="_http_transport_8cpp.html#a515e602cbe2ce442004bcfef48c5ccf3">createHttpTransport</a>(nullptr)}</td></tr>
-<tr class="memitem:a3d90b29f9cdd91895776dd7e36c3ab68" id="r_a3d90b29f9cdd91895776dd7e36c3ab68"><td class="memItemLeft"><a class="el" href="class_http_reply.html">HttpReply</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a3d90b29f9cdd91895776dd7e36c3ab68">reply</a> = nullptr</td></tr>
+<tr class="memitem:a2c253b790d447afeebf8c204518acbfe" id="r_a2c253b790d447afeebf8c204518acbfe"><td class="memItemLeft">std::unique_ptr&lt; <a class="el" href="class_http_transport.html">HttpTransport</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a2c253b790d447afeebf8c204518acbfe">transport</a></td></tr>
+<tr class="memitem:a3d90b29f9cdd91895776dd7e36c3ab68" id="r_a3d90b29f9cdd91895776dd7e36c3ab68"><td class="memItemLeft"><a class="el" href="class_http_reply.html">HttpReply</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a3d90b29f9cdd91895776dd7e36c3ab68">reply</a></td></tr>
 <tr class="memitem:ab17ea61e87bfaffeb43a84f2d9af1e7c" id="r_ab17ea61e87bfaffeb43a84f2d9af1e7c"><td class="memItemLeft">QTimer&#160;</td><td class="memItemRight"><a class="el" href="#ab17ea61e87bfaffeb43a84f2d9af1e7c">tick</a></td></tr>
 <tr class="memitem:a2b8dddba44c0a2c555365cbab040d6f8" id="r_a2b8dddba44c0a2c555365cbab040d6f8"><td class="memItemLeft">QTimer&#160;</td><td class="memItemRight"><a class="el" href="#a2b8dddba44c0a2c555365cbab040d6f8">timeout</a></td></tr>
 <tr class="memitem:a81aed8eda2509c0b593919526065a182" id="r_a81aed8eda2509c0b593919526065a182"><td class="memItemLeft">QEventLoop&#160;</td><td class="memItemRight"><a class="el" href="#a81aed8eda2509c0b593919526065a182">loop</a></td></tr>
 <tr class="memitem:a03e175800fb29a3835a12ed4c1d61591" id="r_a03e175800fb29a3835a12ed4c1d61591"><td class="memItemLeft">QElapsedTimer&#160;</td><td class="memItemRight"><a class="el" href="#a03e175800fb29a3835a12ed4c1d61591">elapsed</a></td></tr>
-<tr class="memitem:aedfc4de3e0098e0a52fff6693116816a" id="r_aedfc4de3e0098e0a52fff6693116816a"><td class="memItemLeft">qint64&#160;</td><td class="memItemRight"><a class="el" href="#aedfc4de3e0098e0a52fff6693116816a">deadline</a> = 0</td></tr>
-<tr class="memitem:a847658ae62e37407e7b08ea2d77354cd" id="r_a847658ae62e37407e7b08ea2d77354cd"><td class="memItemLeft">qint64&#160;</td><td class="memItemRight"><a class="el" href="#a847658ae62e37407e7b08ea2d77354cd">nextPoll</a> = 0</td></tr>
-<tr class="memitem:a3c5657254613de8fc22e2abed72d0d78" id="r_a3c5657254613de8fc22e2abed72d0d78"><td class="memItemLeft">qint64&#160;</td><td class="memItemRight"><a class="el" href="#a3c5657254613de8fc22e2abed72d0d78">nextOwnership</a> = 0</td></tr>
-<tr class="memitem:a4d11d97bdf6bc818afa440bd00025dac" id="r_a4d11d97bdf6bc818afa440bd00025dac"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4d11d97bdf6bc818afa440bd00025dac">owner</a> = false</td></tr>
-<tr class="memitem:a6b711139bb6339e4c34ebc49527b4c36" id="r_a6b711139bb6339e4c34ebc49527b4c36"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a6b711139bb6339e4c34ebc49527b4c36">disabled</a> = false</td></tr>
+<tr class="memitem:aedfc4de3e0098e0a52fff6693116816a" id="r_aedfc4de3e0098e0a52fff6693116816a"><td class="memItemLeft">qint64&#160;</td><td class="memItemRight"><a class="el" href="#aedfc4de3e0098e0a52fff6693116816a">deadline</a></td></tr>
+<tr class="memitem:a847658ae62e37407e7b08ea2d77354cd" id="r_a847658ae62e37407e7b08ea2d77354cd"><td class="memItemLeft">qint64&#160;</td><td class="memItemRight"><a class="el" href="#a847658ae62e37407e7b08ea2d77354cd">nextPoll</a></td></tr>
+<tr class="memitem:a3c5657254613de8fc22e2abed72d0d78" id="r_a3c5657254613de8fc22e2abed72d0d78"><td class="memItemLeft">qint64&#160;</td><td class="memItemRight"><a class="el" href="#a3c5657254613de8fc22e2abed72d0d78">nextOwnership</a></td></tr>
+<tr class="memitem:a4d11d97bdf6bc818afa440bd00025dac" id="r_a4d11d97bdf6bc818afa440bd00025dac"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4d11d97bdf6bc818afa440bd00025dac">owner</a></td></tr>
+<tr class="memitem:a6b711139bb6339e4c34ebc49527b4c36" id="r_a6b711139bb6339e4c34ebc49527b4c36"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a6b711139bb6339e4c34ebc49527b4c36">disabled</a></td></tr>
+<tr class="memitem:ac1f9bc7da9a8b82c60e52baed99e9862" id="r_ac1f9bc7da9a8b82c60e52baed99e9862"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac1f9bc7da9a8b82c60e52baed99e9862">waiting</a></td></tr>
+<tr class="memdesc:ac1f9bc7da9a8b82c60e52baed99e9862"><td class="mdescLeft">&#160;</td><td class="mdescRight">True while the worker waits for a consent change after a storage failure; see <a class="el" href="#af26dd88bad2d9bd41280c3ae3877bee9">closeAfterFailure()</a>.  <br /></td></tr>
 <tr class="memitem:a9764fda57edca82b9fb6a2b496463ad9" id="r_a9764fda57edca82b9fb6a2b496463ad9"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a9764fda57edca82b9fb6a2b496463ad9">stamp</a> [2]</td></tr>
-<tr class="memitem:a2d94a2e371dbe5ed65b0eec8bee47213" id="r_a2d94a2e371dbe5ed65b0eec8bee47213"><td class="memItemLeft">quint64&#160;</td><td class="memItemRight"><a class="el" href="#a2d94a2e371dbe5ed65b0eec8bee47213">mappedEpoch</a> [2] = {0, 0}</td></tr>
-<tr class="memitem:a25a462ba5011bc64178b35d0a40cabf5" id="r_a25a462ba5011bc64178b35d0a40cabf5"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a25a462ba5011bc64178b35d0a40cabf5">observed</a> [2] = {false, false}</td></tr>
-<tr class="memitem:a58d2eea0ed1f586a3dbe46c716cff5bf" id="r_a58d2eea0ed1f586a3dbe46c716cff5bf"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a58d2eea0ed1f586a3dbe46c716cff5bf">sessionAttempted</a> = false</td></tr>
+<tr class="memitem:ab7fe0c76782f04ccfe3e976a2b9103ea" id="r_ab7fe0c76782f04ccfe3e976a2b9103ea"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ab7fe0c76782f04ccfe3e976a2b9103ea">consentAtFailure</a> [2]</td></tr>
+<tr class="memdesc:ab7fe0c76782f04ccfe3e976a2b9103ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">The consent of both categories when the worker began to wait, as <a class="el" href="#a42368f27e708902b77836d30e8b99e9a">readConsent()</a> read it.  <br /></td></tr>
+<tr class="memitem:a2d94a2e371dbe5ed65b0eec8bee47213" id="r_a2d94a2e371dbe5ed65b0eec8bee47213"><td class="memItemLeft">quint64&#160;</td><td class="memItemRight"><a class="el" href="#a2d94a2e371dbe5ed65b0eec8bee47213">mappedEpoch</a> [2]</td></tr>
+<tr class="memitem:a25a462ba5011bc64178b35d0a40cabf5" id="r_a25a462ba5011bc64178b35d0a40cabf5"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a25a462ba5011bc64178b35d0a40cabf5">observed</a> [2]</td></tr>
+<tr class="memitem:a58d2eea0ed1f586a3dbe46c716cff5bf" id="r_a58d2eea0ed1f586a3dbe46c716cff5bf"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a58d2eea0ed1f586a3dbe46c716cff5bf">sessionAttempted</a></td></tr>
 <tr class="memitem:ada6dc93986fbc146d545131c57913dd6" id="r_ada6dc93986fbc146d545131c57913dd6"><td class="memItemLeft"><a class="el" href="structtelemetry_1_1_prepared_batch.html">PreparedBatch</a>&#160;</td><td class="memItemRight"><a class="el" href="#ada6dc93986fbc146d545131c57913dd6">active</a></td></tr>
 <tr class="memitem:a5e3ebb36aa69c58cf13f8f36e6097b98" id="r_a5e3ebb36aa69c58cf13f8f36e6097b98"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a5e3ebb36aa69c58cf13f8f36e6097b98">requestEndpoint</a></td></tr>
-<tr class="memitem:a9ed348ec2349045c22deaea6d78c108e" id="r_a9ed348ec2349045c22deaea6d78c108e"><td class="memItemLeft">qint64&#160;</td><td class="memItemRight"><a class="el" href="#a9ed348ec2349045c22deaea6d78c108e">responseBytes</a> = 0</td></tr>
-<tr class="memitem:af265b516e8e95617dd803e689924c97d" id="r_af265b516e8e95617dd803e689924c97d"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af265b516e8e95617dd803e689924c97d">timedOut</a> = false</td></tr>
-<tr class="memitem:a11314047ab129c5d8e9b366514afda73" id="r_a11314047ab129c5d8e9b366514afda73"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a11314047ab129c5d8e9b366514afda73">oversized</a> = false</td></tr>
+<tr class="memitem:a9ed348ec2349045c22deaea6d78c108e" id="r_a9ed348ec2349045c22deaea6d78c108e"><td class="memItemLeft">qint64&#160;</td><td class="memItemRight"><a class="el" href="#a9ed348ec2349045c22deaea6d78c108e">responseBytes</a></td></tr>
+<tr class="memitem:af265b516e8e95617dd803e689924c97d" id="r_af265b516e8e95617dd803e689924c97d"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af265b516e8e95617dd803e689924c97d">timedOut</a></td></tr>
+<tr class="memitem:a11314047ab129c5d8e9b366514afda73" id="r_a11314047ab129c5d8e9b366514afda73"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a11314047ab129c5d8e9b366514afda73">oversized</a></td></tr>
 </table>
 <a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ae2472f5f960d646fecda3ee4fc28aa2e" name="ae2472f5f960d646fecda3ee4fc28aa2e"></a>
@@ -214,13 +222,13 @@ Public Attributes</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a4226b0e0877dfcdea0b4e09d1e717f46_cgraph.svg" width="1171" height="695"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a4226b0e0877dfcdea0b4e09d1e717f46_cgraph.svg" width="1603" height="719"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="af69c3e1d64c6f01b1d4cbb34e318c2f1" name="af69c3e1d64c6f01b1d4cbb34e318c2f1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af69c3e1d64c6f01b1d4cbb34e318c2f1">&#9670;&#160;</a></span>authorized()</h2>
+<a id="a7059c1f8d1980b7b4a0c8bcd144351dc" name="a7059c1f8d1980b7b4a0c8bcd144351dc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7059c1f8d1980b7b4a0c8bcd144351dc">&#9670;&#160;</a></span>authorized()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -241,12 +249,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">quint64</td>          <td class="paramname"><span class="paramname"><em>epoch</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">quint64</td>          <td class="paramname"><span class="paramname"><em>permitVersion</em></span>&#160;)</td>
+          <td class="paramtype">quint64</td>          <td class="paramname"><span class="paramname"><em>epoch</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -258,7 +261,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_af69c3e1d64c6f01b1d4cbb34e318c2f1_cgraph.svg" width="1096" height="324"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a7059c1f8d1980b7b4a0c8bcd144351dc_cgraph.svg" width="1527" height="480"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -288,7 +291,70 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a1e1845e9e51c21862c29806193005b78_cgraph.svg" width="406" height="102"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a1e1845e9e51c21862c29806193005b78_cgraph.svg" width="579" height="126"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="af26dd88bad2d9bd41280c3ae3877bee9" name="af26dd88bad2d9bd41280c3ae3877bee9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af26dd88bad2d9bd41280c3ae3877bee9">&#9670;&#160;</a></span>closeAfterFailure()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void telemetry::Worker::closeAfterFailure </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Closes after the queue refused to open or a queue operation failed. When only a file write or a space check failed, the worker keeps the queue, and with it owner.lock, and waits until the consent of either category changes (see <a class="el" href="#a1f136a06f23ad6db74ef4dc30c9a0f6a">pump()</a>). Otherwise it closes for the rest of the run. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_af26dd88bad2d9bd41280c3ae3877bee9_cgraph.svg" width="1087" height="255"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a68bfa203c3d8a4b325808975335afc72" name="a68bfa203c3d8a4b325808975335afc72"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a68bfa203c3d8a4b325808975335afc72">&#9670;&#160;</a></span>closeIngress()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void telemetry::Worker::closeIngress </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Closes the gates, empties the ring and abandons a running request. The queue stays as it is. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a68bfa203c3d8a4b325808975335afc72_cgraph.svg" width="332" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -318,7 +384,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_abafe4cf5a4c981445f62ae9747accb9f_cgraph.svg" width="600" height="102"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_abafe4cf5a4c981445f62ae9747accb9f_cgraph.svg" width="772" height="126"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -348,7 +414,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a9aad91dbf9c43cc4bfbfea8705f8d776_cgraph.svg" width="795" height="102"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a9aad91dbf9c43cc4bfbfea8705f8d776_cgraph.svg" width="966" height="126"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -428,7 +494,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_aa4bede92e4f0dc36f2e3e2e75487c1a5_cgraph.svg" width="1150" height="764"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_aa4bede92e4f0dc36f2e3e2e75487c1a5_cgraph.svg" width="1582" height="943"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -458,7 +524,38 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a1f136a06f23ad6db74ef4dc30c9a0f6a_cgraph.svg" width="1695" height="2219"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a1f136a06f23ad6db74ef4dc30c9a0f6a_cgraph.svg" width="2114" height="2636"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a42368f27e708902b77836d30e8b99e9a" name="a42368f27e708902b77836d30e8b99e9a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a42368f27e708902b77836d30e8b99e9a">&#9670;&#160;</a></span>readConsent()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool telemetry::Worker::readConsent </td>
+          <td>(</td>
+          <td class="paramtype">QString(&amp;)</td>          <td class="paramname"><span class="paramname"><em>values</em></span>[2]</td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Reads the consent of both categories: the installation ID and the diagnostics generation, empty for a category that is off. False when it cannot be read for this receiver and terms. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a42368f27e708902b77836d30e8b99e9a_cgraph.svg" width="416" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -488,7 +585,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_ad52466496e349dcb76e5e28e0eee41ef_cgraph.svg" width="902" height="324"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_ad52466496e349dcb76e5e28e0eee41ef_cgraph.svg" width="1334" height="480"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -532,7 +629,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a65745d9bd123911e4ccf94928319e419_cgraph.svg" width="902" height="294"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a65745d9bd123911e4ccf94928319e419_cgraph.svg" width="1334" height="479"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -562,7 +659,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_ae10987671ac7e6c0b1c26d40c3284192_cgraph.svg" width="1910" height="2136"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_ae10987671ac7e6c0b1c26d40c3284192_cgraph.svg" width="2327" height="2606"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -592,8 +689,34 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_acc56f4f17d7f654bf8669d8eae45d0fc_cgraph.svg" width="1428" height="1255"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_acc56f4f17d7f654bf8669d8eae45d0fc_cgraph.svg" width="1860" height="1523"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a7434402ceb56a8f55e68b8450496f422" name="a7434402ceb56a8f55e68b8450496f422"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7434402ceb56a8f55e68b8450496f422">&#9670;&#160;</a></span>takeFlags()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned telemetry::Worker::takeFlags </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Takes the pending requests. Pending revocations reach the gates, the epochs and the ring in one locked step. A pump without any leaves the lock alone, and one raised in between stays pending for the next pump. </p>
 
 </div>
 </div>
@@ -626,6 +749,22 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="ab7fe0c76782f04ccfe3e976a2b9103ea" name="ab7fe0c76782f04ccfe3e976a2b9103ea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab7fe0c76782f04ccfe3e976a2b9103ea">&#9670;&#160;</a></span>consentAtFailure</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString telemetry::Worker::consentAtFailure[2]</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The consent of both categories when the worker began to wait, as <a class="el" href="#a42368f27e708902b77836d30e8b99e9a">readConsent()</a> read it. </p>
+
+</div>
+</div>
 <a id="aedfc4de3e0098e0a52fff6693116816a" name="aedfc4de3e0098e0a52fff6693116816a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aedfc4de3e0098e0a52fff6693116816a">&#9670;&#160;</a></span>deadline</h2>
 
@@ -633,7 +772,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">qint64 telemetry::Worker::deadline = 0</td>
+          <td class="memname">qint64 telemetry::Worker::deadline</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -647,7 +786,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool telemetry::Worker::disabled = false</td>
+          <td class="memname">bool telemetry::Worker::disabled</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -689,7 +828,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">quint64 telemetry::Worker::mappedEpoch[2] = {0, 0}</td>
+          <td class="memname">quint64 telemetry::Worker::mappedEpoch[2]</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -703,7 +842,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">qint64 telemetry::Worker::nextOwnership = 0</td>
+          <td class="memname">qint64 telemetry::Worker::nextOwnership</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -717,7 +856,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">qint64 telemetry::Worker::nextPoll = 0</td>
+          <td class="memname">qint64 telemetry::Worker::nextPoll</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -731,7 +870,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool telemetry::Worker::observed[2] = {false, false}</td>
+          <td class="memname">bool telemetry::Worker::observed[2]</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -745,7 +884,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool telemetry::Worker::oversized = false</td>
+          <td class="memname">bool telemetry::Worker::oversized</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -759,7 +898,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool telemetry::Worker::owner = false</td>
+          <td class="memname">bool telemetry::Worker::owner</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -787,7 +926,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="class_http_reply.html">HttpReply</a>* telemetry::Worker::reply = nullptr</td>
+          <td class="memname"><a class="el" href="class_http_reply.html">HttpReply</a>* telemetry::Worker::reply</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -815,7 +954,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">qint64 telemetry::Worker::responseBytes = 0</td>
+          <td class="memname">qint64 telemetry::Worker::responseBytes</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -843,7 +982,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool telemetry::Worker::sessionAttempted = false</td>
+          <td class="memname">bool telemetry::Worker::sessionAttempted</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -899,7 +1038,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool telemetry::Worker::timedOut = false</td>
+          <td class="memname">bool telemetry::Worker::timedOut</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -927,10 +1066,26 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::unique_ptr&lt;<a class="el" href="class_http_transport.html">HttpTransport</a>&gt; telemetry::Worker::transport {<a class="el" href="_http_transport_8cpp.html#a515e602cbe2ce442004bcfef48c5ccf3">createHttpTransport</a>(nullptr)}</td>
+          <td class="memname">std::unique_ptr&lt;<a class="el" href="class_http_transport.html">HttpTransport</a>&gt; telemetry::Worker::transport</td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac1f9bc7da9a8b82c60e52baed99e9862" name="ac1f9bc7da9a8b82c60e52baed99e9862"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac1f9bc7da9a8b82c60e52baed99e9862">&#9670;&#160;</a></span>waiting</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool telemetry::Worker::waiting</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>True while the worker waits for a consent change after a storage failure; see <a class="el" href="#af26dd88bad2d9bd41280c3ae3877bee9">closeAfterFailure()</a>. </p>
 
 </div>
 </div>

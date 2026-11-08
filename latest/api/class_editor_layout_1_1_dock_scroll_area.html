@@ -8,7 +8,6 @@
 <title>EGTRAIN: EditorLayout::DockScrollArea Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,16 +112,16 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_editor_l
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_editor_layout_8h_source.html">widgets/EditorLayout.h</a>&gt;</code></p>
+<p><code>#include &lt;widgets/EditorLayout.h&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for EditorLayout::DockScrollArea:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_editor_layout_1_1_dock_scroll_area__inherit__graph.svg" width="222" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_editor_layout_1_1_dock_scroll_area__inherit__graph.svg" width="222" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
 Collaboration diagram for EditorLayout::DockScrollArea:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_editor_layout_1_1_dock_scroll_area__coll__graph.svg" width="222" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_editor_layout_1_1_dock_scroll_area__coll__graph.svg" width="222" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -135,7 +134,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ad6a8d9132c37137b92cfe8224b598d77"><td class="mdescLeft">&#160;</td><td class="mdescRight">A layout change of the panel changes the size hint of this area, which a dock keeps until told, so it updates the geometry.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Scroll area for the panel of an editor dock. QScrollArea keeps the size hint of the panel from the first time it was asked, which can be before the panel shows its tabs and tables, so the hint of this area is at least the width that the panel needs now, with the vertical scroll bar. As in QScrollArea the hint is at most 36 line heights wide. While the dock is docked in a main window, the hint is also at most five eighths of the width that the docks on the left of the window leave, but not under 12 line heights. A dock with large text then opens narrower than its panel, which scrolls inside it, and the network canvas keeps the rest. </p>
+<div class="textblock"><p>Scroll area for the panel of an editor dock. QScrollArea keeps the size hint of the panel from the first time it was asked, which can be before the panel shows its tabs and tables, so the hint of this area is at least the width that the panel needs now, with the vertical scroll bar. A panel that is a <a class="el" href="class_editor_layout_1_1_preferred_width.html">PreferredWidth</a> asks for the larger of its minimum width and its preferred width. As in QScrollArea the hint is at most 36 line heights wide. While the dock is docked in a main window, the hint is also at most five eighths of the width that the docks on the left of the window leave, but not under 12 line heights. A dock with large text then opens narrower than its panel, which scrolls inside it, and the network canvas keeps the rest. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aecc7c9d4155dbb5d09d67515ca78b022" name="aecc7c9d4155dbb5d09d67515ca78b022"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aecc7c9d4155dbb5d09d67515ca78b022">&#9670;&#160;</a></span>DockScrollArea()</h2>
@@ -224,7 +223,7 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>widgets/<a class="el" href="_editor_layout_8h_source.html">EditorLayout.h</a></li>
+<li>widgets/<a class="el" href="_editor_layout_8h.html">EditorLayout.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

@@ -192,11 +192,13 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/common-questions.html">Common questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
@@ -220,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -236,7 +238,6 @@
 <li class="toctree-l1"><a class="reference internal" href="coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +252,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +267,8 @@
 <li class="toctree-l1"><a class="reference internal" href="records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -307,8 +309,8 @@
         <article role="main" id="furo-main-content">
           <section id="smoke-tests">
 <h1>Smoke tests<a class="headerlink" href="#smoke-tests" title="Link to this heading">¶</a></h1>
-<p>This page describes the smoke tests that run the application end to end on the committed scenes, and the
-leak and memory checks. It ends with where the tests and runs write their output.</p>
+<p>This page describes the smoke tests that run the application end to end on the committed scenes, the
+leak and memory checks, and the nightly sanitizer runs. It ends with where the tests and runs write their output.</p>
 <section id="simulation-smoke-test">
 <h2>Simulation Smoke Test<a class="headerlink" href="#simulation-smoke-test" title="Link to this heading">¶</a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tools/e2e/headless_smoke.py
@@ -364,19 +366,20 @@ every failing scene.</p></li>
 and runs scenes one after the other in one process (see <a class="reference internal" href="characterization-tests.html#characterization-tests"><span class="std std-ref">Characterization tests</span></a>),
 which is the scene reload. They cover the line fixture, Paimpol, Assignment,
 Milano-Brescia and Netherlands. Copenhagen and Amsterdam_Hilversum_Student run headless once and are
-not reloaded.</p></li>
+not reloaded. The build legs of the workflow leave out <code class="docutils literal notranslate"><span class="pre">characterization_repeat_paimpol</span></code> and
+<code class="docutils literal notranslate"><span class="pre">characterization_repeat_milano_paimpol</span></code>, which are labelled <code class="docutils literal notranslate"><span class="pre">nightly</span></code>.</p></li>
 <li><p>CTest runs <code class="docutils literal notranslate"><span class="pre">test_networkpresenter</span></code> and <code class="docutils literal notranslate"><span class="pre">test_runtimecanvas</span></code> on the offscreen platform. They draw the
 track preview and the items of a run on a canvas, apply the steps of a run and of its replay with a
 selection on it, and clear the canvas again, twenty times or more in one process. After each clear
 every registry, every pointer and the scene must be empty, and an item or container that the clear
 does not release is a leak.</p></li>
-<li><p>CTest runs <code class="docutils literal notranslate"><span class="pre">test_guisimulationsnapshot</span></code>. It records, evicts and clears the frames of the replay
+<li><p>CTest runs <code class="docutils literal notranslate"><span class="pre">test_guisimulationsnapshot</span></code>. It records, evicts and clears the seconds of the replay
 history and compares the bytes the history counts with the bytes it holds on the heap. Under the
 sanitizer the heap count comes from AddressSanitizer.</p></li>
 </ul>
 <p>The job runs only in the nightly and the manual run, because the sanitizer build and the
 instrumented runs take longer than the pull request checks. To check a branch before a merge,
-start the workflow by hand from the Actions tab, or with <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">workflow</span> <span class="pre">run</span> <span class="pre">cmake.yml</span> <span class="pre">--ref</span> <span class="pre">BRANCH</span></code>;
+start the workflow by hand, for example with <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">workflow</span> <span class="pre">run</span> <span class="pre">cmake.yml</span> <span class="pre">--ref</span> <span class="pre">BRANCH</span></code>;
 the other legs start with it. The artifact <code class="docutils literal notranslate"><span class="pre">leak-check-logs</span></code> holds one <code class="docutils literal notranslate"><span class="pre">SCENE.log</span></code> per scene and
 <code class="docutils literal notranslate"><span class="pre">ctest-reload.log</span></code>, <code class="docutils literal notranslate"><span class="pre">ctest-canvas.log</span></code> and <code class="docutils literal notranslate"><span class="pre">ctest-replay.log</span></code>, also when the job fails.</p>
 <p><code class="docutils literal notranslate"><span class="pre">tools/e2e/lsan_suppressions.txt</span></code> lists the known leaks. Add one rule for each, with a comment that
@@ -384,6 +387,46 @@ names the cause and the change that removes the leak, or the library that owns i
 simulation is fixed, not listed.</p>
 <p>On macOS, <code class="docutils literal notranslate"><span class="pre">leaks</span> <span class="pre">--atExit</span> <span class="pre">--</span> <span class="pre">COMMAND</span></code> lists the leaks of one run of a normal build. It exits with
 status 1 when it finds any.</p>
+</section>
+<section id="nightly-sanitizer-runs">
+<h2>Nightly sanitizer runs<a class="headerlink" href="#nightly-sanitizer-runs" title="Link to this heading">¶</a></h2>
+<p>Two more Linux jobs of the CMake workflow run only in the nightly and the manual run, like the leak
+check. The result job does not wait for them, so they never decide a pull request. They start by hand
+in the same way as the leak check. When a job fails, its artifact <code class="docutils literal notranslate"><span class="pre">sanitizers-diagnostics</span></code> or
+<code class="docutils literal notranslate"><span class="pre">thread-sanitizer-diagnostics</span></code> holds the CTest log.</p>
+<p><code class="docutils literal notranslate"><span class="pre">sanitizers</span> <span class="pre">(Linux)</span></code> builds everything in a Debug configuration with <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_ENABLE_SANITIZERS=ON</span></code>,
+which turns on AddressSanitizer and UndefinedBehaviorSanitizer, and runs all of CTest. It has the
+options and the test environment of the <code class="docutils literal notranslate"><span class="pre">Sanitizers</span></code> job of <code class="docutils literal notranslate"><span class="pre">release.yml</span></code>, which runs the same suite
+on macOS before a release, so that a finding shows the day after the change. Two options of
+<code class="docutils literal notranslate"><span class="pre">ASAN_OPTIONS</span></code> are off by default on macOS and on by default on Linux, and the job turns them off:
+<code class="docutils literal notranslate"><span class="pre">detect_leaks=0</span></code>, because the leak check owns the leaks, and <code class="docutils literal notranslate"><span class="pre">detect_stack_use_after_return=0</span></code>, which
+keeps the frames of returned functions on a fake stack. GCC 13 on Linux on ARM never frees those frames,
+which makes the scene tests hundreds of times slower there. A test without a time limit of its own stops
+after 1500 seconds. <code class="docutils literal notranslate"><span class="pre">tools/e2e/ubsan_suppressions.txt</span></code> lists the known reports of
+UndefinedBehaviorSanitizer, each with its cause and the change that removes it. Apart from these,
+<code class="docutils literal notranslate"><span class="pre">tools/e2e/test_ci_workflow.py</span></code> fails when the options or the environment of the two jobs drift apart.</p>
+<p><code class="docutils literal notranslate"><span class="pre">thread</span> <span class="pre">sanitizer</span> <span class="pre">(Linux)</span></code> builds the tests of the parts that run on more than one thread with
+<code class="docutils literal notranslate"><span class="pre">-fsanitize=thread</span></code> and runs them: <code class="docutils literal notranslate"><span class="pre">test_recoverycontroller</span></code> for the recovery writer,
+<code class="docutils literal notranslate"><span class="pre">test_telemetrysender</span></code> for the telemetry sender, <code class="docutils literal notranslate"><span class="pre">test_liveserver</span></code> and <code class="docutils literal notranslate"><span class="pre">test_livereplay</span></code> for the live
+server, and <code class="docutils literal notranslate"><span class="pre">test_simulationworker</span></code> for the simulation worker. Qt, libzmq and the C library are not
+instrumented, so <code class="docutils literal notranslate"><span class="pre">TSAN_OPTIONS</span></code> ignores the accesses they make themselves
+(<code class="docutils literal notranslate"><span class="pre">ignore_noninstrumented_modules=1</span></code>), and <code class="docutils literal notranslate"><span class="pre">tools/e2e/tsan_suppressions.txt</span></code> lists the known reports,
+each with its cause (none at present). A race in the code of the application is fixed, not listed.
+<code class="docutils literal notranslate"><span class="pre">QSemaphore</span></code> waits inside Qt, so the sanitizer does not see that a value written before <code class="docutils literal notranslate"><span class="pre">release()</span></code> is
+read after the wait; a test hands values between threads through a <code class="docutils literal notranslate"><span class="pre">std::mutex</span></code>
+(<code class="docutils literal notranslate"><span class="pre">tests/test_telemetrysender.cpp</span></code>).</p>
+<p>To run the thread sanitizer tests yourself, in a build directory of its own:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build-tsan<span class="w"> </span>-DEGTRAIN_BUILD_TESTS<span class="o">=</span>ON<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Debug<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DCMAKE_CXX_FLAGS<span class="o">=</span>-fsanitize<span class="o">=</span>thread<span class="w"> </span>-DCMAKE_EXE_LINKER_FLAGS<span class="o">=</span>-fsanitize<span class="o">=</span>thread<span class="w"> </span>-DEGTRAIN_TEST_TIMEOUT_SCALE<span class="o">=</span><span class="m">10</span>
+cmake<span class="w"> </span>--build<span class="w"> </span>build-tsan<span class="w"> </span>--target<span class="w"> </span>test_recoverycontroller<span class="w"> </span>test_telemetrysender<span class="w"> </span>test_liveserver<span class="w"> </span>test_livereplay<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>test_simulationworker
+<span class="nv">TSAN_OPTIONS</span><span class="o">=</span><span class="nv">ignore_noninstrumented_modules</span><span class="o">=</span><span class="m">1</span>:suppressions<span class="o">=</span><span class="nv">$PWD</span>/tools/e2e/tsan_suppressions.txt<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>ctest<span class="w"> </span>--test-dir<span class="w"> </span>build-tsan<span class="w"> </span>--output-on-failure<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-R<span class="w"> </span><span class="s1">'^(test_recoverycontroller|test_telemetrysender|test_liveserver|test_livereplay|test_simulationworker)$'</span>
+</pre></div>
+</div>
+<p>On a kernel with more address space randomization than ThreadSanitizer supports, it stops at start;
+the job lowers it with <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">sysctl</span> <span class="pre">-w</span> <span class="pre">vm.mmap_rnd_bits=28</span></code>.</p>
 </section>
 <section id="scene-roundtrip-smoke-test">
 <h2>Scene Roundtrip Smoke Test<a class="headerlink" href="#scene-roundtrip-smoke-test" title="Link to this heading">¶</a></h2>
@@ -443,7 +486,7 @@ Assignment with a train breakdown and with a signal failure through <code class=
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_live_stream_smoke</span></code></p></td>
 <td><p>integration</p></td>
-<td><p>The application with <code class="docutils literal notranslate"><span class="pre">--live</span></code> and <code class="docutils literal notranslate"><span class="pre">build/live_client</span></code>: a client that follows a run, sends <code class="docutils literal notranslate"><span class="pre">set_delay_ms</span></code> or leaves, a run that nobody reads, repeated services, a late client, a stopped run, a second run (macOS only) and the options that are refused. Each run with a stream is compared file by file, and by standard output, with a run without one.</p></td>
+<td><p>The application with <code class="docutils literal notranslate"><span class="pre">--live</span></code> and <code class="docutils literal notranslate"><span class="pre">build/live_client</span></code>: a client that follows a run, sends <code class="docutils literal notranslate"><span class="pre">set_delay_ms</span></code> or leaves, a run that nobody reads, repeated services, a late client, a stopped window run, a stopped run without a window (exit code 3), a second run (macOS only) and the options that are refused. Each run with a stream is compared file by file, and by standard output, with a run without one.</p></td>
 </tr>
 </tbody>
 </table>
@@ -456,16 +499,20 @@ Assignment with a train breakdown and with a signal failure through <code class=
 <li><p>A command that is accepted before the run is turned down with <code class="docutils literal notranslate"><span class="pre">no_active_run</span></code> and does not reach the run, and one that is accepted after the last step is turned down with <code class="docutils literal notranslate"><span class="pre">run_ended</span></code>.</p></li>
 <li><p>A command is turned down with <code class="docutils literal notranslate"><span class="pre">queue_full</span></code> when the control of the run holds 16 commands already.</p></li>
 </ul>
-<p>To add a case, add a line to a file in <code class="docutils literal notranslate"><span class="pre">tests/live/commands</span></code> and the events it should give to <code class="docutils literal notranslate"><span class="pre">testReplay</span></code> in <code class="docutils literal notranslate"><span class="pre">tests/test_livereplay.cpp</span></code>.</p>
+<p>To add a case, add a line to a file in <code class="docutils literal notranslate"><span class="pre">tests/live/commands</span></code> and the events it should give to the slot that plays that
+file in <code class="docutils literal notranslate"><span class="pre">tests/test_livereplay.cpp</span></code> (<code class="docutils literal notranslate"><span class="pre">pauseResumeAndDelay</span></code> for <code class="docutils literal notranslate"><span class="pre">pause-resume-delay.jsonl</span></code>, <code class="docutils literal notranslate"><span class="pre">stopEndsRun</span></code> for
+<code class="docutils literal notranslate"><span class="pre">stop.jsonl</span></code>).</p>
 <section id="threadsanitizer">
 <h3>ThreadSanitizer<a class="headerlink" href="#threadsanitizer" title="Link to this heading">¶</a></h3>
-<p>CI runs no ThreadSanitizer. Run the live code under it before a change to the threads of the stream (the server, the step loop in <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code> or <code class="docutils literal notranslate"><span class="pre">RunControl</span></code>), in a build directory of its own:</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">thread</span> <span class="pre">sanitizer</span> <span class="pre">(Linux)</span></code> job runs <code class="docutils literal notranslate"><span class="pre">test_liveserver</span></code> and <code class="docutils literal notranslate"><span class="pre">test_livereplay</span></code> under ThreadSanitizer every night; see <a class="reference internal" href="#nightly-sanitizer-runs">Nightly sanitizer runs</a>. Before a change to the threads of the stream (the server, the step loop in <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code> or <code class="docutils literal notranslate"><span class="pre">RunControl</span></code>), run the live code under it yourself, in a build directory of its own:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build-tsan<span class="w"> </span>-DEGTRAIN_BUILD_TESTS<span class="o">=</span>ON<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Debug<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-DCMAKE_CXX_FLAGS<span class="o">=</span>-fsanitize<span class="o">=</span>thread<span class="w"> </span>-DCMAKE_EXE_LINKER_FLAGS<span class="o">=</span>-fsanitize<span class="o">=</span>thread
 cmake<span class="w"> </span>--build<span class="w"> </span>build-tsan<span class="w"> </span>--target<span class="w"> </span>QEGTRAIN<span class="w"> </span>live_client<span class="w"> </span>test_liveserver<span class="w"> </span>test_livecommand<span class="w"> </span>test_livereplay
-ctest<span class="w"> </span>--test-dir<span class="w"> </span>build-tsan<span class="w"> </span>-R<span class="w"> </span><span class="s1">'^test_live(server|command|replay)$'</span><span class="w"> </span>--output-on-failure
+<span class="nv">TSAN_OPTIONS</span><span class="o">=</span><span class="nv">ignore_noninstrumented_modules</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>ctest<span class="w"> </span>--test-dir<span class="w"> </span>build-tsan<span class="w"> </span>-R<span class="w"> </span><span class="s1">'^test_live(server|command|replay)$'</span><span class="w"> </span>--output-on-failure
 </pre></div>
 </div>
+<p>Without <code class="docutils literal notranslate"><span class="pre">ignore_noninstrumented_modules=1</span></code>, ThreadSanitizer reports the messages that libzmq hands to its own I/O thread, because libzmq is not instrumented.</p>
 <p>Qt is not instrumented, so a window run reports data races in <code class="docutils literal notranslate"><span class="pre">ConsoleWidget</span></code> and in Qt’s queued calls. They do not involve the live code. A run under ThreadSanitizer takes far longer than the limits of <code class="docutils literal notranslate"><span class="pre">test_live_stream_smoke</span></code>. The smoke test stretches its waits by <code class="docutils literal notranslate"><span class="pre">EGTRAIN_TEST_TIMEOUT_SCALE</span></code>, so configure with <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_TEST_TIMEOUT_SCALE=100</span></code> before you run it, and put <code class="docutils literal notranslate"><span class="pre">log_path</span></code> in <code class="docutils literal notranslate"><span class="pre">TSAN_OPTIONS</span></code> to keep the reports.</p>
 </section>
 </section>
@@ -480,92 +527,126 @@ moves. The text below the controls does not depend on the selected time, so the
 row keeps its height while the user seeks. A replay seek explicitly restores
 historical operational overlays; normal completion does not. Future or exited
 trains do not appear on layer toggles or drive Follow station emphasis.</p>
-<p>The history (<code class="docutils literal notranslate"><span class="pre">app/GuiReplayHistory</span></code>) records every fifth simulated second and the
-last one, in a compact form. What is the same for the whole run (identity and
-static data of trains, the section and direction of each signal, section ids,
-platforms) is stored once per run in a layout. Each frame stores only flat arrays
-of the values that change: train positions, speeds and occupied arcs, signal codes,
-levels and failure flags, section flags, platform queues, passenger states. Strings
-that vary are stored once in a string table. <code class="docutils literal notranslate"><span class="pre">atOrBefore</span></code> rebuilds an ordinary
-snapshot from this form, so the window uses the same snapshot type as in a live
-run. It keeps the last rebuilt snapshot, and a snapshot that a caller still holds
-is not rebuilt, so asking again for the same frame returns the same object. A
-change of the static data between frames (a different number of trains, a renamed
-train) starts a new layout; older frames keep theirs. Adding a field to a snapshot
-type stops the build of <code class="docutils literal notranslate"><span class="pre">GuiReplayHistory.cpp</span></code> and of the round-trip test until
-the field is stored.</p>
-<p>The budget is 128 MiB of accounted payload and there is no frame count limit. When
-a run does not fit, the oldest frames are dropped and the history reports the
-interval it still covers (<code class="docutils literal notranslate"><span class="pre">firstTime</span></code>, <code class="docutils literal notranslate"><span class="pre">lastTime</span></code>, <code class="docutils literal notranslate"><span class="pre">evictedBeforeTime</span></code>). Accounting
-includes the layouts, the string table and the capacities of the frame arrays,
-not allocator bookkeeping, container nodes, shared-pointer control blocks or the
-rebuilt snapshots that callers hold, so 128 MiB is <strong>not</strong> a precise
-resident-memory limit; for the scenes below the heap in use was 1.1 times the
-accounted bytes. If one frame, with its layout and strings, exceeds the budget,
-replay is unavailable with an explanation; the simulation continues. A run without
-a window (<code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">0</span></code>) builds no snapshots and no replay frames, because nothing reads
-them. <code class="docutils literal notranslate"><span class="pre">app/ReplayCoverage.h</span></code> turns the interval the history still covers into the words of
-the row for a whole run, for a run whose first part was dropped and for a run that cannot
-be replayed, and into the tooltip of Start; the window reads the history, asks for the
-texts and writes them into the two labels and the tooltip.</p>
-<p>Measured on a full run of each committed scene at the default horizon (<code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">1</span></code>,
-<code class="docutils literal notranslate"><span class="pre">-pax</span> <span class="pre">0</span></code>, Apple silicon, release build). “Complete snapshots” is what the same
-frames would need as ordinary snapshot objects. The rows for Milano_Brescia,
-Copenhagen and Netherlands come from runs without a signalling area; the
-committed scenes have one.</p>
+<p>Play steps through the run at the speed of the box after the label, 1x, 2x, 5x, 10x (the
+default), 30x or 60x simulated seconds per second of real time. <code class="docutils literal notranslate"><span class="pre">replayPlaybackStep</span></code> turns
+the speed into a step: one second every 1000, 500, 200 or
+100 ms up to 10x, then 3 seconds every 100 ms at 30x and 6 seconds every 100 ms at 60x, so
+the replay is never shown more than ten times a second. Over the interval of a step the
+trains that run glide from where they are drawn to their places of the new second, with the
+rules of a live run (<code class="docutils literal notranslate"><span class="pre">NetworkPresenter::setReplayGlideMs</span></code>); the window sets the glide only
+around the render of a step. A seek by the slider, the keys, the wheel, Start or End, also
+while the replay plays, stops every glide and places every train at once. The speed is kept
+for the session and not saved. <code class="docutils literal notranslate"><span class="pre">E2E_REPLAY_PLAY_OK</span></code> checks the glide with the clock of the
+presenter, the seek during Play and the steps at 60x.</p>
+<p>The history (<code class="docutils literal notranslate"><span class="pre">app/GuiReplayHistory</span></code>) records every simulated second of the run, as
+changes. What is the same for the whole run (identity, route and direction and
+capacity of each train, the section and direction of each signal, section ids,
+platforms, passenger ids) is stored once per run in a layout. What changes is stored as
+the difference to the second before, one record of 8 bytes (a slot and a new value) for
+each value that changed: signal codes, levels and failure flags, section flags, onboard
+passengers, whether a train has left, the occupied arcs of a train, the passengers on a
+platform and the states of a passenger. Lists and strings are stored once, the lists in
+the table of their interval and the strings in a string table. An interval of 300
+simulated seconds starts with a keyframe, a copy of all values, so a seek applies the
+changes of at most 299 seconds and an interval never refers to another one. <code class="docutils literal notranslate"><span class="pre">at</span></code> rebuilds
+an ordinary snapshot of the chosen second, so the window uses the same snapshot type as in a
+live run. It keeps the last rebuilt snapshot, and a snapshot that a caller still holds is
+not rebuilt, so asking again for the same second returns the same object. A change of a
+count between two seconds, or of a static field that is found at the first second of an
+interval or at the last step, starts the history again at that second; no run does this.
+Adding a field to a snapshot type stops the build of <code class="docutils literal notranslate"><span class="pre">GuiReplayHistory.cpp</span></code> and of the
+round-trip test until the field is stored, derived or declared static.</p>
+<p>The positions, speeds and wagon positions of the trains are not recorded. When a run has
+ended, <code class="docutils literal notranslate"><span class="pre">RunController</span></code> gives the history a train source (<code class="docutils literal notranslate"><span class="pre">makeGuiReplayTrains</span></code>): for each
+train the position and speed samples that the completed run holds, shared and not copied
+(<code class="docutils literal notranslate"><span class="pre">app/ReplayTrajectories.h</span></code> builds the pointers), the few samples around them that the
+completed run does not keep, the route geometry that <code class="docutils literal notranslate"><span class="pre">trainXPositionOf</span></code> reads and the virtual
+coupling messages. <code class="docutils literal notranslate"><span class="pre">at</span></code> derives the train fields from it with the same arithmetic as the live
+snapshot, so a seek shows exactly the chosen second. <code class="docutils literal notranslate"><span class="pre">test_replaylive</span></code> runs the line fixture,
+Paimpol with passengers and Milano_Brescia in the test process and compares the replay
+of every 13th second and of both sides of every keyframe with the live snapshot of that
+second, field by field with <code class="docutils literal notranslate"><span class="pre">==</span></code>, after the samples of the trains were freed. A
+history without a train source leaves these fields at their defaults, so no train is drawn.</p>
+<p><code class="docutils literal notranslate"><span class="pre">record</span></code> runs on the thread that steps the run and nothing else touches the history then.
+The history is moved out after the worker has joined; <code class="docutils literal notranslate"><span class="pre">setTrains</span></code>, <code class="docutils literal notranslate"><span class="pre">at</span></code> and the other
+functions run on the interface thread, and the train source is immutable.</p>
+<p>The budget is 128 MiB of accounted payload and there is no limit on the number of seconds.
+It limits what <code class="docutils literal notranslate"><span class="pre">record</span></code> keeps, which is the only part that grows during a run. When a run
+does not fit, the oldest interval is dropped as a whole and the history reports the interval
+it still covers (<code class="docutils literal notranslate"><span class="pre">firstTime</span></code>, <code class="docutils literal notranslate"><span class="pre">lastTime</span></code>, <code class="docutils literal notranslate"><span class="pre">evictedBeforeTime</span></code>). Accounting includes the
+layout, the string table, the keyframes, changes and lists of every interval, the state of
+the last second and the part of the train source that the history owns, all by capacity;
+it does not include allocator bookkeeping, container nodes, shared-pointer control blocks or
+the rebuilt snapshots that callers hold, so 128 MiB is <strong>not</strong> a precise resident-memory
+limit. The samples that the replay shares with the completed run are reported apart
+(<code class="docutils literal notranslate"><span class="pre">sharedBytes</span></code>): the completed run holds them whether or not there is a replay. If the
+interval that is being recorded, with its layout and strings, exceeds the budget, replay is
+unavailable with an explanation; the simulation continues. A run without a window (<code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">0</span></code>)
+builds no snapshots and no replay, because nothing reads them. <code class="docutils literal notranslate"><span class="pre">app/ReplayCoverage.h</span></code> turns
+the interval the history still covers into the words of the row for a whole run, for a run
+whose first part was dropped and for a run that cannot be replayed, and into the tooltip of
+Start; the window reads the history, asks for the texts and writes them into the two labels
+and the tooltip.</p>
+<p>Measured on a full run of each committed scene at the default horizon (<code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">-pax</span> <span class="pre">0</span></code>,
+Apple silicon, release build) with <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1</span></code>. “Owned payload” is
+<code class="docutils literal notranslate"><span class="pre">bytes</span></code> of the marker, “Shared samples” is <code class="docutils literal notranslate"><span class="pre">shared</span></code>, and “Old accounted payload” is what the
+history before this change counted for the same run, which kept a snapshot every fifth second.</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Scene</p></th>
-<th class="head"><p>Frames</p></th>
 <th class="head"><p>Covers (s)</p></th>
-<th class="head"><p>Accounted</p></th>
-<th class="head"><p>As complete snapshots</p></th>
+<th class="head"><p>Owned payload</p></th>
+<th class="head"><p>Shared samples</p></th>
+<th class="head"><p>Old accounted payload</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Assignment_Gvc_Gdg_Ut</p></td>
-<td><p>2001</p></td>
 <td><p>0-9999</p></td>
-<td><p>4.7 MiB</p></td>
-<td><p>32.5 MiB</p></td>
+<td><p>0.16 MiB</p></td>
+<td><p>0.75 MiB</p></td>
+<td><p>4.65 MiB</p></td>
 </tr>
 <tr class="row-odd"><td><p>Paimpol</p></td>
-<td><p>1801</p></td>
 <td><p>0-8999</p></td>
-<td><p>12.1 MiB</p></td>
-<td><p>155 MiB</p></td>
+<td><p>0.40 MiB</p></td>
+<td><p>0.09 MiB</p></td>
+<td><p>12.08 MiB</p></td>
 </tr>
 <tr class="row-even"><td><p>Milano_Brescia</p></td>
-<td><p>801</p></td>
 <td><p>0-3999</p></td>
-<td><p>13.1 MiB</p></td>
-<td><p>68.8 MiB</p></td>
+<td><p>0.37 MiB</p></td>
+<td><p>0.94 MiB</p></td>
+<td><p>13.06 MiB</p></td>
 </tr>
-<tr class="row-odd"><td><p>Copenhagen</p></td>
-<td><p>1601</p></td>
+<tr class="row-odd"><td><p>Amsterdam_Hilversum_Student</p></td>
 <td><p>0-7999</p></td>
-<td><p>78.9 MiB</p></td>
-<td><p>489 MiB</p></td>
+<td><p>0.97 MiB</p></td>
+<td><p>0.09 MiB</p></td>
+<td><p>22.84 MiB</p></td>
 </tr>
-<tr class="row-even"><td><p>Netherlands</p></td>
-<td><p>1601</p></td>
+<tr class="row-even"><td><p>Copenhagen</p></td>
 <td><p>0-7999</p></td>
-<td><p>32.7 MiB</p></td>
-<td><p>346 MiB</p></td>
+<td><p>3.68 MiB</p></td>
+<td><p>6.68 MiB</p></td>
+<td><p>78.49 MiB</p></td>
+</tr>
+<tr class="row-odd"><td><p>Netherlands</p></td>
+<td><p>0-7999</p></td>
+<td><p>1.16 MiB</p></td>
+<td><p>0.61 MiB</p></td>
+<td><p>30.72 MiB</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>Copenhagen is the largest: 196 trains, 78.9 MiB accounted for the whole run, 89 MiB
-of heap in use. A frame holds all the trains of the run, so a longer horizon, which adds
-trains, makes every frame larger: with a horizon of 20000 s (<code class="docutils literal notranslate"><span class="pre">-h</span> <span class="pre">20000</span></code>) Copenhagen has
-476 trains and about 98 KiB a frame, against 50 KiB at the default horizon. The budget then
-holds the last 1340 frames, from 13305 s to 19999 s (134144845 of 134217728 bytes), and the
-row shows the run whose first part was dropped.
-Recording a frame took 1 to 30 microseconds (Copenhagen and Netherlands: 21 to
-30), once per five steps, on the simulation thread; rebuilding a frame took 1 to
-34 microseconds on the interface thread.</p>
+<p>Copenhagen is the largest: 196 trains, 3.68 MiB of owned payload for the whole run in 27
+intervals, against 78.5 MiB before. Paimpol with passengers (<code class="docutils literal notranslate"><span class="pre">-pax</span> <span class="pre">1</span></code>) owns 0.40 MiB. A longer
+horizon adds trains: with a horizon of 20000 s (<code class="docutils literal notranslate"><span class="pre">-h</span> <span class="pre">20000</span></code>) Copenhagen has 476 trains and the
+replay covers the whole run, from 0 s to 19999 s, with 10.1 MiB of owned payload in 67 intervals
+and 19.6 MiB of shared samples. The history before this change had to drop the first part of
+that run: its budget held the last 1340 frames, from 13305 s to 19999 s.</p>
 </section>
 <section id="close-new-and-open-during-a-run">
 <h2>Close, New and Open during a run<a class="headerlink" href="#close-new-and-open-during-a-run" title="Link to this heading">¶</a></h2>
@@ -622,14 +703,15 @@ flag and the revision of the scene stay as they were.</p>
 <p>The smoke passes when the application exits with status 0, prints
 <code class="docutils literal notranslate"><span class="pre">E2E_EDITOR_SMOKE_OK</span></code> and prints the marker of every facet, the last being
 <code class="docutils literal notranslate"><span class="pre">E2E_EDITOR_UNTOUCHED_OK</span></code>. The application output goes to
-<code class="docutils literal notranslate"><span class="pre">${TMPDIR:-/tmp}/qegtrain-editor-smoke-e2e.log</span></code>. On a failure the script prints
+<code class="docutils literal notranslate"><span class="pre">qegtrain-editor-smoke-e2e.log</span></code> in a folder of the run’s own below <code class="docutils literal notranslate"><span class="pre">${TMPDIR:-/tmp}</span></code> (see
+<a class="reference internal" href="#smoke-artifacts">Smoke artifacts</a>). On a failure the script prints
 the end of that log, which holds <code class="docutils literal notranslate"><span class="pre">E2E_EDITOR_SMOKE_FAIL:</span> <span class="pre">&lt;facet&gt;:</span> <span class="pre">&lt;message&gt;</span></code>
 when the application reported the failure.</p>
 <p>CTest runs the script as <code class="docutils literal notranslate"><span class="pre">test_editor_smoke</span></code> on macOS and Linux with
 <code class="docutils literal notranslate"><span class="pre">QT_QPA_PLATFORM=offscreen</span></code>. Run it alone with
 <code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">--test-dir</span> <span class="pre">build</span> <span class="pre">-R</span> <span class="pre">test_editor_smoke</span> <span class="pre">--output-on-failure</span></code>. The script
-takes the application from <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_APP</span></code>. The release workflow also runs it as
-a step of its own.</p>
+takes the application from <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_APP</span></code>. The release workflow runs it through
+CTest too.</p>
 </section>
 <section id="recovery-smoke-test">
 <h2>Recovery Smoke Test<a class="headerlink" href="#recovery-smoke-test" title="Link to this heading">¶</a></h2>
@@ -669,6 +751,11 @@ application and <code class="docutils literal notranslate"><span class="pre">sce
 failure prints the end of the output of the run that failed. The scripts of the
 application are in <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/e2e/Recovery.cpp</span></code> and the answer to the
 prompt in <code class="docutils literal notranslate"><span class="pre">Dialogs.cpp</span></code>. The editor smoke covers the same paths in one process.</p>
+<p><code class="docutils literal notranslate"><span class="pre">tools/e2e/run_data_folder_smoke.py</span></code> starts the window on the vnc platform, which gives it a screen without a display,
+with crash notes in a stand-in data folder of the user (<code class="docutils literal notranslate"><span class="pre">XDG_DATA_HOME</span></code>) and in its settings folder. Without
+<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_SETTINGS_DIR</span></code> the start reports the note of the user; with it, the note of the settings folder, and the
+note of the user stays as it was. CTest runs it as <code class="docutils literal notranslate"><span class="pre">test_run_data_folder_smoke</span></code> where Qt has the vnc platform, which is
+Linux.</p>
 <p>The recovery folder is below the local application data folder of the user. An
 operating system backup or a sync tool that includes that folder can copy recovery
 files, which hold the case data of the scenes in them.</p>
@@ -680,8 +767,8 @@ files, which hold the case data of the scenes in them.</p>
 </div>
 <p>Run this after UI or rendering changes. The script runs in phases, one after another, and
 runs only the phases named on its command line, for example
-<code class="docutils literal notranslate"><span class="pre">tools/e2e/visual_polish_smoke.sh</span> <span class="pre">signals</span> <span class="pre">stations</span></code>. Each phase writes file names of its own below
-<code class="docutils literal notranslate"><span class="pre">${TMPDIR:-/tmp}</span></code>, so phases do not disturb each other. On macOS CTest runs the phases as five
+<code class="docutils literal notranslate"><span class="pre">tools/e2e/visual_polish_smoke.sh</span> <span class="pre">signals</span> <span class="pre">stations</span></code>. Each run writes into a folder of its own below
+<code class="docutils literal notranslate"><span class="pre">${TMPDIR:-/tmp}</span></code>, so runs do not disturb each other. On macOS CTest runs the phases as five
 tests that can run side by side, and <code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">--test-dir</span> <span class="pre">build</span> <span class="pre">-R</span> <span class="pre">test_visual_polish_smoke</span> <span class="pre">--output-on-failure</span></code> starts all five:</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
@@ -706,11 +793,11 @@ tests that can run side by side, and <code class="docutils literal notranslate">
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_replay</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">completion</span></code></p></td>
-<td><p>The Assignment run to its end: the replay row and the Follow checks of the replay</p></td>
+<td><p>The Assignment run to its end: the replay row, the playback (speeds, glide over a step, seek during Play) and the Follow checks of the replay</p></td>
 </tr>
 <tr class="row-even"><td><p></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">replay</span></code></p></td>
-<td><p>The whole-run replay of Assignment, Paimpol, Milano_Brescia and Netherlands</p></td>
+<td><p>The whole-run replay of Assignment, Paimpol, Milano_Brescia, Amsterdam_Hilversum_Student and Netherlands</p></td>
 </tr>
 <tr class="row-odd"><td><p></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">discard</span></code></p></td>
@@ -718,7 +805,7 @@ tests that can run side by side, and <code class="docutils literal notranslate">
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_replay_copenhagen</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">replay-copenhagen</span></code></p></td>
-<td><p>The whole-run replay of Copenhagen, which takes as long as the other four scenes together</p></td>
+<td><p>The whole-run replay of Copenhagen, which takes as long as the other five scenes together</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_signals</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">signals</span></code></p></td>
@@ -741,8 +828,7 @@ and <code class="docutils literal notranslate"><span class="pre">test_route_diag
 <code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">--test-dir</span> <span class="pre">build</span> <span class="pre">-R</span> <span class="pre">&lt;name&gt;</span> <span class="pre">--output-on-failure</span></code> starts one. CTest gives these
 tests and the five visual tests a settings folder below <code class="docutils literal notranslate"><span class="pre">build/settings</span></code> and an output
 folder below <code class="docutils literal notranslate"><span class="pre">build/output</span></code>; <code class="docutils literal notranslate"><span class="pre">visual_polish_smoke.sh</span></code> replaces the settings folder with a
-temporary one. The release workflow also runs <code class="docutils literal notranslate"><span class="pre">scene_render_smoke.sh</span></code>, <code class="docutils literal notranslate"><span class="pre">track_preview_smoke.sh</span></code> and
-<code class="docutils literal notranslate"><span class="pre">visual_polish_smoke.sh</span></code> as steps of their own. The scripts need an application built with
+temporary one. The release workflow runs these tests through CTest too. The scripts need an application built with
 <code class="docutils literal notranslate"><span class="pre">EGTRAIN_BUILD_TESTS=ON</span></code>, because only that build starts a scenario from its variable at the first
 show of the window and redirects the settings.</p>
 <p>The script also runs the signal head checks. <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_SIGNAL_HEADS</span></code> names
@@ -776,8 +862,9 @@ replay”, an empty slider, and a slider and Play that are disabled. The wording
 replayed, a first kept time of 0, a run of one frame and a clock that wraps over midnight.</p>
 <p>A real scene is checked with <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1</span></code>. The window runs the scene
 to its end at its own horizon, applies the checks of <code class="docutils literal notranslate"><span class="pre">E2E_REPLAY_ROW_WHOLE_OK</span></code> to the
-history of that run and exits, printing <code class="docutils literal notranslate"><span class="pre">E2E_REPLAY_WHOLE_RUN_OK</span></code> with the number of
-frames, the last time and the accounted bytes and budget. The <code class="docutils literal notranslate"><span class="pre">replay</span></code> and <code class="docutils literal notranslate"><span class="pre">replay-copenhagen</span></code> phases of
+history of that run and exits, printing <code class="docutils literal notranslate"><span class="pre">E2E_REPLAY_WHOLE_RUN_OK</span></code> with <code class="docutils literal notranslate"><span class="pre">seconds</span></code> (the seconds
+the replay covers), <code class="docutils literal notranslate"><span class="pre">last</span></code> (its last time), <code class="docutils literal notranslate"><span class="pre">bytes</span></code> (the payload that the history owns), <code class="docutils literal notranslate"><span class="pre">shared</span></code> (the samples
+that it shares with the completed run), <code class="docutils literal notranslate"><span class="pre">budget</span></code> and <code class="docutils literal notranslate"><span class="pre">intervals</span></code>. The <code class="docutils literal notranslate"><span class="pre">replay</span></code> and <code class="docutils literal notranslate"><span class="pre">replay-copenhagen</span></code> phases of
 <code class="docutils literal notranslate"><span class="pre">visual_polish_smoke.sh</span></code> do so for all six committed scenes, so a history that drops the first part of one of them, or
 ends before the last timestep of the run, fails the script. No committed scene is larger
 than the budget at its own horizon, which is why the dropped row is built from a smaller
@@ -890,20 +977,54 @@ dialog takes its size from the font and style of the platform. CTest runs it on 
 <section id="smoke-artifacts">
 <h2>Smoke artifacts<a class="headerlink" href="#smoke-artifacts" title="Link to this heading">¶</a></h2>
 <p>Smoke scripts write temporary diagnostics below <code class="docutils literal notranslate"><span class="pre">${TMPDIR:-/tmp}</span></code>; on Windows
-the temporary directory comes from <code class="docutils literal notranslate"><span class="pre">TEMP</span></code> and <code class="docutils literal notranslate"><span class="pre">TMP</span></code>. GitHub Actions routes
+the temporary directory comes from <code class="docutils literal notranslate"><span class="pre">TEMP</span></code> and <code class="docutils literal notranslate"><span class="pre">TMP</span></code>. The CI workflows route
 <code class="docutils literal notranslate"><span class="pre">TMPDIR</span></code> (macOS, Linux) or <code class="docutils literal notranslate"><span class="pre">TEMP</span></code> and <code class="docutils literal notranslate"><span class="pre">TMP</span></code> (Windows) to <code class="docutils literal notranslate"><span class="pre">$RUNNER_TEMP</span></code>
-(<code class="docutils literal notranslate"><span class="pre">runner.temp</span></code>) for CI diagnostics.
-The visual and render smoke artifacts include:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">qegtrain-visual-polish-e2e.png</span></code> and <code class="docutils literal notranslate"><span class="pre">qegtrain-visual-polish-e2e.log</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">qegtrain-scene-render-e2e.png</span></code> and <code class="docutils literal notranslate"><span class="pre">qegtrain-scene-render-e2e.log</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ctest.log</span></code>, <code class="docutils literal notranslate"><span class="pre">qegtrain-editor-smoke-e2e.log</span></code>, and
-<code class="docutils literal notranslate"><span class="pre">qegtrain-gui-autostart-smoke.log</span></code></p></li>
-</ul>
-<p>The failure artifact of the pull request check holds only <code class="docutils literal notranslate"><span class="pre">ctest.log</span></code> and the
-GUI autostart log, so the output of a failed smoke is what its script prints into
-<code class="docutils literal notranslate"><span class="pre">ctest.log</span></code>. <code class="docutils literal notranslate"><span class="pre">visual_polish_smoke.sh</span></code> prints a missing-marker line or nothing for
-most of its checks, so run it locally to read its logs.</p>
+(<code class="docutils literal notranslate"><span class="pre">runner.temp</span></code>) for CI diagnostics.</p>
+<p>Each run of a Bash smoke with a log writes its logs, screenshots and files into a folder of its own,
+<code class="docutils literal notranslate"><span class="pre">qegtrain-&lt;smoke&gt;-e2e.&lt;random&gt;</span></code>, so two build trees can run the same smoke at the same time. The
+script removes the folder when it passes. When it fails it keeps the folder and prints its name last:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Script</p></th>
+<th class="head"><p>Folder</p></th>
+<th class="head"><p>Files</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">visual_polish_smoke.sh</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">qegtrain-visual-polish-e2e.&lt;random&gt;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">qegtrain-visual-polish-e2e.log</span></code> and <code class="docutils literal notranslate"><span class="pre">.png</span></code>, and a log or screenshot of each other check</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">scene_render_smoke.sh</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">qegtrain-scene-render-e2e.&lt;random&gt;</span></code>, one for each scene</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">qegtrain-scene-render-e2e.log</span></code> and <code class="docutils literal notranslate"><span class="pre">.png</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">editor_smoke.sh</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">qegtrain-editor-smoke-e2e.&lt;random&gt;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">qegtrain-editor-smoke-e2e.log</span></code> and the files of the check</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">track_preview_smoke.sh</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">qegtrain-track-preview-e2e.&lt;random&gt;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">qegtrain-track-preview-e2e.log</span></code> and the copy of the scene</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">legacy_import_smoke.sh</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">qegtrain-legacy-import-e2e.&lt;random&gt;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">qegtrain-legacy-import-e2e.log</span></code>, the legacy case and the imported scenes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">csv_export_smoke.sh</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">qegtrain-csv-export-e2e.&lt;random&gt;</span></code></p></td>
+<td><p>The logs, exports and run output of the three runs</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The Python smokes name their logs themselves: <code class="docutils literal notranslate"><span class="pre">qegtrain-gui-autostart-smoke.log</span></code> and
+<code class="docutils literal notranslate"><span class="pre">qegtrain-incident-&lt;tag&gt;.log</span></code> below the temporary directory, and <code class="docutils literal notranslate"><span class="pre">headless_case_&lt;n&gt;.log</span></code> as in
+<a class="reference internal" href="#where-test-and-run-output-goes">Where test and run output goes</a>.</p>
+<p>The failure artifact of the pull request check holds <code class="docutils literal notranslate"><span class="pre">ctest.log</span></code>, those Python logs and the kept
+folders of the Bash smokes. <code class="docutils literal notranslate"><span class="pre">visual_polish_smoke.sh</span></code> prints a missing-marker line or nothing for
+most of its checks, so read the log in its folder.</p>
 </section>
 <section id="where-test-and-run-output-goes">
 <h2>Where test and run output goes<a class="headerlink" href="#where-test-and-run-output-goes" title="Link to this heading">¶</a></h2>
@@ -922,7 +1043,7 @@ most of its checks, so run it locally to read its logs.</p>
 </tr>
 <tr class="row-odd"><td><p>Files of a run in the application or from <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;QStandardPaths::AppDataLocation&gt;/Output/&lt;scene&gt;</span></code>; the files are in <a class="reference internal" href="../guides/run-output.html"><span class="std std-doc">Run output</span></a></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">QEGTRAIN_OUTPUT_DIR</span></code> replaces the base folder, and <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Set</span> <span class="pre">Output</span> <span class="pre">Folder...</span></code> replaces the folder of every later run in that session (<a class="reference internal" href="../guides/command-line.html#output-folder"><span class="std std-ref">Output folder</span></a>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">QEGTRAIN_OUTPUT_DIR</span></code> replaces the base folder, and <code class="docutils literal notranslate"><span class="pre">Simulation</span> <span class="pre">&gt;</span> <span class="pre">Set</span> <span class="pre">Output</span> <span class="pre">Folder...</span></code> replaces the folder of every later run in that session (<a class="reference internal" href="../guides/command-line.html#output-folder"><span class="std std-ref">Output folder</span></a>)</p></td>
 </tr>
 <tr class="row-even"><td><p>Messages of a run</p></td>
 <td><p>Standard output and error, the <strong>Log</strong> dock, and the file named by <code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG_FILE</span></code></p></td>
@@ -937,20 +1058,24 @@ most of its checks, so run it locally to read its logs.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">QEGTRAIN_OUTPUT_DIR</span></code>, set by CMake</p></td>
 </tr>
 <tr class="row-odd"><td><p>Logs and screenshots of the Bash smokes</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">${TMPDIR:-/tmp}</span></code>, for example <code class="docutils literal notranslate"><span class="pre">qegtrain-visual-polish-e2e.log</span></code>; see <a class="reference internal" href="#smoke-artifacts">Smoke artifacts</a></p></td>
+<td><p>A folder of each run’s own below <code class="docutils literal notranslate"><span class="pre">${TMPDIR:-/tmp}</span></code>, kept only when the run fails; see <a class="reference internal" href="#smoke-artifacts">Smoke artifacts</a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">TMPDIR</span></code> (<code class="docutils literal notranslate"><span class="pre">TEMP</span></code> and <code class="docutils literal notranslate"><span class="pre">TMP</span></code> on Windows)</p></td>
 </tr>
 <tr class="row-even"><td><p>Output of <code class="docutils literal notranslate"><span class="pre">tools/e2e/headless_smoke.py</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/Output/&lt;scene&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">tools/e2e/headless_case_&lt;n&gt;.log</span></code>. Git ignores both. The script sets <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_OUTPUT_DIR</span></code> itself</p></td>
-<td><p>The case numbers on the command line; none runs all six, and Copenhagen alone takes minutes. CTest runs each case as its own test</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/Output/&lt;scene&gt;</span></code>, and <code class="docutils literal notranslate"><span class="pre">headless_case_&lt;n&gt;.log</span></code> in <code class="docutils literal notranslate"><span class="pre">build/smoke-logs</span></code> under CTest or in <code class="docutils literal notranslate"><span class="pre">tools/e2e</span></code> for a run by hand. Git ignores the source tree files. The script sets <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_OUTPUT_DIR</span></code> itself</p></td>
+<td><p>The case numbers on the command line; none runs all six, and Copenhagen alone takes minutes. CTest runs each case as its own test. <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_SMOKE_LOG_DIR</span></code> names the log folder, and CTest sets it</p></td>
 </tr>
 <tr class="row-odd"><td><p>Files of <code class="docutils literal notranslate"><span class="pre">tools/e2e/roundtrip_smoke.py</span></code></p></td>
 <td><p>A temporary folder that the script removes when it ends</p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p>Unsaved-work copies that the window keeps</p></td>
-<td><p>A <code class="docutils literal notranslate"><span class="pre">Recovery</span></code> folder in the local application data folder</p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">Recovery</span></code> folder in the local application data folder, or in the folder of <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_SETTINGS_DIR</span></code> for a test run with a window on a screen. Scripted runs and the offscreen and minimal platforms keep none unless <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_RECOVERY_DIR</span></code> is set</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">QEGTRAIN_RECOVERY_DIR</span></code> (<a class="reference internal" href="../architecture/scene-editor-flow.html#window-flow"><span class="std std-ref">Scene editor flow</span></a>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Crash notes of the window</p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">Crashes</span></code> folder next to the <code class="docutils literal notranslate"><span class="pre">Recovery</span></code> folder, kept under the same rules</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">QEGTRAIN_CRASH_DIR</span></code> (<a class="reference internal" href="error-handling.html#crash-notes"><span class="std std-ref">Crash notes</span></a>)</p></td>
 </tr>
 </tbody>
 </table>
@@ -994,7 +1119,7 @@ application; CTest and the smoke scripts set it themselves.</p>
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">
@@ -1020,6 +1145,7 @@ application; CTest and the smoke scripts set it themselves.</p>
 <li><a class="reference internal" href="#simulation-smoke-test">Simulation Smoke Test</a></li>
 <li><a class="reference internal" href="#peak-memory-measurement">Peak-memory measurement</a></li>
 <li><a class="reference internal" href="#leak-check">Leak check</a></li>
+<li><a class="reference internal" href="#nightly-sanitizer-runs">Nightly sanitizer runs</a></li>
 <li><a class="reference internal" href="#scene-roundtrip-smoke-test">Scene Roundtrip Smoke Test</a></li>
 <li><a class="reference internal" href="#live-stream-tests">Live stream tests</a><ul>
 <li><a class="reference internal" href="#threadsanitizer">ThreadSanitizer</a></li>

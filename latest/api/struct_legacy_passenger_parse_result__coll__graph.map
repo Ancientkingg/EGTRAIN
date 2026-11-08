@@ -1,7 +1,7 @@
 <map id="LegacyPassengerParseResult" name="LegacyPassengerParseResult">
-<area shape="rect" id="Node000001" title=" " alt="" coords="78,101,289,127"/>
-<area shape="rect" id="Node000002" href="$struct_legacy_passenger_sources.html" title=" " alt="" coords="5,5,191,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,39,175,99,171,103,116,43"/>
-<area shape="rect" id="Node000003" href="$struct_report_builder.html" title=" " alt="" coords="215,5,325,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="252,43,196,103,192,99,248,39"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="78,106,288,134"/>
+<area shape="rect" id="Node000002" href="$struct_legacy_passenger_sources.html" title=" " alt="" coords="5,5,190,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,42,174,105,169,106,117,47"/>
+<area shape="rect" id="Node000003" href="$struct_report_builder.html" title=" " alt="" coords="214,5,325,33"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="251,44,196,107,193,103,246,46"/>
 </map>

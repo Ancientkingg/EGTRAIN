@@ -1,0 +1,26 @@
+<map id="SceneSession::rebuildRecentScenesMenu" name="SceneSession::rebuildRecentScenesMenu">
+<area shape="rect" id="Node000001" title="Fills the Recent Cases menu again from the settings." alt="" coords="5,156,214,200"/>
+<area shape="rect" id="Node000002" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title="path with every slash replaced by separator()." alt="" coords="515,173,671,201"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,153,205,132,261,117,319,106,365,102,411,105,468,117,519,136,563,164,558,164,516,141,466,122,410,110,365,107,320,112,262,122,207,137,158,157"/>
+<area shape="rect" id="Node000004" href="$class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" title="The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear ..." alt="" coords="262,29,467,57"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="137,153,192,113,260,73,295,61,291,64,263,78,195,117,141,157"/>
+<area shape="rect" id="Node000006" href="$class_scene_session.html#a2176c2bafa9f6d1f6ffaf4d6bfeb1b8f" title=" " alt="" coords="264,156,465,200"/>
+<area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="213,175,250,177,245,179,215,180"/>
+<area shape="rect" id="Node000007" href="$class_scene_session.html#aca549b2a35ff4bf6b8810526e2308b64" title="What the actions of the window enable depends on the scene or on the recent scenes,..." alt="" coords="262,225,466,270"/>
+<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="194,198,268,219,263,221,195,203"/>
+<area shape="rect" id="Node000008" href="$_case_chooser_dialog_8cpp.html#af554803cb7445cd79e87743e739c3a61" title=" " alt="" coords="302,317,426,345"/>
+<area shape="poly" id="edge11_Node000001_Node000008" title=" " alt="" coords="142,198,198,238,263,280,320,311,314,310,260,284,195,242,141,203"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="556,172,551,164,555,155,570,149,593,147,618,149,633,158,628,158,617,154,593,152,571,154,559,159,556,164,561,174"/>
+<area shape="rect" id="Node000003" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst..." alt="" coords="719,173,894,201"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="671,185,706,187,701,187,672,190"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="770,172,764,164,769,155,783,149,807,147,832,149,847,158,841,158,830,154,806,152,784,154,772,159,769,164,775,174"/>
+<area shape="rect" id="Node000005" href="$_case_chooser_dialog_8cpp.html#ad36e4ed5512f6a4760bb55ff7741ed66" title=" " alt="" coords="540,29,646,57"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="467,41,527,42,522,44,468,46"/>
+<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="556,28,551,20,555,11,570,5,593,3,618,5,633,14,628,14,617,10,593,8,571,10,559,15,556,20,561,29"/>
+<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="321,154,319,145,327,136,342,131,364,129,389,131,405,140,400,140,388,137,364,134,343,136,330,141,324,147,326,156"/>
+<area shape="poly" id="edge12_Node000008_Node000002" title=" " alt="" coords="399,314,466,280,518,244,561,212,566,210,521,248,468,284,400,319"/>
+<area shape="poly" id="edge15_Node000008_Node000008" title=" " alt="" coords="325,316,319,308,324,299,339,293,364,291,391,293,407,302,402,302,390,298,364,296,340,298,327,303,324,308,330,318"/>
+<area shape="rect" id="Node000009" href="$_case_chooser_dialog_8cpp.html#a20939c6104a524e256a3bd01b89196d2" title=" " alt="" coords="520,317,667,345"/>
+<area shape="poly" id="edge13_Node000008_Node000009" title=" " alt="" coords="427,329,506,331,501,331,427,334"/>
+<area shape="poly" id="edge14_Node000009_Node000009" title=" " alt="" coords="556,316,551,308,555,299,570,293,593,291,618,293,633,302,628,302,617,298,593,296,571,298,559,303,556,308,561,318"/>
+</map>

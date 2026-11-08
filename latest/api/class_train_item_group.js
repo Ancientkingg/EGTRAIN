@@ -12,7 +12,6 @@ var class_train_item_group =
     [ "maxOnboardPassengers", "class_train_item_group.html#ad62434d02bd243faffbabf6528352a1e", null ],
     [ "outlineColor", "class_train_item_group.html#ad5aec26ad0081552d4c01cfe22dcdd09", null ],
     [ "outOfSimulation", "class_train_item_group.html#aeb70c9aaeabba7d84c2c64285d266e6f", null ],
-    [ "paxInfoItem", "class_train_item_group.html#ae69bd2d634bb9fc3eec8dd5cc7583d93", null ],
     [ "serviceId", "class_train_item_group.html#acc662520bc11177a9821d93360b3775c", null ],
     [ "trainDescription", "class_train_item_group.html#a5730de475fdd0e61d0b156be14e7b06b", null ],
     [ "trainId", "class_train_item_group.html#a1c49f5367b64b18b7ec0268d81d3805e", null ],

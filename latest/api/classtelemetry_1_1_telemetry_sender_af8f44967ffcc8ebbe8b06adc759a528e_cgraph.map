@@ -1,12 +1,12 @@
 <map id="telemetry::TelemetrySender::TelemetrySender" name="telemetry::TelemetrySender::TelemetrySender">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,208,95"/>
-<area shape="rect" id="Node000002" href="$classtelemetry_1_1_telemetry_sender.html#a63aff60ffeeea563d18ef17a5388b88c" title=" " alt="" coords="256,55,459,95"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,73,242,73,242,78,208,78"/>
-<area shape="rect" id="Node000003" href="$struct_telemetry_context.html#a7b832eb570509f731161945701073408" title="True when packaged, enabled and interactive, with non&#45;empty terms and a valid exact HTTPS endpoint." alt="" coords="507,5,705,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="444,53,536,31,538,36,445,58"/>
-<area shape="rect" id="Node000004" href="$classtelemetry_1_1_sender_thread.html#a5f4f1231c4faf7082ca94f7fce022dde" title=" " alt="" coords="515,55,697,95"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="459,73,501,73,501,78,459,78"/>
-<area shape="rect" id="Node000005" href="$namespacetelemetry.html#ac0ddecaf7929a3bd903923fe0bcb7d86" title="True when version, platform and architecture have the forms that the contract allows." alt="" coords="507,144,705,169"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="420,93,554,137,552,142,419,98"/>
-<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="566,146,557,136,562,126,578,120,606,117,641,121,651,126,655,132,650,135,647,130,640,126,606,123,579,125,565,130,562,135,570,142"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,57,208,102"/>
+<area shape="rect" id="Node000002" href="$classtelemetry_1_1_telemetry_sender.html#a63aff60ffeeea563d18ef17a5388b88c" title=" " alt="" coords="256,57,458,102"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,77,243,78,238,80,209,82"/>
+<area shape="rect" id="Node000003" href="$struct_telemetry_context.html#a7b832eb570509f731161945701073408" title="True when packaged, enabled and interactive, with non&#45;empty terms and a valid exact HTTPS endpoint." alt="" coords="506,5,703,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="451,54,532,37,527,38,453,59"/>
+<area shape="rect" id="Node000004" href="$classtelemetry_1_1_sender_thread.html#a5f4f1231c4faf7082ca94f7fce022dde" title=" " alt="" coords="514,57,696,102"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="458,77,500,79,495,79,459,82"/>
+<area shape="rect" id="Node000005" href="$namespacetelemetry.html#ac0ddecaf7929a3bd903923fe0bcb7d86" title="True when version, platform and architecture have the forms that the contract allows." alt="" coords="506,149,703,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="426,99,549,144,544,144,425,105"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="562,148,556,140,561,131,578,125,605,123,634,125,651,134,646,134,632,130,605,128,579,130,564,135,561,140,567,150"/>
 </map>

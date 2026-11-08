@@ -8,7 +8,6 @@
 <title>EGTRAIN: ReplayCoverage Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,16 +115,16 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_replay_
 <p>What the replay history holds, as the replay row describes it.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_replay_coverage_8h_source.html">app/ReplayCoverage.h</a>&gt;</code></p>
+<p><code>#include &lt;app/ReplayCoverage.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:afcca23e33187863e2e84432e4766599d" id="r_afcca23e33187863e2e84432e4766599d"><td class="memItemLeft"><a class="el" href="_replay_coverage_8h.html#a0939c05274de0f19e3fb4faf5b0d8cbf">ReplayCoverageKind</a>&#160;</td><td class="memItemRight"><a class="el" href="#afcca23e33187863e2e84432e4766599d">kind</a> = <a class="el" href="_replay_coverage_8h.html#a0939c05274de0f19e3fb4faf5b0d8cbfa453e6aa38d87b28ccae545967c53004f">ReplayCoverageKind::Unavailable</a></td></tr>
-<tr class="memitem:a58fd4f4fa552a6b183fa7ebf94828648" id="r_a58fd4f4fa552a6b183fa7ebf94828648"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a58fd4f4fa552a6b183fa7ebf94828648">firstTime</a> = 0</td></tr>
+<tr class="memitem:afcca23e33187863e2e84432e4766599d" id="r_afcca23e33187863e2e84432e4766599d"><td class="memItemLeft"><a class="el" href="_replay_coverage_8h.html#a0939c05274de0f19e3fb4faf5b0d8cbf">ReplayCoverageKind</a>&#160;</td><td class="memItemRight"><a class="el" href="#afcca23e33187863e2e84432e4766599d">kind</a></td></tr>
+<tr class="memitem:a58fd4f4fa552a6b183fa7ebf94828648" id="r_a58fd4f4fa552a6b183fa7ebf94828648"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a58fd4f4fa552a6b183fa7ebf94828648">firstTime</a></td></tr>
 <tr class="memdesc:a58fd4f4fa552a6b183fa7ebf94828648"><td class="mdescLeft">&#160;</td><td class="mdescRight">First time that is kept, in seconds since simulation start.  <br /></td></tr>
-<tr class="memitem:a7ea81a7ad32b7c6e2d6808e1b1563a1e" id="r_a7ea81a7ad32b7c6e2d6808e1b1563a1e"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a7ea81a7ad32b7c6e2d6808e1b1563a1e">lastTime</a> = 0</td></tr>
+<tr class="memitem:a7ea81a7ad32b7c6e2d6808e1b1563a1e" id="r_a7ea81a7ad32b7c6e2d6808e1b1563a1e"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a7ea81a7ad32b7c6e2d6808e1b1563a1e">lastTime</a></td></tr>
 <tr class="memdesc:a7ea81a7ad32b7c6e2d6808e1b1563a1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Last time that is kept, in seconds since simulation start.  <br /></td></tr>
-<tr class="memitem:a5a7e59a18a3c7ce8f6ba2537962550f4" id="r_a5a7e59a18a3c7ce8f6ba2537962550f4"><td class="memItemLeft">long long&#160;</td><td class="memItemRight"><a class="el" href="#a5a7e59a18a3c7ce8f6ba2537962550f4">clockOffsetSeconds</a> = 0</td></tr>
+<tr class="memitem:a5a7e59a18a3c7ce8f6ba2537962550f4" id="r_a5a7e59a18a3c7ce8f6ba2537962550f4"><td class="memItemLeft">long long&#160;</td><td class="memItemRight"><a class="el" href="#a5a7e59a18a3c7ce8f6ba2537962550f4">clockOffsetSeconds</a></td></tr>
 <tr class="memdesc:a5a7e59a18a3c7ce8f6ba2537962550f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Simulation start, seconds since midnight (the offset formatSimTime takes).  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -138,7 +137,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">long long ReplayCoverage::clockOffsetSeconds = 0</td>
+          <td class="memname">long long ReplayCoverage::clockOffsetSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -154,7 +153,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int ReplayCoverage::firstTime = 0</td>
+          <td class="memname">int ReplayCoverage::firstTime</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -170,7 +169,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_replay_coverage_8h.html#a0939c05274de0f19e3fb4faf5b0d8cbf">ReplayCoverageKind</a> ReplayCoverage::kind = <a class="el" href="_replay_coverage_8h.html#a0939c05274de0f19e3fb4faf5b0d8cbfa453e6aa38d87b28ccae545967c53004f">ReplayCoverageKind::Unavailable</a></td>
+          <td class="memname"><a class="el" href="_replay_coverage_8h.html#a0939c05274de0f19e3fb4faf5b0d8cbf">ReplayCoverageKind</a> ReplayCoverage::kind</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -185,7 +184,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int ReplayCoverage::lastTime = 0</td>
+          <td class="memname">int ReplayCoverage::lastTime</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -195,7 +194,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>app/<a class="el" href="_replay_coverage_8h_source.html">ReplayCoverage.h</a></li>
+<li>app/<a class="el" href="_replay_coverage_8h.html">ReplayCoverage.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

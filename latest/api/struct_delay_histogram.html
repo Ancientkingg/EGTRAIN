@@ -8,7 +8,6 @@
 <title>EGTRAIN: DelayHistogram Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,18 +115,18 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_delay_h
 <p>The available events of a set in classes of delay, and the counts of the events without a delay.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_delay_analysis_8h_source.html">diagrams/DelayAnalysis.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/DelayAnalysis.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a2db354d10660a4e4f105b03627591cde" id="r_a2db354d10660a4e4f105b03627591cde"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_delay_histogram_class.html">DelayHistogramClass</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a2db354d10660a4e4f105b03627591cde">classes</a></td></tr>
-<tr class="memitem:aa917c93d5865b448efa9eb0d845731a3" id="r_aa917c93d5865b448efa9eb0d845731a3"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aa917c93d5865b448efa9eb0d845731a3">available</a> = 0</td></tr>
+<tr class="memitem:aa917c93d5865b448efa9eb0d845731a3" id="r_aa917c93d5865b448efa9eb0d845731a3"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aa917c93d5865b448efa9eb0d845731a3">available</a></td></tr>
 <tr class="memdesc:aa917c93d5865b448efa9eb0d845731a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Events with <a class="el" href="_run_results_8h.html#a4c538708eecaf4490545aa3463dd09afa78945de8de090e90045d299651a68a9b" title="Both times exist.">TimetableValueStatus::Available</a>. The classes hold these events and no other.  <br /></td></tr>
-<tr class="memitem:aa8908837e5220e0c4870dd0cae400793" id="r_aa8908837e5220e0c4870dd0cae400793"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aa8908837e5220e0c4870dd0cae400793">noPlan</a> = 0</td></tr>
+<tr class="memitem:aa8908837e5220e0c4870dd0cae400793" id="r_aa8908837e5220e0c4870dd0cae400793"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aa8908837e5220e0c4870dd0cae400793">noPlan</a></td></tr>
 <tr class="memdesc:aa8908837e5220e0c4870dd0cae400793"><td class="mdescLeft">&#160;</td><td class="mdescRight">Events with <a class="el" href="_run_results_8h.html#a4c538708eecaf4490545aa3463dd09afa789ca2faf1850a5752f9645689bdaf41" title="Only the simulated time exists.">TimetableValueStatus::NoPlan</a>.  <br /></td></tr>
-<tr class="memitem:a4e042e089725246e7d1ec7d228ae2688" id="r_a4e042e089725246e7d1ec7d228ae2688"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4e042e089725246e7d1ec7d228ae2688">notReached</a> = 0</td></tr>
+<tr class="memitem:a4e042e089725246e7d1ec7d228ae2688" id="r_a4e042e089725246e7d1ec7d228ae2688"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4e042e089725246e7d1ec7d228ae2688">notReached</a></td></tr>
 <tr class="memdesc:a4e042e089725246e7d1ec7d228ae2688"><td class="mdescLeft">&#160;</td><td class="mdescRight">Events with <a class="el" href="_run_results_8h.html#a4c538708eecaf4490545aa3463dd09afac606976c0e541053f63da2bc59f10476" title="Only the planned time exists.">TimetableValueStatus::NotReached</a>.  <br /></td></tr>
-<tr class="memitem:ac81a1482879611dcff82274d3dafea73" id="r_ac81a1482879611dcff82274d3dafea73"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ac81a1482879611dcff82274d3dafea73">noPlanAndNotReached</a> = 0</td></tr>
+<tr class="memitem:ac81a1482879611dcff82274d3dafea73" id="r_ac81a1482879611dcff82274d3dafea73"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ac81a1482879611dcff82274d3dafea73">noPlanAndNotReached</a></td></tr>
 <tr class="memdesc:ac81a1482879611dcff82274d3dafea73"><td class="mdescLeft">&#160;</td><td class="mdescRight">Events with <a class="el" href="_run_results_8h.html#a4c538708eecaf4490545aa3463dd09afa37d469e00c73d64a59b6889a48998e1e" title="Neither time exists.">TimetableValueStatus::NoPlanAndNotReached</a>.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -140,7 +139,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int DelayHistogram::available = 0</td>
+          <td class="memname">int DelayHistogram::available</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -171,7 +170,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int DelayHistogram::noPlan = 0</td>
+          <td class="memname">int DelayHistogram::noPlan</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -187,7 +186,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int DelayHistogram::noPlanAndNotReached = 0</td>
+          <td class="memname">int DelayHistogram::noPlanAndNotReached</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -203,7 +202,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int DelayHistogram::notReached = 0</td>
+          <td class="memname">int DelayHistogram::notReached</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -213,7 +212,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_delay_analysis_8h_source.html">DelayAnalysis.h</a></li>
+<li>diagrams/<a class="el" href="_delay_analysis_8h.html">DelayAnalysis.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

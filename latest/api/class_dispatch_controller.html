@@ -8,7 +8,6 @@
 <title>EGTRAIN: DispatchController Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,26 +112,22 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_dispatch
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_dispatch_controller_8h_source.html">app/DispatchController.h</a>&gt;</code></p>
+<p><code>#include &lt;app/DispatchController.h&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for DispatchController:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller__inherit__graph.svg" width="154" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller__inherit__graph.svg" width="154" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
 Collaboration diagram for DispatchController:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller__coll__graph.svg" width="154" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller__coll__graph.svg" width="154" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
-<tr class="memitem:ab998809e17e483b75df62cdaf6386e8b" id="r_ab998809e17e483b75df62cdaf6386e8b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab998809e17e483b75df62cdaf6386e8b">iterationFinished</a> (int timestep)</td></tr>
-<tr class="memdesc:ab998809e17e483b75df62cdaf6386e8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Nothing emits this signal.  <br /></td></tr>
 <tr class="memitem:aebe79f141b28e94e15e1d5ce7aa1617a" id="r_aebe79f141b28e94e15e1d5ce7aa1617a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aebe79f141b28e94e15e1d5ce7aa1617a">snapshotAvailable</a> ()</td></tr>
 <tr class="memdesc:aebe79f141b28e94e15e1d5ce7aa1617a"><td class="mdescLeft">&#160;</td><td class="mdescRight">A step has published a snapshot and no earlier one waits to be taken. Fetch it with takeSimulationSnapshot.  <br /></td></tr>
-<tr class="memitem:ac1303c26373b05425e1a19988da7913c" id="r_ac1303c26373b05425e1a19988da7913c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac1303c26373b05425e1a19988da7913c">simulationFinished</a> ()</td></tr>
-<tr class="memdesc:ac1303c26373b05425e1a19988da7913c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Nothing emits this signal. <a class="el" href="class_simulation_worker.html#a8ddd1f6b5278e23ae746ad9de0d16e7d">SimulationWorker::simulationFinished</a> marks the end of a run in the window.  <br /></td></tr>
 <tr class="memitem:a39cb8a5f1b9faddf6fe72fdda874b921" id="r_a39cb8a5f1b9faddf6fe72fdda874b921"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a39cb8a5f1b9faddf6fe72fdda874b921">executionRejected</a> ()</td></tr>
 <tr class="memdesc:a39cb8a5f1b9faddf6fe72fdda874b921"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execution-thread observations, independent of GUI result availability: runSimulation turns down a run without trains.  <br /></td></tr>
 <tr class="memitem:ada5a8643ab4c07569d742a43f4f3200f" id="r_ada5a8643ab4c07569d742a43f4f3200f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ada5a8643ab4c07569d742a43f4f3200f">executionBegan</a> ()</td></tr>
@@ -152,10 +147,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae9f55885c0745b66737a45acaf839544" id="r_ae9f55885c0745b66737a45acaf839544"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae9f55885c0745b66737a45acaf839544">resetState</a> ()</td></tr>
 <tr class="memitem:aa8e0c7473475d098b4d91cab37a1c4d9" id="r_aa8e0c7473475d098b4d91cab37a1c4d9"><td class="memItemLeft">const <a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#aa8e0c7473475d098b4d91cab37a1c4d9">run</a> () const</td></tr>
 <tr class="memitem:a027310e296b105e0d388fd96dbca6d63" id="r_a027310e296b105e0d388fd96dbca6d63"><td class="memItemLeft"><a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a027310e296b105e0d388fd96dbca6d63">mutableRun</a> ()</td></tr>
+<tr class="memdesc:a027310e296b105e0d388fd96dbca6d63"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same run with write access, for the stages of the controller and for tests. The thread rules of <a class="el" href="#aa8e0c7473475d098b4d91cab37a1c4d9">run()</a> apply.  <br /></td></tr>
 <tr class="memitem:adfb494be209a1122219b5d24128a4ec2" id="r_adfb494be209a1122219b5d24128a4ec2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#adfb494be209a1122219b5d24128a4ec2">runSimulation</a> ()</td></tr>
-<tr class="memitem:abaea92389147b6df5588c56ecda23491" id="r_abaea92389147b6df5588c56ecda23491"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abaea92389147b6df5588c56ecda23491">Train_Simulation_Mixed_Signalling_With_Passengers</a> (double v1, double v2, double v3)</td></tr>
-<tr class="memitem:a36418dfc2831a157cf9fe1158307ecdc" id="r_a36418dfc2831a157cf9fe1158307ecdc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a36418dfc2831a157cf9fe1158307ecdc">printLastTrainServicePathDiagram</a> ()</td></tr>
-<tr class="memitem:acef50692bea1bf76d3e9988afa413a71" id="r_acef50692bea1bf76d3e9988afa413a71"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acef50692bea1bf76d3e9988afa413a71">setVectorSizesFromInput</a> (int vec_size)</td></tr>
+<tr class="memitem:a3a9e80e3e66281ea2a8bcf3f073e2fb0" id="r_a3a9e80e3e66281ea2a8bcf3f073e2fb0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3a9e80e3e66281ea2a8bcf3f073e2fb0">Train_Simulation_Mixed_Signalling_With_Passengers</a> ()</td></tr>
+<tr class="memitem:abf06691ab0f6e64dad67e5a3f6a39655" id="r_abf06691ab0f6e64dad67e5a3f6a39655"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#abf06691ab0f6e64dad67e5a3f6a39655">printLastTrainServicePathDiagram</a> ()</td></tr>
 <tr class="memitem:a17f1138c6661bae0d67ecd96e4858054" id="r_a17f1138c6661bae0d67ecd96e4858054"><td class="memItemLeft">std::shared_ptr&lt; const <a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a17f1138c6661bae0d67ecd96e4858054">takeSimulationSnapshot</a> ()</td></tr>
 <tr class="memitem:acfe9014d13612fcccc58c5b6bd79dacb" id="r_acfe9014d13612fcccc58c5b6bd79dacb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acfe9014d13612fcccc58c5b6bd79dacb">setSnapshotsEnabled</a> (bool enabled)</td></tr>
 <tr class="memitem:a4e932a087dd00e4d2c817e42c77aceb2" id="r_a4e932a087dd00e4d2c817e42c77aceb2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4e932a087dd00e4d2c817e42c77aceb2">resetReplayCandidate</a> ()</td></tr>
@@ -169,6 +164,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:af3f0690a12a2103a1e80aca5cc5a8be9" id="r_af3f0690a12a2103a1e80aca5cc5a8be9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af3f0690a12a2103a1e80aca5cc5a8be9">setNextRunOutputFolder</a> (const std::string &amp;folder)</td></tr>
 <tr class="memitem:aa9bdc7665026c5a0ede5246e273d208c" id="r_aa9bdc7665026c5a0ede5246e273d208c"><td class="memItemLeft">const std::string &amp;&#160;</td><td class="memItemRight"><a class="el" href="#aa9bdc7665026c5a0ede5246e273d208c">nextRunOutputFolder</a> () const</td></tr>
 <tr class="memdesc:aa9bdc7665026c5a0ede5246e273d208c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread.  <br /></td></tr>
+<tr class="memitem:a245a2d885d4ac018166b36e9f29cfef8" id="r_a245a2d885d4ac018166b36e9f29cfef8"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a245a2d885d4ac018166b36e9f29cfef8">makeNextRunOutputFolders</a> () const</td></tr>
 <tr class="memitem:af6a545f83572bb21a333266cfc00be7b" id="r_af6a545f83572bb21a333266cfc00be7b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af6a545f83572bb21a333266cfc00be7b">startLive</a> (int port, int every, bool commands, const std::filesystem::path &amp;endpointDirectory, std::string *error=nullptr)</td></tr>
 <tr class="memitem:ab1624ac972383e5f2d1aea51544f7699" id="r_ab1624ac972383e5f2d1aea51544f7699"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab1624ac972383e5f2d1aea51544f7699">stopLive</a> ()</td></tr>
 <tr class="memdesc:ab1624ac972383e5f2d1aea51544f7699"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends the frames that are still queued and ends the stream. Call this while no run is going on.  <br /></td></tr>
@@ -233,7 +229,7 @@ Public Member Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_a3a06bb6aecad14ce209ac4e13040809c_cgraph.svg" width="2011" height="1375"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_a3a06bb6aecad14ce209ac4e13040809c_cgraph.svg" width="1972" height="966"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -376,33 +372,6 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ab998809e17e483b75df62cdaf6386e8b" name="ab998809e17e483b75df62cdaf6386e8b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab998809e17e483b75df62cdaf6386e8b">&#9670;&#160;</a></span>iterationFinished</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void DispatchController::iterationFinished </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>timestep</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Nothing emits this signal. </p>
-
-</div>
-</div>
 <a id="a756ed4264cc4dd25e79a258212a9fb60" name="a756ed4264cc4dd25e79a258212a9fb60"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a756ed4264cc4dd25e79a258212a9fb60">&#9670;&#160;</a></span>lastRunCompleted()</h2>
 
@@ -476,6 +445,24 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a245a2d885d4ac018166b36e9f29cfef8" name="a245a2d885d4ac018166b36e9f29cfef8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a245a2d885d4ac018166b36e9f29cfef8">&#9670;&#160;</a></span>makeNextRunOutputFolders()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; DispatchController::makeNextRunOutputFolders </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Makes the output folder that prepareScene gives the next run, and its subfolders: the folder of setNextRunOutputFolder, else the output folder of initial_variables, else Output. Returns the error run.output.folder when one cannot be made. The window calls it before it lets go of the last run, so that a folder that cannot be made leaves that run as it was. Call this on the GUI thread. </p>
+
+</div>
+</div>
 <a id="a027310e296b105e0d388fd96dbca6d63" name="a027310e296b105e0d388fd96dbca6d63"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a027310e296b105e0d388fd96dbca6d63">&#9670;&#160;</a></span>mutableRun()</h2>
 
@@ -490,11 +477,12 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The same run for the canvas, which writes the positions of the layout into the tracks, stations and connections. The thread rules of <a class="el" href="#aa8e0c7473475d098b4d91cab37a1c4d9">run()</a> apply. </p>
+
+<p>The same run with write access, for the stages of the controller and for tests. The thread rules of <a class="el" href="#aa8e0c7473475d098b4d91cab37a1c4d9">run()</a> apply. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_a027310e296b105e0d388fd96dbca6d63_cgraph.svg" width="295" height="68"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_a027310e296b105e0d388fd96dbca6d63_cgraph.svg" width="294" height="71"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -550,34 +538,34 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>Builds the run of the scene apart from the run of the controller and puts it in its place when the scene is ready. A scene that is not ready ends the run that was there: the controller then holds a new run.</p>
-<p>selectedScenarioId names the scenario whose incidents and delays apply; empty takes the default scenario of the scene, or its first. selectedOccurrences lists the service occurrences that run; empty runs them all. The run takes a copy of initial_variables as its settings, writes to its output folder, which is made if needed, and starts without the files that a run appends to. Returns the diagnostics of the validation and the builders, and the error run.output.folder when the output folder cannot be made. </p>
+<p>selectedScenarioId names the scenario whose incidents and delays apply; empty takes the default scenario of the scene, or its first. selectedOccurrences lists the service occurrences that run; empty runs them all. The run takes a copy of initial_variables as its settings, writes to its output folder, which is made if needed, and starts without the files that a run appends to. Returns the diagnostics of the validation and the builders, the error run.output.folder when the output folder cannot be made, and the error run.output.file when such a file cannot be removed. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_aac2afa04a79b4b5976be94b691750aaf_cgraph.svg" width="1800" height="1375"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_aac2afa04a79b4b5976be94b691750aaf_cgraph.svg" width="1763" height="966"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a36418dfc2831a157cf9fe1158307ecdc" name="a36418dfc2831a157cf9fe1158307ecdc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a36418dfc2831a157cf9fe1158307ecdc">&#9670;&#160;</a></span>printLastTrainServicePathDiagram()</h2>
+<a id="abf06691ab0f6e64dad67e5a3f6a39655" name="abf06691ab0f6e64dad67e5a3f6a39655"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abf06691ab0f6e64dad67e5a3f6a39655">&#9670;&#160;</a></span>printLastTrainServicePathDiagram()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void DispatchController::printLastTrainServicePathDiagram </td>
+          <td class="memname">std::string DispatchController::printLastTrainServicePathDiagram </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Appends the service path diagram of each train that departs before the end of the run to TrainTrajectories/TrainServicePathDiagram.txt in the output folder of the run. The window calls it after a run that was not stopped, and main after its run. </p>
+<p>Appends the service path diagram of each train that departs before the end of the run to TrainTrajectories/TrainServicePathDiagram.txt in the output folder of the run. The window calls it after a run that was neither stopped nor failed, and main after a run that completed. Returns "Cannot write &lt;path&gt;: &lt;reason&gt;", which also goes to the log, when the file cannot be written, and an empty string otherwise. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_a36418dfc2831a157cf9fe1158307ecdc_cgraph.svg" width="567" height="102"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_abf06691ab0f6e64dad67e5a3f6a39655_cgraph.svg" width="564" height="107"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -627,7 +615,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_ae9f55885c0745b66737a45acaf839544_cgraph.svg" width="1380" height="336"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_ae9f55885c0745b66737a45acaf839544_cgraph.svg" width="1376" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -646,11 +634,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The run that prepareScene made, with the results after it has been run. While a <a class="el" href="class_simulation_worker.html">SimulationWorker</a> is running, the thread that steps the run owns its state, and the window reads only what a step does not change (the infrastructure and the layout of the canvas) and sees the rest through the snapshots. Results are read after the worker has joined. </p>
+<p>The run that prepareScene made, with the results after it has been run. While a <a class="el" href="class_simulation_worker.html">SimulationWorker</a> is running, the thread that steps the run owns its state, and the window reads only what a step does not change (the infrastructure) and sees the rest through the snapshots. Results are read after the worker has joined. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_aa8e0c7473475d098b4d91cab37a1c4d9_cgraph.svg" width="324" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_aa8e0c7473475d098b4d91cab37a1c4d9_cgraph.svg" width="323" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -695,11 +683,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Runs the prepared run on the calling thread: the steps, then the energy, the timetable points, the delay statistics, the blocking times and the output files. A stop is checked between these stages and ends the run there. A run without trains is not run: it emits executionRejected and logs an error. The control of the run is that of <a class="el" href="class_simulation_worker.html#a8fc8549b387f7df829e0405890df36ef" title="The worker constructed last, or nullptr once it is destroyed. A run without a window has none and mak...">SimulationWorker::active()</a>, or a new one when there is no worker. An exception ends the run: its text goes to <a class="el" href="#a67c2bc73f24aa64755af89e8344315e8" title="Why the last run ended with an error, or empty when it did not. Read it after the run has returned.">lastRunError()</a> and the log, and executionFailed is emitted. The function itself does not throw. </p>
+<p>Runs the prepared run on the calling thread: the steps, then the energy, the timetable points, the delay statistics, the blocking times and the output files. A stop is checked between these stages and ends the run there. A run without trains is not run: it emits executionRejected and logs an error. The control of the run is that of <a class="el" href="class_simulation_worker.html#a8fc8549b387f7df829e0405890df36ef" title="The worker constructed last, or nullptr once it is destroyed. A run without a window has none and mak...">SimulationWorker::active()</a>, or a new one when there is no worker. An exception ends the run, also an output file that cannot be written ("Cannot write &lt;path&gt;: &lt;reason&gt;"): its text goes to <a class="el" href="#a67c2bc73f24aa64755af89e8344315e8" title="Why the last run ended with an error, or empty when it did not. Read it after the run has returned.">lastRunError()</a> and the log, and executionFailed is emitted. The function itself does not throw. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_adfb494be209a1122219b5d24128a4ec2_cgraph.svg" width="344" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_adfb494be209a1122219b5d24128a4ec2_cgraph.svg" width="344" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -753,56 +741,6 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 <p>A run that nothing draws needs no snapshots and no replay history. Off, the run builds neither. Call this before the run starts. </p>
-
-</div>
-</div>
-<a id="acef50692bea1bf76d3e9988afa413a71" name="acef50692bea1bf76d3e9988afa413a71"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acef50692bea1bf76d3e9988afa413a71">&#9670;&#160;</a></span>setVectorSizesFromInput()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void DispatchController::setVectorSizesFromInput </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>vec_size</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Gives the per-step vectors of every train vec_size entries of 0 and sets their End_Time to vec_size - 1. Nothing in the program calls it; the operations builder sizes the vectors. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_acef50692bea1bf76d3e9988afa413a71_cgraph.svg" width="563" height="102"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="ac1303c26373b05425e1a19988da7913c" name="ac1303c26373b05425e1a19988da7913c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac1303c26373b05425e1a19988da7913c">&#9670;&#160;</a></span>simulationFinished</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void DispatchController::simulationFinished </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Nothing emits this signal. <a class="el" href="class_simulation_worker.html#a8ddd1f6b5278e23ae746ad9de0d16e7d">SimulationWorker::simulationFinished</a> marks the end of a run in the window. </p>
 
 </div>
 </div>
@@ -870,7 +808,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_af6a545f83572bb21a333266cfc00be7b_cgraph.svg" width="527" height="86"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_af6a545f83572bb21a333266cfc00be7b_cgraph.svg" width="526" height="167"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -920,7 +858,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_ae26ebb03ac460fe3fc1dcf139eee8328_cgraph.svg" width="675" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_ae26ebb03ac460fe3fc1dcf139eee8328_cgraph.svg" width="672" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -943,8 +881,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="abaea92389147b6df5588c56ecda23491" name="abaea92389147b6df5588c56ecda23491"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abaea92389147b6df5588c56ecda23491">&#9670;&#160;</a></span>Train_Simulation_Mixed_Signalling_With_Passengers()</h2>
+<a id="a3a9e80e3e66281ea2a8bcf3f073e2fb0" name="a3a9e80e3e66281ea2a8bcf3f073e2fb0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3a9e80e3e66281ea2a8bcf3f073e2fb0">&#9670;&#160;</a></span>Train_Simulation_Mixed_Signalling_With_Passengers()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -952,31 +890,22 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers </td>
           <td>(</td>
-          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>v1</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
-          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>v2</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>v3</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The steps of a run, t from 0 while t &lt; settings.times, each in seconds from the start of the run. v1, v2 and v3 go to <a class="el" href="class_train.html#a09e55bf615f21184e4a57367932d4a61">Train::trajectoryComputationIncludingMovingBlock</a>; runSimulation passes signalCode1 to signalCode3, in m/s. Called by runSimulation, which sets the control of the run first. </p>
+<p>The steps of a run, t from 0 while t &lt; settings.times, each in seconds from the start of the run. Before a step the control of the run applies its commands, pause, stop and step delay; runSimulationStep (<a class="el" href="_simulation_8h.html">simulation/Simulation.h</a>) runs the step, and the snapshot of the step is published after it. Called by runSimulation, which sets the control of the run first. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_abaea92389147b6df5588c56ecda23491_cgraph.svg" width="2339" height="1138"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_a3a9e80e3e66281ea2a8bcf3f073e2fb0_cgraph.svg" width="1898" height="1378"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>app/<a class="el" href="_dispatch_controller_8h_source.html">DispatchController.h</a></li>
+<li>app/<a class="el" href="_dispatch_controller_8h.html">DispatchController.h</a></li>
 <li>app/<a class="el" href="_dispatch_controller_8cpp.html">DispatchController.cpp</a></li>
 </ul>
 </div><!-- contents -->

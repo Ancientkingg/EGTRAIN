@@ -1,38 +1,38 @@
 <map id="installConsoleLogging" name="installConsoleLogging">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,189,171,215"/>
-<area shape="poly" id="edge14_Node000001_Node000001" title=" " alt="" coords="47,191,39,181,43,171,60,165,88,163,123,167,133,171,137,177,133,180,130,175,122,172,88,168,61,170,47,175,44,180,51,187"/>
-<area shape="rect" id="Node000002" href="$namespaceeglog.html#a051a6481a502e1e024dc4e3a39d3ba20" title=" " alt="" coords="219,55,461,80"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,187,154,152,217,113,287,82,289,87,220,118,157,156,107,191"/>
-<area shape="rect" id="Node000004" href="$_console_widget_8cpp.html#aa670fd7ba3a956a2b5030ed840074cb9" title=" " alt="" coords="279,152,401,177"/>
-<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="171,187,265,173,266,178,171,192"/>
-<area shape="rect" id="Node000009" href="$_console_widget_8cpp.html#a1195f66335fab6a7d0d519fbaffcf419" title=" " alt="" coords="275,225,405,251"/>
-<area shape="poly" id="edge15_Node000001_Node000009" title=" " alt="" coords="171,211,262,224,261,229,171,216"/>
-<area shape="rect" id="Node000013" href="$namespaceeglog.html#aab1ea918a840b308b64aa22920907937" title=" " alt="" coords="283,299,397,324"/>
-<area shape="poly" id="edge22_Node000001_Node000013" title=" " alt="" coords="117,212,220,260,295,291,293,296,218,264,115,217"/>
-<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="299,56,291,46,295,36,312,30,340,28,375,32,385,37,389,42,385,45,382,41,374,37,340,33,313,35,299,40,296,46,303,53"/>
-<area shape="rect" id="Node000003" href="$namespaceeglog.html#a8df481e2bab2777140253886a71a67c8" title=" " alt="" coords="543,29,670,55"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="461,53,529,47,530,52,462,58"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="570,31,562,21,566,11,581,5,607,3,639,7,651,16,647,20,637,11,607,8,582,10,570,15,567,20,574,27"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="299,154,291,144,295,134,312,128,340,125,375,129,385,134,389,140,385,143,382,138,374,134,340,131,313,133,299,138,296,143,303,150"/>
-<area shape="rect" id="Node000005" href="$_console_widget_8cpp.html#ac98ae5ca7d9cc3c7300f572fa0383950" title=" " alt="" coords="528,103,685,128"/>
-<area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="401,151,523,128,524,133,402,156"/>
-<area shape="rect" id="Node000008" href="$class_console_streambuf.html#ac487dbb4d9f8f856ddee7c5b9dae7921" title=" " alt="" coords="509,152,704,177"/>
-<area shape="poly" id="edge13_Node000004_Node000008" title=" " alt="" coords="402,162,495,162,495,167,402,167"/>
-<area shape="poly" id="edge10_Node000005_Node000005" title=" " alt="" coords="570,104,562,94,566,84,581,78,607,76,639,80,651,89,647,93,637,85,607,81,582,83,570,88,567,94,574,101"/>
-<area shape="rect" id="Node000006" href="$namespaceeglog.html#a06d2146976a5f10f5555abbafe6f75aa" title="The rule name of category, given at each enumerator of Category." alt="" coords="752,67,915,92"/>
-<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="685,100,739,92,740,97,686,105"/>
-<area shape="rect" id="Node000007" href="$namespaceeglog.html#a9049f9796908e1734524b758f1e39da2" title="The rule name of level, given at each enumerator of Level." alt="" coords="765,140,902,165"/>
-<area shape="poly" id="edge11_Node000005_Node000007" title=" " alt="" coords="685,125,752,137,751,142,684,131"/>
-<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="796,68,788,58,793,48,808,42,833,40,865,44,877,53,874,57,863,49,833,45,809,47,796,52,794,58,800,65"/>
-<area shape="poly" id="edge12_Node000007_Node000007" title=" " alt="" coords="796,142,788,132,793,122,808,116,833,113,865,117,877,127,874,131,863,122,833,119,809,121,796,126,794,131,800,138"/>
-<area shape="poly" id="edge20_Node000009_Node000009" title=" " alt="" coords="299,227,291,217,295,207,312,201,340,199,375,203,385,207,389,213,385,216,382,211,374,208,340,204,313,206,299,211,296,216,303,223"/>
-<area shape="rect" id="Node000010" href="$namespaceeglog.html#a76521db7407e7d068112c45f2b3e604e" title=" " alt="" coords="547,225,666,251"/>
-<area shape="poly" id="edge16_Node000009_Node000010" title=" " alt="" coords="406,235,533,235,533,241,406,241"/>
-<area shape="rect" id="Node000011" href="$namespaceeglog.html#a8032c116a7ea7ca91e8378e4e5105e8f" title=" " alt="" coords="558,299,655,324"/>
-<area shape="poly" id="edge18_Node000009_Node000011" title=" " alt="" coords="406,247,462,259,560,291,559,296,461,265,405,252"/>
-<area shape="rect" id="Node000012" href="$classeglog_1_1_line.html#ab044c5aca783c2417d259f96057bcbdf" title="The stream that collects the text of the message." alt="" coords="533,348,680,373"/>
-<area shape="poly" id="edge21_Node000009_Node000012" title=" " alt="" coords="406,239,435,246,463,260,480,278,488,297,495,316,511,333,522,340,519,345,508,337,491,319,483,299,476,281,460,264,434,251,405,244"/>
-<area shape="poly" id="edge17_Node000010_Node000010" title=" " alt="" coords="570,227,562,217,566,207,581,201,607,199,639,203,651,212,647,216,637,207,607,204,582,206,570,211,567,216,574,223"/>
-<area shape="poly" id="edge19_Node000011_Node000011" title=" " alt="" coords="570,300,562,290,566,280,581,274,607,272,639,276,651,285,647,289,637,281,607,277,582,279,570,284,567,290,574,297"/>
-<area shape="poly" id="edge23_Node000013_Node000013" title=" " alt="" coords="299,300,291,290,295,280,312,274,340,272,375,276,385,281,389,286,385,289,382,285,374,281,340,277,313,279,299,284,296,290,303,297"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,196,170,224"/>
+<area shape="poly" id="edge14_Node000001_Node000001" title=" " alt="" coords="45,196,38,187,43,177,60,171,88,169,117,172,134,180,129,182,116,177,87,175,61,177,47,181,43,187,50,195"/>
+<area shape="rect" id="Node000002" href="$namespaceeglog.html#a051a6481a502e1e024dc4e3a39d3ba20" title=" " alt="" coords="218,56,459,84"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,194,155,158,216,119,287,88,283,92,219,124,158,163,109,197"/>
+<area shape="rect" id="Node000004" href="$_console_widget_8cpp.html#aa670fd7ba3a956a2b5030ed840074cb9" title=" " alt="" coords="277,157,400,185"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="169,195,264,181,260,185,171,200"/>
+<area shape="rect" id="Node000009" href="$_console_widget_8cpp.html#a1195f66335fab6a7d0d519fbaffcf419" title=" " alt="" coords="274,233,403,261"/>
+<area shape="poly" id="edge15_Node000001_Node000009" title=" " alt="" coords="170,219,261,234,256,237,170,225"/>
+<area shape="rect" id="Node000013" href="$namespaceeglog.html#aab1ea918a840b308b64aa22920907937" title=" " alt="" coords="282,309,395,337"/>
+<area shape="poly" id="edge22_Node000001_Node000013" title=" " alt="" coords="118,222,219,270,291,303,286,304,217,275,117,227"/>
+<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="295,55,289,47,294,37,311,31,338,29,368,32,385,40,380,41,366,37,338,35,312,37,298,41,294,47,301,55"/>
+<area shape="rect" id="Node000003" href="$namespaceeglog.html#a8df481e2bab2777140253886a71a67c8" title=" " alt="" coords="541,29,666,57"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="459,55,528,50,523,52,460,60"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="565,28,559,20,564,11,579,5,604,3,630,5,646,14,641,14,629,10,604,8,580,10,567,15,564,20,570,29"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="295,157,289,148,294,139,311,133,338,131,368,133,385,142,380,142,366,138,338,136,312,138,298,143,294,148,301,157"/>
+<area shape="rect" id="Node000005" href="$_console_widget_8cpp.html#ac98ae5ca7d9cc3c7300f572fa0383950" title=" " alt="" coords="526,105,682,133"/>
+<area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="399,157,517,135,512,138,401,162"/>
+<area shape="rect" id="Node000008" href="$class_console_streambuf.html#ac487dbb4d9f8f856ddee7c5b9dae7921" title=" " alt="" coords="507,157,700,185"/>
+<area shape="poly" id="edge13_Node000004_Node000008" title=" " alt="" coords="399,169,494,170,489,172,400,174"/>
+<area shape="poly" id="edge10_Node000005_Node000005" title=" " alt="" coords="565,104,559,96,564,87,579,81,604,79,630,81,646,90,641,90,629,86,604,84,580,86,567,91,564,96,570,105"/>
+<area shape="rect" id="Node000006" href="$namespaceeglog.html#a06d2146976a5f10f5555abbafe6f75aa" title="The rule name of category, given at each enumerator of Category." alt="" coords="748,68,910,96"/>
+<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="682,104,736,97,731,98,683,109"/>
+<area shape="rect" id="Node000007" href="$namespaceeglog.html#a9049f9796908e1734524b758f1e39da2" title="The rule name of level, given at each enumerator of Level." alt="" coords="761,144,897,172"/>
+<area shape="poly" id="edge11_Node000005_Node000007" title=" " alt="" coords="682,130,748,143,743,144,682,135"/>
+<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="790,67,784,59,789,49,804,43,829,41,855,44,871,53,866,53,854,49,829,47,806,49,793,53,789,59,795,68"/>
+<area shape="poly" id="edge12_Node000007_Node000007" title=" " alt="" coords="790,143,784,135,789,125,804,119,829,117,855,120,871,129,866,129,854,125,829,123,806,125,793,129,789,135,795,144"/>
+<area shape="poly" id="edge20_Node000009_Node000009" title=" " alt="" coords="295,232,289,224,294,215,311,209,338,207,368,209,385,218,380,218,366,214,338,212,312,214,298,219,294,224,301,233"/>
+<area shape="rect" id="Node000010" href="$namespaceeglog.html#a76521db7407e7d068112c45f2b3e604e" title=" " alt="" coords="545,233,662,261"/>
+<area shape="poly" id="edge16_Node000009_Node000010" title=" " alt="" coords="403,245,532,247,527,248,404,250"/>
+<area shape="rect" id="Node000011" href="$namespaceeglog.html#a8032c116a7ea7ca91e8378e4e5105e8f" title=" " alt="" coords="556,309,652,337"/>
+<area shape="poly" id="edge18_Node000009_Node000011" title=" " alt="" coords="403,257,460,271,553,304,547,304,458,276,403,263"/>
+<area shape="rect" id="Node000012" href="$classeglog_1_1_line.html#ab044c5aca783c2417d259f96057bcbdf" title="The stream that collects the text of the message." alt="" coords="530,361,677,389"/>
+<area shape="poly" id="edge21_Node000009_Node000012" title=" " alt="" coords="404,249,433,258,461,272,478,290,486,310,493,329,509,346,519,355,514,354,505,351,488,332,481,312,473,293,457,276,431,263,403,255"/>
+<area shape="poly" id="edge17_Node000010_Node000010" title=" " alt="" coords="565,232,559,224,564,215,579,209,604,207,630,209,646,218,641,218,629,214,604,212,580,214,567,219,564,224,570,234"/>
+<area shape="poly" id="edge19_Node000011_Node000011" title=" " alt="" coords="565,308,559,300,564,291,579,285,604,283,630,285,646,294,641,294,629,290,604,288,580,290,567,295,564,300,570,310"/>
+<area shape="poly" id="edge23_Node000013_Node000013" title=" " alt="" coords="295,308,289,300,294,291,311,285,338,283,368,285,385,294,380,294,366,290,338,288,312,290,298,295,294,300,300,310"/>
 </map>

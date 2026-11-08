@@ -1,7 +1,7 @@
 <map id="VirtualArcItem::VirtualArcItem" name="VirtualArcItem::VirtualArcItem">
-<area shape="rect" id="Node000001" title="The two lines in scene coordinates. The click target joins the end of the first to the start of the s..." alt="" coords="5,13,224,38"/>
-<area shape="rect" id="Node000002" href="$class_track_line_item.html#abbc560787a749421af9a4406334eb352" title="A free line without an arc; its click target reaches 20 scene units on each side of it." alt="" coords="272,13,484,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="224,23,258,23,258,28,224,28"/>
-<area shape="rect" id="Node000003" href="$class_track_line_item.html#a257ee10133730f3f7318494007ac4ab1" title="Builds selectionPolygon around the line." alt="" coords="532,5,755,45"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="484,23,518,23,518,28,484,28"/>
+<area shape="rect" id="Node000001" title="The two lines in scene coordinates. The click target joins the end of the first to the start of the s..." alt="" coords="5,14,223,42"/>
+<area shape="rect" id="Node000002" href="$class_track_line_item.html#abbc560787a749421af9a4406334eb352" title="A free line without an arc; its click target reaches 20 scene units on each side of it." alt="" coords="271,14,482,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,25,258,28,253,28,223,30"/>
+<area shape="rect" id="Node000003" href="$class_track_line_item.html#a257ee10133730f3f7318494007ac4ab1" title="Builds selectionPolygon around the line." alt="" coords="530,5,751,50"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="483,25,517,28,512,28,483,30"/>
 </map>

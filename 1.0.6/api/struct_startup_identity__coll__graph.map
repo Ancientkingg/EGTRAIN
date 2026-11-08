@@ -1,0 +1,5 @@
+<map id="StartupIdentity" name="StartupIdentity">
+<area shape="rect" id="Node000001" title="What startup timing compares to tell that a later step still works on the scene that it expects." alt="" coords="38,106,156,134"/>
+<area shape="rect" id="Node000002" href="$struct_scene_simulation_settings.html" title="The simulation_settings of scene.json. Each value counts only when its has* flag is set." alt="" coords="5,5,189,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,47,100,106,94,105,95,50"/>
+</map>

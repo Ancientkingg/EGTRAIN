@@ -7,6 +7,7 @@ var class_trip =
     [ "Arr_Station_Platform_ID", "class_trip.html#afededd2803ccd45db287212feb8809a1", null ],
     [ "Dep_Station_ID", "class_trip.html#a76cb8fae50f1dc57bf51121e3cec2f95", null ],
     [ "Dep_Station_Platform_ID", "class_trip.html#ac14abad86f3fd9e04e0099d143957817", null ],
+    [ "depPlatformNumber", "class_trip.html#a20b52bac5c377ec61bae0208ff6a8565", null ],
     [ "IsTripCompleted", "class_trip.html#a0d0e46f13d1ca4fb924ea7ebb7e6f661", null ],
     [ "IsTripStarted", "class_trip.html#ad65b6eef5f9eb5d76868326297ede7f3", null ],
     [ "JourneyID", "class_trip.html#ad6d1f6b95b51c88ca8793d4378d11a03", null ],

@@ -1,0 +1,7 @@
+<map id="NetworkPresenter::getTrainPolygonItemList" name="NetworkPresenter::getTrainPolygonItemList">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,204,50"/>
+<area shape="rect" id="Node000002" href="$class_network_presenter.html#a78a21f60ad47ed52be80d6f91c2558d3" title=" " alt="" coords="252,5,450,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,25,238,27,233,28,204,30"/>
+<area shape="rect" id="Node000003" href="$class_network_presenter.html#a11bfc2063067289eeb11c990cbf6da16" title=" " alt="" coords="498,5,726,50"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="450,25,485,28,480,28,450,30"/>
+</map>

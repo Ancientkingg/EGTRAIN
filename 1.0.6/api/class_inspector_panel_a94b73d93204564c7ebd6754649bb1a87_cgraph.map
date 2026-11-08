@@ -1,0 +1,12 @@
+<map id="InspectorPanel::displayTrainInfo" name="InspectorPanel::displayTrainInfo">
+<area shape="rect" id="Node000001" title="Shows the train and follows it." alt="" coords="5,89,233,117"/>
+<area shape="rect" id="Node000002" href="$class_inspector_panel.html#a7a5fe31a4b6297e89acad9fe507f0e30" title="Shows the train and, when changeFollowMode is set, follows it." alt="" coords="281,81,483,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="233,101,268,103,262,104,234,106"/>
+<area shape="rect" id="Node000003" href="$_gui_simulation_snapshot_8h.html#a9d3587a1b79afd5c277b880adabbf418" title=" " alt="" coords="568,29,699,57"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="478,78,560,60,555,62,479,83"/>
+<area shape="rect" id="Node000004" href="$class_inspector_panel.html#a86ad792c418b9b49fd790e9ff05e27df" title=" " alt="" coords="531,81,735,126"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="483,101,518,103,513,103,484,106"/>
+<area shape="rect" id="Node000005" href="$class_inspector_panel.html#af73129cdfba728ac8d9aa43e80963edc" title="The value in fixed notation with precision digits after the decimal point." alt="" coords="546,150,721,195"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="466,124,538,146,533,146,465,129"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="590,28,583,20,589,11,606,5,633,3,663,5,680,14,675,14,661,10,633,8,607,10,592,15,589,20,595,30"/>
+</map>

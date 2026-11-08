@@ -1,0 +1,9 @@
+<map id="scene/SectionReference.h" name="scene/SectionReference.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="38,5,228,33"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,81,80,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,33,72,73,69,69,114,34"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="104,81,162,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="135,32,136,66,131,64,131,36"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="186,81,248,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="149,31,193,70,188,71,147,36"/>
+</map>

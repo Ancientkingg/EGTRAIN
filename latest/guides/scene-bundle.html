@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="V1 active-input migration matrix" href="v1-scene-migration-matrix.html"><link rel="prev" title="V1 Scene Schema Reference" href="scene-schema.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>V2 Transparent Scene Bundle - EGTRAIN documentation</title>
+        <title>Case file format - EGTRAIN documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -192,11 +192,13 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="common-questions.html">Common questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
-<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
@@ -220,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -236,7 +238,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +252,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +267,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -305,9 +307,9 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="v2-transparent-scene-bundle">
-<h1>V2 Transparent Scene Bundle<a class="headerlink" href="#v2-transparent-scene-bundle" title="Link to this heading">¶</a></h1>
-<p>EGTRAIN identifies portable cases by the <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> extension. The
+          <section id="case-file-format">
+<h1>Case file format<a class="headerlink" href="#case-file-format" title="Link to this heading">¶</a></h1>
+<p>A case file is a case saved as one file, with the <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> extension. The
 payload is an ordinary ZIP archive, so external tools may report
 <code class="docutils literal notranslate"><span class="pre">application/zip</span></code>; EGTRAIN does not rely on a registered MIME type. ZIP entries
 use deflate or store compression. Encryption and passwords are not supported.
@@ -316,13 +318,13 @@ The archive is a transport container only: it loads into the existing V1
 <p>The name V2 refers to the container. The container’s own number is
 <code class="docutils literal notranslate"><span class="pre">bundle_version</span></code> 1, and the data inside has <code class="docutils literal notranslate"><span class="pre">schema_version</span></code> 1. A higher
 version needs a newer EGTRAIN.</p>
-<p>A case folder is the editable source of truth. An <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle packages
+<p>A case folder is the editable source of truth. A case file packages
 its files for transport. Legacy import and export remain explicit
 interoperability actions; normal case loading and simulation use the
 canonical model.</p>
 <section id="root-layout">
 <h2>Root layout<a class="headerlink" href="#root-layout" title="Link to this heading">¶</a></h2>
-<p>Entries are files at the archive root. Bundle version 1 contains exactly these
+<p>Entries are files at the archive root. A case file of <code class="docutils literal notranslate"><span class="pre">bundle_version</span></code> 1 contains exactly these
 seven required files, plus optional passenger and display metadata:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>scene.json
 infrastructure.json
@@ -338,7 +340,7 @@ views.json            (optional)
 <p>Entry names are case-sensitive and must match these names exactly. Unknown,
 nested, duplicate (including case-insensitive duplicates), and directory
 entries are rejected. <code class="docutils literal notranslate"><span class="pre">legacy/</span></code>, assets, results, and other generated or
-passthrough files are not part of bundle version 1.</p>
+passthrough files are not part of <code class="docutils literal notranslate"><span class="pre">bundle_version</span></code> 1.</p>
 </section>
 <section id="manifest">
 <h2>Manifest<a class="headerlink" href="#manifest" title="Link to this heading">¶</a></h2>
@@ -350,20 +352,20 @@ passthrough files are not part of bundle version 1.</p>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">format</span></code> identifies the container and <code class="docutils literal notranslate"><span class="pre">bundle_version</span></code> versions the container
-independently from the data schema. Both fields are required in a bundle;
-case folders may omit them. A reader rejects another marker, bundle
-version, or schema version before extracting files.</p>
+independently from the data schema. Both fields are required in a case file;
+case folders may omit them. A reader rejects another marker,
+<code class="docutils literal notranslate"><span class="pre">bundle_version</span></code>, or schema version before extracting files.</p>
 <p>Compatibility probing reads the bounded <code class="docutils literal notranslate"><span class="pre">scene.json</span></code> manifest after generic ZIP
 safety checks. It can classify a newer layout without extracting unknown
 entries; the v1 allowlist is enforced only when interpreting or extracting a
-v1 bundle.</p>
+v1 case file.</p>
 </section>
 <section id="safety-limits">
 <h2>Safety limits<a class="headerlink" href="#safety-limits" title="Link to this heading">¶</a></h2>
 <p>The reader checks archive metadata before allocating or extracting entry data:</p>
 <ul class="simple">
 <li><p>at most 16 entries;</p></li>
-<li><p>compressed bundle file at most 32 MiB;</p></li>
+<li><p>compressed case file at most 32 MiB;</p></li>
 <li><p>each entry at most 16 MiB uncompressed;</p></li>
 <li><p>total entries at most 64 MiB uncompressed;</p></li>
 <li><p>compression ratio at most 1000:1 (an entry with zero compressed bytes may
@@ -382,14 +384,15 @@ removed on success and failure.</p>
 <p><code class="docutils literal notranslate"><span class="pre">loadSceneBundle</span></code> validates the complete archive, extracts the allowlisted JSON
 files to a temporary directory, and calls the existing <code class="docutils literal notranslate"><span class="pre">loadScene</span></code>. The shared
 <code class="docutils literal notranslate"><span class="pre">loadScenePath</span></code> helper dispatches directories to <code class="docutils literal notranslate"><span class="pre">loadScene</span></code> and files to the
-bundle reader. <code class="docutils literal notranslate"><span class="pre">unpackSceneBundle</span></code> performs the same validation and structural
+case file reader. <code class="docutils literal notranslate"><span class="pre">unpackSceneBundle</span></code> performs the same validation and structural
 load before publishing an extracted directory. The destination must not already
 exist, so unpacking cannot replace unrelated files.</p>
-<p><code class="docutils literal notranslate"><span class="pre">saveSceneBundle</span></code> first calls the existing <code class="docutils literal notranslate"><span class="pre">saveScene</span></code> in a temporary
-directory. It adds only the bundle marker and version to that temporary
-<code class="docutils literal notranslate"><span class="pre">scene.json</span></code>, then writes sorted entries with fixed compression and zero ZIP
-timestamps. Source model values are not mutated. The archive is written to a
-sibling staging file and atomically published. An existing regular bundle is
+<p><code class="docutils literal notranslate"><span class="pre">saveSceneBundle</span></code> first writes the scene files into a temporary directory and
+loads them back, as <code class="docutils literal notranslate"><span class="pre">saveScene</span></code> does in its staging folder. It adds only the
+container marker and <code class="docutils literal notranslate"><span class="pre">bundle_version</span></code> to that temporary <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>, then writes sorted
+entries with fixed compression and zero ZIP timestamps. Source model values are
+not mutated. The archive is written to a sibling staging file, flushed to disk
+and atomically published. An existing case file at the path is
 replaced by the same atomic operation, so a failed publication leaves the old
 path intact. Generated outputs and legacy files are never included.</p>
 </section>
@@ -428,7 +431,7 @@ path intact. Generated outputs and legacy files are never included.</p>
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">
@@ -450,7 +453,7 @@ path intact. Generated outputs and legacy files are never included.</p>
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">V2 Transparent Scene Bundle</a><ul>
+<li><a class="reference internal" href="#">Case file format</a><ul>
 <li><a class="reference internal" href="#root-layout">Root layout</a></li>
 <li><a class="reference internal" href="#manifest">Manifest</a></li>
 <li><a class="reference internal" href="#safety-limits">Safety limits</a></li>

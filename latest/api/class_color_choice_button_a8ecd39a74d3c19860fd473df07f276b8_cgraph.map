@@ -1,14 +1,14 @@
 <map id="ColorChoiceButton::ColorChoiceButton" name="ColorChoiceButton::ColorChoiceButton">
-<area shape="rect" id="Node000001" title="Starts at the default colour." alt="" coords="5,65,156,105"/>
-<area shape="rect" id="Node000002" href="$class_color_choice_button.html#a9b7e1ed1fe63b1bee32c4cabc2391937" title="Removes the colour; does nothing when no colour is set." alt="" coords="204,36,355,76"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,72,190,66,191,72,156,77"/>
-<area shape="rect" id="Node000004" href="$class_color_choice_button.html#a00930b3201d01d063825235f0fd25d4d" title="Shows the stored text without changing it; never emits colorChanged." alt="" coords="403,93,553,133"/>
-<area shape="poly" id="edge7_Node000001_Node000004" title=" " alt="" coords="156,88,389,104,389,110,156,93"/>
-<area shape="rect" id="Node000003" href="$class_color_choice_button.html#a6ed77f3215c493d7e5f0a7063e0a101f" title=" " alt="" coords="403,5,553,45"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="354,42,389,36,390,42,355,47"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="350,73,395,87,394,92,348,79"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="441,94,439,84,444,75,458,69,478,67,501,70,514,77,511,82,500,75,478,72,459,74,448,79,444,85,446,92"/>
-<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#a4ace14b9d098e1d8cfda2236f8c3561b" title=" " alt="" coords="601,101,815,126"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="554,111,588,111,588,116,554,116"/>
-<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="671,102,663,92,667,82,682,76,708,74,740,78,753,87,749,92,738,83,708,79,683,81,670,86,668,92,675,99"/>
+<area shape="rect" id="Node000001" title="Starts at the default colour." alt="" coords="5,69,156,114"/>
+<area shape="rect" id="Node000002" href="$class_color_choice_button.html#a9b7e1ed1fe63b1bee32c4cabc2391937" title="Removes the colour; does nothing when no colour is set." alt="" coords="204,39,354,83"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,77,191,74,186,76,156,83"/>
+<area shape="rect" id="Node000004" href="$class_color_choice_button.html#a00930b3201d01d063825235f0fd25d4d" title="Shows the stored text without changing it; never emits colorChanged." alt="" coords="402,99,552,143"/>
+<area shape="poly" id="edge7_Node000001_Node000004" title=" " alt="" coords="156,95,387,112,386,117,156,100"/>
+<area shape="rect" id="Node000003" href="$class_color_choice_button.html#a6ed77f3215c493d7e5f0a7063e0a101f" title=" " alt="" coords="402,5,552,50"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="354,46,390,42,384,43,355,51"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="354,81,390,94,385,94,354,86"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="439,97,438,89,444,80,457,74,477,72,498,74,513,83,507,83,497,80,477,77,459,79,448,84,443,90,444,100"/>
+<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#a4ace14b9d098e1d8cfda2236f8c3561b" title=" " alt="" coords="600,107,813,135"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="553,118,587,121,582,121,553,124"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="667,106,661,98,666,89,681,83,707,81,733,83,749,92,744,91,732,88,706,86,683,88,669,93,666,98,672,108"/>
 </map>

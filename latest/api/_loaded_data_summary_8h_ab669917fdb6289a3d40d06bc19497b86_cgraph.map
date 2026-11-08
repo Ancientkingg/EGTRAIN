@@ -1,0 +1,13 @@
+<map id="buildLoadedDataSummary" name="buildLoadedDataSummary">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,68,200,96"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="64,68,59,59,63,49,78,43,103,41,128,44,144,52,139,53,127,49,102,47,80,49,67,53,64,59,70,67"/>
+<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="261,29,384,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="184,65,249,56,244,57,185,70"/>
+<area shape="rect" id="Node000004" href="$_scene_model_8cpp.html#a894c7fcb75ec06b27b0536d6eff399b5" title=" " alt="" coords="248,105,398,133"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="188,94,235,104,229,104,188,99"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="287,28,281,20,286,11,300,5,323,3,347,5,362,14,357,14,346,10,323,8,301,10,289,15,287,20,292,30"/>
+<area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="446,29,615,57"/>
+<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="384,41,433,43,428,44,385,46"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="495,28,489,20,494,11,508,5,531,3,555,5,570,14,565,14,554,10,531,8,509,10,497,15,494,20,500,30"/>
+<area shape="poly" id="edge7_Node000004_Node000004" title=" " alt="" coords="287,104,281,96,286,87,300,81,323,79,347,81,362,90,357,90,346,86,323,84,301,86,289,91,287,96,292,106"/>
+</map>

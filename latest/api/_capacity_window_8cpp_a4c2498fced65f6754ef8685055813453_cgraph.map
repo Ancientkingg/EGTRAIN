@@ -1,10 +1,10 @@
 <map id="capacityCycleText" name="capacityCycleText">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,145,55"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="44,31,37,21,41,11,54,5,75,3,101,6,112,15,109,19,99,11,75,8,55,10,45,15,43,20,48,28"/>
-<area shape="rect" id="Node000002" href="$_capacity_scope_8cpp.html#a62eed2b24d01769f5963ceca7ef4d972" title="An analysis period as the capacity windows name it: &quot;1 h&quot; for whole hours, &quot;30 min&quot; for whole minutes..." alt="" coords="193,29,339,55"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="146,39,180,39,180,45,146,45"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="235,31,228,21,232,11,245,5,266,3,292,6,303,15,300,19,290,11,266,8,246,10,235,15,233,20,239,28"/>
-<area shape="rect" id="Node000003" href="$namespacecsv.html#a31b42e8f36642fcbeb44b675adffe685" title=" " alt="" coords="387,29,528,55"/>
-<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="339,39,373,39,373,45,339,45"/>
-<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="426,31,419,21,423,11,436,5,457,3,483,6,494,15,491,19,481,11,457,8,437,10,427,15,425,20,430,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,145,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="42,29,37,20,41,11,54,5,75,3,98,5,111,14,106,14,96,10,75,8,55,10,45,15,42,20,47,29"/>
+<area shape="rect" id="Node000002" href="$_capacity_scope_8cpp.html#a62eed2b24d01769f5963ceca7ef4d972" title="An analysis period as the capacity windows name it: &quot;1 h&quot; for whole hours, &quot;30 min&quot; for whole minutes..." alt="" coords="193,29,337,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="145,41,180,43,175,43,145,46"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="232,28,227,20,231,11,244,5,265,3,287,5,301,14,296,14,286,10,265,8,245,10,235,15,232,20,237,30"/>
+<area shape="rect" id="Node000003" href="$namespacecsv.html#a31b42e8f36642fcbeb44b675adffe685" title=" " alt="" coords="385,29,525,57"/>
+<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="338,41,372,43,366,43,338,46"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="422,28,417,20,421,11,434,5,455,3,478,5,491,15,486,14,476,10,455,8,436,10,425,15,422,20,427,30"/>
 </map>

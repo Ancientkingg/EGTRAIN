@@ -8,7 +8,6 @@
 <title>EGTRAIN: NodeItem Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,21 +112,21 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_node_ite
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_node_item_8h_source.html">graphics/items/NodeItem.h</a>&gt;</code></p>
+<p><code>#include &lt;graphics/items/NodeItem.h&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for NodeItem:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_node_item__inherit__graph.svg" width="174" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_node_item__inherit__graph.svg" width="172" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
 Collaboration diagram for NodeItem:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_node_item__coll__graph.svg" width="254" height="132"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_node_item__coll__graph.svg" width="251" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a5a30d3c333c80b3792e0f7fdf12d4ac7" id="r_a5a30d3c333c80b3792e0f7fdf12d4ac7"><td class="memItemLeft"><a class="el" href="#a5a30d3c333c80b3792e0f7fdf12d4ac7">enum </a>&#160;</td><td class="memItemRight">{ <a class="el" href="#a5a30d3c333c80b3792e0f7fdf12d4ac7ab576e5836f08d08846f57652e33fdbd3">Type</a> = UserType + 2
+<tr class="memitem:a5a30d3c333c80b3792e0f7fdf12d4ac7" id="r_a5a30d3c333c80b3792e0f7fdf12d4ac7"><td class="memItemLeft"><a class="el" href="#a5a30d3c333c80b3792e0f7fdf12d4ac7">enum </a>&#160;</td><td class="memItemRight">{ <a class="el" href="#a5a30d3c333c80b3792e0f7fdf12d4ac7ab576e5836f08d08846f57652e33fdbd3">Type</a>
  }</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -144,12 +143,12 @@ Public Member Functions</h2></td></tr>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a084fbf9465047bad285372fe979d20a6" id="r_a084fbf9465047bad285372fe979d20a6"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a084fbf9465047bad285372fe979d20a6">track</a></td></tr>
 <tr class="memdesc:a084fbf9465047bad285372fe979d20a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The index of the track line of the node in the run; -1 in the preview.  <br /></td></tr>
-<tr class="memitem:a6020356b21fca89d40905ecfa9bf58c6" id="r_a6020356b21fca89d40905ecfa9bf58c6"><td class="memItemLeft"><a class="el" href="class_node.html">Node</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a6020356b21fca89d40905ecfa9bf58c6">node</a></td></tr>
-<tr class="memdesc:a6020356b21fca89d40905ecfa9bf58c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The node of the run, which belongs to the run; null in the preview.  <br /></td></tr>
+<tr class="memitem:a0e93dd104db0c6adab75832c0224defd" id="r_a0e93dd104db0c6adab75832c0224defd"><td class="memItemLeft">const <a class="el" href="class_node.html">Node</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a0e93dd104db0c6adab75832c0224defd">node</a></td></tr>
+<tr class="memdesc:a0e93dd104db0c6adab75832c0224defd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The node of the run, which belongs to the run; null in the preview.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
-<tr class="memitem:a176f5fe7a617536681e88652455cc034" id="r_a176f5fe7a617536681e88652455cc034"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#a176f5fe7a617536681e88652455cc034">PickPixels</a> = 3.0</td></tr>
+<tr class="memitem:a176f5fe7a617536681e88652455cc034" id="r_a176f5fe7a617536681e88652455cc034"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#a176f5fe7a617536681e88652455cc034">PickPixels</a></td></tr>
 <tr class="memdesc:a176f5fe7a617536681e88652455cc034"><td class="mdescLeft">&#160;</td><td class="mdescRight">The width on screen of the circle in which a click picks the dot, in logical pixels.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -287,14 +286,14 @@ Static Public Attributes</h2></td></tr>
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
-<a id="a6020356b21fca89d40905ecfa9bf58c6" name="a6020356b21fca89d40905ecfa9bf58c6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6020356b21fca89d40905ecfa9bf58c6">&#9670;&#160;</a></span>node</h2>
+<a id="a0e93dd104db0c6adab75832c0224defd" name="a0e93dd104db0c6adab75832c0224defd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0e93dd104db0c6adab75832c0224defd">&#9670;&#160;</a></span>node</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="class_node.html">Node</a>* NodeItem::node</td>
+          <td class="memname">const <a class="el" href="class_node.html">Node</a>* NodeItem::node</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -313,7 +312,7 @@ Static Public Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">qreal NodeItem::PickPixels = 3.0</td>
+          <td class="memname">qreal NodeItem::PickPixels</td>
         </tr>
       </table>
   </td>
@@ -344,7 +343,7 @@ Static Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>graphics/items/<a class="el" href="_node_item_8h_source.html">NodeItem.h</a></li>
+<li>graphics/items/<a class="el" href="_node_item_8h.html">NodeItem.h</a></li>
 <li>graphics/items/<a class="el" href="_node_item_8cpp.html">NodeItem.cpp</a></li>
 </ul>
 </div><!-- contents -->

@@ -1,7 +1,7 @@
 <map id="SceneDocument::markSaved" name="SceneDocument::markSaved">
-<area shape="rect" id="Node000001" title="The model is what is saved now: clears the dirty state." alt="" coords="5,5,216,31"/>
-<area shape="rect" id="Node000002" href="$class_scene_document.html#a01d765c1bc087b8ba050fd566730929b" title="Sets the dirty state, and emits dirtyChanged() when it changes." alt="" coords="264,5,452,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,15,250,15,250,21,216,21"/>
-<area shape="rect" id="Node000003" href="$class_scene_document.html#aa264b685cb49af4df36f5c11bc53e71d" title="The dirty state has changed to dirty." alt="" coords="500,5,723,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="452,15,486,15,486,21,452,21"/>
+<area shape="rect" id="Node000001" title="The model is what is saved now: clears the dirty state." alt="" coords="5,5,215,33"/>
+<area shape="rect" id="Node000002" href="$class_scene_document.html#a01d765c1bc087b8ba050fd566730929b" title="Sets the dirty state, and emits dirtyChanged() when it changes." alt="" coords="263,5,450,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,17,250,19,245,19,215,22"/>
+<area shape="rect" id="Node000003" href="$class_scene_document.html#aa264b685cb49af4df36f5c11bc53e71d" title="The dirty state has changed to dirty." alt="" coords="498,5,720,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="450,17,485,19,480,19,451,22"/>
 </map>

@@ -1,0 +1,16 @@
+<map id="selectPlaybackProfileScenario" name="selectPlaybackProfileScenario">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,222,109"/>
+<area shape="poly" id="edge7_Node000001_Node000001" title=" " alt="" coords="69,81,62,72,68,63,85,57,114,55,144,57,162,66,157,66,143,62,113,60,86,62,71,67,67,72,74,81"/>
+<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="313,29,436,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,78,300,57,295,60,187,83"/>
+<area shape="rect" id="Node000004" href="$class_playback_profiler.html#a7a63c4ef335afa5b7f14b8154d2c2a16" title="True when QEGTRAIN_PLAYBACK_PROFILE was &quot;1&quot; when the profiler was created." alt="" coords="281,81,468,109"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="222,93,269,95,263,96,222,98"/>
+<area shape="rect" id="Node000006" href="$class_run_selection.html#ab52c5a649c5038533dfa9f577df2532c" title="Selects the scenario with the id id." alt="" coords="270,133,479,161"/>
+<area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="187,107,289,129,283,130,187,112"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="332,28,325,20,331,11,347,5,374,3,403,5,421,14,415,14,402,10,374,8,348,10,334,15,331,20,337,29"/>
+<area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="537,29,706,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="436,41,524,43,519,44,436,46"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="579,28,573,20,578,11,595,5,622,3,651,5,668,14,663,14,649,10,622,8,596,10,582,15,578,20,584,30"/>
+<area shape="rect" id="Node000005" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title="The profiler of the process, created at the first call." alt="" coords="527,81,716,109"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="468,93,514,95,509,95,468,98"/>
+</map>

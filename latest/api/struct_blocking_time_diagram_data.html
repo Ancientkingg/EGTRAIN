@@ -8,7 +8,6 @@
 <title>EGTRAIN: BlockingTimeDiagramData Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,11 +115,11 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_blockin
 <p>What the blocking-time diagram of a scope shows and exports.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_run_exports_8h_source.html">diagrams/RunExports.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/BlockingTimeData.h&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for BlockingTimeDiagramData:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="struct_blocking_time_diagram_data__coll__graph.svg" width="210" height="132"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="struct_blocking_time_diagram_data__coll__graph.svg" width="208" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -132,17 +131,14 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a78e01c0559c467c1fce72e6abd3f6ac0" id="r_a78e01c0559c467c1fce72e6abd3f6ac0"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a78e01c0559c467c1fce72e6abd3f6ac0">unmapped</a></td></tr>
 <tr class="memdesc:a78e01c0559c467c1fce72e6abd3f6ac0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Could not be projected.  <br /></td></tr>
 <tr class="memitem:aa308e64921030b2c12f70594c08e5724" id="r_aa308e64921030b2c12f70594c08e5724"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aa308e64921030b2c12f70594c08e5724">extents</a></td></tr>
-<tr class="memdesc:aa308e64921030b2c12f70594c08e5724"><td class="mdescLeft">&#160;</td><td class="mdescRight">The sections of the scope.  <br /></td></tr>
-<tr class="memitem:afc66c70ef70923880e54f7ef8cb3b617" id="r_afc66c70ef70923880e54f7ef8cb3b617"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#afc66c70ef70923880e54f7ef8cb3b617">routeSectionCount</a> = 0</td></tr>
 <tr class="memitem:a564370d9c527495bc5c264a0dcba47e6" id="r_a564370d9c527495bc5c264a0dcba47e6"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_blocking_time_planned_reference.html">BlockingTimePlannedReference</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a564370d9c527495bc5c264a0dcba47e6">plannedReferences</a></td></tr>
 <tr class="memdesc:a564370d9c527495bc5c264a0dcba47e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Planned stop events inside the time range.  <br /></td></tr>
 <tr class="memitem:ac09b3fa31ed1b52180305482a96c3c2f" id="r_ac09b3fa31ed1b52180305482a96c3c2f"><td class="memItemLeft">std::vector&lt; std::vector&lt; <a class="el" href="struct_blocking_time_planned_reference.html">BlockingTimePlannedReference</a> &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac09b3fa31ed1b52180305482a96c3c2f">plannedLines</a></td></tr>
 <tr class="memdesc:ac09b3fa31ed1b52180305482a96c3c2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clipped to the scope, for the chart.  <br /></td></tr>
 <tr class="memitem:a6d67e63b924312daad1bbda42adf3861" id="r_a6d67e63b924312daad1bbda42adf3861"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_blocking_time_trajectory.html">BlockingTimeTrajectory</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a6d67e63b924312daad1bbda42adf3861">trajectories</a></td></tr>
-<tr class="memdesc:a6d67e63b924312daad1bbda42adf3861"><td class="mdescLeft">&#160;</td><td class="mdescRight">Recorded samples that lie inside an envelope of their train.  <br /></td></tr>
-<tr class="memitem:a0ce7ad9d3b1e3b5dbceffc5a70b7bab9" id="r_a0ce7ad9d3b1e3b5dbceffc5a70b7bab9"><td class="memItemLeft">std::vector&lt; std::vector&lt; std::string &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a0ce7ad9d3b1e3b5dbceffc5a70b7bab9">trajectoryRows</a></td></tr>
+<tr class="memdesc:a6d67e63b924312daad1bbda42adf3861"><td class="mdescLeft">&#160;</td><td class="mdescRight">Recorded samples that lie inside an envelope of their train. The export writes a row for each of them.  <br /></td></tr>
 <tr class="memitem:a1b70af28b923e32fd73b8f18d56da7bf" id="r_a1b70af28b923e32fd73b8f18d56da7bf"><td class="memItemLeft">std::pair&lt; double, double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a1b70af28b923e32fd73b8f18d56da7bf">timeRange</a></td></tr>
-<tr class="memitem:a4c95afc0f6c3e4e2f1e72a98bda997d8" id="r_a4c95afc0f6c3e4e2f1e72a98bda997d8"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4c95afc0f6c3e4e2f1e72a98bda997d8">omitted</a> = 0</td></tr>
+<tr class="memitem:a4c95afc0f6c3e4e2f1e72a98bda997d8" id="r_a4c95afc0f6c3e4e2f1e72a98bda997d8"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4c95afc0f6c3e4e2f1e72a98bda997d8">omitted</a></td></tr>
 <tr class="memitem:aad9de93696e0dce0837c32060f4dead9" id="r_aad9de93696e0dce0837c32060f4dead9"><td class="memItemLeft">std::map&lt; std::string, std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aad9de93696e0dce0837c32060f4dead9">repeatedTrains</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -159,8 +155,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>The sections of the scope. </p>
+<p>The sections of the scope </p>
 
 </div>
 </div>
@@ -171,7 +166,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int BlockingTimeDiagramData::omitted = 0</td>
+          <td class="memname">int BlockingTimeDiagramData::omitted</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -242,21 +237,6 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="afc66c70ef70923880e54f7ef8cb3b617" name="afc66c70ef70923880e54f7ef8cb3b617"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afc66c70ef70923880e54f7ef8cb3b617">&#9670;&#160;</a></span>routeSectionCount</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int BlockingTimeDiagramData::routeSectionCount = 0</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>The sections of the whole reference route </p>
-
-</div>
-</div>
 <a id="a08e9a9798dd54be419fd5ce02c02166a" name="a08e9a9798dd54be419fd5ce02c02166a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a08e9a9798dd54be419fd5ce02c02166a">&#9670;&#160;</a></span>segments</h2>
 
@@ -300,22 +280,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Recorded samples that lie inside an envelope of their train. </p>
-
-</div>
-</div>
-<a id="a0ce7ad9d3b1e3b5dbceffc5a70b7bab9" name="a0ce7ad9d3b1e3b5dbceffc5a70b7bab9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0ce7ad9d3b1e3b5dbceffc5a70b7bab9">&#9670;&#160;</a></span>trajectoryRows</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt;std::vector&lt;std::string&gt; &gt; BlockingTimeDiagramData::trajectoryRows</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>The export rows of the trajectories, with geo X from <span class="tt"><a class="el" href="#aa308e64921030b2c12f70594c08e5724" title="The sections of the scope.">extents</a></span> </p>
+<p>Recorded samples that lie inside an envelope of their train. The export writes a row for each of them. </p>
 
 </div>
 </div>
@@ -336,7 +301,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_run_exports_8h_source.html">RunExports.h</a></li>
+<li>diagrams/<a class="el" href="_blocking_time_data_8h.html">BlockingTimeData.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

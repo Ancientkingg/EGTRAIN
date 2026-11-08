@@ -8,6 +8,7 @@ var class_run_results_dock =
     [ "dock", "class_run_results_dock.html#a061ac6e3ab19125164d9e2178ea8cbb6", null ],
     [ "durationText", "class_run_results_dock.html#ab9abe45276997ba766f77a1d582dc4e1", null ],
     [ "refresh", "class_run_results_dock.html#ab41cfc1bad432445099a34821bc979db", null ],
+    [ "refreshed", "class_run_results_dock.html#a85d15ed3b69846c8519e31ffa690504e", null ],
     [ "refreshSummary", "class_run_results_dock.html#ae64779fcdc776e6ac3b1b6fa4911bdd7", null ],
     [ "setDelayBaselineButton", "class_run_results_dock.html#a3f2fbbd6de59ad13973fe474976a7f94", null ],
     [ "summaryLabel", "class_run_results_dock.html#a25a9265ea5694d85ef731dc1d3cc50ff", null ],

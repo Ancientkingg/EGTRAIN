@@ -8,7 +8,6 @@
 <title>EGTRAIN: ResultViews Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,16 +112,16 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_result_v
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_result_views_8h_source.html">app/ResultViews.h</a>&gt;</code></p>
+<p><code>#include &lt;app/ResultViews.h&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for ResultViews:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views__inherit__graph.svg" width="114" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views__inherit__graph.svg" width="112" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
 Collaboration diagram for ResultViews:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views__coll__graph.svg" width="114" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views__coll__graph.svg" width="112" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
@@ -162,14 +161,19 @@ Public Slots</h2></td></tr>
 Signals</h2></td></tr>
 <tr class="memitem:ac39a1014377b4598155110fef99ec515" id="r_ac39a1014377b4598155110fef99ec515"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac39a1014377b4598155110fef99ec515">trainSelected</a> (const QString &amp;trainId)</td></tr>
 <tr class="memdesc:ac39a1014377b4598155110fef99ec515"><td class="mdescLeft">&#160;</td><td class="mdescRight">A train was selected in one of the windows.  <br /></td></tr>
+<tr class="memitem:a5e802162e2a67672a9d88989550f3849" id="r_a5e802162e2a67672a9d88989550f3849"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5e802162e2a67672a9d88989550f3849">sectionsMarked</a> (const QStringList &amp;sectionIds, const QStringList &amp;emphasisIds)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a42c9aed7a83ea11c459d44a7635bc03b" id="r_a42c9aed7a83ea11c459d44a7635bc03b"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a42c9aed7a83ea11c459d44a7635bc03b">ResultViews</a> (QWidget *window, <a class="el" href="class_run_controller.html">RunController</a> *runController, <a class="el" href="class_result_views_1_1_host.html">Host</a> &amp;host)</td></tr>
 <tr class="memdesc:a42c9aed7a83ea11c459d44a7635bc03b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The views are a child of <span class="tt">window</span>. They do not own <span class="tt">runController</span> or <span class="tt">host</span>, which have to outlive them.  <br /></td></tr>
 <tr class="memitem:a0a1a09d502810a0902eeb4d48205af14" id="r_a0a1a09d502810a0902eeb4d48205af14"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0a1a09d502810a0902eeb4d48205af14">buildRouteDiagram</a> (const std::shared_ptr&lt; const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &gt; &amp;run, bool timetable, int referenceIndex)</td></tr>
+<tr class="memitem:a49b770f809ffc200bcb2748fbd60ebc3" id="r_a49b770f809ffc200bcb2748fbd60ebc3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a49b770f809ffc200bcb2748fbd60ebc3">buildPerTrainDiagram</a> (<a class="el" href="_route_charts_8h.html#a0fa81893835a3036bb374d3a404d58a5">TrajectoryChart</a> kind)</td></tr>
+<tr class="memdesc:a49b770f809ffc200bcb2748fbd60ebc3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opens the chart of the trajectories of the trains that <span class="tt">kind</span> names.  <br /></td></tr>
 <tr class="memitem:a000180b9df0075eb8c07dcf8e5bb5a50" id="r_a000180b9df0075eb8c07dcf8e5bb5a50"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a000180b9df0075eb8c07dcf8e5bb5a50">buildPerTrainDiagram</a> (int mode)</td></tr>
-<tr class="memdesc:a000180b9df0075eb8c07dcf8e5bb5a50"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opens the chart of the trajectories: 0 speed/distance, 1 speed/time, 2 time/distance, 3 simulated effort/distance.  <br /></td></tr>
+<tr class="memitem:aa0dcf889dde8371b8c7004df2904b4c0" id="r_aa0dcf889dde8371b8c7004df2904b4c0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa0dcf889dde8371b8c7004df2904b4c0">addCaseWindow</a> (QWidget *window)</td></tr>
+<tr class="memitem:a932e616f0c9cb6bd4c5ba48f05022b48" id="r_a932e616f0c9cb6bd4c5ba48f05022b48"><td class="memItemLeft"><a class="el" href="class_user_prompts.html">UserPrompts</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a932e616f0c9cb6bd4c5ba48f05022b48">prompts</a> ()</td></tr>
+<tr class="memitem:a2142298549b7e6b8aabe1e43ef39912f" id="r_a2142298549b7e6b8aabe1e43ef39912f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2142298549b7e6b8aabe1e43ef39912f">closeAll</a> ()</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The windows that show the completed run: the per-train charts, the route and timetable diagrams, the delay charts, the blocking-time diagram, and the capacity analyses. Each slot opens one window over the main window and reads the run of the <a class="el" href="class_run_controller.html">RunController</a>. Without results a slot opens nothing; all but the train paths and the timetable graph say so in the status bar. </p>
@@ -203,8 +207,26 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a id="aa0dcf889dde8371b8c7004df2904b4c0" name="aa0dcf889dde8371b8c7004df2904b4c0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa0dcf889dde8371b8c7004df2904b4c0">&#9670;&#160;</a></span>addCaseWindow()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ResultViews::addCaseWindow </td>
+          <td>(</td>
+          <td class="paramtype">QWidget *</td>          <td class="paramname"><span class="paramname"><em>window</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Adds a window that shows data of the case, such as the traction curve of a rolling stock unit, to the windows that <a class="el" href="#a2142298549b7e6b8aabe1e43ef39912f">closeAll()</a> closes. The window keeps its own place on the screen. A <a class="el" href="class_diagram_window.html">DiagramWindow</a> gets the <a class="el" href="#a932e616f0c9cb6bd4c5ba48f05022b48">prompts()</a>. </p>
+
+</div>
+</div>
 <a id="a000180b9df0075eb8c07dcf8e5bb5a50" name="a000180b9df0075eb8c07dcf8e5bb5a50"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a000180b9df0075eb8c07dcf8e5bb5a50">&#9670;&#160;</a></span>buildPerTrainDiagram()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a000180b9df0075eb8c07dcf8e5bb5a50">&#9670;&#160;</a></span>buildPerTrainDiagram() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -217,12 +239,35 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Opens the chart of the trajectories: 0 speed/distance, 1 speed/time, 2 time/distance, 3 simulated effort/distance. </p>
+<p>Opens the chart of the trajectories at <span class="tt">mode</span> in the order of <a class="el" href="_route_charts_8h.html#a0fa81893835a3036bb374d3a404d58a5" title="The charts of the trajectories of the trains.">TrajectoryChart</a>, from 0 for speed against distance to 3, as the test hook of <a class="el" href="class_main_window.html">MainWindow</a> gives it. Another number opens nothing. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a000180b9df0075eb8c07dcf8e5bb5a50_cgraph.svg" width="1556" height="1148"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a000180b9df0075eb8c07dcf8e5bb5a50_cgraph.svg" width="1752" height="1356"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a49b770f809ffc200bcb2748fbd60ebc3" name="a49b770f809ffc200bcb2748fbd60ebc3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a49b770f809ffc200bcb2748fbd60ebc3">&#9670;&#160;</a></span>buildPerTrainDiagram() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ResultViews::buildPerTrainDiagram </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="_route_charts_8h.html#a0fa81893835a3036bb374d3a404d58a5">TrajectoryChart</a></td>          <td class="paramname"><span class="paramname"><em>kind</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Opens the chart of the trajectories of the trains that <span class="tt">kind</span> names. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a49b770f809ffc200bcb2748fbd60ebc3_cgraph.svg" width="1511" height="1356"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -254,8 +299,26 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a0a1a09d502810a0902eeb4d48205af14_cgraph.svg" width="1572" height="1332"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a0a1a09d502810a0902eeb4d48205af14_cgraph.svg" width="1514" height="1528"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a2142298549b7e6b8aabe1e43ef39912f" name="a2142298549b7e6b8aabe1e43ef39912f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2142298549b7e6b8aabe1e43ef39912f">&#9670;&#160;</a></span>closeAll()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ResultViews::closeAll </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Closes every result window and every window of <a class="el" href="#aa0dcf889dde8371b8c7004df2904b4c0">addCaseWindow()</a> that is still open, because they show another case than the one that replaces it. The windows stay open from one run of a case to the next. </p>
 
 </div>
 </div>
@@ -286,8 +349,69 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a6654ed2f9732984a4810179a9275addf_cgraph.svg" width="1770" height="1332"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a6654ed2f9732984a4810179a9275addf_cgraph.svg" width="1750" height="1516"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a932e616f0c9cb6bd4c5ba48f05022b48" name="a932e616f0c9cb6bd4c5ba48f05022b48"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a932e616f0c9cb6bd4c5ba48f05022b48">&#9670;&#160;</a></span>prompts()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_user_prompts.html">UserPrompts</a> &amp; ResultViews::prompts </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The prompts of the result windows and of their exports. They show no message while <a class="el" href="class_result_views_1_1_host.html#ab99218443839cb22410c93c61bcf18e0" title="A scripted run has no user to answer a dialog.">Host::dialogsSuppressed()</a> is true, and log the errors. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a932e616f0c9cb6bd4c5ba48f05022b48_cgraph.svg" width="175" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a5e802162e2a67672a9d88989550f3849" name="a5e802162e2a67672a9d88989550f3849"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5e802162e2a67672a9d88989550f3849">&#9670;&#160;</a></span>sectionsMarked</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ResultViews::sectionsMarked </td>
+          <td>(</td>
+          <td class="paramtype">const QStringList &amp;</td>          <td class="paramname"><span class="paramname"><em>sectionIds</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QStringList &amp;</td>          <td class="paramname"><span class="paramname"><em>emphasisIds</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The block sections that the network view marks changed. While a Blocking time or Capacity scope dialog is open they are the stretch that it chooses, with the sections of the entry under the pointer as <span class="tt">emphasisIds</span>; once it closes, with OK or Cancel, they are the blocks of the boxes that the blocking time windows select, with those of the cell or box under the pointer as <span class="tt">emphasisIds</span>. Runtime section ids of the run; both empty for no mark. </p>
 
 </div>
 </div>
@@ -318,7 +442,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a8e32ba30e8190ebc639b33719a73ea78_cgraph.svg" width="1742" height="1404"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a8e32ba30e8190ebc639b33719a73ea78_cgraph.svg" width="1735" height="1414"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -350,7 +474,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_aa9e252a043e4690bee758082e1f58722_cgraph.svg" width="1600" height="1243"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_aa9e252a043e4690bee758082e1f58722_cgraph.svg" width="1596" height="1582"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -381,7 +505,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a9f539b64e7342aee59d626baebfd8617_cgraph.svg" width="1699" height="1764"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a9f539b64e7342aee59d626baebfd8617_cgraph.svg" width="1734" height="1950"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -467,7 +591,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a1d245242d54fb3f1ab9e30fc19faa071_cgraph.svg" width="1600" height="1184"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a1d245242d54fb3f1ab9e30fc19faa071_cgraph.svg" width="1516" height="1535"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -499,7 +623,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_aac25495cbc2eeebd47d6343d7494868a_cgraph.svg" width="1846" height="1148"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_aac25495cbc2eeebd47d6343d7494868a_cgraph.svg" width="1799" height="1356"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -531,7 +655,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a0f3f690fe5e7f9f99d753b5afaff1f1c_cgraph.svg" width="1822" height="1148"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a0f3f690fe5e7f9f99d753b5afaff1f1c_cgraph.svg" width="1775" height="1356"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -563,7 +687,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_ad1c48db154efc6c4894aa92e13d4662f_cgraph.svg" width="1839" height="1148"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_ad1c48db154efc6c4894aa92e13d4662f_cgraph.svg" width="1792" height="1356"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -595,7 +719,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_abbd242b2f22778b903475a53c4dc8447_cgraph.svg" width="1792" height="1332"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_abbd242b2f22778b903475a53c4dc8447_cgraph.svg" width="1771" height="1516"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -627,7 +751,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a4fa7fe533fd5fd1ac1773d910b0c4c9e_cgraph.svg" width="1642" height="2096"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a4fa7fe533fd5fd1ac1773d910b0c4c9e_cgraph.svg" width="1635" height="2176"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -659,7 +783,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_ad604d7cb46e009e65178785bcd6f6191_cgraph.svg" width="1799" height="1148"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_ad604d7cb46e009e65178785bcd6f6191_cgraph.svg" width="1754" height="1356"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -688,16 +812,11 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>A train was selected in one of the windows. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_ac39a1014377b4598155110fef99ec515_cgraph.svg" width="207" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>app/<a class="el" href="_result_views_8h_source.html">ResultViews.h</a></li>
+<li>app/<a class="el" href="_result_views_8h.html">ResultViews.h</a></li>
 <li>app/<a class="el" href="_result_views_8cpp.html">ResultViews.cpp</a></li>
 </ul>
 </div><!-- contents -->

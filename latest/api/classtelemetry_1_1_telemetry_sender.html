@@ -8,7 +8,6 @@
 <title>EGTRAIN: telemetry::TelemetrySender Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,7 +112,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('classtelemetry
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_telemetry_sender_8h_source.html">telemetry/TelemetrySender.h</a>&gt;</code></p>
+<p><code>#include &lt;telemetry/TelemetrySender.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -135,9 +134,13 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a9a482c617df51d9ebaeacd82a9cf219f" id="r_a9a482c617df51d9ebaeacd82a9cf219f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9a482c617df51d9ebaeacd82a9cf219f">invalidateReceiver</a> () noexcept</td></tr>
 <tr class="memitem:ab04a761b9bbcbecbaa997b1b2001d09c" id="r_ab04a761b9bbcbecbaa997b1b2001d09c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab04a761b9bbcbecbaa997b1b2001d09c">requestConsentRefresh</a> () noexcept</td></tr>
 <tr class="memitem:acb1b449e3a4de6b4c11ef128f35e9beb" id="r_acb1b449e3a4de6b4c11ef128f35e9beb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acb1b449e3a4de6b4c11ef128f35e9beb">stop</a> () noexcept</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:af128348a90aceebb1a203c2c88869c0a" id="r_af128348a90aceebb1a203c2c88869c0a"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#af128348a90aceebb1a203c2c88869c0a">kTickIntervalMs</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Sends usage and diagnostic events to the compiled receiver from a worker thread of its own. Producers on any thread hand events to an in-memory ring of 128 entries without waiting. Once a second the worker re-reads consent through its own <a class="el" href="class_telemetry_consent.html">TelemetryConsent</a>, stores events in a <a class="el" href="classtelemetry_1_1_telemetry_queue.html">TelemetryQueue</a> and posts batches over HTTPS, handling each response as the HTTP outcomes of docs/telemetry/README.md say. Only the process that owns the queue sends; in others every event is dropped. A sender whose context is not capable, or whose construction fails, starts no thread and accepts nothing. </p>
+<div class="textblock"><p>Sends usage and diagnostic events to the compiled receiver from a worker thread of its own. Producers on any thread hand events to an in-memory ring of 128 entries without waiting. Once a second the worker re-reads consent through its own <a class="el" href="class_telemetry_consent.html">TelemetryConsent</a>, stores events in a <a class="el" href="classtelemetry_1_1_telemetry_queue.html">TelemetryQueue</a> and posts batches over HTTPS with the User-Agent EGTRAIN/&lt;version&gt;, handling each response as the HTTP outcomes of docs/telemetry/README.md say. Only the process that owns the queue sends; in others every event is dropped. A sender whose context is not capable, or whose construction fails, starts no thread and accepts nothing. The worker exits by itself once it can send nothing more in this run: after a receiver change, a 410 response, or a failed consent read or storage operation. When only a file write or a space check of the queue failed (<a class="el" href="classtelemetry_1_1_telemetry_queue.html#ade4b037cbde1dbccb3115cdf7e33c9b7">TelemetryQueue::storageFailed()</a>), it keeps the queue open but takes in nothing, reads consent once a second and at <a class="el" href="#ab04a761b9bbcbecbaa997b1b2001d09c">requestConsentRefresh()</a>, and once the consent of either category has changed, removes the disabled marker and opens the queue again. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a63aff60ffeeea563d18ef17a5388b88c" name="a63aff60ffeeea563d18ef17a5388b88c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a63aff60ffeeea563d18ef17a5388b88c">&#9670;&#160;</a></span>TelemetrySender() <span class="overload">[1/2]</span></h2>
@@ -166,7 +169,7 @@ Public Member Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_telemetry_sender_a63aff60ffeeea563d18ef17a5388b88c_cgraph.svg" width="460" height="175"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_telemetry_sender_a63aff60ffeeea563d18ef17a5388b88c_cgraph.svg" width="459" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -190,7 +193,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_telemetry_sender_a6612c1bd64f0598bc2ee2ab337527337_cgraph.svg" width="464" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_telemetry_sender_a6612c1bd64f0598bc2ee2ab337527337_cgraph.svg" width="464" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -220,7 +223,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_telemetry_sender_af8f44967ffcc8ebbe8b06adc759a528e_cgraph.svg" width="711" height="175"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_telemetry_sender_af8f44967ffcc8ebbe8b06adc759a528e_cgraph.svg" width="710" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -278,7 +281,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Closes the named categories at once, drops their waiting events and invalidates tokens taken before; the worker purges their queued events and opens them again after its next consent read. Connected directly to <a class="el" href="class_telemetry_consent.html#aa2a6f614789138e111424c8b482d3b4e">TelemetryConsent::revoked</a>. Never waits. </p>
+<p>Refuses the named categories at once and invalidates tokens taken before. The worker's next pump drops every waiting event, not only those of the named categories, and purges the queued events of the named categories. They open again at the first consent read after that pump that finds them enabled while no revocation is pending. Connected directly to <a class="el" href="class_telemetry_consent.html#aa2a6f614789138e111424c8b482d3b4e">TelemetryConsent::revoked</a>. Never waits. </p>
 
 </div>
 </div>
@@ -304,11 +307,11 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Invalidates both categories; the worker purges every queued event and sends nothing more in this run. Connected directly to <a class="el" href="class_telemetry_consent.html#a1441ab8158feface13517d832495d246">TelemetryConsent::receiverChanged</a>. Never waits. </p>
+<p>Invalidates both categories; the worker purges every queued event and exits, so it sends nothing more in this run. Connected directly to <a class="el" href="class_telemetry_consent.html#a1441ab8158feface13517d832495d246">TelemetryConsent::receiverChanged</a>. Never waits. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_telemetry_sender_a9a482c617df51d9ebaeacd82a9cf219f_cgraph.svg" width="464" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_telemetry_sender_a9a482c617df51d9ebaeacd82a9cf219f_cgraph.svg" width="464" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -338,7 +341,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_telemetry_sender_ad8e54185e46801321ca2d7c658372801_cgraph.svg" width="715" height="528"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_telemetry_sender_ad8e54185e46801321ca2d7c658372801_cgraph.svg" width="714" height="562"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -447,7 +450,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_telemetry_sender_ad6e408d86dd8adedca19e37864ea2dca_cgraph.svg" width="420" height="68"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_telemetry_sender_ad6e408d86dd8adedca19e37864ea2dca_cgraph.svg" width="419" height="71"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -482,13 +485,37 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_telemetry_sender_a863f93afda16ffb2bdf5ea474cd3bb65_cgraph.svg" width="420" height="68"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_telemetry_sender_a863f93afda16ffb2bdf5ea474cd3bb65_cgraph.svg" width="419" height="71"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
+<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a id="af128348a90aceebb1a203c2c88869c0a" name="af128348a90aceebb1a203c2c88869c0a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af128348a90aceebb1a203c2c88869c0a">&#9670;&#160;</a></span>kTickIntervalMs</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int telemetry::TelemetrySender::kTickIntervalMs</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Interval of the worker's timer in milliseconds. Each tick the worker applies revocations and refresh requests, stores the waiting events and sends a batch that is due. </p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>telemetry/<a class="el" href="_telemetry_sender_8h_source.html">TelemetrySender.h</a></li>
+<li>telemetry/<a class="el" href="_telemetry_sender_8h.html">TelemetrySender.h</a></li>
 <li>telemetry/<a class="el" href="_telemetry_sender_8cpp.html">TelemetrySender.cpp</a></li>
 </ul>
 </div><!-- contents -->

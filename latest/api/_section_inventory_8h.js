@@ -1,6 +1,7 @@
 var _section_inventory_8h =
 [
     [ "SceneSectionDescriptor", "struct_scene_section_descriptor.html", "struct_scene_section_descriptor" ],
+    [ "SceneSectionList", "class_scene_section_list.html", "class_scene_section_list" ],
     [ "SceneSectionInventory", "struct_scene_section_inventory.html", "struct_scene_section_inventory" ],
     [ "SceneSectionTransition", "struct_scene_section_transition.html", "struct_scene_section_transition" ],
     [ "SceneRouteVisit", "struct_scene_route_visit.html", "struct_scene_route_visit" ],
@@ -12,6 +13,7 @@ var _section_inventory_8h =
     [ "SceneAreaSignalling", "struct_scene_area_signalling.html", "struct_scene_area_signalling" ],
     [ "SceneSignallingAnalysis", "struct_scene_signalling_analysis.html", "struct_scene_signalling_analysis" ],
     [ "SceneBlockExtent", "struct_scene_block_extent.html", "struct_scene_block_extent" ],
+    [ "SceneTrackChain", "struct_scene_track_chain.html", "struct_scene_track_chain" ],
     [ "SceneStopResolutionStatus", "_section_inventory_8h.html#a6cda0819c0daa4700ff8d1ae6418f399", [
       [ "Resolved", "_section_inventory_8h.html#a6cda0819c0daa4700ff8d1ae6418f399af691f042a559b1c1a4f89826c6f75760", null ],
       [ "AmbiguousPlatform", "_section_inventory_8h.html#a6cda0819c0daa4700ff8d1ae6418f399acd8f5c18d8c4bf2af801232dd4540290", null ],
@@ -34,5 +36,6 @@ var _section_inventory_8h =
     [ "sceneSectionLabel", "_section_inventory_8h.html#a51767c3e1d490b330b50d4a4ba4d4388", null ],
     [ "sceneSectionLabels", "_section_inventory_8h.html#a64c14cbefafa78e81ec551a43f333429", null ],
     [ "sceneSectionsOverlap", "_section_inventory_8h.html#a27f18250734df7f228d6cc0fdb9b6ad6", null ],
-    [ "sceneSignalFailureTarget", "_section_inventory_8h.html#aada86a733299e516b7fc5ad92a65eee4", null ]
+    [ "sceneSignalFailureTarget", "_section_inventory_8h.html#aada86a733299e516b7fc5ad92a65eee4", null ],
+    [ "sceneTrackChain", "_section_inventory_8h.html#a8a70bbc57dec734cd616377937c1b5bb", null ]
 ];

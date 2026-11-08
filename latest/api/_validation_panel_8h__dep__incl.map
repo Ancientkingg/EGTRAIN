@@ -1,9 +1,9 @@
 <map id="editors/ValidationPanel.h" name="editors/ValidationPanel.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="181,5,363,31"/>
-<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,79,165,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="230,38,117,81,115,76,229,33"/>
-<area shape="rect" id="Node000003" href="$_run_controller_8cpp.html" title=" " alt="" coords="189,79,355,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="275,44,275,79,269,79,269,44"/>
-<area shape="rect" id="Node000004" href="$_validation_panel_8cpp.html" title=" " alt="" coords="379,79,578,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="319,33,446,76,444,81,317,38"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="179,5,362,33"/>
+<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,81,165,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,40,119,83,117,78,221,38"/>
+<area shape="rect" id="Node000003" href="$_run_controller_8cpp.html" title=" " alt="" coords="188,81,352,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="272,47,273,82,268,79,268,51"/>
+<area shape="rect" id="Node000004" href="$_validation_panel_8cpp.html" title=" " alt="" coords="377,81,574,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="322,36,442,80,436,81,321,41"/>
 </map>

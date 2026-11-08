@@ -8,7 +8,6 @@
 <title>EGTRAIN: CapacityAnalysisResult Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,7 +115,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_capacit
 <p>The result of analyzeCapacity.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_capacity_analysis_8h_source.html">diagrams/CapacityAnalysis.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/CapacityAnalysis.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -134,13 +133,13 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a8d35a9940e5ff072bc6a963ac3d0618f" id="r_a8d35a9940e5ff072bc6a963ac3d0618f"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a8d35a9940e5ff072bc6a963ac3d0618f">referenceSources</a></td></tr>
 <tr class="memdesc:a8d35a9940e5ff072bc6a963ac3d0618f"><td class="mdescLeft">&#160;</td><td class="mdescRight">referenceSource of each train  <br /></td></tr>
 <tr class="memitem:ab6cb46394965ca36ccedf424dea4931c" id="r_ab6cb46394965ca36ccedf424dea4931c"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_capacity_critical_block.html">CapacityCriticalBlock</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ab6cb46394965ca36ccedf424dea4931c">criticalBlocks</a></td></tr>
-<tr class="memitem:aee07229ba2471103406f4c2e87c8882a" id="r_aee07229ba2471103406f4c2e87c8882a"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aee07229ba2471103406f4c2e87c8882a">cycleTime</a> = -1.0</td></tr>
-<tr class="memitem:a401b497c6f7769d1227d2dda42a3d81f" id="r_a401b497c6f7769d1227d2dda42a3d81f"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a401b497c6f7769d1227d2dda42a3d81f">periodSeconds</a> = -1.0</td></tr>
+<tr class="memitem:aee07229ba2471103406f4c2e87c8882a" id="r_aee07229ba2471103406f4c2e87c8882a"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aee07229ba2471103406f4c2e87c8882a">cycleTime</a></td></tr>
+<tr class="memitem:a401b497c6f7769d1227d2dda42a3d81f" id="r_a401b497c6f7769d1227d2dda42a3d81f"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a401b497c6f7769d1227d2dda42a3d81f">periodSeconds</a></td></tr>
 <tr class="memdesc:a401b497c6f7769d1227d2dda42a3d81f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The period of the call when it is finite and not below 0, else -1.0.  <br /></td></tr>
-<tr class="memitem:a958b3aedd20b9a9fab709c0dc8b744c1" id="r_a958b3aedd20b9a9fab709c0dc8b744c1"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a958b3aedd20b9a9fab709c0dc8b744c1">cyclePercentage</a> = -1.0</td></tr>
+<tr class="memitem:a958b3aedd20b9a9fab709c0dc8b744c1" id="r_a958b3aedd20b9a9fab709c0dc8b744c1"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a958b3aedd20b9a9fab709c0dc8b744c1">cyclePercentage</a></td></tr>
 <tr class="memdesc:a958b3aedd20b9a9fab709c0dc8b744c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">cycleTime / periodSeconds * 100; -1.0 without a cycle time or a period above 0.  <br /></td></tr>
-<tr class="memitem:a26a2c55d03f1276e0175d126d8f404df" id="r_a26a2c55d03f1276e0175d126d8f404df"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a26a2c55d03f1276e0175d126d8f404df">conflictFree</a> = false</td></tr>
-<tr class="memitem:a270cbd40da965b70a9db9d11caa18a96" id="r_a270cbd40da965b70a9db9d11caa18a96"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a270cbd40da965b70a9db9d11caa18a96">analyzable</a> = false</td></tr>
+<tr class="memitem:a26a2c55d03f1276e0175d126d8f404df" id="r_a26a2c55d03f1276e0175d126d8f404df"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a26a2c55d03f1276e0175d126d8f404df">conflictFree</a></td></tr>
+<tr class="memitem:a270cbd40da965b70a9db9d11caa18a96" id="r_a270cbd40da965b70a9db9d11caa18a96"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a270cbd40da965b70a9db9d11caa18a96">analyzable</a></td></tr>
 <tr class="memdesc:a270cbd40da965b70a9db9d11caa18a96"><td class="mdescLeft">&#160;</td><td class="mdescRight">True with at least two trains, valid profile references and no conflict.  <br /></td></tr>
 <tr class="memitem:a8923baf9c79329c719aace60dbad6ee0" id="r_a8923baf9c79329c719aace60dbad6ee0"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a8923baf9c79329c719aace60dbad6ee0">firstIdentity</a></td></tr>
 <tr class="memdesc:a8923baf9c79329c719aace60dbad6ee0"><td class="mdescLeft">&#160;</td><td class="mdescRight">runtimeId of the first train, empty without trains  <br /></td></tr>
@@ -173,7 +172,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool CapacityAnalysisResult::analyzable = false</td>
+          <td class="memname">bool CapacityAnalysisResult::analyzable</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -220,7 +219,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool CapacityAnalysisResult::conflictFree = false</td>
+          <td class="memname">bool CapacityAnalysisResult::conflictFree</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -266,7 +265,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double CapacityAnalysisResult::cyclePercentage = -1.0</td>
+          <td class="memname">double CapacityAnalysisResult::cyclePercentage</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -282,7 +281,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double CapacityAnalysisResult::cycleTime = -1.0</td>
+          <td class="memname">double CapacityAnalysisResult::cycleTime</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -329,7 +328,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double CapacityAnalysisResult::periodSeconds = -1.0</td>
+          <td class="memname">double CapacityAnalysisResult::periodSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -387,7 +386,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_capacity_analysis_8h_source.html">CapacityAnalysis.h</a></li>
+<li>diagrams/<a class="el" href="_capacity_analysis_8h.html">CapacityAnalysis.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

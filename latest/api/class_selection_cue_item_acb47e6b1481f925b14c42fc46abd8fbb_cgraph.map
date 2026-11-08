@@ -1,6 +1,6 @@
 <map id="SelectionCueItem::paint" name="SelectionCueItem::paint">
-<area shape="rect" id="Node000001" title="Draws the casing and then the ring with cosmetic pens." alt="" coords="5,29,184,55"/>
-<area shape="rect" id="Node000002" href="$_selection_cue_item_8h.html#a5142e94c12ed77db36a0e5458bc76b82" title="The one colour of the selection cue. No built&#45;in track, signal or default train colour uses it; a ser..." alt="" coords="232,29,381,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,39,218,39,218,45,184,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="272,31,265,21,269,11,283,5,307,3,336,6,348,15,344,20,334,11,307,8,284,10,272,15,270,20,276,28"/>
+<area shape="rect" id="Node000001" title="Draws the casing and then the ring with cosmetic pens." alt="" coords="5,29,183,57"/>
+<area shape="rect" id="Node000002" href="$_selection_cue_item_8h.html#a5142e94c12ed77db36a0e5458bc76b82" title="The one colour of the selection cue. No built&#45;in track, signal or default train colour uses it; a ser..." alt="" coords="231,29,379,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,41,218,43,212,43,183,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="268,28,263,20,267,11,282,5,305,3,330,5,345,14,339,14,328,10,305,8,283,10,271,15,268,20,273,30"/>
 </map>

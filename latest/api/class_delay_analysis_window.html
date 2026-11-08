@@ -8,7 +8,6 @@
 <title>EGTRAIN: DelayAnalysisWindow Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,16 +112,16 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_delay_an
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_delay_analysis_window_8h_source.html">diagrams/DelayAnalysisWindow.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/DelayAnalysisWindow.h&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for DelayAnalysisWindow:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_delay_analysis_window__inherit__graph.svg" width="178" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_delay_analysis_window__inherit__graph.svg" width="178" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
 Collaboration diagram for DelayAnalysisWindow:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_delay_analysis_window__coll__graph.svg" width="178" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_delay_analysis_window__coll__graph.svg" width="178" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -131,6 +130,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ac0db7191dc2b43d97527f7ad778f109f"><td class="mdescLeft">&#160;</td><td class="mdescRight"><span class="tt">baseline</span> is the baseline run when one is set. The Against baseline tab compares it with <span class="tt">scenario</span>.  <br /></td></tr>
 <tr class="memitem:afa32d881039d41bba798b2539faec6fe" id="r_afa32d881039d41bba798b2539faec6fe"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afa32d881039d41bba798b2539faec6fe">setTelemetryCapture</a> (<a class="el" href="namespacetelemetry.html#a72614ca7f8f9984ba7f8ca9222444bd7">telemetry::CaptureOperation</a> capture)</td></tr>
 <tr class="memdesc:afa32d881039d41bba798b2539faec6fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the function that gives the telemetry observation of an export; empty for none.  <br /></td></tr>
+<tr class="memitem:a72b9a049bf2f6bcc8d0f9851d3e47707" id="r_a72b9a049bf2f6bcc8d0f9851d3e47707"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a72b9a049bf2f6bcc8d0f9851d3e47707">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
 <tr class="memitem:a42c8be067e8ff4a9ea16c53822b4fbd1" id="r_a42c8be067e8ff4a9ea16c53822b4fbd1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a42c8be067e8ff4a9ea16c53822b4fbd1">showBaselineTab</a> ()</td></tr>
 <tr class="memdesc:a42c8be067e8ff4a9ea16c53822b4fbd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the Against baseline tab. The window opens on the Calls tab.  <br /></td></tr>
 <tr class="memitem:a8bcc228a187149cd1a0f6b22348be9cd" id="r_a8bcc228a187149cd1a0f6b22348be9cd"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a8bcc228a187149cd1a0f6b22348be9cd">suggestedFileName</a> () const</td></tr>
@@ -172,7 +172,7 @@ Protected Member Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_delay_analysis_window_ac0db7191dc2b43d97527f7ad778f109f_cgraph.svg" width="1426" height="1650"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_delay_analysis_window_ac0db7191dc2b43d97527f7ad778f109f_cgraph.svg" width="1207" height="1670"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -224,11 +224,32 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>Writes the visible tab, for the occurrences, stations and events that are selected, and the provenance sidecar. The Against baseline tab writes the provenance of both runs. False when the tab has no row or a write fails. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_delay_analysis_window_aae76586959e847159ee6567831587f2d_cgraph.svg" width="472" height="134"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+
 </div>
+</div>
+<a id="a72b9a049bf2f6bcc8d0f9851d3e47707" name="a72b9a049bf2f6bcc8d0f9851d3e47707"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a72b9a049bf2f6bcc8d0f9851d3e47707">&#9670;&#160;</a></span>setPrompts()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DelayAnalysisWindow::setPrompts </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_user_prompts.html">UserPrompts</a> *</td>          <td class="paramname"><span class="paramname"><em>prompts</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Sets the prompts of the export, which ask whether to replace a file and show what went wrong. Null restores the prompts of the window, which show every message. </p>
 
 </div>
 </div>
@@ -297,7 +318,7 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>diagrams/<a class="el" href="_delay_analysis_window_8h_source.html">DelayAnalysisWindow.h</a></li>
+<li>diagrams/<a class="el" href="_delay_analysis_window_8h.html">DelayAnalysisWindow.h</a></li>
 <li>diagrams/<a class="el" href="_delay_analysis_window_8cpp.html">DelayAnalysisWindow.cpp</a></li>
 </ul>
 </div><!-- contents -->

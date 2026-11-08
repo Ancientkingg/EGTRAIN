@@ -8,7 +8,6 @@
 <title>EGTRAIN: SceneStop Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,7 +115,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_s
 <p>A planned call of a service at a station. Times are seconds after the base time of the scene.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&gt;</code></p>
+<p><code>#include &lt;scene/SceneModel.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -124,15 +123,15 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a68a2f9f080093f00066632b9666a6aad"><td class="mdescLeft">&#160;</td><td class="mdescRight">The station of the call.  <br /></td></tr>
 <tr class="memitem:a51ac0f53fc045e2754b82e88b6419492" id="r_a51ac0f53fc045e2754b82e88b6419492"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a51ac0f53fc045e2754b82e88b6419492">platformId</a></td></tr>
 <tr class="memdesc:a51ac0f53fc045e2754b82e88b6419492"><td class="mdescLeft">&#160;</td><td class="mdescRight">The platform of that station; empty when not given.  <br /></td></tr>
-<tr class="memitem:a8077d99d2b3323e36e9de2389f525e68" id="r_a8077d99d2b3323e36e9de2389f525e68"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a8077d99d2b3323e36e9de2389f525e68">hasPlannedArrival</a> = false</td></tr>
+<tr class="memitem:a8077d99d2b3323e36e9de2389f525e68" id="r_a8077d99d2b3323e36e9de2389f525e68"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a8077d99d2b3323e36e9de2389f525e68">hasPlannedArrival</a></td></tr>
 <tr class="memdesc:a8077d99d2b3323e36e9de2389f525e68"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when planned_arrival_seconds is given.  <br /></td></tr>
-<tr class="memitem:af1318b2ad1dd1794af4b4205b3c12bf6" id="r_af1318b2ad1dd1794af4b4205b3c12bf6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af1318b2ad1dd1794af4b4205b3c12bf6">hasPlannedDeparture</a> = false</td></tr>
+<tr class="memitem:af1318b2ad1dd1794af4b4205b3c12bf6" id="r_af1318b2ad1dd1794af4b4205b3c12bf6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af1318b2ad1dd1794af4b4205b3c12bf6">hasPlannedDeparture</a></td></tr>
 <tr class="memdesc:af1318b2ad1dd1794af4b4205b3c12bf6"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when planned_departure_seconds is given.  <br /></td></tr>
-<tr class="memitem:a1fdf30314b16b8de69b8db9db608fc76" id="r_a1fdf30314b16b8de69b8db9db608fc76"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a1fdf30314b16b8de69b8db9db608fc76">plannedArrivalSeconds</a> = 0.0</td></tr>
+<tr class="memitem:a1fdf30314b16b8de69b8db9db608fc76" id="r_a1fdf30314b16b8de69b8db9db608fc76"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a1fdf30314b16b8de69b8db9db608fc76">plannedArrivalSeconds</a></td></tr>
 <tr class="memdesc:a1fdf30314b16b8de69b8db9db608fc76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Planned arrival in seconds after the base time.  <br /></td></tr>
-<tr class="memitem:ad3c8be4e1c57669bc6d889ac364ad320" id="r_ad3c8be4e1c57669bc6d889ac364ad320"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad3c8be4e1c57669bc6d889ac364ad320">plannedDepartureSeconds</a> = 0.0</td></tr>
+<tr class="memitem:ad3c8be4e1c57669bc6d889ac364ad320" id="r_ad3c8be4e1c57669bc6d889ac364ad320"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad3c8be4e1c57669bc6d889ac364ad320">plannedDepartureSeconds</a></td></tr>
 <tr class="memdesc:ad3c8be4e1c57669bc6d889ac364ad320"><td class="mdescLeft">&#160;</td><td class="mdescRight">Planned departure in seconds after the base time.  <br /></td></tr>
-<tr class="memitem:af39e6e6149b89044db24e6d97a8d833c" id="r_af39e6e6149b89044db24e6d97a8d833c"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#af39e6e6149b89044db24e6d97a8d833c">dwellSeconds</a> = 0.0</td></tr>
+<tr class="memitem:af39e6e6149b89044db24e6d97a8d833c" id="r_af39e6e6149b89044db24e6d97a8d833c"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#af39e6e6149b89044db24e6d97a8d833c">dwellSeconds</a></td></tr>
 <tr class="memdesc:af39e6e6149b89044db24e6d97a8d833c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Least time the train stands at the stop, in seconds.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -145,7 +144,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double SceneStop::dwellSeconds = 0.0</td>
+          <td class="memname">double SceneStop::dwellSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -161,7 +160,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool SceneStop::hasPlannedArrival = false</td>
+          <td class="memname">bool SceneStop::hasPlannedArrival</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -177,7 +176,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool SceneStop::hasPlannedDeparture = false</td>
+          <td class="memname">bool SceneStop::hasPlannedDeparture</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -193,7 +192,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double SceneStop::plannedArrivalSeconds = 0.0</td>
+          <td class="memname">double SceneStop::plannedArrivalSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -209,7 +208,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double SceneStop::plannedDepartureSeconds = 0.0</td>
+          <td class="memname">double SceneStop::plannedDepartureSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -251,7 +250,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>scene/<a class="el" href="_scene_model_8h_source.html">SceneModel.h</a></li>
+<li>scene/<a class="el" href="_scene_model_8h.html">SceneModel.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

@@ -192,11 +192,13 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/common-questions.html">Common questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
@@ -220,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -236,7 +238,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">V1 Scene Model</a></li>
@@ -251,7 +252,6 @@
 <li class="toctree-l1"><a class="reference internal" href="historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +267,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -389,9 +391,20 @@ loaded and saved again.</p>
 <code class="docutils literal notranslate"><span class="pre">SceneWriter.cpp</span></code> has an encoder for each file (<code class="docutils literal notranslate"><span class="pre">encodeSceneMetadata</span></code>,
 <code class="docutils literal notranslate"><span class="pre">encodeInfrastructure</span></code>, <code class="docutils literal notranslate"><span class="pre">encodeStations</span></code>, <code class="docutils literal notranslate"><span class="pre">encodeSignalling</span></code>,
 <code class="docutils literal notranslate"><span class="pre">encodeRollingStock</span></code>, <code class="docutils literal notranslate"><span class="pre">encodeServices</span></code>, <code class="docutils literal notranslate"><span class="pre">encodeScenarios</span></code>, <code class="docutils literal notranslate"><span class="pre">encodeViews</span></code> and
-<code class="docutils literal notranslate"><span class="pre">encodePassengers</span></code>), and <code class="docutils literal notranslate"><span class="pre">loadScene</span></code> in <code class="docutils literal notranslate"><span class="pre">SceneModel.cpp</span></code> and
-<code class="docutils literal notranslate"><span class="pre">SceneFieldReader.cpp</span></code> read the files. The importer fills a <a class="reference external" href="../api/struct_scene_model.html"><code class="docutils literal notranslate"><span class="pre">SceneModel</span></code></a> and
-writes it with the encoders, so an imported scene has the form of a saved one.
+<code class="docutils literal notranslate"><span class="pre">encodePassengers</span></code>), and <code class="docutils literal notranslate"><span class="pre">SceneFieldReader.cpp</span></code> has a decoder for each file
+(<code class="docutils literal notranslate"><span class="pre">decodeSceneMetadata</span></code>, <code class="docutils literal notranslate"><span class="pre">decodeInfrastructure</span></code>, <code class="docutils literal notranslate"><span class="pre">decodeStations</span></code>,
+<code class="docutils literal notranslate"><span class="pre">decodeViews</span></code>, <code class="docutils literal notranslate"><span class="pre">decodeSignalling</span></code>, <code class="docutils literal notranslate"><span class="pre">decodeRollingStock</span></code>, <code class="docutils literal notranslate"><span class="pre">decodeServices</span></code>,
+<code class="docutils literal notranslate"><span class="pre">decodeScenarios</span></code>, <code class="docutils literal notranslate"><span class="pre">decodeHistoricalIncidents</span></code> for <code class="docutils literal notranslate"><span class="pre">incidents.json</span></code> and
+<code class="docutils literal notranslate"><span class="pre">decodePassengers</span></code>). <code class="docutils literal notranslate"><span class="pre">loadScene</span></code> in <code class="docutils literal notranslate"><span class="pre">SceneModel.cpp</span></code> reads and parses the
+files, gives each file its own <code class="docutils literal notranslate"><span class="pre">SceneFieldReader</span></code> and calls the decoders in that
+order. It also makes the checks that span files: it decodes <code class="docutils literal notranslate"><span class="pre">views.json</span></code> after
+the tracks and stations that the views name, and <code class="docutils literal notranslate"><span class="pre">incidents.json</span></code> only when the
+case has no <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code>; with both files it warns that <code class="docutils literal notranslate"><span class="pre">incidents.json</span></code> is
+ignored. The importer fills a <a class="reference external" href="../api/struct_scene_model.html"><code class="docutils literal notranslate"><span class="pre">SceneModel</span></code></a> and
+hands it to <code class="docutils literal notranslate"><span class="pre">replaceSceneDirectory</span></code>, which writes, loads back and publishes it
+as <code class="docutils literal notranslate"><span class="pre">saveScene</span></code> does, so an imported scene has the form of a saved one. Unlike a
+save, it replaces a folder at the destination with everything in it and keeps
+the default mode of a new folder.
 The exporter writes the items of its area sidecar with <code class="docutils literal notranslate"><span class="pre">encodeSignallingArea</span></code>,
 and the importer reads them with <code class="docutils literal notranslate"><span class="pre">decodeSignallingArea</span></code>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">test_scene_codec_contract</span></code> (<code class="docutils literal notranslate"><span class="pre">tools/e2e/test_scene_codec_contract.py</span></code>) fails when
@@ -409,8 +422,13 @@ and the builders check against, are in <code class="docutils literal notranslate
 <h2>Model ownership<a class="headerlink" href="#model-ownership" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">SceneModel</span></code> owns the canonical values, not a second flat copy of legacy
 incidents. Incidents belong to a <a class="reference external" href="../api/struct_scene_scenario.html"><code class="docutils literal notranslate"><span class="pre">SceneScenario</span></code></a>; the selected scenario is
-identified by <code class="docutils literal notranslate"><span class="pre">default_scenario_id</span></code>. Runtime <code class="docutils literal notranslate"><span class="pre">loadedData</span></code> and <code class="docutils literal notranslate"><span class="pre">sourceFiles</span></code> are
-derived, non-serialized summaries. Loaded-data navigation targets point only to
+identified by <code class="docutils literal notranslate"><span class="pre">default_scenario_id</span></code>. <code class="docutils literal notranslate"><span class="pre">sourceFiles</span></code>, the scene files present at
+load or save, is derived and not saved. The Loaded Data tree is not part of the
+model: <code class="docutils literal notranslate"><span class="pre">buildLoadedDataSummary</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/LoadedDataSummary.h</span></code> derives its rows
+from the model, its source files and the diagnostics of validation, and
+<code class="docutils literal notranslate"><span class="pre">ValidationPanel</span></code> builds them again each time it writes the tree. Each row has a
+<code class="docutils literal notranslate"><span class="pre">SceneLoadedStatus</span></code>, which the tree shows as <code class="docutils literal notranslate"><span class="pre">OK</span></code>, <code class="docutils literal notranslate"><span class="pre">Not</span> <span class="pre">present</span></code>, <code class="docutils literal notranslate"><span class="pre">Warning</span></code> or
+<code class="docutils literal notranslate"><span class="pre">Invalid</span></code>. Loaded-data navigation targets point only to
 existing editors and are not part of the canonical schema. <code class="docutils literal notranslate"><span class="pre">import_report</span></code> is
 the persisted conversion summary, with
 one row containing <code class="docutils literal notranslate"><span class="pre">category</span></code>, optional <code class="docutils literal notranslate"><span class="pre">source_file</span></code>, <code class="docutils literal notranslate"><span class="pre">source_count</span></code>,
@@ -457,8 +475,10 @@ codes <code class="docutils literal notranslate"><span class="pre">9707</span></
 finite in <code class="docutils literal notranslate"><span class="pre">1..100</span></code>; <code class="docutils literal notranslate"><span class="pre">maximum_speed_kmh</span></code>, when present, is a positive finite
 service cap in km/h. The native commanded speed is the composition maximum
 limited by that cap, then multiplied by performance; 100% takes the legacy
-raw path. Performance does not alter braking, mass, shared composition data,
-buffer, or recovery.</p>
+raw path. Performance also multiplies the track speed limits the train obeys,
+including the braking targets taken from them, but not signal speed limits.
+Performance does not alter braking, mass, shared composition data, buffer, or
+recovery.</p>
 <p>The optional service <code class="docutils literal notranslate"><span class="pre">category</span></code> is descriptive metadata, independent of physical
 properties, performance, speed limits and stops. Missing values mean no category;
 unknown strings survive canonical folder and bundle persistence. Legacy export
@@ -482,9 +502,8 @@ decimal base (for example <code class="docutils literal notranslate"><span class
 the total occurrence count, including the base, and overrides the duration
 horizon; without it, the count is <code class="docutils literal notranslate"><span class="pre">ceil(duration</span> <span class="pre">/</span> <span class="pre">headway)</span></code>. Entry and stop
 offsets remain <code class="docutils literal notranslate"><span class="pre">(occurrence</span> <span class="pre">-</span> <span class="pre">1)</span> <span class="pre">*</span> <span class="pre">headway</span></code>. The canonical service ID never
-advances. Repetition keeps the canonical entry in <code class="docutils literal notranslate"><span class="pre">scheduled_departure_time</span></code>;
-the compatibility hourly-retiming algorithm may derive <code class="docutils literal notranslate"><span class="pre">departure_time</span></code> while
-leaving that canonical value unchanged. Arrival and departure timetable values
+advances. Repetition keeps the canonical entry in <code class="docutils literal notranslate"><span class="pre">scheduled_departure_time</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">departure_time</span></code> starts equal to it. Arrival and departure timetable values
 remain independently optional and are staged as runtime <code class="docutils literal notranslate"><span class="pre">-1</span></code> when absent,
 including repeated occurrences.</p>
 <p>Route descriptions, stop validation and native stop preparation share an ordered
@@ -520,6 +539,14 @@ platform, signal, route, train unit, composition or service, so that a delete ca
 that list. The <code class="docutils literal notranslate"><span class="pre">sceneRewrite...References</span></code> functions rewrite every reference to an entity after a
 rename; the caller renames the entity itself. The <code class="docutils literal notranslate"><span class="pre">sceneUnique...Id</span></code> functions return the base id
 when it is free and otherwise the first of <code class="docutils literal notranslate"><span class="pre">base_2</span></code>, <code class="docutils literal notranslate"><span class="pre">base_3</span></code> and so on.</p>
+<p><code class="docutils literal notranslate"><span class="pre">scene/SectionReference</span></code> reads a section reference, a block id or several joined by <code class="docutils literal notranslate"><span class="pre">/</span></code> such as
+the two endpoints of a switch transition <code class="docutils literal notranslate"><span class="pre">&#64;71-B0&#64;-21.235000/&#64;0-B1&#64;-21.252000</span></code>.
+<code class="docutils literal notranslate"><span class="pre">parseSectionReferencePart</span></code> splits one part into its block id and the offset of an endpoint. The
+validator, the editors’ reference rules, the importer’s check of known blocks and the route token checks
+of the importer and the exporter read references with it, so they agree on which parts name a block and
+which routes hold a switch transition. Two readers keep their own rules: <code class="docutils literal notranslate"><span class="pre">mapLegacyBlockReference</span></code> in the
+exporter, and the overlap rule of <code class="docutils literal notranslate"><span class="pre">SectionInventory</span></code> (<code class="docutils literal notranslate"><span class="pre">sectionReferences</span></code>, <code class="docutils literal notranslate"><span class="pre">nativeSectionTokens</span></code>).
+<code class="docutils literal notranslate"><span class="pre">nativeRuntimeBlockId</span></code> gives the runtime id of a block section.</p>
 <p>Scheduled entry uses explicit entry time first, otherwise the first finite
 planned departure, otherwise zero, plus the repeat offset. The editor’s
 in-period count includes entries in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">effective</span> <span class="pre">duration)</span></code>. Configured totals
@@ -548,10 +575,13 @@ and <code class="docutils literal notranslate"><span class="pre">redo</span></co
 scene. Each snapshot carries a label that <code class="docutils literal notranslate"><span class="pre">record</span></code> derives from the counts of
 the parts of the scene (<code class="docutils literal notranslate"><span class="pre">Add</span> <span class="pre">service</span></code>, <code class="docutils literal notranslate"><span class="pre">Delete</span> <span class="pre">stop</span></code>, or <code class="docutils literal notranslate"><span class="pre">Edit</span></code> when the change
 is not one part added or removed), the scenarios that differ from the saved
-scene, and its memory as <code class="docutils literal notranslate"><span class="pre">estimateSceneModelBytes</span></code> counts it. That estimate
-adds up the structs, the vectors and the strings too long for the string
-object, so it depends on the standard library and is a bound, not a
-measurement.</p>
+scene, the run selection (the selected scenario and the occurrences left out)
+as <code class="docutils literal notranslate"><span class="pre">keepRunSelection</span></code> kept it when the state was last left, the links of the
+rolling stock units to their files as <code class="docutils literal notranslate"><span class="pre">keepTrainUnitSourceLinks</span></code> kept them,
+which it holds as a <code class="docutils literal notranslate"><span class="pre">std::any</span></code> because it has no Qt, and its memory as
+<code class="docutils literal notranslate"><span class="pre">estimateSceneModelBytes</span></code> counts it. That estimate adds up the structs, the
+vectors and the strings too long for the string object, so it depends on the
+standard library and is a bound, not a measurement.</p>
 <p>The history keeps at most 100 undo steps and an estimated 128 MiB. Both limits
 are parameters of the constructor. When either is exceeded the oldest
 snapshots are dropped; the live one never is, even when it alone is larger than
@@ -598,9 +628,53 @@ in <a class="reference internal" href="../guides/scene-schema.html#historical-co
 <p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> maps the legacy seven-token train definition, physical and
 traction source files, timetable rows, routes, stations, supported scenarios,
 and passengers into the model. It is an explicit conversion command/UI action,
-not a fallback used when running a scene. <code class="docutils literal notranslate"><span class="pre">SceneExporter</span></code> remains an explicit
+not a fallback used when running a scene. A legacy number that reads as <code class="docutils literal notranslate"><span class="pre">nan</span></code>
+or <code class="docutils literal notranslate"><span class="pre">inf</span></code> is malformed, like any other unreadable number: a row of a file is
+skipped with the warning <code class="docutils literal notranslate"><span class="pre">scene.import.parse</span></code>, and a Trains or train data file
+gives that code as an error and stops the import. The station of a timetable
+row is the text before its last three numbers, spaces included, as in
+<code class="docutils literal notranslate"><span class="pre">Stations.txt</span></code>. When that text names no single station, its words are tried
+joined without spaces: the timetables of the legacy Milano_Brescia case write
+<code class="docutils literal notranslate"><span class="pre">Morengo</span> <span class="pre">Bariano</span></code> for the station <code class="docutils literal notranslate"><span class="pre">MorengoBariano</span></code>. <code class="docutils literal notranslate"><span class="pre">SceneExporter</span></code> remains an explicit
 interoperability tool; exporting does not change the active scene or stage the
 normal simulator input.</p>
+<p>A legacy file that cannot be opened, or that starts with the UTF-16 byte order
+mark and has an odd byte count or an unpaired surrogate, is reported instead of
+read as empty. The train, train data, traction, route, timetable and passenger
+files and the two sidecars of an export keep their own diagnostics.
+<code class="docutils literal notranslate"><span class="pre">Stations.txt</span></code> gives the error <code class="docutils literal notranslate"><span class="pre">scene.import.read</span></code>
+and stops the import, as a missing one does. Any other file gives the warning
+<code class="docutils literal notranslate"><span class="pre">scene.import.read</span></code> and counts as skipped in <code class="docutils literal notranslate"><span class="pre">import_report</span></code>. An unreadable
+<code class="docutils literal notranslate"><span class="pre">trainNames.txt</span></code> is replaced by the files in <code class="docutils literal notranslate"><span class="pre">Trains</span></code>, as a missing one is, and
+an unreadable rollout adds no scenario. A UTF-8 byte order mark at the start of
+a legacy file is dropped before its rows are read.</p>
+<p><code class="docutils literal notranslate"><span class="pre">SceneExporter</span></code> writes a legacy case into a staging folder next to the
+destination and publishes it only when the export is complete, so a failed
+export leaves the destination as it was. A new destination is the staging
+folder renamed. Whether a file is still to be written is decided from the
+staging folder alone: the export copies the files of the legacy passthrough
+first and then writes the files that are still missing, such as the track line
+files, <code class="docutils literal notranslate"><span class="pre">Stations.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">Connections.txt</span></code>, the GUI layout, the route corridors,
+the single-track limits, the station boundaries and the passenger files. In an
+existing destination the publish first removes every input of the importer that
+the destination holds and the staging folder does not, and then moves the staged
+files over the files of the same name. <code class="docutils literal notranslate"><span class="pre">kLegacyInputs</span></code> in <code class="docutils literal notranslate"><span class="pre">SceneExporter.cpp</span></code>
+names these inputs, in any letter case: the track folders <code class="docutils literal notranslate"><span class="pre">B&lt;n&gt;</span></code> in <code class="docutils literal notranslate"><span class="pre">TrackLines</span></code>
+or in the case folder, <code class="docutils literal notranslate"><span class="pre">Connections.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">Stations.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">AreasCaseStudy.txt</span></code>
+and the area sidecar in <code class="docutils literal notranslate"><span class="pre">TrackLines</span></code>, <code class="docutils literal notranslate"><span class="pre">Stations.txt</span></code>,
+<code class="docutils literal notranslate"><span class="pre">EGTRAINInitialParameters.json</span></code>, <code class="docutils literal notranslate"><span class="pre">trainNames.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">Incidents.txt</span></code> in the
+case folder, the files <code class="docutils literal notranslate"><span class="pre">Route&lt;N&gt;.*</span></code> in <code class="docutils literal notranslate"><span class="pre">Routes</span></code>, the <code class="docutils literal notranslate"><span class="pre">.txt</span></code> files in <code class="docutils literal notranslate"><span class="pre">Trains</span></code>,
+the six GUI files, <code class="docutils literal notranslate"><span class="pre">RoutesToWrite/RoutesToJoin.txt</span></code>, the two passenger files in
+<code class="docutils literal notranslate"><span class="pre">Passengers</span></code> or in the case folder, and the files <code class="docutils literal notranslate"><span class="pre">Rollout_&lt;N&gt;.txt</span></code> in
+<code class="docutils literal notranslate"><span class="pre">TimeTable/Scenarios_Entrance_Delays</span></code>. A track folder goes with everything in
+it. The area sidecar goes first, also when the export writes it again, so that a
+publish that fails part way never leaves an old sidecar beside new track files.
+So the published folder imports as the new scene: a scene with fewer tracks,
+without corridors or without passengers leaves no old track folder, corridor
+file or passenger file behind. The train data and timetable files are read only
+through the paths in the train files, which name only files of this export, so
+they are not removed. Every other file and folder in the destination stays, and
+so do the files in a track folder that the export writes again.</p>
 <p>The committed scenes contain only canonical structured data. Historical source
 filenames remain as compact provenance in <code class="docutils literal notranslate"><span class="pre">source</span></code> and <code class="docutils literal notranslate"><span class="pre">import_report</span></code>; full
 legacy trees are not duplicated.</p>
@@ -622,7 +696,7 @@ it has the draft layout described in the table. The table lists the classes of
 scene and what the application does when one is opened from its window.
 Automated runs do not show the dialogs.</p>
 <p>A scene that the probe rejects as older or newer carries one error diagnostic
-whose message gives the schema number, the bundle layout number of a bundle,
+whose message gives the schema number, the case file version of a case file,
 the <code class="docutils literal notranslate"><span class="pre">saved_with_app_version</span></code> and the numbers this version reads. A scene that is
 current or that a migration can convert carries none. <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">validate</span></code> and
 <code class="docutils literal notranslate"><span class="pre">pack</span></code> and the headless start probe the path first and report this diagnostic,
@@ -663,7 +737,7 @@ window start first shows “Cannot Start EGTRAIN”.</p>
 </tr>
 <tr class="row-even"><td><p>Unreadable</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">schema_version</span></code> (in a bundle also <code class="docutils literal notranslate"><span class="pre">bundle_version</span></code>) missing, not an integer, or outside the integer range; a <code class="docutils literal notranslate"><span class="pre">saved_with_app_version</span></code> that is not a string; a directory without a readable <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>; in a bundle also a <code class="docutils literal notranslate"><span class="pre">format</span></code> other than <code class="docutils literal notranslate"><span class="pre">&quot;egscene&quot;</span></code>, a bad manifest, a missing <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>, an unsafe archive, and, for <code class="docutils literal notranslate"><span class="pre">bundle_version</span></code> 1, an entry that is not part of the format or another missing required entry.</p></td>
-<td><p>The scene is not opened. The dialog is “Cannot Open Case”. Its text gives the file name and a sentence that the file is damaged or is not an EGTRAIN case (for a folder, that the folder holds no EGTRAIN case or that its <code class="docutils literal notranslate"><span class="pre">scene.json</span></code> is damaged), then the first diagnostic. The same title and text are used when a scene passes the probe and the loader then reports errors; when the loader reports more than one error, the diagnostic then ends with “1 more error” or “N more errors”, so the title alone does not mean that a version is unreadable. A window start with a file name shows the same message.</p></td>
+<td><p>The scene is not opened. The dialog is “Cannot Open Case”. Its text gives the file name and a sentence that the file is damaged or is not an EGTRAIN case (for a folder, that the folder holds no EGTRAIN case or that its <code class="docutils literal notranslate"><span class="pre">scene.json</span></code> is damaged), then the message and fix of each of the first three errors, with the file that it is about when the message does not name it and the path in that file, and “1 more error” or “N more errors” for the rest (<code class="docutils literal notranslate"><span class="pre">diagnosticsDialogText</span></code> in <code class="docutils literal notranslate"><span class="pre">editors/EditorHelpers.h</span></code>). The same title and text are used when a scene passes the probe and the loader then reports errors, so the title alone does not mean that a version is unreadable. A window start with a file name shows the same message.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Upgradable</p></td>
 <td><p>A number below the current one for which the registry holds a migration path. No such number exists today: the production registry is empty.</p></td>
@@ -688,7 +762,7 @@ unsupported.</p>
 <section id="bundle-format-v2">
 <h2>Bundle format (v2)<a class="headerlink" href="#bundle-format-v2" title="Link to this heading">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> transport container, its manifest, its safety rules and how it is read and written are described in
-<a class="reference internal" href="../guides/scene-bundle.html"><span class="std std-doc">V2 Transparent Scene Bundle</span></a>.</p>
+<a class="reference internal" href="../guides/scene-bundle.html"><span class="std std-doc">Case file format</span></a>.</p>
 </section>
 <section id="native-runtime-path">
 <h2>Native runtime path<a class="headerlink" href="#native-runtime-path" title="Link to this heading">¶</a></h2>
@@ -749,7 +823,7 @@ level are described in <a class="reference internal" href="../guides/signalling-
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

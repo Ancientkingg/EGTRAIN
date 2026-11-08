@@ -8,7 +8,6 @@
 <title>EGTRAIN: SceneTrackView Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,18 +115,18 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_t
 <p>How the preview draws one track (views.json). It does not change the simulation.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&gt;</code></p>
+<p><code>#include &lt;scene/SceneModel.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a560dbc79dc66263a869c1418493b905d" id="r_a560dbc79dc66263a869c1418493b905d"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a560dbc79dc66263a869c1418493b905d">trackId</a></td></tr>
 <tr class="memdesc:a560dbc79dc66263a869c1418493b905d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The track it applies to.  <br /></td></tr>
-<tr class="memitem:a4c260d0acc43d11faf4fb126b887b52f" id="r_a4c260d0acc43d11faf4fb126b887b52f"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4c260d0acc43d11faf4fb126b887b52f">level</a> = 0</td></tr>
+<tr class="memitem:a4c260d0acc43d11faf4fb126b887b52f" id="r_a4c260d0acc43d11faf4fb126b887b52f"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4c260d0acc43d11faf4fb126b887b52f">level</a></td></tr>
 <tr class="memdesc:a4c260d0acc43d11faf4fb126b887b52f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lateral offset of the track in the preview, in steps of a fixed distance.  <br /></td></tr>
-<tr class="memitem:ae3c8f3e940f322a088314ba5124c1f10" id="r_ae3c8f3e940f322a088314ba5124c1f10"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ae3c8f3e940f322a088314ba5124c1f10">region</a> = 0</td></tr>
+<tr class="memitem:ae3c8f3e940f322a088314ba5124c1f10" id="r_ae3c8f3e940f322a088314ba5124c1f10"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ae3c8f3e940f322a088314ba5124c1f10">region</a></td></tr>
 <tr class="memdesc:ae3c8f3e940f322a088314ba5124c1f10"><td class="mdescLeft">&#160;</td><td class="mdescRight">Region id whose station anchors place the track in the preview.  <br /></td></tr>
-<tr class="memitem:a01f13274f9a89d4d6b10c1307dbea052" id="r_a01f13274f9a89d4d6b10c1307dbea052"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a01f13274f9a89d4d6b10c1307dbea052">visible</a> = true</td></tr>
-<tr class="memitem:a9086c8102baabc8f01e671ef2f522b4a" id="r_a9086c8102baabc8f01e671ef2f522b4a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a9086c8102baabc8f01e671ef2f522b4a">doubleSwitch</a> = false</td></tr>
+<tr class="memitem:a01f13274f9a89d4d6b10c1307dbea052" id="r_a01f13274f9a89d4d6b10c1307dbea052"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a01f13274f9a89d4d6b10c1307dbea052">visible</a></td></tr>
+<tr class="memitem:a9086c8102baabc8f01e671ef2f522b4a" id="r_a9086c8102baabc8f01e671ef2f522b4a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a9086c8102baabc8f01e671ef2f522b4a">doubleSwitch</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>How the preview draws one track (views.json). It does not change the simulation. </p>
@@ -139,7 +138,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool SceneTrackView::doubleSwitch = false</td>
+          <td class="memname">bool SceneTrackView::doubleSwitch</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -154,7 +153,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int SceneTrackView::level = 0</td>
+          <td class="memname">int SceneTrackView::level</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -170,7 +169,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int SceneTrackView::region = 0</td>
+          <td class="memname">int SceneTrackView::region</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -202,7 +201,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool SceneTrackView::visible = true</td>
+          <td class="memname">bool SceneTrackView::visible</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -211,7 +210,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>scene/<a class="el" href="_scene_model_8h_source.html">SceneModel.h</a></li>
+<li>scene/<a class="el" href="_scene_model_8h.html">SceneModel.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

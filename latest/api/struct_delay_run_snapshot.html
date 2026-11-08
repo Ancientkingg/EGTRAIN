@@ -8,7 +8,6 @@
 <title>EGTRAIN: DelayRunSnapshot Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,11 +115,11 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_delay_r
 <p>One completed run as values for the delay analysis. It holds no pointer into the simulation, so it outlives the run.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_run_results_8h_source.html">diagrams/RunResults.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/RunResults.h&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for DelayRunSnapshot:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="struct_delay_run_snapshot__coll__graph.svg" width="430" height="348"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="struct_delay_run_snapshot__coll__graph.svg" width="427" height="374"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -129,15 +128,15 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:ad9d0b958e141a40e15b970ab14681c8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Revision of the scene document at the run, as text.  <br /></td></tr>
 <tr class="memitem:ac3405e5e7595bf5f8b614b997ffd5843" id="r_ac3405e5e7595bf5f8b614b997ffd5843"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ac3405e5e7595bf5f8b614b997ffd5843">scenarioId</a></td></tr>
 <tr class="memdesc:ac3405e5e7595bf5f8b614b997ffd5843"><td class="mdescLeft">&#160;</td><td class="mdescRight">Id of the applied scenario, empty for none.  <br /></td></tr>
-<tr class="memitem:a7c8f1f8e99c41e37ab680fd90f54f9a7" id="r_a7c8f1f8e99c41e37ab680fd90f54f9a7"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a7c8f1f8e99c41e37ab680fd90f54f9a7">baseTimeSeconds</a> = 0.0</td></tr>
+<tr class="memitem:a7c8f1f8e99c41e37ab680fd90f54f9a7" id="r_a7c8f1f8e99c41e37ab680fd90f54f9a7"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a7c8f1f8e99c41e37ab680fd90f54f9a7">baseTimeSeconds</a></td></tr>
 <tr class="memdesc:a7c8f1f8e99c41e37ab680fd90f54f9a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Base time of the scene, in seconds since midnight.  <br /></td></tr>
-<tr class="memitem:a8a484e412f344d6b6dcae7adab280bb3" id="r_a8a484e412f344d6b6dcae7adab280bb3"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a8a484e412f344d6b6dcae7adab280bb3">durationSeconds</a> = 0.0</td></tr>
+<tr class="memitem:a8a484e412f344d6b6dcae7adab280bb3" id="r_a8a484e412f344d6b6dcae7adab280bb3"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a8a484e412f344d6b6dcae7adab280bb3">durationSeconds</a></td></tr>
 <tr class="memdesc:a8a484e412f344d6b6dcae7adab280bb3"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="struct_completed_run_settings.html#ad5c1d1176f62ef97d97a09f50c6fd826" title="Number of timesteps of the run.">CompletedRunSettings::horizonSteps</a>; seconds with the 1 s timestep.  <br /></td></tr>
-<tr class="memitem:ad64871a273ca721421abc08937fb534c" id="r_ad64871a273ca721421abc08937fb534c"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad64871a273ca721421abc08937fb534c">timestep</a> = 0.0</td></tr>
+<tr class="memitem:ad64871a273ca721421abc08937fb534c" id="r_ad64871a273ca721421abc08937fb534c"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad64871a273ca721421abc08937fb534c">timestep</a></td></tr>
 <tr class="memdesc:ad64871a273ca721421abc08937fb534c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length of one step in seconds.  <br /></td></tr>
-<tr class="memitem:a29ef3d818ea51bebc9b71c1f79109eb6" id="r_a29ef3d818ea51bebc9b71c1f79109eb6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a29ef3d818ea51bebc9b71c1f79109eb6">hasIncidents</a> = false</td></tr>
+<tr class="memitem:a29ef3d818ea51bebc9b71c1f79109eb6" id="r_a29ef3d818ea51bebc9b71c1f79109eb6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a29ef3d818ea51bebc9b71c1f79109eb6">hasIncidents</a></td></tr>
 <tr class="memdesc:a29ef3d818ea51bebc9b71c1f79109eb6"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the applied scenario has an incident.  <br /></td></tr>
-<tr class="memitem:a3b88ea99332d8726dd1104d8f4fc5c71" id="r_a3b88ea99332d8726dd1104d8f4fc5c71"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3b88ea99332d8726dd1104d8f4fc5c71">hasEntranceDelays</a> = false</td></tr>
+<tr class="memitem:a3b88ea99332d8726dd1104d8f4fc5c71" id="r_a3b88ea99332d8726dd1104d8f4fc5c71"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3b88ea99332d8726dd1104d8f4fc5c71">hasEntranceDelays</a></td></tr>
 <tr class="memdesc:a3b88ea99332d8726dd1104d8f4fc5c71"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the applied scenario has an entrance delay.  <br /></td></tr>
 <tr class="memitem:a76f667297695ee282c4a9f6e71aa912d" id="r_a76f667297695ee282c4a9f6e71aa912d"><td class="memItemLeft"><a class="el" href="struct_run_provenance.html">RunProvenance</a>&#160;</td><td class="memItemRight"><a class="el" href="#a76f667297695ee282c4a9f6e71aa912d">provenance</a></td></tr>
 <tr class="memdesc:a76f667297695ee282c4a9f6e71aa912d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inputs and settings of the run.  <br /></td></tr>
@@ -156,7 +155,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double DelayRunSnapshot::baseTimeSeconds = 0.0</td>
+          <td class="memname">double DelayRunSnapshot::baseTimeSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -188,7 +187,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double DelayRunSnapshot::durationSeconds = 0.0</td>
+          <td class="memname">double DelayRunSnapshot::durationSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -204,7 +203,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool DelayRunSnapshot::hasEntranceDelays = false</td>
+          <td class="memname">bool DelayRunSnapshot::hasEntranceDelays</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -220,7 +219,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool DelayRunSnapshot::hasIncidents = false</td>
+          <td class="memname">bool DelayRunSnapshot::hasIncidents</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -284,7 +283,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double DelayRunSnapshot::timestep = 0.0</td>
+          <td class="memname">double DelayRunSnapshot::timestep</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -310,7 +309,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_run_results_8h_source.html">RunResults.h</a></li>
+<li>diagrams/<a class="el" href="_run_results_8h.html">RunResults.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

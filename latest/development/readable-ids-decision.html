@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="QEGTRAIN source layout" href="../architecture/source-layout.html"><link rel="prev" title="Code documentation investigation" href="code-documentation-investigation.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="QEGTRAIN source layout" href="../architecture/source-layout.html"><link rel="prev" title="Documentation decision" href="documentation-decision.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>Readable ids decision - EGTRAIN documentation</title>
@@ -192,11 +192,13 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/common-questions.html">Common questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
@@ -220,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -236,7 +238,6 @@
 <li class="toctree-l1"><a class="reference internal" href="coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +252,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +267,8 @@
 <li class="toctree-l1"><a class="reference internal" href="records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -365,23 +367,23 @@
 <tbody>
 <tr class="row-even"><td><p>Track</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">B0</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">B</span></code> and the number of the legacy folder (<code class="docutils literal notranslate"><span class="pre">scene/SceneImporter.cpp:1076</span></code>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B</span></code> and the number of the legacy folder (<code class="docutils literal notranslate"><span class="pre">importTracks</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SceneImporter.cpp</span></code>)</p></td>
 </tr>
 <tr class="row-odd"><td><p>Node, arc</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">B0.node.1</span></code>, <code class="docutils literal notranslate"><span class="pre">B0.arc.100</span></code></p></td>
-<td><p>the track and the first column of <code class="docutils literal notranslate"><span class="pre">NodiCumPari.txt</span></code> or <code class="docutils literal notranslate"><span class="pre">ArchiCumPari.txt</span></code> (<code class="docutils literal notranslate"><span class="pre">:1110</span></code>, <code class="docutils literal notranslate"><span class="pre">:1164</span></code>)</p></td>
+<td><p>the track and the first column of <code class="docutils literal notranslate"><span class="pre">NodiCumPari.txt</span></code> or <code class="docutils literal notranslate"><span class="pre">ArchiCumPari.txt</span></code> (<code class="docutils literal notranslate"><span class="pre">importTrackNodes</span></code>, <code class="docutils literal notranslate"><span class="pre">importTrackArcs</span></code>)</p></td>
 </tr>
 <tr class="row-even"><td><p>Block</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">0-B0</span></code>, <code class="docutils literal notranslate"><span class="pre">71-B0</span></code></p></td>
-<td><p>the row of <code class="docutils literal notranslate"><span class="pre">BlockCumPari.txt</span></code>, counted from 0, and the track (<code class="docutils literal notranslate"><span class="pre">:1205</span></code>)</p></td>
+<td><p>the row of <code class="docutils literal notranslate"><span class="pre">BlockCumPari.txt</span></code>, counted from 0, and the track (<code class="docutils literal notranslate"><span class="pre">importTrackBlocks</span></code>)</p></td>
 </tr>
 <tr class="row-odd"><td><p>Block section</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&#64;0-B0&#64;</span></code></p></td>
-<td><p>the block id between <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> signs (<code class="docutils literal notranslate"><span class="pre">scene/SectionInventory.cpp:15</span></code> to <code class="docutils literal notranslate"><span class="pre">:19</span></code>, <code class="docutils literal notranslate"><span class="pre">:329</span></code>)</p></td>
+<td><p>the block id between <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> signs (<code class="docutils literal notranslate"><span class="pre">nativeRuntimeBlockId</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SectionReference.cpp</span></code>)</p></td>
 </tr>
 <tr class="row-even"><td><p>Switch section</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&#64;71-B0&#64;-21.235000/&#64;0-B1&#64;-21.252000</span></code></p></td>
-<td><p>the two blocks that hold the nodes of a connection, each followed by <code class="docutils literal notranslate"><span class="pre">-</span></code> and the kilometre of its node as printf <code class="docutils literal notranslate"><span class="pre">%f</span></code> writes it (<code class="docutils literal notranslate"><span class="pre">:169</span></code> to <code class="docutils literal notranslate"><span class="pre">:177</span></code>, <code class="docutils literal notranslate"><span class="pre">:363</span></code> to <code class="docutils literal notranslate"><span class="pre">:377</span></code>)</p></td>
+<td><p>the two blocks that hold the nodes of a connection, each followed by <code class="docutils literal notranslate"><span class="pre">-</span></code> and the kilometre of its node as printf <code class="docutils literal notranslate"><span class="pre">%f</span></code> writes it (<code class="docutils literal notranslate"><span class="pre">formatSceneSectionCoordinate</span></code> and <code class="docutils literal notranslate"><span class="pre">buildSceneSectionInventory</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SectionInventory.cpp</span></code>)</p></td>
 </tr>
 <tr class="row-odd"><td><p>Signal head</p></td>
 <td><p>the id of the section it protects</p></td>
@@ -391,12 +393,12 @@
 </table>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">-</span></code> before a kilometre is a separator, not a minus sign. <code class="docutils literal notranslate"><span class="pre">&#64;71-B0&#64;-21.235000/&#64;0-B1&#64;-21.252000</span></code> is block 71 of track B0 up to the node at 21.235 km, then block 0 of track B1 from 21.252 km. A block that the editor adds is called <code class="docutils literal notranslate"><span class="pre">block</span></code>, <code class="docutils literal notranslate"><span class="pre">block_2</span></code> and so on (<code class="docutils literal notranslate"><span class="pre">editors/infrastructure/BlockRouteFacets.cpp:121</span></code>, <code class="docutils literal notranslate"><span class="pre">:149</span></code>), so not every block id holds a number.</p>
-<p>The run numbers its tracks by their place in the list of track ids sorted as text (<code class="docutils literal notranslate"><span class="pre">simulation/builders/InfrastructureBuilder.cpp:206</span></code> to <code class="docutils literal notranslate"><span class="pre">:208</span></code>, <code class="docutils literal notranslate"><span class="pre">:274</span></code> to <code class="docutils literal notranslate"><span class="pre">:276</span></code>, <code class="docutils literal notranslate"><span class="pre">:660</span></code>), and <strong>Track ID</strong>, <strong>Next track</strong> and the signal tooltips show that number. It matches the digits of the id only in scenes with at most ten tracks. In Netherlands 266 of the 268 tracks get another number: B10 is track 2 and B100 is track 3. In Copenhagen 166 of 168 differ and in Milano_Brescia 36 of 38.</p>
+<p>The run numbers its tracks by their place in the list of track ids sorted as text (<code class="docutils literal notranslate"><span class="pre">simulation/builders/InfrastructureBuilder.cpp:203</span></code> to <code class="docutils literal notranslate"><span class="pre">:205</span></code>, <code class="docutils literal notranslate"><span class="pre">:699</span></code> to <code class="docutils literal notranslate"><span class="pre">:701</span></code>, <code class="docutils literal notranslate"><span class="pre">:750</span></code> to <code class="docutils literal notranslate"><span class="pre">:751</span></code>), and <strong>Track ID</strong>, <strong>Next track</strong> and the signal tooltips show that number. It matches the digits of the id only in scenes with at most ten tracks. In Netherlands 266 of the 268 tracks get another number: B10 is track 2 and B100 is track 3. In Copenhagen 166 of 168 differ and in Milano_Brescia 36 of 38.</p>
 </section>
 <section id="the-ids-are-data">
 <h3>The ids are data<a class="headerlink" href="#the-ids-are-data" title="Link to this heading">¶</a></h3>
 <ul class="simple">
-<li><p>The run splits section ids on <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> and <code class="docutils literal notranslate"><span class="pre">/</span></code> and takes the parts by position: <code class="docutils literal notranslate"><span class="pre">simulation/Signalling.cpp:633</span></code> to <code class="docutils literal notranslate"><span class="pre">:660</span></code>, <code class="docutils literal notranslate"><span class="pre">diagrams/BlockingTimeDiagram.cpp:31</span></code> to <code class="docutils literal notranslate"><span class="pre">:46</span></code> and <code class="docutils literal notranslate"><span class="pre">scene/SectionInventory.cpp:137</span></code> to <code class="docutils literal notranslate"><span class="pre">:145</span></code>. The importer and the exporter read route tokens the same way (<code class="docutils literal notranslate"><span class="pre">scene/SceneImporter.cpp:1216</span></code> to <code class="docutils literal notranslate"><span class="pre">:1244</span></code>, <code class="docutils literal notranslate"><span class="pre">scene/SceneExporter.cpp:66</span></code> to <code class="docutils literal notranslate"><span class="pre">:175</span></code>). A search of the product sources outside <code class="docutils literal notranslate"><span class="pre">tests/</span></code> for the literals <code class="docutils literal notranslate"><span class="pre">'&#64;'</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;&#64;&quot;</span></code> finds 78 lines in 8 files, 41 of them in <code class="docutils literal notranslate"><span class="pre">Signalling.cpp</span></code>.</p></li>
+<li><p>The run splits section ids on <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> and <code class="docutils literal notranslate"><span class="pre">/</span></code> and takes the parts by position: <code class="docutils literal notranslate"><span class="pre">simulation/Signalling.cpp:633</span></code> to <code class="docutils literal notranslate"><span class="pre">:660</span></code>, <code class="docutils literal notranslate"><span class="pre">diagrams/BlockingTimeDiagram.cpp:31</span></code> to <code class="docutils literal notranslate"><span class="pre">:46</span></code> and <code class="docutils literal notranslate"><span class="pre">nativeSectionTokens</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SectionInventory.cpp</span></code>. The importer, the exporter, the validator and the editors read route tokens with one parser (<code class="docutils literal notranslate"><span class="pre">parseSectionReferencePart</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SectionReference.cpp</span></code>). A search of the product sources outside <code class="docutils literal notranslate"><span class="pre">tests/</span></code> for the literals <code class="docutils literal notranslate"><span class="pre">'&#64;'</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;&#64;&quot;</span></code> finds 73 lines in 10 files, 41 of them in <code class="docutils literal notranslate"><span class="pre">Signalling.cpp</span></code>.</p></li>
 <li><p>Scene files hold both forms. Paimpol <code class="docutils literal notranslate"><span class="pre">route0</span></code> lists <code class="docutils literal notranslate"><span class="pre">0-B0</span></code> to <code class="docutils literal notranslate"><span class="pre">70-B0</span></code> and then <code class="docutils literal notranslate"><span class="pre">&#64;71-B0&#64;-21.235000/&#64;0-B1&#64;-21.252000</span></code>. The six committed scenes hold 25,730 block-id occurrences.</p></li>
 <li><p>127 of the 134 files in <code class="docutils literal notranslate"><span class="pre">tests/characterization/expected</span></code> contain a block or section id, 2,338 in all (<code class="docutils literal notranslate"><span class="pre">grep</span> <span class="pre">-lE</span> <span class="pre">'[0-9]+-B[0-9]+'</span></code>). The CSV exports, <code class="docutils literal notranslate"><span class="pre">BlockingTimes.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">section_id</span></code> in the live frame (<code class="docutils literal notranslate"><span class="pre">io/LiveFrame.cpp:54</span></code>) contain them too.</p></li>
 </ul>
@@ -527,7 +529,7 @@
 <ul class="simple">
 <li><p>(a) fixes what the four Paimpol steps show without touching data, so nothing in the scenes, the legacy files, the golden files, the exports or the live frame can break.</p></li>
 <li><p>(a) costs little more than (c), because both need the label function and (a) only uses it in more places.</p></li>
-<li><p>(b) crosses the data-loss boundaries of the repository: scene files, a first migration step, the legacy export and recovery. It changes 127 golden files, which hides real behaviour changes in a large diff, and still leaves switch sections hard to read.</p></li>
+<li><p>(b) crosses the data-loss boundaries of EGTRAIN: scene files, a first migration step, the legacy export and recovery. It changes 127 golden files, which hides real behaviour changes in a large diff, and still leaves switch sections hard to read.</p></li>
 </ul>
 <p>Against (a):</p>
 <ul class="simple">
@@ -854,14 +856,14 @@
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="code-documentation-investigation.html">
+          <a class="prev-page" href="documentation-decision.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Code documentation investigation</div>
+                <div class="title">Documentation decision</div>
                 
               </div>
             </a>
@@ -873,7 +875,7 @@
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

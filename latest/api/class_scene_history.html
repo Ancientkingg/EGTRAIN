@@ -8,7 +8,6 @@
 <title>EGTRAIN: SceneHistory Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,7 +112,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_scene_hi
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_scene_history_8h_source.html">scene/SceneHistory.h</a>&gt;</code></p>
+<p><code>#include &lt;scene/SceneHistory.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -121,6 +120,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ad36b6025595e942629a3972f9bf64ec6"><td class="mdescLeft">&#160;</td><td class="mdescRight">A history with an empty scene as its root and these limits.  <br /></td></tr>
 <tr class="memitem:a91d087a4d05a0e6beafb4b0975364690" id="r_a91d087a4d05a0e6beafb4b0975364690"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a91d087a4d05a0e6beafb4b0975364690">reset</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;root, bool saved=false)</td></tr>
 <tr class="memitem:ad3e998b2aa300b3fb7a1a011c19805e6" id="r_ad3e998b2aa300b3fb7a1a011c19805e6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad3e998b2aa300b3fb7a1a011c19805e6">record</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;after, std::set&lt; std::string &gt; modifiedScenarioIds={})</td></tr>
+<tr class="memitem:ae221c71c8876a3af776246fabdc6b967" id="r_ae221c71c8876a3af776246fabdc6b967"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae221c71c8876a3af776246fabdc6b967">keepRunSelection</a> (std::string selectedScenarioId, <a class="el" href="_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a> excludedOccurrences)</td></tr>
+<tr class="memitem:ae23290ba8cc2a0969952e382955e3eb7" id="r_ae23290ba8cc2a0969952e382955e3eb7"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae23290ba8cc2a0969952e382955e3eb7">keepTrainUnitSourceLinks</a> (std::any links)</td></tr>
 <tr class="memitem:a003b55c3ebb496d09cd76f6f1ee51441" id="r_a003b55c3ebb496d09cd76f6f1ee51441"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a003b55c3ebb496d09cd76f6f1ee51441">canUndo</a> () const</td></tr>
 <tr class="memdesc:a003b55c3ebb496d09cd76f6f1ee51441"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when there is an entry before the position.  <br /></td></tr>
 <tr class="memitem:ad3c3ffece529b010fe4336271b3f0b39" id="r_ad3c3ffece529b010fe4336271b3f0b39"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad3c3ffece529b010fe4336271b3f0b39">canRedo</a> () const</td></tr>
@@ -178,7 +179,7 @@ Public Member Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_history_ad36b6025595e942629a3972f9bf64ec6_cgraph.svg" width="412" height="86"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_history_ad36b6025595e942629a3972f9bf64ec6_cgraph.svg" width="411" height="91"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -278,6 +279,46 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="ae221c71c8876a3af776246fabdc6b967" name="ae221c71c8876a3af776246fabdc6b967"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae221c71c8876a3af776246fabdc6b967">&#9670;&#160;</a></span>keepRunSelection()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SceneHistory::keepRunSelection </td>
+          <td>(</td>
+          <td class="paramtype">std::string</td>          <td class="paramname"><span class="paramname"><em>selectedScenarioId</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a></td>          <td class="paramname"><span class="paramname"><em>excludedOccurrences</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Keeps the run selection with the live entry: the selected scenario and the occurrences left out. The window calls it before an edit and before Undo or Redo leave the live state. </p>
+
+</div>
+</div>
+<a id="ae23290ba8cc2a0969952e382955e3eb7" name="ae23290ba8cc2a0969952e382955e3eb7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae23290ba8cc2a0969952e382955e3eb7">&#9670;&#160;</a></span>keepTrainUnitSourceLinks()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SceneHistory::keepTrainUnitSourceLinks </td>
+          <td>(</td>
+          <td class="paramtype">std::any</td>          <td class="paramname"><span class="paramname"><em>links</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Keeps the links of the rolling stock units with the live entry. The window calls it with <a class="el" href="#ae221c71c8876a3af776246fabdc6b967">keepRunSelection()</a>. </p>
+
+</div>
+</div>
 <a id="aeb95604a81a0c03866d4358311192af0" name="aeb95604a81a0c03866d4358311192af0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aeb95604a81a0c03866d4358311192af0">&#9670;&#160;</a></span>limits()</h2>
 
@@ -365,7 +406,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_history_a129d082c58aacf648aec343443934425_cgraph.svg" width="374" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_history_a129d082c58aacf648aec343443934425_cgraph.svg" width="372" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -408,7 +449,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_history_a4a9c1e0197a7165987271150aa189825_cgraph.svg" width="408" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_history_a4a9c1e0197a7165987271150aa189825_cgraph.svg" width="408" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -453,7 +494,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_history_a1451b2c7a58c259526a0bac550ac72e5_cgraph.svg" width="378" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_history_a1451b2c7a58c259526a0bac550ac72e5_cgraph.svg" width="376" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -496,13 +537,13 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_history_ad8ec3c57c30b3f489378a764d7bea0bd_cgraph.svg" width="414" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_history_ad8ec3c57c30b3f489378a764d7bea0bd_cgraph.svg" width="412" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>scene/<a class="el" href="_scene_history_8h_source.html">SceneHistory.h</a></li>
+<li>scene/<a class="el" href="_scene_history_8h.html">SceneHistory.h</a></li>
 <li>scene/<a class="el" href="_scene_history_8cpp.html">SceneHistory.cpp</a></li>
 </ul>
 </div><!-- contents -->

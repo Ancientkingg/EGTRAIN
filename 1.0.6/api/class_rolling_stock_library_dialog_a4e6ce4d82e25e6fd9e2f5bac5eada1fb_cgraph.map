@@ -1,0 +1,27 @@
+<map id="RollingStockLibraryDialog::RollingStockLibraryDialog" name="RollingStockLibraryDialog::RollingStockLibraryDialog">
+<area shape="rect" id="Node000001" title="Lists units and selects the first of them." alt="" coords="5,152,203,197"/>
+<area shape="rect" id="Node000002" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="255,29,436,74"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,149,189,117,249,84,266,79,261,82,252,89,192,121,141,154"/>
+<area shape="rect" id="Node000004" href="$_speed_format_8cpp.html#acac732ef9d3fa7e85383bef90fbad403" title=" " alt="" coords="275,122,416,150"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="202,156,262,148,257,150,204,161"/>
+<area shape="rect" id="Node000005" href="$namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874" title=" " alt="" coords="268,198,423,226"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="203,187,255,197,249,198,203,192"/>
+<area shape="rect" id="Node000009" href="$class_rolling_stock_library_dialog.html#a62672099fe239ac22f68e9e09c153534" title="The selected unit; null while a heading or nothing is selected." alt="" coords="251,249,440,294"/>
+<area shape="poly" id="edge16_Node000001_Node000009" title=" " alt="" coords="157,195,252,235,270,244,264,243,250,239,156,200"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="303,28,301,19,309,10,323,5,345,3,370,5,385,14,380,15,368,10,345,8,325,10,312,15,306,21,308,30"/>
+<area shape="rect" id="Node000003" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="492,68,645,113"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="435,65,480,74,474,75,436,70"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="527,66,525,58,532,49,547,43,569,41,593,44,608,53,603,53,591,49,569,47,548,49,535,53,530,59,531,69"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="307,121,301,113,306,103,321,97,345,95,372,98,387,106,382,107,370,103,345,100,322,102,309,107,306,113,312,122"/>
+<area shape="poly" id="edge14_Node000005_Node000003" title=" " alt="" coords="372,195,439,159,511,121,516,119,441,163,374,200"/>
+<area shape="poly" id="edge15_Node000005_Node000005" title=" " alt="" coords="307,197,301,189,306,179,321,173,345,171,372,174,387,183,382,182,370,179,345,176,322,178,309,183,306,189,312,198"/>
+<area shape="rect" id="Node000006" href="$namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" title="Guards every combo box, spin box and slider inside root." alt="" coords="488,198,649,226"/>
+<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="423,209,475,211,470,212,423,214"/>
+<area shape="poly" id="edge11_Node000006_Node000006" title=" " alt="" coords="531,196,525,189,529,179,544,173,569,171,595,174,610,183,605,182,593,179,569,176,546,178,533,183,530,189,535,198"/>
+<area shape="rect" id="Node000007" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title=" " alt="" coords="718,159,862,187"/>
+<area shape="poly" id="edge9_Node000006_Node000007" title=" " alt="" coords="649,195,700,189,705,188,650,200"/>
+<area shape="rect" id="Node000008" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ..." alt="" coords="697,235,883,263"/>
+<area shape="poly" id="edge12_Node000006_Node000008" title=" " alt="" coords="650,223,692,232,686,232,649,228"/>
+<area shape="poly" id="edge10_Node000007_Node000007" title=" " alt="" coords="752,158,746,150,751,141,766,135,790,133,816,135,832,144,826,144,815,140,790,138,767,140,754,145,751,150,757,160"/>
+<area shape="poly" id="edge13_Node000008_Node000008" title=" " alt="" coords="752,234,746,226,751,217,766,211,790,209,816,211,832,220,826,219,815,216,790,214,767,216,754,221,751,226,757,236"/>
+</map>

@@ -1,7 +1,7 @@
 <map id="VirtualArcItem" name="VirtualArcItem">
-<area shape="rect" id="Node000001" title="A track line drawn as two lines, firstLine and secondLine, with one click target over both." alt="" coords="21,152,137,177"/>
-<area shape="rect" id="Node000002" href="$class_track_line_item.html" title="The line of an arc of a track line, in scene coordinates." alt="" coords="22,79,135,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,118,81,152,76,152,76,118"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,5,152,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="81,44,81,79,76,79,76,44"/>
+<area shape="rect" id="Node000001" title="A track line drawn as two lines, firstLine and secondLine, with one click target over both." alt="" coords="20,157,136,184"/>
+<area shape="rect" id="Node000002" href="$class_track_line_item.html" title="The line of an arc of a track line, in scene coordinates." alt="" coords="22,81,134,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="80,123,81,157,75,155,76,126"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,5,151,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="79,46,81,81,75,80,77,51"/>
 </map>

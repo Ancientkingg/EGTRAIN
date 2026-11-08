@@ -1,5 +1,5 @@
 <map id="StationOverlayItem::applyViewScale" name="StationOverlayItem::applyViewScale">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,155,45"/>
-<area shape="rect" id="Node000002" href="$class_station_mark_item.html#a1cdc18609f4b93468e432ce28f8b993c" title=" " alt="" coords="203,13,424,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,23,189,23,189,28,155,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,154,50"/>
+<area shape="rect" id="Node000002" href="$class_station_mark_item.html#a1cdc18609f4b93468e432ce28f8b993c" title=" " alt="" coords="202,14,422,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,25,188,27,183,28,154,30"/>
 </map>

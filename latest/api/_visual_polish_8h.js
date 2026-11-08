@@ -16,6 +16,12 @@ var _visual_polish_8h =
       [ "Station", "_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cba394a844cc3d6d99eb45b4e71afde2c99", null ],
       [ "Major", "_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cba3b329734e45b57e60f3df64c2cf412a9", null ]
     ] ],
+    [ "StationMarkStyle", "_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8", [
+      [ "MapPin", "_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8a38f03d45e9b45580235ad8c79f777451", null ],
+      [ "RingAndBar", "_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8a0e1a540410740081f5f1e87388bfd316", null ],
+      [ "ClassMarks", "_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8a5accfbbef8f48779754ac6947e90194d", null ],
+      [ "PlainDot", "_visual_polish_8h.html#a7753fd88bf09e5f3e01c788545a08ac8a05de58cfb0df9cd9dabdd9490c6984db", null ]
+    ] ],
     [ "TrackOperationalState", "_visual_polish_8h.html#ac911f586567167005b7821cfc3da968d", [
       [ "Free", "_visual_polish_8h.html#ac911f586567167005b7821cfc3da968dab24ce0cd392a5b0b8dedc66c25213594", null ],
       [ "Prepared", "_visual_polish_8h.html#ac911f586567167005b7821cfc3da968da4f8ebbe84c83c694e33dfc679cf40ddb", null ],
@@ -46,17 +52,18 @@ var _visual_polish_8h =
     [ "defaultTrainOutline", "_visual_polish_8h.html#a0ca541531be69ea00b2db71455ba3104", null ],
     [ "freeTrackVisual", "_visual_polish_8h.html#a805626f8aa909690d0870ba92fabc89a", null ],
     [ "occupiedTrackColor", "_visual_polish_8h.html#af4d1772532a63c691de494ce9f3f9471", null ],
-    [ "paintStationMark", "_visual_polish_8h.html#acd5376d75de6b86816b9fbc03adf30cc", null ],
+    [ "paintStationMark", "_visual_polish_8h.html#a4d5203c8f6abefdd07da3cfa205ebcd3", null ],
     [ "resolveTrainVisual", "_visual_polish_8h.html#aa7bdb2ea7d61624407538aebde558b10", null ],
     [ "simulationSpeedLabel", "_visual_polish_8h.html#a390edc9c1e6f62d5b3ed847698920d13", null ],
     [ "stationAreaColor", "_visual_polish_8h.html#ad15b0a7441e0e9f52022e4a3a89d81d8", null ],
     [ "stationAreaShape", "_visual_polish_8h.html#aad6e3639cb92ebdb855e80911a082344", null ],
     [ "stationFootprintRect", "_visual_polish_8h.html#aa164be426ade64b2fd1bebe183b15674", null ],
-    [ "stationMarkBounds", "_visual_polish_8h.html#ab5821bb5e3b802765eef37c3ccc25547", null ],
+    [ "stationMarkAnchor", "_visual_polish_8h.html#a94e97a943567e4c2a8138b4997f66343", null ],
+    [ "stationMarkBounds", "_visual_polish_8h.html#a7e15855ab30e624b125dbe6e396125a7", null ],
     [ "stationMarkFill", "_visual_polish_8h.html#a533b0acec8e0aa932ee206a07c02a1d8", null ],
-    [ "stationMarkFrameIn", "_visual_polish_8h.html#a2420ddd0ca6f0c9af6acb01c987d2ed4", null ],
-    [ "stationMarkIcon", "_visual_polish_8h.html#aedc5fcbf783bda97fca3dc74d3a5098b", null ],
-    [ "stationMarkShape", "_visual_polish_8h.html#a53bf883918011b406bcde8613aa0354d", null ],
+    [ "stationMarkFrameIn", "_visual_polish_8h.html#a3cad1c71ca22ff81187f1c11478d0afe", null ],
+    [ "stationMarkIcon", "_visual_polish_8h.html#a06b631732ccb9afd0ca289b580af943d", null ],
+    [ "stationMarkShape", "_visual_polish_8h.html#a5b48cd7dfc5108e7723e392116d647d3", null ],
     [ "trackStatePriority", "_visual_polish_8h.html#a436626af4d350c743238ab619ecd6066", null ],
     [ "trainBadgeCornerRadius", "_visual_polish_8h.html#a4d53d9a2a4bde8099d883e9a982680c1", null ]
 ];

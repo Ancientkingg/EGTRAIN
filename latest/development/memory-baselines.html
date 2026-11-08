@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Qt 6 migration study" href="qt6-migration-study.html"><link rel="prev" title="Playback profiling" href="playback-profiling.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Release Testing Checklist" href="release-testing-checklist.html"><link rel="prev" title="Playback profiling" href="playback-profiling.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>Peak-memory baselines - EGTRAIN documentation</title>
@@ -192,11 +192,13 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/common-questions.html">Common questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
@@ -220,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -236,7 +238,6 @@
 <li class="toctree-l1"><a class="reference internal" href="coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +252,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +267,8 @@
 <li class="toctree-l1"><a class="reference internal" href="records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -463,6 +465,287 @@ because static constructors touched the fixed arrays before any scene was
 loaded (#463).</p>
 </section>
 </section>
+<section id="result-windows-after-a-window-run-recorded-2026-10-31">
+<h2>Result windows after a window run, recorded 2026-10-31<a class="headerlink" href="#result-windows-after-a-window-run-recorded-2026-10-31" title="Link to this heading">¶</a></h2>
+<p>The route and blocking-time windows used to keep a preformatted CSV row for each
+sample they draw, and the simulation kept the samples of every train and step
+after the run had been copied into <code class="docutils literal notranslate"><span class="pre">CompletedRunData</span></code>. These numbers compare a
+Release executable (Qt 6.8.3, macOS 27.0, arm64) built from <code class="docutils literal notranslate"><span class="pre">main</span></code> at
+<code class="docutils literal notranslate"><span class="pre">d0bb18097</span></code> with one that makes the CSV rows only on export and frees the
+samples of the trains when the run ends. Each pair ran one after the other at a
+load average of about 2 to 3, so the elapsed times are not compared.</p>
+<p>The scripted window runs of <a class="reference internal" href="build.html"><span class="std std-doc">build.md</span></a> open the windows and write their
+CSV files. Both run from <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN</span></code>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>QT_QPA_PLATFORM=offscreen QEGTRAIN_AUTOSTART=1 QEGTRAIN_E2E_ROUTE_DIAGRAM=&lt;dir&gt; \
+  /usr/bin/time -l &lt;app&gt; --scene Scenes/&lt;case&gt; -g 1 -pax 0
+QT_QPA_PLATFORM=offscreen QEGTRAIN_AUTOSTART=1 QEGTRAIN_E2E_EXPORT_DIR=&lt;dir&gt; \
+  /usr/bin/time -l &lt;app&gt; --scene Scenes/&lt;case&gt; -g 1 -pax 0
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_ROUTE_DIAGRAM</span></code> opens Train paths and Timetable graph for every route
+that trains use; <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_EXPORT_DIR</span></code> opens the blocking-time window and the
+other result views. Both write their files before the run has finished in the
+window, so they show what the windows hold, not the freed samples. The CSV files of
+both executables were the same byte for byte.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Case</p></th>
+<th class="head"><p>Hook</p></th>
+<th class="head text-right"><p>Peak RSS before (MiB)</p></th>
+<th class="head text-right"><p>Peak RSS after (MiB)</p></th>
+<th class="head text-right"><p>Peak footprint before (MiB)</p></th>
+<th class="head text-right"><p>Peak footprint after (MiB)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Copenhagen</p></td>
+<td><p>route diagram</p></td>
+<td class="text-right"><p>1,982.6</p></td>
+<td class="text-right"><p>1,411.6</p></td>
+<td class="text-right"><p>1,466.0</p></td>
+<td class="text-right"><p>1,001.4</p></td>
+</tr>
+<tr class="row-odd"><td><p>Copenhagen</p></td>
+<td><p>export</p></td>
+<td class="text-right"><p>2,378.6</p></td>
+<td class="text-right"><p>2,180.3</p></td>
+<td class="text-right"><p>1,827.3</p></td>
+<td class="text-right"><p>1,676.8</p></td>
+</tr>
+<tr class="row-even"><td><p>Netherlands</p></td>
+<td><p>route diagram</p></td>
+<td class="text-right"><p>500.0</p></td>
+<td class="text-right"><p>457.2</p></td>
+<td class="text-right"><p>403.5</p></td>
+<td class="text-right"><p>357.6</p></td>
+</tr>
+<tr class="row-odd"><td><p>Netherlands</p></td>
+<td><p>export</p></td>
+<td class="text-right"><p>536.1</p></td>
+<td class="text-right"><p>520.3</p></td>
+<td class="text-right"><p>426.5</p></td>
+<td class="text-right"><p>409.0</p></td>
+</tr>
+<tr class="row-even"><td><p>Paimpol</p></td>
+<td><p>route diagram</p></td>
+<td class="text-right"><p>189.6</p></td>
+<td class="text-right"><p>187.7</p></td>
+<td class="text-right"><p>147.0</p></td>
+<td class="text-right"><p>145.0</p></td>
+</tr>
+<tr class="row-odd"><td><p>Paimpol</p></td>
+<td><p>export</p></td>
+<td class="text-right"><p>207.6</p></td>
+<td class="text-right"><p>203.2</p></td>
+<td class="text-right"><p>165.1</p></td>
+<td class="text-right"><p>160.5</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The Netherlands route diagram run exits with 2 in both executables, because its
+timetable graph has no planned series; it has written its files by then.</p>
+<p>After a run with only <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_AUTOSTART=1</span></code>, <code class="docutils literal notranslate"><span class="pre">vmmap</span> <span class="pre">--summary</span> <span class="pre">&lt;pid&gt;</span></code> 30 s after
+the Run Results table appeared gave these allocated bytes of the default malloc
+zone:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Case</p></th>
+<th class="head text-right"><p>Allocated before (MB)</p></th>
+<th class="head text-right"><p>Allocated after (MB)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Copenhagen</p></td>
+<td class="text-right"><p>532.3</p></td>
+<td class="text-right"><p>391.2</p></td>
+</tr>
+<tr class="row-odd"><td><p>Netherlands</p></td>
+<td class="text-right"><p>304.1</p></td>
+<td class="text-right"><p>275.1</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">footprint</span> <span class="pre">&lt;pid&gt;</span></code> did not fall with them: malloc keeps the freed pages of its
+small regions for the next allocations of the process, such as the result
+windows and the next run.</p>
+</section>
+<section id="train-step-vectors-recorded-2026-11-06">
+<h2>Train step vectors, recorded 2026-11-06<a class="headerlink" href="#train-step-vectors-recorded-2026-11-06" title="Link to this heading">¶</a></h2>
+<p>Every train kept ten vectors with one entry for each step of the run: eight
+doubles, a <code class="docutils literal notranslate"><span class="pre">std::string</span></code> and an <code class="docutils literal notranslate"><span class="pre">int</span></code>, 92 bytes per step. It now keeps five
+doubles and a 32-bit section index, 44 bytes per step. The braking target
+(<code class="docutils literal notranslate"><span class="pre">Xob</span></code>, <code class="docutils literal notranslate"><span class="pre">Vob</span></code>) is kept for the previous and the current step only, the branch
+of the step (<code class="docutils literal notranslate"><span class="pre">Eq</span></code>) for the current step only, and the occupied section is an
+index into the route of the train. <code class="docutils literal notranslate"><span class="pre">BX</span></code> is kept only in a run that exports
+detailed trajectories, which adds 8 bytes per step.</p>
+<p>These numbers compare a Release executable (Qt 6.8.3, macOS 27.0.1, arm64,
+<code class="docutils literal notranslate"><span class="pre">EGTRAIN_IPO=OFF</span></code>) built from <code class="docutils literal notranslate"><span class="pre">main</span></code> after #1211 with one that has these
+changes. Each scene ran headless and alone, three times for each executable,
+with <code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS=4</span></code> and <code class="docutils literal notranslate"><span class="pre">QT_QPA_PLATFORM=offscreen</span></code>, at a one-minute load
+average of 2.0 to 3.6:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>/usr/bin/time -l &lt;app&gt; --scene &lt;absolute-scene-directory&gt; -g 0
+</pre></div>
+</div>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Case</p></th>
+<th class="head text-right"><p>Peak RSS before (MiB)</p></th>
+<th class="head text-right"><p>Peak RSS after (MiB)</p></th>
+<th class="head text-right"><p>Peak footprint before (MiB)</p></th>
+<th class="head text-right"><p>Peak footprint after (MiB)</p></th>
+<th class="head text-right"><p>Elapsed before (s)</p></th>
+<th class="head text-right"><p>Elapsed after (s)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Copenhagen</p></td>
+<td class="text-right"><p>316.5</p></td>
+<td class="text-right"><p>241.9</p></td>
+<td class="text-right"><p>302.4</p></td>
+<td class="text-right"><p>227.8</p></td>
+<td class="text-right"><p>7.15</p></td>
+<td class="text-right"><p>6.97</p></td>
+</tr>
+<tr class="row-odd"><td><p>Netherlands</p></td>
+<td class="text-right"><p>215.0</p></td>
+<td class="text-right"><p>201.1</p></td>
+<td class="text-right"><p>200.9</p></td>
+<td class="text-right"><p>187.0</p></td>
+<td class="text-right"><p>1.61</p></td>
+<td class="text-right"><p>1.58</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Each value is the median of three runs. The peak RSS fell by 74.6 MiB
+(24 percent) for Copenhagen and by 13.9 MiB (6 percent) for Netherlands. That
+is close to the 48 bytes per step that the vectors no longer take: 71.8 MiB for
+the 196 trains of Copenhagen and 14.7 MiB for the 40 trains of Netherlands,
+both over 8000 steps. The instructions retired fell by less than 0.3 percent,
+so these runs show no change in run time. Every output file and the standard
+output of every committed scene stayed the same byte for byte, also with
+detailed trajectories.</p>
+</section>
+<section id="section-arcs-recorded-2026-11-06">
+<h2>Section arcs, recorded 2026-11-06<a class="headerlink" href="#section-arcs-recorded-2026-11-06" title="Link to this heading">¶</a></h2>
+<p>Every block section (<code class="docutils literal notranslate"><span class="pre">Section</span></code> in <code class="docutils literal notranslate"><span class="pre">simulation/Signalling.h</span></code>) held room for
+20 arcs inside itself, 13,920 of its 14,944 bytes, while the sections of the
+committed scenes have 1.0 to 4.2 arcs on average (Copenhagen 3.8 in the
+infrastructure and 4.2 in the routes, Netherlands 2.8 and 2.7). The run keeps
+sections in <code class="docutils literal notranslate"><span class="pre">RunInfrastructure::sections</span></code>, in each route
+(<code class="docutils literal notranslate"><span class="pre">sequence_of_block_sections</span></code>) and in each train (<code class="docutils literal notranslate"><span class="pre">Train::Bs</span></code>). The arcs are
+now a vector that holds exactly the arcs of the section, so a section takes
+1,048 bytes plus 696 bytes for each arc. The limit of 20 arcs for a scene
+section stays, with the same diagnostics.</p>
+<p>These numbers compare a Release executable (Qt 6.8.3, macOS 27.0.1, arm64,
+<code class="docutils literal notranslate"><span class="pre">EGTRAIN_IPO=OFF</span></code>) with the train step vectors of the previous section with
+one that also has this change. The two ran in turns, each scene headless and
+alone, three times for each executable, with <code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS=4</span></code> and
+<code class="docutils literal notranslate"><span class="pre">QT_QPA_PLATFORM=offscreen</span></code>, at a one-minute load average of 3.2 to 4.0:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>/usr/bin/time -l &lt;app&gt; --scene &lt;absolute-scene-directory&gt; -g 0
+</pre></div>
+</div>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Case</p></th>
+<th class="head text-right"><p>Peak RSS before (MiB)</p></th>
+<th class="head text-right"><p>Peak RSS after (MiB)</p></th>
+<th class="head text-right"><p>Peak footprint before (MiB)</p></th>
+<th class="head text-right"><p>Peak footprint after (MiB)</p></th>
+<th class="head text-right"><p>Elapsed before (s)</p></th>
+<th class="head text-right"><p>Elapsed after (s)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Copenhagen</p></td>
+<td class="text-right"><p>239.3</p></td>
+<td class="text-right"><p>180.5</p></td>
+<td class="text-right"><p>225.2</p></td>
+<td class="text-right"><p>166.3</p></td>
+<td class="text-right"><p>7.19</p></td>
+<td class="text-right"><p>7.14</p></td>
+</tr>
+<tr class="row-odd"><td><p>Netherlands</p></td>
+<td class="text-right"><p>199.6</p></td>
+<td class="text-right"><p>101.7</p></td>
+<td class="text-right"><p>185.4</p></td>
+<td class="text-right"><p>87.4</p></td>
+<td class="text-right"><p>1.60</p></td>
+<td class="text-right"><p>1.42</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Each value is the median of three runs. The peak RSS fell by 58.8 MiB
+(25 percent) for Copenhagen and by 97.9 MiB (49 percent) for Netherlands. The
+instructions retired fell by 1.7 percent for Copenhagen and by 5.7 percent for
+Netherlands, so the copy of the section that a train takes in each step does
+not slow the run. Every output file and the standard output of every
+committed scene stayed the same byte for byte, also with detailed
+trajectories.</p>
+</section>
+<section id="replay-history-recorded-2026-11-08">
+<h2>Replay history, recorded 2026-11-08<a class="headerlink" href="#replay-history-recorded-2026-11-08" title="Link to this heading">¶</a></h2>
+<p>The window kept a complete picture of the run every fifth simulated second for the
+replay: 78.5 MiB of accounted payload for Copenhagen, 30.7 MiB for Netherlands. It now
+keeps, for every second, the values that changed against the second before, with a full
+copy every 300 seconds, and takes the positions and speeds of the trains from the samples
+that the completed run holds (<code class="docutils literal notranslate"><span class="pre">CompletedRunData</span></code>), without a copy of them. Copenhagen
+owns 3.68 MiB of replay payload and shares 6.68 MiB of samples with the completed run;
+Netherlands owns 1.16 MiB and shares 0.61 MiB.</p>
+<p>These numbers compare a Release executable (Qt 6.8.3, macOS 27.0.1, arm64,
+<code class="docutils literal notranslate"><span class="pre">EGTRAIN_IPO=OFF</span></code>) built from <code class="docutils literal notranslate"><span class="pre">main</span></code> after #1335 with one that has this change. The two
+ran in turns, three times each, with <code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS=4</span></code> and <code class="docutils literal notranslate"><span class="pre">QT_QPA_PLATFORM=offscreen</span></code>,
+at a one-minute load average of 12.1 to 16.8. Both ran from <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN</span></code> a window run
+with the whole-run replay hook, which runs the scene to its end and exits:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>QT_QPA_PLATFORM=offscreen QEGTRAIN_AUTOSTART=1 QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1 \
+  /usr/bin/time -l &lt;app&gt; --scene Scenes/&lt;case&gt; -g 1 -pax 0
+</pre></div>
+</div>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Case</p></th>
+<th class="head text-right"><p>Peak RSS before (MiB)</p></th>
+<th class="head text-right"><p>Peak RSS after (MiB)</p></th>
+<th class="head text-right"><p>Peak footprint before (MiB)</p></th>
+<th class="head text-right"><p>Peak footprint after (MiB)</p></th>
+<th class="head text-right"><p>Elapsed before (s)</p></th>
+<th class="head text-right"><p>Elapsed after (s)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Copenhagen</p></td>
+<td class="text-right"><p>488.5</p></td>
+<td class="text-right"><p>397.3</p></td>
+<td class="text-right"><p>364.6</p></td>
+<td class="text-right"><p>271.6</p></td>
+<td class="text-right"><p>26.25</p></td>
+<td class="text-right"><p>24.05</p></td>
+</tr>
+<tr class="row-odd"><td><p>Netherlands</p></td>
+<td class="text-right"><p>275.9</p></td>
+<td class="text-right"><p>240.0</p></td>
+<td class="text-right"><p>174.3</p></td>
+<td class="text-right"><p>142.8</p></td>
+<td class="text-right"><p>13.47</p></td>
+<td class="text-right"><p>8.55</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Each value is the median of three runs. The peak RSS fell by 91.2 MiB (19 percent) for
+Copenhagen and by 35.9 MiB (13 percent) for Netherlands, and the peak footprint by 93.0 and
+31.5 MiB. The machine was busy with other jobs, and the elapsed time of one executable
+varied between 15.6 and 37.3 s for Copenhagen, so the elapsed times are not compared. The
+simulation output of every committed scene stayed the same byte for byte.</p>
+</section>
 </section>
 
         </article>
@@ -470,12 +753,12 @@ loaded (#463).</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="qt6-migration-study.html">
+          <a class="next-page" href="release-testing-checklist.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Qt 6 migration study</div>
+                <div class="title">Release Testing Checklist</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -498,7 +781,7 @@ loaded (#463).</p>
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">
@@ -527,6 +810,10 @@ loaded (#463).</p>
 <li><a class="reference internal" href="#idle-memory-after-startup">Idle memory after startup</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#result-windows-after-a-window-run-recorded-2026-10-31">Result windows after a window run, recorded 2026-10-31</a></li>
+<li><a class="reference internal" href="#train-step-vectors-recorded-2026-11-06">Train step vectors, recorded 2026-11-06</a></li>
+<li><a class="reference internal" href="#section-arcs-recorded-2026-11-06">Section arcs, recorded 2026-11-06</a></li>
+<li><a class="reference internal" href="#replay-history-recorded-2026-11-08">Replay history, recorded 2026-11-08</a></li>
 </ul>
 </li>
 </ul>

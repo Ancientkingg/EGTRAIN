@@ -1,0 +1,20 @@
+<map id="ComputeTimetableEnergyConsumption" name="ComputeTimetableEnergyConsumption">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,105,283,133"/>
+<area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="99,105,93,96,98,87,116,81,144,79,174,81,192,90,187,90,173,86,144,84,117,86,102,91,98,96,105,105"/>
+<area shape="rect" id="Node000002" href="$_run_output_file_8h.html#acd85cbf22e0aef3624f978ea723c685e" title="Closes a file that openRunOutputFile opened for path. Throws runOutputWriteError when a write or the ..." alt="" coords="331,29,478,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,102,342,60,337,63,195,107"/>
+<area shape="rect" id="Node000004" href="$_run_results_8h.html#ad86fae6b844959d443eb855f68338ba5" title="An energy in MJ as kWh, with kEnergyMJToKWh." alt="" coords="349,105,460,133"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="283,117,336,119,330,120,284,122"/>
+<area shape="rect" id="Node000005" href="$_run_output_file_8h.html#a5813fb6bf47d898f50d4e1c3672baa70" title=" " alt="" coords="332,181,477,209"/>
+<area shape="poly" id="edge8_Node000001_Node000005" title=" " alt="" coords="195,131,342,175,337,178,194,136"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="370,28,365,20,369,11,383,5,404,3,428,5,442,14,436,14,426,10,404,8,384,10,373,15,370,20,375,29"/>
+<area shape="rect" id="Node000003" href="$_run_output_file_8h.html#a32bd31f491e023651e44b2a5ecfd2ef7" title=" " alt="" coords="526,68,678,96"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="478,55,516,64,511,65,478,60"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="568,66,562,59,567,49,580,43,602,41,626,44,640,53,634,52,624,49,602,47,582,49,571,53,568,59,573,68"/>
+<area shape="poly" id="edge7_Node000004_Node000004" title=" " alt="" coords="370,104,365,96,369,87,383,81,404,79,428,81,442,90,436,90,426,86,404,84,384,86,373,91,370,96,375,106"/>
+<area shape="poly" id="edge12_Node000005_Node000003" title=" " alt="" coords="429,178,561,104,566,103,431,183"/>
+<area shape="poly" id="edge9_Node000005_Node000005" title=" " alt="" coords="370,180,365,172,369,163,383,157,404,155,428,157,442,166,437,166,426,162,404,160,384,162,373,167,370,172,375,182"/>
+<area shape="rect" id="Node000006" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="546,181,658,209"/>
+<area shape="poly" id="edge10_Node000005_Node000006" title=" " alt="" coords="477,193,534,195,529,195,477,198"/>
+<area shape="poly" id="edge11_Node000006_Node000006" title=" " alt="" coords="568,180,562,172,567,163,580,157,602,155,626,157,640,167,634,166,624,162,602,160,582,162,571,167,568,172,573,182"/>
+</map>

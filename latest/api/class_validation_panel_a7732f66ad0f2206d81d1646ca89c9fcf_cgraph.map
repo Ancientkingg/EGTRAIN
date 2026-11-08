@@ -1,7 +1,11 @@
 <map id="ValidationPanel::ValidationPanel" name="ValidationPanel::ValidationPanel">
-<area shape="rect" id="Node000001" title="The table, the tree and the label are made as children of parent, until the window moves them." alt="" coords="5,5,200,45"/>
-<area shape="rect" id="Node000002" href="$class_validation_panel.html#af865cff10dca3de09804499268e7bde5" title="Emits targetActivated() for a row of the tree that has a kind." alt="" coords="248,13,461,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,23,234,23,234,28,200,28"/>
-<area shape="rect" id="Node000003" href="$class_validation_panel.html#a27443c73bf76a8d7726938f1339f0ca6" title="A row of the tree with this kind was activated. The tree owns item." alt="" coords="509,13,740,38"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="462,23,496,23,496,28,462,28"/>
+<area shape="rect" id="Node000001" title="The table, the tree and the label are made as children of parent, until the window moves them." alt="" coords="5,24,200,68"/>
+<area shape="rect" id="Node000002" href="$class_validation_panel.html#af865cff10dca3de09804499268e7bde5" title="Emits targetActivated() for a row of the tree that has a kind." alt="" coords="248,5,460,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,33,235,32,230,33,201,38"/>
+<area shape="rect" id="Node000004" href="$class_validation_panel.html#a8e76a70fe027fb78bc83c605d2f89b52" title="Emits itemActivated() for a row of the table whose diagnostic has an item; a row without one does not..." alt="" coords="249,57,459,85"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="200,53,236,59,231,59,200,58"/>
+<area shape="rect" id="Node000003" href="$class_validation_panel.html#a27443c73bf76a8d7726938f1339f0ca6" title="A row of the tree with this kind was activated. The tree owns item." alt="" coords="508,5,738,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="460,17,495,19,490,19,461,22"/>
+<area shape="rect" id="Node000005" href="$class_validation_panel.html#aaedae85282fa7d3cc94c6b3e510c7517" title=" " alt="" coords="512,57,734,85"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="459,69,499,71,494,71,459,74"/>
 </map>

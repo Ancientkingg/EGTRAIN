@@ -1,0 +1,5 @@
+<map id="InfrastructurePanel::showStatus" name="InfrastructurePanel::showStatus">
+<area shape="rect" id="Node000001" title="Shows a message in the status line of the window for timeoutMs milliseconds, through statusMessage()." alt="" coords="5,5,150,50"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#a1263773d1ae53648a350d0830c44c4f5" title="A message for the status line of the window, shown for timeoutMs milliseconds." alt="" coords="198,5,379,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,25,185,27,179,28,150,30"/>
+</map>

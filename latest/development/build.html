@@ -192,11 +192,13 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/common-questions.html">Common questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
@@ -220,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -236,7 +238,6 @@
 <li class="toctree-l1"><a class="reference internal" href="coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +252,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +267,8 @@
 <li class="toctree-l1"><a class="reference internal" href="records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -309,12 +311,12 @@
 <h1>Build from source<a class="headerlink" href="#build-from-source" title="Link to this heading">¶</a></h1>
 <p>This page lists what you need to build EGTRAIN and explains how to configure, build and run it, with the
 common setup failures and their fixes.</p>
-<p>Run configure, build, and test commands from the repository root. Run the
+<p>Run configure, build, and test commands from the root of the source tree. Run the
 application itself from <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN</span></code> so relative scene paths resolve.</p>
 <section id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p>CMake 3.16 or newer</p></li>
+<li><p>CMake 3.16 or newer, or 3.21 or newer for the presets in <code class="docutils literal notranslate"><span class="pre">CMakePresets.json</span></code></p></li>
 <li><p>C++17 compiler</p></li>
 <li><p>Qt 6 Core, Gui, Widgets, Charts, Svg, Network and Help, and the Qt tools
 (<code class="docutils literal notranslate"><span class="pre">qhelpgenerator</span></code> builds the manual). CI and the release packages use Qt 6.8.3.</p></li>
@@ -323,7 +325,7 @@ application itself from <code class="docutils literal notranslate"><span class="
 CTest runs its Python tests with that interpreter. On Windows, set
 <code class="docutils literal notranslate"><span class="pre">PYTHONUTF8=1</span></code> for local runs so scripts read program output as UTF-8;
 the Windows presets set it.</p></li>
-<li><p>Git, to clone the repository. On Windows, Git for Windows is a separate install from Visual Studio, and vcpkg
+<li><p>Git, to get the source tree. On Windows, Git for Windows is a separate install from Visual Studio, and vcpkg
 uses it to fetch its registry at the <code class="docutils literal notranslate"><span class="pre">builtin-baseline</span></code> of <code class="docutils literal notranslate"><span class="pre">tools/vcpkg/vcpkg.json</span></code>.</p></li>
 </ul>
 <p>Qt Svg is required by the application and must be available with the
@@ -333,16 +335,16 @@ that names Qt 6.</p>
 <ul class="simple">
 <li><p>macOS: Qt 6.8.3 and the Homebrew packages in the configure example below.</p></li>
 <li><p>Windows 10 or 11, x64 only: MSVC (Visual Studio 2022 or newer), Qt 6.8.3
-<code class="docutils literal notranslate"><span class="pre">msvc2022_64</span></code> with Qt Charts, and vcpkg <code class="docutils literal notranslate"><span class="pre">zeromq</span> <span class="pre">cppzmq</span> <span class="pre">nlohmann-json</span></code> for the
-<code class="docutils literal notranslate"><span class="pre">x64-windows</span></code> triplet. 32-bit Windows is not supported.</p></li>
-<li><p>Linux: Ubuntu (the <code class="docutils literal notranslate"><span class="pre">ubuntu-latest</span></code> runner image) with Qt 6.8.3 and the apt
-packages in the configure example below.</p></li>
+<code class="docutils literal notranslate"><span class="pre">msvc2022_64</span></code> with Qt Charts, and the vcpkg manifest <code class="docutils literal notranslate"><span class="pre">tools/vcpkg/vcpkg.json</span></code> (ZeroMQ, cppzmq and
+nlohmann-json at its <code class="docutils literal notranslate"><span class="pre">builtin-baseline</span></code>) for the <code class="docutils literal notranslate"><span class="pre">x64-windows</span></code> triplet. 32-bit Windows is not supported.</p></li>
+<li><p>Linux: Ubuntu 24.04 (the <code class="docutils literal notranslate"><span class="pre">ubuntu-24.04</span></code> runner image) with Qt 6.8.3 and the apt
+packages in the configure example below. The AppImage needs the glibc of the
+system that builds it, so CI builds and tests on 24.04 and not on <code class="docutils literal notranslate"><span class="pre">ubuntu-latest</span></code>.</p></li>
 </ul>
 <p>CI installs Qt 6.8.3 with the Qt Charts module through <code class="docutils literal notranslate"><span class="pre">jurplel/install-qt-action</span></code>, which runs
 <a class="reference external" href="https://aqtinstall.readthedocs.io/en/latest/getting_started.html">aqtinstall</a>. The same
-installer works on a developer machine; the <a class="reference external" href="https://www.qt.io/download-qt-installer-oss">Qt online installer</a>
-is the other way (choose Qt 6.8.3 with the Qt Charts module). Homebrew’s <code class="docutils literal notranslate"><span class="pre">qt</span></code> formula follows the
-newest Qt release, not the 6.8.3 of CI.</p>
+installer works on a developer machine; the <a class="reference internal" href="#qt-online-installer">Qt online installer</a> is the other
+way. Homebrew’s <code class="docutils literal notranslate"><span class="pre">qt</span></code> formula follows the newest Qt release, not the 6.8.3 of CI.</p>
 <p>aqtinstall goes into a virtual environment, because the Python of Ubuntu 24.04 and of Homebrew does not
 take packages from <code class="docutils literal notranslate"><span class="pre">pip</span></code> directly. On Windows the commands are in <code class="docutils literal notranslate"><span class="pre">~\aqt-venv\Scripts</span></code> instead of
 <code class="docutils literal notranslate"><span class="pre">~/aqt-venv/bin</span></code>.</p>
@@ -354,6 +356,25 @@ take packages from <code class="docutils literal notranslate"><span class="pre">
 ~/aqt-venv/bin/aqt<span class="w"> </span>install-qt<span class="w"> </span>windows<span class="w"> </span>desktop<span class="w"> </span><span class="m">6</span>.8.3<span class="w"> </span>win64_msvc2022_64<span class="w"> </span>-m<span class="w"> </span>qtcharts<span class="w"> </span>-O<span class="w"> </span>C:<span class="se">\Q</span>t<span class="w">  </span><span class="c1"># Windows: C:\Qt\6.8.3\msvc2022_64</span>
 </pre></div>
 </div>
+<section id="qt-online-installer">
+<h3>Qt online installer<a class="headerlink" href="#qt-online-installer" title="Link to this heading">¶</a></h3>
+<p>The <a class="reference external" href="https://www.qt.io/development/download-qt-installer-oss">Qt online installer</a> installs the same Qt. On Windows,
+these choices give the Qt that the Windows presets expect:</p>
+<ol class="arabic simple">
+<li><p>Sign in with a Qt account when the installer asks for one. A free account is enough.</p></li>
+<li><p>Set the installation folder to <code class="docutils literal notranslate"><span class="pre">C:\Qt</span></code>, so that Qt ends up in <code class="docutils literal notranslate"><span class="pre">C:\Qt\6.8.3\msvc2022_64</span></code>, where the presets look.
+For Qt in another folder, see the <code class="docutils literal notranslate"><span class="pre">CMakeUserPresets.json</span></code> example under <a class="reference internal" href="#visual-studio">Visual Studio</a>.</p></li>
+<li><p>Choose <strong>Custom installation</strong> instead of the default installation.</p></li>
+<li><p>Qt 6.8.3 is an older release, so the list may not show it at first. Tick <strong>Archive</strong> in the filter on the right
+and click <strong>Filter</strong>.</p></li>
+<li><p>Under <strong>Qt &gt; Qt 6.8.3</strong>, tick <strong>MSVC 2022 64-bit</strong> and, under <strong>Additional Libraries</strong>, <strong>Qt Charts</strong>. Leave
+everything else unticked: EGTRAIN needs no MinGW, Android or WebAssembly build and no other additional library.
+The other modules it uses (Svg, Network and Help, and Test for the tests) and the tools that build the manual come
+with <strong>MSVC 2022 64-bit</strong>.</p></li>
+</ol>
+<p>On macOS and Linux, tick the desktop component of that system in step 5 instead of <strong>MSVC 2022 64-bit</strong>, and pass its
+folder in <code class="docutils literal notranslate"><span class="pre">CMAKE_PREFIX_PATH</span></code> as in <a class="reference internal" href="#configure">Configure</a>.</p>
+</section>
 </section>
 <section id="configure">
 <h2>Configure<a class="headerlink" href="#configure" title="Link to this heading">¶</a></h2>
@@ -389,9 +410,23 @@ cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>
 </div>
 <p>The configure step then prints <code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">NOT</span> <span class="pre">find</span> <span class="pre">XKB</span></code> and <code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">NOT</span> <span class="pre">find</span> <span class="pre">PkgConfig</span></code>, which do no harm. CI and
 the packages use 6.8.3, so a difference between the two shows only there.</p>
+<p>On macOS and Linux, <code class="docutils literal notranslate"><span class="pre">CMakePresets.json</span></code> also has the presets <code class="docutils literal notranslate"><span class="pre">macos-debug</span></code>, <code class="docutils literal notranslate"><span class="pre">macos-release</span></code>, <code class="docutils literal notranslate"><span class="pre">linux-debug</span></code> and
+<code class="docutils literal notranslate"><span class="pre">linux-release</span></code>. They build with Ninja (<code class="docutils literal notranslate"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">ninja</span></code>, or <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">apt-get</span> <span class="pre">install</span> <span class="pre">-y</span> <span class="pre">ninja-build</span></code>) and with the
+tests, each in <code class="docutils literal notranslate"><span class="pre">out/build/&lt;preset&gt;</span></code>. The libraries come from the configure line, as above; the build folder keeps
+them, so later configures need only the preset:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>--preset<span class="w"> </span>macos-release<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DCMAKE_PREFIX_PATH<span class="o">=</span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/Qt/6.8.3/macos;</span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="w"> </span>zeromq<span class="k">)</span><span class="s2">;</span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="w"> </span>cppzmq<span class="k">)</span><span class="s2">;</span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="w"> </span>nlohmann-json<span class="k">)</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DWrapOpenGL_AGL<span class="o">=</span><span class="s2">"</span><span class="k">$(</span>xcrun<span class="w"> </span>--show-sdk-path<span class="k">)</span><span class="s2">/System/Library/Frameworks/OpenGL.framework"</span>
+cmake<span class="w"> </span>--build<span class="w"> </span>--preset<span class="w"> </span>macos-release
+ctest<span class="w"> </span>--preset<span class="w"> </span>macos-release
+</pre></div>
+</div>
+<p>On Linux, use <code class="docutils literal notranslate"><span class="pre">linux-release</span></code> and leave out <code class="docutils literal notranslate"><span class="pre">WrapOpenGL_AGL</span></code>. A preset build puts the application in
+<code class="docutils literal notranslate"><span class="pre">out/build/&lt;preset&gt;</span></code>, not in <code class="docutils literal notranslate"><span class="pre">build/</span></code>. CTest gives the smoke tests that path; a smoke script run by hand needs it in
+<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_APP</span></code> (see <a class="reference internal" href="testing.html#platform-coverage"><span class="std std-ref">Platform coverage</span></a>).</p>
 <p>On Windows, <code class="docutils literal notranslate"><span class="pre">CMakePresets.json</span></code> holds the settings: Ninja and MSVC for x64, the vcpkg of Visual Studio with the
 <code class="docutils literal notranslate"><span class="pre">x64-windows</span></code> triplet and the manifest <code class="docutils literal notranslate"><span class="pre">tools/vcpkg/vcpkg.json</span></code>, Qt from <code class="docutils literal notranslate"><span class="pre">C:/Qt/6.8.3/msvc2022_64</span></code>, and the tests.
-From an x64 Developer PowerShell for Visual Studio 2022 or newer, in the repository folder:</p>
+From an x64 Developer PowerShell for Visual Studio 2022 or newer, in the root folder of the source tree:</p>
 <div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="n">cmake</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">x64-release</span>
 <span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">x64-release</span>
 <span class="n">ctest</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">x64-release</span>
@@ -400,8 +435,13 @@ From an x64 Developer PowerShell for Visual Studio 2022 or newer, in the reposit
 <p>The <code class="docutils literal notranslate"><span class="pre">x64-debug</span></code> presets make a Debug build. Each preset builds in <code class="docutils literal notranslate"><span class="pre">out\build\&lt;preset&gt;</span></code>. The first configure on a
 machine also builds ZeroMQ, cppzmq and nlohmann-json with vcpkg; later configures restore them from the cache of vcpkg
 in <code class="docutils literal notranslate"><span class="pre">%LOCALAPPDATA%\vcpkg\archives</span></code>. The configure prints <code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">NOT</span> <span class="pre">find</span> <span class="pre">WrapVulkanHeaders</span></code> twice, which does no
-harm. CI does not use the presets: it installs the same packages with
-vcpkg in classic mode and passes the toolchain, the triplet and the Qt folder itself, in <code class="docutils literal notranslate"><span class="pre">.github/workflows/cmake.yml</span></code>.</p>
+harm. The Windows leg of CI (the workflow <code class="docutils literal notranslate"><span class="pre">cmake.yml</span></code>) and the Windows package (the workflow <code class="docutils literal notranslate"><span class="pre">package.yml</span></code>)
+install the same manifest with the vcpkg of the runner image: the leg through the <code class="docutils literal notranslate"><span class="pre">ci-windows</span></code> preset, and the package
+job with the same options on its configure line.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">ci-macos</span></code>, <code class="docutils literal notranslate"><span class="pre">ci-linux</span></code> and <code class="docutils literal notranslate"><span class="pre">ci-windows</span></code> presets hold the options that the three CI legs share: a Release build with
+the tests, <code class="docutils literal notranslate"><span class="pre">EGTRAIN_WARNINGS_AS_ERRORS=ON</span></code> and <code class="docutils literal notranslate"><span class="pre">EGTRAIN_IPO=OFF</span></code>, in <code class="docutils literal notranslate"><span class="pre">build/</span></code>. <code class="docutils literal notranslate"><span class="pre">ci-windows</span></code> adds Ninja, <code class="docutils literal notranslate"><span class="pre">cl</span></code> and
+<code class="docutils literal notranslate"><span class="pre">EGTRAIN_NETWORK_TESTS=ON</span></code>. Each configure step of the workflow adds the compiler launcher and the prefix path of its
+runner; see <a class="reference internal" href="ci-and-release.html#configure-options"><span class="std std-ref">Configure options</span></a>.</p>
 <p>The Start-menu entry <strong>Developer PowerShell for VS</strong> opens a shell that targets 32-bit Windows, and the configure then
 stops with a message that names x64 as the only supported platform. Switch that shell to x64 first.
 <code class="docutils literal notranslate"><span class="pre">-VsInstallPath</span></code> is the folder of Visual Studio, here Visual Studio Community 2026; on an Arm64 PC use <code class="docutils literal notranslate"><span class="pre">-host_arch=arm64</span></code>:</p>
@@ -414,14 +454,14 @@ stops with a message that names x64 as the only supported platform. Switch that 
 when building and testing, as in the next two sections.</p>
 <section id="visual-studio">
 <h3>Visual Studio<a class="headerlink" href="#visual-studio" title="Link to this heading">¶</a></h3>
-<p>The repository has no Visual Studio solution or project file. Visual Studio opens the folder as a CMake project and
+<p>The source tree has no Visual Studio solution or project file. Visual Studio opens the folder as a CMake project and
 uses the presets:</p>
 <ol class="arabic simple">
 <li><p>Install Visual Studio 2022 or newer with the <strong>Desktop development with C++</strong> workload. Its default components
 include the C++ CMake tools and the vcpkg package manager.</p></li>
 <li><p>Install Git for Windows and Python 3.9 or newer. Install Qt 6.8.3 <code class="docutils literal notranslate"><span class="pre">msvc2022_64</span></code> with Qt Charts into <code class="docutils literal notranslate"><span class="pre">C:\Qt</span></code>, with
-aqtinstall or the Qt online installer as in <a class="reference internal" href="#requirements">Requirements</a>.</p></li>
-<li><p>Open the repository folder with <strong>File &gt; Open &gt; Folder</strong>. Visual Studio then configures the <code class="docutils literal notranslate"><span class="pre">x64-debug</span></code> preset. The
+aqtinstall as in <a class="reference internal" href="#requirements">Requirements</a> or with the <a class="reference internal" href="#qt-online-installer">Qt online installer</a>.</p></li>
+<li><p>Open the root folder of the source tree with <strong>File &gt; Open &gt; Folder</strong>. Visual Studio then configures the <code class="docutils literal notranslate"><span class="pre">x64-debug</span></code> preset. The
 first configure on a machine also builds the vcpkg libraries and takes longer.</p></li>
 <li><p>For a Release build, pick <code class="docutils literal notranslate"><span class="pre">x64-release</span></code> in the configuration list of the toolbar.</p></li>
 <li><p>Pick <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code> as the startup item, not <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span> <span class="pre">(Install)</span></code>, and press F5. The default startup item is
@@ -477,7 +517,9 @@ in <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span><
 <p>With <code class="docutils literal notranslate"><span class="pre">EGTRAIN_BUILD_TESTS=ON</span></code>, <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code> also compiles the sources in
 <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/e2e</span></code>, the runner for the scripted GUI scenarios. At the
 start of <code class="docutils literal notranslate"><span class="pre">main()</span></code> it redirects the user settings to the folder named by
-<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_SETTINGS_DIR</span></code>. After the first show of the window it starts a
+<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_SETTINGS_DIR</span></code>, and the recovery copies and crash notes of a window
+on a screen that runs no scenario to <code class="docutils literal notranslate"><span class="pre">Recovery</span></code> and <code class="docutils literal notranslate"><span class="pre">Crashes</span></code> in that folder.
+After the first show of the window it starts a
 scenario, with blocking dialogs switched off, when the variable of that scenario
 is set. A build without tests, such as the three package builds, compiles none
 of it: in such a build the first show of the window starts no scenario and
@@ -517,8 +559,8 @@ to <code class="docutils literal notranslate"><span class="pre">1</span></code> 
 dialog a fake context, no telemetry starts, and <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_SCREENSHOT</span></code> names the file that receives a
 picture of the dialog. In the isolated telemetry smoke configuration (<code class="docutils literal notranslate"><span class="pre">EGTRAIN_ISOLATED_TELEMETRY_SMOKE</span></code>,
 described in <a class="reference internal" href="../telemetry/README.html"><span class="std std-doc">Telemetry</span></a>) <code class="docutils literal notranslate"><span class="pre">TelemetrySmoke.cpp</span></code> is compiled too. Its hooks
-<code class="docutils literal notranslate"><span class="pre">telemetryStart</span></code> (which gets the <code class="docutils literal notranslate"><span class="pre">UpdateTelemetryController</span></code> of the window), <code class="docutils literal notranslate"><span class="pre">observationStep</span></code>, <code class="docutils literal notranslate"><span class="pre">runStarting</span></code> and <code class="docutils literal notranslate"><span class="pre">windowDestroyed</span></code> start the telemetry in the
-folder that <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_TELEMETRY_SMOKE</span></code> names, fail the steps that install the observation of a run,
+<code class="docutils literal notranslate"><span class="pre">telemetryStart</span></code> (which gets the <code class="docutils literal notranslate"><span class="pre">UpdateTelemetryController</span></code> of the window), <code class="docutils literal notranslate"><span class="pre">observationStep</span></code> and <code class="docutils literal notranslate"><span class="pre">windowDestroyed</span></code>, and
+its slot for the <code class="docutils literal notranslate"><span class="pre">workerReady</span></code> signal of <code class="docutils literal notranslate"><span class="pre">RunController</span></code>, start the telemetry in the folder that <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_TELEMETRY_SMOKE</span></code> names, fail the steps that install the observation of a run,
 stop a run at the point that the mode names, and print <code class="docutils literal notranslate"><span class="pre">E2E_TELEMETRY_SHUTDOWN</span></code>; the actions of each mode
 are in <code class="docutils literal notranslate"><span class="pre">runTelemetrySmoke</span></code>, which <code class="docutils literal notranslate"><span class="pre">tools/e2e/telemetry_smoke.py</span></code> drives.</p>
 <p><code class="docutils literal notranslate"><span class="pre">test_no_e2e_in_product</span></code> runs <code class="docutils literal notranslate"><span class="pre">tools/e2e/test_no_e2e_in_product.py</span></code>. It fails when a source, header or
@@ -526,11 +568,15 @@ form that a build without tests compiles holds <code class="docutils literal not
 <code class="docutils literal notranslate"><span class="pre">tests/e2e</span></code> and the telemetry smoke support are not scanned. Four files are exempt for the text that
 they hold on purpose: <code class="docutils literal notranslate"><span class="pre">update/UpdateSettings.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">telemetry/TelemetryConsent.cpp</span></code> test the prefix
 <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_</span></code>, and <code class="docutils literal notranslate"><span class="pre">app/OpenRequestRelay.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">app/OpenRequestRelay.h</span></code> test it and name
-<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_OPEN_RELAY</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_OPEN_RELAY</span></code>. The test also fails when a script under <code class="docutils literal notranslate"><span class="pre">tools/</span></code> waits for an <code class="docutils literal notranslate"><span class="pre">E2E_</span></code> marker that
+no C++ file in <code class="docutils literal notranslate"><span class="pre">tests/e2e</span></code> or <code class="docutils literal notranslate"><span class="pre">app</span></code> prints, such as a misspelt name. That check skips the <code class="docutils literal notranslate"><span class="pre">test_*.py</span></code> files, whose
+markers are fixtures.</p>
 <p><code class="docutils literal notranslate"><span class="pre">PostRun.cpp</span></code> holds the autostart and the checks that follow a run. With <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_AUTOSTART</span></code>
-set, the runner starts the run of the case 1.5 s after the first show. The hooks
-<code class="docutils literal notranslate"><span class="pre">snapshotDelivered</span></code>, <code class="docutils literal notranslate"><span class="pre">snapshotDrawn</span></code>, <code class="docutils literal notranslate"><span class="pre">runResultsRefreshed</span></code>, <code class="docutils literal notranslate"><span class="pre">runFinished</span></code>, <code class="docutils literal notranslate"><span class="pre">runSettled</span></code> and
-<code class="docutils literal notranslate"><span class="pre">routeDiagramBuilt</span></code> of <code class="docutils literal notranslate"><span class="pre">MainWindowTestHooks</span></code> call the checks of <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_EXPORT_DIR</span></code>,
+set, the runner starts the run of the case when the startup of the window has finished (the hook
+<code class="docutils literal notranslate"><span class="pre">afterStartup</span></code>), and the scenarios of <code class="docutils literal notranslate"><span class="pre">E2ERunner.cpp</span></code> start then too. The hooks
+<code class="docutils literal notranslate"><span class="pre">snapshotDelivered</span></code>, <code class="docutils literal notranslate"><span class="pre">snapshotDrawn</span></code>, <code class="docutils literal notranslate"><span class="pre">runFinished</span></code> and <code class="docutils literal notranslate"><span class="pre">routeDiagramBuilt</span></code> of <code class="docutils literal notranslate"><span class="pre">MainWindowTestHooks</span></code>, and
+the slots that <code class="docutils literal notranslate"><span class="pre">connectRunSignals</span></code> connects to the <code class="docutils literal notranslate"><span class="pre">refreshed</span></code> signal of <code class="docutils literal notranslate"><span class="pre">RunResultsDock</span></code> and the
+<code class="docutils literal notranslate"><span class="pre">runSettled</span></code> signal of <code class="docutils literal notranslate"><span class="pre">RunController</span></code>, call the checks of <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_EXPORT_DIR</span></code>,
 <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_ROUTE_DIAGRAM</span></code>, <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_SIGNAL_HEADS</span></code>, <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_PAUSE_STEPS</span></code>,
 <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_OPERATIONAL_COMPLETION</span></code>, <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_OPERATIONAL_DISCARD</span></code>,
 <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_REPLAY_WHOLE_RUN</span></code> and <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_CLOSE_DURING_RUN</span></code>, and the markers
@@ -542,7 +588,9 @@ that the window exports with all trains, with the first train and with none (<co
 <code class="docutils literal notranslate"><span class="pre">_one</span></code>, <code class="docutils literal notranslate"><span class="pre">_none</span></code>). For the blocking-time, the delay and the per-train diagrams it also writes a text dump of the
 chart (<code class="docutils literal notranslate"><span class="pre">blocking_time_series.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">delay_diagram_series.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">speed_distance_series.txt</span></code> and so on: the axes,
 then every series with its properties and points). Two builds of one scene give the same files, so <code class="docutils literal notranslate"><span class="pre">cmp</span></code>
-shows whether a change moved a diagram.</p>
+shows whether a change moved a diagram. It also exports the picture of the delay diagram into a folder that does
+not exist, and fails unless no message box opens and, outside Windows, <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_DIALOG_SUPPRESSED:</span></code> goes to
+standard error.</p>
 <p>The hook of <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_ROUTE_DIAGRAM</span></code> builds the train paths and the timetable graph with each route that trains
 run on as reference. For each of them it writes the text dump of the chart and the CSV of the window with all trains
 (<code class="docutils literal notranslate"><span class="pre">train_path_graph_route&lt;N&gt;_series.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">train_path_graph_route&lt;N&gt;.csv</span></code>, and <code class="docutils literal notranslate"><span class="pre">timetable_graph_route&lt;N&gt;</span></code> likewise, with
@@ -580,8 +628,8 @@ Started outside Visual Studio, it needs the Qt <code class="docutils literal not
 <code class="docutils literal notranslate"><span class="pre">$env:PATH</span> <span class="pre">=</span> <span class="pre">&quot;C:\Qt\6.8.3\msvc2022_64\bin;$env:PATH&quot;</span></code>. Without it the program exits with no window or message.
 These are local build paths; downloaded release packages are documented in <a class="reference internal" href="../guides/install.html"><span class="std std-doc">Installing EGTRAIN</span></a>.</p>
 <p>Runtime output defaults to
-<code class="docutils literal notranslate"><span class="pre">&lt;QStandardPaths::AppDataLocation&gt;/Output/&lt;scene&gt;</span></code>. It does not always use a
-repository <code class="docutils literal notranslate"><span class="pre">Output/</span></code> directory. Set <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_OUTPUT_DIR</span></code> to override the base
+<code class="docutils literal notranslate"><span class="pre">&lt;QStandardPaths::AppDataLocation&gt;/Output/&lt;scene&gt;</span></code>. It does not always use an
+<code class="docutils literal notranslate"><span class="pre">Output/</span></code> directory in the source tree. Set <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_OUTPUT_DIR</span></code> to override the base
 directory; EGTRAIN then writes <code class="docutils literal notranslate"><span class="pre">&lt;override&gt;/Output/&lt;scene&gt;</span></code>.</p>
 </section>
 <section id="common-setup-failures">
@@ -606,7 +654,7 @@ against <code class="docutils literal notranslate"><span class="pre">CMakeLists.
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">not</span> <span class="pre">find</span> <span class="pre">a</span> <span class="pre">package</span> <span class="pre">configuration</span> <span class="pre">file</span> <span class="pre">provided</span> <span class="pre">by</span> <span class="pre">&quot;Qt6Charts&quot;</span></code> (or <code class="docutils literal notranslate"><span class="pre">Qt6Svg</span></code>), followed by the message above</p></td>
 <td><p>The module is not installed</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">-m</span> <span class="pre">qtcharts</span></code> for aqtinstall or the Qt Charts module in the Qt online installer; <code class="docutils literal notranslate"><span class="pre">qt6-charts-dev</span> <span class="pre">qt6-svg-dev</span></code> with the Qt of Ubuntu</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-m</span> <span class="pre">qtcharts</span></code> for aqtinstall or Qt Charts in the <a class="reference internal" href="#qt-online-installer">Qt online installer</a>; <code class="docutils literal notranslate"><span class="pre">qt6-charts-dev</span> <span class="pre">qt6-svg-dev</span></code> with the Qt of Ubuntu</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">not</span> <span class="pre">find</span> <span class="pre">a</span> <span class="pre">package</span> <span class="pre">configuration</span> <span class="pre">file</span> <span class="pre">provided</span> <span class="pre">by</span> <span class="pre">&quot;cppzmq&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;nlohmann_json&quot;</span></code></p></td>
 <td><p>The package is not installed, or on Windows vcpkg is not given to CMake</p></td>
@@ -699,7 +747,7 @@ against <code class="docutils literal notranslate"><span class="pre">CMakeLists.
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">
@@ -722,7 +770,10 @@ against <code class="docutils literal notranslate"><span class="pre">CMakeLists.
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Build from source</a><ul>
-<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#requirements">Requirements</a><ul>
+<li><a class="reference internal" href="#qt-online-installer">Qt online installer</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#configure">Configure</a><ul>
 <li><a class="reference internal" href="#visual-studio">Visual Studio</a></li>
 </ul>

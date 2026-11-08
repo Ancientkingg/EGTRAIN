@@ -8,7 +8,6 @@
 <title>EGTRAIN: diagrams/RunResults.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,22 +111,20 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_run_results_8
   <div class="headertitle"><div class="title">RunResults.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_initial_parameters_8h_source.html">simulation/InitialParameters.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_initial_parameters_8h.html">simulation/InitialParameters.h</a>&quot;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for RunResults.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h__incl.svg" width="368" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h__incl.svg" width="366" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h__dep__incl.svg" width="2752" height="403"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h__dep__incl.svg" width="3696" height="568"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-</div>
-<p><a href="_run_results_8h_source.html">Go to the source code of this file.</a></p>
-<table class="memberdecls">
+</div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:RunOccurrenceProvenance" id="r_RunOccurrenceProvenance"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_run_occurrence_provenance.html">RunOccurrenceProvenance</a></td></tr>
@@ -164,9 +161,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ad21c06972d1d8dc61ccce5ecd60a423f" id="r_ad21c06972d1d8dc61ccce5ecd60a423f"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ad21c06972d1d8dc61ccce5ecd60a423f">hashSceneInputSnapshot</a> (const std::string &amp;snapshot)</td></tr>
 <tr class="memdesc:ad21c06972d1d8dc61ccce5ecd60a423f"><td class="mdescLeft">&#160;</td><td class="mdescRight">SHA-256 in hex of a scene input snapshot, empty for an empty snapshot.  <br /></td></tr>
 <tr class="memitem:ae2eaf2c8b52f181d956ca69372bce036" id="r_ae2eaf2c8b52f181d956ca69372bce036"><td class="memItemLeft"><a class="el" href="struct_run_input_provenance.html">RunInputProvenance</a>&#160;</td><td class="memItemRight"><a class="el" href="#ae2eaf2c8b52f181d956ca69372bce036">captureSavedInput</a> (const std::string &amp;savedPath, const std::string &amp;inputKind, bool dirty, const std::string &amp;savedSha256)</td></tr>
-<tr class="memitem:a2da8b4613133af536cad7cc3a2703daa" id="r_a2da8b4613133af536cad7cc3a2703daa"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2da8b4613133af536cad7cc3a2703daa">writeRunArtifactWithProvenance</a> (const std::string &amp;artifactPath, const std::string &amp;artifactKind, const std::string &amp;artifactBytes, const <a class="el" href="struct_run_provenance.html">RunProvenance</a> &amp;run)</td></tr>
-<tr class="memitem:a689f181d06a78f826fe918f82aa990f8" id="r_a689f181d06a78f826fe918f82aa990f8"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a689f181d06a78f826fe918f82aa990f8">writeDelayArtifactWithProvenance</a> (const std::string &amp;artifactPath, const std::string &amp;artifactKind, const std::string &amp;artifactBytes, const <a class="el" href="struct_run_provenance.html">RunProvenance</a> &amp;baselineRun, const <a class="el" href="struct_run_provenance.html">RunProvenance</a> &amp;scenarioRun)</td></tr>
-<tr class="memdesc:a689f181d06a78f826fe918f82aa990f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">As writeRunArtifactWithProvenance, with the provenance of both runs of a delay comparison in the sidecar.  <br /></td></tr>
+<tr class="memitem:aef45206a92cadde90e29fd2c9a7cea69" id="r_aef45206a92cadde90e29fd2c9a7cea69"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aef45206a92cadde90e29fd2c9a7cea69">writeRunArtifactWithProvenance</a> (const std::string &amp;artifactPath, const std::string &amp;artifactKind, const std::string &amp;artifactBytes, const <a class="el" href="struct_run_provenance.html">RunProvenance</a> &amp;run)</td></tr>
+<tr class="memitem:a1f7fb0a7f04b4a9398964cbafa40b8fa" id="r_a1f7fb0a7f04b4a9398964cbafa40b8fa"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a1f7fb0a7f04b4a9398964cbafa40b8fa">writeDelayArtifactWithProvenance</a> (const std::string &amp;artifactPath, const std::string &amp;artifactKind, const std::string &amp;artifactBytes, const <a class="el" href="struct_run_provenance.html">RunProvenance</a> &amp;baselineRun, const <a class="el" href="struct_run_provenance.html">RunProvenance</a> &amp;scenarioRun)</td></tr>
+<tr class="memdesc:a1f7fb0a7f04b4a9398964cbafa40b8fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">As writeRunArtifactWithProvenance, with the provenance of both runs of a delay comparison in the sidecar.  <br /></td></tr>
 <tr class="memitem:ad86fae6b844959d443eb855f68338ba5" id="r_ad86fae6b844959d443eb855f68338ba5"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#ad86fae6b844959d443eb855f68338ba5">energyMJKWh</a> (double energyMJ)</td></tr>
 <tr class="memdesc:ad86fae6b844959d443eb855f68338ba5"><td class="mdescLeft">&#160;</td><td class="mdescRight">An energy in MJ as kWh, with kEnergyMJToKWh.  <br /></td></tr>
 <tr class="memitem:a36b4eaa98996e5bbe46ca09699115d48" id="r_a36b4eaa98996e5bbe46ca09699115d48"><td class="memItemLeft"><a class="el" href="struct_run_results.html">RunResults</a>&#160;</td><td class="memItemRight"><a class="el" href="#a36b4eaa98996e5bbe46ca09699115d48">buildRunResults</a> (const std::vector&lt; const <a class="el" href="class_train.html">Train</a> * &gt; &amp;trains, double timestepSeconds)</td></tr>
@@ -177,7 +174,7 @@ Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:ab6fa29a23b065e097afed9c0d4a1d75f" id="r_ab6fa29a23b065e097afed9c0d4a1d75f"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#ab6fa29a23b065e097afed9c0d4a1d75f">kEnergyMJToKWh</a> = 0.27778</td></tr>
+<tr class="memitem:ab6fa29a23b065e097afed9c0d4a1d75f" id="r_ab6fa29a23b065e097afed9c0d4a1d75f"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#ab6fa29a23b065e097afed9c0d4a1d75f">kEnergyMJToKWh</a></td></tr>
 <tr class="memdesc:ab6fa29a23b065e097afed9c0d4a1d75f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Factor from MJ to kWh that the text outputs and the run results use: 1 / 3.6 rounded to five decimals.  <br /></td></tr>
 </table>
 <a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
@@ -238,7 +235,7 @@ Variables</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_a36b4eaa98996e5bbe46ca09699115d48_cgraph.svg" width="595" height="207"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_a36b4eaa98996e5bbe46ca09699115d48_cgraph.svg" width="594" height="215"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -261,7 +258,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_a9ae7edc4c23c80417d0baa9f06fc052f_cgraph.svg" width="435" height="68"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_a9ae7edc4c23c80417d0baa9f06fc052f_cgraph.svg" width="434" height="71"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -298,7 +295,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_ae2eaf2c8b52f181d956ca69372bce036_cgraph.svg" width="155" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_ae2eaf2c8b52f181d956ca69372bce036_cgraph.svg" width="155" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -321,7 +318,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_a213452198b1bc486ef396bfe6044b9f9_cgraph.svg" width="208" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_a213452198b1bc486ef396bfe6044b9f9_cgraph.svg" width="207" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -353,7 +350,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_ad86fae6b844959d443eb855f68338ba5_cgraph.svg" width="123" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_ad86fae6b844959d443eb855f68338ba5_cgraph.svg" width="123" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -377,7 +374,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_acf97da510dca1cd4dfeb4aa32f33598d_cgraph.svg" width="148" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_acf97da510dca1cd4dfeb4aa32f33598d_cgraph.svg" width="147" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -401,7 +398,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_a298fc7d7a9698c7bca2b51c0c055c67e_cgraph.svg" width="163" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_a298fc7d7a9698c7bca2b51c0c055c67e_cgraph.svg" width="163" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -425,7 +422,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_ad21c06972d1d8dc61ccce5ecd60a423f_cgraph.svg" width="196" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_ad21c06972d1d8dc61ccce5ecd60a423f_cgraph.svg" width="195" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -457,19 +454,19 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_a1f8947330931b9b59f169c0e5363a54a_cgraph.svg" width="162" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_a1f8947330931b9b59f169c0e5363a54a_cgraph.svg" width="160" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a689f181d06a78f826fe918f82aa990f8" name="a689f181d06a78f826fe918f82aa990f8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a689f181d06a78f826fe918f82aa990f8">&#9670;&#160;</a></span>writeDelayArtifactWithProvenance()</h2>
+<a id="a1f7fb0a7f04b4a9398964cbafa40b8fa" name="a1f7fb0a7f04b4a9398964cbafa40b8fa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1f7fb0a7f04b4a9398964cbafa40b8fa">&#9670;&#160;</a></span>writeDelayArtifactWithProvenance()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool writeDelayArtifactWithProvenance </td>
+          <td class="memname">std::string writeDelayArtifactWithProvenance </td>
           <td>(</td>
           <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>artifactPath</em></span>, </td>
         </tr>
@@ -500,19 +497,19 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_a689f181d06a78f826fe918f82aa990f8_cgraph.svg" width="258" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_a1f7fb0a7f04b4a9398964cbafa40b8fa_cgraph.svg" width="258" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a2da8b4613133af536cad7cc3a2703daa" name="a2da8b4613133af536cad7cc3a2703daa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2da8b4613133af536cad7cc3a2703daa">&#9670;&#160;</a></span>writeRunArtifactWithProvenance()</h2>
+<a id="aef45206a92cadde90e29fd2c9a7cea69" name="aef45206a92cadde90e29fd2c9a7cea69"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aef45206a92cadde90e29fd2c9a7cea69">&#9670;&#160;</a></span>writeRunArtifactWithProvenance()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool writeRunArtifactWithProvenance </td>
+          <td class="memname">std::string writeRunArtifactWithProvenance </td>
           <td>(</td>
           <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>artifactPath</em></span>, </td>
         </tr>
@@ -533,11 +530,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Writes the artifact and its sidecar <span class="tt">&lt;artifactPath&gt;.provenance.json</span>. <span class="tt">artifactKind</span> names the artifact in the sidecar, such as "csv" or "png". False when a write fails; the artifact is then not replaced. </p>
+<p>Writes the artifact and its sidecar <span class="tt">&lt;artifactPath&gt;.provenance.json</span>. <span class="tt">artifactKind</span> names the artifact in the sidecar, such as "csv" or "png". Returns why a write failed, after the file name of the sidecar when it was the sidecar, or an empty string when both were written. A failed write does not replace the artifact. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_a2da8b4613133af536cad7cc3a2703daa_cgraph.svg" width="246" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_8h_aef45206a92cadde90e29fd2c9a7cea69_cgraph.svg" width="244" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -553,7 +550,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">double kEnergyMJToKWh = 0.27778</td>
+          <td class="memname">double kEnergyMJToKWh</td>
         </tr>
       </table>
   </td>

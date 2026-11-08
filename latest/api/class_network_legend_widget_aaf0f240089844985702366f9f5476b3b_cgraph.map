@@ -1,5 +1,5 @@
 <map id="NetworkLegendWidget::NetworkLegendWidget" name="NetworkLegendWidget::NetworkLegendWidget">
-<area shape="rect" id="Node000001" title="An expanded key without rows." alt="" coords="5,5,184,45"/>
-<area shape="rect" id="Node000002" href="$class_network_legend_widget.html#a6459b6aad43ab743797df0dfe3bcd3b3" title="Shows or hides the rows and sets the arrow and tooltip of the button to match." alt="" coords="232,5,403,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,23,218,23,218,28,184,28"/>
+<area shape="rect" id="Node000001" title="An expanded key without rows." alt="" coords="5,5,183,50"/>
+<area shape="rect" id="Node000002" href="$class_network_legend_widget.html#a6459b6aad43ab743797df0dfe3bcd3b3" title="Shows or hides the rows and sets the arrow and tooltip of the button to match." alt="" coords="231,5,400,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,25,218,27,213,28,183,30"/>
 </map>

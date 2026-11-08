@@ -1,5 +1,5 @@
 <map id="TrajectoryEndTimeOverride::TrajectoryEndTimeOverride" name="TrajectoryEndTimeOverride::TrajectoryEndTimeOverride">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,212,45"/>
-<area shape="rect" id="Node000002" href="$class_trajectory_end_time_override.html#ad04e027b60fe803655296c3ec83fb9ad" title=" " alt="" coords="260,5,467,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,23,246,23,246,28,212,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,212,50"/>
+<area shape="rect" id="Node000002" href="$class_trajectory_end_time_override.html#ad04e027b60fe803655296c3ec83fb9ad" title=" " alt="" coords="260,5,466,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,25,247,27,242,28,212,30"/>
 </map>

@@ -1,0 +1,10 @@
+<map id="blockingTimeNote" name="blockingTimeNote">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,146,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="46,29,41,20,45,11,57,5,76,3,96,5,108,14,103,14,94,10,75,8,58,10,49,15,46,20,51,29"/>
+<area shape="rect" id="Node000002" href="$_blocking_time_diagram_8cpp.html#a71f3e00da322333deb9949ee1ef18a26" title=" " alt="" coords="194,29,296,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="146,41,181,43,175,43,146,46"/>
+<area shape="poly" id="edge5_Node000002_Node000002" title=" " alt="" coords="215,28,210,20,214,11,226,5,245,3,265,5,277,14,272,14,263,10,245,8,228,10,218,15,216,20,220,30"/>
+<area shape="rect" id="Node000003" href="$_blocking_time_diagram_8cpp.html#aaaaf79ea1a3e7a4f74ca8d1e1907e458" title=" " alt="" coords="344,29,522,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="296,41,331,43,326,43,296,46"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="400,28,395,20,399,11,412,5,433,3,456,5,469,15,464,14,454,10,433,8,414,10,403,15,401,20,405,30"/>
+</map>

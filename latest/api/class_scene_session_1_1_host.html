@@ -8,7 +8,6 @@
 <title>EGTRAIN: SceneSession::Host Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,14 +112,11 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_scene_se
 </div><!--header-->
 <div class="contents">
 
-<p>What the session asks of the window, and the points at which it tells the window that the scene changed.  
- <a href="#details">More...</a></p>
-
-<p><code>#include &lt;<a class="el" href="_scene_session_8h_source.html">app/SceneSession.h</a>&gt;</code></p>
+<p><code>#include &lt;app/SceneSession.h&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for SceneSession::Host:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host__inherit__graph.svg" width="160" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host__inherit__graph.svg" width="159" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -136,21 +132,13 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a556ffacfce1bfa3e0fa054f567360b18" id="r_a556ffacfce1bfa3e0fa054f567360b18"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a556ffacfce1bfa3e0fa054f567360b18">bringToFront</a> ()=0</td></tr>
 <tr class="memitem:ad357e6c68b725f4d4e79f33bdcf8b1f5" id="r_ad357e6c68b725f4d4e79f33bdcf8b1f5"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#ad357e6c68b725f4d4e79f33bdcf8b1f5">offerUpdateCheck</a> ()=0</td></tr>
 <tr class="memdesc:ad357e6c68b725f4d4e79f33bdcf8b1f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts a check for a newer version at the request of the user.  <br /></td></tr>
-<tr class="memitem:af1e887440b754f79bbee90c154856cd6" id="r_af1e887440b754f79bbee90c154856cd6"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#af1e887440b754f79bbee90c154856cd6">sceneActionsChanged</a> ()=0</td></tr>
-<tr class="memdesc:af1e887440b754f79bbee90c154856cd6"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the actions of the window enable depends on the scene or on the recent scenes, and one of them changed.  <br /></td></tr>
 <tr class="memitem:a9cbce332a88179c824d788f2e5622b65" id="r_a9cbce332a88179c824d788f2e5622b65"><td class="memItemLeft">virtual QString&#160;</td><td class="memItemRight"><a class="el" href="#a9cbce332a88179c824d788f2e5622b65">recoveredSceneSource</a> () const =0</td></tr>
-<tr class="memdesc:a9cbce332a88179c824d788f2e5622b65"><td class="mdescLeft">&#160;</td><td class="mdescRight">The path of the file that a recovered scene is a copy of, or an empty string.  <br /></td></tr>
+<tr class="memdesc:a9cbce332a88179c824d788f2e5622b65"><td class="mdescLeft">&#160;</td><td class="mdescRight">The path of the case file or case folder that a recovered scene is a copy of, or an empty string.  <br /></td></tr>
 <tr class="memitem:af6ee830bb43819af1dc87fd7238b640e" id="r_af6ee830bb43819af1dc87fd7238b640e"><td class="memItemLeft">virtual <a class="el" href="struct_scene_load_result.html">SceneLoadResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#af6ee830bb43819af1dc87fd7238b640e">readScene</a> (const QString &amp;path, bool &amp;identityOk)=0</td></tr>
-<tr class="memitem:aeb5b4b6f233da4a2919b97e897edbb87" id="r_aeb5b4b6f233da4a2919b97e897edbb87"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#aeb5b4b6f233da4a2919b97e897edbb87">sceneWillBeReplaced</a> ()=0</td></tr>
-<tr class="memdesc:aeb5b4b6f233da4a2919b97e897edbb87"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene in the document is about to be replaced by another. The run and what the canvas shows end.  <br /></td></tr>
-<tr class="memitem:ad08d182f761db4f44832d39f8e21b18b" id="r_ad08d182f761db4f44832d39f8e21b18b"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#ad08d182f761db4f44832d39f8e21b18b">sceneCreated</a> (const <a class="el" href="classtelemetry_1_1_operation_observation.html">telemetry::OperationObservation</a> &amp;operation)=0</td></tr>
-<tr class="memdesc:ad08d182f761db4f44832d39f8e21b18b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The document holds a new scene that has no file. The session has no scene folder and no diagnostics.  <br /></td></tr>
 <tr class="memitem:a4f049bc423d18f29ec228abe83f78f17" id="r_a4f049bc423d18f29ec228abe83f78f17"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#a4f049bc423d18f29ec228abe83f78f17">sceneOpened</a> (const <a class="el" href="struct_scene_session_1_1_opened_scene.html">OpenedScene</a> &amp;opened)=0</td></tr>
-<tr class="memitem:af1299a535dee48ae992e40d9a11eb145" id="r_af1299a535dee48ae992e40d9a11eb145"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#af1299a535dee48ae992e40d9a11eb145">sceneSaved</a> ()=0</td></tr>
-<tr class="memdesc:af1299a535dee48ae992e40d9a11eb145"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene was written. The session holds its new location and the record of what was written.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>What the session asks of the window, and the points at which it tells the window that the scene changed. </p>
+<div class="textblock"><p>What the session asks of the window. The points at which it tells the window that the scene changed are its signals. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a557a3cfe513029776e481b1d3fac7900" name="a557a3cfe513029776e481b1d3fac7900"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a557a3cfe513029776e481b1d3fac7900">&#9670;&#160;</a></span>~Host()</h2>
@@ -204,7 +192,7 @@ Public Member Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_ad6d7739eecf3cef44832bef8eede650c_cgraph.svg" width="160" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_ad6d7739eecf3cef44832bef8eede650c_cgraph.svg" width="159" height="80"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -235,7 +223,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_a556ffacfce1bfa3e0fa054f567360b18_cgraph.svg" width="160" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_a556ffacfce1bfa3e0fa054f567360b18_cgraph.svg" width="159" height="80"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -294,7 +282,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_a0d0924e3e7674e0e48bfb3e9cdf14768_cgraph.svg" width="175" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_a0d0924e3e7674e0e48bfb3e9cdf14768_cgraph.svg" width="175" height="80"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -326,7 +314,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_ad2174182245a3ec59a56c981a97b19f8_cgraph.svg" width="163" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_ad2174182245a3ec59a56c981a97b19f8_cgraph.svg" width="163" height="80"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -358,7 +346,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_ad357e6c68b725f4d4e79f33bdcf8b1f5_cgraph.svg" width="160" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_ad357e6c68b725f4d4e79f33bdcf8b1f5_cgraph.svg" width="159" height="80"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -393,7 +381,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_af6ee830bb43819af1dc87fd7238b640e_cgraph.svg" width="160" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_af6ee830bb43819af1dc87fd7238b640e_cgraph.svg" width="159" height="80"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -421,75 +409,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>The path of the file that a recovered scene is a copy of, or an empty string. </p>
+<p>The path of the case file or case folder that a recovered scene is a copy of, or an empty string. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_a9cbce332a88179c824d788f2e5622b65_cgraph.svg" width="190" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="af1e887440b754f79bbee90c154856cd6" name="af1e887440b754f79bbee90c154856cd6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af1e887440b754f79bbee90c154856cd6">&#9670;&#160;</a></span>sceneActionsChanged()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual void SceneSession::Host::sceneActionsChanged </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel pure-virtual">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>What the actions of the window enable depends on the scene or on the recent scenes, and one of them changed. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_af1e887440b754f79bbee90c154856cd6_cgraph.svg" width="184" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="ad08d182f761db4f44832d39f8e21b18b" name="ad08d182f761db4f44832d39f8e21b18b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad08d182f761db4f44832d39f8e21b18b">&#9670;&#160;</a></span>sceneCreated()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual void SceneSession::Host::sceneCreated </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classtelemetry_1_1_operation_observation.html">telemetry::OperationObservation</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>operation</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel pure-virtual">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>The document holds a new scene that has no file. The session has no scene folder and no diagnostics. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_ad08d182f761db4f44832d39f8e21b18b_cgraph.svg" width="160" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_a9cbce332a88179c824d788f2e5622b65_cgraph.svg" width="188" height="80"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -520,77 +444,13 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_a4f049bc423d18f29ec228abe83f78f17_cgraph.svg" width="160" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="af1299a535dee48ae992e40d9a11eb145" name="af1299a535dee48ae992e40d9a11eb145"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af1299a535dee48ae992e40d9a11eb145">&#9670;&#160;</a></span>sceneSaved()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual void SceneSession::Host::sceneSaved </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel pure-virtual">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>The scene was written. The session holds its new location and the record of what was written. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_af1299a535dee48ae992e40d9a11eb145_cgraph.svg" width="675" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="aeb5b4b6f233da4a2919b97e897edbb87" name="aeb5b4b6f233da4a2919b97e897edbb87"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeb5b4b6f233da4a2919b97e897edbb87">&#9670;&#160;</a></span>sceneWillBeReplaced()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual void SceneSession::Host::sceneWillBeReplaced </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel pure-virtual">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>The scene in the document is about to be replaced by another. The run and what the canvas shows end. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_aeb5b4b6f233da4a2919b97e897edbb87_cgraph.svg" width="182" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_1_1_host_a4f049bc423d18f29ec228abe83f78f17_cgraph.svg" width="415" height="80"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>app/<a class="el" href="_scene_session_8h_source.html">SceneSession.h</a></li>
+<li>app/<a class="el" href="_scene_session_8h.html">SceneSession.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

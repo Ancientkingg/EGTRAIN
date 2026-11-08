@@ -1,16 +1,16 @@
 <map id="EditorLayout::emptyStateLabel" name="EditorLayout::emptyStateLabel">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,193,69"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="57,30,55,20,62,10,77,5,99,3,125,6,140,13,137,18,124,11,99,8,78,10,65,15,60,21,63,28"/>
-<area shape="rect" id="Node000002" href="$namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e" title=" " alt="" coords="241,37,408,62"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="194,47,228,47,228,52,194,52"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="291,38,283,28,287,18,301,12,325,10,354,14,365,23,362,27,352,19,325,15,303,17,291,22,288,28,295,35"/>
-<area shape="rect" id="Node000003" href="$namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734" title=" " alt="" coords="456,29,609,69"/>
-<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="408,47,442,47,442,52,408,52"/>
-<area shape="poly" id="edge9_Node000003_Node000003" title=" " alt="" coords="494,30,491,20,497,10,511,5,533,3,557,6,570,13,568,18,555,11,533,8,513,10,501,15,496,21,499,28"/>
-<area shape="rect" id="Node000004" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="657,29,839,69"/>
-<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="610,47,644,47,644,52,610,52"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="708,30,706,20,712,10,726,5,748,3,773,6,787,13,784,18,771,11,748,8,728,10,715,15,711,21,713,28"/>
-<area shape="rect" id="Node000005" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="887,29,1040,69"/>
-<area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="839,47,873,47,873,52,839,52"/>
-<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="923,30,921,20,927,10,942,5,963,3,988,6,1002,13,999,18,987,11,963,8,943,10,931,15,926,21,928,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,193,74"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="56,28,55,19,62,10,77,5,99,3,123,5,139,14,134,14,122,10,99,8,78,10,65,15,60,21,61,29"/>
+<area shape="rect" id="Node000002" href="$namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e" title=" " alt="" coords="241,38,406,66"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="193,49,228,51,222,52,193,54"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="288,36,282,29,287,19,301,13,323,11,348,14,362,23,357,22,346,19,323,16,302,18,290,23,287,29,292,38"/>
+<area shape="rect" id="Node000003" href="$namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734" title=" " alt="" coords="454,29,606,74"/>
+<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="406,49,441,52,436,52,407,54"/>
+<area shape="poly" id="edge9_Node000003_Node000003" title=" " alt="" coords="491,27,489,19,496,10,510,5,530,3,553,5,568,15,562,14,551,10,530,8,511,10,499,15,494,21,495,30"/>
+<area shape="rect" id="Node000004" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="654,29,835,74"/>
+<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="607,49,641,52,636,52,607,54"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="704,27,702,19,709,10,723,5,745,3,768,5,783,15,778,14,766,10,744,8,725,10,712,15,707,21,708,30"/>
+<area shape="rect" id="Node000005" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="883,29,1035,74"/>
+<area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="835,49,870,52,865,52,835,54"/>
+<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="918,27,916,19,923,10,938,5,959,3,982,5,997,15,992,14,981,10,959,8,939,10,927,15,922,21,922,30"/>
 </map>

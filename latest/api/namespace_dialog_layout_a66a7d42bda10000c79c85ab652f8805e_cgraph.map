@@ -1,13 +1,13 @@
 <map id="DialogLayout::setStatus" name="DialogLayout::setStatus">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,37,183,62"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="59,38,52,28,55,18,70,12,94,10,124,14,135,23,132,27,122,19,94,15,71,17,59,22,57,28,63,35"/>
-<area shape="rect" id="Node000002" href="$namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734" title=" " alt="" coords="231,29,384,69"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="183,47,217,47,217,52,183,52"/>
-<area shape="poly" id="edge7_Node000002_Node000002" title=" " alt="" coords="267,30,265,20,271,10,286,5,307,3,332,6,346,13,343,18,331,11,307,8,287,10,275,15,270,21,272,28"/>
-<area shape="rect" id="Node000003" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="432,29,613,69"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="384,47,418,47,418,52,384,52"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="483,30,480,20,487,10,501,5,523,3,548,6,561,13,559,18,546,11,523,8,502,10,490,15,485,21,488,28"/>
-<area shape="rect" id="Node000004" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="661,29,815,69"/>
-<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="614,47,648,47,648,52,614,52"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="698,30,696,20,702,10,716,5,738,3,763,6,777,13,774,18,761,11,738,8,718,10,705,15,701,21,703,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,38,182,66"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="57,37,51,29,56,19,70,13,94,11,119,14,134,22,128,23,117,19,93,16,71,18,59,23,56,29,62,37"/>
+<area shape="rect" id="Node000002" href="$namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734" title=" " alt="" coords="230,29,382,74"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="182,49,217,51,212,52,182,54"/>
+<area shape="poly" id="edge7_Node000002_Node000002" title=" " alt="" coords="265,27,264,19,271,10,285,5,306,3,329,5,344,14,339,14,327,10,306,8,286,10,274,15,269,21,270,30"/>
+<area shape="rect" id="Node000003" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="430,29,610,74"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="382,49,417,52,412,52,382,54"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="480,27,478,19,485,10,499,5,520,3,543,5,559,15,554,14,542,10,520,8,500,10,488,15,483,21,484,30"/>
+<area shape="rect" id="Node000004" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="658,29,811,74"/>
+<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="611,49,646,52,640,52,611,54"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="694,27,692,19,699,10,713,5,735,3,758,5,773,15,768,14,756,10,734,8,715,10,702,15,697,21,698,30"/>
 </map>

@@ -8,7 +8,6 @@
 <title>EGTRAIN: SceneImportReportRow Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,7 +115,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_i
 <p>A row of import_report in scene.json. The counts describe the conversion source, not a run.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&gt;</code></p>
+<p><code>#include &lt;scene/SceneModel.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -124,13 +123,13 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a108063247bbb67e82c17584e9880946e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The kind of record converted.  <br /></td></tr>
 <tr class="memitem:a7c47c88208b8be0732846b65b0737574" id="r_a7c47c88208b8be0732846b65b0737574"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a7c47c88208b8be0732846b65b0737574">sourceFile</a></td></tr>
 <tr class="memdesc:a7c47c88208b8be0732846b65b0737574"><td class="mdescLeft">&#160;</td><td class="mdescRight">The legacy file it was read from; empty when not given.  <br /></td></tr>
-<tr class="memitem:a10544983d3af83dbdd8adc3d6dc9ee97" id="r_a10544983d3af83dbdd8adc3d6dc9ee97"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a10544983d3af83dbdd8adc3d6dc9ee97">sourceCount</a> = 0</td></tr>
+<tr class="memitem:a10544983d3af83dbdd8adc3d6dc9ee97" id="r_a10544983d3af83dbdd8adc3d6dc9ee97"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a10544983d3af83dbdd8adc3d6dc9ee97">sourceCount</a></td></tr>
 <tr class="memdesc:a10544983d3af83dbdd8adc3d6dc9ee97"><td class="mdescLeft">&#160;</td><td class="mdescRight">Records in the source.  <br /></td></tr>
-<tr class="memitem:afa5d0d78827bece63d14f91eb6d6a187" id="r_afa5d0d78827bece63d14f91eb6d6a187"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#afa5d0d78827bece63d14f91eb6d6a187">convertedCount</a> = 0</td></tr>
+<tr class="memitem:afa5d0d78827bece63d14f91eb6d6a187" id="r_afa5d0d78827bece63d14f91eb6d6a187"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#afa5d0d78827bece63d14f91eb6d6a187">convertedCount</a></td></tr>
 <tr class="memdesc:afa5d0d78827bece63d14f91eb6d6a187"><td class="mdescLeft">&#160;</td><td class="mdescRight">Records converted.  <br /></td></tr>
-<tr class="memitem:afcca67479761060b43d19b4559312883" id="r_afcca67479761060b43d19b4559312883"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#afcca67479761060b43d19b4559312883">skippedCount</a> = 0</td></tr>
+<tr class="memitem:afcca67479761060b43d19b4559312883" id="r_afcca67479761060b43d19b4559312883"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#afcca67479761060b43d19b4559312883">skippedCount</a></td></tr>
 <tr class="memdesc:afcca67479761060b43d19b4559312883"><td class="mdescLeft">&#160;</td><td class="mdescRight">Records skipped.  <br /></td></tr>
-<tr class="memitem:af65de33b57e41bb2bfbcbd9d8ebc2d8d" id="r_af65de33b57e41bb2bfbcbd9d8ebc2d8d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#af65de33b57e41bb2bfbcbd9d8ebc2d8d">unresolvedReferences</a> = 0</td></tr>
+<tr class="memitem:af65de33b57e41bb2bfbcbd9d8ebc2d8d" id="r_af65de33b57e41bb2bfbcbd9d8ebc2d8d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#af65de33b57e41bb2bfbcbd9d8ebc2d8d">unresolvedReferences</a></td></tr>
 <tr class="memdesc:af65de33b57e41bb2bfbcbd9d8ebc2d8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">References that could not be resolved.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -159,7 +158,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int SceneImportReportRow::convertedCount = 0</td>
+          <td class="memname">int SceneImportReportRow::convertedCount</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -175,7 +174,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int SceneImportReportRow::skippedCount = 0</td>
+          <td class="memname">int SceneImportReportRow::skippedCount</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -191,7 +190,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int SceneImportReportRow::sourceCount = 0</td>
+          <td class="memname">int SceneImportReportRow::sourceCount</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -223,7 +222,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int SceneImportReportRow::unresolvedReferences = 0</td>
+          <td class="memname">int SceneImportReportRow::unresolvedReferences</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -233,7 +232,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>scene/<a class="el" href="_scene_model_8h_source.html">SceneModel.h</a></li>
+<li>scene/<a class="el" href="_scene_model_8h.html">SceneModel.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

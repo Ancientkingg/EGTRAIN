@@ -192,11 +192,13 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="common-questions.html">Common questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
-<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
@@ -220,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -236,7 +238,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +252,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +267,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -353,8 +355,8 @@
 <section id="open-the-case-and-keep-your-own-copy">
 <h2>Open the case and keep your own copy<a class="headerlink" href="#open-the-case-and-keep-your-own-copy" title="Link to this heading">¶</a></h2>
 <ol class="arabic simple">
-<li><p>Click <strong>Open Case</strong> in the toolbar. In the dialog <strong>Open a Case</strong>, select <code class="docutils literal notranslate"><span class="pre">Amsterdam_Hilversum_Student</span></code> under <strong>Bundled cases</strong> (the first entry) and click <strong>Open</strong>. The network appears and the window title names the case. If the list does not show the case, open the downloaded <code class="docutils literal notranslate"><span class="pre">Amsterdam_Hilversum_Student.egscene</span></code> with <strong>File &gt; Open Case…</strong> instead; see <a class="reference internal" href="opening-a-case-study.html"><span class="std std-doc">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</span></a>.</p></li>
-<li><p>Choose <strong>File &gt; Save As…</strong> and save a <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file in a folder of your own. For a bundled case, the dialog starts in your Documents folder, or in your home folder when there is none. The status bar reads <strong>Case saved</strong> and your file is the open case.</p></li>
+<li><p>Click <strong>Open Case</strong> in the toolbar. In the dialog <strong>Open a Case</strong>, select <code class="docutils literal notranslate"><span class="pre">Amsterdam_Hilversum_Student</span></code> under <strong>Bundled cases</strong> (the first entry) and click <strong>Open</strong>. The network appears and the window title names the case. If the list does not show the case, open the downloaded <code class="docutils literal notranslate"><span class="pre">Amsterdam_Hilversum_Student.egscene</span></code> with <strong>Other ways to open… &gt; Open Case File…</strong> in the same window instead; see <a class="reference internal" href="opening-a-case-study.html"><span class="std std-doc">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</span></a>.</p></li>
+<li><p>Choose <strong>File &gt; Save As…</strong>, click <strong>Case File…</strong> and save a <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file in a folder of your own. For a bundled case, the dialog starts in your Documents folder, or in your home folder when there is none. The status bar reads <strong>Case saved</strong> and your file is the open case.</p></li>
 <li><p>From then on <strong>File &gt; Save</strong> saves to your file. If you edit a bundled case before making a copy, <strong>Save</strong> asks for a new <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file instead of overwriting the bundled case. Cancelling keeps the edit and the current case.</p></li>
 </ol>
 <p>The saved file holds the inputs of the case. It holds neither results nor the selection of runs.</p>
@@ -396,7 +398,7 @@
 <li><p>Run and export as in task 2, with file names that start with <code class="docutils literal notranslate"><span class="pre">slower</span></code>.</p></li>
 <li><p>Compare the <code class="docutils literal notranslate"><span class="pre">Hvs</span></code> arrival delay, the whole <strong>Travel time (h:mm:ss)</strong>, <strong>Maximum speed (km/h)</strong> and <strong>Energy (kWh)</strong> with the baseline. Use the same energy column in every comparison.</p></li>
 </ol>
-<p>The percentage multiplies the tractive effort at every speed and the maximum speed of the train. It does not change the mass or the braking effort. Read the journey time from the results; do not derive it from the percentage.</p>
+<p>The percentage multiplies the tractive effort at every speed, the maximum speed of the train and the track speed limits it runs under. It does not change speed limits that signals impose, the mass or the braking effort. Read the journey time from the results; do not derive it from the percentage.</p>
 <p>Optional: choose <strong>Open result view…</strong> &gt; <strong>Tractive effort / distance</strong> and compare it with <strong>Speed / distance</strong>. It shows the tractive effort the run applied, in kN, not the traction curve of the rolling stock unit. Export a PNG if you want it in your hand-in.</p>
 <p><strong>Set delay baseline</strong> and <strong>Compare delays</strong> compare a run with incidents or entrance delays against a baseline run. This exercise does not use them.</p>
 </section>
@@ -425,8 +427,8 @@
 <h3>6. Recommend and hand in<a class="headerlink" href="#recommend-and-hand-in" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><p>Choose a configuration: the performance, the <code class="docutils literal notranslate"><span class="pre">Hvs</span></code> planned times and the number of runs.</p></li>
-<li><p>Set the open case to that configuration and choose <strong>File &gt; Save As…</strong> with a new file name. The file keeps <strong>Repeat count</strong> from <strong>Service</strong>, not the ticks on <strong>Run occurrences</strong>, so state in your recommendation which runs you ran. Your first copy keeps what you last saved in it.</p></li>
-<li><p>To check your file, choose <strong>File &gt; Open Case…</strong> and select it. Check the performance on <strong>Service</strong> and the <code class="docutils literal notranslate"><span class="pre">Hvs</span></code> times on <strong>Timetable</strong>. Opening a case resets the selection of runs, so select the runs again on <strong>Run occurrences</strong>, run, and compare with your exports.</p></li>
+<li><p>Set the open case to that configuration and choose <strong>File &gt; Save As…</strong>, click <strong>Case File…</strong> and give a new file name. The file keeps <strong>Repeat count</strong> from <strong>Service</strong>, not the ticks on <strong>Run occurrences</strong>, so state in your recommendation which runs you ran. Your first copy keeps what you last saved in it.</p></li>
+<li><p>To check your file, choose <strong>File &gt; Open Case…</strong>, then <strong>Other ways to open… &gt; Open Case File…</strong>, and select it. Check the performance on <strong>Service</strong> and the <code class="docutils literal notranslate"><span class="pre">Hvs</span></code> times on <strong>Timetable</strong>. Opening a case resets the selection of runs, so select the runs again on <strong>Run occurrences</strong>, run, and compare with your exports.</p></li>
 </ol>
 <p>Hand in:</p>
 <ul class="simple">
@@ -489,7 +491,7 @@
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

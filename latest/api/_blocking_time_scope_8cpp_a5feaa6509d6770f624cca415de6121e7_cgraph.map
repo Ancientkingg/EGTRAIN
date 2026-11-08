@@ -1,0 +1,7 @@
+<map id="stationsHoldingBlocks" name="stationsHoldingBlocks">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,172,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="52,29,47,20,51,11,66,5,89,3,113,5,128,14,123,14,112,10,88,8,67,10,55,15,52,20,58,29"/>
+<area shape="rect" id="Node000002" href="$_blocking_time_scope_8cpp.html#a9b69b830af3ce74a5c31ab8884fd3596" title=" " alt="" coords="220,29,375,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="172,41,207,43,202,43,172,46"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="261,28,256,20,260,11,274,5,297,3,322,5,337,14,331,14,321,10,297,8,276,10,264,15,261,20,266,30"/>
+</map>

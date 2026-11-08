@@ -192,11 +192,13 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/common-questions.html">Common questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
@@ -220,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -236,7 +238,6 @@
 <li class="toctree-l1"><a class="reference internal" href="coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +252,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul class="current">
@@ -267,6 +267,8 @@
 <li class="toctree-l1"><a class="reference internal" href="records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -340,18 +342,18 @@
 </table>
 </div>
 <p>The script stops with a message that names the parameter when <code class="docutils literal notranslate"><span class="pre">/DVersion</span></code> or <code class="docutils literal notranslate"><span class="pre">/DPayload</span></code> is missing. It does not check that the payload holds <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>.</p>
-<p>Besides the payload, the compiler reads three files of the repository: <code class="docutils literal notranslate"><span class="pre">installer/installed-by-setup.ini</span></code>, the icon <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/resources/app/egtrain.ico</span></code>, which is the icon of Setup, and <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code>, the GPL-3.0 text that the licence page shows.</p>
+<p>Besides the payload, the compiler reads three files of the source tree: <code class="docutils literal notranslate"><span class="pre">installer/installed-by-setup.ini</span></code>, the icon <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/resources/app/egtrain.ico</span></code>, which is the icon of Setup, and <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code>, the GPL-3.0 text that the licence page shows.</p>
 </section>
 <section id="what-the-installer-does">
 <h2>What the installer does<a class="headerlink" href="#what-the-installer-does" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>It runs without administrator rights and has one install scope, the current user. The script sets no way to choose another.</p></li>
-<li><p>It shows the GNU General Public License version 3 (<code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> of the repository) on a licence page, and the user must accept it to go on. A silent install shows no page. The Windows package job copies <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> and <code class="docutils literal notranslate"><span class="pre">THIRD_PARTY_NOTICES.md</span></code> (the licences of the bundled libraries) into the package, so the installation folder and the portable ZIP hold both.</p></li>
+<li><p>It shows the GNU General Public License version 3 (<code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> of the source tree) on a licence page, and the user must accept it to go on. A silent install shows no page. The Windows package job copies <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> and <code class="docutils literal notranslate"><span class="pre">THIRD_PARTY_NOTICES.md</span></code> (the licences of the bundled libraries) into the package, so the installation folder and the portable ZIP hold both.</p></li>
 <li><p>It installs the payload as it is into <code class="docutils literal notranslate"><span class="pre">%LOCALAPPDATA%\Programs\EGTRAIN</span></code> by default, a folder of the user. The folder page of the wizard lets the user choose another folder on a first install.</p></li>
 <li><p>It adds the entry <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span></code> to the Start Menu of the user, directly in the Programs folder.</p></li>
 <li><p>It offers a desktop shortcut as the task <code class="docutils literal notranslate"><span class="pre">desktopicon</span></code>, which is unchecked by default.</p></li>
 <li><p>It adds an uninstall entry that Inno Setup writes under the current user, named after the <code class="docutils literal notranslate"><span class="pre">AppId</span></code> of the script. Windows lists it with the installed apps as <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span></code>, because the script sets <code class="docutils literal notranslate"><span class="pre">UninstallDisplayName</span></code>, and shows the version in the version column.</p></li>
-<li><p>It associates the file type <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> with the installed program for the current user. Under <code class="docutils literal notranslate"><span class="pre">HKEY_CURRENT_USER\Software\Classes</span></code> it sets the default value of <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> to the identifier <code class="docutils literal notranslate"><span class="pre">EGTRAIN.Scene</span></code>, and it adds that identifier with the display name <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">case</span></code>, the first icon of <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code> and the open command <code class="docutils literal notranslate"><span class="pre">&quot;&lt;installation</span> <span class="pre">folder&gt;\QEGTRAIN.exe&quot;</span> <span class="pre">&quot;%1&quot;</span></code>. Opening a <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file in Explorer therefore starts <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code> with the file as its only argument, and EGTRAIN opens it as <strong>File &gt; Open Case…</strong> does, in the window of the same installation when one is open (see <a class="reference internal" href="../guides/command-line.html#startup-of-the-window"><span class="std std-ref">Startup of the window</span></a>). The script registers no other extension, so a <code class="docutils literal notranslate"><span class="pre">.zip</span></code> file is not touched. The portable ZIP registers nothing.</p></li>
+<li><p>It associates the file type <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> with the installed program for the current user. Under <code class="docutils literal notranslate"><span class="pre">HKEY_CURRENT_USER\Software\Classes</span></code> it sets the default value of <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> to the identifier <code class="docutils literal notranslate"><span class="pre">EGTRAIN.Scene</span></code>, and it adds that identifier with the display name <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">case</span></code>, the first icon of <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code> and the open command <code class="docutils literal notranslate"><span class="pre">&quot;&lt;installation</span> <span class="pre">folder&gt;\QEGTRAIN.exe&quot;</span> <span class="pre">&quot;%1&quot;</span></code>. Opening a <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file in Explorer therefore starts <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code> with the file as its only argument, and EGTRAIN opens it as <strong>Open Case File…</strong> in <strong>Open a Case</strong> does, in the window of the same installation when one is open (see <a class="reference internal" href="../guides/command-line.html#startup-of-the-window"><span class="std std-ref">Startup of the window</span></a>). The script registers no other extension, so a <code class="docutils literal notranslate"><span class="pre">.zip</span></code> file is not touched. The portable ZIP registers nothing.</p></li>
 <li><p>It writes <code class="docutils literal notranslate"><span class="pre">installed-by-setup.ini</span></code> next to <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>. Only the installer writes this file, so its presence marks a copy that the installer manages. The portable ZIP does not hold it.</p></li>
 <li><p>An install over an older version is an upgrade of that installation: the <code class="docutils literal notranslate"><span class="pre">AppId</span></code> is the same, so Setup uses the installation that the first install made instead of making a second one. It asks Windows to close a running <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code> first.</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">Scenes</span></code> folder inside the installation folder is deleted before each install and replaced by the one in the package, so scenes of an older version do not stay behind. Keep your own cases outside it. Over an installation of version 1.0.3 or older, which was built with Qt 5, Setup also deletes the Qt 5 files that no file of the package replaces (the <code class="docutils literal notranslate"><span class="pre">[InstallDelete]</span></code> section of <code class="docutils literal notranslate"><span class="pre">installer/egtrain.iss</span></code>). Nothing else is deleted before the copy, so other files of an older version stay in the folder.</p></li>
@@ -410,7 +412,7 @@
 <p>When <code class="docutils literal notranslate"><span class="pre">installed-by-setup.ini</span></code> is next to <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>, <strong>Update and Restart</strong> in <strong>Check for Updates…</strong> runs the installer instead (<code class="docutils literal notranslate"><span class="pre">SelfUpdater</span></code> in <code class="docutils literal notranslate"><span class="pre">update/SelfUpdater.cpp</span></code>):</p>
 <ol class="arabic simple">
 <li><p>It downloads the manifest entry <code class="docutils literal notranslate"><span class="pre">windows-x64-installer</span></code>, which names <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Setup-&lt;version&gt;-x64.exe</span></code>, into a hidden <code class="docutils literal notranslate"><span class="pre">.qegtrain-update-*</span></code> folder next to the installation folder, so that folder must accept new files. It checks the size and the SHA-256 of the file against <code class="docutils literal notranslate"><span class="pre">update-manifest.json</span></code>. It checks no signature yet.</p></li>
-<li><p>EGTRAIN closes. The update helper (<code class="docutils literal notranslate"><span class="pre">update/UpdateHelper.cpp</span></code>, installer mode) waits for it, runs the Setup with <code class="docutils literal notranslate"><span class="pre">/VERYSILENT</span> <span class="pre">/SUPPRESSMSGBOXES</span> <span class="pre">/NORESTART</span></code> and waits for it to end. The helper replaces no file itself. The Setup upgrades the installation as described above.</p></li>
+<li><p>EGTRAIN closes. The update helper (<code class="docutils literal notranslate"><span class="pre">update/UpdateHelper.cpp</span></code>, installer mode) waits for it, runs the Setup with <code class="docutils literal notranslate"><span class="pre">/VERYSILENT</span> <span class="pre">/SUPPRESSMSGBOXES</span> <span class="pre">/NORESTART</span></code> and waits for it to end. The helper replaces no file itself. The Setup upgrades the installation as described above. If EGTRAIN does not end within 5 minutes, the helper runs no Setup. As in an update in place, it writes a <code class="docutils literal notranslate"><span class="pre">not-applied</span></code> record with <code class="docutils literal notranslate"><span class="pre">reason=parent-still-running</span></code>, removes the <code class="docutils literal notranslate"><span class="pre">.qegtrain-update-*</span></code> folder and starts <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>, which reports that the update could not be applied.</p></li>
 <li><p>The helper writes a record with the outcome <code class="docutils literal notranslate"><span class="pre">installer-succeeded</span></code> or <code class="docutils literal notranslate"><span class="pre">installer-failed</span></code> and the version that the Setup was to install, and starts <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>.</p></li>
 <li><p>At its next start EGTRAIN reads the record and compares that version with the version that runs (<code class="docutils literal notranslate"><span class="pre">reportInstallerUpdate</span></code> in <code class="docutils literal notranslate"><span class="pre">update/UpdateNotices.cpp</span></code>). It reports that EGTRAIN was updated, that the Setup finished but an older version runs, or that the Setup did not finish. A Setup that failed can leave a partly updated installation, which is why the exit of the Setup alone is not taken as success.</p></li>
 </ol>
@@ -460,7 +462,7 @@
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

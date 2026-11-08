@@ -1,0 +1,6 @@
+<map id="BlockSectionOverlay::paint" name="BlockSectionOverlay::paint">
+<area shape="rect" id="Node000001" title="Draws the strip and the break marks." alt="" coords="5,21,162,66"/>
+<area shape="rect" id="Node000002" href="$_block_section_overlay_8h.html#a9796191b875e40a5fd884326a8606815" title="The rule between the cells of the section strip, and between a chart and the column of an exported fi..." alt="" coords="210,29,298,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,41,197,43,191,43,162,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="224,28,219,20,223,11,235,5,254,3,274,5,286,14,281,14,272,10,254,8,236,10,227,15,225,20,229,30"/>
+</map>

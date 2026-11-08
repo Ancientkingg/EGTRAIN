@@ -8,7 +8,6 @@
 <title>EGTRAIN: app/MainWindowSupport.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,15 +111,15 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_main_window_s
   <div class="headertitle"><div class="title">MainWindowSupport.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_run_exports_8h_source.html">diagrams/RunExports.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_run_results_8h_source.html">diagrams/RunResults.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_annotation_placement_8h_source.html">graphics/AnnotationPlacement.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_network_view_8h_source.html">graphics/NetworkView.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_visual_polish_8h_source.html">graphics/VisualPolish.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_signal_item_8h_source.html">graphics/items/SignalItem.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_track_preview_8h_source.html">scene/TrackPreview.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_csv_writer_8h_source.html">util/CsvWriter.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_settings_dialog_8h_source.html">widgets/SettingsDialog.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_run_csv_8h.html">diagrams/RunCsv.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_run_results_8h.html">diagrams/RunResults.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_annotation_placement_8h.html">graphics/AnnotationPlacement.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_network_view_8h.html">graphics/NetworkView.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_visual_polish_8h.html">graphics/VisualPolish.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_signal_item_8h.html">graphics/items/SignalItem.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_track_preview_8h.html">scene/TrackPreview.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_csv_writer_8h.html">util/CsvWriter.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_settings_dialog_8h.html">widgets/SettingsDialog.h</a>&quot;</code><br />
 <code>#include &lt;QAbstractItemModel&gt;</code><br />
 <code>#include &lt;QComboBox&gt;</code><br />
 <code>#include &lt;QList&gt;</code><br />
@@ -137,18 +136,18 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_main_window_s
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for MainWindowSupport.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h__incl.svg" width="5444" height="476"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h__incl.svg" width="5042" height="568"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h__dep__incl.svg" width="750" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h__dep__incl.svg" width="923" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-</div>
-<p><a href="_main_window_support_8h_source.html">Go to the source code of this file.</a></p>
-<table class="memberdecls">
+</div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:ReplayPlaybackStep" id="r_ReplayPlaybackStep"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_replay_playback_step.html">ReplayPlaybackStep</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One step of Play: the simulated seconds it moves on and the real milliseconds between two steps.  <a href="struct_replay_playback_step.html#details">More...</a><br /></td></tr>
 <tr class="memitem:FollowListUnderFrames" id="r_FollowListUnderFrames"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_follow_list_under_frames.html">FollowListUnderFrames</a></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -157,6 +156,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:aba8e868798ce4e4828665e22e21f766a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Seconds since midnight of an "hh:mm:ss" base time; 0 when the text is empty or not a time of day.  <br /></td></tr>
 <tr class="memitem:af34a68855c5c3448cbe4bc9b0b35086c" id="r_af34a68855c5c3448cbe4bc9b0b35086c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#af34a68855c5c3448cbe4bc9b0b35086c">stepDelayForSlider</a> (int sliderValue)</td></tr>
 <tr class="memdesc:af34a68855c5c3448cbe4bc9b0b35086c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The delay between two steps, in milliseconds: how far <span class="tt">sliderValue</span> is from the fast end of the speed slider.  <br /></td></tr>
+<tr class="memitem:a7ed29cc6600821ffeb113cfd48459731" id="r_a7ed29cc6600821ffeb113cfd48459731"><td class="memItemLeft"><a class="el" href="struct_replay_playback_step.html">ReplayPlaybackStep</a>&#160;</td><td class="memItemRight"><a class="el" href="#a7ed29cc6600821ffeb113cfd48459731">replayPlaybackStep</a> (int speed)</td></tr>
 <tr class="memitem:a839cc59722a9369903640f51e95bdea6" id="r_a839cc59722a9369903640f51e95bdea6"><td class="memItemLeft"><a class="el" href="struct_follow_list_under_frames.html">FollowListUnderFrames</a>&#160;</td><td class="memItemRight"><a class="el" href="#a839cc59722a9369903640f51e95bdea6">showFramesOverMarkedList</a> (QComboBox *list, const std::function&lt; void()&gt; &amp;frames)</td></tr>
 <tr class="memdesc:a839cc59722a9369903640f51e95bdea6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes a marker text into every row of <span class="tt">list</span>, runs <span class="tt">frames</span> and reports what the list did meanwhile.  <br /></td></tr>
 <tr class="memitem:ad607d9eed9718a58a8be43dabe070f74" id="r_ad607d9eed9718a58a8be43dabe070f74"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad607d9eed9718a58a8be43dabe070f74">panViewAway</a> (<a class="el" href="class_network_view.html">NetworkView</a> *view)</td></tr>
@@ -168,10 +168,14 @@ Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a6aa2f18f2ec53dacb3a595d007a70595" id="r_a6aa2f18f2ec53dacb3a595d007a70595"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a6aa2f18f2ec53dacb3a595d007a70595">kFollowNameRole</a> = Qt::UserRole + 1</td></tr>
+<tr class="memitem:a6aa2f18f2ec53dacb3a595d007a70595" id="r_a6aa2f18f2ec53dacb3a595d007a70595"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a6aa2f18f2ec53dacb3a595d007a70595">kFollowNameRole</a></td></tr>
 <tr class="memdesc:a6aa2f18f2ec53dacb3a595d007a70595"><td class="mdescLeft">&#160;</td><td class="mdescRight">The name of a train in the train list, to which the entry text adds a state.  <br /></td></tr>
-<tr class="memitem:ae4a820273af0456582cb8cb1da388336" id="r_ae4a820273af0456582cb8cb1da388336"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ae4a820273af0456582cb8cb1da388336">kFollowStatusMaxWidth</a> = 400</td></tr>
-<tr class="memitem:a110d4fb368297fb6c77f3ba78a319404" id="r_a110d4fb368297fb6c77f3ba78a319404"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a110d4fb368297fb6c77f3ba78a319404">kMaxStepDelayMs</a> = 500</td></tr>
+<tr class="memitem:ae4a820273af0456582cb8cb1da388336" id="r_ae4a820273af0456582cb8cb1da388336"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ae4a820273af0456582cb8cb1da388336">kFollowStatusMaxWidth</a></td></tr>
+<tr class="memitem:a110d4fb368297fb6c77f3ba78a319404" id="r_a110d4fb368297fb6c77f3ba78a319404"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a110d4fb368297fb6c77f3ba78a319404">kMaxStepDelayMs</a></td></tr>
+<tr class="memitem:adc8b62056d310a119e82a147faf267b8" id="r_adc8b62056d310a119e82a147faf267b8"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#adc8b62056d310a119e82a147faf267b8">kReplaySpeeds</a> []</td></tr>
+<tr class="memdesc:adc8b62056d310a119e82a147faf267b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The speeds of the replay of a finished run that the speed box offers, in simulated seconds per second of real time.  <br /></td></tr>
+<tr class="memitem:ad221c5a1555518fb6e53c004673f7bd1" id="r_ad221c5a1555518fb6e53c004673f7bd1"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ad221c5a1555518fb6e53c004673f7bd1">kDefaultReplaySpeed</a></td></tr>
+<tr class="memdesc:ad221c5a1555518fb6e53c004673f7bd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The speed of the replay that the speed box starts with.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="aba8e868798ce4e4828665e22e21f766a" name="aba8e868798ce4e4828665e22e21f766a"></a>
@@ -201,7 +205,7 @@ Variables</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h_aba8e868798ce4e4828665e22e21f766a_cgraph.svg" width="166" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h_aba8e868798ce4e4828665e22e21f766a_cgraph.svg" width="164" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -232,7 +236,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h_ace769cd9a3fb64ac5389f23f73b4f22d_cgraph.svg" width="748" height="332"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h_ace769cd9a3fb64ac5389f23f73b4f22d_cgraph.svg" width="744" height="340"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -264,7 +268,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h_a706c77c6df51d8e708c3a2cef2831a7f_cgraph.svg" width="128" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h_a706c77c6df51d8e708c3a2cef2831a7f_cgraph.svg" width="127" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -296,7 +300,38 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h_ad607d9eed9718a58a8be43dabe070f74_cgraph.svg" width="126" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h_ad607d9eed9718a58a8be43dabe070f74_cgraph.svg" width="124" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a7ed29cc6600821ffeb113cfd48459731" name="a7ed29cc6600821ffeb113cfd48459731"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7ed29cc6600821ffeb113cfd48459731">&#9670;&#160;</a></span>replayPlaybackStep()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_replay_playback_step.html">ReplayPlaybackStep</a> replayPlaybackStep </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>speed</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The step of Play at a replay speed in simulated seconds per second of real time: one second per step up to 10x, so that a step comes at most every 100 ms, and then a step of speed / 10 seconds every 100 ms. That is 1 s per 1000 ms, 1 per 500, 1 per 200, 1 per 100, 3 per 100 and 6 per 100, never more than ten updates per second. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h_a7ed29cc6600821ffeb113cfd48459731_cgraph.svg" width="162" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -332,7 +367,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h_a839cc59722a9369903640f51e95bdea6_cgraph.svg" width="218" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h_a839cc59722a9369903640f51e95bdea6_cgraph.svg" width="216" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -364,7 +399,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h_af34a68855c5c3448cbe4bc9b0b35086c_cgraph.svg" width="156" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h_af34a68855c5c3448cbe4bc9b0b35086c_cgraph.svg" width="155" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -399,12 +434,36 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h_ad4059325da798fcb49e8aae68e7b0503_cgraph.svg" width="168" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h_ad4059325da798fcb49e8aae68e7b0503_cgraph.svg" width="167" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
 <a name="doc-var-members" id="doc-var-members"></a><h2 id="header-doc-var-members" class="groupheader">Variable Documentation</h2>
+<a id="ad221c5a1555518fb6e53c004673f7bd1" name="ad221c5a1555518fb6e53c004673f7bd1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad221c5a1555518fb6e53c004673f7bd1">&#9670;&#160;</a></span>kDefaultReplaySpeed</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int kDefaultReplaySpeed</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The speed of the replay that the speed box starts with. </p>
+
+</div>
+</div>
 <a id="a6aa2f18f2ec53dacb3a595d007a70595" name="a6aa2f18f2ec53dacb3a595d007a70595"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6aa2f18f2ec53dacb3a595d007a70595">&#9670;&#160;</a></span>kFollowNameRole</h2>
 
@@ -415,7 +474,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int kFollowNameRole = Qt::UserRole + 1</td>
+          <td class="memname">int kFollowNameRole</td>
         </tr>
       </table>
   </td>
@@ -439,7 +498,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int kFollowStatusMaxWidth = 400</td>
+          <td class="memname">int kFollowStatusMaxWidth</td>
         </tr>
       </table>
   </td>
@@ -462,7 +521,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int kMaxStepDelayMs = 500</td>
+          <td class="memname">int kMaxStepDelayMs</td>
         </tr>
       </table>
   </td>
@@ -472,6 +531,30 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 <p>The longest delay between two steps of a run, in milliseconds: the delay at the slow end of the speed slider, whose range is 0 to this value. </p>
+
+</div>
+</div>
+<a id="adc8b62056d310a119e82a147faf267b8" name="adc8b62056d310a119e82a147faf267b8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adc8b62056d310a119e82a147faf267b8">&#9670;&#160;</a></span>kReplaySpeeds</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int kReplaySpeeds[]</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The speeds of the replay of a finished run that the speed box offers, in simulated seconds per second of real time. </p>
 
 </div>
 </div>

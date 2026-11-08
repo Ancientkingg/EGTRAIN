@@ -1,7 +1,7 @@
 <map id="display_path::format" name="display_path::format">
-<area shape="rect" id="Node000001" title="path with every slash replaced by separator()." alt="" coords="5,29,163,55"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="49,31,42,21,45,11,60,5,84,3,114,6,125,15,122,20,112,11,84,8,61,10,49,15,47,20,53,28"/>
-<area shape="rect" id="Node000002" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst..." alt="" coords="211,29,385,55"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="163,39,197,39,197,45,163,45"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="263,31,256,21,259,11,274,5,298,3,328,6,339,15,336,20,326,11,298,8,275,10,263,15,261,20,267,28"/>
+<area shape="rect" id="Node000001" title="path with every slash replaced by separator()." alt="" coords="5,29,162,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="46,29,41,20,46,11,60,5,84,3,109,5,124,14,118,14,107,10,83,8,61,10,49,15,46,20,52,29"/>
+<area shape="rect" id="Node000002" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst..." alt="" coords="210,29,384,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="162,41,197,43,191,43,162,46"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="260,28,254,20,259,11,273,5,297,3,322,5,337,14,332,14,321,10,297,8,275,10,263,15,260,20,265,30"/>
 </map>

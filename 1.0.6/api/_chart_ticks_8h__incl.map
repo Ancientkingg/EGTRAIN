@@ -1,0 +1,17 @@
+<map id="diagrams/ChartTicks.h" name="diagrams/ChartTicks.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="268,5,435,33"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,81,74,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="292,36,89,83,88,78,291,31"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="98,81,168,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="315,33,183,80,181,74,310,34"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="192,81,284,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="334,33,272,75,270,70,329,34"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="308,81,395,109"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="353,32,354,67,349,64,350,35"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="418,81,493,109"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="371,31,428,72,422,72,369,36"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="516,81,576,109"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="387,31,505,77,499,77,386,36"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="600,81,663,109"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="404,31,588,80,583,81,404,36"/>
+</map>

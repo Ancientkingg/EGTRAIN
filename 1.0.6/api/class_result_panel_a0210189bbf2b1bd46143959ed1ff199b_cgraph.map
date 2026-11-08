@@ -1,0 +1,9 @@
+<map id="ResultPanel::addSection" name="ResultPanel::addSection">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,183,57"/>
+<area shape="rect" id="Node000002" href="$namespace_editor_layout.html#a8aeab0ef1896c245802221520b549af0" title=" " alt="" coords="231,29,443,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,41,218,43,212,43,183,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="295,28,289,20,294,11,310,5,337,3,365,5,382,14,377,14,364,10,337,8,311,10,297,15,294,20,300,30"/>
+<area shape="rect" id="Node000003" href="$namespace_editor_layout.html#a1bcc9ab5e8ef4ac521182638d3a22dde" title=" " alt="" coords="491,29,693,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="443,41,478,43,473,43,444,46"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="549,28,542,20,547,11,564,5,592,3,622,5,640,14,634,14,621,10,592,8,565,10,551,15,547,20,553,30"/>
+</map>

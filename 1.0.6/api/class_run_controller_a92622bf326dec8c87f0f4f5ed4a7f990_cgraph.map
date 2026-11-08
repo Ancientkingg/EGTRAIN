@@ -1,0 +1,5 @@
+<map id="RunController::deferUntilRunStopped" name="RunController::deferUntilRunStopped">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,189,50"/>
+<area shape="rect" id="Node000002" href="$class_run_controller.html#aa756f9ef50f3341bad1748f201818222" title="Pause and Stop mean something while a run exists, and Output Folder only while none does." alt="" coords="237,14,472,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,25,224,27,218,28,189,30"/>
+</map>

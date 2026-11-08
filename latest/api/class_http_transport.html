@@ -8,7 +8,6 @@
 <title>EGTRAIN: HttpTransport Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,16 +115,16 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_http_tra
 <p>Sends requests. A reply is a child of its transport; the caller releases it with deleteLater().  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_http_transport_8h_source.html">update/HttpTransport.h</a>&gt;</code></p>
+<p><code>#include &lt;update/HttpTransport.h&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for HttpTransport:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_http_transport__inherit__graph.svg" width="122" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_http_transport__inherit__graph.svg" width="120" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
 Collaboration diagram for HttpTransport:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_http_transport__coll__graph.svg" width="122" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_http_transport__coll__graph.svg" width="120" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -133,7 +132,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aa30f85322d04c0a9312befd02a5bcb58" id="r_aa30f85322d04c0a9312befd02a5bcb58"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aa30f85322d04c0a9312befd02a5bcb58">HttpTransport</a> (QObject *parent=nullptr)</td></tr>
 <tr class="memdesc:aa30f85322d04c0a9312befd02a5bcb58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes a transport owned by parent.  <br /></td></tr>
 <tr class="memitem:a90ffd50bc02c6f42f5512b245d37e376" id="r_a90ffd50bc02c6f42f5512b245d37e376"><td class="memItemLeft">virtual <a class="el" href="class_http_reply.html">HttpReply</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a90ffd50bc02c6f42f5512b245d37e376">get</a> (const <a class="el" href="struct_http_request.html">HttpRequest</a> &amp;request)=0</td></tr>
-<tr class="memdesc:a90ffd50bc02c6f42f5512b245d37e376"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts a GET of request.url and returns its reply, which the transport owns.  <br /></td></tr>
 <tr class="memitem:a831c22a45c49768f7afac913adcca71b" id="r_a831c22a45c49768f7afac913adcca71b"><td class="memItemLeft">virtual <a class="el" href="class_http_reply.html">HttpReply</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a831c22a45c49768f7afac913adcca71b">post</a> (const <a class="el" href="struct_http_request.html">HttpRequest</a> &amp;)</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -189,8 +187,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Starts a GET of request.url and returns its reply, which the transport owns. </p>
+<p>Starts a GET of request.url and returns its reply, which the transport owns. A redirect is not followed, so the files of an update come only from the address that was checked. </p>
 
 </div>
 </div>
@@ -216,12 +213,12 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Sends request.body with a POST. A redirect is not followed: its reply is the reply of the post, without an error. The request carries no cookie and no credentials. The default transport cannot post and returns nullptr. </p>
+<p>Sends request.body with a POST. A redirect is not followed. The request carries no cookie and no credentials. The default transport cannot post and returns nullptr. </p>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>update/<a class="el" href="_http_transport_8h_source.html">HttpTransport.h</a></li>
+<li>update/<a class="el" href="_http_transport_8h.html">HttpTransport.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

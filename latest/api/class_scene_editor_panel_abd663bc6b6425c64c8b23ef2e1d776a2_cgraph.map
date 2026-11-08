@@ -1,0 +1,5 @@
+<map id="SceneEditorPanel::takePendingText" name="SceneEditorPanel::takePendingText">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,14,254,42"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#a2fbf713650fa347aef6fc025fa1b3e34" title="Takes the text of a field that is being edited into the document, as if the user had left the field." alt="" coords="302,5,493,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="254,25,289,28,283,28,254,30"/>
+</map>

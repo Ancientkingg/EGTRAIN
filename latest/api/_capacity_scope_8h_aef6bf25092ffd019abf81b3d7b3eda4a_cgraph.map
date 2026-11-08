@@ -1,7 +1,7 @@
 <map id="capacityReferenceOf" name="capacityReferenceOf">
-<area shape="rect" id="Node000001" title="capacityReferenceText for the train identity of the result; empty when the result does not have it." alt="" coords="5,29,164,55"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="50,31,43,21,47,11,61,5,85,3,114,6,126,15,122,20,112,11,85,8,62,10,50,15,48,20,54,28"/>
-<area shape="rect" id="Node000002" href="$_capacity_scope_8cpp.html#aa7a97579ac684fb18ca368d029471b60" title=" " alt="" coords="212,29,383,55"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="164,39,198,39,198,45,164,45"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="263,31,255,21,259,11,274,5,297,3,327,6,338,15,335,20,325,11,297,8,275,10,263,15,261,20,267,28"/>
+<area shape="rect" id="Node000001" title="capacityReferenceText for the train identity of the result; empty when the result does not have it." alt="" coords="5,29,163,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="47,29,42,20,46,11,61,5,84,3,109,5,124,14,119,14,107,10,84,8,62,10,50,15,47,20,53,29"/>
+<area shape="rect" id="Node000002" href="$_capacity_scope_8cpp.html#aa7a97579ac684fb18ca368d029471b60" title=" " alt="" coords="211,29,380,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="163,41,198,43,192,43,163,46"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="259,28,253,20,258,11,272,5,295,3,320,5,335,14,330,14,319,10,295,8,273,10,261,15,258,20,264,30"/>
 </map>

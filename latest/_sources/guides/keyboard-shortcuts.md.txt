@@ -60,6 +60,16 @@ F1 opens the section of the manual about the window you are in, when the manual 
 | Return or Enter | Go to the chosen match |
 | Esc | Close the box |
 
+## Network view
+
+While the network view has the keyboard focus:
+
+| Key | Effect |
+| --- | --- |
+| Shift+F10 (⇧F10 on macOS), or the Menu key | Open the context menu of the selected item, or of the empty view when nothing is selected |
+
+Mac keyboards have no Menu key; use ⇧F10 there.
+
 ## Dialogs
 
 Esc closes a dialog as its cancel button does. Return or Enter presses the default button, which these dialogs set. On macOS a message box shows no title, only its question. The table names such a box by the title that Windows and Linux show, except the update question.
@@ -74,10 +84,11 @@ Esc closes a dialog as its cancel button does. Return or Enter presses the defau
 | **Reference route** | **OK** | **Cancel** |
 | **About EGTRAIN** | **Close** | **Close** |
 | **Unsaved Case** | **Save** | **Cancel** |
-| **Save Case As Folder** and the delete questions of the editors, such as **Delete Service** | **No** | **No** |
+| **Save As** | **Case Folder...** when the open case is a case folder; otherwise **Case File...** | **Cancel** |
+| **Save Case As Folder** | **No** | **No** |
 | **Check for EGTRAIN updates automatically?** | **Check Automatically** | **Don't Check Automatically** |
-| EGTRAIN *version* Is Available | **Update and Restart** when EGTRAIN can update itself; otherwise **Open Release Page** | **Later** |
-| **Linked File Changed** | **Keep Edits** | **Keep Edits** |
+| **EGTRAIN Update** | **Update and Restart** when EGTRAIN can update itself; otherwise **Open Release Page** | **Later** |
+| **Linked File Changed** | **Keep Edits**, or **Keep Current** without local edits | **Keep Edits**, or **Keep Current** without local edits |
 
 ## Result windows
 
@@ -96,6 +107,6 @@ In the table of stops on the tab **Timetable** of **Editors > Services**, Return
 
 In the traction curve on the tab **Traction** of **Editors > Rolling Stock Units**, the arrow keys move between the cells and change no number, and Tab leaves the table. Typing into a cell replaces its number; a double click or F2 (Return on macOS) opens the cell with its number. In an open cell, Return or Enter keeps the new number, Esc restores the old one, and Tab keeps the number and opens the next cell.
 
-The tables on the tabs **Run occurrences** and **Timetable** of **Editors > Services** and the table **Import results** of **Editors > Passengers** open no field in a cell: the arrow keys move in the table, and Tab leaves it. In the table of **Editors > Infrastructure**, the arrow keys move between the cells, and moving to a cell that can be changed opens its field. Tab leaves the table, but while a field is open, Tab keeps its value and moves to the next cell. Tab passes over an editor whose dock is behind the tab of another dock.
+The tables on the tabs **Run occurrences** and **Timetable** of **Editors > Services** and the table **Import results** of **Editors > Passengers** open no field in a cell: the arrow keys move in the table, and Tab leaves it. In the table of **Editors > Infrastructure**, the arrow keys move between the cells, and moving to a cell that can be changed opens its field. In a cell whose field is a list of tracks or nodes, such as **From node** of an arc, you can type in the list, and the keys up and down still move to another row. A check box opens no field; a click changes it. Tab leaves the table, but while a field is open, Tab keeps its value and moves to the next cell. Tab passes over an editor whose dock is behind the tab of another dock.
 
 While the icon button **Pick** beside **Target** on the tab **Incidents** of **Editors > Scenarios** is on, the network view waits for a click on a signal head or a train, and Esc turns the button off.

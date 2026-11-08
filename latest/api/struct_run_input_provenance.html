@@ -8,7 +8,6 @@
 <title>EGTRAIN: RunInputProvenance Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,7 +115,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_run_inp
 <p>The scene input of a run and whether it can be loaded again as it was run.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_run_results_8h_source.html">diagrams/RunResults.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/RunResults.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -126,9 +125,9 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a29b60bc7f791f30736fa832b13c3363b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Absolute path of the saved input, empty when unsaved.  <br /></td></tr>
 <tr class="memitem:a91aec5a43884e7164677b0f1011bd47d" id="r_a91aec5a43884e7164677b0f1011bd47d"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a91aec5a43884e7164677b0f1011bd47d">sha256</a></td></tr>
 <tr class="memdesc:a91aec5a43884e7164677b0f1011bd47d"><td class="mdescLeft">&#160;</td><td class="mdescRight">SHA-256 in hex: the recorded one when the file changed since, else the file's; may be empty.  <br /></td></tr>
-<tr class="memitem:ac17a528d6507bcd055e93e81d700d591" id="r_ac17a528d6507bcd055e93e81d700d591"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac17a528d6507bcd055e93e81d700d591">dirty</a> = false</td></tr>
+<tr class="memitem:ac17a528d6507bcd055e93e81d700d591" id="r_ac17a528d6507bcd055e93e81d700d591"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac17a528d6507bcd055e93e81d700d591">dirty</a></td></tr>
 <tr class="memdesc:ac17a528d6507bcd055e93e81d700d591"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the scene had unsaved edits at the run.  <br /></td></tr>
-<tr class="memitem:a66dc81ac0f6d5a033e13b2b2785caf1f" id="r_a66dc81ac0f6d5a033e13b2b2785caf1f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a66dc81ac0f6d5a033e13b2b2785caf1f">reproducible</a> = false</td></tr>
+<tr class="memitem:a66dc81ac0f6d5a033e13b2b2785caf1f" id="r_a66dc81ac0f6d5a033e13b2b2785caf1f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a66dc81ac0f6d5a033e13b2b2785caf1f">reproducible</a></td></tr>
 <tr class="memdesc:a66dc81ac0f6d5a033e13b2b2785caf1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the saved input on disk is the input of the run.  <br /></td></tr>
 <tr class="memitem:a432c4b41a11b5965852cbd7f96692feb" id="r_a432c4b41a11b5965852cbd7f96692feb"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a432c4b41a11b5965852cbd7f96692feb">status</a></td></tr>
 <tr class="memdesc:a432c4b41a11b5965852cbd7f96692feb"><td class="mdescLeft">&#160;</td><td class="mdescRight">"reproducible" or "non-reproducible"  <br /></td></tr>
@@ -145,7 +144,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool RunInputProvenance::dirty = false</td>
+          <td class="memname">bool RunInputProvenance::dirty</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -209,7 +208,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool RunInputProvenance::reproducible = false</td>
+          <td class="memname">bool RunInputProvenance::reproducible</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -251,7 +250,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_run_results_8h_source.html">RunResults.h</a></li>
+<li>diagrams/<a class="el" href="_run_results_8h.html">RunResults.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

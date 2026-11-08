@@ -8,7 +8,6 @@
 <title>EGTRAIN: simulation/Infrastructure.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -124,23 +123,22 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_infrastructur
 <code>#include &lt;sstream&gt;</code><br />
 <code>#include &lt;map&gt;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
-<code>#include &quot;<a class="el" href="_number_generator_8h_source.html">simulation/NumberGenerator.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_runtime_limits_8h.html">scene/RuntimeLimits.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_number_generator_8h.html">simulation/NumberGenerator.h</a>&quot;</code><br />
 <code>#include &lt;vector&gt;</code><br />
-<code>#include &quot;<a class="el" href="portability_8h_source.html">util/portability.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_initial_parameters_8h_source.html">simulation/InitialParameters.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="portability_8h.html">util/portability.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_initial_parameters_8h.html">simulation/InitialParameters.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for Infrastructure.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_infrastructure_8h__incl.svg" width="1864" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_infrastructure_8h__incl.svg" width="2042" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_infrastructure_8h__dep__incl.svg" width="6459" height="447"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_infrastructure_8h__dep__incl.svg" width="5658" height="486"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-</div>
-<p><a href="_infrastructure_8h_source.html">Go to the source code of this file.</a></p>
-<table class="memberdecls">
+</div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:InfraElement" id="r_InfraElement"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_infra_element.html">InfraElement</a></td></tr>
@@ -152,9 +150,9 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A connection between two tracks, such as a switch.  <a href="class_connections.html#details">More...</a><br /></td></tr>
 <tr class="memitem:StationPlatform" id="r_StationPlatform"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_station_platform.html">StationPlatform</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A station platform: its size, capacity and waiting passengers.  <a href="class_station_platform.html#details">More...</a><br /></td></tr>
+<tr class="memitem:DelayStats" id="r_DelayStats"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_delay_stats.html">DelayStats</a></td></tr>
 <tr class="memitem:Stations" id="r_Stations"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_stations.html">Stations</a></td></tr>
-<tr class="memitem:Location" id="r_Location"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_location.html">Location</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A block section or station on the route of a train. <a class="el" href="class_train.html#a61e091b9d5ad3d8c70cec2b29ea50533" title="Not filled by the simulation, so empty.">Train::LocationNames</a> holds these, and nothing fills it.  <a href="class_location.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A station, with the delay statistics of the trains that stop there.  <a href="class_stations.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -163,17 +161,18 @@ Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:adeb4332ce106902917303ad004eae2fa" id="r_adeb4332ce106902917303ad004eae2fa"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#adeb4332ce106902917303ad004eae2fa">timestep</a> = 1</td></tr>
+<tr class="memitem:adeb4332ce106902917303ad004eae2fa" id="r_adeb4332ce106902917303ad004eae2fa"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#adeb4332ce106902917303ad004eae2fa">timestep</a></td></tr>
 <tr class="memdesc:adeb4332ce106902917303ad004eae2fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">The length of a simulation step in seconds. A step index t is the time in seconds from the start of the run.  <br /></td></tr>
-<tr class="memitem:a7cb1b5af562128a8229985d3786cd6b5" id="r_a7cb1b5af562128a8229985d3786cd6b5"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a7cb1b5af562128a8229985d3786cd6b5">signalCode1</a> = 11.111</td></tr>
-<tr class="memitem:a175de7291ab561dc2f5c719769aff959" id="r_a175de7291ab561dc2f5c719769aff959"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a175de7291ab561dc2f5c719769aff959">signalCode2</a> = 0</td></tr>
-<tr class="memitem:a1d84084196b3d6e8403535d31d92809b" id="r_a1d84084196b3d6e8403535d31d92809b"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a1d84084196b3d6e8403535d31d92809b">signalCode3</a> = 0</td></tr>
-<tr class="memitem:af2442dde680e9478090dd86a2d57744a" id="r_af2442dde680e9478090dd86a2d57744a"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#af2442dde680e9478090dd86a2d57744a">kMaxTrackLines</a> = 268</td></tr>
-<tr class="memdesc:af2442dde680e9478090dd86a2d57744a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of elements of the arrays of tracks, connections and stations. The builder rejects a scene that needs more.  <br /></td></tr>
-<tr class="memitem:a5f3d96dcde4e6535720ee603ca6b452f" id="r_a5f3d96dcde4e6535720ee603ca6b452f"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a5f3d96dcde4e6535720ee603ca6b452f">kMaxConnections</a> = 708</td></tr>
+<tr class="memitem:a7cb1b5af562128a8229985d3786cd6b5" id="r_a7cb1b5af562128a8229985d3786cd6b5"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a7cb1b5af562128a8229985d3786cd6b5">signalCode1</a></td></tr>
+<tr class="memitem:a175de7291ab561dc2f5c719769aff959" id="r_a175de7291ab561dc2f5c719769aff959"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a175de7291ab561dc2f5c719769aff959">signalCode2</a></td></tr>
+<tr class="memitem:a1d84084196b3d6e8403535d31d92809b" id="r_a1d84084196b3d6e8403535d31d92809b"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a1d84084196b3d6e8403535d31d92809b">signalCode3</a></td></tr>
+<tr class="memitem:af2442dde680e9478090dd86a2d57744a" id="r_af2442dde680e9478090dd86a2d57744a"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#af2442dde680e9478090dd86a2d57744a">kMaxTrackLines</a></td></tr>
+<tr class="memitem:a5f3d96dcde4e6535720ee603ca6b452f" id="r_a5f3d96dcde4e6535720ee603ca6b452f"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a5f3d96dcde4e6535720ee603ca6b452f">kMaxConnections</a></td></tr>
 <tr class="memdesc:a5f3d96dcde4e6535720ee603ca6b452f"><td class="mdescLeft">&#160;</td><td class="mdescRight">See kMaxTrackLines.  <br /></td></tr>
-<tr class="memitem:a52eed63d46d1afcb96c62cd5085e34f8" id="r_a52eed63d46d1afcb96c62cd5085e34f8"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a52eed63d46d1afcb96c62cd5085e34f8">kMaxStations</a> = 95</td></tr>
+<tr class="memitem:a52eed63d46d1afcb96c62cd5085e34f8" id="r_a52eed63d46d1afcb96c62cd5085e34f8"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a52eed63d46d1afcb96c62cd5085e34f8">kMaxStations</a></td></tr>
 <tr class="memdesc:a52eed63d46d1afcb96c62cd5085e34f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">See kMaxTrackLines.  <br /></td></tr>
+<tr class="memitem:ac31a38342ab7cf8f97b4c5064aa9a28c" id="r_ac31a38342ab7cf8f97b4c5064aa9a28c"><td class="memItemLeft">constexpr char&#160;</td><td class="memItemRight"><a class="el" href="#ac31a38342ab7cf8f97b4c5064aa9a28c">kFinalStationName</a> []</td></tr>
+<tr class="memdesc:ac31a38342ab7cf8f97b4c5064aa9a28c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The name that the station statistics files give to the statistics at the last stop of every train, <a class="el" href="struct_simulation_run.html#a240b06ba30d3240b5f528b573ca64947" title="Delay statistics at the final stop of every train, which the files show under kFinalStationName.">SimulationRun::finalStation</a>.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="ad132837730a71e818c60f574c8b7c44f" name="ad132837730a71e818c60f574c8b7c44f"></a>
@@ -197,7 +196,7 @@ Variables</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_infrastructure_8h_ad132837730a71e818c60f574c8b7c44f_cgraph.svg" width="496" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_infrastructure_8h_ad132837730a71e818c60f574c8b7c44f_cgraph.svg" width="496" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -225,15 +224,40 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Writes the delay statistics of the stations to Name_StationDelay/Stats_Stations.txt for kindofdelay "pos" and to Name_StationDelay/Pos&amp;Neg_Stats_Stations.txt for "pos&amp;neg". Throws std::runtime_error when the file cannot be written (<a class="el" href="_run_output_file_8h.html">simulation/RunOutputFile.h</a>). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_infrastructure_8h_a93d63bbe9df8ff841dcffa7e96d89af4_cgraph.svg" width="360" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_infrastructure_8h_a93d63bbe9df8ff841dcffa7e96d89af4_cgraph.svg" width="754" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
 <a name="doc-var-members" id="doc-var-members"></a><h2 id="header-doc-var-members" class="groupheader">Variable Documentation</h2>
+<a id="ac31a38342ab7cf8f97b4c5064aa9a28c" name="ac31a38342ab7cf8f97b4c5064aa9a28c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac31a38342ab7cf8f97b4c5064aa9a28c">&#9670;&#160;</a></span>kFinalStationName</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">char kFinalStationName[]</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The name that the station statistics files give to the statistics at the last stop of every train, <a class="el" href="struct_simulation_run.html#a240b06ba30d3240b5f528b573ca64947" title="Delay statistics at the final stop of every train, which the files show under kFinalStationName.">SimulationRun::finalStation</a>. </p>
+
+</div>
+</div>
 <a id="a5f3d96dcde4e6535720ee603ca6b452f" name="a5f3d96dcde4e6535720ee603ca6b452f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5f3d96dcde4e6535720ee603ca6b452f">&#9670;&#160;</a></span>kMaxConnections</h2>
 
@@ -244,7 +268,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int kMaxConnections = 708</td>
+          <td class="memname">int kMaxConnections</td>
         </tr>
       </table>
   </td>
@@ -268,7 +292,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int kMaxStations = 95</td>
+          <td class="memname">int kMaxStations</td>
         </tr>
       </table>
   </td>
@@ -292,7 +316,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int kMaxTrackLines = 268</td>
+          <td class="memname">int kMaxTrackLines</td>
         </tr>
       </table>
   </td>
@@ -301,8 +325,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>The number of elements of the arrays of tracks, connections and stations. The builder rejects a scene that needs more. </p>
+<p>The number of elements of the arrays of tracks, connections and stations, from <a class="el" href="namespace_runtime_limits.html" title="What a scene must fit into: the scene validator and the builders check against the same values.">RuntimeLimits</a>. The builder rejects a scene that needs more. </p>
 
 </div>
 </div>
@@ -316,7 +339,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">double signalCode1 = 11.111</td>
+          <td class="memname">double signalCode1</td>
         </tr>
       </table>
   </td>
@@ -336,7 +359,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double signalCode2 = 0</td>
+          <td class="memname">double signalCode2</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -350,7 +373,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double signalCode3 = 0</td>
+          <td class="memname">double signalCode3</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -367,7 +390,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">double timestep = 1</td>
+          <td class="memname">double timestep</td>
         </tr>
       </table>
   </td>

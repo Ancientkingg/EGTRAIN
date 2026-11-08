@@ -1,5 +1,5 @@
 <map id="SceneHistory::redoLabel" name="SceneHistory::redoLabel">
-<area shape="rect" id="Node000001" title="The label of the edit that Redo repeats; empty when there is none." alt="" coords="5,5,184,31"/>
-<area shape="rect" id="Node000002" href="$class_scene_history.html#ad3c3ffece529b010fe4336271b3f0b39" title=" " alt="" coords="232,5,403,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,15,218,15,218,21,184,21"/>
+<area shape="rect" id="Node000001" title="The label of the edit that Redo repeats; empty when there is none." alt="" coords="5,5,184,33"/>
+<area shape="rect" id="Node000002" href="$class_scene_history.html#ad3c3ffece529b010fe4336271b3f0b39" title=" " alt="" coords="232,5,402,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,17,219,19,214,19,184,22"/>
 </map>

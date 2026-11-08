@@ -1,7 +1,7 @@
 <map id="previewPointAtX" name="previewPointAtX">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,136,55"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="39,31,32,21,35,11,49,5,71,3,97,6,109,15,105,19,95,11,71,8,50,10,39,15,37,20,43,28"/>
-<area shape="rect" id="Node000002" href="$_track_preview_8cpp.html#ae50bd6f47b6bc4c01a62fdd13daa0ea7" title=" " alt="" coords="184,29,347,55"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="136,39,170,39,170,45,136,45"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="233,31,226,21,230,11,243,5,265,3,292,6,303,15,300,19,290,11,265,8,245,10,234,15,232,20,237,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,135,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="36,29,31,20,35,11,49,5,70,3,93,5,107,14,101,14,91,10,70,8,50,10,39,15,36,20,41,29"/>
+<area shape="rect" id="Node000002" href="$_track_preview_8cpp.html#ae50bd6f47b6bc4c01a62fdd13daa0ea7" title=" " alt="" coords="183,29,345,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="135,41,170,43,164,43,135,46"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="230,28,225,20,229,11,242,5,264,3,287,5,301,14,295,14,285,10,264,8,244,10,233,15,230,20,235,30"/>
 </map>

@@ -1,0 +1,14 @@
+<map id="splitTab" name="splitTab">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,77,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="21,29,18,20,21,11,28,5,41,3,54,5,62,13,57,14,52,10,41,8,31,10,25,14,23,20,26,29"/>
+<area shape="rect" id="Node000002" href="$_scene_importer_8cpp.html#a8c7f671a4eaae43db4839df0abcb514a" title=" " alt="" coords="125,29,173,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="76,41,111,42,107,44,77,46"/>
+<area shape="poly" id="edge5_Node000002_Node000002" title=" " alt="" coords="129,28,126,20,128,11,136,5,149,3,162,5,170,14,165,13,160,10,149,8,138,10,133,14,131,20,134,30"/>
+<area shape="rect" id="Node000003" href="$_scene_importer_8cpp.html#a9b525f1c5c4de4ce1c2c07b4c5a6a1c6" title=" " alt="" coords="351,29,454,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="173,36,221,29,262,27,304,29,339,34,333,34,303,34,262,32,221,34,174,41"/>
+<area shape="rect" id="Node000004" href="$_scene_importer_8cpp.html#ab5cba885129b8c9b017c168d6f62fb46" title=" " alt="" coords="221,67,303,94"/>
+<area shape="poly" id="edge6_Node000002_Node000004" title=" " alt="" coords="174,48,209,62,203,62,173,54"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="378,28,374,20,377,11,387,5,403,3,419,5,430,14,424,13,417,10,402,8,388,10,381,14,379,20,382,30"/>
+<area shape="poly" id="edge7_Node000004_Node000003" title=" " alt="" coords="303,67,334,61,339,60,304,72"/>
+<area shape="poly" id="edge8_Node000004_Node000004" title=" " alt="" coords="242,65,238,58,241,49,249,42,262,40,276,43,284,52,279,50,274,47,262,45,251,47,245,52,244,58,246,67"/>
+</map>

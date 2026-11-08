@@ -1,0 +1,9 @@
+<map id="NetworkPresenter::updateTrainBadges" name="NetworkPresenter::updateTrainBadges">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,40,197,85"/>
+<area shape="rect" id="Node000002" href="$class_train_badge_item.html#a15161bda9d67909b1050b6de7e7f794b" title=" " alt="" coords="245,40,458,85"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,60,232,62,226,63,197,65"/>
+<area shape="rect" id="Node000003" href="$class_train_badge_item.html#af4e35564da77c911b2c5598165fd9a05" title="The zoom ratio from which a badge shows the speed." alt="" coords="506,5,690,50"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="458,45,493,42,488,43,459,50"/>
+<area shape="rect" id="Node000004" href="$class_train_badge_item.html#aeb72f511aa1c73b1cdae48c0220d8938" title="The zoom ratio from which a badge is in the Identity presentation." alt="" coords="508,75,689,119"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="458,75,495,82,489,82,458,80"/>
+</map>

@@ -8,7 +8,6 @@
 <title>EGTRAIN: update/UpdateRecord.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,7 +111,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_update_record
   <div class="headertitle"><div class="title">UpdateRecord.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_version_8h_source.html">util/Version.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_version_8h.html">util/Version.h</a>&quot;</code><br />
 <code>#include &lt;QByteArray&gt;</code><br />
 <code>#include &lt;QDateTime&gt;</code><br />
 <code>#include &lt;QString&gt;</code><br />
@@ -121,16 +120,14 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_update_record
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for UpdateRecord.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h__incl.svg" width="648" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h__incl.svg" width="643" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h__dep__incl.svg" width="620" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h__dep__incl.svg" width="616" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-</div>
-<p><a href="_update_record_8h_source.html">Go to the source code of this file.</a></p>
-<table class="memberdecls">
+</div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:UpdateRecord" id="r_UpdateRecord"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_update_record.html">UpdateRecord</a></td></tr>
@@ -220,7 +217,7 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>The record that the update helper leaves after it replaced the installation, or tried to. The helper writes it in <a class="el" href="_update_helper_8cpp.html">update/UpdateHelper.cpp</a>, which holds the same format. A text file in <a class="el" href="#a9310fdab574108ed07cc653140b5daad">updateRecordPath()</a> of three lines, each ended by a line feed: outcome=applied, rolled-back or not-applied version=X.Y.Z time=YYYY-MM-DDTHH:MM:SSZ applied: the new version is in place; the helper writes this before it starts that version. rolled-back: the new version failed to start and the previous installation was put back. not-applied: the installation could not be renamed, so the previous installation was never replaced. The version is the one that was to be installed and the time is the UTC time of the write. Versions up to 1.0.4 know no applied record: their takeUpdateRecord removes it and returns nothing. In installer mode the helper runs the installer of an installer-managed copy instead and leaves outcome=installer-succeeded (the installer exited with 0) or outcome=installer-failed, with the same version (the one to install) and time. A failed installer that ended with an exit code adds a fourth line, exit-code=N. Only the first three records are an <a class="el" href="struct_update_record.html" title="A record of an update in place, as parseUpdateRecord() reads it.">UpdateRecord</a>: parseUpdateRecord does not accept the others, so they never produce the message about an update in place. The others are an <a class="el" href="struct_installer_record.html" title="The record of an installer-mode update.">InstallerRecord</a>. </p>
+<p>The record that the update helper leaves after it replaced the installation, or tried to. The helper writes it in <a class="el" href="_update_helper_8cpp.html">update/UpdateHelper.cpp</a>, which holds the same format. A text file in <a class="el" href="#a9310fdab574108ed07cc653140b5daad">updateRecordPath()</a> of three lines, each ended by a line feed, and a fourth for not-applied: outcome=applied, rolled-back or not-applied version=X.Y.Z time=YYYY-MM-DDTHH:MM:SSZ applied: the new version is in place; the helper writes this before it starts that version. rolled-back: the new version failed to start and the previous installation was put back. not-applied: the update ended otherwise. Mostly the previous installation was never replaced; it is also written when the new version failed to start and the previous one could not be put back. A fourth line, reason=, names the step that failed (<a class="el" href="_update_helper_8cpp.html">update/UpdateHelper.cpp</a> lists them); the reader ignores it. When the failed new version stays in place (failed-version-not-moved, or backup-not-restored after the failed version was put back), the record names the version that is installed, so takeUpdateRecord drops it as stale and nothing is shown to the user. The version is the one that was to be installed and the time is the UTC time of the write. Versions up to 1.0.4 know no applied record: their takeUpdateRecord removes it and returns nothing. In installer mode the helper runs the installer of an installer-managed copy instead and leaves outcome=installer-succeeded (the installer exited with 0) or outcome=installer-failed, with the same version (the one to install) and time. A failed installer that ended with an exit code adds a fourth line, exit-code=N. Only the first three records are an <a class="el" href="struct_update_record.html" title="A record of an update in place, as parseUpdateRecord() reads it.">UpdateRecord</a>: parseUpdateRecord does not accept the others, so they never produce the message about an update in place. The others are an <a class="el" href="struct_installer_record.html" title="The record of an installer-mode update.">InstallerRecord</a>. When the application does not end in time, installer mode also leaves not-applied with reason=parent-still-running, as an update in place does. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a47d839c793e341182c4d3564973b669aae01daed8f2af5888e53470aff7955d86" name="a47d839c793e341182c4d3564973b669aae01daed8f2af5888e53470aff7955d86"></a>RolledBack&#160;</td><td class="fielddoc"><p>outcome=rolled-back. </p>
 </td></tr>
@@ -256,7 +253,7 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h_aedd39575c06eb90ceb03d502cb20b062_cgraph.svg" width="170" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h_aedd39575c06eb90ceb03d502cb20b062_cgraph.svg" width="168" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -280,7 +277,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h_a0b07cefc60dd36435751649c1a50876c_cgraph.svg" width="403" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h_a0b07cefc60dd36435751649c1a50876c_cgraph.svg" width="402" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -303,7 +300,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h_ad99a7b4b4b002f2f73bb94f3bbf9f841_cgraph.svg" width="362" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h_ad99a7b4b4b002f2f73bb94f3bbf9f841_cgraph.svg" width="360" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -326,7 +323,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h_aeb3e3274de628c0b4e506b6de187a33b_cgraph.svg" width="356" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h_aeb3e3274de628c0b4e506b6de187a33b_cgraph.svg" width="355" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -349,7 +346,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h_a3e5786865937c50b538cb477c2c306b6_cgraph.svg" width="558" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h_a3e5786865937c50b538cb477c2c306b6_cgraph.svg" width="556" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -372,11 +369,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Reads the record at path and removes the file, whether or not it could be read. Returns the record only when it is valid and names the installed version (applied) or a newer one (rolled-back and not-applied); any other record is stale. The helper replaces an applied record when it puts the previous version back, so an applied record that names another version is out of date. Nothing is done unless path is a regular file, and a file of more than 4096 bytes is not a record. A file that cannot be removed does not stop the record from being returned. </p>
+<p>Reads the record at path and removes the file, whether or not it could be read. Returns the record only when it is valid and names the installed version (applied) or a newer one (rolled-back and not-applied); any other record is stale. The helper replaces an applied record when it puts the previous version back, so an applied record that names another version is out of date. A not-applied record that names the installed version, which the helper leaves when the failed new version stays in place, is stale as well, so nothing is shown for it. Nothing is done unless path is a regular file, and a file of more than 4096 bytes is not a record. A file that cannot be removed does not stop the record from being returned. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h_ac296b13c3c8e3c075481fe8a8d65a1f7_cgraph.svg" width="547" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h_ac296b13c3c8e3c075481fe8a8d65a1f7_cgraph.svg" width="544" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -404,7 +401,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h_a0f1a4bb3a770363b7d1aeafbee33b022_cgraph.svg" width="416" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h_a0f1a4bb3a770363b7d1aeafbee33b022_cgraph.svg" width="416" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -427,7 +424,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h_a9310fdab574108ed07cc653140b5daad_cgraph.svg" width="151" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_update_record_8h_a9310fdab574108ed07cc653140b5daad_cgraph.svg" width="151" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

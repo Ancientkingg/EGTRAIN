@@ -1,32 +1,29 @@
 <map id="Train" name="Train">
-<area shape="rect" id="Node000001" title=" " alt="" coords="915,441,968,466"/>
-<area shape="rect" id="Node000002" href="$struct_simulation_run.html" title=" " alt="" coords="531,242,648,267"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="653,269,707,287,769,312,833,345,892,385,918,412,935,439,931,442,914,415,889,389,831,349,767,317,705,292,651,274"/>
-<area shape="rect" id="Node000003" href="$class_initial_parameters.html" title=" " alt="" coords="185,295,319,321"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="332,300,409,292,489,280,548,265,550,270,490,285,409,298,333,306"/>
-<area shape="rect" id="Node000004" href="$class_passenger_index.html" title=" " alt="" coords="190,349,314,374"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="328,359,407,351,449,342,488,328,514,315,538,298,574,265,578,269,541,302,517,319,490,333,450,347,408,356,328,364"/>
-<area shape="rect" id="Node000005" href="$class_platform_index.html" title="Station platforms by station ID and platform ID, for one platform list, with the same rules as Passen..." alt="" coords="195,22,309,47"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="323,25,364,25,408,31,451,43,491,63,513,82,532,105,561,156,579,205,588,241,583,243,574,207,556,158,528,108,509,86,488,68,449,47,407,36,364,31,323,30"/>
-<area shape="rect" id="Node000006" href="$class_stations.html" title=" " alt="" coords="215,137,289,162"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="303,147,392,156,442,166,490,182,540,210,576,240,573,244,536,214,488,186,441,171,391,161,303,153"/>
-<area shape="rect" id="Node000007" href="$class_node.html" title=" " alt="" coords="5,409,61,434"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="41,394,61,348,90,289,131,228,154,199,181,174,213,156,216,161,184,178,158,203,135,231,95,292,65,350,46,396"/>
-<area shape="rect" id="Node000010" href="$class_arc.html" title="A directed piece of track between two nodes." alt="" coords="231,409,273,434"/>
-<area shape="poly" id="edge10_Node000010_Node000007" title=" " alt="" coords="75,419,230,419,230,424,75,424"/>
-<area shape="rect" id="Node000011" href="$class_section.html" title=" " alt="" coords="554,455,625,481"/>
-<area shape="poly" id="edge13_Node000011_Node000007" title=" " alt="" coords="68,438,121,465,183,485,235,494,288,498,392,495,485,485,553,473,554,478,486,490,393,501,288,503,234,499,182,491,119,470,66,443"/>
-<area shape="rect" id="Node000008" href="$class_number_generator.html" title=" " alt="" coords="183,189,321,214"/>
-<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="336,207,490,228,541,239,540,245,489,233,335,212"/>
-<area shape="rect" id="Node000009" href="$struct_run_infrastructure.html" title=" " alt="" coords="185,242,319,267"/>
-<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="333,252,530,252,530,257,333,257"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="287,414,390,402,540,394,626,394,715,398,805,408,891,425,921,438,919,443,890,431,804,414,715,404,626,399,540,399,390,407,287,419"/>
-<area shape="poly" id="edge12_Node000011_Node000010" title=" " alt="" coords="286,439,314,453,346,464,402,473,459,475,554,470,554,475,459,481,402,478,345,469,312,458,283,443"/>
-<area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="638,463,914,452,915,457,639,469"/>
-<area shape="rect" id="Node000012" href="$class_movement_authority.html" title=" " alt="" coords="513,557,665,582"/>
-<area shape="poly" id="edge14_Node000001_Node000012" title=" " alt="" coords="663,581,716,587,775,586,835,575,863,564,889,550,908,532,921,509,935,466,940,467,926,511,912,535,892,554,865,569,836,580,776,591,716,592,662,587"/>
-<area shape="rect" id="Node000013" href="$class_train_event.html" title=" " alt="" coords="207,561,297,586"/>
-<area shape="poly" id="edge15_Node000012_Node000013" title=" " alt="" coords="311,570,513,568,513,573,311,575"/>
-<area shape="rect" id="Node000014" href="$class_blocking_time_list.html" title=" " alt="" coords="522,607,657,633"/>
-<area shape="poly" id="edge16_Node000001_Node000014" title=" " alt="" coords="642,634,698,646,763,652,797,650,830,644,861,633,889,617,905,601,917,583,932,540,938,498,938,466,943,466,943,498,937,541,922,585,909,605,892,621,863,638,831,649,797,655,763,657,697,651,641,639"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="734,521,786,549"/>
+<area shape="rect" id="Node000002" href="$struct_simulation_run.html" title=" " alt="" coords="352,259,468,286"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="483,278,540,290,601,310,660,339,687,358,712,380,736,415,750,454,758,492,761,522,756,519,753,493,745,456,731,417,708,384,684,362,657,344,599,315,538,295,484,284"/>
+<area shape="rect" id="Node000003" href="$class_initial_parameters.html" title=" " alt="" coords="8,24,141,52"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="154,28,195,29,236,35,276,47,312,66,335,87,355,112,383,166,401,219,409,259,404,258,396,220,379,168,350,114,332,91,309,71,274,52,235,40,194,34,157,32"/>
+<area shape="rect" id="Node000004" href="$class_passenger_index.html" title=" " alt="" coords="13,80,136,108"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="151,95,244,105,284,113,312,124,347,154,375,192,394,228,407,259,401,258,390,231,370,194,343,158,309,128,282,118,243,110,153,100"/>
+<area shape="rect" id="Node000005" href="$class_platform_index.html" title="Station platforms by station ID and platform ID, for one platform list, with the same rules as Passen..." alt="" coords="18,136,131,164"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="146,152,240,161,282,168,312,177,340,194,365,216,401,258,396,259,361,220,337,199,310,182,281,173,240,166,148,156"/>
+<area shape="rect" id="Node000006" href="$struct_delay_stats.html" title=" " alt="" coords="28,259,121,286"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="136,270,353,271,350,275,137,275"/>
+<area shape="rect" id="Node000007" href="$class_number_generator.html" title=" " alt="" coords="5,315,144,342"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="158,321,233,313,310,300,370,286,366,289,311,306,233,318,160,326"/>
+<area shape="rect" id="Node000008" href="$struct_run_infrastructure.html" title=" " alt="" coords="7,371,142,398"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="156,382,233,372,272,363,310,350,335,336,359,319,399,285,395,288,362,323,338,340,312,355,274,368,234,378,159,387"/>
+<area shape="rect" id="Node000009" href="$class_section.html" title=" " alt="" coords="376,432,445,460"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="459,428,514,416,579,410,614,411,648,416,681,425,711,440,731,457,744,479,759,522,754,520,740,481,727,460,709,444,679,430,647,421,613,416,580,415,515,421,461,433"/>
+<area shape="rect" id="Node000010" href="$class_node.html" title=" " alt="" coords="47,449,102,477"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="117,462,207,463,310,459,377,451,373,454,311,464,207,468,119,467"/>
+<area shape="rect" id="Node000011" href="$class_movement_authority.html" title=" " alt="" coords="335,521,486,549"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="501,533,736,535,731,536,502,538"/>
+<area shape="rect" id="Node000012" href="$class_train_event.html" title=" " alt="" coords="30,521,119,549"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="135,533,336,533,333,538,135,538"/>
+<area shape="rect" id="Node000013" href="$class_blocking_time_list.html" title=" " alt="" coords="344,577,477,605"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="492,592,597,586,654,577,709,563,738,550,743,549,711,568,655,583,598,592,493,597"/>
+<area shape="rect" id="Node000014" href="$class_train_step_cache.html" title=" " alt="" coords="350,633,471,661"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="486,657,539,661,597,658,655,646,683,636,708,622,726,607,738,587,753,551,758,548,743,589,730,610,712,626,685,641,657,652,598,664,539,666,486,663"/>
 </map>

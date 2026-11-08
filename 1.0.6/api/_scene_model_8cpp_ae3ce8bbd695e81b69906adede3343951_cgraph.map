@@ -1,0 +1,7 @@
+<map id="refreshSavedSceneMetadata" name="refreshSavedSceneMetadata">
+<area shape="rect" id="Node000001" title="Sets sourceFiles to the files that a save writes." alt="" coords="5,29,214,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="72,28,66,20,71,11,86,5,110,3,135,5,150,14,145,14,134,10,109,8,87,10,75,15,71,20,77,29"/>
+<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a69af3c8a54fe5e718e34066cf176e53c" title="True when saveScene writes file for scene." alt="" coords="262,29,392,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="214,41,249,43,243,43,214,46"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="289,28,283,20,288,11,303,5,327,3,352,5,368,14,362,14,351,10,327,8,304,10,292,15,289,20,294,30"/>
+</map>

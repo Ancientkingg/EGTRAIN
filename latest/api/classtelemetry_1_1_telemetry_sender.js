@@ -13,5 +13,6 @@ var classtelemetry_1_1_telemetry_sender =
     [ "requestInteractiveSession", "classtelemetry_1_1_telemetry_sender.html#ab8f226e7d0eb5f5ee61783a482f7faba", null ],
     [ "stop", "classtelemetry_1_1_telemetry_sender.html#acb1b449e3a4de6b4c11ef128f35e9beb", null ],
     [ "tryEnqueue", "classtelemetry_1_1_telemetry_sender.html#ad6e408d86dd8adedca19e37864ea2dca", null ],
-    [ "tryEnqueue", "classtelemetry_1_1_telemetry_sender.html#a863f93afda16ffb2bdf5ea474cd3bb65", null ]
+    [ "tryEnqueue", "classtelemetry_1_1_telemetry_sender.html#a863f93afda16ffb2bdf5ea474cd3bb65", null ],
+    [ "kTickIntervalMs", "classtelemetry_1_1_telemetry_sender.html#af128348a90aceebb1a203c2c88869c0a", null ]
 ];

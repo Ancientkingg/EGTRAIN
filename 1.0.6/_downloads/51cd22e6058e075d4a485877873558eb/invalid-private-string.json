@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "category": "diagnostics",
+  "sent_at": "2026-01-20T10:00:00Z",
+  "application": {
+    "name": "EGTRAIN",
+    "version": "1.2.3",
+    "platform": "linux",
+    "architecture": "x86_64"
+  },
+  "events": [
+    {
+      "event_id": "a976e992-2b87-4918-a0c6-0bfe42c10317",
+      "occurred_at": "2026-01-20T09:59:50Z",
+      "name": "operation.failed",
+      "properties": {
+        "operation_code": "scene_open",
+        "error_code": "/private/scene.egscene"
+      }
+    }
+  ]
+}

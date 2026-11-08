@@ -1,12 +1,12 @@
 <map id="DiagramKey::paintEvent" name="DiagramKey::paintEvent">
-<area shape="rect" id="Node000001" title="Draws the rows." alt="" coords="5,67,184,92"/>
-<area shape="rect" id="Node000002" href="$_diagram_key_8cpp.html#a14110fc46610040ff957d5a5c62ea1d3" title=" " alt="" coords="232,67,339,92"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,77,218,77,218,82,184,82"/>
-<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="254,68,248,58,251,48,264,42,285,40,311,44,322,52,318,56,309,48,285,45,266,47,255,52,253,58,259,65"/>
-<area shape="rect" id="Node000003" href="$_diagram_key_8cpp.html#a7eab8d2b7a112ef6877c72c8603ceee0" title="The height of one row of a key in font: its text or its sample, whichever is taller,..." alt="" coords="387,29,557,55"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="338,66,394,55,395,60,339,71"/>
-<area shape="rect" id="Node000004" href="$_diagram_key_8cpp.html#a1d0e16ff0d09758910f642fbc90639a1" title="Draws the sample of entry centred in area." alt="" coords="408,103,536,128"/>
-<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="339,87,395,98,394,103,338,92"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="441,31,435,21,438,11,451,5,472,3,498,6,508,15,505,19,496,11,472,8,452,10,442,15,440,20,445,28"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="441,104,435,94,438,84,451,78,472,76,498,80,508,88,505,92,496,84,472,81,452,83,442,88,440,94,445,101"/>
+<area shape="rect" id="Node000001" title="Draws the rows." alt="" coords="5,68,184,96"/>
+<area shape="rect" id="Node000002" href="$_diagram_key_8cpp.html#a14110fc46610040ff957d5a5c62ea1d3" title=" " alt="" coords="232,68,338,96"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,79,219,81,213,82,184,84"/>
+<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="252,67,247,59,251,50,264,43,285,41,307,44,320,53,315,52,305,49,285,47,266,49,255,53,253,59,257,68"/>
+<area shape="rect" id="Node000003" href="$_diagram_key_8cpp.html#a7eab8d2b7a112ef6877c72c8603ceee0" title="The height of one row of a key in font: its text or its sample, whichever is taller,..." alt="" coords="386,29,556,57"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="338,68,384,61,389,60,339,73"/>
+<area shape="rect" id="Node000004" href="$_diagram_key_8cpp.html#a1d0e16ff0d09758910f642fbc90639a1" title="Draws the sample of entry centred in area." alt="" coords="408,105,535,133"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="339,90,395,103,389,103,338,95"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="439,28,434,20,438,11,451,5,471,3,493,5,507,14,501,14,492,10,471,8,452,10,442,15,439,20,444,30"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="439,104,434,96,438,87,451,81,471,79,493,81,507,91,501,90,492,86,471,84,452,86,442,91,439,96,444,106"/>
 </map>

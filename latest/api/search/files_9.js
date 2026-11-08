@@ -8,6 +8,8 @@ var searchData=
   ['liveframe_2eh_5',['LiveFrame.h',['../_live_frame_8h.html',1,'']]],
   ['liveserver_2ecpp_6',['LiveServer.cpp',['../_live_server_8cpp.html',1,'']]],
   ['liveserver_2eh_7',['LiveServer.h',['../_live_server_8h.html',1,'']]],
-  ['log_2ecpp_8',['Log.cpp',['../_log_8cpp.html',1,'']]],
-  ['log_2eh_9',['Log.h',['../_log_8h.html',1,'']]]
+  ['loadeddatasummary_2ecpp_8',['LoadedDataSummary.cpp',['../_loaded_data_summary_8cpp.html',1,'']]],
+  ['loadeddatasummary_2eh_9',['LoadedDataSummary.h',['../_loaded_data_summary_8h.html',1,'']]],
+  ['log_2ecpp_10',['Log.cpp',['../_log_8cpp.html',1,'']]],
+  ['log_2eh_11',['Log.h',['../_log_8h.html',1,'']]]
 ];

@@ -8,7 +8,6 @@
 <title>EGTRAIN: diagrams/BlockingTimeScope.cpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,31 +111,51 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_blocking_time
   <div class="headertitle"><div class="title">BlockingTimeScope.cpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_blocking_time_scope_8h_source.html">diagrams/BlockingTimeScope.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_choice_combo_box_8h_source.html">widgets/ChoiceComboBox.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_dialog_layout_8h_source.html">widgets/DialogLayout.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_blocking_time_scope_8h.html">diagrams/BlockingTimeScope.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_time_format_8h.html">util/TimeFormat.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_choice_combo_box_8h.html">widgets/ChoiceComboBox.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_dialog_layout_8h.html">widgets/DialogLayout.h</a>&quot;</code><br />
+<code>#include &lt;QAbstractItemView&gt;</code><br />
 <code>#include &lt;QComboBox&gt;</code><br />
 <code>#include &lt;QDialog&gt;</code><br />
 <code>#include &lt;QDialogButtonBox&gt;</code><br />
 <code>#include &lt;QDoubleSpinBox&gt;</code><br />
+<code>#include &lt;QEvent&gt;</code><br />
 <code>#include &lt;QFormLayout&gt;</code><br />
+<code>#include &lt;QHBoxLayout&gt;</code><br />
+<code>#include &lt;QLabel&gt;</code><br />
 <code>#include &lt;QObject&gt;</code><br />
+<code>#include &lt;QRadioButton&gt;</code><br />
+<code>#include &lt;QRegularExpression&gt;</code><br />
+<code>#include &lt;QSignalBlocker&gt;</code><br />
 <code>#include &lt;QString&gt;</code><br />
+<code>#include &lt;QValidator&gt;</code><br />
 <code>#include &lt;QWidget&gt;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
+<code>#include &lt;cmath&gt;</code><br />
+<code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;optional&gt;</code><br />
+<code>#include &lt;tuple&gt;</code><br />
+<code>#include &lt;utility&gt;</code><br />
+<code>#include &quot;moc_BlockingTimeScope.cpp&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for BlockingTimeScope.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_scope_8cpp__incl.svg" width="4842" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_scope_8cpp__incl.svg" width="5520" height="418"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a9324ae131949465379586a8abb509b10" id="r_a9324ae131949465379586a8abb509b10"><td class="memItemLeft">const char *&#160;</td><td class="memItemRight"><a class="el" href="#a9324ae131949465379586a8abb509b10">blockingSegmentTypeName</a> (<a class="el" href="_blocking_time_diagram_8h.html#a8e31489306e50f827b479eb73d6001d7">BlockingTimeSegmentStyle</a> style)</td></tr>
 <tr class="memitem:a1d9a7a52a9b6374bac840bbfc5a53d55" id="r_a1d9a7a52a9b6374bac840bbfc5a53d55"><td class="memItemLeft">const char *&#160;</td><td class="memItemRight"><a class="el" href="#a1d9a7a52a9b6374bac840bbfc5a53d55">blockingSegmentTypeName</a> (const <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &amp;segment)</td></tr>
+<tr class="memitem:ac01aee1b4c6ace5d6b3ca77476012670" id="r_ac01aee1b4c6ace5d6b3ca77476012670"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_route_station.html">RouteStation</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac01aee1b4c6ace5d6b3ca77476012670">routeStationsFrom</a> (const std::vector&lt; <a class="el" href="struct_block_section_input.html">BlockSectionInput</a> &gt; &amp;blocks, const <a class="el" href="struct_route_diagram_path.html">RouteDiagramPath</a> &amp;path)</td></tr>
+<tr class="memitem:aa2f22a6f5eb227c8d834ac3672ec4996" id="r_aa2f22a6f5eb227c8d834ac3672ec4996"><td class="memItemLeft"><a class="el" href="struct_blocking_time_scope_choices_1_1_route.html">BlockingTimeScopeChoices::Route</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa2f22a6f5eb227c8d834ac3672ec4996">blockingTimeScopeRouteFrom</a> (const <a class="el" href="struct_completed_route.html">CompletedRoute</a> &amp;route)</td></tr>
+<tr class="memdesc:aa2f22a6f5eb227c8d834ac3672ec4996"><td class="mdescLeft">&#160;</td><td class="mdescRight">The route as the scope dialogs offer it: its id, corridor, blocks and stations.  <br /></td></tr>
+<tr class="memitem:a9b69b830af3ce74a5c31ab8884fd3596" id="r_a9b69b830af3ce74a5c31ab8884fd3596"><td class="memItemLeft">std::pair&lt; int, int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9b69b830af3ce74a5c31ab8884fd3596">stationStretchBlocks</a> (const <a class="el" href="struct_blocking_time_scope_choices_1_1_route.html">BlockingTimeScopeChoices::Route</a> &amp;route, int from, int to)</td></tr>
+<tr class="memitem:a5feaa6509d6770f624cca415de6121e7" id="r_a5feaa6509d6770f624cca415de6121e7"><td class="memItemLeft">std::optional&lt; std::pair&lt; int, int &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a5feaa6509d6770f624cca415de6121e7">stationsHoldingBlocks</a> (const <a class="el" href="struct_blocking_time_scope_choices_1_1_route.html">BlockingTimeScopeChoices::Route</a> &amp;route, int first, int last)</td></tr>
+<tr class="memitem:a62a3e8b77d8b29b0fa4a430935911ec9" id="r_a62a3e8b77d8b29b0fa4a430935911ec9"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a62a3e8b77d8b29b0fa4a430935911ec9">blockingTimeScopeRouteText</a> (const <a class="el" href="struct_blocking_time_scope_choices_1_1_route.html">BlockingTimeScopeChoices::Route</a> &amp;route)</td></tr>
 <tr class="memitem:aae61caecea312e72d118f1c729b4a2c9" id="r_aae61caecea312e72d118f1c729b4a2c9"><td class="memItemLeft"><a class="el" href="struct_blocking_time_scope.html">BlockingTimeScope</a>&#160;</td><td class="memItemRight"><a class="el" href="#aae61caecea312e72d118f1c729b4a2c9">defaultBlockingTimeScope</a> (double caseEndSeconds)</td></tr>
-<tr class="memitem:a0d94ba2961208555a75aa057d7fc08bd" id="r_a0d94ba2961208555a75aa057d7fc08bd"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a0d94ba2961208555a75aa057d7fc08bd">chooseBlockingTimeScope</a> (QWidget *parent, const <a class="el" href="struct_blocking_time_scope_choices.html">BlockingTimeScopeChoices</a> &amp;choices, <a class="el" href="struct_blocking_time_scope.html">BlockingTimeScope</a> &amp;scope)</td></tr>
+<tr class="memitem:a15ee170ce52d33b574992f4edf84d068" id="r_a15ee170ce52d33b574992f4edf84d068"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a15ee170ce52d33b574992f4edf84d068">chooseBlockingTimeScope</a> (QWidget *parent, const <a class="el" href="struct_blocking_time_scope_choices.html">BlockingTimeScopeChoices</a> &amp;choices, <a class="el" href="struct_blocking_time_scope.html">BlockingTimeScope</a> &amp;scope, const <a class="el" href="_blocking_time_scope_8h.html#a489ed0cfab4927fbb3f62dcd4ee7fe82">ScopeStretchObserver</a> &amp;observer)</td></tr>
 <tr class="memitem:a2364e9e67418d8512b9ed5db8c487124" id="r_a2364e9e67418d8512b9ed5db8c487124"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a2364e9e67418d8512b9ed5db8c487124">projectBlockingSegments</a> (const std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt; &amp;segments, const std::map&lt; std::string, <a class="el" href="struct_route_diagram_projection.html">RouteDiagramProjection</a> &gt; &amp;projections, int &amp;omitted, std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt; *unmapped)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
@@ -157,7 +176,7 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_scope_8cpp_a9324ae131949465379586a8abb509b10_cgraph.svg" width="215" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_scope_8cpp_a9324ae131949465379586a8abb509b10_cgraph.svg" width="215" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -179,13 +198,60 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_scope_8cpp_a1d9a7a52a9b6374bac840bbfc5a53d55_cgraph.svg" width="467" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_scope_8cpp_a1d9a7a52a9b6374bac840bbfc5a53d55_cgraph.svg" width="466" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a0d94ba2961208555a75aa057d7fc08bd" name="a0d94ba2961208555a75aa057d7fc08bd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0d94ba2961208555a75aa057d7fc08bd">&#9670;&#160;</a></span>chooseBlockingTimeScope()</h2>
+<a id="aa2f22a6f5eb227c8d834ac3672ec4996" name="aa2f22a6f5eb227c8d834ac3672ec4996"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa2f22a6f5eb227c8d834ac3672ec4996">&#9670;&#160;</a></span>blockingTimeScopeRouteFrom()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_blocking_time_scope_choices_1_1_route.html">BlockingTimeScopeChoices::Route</a> blockingTimeScopeRouteFrom </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_completed_route.html">CompletedRoute</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>route</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The route as the scope dialogs offer it: its id, corridor, blocks and stations. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_scope_8cpp_aa2f22a6f5eb227c8d834ac3672ec4996_cgraph.svg" width="420" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a62a3e8b77d8b29b0fa4a430935911ec9" name="a62a3e8b77d8b29b0fa4a430935911ec9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a62a3e8b77d8b29b0fa4a430935911ec9">&#9670;&#160;</a></span>blockingTimeScopeRouteText()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString blockingTimeScopeRouteText </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_blocking_time_scope_choices_1_1_route.html">BlockingTimeScopeChoices::Route</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>route</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A route as the scope dialogs list it: its id with its first and last station, such as "route0: Guingamp to Paimpol", or its only station, then its corridor in brackets when it has one, "route0: Guingamp to Paimpol  (A)". A route without a station shows its id and corridor only, "route5  (A)". </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_scope_8cpp_a62a3e8b77d8b29b0fa4a430935911ec9_cgraph.svg" width="224" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a15ee170ce52d33b574992f4edf84d068" name="a15ee170ce52d33b574992f4edf84d068"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a15ee170ce52d33b574992f4edf84d068">&#9670;&#160;</a></span>chooseBlockingTimeScope()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -203,14 +269,20 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="struct_blocking_time_scope.html">BlockingTimeScope</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scope</em></span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="struct_blocking_time_scope.html">BlockingTimeScope</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scope</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="_blocking_time_scope_8h.html#a489ed0cfab4927fbb3f62dcd4ee7fe82">ScopeStretchObserver</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>observer</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Asks for a route, a stretch of it (<a class="el" href="class_scope_stretch_choice.html">ScopeStretchChoice</a>) and an interval as clock times of the run, from and to a second of the run. It opens on the route and blocks of the scope when the choices have its route, else on all routes, and on its interval. On accept the scope holds the choice and no train list, so it takes every train that occupies a block of the stretch, whatever route the train runs on. False when the dialog is cancelled or the interval is empty. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_scope_8cpp_a0d94ba2961208555a75aa057d7fc08bd_cgraph.svg" width="990" height="412"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_scope_8cpp_a15ee170ce52d33b574992f4edf84d068_cgraph.svg" width="1179" height="599"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -232,7 +304,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_scope_8cpp_aae61caecea312e72d118f1c729b4a2c9_cgraph.svg" width="207" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_scope_8cpp_aae61caecea312e72d118f1c729b4a2c9_cgraph.svg" width="207" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -268,7 +340,98 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_scope_8cpp_a2364e9e67418d8512b9ed5db8c487124_cgraph.svg" width="199" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_scope_8cpp_a2364e9e67418d8512b9ed5db8c487124_cgraph.svg" width="199" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ac01aee1b4c6ace5d6b3ca77476012670" name="ac01aee1b4c6ace5d6b3ca77476012670"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac01aee1b4c6ace5d6b3ca77476012670">&#9670;&#160;</a></span>routeStationsFrom()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; <a class="el" href="struct_route_station.html">RouteStation</a> &gt; routeStationsFrom </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_block_section_input.html">BlockSectionInput</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>blocks</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_route_diagram_path.html">RouteDiagramPath</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>path</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The stations that the path passes, in its order, each with the blocks around it. A node of a station lies on a block when its position on the route lies between the ends of the block, ends included. Nodes of one station that follow each other on the path, with no node of another station between them, are one visit; a station visited again later is listed again. A station whose nodes lie on no block is left out. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_scope_8cpp_ac01aee1b4c6ace5d6b3ca77476012670_cgraph.svg" width="152" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a5feaa6509d6770f624cca415de6121e7" name="a5feaa6509d6770f624cca415de6121e7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5feaa6509d6770f624cca415de6121e7">&#9670;&#160;</a></span>stationsHoldingBlocks()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; std::pair&lt; int, int &gt; &gt; stationsHoldingBlocks </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_blocking_time_scope_choices_1_1_route.html">BlockingTimeScopeChoices::Route</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>route</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>first</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>last</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The stations whose stretch (stationStretchBlocks) is the smallest that holds the blocks <span class="tt">first</span> to <span class="tt">last</span>: the stretch of those blocks itself when the stations give it, then the stations nearest the blocks. Of stretches of one length, the earliest From station and the latest To station. Empty when the route has no station or no stretch holds the blocks. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_scope_8cpp_a5feaa6509d6770f624cca415de6121e7_cgraph.svg" width="380" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a9b69b830af3ce74a5c31ab8884fd3596" name="a9b69b830af3ce74a5c31ab8884fd3596"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9b69b830af3ce74a5c31ab8884fd3596">&#9670;&#160;</a></span>stationStretchBlocks()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::pair&lt; int, int &gt; stationStretchBlocks </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_blocking_time_scope_choices_1_1_route.html">BlockingTimeScopeChoices::Route</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>route</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>from</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>to</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The blocks, from 0 in route order, of the stretch from station <span class="tt">from</span> to station <span class="tt">to</span> of the route, positions in <span class="tt">stations</span> in either order: every block that lies at least partly between the two stations (from the first node of the one to the last node of the other), where the first and the last station of the route stand for its ends. From a station to itself, the blocks that hold it. The first and the last block of the stretch; the whole route when it has no station. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_scope_8cpp_a9b69b830af3ce74a5c31ab8884fd3596_cgraph.svg" width="167" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

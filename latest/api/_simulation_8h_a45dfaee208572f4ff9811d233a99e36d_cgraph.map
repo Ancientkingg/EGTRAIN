@@ -1,9 +1,9 @@
 <map id="passengersWaitingAtPlatform" name="passengersWaitingAtPlatform">
-<area shape="rect" id="Node000001" title="The passengers waiting at the platform with these IDs. No platform is modified." alt="" coords="5,29,220,55"/>
-<area shape="rect" id="Node000002" href="$_simulation_8cpp.html#a15561587cf3c4f3cdfc40c7a48b32d47" title=" " alt="" coords="268,29,483,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,39,254,39,254,45,220,45"/>
-<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="333,31,324,21,329,11,346,5,375,3,413,7,423,12,427,18,422,20,419,16,411,12,375,8,347,10,332,15,329,20,337,27"/>
-<area shape="rect" id="Node000003" href="$_infrastructure_8cpp.html#a27a9014643a094735169e467c3ccd9fc" title=" " alt="" coords="531,29,749,55"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="483,39,517,39,517,45,483,45"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="597,31,588,21,593,11,611,5,640,3,678,7,688,12,692,18,687,20,685,16,676,12,640,8,612,10,596,15,593,20,601,27"/>
+<area shape="rect" id="Node000001" title="The passengers waiting at the platform with these IDs. No platform is modified." alt="" coords="5,29,220,57"/>
+<area shape="rect" id="Node000002" href="$_simulation_8cpp.html#a15561587cf3c4f3cdfc40c7a48b32d47" title=" " alt="" coords="268,29,482,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,41,255,43,250,43,220,46"/>
+<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="330,28,323,20,329,11,346,5,375,3,405,5,424,14,418,14,404,10,375,8,347,10,332,15,328,20,335,30"/>
+<area shape="rect" id="Node000003" href="$_infrastructure_8cpp.html#a27a9014643a094735169e467c3ccd9fc" title=" " alt="" coords="530,29,748,57"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="483,41,517,43,511,43,483,46"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="594,28,587,20,593,11,610,5,639,3,670,5,688,14,683,14,669,10,639,8,611,10,596,15,592,20,599,30"/>
 </map>

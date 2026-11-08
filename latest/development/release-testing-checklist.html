@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Release rehearsal" href="release-rehearsal-template.html"><link rel="prev" title="Qt 6 migration study" href="qt6-migration-study.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Release rehearsal" href="release-rehearsal-template.html"><link rel="prev" title="Peak-memory baselines" href="memory-baselines.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>Release Testing Checklist - EGTRAIN documentation</title>
@@ -192,11 +192,13 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/common-questions.html">Common questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
@@ -220,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -236,7 +238,6 @@
 <li class="toctree-l1"><a class="reference internal" href="coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +252,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul class="current">
@@ -267,6 +267,8 @@
 <li class="toctree-l1"><a class="reference internal" href="records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -337,7 +339,9 @@ no <code class="docutils literal notranslate"><span class="pre">update-manifest.
 <li><p>The assets of one published release, made by a push to <code class="docutils literal notranslate"><span class="pre">production</span></code> or by
 a <code class="docutils literal notranslate"><span class="pre">v*</span></code> tag. A release holds the application assets, the case-study bundles
 and <code class="docutils literal notranslate"><span class="pre">update-manifest.json</span></code> that the next section lists, and nothing else. It
-stays a draft until all of them are uploaded. A <code class="docutils literal notranslate"><span class="pre">v*</span></code> tag that contains a
+stays a draft until all of them are uploaded. The same files are then on
+bin.samuelbruin.com, listed on the release page of the website,
+<code class="docutils literal notranslate"><span class="pre">https://egtrain.samuelbruin.com/releases/&lt;version&gt;/</span></code>. A <code class="docutils literal notranslate"><span class="pre">v*</span></code> tag that contains a
 hyphen is published as a prerelease: the updater never offers it, and its
 version is the number before the hyphen.</p></li>
 </ul>
@@ -352,7 +356,10 @@ archive carry it. Record that version; step 1 says where the entry is.</p>
 <h2>Automated release evidence<a class="headerlink" href="#automated-release-evidence" title="Link to this heading">¶</a></h2>
 <p>The release is ready to rehearse only when the version, validation, sanitizer
 and the package jobs of the <code class="docutils literal notranslate"><span class="pre">Release</span></code> workflow (macOS, Windows, Finalize Windows,
-Linux and Rehearse Linux) are green. The release job needs all of them.
+Linux and Rehearse Linux) are green. The release job needs all of them. After
+the release, the job <strong>Publish on egtrain.samuelbruin.com</strong> uploads the same
+files to Zipline and then publishes the release page and the entry of the update
+feed of the website.
 <a class="reference internal" href="ci-and-release.html#ci-and-release-branches"><span class="std std-ref">CI and release branches</span></a> describes
 what the workflow does.</p>
 <p>Expected application assets:</p>
@@ -377,7 +384,8 @@ Windows names above.</p>
 </ul>
 <p>A published release also has <code class="docutils literal notranslate"><span class="pre">update-manifest.json</span></code>. Confirm the workflow
 validates all the bundles and publishes exactly the application assets and the
-case-study assets above and the update manifest.</p>
+case-study assets above and the update manifest, in the release and on the
+release page of the website.</p>
 <p>What the jobs prove today:</p>
 <ul class="simple">
 <li><p>The Full validation job builds the project with tests on macOS and runs
@@ -394,13 +402,12 @@ The job removes the virtual keyboard input plugin with the Quick
 and QML frameworks, and the WebP and TIFF plugins with their libraries, from
 the app before the signature, and fails when one of them is in the app or when
 the cocoa platform plugin, the SVG icon engine or the macOS style is missing.
-The app holds <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code>. <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> validates the Paimpol
-scene of the app, and the app runs Paimpol without the GUI from
-<code class="docutils literal notranslate"><span class="pre">Contents/Resources/Scenes</span></code> to <code class="docutils literal notranslate"><span class="pre">End</span> <span class="pre">of</span> <span class="pre">Simulation</span></code>. The job starts a copy of
-the app with <code class="docutils literal notranslate"><span class="pre">tools/release/package_start_smoke.py</span></code> (step
+The app holds <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code>, which validates the Paimpol scene of the app. The
+job starts a copy of the app with <code class="docutils literal notranslate"><span class="pre">tools/release/package_start_smoke.py</span></code> (step
 <strong>Start the package</strong>), which first checks that every dependency of the app is
 a system library or a file inside the app and that every library inside the
-app is loaded by some file.
+app is loaded by some file. The copy then runs Paimpol without the GUI from
+<code class="docutils literal notranslate"><span class="pre">Contents/Resources/Scenes</span></code> to <code class="docutils literal notranslate"><span class="pre">End</span> <span class="pre">of</span> <span class="pre">Simulation</span></code>.
 The job prints the number of files and bytes of the app before and after the
 removal in its job summary. It also packs and validates the six bundles.
 Then it builds <code class="docutils literal notranslate"><span class="pre">EGTRAIN-&lt;version&gt;-macOS-arm64.dmg</span></code> from the signed app,
@@ -451,7 +458,7 @@ after it has checked that every Qt and ZeroMQ library of the programs and
 plugins comes from the image and not from the runner.</p></li>
 <li><p>The Rehearse Linux job runs the steps 1 to 9 of the clean-install rehearsal
 on the AppImage that the Package Linux job uploaded. It runs on every package
-run, so the release run rehearses the frozen candidate. The runner is a GitHub
+run, so the release run rehearses the frozen candidate. The runner is a hosted
 Ubuntu 24.04 machine with a virtual display, a D-Bus session and the AT-SPI
 accessibility bus. The job installs no Qt package. It extracts the
 image, packs the Paimpol scene of the image into a <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle with the
@@ -461,7 +468,10 @@ case-study bundles, would end this job after the Windows jobs. The script
 starts the image through its <code class="docutils literal notranslate"><span class="pre">AppRun</span></code> with a new home directory and no
 <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_</span></code> variable, and drives the real menus and dialogs through AT-SPI,
 with <code class="docutils literal notranslate"><span class="pre">xdotool</span></code> only for typing and for giving the keyboard to a field or a
-table cell. The release package has no test hook. Each
+table cell. The release package has no test hook. At the first start it
+answers <strong>Not now</strong> to the question about usage statistics and diagnostic
+reports and <strong>Don’t Check Automatically</strong> to the question about update
+checks. Each
 step prints <code class="docutils literal notranslate"><span class="pre">STEP</span> <span class="pre">n</span> <span class="pre">PASS</span></code> or <code class="docutils literal notranslate"><span class="pre">STEP</span> <span class="pre">n</span> <span class="pre">FAIL</span></code> with what it saw, and the job stops
 at the first step that fails. The script also fails when the area of the
 buttons Zoom In and Zoom Out of the toolbar, which show an icon and no text,
@@ -471,20 +481,20 @@ steps, the output of the application and the log of the script are the
 artifact <code class="docutils literal notranslate"><span class="pre">linux-rehearsal-evidence</span></code> of the run, also when a step fails. The
 artifact is for diagnosis and is not a release asset.
 Record the result of the steps 1 to 9 on Linux from this job, and label it as
-a run on a GitHub Ubuntu runner with a virtual display. The job does not cover
+a run on a hosted Ubuntu runner with a virtual display. The job does not cover
 dragging a bundle from a file manager (row R2), a real desktop session, the
 questions that a desktop environment asks at the first start, the file dialog
 of a desktop environment (the job uses the dialog of Qt) and the rows R1 and R3
-to R12.</p></li>
+to R13.</p></li>
 <li><p>Each package job also runs the update helper tests
 (<code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">-R</span> <span class="pre">'^test_update(helper|preparation)$'</span></code>, step <strong>Verify update helper
 transaction</strong>).</p></li>
-<li><p>The Package Windows job also makes one HTTPS request to the GitHub release list
-from a copy of the package, with only the Windows directories on <code class="docutils literal notranslate"><span class="pre">PATH</span></code> (step
-<strong>Check HTTPS from the package</strong>). It shows that the update transport completes
-an HTTPS request with the Qt files of the package and no Qt or vcpkg directory
-on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>. It does not show the update check of the application on a clean
-machine, which row R8 covers.</p></li>
+<li><p>The Package Windows job also makes one HTTPS request to the update feed of the
+EGTRAIN website from a copy of the package, with only the Windows directories
+on <code class="docutils literal notranslate"><span class="pre">PATH</span></code> (step <strong>Check HTTPS from the package</strong>). It shows that the update
+transport completes an HTTPS request with the Qt files of the package and no
+Qt or vcpkg directory on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>. It does not show the update check of the
+application on a clean machine, which row R8 covers.</p></li>
 <li><p>The Package macOS job starts a copy of the app that goes into the disk image, the
 Package Windows job starts a copy of the directory it uploads, and the Package
 Linux job starts the extracted AppImage, all with
@@ -563,7 +573,7 @@ have <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_</spa
 <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_DISABLE_UPDATES</span></code> and <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_AUTOSTART</span></code> switch the update entries
 off and are not part of a student launch.</p>
 <p>On Linux, the steps 1 to 9 run in the Rehearse Linux job of every package run, on
-a GitHub Ubuntu runner with a virtual display, and need no machine of their own.
+a hosted Ubuntu runner with a virtual display, and need no machine of their own.
 <a class="reference internal" href="#automated-release-evidence">Automated release evidence</a> says what that job does
 and does not cover.</p>
 <p>On Windows there are two downloads, and each one gets this section. Row W2 below
@@ -610,16 +620,20 @@ whether a clean machine starts without it.</p></li>
 <code class="docutils literal notranslate"><span class="pre">../Resources/Scenes</span></code> or in <code class="docutils literal notranslate"><span class="pre">../share/EGTRAIN/Scenes</span></code> relative to the
 executable. Note what the chooser lists. Close it before step 2 with the
 button that keeps the current case: <strong>Continue</strong> when a case is loaded and
-<strong>Cancel</strong> when none is.</p>
+<strong>Cancel</strong> when none is. A release package then asks once, in <strong>Help improve
+EGTRAIN</strong>, whether to share usage statistics and diagnostic reports, before
+the question of row R7. Record its text and the receiving domain it names,
+and answer <strong>Not now</strong> unless the record is for the receiver.</p>
 </li>
-<li><p>Open a downloaded <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> through <strong>File &gt; Open Case…</strong>.</p></li>
+<li><p>Open a downloaded <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> through <strong>File &gt; Open Case…</strong> and
+<strong>Other ways to open… &gt; Open Case File…</strong> in <strong>Open a Case</strong>.</p></li>
 <li><p>Confirm the network renders. Show Loaded Data with <strong>View &gt; Loaded Data</strong>
 (the entry is checked while the dock is shown) and tick
 <strong>View &gt; Advanced Details</strong>, which adds the versions. Confirm
 that it shows identity, versions, category counts, scenarios, validation,
 runtime, and result readiness.</p></li>
 <li><p>Select or edit a scenario and confirm the run review names that scenario.</p></li>
-<li><p>Use <strong>Save As…</strong> to write a working copy outside the package.
+<li><p>Use <strong>Save As…</strong> and <strong>Case File…</strong> to write a working copy outside the package.
 The dialog proposes the downloaded bundle itself: give the copy a new name
 in another folder.
 Confirm the downloaded source bundle is unchanged. Compare the original with
@@ -665,16 +679,16 @@ text, which is the same on every platform.</p>
 </tr>
 <tr class="row-odd"><td><p>R2 Drop a bundle onto the open window</p></td>
 <td><p>Drag one <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file from the file manager onto the open main window.</p></td>
-<td><p>It opens like <strong>File &gt; Open Case…</strong>. The application accepts exactly one local <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file.</p></td>
+<td><p>It opens like <strong>Open Case File…</strong> in <strong>Open a Case</strong>. The application accepts exactly one local <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file.</p></td>
 <td><p>All</p></td>
 </tr>
 <tr class="row-even"><td><p>R3 Unsaved changes</p></td>
-<td><p>Run it after step 9, when the open case is the working copy and not the downloaded bundle. Change a scenario value and choose <strong>File &gt; Open Case…</strong>. In the file dialog choose another copy of a bundle, never the downloaded bundle. The <strong>Unsaved Case</strong> message follows the choice of a file. Then repeat with <strong>File &gt; Quit</strong> (on macOS, <strong>Quit</strong> in the application menu). Make the change again before each repeat, and reopen the working copy after <strong>Discard</strong>.</p></td>
+<td><p>Run it after step 9, when the open case is the working copy and not the downloaded bundle. Change a scenario value and choose <strong>File &gt; Open Case…</strong> and <strong>Other ways to open… &gt; Open Case File…</strong>. In the file dialog choose another copy of a bundle, never the downloaded bundle. The <strong>Unsaved Case</strong> message follows the choice of a file. Then repeat with <strong>File &gt; Quit</strong> (on macOS, <strong>Quit</strong> in the application menu). Make the change again before each repeat, and reopen the working copy after <strong>Discard</strong>.</p></td>
 <td><p>The message offers <strong>Save</strong>, <strong>Discard</strong> and <strong>Cancel</strong>. On macOS it has no title and reads <code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">the</span> <span class="pre">changes</span> <span class="pre">to</span> <span class="pre">&lt;case</span> <span class="pre">name&gt;?</span></code>, and its buttons are <strong>Save</strong>, <strong>Cancel</strong> and <strong>Don’t Save</strong>, which are Qt’s native names for Save, Cancel and Discard. Answer <strong>Cancel</strong> first and record that the edit and the open case stay, and that the status bar adds no message. Then answer <strong>Save</strong> and <strong>Discard</strong> once each, and record what happened to the working copy. Afterwards the downloaded bundle must still equal its copy.</p></td>
 <td><p>All</p></td>
 </tr>
 <tr class="row-odd"><td><p>R4 Damaged file</p></td>
-<td><p>Rename a plain text file to <code class="docutils literal notranslate"><span class="pre">something.egscene</span></code> and open it with <strong>File &gt; Open Case…</strong>.</p></td>
+<td><p>Rename a plain text file to <code class="docutils literal notranslate"><span class="pre">something.egscene</span></code> and open it with <strong>Open Case File…</strong> in <strong>Open a Case</strong>.</p></td>
 <td><p>Record the message title and text, and whether the case that was open before is still shown. The application must not crash and must not change the file.</p></td>
 <td><p>All</p></td>
 </tr>
@@ -690,12 +704,12 @@ text, which is the same on every platform.</p>
 </tr>
 <tr class="row-even"><td><p>R7 First start</p></td>
 <td><p>Launch as in step 1 on an account whose update question has never been answered, and close the case chooser.</p></td>
-<td><p>A question appears once, after the case chooser has been closed. Its main text reads <code class="docutils literal notranslate"><span class="pre">Check</span> <span class="pre">for</span> <span class="pre">EGTRAIN</span> <span class="pre">updates</span> <span class="pre">automatically?</span></code> on every platform. Its title, <strong>Automatically Check for EGTRAIN Updates?</strong>, shows on Windows and Linux and not on macOS. The buttons are <strong>Check Automatically</strong> and <strong>Don’t Check Automatically</strong>. Record the choice. <strong>Help</strong> then shows <strong>Check for Updates…</strong> and <strong>Automatically Check for Updates</strong>.</p></td>
+<td><p>A question appears once, after the case chooser has been closed. Its main text reads <code class="docutils literal notranslate"><span class="pre">Check</span> <span class="pre">for</span> <span class="pre">EGTRAIN</span> <span class="pre">updates</span> <span class="pre">automatically?</span></code> on every platform. Its title, <strong>EGTRAIN Updates</strong>, shows on Windows and Linux and not on macOS. The buttons are <strong>Check Automatically</strong> and <strong>Don’t Check Automatically</strong>. Record the choice. <strong>Help</strong> then shows <strong>Check for Updates…</strong> and <strong>Automatically Check for Updates</strong>.</p></td>
 <td><p>All</p></td>
 </tr>
 <tr class="row-odd"><td><p>R8 Manual update check</p></td>
 <td><p>Choose <strong>Help &gt; Check for Updates…</strong>.</p></td>
-<td><p>The message reads <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">&lt;version&gt;</span> <span class="pre">is</span> <span class="pre">up</span> <span class="pre">to</span> <span class="pre">date.</span></code>, or a dialog offers a newer stable release. Its main text reads <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">&lt;version&gt;</span> <span class="pre">is</span> <span class="pre">available.</span> <span class="pre">You</span> <span class="pre">are</span> <span class="pre">using</span> <span class="pre">&lt;installed</span> <span class="pre">version&gt;.</span></code> and its title, <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">&lt;version&gt;</span> <span class="pre">Is</span> <span class="pre">Available</span></code>, shows on Windows and Linux and not on macOS. The buttons are <strong>Update and Restart</strong> (only where the installation can update itself), <strong>Open Release Page</strong>, <strong>Later</strong> and <strong>Stop Checking</strong>. A check that fails shows a warning titled <code class="docutils literal notranslate"><span class="pre">Check</span> <span class="pre">for</span> <span class="pre">Updates</span></code>, without the title on macOS. Record the text.</p></td>
+<td><p>The message reads <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">&lt;version&gt;</span> <span class="pre">is</span> <span class="pre">up</span> <span class="pre">to</span> <span class="pre">date.</span></code>, or a dialog offers a newer stable release. Its main text reads <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">&lt;version&gt;</span> <span class="pre">is</span> <span class="pre">available.</span> <span class="pre">You</span> <span class="pre">are</span> <span class="pre">using</span> <span class="pre">&lt;installed</span> <span class="pre">version&gt;.</span></code> and its title, <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">Update</span></code>, shows on Windows and Linux and not on macOS. The buttons are <strong>Update and Restart</strong> (only where the installation can update itself), <strong>Open Release Page</strong>, <strong>Later</strong> and <strong>Stop Checking</strong>. A check that fails shows a warning whose main text is <code class="docutils literal notranslate"><span class="pre">Check</span> <span class="pre">for</span> <span class="pre">Updates</span></code> on every platform, with the reason below it. Record the text.</p></td>
 <td><p>All</p></td>
 </tr>
 <tr class="row-even"><td><p>R9 In-app update</p></td>
@@ -705,17 +719,22 @@ text, which is the same on every platform.</p>
 </tr>
 <tr class="row-odd"><td><p>R10 Installation that cannot be updated in place</p></td>
 <td><p>First confirm the precondition of R9 in a writable folder. Then place the installation where the folder that holds it cannot be written by the test account. That folder is the parent of <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code>, of the Windows application folder or of the AppImage. Choose <strong>Help &gt; Check for Updates…</strong> again.</p></td>
-<td><p>The update dialog has no <strong>Update and Restart</strong> button. Its text says <code class="docutils literal notranslate"><span class="pre">The</span> <span class="pre">packaged</span> <span class="pre">installation</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">writable.</span> <span class="pre">Use</span> <span class="pre">the</span> <span class="pre">release</span> <span class="pre">page</span> <span class="pre">to</span> <span class="pre">update</span> <span class="pre">manually.</span></code> On macOS, a copy that runs from a mounted disk image shows <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">is</span> <span class="pre">running</span> <span class="pre">from</span> <span class="pre">a</span> <span class="pre">read-only</span> <span class="pre">location,</span> <span class="pre">such</span> <span class="pre">as</span> <span class="pre">a</span> <span class="pre">disk</span> <span class="pre">image.</span> <span class="pre">Move</span> <span class="pre">EGTRAIN</span> <span class="pre">to</span> <span class="pre">the</span> <span class="pre">Applications</span> <span class="pre">folder</span> <span class="pre">first.</span> <span class="pre">Use</span> <span class="pre">the</span> <span class="pre">release</span> <span class="pre">page</span> <span class="pre">to</span> <span class="pre">update</span> <span class="pre">manually.</span></code> instead.</p></td>
+<td><p>The update dialog has no <strong>Update and Restart</strong> button. Its text says <code class="docutils literal notranslate"><span class="pre">The</span> <span class="pre">packaged</span> <span class="pre">installation</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">writable.</span> <span class="pre">Update</span> <span class="pre">manually</span> <span class="pre">from</span> <span class="pre">the</span> <span class="pre">release</span> <span class="pre">page.</span></code> On macOS, a copy that runs from a mounted disk image shows <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">is</span> <span class="pre">running</span> <span class="pre">from</span> <span class="pre">a</span> <span class="pre">read-only</span> <span class="pre">location,</span> <span class="pre">such</span> <span class="pre">as</span> <span class="pre">a</span> <span class="pre">disk</span> <span class="pre">image.</span> <span class="pre">Move</span> <span class="pre">EGTRAIN</span> <span class="pre">to</span> <span class="pre">the</span> <span class="pre">Applications</span> <span class="pre">folder</span> <span class="pre">first.</span> <span class="pre">Update</span> <span class="pre">manually</span> <span class="pre">from</span> <span class="pre">the</span> <span class="pre">release</span> <span class="pre">page.</span></code> instead.</p></td>
 <td><p>All</p></td>
 </tr>
 <tr class="row-even"><td><p>R11 Save a bundled case</p></td>
-<td><p>Copy the installed case folder before testing, then open the bundled case through <strong>Open Case</strong>, edit it, and choose <strong>Save</strong>. Cancel once, then save a new <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> outside the installation. Reopen and edit the bundled case before repeating through <strong>Save</strong> in <strong>Unsaved Case</strong>. Try an installed folder as the destination of <strong>Save As Folder…</strong>, and a file inside it through <strong>Save As…</strong>.</p></td>
+<td><p>Copy the installed case folder before testing, then open the bundled case through <strong>Open Case</strong>, edit it, and choose <strong>Save</strong>. Cancel once, then save a new <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> outside the installation. Reopen and edit the bundled case before repeating through <strong>Save</strong> in <strong>Unsaved Case</strong>. Try an installed folder as the destination of <strong>Case Folder…</strong> in <strong>Save As…</strong>, and a file inside it through <strong>Case File…</strong>.</p></td>
 <td><p>The dialog starts in the Documents folder, or in the home folder when there is none, and not in the installation. Cancel retains the edit and current case; a successful save makes the new bundle current. Installed destinations are rejected. The original folder’s file paths and bytes remain unchanged. A later edit saves in place to the external bundle.</p></td>
 <td><p>All</p></td>
 </tr>
 <tr class="row-odd"><td><p>R12 Bundle of the previous release</p></td>
-<td><p>Download one <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle from the assets of the latest stable release before the candidate, for example <code class="docutils literal notranslate"><span class="pre">Paimpol.egscene</span></code>. Open it in the application under test with <strong>File &gt; Open Case…</strong> and run a short simulation as in step 6.</p></td>
+<td><p>Download one <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle from the assets of the latest stable release before the candidate, for example <code class="docutils literal notranslate"><span class="pre">Paimpol.egscene</span></code>. Open it in the application under test with <strong>Open Case File…</strong> in <strong>Open a Case</strong> and run a short simulation as in step 6.</p></td>
 <td><p>The bundle opens without a version message, and the simulation runs to its end. Record the tag of the release. A message that the scene is older, newer or unsupported is a finding, unless the candidate deliberately drops support for that format.</p></td>
+<td><p>All</p></td>
+</tr>
+<tr class="row-even"><td><p>R13 Replace a case on disk</p></td>
+<td><p>Save the working copy into a new folder with <strong>File &gt; Save As…</strong> and <strong>Case Folder…</strong>; that folder is then the open case. Change a scenario value, change <code class="docutils literal notranslate"><span class="pre">scene.json</span></code> of that folder in a text editor, and choose <strong>File &gt; Save</strong>. Then save into a second new folder with <strong>Save As…</strong> and <strong>Case Folder…</strong>, and do that again with the first folder. With a legacy case folder at hand, choose <strong>File &gt; Import Legacy Case…</strong> and a destination folder that holds other files.</p></td>
+<td><p>The question of <strong>Save As…</strong> has <strong>Case File…</strong> as its default button while the working copy is open, and <strong>Case Folder…</strong> once a folder is the open case. <strong>Case Changed on Disk</strong> asks before Save replaces the changed folder, and No keeps the edit and the file on disk. <strong>Save Case As Folder</strong> asks before it replaces the case in the first folder. The import offers a new folder inside the destination and leaves the other files alone. Record each text.</p></td>
 <td><p>All</p></td>
 </tr>
 </tbody>
@@ -723,8 +742,8 @@ text, which is the same on every platform.</p>
 </div>
 <p>Notes on the update rows:</p>
 <ul class="simple">
-<li><p>The update check looks at the latest stable release. A draft or a prerelease
-is never offered. <strong>Update and Restart</strong> is offered only for a stable release
+<li><p>The update check looks at the latest stable release in the update feed of
+the website. A draft or a prerelease is never offered. <strong>Update and Restart</strong> is offered only for a stable release
 that is newer than the running version, holds <code class="docutils literal notranslate"><span class="pre">update-manifest.json</span></code> and the
 package of the platform, and only where the installation can update itself.
 <a class="reference internal" href="../guides/updates.html"><span class="std std-doc">Application updates</span></a>
@@ -749,9 +768,9 @@ on a separate copy of the package, because R9 replaces the installation.</p></li
 one source, like R9; record its tag. It shows that the scenes released
 before still open in the candidate. If the candidate changes the scene
 format, add one of its own bundles to the scene fixtures once the release is
-published, as <a class="reference internal" href="testing.html#unit-tests"><span class="std std-ref">Unit Tests</span></a> says. Mark R12 not
-applicable, with the reason, when no earlier stable release with bundles
-exists.</p></li>
+published, as <a class="reference internal" href="testing.html#scene-version-fixtures"><span class="std std-ref">Scene-version fixtures</span></a>
+says. Mark R12 not applicable, with the reason, when no earlier stable
+release with bundles exists.</p></li>
 <li><p>R9 installs the latest published stable release, not the candidate. It shows
 the update path of the installed version and says nothing about the contents
 of a manual candidate.</p></li>
@@ -806,7 +825,7 @@ did, and go on with <strong>Open With</strong>.</p>
 <td><p>macOS</p></td>
 </tr>
 <tr class="row-odd"><td><p>M4 First start of an ad hoc build</p></td>
-<td><p>Run it as the first launch of step 1 on an ad hoc candidate. Download the disk image with a browser, from the run page or the release page, so that macOS knows it came from the internet. Open it, drag <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code> onto <code class="docutils literal notranslate"><span class="pre">Applications</span></code>, eject the image and open the copy from the Applications folder in Finder. Use no terminal command that removes the download mark or changes Gatekeeper.</p></td>
+<td><p>Run it as the first launch of step 1 on an ad hoc candidate. Download the disk image with a browser, from the run page or the release page of the website, so that macOS knows it came from the internet. Open it, drag <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code> onto <code class="docutils literal notranslate"><span class="pre">Applications</span></code>, eject the image and open the copy from the Applications folder in Finder. Use no terminal command that removes the download mark or changes Gatekeeper.</p></td>
 <td><p>Record every dialog with its title, text and buttons. The first start is refused with the dialog <code class="docutils literal notranslate"><span class="pre">&quot;QEGTRAIN&quot;</span> <span class="pre">Not</span> <span class="pre">Opened</span></code>, whose buttons are <strong>Move to Trash</strong> and <strong>Done</strong>, and which has no <strong>Open</strong> button. <strong>System Settings &gt; Privacy &amp; Security</strong> shows, in the section <strong>Security</strong>, <code class="docutils literal notranslate"><span class="pre">&quot;QEGTRAIN&quot;</span> <span class="pre">was</span> <span class="pre">blocked</span> <span class="pre">to</span> <span class="pre">protect</span> <span class="pre">your</span> <span class="pre">Mac.</span></code> with the button <strong>Open Anyway</strong>. <strong>Open Anyway</strong> opens the dialog <code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">&quot;QEGTRAIN&quot;?</span></code> with <strong>Move to Trash</strong>, <strong>Open Anyway</strong> and <strong>Done</strong>, and its <strong>Open Anyway</strong> asks for an administrator’s name and password. Record whether EGTRAIN starts after that and which dialog, if any, comes next. Another dialog or another order is a finding: record its text.</p></td>
 <td><p>macOS</p></td>
 </tr>
@@ -816,7 +835,7 @@ did, and go on with <strong>Open With</strong>.</p>
 <td><p>macOS</p></td>
 </tr>
 <tr class="row-odd"><td><p>M6 Folder access questions</p></td>
-<td><p>On an account that has never run EGTRAIN, start the app from the Applications folder, close <strong>Open a Case</strong> and choose <strong>File &gt; Open Case…</strong>. Cancel, choose <strong>File &gt; New Case…</strong> and choose <strong>File &gt; Open Case…</strong> again. Last, in the file dialog choose <strong>lume</strong> or your home folder in the sidebar and write down what macOS asks.</p></td>
+<td><p>On an account that has never run EGTRAIN, start the app from the Applications folder, close <strong>Open a Case</strong>, choose <strong>File &gt; Open Case…</strong> and then <strong>Other ways to open… &gt; Open Case File…</strong>. Cancel, choose <strong>File &gt; New Case…</strong> and open the file dialog in the same way again. Last, in the file dialog choose <strong>lume</strong> or your home folder in the sidebar and write down what macOS asks.</p></td>
 <td><p>The first two file dialogs open in the <code class="docutils literal notranslate"><span class="pre">Scenes</span></code> folder of the app without any question about Desktop, Documents or Downloads. The question <code class="docutils literal notranslate"><span class="pre">&quot;QEGTRAIN&quot;</span> <span class="pre">would</span> <span class="pre">like</span> <span class="pre">to</span> <span class="pre">access</span> <span class="pre">files</span> <span class="pre">in</span> <span class="pre">your</span> <span class="pre">Desktop</span> <span class="pre">folder.</span></code>, and the same for Documents and Downloads, appears only when the file dialog lists your home folder, which it does in the last step. Record each question with its text and the step that caused it. Any question in the first two dialogs is a finding.</p></td>
 <td><p>macOS</p></td>
 </tr>
@@ -947,14 +966,14 @@ to issue #74.</p>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="qt6-migration-study.html">
+          <a class="prev-page" href="memory-baselines.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Qt 6 migration study</div>
+                <div class="title">Peak-memory baselines</div>
                 
               </div>
             </a>
@@ -966,7 +985,7 @@ to issue #74.</p>
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

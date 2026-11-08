@@ -1,5 +1,5 @@
 <map id="TelemetryConsent::usageInstallationId" name="TelemetryConsent::usageInstallationId">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,277,31"/>
-<area shape="rect" id="Node000002" href="$class_telemetry_consent.html#a2f45cd3533669ee127bddc15b9bfd85b" title=" " alt="" coords="325,5,564,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="278,15,311,15,311,21,278,21"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,277,33"/>
+<area shape="rect" id="Node000002" href="$class_telemetry_consent.html#a2f45cd3533669ee127bddc15b9bfd85b" title=" " alt="" coords="325,5,563,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="277,17,312,19,307,19,277,22"/>
 </map>

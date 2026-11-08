@@ -1,0 +1,5 @@
+<map id="CaseSettingsPanel::refresh" name="CaseSettingsPanel::refresh">
+<area shape="rect" id="Node000001" title="Shows the current state of the document." alt="" coords="5,5,155,50"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="203,14,406,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,25,190,27,184,28,155,30"/>
+</map>

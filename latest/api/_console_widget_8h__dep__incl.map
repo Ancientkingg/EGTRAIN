@@ -1,9 +1,9 @@
 <map id="widgets/ConsoleWidget.h" name="widgets/ConsoleWidget.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="152,5,339,31"/>
-<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,79,165,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,39,113,81,110,76,206,34"/>
-<area shape="rect" id="Node000003" href="$main_8cpp.html" title=" " alt="" coords="190,79,301,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="248,44,248,79,243,79,243,44"/>
-<area shape="rect" id="Node000004" href="$_console_widget_8cpp.html" title=" " alt="" coords="325,79,528,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="288,33,398,76,396,81,286,38"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="150,5,337,33"/>
+<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,81,165,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,40,114,83,112,78,199,40"/>
+<area shape="rect" id="Node000003" href="$main_8cpp.html" title=" " alt="" coords="189,81,298,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="246,47,246,82,241,79,242,51"/>
+<area shape="rect" id="Node000004" href="$_console_widget_8cpp.html" title=" " alt="" coords="323,81,524,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="290,37,394,80,389,81,289,42"/>
 </map>

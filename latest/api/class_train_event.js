@@ -1,7 +1,6 @@
 var class_train_event =
 [
     [ "TrainEvent", "class_train_event.html#a2c514a571b7a3aab5eb2fe00b1101b8f", null ],
-    [ "operator=", "class_train_event.html#a02c1eaf2a973b21731829c649322c2ab", null ],
     [ "Acceleration", "class_train_event.html#a2dc7f2b6f416aeed8259afbde7de5bba", null ],
     [ "CurrentSectionID", "class_train_event.html#ab1cc82421a112c4b5961485089103c30", null ],
     [ "InfraElemStatus", "class_train_event.html#a15f059a9d3ac32c58fdb72fd348df394", null ],

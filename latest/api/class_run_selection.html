@@ -8,7 +8,6 @@
 <title>EGTRAIN: RunSelection Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,7 +112,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_run_sele
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_run_selection_8h_source.html">app/RunSelection.h</a>&gt;</code></p>
+<p><code>#include &lt;app/RunSelection.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -155,6 +154,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a2b2574cfc3e68d492c2c7e54699ba534"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forgets exclusions of services that are gone and of occurrences beyond the count of their service.  <br /></td></tr>
 <tr class="memitem:a65a6b2ae345746e7a0cc79d4edee47cb" id="r_a65a6b2ae345746e7a0cc79d4edee47cb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a65a6b2ae345746e7a0cc79d4edee47cb">serviceRenamed</a> (const std::string &amp;oldId, const std::string &amp;newId)</td></tr>
 <tr class="memdesc:a65a6b2ae345746e7a0cc79d4edee47cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The exclusions of a service follow it to its new id.  <br /></td></tr>
+<tr class="memitem:a0940878fd28e81f1c43be9ef5c2eeefd" id="r_a0940878fd28e81f1c43be9ef5c2eeefd"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0940878fd28e81f1c43be9ef5c2eeefd">historyRestored</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;previous, const <a class="el" href="struct_scene_history_entry.html">SceneHistoryEntry</a> &amp;entry, double durationSeconds)</td></tr>
 <tr class="memitem:ae187b0931733c170c2b0e481f177650f" id="r_ae187b0931733c170c2b0e481f177650f"><td class="memItemLeft"><a class="el" href="_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a>&#160;</td><td class="memItemRight"><a class="el" href="#ae187b0931733c170c2b0e481f177650f">selectedOccurrences</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, double durationSeconds) const</td></tr>
 <tr class="memitem:a14f85e70459ddbe762b362fce0f50106" id="r_a14f85e70459ddbe762b362fce0f50106"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a14f85e70459ddbe762b362fce0f50106">selectedCount</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, double durationSeconds) const</td></tr>
 <tr class="memdesc:a14f85e70459ddbe762b362fce0f50106"><td class="mdescLeft">&#160;</td><td class="mdescRight">How many occurrences over <span class="tt">durationSeconds</span> are selected.  <br /></td></tr>
@@ -349,6 +349,38 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a0940878fd28e81f1c43be9ef5c2eeefd" name="a0940878fd28e81f1c43be9ef5c2eeefd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0940878fd28e81f1c43be9ef5c2eeefd">&#9670;&#160;</a></span>historyRestored()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RunSelection::historyRestored </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>previous</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_scene_history_entry.html">SceneHistoryEntry</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>entry</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>durationSeconds</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Undo or Redo has put back the state of <span class="tt">entry</span> in place of the scene <span class="tt">previous</span>. The edited scenarios become those of the entry. A service that comes back has the occurrences left out that the entry keeps for it, and the other services keep theirs. The scenario of the entry is selected when it comes back or the selected one is gone; otherwise the selection stays, or the default scenario takes the place of one that is gone. Then <a class="el" href="#a2b2574cfc3e68d492c2c7e54699ba534" title="Forgets exclusions of services that are gone and of occurrences beyond the count of their service.">pruneExcluded()</a> runs. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_selection_a0940878fd28e81f1c43be9ef5c2eeefd_cgraph.svg" width="754" height="167"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="afbafcaba84f27a6abd22d98255f275d3" name="afbafcaba84f27a6abd22d98255f275d3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afbafcaba84f27a6abd22d98255f275d3">&#9670;&#160;</a></span>includeAll()</h2>
 
@@ -480,7 +512,7 @@ Public Member Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_selection_a2b2574cfc3e68d492c2c7e54699ba534_cgraph.svg" width="488" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_selection_a2b2574cfc3e68d492c2c7e54699ba534_cgraph.svg" width="488" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -580,7 +612,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_selection_a14f85e70459ddbe762b362fce0f50106_cgraph.svg" width="486" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_selection_a14f85e70459ddbe762b362fce0f50106_cgraph.svg" width="484" height="191"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -608,7 +640,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_selection_aae52f093911598afa2bc3e77db764815_cgraph.svg" width="960" height="235"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_selection_aae52f093911598afa2bc3e77db764815_cgraph.svg" width="956" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -635,7 +667,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_selection_ae187b0931733c170c2b0e481f177650f_cgraph.svg" width="495" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_selection_ae187b0931733c170c2b0e481f177650f_cgraph.svg" width="492" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -659,7 +691,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_selection_a7e787eb4e3abe94b3768c2bf9c7cf394_cgraph.svg" width="628" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_selection_a7e787eb4e3abe94b3768c2bf9c7cf394_cgraph.svg" width="626" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -682,7 +714,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_selection_a9a950b50afa3fc3e9b9aa78806a05b84_cgraph.svg" width="628" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_selection_a9a950b50afa3fc3e9b9aa78806a05b84_cgraph.svg" width="626" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -760,13 +792,13 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_selection_a80775767bea52c61e5759b452e19411b_cgraph.svg" width="428" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_selection_a80775767bea52c61e5759b452e19411b_cgraph.svg" width="426" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>app/<a class="el" href="_run_selection_8h_source.html">RunSelection.h</a></li>
+<li>app/<a class="el" href="_run_selection_8h.html">RunSelection.h</a></li>
 <li>app/<a class="el" href="_run_selection_8cpp.html">RunSelection.cpp</a></li>
 </ul>
 </div><!-- contents -->

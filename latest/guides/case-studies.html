@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="How-to" href="how-to.html"><link rel="prev" title="Getting started" href="getting-started.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Data of the bundled cases" href="case-data.html"><link rel="prev" title="Installing EGTRAIN" href="install.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>Bundled cases - EGTRAIN documentation</title>
@@ -192,11 +192,13 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="common-questions.html">Common questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Bundled cases</a></li>
-<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
@@ -220,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -236,7 +238,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +252,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +267,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -307,7 +309,7 @@
         <article role="main" id="furo-main-content">
           <section id="bundled-cases">
 <h1>Bundled cases<a class="headerlink" href="#bundled-cases" title="Link to this heading">¶</a></h1>
-<p>The application packages contain six bundled cases, and the releases page offers each as an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file. This page lists them with their size.</p>
+<p>The application packages contain six bundled cases, and the release pages of the <a class="reference external" href="https://egtrain.samuelbruin.com/">EGTRAIN website</a> offer each as an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file. This page lists them with their size.</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -353,7 +355,7 @@
 <td class="text-right"><p>2</p></td>
 <td class="text-right"><p>3</p></td>
 <td class="text-right"><p>4</p></td>
-<td><p>Synthetic two-track fixture. Sources and terms in <code class="docutils literal notranslate"><span class="pre">DATA.md</span></code>.</p></td>
+<td><p>Synthetic two-track fixture. Sources and terms in <a class="reference internal" href="case-data.html"><span class="std std-doc">Data of the bundled cases</span></a>.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Amsterdam_Hilversum_Student</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Amsterdam_Hilversum_Student.egscene</span></code></p></td>
@@ -365,8 +367,8 @@
 </tbody>
 </table>
 </div>
-<p>The counts are the numbers of entries in <code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code> (tracks), <code class="docutils literal notranslate"><span class="pre">stations.json</span></code> (stations) and <code class="docutils literal notranslate"><span class="pre">services.json</span></code> (services), so they can differ from the number of trains in a result window. The case folders are in <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/Scenes</span></code> in the repository and inside the application packages.</p>
-<p>The source, changes and terms of each bundled case are in <code class="docutils literal notranslate"><span class="pre">DATA.md</span></code> at the top of the <a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN">repository</a>.</p>
+<p>The counts are the numbers of entries in <code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code> (tracks), <code class="docutils literal notranslate"><span class="pre">stations.json</span></code> (stations) and <code class="docutils literal notranslate"><span class="pre">services.json</span></code> (services), so they can differ from the number of trains in a result window. The case folders are in the folder <code class="docutils literal notranslate"><span class="pre">Scenes</span></code> inside the application packages.</p>
+<p><a class="reference internal" href="case-data.html"><span class="std std-doc">Data of the bundled cases</span></a> gives the source, the changes and the terms of each bundled case.</p>
 <p><img alt="The window Speed / distance after a run of Milano_Brescia / baseline, with the speed of six of the 47 trains plotted against the distance in km" src="../_images/case-studies-speed-distance.png" /></p>
 <p>The Speed / distance result window of Milano_Brescia (baseline) after a run, with six of its 47 trains shown.</p>
 </section>
@@ -376,23 +378,23 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="how-to.html">
+          <a class="next-page" href="case-data.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">How-to</div>
+                <div class="title">Data of the bundled cases</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="getting-started.html">
+          <a class="prev-page" href="install.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Getting started</div>
+                <div class="title">Installing EGTRAIN</div>
                 
               </div>
             </a>
@@ -404,7 +406,7 @@
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

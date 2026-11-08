@@ -8,7 +8,6 @@
 <title>EGTRAIN: app/SceneSession.cpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,34 +111,35 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_session
   <div class="headertitle"><div class="title">SceneSession.cpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_scene_session_8h_source.html">app/SceneSession.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_count_text_8h_source.html">editors/CountText.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_document_8h_source.html">editors/SceneDocument.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_cannot_open_message_8h_source.html">app/CannotOpenMessage.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_dialog_folders_8h_source.html">app/DialogFolders.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_save_policy_8h_source.html">app/SceneSavePolicy.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_update_telemetry_controller_8h_source.html">app/UpdateTelemetryController.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_run_results_8h_source.html">diagrams/RunResults.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_bundle_8h_source.html">scene/SceneBundle.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_compatibility_8h_source.html">scene/SceneCompatibility.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_importer_8h_source.html">scene/SceneImporter.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_migration_8h_source.html">scene/SceneMigration.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_validator_8h_source.html">scene/SceneValidator.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_writer_8h_source.html">scene/SceneWriter.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_case_chooser_dialog_8h_source.html">widgets/CaseChooserDialog.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_display_path_8h_source.html">widgets/DisplayPath.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_settings_dialog_8h_source.html">widgets/SettingsDialog.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_user_prompts_8h_source.html">widgets/UserPrompts.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_scene_session_8h.html">app/SceneSession.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_count_text_8h.html">editors/CountText.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_editor_helpers_8h.html">editors/EditorHelpers.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_document_8h.html">editors/SceneDocument.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_cannot_open_message_8h.html">app/CannotOpenMessage.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_dialog_folders_8h.html">app/DialogFolders.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_save_policy_8h.html">app/SceneSavePolicy.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_update_telemetry_controller_8h.html">app/UpdateTelemetryController.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_run_results_8h.html">diagrams/RunResults.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_bundle_8h.html">scene/SceneBundle.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_compatibility_8h.html">scene/SceneCompatibility.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_importer_8h.html">scene/SceneImporter.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_migration_8h.html">scene/SceneMigration.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_validator_8h.html">scene/SceneValidator.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_writer_8h.html">scene/SceneWriter.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_case_chooser_dialog_8h.html">widgets/CaseChooserDialog.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_display_path_8h.html">widgets/DisplayPath.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_save_suffix_8h.html">widgets/SaveSuffix.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_settings_dialog_8h.html">widgets/SettingsDialog.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_user_prompts_8h.html">widgets/UserPrompts.h</a>&quot;</code><br />
 <code>#include &lt;QAction&gt;</code><br />
 <code>#include &lt;QApplication&gt;</code><br />
 <code>#include &lt;QCoreApplication&gt;</code><br />
+<code>#include &lt;QDateTime&gt;</code><br />
 <code>#include &lt;QDir&gt;</code><br />
 <code>#include &lt;QDragEnterEvent&gt;</code><br />
 <code>#include &lt;QDropEvent&gt;</code><br />
-<code>#include &lt;QFile&gt;</code><br />
 <code>#include &lt;QFileDialog&gt;</code><br />
 <code>#include &lt;QFileInfo&gt;</code><br />
-<code>#include &lt;QHash&gt;</code><br />
 <code>#include &lt;QMainWindow&gt;</code><br />
 <code>#include &lt;QMenu&gt;</code><br />
 <code>#include &lt;QMessageBox&gt;</code><br />
@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_session
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for SceneSession.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_session_8cpp__incl.svg" width="4851" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_session_8cpp__incl.svg" width="5738" height="266"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -183,7 +183,7 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_session_8cpp_ac5f732a66f1e3e5d7e37a6bb7d18621a_cgraph.svg" width="186" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_session_8cpp_ac5f732a66f1e3e5d7e37a6bb7d18621a_cgraph.svg" width="348" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

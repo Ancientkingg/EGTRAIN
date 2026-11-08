@@ -8,7 +8,6 @@
 <title>EGTRAIN: StationNameItem Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,16 +112,16 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_station_
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_station_overlay_item_8h_source.html">graphics/items/StationOverlayItem.h</a>&gt;</code></p>
+<p><code>#include &lt;graphics/items/StationOverlayItem.h&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for StationNameItem:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_station_name_item__inherit__graph.svg" width="158" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_station_name_item__inherit__graph.svg" width="156" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
 Collaboration diagram for StationNameItem:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_station_name_item__coll__graph.svg" width="158" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_station_name_item__coll__graph.svg" width="156" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -133,12 +132,12 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
-<tr class="memitem:ae8c2a5be7c0c97e5c76c9233a30728f0" id="r_ae8c2a5be7c0c97e5c76c9233a30728f0"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#ae8c2a5be7c0c97e5c76c9233a30728f0">NameZValue</a> = 4.5</td></tr>
-<tr class="memitem:a3085fc9809d8062ecec22e6744ff247e" id="r_a3085fc9809d8062ecec22e6744ff247e"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#a3085fc9809d8062ecec22e6744ff247e">HaloPixels</a> = 2.0</td></tr>
+<tr class="memitem:ae8c2a5be7c0c97e5c76c9233a30728f0" id="r_ae8c2a5be7c0c97e5c76c9233a30728f0"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#ae8c2a5be7c0c97e5c76c9233a30728f0">NameZValue</a></td></tr>
+<tr class="memitem:a3085fc9809d8062ecec22e6744ff247e" id="r_a3085fc9809d8062ecec22e6744ff247e"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#a3085fc9809d8062ecec22e6744ff247e">HaloPixels</a></td></tr>
 <tr class="memdesc:a3085fc9809d8062ecec22e6744ff247e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The width of the halo around the letters on screen, in logical pixels.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The name of a station on the network canvas: white text in a halo of HaloPixels logical pixels in <a class="el" href="_visual_polish_8cpp.html#a2e7d09af69daec1cb464c65129b19737" title="The background of the network canvas, RGB (16, 26, 34). The station pins and names take it as their h...">canvasColor()</a>, a child item stacked behind it, so that a track, a pin or a train under the name does not cross its letters. It is stacked over everything else on the canvas except the boxes that a click opens, and it takes no click. The text and the font stay as constructed. </p>
+<div class="textblock"><p>The name of a station on the network canvas: white text in a halo of HaloPixels logical pixels in <a class="el" href="_visual_polish_8cpp.html#a2e7d09af69daec1cb464c65129b19737" title="The background of the network canvas, RGB (16, 26, 34). The station marks and names take it as their ...">canvasColor()</a>, a child item stacked behind it, so that a track, a pin or a train under the name does not cross its letters. It is stacked over everything else on the canvas except the boxes that a click opens, and it takes no click. The text and the font stay as constructed. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a5a1cf69c4d69d3aae76cfd0d65e081d9" name="a5a1cf69c4d69d3aae76cfd0d65e081d9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5a1cf69c4d69d3aae76cfd0d65e081d9">&#9670;&#160;</a></span>StationNameItem()</h2>
@@ -206,7 +205,7 @@ Static Public Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">qreal StationNameItem::HaloPixels = 2.0</td>
+          <td class="memname">qreal StationNameItem::HaloPixels</td>
         </tr>
       </table>
   </td>
@@ -230,7 +229,7 @@ Static Public Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">qreal StationNameItem::NameZValue = 4.5</td>
+          <td class="memname">qreal StationNameItem::NameZValue</td>
         </tr>
       </table>
   </td>
@@ -244,7 +243,7 @@ Static Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>graphics/items/<a class="el" href="_station_overlay_item_8h_source.html">StationOverlayItem.h</a></li>
+<li>graphics/items/<a class="el" href="_station_overlay_item_8h.html">StationOverlayItem.h</a></li>
 <li>graphics/items/<a class="el" href="_station_overlay_item_8cpp.html">StationOverlayItem.cpp</a></li>
 </ul>
 </div><!-- contents -->

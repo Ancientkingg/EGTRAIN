@@ -8,7 +8,6 @@
 <title>EGTRAIN: diagrams/DelayAnalysisWindow.cpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,27 +111,21 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_delay_analysi
   <div class="headertitle"><div class="title">DelayAnalysisWindow.cpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_delay_analysis_window_8h_source.html">diagrams/DelayAnalysisWindow.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_dialog_folders_8h_source.html">app/DialogFolders.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_result_frame_8h_source.html">diagrams/ResultFrame.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_run_exports_8h_source.html">diagrams/RunExports.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_train_filter_button_8h_source.html">diagrams/TrainFilterButton.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_csv_writer_8h_source.html">util/CsvWriter.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_choice_combo_box_8h_source.html">widgets/ChoiceComboBox.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_dialog_layout_8h_source.html">widgets/DialogLayout.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_editor_layout_8h_source.html">widgets/EditorLayout.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_delay_analysis_window_8h.html">diagrams/DelayAnalysisWindow.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_chart_ticks_8h.html">diagrams/ChartTicks.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_result_frame_8h.html">diagrams/ResultFrame.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_run_csv_8h.html">diagrams/RunCsv.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_train_filter_button_8h.html">diagrams/TrainFilterButton.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_csv_writer_8h.html">util/CsvWriter.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_choice_combo_box_8h.html">widgets/ChoiceComboBox.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_dialog_layout_8h.html">widgets/DialogLayout.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_editor_layout_8h.html">widgets/EditorLayout.h</a>&quot;</code><br />
 <code>#include &lt;QCursor&gt;</code><br />
 <code>#include &lt;QEvent&gt;</code><br />
 <code>#include &lt;QDialogButtonBox&gt;</code><br />
-<code>#include &lt;QFileDialog&gt;</code><br />
-<code>#include &lt;QFileInfo&gt;</code><br />
 <code>#include &lt;QFont&gt;</code><br />
 <code>#include &lt;QHeaderView&gt;</code><br />
 <code>#include &lt;QLabel&gt;</code><br />
-<code>#include &lt;QLineEdit&gt;</code><br />
-<code>#include &lt;QMessageBox&gt;</code><br />
-<code>#include &lt;QPalette&gt;</code><br />
-<code>#include &lt;QPen&gt;</code><br />
 <code>#include &lt;QPushButton&gt;</code><br />
 <code>#include &lt;QSet&gt;</code><br />
 <code>#include &lt;QStringList&gt;</code><br />
@@ -147,13 +140,14 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_delay_analysi
 <code>#include &lt;QtCharts/QChartView&gt;</code><br />
 <code>#include &lt;QtCharts/QValueAxis&gt;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
+<code>#include &lt;cmath&gt;</code><br />
 <code>#include &lt;initializer_list&gt;</code><br />
 <code>#include &lt;iterator&gt;</code><br />
 <code>#include &lt;utility&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for DelayAnalysisWindow.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp__incl.svg" width="5580" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp__incl.svg" width="5322" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -191,7 +185,7 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp_a65142327add13df2eb78b6df7769d277_cgraph.svg" width="718" height="259"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp_a65142327add13df2eb78b6df7769d277_cgraph.svg" width="714" height="264"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -215,7 +209,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp_a0872d5edc20a704e65330700116e31bd_cgraph.svg" width="694" height="280"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp_a0872d5edc20a704e65330700116e31bd_cgraph.svg" width="690" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -239,7 +233,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp_ac2e80583b573f9ae72959bef697a0259_cgraph.svg" width="146" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp_ac2e80583b573f9ae72959bef697a0259_cgraph.svg" width="144" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -263,7 +257,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp_acd80f3866cca0943025b11153c495ee7_cgraph.svg" width="131" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp_acd80f3866cca0943025b11153c495ee7_cgraph.svg" width="131" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -287,7 +281,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp_af5e0ccade70745b9d0016cdfb022c18b_cgraph.svg" width="166" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp_af5e0ccade70745b9d0016cdfb022c18b_cgraph.svg" width="164" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -314,7 +308,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp_ace658299672c842be4db041640dbf0fb_cgraph.svg" width="730" height="207"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp_ace658299672c842be4db041640dbf0fb_cgraph.svg" width="726" height="215"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -338,7 +332,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp_a4d085b34f0709ffd7a7c8eec749f8573_cgraph.svg" width="138" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp_a4d085b34f0709ffd7a7c8eec749f8573_cgraph.svg" width="136" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -365,7 +359,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp_a4769d7cd8c2d15ebcaa158460a195466_cgraph.svg" width="724" height="134"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp_a4769d7cd8c2d15ebcaa158460a195466_cgraph.svg" width="720" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

@@ -1,7 +1,7 @@
 <map id="followPhase" name="followPhase">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,107,55"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="24,31,17,21,21,11,34,5,56,3,83,6,94,15,91,19,81,11,56,8,35,10,24,15,22,20,28,28"/>
-<area shape="rect" id="Node000002" href="$_gui_simulation_snapshot_8h.html#ab4397b256aacd088b6767e677794ce57" title=" " alt="" coords="155,29,349,55"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="107,39,141,39,141,45,107,45"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="220,31,213,21,217,11,230,5,252,3,279,6,290,15,287,19,277,11,252,8,231,10,220,15,218,20,224,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,106,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="21,29,16,20,21,11,34,5,56,3,79,5,93,14,87,14,77,10,55,8,35,10,24,15,22,20,27,28"/>
+<area shape="rect" id="Node000002" href="$_gui_simulation_snapshot_8h.html#ab4397b256aacd088b6767e677794ce57" title=" " alt="" coords="154,29,348,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="106,41,141,43,135,43,106,46"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="217,28,212,20,216,11,229,5,251,3,274,5,288,14,283,14,272,10,251,8,231,10,220,15,217,20,222,30"/>
 </map>

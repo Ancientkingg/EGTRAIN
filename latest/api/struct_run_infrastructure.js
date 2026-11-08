@@ -1,5 +1,6 @@
 var struct_run_infrastructure =
 [
+    [ "numberRouteSections", "struct_run_infrastructure.html#aeb6fae11263ff8a82c7885258c6e6551", null ],
     [ "reset", "struct_run_infrastructure.html#ab02b49f237201f2f52c106335b33a17c", null ],
     [ "blockSets", "struct_run_infrastructure.html#a7388cba275b8a9d0873fb86a474baa97", null ],
     [ "connections", "struct_run_infrastructure.html#a210b9ad3456f36654f7db08dfc35c355", null ],
@@ -12,6 +13,8 @@ var struct_run_infrastructure =
     [ "numStations", "struct_run_infrastructure.html#ae2d4e5d638311e8e4aae0692b91a6367", null ],
     [ "numTrackLines", "struct_run_infrastructure.html#aa69f2ae0bd40a351ef082b169364ed3d", null ],
     [ "routes", "struct_run_infrastructure.html#a0cb8232a9dcda2b336d6e4d630db2d2a", null ],
+    [ "routeSectionNumbers", "struct_run_infrastructure.html#adb224cc455a449a0066cf77dc138b316", null ],
+    [ "sectionIdNumbers", "struct_run_infrastructure.html#a76b810832fd59bc94f46a7c046819acc", null ],
     [ "sections", "struct_run_infrastructure.html#adae988434608bc4db91b9e04c11123bd", null ],
     [ "singleTrackHeld", "struct_run_infrastructure.html#ac6ac68be509d4713e2cf5e85905a660f", null ],
     [ "singleTrackLimits", "struct_run_infrastructure.html#a1f10e19f97a6364caea2a91f8c04459b", null ],

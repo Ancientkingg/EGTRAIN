@@ -1,0 +1,8 @@
+<map id="ComputeEnergyConsumptionForAllTrains" name="ComputeEnergyConsumptionForAllTrains">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,217,74"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="61,28,59,19,68,10,85,5,111,3,140,5,158,14,153,14,138,10,111,8,86,10,71,15,64,21,66,29"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a5973ff2a8a15d46b4b625f7b2e60270c" title=" " alt="" coords="265,29,487,74"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="217,49,252,52,247,52,217,54"/>
+<area shape="rect" id="Node000003" href="$class_train.html#a62f0bf91ef58cb3e3b91175d0f67fb0b" title=" " alt="" coords="535,29,742,74"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="487,49,522,52,517,52,488,54"/>
+</map>

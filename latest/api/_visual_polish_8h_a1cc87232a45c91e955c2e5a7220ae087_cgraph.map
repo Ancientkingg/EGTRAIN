@@ -1,13 +1,13 @@
 <map id="classifyTrainType" name="classifyTrainType">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,103,137,128"/>
-<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="38,104,30,94,34,84,48,78,71,76,100,80,111,89,108,93,98,85,71,81,49,83,38,88,36,94,42,101"/>
-<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#a1116968bc73a190cd5f022eff464c95c" title="The badge shape of a kind: a capsule for an intercity, square for freight, rounded for the others." alt="" coords="185,29,368,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,100,184,63,208,56,210,61,186,69,100,105"/>
-<area shape="rect" id="Node000003" href="$_visual_polish_8cpp.html#aff8e3ad42eb21b9d8861e3013901ea7c" title="The fill of a train without a service colour: RGB (235, 210, 55)." alt="" coords="217,103,336,128"/>
-<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="137,113,203,113,203,118,137,118"/>
-<area shape="rect" id="Node000004" href="$_visual_polish_8cpp.html#a0ca541531be69ea00b2db71455ba3104" title="The outline of a train without a service colour: RGB (110, 90, 20)." alt="" coords="203,176,350,201"/>
-<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="109,126,228,169,226,174,107,131"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="243,31,236,21,239,11,253,5,277,3,305,6,317,15,313,20,303,11,277,8,255,10,243,15,241,20,247,28"/>
-<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="243,104,236,94,239,84,253,78,277,76,305,80,317,89,313,93,303,85,277,81,255,83,243,88,241,94,247,101"/>
-<area shape="poly" id="edge7_Node000004_Node000004" title=" " alt="" coords="243,178,236,168,239,158,253,152,277,149,305,153,317,162,313,166,303,158,277,155,255,157,243,161,241,167,247,174"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,105,137,133"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="35,105,30,96,35,87,48,81,71,79,95,81,110,89,104,91,94,86,71,84,50,86,38,91,35,96,41,104"/>
+<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#a1116968bc73a190cd5f022eff464c95c" title="The badge shape of a kind: a capsule for an intercity, square for freight, rounded for the others." alt="" coords="185,29,367,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,102,184,67,210,61,205,63,186,72,104,107"/>
+<area shape="rect" id="Node000003" href="$_visual_polish_8cpp.html#aff8e3ad42eb21b9d8861e3013901ea7c" title="The fill of a train without a service colour: RGB (235, 210, 55)." alt="" coords="217,105,334,133"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="136,117,204,118,199,120,137,122"/>
+<area shape="rect" id="Node000004" href="$_visual_polish_8cpp.html#a0ca541531be69ea00b2db71455ba3104" title="The outline of a train without a service colour: RGB (110, 90, 20)." alt="" coords="203,181,348,209"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="111,131,224,174,220,177,110,136"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="240,28,235,20,239,11,253,5,276,3,300,5,315,14,309,14,299,10,276,8,255,10,243,15,240,20,245,29"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="240,104,235,96,239,87,253,81,276,79,300,81,315,90,309,90,299,86,276,84,255,86,243,91,240,96,245,105"/>
+<area shape="poly" id="edge7_Node000004_Node000004" title=" " alt="" coords="240,180,235,172,239,163,253,157,276,155,300,157,315,166,309,166,299,162,276,160,255,162,243,167,240,172,245,182"/>
 </map>

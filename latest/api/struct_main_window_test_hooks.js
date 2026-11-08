@@ -1,6 +1,7 @@
 var struct_main_window_test_hooks =
 [
     [ "afterFirstShow", "struct_main_window_test_hooks.html#a08dfaa657732586e6f67aa3df1ee7df2", null ],
+    [ "afterStartup", "struct_main_window_test_hooks.html#afc7b8771e469b3743d1498805405d095", null ],
     [ "askCapacityScope", "struct_main_window_test_hooks.html#acc65fb0d3ac9e0488099a7d9712a0a65", null ],
     [ "askRunReview", "struct_main_window_test_hooks.html#a4566b7e5a66d0a3ebd208e9363d97184", null ],
     [ "dialogClosed", "struct_main_window_test_hooks.html#acf15bd38152d71278dfac8a7eb670782", null ],
@@ -11,10 +12,8 @@ var struct_main_window_test_hooks =
     [ "passengerSource", "struct_main_window_test_hooks.html#a65b26bad30c181f7046900bedfcd4489", null ],
     [ "privacyPreview", "struct_main_window_test_hooks.html#a030fe1f7bf4a928721bfe463109b186a", null ],
     [ "routeDiagramBuilt", "struct_main_window_test_hooks.html#a3c2b73a1562ab82518217bca0d8cf47f", null ],
+    [ "runDataFolder", "struct_main_window_test_hooks.html#a9f5971d47adde20ec5e8b7aa04e09766", null ],
     [ "runFinished", "struct_main_window_test_hooks.html#a8bfb8df20a1c75532f98458947501a70", null ],
-    [ "runResultsRefreshed", "struct_main_window_test_hooks.html#ac1732adb9d75150941d582ff3c59ada0", null ],
-    [ "runSettled", "struct_main_window_test_hooks.html#a28af0247c95e3da875e26da7f2e8ab73", null ],
-    [ "runStarting", "struct_main_window_test_hooks.html#add697825a56ef009ea2296044c236363", null ],
     [ "snapshotDelivered", "struct_main_window_test_hooks.html#a0b475b64be61d9da7982759c6cecd655", null ],
     [ "snapshotDrawn", "struct_main_window_test_hooks.html#aad380a2f152be1de7f8ebd13f7e608dc", null ],
     [ "suppressStartupPrompts", "struct_main_window_test_hooks.html#a72397496b16533fa4c8f990af0840c4a", null ],

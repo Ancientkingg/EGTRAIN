@@ -1,16 +1,16 @@
 <map id="RunController::chooseOutputFolder" name="RunController::chooseOutputFolder">
-<area shape="rect" id="Node000001" title="Asks for the folder that the next runs write to. A run that is going on keeps its folder." alt="" coords="5,87,215,127"/>
-<area shape="rect" id="Node000002" href="$class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" title="The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread." alt="" coords="282,5,450,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,84,262,55,287,47,288,52,263,60,173,89"/>
-<area shape="rect" id="Node000003" href="$namespacepath__message.html#afd0ba51aeeb526bac062f1700965f982" title="The status bar text that names the output folder of the next runs." alt="" coords="263,94,469,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,104,249,104,249,109,215,109"/>
-<area shape="rect" id="Node000006" href="$class_dispatch_controller.html#af3f0690a12a2103a1e80aca5cc5a8be9" title=" " alt="" coords="271,144,461,184"/>
-<area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="201,124,263,138,262,144,199,129"/>
-<area shape="poly" id="edge7_Node000003_Node000003" title=" " alt="" coords="329,96,321,86,325,76,340,70,366,67,398,71,411,81,407,85,396,76,366,73,341,75,328,80,326,85,333,92"/>
-<area shape="rect" id="Node000004" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title="path with every slash replaced by separator()." alt="" coords="517,94,675,119"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="470,104,504,104,504,109,470,109"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="561,96,554,86,557,76,572,70,596,67,626,71,637,80,634,84,624,76,596,73,573,75,561,80,559,85,565,92"/>
-<area shape="rect" id="Node000005" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst..." alt="" coords="723,94,897,119"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="675,104,709,104,709,109,675,109"/>
-<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="775,96,768,86,771,76,786,70,810,67,840,71,851,80,848,84,838,76,810,73,787,75,775,80,773,85,779,92"/>
+<area shape="rect" id="Node000001" title="Asks for the folder that the next runs write to. A run that is going on keeps its folder." alt="" coords="5,89,214,134"/>
+<area shape="rect" id="Node000002" href="$class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" title="The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread." alt="" coords="281,5,448,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,86,283,54,278,57,181,91"/>
+<area shape="rect" id="Node000003" href="$namespacepath__message.html#afd0ba51aeeb526bac062f1700965f982" title="The status bar text that names the output folder of the next runs." alt="" coords="262,98,468,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="214,109,249,111,244,112,215,114"/>
+<area shape="rect" id="Node000006" href="$class_dispatch_controller.html#af3f0690a12a2103a1e80aca5cc5a8be9" title=" " alt="" coords="270,149,460,194"/>
+<area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="208,132,258,146,253,146,207,137"/>
+<area shape="poly" id="edge7_Node000003_Node000003" title=" " alt="" coords="325,97,319,89,324,79,340,73,365,71,392,74,408,83,403,82,390,79,365,76,341,78,328,83,325,89,330,98"/>
+<area shape="rect" id="Node000004" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title="path with every slash replaced by separator()." alt="" coords="516,98,672,126"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="468,109,503,111,498,112,468,114"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="557,96,552,89,556,79,571,73,594,71,619,74,634,83,629,82,618,79,594,76,572,78,560,83,557,89,562,98"/>
+<area shape="rect" id="Node000005" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst..." alt="" coords="720,98,895,126"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="673,109,707,111,702,112,673,114"/>
+<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="771,96,765,89,770,79,784,73,808,71,833,74,848,83,842,82,831,79,807,76,785,78,773,83,770,89,776,98"/>
 </map>

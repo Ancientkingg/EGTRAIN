@@ -1,0 +1,7 @@
+<map id="DiagramWindow::sectionsMarked" name="DiagramWindow::sectionsMarked">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,32,244,60"/>
+<area shape="rect" id="Node000002" href="$class_diagram_window.html#adf2416ba68c9e6bfd18c22e165864c1a" title=" " alt="" coords="304,5,510,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="244,32,291,30,286,31,245,37"/>
+<area shape="rect" id="Node000003" href="$class_diagram_window.html#abe3380e3fe58e9421d64ea14fbef3939" title="Escape ends a selection, and closes the window only while nothing is selected." alt="" coords="292,57,523,85"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="244,54,279,59,274,60,244,59"/>
+</map>

@@ -1,0 +1,8 @@
+<map id="SceneSession::legacyImportSummary" name="SceneSession::legacyImportSummary">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,48,210,92"/>
+<area shape="rect" id="Node000002" href="$_count_text_8h.html#a0d3c4d98f8067558d0aad496276f83b5" title="A count with the noun that fits it, such as &quot;1 error&quot; or &quot;2 errors&quot;." alt="" coords="312,29,396,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,56,299,49,294,50,210,61"/>
+<area shape="rect" id="Node000003" href="$class_scene_session.html#a28dd1440e510aa147ff9f9aa0291de9d" title="The messages of the last validation of the scene." alt="" coords="258,81,450,109"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="210,78,245,84,239,84,210,83"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="312,28,305,20,310,11,327,5,354,3,383,5,400,14,395,14,381,10,354,8,328,10,314,15,310,20,317,30"/>
+</map>

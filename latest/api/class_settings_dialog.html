@@ -8,7 +8,6 @@
 <title>EGTRAIN: SettingsDialog Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,16 +112,16 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_settings
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_settings_dialog_8h_source.html">widgets/SettingsDialog.h</a>&gt;</code></p>
+<p><code>#include &lt;widgets/SettingsDialog.h&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for SettingsDialog:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_settings_dialog__inherit__graph.svg" width="128" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_settings_dialog__inherit__graph.svg" width="127" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
 Collaboration diagram for SettingsDialog:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_settings_dialog__coll__graph.svg" width="128" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_settings_dialog__coll__graph.svg" width="127" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -131,7 +130,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:afb3feeb24dd3a34f55740bcd6820680e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds the window from the current values in <span class="tt">settings</span> and <span class="tt">consent</span>. Both must outlive the window.  <br /></td></tr>
 <tr class="memitem:a82b474f63399b5150af200c4c0ad9955" id="r_a82b474f63399b5150af200c4c0ad9955"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a82b474f63399b5150af200c4c0ad9955">accept</a> () override</td></tr>
 <tr class="memitem:ae1189358d589b3652bf92dfd81e08696" id="r_ae1189358d589b3652bf92dfd81e08696"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae1189358d589b3652bf92dfd81e08696">restoreDefaults</a> ()</td></tr>
-<tr class="memdesc:ae1189358d589b3652bf92dfd81e08696"><td class="mdescLeft">&#160;</td><td class="mdescRight">Puts every control at its default: no recent cases, every switch off and the update check choice unset.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The Settings window: every application setting in one place. Settings that belong to a case are in Case Settings. The window reads the settings when it opens and writes them when OK is pressed; the caller then updates the menu entries. Restore Defaults puts every control at its default and writes nothing until OK. </p>
@@ -164,7 +162,7 @@ Public Member Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_settings_dialog_afb3feeb24dd3a34f55740bcd6820680e_cgraph.svg" width="1367" height="692"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_settings_dialog_afb3feeb24dd3a34f55740bcd6820680e_cgraph.svg" width="1362" height="792"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -196,7 +194,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_settings_dialog_a82b474f63399b5150af200c4c0ad9955_cgraph.svg" width="1036" height="142"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_settings_dialog_a82b474f63399b5150af200c4c0ad9955_cgraph.svg" width="1032" height="147"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -215,13 +213,12 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Puts every control at its default: no recent cases, every switch off and the update check choice unset. </p>
+<p>Puts every control at its default: no recent cases, every switch off, map pins for the station marks and the update check choice unset. </p>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>widgets/<a class="el" href="_settings_dialog_8h_source.html">SettingsDialog.h</a></li>
+<li>widgets/<a class="el" href="_settings_dialog_8h.html">SettingsDialog.h</a></li>
 <li>widgets/<a class="el" href="_settings_dialog_8cpp.html">SettingsDialog.cpp</a></li>
 </ul>
 </div><!-- contents -->

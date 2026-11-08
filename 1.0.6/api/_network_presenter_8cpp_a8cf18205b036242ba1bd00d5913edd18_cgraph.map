@@ -1,0 +1,13 @@
+<map id="previewSectionCourse" name="previewSectionCourse">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,68,172,96"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="49,68,43,59,48,49,63,43,89,41,116,44,132,52,126,53,114,49,88,47,64,49,51,53,48,59,54,67"/>
+<area shape="rect" id="Node000002" href="$_track_preview_8cpp.html#a82bd89af254ba661615bbc295ea8fbf6" title=" " alt="" coords="220,68,419,96"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="172,79,207,81,201,82,172,84"/>
+<area shape="poly" id="edge7_Node000002_Node000002" title=" " alt="" coords="280,67,273,59,279,49,294,43,319,41,346,44,363,53,357,53,345,49,319,47,295,49,282,53,279,59,285,68"/>
+<area shape="rect" id="Node000003" href="$_track_preview_8cpp.html#afffdadc091e55387ebe6a8b6d1c3cc87" title="The point of the line at the node. Returns false when the line has none." alt="" coords="467,29,654,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="409,65,458,60,452,61,410,70"/>
+<area shape="rect" id="Node000004" href="$_track_preview_8cpp.html#ae50bd6f47b6bc4c01a62fdd13daa0ea7" title=" " alt="" coords="480,105,642,133"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="413,94,467,104,461,104,413,99"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="519,28,513,20,518,11,534,5,561,3,589,5,606,14,600,14,588,10,561,8,535,10,522,15,518,20,524,30"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="519,104,513,96,518,87,534,81,561,79,589,81,606,90,600,90,588,86,561,84,535,86,522,91,518,96,524,106"/>
+</map>

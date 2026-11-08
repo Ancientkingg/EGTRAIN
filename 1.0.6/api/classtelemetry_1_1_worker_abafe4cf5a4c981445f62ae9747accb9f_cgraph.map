@@ -1,0 +1,11 @@
+<map id="telemetry::Worker::disable" name="telemetry::Worker::disable">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,40,151,85"/>
+<area shape="rect" id="Node000002" href="$classtelemetry_1_1_worker.html#a1e1845e9e51c21862c29806193005b78" title=" " alt="" coords="199,40,344,85"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,60,186,62,180,63,151,65"/>
+<area shape="rect" id="Node000003" href="$classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" title="Releases owner.lock and drops the events held in memory. The files stay." alt="" coords="392,5,591,50"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="344,48,379,45,374,46,345,54"/>
+<area shape="rect" id="Node000004" href="$classtelemetry_1_1_worker.html#a68bfa203c3d8a4b325808975335afc72" title="Closes the gates, empties the ring and abandons a running request. The queue stays as it is." alt="" coords="419,75,564,119"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="345,71,406,83,401,83,344,76"/>
+<area shape="rect" id="Node000005" href="$class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" title="Cancels the request. finished() is emitted if it was not emitted yet." alt="" coords="639,83,767,111"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="565,94,626,97,621,97,565,100"/>
+</map>

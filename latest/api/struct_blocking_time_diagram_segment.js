@@ -9,7 +9,6 @@ var struct_blocking_time_diagram_segment =
     [ "midPositionKm", "struct_blocking_time_diagram_segment.html#a90cf5dcd3a3e897c13c9a46178695f31", null ],
     [ "originalEndTime", "struct_blocking_time_diagram_segment.html#a335fb1a18729d5cab4ac5c3e73f5682f", null ],
     [ "originalStartTime", "struct_blocking_time_diagram_segment.html#a88df97388c470bbb365a791ecf686fdf", null ],
-    [ "referenceNote", "struct_blocking_time_diagram_segment.html#ad44c73b5a547084d6cd45ec191ddf1e0", null ],
     [ "referenceSection", "struct_blocking_time_diagram_segment.html#ab1fe6358019d4c6c18c2cdac6de0f056", null ],
     [ "releaseTime", "struct_blocking_time_diagram_segment.html#a59673b2973a27994b950d33d0bd0254c", null ],
     [ "runTimeMargin", "struct_blocking_time_diagram_segment.html#a6c2649b28a8b0ea88b53df05476b0a16", null ],

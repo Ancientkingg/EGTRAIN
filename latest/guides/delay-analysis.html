@@ -192,11 +192,13 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="common-questions.html">Common questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
-<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
@@ -220,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -236,7 +238,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +252,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +267,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -310,7 +312,7 @@
 <p>This guide says what the delay figures of EGTRAIN mean: the formula, the unit, the reference timetable, which calls are counted and what is shown when a value is missing. It describes the program as it is, including its limits. <a class="reference internal" href="#definitions">Definitions</a> fixes the words, <a class="reference internal" href="#supported-scope">Supported scope</a> says what the figures cover and <a class="reference internal" href="#limits">Limits</a> what they do not. The case fields it mentions are in the <a class="reference internal" href="scene-schema.html#services-json"><span class="std std-ref">scene schema</span></a>.</p>
 <section id="what-this-guide-covers">
 <h2>What this guide covers<a class="headerlink" href="#what-this-guide-covers" title="Link to this heading">¶</a></h2>
-<p>A run produces delay figures in four places. The Delay analysis window (Diagrams &gt; Delay analysis and Run Results &gt; Open result view &gt; Delay analysis) shows the first and the third of them. The figures of the four places are not the same quantity: they start from different arrivals, count different populations and use different thresholds.</p>
+<p>A run produces delay figures in four places. The Delay analysis window (Diagrams &gt; Delay analysis and Run Results &gt; Open result view… &gt; Delay analysis) shows the first and the third of them. The figures of the four places are not the same quantity: they start from different arrivals, count different populations and use different thresholds.</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -320,7 +322,7 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Timetable results</p></td>
-<td><p>Diagrams &gt; Timetable and Run Results &gt; Open result view &gt; Timetable; Diagrams &gt; Delays… and Run Results &gt; Open result view &gt; Delays (a chart); the file <code class="docutils literal notranslate"><span class="pre">timetable.csv</span></code> from the <strong>CSV…</strong> button of both windows; the tabs Calls, Summary and Punctuality of the Delay analysis window and the files <code class="docutils literal notranslate"><span class="pre">delay_analysis.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">delay_histogram.csv</span></code> from its <strong>CSV…</strong> button</p></td>
+<td><p>Diagrams &gt; Timetable and Run Results &gt; Open result view… &gt; Timetable; Diagrams &gt; Delays… and Run Results &gt; Open result view… &gt; Delays… (a chart); the file <code class="docutils literal notranslate"><span class="pre">timetable.csv</span></code> from the <strong>CSV…</strong> button of both windows; the tabs Calls, Summary and Punctuality of the Delay analysis window and the files <code class="docutils literal notranslate"><span class="pre">delay_analysis.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">delay_histogram.csv</span></code> from its <strong>CSV…</strong> button</p></td>
 </tr>
 <tr class="row-odd"><td><p>Station statistics</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Stats_Stations.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">Pos&amp;Neg_Stats_Stations.txt</span></code> in the <code class="docutils literal notranslate"><span class="pre">TrainTrajectories</span></code> folder of the run output</p></td>
@@ -334,7 +336,7 @@
 </tbody>
 </table>
 </div>
-<p>The Timetable graph (Run Results &gt; Open result view &gt; Timetable graph) draws the planned and the simulated times whose difference the timetable results report. It shows no delay figure and is not a fifth place.</p>
+<p>The Timetable graph (Run Results &gt; Open result view… &gt; Timetable graph…) draws the planned and the simulated times whose difference the timetable results report. It shows no delay figure and is not a fifth place.</p>
 </section>
 <section id="definitions">
 <h2>Definitions<a class="headerlink" href="#definitions" title="Link to this heading">¶</a></h2>
@@ -356,7 +358,7 @@
 <p>All values are seconds. One simulation step is one second: <code class="docutils literal notranslate"><span class="pre">timestep</span></code> is the constant 1.</p>
 <p>Planned times are the <code class="docutils literal notranslate"><span class="pre">planned_arrival_seconds</span></code> and <code class="docutils literal notranslate"><span class="pre">planned_departure_seconds</span></code> of the stops of a service, in seconds from the base-time origin of the case. Each is optional. Occurrence n of a repeated service is shifted by (n - 1) times the headway. A planned time that is absent, or below 0 after the shift, counts as no planned time. Simulated times are seconds on the same axis.</p>
 <p>A scenario entrance delay adds its seconds to the planned departure of the named stop of that occurrence, records the seconds as the entrance delay of the train, and leaves every planned arrival as authored. The stop needs a planned departure: without one, validation reports the error <code class="docutils literal notranslate"><span class="pre">scene.entrance.timetable</span></code> and the case does not run. When the service stops more than once at the named station, the first of those stops is the one that is shifted. So the departure delay at that stop in the timetable results is measured against the shifted planned departure, and arrival delays are not shifted (see <a class="reference internal" href="#where-delays-are-calculated">Where delays are calculated</a> and <a class="reference internal" href="#early-missing-and-repeated-cases">Early, missing and repeated cases</a>). The Delay analysis window takes the shift back, so that the departure shows the entrance delay (<a class="reference internal" href="#the-delay-analysis-window">the window</a>). The entrance delay is a field of a scenario in <a class="reference internal" href="scene-schema.html#scenarios-json"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code></span></a>.</p>
-<p>A train that stands at a stop it has reached does not leave before the planned departure of that stop, when the stop has one, and not before its dwell time has passed (the <code class="docutils literal notranslate"><span class="pre">dwell_seconds</span></code> of the stop, or longer when boarding and alighting passengers need longer; <a class="reference internal" href="scene-schema.html#services-json"><span class="std std-ref">the rule</span></a>). It also stays while a red signal at the platform or an end of authority applies, and at a node with a train order until the order allows it to leave (<code class="docutils literal notranslate"><span class="pre">trajectoryComputationIncludingMovingBlock</span></code>). For a station that a train serves more than once, the planned departure of the last stop of that name applies at every call of the station. In the line fixture of the tests a train with a planned departure of 660 s at its middle stop leaves at 660 s.</p>
+<p>A train that stands at a stop it has reached does not leave before the planned departure of that stop, when the stop has one, and not before its dwell time has passed (the <code class="docutils literal notranslate"><span class="pre">dwell_seconds</span></code> of the stop, or longer when boarding and alighting passengers need longer; <a class="reference internal" href="scene-schema.html#services-json"><span class="std std-ref">the rule</span></a>). It also stays while a red signal at the platform or an end of authority applies, and at a node with a train order until the order allows it to leave (<code class="docutils literal notranslate"><span class="pre">serviceStopStep</span></code>, which <code class="docutils literal notranslate"><span class="pre">standingTrainStep</span></code> calls at a stop). For a station that a train serves more than once, the planned departure of the last stop of that name applies at every call of the station. In the line fixture of the tests a train with a planned departure of 660 s at its middle stop leaves at 660 s.</p>
 <p>The last stop of a service ends the service when it has no planned departure: the train leaves after its dwell, drives on and is removed from the run when its head passes the end node of its route. A planned departure at the last stop holds the train there until that time, so a planned departure after the end of the run keeps it at the stop to the end of the run. The Netherlands case has no planned time at any stop, so its trains leave the network after their dwell at the last stop unless the run ends first.</p>
 <p>A train that begins its route at a stop is not held there: it enters at the entry time of its service (<code class="docutils literal notranslate"><span class="pre">entry_time_seconds</span></code>, or the planned departure of the first stop when the service has no entry time, or 0 when that stop has none), shifted like the other times of a repeated service. In the same fixture a train enters at 60 s although its planned departure at the first stop is 120 s. An entrance delay does not change the entry time; at the first stop it shifts the planned departure that the results show.</p>
 </section>
@@ -367,7 +369,7 @@
 <li><p>The arrival is (t - 1) times the timestep for the first sample t whose position is no longer short of the point while sample t - 1 is short of it.</p></li>
 <li><p>The departure is (t - 1) times the timestep for the first sample t whose position is past the hold-back position of the point while sample t - 1 is not.</p></li>
 </ul>
-<p>The hold-back position is 0.0001 m before the point (<code class="docutils literal notranslate"><span class="pre">kStopHoldbackM</span></code>). A position within 0.000001 m of it (<code class="docutils literal notranslate"><span class="pre">kStopHoldbackToleranceM</span></code>) is neither short of the point nor past the hold-back position. The standing-train branch of <code class="docutils literal notranslate"><span class="pre">trajectoryComputationIncludingMovingBlock</span></code> holds a train that serves a stop at the hold-back position with speed 0, and starts it again at 0.0001 m past the point with speed 0.0001 m/s. So for a stopping train the arrival is the last sample before the train is held at the hold-back position, and the departure is the last sample at which it is held there.</p>
+<p>The hold-back position is 0.0001 m before the point (<code class="docutils literal notranslate"><span class="pre">kStopHoldbackM</span></code>). A position within 0.000001 m of it (<code class="docutils literal notranslate"><span class="pre">kStopHoldbackToleranceM</span></code>) is neither short of the point nor past the hold-back position. The standing-train step (<code class="docutils literal notranslate"><span class="pre">standingTrainStep</span></code>, with <code class="docutils literal notranslate"><span class="pre">serviceStopStep</span></code> at a stop) holds a train that serves a stop at the hold-back position with speed 0, and starts it again at 0.0001 m past the point with speed 0.0001 m/s. So for a stopping train the arrival is the last sample before the train is held at the hold-back position, and the departure is the last sample at which it is held there.</p>
 <p>The line fixture shows the pairs. The test harness treats every sample below 0.001 m/s as standing, and the release sample (0.0001 m/s) is one of them. It lists a stop of at least five standing samples. In each of the two stops at a station in <code class="docutils literal notranslate"><span class="pre">tests/characterization/expected/follow-level-0.txt</span></code> the arrival equals the first standing sample and the departure equals the last standing sample minus 1:</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
@@ -455,7 +457,7 @@
 </section>
 <section id="the-delay-analysis-window">
 <h2>The Delay analysis window<a class="headerlink" href="#the-delay-analysis-window" title="Link to this heading">¶</a></h2>
-<p><strong>Diagrams &gt; Delay analysis</strong> and <strong>Run Results &gt; Open result view… &gt; Delay analysis</strong> open the window for the completed run on the tab Calls. <strong>Compare delays</strong> opens it on the tab Against baseline. The window does not block the main window and keeps the run it was opened for, so a later run does not change it. Its title is Delay analysis, and its header names the run and the delay baseline, such as “Paimpol / incident · delay baseline Paimpol / baseline”, or “no delay baseline set”. The window explains no column in a paragraph: the headers of the delay columns have the definitions of <a class="reference internal" href="#definitions">Definitions</a> as their tooltips.</p>
+<p><strong>Diagrams &gt; Delay analysis</strong> and <strong>Run Results &gt; Open result view… &gt; Delay analysis</strong> open the window for the completed run on the tab Calls. <strong>Compare delays</strong> opens it on the tab Against baseline. The window does not block the main window and keeps the run it was opened for, so a later run does not change it. Creating or opening another case closes it. Its title is Delay analysis, and its header names the run and the delay baseline, such as “Paimpol / incident · delay baseline Paimpol / baseline”, or “no delay baseline set”. The window explains no column in a paragraph: the headers of the delay columns have the definitions of <a class="reference internal" href="#definitions">Definitions</a> as their tooltips.</p>
 <p>The tabs lie at the left and a panel at the right. The panel starts with three figures of the selected events, the same as the row “All selected stations” of the tab Summary: the sum of the delays (“Sum of delays”), their mean (“Mean”), and the number of early and late events (“Early / late”, such as “3 / 1”). The tooltips of the sum and the mean give the number of Available events, and the tooltip of Early / late gives the early, on-time and late counts. A sum or mean without an Available event reads “-”. The three choices follow. <strong>Trains</strong> and <strong>Stations</strong> list what the run has, each with its count, such as “Trains (2/2)”; uncheck an entry, or use All and None, to leave it out. <strong>Events</strong> switches Calls, Summary, Punctuality and the figures between arrivals and departures, as in “Events: Arrivals”. The choice of trains applies to all four tabs and the figures, the choice of stations to Calls, Summary, Punctuality, the figures and the call rows of Against baseline, and the choice of events to Calls, Summary, Punctuality and the figures only.</p>
 <section id="calls">
 <h3>Calls<a class="headerlink" href="#calls" title="Link to this heading">¶</a></h3>
@@ -789,41 +791,36 @@
 </section>
 <section id="calculations-the-program-no-longer-contains">
 <h2>Calculations the program no longer contains<a class="headerlink" href="#calculations-the-program-no-longer-contains" title="Link to this heading">¶</a></h2>
-<p>The only delay statistics code left in the program is the code this guide describes. These calculations were removed and none has been restored. A file as it was before a commit is shown by <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">show</span> <span class="pre">&lt;commit&gt;^:&lt;path&gt;</span></code>.</p>
+<p>The only delay statistics code left in the program is the code this guide describes. These calculations were removed and none has been restored.</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Calculation</p></th>
 <th class="head"><p>What it did</p></th>
 <th class="head"><p>Names absent from the program</p></th>
-<th class="head"><p>Removed in</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Rescheduling, optimisation and dispatching</p></td>
 <td><p>A rescheduling interface to an external dispatching tool (messages, decisions, platform and route changes) and functions that ordered services, built an optimised timetable and moved train times to it. The area capacity code removed with them computed no delay</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">handleDispMessage</span></code>, <code class="docutils literal notranslate"><span class="pre">loadDispDecisions</span></code>, <code class="docutils literal notranslate"><span class="pre">checkArrivalPlatform</span></code>, <code class="docutils literal notranslate"><span class="pre">ComputeOptimisedTimetable</span></code>, <code class="docutils literal notranslate"><span class="pre">Generate_Optimised_Train_Service_Sequence</span></code>, <code class="docutils literal notranslate"><span class="pre">ResetTrainsAccordingToTimetable</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">08105b7</span></code> (#254)</p></td>
 </tr>
 <tr class="row-odd"><td><p>Older delay entry point</p></td>
 <td><p>A second way to run the arrival delay calculation, with the older arrival detector</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">calculateArrivalDelayAllTrainsOldVersion</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">e41b3c3</span></code> (#319)</p></td>
 </tr>
 <tr class="row-even"><td><p>Stochastic dwell and entrance delays</p></td>
 <td><p>Drew dwell times at stations from a Gaussian distribution around the planned dwell time and wrote them to files; read such files back and set the stop time and the dwell disturbance (stop time minus planned dwell time) of each stop; read per-train entrance delays from files and added them to the planned departure at a named station; added a Gaussian error to such entrance delays. Nothing sets the dwell disturbance, so the <code class="docutils literal notranslate"><span class="pre">DwT_Dist</span></code> row and the dwell part of the consecutive delay are always 0</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">drawGaussianTrainDwellTimes</span></code>, <code class="docutils literal notranslate"><span class="pre">Load_And_Set_Stoc_Dwell_Times</span></code>, <code class="docutils literal notranslate"><span class="pre">Load_Departure_Delay_At_Station</span></code>, <code class="docutils literal notranslate"><span class="pre">Load_Entrance_Delay_Disturbed_Scenario</span></code>, <code class="docutils literal notranslate"><span class="pre">Generate_Entrance_Delays_Affected_By_Error</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">e7fad81</span></code> (#510)</p></td>
 </tr>
 <tr class="row-odd"><td><p>Older arrival detectors</p></td>
 <td><p>Took the arrival of a stop from the position samples: the first sample at rest exactly 2 mm short of the station, or the first sample at rest less than 5 mm short of it or beyond it after a sample more than 3 m short of it. The <code class="docutils literal notranslate"><span class="pre">Actual_Arrivals</span></code> functions applied this to the stops of a train</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Arrival_At_Station</span></code>, <code class="docutils literal notranslate"><span class="pre">Arrival_At_Station_NewVersion</span></code>, <code class="docutils literal notranslate"><span class="pre">Actual_Arrivals</span></code>, <code class="docutils literal notranslate"><span class="pre">Actual_Arrivals_NewVersion</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">e7fad81</span></code> (#510: <code class="docutils literal notranslate"><span class="pre">Arrival_At_Station</span></code>, <code class="docutils literal notranslate"><span class="pre">Actual_Arrivals_NewVersion</span></code>), <code class="docutils literal notranslate"><span class="pre">fc3eeb1</span></code> (#585: <code class="docutils literal notranslate"><span class="pre">Arrival_At_Station_NewVersion</span></code>, <code class="docutils literal notranslate"><span class="pre">Actual_Arrivals</span></code>)</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>Of these calculations only the older arrival detector reached a figure: the signed statistics file used it before #585, and it matched few stops, so that file held -1 in many rows (#585). The other calculations were not reached by a run. Both statistics files now take the arrival from the timetable point, as the timetable results do (<a class="reference internal" href="#arrival-and-departure-of-a-call">arrival and departure</a>).</p>
+<p>Of these calculations only the older arrival detector reached a figure: the signed statistics file of earlier versions used it, and it matched few stops, so that file held -1 in many rows. The other calculations were not reached by a run. Both statistics files now take the arrival from the timetable point, as the timetable results do (<a class="reference internal" href="#arrival-and-departure-of-a-call">arrival and departure</a>).</p>
 </section>
 <section id="supported-scope">
 <h2>Supported scope<a class="headerlink" href="#supported-scope" title="Link to this heading">¶</a></h2>
@@ -926,7 +923,7 @@
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

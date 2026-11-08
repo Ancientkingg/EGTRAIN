@@ -1,5 +1,5 @@
 <map id="NetworkPresenter::trainCenter" name="NetworkPresenter::trainCenter">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,225,31"/>
-<area shape="rect" id="Node000002" href="$class_network_presenter.html#a4527dcc6ce8e7d9660a23224b897555d" title="The train group of the run with this index, or null." alt="" coords="273,5,489,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,15,260,15,260,21,226,21"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,225,33"/>
+<area shape="rect" id="Node000002" href="$class_network_presenter.html#a4527dcc6ce8e7d9660a23224b897555d" title="The train group of the run with this index, or null." alt="" coords="273,5,488,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="225,17,260,19,254,19,225,22"/>
 </map>

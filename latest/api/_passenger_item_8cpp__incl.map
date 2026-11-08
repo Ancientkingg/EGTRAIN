@@ -1,9 +1,9 @@
 <map id="graphics/items/PassengerItem.cpp" name="graphics/items/PassengerItem.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="63,5,251,45"/>
-<area shape="rect" id="Node000002" href="$_passenger_item_8h.html" title=" " alt="" coords="63,93,251,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,46,160,79,155,79,155,46"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,181,173,207"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="143,135,110,172,106,169,139,132"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="197,181,256,207"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="176,132,209,169,205,172,172,135"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="63,5,251,50"/>
+<area shape="rect" id="Node000002" href="$_passenger_item_8h.html" title=" " alt="" coords="63,98,251,143"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,48,160,83,154,82,156,53"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,191,173,218"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="142,142,111,180,108,176,137,144"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="197,191,256,218"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="176,141,208,179,203,178,174,146"/>
 </map>

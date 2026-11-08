@@ -1,0 +1,18 @@
+<map id="SettingsDialog::accept" name="SettingsDialog::accept">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,76,173,104"/>
+<area shape="rect" id="Node000002" href="$namespace_dialog_layout.html#a66a7d42bda10000c79c85ab652f8805e" title=" " alt="" coords="221,38,397,66"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,73,214,68,209,70,172,79"/>
+<area shape="rect" id="Node000006" href="$_update_settings_8cpp.html#a2e63cb77401af6e590fcc8cb34e71250" title="Stores the choice under &quot;updates/automaticCheck&quot;. Unknown removes the key." alt="" coords="221,114,396,142"/>
+<area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="173,102,211,110,206,111,173,107"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="272,37,266,29,271,19,286,13,309,11,334,14,349,23,344,22,332,19,309,16,287,18,275,23,272,29,277,38"/>
+<area shape="rect" id="Node000003" href="$namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734" title=" " alt="" coords="445,29,597,74"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="397,49,432,51,427,52,398,54"/>
+<area shape="poly" id="edge8_Node000003_Node000003" title=" " alt="" coords="481,27,479,19,486,10,500,5,521,3,544,5,559,14,554,14,543,10,521,8,501,10,489,15,484,21,485,30"/>
+<area shape="rect" id="Node000004" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="645,29,826,74"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="598,49,632,51,627,52,598,54"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="695,27,693,19,700,10,714,5,736,3,759,5,774,14,769,14,757,10,735,8,716,10,703,15,698,21,699,30"/>
+<area shape="rect" id="Node000005" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="874,29,1026,74"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="826,49,861,52,856,52,826,54"/>
+<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="909,27,907,19,914,10,929,5,950,3,973,5,988,15,983,14,972,10,950,8,930,10,918,15,913,21,913,30"/>
+<area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="272,112,266,105,271,95,286,89,309,87,334,90,349,99,344,98,332,95,309,92,287,94,275,99,272,105,277,114"/>
+</map>

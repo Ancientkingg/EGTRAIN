@@ -8,7 +8,6 @@
 <title>EGTRAIN: diagrams/AreaCapacityWindow.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,10 +111,11 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_area_capacity
   <div class="headertitle"><div class="title">AreaCapacityWindow.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_area_capacity_8h_source.html">diagrams/AreaCapacity.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_completed_run_data_8h_source.html">diagrams/CompletedRunData.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_run_results_8h_source.html">diagrams/RunResults.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_telemetry_operation_8h_source.html">telemetry/TelemetryOperation.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_area_capacity_8h.html">diagrams/AreaCapacity.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_completed_run_data_8h.html">diagrams/CompletedRunData.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_run_results_8h.html">diagrams/RunResults.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_telemetry_operation_8h.html">telemetry/TelemetryOperation.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_user_prompts_8h.html">widgets/UserPrompts.h</a>&quot;</code><br />
 <code>#include &lt;QDialog&gt;</code><br />
 <code>#include &lt;QString&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
@@ -124,16 +124,14 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_area_capacity
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for AreaCapacityWindow.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_area_capacity_window_8h__incl.svg" width="3220" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_area_capacity_window_8h__incl.svg" width="4219" height="418"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_area_capacity_window_8h__dep__incl.svg" width="446" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_area_capacity_window_8h__dep__incl.svg" width="443" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-</div>
-<p><a href="_area_capacity_window_8h_source.html">Go to the source code of this file.</a></p>
-<table class="memberdecls">
+</div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:AreaCapacityScope" id="r_AreaCapacityScope"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_area_capacity_scope.html">AreaCapacityScope</a></td></tr>
@@ -178,7 +176,7 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_area_capacity_window_8h_aff8399b3104bcfb224d0f7299d1a66c8_cgraph.svg" width="718" height="280"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_area_capacity_window_8h_aff8399b3104bcfb224d0f7299d1a66c8_cgraph.svg" width="1012" height="340"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -201,11 +199,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The input of analyzeAreaCapacity for the scope: the selected trains in the order of the scope and every other train of the run as other traffic. Occupations are passed as the run holds them, so that the analysis reports the unusable ones. </p>
+<p>The input of analyzeAreaCapacity for the scope: the selected trains in the order of the scope and every other train of the run as other traffic. The reference time of a train lies where it enters the area: at its first occupation of a resource of either range, by the rules of capacityInputFrom. Occupations are passed as the run holds them, so that the analysis reports the unusable ones. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_area_capacity_window_8h_a971ddcd31b6dd8485cb12b52f3e41012_cgraph.svg" width="186" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_area_capacity_window_8h_a971ddcd31b6dd8485cb12b52f3e41012_cgraph.svg" width="184" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -233,7 +231,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_area_capacity_window_8h_a8fd0e895bcf5a4af24039d1ac7b077bc_cgraph.svg" width="652" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_area_capacity_window_8h_a8fd0e895bcf5a4af24039d1ac7b077bc_cgraph.svg" width="650" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -257,7 +255,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_area_capacity_window_8h_a30c14fdd0a08eef42a9d07bb94db095b_cgraph.svg" width="199" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_area_capacity_window_8h_a30c14fdd0a08eef42a9d07bb94db095b_cgraph.svg" width="199" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -284,7 +282,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_area_capacity_window_8h_a92e47153f3138f9ee88286e6ce9cfd23_cgraph.svg" width="187" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_area_capacity_window_8h_a92e47153f3138f9ee88286e6ce9cfd23_cgraph.svg" width="187" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -312,7 +310,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_area_capacity_window_8h_a319b62cae345e5b3d3fcd3ee14321f28_cgraph.svg" width="636" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_area_capacity_window_8h_a319b62cae345e5b3d3fcd3ee14321f28_cgraph.svg" width="634" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -345,7 +343,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_area_capacity_window_8h_aa9902b53bd578d05441cf70f15c141d0_cgraph.svg" width="1503" height="1454"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_area_capacity_window_8h_aa9902b53bd578d05441cf70f15c141d0_cgraph.svg" width="1458" height="1490"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

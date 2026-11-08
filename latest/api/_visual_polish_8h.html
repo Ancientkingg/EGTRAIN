@@ -8,7 +8,6 @@
 <title>EGTRAIN: graphics/VisualPolish.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -124,16 +123,14 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_visual_polish
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for VisualPolish.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h__incl.svg" width="819" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h__incl.svg" width="810" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h__dep__incl.svg" width="2923" height="300"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h__dep__incl.svg" width="3272" height="316"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-</div>
-<p><a href="_visual_polish_8h_source.html">Go to the source code of this file.</a></p>
-<table class="memberdecls">
+</div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:TrackVisual" id="r_TrackVisual"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_track_visual.html">TrackVisual</a></td></tr>
@@ -179,6 +176,11 @@ Enumerations</h2></td></tr>
 , <a class="el" href="#a49d576a166f0648bea83212755f0c3cba3b329734e45b57e60f3df64c2cf412a9">Major</a>
  }</td></tr>
 <tr class="memdesc:a49d576a166f0648bea83212755f0c3cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The class of a station, which chooses its mark.  <a href="#a49d576a166f0648bea83212755f0c3cb">More...</a><br /></td></tr>
+<tr class="memitem:a7753fd88bf09e5f3e01c788545a08ac8" id="r_a7753fd88bf09e5f3e01c788545a08ac8"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a> { <a class="el" href="#a7753fd88bf09e5f3e01c788545a08ac8a38f03d45e9b45580235ad8c79f777451">MapPin</a>
+, <a class="el" href="#a7753fd88bf09e5f3e01c788545a08ac8a0e1a540410740081f5f1e87388bfd316">RingAndBar</a>
+, <a class="el" href="#a7753fd88bf09e5f3e01c788545a08ac8a5accfbbef8f48779754ac6947e90194d">ClassMarks</a>
+, <a class="el" href="#a7753fd88bf09e5f3e01c788545a08ac8a05de58cfb0df9cd9dabdd9490c6984db">PlainDot</a>
+ }</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -204,19 +206,19 @@ Functions</h2></td></tr>
 <tr class="memdesc:a2511e34f95b2de260988d67c627468bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The state of a signal head for an aspect code, as <a class="el" href="#a26df8324994d4726d94931837161a573" title="The state that a signal head shows besides its colour.">SignalCueKind</a> lists it.  <br /></td></tr>
 <tr class="memitem:a7ea3f93e7d09822b4b13415ffc8f307d" id="r_a7ea3f93e7d09822b4b13415ffc8f307d"><td class="memItemLeft"><a class="el" href="struct_station_visual.html">StationVisual</a>&#160;</td><td class="memItemRight"><a class="el" href="#a7ea3f93e7d09822b4b13415ffc8f307d">classifyStation</a> (bool hasPlatformId=false, int connectionCount=0)</td></tr>
 <tr class="memdesc:a7ea3f93e7d09822b4b13415ffc8f307d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The look of a station node: Major with three or more connections, Station with a platform id, Halt otherwise.  <br /></td></tr>
-<tr class="memitem:acd5376d75de6b86816b9fbc03adf30cc" id="r_acd5376d75de6b86816b9fbc03adf30cc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acd5376d75de6b86816b9fbc03adf30cc">paintStationMark</a> (QPainter *painter, const QRectF &amp;frame, <a class="el" href="#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls, const QColor &amp;fill, const QColor &amp;halo, qreal haloWidth)</td></tr>
-<tr class="memitem:ab5821bb5e3b802765eef37c3ccc25547" id="r_ab5821bb5e3b802765eef37c3ccc25547"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#ab5821bb5e3b802765eef37c3ccc25547">stationMarkBounds</a> (const QRectF &amp;frame, <a class="el" href="#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls, qreal haloWidth)</td></tr>
-<tr class="memitem:a53bf883918011b406bcde8613aa0354d" id="r_a53bf883918011b406bcde8613aa0354d"><td class="memItemLeft">QPainterPath&#160;</td><td class="memItemRight"><a class="el" href="#a53bf883918011b406bcde8613aa0354d">stationMarkShape</a> (const QRectF &amp;frame, <a class="el" href="#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls, qreal haloWidth)</td></tr>
-<tr class="memdesc:a53bf883918011b406bcde8613aa0354d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The pin that <a class="el" href="#acd5376d75de6b86816b9fbc03adf30cc">paintStationMark()</a> paints in frame, its edge included and its halo not.  <br /></td></tr>
-<tr class="memitem:a2420ddd0ca6f0c9af6acb01c987d2ed4" id="r_a2420ddd0ca6f0c9af6acb01c987d2ed4"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a2420ddd0ca6f0c9af6acb01c987d2ed4">stationMarkFrameIn</a> (const QRectF &amp;area, <a class="el" href="#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls, qreal haloWidth)</td></tr>
+<tr class="memitem:a4d5203c8f6abefdd07da3cfa205ebcd3" id="r_a4d5203c8f6abefdd07da3cfa205ebcd3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4d5203c8f6abefdd07da3cfa205ebcd3">paintStationMark</a> (QPainter *painter, const QRectF &amp;frame, <a class="el" href="#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls, <a class="el" href="#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a> style, const QColor &amp;fill, const QColor &amp;halo, qreal haloWidth)</td></tr>
+<tr class="memitem:a94e97a943567e4c2a8138b4997f66343" id="r_a94e97a943567e4c2a8138b4997f66343"><td class="memItemLeft">QPointF&#160;</td><td class="memItemRight"><a class="el" href="#a94e97a943567e4c2a8138b4997f66343">stationMarkAnchor</a> (const QRectF &amp;frame, <a class="el" href="#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a> style)</td></tr>
+<tr class="memitem:a7e15855ab30e624b125dbe6e396125a7" id="r_a7e15855ab30e624b125dbe6e396125a7"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a7e15855ab30e624b125dbe6e396125a7">stationMarkBounds</a> (const QRectF &amp;frame, <a class="el" href="#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls, <a class="el" href="#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a> style, qreal haloWidth)</td></tr>
+<tr class="memitem:a5b48cd7dfc5108e7723e392116d647d3" id="r_a5b48cd7dfc5108e7723e392116d647d3"><td class="memItemLeft">QPainterPath&#160;</td><td class="memItemRight"><a class="el" href="#a5b48cd7dfc5108e7723e392116d647d3">stationMarkShape</a> (const QRectF &amp;frame, <a class="el" href="#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls, <a class="el" href="#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a> style, qreal haloWidth)</td></tr>
+<tr class="memitem:a3cad1c71ca22ff81187f1c11478d0afe" id="r_a3cad1c71ca22ff81187f1c11478d0afe"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a3cad1c71ca22ff81187f1c11478d0afe">stationMarkFrameIn</a> (const QRectF &amp;area, <a class="el" href="#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls, <a class="el" href="#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a> style, qreal haloWidth)</td></tr>
 <tr class="memitem:aa164be426ade64b2fd1bebe183b15674" id="r_aa164be426ade64b2fd1bebe183b15674"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#aa164be426ade64b2fd1bebe183b15674">stationFootprintRect</a> (const QList&lt; QPointF &gt; &amp;centres, <a class="el" href="#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls, qreal side)</td></tr>
 <tr class="memitem:aad6e3639cb92ebdb855e80911a082344" id="r_aad6e3639cb92ebdb855e80911a082344"><td class="memItemLeft">QPainterPath&#160;</td><td class="memItemRight"><a class="el" href="#aad6e3639cb92ebdb855e80911a082344">stationAreaShape</a> (const QList&lt; QPointF &gt; &amp;centres, qreal width)</td></tr>
 <tr class="memitem:ad15b0a7441e0e9f52022e4a3a89d81d8" id="r_ad15b0a7441e0e9f52022e4a3a89d81d8"><td class="memItemLeft">QColor&#160;</td><td class="memItemRight"><a class="el" href="#ad15b0a7441e0e9f52022e4a3a89d81d8">stationAreaColor</a> ()</td></tr>
 <tr class="memdesc:ad15b0a7441e0e9f52022e4a3a89d81d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The fill of the area of a station: the blue of the pin of a major station at an alpha of 56 of 255.  <br /></td></tr>
 <tr class="memitem:a2e7d09af69daec1cb464c65129b19737" id="r_a2e7d09af69daec1cb464c65129b19737"><td class="memItemLeft">QColor&#160;</td><td class="memItemRight"><a class="el" href="#a2e7d09af69daec1cb464c65129b19737">canvasColor</a> ()</td></tr>
-<tr class="memdesc:a2e7d09af69daec1cb464c65129b19737"><td class="mdescLeft">&#160;</td><td class="mdescRight">The background of the network canvas, RGB (16, 26, 34). The station pins and names take it as their halo.  <br /></td></tr>
+<tr class="memdesc:a2e7d09af69daec1cb464c65129b19737"><td class="mdescLeft">&#160;</td><td class="mdescRight">The background of the network canvas, RGB (16, 26, 34). The station marks and names take it as their halo.  <br /></td></tr>
 <tr class="memitem:a533b0acec8e0aa932ee206a07c02a1d8" id="r_a533b0acec8e0aa932ee206a07c02a1d8"><td class="memItemLeft">QColor&#160;</td><td class="memItemRight"><a class="el" href="#a533b0acec8e0aa932ee206a07c02a1d8">stationMarkFill</a> ()</td></tr>
-<tr class="memitem:aedc5fcbf783bda97fca3dc74d3a5098b" id="r_aedc5fcbf783bda97fca3dc74d3a5098b"><td class="memItemLeft">QIcon&#160;</td><td class="memItemRight"><a class="el" href="#aedc5fcbf783bda97fca3dc74d3a5098b">stationMarkIcon</a> (<a class="el" href="#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls)</td></tr>
+<tr class="memitem:a06b631732ccb9afd0ca289b580af943d" id="r_a06b631732ccb9afd0ca289b580af943d"><td class="memItemLeft">QIcon&#160;</td><td class="memItemRight"><a class="el" href="#a06b631732ccb9afd0ca289b580af943d">stationMarkIcon</a> (<a class="el" href="#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls, <a class="el" href="#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a> style)</td></tr>
 <tr class="memitem:a390edc9c1e6f62d5b3ed847698920d13" id="r_a390edc9c1e6f62d5b3ed847698920d13"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a390edc9c1e6f62d5b3ed847698920d13">simulationSpeedLabel</a> (int delayMs)</td></tr>
 </table>
 <a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
@@ -281,6 +283,39 @@ Functions</h2></td></tr>
 <tr><td class="fieldname"><a id="a49d576a166f0648bea83212755f0c3cba394a844cc3d6d99eb45b4e71afde2c99" name="a49d576a166f0648bea83212755f0c3cba394a844cc3d6d99eb45b4e71afde2c99"></a>Station&#160;</td><td class="fielddoc"><p>At least one platform. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a49d576a166f0648bea83212755f0c3cba3b329734e45b57e60f3df64c2cf412a9" name="a49d576a166f0648bea83212755f0c3cba3b329734e45b57e60f3df64c2cf412a9"></a>Major&#160;</td><td class="fielddoc"><p>Three or more connections at its node. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a id="a7753fd88bf09e5f3e01c788545a08ac8" name="a7753fd88bf09e5f3e01c788545a08ac8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7753fd88bf09e5f3e01c788545a08ac8">&#9670;&#160;</a></span>StationMarkStyle</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel strong">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The style of the station marks on the canvas, in the map key and in the menu icons, which the user chooses in the Settings window. Every style avoids red and green. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a7753fd88bf09e5f3e01c788545a08ac8a38f03d45e9b45580235ad8c79f777451" name="a7753fd88bf09e5f3e01c788545a08ac8a38f03d45e9b45580235ad8c79f777451"></a>MapPin&#160;</td><td class="fielddoc"><p>A map pin that stands on the station, its class told by size and colour: the default. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a7753fd88bf09e5f3e01c788545a08ac8a0e1a540410740081f5f1e87388bfd316" name="a7753fd88bf09e5f3e01c788545a08ac8a0e1a540410740081f5f1e87388bfd316"></a>RingAndBar&#160;</td><td class="fielddoc"><p>Centred on the station: a ring for a halt, crossed by a blue bar for a station, and a disc filled blue within the ring with the bar for a major station. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a7753fd88bf09e5f3e01c788545a08ac8a5accfbbef8f48779754ac6947e90194d" name="a7753fd88bf09e5f3e01c788545a08ac8a5accfbbef8f48779754ac6947e90194d"></a>ClassMarks&#160;</td><td class="fielddoc"><p>Centred on the station: a ring for a halt, a disc for a station and an upright bar for a major station. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a7753fd88bf09e5f3e01c788545a08ac8a05de58cfb0df9cd9dabdd9490c6984db" name="a7753fd88bf09e5f3e01c788545a08ac8a05de58cfb0df9cd9dabdd9490c6984db"></a>PlainDot&#160;</td><td class="fielddoc"><p>Centred on the station: a dot, larger for a station and larger again for a major station. </p>
 </td></tr>
 </table>
 
@@ -402,11 +437,11 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>The background of the network canvas, RGB (16, 26, 34). The station pins and names take it as their halo. </p>
+<p>The background of the network canvas, RGB (16, 26, 34). The station marks and names take it as their halo. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a2e7d09af69daec1cb464c65129b19737_cgraph.svg" width="114" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a2e7d09af69daec1cb464c65129b19737_cgraph.svg" width="112" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -429,7 +464,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_ac90f4bc2aaf513636a1b81df1096bc61_cgraph.svg" width="350" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_ac90f4bc2aaf513636a1b81df1096bc61_cgraph.svg" width="348" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -453,7 +488,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a2511e34f95b2de260988d67c627468bf_cgraph.svg" width="147" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a2511e34f95b2de260988d67c627468bf_cgraph.svg" width="147" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -481,7 +516,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a7ea3f93e7d09822b4b13415ffc8f307d_cgraph.svg" width="128" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a7ea3f93e7d09822b4b13415ffc8f307d_cgraph.svg" width="127" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -504,7 +539,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a9029f888d43bb9214a40cebfe2302111_cgraph.svg" width="156" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a9029f888d43bb9214a40cebfe2302111_cgraph.svg" width="155" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -528,7 +563,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a9544660681942022e65ce6f609cf583a_cgraph.svg" width="346" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a9544660681942022e65ce6f609cf583a_cgraph.svg" width="344" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -552,7 +587,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a1116968bc73a190cd5f022eff464c95c_cgraph.svg" width="194" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a1116968bc73a190cd5f022eff464c95c_cgraph.svg" width="194" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -579,7 +614,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a1cc87232a45c91e955c2e5a7220ae087_cgraph.svg" width="374" height="207"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a1cc87232a45c91e955c2e5a7220ae087_cgraph.svg" width="372" height="215"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -603,7 +638,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_aff8e3ad42eb21b9d8861e3013901ea7c_cgraph.svg" width="130" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_aff8e3ad42eb21b9d8861e3013901ea7c_cgraph.svg" width="128" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -627,7 +662,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a0ca541531be69ea00b2db71455ba3104_cgraph.svg" width="158" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a0ca541531be69ea00b2db71455ba3104_cgraph.svg" width="156" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -651,7 +686,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a805626f8aa909690d0870ba92fabc89a_cgraph.svg" width="327" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a805626f8aa909690d0870ba92fabc89a_cgraph.svg" width="324" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -674,13 +709,13 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_af4d1772532a63c691de494ce9f3f9471_cgraph.svg" width="159" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_af4d1772532a63c691de494ce9f3f9471_cgraph.svg" width="159" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="acd5376d75de6b86816b9fbc03adf30cc" name="acd5376d75de6b86816b9fbc03adf30cc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acd5376d75de6b86816b9fbc03adf30cc">&#9670;&#160;</a></span>paintStationMark()</h2>
+<a id="a4d5203c8f6abefdd07da3cfa205ebcd3" name="a4d5203c8f6abefdd07da3cfa205ebcd3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4d5203c8f6abefdd07da3cfa205ebcd3">&#9670;&#160;</a></span>paintStationMark()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -703,6 +738,11 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a></td>          <td class="paramname"><span class="paramname"><em>style</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">const QColor &amp;</td>          <td class="paramname"><span class="paramname"><em>fill</em></span>, </td>
         </tr>
         <tr>
@@ -717,11 +757,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Paints the mark of a station class, a map pin with its tip on the bottom centre of frame: a circle of radius 0.3 k of the side of frame whose centre is 0.78 k of it above the tip, and the two tangents from the tip to the circle. k is 1 for a station, a pin in fill with a disc of 0.4 of its radius in the halo colour at the centre of the circle; 0.8 for a halt, a pin in the halo colour with an edge of 0.8 haloWidth and a disc of 0.38 of its radius in fill; and 1.15 for a major station, a blue (80, 120, 210) pin with an edge of 0.6 haloWidth and a disc of 0.42 of its radius in fill. A halo of haloWidth, in the units of the painter, surrounds the mark. </p>
+<p>Paints the mark of a station class in style in frame, with a halo of haloWidth, in the units of the painter, around it. The marks of a map pin have their tip on the bottom centre of frame: a circle of radius 0.3 k of the side of frame whose centre is 0.78 k of it above the tip, and the two tangents from the tip to the circle. k is 1 for a station, a pin in fill with a disc of 0.4 of its radius in the halo colour at the centre of the circle; 0.8 for a halt, a pin in the halo colour with an edge of 0.8 haloWidth and a disc of 0.38 of its radius in fill; and 1.15 for a major station, a blue (80, 120, 210) pin with an edge of 0.6 haloWidth and a disc of 0.42 of its radius in fill. The marks of the other styles are centred in frame, in fill. Ring and bar: a ring of outer radius 0.36 and width 0.12 of the side for a halt; the ring for a station, and for a major station the ring filled with a blue (80, 120, 210) disc, each crossed by a blue bar 1.02 of the side long and 0.21 high with an edge of 0.75 haloWidth in the halo colour. Class marks: a ring of radius 0.35 of the side and width 0.16 of it, or haloWidth when that is more, for a halt; a disc of that radius for a station; and an upright bar 0.32 of the side wide and 0.8 high with rounded corners for a major station. Plain dot: a dot 0.4 of the side across for a halt, 0.56 for a station and 0.72 for a major station. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_acd5376d75de6b86816b9fbc03adf30cc_cgraph.svg" width="146" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a4d5203c8f6abefdd07da3cfa205ebcd3_cgraph.svg" width="144" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -753,7 +793,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_aa7bdb2ea7d61624407538aebde558b10_cgraph.svg" width="563" height="207"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_aa7bdb2ea7d61624407538aebde558b10_cgraph.svg" width="562" height="215"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -776,7 +816,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a390edc9c1e6f62d5b3ed847698920d13_cgraph.svg" width="178" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a390edc9c1e6f62d5b3ed847698920d13_cgraph.svg" width="176" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -800,7 +840,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_ad15b0a7441e0e9f52022e4a3a89d81d8_cgraph.svg" width="142" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_ad15b0a7441e0e9f52022e4a3a89d81d8_cgraph.svg" width="142" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -827,7 +867,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_aad6e3639cb92ebdb855e80911a082344_cgraph.svg" width="148" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_aad6e3639cb92ebdb855e80911a082344_cgraph.svg" width="147" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -859,13 +899,40 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_aa164be426ade64b2fd1bebe183b15674_cgraph.svg" width="166" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_aa164be426ade64b2fd1bebe183b15674_cgraph.svg" width="164" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="ab5821bb5e3b802765eef37c3ccc25547" name="ab5821bb5e3b802765eef37c3ccc25547"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab5821bb5e3b802765eef37c3ccc25547">&#9670;&#160;</a></span>stationMarkBounds()</h2>
+<a id="a94e97a943567e4c2a8138b4997f66343" name="a94e97a943567e4c2a8138b4997f66343"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a94e97a943567e4c2a8138b4997f66343">&#9670;&#160;</a></span>stationMarkAnchor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QPointF stationMarkAnchor </td>
+          <td>(</td>
+          <td class="paramtype">const QRectF &amp;</td>          <td class="paramname"><span class="paramname"><em>frame</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a></td>          <td class="paramname"><span class="paramname"><em>style</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The point of frame that stands on the station: the tip of a map pin on the bottom centre of frame, and the centre of frame for the other styles. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a94e97a943567e4c2a8138b4997f66343_cgraph.svg" width="155" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a7e15855ab30e624b125dbe6e396125a7" name="a7e15855ab30e624b125dbe6e396125a7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7e15855ab30e624b125dbe6e396125a7">&#9670;&#160;</a></span>stationMarkBounds()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -883,15 +950,20 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a></td>          <td class="paramname"><span class="paramname"><em>style</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">qreal</td>          <td class="paramname"><span class="paramname"><em>haloWidth</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The area that <a class="el" href="#acd5376d75de6b86816b9fbc03adf30cc">paintStationMark()</a> paints, its halo included. The pin of a station or a major station reaches past the top of frame, and the halo of every pin past its bottom. </p>
+<p>The area that <a class="el" href="#a4d5203c8f6abefdd07da3cfa205ebcd3">paintStationMark()</a> paints, its halo included. The pin of a station or a major station reaches past the top of frame, the halo of every pin past its bottom, and the bar of a ring and bar past its sides. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_ab5821bb5e3b802765eef37c3ccc25547_cgraph.svg" width="159" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a7e15855ab30e624b125dbe6e396125a7_cgraph.svg" width="159" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -910,17 +982,17 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The light colour of the station pins, RGB (232, 238, 242): the pin of a station, and the edge and the dot of the other pins. </p>
+<p>The light colour of the station marks, RGB (232, 238, 242): the pin of a station, the edge and the dot of the other pins, and the marks of the other styles but their blue parts. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a533b0acec8e0aa932ee206a07c02a1d8_cgraph.svg" width="130" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a533b0acec8e0aa932ee206a07c02a1d8_cgraph.svg" width="130" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a2420ddd0ca6f0c9af6acb01c987d2ed4" name="a2420ddd0ca6f0c9af6acb01c987d2ed4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2420ddd0ca6f0c9af6acb01c987d2ed4">&#9670;&#160;</a></span>stationMarkFrameIn()</h2>
+<a id="a3cad1c71ca22ff81187f1c11478d0afe" name="a3cad1c71ca22ff81187f1c11478d0afe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3cad1c71ca22ff81187f1c11478d0afe">&#9670;&#160;</a></span>stationMarkFrameIn()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -938,21 +1010,26 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a></td>          <td class="paramname"><span class="paramname"><em>style</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">qreal</td>          <td class="paramname"><span class="paramname"><em>haloWidth</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The largest square frame in which <a class="el" href="#acd5376d75de6b86816b9fbc03adf30cc">paintStationMark()</a> paints the pin of a major station inside area, halo included, with what it paints for cls centred in area. The pins of the smaller classes keep their smaller size. </p>
+<p>The largest square frame in which <a class="el" href="#a4d5203c8f6abefdd07da3cfa205ebcd3">paintStationMark()</a> paints the mark of every station class of style inside area, halo included, with what it paints for cls centred in area. The marks of the smaller classes keep their smaller size. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a2420ddd0ca6f0c9af6acb01c987d2ed4_cgraph.svg" width="360" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a3cad1c71ca22ff81187f1c11478d0afe_cgraph.svg" width="359" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="aedc5fcbf783bda97fca3dc74d3a5098b" name="aedc5fcbf783bda97fca3dc74d3a5098b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aedc5fcbf783bda97fca3dc74d3a5098b">&#9670;&#160;</a></span>stationMarkIcon()</h2>
+<a id="a06b631732ccb9afd0ca289b580af943d" name="a06b631732ccb9afd0ca289b580af943d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a06b631732ccb9afd0ca289b580af943d">&#9670;&#160;</a></span>stationMarkIcon()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -960,22 +1037,26 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">QIcon stationMarkIcon </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="#a49d576a166f0648bea83212755f0c3cb">StationClass</a></td>          <td class="paramname"><span class="paramname"><em>cls</em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="#a49d576a166f0648bea83212755f0c3cb">StationClass</a></td>          <td class="paramname"><span class="paramname"><em>cls</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a></td>          <td class="paramname"><span class="paramname"><em>style</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The mark at 16 and 32 pixels in the colours of the canvas: <a class="el" href="#a533b0acec8e0aa932ee206a07c02a1d8">stationMarkFill()</a> with a halo in <a class="el" href="#a2e7d09af69daec1cb464c65129b19737" title="The background of the network canvas, RGB (16, 26, 34). The station pins and names take it as their h...">canvasColor()</a>, which outlines the light pin on a light surface. </p>
+<p>The mark of style at 16 and 32 pixels in the colours of the canvas: <a class="el" href="#a533b0acec8e0aa932ee206a07c02a1d8">stationMarkFill()</a> with a halo in <a class="el" href="#a2e7d09af69daec1cb464c65129b19737" title="The background of the network canvas, RGB (16, 26, 34). The station marks and names take it as their ...">canvasColor()</a>, which outlines the light mark on a light surface. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_aedc5fcbf783bda97fca3dc74d3a5098b_cgraph.svg" width="535" height="280"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a06b631732ccb9afd0ca289b580af943d_cgraph.svg" width="534" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a53bf883918011b406bcde8613aa0354d" name="a53bf883918011b406bcde8613aa0354d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a53bf883918011b406bcde8613aa0354d">&#9670;&#160;</a></span>stationMarkShape()</h2>
+<a id="a5b48cd7dfc5108e7723e392116d647d3" name="a5b48cd7dfc5108e7723e392116d647d3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b48cd7dfc5108e7723e392116d647d3">&#9670;&#160;</a></span>stationMarkShape()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -993,16 +1074,20 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="#a7753fd88bf09e5f3e01c788545a08ac8">StationMarkStyle</a></td>          <td class="paramname"><span class="paramname"><em>style</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">qreal</td>          <td class="paramname"><span class="paramname"><em>haloWidth</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>The pin that <a class="el" href="#acd5376d75de6b86816b9fbc03adf30cc">paintStationMark()</a> paints in frame, its edge included and its halo not. </p>
+<p>The mark that <a class="el" href="#a4d5203c8f6abefdd07da3cfa205ebcd3">paintStationMark()</a> paints in frame, the click target: its edges and the hole of a ring included, its halo not. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a53bf883918011b406bcde8613aa0354d_cgraph.svg" width="151" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a5b48cd7dfc5108e7723e392116d647d3_cgraph.svg" width="151" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1025,7 +1110,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a436626af4d350c743238ab619ecd6066_cgraph.svg" width="147" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a436626af4d350c743238ab619ecd6066_cgraph.svg" width="147" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1049,7 +1134,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a4d53d9a2a4bde8099d883e9a982680c1_cgraph.svg" width="191" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a4d53d9a2a4bde8099d883e9a982680c1_cgraph.svg" width="191" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

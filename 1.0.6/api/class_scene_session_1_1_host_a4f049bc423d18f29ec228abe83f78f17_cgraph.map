@@ -1,0 +1,6 @@
+<map id="SceneSession::Host::sceneOpened" name="SceneSession::Host::sceneOpened">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,154,74"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="36,28,35,19,42,10,57,5,80,3,104,5,120,14,115,15,103,10,79,8,58,10,45,15,40,21,42,29"/>
+<area shape="rect" id="Node000002" href="$class_scene_session.html#a82824bf98da67392e83337e6a10ef32d" title=" " alt="" coords="202,38,409,66"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="154,49,189,51,184,52,154,54"/>
+</map>

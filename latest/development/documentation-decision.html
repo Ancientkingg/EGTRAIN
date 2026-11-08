@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Code documentation investigation" href="code-documentation-investigation.html"><link rel="prev" title="Error handling" href="error-handling.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Readable ids decision" href="readable-ids-decision.html"><link rel="prev" title="Error handling" href="error-handling.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>Documentation decision - EGTRAIN documentation</title>
@@ -192,11 +192,13 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/common-questions.html">Common questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
@@ -220,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -236,7 +238,6 @@
 <li class="toctree-l1"><a class="reference internal" href="coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +252,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +267,8 @@
 <li class="toctree-l1"><a class="reference internal" href="records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -347,10 +349,10 @@
 <h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h2>
 <p>From the issue and the owner’s comments:</p>
 <ol class="arabic simple">
-<li><p>Sources are Markdown in <code class="docutils literal notranslate"><span class="pre">docs/</span></code> and comments in the code. Links are relative and no GitHub-only Markdown feature is used.</p></li>
+<li><p>Sources are Markdown in <code class="docutils literal notranslate"><span class="pre">docs/</span></code> and comments in the code. Links are relative, and the Markdown uses no feature that only one host renders.</p></li>
 <li><p>The built site is static HTML that any web host serves and a browser opens from disk.</p></li>
 <li><p>One command builds the whole site (guides and C++ reference) into the build folder, and one command serves a live preview.</p></li>
-<li><p>Tool versions are pinned in a file in the repository.</p></li>
+<li><p>Tool versions are pinned in a committed file.</p></li>
 <li><p>The same manual is used offline in the app (#917) without writing the text twice.</p></li>
 <li><p>The maintenance status of each tool is checked before choosing.</p></li>
 <li><p>The site has a developer section and a user section, and keeps one copy per release.</p></li>
@@ -358,7 +360,7 @@
 </section>
 <section id="options-compared">
 <h2>Options compared<a class="headerlink" href="#options-compared" title="Link to this heading">¶</a></h2>
-<p>Release dates and versions were read on 2026-10-19 from GitHub and PyPI.</p>
+<p>Release dates and versions were read on 2026-10-19 from the release pages of the projects and from PyPI.</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -372,8 +374,8 @@
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Plain Markdown on GitHub</p></td>
-<td><p>GitHub code search only</p></td>
+<tr class="row-even"><td><p>Plain Markdown files</p></td>
+<td><p>None of its own</p></td>
 <td><p>A Git tag shows the docs of that tag</p></td>
 <td><p>No HTML, so nothing to show in the app</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">check_docs.py</span></code></p></td>
@@ -410,7 +412,7 @@
 <td><p>No <code class="docutils literal notranslate"><span class="pre">.qch</span></code></p></td>
 <td><p>Broken link check at build</p></td>
 <td><p>3.10.2 on 2026-07-10, active</p></td>
-<td><p>Medium; adds Node and React to a C++ and Python repository</p></td>
+<td><p>Medium; adds Node and React to a C++ and Python project</p></td>
 </tr>
 <tr class="row-odd"><td><p>Doxygen alone</p></td>
 <td><p>Built in</p></td>
@@ -425,9 +427,9 @@
 </div>
 <p>Notes:</p>
 <ul class="simple">
-<li><p>MkDocs and Material. The Material team has stopped feature work and calls MkDocs unmaintained since August 2024 (<a class="reference external" href="https://squidfunk.github.io/mkdocs-material/blog/2025/11/05/zensical/">announcement</a>). The announcement ends critical fixes on 2027-05-05; the Material README gives 2026-11-05. Either date is too near for a new site.</p></li>
+<li><p>MkDocs and Material. The Material team has stopped feature work and calls MkDocs unmaintained since August 2024, in its announcement of Zensical of 2025-11-05 on the Material blog. The announcement ends critical fixes on 2027-05-05; the Material README gives 2026-11-05. Either date is too near for a new site.</p></li>
 <li><p>Zensical. It reads <code class="docutils literal notranslate"><span class="pre">mkdocs.yml</span></code> and builds Material projects (<a class="reference external" href="https://zensical.org/docs/compatibility/mkdocs/">compatibility</a>). Versioning is listed on its <a class="reference external" href="https://zensical.org/roadmap/">roadmap</a> as planned. A new site would depend on features that do not exist yet.</p></li>
-<li><p>Docusaurus. A version is a copy of the docs inside the repository (<a class="reference external" href="https://docusaurus.io/docs/versioning">versioning</a>), so old copies would need the same reviews as current pages.</p></li>
+<li><p>Docusaurus. A version is a copy of the docs inside the source tree (<a class="reference external" href="https://docusaurus.io/docs/versioning">versioning</a>), so old copies would need the same reviews as current pages.</p></li>
 <li><p>Doxygen alone stays the fallback if Sphinx proves too heavy.</p></li>
 </ul>
 </section>
@@ -447,7 +449,7 @@
 <h2>Hosting<a class="headerlink" href="#hosting" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>The sources are Markdown in <code class="docutils literal notranslate"><span class="pre">docs/</span></code> and comments in the code. The output is static HTML with relative links that opens from disk.</p></li>
-<li><p>Only the publish job depends on GitHub Pages. It builds each release tag into <code class="docutils literal notranslate"><span class="pre">&lt;version&gt;/</span></code>, keeps <code class="docutils literal notranslate"><span class="pre">latest/</span></code>, and writes a root page that lists the versions.</p></li>
+<li><p>Only the publish job depends on the hosts. It builds each release tag into <code class="docutils literal notranslate"><span class="pre">&lt;version&gt;/</span></code>, keeps <code class="docutils literal notranslate"><span class="pre">latest/</span></code>, and writes the home page, the pages <code class="docutils literal notranslate"><span class="pre">support/</span></code> (Report a problem), <code class="docutils literal notranslate"><span class="pre">contact/</span></code> and <code class="docutils literal notranslate"><span class="pre">privacy/</span></code>, and the stub <code class="docutils literal notranslate"><span class="pre">source/</span></code>, which sends a visitor to the home page, at the root from <code class="docutils literal notranslate"><span class="pre">docs/site/</span></code>, with the downloads of the newest release and the list of versions. It pushes the site to the branch <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> and publishes the same folders and pages on egtrain.samuelbruin.com, the address that the documentation links.</p></li>
 <li><p>Moving to another host needs a new publish step and, for each old path, a stub page that redirects with a meta refresh.</p></li>
 <li><p>The app’s <code class="docutils literal notranslate"><span class="pre">.qch</span></code> is built from the same tag, so the manual in the app matches its version (<code class="docutils literal notranslate"><span class="pre">EGTRAIN_VERSION</span></code> in <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code>).</p></li>
 <li><p>Without the <code class="docutils literal notranslate"><span class="pre">.qch</span></code>, as in a build without Sphinx, the app opens the same section of the published guides in the web browser. That needs a network and loses the in-app contents and search.</p></li>
@@ -461,7 +463,7 @@ cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">docs</span></code> runs Doxygen and Sphinx into <code class="docutils literal notranslate"><span class="pre">build/docs/</span></code>; open <code class="docutils literal notranslate"><span class="pre">build/docs/index.html</span></code>. <code class="docutils literal notranslate"><span class="pre">docs-preview</span></code> runs <code class="docutils literal notranslate"><span class="pre">sphinx-autobuild</span></code>, which serves the site on a local port and rebuilds a page when its Markdown changes. The C++ reference is refreshed by <code class="docutils literal notranslate"><span class="pre">docs</span></code>.</p>
-<p>The site keeps its table of contents in <code class="docutils literal notranslate"><span class="pre">docs/index.md</span></code>, the only Sphinx directive in the sources. <code class="docutils literal notranslate"><span class="pre">docs/README.md</span></code> stays a short landing page for readers on GitHub.</p>
+<p>The site keeps its table of contents in <code class="docutils literal notranslate"><span class="pre">docs/index.md</span></code>. The only other Sphinx directive in the sources is the include of <code class="docutils literal notranslate"><span class="pre">DATA.md</span></code> in <code class="docutils literal notranslate"><span class="pre">docs/guides/case-data.md</span></code>, so that the data of the bundled cases has one source. <code class="docutils literal notranslate"><span class="pre">docs/README.md</span></code> stays a short landing page for readers who open the <code class="docutils literal notranslate"><span class="pre">docs/</span></code> folder.</p>
 </section>
 <section id="pinned-versions">
 <h2>Pinned versions<a class="headerlink" href="#pinned-versions" title="Link to this heading">¶</a></h2>
@@ -531,7 +533,7 @@ cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"
 <p>A new developer reads, in this order:</p>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code>, then the developer section of the site.</p></li>
-<li><p><a class="reference internal" href="getting-started.html"><span class="std std-doc">Getting started as a developer</span></a>: tools, clone, configure, build and run. A first full build with tests took about 14 minutes on an Apple silicon laptop and about 7 minutes in a Linux container with 10 CPUs.</p></li>
+<li><p><a class="reference internal" href="getting-started.html"><span class="std std-doc">Getting started as a developer</span></a>: tools, configure, build and run. A first full build with tests took about 14 minutes on an Apple silicon laptop and about 7 minutes in a Linux container with 10 CPUs.</p></li>
 <li><p>The first change in the same page: one test assertion, then the quick unit tests.</p></li>
 <li><p><a class="reference internal" href="../architecture/source-layout.html"><span class="std std-doc">Source layout</span></a>, then the <a class="reference internal" href="../architecture/scene-model.html"><span class="std std-doc">scene model</span></a>, then the C++ reference of the folder being changed.</p></li>
 <li><p>The build and test pages, the <a class="reference internal" href="coding-guidelines.html"><span class="std std-doc">coding guidelines</span></a> and the checks a pull request must pass.</p></li>
@@ -570,7 +572,7 @@ cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"
 <h2>What check_docs.py checks<a class="headerlink" href="#what-check-docs-py-checks" title="Link to this heading">¶</a></h2>
 <p>It already checks relative links, heading anchors, empty alt text, orphan images, pages that <code class="docutils literal notranslate"><span class="pre">docs/README.md</span></code> does not reach, <code class="docutils literal notranslate"><span class="pre">bash</span></code>, <code class="docutils literal notranslate"><span class="pre">sh</span></code> and <code class="docutils literal notranslate"><span class="pre">json</span></code> examples, dashes and local paths. #916 adds:</p>
 <ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">github-only</span></code>: GitHub alerts (<code class="docutils literal notranslate"><span class="pre">&gt;</span> <span class="pre">[!NOTE]</span></code>), <code class="docutils literal notranslate"><span class="pre">&lt;details&gt;</span></code>, links that start with <code class="docutils literal notranslate"><span class="pre">/</span></code>, and links to <code class="docutils literal notranslate"><span class="pre">github.com/Ancientkingg/EGTRAIN/blob/</span></code> for files in the repository.</p></li>
+<li><p>Markdown that only one host renders: alerts (<code class="docutils literal notranslate"><span class="pre">&gt;</span> <span class="pre">[!NOTE]</span></code>), <code class="docutils literal notranslate"><span class="pre">&lt;details&gt;</span></code>, links that start with <code class="docutils literal notranslate"><span class="pre">/</span></code>, and web links to files of the source tree where a relative link belongs.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">heading</span></code>: one <code class="docutils literal notranslate"><span class="pre">#</span></code> heading, first in the file, and no skipped levels.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">manual-link</span></code>: a page in <code class="docutils literal notranslate"><span class="pre">docs/guides/</span></code> links only to pages in <code class="docutils literal notranslate"><span class="pre">docs/guides/</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">capture</span></code>: the name pattern, the width and the <code class="docutils literal notranslate"><span class="pre">captures.json</span></code> rules above.</p></li>
@@ -602,12 +604,12 @@ cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="code-documentation-investigation.html">
+          <a class="next-page" href="readable-ids-decision.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Code documentation investigation</div>
+                <div class="title">Readable ids decision</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -630,7 +632,7 @@ cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

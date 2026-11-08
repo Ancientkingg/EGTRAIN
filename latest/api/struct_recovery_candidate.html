@@ -8,7 +8,6 @@
 <title>EGTRAIN: RecoveryCandidate Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,23 +115,23 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_recover
 <p>A recovery copy that an application left behind.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_recovery_store_8h_source.html">recovery/RecoveryStore.h</a>&gt;</code></p>
+<p><code>#include &lt;recovery/RecoveryStore.h&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for RecoveryCandidate:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="struct_recovery_candidate__coll__graph.svg" width="160" height="132"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="struct_recovery_candidate__coll__graph.svg" width="159" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a0d917596aa0f8496ea18c8bc4b2a3ae7" id="r_a0d917596aa0f8496ea18c8bc4b2a3ae7"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a0d917596aa0f8496ea18c8bc4b2a3ae7">instanceId</a></td></tr>
 <tr class="memdesc:a0d917596aa0f8496ea18c8bc4b2a3ae7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Id of the application that wrote the copy, which is also the name of its folder.  <br /></td></tr>
-<tr class="memitem:a27cb262341c99306959a40dc5c8f23d7" id="r_a27cb262341c99306959a40dc5c8f23d7"><td class="memItemLeft"><a class="el" href="_recovery_store_8h.html#a7cfcac1adb88c96a29cd956701508400">RecoveryCandidateState</a>&#160;</td><td class="memItemRight"><a class="el" href="#a27cb262341c99306959a40dc5c8f23d7">state</a> = <a class="el" href="_recovery_store_8h.html#a7cfcac1adb88c96a29cd956701508400a742f329f2a5a15fe2fd823a1e65fa149">RecoveryCandidateState::Openable</a></td></tr>
+<tr class="memitem:a27cb262341c99306959a40dc5c8f23d7" id="r_a27cb262341c99306959a40dc5c8f23d7"><td class="memItemLeft"><a class="el" href="_recovery_store_8h.html#a7cfcac1adb88c96a29cd956701508400">RecoveryCandidateState</a>&#160;</td><td class="memItemRight"><a class="el" href="#a27cb262341c99306959a40dc5c8f23d7">state</a></td></tr>
 <tr class="memitem:aa712bb5af433296b765c8af6b583c2ec" id="r_aa712bb5af433296b765c8af6b583c2ec"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aa712bb5af433296b765c8af6b583c2ec">bundlePath</a></td></tr>
 <tr class="memdesc:aa712bb5af433296b765c8af6b583c2ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene bundle of the copy. Empty only for NewerRecordVersion when no readable bundle is found.  <br /></td></tr>
 <tr class="memitem:ae5313ac778efad53b62e57fc5bdab8ab" id="r_ae5313ac778efad53b62e57fc5bdab8ab"><td class="memItemLeft"><a class="el" href="struct_recovery_source.html">RecoverySource</a>&#160;</td><td class="memItemRight"><a class="el" href="#ae5313ac778efad53b62e57fc5bdab8ab">source</a></td></tr>
 <tr class="memitem:a46e71b98b741f4fa510579cbb8932195" id="r_a46e71b98b741f4fa510579cbb8932195"><td class="memItemLeft">QDateTime&#160;</td><td class="memItemRight"><a class="el" href="#a46e71b98b741f4fa510579cbb8932195">writtenAt</a></td></tr>
-<tr class="memitem:a8e4b9c61f690a55926ae0a7980112c91" id="r_a8e4b9c61f690a55926ae0a7980112c91"><td class="memItemLeft"><a class="el" href="_recovery_store_8h.html#af480b1ede1fd36a7990eaded55d1daa4">RecoverySourceStatus</a>&#160;</td><td class="memItemRight"><a class="el" href="#a8e4b9c61f690a55926ae0a7980112c91">sourceStatus</a> = <a class="el" href="_recovery_store_8h.html#af480b1ede1fd36a7990eaded55d1daa4a7599922e28b6009660de5e67f8ce210c">RecoverySourceStatus::NotApplicable</a></td></tr>
+<tr class="memitem:a8e4b9c61f690a55926ae0a7980112c91" id="r_a8e4b9c61f690a55926ae0a7980112c91"><td class="memItemLeft"><a class="el" href="_recovery_store_8h.html#af480b1ede1fd36a7990eaded55d1daa4">RecoverySourceStatus</a>&#160;</td><td class="memItemRight"><a class="el" href="#a8e4b9c61f690a55926ae0a7980112c91">sourceStatus</a></td></tr>
 <tr class="memdesc:a8e4b9c61f690a55926ae0a7980112c91"><td class="mdescLeft">&#160;</td><td class="mdescRight">The source compared with the copy at scan time.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -192,7 +191,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_recovery_store_8h.html#af480b1ede1fd36a7990eaded55d1daa4">RecoverySourceStatus</a> RecoveryCandidate::sourceStatus = <a class="el" href="_recovery_store_8h.html#af480b1ede1fd36a7990eaded55d1daa4a7599922e28b6009660de5e67f8ce210c">RecoverySourceStatus::NotApplicable</a></td>
+          <td class="memname"><a class="el" href="_recovery_store_8h.html#af480b1ede1fd36a7990eaded55d1daa4">RecoverySourceStatus</a> RecoveryCandidate::sourceStatus</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -208,7 +207,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_recovery_store_8h.html#a7cfcac1adb88c96a29cd956701508400">RecoveryCandidateState</a> RecoveryCandidate::state = <a class="el" href="_recovery_store_8h.html#a7cfcac1adb88c96a29cd956701508400a742f329f2a5a15fe2fd823a1e65fa149">RecoveryCandidateState::Openable</a></td>
+          <td class="memname"><a class="el" href="_recovery_store_8h.html#a7cfcac1adb88c96a29cd956701508400">RecoveryCandidateState</a> RecoveryCandidate::state</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -232,7 +231,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>recovery/<a class="el" href="_recovery_store_8h_source.html">RecoveryStore.h</a></li>
+<li>recovery/<a class="el" href="_recovery_store_8h.html">RecoveryStore.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

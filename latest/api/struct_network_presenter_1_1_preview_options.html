@@ -8,7 +8,6 @@
 <title>EGTRAIN: NetworkPresenter::PreviewOptions Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,31 +115,31 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_network
 <p>What the preview needs to know besides the model.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_network_presenter_8h_source.html">graphics/NetworkPresenter.h</a>&gt;</code></p>
+<p><code>#include &lt;graphics/NetworkPresenter.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a8c7b476491da05d2e61a10043c421cad" id="r_a8c7b476491da05d2e61a10043c421cad"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a8c7b476491da05d2e61a10043c421cad">selectedFacet</a></td></tr>
 <tr class="memitem:a6d2412b2a73da97ccbffc555829b0645" id="r_a6d2412b2a73da97ccbffc555829b0645"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a6d2412b2a73da97ccbffc555829b0645">selectedId</a></td></tr>
-<tr class="memitem:aa983aa6e83fff6a211760fe8137111f1" id="r_aa983aa6e83fff6a211760fe8137111f1"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aa983aa6e83fff6a211760fe8137111f1">markSelection</a> = false</td></tr>
-<tr class="memdesc:aa983aa6e83fff6a211760fe8137111f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The infrastructure panel is shown, so the arc or connection that it selects is marked.  <br /></td></tr>
+<tr class="memitem:adfd751e8cc4bacaa3de8001714a84a51" id="r_adfd751e8cc4bacaa3de8001714a84a51"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#adfd751e8cc4bacaa3de8001714a84a51">selectedRouteSection</a></td></tr>
+<tr class="memdesc:adfd751e8cc4bacaa3de8001714a84a51"><td class="mdescLeft">&#160;</td><td class="mdescRight">For a route, the index into <a class="el" href="struct_scene_route.html#a4f041d5160784ae07f00fda35a0c67ed" title="Section references in travel order.">SceneRoute::blocks</a> of the section chosen under <a class="el" href="class_route.html">Route</a> sections; -1 without one.  <br /></td></tr>
+<tr class="memitem:ae23d94f44a94b59948dfcd6166d84218" id="r_ae23d94f44a94b59948dfcd6166d84218"><td class="memItemLeft">std::optional&lt; quint64 &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ae23d94f44a94b59948dfcd6166d84218">modelGeneration</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>What the preview needs to know besides the model. </p>
 </div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
-<a id="aa983aa6e83fff6a211760fe8137111f1" name="aa983aa6e83fff6a211760fe8137111f1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa983aa6e83fff6a211760fe8137111f1">&#9670;&#160;</a></span>markSelection</h2>
+<a id="ae23d94f44a94b59948dfcd6166d84218" name="ae23d94f44a94b59948dfcd6166d84218"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae23d94f44a94b59948dfcd6166d84218">&#9670;&#160;</a></span>modelGeneration</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool NetworkPresenter::PreviewOptions::markSelection = false</td>
+          <td class="memname">std::optional&lt;quint64&gt; NetworkPresenter::PreviewOptions::modelGeneration</td>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>The infrastructure panel is shown, so the arc or connection that it selects is marked. </p>
+<p>The model generation (<a class="el" href="class_scene_document.html#a44806ad0038de63b65a9aa0634c4f709">SceneDocument::modelGeneration()</a>) of the model that is drawn; none when the caller does not know it. <a class="el" href="class_network_presenter.html#a0cd4a0105bf9fa5760368d0d46877ab2">markPreviewSelection()</a> marks only on a preview drawn from the same generation. </p>
 
 </div>
 </div>
@@ -155,7 +154,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The facet of the row that the infrastructure panel selects: "tracks", "nodes", "arcs", "blocks", "connections", "stations", "platforms" or "routes". Empty without one. </p>
+<p>The facet of the row that the infrastructure panel selects, one of <a class="el" href="class_infrastructure_panel.html#a93adee461c3c66c05fcbda41214c7b9e" title="The keys of the facets in the order of the combo, such as &quot;tracks&quot; and &quot;station_boundaries&quot;.">InfrastructurePanel::facetKeys()</a>, such as "tracks" or "station_boundaries". Empty without one. </p>
 
 </div>
 </div>
@@ -170,12 +169,28 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The id of that row; for a platform the station id and the platform id with a newline between them. Empty without one. </p>
+<p>The id of that row; for a platform the station id and the platform id with a newline between them, and for a block dependency, a single-track restriction or a station boundary, which have no id, the row number. Empty without one. </p>
+
+</div>
+</div>
+<a id="adfd751e8cc4bacaa3de8001714a84a51" name="adfd751e8cc4bacaa3de8001714a84a51"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adfd751e8cc4bacaa3de8001714a84a51">&#9670;&#160;</a></span>selectedRouteSection</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int NetworkPresenter::PreviewOptions::selectedRouteSection</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>For a route, the index into <a class="el" href="struct_scene_route.html#a4f041d5160784ae07f00fda35a0c67ed" title="Section references in travel order.">SceneRoute::blocks</a> of the section chosen under <a class="el" href="class_route.html">Route</a> sections; -1 without one. </p>
 
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>graphics/<a class="el" href="_network_presenter_8h_source.html">NetworkPresenter.h</a></li>
+<li>graphics/<a class="el" href="_network_presenter_8h.html">NetworkPresenter.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

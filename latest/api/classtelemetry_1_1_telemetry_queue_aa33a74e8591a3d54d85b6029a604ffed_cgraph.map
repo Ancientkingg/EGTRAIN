@@ -1,5 +1,5 @@
 <map id="telemetry::TelemetryQueue::nextExpiryUtc" name="telemetry::TelemetryQueue::nextExpiryUtc">
-<area shape="rect" id="Node000001" title="When the oldest queued event expires; invalid when there is none or the queue is not healthy." alt="" coords="5,5,205,45"/>
-<area shape="rect" id="Node000002" href="$classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" title="True while this object holds owner.lock and no storage operation has failed." alt="" coords="253,5,453,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,23,240,23,240,28,205,28"/>
+<area shape="rect" id="Node000001" title="When the oldest queued event expires; invalid when there is none or the queue is not healthy." alt="" coords="5,5,205,50"/>
+<area shape="rect" id="Node000002" href="$classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" title="True while this object holds owner.lock and no storage operation has failed." alt="" coords="253,5,452,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,25,240,27,235,28,205,30"/>
 </map>

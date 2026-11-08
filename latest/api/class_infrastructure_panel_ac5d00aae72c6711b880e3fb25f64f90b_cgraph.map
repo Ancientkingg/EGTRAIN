@@ -1,5 +1,5 @@
 <map id="InfrastructurePanel::sectionLabel" name="InfrastructurePanel::sectionLabel">
-<area shape="rect" id="Node000001" title="The text that names a section in a list of sections: its label in labels (see sceneSectionLabels)." alt="" coords="5,5,151,45"/>
-<area shape="rect" id="Node000002" href="$struct_scene_section_labels.html#a8ca1ad810db82d81a695b19c0298e585" title=" " alt="" coords="199,5,349,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,23,185,23,185,28,151,28"/>
+<area shape="rect" id="Node000001" title="The text that names a section in a list of sections: its label in labels (see sceneSectionLabels)." alt="" coords="5,5,150,50"/>
+<area shape="rect" id="Node000002" href="$struct_scene_section_labels.html#a8ca1ad810db82d81a695b19c0298e585" title=" " alt="" coords="198,5,348,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,25,185,27,180,28,150,30"/>
 </map>

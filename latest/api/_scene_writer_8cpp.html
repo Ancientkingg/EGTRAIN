@@ -8,7 +8,6 @@
 <title>EGTRAIN: scene/SceneWriter.cpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,20 +111,24 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_writer_
   <div class="headertitle"><div class="title">SceneWriter.cpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_scene_writer_8h_source.html">scene/SceneWriter.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_field_reader_8h_source.html">scene/SceneFieldReader.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_fields_8h_source.html">scene/SceneFields.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_staged_directory_8h_source.html">scene/StagedDirectory.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_utf8_path_8h_source.html">scene/Utf8Path.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_scene_writer_8h.html">scene/SceneWriter.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_field_reader_8h.html">scene/SceneFieldReader.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_fields_8h.html">scene/SceneFields.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_staged_directory_8h.html">scene/StagedDirectory.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_utf8_path_8h.html">scene/Utf8Path.h</a>&quot;</code><br />
 <code>#include &lt;filesystem&gt;</code><br />
 <code>#include &lt;fstream&gt;</code><br />
 <code>#include &lt;nlohmann/json.hpp&gt;</code><br />
 <code>#include &lt;system_error&gt;</code><br />
 <code>#include &lt;utility&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
+<code>#include &lt;cerrno&gt;</code><br />
+<code>#include &lt;fcntl.h&gt;</code><br />
+<code>#include &lt;unistd.h&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for SceneWriter.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp__incl.svg" width="1664" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp__incl.svg" width="1864" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -133,41 +136,48 @@ Functions</h2></td></tr>
 <tr class="memitem:af5f545848c06ad26a0846c61f022f460" id="r_af5f545848c06ad26a0846c61f022f460"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#af5f545848c06ad26a0846c61f022f460">addWriteError</a> (<a class="el" href="struct_scene_save_result.html">SceneSaveResult</a> &amp;result, const std::string &amp;file, const std::string &amp;message)</td></tr>
 <tr class="memitem:a0fa33584fe0982c08304cade435a7553" id="r_a0fa33584fe0982c08304cade435a7553"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a0fa33584fe0982c08304cade435a7553">addCleanupWarning</a> (<a class="el" href="struct_scene_save_result.html">SceneSaveResult</a> &amp;result, const fs::path &amp;path, const std::string &amp;message)</td></tr>
 <tr class="memitem:ae653d17bef461bf7eaf89f96ea45485c" id="r_ae653d17bef461bf7eaf89f96ea45485c"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#ae653d17bef461bf7eaf89f96ea45485c">inspectDestination</a> (const fs::path &amp;destination, bool &amp;exists, <a class="el" href="struct_scene_save_result.html">SceneSaveResult</a> &amp;result)</td></tr>
-<tr class="memitem:a13d90d8066135562db9ad8368921daa6" id="r_a13d90d8066135562db9ad8368921daa6"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a13d90d8066135562db9ad8368921daa6">serializeJson</a> (<a class="el" href="struct_scene_save_result.html">SceneSaveResult</a> &amp;result, const std::string &amp;filename, const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;value, std::string &amp;bytes)</td></tr>
+<tr class="memitem:a13d90d8066135562db9ad8368921daa6" id="r_a13d90d8066135562db9ad8368921daa6"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a13d90d8066135562db9ad8368921daa6">serializeJson</a> (<a class="el" href="struct_scene_save_result.html">SceneSaveResult</a> &amp;result, const std::string &amp;filename, const <a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;value, std::string &amp;bytes)</td></tr>
 <tr class="memitem:acbf21f0e79ec9a4378269c094e2e6aa4" id="r_acbf21f0e79ec9a4378269c094e2e6aa4"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#acbf21f0e79ec9a4378269c094e2e6aa4">writeBytes</a> (<a class="el" href="struct_scene_save_result.html">SceneSaveResult</a> &amp;result, const std::string &amp;filename, const fs::path &amp;path, const std::string &amp;bytes)</td></tr>
-<tr class="memitem:a0661b745dc8f255625b50d690ec1e593" id="r_a0661b745dc8f255625b50d690ec1e593"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a0661b745dc8f255625b50d690ec1e593">writeJsonFile</a> (<a class="el" href="struct_scene_save_result.html">SceneSaveResult</a> &amp;result, const fs::path &amp;scenePath, const std::string &amp;filename, const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;value)</td></tr>
-<tr class="memitem:a54c92eff3d4b83adcc7ab02a5020aad4" id="r_a54c92eff3d4b83adcc7ab02a5020aad4"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a54c92eff3d4b83adcc7ab02a5020aad4">writeJsonFileReplacing</a> (<a class="el" href="struct_scene_save_result.html">SceneSaveResult</a> &amp;result, const fs::path &amp;path, const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;value)</td></tr>
+<tr class="memitem:aac70d77a008164cf18ea3ef681b41208" id="r_aac70d77a008164cf18ea3ef681b41208"><td class="memItemLeft">std::error_code&#160;</td><td class="memItemRight"><a class="el" href="#aac70d77a008164cf18ea3ef681b41208">syncToDisk</a> (const fs::path &amp;path, bool directory)</td></tr>
+<tr class="memitem:ac6ef253226f0affc9ecde8dc34243bf7" id="r_ac6ef253226f0affc9ecde8dc34243bf7"><td class="memItemLeft">std::error_code&#160;</td><td class="memItemRight"><a class="el" href="#ac6ef253226f0affc9ecde8dc34243bf7">syncDirectoryTree</a> (const fs::path &amp;directory, fs::path &amp;failed)</td></tr>
+<tr class="memitem:a0661b745dc8f255625b50d690ec1e593" id="r_a0661b745dc8f255625b50d690ec1e593"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a0661b745dc8f255625b50d690ec1e593">writeJsonFile</a> (<a class="el" href="struct_scene_save_result.html">SceneSaveResult</a> &amp;result, const fs::path &amp;scenePath, const std::string &amp;filename, const <a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;value)</td></tr>
+<tr class="memitem:a54c92eff3d4b83adcc7ab02a5020aad4" id="r_a54c92eff3d4b83adcc7ab02a5020aad4"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a54c92eff3d4b83adcc7ab02a5020aad4">writeJsonFileReplacing</a> (<a class="el" href="struct_scene_save_result.html">SceneSaveResult</a> &amp;result, const fs::path &amp;path, const <a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;value)</td></tr>
 <tr class="memitem:a27c7d145ac05b84eebd17cc06533ba55" id="r_a27c7d145ac05b84eebd17cc06533ba55"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a27c7d145ac05b84eebd17cc06533ba55">copyExistingSceneContents</a> (const fs::path &amp;source, const fs::path &amp;staging, <a class="el" href="struct_scene_save_result.html">SceneSaveResult</a> &amp;result)</td></tr>
-<tr class="memitem:a9f704ed2bf3a6d752874400c6a256212" id="r_a9f704ed2bf3a6d752874400c6a256212"><td class="memItemLeft">static <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9f704ed2bf3a6d752874400c6a256212">writePhysical</a> (const <a class="el" href="struct_scene_train_physical.html">SceneTrainPhysical</a> &amp;physical)</td></tr>
-<tr class="memitem:a365e1207efc8426c85c8332a74c4dadd" id="r_a365e1207efc8426c85c8332a74c4dadd"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a365e1207efc8426c85c8332a74c4dadd">encodeSignallingArea</a> (const <a class="el" href="struct_scene_signalling_area.html">SceneSignallingArea</a> &amp;area)</td></tr>
+<tr class="memitem:a9f704ed2bf3a6d752874400c6a256212" id="r_a9f704ed2bf3a6d752874400c6a256212"><td class="memItemLeft">static <a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9f704ed2bf3a6d752874400c6a256212">writePhysical</a> (const <a class="el" href="struct_scene_train_physical.html">SceneTrainPhysical</a> &amp;physical)</td></tr>
+<tr class="memitem:a365e1207efc8426c85c8332a74c4dadd" id="r_a365e1207efc8426c85c8332a74c4dadd"><td class="memItemLeft"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a365e1207efc8426c85c8332a74c4dadd">encodeSignallingArea</a> (const <a class="el" href="struct_scene_signalling_area.html">SceneSignallingArea</a> &amp;area)</td></tr>
 <tr class="memdesc:a365e1207efc8426c85c8332a74c4dadd"><td class="mdescLeft">&#160;</td><td class="mdescRight">A signalling area as signalling.json holds it.  <br /></td></tr>
-<tr class="memitem:aa960d62fe16b682ecc914124c6027dcc" id="r_aa960d62fe16b682ecc914124c6027dcc"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa960d62fe16b682ecc914124c6027dcc">encodeSignalling</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memitem:aa960d62fe16b682ecc914124c6027dcc" id="r_aa960d62fe16b682ecc914124c6027dcc"><td class="memItemLeft"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa960d62fe16b682ecc914124c6027dcc">encodeSignalling</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memdesc:aa960d62fe16b682ecc914124c6027dcc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The content of signalling.json.  <br /></td></tr>
-<tr class="memitem:aa991bd13455e2c17db3bf3158458a314" id="r_aa991bd13455e2c17db3bf3158458a314"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa991bd13455e2c17db3bf3158458a314">encodeRollingStock</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memitem:aa991bd13455e2c17db3bf3158458a314" id="r_aa991bd13455e2c17db3bf3158458a314"><td class="memItemLeft"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa991bd13455e2c17db3bf3158458a314">encodeRollingStock</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memdesc:aa991bd13455e2c17db3bf3158458a314"><td class="mdescLeft">&#160;</td><td class="mdescRight">The content of rolling_stock.json.  <br /></td></tr>
-<tr class="memitem:a82473a27d2a88c63033aff4368eb6d83" id="r_a82473a27d2a88c63033aff4368eb6d83"><td class="memItemLeft">static <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a82473a27d2a88c63033aff4368eb6d83">encodeStops</a> (const <a class="el" href="struct_scene_service.html">SceneService</a> &amp;service)</td></tr>
-<tr class="memitem:a772b83bc7a3193ec001bf98d5dea1486" id="r_a772b83bc7a3193ec001bf98d5dea1486"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a772b83bc7a3193ec001bf98d5dea1486">encodeServices</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memitem:a82473a27d2a88c63033aff4368eb6d83" id="r_a82473a27d2a88c63033aff4368eb6d83"><td class="memItemLeft">static <a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a82473a27d2a88c63033aff4368eb6d83">encodeStops</a> (const <a class="el" href="struct_scene_service.html">SceneService</a> &amp;service)</td></tr>
+<tr class="memitem:a772b83bc7a3193ec001bf98d5dea1486" id="r_a772b83bc7a3193ec001bf98d5dea1486"><td class="memItemLeft"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a772b83bc7a3193ec001bf98d5dea1486">encodeServices</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memdesc:a772b83bc7a3193ec001bf98d5dea1486"><td class="mdescLeft">&#160;</td><td class="mdescRight">The content of services.json.  <br /></td></tr>
-<tr class="memitem:a2937bfe822fa84a0fd4ec1e474744733" id="r_a2937bfe822fa84a0fd4ec1e474744733"><td class="memItemLeft">static <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a2937bfe822fa84a0fd4ec1e474744733">writeScenarioValue</a> (const <a class="el" href="struct_scene_scenario.html">SceneScenario</a> &amp;scenario)</td></tr>
-<tr class="memitem:a919e28b811a875d48d8780b0d6854e17" id="r_a919e28b811a875d48d8780b0d6854e17"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a919e28b811a875d48d8780b0d6854e17">encodeScenarios</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memitem:a2937bfe822fa84a0fd4ec1e474744733" id="r_a2937bfe822fa84a0fd4ec1e474744733"><td class="memItemLeft">static <a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a2937bfe822fa84a0fd4ec1e474744733">writeScenarioValue</a> (const <a class="el" href="struct_scene_scenario.html">SceneScenario</a> &amp;scenario)</td></tr>
+<tr class="memitem:a919e28b811a875d48d8780b0d6854e17" id="r_a919e28b811a875d48d8780b0d6854e17"><td class="memItemLeft"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a919e28b811a875d48d8780b0d6854e17">encodeScenarios</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memdesc:a919e28b811a875d48d8780b0d6854e17"><td class="mdescLeft">&#160;</td><td class="mdescRight">The content of scenarios.json.  <br /></td></tr>
 <tr class="memitem:a0d95d7fbe1dd369cbfaea884c7937a1d" id="r_a0d95d7fbe1dd369cbfaea884c7937a1d"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a0d95d7fbe1dd369cbfaea884c7937a1d">addScenarioDiagnostic</a> (<a class="el" href="struct_scenario_load_result.html">ScenarioLoadResult</a> &amp;result, <a class="el" href="_scene_diagnostic_8h.html#ad54a3c52947445d98edbf5629d80a29d">SceneSeverity</a> severity, const std::string &amp;code, const std::string &amp;message, const std::string &amp;path=&quot;&quot;)</td></tr>
 <tr class="memitem:a786a7acd10c619ec634411db420b77ae" id="r_a786a7acd10c619ec634411db420b77ae"><td class="memItemLeft"><a class="el" href="struct_scene_save_result.html">SceneSaveResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a786a7acd10c619ec634411db420b77ae">saveScenarioJson</a> (const <a class="el" href="struct_scene_scenario.html">SceneScenario</a> &amp;scenario, const std::string &amp;filePath)</td></tr>
 <tr class="memdesc:a786a7acd10c619ec634411db420b77ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes one scenario as a standalone scenario file, replacing the file at filePath.  <br /></td></tr>
 <tr class="memitem:aae8bfdfec6055624487397a2e164e593" id="r_aae8bfdfec6055624487397a2e164e593"><td class="memItemLeft"><a class="el" href="struct_scenario_load_result.html">ScenarioLoadResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#aae8bfdfec6055624487397a2e164e593">loadScenarioJson</a> (const std::string &amp;filePath)</td></tr>
 <tr class="memdesc:aae8bfdfec6055624487397a2e164e593"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads one scenario from a standalone scenario file.  <br /></td></tr>
-<tr class="memitem:a87b4476d1e9437d209f8fa999f072147" id="r_a87b4476d1e9437d209f8fa999f072147"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a87b4476d1e9437d209f8fa999f072147">encodePassengers</a> (const std::vector&lt; <a class="el" href="struct_scene_passenger.html">ScenePassenger</a> &gt; &amp;passengers)</td></tr>
+<tr class="memitem:a87b4476d1e9437d209f8fa999f072147" id="r_a87b4476d1e9437d209f8fa999f072147"><td class="memItemLeft"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a87b4476d1e9437d209f8fa999f072147">encodePassengers</a> (const std::vector&lt; <a class="el" href="struct_scene_passenger.html">ScenePassenger</a> &gt; &amp;passengers)</td></tr>
 <tr class="memdesc:a87b4476d1e9437d209f8fa999f072147"><td class="mdescLeft">&#160;</td><td class="mdescRight">The content of passengers.json. A journey without an activity leaves the key out.  <br /></td></tr>
-<tr class="memitem:acb13735e78ea2d1590bc29fbdcbde1a4" id="r_acb13735e78ea2d1590bc29fbdcbde1a4"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#acb13735e78ea2d1590bc29fbdcbde1a4">encodeInfrastructure</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memitem:acb13735e78ea2d1590bc29fbdcbde1a4" id="r_acb13735e78ea2d1590bc29fbdcbde1a4"><td class="memItemLeft"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#acb13735e78ea2d1590bc29fbdcbde1a4">encodeInfrastructure</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memdesc:acb13735e78ea2d1590bc29fbdcbde1a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The content of infrastructure.json.  <br /></td></tr>
-<tr class="memitem:ac8fb536b94b4e2cf2b6a0e3d8299e19c" id="r_ac8fb536b94b4e2cf2b6a0e3d8299e19c"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#ac8fb536b94b4e2cf2b6a0e3d8299e19c">encodeStations</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memitem:ac8fb536b94b4e2cf2b6a0e3d8299e19c" id="r_ac8fb536b94b4e2cf2b6a0e3d8299e19c"><td class="memItemLeft"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#ac8fb536b94b4e2cf2b6a0e3d8299e19c">encodeStations</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memdesc:ac8fb536b94b4e2cf2b6a0e3d8299e19c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The content of stations.json.  <br /></td></tr>
-<tr class="memitem:a2f031775c507830e59189837b8e5cd12" id="r_a2f031775c507830e59189837b8e5cd12"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a2f031775c507830e59189837b8e5cd12">encodeViews</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memitem:a2f031775c507830e59189837b8e5cd12" id="r_a2f031775c507830e59189837b8e5cd12"><td class="memItemLeft"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a2f031775c507830e59189837b8e5cd12">encodeViews</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memdesc:a2f031775c507830e59189837b8e5cd12"><td class="mdescLeft">&#160;</td><td class="mdescRight">The content of views.json.  <br /></td></tr>
-<tr class="memitem:a93ac17d499c50c71eb39d0af50eec0de" id="r_a93ac17d499c50c71eb39d0af50eec0de"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a93ac17d499c50c71eb39d0af50eec0de">encodeSceneMetadata</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memitem:a93ac17d499c50c71eb39d0af50eec0de" id="r_a93ac17d499c50c71eb39d0af50eec0de"><td class="memItemLeft"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a93ac17d499c50c71eb39d0af50eec0de">encodeSceneMetadata</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memdesc:a93ac17d499c50c71eb39d0af50eec0de"><td class="mdescLeft">&#160;</td><td class="mdescRight">The content of scene.json.  <br /></td></tr>
+<tr class="memitem:a57608590d6bb9a44f3a24d1f85c71890" id="r_a57608590d6bb9a44f3a24d1f85c71890"><td class="memItemLeft">static <a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a57608590d6bb9a44f3a24d1f85c71890">encodeSceneFile</a> (const std::string &amp;name, const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memitem:a4c312eb521372713ae6a8bfd29d391f1" id="r_a4c312eb521372713ae6a8bfd29d391f1"><td class="memItemLeft">static <a class="el" href="struct_scene_save_result.html">SceneSaveResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a4c312eb521372713ae6a8bfd29d391f1">writeSceneGeneration</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const fs::path &amp;scenePath)</td></tr>
+<tr class="memitem:a433b88cd792406f174a1d9e1a6402c49" id="r_a433b88cd792406f174a1d9e1a6402c49"><td class="memItemLeft"><a class="el" href="struct_scene_save_result.html">SceneSaveResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a433b88cd792406f174a1d9e1a6402c49">writeSceneFiles</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const fs::path &amp;directory)</td></tr>
+<tr class="memitem:a428bb4a40e563c6588dc61818d4173c2" id="r_a428bb4a40e563c6588dc61818d4173c2"><td class="memItemLeft"><a class="el" href="struct_staged_publish_result.html">StagedPublishResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a428bb4a40e563c6588dc61818d4173c2">publishStagedDirectory</a> (<a class="el" href="struct_staged_directory.html">StagedDirectory</a> &amp;staged, const fs::path &amp;destination, const fs::path &amp;backup)</td></tr>
+<tr class="memitem:acb758208b15b36fd3e891b99992950cf" id="r_acb758208b15b36fd3e891b99992950cf"><td class="memItemLeft">static <a class="el" href="struct_scene_save_result.html">SceneSaveResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#acb758208b15b36fd3e891b99992950cf">writeSceneDirectory</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::string &amp;sceneDir, bool keepOtherFiles)</td></tr>
 <tr class="memitem:a45802402f953087d9d858f26a4b92e6b" id="r_a45802402f953087d9d858f26a4b92e6b"><td class="memItemLeft"><a class="el" href="struct_scene_save_result.html">SceneSaveResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a45802402f953087d9d858f26a4b92e6b">saveScene</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::string &amp;sceneDir)</td></tr>
+<tr class="memitem:a14d13a5dbe40153deb002c8e543d98b5" id="r_a14d13a5dbe40153deb002c8e543d98b5"><td class="memItemLeft"><a class="el" href="struct_scene_save_result.html">SceneSaveResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a14d13a5dbe40153deb002c8e543d98b5">replaceSceneDirectory</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::string &amp;sceneDir)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="a0fa33584fe0982c08304cade435a7553" name="a0fa33584fe0982c08304cade435a7553"></a>
@@ -204,7 +214,7 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a0fa33584fe0982c08304cade435a7553_cgraph.svg" width="163" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a0fa33584fe0982c08304cade435a7553_cgraph.svg" width="163" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -253,7 +263,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a0d95d7fbe1dd369cbfaea884c7937a1d_cgraph.svg" width="182" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a0d95d7fbe1dd369cbfaea884c7937a1d_cgraph.svg" width="182" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -326,7 +336,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a27c7d145ac05b84eebd17cc06533ba55_cgraph.svg" width="374" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a27c7d145ac05b84eebd17cc06533ba55_cgraph.svg" width="372" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -338,7 +348,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeInfrastructure </td>
+          <td class="memname"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeInfrastructure </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span></td><td>)</td>
           <td></td>
@@ -350,7 +360,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_acb13735e78ea2d1590bc29fbdcbde1a4_cgraph.svg" width="168" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_acb13735e78ea2d1590bc29fbdcbde1a4_cgraph.svg" width="167" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -362,7 +372,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodePassengers </td>
+          <td class="memname"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodePassengers </td>
           <td>(</td>
           <td class="paramtype">const std::vector&lt; <a class="el" href="struct_scene_passenger.html">ScenePassenger</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>passengers</em></span></td><td>)</td>
           <td></td>
@@ -374,7 +384,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a87b4476d1e9437d209f8fa999f072147_cgraph.svg" width="154" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a87b4476d1e9437d209f8fa999f072147_cgraph.svg" width="152" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -386,7 +396,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeRollingStock </td>
+          <td class="memname"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeRollingStock </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span></td><td>)</td>
           <td></td>
@@ -398,7 +408,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_aa991bd13455e2c17db3bf3158458a314_cgraph.svg" width="319" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_aa991bd13455e2c17db3bf3158458a314_cgraph.svg" width="316" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -410,7 +420,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeScenarios </td>
+          <td class="memname"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeScenarios </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span></td><td>)</td>
           <td></td>
@@ -422,7 +432,41 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a919e28b811a875d48d8780b0d6854e17_cgraph.svg" width="362" height="134"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a919e28b811a875d48d8780b0d6854e17_cgraph.svg" width="360" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a57608590d6bb9a44f3a24d1f85c71890" name="a57608590d6bb9a44f3a24d1f85c71890"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a57608590d6bb9a44f3a24d1f85c71890">&#9670;&#160;</a></span>encodeSceneFile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeSceneFile </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>name</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a57608590d6bb9a44f3a24d1f85c71890_cgraph.svg" width="576" height="671"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -434,7 +478,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeSceneMetadata </td>
+          <td class="memname"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeSceneMetadata </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span></td><td>)</td>
           <td></td>
@@ -446,7 +490,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a93ac17d499c50c71eb39d0af50eec0de_cgraph.svg" width="182" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a93ac17d499c50c71eb39d0af50eec0de_cgraph.svg" width="180" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -458,7 +502,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeServices </td>
+          <td class="memname"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeServices </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span></td><td>)</td>
           <td></td>
@@ -470,7 +514,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a772b83bc7a3193ec001bf98d5dea1486_cgraph.svg" width="288" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a772b83bc7a3193ec001bf98d5dea1486_cgraph.svg" width="287" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -482,7 +526,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeSignalling </td>
+          <td class="memname"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeSignalling </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span></td><td>)</td>
           <td></td>
@@ -494,7 +538,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_aa960d62fe16b682ecc914124c6027dcc_cgraph.svg" width="355" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_aa960d62fe16b682ecc914124c6027dcc_cgraph.svg" width="354" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -506,7 +550,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeSignallingArea </td>
+          <td class="memname"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeSignallingArea </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="struct_scene_signalling_area.html">SceneSignallingArea</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>area</em></span></td><td>)</td>
           <td></td>
@@ -518,7 +562,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a365e1207efc8426c85c8332a74c4dadd_cgraph.svg" width="174" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a365e1207efc8426c85c8332a74c4dadd_cgraph.svg" width="174" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -530,7 +574,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeStations </td>
+          <td class="memname"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeStations </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span></td><td>)</td>
           <td></td>
@@ -542,7 +586,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_ac8fb536b94b4e2cf2b6a0e3d8299e19c_cgraph.svg" width="134" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_ac8fb536b94b4e2cf2b6a0e3d8299e19c_cgraph.svg" width="132" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -557,7 +601,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeStops </td>
+          <td class="memname"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeStops </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="struct_scene_service.html">SceneService</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>service</em></span></td><td>)</td>
           <td></td>
@@ -572,7 +616,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a82473a27d2a88c63033aff4368eb6d83_cgraph.svg" width="116" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a82473a27d2a88c63033aff4368eb6d83_cgraph.svg" width="115" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -584,7 +628,7 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeViews </td>
+          <td class="memname"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> encodeViews </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span></td><td>)</td>
           <td></td>
@@ -596,7 +640,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a2f031775c507830e59189837b8e5cd12_cgraph.svg" width="119" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a2f031775c507830e59189837b8e5cd12_cgraph.svg" width="119" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -635,7 +679,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_ae653d17bef461bf7eaf89f96ea45485c_cgraph.svg" width="315" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_ae653d17bef461bf7eaf89f96ea45485c_cgraph.svg" width="314" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -659,7 +703,65 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_aae8bfdfec6055624487397a2e164e593_cgraph.svg" width="1348" height="395"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_aae8bfdfec6055624487397a2e164e593_cgraph.svg" width="1344" height="398"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a428bb4a40e563c6588dc61818d4173c2" name="a428bb4a40e563c6588dc61818d4173c2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a428bb4a40e563c6588dc61818d4173c2">&#9670;&#160;</a></span>publishStagedDirectory()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_staged_publish_result.html">StagedPublishResult</a> publishStagedDirectory </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="struct_staged_directory.html">StagedDirectory</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>staged</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const fs::path &amp;</td>          <td class="paramname"><span class="paramname"><em>destination</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const fs::path &amp;</td>          <td class="paramname"><span class="paramname"><em>backup</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a428bb4a40e563c6588dc61818d4173c2_cgraph.svg" width="590" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a14d13a5dbe40153deb002c8e543d98b5" name="a14d13a5dbe40153deb002c8e543d98b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a14d13a5dbe40153deb002c8e543d98b5">&#9670;&#160;</a></span>replaceSceneDirectory()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_scene_save_result.html">SceneSaveResult</a> replaceSceneDirectory </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>sceneDir</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Writes the scene files like saveScene, but the new directory replaces a directory at sceneDir with everything in it and keeps the default mode of a new directory. The legacy importer writes its scene with it. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a14d13a5dbe40153deb002c8e543d98b5_cgraph.svg" width="1872" height="1760"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -687,7 +789,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a786a7acd10c619ec634411db420b77ae_cgraph.svg" width="711" height="296"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a786a7acd10c619ec634411db420b77ae_cgraph.svg" width="739" height="439"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -714,7 +816,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a45802402f953087d9d858f26a4b92e6b_cgraph.svg" width="1391" height="1952"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a45802402f953087d9d858f26a4b92e6b_cgraph.svg" width="1795" height="1760"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -741,7 +843,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>value</em></span>, </td>
+          <td class="paramtype">const <a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>value</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -758,7 +860,59 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a13d90d8066135562db9ad8368921daa6_cgraph.svg" width="275" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a13d90d8066135562db9ad8368921daa6_cgraph.svg" width="274" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ac6ef253226f0affc9ecde8dc34243bf7" name="ac6ef253226f0affc9ecde8dc34243bf7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac6ef253226f0affc9ecde8dc34243bf7">&#9670;&#160;</a></span>syncDirectoryTree()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::error_code syncDirectoryTree </td>
+          <td>(</td>
+          <td class="paramtype">const fs::path &amp;</td>          <td class="paramname"><span class="paramname"><em>directory</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">fs::path &amp;</td>          <td class="paramname"><span class="paramname"><em>failed</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_ac6ef253226f0affc9ecde8dc34243bf7_cgraph.svg" width="468" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aac70d77a008164cf18ea3ef681b41208" name="aac70d77a008164cf18ea3ef681b41208"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aac70d77a008164cf18ea3ef681b41208">&#9670;&#160;</a></span>syncToDisk()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::error_code syncToDisk </td>
+          <td>(</td>
+          <td class="paramtype">const fs::path &amp;</td>          <td class="paramname"><span class="paramname"><em>path</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>directory</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_aac70d77a008164cf18ea3ef681b41208_cgraph.svg" width="282" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -802,7 +956,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_acbf21f0e79ec9a4378269c094e2e6aa4_cgraph.svg" width="263" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_acbf21f0e79ec9a4378269c094e2e6aa4_cgraph.svg" width="262" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -834,7 +988,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>value</em></span>&#160;)</td>
+          <td class="paramtype">const <a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>value</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -846,7 +1000,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a0661b745dc8f255625b50d690ec1e593_cgraph.svg" width="428" height="134"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a0661b745dc8f255625b50d690ec1e593_cgraph.svg" width="426" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -873,7 +1027,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>value</em></span>&#160;)</td>
+          <td class="paramtype">const <a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>value</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -885,7 +1039,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a54c92eff3d4b83adcc7ab02a5020aad4_cgraph.svg" width="527" height="232"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a54c92eff3d4b83adcc7ab02a5020aad4_cgraph.svg" width="555" height="416"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -900,7 +1054,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> writePhysical </td>
+          <td class="memname"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> writePhysical </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="struct_scene_train_physical.html">SceneTrainPhysical</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>physical</em></span></td><td>)</td>
           <td></td>
@@ -915,7 +1069,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a9f704ed2bf3a6d752874400c6a256212_cgraph.svg" width="120" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a9f704ed2bf3a6d752874400c6a256212_cgraph.svg" width="119" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -930,7 +1084,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> writeScenarioValue </td>
+          <td class="memname"><a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> writeScenarioValue </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="struct_scene_scenario.html">SceneScenario</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scenario</em></span></td><td>)</td>
           <td></td>
@@ -945,7 +1099,72 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a2937bfe822fa84a0fd4ec1e474744733_cgraph.svg" width="158" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a2937bfe822fa84a0fd4ec1e474744733_cgraph.svg" width="158" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="acb758208b15b36fd3e891b99992950cf" name="acb758208b15b36fd3e891b99992950cf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acb758208b15b36fd3e891b99992950cf">&#9670;&#160;</a></span>writeSceneDirectory()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_scene_save_result.html">SceneSaveResult</a> writeSceneDirectory </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>sceneDir</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>keepOtherFiles</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_acb758208b15b36fd3e891b99992950cf_cgraph.svg" width="1655" height="1747"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a433b88cd792406f174a1d9e1a6402c49" name="a433b88cd792406f174a1d9e1a6402c49"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a433b88cd792406f174a1d9e1a6402c49">&#9670;&#160;</a></span>writeSceneFiles()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_scene_save_result.html">SceneSaveResult</a> writeSceneFiles </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const fs::path &amp;</td>          <td class="paramname"><span class="paramname"><em>directory</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a433b88cd792406f174a1d9e1a6402c49_cgraph.svg" width="1639" height="1946"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -979,7 +1198,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a4c312eb521372713ae6a8bfd29d391f1_cgraph.svg" width="775" height="830"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8cpp_a4c312eb521372713ae6a8bfd29d391f1_cgraph.svg" width="790" height="823"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

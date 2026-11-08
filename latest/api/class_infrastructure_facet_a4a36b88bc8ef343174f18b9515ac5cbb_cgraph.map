@@ -1,5 +1,5 @@
 <map id="InfrastructureFacet::operator=" name="InfrastructureFacet::operator=">
-<area shape="rect" id="Node000001" title="A facet is not copied; the panel owns one of each kind." alt="" coords="5,5,149,45"/>
-<area shape="rect" id="Node000002" href="$class_infrastructure_facet.html#a9edf07a88e8287f92ca0898f8d8ade04" title="Makes the base of a facet, which holds nothing." alt="" coords="197,5,349,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,23,184,23,184,28,150,28"/>
+<area shape="rect" id="Node000001" title="A facet is not copied; the panel owns one of each kind." alt="" coords="5,5,149,50"/>
+<area shape="rect" id="Node000002" href="$class_infrastructure_facet.html#a9edf07a88e8287f92ca0898f8d8ade04" title="Makes the base of a facet, which holds nothing." alt="" coords="197,5,348,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,25,184,27,179,28,149,30"/>
 </map>

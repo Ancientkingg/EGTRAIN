@@ -1,10 +1,10 @@
 <map id="currentDistribution" name="currentDistribution">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,149,55"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="44,31,36,21,40,11,54,5,77,3,106,6,117,15,114,20,104,11,77,8,55,10,44,15,42,20,48,28"/>
-<area shape="rect" id="Node000002" href="$_distribution_8cpp.html#a2dec463a64540a3ad78351bbeede4f6a" title=" " alt="" coords="197,29,368,55"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="150,39,184,39,184,45,150,45"/>
-<area shape="poly" id="edge5_Node000002_Node000002" title=" " alt="" coords="249,31,242,21,245,11,259,5,283,3,311,6,323,15,319,20,309,11,283,8,261,10,249,15,247,20,253,28"/>
-<area shape="rect" id="Node000003" href="$_distribution_8cpp.html#a242e6761c7e13b26eee9a257408c7803" title="The file that the installer puts next to QEGTRAIN.exe: &quot;installed&#45;by&#45;setup.ini&quot;. Its content is never..." alt="" coords="416,29,575,55"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="368,39,402,39,402,45,368,45"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="461,31,453,21,457,11,472,5,495,3,525,6,536,15,533,20,523,11,495,8,473,10,461,15,459,20,465,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,149,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="41,29,36,20,41,11,55,5,77,3,101,5,116,14,110,14,100,10,77,8,56,10,44,15,41,20,47,29"/>
+<area shape="rect" id="Node000002" href="$_distribution_8cpp.html#a2dec463a64540a3ad78351bbeede4f6a" title=" " alt="" coords="197,29,366,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="149,41,184,43,178,43,149,46"/>
+<area shape="poly" id="edge5_Node000002_Node000002" title=" " alt="" coords="246,28,240,20,245,11,259,5,281,3,305,5,320,14,315,14,304,10,281,8,260,10,249,15,246,20,251,30"/>
+<area shape="rect" id="Node000003" href="$_distribution_8cpp.html#a242e6761c7e13b26eee9a257408c7803" title="The file that the installer puts next to QEGTRAIN.exe: &quot;installed&#45;by&#45;setup.ini&quot;. Its content is never..." alt="" coords="414,29,572,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="366,41,401,43,395,43,367,46"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="457,28,451,20,456,11,470,5,493,3,518,5,533,14,528,14,517,10,493,8,471,10,459,15,456,20,461,30"/>
 </map>

@@ -1,7 +1,7 @@
 <map id="WindowsStaging::completeWindowsRuntime" name="WindowsStaging::completeWindowsRuntime">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,204,69"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="59,30,57,20,64,10,80,5,105,3,133,6,148,13,146,18,131,11,105,8,81,10,67,15,62,21,65,28"/>
-<area shape="rect" id="Node000002" href="$namespace_windows_staging.html#ad52395e48397c19fdda7b34e1eb00045" title=" " alt="" coords="252,29,444,69"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="204,47,238,47,238,52,204,52"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="303,30,300,20,307,10,323,5,348,3,376,6,392,13,389,18,375,11,348,8,325,10,310,15,305,21,308,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,204,74"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="58,28,57,19,65,10,81,5,105,3,131,5,148,14,143,14,129,10,104,8,82,10,68,15,62,21,63,29"/>
+<area shape="rect" id="Node000002" href="$namespace_windows_staging.html#ad52395e48397c19fdda7b34e1eb00045" title=" " alt="" coords="252,29,443,74"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="204,49,239,51,234,52,204,54"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="301,27,300,19,308,10,324,5,347,3,374,5,391,14,385,14,372,10,347,8,325,10,310,15,305,21,306,30"/>
 </map>

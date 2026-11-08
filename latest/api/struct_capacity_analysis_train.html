@@ -8,7 +8,6 @@
 <title>EGTRAIN: CapacityAnalysisTrain Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,15 +115,15 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_capacit
 <p>One train of the chain: its occupations and the reference time they are shifted by.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_capacity_analysis_8h_source.html">diagrams/CapacityAnalysis.h</a>&gt;</code></p>
+<p><code>#include &lt;diagrams/CapacityAnalysis.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a30292457028e91e838a2447d20e605f9" id="r_a30292457028e91e838a2447d20e605f9"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a30292457028e91e838a2447d20e605f9">runtimeId</a></td></tr>
 <tr class="memdesc:a30292457028e91e838a2447d20e605f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Runtime occurrence identity, not a canonical service/timetable key.  <br /></td></tr>
 <tr class="memitem:ac654d1f8fd0431ef608d9905de71e3e0" id="r_ac654d1f8fd0431ef608d9905de71e3e0"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ac654d1f8fd0431ef608d9905de71e3e0">operatingCode</a></td></tr>
-<tr class="memitem:ab7464cfcf6f80dffad75600ca49e9b06" id="r_ab7464cfcf6f80dffad75600ca49e9b06"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab7464cfcf6f80dffad75600ca49e9b06">profileReferenceTime</a> = -1.0</td></tr>
-<tr class="memitem:adc8c5e3b16104d36b64341570815fb67" id="r_adc8c5e3b16104d36b64341570815fb67"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#adc8c5e3b16104d36b64341570815fb67">scheduledReferenceTime</a> = -1.0</td></tr>
+<tr class="memitem:ab7464cfcf6f80dffad75600ca49e9b06" id="r_ab7464cfcf6f80dffad75600ca49e9b06"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab7464cfcf6f80dffad75600ca49e9b06">profileReferenceTime</a></td></tr>
+<tr class="memitem:adc8c5e3b16104d36b64341570815fb67" id="r_adc8c5e3b16104d36b64341570815fb67"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#adc8c5e3b16104d36b64341570815fb67">scheduledReferenceTime</a></td></tr>
 <tr class="memdesc:adc8c5e3b16104d36b64341570815fb67"><td class="mdescLeft">&#160;</td><td class="mdescRight">Planned time of the reference. Below 0 or not finite: profileReferenceTime is used.  <br /></td></tr>
 <tr class="memitem:a852f7c2950d124f14c597b0441b1d2ef" id="r_a852f7c2950d124f14c597b0441b1d2ef"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a852f7c2950d124f14c597b0441b1d2ef">referenceLabel</a></td></tr>
 <tr class="memdesc:a852f7c2950d124f14c597b0441b1d2ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Where the reference lies, for the export.  <br /></td></tr>
@@ -174,7 +173,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double CapacityAnalysisTrain::profileReferenceTime = -1.0</td>
+          <td class="memname">double CapacityAnalysisTrain::profileReferenceTime</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -237,7 +236,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double CapacityAnalysisTrain::scheduledReferenceTime = -1.0</td>
+          <td class="memname">double CapacityAnalysisTrain::scheduledReferenceTime</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -247,7 +246,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_capacity_analysis_8h_source.html">CapacityAnalysis.h</a></li>
+<li>diagrams/<a class="el" href="_capacity_analysis_8h.html">CapacityAnalysis.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

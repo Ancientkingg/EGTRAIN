@@ -192,11 +192,13 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/common-questions.html">Common questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
@@ -220,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -236,7 +238,6 @@
 <li class="toctree-l1"><a class="reference internal" href="coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +252,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +267,8 @@
 <li class="toctree-l1"><a class="reference internal" href="records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -311,7 +313,7 @@
 <section id="in-short">
 <h2>In short<a class="headerlink" href="#in-short" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p>Runs, run preparation, scene reading in the window, window events and both <code class="docutils literal notranslate"><span class="pre">main</span></code> functions catch exceptions; the tables below give where and what the user sees. On macOS the guard on window events (<code class="docutils literal notranslate"><span class="pre">GuardedApplication::notify</span></code>) sees nothing, so an exception that leaves a slot there still ends in <code class="docutils literal notranslate"><span class="pre">std::terminate</span></code>.</p></li>
+<li><p>Runs, run preparation, the end of a run and scene reading in the window, scene edits, window events and both <code class="docutils literal notranslate"><span class="pre">main</span></code> functions catch exceptions; the tables below give where and what the user sees. On macOS the guard on window events (<code class="docutils literal notranslate"><span class="pre">GuardedApplication::notify</span></code>) sees nothing, so an exception that leaves a slot there still ends in <code class="docutils literal notranslate"><span class="pre">std::terminate</span></code>.</p></li>
 <li><p>The output folder of a run, the scene folder that <code class="docutils literal notranslate"><span class="pre">loadScene</span></code> reads and the folder of a legacy import are checked with the <code class="docutils literal notranslate"><span class="pre">std::error_code</span></code> overloads of <code class="docutils literal notranslate"><span class="pre">std::filesystem</span></code>, so a folder that cannot be created or read gives a diagnostic instead of an exception.</p></li>
 <li><p>The window build installs a crash handler (<code class="docutils literal notranslate"><span class="pre">app/CrashNote.cpp</span></code>, see <a class="reference internal" href="#crash-notes">Crash notes</a>): <code class="docutils literal notranslate"><span class="pre">std::set_terminate</span></code>, and signal handlers for SIGSEGV, SIGBUS, SIGILL, SIGFPE and SIGABRT. Headless runs and <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> have none. The other handler is <code class="docutils literal notranslate"><span class="pre">qInstallMessageHandler(qtMessageToLog)</span></code> (<code class="docutils literal notranslate"><span class="pre">widgets/ConsoleWidget.cpp</span></code>), which routes Qt messages to the log. An exception that passes the guards ends in <code class="docutils literal notranslate"><span class="pre">std::terminate</span></code> and <code class="docutils literal notranslate"><span class="pre">abort()</span></code>; the window build then leaves a crash note that the next start reports.</p></li>
 </ul>
@@ -337,13 +339,21 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">RunController::runScene</span></code> around <code class="docutils literal notranslate"><span class="pre">prepareScene</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneSession::openSceneDirectory</span></code> around <code class="docutils literal notranslate"><span class="pre">readScene</span></code></p></td>
 <td><p>Becomes <code class="docutils literal notranslate"><span class="pre">run.prepare.exception</span></code> (“Cannot prepare the run: <what>”) or <code class="docutils literal notranslate"><span class="pre">scene.read.exception</span></code> (“Cannot read the case: <what>”).</p></td>
 </tr>
+<tr class="row-even"><td><p>End of a run in the window</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RunController::onSimulationFinished</span></code> around <code class="docutils literal notranslate"><span class="pre">captureCompletedRun</span></code>, and around the whole finish</p></td>
+<td><p>A capture that throws ends the run without results (see <a class="reference internal" href="#recoverable-failures">Recoverable failures</a>). Any other exception releases the worker, opens the case for edits, forgets a Close, New or Open that waited for the run, and passes on to <code class="docutils literal notranslate"><span class="pre">GuardedApplication</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Scene edits</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneDocument::edit</span></code> (<code class="docutils literal notranslate"><span class="pre">editors/SceneDocument.cpp</span></code>) around the change of a panel</p></td>
+<td><p>The model is put back as it was before the edit from a copy taken before the change; nothing is recorded, and the exception passes on.</p></td>
+</tr>
 <tr class="row-even"><td><p>Window events</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">GuardedApplication::notify</span></code></p></td>
 <td><p>Logged as <code class="docutils literal notranslate"><span class="pre">Unexpected</span> <span class="pre">error</span> <span class="pre">in</span> <span class="pre">&lt;class&gt;</span> <span class="pre">(event</span> <span class="pre">&lt;type&gt;):</span> <span class="pre">&lt;what&gt;</span></code> in <code class="docutils literal notranslate"><span class="pre">app.ui</span></code>, and the event counts as not handled. Not on macOS.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Process entry</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">main</span></code> in <code class="docutils literal notranslate"><span class="pre">app/main.cpp</span></code> and in <code class="docutils literal notranslate"><span class="pre">scene/SceneTool.cpp</span></code></p></td>
-<td><p>Exit code 70 with an <code class="docutils literal notranslate"><span class="pre">app.ui</span></code> error line, or exit code 1 with <code class="docutils literal notranslate"><span class="pre">error:</span> <span class="pre">&lt;what&gt;</span></code>.</p></td>
+<td><p>Exit code 70 with an <code class="docutils literal notranslate"><span class="pre">app.ui</span></code> error line, for an exception of any type, or exit code 1 with <code class="docutils literal notranslate"><span class="pre">error:</span> <span class="pre">&lt;what&gt;</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p>Telemetry</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">telemetry/TelemetrySender.cpp</span></code> (<code class="docutils literal notranslate"><span class="pre">catch</span> <span class="pre">(...)</span></code> around every operation and the timer pump), <code class="docutils literal notranslate"><span class="pre">app/UpdateTelemetryController.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">app/RunController.cpp</span></code></p></td>
@@ -384,21 +394,73 @@
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>The output folder of a run and its subfolders (<code class="docutils literal notranslate"><span class="pre">ensureDirectory</span></code> in <code class="docutils literal notranslate"><span class="pre">prepareScene</span></code>)</p></td>
+<tr class="row-even"><td><p>The output folder of a run and its subfolders (<code class="docutils literal notranslate"><span class="pre">prepareRunOutput</span></code> in <code class="docutils literal notranslate"><span class="pre">prepareScene</span></code>; the window makes them first with <code class="docutils literal notranslate"><span class="pre">DispatchController::makeNextRunOutputFolders</span></code>)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">run.output.folder</span></code>: “Cannot create the output folder <path>: <reason>”</p></td>
-<td><p>Window: <strong>Cannot Run Case</strong> with that text, Run Results status “Failed”, the case stays open. Without a window: the diagnostic on standard error and exit code 1.</p></td>
+<td><p>Window: <strong>Cannot Run Case</strong> with that text and the status bar “Run not started: <text>”. The window makes the folders before it lets go of the earlier run, so that run keeps its results, its replay and its canvas, and the case stays open. Without a window: the diagnostic on standard error and exit code 1.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;output&gt;/TEMP</span></code> of a run with <code class="docutils literal notranslate"><span class="pre">--detailed-trajectories</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TrainTrajectories/TrainServicePathDiagram.txt</span></code> of an earlier run, which the run would append to (<code class="docutils literal notranslate"><span class="pre">prepareRunOutput</span></code>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">run.output.file</span></code>: “Cannot write <path>: <reason>” when it cannot be removed</p></td>
+<td><p>Window: as for any refusal by the preparation (see <a class="reference internal" href="#recoverable-failures">Recoverable failures</a>): the results of the earlier run are gone and the view shows the track preview. Without a window: as for <code class="docutils literal notranslate"><span class="pre">run.output.folder</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;output&gt;/TEMP</span></code> of a run with <code class="docutils literal notranslate"><span class="pre">--detailed-trajectories</span></code></p></td>
 <td><p>none; the run throws “Cannot create the folder <path>: <reason>”, which <code class="docutils literal notranslate"><span class="pre">runSimulation</span></code> catches</p></td>
 <td><p>The run fails as below.</p></td>
 </tr>
-<tr class="row-even"><td><p>The scene folder in <code class="docutils literal notranslate"><span class="pre">loadScene</span></code> (<code class="docutils literal notranslate"><span class="pre">scene/SceneModel.cpp</span></code>)</p></td>
+<tr class="row-odd"><td><p>The scene folder in <code class="docutils literal notranslate"><span class="pre">loadScene</span></code> (<code class="docutils literal notranslate"><span class="pre">scene/SceneModel.cpp</span></code>)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">scene.dir.unreadable</span></code>: “Cannot read the case folder: <reason>”; a path that does not exist or is not a folder keeps <code class="docutils literal notranslate"><span class="pre">scene.dir.missing</span></code></p></td>
 <td><p>Window: <strong>Cannot Open Case</strong>. At the start, headless and in <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">validate</span></code>, <code class="docutils literal notranslate"><span class="pre">pack</span></code> and <code class="docutils literal notranslate"><span class="pre">export</span></code>: the diagnostic and exit code 1.</p></td>
+</tr>
+<tr class="row-even"><td><p>A required file of the scene folder in <code class="docutils literal notranslate"><span class="pre">loadScene</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.file.missing</span></code>: “<file> is missing”; a file that exists and cannot be opened gives <code class="docutils literal notranslate"><span class="pre">scene.file.unreadable</span></code>: “Cannot read <file>: <reason>”</p></td>
+<td><p>As for the scene folder.</p></td>
+</tr>
+<tr class="row-odd"><td><p>The staging folder of a folder save (<code class="docutils literal notranslate"><span class="pre">writeSceneDirectory</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SceneWriter.cpp</span></code>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.save.write</span></code>: “Cannot create a private case staging directory: <reason>”</p></td>
+<td><p><strong>Cannot Save Case</strong>; the case on disk is unchanged.</p></td>
+</tr>
+<tr class="row-even"><td><p>The flush to disk of a folder save before the rename into place (<code class="docutils literal notranslate"><span class="pre">syncDirectoryTree</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SceneWriter.cpp</span></code>): every file and folder of the staging folder, the files copied from the previous case included, with <code class="docutils literal notranslate"><span class="pre">fcntl(F_FULLFSYNC)</span></code> on macOS, which also has the drive write its own cache to permanent storage (<code class="docutils literal notranslate"><span class="pre">fsync</span></code> when that call fails), <code class="docutils literal notranslate"><span class="pre">fsync</span></code> on Linux and <code class="docutils literal notranslate"><span class="pre">FlushFileBuffers</span></code> on Windows. Windows flushes no folder and leaves a file with the read-only attribute as it is; a folder that cannot be opened for reading (<code class="docutils literal notranslate"><span class="pre">EACCES</span></code>) or whose file system cannot flush one (<code class="docutils literal notranslate"><span class="pre">EINVAL</span></code>, <code class="docutils literal notranslate"><span class="pre">EBADF</span></code>) is not an error</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.save.write</span></code>: “Cannot flush <file> to disk: <reason>”</p></td>
+<td><p><strong>Cannot Save Case</strong>; the case on disk is unchanged and the staging folder is removed.</p></td>
+</tr>
+<tr class="row-odd"><td><p>The flush of the parent folder after the rename into place, on macOS and Linux (<code class="docutils literal notranslate"><span class="pre">publishStagedDirectory</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SceneWriter.cpp</span></code>). On Windows the rename is written through instead (<code class="docutils literal notranslate"><span class="pre">MoveFileExW</span></code> with <code class="docutils literal notranslate"><span class="pre">MOVEFILE_WRITE_THROUGH</span></code>; <code class="docutils literal notranslate"><span class="pre">std::filesystem::rename</span></code> does not set it). The backup of the previous case is removed only after this flush</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.save.cleanup</span></code> warning: “Cannot flush <parent> to disk, so the previous case stays in <backup>: <reason>”</p></td>
+<td><p>The save succeeds and the previous case stays next to it as <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;.backup-&lt;n&gt;</span></code>. The window shows no warning of a save that succeeds.</p></td>
+</tr>
+<tr class="row-even"><td><p>The flush to disk of a bundle before the rename into place (<code class="docutils literal notranslate"><span class="pre">saveSceneBundle</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SceneBundle.cpp</span></code>): the finished archive under its staging name, with <code class="docutils literal notranslate"><span class="pre">syncToDisk</span></code> (<code class="docutils literal notranslate"><span class="pre">scene/SceneWriter.cpp</span></code>) as for a folder save. The temporary case folder that the archive is packed from is not flushed</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.bundle.write</span></code>: “Cannot flush <file name of the bundle> to disk: <reason>”</p></td>
+<td><p><strong>Cannot Save Case</strong> for Save and Save As a case file, “Cannot write the recovery copy” for a recovery copy, exit code 1 of <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">pack</span></code>. The bundle on disk is unchanged and the staging folder is removed.</p></td>
+</tr>
+<tr class="row-odd"><td><p>The flush to disk of an unpacked folder before the rename into place (<code class="docutils literal notranslate"><span class="pre">unpackSceneBundle</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SceneBundle.cpp</span></code>): every extracted file and the folder, with <code class="docutils literal notranslate"><span class="pre">syncDirectoryTree</span></code> as for a folder save</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.bundle.extract</span></code>: “Cannot flush <file> to disk: <reason>”</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">unpack</span></code> exits with 1; no destination folder is made and the staging folder is removed.</p></td>
+</tr>
+<tr class="row-even"><td><p>The flush of the parent folder after a bundle or an unpacked folder is renamed into place, on macOS and Linux (<code class="docutils literal notranslate"><span class="pre">publishPath</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SceneBundle.cpp</span></code>). On Windows the rename is written through instead (<code class="docutils literal notranslate"><span class="pre">MoveFileExW</span></code> with <code class="docutils literal notranslate"><span class="pre">MOVEFILE_WRITE_THROUGH</span></code>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.bundle.publish</span></code> warning: “Cannot flush <parent> to disk: <reason>”</p></td>
+<td><p>The save or the unpack succeeds. The window shows no warning of a save that succeeds; <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> prints the warning.</p></td>
+</tr>
+<tr class="row-odd"><td><p>The flush to disk of an export before anything in the destination is removed or replaced (<code class="docutils literal notranslate"><span class="pre">publishExport</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SceneExporter.cpp</span></code>): every file and folder of the staged export, with <code class="docutils literal notranslate"><span class="pre">syncDirectoryTree</span></code> as for a folder save, for a new and for an existing destination</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.export.write</span></code>: “Cannot flush <file> to disk: <reason>”, with the path inside the export, or the name of the destination for the staged folder itself</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">export</span></code> exits with 1. An existing destination is unchanged, a new one is not made, and the staged folder is removed.</p></td>
+</tr>
+<tr class="row-even"><td><p>The flush of the folders once an export is in place, on macOS and Linux (<code class="docutils literal notranslate"><span class="pre">publishExport</span></code>). A new destination is renamed into place by <code class="docutils literal notranslate"><span class="pre">publishStagedDirectory</span></code>, which flushes its parent folder and on Windows writes the rename through. Into an existing destination the staged files are moved one by one with <code class="docutils literal notranslate"><span class="pre">std::filesystem::rename</span></code>, which Windows does not write through, and then the destination and every folder in it that gained or lost an entry are flushed</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.export.write</span></code> warning: “Cannot flush <folder> to disk: <reason>”</p></td>
+<td><p>The export succeeds; <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> prints the warning.</p></td>
+</tr>
+<tr class="row-odd"><td><p>The flush to disk of a standalone scenario file before it replaces the old file (<code class="docutils literal notranslate"><span class="pre">writeJsonFileReplacing</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SceneWriter.cpp</span></code>, called by <code class="docutils literal notranslate"><span class="pre">saveScenarioJson</span></code>): the temporary file beside it, with <code class="docutils literal notranslate"><span class="pre">syncToDisk</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.save.write</span></code>: “Cannot flush <file name> to disk: <reason>”</p></td>
+<td><p><strong>Scenario Export Failed</strong>; the old file is unchanged and the temporary file is removed.</p></td>
+</tr>
+<tr class="row-even"><td><p>The flush of the parent folder after the scenario file is renamed into place, on macOS and Linux (<code class="docutils literal notranslate"><span class="pre">writeJsonFileReplacing</span></code>). On Windows the rename is <code class="docutils literal notranslate"><span class="pre">std::filesystem::rename</span></code>, which is not written through</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.save.cleanup</span></code> warning: “Cannot flush <parent> to disk: <reason>”</p></td>
+<td><p>The export of the scenario succeeds; the window shows no warning.</p></td>
 </tr>
 <tr class="row-odd"><td><p>The legacy folder of an import and its passenger files (<code class="docutils literal notranslate"><span class="pre">scene/SceneImporter.cpp</span></code>)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">scene.import.missing</span></code> with the reason; passenger files that cannot be checked count as absent</p></td>
 <td><p><strong>Cannot Import Legacy Case</strong>, or <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">import</span></code> exits with 1.</p></td>
+</tr>
+<tr class="row-even"><td><p>A legacy file that the import reads (<code class="docutils literal notranslate"><span class="pre">readLegacyFile</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SceneImporter.cpp</span></code>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.import.read</span></code>: “Cannot read <file>: it cannot be opened or is not valid UTF-16”</p></td>
+<td><p>For <code class="docutils literal notranslate"><span class="pre">Stations.txt</span></code> an error: <strong>Cannot Import Legacy Case</strong>, or <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">import</span></code> exits with 1. For any other file a warning, and the import goes on without it.</p></td>
 </tr>
 </tbody>
 </table>
@@ -427,7 +489,7 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">GuardedApplication</span></code> (not on macOS) or <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code>’s <code class="docutils literal notranslate"><span class="pre">main</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">std::bad_alloc</span></code></p></td>
-<td><p>Train vectors sized <code class="docutils literal notranslate"><span class="pre">ceil(duration</span> <span class="pre">/</span> <span class="pre">timestep)</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/builders/OperationsBuilder.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.cpp</span></code>), built on the GUI thread; the scene validator checks only that the duration is positive and finite</p></td>
+<td><p>Any allocation of a run preparation except the train vectors sized <code class="docutils literal notranslate"><span class="pre">ceil(duration</span> <span class="pre">/</span> <span class="pre">timestep)</span></code>: <code class="docutils literal notranslate"><span class="pre">buildOperationsFromScene</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/builders/OperationsBuilder.cpp</span></code>) refuses a run whose train vectors would take more than 4 GiB before it allocates them, and catches a <code class="docutils literal notranslate"><span class="pre">std::bad_alloc</span></code> while it allocates them (see <a class="reference internal" href="#recoverable-failures">Recoverable failures</a>)</p></td>
 <td><p>GUI, or main without a window</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">RunController::runScene</span></code>: <strong>Cannot Run Case</strong>; without a window, <code class="docutils literal notranslate"><span class="pre">main</span></code>: exit code 70</p></td>
 </tr>
@@ -446,10 +508,10 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>A run, on the simulation <code class="docutils literal notranslate"><span class="pre">QThread</span></code> or with <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">0</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">runSimulation</span></code> returns normally, so <code class="docutils literal notranslate"><span class="pre">SimulationWorker::simulationFinished</span></code> is still emitted. <code class="docutils literal notranslate"><span class="pre">lastRunError()</span></code> holds the text, <code class="docutils literal notranslate"><span class="pre">app.run</span></code> logs “The run stopped because of an error: <what>”, and the live stream gets <code class="docutils literal notranslate"><span class="pre">run_cancelled</span></code> once the run has sent its hello frame, because contract version 1 has no event for a failed run. The window shows <strong>Simulation Failed</strong> (“The run stopped because of an error:” and the reason), the status bar says “Simulation failed”, Run Results says “Failed” and the case stays open and editable. Without a window the exit code is 1.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">runSimulation</span></code> returns normally, so <code class="docutils literal notranslate"><span class="pre">SimulationWorker::simulationFinished</span></code> is still emitted. <code class="docutils literal notranslate"><span class="pre">lastRunError()</span></code> holds the text, <code class="docutils literal notranslate"><span class="pre">app.run</span></code> logs “The run stopped because of an error: <what>”, and the live stream gets <code class="docutils literal notranslate"><span class="pre">run_cancelled</span></code> once the run has sent its hello frame, because contract version 1 has no event for a failed run. The window shows <strong>Simulation Failed</strong> (“The run stopped because of an error:” and the reason), the status bar says “Simulation failed”, Run Results says “Failed” and the case stays open and editable. Without a window <code class="docutils literal notranslate"><span class="pre">main</span></code> prints <code class="docutils literal notranslate"><span class="pre">ERROR:</span> <span class="pre">&lt;what&gt;</span></code> on standard error and exits with 1.</p></td>
 </tr>
 <tr class="row-odd"><td><p>A slot or event handler on the GUI thread</p></td>
-<td><p>Linux and Windows: <code class="docutils literal notranslate"><span class="pre">GuardedApplication</span></code> logs it, the event counts as not handled, and an <strong>Unexpected Error</strong> box says that the case is still open and should be saved. Further exceptions while that box waits or is open are only logged. What the slot had done before the throw is not undone. macOS: <code class="docutils literal notranslate"><span class="pre">std::terminate</span></code> at the throw, because an exception cannot pass the frames of QtWidgets.</p></td>
+<td><p>Linux and Windows: <code class="docutils literal notranslate"><span class="pre">GuardedApplication</span></code> logs it, the event counts as not handled, and an <strong>Unexpected Error</strong> box says that the case is still open and that an edit that the error interrupted was undone. Further exceptions while that box waits or is open are only logged. An edit through <code class="docutils literal notranslate"><span class="pre">SceneDocument::edit</span></code> whose change throws leaves the model as it was; what the slot had done otherwise before the throw is not undone, such as a scenario that a scenario edit has marked as modified. macOS: <code class="docutils literal notranslate"><span class="pre">std::terminate</span></code>, because an exception cannot pass the frames of QtWidgets.</p></td>
 </tr>
 <tr class="row-even"><td><p>Startup, before <code class="docutils literal notranslate"><span class="pre">application.exec()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">main</span></code> logs “EGTRAIN stopped because of an unexpected error: <what>” in <code class="docutils literal notranslate"><span class="pre">app.ui</span></code> and exits with 70.</p></td>
@@ -475,8 +537,8 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">std::abort()</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">BlockingTimeList::checkIndex</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h</span></code>) on a negative index</p></td>
-<td><p>The only deliberate abort. It logs and flushes first.</p></td>
+<td><p>the terminate handler of the window build (<code class="docutils literal notranslate"><span class="pre">app/CrashNote.cpp</span></code>)</p></td>
+<td><p>See <a class="reference internal" href="#crash-notes">Crash notes</a>. <code class="docutils literal notranslate"><span class="pre">BlockingTimeList::checkIndex</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h</span></code>) throws <code class="docutils literal notranslate"><span class="pre">std::out_of_range</span></code> with the index and the size of the list on a negative index, and the run fails with that message (<a class="reference internal" href="#what-happens-when-one-is-caught">What happens when one is caught</a>).</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">_exit(127)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">update/UpdateHelper.cpp</span></code>, in a forked child after <code class="docutils literal notranslate"><span class="pre">exec</span></code> fails</p></td>
@@ -484,7 +546,7 @@
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">assert</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">io/third_party/pugixml.cpp</span></code></p></td>
-<td><p>Compiled out in release builds.</p></td>
+<td><p>Compiled out in release builds. The simulation checks its own preconditions with exceptions: a route whose section numbers do not match its sections (<code class="docutils literal notranslate"><span class="pre">setRouteFlags</span></code>) and a route of more than 600 sections (<code class="docutils literal notranslate"><span class="pre">Route::createRouteFromBlockIds</span></code>, both in <code class="docutils literal notranslate"><span class="pre">simulation/Signalling.cpp</span></code>) throw <code class="docutils literal notranslate"><span class="pre">std::logic_error</span></code>, which fails the run or its preparation.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Q_ASSERT</span></code>, <code class="docutils literal notranslate"><span class="pre">qFatal</span></code>, <code class="docutils literal notranslate"><span class="pre">Q_UNREACHABLE</span></code>, <code class="docutils literal notranslate"><span class="pre">std::terminate</span></code></p></td>
 <td><p>none in the application code</p></td>
@@ -499,8 +561,8 @@
 <td><p>See below.</p></td>
 </tr>
 <tr class="row-even"><td><p>Fixed simulation arrays</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">arcs_in_signalling_block_section[20]</span></code> is written without a bound check (<code class="docutils literal notranslate"><span class="pre">simulation/builders/InfrastructureBuilder.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/Signalling.cpp</span></code>)</p></td>
-<td><p>Relies on the validator rejecting sections with more than 20 arcs. <code class="docutils literal notranslate"><span class="pre">IDConnectedBS</span></code> is checked, and delayed indexes are checked in <code class="docutils literal notranslate"><span class="pre">RollingStockOccupation.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">RollingStock.cpp</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">IDConnectedBS</span></code> of a section (<code class="docutils literal notranslate"><span class="pre">simulation/Signalling.h</span></code>) and the delayed indexes of a train</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">IDConnectedBS</span></code> is checked, and delayed indexes are checked in <code class="docutils literal notranslate"><span class="pre">RollingStockOccupation.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">RollingStock.cpp</span></code>. The arcs of a section are a vector that holds exactly its arcs, also in the switch sections that <code class="docutils literal notranslate"><span class="pre">generateConnectBlock</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/Signalling.cpp</span></code>) derives and in cut and reversed copies. The builder and the validator still refuse a section of more than 20 arcs, and the builder checks the arc count of each block section where it stores the arcs (<code class="docutils literal notranslate"><span class="pre">storeNativeSectionArcs</span></code> in <code class="docutils literal notranslate"><span class="pre">simulation/builders/InfrastructureBuilder.cpp</span></code>), with the preparation error <code class="docutils literal notranslate"><span class="pre">scene.native.capacity</span></code> “Block section <id> has <count> arcs, more than the 20 a section holds”.</p></td>
 </tr>
 </tbody>
 </table>
@@ -515,7 +577,6 @@
 <section id="other-hazards">
 <h3>Other hazards<a class="headerlink" href="#other-hazards" title="Link to this heading">¶</a></h3>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">Train::BrakingDistanceFastComputation</span></code> and <code class="docutils literal notranslate"><span class="pre">AccelerationTimeFollowingMode</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockBraking.cpp</span></code>) divide by an arc count that is 0 when no arc ends between the two positions. The result is NaN, the comparisons that use it are false, and an approach time is silently not found. No crash and no log.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">RunController::clearSimulationWorker</span></code> (<code class="docutils literal notranslate"><span class="pre">app/RunController.cpp</span></code>) waits for the worker thread without a timeout. A step that never checks the stop flag freezes the window when the run is stopped or the window closes.</p></li>
 </ul>
 </section>
@@ -532,7 +593,7 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Scene cannot be read, in the window</p></td>
-<td><p>“Cannot Open Case” box (<code class="docutils literal notranslate"><span class="pre">app/SceneSession.cpp</span></code>) with the first diagnostic, then the status bar “Could not open <file name>”. The text says that the file is damaged or not a case, or, for a path that does not exist or cannot be read, that EGTRAIN could not read it (<code class="docutils literal notranslate"><span class="pre">app/CannotOpenMessage.h</span></code>). An exception while the scene is read gives the same box.</p></td>
+<td><p>“Cannot Open Case” box (<code class="docutils literal notranslate"><span class="pre">app/SceneSession.cpp</span></code>) with the message and fix of each of the first three errors, its file when the message does not name it and its path in that file, and a count of the rest, then the status bar “Could not open <file name>”. The text says that the file is damaged or not a case, or, for a path that does not exist or cannot be read, that EGTRAIN could not read it (<code class="docutils literal notranslate"><span class="pre">app/CannotOpenMessage.h</span></code>). An exception while the scene is read gives the same box.</p></td>
 <td><p>Yes</p></td>
 </tr>
 <tr class="row-odd"><td><p>Scene of another version</p></td>
@@ -544,24 +605,64 @@
 <td><p>Standard error</p></td>
 </tr>
 <tr class="row-odd"><td><p>Default scene cannot be read at start</p></td>
-<td><p>“Cannot Start EGTRAIN” box, exit 1 (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>)</p></td>
+<td><p>“Cannot Start EGTRAIN” box, exit 1 (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>). A launch whose environment suppresses dialogs shows no box.</p></td>
 <td><p>Standard error</p></td>
 </tr>
-<tr class="row-even"><td><p>Save fails</p></td>
-<td><p>“Cannot Save Case” box with the first diagnostic. Three Save As errors call <code class="docutils literal notranslate"><span class="pre">QMessageBox::critical</span></code> directly (<code class="docutils literal notranslate"><span class="pre">SceneSession.cpp</span></code>), which bypasses dialog suppression and the log.</p></td>
-<td><p>Yes, except those three</p></td>
+<tr class="row-even"><td><p>Option on the command line, or an answer to a question of <code class="docutils literal notranslate"><span class="pre">--interactive</span></code>, has a value that is not a number or is outside the range that a scene allows for the same setting (<code class="docutils literal notranslate"><span class="pre">-h</span></code> from 1, <code class="docutils literal notranslate"><span class="pre">-b</span></code> and <code class="docutils literal notranslate"><span class="pre">-c</span></code> from 0, <code class="docutils literal notranslate"><span class="pre">-g</span></code> and <code class="docutils literal notranslate"><span class="pre">-pax</span></code> 0 or 1)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ERROR:</span> <span class="pre">-h</span> <span class="pre">requires</span> <span class="pre">a</span> <span class="pre">whole</span> <span class="pre">number</span> <span class="pre">of</span> <span class="pre">1</span> <span class="pre">or</span> <span class="pre">more</span> <span class="pre">seconds.</span></code> and the like on standard error, exit 1 (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>). A value of <code class="docutils literal notranslate"><span class="pre">-n</span></code>, or an answer for it, that is not a whole number counts as an unknown case id.</p></td>
+<td><p>Standard error</p></td>
 </tr>
-<tr class="row-odd"><td><p>Legacy import fails</p></td>
+<tr class="row-odd"><td><p>Save fails</p></td>
+<td><p>“Cannot Save Case” box with the first three errors, as in the “Cannot Open Case” box (<code class="docutils literal notranslate"><span class="pre">SceneSession::showError</span></code>). When the case folder was moved aside and neither the new case nor the old one could be put back in its place, the first error says that the previous case is now in <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;.backup-&lt;n&gt;</span></code></p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>Save of a case with an entry whose reference is not chosen yet: a service from Add Service without a composition and a route, an incident from Add Incident without a target, a new row of block dependencies, single-track restrictions or station boundaries without its sections, and the like</p></td>
+<td><p>The save and the autosave go through: the reader takes the empty reference (<code class="docutils literal notranslate"><span class="pre">scene/SceneFieldReader.cpp</span></code>). Case Validation and Run report it as the error <code class="docutils literal notranslate"><span class="pre">scene.ref.unresolved</span></code> with the entry named, such as “Service new_service has no composition” and the fix “Choose the composition” (<code class="docutils literal notranslate"><span class="pre">scene/SceneValidator.cpp</span></code>), so the case cannot run until the reference is chosen. <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">export</span></code> refuses the case with these errors and writes nothing (<code class="docutils literal notranslate"><span class="pre">isUnchosenReference</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SceneExporter.cpp</span></code>)</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p>Save, when the scene files of the folder or the bundle file changed on disk since the last open or save (size, modification time, a file added or removed)</p></td>
+<td><p>“Case Changed on Disk” question, default No; No cancels the save and the edits stay unsaved (<code class="docutils literal notranslate"><span class="pre">SceneSession::saveSceneToCurrentDir</span></code>)</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p>Save As as a case folder onto a folder that holds another case</p></td>
+<td><p>Question, default No; No writes nothing</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p>Save As or an export (CSV, PNG, scenario JSON) whose name gets its suffix after the dialog and then names a file that exists</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;file&gt;</span> <span class="pre">already</span> <span class="pre">exists.</span> <span class="pre">Replace</span> <span class="pre">it?</span></code>, default No; No writes nothing (<code class="docutils literal notranslate"><span class="pre">widgets/SaveSuffix.h</span></code>)</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p>Legacy import into a folder that holds a <code class="docutils literal notranslate"><span class="pre">scene.json</span></code></p></td>
+<td><p>Question, default No; No writes nothing. Yes replaces the folder with everything in it</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p>Legacy import into a folder that holds other files</p></td>
+<td><p>The folder is left as it is; a question offers a new folder inside it, named after the case. If that folder exists and holds files, “Cannot Import Legacy Case” says so and nothing is written</p></td>
+<td><p>The error: yes</p></td>
+</tr>
+<tr class="row-even"><td><p>Legacy import fails</p></td>
 <td><p>Status bar “Legacy import failed” and a box with the summary</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-even"><td><p>Run refused by validation or preparation, also when the output folder cannot be created or the preparation throws</p></td>
-<td><p>“Cannot Run Case” box with the first diagnostic; Run Results status “Failed”</p></td>
+<tr class="row-odd"><td><p>Run refused by validation or preparation, also when the output folder cannot be created or the preparation throws</p></td>
+<td><p>“Cannot Run Case” box with the first diagnostic. A refusal by the preparation also shows the status bar “Run not started: <message>” and Run Results status “Failed”; the results of an earlier run are gone, and the view shows the track preview. An output folder that cannot be created is found before the earlier run is let go, so the status bar shows “Run not started: <message>” while the earlier run keeps its Run Results status, its results, its replay and its canvas</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-odd"><td><p>Run stopped by an exception</p></td>
+<tr class="row-even"><td><p>Run whose train vectors, one value of each for every step, would take more than 4 GiB, estimated from the number of trains, the steps and the bytes of a train per step (<code class="docutils literal notranslate"><span class="pre">kTrainBytesPerStep</span></code> in <code class="docutils literal notranslate"><span class="pre">simulation/builders/OperationsBuilder.cpp</span></code>, plus <code class="docutils literal notranslate"><span class="pre">kDetailedTrajectoryBytesPerStep</span></code> when the run exports detailed trajectories)</p></td>
+<td><p>Refused before they are allocated with <code class="docutils literal notranslate"><span class="pre">scene.native.memory.limit</span></code>, which gives the estimate, the number of trains and the duration: “Cannot Run Case” in the window, the diagnostic on standard error and exit 1 without a window. A duration from <code class="docutils literal notranslate"><span class="pre">-h</span></code> is named as <code class="docutils literal notranslate"><span class="pre">-h</span></code>, not as <code class="docutils literal notranslate"><span class="pre">settings.duration_seconds</span></code>. It is not a scene validation error, so <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">validate</span></code> and Save accept the case</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>Train vectors of a run that do not fit in the free memory (<code class="docutils literal notranslate"><span class="pre">std::bad_alloc</span></code> in <code class="docutils literal notranslate"><span class="pre">buildOperationsFromScene</span></code>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.native.memory.free</span></code>, “The run needs more memory than is free for <trains> over <duration>”, shown as in the row above; the trains of the run and <code class="docutils literal notranslate"><span class="pre">initial_variables</span></code> stay as they were</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>Run stopped by an exception</p></td>
 <td><p>“Simulation Failed” box; status bar “Simulation failed”; Run Results status “Failed”</p></td>
 <td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>Run without a window stopped by a live client</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ERROR:</span> <span class="pre">The</span> <span class="pre">run</span> <span class="pre">was</span> <span class="pre">stopped</span> <span class="pre">before</span> <span class="pre">it</span> <span class="pre">completed.</span></code> on standard error, exit code 3 (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>); no <code class="docutils literal notranslate"><span class="pre">TrainServicePathDiagram.txt</span></code> is written</p></td>
+<td><p>Standard error</p></td>
 </tr>
 <tr class="row-even"><td><p>Run with zero trains</p></td>
 <td><p>Nothing visible: one error line in the Log dock (<code class="docutils literal notranslate"><span class="pre">DispatchController.cpp</span></code>)</p></td>
@@ -571,32 +672,48 @@
 <td><p>Run Results says “Failed” and the status bar says “Simulation ended without results”</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p>Run output files cannot be written</p></td>
-<td><p>Nothing: <code class="docutils literal notranslate"><span class="pre">ofstream::open</span></code> is not checked (for example <code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp</span></code>), and the run reports success</p></td>
-<td><p>One line for one file (<code class="docutils literal notranslate"><span class="pre">RollingStock.cpp</span></code>)</p></td>
+<tr class="row-even"><td><p>Results of a completed run cannot be kept, because <code class="docutils literal notranslate"><span class="pre">captureCompletedRun</span></code> throws (in practice <code class="docutils literal notranslate"><span class="pre">std::bad_alloc</span></code>)</p></td>
+<td><p>“Cannot Keep Run Results” box with the reason, and the run ends as one without results: status bar “Simulation ended without results”, Run Results status “Failed”. The worker is released, so the case is open for edits, Run is enabled and a Close, New or Open that waited for the run goes on (<code class="docutils literal notranslate"><span class="pre">RunController::onSimulationFinished</span></code>)</p></td>
+<td><p>Yes</p></td>
 </tr>
-<tr class="row-odd"><td><p>Result export fails</p></td>
-<td><p>“Export failed” warning with the path, without the reason from the OS</p></td>
-<td><p>No</p></td>
+<tr class="row-odd"><td><p>Run output files cannot be written</p></td>
+<td><p>The run fails as a run stopped by an exception, with “Cannot write <path>: <reason>”: every writer opens and closes its file with <code class="docutils literal notranslate"><span class="pre">simulation/RunOutputFile.h</span></code>. <code class="docutils literal notranslate"><span class="pre">TrainServicePathDiagram.txt</span></code> is written after the run: without a window its failure gives exit code 1, and the window shows a “Cannot Write Run Output” warning with the reason and the status bar “Simulation complete, but TrainServicePathDiagram.txt could not be written” (<code class="docutils literal notranslate"><span class="pre">RunController::onSimulationFinished</span></code>)</p></td>
+<td><p>Yes</p></td>
 </tr>
-<tr class="row-even"><td><p>Live stream cannot start</p></td>
-<td><p>“Cannot Start EGTRAIN” box, exit 2 (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>)</p></td>
+<tr class="row-even"><td><p>Result export fails</p></td>
+<td><p>“Export failed” warning with the path and, on the line below, the reason: the error of the file system, which for the provenance file follows its name (”<file>.provenance.json: <error>”, <code class="docutils literal notranslate"><span class="pre">diagrams/RunResults.cpp</span></code>), “There is no data to export.”, “The image could not be made.” or “The data could not be made.” (<code class="docutils literal notranslate"><span class="pre">saveExportInteractive</span></code> in <code class="docutils literal notranslate"><span class="pre">diagrams/ResultFrame.cpp</span></code>). The result windows and the Run Results dock pass the prompts of <code class="docutils literal notranslate"><span class="pre">ResultViews</span></code>, so a run with dialogs suppressed prints it to standard error instead</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>Live stream cannot start</p></td>
+<td><p>“Cannot Start EGTRAIN” box, exit 2 (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>). With <code class="docutils literal notranslate"><span class="pre">--live-commands</span></code> also when the endpoint file on macOS or Linux would be readable by other users, as on a file system without POSIX modes; without commands such a file is written with a warning in <code class="docutils literal notranslate"><span class="pre">io.zmq</span></code> (<code class="docutils literal notranslate"><span class="pre">io/LiveServer.cpp</span></code>).</p></td>
 <td><p>Standard error</p></td>
 </tr>
-<tr class="row-odd"><td><p>Manual update check fails</p></td>
-<td><p>Warning box with the network error</p></td>
-<td><p>No</p></td>
+<tr class="row-even"><td><p>Manual update check fails</p></td>
+<td><p>Warning box with the network error, or “The update check timed out.” when no data arrived for 10 s (<code class="docutils literal notranslate"><span class="pre">update/UpdateChecker.cpp</span></code>)</p></td>
+<td><p>Yes, category <code class="docutils literal notranslate"><span class="pre">update</span></code> at warning level</p></td>
 </tr>
-<tr class="row-even"><td><p>Automatic update check fails</p></td>
-<td><p>Nothing visible (<code class="docutils literal notranslate"><span class="pre">qWarning</span></code>, <code class="docutils literal notranslate"><span class="pre">app/UpdateTelemetryController.cpp</span></code>)</p></td>
-<td><p>Dock, category <code class="docutils literal notranslate"><span class="pre">app.ui</span></code></p></td>
+<tr class="row-odd"><td><p>Automatic update check fails</p></td>
+<td><p>Nothing visible (<code class="docutils literal notranslate"><span class="pre">app/UpdateTelemetryController.cpp</span></code>)</p></td>
+<td><p>Dock, category <code class="docutils literal notranslate"><span class="pre">update</span></code> at warning level</p></td>
+</tr>
+<tr class="row-even"><td><p>Update download or preparation fails</p></td>
+<td><p>“EGTRAIN Update” warning with the reason (<code class="docutils literal notranslate"><span class="pre">UpdateTelemetryController::handleSelfUpdateFinished</span></code>). A tool that fails adds the end of its standard error, at most five lines and 500 characters, on the line below “<tool> could not prepare the update package.”, and a staging folder that cannot be made gives “Could not create the folder <path>.” (<code class="docutils literal notranslate"><span class="pre">update/UpdatePreparation.cpp</span></code>)</p></td>
+<td><p>Yes, category <code class="docutils literal notranslate"><span class="pre">update</span></code> at warning level</p></td>
+</tr>
+<tr class="row-odd"><td><p>Update cannot be installed</p></td>
+<td><p>The update helper starts the installation in place and leaves a <code class="docutils literal notranslate"><span class="pre">not-applied</span></code> record whose <code class="docutils literal notranslate"><span class="pre">reason=</span></code> line names the step that failed (<code class="docutils literal notranslate"><span class="pre">abandonUpdate</span></code> in <code class="docutils literal notranslate"><span class="pre">update/UpdateHelper.cpp</span></code>): the old EGTRAIN did not end within 5 minutes, a check before the renames failed, a rename failed, or the new version failed to start and could not be moved aside. A previous version that runs then shows “The update to EGTRAIN <version> could not be applied.”</p></td>
+<td><p>The notice: category <code class="docutils literal notranslate"><span class="pre">update</span></code> at warning level (<code class="docutils literal notranslate"><span class="pre">update/UpdateNotices.cpp</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p>A link in the manual window, or the published manual that Help &gt; Manual opens without a help file, does not open in the browser</p></td>
+<td><p>“Open Link” or “Open Manual” warning with the address, whose text can be selected and copied (<code class="docutils literal notranslate"><span class="pre">widgets/ManualWindow.cpp</span></code>)</p></td>
+<td><p>Category <code class="docutils literal notranslate"><span class="pre">app.ui</span></code> at warning level</p></td>
 </tr>
 <tr class="row-odd"><td><p>Telemetry send or consent fails</p></td>
-<td><p>Nothing, by design; a consent save error shows in the dialog</p></td>
+<td><p>Nothing, by design; a consent save error shows in the dialog. A queue file that cannot be written is tried once more after 100 ms; when that fails too, the <code class="docutils literal notranslate"><span class="pre">disabled</span></code> marker stops the queue of that installation until a usage or diagnostics choice changes, in the privacy dialog or in Settings. The sender then removes the marker and the queued events, keeps <code class="docutils literal notranslate"><span class="pre">control.json</span></code>, and opens the queue again (<code class="docutils literal notranslate"><span class="pre">telemetry/TelemetryQueue.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">telemetry/TelemetrySender.cpp</span></code>). A marker for a retirement after a 410 response that <code class="docutils literal notranslate"><span class="pre">control.json</span></code> could not record, for a damaged or missing <code class="docutils literal notranslate"><span class="pre">control.json</span></code>, or written by an earlier EGTRAIN version, stops the queue for good.</p></td>
 <td><p>No</p></td>
 </tr>
 <tr class="row-even"><td><p>Autosave fails</p></td>
-<td><p>Status bar “Autosave unavailable: …” once per scene, overwritten by the next status message; during a pick of an incident target it waits until the pick ends (<code class="docutils literal notranslate"><span class="pre">app/MainWindow.cpp</span></code>)</p></td>
+<td><p>Status bar “Autosave unavailable: <reason>. Save the case to keep your edits.” once per scene, overwritten by the next status message; during a pick of an incident target it waits until the pick ends (<code class="docutils literal notranslate"><span class="pre">app/MainWindow.cpp</span></code>). An entry whose reference is not chosen yet does not stop the copy, so the usual cause is a recovery folder that cannot be made or written, and a save of the case still keeps the edits</p></td>
 <td><p>No</p></td>
 </tr>
 <tr class="row-odd"><td><p>A recovery copy cannot be removed</p></td>
@@ -606,7 +723,7 @@
 </tbody>
 </table>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">UserPrompts::showError</span></code> (<code class="docutils literal notranslate"><span class="pre">widgets/UserPrompts.h</span></code>) logs <code class="docutils literal notranslate"><span class="pre">&lt;title&gt;:</span> <span class="pre">&lt;message&gt;</span></code> at error level in <code class="docutils literal notranslate"><span class="pre">app.ui</span></code>, then shows the box. In a run with dialogs suppressed it prints <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_DIALOG_SUPPRESSED:</span> <span class="pre">&lt;title&gt;:</span> <span class="pre">&lt;message&gt;</span></code> to standard error instead of the box.</p>
+<p><code class="docutils literal notranslate"><span class="pre">UserPrompts::showError</span></code> (<code class="docutils literal notranslate"><span class="pre">widgets/UserPrompts.h</span></code>) logs <code class="docutils literal notranslate"><span class="pre">&lt;title&gt;:</span> <span class="pre">&lt;message&gt;</span></code> at error level in <code class="docutils literal notranslate"><span class="pre">app.ui</span></code>, then shows the box. In a run with dialogs suppressed it prints <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_DIALOG_SUPPRESSED:</span> <span class="pre">&lt;title&gt;:</span> <span class="pre">&lt;message&gt;</span></code> to standard error instead of the box. The update messages of <code class="docutils literal notranslate"><span class="pre">app/UpdateTelemetryController.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">update/UpdateNotices.cpp</span></code> are also logged in <code class="docutils literal notranslate"><span class="pre">update</span></code>, so a failure appears there at warning level and in <code class="docutils literal notranslate"><span class="pre">app.ui</span></code> at error level.</p>
 </section>
 <section id="logging">
 <h2>Logging<a class="headerlink" href="#logging" title="Link to this heading">¶</a></h2>
@@ -629,7 +746,7 @@
 <tbody>
 <tr class="row-even"><td><p>Autosave and recovery copies (#858, <code class="docutils literal notranslate"><span class="pre">recovery/</span></code>)</p></td>
 <td><p>Every 30 s with unsaved edits, writes a copy under <code class="docutils literal notranslate"><span class="pre">AppLocalDataLocation/Recovery/&lt;instance&gt;</span></code> (or <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_RECOVERY_DIR</span></code>), held by a lock file. At the next start <code class="docutils literal notranslate"><span class="pre">RecoveryStore::scan()</span></code> offers the copies whose lock is free, and <code class="docutils literal notranslate"><span class="pre">RecoveryPrompt</span></code> says “EGTRAIN closed before this case was saved”. A clean close removes the folder.</p></td>
-<td><p>Off in offscreen and suppressed runs unless <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_RECOVERY_DIR</span></code> is set. Nothing is written before the first autosave, and <code class="docutils literal notranslate"><span class="pre">scan()</span></code> deletes a folder without a copy, so a crash with a saved case or before the first autosave leaves no copy. The prompt says that the app crashed only when a crash note exists.</p></td>
+<td><p>Off in offscreen and suppressed runs unless <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_RECOVERY_DIR</span></code> is set. A test run with <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_SETTINGS_DIR</span></code> keeps them in <code class="docutils literal notranslate"><span class="pre">&lt;settings&gt;/Recovery</span></code>. Nothing is written before the first autosave, and <code class="docutils literal notranslate"><span class="pre">scan()</span></code> deletes a folder without a copy, so a crash with a saved case or before the first autosave leaves no copy. The prompt says that the app crashed only when a crash note exists.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Crash note (<code class="docutils literal notranslate"><span class="pre">app/CrashNote.cpp</span></code>)</p></td>
 <td><p>A fatal signal or an uncaught exception in the window build writes a note, and the next start reports it. See <a class="reference internal" href="#crash-notes">Crash notes</a>.</p></td>
@@ -652,7 +769,7 @@
 </div>
 <section id="crash-notes">
 <h3>Crash notes<a class="headerlink" href="#crash-notes" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">main</span></code> calls <code class="docutils literal notranslate"><span class="pre">installCrashHandler(crashNoteFolder())</span></code> once the <code class="docutils literal notranslate"><span class="pre">QApplication</span></code> exists. The folder is <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_CRASH_DIR</span></code> when it is set; otherwise scripted runs and the offscreen and minimal platforms keep no notes, and a normal run uses <code class="docutils literal notranslate"><span class="pre">AppLocalDataLocation/Crashes</span></code>. At install time the handler formats the note path, <code class="docutils literal notranslate"><span class="pre">crash-&lt;UTC</span> <span class="pre">start</span> <span class="pre">time&gt;-&lt;pid&gt;.txt</span></code>, and a header with the version, Qt, the system and the executable.</p>
+<p><code class="docutils literal notranslate"><span class="pre">main</span></code> calls <code class="docutils literal notranslate"><span class="pre">installCrashHandler(crashNoteFolder())</span></code> once the <code class="docutils literal notranslate"><span class="pre">QApplication</span></code> exists. The folder is <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_CRASH_DIR</span></code> when it is set; otherwise scripted runs and the offscreen and minimal platforms keep no notes, and a normal run uses <code class="docutils literal notranslate"><span class="pre">AppLocalDataLocation/Crashes</span></code>, or <code class="docutils literal notranslate"><span class="pre">&lt;settings&gt;/Crashes</span></code> in a test run with <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_SETTINGS_DIR</span></code>. At install time the handler formats the note path, <code class="docutils literal notranslate"><span class="pre">crash-&lt;UTC</span> <span class="pre">start</span> <span class="pre">time&gt;-&lt;pid&gt;.txt</span></code>, and a header with the version, Qt, the system and the executable.</p>
 <ul class="simple">
 <li><p>A fatal signal appends the header, <code class="docutils literal notranslate"><span class="pre">Signal:</span> <span class="pre">&lt;name&gt;</span></code> and, on macOS and Linux, <code class="docutils literal notranslate"><span class="pre">Stack:</span></code> with the frames of <code class="docutils literal notranslate"><span class="pre">backtrace_symbols_fd</span></code>. The handler does not allocate and runs on an alternate stack on the main thread. <code class="docutils literal notranslate"><span class="pre">backtrace</span></code> is called once at install so that the handler loads nothing, but it is not on the POSIX list of calls that are safe in a signal handler, so a corrupted heap can leave a partial note. It then raises the signal again with the default action, so the system still writes its own crash report and shows its own message.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">std::terminate</span></code> appends the header and <code class="docutils literal notranslate"><span class="pre">Uncaught</span> <span class="pre">exception:</span> <span class="pre">&lt;what()&gt;</span></code>, then calls <code class="docutils literal notranslate"><span class="pre">abort()</span></code>, whose SIGABRT handler adds the stack.</p></li>
@@ -755,7 +872,7 @@
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

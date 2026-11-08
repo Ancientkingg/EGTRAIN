@@ -50,7 +50,8 @@ section different levels shows them. The editor shows the labels of the levels
 
 ### What happens in a step
 
-The order is fixed in [`DispatchController`].
+The order is fixed in `runSimulationStep` (`simulation/Simulation.cpp`), which
+[`DispatchController`] calls for every step.
 
 1. Every train moves. It reads the codes and speed limits that the previous
    step wrote.
@@ -92,7 +93,7 @@ A head shows the code of the section ahead of it. If route copies of one
 section disagree, it shows the most restrictive code, in the order 0, 751, 75,
 180, 270. A copy without a level never replaces one with a level. The snapshot
 also carries the level and a failed flag for each signal
-(`app/GuiSimulationSnapshot.h`). A head whose section has no level, and a head
+(`simulation/GuiSimulationSnapshot.h`). A head whose section has no level, and a head
 that no route passes in its direction, is a grey ring with a short grey bar. The head of a
 failed signal is a red lamp with a white cross for as long as the failure
 lasts. The marks are drawn when a head is at least 6 pixels wide.
@@ -331,8 +332,8 @@ ahead of `F2` and stands at the station at 8 km while `F2` arrives
 - **Signal failure.** The chain of aspects is written behind the failed section.
   In `sf-forward-level-0`, `F1` slows to 11.111 m/s and stops at 10000 m from
   854 s to 1002 s.
-- **Blocking times.** Computed ("Conventional"). The approach of a section starts
-  when the head of the train enters the section before it
+- **Blocking times.** Computed (`BlockingTimeMethod::Conventional`). The approach
+  of a section starts when the head of the train enters the section before it
   (`ComputeBlockingTimeForSingleLocation`).
 - **Single-track restriction.** Has an effect. In `single-track-level-0`, `R1`
   waits 41 s in front of the stretch. In `stub-departure-first-level-0`, `U1`
@@ -360,9 +361,10 @@ differ in the blocking times only.
   [Common behaviour](#common-behaviour).
 - **Signal failure.** As at level 0, without the speed limit. `F1` stops at
   10000 m in `sf-forward-level-1` and `sf-forward-level-2`.
-- **Blocking times.** Level 1: none. Level 2: computed ("ETCS2"). The approach
-  of a section starts when the position of the train plus `v^2 / (2 a)` reaches
-  the start of the section, where `a` is the maximum deceleration.
+- **Blocking times.** Level 1: none. Level 2: computed
+  (`BlockingTimeMethod::Etcs2`). The approach of a section starts when the
+  position of the train plus `v^2 / (2 a)` reaches the start of the section,
+  where `a` is the maximum deceleration.
 - **Single-track restriction.** Has an effect. In `single-track-level-1` and
   `single-track-level-2`, `R1` waits 161 s.
 - **Window.** Red, yellow, green, green, as at level 0.
@@ -594,7 +596,9 @@ Checks on the areas themselves, in `scene/SceneValidator.cpp`:
 | `scene.signalling.level.missing` | warning | route sections have no level; the message names up to five sections and the tracks, and the suggested fix lists the stretches without a level when the case has areas |
 | `scene.single_track.no_effect` | warning | a block of a single-track restriction has no level |
 
-Tests: `tests/test_scenebuilder.cpp` (`runAreaMappingChecks`),
+Tests: `tests/test_scenebuilder.cpp` (`routeSectionsCarrySectionLevels`,
+`areaLevelsOfLineSections`, `trackScopedAreaOverridesOwnTrack`,
+`reversedRouteKeepsSectionLevels` and `levelWarningAgreesWithBuild`),
 `tests/test_scenevalidator.cpp`, `tests/test_scenebundle.cpp`.
 
 ## Signalling areas, block sections and capacity areas
@@ -606,7 +610,7 @@ independent. Changing one does not change the others.
 | --- | --- | --- | --- |
 | What it is | A range of chainage that gives sections a signalling level | A part of one track that a train occupies; the unit of the aspects | A route and a range of its blocks, by default all of them, with the trains the user checks, for one analysis |
 | Where it is stored | `signalling.json`, `signalling_areas[]` | `infrastructure.json`, `blocks[]`: `id`, `track` and `length_km`; blocks follow each other along the track. Connections derive switch sections | Not stored in the case. There is no such object |
-| Where it is computed | Builder, `buildInfrastructureAndSignallingFromScene` | `buildSceneSectionInventory`; the runtime sections are `infra.sections` of the run and the route copies | The capacity analysis dialog: route, From block and To block, trains and period, with the blocking times of the run (`diagrams/CapacityScope`, `diagrams/CapacityAnalysis`) |
+| Where it is computed | Builder, `buildInfrastructureAndSignallingFromScene` | `buildSceneSectionInventory`; the runtime sections are `infra.sections` of the run and the route copies | The capacity analysis dialog: route, stretch (From station and To station, or From block and To block), trains and period, with the blocking times of the run (`diagrams/CapacityScope`, `diagrams/CapacityAnalysis`) |
 | What it decides | The level of every section that it contains | What a train occupies, and where an aspect is written | Which blocking times enter the analysis |
 | Depends on | The sections | The tracks and blocks | The blocking times, which are computed only at levels 0, 2, 3 and 4 |
 
@@ -694,13 +698,13 @@ of the case.
 
 Decided, not open:
 
-- #439: historical cases without the canonical area sidecar report
+- Historical cases without the canonical area sidecar report
   `TrackLines/AreasCaseStudy.txt` in the warning `scene.import.areas.skipped` and
   convert none of its rows. The case has no signalling area until the user adds
   one in Infrastructure > Signalling area. Canonical exports keep their
   assignment in the sidecar.
 
-Limits that no issue tracks:
+Other limits:
 
 - The characterization cases do not record whether a train of level 4 enters the
   following mode.
@@ -753,7 +757,7 @@ how diverging switches are handled at levels 3 and 4
 does not say what creates the infrastructure elements that levels 3 and 4 make
 blocking times for; the characterization line has none.
 
-[`Section::SignallingLevel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_section.html
-[`DispatchController`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_dispatch_controller.html
-[`Train::Det_Section_Occupied_By_Train`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_train.html
-[`Route::createRouteFromBlockIds`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_route.html
+[`Section::SignallingLevel`]: https://egtrain.samuelbruin.com/latest/api/class_section.html
+[`DispatchController`]: https://egtrain.samuelbruin.com/latest/api/class_dispatch_controller.html
+[`Train::Det_Section_Occupied_By_Train`]: https://egtrain.samuelbruin.com/latest/api/class_train.html
+[`Route::createRouteFromBlockIds`]: https://egtrain.samuelbruin.com/latest/api/class_route.html

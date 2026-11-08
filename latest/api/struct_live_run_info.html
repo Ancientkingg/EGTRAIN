@@ -8,7 +8,6 @@
 <title>EGTRAIN: LiveRunInfo Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,7 +115,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_live_ru
 <p>What identifies a run and sets the time axis of its frames.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_live_frame_8h_source.html">io/LiveFrame.h</a>&gt;</code></p>
+<p><code>#include &lt;io/LiveFrame.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -124,11 +123,11 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:ae13743ea865ce612e46da0785b43daa2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The id of the run in every frame. <a class="el" href="class_dispatch_controller.html">DispatchController</a> makes 16 hexadecimal digits per run.  <br /></td></tr>
 <tr class="memitem:a1ea29d5b9b3fde2420df5b786e2efce9" id="r_a1ea29d5b9b3fde2420df5b786e2efce9"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a1ea29d5b9b3fde2420df5b786e2efce9">sceneName</a></td></tr>
 <tr class="memdesc:a1ea29d5b9b3fde2420df5b786e2efce9"><td class="mdescLeft">&#160;</td><td class="mdescRight">The name of the scene of the run.  <br /></td></tr>
-<tr class="memitem:a02190d82b82da3ebfb9d27e0d9c25045" id="r_a02190d82b82da3ebfb9d27e0d9c25045"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a02190d82b82da3ebfb9d27e0d9c25045">baseTimeSeconds</a> = 0.0</td></tr>
+<tr class="memitem:a02190d82b82da3ebfb9d27e0d9c25045" id="r_a02190d82b82da3ebfb9d27e0d9c25045"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a02190d82b82da3ebfb9d27e0d9c25045">baseTimeSeconds</a></td></tr>
 <tr class="memdesc:a02190d82b82da3ebfb9d27e0d9c25045"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time of day of step 0, in seconds from midnight.  <br /></td></tr>
-<tr class="memitem:a32c95fcd13a8389fb20627f5d352c35b" id="r_a32c95fcd13a8389fb20627f5d352c35b"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a32c95fcd13a8389fb20627f5d352c35b">horizonSteps</a> = 0</td></tr>
+<tr class="memitem:a32c95fcd13a8389fb20627f5d352c35b" id="r_a32c95fcd13a8389fb20627f5d352c35b"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a32c95fcd13a8389fb20627f5d352c35b">horizonSteps</a></td></tr>
 <tr class="memdesc:a32c95fcd13a8389fb20627f5d352c35b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of steps of the run.  <br /></td></tr>
-<tr class="memitem:a1f7ddfa17892b60010be3a43c3e5ca80" id="r_a1f7ddfa17892b60010be3a43c3e5ca80"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a1f7ddfa17892b60010be3a43c3e5ca80">stepSeconds</a> = 1.0</td></tr>
+<tr class="memitem:a1f7ddfa17892b60010be3a43c3e5ca80" id="r_a1f7ddfa17892b60010be3a43c3e5ca80"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a1f7ddfa17892b60010be3a43c3e5ca80">stepSeconds</a></td></tr>
 <tr class="memdesc:a1f7ddfa17892b60010be3a43c3e5ca80"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length of one step, in seconds.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -141,7 +140,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double LiveRunInfo::baseTimeSeconds = 0.0</td>
+          <td class="memname">double LiveRunInfo::baseTimeSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -157,7 +156,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int LiveRunInfo::horizonSteps = 0</td>
+          <td class="memname">int LiveRunInfo::horizonSteps</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -205,7 +204,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double LiveRunInfo::stepSeconds = 1.0</td>
+          <td class="memname">double LiveRunInfo::stepSeconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -215,7 +214,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>io/<a class="el" href="_live_frame_8h_source.html">LiveFrame.h</a></li>
+<li>io/<a class="el" href="_live_frame_8h.html">LiveFrame.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

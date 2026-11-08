@@ -1,7 +1,7 @@
 <map id="compareAgainstBaseline" name="compareAgainstBaseline">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,189,55"/>
-<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="65,31,58,21,61,11,75,5,97,3,124,6,136,15,132,19,122,11,97,8,76,10,65,15,63,20,69,28"/>
-<area shape="rect" id="Node000002" href="$_delay_analysis_8cpp.html#a1f9eca401d0a3e572b4e7a63d8682e2c" title="The totals over the final arrival of each of the occurrences." alt="" coords="237,29,352,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="190,39,224,39,224,45,190,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="262,31,255,21,259,11,272,5,295,3,322,6,333,15,330,19,320,11,295,8,274,10,263,15,260,20,266,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,189,57"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="63,28,57,20,62,11,75,5,97,3,120,5,134,14,129,14,119,10,97,8,77,10,66,15,63,20,68,29"/>
+<area shape="rect" id="Node000002" href="$_delay_analysis_8cpp.html#a1f9eca401d0a3e572b4e7a63d8682e2c" title="The totals over the final arrival of each of the occurrences." alt="" coords="237,29,351,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,41,223,43,218,43,189,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="260,28,254,20,259,11,272,5,294,3,317,5,331,14,326,14,316,10,294,8,273,10,262,15,260,20,265,30"/>
 </map>

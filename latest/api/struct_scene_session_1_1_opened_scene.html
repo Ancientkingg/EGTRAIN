@@ -8,7 +8,6 @@
 <title>EGTRAIN: SceneSession::OpenedScene Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,19 +115,19 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_s
 <p>A scene that the session has just read and put in the document.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_scene_session_8h_source.html">app/SceneSession.h</a>&gt;</code></p>
+<p><code>#include &lt;app/SceneSession.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a249dd1bb6db27cca9093e8648a62c453" id="r_a249dd1bb6db27cca9093e8648a62c453"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a249dd1bb6db27cca9093e8648a62c453">path</a></td></tr>
 <tr class="memdesc:a249dd1bb6db27cca9093e8648a62c453"><td class="mdescLeft">&#160;</td><td class="mdescRight">The absolute path of the file or folder that was read.  <br /></td></tr>
-<tr class="memitem:ad5e64cbf5931bbdb9118f9905b1e8cd7" id="r_ad5e64cbf5931bbdb9118f9905b1e8cd7"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad5e64cbf5931bbdb9118f9905b1e8cd7">bundle</a> = false</td></tr>
+<tr class="memitem:ad5e64cbf5931bbdb9118f9905b1e8cd7" id="r_ad5e64cbf5931bbdb9118f9905b1e8cd7"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad5e64cbf5931bbdb9118f9905b1e8cd7">bundle</a></td></tr>
 <tr class="memdesc:ad5e64cbf5931bbdb9118f9905b1e8cd7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene was read from a bundle.  <br /></td></tr>
-<tr class="memitem:a9d8b48e05161a3d1c1850cbb40a9c010" id="r_a9d8b48e05161a3d1c1850cbb40a9c010"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a9d8b48e05161a3d1c1850cbb40a9c010">recovered</a> = false</td></tr>
+<tr class="memitem:a9d8b48e05161a3d1c1850cbb40a9c010" id="r_a9d8b48e05161a3d1c1850cbb40a9c010"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a9d8b48e05161a3d1c1850cbb40a9c010">recovered</a></td></tr>
 <tr class="memdesc:a9d8b48e05161a3d1c1850cbb40a9c010"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene is a recovery copy (<a class="el" href="class_scene_session.html#a4f5bee0dffcffc3436143214fd9e1a6da5c4c4cf7bbab0d76fe61420aee14a5ca" title="The recovery copy of a scene with unsaved edits.">OpenOrigin::Recovered</a>).  <br /></td></tr>
-<tr class="memitem:a315f36f50026bec19b962a0002a8582a" id="r_a315f36f50026bec19b962a0002a8582a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a315f36f50026bec19b962a0002a8582a">reloadingSameScene</a> = false</td></tr>
+<tr class="memitem:a315f36f50026bec19b962a0002a8582a" id="r_a315f36f50026bec19b962a0002a8582a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a315f36f50026bec19b962a0002a8582a">reloadingSameScene</a></td></tr>
 <tr class="memdesc:a315f36f50026bec19b962a0002a8582a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The window already held this scene, which is read again.  <br /></td></tr>
-<tr class="memitem:a4cf952c5e6dd54f4d1794fa7e7c88500" id="r_a4cf952c5e6dd54f4d1794fa7e7c88500"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4cf952c5e6dd54f4d1794fa7e7c88500">timingIdentityOk</a> = true</td></tr>
+<tr class="memitem:a4cf952c5e6dd54f4d1794fa7e7c88500" id="r_a4cf952c5e6dd54f4d1794fa7e7c88500"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4cf952c5e6dd54f4d1794fa7e7c88500">timingIdentityOk</a></td></tr>
 <tr class="memdesc:a4cf952c5e6dd54f4d1794fa7e7c88500"><td class="mdescLeft">&#160;</td><td class="mdescRight">Startup timing found the scene that it expects. True when startup timing is off.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -141,7 +140,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool SceneSession::OpenedScene::bundle = false</td>
+          <td class="memname">bool SceneSession::OpenedScene::bundle</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -173,7 +172,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool SceneSession::OpenedScene::recovered = false</td>
+          <td class="memname">bool SceneSession::OpenedScene::recovered</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -189,7 +188,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool SceneSession::OpenedScene::reloadingSameScene = false</td>
+          <td class="memname">bool SceneSession::OpenedScene::reloadingSameScene</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -205,7 +204,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool SceneSession::OpenedScene::timingIdentityOk = true</td>
+          <td class="memname">bool SceneSession::OpenedScene::timingIdentityOk</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -215,7 +214,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>app/<a class="el" href="_scene_session_8h_source.html">SceneSession.h</a></li>
+<li>app/<a class="el" href="_scene_session_8h.html">SceneSession.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

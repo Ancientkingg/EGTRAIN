@@ -192,11 +192,13 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/common-questions.html">Common questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
@@ -220,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -236,7 +238,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +252,6 @@
 <li class="toctree-l1"><a class="reference internal" href="historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +267,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -310,7 +312,7 @@
 <section id="playback">
 <h2>Playback<a class="headerlink" href="#playback" title="Link to this heading">¶</a></h2>
 <p>The Pause button reads <strong>Resume</strong> while a run is paused. It is as wide as the longer text, so the toolbar does not move, and its outline shows the whole button, so the gaps from Run to Pause and from Pause to Stop are equal.</p>
-<p>The replay row starts with the icon buttons <strong>Start</strong>, <strong>Play</strong> and <strong>End</strong>, each with a tooltip and an accessible name; Tab goes from Start to Play and End and then to the slider. While the replay plays, <strong>Play</strong> shows the pause icon, the tooltip and the name <strong>Pause</strong>. The icons have one size, so End and the slider do not move. The label after the slider shows the clock time of the shown frame in the format of the progress bar and is as wide as its longest text, so the slider keeps its width while the user seeks.</p>
+<p>The replay row starts with the icon buttons <strong>Start</strong>, <strong>Play</strong> and <strong>End</strong>, each with a tooltip and an accessible name; Tab goes from Start to Play and End and then to the slider and the speed box. While the replay plays, <strong>Play</strong> shows the pause icon, the tooltip and the name <strong>Pause</strong>. The icons have one size, so End and the slider do not move. The label after the slider shows the clock time of the shown frame in the format of the progress bar and is as wide as its longest text, so the slider keeps its width while the user seeks. After the label, the speed box (<strong>Replay speed</strong>, 1x, 2x, 5x, 10x, 30x and 60x, 10x at the start) sets how many simulated seconds play per second; it is enabled when <strong>Play</strong> is and keeps its choice for the session.</p>
 <p>The speed slider in the toolbar sets how fast a run plays; right is faster. The filled part of the track, <code class="docutils literal notranslate"><span class="pre">#315a70</span></code>, shows how far the slider is towards the fastest setting; the rest of the track is <code class="docutils literal notranslate"><span class="pre">#7b8b96</span></code>. The handle is a solid <code class="docutils literal notranslate"><span class="pre">#315a70</span></code> circle with a white border. It turns <code class="docutils literal notranslate"><span class="pre">#26495c</span></code> under the pointer and while it is dragged, gets a <code class="docutils literal notranslate"><span class="pre">#24313a</span></code> border when it has keyboard focus, and the handle and the filled part turn <code class="docutils literal notranslate"><span class="pre">#9aa5ab</span></code> when the slider is disabled. The replay slider in the replay row has the same look.</p>
 <p>The readout next to the slider shows the current speed as <strong>Fastest</strong> or as a factor of real time such as <strong>4.0x</strong> or <strong>100x</strong>. Its width fits the longest text, so the toolbar does not move while the slider is dragged. The slider has no Slower and Faster words beside it: with them the toolbar needs about 1070 px and no longer shows every control in a 1024 px window.</p>
 </section>
@@ -331,8 +333,9 @@
 <p>The Case and Layers dock opens at the width of its widest layer toggle, <strong>Stations and platforms</strong>, plus the vertical scroll bar. A case name up to that width fits on one line, and a longer one wraps. The user can drag the dock wider.</p>
 <p>The toggle that opens the map key has the white fill, <code class="docutils literal notranslate"><span class="pre">#7b8b96</span></code> border, 6 px radius and states of a push button, with small grey bold text, and keeps that face while the key is open. The map key has a <strong>Passenger count</strong> row only while the network shows passengers: the run started with passengers on, the case has passengers and the Passengers layer is on.</p>
 <p>The editor docks share one group of tabs on the right of the window. The group takes the whole height between the toolbar and the status bar, and Run Results and the other docks below the network end at its left edge, so each open editor shows several rows of fields, also after a run in a short window. Choosing an editor in the Editors menu opens it, or brings it to the front when it is open behind another tab. An editor dock, such as Rolling Stock Units, opens at least as wide as its size hint, also after another dock has been dragged narrower, so its fields do not scroll sideways. An editor dock floated with its button or a double click opens inside the screen, as large as its content asks where the screen allows. In a narrow group the names of the tabs end in an ellipsis, each tab keeps at least 3 em for its name, and the tooltip of each tab gives its whole name; when the tabs still do not fit, the bar scrolls. Two scroll buttons with the face and border of a tab then end the bar; each shows a <code class="docutils literal notranslate"><span class="pre">#5b6871</span></code> arrow of the size of a drop-down arrow, turned to the side, which is <code class="docutils literal notranslate"><span class="pre">#9aa5ab</span></code> when the bar cannot scroll further that way.</p>
+<p>Log, Case Validation, Loaded Data and Run Results share one group of tabs below the network. Their entries in the View menu, and Ctrl+Shift+L and Ctrl+Shift+V for Log and Case Validation, work like the entries of the Editors menu: each opens its dock, or brings it to the front when it is open behind another tab, and closes it only when it is in front. The menu of a dock title has the same entries.</p>
 <p>The Services dock shows its list above its tabs, so that beside Case and Layers in a window of 819 px it needs no horizontal scroll bar. Tabs that do not fit scroll and keep their whole names.</p>
-<p>The lists of Rolling Stock Units, Services, Incidents and Entrance delays show about three rows, with their three buttons in one row below, so that the fields of the selected item keep the height of a short dock. The title of the dock names the list of Rolling Stock Units and the list of Services. The list of Services keeps its height on the Timetable tab.</p>
+<p>The lists of Rolling Stock Units, Services, Incidents and Entrance delays show about three rows, with their three buttons in one row below (Rolling Stock Units has Add from Library… in a second row under them), so that the fields of the selected item keep the height of a short dock. The title of the dock names the list of Rolling Stock Units and the list of Services. The list of Services keeps its height on the Timetable tab.</p>
 </section>
 <section id="light-look">
 <h2>Light look<a class="headerlink" href="#light-look" title="Link to this heading">¶</a></h2>
@@ -396,7 +399,7 @@
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

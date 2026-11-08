@@ -1,7 +1,7 @@
 <map id="SceneHistory::SceneHistory" name="SceneHistory::SceneHistory">
-<area shape="rect" id="Node000001" title="A history with an empty scene as its root and these limits." alt="" coords="5,31,207,56"/>
-<area shape="rect" id="Node000002" href="$class_scene_history.html#aeb95604a81a0c03866d4358311192af0" title="The limits of this history." alt="" coords="255,5,407,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="207,29,241,25,241,31,208,35"/>
-<area shape="rect" id="Node000003" href="$class_scene_history.html#a91d087a4d05a0e6beafb4b0975364690" title=" " alt="" coords="257,55,405,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="208,51,243,55,243,61,207,57"/>
+<area shape="rect" id="Node000001" title="A history with an empty scene as its root and these limits." alt="" coords="5,32,206,60"/>
+<area shape="rect" id="Node000002" href="$class_scene_history.html#aeb95604a81a0c03866d4358311192af0" title="The limits of this history." alt="" coords="254,5,405,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,31,240,30,235,31,206,37"/>
+<area shape="rect" id="Node000003" href="$class_scene_history.html#a91d087a4d05a0e6beafb4b0975364690" title=" " alt="" coords="256,57,403,85"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="206,55,243,61,237,61,206,60"/>
 </map>

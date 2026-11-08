@@ -12,5 +12,6 @@ var class_section_rows_facet =
     [ "key", "class_section_rows_facet.html#a082f9f72a49e6a79dce3fdf0f75675a0", null ],
     [ "remove", "class_section_rows_facet.html#a35c67d082b7822de23d512060f1547e9", null ],
     [ "rowTitle", "class_section_rows_facet.html#a71cb33e4a14aafdd81237178d269fe43", null ],
+    [ "selectionId", "class_section_rows_facet.html#ac18ad49ece02aa92677b4040bc9bdc83", null ],
     [ "storeIn", "class_section_rows_facet.html#ae848bf6dbf21c6e978f2410dd02451c0", null ]
 ];

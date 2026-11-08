@@ -1,0 +1,13 @@
+<map id="followAvailability" name="followAvailability">
+<area shape="rect" id="Node000001" title="What the window offers and shows for Follow of the train of in." alt="" coords="5,68,140,96"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="41,68,37,59,41,50,53,43,73,41,94,44,106,52,101,53,92,49,72,47,54,49,45,53,42,59,47,67"/>
+<area shape="rect" id="Node000002" href="$_follow_availability_8h.html#ac3c9513914945351da9cdb7fae14bcb2" title=" " alt="" coords="199,29,300,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="138,65,186,56,181,58,139,70"/>
+<area shape="rect" id="Node000004" href="$_time_format_8cpp.html#a6903059349242c88f94f30ba656a03b1" title=" " alt="" coords="188,105,311,133"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="140,93,175,103,170,103,140,99"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="218,28,214,20,217,11,230,5,249,3,270,5,283,14,278,14,269,10,249,8,231,10,221,15,219,20,223,30"/>
+<area shape="rect" id="Node000003" href="$_gui_simulation_snapshot_8h.html#ab4397b256aacd088b6767e677794ce57" title=" " alt="" coords="359,29,553,57"/>
+<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="300,41,346,43,341,44,300,46"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="420,28,415,20,419,11,433,5,456,3,481,5,495,14,490,14,479,10,456,8,435,10,423,15,420,20,425,30"/>
+<area shape="poly" id="edge7_Node000004_Node000004" title=" " alt="" coords="218,104,214,96,217,87,230,81,249,79,270,81,283,90,278,90,269,86,249,84,231,86,221,91,219,96,223,106"/>
+</map>

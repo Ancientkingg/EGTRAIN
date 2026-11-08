@@ -1,0 +1,10 @@
+<map id="relLastSectionMixedSignalling" name="relLastSectionMixedSignalling">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,68,222,96"/>
+<area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="67,68,60,59,66,49,84,43,114,41,145,44,164,52,158,53,144,49,113,47,85,49,70,54,66,59,73,67"/>
+<area shape="rect" id="Node000002" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="338,29,428,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="214,65,325,51,320,52,215,70"/>
+<area shape="rect" id="Node000003" href="$_signalling_8cpp.html#ae8e290910dab299b27108b5b6cf61fe9" title=" " alt="" coords="270,105,496,133"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="218,94,266,102,261,103,218,99"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="337,28,330,20,336,11,354,5,383,3,414,5,433,14,428,14,413,10,383,8,355,10,339,15,335,20,342,29"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="337,104,330,96,336,87,354,81,383,79,414,81,433,90,428,90,413,86,383,84,355,86,339,91,335,96,342,106"/>
+</map>

@@ -8,7 +8,6 @@
 <title>EGTRAIN: SceneModel Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,16 +115,16 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_m
 <p>The whole scene: the content of the scene files and the summaries derived from them.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&gt;</code></p>
+<p><code>#include &lt;scene/SceneModel.h&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for SceneModel:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="struct_scene_model__coll__graph.svg" width="195" height="132"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="struct_scene_model__coll__graph.svg" width="195" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a7e02348aab332da4f8d785f5a3a4b8b2" id="r_a7e02348aab332da4f8d785f5a3a4b8b2"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a7e02348aab332da4f8d785f5a3a4b8b2">schemaVersion</a> = 0</td></tr>
+<tr class="memitem:a7e02348aab332da4f8d785f5a3a4b8b2" id="r_a7e02348aab332da4f8d785f5a3a4b8b2"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a7e02348aab332da4f8d785f5a3a4b8b2">schemaVersion</a></td></tr>
 <tr class="memdesc:a7e02348aab332da4f8d785f5a3a4b8b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">schema_version of scene.json; 0 when not read.  <br /></td></tr>
 <tr class="memitem:af302feab06da59ad089ef2c4145bb37c" id="r_af302feab06da59ad089ef2c4145bb37c"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#af302feab06da59ad089ef2c4145bb37c">savedWithAppVersion</a></td></tr>
 <tr class="memdesc:af302feab06da59ad089ef2c4145bb37c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Version of the application that saved the scene; empty when not recorded.  <br /></td></tr>
@@ -136,8 +135,6 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a9bab23f39b243d82e151b0cefa9a3068"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clock time "HH:MM:SS" at which a run starts. Times of services and incidents count from it.  <br /></td></tr>
 <tr class="memitem:a8b50930887f041d37eae6b4a84e373a1" id="r_a8b50930887f041d37eae6b4a84e373a1"><td class="memItemLeft"><a class="el" href="struct_scene_simulation_settings.html">SceneSimulationSettings</a>&#160;</td><td class="memItemRight"><a class="el" href="#a8b50930887f041d37eae6b4a84e373a1">settings</a></td></tr>
 <tr class="memdesc:a8b50930887f041d37eae6b4a84e373a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The simulation settings.  <br /></td></tr>
-<tr class="memitem:acd60dd12f6f936cc7c28a077c4fa83fe" id="r_acd60dd12f6f936cc7c28a077c4fa83fe"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_loaded_data.html">SceneLoadedData</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#acd60dd12f6f936cc7c28a077c4fa83fe">loadedData</a></td></tr>
-<tr class="memdesc:acd60dd12f6f936cc7c28a077c4fa83fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loaded Data summary; derived, not saved.  <br /></td></tr>
 <tr class="memitem:ae47a9a18a26ab0decdd0dbafd7ff5bf2" id="r_ae47a9a18a26ab0decdd0dbafd7ff5bf2"><td class="memItemLeft">std::set&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ae47a9a18a26ab0decdd0dbafd7ff5bf2">sourceFiles</a></td></tr>
 <tr class="memdesc:ae47a9a18a26ab0decdd0dbafd7ff5bf2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Names of the scene files present at load or save; derived.  <br /></td></tr>
 <tr class="memitem:a85d76e461292b9408d235aec9562b1c7" id="r_a85d76e461292b9408d235aec9562b1c7"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_import_report_row.html">SceneImportReportRow</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a85d76e461292b9408d235aec9562b1c7">importReport</a></td></tr>
@@ -328,22 +325,6 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="acd60dd12f6f936cc7c28a077c4fa83fe" name="acd60dd12f6f936cc7c28a077c4fa83fe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acd60dd12f6f936cc7c28a077c4fa83fe">&#9670;&#160;</a></span>loadedData</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt;<a class="el" href="struct_scene_loaded_data.html">SceneLoadedData</a>&gt; SceneModel::loadedData</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Loaded Data summary; derived, not saved. </p>
-
-</div>
-</div>
 <a id="a9e5a66f50070f2b1960b58820c6d6b83" name="a9e5a66f50070f2b1960b58820c6d6b83"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9e5a66f50070f2b1960b58820c6d6b83">&#9670;&#160;</a></span>name</h2>
 
@@ -447,7 +428,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int SceneModel::schemaVersion = 0</td>
+          <td class="memname">int SceneModel::schemaVersion</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -648,7 +629,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>scene/<a class="el" href="_scene_model_8h_source.html">SceneModel.h</a></li>
+<li>scene/<a class="el" href="_scene_model_8h.html">SceneModel.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

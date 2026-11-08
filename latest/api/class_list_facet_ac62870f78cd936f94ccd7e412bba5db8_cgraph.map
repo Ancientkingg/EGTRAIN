@@ -1,5 +1,5 @@
 <map id="ListFacet::ListFacet" name="ListFacet::ListFacet">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,149,38"/>
-<area shape="rect" id="Node000002" href="$class_infrastructure_facet.html#a1a84433cbd92f00c37061e96cdd6b65d" title="Moves the selected entity down by offset rows, up when it is negative." alt="" coords="197,5,341,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,23,184,23,184,28,150,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,14,149,42"/>
+<area shape="rect" id="Node000002" href="$class_infrastructure_facet.html#a1a84433cbd92f00c37061e96cdd6b65d" title="Moves the selected entity down by offset rows, up when it is negative." alt="" coords="197,5,340,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,25,184,27,179,28,149,30"/>
 </map>

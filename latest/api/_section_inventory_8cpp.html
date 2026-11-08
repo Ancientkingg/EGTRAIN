@@ -8,7 +8,6 @@
 <title>EGTRAIN: scene/SectionInventory.cpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,20 +111,24 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_section_inven
   <div class="headertitle"><div class="title">SectionInventory.cpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_section_inventory_8h_source.html">scene/SectionInventory.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_signalling_level_8h_source.html">scene/SignallingLevel.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_section_inventory_8h.html">scene/SectionInventory.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_section_reference_8h.html">scene/SectionReference.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_signalling_level_8h.html">scene/SignallingLevel.h</a>&quot;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;cmath&gt;</code><br />
 <code>#include &lt;cstdio&gt;</code><br />
+<code>#include &lt;initializer_list&gt;</code><br />
 <code>#include &lt;iomanip&gt;</code><br />
+<code>#include &lt;limits&gt;</code><br />
 <code>#include &lt;locale&gt;</code><br />
 <code>#include &lt;sstream&gt;</code><br />
 <code>#include &lt;unordered_map&gt;</code><br />
 <code>#include &lt;unordered_set&gt;</code><br />
+<code>#include &lt;utility&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for SectionInventory.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp__incl.svg" width="2271" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp__incl.svg" width="2240" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -137,6 +140,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:a64c14cbefafa78e81ec551a43f333429"><td class="mdescLeft">&#160;</td><td class="mdescRight">The labels of the sections of the inventory (see <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a>).  <br /></td></tr>
 <tr class="memitem:aada86a733299e516b7fc5ad92a65eee4" id="r_aada86a733299e516b7fc5ad92a65eee4"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aada86a733299e516b7fc5ad92a65eee4">sceneSignalFailureTarget</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;inventory, const std::string &amp;sectionReference)</td></tr>
 <tr class="memitem:a9cb3de6815c38bfd0cf14a022a187786" id="r_a9cb3de6815c38bfd0cf14a022a187786"><td class="memItemLeft"><a class="el" href="struct_scene_section_transition.html">SceneSectionTransition</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9cb3de6815c38bfd0cf14a022a187786">classifySceneSectionTransition</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;left, const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;right)</td></tr>
+<tr class="memitem:a8a70bbc57dec734cd616377937c1b5bb" id="r_a8a70bbc57dec734cd616377937c1b5bb"><td class="memItemLeft"><a class="el" href="struct_scene_track_chain.html">SceneTrackChain</a>&#160;</td><td class="memItemRight"><a class="el" href="#a8a70bbc57dec734cd616377937c1b5bb">sceneTrackChain</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::string &amp;trackId)</td></tr>
 <tr class="memitem:a0a493a67878c96b3c90d791a1fa68552" id="r_a0a493a67878c96b3c90d791a1fa68552"><td class="memItemLeft"><a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a>&#160;</td><td class="memItemRight"><a class="el" href="#a0a493a67878c96b3c90d791a1fa68552">buildSceneSectionInventory</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memitem:a70ff699bacfd05e1892bd3e5d5378c50" id="r_a70ff699bacfd05e1892bd3e5d5378c50"><td class="memItemLeft"><a class="el" href="struct_scene_block_extent.html">SceneBlockExtent</a>&#160;</td><td class="memItemRight"><a class="el" href="#a70ff699bacfd05e1892bd3e5d5378c50">sceneBlockExtent</a> (const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;inventory, const std::string &amp;trackId)</td></tr>
 <tr class="memdesc:a70ff699bacfd05e1892bd3e5d5378c50"><td class="mdescLeft">&#160;</td><td class="mdescRight">The extent of the block sections of the track, or of all tracks when trackId is empty.  <br /></td></tr>
@@ -174,7 +178,7 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a980f3c9bdc48de47b7a80afd938f8ec6_cgraph.svg" width="623" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a980f3c9bdc48de47b7a80afd938f8ec6_cgraph.svg" width="616" height="131"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -202,7 +206,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a767aeebb22fd91d15658526e6bd5acbd_cgraph.svg" width="724" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a767aeebb22fd91d15658526e6bd5acbd_cgraph.svg" width="748" height="191"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -234,7 +238,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a2147b834777a02bb54e37deeedd9a4fb_cgraph.svg" width="982" height="320"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a2147b834777a02bb54e37deeedd9a4fb_cgraph.svg" width="1003" height="359"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -257,7 +261,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a0a493a67878c96b3c90d791a1fa68552_cgraph.svg" width="486" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a0a493a67878c96b3c90d791a1fa68552_cgraph.svg" width="511" height="191"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -289,7 +293,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a9cb3de6815c38bfd0cf14a022a187786_cgraph.svg" width="232" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a9cb3de6815c38bfd0cf14a022a187786_cgraph.svg" width="231" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -313,7 +317,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a38867ed655babc4f9d2a81b27deff310_cgraph.svg" width="235" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a38867ed655babc4f9d2a81b27deff310_cgraph.svg" width="235" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -345,7 +349,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_af454f6ad805e4782da5b9ee9d8a43dbe_cgraph.svg" width="204" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_af454f6ad805e4782da5b9ee9d8a43dbe_cgraph.svg" width="203" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -373,7 +377,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a70ff699bacfd05e1892bd3e5d5378c50_cgraph.svg" width="150" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a70ff699bacfd05e1892bd3e5d5378c50_cgraph.svg" width="148" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -400,7 +404,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_ae4f9207213b44d11e550fd70a54d3fde_cgraph.svg" width="438" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_ae4f9207213b44d11e550fd70a54d3fde_cgraph.svg" width="436" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -433,7 +437,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a976f8f27d55432ea7c8062522a7ebb4a_cgraph.svg" width="923" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a976f8f27d55432ea7c8062522a7ebb4a_cgraph.svg" width="947" height="191"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -456,7 +460,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a51767c3e1d490b330b50d4a4ba4d4388_cgraph.svg" width="154" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a51767c3e1d490b330b50d4a4ba4d4388_cgraph.svg" width="154" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -480,7 +484,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a64c14cbefafa78e81ec551a43f333429_cgraph.svg" width="352" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a64c14cbefafa78e81ec551a43f333429_cgraph.svg" width="374" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -528,7 +532,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a27f18250734df7f228d6cc0fdb9b6ad6_cgraph.svg" width="178" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a27f18250734df7f228d6cc0fdb9b6ad6_cgraph.svg" width="176" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -560,7 +564,34 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_aada86a733299e516b7fc5ad92a65eee4_cgraph.svg" width="631" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_aada86a733299e516b7fc5ad92a65eee4_cgraph.svg" width="626" height="71"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a8a70bbc57dec734cd616377937c1b5bb" name="a8a70bbc57dec734cd616377937c1b5bb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a70bbc57dec734cd616377937c1b5bb">&#9670;&#160;</a></span>sceneTrackChain()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_scene_track_chain.html">SceneTrackChain</a> sceneTrackChain </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>trackId</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The chain of the track, as the section inventory builds it. Both lists are empty for an unknown track and when the arcs of the track do not form one line (scene.topology.* in the validator). The pointers lead into scene. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a8a70bbc57dec734cd616377937c1b5bb_cgraph.svg" width="142" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

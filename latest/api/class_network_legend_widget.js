@@ -5,5 +5,6 @@ var class_network_legend_widget =
     [ "entryLabels", "class_network_legend_widget.html#a45e146ba67193a491f3b976302a85f1c", null ],
     [ "isExpanded", "class_network_legend_widget.html#abc582233949010745efc0a4941b7b911", null ],
     [ "setCaseContent", "class_network_legend_widget.html#a2b4ed0218c0648c714017beff5417673", null ],
-    [ "setExpanded", "class_network_legend_widget.html#a6459b6aad43ab743797df0dfe3bcd3b3", null ]
+    [ "setExpanded", "class_network_legend_widget.html#a6459b6aad43ab743797df0dfe3bcd3b3", null ],
+    [ "setStationMarkStyle", "class_network_legend_widget.html#a5f1cd411b81f1af566e4da6b17dceef4", null ]
 ];

@@ -8,7 +8,6 @@
 <title>EGTRAIN: graphics/NetworkPresenter.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -114,6 +113,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_network_prese
 <div class="contents">
 <div class="textblock"><code>#include &lt;QElapsedTimer&gt;</code><br />
 <code>#include &lt;QGraphicsScene&gt;</code><br />
+<code>#include &lt;QLineF&gt;</code><br />
 <code>#include &lt;QList&gt;</code><br />
 <code>#include &lt;QMap&gt;</code><br />
 <code>#include &lt;QPen&gt;</code><br />
@@ -123,34 +123,34 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_network_prese
 <code>#include &lt;QPolygonF&gt;</code><br />
 <code>#include &lt;QRectF&gt;</code><br />
 <code>#include &lt;QString&gt;</code><br />
+<code>#include &lt;QStringList&gt;</code><br />
 <code>#include &lt;QTimer&gt;</code><br />
 <code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;limits&gt;</code><br />
 <code>#include &lt;map&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
+<code>#include &lt;optional&gt;</code><br />
 <code>#include &lt;set&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;unordered_map&gt;</code><br />
 <code>#include &lt;utility&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
-<code>#include &quot;<a class="el" href="_gui_simulation_snapshot_8h_source.html">app/GuiSimulationSnapshot.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_network_view_8h_source.html">graphics/NetworkView.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_highlight_effect_8h_source.html">graphics/items/HighlightEffect.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_section_labels_8h_source.html">scene/SectionLabels.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_track_preview_8h_source.html">scene/TrackPreview.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_gui_simulation_snapshot_8h.html">simulation/GuiSimulationSnapshot.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_network_view_8h.html">graphics/NetworkView.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_highlight_effect_8h.html">graphics/items/HighlightEffect.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_section_labels_8h.html">scene/SectionLabels.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_track_preview_8h.html">scene/TrackPreview.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for NetworkPresenter.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h__incl.svg" width="3955" height="286"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h__incl.svg" width="3652" height="207"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h__dep__incl.svg" width="746" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h__dep__incl.svg" width="1107" height="207"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-</div>
-<p><a href="_network_presenter_8h_source.html">Go to the source code of this file.</a></p>
-<table class="memberdecls">
+</div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:NetworkPresenter" id="r_NetworkPresenter"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_network_presenter.html">NetworkPresenter</a></td></tr>
@@ -159,6 +159,8 @@ Classes</h2></td></tr>
 <tr class="memitem:NetworkPresenter_3A_3APreviewOutcome" id="r_NetworkPresenter_3A_3APreviewOutcome"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_network_presenter_1_1_preview_outcome.html">NetworkPresenter::PreviewOutcome</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What showPreview drew.  <a href="struct_network_presenter_1_1_preview_outcome.html#details">More...</a><br /></td></tr>
 <tr class="memitem:NetworkPresenter_3A_3AFrameHost" id="r_NetworkPresenter_3A_3AFrameHost"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_network_presenter_1_1_frame_host.html">NetworkPresenter::FrameHost</a></td></tr>
+<tr class="memitem:NetworkPresenter_3A_3APreviewFit" id="r_NetworkPresenter_3A_3APreviewFit"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_network_presenter_1_1_preview_fit.html">NetworkPresenter::PreviewFit</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">How the view fits the preview.  <a href="struct_network_presenter_1_1_preview_fit.html#details">More...</a><br /></td></tr>
 <tr class="memitem:NetworkPresenter_3A_3AFindTarget" id="r_NetworkPresenter_3A_3AFindTarget"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_network_presenter_1_1_find_target.html">NetworkPresenter::FindTarget</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An item that Find offers.  <a href="struct_network_presenter_1_1_find_target.html#details">More...</a><br /></td></tr>
 <tr class="memitem:PreviewStationMembership" id="r_PreviewStationMembership"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_preview_station_membership.html">PreviewStationMembership</a></td></tr>
@@ -175,6 +177,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a5ad7e0d37140be7daecd2de8ac3410c4" id="r_a5ad7e0d37140be7daecd2de8ac3410c4"><td class="memItemLeft">std::map&lt; std::string, <a class="el" href="struct_preview_station_membership.html">PreviewStationMembership</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a5ad7e0d37140be7daecd2de8ac3410c4">previewStationMemberships</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model)</td></tr>
 <tr class="memitem:a90871b99822ad821aef490a21ffd9272" id="r_a90871b99822ad821aef490a21ffd9272"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a90871b99822ad821aef490a21ffd9272">previewPointAtNode</a> (const <a class="el" href="struct_track_preview_line.html">TrackPreviewLine</a> &amp;line, const std::string &amp;nodeId, qreal offset, QPointF &amp;point)</td></tr>
 <tr class="memitem:a2c806caf42aab9fe3cd7c2e65f79fdef" id="r_a2c806caf42aab9fe3cd7c2e65f79fdef"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2c806caf42aab9fe3cd7c2e65f79fdef">previewPointAtX</a> (const <a class="el" href="struct_track_preview_line.html">TrackPreviewLine</a> &amp;line, double x, qreal offset, QPointF &amp;point)</td></tr>
+<tr class="memitem:a8cf18205b036242ba1bd00d5913edd18" id="r_a8cf18205b036242ba1bd00d5913edd18"><td class="memItemLeft">QPolygonF&#160;</td><td class="memItemRight"><a class="el" href="#a8cf18205b036242ba1bd00d5913edd18">previewSectionCourse</a> (const <a class="el" href="struct_track_preview_result.html">TrackPreviewResult</a> &amp;preview, const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;section)</td></tr>
+<tr class="memitem:add28e0e6c110c9b6180e912d4e0ae504" id="r_add28e0e6c110c9b6180e912d4e0ae504"><td class="memItemLeft">QList&lt; QPolygonF &gt;&#160;</td><td class="memItemRight"><a class="el" href="#add28e0e6c110c9b6180e912d4e0ae504">previewSectionCourses</a> (const <a class="el" href="struct_track_preview_result.html">TrackPreviewResult</a> &amp;preview, const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;inventory, const std::vector&lt; std::string &gt; &amp;references)</td></tr>
 <tr class="memitem:a4ee8a0b69325a28edae851515c7bb021" id="r_a4ee8a0b69325a28edae851515c7bb021"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4ee8a0b69325a28edae851515c7bb021">previewSignalNormal</a> (const <a class="el" href="struct_track_preview_line.html">TrackPreviewLine</a> &amp;line, double rawX, QPointF &amp;normal)</td></tr>
 <tr class="memitem:a1fe09b7029738c6037d8b9a15423a158" id="r_a1fe09b7029738c6037d8b9a15423a158"><td class="memItemLeft">QPointF&#160;</td><td class="memItemRight"><a class="el" href="#a1fe09b7029738c6037d8b9a15423a158">stationDecorationOffset</a> (const std::vector&lt; <a class="el" href="struct_scene_station_view.html">SceneStationView</a> &gt; &amp;views, const std::string &amp;stationId, const std::string &amp;name)</td></tr>
 </table>
@@ -198,7 +202,7 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h_ab86c30f8ddd372850bdc390b9e58d813_cgraph.svg" width="128" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h_ab86c30f8ddd372850bdc390b9e58d813_cgraph.svg" width="127" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -226,7 +230,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h_a1b57662dc5e3aac38290b652a37de442_cgraph.svg" width="146" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h_a1b57662dc5e3aac38290b652a37de442_cgraph.svg" width="146" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -263,7 +267,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h_a90871b99822ad821aef490a21ffd9272_cgraph.svg" width="402" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h_a90871b99822ad821aef490a21ffd9272_cgraph.svg" width="400" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -300,7 +304,66 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h_a2c806caf42aab9fe3cd7c2e65f79fdef_cgraph.svg" width="352" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h_a2c806caf42aab9fe3cd7c2e65f79fdef_cgraph.svg" width="351" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a8cf18205b036242ba1bd00d5913edd18" name="a8cf18205b036242ba1bd00d5913edd18"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8cf18205b036242ba1bd00d5913edd18">&#9670;&#160;</a></span>previewSectionCourse()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QPolygonF previewSectionCourse </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_track_preview_result.html">TrackPreviewResult</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>preview</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>section</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The course of a section on the preview in scene coordinates, the polyline of <a class="el" href="_track_preview_8cpp.html#a82bd89af254ba661615bbc295ea8fbf6">trackPreviewSectionCourse()</a>; empty when the course is not on the preview or has a point that is not finite. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h_a8cf18205b036242ba1bd00d5913edd18_cgraph.svg" width="660" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="add28e0e6c110c9b6180e912d4e0ae504" name="add28e0e6c110c9b6180e912d4e0ae504"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add28e0e6c110c9b6180e912d4e0ae504">&#9670;&#160;</a></span>previewSectionCourses()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QList&lt; QPolygonF &gt; previewSectionCourses </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_track_preview_result.html">TrackPreviewResult</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>preview</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>inventory</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>references</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The courses of sections on the preview in scene coordinates, one per reference in order: the course of the section that the reference resolves to (<a class="el" href="struct_scene_section_inventory.html#a03c3b41fd7859a36164db37bc7784fb8">SceneSectionInventory::resolve</a>), empty for a reference that resolves to none. The preview is the one the canvas shows (<a class="el" href="class_network_presenter.html#a252c44e30f1c533a1374efb9605e0082" title="The preview that the scene shows.">NetworkPresenter::trackPreview()</a>), and a <a class="el" href="class_network_mark_item.html">NetworkMarkItem</a> draws the courses. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h_add28e0e6c110c9b6180e912d4e0ae504_cgraph.svg" width="886" height="168"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -332,7 +395,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h_a4ee8a0b69325a28edae851515c7bb021_cgraph.svg" width="402" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h_a4ee8a0b69325a28edae851515c7bb021_cgraph.svg" width="400" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -355,7 +418,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h_a5ad7e0d37140be7daecd2de8ac3410c4_cgraph.svg" width="219" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h_a5ad7e0d37140be7daecd2de8ac3410c4_cgraph.svg" width="219" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -379,7 +442,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h_a16f55e4eca9c38ca6f6b52339f8c42c1_cgraph.svg" width="130" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h_a16f55e4eca9c38ca6f6b52339f8c42c1_cgraph.svg" width="130" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -411,7 +474,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h_a1fe09b7029738c6037d8b9a15423a158_cgraph.svg" width="403" height="134"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8h_a1fe09b7029738c6037d8b9a15423a158_cgraph.svg" width="402" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

@@ -8,7 +8,6 @@
 <title>EGTRAIN: simulation/RollingStock.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,38 +111,76 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_rolling_stock
   <div class="headertitle"><div class="title">RollingStock.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_signalling_8h_source.html">simulation/Signalling.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_runtime_limits_8h_source.html">scene/RuntimeLimits.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_log_8h_source.html">util/Log.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_trajectory_util_8h_source.html">util/TrajectoryUtil.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_scene_model_8h.html">scene/SceneModel.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_signalling_8h.html">simulation/Signalling.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_runtime_limits_8h.html">scene/RuntimeLimits.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_log_8h.html">util/Log.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_trajectory_util_8h.html">util/TrajectoryUtil.h</a>&quot;</code><br />
+<code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;cstdio&gt;</code><br />
 <code>#include &lt;cstdlib&gt;</code><br />
 <code>#include &lt;deque&gt;</code><br />
 <code>#include &lt;limits&gt;</code><br />
+<code>#include &lt;stdexcept&gt;</code><br />
+<code>#include &lt;string&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 <code>#include &lt;cmath&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for RollingStock.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h__incl.svg" width="2455" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h__incl.svg" width="2934" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h__dep__incl.svg" width="4694" height="271"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h__dep__incl.svg" width="4655" height="283"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-</div>
-<p><a href="_rolling_stock_8h_source.html">Go to the source code of this file.</a></p>
-<table class="memberdecls">
+</div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:BlockingTimes" id="r_BlockingTimes"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_blocking_times.html">BlockingTimes</a></td></tr>
 <tr class="memitem:BlockingTimeList" id="r_BlockingTimeList"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_blocking_time_list.html">BlockingTimeList</a></td></tr>
+<tr class="memitem:TrainStepCache" id="r_TrainStepCache"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_train_step_cache.html">TrainStepCache</a></td></tr>
+<tr class="memitem:TrainStepCache_3A_3ABrakingQuery" id="r_TrainStepCache_3A_3ABrakingQuery"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_train_step_cache_1_1_braking_query.html">TrainStepCache::BrakingQuery</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The arguments of one <a class="el" href="class_train.html#a86fe06b963d9fe57ec35dae0764265aa">Train::BrakDist_Block</a> call. The doubles are compared bit for bit.  <a href="struct_train_step_cache_1_1_braking_query.html#details">More...</a><br /></td></tr>
 <tr class="memitem:Train" id="r_Train"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_train.html">Train</a></td></tr>
 <tr class="memitem:Train_3A_3ABrakingArcCursor" id="r_Train_3A_3ABrakingArcCursor"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_train_1_1_braking_arc_cursor.html">Train::BrakingArcCursor</a></td></tr>
-<tr class="memitem:Regional" id="r_Regional"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_regional.html">Regional</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The train class that the operations builder fills. It adds no member to <a class="el" href="class_train.html">Train</a>.  <a href="class_regional.html#details">More...</a><br /></td></tr>
+<tr class="memitem:Train_3A_3ABackwardBrakingArcCursor" id="r_Train_3A_3ABackwardBrakingArcCursor"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_train_1_1_backward_braking_arc_cursor.html">Train::BackwardBrakingArcCursor</a></td></tr>
+<tr class="memitem:Train_3A_3AAuthorityTarget" id="r_Train_3A_3AAuthorityTarget"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_train_1_1_authority_target.html">Train::AuthorityTarget</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An end of authority as a braking target: where the train has to meet which speed.  <a href="struct_train_1_1_authority_target.html#details">More...</a><br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-typedef-members" class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:ad3908848dc3f7bfe83edaa7a99358aae" id="r_ad3908848dc3f7bfe83edaa7a99358aae"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#ad3908848dc3f7bfe83edaa7a99358aae">Regional</a></td></tr>
+<tr class="memdesc:ad3908848dc3f7bfe83edaa7a99358aae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Another name for <a class="el" href="class_train.html">Train</a>, which the tests use.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-enum-members" class="groupheader"><a id="enum-members" name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:a42eb24b9fabf18008862f9854d5f9f23" id="r_a42eb24b9fabf18008862f9854d5f9f23"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#a42eb24b9fabf18008862f9854d5f9f23">BlockingTimeMethod</a> { <a class="el" href="#a42eb24b9fabf18008862f9854d5f9f23ae593276964d46c43e5b707325fb12b6b">Conventional</a>
+, <a class="el" href="#a42eb24b9fabf18008862f9854d5f9f23ad0f7c1621ac48b259c8470740c5740b6">Etcs2</a>
+ }</td></tr>
+<tr class="memdesc:a42eb24b9fabf18008862f9854d5f9f23"><td class="mdescLeft">&#160;</td><td class="mdescRight">The rule that finds the start of the approach to a block section at a fixed-block level.  <a href="#a42eb24b9fabf18008862f9854d5f9f23">More...</a><br /></td></tr>
+<tr class="memitem:a6212850430c9d87a2b2518f5ea118b1c" id="r_a6212850430c9d87a2b2518f5ea118b1c"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#a6212850430c9d87a2b2518f5ea118b1c">TrajectoryBranch</a> : int { <br />
+&#160;&#160;<a class="el" href="#a6212850430c9d87a2b2518f5ea118b1ca6adf97f83acf6453d4a6a4b1070f3754">None</a>
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1caa552e259a7aec237bbe28b9039dc3395">Accelerate</a>
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1cab20c4d284dd357db8fbbaafb988e13d4">BreakdownHold</a>
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1cadefd350ad0b49abff488bf765d88fd1c">ServiceStop</a>
+, <br />
+&#160;&#160;<a class="el" href="#a6212850430c9d87a2b2518f5ea118b1caa6a03564ddef59a9143ead8337442599">AtSignal</a>
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1cab4137253e38d50243b9983114c671d69">Cruise</a>
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1caacf1eecdb435968564b91440b492bdc1">FollowBrakingPlan</a>
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1ca30f24e3655a0f1cdece58bc4ae770369">ReplanBraking</a>
+, <br />
+&#160;&#160;<a class="el" href="#a6212850430c9d87a2b2518f5ea118b1ca5c54a90f5da8ca2c819c84d61233f40d">FullBraking</a>
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1ca7fdb44155ce84e4e75ab2bc727941569">NewBrakingCurve</a>
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1ca567d1f086adad2c2d5230c30a6df3baa">HoldAtAuthority</a>
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1cabd87b3f095051c0fc45cbcb2b27469a4">LeaveTrainOrder</a>
+, <br />
+&#160;&#160;<a class="el" href="#a6212850430c9d87a2b2518f5ea118b1ca6590ee3e83154e0ce18465e1a23b695f">HoldAtTrainOrder</a>
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1cafbe5d659b57aaf62112649227941cf0f">ZeroSpeedLimit</a>
+, <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1ca1ac2ab2ca8a2934d62cfc1d15e6d65bd">FollowLeader</a>
+<br />
+ }</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -169,10 +206,113 @@ Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:a0cb1070595eb7517fc0ce8c19e4f6159" id="r_a0cb1070595eb7517fc0ce8c19e4f6159"><td class="memItemLeft"><a class="el" href="class_initial_parameters.html">InitialParameters</a>&#160;</td><td class="memItemRight"><a class="el" href="#a0cb1070595eb7517fc0ce8c19e4f6159">initial_variables</a></td></tr>
-<tr class="memitem:aa7521653f8bbc95f20a5edb74a0de58f" id="r_aa7521653f8bbc95f20a5edb74a0de58f"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#aa7521653f8bbc95f20a5edb74a0de58f">Max_N_Reg</a> = <a class="el" href="namespace_runtime_limits.html#a3ee76c4b7bc258b52656ebb9e1e9d80b">RuntimeLimits::kMaxExpandedTrains</a></td></tr>
-<tr class="memitem:a7127463c50ed7ba35fa1b3255f59a98e" id="r_a7127463c50ed7ba35fa1b3255f59a98e"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a7127463c50ed7ba35fa1b3255f59a98e">kStopHoldbackM</a> = 0.0001</td></tr>
-<tr class="memitem:a9f86635ac87cf8141e7bf654ed066448" id="r_a9f86635ac87cf8141e7bf654ed066448"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a9f86635ac87cf8141e7bf654ed066448">kStopHoldbackToleranceM</a> = 1e-6</td></tr>
+<tr class="memitem:aa7521653f8bbc95f20a5edb74a0de58f" id="r_aa7521653f8bbc95f20a5edb74a0de58f"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#aa7521653f8bbc95f20a5edb74a0de58f">Max_N_Reg</a></td></tr>
+<tr class="memitem:a7127463c50ed7ba35fa1b3255f59a98e" id="r_a7127463c50ed7ba35fa1b3255f59a98e"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a7127463c50ed7ba35fa1b3255f59a98e">kStopHoldbackM</a></td></tr>
+<tr class="memitem:a9f86635ac87cf8141e7bf654ed066448" id="r_a9f86635ac87cf8141e7bf654ed066448"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a9f86635ac87cf8141e7bf654ed066448">kStopHoldbackToleranceM</a></td></tr>
 </table>
+<a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Typedef Documentation</h2>
+<a id="ad3908848dc3f7bfe83edaa7a99358aae" name="ad3908848dc3f7bfe83edaa7a99358aae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad3908848dc3f7bfe83edaa7a99358aae">&#9670;&#160;</a></span>Regional</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#ad3908848dc3f7bfe83edaa7a99358aae">Regional</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Another name for <a class="el" href="class_train.html">Train</a>, which the tests use. </p>
+
+</div>
+</div>
+<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
+<a id="a42eb24b9fabf18008862f9854d5f9f23" name="a42eb24b9fabf18008862f9854d5f9f23"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a42eb24b9fabf18008862f9854d5f9f23">&#9670;&#160;</a></span>BlockingTimeMethod</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="#a42eb24b9fabf18008862f9854d5f9f23">BlockingTimeMethod</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel strong">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The rule that finds the start of the approach to a block section at a fixed-block level. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a42eb24b9fabf18008862f9854d5f9f23ae593276964d46c43e5b707325fb12b6b" name="a42eb24b9fabf18008862f9854d5f9f23ae593276964d46c43e5b707325fb12b6b"></a>Conventional&#160;</td><td class="fielddoc"><p>Level 0: the approach starts when the head enters the section before. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a42eb24b9fabf18008862f9854d5f9f23ad0f7c1621ac48b259c8470740c5740b6" name="a42eb24b9fabf18008862f9854d5f9f23ad0f7c1621ac48b259c8470740c5740b6"></a>Etcs2&#160;</td><td class="fielddoc"><p>Level 2: the approach starts when the braking distance of the train first reaches the start of the section. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a id="a6212850430c9d87a2b2518f5ea118b1c" name="a6212850430c9d87a2b2518f5ea118b1c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6212850430c9d87a2b2518f5ea118b1c">&#9670;&#160;</a></span>TrajectoryBranch</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="#a6212850430c9d87a2b2518f5ea118b1c">TrajectoryBranch</a> : int</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel strong">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The branch of <a class="el" href="class_train.html#a09e55bf615f21184e4a57367932d4a61">Train::trajectoryComputationIncludingMovingBlock</a>, or of the braking step that it calls, that produced the sample of a step. <a class="el" href="class_train.html#a8a154d1313928bdf3d853772987e5d64">Train::stepBranch</a> holds the number of the value of the current step, and the numbers do not change. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1ca6adf97f83acf6453d4a6a4b1070f3754" name="a6212850430c9d87a2b2518f5ea118b1ca6adf97f83acf6453d4a6a4b1070f3754"></a>None&#160;</td><td class="fielddoc"><p>No branch: a step before the train enters, and from End_Time + 2 on. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1caa552e259a7aec237bbe28b9039dc3395" name="a6212850430c9d87a2b2518f5ea118b1caa552e259a7aec237bbe28b9039dc3395"></a>Accelerate&#160;</td><td class="fielddoc"><p>Accelerates towards the speed limit. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1cab20c4d284dd357db8fbbaafb988e13d4" name="a6212850430c9d87a2b2518f5ea118b1cab20c4d284dd357db8fbbaafb988e13d4"></a>BreakdownHold&#160;</td><td class="fielddoc"><p>Stands still for a breakdown incident. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1cadefd350ad0b49abff488bf765d88fd1c" name="a6212850430c9d87a2b2518f5ea118b1cadefd350ad0b49abff488bf765d88fd1c"></a>ServiceStop&#160;</td><td class="fielddoc"><p>Stands at a service stop, or leaves it; the same number as BreakdownHold. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1caa6a03564ddef59a9143ead8337442599" name="a6212850430c9d87a2b2518f5ea118b1caa6a03564ddef59a9143ead8337442599"></a>AtSignal&#160;</td><td class="fielddoc"><p>Stands at the end of an arc: held by a red signal or an end of authority there, or leaving. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1cab4137253e38d50243b9983114c671d69" name="a6212850430c9d87a2b2518f5ea118b1cab4137253e38d50243b9983114c671d69"></a>Cruise&#160;</td><td class="fielddoc"><p>Holds its speed at the speed limit. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1caacf1eecdb435968564b91440b492bdc1" name="a6212850430c9d87a2b2518f5ea118b1caacf1eecdb435968564b91440b492bdc1"></a>FollowBrakingPlan&#160;</td><td class="fielddoc"><p>Takes the next state of the stored braking plan. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1ca30f24e3655a0f1cdece58bc4ae770369" name="a6212850430c9d87a2b2518f5ea118b1ca30f24e3655a0f1cdece58bc4ae770369"></a>ReplanBraking&#160;</td><td class="fielddoc"><p>Brakes on a plan made in this step on the braking curve that it already had. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1ca5c54a90f5da8ca2c819c84d61233f40d" name="a6212850430c9d87a2b2518f5ea118b1ca5c54a90f5da8ca2c819c84d61233f40d"></a>FullBraking&#160;</td><td class="fielddoc"><p>Brakes with the full braking force. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1ca7fdb44155ce84e4e75ab2bc727941569" name="a6212850430c9d87a2b2518f5ea118b1ca7fdb44155ce84e4e75ab2bc727941569"></a>NewBrakingCurve&#160;</td><td class="fielddoc"><p>Brakes on a plan made in this step on a new braking curve, for a new target or a first braking step. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1ca567d1f086adad2c2d5230c30a6df3baa" name="a6212850430c9d87a2b2518f5ea118b1ca567d1f086adad2c2d5230c30a6df3baa"></a>HoldAtAuthority&#160;</td><td class="fielddoc"><p>Stands at an end of authority. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1cabd87b3f095051c0fc45cbcb2b27469a4" name="a6212850430c9d87a2b2518f5ea118b1cabd87b3f095051c0fc45cbcb2b27469a4"></a>LeaveTrainOrder&#160;</td><td class="fielddoc"><p>Leaves a node with a train order. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1ca6590ee3e83154e0ce18465e1a23b695f" name="a6212850430c9d87a2b2518f5ea118b1ca6590ee3e83154e0ce18465e1a23b695f"></a>HoldAtTrainOrder&#160;</td><td class="fielddoc"><p>Stands at a node with a train order. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1cafbe5d659b57aaf62112649227941cf0f" name="a6212850430c9d87a2b2518f5ea118b1cafbe5d659b57aaf62112649227941cf0f"></a>ZeroSpeedLimit&#160;</td><td class="fielddoc"><p>Stands on an arc whose speed limit is 0. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6212850430c9d87a2b2518f5ea118b1ca1ac2ab2ca8a2934d62cfc1d15e6d65bd" name="a6212850430c9d87a2b2518f5ea118b1ca1ac2ab2ca8a2934d62cfc1d15e6d65bd"></a>FollowLeader&#160;</td><td class="fielddoc"><p>Follows the leader of its virtual coupling. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="aecaefd86ea2ed1c4c1fd7f0e0777dfbf" name="aecaefd86ea2ed1c4c1fd7f0e0777dfbf"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aecaefd86ea2ed1c4c1fd7f0e0777dfbf">&#9670;&#160;</a></span>buildOperationsFromScene()</h2>
@@ -202,11 +342,11 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Builds the trains, the timetable, the incidents and entrance delays of the selected scenario, the passenger capacity of the platforms and the passengers of a loaded scene into the run. selectedScenarioId and selectedOccurrences are those of <a class="el" href="class_dispatch_controller.html#aac2afa04a79b4b5976be94b691750aaf">DispatchController::prepareScene</a>. The run's random generator is seeded from initial_variables.randomSeed first. When the diagnostics hold an error, nothing else of the run and nothing of initial_variables changes; otherwise initial_variables takes the name, base time, duration, buffer time, running time recovery and the numbers of tracks and routes of the scene. </p>
+<p>Builds the trains, the timetable, the incidents and entrance delays of the selected scenario, the passenger capacity of the platforms and the passengers of a loaded scene into the run. selectedScenarioId and selectedOccurrences are those of <a class="el" href="class_dispatch_controller.html#aac2afa04a79b4b5976be94b691750aaf">DispatchController::prepareScene</a>. The scene must pass validateRunnableScene: the builder does not repeat its checks of the platforms. The run's random generator is seeded from initial_variables.randomSeed first. When the diagnostics hold an error, nothing else of the run and nothing of initial_variables changes; otherwise initial_variables takes the name, base time, duration, buffer time, running time recovery and the numbers of tracks and routes of the scene. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_aecaefd86ea2ed1c4c1fd7f0e0777dfbf_cgraph.svg" width="1058" height="1080"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_aecaefd86ea2ed1c4c1fd7f0e0777dfbf_cgraph.svg" width="1067" height="664"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -263,7 +403,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_ad9c39d7c6f43673001b963dd20746e1d_cgraph.svg" width="742" height="150"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_ad9c39d7c6f43673001b963dd20746e1d_cgraph.svg" width="1136" height="186"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -299,7 +439,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_a2c8aeb5be2d71d06848277209c39a470_cgraph.svg" width="162" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_a2c8aeb5be2d71d06848277209c39a470_cgraph.svg" width="160" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -335,7 +475,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_a8629a8afffc521451b0ac8d789af22c1_cgraph.svg" width="176" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_a8629a8afffc521451b0ac8d789af22c1_cgraph.svg" width="175" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -362,7 +502,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_a4b973a830e5e044443d37d4e5b727d47_cgraph.svg" width="1906" height="498"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_a4b973a830e5e044443d37d4e5b727d47_cgraph.svg" width="2170" height="726"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -389,7 +529,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_a4321f0d14635cb369fa4b53e960a81bd_cgraph.svg" width="206" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_a4321f0d14635cb369fa4b53e960a81bd_cgraph.svg" width="204" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -412,7 +552,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_ace6c56d9374dcbbf72c1b3ff79719a17_cgraph.svg" width="939" height="250"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_ace6c56d9374dcbbf72c1b3ff79719a17_cgraph.svg" width="935" height="211"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -435,11 +575,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Writes MainFolder/TimetablePoints.txt: for each train its description and type, then rows of the location names, the positions (twice), the arrival times and the departure times of its timetable points. </p>
+<p>Writes MainFolder/TimetablePoints.txt: for each train its description and type, then rows of the location names, the positions (twice), the arrival times and the departure times of its timetable points. Throws std::runtime_error when the file cannot be written (<a class="el" href="_run_output_file_8h.html">simulation/RunOutputFile.h</a>). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_a6b74d3558b9288fab745e0cf74f84d42_cgraph.svg" width="376" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_a6b74d3558b9288fab745e0cf74f84d42_cgraph.svg" width="770" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -462,11 +602,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Writes MainFolder/BlockingTimes.txt: per train, its description and its first N_BlockTimeComplete blocking times (positions m, times s). </p>
+<p>Writes MainFolder/BlockingTimes.txt: per train, its description and its first N_BlockTimeComplete blocking times (positions m, times s). Throws std::runtime_error when the file cannot be written (<a class="el" href="_run_output_file_8h.html">simulation/RunOutputFile.h</a>). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_ae90a5fc832fc3e392c9170627eb84c36_cgraph.svg" width="416" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_ae90a5fc832fc3e392c9170627eb84c36_cgraph.svg" width="811" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -489,11 +629,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Lets every running train protect the station area ahead in step i: when the entrance of a station boundary is one or two sections ahead of its head, <a class="el" href="class_station_boundary_section.html#a7078799e22a787219dc330736e9d5ce2">StationBoundarySection::protectEntrance</a> runs for it. A platform is booked only for trains whose last stop is "Alm", "Asd" or "Asdz". It does not run when the entrance is two sections ahead and the section between is occupied. </p>
+<p>Lets every running train protect the station area ahead in step i: when the entrance of a station boundary is one or two sections ahead of its head, <a class="el" href="class_station_boundary_section.html#a439681e66b331ae97f40cf39c2f1f412">StationBoundarySection::protectEntrance</a> runs for it. It does not run when the entrance is two sections ahead and the section between is occupied. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_a623d4a090f128a2181adcae4698fc80b_cgraph.svg" width="162" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_a623d4a090f128a2181adcae4698fc80b_cgraph.svg" width="162" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -526,7 +666,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_ad48e1118a615ff310e32fea0135151a4_cgraph.svg" width="224" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_ad48e1118a615ff310e32fea0135151a4_cgraph.svg" width="223" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -550,7 +690,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_aea9297830b5672f714105f48b351dd48_cgraph.svg" width="1190" height="250"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_aea9297830b5672f714105f48b351dd48_cgraph.svg" width="1186" height="211"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -574,7 +714,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_afad804c52cb5f74014fcc0162b015f89_cgraph.svg" width="186" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_rolling_stock_8h_afad804c52cb5f74014fcc0162b015f89_cgraph.svg" width="186" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -612,7 +752,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">double kStopHoldbackM = 0.0001</td>
+          <td class="memname">double kStopHoldbackM</td>
         </tr>
       </table>
   </td>
@@ -634,7 +774,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">double kStopHoldbackToleranceM = 1e-6</td>
+          <td class="memname">double kStopHoldbackToleranceM</td>
         </tr>
       </table>
   </td>
@@ -656,7 +796,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int Max_N_Reg = <a class="el" href="namespace_runtime_limits.html#a3ee76c4b7bc258b52656ebb9e1e9d80b">RuntimeLimits::kMaxExpandedTrains</a></td>
+          <td class="memname">int Max_N_Reg</td>
         </tr>
       </table>
   </td>

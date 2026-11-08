@@ -1,0 +1,11 @@
+<map id="NetworkPresenter::findTargets" name="NetworkPresenter::findTargets">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,105,223,133"/>
+<area shape="rect" id="Node000002" href="$_gui_simulation_snapshot_8h.html#a9d3587a1b79afd5c277b880adabbf418" title=" " alt="" coords="320,29,452,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,102,270,67,308,60,303,62,271,72,158,107"/>
+<area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#a765f734ddc8d717d03dfb08048237303" title=" " alt="" coords="333,105,439,133"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="223,117,320,119,315,120,223,122"/>
+<area shape="rect" id="Node000004" href="$class_network_presenter.html#a28d577f5bbbb4e9de524c1beace0a1d1" title="The id in the scene of the track line with this index in the run; empty when the run has none for it." alt="" coords="271,157,501,185"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="191,131,297,153,292,155,190,136"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="339,28,332,20,338,11,356,5,386,3,418,5,436,14,431,14,416,10,386,8,357,10,341,15,338,20,345,29"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="339,104,332,96,338,87,356,81,386,79,418,81,436,90,431,90,416,86,386,84,357,86,341,91,338,96,345,106"/>
+</map>

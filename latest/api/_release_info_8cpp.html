@@ -8,7 +8,6 @@
 <title>EGTRAIN: update/ReleaseInfo.cpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,7 +111,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_release_info_
   <div class="headertitle"><div class="title">ReleaseInfo.cpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_release_info_8h_source.html">update/ReleaseInfo.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_release_info_8h.html">update/ReleaseInfo.h</a>&quot;</code><br />
 <code>#include &lt;QJsonArray&gt;</code><br />
 <code>#include &lt;QJsonDocument&gt;</code><br />
 <code>#include &lt;QJsonObject&gt;</code><br />
@@ -125,7 +124,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_release_info_
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for ReleaseInfo.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp__incl.svg" width="1592" height="256"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp__incl.svg" width="1579" height="266"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -136,9 +135,9 @@ Functions</h2></td></tr>
 <tr class="memitem:aa78620ca0576690ed8329f0a2c34e583" id="r_aa78620ca0576690ed8329f0a2c34e583"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aa78620ca0576690ed8329f0a2c34e583">isUpdateAssetName</a> (const QString &amp;distribution, const QString &amp;name, const QString &amp;version)</td></tr>
 <tr class="memitem:a43331d960fff9c06c2af536c667a3f69" id="r_a43331d960fff9c06c2af536c667a3f69"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a43331d960fff9c06c2af536c667a3f69">releaseHasUpdatePackage</a> (const <a class="el" href="struct_stable_release.html">StableRelease</a> &amp;release, const QString &amp;distribution)</td></tr>
 <tr class="memdesc:a43331d960fff9c06c2af536c667a3f69"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the release lists a package that the distribution key allows.  <br /></td></tr>
-<tr class="memitem:af5c1cef922b9bea6e866ea9782d31cb8" id="r_af5c1cef922b9bea6e866ea9782d31cb8"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af5c1cef922b9bea6e866ea9782d31cb8">isExpectedReleaseAssetUrl</a> (const QString &amp;tag, const QString &amp;name, const QUrl &amp;url)</td></tr>
-<tr class="memitem:a5101cce45b3b110bd114fe82a3f20bb0" id="r_a5101cce45b3b110bd114fe82a3f20bb0"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_stable_release.html">StableRelease</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a5101cce45b3b110bd114fe82a3f20bb0">parseLatestStableRelease</a> (const QByteArray &amp;json<a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>, QString *error)</td></tr>
-<tr class="memitem:a97b6ea74fb92fe5f32669c0d20c9138e" id="r_a97b6ea74fb92fe5f32669c0d20c9138e"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_update_manifest.html">UpdateManifest</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a97b6ea74fb92fe5f32669c0d20c9138e">parseUpdateManifest</a> (const QByteArray &amp;json<a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>, const QString &amp;expectedTag, const QString &amp;distribution, QString *error)</td></tr>
+<tr class="memitem:aa9ac21e937c17aa82e73ee3b1f3d602c" id="r_aa9ac21e937c17aa82e73ee3b1f3d602c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aa9ac21e937c17aa82e73ee3b1f3d602c">isExpectedReleaseAssetUrl</a> (const QString &amp;tag, const QString &amp;name, const QUrl &amp;url, const QString &amp;base)</td></tr>
+<tr class="memitem:a5101cce45b3b110bd114fe82a3f20bb0" id="r_a5101cce45b3b110bd114fe82a3f20bb0"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_stable_release.html">StableRelease</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a5101cce45b3b110bd114fe82a3f20bb0">parseLatestStableRelease</a> (const QByteArray &amp;json<a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>, QString *error)</td></tr>
+<tr class="memitem:a97b6ea74fb92fe5f32669c0d20c9138e" id="r_a97b6ea74fb92fe5f32669c0d20c9138e"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_update_manifest.html">UpdateManifest</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a97b6ea74fb92fe5f32669c0d20c9138e">parseUpdateManifest</a> (const QByteArray &amp;json<a class="el" href="_rolling_stock_library_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>, const QString &amp;expectedTag, const QString &amp;distribution, QString *error)</td></tr>
 <tr class="memitem:a77451affe3b0bda8102ddfe15289a307" id="r_a77451affe3b0bda8102ddfe15289a307"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a77451affe3b0bda8102ddfe15289a307">isUpdateAvailable</a> (const <a class="el" href="struct_semantic_version.html">SemanticVersion</a> &amp;current, const <a class="el" href="struct_stable_release.html">StableRelease</a> &amp;release)</td></tr>
 <tr class="memdesc:a77451affe3b0bda8102ddfe15289a307"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the release is newer than current.  <br /></td></tr>
 <tr class="memitem:a284d503287f8e232b3bbbf652c4ee71d" id="r_a284d503287f8e232b3bbbf652c4ee71d"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a284d503287f8e232b3bbbf652c4ee71d">formatSemanticVersion</a> (const <a class="el" href="struct_semantic_version.html">SemanticVersion</a> &amp;version)</td></tr>
@@ -164,13 +163,13 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp_a284d503287f8e232b3bbbf652c4ee71d_cgraph.svg" width="186" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp_a284d503287f8e232b3bbbf652c4ee71d_cgraph.svg" width="186" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="af5c1cef922b9bea6e866ea9782d31cb8" name="af5c1cef922b9bea6e866ea9782d31cb8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af5c1cef922b9bea6e866ea9782d31cb8">&#9670;&#160;</a></span>isExpectedReleaseAssetUrl()</h2>
+<a id="aa9ac21e937c17aa82e73ee3b1f3d602c" name="aa9ac21e937c17aa82e73ee3b1f3d602c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9ac21e937c17aa82e73ee3b1f3d602c">&#9670;&#160;</a></span>isExpectedReleaseAssetUrl()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -188,15 +187,20 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const QUrl &amp;</td>          <td class="paramname"><span class="paramname"><em>url</em></span>&#160;)</td>
+          <td class="paramtype">const QUrl &amp;</td>          <td class="paramname"><span class="paramname"><em>url</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>base</em></span><span class="paramdefsep"> = </span><span class="paramdefval">QStringLiteral(&quot;https://bin.samuelbruin.com/raw&quot;)</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>True when url is <span class="tt"><a href="https://github.com/Ancientkingg/EGTRAIN/releases/download/">https://github.com/Ancientkingg/EGTRAIN/releases/download/</a>&lt;tag&gt;/&lt;name&gt;</span>, without user, port, query or fragment. </p>
+<p>True when url is exactly <span class="tt">&lt;base&gt;/egtrain-&lt;tag&gt;-&lt;name&gt;</span>, without user, port, query or fragment, and tag and name hold only letters, digits, ".", "_" and "-". base is the folder of the release files on the file host, <span class="tt"><a href="https://bin.samuelbruin.com/raw">https://bin.samuelbruin.com/raw</a></span>, unless a test serves the files itself. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp_af5c1cef922b9bea6e866ea9782d31cb8_cgraph.svg" width="211" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp_aa9ac21e937c17aa82e73ee3b1f3d602c_cgraph.svg" width="211" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -228,7 +232,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp_aa78620ca0576690ed8329f0a2c34e583_cgraph.svg" width="166" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp_aa78620ca0576690ed8329f0a2c34e583_cgraph.svg" width="166" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -256,7 +260,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp_a77451affe3b0bda8102ddfe15289a307_cgraph.svg" width="151" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp_a77451affe3b0bda8102ddfe15289a307_cgraph.svg" width="151" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -279,11 +283,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Reads the release list of the GitHub API and returns the release with the highest "vX.Y.Z" tag that is neither a draft nor a prerelease. Returns nothing, and sets error when it is given, when there is none. </p>
+<p>Reads the release feed, a JSON array of releases with tag_name, draft, prerelease, body and assets (name and browser_download_url), and returns the release with the highest "vX.Y.Z" tag that is neither a draft nor a prerelease. Only the update manifest and the known packages at their expected address are kept. Returns nothing, and sets error when it is given, when there is none. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp_a5101cce45b3b110bd114fe82a3f20bb0_cgraph.svg" width="644" height="280"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp_a5101cce45b3b110bd114fe82a3f20bb0_cgraph.svg" width="643" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -320,7 +324,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp_a97b6ea74fb92fe5f32669c0d20c9138e_cgraph.svg" width="571" height="159"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp_a97b6ea74fb92fe5f32669c0d20c9138e_cgraph.svg" width="570" height="164"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -348,7 +352,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp_a43331d960fff9c06c2af536c667a3f69_cgraph.svg" width="428" height="134"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp_a43331d960fff9c06c2af536c667a3f69_cgraph.svg" width="428" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -371,7 +375,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp_aadf6be32c92717a708724110c32ef5d5_cgraph.svg" width="178" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp_aadf6be32c92717a708724110c32ef5d5_cgraph.svg" width="178" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -395,7 +399,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp_a7df84b7a08d1e20df92499ba21302b64_cgraph.svg" width="210" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_release_info_8cpp_a7df84b7a08d1e20df92499ba21302b64_cgraph.svg" width="210" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

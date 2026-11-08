@@ -8,7 +8,6 @@
 <title>EGTRAIN: GuiSignalState Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -116,15 +115,15 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_gui_sig
 <p>One entry per section ID and direction (see <a class="el" href="class_gui_signal_state_list.html">GuiSignalStateList</a>).  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_gui_simulation_snapshot_8h_source.html">app/GuiSimulationSnapshot.h</a>&gt;</code></p>
+<p><code>#include &lt;simulation/GuiSimulationSnapshot.h&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a0d00824504ced6f21971d0ebab4c4c9c" id="r_a0d00824504ced6f21971d0ebab4c4c9c"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a0d00824504ced6f21971d0ebab4c4c9c">sectionId</a></td></tr>
-<tr class="memitem:ae5eb6c8d9d1488352138159d4f6d92ec" id="r_ae5eb6c8d9d1488352138159d4f6d92ec"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ae5eb6c8d9d1488352138159d4f6d92ec">code</a> = 0</td></tr>
-<tr class="memitem:a6240f8cd0b1f4c22befdb4d47e4e4ad6" id="r_a6240f8cd0b1f4c22befdb4d47e4e4ad6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a6240f8cd0b1f4c22befdb4d47e4e4ad6">reversedDirection</a> = false</td></tr>
-<tr class="memitem:a275f7955d23196ae6989b668a4e49fed" id="r_a275f7955d23196ae6989b668a4e49fed"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a275f7955d23196ae6989b668a4e49fed">level</a> = <a class="el" href="_gui_simulation_snapshot_8h.html#ac87cb9b6b7601619357fef0c62866feb">kGuiSignalNoLevel</a></td></tr>
-<tr class="memitem:ab6711034a40529aaad3f46f27151f938" id="r_ab6711034a40529aaad3f46f27151f938"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab6711034a40529aaad3f46f27151f938">failed</a> = false</td></tr>
+<tr class="memitem:ae5eb6c8d9d1488352138159d4f6d92ec" id="r_ae5eb6c8d9d1488352138159d4f6d92ec"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ae5eb6c8d9d1488352138159d4f6d92ec">code</a></td></tr>
+<tr class="memitem:a6240f8cd0b1f4c22befdb4d47e4e4ad6" id="r_a6240f8cd0b1f4c22befdb4d47e4e4ad6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a6240f8cd0b1f4c22befdb4d47e4e4ad6">reversedDirection</a></td></tr>
+<tr class="memitem:a275f7955d23196ae6989b668a4e49fed" id="r_a275f7955d23196ae6989b668a4e49fed"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a275f7955d23196ae6989b668a4e49fed">level</a></td></tr>
+<tr class="memitem:ab6711034a40529aaad3f46f27151f938" id="r_ab6711034a40529aaad3f46f27151f938"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab6711034a40529aaad3f46f27151f938">failed</a></td></tr>
 <tr class="memdesc:ab6711034a40529aaad3f46f27151f938"><td class="mdescLeft">&#160;</td><td class="mdescRight">A signal_failure incident covers the section in this step.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -137,7 +136,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int GuiSignalState::code = 0</td>
+          <td class="memname">int GuiSignalState::code</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -152,7 +151,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool GuiSignalState::failed = false</td>
+          <td class="memname">bool GuiSignalState::failed</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -168,7 +167,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int GuiSignalState::level = <a class="el" href="_gui_simulation_snapshot_8h.html#ac87cb9b6b7601619357fef0c62866feb">kGuiSignalNoLevel</a></td>
+          <td class="memname">int GuiSignalState::level</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -183,7 +182,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool GuiSignalState::reversedDirection = false</td>
+          <td class="memname">bool GuiSignalState::reversedDirection</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -207,7 +206,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>app/<a class="el" href="_gui_simulation_snapshot_8h_source.html">GuiSimulationSnapshot.h</a></li>
+<li>simulation/<a class="el" href="_gui_simulation_snapshot_8h.html">GuiSimulationSnapshot.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

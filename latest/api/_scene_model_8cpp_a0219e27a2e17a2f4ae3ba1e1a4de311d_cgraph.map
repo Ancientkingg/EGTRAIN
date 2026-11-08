@@ -1,7 +1,7 @@
 <map id="makeNewSceneModel" name="makeNewSceneModel">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,172,55"/>
-<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="53,31,46,21,50,11,64,5,89,3,119,6,131,15,127,20,117,11,89,8,66,10,53,15,51,20,57,28"/>
-<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="220,29,391,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,39,207,39,207,45,172,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="270,31,262,21,266,11,281,5,305,3,335,6,347,15,344,20,333,11,305,8,282,10,270,15,268,20,274,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,171,57"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="51,29,45,20,50,11,64,5,88,3,113,5,129,14,123,14,112,10,88,8,66,10,53,15,50,20,56,29"/>
+<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="219,29,388,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,41,206,43,200,43,171,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="266,28,260,20,265,11,280,5,303,3,329,5,344,14,339,14,327,10,303,8,281,10,269,15,266,20,271,30"/>
 </map>

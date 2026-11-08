@@ -8,11 +8,14 @@ var class_scene_document =
       [ "Services", "class_scene_document.html#a91f74e5143e65d144b7e484152ee01d0ac2e42be467e1b6127929a0a2b5db888a", null ],
       [ "Scenarios", "class_scene_document.html#a91f74e5143e65d144b7e484152ee01d0a59831ef80f0e7d032b2820ea8c6b1fed", null ],
       [ "Passengers", "class_scene_document.html#a91f74e5143e65d144b7e484152ee01d0a115850ac59aa4feb0664ab25db188933", null ],
-      [ "AllChanges", "class_scene_document.html#a91f74e5143e65d144b7e484152ee01d0a65cf14ddce60f0ccce313a79bbf813a3", null ]
+      [ "AllChanges", "class_scene_document.html#a91f74e5143e65d144b7e484152ee01d0a65cf14ddce60f0ccce313a79bbf813a3", null ],
+      [ "OpenDuringRun", "class_scene_document.html#a91f74e5143e65d144b7e484152ee01d0a2c7155c7dc5deb950ae7c43db96ed159", null ]
     ] ],
     [ "SceneDocument", "class_scene_document.html#a7b376a313d121770604a481647759cee", null ],
+    [ "aboutToEdit", "class_scene_document.html#ac0951bbffb85bf77fb63e0fe05875349", null ],
     [ "changed", "class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f", null ],
     [ "dirtyChanged", "class_scene_document.html#aa264b685cb49af4df36f5c11bc53e71d", null ],
+    [ "edit", "class_scene_document.html#a19d593b9d99483a0468c0c17409cb2c8", null ],
     [ "editableChanged", "class_scene_document.html#a757efc9c4eac4817ef7c7fadbfbaa994", null ],
     [ "isDirty", "class_scene_document.html#a259a637519be2dd1fecad1a73690dc25", null ],
     [ "isEditable", "class_scene_document.html#ae81e4460eb27933960887d597c5cd54c", null ],
@@ -21,6 +24,7 @@ var class_scene_document =
     [ "markChanged", "class_scene_document.html#aad2a9b2a6152f239fd50148f7bd6da57", null ],
     [ "markSaved", "class_scene_document.html#ab6ec69f4fb6838a63b144f306e2bd164", null ],
     [ "model", "class_scene_document.html#afb8e17c314a99ffcbcd850b5eaa65b64", null ],
+    [ "modelGeneration", "class_scene_document.html#a44806ad0038de63b65a9aa0634c4f709", null ],
     [ "mutableModel", "class_scene_document.html#a6b9805cf3a1c8f692acbf4aa6b4650ae", null ],
     [ "replace", "class_scene_document.html#aa29cf748032512bdadf3efa930a589b4", null ],
     [ "replaced", "class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2", null ],

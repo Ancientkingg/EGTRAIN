@@ -1,8 +1,8 @@
 <map id="RunSelection::selectedOccurrences" name="RunSelection::selectedOccurrences">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,43,256,68"/>
-<area shape="rect" id="Node000002" href="$class_run_selection.html#abaec58a04e1aa529098fdc4e6433ddd4" title="The run leaves occurrence out." alt="" coords="304,5,489,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="221,40,292,30,292,35,222,45"/>
-<area shape="rect" id="Node000003" href="$_run_selection_8cpp.html#ae0f6edca24427d9831919b8af2063cd7" title=" " alt="" coords="311,79,482,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="225,65,298,75,297,81,224,71"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="354,80,345,70,350,60,367,54,397,52,435,56,445,61,448,67,444,70,441,65,433,61,397,57,368,59,353,64,350,70,358,77"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,44,255,72"/>
+<area shape="rect" id="Node000002" href="$class_run_selection.html#abaec58a04e1aa529098fdc4e6433ddd4" title="The run leaves occurrence out." alt="" coords="303,5,487,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="229,41,290,34,284,36,230,46"/>
+<area shape="rect" id="Node000003" href="$_run_selection_8cpp.html#ae0f6edca24427d9831919b8af2063cd7" title=" " alt="" coords="310,81,480,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="233,70,297,81,292,81,233,75"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="350,80,343,72,348,63,366,57,395,55,426,57,444,66,439,66,425,62,395,60,367,62,352,67,348,72,355,82"/>
 </map>

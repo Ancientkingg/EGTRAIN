@@ -1,0 +1,7 @@
+<map id="Train::BackwardBrakingArcCursor" name="Train::BackwardBrakingArcCursor">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,229,201,274"/>
+<area shape="rect" id="Node000002" href="$class_arc.html" title="A directed piece of track between two nodes." alt="" coords="82,128,124,156"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,170,106,229,100,228,101,174"/>
+<area shape="rect" id="Node000003" href="$class_node.html" title=" " alt="" coords="75,5,131,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="104,46,106,128,100,127,102,51"/>
+</map>

@@ -1,4 +1,4 @@
 <map id="sceneRewriteTrainUnitReferences" name="sceneRewriteTrainUnitReferences">
-<area shape="rect" id="Node000001" title="Rewrites the train unit id in the units of compositions." alt="" coords="5,29,247,55"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="87,31,79,21,83,11,99,5,126,3,160,7,173,16,169,20,158,11,126,8,100,10,87,15,84,20,91,27"/>
+<area shape="rect" id="Node000001" title="Rewrites the train unit id in the units of compositions." alt="" coords="5,29,246,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="84,28,78,20,83,11,99,5,126,3,154,5,170,14,165,14,152,10,125,8,100,10,87,15,83,20,89,29"/>
 </map>

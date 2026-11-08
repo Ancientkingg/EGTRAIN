@@ -192,11 +192,13 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="common-questions.html">Common questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
-<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
@@ -220,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -236,7 +238,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +252,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +267,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -313,7 +315,7 @@
 <p>The <strong>Loaded Data</strong> dock stays separate from running. Its tree shows the case
 with its name and description, the counts of each category, the default and
 available scenarios, the validation state, and the state of the run and its
-results under <strong>Run</strong>. Advanced mode adds <strong>Format version</strong>, <strong>Bundle version</strong>,
+results under <strong>Run</strong>. Advanced mode adds <strong>Format version</strong>, <strong>Case file version</strong>,
 <strong>Saved with</strong> and <strong>Source files discovered</strong>. Expand a category to see what
 was read for it, such as each rolling stock unit or service. Advanced mode also
 shows its source file and the objects read from that file. Imported cases also show the converted,
@@ -345,13 +347,18 @@ have positive width, be ordered, and not overlap.</p>
 <p>The label under <strong>Link File…</strong> shows the state of the link. <strong>Unlinked</strong>
 means no file is linked. A linked file that exists shows <code class="docutils literal notranslate"><span class="pre">Linked:</span> <span class="pre">&lt;file</span> <span class="pre">name&gt;</span></code>,
 <strong>Up to date</strong> or <strong>Reloaded</strong>, <code class="docutils literal notranslate"><span class="pre">Not</span> <span class="pre">loaded:</span> <span class="pre">&lt;reason&gt;</span></code> when it cannot be read,
-or <strong>Kept your edits</strong> after Keep Edits. A reload or a retry that has not
-finished shows <strong>Linked</strong> or <strong>Retrying</strong>, and during a run
-<strong>Linked. Loads after the run</strong> or <strong>Retries after the run</strong>.
-<code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">not</span> <span class="pre">found:</span> <span class="pre">&lt;path&gt;</span></code> replaces all of these when the linked file does not
-exist, also after Keep Edits. It shows the path of the file, and <strong>Retry</strong> stays
-available. A conflict between local edits and a changed file is a question, not
-a label: it asks for Reload or Keep Edits.</p>
+or <strong>Kept your edits</strong> after <strong>Keep Edits</strong> or <strong>Keep Current</strong>. A reload or a
+retry that has not finished shows <strong>Linked</strong> or <strong>Retrying</strong>, and during a run
+<strong>Linked. Loads after the run</strong>, <strong>Retries after the run</strong> or
+<strong>Changed. Reloads after the run</strong>. <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">not</span> <span class="pre">found:</span> <span class="pre">&lt;path&gt;</span></code> replaces all of
+these when the linked file does not exist, also after <strong>Keep Edits</strong> or
+<strong>Keep Current</strong>. It shows the path of the file, and <strong>Retry</strong> stays
+available. A conflict between local edits and a changed file is a question,
+not a label: the box <strong>Linked File Changed</strong> asks for <strong>Reload</strong> or
+<strong>Keep Edits</strong>. A file that changed during a run is asked about when the run
+ends; without local edits the second button reads <strong>Keep Current</strong>. While the
+results of a run are shown, the question adds
+<code class="docutils literal notranslate"><span class="pre">Reloading</span> <span class="pre">discards</span> <span class="pre">the</span> <span class="pre">results</span> <span class="pre">of</span> <span class="pre">this</span> <span class="pre">run.</span></code></p>
 <p>Each linked update is applied only after the complete candidate validates.
 Malformed or missing content leaves accepted values unchanged and keeps
 <strong>Retry</strong> available. A valid change marks the case dirty only when values
@@ -395,7 +402,7 @@ charts do not change.</p>
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

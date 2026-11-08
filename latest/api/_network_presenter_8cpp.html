@@ -8,7 +8,6 @@
 <title>EGTRAIN: graphics/NetworkPresenter.cpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,32 +111,35 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_network_prese
   <div class="headertitle"><div class="title">NetworkPresenter.cpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_network_presenter_8h_source.html">graphics/NetworkPresenter.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_signal_item_roles_8h_source.html">graphics/SignalItemRoles.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_section_inventory_8h_source.html">scene/SectionInventory.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_gui_simulation_snapshot_8h_source.html">app/GuiSimulationSnapshot.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_annotation_placement_8h_source.html">graphics/AnnotationPlacement.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_network_scene_8h_source.html">graphics/NetworkScene.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_network_view_8h_source.html">graphics/NetworkView.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_runtime_geometry_source_8h_source.html">graphics/RuntimeGeometrySource.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_signal_geometry_8h_source.html">graphics/SignalGeometry.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_visual_polish_8h_source.html">graphics/VisualPolish.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_connection_item_8h_source.html">graphics/items/ConnectionItem.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_node_item_8h_source.html">graphics/items/NodeItem.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_passenger_item_8h_source.html">graphics/items/PassengerItem.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_platform_item_8h_source.html">graphics/items/PlatformItem.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_signal_item_8h_source.html">graphics/items/SignalItem.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_station_node_item_8h_source.html">graphics/items/StationNodeItem.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_station_overlay_item_8h_source.html">graphics/items/StationOverlayItem.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_track_line_item_8h_source.html">graphics/items/TrackLineItem.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_train_badge_item_8h_source.html">graphics/items/TrainBadgeItem.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_train_body_item_8h_source.html">graphics/items/TrainBodyItem.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_train_item_group_8h_source.html">graphics/items/TrainItemGroup.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_references_8h_source.html">scene/SceneReferences.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_playback_profiler_8h_source.html">util/PlaybackProfiler.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_speed_format_8h_source.html">util/SpeedFormat.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_signalling_8h_source.html">simulation/Signalling.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_network_presenter_8h.html">graphics/NetworkPresenter.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_signal_item_roles_8h.html">graphics/SignalItemRoles.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_model_8h.html">scene/SceneModel.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_section_inventory_8h.html">scene/SectionInventory.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_gui_simulation_snapshot_8h.html">simulation/GuiSimulationSnapshot.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_annotation_placement_8h.html">graphics/AnnotationPlacement.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_network_scene_8h.html">graphics/NetworkScene.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_network_view_8h.html">graphics/NetworkView.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_runtime_geometry_source_8h.html">graphics/RuntimeGeometrySource.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_signal_geometry_8h.html">graphics/SignalGeometry.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_visual_polish_8h.html">graphics/VisualPolish.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_connection_item_8h.html">graphics/items/ConnectionItem.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_highlight_effect_8h.html">graphics/items/HighlightEffect.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_network_mark_item_8h.html">graphics/items/NetworkMarkItem.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_node_item_8h.html">graphics/items/NodeItem.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_passenger_item_8h.html">graphics/items/PassengerItem.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_platform_item_8h.html">graphics/items/PlatformItem.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_signal_item_8h.html">graphics/items/SignalItem.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_station_node_item_8h.html">graphics/items/StationNodeItem.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_station_overlay_item_8h.html">graphics/items/StationOverlayItem.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_track_line_item_8h.html">graphics/items/TrackLineItem.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_train_badge_item_8h.html">graphics/items/TrainBadgeItem.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_train_body_item_8h.html">graphics/items/TrainBodyItem.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_train_item_group_8h.html">graphics/items/TrainItemGroup.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_virtual_arc_item_8h.html">graphics/items/VirtualArcItem.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_references_8h.html">scene/SceneReferences.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_playback_profiler_8h.html">util/PlaybackProfiler.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_speed_format_8h.html">util/SpeedFormat.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_signalling_8h.html">simulation/Signalling.h</a>&quot;</code><br />
 <code>#include &lt;QCoreApplication&gt;</code><br />
 <code>#include &lt;QEvent&gt;</code><br />
 <code>#include &lt;QFont&gt;</code><br />
@@ -150,13 +152,10 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_network_prese
 <code>#include &lt;QPainterPath&gt;</code><br />
 <code>#include &lt;QtMath&gt;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
-<code>#include &lt;cfloat&gt;</code><br />
-<code>#include &lt;climits&gt;</code><br />
 <code>#include &lt;cmath&gt;</code><br />
 <code>#include &lt;cstdlib&gt;</code><br />
 <code>#include &lt;limits&gt;</code><br />
 <code>#include &lt;optional&gt;</code><br />
-<code>#include &lt;sstream&gt;</code><br />
 <code>#include &lt;string_view&gt;</code><br />
 <code>#include &lt;tuple&gt;</code><br />
 <code>#include &lt;unordered_map&gt;</code><br />
@@ -164,9 +163,14 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_network_prese
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for NetworkPresenter.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp__incl.svg" width="5170" height="374"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp__incl.svg" width="6108" height="392"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:NetworkPresenter_3A_3APreviewDrawing" id="r_NetworkPresenter_3A_3APreviewDrawing"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_network_presenter_1_1_preview_drawing.html">NetworkPresenter::PreviewDrawing</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the stages of <a class="el" href="class_network_presenter.html#a583bd2b439a923f2d17f3e3e16040cc3">showPreview()</a> share.  <a href="struct_network_presenter_1_1_preview_drawing.html#details">More...</a><br /></td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a1b57662dc5e3aac38290b652a37de442" id="r_a1b57662dc5e3aac38290b652a37de442"><td class="memItemLeft"><a class="el" href="struct_gui_passenger_state.html">GuiPassengerState</a>&#160;</td><td class="memItemRight"><a class="el" href="#a1b57662dc5e3aac38290b652a37de442">passengerStateIn</a> (const <a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a> *snapshot, const std::string &amp;id)</td></tr>
@@ -178,6 +182,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a5ad7e0d37140be7daecd2de8ac3410c4" id="r_a5ad7e0d37140be7daecd2de8ac3410c4"><td class="memItemLeft">std::map&lt; std::string, <a class="el" href="struct_preview_station_membership.html">PreviewStationMembership</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a5ad7e0d37140be7daecd2de8ac3410c4">previewStationMemberships</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model)</td></tr>
 <tr class="memitem:a90871b99822ad821aef490a21ffd9272" id="r_a90871b99822ad821aef490a21ffd9272"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a90871b99822ad821aef490a21ffd9272">previewPointAtNode</a> (const <a class="el" href="struct_track_preview_line.html">TrackPreviewLine</a> &amp;line, const std::string &amp;nodeId, qreal offset, QPointF &amp;point)</td></tr>
 <tr class="memitem:a2c806caf42aab9fe3cd7c2e65f79fdef" id="r_a2c806caf42aab9fe3cd7c2e65f79fdef"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2c806caf42aab9fe3cd7c2e65f79fdef">previewPointAtX</a> (const <a class="el" href="struct_track_preview_line.html">TrackPreviewLine</a> &amp;line, double x, qreal offset, QPointF &amp;point)</td></tr>
+<tr class="memitem:a8cf18205b036242ba1bd00d5913edd18" id="r_a8cf18205b036242ba1bd00d5913edd18"><td class="memItemLeft">QPolygonF&#160;</td><td class="memItemRight"><a class="el" href="#a8cf18205b036242ba1bd00d5913edd18">previewSectionCourse</a> (const <a class="el" href="struct_track_preview_result.html">TrackPreviewResult</a> &amp;preview, const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;section)</td></tr>
+<tr class="memitem:add28e0e6c110c9b6180e912d4e0ae504" id="r_add28e0e6c110c9b6180e912d4e0ae504"><td class="memItemLeft">QList&lt; QPolygonF &gt;&#160;</td><td class="memItemRight"><a class="el" href="#add28e0e6c110c9b6180e912d4e0ae504">previewSectionCourses</a> (const <a class="el" href="struct_track_preview_result.html">TrackPreviewResult</a> &amp;preview, const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;inventory, const std::vector&lt; std::string &gt; &amp;references)</td></tr>
 <tr class="memitem:a1fe09b7029738c6037d8b9a15423a158" id="r_a1fe09b7029738c6037d8b9a15423a158"><td class="memItemLeft">QPointF&#160;</td><td class="memItemRight"><a class="el" href="#a1fe09b7029738c6037d8b9a15423a158">stationDecorationOffset</a> (const std::vector&lt; <a class="el" href="struct_scene_station_view.html">SceneStationView</a> &gt; &amp;views, const std::string &amp;stationId, const std::string &amp;name)</td></tr>
 <tr class="memitem:a4ee8a0b69325a28edae851515c7bb021" id="r_a4ee8a0b69325a28edae851515c7bb021"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4ee8a0b69325a28edae851515c7bb021">previewSignalNormal</a> (const <a class="el" href="struct_track_preview_line.html">TrackPreviewLine</a> &amp;line, double rawX, QPointF &amp;normal)</td></tr>
 </table>
@@ -201,7 +207,7 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp_ab86c30f8ddd372850bdc390b9e58d813_cgraph.svg" width="128" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp_ab86c30f8ddd372850bdc390b9e58d813_cgraph.svg" width="127" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -229,7 +235,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp_a1b57662dc5e3aac38290b652a37de442_cgraph.svg" width="146" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp_a1b57662dc5e3aac38290b652a37de442_cgraph.svg" width="146" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -266,7 +272,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp_a90871b99822ad821aef490a21ffd9272_cgraph.svg" width="402" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp_a90871b99822ad821aef490a21ffd9272_cgraph.svg" width="400" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -303,7 +309,66 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp_a2c806caf42aab9fe3cd7c2e65f79fdef_cgraph.svg" width="352" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp_a2c806caf42aab9fe3cd7c2e65f79fdef_cgraph.svg" width="351" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a8cf18205b036242ba1bd00d5913edd18" name="a8cf18205b036242ba1bd00d5913edd18"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8cf18205b036242ba1bd00d5913edd18">&#9670;&#160;</a></span>previewSectionCourse()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QPolygonF previewSectionCourse </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_track_preview_result.html">TrackPreviewResult</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>preview</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>section</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The course of a section on the preview in scene coordinates, the polyline of <a class="el" href="_track_preview_8cpp.html#a82bd89af254ba661615bbc295ea8fbf6">trackPreviewSectionCourse()</a>; empty when the course is not on the preview or has a point that is not finite. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp_a8cf18205b036242ba1bd00d5913edd18_cgraph.svg" width="660" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="add28e0e6c110c9b6180e912d4e0ae504" name="add28e0e6c110c9b6180e912d4e0ae504"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add28e0e6c110c9b6180e912d4e0ae504">&#9670;&#160;</a></span>previewSectionCourses()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QList&lt; QPolygonF &gt; previewSectionCourses </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_track_preview_result.html">TrackPreviewResult</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>preview</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>inventory</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>references</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The courses of sections on the preview in scene coordinates, one per reference in order: the course of the section that the reference resolves to (<a class="el" href="struct_scene_section_inventory.html#a03c3b41fd7859a36164db37bc7784fb8">SceneSectionInventory::resolve</a>), empty for a reference that resolves to none. The preview is the one the canvas shows (<a class="el" href="class_network_presenter.html#a252c44e30f1c533a1374efb9605e0082" title="The preview that the scene shows.">NetworkPresenter::trackPreview()</a>), and a <a class="el" href="class_network_mark_item.html">NetworkMarkItem</a> draws the courses. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp_add28e0e6c110c9b6180e912d4e0ae504_cgraph.svg" width="886" height="168"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -335,7 +400,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp_a4ee8a0b69325a28edae851515c7bb021_cgraph.svg" width="402" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp_a4ee8a0b69325a28edae851515c7bb021_cgraph.svg" width="400" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -358,7 +423,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp_a5ad7e0d37140be7daecd2de8ac3410c4_cgraph.svg" width="219" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp_a5ad7e0d37140be7daecd2de8ac3410c4_cgraph.svg" width="219" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -382,7 +447,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp_a16f55e4eca9c38ca6f6b52339f8c42c1_cgraph.svg" width="130" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp_a16f55e4eca9c38ca6f6b52339f8c42c1_cgraph.svg" width="130" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -414,7 +479,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp_a1fe09b7029738c6037d8b9a15423a158_cgraph.svg" width="403" height="134"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_network_presenter_8cpp_a1fe09b7029738c6037d8b9a15423a158_cgraph.svg" width="402" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

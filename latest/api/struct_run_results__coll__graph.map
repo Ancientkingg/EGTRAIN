@@ -1,5 +1,5 @@
 <map id="RunResults" name="RunResults">
-<area shape="rect" id="Node000001" title="The Run Results table: one row for each train and the totals of the network." alt="" coords="20,221,115,247"/>
-<area shape="rect" id="Node000002" href="$struct_run_result_value.html" title="A result that may not exist. An unavailable value is shown as empty or &quot;&#45;&quot;, never as 0." alt="" coords="5,5,129,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="70,44,70,221,65,221,65,44"/>
+<area shape="rect" id="Node000001" title="The Run Results table: one row for each train and the totals of the network." alt="" coords="20,240,114,268"/>
+<area shape="rect" id="Node000002" href="$struct_run_result_value.html" title="A result that may not exist. An unavailable value is shown as empty or &quot;&#45;&quot;, never as 0." alt="" coords="5,5,129,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="70,48,70,240,64,239,64,49"/>
 </map>

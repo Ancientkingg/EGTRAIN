@@ -8,5 +8,6 @@ var _scene_importer_8h =
     [ "importLegacyPassengers", "_scene_importer_8h.html#af073cc46a3a51cb4473f73f12825f8ce", null ],
     [ "importLegacyScene", "_scene_importer_8h.html#a18f5a3a9059fe1b30f1dbcf15e252c09", null ],
     [ "parseTrainPhysicalSourceFile", "_scene_importer_8h.html#aacfecc4e25bcb168faf76da83167440f", null ],
-    [ "parseTrainTractionSourceFile", "_scene_importer_8h.html#af2140a30b929da68c19a93d11c3a6177", null ]
+    [ "parseTrainTractionSourceFile", "_scene_importer_8h.html#af2140a30b929da68c19a93d11c3a6177", null ],
+    [ "kLegacyNoRepeatHeadwaySeconds", "_scene_importer_8h.html#a35a9d340dfdc643b69a50a58dfd6dd04", null ]
 ];

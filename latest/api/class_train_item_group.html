@@ -8,7 +8,6 @@
 <title>EGTRAIN: TrainItemGroup Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -113,21 +112,21 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_train_it
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_train_item_group_8h_source.html">graphics/items/TrainItemGroup.h</a>&gt;</code></p>
+<p><code>#include &lt;graphics/items/TrainItemGroup.h&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for TrainItemGroup:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_item_group__inherit__graph.svg" width="170" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_item_group__inherit__graph.svg" width="168" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
 Collaboration diagram for TrainItemGroup:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_item_group__coll__graph.svg" width="170" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_item_group__coll__graph.svg" width="168" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:abfc417e2784a794f2f29dd180f8b630f" id="r_abfc417e2784a794f2f29dd180f8b630f"><td class="memItemLeft"><a class="el" href="#abfc417e2784a794f2f29dd180f8b630f">enum </a>&#160;</td><td class="memItemRight">{ <a class="el" href="#abfc417e2784a794f2f29dd180f8b630faffb4178522d1a4459d0ee06309ea652c">Type</a> = UserType + 8
+<tr class="memitem:abfc417e2784a794f2f29dd180f8b630f" id="r_abfc417e2784a794f2f29dd180f8b630f"><td class="memItemLeft"><a class="el" href="#abfc417e2784a794f2f29dd180f8b630f">enum </a>&#160;</td><td class="memItemRight">{ <a class="el" href="#abfc417e2784a794f2f29dd180f8b630faffb4178522d1a4459d0ee06309ea652c">Type</a>
  }</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -170,8 +169,6 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:ad62434d02bd243faffbabf6528352a1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The passenger capacity of the train, from its number of wagons.  <br /></td></tr>
 <tr class="memitem:aeb70c9aaeabba7d84c2c64285d266e6f" id="r_aeb70c9aaeabba7d84c2c64285d266e6f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aeb70c9aaeabba7d84c2c64285d266e6f">outOfSimulation</a></td></tr>
 <tr class="memdesc:aeb70c9aaeabba7d84c2c64285d266e6f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The train has left the network.  <br /></td></tr>
-<tr class="memitem:ae69bd2d634bb9fc3eec8dd5cc7583d93" id="r_ae69bd2d634bb9fc3eec8dd5cc7583d93"><td class="memItemLeft">QGraphicsItemGroup *&#160;</td><td class="memItemRight"><a class="el" href="#ae69bd2d634bb9fc3eec8dd5cc7583d93">paxInfoItem</a></td></tr>
-<tr class="memdesc:ae69bd2d634bb9fc3eec8dd5cc7583d93"><td class="mdescLeft">&#160;</td><td class="mdescRight">Not used: it stays null.  <br /></td></tr>
 <tr class="memitem:af04bc892f43aabb1416716fa0c33bba7" id="r_af04bc892f43aabb1416716fa0c33bba7"><td class="memItemLeft">QList&lt; <a class="el" href="class_train_body_item.html">TrainBodyItem</a> * &gt; *&#160;</td><td class="memItemRight"><a class="el" href="#af04bc892f43aabb1416716fa0c33bba7">trainPolygonItemList</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -431,22 +428,6 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="ae69bd2d634bb9fc3eec8dd5cc7583d93" name="ae69bd2d634bb9fc3eec8dd5cc7583d93"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae69bd2d634bb9fc3eec8dd5cc7583d93">&#9670;&#160;</a></span>paxInfoItem</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QGraphicsItemGroup* TrainItemGroup::paxInfoItem</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Not used: it stays null. </p>
-
-</div>
-</div>
 <a id="acc662520bc11177a9821d93360b3775c" name="acc662520bc11177a9821d93360b3775c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acc662520bc11177a9821d93360b3775c">&#9670;&#160;</a></span>serviceId</h2>
 
@@ -559,7 +540,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>graphics/items/<a class="el" href="_train_item_group_8h_source.html">TrainItemGroup.h</a></li>
+<li>graphics/items/<a class="el" href="_train_item_group_8h.html">TrainItemGroup.h</a></li>
 <li>graphics/items/<a class="el" href="_train_item_group_8cpp.html">TrainItemGroup.cpp</a></li>
 </ul>
 </div><!-- contents -->

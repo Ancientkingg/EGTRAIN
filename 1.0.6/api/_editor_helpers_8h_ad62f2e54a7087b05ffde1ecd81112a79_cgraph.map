@@ -1,0 +1,10 @@
+<map id="generatedServiceLabel" name="generatedServiceLabel">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,68,176,96"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="44,68,37,59,43,49,61,43,91,41,122,44,141,52,136,53,121,49,90,47,62,49,46,54,42,59,49,67"/>
+<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b" title=" " alt="" coords="224,29,501,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="176,67,248,59,243,61,177,72"/>
+<area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#ab7587e34d0ddda26476e1d691ad5c9e7" title=" " alt="" coords="258,105,466,133"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="176,91,246,102,241,103,176,96"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="316,28,309,20,315,11,333,5,362,3,394,5,413,14,407,14,393,10,362,8,334,10,318,15,314,20,321,29"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="316,104,309,96,315,87,333,81,362,79,394,81,413,90,408,90,393,86,362,84,334,86,318,91,314,96,321,106"/>
+</map>

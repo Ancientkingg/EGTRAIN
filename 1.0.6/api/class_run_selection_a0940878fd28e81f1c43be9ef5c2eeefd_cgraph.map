@@ -1,0 +1,16 @@
+<map id="RunSelection::historyRestored" name="RunSelection::historyRestored">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,223,109"/>
+<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="314,29,438,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,78,301,57,297,59,188,83"/>
+<area shape="rect" id="Node000004" href="$class_run_selection.html#a8cca816811ab5177645f08407fae64f4" title="The occurrences that a run leaves out. All others are selected." alt="" coords="289,81,462,109"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="223,93,276,95,271,96,223,98"/>
+<area shape="rect" id="Node000005" href="$class_run_selection.html#a2b2574cfc3e68d492c2c7e54699ba534" title="Forgets exclusions of services that are gone and of occurrences beyond the count of their service." alt="" coords="271,133,481,161"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="188,107,290,129,285,130,187,112"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="331,28,324,20,330,11,347,5,376,3,406,5,425,14,419,14,405,10,376,8,348,10,333,15,329,20,336,29"/>
+<area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="554,29,723,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="438,41,541,43,535,44,438,46"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="593,28,586,20,592,11,610,5,638,3,669,5,687,14,682,14,668,10,638,8,611,10,595,15,592,20,598,30"/>
+<area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="529,133,747,161"/>
+<area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="482,145,516,147,511,147,482,150"/>
+<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="593,132,586,124,592,115,610,109,638,107,669,109,687,118,682,118,668,114,638,112,611,114,595,119,592,124,598,134"/>
+</map>

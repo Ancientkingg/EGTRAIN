@@ -1,7 +1,7 @@
 <map id="capacityNextPeriodTrain" name="capacityNextPeriodTrain">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,185,55"/>
-<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="57,31,48,21,53,11,69,5,95,3,129,7,141,16,138,20,127,11,95,8,70,10,56,15,54,20,61,27"/>
-<area shape="rect" id="Node000002" href="$_capacity_analysis_8cpp.html#a2e351fad4243c80b6986c4b1f7a614c8" title="The runtime id of the copy of a train one period later: &quot;&lt;runtimeId&gt; (next period)&quot;." alt="" coords="233,29,432,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,39,220,39,220,45,185,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="294,31,286,21,290,11,306,5,333,3,366,7,379,16,375,20,364,11,333,8,307,10,294,15,291,20,298,27"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,185,57"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="54,29,48,20,53,11,69,5,95,3,123,5,139,14,134,14,121,10,95,8,70,10,57,15,53,20,60,29"/>
+<area shape="rect" id="Node000002" href="$_capacity_analysis_8cpp.html#a2e351fad4243c80b6986c4b1f7a614c8" title="The runtime id of the copy of a train one period later: &quot;&lt;runtimeId&gt; (next period)&quot;." alt="" coords="233,29,431,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,41,220,43,215,43,185,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="291,28,285,20,290,11,306,5,332,3,360,5,376,14,371,14,358,10,332,8,307,10,293,15,290,20,296,30"/>
 </map>

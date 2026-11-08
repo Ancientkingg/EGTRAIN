@@ -4,6 +4,7 @@ var class_case_chooser_dialog =
     [ "Outcome", "class_case_chooser_dialog.html#a780b44e946d7556c0277e51559b11a00", [
       [ "Continue", "class_case_chooser_dialog.html#a780b44e946d7556c0277e51559b11a00aa0bfb8e59e6c13fc8d990781f77694fe", null ],
       [ "OpenSelected", "class_case_chooser_dialog.html#a780b44e946d7556c0277e51559b11a00a2c331a209142bd8ee854073934b3c6b4", null ],
+      [ "BrowseFile", "class_case_chooser_dialog.html#a780b44e946d7556c0277e51559b11a00a65803d0f039e00f621d288091efab00a", null ],
       [ "BrowseFolder", "class_case_chooser_dialog.html#a780b44e946d7556c0277e51559b11a00a5a4ed5ce8094d5a091471fc51d60b552", null ],
       [ "ImportLegacy", "class_case_chooser_dialog.html#a780b44e946d7556c0277e51559b11a00aac73bdda2e34d002305d920ce6044529", null ],
       [ "NewCase", "class_case_chooser_dialog.html#a780b44e946d7556c0277e51559b11a00a88cfa8543febb100fb680cbab7a1b5e2", null ]

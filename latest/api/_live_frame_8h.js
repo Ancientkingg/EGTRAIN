@@ -11,5 +11,6 @@ var _live_frame_8h =
     [ "makeEventFrame", "_live_frame_8h.html#aa15fa4f8941f8f8f4174fc3bc144a8f1", null ],
     [ "makeHelloFrame", "_live_frame_8h.html#af5e6c634a5f117dad0ac13428c9ea2f6", null ],
     [ "makeStateFrame", "_live_frame_8h.html#ac51ef6820acefcf6d6540bd32b294aa2", null ],
+    [ "randomHex", "_live_frame_8h.html#adbba254b1a4954c529d0489c8186eed1", null ],
     [ "kLiveContractVersion", "_live_frame_8h.html#aa8802fe5139098081f715c8bf8b0ddbc", null ]
 ];

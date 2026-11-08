@@ -1,0 +1,11 @@
+<map id="IncidentPanel::offersTarget" name="IncidentPanel::offersTarget">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,44,199,72"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="247,5,450,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,41,243,35,238,37,195,46"/>
+<area shape="rect" id="Node000003" href="$_editor_rules_8cpp.html#a49605e4d111fa3fd34c0b7164d44f69b" title="The signals and then the blocks of the scene, each id once: what a signal failure can have as its tar..." alt="" coords="273,81,424,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="198,70,261,81,255,82,198,75"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="313,80,308,72,312,63,326,57,348,55,372,57,387,66,381,66,371,62,348,60,327,62,316,67,313,72,318,82"/>
+<area shape="rect" id="Node000004" href="$_scene_model_8cpp.html#a765f734ddc8d717d03dfb08048237303" title=" " alt="" coords="498,81,604,109"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="424,93,485,95,479,95,424,98"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="516,80,511,72,515,63,529,57,551,55,575,57,589,67,584,66,574,62,551,60,530,62,519,67,516,72,521,82"/>
+</map>

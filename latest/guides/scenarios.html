@@ -192,11 +192,13 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="common-questions.html">Common questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
-<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-data.html">Data of the bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
@@ -220,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -236,7 +238,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +252,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +267,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -362,8 +364,9 @@ ellipsis. Its tooltip, and the tooltips of <strong>Follow</strong> and of the li
 whether the train is followed and why not. A train that has not entered yet remains armed: the view does
 not move, and Follow starts when the train enters. While the Trains layer is off
 the view does not move either, and the nearest station is not emphasised; both
-return when the layer is switched on. Before a case has run, and in a case
-without services, <strong>Follow</strong> is disabled and its tooltip says why.</p>
+return when the layer is switched on. Before a case has run, after an edit or a
+switch of scenario that discards the results of a run, and in a case without
+services, <strong>Follow</strong> is disabled and its tooltip says why.</p>
 <p>In a live run Follow is switched off when the selected train leaves the network.
 The train stays in the list, but Follow cannot be switched on for it. In the
 replay of a completed run Follow stays on after the selected train has left, and
@@ -385,12 +388,12 @@ Fastest that is about two minutes of simulated time, so its occupied track and i
 signals, which show the newest state, can run ahead of it. When the train stops, or the run is
 paused, the train reaches its last position and stops there.
 The followed train stays in the middle of the view: the view moves with the train at
-every step of its glide. A train that has just appeared, that runs backwards, or that
+every step of its glide. At Fit the view stays where it is; zoom in to follow the train.
+A train that has just appeared, that runs backwards, or that
 has moved further than the visible area since the last update moves to its new position
 at once. In the replay of a completed
-run the trains and the view move at once at every seek and every step of the playback,
-because the replay holds a frame every five seconds and a glide would show motion that
-was not recorded. Switching Follow on and choosing another train also move the view at
+run the trains and the view move at once at every seek. While the replay plays, the trains glide
+from one shown second to the next and the view stays on the followed train. Switching Follow on and choosing another train also move the view at
 once. Dragging the canvas, zooming with the wheel or a pinch and resizing the window do
 not switch Follow off. While you hold the drag, scroll or pinch, the view stays where you
 put it; in a live run it returns to the train after you let go, smoothly over less than
@@ -402,7 +405,7 @@ switching the Trains layer off stop the view where it is.</p>
 <h2>Selecting items<a class="headerlink" href="#selecting-items" title="Link to this heading">¶</a></h2>
 <p>Click a track, connection, node, station, signal, train or passenger on the
 canvas to select it, in the preview as well as during a run. The matching
-inspector opens, or for a passenger a box of its details above it, and a light
+inspector opens, or for a passenger a box of its details above it (below it when the passenger is near the top of the view), and a light
 blue ring marks the item. Its title names the item: <code class="docutils literal notranslate"><span class="pre">Node</span> <span class="pre">&lt;id&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Station</span> <span class="pre">&lt;id&gt;</span></code>,
 <code class="docutils literal notranslate"><span class="pre">Arc</span> <span class="pre">&lt;id&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Track</span> <span class="pre">&lt;id&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Connection</span> <span class="pre">&lt;id&gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">Signal</span> <span class="pre">&lt;label&gt;</span></code> in the preview, and
 <code class="docutils literal notranslate"><span class="pre">Node</span> <span class="pre">&lt;id&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Station</span> <span class="pre">&lt;name&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Arc</span> <span class="pre">&lt;id&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Connection</span></code>, <code class="docutils literal notranslate"><span class="pre">Signal</span></code> or <code class="docutils literal notranslate"><span class="pre">Train</span> <span class="pre">&lt;name&gt;</span></code>
@@ -439,8 +442,8 @@ the direction and the place of the head, as in <code class="docutils literal not
 <p>A completed run without incidents or entrance delays can be frozen with <strong>Set
 delay baseline</strong>. The results panel confirms the completed run identity and
 places the next action or disabled reason beside the baseline controls.
-Selecting another scenario keeps the baseline, discards the results and closes
-the dock <strong>Run Results</strong>. Opened again from the menu <strong>View</strong>, the dock reads
+Selecting another scenario keeps the baseline, discards the results, closes
+the dock <strong>Run Results</strong> and shows the case on the network view without the run. Opened again from the menu <strong>View</strong>, the dock reads
 <code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">results</span> <span class="pre">yet</span></code> and <code class="docutils literal notranslate"><span class="pre">Baseline:</span> <span class="pre">&lt;case&gt;</span> <span class="pre">/</span> <span class="pre">&lt;scenario&gt;</span></code>. An edit of the case clears the
 baseline, and the line then reads <code class="docutils literal notranslate"><span class="pre">Baseline</span> <span class="pre">cleared:</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">changed</span></code>; <strong>File &gt; New Case…</strong>
 gives <code class="docutils literal notranslate"><span class="pre">Baseline</span> <span class="pre">cleared:</span> <span class="pre">a</span> <span class="pre">new</span> <span class="pre">case</span> <span class="pre">was</span> <span class="pre">created</span></code> and opening another case gives
@@ -487,7 +490,7 @@ it and what it does not cover are in
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            Furo
             
           </div>
           <div class="right-details">

@@ -1,0 +1,15 @@
+<map id="RunController::onSimulationFinished" name="RunController::onSimulationFinished">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,110,210,155"/>
+<area shape="rect" id="Node000002" href="$class_run_controller.html#a7800e103e0f9e83da53b0ae2b98a6618" title=" " alt="" coords="258,76,478,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,116,245,114,240,115,211,121"/>
+<area shape="rect" id="Node000007" href="$class_run_controller.html#a4e1d9ea8c7d41ec2ca46615254a72ddf" title="The editors, the infrastructure dock and the actions follow the run state." alt="" coords="277,145,458,190"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="210,143,265,153,259,153,210,149"/>
+<area shape="rect" id="Node000003" href="$class_run_controller.html#a5a4f214fdefa28c4eb7af56bc93666ad" title="The worker is gone, so the transient states of the canvas end." alt="" coords="535,5,752,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="433,72,525,43,562,36,557,38,527,48,434,77"/>
+<area shape="rect" id="Node000004" href="$class_run_controller.html#a769b96090a8789ffec8bdfbb6b577101" title="Asks the run to stop. Returns whether a run existed." alt="" coords="546,57,742,85"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="478,85,533,82,527,83,479,90"/>
+<area shape="rect" id="Node000005" href="$class_run_controller.html#aa756f9ef50f3341bad1748f201818222" title="Pause and Stop mean something while a run exists, and Output Folder only while none does." alt="" coords="526,109,761,137"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="478,105,513,111,508,111,478,111"/>
+<area shape="rect" id="Node000006" href="$class_dispatch_controller.html#a17f1138c6661bae0d67ecd96e4858054" title=" " alt="" coords="550,161,737,206"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="442,118,479,130,527,146,552,156,547,156,525,151,477,135,442,123"/>
+</map>

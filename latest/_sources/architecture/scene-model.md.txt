@@ -52,9 +52,20 @@ Each key of the scene files is written in one place and read in one place.
 `SceneWriter.cpp` has an encoder for each file (`encodeSceneMetadata`,
 `encodeInfrastructure`, `encodeStations`, `encodeSignalling`,
 `encodeRollingStock`, `encodeServices`, `encodeScenarios`, `encodeViews` and
-`encodePassengers`), and `loadScene` in `SceneModel.cpp` and
-`SceneFieldReader.cpp` read the files. The importer fills a [`SceneModel`] and
-writes it with the encoders, so an imported scene has the form of a saved one.
+`encodePassengers`), and `SceneFieldReader.cpp` has a decoder for each file
+(`decodeSceneMetadata`, `decodeInfrastructure`, `decodeStations`,
+`decodeViews`, `decodeSignalling`, `decodeRollingStock`, `decodeServices`,
+`decodeScenarios`, `decodeHistoricalIncidents` for `incidents.json` and
+`decodePassengers`). `loadScene` in `SceneModel.cpp` reads and parses the
+files, gives each file its own `SceneFieldReader` and calls the decoders in that
+order. It also makes the checks that span files: it decodes `views.json` after
+the tracks and stations that the views name, and `incidents.json` only when the
+case has no `scenarios.json`; with both files it warns that `incidents.json` is
+ignored. The importer fills a [`SceneModel`] and
+hands it to `replaceSceneDirectory`, which writes, loads back and publishes it
+as `saveScene` does, so an imported scene has the form of a saved one. Unlike a
+save, it replaces a folder at the destination with everything in it and keeps
+the default mode of a new folder.
 The exporter writes the items of its area sidecar with `encodeSignallingArea`,
 and the importer reads them with `decodeSignallingArea`.
 
@@ -73,8 +84,13 @@ and the builders check against, are in `scene/RuntimeLimits.h`.
 
 `SceneModel` owns the canonical values, not a second flat copy of legacy
 incidents. Incidents belong to a [`SceneScenario`]; the selected scenario is
-identified by `default_scenario_id`. Runtime `loadedData` and `sourceFiles` are
-derived, non-serialized summaries. Loaded-data navigation targets point only to
+identified by `default_scenario_id`. `sourceFiles`, the scene files present at
+load or save, is derived and not saved. The Loaded Data tree is not part of the
+model: `buildLoadedDataSummary` in `scene/LoadedDataSummary.h` derives its rows
+from the model, its source files and the diagnostics of validation, and
+`ValidationPanel` builds them again each time it writes the tree. Each row has a
+`SceneLoadedStatus`, which the tree shows as `OK`, `Not present`, `Warning` or
+`Invalid`. Loaded-data navigation targets point only to
 existing editors and are not part of the canonical schema. `import_report` is
 the persisted conversion summary, with
 one row containing `category`, optional `source_file`, `source_count`,
@@ -129,8 +145,10 @@ codes `9707` and `9709`. `performance_percent` defaults to `100.0` and must be
 finite in `1..100`; `maximum_speed_kmh`, when present, is a positive finite
 service cap in km/h. The native commanded speed is the composition maximum
 limited by that cap, then multiplied by performance; 100% takes the legacy
-raw path. Performance does not alter braking, mass, shared composition data,
-buffer, or recovery.
+raw path. Performance also multiplies the track speed limits the train obeys,
+including the braking targets taken from them, but not signal speed limits.
+Performance does not alter braking, mass, shared composition data, buffer, or
+recovery.
 
 The optional service `category` is descriptive metadata, independent of physical
 properties, performance, speed limits and stops. Missing values mean no category;
@@ -158,9 +176,8 @@ decimal base (for example `1723`, `1725`, `1727`). An explicit repeat count is
 the total occurrence count, including the base, and overrides the duration
 horizon; without it, the count is `ceil(duration / headway)`. Entry and stop
 offsets remain `(occurrence - 1) * headway`. The canonical service ID never
-advances. Repetition keeps the canonical entry in `scheduled_departure_time`;
-the compatibility hourly-retiming algorithm may derive `departure_time` while
-leaving that canonical value unchanged. Arrival and departure timetable values
+advances. Repetition keeps the canonical entry in `scheduled_departure_time`,
+and `departure_time` starts equal to it. Arrival and departure timetable values
 remain independently optional and are staged as runtime `-1` when absent,
 including repeated occurrences.
 
@@ -201,6 +218,15 @@ that list. The `sceneRewrite...References` functions rewrite every reference to 
 rename; the caller renames the entity itself. The `sceneUnique...Id` functions return the base id
 when it is free and otherwise the first of `base_2`, `base_3` and so on.
 
+`scene/SectionReference` reads a section reference, a block id or several joined by `/` such as
+the two endpoints of a switch transition `@71-B0@-21.235000/@0-B1@-21.252000`.
+`parseSectionReferencePart` splits one part into its block id and the offset of an endpoint. The
+validator, the editors' reference rules, the importer's check of known blocks and the route token checks
+of the importer and the exporter read references with it, so they agree on which parts name a block and
+which routes hold a switch transition. Two readers keep their own rules: `mapLegacyBlockReference` in the
+exporter, and the overlap rule of `SectionInventory` (`sectionReferences`, `nativeSectionTokens`).
+`nativeRuntimeBlockId` gives the runtime id of a block section.
+
 Scheduled entry uses explicit entry time first, otherwise the first finite
 planned departure, otherwise zero, plus the repeat offset. The editor's
 in-period count includes entries in `[0, effective duration)`. Configured totals
@@ -231,10 +257,13 @@ and `redo` move the position and return the snapshot that becomes the live
 scene. Each snapshot carries a label that `record` derives from the counts of
 the parts of the scene (`Add service`, `Delete stop`, or `Edit` when the change
 is not one part added or removed), the scenarios that differ from the saved
-scene, and its memory as `estimateSceneModelBytes` counts it. That estimate
-adds up the structs, the vectors and the strings too long for the string
-object, so it depends on the standard library and is a bound, not a
-measurement.
+scene, the run selection (the selected scenario and the occurrences left out)
+as `keepRunSelection` kept it when the state was last left, the links of the
+rolling stock units to their files as `keepTrainUnitSourceLinks` kept them,
+which it holds as a `std::any` because it has no Qt, and its memory as
+`estimateSceneModelBytes` counts it. That estimate adds up the structs, the
+vectors and the strings too long for the string object, so it depends on the
+standard library and is a bound, not a measurement.
 
 The history keeps at most 100 undo steps and an estimated 128 MiB. Both limits
 are parameters of the constructor. When either is exceeded the oldest
@@ -284,9 +313,55 @@ in [Scene Schema Reference](../guides/scene-schema.md#historical-compatibility-a
 `SceneImporter` maps the legacy seven-token train definition, physical and
 traction source files, timetable rows, routes, stations, supported scenarios,
 and passengers into the model. It is an explicit conversion command/UI action,
-not a fallback used when running a scene. `SceneExporter` remains an explicit
+not a fallback used when running a scene. A legacy number that reads as `nan`
+or `inf` is malformed, like any other unreadable number: a row of a file is
+skipped with the warning `scene.import.parse`, and a Trains or train data file
+gives that code as an error and stops the import. The station of a timetable
+row is the text before its last three numbers, spaces included, as in
+`Stations.txt`. When that text names no single station, its words are tried
+joined without spaces: the timetables of the legacy Milano_Brescia case write
+`Morengo Bariano` for the station `MorengoBariano`. `SceneExporter` remains an explicit
 interoperability tool; exporting does not change the active scene or stage the
 normal simulator input.
+
+A legacy file that cannot be opened, or that starts with the UTF-16 byte order
+mark and has an odd byte count or an unpaired surrogate, is reported instead of
+read as empty. The train, train data, traction, route, timetable and passenger
+files and the two sidecars of an export keep their own diagnostics.
+`Stations.txt` gives the error `scene.import.read`
+and stops the import, as a missing one does. Any other file gives the warning
+`scene.import.read` and counts as skipped in `import_report`. An unreadable
+`trainNames.txt` is replaced by the files in `Trains`, as a missing one is, and
+an unreadable rollout adds no scenario. A UTF-8 byte order mark at the start of
+a legacy file is dropped before its rows are read.
+
+`SceneExporter` writes a legacy case into a staging folder next to the
+destination and publishes it only when the export is complete, so a failed
+export leaves the destination as it was. A new destination is the staging
+folder renamed. Whether a file is still to be written is decided from the
+staging folder alone: the export copies the files of the legacy passthrough
+first and then writes the files that are still missing, such as the track line
+files, `Stations.txt`, `Connections.txt`, the GUI layout, the route corridors,
+the single-track limits, the station boundaries and the passenger files. In an
+existing destination the publish first removes every input of the importer that
+the destination holds and the staging folder does not, and then moves the staged
+files over the files of the same name. `kLegacyInputs` in `SceneExporter.cpp`
+names these inputs, in any letter case: the track folders `B<n>` in `TrackLines`
+or in the case folder, `Connections.txt`, `Stations.txt`, `AreasCaseStudy.txt`
+and the area sidecar in `TrackLines`, `Stations.txt`,
+`EGTRAINInitialParameters.json`, `trainNames.txt` and `Incidents.txt` in the
+case folder, the files `Route<N>.*` in `Routes`, the `.txt` files in `Trains`,
+the six GUI files, `RoutesToWrite/RoutesToJoin.txt`, the two passenger files in
+`Passengers` or in the case folder, and the files `Rollout_<N>.txt` in
+`TimeTable/Scenarios_Entrance_Delays`. A track folder goes with everything in
+it. The area sidecar goes first, also when the export writes it again, so that a
+publish that fails part way never leaves an old sidecar beside new track files.
+So the published folder imports as the new scene: a scene with fewer tracks,
+without corridors or without passengers leaves no old track folder, corridor
+file or passenger file behind. The train data and timetable files are read only
+through the paths in the train files, which name only files of this export, so
+they are not removed. Every other file and folder in the destination stays, and
+so do the files in a track folder that the export writes again.
 
 The committed scenes contain only canonical structured data. Historical source
 filenames remain as compact provenance in `source` and `import_report`; full
@@ -312,7 +387,7 @@ scene and what the application does when one is opened from its window.
 Automated runs do not show the dialogs.
 
 A scene that the probe rejects as older or newer carries one error diagnostic
-whose message gives the schema number, the bundle layout number of a bundle,
+whose message gives the schema number, the case file version of a case file,
 the `saved_with_app_version` and the numbers this version reads. A scene that is
 current or that a migration can convert carries none. `scene_tool validate` and
 `pack` and the headless start probe the path first and report this diagnostic,
@@ -335,7 +410,7 @@ window start first shows "Cannot Start EGTRAIN".
 | Draft layout | Saved by builds before the canonical model of 2026-08-08 (main-77.1 and earlier). A `scene.json` with a `legacy_source` key and an `infrastructure.json` with no nodes and no arcs; the simulator read the railway from a `legacy/` text tree. `schema_version` is 1, like today's, so the number does not separate these scenes. Neither sign identifies the layout alone: a current scene may carry a `legacy_source` key, and an empty `infrastructure.json` alone is left to the loader. | Deliberately unsupported: these scenes are not converted and no migration is provided, also when one is registered for the number. The probe classes the scene as unsupported with the diagnostic `scene.compatibility.draft`, which names the draft layout and the date and says to import the original legacy case again. The dialog "Older Case Not Supported" says `This case is too old for this version of EGTRAIN to upgrade.` and then gives that message, and `--scene` and `scene_tool` exit with code 1 and print it. Use the current case studies, or convert the original legacy input folder again with **File > Import Legacy Case...** or `scene_tool import`. The Paimpol scene of main-77.1 is stored as a fixture. |
 | Number below 1 | `schema_version` below 1 in `scene.json`; in a bundle, `schema_version` or `bundle_version` below 1. | Deliberately unsupported. The scene is not opened and the dialog is titled "Older Case Not Supported". It says `This case is too old for this version of EGTRAIN to upgrade.` and then gives the diagnostic `scene.compatibility.older` with the numbers of the scene and of this version. |
 | Newer | `schema_version` above 1 (directory or bundle), or `bundle_version` above 1 (bundle). | Never downgraded. The scene is not opened; the dialog is "Newer Case", which says `This case was saved by a newer version of EGTRAIN.` and `Update EGTRAIN to open it.`, gives the scene schema and, for a bundle, the bundle layout against those of this version in its details, and offers **Check for Updates...** and **Cancel**. `--scene` and `scene_tool` print the diagnostic `scene.compatibility.newer` with the numbers of the scene and of this version. |
-| Unreadable | `schema_version` (in a bundle also `bundle_version`) missing, not an integer, or outside the integer range; a `saved_with_app_version` that is not a string; a directory without a readable `scene.json`; in a bundle also a `format` other than `"egscene"`, a bad manifest, a missing `scene.json`, an unsafe archive, and, for `bundle_version` 1, an entry that is not part of the format or another missing required entry. | The scene is not opened. The dialog is "Cannot Open Case". Its text gives the file name and a sentence that the file is damaged or is not an EGTRAIN case (for a folder, that the folder holds no EGTRAIN case or that its `scene.json` is damaged), then the first diagnostic. The same title and text are used when a scene passes the probe and the loader then reports errors; when the loader reports more than one error, the diagnostic then ends with "1 more error" or "N more errors", so the title alone does not mean that a version is unreadable. A window start with a file name shows the same message. |
+| Unreadable | `schema_version` (in a bundle also `bundle_version`) missing, not an integer, or outside the integer range; a `saved_with_app_version` that is not a string; a directory without a readable `scene.json`; in a bundle also a `format` other than `"egscene"`, a bad manifest, a missing `scene.json`, an unsafe archive, and, for `bundle_version` 1, an entry that is not part of the format or another missing required entry. | The scene is not opened. The dialog is "Cannot Open Case". Its text gives the file name and a sentence that the file is damaged or is not an EGTRAIN case (for a folder, that the folder holds no EGTRAIN case or that its `scene.json` is damaged), then the message and fix of each of the first three errors, with the file that it is about when the message does not name it and the path in that file, and "1 more error" or "N more errors" for the rest (`diagnosticsDialogText` in `editors/EditorHelpers.h`). The same title and text are used when a scene passes the probe and the loader then reports errors, so the title alone does not mean that a version is unreadable. A window start with a file name shows the same message. |
 | Upgradable | A number below the current one for which the registry holds a migration path. No such number exists today: the production registry is empty. | The dialog is "Older Case": it says `<file> was saved by an older version of EGTRAIN.` and `Upgrade a copy to open it. The original stays as it is.`, gives the numbers in its details and offers **Upgrade a Copy...** and **Cancel**; the upgrade writes a copy and leaves the original unchanged. The registry is empty because every scene written so far has version number 1; neither a migration nor a no-op migration is registered. |
 
 A scene with one number above 1 and the other below 1 is treated as newer.
@@ -354,7 +429,7 @@ unsupported.
 ## Bundle format (v2)
 
 The `.egscene` transport container, its manifest, its safety rules and how it is read and written are described in
-[V2 Transparent Scene Bundle](../guides/scene-bundle.md).
+[Case file format](../guides/scene-bundle.md).
 
 ## Native runtime path
 
@@ -381,8 +456,8 @@ runtime does not read `TrackLines/AreasCaseStudy.txt` and does not synthesize a
 conventional or ETCS default. The levels and the rule that gives a section its
 level are described in [Signalling levels](../guides/signalling-levels.md).
 
-[`DispatchController::prepareScene`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_dispatch_controller.html
-[`SceneModel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_model.html
-[`SceneScenario`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_scenario.html
-[`Train`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_train.html
-[`RunResults`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_run_results.html
+[`DispatchController::prepareScene`]: https://egtrain.samuelbruin.com/latest/api/class_dispatch_controller.html
+[`SceneModel`]: https://egtrain.samuelbruin.com/latest/api/struct_scene_model.html
+[`SceneScenario`]: https://egtrain.samuelbruin.com/latest/api/struct_scene_scenario.html
+[`Train`]: https://egtrain.samuelbruin.com/latest/api/class_train.html
+[`RunResults`]: https://egtrain.samuelbruin.com/latest/api/struct_run_results.html

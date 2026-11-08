@@ -1,0 +1,7 @@
+<map id="clockTicks" name="clockTicks">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,95,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="22,29,18,20,22,11,33,5,50,3,68,5,79,13,74,14,66,10,50,8,34,10,26,14,24,20,28,29"/>
+<area shape="rect" id="Node000002" href="$_time_format_8cpp.html#a6903059349242c88f94f30ba656a03b1" title=" " alt="" coords="143,29,266,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="95,41,130,43,124,43,95,46"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="177,28,173,20,176,11,187,5,204,3,223,5,234,14,229,13,221,10,204,8,189,10,180,14,178,20,182,30"/>
+</map>

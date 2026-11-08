@@ -8,7 +8,6 @@
 <title>EGTRAIN: scene/SceneImporter.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,24 +111,22 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_importe
   <div class="headertitle"><div class="title">SceneImporter.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_scene_diagnostic_8h_source.html">scene/SceneDiagnostic.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_scene_diagnostic_8h.html">scene/SceneDiagnostic.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_model_8h.html">scene/SceneModel.h</a>&quot;</code><br />
 <code>#include &lt;array&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for SceneImporter.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8h__incl.svg" width="758" height="256"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8h__incl.svg" width="751" height="266"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8h__dep__incl.svg" width="1238" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8h__dep__incl.svg" width="1495" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-</div>
-<p><a href="_scene_importer_8h_source.html">Go to the source code of this file.</a></p>
-<table class="memberdecls">
+</div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:SceneImportResult" id="r_SceneImportResult"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_import_result.html">SceneImportResult</a></td></tr>
@@ -149,6 +146,10 @@ Functions</h2></td></tr>
 <tr class="memitem:af073cc46a3a51cb4473f73f12825f8ce" id="r_af073cc46a3a51cb4473f73f12825f8ce"><td class="memItemLeft"><a class="el" href="struct_scene_passenger_import_result.html">ScenePassengerImportResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#af073cc46a3a51cb4473f73f12825f8ce">importLegacyPassengers</a> (const std::string &amp;legacyRootOrPassengerDir, const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memitem:aacfecc4e25bcb168faf76da83167440f" id="r_aacfecc4e25bcb168faf76da83167440f"><td class="memItemLeft"><a class="el" href="struct_scene_train_physical_source_result.html">SceneTrainPhysicalSourceResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#aacfecc4e25bcb168faf76da83167440f">parseTrainPhysicalSourceFile</a> (const std::string &amp;path)</td></tr>
 <tr class="memitem:af2140a30b929da68c19a93d11c3a6177" id="r_af2140a30b929da68c19a93d11c3a6177"><td class="memItemLeft"><a class="el" href="struct_scene_train_traction_source_result.html">SceneTrainTractionSourceResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#af2140a30b929da68c19a93d11c3a6177">parseTrainTractionSourceFile</a> (const std::string &amp;path)</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a35a9d340dfdc643b69a50a58dfd6dd04" id="r_a35a9d340dfdc643b69a50a58dfd6dd04"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a35a9d340dfdc643b69a50a58dfd6dd04">kLegacyNoRepeatHeadwaySeconds</a></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="af073cc46a3a51cb4473f73f12825f8ce" name="af073cc46a3a51cb4473f73f12825f8ce"></a>
@@ -173,7 +174,7 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8h_af073cc46a3a51cb4473f73f12825f8ce_cgraph.svg" width="1074" height="911"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8h_af073cc46a3a51cb4473f73f12825f8ce_cgraph.svg" width="1220" height="964"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -205,7 +206,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8h_a18f5a3a9059fe1b30f1dbcf15e252c09_cgraph.svg" width="1436" height="2899"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8h_a18f5a3a9059fe1b30f1dbcf15e252c09_cgraph.svg" width="1132" height="2878"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -228,7 +229,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8h_aacfecc4e25bcb168faf76da83167440f_cgraph.svg" width="558" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8h_aacfecc4e25bcb168faf76da83167440f_cgraph.svg" width="567" height="343"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -251,8 +252,32 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8h_af2140a30b929da68c19a93d11c3a6177_cgraph.svg" width="554" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8h_af2140a30b929da68c19a93d11c3a6177_cgraph.svg" width="715" height="367"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a name="doc-var-members" id="doc-var-members"></a><h2 id="header-doc-var-members" class="groupheader">Variable Documentation</h2>
+<a id="a35a9d340dfdc643b69a50a58dfd6dd04" name="a35a9d340dfdc643b69a50a58dfd6dd04"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a35a9d340dfdc643b69a50a58dfd6dd04">&#9670;&#160;</a></span>kLegacyNoRepeatHeadwaySeconds</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">double kLegacyNoRepeatHeadwaySeconds</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The headway in seconds that a legacy Trains file gives a service that does not repeat. The importer reads a smaller headway as a repeat, and the exporter writes this one for a service without a repeat. </p>
 
 </div>
 </div>

@@ -1,7 +1,7 @@
 <map id="createHttpTransport" name="createHttpTransport">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,156,55"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="46,31,39,21,43,11,57,5,81,3,110,6,122,15,118,20,108,11,81,8,58,10,46,15,44,20,50,28"/>
-<area shape="rect" id="Node000002" href="$_win_http_transport_8cpp.html#a163cb78b4c9613697a1da12eb088f719" title=" " alt="" coords="204,29,380,55"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="156,39,190,39,190,45,156,45"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="257,31,250,21,254,11,268,5,292,3,321,6,333,15,330,20,319,11,292,8,270,10,258,15,255,20,262,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,156,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="44,29,38,20,43,11,57,5,81,3,105,5,120,14,115,14,104,10,80,8,59,10,47,15,44,20,49,29"/>
+<area shape="rect" id="Node000002" href="$_win_http_transport_8cpp.html#a163cb78b4c9613697a1da12eb088f719" title=" " alt="" coords="204,29,379,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="156,41,191,43,185,43,156,46"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="255,28,249,20,254,11,268,5,291,3,316,5,331,14,326,14,315,10,291,8,269,10,257,15,255,20,260,30"/>
 </map>

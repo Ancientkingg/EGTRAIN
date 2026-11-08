@@ -1,0 +1,4 @@
+<map id="TimetableStops::stationDisplayName" name="TimetableStops::stationDisplayName">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,270,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="92,28,85,20,91,11,109,5,138,3,168,5,187,14,181,14,167,10,137,8,110,10,94,15,91,20,98,29"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="sceneServiceInWindowCount" name="sceneServiceInWindowCount">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,68,215,96"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="65,68,58,59,64,49,82,43,110,41,141,44,159,52,153,53,139,49,110,47,83,49,67,54,64,59,70,67"/>
+<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="263,29,481,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="208,65,261,59,256,61,209,70"/>
+<area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#ab7587e34d0ddda26476e1d691ad5c9e7" title=" " alt="" coords="268,105,476,133"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="212,94,258,102,252,103,212,99"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="327,28,320,20,326,11,343,5,372,3,402,5,421,14,415,14,401,10,372,8,344,10,329,15,325,20,332,29"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="327,104,320,96,326,87,343,81,372,79,402,81,421,90,415,90,401,86,372,84,344,86,329,91,325,96,332,106"/>
+</map>

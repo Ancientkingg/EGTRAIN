@@ -1,0 +1,5 @@
+<map id="NetworkPresenter::setHighlight" name="NetworkPresenter::setHighlight">
+<area shape="rect" id="Node000001" title="Puts the highlight on item, which replaces it on any other item. The item keeps it until it is delete..." alt="" coords="5,14,231,42"/>
+<area shape="rect" id="Node000002" href="$class_highlight_effect.html#adf647a7463d3cfd110067bc3f28c692a" title="An effect without a cue until it is installed on an item. color and strength are not used." alt="" coords="279,5,463,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,25,266,28,260,28,231,30"/>
+</map>

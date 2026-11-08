@@ -1,0 +1,9 @@
+<map id="RunSelection::selectedScenario" name="RunSelection::selectedScenario">
+<area shape="rect" id="Node000001" title="As the overload above, but null for a model without scenarios." alt="" coords="5,29,231,57"/>
+<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="279,29,402,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,41,266,43,260,43,231,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="307,28,301,20,306,11,319,5,340,3,363,5,377,14,372,14,362,10,340,8,320,10,309,15,307,20,311,30"/>
+<area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="450,29,619,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="402,41,437,43,432,43,402,46"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="501,28,496,20,500,11,513,5,535,3,558,5,571,15,566,14,556,10,535,8,515,10,504,15,501,20,506,30"/>
+</map>

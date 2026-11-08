@@ -1,0 +1,5 @@
+<map id="GuiReplayTrains::Train" name="GuiReplayTrains::Train">
+<area shape="rect" id="Node000001" title="One train of the run." alt="" coords="5,128,171,156"/>
+<area shape="rect" id="Node000002" href="$struct_gui_replay_series.html" title=" " alt="" coords="24,5,152,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,47,91,128,85,127,86,50"/>
+</map>

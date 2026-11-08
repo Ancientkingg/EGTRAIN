@@ -1,11 +1,11 @@
 <map id="TrainUnitSourceLinker::setDocument" name="TrainUnitSourceLinker::setDocument">
-<area shape="rect" id="Node000001" title="The linker works on the model of this document and drops its links when the document is replaced." alt="" coords="5,67,168,107"/>
-<area shape="rect" id="Node000002" href="$class_train_unit_source_linker.html#aab03a4717247b3434574c6905b628367" title="Drops all links and stops watching." alt="" coords="231,37,393,77"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,73,217,67,217,72,169,79"/>
-<area shape="rect" id="Node000005" href="$class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" title="Emitted by replace(), after the whole state is set." alt="" coords="216,102,408,127"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="169,94,203,98,202,104,168,99"/>
-<area shape="rect" id="Node000003" href="$class_train_unit_source_linker.html#ae03fc8e1d489ae031230808457f2677e" title="The links have been dropped." alt="" coords="456,5,619,45"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="393,43,442,36,443,41,394,48"/>
-<area shape="rect" id="Node000004" href="$class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" title="The status of a link, or a link itself, has changed." alt="" coords="456,69,619,109"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="394,66,443,73,442,79,393,72"/>
+<area shape="rect" id="Node000001" title="The linker works on the model of this document and drops its links when the document is replaced." alt="" coords="5,71,168,115"/>
+<area shape="rect" id="Node000002" href="$class_train_unit_source_linker.html#aab03a4717247b3434574c6905b628367" title="Drops all links and stops watching." alt="" coords="230,40,392,85"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,79,217,75,212,76,169,85"/>
+<area shape="rect" id="Node000005" href="$class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" title="Emitted by replace(), after the whole state is set." alt="" coords="216,108,407,136"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="168,101,203,108,197,108,168,106"/>
+<area shape="rect" id="Node000003" href="$class_train_unit_source_linker.html#ae03fc8e1d489ae031230808457f2677e" title="The links have been dropped." alt="" coords="455,5,617,50"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="392,47,442,42,437,43,393,52"/>
+<area shape="rect" id="Node000004" href="$class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" title="The status of a link, or a link itself, has changed." alt="" coords="455,75,617,119"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="393,72,442,82,437,82,393,78"/>
 </map>

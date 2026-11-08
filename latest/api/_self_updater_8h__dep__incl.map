@@ -1,9 +1,9 @@
 <map id="update/SelfUpdater.h" name="update/SelfUpdater.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="257,5,416,31"/>
-<area shape="rect" id="Node000002" href="$_update_telemetry_controller_8cpp.html" title=" " alt="" coords="5,79,257,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="292,38,165,81,164,76,290,33"/>
-<area shape="rect" id="Node000003" href="$main_8cpp.html" title=" " alt="" coords="281,79,392,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="339,44,339,79,334,79,334,44"/>
-<area shape="rect" id="Node000004" href="$_self_updater_8cpp.html" title=" " alt="" coords="416,79,591,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="377,34,477,76,475,81,375,38"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="256,5,414,33"/>
+<area shape="rect" id="Node000002" href="$_update_telemetry_controller_8cpp.html" title=" " alt="" coords="5,81,257,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="287,39,168,83,167,78,282,39"/>
+<area shape="rect" id="Node000003" href="$main_8cpp.html" title=" " alt="" coords="280,81,390,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="337,47,337,82,333,79,333,51"/>
+<area shape="rect" id="Node000004" href="$_self_updater_8cpp.html" title=" " alt="" coords="414,81,587,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="379,37,474,81,468,81,378,42"/>
 </map>

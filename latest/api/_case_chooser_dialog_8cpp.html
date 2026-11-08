@@ -8,7 +8,6 @@
 <title>EGTRAIN: widgets/CaseChooserDialog.cpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -112,16 +111,17 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_case_chooser_
   <div class="headertitle"><div class="title">CaseChooserDialog.cpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_case_chooser_dialog_8h_source.html">widgets/CaseChooserDialog.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_dialog_layout_8h_source.html">widgets/DialogLayout.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_display_path_8h_source.html">widgets/DisplayPath.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_narrow_row_delegate_8h_source.html">widgets/NarrowRowDelegate.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_plain_tool_tip_8h_source.html">widgets/PlainToolTip.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_case_chooser_dialog_8h.html">widgets/CaseChooserDialog.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_dialog_layout_8h.html">widgets/DialogLayout.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_display_path_8h.html">widgets/DisplayPath.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_narrow_row_delegate_8h.html">widgets/NarrowRowDelegate.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_plain_tool_tip_8h.html">widgets/PlainToolTip.h</a>&quot;</code><br />
 <code>#include &lt;QAction&gt;</code><br />
 <code>#include &lt;QDialogButtonBox&gt;</code><br />
 <code>#include &lt;QDir&gt;</code><br />
 <code>#include &lt;QFile&gt;</code><br />
 <code>#include &lt;QFileInfo&gt;</code><br />
+<code>#include &lt;QHash&gt;</code><br />
 <code>#include &lt;QJsonDocument&gt;</code><br />
 <code>#include &lt;QJsonObject&gt;</code><br />
 <code>#include &lt;QLabel&gt;</code><br />
@@ -133,13 +133,14 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_case_chooser_
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for CaseChooserDialog.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_case_chooser_dialog_8cpp__incl.svg" width="4098" height="256"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_case_chooser_dialog_8cpp__incl.svg" width="4238" height="266"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:ad36e4ed5512f6a4760bb55ff7741ed66" id="r_ad36e4ed5512f6a4760bb55ff7741ed66"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ad36e4ed5512f6a4760bb55ff7741ed66">sceneListKey</a> (const QString &amp;path)</td></tr>
 <tr class="memitem:a20939c6104a524e256a3bd01b89196d2" id="r_a20939c6104a524e256a3bd01b89196d2"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a20939c6104a524e256a3bd01b89196d2">sceneDisplayName</a> (const QString &amp;rawPath)</td></tr>
+<tr class="memitem:af554803cb7445cd79e87743e739c3a61" id="r_af554803cb7445cd79e87743e739c3a61"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#af554803cb7445cd79e87743e739c3a61">sceneListLabels</a> (const QStringList &amp;paths)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="a20939c6104a524e256a3bd01b89196d2" name="a20939c6104a524e256a3bd01b89196d2"></a>
@@ -156,11 +157,11 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The label of a scene in a list of cases: the name in the manifest of a scene folder, else the file name without .egscene, with underscores as spaces. </p>
+<p>The name of a scene in a list of cases: the name in the manifest of a scene folder, else the file name without .egscene, with underscores as spaces. A scene that is no longer on disk keeps the underscores of its file name. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_case_chooser_dialog_8cpp_a20939c6104a524e256a3bd01b89196d2_cgraph.svg" width="159" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_case_chooser_dialog_8cpp_a20939c6104a524e256a3bd01b89196d2_cgraph.svg" width="159" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -183,7 +184,30 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_case_chooser_dialog_8cpp_ad36e4ed5512f6a4760bb55ff7741ed66_cgraph.svg" width="118" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_case_chooser_dialog_8cpp_ad36e4ed5512f6a4760bb55ff7741ed66_cgraph.svg" width="118" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="af554803cb7445cd79e87743e739c3a61" name="af554803cb7445cd79e87743e739c3a61"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af554803cb7445cd79e87743e739c3a61">&#9670;&#160;</a></span>sceneListLabels()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QStringList sceneListLabels </td>
+          <td>(</td>
+          <td class="paramtype">const QStringList &amp;</td>          <td class="paramname"><span class="paramname"><em>paths</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The labels of the scenes that one list shows, in the order of paths: each sceneDisplayName, followed in parentheses by the parent folder, shortened in the middle past 44 characters, when another path has the same name, and by the file name as well when that parent folder is the same too. The case chooser labels its rows with it, and the Recent Cases menu its entries. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_case_chooser_dialog_8cpp_af554803cb7445cd79e87743e739c3a61_cgraph.svg" width="562" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

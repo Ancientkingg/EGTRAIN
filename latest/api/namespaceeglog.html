@@ -8,7 +8,6 @@
 <title>EGTRAIN: eglog Namespace Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
-<script type="text/javascript" src="clipboard.js"></script>
 <link href="navtree.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="navtreedata.js"></script>
 <script type="text/javascript" src="navtree.js"></script>
@@ -120,7 +119,7 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-typedef-members" class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:a364a6eebe42676b735ab49f0c4e2949a" id="r_a364a6eebe42676b735ab49f0c4e2949a"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#a364a6eebe42676b735ab49f0c4e2949a">Sink</a> = std::function&lt;void(<a class="el" href="#af50b68f37a214c9770969a2aa4c810b6">Category</a>, <a class="el" href="#a0a4c7b4df88ad4decf7baa410a30ac53">Level</a>, const std::string&amp; text)&gt;</td></tr>
+<tr class="memitem:a364a6eebe42676b735ab49f0c4e2949a" id="r_a364a6eebe42676b735ab49f0c4e2949a"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#a364a6eebe42676b735ab49f0c4e2949a">Sink</a></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-enum-members" class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -160,9 +159,9 @@ Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a46eac22085fd13cb08eeeefce73c5a03" id="r_a46eac22085fd13cb08eeeefce73c5a03"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a46eac22085fd13cb08eeeefce73c5a03">kCategoryCount</a> = static_cast&lt;int&gt;(<a class="el" href="#af50b68f37a214c9770969a2aa4c810b6a06933067aafd48425d67bcb01bba5cb6">Category::Update</a>) + 1</td></tr>
+<tr class="memitem:a46eac22085fd13cb08eeeefce73c5a03" id="r_a46eac22085fd13cb08eeeefce73c5a03"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a46eac22085fd13cb08eeeefce73c5a03">kCategoryCount</a></td></tr>
 <tr class="memdesc:a46eac22085fd13cb08eeeefce73c5a03"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of categories: Update is the last.  <br /></td></tr>
-<tr class="memitem:a4048925c177ea3aaae74637911e56594" id="r_a4048925c177ea3aaae74637911e56594"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a4048925c177ea3aaae74637911e56594">kLevelCount</a> = static_cast&lt;int&gt;(<a class="el" href="#a0a4c7b4df88ad4decf7baa410a30ac53a902b0d55fddef6f8d651fe1035b7d4bd">Level::Error</a>) + 1</td></tr>
+<tr class="memitem:a4048925c177ea3aaae74637911e56594" id="r_a4048925c177ea3aaae74637911e56594"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a4048925c177ea3aaae74637911e56594">kLevelCount</a></td></tr>
 <tr class="memdesc:a4048925c177ea3aaae74637911e56594"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of levels: Error is the last.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -176,7 +175,7 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="#a364a6eebe42676b735ab49f0c4e2949a">eglog::Sink</a> = std::function&lt;void(<a class="el" href="#af50b68f37a214c9770969a2aa4c810b6">Category</a>, <a class="el" href="#a0a4c7b4df88ad4decf7baa410a30ac53">Level</a>, const std::string&amp; text)&gt;</td>
+          <td class="memname">using <a class="el" href="#a364a6eebe42676b735ab49f0c4e2949a">eglog::Sink</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -223,7 +222,7 @@ Variables</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6a4c4c28109f1ad10c79a95034616ffae7" name="af50b68f37a214c9770969a2aa4c810b6a4c4c28109f1ad10c79a95034616ffae7"></a>AppUi&#160;</td><td class="fielddoc"><p>"app.ui": the messages of Qt (qDebug, qInfo, qWarning, qCritical, qFatal). </p>
 </td></tr>
-<tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6a06933067aafd48425d67bcb01bba5cb6" name="af50b68f37a214c9770969a2aa4c810b6a06933067aafd48425d67bcb01bba5cb6"></a>Update&#160;</td><td class="fielddoc"><p>"update": no product code logs in this category. </p>
+<tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6a06933067aafd48425d67bcb01bba5cb6" name="af50b68f37a214c9770969a2aa4c810b6a06933067aafd48425d67bcb01bba5cb6"></a>Update&#160;</td><td class="fielddoc"><p>"update": the update check, the download and preparation, and the update notices (<a class="el" href="_update_telemetry_controller_8cpp.html">app/UpdateTelemetryController.cpp</a>, <a class="el" href="_update_notices_8cpp.html">update/UpdateNotices.cpp</a>). </p>
 </td></tr>
 </table>
 
@@ -283,7 +282,7 @@ Variables</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="namespaceeglog_a06d2146976a5f10f5555abbafe6f75aa_cgraph.svg" width="174" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="namespaceeglog_a06d2146976a5f10f5555abbafe6f75aa_cgraph.svg" width="172" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -313,7 +312,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="namespaceeglog_a8df481e2bab2777140253886a71a67c8_cgraph.svg" width="138" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="namespaceeglog_a8df481e2bab2777140253886a71a67c8_cgraph.svg" width="136" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -336,7 +335,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="namespaceeglog_a051a6481a502e1e024dc4e3a39d3ba20_cgraph.svg" width="428" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="namespaceeglog_a051a6481a502e1e024dc4e3a39d3ba20_cgraph.svg" width="426" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -363,7 +362,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="namespaceeglog_a76521db7407e7d068112c45f2b3e604e_cgraph.svg" width="130" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="namespaceeglog_a76521db7407e7d068112c45f2b3e604e_cgraph.svg" width="128" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -386,7 +385,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="namespaceeglog_a8032c116a7ea7ca91e8378e4e5105e8f_cgraph.svg" width="108" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="namespaceeglog_a8032c116a7ea7ca91e8378e4e5105e8f_cgraph.svg" width="107" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -410,7 +409,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="namespaceeglog_a9049f9796908e1734524b758f1e39da2_cgraph.svg" width="148" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="namespaceeglog_a9049f9796908e1734524b758f1e39da2_cgraph.svg" width="147" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -433,7 +432,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="namespaceeglog_aab1ea918a840b308b64aa22920907937_cgraph.svg" width="126" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="namespaceeglog_aab1ea918a840b308b64aa22920907937_cgraph.svg" width="124" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -449,7 +448,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int eglog::kCategoryCount = static_cast&lt;int&gt;(<a class="el" href="#af50b68f37a214c9770969a2aa4c810b6a06933067aafd48425d67bcb01bba5cb6">Category::Update</a>) + 1</td>
+          <td class="memname">int eglog::kCategoryCount</td>
         </tr>
       </table>
   </td>
@@ -473,7 +472,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int eglog::kLevelCount = static_cast&lt;int&gt;(<a class="el" href="#a0a4c7b4df88ad4decf7baa410a30ac53a902b0d55fddef6f8d651fe1035b7d4bd">Level::Error</a>) + 1</td>
+          <td class="memname">int eglog::kLevelCount</td>
         </tr>
       </table>
   </td>

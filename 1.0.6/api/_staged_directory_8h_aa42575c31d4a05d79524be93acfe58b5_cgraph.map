@@ -1,0 +1,14 @@
+<map id="publishStagedDirectory" name="publishStagedDirectory">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,44,179,72"/>
+<area shape="rect" id="Node000002" href="$_scene_writer_8cpp.html#a428bb4a40e563c6588dc61818d4173c2" title=" " alt="" coords="227,44,400,72"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,55,214,57,208,58,179,60"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="275,43,269,35,274,25,289,19,313,17,339,20,355,29,350,28,338,25,313,23,290,25,278,29,275,35,280,44"/>
+<area shape="rect" id="Node000003" href="$struct_staged_directory.html#ad0a5616c02408535475b86fe139e1f77" title="Keeps the directory: the destructor no longer removes it." alt="" coords="448,5,629,33"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="397,41,436,37,442,36,398,46"/>
+<area shape="rect" id="Node000004" href="$_scene_writer_8cpp.html#aac70d77a008164cf18ea3ef681b41208" title=" " alt="" coords="492,81,586,109"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="400,70,479,85,474,85,400,75"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="504,80,498,72,503,63,516,57,539,55,563,57,577,67,572,66,561,62,539,60,518,62,506,67,503,72,508,82"/>
+<area shape="rect" id="Node000005" href="$_staged_directory_8h.html#adb3eae1a97042bdd695770f97fbdc18e" title=" " alt="" coords="677,81,806,109"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="586,93,664,95,659,95,586,98"/>
+<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="706,80,701,72,705,63,719,57,742,55,765,57,780,67,775,66,764,62,741,60,721,62,709,67,706,72,711,82"/>
+</map>

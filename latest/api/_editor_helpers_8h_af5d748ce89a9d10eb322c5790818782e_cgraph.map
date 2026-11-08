@@ -1,0 +1,10 @@
+<map id="firstDiagnosticDialogText" name="firstDiagnosticDialogText">
+<area shape="rect" id="Node000001" title="The message and the fix of firstDiagnostic, for a dialog; empty without a diagnostic." alt="" coords="5,68,190,96"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="63,67,58,59,62,49,76,43,98,41,121,44,135,52,130,53,119,49,97,47,77,49,66,53,63,59,68,67"/>
+<area shape="rect" id="Node000002" href="$_editor_helpers_8h.html#a09e73f87cbcd282d2bcc9f19ada160f9" title="The first error among the diagnostics, else the first diagnostic, else null." alt="" coords="238,29,353,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,65,225,57,220,58,172,70"/>
+<area shape="rect" id="Node000003" href="$_scene_diagnostic_8cpp.html#a757664039e68baa3d8e4d84eb8f0fb9a" title=" " alt="" coords="244,105,347,133"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="174,94,231,106,226,107,174,99"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="261,28,256,20,260,11,274,5,295,3,319,5,333,14,327,14,317,10,295,8,275,10,264,15,261,20,266,30"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="261,104,256,96,260,87,274,81,295,79,319,81,333,90,328,90,317,86,295,84,275,86,264,91,261,96,266,106"/>
+</map>

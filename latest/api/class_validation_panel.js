@@ -3,6 +3,8 @@ var class_validation_panel =
     [ "LoadedDataContext", "struct_validation_panel_1_1_loaded_data_context.html", "struct_validation_panel_1_1_loaded_data_context" ],
     [ "ValidationPanel", "class_validation_panel.html#a7732f66ad0f2206d81d1646ca89c9fcf", null ],
     [ "activateItem", "class_validation_panel.html#af865cff10dca3de09804499268e7bde5", null ],
+    [ "activateRow", "class_validation_panel.html#a8e76a70fe027fb78bc83c605d2f89b52", null ],
+    [ "itemActivated", "class_validation_panel.html#aaedae85282fa7d3cc94c6b3e510c7517", null ],
     [ "refresh", "class_validation_panel.html#aa32685c968df1b6ac1a6b3f6a08fac51", null ],
     [ "refreshed", "class_validation_panel.html#a0276d0961cd849d8dbae4fda9b247df1", null ],
     [ "refreshLoadedData", "class_validation_panel.html#a7829b14276bac3ef68a052d0b58637c2", null ],
@@ -19,7 +21,10 @@ var class_validation_panel =
     [ "targetActivated", "class_validation_panel.html#a27443c73bf76a8d7726938f1339f0ca6", null ],
     [ "tree", "class_validation_panel.html#a37dfe514f08ea3bf6200f013b3e1c840", null ],
     [ "updateStatus", "class_validation_panel.html#a0d0c549b58d1239e173dfaff5bb0b16e", null ],
+    [ "validationCount", "class_validation_panel.html#a576f3a8e763d5ebfe82c968dc8fc1ff3", null ],
     [ "kFileRole", "class_validation_panel.html#a5b3420b159c5af238ca5301657656e58", null ],
+    [ "kItemIdRole", "class_validation_panel.html#a82b84dd77a52d4a4617a87027ff97e91", null ],
+    [ "kItemTypeRole", "class_validation_panel.html#a3ac7264c2d8f689d4000bf7ec3d5644c", null ],
     [ "kTargetTypeRole", "class_validation_panel.html#a0b77ddaed7546541308878eddf19968b", null ],
     [ "kTreeTextColumnWidth", "class_validation_panel.html#ab6efcf29fbd25f3899852f857b9b310a", null ]
 ];

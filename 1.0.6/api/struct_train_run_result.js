@@ -1,0 +1,27 @@
+var struct_train_run_result =
+[
+    [ "appliedMaximumSpeedKmh", "struct_train_run_result.html#a63f56cb37bac7978a4c44be6b062ff83", null ],
+    [ "appliedMaximumSpeedMs", "struct_train_run_result.html#af9c3c7aaa5575a765c08fa18b752a438", null ],
+    [ "compositionMaximumSpeedMs", "struct_train_run_result.html#a466c854e0a174ab5b4d0708c8f1817ac", null ],
+    [ "configuredMaximumSpeedKmh", "struct_train_run_result.html#a654e09478cae49bb9bcbb3ba56268052", null ],
+    [ "destinationTerminated", "struct_train_run_result.html#a620ff54a239879f1eda7a3f8c56b6724", null ],
+    [ "destinationTerminationRequested", "struct_train_run_result.html#aea4402702a840c8937d286d1dba174bb", null ],
+    [ "directIncidentIds", "struct_train_run_result.html#a220e4f19bb4a42b0051c786f5db78292", null ],
+    [ "endSeconds", "struct_train_run_result.html#ab8f13746e659c5baf13722a3a8a8166b", null ],
+    [ "energyConsumedKWh", "struct_train_run_result.html#a4731c51df80b4db5320afb1b3f6fdf96", null ],
+    [ "energyWithRegenKWh", "struct_train_run_result.html#a3e19ad2edef46e9fea62700d8ecee561", null ],
+    [ "entranceDelaySeconds", "struct_train_run_result.html#aa3aaf2b7c1b3d5cdf2e6f0400285faad", null ],
+    [ "entranceDelayStationId", "struct_train_run_result.html#a933be1ebf1be095e2e6973848e6aa963", null ],
+    [ "firstDirectIncidentLocation", "struct_train_run_result.html#aa91cf11788218087e5ef699f2f1d5863", null ],
+    [ "firstDirectIncidentTime", "struct_train_run_result.html#abae1bce8f4afc1def1aa611e754763e7", null ],
+    [ "hasConfiguredMaximumSpeed", "struct_train_run_result.html#adda5047e93044128d0f0a44a54e79104", null ],
+    [ "occurrence", "struct_train_run_result.html#ab1ecd4e0697166e80a1fd4fc00e5946b", null ],
+    [ "operatingCode", "struct_train_run_result.html#a27078601b0b2ce2e5305c22abd25f8be", null ],
+    [ "performancePercent", "struct_train_run_result.html#a04ea697d7f9aaeafeaa1483b2660a19c", null ],
+    [ "serviceId", "struct_train_run_result.html#a6a1d1c08ab0c89debdcbb96b85111c29", null ],
+    [ "startSeconds", "struct_train_run_result.html#a0ba9359588e9ff9d1ebf06e4c8227232", null ],
+    [ "substationKWh", "struct_train_run_result.html#a5c170b6edece66e9f1502f0de7976307", null ],
+    [ "substationWithRegenKWh", "struct_train_run_result.html#a12c53834e4b7616d7eaafc76e23407f3", null ],
+    [ "trainId", "struct_train_run_result.html#ac64683626c53fa051df94dc80f20065f", null ],
+    [ "travelSeconds", "struct_train_run_result.html#a398996bbc1ec15b323ae43f08482b90c", null ]
+];

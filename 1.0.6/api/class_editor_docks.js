@@ -1,0 +1,26 @@
+var class_editor_docks =
+[
+    [ "Host", "class_editor_docks_1_1_host.html", "class_editor_docks_1_1_host" ],
+    [ "EditorDocks", "class_editor_docks.html#a97f43e15fbf8f15c6e250a2af4a79b2c", null ],
+    [ "build", "class_editor_docks.html#a487374634eaa3430e4e052c5a9e82dce", null ],
+    [ "caseSettingsDock", "class_editor_docks.html#a268584b022f91efb165a5ac34e082dec", null ],
+    [ "caseSettingsPanel", "class_editor_docks.html#a6cae760f2bcc3cd9736b2d7269304701", null ],
+    [ "compositionDock", "class_editor_docks.html#a128bece4326391aec7b36f47d7a7ef56", null ],
+    [ "compositionPanel", "class_editor_docks.html#a89c9a0103c624212a3a76db62752444f", null ],
+    [ "endTargetPickShortcut", "class_editor_docks.html#a4c3b1c6c6bdc8ae6a0f8b3a8cf49154a", null ],
+    [ "entranceDelayPanel", "class_editor_docks.html#a68b7ec35ca4ad22a339e7ba1ab515058", null ],
+    [ "incidentDock", "class_editor_docks.html#a1a8e320128b226161e4e6482c2c42d0f", null ],
+    [ "incidentPanel", "class_editor_docks.html#a26fd68c18d99d760a8fb332d91800338", null ],
+    [ "infrastructureDock", "class_editor_docks.html#ad843b400d88f9a0f38bde1a64c1e1ad0", null ],
+    [ "infrastructurePanel", "class_editor_docks.html#afeed3b04673ca9bc049fee70d9cca4c4", null ],
+    [ "panels", "class_editor_docks.html#af0644df0225ca34594eab6cec69c0dcc", null ],
+    [ "passengerDock", "class_editor_docks.html#af0adbd703f95b6211eed4c79e7028a97", null ],
+    [ "passengerPanel", "class_editor_docks.html#ac554a09e661d22858f30b4e1f98c9694", null ],
+    [ "scenarioPanel", "class_editor_docks.html#ae44116499348f8deb605f038c690887a", null ],
+    [ "serviceDock", "class_editor_docks.html#a1aba3129943730a4c5d4a8112cd6a498", null ],
+    [ "servicePanel", "class_editor_docks.html#ad08e69af7ebf74e10eb59a3bd667126d", null ],
+    [ "timetableStopsPanel", "class_editor_docks.html#ab4140eedcd87941b5bd2a90e3ed9dd05", null ],
+    [ "trainUnitDock", "class_editor_docks.html#a375ea519c2eca0ba602ef6b724f4687c", null ],
+    [ "trainUnitPanel", "class_editor_docks.html#a74da048f8e26b76ecd5ab0ad387ea44c", null ],
+    [ "trainUnitSourceLinker", "class_editor_docks.html#a425bcabd92365740bae30d6178d40ccd", null ]
+];

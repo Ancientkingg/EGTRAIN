@@ -1,0 +1,12 @@
+<map id="blockingTimeScopeChoicesFrom" name="blockingTimeScopeChoicesFrom">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,60,238,88"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="75,60,68,51,74,41,92,35,122,33,153,36,172,44,167,45,152,41,121,39,93,41,77,46,73,51,80,59"/>
+<area shape="rect" id="Node000002" href="$_blocking_time_scope_8cpp.html#aa2f22a6f5eb227c8d834ac3672ec4996" title="The route as the scope dialogs offer it: its id, corridor, blocks and stations." alt="" coords="286,29,505,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="238,58,273,57,268,58,239,63"/>
+<area shape="rect" id="Node000004" href="$struct_completed_run_settings.html#a153e7bfe4196089fb8e532f261ef95c8" title="Length of the run in seconds." alt="" coords="310,81,480,126"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="238,84,297,92,292,93,238,89"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="356,28,350,20,355,11,370,5,395,3,422,5,438,14,433,14,421,10,395,8,372,10,358,15,355,20,361,30"/>
+<area shape="rect" id="Node000003" href="$_blocking_time_scope_8cpp.html#ac01aee1b4c6ace5d6b3ca77476012670" title=" " alt="" coords="553,29,694,57"/>
+<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="505,41,540,43,535,43,506,46"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="584,28,578,20,583,11,599,5,624,3,650,5,666,14,661,14,649,10,624,8,600,10,587,15,584,20,589,30"/>
+</map>

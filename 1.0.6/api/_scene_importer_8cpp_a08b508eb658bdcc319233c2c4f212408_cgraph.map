@@ -1,0 +1,17 @@
+<map id="findTrackFolders" name="findTrackFolders">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,104,132,132"/>
+<area shape="poly" id="edge7_Node000001_Node000001" title=" " alt="" coords="37,104,32,95,36,86,48,79,69,77,90,80,103,88,98,89,88,85,68,83,50,85,40,89,37,95,42,103"/>
+<area shape="rect" id="Node000002" href="$_scene_importer_8cpp.html#a2368828ed01ecf60634935e6a32c40d2" title=" " alt="" coords="211,104,289,132"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,115,197,117,193,119,133,120"/>
+<area shape="rect" id="Node000003" href="$_scene_exporter_8cpp.html#a958a60e28b09996849ec7665c6206390" title=" " alt="" coords="378,29,469,57"/>
+<area shape="poly" id="edge8_Node000001_Node000003" title=" " alt="" coords="94,101,133,82,179,66,275,48,365,43,360,45,276,54,180,71,136,87,97,106"/>
+<area shape="rect" id="Node000005" href="$_scene_importer_8cpp.html#a25518962518f8d70699bd5e21ea4e5be" title=" " alt="" coords="180,180,320,208"/>
+<area shape="poly" id="edge9_Node000001_Node000005" title=" " alt="" coords="104,130,203,172,199,175,103,135"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="219,103,215,95,218,86,231,79,250,77,271,80,283,89,278,89,269,85,250,83,232,85,222,89,220,95,224,104"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="283,101,373,65,378,63,285,106"/>
+<area shape="rect" id="Node000004" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="368,105,479,133"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="289,115,355,118,350,119,290,121"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="393,28,388,20,392,11,404,5,424,3,444,5,457,14,452,14,443,10,424,8,406,10,396,15,394,20,398,30"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="393,104,388,96,392,87,404,81,424,79,444,81,457,90,452,90,443,86,424,84,406,86,396,91,394,96,398,106"/>
+<area shape="poly" id="edge10_Node000005_Node000005" title=" " alt="" coords="219,178,215,171,218,162,231,155,250,153,271,156,283,165,278,164,269,161,250,159,232,161,222,165,220,171,224,181"/>
+</map>

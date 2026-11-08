@@ -6,11 +6,11 @@ This page describes the code as it is. Function names are given so that a mainta
 
 ## The step loop
 
-`DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers` (`app/DispatchController.cpp`) runs the step loop. At the top of each step the loop waits while a pause is requested and ends when a stop is requested. Pause, stop, the step delay and a bounded queue of 16 commands belong to a [`RunControl`] (`simulation/RunControl.h`), which every run has. At the top of the step, before any train moves, `RunControl::beginStep` applies the queued commands in the order in which they were submitted, and then checks pause, stop and the delay. In a window run the control belongs to the [`SimulationWorker`], which forwards the window's requests to it, and `runSimulation` finds it through `SimulationWorker::active()`. A `-g 0` run makes a control for itself. With `--live-commands`, `DispatchController` hands the commands of live clients to that control (see [Commands](#commands)); nothing else in the application submits a command to it. In a window run the step loop runs on the worker thread ([`RunController::startSimulation`]). In a `-g 0` run it runs on the main thread (`main`).
+`DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers` (`app/DispatchController.cpp`) runs the step loop. The step itself, the trains, passengers and signalling of one time step, is `runSimulationStep` (`simulation/Simulation.h`), which needs no controller. At the top of each step the loop waits while a pause is requested and ends when a stop is requested. Pause, stop, the step delay and a bounded queue of 16 commands belong to a [`RunControl`] (`simulation/RunControl.h`), which every run has. At the top of the step, before any train moves, `RunControl::beginStep` applies the queued commands in the order in which they were submitted, and then checks pause, stop and the delay. In a window run the control belongs to the [`SimulationWorker`], which forwards the window's requests to it, and `runSimulation` finds it through `SimulationWorker::active()`. A `-g 0` run makes a control for itself. With `--live-commands`, `DispatchController` hands the commands of live clients to that control (see [Commands](#commands)); nothing else in the application submits a command to it. In a window run the step loop runs on the worker thread ([`RunController::startSimulation`]). In a `-g 0` run it runs on the main thread (`main`).
 
 ## What is not an interface
 
-- The files written during a run are results and not a protocol, and no code in `EGTRAIN/QEGTRAIN` reads them. `printCurrentPassengerStatus` writes `PassengerStatus/PassengerStatus.txt` once, after the step loop. `Train::printTrainArrDepMsg`, called from `Train::checkTrainArrDep`, appends one line to `Rescheduling/EGTRAINOutput.txt` when a train has stopped at its last station.
+- The files written during a run are results and not a protocol, and no code in `EGTRAIN/QEGTRAIN` reads them. `printCurrentPassengerStatus` writes `PassengerStatus/PassengerStatus.txt` once, after the step loop.
 - Without `--live` the application opens no listening socket, local server or named pipe. The live server below binds sockets, and only a start with `--live` creates it. The only reads from standard input are the `--interactive` questions in `parseCmdOptions`.
 - The window controls for pause, stop and speed exist only for a run in the window. A run without a window, or a window run that a client controls, takes the commands of the live stream instead (see [Commands](#commands)).
 
@@ -76,7 +76,7 @@ The size of a state frame depends on the number of trains and on the signal list
 | Copenhagen | 52 | 6311 B | 10953 B | 114950 B |
 | Milano_Brescia | 65 | 5480 B | 11174 B | 32199 B |
 
-The service id and occurrence of a train are part of the layout that the replay history keeps once for a run, so they add nothing to a frame of it: the history of a whole run of Copenhagen in the window holds 82722909 of the 134217728 bytes that it may hold.
+The service id and occurrence of a train are part of the layout that the replay history keeps once for a run, so they add nothing to a second of it: the history of a whole run of Copenhagen in the window owns 3860297 of the 134217728 bytes that it may hold, and shares 7007552 bytes of train samples with the completed run.
 
 ### Commands
 
@@ -86,7 +86,7 @@ With `--live-commands` the server also answers `describe`, `pause`, `resume`, `s
 | --- | --- |
 | `pause` | The run stops at the top of the step and waits. No step runs and no state frame is made. |
 | `resume` | Ends a pause. The run goes on with the step at which it stopped. Without a pause it changes nothing. |
-| `stop` | Ends the run as the Stop button of the window does: `steps_finished` with the steps that ran, then `run_finished` with the status `cancelled`. The stages after the steps are skipped, so the energy, delay and blocking-time files are not written. A headless run still ends with exit code 0. |
+| `stop` | Ends the run as the Stop button of the window does: `steps_finished` with the steps that ran, then `run_finished` with the status `cancelled`. The stages after the steps are skipped, so the energy, delay and blocking-time files are not written. A run without a window ends with exit code 3 and `ERROR: The run was stopped before it completed.` on standard error, and writes no `TrainTrajectories/TrainServicePathDiagram.txt`. |
 | `set_delay_ms` | Sets the time that the run waits at the top of each step, in milliseconds from 0 to 1000. A window run does not show it on its speed slider or the readout next to it. |
 
 - The effect point is the top of a step. `Train_Simulation_Mixed_Signalling_With_Passengers` calls `RunControl::beginStep` with a function that takes the accepted commands from the server (`tryPopCommand`) and submits them to the control, in the order in which the server accepted them. `beginStep` applies them before any train moves. A paused run calls the function again every 50 ms, so a `resume` or a `stop` reaches it. A command never acts in the middle of a step.
@@ -104,7 +104,7 @@ With `--live-commands` the server also answers `describe`, `pause`, `resume`, `s
 
 ### A client and its test
 
-`tests/live_client.cpp` is a small client with cppzmq and nlohmann-json and nothing else. It reads `live-endpoint.json`, subscribes to the state endpoint, sends `describe` until the hello of the run arrives when the file names a command endpoint, and checks each frame it reads against what this page promises: the version, one run id for a run, a `seq` that increases, steps that increase, a time axis that agrees with the hello, and an occurrence of each train that is counted from 1. It writes one JSON line for each run it saw and exits with 1 on the first broken promise. With `--set-delay-ms <ms>` it also sends one `set_delay_ms` request as soon as it has the hello of a run, and the line of that run holds the reply of the server (`command`: the status and, for a rejection, the reason) and the `applied` and `rejected` events of the run. The comment at the top of the file lists the options.
+`tests/live_client.cpp` is a small client with cppzmq and nlohmann-json and nothing else. It reads `live-endpoint.json`, subscribes to the state endpoint, sends `describe` until the hello of the run arrives when the file names a command endpoint, and checks each frame it reads against what this page promises: the version, one run id for a run, a `seq` that increases, steps that increase, a time axis that agrees with the hello, and an occurrence of each train that is counted from 1. It writes one JSON line for each run it saw and exits with 1 on the first broken promise. With `--set-delay-ms <ms>` it also sends one `set_delay_ms` request as soon as it has the hello of a run, and the line of that run holds the reply of the server (`command`: the status and, for a rejection, the reason) and the `applied` and `rejected` events of the run. With `--stop-after-states <n>` it sends one `stop` request once it has the hello of a run and has read n state frames (0: at the hello), and the line of that run holds the reply in the same way. The comment at the top of the file lists the options.
 
 `test_live_stream_smoke` (`tools/e2e/live_stream_smoke.py`, integration) starts the application and the client and runs these cases:
 
@@ -112,6 +112,7 @@ With `--live-commands` the server also answers `describe`, `pause`, `resume`, `s
 - A client that sends `set_delay_ms` with `--set-delay-ms`: the server accepts it, the run reports one `applied` event for it, and the output folder and the standard output are equal to those of a run without `--live`. A delay above the limit is answered with `bad_argument`, and the run reports no event for it.
 - A client that leaves after 3 frames, in the first half of the run, and a run that no client reads: the same equality.
 - A headless run of the whole Assignment scene, which repeats each of its services: the trains of the hello differ in service id and occurrence. The hello of every run that a case reads names the start time of its scene and trains that are services of that scene.
+- A headless Paimpol run with `--live-commands` that the client stops at the hello: the stop is accepted, the status is `cancelled`, the program exits with 3 and prints `ERROR: The run was stopped before it completed.`, there is no `End of Simulation`, and no `TrainServicePathDiagram.txt` is written.
 - A window run (`QEGTRAIN_AUTOSTART`) and a client that connects after the run has ended: it gets the hello of that run and no state frame, and the application goes on.
 - A window run that the test closes at its first displayed step (`QEGTRAIN_E2E_CLOSE_DURING_RUN`): the client sees `steps_finished` with fewer steps than the horizon and then `run_finished` with `cancelled`.
 - A scripted window run that runs the case twice (`QEGTRAIN_E2E_OPERATIONAL_COMPLETION`), registered on macOS only like the other scripted window runs: the client sees two run ids, each with its hello and its frames.
@@ -213,7 +214,7 @@ A train is named by `service_id` and `occurrence` together, for the whole run.
 | Where | What | What happens |
 | --- | --- | --- |
 | Start | A `--live` option that is not valid. | The start stops with exit code 1. |
-| Start | The port is in use, or the endpoint file cannot be written. | The start stops with exit code 2 and the reason on standard error, before a run begins. |
+| Start | The port is in use, or the endpoint file cannot be written or, with commands, cannot be made readable by its owner only. | The start stops with exit code 2 and the reason on standard error, before a run begins. |
 | Reply | The server rejects the request with `bad_json`, `too_large`, `bad_version`, `bad_argument`, `bad_token`, `unknown_command` or `queue_full`. | The reply has `status` `rejected` and the `reason`. Nothing is queued and the run does not see it. [Requests](#requests) gives the order of the checks. |
 | Reply | `describe` when no run has begun. | `rejected` with `no_active_run`. |
 | Event | An accepted command was waiting when the steps of the run ended. | `rejected` with `run_ended`. |
@@ -244,7 +245,7 @@ Both sockets listen on the loopback address, and there is no host option. A publ
 {"v": 1, "state": "tcp://127.0.0.1:40123", "command": "tcp://127.0.0.1:40124", "token": "0123456789abcdef0123456789abcdef"}
 ```
 
-`command` and `token` are `null` without commands. The token is 128 random bits made at every start, in 32 hexadecimal digits. Where the platform supports it, only the owner of the file can read it. `stop` removes the file. `start` fails, and holds nothing, when the port is not valid or is in use, or when the file cannot be written.
+`command` and `token` are `null` without commands. The token is 128 random bits made at every start, in 32 hexadecimal digits. On macOS and Linux the file is created new at every start, readable by its owner only. On a file system that keeps a wider mode, a file with the token is not written and `start` fails; a file without the token is written, with a warning in `io.zmq`. On Windows the file has the permissions of the output folder. `stop` removes the file. `start` fails, and holds nothing, when the port is not valid or is in use, or when the file cannot be written.
 
 ### Threading
 
@@ -304,9 +305,9 @@ After a stop, `start` begins with empty queues, no hello, no command and a drop 
 
 The live server is in `egtrain_live`, which is built from `io/LiveCommand.cpp`, `io/LiveFrame.cpp` and `io/LiveServer.cpp` and links `nlohmann_json`, `egtrain_util` and cppzmq. It does not use Qt. `egtrain_dispatch` links it, and `DispatchController` is its only user in the application.
 
-[`RunControl`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_run_control.html
-[`SimulationWorker`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_simulation_worker.html
-[`RunController::startSimulation`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_run_controller.html
-[`SceneModel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_model.html
-[`SimulationRun::trains`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_simulation_run.html
-[`LiveServer`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_live_server.html
+[`RunControl`]: https://egtrain.samuelbruin.com/latest/api/class_run_control.html
+[`SimulationWorker`]: https://egtrain.samuelbruin.com/latest/api/class_simulation_worker.html
+[`RunController::startSimulation`]: https://egtrain.samuelbruin.com/latest/api/class_run_controller.html
+[`SceneModel`]: https://egtrain.samuelbruin.com/latest/api/struct_scene_model.html
+[`SimulationRun::trains`]: https://egtrain.samuelbruin.com/latest/api/struct_simulation_run.html
+[`LiveServer`]: https://egtrain.samuelbruin.com/latest/api/class_live_server.html

@@ -1,4 +1,4 @@
 <map id="SceneSession::openSceneDirectory" name="SceneSession::openSceneDirectory">
-<area shape="rect" id="Node000001" title="Opens the scene folder or bundle at dir now. The scene stays as it was when this returns false." alt="" coords="5,29,256,55"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="90,31,81,21,86,11,103,5,131,3,166,7,176,11,180,17,175,20,173,15,165,12,131,8,104,10,89,15,87,20,94,27"/>
+<area shape="rect" id="Node000001" title="Opens the scene folder or bundle at dir now. The scene stays as it was when this returns false." alt="" coords="5,29,255,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="87,28,81,20,86,11,103,5,130,3,159,5,177,14,171,14,158,10,130,8,104,10,89,15,86,20,92,29"/>
 </map>

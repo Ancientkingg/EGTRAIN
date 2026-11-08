@@ -1,7 +1,7 @@
 <map id="releaseMixedSignallingSystem" name="releaseMixedSignallingSystem">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,228,55"/>
-<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="74,31,64,21,69,11,87,5,117,3,155,7,165,12,169,18,164,20,162,16,153,12,117,8,88,10,73,15,70,20,77,27"/>
-<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a12b28368d8164de8c3c1f69503d7d0f3" title=" " alt="" coords="276,29,492,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="228,39,262,39,262,45,228,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="341,31,332,21,336,11,354,5,384,3,422,7,433,12,436,18,432,20,429,16,421,12,384,8,355,10,340,15,337,20,345,27"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,227,57"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="70,29,63,20,69,11,87,5,116,3,147,5,166,14,160,14,146,10,116,8,88,10,73,15,69,20,76,29"/>
+<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a12b28368d8164de8c3c1f69503d7d0f3" title=" " alt="" coords="275,29,490,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,41,262,43,257,43,227,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="337,28,330,20,336,11,353,5,382,3,413,5,432,14,427,14,412,10,382,8,354,10,339,15,335,20,342,30"/>
 </map>

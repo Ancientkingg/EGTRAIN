@@ -1,7 +1,7 @@
 <map id="passengersWaitingAtPlatform" name="passengersWaitingAtPlatform">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,220,55"/>
-<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="70,31,61,21,66,11,83,5,113,3,151,7,161,12,164,18,160,20,157,16,149,12,113,8,84,10,69,15,66,20,74,27"/>
-<area shape="rect" id="Node000002" href="$_infrastructure_8cpp.html#a27a9014643a094735169e467c3ccd9fc" title=" " alt="" coords="268,29,487,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,39,255,39,255,45,220,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="335,31,325,21,330,11,348,5,377,3,415,7,426,12,429,18,425,20,422,16,414,12,377,8,349,10,334,15,331,20,339,27"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,220,57"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="67,29,60,20,66,11,84,5,113,3,143,5,162,14,156,14,142,10,112,8,85,10,69,15,66,20,73,29"/>
+<area shape="rect" id="Node000002" href="$_infrastructure_8cpp.html#a27a9014643a094735169e467c3ccd9fc" title=" " alt="" coords="268,29,486,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,41,254,43,249,43,220,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="332,28,325,20,330,11,348,5,377,3,408,5,426,14,421,14,407,10,377,8,349,10,334,15,330,20,337,30"/>
 </map>

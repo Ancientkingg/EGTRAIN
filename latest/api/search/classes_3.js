@@ -16,13 +16,14 @@ var searchData=
   ['delayrunsnapshot_13',['DelayRunSnapshot',['../struct_delay_run_snapshot.html',1,'']]],
   ['delayshare_14',['DelayShare',['../struct_delay_share.html',1,'']]],
   ['delaystatistics_15',['DelayStatistics',['../struct_delay_statistics.html',1,'']]],
-  ['delaysummary_16',['DelaySummary',['../struct_delay_summary.html',1,'']]],
-  ['diagnosticrecord_17',['DiagnosticRecord',['../structtelemetry_1_1_diagnostic_record.html',1,'telemetry']]],
-  ['diagnosticsobservation_18',['DiagnosticsObservation',['../struct_telemetry_consent_1_1_diagnostics_observation.html',1,'TelemetryConsent']]],
-  ['diagramkey_19',['DiagramKey',['../class_diagram_key.html',1,'']]],
-  ['diagramkeyentry_20',['DiagramKeyEntry',['../struct_diagram_key_entry.html',1,'']]],
-  ['diagramwindow_21',['DiagramWindow',['../class_diagram_window.html',1,'']]],
-  ['dispatchcontroller_22',['DispatchController',['../class_dispatch_controller.html',1,'']]],
-  ['dispatchlive_23',['DispatchLive',['../struct_dispatch_live.html',1,'']]],
-  ['dockscrollarea_24',['DockScrollArea',['../class_editor_layout_1_1_dock_scroll_area.html',1,'EditorLayout']]]
+  ['delaystats_16',['DelayStats',['../struct_delay_stats.html',1,'']]],
+  ['delaysummary_17',['DelaySummary',['../struct_delay_summary.html',1,'']]],
+  ['diagnosticrecord_18',['DiagnosticRecord',['../structtelemetry_1_1_diagnostic_record.html',1,'telemetry']]],
+  ['diagnosticsobservation_19',['DiagnosticsObservation',['../struct_telemetry_consent_1_1_diagnostics_observation.html',1,'TelemetryConsent']]],
+  ['diagramkey_20',['DiagramKey',['../class_diagram_key.html',1,'']]],
+  ['diagramkeyentry_21',['DiagramKeyEntry',['../struct_diagram_key_entry.html',1,'']]],
+  ['diagramwindow_22',['DiagramWindow',['../class_diagram_window.html',1,'']]],
+  ['dispatchcontroller_23',['DispatchController',['../class_dispatch_controller.html',1,'']]],
+  ['dispatchlive_24',['DispatchLive',['../struct_dispatch_live.html',1,'']]],
+  ['dockscrollarea_25',['DockScrollArea',['../class_editor_layout_1_1_dock_scroll_area.html',1,'EditorLayout']]]
 ];

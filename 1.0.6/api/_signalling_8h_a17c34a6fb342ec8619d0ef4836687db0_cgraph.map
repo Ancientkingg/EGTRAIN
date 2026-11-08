@@ -1,0 +1,7 @@
+<map id="releaseMixedSignallingSystem" name="releaseMixedSignallingSystem">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,227,57"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="70,29,63,20,69,11,87,5,116,3,147,5,166,14,160,14,146,10,116,8,88,10,73,15,69,20,76,29"/>
+<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a12b28368d8164de8c3c1f69503d7d0f3" title=" " alt="" coords="275,29,490,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,41,262,43,257,43,227,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="337,28,330,20,336,11,353,5,382,3,413,5,432,14,427,14,412,10,382,8,354,10,339,15,335,20,342,30"/>
+</map>

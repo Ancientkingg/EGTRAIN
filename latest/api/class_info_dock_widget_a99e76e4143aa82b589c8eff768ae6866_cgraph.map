@@ -1,7 +1,7 @@
 <map id="InfoDockWidget::closeEvent" name="InfoDockWidget::closeEvent">
-<area shape="rect" id="Node000001" title="Emits closed() and then closes the dock." alt="" coords="5,5,211,31"/>
-<area shape="rect" id="Node000002" href="$class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4" title="The dock is about to close." alt="" coords="259,5,435,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="211,15,245,15,245,21,211,21"/>
-<area shape="rect" id="Node000003" href="$class_info_dock_widget.html#a7c103fad05fe3fbf25b4f3ed7ecfccee" title="QDockWidget names its toggle action after the window title; this puts the first title back." alt="" coords="483,5,701,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="435,15,469,15,469,21,435,21"/>
+<area shape="rect" id="Node000001" title="Emits closed() and then closes the dock." alt="" coords="5,5,210,33"/>
+<area shape="rect" id="Node000002" href="$class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4" title="The dock is about to close." alt="" coords="258,5,433,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,17,245,19,239,19,210,22"/>
+<area shape="rect" id="Node000003" href="$class_info_dock_widget.html#a7c103fad05fe3fbf25b4f3ed7ecfccee" title="QDockWidget names its toggle action after the window title; this puts the first title back." alt="" coords="481,5,698,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="434,17,468,19,463,19,434,22"/>
 </map>
