@@ -16,6 +16,7 @@
 #include <QFile>
 #include <QHeaderView>
 #include <QLabel>
+#include <QLayout>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
@@ -980,6 +981,9 @@ void TestPassengerPanel::importsPassengers() {
 	QTableWidget* resultTable = panel.importResultTable();
 	QVERIFY2(resultTable->viewport()->height() >= 8 * resultTable->verticalHeader()->defaultSectionSize(),
 		"the result table shows at least eight rows");
+	// The result table spans the panel below both columns.
+	const QMargins margins = panel.layout()->contentsMargins();
+	QCOMPARE(resultTable->width(), panel.width() - margins.left() - margins.right());
 	QVERIFY2(items(panel.passengerList()) == std::vector<std::string>({"P1", "P2", "imp1", "imp_unresolved"}),
 		"the accepted and the unresolved passengers are appended, and the one that collides is not");
 	// The import is recorded in the report and is one change.
