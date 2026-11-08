@@ -346,9 +346,9 @@ QString delayDiagnosticText(const DelayDiagnostic& diagnostic) {
 		case DelayDiagnosticKind::TimestepDiffers:
 			return QStringLiteral("The two runs use different time steps.");
 		case DelayDiagnosticKind::BaselineHasIncidents:
-			return QStringLiteral("The baseline run has incidents. A baseline must be a run without incidents.");
+			return QStringLiteral("The baseline run has incidents. A baseline must have none.");
 		case DelayDiagnosticKind::BaselineHasEntranceDelays:
-			return QStringLiteral("The baseline run has entrance delays. A baseline must be a run without entrance delays.");
+			return QStringLiteral("The baseline run has entrance delays. A baseline must have none.");
 		case DelayDiagnosticKind::OccurrenceOnlyInBaseline:
 			return QString("Train %1 is in the baseline run only.").arg(occurrence);
 		case DelayDiagnosticKind::OccurrenceOnlyInScenario:

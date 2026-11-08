@@ -452,7 +452,7 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 	m_csvButton = new QPushButton("CSV...", exports);
 	m_csvButton->setObjectName("diagramExportCsv");
 	m_csvButton->setAccessibleName("Export CSV");
-	m_csvButton->setToolTip("Save the data of the visible trains as CSV");
+	m_csvButton->setToolTip("Save the visible trains as CSV");
 	// Without a CSV export the PNG button keeps its half of the row.
 	QSizePolicy csvPolicy = m_csvButton->sizePolicy();
 	csvPolicy.setRetainSizeWhenHidden(true);
@@ -1485,7 +1485,7 @@ void DiagramWindow::exportCsv() {
 	if (content.empty()) {
 		// The window comes back in front once the message closes.
 		const KeepInFront front(this);
-		m_prompts->showInfo(this, "Nothing to export", "There is no data to export for the visible trains.");
+		m_prompts->showInfo(this, "Nothing to Export", "No visible train has data to export.");
 		return;
 	}
 	const QString suggested = m_csvSuggestedName.isEmpty() ? QString("export.csv") : m_csvSuggestedName;

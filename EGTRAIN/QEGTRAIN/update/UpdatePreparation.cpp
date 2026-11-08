@@ -250,14 +250,14 @@ bool copyMacAppFromDiskImage(const UpdatePreparationInput& input, const QString&
 	QString stagedPath = QDir(root).filePath(QStringLiteral("ready.AppImage"));
 	if (!QFile::copy(input.packagePath, stagedPath)) {
 		if (error)
-			*error = QStringLiteral("Could not stage the AppImage.");
+			*error = QStringLiteral("Could not copy the downloaded AppImage.");
 		return {};
 	}
 	QFile::Permissions permissions = QFileInfo(input.currentPath).permissions();
 	permissions |= QFile::ExeOwner;
 	if (!QFile::setPermissions(stagedPath, permissions) || !validElf(stagedPath)) {
 		if (error)
-			*error = QStringLiteral("The downloaded AppImage is structurally invalid.");
+			*error = QStringLiteral("The downloaded AppImage could not be made executable or is not valid.");
 		return {};
 	}
 	return stagedPath;
@@ -284,7 +284,7 @@ QString stageUpdatePackage(const UpdatePreparationInput& input, QString* error) 
 QString unpackFailureMessage(const QString& detail) {
 	QString message = QStringLiteral(
 		"EGTRAIN could not unpack the downloaded update. Nothing was changed. "
-		"Choose Check for Updates in the Help menu to try again.");
+		"Choose Help > Check for Updates... to try again.");
 	if (!detail.isEmpty())
 		message += QStringLiteral("\n\nDetails: %1").arg(detail);
 	return message;

@@ -90,7 +90,7 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 	auto* csvButton = new QPushButton("CSV...", exports);
 	csvButton->setObjectName("timetableExportCsv");
 	csvButton->setAccessibleName("Export CSV");
-	csvButton->setToolTip("Save the rows of the visible trains as CSV");
+	csvButton->setToolTip("Save the visible trains as CSV");
 	csvButton->setVisible(static_cast<bool>(m_csvProvider));
 	connect(csvButton, &QPushButton::clicked, this, &TimetableTableWindow::exportCsv);
 	exportRow->addWidget(pngButton, 1);
@@ -248,7 +248,7 @@ void TimetableTableWindow::exportCsv() {
 	if (content.empty()) {
 		// The window comes back in front once the message closes.
 		const KeepInFront front(this);
-		m_prompts->showInfo(this, "Nothing to export", "There is no data to export for the visible trains.");
+		m_prompts->showInfo(this, "Nothing to Export", "No visible train has data to export.");
 		return;
 	}
 	const auto csv = [&content]() -> const std::string& { return content; };

@@ -409,7 +409,8 @@ void NetworkLegendWidget::rebuildRows() {
 		label->setObjectName(QString("mapKeyEntry%1").arg(i));
 		label->setMaximumWidth(121);
 		label->setWordWrap(true);
-		label->setToolTip(entry.toolTip.isEmpty() ? entry.label : entry.toolTip);
+		if (!entry.toolTip.isEmpty())
+			label->setToolTip(entry.toolTip);
 		rowLayout->addWidget(label, 1);
 		layout->addWidget(row);
 	}

@@ -4635,11 +4635,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (!serviceStructure || !signalDetails || !resultsStructure)
 			facetFailure(ok, "presentation", "editor tabs, wrapped signal details or result controls unavailable");
 		// The Diagrams menu and the Run Results menu list the result views in the same order and groups, and name each the
-		// same, apart from a trailing ellipsis. A separator counts as "|".
+		// same. A separator counts as "|".
 		const auto viewNames = [](const QList<QAction*>& actions) {
 			QStringList names;
 			for (const QAction* action : actions)
-				names << (action->isSeparator() ? QStringLiteral("|") : QString(action->text()).remove(QRegularExpression("\\.\\.\\.$")));
+				names << (action->isSeparator() ? QStringLiteral("|") : action->text());
 			return names;
 		};
 		const QToolButton* viewsButton = w.m_runResultsPanel->dock() ? w.m_runResultsPanel->dock()->findChild<QToolButton*>("runResultsViewsButton") : nullptr;

@@ -281,11 +281,9 @@ public:
 private:
 	void fillRow(InfrastructurePanel& panel, const SceneSectionInventory& inventory, int row,
 		const SceneBlockDependency& dependency) const override {
-		addSectionCombo(panel, inventory, row, 0, dependency.block, "dependencyBlockCombo", storeIn(&SceneBlockDependency::block))
-			->setToolTip(QStringLiteral("The block that depends on another section"));
+		addSectionCombo(panel, inventory, row, 0, dependency.block, "dependencyBlockCombo", storeIn(&SceneBlockDependency::block));
 		addSectionCombo(panel, inventory, row, 1, dependency.dependsOn, "dependencyDependsOnCombo",
-			storeIn(&SceneBlockDependency::dependsOn))
-			->setToolTip(QStringLiteral("The section it depends on"));
+			storeIn(&SceneBlockDependency::dependsOn));
 	}
 	std::string rowTitle(const SceneBlockDependency& dependency) const override { return dependency.block; }
 };

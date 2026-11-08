@@ -99,8 +99,7 @@ RollingStockLibraryDialog::RollingStockLibraryDialog(std::vector<RollingStockLib
 	});
 	connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 	DialogLayout::install(*this, "Add from Library",
-		"Rolling stock units of the bundled cases. The copy keeps the values, the traction curve and the source references of the "
-		"unit.",
+		"Copies a unit from a bundled case with its physical values, traction curve and source references.",
 		body, buttons);
 	m_tree->setCurrentItem(firstUnit);
 	m_addButton->setEnabled(selectedUnit() != nullptr);

@@ -1314,7 +1314,6 @@ void MainWindow::setupStatusBarFields() {
 	statusBar()->addPermanentWidget(m_validation->statusLabel());
 	m_zoomStatusLabel = new QLabel(this);
 	m_zoomStatusLabel->setObjectName("zoomStatusLabel");
-	m_zoomStatusLabel->setToolTip("Network zoom");
 	statusBar()->addPermanentWidget(m_zoomStatusLabel);
 	updateZoomStatus();
 }

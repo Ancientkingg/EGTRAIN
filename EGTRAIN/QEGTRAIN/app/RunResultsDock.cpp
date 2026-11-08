@@ -79,7 +79,7 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	for (const ResultViewEntry& view : kResultViewEntries) {
 		if (view.startsGroup)
 			resultMenu->addSeparator();
-		QAction* action = resultMenu->addAction(view.name);
+		QAction* action = resultMenu->addAction(view.asksForInput ? QString(view.name) + "..." : QString(view.name));
 		action->setObjectName(QString("resultView_%1").arg(view.name).remove(' '));
 		QObject::connect(action, &QAction::triggered, views, view.open);
 	}

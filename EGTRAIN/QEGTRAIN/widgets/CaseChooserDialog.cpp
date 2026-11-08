@@ -202,7 +202,6 @@ CaseChooserDialog::CaseChooserDialog(const Options& options, QWidget* parent) : 
 	QAction* browseFile = m_otherMenu->addAction("Open Case File...");
 	QAction* browseScene = m_otherMenu->addAction("Open Case Folder...");
 	QAction* legacy = m_otherMenu->addAction("Import Legacy Case...");
-	legacy->setToolTip("Convert a case from the original text files");
 	moreButton->setMenu(m_otherMenu);
 	bodyLayout->addWidget(moreButton, 0, Qt::AlignLeft);
 

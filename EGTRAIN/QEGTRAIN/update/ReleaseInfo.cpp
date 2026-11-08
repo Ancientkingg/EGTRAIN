@@ -245,7 +245,7 @@ std::optional<StableRelease> parseLatestStableRelease(const QByteArray& json, QS
 	}
 
 	if (!latest)
-		setError(error, QStringLiteral("The EGTRAIN website lists no stable vX.Y.Z release."));
+		setError(error, QStringLiteral("The EGTRAIN website lists no stable release."));
 	return latest;
 }
 

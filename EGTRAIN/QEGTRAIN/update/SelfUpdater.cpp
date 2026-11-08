@@ -185,7 +185,7 @@ SelfUpdateCapability SelfUpdater::capability() {
 	result.manifestKey = package.manifestKey;
 	result.usesInstaller = package.usesInstaller;
 	if (!QFileInfo(result.helperPath).isFile()) {
-		result.reason = QStringLiteral("The packaged update helper is missing.");
+		result.reason = QStringLiteral("The update helper is missing from this installation.");
 		return result;
 	}
 	if (!canCreateFilesIn(QFileInfo(result.currentPath).absolutePath())) {
@@ -252,7 +252,7 @@ void SelfUpdater::start(const StableRelease& release) {
 void SelfUpdater::requestManifest() {
 	const ReleaseAsset* asset = m_release.asset(updateManifestAssetName());
 	if (!asset) {
-		fail(QStringLiteral("The release manifest is missing."));
+		fail(QStringLiteral("The update manifest is missing."));
 		return;
 	}
 	HttpRequest request;
@@ -289,7 +289,7 @@ void SelfUpdater::requestPackage(const UpdateManifest& manifest) {
 	}
 	QTemporaryDir staging(QDir(QFileInfo(m_currentPath).absolutePath()).filePath(QStringLiteral(".qegtrain-update-XXXXXX")));
 	if (!staging.isValid()) {
-		fail(QStringLiteral("Could not create update staging storage."));
+		fail(QStringLiteral("Could not create a folder for the update next to EGTRAIN."));
 		return;
 	}
 	staging.setAutoRemove(false);
@@ -434,7 +434,7 @@ void SelfUpdater::cancel() {
 
 void SelfUpdater::startPreparation() {
 	if (m_stagingRoot.isEmpty() || m_preparationThread) {
-		fail(QStringLiteral("Update staging storage is unavailable."));
+		fail(QStringLiteral("Could not prepare the downloaded update."));
 		return;
 	}
 	UpdatePreparationInput input;
