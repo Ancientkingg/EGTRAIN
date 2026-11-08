@@ -86,9 +86,8 @@ every step of its glide. At Fit the view stays where it is; zoom in to follow th
 A train that has just appeared, that runs backwards, or that
 has moved further than the visible area since the last update moves to its new position
 at once. In the replay of a completed
-run the trains and the view move at once at every seek and every step of the playback,
-because the replay holds a frame every five seconds and a glide would show motion that
-was not recorded. Switching Follow on and choosing another train also move the view at
+run the trains and the view move at once at every seek. While the replay plays, the trains glide
+from one shown second to the next and the view stays on the followed train. Switching Follow on and choosing another train also move the view at
 once. Dragging the canvas, zooming with the wheel or a pinch and resizing the window do
 not switch Follow off. While you hold the drag, scroll or pinch, the view stays where you
 put it; in a live run it returns to the train after you let go, smoothly over less than
