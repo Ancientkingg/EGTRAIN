@@ -78,6 +78,7 @@ private slots:
 	void dragFromEmptyCanvasKeepsHighlight();
 	void contextRequestResolvesItems();
 	void contextRequestPassesThroughDecoration();
+	void keyboardContextRequestUsesSelection();
 	void contextRequestResolvesThroughChild();
 	void scaledStopHeadWinsOverOpposingHead();
 	void paintedTrainWinsOverCoveredSignal();
@@ -349,7 +350,7 @@ void TestNetworkSceneSelection::contextRequestResolvesItems() {
 	expectContext(&signal, QPointF(40.0, -80.0), QPoint(51, 52),
 		QGraphicsSceneContextMenuEvent::Mouse, "context request resolves signal");
 	expectContext(&train, QPointF(80.0, -80.0), QPoint(61, 62),
-		QGraphicsSceneContextMenuEvent::Keyboard, "context request resolves train");
+		QGraphicsSceneContextMenuEvent::Mouse, "context request resolves train");
 	expectContext(&passenger, QPointF(120.0, -80.0), QPoint(71, 72),
 		QGraphicsSceneContextMenuEvent::Mouse, "context request resolves passenger");
 	expectContext(nullptr, QPointF(220.0, 140.0), QPoint(81, 82),
@@ -367,20 +368,76 @@ void TestNetworkSceneSelection::contextRequestResolvesItems() {
 	QCOMPARE(requestedItem, &train);
 	QVERIFY2(!requestedKeyboard, "viewport mouse context request preserves mouse reason");
 
+	sendLeftClick(scene, view, QPointF(80.0, -80.0));
+	// A left click emits the scene signal once.
+	QCOMPARE(sceneMousePresses, 1);
+	QVERIFY2(train.isSelected(), "left click still dispatches to selectable item");
+
 	const int viewportKeyboardBefore = contextRequests;
 	const bool viewportKeyboardAccepted = sendViewportContextMenu(view, QContextMenuEvent::Keyboard,
 		QPointF(80.0, -80.0));
 	QVERIFY2(viewportKeyboardAccepted, "viewport keyboard context event is accepted");
 	// The viewport keyboard context request emits exactly once.
 	QCOMPARE(contextRequests, viewportKeyboardBefore + 1);
-	// The viewport keyboard context request resolves the semantic train target.
+	// The viewport keyboard context request resolves the selected train.
 	QCOMPARE(requestedItem, &train);
 	QVERIFY2(requestedKeyboard, "viewport keyboard context request preserves keyboard reason");
+}
 
-	sendLeftClick(scene, view, QPointF(80.0, -80.0));
-	// A left click emits the scene signal once.
-	QCOMPARE(sceneMousePresses, 1);
-	QVERIFY2(train.isSelected(), "left click still dispatches to selectable item");
+void TestNetworkSceneSelection::keyboardContextRequestUsesSelection() {
+	NetworkScene scene(nullptr);
+	QGraphicsView view(&scene);
+	scaleView(view);
+
+	NodeItem node(QRectF(-10.0, -10.0, 20.0, 20.0));
+	node.setPos(-120.0, -80.0);
+	StationNodeItem station(QRectF(-10.0, -10.0, 20.0, 20.0));
+	station.setPos(-80.0, -80.0);
+	scene.addItem(&node);
+	scene.addItem(&station);
+
+	QGraphicsItem* requestedItem = nullptr;
+	QPointF requestedScenePos;
+	bool requestedKeyboard = false;
+	int contextRequests = 0;
+	QObject::connect(&scene, &NetworkScene::ContextMenuRequested,
+		[&](QGraphicsItem* item, const QPointF& scenePos, const QPoint&, bool keyboard) {
+			requestedItem = item;
+			requestedScenePos = scenePos;
+			requestedKeyboard = keyboard;
+			++contextRequests;
+		});
+
+	// Nothing is selected, so the key asks for the menu of the empty view, wherever the event says.
+	QVERIFY(sendContextMenu(scene, view, QGraphicsSceneContextMenuEvent::Keyboard, QPointF(-120.0, -80.0), QPoint(1, 2)));
+	QCOMPARE(contextRequests, 1);
+	QVERIFY2(!requestedItem && requestedKeyboard, "the key asks for the empty view");
+
+	sendLeftClick(scene, view, QPointF(-80.0, -80.0));
+	QCOMPARE(scene.selectedItem(), &station);
+	// The event position is on the node, but the key follows the selection and opens the menu at its item.
+	QVERIFY(sendContextMenu(scene, view, QGraphicsSceneContextMenuEvent::Keyboard, QPointF(-120.0, -80.0), QPoint(1, 2)));
+	QCOMPARE(contextRequests, 2);
+	QCOMPARE(requestedItem, &station);
+	QCOMPARE(requestedScenePos, station.sceneBoundingRect().center());
+	QVERIFY(requestedKeyboard);
+
+	// requestKeyboardContextMenu() is what the shortcut calls.
+	scene.requestKeyboardContextMenu(view.viewport());
+	QCOMPARE(contextRequests, 3);
+	QCOMPARE(requestedItem, &station);
+
+	// A click on empty canvas clears the selection.
+	sendLeftClick(scene, view, QPointF(220.0, 140.0));
+	QVERIFY(!scene.selectedItem());
+	scene.requestKeyboardContextMenu(view.viewport());
+	QVERIFY(!requestedItem);
+
+	// An item that leaves the scene is no longer selected.
+	sendLeftClick(scene, view, QPointF(-120.0, -80.0));
+	QCOMPARE(scene.selectedItem(), &node);
+	scene.removeItem(&node);
+	QVERIFY(!scene.selectedItem());
 }
 
 void TestNetworkSceneSelection::contextRequestPassesThroughDecoration() {

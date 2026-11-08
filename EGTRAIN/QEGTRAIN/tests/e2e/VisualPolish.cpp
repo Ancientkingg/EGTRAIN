@@ -57,6 +57,7 @@
 #include <QList>
 #include <QListWidget>
 #include <QMenu>
+#include <QShortcut>
 #include <QMetaObject>
 #include <QMouseEvent>
 #include <QObject>
@@ -1798,6 +1799,40 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			}
 		}
 		checkNoPlaceholder(menu, "Filtered station arrivals and departures");
+		closeContextMenu();
+
+		// Shift+F10 and the Menu key open the menu of the selected item, and the menu of the empty view without one.
+		const auto menuTitleByKey = [&](QGraphicsItem* selected) {
+			closeContextMenu();
+			w.scene->select(selected);
+			int keys = 0;
+			for (auto* shortcut : w.networkView->findChildren<QShortcut*>()) {
+				if (shortcut->key() != QKeySequence(Qt::SHIFT | Qt::Key_F10) && shortcut->key() != QKeySequence(Qt::Key_Menu))
+					continue;
+				++keys;
+				closeContextMenu();
+				emit shortcut->activated();
+				QApplication::processEvents();
+			}
+			return QPair<int, QString>(keys, w.m_sceneContextMenu ? w.m_sceneContextMenu->title() : QString());
+		};
+		const auto stationByKey = menuTitleByKey(stationItem);
+		QMenu* keyMenu = w.m_sceneContextMenu.data();
+		QStringList keyEntries;
+		for (auto* action : keyMenu ? keyMenu->actions() : QList<QAction*>())
+			keyEntries << action->text();
+		if (stationByKey.first != 2 || stationByKey.second != "Station"
+			|| keyEntries != QStringList{"Show details", "Center in view", "Copy node ID"}) {
+			ok = false;
+			failures << QString("the menu keys did not open the station menu (%1 keys, title %2, entries %3)")
+							.arg(stationByKey.first)
+							.arg(stationByKey.second, keyEntries.join(", "));
+		}
+		const auto emptyByKey = menuTitleByKey(nullptr);
+		if (emptyByKey.second != "Network") {
+			ok = false;
+			failures << QString("the menu keys did not open the empty view menu without a selection (title %1)").arg(emptyByKey.second);
+		}
 		closeContextMenu();
 	} else {
 		ok = false;

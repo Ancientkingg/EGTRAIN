@@ -804,6 +804,12 @@ void MainWindow::connectSceneToInspector() {
 	connect(scene, &NetworkScene::MousePressedOnTrain, m_inspector, &InspectorPanel::displayTrainInfo);
 	connect(scene, &NetworkScene::MousePressedOnPassenger, m_inspector, &InspectorPanel::displayPassengerInfo);
 	connect(scene, &NetworkScene::ContextMenuRequested, this, &MainWindow::showSceneContextMenu);
+	// Mac keyboards have no Menu key, so Shift+F10 asks for the menu of the selected item there and everywhere.
+	for (const QKeySequence& keys : {QKeySequence(Qt::SHIFT | Qt::Key_F10), QKeySequence(Qt::Key_Menu)}) {
+		auto* menuKey = new QShortcut(keys, networkView);
+		menuKey->setContext(Qt::WidgetWithChildrenShortcut);
+		connect(menuKey, &QShortcut::activated, scene, [this]() { scene->requestKeyboardContextMenu(networkView->viewport()); });
+	}
 	connect(scene, &NetworkScene::DisableHighlight, m_inspector, &InspectorPanel::handleDisableHighlight);
 }
 
@@ -3217,8 +3223,10 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 	connect(fit, &QAction::triggered, this, &MainWindow::fitView);
 	QAction* clear = menu->addAction("Clear selection");
 	connect(clear, &QAction::triggered, this, [this]() {
-		if (scene)
+		if (scene) {
 			scene->clearSelection();
+			scene->select(nullptr);
+		}
 		m_inspector->handleDisableHighlight();
 	});
 	QAction* stop = menu->addAction("Stop following train");
