@@ -1,5 +1,8 @@
 var NAVTREEINDEX27 =
 {
+"struct_track_preview_result.html#ae386374c7beea789cfc6d0285e82e712":[2,0,342,3],
+"struct_track_preview_result.html#aefab11d3318d02f2bd6852abdc42f201":[2,0,342,2],
+"struct_track_preview_signal.html":[2,0,343],
 "struct_track_preview_signal.html#a0d087215adbc1d544332687196f30caa":[2,0,343,4],
 "struct_track_preview_signal.html#a5be5c711acb137b4ba09c55021942143":[2,0,343,1],
 "struct_track_preview_signal.html#a642cca1bb5aeaa3be4a917ad04b02cf8":[2,0,343,3],
@@ -246,8 +249,5 @@ var NAVTREEINDEX27 =
 "structtelemetry_1_1_telemetry_sender_1_1_shared.html#ab68fd49969bfc0a4d19d8bfbe11a1049":[2,0,3,11,1,5],
 "structtelemetry_1_1_telemetry_sender_1_1_shared.html#ab8152619b90750d9d8fb41ec87850884":[1,0,14,11,1,11],
 "structtelemetry_1_1_telemetry_sender_1_1_shared.html#ab8152619b90750d9d8fb41ec87850884":[2,0,3,11,1,11],
-"structtelemetry_1_1_telemetry_sender_1_1_shared.html#acdadc0b7709e86d0dfeb82cb362e9650":[1,0,14,11,1,9],
-"structtelemetry_1_1_telemetry_sender_1_1_shared.html#acdadc0b7709e86d0dfeb82cb362e9650":[2,0,3,11,1,9],
-"structtelemetry_1_1_telemetry_sender_1_1_shared.html#ad1194fbac8836a653567128efee9789c":[1,0,14,11,1,1],
-"structtelemetry_1_1_telemetry_sender_1_1_shared.html#ad1194fbac8836a653567128efee9789c":[2,0,3,11,1,1]
+"structtelemetry_1_1_telemetry_sender_1_1_shared.html#acdadc0b7709e86d0dfeb82cb362e9650":[1,0,14,11,1,9]
 };

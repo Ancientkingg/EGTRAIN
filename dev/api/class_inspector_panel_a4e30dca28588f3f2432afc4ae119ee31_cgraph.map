@@ -1,7 +1,5 @@
 <map id="InspectorPanel::displayStationNodeInfo" name="InspectorPanel::displayStationNodeInfo">
-<area shape="rect" id="Node000001" title="Shows the form of a station node of the run and selects its station." alt="" coords="5,40,223,85"/>
+<area shape="rect" id="Node000001" title="Shows the form of a station node of the run and selects its station." alt="" coords="5,5,223,50"/>
 <area shape="rect" id="Node000002" href="$class_inspector_panel.html#a86ad792c418b9b49fd790e9ff05e27df" title=" " alt="" coords="271,5,475,50"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,45,258,43,253,44,224,50"/>
-<area shape="rect" id="Node000003" href="$class_inspector_panel.html#af73129cdfba728ac8d9aa43e80963edc" title="The value in fixed notation with precision digits after the decimal point." alt="" coords="285,75,460,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="223,74,272,83,267,83,223,80"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,25,258,28,253,28,223,30"/>
 </map>

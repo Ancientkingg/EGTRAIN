@@ -10,6 +10,7 @@ var class_arc =
     [ "gradient", "class_arc.html#a49a70cc9f9cec941b854c7ee67001872", null ],
     [ "ID", "class_arc.html#a3321fb8ba4dd51921d8f32be5cfdaebb", null ],
     [ "length", "class_arc.html#a1b8f6b85e7d81324b710f327b6ccd379", null ],
+    [ "sceneArcId", "class_arc.html#a22160495e7be2ce834a9e68ffd432a85", null ],
     [ "signalSpeedLimit", "class_arc.html#abacea941d4b1ead2299fa329c614351a", null ],
     [ "speedInBraking", "class_arc.html#ad383a3aaf0e9a344bf482a6cd9096cbf", null ],
     [ "speedLimit", "class_arc.html#a4e7d98bdb0f5706641e9d651c5ba3e2c", null ],
