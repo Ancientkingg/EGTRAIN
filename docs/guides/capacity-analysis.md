@@ -277,24 +277,13 @@ No simulation code reads `TrackLines/AreasCaseStudy.txt` today. The legacy expor
 
 ## The area calculation the program no longer contains
 
-### Where to read it
-
-The sources are in the Git history. Two commands show them:
-
-```
-git log --diff-filter=D --format=%H -- EGTRAIN/QEGTRAIN/simulation/Capacity.h
-git show <that commit>~1:EGTRAIN/QEGTRAIN/simulation/Capacity.h
-```
-
-The callers were in `simulation/Optimisation.cpp`, which has since been removed as well, and `app/DispatchController.cpp`. The same `git show` reaches both.
-
 ### How it was meant to run
 
 1. The area file `TrackLines/AreasCaseStudy.txt` of the case input folder held one row per area: name, start, end, signalling level and an optional track line number. Start and end are in km. The track line number is -9999 when absent, which means all track lines. A row with a track line number names its area `<name>_<number>`.
 2. `prepareSimulation` called `InitializeAllNetworkAreas` for this file (in the last revision that had the code, only when the file existed). That set the level of the blocks and collected the block ids of each area.
 3. `computeCapacityAndTphForAllNetworkAreas` was to do the rest. For each area it selected the trains, computed the timetable variant and wrote `TT_Statistics_Area_<name>.txt` and `TT_BlockTrainsInArea_<name>.txt`. Then it compressed the trains and computed again. Last it added an area named EntireNetwork and wrote `Statistics_Area_<name>.txt` and `BlockTrainsInArea_<name>.txt`. The files went to `AreaResults/<area>_Results` under the folder that `ComputeNetworkCapacityForTimetable` received as its folder name.
 
-In the history of the code only the initialisation had a caller. `computeCapacityAndTphForAllNetworkAreas` was called only by `ComputeNetworkCapacityForTimetable`, as its last step: before it, that function reset the trains to the timetable and ran the train-level compression of the last row of [Status of each piece](#status-of-each-piece) on the trains of the run. No revision in the Git history of EGTRAIN called `ComputeNetworkCapacityForTimetable` (the history starts with an initial import). So no run of any revision in that history produced these files. The history also holds area files in the input folders of some older cases, and no output file of the calculation.
+In earlier versions only the initialisation had a caller. `computeCapacityAndTphForAllNetworkAreas` was called only by `ComputeNetworkCapacityForTimetable`, as its last step: before it, that function reset the trains to the timetable and ran the train-level compression of the last row of [Status of each piece](#status-of-each-piece) on the trains of the run. No earlier version of EGTRAIN called `ComputeNetworkCapacityForTimetable`, so no run produced these files. Some older cases had area files in their input folders; none had an output file of the calculation.
 
 ### Formulas
 

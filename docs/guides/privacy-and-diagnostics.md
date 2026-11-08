@@ -4,7 +4,7 @@ This page says what EGTRAIN can send about its use and its errors, when it sends
 
 ## When anything is sent
 
-EGTRAIN sends usage statistics and diagnostic reports only to a receiver whose exact HTTPS address is built into the program, and only after you agree. The release packages have the receiver `https://egtrain.samuelbruin.com/api/telemetry/v1`. A build from source sends nothing: usage statistics and diagnostic reports are off in a build unless it is configured with them on. Development builds and runs without a window, such as headless runs, tests and automation, never send anything, whatever the saved choices are.
+EGTRAIN sends usage statistics and diagnostic reports only to a receiver whose exact HTTPS address is built into the program, and only after you agree. The release packages have the receiver `https://egtrain.samuelbruin.com/api/telemetry/v1`. Other builds send nothing: usage statistics and diagnostic reports are off in a build unless it is configured with them on. Development builds and runs without a window, such as headless runs, tests and automation, never send anything, whatever the saved choices are.
 
 When nothing can be sent, **Help > Privacy & diagnostics...** says `Usage statistics and diagnostics are unavailable in this build or run. Nothing is collected or sent.`
 
@@ -33,4 +33,4 @@ The recovery copies that EGTRAIN keeps of unsaved edits stay on your computer an
 1. Choose **Help > Privacy & diagnostics...**. The dialog shows your saved choices.
 2. Untick **Share usage statistics**, **Share diagnostic reports** or both, and click **Save choices**.
 
-Closing the dialog without saving keeps the saved choices. In a build that sends nothing, such as a build from source, **Help > Privacy & diagnostics...** shows only the sentence of [When anything is sent](#when-anything-is-sent), and there is nothing to switch off. Events that were sent already cannot be recalled.
+Closing the dialog without saving keeps the saved choices. In a build that sends nothing, **Help > Privacy & diagnostics...** shows only the sentence of [When anything is sent](#when-anything-is-sent), and there is nothing to switch off. Events that were sent already cannot be recalled.

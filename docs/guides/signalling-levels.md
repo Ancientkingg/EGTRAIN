@@ -698,13 +698,13 @@ of the case.
 
 Decided, not open:
 
-- #439: historical cases without the canonical area sidecar report
+- Historical cases without the canonical area sidecar report
   `TrackLines/AreasCaseStudy.txt` in the warning `scene.import.areas.skipped` and
   convert none of its rows. The case has no signalling area until the user adds
   one in Infrastructure > Signalling area. Canonical exports keep their
   assignment in the sidecar.
 
-Limits that no issue tracks:
+Other limits:
 
 - The characterization cases do not record whether a train of level 4 enters the
   following mode.

@@ -121,7 +121,7 @@ directory helper is `validateRunnableSceneDirectory`. `scene_tool validate
 loading is checked first so semantic reference diagnostics do not cascade from
 malformed JSON.
 
-Before committing a case, validate it and run it on the native path. Use
+Before you share a case, validate it and run it on the native path. Use
 `scene_tool export` only when a downstream legacy tool needs interoperability
 files; edits to that export do not flow back into canonical JSON. The exporter
 generates legacy infrastructure, signalling constraints, rolling stock,

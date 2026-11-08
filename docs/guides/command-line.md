@@ -2,7 +2,7 @@
 
 This page is for scripts, headless runs and developers; you do not need it to run EGTRAIN from a downloaded package.
 
-In a build from source the program is `build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` on macOS, `build/Release/QEGTRAIN.exe` or `build/QEGTRAIN.exe` on Windows and `build/QEGTRAIN` on Linux, below the root of the source folder. On Windows the program prints nothing in a terminal, and PowerShell does not wait for it: start it from PowerShell with `Start-Process -Wait -PassThru` and send its output to two different files with `-RedirectStandardOutput` and `-RedirectStandardError`.
+On Windows the program prints nothing in a terminal, and PowerShell does not wait for it: start it from PowerShell with `Start-Process -Wait -PassThru` and send its output to two different files with `-RedirectStandardOutput` and `-RedirectStandardError`.
 
 ## Options
 
@@ -130,6 +130,6 @@ Usage:
 
 Each command exits with 0 on success and 1 otherwise, also when a path cannot be read or an unexpected error stops the command; the reason is printed on standard error. There is no `migrate` command.
 
-The macOS and Windows packages contain `scene_tool`: `QEGTRAIN.app/Contents/MacOS/scene_tool` inside the macOS app, and `scene_tool.exe` next to the application in the extracted or installed Windows folder. A build from source puts it in the build folder.
+The macOS and Windows packages contain `scene_tool`: `QEGTRAIN.app/Contents/MacOS/scene_tool` inside the macOS app, and `scene_tool.exe` next to the application in the extracted or installed Windows folder.
 
 [Opening an `.egscene` case](opening-a-case-study.md#instructor-and-command-line-use) has examples of `pack`, `validate` and `unpack`, including the rule that the unpack destination must be a new path.
