@@ -22,8 +22,10 @@
 
 #include <cmath>
 #include <cstddef>
+#include <limits>
 #include <memory>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -210,6 +212,10 @@ private slots:
 	void undoRestoresReversedTrack();
 	void refusesBrokenTrack();
 	void reverseWithoutRoutesShowsNoBox();
+	void setsXFromDistance();
+	void undoRestoresNodeCoordinates();
+	void refusesNodeWithoutNumber();
+	void unchangedXAddsNoStep();
 };
 
 void TestTopologyFacets::offersNetworkFacets() {
@@ -1158,6 +1164,139 @@ void TestTopologyFacets::reverseWithoutRoutesShowsNoBox() {
 	QCOMPARE(fixture.prompts.infoCount, 0);
 	QCOMPARE(fixture.model().arcs[2].fromNodeId, std::string("node-b1"));
 	QCOMPARE(fixture.messages, QStringList({"Reversed track 'track-b'. Undo restores it."}));
+}
+
+// track-m has map coordinates: nodes at (0, 0), (3, 4) and (3, 10), blocks of 5 and 5 km, and a station whose position
+// of 3 is the X of its platform node, the last one.
+static SceneModel mapTrackScene() {
+	SceneModel scene = topologyScene();
+	scene.tracks.push_back({"track-m"});
+	for (const auto& [id, x, y] : {std::tuple{"node-m0", 0.0, 0.0}, {"node-m1", 3.0, 4.0}, {"node-m2", 3.0, 10.0}}) {
+		SceneNode item = node(id, "track-m", x);
+		item.yKm = y;
+		scene.nodes.push_back(item);
+	}
+	scene.arcs.push_back(arc("arc-m1", "track-m", "node-m0", "node-m1"));
+	scene.arcs.push_back(arc("arc-m2", "track-m", "node-m1", "node-m2"));
+	SceneBlock first = block("block-m1", "track-m");
+	first.lengthKm = 5.0;
+	SceneBlock second = block("block-m2", "track-m");
+	second.lengthKm = 5.0;
+	scene.blocks.push_back(first);
+	scene.blocks.push_back(second);
+	SceneStation station;
+	station.id = "station-m";
+	station.hasPosition = true;
+	station.positionKm = 3.0;
+	ScenePlatform platform;
+	platform.id = "platform-m";
+	platform.nodeIds = {"node-m2"};
+	station.platforms.push_back(platform);
+	scene.stations.push_back(station);
+	return scene;
+}
+
+static int orderErrorsOf(const SceneModel& scene, const char* trackId) {
+	int count = 0;
+	for (const SceneDiagnostic& diagnostic : validateScene(scene))
+		count += diagnostic.code == "scene.topology.order" && diagnostic.message.find(trackId) != std::string::npos ? 1 : 0;
+	return count;
+}
+
+// Set X from Distance turns the map coordinates of track-m into the distance along its arcs, with Y 0, moves the station
+// that sat on the last node, and lists the block that now stops short of the track and the stations left alone.
+void TestTopologyFacets::setsXFromDistance() {
+	Fixture fixture(mapTrackScene());
+	QVERIFY(orderErrorsOf(fixture.model(), "track-m") == 0);
+	fixture.choose("tracks");
+	fixture.select(2);
+	QCOMPARE(fixture.cell(2, 0), QString("track-m"));
+	QPushButton* button = fixture.panel.taskButton(1);
+	QVERIFY(button);
+	QCOMPARE(button->objectName(), QString("setXFromDistanceButton"));
+	QCOMPARE(button->text(), QString("Set X from Distance"));
+	QCOMPARE(button->toolTip(),
+		QString("Sets the X of the nodes of the selected track to the distance along its arcs from the first node, taking X "
+				"and Y as map coordinates in km, and Y to 0."));
+	QVERIFY(button->isEnabled());
+
+	button->click();
+
+	QVERIFY(fixture.changedOnce("Set X from distance"));
+	const SceneModel& model = fixture.model();
+	QVERIFY(std::abs(model.nodes[6].xKm - 0.0) < 1e-12);
+	QVERIFY(std::abs(model.nodes[7].xKm - 5.0) < 1e-12);
+	QVERIFY(std::abs(model.nodes[8].xKm - 11.0) < 1e-12);
+	for (int index = 6; index < 9; ++index)
+		QCOMPARE(model.nodes[static_cast<std::size_t>(index)].yKm, 0.0);
+	QCOMPARE(model.nodes[0].xKm, 0.0);
+	QCOMPARE(model.nodes[1].xKm, 1.0);
+	QCOMPARE(orderErrorsOf(model, "track-m"), 0);
+	QVERIFY(std::abs(model.stations[1].positionKm - 11.0) < 1e-12);
+	QCOMPARE(fixture.prompts.infoCount, 1);
+	QCOMPARE(fixture.prompts.infoTitle, QString("X Set from Distance"));
+	QCOMPARE(fixture.prompts.infoMessage,
+		QString("Track 'track-m' is now 11.000 km long; its blocks add up to 10.000 km.\n\nBlocks to check:\n\xE2\x80\xA2 "
+				"block-m2 (gap)\n\nCase Validation lists the references that the new X values break."));
+	QCOMPARE(fixture.messages,
+		QStringList({"Set X of 3 nodes of track 'track-m' from the distance along its arcs. Undo restores them."}));
+}
+
+// One Undo puts X, Y and the station position back.
+void TestTopologyFacets::undoRestoresNodeCoordinates() {
+	Fixture fixture(mapTrackScene());
+	RunSelection selection;
+	EditHistory history(fixture.document, selection, fixture.panel);
+	const SceneModel before = fixture.model();
+	fixture.choose("tracks");
+	fixture.select(2);
+	fixture.panel.taskButton(1)->click();
+	QVERIFY(fixture.model().nodes[8].xKm != before.nodes[8].xKm);
+
+	QVERIFY(history.undo());
+
+	const SceneModel& model = fixture.model();
+	for (std::size_t index = 0; index < model.nodes.size(); ++index) {
+		QCOMPARE(model.nodes[index].xKm, before.nodes[index].xKm);
+		QCOMPARE(model.nodes[index].yKm, before.nodes[index].yKm);
+	}
+	QCOMPARE(model.stations[1].positionKm, 3.0);
+	QVERIFY(!history.undo());
+}
+
+// A node without a number in X or Y stops the action before any change.
+void TestTopologyFacets::refusesNodeWithoutNumber() {
+	SceneModel scene = mapTrackScene();
+	scene.nodes[7].yKm = std::numeric_limits<double>::quiet_NaN();
+	Fixture fixture(scene);
+	fixture.choose("tracks");
+	fixture.select(2);
+
+	fixture.panel.taskButton(1)->click();
+
+	QVERIFY(fixture.untouched());
+	QCOMPARE(fixture.prompts.infoCount, 0);
+	QCOMPARE(fixture.messages, QStringList({"Node 'node-m1' has no number in X or Y. Set it first."}));
+	QCOMPARE(fixture.model().nodes[8].xKm, 3.0);
+}
+
+// A track that already has X as the distance and Y 0 adds no Undo step and shows no box.
+void TestTopologyFacets::unchangedXAddsNoStep() {
+	SceneModel scene = mapTrackScene();
+	for (std::size_t index = 6; index < 9; ++index)
+		scene.nodes[index].yKm = 0.0;
+	scene.nodes[6].xKm = 0.0;
+	scene.nodes[7].xKm = 5.0;
+	scene.nodes[8].xKm = 11.0;
+	Fixture fixture(scene);
+	fixture.choose("tracks");
+	fixture.select(2);
+
+	fixture.panel.taskButton(1)->click();
+
+	QVERIFY(fixture.untouched());
+	QCOMPARE(fixture.prompts.infoCount, 0);
+	QCOMPARE(fixture.messages, QStringList({"Track 'track-m' already has X as the distance along its arcs."}));
 }
 
 QTEST_MAIN(TestTopologyFacets)
