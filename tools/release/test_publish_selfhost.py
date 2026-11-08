@@ -453,12 +453,12 @@ class StubOnly(unittest.TestCase):
         self.addCleanup(patch.stop)
 
     def pages(self, folders=("dev", "latest", "1.2.3"), name="pages"):
+        """A folder with documentation folders only, as the publish job of docs.yml gives it to the site command."""
         pages = self.root / name
         for folder in folders:
             (pages / folder / "guides").mkdir(parents=True)
             (pages / folder / "index.html").write_text(f"docs of {folder}", encoding="utf-8")
             (pages / folder / "guides" / "install.html").write_text(f"install of {folder}", encoding="utf-8")
-        home_page.write_home_page(pages, [])
         return pages
 
     def site_feed(self, *tags):
@@ -499,8 +499,8 @@ class StubOnly(unittest.TestCase):
             self.assertEqual(source_code_words(path.read_text(encoding="utf-8")), [], path)
 
     def test_site_pages_come_from_the_feed_whatever_the_copy(self):
-        # A run of main whose copy of gh-pages is older than the release, and the run of the release, publish the same
-        # pages, in either order.
+        # A run of main and the run of the release, whose folders hold other versions, publish the same pages, in either
+        # order.
         self.site_feed("v1.2.4-rc.1", "v1.2.3", "v1.2.0")
         newer, older = self.pages(), self.pages(("dev", "latest", "1.2.0"), "older")
         published = []
