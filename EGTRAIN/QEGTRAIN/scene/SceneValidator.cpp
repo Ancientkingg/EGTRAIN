@@ -121,7 +121,7 @@ void collectIds(const std::vector<T>& items, const std::string& file, const std:
 		const std::string path = category + "[" + std::to_string(index) + "].id";
 		if (id.empty()) {
 			diagnostics.error("scene.id.empty", capitalized(name) + " ID must not be empty", file, type, id, path,
-				"", "Give each " + name + " an ID");
+				"");
 			continue;
 		}
 		if (!ids.insert(id).second) {
@@ -608,7 +608,7 @@ void reportSteepRouteGradients(const SceneModel& scene, const SceneSectionInvent
 			+ ") or to start on as an ascent (limit " + gradientText(startingGradient)
 			+ "). Steepest first: " + namedItems(names);
 		if (arcs.direction == 0)
-			message += " The direction of the route is not resolved, so the absolute value is compared with the smaller limit.";
+			message += " The route direction is unknown, so each gradient is checked against the smaller limit.";
 		diagnostics.warning("scene.route.gradient.steep", message, "infrastructure.json", "route",
 			use.route->id, "arcs[].gradient_percent", use.compositionId,
 			"Check the gradients of the named arcs: 0.01 is a 1 percent slope");
@@ -780,16 +780,14 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				++blockCount;
 		if (nodes.size() < 2)
 			diagnostics.error("scene.topology.nodes.missing", "Track must have at least two nodes",
-				"infrastructure.json", "track", track.id, trackPath + ".nodes", track.id,
-				"Add at least two nodes to the track");
+				"infrastructure.json", "track", track.id, trackPath + ".nodes", track.id);
 		if (arcs.empty())
 			diagnostics.error("scene.topology.arcs.missing", "Track must have at least one arc",
 				"infrastructure.json", "track", track.id, trackPath + ".arcs", track.id,
 				"Add an arc between the track nodes");
 		if (blockCount == 0)
 			diagnostics.error("scene.topology.blocks.missing", "Track must have at least one block",
-				"infrastructure.json", "track", track.id, trackPath + ".blocks", track.id,
-				"Add at least one block to the track");
+				"infrastructure.json", "track", track.id, trackPath + ".blocks", track.id);
 		if (!topologyIdsUnique || nodes.size() < 2 || arcs.empty())
 			continue;
 
@@ -920,7 +918,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		const std::string path = "stations[" + std::to_string(index) + "]";
 		if (station.id.empty()) {
 			diagnostics.error("scene.id.empty", "Station ID must not be empty", "stations.json", "station",
-				station.id, path + ".id", "", "Give each station an ID");
+				station.id, path + ".id", "");
 		} else if (!stationIds.insert(station.id).second) {
 			diagnostics.error("scene.id.duplicate", "Duplicate station ID", "stations.json", "station",
 				station.id, path + ".id", station.id);
@@ -928,8 +926,8 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		if (!station.id.empty())
 			stations[station.id] = &station;
 		if (station.hasPosition && !std::isfinite(station.positionKm))
-			diagnostics.error("scene.station.position.invalid", "Station position must be finite", "stations.json",
-				"station", station.id, path + ".position_km", "", "Use a finite position in kilometres");
+			diagnostics.error("scene.station.position.invalid", "Station position must be a number", "stations.json",
+				"station", station.id, path + ".position_km", "", "Enter the position in kilometres");
 		if (!station.hasPosition && station.platforms.empty())
 			diagnostics.error("scene.station.anchor.missing", "Station has no position and no platform",
 				"stations.json", "station", station.id, path, "", "Set a position or add a bound platform");
@@ -939,7 +937,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			const std::string platformPath = path + ".platforms[" + std::to_string(platformIndex) + "]";
 			if (platform.id.empty())
 				diagnostics.error("scene.id.empty", "Platform ID must not be empty", "stations.json", "platform",
-					platform.id, platformPath + ".id", "", "Give each platform an ID");
+					platform.id, platformPath + ".id", "");
 			else if (!platformIds.insert(platform.id).second)
 				diagnostics.error("scene.id.duplicate", "Duplicate platform ID on station", "stations.json",
 					"platform", platform.id, platformPath + ".id", station.id);
@@ -961,9 +959,8 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				&& (!std::isfinite(capacity) || capacity < 1.0
 					|| capacity > static_cast<double>(std::numeric_limits<int>::max())))
 				diagnostics.error("scene.platform.capacity.invalid",
-					"Platform geometry produces an unsupported passenger capacity", "stations.json",
-					"platform", platform.id, platformPath, "",
-					"Use a length and a width that give from 1 to 2147483647 passengers");
+					"Platform length and width give a passenger capacity below 1 or above 2147483647",
+					"stations.json", "platform", platform.id, platformPath);
 			if (platform.nodeIds.empty())
 				diagnostics.error("scene.platform.nodes.none", "Platform has no bound nodes", "stations.json",
 					"platform", platform.id, platformPath + ".nodes", "", "Bind the platform to at least one node");
@@ -1028,8 +1025,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				"Signalling area " + name + " starts at " + coordinateText(area.startKm) + " km and ends at "
 					+ coordinateText(area.endKm) + " km, but its start must be below its end ("
 					+ blockExtentText(sectionInventory, knownTrack ? area.trackId : "") + ")",
-				"signalling.json", "signalling_area", area.id, path, area.id,
-				"Set the start km below the end km");
+				"signalling.json", "signalling_area", area.id, path, area.id);
 		// An area whose system is not chosen holds kSignallingLevelUnset.
 		if (area.level == kSignallingLevelUnset)
 			diagnostics.error("scene.signalling_area.level",
@@ -1060,8 +1056,8 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		const SceneRoute& route = scene.routes[index];
 		const std::string path = "routes[" + std::to_string(index) + "]";
 		if (route.blocks.empty()) {
-			diagnostics.error("scene.route.empty", "Route has no blocks", "signalling.json", "route", route.id,
-				path + ".blocks", "", "List the block ids the route runs through");
+			diagnostics.error("scene.route.empty", "Route has no sections", "signalling.json", "route", route.id,
+				path + ".blocks", "", "Choose its sections from the section catalog");
 		}
 		std::vector<const SceneSectionDescriptor*> routeSections;
 		routeSections.reserve(route.blocks.size());
@@ -1134,7 +1130,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				diagnostics.error("scene.route.disconnected", "Adjacent route sections are disconnected",
 					"signalling.json", "route", route.id,
 					path + ".blocks[" + std::to_string(sectionIndex) + "]", transition,
-					"Choose contiguous sections or add the missing declared connection");
+					"Choose sections that join, or add the missing connection");
 			}
 		}
 		// A route marked reversed has to list its sections in reverse order.
@@ -1168,11 +1164,11 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		const std::string path = "block_dependencies[" + std::to_string(index) + "]";
 		const std::string entry = "Block dependency " + std::to_string(index + 1);
 		if (!blockReferenceKnown(dependency.block))
-			diagnostics.unresolved(dependency.block, entry, "block", "Block dependency refers to unknown block",
+			diagnostics.unresolved(dependency.block, entry, "block", "Block dependency refers to an unknown section",
 				"signalling.json", "block_dependency", dependency.block, path + ".block");
 		if (!blockReferenceKnown(dependency.dependsOn))
 			diagnostics.unresolved(dependency.dependsOn, entry, "section it depends on",
-				"Block dependency refers to unknown dependency", "signalling.json", "block_dependency", dependency.block,
+				"Block dependency depends on an unknown section", "signalling.json", "block_dependency", dependency.block,
 				path + ".depends_on");
 	}
 	for (std::size_t index = 0; index < scene.singleTrackRestrictions.size(); ++index) {
@@ -1192,7 +1188,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		for (const Role& role : roles) {
 			if (!blockReferenceKnown(*role.block))
 				diagnostics.unresolved(*role.block, "Single-track restriction " + std::to_string(index + 1), role.what,
-					"Single-track restriction refers to unknown block", "signalling.json", "single_track_restriction",
+					"Single-track restriction refers to an unknown section", "signalling.json", "single_track_restriction",
 					*role.block, path + "." + role.key);
 		}
 	}
@@ -1201,10 +1197,10 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		const std::string path = "station_boundaries[" + std::to_string(index) + "]";
 		if (!blockReferenceKnown(boundary.entranceBlock))
 			diagnostics.unresolved(boundary.entranceBlock, "Station boundary " + std::to_string(index + 1),
-				"entrance section", "Station boundary refers to unknown entrance block", "signalling.json",
+				"entrance section", "Station boundary refers to an unknown entrance section", "signalling.json",
 				"station_boundary", boundary.entranceBlock, path + ".entrance_block");
 		if (boundary.hasExitBlock && !blockReferenceKnown(boundary.exitBlock))
-			diagnostics.error("scene.ref.unresolved", "Station boundary refers to unknown exit block",
+			diagnostics.error("scene.ref.unresolved", "Station boundary refers to an unknown exit section",
 				"signalling.json", "station_boundary", boundary.exitBlock,
 				path + ".exit_block", boundary.exitBlock);
 	}
@@ -1239,8 +1235,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			if (!(row[0] < row[1])) {
 				diagnostics.error("scene.train.traction.interval",
 					"Traction curve lower speed must be below upper speed", "rolling_stock.json",
-					"train_unit", unit.id, rowPath, "",
-					"Set the lower speed below the upper speed");
+					"train_unit", unit.id, rowPath);
 			}
 			if (rowIndex > 0) {
 				const auto& previous = unit.tractionCurve[rowIndex - 1];
@@ -1251,7 +1246,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				} else if (row[0] < previous[1]) {
 					diagnostics.error("scene.train.traction.overlap", "Traction curve intervals overlap",
 						"rolling_stock.json", "train_unit", unit.id, rowPath, "",
-						"Adjust adjacent bounds so intervals do not overlap");
+						"Start each row at or above the upper speed of the row before");
 				}
 			}
 		}
@@ -1297,9 +1292,8 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				service.visualizationColor, "Use a colour such as #3C8DD2 or remove the value");
 		if (!std::isfinite(service.performancePercent) || service.performancePercent < 1.0
 			|| service.performancePercent > 100.0)
-			diagnostics.error("scene.performance.invalid", "Performance must be from 1 to 100",
-				"services.json", "service", service.id, path + ".performance_percent", "",
-				"Use a performance percentage from 1 through 100");
+			diagnostics.error("scene.performance.invalid", "Performance must be from 1 to 100 percent",
+				"services.json", "service", service.id, path + ".performance_percent");
 		if (service.hasMaximumSpeed
 			&& (!std::isfinite(service.maximumSpeedKmh) || service.maximumSpeedKmh <= 0.0))
 			diagnostics.error("scene.speed.invalid", "Maximum speed must be above 0",
@@ -1314,23 +1308,21 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				"services.json", "service", service.id, path + ".repeat.count");
 		if (service.hasRepeat && service.hasRepeatCount && service.repeatCount <= 0)
 			diagnostics.error("scene.repeat.count.invalid", "Repeat count must be a whole number above 0",
-				"services.json", "service", service.id, path + ".repeat.count", "",
-				"Use a count of 1 or more");
+				"services.json", "service", service.id, path + ".repeat.count");
 		if (service.hasOperatingCodeStep && !service.hasRepeat)
 			diagnostics.error("scene.repeat.step.invalid", "Code step needs a repeat interval",
 				"services.json", "service", service.id, path + ".repeat.operating_code_step");
 		if (service.hasRepeat && service.hasOperatingCodeStep
 			&& sceneServiceOccurrenceOperatingCode(service, 1).empty())
 			diagnostics.error("scene.repeat.step.invalid",
-				"Code step needs a step other than 0 and an operating code that is a number",
-				"services.json", "service", service.id, path + ".repeat.operating_code_step", "",
-				"Use a step other than 0 and an operating code such as 1200");
+				"Code step must not be 0, and the operating code must be a whole number",
+				"services.json", "service", service.id, path + ".repeat.operating_code_step");
 		const int occurrences = sceneServiceOccurrenceCount(service, effectiveDurationSeconds);
 		if (service.hasRepeat && service.hasOperatingCodeStep
 			&& !sceneServiceOccurrenceOperatingCode(service, 1).empty()
 			&& sceneServiceOccurrenceOperatingCode(service, occurrences).empty())
 			diagnostics.error("scene.repeat.step.invalid",
-				"Code step makes the operating codes of the later runs too large",
+				"Code step makes the operating codes of the later occurrences too large",
 				"services.json", "service", service.id, path + ".repeat.operating_code_step", "",
 				"Use a smaller operating code, code step or repeat count");
 		serviceOccurrences[service.id] = occurrences;
@@ -1511,7 +1503,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 							"scenarios.json", "incident", incident.id, path + ".occurrence");
 					else if (hasId(serviceIds, incident.target)
 						&& incident.occurrence > serviceOccurrences[incident.target])
-						diagnostics.error("scene.occurrence.invalid", "Breakdown run is not one of the runs of the service",
+						diagnostics.error("scene.occurrence.invalid", "Breakdown refers to an occurrence that the service does not have",
 							"scenarios.json", "incident", incident.id, path + ".occurrence",
 							incident.target + "-" + std::to_string(incident.occurrence));
 				}
@@ -1532,7 +1524,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 					"scenarios.json", "incident", incident.id, path + ".start_seconds");
 			if (incident.type == "signal_failure") {
 				if (hasOccurrence || hasReducedSpeed || incident.terminateAtDestination)
-					diagnostics.error("scene.incident.fields", "A signal failure cannot have a run, a reduced speed or a stop at the destination",
+					diagnostics.error("scene.incident.fields", "A signal failure cannot have an occurrence, a reduced speed or a stop at the destination",
 						"scenarios.json", "incident", incident.id, path);
 				if (!hasEnd || !std::isfinite(incident.endSeconds)
 					|| incident.endSeconds <= incident.startSeconds)
@@ -1583,10 +1575,10 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			} else if (service != services.end()
 				&& delay.occurrence > serviceOccurrences[delay.serviceId]) {
 				diagnostics.error("scene.entrance.occurrence.out_of_horizon",
-					"Entrance delay refers to a run that the service does not have",
+					"Entrance delay refers to an occurrence that the service does not have",
 					"scenarios.json", "entrance_delay", delay.serviceId, path + ".occurrence",
 					delay.serviceId + "-" + std::to_string(delay.occurrence),
-					"Choose one of the runs of the service");
+					"Choose an occurrence of the service");
 				valid = false;
 			}
 			if (!std::isfinite(delay.delaySeconds) || delay.delaySeconds < 0.0) {
@@ -1600,10 +1592,10 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				const auto previous = occurrenceValues.find(delay.occurrence);
 				if (previous != occurrenceValues.end() && previous->second != delay.delaySeconds) {
 					diagnostics.error("scene.entrance.conflict",
-						"Entrance delays of one run differ", "scenarios.json",
+						"Entrance delays of one occurrence differ", "scenarios.json",
 						"entrance_delay", delay.serviceId, path + ".delay_seconds",
 						delay.serviceId + "-" + std::to_string(delay.occurrence),
-						"Give every entrance delay of the run the same value");
+						"Give every entrance delay of the occurrence the same value");
 				} else {
 					occurrenceValues.emplace(delay.occurrence, delay.delaySeconds);
 				}
@@ -1641,13 +1633,15 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				|| !std::isfinite(journey.plannedDepartureEndSeconds)
 				|| journey.plannedDepartureStartSeconds < 0.0
 				|| journey.plannedDepartureEndSeconds < journey.plannedDepartureStartSeconds)
-				diagnostics.error("scene.passenger.window", "Invalid planned departure window", "passengers.json",
+				diagnostics.error("scene.passenger.window", "Planned departure window must start at 0 or later and must not end before it starts",
+					"passengers.json",
 					"journey", journey.id, journeyPath + ".planned_departure");
 			if (!std::isfinite(journey.plannedArrivalStartSeconds)
 				|| !std::isfinite(journey.plannedArrivalEndSeconds)
 				|| journey.plannedArrivalStartSeconds < 0.0
 				|| journey.plannedArrivalEndSeconds < journey.plannedArrivalStartSeconds)
-				diagnostics.error("scene.passenger.window", "Invalid planned arrival window", "passengers.json",
+				diagnostics.error("scene.passenger.window", "Planned arrival window must start at 0 or later and must not end before it starts",
+					"passengers.json",
 					"journey", journey.id, journeyPath + ".planned_arrival");
 			if (journey.legs.empty())
 				diagnostics.warning("scene.passenger.legs.empty", "Journey has no route-choice legs", "passengers.json",
@@ -1702,7 +1696,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				else if (hasId(serviceIds, leg.serviceId)
 					&& leg.occurrence > serviceOccurrences[leg.serviceId])
 					diagnostics.warning("scene.passenger.occurrence.out_of_horizon",
-						"Passenger leg refers to a run that does not enter within the duration",
+						"Passenger leg refers to an occurrence that does not enter within the duration",
 						"passengers.json", "leg", leg.id, legPath + ".occurrence",
 						leg.serviceId + "-" + std::to_string(leg.occurrence));
 				if (legIndex == 0 && leg.originStationId != journey.originStationId)
@@ -1728,8 +1722,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			diagnostics.error("scene.name.path", "Case name cannot be used as a folder name",
 				"scene.json", "scene", scene.name, "name", "",
 				"Leave out < > : \" / \\ | ? * and control characters, do not end the name with a space or a dot, "
-				"and do not use CON, PRN, AUX, NUL, COM1 to COM9 or LPT1 to LPT9, also with a superscript 1, 2 or 3, "
-				"in any capitals as the name or before its first dot");
+				"and do not use a reserved Windows name such as CON, NUL, COM1 or LPT1, alone or before a dot");
 		if (scene.baseTime.empty())
 			diagnostics.error("scene.basetime.missing", "Set the base time to run this case", "scene.json",
 				"scene", "", "base_time", "", "Set Base time in Case Settings, for example 08:00:00");
@@ -1778,11 +1771,10 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			diagnostics.error("scene.routes.none", "Add a route to run this case", "signalling.json", "route",
 				"", "routes");
 		if (scene.trainUnits.empty() || scene.compositions.empty())
-			diagnostics.error("scene.trains.none", "No trains defined", "rolling_stock.json", "", "", "", "",
-				"Add a rolling stock unit and a composition");
+			diagnostics.error("scene.trains.none", "Add a rolling stock unit and a composition to run this case",
+				"rolling_stock.json");
 		if (scene.services.empty())
-			diagnostics.error("scene.services.none", "No services defined", "services.json", "", "", "", "",
-				"Add a service");
+			diagnostics.error("scene.services.none", "Add a service to run this case", "services.json");
 		if (scene.scenarios.empty())
 			diagnostics.error("scene.scenarios.none", "Add a scenario to run this case", "scenarios.json",
 				"scenario", "", "scenarios");
@@ -1824,7 +1816,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			runtimeCapacity(
 				"The run has more than " + std::to_string(RuntimeLimits::kMaxExpandedTrains) + " trains",
 				"services.json", "scene", scene.name, "services", "",
-				"Lower the repeat counts or choose fewer runs, to at most "
+				"Lower the repeat counts or select fewer occurrences, to at most "
 					+ std::to_string(RuntimeLimits::kMaxExpandedTrains) + " trains");
 
 		if (infrastructureUsableForRuntimeChecks) {
@@ -1857,7 +1849,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 						"Reduce the block length or split the track layout");
 				if (section.clippedToTrackEnd)
 					diagnostics.warning("scene.native.block.clipped",
-						"Final block length exceeds its track and is clipped at the final node",
+						"Last block runs past the end of its track and is cut at the last node",
 						"infrastructure.json", "block", section.sourceBlockId,
 						"blocks.length_km", section.firstTrackId);
 				if (section.arcCount > kNativeMaxSectionArcs)

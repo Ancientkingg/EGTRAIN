@@ -281,7 +281,7 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 							   .arg(compatibility.schemaVersion)
 							   .arg(kCurrentSceneSchemaVersion);
 		if (compatibility.sourceKind == SceneSourceKind::Bundle && compatibility.bundleVersion)
-			versions += QString("\nBundle layout %1, this version uses %2")
+			versions += QString("\nCase file version %1, this version uses %2")
 							.arg(*compatibility.bundleVersion)
 							.arg(kCurrentSceneBundleVersion);
 		dialog.setDetailedText(versions);
@@ -339,7 +339,7 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 							   .arg(compatibility.schemaVersion)
 							   .arg(kCurrentSceneSchemaVersion);
 		if (compatibility.bundleVersion)
-			versions += QString("\nBundle layout %1, this version uses %2")
+			versions += QString("\nCase file version %1, this version uses %2")
 							.arg(*compatibility.bundleVersion)
 							.arg(kCurrentSceneBundleVersion);
 		dialog.setDetailedText(versions);

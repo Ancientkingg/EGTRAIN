@@ -92,7 +92,7 @@ LOADED_DATA_CASE = "Case"
 LOADED_DATA_RUN = "Run"
 # The version rows show only with advanced details. The application stores that choice when its View entry is ticked, so
 # the rest of the rehearsal and the second start of step 9 keep it.
-LOADED_DATA_VERSIONS = ("Format version", "Saved with", "Bundle version")
+LOADED_DATA_VERSIONS = ("Format version", "Saved with", "Case file version")
 # The View entry that switches advanced details on, in any capitals.
 ADVANCED_DETAILS = r"(?i)^advanced\b.*details$"
 # The line of the run summary when the run has finished. With Advanced details the summary has more lines after it.

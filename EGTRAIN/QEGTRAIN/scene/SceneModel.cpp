@@ -537,7 +537,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 		if (directoryError && directoryType != fs::file_type::not_found)
 			addError("scene.dir.unreadable", "", "Cannot read the case folder: " + directoryError.message());
 		else
-			addError("scene.dir.missing", "", "Case folder missing or invalid");
+			addError("scene.dir.missing", "", "Case folder is missing or is not a folder");
 		return result;
 	}
 

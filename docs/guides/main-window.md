@@ -7,7 +7,7 @@ This page describes how the main window shows the case that loaded: the **Loaded
 The **Loaded Data** dock stays separate from running. Its tree shows the case
 with its name and description, the counts of each category, the default and
 available scenarios, the validation state, and the state of the run and its
-results under **Run**. Advanced mode adds **Format version**, **Bundle version**,
+results under **Run**. Advanced mode adds **Format version**, **Case file version**,
 **Saved with** and **Source files discovered**. Expand a category to see what
 was read for it, such as each rolling stock unit or service. Advanced mode also
 shows its source file and the objects read from that file. Imported cases also show the converted,

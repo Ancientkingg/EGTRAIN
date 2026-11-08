@@ -519,7 +519,7 @@ def assert_version_rejections_name_the_reason(app: Path) -> None:
         cases = (
             ("a draft scene", ["--scene", str(draft)], ["scene.compatibility.draft", "2026-08-08", "Import Legacy Case"]),
             ("a newer scene", ["--scene", str(newer)], ["scene.compatibility.newer", "schema 2 (saved with EGTRAIN 9.9)"]),
-            ("a newer bundle", [str(newer_bundle)], ["scene.compatibility.newer", "schema 1, bundle layout 2"]),
+            ("a newer bundle", [str(newer_bundle)], ["scene.compatibility.newer", "schema 1, case file version 2"]),
         )
         for index, (name, args, details) in enumerate(cases):
             label = f"headless launch with {name}"

@@ -1642,7 +1642,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			&& QFileInfo(caseRoot->text(1)).absoluteFilePath() == bundle;
 		for (const QString& label : {QStringLiteral("Infrastructure"), QStringLiteral("Scenarios"),
 				 QStringLiteral("Passengers"), QStringLiteral("Format version"),
-				 QStringLiteral("Bundle version")}) {
+				 QStringLiteral("Case file version")}) {
 			const QList<QTreeWidgetItem*> rows = w.m_validation->tree()->findItems(
 				label, Qt::MatchExactly | Qt::MatchRecursive, 0);
 			loadedDataOk = loadedDataOk && !rows.isEmpty()

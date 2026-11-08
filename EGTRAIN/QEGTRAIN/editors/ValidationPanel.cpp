@@ -314,7 +314,7 @@ void ValidationPanel::refreshLoadedData() {
 			model.savedWithAppVersion.empty() ? QStringLiteral("-") : QString::fromStdString(model.savedWithAppVersion),
 			QString(), model.savedWithAppVersion.empty() ? QStringLiteral("Not present") : QStringLiteral("OK"));
 		if (context.sceneIsBundle)
-			addRow(caseRoot, "Bundle version", context.bundleVersion ? QString::number(*context.bundleVersion) : QStringLiteral("-"),
+			addRow(caseRoot, "Case file version", context.bundleVersion ? QString::number(*context.bundleVersion) : QStringLiteral("-"),
 				QString::number(kCurrentSceneBundleVersion),
 				context.bundleVersion ? QStringLiteral("OK") : QStringLiteral("Not present"));
 

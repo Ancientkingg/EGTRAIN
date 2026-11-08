@@ -302,7 +302,7 @@ void TestValidationPanel::showsLoadedData() {
 	QCOMPARE(childRow(runtime, "Scenario")->text(1), "(none)");
 	// Without advanced details the tree leaves out the versions and the files, and a row of one fact has no count.
 	if (root == nullptr) QFAIL("without advanced details the tree leaves out the versions and the files, and a row of one fact has no count");
-	QVERIFY(!childRow(root, "Bundle version"));
+	QVERIFY(!childRow(root, "Case file version"));
 	QVERIFY(!childRow(root, "Format version"));
 	QVERIFY(!childRow(root, "Source files discovered"));
 	QVERIFY(childRow(root, "Name"));
@@ -317,7 +317,7 @@ void TestValidationPanel::showsLoadedData() {
 	QVERIFY(childRow(root, "Format version"));
 	QVERIFY(childRow(root, "Saved with"));
 	QVERIFY(childRow(root, "Source files discovered"));
-	QVERIFY(!childRow(root, "Bundle version"));
+	QVERIFY(!childRow(root, "Case file version"));
 
 	context.sceneDir = "/cases/a";
 	context.sceneIsBundle = true;
@@ -333,21 +333,21 @@ void TestValidationPanel::showsLoadedData() {
 	QCOMPARE(panel.tree()->topLevelItemCount(), 1);
 	if (root == nullptr) QFAIL("the tree is written again, not extended");
 	QCOMPARE(root->text(1), "/cases/a");
-	QTreeWidgetItem* bundle = root ? childRow(root, "Bundle version") : nullptr;
+	QTreeWidgetItem* bundle = root ? childRow(root, "Case file version") : nullptr;
 	// A bundle without a recorded version says so in the words of the other absent facts.
 	if (bundle == nullptr) QFAIL("a bundle without a recorded version says so in the words of the other absent facts");
 	QCOMPARE(bundle->text(1), "-");
 	QCOMPARE(bundle->text(3), "Not present");
 	context.bundleVersion = 1;
 	panel.refreshLoadedData();
-	bundle = childRow(panel.tree()->topLevelItem(0), "Bundle version");
+	bundle = childRow(panel.tree()->topLevelItem(0), "Case file version");
 	// A bundle shows its format version.
 	if (bundle == nullptr) QFAIL("a bundle shows its format version");
 	QCOMPARE(bundle->text(1), "1");
 	QCOMPARE(bundle->text(3), "OK");
 	advancedTree = false;
 	panel.updateStatus();
-	QVERIFY2(!childRow(panel.tree()->topLevelItem(0), "Bundle version"), "switching advanced details off writes the tree again without the versions");
+	QVERIFY2(!childRow(panel.tree()->topLevelItem(0), "Case file version"), "switching advanced details off writes the tree again without the versions");
 	runtime = childRow(panel.tree()->topLevelItem(0), "Run");
 	QTreeWidgetItem* results = runtime ? childRow(runtime, "Results") : nullptr;
 	QTreeWidgetItem* applied = runtime ? childRow(runtime, "Scenario") : nullptr;

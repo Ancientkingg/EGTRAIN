@@ -411,7 +411,7 @@ static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const Exp
 		std::error_code ec;
 		fs::create_directories(trackDir, ec);
 		if (ec) {
-			addDiag(SceneSeverity::Error, "scene.export.write", "Failed to create trackline directory: " + ec.message(),
+			addDiag(SceneSeverity::Error, "scene.export.write", "Cannot create the track folder: " + ec.message(),
 				trackDir.u8string());
 			result.wroteAll = false;
 			continue;
@@ -609,18 +609,18 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const Expo
 		if (!folders.existing(relative, ec).empty())
 			return;
 		if (ec) {
-			addWriteError("Could not inspect compatibility file: " + ec.message(), (folders.destination / relative).u8string());
+			addWriteError("Cannot check legacy file: " + ec.message(), (folders.destination / relative).u8string());
 			return;
 		}
 		const fs::path path = folders.staging / relative;
 		fs::create_directories(path.parent_path(), ec);
 		if (ec) {
-			addWriteError("Could not create compatibility directory: " + ec.message(), path.parent_path().u8string());
+			addWriteError("Cannot create legacy folder: " + ec.message(), path.parent_path().u8string());
 			return;
 		}
 		std::ofstream out(path);
 		if (!out) {
-			addWriteError("Failed to write compatibility file", path.u8string());
+			addWriteError("Cannot write legacy file", path.u8string());
 			return;
 		}
 		writer(out);
@@ -669,14 +669,14 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const Expo
 	const bool hasDas = !folders.existing(dasPath, dasEc).empty();
 	const bool hasRouteChoice = !folders.existing(routeChoicePath, routeChoiceEc).empty();
 	if (dasEc || routeChoiceEc) {
-		addWriteError("Could not inspect legacy passenger compatibility files",
+		addWriteError("Cannot check the legacy passenger files",
 			(folders.destination / (dasEc ? dasPath : routeChoicePath)).u8string());
 		return;
 	}
 	if (hasDas && hasRouteChoice)
 		return;
 	if (hasDas != hasRouteChoice) {
-		addUnsupported("Existing legacy passenger data is missing its paired CSV",
+		addUnsupported("The export folder holds only one of the two legacy passenger files; this one is missing",
 			(folders.destination / (hasDas ? routeChoicePath : dasPath)).u8string());
 		return;
 	}
@@ -742,11 +742,11 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const Expo
 			std::string arrivalToken;
 			std::string departureToken;
 			if (!passengerWindowToken(journey.plannedArrivalStartSeconds, journey.plannedArrivalEndSeconds, arrivalToken)) {
-				addUnsupported("Passenger arrival window is not representable by legacy DAS buckets: " + journey.id, "passengers.json");
+				addUnsupported("Journey " + journey.id + ": the arrival window is not an exact hour or a half-hour slot, so the legacy DAS file cannot hold it", "passengers.json");
 				valid = false;
 			}
 			if (!passengerWindowToken(journey.plannedDepartureStartSeconds, journey.plannedDepartureEndSeconds, departureToken)) {
-				addUnsupported("Passenger departure window is not representable by legacy DAS buckets: " + journey.id, "passengers.json");
+				addUnsupported("Journey " + journey.id + ": the departure window is not an exact hour or a half-hour slot, so the legacy DAS file cannot hold it", "passengers.json");
 				valid = false;
 			}
 			dasRows.push_back({{std::to_string(tripNo++), passenger.id, "1", journey.activity, suffix, journey.activity,
@@ -783,7 +783,7 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const Expo
 				}
 				const std::string code = serviceIt->second->operatingCode.empty() ? serviceIt->second->id : serviceIt->second->operatingCode;
 				if (code.find_first_of(",\r\n") != std::string::npos || operatingCodeCounts[code] != 1 || leg.occurrence < 1) {
-					addUnsupported("Passenger leg service token is ambiguous or invalid: " + leg.serviceId, "passengers.json");
+					addUnsupported("Passenger leg on service " + leg.serviceId + ": the operating code must be unique and hold no comma, and the occurrence must be 1 or more", "passengers.json");
 					valid = false;
 				}
 				if (i + 1 < journey.legs.size())
@@ -795,7 +795,7 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const Expo
 	}
 	for (const auto& [key, group] : journeyGroups) {
 		if (group.first > 1 && group.second) {
-			addUnsupported("Duplicate passenger+destination journeys with legs are ambiguous: " + key.first, "passengers.json");
+			addUnsupported("Passenger " + key.first + " has several journeys to one destination, and the legacy files cannot tell their legs apart", "passengers.json");
 			valid = false;
 		}
 	}
@@ -997,7 +997,7 @@ static void synthesizeGuiLayout(const SceneModel& scene, const std::unordered_ma
 	}
 
 	if (tracklineNodes.empty()) {
-		addDiag(SceneSeverity::Info, "scene.export.info", "No track line nodes, so no GUI layout was generated");
+		addDiag(SceneSeverity::Info, "scene.export.info", "No track nodes, so no GUI layout was generated");
 		return;
 	}
 
@@ -1012,7 +1012,7 @@ static void synthesizeGuiLayout(const SceneModel& scene, const std::unordered_ma
 			}
 		}
 		if (se.regions.empty()) {
-			addDiag(SceneSeverity::Warning, "scene.export.adjusted", "Station position matches no node of any track line", se.name);
+			addDiag(SceneSeverity::Warning, "scene.export.adjusted", "Station position matches no node of any track", se.name);
 		}
 	}
 
@@ -1081,7 +1081,7 @@ static void synthesizeGuiLayout(const SceneModel& scene, const std::unordered_ma
 					}
 				}
 				se.canonical = se.origX - minX_ownR;
-				addDiag(SceneSeverity::Info, "scene.export.info", "Station name has no counterpart on the reference trackline", se.name);
+				addDiag(SceneSeverity::Info, "scene.export.info", "Station is not on the reference track, so its layout position is measured on its own track", se.name);
 			}
 		} else {
 			se.canonical = 0;
@@ -1225,7 +1225,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 			|| containsPath(passthroughPath, resolved) || containsPath(resolved, passthroughPath);
 	};
 	if (overlapsSource(outputDir)) {
-		addDiag(SceneSeverity::Error, "scene.export.path", "Source, legacy passthrough and export destination must be separate, non-overlapping trees", outDir);
+		addDiag(SceneSeverity::Error, "scene.export.path", "The export folder must not be inside the case folder or contain it", outDir);
 		return result;
 	}
 	// A separate destination can still contain a symlink into an original tree.
@@ -1235,7 +1235,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		fs::recursive_directory_iterator entries(outputDir, pathEc), end;
 		while (!pathEc && entries != end) {
 			if (overlapsSource(entries->path())) {
-				addDiag(SceneSeverity::Error, "scene.export.path", "Export destination contains a path overlapping source or legacy passthrough", entries->path().u8string());
+				addDiag(SceneSeverity::Error, "scene.export.path", "The export folder contains a link into the case folder", entries->path().u8string());
 				return result;
 			}
 			entries.increment(pathEc);
@@ -1341,7 +1341,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		ec = createStagedDirectory(parent.empty() ? fs::path(".") : parent,
 			"." + folders.destination.filename().u8string() + ".export-", false, staging);
 	if (ec) {
-		addDiag(SceneSeverity::Error, "scene.export.write", "Could not create outDir", outDir);
+		addDiag(SceneSeverity::Error, "scene.export.write", "Cannot create the export folder", outDir);
 		return result;
 	}
 	folders.staging = staging.path;
@@ -1413,7 +1413,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		std::string sId = svc.id;
 		std::string sFile = sanitizeFilename(sId);
 		if (sFile.empty()) {
-			addDiag(SceneSeverity::Error, "scene.export.unsupported", "Service id sanitizes to an empty file name", sId);
+			addDiag(SceneSeverity::Error, "scene.export.unsupported", "Service has no ID", sId);
 			result.wroteAll = false;
 			continue;
 		}
@@ -1579,7 +1579,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 						|| inc.terminateAtDestination
 						|| (!inc.hasEndSeconds && inc.endSeconds == 0.0))) {
 					addDiag(SceneSeverity::Warning, "scene.export.compatibility",
-						"Enhanced breakdown " + inc.id + " was skipped because the legacy four-column exporter cannot represent its occurrence, speed, recovery, or destination semantics",
+						"Breakdown " + inc.id + " was skipped: Incidents.txt cannot hold a single-occurrence target, a reduced speed, Terminate at destination or a missing end time",
 						inc.id);
 					continue;
 				}
