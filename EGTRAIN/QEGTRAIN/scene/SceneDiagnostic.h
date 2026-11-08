@@ -62,6 +62,12 @@ std::string toDisplayText(const SceneDiagnostic& d);
 /// The text of a dialog that shows the diagnostic: the message, and the suggested fix as a second paragraph when there is
 /// one.
 std::string toDialogText(const SceneDiagnostic& d);
+/// The error diagnostic for `content`, the text of the file `name`, that is not valid JSON, from the parse error that
+/// reading it threw. The message names the file and the line and column of the first fault, without the text of the
+/// parser; the suggested fix says to correct the file or restore a copy. `file` is the file field, which a dialog shows
+/// as its "File:" line when the message does not contain it.
+SceneDiagnostic jsonParseDiagnostic(const std::string& code, const std::string& name, const std::string& file,
+	const std::string& content, const nlohmann::json::parse_error& error);
 /// An object with every field of the diagnostic, the severity as its label, for tools and tests.
 nlohmann::json toJson(const SceneDiagnostic& d);
 /// True when a diagnostic has severity Error.

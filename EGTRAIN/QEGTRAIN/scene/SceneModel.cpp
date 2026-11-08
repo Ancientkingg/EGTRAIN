@@ -574,7 +574,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 		try {
 			value = json::parse(content);
 		} catch (const json::parse_error& error) {
-			addError("scene.json.parse", file, std::string("JSON parse error: ") + error.what());
+			result.diagnostics.push_back(jsonParseDiagnostic("scene.json.parse", file, file, content, error));
 			return false;
 		}
 		if (!value.is_object()) {
