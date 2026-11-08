@@ -1,5 +1,12 @@
 var NAVTREEINDEX18 =
 {
+"classtelemetry_1_1_operation_observation.html":[2,0,3,3],
+"classtelemetry_1_1_operation_observation.html#a196433a690210984c51b04907055a0bc":[1,0,14,3,5],
+"classtelemetry_1_1_operation_observation.html#a196433a690210984c51b04907055a0bc":[2,0,3,3,5],
+"classtelemetry_1_1_operation_observation.html#a1fbcf102d04809e8db0b28d075bf6010":[1,0,14,3,1],
+"classtelemetry_1_1_operation_observation.html#a1fbcf102d04809e8db0b28d075bf6010":[2,0,3,3,1],
+"classtelemetry_1_1_operation_observation.html#a2db562cb6e4d6783eb276f421a01dc07":[1,0,14,3,4],
+"classtelemetry_1_1_operation_observation.html#a2db562cb6e4d6783eb276f421a01dc07":[2,0,3,3,4],
 "classtelemetry_1_1_operation_observation.html#a82f756ccfe5e7c8c2633fc266c37b189":[1,0,14,3,2],
 "classtelemetry_1_1_operation_observation.html#a82f756ccfe5e7c8c2633fc266c37b189":[2,0,3,3,2],
 "classtelemetry_1_1_operation_observation.html#a98e1eb66bdf237c2084beed64c189036":[1,0,14,3,6],
@@ -242,12 +249,5 @@ var NAVTREEINDEX18 =
 "functions_func_c.html":[2,3,1,2],
 "functions_func_d.html":[2,3,1,3],
 "functions_func_e.html":[2,3,1,4],
-"functions_func_f.html":[2,3,1,5],
-"functions_func_g.html":[2,3,1,6],
-"functions_func_h.html":[2,3,1,7],
-"functions_func_i.html":[2,3,1,8],
-"functions_func_j.html":[2,3,1,9],
-"functions_func_k.html":[2,3,1,10],
-"functions_func_l.html":[2,3,1,11],
-"functions_func_m.html":[2,3,1,12]
+"functions_func_f.html":[2,3,1,5]
 };

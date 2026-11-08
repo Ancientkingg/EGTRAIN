@@ -9,10 +9,11 @@ var searchData=
   ['platformitem_6',['PlatformItem',['../class_platform_item.html',1,'']]],
   ['playbackprofiler_7',['PlaybackProfiler',['../class_playback_profiler.html',1,'']]],
   ['positionscale_8',['PositionScale',['../class_position_scale.html',1,'']]],
-  ['preparedbatch_9',['PreparedBatch',['../structtelemetry_1_1_prepared_batch.html',1,'telemetry']]],
-  ['previewdrawing_10',['PreviewDrawing',['../struct_network_presenter_1_1_preview_drawing.html',1,'NetworkPresenter']]],
-  ['previewfit_11',['PreviewFit',['../struct_network_presenter_1_1_preview_fit.html',1,'NetworkPresenter']]],
-  ['previewoptions_12',['PreviewOptions',['../struct_network_presenter_1_1_preview_options.html',1,'NetworkPresenter']]],
-  ['previewoutcome_13',['PreviewOutcome',['../struct_network_presenter_1_1_preview_outcome.html',1,'NetworkPresenter']]],
-  ['previewstationmembership_14',['PreviewStationMembership',['../struct_preview_station_membership.html',1,'']]]
+  ['preferredwidth_9',['PreferredWidth',['../class_editor_layout_1_1_preferred_width.html',1,'EditorLayout']]],
+  ['preparedbatch_10',['PreparedBatch',['../structtelemetry_1_1_prepared_batch.html',1,'telemetry']]],
+  ['previewdrawing_11',['PreviewDrawing',['../struct_network_presenter_1_1_preview_drawing.html',1,'NetworkPresenter']]],
+  ['previewfit_12',['PreviewFit',['../struct_network_presenter_1_1_preview_fit.html',1,'NetworkPresenter']]],
+  ['previewoptions_13',['PreviewOptions',['../struct_network_presenter_1_1_preview_options.html',1,'NetworkPresenter']]],
+  ['previewoutcome_14',['PreviewOutcome',['../struct_network_presenter_1_1_preview_outcome.html',1,'NetworkPresenter']]],
+  ['previewstationmembership_15',['PreviewStationMembership',['../struct_preview_station_membership.html',1,'']]]
 ];

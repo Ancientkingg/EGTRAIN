@@ -116,12 +116,12 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_train_un
 <div class="dynheader">
 Inheritance diagram for TrainUnitPanel:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_unit_panel__inherit__graph.svg" width="144" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_unit_panel__inherit__graph.svg" width="379" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
 Collaboration diagram for TrainUnitPanel:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_unit_panel__coll__graph.svg" width="384" height="216"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_unit_panel__coll__graph.svg" width="467" height="216"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
@@ -149,6 +149,7 @@ Signals</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aa715d9ed13fefeb02e2968259bd32c56" id="r_aa715d9ed13fefeb02e2968259bd32c56"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aa715d9ed13fefeb02e2968259bd32c56">TrainUnitPanel</a> (QWidget *parent=nullptr)</td></tr>
 <tr class="memdesc:aa715d9ed13fefeb02e2968259bd32c56"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the widgets, empty until a loaded document is set.  <br /></td></tr>
+<tr class="memitem:aaa587bbb05045913992eb58c96c6f918" id="r_aaa587bbb05045913992eb58c96c6f918"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aaa587bbb05045913992eb58c96c6f918">preferredWidth</a> () const override</td></tr>
 <tr class="memitem:a530ffa6566d39357f7e5155f2a491ad4" id="r_a530ffa6566d39357f7e5155f2a491ad4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a530ffa6566d39357f7e5155f2a491ad4">refresh</a> () override</td></tr>
 <tr class="memdesc:a530ffa6566d39357f7e5155f2a491ad4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lists the units again and shows the selected one.  <br /></td></tr>
 <tr class="memitem:a68a9825ad30e3359da648cdadf3cbefc" id="r_a68a9825ad30e3359da648cdadf3cbefc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a68a9825ad30e3359da648cdadf3cbefc">commitPendingEditors</a> () override</td></tr>
@@ -225,6 +226,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:af9647734cc3da5fead984dc7c8b70c0f pub_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when a scene is loaded.  <br /></td></tr>
 <tr class="memitem:a1a8b6da5077b8326131e15cb93ce964b pub_methods_class_scene_editor_panel" id="r_a1a8b6da5077b8326131e15cb93ce964b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b">canEdit</a> () const</td></tr>
 <tr class="memdesc:a1a8b6da5077b8326131e15cb93ce964b pub_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">False while no scene is loaded or a run uses it.  <br /></td></tr>
+<tr class="inherit_header pub_methods_class_editor_layout_1_1_preferred_width"><td colspan="2">Public Member Functions inherited from <a class="el" href="class_editor_layout_1_1_preferred_width.html">EditorLayout::PreferredWidth</a></td></tr>
+<tr class="memitem:a14062ca22f42badd442ee8d0ed6db564 pub_methods_class_editor_layout_1_1_preferred_width" id="r_a14062ca22f42badd442ee8d0ed6db564"><td class="memItemLeft">virtual&#160;</td><td class="memItemRight"><a class="el" href="class_editor_layout_1_1_preferred_width.html#a14062ca22f42badd442ee8d0ed6db564">~PreferredWidth</a> ()=default</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
@@ -886,6 +889,34 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The button that asks for the plot of the traction curve of the shown unit. </p>
+
+</div>
+</div>
+<a id="aaa587bbb05045913992eb58c96c6f918" name="aaa587bbb05045913992eb58c96c6f918"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa587bbb05045913992eb58c96c6f918">&#9670;&#160;</a></span>preferredWidth()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int TrainUnitPanel::preferredWidth </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel override">override</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The width of the panel with every column of the traction table in view, which a dock opens with. The panel works in a narrower dock, where the table scrolls sideways. </p>
+
+<p>Implements <a class="el" href="class_editor_layout_1_1_preferred_width.html#a039b83078505eb955ff4e24997bb31e5">EditorLayout::PreferredWidth</a>.</p>
 
 </div>
 </div>

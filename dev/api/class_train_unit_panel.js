@@ -24,6 +24,7 @@ var class_train_unit_panel =
     [ "listWidget", "class_train_unit_panel.html#aa8c982fa3178053a755384f4084f1237", null ],
     [ "physicalEdits", "class_train_unit_panel.html#a4c454a77b1084ced2f7172dfff18bc0c", null ],
     [ "plotButton", "class_train_unit_panel.html#a025776523c12b01ba231e49eb7d9f127", null ],
+    [ "preferredWidth", "class_train_unit_panel.html#aaa587bbb05045913992eb58c96c6f918", null ],
     [ "refresh", "class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4", null ],
     [ "removeTractionRow", "class_train_unit_panel.html#a79506385069633fb6e79d87db52897a4", null ],
     [ "removeTractionRowButton", "class_train_unit_panel.html#a7125096be4a4714128f16dab18222233", null ],

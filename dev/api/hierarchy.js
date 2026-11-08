@@ -160,6 +160,9 @@ var hierarchy =
     [ "PlatformIndex", "class_platform_index.html", null ],
     [ "PlaybackProfiler", "class_playback_profiler.html", null ],
     [ "PositionScale", "class_position_scale.html", null ],
+    [ "EditorLayout::PreferredWidth", "class_editor_layout_1_1_preferred_width.html", [
+      [ "TrainUnitPanel", "class_train_unit_panel.html", null ]
+    ] ],
     [ "telemetry::PreparedBatch", "structtelemetry_1_1_prepared_batch.html", null ],
     [ "NetworkPresenter::PreviewDrawing", "struct_network_presenter_1_1_preview_drawing.html", null ],
     [ "NetworkPresenter::PreviewFit", "struct_network_presenter_1_1_preview_fit.html", null ],

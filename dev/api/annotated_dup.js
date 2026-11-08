@@ -2,6 +2,7 @@ var annotated_dup =
 [
     [ "EditorLayout", "namespace_editor_layout.html", [
       [ "VerticalScrollArea", "class_editor_layout_1_1_vertical_scroll_area.html", "class_editor_layout_1_1_vertical_scroll_area" ],
+      [ "PreferredWidth", "class_editor_layout_1_1_preferred_width.html", "class_editor_layout_1_1_preferred_width" ],
       [ "DockScrollArea", "class_editor_layout_1_1_dock_scroll_area.html", "class_editor_layout_1_1_dock_scroll_area" ]
     ] ],
     [ "eglog", "namespaceeglog.html", [
