@@ -657,9 +657,6 @@ void ServicePanel::deleteService() {
 			true);
 		return;
 	}
-	if (!m_prompts->confirm(this, "Delete Service", QString("Delete service '%1'?").arg(QString::fromStdString(id))))
-		return;
-
 	if (!m_document->edit(SceneDocument::Services, "Delete service", [this, row](SceneModel& edited) {
 			edited.services.erase(edited.services.begin() + row);
 			m_runSelection->pruneExcluded(edited, occurrenceDuration());
@@ -668,6 +665,7 @@ void ServicePanel::deleteService() {
 
 	refresh();
 	emit changed();
+	reportDeleted(QString("service '%1'").arg(QString::fromStdString(id)));
 }
 
 void ServicePanel::commitIdEdit() {

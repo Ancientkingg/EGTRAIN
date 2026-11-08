@@ -353,15 +353,11 @@ void TestStationFacets::editsStations() {
 			{"service 'service-1' stop", "entrance delay for service 'service-1' in scenario 'scenario-1'", "passenger 'passenger-1' journey 'journey-1'",
 				"passenger 'passenger-1' leg 'leg-1'"}));
 	f.select(2);
+	f.messages.clear();
 	f.panel.deleteButton()->click();
-	// Nothing is deleted when the user answers no.
-	QCOMPARE(f.prompts.confirmCount, 1);
-	QCOMPARE(f.prompts.confirmQuestion, "Delete station 'station'?");
-	QCOMPARE(f.model().stations.size(), std::size_t(3));
-	QVERIFY(f.untouched());
-	f.prompts.confirmAnswer = true;
-	f.panel.deleteButton()->click();
-	// A station that nothing uses is deleted when the user answers yes.
+	// A station that nothing uses is deleted without a question, and the status line names it.
+	QCOMPARE(f.prompts.confirmCount, 0);
+	QCOMPARE(f.messages, QStringList({"Deleted station 'station'. Undo restores it."}));
 	QCOMPARE(f.model().stations.size(), std::size_t(2));
 	QVERIFY(f.changedOnce("Delete station"));
 	QCOMPARE(f.panel.selectionId(), "station-2");
@@ -593,15 +589,11 @@ void TestStationFacets::addsAndDeletesPlatforms() {
 	QVERIFY(f.untouched());
 	QCOMPARE(f.prompts.errorMessage, blocked("Platform", "platform-1", {"service 'service-1' stop at station 'station-1'"}));
 	f.select(2);
+	f.messages.clear();
 	f.panel.deleteButton()->click();
-	// Nothing is deleted when the user answers no.
-	QCOMPARE(f.prompts.confirmCount, 1);
-	QCOMPARE(f.prompts.confirmQuestion, "Delete platform 'platform'?");
-	QCOMPARE(f.model().stations[0].platforms.size(), std::size_t(3));
-	QVERIFY(f.untouched());
-	f.prompts.confirmAnswer = true;
-	f.panel.deleteButton()->click();
-	// A platform that nothing uses is deleted when the user answers yes.
+	// A platform that nothing uses is deleted without a question, and the status line names it.
+	QCOMPARE(f.prompts.confirmCount, 0);
+	QCOMPARE(f.messages, QStringList({"Deleted platform 'platform'. Undo restores it."}));
 	QCOMPARE(f.model().stations[0].platforms.size(), std::size_t(2));
 	QVERIFY(f.changedOnce("Delete platform"));
 	QCOMPARE(f.panel.selectionId(), "station-2\nplatform-3");
@@ -688,21 +680,19 @@ void TestStationFacets::editsStationBoundaries() {
 	QCOMPARE(f.combo(1, 1)->currentText(), "(none)");
 
 	// delete: nothing refers to a station boundary
+	f.messages.clear();
 	f.panel.deleteButton()->click();
-	// A station boundary that has no entrance yet is named an incomplete row, and stays when the user answers no.
+	// A station boundary that has no entrance yet is deleted at once, and the status line calls it incomplete.
 	QCOMPARE(f.prompts.errorCount, 0);
-	QCOMPARE(f.prompts.confirmQuestion, "Delete station boundary 'incomplete row'?");
-	QCOMPARE(f.model().stationBoundaries.size(), std::size_t(2));
-	QVERIFY(f.untouched());
-	f.prompts.confirmAnswer = true;
-	f.panel.deleteButton()->click();
-	// A station boundary is deleted when the user answers yes.
+	QCOMPARE(f.messages, QStringList({"Deleted an incomplete station boundary. Undo restores it."}));
 	QCOMPARE(f.model().stationBoundaries.size(), std::size_t(1));
 	QVERIFY(f.changedOnce("Delete station boundary"));
 	f.select(0);
+	f.messages.clear();
 	f.panel.deleteButton()->click();
 	// A station boundary is named by its entrance.
-	QCOMPARE(f.prompts.confirmQuestion, QString::fromStdString("Delete station boundary '" + sectionOf(f.model(), "block-a2") + "'?"));
+	QCOMPARE(f.messages,
+		QStringList({QString::fromStdString("Deleted station boundary '" + sectionOf(f.model(), "block-a2") + "'. Undo restores it.")}));
 	QVERIFY(f.model().stationBoundaries.empty());
 }
 

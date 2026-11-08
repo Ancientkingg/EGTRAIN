@@ -535,10 +535,6 @@ void TrainUnitPanel::deleteUnit() {
 			true);
 		return;
 	}
-	if (!m_prompts->confirm(this, "Delete Rolling Stock Unit",
-			QString("Delete rolling stock unit '%1'?").arg(QString::fromStdString(id))))
-		return;
-
 	if (!m_document->edit(SceneDocument::TrainUnits, "Delete rolling stock unit",
 			[row](SceneModel& edited) { edited.trainUnits.erase(edited.trainUnits.begin() + row); }))
 		return;
@@ -546,6 +542,7 @@ void TrainUnitPanel::deleteUnit() {
 	emit unitDeleted(QString::fromStdString(id));
 	refresh();
 	emit changed();
+	reportDeleted(QString("rolling stock unit '%1'").arg(QString::fromStdString(id)));
 }
 
 void TrainUnitPanel::commitIdEdit() {

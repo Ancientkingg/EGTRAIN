@@ -457,18 +457,13 @@ void TestBlockRouteFacets::deletesBlocks() {
 	// a block that nothing uses
 	f.panel.addButton()->click();
 	f.log.clear();
+	f.messages.clear();
 	// The new block is selected.
 	QCOMPARE(f.panel.selectionId(), "block");
 	f.panel.deleteButton()->click();
-	// Nothing is deleted when the user answers no.
-	QCOMPARE(f.prompts.confirmCount, 1);
-	QCOMPARE(f.prompts.confirmQuestion, "Delete block 'block'?");
-	QCOMPARE(f.model().blocks.size(), std::size_t(5));
-	QVERIFY(f.untouched());
-	f.prompts.confirmAnswer = true;
-	f.panel.deleteButton()->click();
-	// A block that nothing uses is deleted when the user answers yes.
-	QCOMPARE(f.prompts.confirmCount, 2);
+	// A block that nothing uses is deleted without a question, and the status line names it.
+	QCOMPARE(f.prompts.confirmCount, 0);
+	QCOMPARE(f.messages, QStringList({"Deleted block 'block'. Undo restores it."}));
 	QCOMPARE(f.model().blocks.size(), std::size_t(4));
 	QVERIFY(f.changedOnce("Delete block"));
 	QCOMPARE(f.panel.selectionId(), "block-a2");
@@ -549,10 +544,10 @@ void TestBlockRouteFacets::editsRoutes() {
 	QVERIFY(f.untouched());
 	QCOMPARE(f.prompts.errorMessage, blocked("Route", "route-x", {"service 'service-1'"}));
 	f.select(2);
-	f.prompts.confirmAnswer = true;
+	f.messages.clear();
 	f.panel.deleteButton()->click();
-	// A route that nothing uses is deleted when the user answers yes.
-	QCOMPARE(f.prompts.confirmQuestion, "Delete route 'route'?");
+	// A route that nothing uses is deleted at once.
+	QCOMPARE(f.messages, QStringList({"Deleted route 'route'. Undo restores it."}));
 	QCOMPARE(f.model().routes.size(), std::size_t(2));
 	QVERIFY(f.changedOnce("Delete route"));
 }
@@ -709,22 +704,19 @@ void TestBlockRouteFacets::editsDependencies() {
 	QVERIFY(f.chosen(1, 0).isEmpty());
 
 	// delete: nothing refers to a dependency
-	f.prompts.confirmAnswer = false;
+	f.messages.clear();
 	f.panel.deleteButton()->click();
-	// A dependency that has no block yet is named an incomplete row, and stays when the user answers no.
+	// A dependency that has no block yet is deleted at once, and the status line calls it incomplete.
 	QCOMPARE(f.prompts.errorCount, 0);
-	QCOMPARE(f.prompts.confirmQuestion, "Delete block dependency 'incomplete row'?");
-	QCOMPARE(f.model().blockDependencies.size(), std::size_t(2));
-	QVERIFY(f.untouched());
-	f.prompts.confirmAnswer = true;
-	f.panel.deleteButton()->click();
-	// A dependency is deleted when the user answers yes.
+	QCOMPARE(f.messages, QStringList({"Deleted an incomplete block dependency. Undo restores it."}));
 	QCOMPARE(f.model().blockDependencies.size(), std::size_t(1));
 	QVERIFY(f.changedOnce("Delete block dependency"));
 	f.select(0);
+	f.messages.clear();
 	f.panel.deleteButton()->click();
 	// A dependency is named by its block.
-	QCOMPARE(f.prompts.confirmQuestion, QString::fromStdString("Delete block dependency '" + sectionOf(f.model(), "block-b1") + "'?"));
+	QCOMPARE(f.messages,
+		QStringList({QString::fromStdString("Deleted block dependency '" + sectionOf(f.model(), "block-b1") + "'. Undo restores it.")}));
 	QVERIFY(f.model().blockDependencies.empty());
 }
 
@@ -773,16 +765,18 @@ void TestBlockRouteFacets::editsRestrictions() {
 	QVERIFY(f.model().singleTrackRestrictions[1].startBlock.empty());
 	QVERIFY(f.changedOnce("Add single-track restriction"));
 	QCOMPARE(f.table()->currentRow(), 1);
-	f.prompts.confirmAnswer = true;
+	f.messages.clear();
 	f.panel.deleteButton()->click();
-	// A restriction is deleted when the user answers yes.
-	QCOMPARE(f.prompts.confirmQuestion, "Delete single-track restriction 'incomplete row'?");
+	// A restriction is deleted at once.
+	QCOMPARE(f.messages, QStringList({"Deleted an incomplete single-track restriction. Undo restores it."}));
 	QCOMPARE(f.model().singleTrackRestrictions.size(), std::size_t(1));
 	QVERIFY(f.changedOnce("Delete single-track restriction"));
 	f.select(0);
+	f.messages.clear();
 	f.panel.deleteButton()->click();
 	// A restriction is named by its start.
-	QCOMPARE(f.prompts.confirmQuestion, QString::fromStdString("Delete single-track restriction '" + sectionOf(f.model(), "block-b2") + "'?"));
+	QCOMPARE(f.messages,
+		QStringList({QString::fromStdString("Deleted single-track restriction '" + sectionOf(f.model(), "block-b2") + "'. Undo restores it.")}));
 	QVERIFY(f.model().singleTrackRestrictions.empty());
 }
 

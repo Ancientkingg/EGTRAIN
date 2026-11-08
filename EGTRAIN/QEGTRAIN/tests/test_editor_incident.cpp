@@ -115,10 +115,11 @@ static SceneModel incidentScene() {
 
 using Log = std::vector<std::string>;
 
-// The order in which a panel and its document report an edit.
+// The order in which a panel and its document report an edit, and the messages that the panel shows in the status line.
 struct Events {
 	Log log;
 	SceneDocument::ChangeKinds kinds;
+	QStringList status;
 
 	Events(IncidentPanel& panel, SceneDocument& document) {
 		QObject::connect(&document, &SceneDocument::changed, &panel, [this](SceneDocument::ChangeKinds changedKinds) {
@@ -126,6 +127,7 @@ struct Events {
 			kinds = changedKinds;
 		});
 		QObject::connect(&panel, &IncidentPanel::changed, &panel, [this] { log.push_back("panelChanged"); });
+		QObject::connect(&panel, &IncidentPanel::statusMessage, &panel, [this](const QString& text, int) { status << text; });
 	}
 };
 
@@ -741,14 +743,9 @@ void TestIncidentPanel::editsAddsAndDeletesIncidents() {
 	prompts.confirmCount = 0;
 	events.log.clear();
 	panel.deleteIncident();
-	// Declining the question keeps the incident.
-	QCOMPARE(prompts.confirmCount, 1);
-	QCOMPARE(prompts.confirmQuestion, "Delete incident 'i1_copy'?");
-	QCOMPARE(document.model().scenarios[0].incidents.size(), std::size_t(5));
-	QVERIFY(events.log.empty());
-	prompts.confirmAnswer = true;
-	panel.deleteIncident();
-	// A deleted incident is removed.
+	// An incident is deleted without a question, and the status line names it.
+	QCOMPARE(prompts.confirmCount, 0);
+	QCOMPARE(events.status, QStringList({"Deleted incident 'i1_copy'. Undo restores it."}));
 	QCOMPARE(document.model().scenarios[0].incidents.size(), std::size_t(4));
 	QCOMPARE(document.model().scenarios[0].incidents[1].id, "i2b");
 	QCOMPARE(panel.listWidget()->count(), 4);
@@ -1031,7 +1028,6 @@ void TestIncidentPanel::emptyStateFollowsSelection() {
 	SceneDocument document;
 	IncidentPanel panel;
 	FakePrompts prompts;
-	prompts.confirmAnswer = true;
 	RunSelection selection;
 	panel.setPrompts(&prompts);
 	panel.setRunSelection(&selection);

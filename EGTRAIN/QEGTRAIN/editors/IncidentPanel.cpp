@@ -457,14 +457,12 @@ void IncidentPanel::deleteIncident() {
 
 	const int row = m_listWidget->currentRow();
 	const QString id = QString::fromStdString(selected->id);
-	if (!m_prompts->confirm(this, "Delete Incident", QString("Delete incident '%1'?").arg(id)))
-		return;
-
 	if (!editIncidents("Delete incident", [row](std::vector<SceneIncident>& incidents) { incidents.erase(incidents.begin() + row); }))
 		return;
 
 	refresh();
 	emit changed();
+	reportDeleted(QString("incident '%1'").arg(id));
 }
 
 void IncidentPanel::commitIdEdit() {

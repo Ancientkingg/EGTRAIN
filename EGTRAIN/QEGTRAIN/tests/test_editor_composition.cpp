@@ -60,11 +60,12 @@ static SceneModel compositionScene() {
 	return scene;
 }
 
-// The order in which a panel and its document report an edit.
+// The order in which a panel and its document report an edit, and the messages that the panel shows in the status line.
 struct Events {
 	std::vector<std::string> log;
 	SceneDocument::ChangeKinds kinds;
 	QStringList plotted;
+	QStringList status;
 
 	Events(CompositionPanel& panel, SceneDocument& document) {
 		QObject::connect(&document, &SceneDocument::changed, &panel, [this](SceneDocument::ChangeKinds changedKinds) {
@@ -74,6 +75,7 @@ struct Events {
 		QObject::connect(&panel, &CompositionPanel::changed, &panel, [this] { log.push_back("panelChanged"); });
 		QObject::connect(&panel, &CompositionPanel::tractionPlotRequested, &panel,
 			[this](const QString& unitId) { plotted << unitId; });
+		QObject::connect(&panel, &CompositionPanel::statusMessage, &panel, [this](const QString& text, int) { status << text; });
 	}
 };
 
@@ -376,16 +378,11 @@ void TestCompositionPanel::renamesAddsAndDeletesCompositions() {
 	QCOMPARE(document.model().compositions.size(), std::size_t(5));
 	QVERIFY(events.log.empty());
 	panel.listWidget()->setCurrentRow(3);
-	prompts.confirmAnswer = false;
 	panel.deleteComposition();
-	// Answering No keeps the composition.
-	QCOMPARE(prompts.confirmCount, 1);
-	QCOMPARE(prompts.confirmQuestion, "Delete composition 'new_composition'?");
-	QCOMPARE(document.model().compositions.size(), std::size_t(5));
-	QVERIFY(events.log.empty());
-	prompts.confirmAnswer = true;
-	panel.deleteComposition();
-	// Answering Yes deletes the composition and keeps a row selected.
+	// A composition that no service uses is deleted without a question, a row stays selected, and the status line names
+	// the composition.
+	QCOMPARE(prompts.confirmCount, 0);
+	QCOMPARE(events.status, QStringList({"Deleted composition 'new_composition'. Undo restores it."}));
 	QCOMPARE(items(panel.listWidget()), QStringList({"c1_pending", "c2", "c2_copy", "new_composition_2"}));
 	QCOMPARE(panel.listWidget()->currentRow(), 3);
 	QCOMPARE(events.log, edit);
@@ -574,7 +571,6 @@ void TestCompositionPanel::emptyStateFollowsSelection() {
 	SceneDocument document;
 	CompositionPanel panel;
 	FakePrompts prompts;
-	prompts.confirmAnswer = true;
 	panel.setPrompts(&prompts);
 	panel.setDocument(&document);
 	document.replace(SceneModel(), false);

@@ -303,20 +303,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		ok = false;
 		failures << QString("%1: %2").arg(facet).arg(message);
 	};
-	auto acceptConfirmation = [&w]() {
-		QTimer::singleShot(25, &w, []() {
-			for (QWidget* widget : QApplication::topLevelWidgets()) {
-				auto* dialog = qobject_cast<QMessageBox*>(widget);
-				if (!dialog || !dialog->isVisible())
-					continue;
-				if (auto* button = dialog->button(QMessageBox::Yes))
-					button->click();
-				else
-					dialog->done(QMessageBox::Yes);
-				break;
-			}
-		});
-	};
 	auto cancelConfirmation = [&w]() {
 		QTimer::singleShot(25, &w, []() {
 			for (QWidget* widget : QApplication::topLevelWidgets()) {
@@ -1211,7 +1197,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				const auto recreateIncompleteRow = [&](const char* facet, const auto& rows) {
 					if (!addInfrastructureRow(facet))
 						return false;
-					acceptConfirmation();
 					infrastructureDelete->click();
 					QApplication::processEvents();
 					return rows.empty() && addInfrastructureRow(facet);
@@ -1726,7 +1711,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							&& passengerPanel(w)->selectedPassengerJourney()->legs[0].id == e2eLegId;
 						if (!movedUp || !movedDown)
 							facetFailure(facetOk, "passenger", "leg Move Up/Down did not retain order");
-						acceptConfirmation();
 						legDelete->click();
 						QApplication::processEvents();
 						if (!passengerPanel(w)->selectedPassengerJourney() || passengerPanel(w)->selectedPassengerJourney()->legs.size() != 1
@@ -1741,7 +1725,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						const std::string temporaryJourneyId = sceneUniquePassengerJourneyId(w.m_document->mutableModel(), "e2e_temp_journey");
 						journeyId->setText(QString::fromStdString(temporaryJourneyId));
 						commitLineEdit(journeyId);
-						acceptConfirmation();
 						journeyDelete->click();
 						QApplication::processEvents();
 						if (!passengerPanel(w)->selectedPassenger() || passengerPanel(w)->selectedPassenger()->journeys.size() != journeyCountBefore)
@@ -1752,7 +1735,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						const std::string temporaryPassengerId = sceneUniquePassengerId(w.m_document->mutableModel(), "e2e_temp_passenger");
 						passengerId->setText(QString::fromStdString(temporaryPassengerId));
 						commitLineEdit(passengerId);
-						acceptConfirmation();
 						passengerDelete->click();
 						QApplication::processEvents();
 						if (passengerList->count() != passengerCountWithAuthor)
@@ -1835,7 +1817,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 								if (!invalidOriginVisible || !legStateAccurate)
 									facetFailure(facetOk, "passenger import", "selected unresolved references or neutral absent-leg state were not visible");
 								passengerTabs->setCurrentIndex(0);
-								acceptConfirmation();
 								passengerDelete->click();
 								QApplication::processEvents();
 								if (findPassengerRow("e2e_unresolved") >= 0)
@@ -1969,7 +1950,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			const int nonDefaultRow = scenarioPanel(w)->listWidget()->count() - 1;
 			scenarioPanel(w)->listWidget()->setCurrentRow(nonDefaultRow);
 			QApplication::processEvents();
-			acceptConfirmation();
 			scenarioPanel(w)->deleteButton()->click();
 			QApplication::processEvents();
 			if (scenarioPanel(w)->listWidget()->count() != originalScenarioCount + 1
@@ -1983,7 +1963,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					if (w.m_document->mutableModel().scenarios[static_cast<std::size_t>(row)].id == w.m_document->mutableModel().defaultScenarioId)
 						continue;
 					scenarioPanel(w)->listWidget()->setCurrentRow(row);
-					acceptConfirmation();
 					scenarioPanel(w)->deleteButton()->click();
 					QApplication::processEvents();
 					break;
@@ -2339,7 +2318,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						break;
 					}
 				}
-				acceptConfirmation();
 				trainUnitPanel(w)->deleteUnit();
 				if (trainUnitPanel(w)->listWidget()->count() != originalCount + 1
 					|| std::any_of(w.m_document->mutableModel().trainUnits.begin(), w.m_document->mutableModel().trainUnits.end(),
@@ -2577,7 +2555,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			|| duplicateSeries->name() != renamedId)
 			facetFailure(facetOk, "source links",
 				QString("traction curve window after the rename: %1").arg(duplicateSeries ? duplicateSeries->name() : QString("no chart")));
-		acceptConfirmation();
 		trainUnitPanel(w)->deleteUnit();
 		QApplication::processEvents();
 		if (duplicatePlot && duplicatePlot->isVisible())
@@ -2709,7 +2686,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					< 0) {
 				facetFailure(facetOk, "composition", "add did not refresh the service selector");
 			} else {
-				acceptConfirmation();
 				compositionPanel(w)->deleteComposition();
 				if (compositionPanel(w)->listWidget()->count() != originalCount + 1
 					|| servicePanel(w)->compositionCombo()->findText(
@@ -2959,7 +2935,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				if (temporaryDelayCount > 0 && entranceDelayPanel(w)->listWidget() && entranceDelayPanel(w)->deleteButton()
 					&& temporaryDelayRow >= 0 && temporaryDelayRow < entranceDelayPanel(w)->listWidget()->count()) {
 					entranceDelayPanel(w)->listWidget()->setCurrentRow(temporaryDelayRow);
-					acceptConfirmation();
 					entranceDelayPanel(w)->deleteButton()->click();
 					QApplication::processEvents();
 				}
@@ -3157,7 +3132,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			}
 			const bool occurrenceExclusionCreated = w.m_runSelection.isExcluded(
 				SceneServiceOccurrence{unreferencedServiceId, 1});
-			acceptConfirmation();
 			servicePanel(w)->deleteService();
 			if (servicePanel(w)->listWidget()->count() != originalCount + 1
 				|| std::any_of(w.m_document->mutableModel().services.begin(), w.m_document->mutableModel().services.end(),
@@ -3703,7 +3677,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (entranceDelayPanel(w)->listWidget()->count() != originalDelayCount + 2) {
 			facetFailure(facetOk, "entrance delay", "duplicate did not apply through the public button");
 		} else {
-			acceptConfirmation();
 			entranceDelayPanel(w)->deleteButton()->click();
 			QApplication::processEvents();
 			if (entranceDelayPanel(w)->listWidget()->count() != originalDelayCount + 1)
@@ -3766,7 +3739,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (incidentPanel(w)->listWidget()->count() != originalCount + 2) {
 			facetFailure(facetOk, "incident", "duplicate did not apply");
 		} else {
-			acceptConfirmation();
 			incidentPanel(w)->deleteIncident();
 			if (incidentPanel(w)->listWidget()->count() != originalCount + 1)
 				facetFailure(facetOk, "incident", "delete did not apply");
@@ -3797,7 +3769,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			const std::string temporaryServiceId = w.m_document->mutableModel().services.back().id;
 			if (incidentPanel(w)->targetCombo()->findData(QString::fromStdString(temporaryServiceId)) < 0)
 				facetFailure(facetOk, "incident", "service add did not refresh breakdown targets");
-			acceptConfirmation();
 			servicePanel(w)->deleteService();
 			if (servicePanel(w)->listWidget()->count() != serviceCount
 				|| incidentPanel(w)->targetCombo()->findData(QString::fromStdString(temporaryServiceId)) >= 0)
@@ -3964,7 +3935,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						QString("picking the target on the network view failed (started: %1, kept on an arc: %2, picked: %3, ended by Esc: %4, "
 								"Esc left to the focus without a pick: %5)")
 							.arg(yes(started), yes(kept), yes(applied), yes(ended), yes(escLeft)));
-				acceptConfirmation();
 				incidentPanel(w)->deleteIncident();
 			}
 			w.m_inspector->handleDisableHighlight();
@@ -6405,10 +6375,12 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 	};
 	if (!step("a deleted service", "Delete service", [&] {
 			checkDuplicateRun(Qt::Unchecked);
-			answerMessageBox(&w, QMessageBox::Yes);
 			servicePanel(w)->deleteService();
 		}))
 		return finish();
+	expect(w.statusBar()->currentMessage()
+			== QStringLiteral("Deleted service '%1'. Undo restores it.").arg(QString::fromStdString(duplicatedServiceId)),
+		"the delete left the message " + w.statusBar()->currentMessage());
 	expect(w.m_undoAction->text() == QLatin1String("Undo Delete service") && w.m_redoAction->text() == QLatin1String("Redo"),
 		"the actions do not name the edit that Undo reverts");
 	undo();

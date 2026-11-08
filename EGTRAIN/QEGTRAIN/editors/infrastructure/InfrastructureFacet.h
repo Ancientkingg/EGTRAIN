@@ -85,7 +85,7 @@ public:
 	virtual void commitCell(InfrastructurePanel& panel, int row, int column) = 0;
 	/// Adds an entity.
 	virtual void add(InfrastructurePanel& panel) = 0;
-	/// Deletes the entity in the selected row after the user has confirmed it.
+	/// Deletes the entity in the selected row.
 	virtual void remove(InfrastructurePanel& panel) = 0;
 	/// Takes the values of the cells that are being edited into the model, as if the user had left them. The default does
 	/// nothing.

@@ -79,7 +79,7 @@ public:
 		panel.edit(QStringLiteral("Add %1").arg(m_noun), [this, &item](SceneModel& model) { (model.*m_list).push_back(std::move(item)); });
 	}
 
-	/// Deletes the selected item when the user confirms it and nothing uses it. An item with an empty id is kept.
+	/// Deletes the selected item when nothing uses it. An item with an empty id is kept.
 	void remove(InfrastructurePanel& panel) override {
 		const std::vector<Item>& items = panel.model().*m_list;
 		const int row = panel.table()->currentRow();
@@ -88,13 +88,11 @@ public:
 		const std::string id = items[static_cast<std::size_t>(row)].id;
 		if (id.empty())
 			return;
-		if (!panel.confirmDelete(QString::fromStdString(id), sceneDirectDeleteConsumers(panel.model(), m_key.toStdString(), id)))
-			return;
-		panel.setSelectionId(QString());
-		panel.edit(QStringLiteral("Delete %1").arg(m_noun), [this, row](SceneModel& model) {
-			std::vector<Item>& list = model.*m_list;
-			list.erase(list.begin() + row);
-		});
+		panel.deleteRow(QString::fromStdString(id), sceneDirectDeleteConsumers(panel.model(), m_key.toStdString(), id),
+			QStringLiteral("Delete %1").arg(m_noun), [this, row](SceneModel& model) {
+				std::vector<Item>& list = model.*m_list;
+				list.erase(list.begin() + row);
+			});
 	}
 
 protected:

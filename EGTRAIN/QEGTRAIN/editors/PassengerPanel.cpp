@@ -646,9 +646,7 @@ void PassengerPanel::deletePassenger() {
 	if (row < 0 || row >= static_cast<int>(passengers.size()))
 		return;
 	const std::string id = passengers[static_cast<std::size_t>(row)].id;
-	if (!m_prompts->confirm(this, "Delete Passenger",
-			QString("Delete passenger '%1' and its journeys?").arg(QString::fromStdString(id))))
-		return;
+	const bool withJourneys = !passengers[static_cast<std::size_t>(row)].journeys.empty();
 	if (!m_document->edit(SceneDocument::Passengers, "Delete passenger",
 			[row](SceneModel& model) { model.passengers.erase(model.passengers.begin() + row); }))
 		return;
@@ -656,6 +654,8 @@ void PassengerPanel::deletePassenger() {
 	// detail values back into the newly selected passenger.
 	refresh();
 	emit changed();
+	reportDeleted(QString(withJourneys ? "passenger '%1' and its journeys" : "passenger '%1'").arg(QString::fromStdString(id)),
+		withJourneys);
 }
 
 void PassengerPanel::addJourney() {
@@ -684,13 +684,12 @@ void PassengerPanel::deleteJourney() {
 	if (row < 0 || row >= static_cast<int>(passenger->journeys.size()))
 		return;
 	const std::string id = passenger->journeys[static_cast<std::size_t>(row)].id;
-	if (!m_prompts->confirm(this, "Delete Journey",
-			QString("Delete journey '%1' and its legs?").arg(QString::fromStdString(id))))
-		return;
+	const bool withLegs = !passenger->journeys[static_cast<std::size_t>(row)].legs.empty();
 	if (!editPassenger("Delete journey", [row](ScenePassenger& edited) { edited.journeys.erase(edited.journeys.begin() + row); }))
 		return;
 	refresh();
 	emit changed();
+	reportDeleted(QString(withLegs ? "journey '%1' and its legs" : "journey '%1'").arg(QString::fromStdString(id)), withLegs);
 }
 
 void PassengerPanel::addLeg() {
@@ -730,12 +729,11 @@ void PassengerPanel::deleteLeg() {
 	if (row < 0 || row >= static_cast<int>(journey->legs.size()))
 		return;
 	const std::string id = journey->legs[static_cast<std::size_t>(row)].id;
-	if (!m_prompts->confirm(this, "Delete Leg", QString("Delete passenger leg '%1'?").arg(QString::fromStdString(id))))
-		return;
 	if (!editJourney("Delete leg", [row](ScenePassengerJourney& edited) { edited.legs.erase(edited.legs.begin() + row); }))
 		return;
 	refresh();
 	emit changed();
+	reportDeleted(QString("passenger leg '%1'").arg(QString::fromStdString(id)));
 }
 
 void PassengerPanel::moveLeg(int offset) {

@@ -84,7 +84,7 @@ public:
 	void commitCell(int row, int column);
 	/// Adds an entity of the chosen kind, after clearing the filters.
 	void addEntity();
-	/// Deletes the entity in the selected row after the user has confirmed it.
+	/// Deletes the entity in the selected row.
 	void deleteEntity();
 	/// Inserts an entity before the selected one, after clearing the text filter.
 	void insertEntity();
@@ -129,10 +129,13 @@ public:
 	/// A facet has refused an edit and left the model as it was. Shows `message` when there is one, and lists the
 	/// entities again so that the table shows the model.
 	void refuseEdit(const QString& message = {});
-	/// Asks whether to delete the entity `id` of the chosen facet. `consumers` describes the items that still use it
-	/// (see sceneDirectDeleteConsumers). An entity that is used cannot be deleted: the user is told which items use it
-	/// instead, and the answer is no.
-	bool confirmDelete(const QString& id, const std::vector<std::string>& consumers);
+	/// Deletes the entity `id` of the chosen facet with `apply`, as one edit under `label` (see edit()), selects the row
+	/// that takes its place, or else the one before it, and says in the status line that Undo restores the entity. An
+	/// empty `id` stands for a row that is not complete yet. `consumers` describes the items that still use the entity
+	/// (see sceneDirectDeleteConsumers). An entity that is used is not deleted: the user is told which items use it
+	/// instead. Returns true when the entity was deleted.
+	bool deleteRow(const QString& id, const std::vector<std::string>& consumers, const QString& label,
+		const std::function<void(SceneModel&)>& apply);
 
 	/// The text that names a section in a list of sections: its label in `labels` (see sceneSectionLabels).
 	static QString sectionLabel(const SceneSectionLabels& labels, const SceneSectionDescriptor& section);
@@ -196,8 +199,6 @@ Q_SIGNALS:
 	/// the chosen facet and `id` the id of the selected entity, empty when no row is selected. The controls that depend on
 	/// the selection are up to date when it is told.
 	void selectionChanged(const QString& facet, const QString& id);
-	/// A message for the status line, shown for `timeoutMs` milliseconds.
-	void statusMessage(const QString& text, int timeoutMs);
 
 protected:
 	/// Does nothing: the window draws the track preview when the document is replaced, and calls refresh() when the scene

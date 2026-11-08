@@ -320,9 +320,6 @@ void ScenarioPanel::deleteScenario() {
 	}
 
 	const std::string deletedId = selected->id;
-	if (!m_prompts->confirm(this, "Delete Scenario", QString("Delete scenario '%1'?").arg(QString::fromStdString(deletedId))))
-		return;
-
 	const auto it = std::find_if(model.scenarios.begin(), model.scenarios.end(),
 		[&deletedId](const SceneScenario& scenario) { return scenario.id == deletedId; });
 	if (it == model.scenarios.end())
@@ -336,6 +333,7 @@ void ScenarioPanel::deleteScenario() {
 	refresh();
 	emit scenarioSelected(QString::fromStdString(defaultId));
 	emit changed();
+	reportDeleted(QString("scenario '%1'").arg(QString::fromStdString(deletedId)));
 }
 
 void ScenarioPanel::exportScenario() {

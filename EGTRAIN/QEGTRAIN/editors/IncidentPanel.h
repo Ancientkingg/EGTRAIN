@@ -60,7 +60,7 @@ public:
 	bool addIncident(const IncidentTarget& target);
 	/// Inserts a copy of the selected incident, with a new unique id, after it.
 	void duplicateIncident();
-	/// Deletes the selected incident after the user has confirmed it.
+	/// Deletes the selected incident and says in the status line that Undo restores it.
 	void deleteIncident();
 	/// Takes the id from the field. An empty or used id is dropped and the field shows the old id again.
 	void commitIdEdit();

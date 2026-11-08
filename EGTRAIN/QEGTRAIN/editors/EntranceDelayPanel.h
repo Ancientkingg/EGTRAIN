@@ -40,7 +40,7 @@ public:
 	void addEntranceDelay();
 	/// Inserts a copy of the selected delay after it.
 	void duplicateEntranceDelay();
-	/// Deletes the selected delay after the user has confirmed it.
+	/// Deletes the selected delay and says in the status line that Undo restores it.
 	void deleteEntranceDelay();
 	/// Takes the service at `index` of the service combo. Another service starts at its first occurrence, with the first
 	/// station at which it can be held.

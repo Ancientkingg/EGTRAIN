@@ -440,15 +440,12 @@ void TestScenarioPanel::addsDeletesImportsAndExportsScenarios() {
 	QVERIFY(events.log.empty());
 	panel.listWidget()->setCurrentRow(1);
 	events.log.clear();
+	events.status.clear();
 	panel.deleteScenario();
-	// Declining the question keeps the scenario.
-	QCOMPARE(prompts.confirmCount, 1);
-	QCOMPARE(prompts.confirmQuestion, "Delete scenario 'alt'?");
-	QCOMPARE(document.model().scenarios.size(), std::size_t(5));
-	QVERIFY(events.log.empty());
-	prompts.confirmAnswer = true;
-	panel.deleteScenario();
-	// A deleted scenario is removed and the default scenario is selected in its place.
+	// A scenario is deleted without a question, the default scenario is selected in its place, and the status line says
+	// that Undo restores the deleted one.
+	QCOMPARE(prompts.confirmCount, 0);
+	QCOMPARE(events.status, QStringList({"Deleted scenario 'alt'. Undo restores it."}));
 	QCOMPARE(document.model().scenarios.size(), std::size_t(4));
 	QCOMPARE(document.model().scenarios[1].id, "new_scenario");
 	QCOMPARE(selection.scenarioId(), "base");
@@ -619,7 +616,6 @@ void TestScenarioPanel::undoSelectsDeletedScenarioAgain() {
 	ScenarioFixture f;
 	EditHistory history(f.document, f.selection, f.panel);
 	f.panel.listWidget()->setCurrentRow(1);
-	f.prompts.confirmAnswer = true;
 	f.panel.deleteScenario();
 	QCOMPARE(f.document.model().scenarios.size(), std::size_t(1));
 	QCOMPARE(f.selection.scenarioId(), "base");

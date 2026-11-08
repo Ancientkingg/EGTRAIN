@@ -67,21 +67,17 @@ public:
 			panel.table()->setCurrentCell(newRow, 0);
 	}
 
-	/// Deletes the selected item when the user confirms it.
+	/// Deletes the selected item.
 	void remove(InfrastructurePanel& panel) override {
 		const std::vector<Item>& items = panel.model().*m_list;
 		const int row = panel.table()->currentRow();
 		if (row < 0 || row >= static_cast<int>(items.size()))
 			return;
-		const std::string title = rowTitle(items[static_cast<std::size_t>(row)]);
-		const QString name = title.empty() ? QStringLiteral("incomplete row") : QString::fromStdString(title);
-		if (!panel.confirmDelete(name, {}))
-			return;
-		panel.setSelectionId(QString());
-		panel.edit(QStringLiteral("Delete %1").arg(m_noun), [this, row](SceneModel& model) {
-			std::vector<Item>& list = model.*m_list;
-			list.erase(list.begin() + row);
-		});
+		panel.deleteRow(QString::fromStdString(rowTitle(items[static_cast<std::size_t>(row)])), {},
+			QStringLiteral("Delete %1").arg(m_noun), [this, row](SceneModel& model) {
+				std::vector<Item>& list = model.*m_list;
+				list.erase(list.begin() + row);
+			});
 	}
 
 protected:
@@ -95,7 +91,7 @@ protected:
 
 	/// Puts the cells of the item in `row`. `inventory` holds the sections of the scene for the combos.
 	virtual void fillRow(InfrastructurePanel& panel, const SceneSectionInventory& inventory, int row, const Item& item) const = 0;
-	/// The section that names the item in the question before it is deleted; empty when the item has none yet.
+	/// The section that names the item in the status message after it is deleted; empty when the item has none yet.
 	virtual std::string rowTitle(const Item& item) const = 0;
 	/// Takes the value of a cell that is no combo into the item. The default has no such cell.
 	virtual Edit editField(Item&, int, const QString&) const { return Edit::Unchanged; }

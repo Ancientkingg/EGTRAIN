@@ -205,7 +205,6 @@ void TestSignalFacets::offersSignallingFacets() {
 	QVERIFY(!f.panel.facet("stations"));
 	f.choose("signals");
 	f.select(1);
-	f.prompts.confirmAnswer = true;
 	f.document.setEditable(false);
 	f.panel.refresh();
 	f.type(0, 0, "signal-x");
@@ -349,15 +348,12 @@ void TestSignalFacets::addsAndDeletesSignals() {
 	// The message names the signal-failure incident that targets the signal.
 	QCOMPARE(f.prompts.errorMessage, blocked("Signal", "signal-1", {"signal-failure incident 'incident-1' in scenario 'scenario-1'"}));
 	f.select(1);
+	f.messages.clear();
 	f.panel.deleteButton()->click();
-	// Nothing is deleted when the user answers no.
-	QCOMPARE(f.prompts.confirmCount, 1);
-	QCOMPARE(f.prompts.confirmQuestion, "Delete signal 'signal-2'?");
-	QCOMPARE(sceneSignals(f.model()).size(), std::size_t(4));
-	QVERIFY(f.untouched());
-	f.prompts.confirmAnswer = true;
-	f.panel.deleteButton()->click();
-	// A signal that no incident targets is deleted when the user answers yes, and the next row is selected.
+	// A signal that no incident targets is deleted without a question, the next row is selected, and the status line
+	// names the signal.
+	QCOMPARE(f.prompts.confirmCount, 0);
+	QCOMPARE(f.messages, QStringList({"Deleted signal 'signal-2'. Undo restores it."}));
 	QCOMPARE(sceneSignals(f.model()).size(), std::size_t(3));
 	QCOMPARE(sceneSignals(f.model())[1].id, "signal");
 	QVERIFY(f.changedOnce("Delete signal"));
@@ -583,18 +579,14 @@ void TestSignalFacets::addsAndDeletesAreas() {
 	QCOMPARE(f.model().signallingAreas[3].id, "signalling-area_2");
 	QVERIFY(f.changedOnce("Add signalling area"));
 
-	// nothing refers to an area, so the user is only asked
+	// nothing refers to an area
 	f.select(0);
+	f.messages.clear();
 	f.panel.deleteButton()->click();
-	// Nothing is deleted when the user answers no.
+	// An area is deleted at once, and the next row is selected.
 	QCOMPARE(f.prompts.errorCount, 0);
-	QCOMPARE(f.prompts.confirmCount, 1);
-	QCOMPARE(f.prompts.confirmQuestion, "Delete signalling area 'area-1'?");
-	QCOMPARE(f.model().signallingAreas.size(), std::size_t(4));
-	QVERIFY(f.untouched());
-	f.prompts.confirmAnswer = true;
-	f.panel.deleteButton()->click();
-	// An area is deleted when the user answers yes, and the next row is selected.
+	QCOMPARE(f.prompts.confirmCount, 0);
+	QCOMPARE(f.messages, QStringList({"Deleted signalling area 'area-1'. Undo restores it."}));
 	QCOMPARE(f.model().signallingAreas.size(), std::size_t(3));
 	QCOMPARE(f.model().signallingAreas[0].id, "area-2");
 	QVERIFY(f.changedOnce("Delete signalling area"));

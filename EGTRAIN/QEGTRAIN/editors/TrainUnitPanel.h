@@ -51,7 +51,7 @@ public:
 	void addLibraryUnit(const SceneTrainUnit& libraryUnit, bool withComposition);
 	/// Inserts a copy of the selected unit, with a new unique id, after it.
 	void duplicateUnit();
-	/// Deletes the selected unit after the user has confirmed it; refused while a composition uses it.
+	/// Deletes the selected unit and says in the status line that Undo restores it; refused while a composition uses it.
 	void deleteUnit();
 	/// Takes the id from the field. An empty or used id is dropped and the field shows the old id again.
 	void commitIdEdit();
@@ -123,8 +123,6 @@ Q_SIGNALS:
 	void unitDeleted(const QString& id);
 	/// The details of the shown unit are shown again, so the state of its source links has to be shown again too.
 	void detailsShown();
-	/// Shows `text` in the status line of the window for `timeoutMs` milliseconds.
-	void statusMessage(const QString& text, int timeoutMs);
 	/// The plot of the traction curve of this unit is wanted.
 	void tractionPlotRequested(const QString& unitId);
 	/// The user asks to link the source of the shown unit. `traction` tells whether it is the traction file or the

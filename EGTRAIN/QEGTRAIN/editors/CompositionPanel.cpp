@@ -268,15 +268,13 @@ void CompositionPanel::deleteComposition() {
 			true);
 		return;
 	}
-	if (!m_prompts->confirm(this, "Delete Composition", QString("Delete composition '%1'?").arg(QString::fromStdString(id))))
-		return;
-
 	if (!m_document->edit(SceneDocument::Compositions, "Delete composition",
 			[row](SceneModel& edited) { edited.compositions.erase(edited.compositions.begin() + row); }))
 		return;
 
 	refresh();
 	emit changed();
+	reportDeleted(QString("composition '%1'").arg(QString::fromStdString(id)));
 }
 
 void CompositionPanel::commitIdEdit() {
