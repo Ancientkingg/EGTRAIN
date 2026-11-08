@@ -323,6 +323,15 @@ egtrain_add_test(test_liveframe SIMULATION_HEADERS
 	ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 	TIMEOUT 120)
 
+# Runs the line fixture, Paimpol and Milano_Brescia in this process and compares the replay of each run with its live snapshots.
+egtrain_add_test(test_replaylive SIMULATION_HEADERS
+	SOURCES ${SRC_DIR}/tests/test_replaylive.cpp
+	LIBS egtrain_dispatch egtrain_sim Qt::Core Qt::Gui Qt::Widgets
+	DEFINITIONS EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests" EGTRAIN_SCENES_DIR="${SRC_DIR}/Scenes"
+	LABELS unit
+	ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+	TIMEOUT 300)
+
 # Checks the requests of the command socket and the event frame that reports a command. No socket, thread or run.
 egtrain_add_test(test_livecommand
 	SOURCES ${SRC_DIR}/tests/test_livecommand.cpp
