@@ -43,14 +43,16 @@ var NAVTREEINDEX8 =
 "class_case_chooser_dialog.html#aab725818f60651007eec78444756db27":[2,0,44,3],
 "class_case_chooser_dialog.html#aaee34ec1d3e01474c06fa787addbee54":[2,0,44,9],
 "class_case_settings_panel.html":[2,0,45],
-"class_case_settings_panel.html#a0aa7a7ae30964978c4d7786745d6edf5":[2,0,45,10],
+"class_case_settings_panel.html#a0aa7a7ae30964978c4d7786745d6edf5":[2,0,45,11],
 "class_case_settings_panel.html#a0f0584a419b0399016fe1804c9813a2c":[2,0,45,4],
+"class_case_settings_panel.html#a1c35cdc01f4390166f69aa76b64e1b6c":[2,0,45,13],
+"class_case_settings_panel.html#a3c152f0957636158c9dd0c832bb404b1":[2,0,45,10],
 "class_case_settings_panel.html#a50a48c015c7022a049f7f5d636841d4d":[2,0,45,6],
 "class_case_settings_panel.html#a5ea1b6d082ad62636f686c1fbcbabb64":[2,0,45,2],
 "class_case_settings_panel.html#a912f7ba1975f5526c7fef36c61cfd1fd":[2,0,45,7],
 "class_case_settings_panel.html#a98fc2e3ca7e313d5fd05fe3cfd172d09":[2,0,45,5],
 "class_case_settings_panel.html#ab626149c6737ccedf70c13e9e5a2722a":[2,0,45,0],
-"class_case_settings_panel.html#acb968dbe3f40db2f385af2b032ac32f9":[2,0,45,11],
+"class_case_settings_panel.html#acb968dbe3f40db2f385af2b032ac32f9":[2,0,45,12],
 "class_case_settings_panel.html#adf7a9af461fd8312d03f90db5890eae2":[2,0,45,9],
 "class_case_settings_panel.html#ae31fed717086048ee10cb6a42cab286e":[2,0,45,1],
 "class_case_settings_panel.html#ae3a7929359c0847f8984b9c59303f5aa":[2,0,45,8],
@@ -247,7 +249,5 @@ var NAVTREEINDEX8 =
 "class_editor_docks_1_1_host.html#a3da776e338d6cc0eb89ff33140028741":[2,0,83,0,8],
 "class_editor_docks_1_1_host.html#a3dd802768d922123fe0a6b3be53f5899":[2,0,83,0,12],
 "class_editor_docks_1_1_host.html#a68080cfdba4790ffca4f138c75447186":[2,0,83,0,9],
-"class_editor_docks_1_1_host.html#a9bddf29ab949351dbe78153dc73cac47":[2,0,83,0,11],
-"class_editor_docks_1_1_host.html#a9e84f75f6c583151398a0ad189cc4430":[2,0,83,0,2],
-"class_editor_docks_1_1_host.html#aa4cd9073ab33577d25daa821541ff5e7":[2,0,83,0,14]
+"class_editor_docks_1_1_host.html#a9bddf29ab949351dbe78153dc73cac47":[2,0,83,0,11]
 };

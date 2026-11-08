@@ -53,5 +53,6 @@ var searchData=
   ['outcome_50',['outcome',['../class_case_chooser_dialog.html#a3a60f4c8b321754e51e9dca706a41d3e',1,'CaseChooserDialog']]],
   ['outputfolder_51',['outputFolder',['../namespacepath__message.html#afd0ba51aeeb526bac062f1700965f982',1,'path_message']]],
   ['overflow_52',['overflow',['../class_console_streambuf.html#af64781d1cfc34e4ad90b2f48973ced13',1,'ConsoleStreambuf']]],
-  ['oversize_53',['oversize',['../class_gui_replay_history.html#a379de4c1249cdf2d57a800dc9680c196',1,'GuiReplayHistory']]]
+  ['overridenotice_53',['overrideNotice',['../class_case_settings_panel.html#a3c152f0957636158c9dd0c832bb404b1',1,'CaseSettingsPanel']]],
+  ['oversize_54',['oversize',['../class_gui_replay_history.html#a379de4c1249cdf2d57a800dc9680c196',1,'GuiReplayHistory']]]
 ];

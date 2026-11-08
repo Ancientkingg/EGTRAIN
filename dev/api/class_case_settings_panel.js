@@ -10,6 +10,8 @@ var class_case_settings_panel =
     [ "descriptionEdit", "class_case_settings_panel.html#a912f7ba1975f5526c7fef36c61cfd1fd", null ],
     [ "durationSecondsEdit", "class_case_settings_panel.html#ae3a7929359c0847f8984b9c59303f5aa", null ],
     [ "nameEdit", "class_case_settings_panel.html#adf7a9af461fd8312d03f90db5890eae2", null ],
+    [ "overrideNotice", "class_case_settings_panel.html#a3c152f0957636158c9dd0c832bb404b1", null ],
     [ "recoveryPercentEdit", "class_case_settings_panel.html#a0aa7a7ae30964978c4d7786745d6edf5", null ],
-    [ "refresh", "class_case_settings_panel.html#acb968dbe3f40db2f385af2b032ac32f9", null ]
+    [ "refresh", "class_case_settings_panel.html#acb968dbe3f40db2f385af2b032ac32f9", null ],
+    [ "setCommandLineOverrides", "class_case_settings_panel.html#a1c35cdc01f4390166f69aa76b64e1b6c", null ]
 ];

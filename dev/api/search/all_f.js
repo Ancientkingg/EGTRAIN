@@ -116,11 +116,12 @@ var searchData=
   ['outputfolder_113',['outputFolder',['../namespacepath__message.html#afd0ba51aeeb526bac062f1700965f982',1,'path_message']]],
   ['outputmainfolder_114',['OutputMainFolder',['../class_initial_parameters.html#aba98301e71f6d443f7eb331b2f55435d',1,'InitialParameters']]],
   ['overflow_115',['overflow',['../struct_station_overlay_item_1_1_viewport_placement.html#a3758362ffd514d62cbd24aa0f4f9dc91',1,'StationOverlayItem::ViewportPlacement::overflow'],['../class_console_streambuf.html#af64781d1cfc34e4ad90b2f48973ced13',1,'ConsoleStreambuf::overflow()']]],
-  ['oversize_116',['oversize',['../class_gui_replay_history.html#a379de4c1249cdf2d57a800dc9680c196',1,'GuiReplayHistory']]],
-  ['oversized_117',['oversized',['../classtelemetry_1_1_worker.html#a11314047ab129c5d8e9b366514afda73',1,'telemetry::Worker']]],
-  ['overview_118',['Overview',['../class_train_badge_item.html#af7590fcbb1cdc275ae631a1ef2704c7ba3b878279a04dc47d60932cb294d96259',1,'TrainBadgeItem']]],
-  ['owncolour_119',['ownColour',['../struct_series_meta.html#ade094fefbd1e2395e4a02308bb9bbc55',1,'SeriesMeta']]],
-  ['owner_120',['Owner',['../classtelemetry_1_1_telemetry_queue.html#a5fdcf89146509911ce754826df9b6c94ab6f4a2ec6356bbd56d49f2096bf9d3d3',1,'telemetry::TelemetryQueue']]],
-  ['owner_121',['owner',['../classtelemetry_1_1_worker.html#a4d11d97bdf6bc818afa440bd00025dac',1,'telemetry::Worker']]],
-  ['ownershipid_122',['ownershipId',['../structtelemetry_1_1_batch_token.html#aa515fd5ca26d24708b162d4a615885d9',1,'telemetry::BatchToken']]]
+  ['overridenotice_116',['overrideNotice',['../class_case_settings_panel.html#a3c152f0957636158c9dd0c832bb404b1',1,'CaseSettingsPanel']]],
+  ['oversize_117',['oversize',['../class_gui_replay_history.html#a379de4c1249cdf2d57a800dc9680c196',1,'GuiReplayHistory']]],
+  ['oversized_118',['oversized',['../classtelemetry_1_1_worker.html#a11314047ab129c5d8e9b366514afda73',1,'telemetry::Worker']]],
+  ['overview_119',['Overview',['../class_train_badge_item.html#af7590fcbb1cdc275ae631a1ef2704c7ba3b878279a04dc47d60932cb294d96259',1,'TrainBadgeItem']]],
+  ['owncolour_120',['ownColour',['../struct_series_meta.html#ade094fefbd1e2395e4a02308bb9bbc55',1,'SeriesMeta']]],
+  ['owner_121',['Owner',['../classtelemetry_1_1_telemetry_queue.html#a5fdcf89146509911ce754826df9b6c94ab6f4a2ec6356bbd56d49f2096bf9d3d3',1,'telemetry::TelemetryQueue']]],
+  ['owner_122',['owner',['../classtelemetry_1_1_worker.html#a4d11d97bdf6bc818afa440bd00025dac',1,'telemetry::Worker']]],
+  ['ownershipid_123',['ownershipId',['../structtelemetry_1_1_batch_token.html#aa515fd5ca26d24708b162d4a615885d9',1,'telemetry::BatchToken']]]
 ];
