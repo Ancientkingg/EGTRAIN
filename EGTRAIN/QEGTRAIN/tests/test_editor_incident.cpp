@@ -565,6 +565,7 @@ void TestIncidentPanel::typeDecidesTargets() {
 	QVERIFY(incident.hasOccurrence);
 	QCOMPARE(incident.occurrence, 3);
 	QCOMPARE(document.lastChangeLabel(), "Change incident target");
+	QCOMPARE(panel.listWidget()->item(0)->text(), "i1: Train breakdown #3");
 	panel.targetCombo()->setCurrentIndex(choice(panel.targetCombo(), "s2", 1));
 	panel.typeCombo()->setCurrentIndex(panel.typeCombo()->findData("signal_failure"));
 	// A target that is valid for both types stays, and a signal failure has no occurrence.
@@ -627,6 +628,7 @@ void TestIncidentPanel::editsAddsAndDeletesIncidents() {
 	QVERIFY(converted.hasReducedSpeed);
 	QCOMPARE_EQ(converted.reducedSpeedKmh, 40.0);
 	QVERIFY(panel.reducedSpeedKmhEdit()->isEnabled());
+	QCOMPARE(panel.listWidget()->item(1)->text(), "i2: Train breakdown, 40 km/h");
 	QCOMPARE(events.log, edit);
 	QCOMPARE(document.lastChangeLabel(), "Change incident reduced speed");
 	panel.reducedSpeedKmhEdit()->setValue(45.5);
@@ -644,6 +646,7 @@ void TestIncidentPanel::editsAddsAndDeletesIncidents() {
 	QCOMPARE_EQ(converted.reducedSpeedKmh, 0.0);
 	QVERIFY(!panel.reducedSpeedKmhEdit()->isEnabled());
 	QCOMPARE_EQ(panel.reducedSpeedKmhEdit()->value(), 40.0);
+	QCOMPARE(panel.listWidget()->item(1)->text(), "i2: Train breakdown");
 	panel.refresh();
 	QVERIFY2(panel.listWidget()->item(1)->text() == "i2: Train breakdown", "the list shows the incident without a speed cap");
 
