@@ -363,14 +363,17 @@ void TestTopologyFacets::editsNodes() {
 	// The track of a node is edited.
 	QCOMPARE(f.model().nodes[1].trackId, "track-b");
 	QVERIFY(f.changedOnce("Edit node"));
-	for (const char* refused : {"abc", "", "inf", "nan"}) {
+	for (const char* refused : {"abc", "", "inf", "nan", "1,5"}) {
+		f.messages.clear();
 		f.type(1, 3, refused);
-		// A position that is no finite number is refused, without a message, and the table shows the model again.
+		// A position that is no finite number is refused with a message that names the column, and the table shows the
+		// model again.
 		QVERIFY2(f.untouched(), refused);
 		QCOMPARE_EQ(f.model().nodes[1].xKm, 2.5);
 		QCOMPARE(f.cell(1, 3), "2.5");
-		QVERIFY2(f.messages.empty(), refused);
+		QCOMPARE(f.messages, QStringList({"X (km) needs a number, such as 1.5."}));
 	}
+	f.messages.clear();
 	f.type(1, 3, " 2.5 ");
 	QVERIFY2(f.untouched(), "a position that is the same number changes nothing");
 
@@ -467,11 +470,12 @@ void TestTopologyFacets::editsArcs() {
 	QCOMPARE_EQ(f.model().arcs[0].speedLimitMs, 30.0);
 	f.log.clear();
 	f.type(0, 6, "fast");
-	// A limit that is no number is refused and the table shows the model again.
+	// A limit that is no number is refused with a message that names the column, and the table shows the model again.
 	QVERIFY(f.untouched());
 	QCOMPARE_EQ(f.model().arcs[0].speedLimitMs, 30.0);
 	QCOMPARE(f.cell(0, 6), "30");
-	QVERIFY(f.messages.empty());
+	QCOMPARE(f.messages, QStringList({"Speed limit (m/s) needs a number, such as 1.5."}));
+	f.messages.clear();
 
 	// rename: nothing refers to an arc
 	const std::vector<SceneArc> before = f.model().arcs;

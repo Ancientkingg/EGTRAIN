@@ -290,11 +290,12 @@ void TestStationFacets::editsStations() {
 	// The box takes no text.
 	QVERIFY(!f.table()->item(1, 2)->flags().testFlag(Qt::ItemIsEditable));
 	f.type(1, 3, "far");
-	// A position that is no number is refused, without a message, and the table shows the model again.
+	// A position that is no number is refused with a message that names the column, and the table shows the model again.
 	QVERIFY(f.untouched());
 	QCOMPARE_EQ(f.model().stations[1].positionKm, 12.25);
 	QCOMPARE(f.cell(1, 3), "12.25");
-	QVERIFY(f.messages.empty());
+	QCOMPARE(f.messages, QStringList({"Position km needs a number, such as 1.5."}));
+	f.messages.clear();
 
 	// rename: stops, entrance delays and passengers refer to a station by its id
 	f.type(0, 0, " station-x ");

@@ -268,13 +268,16 @@ void TestBlockRouteFacets::editsBlocks() {
 	QCOMPARE(f.cell(0, 2), "2.5");
 	QVERIFY(f.changedOnce("Edit block"));
 	for (const char* refused : {"abc", "", "inf", "nan"}) {
+		f.messages.clear();
 		f.type(0, 2, refused);
-		// A length that is no finite number is refused, without a message, and the table shows the model again.
+		// A length that is no finite number is refused with a message that names the column, and the table shows the
+		// model again.
 		QVERIFY2(f.untouched(), refused);
 		QCOMPARE_EQ(f.model().blocks[0].lengthKm, 2.5);
 		QCOMPARE(f.cell(0, 2), "2.5");
-		QVERIFY2(f.messages.empty(), refused);
+		QCOMPARE(f.messages, QStringList({"Length (km) needs a number, such as 1.5."}));
 	}
+	f.messages.clear();
 	f.type(0, 2, " 2.5 ");
 	QVERIFY2(f.untouched(), "a length that is the same number changes nothing");
 

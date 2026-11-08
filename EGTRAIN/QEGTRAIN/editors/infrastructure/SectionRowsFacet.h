@@ -54,7 +54,7 @@ public:
 		if (edit == Edit::Changed)
 			panel.edit(editLabel(), [this, index, &edited](SceneModel& model) { (model.*m_list)[index] = edited; });
 		else if (edit == Edit::Refused)
-			panel.refuseEdit();
+			panel.refuseEdit(refusedValueText(*panel.table(), row, column));
 	}
 
 	/// Appends an empty item and makes its row the current one.
