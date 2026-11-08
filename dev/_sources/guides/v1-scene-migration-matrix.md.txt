@@ -21,7 +21,7 @@ without guessing.
 | `GUI/unusedTracks.txt` | canonical display metadata | `SceneImporter` preserves authored inactive tracks as `visible: false` view rows. Preview rendering omits those tracks and their connections without removing simulation infrastructure. The exporter lists the hidden track views. |
 | `GUI/StationsCoord.txt` | canonical display metadata | `SceneImporter` resolves station rows to canonical station IDs and preserves finite coordinates, region positions, and optional corridors in `views.json`; the native runtime applies them before calculating screen geometry. The exporter writes them from `views.json`. |
 | Copenhagen four-node track drawing | canonical display metadata | The original drew only the middle arc of each four-node track of `Input/Input_EGTRAIN_Banedanmark`, the double switches of the case. `SceneImporter` sets `double_switch` on the views of the four-node tracks of the Copenhagen case, which it recognises by case or folder name, and the native preview and runtime leave out the first and last arc and the ordinary node dots of such a track. The simulation keeps every arc. The legacy files have no field for it: the exporter omits it with a warning, and an import of the export as the Copenhagen case sets it again. |
-| `RoutesToWrite/RoutesToJoin.txt` | canonical when populated | `SceneImporter` materializes each non-empty row as an appended route with concatenated blocks and `reversed` metadata. Committed files are empty, so they add no entities today. A row with `Reverse` over sections that run forward produces a route that validation rejects. |
+| `RoutesToWrite/RoutesToJoin.txt` | canonical when populated | `SceneImporter` materializes each non-empty row as an appended route with concatenated blocks and `reversed` metadata. The bundled files are empty, so they add no entities today. A row with `Reverse` over sections that run forward produces a route that validation rejects. |
 | ordinary block dependencies, signals, virtual signals, TDS | derived | `Signalling` derives these from blocks, routes, switches, and connections. They are documented derivations rather than duplicate authored inputs; the historical `signals` array remains load-compatible but is not runnable completeness. |
 | Copenhagen `5-B6` dependency exception | dead/inert | The hard-coded target named track `B30`, but the switch at `4.592/4.620` is generated from `B31` and `B7`, so no runtime section had that ID. The code that held the exception is gone, and V1 does not recreate it or guess a replacement by coordinates. |
 | `GUI/singleTrackLimits.txt` | canonical | `SceneImporter` converts four distinct block roles to `start_block`, `end_block`, `protected_start_block`, and `protected_end_block`. The native builder consumes those V1 fields directly. |
@@ -63,7 +63,7 @@ without guessing.
   `Tregonneau_Squiffiec`, and `Guin-Paim_EXPRESS-1-1` maps to service
   `Guin-Paim-EXPRESS-1`, occurrence 1. Two reverse-service tokens have no active
   service definition; their legs are omitted, the journeys remain, and the import
-  report records two unresolved references. The committed result contains 12
+  report records two unresolved references. The bundled result contains 12
   resolved legs.
 - Six Netherlands `virtual*Link` station markers have no exact platform-node
   anchor. They are retained as stations without platforms and reported; no service
@@ -72,7 +72,7 @@ without guessing.
   (`-1.597` km) even though its nodes and arcs run in increasing coordinate order.
   V1 corrects the sign while retaining the source magnitude; the standard
   final-block extension covers the remaining 20 metres of track geometry.
-- No committed `Rollout_<n>.txt` exists. The importer supports its known
+- No bundled `Rollout_<n>.txt` exists. The importer supports its known
   positional relationship only where case duration and service headway make the
   occurrence mapping explicit.
 - Legacy cases outside the compiled `InitialParameters` case table have no
@@ -81,5 +81,5 @@ without guessing.
   `EGTRAINInitialParameters.json` that `scene_tool export` writes.
 
 The bundled cases no longer contain compatibility `legacy/` trees, and the
-obsolete committed `Input/` cases are removed after conversion parity. Their
+obsolete `Input/` cases are removed after conversion parity. Their
 filenames remain only as compact provenance in the import reports.

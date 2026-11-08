@@ -4,15 +4,24 @@ This page describes the editors of a case and the rules for editing and validati
 
 ## Infrastructure
 
-The dock **Infrastructure** has a list above the table that chooses it: tracks, nodes, arcs, blocks, connections, stations, platforms, signals, signalling areas, routes and the other records. **Add** and **Delete** are under the table. In the table of blocks, a track filter above the table chooses the track that **Add** appends to, and **Insert**, **Move Up** and **Move Down** follow **Delete**. While the table is empty, a line above it says what to add first, and **Add** stays off in Blocks until the case has a track. While a run uses the case, the table, **Add** and **Delete** are off, and the tooltip of **Delete** reads "Stop the run to edit." **Delete** is off until a row is selected. **Delete** asks for confirmation. A row that other rows refer to is refused with a message titled after the kind of row, such as Cannot Delete Track, which lists the first ten of them and counts the rest. The tables are built in dependency order in the [tutorial for the smallest useful case](tutorial-minimal-scene.md).
+The dock **Infrastructure** has a list above the table that chooses it: tracks, nodes, arcs, blocks, connections, stations, platforms, signals, signalling areas, routes and the other records. **Add** and **Delete** are under the table. Tracks, nodes and platforms have task buttons as well, described in [Tasks of tracks, nodes and platforms](#tasks-of-tracks-nodes-and-platforms). In the table of blocks, a track filter above the table chooses the track that **Add** appends to, and **Insert**, **Move Up** and **Move Down** follow **Delete**. While the table is empty, a line above it says what to add first, and **Add** stays off in Blocks until the case has a track. While a run uses the case, the table, **Add** and **Delete** are off, and the tooltip of **Delete** reads "Stop the run to edit." **Delete** is off until a row is selected. **Delete** deletes the row at once and names it in the status bar, such as `Deleted node 'node_3'. Undo restores it.`; **Edit > Undo** brings it back. A row that other rows refer to is refused with a message titled after the kind of row, such as Cannot Delete Track, which lists the first ten of them and counts the rest. The tables are built in dependency order in the [tutorial for the smallest useful case](tutorial-minimal-scene.md).
 
 **Filter rows**, above the table, shows only the rows that hold every word you type, each in one of their cells, in any case. The line beside it counts the rows, such as "399 nodes", or "12 of 399 nodes" while a filter hides some. The filter stays when you choose another kind. Nodes, arcs, connections and platforms also have a track filter at the start of that line: it shows the nodes and the arcs on the track, the connections with an end on it and the platforms with a node on it. Blocks keep their own track filter. **Add** and **Insert** clear the filters, so that the new row shows, and **Move Up** and **Move Down** are off while a filter hides rows.
 
-Nodes and platforms have a column **Station** with the name of the station that the node or platform belongs to, the station that **Details** names for a node; it is not edited there. The track of a node, the two nodes of an arc and the two nodes of a connection are chosen in a list that you can also type in. Typing shows the entries that contain the text, in any case. An arc lists the nodes of its track with their kilometres, and a connection lists every node with its track. An id that the case does not have is refused with a message that names it, such as "Node 'n9' does not exist", and an empty one with "Choose a node" or "Choose a track". The nodes of a platform are a list of ids separated by commas, and an id that the case does not have is refused the same way. The flags (**Has position** of a station, **Has corridor** and **Reversed** of a route, **Has speed limit** of a connection and **Direction** of a station boundary) are check boxes: a click changes the flag, as one step for **Undo**.
+Nodes and platforms have a column **Station** with the name of the station that the node or platform belongs to, the station that **Details** names for a node; it is not edited there. The track of a node, the two nodes of an arc and the two nodes of a connection are chosen in a list that you can also type in. Typing shows the entries that contain the text, in any case. An arc lists the nodes of its track with their kilometres, and a connection lists every node with its track. An id that the case does not have is refused with a message that names it, such as "Node 'n9' does not exist", and an empty one with "Choose a node" or "Choose a track". The **Nodes** cell of a platform lists its node ids and is not typed in: **Choose Nodes...** or a double-click on the cell opens **Platform Nodes**, a list of the nodes of the case to check, with a filter field. A node of another platform or station shows that name and cannot be checked, and a node id that the case no longer has is listed as missing so that you can remove it. The flags (**Has position** of a station, **Has corridor** and **Reversed** of a route, **Has speed limit** of a connection and **Direction** of a station boundary) are check boxes: a click changes the flag, as one step for **Undo**.
 
 While the dock **Infrastructure** is in view, the canvas marks the selected row in violet, under the tracks, and a line under the table says what it marks, such as "route2: 124 sections on B3, B0, B4, B5 and B2" or "Gourland.platform.1: node B0.node.41 at 2.520 km". A track is marked along its whole length, an arc or a connection along the line between its ends, and a block along its section. A node, a station mark, the platform nodes of a station, the nodes of a platform and the heads of a signal get a ring, and the bar of a platform an outline. A signalling area is marked over its kilometres, and a single-track restriction, a station boundary and a block dependency over the sections they name. A route is marked over all its sections and connections, with a disc at its start and an arrowhead at its end when its direction is known, and the section chosen under **Route sections** is drawn over it in light amber. Choosing another row moves only the mark: the canvas keeps its zoom and position, and centres on the new mark only when none of it is in view. An edit draws the canvas again. Closing the dock, or bringing another editor to the front of its tabs, hides the mark. It comes back for the same row when the dock is shown again, and the canvas keeps its zoom and position.
 
 To find the row of something on the canvas, click it. A click on a node, a station, a track line, a connection or a signal head selects its row, and the list above the table switches to its kind. A track line selects its arc, or its track where no arc joins the two nodes. A station node selects its platform under Platforms. A signal head selects the block of its section under Blocks, and the track filter shows the track of that block. A filter that hides the row is cleared. The canvas keeps its zoom and position, and **Details** still shows the item. **Edit in Infrastructure** in the menu of the item does the same and brings the dock to the front. While a run or its results are on the canvas, a click only shows the item in **Details**.
+
+### Tasks of tracks, nodes and platforms
+
+These buttons are under the table of their kind. Each works on the selected row and makes one step of **Edit > Undo**. They are off while no row is selected or a run uses the case.
+
+- **Reverse Track** turns the selected track around: it swaps the From node and the To node of every arc of the track, changes the sign of their gradients and reverses the order of its blocks. The nodes, their X and the ids and lengths of the blocks stay as they are. Use it when every arc of a track runs against its X, which Case Validation reports with `X goes down from ...`. When routes run over the track, the box **Track Reversed** lists them, the first ten and a count of the rest, for you to check. The status bar reads `Reversed track '<track>'. Undo restores it.` A track that is not one line of arcs is refused with `Track '<track>' is not one line of arcs. Case Validation names what to fix.`
+- **Set X from Distance** reads the X and Y of the nodes of the selected track as map coordinates in km, sets X to the distance along the arcs from the first node, which gets 0, and sets Y to 0 ([bring in track geometry from GIS](how-to.md#bring-in-track-geometry-from-gis)). When blocks or station positions may no longer fit, the box **X Set from Distance** gives the new length of the track and the sum of its blocks, such as `Track 'B0' is now 12.400 km long; its blocks add up to 12.000 km.`, lists the blocks and the stations to check, and says that Case Validation lists the references that the new X values break. The status bar reads `Set X of <n> nodes of track '<track>' from the distance along its arcs. Undo restores them.` A node without a number in X or Y stops it (`Node '<node>' has no number in X or Y. Set it first.`), and a track whose X already is that distance is left as it is.
+- **Add Station...** asks for the name of a new station at the selected node (`Name of the new station at node <node>:`) and adds the station with one platform, `<name>.platform.1`, at that node. The status bar reads `Added station '<name>' at node '<node>'. Undo removes it.` It refuses a node that already belongs to a station, an empty name, a name with a tab or a line break, a name that another station has, and a case that already has the most stations a run takes.
+- **Choose Nodes...** opens **Platform Nodes** for the selected platform, as a double-click on its **Nodes** cell does. Nodes on the tracks of the platform come first. **OK** sets the checked nodes as the nodes of the platform.
 
 ## Services
 
@@ -21,7 +30,7 @@ The dock **Services** has a list of services above three tabs: **Service** for t
 In Services, Category offers Intercity, Regional, High speed/international,
 Freight, Metro/urban, Suburban and No category. Unknown imported values remain
 visible until you choose a replacement. This label does not change train
-performance, composition or stops. It survives duplication and folder/bundle
+performance, composition or stops. It survives duplication and case folder and case file
 saves, but not legacy export.
 
 Colour, directly below Category, sets the colour of the
@@ -45,7 +54,7 @@ a `#RRGGBB` colour is shown as "Invalid: " followed by the text and is kept unti
 you choose a colour or press Default; trains of that service use the default
 yellow. Changing the colour counts as a case edit, so it discards the run
 results and replay like any other service edit. It survives duplication and
-folder/bundle saves, but not legacy export.
+case folder and case file saves, but not legacy export.
 
 The route chooser shows endpoints and direction. Its tooltip lists stations
 passed by the route, not stopping calls. Add Stop chooses a remaining station
@@ -99,7 +108,7 @@ from canonical data. The runtime applies only the selected/default scenario.
 ## Validation
 
 Run the structural and semantic validation command after edits. The path can
-name a case folder or bundle:
+name a case folder or a case file:
 
 ```bash
 ./build/scene_tool validate path/to/case
@@ -112,7 +121,7 @@ directory helper is `validateRunnableSceneDirectory`. `scene_tool validate
 loading is checked first so semantic reference diagnostics do not cascade from
 malformed JSON.
 
-Before committing a case, validate it and run it on the native path. Use
+Before you share a case, validate it and run it on the native path. Use
 `scene_tool export` only when a downstream legacy tool needs interoperability
 files; edits to that export do not flow back into canonical JSON. The exporter
 generates legacy infrastructure, signalling constraints, rolling stock,

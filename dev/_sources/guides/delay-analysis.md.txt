@@ -4,16 +4,16 @@ This guide says what the delay figures of EGTRAIN mean: the formula, the unit, t
 
 ## What this guide covers
 
-A run produces delay figures in four places. The Delay analysis window (Diagrams > Delay analysis and Run Results > Open result view > Delay analysis) shows the first and the third of them. The figures of the four places are not the same quantity: they start from different arrivals, count different populations and use different thresholds.
+A run produces delay figures in four places. The Delay analysis window (Diagrams > Delay analysis and Run Results > Open result view... > Delay analysis) shows the first and the third of them. The figures of the four places are not the same quantity: they start from different arrivals, count different populations and use different thresholds.
 
 | Place | Where to find it |
 | --- | --- |
-| Timetable results | Diagrams > Timetable and Run Results > Open result view > Timetable; Diagrams > Delays... and Run Results > Open result view > Delays (a chart); the file `timetable.csv` from the **CSV...** button of both windows; the tabs Calls, Summary and Punctuality of the Delay analysis window and the files `delay_analysis.csv` and `delay_histogram.csv` from its **CSV...** button |
+| Timetable results | Diagrams > Timetable and Run Results > Open result view... > Timetable; Diagrams > Delays... and Run Results > Open result view... > Delays... (a chart); the file `timetable.csv` from the **CSV...** button of both windows; the tabs Calls, Summary and Punctuality of the Delay analysis window and the files `delay_analysis.csv` and `delay_histogram.csv` from its **CSV...** button |
 | Station statistics | `Stats_Stations.txt` and `Pos&Neg_Stats_Stations.txt` in the `TrainTrajectories` folder of the run output |
 | Baseline comparison | The buttons **Set delay baseline** and **Compare delays** in the Run Results dock, the tab Against baseline of the Delay analysis window and the file `delay_comparison.csv` from its **CSV...** button |
 | Passenger journey delay | `JourneyDelays.txt` in the `PassengerStatus` folder of the run output |
 
-The Timetable graph (Run Results > Open result view > Timetable graph) draws the planned and the simulated times whose difference the timetable results report. It shows no delay figure and is not a fifth place.
+The Timetable graph (Run Results > Open result view... > Timetable graph...) draws the planned and the simulated times whose difference the timetable results report. It shows no delay figure and is not a fifth place.
 
 ## Definitions
 
@@ -239,16 +239,16 @@ The Netherlands case has no `planned_arrival_seconds` and no `planned_departure_
 
 ## Calculations the program no longer contains
 
-The only delay statistics code left in the program is the code this guide describes. These calculations were removed and none has been restored. A file as it was before a commit is shown by `git show <commit>^:<path>`.
+The only delay statistics code left in the program is the code this guide describes. These calculations were removed and none has been restored.
 
-| Calculation | What it did | Names absent from the program | Removed in |
-| --- | --- | --- | --- |
-| Rescheduling, optimisation and dispatching | A rescheduling interface to an external dispatching tool (messages, decisions, platform and route changes) and functions that ordered services, built an optimised timetable and moved train times to it. The area capacity code removed with them computed no delay | `handleDispMessage`, `loadDispDecisions`, `checkArrivalPlatform`, `ComputeOptimisedTimetable`, `Generate_Optimised_Train_Service_Sequence`, `ResetTrainsAccordingToTimetable` | `08105b7` (#254) |
-| Older delay entry point | A second way to run the arrival delay calculation, with the older arrival detector | `calculateArrivalDelayAllTrainsOldVersion` | `e41b3c3` (#319) |
-| Stochastic dwell and entrance delays | Drew dwell times at stations from a Gaussian distribution around the planned dwell time and wrote them to files; read such files back and set the stop time and the dwell disturbance (stop time minus planned dwell time) of each stop; read per-train entrance delays from files and added them to the planned departure at a named station; added a Gaussian error to such entrance delays. Nothing sets the dwell disturbance, so the `DwT_Dist` row and the dwell part of the consecutive delay are always 0 | `drawGaussianTrainDwellTimes`, `Load_And_Set_Stoc_Dwell_Times`, `Load_Departure_Delay_At_Station`, `Load_Entrance_Delay_Disturbed_Scenario`, `Generate_Entrance_Delays_Affected_By_Error` | `e7fad81` (#510) |
-| Older arrival detectors | Took the arrival of a stop from the position samples: the first sample at rest exactly 2 mm short of the station, or the first sample at rest less than 5 mm short of it or beyond it after a sample more than 3 m short of it. The `Actual_Arrivals` functions applied this to the stops of a train | `Arrival_At_Station`, `Arrival_At_Station_NewVersion`, `Actual_Arrivals`, `Actual_Arrivals_NewVersion` | `e7fad81` (#510: `Arrival_At_Station`, `Actual_Arrivals_NewVersion`), `fc3eeb1` (#585: `Arrival_At_Station_NewVersion`, `Actual_Arrivals`) |
+| Calculation | What it did | Names absent from the program |
+| --- | --- | --- |
+| Rescheduling, optimisation and dispatching | A rescheduling interface to an external dispatching tool (messages, decisions, platform and route changes) and functions that ordered services, built an optimised timetable and moved train times to it. The area capacity code removed with them computed no delay | `handleDispMessage`, `loadDispDecisions`, `checkArrivalPlatform`, `ComputeOptimisedTimetable`, `Generate_Optimised_Train_Service_Sequence`, `ResetTrainsAccordingToTimetable` |
+| Older delay entry point | A second way to run the arrival delay calculation, with the older arrival detector | `calculateArrivalDelayAllTrainsOldVersion` |
+| Stochastic dwell and entrance delays | Drew dwell times at stations from a Gaussian distribution around the planned dwell time and wrote them to files; read such files back and set the stop time and the dwell disturbance (stop time minus planned dwell time) of each stop; read per-train entrance delays from files and added them to the planned departure at a named station; added a Gaussian error to such entrance delays. Nothing sets the dwell disturbance, so the `DwT_Dist` row and the dwell part of the consecutive delay are always 0 | `drawGaussianTrainDwellTimes`, `Load_And_Set_Stoc_Dwell_Times`, `Load_Departure_Delay_At_Station`, `Load_Entrance_Delay_Disturbed_Scenario`, `Generate_Entrance_Delays_Affected_By_Error` |
+| Older arrival detectors | Took the arrival of a stop from the position samples: the first sample at rest exactly 2 mm short of the station, or the first sample at rest less than 5 mm short of it or beyond it after a sample more than 3 m short of it. The `Actual_Arrivals` functions applied this to the stops of a train | `Arrival_At_Station`, `Arrival_At_Station_NewVersion`, `Actual_Arrivals`, `Actual_Arrivals_NewVersion` |
 
-Of these calculations only the older arrival detector reached a figure: the signed statistics file used it before #585, and it matched few stops, so that file held -1 in many rows (#585). The other calculations were not reached by a run. Both statistics files now take the arrival from the timetable point, as the timetable results do ([arrival and departure](#arrival-and-departure-of-a-call)).
+Of these calculations only the older arrival detector reached a figure: the signed statistics file of earlier versions used it, and it matched few stops, so that file held -1 in many rows. The other calculations were not reached by a run. Both statistics files now take the arrival from the timetable point, as the timetable results do ([arrival and departure](#arrival-and-departure-of-a-call)).
 
 ## Supported scope
 

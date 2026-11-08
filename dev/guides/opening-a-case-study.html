@@ -222,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -311,11 +311,11 @@
 <h1>Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case<a class="headerlink" href="#opening-an-egscene-case" title="Link to this heading">¶</a></h1>
 <p>An <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file contains one case. It is a ZIP archive with the same
 JSON files that EGTRAIN loads from a case folder. This page is about the
-bundle: how to open one, which versions open, what happens when a file is
-opened by double-click, and how to handle bundles from the command line.
+case file: how to open one, which versions open, what happens when a file is
+opened by double-click, and how to handle case files from the command line.
 <a class="reference internal" href="getting-started.html"><span class="std std-doc">Getting started</span></a> takes you from a download through a first
 run, and <a class="reference internal" href="how-to.html"><span class="std std-doc">How-to</span></a> has the recipes for everyday tasks.</p>
-<p>Opening a bundle does not run it or modify the downloaded file. To run it,
+<p>Opening a case file does not run it or modify the downloaded file. To run it,
 follow <a class="reference internal" href="getting-started.html#run-the-simulation"><span class="std std-ref">Getting started</span></a>. Use
 <strong>File &gt; Save As…</strong> and <strong>Case File…</strong> to create a new <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> after
 editing the case.</p>
@@ -334,7 +334,7 @@ under the downloads of the <a class="reference external" href="https://egtrain.s
 <li><p><strong>Newer Case</strong>: the case was saved with a newer EGTRAIN. Choose
 <strong>Check for Updates…</strong> to look for the newer release.</p></li>
 <li><p><strong>Cannot Open Case</strong>: the version cannot be read, the file is not a
-valid case folder or bundle, or loading the case reports errors. The message gives
+valid case folder or case file, or loading the case reports errors. The message gives
 the file name and says that the file is damaged or is not an EGTRAIN case,
 and up to three problems follow it, each with its fix and the file and place
 in the file that it is about, then the number of other errors; keep it. A
@@ -349,7 +349,7 @@ cases, or convert the original legacy input folder again with <strong>File &gt; 
 Legacy Case…</strong>.</p>
 <p>If EGTRAIN rejects a downloaded file, keep the diagnostic message and download
 the file again. The reader rejects truncated archives, unknown files, unsafe
-paths, duplicate entries, and files that exceed the documented bundle limits.</p>
+paths, duplicate entries, and files that exceed the documented case file limits.</p>
 </section>
 <section id="open-by-double-click">
 <h2>Open by double-click<a class="headerlink" href="#open-by-double-click" title="Link to this heading">¶</a></h2>
@@ -436,11 +436,11 @@ scene_tool<span class="w"> </span>unpack<span class="w"> </span><span class="k">
 </div>
 <p>The unpack destination must be a new path; the tool does not replace an
 existing file or directory.</p>
-<p>The simulator also accepts a bundle directly:</p>
+<p>The simulator also accepts a case file directly:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>QEGTRAIN<span class="w"> </span>--scene<span class="w"> </span><span class="k">case</span>.egscene<span class="w"> </span>-g<span class="w"> </span><span class="m">0</span>
 </pre></div>
 </div>
-<p>A file name without <code class="docutils literal notranslate"><span class="pre">--scene</span></code> opens the bundle in the same way:</p>
+<p>A file name without <code class="docutils literal notranslate"><span class="pre">--scene</span></code> opens the case file in the same way:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>QEGTRAIN<span class="w"> </span><span class="k">case</span>.egscene
 </pre></div>
 </div>
@@ -448,7 +448,7 @@ existing file or directory.</p>
 are reported and the usual start follows; with <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">0</span></code> the program exits with
 status 1 instead. When <code class="docutils literal notranslate"><span class="pre">--scene</span></code> is also given, <code class="docutils literal notranslate"><span class="pre">--scene</span></code> wins and the file name
 is ignored.</p>
-<p>See the <a class="reference internal" href="scene-bundle.html"><span class="std std-doc">bundle specification</span></a> for the ZIP
+<p>See the <a class="reference internal" href="scene-bundle.html"><span class="std std-doc">case file format</span></a> for the ZIP
 layout, version fields, entry limits, and safety rules.</p>
 </section>
 </section>

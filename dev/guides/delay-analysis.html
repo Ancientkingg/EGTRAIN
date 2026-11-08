@@ -222,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -312,7 +312,7 @@
 <p>This guide says what the delay figures of EGTRAIN mean: the formula, the unit, the reference timetable, which calls are counted and what is shown when a value is missing. It describes the program as it is, including its limits. <a class="reference internal" href="#definitions">Definitions</a> fixes the words, <a class="reference internal" href="#supported-scope">Supported scope</a> says what the figures cover and <a class="reference internal" href="#limits">Limits</a> what they do not. The case fields it mentions are in the <a class="reference internal" href="scene-schema.html#services-json"><span class="std std-ref">scene schema</span></a>.</p>
 <section id="what-this-guide-covers">
 <h2>What this guide covers<a class="headerlink" href="#what-this-guide-covers" title="Link to this heading">¶</a></h2>
-<p>A run produces delay figures in four places. The Delay analysis window (Diagrams &gt; Delay analysis and Run Results &gt; Open result view &gt; Delay analysis) shows the first and the third of them. The figures of the four places are not the same quantity: they start from different arrivals, count different populations and use different thresholds.</p>
+<p>A run produces delay figures in four places. The Delay analysis window (Diagrams &gt; Delay analysis and Run Results &gt; Open result view… &gt; Delay analysis) shows the first and the third of them. The figures of the four places are not the same quantity: they start from different arrivals, count different populations and use different thresholds.</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -322,7 +322,7 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Timetable results</p></td>
-<td><p>Diagrams &gt; Timetable and Run Results &gt; Open result view &gt; Timetable; Diagrams &gt; Delays… and Run Results &gt; Open result view &gt; Delays (a chart); the file <code class="docutils literal notranslate"><span class="pre">timetable.csv</span></code> from the <strong>CSV…</strong> button of both windows; the tabs Calls, Summary and Punctuality of the Delay analysis window and the files <code class="docutils literal notranslate"><span class="pre">delay_analysis.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">delay_histogram.csv</span></code> from its <strong>CSV…</strong> button</p></td>
+<td><p>Diagrams &gt; Timetable and Run Results &gt; Open result view… &gt; Timetable; Diagrams &gt; Delays… and Run Results &gt; Open result view… &gt; Delays… (a chart); the file <code class="docutils literal notranslate"><span class="pre">timetable.csv</span></code> from the <strong>CSV…</strong> button of both windows; the tabs Calls, Summary and Punctuality of the Delay analysis window and the files <code class="docutils literal notranslate"><span class="pre">delay_analysis.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">delay_histogram.csv</span></code> from its <strong>CSV…</strong> button</p></td>
 </tr>
 <tr class="row-odd"><td><p>Station statistics</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Stats_Stations.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">Pos&amp;Neg_Stats_Stations.txt</span></code> in the <code class="docutils literal notranslate"><span class="pre">TrainTrajectories</span></code> folder of the run output</p></td>
@@ -336,7 +336,7 @@
 </tbody>
 </table>
 </div>
-<p>The Timetable graph (Run Results &gt; Open result view &gt; Timetable graph) draws the planned and the simulated times whose difference the timetable results report. It shows no delay figure and is not a fifth place.</p>
+<p>The Timetable graph (Run Results &gt; Open result view… &gt; Timetable graph…) draws the planned and the simulated times whose difference the timetable results report. It shows no delay figure and is not a fifth place.</p>
 </section>
 <section id="definitions">
 <h2>Definitions<a class="headerlink" href="#definitions" title="Link to this heading">¶</a></h2>
@@ -791,41 +791,36 @@
 </section>
 <section id="calculations-the-program-no-longer-contains">
 <h2>Calculations the program no longer contains<a class="headerlink" href="#calculations-the-program-no-longer-contains" title="Link to this heading">¶</a></h2>
-<p>The only delay statistics code left in the program is the code this guide describes. These calculations were removed and none has been restored. A file as it was before a commit is shown by <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">show</span> <span class="pre">&lt;commit&gt;^:&lt;path&gt;</span></code>.</p>
+<p>The only delay statistics code left in the program is the code this guide describes. These calculations were removed and none has been restored.</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Calculation</p></th>
 <th class="head"><p>What it did</p></th>
 <th class="head"><p>Names absent from the program</p></th>
-<th class="head"><p>Removed in</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Rescheduling, optimisation and dispatching</p></td>
 <td><p>A rescheduling interface to an external dispatching tool (messages, decisions, platform and route changes) and functions that ordered services, built an optimised timetable and moved train times to it. The area capacity code removed with them computed no delay</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">handleDispMessage</span></code>, <code class="docutils literal notranslate"><span class="pre">loadDispDecisions</span></code>, <code class="docutils literal notranslate"><span class="pre">checkArrivalPlatform</span></code>, <code class="docutils literal notranslate"><span class="pre">ComputeOptimisedTimetable</span></code>, <code class="docutils literal notranslate"><span class="pre">Generate_Optimised_Train_Service_Sequence</span></code>, <code class="docutils literal notranslate"><span class="pre">ResetTrainsAccordingToTimetable</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">08105b7</span></code> (#254)</p></td>
 </tr>
 <tr class="row-odd"><td><p>Older delay entry point</p></td>
 <td><p>A second way to run the arrival delay calculation, with the older arrival detector</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">calculateArrivalDelayAllTrainsOldVersion</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">e41b3c3</span></code> (#319)</p></td>
 </tr>
 <tr class="row-even"><td><p>Stochastic dwell and entrance delays</p></td>
 <td><p>Drew dwell times at stations from a Gaussian distribution around the planned dwell time and wrote them to files; read such files back and set the stop time and the dwell disturbance (stop time minus planned dwell time) of each stop; read per-train entrance delays from files and added them to the planned departure at a named station; added a Gaussian error to such entrance delays. Nothing sets the dwell disturbance, so the <code class="docutils literal notranslate"><span class="pre">DwT_Dist</span></code> row and the dwell part of the consecutive delay are always 0</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">drawGaussianTrainDwellTimes</span></code>, <code class="docutils literal notranslate"><span class="pre">Load_And_Set_Stoc_Dwell_Times</span></code>, <code class="docutils literal notranslate"><span class="pre">Load_Departure_Delay_At_Station</span></code>, <code class="docutils literal notranslate"><span class="pre">Load_Entrance_Delay_Disturbed_Scenario</span></code>, <code class="docutils literal notranslate"><span class="pre">Generate_Entrance_Delays_Affected_By_Error</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">e7fad81</span></code> (#510)</p></td>
 </tr>
 <tr class="row-odd"><td><p>Older arrival detectors</p></td>
 <td><p>Took the arrival of a stop from the position samples: the first sample at rest exactly 2 mm short of the station, or the first sample at rest less than 5 mm short of it or beyond it after a sample more than 3 m short of it. The <code class="docutils literal notranslate"><span class="pre">Actual_Arrivals</span></code> functions applied this to the stops of a train</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Arrival_At_Station</span></code>, <code class="docutils literal notranslate"><span class="pre">Arrival_At_Station_NewVersion</span></code>, <code class="docutils literal notranslate"><span class="pre">Actual_Arrivals</span></code>, <code class="docutils literal notranslate"><span class="pre">Actual_Arrivals_NewVersion</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">e7fad81</span></code> (#510: <code class="docutils literal notranslate"><span class="pre">Arrival_At_Station</span></code>, <code class="docutils literal notranslate"><span class="pre">Actual_Arrivals_NewVersion</span></code>), <code class="docutils literal notranslate"><span class="pre">fc3eeb1</span></code> (#585: <code class="docutils literal notranslate"><span class="pre">Arrival_At_Station_NewVersion</span></code>, <code class="docutils literal notranslate"><span class="pre">Actual_Arrivals</span></code>)</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>Of these calculations only the older arrival detector reached a figure: the signed statistics file used it before #585, and it matched few stops, so that file held -1 in many rows (#585). The other calculations were not reached by a run. Both statistics files now take the arrival from the timetable point, as the timetable results do (<a class="reference internal" href="#arrival-and-departure-of-a-call">arrival and departure</a>).</p>
+<p>Of these calculations only the older arrival detector reached a figure: the signed statistics file of earlier versions used it, and it matched few stops, so that file held -1 in many rows. The other calculations were not reached by a run. Both statistics files now take the arrival from the timetable point, as the timetable results do (<a class="reference internal" href="#arrival-and-departure-of-a-call">arrival and departure</a>).</p>
 </section>
 <section id="supported-scope">
 <h2>Supported scope<a class="headerlink" href="#supported-scope" title="Link to this heading">¶</a></h2>

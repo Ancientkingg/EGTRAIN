@@ -1,8 +1,8 @@
 # Tutorial: the smallest useful case
 
-This tutorial builds a complete case from nothing with the editors of EGTRAIN, runs it, saves it as a folder and as a bundle, and opens it again. The case has one track of 2 km, a station at each end and one train that runs from one station to the other.
+This tutorial builds a complete case from nothing with the editors of EGTRAIN, runs it, saves it as a folder and as a case file, and opens it again. The case has one track of 2 km, a station at each end and one train that runs from one station to the other.
 
-You need EGTRAIN running, and you should have done [Getting started](getting-started.md) once. To change a case that already exists, see [Tutorial: modify a bundled case](tutorial-modify-a-case.md). The words case, case folder, bundle and validation are in the [glossary](glossary.md).
+You need EGTRAIN running, and you should have done [Getting started](getting-started.md) once. To change a case that already exists, see [Tutorial: modify a bundled case](tutorial-modify-a-case.md). The words case, case folder, case file and validation are in the [glossary](glossary.md).
 
 ## What the editors do not do
 
@@ -35,17 +35,17 @@ Everything in this part happens in the dock **Infrastructure**; click its tab. T
 1. **Tracks.** Choose **Add**. The track is `track`.
 2. **Nodes.** Choose **Add** three times. The nodes `node`, `node_2` and `node_3` go on the first track, at **X (km)** 0, 1 and 2 and **Y (km)** 0. The proposed positions are the ones you want.
 
-   ![The dock Infrastructure on Nodes of the new case Minimal line, listing node, node_2 and node_3 on track at X 0, 1 and 2 km and Y 0, with no station yet and node_3 selected; the line under the table reads node_3: node on track at 2.000 km. The canvas draws the track with its three nodes and a violet ring around node_3; the status bar reads Cannot run: 9 errors.](../images/tutorial-minimal-nodes.png)
+   ![The dock Infrastructure on Nodes of the new case Minimal line, listing node, node_2 and node_3 on track at X 0, 1 and 2 km and Y 0, with no station yet and node_3 selected; the line under the table reads node_3: node on track at 2.000 km, and the buttons Add and Delete and Add Station... follow. The canvas draws the track with its three nodes and a violet ring around node_3; the status bar reads Cannot run: 9 errors.](../images/tutorial-minimal-nodes.png)
 3. **Arcs.** Choose **Add** twice. The arcs `arc` (from `node` to `node_2`) and `arc_2` (from `node_2` to `node_3`) join the nodes in order. They get a **Curvature radius (m)** of 0, a **Gradient (rise/length)** of 0 and a **Speed limit (m/s)** of 20, which you keep.
 4. **Blocks.** The blocks have a filter above the table that names a track; choose `track`. Choose **Add** twice. The blocks `block` and `block_2` are 1 km long each, so together they cover the 2 km of the track.
 5. **Stations.** Choose **Add** twice. The stations are `station` and `station_2`, and each is named after its identifier.
-6. **Platforms.** Choose **Add** twice. Both platforms (`platform` and `platform_2`) start at the first station. In the second row, set **Station ID** to `station_2`. Then set **Nodes**, a comma-separated list of nodes: `node` for the first row and `node_3` for the second, so that each platform is at the end node of the track. Leave **Length (m)** and **Width (m)** at their proposed values.
+6. **Platforms.** Choose **Add** twice. Both platforms (`platform` and `platform_2`) start at the first station. In the second row, set **Station ID** to `station_2`. Then set the nodes: select the first row, choose **Choose Nodes...**, check `node` in **Platform Nodes** and click **OK**; do the same for the second row with `node_3`, so that each platform is at the end node of the track. Leave **Length (m)** and **Width (m)** at their proposed values.
 
-   ![The dock Infrastructure on Platforms: platform at node in station and platform_2 at node_3 in station_2, each with Length (m) 100 and Width (m) 2.5, platform_2 selected; the line under the table reads platform_2: node node_3 at 2.000 km. The canvas marks node_3 with a violet ring and its platform bar with a violet outline; the status bar reads Cannot run: 3 errors.](../images/tutorial-minimal-platforms.png)
-7. **Signalling area.** Choose **Add**. The area `signalling-area` covers **Start km** 0 to **End km** 2 and applies to all tracks. In the column **Signalling system**, choose `0 ATB fixed block`. An area without a system is an error. Without any area the case still runs, and validation only warns that the sections run without signalling. What the level means is in [Signalling levels](signalling-levels.md), and it is the level that the committed Paimpol case uses.
+   ![The dock Infrastructure on Platforms: platform at node in station and platform_2 at node_3 in station_2, each with Length (m) 100 and Width (m) 2.5, platform_2 selected; the line under the table reads platform_2: node node_3 at 2.000 km, and the buttons Add and Delete and Choose Nodes... follow. The canvas marks node_3 with a violet ring and its platform bar with a violet outline; the status bar reads Cannot run: 3 errors.](../images/tutorial-minimal-platforms.png)
+7. **Signalling area.** Choose **Add**. The area `signalling-area` covers **Start km** 0 to **End km** 2 and applies to all tracks. In the column **Signalling system**, choose `0 ATB fixed block`. An area without a system is an error. Without any area the case still runs, and validation only warns that the sections run without signalling. What the level means is in [Signalling levels](signalling-levels.md), and it is the level that the bundled Paimpol case uses.
 8. **Routes.** Choose **Add**. The route is `route`, and it is selected. Below the table, choose `track 0.000 to 1.000 km` in **Section catalog** and choose **Add Section**; then choose `track 1.000 to 2.000 km` and **Add Section** again. Each entry names a section by its track and the kilometres of its ends; its tooltip gives the section ID, such as `@block@`. The list of sections shows both in this order. Leave **Has corridor** and **Reversed** as they are.
 
-The tables **Connections** (joins between two nodes), **Signals**, **Block dependencies**, **Single-track restrictions** and **Station boundaries** stay empty. A single track needs none of them, and the committed Paimpol case has no signals either. The canvas still draws a pair of signal heads where `block_2` starts, as the picture of step 6 shows: it marks the boundaries between the blocks of a track, whatever the table **Signals** holds.
+The tables **Connections** (joins between two nodes), **Signals**, **Block dependencies**, **Single-track restrictions** and **Station boundaries** stay empty. A single track needs none of them, and the bundled Paimpol case has no signals either. The canvas still draws a pair of signal heads where `block_2` starts, as the picture of step 6 shows: it marks the boundaries between the blocks of a track, whatever the table **Signals** holds.
 
 ## 3. A rolling stock unit
 
@@ -98,21 +98,21 @@ Choose **View > Case Validation** (Ctrl+Shift+V). The table is empty: the case h
 
 Choose **Run**, check the dialog **Run simulation** (**Trains** 1, and no **Incidents** row) and choose its button **Run simulation**. The train leaves `station` and stops at `station_2`. When the status bar reads "Simulation complete", the dock **Run Results** lists the train. In **Open result view... > Timetable**, the arrival at `station_2` should be 8 seconds early: a run of the saved folder without a window, as in section 10, put the arrival at 242 s after the base time in `TrainTrajectories/TimetablePoints.txt` of the output folder, and the plan says 250 s. The number was not read from the window. The row of `station` has no arrival to compare: it has no planned arrival, and the train begins its route there ([how delays are calculated](delay-analysis.md)).
 
-## 8. Save as a folder and as a bundle
+## 8. Save as a folder and as a case file
 
 1. Choose **File > Save As...** and click **Case Folder...**. In the dialog **Save Case As Folder**, make or choose an empty folder `minimal-line` and confirm. The folder holds `scene.json`, `infrastructure.json`, `stations.json`, `signalling.json`, `rolling_stock.json`, `services.json` and `scenarios.json` ([files of a case](scene-schema.md#version-and-files)).
-2. Choose **File > Save As...** again and click **Case File...**. In the dialog **Save Case As**, name the file `minimal-line.egscene` and save it. Type the extension too: the folder `minimal-line` of step 1 has the same name without it, and the dialog can open that folder instead of saving. After this, **File > Save** writes to this bundle.
+2. Choose **File > Save As...** again and click **Case File...**. In the dialog **Save Case As**, name the file `minimal-line.egscene` and save it. Type the extension too: the folder `minimal-line` of step 1 has the same name without it, and the dialog can open that folder instead of saving. After this, **File > Save** writes to this case file.
 
 Both are now listed under **File > Recent Cases**.
 
 ## 9. Reopen and confirm
 
 1. Choose **File > Open Case...**, then **Other ways to open... > Open Case Folder...** in **Open a Case**, choose the folder `minimal-line`, and check the Infrastructure, Services and Rolling Stock Units against the sections above. The title bar reads `EGTRAIN - Minimal line`.
-2. Choose **File > Recent Cases** and the entry `minimal-line` for the bundle (the folder is listed as `Minimal line`). The case is the same, and **Run** completes with the same arrival.
+2. Choose **File > Recent Cases** and the entry `minimal-line` for the case file (the folder is listed as `Minimal line`). The case is the same, and **Run** completes with the same arrival.
 
 ## 10. Check the saved case outside the window
 
-`scene_tool` reads the folder and the bundle ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. In a build from source, run from `EGTRAIN/QEGTRAIN` and use `../../build/scene_tool` and `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` (on Linux `../../build/QEGTRAIN`). With the macOS app and the folder and bundle in the current folder:
+`scene_tool` reads the folder and the case file ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. With the macOS app and the folder and the case file in the current folder:
 
 ```bash
 APP=/Applications/QEGTRAIN.app/Contents/MacOS

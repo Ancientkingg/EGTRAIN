@@ -222,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -317,7 +317,7 @@
 </section>
 <section id="why-did-my-results-disappear-after-an-edit">
 <h2>Why did my results disappear after an edit?<a class="headerlink" href="#why-did-my-results-disappear-after-an-edit" title="Link to this heading">¶</a></h2>
-<p>Results are not part of the case. They hold the run of the case as it was, so any edit of the case discards them, with the replay and the delay baseline. If the status bar still said that the run was complete, it now says <code class="docutils literal notranslate"><span class="pre">Run</span> <span class="pre">results</span> <span class="pre">discarded:</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">changed.</span></code> Selecting another scenario discards the results too, but keeps the baseline. A stopped run leaves no results at all. Run the case again for new results.</p>
+<p>Results are not part of the case. They hold the run of the case as it was, so any edit of the case discards them, with the replay and the delay baseline. If the status bar still said that the run was complete, it now says <code class="docutils literal notranslate"><span class="pre">Run</span> <span class="pre">results</span> <span class="pre">discarded:</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">changed.</span></code>, or <code class="docutils literal notranslate"><span class="pre">Run</span> <span class="pre">results</span> <span class="pre">discarded</span> <span class="pre">and</span> <span class="pre">delay</span> <span class="pre">baseline</span> <span class="pre">cleared:</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">changed.</span></code> when a delay baseline was set Selecting another scenario discards the results too, but keeps the baseline. A stopped run leaves no results at all. Run the case again for new results.</p>
 <p>What a run has already written stays. The result windows that are open keep the run they were opened for, the exports are files of their own, and the text files of the run stay in its output folder until a later run there replaces them. Export what you want to keep before you edit (<a class="reference internal" href="how-to.html#results-and-exports"><span class="std std-ref">Results and exports</span></a>).</p>
 </section>
 <section id="where-does-a-run-write-its-files">

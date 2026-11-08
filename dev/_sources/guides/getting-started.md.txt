@@ -4,7 +4,7 @@ This page takes you from a download to a finished run of the Paimpol case, its r
 
 The steps use the labels of the window. A label such as **Run** is a menu entry or a button, and a name such as `Paimpol` is a case. On macOS the key Ctrl in a shortcut is the Command key, and [Keyboard shortcuts](keyboard-shortcuts.md) lists every shortcut.
 
-This walk was done on macOS. On Linux (an Ubuntu 24.04 desktop in a container, 2026-10-17) the first steps were repeated with the program built from source: opening Paimpol, the dialog **Run simulation**, the run, the results table and the output folder `~/.local/share/EGTRAIN/EGTRAIN/Output/Paimpol` matched this page, with Ctrl as the shortcut key. The AppImage is started and walked through these steps by the Linux rehearsal job of each release run; its install step was not walked by hand. On Windows 11 (the release candidate of 2026-10-17, installed per user) the cases opened and ran as on this page, the dialog **Run simulation** and the results table matched it, and each case that was opened or run had its output folder under `%APPDATA%\EGTRAIN\EGTRAIN\Output`.
+This walk was done on macOS. On Linux (an Ubuntu 24.04 desktop in a container, 2026-10-17) the first steps were repeated with a development build of the program: opening Paimpol, the dialog **Run simulation**, the run, the results table and the output folder `~/.local/share/EGTRAIN/EGTRAIN/Output/Paimpol` matched this page, with Ctrl as the shortcut key. The AppImage is started and walked through these steps by the Linux rehearsal job of each release run; its install step was not walked by hand. On Windows 11 (the release candidate of 2026-10-17, installed per user) the cases opened and ran as on this page, the dialog **Run simulation** and the results table matched it, and each case that was opened or run had its output folder under `%APPDATA%\EGTRAIN\EGTRAIN\Output`.
 
 ## Three things to keep apart
 
@@ -53,7 +53,7 @@ The editors, **Case Validation**, **Loaded Data** and **Log** are hidden when th
 
 EGTRAIN checks the case when it opens, after every edit and before every run. An error stops a run, and a warning does not. Paimpol has no errors. It has a few hundred warnings, nearly all with the code `scene.passenger.legs.empty` (a passenger journey without route-choice legs), and they do not matter for this walk.
 
-To see the findings, choose **View > Case Validation** (Ctrl+Shift+V). The table lists each finding with its **Severity**, **Code**, **Message**, **File**, **Path** and **Fix**; **Code**, **File** and **Path** are in the tooltip of a row and show as columns with **View > Advanced Details**. The status bar names validation only when it finds an error (`Cannot run: 1 error`). **View > Advanced Details** adds the counts, as in `2 warnings`, and the dock **Loaded Data**.
+To see the findings, choose **View > Case Validation** (Ctrl+Shift+V). The table lists each finding with its **Severity**, **Code**, **Message**, **Item**, **File**, **Path** and **Fix**; **Code**, **File** and **Path** are in the tooltip of a row and show as columns with **View > Advanced Details**. The status bar names validation only when it finds an error (`Cannot run: 1 error`). **View > Advanced Details** adds the counts, as in `2 warnings`, and the dock **Loaded Data**.
 
 ## 4. Run the simulation
 
@@ -76,7 +76,7 @@ At the fastest speed the run of Paimpol takes seconds. When it has ended, the st
 
 ## 5. Replay the run
 
-The **Replay** row has the icon buttons **Start**, **Play** and **End**, a slider and a label. The label reads `Replay` until you choose a time, and then the clock time of the shown frame, such as `07:31:10`. Moving the slider or clicking **Start** or **End** shows the network as it was at that time, and **Play** advances one simulated second for each second of real time. The row records one frame every 5 simulated seconds and shows the last frame at or before the chosen time. A run that is too large to keep whole loses its first part, and a line under the controls says which part the row holds. [How-to](how-to.md#replay-a-completed-run) has the details.
+The **Replay** row has the icon buttons **Start**, **Play** and **End**, a slider, a label and a speed box. The label reads `Replay` until you choose a time, and then the clock time that is shown, such as `07:31:10`. Moving the slider or clicking **Start** or **End** shows the network as it was at that second. **Play** plays the run at the speed in the box after the label, 10x at first, and the trains glide while it plays. The replay keeps every second of the run. A run that is too large to keep whole loses its first part, and a line under the controls says which part the row holds. [How-to](how-to.md#replay-a-completed-run) has the details.
 
 ## 6. Read the results
 
@@ -89,7 +89,7 @@ To open a result window, click **Open result view...** in the dock and choose an
 
 The other entries are listed in [View a graph of a run](how-to.md#view-a-graph-of-a-run). The entries stay disabled until a run has ended.
 
-![The window after a completed run of Paimpol / baseline, with the menu Open result view... of the dock Run Results open above its button. It lists twelve views in three groups of four: timetable and delays, speed and distance, and train paths and capacity. Beside and below it are the Replay row, the buttons Open result view..., Export CSV... and Export PNG..., the results table, and at the bottom Set delay baseline and Compare delays.](../images/getting-started-run-results.png)
+![The window after a completed run of Paimpol / baseline, with the menu Open result view... of the dock Run Results open above its button. It lists twelve views in three groups of four: timetable and delays, speed and distance, and train paths and capacity; the views that ask for input end in an ellipsis. Beside and below it are the Replay row with its speed box at 10x, the buttons Open result view..., Export CSV... and Export PNG..., the results table, and at the bottom Set delay baseline and Compare delays.](../images/getting-started-run-results.png)
 
 ## 7. Export one CSV and one PNG
 
@@ -135,6 +135,6 @@ This manual is also in EGTRAIN: **Help > EGTRAIN Manual** opens it with its cont
 
 - [How-to](how-to.md): recipes for opening and saving, running, adding trains and services, changing the infrastructure, incidents, graphs of a run, results and legacy cases.
 - [Common questions](common-questions.md): short answers, such as why **Run** is disabled, where a run writes its files and what to attach to a bug report.
-- [Opening an `.egscene` case](opening-a-case-study.md): bundles, version checks and opening by double-click.
+- [Opening an `.egscene` case](opening-a-case-study.md): case files, version checks and opening by double-click.
 - [Editing and validating a case](editing-a-case.md), [Scenarios and the student loop](scenarios.md) and the [scene schema](scene-schema.md): the editors, the scenarios and the case files.
 - [Glossary](glossary.md).

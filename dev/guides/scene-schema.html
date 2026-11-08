@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="V2 Transparent Scene Bundle" href="scene-bundle.html"><link rel="prev" title="Scenarios and the student loop" href="scenarios.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Case file format" href="scene-bundle.html"><link rel="prev" title="Scenarios and the student loop" href="scenarios.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>V1 Scene Schema Reference - EGTRAIN documentation</title>
@@ -222,7 +222,7 @@
 <li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">Case file format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
@@ -366,10 +366,10 @@ for compatibility and are listed in <a class="reference internal" href="#histori
 <p><code class="docutils literal notranslate"><span class="pre">legacy/</span></code> is not part of the runnable V1 contract. The importer may read a
 legacy case directory, and the exporter may write one when explicitly asked,
 but normal loading and simulation use only the canonical files above.</p>
-<p>For a V2 <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle, <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code> is required; <code class="docutils literal notranslate"><span class="pre">passengers.json</span></code> and
+<p>For a V2 <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case file, <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code> is required; <code class="docutils literal notranslate"><span class="pre">passengers.json</span></code> and
 <code class="docutils literal notranslate"><span class="pre">views.json</span></code> are optional entries. <code class="docutils literal notranslate"><span class="pre">legacy/</span></code>, assets, results, and unknown or
 nested ZIP entries are excluded; see
-<a class="reference internal" href="scene-bundle.html"><span class="std std-doc">V2 Transparent Scene Bundle</span></a>.</p>
+<a class="reference internal" href="scene-bundle.html"><span class="std std-doc">Case file format</span></a>.</p>
 </section>
 <section id="scene-json">
 <h2><code class="docutils literal notranslate"><span class="pre">scene.json</span></code><a class="headerlink" href="#scene-json" title="Link to this heading">¶</a></h2>
@@ -389,7 +389,7 @@ nested ZIP entries are excluded; see
 <code class="docutils literal notranslate"><span class="pre">recovery_time_percent</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">import_report</span></code>: array of conversion rows.</p></li>
 </ul>
-<p>Inside a bundle, <code class="docutils literal notranslate"><span class="pre">format</span></code> is the required string <code class="docutils literal notranslate"><span class="pre">&quot;egscene&quot;</span></code> and
+<p>Inside a case file, <code class="docutils literal notranslate"><span class="pre">format</span></code> is the required string <code class="docutils literal notranslate"><span class="pre">&quot;egscene&quot;</span></code> and
 <code class="docutils literal notranslate"><span class="pre">bundle_version</span></code> is the required integer <code class="docutils literal notranslate"><span class="pre">1</span></code>. They are optional transport
 metadata for case folders and do not change the V1 data schema.</p>
 <p>An <code class="docutils literal notranslate"><span class="pre">import_report</span></code> row has <code class="docutils literal notranslate"><span class="pre">category</span></code>, <code class="docutils literal notranslate"><span class="pre">source_count</span></code>, <code class="docutils literal notranslate"><span class="pre">converted_count</span></code>,
@@ -407,7 +407,7 @@ of <code class="docutils literal notranslate"><span class="pre">scene.json</span
 empty or omitted on input and are emitted by the writer.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">tracks[]</span></code>: <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">&quot;id&quot;:</span> <span class="pre">string</span> <span class="pre">}</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">nodes[]</span></code>: <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">track</span></code>, numeric <code class="docutils literal notranslate"><span class="pre">x_km</span></code>, numeric <code class="docutils literal notranslate"><span class="pre">y_km</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nodes[]</span></code>: <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">track</span></code>, numeric <code class="docutils literal notranslate"><span class="pre">x_km</span></code>, numeric <code class="docutils literal notranslate"><span class="pre">y_km</span></code>. <code class="docutils literal notranslate"><span class="pre">x_km</span></code> is the distance along the track in km (chainage), not a map coordinate. Along every arc, <code class="docutils literal notranslate"><span class="pre">x_km</span></code> must not go down from the <code class="docutils literal notranslate"><span class="pre">from</span></code> node to the <code class="docutils literal notranslate"><span class="pre">to</span></code> node, or validation reports the error <code class="docutils literal notranslate"><span class="pre">scene.topology.order</span></code>. <code class="docutils literal notranslate"><span class="pre">y_km</span></code> is a second coordinate in km. The length of an arc is the straight distance between its two nodes in X and Y, so with <code class="docutils literal notranslate"><span class="pre">y_km</span></code> at 0 it is the difference of <code class="docutils literal notranslate"><span class="pre">x_km</span></code>. <a class="reference internal" href="how-to.html#bring-in-track-geometry-from-gis"><span class="std std-ref">Bring in track geometry from GIS</span></a> shows how to get the values from a map.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">arcs[]</span></code>: <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">track</span></code>, <code class="docutils literal notranslate"><span class="pre">from</span></code>, <code class="docutils literal notranslate"><span class="pre">to</span></code>, numeric <code class="docutils literal notranslate"><span class="pre">curvature_radius_m</span></code>,
 <code class="docutils literal notranslate"><span class="pre">gradient_percent</span></code>, and <code class="docutils literal notranslate"><span class="pre">speed_limit_ms</span></code>. The simulation uses
 <code class="docutils literal notranslate"><span class="pre">gradient_percent</span></code> unchanged as rise per length: <code class="docutils literal notranslate"><span class="pre">0.01</span></code> means a 1% slope.
@@ -592,14 +592,14 @@ display key is <code class="docutils literal notranslate"><span class="pre">serv
 category; the writer omits empty values. The editor offers Intercity, Regional,
 High speed/international, Freight, Metro/urban and Suburban, and preserves
 unknown strings exactly. Category does not affect simulation or inferred train
-display types. Folder and bundle saves preserve it; legacy export omits it
+display types. Case folder and case file saves preserve it; legacy export omits it
 because the old format has no category field.</p>
 <p><code class="docutils literal notranslate"><span class="pre">visualization_color</span></code> is an optional string in schema V1 that sets a display
 colour for the service. The accepted form is <code class="docutils literal notranslate"><span class="pre">#RRGGBB</span></code>, with six hexadecimal
 digits in either case, for example <code class="docutils literal notranslate"><span class="pre">#3C8DD2</span></code>. The loader keeps the text as
 written. It is for display only and does not affect the simulation. The writer
 omits it when unset, so a scene without it is saved unchanged. Folder and
-bundle saves preserve it; legacy export omits it because the old format has
+case file saves preserve it; legacy export omits it because the old format has
 no field for it. Any other non-empty text gives the validation warning
 <code class="docutils literal notranslate"><span class="pre">scene.service.color.invalid</span></code>, and the default train colour is used for that
 service.</p>
@@ -698,7 +698,7 @@ the scenario model to <code class="docutils literal notranslate"><span class="pr
 <section id="standalone-scenario-json">
 <h3>Standalone scenario JSON<a class="headerlink" href="#standalone-scenario-json" title="Link to this heading">¶</a></h3>
 <p>The scenario editor’s import/export boundary is one scenario object, not a
-scene bundle and not the <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code> wrapper:</p>
+case file and not the <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code> wrapper:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">  </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"signal-failure"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Signal failure"</span><span class="p">,</span>
@@ -772,7 +772,7 @@ accepted, unresolved, malformed, and ID-collision rows before the case is saved.
 </section>
 <section id="views-json-and-runtime-metadata">
 <h2><code class="docutils literal notranslate"><span class="pre">views.json</span></code> and runtime metadata<a class="headerlink" href="#views-json-and-runtime-metadata" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">views.json</span></code> is optional display metadata in directories and bundles. It does not change
+<p><code class="docutils literal notranslate"><span class="pre">views.json</span></code> is optional display metadata in case folders and case files. It does not change
 topology, signalling, services, or simulation results:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">  </span><span class="nt">"tracks"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
@@ -807,7 +807,7 @@ file from <code class="docutils literal notranslate"><span class="pre">GUI/caseS
 case or folder name, it also sets <code class="docutils literal notranslate"><span class="pre">double_switch</span></code> on the views of the tracks
 with four nodes, which the original drew as double switches. Legacy export omits
 <code class="docutils literal notranslate"><span class="pre">double_switch</span></code>, because the legacy files have no field for it, and warns.
-Directory saves and V2 bundles preserve the file when present.</p>
+Case folder saves and case files preserve the file when present.</p>
 <p><code class="docutils literal notranslate"><span class="pre">loaded_data</span></code> and <code class="docutils literal notranslate"><span class="pre">sourceFiles</span></code> are derived in-memory metadata; they are
 recomputed when a scene is loaded and are not the source of canonical values.</p>
 </section>
@@ -918,7 +918,7 @@ scenario, and passengers are built directly from <code class="docutils literal n
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">views.json</span></code></p></td>
 <td><p>optional display metadata</p></td>
-<td><p>authored track levels/regions, double switch drawing and station display geometry; preserved in folders and bundles</p></td>
+<td><p>authored track levels/regions, double switch drawing and station display geometry; preserved in case folders and case files</p></td>
 </tr>
 </tbody>
 </table>
@@ -949,27 +949,27 @@ scenario incident   -&gt; signal/block or service target as appropriate
 </section>
 <section id="versions">
 <h2>Versions<a class="headerlink" href="#versions" title="Link to this heading">¶</a></h2>
-<p>Application version, scene schema version, and bundle version are independent.
+<p>Application version, scene schema version, and <code class="docutils literal notranslate"><span class="pre">bundle_version</span></code> are independent.
 The saved-with application version is provenance and does not by itself prompt
 for an upgrade. An upgrade to a copy is offered only for a scene version that
 has a registered migration, and none exists today; when one is offered, the
-original directory or ZIP remains unchanged. Newer schema or bundle versions
+original directory or ZIP remains unchanged. Newer <code class="docutils literal notranslate"><span class="pre">schema_version</span></code> or <code class="docutils literal notranslate"><span class="pre">bundle_version</span></code> values
 require a newer app.</p>
 </section>
-<section id="portable-bundles">
-<h2>Portable bundles<a class="headerlink" href="#portable-bundles" title="Link to this heading">¶</a></h2>
+<section id="case-files">
+<h2>Case files<a class="headerlink" href="#case-files" title="Link to this heading">¶</a></h2>
 <p>An <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file packages the canonical JSON files of a scene in a deterministic ZIP archive.
-The bundle version describes the container; <code class="docutils literal notranslate"><span class="pre">schema_version</span></code> still describes
-the canonical data. Bundles include <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code>, omit generated results
+<code class="docutils literal notranslate"><span class="pre">bundle_version</span></code> describes the container; <code class="docutils literal notranslate"><span class="pre">schema_version</span></code> still describes
+the canonical data. Case files include <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code>, omit generated results
 and legacy input, and do not replace editable case folders.</p>
-<p>Use <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> to pack, inspect, or unpack a bundle:</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> to pack, inspect, or unpack a case file:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./build/scene_tool<span class="w"> </span>pack<span class="w"> </span>path/to/case<span class="w"> </span><span class="k">case</span>.egscene
 ./build/scene_tool<span class="w"> </span>validate<span class="w"> </span><span class="k">case</span>.egscene
 ./build/scene_tool<span class="w"> </span>unpack<span class="w"> </span><span class="k">case</span>.egscene<span class="w"> </span>path/to/unpacked-case
 </pre></div>
 </div>
 <p>See <a class="reference internal" href="opening-a-case-study.html"><span class="std std-doc">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</span></a> for the student
-workflow and <a class="reference internal" href="scene-bundle.html"><span class="std std-doc">Scene bundle format</span></a> for the
+workflow and <a class="reference internal" href="scene-bundle.html"><span class="std std-doc">Case file format</span></a> for the
 entry allowlist and size limits.</p>
 </section>
 <section id="convert-a-legacy-case">
@@ -1402,7 +1402,7 @@ legacy consumers and derived/output families.</p>
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">V2 Transparent Scene Bundle</div>
+                <div class="title">Case file format</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -1470,7 +1470,7 @@ legacy consumers and derived/output families.</p>
 <li><a class="reference internal" href="#case-folder">Case folder</a></li>
 <li><a class="reference internal" href="#links-between-records">Links between records</a></li>
 <li><a class="reference internal" href="#versions">Versions</a></li>
-<li><a class="reference internal" href="#portable-bundles">Portable bundles</a></li>
+<li><a class="reference internal" href="#case-files">Case files</a></li>
 <li><a class="reference internal" href="#convert-a-legacy-case">Convert a legacy case</a></li>
 <li><a class="reference internal" href="#editing-examples">Editing examples</a><ul>
 <li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">scene.json</span></code></a></li>
