@@ -3447,6 +3447,10 @@ void NetworkPresenter::stopTrainAnimation(int train) {
 	m_trainMotions.erase(train);
 }
 
+void NetworkPresenter::setReplayGlideMs(qint64 ms) {
+	m_replayGlideMs = std::max<qint64>(ms, 0);
+}
+
 void NetworkPresenter::stopTrainAnimations() {
 	m_motionTimer.stop();
 	m_trainMotions.clear();
@@ -3483,11 +3487,12 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 				m_trainBadges[train]->hide();
 			// update train position
 			if (!state.outOfSimulation && (!replay || hasPosition)) {
-				// A live train goes on from where it is drawn now, unless it was placed otherwise, has another route,
-				// direction or shape, runs backwards, or has jumped further than the visible view since the last update.
+				// A live train, and a replay train while Play glides, goes on from where it is drawn now, unless it was
+				// placed otherwise, has another route, direction or shape, runs backwards, or has jumped further than
+				// the visible view since the last update.
 				const auto found = m_trainMotions.find(train);
 				const TrainMotion* last = found == m_trainMotions.end() ? nullptr : &found->second;
-				bool moves = !replay && last && last->newest.routeIndex == state.routeIndex
+				bool moves = (!replay || m_replayGlideMs > 0) && last && last->newest.routeIndex == state.routeIndex
 					&& last->newest.reversedDirection == state.reversedDirection && last->newest.wagonCount == state.wagonCount
 					&& last->newest.length == state.length && state.routeAxisPosition >= last->newest.routeAxisPosition - 1e-6;
 				if (moves) {
@@ -3514,7 +3519,7 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 				if (moves && state.routeAxisPosition == motion.newest.routeAxisPosition)
 					startGlide(motion, state, motion.fromMs, motion.fromHead, motion.toMs - motion.fromMs);
 				else
-					startGlide(motion, state, from, drawnHead, moves ? glideDurationMs() : 0);
+					startGlide(motion, state, from, drawnHead, moves ? (replay ? m_replayGlideMs : glideDurationMs()) : 0);
 				motion.drawnMs = std::numeric_limits<qint64>::min();
 				const bool hasVisibleGeometry = drawTrain(*trainItem, motion, drawnHead);
 				checkVCouplingMsg(trainItem, state, snapshot, t);
@@ -3560,7 +3565,7 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 				followedTrainMoved = true;
 		}
 	}
-	if (!replay && trainsMoving() && !m_motionTimer.isActive())
+	if ((!replay || m_replayGlideMs > 0) && trainsMoving() && !m_motionTimer.isActive())
 		m_motionTimer.start();
 	m_host->trainsApplied(legendNeedsUpdate, followedTrainMoved);
 }

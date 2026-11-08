@@ -322,6 +322,7 @@ private:
 	QLabel* m_replayCoverageLabel = nullptr;
 	QPushButton* m_replayStartButton = nullptr;
 	QPushButton* m_replayPlayButton = nullptr;
+	QComboBox* m_replaySpeedCombo = nullptr;
 	QTimer* m_replayTimer = nullptr;
 	bool m_replayActive = false;
 	int m_replayRequestedTime = 0;
@@ -547,6 +548,7 @@ private:
 	void showReplayBar();
 	bool writeReplayText(std::optional<int> shownTime);
 	void seekReplay(int requestedTime);
+	void showReplaySecond(int requestedTime, int glideMs);
 	void renderSnapshot(bool historical);
 	bool replayTrainHasPosition(int trainIndex) const;
 

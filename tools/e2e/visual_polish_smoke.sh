@@ -87,8 +87,9 @@ FOLLOW_REPLAY_MARKERS=(
 	E2E_FOLLOW_REPLAY_BEFORE_OK E2E_FOLLOW_REPLAY_DURING_OK E2E_FOLLOW_CAMERA_REPLAY_OK E2E_FOLLOW_REPLAY_LAYER_OK
 	E2E_FOLLOW_SELECT_ON_OK E2E_FOLLOW_REPLAY_AFTER_OK E2E_FOLLOW_SELECT_OK E2E_FOLLOW_RESET_OK
 )
-# The replay row of the Assignment run: the whole run, a history that dropped its first part and one that kept no frame.
-REPLAY_ROW_MARKERS=(E2E_REPLAY_ROW_WHOLE_OK E2E_REPLAY_ROW_DROPPED_OK E2E_REPLAY_ROW_UNAVAILABLE_OK)
+# The replay row of the Assignment run: the whole run, a history that dropped its first part and one that kept no frame,
+# and the playback with its speeds, the glide over a step and the seek that places the trains at once.
+REPLAY_ROW_MARKERS=(E2E_REPLAY_ROW_WHOLE_OK E2E_REPLAY_ROW_DROPPED_OK E2E_REPLAY_ROW_UNAVAILABLE_OK E2E_REPLAY_PLAY_OK)
 require_markers() {
 	local log="$1" marker
 	shift

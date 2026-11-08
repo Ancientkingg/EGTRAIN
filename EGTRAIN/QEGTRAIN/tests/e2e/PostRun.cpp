@@ -102,8 +102,10 @@
 #include <cstdio>
 #include <functional>
 #include <initializer_list>
+#include <iterator>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <utility>
@@ -882,6 +884,12 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		QCoreApplication::exit(2);
 		return;
 	}
+	QString playProblem;
+	if (!checkReplayPlay(w, middle, playProblem)) {
+		std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: replay play, %s\n", qPrintable(playProblem));
+		QCoreApplication::exit(2);
+		return;
+	}
 	w.m_replaySlider->setValue(middle);
 	const auto expected = w.m_completedReplay.at(middle);
 	const auto analyticsUnchanged = [&w, &completedResults, &completedTimetable]() {
@@ -1136,7 +1144,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		std::fprintf(stdout, "E2E_FOLLOW_REPLAY_DURING_OK\n");
 		std::fflush(stdout);
 
-		// A seek and a step of the playback cut to the train: the view is on the train at once and no glide
+		// A seek and a step of the playback cut to the train: the view is on the train at once and no catch-up
 		// runs, also when the user has panned the view away from the train.
 		panViewAway(w.networkView);
 		const QPointF cameraPanned = viewCentre();
@@ -1151,6 +1159,24 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			&& viewOnTrain(followedIndex);
 		if (!seekCut || !stepCut)
 			return fail("a seek or a step of the playback did not cut to the train");
+		// While the replay plays, the train glides to its next place and the view stays on it at every motion step. The
+		// step runs on a clock of the check, so that half of its glide can be reached.
+		w.seekReplay(enterTime + 2 * kReplayStepSeconds);
+		const auto stepClock = std::make_shared<qint64>(1000);
+		w.m_presenter->setClock([stepClock]() { return *stepClock; });
+		panViewAway(w.networkView);
+		w.m_replayTimer->start();
+		const bool glideDelivered = QMetaObject::invokeMethod(w.m_replayTimer, "timeout");
+		w.m_replayTimer->stop();
+		const bool stepGlides = glideDelivered && w.m_presenter->trainMoving(followedIndex);
+		*stepClock += replayPlaybackStep(kDefaultReplaySpeed).intervalMs / 2;
+		w.m_presenter->stepTrains();
+		const TrainItemGroup* glidingItem = w.resolveTrainItem(followedIndex);
+		const bool glideFollowed = glidingItem && !w.m_followCamera->running()
+			&& pixelsBetween(viewCentre(), glidingItem->sceneBoundingRect().center()) <= 2.0;
+		w.m_presenter->setClock({});
+		if (!stepGlides || !glideFollowed)
+			return fail("the view did not stay on the train as it glides during the playback");
 		std::fprintf(stdout, "E2E_FOLLOW_CAMERA_REPLAY_OK\n");
 		std::fflush(stdout);
 
@@ -1642,6 +1668,157 @@ QSize MainWindowTestAccess::replayRowSizeAt(MainWindow& w, int time) {
 	return QSize(w.m_replaySlider->width(), w.m_replayBar->height());
 }
 
+// Checks the playback of the replay on a clock of the check: a train that runs glides over one step of Play, is drawn
+// between its two places half way and on the second at the end of the step, a seek during Play places every train at once
+// and stops every glide, and the speed sets the interval and the seconds of a step. The window shows the frame at the
+// middle again at the end, with Play stopped, the real clock and the default speed.
+bool MainWindowTestAccess::checkReplayPlay(MainWindow& w, int middle, QString& failure) {
+	const int first = w.m_completedReplay.firstTime();
+	const int last = w.m_completedReplay.lastTime();
+	const auto fail = [&failure](const QString& why) {
+		failure = why;
+		return false;
+	};
+	w.fitView();
+	// Where the head of the first body of the train is drawn; nothing while that body has no shape.
+	const auto head = [&w](int train) -> std::optional<QPointF> {
+		const TrainItemGroup* item = w.resolveTrainItem(train);
+		if (!item || !item->isVisible() || !item->trainPolygonItemList || item->trainPolygonItemList->isEmpty())
+			return std::nullopt;
+		const TrainBodyItem* body = item->trainPolygonItemList->first();
+		if (!body || body->polygon().isEmpty())
+			return std::nullopt;
+		return body->mapToScene(body->polygon().first());
+	};
+	const auto distance = [](const QPointF& from, const QPointF& to) { return QLineF(from, to).length(); };
+	// A train that runs forward on the same route at t0 and at t0 + 1, drawn in both with a head, and drawn somewhere else
+	// at t0 + 50, which is where a seek during Play has to put it.
+	struct Candidate {
+		int train = -1;
+		int time = -1;
+		int farTime = -1;
+		QPointF a, b, c;
+	} found;
+	for (int offset = 0; offset < last - first && found.train < 0; ++offset) {
+		const int t0 = first + (middle - first + offset) % (last - first);
+		const auto now = w.m_completedReplay.at(t0);
+		const auto next = w.m_completedReplay.at(t0 + 1);
+		if (!now || !next)
+			continue;
+		for (const GuiTrainState& state : now->trains) {
+			const auto later = std::find_if(next->trains.cbegin(), next->trains.cend(),
+				[&state](const GuiTrainState& each) { return each.index == state.index; });
+			if (later == next->trains.cend() || state.outOfSimulation || later->outOfSimulation || !guiReplayTrainHasPosition(state, t0)
+				|| !guiReplayTrainHasPosition(*later, t0 + 1) || state.routeIndex != later->routeIndex
+				|| state.reversedDirection != later->reversedDirection || state.wagonCount != later->wagonCount
+				|| later->routeAxisPosition <= state.routeAxisPosition + 1.0)
+				continue;
+			const int farTime = qMin(t0 + 50, last);
+			w.seekReplay(t0);
+			const auto a = head(state.index);
+			w.seekReplay(t0 + 1);
+			const auto b = head(state.index);
+			w.seekReplay(farTime);
+			const auto c = head(state.index);
+			if (a && b && c && distance(*a, *b) > 1e-6 && distance(*b, *c) > 1e-6) {
+				found = {state.index, t0, farTime, *a, *b, *c};
+				break;
+			}
+		}
+	}
+	if (found.train < 0)
+		return fail(QStringLiteral("no train runs between two seconds with a drawn head"));
+	QComboBox* speedBox = w.m_replaySpeedCombo;
+	const auto chooseSpeed = [speedBox](int speed) { speedBox->setCurrentIndex(speedBox->findData(speed)); };
+	if (!speedBox->isEnabled() || speedBox->currentData().toInt() != kDefaultReplaySpeed || speedBox->count() != static_cast<int>(std::size(kReplaySpeeds))
+		|| speedBox->accessibleName() != QStringLiteral("Replay speed") || speedBox->objectName() != QStringLiteral("completedReplaySpeed")
+		|| speedBox->itemText(0) != QStringLiteral("1x") || speedBox->itemText(speedBox->count() - 1) != QStringLiteral("60x"))
+		return fail(QStringLiteral("the speed box shows '%1' with %2 choices").arg(speedBox->currentText()).arg(speedBox->count()));
+	const auto clock = std::make_shared<qint64>(1000);
+	w.m_presenter->setClock([clock]() { return *clock; });
+	const auto restore = [&w, chooseSpeed, middle]() {
+		w.m_presenter->setClock({});
+		chooseSpeed(kDefaultReplaySpeed);
+		w.seekReplay(middle);
+	};
+	// Runs the steps of the trains for ms milliseconds of the clock of the check.
+	const auto advance = [&w, clock](int ms) {
+		*clock += ms;
+		w.m_presenter->stepTrains();
+	};
+	chooseSpeed(10);
+	const int interval = replayPlaybackStep(10).intervalMs;
+	if (w.m_replayTimer->interval() != interval)
+		return fail(QStringLiteral("the timer runs every %1 ms at 10x").arg(w.m_replayTimer->interval()));
+	// One step of Play from t0: the requested time moves on and the train glides.
+	w.seekReplay(found.time);
+	w.m_replayPlayButton->click();
+	const bool stepDelivered = QMetaObject::invokeMethod(w.m_replayTimer, "timeout");
+	const bool gliding = stepDelivered && w.m_replayRequestedTime == found.time + 1 && w.m_presenter->trainMoving(found.train);
+	if (!gliding) {
+		const QString why = QStringLiteral("a step of Play did not start a glide (delivered %1, requested %2, expected %3, moving %4)")
+								.arg(stepDelivered)
+								.arg(w.m_replayRequestedTime)
+								.arg(found.time + 1)
+								.arg(w.m_presenter->trainMoving(found.train));
+		w.m_replayPlayButton->click();
+		restore();
+		return fail(why);
+	}
+	// Half way through the interval the head is drawn between its two places, and at its end on the second one.
+	advance(interval / 2);
+	const auto half = head(found.train);
+	const bool between = half && distance(found.a, *half) > 1e-6 && distance(*half, found.b) > 1e-6
+		&& distance(found.a, *half) < distance(found.a, found.b) && distance(*half, found.b) < distance(found.a, found.b);
+	advance(interval / 2);
+	const auto end = head(found.train);
+	const bool arrived = end && distance(*end, found.b) < 1e-6;
+	if (!between || !arrived) {
+		w.m_replayPlayButton->click();
+		restore();
+		return fail(QStringLiteral("the train did not glide between its two places (half way %1, at the end %2)")
+				.arg(between ? QStringLiteral("between") : QStringLiteral("not between"), arrived ? QStringLiteral("on the place") : QStringLiteral("off the place")));
+	}
+	// A seek during Play stops every glide and puts the train at its place at once. The next step starts a new glide.
+	w.m_replayTimer->stop();
+	w.m_replayPlayButton->click();
+	w.seekReplay(found.time);
+	QMetaObject::invokeMethod(w.m_replayTimer, "timeout");
+	advance(interval / 4);
+	w.m_replaySlider->setValue(found.farTime);
+	const auto seekedTo = head(found.train);
+	const bool placed = w.m_replayTimer->isActive() && !w.m_presenter->trainsMoving() && seekedTo && distance(*seekedTo, found.c) < 1e-6
+		&& w.m_replayRequestedTime == found.farTime;
+	advance(interval);
+	const auto stays = head(found.train);
+	w.m_replayPlayButton->click();
+	if (!placed || !stays || distance(*stays, found.c) > 1e-6) {
+		restore();
+		return fail(QStringLiteral("a seek during Play did not place the train at its place at once (placed %1)").arg(placed));
+	}
+	// At 60x a step comes every 100 ms and moves on by 6 seconds.
+	chooseSpeed(60);
+	const ReplayPlaybackStep fast = replayPlaybackStep(60);
+	// Far enough from the end that the step is not cut short.
+	w.seekReplay(qMin(found.time, last - fast.seconds - 1));
+	w.m_replayPlayButton->click();
+	const int started = w.m_replayRequestedTime;
+	const bool fastDelivered = QMetaObject::invokeMethod(w.m_replayTimer, "timeout");
+	const int fastInterval = w.m_replayTimer->interval();
+	const int fastRequested = w.m_replayRequestedTime;
+	const bool fastStep = w.m_replayTimer->interval() == 100 && fast.intervalMs == 100 && fastDelivered && w.m_replayRequestedTime == started + 6;
+	// A change of the speed while Play runs changes the interval.
+	chooseSpeed(2);
+	const bool changedWhilePlaying = w.m_replayTimer->isActive() && w.m_replayTimer->interval() == replayPlaybackStep(2).intervalMs;
+	w.m_replayPlayButton->click();
+	restore();
+	if (!fastStep || !changedWhilePlaying || w.m_replayTimer->isActive())
+		return fail(QStringLiteral("at 60x the timer runs every %1 ms and a step moved the replay from %2 to %3 s").arg(fastInterval).arg(started).arg(fastRequested));
+	std::fprintf(stdout, "E2E_REPLAY_PLAY_OK train=%d from=%d seek=%d\n", found.train, found.time, found.farTime);
+	std::fflush(stdout);
+	return true;
+}
+
 // Checks the replay row of the finished run: the row of the whole run, and the row for a history
 // that dropped its first part and for one that kept no second. Those histories are built here, the
 // first from the seconds of the run with a budget that is a byte short of all of them, and go through the
@@ -1752,7 +1929,7 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 		QApplication::processEvents();
 		focused = QApplication::focusWidget();
 	}
-	const QList<QWidget*> replayRow{w.m_replayStartButton, w.m_replayPlayButton, endButton, w.m_replaySlider};
+	const QList<QWidget*> replayRow{w.m_replayStartButton, w.m_replayPlayButton, endButton, w.m_replaySlider, w.m_replaySpeedCombo};
 	const QList<QWidget*> results{w.findChild<QWidget*>("runResultsViewsButton"), w.findChild<QWidget*>("resultView_ExportCSV"),
 		w.findChild<QWidget*>("resultView_ExportPNG"), w.m_runResultsPanel->table()};
 	const int views = order.indexOf(results.first());

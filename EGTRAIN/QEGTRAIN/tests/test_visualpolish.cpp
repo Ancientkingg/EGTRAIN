@@ -1,3 +1,7 @@
+// SceneModel.h comes before any Qt header, which defines signals as a keyword.
+#include "scene/SceneModel.h"
+
+#include "app/MainWindowSupport.h"
 #include "graphics/VisualPolish.h"
 
 #include <QGuiApplication>
@@ -15,8 +19,10 @@
 #include <QTest>
 
 #include <cmath>
+#include <iterator>
 #include <tuple>
 #include <utility>
+#include <vector>
 
 static QByteArray renderStrokeMask(int width, Qt::PenStyle style) {
 	QImage image(96, 20, QImage::Format_ARGB32_Premultiplied);
@@ -189,6 +195,7 @@ class TestVisualPolish : public QObject {
 
 private slots:
 	void trackSpeedClasses();
+	void replayPlaybackSteps();
 	void trackStateUnderlays();
 	void signalAspects();
 	void trainKindsAndIcons();
@@ -907,6 +914,22 @@ void TestVisualPolish::canvasHeads() {
 	// On a screen of device pixel ratio 2 a proceed head has the hairline from 3 logical pixels, 6 device pixels.
 	QVERIFY(renderCanvasHead(180, false, 3.0, 2.0) == hairlineLamp(3.0, 2.0));
 	QVERIFY(renderCanvasHead(180, false, 2.9, 2.0) != hairlineLamp(2.9, 2.0));
+}
+
+// Play steps once a second up to 2x, every 100 ms from 10x, and never updates more than ten times a second. A step
+// moves on by the seconds that make up the speed.
+void TestVisualPolish::replayPlaybackSteps() {
+	const std::vector<std::pair<int, int>> expected = {{1, 1000}, {1, 500}, {1, 200}, {1, 100}, {3, 100}, {6, 100}};
+	QCOMPARE(std::size(kReplaySpeeds), expected.size());
+	QCOMPARE(kDefaultReplaySpeed, 10);
+	for (std::size_t i = 0; i < expected.size(); ++i) {
+		const int speed = kReplaySpeeds[i];
+		const ReplayPlaybackStep step = replayPlaybackStep(speed);
+		QCOMPARE(step.seconds, expected[i].first);
+		QCOMPARE(step.intervalMs, expected[i].second);
+		QCOMPARE(step.seconds * 1000 / step.intervalMs, speed);
+		QCOMPARE_GE(step.intervalMs, 100);
+	}
 }
 
 // The test paints without widgets, as the network view does, on the offscreen platform also outside CTest. QTEST_MAIN

@@ -132,6 +132,7 @@ private:
 	static void checkOperationalCompletion(MainWindow& w);
 	static bool checkReplayWholeRun(MainWindow& w, int middle, QString& failure);
 	static bool checkReplayRow(MainWindow& w, int middle, QString& failure);
+	static bool checkReplayPlay(MainWindow& w, int middle, QString& failure);
 	static bool replaySliderCovers(const MainWindow& w, int from, int to);
 	static QSize replayRowSizeAt(MainWindow& w, int time);
 #ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE

@@ -760,6 +760,8 @@ private slots:
 	void enteringTrainGlidesOnward();
 	void glideStartsAtSectionEnd();
 	void steadyRhythmGivesEvenSpeed();
+	void replayPlayGlidesOverStep();
+	void replaySeekPlacesAtOnce();
 	void irregularGapsNeverMoveTrainBack();
 	void longGapDoesNotSlowGlides();
 	void updateLeavesGlidingTrainInPlace();
@@ -1977,6 +1979,88 @@ void TestRuntimeCanvas::steadyRhythmGivesEvenSpeed() {
 	QVERIFY(!steps.empty());
 	QCOMPARE_GT(*smallest, 0.0);
 	QCOMPARE_LE(*largest, 1.25 * *smallest);
+}
+
+// A step of Play, with a replay glide above 0, moves the train from where it is drawn to its next place over that time. A
+// replay frame is delivered as the window does for a step of Play.
+void TestRuntimeCanvas::replayPlayGlidesOverStep() {
+	MotionFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	const auto deliver = [&f](double headKm) {
+		f.snapshot.timestep += 1;
+		f.snapshot.trains = {trainAt(headKm)};
+		f.presenter.apply(f.snapshot, NetworkPresenter::Playback::Replay);
+	};
+	const auto stepTo = [&f](qint64 at) {
+		f.now = at;
+		f.presenter.stepTrains();
+	};
+	presenter.setReplayGlideMs(200);
+	deliver(1.0);
+	// The first frame draws the train where it is.
+	const double from = f.drawnHead();
+	QVERIFY(!presenter.trainMoving(0));
+	deliver(1.04);
+	const qint64 start = f.now;
+	// The next second starts a glide, which draws nothing yet.
+	QVERIFY(presenter.trainMoving(0));
+	QVERIFY(near(f.drawnHead(), from));
+	stepTo(start + 100);
+	const double half = f.drawnHead();
+	QVERIFY(presenter.trainMoving(0));
+	QCOMPARE_GT(half, from + 1e-6);
+	stepTo(start + 200);
+	const double to = f.drawnHead();
+	QCOMPARE_GT(to, half + 1e-6);
+	QVERIFY(near(half, from + (to - from) / 2.0));
+	QVERIFY(!presenter.trainMoving(0));
+	QVERIFY(near(to, from + 40.0));
+
+	// A step that comes while the glide still runs, as the timer can fire early, goes on from where the train is drawn:
+	// the head never moves back and reaches the new place when that step's glide ends.
+	deliver(1.08);
+	const qint64 second = f.now;
+	stepTo(second + 100);
+	double previous = f.drawnHead();
+	deliver(1.12);
+	const qint64 third = f.now;
+	QCOMPARE_GE(f.drawnHead(), previous - 1e-6);
+	bool onward = true;
+	for (qint64 at = third + 10; at <= third + 200; at += 10) {
+		stepTo(at);
+		onward &= f.drawnHead() >= previous - 1e-6;
+		previous = f.drawnHead();
+	}
+	QVERIFY(onward);
+	QVERIFY(!presenter.trainMoving(0));
+	QVERIFY(near(f.drawnHead(), from + 120.0));
+}
+
+// A seek places the train at its new place at once, with no glide to run, also after a glide has started.
+void TestRuntimeCanvas::replaySeekPlacesAtOnce() {
+	MotionFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	const auto deliver = [&f](double headKm) {
+		f.snapshot.timestep += 1;
+		f.snapshot.trains = {trainAt(headKm)};
+		f.presenter.apply(f.snapshot, NetworkPresenter::Playback::Replay);
+	};
+	presenter.setReplayGlideMs(200);
+	deliver(1.0);
+	deliver(1.04);
+	QVERIFY(presenter.trainMoving(0));
+	const double from = f.drawnHead();
+	// The window stops the glides and gives a seek a glide of 0.
+	presenter.stopTrainAnimations();
+	presenter.setReplayGlideMs(0);
+	deliver(1.5);
+	QVERIFY(!presenter.trainMoving(0));
+	const double placed = f.drawnHead();
+	QVERIFY(near(placed, from + 500.0));
+	f.now += 300;
+	presenter.stepTrains();
+	QVERIFY(!presenter.trainMoving(0));
+	QVERIFY(near(f.drawnHead(), placed));
 }
 
 // With irregular gaps between the updates the drawn middle never moves back.
