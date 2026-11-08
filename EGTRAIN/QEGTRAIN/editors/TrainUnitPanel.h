@@ -2,6 +2,7 @@
 #define TRAINUNITPANEL_H
 
 #include "editors/SceneEditorPanel.h"
+#include "widgets/EditorLayout.h"
 
 #include <QString>
 
@@ -23,7 +24,7 @@ class QTableWidget;
 /// the wagon resistance; no unit is stated), jerk (m/s³) and length (m). A traction curve row holds the lower and upper
 /// speed of its band in m/s and the coefficients c0, c1 and c2 of the tractive effort c0 + c1 v + c2 v² in N, with v in
 /// m/s.
-class TrainUnitPanel : public SceneEditorPanel {
+class TrainUnitPanel : public SceneEditorPanel, public EditorLayout::PreferredWidth {
 	Q_OBJECT
 
 public:
@@ -32,6 +33,10 @@ public:
 
 	/// Makes the widgets, empty until a loaded document is set.
 	explicit TrainUnitPanel(QWidget* parent = nullptr);
+
+	/// The width of the panel with every column of the traction table in view, which a dock opens with. The panel works in a
+	/// narrower dock, where the table scrolls sideways.
+	int preferredWidth() const override { return sizeHint().width(); }
 
 	/// Lists the units again and shows the selected one.
 	void refresh() override;
