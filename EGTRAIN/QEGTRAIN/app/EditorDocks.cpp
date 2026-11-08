@@ -137,7 +137,6 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	// The signal also comes when the tab of the dock comes to the front of its group or goes behind another one.
 	QObject::connect(m_infrastructureDock, &QDockWidget::visibilityChanged, m_window,
 		[this](bool visible) { m_host.infrastructureDockShown(visible); });
-	m_host.refreshInfrastructurePanel(false);
 
 	m_trainUnitDock = new QDockWidget("Rolling Stock Units", m_window);
 	m_trainUnitDock->setObjectName("trainUnitDock");
@@ -278,7 +277,6 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	m_incidentDock->setWidget(incidentWidget);
 	m_window->addDockWidget(Qt::RightDockWidgetArea, m_incidentDock);
 	m_incidentDock->hide();
-	m_incidentDock->setEnabled(false);
 	m_trainUnitDock->hide();
 	m_window->tabifyDockWidget(m_serviceDock, m_incidentDock);
 	m_host.registerEditorDock(m_incidentDock);
@@ -358,6 +356,9 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 		QObject::connect(
 			dock, &QDockWidget::topLevelChanged, m_window, [dock](bool floating) { fitFloatingDock(dock, floating); });
 	}
+	// A run disables the widget of a dock, which is its scroll area only after the loop above, so these two wait for it.
+	m_host.refreshInfrastructurePanel(false);
+	m_incidentDock->widget()->setEnabled(false);
 	m_window->addDockWidget(Qt::RightDockWidgetArea, m_passengerDock);
 	m_passengerDock->hide();
 	m_window->tabifyDockWidget(m_serviceDock, m_passengerDock);
@@ -376,7 +377,7 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 		return QFileDialog::getExistingDirectory(m_window, "Select Legacy Passenger Folder", startDir);
 	});
 	m_passengerPanel->setDocument(m_document);
-	m_passengerDock->setEnabled(false);
+	m_passengerDock->widget()->setEnabled(false);
 	QObject::connect(m_passengerPanel, &PassengerPanel::changed, m_window, [this] { m_host.refreshValidationPanel(); });
 
 	m_servicePanel->setPrompts(prompts);
@@ -397,7 +398,7 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	QObject::connect(m_servicePanel, &ServicePanel::changed, m_window, [this] { m_host.refreshValidationPanel(); });
 	m_servicePanel->setDocument(m_document);
 	m_timetableStopsPanel->setDocument(m_document);
-	m_serviceDock->setEnabled(false);
+	m_serviceDock->widget()->setEnabled(false);
 	m_panels = {m_caseSettingsPanel, m_trainUnitPanel, m_infrastructurePanel, m_passengerPanel, m_compositionPanel,
 		m_servicePanel, m_timetableStopsPanel, m_scenarioPanel, m_incidentPanel, m_entranceDelayPanel};
 	for (SceneEditorPanel* panel : m_panels)

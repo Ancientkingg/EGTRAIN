@@ -5988,9 +5988,13 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		w.redoScene();
 		expect(!w.m_undoAction->isEnabled() && !w.m_redoAction->isEnabled() && w.m_document->revision() == revision,
 			"Undo or Redo worked while a run used the scene");
-		expect(!serviceDock(w)->isEnabled() && !passengerDock(w)->isEnabled() && !infrastructureDock(w)->isEnabled()
-				&& !incidentDock(w)->isEnabled(),
+		expect(!serviceDock(w)->widget()->isEnabled() && !passengerDock(w)->widget()->isEnabled()
+				&& !infrastructureDock(w)->widget()->isEnabled() && !incidentDock(w)->widget()->isEnabled(),
 			"an editor that cannot edit during a run stayed enabled");
+		// The title bar keeps its Close and Float buttons: only the contents are disabled.
+		expect(serviceDock(w)->isEnabled() && passengerDock(w)->isEnabled() && infrastructureDock(w)->isEnabled()
+				&& incidentDock(w)->isEnabled(),
+			"a run disabled the title bar of an editor dock");
 		expect(caseSettingsDock(w)->isEnabled() && trainUnitDock(w)->isEnabled() && compositionDock(w)->isEnabled(),
 			"an editor that stays open during a run was disabled");
 		// The menu and the inspector of a signal say why they add no incident while the run goes.
