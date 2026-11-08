@@ -2,6 +2,9 @@
 
 #include <QAbstractButton>
 #include <QApplication>
+#include <QDialogButtonBox>
+#include <QLineEdit>
+#include <QListWidget>
 #include <QEventLoop>
 #include <QFontMetrics>
 #include <QInputDialog>
@@ -13,6 +16,7 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -59,6 +63,7 @@ private slots:
 	void returnsChosenItem();
 	void choiceFitsTitleWithinScreen();
 	void returnsTypedText();
+	void chooseItemsDialog();
 };
 
 void TestUserPrompts::suppressedErrorIsLoggedWithoutDialog() {
@@ -245,6 +250,67 @@ void TestUserPrompts::choiceFitsTitleWithinScreen() {
 	// The choice with a title wider than the screen is as wide as the screen.
 	QCOMPARE(shown, 1);
 	QCOMPARE(width, screenWidth);
+}
+
+// The list dialog shows the entries, keeps a disabled entry unchecked, filters by words, returns the checked ids in list
+// order and returns nothing on Cancel.
+void TestUserPrompts::chooseItemsDialog() {
+	UserPrompts prompts([] { return true; });
+	const std::vector<UserPrompts::ListChoice> choices = {
+		{"node-a0 (track-a, 0.000 km)", "node-a0", true},
+		{"node-a1 (track-a, 1.000 km): Beta", "node-a1", false},
+		{"node-b0 (track-b, 2.000 km)", "node-b0", true},
+	};
+	QStringList shownLabels;
+	QList<bool> hidden;
+	bool offCannotBeChecked = false;
+	bool filterHides = false;
+	bool filterAnyCase = false;
+	bool okIsDefault = false;
+	QStringList buttonTexts;
+	int shown = 0;
+	auto answering = answerDialog<QDialog>(shown, [&](QDialog* dialog) {
+		auto* list = dialog->findChild<QListWidget*>("chooseItemsList");
+		auto* filter = dialog->findChild<QLineEdit*>("chooseItemsFilter");
+		auto* box = dialog->findChild<QDialogButtonBox*>();
+		for (int row = 0; row < list->count(); ++row)
+			shownLabels << list->item(row)->text();
+		offCannotBeChecked = !(list->item(1)->flags() & Qt::ItemIsEnabled);
+		okIsDefault = box->button(QDialogButtonBox::Ok)->isDefault();
+		for (const QAbstractButton* button : box->buttons())
+			buttonTexts << button->text();
+		filter->setText("TRACK-B 2.0");
+		for (int row = 0; row < list->count(); ++row)
+			hidden << list->item(row)->isHidden();
+		filter->clear();
+		filterHides = hidden == QList<bool>({true, true, false});
+		filter->setText("track-a");
+		filterAnyCase = !list->item(0)->isHidden() && !list->item(1)->isHidden() && list->item(2)->isHidden();
+		filter->clear();
+		list->item(2)->setCheckState(Qt::Checked);
+		list->item(0)->setCheckState(Qt::Checked);
+		dialog->accept();
+	});
+	const std::optional<QStringList> chosen = prompts.chooseItems(nullptr, "Platform Nodes", "Context.", choices, {"node-a1"});
+	// It asks also in a suppressed run, and returns the checked ids in the order of the list, a disabled one included.
+	QCOMPARE(shown, 1);
+	QVERIFY(chosen.has_value());
+	QCOMPARE(*chosen, QStringList({"node-a0", "node-a1", "node-b0"}));
+	QCOMPARE(shownLabels, QStringList({"node-a0 (track-a, 0.000 km)", "node-a1 (track-a, 1.000 km): Beta", "node-b0 (track-b, 2.000 km)"}));
+	QVERIFY2(offCannotBeChecked, "a disabled entry is not enabled in the list");
+	QVERIFY2(filterHides, "the filter hides the entries that lack a word");
+	QVERIFY2(filterAnyCase, "the filter ignores case");
+	QVERIFY2(okIsDefault, "OK is the default button");
+	QCOMPARE(buttonTexts.size(), 2);
+	QVERIFY(buttonTexts.contains("OK") && buttonTexts.contains("Cancel"));
+
+	answering = answerDialog<QDialog>(shown, [](QDialog* dialog) {
+		dialog->findChild<QListWidget*>("chooseItemsList")->item(0)->setCheckState(Qt::Checked);
+		dialog->reject();
+	});
+	// Cancel returns nothing.
+	QVERIFY(!prompts.chooseItems(nullptr, "Platform Nodes", "Context.", choices, {}).has_value());
+	QCOMPARE(shown, 1);
 }
 
 QTEST_MAIN(TestUserPrompts)

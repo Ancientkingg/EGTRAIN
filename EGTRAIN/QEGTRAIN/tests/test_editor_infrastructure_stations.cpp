@@ -3,6 +3,7 @@
 
 #include "scene/SectionInventory.h"
 
+#include "support/EditHistory.h"
 #include "support/FakePrompts.h"
 
 #include <QApplication>
@@ -125,6 +126,40 @@ static SceneModel stationScene() {
 	return scene;
 }
 
+// The stations scene with two more nodes on a second track, in front of the others, and a third station without platforms
+// at the second track's first node. The first platform lists node-a1 and node-a2, and the platform of the second station
+// lists node-a0.
+static SceneModel pickerScene() {
+	SceneModel scene = stationScene();
+	scene.tracks.push_back({"track-b"});
+	scene.nodes.insert(scene.nodes.begin(), node("node-b0", "track-b", 0.5));
+	scene.nodes.push_back(node("node-b1", "track-b", 3.0));
+	scene.stations[0].platforms[0].nodeIds = {"node-a1", "node-a2"};
+	scene.stations[1].platforms[0].nodeIds = {"node-a0"};
+	SceneStation third;
+	third.id = "station-3";
+	third.name = "Gamma";
+	third.hasPosition = true;
+	third.positionKm = 0.5;
+	scene.stations.push_back(third);
+	return scene;
+}
+
+// The ids that a list of choices offers, and their labels and flags.
+static QStringList labelsOf(const std::vector<UserPrompts::ListChoice>& choices) {
+	QStringList result;
+	for (const UserPrompts::ListChoice& choice : choices)
+		result << choice.label;
+	return result;
+}
+
+static QList<bool> enabledOf(const std::vector<UserPrompts::ListChoice>& choices) {
+	QList<bool> result;
+	for (const UserPrompts::ListChoice& choice : choices)
+		result << choice.enabled;
+	return result;
+}
+
 using Log = std::vector<std::string>;
 
 // A panel with the facets of the stations, over a document that holds the scene. The events are the order in which the
@@ -219,6 +254,12 @@ private slots:
 	void listsPlatforms();
 	void editsPlatforms();
 	void refusesUnknownPlatformNodes();
+	void choosesPlatformNodes();
+	void undoRestoresPlatformNodes();
+	void cancelOrSameListChangesNothing();
+	void missingNodeCanBeRemoved();
+	void nodeCellOpensPicker();
+	void pickerStaysClosedWhileSceneLocked();
 	void movesPlatforms();
 	void editsPlatformSize();
 	void addsAndDeletesPlatforms();
@@ -470,6 +511,126 @@ void TestStationFacets::refusesUnknownPlatformNodes() {
 	// A node that the scene has is taken.
 	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-a2"}));
 	QVERIFY(f.changedOnce("Edit platform"));
+}
+
+// The picker offers the nodes in the order that keeps a platform near its own tracks, turns off the nodes of other platforms
+// and stations, and one choice is one edit that keeps the old nodes in their order and puts the new ones last.
+void TestStationFacets::choosesPlatformNodes() {
+	Fixture f(pickerScene());
+	f.choose("platforms");
+	f.select(0);
+	QPushButton* button = f.panel.taskButton(0);
+	QVERIFY(button);
+	QCOMPARE(button->objectName(), "choosePlatformNodesButton");
+	QCOMPARE(button->text(), "Choose Nodes...");
+	QCOMPARE(button->toolTip(), "Chooses the nodes of the selected platform from a list.");
+	QVERIFY(button->isEnabled());
+	f.prompts.chosenItems = QStringList({"node-a2", "node-b0", "node-b1"});
+	button->click();
+	QCOMPARE(f.prompts.itemsCount, 1);
+	QCOMPARE(f.prompts.itemsTitle, "Platform Nodes");
+	QCOMPARE(f.prompts.itemsContext, "Nodes of platform 'platform-1' of station 'Alpha'.");
+	// The nodes of the tracks of the station come first, in model order, then the other nodes.
+	QCOMPARE(labelsOf(f.prompts.offeredChoices),
+		QStringList({"node-a0 (track-a, 0.000 km): Beta", "node-a1 (track-a, 1.000 km)", "node-a2 (track-a, 2.000 km)",
+			"node-b0 (track-b, 0.500 km): Gamma", "node-b1 (track-b, 3.000 km)"}));
+	// A node of another platform or station is off.
+	QCOMPARE(enabledOf(f.prompts.offeredChoices), QList<bool>({false, true, true, false, true}));
+	QCOMPARE(f.prompts.offeredChecked, QStringList({"node-a1", "node-a2"}));
+	// node-a1 is gone, node-a2 stays, and the node that is new comes after it.
+	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-a2", "node-b0", "node-b1"}));
+	QVERIFY(f.changedOnce("Edit platform"));
+	QCOMPARE(f.cell(0, 3), "node-a2, node-b0, node-b1");
+	QCOMPARE(f.panel.selectionId(), "station-1\nplatform-1");
+	QCOMPARE(f.table()->currentRow(), 0);
+	// The other platforms are as they were.
+	QCOMPARE(f.model().stations[1].platforms[0].nodeIds, std::vector<std::string>({"node-a0"}));
+}
+
+// One Undo puts the nodes of the platform back.
+void TestStationFacets::undoRestoresPlatformNodes() {
+	Fixture f(pickerScene());
+	RunSelection selection;
+	EditHistory history(f.document, selection, f.panel);
+	f.choose("platforms");
+	f.select(0);
+	f.prompts.chosenItems = QStringList({"node-b1"});
+	f.panel.taskButton(0)->click();
+	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-b1"}));
+	QVERIFY(history.undo());
+	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-a1", "node-a2"}));
+	QVERIFY(!history.undo());
+}
+
+// Cancel and a list that holds the same nodes change nothing, whatever the order of the answer.
+void TestStationFacets::cancelOrSameListChangesNothing() {
+	Fixture f(pickerScene());
+	f.choose("platforms");
+	f.select(0);
+	f.prompts.chosenItems = std::nullopt;
+	f.panel.taskButton(0)->click();
+	QCOMPARE(f.prompts.itemsCount, 1);
+	QVERIFY(f.untouched());
+	f.prompts.chosenItems = QStringList({"node-a1", "node-a2"});
+	f.panel.taskButton(0)->click();
+	QCOMPARE(f.prompts.itemsCount, 2);
+	QVERIFY(f.untouched());
+	f.prompts.chosenItems = QStringList({"node-a2", "node-a1"});
+	f.panel.taskButton(0)->click();
+	QCOMPARE(f.prompts.itemsCount, 3);
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-a1", "node-a2"}));
+}
+
+// A node that the scene does not have is offered first, checked, and unchecking it removes it.
+void TestStationFacets::missingNodeCanBeRemoved() {
+	SceneModel scene = pickerScene();
+	scene.stations[0].platforms[0].nodeIds = {"node-a1", "node-x"};
+	Fixture f(std::move(scene));
+	f.choose("platforms");
+	f.select(0);
+	f.prompts.chosenItems = QStringList({"node-a1"});
+	f.panel.taskButton(0)->click();
+	QVERIFY(!f.prompts.offeredChoices.empty());
+	QCOMPARE(f.prompts.offeredChoices.front().label, "node-x (missing)");
+	QCOMPARE(f.prompts.offeredChoices.front().id, "node-x");
+	QVERIFY(f.prompts.offeredChoices.front().enabled);
+	QCOMPARE(f.prompts.offeredChecked, QStringList({"node-a1", "node-x"}));
+	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-a1"}));
+	QVERIFY(f.changedOnce("Edit platform"));
+}
+
+// The Nodes cell cannot be typed into, and activating it opens the picker. Another cell does not.
+void TestStationFacets::nodeCellOpensPicker() {
+	Fixture f(pickerScene());
+	f.choose("platforms");
+	f.select(0);
+	QVERIFY(!(f.table()->item(0, 3)->flags() & Qt::ItemIsEditable));
+	QCOMPARE(f.cell(0, 3), "node-a1, node-a2");
+	f.prompts.chosenItems = std::nullopt;
+	emit f.table()->cellActivated(0, 2);
+	QTest::qWait(50);
+	QCOMPARE(f.prompts.itemsCount, 0);
+	emit f.table()->cellActivated(0, 3);
+	QTRY_COMPARE(f.prompts.itemsCount, 1);
+}
+
+// While a run uses the scene, neither the action nor the Nodes cell opens the picker, and nothing changes.
+void TestStationFacets::pickerStaysClosedWhileSceneLocked() {
+	Fixture f(pickerScene());
+	f.choose("platforms");
+	f.select(0);
+	f.document.setEditable(false);
+	f.panel.refresh();
+	const quint64 revision = f.document.revision();
+	f.prompts.chosenItems = QStringList({"node-b1"});
+	f.panel.runTaskAction(0);
+	emit f.table()->cellActivated(0, 3);
+	QTest::qWait(50);
+	QCOMPARE(f.prompts.itemsCount, 0);
+	QCOMPARE(f.document.revision(), revision);
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().stations[0].platforms[0].nodeIds, std::vector<std::string>({"node-a1", "node-a2"}));
 }
 
 void TestStationFacets::movesPlatforms() {

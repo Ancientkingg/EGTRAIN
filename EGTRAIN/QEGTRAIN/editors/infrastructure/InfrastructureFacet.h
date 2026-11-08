@@ -119,6 +119,10 @@ public:
 	/// for edits, a row is selected and `index` is in range, after taking the cells that are being edited. The default does
 	/// nothing.
 	virtual void runTaskAction(InfrastructurePanel&, int /*index*/) {}
+	/// The cell in `row` and `column` was activated, which is a double click on a cell that cannot be edited, and Return on
+	/// Windows and Linux. The panel calls it from the event loop, only while the scene is open for edits. The default does
+	/// nothing.
+	virtual void activateCell(InfrastructurePanel&, int /*row*/, int /*column*/) {}
 
 protected:
 	/// What came of the text of an edited cell.
