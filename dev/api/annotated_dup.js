@@ -203,6 +203,7 @@ var annotated_dup =
     [ "ReleaseAsset", "struct_release_asset.html", "struct_release_asset" ],
     [ "ReplayBarText", "struct_replay_bar_text.html", "struct_replay_bar_text" ],
     [ "ReplayCoverage", "struct_replay_coverage.html", "struct_replay_coverage" ],
+    [ "ReplayPlaybackStep", "struct_replay_playback_step.html", "struct_replay_playback_step" ],
     [ "ReportBuilder", "struct_report_builder.html", "struct_report_builder" ],
     [ "ResultFigure", "class_result_figure.html", "class_result_figure" ],
     [ "ResultFrame", "class_result_frame.html", "class_result_frame" ],

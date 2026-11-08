@@ -328,6 +328,7 @@ var hierarchy =
     [ "ReleaseAsset", "struct_release_asset.html", null ],
     [ "ReplayBarText", "struct_replay_bar_text.html", null ],
     [ "ReplayCoverage", "struct_replay_coverage.html", null ],
+    [ "ReplayPlaybackStep", "struct_replay_playback_step.html", null ],
     [ "ReportBuilder", "struct_report_builder.html", null ],
     [ "ResultViewEntry", "struct_result_view_entry.html", null ],
     [ "telemetry::RetryState", "structtelemetry_1_1_retry_state.html", null ],

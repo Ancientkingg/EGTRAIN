@@ -527,6 +527,17 @@ moves. The text below the controls does not depend on the selected time, so the
 row keeps its height while the user seeks. A replay seek explicitly restores
 historical operational overlays; normal completion does not. Future or exited
 trains do not appear on layer toggles or drive Follow station emphasis.</p>
+<p>Play steps through the run at the speed of the box after the label, 1x, 2x, 5x, 10x (the
+default), 30x or 60x simulated seconds per second of real time. <code class="docutils literal notranslate"><span class="pre">replayPlaybackStep</span></code> turns
+the speed into a step: one second every 1000, 500, 200 or
+100 ms up to 10x, then 3 seconds every 100 ms at 30x and 6 seconds every 100 ms at 60x, so
+the replay is never shown more than ten times a second. Over the interval of a step the
+trains that run glide from where they are drawn to their places of the new second, with the
+rules of a live run (<code class="docutils literal notranslate"><span class="pre">NetworkPresenter::setReplayGlideMs</span></code>); the window sets the glide only
+around the render of a step. A seek by the slider, the keys, the wheel, Start or End, also
+while the replay plays, stops every glide and places every train at once. The speed is kept
+for the session and not saved. <code class="docutils literal notranslate"><span class="pre">E2E_REPLAY_PLAY_OK</span></code> checks the glide with the clock of the
+presenter, the seek during Play and the steps at 60x.</p>
 <p>The history (<code class="docutils literal notranslate"><span class="pre">app/GuiReplayHistory</span></code>) records every simulated second of the run, as
 changes. What is the same for the whole run (identity, route and direction and
 capacity of each train, the section and direction of each signal, section ids,
@@ -782,7 +793,7 @@ tests that can run side by side, and <code class="docutils literal notranslate">
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_replay</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">completion</span></code></p></td>
-<td><p>The Assignment run to its end: the replay row and the Follow checks of the replay</p></td>
+<td><p>The Assignment run to its end: the replay row, the playback (speeds, glide over a step, seek during Play) and the Follow checks of the replay</p></td>
 </tr>
 <tr class="row-even"><td><p></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">replay</span></code></p></td>

@@ -61,6 +61,7 @@ var class_network_presenter =
     [ "setHighlight", "class_network_presenter.html#a0b94382f29ca785e950df6dcd378360e", null ],
     [ "setInspectedSignal", "class_network_presenter.html#af85347f74c4d5c2b3d3f8fb9eaf0ebf5", null ],
     [ "setPassengerLayerVisible", "class_network_presenter.html#a568863837afc5a45a5158f4adccbbad0", null ],
+    [ "setReplayGlideMs", "class_network_presenter.html#ae15037fc4c8932e8ee55318c49948552", null ],
     [ "setSelectionMarkShown", "class_network_presenter.html#a80a4a029ea8229e21fa70b7c68989b7b", null ],
     [ "setSignalLayerVisible", "class_network_presenter.html#a912f19b1376d3157ec793bb3735c71df", null ],
     [ "setStationLayerVisible", "class_network_presenter.html#a0941684bdd89ac48b9a4594375056fd2", null ],

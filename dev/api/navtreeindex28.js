@@ -1,5 +1,12 @@
 var NAVTREEINDEX28 =
 {
+"structtelemetry_1_1_retry_state.html#ade9a4bb92f1c902a47e1bdd47977a09f":[1,0,14,5,0],
+"structtelemetry_1_1_retry_state.html#ade9a4bb92f1c902a47e1bdd47977a09f":[2,0,3,5,0],
+"structtelemetry_1_1_telemetry_event.html":[1,0,14,8],
+"structtelemetry_1_1_telemetry_event.html":[2,0,3,8],
+"structtelemetry_1_1_telemetry_event.html#a08f9a5a8db7b372fc41df8b53d955d17":[1,0,14,8,1],
+"structtelemetry_1_1_telemetry_event.html#a08f9a5a8db7b372fc41df8b53d955d17":[2,0,3,8,1],
+"structtelemetry_1_1_telemetry_event.html#a2212f54ed2e4207eb6cdfb608c5089b2":[1,0,14,8,0],
 "structtelemetry_1_1_telemetry_event.html#a2212f54ed2e4207eb6cdfb608c5089b2":[2,0,3,8,0],
 "structtelemetry_1_1_telemetry_event.html#a87aa297e492168f6b53555b5cc081db6":[1,0,14,8,2],
 "structtelemetry_1_1_telemetry_event.html#a87aa297e492168f6b53555b5cc081db6":[2,0,3,8,2],

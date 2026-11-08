@@ -39,7 +39,7 @@ var searchData=
   ['secondconnectionkm_36',['secondConnectionKm',['../struct_scene_section_descriptor.html#a7c6f8c7d1c4b718ccc0900b58e250380',1,'SceneSectionDescriptor']]],
   ['secondnodeid_37',['secondNodeId',['../struct_track_preview_connection.html#aed367d808e0995502820f807e383c8f4',1,'TrackPreviewConnection']]],
   ['secondrouteindex_38',['secondRouteIndex',['../struct_area_capacity_scope.html#a1d3a7bf67f309a250924283b99d7e990',1,'AreaCapacityScope']]],
-  ['seconds_39',['seconds',['../struct_route_diagram_point.html#a328c6b6a6bf922eb908927cf0121b54a',1,'RouteDiagramPoint']]],
+  ['seconds_39',['seconds',['../struct_replay_playback_step.html#a9c6576f8ba8479871caa7a9ab9dc088a',1,'ReplayPlaybackStep::seconds'],['../struct_route_diagram_point.html#a328c6b6a6bf922eb908927cf0121b54a',1,'RouteDiagramPoint::seconds']]],
   ['secondsectionindices_40',['secondSectionIndices',['../struct_area_capacity_scope.html#afd32b2bac279d93a9e02a74e931f562a',1,'AreaCapacityScope']]],
   ['secondtrackid_41',['secondTrackId',['../struct_scene_section_descriptor.html#a115043fcd58093ab5e1513bbbd2043b9',1,'SceneSectionDescriptor::secondTrackId'],['../struct_track_preview_connection.html#a4e76fc13a6de29abd246e0f9e41fa7ad',1,'TrackPreviewConnection::secondTrackId']]],
   ['section_42',['section',['../struct_train_1_1_braking_arc_cursor.html#a7ed5b43360f8a5af4d9792b51a2f44c4',1,'Train::BrakingArcCursor::section'],['../struct_train_1_1_backward_braking_arc_cursor.html#a54de44a95ac9cadef7186db3636d0713',1,'Train::BackwardBrakingArcCursor::section']]],

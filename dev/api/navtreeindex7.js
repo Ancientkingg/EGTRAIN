@@ -1,5 +1,8 @@
 var NAVTREEINDEX7 =
 {
+"_trajectory_util_8h.html#aca18c471979da03136d004ac005bad56":[3,0,11,13,7],
+"_trajectory_util_8h.html#af8648524d51980f35011c12928a9f4b8":[3,0,11,13,5],
+"_trajectory_util_8h.html#afe4ec1b3791e49b8d8c64a911abe693d":[3,0,11,13,2],
 "_update_checker_8cpp.html":[3,0,10,8],
 "_update_checker_8h.html":[3,0,10,9],
 "_update_helper_8cpp.html":[3,0,10,10],
@@ -246,8 +249,5 @@ var NAVTREEINDEX7 =
 "class_blocking_time_list.html#a94e3494688b93a8f56a42bb079e64548":[2,0,22,1],
 "class_blocking_times.html":[2,0,25],
 "class_blocking_times.html#a0057cb9bafe1aa081240a3b8788e6948":[2,0,25,27],
-"class_blocking_times.html#a010028f117123821a25dd11d5692a558":[2,0,25,1],
-"class_blocking_times.html#a01799d78ee51239dab161d293747718e":[2,0,25,7],
-"class_blocking_times.html#a0303feb346ba7af9d8ff8c52233638b6":[2,0,25,29],
-"class_blocking_times.html#a037fa676364687bad4e039da201c47c6":[2,0,25,19]
+"class_blocking_times.html#a010028f117123821a25dd11d5692a558":[2,0,25,1]
 };
