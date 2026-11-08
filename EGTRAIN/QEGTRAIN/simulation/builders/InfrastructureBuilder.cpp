@@ -776,6 +776,7 @@ NativeRuntimeNodes nativeBuildRuntimeTracks(SimulationRun& run, const SceneModel
 			const SceneArc& source = *track.chainArcs[index];
 			Arc arc;
 			arc.ID = static_cast<double>(index);
+			arc.sceneArcId = source.id;
 			arc.startNode = runtimeTrack.N[index];
 			arc.endNode = runtimeTrack.N[index + 1];
 			arc.curvature = source.curvatureRadiusM;

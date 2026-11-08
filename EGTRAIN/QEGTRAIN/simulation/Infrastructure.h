@@ -115,7 +115,8 @@ public:
 /// A directed piece of track between two nodes.
 class Arc {
 public:
-	double ID; ///< Index of the arc along its track.
+	std::string sceneArcId; ///< Scene arc identity, when built from a SceneModel; empty otherwise.
+	double ID;				///< Index of the arc along its track.
 	/// Node at the start of the arc.
 	Node startNode, endNode; ///< Node at the end of the arc.
 	/// Length of the arc. Metres for the arcs of a track (arcLength). The arcs of a section hold the difference of the X of

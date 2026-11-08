@@ -3084,6 +3084,9 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 			return;
 		}
 		const double nodeId = station->node->ID;
+		const QString copyId = station->node->sceneNodeId.empty()
+			? QString::number(nodeId, 'g', std::numeric_limits<double>::max_digits10)
+			: QString::fromStdString(station->node->sceneNodeId);
 		const int track = station->track;
 		menu->setTitle("Station");
 		QAction* details = menu->addAction("Show details");
@@ -3098,10 +3101,9 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 				centerSceneItem(current);
 		});
 		QAction* copy = menu->addAction("Copy node ID");
-		connect(copy, &QAction::triggered, this, [this, nodeId, track]() {
+		connect(copy, &QAction::triggered, this, [this, nodeId, track, copyId]() {
 			if (resolveStationNodeItem(nodeId, track) && QApplication::clipboard())
-				QApplication::clipboard()->setText(QString::number(nodeId, 'g',
-					std::numeric_limits<double>::max_digits10));
+				QApplication::clipboard()->setText(copyId);
 		});
 		openMenu();
 		return;
@@ -3113,6 +3115,9 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 			return;
 		}
 		const double arcId = arc->arc->ID;
+		const QString copyId = arc->arc->sceneArcId.empty()
+			? QString::number(arcId, 'g', std::numeric_limits<double>::max_digits10)
+			: QString::fromStdString(arc->arc->sceneArcId);
 		const int track = arc->track;
 		menu->setTitle("Track");
 		QAction* details = menu->addAction("Show details");
@@ -3126,10 +3131,9 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 				centerSceneItem(current);
 		});
 		QAction* copy = menu->addAction("Copy arc ID");
-		connect(copy, &QAction::triggered, this, [this, arcId, track]() {
+		connect(copy, &QAction::triggered, this, [this, arcId, track, copyId]() {
 			if (resolveArcItem(arcId, track) && QApplication::clipboard())
-				QApplication::clipboard()->setText(QString::number(arcId, 'g',
-					std::numeric_limits<double>::max_digits10));
+				QApplication::clipboard()->setText(copyId);
 		});
 		openMenu();
 		return;

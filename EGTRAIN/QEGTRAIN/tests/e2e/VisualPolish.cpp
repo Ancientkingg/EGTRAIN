@@ -1789,11 +1789,12 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		QAction* copy = findMenuAction(menu, "Copy node ID");
 		if (copy) {
 			copy->trigger();
-			const QString expectedNodeId = QString::number(stationItem->node->ID, 'g',
-				std::numeric_limits<double>::max_digits10);
+			const QString expectedNodeId = stationItem->node->sceneNodeId.empty()
+				? QString::number(stationItem->node->ID, 'g', std::numeric_limits<double>::max_digits10)
+				: QString::fromStdString(stationItem->node->sceneNodeId);
 			if (!QApplication::clipboard() || QApplication::clipboard()->text() != expectedNodeId) {
 				ok = false;
-				failures << "station context copy action did not preserve node precision";
+				failures << "station context copy action did not copy the scene node id";
 			}
 		}
 		checkNoPlaceholder(menu, "Filtered station arrivals and departures");
@@ -1834,11 +1835,12 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		QAction* copy = findMenuAction(trackMenu, "Copy arc ID");
 		if (copy) {
 			copy->trigger();
-			const QString expectedArcId = QString::number(contextArc->arc->ID, 'g',
-				std::numeric_limits<double>::max_digits10);
+			const QString expectedArcId = contextArc->arc->sceneArcId.empty()
+				? QString::number(contextArc->arc->ID, 'g', std::numeric_limits<double>::max_digits10)
+				: QString::fromStdString(contextArc->arc->sceneArcId);
 			if (!QApplication::clipboard() || QApplication::clipboard()->text() != expectedArcId) {
 				ok = false;
-				failures << "track context copy action did not preserve arc precision";
+				failures << "track context copy action did not copy the scene arc id";
 			}
 		}
 		checkNoPlaceholder(trackMenu, "Trains currently using this track");

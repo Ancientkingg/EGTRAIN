@@ -226,6 +226,7 @@ private slots:
 	void namesPreviewStation();
 	void clearsPreviewInspection();
 	void showsRunNode();
+	void showsRunArcIds();
 	void showsRunStation();
 	void showsAndFollowsTrain();
 	void showsRunSignal();
@@ -410,6 +411,7 @@ void TestInspectorPanel::showsRunNode() {
 	f.showRun();
 	NodeItem runNode(QRectF(0.0, 0.0, 4.0, 4.0));
 	Node runData;
+	runData.sceneNodeId = "n1";
 	runData.ID = 7;
 	runData.X = 1.5;
 	runData.Y = 2.25;
@@ -417,21 +419,44 @@ void TestInspectorPanel::showsRunNode() {
 	runNode.track = 2;
 	f.scene.addItem(&runNode);
 	f.panel.displayNodeInfo(&runNode);
-	// A node of a run is shown with its position in metres.
-	QCOMPARE(f.panel.dock()->windowTitle(), "Node 7");
-	QCOMPARE(text(f.panel, "Node"), "7");
-	QCOMPARE(text(f.panel, "Y (m)"), "2250.00");
+	// A node of a run is shown with its id in the scene and its position in metres, as in the preview.
+	QCOMPARE(f.panel.dock()->windowTitle(), "Node n1");
+	QCOMPARE(text(f.panel, "Node"), "n1");
+	QCOMPARE(text(f.panel, "X (m)"), "1500");
+	QCOMPARE(text(f.panel, "Y (m)"), "2250");
 	// A node of a run has no placeholder of the preview.
 	QVERIFY(placeholder(f.panel, "Region").isEmpty());
 	// A node of a run names its track by its id in the scene, with its number in the tooltip.
 	QCOMPARE(text(f.panel, "Track"), "B10");
 	QCOMPARE(tip(f.panel, "Track"), "B10\nTrack number: 2");
 	// The other fields keep their text as tooltip.
-	QCOMPARE(tip(f.panel, "Y (m)"), "2250.00");
+	QCOMPARE(tip(f.panel, "Y (m)"), "2250");
 	QVERIFY2(f.panel.previewSelectionKind().isEmpty(), "an item of a run is no selected item of the preview");
 	f.panel.clearPreviewInspection();
 	// The fields of a run stay when the canvas shows no preview.
-	QCOMPARE(text(f.panel, "Node"), "7");
+	QCOMPARE(text(f.panel, "Node"), "n1");
+}
+
+// An arc of a run shows the ids of the arc and its nodes in the scene, as the preview does.
+void TestInspectorPanel::showsRunArcIds() {
+	PanelFixture f;
+	f.showRun();
+	Arc arcData;
+	arcData.sceneArcId = "a1";
+	arcData.ID = 3;
+	arcData.startNode.sceneNodeId = "n1";
+	arcData.startNode.ID = 1000001;
+	arcData.endNode.sceneNodeId = "n2";
+	arcData.endNode.ID = 1000002;
+	TrackLineItem runArc(QLineF(0.0, 0.0, 4.0, 0.0));
+	runArc.arc = &arcData;
+	runArc.track = 2;
+	f.scene.addItem(&runArc);
+	f.panel.displayArcInfo(&runArc);
+	QCOMPARE(f.panel.dock()->windowTitle(), "Arc a1");
+	QCOMPARE(text(f.panel, "Arc"), "a1");
+	QCOMPARE(text(f.panel, "From node"), "n1");
+	QCOMPARE(text(f.panel, "To node"), "n2");
 }
 
 void TestInspectorPanel::showsRunStation() {
