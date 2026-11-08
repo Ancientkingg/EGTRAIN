@@ -18,7 +18,7 @@ Both choices send the application version, the platform and the processor archit
 - a case opened, as a bundled `.egscene` file or a local folder;
 - an editor opened;
 - a run started, completed or failed, with its duration in one of five ranges: under 1 s, 1 s to 10 s, 10 s to 1 minute, 1 to 10 minutes, or 10 minutes or more;
-- an export completed or failed, with its kind: scene bundle, legacy, CSV or PNG.
+- an export completed or failed, with its kind: case file, legacy, CSV or PNG.
 
 Usage events carry a random installation ID. It counts installations that take part, not people. It is made when you switch usage statistics on, and removed when you switch them off; switching them on again makes a new one.
 

@@ -4,7 +4,7 @@ This tutorial changes a copy of the bundled case Paimpol and follows the change 
 
 You need EGTRAIN running with the case Paimpol available, and you should have done [Getting started](getting-started.md) once, so that opening a case, running it and reading the Run Results are familiar. The words case, scenario and baseline are in the [glossary](glossary.md). The steps take the Paimpol timetable as it is committed and use the labels of the current program.
 
-Save the bundled case under a new name with **File > Save As...** before you change anything, and never save into the bundled case. The bundled cases of an installed copy are protected: **File > Save** on one of them asks for a new bundle name instead of writing. A case folder anywhere else is not protected, for example the `Scenes` folder of a source checkout, where **Save** writes into the committed files.
+Save the bundled case under a new name with **File > Save As...** before you change anything, and never save into the bundled case. The bundled cases of an installed copy are protected: **File > Save** on one of them asks for a new case file name instead of writing. A case folder anywhere else is not protected, for example the `Scenes` folder of a source checkout, where **Save** writes into the committed files.
 
 ## 1. Open Paimpol and save a working copy
 
@@ -45,7 +45,7 @@ A dwell longer than the window between the planned arrival and departure is allo
 
 ## 4. Validate
 
-Choose **View > Case Validation** (Ctrl+Shift+V). The columns are **Severity**, **Message** and **Fix**, and the tooltip of a row names its **Code**, **File** and **Path**. Paimpol opens with no errors and 371 warnings: 369 passenger journeys without route-choice legs and 2 final blocks that are clipped. `scene_tool validate --runnable` counts them in the same way. Your edit adds one warning:
+Choose **View > Case Validation** (Ctrl+Shift+V). The columns are **Severity**, **Message**, **Item** and **Fix**, and the tooltip of a row names its **Code**, **File** and **Path**. Paimpol opens with no errors and 371 warnings: 369 passenger journeys without route-choice legs and 2 final blocks that are clipped. `scene_tool validate --runnable` counts them in the same way. Your edit adds one warning:
 
 - Code `scene.dwell.exceeds_window`, message "Minimum dwell is longer than the time from arrival to departure", path `services[Guin-Paim-EXPRESS-1].stops[1].dwell_seconds`.
 
@@ -120,7 +120,7 @@ Results are the Run Results table, the result windows opened from it and the rep
 
 ## Check the copy outside the window
 
-The saved bundle is an ordinary case ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. In a build from source, run from `EGTRAIN/QEGTRAIN` and use `../../build/scene_tool` and `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` (on Linux `../../build/QEGTRAIN`). With the macOS app and the bundle in the current folder:
+The saved case file is an ordinary case ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. In a build from source, run from `EGTRAIN/QEGTRAIN` and use `../../build/scene_tool` and `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` (on Linux `../../build/QEGTRAIN`). With the macOS app and the case file in the current folder:
 
 ```bash
 APP=/Applications/QEGTRAIN.app/Contents/MacOS

@@ -4,16 +4,16 @@ This guide says what the delay figures of EGTRAIN mean: the formula, the unit, t
 
 ## What this guide covers
 
-A run produces delay figures in four places. The Delay analysis window (Diagrams > Delay analysis and Run Results > Open result view > Delay analysis) shows the first and the third of them. The figures of the four places are not the same quantity: they start from different arrivals, count different populations and use different thresholds.
+A run produces delay figures in four places. The Delay analysis window (Diagrams > Delay analysis and Run Results > Open result view... > Delay analysis) shows the first and the third of them. The figures of the four places are not the same quantity: they start from different arrivals, count different populations and use different thresholds.
 
 | Place | Where to find it |
 | --- | --- |
-| Timetable results | Diagrams > Timetable and Run Results > Open result view > Timetable; Diagrams > Delays... and Run Results > Open result view > Delays (a chart); the file `timetable.csv` from the **CSV...** button of both windows; the tabs Calls, Summary and Punctuality of the Delay analysis window and the files `delay_analysis.csv` and `delay_histogram.csv` from its **CSV...** button |
+| Timetable results | Diagrams > Timetable and Run Results > Open result view... > Timetable; Diagrams > Delays... and Run Results > Open result view... > Delays... (a chart); the file `timetable.csv` from the **CSV...** button of both windows; the tabs Calls, Summary and Punctuality of the Delay analysis window and the files `delay_analysis.csv` and `delay_histogram.csv` from its **CSV...** button |
 | Station statistics | `Stats_Stations.txt` and `Pos&Neg_Stats_Stations.txt` in the `TrainTrajectories` folder of the run output |
 | Baseline comparison | The buttons **Set delay baseline** and **Compare delays** in the Run Results dock, the tab Against baseline of the Delay analysis window and the file `delay_comparison.csv` from its **CSV...** button |
 | Passenger journey delay | `JourneyDelays.txt` in the `PassengerStatus` folder of the run output |
 
-The Timetable graph (Run Results > Open result view > Timetable graph) draws the planned and the simulated times whose difference the timetable results report. It shows no delay figure and is not a fifth place.
+The Timetable graph (Run Results > Open result view... > Timetable graph...) draws the planned and the simulated times whose difference the timetable results report. It shows no delay figure and is not a fifth place.
 
 ## Definitions
 

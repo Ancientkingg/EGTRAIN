@@ -10,7 +10,7 @@ When **Run** is enabled but a message refuses the run, the message names the pro
 
 ## Why did my results disappear after an edit?
 
-Results are not part of the case. They hold the run of the case as it was, so any edit of the case discards them, with the replay and the delay baseline. If the status bar still said that the run was complete, it now says `Run results discarded: the case changed.` Selecting another scenario discards the results too, but keeps the baseline. A stopped run leaves no results at all. Run the case again for new results.
+Results are not part of the case. They hold the run of the case as it was, so any edit of the case discards them, with the replay and the delay baseline. If the status bar still said that the run was complete, it now says `Run results discarded: the case changed.`, or `Run results discarded and delay baseline cleared: the case changed.` when a delay baseline was set Selecting another scenario discards the results too, but keeps the baseline. A stopped run leaves no results at all. Run the case again for new results.
 
 What a run has already written stays. The result windows that are open keep the run they were opened for, the exports are files of their own, and the text files of the run stay in its output folder until a later run there replaces them. Export what you want to keep before you edit ([Results and exports](how-to.md#results-and-exports)).
 

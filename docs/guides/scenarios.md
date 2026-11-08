@@ -100,7 +100,7 @@ switching the Trains layer off stop the view where it is.
 
 Click a track, connection, node, station, signal, train or passenger on the
 canvas to select it, in the preview as well as during a run. The matching
-inspector opens, or for a passenger a box of its details above it, and a light
+inspector opens, or for a passenger a box of its details above it (below it when the passenger is near the top of the view), and a light
 blue ring marks the item. Its title names the item: `Node <id>`, `Station <id>`,
 `Arc <id>`, `Track <id>`, `Connection <id>` or `Signal <label>` in the preview, and
 `Node <id>`, `Station <name>`, `Arc <id>`, `Connection`, `Signal` or `Train <name>`

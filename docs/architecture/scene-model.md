@@ -429,7 +429,7 @@ unsupported.
 ## Bundle format (v2)
 
 The `.egscene` transport container, its manifest, its safety rules and how it is read and written are described in
-[V2 Transparent Scene Bundle](../guides/scene-bundle.md).
+[Case file format](../guides/scene-bundle.md).
 
 ## Native runtime path
 
