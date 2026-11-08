@@ -495,8 +495,8 @@ SceneSaveResult saveScenarioJson(const SceneScenario& scenario, const std::strin
 
 ScenarioLoadResult loadScenarioJson(const std::string& filePath) {
 	ScenarioLoadResult result;
-	std::ifstream input{pathFromUtf8(filePath)};
-	if (!input) {
+	std::string content;
+	if (!readFileBytes(pathFromUtf8(filePath), content)) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.file.missing",
 			"Cannot open scenario JSON");
 		return result;
@@ -504,10 +504,11 @@ ScenarioLoadResult loadScenarioJson(const std::string& filePath) {
 
 	json value;
 	try {
-		input >> value;
+		value = json::parse(content);
 	} catch (const json::parse_error& error) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.json.parse",
-			std::string("JSON parse error: ") + error.what());
+		SceneDiagnostic diagnostic = jsonParseDiagnostic("scene.scenario.json.parse", pathFromUtf8(filePath).filename().u8string(),
+			"scenario.json", content, error);
+		result.diagnostics.push_back(std::move(diagnostic));
 		return result;
 	}
 	if (!value.is_object()) {

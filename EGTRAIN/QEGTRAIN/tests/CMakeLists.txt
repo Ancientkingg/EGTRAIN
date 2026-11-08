@@ -824,7 +824,7 @@ egtrain_add_test(test_dialogfolders
 
 egtrain_add_test(test_cannotopenmessage
 	SOURCES ${SRC_DIR}/tests/test_cannotopenmessage.cpp
-	LIBS Qt::Core
+	LIBS egtrain_editors egtrain_scene Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit)
 
 egtrain_add_test(test_pathmessages

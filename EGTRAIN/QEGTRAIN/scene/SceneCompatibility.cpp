@@ -205,6 +205,10 @@ SceneCompatibilityProbeResult probeDirectory(const std::string& path,
 			result.savedWithAppVersion = manifest["saved_with_app_version"].get<std::string>();
 		}
 		draftLayout = isDraftLayout(directory, manifest);
+	} catch (const json::parse_error& error) {
+		result.diagnostics.push_back(jsonParseDiagnostic("scene.compatibility.manifest", "scene.json",
+			(directory / "scene.json").u8string(), manifestText, error));
+		return result;
 	} catch (const json::exception& error) {
 		addDiagnostic(result.diagnostics, "scene.compatibility.manifest",
 			std::string("Invalid scene.json: ") + error.what(), "scene.json");
