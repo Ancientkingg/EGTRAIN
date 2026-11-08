@@ -658,6 +658,11 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 		if (item)
 			commitCell(item->row(), item->column());
 	});
+	// The queued connection lets the mouse or key event end before a facet opens a dialog.
+	connect(m_table, &QTableWidget::cellActivated, this, [this](int row, int column) {
+		if (canEdit())
+			if (InfrastructureFacet* current = currentFacet())
+				current->activateCell(*this, row, column); }, Qt::QueuedConnection);
 	connect(m_table, &QTableWidget::itemSelectionChanged, this, &InfrastructurePanel::updateSelection);
 	connect(m_addButton, &QPushButton::clicked, this, &InfrastructurePanel::addEntity);
 	connect(m_deleteButton, &QPushButton::clicked, this, &InfrastructurePanel::deleteEntity);

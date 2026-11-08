@@ -2,22 +2,31 @@
 #define USERPROMPTS_H
 
 #include <QApplication>
+#include <QDialog>
+#include <QDialogButtonBox>
 #include <QFontMetrics>
 #include <QInputDialog>
+#include <QLineEdit>
 #include <QList>
+#include <QListWidget>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QRegularExpression>
 #include <QScreen>
 #include <QString>
 #include <QStringList>
+#include <QVBoxLayout>
 #include <QWidget>
 
 #include "util/Log.h"
+#include "widgets/DialogLayout.h"
 
+#include <cstddef>
 #include <cstdio>
 #include <functional>
 #include <optional>
 #include <utility>
+#include <vector>
 
 /// The messages and questions that the editors put to the user. A panel gets one from the window, and a test replaces
 /// the virtual functions to answer without a dialog.
@@ -97,10 +106,73 @@ public:
 		return dialog.textValue();
 	}
 
+	/// One entry of chooseItems().
+	struct ListChoice {
+		/// The text of the entry.
+		QString label;
+		/// The id that chooseItems() returns when the entry is checked.
+		QString id;
+		/// False shows the entry without a way to check or uncheck it.
+		bool enabled = true;
+	};
+
+	/// Several of `choices` from a list with a check box for each entry and a filter field above it, which shows the
+	/// entries that hold every word typed, in any case. `context` is the line under the title. `checked` lists the ids
+	/// that are checked at the start. Returns the ids of the checked entries in the order of `choices`, or std::nullopt
+	/// when the user cancels. It asks also in a suppressed run.
+	virtual std::optional<QStringList> chooseItems(QWidget* parent, const QString& title, const QString& context,
+		const std::vector<ListChoice>& choices, const QStringList& checked) {
+		QDialog dialog(parent);
+		auto* body = new QWidget;
+		auto* bodyLayout = new QVBoxLayout(body);
+		bodyLayout->setContentsMargins(0, 0, 0, 0);
+		auto* filter = new QLineEdit(body);
+		filter->setObjectName(QStringLiteral("chooseItemsFilter"));
+		filter->setPlaceholderText(QStringLiteral("Filter"));
+		filter->setAccessibleName(QStringLiteral("Filter"));
+		filter->setClearButtonEnabled(true);
+		auto* list = new QListWidget(body);
+		list->setObjectName(QStringLiteral("chooseItemsList"));
+		list->setMinimumHeight(10 * QFontMetrics(list->font()).height());
+		for (const ListChoice& choice : choices) {
+			auto* item = new QListWidgetItem(choice.label, list);
+			Qt::ItemFlags flags = Qt::ItemIsUserCheckable | Qt::ItemIsSelectable;
+			if (choice.enabled)
+				flags |= Qt::ItemIsEnabled;
+			item->setFlags(flags);
+			item->setCheckState(checked.contains(choice.id) ? Qt::Checked : Qt::Unchecked);
+		}
+		QObject::connect(filter, &QLineEdit::textChanged, list, [list](const QString& text) {
+			const QStringList words = text.split(QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts);
+			for (int row = 0; row < list->count(); ++row) {
+				QListWidgetItem* item = list->item(row);
+				bool matches = true;
+				for (const QString& word : words)
+					matches = matches && item->text().contains(word, Qt::CaseInsensitive);
+				item->setHidden(!matches);
+			}
+		});
+		bodyLayout->addWidget(filter);
+		bodyLayout->addWidget(list, 1);
+		auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+		QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+		QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+		buttons->button(QDialogButtonBox::Ok)->setDefault(true);
+		DialogLayout::install(dialog, title, context, body, buttons);
+		fitTitle(dialog, title);
+		if (dialog.exec() != QDialog::Accepted)
+			return std::nullopt;
+		QStringList result;
+		for (int row = 0; row < list->count(); ++row)
+			if (list->item(row)->checkState() == Qt::Checked)
+				result << choices[static_cast<std::size_t>(row)].id;
+		return result;
+	}
+
 private:
 	// The title bar shortens a title that does not fit beside the window buttons, and macOS centres the title, so the
 	// title gets room for them on both sides.
-	static void fitTitle(QInputDialog& dialog, const QString& title) {
+	static void fitTitle(QDialog& dialog, const QString& title) {
 		const QFontMetrics metrics(QApplication::font("QMdiSubWindowTitleBar"));
 		int width = qMax(dialog.sizeHint().width(), metrics.horizontalAdvance(title) + 10 * metrics.height());
 		if (const QScreen* screen = dialog.screen())

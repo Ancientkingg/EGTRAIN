@@ -3,6 +3,7 @@
 #include "editors/EditorHelpers.h"
 #include "editors/infrastructure/ListFacet.h"
 #include "editors/infrastructure/SectionRowsFacet.h"
+#include "graphics/NetworkPresenter.h"
 #include "scene/SceneIds.h"
 #include "scene/SceneReferences.h"
 #include "widgets/CompactDoubleSpinBox.h"
@@ -21,6 +22,9 @@
 #include <cmath>
 #include <cstddef>
 #include <limits>
+#include <map>
+#include <optional>
+#include <set>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -78,6 +82,96 @@ PlatformPlace platformPlace(const SceneModel& model, int row) {
 		first += count;
 	}
 	return {};
+}
+
+// The name that the Details dock gives a station: its name, or its id when it has none.
+QString stationDisplayName(const SceneStation& station) {
+	return QString::fromStdString(station.name.empty() ? station.id : station.name);
+}
+
+// Chooses the nodes of the platform at `place` from a list of the nodes of the scene. The list offers first the ids of the
+// platform that the scene does not have, so that they can be removed, then the nodes on the tracks of the nodes that the
+// platforms of the station list, then the others. A node that another platform lists, or that the Details dock gives to
+// another station, is offered turned off, because a platform of two stations or two platforms would be a conflict. The
+// platform keeps the order of the nodes that stay, and a new node goes to the end. One change is one edit.
+void chooseNodes(InfrastructurePanel& panel, const PlatformPlace& place) {
+	const SceneModel& model = panel.model();
+	const std::size_t stationIndex = static_cast<std::size_t>(place.station);
+	const std::size_t platformIndex = static_cast<std::size_t>(place.platform);
+	const SceneStation& station = model.stations[stationIndex];
+	const ScenePlatform& platform = station.platforms[platformIndex];
+	const std::vector<std::string> oldIds = platform.nodeIds;
+	// The references into the model are not used after the dialog, which a run or another edit may outlive.
+	const QString selectionKey = QString::fromStdString(platformSelectionKey(station.id, platform.id));
+	const auto hasNode = [&model](const std::string& id) {
+		return std::any_of(model.nodes.begin(), model.nodes.end(), [&id](const SceneNode& node) { return node.id == id; });
+	};
+	// The station of every node that another platform lists.
+	std::map<std::string, QString> otherOwners;
+	for (const SceneStation& other : model.stations)
+		for (const ScenePlatform& otherPlatform : other.platforms)
+			if (&otherPlatform != &platform)
+				for (const std::string& nodeId : otherPlatform.nodeIds)
+					otherOwners.emplace(nodeId, stationDisplayName(other));
+	// The tracks of the nodes that the platforms of the station list.
+	std::set<std::string> tracks;
+	for (const ScenePlatform& own : station.platforms)
+		for (const std::string& nodeId : own.nodeIds)
+			for (const SceneNode& node : model.nodes)
+				if (node.id == nodeId)
+					tracks.insert(node.trackId);
+	const std::map<std::string, PreviewStationMembership> memberships = previewStationMemberships(model);
+
+	std::vector<UserPrompts::ListChoice> choices;
+	std::set<std::string> missingSeen;
+	for (const std::string& id : oldIds)
+		if (!hasNode(id) && missingSeen.insert(id).second)
+			choices.push_back({QStringLiteral("%1 (missing)").arg(QString::fromStdString(id)), QString::fromStdString(id), true});
+	for (const bool onOwnTracks : {true, false}) {
+		for (const SceneNode& node : model.nodes) {
+			if ((tracks.count(node.trackId) > 0) != onOwnTracks)
+				continue;
+			QString label = QStringLiteral("%1 (%2, %3 km)")
+								.arg(QString::fromStdString(node.id), QString::fromStdString(node.trackId), QString::number(node.xKm, 'f', 3));
+			bool enabled = true;
+			if (std::find(oldIds.begin(), oldIds.end(), node.id) == oldIds.end()) {
+				const auto owner = otherOwners.find(node.id);
+				const auto membership = memberships.find(node.id);
+				if (owner != otherOwners.end()) {
+					enabled = false;
+					label += QStringLiteral(": ") + owner->second;
+				} else if (membership != memberships.end()
+					&& (membership->second.stationId != station.id
+						|| (!membership->second.platformId.empty() && membership->second.platformId != platform.id))) {
+					enabled = false;
+					label += QStringLiteral(": ") + QString::fromStdString(membership->second.name);
+				}
+			}
+			choices.push_back({label, QString::fromStdString(node.id), enabled});
+		}
+	}
+
+	QStringList checked;
+	for (const std::string& id : oldIds)
+		checked << QString::fromStdString(id);
+	const std::optional<QStringList> answer = panel.prompts().chooseItems(&panel, QStringLiteral("Platform Nodes"),
+		QStringLiteral("Nodes of platform '%1' of station '%2'.").arg(QString::fromStdString(platform.id), stationDisplayName(station)),
+		choices, checked);
+	if (!answer)
+		return;
+	std::vector<std::string> newIds;
+	for (const std::string& id : oldIds)
+		if (answer->contains(QString::fromStdString(id)))
+			newIds.push_back(id);
+	for (const QString& id : *answer)
+		if (std::find(newIds.begin(), newIds.end(), id.toStdString()) == newIds.end())
+			newIds.push_back(id.toStdString());
+	if (newIds == oldIds)
+		return;
+	panel.setSelectionId(selectionKey);
+	panel.edit(QStringLiteral("Edit platform"), [stationIndex, platformIndex, &newIds](SceneModel& edited) {
+		edited.stations[stationIndex].platforms[platformIndex].nodeIds = std::move(newIds);
+	});
 }
 
 // The length or the width in `column` of the platform in `row` is taken into the model.
@@ -188,7 +282,7 @@ public:
 				setCell(table, row, 0, QString::fromStdString(station.id));
 				setCell(table, row, kStationNameColumn, QString::fromStdString(station.name.empty() ? station.id : station.name), false);
 				setCell(table, row, kPlatformIdColumn, QString::fromStdString(platform.id));
-				setCell(table, row, kNodesColumn, joinCommaList(platform.nodeIds));
+				setCell(table, row, kNodesColumn, joinCommaList(platform.nodeIds), false);
 				table.setCellWidget(row, kLengthColumn,
 					makeGeometryField(panel, row, kLengthColumn, platform.hasLength ? platform.lengthM : kDefaultPlatformLengthM,
 						"platformLengthEdit",
@@ -200,6 +294,24 @@ public:
 				++row;
 			}
 		}
+	}
+
+	// Choose Nodes... sets the nodes of the selected platform from a list, without typing ids.
+	std::vector<TaskAction> taskActions() const override {
+		return {{QStringLiteral("choosePlatformNodesButton"), QStringLiteral("Choose Nodes..."),
+			QStringLiteral("Chooses the nodes of the selected platform from a list.")}};
+	}
+	void runTaskAction(InfrastructurePanel& panel, int index) override {
+		if (index != 0)
+			return;
+		const PlatformPlace place = platformPlace(panel.model(), panel.table()->currentRow());
+		if (place.station >= 0)
+			chooseNodes(panel, place);
+	}
+	// The Nodes cell opens the same list.
+	void activateCell(InfrastructurePanel& panel, int row, int column) override {
+		if (column == kNodesColumn && row == panel.table()->currentRow())
+			panel.runTaskAction(0);
 	}
 
 	// A platform is named by its station and its id.
