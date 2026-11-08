@@ -1,51 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,604,79,632"/>
-<area shape="rect" id="Node000001" href="$class_dispatch_controller.html" title=" " alt="" coords="154,5,296,33"/>
-<area shape="poly" id="edge74_Node000000_Node000001" title=" " alt="" coords="41,588,44,470,56,308,66,225,81,150,100,87,112,63,125,44,138,33,155,25,152,30,141,37,129,48,116,66,105,89,86,151,72,226,61,308,50,471,46,588"/>
-<area shape="rect" id="Node000002" href="$class_focus_wheel_1_1_filter.html" title="The event filter that guard installs; the box owns it." alt="" coords="155,57,296,85"/>
-<area shape="poly" id="edge75_Node000000_Node000002" title=" " alt="" coords="41,588,46,480,59,333,70,259,84,191,102,135,125,96,138,85,156,77,153,82,141,89,129,100,107,137,89,192,75,260,64,334,51,481,47,589"/>
-<area shape="rect" id="Node000003" href="$class_focus_wheel_1_1_watcher.html" title=" " alt="" coords="145,109,306,137"/>
-<area shape="poly" id="edge76_Node000000_Node000003" title=" " alt="" coords="42,588,48,490,62,359,73,292,87,232,104,182,125,148,146,134,143,139,129,152,109,185,92,234,78,293,68,359,54,490,47,589"/>
-<area shape="rect" id="Node000004" href="$class_follow_camera.html" title=" " alt="" coords="168,161,282,189"/>
-<area shape="poly" id="edge77_Node000000_Node000004" title=" " alt="" coords="43,588,51,500,66,384,90,273,106,230,125,200,144,186,170,178,166,182,147,190,129,204,111,232,95,275,71,385,56,500,48,589"/>
-<area shape="rect" id="Node000005" href="$class_http_reply.html" title="The response of one request. A redirect is never followed: its reply is the reply of the request,..." alt="" coords="182,213,268,241"/>
-<area shape="poly" id="edge78_Node000000_Node000005" title=" " alt="" coords="44,588,53,510,69,410,93,315,108,278,125,252,151,235,183,227,180,231,153,240,129,256,113,280,98,317,75,411,58,511,49,589"/>
-<area shape="rect" id="Node000006" href="$class_http_transport.html" title="Sends requests. A reply is a child of its transport; the caller releases it with deleteLater()." alt="" coords="171,265,280,293"/>
-<area shape="poly" id="edge79_Node000000_Node000006" title=" " alt="" coords="40,589,41,529,52,453,63,413,78,373,98,337,125,304,146,289,172,282,169,286,148,294,128,308,103,340,83,376,68,414,57,454,47,530,45,589"/>
-<area shape="rect" id="Node000007" href="$class_inspector_panel.html" title=" " alt="" coords="167,317,284,345"/>
-<area shape="poly" id="edge80_Node000000_Node000007" title=" " alt="" coords="41,588,46,538,59,476,84,412,102,382,125,356,144,343,168,335,165,339,147,347,128,360,107,385,89,414,64,477,52,539,47,589"/>
-<area shape="rect" id="Node000008" href="$class_light_palette_keeper.html" title=" " alt="" coords="154,369,297,397"/>
-<area shape="poly" id="edge81_Node000000_Node000008" title=" " alt="" coords="44,588,52,548,67,499,90,450,106,428,125,408,155,392,152,396,128,412,110,431,95,453,72,501,57,549,49,589"/>
-<area shape="rect" id="Node000009" href="$class_open_request_relay.html" title=" " alt="" coords="153,421,298,449"/>
-<area shape="poly" id="edge82_Node000000_Node000009" title=" " alt="" coords="48,589,75,524,97,489,125,460,154,445,151,450,128,464,101,492,80,526,54,590"/>
-<area shape="rect" id="Node000010" href="$class_recovery_controller.html" title=" " alt="" coords="152,473,298,501"/>
-<area shape="poly" id="edge83_Node000000_Node000010" title=" " alt="" coords="56,590,85,549,104,529,125,512,153,499,150,504,128,516,107,533,89,552,61,592"/>
-<area shape="rect" id="Node000011" href="$class_result_views.html" title=" " alt="" coords="175,525,276,553"/>
-<area shape="poly" id="edge84_Node000000_Node000011" title=" " alt="" coords="72,594,126,563,176,548,172,552,128,568,77,597"/>
-<area shape="rect" id="Node000012" href="$class_run_controller.html" title=" " alt="" coords="170,577,280,605"/>
-<area shape="poly" id="edge85_Node000000_Node000012" title=" " alt="" coords="92,608,171,597,168,601,96,612"/>
-<area shape="rect" id="Node000013" href="$class_run_results_dock.html" title=" " alt="" coords="162,629,289,657"/>
-<area shape="poly" id="edge86_Node000000_Node000013" title=" " alt="" coords="93,623,163,633,159,636,96,627"/>
-<area shape="rect" id="Node000014" href="$class_scene_document.html" title=" " alt="" coords="162,681,289,709"/>
-<area shape="poly" id="edge87_Node000000_Node000014" title=" " alt="" coords="75,638,128,666,164,679,159,682,126,671,77,643"/>
-<area shape="rect" id="Node000015" href="$class_scene_session.html" title=" " alt="" coords="170,733,280,761"/>
-<area shape="poly" id="edge88_Node000000_Node000015" title=" " alt="" coords="58,643,89,683,108,702,128,718,149,729,172,737,168,740,147,734,125,723,104,706,85,686,59,648"/>
-<area shape="rect" id="Node000016" href="$class_scope_stretch_choice.html" title=" " alt="" coords="150,785,300,813"/>
-<area shape="poly" id="edge89_Node000000_Node000016" title=" " alt="" coords="51,644,80,709,101,742,128,770,152,785,147,787,125,775,97,746,75,712,52,650"/>
-<area shape="rect" id="Node000017" href="$class_self_updater.html" title=" " alt="" coords="176,837,274,865"/>
-<area shape="poly" id="edge90_Node000000_Node000017" title=" " alt="" coords="47,644,57,686,72,734,95,782,110,803,128,822,151,836,178,846,173,848,149,841,125,827,106,807,91,784,67,736,52,687,47,649"/>
-<area shape="rect" id="Node000018" href="$class_simulation_worker.html" title=" " alt="" coords="157,889,294,917"/>
-<area shape="poly" id="edge91_Node000000_Node000018" title=" " alt="" coords="44,644,52,696,65,758,89,821,107,849,128,874,159,893,154,895,125,879,102,852,84,823,60,759,46,697,44,650"/>
-<area shape="rect" id="Node000019" href="$class_telemetry_consent.html" title=" " alt="" coords="156,941,295,969"/>
-<area shape="poly" id="edge92_Node000000_Node000019" title=" " alt="" coords="42,645,47,706,58,781,68,821,83,859,103,895,128,926,158,945,153,947,125,931,99,898,78,861,63,822,52,782,42,706,42,650"/>
-<area shape="rect" id="Node000020" href="$class_train_unit_source_linker.html" title=" " alt="" coords="144,993,306,1021"/>
-<area shape="poly" id="edge93_Node000000_Node000020" title=" " alt="" coords="46,644,58,725,75,824,98,918,113,954,129,979,146,993,141,994,125,982,108,957,93,920,70,825,53,725,46,650"/>
-<area shape="rect" id="Node000021" href="$class_update_checker.html" title="Asks the EGTRAIN website for the newest stable release." alt="" coords="165,1045,286,1073"/>
-<area shape="poly" id="edge94_Node000000_Node000021" title=" " alt="" coords="45,644,56,735,71,850,95,960,111,1002,129,1031,145,1043,167,1053,162,1055,143,1048,125,1034,106,1004,90,961,66,851,51,736,45,650"/>
-<area shape="rect" id="Node000022" href="$class_update_preparation_worker.html" title="Verifies and stages a downloaded package. SelfUpdater runs it in a thread of its own." alt="" coords="131,1097,320,1125"/>
-<area shape="poly" id="edge95_Node000000_Node000022" title=" " alt="" coords="45,644,54,745,68,876,78,941,92,1001,109,1050,129,1083,145,1096,140,1097,125,1086,104,1052,87,1002,73,942,62,876,48,745,44,650"/>
-<area shape="rect" id="Node000023" href="$class_update_telemetry_controller.html" title=" " alt="" coords="127,1149,324,1177"/>
-<area shape="poly" id="edge96_Node000000_Node000023" title=" " alt="" coords="44,644,52,755,64,901,75,975,89,1042,107,1097,129,1135,145,1149,139,1149,125,1138,102,1100,84,1044,70,976,59,902,46,755,44,650"/>
-<area shape="rect" id="Node000024" href="$class_validation_panel.html" title=" " alt="" coords="165,1201,286,1229"/>
-<area shape="poly" id="edge97_Node000000_Node000024" title=" " alt="" coords="44,645,50,765,61,926,72,1009,86,1084,105,1145,116,1169,129,1187,145,1200,167,1210,162,1210,143,1204,125,1190,112,1171,100,1147,81,1085,66,1010,56,927,44,765,43,650"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,32,153,60"/>
+<area shape="rect" id="Node000001" href="$class_platform_item.html" title=" " alt="" coords="213,5,320,33"/>
+<area shape="poly" id="edge68_Node000000_Node000001" title=" " alt="" coords="168,31,215,26,210,27,169,36"/>
+<area shape="rect" id="Node000002" href="$class_station_node_item.html" title="The square of a station node of a track line. It draws over track lines and connections." alt="" coords="201,57,332,85"/>
+<area shape="poly" id="edge69_Node000000_Node000002" title=" " alt="" coords="168,55,203,62,198,62,168,61"/>
 </map>

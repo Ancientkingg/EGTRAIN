@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_gui_replay_history.html#a2a831e1fbd0f0d1faa5e051548ad8d84" target="_top" xlink:title="No frame is kept.">
+<g id="a_Node000002"><a xlink:href="class_gui_replay_history.html#a2a831e1fbd0f0d1faa5e051548ad8d84" target="_top" xlink:title="No second is kept.">
 <polygon fill="white" stroke="#666666" points="286.25,-137.75 148,-137.75 148,-117 286.25,-117 286.25,-137.75"/>
 <text xml:space="preserve" text-anchor="middle" x="217.12" y="-124.25" font-family="Helvetica,sans-Serif" font-size="10.00">GuiReplayHistory::empty</text>
 </a>
@@ -47,7 +47,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_gui_replay_history.html#adaaf08e3b6f16671f143142825dd6c39" target="_top" xlink:title="The step of the oldest frame kept, in seconds from the start of the run. 0 when the history is empty.">
+<g id="a_Node000003"><a xlink:href="class_gui_replay_history.html#adaaf08e3b6f16671f143142825dd6c39" target="_top" xlink:title="The oldest second kept, from the start of the run. 0 when the history is empty.">
 <polygon fill="white" stroke="#666666" points="292.25,-98.75 142,-98.75 142,-78 292.25,-78 292.25,-98.75"/>
 <text xml:space="preserve" text-anchor="middle" x="217.12" y="-85.25" font-family="Helvetica,sans-Serif" font-size="10.00">GuiReplayHistory::firstTime</text>
 </a>
@@ -65,7 +65,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_gui_replay_history.html#ab1023e589af0f9ea60ec32a6fe9ab059" target="_top" xlink:title="The step of the newest frame kept, in seconds from the start of the run. 0 when the history is empty.">
+<g id="a_Node000004"><a xlink:href="class_gui_replay_history.html#ab1023e589af0f9ea60ec32a6fe9ab059" target="_top" xlink:title="The newest second kept, from the start of the run. 0 when the history is empty.">
 <polygon fill="white" stroke="#666666" points="291.88,-59.75 142.38,-59.75 142.38,-39 291.88,-39 291.88,-59.75"/>
 <text xml:space="preserve" text-anchor="middle" x="217.12" y="-46.25" font-family="Helvetica,sans-Serif" font-size="10.00">GuiReplayHistory::lastTime</text>
 </a>
@@ -83,7 +83,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_gui_replay_history.html#a2ca8c4c0fd3f3803b5c7f7984a0b2ec7" target="_top" xlink:title="True when frames were dropped to stay within the budget.">
+<g id="a_Node000005"><a xlink:href="class_gui_replay_history.html#a2ca8c4c0fd3f3803b5c7f7984a0b2ec7" target="_top" xlink:title="True when the start of the run was dropped to stay within the budget.">
 <polygon fill="white" stroke="#666666" points="293.75,-20.75 140.5,-20.75 140.5,0 293.75,0 293.75,-20.75"/>
 <text xml:space="preserve" text-anchor="middle" x="217.12" y="-7.25" font-family="Helvetica,sans-Serif" font-size="10.00">GuiReplayHistory::truncated</text>
 </a>

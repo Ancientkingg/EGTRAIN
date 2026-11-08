@@ -128,13 +128,54 @@ Include dependency graph for GuiReplayHistory.h:</div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_gui_replay_history_8h__dep__incl.svg" width="1682" height="266"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_gui_replay_history_8h__dep__incl.svg" width="1628" height="266"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:GuiReplayTrajectory" id="r_GuiReplayTrajectory"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_gui_replay_trajectory.html">GuiReplayTrajectory</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The samples of one train that the replay shares with the completed run, for <a class="el" href="_gui_replay_history_8cpp.html#afbed475941a4ad4cbe5bd713a60de983">makeGuiReplayTrains()</a>.  <a href="struct_gui_replay_trajectory.html#details">More...</a><br /></td></tr>
+<tr class="memitem:GuiReplaySeries" id="r_GuiReplaySeries"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_gui_replay_series.html">GuiReplaySeries</a></td></tr>
+<tr class="memitem:GuiReplayTrains" id="r_GuiReplayTrains"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_gui_replay_trains.html">GuiReplayTrains</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the replay needs of the trains of a finished run. Built once by <a class="el" href="_gui_replay_history_8cpp.html#afbed475941a4ad4cbe5bd713a60de983">makeGuiReplayTrains()</a>, then only read.  <a href="struct_gui_replay_trains.html#details">More...</a><br /></td></tr>
+<tr class="memitem:GuiReplayTrains_3A_3ARoute" id="r_GuiReplayTrains_3A_3ARoute"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_gui_replay_trains_1_1_route.html">GuiReplayTrains::Route</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The part of a route that the position of a vehicle reads, as the first sections of the route hold it.  <a href="struct_gui_replay_trains_1_1_route.html#details">More...</a><br /></td></tr>
+<tr class="memitem:GuiReplayTrains_3A_3ATrain" id="r_GuiReplayTrains_3A_3ATrain"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_gui_replay_trains_1_1_train.html">GuiReplayTrains::Train</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One train of the run.  <a href="struct_gui_replay_trains_1_1_train.html#details">More...</a><br /></td></tr>
 <tr class="memitem:GuiReplayHistory" id="r_GuiReplayHistory"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_gui_replay_history.html">GuiReplayHistory</a></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:afbed475941a4ad4cbe5bd713a60de983" id="r_afbed475941a4ad4cbe5bd713a60de983"><td class="memItemLeft">std::shared_ptr&lt; const <a class="el" href="struct_gui_replay_trains.html">GuiReplayTrains</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#afbed475941a4ad4cbe5bd713a60de983">makeGuiReplayTrains</a> (const <a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, const std::vector&lt; <a class="el" href="struct_gui_replay_trajectory.html">GuiReplayTrajectory</a> &gt; &amp;shared)</td></tr>
 </table>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="afbed475941a4ad4cbe5bd713a60de983" name="afbed475941a4ad4cbe5bd713a60de983"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afbed475941a4ad4cbe5bd713a60de983">&#9670;&#160;</a></span>makeGuiReplayTrains()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt; const <a class="el" href="struct_gui_replay_trains.html">GuiReplayTrains</a> &gt; makeGuiReplayTrains </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>run</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_gui_replay_trajectory.html">GuiReplayTrajectory</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>shared</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Builds the train source from the trains of <span class="tt">run</span>, which must still hold their samples, and the slices that the completed run holds (one per train in run order; a missing or mismatching slice is copied instead). The result does not refer to <span class="tt">run</span>. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_gui_replay_history_8h_afbed475941a4ad4cbe5bd713a60de983_cgraph.svg" width="174" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <div id="page-nav" class="page-nav-panel">

@@ -22,7 +22,7 @@ var searchData=
   ['trackpreviewstation_19',['TrackPreviewStation',['../struct_track_preview_station.html',1,'']]],
   ['trackstatevisual_20',['TrackStateVisual',['../struct_track_state_visual.html',1,'']]],
   ['trackvisual_21',['TrackVisual',['../struct_track_visual.html',1,'']]],
-  ['train_22',['Train',['../class_train.html',1,'Train'],['../struct_train_key_list_1_1_train.html',1,'TrainKeyList::Train']]],
+  ['train_22',['Train',['../struct_gui_replay_trains_1_1_train.html',1,'GuiReplayTrains::Train'],['../class_train.html',1,'Train'],['../struct_train_key_list_1_1_train.html',1,'TrainKeyList::Train']]],
   ['trainbadgeitem_23',['TrainBadgeItem',['../class_train_badge_item.html',1,'']]],
   ['trainbodyitem_24',['TrainBodyItem',['../class_train_body_item.html',1,'']]],
   ['traincolourinput_25',['TrainColourInput',['../struct_train_colour_input.html',1,'']]],

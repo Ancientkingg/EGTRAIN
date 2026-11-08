@@ -21,7 +21,7 @@ var searchData=
   ['rollingstocklibrarydialog_18',['RollingStockLibraryDialog',['../class_rolling_stock_library_dialog.html',1,'']]],
   ['rollingstocklibraryunit_19',['RollingStockLibraryUnit',['../struct_rolling_stock_library_unit.html',1,'']]],
   ['roundtickplan_20',['RoundTickPlan',['../struct_round_tick_plan.html',1,'']]],
-  ['route_21',['Route',['../struct_blocking_time_scope_choices_1_1_route.html',1,'BlockingTimeScopeChoices::Route'],['../class_route.html',1,'Route']]],
+  ['route_21',['Route',['../struct_blocking_time_scope_choices_1_1_route.html',1,'BlockingTimeScopeChoices::Route'],['../struct_gui_replay_trains_1_1_route.html',1,'GuiReplayTrains::Route'],['../class_route.html',1,'Route']]],
   ['routechart_22',['RouteChart',['../struct_route_chart.html',1,'']]],
   ['routediagramdata_23',['RouteDiagramData',['../struct_route_diagram_data.html',1,'']]],
   ['routediagramnode_24',['RouteDiagramNode',['../struct_route_diagram_node.html',1,'']]],

@@ -76,7 +76,7 @@ The size of a state frame depends on the number of trains and on the signal list
 | Copenhagen | 52 | 6311 B | 10953 B | 114950 B |
 | Milano_Brescia | 65 | 5480 B | 11174 B | 32199 B |
 
-The service id and occurrence of a train are part of the layout that the replay history keeps once for a run, so they add nothing to a frame of it: the history of a whole run of Copenhagen in the window holds 82722909 of the 134217728 bytes that it may hold.
+The service id and occurrence of a train are part of the layout that the replay history keeps once for a run, so they add nothing to a second of it: the history of a whole run of Copenhagen in the window owns 3860297 of the 134217728 bytes that it may hold, and shares 7007552 bytes of train samples with the completed run.
 
 ### Commands
 

@@ -1,5 +1,9 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,5,176,33"/>
-<area shape="rect" id="Node000001" href="$class_train_body_item.html" title="The body of one wagon of a train, a polygon in scene coordinates." alt="" coords="224,5,339,33"/>
-<area shape="poly" id="edge67_Node000000_Node000001" title=" " alt="" coords="191,17,226,19,221,19,191,22"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,57,124,85"/>
+<area shape="rect" id="Node000001" href="$class_network_mark_item.html" title=" " alt="" coords="176,5,316,33"/>
+<area shape="poly" id="edge55_Node000000_Node000001" title=" " alt="" coords="129,50,197,32,193,35,131,55"/>
+<area shape="rect" id="Node000002" href="$class_station_overlay_item.html" title=" " alt="" coords="172,57,320,85"/>
+<area shape="poly" id="edge56_Node000000_Node000002" title=" " alt="" coords="139,69,174,70,169,72,139,74"/>
+<area shape="rect" id="Node000003" href="$class_train_badge_item.html" title=" " alt="" coords="184,109,308,137"/>
+<area shape="poly" id="edge57_Node000000_Node000003" title=" " alt="" coords="130,87,198,108,192,109,130,92"/>
 </map>

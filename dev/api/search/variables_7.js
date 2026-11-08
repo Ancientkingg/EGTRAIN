@@ -42,12 +42,13 @@ var searchData=
   ['hastracks_39',['hasTracks',['../struct_network_legend_content.html#af1b4ce9a6e5c071b9150ac09d6d6205c',1,'NetworkLegendContent']]],
   ['hastrajectories_40',['hasTrajectories',['../struct_run_end.html#a2b50f1c2da7fcabbee27adfef0076f7f',1,'RunEnd']]],
   ['haswidth_41',['hasWidth',['../struct_scene_platform.html#afc11e59e9bcdb5899a3fdc8de3390af6',1,'ScenePlatform']]],
-  ['head_42',['head',['../structtelemetry_1_1_telemetry_sender_1_1_shared.html#aa23cce0105db34dfa7792846bcd5f19f',1,'telemetry::TelemetrySender::Shared']]],
-  ['headwayseconds_43',['headwaySeconds',['../struct_scene_service.html#ac5b89a85e2b996233f8d27a8d7ca88ce',1,'SceneService']]],
-  ['hello_44',['hello',['../struct_live_server_state.html#ae07f8cd1d8c2555c9e18e3165946a512',1,'LiveServerState']]],
-  ['hellorunid_45',['helloRunId',['../struct_live_server_state.html#a6dd01b652539081150b8bce2b2c56065',1,'LiveServerState']]],
-  ['helperpath_46',['helperPath',['../struct_self_update_capability.html#ad04c2f84c38e744a4378d3f4174d622b',1,'SelfUpdateCapability']]],
-  ['horizon_47',['horizon',['../struct_playback_profiler_1_1_run_config.html#a93939c5473081b4399f85c0e40c8396e',1,'PlaybackProfiler::RunConfig']]],
-  ['horizonsteps_48',['horizonSteps',['../struct_completed_run_settings.html#ad5c1d1176f62ef97d97a09f50c6fd826',1,'CompletedRunSettings::horizonSteps'],['../struct_live_run_info.html#a32c95fcd13a8389fb20627f5d352c35b',1,'LiveRunInfo::horizonSteps']]],
-  ['hostzvalue_49',['HostZValue',['../class_station_mark_item.html#a30d5c791c1e29cc9362c62b77f9c5368',1,'StationMarkItem']]]
+  ['head_42',['head',['../struct_gui_replay_series.html#afbe06bf06f70fe8ba2f44d85c86c7de5',1,'GuiReplaySeries::head'],['../structtelemetry_1_1_telemetry_sender_1_1_shared.html#aa23cce0105db34dfa7792846bcd5f19f',1,'telemetry::TelemetrySender::Shared::head']]],
+  ['headstart_43',['headStart',['../struct_gui_replay_series.html#a9a76f200c65976499d3089d8da2f4a2d',1,'GuiReplaySeries']]],
+  ['headwayseconds_44',['headwaySeconds',['../struct_scene_service.html#ac5b89a85e2b996233f8d27a8d7ca88ce',1,'SceneService']]],
+  ['hello_45',['hello',['../struct_live_server_state.html#ae07f8cd1d8c2555c9e18e3165946a512',1,'LiveServerState']]],
+  ['hellorunid_46',['helloRunId',['../struct_live_server_state.html#a6dd01b652539081150b8bce2b2c56065',1,'LiveServerState']]],
+  ['helperpath_47',['helperPath',['../struct_self_update_capability.html#ad04c2f84c38e744a4378d3f4174d622b',1,'SelfUpdateCapability']]],
+  ['horizon_48',['horizon',['../struct_playback_profiler_1_1_run_config.html#a93939c5473081b4399f85c0e40c8396e',1,'PlaybackProfiler::RunConfig']]],
+  ['horizonsteps_49',['horizonSteps',['../struct_completed_run_settings.html#ad5c1d1176f62ef97d97a09f50c6fd826',1,'CompletedRunSettings::horizonSteps'],['../struct_live_run_info.html#a32c95fcd13a8389fb20627f5d352c35b',1,'LiveRunInfo::horizonSteps']]],
+  ['hostzvalue_50',['HostZValue',['../class_station_mark_item.html#a30d5c791c1e29cc9362c62b77f9c5368',1,'StationMarkItem']]]
 ];

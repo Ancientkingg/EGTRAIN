@@ -1,33 +1,36 @@
 <map id="buildGuiSimulationSnapshot" name="buildGuiSimulationSnapshot">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,251,211,279"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="63,251,56,242,62,232,80,227,108,225,139,227,157,235,152,237,137,232,108,230,81,232,65,237,62,242,68,250"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,310,211,338"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="63,310,56,301,62,291,80,285,108,283,139,286,157,293,152,296,137,291,108,288,81,290,65,295,62,301,68,309"/>
 <area shape="rect" id="Node000002" href="$class_gui_signal_state_list.html#a084b6026f322fc993dddce0b2adde0e0" title="Marks the section as failed in both directions where it has an entry." alt="" coords="300,5,440,50"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="113,250,133,212,164,161,206,107,230,82,257,60,287,46,283,50,260,65,234,86,210,110,169,164,138,215,118,252"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="111,308,127,261,156,194,199,123,226,89,257,60,287,44,284,48,260,64,230,93,204,126,161,197,132,263,116,310"/>
 <area shape="rect" id="Node000003" href="$_gui_simulation_snapshot_8h.html#a7c6d85d3d1c8db2484cb1e0612a25c00" title=" " alt="" coords="264,99,476,143"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="123,249,180,202,218,176,257,153,274,148,270,151,260,158,221,181,183,207,127,252"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="116,308,169,235,210,191,257,153,269,149,265,152,260,158,214,195,173,238,120,311"/>
 <area shape="rect" id="Node000004" href="$_gui_simulation_snapshot_8h.html#aa8c73afe282056bcc3e3e43d7ec87539" title="A train in the simulation reports the arcs that it occupies; one that has left does not." alt="" coords="259,191,481,219"/>
-<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="170,248,258,228,293,221,289,224,259,233,173,253"/>
-<area shape="rect" id="Node000005" href="$class_gui_signal_state_list.html#a0795d26a31606d478d08663f16add619" title=" " alt="" coords="300,243,440,287"/>
-<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="210,262,286,264,282,266,212,268"/>
-<area shape="rect" id="Node000010" href="$class_train.html#a2227178ed28567e80def50fba1b5f44f" title="instantaneous speed in km/h at GUI time t, mirroring trainXPosition index mapping; 0 outside the samp..." alt="" coords="298,311,442,339"/>
-<area shape="poly" id="edge16_Node000001_Node000010" title=" " alt="" coords="171,277,259,297,294,307,289,308,258,302,172,282"/>
-<area shape="rect" id="Node000011" href="$class_gui_signal_state_list.html#adebe1681fb55ca4be54f561d2ca1210f" title="The entries in the order of their first copy. The list is empty afterwards." alt="" coords="300,363,440,407"/>
-<area shape="poly" id="edge17_Node000001_Node000011" title=" " alt="" coords="131,277,189,312,260,348,288,360,282,361,258,353,186,316,131,282"/>
-<area shape="rect" id="Node000012" href="$_rolling_stock_8cpp.html#aaa8fab90207fc1867bf5c1f51e8c0e17" title=" " alt="" coords="306,455,434,483"/>
-<area shape="poly" id="edge18_Node000001_Node000012" title=" " alt="" coords="121,277,177,343,217,382,260,417,315,449,310,449,257,422,213,386,173,346,119,282"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="325,97,324,89,331,80,347,74,370,72,395,75,412,83,407,84,394,80,370,77,348,79,334,84,329,90,330,99"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="329,190,323,182,328,173,344,167,370,165,397,167,414,175,409,176,396,172,370,170,345,172,332,177,329,182,335,191"/>
-<area shape="rect" id="Node000006" href="$_gui_simulation_snapshot_8h.html#a708a4d8239fea6f5efa7a59bf662d59a" title="level is a signalling level from 0 to 5." alt="" coords="534,214,675,242"/>
-<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="439,251,521,240,516,242,441,256"/>
-<area shape="rect" id="Node000009" href="$_gui_simulation_snapshot_8h.html#af060009e2c033c17dfc8996f308a6c69" title=" " alt="" coords="529,290,680,318"/>
-<area shape="poly" id="edge14_Node000005_Node000009" title=" " alt="" coords="440,274,516,288,511,289,440,279"/>
-<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="569,213,564,205,568,195,582,189,605,187,629,190,643,199,638,199,627,195,605,192,583,194,572,199,569,205,574,214"/>
-<area shape="rect" id="Node000007" href="$_signalling_level_8h.html#a5b63c8badbe1faee2151f54cffa1d4fe" title="Whether a stored number is a signalling level. kSignallingLevelUnset is not a valid level." alt="" coords="728,214,892,242"/>
-<area shape="poly" id="edge10_Node000006_Node000007" title=" " alt="" coords="675,225,715,227,710,228,676,230"/>
-<area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="779,212,775,205,779,195,791,189,810,187,831,190,843,199,838,198,829,195,810,192,792,194,782,199,780,205,784,214"/>
-<area shape="rect" id="Node000008" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="940,214,1029,242"/>
-<area shape="poly" id="edge12_Node000007_Node000008" title=" " alt="" coords="892,225,927,227,921,228,892,230"/>
-<area shape="poly" id="edge13_Node000008_Node000008" title=" " alt="" coords="954,212,949,205,953,195,965,189,984,187,1005,190,1018,199,1012,198,1003,195,984,192,966,194,957,199,954,205,959,214"/>
-<area shape="poly" id="edge15_Node000009_Node000009" title=" " alt="" coords="569,288,564,281,568,271,582,265,605,263,629,266,643,275,638,274,627,271,605,268,583,270,572,275,569,281,574,290"/>
-<area shape="poly" id="edge19_Node000012_Node000012" title=" " alt="" coords="330,454,323,446,328,437,344,431,370,429,397,431,414,440,409,440,396,436,370,434,345,436,332,441,329,446,334,456"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="126,308,183,268,219,246,258,228,279,222,275,225,260,233,222,251,186,272,129,311"/>
+<area shape="rect" id="Node000005" href="$_gui_simulation_snapshot_8h.html#a0d3bfff93f9191e47a059b5c90cc5d68" title=" " alt="" coords="270,267,470,311"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="210,308,257,303,252,306,212,312"/>
+<area shape="rect" id="Node000006" href="$class_gui_signal_state_list.html#a0795d26a31606d478d08663f16add619" title=" " alt="" coords="300,336,440,381"/>
+<area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="210,335,286,346,282,348,212,340"/>
+<area shape="rect" id="Node000011" href="$class_train.html#a2227178ed28567e80def50fba1b5f44f" title="instantaneous speed in km/h at GUI time t, mirroring trainXPosition index mapping; 0 outside the samp..." alt="" coords="298,404,442,432"/>
+<area shape="poly" id="edge18_Node000001_Node000011" title=" " alt="" coords="135,335,192,363,260,390,285,400,280,401,258,396,190,368,136,341"/>
+<area shape="rect" id="Node000012" href="$class_gui_signal_state_list.html#adebe1681fb55ca4be54f561d2ca1210f" title="The entries in the order of their first copy. The list is empty afterwards." alt="" coords="300,456,440,501"/>
+<area shape="poly" id="edge19_Node000001_Node000012" title=" " alt="" coords="124,335,181,387,219,416,260,441,288,455,282,456,257,446,216,420,178,391,123,341"/>
+<area shape="rect" id="Node000013" href="$_rolling_stock_8cpp.html#aaa8fab90207fc1867bf5c1f51e8c0e17" title=" " alt="" coords="306,548,434,576"/>
+<area shape="poly" id="edge20_Node000001_Node000013" title=" " alt="" coords="118,335,172,417,213,467,260,511,285,527,313,543,308,542,282,532,257,515,209,470,168,420,116,340"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="325,98,324,89,331,80,347,74,370,72,395,75,412,83,407,84,394,80,370,77,348,79,334,84,329,90,330,99"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="329,191,323,182,328,173,344,167,370,165,397,167,414,175,409,176,396,172,370,170,345,172,332,177,329,182,335,191"/>
+<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="325,265,324,257,331,248,347,242,370,240,395,243,412,251,407,252,394,248,370,245,348,247,334,252,329,258,330,267"/>
+<area shape="rect" id="Node000007" href="$_gui_simulation_snapshot_8h.html#a708a4d8239fea6f5efa7a59bf662d59a" title="level is a signalling level from 0 to 5." alt="" coords="534,307,675,335"/>
+<area shape="poly" id="edge10_Node000006_Node000007" title=" " alt="" coords="439,345,521,334,516,336,441,350"/>
+<area shape="rect" id="Node000010" href="$_gui_simulation_snapshot_8h.html#af060009e2c033c17dfc8996f308a6c69" title=" " alt="" coords="529,383,680,411"/>
+<area shape="poly" id="edge16_Node000006_Node000010" title=" " alt="" coords="440,367,516,382,511,383,440,372"/>
+<area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="569,306,564,298,568,289,582,283,605,281,629,283,643,292,638,292,627,288,605,286,583,288,572,293,569,298,574,307"/>
+<area shape="rect" id="Node000008" href="$_signalling_level_8h.html#a5b63c8badbe1faee2151f54cffa1d4fe" title="Whether a stored number is a signalling level. kSignallingLevelUnset is not a valid level." alt="" coords="728,307,892,335"/>
+<area shape="poly" id="edge12_Node000007_Node000008" title=" " alt="" coords="675,318,715,320,710,322,676,324"/>
+<area shape="poly" id="edge13_Node000008_Node000008" title=" " alt="" coords="779,306,775,298,779,289,791,283,810,281,831,283,843,292,838,292,829,288,810,286,792,288,782,292,780,298,784,308"/>
+<area shape="rect" id="Node000009" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="940,307,1029,335"/>
+<area shape="poly" id="edge14_Node000008_Node000009" title=" " alt="" coords="892,318,927,321,921,321,892,324"/>
+<area shape="poly" id="edge15_Node000009_Node000009" title=" " alt="" coords="954,306,949,298,953,289,965,283,984,281,1005,283,1018,292,1012,292,1003,288,984,286,966,288,957,292,954,298,959,308"/>
+<area shape="poly" id="edge17_Node000010_Node000010" title=" " alt="" coords="569,382,564,374,568,365,582,359,605,357,629,359,643,368,638,368,627,364,605,362,583,364,572,369,569,374,574,383"/>
+<area shape="poly" id="edge21_Node000013_Node000013" title=" " alt="" coords="330,547,323,540,328,530,344,524,370,522,397,524,414,534,409,533,396,530,370,527,345,529,332,534,329,539,334,549"/>
 </map>

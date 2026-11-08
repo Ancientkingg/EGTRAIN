@@ -48,13 +48,14 @@ var searchData=
   ['num_5forderlists_45',['num_OrderLists',['../class_initial_parameters.html#abe2e3b721cebf82fe42b788ed2bd7f73',1,'InitialParameters']]],
   ['number_5fof_5fwagons_46',['number_of_wagons',['../struct_scene_train_physical.html#a508a656ade78a58cd518ae889d14a366',1,'SceneTrainPhysical::number_of_wagons'],['../class_train.html#a007737b741647e6c6410c34a47feded6',1,'Train::number_of_wagons']]],
   ['numbergenerator_47',['numberGenerator',['../struct_simulation_run.html#ab3523eba3bbf113596f03c00522743d6',1,'SimulationRun']]],
-  ['numblocks_48',['numBlocks',['../struct_run_infrastructure.html#a64ad319b8e23952c785c262dedcd3a5e',1,'RunInfrastructure']]],
-  ['numconnections_49',['numConnections',['../class_node.html#acf6037d69ad2cc2f60cb3121e246660d',1,'Node::numConnections'],['../struct_run_infrastructure.html#afa192fca82add88ed2a3572cd6c16c8d',1,'RunInfrastructure::numConnections']]],
-  ['numnodes_50',['numNodes',['../class_block_set.html#a086cad62f3ab614cbb737d91d9e6bddc',1,'BlockSet']]],
-  ['numpassengers_51',['numPassengers',['../struct_simulation_run.html#aafa9438ee4ba25eec6344024ecce05de',1,'SimulationRun']]],
-  ['numplatforms_52',['numPlatforms',['../struct_simulation_run.html#adc132f81dade594bc983b8a8ba642666',1,'SimulationRun']]],
-  ['numroutes_53',['numRoutes',['../struct_run_infrastructure.html#adfd0b2d7067ca014bcc1477e97931632',1,'RunInfrastructure']]],
-  ['numstations_54',['numStations',['../class_train.html#a6896eaa0540454341567ddccf73105ad',1,'Train::numStations'],['../struct_run_infrastructure.html#ae2d4e5d638311e8e4aae0692b91a6367',1,'RunInfrastructure::numStations']]],
-  ['numtracklines_55',['numTrackLines',['../class_initial_parameters.html#a59d72d5e8e78638dd6d7cd35539af509',1,'InitialParameters::numTrackLines'],['../struct_run_infrastructure.html#aa69f2ae0bd40a351ef082b169364ed3d',1,'RunInfrastructure::numTrackLines']]],
-  ['numtrains_56',['numTrains',['../struct_simulation_run.html#a8a642519a4c27e61e8efb71214f58ecd',1,'SimulationRun']]]
+  ['numberofwagons_48',['numberOfWagons',['../struct_gui_replay_trains_1_1_train.html#ac25b15a036f458cb7b43ae0e7f272f53',1,'GuiReplayTrains::Train']]],
+  ['numblocks_49',['numBlocks',['../struct_run_infrastructure.html#a64ad319b8e23952c785c262dedcd3a5e',1,'RunInfrastructure']]],
+  ['numconnections_50',['numConnections',['../class_node.html#acf6037d69ad2cc2f60cb3121e246660d',1,'Node::numConnections'],['../struct_run_infrastructure.html#afa192fca82add88ed2a3572cd6c16c8d',1,'RunInfrastructure::numConnections']]],
+  ['numnodes_51',['numNodes',['../class_block_set.html#a086cad62f3ab614cbb737d91d9e6bddc',1,'BlockSet']]],
+  ['numpassengers_52',['numPassengers',['../struct_simulation_run.html#aafa9438ee4ba25eec6344024ecce05de',1,'SimulationRun']]],
+  ['numplatforms_53',['numPlatforms',['../struct_simulation_run.html#adc132f81dade594bc983b8a8ba642666',1,'SimulationRun']]],
+  ['numroutes_54',['numRoutes',['../struct_run_infrastructure.html#adfd0b2d7067ca014bcc1477e97931632',1,'RunInfrastructure']]],
+  ['numstations_55',['numStations',['../class_train.html#a6896eaa0540454341567ddccf73105ad',1,'Train::numStations'],['../struct_run_infrastructure.html#ae2d4e5d638311e8e4aae0692b91a6367',1,'RunInfrastructure::numStations']]],
+  ['numtracklines_56',['numTrackLines',['../class_initial_parameters.html#a59d72d5e8e78638dd6d7cd35539af509',1,'InitialParameters::numTrackLines'],['../struct_run_infrastructure.html#aa69f2ae0bd40a351ef082b169364ed3d',1,'RunInfrastructure::numTrackLines']]],
+  ['numtrains_57',['numTrains',['../struct_simulation_run.html#a8a642519a4c27e61e8efb71214f58ecd',1,'SimulationRun']]]
 ];

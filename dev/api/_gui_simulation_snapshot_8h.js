@@ -18,6 +18,8 @@ var _gui_simulation_snapshot_8h =
     [ "guiSignalRestriction", "_gui_simulation_snapshot_8h.html#af060009e2c033c17dfc8996f308a6c69", null ],
     [ "guiTrainDisplayIdentifier", "_gui_simulation_snapshot_8h.html#adbc7d0bbe4ca909664f6723c1413dc0a", null ],
     [ "guiTrainPublishesOccupiedArcs", "_gui_simulation_snapshot_8h.html#aa8c73afe282056bcc3e3e43d7ec87539", null ],
+    [ "guiVirtualCouplingMessageShown", "_gui_simulation_snapshot_8h.html#a0d3bfff93f9191e47a059b5c90cc5d68", null ],
     [ "kGuiSignalNoLevel", "_gui_simulation_snapshot_8h.html#ac87cb9b6b7601619357fef0c62866feb", null ],
-    [ "kGuiSignalUnavailable", "_gui_simulation_snapshot_8h.html#a32b9b3beb186e85095c713881a4ed2c9", null ]
+    [ "kGuiSignalUnavailable", "_gui_simulation_snapshot_8h.html#a32b9b3beb186e85095c713881a4ed2c9", null ],
+    [ "kGuiVirtualCouplingMessageSeconds", "_gui_simulation_snapshot_8h.html#aeb920736e5b5b3820e89363f67a6d2e6", null ]
 ];

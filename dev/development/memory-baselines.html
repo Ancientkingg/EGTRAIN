@@ -690,6 +690,62 @@ not slow the run. Every output file and the standard output of every
 committed scene stayed the same byte for byte, also with detailed
 trajectories.</p>
 </section>
+<section id="replay-history-recorded-2026-11-08">
+<h2>Replay history, recorded 2026-11-08<a class="headerlink" href="#replay-history-recorded-2026-11-08" title="Link to this heading">¶</a></h2>
+<p>The window kept a complete picture of the run every fifth simulated second for the
+replay: 78.5 MiB of accounted payload for Copenhagen, 30.7 MiB for Netherlands. It now
+keeps, for every second, the values that changed against the second before, with a full
+copy every 300 seconds, and takes the positions and speeds of the trains from the samples
+that the completed run holds (<code class="docutils literal notranslate"><span class="pre">CompletedRunData</span></code>), without a copy of them. Copenhagen
+owns 3.68 MiB of replay payload and shares 6.68 MiB of samples with the completed run;
+Netherlands owns 1.16 MiB and shares 0.61 MiB.</p>
+<p>These numbers compare a Release executable (Qt 6.8.3, macOS 27.0.1, arm64,
+<code class="docutils literal notranslate"><span class="pre">EGTRAIN_IPO=OFF</span></code>) built from <code class="docutils literal notranslate"><span class="pre">main</span></code> after #1335 with one that has this change. The two
+ran in turns, three times each, with <code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS=4</span></code> and <code class="docutils literal notranslate"><span class="pre">QT_QPA_PLATFORM=offscreen</span></code>,
+at a one-minute load average of 12.1 to 16.8. Both ran from <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN</span></code> a window run
+with the whole-run replay hook, which runs the scene to its end and exits:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>QT_QPA_PLATFORM=offscreen QEGTRAIN_AUTOSTART=1 QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1 \
+  /usr/bin/time -l &lt;app&gt; --scene Scenes/&lt;case&gt; -g 1 -pax 0
+</pre></div>
+</div>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Case</p></th>
+<th class="head text-right"><p>Peak RSS before (MiB)</p></th>
+<th class="head text-right"><p>Peak RSS after (MiB)</p></th>
+<th class="head text-right"><p>Peak footprint before (MiB)</p></th>
+<th class="head text-right"><p>Peak footprint after (MiB)</p></th>
+<th class="head text-right"><p>Elapsed before (s)</p></th>
+<th class="head text-right"><p>Elapsed after (s)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Copenhagen</p></td>
+<td class="text-right"><p>488.5</p></td>
+<td class="text-right"><p>397.3</p></td>
+<td class="text-right"><p>364.6</p></td>
+<td class="text-right"><p>271.6</p></td>
+<td class="text-right"><p>26.25</p></td>
+<td class="text-right"><p>24.05</p></td>
+</tr>
+<tr class="row-odd"><td><p>Netherlands</p></td>
+<td class="text-right"><p>275.9</p></td>
+<td class="text-right"><p>240.0</p></td>
+<td class="text-right"><p>174.3</p></td>
+<td class="text-right"><p>142.8</p></td>
+<td class="text-right"><p>13.47</p></td>
+<td class="text-right"><p>8.55</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Each value is the median of three runs. The peak RSS fell by 91.2 MiB (19 percent) for
+Copenhagen and by 35.9 MiB (13 percent) for Netherlands, and the peak footprint by 93.0 and
+31.5 MiB. The machine was busy with other jobs, and the elapsed time of one executable
+varied between 15.6 and 37.3 s for Copenhagen, so the elapsed times are not compared. The
+simulation output of every committed scene stayed the same byte for byte.</p>
+</section>
 </section>
 
         </article>
@@ -757,6 +813,7 @@ trajectories.</p>
 <li><a class="reference internal" href="#result-windows-after-a-window-run-recorded-2026-10-31">Result windows after a window run, recorded 2026-10-31</a></li>
 <li><a class="reference internal" href="#train-step-vectors-recorded-2026-11-06">Train step vectors, recorded 2026-11-06</a></li>
 <li><a class="reference internal" href="#section-arcs-recorded-2026-11-06">Section arcs, recorded 2026-11-06</a></li>
+<li><a class="reference internal" href="#replay-history-recorded-2026-11-08">Replay history, recorded 2026-11-08</a></li>
 </ul>
 </li>
 </ul>

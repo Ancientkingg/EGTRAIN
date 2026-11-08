@@ -1,5 +1,11 @@
 var NAVTREEINDEX7 =
 {
+"_update_checker_8cpp.html":[3,0,10,8],
+"_update_checker_8h.html":[3,0,10,9],
+"_update_helper_8cpp.html":[3,0,10,10],
+"_update_helper_8cpp.html#a1047e4253e98e0e8a89507bc941170ed":[3,0,10,10,1],
+"_update_helper_8cpp.html#a56d8e694aed4bb4b3c2ee7de3151bc80":[3,0,10,10,2],
+"_update_helper_8cpp.html#a618099fc9644e89b4625ec94a31c4800":[3,0,10,10,0],
 "_update_helper_8cpp.html#a67769b796c569eae9b2060304a2710aa":[3,0,10,10,3],
 "_update_notices_8cpp.html":[3,0,10,11],
 "_update_notices_8cpp.html#a3739c7b22182424aa05e456e2d6222a2":[3,0,10,11,1],
@@ -21,7 +27,7 @@ var NAVTREEINDEX7 =
 "_update_preparation_8h.html#a49f8aad16df96158db11db9b2bea4635":[3,0,10,14,4],
 "_update_preparation_8h.html#a7c7f5e9fe792e0949955d5b1e0c032a9":[3,0,10,14,5],
 "_update_preparation_8h.html#aa61557f8a6cc4dd22c730939530a57ee":[3,0,10,14,6],
-"_update_prompt_text_8h.html":[3,0,0,45],
+"_update_prompt_text_8h.html":[3,0,0,46],
 "_update_record_8cpp.html":[3,0,10,15],
 "_update_record_8cpp.html#a0b07cefc60dd36435751649c1a50876c":[3,0,10,15,1],
 "_update_record_8cpp.html#a0f1a4bb3a770363b7d1aeafbee33b022":[3,0,10,15,6],
@@ -69,10 +75,10 @@ var NAVTREEINDEX7 =
 "_update_settings_8h.html#aa2b2cb64256e4731e74a780c89db57cc":[3,0,10,18,2],
 "_update_settings_8h.html#aafad3b22f25264ecfe072e5b38a4c751":[3,0,10,18,3],
 "_update_settings_8h.html#afaf79ec184ce30c95c89b5b057b25789":[3,0,10,18,6],
-"_update_telemetry_controller_8cpp.html":[3,0,0,46],
-"_update_telemetry_controller_8cpp.html#a6f709333026cc3310b5e305f05f00631":[3,0,0,46,0],
-"_update_telemetry_controller_8h.html":[3,0,0,47],
-"_update_telemetry_controller_8h.html#a6f709333026cc3310b5e305f05f00631":[3,0,0,47,1],
+"_update_telemetry_controller_8cpp.html":[3,0,0,47],
+"_update_telemetry_controller_8cpp.html#a6f709333026cc3310b5e305f05f00631":[3,0,0,47,0],
+"_update_telemetry_controller_8h.html":[3,0,0,48],
+"_update_telemetry_controller_8h.html#a6f709333026cc3310b5e305f05f00631":[3,0,0,48,1],
 "_update_timing_8h.html":[3,0,10,19],
 "_update_timing_8h.html#a5cb6d76a9276d58455f5f4af04477631":[3,0,10,19,1],
 "_update_timing_8h.html#af8a23ed84e7d41acad546ee1a2d60b00":[3,0,10,19,0],
@@ -243,11 +249,5 @@ var NAVTREEINDEX7 =
 "class_blocking_times.html#a010028f117123821a25dd11d5692a558":[2,0,25,1],
 "class_blocking_times.html#a01799d78ee51239dab161d293747718e":[2,0,25,7],
 "class_blocking_times.html#a0303feb346ba7af9d8ff8c52233638b6":[2,0,25,29],
-"class_blocking_times.html#a037fa676364687bad4e039da201c47c6":[2,0,25,19],
-"class_blocking_times.html#a0e0c91dbabd9fa1180c6d23b2adb8dae":[2,0,25,15],
-"class_blocking_times.html#a18b77f6810d91ec657403bf9bae914b5":[2,0,25,37],
-"class_blocking_times.html#a241592bbfda502d79d8ff43ed29429dd":[2,0,25,36],
-"class_blocking_times.html#a26d5fe99c0d86ac37837b4070b294353":[2,0,25,11],
-"class_blocking_times.html#a2937c525af2a331e6d45a9d1c51c54ed":[2,0,25,34],
-"class_blocking_times.html#a344e14f36bce9372c00b29da447d67d6":[2,0,25,21]
+"class_blocking_times.html#a037fa676364687bad4e039da201c47c6":[2,0,25,19]
 };

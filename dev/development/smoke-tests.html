@@ -373,7 +373,7 @@ track preview and the items of a run on a canvas, apply the steps of a run and o
 selection on it, and clear the canvas again, twenty times or more in one process. After each clear
 every registry, every pointer and the scene must be empty, and an item or container that the clear
 does not release is a leak.</p></li>
-<li><p>CTest runs <code class="docutils literal notranslate"><span class="pre">test_guisimulationsnapshot</span></code>. It records, evicts and clears the frames of the replay
+<li><p>CTest runs <code class="docutils literal notranslate"><span class="pre">test_guisimulationsnapshot</span></code>. It records, evicts and clears the seconds of the replay
 history and compares the bytes the history counts with the bytes it holds on the heap. Under the
 sanitizer the heap count comes from AddressSanitizer.</p></li>
 </ul>
@@ -527,92 +527,115 @@ moves. The text below the controls does not depend on the selected time, so the
 row keeps its height while the user seeks. A replay seek explicitly restores
 historical operational overlays; normal completion does not. Future or exited
 trains do not appear on layer toggles or drive Follow station emphasis.</p>
-<p>The history (<code class="docutils literal notranslate"><span class="pre">app/GuiReplayHistory</span></code>) records every fifth simulated second and the
-last one, in a compact form. What is the same for the whole run (identity and
-static data of trains, the section and direction of each signal, section ids,
-platforms) is stored once per run in a layout. Each frame stores only flat arrays
-of the values that change: train positions, speeds and occupied arcs, signal codes,
-levels and failure flags, section flags, platform queues, passenger states. Strings
-that vary are stored once in a string table. <code class="docutils literal notranslate"><span class="pre">atOrBefore</span></code> rebuilds an ordinary
-snapshot from this form, so the window uses the same snapshot type as in a live
-run. It keeps the last rebuilt snapshot, and a snapshot that a caller still holds
-is not rebuilt, so asking again for the same frame returns the same object. A
-change of the static data between frames (a different number of trains, a renamed
-train) starts a new layout; older frames keep theirs. Adding a field to a snapshot
-type stops the build of <code class="docutils literal notranslate"><span class="pre">GuiReplayHistory.cpp</span></code> and of the round-trip test until
-the field is stored.</p>
-<p>The budget is 128 MiB of accounted payload and there is no frame count limit. When
-a run does not fit, the oldest frames are dropped and the history reports the
-interval it still covers (<code class="docutils literal notranslate"><span class="pre">firstTime</span></code>, <code class="docutils literal notranslate"><span class="pre">lastTime</span></code>, <code class="docutils literal notranslate"><span class="pre">evictedBeforeTime</span></code>). Accounting
-includes the layouts, the string table and the capacities of the frame arrays,
-not allocator bookkeeping, container nodes, shared-pointer control blocks or the
-rebuilt snapshots that callers hold, so 128 MiB is <strong>not</strong> a precise
-resident-memory limit; for the scenes below the heap in use was 1.1 times the
-accounted bytes. If one frame, with its layout and strings, exceeds the budget,
-replay is unavailable with an explanation; the simulation continues. A run without
-a window (<code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">0</span></code>) builds no snapshots and no replay frames, because nothing reads
-them. <code class="docutils literal notranslate"><span class="pre">app/ReplayCoverage.h</span></code> turns the interval the history still covers into the words of
-the row for a whole run, for a run whose first part was dropped and for a run that cannot
-be replayed, and into the tooltip of Start; the window reads the history, asks for the
-texts and writes them into the two labels and the tooltip.</p>
-<p>Measured on a full run of each committed scene at the default horizon (<code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">1</span></code>,
-<code class="docutils literal notranslate"><span class="pre">-pax</span> <span class="pre">0</span></code>, Apple silicon, release build). “Complete snapshots” is what the same
-frames would need as ordinary snapshot objects. The rows for Milano_Brescia,
-Copenhagen and Netherlands come from runs without a signalling area; the
-committed scenes have one.</p>
+<p>The history (<code class="docutils literal notranslate"><span class="pre">app/GuiReplayHistory</span></code>) records every simulated second of the run, as
+changes. What is the same for the whole run (identity, route and direction and
+capacity of each train, the section and direction of each signal, section ids,
+platforms, passenger ids) is stored once per run in a layout. What changes is stored as
+the difference to the second before, one record of 8 bytes (a slot and a new value) for
+each value that changed: signal codes, levels and failure flags, section flags, onboard
+passengers, whether a train has left, the occupied arcs of a train, the passengers on a
+platform and the states of a passenger. Lists and strings are stored once, the lists in
+the table of their interval and the strings in a string table. An interval of 300
+simulated seconds starts with a keyframe, a copy of all values, so a seek applies the
+changes of at most 299 seconds and an interval never refers to another one. <code class="docutils literal notranslate"><span class="pre">at</span></code> rebuilds
+an ordinary snapshot of the chosen second, so the window uses the same snapshot type as in a
+live run. It keeps the last rebuilt snapshot, and a snapshot that a caller still holds is
+not rebuilt, so asking again for the same second returns the same object. A change of a
+count between two seconds, or of a static field that is found at the first second of an
+interval or at the last step, starts the history again at that second; no run does this.
+Adding a field to a snapshot type stops the build of <code class="docutils literal notranslate"><span class="pre">GuiReplayHistory.cpp</span></code> and of the
+round-trip test until the field is stored, derived or declared static.</p>
+<p>The positions, speeds and wagon positions of the trains are not recorded. When a run has
+ended, <code class="docutils literal notranslate"><span class="pre">RunController</span></code> gives the history a train source (<code class="docutils literal notranslate"><span class="pre">makeGuiReplayTrains</span></code>): for each
+train the position and speed samples that the completed run holds, shared and not copied
+(<code class="docutils literal notranslate"><span class="pre">app/ReplayTrajectories.h</span></code> builds the pointers), the few samples around them that the
+completed run does not keep, the route geometry that <code class="docutils literal notranslate"><span class="pre">trainXPositionOf</span></code> reads and the virtual
+coupling messages. <code class="docutils literal notranslate"><span class="pre">at</span></code> derives the train fields from it with the same arithmetic as the live
+snapshot, so a seek shows exactly the chosen second. <code class="docutils literal notranslate"><span class="pre">test_replaylive</span></code> runs the line fixture,
+Paimpol with passengers and Milano_Brescia in the test process and compares the replay
+of every 13th second and of both sides of every keyframe with the live snapshot of that
+second, field by field with <code class="docutils literal notranslate"><span class="pre">==</span></code>, after the samples of the trains were freed. A
+history without a train source leaves these fields at their defaults, so no train is drawn.</p>
+<p><code class="docutils literal notranslate"><span class="pre">record</span></code> runs on the thread that steps the run and nothing else touches the history then.
+The history is moved out after the worker has joined; <code class="docutils literal notranslate"><span class="pre">setTrains</span></code>, <code class="docutils literal notranslate"><span class="pre">at</span></code> and the other
+functions run on the interface thread, and the train source is immutable.</p>
+<p>The budget is 128 MiB of accounted payload and there is no limit on the number of seconds.
+It limits what <code class="docutils literal notranslate"><span class="pre">record</span></code> keeps, which is the only part that grows during a run. When a run
+does not fit, the oldest interval is dropped as a whole and the history reports the interval
+it still covers (<code class="docutils literal notranslate"><span class="pre">firstTime</span></code>, <code class="docutils literal notranslate"><span class="pre">lastTime</span></code>, <code class="docutils literal notranslate"><span class="pre">evictedBeforeTime</span></code>). Accounting includes the
+layout, the string table, the keyframes, changes and lists of every interval, the state of
+the last second and the part of the train source that the history owns, all by capacity;
+it does not include allocator bookkeeping, container nodes, shared-pointer control blocks or
+the rebuilt snapshots that callers hold, so 128 MiB is <strong>not</strong> a precise resident-memory
+limit. The samples that the replay shares with the completed run are reported apart
+(<code class="docutils literal notranslate"><span class="pre">sharedBytes</span></code>): the completed run holds them whether or not there is a replay. If the
+interval that is being recorded, with its layout and strings, exceeds the budget, replay is
+unavailable with an explanation; the simulation continues. A run without a window (<code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">0</span></code>)
+builds no snapshots and no replay, because nothing reads them. <code class="docutils literal notranslate"><span class="pre">app/ReplayCoverage.h</span></code> turns
+the interval the history still covers into the words of the row for a whole run, for a run
+whose first part was dropped and for a run that cannot be replayed, and into the tooltip of
+Start; the window reads the history, asks for the texts and writes them into the two labels
+and the tooltip.</p>
+<p>Measured on a full run of each committed scene at the default horizon (<code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">-pax</span> <span class="pre">0</span></code>,
+Apple silicon, release build) with <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1</span></code>. “Owned payload” is
+<code class="docutils literal notranslate"><span class="pre">bytes</span></code> of the marker, “Shared samples” is <code class="docutils literal notranslate"><span class="pre">shared</span></code>, and “Old accounted payload” is what the
+history before this change counted for the same run, which kept a snapshot every fifth second.</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Scene</p></th>
-<th class="head"><p>Frames</p></th>
 <th class="head"><p>Covers (s)</p></th>
-<th class="head"><p>Accounted</p></th>
-<th class="head"><p>As complete snapshots</p></th>
+<th class="head"><p>Owned payload</p></th>
+<th class="head"><p>Shared samples</p></th>
+<th class="head"><p>Old accounted payload</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Assignment_Gvc_Gdg_Ut</p></td>
-<td><p>2001</p></td>
 <td><p>0-9999</p></td>
-<td><p>4.7 MiB</p></td>
-<td><p>32.5 MiB</p></td>
+<td><p>0.16 MiB</p></td>
+<td><p>0.75 MiB</p></td>
+<td><p>4.65 MiB</p></td>
 </tr>
 <tr class="row-odd"><td><p>Paimpol</p></td>
-<td><p>1801</p></td>
 <td><p>0-8999</p></td>
-<td><p>12.1 MiB</p></td>
-<td><p>155 MiB</p></td>
+<td><p>0.40 MiB</p></td>
+<td><p>0.09 MiB</p></td>
+<td><p>12.08 MiB</p></td>
 </tr>
 <tr class="row-even"><td><p>Milano_Brescia</p></td>
-<td><p>801</p></td>
 <td><p>0-3999</p></td>
-<td><p>13.1 MiB</p></td>
-<td><p>68.8 MiB</p></td>
+<td><p>0.37 MiB</p></td>
+<td><p>0.94 MiB</p></td>
+<td><p>13.06 MiB</p></td>
 </tr>
-<tr class="row-odd"><td><p>Copenhagen</p></td>
-<td><p>1601</p></td>
+<tr class="row-odd"><td><p>Amsterdam_Hilversum_Student</p></td>
 <td><p>0-7999</p></td>
-<td><p>78.9 MiB</p></td>
-<td><p>489 MiB</p></td>
+<td><p>0.97 MiB</p></td>
+<td><p>0.09 MiB</p></td>
+<td><p>22.84 MiB</p></td>
 </tr>
-<tr class="row-even"><td><p>Netherlands</p></td>
-<td><p>1601</p></td>
+<tr class="row-even"><td><p>Copenhagen</p></td>
 <td><p>0-7999</p></td>
-<td><p>32.7 MiB</p></td>
-<td><p>346 MiB</p></td>
+<td><p>3.68 MiB</p></td>
+<td><p>6.68 MiB</p></td>
+<td><p>78.49 MiB</p></td>
+</tr>
+<tr class="row-odd"><td><p>Netherlands</p></td>
+<td><p>0-7999</p></td>
+<td><p>1.16 MiB</p></td>
+<td><p>0.61 MiB</p></td>
+<td><p>30.72 MiB</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>Copenhagen is the largest: 196 trains, 78.9 MiB accounted for the whole run, 89 MiB
-of heap in use. A frame holds all the trains of the run, so a longer horizon, which adds
-trains, makes every frame larger: with a horizon of 20000 s (<code class="docutils literal notranslate"><span class="pre">-h</span> <span class="pre">20000</span></code>) Copenhagen has
-476 trains and about 98 KiB a frame, against 50 KiB at the default horizon. The budget then
-holds the last 1340 frames, from 13305 s to 19999 s (134144845 of 134217728 bytes), and the
-row shows the run whose first part was dropped.
-Recording a frame took 1 to 30 microseconds (Copenhagen and Netherlands: 21 to
-30), once per five steps, on the simulation thread; rebuilding a frame took 1 to
-34 microseconds on the interface thread.</p>
+<p>Copenhagen is the largest: 196 trains, 3.68 MiB of owned payload for the whole run in 27
+intervals, against 78.5 MiB before. Paimpol with passengers (<code class="docutils literal notranslate"><span class="pre">-pax</span> <span class="pre">1</span></code>) owns 0.40 MiB. A longer
+horizon adds trains: with a horizon of 20000 s (<code class="docutils literal notranslate"><span class="pre">-h</span> <span class="pre">20000</span></code>) Copenhagen has 476 trains and the
+replay covers the whole run, from 0 s to 19999 s, with 10.1 MiB of owned payload in 67 intervals
+and 19.6 MiB of shared samples. The history before this change had to drop the first part of
+that run: its budget held the last 1340 frames, from 13305 s to 19999 s.</p>
 </section>
 <section id="close-new-and-open-during-a-run">
 <h2>Close, New and Open during a run<a class="headerlink" href="#close-new-and-open-during-a-run" title="Link to this heading">¶</a></h2>
@@ -763,7 +786,7 @@ tests that can run side by side, and <code class="docutils literal notranslate">
 </tr>
 <tr class="row-even"><td><p></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">replay</span></code></p></td>
-<td><p>The whole-run replay of Assignment, Paimpol, Milano_Brescia and Netherlands</p></td>
+<td><p>The whole-run replay of Assignment, Paimpol, Milano_Brescia, Amsterdam_Hilversum_Student and Netherlands</p></td>
 </tr>
 <tr class="row-odd"><td><p></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">discard</span></code></p></td>
@@ -771,7 +794,7 @@ tests that can run side by side, and <code class="docutils literal notranslate">
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_replay_copenhagen</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">replay-copenhagen</span></code></p></td>
-<td><p>The whole-run replay of Copenhagen, which takes as long as the other four scenes together</p></td>
+<td><p>The whole-run replay of Copenhagen, which takes as long as the other five scenes together</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_signals</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">signals</span></code></p></td>
@@ -828,8 +851,9 @@ replay”, an empty slider, and a slider and Play that are disabled. The wording
 replayed, a first kept time of 0, a run of one frame and a clock that wraps over midnight.</p>
 <p>A real scene is checked with <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1</span></code>. The window runs the scene
 to its end at its own horizon, applies the checks of <code class="docutils literal notranslate"><span class="pre">E2E_REPLAY_ROW_WHOLE_OK</span></code> to the
-history of that run and exits, printing <code class="docutils literal notranslate"><span class="pre">E2E_REPLAY_WHOLE_RUN_OK</span></code> with the number of
-frames, the last time and the accounted bytes and budget. The <code class="docutils literal notranslate"><span class="pre">replay</span></code> and <code class="docutils literal notranslate"><span class="pre">replay-copenhagen</span></code> phases of
+history of that run and exits, printing <code class="docutils literal notranslate"><span class="pre">E2E_REPLAY_WHOLE_RUN_OK</span></code> with <code class="docutils literal notranslate"><span class="pre">seconds</span></code> (the seconds
+the replay covers), <code class="docutils literal notranslate"><span class="pre">last</span></code> (its last time), <code class="docutils literal notranslate"><span class="pre">bytes</span></code> (the payload that the history owns), <code class="docutils literal notranslate"><span class="pre">shared</span></code> (the samples
+that it shares with the completed run), <code class="docutils literal notranslate"><span class="pre">budget</span></code> and <code class="docutils literal notranslate"><span class="pre">intervals</span></code>. The <code class="docutils literal notranslate"><span class="pre">replay</span></code> and <code class="docutils literal notranslate"><span class="pre">replay-copenhagen</span></code> phases of
 <code class="docutils literal notranslate"><span class="pre">visual_polish_smoke.sh</span></code> do so for all six committed scenes, so a history that drops the first part of one of them, or
 ends before the last timestep of the run, fails the script. No committed scene is larger
 than the budget at its own horizon, which is why the dropped row is built from a smaller

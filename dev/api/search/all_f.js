@@ -122,7 +122,8 @@ var searchData=
   ['oversized_119',['oversized',['../classtelemetry_1_1_worker.html#a11314047ab129c5d8e9b366514afda73',1,'telemetry::Worker']]],
   ['overview_120',['Overview',['../class_train_badge_item.html#af7590fcbb1cdc275ae631a1ef2704c7ba3b878279a04dc47d60932cb294d96259',1,'TrainBadgeItem']]],
   ['owncolour_121',['ownColour',['../struct_series_meta.html#ade094fefbd1e2395e4a02308bb9bbc55',1,'SeriesMeta']]],
-  ['owner_122',['Owner',['../classtelemetry_1_1_telemetry_queue.html#a5fdcf89146509911ce754826df9b6c94ab6f4a2ec6356bbd56d49f2096bf9d3d3',1,'telemetry::TelemetryQueue']]],
-  ['owner_123',['owner',['../classtelemetry_1_1_worker.html#a4d11d97bdf6bc818afa440bd00025dac',1,'telemetry::Worker']]],
-  ['ownershipid_124',['ownershipId',['../structtelemetry_1_1_batch_token.html#aa515fd5ca26d24708b162d4a615885d9',1,'telemetry::BatchToken']]]
+  ['ownedbytes_122',['ownedBytes',['../struct_gui_replay_trains.html#a1f6b40bc5e29f0b2d1e71edaf5b5b8f1',1,'GuiReplayTrains']]],
+  ['owner_123',['Owner',['../classtelemetry_1_1_telemetry_queue.html#a5fdcf89146509911ce754826df9b6c94ab6f4a2ec6356bbd56d49f2096bf9d3d3',1,'telemetry::TelemetryQueue']]],
+  ['owner_124',['owner',['../classtelemetry_1_1_worker.html#a4d11d97bdf6bc818afa440bd00025dac',1,'telemetry::Worker']]],
+  ['ownershipid_125',['ownershipId',['../structtelemetry_1_1_batch_token.html#aa515fd5ca26d24708b162d4a615885d9',1,'telemetry::BatchToken']]]
 ];
