@@ -1,8 +1,0 @@
-<map id="sceneSignalFailureTarget" name="sceneSignalFailureTarget">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,188,57"/>
-<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="58,29,52,20,57,11,72,5,97,3,123,5,139,14,133,14,121,10,96,8,73,10,60,15,57,20,63,29"/>
-<area shape="rect" id="Node000002" href="$struct_scene_section_inventory.html#a03c3b41fd7859a36164db37bc7784fb8" title=" " alt="" coords="236,21,406,66"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,41,223,43,217,43,188,46"/>
-<area shape="rect" id="Node000003" href="$class_scene_section_list.html#aa2d8f5ad8f64cb9731f30d5711d503e2" title="Number of sections." alt="" coords="454,29,619,57"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="406,41,441,43,436,43,406,46"/>
-</map>

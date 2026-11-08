@@ -1,6 +1,0 @@
-<map id="SimulationWorker::active" name="SimulationWorker::active">
-<area shape="rect" id="Node000001" title="The worker constructed last, or nullptr once it is destroyed. A run without a window has none and mak..." alt="" coords="5,38,190,66"/>
-<area shape="rect" id="Node000002" href="$class_simulation_worker.html#abe9b5b4d358a7737faff62bae0d9dcb8" title="A worker without a controller runs the controller of the process, the global simulation." alt="" coords="238,29,452,74"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="190,49,225,51,220,52,190,54"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="298,27,296,19,304,10,321,5,345,3,372,5,389,14,384,14,370,10,345,8,322,10,307,15,301,21,303,30"/>
-</map>

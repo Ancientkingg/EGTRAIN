@@ -1,7 +1,0 @@
-<map id="ScopeStretchChoice::stretchChanged" name="ScopeStretchChoice::stretchChanged">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,40,156,85"/>
-<area shape="rect" id="Node000002" href="$class_scope_stretch_choice.html#af734ca85ae9aa159377bd99f94aaffeb" title="The id of the chosen route, empty for all routes." alt="" coords="204,5,354,50"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,47,191,43,186,44,157,52"/>
-<area shape="rect" id="Node000003" href="$class_scope_stretch_choice.html#afd6f02545f01d9ca39cd7aa589cbc43a" title="The runtime section ids of the blocks of the stretch in route order; empty for all routes." alt="" coords="204,75,354,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="156,73,191,81,186,82,156,78"/>
-</map>

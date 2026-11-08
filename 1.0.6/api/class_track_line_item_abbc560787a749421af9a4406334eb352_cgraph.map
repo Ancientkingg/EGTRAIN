@@ -1,5 +1,0 @@
-<map id="TrackLineItem::TrackLineItem" name="TrackLineItem::TrackLineItem">
-<area shape="rect" id="Node000001" title="A free line without an arc; its click target reaches 20 scene units on each side of it." alt="" coords="5,14,217,42"/>
-<area shape="rect" id="Node000002" href="$class_track_line_item.html#a257ee10133730f3f7318494007ac4ab1" title="Builds selectionPolygon around the line." alt="" coords="265,5,486,50"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="217,25,252,28,247,28,217,30"/>
-</map>

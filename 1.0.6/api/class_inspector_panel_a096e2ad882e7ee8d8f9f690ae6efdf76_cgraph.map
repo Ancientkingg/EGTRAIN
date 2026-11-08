@@ -1,9 +1,0 @@
-<map id="InspectorPanel::displayArcInfo" name="InspectorPanel::displayArcInfo">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,83,223,111"/>
-<area shape="rect" id="Node000002" href="$class_inspector_panel.html#a86ad792c418b9b49fd790e9ff05e27df" title=" " alt="" coords="271,5,475,50"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,80,275,53,270,56,169,85"/>
-<area shape="rect" id="Node000003" href="$class_track_line_item.html#aa41b680d18b2297565423a2a126a818d" title="The state of the track during a run." alt="" coords="276,75,470,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="223,94,262,96,257,98,224,100"/>
-<area shape="rect" id="Node000004" href="$class_inspector_panel.html#af73129cdfba728ac8d9aa43e80963edc" title="The value in fixed notation with precision digits after the decimal point." alt="" coords="285,144,460,189"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="169,109,275,138,270,141,168,114"/>
-</map>

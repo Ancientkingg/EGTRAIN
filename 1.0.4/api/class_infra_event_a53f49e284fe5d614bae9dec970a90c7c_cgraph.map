@@ -1,5 +1,0 @@
-<map id="InfraEvent::operator=" name="InfraEvent::operator=">
-<area shape="rect" id="Node000001" title="Copies the element and the events." alt="" coords="5,5,168,31"/>
-<area shape="rect" id="Node000002" href="$class_infra_event.html#ad5b2b9e544400099d3e2d42a8485311a" title="Sets the coordinates of the element to &#45;1, its IDs and station name to &quot;None&quot; and its flags to false;..." alt="" coords="216,5,380,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,15,202,15,202,21,168,21"/>
-</map>

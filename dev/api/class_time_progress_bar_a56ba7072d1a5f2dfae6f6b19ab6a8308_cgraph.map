@@ -1,6 +1,0 @@
-<map id="TimeProgressBar::setProgress" name="TimeProgressBar::setProgress">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,222,57"/>
-<area shape="rect" id="Node000002" href="$_time_format_8cpp.html#a6903059349242c88f94f30ba656a03b1" title=" " alt="" coords="270,29,393,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="222,41,257,43,251,43,222,46"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="294,28,288,20,293,11,307,5,331,3,357,5,372,14,367,14,356,10,331,8,309,10,296,15,293,20,299,30"/>
-</map>

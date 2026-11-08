@@ -1,5 +1,0 @@
-<map id="GuiReplayHistory::record" name="GuiReplayHistory::record">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,189,33"/>
-<area shape="rect" id="Node000002" href="$class_gui_replay_history.html#ab1023e589af0f9ea60ec32a6fe9ab059" title="The newest second kept, from the start of the run. 0 when the history is empty." alt="" coords="237,5,436,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,17,224,19,218,19,189,22"/>
-</map>

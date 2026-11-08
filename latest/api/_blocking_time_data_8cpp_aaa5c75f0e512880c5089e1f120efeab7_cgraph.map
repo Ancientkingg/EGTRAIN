@@ -1,9 +1,0 @@
-<map id="defaultBlockingTimeScopeFrom" name="defaultBlockingTimeScopeFrom">
-<area shape="rect" id="Node000001" title="The scope of the whole run." alt="" coords="5,60,234,88"/>
-<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="75,60,68,51,74,41,91,35,120,33,150,36,168,44,163,45,149,41,119,39,92,41,77,46,73,51,80,59"/>
-<area shape="rect" id="Node000002" href="$_blocking_time_scope_8cpp.html#aae61caecea312e72d118f1c729b4a2c9" title=" " alt="" coords="282,29,477,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="234,58,269,56,264,57,234,63"/>
-<area shape="rect" id="Node000003" href="$struct_completed_run_settings.html#a153e7bfe4196089fb8e532f261ef95c8" title="Length of the run in seconds." alt="" coords="294,81,464,126"/>
-<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="234,84,281,92,276,92,234,89"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="335,28,328,20,334,11,351,5,379,3,410,5,428,14,422,14,408,10,379,8,352,10,337,15,333,20,340,30"/>
-</map>

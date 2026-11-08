@@ -1,5 +1,0 @@
-<map id="StationMarkItem::setStyle" name="StationMarkItem::setStyle">
-<area shape="rect" id="Node000001" title="Draws the mark in style; StationOverlayItem::setMarkStyle() sets it and places the mark by its anchor..." alt="" coords="5,5,197,33"/>
-<area shape="rect" id="Node000002" href="$class_station_mark_item.html#acfa99202c346ecfcabad5603dd456a62" title="The style of the mark." alt="" coords="245,5,415,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,17,232,19,227,19,197,22"/>
-</map>

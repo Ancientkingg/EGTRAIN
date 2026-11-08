@@ -1,7 +1,0 @@
-<map id="ColorChoiceButton::setColor" name="ColorChoiceButton::setColor">
-<area shape="rect" id="Node000001" title="Shows the stored text without changing it; never emits colorChanged." alt="" coords="5,29,156,74"/>
-<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="37,28,35,19,43,10,58,5,81,3,105,5,122,14,116,15,104,10,80,8,59,10,46,15,40,21,42,29"/>
-<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a4ace14b9d098e1d8cfda2236f8c3561b" title=" " alt="" coords="204,38,416,66"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,49,191,51,185,52,156,54"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="270,36,264,29,269,19,285,13,310,11,337,14,353,23,348,22,335,19,310,16,286,18,273,23,270,29,275,38"/>
-</map>

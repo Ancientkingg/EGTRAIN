@@ -1,6 +1,0 @@
-<map id="PassengerPanel::commitPendingEditors" name="PassengerPanel::commitPendingEditors">
-<area shape="rect" id="Node000001" title="Takes the ids, the activity and the numbers that are being edited into the document." alt="" coords="5,21,238,66"/>
-<area shape="rect" id="Node000002" href="$_editor_helpers_8h.html#a37baa06dd8545a6269a16d67386af9c8" title=" " alt="" coords="286,29,405,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="238,41,273,43,267,43,238,46"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="307,28,301,20,306,11,321,5,345,3,372,5,387,14,382,14,370,10,345,8,322,10,309,15,306,20,312,30"/>
-</map>

@@ -1,5 +1,0 @@
-<map id="InfrastructureFacet::cellValue" name="InfrastructureFacet::cellValue">
-<area shape="rect" id="Node000001" title="What an edited cell holds: its trimmed text, or for a check box (a cell with a check state) &quot;true&quot; or..." alt="" coords="5,5,149,50"/>
-<area shape="rect" id="Node000002" href="$class_infrastructure_facet.html#a9760eaef45f7754a6a786e578f1dc455" title="The text of a flag: &quot;true&quot; or &quot;false&quot;." alt="" coords="197,5,340,50"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,25,184,27,179,28,149,30"/>
-</map>

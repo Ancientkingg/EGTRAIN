@@ -1,7 +1,0 @@
-<map id="closeRunOutputFile" name="closeRunOutputFile">
-<area shape="rect" id="Node000001" title="Closes a file that openRunOutputFile opened for path. Throws runOutputWriteError when a write or the ..." alt="" coords="5,29,153,57"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="44,29,39,20,44,11,57,5,79,3,102,5,116,14,111,14,101,10,79,8,59,10,47,15,45,20,50,29"/>
-<area shape="rect" id="Node000002" href="$_run_output_file_8h.html#a32bd31f491e023651e44b2a5ecfd2ef7" title=" " alt="" coords="201,29,353,57"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="153,41,188,43,182,43,153,46"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="243,28,237,20,242,11,255,5,277,3,300,5,314,14,309,14,299,10,277,8,256,10,245,15,242,20,247,30"/>
-</map>

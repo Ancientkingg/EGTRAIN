@@ -1,9 +1,0 @@
-<map id="RecoveryStore::adopt" name="RecoveryStore::adopt">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,38,167,66"/>
-<area shape="rect" id="Node000002" href="$_scene_compatibility_8cpp.html#ac1955238f3fae287668574b442b6b074" title=" " alt="" coords="215,38,400,66"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,49,202,51,196,52,167,54"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="269,36,263,29,268,19,283,13,307,11,333,14,349,23,344,22,332,19,307,16,284,18,272,23,269,29,274,38"/>
-<area shape="rect" id="Node000003" href="$_scene_migration_8cpp.html#a34c152459f18cd16c84e714e1fbb3385" title=" " alt="" coords="448,29,639,74"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="400,49,435,52,430,52,400,54"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="499,27,497,19,505,10,520,5,544,3,569,5,586,15,581,14,568,10,544,8,522,10,508,15,502,21,503,30"/>
-</map>

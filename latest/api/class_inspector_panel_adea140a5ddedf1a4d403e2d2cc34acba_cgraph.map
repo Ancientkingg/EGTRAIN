@@ -1,5 +1,0 @@
-<map id="InspectorPanel::displayNodeInfo" name="InspectorPanel::displayNodeInfo">
-<area shape="rect" id="Node000001" title="Shows the form of a node of the run, with its coordinates in metres." alt="" coords="5,14,236,42"/>
-<area shape="rect" id="Node000002" href="$class_inspector_panel.html#a86ad792c418b9b49fd790e9ff05e27df" title=" " alt="" coords="284,5,488,50"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="236,25,271,28,265,28,236,30"/>
-</map>

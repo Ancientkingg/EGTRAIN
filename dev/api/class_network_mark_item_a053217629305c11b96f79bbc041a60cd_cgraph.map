@@ -1,5 +1,0 @@
-<map id="NetworkMarkItem::setViewScale" name="NetworkMarkItem::setViewScale">
-<area shape="rect" id="Node000001" title="Logical pixels per scene unit of the view. A value that is not positive keeps the old scale." alt="" coords="5,5,205,50"/>
-<area shape="rect" id="Node000002" href="$class_network_mark_item.html#aac383677707050684a368ec15058fa10" title="Reads the targets again: which of them are shown and where." alt="" coords="253,14,430,42"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,25,240,27,235,28,205,30"/>
-</map>

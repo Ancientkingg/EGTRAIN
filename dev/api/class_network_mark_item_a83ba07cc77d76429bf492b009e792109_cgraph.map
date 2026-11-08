@@ -1,7 +1,0 @@
-<map id="NetworkMarkItem::setStretches" name="NetworkMarkItem::setStretches">
-<area shape="rect" id="Node000001" title="Sets the stretches, polylines in scene coordinates. A polyline of one point is drawn as a dot." alt="" coords="5,32,234,60"/>
-<area shape="rect" id="Node000002" href="$class_network_mark_item.html#aee502b1f90ef75e65af3f5d3a7feff80" title="The stretches." alt="" coords="282,5,489,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="234,32,269,31,264,32,234,37"/>
-<area shape="rect" id="Node000003" href="$class_network_mark_item.html#aac383677707050684a368ec15058fa10" title="Reads the targets again: which of them are shown and where." alt="" coords="297,57,474,85"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="234,54,284,61,278,61,234,59"/>
-</map>

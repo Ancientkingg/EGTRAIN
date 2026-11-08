@@ -1,7 +1,0 @@
-<map id="StationBoundarySection" name="StationBoundarySection">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,251,183,279"/>
-<area shape="rect" id="Node000002" href="$class_section.html" title=" " alt="" coords="59,128,129,156"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,170,97,251,91,250,92,173"/>
-<area shape="rect" id="Node000003" href="$class_node.html" title=" " alt="" coords="66,5,122,33"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="95,46,97,128,91,127,93,51"/>
-</map>

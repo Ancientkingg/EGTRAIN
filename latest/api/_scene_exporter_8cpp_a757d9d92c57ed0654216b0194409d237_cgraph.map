@@ -1,7 +1,0 @@
-<map id="collectOldInputs" name="collectOldInputs">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,132,57"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="41,29,37,20,40,11,51,5,69,3,87,5,98,13,93,14,85,10,68,8,53,10,44,14,42,20,46,29"/>
-<area shape="rect" id="Node000002" href="$_scene_exporter_8cpp.html#a958a60e28b09996849ec7665c6206390" title=" " alt="" coords="180,29,270,57"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="132,41,167,43,161,43,132,46"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="197,28,193,20,196,11,207,5,225,3,243,5,255,14,249,13,241,10,225,8,209,10,200,14,198,20,202,30"/>
-</map>

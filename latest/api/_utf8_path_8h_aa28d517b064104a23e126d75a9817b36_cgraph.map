@@ -1,4 +1,0 @@
-<map id="pathFromUtf8" name="pathFromUtf8">
-<area shape="rect" id="Node000001" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="5,29,117,57"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="40,28,37,20,40,11,48,5,61,3,75,5,83,14,78,14,72,10,61,8,50,10,44,14,43,20,46,29"/>
-</map>

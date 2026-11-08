@@ -1,7 +1,0 @@
-<map id="blockingTimeScopeRouteFrom" name="blockingTimeScopeRouteFrom">
-<area shape="rect" id="Node000001" title="The route as the scope dialogs offer it: its id, corridor, blocks and stations." alt="" coords="5,29,225,57"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="76,28,70,20,75,11,90,5,115,3,142,5,158,14,153,14,140,10,115,8,91,10,78,15,75,20,81,29"/>
-<area shape="rect" id="Node000002" href="$_blocking_time_scope_8cpp.html#ac01aee1b4c6ace5d6b3ca77476012670" title=" " alt="" coords="273,29,414,57"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="225,41,260,43,255,43,225,46"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="304,28,298,20,303,11,318,5,343,3,370,5,386,14,381,14,369,10,343,8,320,10,306,15,303,20,309,30"/>
-</map>

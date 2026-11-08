@@ -1,9 +1,0 @@
-<map id="TimetableTableWindow::setPresentation" name="TimetableTableWindow::setPresentation">
-<area shape="rect" id="Node000001" title="Sets the window title to heading and shows context in a label; an empty context hides the label." alt="" coords="5,22,180,62"/>
-<area shape="rect" id="Node000002" href="$_plain_tool_tip_8h.html#af52b32a95e15749255a0578bd8a4a8d2" title=" " alt="" coords="228,29,328,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,39,214,39,214,45,181,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="247,31,241,21,244,11,257,5,278,3,303,6,314,15,311,19,301,11,278,8,259,10,248,15,246,20,252,28"/>
-<area shape="rect" id="Node000003" href="$_plain_tool_tip_8h.html#a569a63c7ee49356e655a4b1cd2eb8315" title=" " alt="" coords="376,29,552,55"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="328,39,363,39,363,45,328,45"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="433,31,427,21,430,11,443,5,464,3,489,6,500,15,497,19,487,11,464,8,445,10,434,15,432,20,438,28"/>
-</map>

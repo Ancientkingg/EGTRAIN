@@ -1,5 +1,0 @@
-<map id="Train::arcEndTargetSpeed" name="Train::arcEndTargetSpeed">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,190,33"/>
-<area shape="rect" id="Node000002" href="$class_train.html#a0a450bd385a5d28f17000a8bcafe76fd" title="Track speed limit of arc in m/s for this train: speedLimit scaled by servicePerformancePercent." alt="" coords="238,5,404,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="190,17,225,19,219,19,190,22"/>
-</map>

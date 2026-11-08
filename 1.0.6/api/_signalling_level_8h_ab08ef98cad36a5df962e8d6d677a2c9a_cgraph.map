@@ -1,7 +1,0 @@
-<map id="isMovingBlockLevel" name="isMovingBlockLevel">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,157,57"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="51,28,47,20,51,11,62,5,81,3,101,5,113,14,108,14,99,10,81,8,64,10,54,15,52,20,57,29"/>
-<area shape="rect" id="Node000002" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="205,29,294,57"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="157,41,192,43,186,43,157,46"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="220,28,215,20,219,11,231,5,249,3,269,5,282,14,276,14,268,10,249,8,232,10,223,15,220,20,225,30"/>
-</map>

@@ -1,5 +1,0 @@
-<map id="SceneEditorPanel::setPrompts" name="SceneEditorPanel::setPrompts">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,221,33"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#a505e2ae964806be7530e1a85fb354e55" title="The prompts of the panel, for the code that asks the user a question on its behalf,..." alt="" coords="269,5,464,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="221,17,256,19,251,19,221,22"/>
-</map>

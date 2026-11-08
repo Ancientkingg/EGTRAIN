@@ -1,8 +1,0 @@
-<map id="BaselineOccurrence" name="BaselineOccurrence">
-<area shape="rect" id="Node000001" title="One occurrence in both runs, judged at its final arrival." alt="" coords="34,251,185,279"/>
-<area shape="rect" id="Node000002" href="$struct_delay_difference.html" title="The simulated time of one event in the baseline and in the scenario run." alt="" coords="198,151,325,178"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,187,131,253,129,248,226,186"/>
-<area shape="rect" id="Node000003" href="$struct_run_result_value.html" title="A result that may not exist. An unavailable value is shown as empty or &quot;&#45;&quot;, never as 0." alt="" coords="5,5,129,33"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="61,45,55,109,55,144,61,178,79,218,101,251,96,251,74,221,55,179,50,144,49,108,60,51"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="98,40,246,149,241,151,96,45"/>
-</map>

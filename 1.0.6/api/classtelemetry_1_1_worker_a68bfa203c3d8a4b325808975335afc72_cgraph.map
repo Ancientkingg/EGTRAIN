@@ -1,5 +1,0 @@
-<map id="telemetry::Worker::closeIngress" name="telemetry::Worker::closeIngress">
-<area shape="rect" id="Node000001" title="Closes the gates, empties the ring and abandons a running request. The queue stays as it is." alt="" coords="5,5,151,50"/>
-<area shape="rect" id="Node000002" href="$class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" title="Cancels the request. finished() is emitted if it was not emitted yet." alt="" coords="199,14,326,42"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,25,186,27,181,28,151,30"/>
-</map>

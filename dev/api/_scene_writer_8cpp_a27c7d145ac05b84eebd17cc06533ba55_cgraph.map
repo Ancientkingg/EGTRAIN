@@ -1,6 +1,0 @@
-<map id="copyExistingSceneContents" name="copyExistingSceneContents">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,207,57"/>
-<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="70,28,65,20,70,11,84,5,106,3,130,5,145,14,139,14,129,10,106,8,85,10,73,15,70,20,76,29"/>
-<area shape="rect" id="Node000002" href="$_scene_writer_8cpp.html#af5f545848c06ad26a0846c61f022f460" title=" " alt="" coords="255,29,366,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="207,41,242,43,236,43,207,46"/>
-</map>

@@ -1,7 +1,0 @@
-<map id="NetworkMarkItem::setDirected" name="NetworkMarkItem::setDirected">
-<area shape="rect" id="Node000001" title="Shows the direction of the stretches: they are in travel order, each from its start to its end." alt="" coords="5,32,228,60"/>
-<area shape="rect" id="Node000002" href="$class_network_mark_item.html#a076907914aae5f0740e95860f3a3974d" title="The direction of the stretches shows." alt="" coords="276,5,476,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="228,32,263,31,258,31,229,37"/>
-<area shape="rect" id="Node000003" href="$class_network_mark_item.html#aac383677707050684a368ec15058fa10" title="Reads the targets again: which of them are shown and where." alt="" coords="287,57,464,85"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="228,54,274,61,269,61,228,59"/>
-</map>

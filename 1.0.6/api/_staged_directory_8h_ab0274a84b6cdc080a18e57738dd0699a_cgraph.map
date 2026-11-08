@@ -1,9 +1,0 @@
-<map id="syncToDisk" name="syncToDisk">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,100,57"/>
-<area shape="rect" id="Node000002" href="$_scene_writer_8cpp.html#aac70d77a008164cf18ea3ef681b41208" title=" " alt="" coords="148,29,242,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,41,135,43,130,43,100,46"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="169,28,166,20,169,11,179,5,195,3,212,5,222,14,217,13,210,10,195,8,181,10,173,14,171,20,174,30"/>
-<area shape="rect" id="Node000003" href="$_staged_directory_8h.html#adb3eae1a97042bdd695770f97fbdc18e" title=" " alt="" coords="290,29,418,57"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="242,41,277,43,272,43,242,46"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="326,28,322,20,325,11,336,5,354,3,373,5,385,15,380,13,371,10,354,8,338,10,329,14,327,20,331,30"/>
-</map>

@@ -1,9 +1,0 @@
-<map id="areaCapacityText" name="areaCapacityText">
-<area shape="rect" id="Node000001" title="The route and block range of the scope by the numbers of the blocks, as the window names the area." alt="" coords="5,29,140,57"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="37,29,32,20,36,11,50,5,73,3,96,5,111,14,106,14,95,10,72,8,52,10,40,15,37,20,42,29"/>
-<area shape="rect" id="Node000002" href="$_capacity_scope_8cpp.html#aac48329cb36d06bcc0e23530bf055943" title=" " alt="" coords="188,29,363,57"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="140,41,175,43,169,43,140,46"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="240,28,235,20,239,11,253,5,275,3,299,5,314,14,308,14,298,10,275,8,254,10,243,15,240,20,245,30"/>
-<area shape="rect" id="Node000003" href="$struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" title="True when routeIndex indexes routes." alt="" coords="411,29,628,57"/>
-<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="364,41,398,43,393,43,364,46"/>
-</map>
