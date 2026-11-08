@@ -142,7 +142,10 @@ bool belongsToPassenger(const SceneDiagnostic& diagnostic, const QString& passen
 
 PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("passengerPanel");
-	QHBoxLayout* passengerLayout = new QHBoxLayout(this);
+	// The list and detail columns, with the import results below both at full width.
+	QVBoxLayout* panelLayout = new QVBoxLayout(this);
+	QHBoxLayout* passengerLayout = new QHBoxLayout();
+	panelLayout->addLayout(passengerLayout, 1);
 	QWidget* passengerListPane = new QWidget(this);
 	QVBoxLayout* passengerListLayout = new QVBoxLayout(passengerListPane);
 	passengerListLayout->addWidget(new QLabel("Passengers", passengerListPane));
@@ -284,17 +287,17 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_tabs->addTab(legsPane, "Legs");
 	passengerDetailLayout->addWidget(m_tabs, 1);
 
-	m_importResultHeading = EditorLayout::sectionHeading("Import results", passengerDetailPane);
+	m_importResultHeading = EditorLayout::sectionHeading("Import results", this);
 	m_importResultHeading->setObjectName("passengerImportResultHeading");
-	passengerDetailLayout->addWidget(m_importResultHeading);
-	m_importResultTable = new QTableWidget(0, 5, passengerDetailPane);
+	panelLayout->addWidget(m_importResultHeading);
+	m_importResultTable = new QTableWidget(0, 5, this);
 	m_importResultTable->setObjectName("passengerImportResultTable");
 	m_importResultTable->setHorizontalHeaderLabels({"Source", "Row", "Passenger", "Status", "Detail"});
 	m_importResultTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_importResultTable->setTabKeyNavigation(false);
 	m_importResultTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_importResultTable->horizontalHeader()->setStretchLastSection(true);
-	passengerDetailLayout->addWidget(m_importResultTable);
+	panelLayout->addWidget(m_importResultTable);
 	m_importResultHeading->hide();
 	m_importResultTable->hide();
 	const auto updateImportVisibility = [this]() {
