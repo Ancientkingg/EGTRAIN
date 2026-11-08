@@ -310,15 +310,8 @@ QString markText(const SceneModel& scene, const QString& facet, const QString& i
 	return {};
 }
 
-// The row that an item of the track preview stands for (see InfrastructurePanel::selectCanvasItem): the key of its facet
-// and its selection id, and for a block the track that the filter shows. The facet is empty for an item without a row.
-struct CanvasRow {
-	QString facet;
-	QString id;
-	QString track;
-};
-
-CanvasRow canvasRow(const SceneModel& scene, const QString& kind, const QString& id, const QString& platform) {
+// The row that an item of the track preview stands for (see InfrastructurePanel::selectCanvasItem).
+InfrastructurePanel::RowTarget canvasRow(const SceneModel& scene, const QString& kind, const QString& id, const QString& platform) {
 	const std::string key = id.toStdString();
 	if (kind == QLatin1String("station-node") && !platform.isEmpty()) {
 		const std::string platformId = platform.toStdString();
@@ -871,11 +864,38 @@ void InfrastructurePanel::updateSelection() {
 }
 
 bool InfrastructurePanel::selectCanvasItem(const QString& kind, const QString& id, const QString& platform) {
-	if (!canEdit() || canvasRow(model(), kind, id, platform).facet.isEmpty())
+	return selectRow(
+		[&](const SceneModel& scene) { return canvasRow(scene, kind, id, platform); });
+}
+
+bool InfrastructurePanel::selectEntity(const QString& kind, const QString& id) {
+	return selectRow([&](const SceneModel& scene) {
+		const std::string key = id.toStdString();
+		// A diagnostic can name a signalling area with a space.
+		const QString name = QString(kind).replace(QLatin1Char(' '), QLatin1Char('_'));
+		if (name == QLatin1String("block")) {
+			const SceneBlock* block = withId(scene.blocks, key);
+			return block ? RowTarget{QStringLiteral("blocks"), id, QString::fromStdString(block->trackId)} : RowTarget();
+		}
+		if (name == QLatin1String("route") && withId(scene.routes, key))
+			return RowTarget{QStringLiteral("routes"), id, {}};
+		if (name == QLatin1String("signal") && withId(sceneSignals(scene), key))
+			return RowTarget{QStringLiteral("signals"), id, {}};
+		if (name == QLatin1String("signalling_area") && withId(scene.signallingAreas, key))
+			return RowTarget{QStringLiteral("signalling_areas"), id, {}};
+		if (name == QLatin1String("signal") || name == QLatin1String("block") || name == QLatin1String("route")
+			|| name == QLatin1String("signalling_area"))
+			return RowTarget();
+		return canvasRow(scene, kind, id, QString());
+	});
+}
+
+bool InfrastructurePanel::selectRow(const std::function<RowTarget(const SceneModel&)>& find) {
+	if (!canEdit() || find(model()).facet.isEmpty())
 		return false;
 	commitPendingEditors();
 	// Taking the cells is an edit when their text changed, and the edit can rename or remove the entity.
-	const CanvasRow target = canvasRow(model(), kind, id, platform);
+	const RowTarget target = find(model());
 	InfrastructureFacet* targetFacet = facet(target.facet);
 	if (!canEdit() || !targetFacet)
 		return false;

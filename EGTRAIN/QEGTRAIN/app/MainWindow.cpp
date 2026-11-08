@@ -1214,6 +1214,7 @@ void MainWindow::setupValidationDocks() {
 		updateSceneActions();
 	});
 	connect(m_validation, &ValidationPanel::targetActivated, this, &MainWindow::openLoadedDataTarget);
+	connect(m_validation, &ValidationPanel::itemActivated, this, &MainWindow::openDiagnosticItem);
 	m_validationDock = new QDockWidget("Case Validation", this);
 	m_validationDock->setObjectName("sceneValidationDock");
 	m_validationDock->setWidget(m_validation->table());
@@ -2001,6 +2002,14 @@ void MainWindow::openLoadedDataTarget(const QString& targetType, QTreeWidgetItem
 		return;
 	}
 
+	openEntityEditor(targetType, targetId, operation);
+}
+
+// Opens the editor of a rolling stock unit, a composition, a service or an incident with its row selected. Other kinds do
+// nothing.
+void MainWindow::openEntityEditor(const QString& targetType, const QString& targetId,
+	const telemetry::OperationObservation& operation) {
+	auto raiseDock = [this, operation](QDockWidget* dock) { revealEditorDock(dock, operation); };
 	if (targetType == "train_unit") {
 		if (m_editorDocks.trainUnitPanel()->selectUnit(targetId))
 			raiseDock(m_editorDocks.trainUnitDock());
@@ -2034,6 +2043,21 @@ void MainWindow::openLoadedDataTarget(const QString& targetType, QTreeWidgetItem
 			}
 		}
 	}
+}
+
+// The editor of the item that a row of Case Validation names: the row of an infrastructure item (a track, node, arc,
+// block, connection, station, signal, signalling area or route) selected in Infrastructure, which marks it on the network
+// view, or the row of a unit, composition, service or incident. A kind without an editor row, such as a passenger journey
+// or leg, does nothing.
+void MainWindow::openDiagnosticItem(const QString& itemType, const QString& itemId) {
+	if (itemType.isEmpty())
+		return;
+	if (InfrastructurePanel* panel = m_editorDocks.infrastructurePanel();
+		panel && panel->selectEntity(itemType, itemId)) {
+		revealEditorDock(m_editorDocks.infrastructureDock());
+		return;
+	}
+	openEntityEditor(itemType, itemId, captureTelemetryOperation());
 }
 
 // The live state of the history keeps the run selection and the links of the rolling stock units that an edit or a step of

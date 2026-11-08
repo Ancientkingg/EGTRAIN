@@ -743,6 +743,36 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		}
 	}
 
+	// Activating a Case Validation row that names an arc selects that arc in Infrastructure; a row without an item does nothing.
+	{
+		const std::string arcId = w.m_document->model().arcs.empty() ? std::string() : w.m_document->model().arcs.back().id;
+		if (arcId.empty()) {
+			failures << "validation rows: the scene has no arc";
+		} else {
+			const double savedSpeed = w.m_document->model().arcs.back().speedLimitMs;
+			w.m_document->mutableModel().arcs.back().speedLimitMs = 0.0;
+			w.m_validation->refresh();
+			QTableWidget* validationTable = w.m_validation->table();
+			int arcRow = -1;
+			for (int row = 0; row < validationTable->rowCount(); ++row)
+				if (validationTable->item(row, 0)->data(ValidationPanel::kItemIdRole).toString().toStdString() == arcId)
+					arcRow = row;
+			infrastructurePanel(w)->facetCombo()->setCurrentIndex(infrastructurePanel(w)->facetCombo()->findData("tracks"));
+			if (arcRow < 0) {
+				failures << "validation rows: no row names the arc with a speed limit of 0";
+			} else {
+				validationTable->setCurrentCell(arcRow, 0);
+				emit validationTable->cellActivated(arcRow, 0);
+				QApplication::processEvents();
+				if (infrastructurePanel(w)->facetCombo()->currentData().toString() != QStringLiteral("arcs")
+					|| infrastructurePanel(w)->selectionId().toStdString() != arcId)
+					failures << "validation rows: activating the row of an arc did not select it in Infrastructure";
+			}
+			w.m_document->mutableModel().arcs.back().speedLimitMs = savedSpeed;
+			w.m_validation->refresh();
+		}
+	}
+
 	// step b: create, edit, save, and reopen a blank canonical case before the
 	// existing loaded-scene editor facets run.
 	{

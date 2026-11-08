@@ -477,6 +477,8 @@ private:
 	void commitScenarioAndPassengerEditsAndValidate() override;
 	// Opens the editor or the view that a row of the loaded data tree stands for.
 	void openLoadedDataTarget(const QString& targetType, QTreeWidgetItem* item);
+	void openEntityEditor(const QString& targetType, const QString& targetId, const telemetry::OperationObservation& operation);
+	void openDiagnosticItem(const QString& itemType, const QString& itemId);
 	void sceneDocumentChanged();
 	void invalidateAfterSceneChange();
 	void setupEditMenu();
