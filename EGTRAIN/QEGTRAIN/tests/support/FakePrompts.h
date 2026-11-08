@@ -5,6 +5,8 @@
 #include <QString>
 #include <QStringList>
 
+#include <optional>
+
 /// Answers the prompts of an editor panel without a dialog and keeps what the panel asked.
 class FakePrompts : public UserPrompts {
 public:
@@ -25,6 +27,11 @@ public:
 	int chooseCount = 0;
 	QStringList offeredItems;
 	QString chosenItem;
+
+	int textCount = 0;
+	QString textTitle;
+	QString textLabel;
+	std::optional<QString> answeredText;
 
 	int buttonCount = 0;
 	QString buttonTitle;
@@ -54,6 +61,12 @@ public:
 		++chooseCount;
 		offeredItems = items;
 		return chosenItem;
+	}
+	std::optional<QString> askText(QWidget*, const QString& title, const QString& label, const QString&) override {
+		++textCount;
+		textTitle = title;
+		textLabel = label;
+		return answeredText;
 	}
 	int chooseButton(QWidget*, const QString& title, const QString& question, const QStringList& choices,
 		int defaultChoice) override {

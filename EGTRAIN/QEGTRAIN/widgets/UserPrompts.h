@@ -16,6 +16,7 @@
 
 #include <cstdio>
 #include <functional>
+#include <optional>
 #include <utility>
 
 /// The messages and questions that the editors put to the user. A panel gets one from the window, and a test replaces
@@ -78,17 +79,35 @@ public:
 		dialog.setLabelText(label);
 		dialog.setComboBoxItems(items);
 		dialog.setTextValue(items.value(0));
-		// The title bar shortens a title that does not fit beside the window buttons, and macOS centres the title, so the
-		// title gets room for them on both sides.
+		fitTitle(dialog, title);
+		return dialog.exec() == QDialog::Accepted ? dialog.textValue() : QString();
+	}
+
+	/// A line of text that the user types, such as the name of a new station, starting with `text`; std::nullopt when the
+	/// user cancels. It asks also in a suppressed run. The dialog is wide enough for its window title, within the screen.
+	virtual std::optional<QString> askText(QWidget* parent, const QString& title, const QString& label, const QString& text = {}) {
+		QInputDialog dialog(parent);
+		dialog.setInputMode(QInputDialog::TextInput);
+		dialog.setWindowTitle(title);
+		dialog.setLabelText(label);
+		dialog.setTextValue(text);
+		fitTitle(dialog, title);
+		if (dialog.exec() != QDialog::Accepted)
+			return std::nullopt;
+		return dialog.textValue();
+	}
+
+private:
+	// The title bar shortens a title that does not fit beside the window buttons, and macOS centres the title, so the
+	// title gets room for them on both sides.
+	static void fitTitle(QInputDialog& dialog, const QString& title) {
 		const QFontMetrics metrics(QApplication::font("QMdiSubWindowTitleBar"));
 		int width = qMax(dialog.sizeHint().width(), metrics.horizontalAdvance(title) + 10 * metrics.height());
 		if (const QScreen* screen = dialog.screen())
 			width = qMin(width, screen->availableGeometry().width());
 		dialog.resize(width, dialog.sizeHint().height());
-		return dialog.exec() == QDialog::Accepted ? dialog.textValue() : QString();
 	}
 
-private:
 	std::function<bool()> m_suppressed;
 };
 

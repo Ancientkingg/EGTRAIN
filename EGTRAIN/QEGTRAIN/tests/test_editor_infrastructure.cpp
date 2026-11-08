@@ -7,6 +7,7 @@
 #include "graphics/NetworkPresenter.h"
 #include "graphics/NetworkScene.h"
 #include "scene/SectionInventory.h"
+#include "scene/SceneValidator.h"
 #include "scene/SignallingLevel.h"
 
 #include "support/FakePrompts.h"
@@ -35,8 +36,10 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <map>
 #include <memory>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -212,8 +215,12 @@ public:
 	int addSectionCount = 0;
 	int removeSectionCount = 0;
 	std::vector<int> sectionMoves;
+	std::vector<TaskAction> actions;
+	std::vector<int> taskRuns;
 
 	QString key() const override { return m_key; }
+	std::vector<TaskAction> taskActions() const override { return actions; }
+	void runTaskAction(InfrastructurePanel&, int index) override { taskRuns.push_back(index); }
 	Capabilities capabilities() const override { return m_capabilities; }
 	QStringList columns() const override { return {"ID"}; }
 	void fillRows(InfrastructurePanel& panel) override {
@@ -357,6 +364,7 @@ private slots:
 	void checksFlagWithOneClick();
 	void scrollsToCanvasRowInWindow();
 	void keepsWidthForEveryKind();
+	void addedStationValidates();
 };
 
 // The facets, the combo and a panel without a scene.
@@ -886,6 +894,7 @@ void TestInfrastructurePanel::controlsFollowCapabilities() {
 	panel.setFacet(std::make_unique<ControlFacet>("blocks", InfrastructureFacet::Capabilities()));
 	auto* capable = static_cast<ControlFacet*>(panel.facet("tracks"));
 	auto* bare = static_cast<ControlFacet*>(panel.facet("blocks"));
+	capable->actions = {{"firstTask", "First", "The first task."}, {"secondTask", "Second", "The second task."}};
 	panel.setDocument(&document);
 	document.replace(infrastructureScene(), false);
 	panel.refresh();
@@ -898,6 +907,31 @@ void TestInfrastructurePanel::controlsFollowCapabilities() {
 	QCOMPARE(choices(panel.blockTrackFilterCombo()), QStringList({"T1", "T2", "ghost (missing)"}));
 	QCOMPARE(firstColumn(panel.table()), QStringList({"b1", "b2"}));
 
+	// The task row has a button for each task action, and they follow the selected row.
+	QVERIFY(!panel.taskButton(0)->isHidden());
+	QCOMPARE(panel.taskButton(0)->objectName(), "firstTask");
+	QCOMPARE(panel.taskButton(1)->text(), "Second");
+	QCOMPARE(panel.taskButton(1)->toolTip(), "The second task.");
+	QVERIFY(!panel.taskButton(2));
+	panel.table()->setCurrentCell(-1, -1);
+	panel.updateSelection();
+	QVERIFY(!panel.taskButton(0)->isEnabled());
+	panel.runTaskAction(0);
+	QVERIFY(capable->taskRuns.empty());
+
+	panel.table()->setCurrentCell(0, 0);
+	QVERIFY(panel.taskButton(0)->isEnabled());
+	QVERIFY(panel.taskButton(1)->isEnabled());
+	panel.taskButton(1)->click();
+	panel.runTaskAction(7);
+	QCOMPARE(capable->taskRuns, std::vector<int>({1}));
+	document.setEditable(false);
+	panel.refresh();
+	QVERIFY(!panel.taskButton(0)->isEnabled());
+	panel.runTaskAction(0);
+	QCOMPARE(capable->taskRuns, std::vector<int>({1}));
+	document.setEditable(true);
+	panel.refresh();
 	panel.table()->setCurrentCell(0, 0);
 	QVERIFY(panel.insertBlockButton()->isEnabled());
 	QVERIFY(panel.moveBlockDownButton()->isEnabled());
@@ -920,6 +954,7 @@ void TestInfrastructurePanel::controlsFollowCapabilities() {
 	QCOMPARE(firstColumn(panel.table()), QStringList({"b3"}));
 
 	chooseFacet(panel, "blocks");
+	QVERIFY(!panel.taskButton(0));
 	QVERIFY(panel.blockTrackFilterCombo()->isHidden());
 	QVERIFY(panel.insertBlockButton()->isHidden());
 	QVERIFY(panel.moveBlockUpButton()->isHidden());
@@ -2094,6 +2129,44 @@ void TestInfrastructurePanel::keepsWidthForEveryKind() {
 	QCOMPARE(widths.size(), std::size_t(13));
 	for (const auto& [key, width] : widths)
 		QVERIFY2(width == widths.front().second, qPrintable(QStringLiteral("%1 is %2 wide, tracks %3").arg(key).arg(width).arg(widths.front().second)));
+}
+
+// The (code, item type, item id) of each diagnostic, with how often it occurs.
+static std::map<std::tuple<std::string, std::string, std::string>, int> diagnosticEntries(const std::vector<SceneDiagnostic>& list) {
+	std::map<std::tuple<std::string, std::string, std::string>, int> result;
+	for (const SceneDiagnostic& diagnostic : list)
+		++result[{diagnostic.code, diagnostic.itemType, diagnostic.itemId}];
+	return result;
+}
+
+// Add Station... at a node of Paimpol that no station has adds a station that raises no diagnostic that the case did not
+// raise before, in the structure checks and in the checks of a run.
+void TestInfrastructurePanel::addedStationValidates() {
+	PaimpolPanel f;
+	FakePrompts prompts;
+	f.panel.setPrompts(&prompts);
+	chooseFacet(f.panel, "nodes");
+	QTableWidget* table = f.panel.table();
+	int row = -1;
+	for (int candidate = 0; candidate < table->rowCount(); ++candidate)
+		if (table->item(candidate, 0)->text() == "B0.node.42")
+			row = candidate;
+	QVERIFY(row >= 0);
+	QVERIFY2(table->item(row, 1)->text().isEmpty(), "the node belongs to no station");
+	table->setCurrentCell(row, 0);
+	const auto structureBefore = diagnosticEntries(validateScene(f.document.model()));
+	const auto runnableBefore = diagnosticEntries(validateRunnableScene(f.document.model()));
+	prompts.answeredText = QString("Quimper");
+
+	f.panel.taskButton(0)->click();
+
+	QCOMPARE(prompts.textCount, 1);
+	QCOMPARE(f.document.model().stations.back().id, std::string("Quimper"));
+	for (const auto& [entries, before] : {std::pair{diagnosticEntries(validateScene(f.document.model())), structureBefore},
+			 std::pair{diagnosticEntries(validateRunnableScene(f.document.model())), runnableBefore}})
+		for (const auto& entry : entries)
+			QVERIFY2(before.count(entry.first) > 0 && before.at(entry.first) >= entry.second,
+				qPrintable(QString::fromStdString("new diagnostic " + std::get<0>(entry.first) + " on " + std::get<2>(entry.first))));
 }
 
 QTEST_MAIN(TestInfrastructurePanel)

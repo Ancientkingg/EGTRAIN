@@ -103,6 +103,23 @@ public:
 	/// Moves the selected section of the selected route down by `offset` places, up when it is negative.
 	virtual void moveSection(InfrastructurePanel&, int /*offset*/) {}
 
+	/// A button of the task row under the Add and Delete buttons.
+	struct TaskAction {
+		/// The object name of the button, for tests and scripts.
+		QString objectName;
+		/// The text of the button, such as "Add Station...".
+		QString text;
+		/// The tooltip of the button.
+		QString toolTip;
+	};
+	/// The task actions of this kind, one button each in this order. A task action works on the selected row and changes
+	/// the model in one InfrastructurePanel::edit, so in one undo step. The default is none, which hides the row.
+	virtual std::vector<TaskAction> taskActions() const { return {}; }
+	/// Runs the task action `index` of taskActions() on the selected row. The panel calls it only while the scene is open
+	/// for edits, a row is selected and `index` is in range, after taking the cells that are being edited. The default does
+	/// nothing.
+	virtual void runTaskAction(InfrastructurePanel&, int /*index*/) {}
+
 protected:
 	/// What came of the text of an edited cell.
 	enum class Edit {

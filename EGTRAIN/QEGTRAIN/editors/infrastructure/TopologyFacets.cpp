@@ -2,6 +2,7 @@
 
 #include "editors/infrastructure/ListFacet.h"
 #include "graphics/NetworkPresenter.h"
+#include "scene/RuntimeLimits.h"
 #include "scene/SceneReferences.h"
 
 #include <QString>
@@ -11,6 +12,7 @@
 #include <cmath>
 #include <cstddef>
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -62,6 +64,15 @@ public:
 				station == stations.end() ? QString() : QString::fromStdString(station->second.name), false);
 		}
 	}
+	// Add Station... adds a station with one platform at the selected node.
+	std::vector<TaskAction> taskActions() const override {
+		return {{QStringLiteral("addStationAtNodeButton"), QStringLiteral("Add Station..."),
+			QStringLiteral("Adds a station with one platform at the selected node.")}};
+	}
+	void runTaskAction(InfrastructurePanel& panel, int index) override {
+		if (index == 0)
+			addStationAtNode(panel);
+	}
 	bool rowOnTrack(const InfrastructurePanel& panel, int row, const std::string& trackId) const override {
 		const SceneNode* node = inRow(panel.model().nodes, row);
 		return node && node->trackId == trackId;
@@ -76,6 +87,58 @@ public:
 	}
 
 private:
+	// Asks for a name and adds the station and its platform in one edit. It refuses, before it asks, a node that has a
+	// station and a case that has the most stations that a run takes.
+	static void addStationAtNode(InfrastructurePanel& panel) {
+		const QString nodeText = panel.selectionId();
+		const std::string nodeId = nodeText.toStdString();
+		const SceneModel& model = panel.model();
+		const std::map<std::string, PreviewStationMembership> stations = previewStationMemberships(model);
+		const auto member = stations.find(nodeId);
+		if (member != stations.end()) {
+			panel.showStatus(QStringLiteral("Node '%1' already belongs to station '%2'. Add a platform to that station under Platforms.")
+					.arg(nodeText, QString::fromStdString(member->second.name)));
+			return;
+		}
+		if (model.stations.size() >= RuntimeLimits::kNativeMaxStations) {
+			panel.showStatus(QStringLiteral("The case already has %1 stations, the most a run takes.")
+					.arg(static_cast<int>(RuntimeLimits::kNativeMaxStations)));
+			return;
+		}
+		const std::optional<QString> answer = panel.prompts().askText(
+			&panel, QStringLiteral("Add Station"), QStringLiteral("Name of the new station at node %1:").arg(nodeText));
+		if (!answer)
+			return;
+		const QString name = answer->trimmed();
+		if (name.isEmpty()) {
+			panel.showStatus(QStringLiteral("Give the station a name."));
+			return;
+		}
+		if (name.contains('\t') || name.contains('\n') || name.contains('\r')) {
+			panel.showStatus(QStringLiteral("A station name cannot hold a tab or a line break."));
+			return;
+		}
+		const std::string stationId = name.toStdString();
+		if (std::any_of(model.stations.begin(), model.stations.end(),
+				[&stationId](const SceneStation& station) { return station.id == stationId || station.name == stationId; })) {
+			panel.showStatus(QStringLiteral("Station '%1' already exists. Add a platform to it under Platforms.").arg(name));
+			return;
+		}
+		panel.setSelectionId(nodeText);
+		const bool added = panel.edit(QStringLiteral("Add station"), [&](SceneModel& scene) {
+			SceneStation station;
+			station.id = stationId;
+			station.name = stationId;
+			ScenePlatform platform;
+			platform.id = stationId + ".platform.1";
+			platform.nodeIds = {nodeId};
+			station.platforms.push_back(std::move(platform));
+			scene.stations.push_back(std::move(station));
+		});
+		if (added)
+			panel.showStatus(QStringLiteral("Added station '%1' at node '%2'. Undo removes it.").arg(name, nodeText), 8000);
+	}
+
 	static constexpr int kStationColumn = 1;
 	static constexpr int kTrackColumn = 2;
 

@@ -58,6 +58,7 @@ private slots:
 	void returnsChosenButton();
 	void returnsChosenItem();
 	void choiceFitsTitleWithinScreen();
+	void returnsTypedText();
 };
 
 void TestUserPrompts::suppressedErrorIsLoggedWithoutDialog() {
@@ -205,6 +206,21 @@ void TestUserPrompts::returnsChosenItem() {
 	QCOMPARE(prompts.chooseItem(nullptr, "Add", "Unit:", {"unit-a", "unit-b"}), "unit-a");
 	answering = answerDialog<QInputDialog>(shown, [](QInputDialog* dialog) { dialog->reject(); });
 	QVERIFY2(prompts.chooseItem(nullptr, "Add", "Unit:", {"unit-a", "unit-b"}).isEmpty(), "cancelling the choice returns an empty text");
+}
+
+// The typed text is returned, the starting text when the user changes nothing, and no text when the user cancels.
+void TestUserPrompts::returnsTypedText() {
+	UserPrompts prompts;
+	int shown = 0;
+	auto answering = answerDialog<QInputDialog>(shown, [](QInputDialog* dialog) {
+		dialog->setTextValue("Guingamp");
+		dialog->accept();
+	});
+	QCOMPARE(prompts.askText(nullptr, "Add Station", "Station name:"), std::optional<QString>("Guingamp"));
+	answering = answerDialog<QInputDialog>(shown, [](QInputDialog* dialog) { dialog->accept(); });
+	QCOMPARE(prompts.askText(nullptr, "Add Station", "Station name:", "Paimpol"), std::optional<QString>("Paimpol"));
+	answering = answerDialog<QInputDialog>(shown, [](QInputDialog* dialog) { dialog->reject(); });
+	QVERIFY2(!prompts.askText(nullptr, "Add Station", "Station name:", "Paimpol"), "cancelling returns no text");
 }
 
 // The dialog is wide enough for its title and the window buttons beside it, and never wider than the screen.
