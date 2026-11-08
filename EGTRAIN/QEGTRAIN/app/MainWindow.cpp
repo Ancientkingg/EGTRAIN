@@ -3067,10 +3067,12 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 			if (resolveTrainItem(trainIndex))
 				setFollowTrain(trainIndex);
 		});
-		QAction* copy = menu->addAction("Copy train index");
-		connect(copy, &QAction::triggered, this, [this, trainIndex]() {
+		// The name that Details and the follow list show.
+		const QString trainName = QString::fromStdString(followTrainName(group->trainDescription, trainIndex));
+		QAction* copy = menu->addAction("Copy train name");
+		connect(copy, &QAction::triggered, this, [this, trainIndex, trainName]() {
 			if (resolveTrainItem(trainIndex) && QApplication::clipboard())
-				QApplication::clipboard()->setText(QString::number(trainIndex));
+				QApplication::clipboard()->setText(trainName);
 		});
 		openMenu();
 		return;
@@ -3156,13 +3158,13 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 			if (auto* current = resolveSignalItem(track, position, reversed))
 				centerSceneItem(current);
 		});
+		// The place and facing as the tooltip of the head names them.
+		const QString location = QStringLiteral("%1, facing %2")
+									 .arg(signal->inspectionIdentity(), reversed ? QStringLiteral("left") : QStringLiteral("right"));
 		QAction* copy = menu->addAction("Copy signal location");
-		connect(copy, &QAction::triggered, this, [this, track, position, reversed]() {
+		connect(copy, &QAction::triggered, this, [this, track, position, reversed, location]() {
 			if (resolveSignalItem(track, position, reversed) && QApplication::clipboard())
-				QApplication::clipboard()->setText(QString("track %1 @ %2 (%3)")
-						.arg(track)
-						.arg(position, 0, 'g', std::numeric_limits<double>::max_digits10)
-						.arg(reversed ? "reverse" : "forward"));
+				QApplication::clipboard()->setText(location);
 		});
 		// The section of the head, as Protected section in the inspector shows it, by the id that the run uses.
 		const QString section = QString::fromStdString(!signal->sectionAheadId.empty() ? signal->sectionAheadId : signal->sectionBehindId);
@@ -3216,6 +3218,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 		m_inspector->handleDisableHighlight();
 	});
 	QAction* stop = menu->addAction("Stop following train");
+	stop->setEnabled(m_followTrainIndex >= 0);
 	connect(stop, &QAction::triggered, this, [this]() { setFollowTrain(-1); });
 	openMenu();
 }
