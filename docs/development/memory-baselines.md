@@ -228,3 +228,35 @@ Netherlands, so the copy of the section that a train takes in each step does
 not slow the run. Every output file and the standard output of every
 committed scene stayed the same byte for byte, also with detailed
 trajectories.
+
+## Replay history, recorded 2026-11-08
+
+The window kept a complete picture of the run every fifth simulated second for the
+replay: 78.5 MiB of accounted payload for Copenhagen, 30.7 MiB for Netherlands. It now
+keeps, for every second, the values that changed against the second before, with a full
+copy every 300 seconds, and takes the positions and speeds of the trains from the samples
+that the completed run holds (`CompletedRunData`), without a copy of them. Copenhagen
+owns 3.68 MiB of replay payload and shares 6.68 MiB of samples with the completed run;
+Netherlands owns 1.16 MiB and shares 0.61 MiB.
+
+These numbers compare a Release executable (Qt 6.8.3, macOS 27.0.1, arm64,
+`EGTRAIN_IPO=OFF`) built from `main` after #1335 with one that has this change. The two
+ran in turns, three times each, with `OMP_NUM_THREADS=4` and `QT_QPA_PLATFORM=offscreen`,
+at a one-minute load average of 12.1 to 16.8. Both ran from `EGTRAIN/QEGTRAIN` a window run
+with the whole-run replay hook, which runs the scene to its end and exits:
+
+```text
+QT_QPA_PLATFORM=offscreen QEGTRAIN_AUTOSTART=1 QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1 \
+  /usr/bin/time -l <app> --scene Scenes/<case> -g 1 -pax 0
+```
+
+| Case | Peak RSS before (MiB) | Peak RSS after (MiB) | Peak footprint before (MiB) | Peak footprint after (MiB) | Elapsed before (s) | Elapsed after (s) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Copenhagen | 488.5 | 397.3 | 364.6 | 271.6 | 26.25 | 24.05 |
+| Netherlands | 275.9 | 240.0 | 174.3 | 142.8 | 13.47 | 8.55 |
+
+Each value is the median of three runs. The peak RSS fell by 91.2 MiB (19 percent) for
+Copenhagen and by 35.9 MiB (13 percent) for Netherlands, and the peak footprint by 93.0 and
+31.5 MiB. The machine was busy with other jobs, and the elapsed time of one executable
+varied between 15.6 and 37.3 s for Copenhagen, so the elapsed times are not compared. The
+simulation output of every committed scene stayed the same byte for byte.

@@ -223,6 +223,15 @@ struct GuiVirtualCouplingState {
 	std::string message;		  ///< The text of the message.
 };
 
+/// A message of virtual coupling shows in the snapshots of this many seconds after its step.
+constexpr int kGuiVirtualCouplingMessageSeconds = 40;
+
+/// A message of the step `messageStep` is in the snapshot of the step `timestep`: from its own step up to and including
+/// kGuiVirtualCouplingMessageSeconds seconds after it.
+inline bool guiVirtualCouplingMessageShown(int messageStep, int timestep) {
+	return timestep >= messageStep && timestep <= messageStep + kGuiVirtualCouplingMessageSeconds;
+}
+
 /// The state of a run at one step: what the canvas, the panels, the replay and the live stream show.
 struct GuiSimulationSnapshot {
 	int timestep = 0;											  ///< The step, in seconds from the start of the run.

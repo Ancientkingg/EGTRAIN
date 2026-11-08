@@ -3725,7 +3725,7 @@ void MainWindow::waitForUpdates() {
 void MainWindow::seekReplay(int requestedTime) {
 	if (m_completedReplay.empty() || m_runController->running()) return;
 	m_replayRequestedTime = qBound(m_completedReplay.firstTime(), requestedTime, m_completedReplay.lastTime());
-	const auto frame = m_completedReplay.atOrBefore(m_replayRequestedTime);
+	const auto frame = m_completedReplay.at(m_replayRequestedTime);
 	if (!frame) return;
 	m_replayActive = true;
 	// Passenger journey inspection is not historical. Retain train, station and

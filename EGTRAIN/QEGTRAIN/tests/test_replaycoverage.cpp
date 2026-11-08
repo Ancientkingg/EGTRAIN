@@ -158,8 +158,8 @@ void TestReplayCoverage::plainWords() {
 
 // The coverage of a real history: whole, with its first part dropped, too large and empty.
 void TestReplayCoverage::coverageOfHistory() {
-	GuiReplayHistory whole;
-	for (int time = 0; time <= 40; time += 5)
+	GuiReplayHistory whole(GuiReplayHistory::payloadLimit, 10);
+	for (int time = 0; time <= 40; ++time)
 		whole.record(frameAt(time, 41));
 	const ReplayCoverage kept = replayCoverageOf(whole, 3600);
 	// The coverage of a whole history is read from it.
@@ -169,13 +169,13 @@ void TestReplayCoverage::coverageOfHistory() {
 	QCOMPARE(kept.clockOffsetSeconds, 3600);
 	QVERIFY2(replayBarText(kept).coverage.empty(), "the row of a whole history was not worded as such");
 
-	GuiReplayHistory reference;
-	for (int time = 0; time <= 10; time += 5)
+	GuiReplayHistory reference(GuiReplayHistory::payloadLimit, 10);
+	for (int time = 0; time <= 25; ++time)
 		reference.record(frameAt(time, 41));
-	GuiReplayHistory small(reference.payloadBytes());
-	for (int time = 0; time <= 40; time += 5)
+	GuiReplayHistory small(reference.payloadBytes(), 10);
+	for (int time = 0; time <= 40; ++time)
 		small.record(frameAt(time, 41));
-	// The small history drops its first part.
+	// The small history drops its first interval.
 	QVERIFY(small.truncated());
 	QVERIFY(small.firstTime() > 0);
 	const ReplayCoverage dropped = replayCoverageOf(small, 3600);

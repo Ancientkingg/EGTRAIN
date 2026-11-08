@@ -29,8 +29,6 @@ using namespace std;
 namespace {
 // A passenger who has left the network stays in the list of the platform of the exit for this many seconds.
 constexpr int kExitedPassengerShownSeconds = 5;
-// A snapshot holds the virtual coupling messages of this many seconds before its step.
-constexpr int kVirtualCouplingMessageSeconds = 40;
 
 // Makes the folder at the UTF-8 path and the folders above it. Returns the reason when that fails.
 std::error_code ensureDirectory(const string& path) {
@@ -229,7 +227,7 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 
 	const std::size_t messageCount = std::min({run.vcMsgTimestep.size(), run.vcMsgTrain.size(), run.vcMsgText.size()});
 	for (std::size_t i = 0; i < messageCount; ++i) {
-		if (timestep >= run.vcMsgTimestep[i] && timestep <= run.vcMsgTimestep[i] + kVirtualCouplingMessageSeconds)
+		if (guiVirtualCouplingMessageShown(run.vcMsgTimestep[i], timestep))
 			snapshot.virtualCouplingMessages.push_back({run.vcMsgTimestep[i], run.vcMsgTrain[i], run.vcMsgText[i]});
 	}
 	return snapshot;

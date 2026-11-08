@@ -6,8 +6,8 @@
 #   color              a copy of Copenhagen in which the first service has a colour
 #   dpr2               the live run of Copenhagen at a device pixel ratio of 2
 #   completion         the Assignment run to its end: the replay row and the Follow checks of the replay
-#   replay             the whole-run replay of Assignment, Paimpol, Milano_Brescia and Netherlands
-#   replay-copenhagen  the whole-run replay of Copenhagen, which takes as long as the other four scenes together
+#   replay             the whole-run replay of Assignment, Paimpol, Milano_Brescia, Amsterdam_Hilversum_Student and Netherlands
+#   replay-copenhagen  the whole-run replay of Copenhagen, which takes as long as the other five scenes together
 #   signals            the signal heads
 #   discard            the preview legend after a discarded run
 #   stations           the station overlays
@@ -231,8 +231,8 @@ phase_completion() {
 	echo "operational completion and rerun e2e passed"
 }
 
-# A committed scene run to its end keeps every frame, however large it is: the replay row covers the
-# whole run. Copenhagen, with the largest frames, runs in a phase of its own.
+# A committed scene run to its end keeps every second, however large it is: the replay row covers the
+# whole run. Copenhagen, the largest scene, runs in a phase of its own.
 replay_whole_run() {
 	local scene whole_out
 	for scene in "$@"; do
@@ -250,7 +250,7 @@ replay_whole_run() {
 }
 
 phase_replay() {
-	replay_whole_run Assignment_Gvc_Gdg_Ut Paimpol Milano_Brescia Netherlands
+	replay_whole_run Assignment_Gvc_Gdg_Ut Paimpol Milano_Brescia Amsterdam_Hilversum_Student Netherlands
 }
 
 phase_replay_copenhagen() {

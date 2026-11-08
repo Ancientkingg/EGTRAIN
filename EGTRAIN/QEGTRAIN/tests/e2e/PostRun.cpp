@@ -111,6 +111,9 @@
 
 namespace {
 
+// The seconds that the checks of the replay move on from a time to reach a time at which a train that is due has a place.
+constexpr int kReplayStepSeconds = 5;
+
 // Whether the marker of the first live snapshot of an autostarted run has been printed.
 bool autostartProgressReported = false;
 // Whether the view was at Fit, and the scene point in its middle, at the last live snapshot before a train was drawn,
@@ -798,8 +801,9 @@ void MainWindowTestAccess::runSettled(MainWindow& w) {
 		QString problem = QStringLiteral("the run left no replay");
 		const bool whole = !w.m_completedReplay.empty() && w.m_replayBar->isVisible() && checkReplayWholeRun(w, w.m_completedReplay.lastTime() / 2, problem);
 		if (whole)
-			std::fprintf(stdout, "E2E_REPLAY_WHOLE_RUN_OK frames=%zu last=%d bytes=%zu budget=%zu\n", w.m_completedReplay.size(), w.m_completedReplay.lastTime(),
-				w.m_completedReplay.payloadBytes(), w.m_completedReplay.budgetBytes());
+			std::fprintf(stdout, "E2E_REPLAY_WHOLE_RUN_OK seconds=%d last=%d bytes=%zu shared=%zu budget=%zu intervals=%zu\n",
+				w.m_completedReplay.lastTime() - w.m_completedReplay.firstTime() + 1, w.m_completedReplay.lastTime(), w.m_completedReplay.payloadBytes(),
+				w.m_completedReplay.sharedBytes(), w.m_completedReplay.budgetBytes(), w.m_completedReplay.intervalCount());
 		else
 			std::fprintf(stderr, "E2E_REPLAY_WHOLE_RUN_FAIL: %s\n", qPrintable(problem));
 		std::fflush(whole ? stdout : stderr);
@@ -879,7 +883,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		return;
 	}
 	w.m_replaySlider->setValue(middle);
-	const auto expected = w.m_completedReplay.atOrBefore(middle);
+	const auto expected = w.m_completedReplay.at(middle);
 	const auto analyticsUnchanged = [&w, &completedResults, &completedTimetable]() {
 		const auto sameValues = [](std::initializer_list<std::pair<RunResultValue, RunResultValue>> values) {
 			return std::all_of(values.begin(), values.end(), [](const auto& pair) {
@@ -1003,15 +1007,15 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 	QApplication::sendEvent(w.m_replaySlider, &release);
 	w.seekReplay(first);
 	if (!keyboardSeek || !wheelSeek || !mouseSeek
-		|| !coherent(w.m_completedReplay.atOrBefore(first))) {
+		|| !coherent(w.m_completedReplay.at(first))) {
 		std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: beginning replay incoherent (key=%d wheel=%d mouse=%d frame=%d slider=%dx%d visible=%d enabled=%d)\n",
-			keyboardSeek, wheelSeek, mouseSeek, coherent(w.m_completedReplay.atOrBefore(first)),
+			keyboardSeek, wheelSeek, mouseSeek, coherent(w.m_completedReplay.at(first)),
 			w.m_replaySlider->width(), w.m_replaySlider->height(),
 			w.m_replaySlider->isVisible(), w.m_replaySlider->isEnabled());
 		QCoreApplication::exit(2);
 		return;
 	}
-	const auto firstFrame = w.m_completedReplay.atOrBefore(first);
+	const auto firstFrame = w.m_completedReplay.at(first);
 	const auto future = std::find_if(firstFrame->trains.cbegin(), firstFrame->trains.cend(),
 		[first, last](const GuiTrainState& state) {
 			return state.departureTime > first && state.departureTime < last;
@@ -1035,7 +1039,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		for (const GuiTrainState& candidate : firstFrame->trains) {
 			if (candidate.departureTime <= first || candidate.departureTime >= last)
 				continue;
-			const auto running = w.m_completedReplay.atOrBefore(candidate.departureTime + GuiReplayHistory::cadenceSeconds);
+			const auto running = w.m_completedReplay.at(candidate.departureTime + kReplayStepSeconds);
 			const GuiTrainState* during = stateIn(running, candidate.index);
 			QPolygonF body;
 			if (during)
@@ -1092,7 +1096,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		// Before the entry: the view stays where it is, also when the time moves on. The item of the train
 		// is hidden but still holds the geometry of its run, so a view that moved to it would show where the
 		// train was and not where it is.
-		w.seekReplay(enterTime + GuiReplayHistory::cadenceSeconds);
+		w.seekReplay(enterTime + kReplayStepSeconds);
 		w.seekReplay(first);
 		w.networkView->fitToTopology();
 		w.networkView->zoomBy(8.0);
@@ -1115,7 +1119,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		std::fflush(stdout);
 
 		// While the train runs: the view moves to it.
-		w.seekReplay(enterTime + GuiReplayHistory::cadenceSeconds);
+		w.seekReplay(enterTime + kReplayStepSeconds);
 		TrainItemGroup* followed = w.resolveTrainItem(followedIndex);
 		if (!followed || !followed->isVisible() || !stillFollowing() || sentence() != name + " is running. The view follows it."
 			|| w.m_followTrainCombo->itemText(followedRow) != name + " (running)" || pixelsBetween(cameraBefore, viewCentre()) <= 20.0
@@ -1123,8 +1127,8 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			return fail("while the train runs");
 		// Seeking within the run changes no state, so it leaves the list alone.
 		const FollowListUnderFrames listUnderFrames = showFramesOverMarkedList(w.m_followTrainCombo, [&w, enterTime]() {
-			w.seekReplay(enterTime + 2 * GuiReplayHistory::cadenceSeconds);
-			w.seekReplay(enterTime + GuiReplayHistory::cadenceSeconds);
+			w.seekReplay(enterTime + 2 * kReplayStepSeconds);
+			w.seekReplay(enterTime + kReplayStepSeconds);
 		});
 		w.setStartOffset(w.m_runController->m_startOffsetSeconds); // writes every row again
 		if (listUnderFrames.changes != 0 || !listUnderFrames.rowsKept)
@@ -1136,7 +1140,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		// runs, also when the user has panned the view away from the train.
 		panViewAway(w.networkView);
 		const QPointF cameraPanned = viewCentre();
-		w.seekReplay(enterTime + 2 * GuiReplayHistory::cadenceSeconds);
+		w.seekReplay(enterTime + 2 * kReplayStepSeconds);
 		const bool seekCut = !w.m_followCamera->running() && pixelsBetween(cameraPanned, viewCentre()) > 20.0 && viewOnTrain(followedIndex);
 		panViewAway(w.networkView);
 		const QPointF cameraPannedAgain = viewCentre();
@@ -1161,7 +1165,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		const bool emphasisGone = emphasisBefore && !stationEmphasised();
 		w.networkView->centerOn(cornerAwayFromTrain());
 		const QPointF cameraHidden = viewCentre();
-		w.seekReplay(enterTime + 2 * GuiReplayHistory::cadenceSeconds);
+		w.seekReplay(enterTime + 2 * kReplayStepSeconds);
 		const bool hiddenShown = stillFollowing()
 			&& sentence() == name + " is running, but the Trains layer is switched off, so the view does not follow it."
 			&& w.m_followTrainCombo->itemText(followedRow) == name + " (hidden)" && pixelsBetween(cameraHidden, viewCentre()) <= 0.5
@@ -1170,7 +1174,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		if (!hiddenShown || !stillFollowing() || sentence() != name + " is running. The view follows it." || !stationEmphasised()
 			|| !viewOnTrain(followedIndex))
 			return fail("with the Trains layer off");
-		w.seekReplay(enterTime + GuiReplayHistory::cadenceSeconds);
+		w.seekReplay(enterTime + kReplayStepSeconds);
 		std::fprintf(stdout, "E2E_FOLLOW_REPLAY_LAYER_OK\n");
 		std::fflush(stdout);
 
@@ -1207,7 +1211,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		// The camera has forgotten the train, so no later zoom or Fit can move the view to it.
 		if (w.m_followCamera->hasTarget() || w.m_followCamera->running())
 			return fail("after the train has left, the camera still holds the train");
-		w.seekReplay(enterTime + GuiReplayHistory::cadenceSeconds);
+		w.seekReplay(enterTime + kReplayStepSeconds);
 		if (!stillFollowing() || sentence() != name + " is running. The view follows it." || !viewOnTrain(followedIndex))
 			return fail("after going back");
 		std::fprintf(stdout, "E2E_FOLLOW_REPLAY_AFTER_OK\n");
@@ -1229,7 +1233,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		std::fprintf(stdout, "E2E_FOLLOW_SELECT_OK\n");
 		std::fflush(stdout);
 		// The layer check below needs the item and the badge of the future train, which exist once it has run.
-		w.seekReplay(future->departureTime + GuiReplayHistory::cadenceSeconds);
+		w.seekReplay(future->departureTime + kReplayStepSeconds);
 	}
 	w.seekReplay(future->departureTime - 1);
 	w.m_trainLayerCheck->setChecked(false);
@@ -1243,8 +1247,8 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 	}
 	std::shared_ptr<const GuiSimulationSnapshot> activeFrame;
 	int activeIndex = -1;
-	for (int time = first; time <= last && activeIndex < 0; time += GuiReplayHistory::cadenceSeconds) {
-		const auto frame = w.m_completedReplay.atOrBefore(time);
+	for (int time = first; time <= last && activeIndex < 0; time += kReplayStepSeconds) {
+		const auto frame = w.m_completedReplay.at(time);
 		for (const auto& train : frame->trains) {
 			if (!guiReplayTrainHasPosition(train, frame->timestep)) continue;
 			QPolygonF polygon;
@@ -1307,13 +1311,13 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			return;
 		}
 		w.m_inspector->handleCloseInfoDockWidget();
-		w.seekReplay(activeFrame->timestep + GuiReplayHistory::cadenceSeconds);
+		w.seekReplay(activeFrame->timestep + kReplayStepSeconds);
 		if (w.m_presenter->selectedTrain() || PresenterAccess::trainPaxInfoItem(*w.m_presenter)) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: closed passenger inspection returned\n");
 			QCoreApplication::exit(2);
 			return;
 		}
-		w.seekReplay(future->departureTime + GuiReplayHistory::cadenceSeconds);
+		w.seekReplay(future->departureTime + kReplayStepSeconds);
 		TrainBodyItem* futureBody = w.resolveTrainBodyItem(future->index);
 		if (!futureBody) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: future passenger train missing\n");
@@ -1328,7 +1332,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			QCoreApplication::exit(2);
 			return;
 		}
-		w.seekReplay(future->departureTime + GuiReplayHistory::cadenceSeconds);
+		w.seekReplay(future->departureTime + kReplayStepSeconds);
 		if (w.m_presenter->selectedTrain() != futureTarget || !PresenterAccess::trainPaxInfoItem(*w.m_presenter) || !PresenterAccess::trainPaxInfoItem(*w.m_presenter)->isVisible()) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: passenger inspection did not return\n");
 			QCoreApplication::exit(2);
@@ -1336,7 +1340,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		}
 		w.m_passengerLayerCheck->setChecked(false);
 		w.seekReplay(future->departureTime - 1);
-		w.seekReplay(future->departureTime + GuiReplayHistory::cadenceSeconds);
+		w.seekReplay(future->departureTime + kReplayStepSeconds);
 		if (w.m_presenter->selectedTrain() != futureTarget || PresenterAccess::trainPaxInfoItem(*w.m_presenter)) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: disabled passenger layer repainted overlay\n");
 			QCoreApplication::exit(2);
@@ -1395,11 +1399,11 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		|| (initial_variables.PAX_GUI && (w.m_presenter->selectedTrain() || PresenterAccess::trainPaxInfoItem(*w.m_presenter)))
 		|| w.m_inspector->m_signallingGroupDetails->toPlainText().isEmpty()
 		|| w.m_inspector->m_signallingAspectText->text() != inspectedAspect
-		|| !coherent(w.m_completedReplay.atOrBefore(w.m_replayRequestedTime))) {
+		|| !coherent(w.m_completedReplay.at(w.m_replayRequestedTime))) {
 		std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: signal inspection lost on seek/play (timer=%d selected=%d visible=%d effect=%d details=%d coherent=%d)\n",
 			timerDelivered, w.m_presenter->inspectedSignal() == signalSelection, w.m_inspector->m_signallingInfoWidget->isVisible(),
 			signalSelection->graphicsEffect() != nullptr, !w.m_inspector->m_signallingGroupDetails->toPlainText().isEmpty(),
-			coherent(w.m_completedReplay.atOrBefore(w.m_replayRequestedTime)));
+			coherent(w.m_completedReplay.at(w.m_replayRequestedTime)));
 		QCoreApplication::exit(2);
 		return;
 	}
@@ -1441,8 +1445,9 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 				return;
 			}
 			w.m_replayTimer->start();
+			const std::weak_ptr<const GuiReplayTrains> replayTrains = w.m_completedReplay.trains();
 			w.m_runController->runCurrent();
-			if (!w.m_runController->m_worker || w.m_replayTimer->isActive() || !w.m_completedReplay.empty()) {
+			if (!w.m_runController->m_worker || w.m_replayTimer->isActive() || !w.m_completedReplay.empty() || !replayTrains.expired()) {
 				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: rerun retained replay\n");
 				QCoreApplication::exit(2);
 			}
@@ -1562,7 +1567,7 @@ bool MainWindowTestAccess::checkReplayWholeRun(MainWindow& w, int middle, QStrin
 	const auto clock = [&w](int time) { return QString::fromStdString(formatSimTime(time, w.m_runController->m_startOffsetSeconds)); };
 	if (w.m_completedReplay.firstTime() != 0 || w.m_completedReplay.truncated() || !replaySliderCovers(w, 0, last))
 		return fail(QStringLiteral("the slider of a whole run does not cover 0 to %1 s").arg(last));
-	const auto finalFrame = w.m_completedReplay.atOrBefore(last);
+	const auto finalFrame = w.m_completedReplay.at(last);
 	if (!finalFrame || finalFrame->timestep != last || finalFrame->totalTimesteps - 1 != last)
 		return fail(QStringLiteral("the last kept frame, at %1 s, is not the last timestep of a run of %2 timesteps")
 				.arg(last)
@@ -1572,7 +1577,7 @@ bool MainWindowTestAccess::checkReplayWholeRun(MainWindow& w, int middle, QStrin
 		return fail(QStringLiteral("the row of a whole run says '%1' and '%2' with the tooltip '%3'")
 				.arg(w.m_replayLabel->text(), w.m_replayCoverageLabel->text(), w.m_replayStartButton->toolTip()));
 	w.m_replaySlider->setValue(middle);
-	const auto shown = w.m_completedReplay.atOrBefore(middle);
+	const auto shown = w.m_completedReplay.at(middle);
 	if (w.m_replayLabel->text() != clock(shown->timestep) || w.m_replayCoverageLabel->text() != whole)
 		return fail(QStringLiteral("a whole run says '%1' and '%2' for the frame at %3 s")
 				.arg(w.m_replayLabel->text(), w.m_replayCoverageLabel->text())
@@ -1582,7 +1587,7 @@ bool MainWindowTestAccess::checkReplayWholeRun(MainWindow& w, int middle, QStrin
 		return std::find_if(w.m_presenter->runTrains().cbegin(), w.m_presenter->runTrains().cend(),
 			[](const TrainItemGroup* item) { return item && item->isVisible() && item->trainPolygonItemList; });
 	};
-	for (int time = 0; time <= last && firstVisible() == w.m_presenter->runTrains().cend(); time += GuiReplayHistory::cadenceSeconds)
+	for (int time = 0; time <= last && firstVisible() == w.m_presenter->runTrains().cend(); time += kReplayStepSeconds)
 		w.seekReplay(time);
 	w.fitView();
 	const QString sceneName = QString::fromStdString(w.m_document->model().name);
@@ -1638,8 +1643,8 @@ QSize MainWindowTestAccess::replayRowSizeAt(MainWindow& w, int time) {
 }
 
 // Checks the replay row of the finished run: the row of the whole run, and the row for a history
-// that dropped its first part and for one that kept no frame. Those histories are built here, the
-// first from the frames of the run with a budget that holds about half of them, and go through the
+// that dropped its first part and for one that kept no second. Those histories are built here, the
+// first from the seconds of the run with a budget that is a byte short of all of them, and go through the
 // code that fills the row after a run. The history of the run is put back, and the window shows
 // the frame at the middle again. It also checks the width of Play, the Tab order and the focus frames after a run, and that
 // a second result window does not open on top of the first.
@@ -1777,20 +1782,21 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 		return fail(QStringLiteral("a second result window opens at the place of the first"));
 
 	// The same run with its first part dropped.
-	std::vector<std::shared_ptr<const GuiSimulationSnapshot>> frames;
-	for (int time = first; time < last; time += GuiReplayHistory::cadenceSeconds)
-		frames.push_back(w.m_completedReplay.atOrBefore(time));
-	frames.push_back(w.m_completedReplay.atOrBefore(last));
-	GuiReplayHistory everything;
-	for (const auto& frame : frames)
-		everything.record(frame);
-	GuiReplayHistory kept(everything.payloadBytes() / 2);
-	for (const auto& frame : frames)
-		kept.record(frame);
-	if (everything.truncated() || !kept.truncated() || kept.size() < 2 || kept.firstTime() <= first || kept.lastTime() != last)
-		return fail(QStringLiteral("a history with half the budget did not drop only its first part"));
+	// Every second of the run goes into a history that holds all of it and into one whose budget is a byte short of that,
+	// which has to drop its first interval. Neither has a train source while it records, so the payload of the first is
+	// the recorded part.
+	constexpr int keyframeSeconds = 60;
+	GuiReplayHistory everything(GuiReplayHistory::payloadLimit, keyframeSeconds);
+	for (int time = first; time <= last; ++time)
+		everything.record(w.m_completedReplay.at(time));
+	GuiReplayHistory kept(everything.payloadBytes() - 1, keyframeSeconds);
+	for (int time = first; time <= last; ++time)
+		kept.record(w.m_completedReplay.at(time));
+	if (everything.truncated() || !kept.truncated() || kept.intervalCount() < 2 || kept.firstTime() <= first || kept.lastTime() != last)
+		return fail(QStringLiteral("a history with a budget a byte short did not drop only its first part"));
 
 	GuiReplayHistory run = std::move(w.m_completedReplay);
+	kept.setTrains(run.trains());
 	w.m_completedReplay = std::move(kept);
 	w.showReplayBar();
 	const auto droppedRow = [&w, last]() -> QString {
@@ -1924,7 +1930,7 @@ void MainWindowTestAccess::runReplaySignals(MainWindow& w) {
 		for (int step = 0; step <= w.m_completedReplay.lastTime() - w.m_completedReplay.firstTime(); ++step) {
 			const int time = backwards ? w.m_completedReplay.lastTime() - step : w.m_completedReplay.firstTime() + step;
 			w.seekReplay(time);
-			const auto frame = w.m_completedReplay.atOrBefore(time);
+			const auto frame = w.m_completedReplay.at(time);
 			bool anyFailed = false;
 			bool anyBlocked = false;
 			if (!frame || w.m_snapshot != frame || !signalHeadsShow(w.m_presenter->runSignals(), *frame))
