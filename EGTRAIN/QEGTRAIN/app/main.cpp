@@ -543,8 +543,8 @@ static int runMain(int argc, char* argv[]) {
 		if (relayAllowed && request.positional && QCoreApplication::arguments().size() == 2
 			&& OpenRequestRelay::forward(OpenRequestRelay::defaultServerName(), OpenRequestRelay::currentApplicationDir(), request.path))
 			return 0;
-		bool loadFailed = false; // the last preload could not read the scene
-		const auto preload = [&effectiveDurationOverride, &loadFailed](const QString& path) {
+		bool loadFailed = false; // the last preload could not read the scene; the window lists the run checks of a scene that loads
+		const auto preload = [&loadFailed](const QString& path) {
 			const qint64 preloadStarted = startupTimingEnabled() ? startupTimingNowNanoseconds() : 0;
 			SceneLoadResult loaded = loadScenePath(path.toStdString());
 			if (startupTimingEnabled())
@@ -552,11 +552,6 @@ static int runMain(int argc, char* argv[]) {
 					startupTimingNowNanoseconds() - preloadStarted, QStringLiteral("startup_preload"),
 					QStringLiteral("main"), true);
 			loadFailed = hasErrors(loaded.diagnostics);
-			if (!loadFailed) {
-				const std::vector<SceneDiagnostic> runnable = validateRunnableScene(loaded.scene, {},
-					effectiveDurationOverride);
-				loaded.diagnostics.insert(loaded.diagnostics.end(), runnable.begin(), runnable.end());
-			}
 			return loaded;
 		};
 		QString scenePath = resolveScenePath(request.path, defaultName);
