@@ -1,5 +1,6 @@
 #include "simulation/GuiSimulationSnapshot.h"
 #include "app/GuiReplayHistory.h"
+#include "support/SnapshotCompare.h"
 
 #include <QObject>
 #include <QTest>
@@ -79,70 +80,6 @@ void operator delete(void* pointer, std::size_t) noexcept {
 #endif
 
 namespace {
-// Every field of every snapshot type is bound by name. A field added to one of the types stops
-// the build here: compare it, and make the sample snapshot below set it to a value that is not
-// its default.
-auto fields(const GuiOccupiedArc& v) {
-	const auto& [trackId, startX] = v;
-	return std::make_tuple(trackId, startX);
-}
-
-std::vector<std::tuple<int, double>> arcFields(const std::vector<GuiOccupiedArc>& arcs) {
-	std::vector<std::tuple<int, double>> result;
-	for (const GuiOccupiedArc& arc : arcs) result.push_back(fields(arc));
-	return result;
-}
-
-auto fields(const GuiTrainState& v) {
-	const auto& [index, id, type, description, operatingCode, serviceId, occurrence, routeIndex, reversedDirection, wagonCount, length,
-		departureTime, outOfSimulation, routeAxisPosition, speedKmh, currentOnboardPassengers, maxOnboardPassengers, wagonHeadPositions,
-		wagonTailPositions, occupiedArcs] = v;
-	return std::make_tuple(index, id, type, description, operatingCode, serviceId, occurrence, routeIndex, reversedDirection, wagonCount,
-		length, departureTime, outOfSimulation, routeAxisPosition, speedKmh, currentOnboardPassengers, maxOnboardPassengers,
-		wagonHeadPositions, wagonTailPositions, arcFields(occupiedArcs));
-}
-
-auto fields(const GuiSignalState& v) {
-	const auto& [sectionId, code, reversedDirection, level, failed] = v;
-	return std::make_tuple(sectionId, code, reversedDirection, level, failed);
-}
-
-auto fields(const GuiSectionState& v) {
-	const auto& [sectionId, prepared, blocked] = v;
-	return std::make_tuple(sectionId, prepared, blocked);
-}
-
-auto fields(const GuiPlatformState& v) {
-	const auto& [stationId, platformId, maxVolume, passengerIds] = v;
-	return std::make_tuple(stationId, platformId, maxVolume, passengerIds);
-}
-
-auto fields(const GuiPassengerState& v) {
-	const auto& [id, status, waitingPlatform, nextTrain, nextDestination] = v;
-	return std::make_tuple(id, status, waitingPlatform, nextTrain, nextDestination);
-}
-
-auto fields(const GuiVirtualCouplingState& v) {
-	const auto& [timestep, trainDescription, message] = v;
-	return std::make_tuple(timestep, trainDescription, message);
-}
-
-template <class T> bool sameList(const std::vector<T>& a, const std::vector<T>& b) {
-	if (a.size() != b.size())
-		return false;
-	for (std::size_t i = 0; i < a.size(); ++i)
-		if (fields(a[i]) != fields(b[i]))
-			return false;
-	return true;
-}
-
-bool sameSnapshot(const GuiSimulationSnapshot& a, const GuiSimulationSnapshot& b) {
-	const auto& [timestep, totalTimesteps, trains, signalStates, sectionStates, platforms, passengers, messages] = a;
-	return timestep == b.timestep && totalTimesteps == b.totalTimesteps && sameList(trains, b.trains)
-		&& sameList(signalStates, b.signalStates) && sameList(sectionStates, b.sectionStates) && sameList(platforms, b.platforms)
-		&& sameList(passengers, b.passengers) && sameList(messages, b.virtualCouplingMessages);
-}
-
 // A snapshot whose every field is set, and whose changing fields depend on the time. The
 // signal list repeats a section and direction with different codes.
 GuiSimulationSnapshot sampleSnapshot(int t, std::size_t trainCount = 3, int total = 1000) {
