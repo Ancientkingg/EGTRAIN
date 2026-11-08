@@ -876,11 +876,13 @@ void TestGuiSimulationSnapshot::trainsDerivedFromSource() {
 	// The other fields are untouched.
 	QVERIFY(sameRecorded(*history.at(4), withoutDerived(*history.at(4))));
 
-	// A slice that does not match the samples is copied and still exact. Nothing is shared then.
+	// A slice that does not match the samples is copied and still exact. Nothing is shared then. The history records as
+	// many seconds as the one above, so that the two differ only in their train source: the growth of a vector differs
+	// between standard libraries.
 	std::vector<GuiReplayTrajectory> mismatch = data.slices();
 	mismatch[0].position = std::make_shared<const std::vector<double>>(std::vector<double>{100.0, 201.0, 300.0});
 	mismatch[0].speed = std::make_shared<const std::vector<double>>(std::vector<double>{4.0, 5.0, 6.5});
-	GuiReplayHistory copied = data.history(12);
+	GuiReplayHistory copied = data.history(14);
 	copied.setTrains(makeGuiReplayTrains(*data.run, mismatch));
 	QCOMPARE(copied.sharedBytes(), std::size_t(0));
 	QCOMPARE_GT(copied.payloadBytes(), history.payloadBytes() - history.sharedBytes() - 1);
