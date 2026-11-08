@@ -1,6 +1,7 @@
 var class_infrastructure_facet =
 [
     [ "Choice", "struct_infrastructure_facet_1_1_choice.html", "struct_infrastructure_facet_1_1_choice" ],
+    [ "TaskAction", "struct_infrastructure_facet_1_1_task_action.html", "struct_infrastructure_facet_1_1_task_action" ],
     [ "Capability", "class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9", [
       [ "TrackFilter", "class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9aa8c764d408d15a5b6f8b2e25d4aceab3", null ],
       [ "InsertAndMove", "class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9a2665198455233842906ff0552c11b3b2", null ],
@@ -37,10 +38,12 @@ var class_infrastructure_facet =
     [ "remove", "class_infrastructure_facet.html#ad937cff6135a5a2a9bde611d4a96613b", null ],
     [ "removeSection", "class_infrastructure_facet.html#a6ff123f514278f36578447388f62b16d", null ],
     [ "rowOnTrack", "class_infrastructure_facet.html#ac0616ed4d0ef19ba9f1e87145e5d09f7", null ],
+    [ "runTaskAction", "class_infrastructure_facet.html#ae93659d049b97b5b84011c6634227776", null ],
     [ "selectionId", "class_infrastructure_facet.html#a236bf728d7cfc10f94d25c5e862252b2", null ],
     [ "setCell", "class_infrastructure_facet.html#ac1a496d6ca177637508453cacaec8202", null ],
     [ "setFlag", "class_infrastructure_facet.html#a6ba5b3179a7f3e769da2056d292390f7", null ],
     [ "setFlagCell", "class_infrastructure_facet.html#a673539005907917979ae8830c3ce596a", null ],
     [ "setNumber", "class_infrastructure_facet.html#a5bde421647ab73d6ff2eb37189195943", null ],
-    [ "setText", "class_infrastructure_facet.html#afd3c3ff527e620b6533e3d9ed4b1e5b9", null ]
+    [ "setText", "class_infrastructure_facet.html#afd3c3ff527e620b6533e3d9ed4b1e5b9", null ],
+    [ "taskActions", "class_infrastructure_facet.html#adb0ee14b90fe88e8a5a15eb93be7fd35", null ]
 ];

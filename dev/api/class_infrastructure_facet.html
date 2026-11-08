@@ -123,6 +123,8 @@ Inheritance diagram for InfrastructureFacet:</div>
 Classes</h2></td></tr>
 <tr class="memitem:Choice" id="r_Choice"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_infrastructure_facet_1_1_choice.html">Choice</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An entity that a cell can refer to: the text that names it in a list, and the id that the cell takes.  <a href="struct_infrastructure_facet_1_1_choice.html#details">More...</a><br /></td></tr>
+<tr class="memitem:TaskAction" id="r_TaskAction"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_infrastructure_facet_1_1_task_action.html">TaskAction</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A button of the task row under the Add and Delete buttons.  <a href="struct_infrastructure_facet_1_1_task_action.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
@@ -171,6 +173,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a6ff123f514278f36578447388f62b16d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the selected section from the selected route.  <br /></td></tr>
 <tr class="memitem:a8933cd118adc79cab0129573be920109" id="r_a8933cd118adc79cab0129573be920109"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a8933cd118adc79cab0129573be920109">moveSection</a> (<a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;, int)</td></tr>
 <tr class="memdesc:a8933cd118adc79cab0129573be920109"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the selected section of the selected route down by <span class="tt">offset</span> places, up when it is negative.  <br /></td></tr>
+<tr class="memitem:adb0ee14b90fe88e8a5a15eb93be7fd35" id="r_adb0ee14b90fe88e8a5a15eb93be7fd35"><td class="memItemLeft">virtual std::vector&lt; <a class="el" href="struct_infrastructure_facet_1_1_task_action.html">TaskAction</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#adb0ee14b90fe88e8a5a15eb93be7fd35">taskActions</a> () const</td></tr>
+<tr class="memitem:ae93659d049b97b5b84011c6634227776" id="r_ae93659d049b97b5b84011c6634227776"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#ae93659d049b97b5b84011c6634227776">runTaskAction</a> (<a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;, int)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-types" class="groupheader"><a id="pro-types" name="pro-types"></a>
 Protected Types</h2></td></tr>
@@ -1002,6 +1006,36 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="ae93659d049b97b5b84011c6634227776" name="ae93659d049b97b5b84011c6634227776"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae93659d049b97b5b84011c6634227776">&#9670;&#160;</a></span>runTaskAction()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void InfrastructureFacet::runTaskAction </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em></em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Runs the task action <span class="tt">index</span> of <a class="el" href="#adb0ee14b90fe88e8a5a15eb93be7fd35">taskActions()</a> on the selected row. The panel calls it only while the scene is open for edits, a row is selected and <span class="tt">index</span> is in range, after taking the cells that are being edited. The default does nothing. </p>
+
+</div>
+</div>
 <a id="a236bf728d7cfc10f94d25c5e862252b2" name="a236bf728d7cfc10f94d25c5e862252b2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a236bf728d7cfc10f94d25c5e862252b2">&#9670;&#160;</a></span>selectionId()</h2>
 
@@ -1210,6 +1244,32 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Stores <span class="tt">text</span> in <span class="tt">target</span>. </p>
+
+</div>
+</div>
+<a id="adb0ee14b90fe88e8a5a15eb93be7fd35" name="adb0ee14b90fe88e8a5a15eb93be7fd35"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb0ee14b90fe88e8a5a15eb93be7fd35">&#9670;&#160;</a></span>taskActions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual std::vector&lt; <a class="el" href="struct_infrastructure_facet_1_1_task_action.html">TaskAction</a> &gt; InfrastructureFacet::taskActions </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The task actions of this kind, one button each in this order. A task action works on the selected row and changes the model in one <a class="el" href="class_infrastructure_panel.html#a01a8c86d0644b2bdd52829f2ecca4d09">InfrastructurePanel::edit</a>, so in one undo step. The default is none, which hides the row. </p>
 
 </div>
 </div>

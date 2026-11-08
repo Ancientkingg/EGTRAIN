@@ -1,5 +1,11 @@
 var NAVTREEINDEX19 =
 {
+"functions_func.html":[2,3,1,0],
+"functions_func_b.html":[2,3,1,1],
+"functions_func_c.html":[2,3,1,2],
+"functions_func_d.html":[2,3,1,3],
+"functions_func_e.html":[2,3,1,4],
+"functions_func_f.html":[2,3,1,5],
 "functions_func_g.html":[2,3,1,6],
 "functions_func_h.html":[2,3,1,7],
 "functions_func_i.html":[2,3,1,8],
@@ -243,11 +249,5 @@ var NAVTREEINDEX19 =
 "namespace_timetable_stops.html#a9e5c38c3c31041e3cb9b387be84e871b":[1,0,16,3],
 "namespace_timetable_stops.html#abf31a056f5e6f5ea5dc26e9a23719715":[1,0,16,2],
 "namespace_ui.html":[1,0,17],
-"namespace_windows_staging.html":[1,0,19],
-"namespace_windows_staging.html#a04252549267e75771c39d14d9be57670":[1,0,19,0],
-"namespace_windows_staging.html#a796211d1e8ac56931e77c7c7fbf2839a":[1,0,19,1],
-"namespace_windows_staging.html#ad52395e48397c19fdda7b34e1eb00045":[1,0,19,3],
-"namespace_windows_staging.html#af8fe5bc4930c40af47e2754779c28e07":[1,0,19,2],
-"namespacecannot__open.html":[1,0,1],
-"namespacecannot__open.html#a205e5ea6c4bdc873c4200c4abbec104a":[1,0,1,0]
+"namespace_windows_staging.html":[1,0,19]
 };

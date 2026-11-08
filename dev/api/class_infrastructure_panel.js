@@ -46,6 +46,7 @@ var class_infrastructure_panel =
     [ "routeSectionCatalogCombo", "class_infrastructure_panel.html#a207fd99aa0abc9f931055f10c7017546", null ],
     [ "routeSectionDetailWidget", "class_infrastructure_panel.html#a13b84b6e2bd60f61bce84593c38c99b8", null ],
     [ "routeSectionListWidget", "class_infrastructure_panel.html#ae13fa2f74136f2faf44d6936dd7d80c9", null ],
+    [ "runTaskAction", "class_infrastructure_panel.html#a6fb75c23e3d38dec29bd8f0142526100", null ],
     [ "sectionLabel", "class_infrastructure_panel.html#ac5d00aae72c6711b880e3fb25f64f90b", null ],
     [ "selectCanvasItem", "class_infrastructure_panel.html#ad85b2c876398b024843b4395099916fc", null ],
     [ "selectedRouteSection", "class_infrastructure_panel.html#a242281619a73c633c0c7a89419879025", null ],
@@ -57,6 +58,7 @@ var class_infrastructure_panel =
     [ "setSelectionId", "class_infrastructure_panel.html#a23b041cde9222f809aa22cbfe44d4091", null ],
     [ "showStatus", "class_infrastructure_panel.html#adceee517b3c2ddee88aa4f085f541b74", null ],
     [ "table", "class_infrastructure_panel.html#a73a2fc120255bc2db5c662b6d61de8ab", null ],
+    [ "taskButton", "class_infrastructure_panel.html#a3838ff0d81d1acd1c200e6408784133d", null ],
     [ "trackFilterCombo", "class_infrastructure_panel.html#a8205342d43f5d5e683204782d949fe4d", null ],
     [ "updateSelection", "class_infrastructure_panel.html#aa5c4d490988f68fa3f7085752c78e400", null ]
 ];

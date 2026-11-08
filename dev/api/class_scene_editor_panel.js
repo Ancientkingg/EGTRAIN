@@ -8,6 +8,7 @@ var class_scene_editor_panel =
     [ "documentReplaced", "class_scene_editor_panel.html#aa13f46339c1a46209bbbd3b2b7ff13fd", null ],
     [ "hasScene", "class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f", null ],
     [ "occurrenceDuration", "class_scene_editor_panel.html#af9755fee94e360ddd2d2489013b426ce", null ],
+    [ "prompts", "class_scene_editor_panel.html#a505e2ae964806be7530e1a85fb354e55", null ],
     [ "refresh", "class_scene_editor_panel.html#afdd8ab3fbb9c8886df696fb56cf832c8", null ],
     [ "reportDeleted", "class_scene_editor_panel.html#a513652f136ab4075ad3018071fc35bf9", null ],
     [ "setDocument", "class_scene_editor_panel.html#a0623bcc36861d2ecf6ad1f0aff59fb7d", null ],

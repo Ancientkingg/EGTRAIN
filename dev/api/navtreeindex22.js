@@ -1,5 +1,11 @@
 var NAVTREEINDEX22 =
 {
+"struct_delay_histogram_class.html#ab795e511235a73cf68cd03e5e29e7e26":[2,0,71,1],
+"struct_delay_occurrence.html":[2,0,72],
+"struct_delay_occurrence.html#a4ea8d6d1ef0cce7a869c99612c3c0dac":[2,0,72,1],
+"struct_delay_occurrence.html#acaf10add89844bfb2c3a769de64a8c99":[2,0,72,0],
+"struct_delay_run_snapshot.html":[2,0,73],
+"struct_delay_run_snapshot.html#a29ef3d818ea51bebc9b71c1f79109eb6":[2,0,73,4],
 "struct_delay_run_snapshot.html#a2a36c603c22dd968591883a09f97d6ba":[2,0,73,9],
 "struct_delay_run_snapshot.html#a35c9dd91a4b9ea6b60f5f0e4c6ea842f":[2,0,73,6],
 "struct_delay_run_snapshot.html#a3b88ea99332d8726dd1104d8f4fc5c71":[2,0,73,3],
@@ -182,6 +188,10 @@ var NAVTREEINDEX22 =
 "struct_infrastructure_facet_1_1_choice.html":[2,0,117,0],
 "struct_infrastructure_facet_1_1_choice.html#a7b9d217740bd9f7d617cd07a7c6cabd6":[2,0,117,0,0],
 "struct_infrastructure_facet_1_1_choice.html#a91fca2affe81bff978a1ac2e93b83f3f":[2,0,117,0,1],
+"struct_infrastructure_facet_1_1_task_action.html":[2,0,117,1],
+"struct_infrastructure_facet_1_1_task_action.html#a05b39a9e4e4a1299837a3e5ea5c188d9":[2,0,117,1,2],
+"struct_infrastructure_facet_1_1_task_action.html#a0e210953e2677337cb6649457205153d":[2,0,117,1,1],
+"struct_infrastructure_facet_1_1_task_action.html#a6c4c2ed4574138455db0a30007b9e8c4":[2,0,117,1,0],
 "struct_infrastructure_guidance_state.html":[2,0,118],
 "struct_infrastructure_guidance_state.html#a141149e014fae8ab95f2288306798350":[2,0,118,3],
 "struct_infrastructure_guidance_state.html#a355d353d7e6c330042c893bb52524247":[2,0,118,0],
@@ -239,15 +249,5 @@ var NAVTREEINDEX22 =
 "struct_live_server_state.html#a894513c0c5b8aab50db4a193f64f28e5":[2,0,135,10],
 "struct_live_server_state.html#a9aead2a9c1eec0e4dd23e4450dbca85d":[2,0,135,4],
 "struct_live_server_state.html#a9ed222affbfcc2c372af35e8732d3ce3":[2,0,135,3],
-"struct_live_server_state.html#aaeafdb856db91c25e53ca4def3eb3d79":[2,0,135,12],
-"struct_live_server_state.html#aafbb26d04e3c894cf60e68449e601622":[2,0,135,2],
-"struct_live_server_state.html#ab64886055bee4e92758efc1bd7168a3b":[2,0,135,8],
-"struct_live_server_state.html#ae07f8cd1d8c2555c9e18e3165946a512":[2,0,135,6],
-"struct_live_server_state.html#ae190e920412d8875ead045acf24315d8":[2,0,135,5],
-"struct_live_server_state.html#afb92ac17f1e4a246b4a79cfc17443d6f":[2,0,135,9],
-"struct_live_server_state.html#afe6cffa56aa11d63327d463aad7a01ff":[2,0,135,1],
-"struct_live_stream_guard.html":[2,0,136],
-"struct_live_stream_guard.html#a45d101ad0737d23410192159e11d3601":[2,0,136,0],
-"struct_main_window_test_hooks.html":[2,0,138],
-"struct_main_window_test_hooks.html#a030fe1f7bf4a928721bfe463109b186a":[2,0,138,10]
+"struct_live_server_state.html#aaeafdb856db91c25e53ca4def3eb3d79":[2,0,135,12]
 };

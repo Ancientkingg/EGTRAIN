@@ -2,6 +2,7 @@ var class_user_prompts =
 [
     [ "UserPrompts", "class_user_prompts.html#a845441069b8fabe4f8d8dfff13c90888", null ],
     [ "~UserPrompts", "class_user_prompts.html#a7b5b9416946bfd5ad56a6a8c066d0cd9", null ],
+    [ "askText", "class_user_prompts.html#a573969fb7e17e27e0236f25fa7e5292d", null ],
     [ "chooseButton", "class_user_prompts.html#a4a4c5ad4f5d69ed7442fbd396fba0afa", null ],
     [ "chooseItem", "class_user_prompts.html#a00d1b9ed44839b3770d89613eef3edd9", null ],
     [ "confirm", "class_user_prompts.html#aa74a16f2f04874e3e7910b1e8d422407", null ],

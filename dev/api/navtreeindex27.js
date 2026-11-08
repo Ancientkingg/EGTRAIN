@@ -1,5 +1,15 @@
 var NAVTREEINDEX27 =
 {
+"struct_track_preview_station.html#af4b4711235da8592f21b87d6b8776639":[2,0,343,0],
+"struct_track_state_visual.html":[2,0,344],
+"struct_track_state_visual.html#a423c5557b0f44543037ef4a56b778438":[2,0,344,0],
+"struct_track_state_visual.html#a72927bca69eea684bb844363302ed887":[2,0,344,1],
+"struct_track_state_visual.html#ab44e05feeb0b8823e3eb398942de4620":[2,0,344,2],
+"struct_track_visual.html":[2,0,345],
+"struct_track_visual.html#a3cf0899f694cfc48bf6e1d10687bdb42":[2,0,345,1],
+"struct_track_visual.html#abb38c6ee6a6aeae4e144482f5dc0e09b":[2,0,345,0],
+"struct_train_1_1_authority_target.html":[2,0,346,2],
+"struct_train_1_1_authority_target.html#a06b889dd8c621a533226c7488a86879b":[2,0,346,2,1],
 "struct_train_1_1_authority_target.html#a667406cb6f90c29457ee0d5ce93c9201":[2,0,346,2,2],
 "struct_train_1_1_authority_target.html#aa9b06bf1c96c1602dd170d9d237a413c":[2,0,346,2,0],
 "struct_train_1_1_authority_target.html#ab533678d25aa7fd30c48d3d827ce03da":[2,0,346,2,3],
@@ -239,15 +249,5 @@ var NAVTREEINDEX27 =
 "structtelemetry_1_1_usage_record.html":[2,0,3,12],
 "structtelemetry_1_1_usage_record.html#a7dc693ce653501b0de3b93061ba9e9d5":[1,0,14,12,0],
 "structtelemetry_1_1_usage_record.html#a7dc693ce653501b0de3b93061ba9e9d5":[2,0,3,12,0],
-"structtelemetry_1_1_usage_record.html#acbf2a7937e5c73b8414381c09c68aeec":[1,0,14,12,1],
-"structtelemetry_1_1_usage_record.html#acbf2a7937e5c73b8414381c09c68aeec":[2,0,3,12,1],
-"structtelemetry__smoke_1_1_state.html":[1,0,15,0],
-"structtelemetry__smoke_1_1_state.html":[2,0,4,0],
-"structtelemetry__smoke_1_1_state.html#a28860380a973f187037c750f5421bca4":[1,0,15,0,3],
-"structtelemetry__smoke_1_1_state.html#a28860380a973f187037c750f5421bca4":[2,0,4,0,3],
-"structtelemetry__smoke_1_1_state.html#a4ea70fb20baba02fb555ddc4162d4d3d":[1,0,15,0,1],
-"structtelemetry__smoke_1_1_state.html#a4ea70fb20baba02fb555ddc4162d4d3d":[2,0,4,0,1],
-"structtelemetry__smoke_1_1_state.html#a681c197232196ba3a3846e269869f059":[1,0,15,0,4],
-"structtelemetry__smoke_1_1_state.html#a681c197232196ba3a3846e269869f059":[2,0,4,0,4],
-"structtelemetry__smoke_1_1_state.html#a971f1cac9eec8d752368ebddffc613f3":[1,0,15,0,5]
+"structtelemetry_1_1_usage_record.html#acbf2a7937e5c73b8414381c09c68aeec":[1,0,14,12,1]
 };

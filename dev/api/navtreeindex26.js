@@ -1,5 +1,15 @@
 var NAVTREEINDEX26 =
 {
+"struct_scene_train_physical_source_result.html#a02b64f4b3593b86e784259693b21436c":[2,0,288,2],
+"struct_scene_train_physical_source_result.html#a3c12f001584cfcfc0c2570646e3e7199":[2,0,288,0],
+"struct_scene_train_physical_source_result.html#a5b04c72117f3dcd144a41943cdf04dc2":[2,0,288,1],
+"struct_scene_train_traction_source_result.html":[2,0,289],
+"struct_scene_train_traction_source_result.html#a1f93b51c379e5c404bc7e62082531fa9":[2,0,289,2],
+"struct_scene_train_traction_source_result.html#a1fcb1ab750f928aa09c43c2ba5bc6132":[2,0,289,1],
+"struct_scene_train_traction_source_result.html#a9265b8b5448ed6c262eb0b99b1460f81":[2,0,289,0],
+"struct_scene_train_unit.html":[2,0,290],
+"struct_scene_train_unit.html#a2d5171838ee49071dee44628fb2d25a8":[2,0,290,4],
+"struct_scene_train_unit.html#a33cbdfc20ab203e0451865ffd9650530":[2,0,290,5],
 "struct_scene_train_unit.html#a6385a0cc4cc38092158d2963b5e17852":[2,0,290,3],
 "struct_scene_train_unit.html#a9e86542becf5385f5668be7573274b34":[2,0,290,1],
 "struct_scene_train_unit.html#ac58a5a0bc689b17187cd8f8de5e97aa2":[2,0,290,0],
@@ -239,15 +249,5 @@ var NAVTREEINDEX26 =
 "struct_track_preview_station.html#a2e5fd5c2d97662e46fb1595e18555b4b":[2,0,343,1],
 "struct_track_preview_station.html#a3ba3d0760bd3af04bf64b1c7c5700191":[2,0,343,3],
 "struct_track_preview_station.html#a9f0334e75c860b8d993b1db909dbd821":[2,0,343,2],
-"struct_track_preview_station.html#ae52a2cb4f94442c7fa2ed69ddb9c133b":[2,0,343,4],
-"struct_track_preview_station.html#af4b4711235da8592f21b87d6b8776639":[2,0,343,0],
-"struct_track_state_visual.html":[2,0,344],
-"struct_track_state_visual.html#a423c5557b0f44543037ef4a56b778438":[2,0,344,0],
-"struct_track_state_visual.html#a72927bca69eea684bb844363302ed887":[2,0,344,1],
-"struct_track_state_visual.html#ab44e05feeb0b8823e3eb398942de4620":[2,0,344,2],
-"struct_track_visual.html":[2,0,345],
-"struct_track_visual.html#a3cf0899f694cfc48bf6e1d10687bdb42":[2,0,345,1],
-"struct_track_visual.html#abb38c6ee6a6aeae4e144482f5dc0e09b":[2,0,345,0],
-"struct_train_1_1_authority_target.html":[2,0,346,2],
-"struct_train_1_1_authority_target.html#a06b889dd8c621a533226c7488a86879b":[2,0,346,2,1]
+"struct_track_preview_station.html#ae52a2cb4f94442c7fa2ed69ddb9c133b":[2,0,343,4]
 };

@@ -1,5 +1,15 @@
 var NAVTREEINDEX28 =
 {
+"structtelemetry_1_1_usage_record.html#acbf2a7937e5c73b8414381c09c68aeec":[2,0,3,12,1],
+"structtelemetry__smoke_1_1_state.html":[1,0,15,0],
+"structtelemetry__smoke_1_1_state.html":[2,0,4,0],
+"structtelemetry__smoke_1_1_state.html#a28860380a973f187037c750f5421bca4":[1,0,15,0,3],
+"structtelemetry__smoke_1_1_state.html#a28860380a973f187037c750f5421bca4":[2,0,4,0,3],
+"structtelemetry__smoke_1_1_state.html#a4ea70fb20baba02fb555ddc4162d4d3d":[1,0,15,0,1],
+"structtelemetry__smoke_1_1_state.html#a4ea70fb20baba02fb555ddc4162d4d3d":[2,0,4,0,1],
+"structtelemetry__smoke_1_1_state.html#a681c197232196ba3a3846e269869f059":[1,0,15,0,4],
+"structtelemetry__smoke_1_1_state.html#a681c197232196ba3a3846e269869f059":[2,0,4,0,4],
+"structtelemetry__smoke_1_1_state.html#a971f1cac9eec8d752368ebddffc613f3":[1,0,15,0,5],
 "structtelemetry__smoke_1_1_state.html#a971f1cac9eec8d752368ebddffc613f3":[2,0,4,0,5],
 "structtelemetry__smoke_1_1_state.html#aa3fe3938b7067190f64ac0c5f4f7aefc":[1,0,15,0,2],
 "structtelemetry__smoke_1_1_state.html#aa3fe3938b7067190f64ac0c5f4f7aefc":[2,0,4,0,2],

@@ -1,5 +1,11 @@
 var NAVTREEINDEX21 =
 {
+"struct_blocking_time_diagram_input.html#aba3bc68a7bc70098aa3de132c2d202b6":[2,0,20,1],
+"struct_blocking_time_diagram_input.html#aba96227d4887a955879e3d82b3201f1d":[2,0,20,15],
+"struct_blocking_time_diagram_input.html#acae41132b02cba2bb79dbe140c33b184":[2,0,20,11],
+"struct_blocking_time_diagram_input.html#acbdc4c8c1d2e17a1db563f9c7e5e16ff":[2,0,20,9],
+"struct_blocking_time_diagram_input.html#ad690d1ad5d229673fe16f147072e2d61":[2,0,20,4],
+"struct_blocking_time_diagram_input.html#af731c60c4cc5eb48ff8fc87e377362e2":[2,0,20,6],
 "struct_blocking_time_diagram_input.html#aff9fdecf3d0957bb1ce3f928583f6f32":[2,0,20,13],
 "struct_blocking_time_diagram_segment.html":[2,0,21],
 "struct_blocking_time_diagram_segment.html#a1827ac10fdc1a5360c184c3a0a7de920":[2,0,21,18],
@@ -243,11 +249,5 @@ var NAVTREEINDEX21 =
 "struct_delay_histogram_class.html#a077f9169031f36ce233518cf2a044985":[2,0,71,2],
 "struct_delay_histogram_class.html#a3228f9e6bf9fd5d39b193acc3bc7991b":[2,0,71,3],
 "struct_delay_histogram_class.html#aa49be5920c3323652bc549697dcb9d83":[2,0,71,4],
-"struct_delay_histogram_class.html#ab6f5e384096c76caf6db3f3fcd38ebdb":[2,0,71,0],
-"struct_delay_histogram_class.html#ab795e511235a73cf68cd03e5e29e7e26":[2,0,71,1],
-"struct_delay_occurrence.html":[2,0,72],
-"struct_delay_occurrence.html#a4ea8d6d1ef0cce7a869c99612c3c0dac":[2,0,72,1],
-"struct_delay_occurrence.html#acaf10add89844bfb2c3a769de64a8c99":[2,0,72,0],
-"struct_delay_run_snapshot.html":[2,0,73],
-"struct_delay_run_snapshot.html#a29ef3d818ea51bebc9b71c1f79109eb6":[2,0,73,4]
+"struct_delay_histogram_class.html#ab6f5e384096c76caf6db3f3fcd38ebdb":[2,0,71,0]
 };

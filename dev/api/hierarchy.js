@@ -466,6 +466,7 @@ var hierarchy =
       [ "ConsoleStreambuf", "class_console_streambuf.html", null ]
     ] ],
     [ "PositionScale::Stretch", "struct_position_scale_1_1_stretch.html", null ],
+    [ "InfrastructureFacet::TaskAction", "struct_infrastructure_facet_1_1_task_action.html", null ],
     [ "TDS", "class_t_d_s.html", null ],
     [ "TelemetryContext", "struct_telemetry_context.html", null ],
     [ "telemetry::TelemetryEvent", "structtelemetry_1_1_telemetry_event.html", null ],

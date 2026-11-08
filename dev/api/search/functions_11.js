@@ -225,8 +225,9 @@ var searchData=
   ['runsimulationpostprocessing_222',['runSimulationPostprocessing',['../_simulation_8cpp.html#ae0be230753d4b1eaf8c3ced9570a7ca1',1,'runSimulationPostprocessing(SimulationRun &amp;run, const std::function&lt; bool()&gt; &amp;stopRequested):&#160;Simulation.cpp'],['../_simulation_8h.html#ae0be230753d4b1eaf8c3ced9570a7ca1',1,'runSimulationPostprocessing(SimulationRun &amp;run, const std::function&lt; bool()&gt; &amp;stopRequested):&#160;Simulation.cpp']]],
   ['runsimulationstep_223',['runSimulationStep',['../_simulation_8cpp.html#a2f9847a91525ccfe48448803e6ebba24',1,'runSimulationStep(SimulationRun &amp;run, int t, TrainMovementOrder &amp;order):&#160;Simulation.cpp'],['../_simulation_8h.html#a2f9847a91525ccfe48448803e6ebba24',1,'runSimulationStep(SimulationRun &amp;run, int t, TrainMovementOrder &amp;order):&#160;Simulation.cpp']]],
   ['runstarting_224',['runStarting',['../class_run_controller.html#acea75df242d1780f39e4d803a5e4f855',1,'RunController']]],
-  ['runtimediagnostics_225',['runtimeDiagnostics',['../class_run_controller.html#ad8ce71397d0ff2f57be3e623f578c813',1,'RunController']]],
-  ['runtimestatus_226',['runtimeStatus',['../class_run_controller.html#aff05c374c7559899a2cfdeb04739507b',1,'RunController']]],
-  ['runtool_227',['runTool',['../_scene_tool_8cpp.html#a9a6cadca8ce86a763a1147ce5fc20615',1,'SceneTool.cpp']]],
-  ['runtrains_228',['runTrains',['../class_network_presenter.html#a51e810dc1da2e2d20b65ab9c49bd4b82',1,'NetworkPresenter']]]
+  ['runtaskaction_225',['runTaskAction',['../class_infrastructure_facet.html#ae93659d049b97b5b84011c6634227776',1,'InfrastructureFacet::runTaskAction()'],['../class_infrastructure_panel.html#a6fb75c23e3d38dec29bd8f0142526100',1,'InfrastructurePanel::runTaskAction()']]],
+  ['runtimediagnostics_226',['runtimeDiagnostics',['../class_run_controller.html#ad8ce71397d0ff2f57be3e623f578c813',1,'RunController']]],
+  ['runtimestatus_227',['runtimeStatus',['../class_run_controller.html#aff05c374c7559899a2cfdeb04739507b',1,'RunController']]],
+  ['runtool_228',['runTool',['../_scene_tool_8cpp.html#a9a6cadca8ce86a763a1147ce5fc20615',1,'SceneTool.cpp']]],
+  ['runtrains_229',['runTrains',['../class_network_presenter.html#a51e810dc1da2e2d20b65ab9c49bd4b82',1,'NetworkPresenter']]]
 ];

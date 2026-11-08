@@ -200,6 +200,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:af07cdb6e38d3e5f090449110e3fbb225"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a2fc2a40afe25a35c94491af27737d87a" title="Adds an entity of the chosen kind, after clearing the filters.">addEntity()</a>.  <br /></td></tr>
 <tr class="memitem:ad55cec35eb8d49b5e8fe20b8a01b6ea7" id="r_ad55cec35eb8d49b5e8fe20b8a01b6ea7"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#ad55cec35eb8d49b5e8fe20b8a01b6ea7">deleteButton</a> () const</td></tr>
 <tr class="memdesc:ad55cec35eb8d49b5e8fe20b8a01b6ea7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a8963162b471a29e8d0156422d3a45856" title="Deletes the entity in the selected row.">deleteEntity()</a>.  <br /></td></tr>
+<tr class="memitem:a3838ff0d81d1acd1c200e6408784133d" id="r_a3838ff0d81d1acd1c200e6408784133d"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a3838ff0d81d1acd1c200e6408784133d">taskButton</a> (int index) const</td></tr>
+<tr class="memitem:a6fb75c23e3d38dec29bd8f0142526100" id="r_a6fb75c23e3d38dec29bd8f0142526100"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6fb75c23e3d38dec29bd8f0142526100">runTaskAction</a> (int index)</td></tr>
 <tr class="memitem:afe2a929b6ca5ada5828a376e9d64f199" id="r_afe2a929b6ca5ada5828a376e9d64f199"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#afe2a929b6ca5ada5828a376e9d64f199">guidanceLabel</a> () const</td></tr>
 <tr class="memdesc:afe2a929b6ca5ada5828a376e9d64f199"><td class="mdescLeft">&#160;</td><td class="mdescRight">The sentence about the chosen kind.  <br /></td></tr>
 <tr class="memitem:a8a21d4783ea0a769051737c256f4ec5d" id="r_a8a21d4783ea0a769051737c256f4ec5d"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a8a21d4783ea0a769051737c256f4ec5d">markLabel</a> () const</td></tr>
@@ -234,6 +236,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">A panel without a document.  <br /></td></tr>
 <tr class="memitem:a0623bcc36861d2ecf6ad1f0aff59fb7d pub_methods_class_scene_editor_panel" id="r_a0623bcc36861d2ecf6ad1f0aff59fb7d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a0623bcc36861d2ecf6ad1f0aff59fb7d">setDocument</a> (<a class="el" href="class_scene_document.html">SceneDocument</a> *document)</td></tr>
 <tr class="memitem:a58adc7c4da3c0681dc6264496a8df4f2 pub_methods_class_scene_editor_panel" id="r_a58adc7c4da3c0681dc6264496a8df4f2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a58adc7c4da3c0681dc6264496a8df4f2">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
+<tr class="memitem:a505e2ae964806be7530e1a85fb354e55 pub_methods_class_scene_editor_panel" id="r_a505e2ae964806be7530e1a85fb354e55"><td class="memItemLeft"><a class="el" href="class_user_prompts.html">UserPrompts</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a505e2ae964806be7530e1a85fb354e55">prompts</a> () const</td></tr>
+<tr class="memdesc:a505e2ae964806be7530e1a85fb354e55 pub_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The prompts of the panel, for the code that asks the user a question on its behalf, such as an infrastructure facet.  <br /></td></tr>
 <tr class="memitem:af13cca73366a245163487f9a06d72bdf pub_methods_class_scene_editor_panel" id="r_af13cca73366a245163487f9a06d72bdf"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#af13cca73366a245163487f9a06d72bdf">setRunSelection</a> (<a class="el" href="class_run_selection.html">RunSelection</a> *selection)</td></tr>
 <tr class="memitem:a5a1e0ed680110c0ebcaaadae5c6bb795 pub_methods_class_scene_editor_panel" id="r_a5a1e0ed680110c0ebcaaadae5c6bb795"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a5a1e0ed680110c0ebcaaadae5c6bb795">setOccurrenceDuration</a> (std::function&lt; double()&gt; duration)</td></tr>
 <tr class="memitem:af9647734cc3da5fead984dc7c8b70c0f pub_methods_class_scene_editor_panel" id="r_af9647734cc3da5fead984dc7c8b70c0f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f">hasScene</a> () const</td></tr>
@@ -1448,6 +1452,29 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a6fb75c23e3d38dec29bd8f0142526100" name="a6fb75c23e3d38dec29bd8f0142526100"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6fb75c23e3d38dec29bd8f0142526100">&#9670;&#160;</a></span>runTaskAction()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void InfrastructurePanel::runTaskAction </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>index</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Runs the task action <span class="tt">index</span> of the chosen kind on the selected row, as its button does. The cells that are being edited are taken first. Does nothing while the scene cannot be edited, without a selected row, and for an index that is out of range. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_a6fb75c23e3d38dec29bd8f0142526100_cgraph.svg" width="644" height="176"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="ac5d00aae72c6711b880e3fb25f64f90b" name="ac5d00aae72c6711b880e3fb25f64f90b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac5d00aae72c6711b880e3fb25f64f90b">&#9670;&#160;</a></span>sectionLabel()</h2>
 
@@ -1737,6 +1764,32 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The table that the facets fill; the panel owns it. </p>
+
+</div>
+</div>
+<a id="a3838ff0d81d1acd1c200e6408784133d" name="a3838ff0d81d1acd1c200e6408784133d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3838ff0d81d1acd1c200e6408784133d">&#9670;&#160;</a></span>taskButton()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QPushButton * InfrastructurePanel::taskButton </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>index</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The button of the task action <span class="tt">index</span> of the chosen kind (<a class="el" href="class_infrastructure_facet.html#adb0ee14b90fe88e8a5a15eb93be7fd35">InfrastructureFacet::taskActions</a>); null when the kind has no such action. </p>
 
 </div>
 </div>

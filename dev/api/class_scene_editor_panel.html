@@ -137,6 +137,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:aa11edba490c33cf21b24cc32f333ad88"><td class="mdescLeft">&#160;</td><td class="mdescRight">A panel without a document.  <br /></td></tr>
 <tr class="memitem:a0623bcc36861d2ecf6ad1f0aff59fb7d" id="r_a0623bcc36861d2ecf6ad1f0aff59fb7d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0623bcc36861d2ecf6ad1f0aff59fb7d">setDocument</a> (<a class="el" href="class_scene_document.html">SceneDocument</a> *document)</td></tr>
 <tr class="memitem:a58adc7c4da3c0681dc6264496a8df4f2" id="r_a58adc7c4da3c0681dc6264496a8df4f2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a58adc7c4da3c0681dc6264496a8df4f2">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
+<tr class="memitem:a505e2ae964806be7530e1a85fb354e55" id="r_a505e2ae964806be7530e1a85fb354e55"><td class="memItemLeft"><a class="el" href="class_user_prompts.html">UserPrompts</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a505e2ae964806be7530e1a85fb354e55">prompts</a> () const</td></tr>
+<tr class="memdesc:a505e2ae964806be7530e1a85fb354e55"><td class="mdescLeft">&#160;</td><td class="mdescRight">The prompts of the panel, for the code that asks the user a question on its behalf, such as an infrastructure facet.  <br /></td></tr>
 <tr class="memitem:af13cca73366a245163487f9a06d72bdf" id="r_af13cca73366a245163487f9a06d72bdf"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af13cca73366a245163487f9a06d72bdf">setRunSelection</a> (<a class="el" href="class_run_selection.html">RunSelection</a> *selection)</td></tr>
 <tr class="memitem:a5a1e0ed680110c0ebcaaadae5c6bb795" id="r_a5a1e0ed680110c0ebcaaadae5c6bb795"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5a1e0ed680110c0ebcaaadae5c6bb795">setOccurrenceDuration</a> (std::function&lt; double()&gt; duration)</td></tr>
 <tr class="memitem:afdd8ab3fbb9c8886df696fb56cf832c8" id="r_afdd8ab3fbb9c8886df696fb56cf832c8"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#afdd8ab3fbb9c8886df696fb56cf832c8">refresh</a> ()=0</td></tr>
@@ -404,6 +406,33 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a505e2ae964806be7530e1a85fb354e55" name="a505e2ae964806be7530e1a85fb354e55"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a505e2ae964806be7530e1a85fb354e55">&#9670;&#160;</a></span>prompts()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_user_prompts.html">UserPrompts</a> &amp; SceneEditorPanel::prompts </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The prompts of the panel, for the code that asks the user a question on its behalf, such as an infrastructure facet. </p>
+
+</div>
+</div>
 <a id="afdd8ab3fbb9c8886df696fb56cf832c8" name="afdd8ab3fbb9c8886df696fb56cf832c8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afdd8ab3fbb9c8886df696fb56cf832c8">&#9670;&#160;</a></span>refresh()</h2>
 
@@ -549,6 +578,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 <p>The messages and questions of the panel go through these prompts. The panel uses its own until it is given others; null brings its own back. The prompts must outlive the panel. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_editor_panel_a58adc7c4da3c0681dc6264496a8df4f2_cgraph.svg" width="470" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
