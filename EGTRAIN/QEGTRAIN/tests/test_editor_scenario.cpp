@@ -163,6 +163,7 @@ void TestScenarioPanel::showsNothingWithoutScene() {
 	panel.commitPendingEditors();
 	// A panel stays disabled while its document holds no scene, and its actions change nothing.
 	QVERIFY(!panel.blankButton()->isEnabled());
+	QCOMPARE(panel.deleteButton()->toolTip(), "Open a case to delete scenarios.");
 	QCOMPARE(document.revision(), quint64(0));
 	QVERIFY(!document.isDirty());
 	QVERIFY(document.model().scenarios.empty());
@@ -186,6 +187,7 @@ void TestScenarioPanel::showsNewScene() {
 	QVERIFY(panel.importButton()->isEnabled());
 	QVERIFY(panel.exportButton()->isEnabled());
 	QVERIFY(!panel.deleteButton()->isEnabled());
+	QCOMPARE(panel.deleteButton()->toolTip(), "The default scenario cannot be deleted.");
 	// Showing a scene edits nothing and selects nothing.
 	QVERIFY(f.events.log.empty());
 	QVERIFY(!f.document.isDirty());
@@ -242,6 +244,7 @@ void TestScenarioPanel::selectsEditsAndRenamesScenarios() {
 	QCOMPARE(panel.nameEdit()->text(), "Alternative");
 	QVERIFY(panel.descriptionEdit()->text().isEmpty());
 	QVERIFY(panel.deleteButton()->isEnabled());
+	QCOMPARE(panel.deleteButton()->toolTip(), "Delete the selected scenario.");
 	events.log.clear();
 	panel.selectScenario(1);
 	QVERIFY2(events.log.empty(), "selecting the scenario that is selected tells nobody");
@@ -345,6 +348,7 @@ void TestScenarioPanel::selectsEditsAndRenamesScenarios() {
 	QVERIFY(!panel.blankButton()->isEnabled());
 	QVERIFY(!panel.duplicateButton()->isEnabled());
 	QVERIFY(!panel.deleteButton()->isEnabled());
+	QCOMPARE(panel.deleteButton()->toolTip(), "Stop the run to edit.");
 	QVERIFY(!panel.importButton()->isEnabled());
 	QVERIFY(!panel.exportButton()->isEnabled());
 	QVERIFY(panel.idEdit()->text().isEmpty());
@@ -645,6 +649,7 @@ void TestScenarioPanel::keepsScenariosOfSceneWithoutDefault() {
 	document.replace(scene, false);
 	panel.listWidget()->setCurrentRow(1);
 	QVERIFY2(!panel.deleteButton()->isEnabled(), "Delete is off while the scene names no default scenario");
+	QCOMPARE(panel.deleteButton()->toolTip(), "This case has no default scenario. Fix the validation errors first.");
 	panel.deleteScenario();
 	// A scenario is not deleted from a scene without a default scenario.
 	QCOMPARE(prompts.errorCount, 1);

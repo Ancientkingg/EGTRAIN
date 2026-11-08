@@ -244,15 +244,30 @@ void ScenarioPanel::updateDetail() {
 	}
 	m_blankButton->setEnabled(editable);
 	m_duplicateButton->setEnabled(enabled);
+	// Delete says why it is off, with the texts of the refusals of deleteScenario.
 	bool deletable = false;
-	if (enabled) {
+	QString deleteHint;
+	if (!hasScene()) {
+		deleteHint = QStringLiteral("Open a case to delete scenarios.");
+	} else if (!editable) {
+		deleteHint = QStringLiteral("Stop the run to edit.");
+	} else if (scenario == nullptr) {
+		deleteHint = QStringLiteral("Select a scenario to delete.");
+	} else {
 		const SceneModel& model = m_document->model();
 		const bool hasPersistedDefault = !model.defaultScenarioId.empty()
 			&& std::any_of(model.scenarios.begin(), model.scenarios.end(),
 				[&model](const SceneScenario& candidate) { return candidate.id == model.defaultScenarioId; });
 		deletable = hasPersistedDefault && scenario->id != model.defaultScenarioId;
+		if (!hasPersistedDefault)
+			deleteHint = QStringLiteral("This case has no default scenario. Fix the validation errors first.");
+		else if (!deletable)
+			deleteHint = QStringLiteral("The default scenario cannot be deleted.");
+		else
+			deleteHint = QStringLiteral("Delete the selected scenario.");
 	}
 	m_deleteButton->setEnabled(deletable);
+	m_deleteButton->setToolTip(deleteHint);
 	m_importButton->setEnabled(editable);
 	m_exportButton->setEnabled(enabled);
 	emit headerTextChanged(headerText());
