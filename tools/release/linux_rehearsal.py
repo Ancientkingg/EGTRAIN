@@ -670,7 +670,7 @@ class Rehearsal:
             self.note(f"dialog {name_of(question)!r}: " + " | ".join(labels))
             self.screenshot("update-question")
             self.press(self.button(question, "Don't Check Automatically"))
-            self.wait_closed(pattern="Automatically Check")
+            self.wait_closed(pattern="^EGTRAIN Updates$")
         else:
             self.note("no question about update checks appeared")
         self.choose("About EGTRAIN", modal=True)
@@ -702,7 +702,7 @@ class Rehearsal:
         """The question about automatic update checks comes once, after the case chooser is closed, and only when the
         account has not answered it. Looks for it for some seconds and returns its window, or None."""
         try:
-            return wait_until(lambda: self.window(pattern="Automatically Check"), seconds, "the question about update checks")
+            return wait_until(lambda: self.window(pattern="^EGTRAIN Updates$"), seconds, "the question about update checks")
         except StepFailed:
             return None
 
