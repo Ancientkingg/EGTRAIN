@@ -68,7 +68,7 @@ and fails on any leak or double free. It has four parts:
   selection on it, and clear the canvas again, twenty times or more in one process. After each clear
   every registry, every pointer and the scene must be empty, and an item or container that the clear
   does not release is a leak.
-- CTest runs `test_guisimulationsnapshot`. It records, evicts and clears the frames of the replay
+- CTest runs `test_guisimulationsnapshot`. It records, evicts and clears the seconds of the replay
   history and compares the bytes the history counts with the bytes it holds on the heap. Under the
   sanitizer the heap count comes from AddressSanitizer.
 
@@ -214,59 +214,79 @@ row keeps its height while the user seeks. A replay seek explicitly restores
 historical operational overlays; normal completion does not. Future or exited
 trains do not appear on layer toggles or drive Follow station emphasis.
 
-The history (`app/GuiReplayHistory`) records every fifth simulated second and the
-last one, in a compact form. What is the same for the whole run (identity and
-static data of trains, the section and direction of each signal, section ids,
-platforms) is stored once per run in a layout. Each frame stores only flat arrays
-of the values that change: train positions, speeds and occupied arcs, signal codes,
-levels and failure flags, section flags, platform queues, passenger states. Strings
-that vary are stored once in a string table. `atOrBefore` rebuilds an ordinary
-snapshot from this form, so the window uses the same snapshot type as in a live
-run. It keeps the last rebuilt snapshot, and a snapshot that a caller still holds
-is not rebuilt, so asking again for the same frame returns the same object. A
-change of the static data between frames (a different number of trains, a renamed
-train) starts a new layout; older frames keep theirs. Adding a field to a snapshot
-type stops the build of `GuiReplayHistory.cpp` and of the round-trip test until
-the field is stored.
+The history (`app/GuiReplayHistory`) records every simulated second of the run, as
+changes. What is the same for the whole run (identity, route and direction and
+capacity of each train, the section and direction of each signal, section ids,
+platforms, passenger ids) is stored once per run in a layout. What changes is stored as
+the difference to the second before, one record of 8 bytes (a slot and a new value) for
+each value that changed: signal codes, levels and failure flags, section flags, onboard
+passengers, whether a train has left, the occupied arcs of a train, the passengers on a
+platform and the states of a passenger. Lists and strings are stored once, the lists in
+the table of their interval and the strings in a string table. An interval of 300
+simulated seconds starts with a keyframe, a copy of all values, so a seek applies the
+changes of at most 299 seconds and an interval never refers to another one. `at` rebuilds
+an ordinary snapshot of the chosen second, so the window uses the same snapshot type as in a
+live run. It keeps the last rebuilt snapshot, and a snapshot that a caller still holds is
+not rebuilt, so asking again for the same second returns the same object. A change of a
+count between two seconds, or of a static field that is found at the first second of an
+interval or at the last step, starts the history again at that second; no run does this.
+Adding a field to a snapshot type stops the build of `GuiReplayHistory.cpp` and of the
+round-trip test until the field is stored, derived or declared static.
 
-The budget is 128 MiB of accounted payload and there is no frame count limit. When
-a run does not fit, the oldest frames are dropped and the history reports the
-interval it still covers (`firstTime`, `lastTime`, `evictedBeforeTime`). Accounting
-includes the layouts, the string table and the capacities of the frame arrays,
-not allocator bookkeeping, container nodes, shared-pointer control blocks or the
-rebuilt snapshots that callers hold, so 128 MiB is **not** a precise
-resident-memory limit; for the scenes below the heap in use was 1.1 times the
-accounted bytes. If one frame, with its layout and strings, exceeds the budget,
-replay is unavailable with an explanation; the simulation continues. A run without
-a window (`-g 0`) builds no snapshots and no replay frames, because nothing reads
-them. `app/ReplayCoverage.h` turns the interval the history still covers into the words of
-the row for a whole run, for a run whose first part was dropped and for a run that cannot
-be replayed, and into the tooltip of Start; the window reads the history, asks for the
-texts and writes them into the two labels and the tooltip.
+The positions, speeds and wagon positions of the trains are not recorded. When a run has
+ended, `RunController` gives the history a train source (`makeGuiReplayTrains`): for each
+train the position and speed samples that the completed run holds, shared and not copied
+(`app/ReplayTrajectories.h` builds the pointers), the few samples around them that the
+completed run does not keep, the route geometry that `trainXPositionOf` reads and the virtual
+coupling messages. `at` derives the train fields from it with the same arithmetic as the live
+snapshot, so a seek shows exactly the chosen second. `test_replaylive` runs the line fixture,
+Paimpol with passengers and Milano_Brescia in the test process and compares the replay
+of every 13th second and of both sides of every keyframe with the live snapshot of that
+second, field by field and bit for bit, after the samples of the trains were freed. A
+history without a train source leaves these fields at their defaults, so no train is drawn.
 
-Measured on a full run of each committed scene at the default horizon (`-g 1`,
-`-pax 0`, Apple silicon, release build). "Complete snapshots" is what the same
-frames would need as ordinary snapshot objects. The rows for Milano_Brescia,
-Copenhagen and Netherlands come from runs without a signalling area; the
-committed scenes have one.
+`record` runs on the thread that steps the run and nothing else touches the history then.
+The history is moved out after the worker has joined; `setTrains`, `at` and the other
+functions run on the interface thread, and the train source is immutable.
 
-| Scene | Frames | Covers (s) | Accounted | As complete snapshots |
+The budget is 128 MiB of accounted payload and there is no limit on the number of seconds.
+It limits what `record` keeps, which is the only part that grows during a run. When a run
+does not fit, the oldest interval is dropped as a whole and the history reports the interval
+it still covers (`firstTime`, `lastTime`, `evictedBeforeTime`). Accounting includes the
+layout, the string table, the keyframes, changes and lists of every interval, the state of
+the last second and the part of the train source that the history owns, all by capacity;
+it does not include allocator bookkeeping, container nodes, shared-pointer control blocks or
+the rebuilt snapshots that callers hold, so 128 MiB is **not** a precise resident-memory
+limit. The samples that the replay shares with the completed run are reported apart
+(`sharedBytes`): the completed run holds them whether or not there is a replay. If the
+interval that is being recorded, with its layout and strings, exceeds the budget, replay is
+unavailable with an explanation; the simulation continues. A run without a window (`-g 0`)
+builds no snapshots and no replay, because nothing reads them. `app/ReplayCoverage.h` turns
+the interval the history still covers into the words of the row for a whole run, for a run
+whose first part was dropped and for a run that cannot be replayed, and into the tooltip of
+Start; the window reads the history, asks for the texts and writes them into the two labels
+and the tooltip.
+
+Measured on a full run of each committed scene at the default horizon (`-g 1`, `-pax 0`,
+Apple silicon, release build) with `QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1`. "Owned payload" is
+`bytes` of the marker, "Shared samples" is `shared`, and "Old accounted payload" is what the
+history before this change counted for the same run, which kept a snapshot every fifth second.
+
+| Scene | Covers (s) | Owned payload | Shared samples | Old accounted payload |
 |---|---|---|---|---|
-| Assignment_Gvc_Gdg_Ut | 2001 | 0-9999 | 4.7 MiB | 32.5 MiB |
-| Paimpol | 1801 | 0-8999 | 12.1 MiB | 155 MiB |
-| Milano_Brescia | 801 | 0-3999 | 13.1 MiB | 68.8 MiB |
-| Copenhagen | 1601 | 0-7999 | 78.9 MiB | 489 MiB |
-| Netherlands | 1601 | 0-7999 | 32.7 MiB | 346 MiB |
+| Assignment_Gvc_Gdg_Ut | 0-9999 | 0.16 MiB | 0.75 MiB | 4.65 MiB |
+| Paimpol | 0-8999 | 0.40 MiB | 0.09 MiB | 12.08 MiB |
+| Milano_Brescia | 0-3999 | 0.37 MiB | 0.94 MiB | 13.06 MiB |
+| Amsterdam_Hilversum_Student | 0-7999 | 0.97 MiB | 0.09 MiB | 22.84 MiB |
+| Copenhagen | 0-7999 | 3.68 MiB | 6.68 MiB | 78.49 MiB |
+| Netherlands | 0-7999 | 1.16 MiB | 0.61 MiB | 30.72 MiB |
 
-Copenhagen is the largest: 196 trains, 78.9 MiB accounted for the whole run, 89 MiB
-of heap in use. A frame holds all the trains of the run, so a longer horizon, which adds
-trains, makes every frame larger: with a horizon of 20000 s (`-h 20000`) Copenhagen has
-476 trains and about 98 KiB a frame, against 50 KiB at the default horizon. The budget then
-holds the last 1340 frames, from 13305 s to 19999 s (134144845 of 134217728 bytes), and the
-row shows the run whose first part was dropped.
-Recording a frame took 1 to 30 microseconds (Copenhagen and Netherlands: 21 to
-30), once per five steps, on the simulation thread; rebuilding a frame took 1 to
-34 microseconds on the interface thread.
+Copenhagen is the largest: 196 trains, 3.68 MiB of owned payload for the whole run in 27
+intervals, against 78.5 MiB before. Paimpol with passengers (`-pax 1`) owns 0.40 MiB. A longer
+horizon adds trains: with a horizon of 20000 s (`-h 20000`) Copenhagen has 476 trains and the
+replay covers the whole run, from 0 s to 19999 s, with 10.1 MiB of owned payload in 67 intervals
+and 19.6 MiB of shared samples. The history before this change had to drop the first part of
+that run: its budget held the last 1340 frames, from 13305 s to 19999 s.
 
 ## Close, New and Open during a run
 
@@ -405,9 +425,9 @@ tests that can run side by side, and `ctest --test-dir build -R test_visual_poli
 | | `color` | A copy of Copenhagen in which the first service has a colour |
 | | `dpr2` | The live run of Copenhagen at a device pixel ratio of 2 |
 | `test_visual_polish_smoke_replay` | `completion` | The Assignment run to its end: the replay row and the Follow checks of the replay |
-| | `replay` | The whole-run replay of Assignment, Paimpol, Milano_Brescia and Netherlands |
+| | `replay` | The whole-run replay of Assignment, Paimpol, Milano_Brescia, Amsterdam_Hilversum_Student and Netherlands |
 | | `discard` | The preview legend after a discarded run |
-| `test_visual_polish_smoke_replay_copenhagen` | `replay-copenhagen` | The whole-run replay of Copenhagen, which takes as long as the other four scenes together |
+| `test_visual_polish_smoke_replay_copenhagen` | `replay-copenhagen` | The whole-run replay of Copenhagen, which takes as long as the other five scenes together |
 | `test_visual_polish_smoke_signals` | `signals` | The signal head checks |
 | `test_visual_polish_smoke_stations` | `stations` | The station overlays of the five scenes, and of Copenhagen at a device pixel ratio of 2 |
 | none | `scripts` | `scene_render_smoke.sh` and `legacy_import_smoke.sh`, which are tests of their own |
@@ -455,8 +475,9 @@ replayed, a first kept time of 0, a run of one frame and a clock that wraps over
 
 A real scene is checked with `QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1`. The window runs the scene
 to its end at its own horizon, applies the checks of `E2E_REPLAY_ROW_WHOLE_OK` to the
-history of that run and exits, printing `E2E_REPLAY_WHOLE_RUN_OK` with the number of
-frames, the last time and the accounted bytes and budget. The `replay` and `replay-copenhagen` phases of
+history of that run and exits, printing `E2E_REPLAY_WHOLE_RUN_OK` with `seconds` (the seconds
+the replay covers), `last` (its last time), `bytes` (the payload that the history owns), `shared` (the samples
+that it shares with the completed run), `budget` and `intervals`. The `replay` and `replay-copenhagen` phases of
 `visual_polish_smoke.sh` do so for all six committed scenes, so a history that drops the first part of one of them, or
 ends before the last timestep of the run, fails the script. No committed scene is larger
 than the budget at its own horizon, which is why the dropped row is built from a smaller

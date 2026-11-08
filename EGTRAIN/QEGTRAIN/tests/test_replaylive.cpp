@@ -1,12 +1,16 @@
 // Compares the replay of a completed run with the live snapshots of the same run.
 //
 // Each case runs a scene in this process with snapshots enabled. A direct connection takes every snapshot that the
-// simulation publishes and keeps those of the seconds that the case samples. When the run has ended, every second that
-// the history of the run keeps is compared, field by field and bit for bit, with the live snapshot of that second. The
-// scenes are the line fixture of tests/fixtures/scenes, Scenes/Paimpol with passengers and Scenes/Milano_Brescia.
+// simulation publishes and keeps those of the sampled seconds: every 13th second, both sides of every keyframe of the
+// history (seconds 1, 299, 301 and so on) and the last step. When the run has ended, the case captures the completed run,
+// gives the history its train source, frees the samples of the trains as the window does, and compares the replay of every
+// kept second, field by field and bit for bit, with the live snapshot of that second. The scenes are the line fixture of
+// tests/fixtures/scenes, Scenes/Paimpol with passengers and Scenes/Milano_Brescia.
 
 #include "app/DispatchController.h"
 #include "app/GuiReplayHistory.h"
+#include "app/ReplayTrajectories.h"
+#include "diagrams/CompletedRunData.h"
 #include "scene/SceneModel.h"
 #include "simulation/GuiSimulationSnapshot.h"
 #include "simulation/InitialParameters.h"
@@ -60,17 +64,19 @@ struct Case {
 	SceneRunSelection selection;
 	bool signalArea = false;
 	bool passengers = false;
-	// Keep every second, or only multiples of 65 and the last step, so that the large scenes do not hold every snapshot.
-	bool everySecond = false;
 };
 
-bool sampled(const Case& c, const GuiSimulationSnapshot& snapshot) {
-	return c.everySecond || snapshot.timestep % 65 == 0 || snapshot.timestep == snapshot.totalTimesteps - 1;
+// The seconds that a case keeps: spread over the run, and on both sides of every keyframe (every 300 seconds, from 0).
+bool sampled(const GuiSimulationSnapshot& snapshot) {
+	const int t = snapshot.timestep;
+	return t % 13 == 0 || t % 300 == 1 || t % 300 == 299 || t == snapshot.totalTimesteps - 1;
 }
 
 struct CaseRun {
 	Kept kept;
 	GuiReplayHistory history;
+	// The completed run that the history shares its samples with, as the window keeps it.
+	std::shared_ptr<const CompletedRunData> completed;
 	int lastStep = 0;
 };
 
@@ -82,7 +88,6 @@ Case lineCase() {
 	c.selection.insert({"F1", 1});
 	c.selection.insert({"F2", 1});
 	c.signalArea = true;
-	c.everySecond = true;
 	return c;
 }
 
@@ -92,6 +97,10 @@ Case sceneCase(const std::string& name, bool passengers) {
 	c.sceneDir = EGTRAIN_SCENES_DIR "/" + name;
 	c.passengers = passengers;
 	return c;
+}
+
+template <class T> void releaseSamples(std::vector<T>& samples) {
+	std::vector<T>().swap(samples);
 }
 
 // Runs the case in this process as the window does: snapshots on, a clear replay candidate, every published snapshot
@@ -122,9 +131,9 @@ void runCase(const Case& c, const QString& outputDir, CaseRun& run) {
 		simulation.resetReplayCandidate();
 
 		QObject receiver;
-		const auto keepSnapshot = [&c, &run]() {
+		const auto keepSnapshot = [&run]() {
 			if (auto snapshot = simulation.takeSimulationSnapshot())
-				if (sampled(c, *snapshot))
+				if (sampled(*snapshot))
 					run.kept[snapshot->timestep] = std::move(snapshot);
 		};
 		QObject::connect(&simulation, &DispatchController::snapshotAvailable, &receiver, keepSnapshot, Qt::DirectConnection);
@@ -133,6 +142,20 @@ void runCase(const Case& c, const QString& outputDir, CaseRun& run) {
 	}
 	run.history = simulation.takeReplayCandidate();
 	run.lastStep = static_cast<int>(simulation.run().settings.times) - 1;
+
+	// What RunController::finishRun does: the completed run is captured, the history takes over what it needs of the
+	// samples, and then the samples are freed. The comparison below can only pass when the history reads nothing of the run.
+	run.completed = std::make_shared<const CompletedRunData>(captureCompletedRun(simulation.run(), nullptr, 0, RunProvenance()));
+	run.history.setTrains(makeGuiReplayTrains(simulation.run(), replayTrajectoriesOf(run.completed)));
+	for (Train& train : simulation.mutableRun().trains) {
+		releaseSamples(train.instant_train_speed);
+		releaseSamples(train.instant_spatial_position);
+		releaseSamples(train.instant_block_section_occupied);
+		releaseSamples(train.instant_train_power_consumption);
+		releaseSamples(train.instant_train_tractive_effort);
+		releaseSamples(train.instant_train_energy_consumption);
+		releaseSamples(train.BX);
+	}
 }
 
 // The history covers the run, and every kept second that it keeps equals the live snapshot of that second. A scene with
@@ -147,15 +170,17 @@ void compareWithLive(const std::string& name, const CaseRun& run, std::size_t ex
 	QVERIFY2(history.lastTime() == run.lastStep,
 		qPrintable(what + ": the history ends at " + QString::number(history.lastTime()) + ", the run at " + QString::number(run.lastStep)));
 	QVERIFY2(run.kept.count(run.lastStep) == 1, qPrintable(what + ": the last step was not kept"));
+	QVERIFY2(history.trains(), qPrintable(what + ": the history has no train source"));
+	QVERIFY2(history.sharedBytes() > 0, qPrintable(what + ": the history shares no samples with the completed run"));
+	qInfo().noquote() << what << "owned payload" << history.payloadBytes() << "bytes, shared samples" << history.sharedBytes()
+					  << "bytes, intervals" << history.intervalCount();
 
 	int compared = 0;
 	for (const auto& [second, live] : run.kept) {
-		if (second % GuiReplayHistory::cadenceSeconds != 0 && second != history.lastTime())
-			continue;
-		const std::shared_ptr<const GuiSimulationSnapshot> replay = history.atOrBefore(second);
+		const std::shared_ptr<const GuiSimulationSnapshot> replay = history.at(second);
 		const QString at = what + " at second " + QString::number(second);
-		QVERIFY2(replay, qPrintable(at + ": no replay frame"));
-		QVERIFY2(replay->timestep == second, qPrintable(at + ": the replay frame is of second " + QString::number(replay->timestep)));
+		QVERIFY2(replay, qPrintable(at + ": no replay snapshot"));
+		QVERIFY2(replay->timestep == second, qPrintable(at + ": the replay is of second " + QString::number(replay->timestep)));
 		if (expectedTrains > 0)
 			QVERIFY2(replay->trains.size() == expectedTrains && live->trains.size() == expectedTrains,
 				qPrintable(at + ": wrong train count " + QString::number(replay->trains.size())));
@@ -250,9 +275,17 @@ void TestReplayLive::secondRunReplacesFirst() {
 	runCase(sceneCase("Paimpol", false), output.path(), first);
 	QVERIFY(!QTest::currentTestFailed());
 	QVERIFY(!first.history.empty());
+	const std::weak_ptr<const GuiReplayTrains> firstSource = first.history.trains();
+	const std::weak_ptr<const CompletedRunData> firstCompleted = first.completed;
+	QVERIFY2(!firstSource.expired(), "the first history has no train source");
 	first.history.clear();
 	simulation.resetReplayCandidate();
 	QVERIFY2(first.history.empty(), "the first history is not empty after clear()");
+	QVERIFY2(!first.history.trains(), "the first history keeps its train source after clear()");
+	QVERIFY2(firstSource.expired(), "the train source of the first run is alive after clear()");
+	QVERIFY2(!firstCompleted.expired(), "the completed run of the first run expired while the test holds it");
+	first.completed.reset();
+	QVERIFY2(firstCompleted.expired(), "the completed run of the first run is alive after the history and the test dropped it");
 
 	CaseRun second;
 	runCase(lineCase(), output.path(), second);

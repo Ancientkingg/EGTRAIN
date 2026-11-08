@@ -71,8 +71,8 @@ struct FollowAvailability {
 	bool switchOff = false;
 	/// Follow is on and the view moves to the train now.
 	bool canAct = false;
-	/// The view moves with the train as it glides between the steps of a live run. A replay holds a
-	/// frame every few seconds and its trains do not glide, so the view cuts to the train.
+	/// The view moves with the train as it glides between the steps of a live run. A replay places its
+	/// trains at once at every second it shows, so the view cuts to the train.
 	bool glide = false;
 };
 

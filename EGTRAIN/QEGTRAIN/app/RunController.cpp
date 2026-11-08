@@ -5,6 +5,7 @@
 #include "app/MainWindowSupport.h"
 #include "app/MainWindowTestHooks.h"
 #include "app/PathMessages.h"
+#include "app/ReplayTrajectories.h"
 #include "app/RunOutcome.h"
 #include "app/RunResultsDock.h"
 #include "app/SceneOutputDirectory.h"
@@ -52,8 +53,9 @@ void release(std::vector<T>& samples) {
 }
 
 // Frees the samples that each train of `run` keeps for every step. The completed run holds what the result views need
-// as values, and the canvas and the replay hold their frames, so nothing reads the samples once the run has ended and
-// TrainServicePathDiagram.txt is written. The trains stay, for Follow and the canvas.
+// as values, and the replay has copied or shares what it needs of the positions and speeds, so nothing reads the samples
+// once the run has ended, TrainServicePathDiagram.txt is written and the replay has taken them over. The trains stay, for
+// Follow and the canvas.
 void releaseTrainSamples(SimulationRun& run) {
 	for (Train& train : run.trains) {
 		release(train.instant_train_speed);
@@ -728,11 +730,18 @@ void RunController::finishRun() {
 	// diagram entries switch on here instead of a modal prompt chain.
 	// cleanup thread
 	clearSimulationWorker(false);
-	releaseTrainSamples(simulation.mutableRun());
-	if (resultsAvailable() && !outcome.stopped)
-		m_host.replayReady(simulation.takeReplayCandidate());
-	else
+	const bool replayable = resultsAvailable() && !outcome.stopped;
+	GuiReplayHistory replay;
+	if (replayable) {
+		replay = simulation.takeReplayCandidate();
+		replay.setTrains(makeGuiReplayTrains(simulation.run(), replayTrajectoriesOf(m_completedRun)));
+	} else {
 		simulation.resetReplayCandidate();
+	}
+	// After the replay has taken what it needs of the samples.
+	releaseTrainSamples(simulation.mutableRun());
+	if (replayable)
+		m_host.replayReady(std::move(replay));
 	emit runEnded();
 	// The track preview that replaces a run without results cleared the status bar.
 	if (!resultsAvailable())

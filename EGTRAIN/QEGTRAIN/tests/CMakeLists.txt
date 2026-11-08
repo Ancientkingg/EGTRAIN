@@ -326,7 +326,7 @@ egtrain_add_test(test_liveframe SIMULATION_HEADERS
 # Runs the line fixture, Paimpol and Milano_Brescia in this process and compares the replay of each run with its live snapshots.
 egtrain_add_test(test_replaylive SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_replaylive.cpp
-	LIBS egtrain_dispatch egtrain_sim Qt::Core Qt::Gui Qt::Widgets
+	LIBS egtrain_dispatch egtrain_diagrams egtrain_telemetry egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts
 	DEFINITIONS EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests" EGTRAIN_SCENES_DIR="${SRC_DIR}/Scenes"
 	LABELS unit
 	ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
@@ -927,7 +927,7 @@ egtrain_add_test(test_completedrun SIMULATION_HEADERS
 # Runs a line fixture and Paimpol in this process, in the order that the test explains.
 egtrain_add_test(test_simulationrun SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_simulationrun.cpp
-	LIBS egtrain_dispatch egtrain_sim Qt::Core Qt::Gui Qt::Widgets
+	LIBS egtrain_dispatch egtrain_diagrams egtrain_telemetry egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts
 	DEFINITIONS EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests" EGTRAIN_SCENES_DIR="${SRC_DIR}/Scenes"
 	LABELS unit
 	ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
