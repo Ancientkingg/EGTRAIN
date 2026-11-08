@@ -555,6 +555,7 @@ void TrainUnitPanel::commitIdEdit() {
 	if (newId.empty()) {
 		const QSignalBlocker blocker(m_idEdit);
 		m_idEdit->setText(QString::fromStdString(oldId));
+		m_prompts->showError(this, "Invalid Rolling Stock Unit ID", "Rolling stock unit IDs must not be empty.", true);
 		return;
 	}
 	if (newId == oldId)
@@ -563,6 +564,7 @@ void TrainUnitPanel::commitIdEdit() {
 		if (index != row && model.trainUnits[static_cast<std::size_t>(index)].id == newId) {
 			const QSignalBlocker blocker(m_idEdit);
 			m_idEdit->setText(QString::fromStdString(oldId));
+			m_prompts->showError(this, "Duplicate Rolling Stock Unit ID", "Choose a unique rolling stock unit ID.", true);
 			return;
 		}
 	}
