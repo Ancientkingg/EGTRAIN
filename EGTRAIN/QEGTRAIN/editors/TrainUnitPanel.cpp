@@ -174,8 +174,10 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 
 	QWidget* tractionPage = new QWidget(m_tabs);
 	QVBoxLayout* tractionLayout = new QVBoxLayout(tractionPage);
-	tractionLayout->addWidget(new QLabel("Traction file", tractionPage));
+	QLabel* tractionFileLabel = new QLabel("Traction file", tractionPage);
+	tractionLayout->addWidget(tractionFileLabel);
 	m_sourceTractionEdit = new QLineEdit(tractionPage);
+	tractionFileLabel->setBuddy(m_sourceTractionEdit);
 	m_sourceTractionEdit->setObjectName("trainUnitSourceTractionEdit");
 	m_sourceTractionEdit->setPlaceholderText("Optional");
 	tractionLayout->addWidget(m_sourceTractionEdit);
@@ -184,6 +186,7 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 
 	tractionLayout->addWidget(new QLabel("Traction curve", tractionPage));
 	m_tractionTable = new QTableWidget(0, 5, tractionPage);
+	m_tractionTable->setAccessibleName("Traction curve");
 	m_tractionTable->setObjectName("trainUnitTractionTable");
 	m_tractionTable->setHorizontalHeaderLabels(QStringList()
 		<< "Lower speed (m/s)" << "Upper speed (m/s)" << "C0" << "C1" << "C2");
@@ -230,11 +233,13 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 		edit->setSingleStep(i == 2 ? 1.0 : 0.1);
 		edit->setKeyboardTracking(false);
 		m_physicalEdits[static_cast<std::size_t>(i)] = edit;
-		physicalLayout->addRow(new QLabel(physicalLabels[i], physicalPage), edit);
+		physicalLayout->addRow(physicalLabels[i], edit);
 	}
 	physicalPageLayout->addLayout(physicalLayout);
-	physicalPageLayout->addWidget(new QLabel("Parameter file", physicalPage));
+	QLabel* parameterFileLabel = new QLabel("Parameter file", physicalPage);
+	physicalPageLayout->addWidget(parameterFileLabel);
 	m_sourceDataEdit = new QLineEdit(physicalPage);
+	parameterFileLabel->setBuddy(m_sourceDataEdit);
 	m_sourceDataEdit->setObjectName("trainUnitSourceDataEdit");
 	m_sourceDataEdit->setPlaceholderText("Optional");
 	physicalPageLayout->addWidget(m_sourceDataEdit);
@@ -387,6 +392,8 @@ void TrainUnitPanel::setSourceState(bool traction, const QString& linkedPath, co
 	unlinkButton(traction)->setEnabled(linked);
 	retryButton(traction)->setEnabled(linked);
 	QLabel* statusLabel = sourceStatusLabel(traction);
+	// The text of a missing file holds break opportunities that a screen reader would read, so that state names itself.
+	statusLabel->setAccessibleName(QString());
 	if (!hasSelection) {
 		statusLabel->setText(QStringLiteral("No unit selected"));
 		statusLabel->setToolTip(QString());
@@ -397,6 +404,7 @@ void TrainUnitPanel::setSourceState(bool traction, const QString& linkedPath, co
 		// A file that is gone is missing whatever the last answer to its changes was, also after Keep Edits.
 		statusLabel->setText(QStringLiteral("File not found: %1").arg(breakablePath(linkedPath)));
 		statusLabel->setToolTip(display_path::format(linkedPath));
+		statusLabel->setAccessibleName(QStringLiteral("File not found: %1").arg(display_path::format(linkedPath)));
 	} else {
 		statusLabel->setText(status.isEmpty() ? QStringLiteral("Linked: %1").arg(QFileInfo(linkedPath).fileName()) : status);
 		statusLabel->setToolTip(display_path::format(linkedPath));

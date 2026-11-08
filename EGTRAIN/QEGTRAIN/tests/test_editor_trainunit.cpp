@@ -187,6 +187,7 @@ private slots:
 	void showsAnotherScene();
 	void detachedPanelIgnoresDocument();
 	void showsSourceLinks();
+	void namesFieldsAfterLabels();
 	void buttonsFitNarrowPanel_data();
 	void buttonsFitNarrowPanel();
 	void focusDecidesPendingEdits();
@@ -731,6 +732,29 @@ void TestTrainUnitPanel::showsSourceLinks() {
 	// Without a selected unit the state is not shown.
 	QCOMPARE(panel.sourceStatusLabel(true)->text(), "No unit selected");
 	QVERIFY(!panel.linkButton(true)->isEnabled());
+}
+
+void TestTrainUnitPanel::namesFieldsAfterLabels() {
+	UnitFixture fixture;
+	TrainUnitPanel& panel = fixture.panel;
+	const auto nameOf = [](QWidget* field) {
+		QAccessibleInterface* accessible = QAccessible::queryAccessibleInterface(field);
+		return accessible ? accessible->text(QAccessible::Name) : QString();
+	};
+	const QStringList physicalNames = {"Traction-unit mass (kg)", "Wagon mass (kg)", "Wagon count",
+		"Maximum speed (m/s)", "Maximum deceleration (m/s²)", "Frontal area (m²)",
+		"Resistance coefficient", "Jerk (m/s³)", "Length (m)"};
+	for (int i = 0; i < physicalNames.size(); ++i)
+		QCOMPARE(nameOf(panel.physicalEdits()[static_cast<std::size_t>(i)]), physicalNames[i]);
+	QCOMPARE(nameOf(panel.sourceDataEdit()), "Parameter file");
+	QCOMPARE(nameOf(panel.sourceTractionEdit()), "Traction file");
+	QCOMPARE(nameOf(panel.tractionTable()), "Traction curve");
+	QTemporaryDir directory;
+	const QString missing = directory.filePath("missing_file.txt");
+	panel.setSourceState(true, missing, QString());
+	const QString name = nameOf(panel.sourceStatusLabel(true));
+	QCOMPARE(name, "File not found: " + display_path::format(missing));
+	QVERIFY2(!name.contains(QChar(0x200B)), "the accessible name of a missing file holds no zero-width space");
 }
 
 void TestTrainUnitPanel::buttonsFitNarrowPanel_data() {
