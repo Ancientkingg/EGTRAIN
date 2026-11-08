@@ -680,22 +680,11 @@ bool runSimulationPostprocessing(SimulationRun& run, const std::function<bool()>
 	if (stopRequested())
 		return false;
 
-	clock_t StartRun = clock();
-
 	// sorting recorded events of all infrastructure elements in chronological order
 	SortRecordedEventsForAllInfrastructureElements(run.infra.infraEvents);
 
 	if (stopRequested())
 		return false;
-
-	EG_LOG(AppRun, Info) << "Computing Blocking Times....\n";
-
-	clock_t EndRun = clock();
-
-	double TimeElapsed = 0;
-
-	TimeElapsed = (double)((EndRun - StartRun) / CLOCKS_PER_SEC); // NOLINT(bugprone-integer-division): the log shows whole seconds
-	EG_LOG(AppRun, Info) << "TimeElapsed is : " << TimeElapsed;
 
 	// Compute passage times at timetable points
 	Compute_TimetablingPoints_For_All_Trains(run.trains.data(), run.numTrains);
@@ -724,7 +713,7 @@ bool runSimulationPostprocessing(SimulationRun& run, const std::function<bool()>
 	if (stopRequested())
 		return false;
 
-	EG_LOG(AppRun, Info) << "\n\n Computing Train Blocking Times....\n\n";
+	EG_LOG(AppRun, Info) << "Computing blocking times...";
 
 	ComputeBlockingTimesInMixedSignallingForAllTrains(run, kBlockingSetupTimeSeconds, kBlockingReleaseTimeSeconds + settings.bufferTime,
 		kBlockingSightReactionTimeSeconds, kBlockingSafetyMarginMetres, trajectoryFolder, kBlockingRunningTimeSupplementSeconds,

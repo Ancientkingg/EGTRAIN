@@ -192,11 +192,11 @@ std::unordered_map<std::string, const SceneTrack*> nativeIndexTracks(const Scene
 	orderedTracks.reserve(scene.tracks.size());
 	for (const auto& track : scene.tracks) {
 		if (track.id.empty()) {
-			add(SceneSeverity::Error, "scene.native.id.empty", "Track id is empty", "infrastructure.json", "track");
+			add(SceneSeverity::Error, "scene.native.id.empty", "Track ID must not be empty", "infrastructure.json", "track");
 			continue;
 		}
 		if (!tracksById.emplace(track.id, &track).second)
-			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate track id", "infrastructure.json", "track", track.id);
+			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate track ID", "infrastructure.json", "track", track.id);
 		else
 			orderedTracks.push_back(&track);
 	}
@@ -204,9 +204,9 @@ std::unordered_map<std::string, const SceneTrack*> nativeIndexTracks(const Scene
 		return left->id < right->id;
 	});
 	if (orderedTracks.size() > kMaxTrackLines)
-		add(SceneSeverity::Error, "scene.native.capacity", "The case has more tracks than the runtime can hold",
+		add(SceneSeverity::Error, "scene.native.capacity", "Case has more than " + std::to_string(kMaxTrackLines) + " tracks",
 			"infrastructure.json", "track", "", "tracks", std::to_string(kMaxTrackLines),
-			"Reduce tracks or use a runtime with a larger fixed capacity");
+			"Reduce the number of tracks");
 	return tracksById;
 }
 
@@ -215,11 +215,11 @@ std::unordered_map<std::string, const SceneNode*> nativeIndexNodes(const SceneMo
 	std::unordered_map<std::string, const SceneNode*> nodesById;
 	for (const auto& node : scene.nodes) {
 		if (node.id.empty()) {
-			add(SceneSeverity::Error, "scene.native.id.empty", "Node id is empty", "infrastructure.json", "node");
+			add(SceneSeverity::Error, "scene.native.id.empty", "Node ID must not be empty", "infrastructure.json", "node");
 			continue;
 		}
 		if (!nodesById.emplace(node.id, &node).second)
-			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate node id", "infrastructure.json", "node", node.id);
+			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate node ID", "infrastructure.json", "node", node.id);
 		if (tracksById.find(node.trackId) == tracksById.end())
 			add(SceneSeverity::Error, "scene.native.ref.unresolved", "Node refers to an unknown track",
 				"infrastructure.json", "node", node.id, "nodes.track", node.trackId);
@@ -232,7 +232,7 @@ void nativeCheckArcs(const SceneModel& scene, const std::unordered_map<std::stri
 	std::unordered_set<std::string> arcIds;
 	for (const auto& arc : scene.arcs) {
 		if (!arcIds.insert(arc.id).second)
-			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate arc id", "infrastructure.json", "arc", arc.id);
+			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate arc ID", "infrastructure.json", "arc", arc.id);
 		const auto trackIt = tracksById.find(arc.trackId);
 		const auto fromIt = nodesById.find(arc.fromNodeId);
 		const auto toIt = nodesById.find(arc.toNodeId);
@@ -264,14 +264,14 @@ std::unordered_set<std::string> nativeCheckBlocks(const SceneModel& scene, const
 	std::unordered_set<std::string> blockIds;
 	for (const auto& block : scene.blocks) {
 		if (block.id.empty())
-			add(SceneSeverity::Error, "scene.native.id.empty", "Block id is empty", "infrastructure.json", "block");
+			add(SceneSeverity::Error, "scene.native.id.empty", "Block ID must not be empty", "infrastructure.json", "block");
 		if (block.id.find('/') != std::string::npos)
 			add(SceneSeverity::Error, "scene.native.id.reserved",
-				"Block id cannot contain '/' because it separates connection-derived section identities",
+				"Block ID cannot contain '/'",
 				"infrastructure.json", "block", block.id, "blocks.id", "/",
 				"Rename the block without '/' characters");
 		if (!blockIds.insert(block.id).second)
-			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate block id", "infrastructure.json", "block", block.id);
+			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate block ID", "infrastructure.json", "block", block.id);
 		if (tracksById.find(block.trackId) == tracksById.end())
 			add(SceneSeverity::Error, "scene.native.ref.unresolved", "Block refers to an unknown track",
 				"infrastructure.json", "block", block.id, "blocks.track", block.trackId);
@@ -315,7 +315,7 @@ void nativeTrackChain(const SceneModel& scene, const std::unordered_map<std::str
 			starts.push_back(node);
 	}
 	if (starts.size() != 1) {
-		add(SceneSeverity::Error, "scene.native.topology.disconnected", "Track must have exactly one chain start",
+		add(SceneSeverity::Error, "scene.native.topology.disconnected", "Track must have exactly one first node",
 			"infrastructure.json", "track", track.id, "tracks.nodes", std::to_string(starts.size()));
 		return;
 	}
@@ -339,27 +339,27 @@ void nativeTrackChain(const SceneModel& scene, const std::unordered_map<std::str
 		current = nodesById.at(arc->toNodeId);
 	}
 	if (track.chainArcs.size() != arcs.size() || track.chainNodes.size() != nodes.size())
-		add(SceneSeverity::Error, "scene.native.topology.disconnected", "Track arcs do not form one connected linear chain",
+		add(SceneSeverity::Error, "scene.native.topology.disconnected", "Arcs and nodes of the track do not form one line",
 			"infrastructure.json", "track", track.id, "tracks.arcs");
 	for (std::size_t index = 1; index < track.chainNodes.size(); ++index) {
 		if (track.chainNodes[index]->xKm + kNativeCoordinateTolerance < track.chainNodes[index - 1]->xKm)
-			add(SceneSeverity::Error, "scene.native.topology.order", "Track node x coordinates must be nondecreasing",
+			add(SceneSeverity::Error, "scene.native.topology.order", "Node X (km) must not decrease along the track",
 				"infrastructure.json", "track", track.id, "tracks.nodes", track.chainNodes[index]->id);
 	}
 }
 
 void nativeCheckConnections(const SceneModel& scene, const std::unordered_map<std::string, const SceneNode*>& nodesById, const NativeDiagnosticAdder& add) {
 	if (scene.connections.size() > kMaxConnections)
-		add(SceneSeverity::Error, "scene.native.capacity", "The case has more connections than the runtime can hold",
+		add(SceneSeverity::Error, "scene.native.capacity", "Case has more than " + std::to_string(kMaxConnections) + " connections",
 			"infrastructure.json", "connection", "", "connections", std::to_string(kMaxConnections));
 	if (scene.stations.size() > kMaxStations)
-		add(SceneSeverity::Error, "scene.native.capacity", "The case has more stations than the runtime can hold",
+		add(SceneSeverity::Error, "scene.native.capacity", "Case has more than " + std::to_string(kMaxStations) + " stations",
 			"stations.json", "station", "", "stations", std::to_string(kMaxStations));
 	std::unordered_set<std::string> connectionIds;
 	std::unordered_map<std::string, std::size_t> nodeConnectionCounts;
 	for (const auto& connection : scene.connections) {
 		if (!connectionIds.insert(connection.id).second)
-			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate connection id",
+			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate connection ID",
 				"infrastructure.json", "connection", connection.id);
 		const auto from = nodesById.find(connection.fromNodeId);
 		const auto to = nodesById.find(connection.toNodeId);
@@ -375,7 +375,7 @@ void nativeCheckConnections(const SceneModel& scene, const std::unordered_map<st
 		const std::size_t fromCount = ++nodeConnectionCounts[connection.fromNodeId];
 		const std::size_t toCount = ++nodeConnectionCounts[connection.toNodeId];
 		if (fromCount > RuntimeLimits::kNativeMaxNodeConnections || toCount > RuntimeLimits::kNativeMaxNodeConnections)
-			add(SceneSeverity::Error, "scene.native.capacity", "Node has more than six runtime connections",
+			add(SceneSeverity::Error, "scene.native.capacity", "Node has more than " + std::to_string(RuntimeLimits::kNativeMaxNodeConnections) + " connections",
 				"infrastructure.json", "connection", connection.id, "connections", connection.fromNodeId,
 				"Reduce connections at the node");
 	}
@@ -407,7 +407,7 @@ std::vector<NativeBlockPlan> nativeBlockPlans(const SceneModel& scene, const Sce
 		if (block == scene.blocks.end() || slot == trackSlots.end())
 			continue;
 		if (section.endKm <= section.startKm + kNativeCoordinateTolerance)
-			add(SceneSeverity::Error, "scene.native.topology.blocks", "Block section has no positive runtime span",
+			add(SceneSeverity::Error, "scene.native.topology.blocks", "Block section length must be above 0",
 				"infrastructure.json", "block", block->id);
 		if (section.layoutOverflow)
 			add(SceneSeverity::Error, "scene.native.topology.blocks", "Block section extends beyond its track",
@@ -432,13 +432,13 @@ std::vector<NativeSectionPlan> nativeSectionPlans(const SceneSectionInventory& s
 	signallingSectionPlans.reserve(sectionInventory.sections.size());
 	for (const auto& section : sectionInventory.sections) {
 		if (section.arcCount > kNativeMaxSectionArcs)
-			add(SceneSeverity::Error, "scene.native.capacity", "Section exceeds the runtime arc capacity",
+			add(SceneSeverity::Error, "scene.native.capacity", "Section has more than " + std::to_string(kNativeMaxSectionArcs) + " arcs",
 				"infrastructure.json", section.connectionDerived ? "connection" : "block",
 				section.connectionDerived ? section.sourceConnectionId : section.sourceBlockId,
 				"sections", std::to_string(kNativeMaxSectionArcs));
 		if (!plannedSectionIds.insert(section.id).second) {
 			add(SceneSeverity::Error, "scene.native.id.duplicate",
-				"Sections produce the same runtime section ID", "infrastructure.json",
+				"Two sections have the same section ID", "infrastructure.json",
 				section.connectionDerived ? "connection" : "block",
 				section.connectionDerived ? section.sourceConnectionId : section.sourceBlockId,
 				"sections", section.id);
@@ -459,7 +459,7 @@ void nativeValidatePlannedReference(const SceneSectionInventory& sectionInventor
 	const std::string& reference, const std::string& type, const std::string& id, const std::string& path) {
 	if (nativePlannedRuntimeId(sectionInventory, reference).empty())
 		add(SceneSeverity::Error, "scene.native.ref.unresolved",
-			"Reference does not identify a planned runtime section", "signalling.json", type, id, path, reference);
+			"Reference does not match a section", "signalling.json", type, id, path, reference);
 }
 
 void nativeCheckStations(const SceneModel& scene, const std::unordered_map<std::string, const SceneNode*>& nodesById, const NativeDiagnosticAdder& add) {
@@ -467,16 +467,16 @@ void nativeCheckStations(const SceneModel& scene, const std::unordered_map<std::
 	std::unordered_set<std::string> platformIds;
 	for (const auto& station : scene.stations) {
 		if (!stationIds.insert(station.id).second)
-			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate station id", "stations.json", "station", station.id);
+			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate station ID", "stations.json", "station", station.id);
 		if (!station.hasPosition && station.platforms.empty())
-			add(SceneSeverity::Error, "scene.native.binding.missing", "Station has neither a position nor a platform node anchor",
+			add(SceneSeverity::Error, "scene.native.binding.missing", "Station has no position and no platform",
 				"stations.json", "station", station.id);
 		for (const auto& platform : station.platforms) {
 			if (!platformIds.insert(station.id + "\n" + platform.id).second)
-				add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate platform id on station",
+				add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate platform ID on station",
 					"stations.json", "platform", platform.id, "stations.platforms", station.id);
 			if (platform.nodeIds.empty())
-				add(SceneSeverity::Error, "scene.native.binding.missing", "Platform has no node anchors",
+				add(SceneSeverity::Error, "scene.native.binding.missing", "Platform has no bound nodes",
 					"stations.json", "platform", platform.id, "stations.platforms", station.id);
 			for (const auto& nodeId : platform.nodeIds)
 				if (nodesById.find(nodeId) == nodesById.end())
@@ -530,11 +530,11 @@ std::vector<int> nativeRouteDirections(const SceneModel& scene, const std::unord
 		std::vector<const SceneSectionDescriptor*> routeSections;
 		routeSections.reserve(route.blocks.size());
 		if (route.id.empty())
-			add(SceneSeverity::Error, "scene.native.id.empty", "Route id is empty", "signalling.json", "route", route.id);
+			add(SceneSeverity::Error, "scene.native.id.empty", "Route ID must not be empty", "signalling.json", "route", route.id);
 		if (route.blocks.empty())
 			add(SceneSeverity::Error, "scene.native.route.empty", "Route has no blocks", "signalling.json", "route", route.id);
 		if (route.blocks.size() > kNativeMaxRouteBlocks)
-			add(SceneSeverity::Error, "scene.native.capacity", "Route exceeds the runtime block capacity",
+			add(SceneSeverity::Error, "scene.native.capacity", "Route has more than " + std::to_string(kNativeMaxRouteBlocks) + " sections",
 				"signalling.json", "route", route.id, "routes.blocks", std::to_string(kNativeMaxRouteBlocks));
 		for (const auto& token : route.blocks) {
 			for (const auto& component : nativeBlockReferenceComponents(token))
@@ -618,15 +618,15 @@ void nativeCheckSignallingAreas(const SceneModel& scene, const std::unordered_ma
 		const SceneSignallingArea& area = scene.signallingAreas[index];
 		const std::string path = "signalling_areas[" + std::to_string(index) + "]";
 		if (area.id.empty())
-			add(SceneSeverity::Error, "scene.native.id.empty", "Signalling area id is empty",
+			add(SceneSeverity::Error, "scene.native.id.empty", "Signalling area ID must not be empty",
 				"signalling.json", "signalling_area", area.id, path + ".id");
 		else if (!signallingAreaIds.insert(area.id).second)
-			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate signalling area id",
+			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate signalling area ID",
 				"signalling.json", "signalling_area", area.id, path + ".id");
 		if (!std::isfinite(area.startKm) || !std::isfinite(area.endKm)
 			|| !(area.startKm < area.endKm))
 			add(SceneSeverity::Error, "scene.native.signalling_area.range",
-				"Signalling area coordinates must be finite with start below end",
+				"Signalling area start must be below its end",
 				"signalling.json", "signalling_area", area.id, path);
 		if (!isValidSignallingLevel(area.level))
 			add(SceneSeverity::Error, "scene.native.signalling_area.level",
@@ -668,7 +668,7 @@ std::unordered_map<std::string, int> nativeSignallingLevels(const SceneModel& sc
 				} else if (level != area.level) {
 					conflict = true;
 					add(SceneSeverity::Error, "scene.native.signalling_area.conflict",
-						"Multiple signalling areas assign different levels to one runtime section",
+						"Two signalling areas assign different levels to one section",
 						"signalling.json", "signalling_area", area.id, "signalling_areas",
 						firstAreaId + " -> " + section.id);
 				}
@@ -715,7 +715,7 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 	std::unordered_set<std::string> routeIds;
 	for (const auto& route : scene.routes)
 		if (!routeIds.insert(route.id).second)
-			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate route id", "signalling.json", "route", route.id);
+			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate route ID", "signalling.json", "route", route.id);
 	nativeCheckDependencies(scene, blockIds, sectionInventory, plannedSectionIds, add);
 	nativeCheckRestrictions(scene, blockIds, sectionInventory, add);
 	nativeCheckBoundaries(scene, blockIds, sectionInventory, add);
@@ -880,7 +880,7 @@ std::vector<NativeStationBinding> nativeBindStations(SimulationRun& run, const S
 				});
 			}
 			if (!matched)
-				add(SceneSeverity::Warning, "scene.native.binding.position", "Station position has no exact node anchor",
+				add(SceneSeverity::Warning, "scene.native.binding.position", "No node is at the station's position",
 					"stations.json", "station", station.id, "stations.position_km");
 		}
 	}
