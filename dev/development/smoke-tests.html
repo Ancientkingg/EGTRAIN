@@ -366,7 +366,8 @@ every failing scene.</p></li>
 and runs scenes one after the other in one process (see <a class="reference internal" href="characterization-tests.html#characterization-tests"><span class="std std-ref">Characterization tests</span></a>),
 which is the scene reload. They cover the line fixture, Paimpol, Assignment,
 Milano-Brescia and Netherlands. Copenhagen and Amsterdam_Hilversum_Student run headless once and are
-not reloaded.</p></li>
+not reloaded. The build legs of the workflow leave out <code class="docutils literal notranslate"><span class="pre">characterization_repeat_paimpol</span></code> and
+<code class="docutils literal notranslate"><span class="pre">characterization_repeat_milano_paimpol</span></code>, which are labelled <code class="docutils literal notranslate"><span class="pre">nightly</span></code>.</p></li>
 <li><p>CTest runs <code class="docutils literal notranslate"><span class="pre">test_networkpresenter</span></code> and <code class="docutils literal notranslate"><span class="pre">test_runtimecanvas</span></code> on the offscreen platform. They draw the
 track preview and the items of a run on a canvas, apply the steps of a run and of its replay with a
 selection on it, and clear the canvas again, twenty times or more in one process. After each clear

@@ -391,6 +391,8 @@ apart from <code class="docutils literal notranslate"><span class="pre">test_wid
 to the system font directory, because the offscreen platform has no fonts of its own there; set it yourself when you
 start a GUI test or QEGTRAIN with <code class="docutils literal notranslate"><span class="pre">QT_QPA_PLATFORM=offscreen</span></code> by hand. Combine it with either of the labels above.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">slow</span></code>: takes more than 20 seconds on a development machine.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nightly</span></code>: the build legs of the CMake workflow leave it out, and the <a class="reference internal" href="smoke-tests.html#leak-check"><span class="std std-ref">leak check</span></a> runs
+it in the nightly and manual runs. A full local run includes it.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">network</span></code>: sends a request to a server on the internet. It is registered only with <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_NETWORK_TESTS=ON</span></code>, so
 no other test run needs the internet. Combine it with <code class="docutils literal notranslate"><span class="pre">integration</span></code>. See <a class="reference internal" href="#https-update-check">HTTPS update check</a>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">scene-v1</span></code> covers the canonical scene model, <code class="docutils literal notranslate"><span class="pre">scene-v2</span></code> the <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> container round-trips, hostile-archive checks
@@ -666,7 +668,7 @@ or 429, a rate limit or a challenge of its proxy, or with 5xx, an outage) or <co
 another HTTP status, a redirect included, or a body that is not a release list). CTest shows a skip as skipped.
 <code class="docutils literal notranslate"><span class="pre">test_updatetransport_https_cases</span></code> runs the same program against a server on
 <code class="docutils literal notranslate"><span class="pre">127.0.0.1</span></code> and needs no internet. The Windows leg of the CMake workflow leaves the network tests out of its Test step
-(<code class="docutils literal notranslate"><span class="pre">-LE</span> <span class="pre">network</span></code>) and runs them in the step Check HTTPS (Windows), and the Windows package job runs the program from a
+(<code class="docutils literal notranslate"><span class="pre">-LE</span> <span class="pre">'network|nightly'</span></code>) and runs them in the step Check HTTPS (Windows), and the Windows package job runs the program from a
 copy of the package (<a class="reference internal" href="ci-and-release.html"><span class="std std-doc">CI and release</span></a>).</p>
 </section>
 <section id="windows-headless-runs">

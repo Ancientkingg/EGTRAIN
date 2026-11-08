@@ -61,7 +61,8 @@ and fails on any leak or double free. It has four parts:
   and runs scenes one after the other in one process (see [Characterization tests](characterization-tests.md#characterization-tests)),
   which is the scene reload. They cover the line fixture, Paimpol, Assignment,
   Milano-Brescia and Netherlands. Copenhagen and Amsterdam_Hilversum_Student run headless once and are
-  not reloaded.
+  not reloaded. The build legs of the workflow leave out `characterization_repeat_paimpol` and
+  `characterization_repeat_milano_paimpol`, which are labelled `nightly`.
 - CTest runs `test_networkpresenter` and `test_runtimecanvas` on the offscreen platform. They draw the
   track preview and the items of a run on a canvas, apply the steps of a run and of its replay with a
   selection on it, and clear the canvas again, twenty times or more in one process. After each clear

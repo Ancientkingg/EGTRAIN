@@ -315,7 +315,8 @@ scripts that build, sign and check the release packages.</p>
 <h2>CI and release branches<a class="headerlink" href="#ci-and-release-branches" title="Link to this heading">¶</a></h2>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">main</span></code> is the validation branch. Pull requests build the project and run
-the CTest suite without the tests labelled <code class="docutils literal notranslate"><span class="pre">network</span></code> (those run on Windows only), in parallel, on macOS, Windows (MSVC, vcpkg
+the CTest suite without the tests labelled <code class="docutils literal notranslate"><span class="pre">network</span></code> (those run on Windows only) and <code class="docutils literal notranslate"><span class="pre">nightly</span></code> (those run in the
+<a class="reference internal" href="smoke-tests.html#leak-check"><span class="std std-ref">leak check</span></a>), in parallel, on macOS, Windows (MSVC, vcpkg
 x64) and Linux (Ubuntu 24.04), each with Qt 6.8.3, unless every changed file matches the
 documentation rule below. The suite holds the end-to-end smokes of the
 committed scenes (see <a class="reference internal" href="smoke-tests.html#simulation-smoke-test"><span class="std std-ref">Simulation Smoke Test</span></a> and

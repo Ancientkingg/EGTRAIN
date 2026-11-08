@@ -485,11 +485,17 @@ a case name the scene runs as committed.</p>
 <code class="docutils literal notranslate"><span class="pre">characterization_repeat_milano_paimpol</span></code> (Milano-Brescia and Paimpol, alternating)
 and <code class="docutils literal notranslate"><span class="pre">characterization_repeat_netherlands</span></code> (Netherlands, Paimpol, Netherlands, labelled
 <code class="docutils literal notranslate"><span class="pre">slow</span></code>). They fail when a run leaves state behind that changes a later run of the
-same scene, which is what a change to the arrays of the run can cause.</p>
+same scene, which is what a change to the arrays of the run can cause. The first
+two are labelled <code class="docutils literal notranslate"><span class="pre">nightly</span></code>: the build legs of the CMake workflow leave them out,
+because the <code class="docutils literal notranslate"><span class="pre">--repeat-files</span></code> entries below run the same sequences and compare the
+same observations, and the <a class="reference internal" href="smoke-tests.html#leak-check"><span class="std std-ref">leak check</span></a> runs them at
+night. On a pull request, Paimpol and Milano-Brescia therefore run again only
+with the detailed files written: the runs of <code class="docutils literal notranslate"><span class="pre">--repeat</span></code> write no detailed files.</p>
 <p>These entries compare the observation of each run: what the test reads from
 memory, and the two station statistics files. The other files of a run are not
-read. <code class="docutils literal notranslate"><span class="pre">--repeat-files</span></code> runs the steps in the same way, but every run writes its
-files into a folder of its own (<code class="docutils literal notranslate"><span class="pre">run-01</span></code>, <code class="docutils literal notranslate"><span class="pre">run-02</span></code> and so on, in a temporary
+read. <code class="docutils literal notranslate"><span class="pre">--repeat-files</span></code> runs the steps and compares their observations in the same
+way, but every run writes its files into a folder of its own (<code class="docutils literal notranslate"><span class="pre">run-01</span></code>, <code class="docutils literal notranslate"><span class="pre">run-02</span></code>
+and so on, in a temporary
 folder), and after the last run every distinct step runs once more in a fresh
 process of the same executable, with the same working directory and
 environment. Every file of every in-process run must then be equal, byte for
@@ -518,9 +524,12 @@ which gives an incident and a single-track restriction that no committed scene
 has. They fail when a run in a process writes a file that differs from the file
 of a fresh process, which is what state left behind by an earlier run can cause
 in a file that the entries above never read.</p>
-<p><code class="docutils literal notranslate"><span class="pre">characterization_aspects_dutch</span></code> (labelled <code class="docutils literal notranslate"><span class="pre">slow</span></code>) runs Netherlands and
-Assignment once each with <code class="docutils literal notranslate"><span class="pre">--aspects</span></code> and fails unless at least one route
-section leaves the clear code 270 and returns to it during the run.</p>
+<p>Both modes take <code class="docutils literal notranslate"><span class="pre">--aspects</span> <span class="pre">STEP</span></code>, before or after the steps and once for every
+step that it checks. The test then fails unless at least one route section leaves
+the clear code 270 and returns to it during the first run of that step, which has
+to be one of the steps. A later run of the step has the same aspects, or its
+observation differs. <code class="docutils literal notranslate"><span class="pre">characterization_repeat_netherlands</span></code> names Netherlands and
+<code class="docutils literal notranslate"><span class="pre">characterization_repeat_files_paimpol</span></code> names Assignment.</p>
 <p><code class="docutils literal notranslate"><span class="pre">test_crossover_chain</span></code> is a separate executable, because the harness above is
 tied to the line fixture (its length, its block size and the station at 8 km).
 It runs the scene <code class="docutils literal notranslate"><span class="pre">tests/fixtures/scenes/crossovers</span></code>: a chain of five tracks

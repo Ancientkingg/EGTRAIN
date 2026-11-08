@@ -252,7 +252,8 @@ run, CTest and each smoke write their files.
 What the source tree itself shows:
 
 - Pull requests go to `main`. CI builds and runs the CTest suite on macOS, Windows and Linux without
-  the tests labelled `network`, which run on Windows only, unless every changed file is documentation. The format and tidy checks run when C++ sources change.
+  the tests labelled `network`, which run on Windows only, and `nightly`, which the leak check runs, unless every
+  changed file is documentation. The format and tidy checks run when C++ sources change.
   [CI and release branches](ci-and-release.md#ci-and-release-branches) lists the workflows, and
   [Required checks on `main`](ci-and-release.md#required-checks-on-main) the checks that must pass.
 - Code follows [Coding guidelines](coding-guidelines.md). `.clang-format` and `.editorconfig` set the

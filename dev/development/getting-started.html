@@ -645,7 +645,8 @@ run, CTest and each smoke write their files.</p>
 <p>What the source tree itself shows:</p>
 <ul class="simple">
 <li><p>Pull requests go to <code class="docutils literal notranslate"><span class="pre">main</span></code>. CI builds and runs the CTest suite on macOS, Windows and Linux without
-the tests labelled <code class="docutils literal notranslate"><span class="pre">network</span></code>, which run on Windows only, unless every changed file is documentation. The format and tidy checks run when C++ sources change.
+the tests labelled <code class="docutils literal notranslate"><span class="pre">network</span></code>, which run on Windows only, and <code class="docutils literal notranslate"><span class="pre">nightly</span></code>, which the leak check runs, unless every
+changed file is documentation. The format and tidy checks run when C++ sources change.
 <a class="reference internal" href="ci-and-release.html#ci-and-release-branches"><span class="std std-ref">CI and release branches</span></a> lists the workflows, and
 <a class="reference internal" href="ci-and-release.html#required-checks-on-main"><span class="std std-ref">Required checks on <code class="docutils literal notranslate"><span class="pre">main</span></code></span></a> the checks that must pass.</p></li>
 <li><p>Code follows <a class="reference internal" href="coding-guidelines.html"><span class="std std-doc">Coding guidelines</span></a>. <code class="docutils literal notranslate"><span class="pre">.clang-format</span></code> and <code class="docutils literal notranslate"><span class="pre">.editorconfig</span></code> set the

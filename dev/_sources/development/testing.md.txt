@@ -86,6 +86,8 @@ that this page does not describe.
   to the system font directory, because the offscreen platform has no fonts of its own there; set it yourself when you
   start a GUI test or QEGTRAIN with `QT_QPA_PLATFORM=offscreen` by hand. Combine it with either of the labels above.
 - `slow`: takes more than 20 seconds on a development machine.
+- `nightly`: the build legs of the CMake workflow leave it out, and the [leak check](smoke-tests.md#leak-check) runs
+  it in the nightly and manual runs. A full local run includes it.
 - `network`: sends a request to a server on the internet. It is registered only with `-DEGTRAIN_NETWORK_TESTS=ON`, so
   no other test run needs the internet. Combine it with `integration`. See [HTTPS update check](#https-update-check).
 - `scene-v1` covers the canonical scene model, `scene-v2` the `.egscene` container round-trips, hostile-archive checks
@@ -219,7 +221,7 @@ or 429, a rate limit or a challenge of its proxy, or with 5xx, an outage) or `FA
 another HTTP status, a redirect included, or a body that is not a release list). CTest shows a skip as skipped.
 `test_updatetransport_https_cases` runs the same program against a server on
 `127.0.0.1` and needs no internet. The Windows leg of the CMake workflow leaves the network tests out of its Test step
-(`-LE network`) and runs them in the step Check HTTPS (Windows), and the Windows package job runs the program from a
+(`-LE 'network|nightly'`) and runs them in the step Check HTTPS (Windows), and the Windows package job runs the program from a
 copy of the package ([CI and release](ci-and-release.md)).
 
 ### Windows headless runs
