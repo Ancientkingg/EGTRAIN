@@ -63,6 +63,8 @@ public:
 		virtual void refreshIncidentPanel() = 0;
 		/// The selected scenario changed, so the results of the last run no longer match the next run.
 		virtual void invalidateRunResults() = 0;
+		/// The window shows the results of a completed run.
+		virtual bool hasRunResults() const = 0;
 		/// Shows the source files of the selected train unit and how they were read.
 		virtual void updateTrainUnitSourceStatus() = 0;
 		/// Opens the tractive-effort plot of a train unit.

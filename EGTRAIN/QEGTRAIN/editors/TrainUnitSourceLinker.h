@@ -14,9 +14,11 @@
 #include <QWidget>
 
 #include <array>
+#include <functional>
 #include <map>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 struct SceneHistoryEntry;
@@ -68,6 +70,9 @@ public:
 	void setDocument(SceneDocument* document);
 	/// The questions of the linker are put in front of this window.
 	void setDialogParent(QWidget* parent) { m_dialogParent = parent; }
+	/// Tells whether the window shows the results of a run. The question about a changed file then warns that reloading
+	/// discards them. Without it the question does not mention results.
+	void setResultsShown(std::function<bool()> resultsShown) { m_resultsShown = std::move(resultsShown); }
 
 	/// The links of a unit, or null. The pointer is valid until the links change.
 	const Link* linkOf(const std::string& unitId) const;
@@ -139,6 +144,7 @@ private:
 
 	QPointer<SceneDocument> m_document;
 	QPointer<QWidget> m_dialogParent;
+	std::function<bool()> m_resultsShown;
 	QMetaObject::Connection m_replacedConnection;
 	Links m_links;
 	QFileSystemWatcher m_watcher;
