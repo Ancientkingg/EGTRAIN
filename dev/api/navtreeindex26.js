@@ -1,5 +1,6 @@
 var NAVTREEINDEX26 =
 {
+"struct_self_update_capability.html#ad04c2f84c38e744a4378d3f4174d622b":[2,0,297,1],
 "struct_self_update_capability.html#add7252647dc3654efa5d7c099066fc9b":[2,0,297,6],
 "struct_self_update_capability.html#aecc43cdbf1f461ec131953fe80f0e129":[2,0,297,3],
 "struct_semantic_version.html":[2,0,299],
@@ -248,6 +249,5 @@ var NAVTREEINDEX26 =
 "struct_train_1_1_braking_arc_cursor.html#aad9c5724afd55dbcf13a09c8800d974a":[2,0,346,0,3],
 "struct_train_1_1_braking_arc_cursor.html#ac6771dda22432d499fb1acfc435f465b":[2,0,346,0,1],
 "struct_train_1_1_braking_arc_cursor.html#ac86d934bcd47cb1f9a030a7c790bb071":[2,0,346,0,4],
-"struct_train_colour_input.html":[2,0,349],
-"struct_train_colour_input.html#a3b5e36d3bb7f276bad0b430a5e977402":[2,0,349,1]
+"struct_train_colour_input.html":[2,0,349]
 };

@@ -12,10 +12,10 @@
 <area shape="poly" id="edge12_Node000001_Node000014" title=" " alt="" coords="143,1277,179,1277,175,1280,147,1281"/>
 <area shape="rect" id="Node000015" href="$class_train_unit_panel.html#a68a9825ad30e3359da648cdadf3cbefc" title=" " alt="" coords="205,840,430,885"/>
 <area shape="poly" id="edge13_Node000001_Node000015" title=" " alt="" coords="73,1264,76,1198,91,1099,105,1045,126,991,154,940,191,895,197,892,195,897,195,899,159,943,131,993,110,1046,96,1100,82,1199,79,1265"/>
-<area shape="rect" id="Node000020" href="$class_train_unit_source_linker.html#a54184a53c6a3a3ecd45c007f1ff75873" title=" " alt="" coords="201,1326,434,1370"/>
-<area shape="poly" id="edge21_Node000001_Node000020" title=" " alt="" coords="122,1291,193,1311,222,1319,217,1322,192,1316,125,1295"/>
-<area shape="rect" id="Node000021" href="$class_composition_panel.html#ae5e75caf952af762387269c23b7a0adc" title="Makes the widgets, empty until a loaded document is set." alt="" coords="203,550,432,594"/>
-<area shape="poly" id="edge22_Node000001_Node000021" title=" " alt="" coords="74,1264,81,1138,99,940,114,836,134,739,159,659,174,628,191,605,196,602,193,607,195,608,179,631,164,661,139,740,119,836,104,941,86,1138,79,1264"/>
+<area shape="rect" id="Node000021" href="$class_train_unit_source_linker.html#a54184a53c6a3a3ecd45c007f1ff75873" title=" " alt="" coords="201,1326,434,1370"/>
+<area shape="poly" id="edge21_Node000001_Node000021" title=" " alt="" coords="122,1291,193,1311,222,1319,217,1322,192,1316,125,1295"/>
+<area shape="rect" id="Node000022" href="$class_composition_panel.html#ae5e75caf952af762387269c23b7a0adc" title="Makes the widgets, empty until a loaded document is set." alt="" coords="203,550,432,594"/>
+<area shape="poly" id="edge22_Node000001_Node000022" title=" " alt="" coords="74,1264,81,1138,99,940,114,836,134,739,159,659,174,628,191,605,196,602,193,607,195,608,179,631,164,661,139,740,119,836,104,941,86,1138,79,1264"/>
 <area shape="rect" id="Node000064" href="$class_train_unit_panel.html#ab16520eb63d0ff6c3858fd8c8ecab368" title="The details of the shown unit are shown again, so the state of its source links has to be shown again..." alt="" coords="213,1394,422,1422"/>
 <area shape="poly" id="edge24_Node000001_Node000064" title=" " alt="" coords="87,1290,133,1336,162,1360,194,1380,208,1387,203,1390,191,1385,159,1364,129,1340,89,1295"/>
 <area shape="rect" id="Node000065" href="$class_incident_panel.html#a4a9dda1a9168404be9f1d7b5d91358c0" title=" " alt="" coords="500,515,707,543"/>
@@ -95,16 +95,16 @@
 <area shape="poly" id="edge8_Node000008_Node000008" title=" " alt="" coords="559,247,552,238,558,229,575,223,603,221,633,223,651,231,646,233,632,228,603,226,576,228,561,233,557,238,564,246"/>
 <area shape="rect" id="Node000016" href="$class_train_unit_panel.html#abaeb9f53a0036ab1c856a439e64cc4d5" title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again." alt="" coords="498,866,708,894"/>
 <area shape="poly" id="edge14_Node000015_Node000016" title=" " alt="" coords="428,867,485,871,481,874,431,872"/>
-<area shape="rect" id="Node000017" href="$class_train_unit_panel.html#a882a356aa1d9d93d9489e4f1e9c716bf" title=" " alt="" coords="490,918,716,946"/>
-<area shape="poly" id="edge15_Node000015_Node000017" title=" " alt="" coords="409,883,491,903,529,913,524,915,489,908,412,888"/>
-<area shape="rect" id="Node000018" href="$class_train_unit_panel.html#adccbd5933efd9680fed732f1ac2f4f24" title="Takes the parameter and traction source references from their fields." alt="" coords="492,814,715,842"/>
-<area shape="poly" id="edge17_Node000015_Node000018" title=" " alt="" coords="428,847,478,842,474,845,432,851"/>
-<area shape="rect" id="Node000019" href="$_editor_helpers_8h.html#a37baa06dd8545a6269a16d67386af9c8" title=" " alt="" coords="544,762,663,790"/>
-<area shape="poly" id="edge19_Node000015_Node000019" title=" " alt="" coords="387,838,441,819,489,800,530,790,527,794,491,805,443,824,391,842"/>
-<area shape="poly" id="edge16_Node000017_Node000013" title=" " alt="" coords="675,916,715,903,774,876,828,848,824,852,776,881,717,908,679,919"/>
-<area shape="poly" id="edge18_Node000018_Node000013" title=" " alt="" coords="714,826,751,826,747,829,717,830"/>
-<area shape="poly" id="edge20_Node000019_Node000019" title=" " alt="" coords="559,762,552,753,558,743,575,737,603,735,633,738,651,746,646,748,632,743,603,741,576,743,561,748,557,753,564,761"/>
-<area shape="poly" id="edge23_Node000021_Node000012" title=" " alt="" coords="411,547,441,535,465,520,488,502,552,463,549,468,492,506,468,524,443,540,415,551"/>
+<area shape="rect" id="Node000018" href="$class_train_unit_panel.html#a882a356aa1d9d93d9489e4f1e9c716bf" title=" " alt="" coords="490,918,716,946"/>
+<area shape="poly" id="edge15_Node000015_Node000018" title=" " alt="" coords="409,883,491,903,529,913,524,915,489,908,412,888"/>
+<area shape="rect" id="Node000019" href="$class_train_unit_panel.html#adccbd5933efd9680fed732f1ac2f4f24" title="Takes the parameter and traction source references from their fields." alt="" coords="492,814,715,842"/>
+<area shape="poly" id="edge17_Node000015_Node000019" title=" " alt="" coords="428,847,478,842,474,845,432,851"/>
+<area shape="rect" id="Node000020" href="$_editor_helpers_8h.html#a37baa06dd8545a6269a16d67386af9c8" title=" " alt="" coords="544,762,663,790"/>
+<area shape="poly" id="edge19_Node000015_Node000020" title=" " alt="" coords="387,838,441,819,489,800,530,790,527,794,491,805,443,824,391,842"/>
+<area shape="poly" id="edge16_Node000018_Node000013" title=" " alt="" coords="675,916,715,903,774,876,828,848,824,852,776,881,717,908,679,919"/>
+<area shape="poly" id="edge18_Node000019_Node000013" title=" " alt="" coords="714,826,751,826,747,829,717,830"/>
+<area shape="poly" id="edge20_Node000020_Node000020" title=" " alt="" coords="559,762,552,753,558,743,575,737,603,735,633,738,651,746,646,748,632,743,603,741,576,743,561,748,557,753,564,761"/>
+<area shape="poly" id="edge23_Node000022_Node000012" title=" " alt="" coords="411,547,441,535,465,520,488,502,552,463,549,468,492,506,468,524,443,540,415,551"/>
 <area shape="poly" id="edge27_Node000066_Node000012" title=" " alt="" coords="396,277,443,295,481,318,516,345,574,400,569,402,513,350,478,323,441,300,399,282"/>
 <area shape="poly" id="edge31_Node000097_Node000008" title=" " alt="" coords="417,497,440,484,459,466,468,446,475,424,488,398,534,336,580,285,578,289,538,340,492,401,480,426,473,448,463,469,444,489,422,501"/>
 <area shape="poly" id="edge32_Node000097_Node000012" title=" " alt="" coords="394,496,441,484,524,460,521,464,443,489,398,499"/>
@@ -124,8 +124,8 @@
 <area shape="poly" id="edge66_Node000265_Node000012" title=" " alt="" coords="399,445,480,440,476,444,403,449"/>
 <area shape="poly" id="edge73_Node000290_Node000012" title=" " alt="" coords="406,919,425,909,440,895,458,871,471,847,478,823,482,800,480,753,471,707,461,659,456,609,463,557,473,530,488,502,507,480,533,463,530,467,510,484,492,505,478,532,468,559,461,609,466,658,476,706,485,753,487,800,483,825,476,849,463,874,444,899,428,913,410,922"/>
 <area shape="poly" id="edge70_Node000290_Node000016" title=" " alt="" coords="406,913,510,895,506,899,410,918"/>
-<area shape="poly" id="edge71_Node000290_Node000017" title=" " alt="" coords="406,930,477,930,473,934,409,934"/>
-<area shape="poly" id="edge72_Node000290_Node000018" title=" " alt="" coords="405,910,441,895,455,885,464,874,474,863,489,852,508,845,504,849,491,857,477,867,468,877,458,889,443,900,410,914"/>
+<area shape="poly" id="edge71_Node000290_Node000018" title=" " alt="" coords="406,930,477,930,473,934,409,934"/>
+<area shape="poly" id="edge72_Node000290_Node000019" title=" " alt="" coords="405,910,441,895,455,885,464,874,474,863,489,852,508,845,504,849,491,857,477,867,468,877,458,889,443,900,410,914"/>
 <area shape="poly" id="edge74_Node000290_Node000259" title=" " alt="" coords="407,948,494,967,490,970,409,953"/>
 <area shape="poly" id="edge75_Node000290_Node000260" title=" " alt="" coords="354,952,418,988,491,1024,509,1032,504,1034,489,1029,416,993,356,957"/>
 <area shape="poly" id="edge76_Node000290_Node000261" title=" " alt="" coords="336,952,401,1022,444,1060,491,1094,503,1100,498,1102,489,1098,441,1065,397,1026,337,957"/>

@@ -1,5 +1,6 @@
 var NAVTREEINDEX23 =
 {
+"struct_main_window_test_hooks.html#afc7b8771e469b3743d1498805405d095":[2,0,138,1],
 "struct_network_legend_content.html":[2,0,142],
 "struct_network_legend_content.html#a07f55b5908d2becd67e3f5b1d55b391c":[2,0,142,0],
 "struct_network_legend_content.html#a5ba856f093161794004d63145a28d825":[2,0,142,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX23 =
 "struct_run_input_provenance.html#a91aec5a43884e7164677b0f1011bd47d":[2,0,201,5],
 "struct_run_input_provenance.html#ac17a528d6507bcd055e93e81d700d591":[2,0,201,0],
 "struct_run_input_provenance.html#ad071a09a4d432394bc033e1ded839bb2":[2,0,201,1],
-"struct_run_occurrence_provenance.html":[2,0,202],
-"struct_run_occurrence_provenance.html#a0e09e96d813d5293f93b7721ef28b183":[2,0,202,1]
+"struct_run_occurrence_provenance.html":[2,0,202]
 };

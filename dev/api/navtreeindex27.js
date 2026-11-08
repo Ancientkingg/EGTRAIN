@@ -1,5 +1,6 @@
 var NAVTREEINDEX27 =
 {
+"struct_train_colour_input.html#a3b5e36d3bb7f276bad0b430a5e977402":[2,0,349,1],
 "struct_train_colour_input.html#a5a601b9ce6b320986fc6a30b22edc81a":[2,0,349,3],
 "struct_train_colour_input.html#a912bb61cf5316a2906d98743559acc3d":[2,0,349,2],
 "struct_train_colour_input.html#ab91bf4346578941cc371ff4dff2e469e":[2,0,349,0],

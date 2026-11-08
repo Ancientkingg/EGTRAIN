@@ -129,6 +129,7 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a4566b7e5a66d0a3ebd208e9363d97184"><td class="mdescLeft">&#160;</td><td class="mdescRight">The run review opens although dialogs are suppressed, for a scripted run that answers the dialog.  <br /></td></tr>
 <tr class="memitem:a08dfaa657732586e6f67aa3df1ee7df2" id="r_a08dfaa657732586e6f67aa3df1ee7df2"><td class="memItemLeft">std::function&lt; void(<a class="el" href="class_main_window.html">MainWindow</a> &amp;)&gt;&#160;</td><td class="memItemRight"><a class="el" href="#a08dfaa657732586e6f67aa3df1ee7df2">afterFirstShow</a></td></tr>
 <tr class="memdesc:a08dfaa657732586e6f67aa3df1ee7df2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called once, at the end of the first showEvent.  <br /></td></tr>
+<tr class="memitem:afc7b8771e469b3743d1498805405d095" id="r_afc7b8771e469b3743d1498805405d095"><td class="memItemLeft">std::function&lt; void(<a class="el" href="class_main_window.html">MainWindow</a> &amp;)&gt;&#160;</td><td class="memItemRight"><a class="el" href="#afc7b8771e469b3743d1498805405d095">afterStartup</a></td></tr>
 <tr class="memitem:a88f0f3027155ccf07e52459ef09298d8" id="r_a88f0f3027155ccf07e52459ef09298d8"><td class="memItemLeft">void(*)&#160;</td><td class="memItemRight"><a class="el" href="#a88f0f3027155ccf07e52459ef09298d8">frameRendered</a> (<a class="el" href="class_main_window.html">MainWindow</a> &amp;window, bool historical)</td></tr>
 <tr class="memitem:a9f5971d47adde20ec5e8b7aa04e09766" id="r_a9f5971d47adde20ec5e8b7aa04e09766"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a9f5971d47adde20ec5e8b7aa04e09766">runDataFolder</a></td></tr>
 <tr class="memdesc:a9f5971d47adde20ec5e8b7aa04e09766"><td class="mdescLeft">&#160;</td><td class="mdescRight">The folder that holds Recovery and Crashes in place of AppLocalDataLocation, for a test run with settings of its own.  <br /></td></tr>
@@ -167,6 +168,21 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Called once, at the end of the first showEvent. </p>
+
+</div>
+</div>
+<a id="afc7b8771e469b3743d1498805405d095" name="afc7b8771e469b3743d1498805405d095"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afc7b8771e469b3743d1498805405d095">&#9670;&#160;</a></span>afterStartup</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::function&lt;void(<a class="el" href="class_main_window.html">MainWindow</a>&amp;)&gt; MainWindowTestHooks::afterStartup</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Called once, at the end of the startup callback that runs after the first show: the recovery offer and the startup chooser have closed, so the startup case is loaded and fitted. It does not run when suppressStartupPrompts is set. </p>
 
 </div>
 </div>

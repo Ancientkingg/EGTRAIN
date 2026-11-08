@@ -2,14 +2,16 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,76,230,120"/>
 <area shape="rect" id="Node000002" href="$class_train_unit_panel.html#abaeb9f53a0036ab1c856a439e64cc4d5" title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again." alt="" coords="286,5,496,33"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,72,277,43,312,36,308,38,278,48,186,77"/>
-<area shape="rect" id="Node000003" href="$class_train_unit_panel.html#a882a356aa1d9d93d9489e4f1e9c716bf" title=" " alt="" coords="278,57,504,85"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="229,84,265,83,260,85,231,89"/>
-<area shape="rect" id="Node000005" href="$class_train_unit_panel.html#adccbd5933efd9680fed732f1ac2f4f24" title="Takes the parameter and traction source references from their fields." alt="" coords="279,109,502,137"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="230,106,266,111,261,112,230,111"/>
-<area shape="rect" id="Node000006" href="$_editor_helpers_8h.html#a37baa06dd8545a6269a16d67386af9c8" title=" " alt="" coords="331,185,450,213"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="181,118,339,178,335,181,180,123"/>
-<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="552,84,748,112"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="504,80,539,86,534,86,505,85"/>
-<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="502,110,539,109,534,109,503,115"/>
-<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="347,184,340,176,345,167,363,161,391,159,421,161,439,170,434,170,420,166,391,164,364,166,349,171,345,176,352,186"/>
+<area shape="rect" id="Node000004" href="$class_train_unit_panel.html#a882a356aa1d9d93d9489e4f1e9c716bf" title=" " alt="" coords="278,57,504,85"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="229,84,265,83,260,85,231,89"/>
+<area shape="rect" id="Node000006" href="$class_train_unit_panel.html#adccbd5933efd9680fed732f1ac2f4f24" title="Takes the parameter and traction source references from their fields." alt="" coords="279,109,502,137"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="230,106,266,111,261,112,230,111"/>
+<area shape="rect" id="Node000007" href="$_editor_helpers_8h.html#a37baa06dd8545a6269a16d67386af9c8" title=" " alt="" coords="331,185,450,213"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="181,118,339,178,335,181,180,123"/>
+<area shape="rect" id="Node000003" href="$class_user_prompts.html#a577030d596229c409a5bd863b50327f4" title=" " alt="" coords="561,5,739,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="495,17,548,19,543,20,496,22"/>
+<area shape="rect" id="Node000005" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="552,83,748,110"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="504,80,539,85,533,86,505,85"/>
+<area shape="poly" id="edge6_Node000006_Node000005" title=" " alt="" coords="502,109,539,108,534,109,503,114"/>
+<area shape="poly" id="edge8_Node000007_Node000007" title=" " alt="" coords="347,184,340,176,345,167,363,161,391,159,421,161,439,170,434,170,420,166,391,164,364,166,349,171,345,176,352,186"/>
 </map>

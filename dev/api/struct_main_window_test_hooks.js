@@ -1,6 +1,7 @@
 var struct_main_window_test_hooks =
 [
     [ "afterFirstShow", "struct_main_window_test_hooks.html#a08dfaa657732586e6f67aa3df1ee7df2", null ],
+    [ "afterStartup", "struct_main_window_test_hooks.html#afc7b8771e469b3743d1498805405d095", null ],
     [ "askCapacityScope", "struct_main_window_test_hooks.html#acc65fb0d3ac9e0488099a7d9712a0a65", null ],
     [ "askRunReview", "struct_main_window_test_hooks.html#a4566b7e5a66d0a3ebd208e9363d97184", null ],
     [ "dialogClosed", "struct_main_window_test_hooks.html#acf15bd38152d71278dfac8a7eb670782", null ],
