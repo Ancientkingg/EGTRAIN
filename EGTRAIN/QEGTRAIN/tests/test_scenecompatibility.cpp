@@ -452,8 +452,8 @@ void TestSceneCompatibility::migratesOlderBundle() {
 	QCOMPARE(*olderBundleProbe.bundleVersion, kCurrentSceneBundleVersion - 1);
 	const std::string olderBundleReason = reasonOf(olderBundleProbe, "scene.compatibility.older");
 	// Older bundle reason names both layout numbers.
-	QVERIFY2(contains(olderBundleReason, "schema 1, bundle layout 0 (saved"), olderBundleReason.c_str());
-	QVERIFY2(contains(olderBundleReason, "reads schema 1, bundle layout 1."), olderBundleReason.c_str());
+	QVERIFY2(contains(olderBundleReason, "schema 1, case file version 0 (saved"), olderBundleReason.c_str());
+	QVERIFY2(contains(olderBundleReason, "reads schema 1, case file version 1."), olderBundleReason.c_str());
 	const SceneMigrationRegistry bundleRegistry = bundleStepRegistry();
 	const SceneCompatibilityProbeResult migratableBundle = probeSceneCompatibility(olderBundle.string(), bundleRegistry);
 	// Registered bundle step makes only the older bundle migratable.
@@ -512,9 +512,9 @@ void TestSceneCompatibility::rejectsNewerAndOversizedBundles() {
 	QVERIFY2(writeNewerBundle(newerBundle), "newer bundle fixture writes");
 	const SceneCompatibilityProbeResult newerBundleProbe = probeSceneCompatibility(newerBundle.string());
 	QVERIFY2(newerBundleProbe.classification == SceneCompatibilityClass::Newer,
-		"newer bundle layout is classified without extraction");
+		"newer case file version is classified without extraction");
 	const std::string newerBundleReason = reasonOf(newerBundleProbe, "scene.compatibility.newer");
-	QVERIFY2(contains(newerBundleReason, "schema 1, bundle layout " + std::to_string(kCurrentSceneBundleVersion + 1)),
+	QVERIFY2(contains(newerBundleReason, "schema 1, case file version " + std::to_string(kCurrentSceneBundleVersion + 1)),
 		("newer bundle reason names both layout numbers: " + newerBundleReason).c_str());
 	const fs::path hostileNewerBundle = temp.path / "hostile-newer.egscene";
 	QVERIFY2(writeNewerBundle(hostileNewerBundle, "../future.json"), "hostile newer bundle fixture writes");
@@ -716,7 +716,7 @@ void TestSceneCompatibility::namesRejectionReasons() {
 	QVERIFY2(contains(olderReason, "saved by an older version of EGTRAIN"), olderReason.c_str());
 	QVERIFY2(contains(olderReason, "reads schema 1."), olderReason.c_str());
 	QVERIFY2(contains(olderReason, "Import Legacy Case"), olderReason.c_str());
-	QVERIFY2(!contains(olderReason, "bundle layout"), olderReason.c_str());
+	QVERIFY2(!contains(olderReason, "case file version"), olderReason.c_str());
 	const fs::path refusedCopy = folder / "refused-copy";
 	const SceneMigrationResult refused = migrateSceneCopy(scene.string(), refusedCopy.string(), productionSceneMigrationRegistry());
 	// The copy upgrade of an older scene reports the reason and writes nothing.

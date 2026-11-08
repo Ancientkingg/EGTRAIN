@@ -387,7 +387,7 @@ scene and what the application does when one is opened from its window.
 Automated runs do not show the dialogs.
 
 A scene that the probe rejects as older or newer carries one error diagnostic
-whose message gives the schema number, the bundle layout number of a bundle,
+whose message gives the schema number, the case file version of a case file,
 the `saved_with_app_version` and the numbers this version reads. A scene that is
 current or that a migration can convert carries none. `scene_tool validate` and
 `pack` and the headless start probe the path first and report this diagnostic,

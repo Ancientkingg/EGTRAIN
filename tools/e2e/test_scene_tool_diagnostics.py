@@ -59,7 +59,7 @@ def check_version_rejections(scene_tool: Path, root: Path) -> None:
         expect_rejection(scene_tool, ("validate", temp / "older"),
             "scene.compatibility.older", "schema 0 (saved-with version not recorded)", "reads schema 1")
         expect_rejection(scene_tool, ("validate", bundle),
-            "scene.compatibility.newer", "schema 1, bundle layout 2", "reads schema 1, bundle layout 1")
+            "scene.compatibility.newer", "schema 1, case file version 2", "reads schema 1, case file version 1")
 
 
 # A path that the file system refuses ends with a diagnostic and exit code 1, not with an abort.

@@ -64,7 +64,7 @@ static bool inspectDestination(const fs::path& destination, bool& exists,
 	exists = !ec && status.type() != fs::file_type::not_found;
 	if (exists && status.type() != fs::file_type::directory) {
 		addWriteError(result, destination.u8string(),
-			"Case destination must be a directory and cannot be a symlink");
+			"Case destination must be a folder, not a link");
 		return false;
 	}
 	return true;
@@ -258,14 +258,14 @@ static bool copyExistingSceneContents(const fs::path& source, const fs::path& st
 	std::error_code ec;
 	fs::copy(source, staging, fs::copy_options::recursive | fs::copy_options::copy_symlinks, ec);
 	if (ec) {
-		addWriteError(result, source.u8string(), "Cannot stage the previous case contents: " + ec.message());
+		addWriteError(result, source.u8string(), "Cannot copy the files of the previous case: " + ec.message());
 		return false;
 	}
 	for (const SceneFile& file : kSceneFiles) {
 		ec.clear();
 		fs::remove_all(staging / file.name, ec);
 		if (ec) {
-			addWriteError(result, file.name, "Cannot prepare staged case file: " + ec.message());
+			addWriteError(result, file.name, "Cannot prepare the case files for saving: " + ec.message());
 			return false;
 		}
 	}
@@ -780,7 +780,7 @@ static SceneSaveResult writeSceneDirectory(const SceneModel& scene, const std::s
 	const std::string destinationName = destination.filename().u8string();
 	if (destination.empty() || destinationName.empty() || destinationName == "."
 		|| destinationName == "..") {
-		addWriteError(result, sceneDir, "Case destination must be a named directory");
+		addWriteError(result, sceneDir, "Case destination must have a name");
 		return result;
 	}
 
@@ -790,13 +790,13 @@ static SceneSaveResult writeSceneDirectory(const SceneModel& scene, const std::s
 	result.writeAttempted = true;
 	fs::create_directories(parent, ec);
 	if (ec) {
-		addWriteError(result, parent.u8string(), "Cannot create case parent directory: " + ec.message());
+		addWriteError(result, parent.u8string(), "Cannot create the parent folder of the case: " + ec.message());
 		return result;
 	}
 	ec.clear();
 	const auto parentStatus = fs::symlink_status(parent, ec);
 	if (ec || parentStatus.type() != fs::file_type::directory) {
-		addWriteError(result, parent.u8string(), "Case destination parent must be a directory");
+		addWriteError(result, parent.u8string(), "The parent of the case destination must be a folder");
 		return result;
 	}
 
@@ -839,7 +839,7 @@ static SceneSaveResult writeSceneDirectory(const SceneModel& scene, const std::s
 	if (hadDestination) {
 		ec = uniqueSiblingPath(parent, destinationName + ".backup-", backup);
 		if (ec) {
-			addWriteError(result, destination.u8string(), "Cannot reserve a private case backup path");
+			addWriteError(result, destination.u8string(), "Cannot choose a backup name for the previous case");
 			result.wroteAll = false;
 			return result;
 		}
@@ -847,7 +847,7 @@ static SceneSaveResult writeSceneDirectory(const SceneModel& scene, const std::s
 
 	const StagedPublishResult published = publishStagedDirectory(staging, destination, backup);
 	if (published.step == StagedPublishStep::MoveToBackup) {
-		addWriteError(result, destination.u8string(), "Cannot move the previous case generation: " + published.error.message());
+		addWriteError(result, destination.u8string(), "Cannot move the previous version of the case aside: " + published.error.message());
 		result.wroteAll = false;
 		return result;
 	}
@@ -857,7 +857,7 @@ static SceneSaveResult writeSceneDirectory(const SceneModel& scene, const std::s
 			addWriteError(result, backup.u8string(),
 				"The previous case is now in " + backup.u8string()
 					+ " and cannot be moved back: " + published.restoreError.message());
-		addWriteError(result, destination.u8string(), "Cannot publish case generation: " + published.error.message());
+		addWriteError(result, destination.u8string(), "Cannot put the saved case in place: " + published.error.message());
 		result.wroteAll = false;
 		return result;
 	}

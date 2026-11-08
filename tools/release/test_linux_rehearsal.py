@@ -87,7 +87,7 @@ class ReadingTests(unittest.TestCase):
         """The rows of Loaded Data for Paimpol with advanced details, as the dock shows them with the case root expanded."""
         return [("Case", "/x/Paimpol.egscene", "", "Warning"), ("Name", "Paimpol", "", "OK"),
                 ("Description", "Signalling: one network-wide area, level 0.", "", "OK"), ("Format version", "1", "1", "OK"),
-                ("Saved with", "1.0.0", "", "OK"), ("Bundle version", "1", "1", "OK"),
+                ("Saved with", "1.0.0", "", "OK"), ("Case file version", "1", "1", "OK"),
                 ("Source files discovered", "", "9", "OK"), ("Case metadata", "scene.json", "", "Warning"),
                 ("Infrastructure", "infrastructure.json", "946", "Warning"), ("Stations", "stations.json", "10", "OK"),
                 ("Timetable", "services.json", "2", "OK"), ("Rolling stock", "rolling_stock.json", "2", "OK"),
@@ -98,15 +98,15 @@ class ReadingTests(unittest.TestCase):
         self.assertEqual(linux_rehearsal.loaded_data_problems(self.rows(), "Paimpol"), [])
 
     def test_loaded_data_reports_what_is_missing(self):
-        rows = [row for row in self.rows() if row[0] not in ("Bundle version", "Run")]
+        rows = [row for row in self.rows() if row[0] not in ("Case file version", "Run")]
         rows = [("Scenarios", "scenarios.json", "0", "OK") if row[0] == "Scenarios" else row for row in rows]
         problems = linux_rehearsal.loaded_data_problems(rows, "Other")
-        self.assertEqual(problems, ["the name of the case (Other)", "the row Bundle version", "a scenario", "the row Run"])
+        self.assertEqual(problems, ["the name of the case (Other)", "the row Case file version", "a scenario", "the row Run"])
 
     def test_loaded_data_without_advanced_details_lacks_the_versions(self):
         rows = [row for row in self.rows() if row[0] not in linux_rehearsal.LOADED_DATA_VERSIONS + ("Source files discovered",)]
         self.assertEqual(linux_rehearsal.loaded_data_problems(rows, "Paimpol"),
-                         ["the row Format version", "the row Saved with", "the row Bundle version"])
+                         ["the row Format version", "the row Saved with", "the row Case file version"])
 
     def test_the_rows_that_the_rehearsal_reads_are_written_by_the_panel(self):
         panel = (Path(__file__).resolve().parents[2] / "EGTRAIN/QEGTRAIN/editors/ValidationPanel.cpp").read_text(encoding="utf-8")

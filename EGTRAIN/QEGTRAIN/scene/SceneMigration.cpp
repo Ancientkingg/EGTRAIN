@@ -262,7 +262,7 @@ SceneMigrationResult migrateSceneCopy(const std::string& sourcePath,
 	StagedDirectory stagingDirectory;
 	if (createStagedDirectory(tempParent, "egscene-migrate-", true, stagingDirectory)) {
 		addDiagnostic(result.diagnostics, "scene.migration.staging",
-			"Cannot create a private migration staging directory");
+			"Cannot create a temporary folder for the upgraded copy");
 		return result;
 	}
 	const fs::path staging = stagingDirectory.path;

@@ -344,23 +344,23 @@ SceneTrainPhysicalSourceResult parseTrainPhysicalSourceFile(const std::string& p
 	SceneTrainPhysicalSourceResult result;
 	std::string content;
 	if (!readFile(pathFromUtf8(path), content)) {
-		result.error = "The physical source could not be read";
+		result.error = "The parameter file could not be read";
 		return result;
 	}
 	const std::vector<std::string> tokens = readTokens(content);
 	if (tokens.size() != kSceneTrainPhysicalFields.size()) {
-		result.error = "The physical source must contain exactly nine values";
+		result.error = "The parameter file must hold exactly 9 values";
 		return result;
 	}
 	for (std::size_t index = 0; index < tokens.size(); ++index) {
 		double& value = result.physical.*kSceneTrainPhysicalFields[index].member;
 		if (!parseDoubleToken(tokens[index], value)) {
-			result.error = "The physical source contains a non-finite or malformed value";
+			result.error = "The parameter file has a value that is not a number";
 			return result;
 		}
 	}
 	if (!validLivePhysical(result.physical))
-		result.error = "The physical source contains values outside the supported domain";
+		result.error = "The parameter file has values outside the allowed ranges";
 	return result;
 }
 
@@ -368,7 +368,7 @@ SceneTrainTractionSourceResult parseTrainTractionSourceFile(const std::string& p
 	SceneTrainTractionSourceResult result;
 	std::string content;
 	if (!readFile(pathFromUtf8(path), content)) {
-		result.error = "The traction source could not be read";
+		result.error = "The traction file could not be read";
 		return result;
 	}
 	std::stringstream input(content);
@@ -388,13 +388,13 @@ SceneTrainTractionSourceResult parseTrainTractionSourceFile(const std::string& p
 		for (std::size_t index = 0; index < row.size(); ++index) {
 			if (!parseDoubleToken(tokens[index], row[index])) {
 				result.error = "Traction row " + std::to_string(rowNumber)
-					+ " contains a non-finite or malformed value";
+					+ " has a value that is not a number";
 				return result;
 			}
 		}
 		if (!(row[0] < row[1])) {
 			result.error = "Traction row " + std::to_string(rowNumber)
-				+ " has an invalid speed interval";
+				+ ": lower speed must be below upper speed";
 			return result;
 		}
 		if (!result.tractionCurve.empty()) {
@@ -415,7 +415,7 @@ SceneTrainTractionSourceResult parseTrainTractionSourceFile(const std::string& p
 		}
 	}
 	if (result.tractionCurve.empty())
-		result.error = "The traction source contains no rows";
+		result.error = "The traction file has no rows";
 	return result;
 }
 
@@ -616,7 +616,7 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 			result.report.skipped("passengers.route_choice", routeChoiceSource);
 		if (result.sources.hasDas || result.sources.hasRouteChoice) {
 			addDiag(SceneSeverity::Warning, "scene.import.passengers",
-				"Passenger import needs both the DAS and the RouteChoice file",
+				"Passenger import needs both DAS_FrenchCaseStudy.csv and RouteChoiceFC_EQ1.csv",
 				result.sources.directory, 0, "passengers", true);
 		}
 		return result;
@@ -1244,7 +1244,7 @@ static void importTrackBlocks(ImportContext& context, const std::string& trackId
 			if (length < 0.0) {
 				length = std::fabs(length);
 				context.addDiag(SceneSeverity::Warning, "scene.import.adjusted",
-					"Normalized negative legacy block length to its finite magnitude",
+					"Negative block length made positive",
 					blocksPath.u8string());
 			}
 			const std::string blockId = std::to_string(rowIndex) + "-" + trackId;
@@ -1638,7 +1638,7 @@ static void importTrains(ImportContext& context) {
 		context.report.row("rolling_stock.manifest", manifestSource).sourceCount = static_cast<int>(trainFiles.size());
 	} else {
 		if (manifestPath.empty())
-			context.addDiag(SceneSeverity::Info, "scene.import.info", "trainNames.txt missing, falling back to Trains directory enumeration", manifestSource);
+			context.addDiag(SceneSeverity::Info, "scene.import.info", "trainNames.txt is missing, so every .txt file in the Trains folder was read", manifestSource);
 		std::error_code scanEc;
 		if (fs::is_directory(trainsDir, scanEc)) {
 			for (const auto& entry : fs::directory_iterator(trainsDir, scanEc)) {
@@ -1663,14 +1663,14 @@ static void importTrains(ImportContext& context) {
 		const auto tokens = readTokens(content);
 		if (tokens.size() < 7) {
 			context.report.skipped("rolling_stock.manifest", manifestSource);
-			context.addDiag(SceneSeverity::Error, "scene.import.parse", "Malformed Trains file, need 7 tokens", trainPath.u8string());
+			context.addDiag(SceneSeverity::Error, "scene.import.parse", "Train file has fewer than 7 values", trainPath.u8string());
 			continue;
 		}
 		double entryTime = 0.0, headway = 0.0;
 		int routeIndex = 0;
 		if (!parseDoubleToken(tokens[1], entryTime) || !parseDoubleToken(tokens[2], headway) || !parseIntegerToken(tokens[3], routeIndex)) {
 			context.report.skipped("rolling_stock.manifest", manifestSource);
-			context.addDiag(SceneSeverity::Error, "scene.import.parse", "Invalid numbers in Trains file", trainPath.u8string());
+			context.addDiag(SceneSeverity::Error, "scene.import.parse", "Train file has a value that is not a number", trainPath.u8string());
 			continue;
 		}
 		std::string serviceId = tokens[0];
@@ -1993,7 +1993,7 @@ static bool importAreaSidecar(ImportContext& context) {
 				return "B" + entry.second.filename().u8string().substr(1) == area.trackId;
 			});
 			if (track == context.trackDirs.end()) {
-				context.addDiag(SceneSeverity::Error, "scene.import.ref", "Canonical signalling area refers to an unknown exported track " + area.trackId, context.areaSidecar.u8string());
+				context.addDiag(SceneSeverity::Error, "scene.import.ref", "The signalling areas file refers to unknown track " + area.trackId, context.areaSidecar.u8string());
 				return false;
 			}
 			area.trackId = "B" + std::to_string(track->first);
@@ -2357,7 +2357,7 @@ static void importRollouts(ImportContext& context) {
 			row.sourceCount += valuesCount;
 			row.skippedCount += valuesCount;
 			row.unresolvedReferences++;
-			context.addDiag(SceneSeverity::Warning, "scene.import.scenario", "Cannot map rollout without known duration", source);
+			context.addDiag(SceneSeverity::Warning, "scene.import.scenario", "Rollout delays were not imported, because the case has no duration", source);
 			context.scene.scenarios.push_back(std::move(scenario));
 			continue;
 		}
@@ -2371,14 +2371,14 @@ static void importRollouts(ImportContext& context) {
 				context.report.source("scenarios.rollouts", source);
 				if (valueIndex >= values.size()) {
 					context.report.skipped("scenarios.rollouts", source);
-					context.addDiag(SceneSeverity::Warning, "scene.import.scenario", "Rollout vector is shorter than the service occurrence mapping", source, "scenarios.rollouts", true);
+					context.addDiag(SceneSeverity::Warning, "scene.import.scenario", "Rollout file has fewer delays than there are occurrences", source, "scenarios.rollouts", true);
 					++valueIndex;
 					continue;
 				}
 				double delay = 0.0;
 				if (!parseDoubleToken(values[valueIndex], delay)) {
 					context.report.skipped("scenarios.rollouts", source);
-					context.addDiag(SceneSeverity::Warning, "scene.import.parse", "Invalid rollout delay value", source, "scenarios.rollouts", true);
+					context.addDiag(SceneSeverity::Warning, "scene.import.parse", "Rollout delay is not a number", source, "scenarios.rollouts", true);
 					++valueIndex;
 					continue;
 				}
@@ -2399,7 +2399,7 @@ static void importRollouts(ImportContext& context) {
 		}
 		if (valueIndex < values.size()) {
 			context.report.skipped("scenarios.rollouts", source);
-			context.addDiag(SceneSeverity::Warning, "scene.import.scenario", "Rollout vector has extra values", source, "scenarios.rollouts", true);
+			context.addDiag(SceneSeverity::Warning, "scene.import.scenario", "Rollout file has more delays than there are occurrences", source, "scenarios.rollouts", true);
 		}
 		context.scene.scenarios.push_back(std::move(scenario));
 	}
@@ -2433,7 +2433,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	if (containsPath(comparableLegacyPath, comparableScenePath)
 		|| containsPath(comparableScenePath, comparableLegacyPath)) {
 		context.addDiag(SceneSeverity::Error, "scene.import.path",
-			"Legacy directory and case destination must be separate, non-overlapping directories", scenePath.u8string());
+			"The case destination and the legacy case folder must not be inside one another", scenePath.u8string());
 		return std::move(context.result);
 	}
 	std::error_code legacyError;
@@ -2441,7 +2441,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	if (legacyType != fs::file_type::directory) {
 		const bool unreadable = legacyError && legacyType != fs::file_type::not_found;
 		context.addDiag(SceneSeverity::Error, "scene.import.missing",
-			unreadable ? "Cannot read the legacy directory: " + legacyError.message() : std::string("Legacy directory missing or invalid"),
+			unreadable ? "Cannot read the legacy case folder: " + legacyError.message() : std::string("Legacy case folder is missing or is not a folder"),
 			context.legacyPath.u8string());
 		return std::move(context.result);
 	}
@@ -2533,11 +2533,11 @@ ScenePassengerImportResult importLegacyPassengers(const std::string& legacyRootO
 		SceneDiagnostic diagnostic;
 		diagnostic.severity = SceneSeverity::Error;
 		diagnostic.code = "scene.import.passengers.missing";
-		diagnostic.message = "Passenger import requires both DAS_FrenchCaseStudy.csv and RouteChoiceFC_EQ1.csv";
+		diagnostic.message = "Passenger import needs both DAS_FrenchCaseStudy.csv and RouteChoiceFC_EQ1.csv";
 		diagnostic.file = parsed.sources.directory.u8string();
 		diagnostic.itemType = "passengers";
 		diagnostic.path = "DAS_FrenchCaseStudy.csv,RouteChoiceFC_EQ1.csv";
-		diagnostic.suggestedFix = "Place both exact legacy passenger files in the case's Passengers directory";
+		diagnostic.suggestedFix = "Put both files in the Passengers folder of the legacy case";
 		result.diagnostics.push_back(std::move(diagnostic));
 	}
 	return result;

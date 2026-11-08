@@ -2014,7 +2014,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		}
 		if (w.m_session->m_sceneIsBundle) {
 			const QList<QTreeWidgetItem*> bundleRows = w.m_validation->tree()->findItems(
-				"Bundle version", Qt::MatchExactly | Qt::MatchRecursive, 0);
+				"Case file version", Qt::MatchExactly | Qt::MatchRecursive, 0);
 			QTreeWidgetItem* bundleRow = bundleRows.isEmpty() ? nullptr : bundleRows.front();
 			if (!bundleRow || bundleRow->text(1) != "1")
 				explorerOk = false;

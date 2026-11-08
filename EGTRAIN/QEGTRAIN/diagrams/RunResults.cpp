@@ -44,7 +44,7 @@ std::string hexDigest(const QByteArray& bytes) {
 SceneHashResult hashBundle(const QString& path) {
 	QByteArray bytes;
 	if (!readFile(path, bytes))
-		return {{}, "saved bundle is missing or unreadable"};
+		return {{}, "saved case file is missing or unreadable"};
 	return {hexDigest(bytes), {}};
 }
 

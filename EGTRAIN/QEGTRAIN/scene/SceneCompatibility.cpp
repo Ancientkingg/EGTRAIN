@@ -38,13 +38,13 @@ bool readManifest(const fs::path& path, std::string& contents,
 	const auto status = fs::symlink_status(path, ec);
 	if (ec || status.type() != fs::file_type::regular) {
 		addDiagnostic(diagnostics, "scene.compatibility.manifest",
-			"scene.json is missing or not a regular file", "scene.json");
+			"scene.json is missing or is not a file", "scene.json");
 		return false;
 	}
 	const std::uintmax_t size = fs::file_size(path, ec);
 	if (ec || size > kMaxSceneManifestSize) {
 		addDiagnostic(diagnostics, "scene.compatibility.manifest",
-			"scene.json exceeds the bounded manifest size", "scene.json");
+			"scene.json is larger than 16 MiB or its size cannot be read", "scene.json");
 		return false;
 	}
 	std::ifstream input(path, std::ios::binary);
@@ -113,11 +113,11 @@ void classifyWithRegistry(SceneCompatibilityProbeResult& result,
 		result.classification = SceneCompatibilityClass::OlderUnsupported;
 }
 
-// "schema 1" or, for a bundle, "schema 1, bundle layout 1".
+// "schema 1" or, for a case file, "schema 1, case file version 1".
 std::string versionNumbers(int schemaVersion, const std::optional<int>& bundleVersion) {
 	std::string text = "schema " + std::to_string(schemaVersion);
 	if (bundleVersion)
-		text += ", bundle layout " + std::to_string(*bundleVersion);
+		text += ", case file version " + std::to_string(*bundleVersion);
 	return text;
 }
 
@@ -160,7 +160,7 @@ void explainRejection(SceneCompatibilityProbeResult& result, bool draftLayout) {
 			"This case was saved by an older version of EGTRAIN, in " + found + " (" + saved + "), and cannot be converted. "
 				+ reads + ".",
 			"scene.json",
-			"Open a case saved by this version of EGTRAIN, or import the original legacy case again with File > Import Legacy Case...");
+			"Import the original legacy case again with File > Import Legacy Case...");
 	}
 }
 
