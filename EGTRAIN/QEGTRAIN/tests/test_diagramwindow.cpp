@@ -4653,7 +4653,7 @@ void TestDiagramWindow::inspectsEnvelopes() {
 void TestDiagramWindow::presentsInputCurve() {
 	const QString authoredId = QStringLiteral("Unit | ") + QString(120, QLatin1Char('Q'));
 	const QString scientificWarning = QStringLiteral("Part of the curve is below 0 kN and is not shown.");
-	DiagramWindow input("Traction Curve");
+	DiagramWindow input("Traction curve");
 	QFont scaled = input.font();
 	scaled.setPointSizeF(18);
 	input.setFont(scaled);
@@ -4665,7 +4665,7 @@ void TestDiagramWindow::presentsInputCurve() {
 	inputLine->append(20, 30);
 	inputChart->addSeries(inputLine);
 	inputChart->createDefaultAxes();
-	input.setPresentation("Traction Curve", authoredId + ", from traction.txt", scientificWarning);
+	input.setPresentation("Traction curve", authoredId + ", from traction.txt", scientificWarning);
 	input.setChart(inputChart);
 	input.show();
 	QApplication::processEvents();
@@ -4680,7 +4680,7 @@ void TestDiagramWindow::presentsInputCurve() {
 	QVERIFY(input.width() <= screenArea.width() * 9 / 10);
 	QVERIFY(input.height() <= screenArea.height() * 4 / 5);
 	// explicit presentation before setChart preserves identity and scientific warning with | in ID
-	QCOMPARE(input.windowTitle(), "Traction Curve");
+	QCOMPARE(input.windowTitle(), "Traction curve");
 	QVERIFY(input.findChild<QLabel*>("diagramContext")->text().contains(", from traction.txt"));
 	QVERIFY(inputChart->title().isEmpty());
 	QVERIFY(input.findChild<QLabel*>("diagramContext")->isVisible());
