@@ -1,5 +1,6 @@
 var NAVTREEINDEX17 =
 {
+"class_train_badge_item.html#af7590fcbb1cdc275ae631a1ef2704c7ba4042fcadbe61a3300451157e2c9fe651":[2,0,348,0,2],
 "class_train_badge_item.html#af7590fcbb1cdc275ae631a1ef2704c7bac9c5c65fb4af9cf90eb99b3b84424189":[2,0,348,0,1],
 "class_train_body_item.html":[2,0,349],
 "class_train_body_item.html#a0a3b0fd809bdbb1d5b5a45b2aacf1b1b":[2,0,349,6],
@@ -248,6 +249,5 @@ var NAVTREEINDEX17 =
 "class_virtual_arc_item.html#aa3154d6d58b1dccf384758dfc71982a8":[2,0,378,1],
 "class_virtual_arc_item.html#aadf3ab4aafa763561fb97bccc0a5c08f":[2,0,378,5],
 "class_virtual_arc_item.html#ac17ad52a9c0988104e4960bad9c3aac0":[2,0,378,3],
-"class_virtual_arc_item.html#ae94d0e2e8622874d74c02c644d3caaaa":[2,0,378,2],
-"classeglog_1_1_line.html":[1,0,7,0]
+"class_virtual_arc_item.html#ae94d0e2e8622874d74c02c644d3caaaa":[2,0,378,2]
 };

@@ -1,5 +1,6 @@
 var NAVTREEINDEX20 =
 {
+"namespace_runtime_limits.html#aca92641f8d049e4350fd1055f6b9be5b":[1,0,12,9],
 "namespace_timetable_stops.html":[1,0,16],
 "namespace_timetable_stops.html#a641f55d38748385fa14b464b2afcd09e":[1,0,16,1],
 "namespace_timetable_stops.html#a760c0eac70de2284909ab143fbfe0146":[1,0,16,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX20 =
 "struct_blocking_time_diagram_data.html#aed5d75e7638bfd362ad4bf68f64f366d":[2,0,19,4],
 "struct_blocking_time_diagram_input.html":[2,0,20],
 "struct_blocking_time_diagram_input.html#a3da2c69f9d82b3d6016ac3894e9c2686":[2,0,20,7],
-"struct_blocking_time_diagram_input.html#a40d57d90a85f8c9451541f77a743bd57":[2,0,20,5],
-"struct_blocking_time_diagram_input.html#a615a747d9a3dddd817bed7d50a5a2cc5":[2,0,20,8]
+"struct_blocking_time_diagram_input.html#a40d57d90a85f8c9451541f77a743bd57":[2,0,20,5]
 };

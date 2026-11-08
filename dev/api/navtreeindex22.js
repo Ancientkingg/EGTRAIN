@@ -1,5 +1,6 @@
 var NAVTREEINDEX22 =
 {
+"struct_delay_histogram.html#aa8908837e5220e0c4870dd0cae400793":[2,0,70,2],
 "struct_delay_histogram.html#aa917c93d5865b448efa9eb0d845731a3":[2,0,70,0],
 "struct_delay_histogram.html#ac81a1482879611dcff82274d3dafea73":[2,0,70,3],
 "struct_delay_histogram_class.html":[2,0,71],
@@ -248,6 +249,5 @@ var NAVTREEINDEX22 =
 "struct_live_run_info.html#a1f7ddfa17892b60010be3a43c3e5ca80":[2,0,133,4],
 "struct_live_run_info.html#a32c95fcd13a8389fb20627f5d352c35b":[2,0,133,1],
 "struct_live_run_info.html#ae13743ea865ce612e46da0785b43daa2":[2,0,133,2],
-"struct_live_server_state.html":[2,0,135],
-"struct_live_server_state.html#a0071ab7c0b94807c05ced2d4bc53684c":[2,0,135,0]
+"struct_live_server_state.html":[2,0,135]
 };

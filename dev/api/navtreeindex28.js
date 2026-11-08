@@ -1,5 +1,6 @@
 var NAVTREEINDEX28 =
 {
+"structtelemetry_1_1_telemetry_sender_1_1_shared.html#ad43567200d179b37e4eb6d7f6a10e288":[1,0,14,11,1,7],
 "structtelemetry_1_1_telemetry_sender_1_1_shared.html#ad43567200d179b37e4eb6d7f6a10e288":[2,0,3,11,1,7],
 "structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html":[1,0,14,11,1,0],
 "structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html":[2,0,3,11,1,0],

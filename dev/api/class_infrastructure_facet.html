@@ -193,6 +193,7 @@ Static Protected Member Functions</h2></td></tr>
 <tr class="memitem:a673539005907917979ae8830c3ce596a" id="r_a673539005907917979ae8830c3ce596a"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a673539005907917979ae8830c3ce596a">setFlagCell</a> (QTableWidget &amp;table, int row, int column, bool value)</td></tr>
 <tr class="memitem:a41463bc765631c1d8abb406c762b3187" id="r_a41463bc765631c1d8abb406c762b3187"><td class="memItemLeft">static QString&#160;</td><td class="memItemRight"><a class="el" href="#a41463bc765631c1d8abb406c762b3187">cellValue</a> (const QTableWidgetItem &amp;item)</td></tr>
 <tr class="memdesc:a41463bc765631c1d8abb406c762b3187"><td class="mdescLeft">&#160;</td><td class="mdescRight">What an edited cell holds: its trimmed text, or for a check box (a cell with a check state) "true" or "false".  <br /></td></tr>
+<tr class="memitem:aaeff095d03dd80ed6ba681cb9852f3a7" id="r_aaeff095d03dd80ed6ba681cb9852f3a7"><td class="memItemLeft">static QString&#160;</td><td class="memItemRight"><a class="el" href="#aaeff095d03dd80ed6ba681cb9852f3a7">refusedValueText</a> (const QTableWidget &amp;table, int row, int column)</td></tr>
 <tr class="memitem:a4833f06f9f35761194335cd98029e503" id="r_a4833f06f9f35761194335cd98029e503"><td class="memItemLeft">static QString&#160;</td><td class="memItemRight"><a class="el" href="#a4833f06f9f35761194335cd98029e503">missingIdsText</a> (const QString &amp;noun, const QStringList &amp;ids)</td></tr>
 <tr class="memitem:a93965812d3e22c65de39f10caac500ee" id="r_a93965812d3e22c65de39f10caac500ee"><td class="memItemLeft">static QString&#160;</td><td class="memItemRight"><a class="el" href="#a93965812d3e22c65de39f10caac500ee">numberText</a> (double value)</td></tr>
 <tr class="memitem:a9760eaef45f7754a6a786e578f1dc455" id="r_a9760eaef45f7754a6a786e578f1dc455"><td class="memItemLeft">static QString&#160;</td><td class="memItemRight"><a class="el" href="#a9760eaef45f7754a6a786e578f1dc455">flagText</a> (bool value)</td></tr>
@@ -947,6 +948,42 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_facet_a4a36b88bc8ef343174f18b9515ac5cbb_cgraph.svg" width="354" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="aaeff095d03dd80ed6ba681cb9852f3a7" name="aaeff095d03dd80ed6ba681cb9852f3a7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaeff095d03dd80ed6ba681cb9852f3a7">&#9670;&#160;</a></span>refusedValueText()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString InfrastructureFacet::refusedValueText </td>
+          <td>(</td>
+          <td class="paramtype">const QTableWidget &amp;</td>          <td class="paramname"><span class="paramname"><em>table</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>row</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>column</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The message that refuses the text of the cell in <span class="tt">row</span> and <span class="tt">column</span> of the table, which <a class="el" href="#a5bde421647ab73d6ff2eb37189195943" title="Stores the number that text reads in target. Text that is no finite number is refused.">setNumber()</a> or <a class="el" href="#a6ba5b3179a7f3e769da2056d292390f7" title="Stores the flag that text reads, &quot;true&quot; or &quot;false&quot; in any case, in target. Other text is refused.">setFlag()</a> did not read, named by the header of the column: "X (km) needs a number, such as 1.5." or "Reversed needs true or
+false.". </p>
 
 </div>
 </div>

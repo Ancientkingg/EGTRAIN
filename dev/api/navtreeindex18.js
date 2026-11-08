@@ -1,5 +1,6 @@
 var NAVTREEINDEX18 =
 {
+"classeglog_1_1_line.html":[1,0,7,0],
 "classeglog_1_1_line.html":[2,0,1,0],
 "classeglog_1_1_line.html#a4dd656e6d1685ff95700fe79a55b76b6":[1,0,7,0,3],
 "classeglog_1_1_line.html#a4dd656e6d1685ff95700fe79a55b76b6":[2,0,1,0,3],
@@ -248,6 +249,5 @@ var NAVTREEINDEX18 =
 "dir_faca76c5fee20606b56cac3ad5b41912.html":[3,0,3,0],
 "files.html":[3,0],
 "functions.html":[2,3,0],
-"functions.html":[2,3,0,0],
-"functions_b.html":[2,3,0,1]
+"functions.html":[2,3,0,0]
 };

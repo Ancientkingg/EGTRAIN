@@ -1,5 +1,6 @@
 var NAVTREEINDEX11 =
 {
+"class_movement_authority.html#a94fdf8106c266654dfd79e368c0aadb0":[2,0,140,2],
 "class_movement_authority.html#a9551f5c6183502cd608db57c1ae38604":[2,0,140,0],
 "class_movement_authority.html#acc9ef70c922742aed531cfd424ca40c2":[2,0,140,5],
 "class_movement_authority.html#ad5811bb7272cb07dc1385386042ecbb6":[2,0,140,4],
@@ -248,6 +249,5 @@ var NAVTREEINDEX11 =
 "class_number_generator.html#a6f0e5fdb0885a79a71144eec9d925574":[2,0,152,13],
 "class_number_generator.html#a7eab08dfeb44d81013ee4824c0387b4e":[2,0,152,11],
 "class_number_generator.html#a92dc83e596cfde3d65bf21d278bffce1":[2,0,152,4],
-"class_number_generator.html#ab9ff0d6a4b1de6790ad6cdfca2078149":[2,0,152,0],
-"class_number_generator.html#acc30144790c080c62c4b5d14626dac55":[2,0,152,6]
+"class_number_generator.html#ab9ff0d6a4b1de6790ad6cdfca2078149":[2,0,152,0]
 };

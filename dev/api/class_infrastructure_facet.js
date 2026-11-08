@@ -36,6 +36,7 @@ var class_infrastructure_facet =
     [ "moveSection", "class_infrastructure_facet.html#a8933cd118adc79cab0129573be920109", null ],
     [ "numberText", "class_infrastructure_facet.html#a93965812d3e22c65de39f10caac500ee", null ],
     [ "operator=", "class_infrastructure_facet.html#a4a36b88bc8ef343174f18b9515ac5cbb", null ],
+    [ "refusedValueText", "class_infrastructure_facet.html#aaeff095d03dd80ed6ba681cb9852f3a7", null ],
     [ "remove", "class_infrastructure_facet.html#ad937cff6135a5a2a9bde611d4a96613b", null ],
     [ "removeSection", "class_infrastructure_facet.html#a6ff123f514278f36578447388f62b16d", null ],
     [ "rowOnTrack", "class_infrastructure_facet.html#ac0616ed4d0ef19ba9f1e87145e5d09f7", null ],
