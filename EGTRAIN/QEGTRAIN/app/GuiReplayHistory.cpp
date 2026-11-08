@@ -86,12 +86,16 @@ void resetChanging(GuiPlatformState& platform) {
 	release(platform.passengerIds);
 }
 
-// A string that is only cleared keeps its storage, so these are replaced by empty ones.
+// Releases the memory of a string. Neither clear() nor, in libstdc++, assigning an empty string gives it back.
+void release(std::string& text) {
+	std::string().swap(text);
+}
+
 void resetChanging(GuiPassengerState& passenger) {
-	passenger.status = std::string();
-	passenger.waitingPlatform = std::string();
-	passenger.nextTrain = std::string();
-	passenger.nextDestination = std::string();
+	release(passenger.status);
+	release(passenger.waitingPlatform);
+	release(passenger.nextTrain);
+	release(passenger.nextDestination);
 }
 
 template <class T> std::vector<T> prototypes(const std::vector<T>& states) {
