@@ -346,6 +346,7 @@ private slots:
 	void selectsRowOfCanvasItem_data();
 	void selectsRowOfCanvasItem();
 	void selectsCanvasItemInListedTable();
+	void selectsEntityOfDiagnostic();
 	void canvasItemWithoutRowChangesNothing();
 	void takesOpenEditorBeforeCanvasItem();
 	void filtersRowsByText();
@@ -1626,6 +1627,25 @@ void TestInfrastructurePanel::selectsCanvasItemInListedTable() {
 	QVERIFY(f.panel.selectCanvasItem("signal", "@36-B0@"));
 	QCOMPARE(f.selectedCells(2), QStringList({"36-B0", "B0"}));
 	QCOMPARE(events.selections, std::vector<Selection>({Selection("blocks", "36-B0")}));
+}
+
+// The entity that a diagnostic names is selected in the table of its facet: a block with the filter on its track, and a
+// route. An id that the scene does not have, and a kind without a row, change nothing.
+void TestInfrastructurePanel::selectsEntityOfDiagnostic() {
+	PaimpolPanel f;
+	QVERIFY(f.panel.selectEntity("block", "36-B0"));
+	QCOMPARE(f.panel.facetKey(), "blocks");
+	QCOMPARE(f.panel.selectionId(), "36-B0");
+	QCOMPARE(f.panel.blockTrackFilterCombo()->currentData().toString(), "B0");
+	QVERIFY(!f.document.model().routes.empty());
+	const QString routeId = QString::fromStdString(f.document.model().routes.back().id);
+	QVERIFY(f.panel.selectEntity("route", routeId));
+	QCOMPARE(f.panel.facetKey(), "routes");
+	QCOMPARE(f.panel.selectionId(), routeId);
+	QVERIFY(!f.panel.selectEntity("route", "no-such-route"));
+	QVERIFY(!f.panel.selectEntity("journey", "0:1"));
+	QCOMPARE(f.panel.facetKey(), "routes");
+	QCOMPARE(f.panel.selectionId(), routeId);
 }
 
 // An item without a row changes nothing and tells nothing: an id that the scene does not have, a kind without rows and a

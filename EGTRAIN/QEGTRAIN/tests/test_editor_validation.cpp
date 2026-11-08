@@ -143,6 +143,7 @@ private slots:
 	void showsColumnsWithAdvancedDetails();
 	void fitsColumnsShownByAdvancedDetails();
 	void namesItemOfEachRow();
+	void activatesRowsWithItem();
 	void reusesValidationWithoutChange();
 	void validatesAgainAfterEdit();
 	void validatesAgainAfterUndo();
@@ -666,6 +667,40 @@ void TestValidationPanel::namesItemOfEachRow() {
 	// The base time belongs to no item, so its row leaves the Item column empty.
 	QCOMPARE_GE(baseTimeRow, 0);
 	QCOMPARE(table->item(baseTimeRow, itemColumn)->text(), QString());
+}
+
+// Activating a row of the table says which item its diagnostic names, as a double-click or Return does; a row without an
+// item says nothing.
+void TestValidationPanel::activatesRowsWithItem() {
+	QWidget host;
+	ValidationPanel panel(&host);
+	SceneDocument document;
+	panel.setDocument(&document);
+	SceneModel scene = runnableScene();
+	scene.baseTime.clear();
+	scene.arcs.front().speedLimitMs = 0.0;
+	document.replace(scene, false);
+	panel.refresh();
+	std::vector<QString> activated;
+	QObject::connect(&panel, &ValidationPanel::itemActivated, &panel,
+		[&activated](const QString& type, const QString& id) { activated.push_back(type + ":" + id); });
+	QTableWidget* table = panel.table();
+	int arcRow = -1;
+	int sceneRow = -1;
+	for (int row = 0; row < table->rowCount(); ++row) {
+		const QString code = table->item(row, 1)->text();
+		if (code == "scene.arc.speed.invalid")
+			arcRow = row;
+		else if (code == "scene.basetime.missing")
+			sceneRow = row;
+	}
+	QCOMPARE_GE(arcRow, 0);
+	QCOMPARE_GE(sceneRow, 0);
+	emit table->cellActivated(sceneRow, 0);
+	panel.activateRow(-1);
+	QVERIFY2(activated.empty(), "a row without an item opens nothing");
+	emit table->cellActivated(arcRow, 2);
+	QCOMPARE(activated, std::vector<QString>({"arc:arc"}));
 }
 
 // A refresh that finds the scene and the duration override as they were validated shows that validation again: the

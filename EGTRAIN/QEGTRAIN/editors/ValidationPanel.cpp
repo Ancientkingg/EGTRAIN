@@ -126,6 +126,7 @@ ValidationPanel::ValidationPanel(QWidget* parent) : QObject(parent) {
 	m_table->setTabKeyNavigation(false);
 	m_table->horizontalHeader()->setStretchLastSection(true);
 	m_table->resizeColumnsToContents();
+	connect(m_table, &QTableWidget::cellActivated, this, [this](int row, int) { activateRow(row); });
 
 	m_tree = new QTreeWidget(parent);
 	m_tree->setColumnCount(4);
@@ -240,6 +241,8 @@ void ValidationPanel::refresh() {
 		const QString file = QString::fromStdString(d.file);
 		auto* severityItem = new QTableWidgetItem(severityText(d.severity));
 		severityItem->setData(kFileRole, file);
+		severityItem->setData(kItemTypeRole, QString::fromStdString(d.itemType));
+		severityItem->setData(kItemIdRole, QString::fromStdString(d.itemId));
 		m_table->setItem(row, 0, severityItem);
 		m_table->setItem(row, kCodeColumn, new QTableWidgetItem(QString::fromStdString(d.code)));
 		m_table->setItem(row, 2, new QTableWidgetItem(QString::fromStdString(d.message)));
@@ -357,6 +360,15 @@ void ValidationPanel::activateItem(QTreeWidgetItem* item) {
 	const QString targetType = item->data(0, kTargetTypeRole).toString();
 	if (!targetType.isEmpty())
 		Q_EMIT targetActivated(targetType, item);
+}
+
+void ValidationPanel::activateRow(int row) {
+	const QTableWidgetItem* cell = m_table->item(row, 0);
+	if (!cell)
+		return;
+	const QString itemId = cell->data(kItemIdRole).toString();
+	if (!itemId.isEmpty())
+		Q_EMIT itemActivated(cell->data(kItemTypeRole).toString(), itemId);
 }
 
 void ValidationPanel::selectDiagnosticOfFile(const QString& file) {

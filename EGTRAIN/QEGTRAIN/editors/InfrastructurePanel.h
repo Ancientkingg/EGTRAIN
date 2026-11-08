@@ -77,6 +77,21 @@ public:
 	/// already. Returns false and changes nothing while the scene cannot be edited, and for an item of another kind or
 	/// whose entity the scene does not have.
 	bool selectCanvasItem(const QString& kind, const QString& id, const QString& platform = QString());
+	/// Selects the row of the entity that a diagnostic names (SceneDiagnostic::itemType and itemId), as selectCanvasItem()
+	/// does for an item of the preview. `kind` is a node, a track, an arc, a connection, a station, a block (its track
+	/// filter then shows the track of the block), a signal by its id, a signalling area or a route. Returns false and
+	/// changes nothing while the scene cannot be edited, and for another kind or an entity that the scene does not have.
+	bool selectEntity(const QString& kind, const QString& id);
+	/// The row that selectCanvasItem() and selectEntity() choose: the key of its facet, its selection id and, for a block,
+	/// the track that the filter shows. The facet is empty for an entity without a row.
+	struct RowTarget {
+		/// The key of the facet that lists the row, empty for an entity without a row.
+		QString facet;
+		/// The selection id of the row.
+		QString id;
+		/// For a block, the track that the filter of the blocks shows; empty otherwise.
+		QString track;
+	};
 	/// Lists the tracks that blocks can be filtered on again and keeps the chosen track where it still exists.
 	void refreshBlockTrackFilter();
 
@@ -206,6 +221,9 @@ protected:
 	void documentReplaced() override {}
 
 private:
+	// Selects the row that `find` gives for the model, after taking the cells that are being edited; find runs again after
+	// them, because the edit can rename or remove the entity.
+	bool selectRow(const std::function<RowTarget(const SceneModel&)>& find);
 	class CellDelegate;
 
 	// Shows the section catalog and the sections of the selected route, while routes are listed.

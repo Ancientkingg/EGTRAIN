@@ -32,6 +32,11 @@ public:
 	static constexpr int kTargetTypeRole = Qt::UserRole;
 	/// The item data role of the scene file of a diagnostic, on the first cell of its row in the table.
 	static constexpr int kFileRole = Qt::UserRole;
+	/// The item data role of the kind of the item of a diagnostic (SceneDiagnostic::itemType), on the first cell of its
+	/// row in the table.
+	static constexpr int kItemTypeRole = Qt::UserRole + 1;
+	/// The item data role of the id of the item of a diagnostic (SceneDiagnostic::itemId), on the same cell.
+	static constexpr int kItemIdRole = Qt::UserRole + 2;
 	/// The widest that the Category and Source columns of the tree grow to fit their rows, so that Count and Status stay
 	/// in view. The names of the categories fit within it.
 	static constexpr int kTreeTextColumnWidth = 360;
@@ -90,6 +95,8 @@ public:
 	static QString statusText(const SceneDiagnosticCounts& counts, bool advanced);
 	/// Emits targetActivated() for a row of the tree that has a kind.
 	void activateItem(QTreeWidgetItem* item);
+	/// Emits itemActivated() for a row of the table whose diagnostic has an item; a row without one does nothing.
+	void activateRow(int row);
 	/// Selects the first row of the table that belongs to this scene file.
 	void selectDiagnosticOfFile(const QString& file);
 
@@ -100,6 +107,9 @@ Q_SIGNALS:
 	void refreshed();
 	/// A row of the tree with this kind was activated. The tree owns `item`.
 	void targetActivated(const QString& targetType, QTreeWidgetItem* item);
+	/// A row of the table whose diagnostic names an item was activated, by a double-click or Return. `itemType` is the kind
+	/// of the item, such as "arc", and is empty when the diagnostic gives none.
+	void itemActivated(const QString& itemType, const QString& itemId);
 
 private:
 	bool advancedDetails() const;
