@@ -51,6 +51,12 @@ namespace {
 constexpr int kMaxTracks = static_cast<int>(RuntimeLimits::kNativeMaxTracks);
 constexpr int kMaxNodeConnections = static_cast<int>(RuntimeLimits::kNativeMaxNodeConnections);
 
+// A node of the run by its id in the scene, or by its number when the node has no id in the scene.
+QString runNodeIdText(const Node& node) {
+	return node.sceneNodeId.empty() ? QString::fromStdString(InspectorPanel::toStringPrecision(node.ID, 0))
+									: QString::fromStdString(node.sceneNodeId);
+}
+
 // Shows text in the field, and in its tooltip the text with tip, such as the id behind a label, under it. The other
 // fields get their text as tooltip from the textChanged hook of the constructor; this sets the tooltip after that.
 void setTextWithTip(QLineEdit* field, const QString& text, const QString& tip) {
@@ -560,9 +566,9 @@ void InspectorPanel::displayNodeInfo(NodeItem* nodeItem) {
 	handleCloseInfoDockWidget();
 
 	// update Node info displayed on widget
-	m_nodeIDText->setText(QString::fromStdString(toStringPrecision(nodeItem->node->ID, 0)));
-	m_nodeXText->setText(QString::fromStdString(toStringPrecision(1000 * nodeItem->node->X, 2))); // km to m
-	m_nodeYText->setText(QString::fromStdString(toStringPrecision(1000 * nodeItem->node->Y, 2))); // km to m
+	m_nodeIDText->setText(runNodeIdText(*nodeItem->node));
+	m_nodeXText->setText(QString::number(1000 * nodeItem->node->X, 'g', 12)); // km to m
+	m_nodeYText->setText(QString::number(1000 * nodeItem->node->Y, 'g', 12)); // km to m
 	setTrackText(m_nodeTrackIDText, *m_presenter, {nodeItem->track});
 	m_nodeStationNameText->clear();
 	m_nodeRegionText->clear();
@@ -589,9 +595,9 @@ void InspectorPanel::displayStationNodeInfo(StationNodeItem* stationItem) {
 	m_host.inspectionChanged();
 
 	// update Node info displayed on widget
-	m_nodeIDText->setText(QString::fromStdString(toStringPrecision(stationItem->node->ID, 0)));
-	m_nodeXText->setText(QString::fromStdString(toStringPrecision(1000 * stationItem->node->X, 2))); // km to m
-	m_nodeYText->setText(QString::fromStdString(toStringPrecision(1000 * stationItem->node->Y, 2))); // km to m
+	m_nodeIDText->setText(runNodeIdText(*stationItem->node));
+	m_nodeXText->setText(QString::number(1000 * stationItem->node->X, 'g', 12)); // km to m
+	m_nodeYText->setText(QString::number(1000 * stationItem->node->Y, 'g', 12)); // km to m
 	setTrackText(m_nodeTrackIDText, *m_presenter, {stationItem->track});
 	m_nodeStationNameText->setText(QString::fromStdString(stationItem->node->stationName));
 	if (stationItem->track >= 0 && stationItem->track < kMaxTracks)
@@ -621,9 +627,10 @@ void InspectorPanel::displayArcInfo(TrackLineItem* line) {
 	handleCloseInfoDockWidget();
 
 	// update Arc info displayed on widget
-	m_arcIDText->setText(QString::fromStdString(toStringPrecision(line->arc->ID, 0)));
-	m_arcFirstNodeIDText->setText(QString::fromStdString(toStringPrecision(line->arc->startNode.ID, 0)));
-	m_arcSecondNodeIDText->setText(QString::fromStdString(toStringPrecision(line->arc->endNode.ID, 0)));
+	m_arcIDText->setText(line->arc->sceneArcId.empty() ? QString::fromStdString(toStringPrecision(line->arc->ID, 0))
+													   : QString::fromStdString(line->arc->sceneArcId));
+	m_arcFirstNodeIDText->setText(runNodeIdText(line->arc->startNode));
+	m_arcSecondNodeIDText->setText(runNodeIdText(line->arc->endNode));
 	setTrackText(m_arcTrackIDText, *m_presenter, {line->track});
 	m_arcLengthText->setText(QString::fromStdString(toStringPrecision(line->arc->length, 2)));
 	m_arcCurvatureText->setText(QString::fromStdString(toStringPrecision(line->arc->curvature, 2)));
