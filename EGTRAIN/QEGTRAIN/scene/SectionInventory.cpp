@@ -366,6 +366,18 @@ SceneSectionTransition classifySceneSectionTransition(const SceneModel& scene,
 	return transition;
 }
 
+SceneTrackChain sceneTrackChain(const SceneModel& scene, const std::string& trackId) {
+	std::unordered_map<std::string, const SceneNode*> nodesById;
+	for (const auto& node : scene.nodes)
+		nodesById.emplace(node.id, &node);
+	const auto track = std::find_if(scene.tracks.begin(), scene.tracks.end(),
+		[&trackId](const SceneTrack& candidate) { return candidate.id == trackId; });
+	if (track == scene.tracks.end())
+		return {};
+	TrackChain chain = chainForTrack(scene, *track, nodesById);
+	return {std::move(chain.nodes), std::move(chain.arcs)};
+}
+
 SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
 	std::vector<SceneSectionDescriptor> sections;
 	std::unordered_map<std::string, const SceneNode*> nodesById;

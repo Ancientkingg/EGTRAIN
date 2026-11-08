@@ -197,6 +197,19 @@ struct SceneBlockExtent {
 	double startKm = 0.0; ///< Lowest chainage in kilometres.
 	double endKm = 0.0;	  ///< Highest chainage in kilometres.
 };
+/// The nodes and arcs of one track in order along it.
+struct SceneTrackChain {
+	/// The nodes of the track from its only node without an incoming arc to the last one. Empty when the arcs of the
+	/// track do not form one line.
+	std::vector<const SceneNode*> nodes;
+	/// The arcs of the track in the same order, each from nodes[i] to nodes[i + 1]. Empty when nodes is.
+	std::vector<const SceneArc*> arcs;
+};
+
+/// The chain of the track, as the section inventory builds it. Both lists are empty for an unknown track and when the
+/// arcs of the track do not form one line (scene.topology.* in the validator). The pointers lead into scene.
+SceneTrackChain sceneTrackChain(const SceneModel& scene, const std::string& trackId);
+
 /// The extent of the block sections of the track, or of all tracks when trackId is empty.
 SceneBlockExtent sceneBlockExtent(const SceneSectionInventory& inventory, const std::string& trackId);
 

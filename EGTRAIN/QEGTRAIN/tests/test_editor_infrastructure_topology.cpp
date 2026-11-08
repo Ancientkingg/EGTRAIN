@@ -4,6 +4,7 @@
 #include "scene/SectionInventory.h"
 
 #include "scene/RuntimeLimits.h"
+#include "scene/SceneValidator.h"
 #include "support/EditHistory.h"
 #include "support/FakePrompts.h"
 
@@ -19,6 +20,7 @@
 #include <QTableWidget>
 #include <QTest>
 
+#include <cmath>
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -204,6 +206,10 @@ private slots:
 	void refusesStationBeyondLimit();
 	void cancelAddsNoStation();
 	void taskButtonFollowsSelection();
+	void reversesFallingTrack();
+	void undoRestoresReversedTrack();
+	void refusesBrokenTrack();
+	void reverseWithoutRoutesShowsNoBox();
 };
 
 void TestTopologyFacets::offersNetworkFacets() {
@@ -995,6 +1001,159 @@ void TestTopologyFacets::taskButtonFollowsSelection() {
 	fixture.panel.refresh();
 	fixture.choose("arcs");
 	QVERIFY(!fixture.panel.taskButton(0));
+}
+
+// The topology scene and a third track whose X falls along its arcs: nodes at 2, 1 and 0, a climb of 0.01 on the first
+// arc and none on the second, and two blocks of 0.5 and 1.5 km that share scene.blocks with the other tracks. A route
+// runs over both blocks of the track and a second route over a block of track-a.
+static SceneModel fallingTrackScene() {
+	SceneModel scene = topologyScene();
+	scene.tracks.push_back({"track-c"});
+	scene.nodes.push_back(node("node-c0", "track-c", 2.0));
+	scene.nodes.push_back(node("node-c1", "track-c", 1.0));
+	scene.nodes.push_back(node("node-c2", "track-c", 0.0));
+	scene.arcs.push_back(arc("arc-c1", "track-c", "node-c0", "node-c1"));
+	scene.arcs.push_back(arc("arc-c2", "track-c", "node-c1", "node-c2"));
+	scene.arcs[4].gradientPercent = 0.01;
+	SceneBlock first = block("block-c1", "track-c");
+	first.lengthKm = 0.5;
+	SceneBlock second = block("block-c2", "track-c");
+	second.lengthKm = 1.5;
+	scene.blocks = {block("block-a1", "track-a"), first, block("block-a2", "track-a"), block("block-b1", "track-b"),
+		second, block("block-b2", "track-b")};
+	SceneRoute over;
+	over.id = "route-c";
+	over.blocks = {"block-c1", "block-c2"};
+	SceneRoute elsewhere;
+	elsewhere.id = "route-a";
+	elsewhere.blocks = {"block-a1"};
+	scene.routes = {elsewhere, over};
+	return scene;
+}
+
+static int orderErrors(const SceneModel& scene) {
+	int count = 0;
+	for (const SceneDiagnostic& diagnostic : validateScene(scene))
+		count += diagnostic.code == "scene.topology.order" ? 1 : 0;
+	return count;
+}
+
+static std::vector<std::string> blockIds(const SceneModel& scene) {
+	std::vector<std::string> result;
+	for (const SceneBlock& item : scene.blocks)
+		result.push_back(item.id);
+	return result;
+}
+
+// Reverse Track swaps the ends of the arcs of track-c, negates the climb but keeps 0 as +0, and reverses the blocks
+// within the places that track-c holds in scene.blocks. That clears the order errors, and it names the route that runs
+// over the track.
+void TestTopologyFacets::reversesFallingTrack() {
+	Fixture fixture(fallingTrackScene());
+	QVERIFY(orderErrors(fixture.model()) > 0);
+	fixture.choose("tracks");
+	fixture.select(2);
+	QCOMPARE(fixture.cell(2, 0), QString("track-c"));
+	QPushButton* button = fixture.panel.taskButton(0);
+	QVERIFY(button);
+	QCOMPARE(button->objectName(), QString("reverseTrackButton"));
+	QCOMPARE(button->text(), QString("Reverse Track"));
+	QCOMPARE(button->toolTip(),
+		QString("Swaps the ends of every arc of the selected track and reverses the order of its blocks."));
+	QVERIFY(button->isEnabled());
+
+	button->click();
+
+	QVERIFY(fixture.changedOnce("Reverse track"));
+	const SceneModel& model = fixture.model();
+	QCOMPARE(orderErrors(model), 0);
+	QCOMPARE(model.arcs[4].fromNodeId, std::string("node-c1"));
+	QCOMPARE(model.arcs[4].toNodeId, std::string("node-c0"));
+	QCOMPARE(model.arcs[5].fromNodeId, std::string("node-c2"));
+	QCOMPARE(model.arcs[5].toNodeId, std::string("node-c1"));
+	QCOMPARE(model.arcs[4].gradientPercent, -0.01);
+	QCOMPARE(model.arcs[5].gradientPercent, 0.0);
+	QVERIFY(!std::signbit(model.arcs[5].gradientPercent));
+	QCOMPARE(model.arcs[0].fromNodeId, std::string("node-a0"));
+	QCOMPARE(blockIds(model),
+		std::vector<std::string>({"block-a1", "block-c2", "block-a2", "block-b1", "block-c1", "block-b2"}));
+	QCOMPARE(model.nodes[6].xKm, 2.0);
+	const SceneSectionInventory inventory = buildSceneSectionInventory(model);
+	const SceneSectionDescriptor* high = inventory.exact("@block-c2@");
+	const SceneSectionDescriptor* low = inventory.exact("@block-c1@");
+	QVERIFY(high && low);
+	QCOMPARE(high->startKm, 0.0);
+	QCOMPARE(high->endKm, 1.5);
+	QCOMPARE(low->startKm, 1.5);
+	QCOMPARE(low->endKm, 2.0);
+	for (const SceneSectionDescriptor* section : {high, low}) {
+		QVERIFY(!section->layoutOverflow);
+		QVERIFY(!section->clippedToTrackEnd);
+		QVERIFY(!section->trackCoverageGap);
+	}
+	QCOMPARE(fixture.prompts.infoCount, 1);
+	QCOMPARE(fixture.prompts.infoTitle, QString("Track Reversed"));
+	QCOMPARE(fixture.prompts.infoMessage,
+		QString("Track 'track-c' is reversed. Check these routes, which run over it:\n\xE2\x80\xA2 route-c"));
+	QCOMPARE(fixture.messages, QStringList({"Reversed track 'track-c'. Undo restores it."}));
+}
+
+// One Undo puts the arcs, the gradients and the block order back.
+void TestTopologyFacets::undoRestoresReversedTrack() {
+	Fixture fixture(fallingTrackScene());
+	RunSelection selection;
+	EditHistory history(fixture.document, selection, fixture.panel);
+	const SceneModel before = fixture.model();
+	fixture.choose("tracks");
+	fixture.select(2);
+	fixture.panel.taskButton(0)->click();
+	QVERIFY(fixture.model().arcs[4].fromNodeId != before.arcs[4].fromNodeId);
+
+	QVERIFY(history.undo());
+
+	const SceneModel& model = fixture.model();
+	QCOMPARE(model.arcs.size(), before.arcs.size());
+	for (std::size_t index = 0; index < model.arcs.size(); ++index) {
+		QCOMPARE(model.arcs[index].fromNodeId, before.arcs[index].fromNodeId);
+		QCOMPARE(model.arcs[index].toNodeId, before.arcs[index].toNodeId);
+		QCOMPARE(model.arcs[index].gradientPercent, before.arcs[index].gradientPercent);
+		QCOMPARE(std::signbit(model.arcs[index].gradientPercent), std::signbit(before.arcs[index].gradientPercent));
+	}
+	QCOMPARE(blockIds(model), blockIds(before));
+	QVERIFY(!history.undo());
+}
+
+// A track whose arcs are not one line, here two arcs that leave node-c0, is not changed, and the status line says why.
+void TestTopologyFacets::refusesBrokenTrack() {
+	SceneModel scene = fallingTrackScene();
+	scene.arcs.push_back(arc("arc-c3", "track-c", "node-c0", "node-c2"));
+	Fixture fixture(scene);
+	fixture.choose("tracks");
+	fixture.select(2);
+
+	fixture.panel.taskButton(0)->click();
+
+	QVERIFY(fixture.untouched());
+	QCOMPARE(fixture.prompts.infoCount, 0);
+	QCOMPARE(fixture.messages,
+		QStringList({"Track 'track-c' is not one line of arcs. Case Validation names what to fix."}));
+	QCOMPARE(fixture.model().arcs[4].fromNodeId, std::string("node-c0"));
+	QCOMPARE(blockIds(fixture.model()), blockIds(scene));
+}
+
+// A track that no route runs over is reversed without a box.
+void TestTopologyFacets::reverseWithoutRoutesShowsNoBox() {
+	Fixture fixture(fallingTrackScene());
+	fixture.choose("tracks");
+	fixture.select(1);
+	QCOMPARE(fixture.cell(1, 0), QString("track-b"));
+
+	fixture.panel.taskButton(0)->click();
+
+	QVERIFY(fixture.changedOnce("Reverse track"));
+	QCOMPARE(fixture.prompts.infoCount, 0);
+	QCOMPARE(fixture.model().arcs[2].fromNodeId, std::string("node-b1"));
+	QCOMPARE(fixture.messages, QStringList({"Reversed track 'track-b'. Undo restores it."}));
 }
 
 QTEST_MAIN(TestTopologyFacets)
