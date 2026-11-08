@@ -4,14 +4,21 @@
 
 #include <QDoubleSpinBox>
 #include <QFormLayout>
+#include <QLabel>
 #include <QLineEdit>
 #include <QSignalBlocker>
+#include <QStringList>
 
 #include <string>
 
 CaseSettingsPanel::CaseSettingsPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("caseSettingsPanel");
 	QFormLayout* layout = new QFormLayout(this);
+	m_overrideNotice = new QLabel(this);
+	m_overrideNotice->setObjectName("caseOverrideNotice");
+	m_overrideNotice->setWordWrap(true);
+	m_overrideNotice->hide();
+	layout->addRow(m_overrideNotice);
 	m_nameEdit = new QLineEdit(this);
 	m_nameEdit->setObjectName("caseNameEdit");
 	m_descriptionEdit = new QLineEdit(this);
@@ -44,6 +51,25 @@ CaseSettingsPanel::~CaseSettingsPanel() {
 		m_recoveryPercentEdit};
 	for (QObject* field : fields)
 		field->disconnect(this);
+}
+
+void CaseSettingsPanel::setCommandLineOverrides(std::optional<double> durationSeconds, std::optional<double> bufferSeconds,
+	std::optional<double> recoveryPercent) {
+	QStringList options;
+	const auto add = [&options](const char* option, const std::optional<double>& value) {
+		if (value)
+			options << QStringLiteral("%1 %2").arg(option).arg(*value, 0, 'g', 12);
+	};
+	add("-h", durationSeconds);
+	add("-b", bufferSeconds);
+	add("-c", recoveryPercent);
+	const QString last = options.isEmpty() ? QString() : options.takeLast();
+	const QString listed = options.isEmpty() ? last : options.join(QStringLiteral(", ")) + QStringLiteral(" and ") + last;
+	m_overrideNotice->setText(listed.isEmpty() ? QString()
+											   : QStringLiteral("This session uses %1 from the command line instead of the values of "
+																"the case, for every run and every case it opens.")
+													 .arg(listed));
+	m_overrideNotice->setVisible(!listed.isEmpty());
 }
 
 void CaseSettingsPanel::refresh() {

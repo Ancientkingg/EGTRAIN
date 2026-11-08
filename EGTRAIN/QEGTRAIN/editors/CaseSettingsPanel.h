@@ -5,7 +5,10 @@
 
 #include <QString>
 
+#include <optional>
+
 class QDoubleSpinBox;
+class QLabel;
 class QLineEdit;
 
 /// The six scene-level values: name, description, base time (HH:MM:SS), duration and buffer time in seconds and recovery
@@ -28,6 +31,14 @@ public:
 	/// recovery value that is set this way counts as given in the scene from then on.
 	void commit();
 
+	/// Names the values that the command line (-h, -b and -c) replaces in every run of the session, in a line above the
+	/// fields. A value without a number is not overridden, and no line shows when none is. The fields keep showing the
+	/// values of the case.
+	void setCommandLineOverrides(std::optional<double> durationSeconds, std::optional<double> bufferSeconds,
+		std::optional<double> recoveryPercent);
+	/// The line that names the command-line overrides; hidden while there are none.
+	QLabel* overrideNotice() const { return m_overrideNotice; }
+
 	/// The field of the scene name.
 	QLineEdit* nameEdit() const { return m_nameEdit; }
 	/// The field of the scene description.
@@ -47,6 +58,7 @@ Q_SIGNALS:
 	void baseTimeChanged(const QString& baseTime);
 
 private:
+	QLabel* m_overrideNotice = nullptr;
 	QLineEdit* m_nameEdit = nullptr;
 	QLineEdit* m_descriptionEdit = nullptr;
 	QLineEdit* m_baseTimeEdit = nullptr;

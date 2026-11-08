@@ -21,6 +21,7 @@
 #include "app/UpdateTelemetryController.h"
 #include "diagrams/DiagramWindow.h"
 #include "scene/SceneReferences.h"
+#include "simulation/RollingStock.h"
 #include "telemetry/TelemetryOperation.h"
 #include "widgets/EditorLayout.h"
 #include "widgets/FocusWheel.h"
@@ -46,6 +47,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 #include <memory>
+#include <optional>
 #include <utility>
 
 namespace {
@@ -95,6 +97,10 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	m_caseSettingsDock->hide();
 	m_host.registerEditorDock(m_caseSettingsDock);
 	m_caseSettingsPanel->setDocument(m_document);
+	const auto overridden = [](bool given, double value) { return given ? std::optional<double>(value) : std::nullopt; };
+	m_caseSettingsPanel->setCommandLineOverrides(overridden(initial_variables.durationOverride, initial_variables.times),
+		overridden(initial_variables.bufferTimeOverride, initial_variables.bufferTime),
+		overridden(initial_variables.recoveryTimeOverride, initial_variables.recoveryTimePercentage));
 	m_caseSettingsDock->setEnabled(false);
 	QObject::connect(m_document, &SceneDocument::replaced, m_caseSettingsDock, [this] { m_caseSettingsDock->setEnabled(true); });
 	QObject::connect(m_caseSettingsPanel, &CaseSettingsPanel::baseTimeChanged, m_window,

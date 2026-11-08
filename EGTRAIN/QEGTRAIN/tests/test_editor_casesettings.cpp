@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -105,6 +106,7 @@ private slots:
 	void forgetsDeletedDocument();
 	void longDescriptionShowsStartAfterFocus();
 	void accessibilityStepsBySingleStep();
+	void namesCommandLineOverrides();
 };
 
 // Save, Undo and validation commit the field that is being edited. A stored number that a field shows at a limit of its
@@ -433,6 +435,29 @@ void TestCaseSettingsPanel::accessibilityStepsBySingleStep() {
 	QCOMPARE_EQ(settings.durationSeconds, 8001.0);
 	QCOMPARE_EQ(settings.bufferTimeSeconds, 1.0);
 	QCOMPARE_EQ(settings.recoveryTimePercent, 1.0);
+}
+
+// A value that the command line replaces is named above the fields, which keep the values of the case.
+void TestCaseSettingsPanel::namesCommandLineOverrides() {
+	CaseFixture f(caseScene("Case A", "08:00:00"));
+	CaseSettingsPanel& panel = f.panel;
+	f.panel.show();
+	// Without an override no line shows.
+	QVERIFY(!panel.overrideNotice()->isVisible());
+	panel.setCommandLineOverrides(600.0, 30.0, 7.0);
+	QVERIFY(panel.overrideNotice()->isVisible());
+	QVERIFY(panel.overrideNotice()->text().contains("-h 600, -b 30 and -c 7 from the command line"));
+	// The fields still show the case.
+	QCOMPARE_EQ(panel.durationSecondsEdit()->value(), 3600.0);
+	panel.setCommandLineOverrides(std::nullopt, 12.5, std::nullopt);
+	QVERIFY(panel.overrideNotice()->text().contains("-b 12.5 from the command line"));
+	QVERIFY(!panel.overrideNotice()->text().contains("-h"));
+	QVERIFY(!panel.overrideNotice()->text().contains("-c"));
+	panel.setCommandLineOverrides(600.0, std::nullopt, 7.0);
+	QVERIFY(panel.overrideNotice()->text().contains("-h 600 and -c 7 from the command line"));
+	panel.setCommandLineOverrides(std::nullopt, std::nullopt, std::nullopt);
+	QVERIFY(!panel.overrideNotice()->isVisible());
+	QVERIFY(panel.overrideNotice()->text().isEmpty());
 }
 
 QTEST_MAIN(TestCaseSettingsPanel)
