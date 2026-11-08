@@ -242,7 +242,7 @@ coupling messages. `at` derives the train fields from it with the same arithmeti
 snapshot, so a seek shows exactly the chosen second. `test_replaylive` runs the line fixture,
 Paimpol with passengers and Milano_Brescia in the test process and compares the replay
 of every 13th second and of both sides of every keyframe with the live snapshot of that
-second, field by field and bit for bit, after the samples of the trains were freed. A
+second, field by field with `==`, after the samples of the trains were freed. A
 history without a train source leaves these fields at their defaults, so no train is drawn.
 
 `record` runs on the thread that steps the run and nothing else touches the history then.

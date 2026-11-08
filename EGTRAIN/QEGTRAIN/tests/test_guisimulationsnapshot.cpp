@@ -269,6 +269,7 @@ private slots:
 	void countChangeRestarts();
 	void trainsDerivedFromSource();
 	void virtualCouplingFromSource();
+	void virtualCouplingFromRun();
 	void keepsSecondHandedOutLast();
 	void sameSecondSameObject();
 	void accountedBytes();
@@ -920,6 +921,40 @@ void TestGuiSimulationSnapshot::virtualCouplingFromSource() {
 	QVERIFY(guiVirtualCouplingMessageShown(100, 140));
 	QVERIFY(!guiVirtualCouplingMessageShown(100, 141));
 	QVERIFY(!guiVirtualCouplingMessageShown(100, 99));
+}
+
+// The messages that a run holds, pushed in the steps that the simulation pushes them in, reach the replay through
+// makeGuiReplayTrains and show from their step up to 40 seconds after it, and not outside that window.
+void TestGuiSimulationSnapshot::virtualCouplingFromRun() {
+	DerivedRun data;
+	const int steps[] = {30, 30, 100};
+	const char* trains[] = {"train 0", "train 1", "train 2"};
+	const char* texts[] = {"Train is now virtually\ncoupled to the leader", "Train is now decoupled", "Train is now decoupled"};
+	for (std::size_t i = 0; i < 3; ++i) {
+		data.run->vcMsgTimestep.push_back(steps[i]);
+		data.run->vcMsgTrain.push_back(trains[i]);
+		data.run->vcMsgText.push_back(texts[i]);
+	}
+	GuiReplayHistory later;
+	for (int t = 0; t < 160; ++t) later.record(shared(sampleSnapshot(t, 3, 160)));
+	later.setTrains(makeGuiReplayTrains(*data.run, {}));
+	data.run->vcMsgTimestep.clear();
+	data.run->vcMsgTrain.clear();
+	data.run->vcMsgText.clear();
+	const auto shown = [&later](int t) { return later.at(t)->virtualCouplingMessages; };
+	QVERIFY(shown(29).empty());
+	QCOMPARE(shown(30).size(), std::size_t(2));
+	QCOMPARE(shown(30)[0].timestep, 30);
+	QCOMPARE(shown(30)[0].trainDescription, std::string("train 0"));
+	QCOMPARE(shown(30)[0].message, std::string(texts[0]));
+	QCOMPARE(shown(30)[1].trainDescription, std::string("train 1"));
+	QCOMPARE(shown(70).size(), std::size_t(2));
+	QVERIFY(shown(71).empty());
+	QVERIFY(shown(99).empty());
+	QCOMPARE(shown(100).size(), std::size_t(1));
+	QCOMPARE(shown(100)[0].trainDescription, std::string("train 2"));
+	QCOMPARE(shown(140).size(), std::size_t(1));
+	QVERIFY(shown(141).empty());
 }
 
 // The history itself keeps the second it handed out last, so a caller that drops the result can ask again and gets the

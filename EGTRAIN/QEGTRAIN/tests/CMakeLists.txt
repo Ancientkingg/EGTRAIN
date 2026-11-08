@@ -927,7 +927,7 @@ egtrain_add_test(test_completedrun SIMULATION_HEADERS
 # Runs a line fixture and Paimpol in this process, in the order that the test explains.
 egtrain_add_test(test_simulationrun SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_simulationrun.cpp
-	LIBS egtrain_dispatch egtrain_diagrams egtrain_telemetry egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts
+	LIBS egtrain_dispatch egtrain_sim Qt::Core Qt::Gui Qt::Widgets
 	DEFINITIONS EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests" EGTRAIN_SCENES_DIR="${SRC_DIR}/Scenes"
 	LABELS unit
 	ENVIRONMENT "QT_QPA_PLATFORM=offscreen"

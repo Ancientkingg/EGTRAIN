@@ -4,7 +4,7 @@
 // simulation publishes and keeps those of the sampled seconds: every 13th second, both sides of every keyframe of the
 // history (seconds 1, 299, 301 and so on) and the last step. When the run has ended, the case captures the completed run,
 // gives the history its train source, frees the samples of the trains as the window does, and compares the replay of every
-// kept second, field by field and bit for bit, with the live snapshot of that second. The scenes are the line fixture of
+// kept second, field by field, with the live snapshot of that second. The scenes are the line fixture of
 // tests/fixtures/scenes, Scenes/Paimpol with passengers and Scenes/Milano_Brescia.
 
 #include "app/DispatchController.h"

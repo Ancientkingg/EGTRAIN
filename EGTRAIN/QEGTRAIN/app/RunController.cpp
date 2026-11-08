@@ -734,7 +734,9 @@ void RunController::finishRun() {
 	GuiReplayHistory replay;
 	if (replayable) {
 		replay = simulation.takeReplayCandidate();
-		replay.setTrains(makeGuiReplayTrains(simulation.run(), replayTrajectoriesOf(m_completedRun)));
+		// A history that is empty (no snapshots) or oversize can never replay, so it takes no samples.
+		if (!replay.empty())
+			replay.setTrains(makeGuiReplayTrains(simulation.run(), replayTrajectoriesOf(m_completedRun)));
 	} else {
 		simulation.resetReplayCandidate();
 	}
