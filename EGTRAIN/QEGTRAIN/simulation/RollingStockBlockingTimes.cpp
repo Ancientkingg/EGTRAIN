@@ -350,7 +350,7 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 				}
 
 				if (RunTimeBetweenConsLocations < 0) { // Throwing an exception in case of negative running time between two consecutive infrastructure elements
-					EG_LOG(SimSetup, Warning) << "Warning 987: Train " << this->trainDescription << " has a negative running time between infrastructure element " << BlockTime[0].ConnectedBlockingTimeID << " and the previous infrastructure element on the route. Please check what happened\n";
+					EG_LOG(SimSetup, Warning) << "Train " << this->trainDescription << " has a negative running time between infrastructure element " << BlockTime[0].ConnectedBlockingTimeID << " and the previous one on its route";
 				}
 				// In this way the RunTimeBetweenConsecutive locations will be 0 for the first location and different from 0 for the other locations
 				BlockTime[N_BlockSections].RunTimeMargin = ceil(RunTimeBetweenConsLocations * PercentRTSupplement / 100);
@@ -666,16 +666,12 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 				}
 
 				if (RunTimeBetweenConsLocations < 0) { // Throwing an exception in case of negative running time between two consecutive infrastructure elements
-					EG_LOG(SimSetup, Warning) << "Warning: Train " << this->trainDescription << " has a negative running time between infrastructure element " << BlockTime[0].ConnectedBlockingTimeID << " and the previous infrastructure element on the route. Please check what happened\n";
+					EG_LOG(SimSetup, Warning) << "Train " << this->trainDescription << " has a negative running time between infrastructure element " << BlockTime[0].ConnectedBlockingTimeID << " and the previous one on its route";
 				}
 				// In this way the RunTimeBetweenConsecutive locations will be 0 for the first location and different from 0 for the other locations
 				BlockTime[N_BlockSections].RunTimeMargin = ceil(RunTimeBetweenConsLocations * PercentRTSupplement / 100);
 				// Shift the EndOccTime of the RunTimeMargin only if the block section is not the first
 				BlockTime[N_BlockSections].EndRunTime = BlockTime[N_BlockSections].EndRunTime + BlockTime[N_BlockSections].RunTimeMargin;
-			}
-
-			else {
-				EG_LOG(SimSetup, Warning) << "\n\nWARNING 5: Percentage and absolute Running Time Supplements are both equal to 0 or both different from 0\n\n";
 			}
 
 			// In some case it can happen an exception when the station is too close to the end of the train journey (i.e. the end of its route) and the train length is longer than the distance between the station and the end of the journey

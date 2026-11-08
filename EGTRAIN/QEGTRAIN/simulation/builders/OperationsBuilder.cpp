@@ -106,12 +106,12 @@ std::unordered_map<std::string, const T*> nativeIndexById(const std::vector<T>& 
 	std::unordered_map<std::string, const T*> result;
 	for (const T& value : values) {
 		if (value.id.empty()) {
-			addNativeDiagnostic(diagnostics, "scene.native.ref.id", "An item has an empty canonical ID",
+			addNativeDiagnostic(diagnostics, "scene.native.ref.id", "Item has no ID",
 				file, itemType, "");
 			continue;
 		}
 		if (!result.emplace(value.id, &value).second)
-			addNativeDiagnostic(diagnostics, "scene.native.ref.duplicate", "Duplicate canonical ID",
+			addNativeDiagnostic(diagnostics, "scene.native.ref.duplicate", "Duplicate ID",
 				file, itemType, value.id);
 	}
 	return result;
@@ -285,16 +285,16 @@ double nativeSceneDuration(const SceneModel& scene, std::vector<SceneDiagnostic>
 	const bool durationValid = nativeFinite(durationSeconds) && durationSeconds >= 1.0
 		&& durationSeconds <= static_cast<double>(INT_MAX);
 	if (!scene.settings.hasDuration || (!overridden && !durationValid))
-		addNativeDiagnostic(diagnostics, "scene.native.time.duration", "A positive finite simulation duration is required",
+		addNativeDiagnostic(diagnostics, "scene.native.time.duration", "Duration must be from 1 to " + std::to_string(INT_MAX) + " seconds",
 			"scene.json", "scene", scene.name, "settings.duration_seconds");
 	if (overridden && !durationValid)
 		addNativeDiagnostic(diagnostics, "scene.native.time.duration",
 			"The duration of -h must be from 1 to " + std::to_string(INT_MAX) + " seconds", "", "", "");
 	if (scene.settings.hasBufferTime && (!nativeFinite(scene.settings.bufferTimeSeconds) || scene.settings.bufferTimeSeconds < 0.0))
-		addNativeDiagnostic(diagnostics, "scene.native.settings.buffer", "buffer_time_seconds must be finite and non-negative",
+		addNativeDiagnostic(diagnostics, "scene.native.settings.buffer", "Simulation buffer time cannot be negative",
 			"scene.json", "scene", scene.name, "settings.buffer_time_seconds");
 	if (scene.settings.hasRecoveryTime && (!nativeFinite(scene.settings.recoveryTimePercent) || scene.settings.recoveryTimePercent < 0.0))
-		addNativeDiagnostic(diagnostics, "scene.native.settings.recovery", "recovery_time_percent must be finite and non-negative",
+		addNativeDiagnostic(diagnostics, "scene.native.settings.recovery", "Recovery time cannot be negative",
 			"scene.json", "scene", scene.name, "settings.recovery_time_percent");
 	return durationSeconds;
 }
@@ -376,7 +376,7 @@ std::unordered_map<std::string, int> nativeRuntimeRoutes(SimulationRun& run, con
 		const int runtimeIndex = nativeRouteIndex(run, pair.first);
 		if (runtimeIndex < 0 || runtimeIndex >= static_cast<int>(run.infra.routes.size())
 			|| run.infra.routes[runtimeIndex].N_Block_Sections <= 0)
-			addNativeDiagnostic(diagnostics, "scene.native.ref.route", "Route is not available in the built runtime infrastructure",
+			addNativeDiagnostic(diagnostics, "scene.native.ref.route", "Route was not built",
 				"signalling.json", "route", pair.first, "routes[" + pair.first + "]");
 		else
 			routeById[pair.first] = runtimeIndex;
@@ -395,7 +395,7 @@ void nativeCheckSelection(const SceneRunSelection& selectedOccurrences, const Na
 				selection.serviceId, "selected_occurrences", selection.serviceId);
 		} else if (selection.occurrence < 1 || selection.occurrence > countIt->second) {
 			addNativeDiagnostic(diagnostics, "scene.native.selection.occurrence",
-				"Selected occurrence is outside the service horizon", "services.json", "selection",
+				"Selected occurrence is not in the run period", "services.json", "selection",
 				selection.serviceId, "selected_occurrences", selection.serviceId + "-" + std::to_string(selection.occurrence));
 		}
 	}
@@ -405,26 +405,26 @@ void nativeCheckServiceFields(const SceneService& service, std::vector<SceneDiag
 	if (!nativeFinite(service.performancePercent) || service.performancePercent < 1.0
 		|| service.performancePercent > 100.0)
 		addNativeDiagnostic(diagnostics, "scene.native.service.performance",
-			"Service performance_percent must be finite and between 1 and 100",
+			"Performance must be from 1 to 100 percent",
 			"services.json", "service", service.id, "services[" + service.id + "].performance_percent");
 	if (service.hasMaximumSpeed
 		&& (!nativeFinite(service.maximumSpeedKmh) || service.maximumSpeedKmh <= 0.0))
 		addNativeDiagnostic(diagnostics, "scene.native.service.speed",
-			"Service maximum_speed_kmh must be positive and finite",
+			"Maximum speed must be above 0",
 			"services.json", "service", service.id, "services[" + service.id + "].maximum_speed_kmh");
 	if (service.hasRepeatCount && (!service.hasRepeat || service.repeatCount <= 0))
 		addNativeDiagnostic(diagnostics, "scene.native.service.repeat_count",
-			"Repeated service count must be a positive integer inside repeat",
+			"Repeat count must be a whole number above 0 and needs a repeat interval",
 			"services.json", "service", service.id, "services[" + service.id + "].repeat.count");
 	if (service.hasOperatingCodeStep && sceneServiceOccurrenceOperatingCode(service, 1).empty())
 		addNativeDiagnostic(diagnostics, "scene.native.service.operating_code_step",
-			"Operating code step requires a nonzero step and a decimal base operating code",
+			"Code step must not be 0, and the operating code must be a whole number",
 			"services.json", "service", service.id,
 			"services[" + service.id + "].repeat.operating_code_step");
 	if (service.stops.size() > Train::kMaxTimetableStations)
-		addNativeDiagnostic(diagnostics, "scene.native.capacity.stops", "Service stops exceed the runtime timetable capacity",
+		addNativeDiagnostic(diagnostics, "scene.native.capacity.stops", "Service has more than " + std::to_string(Train::kMaxTimetableStations) + " stops",
 			"services.json", "service", service.id, "services[" + service.id + "].stops", {},
-			std::to_string(Train::kMaxTimetableStations));
+			"Reduce this service to " + std::to_string(Train::kMaxTimetableStations) + " or fewer stops");
 }
 
 // The composition of service, once its traction bands and physical values are checked.
@@ -438,7 +438,7 @@ SceneCompositionRuntime nativeServiceComposition(const SceneModel& scene, const 
 			"trains.json", "service", service.id, "services[" + service.id + "].composition", service.composition);
 	if (!composition.tractionCurve.empty()
 		&& composition.tractionCurve.size() > 20)
-		addNativeDiagnostic(diagnostics, "scene.native.capacity.traction", "Traction curve exceeds the runtime 20-band capacity",
+		addNativeDiagnostic(diagnostics, "scene.native.capacity.traction", "Traction curve has more than 20 rows",
 			"trains.json", "composition", service.composition, "compositions[" + service.composition + "].units");
 	if (!nativeFinite(composition.physical.mass_of_traction_unit_kg)
 		|| !nativeFinite(composition.physical.mass_of_a_wagon_kg)
@@ -458,12 +458,12 @@ SceneCompositionRuntime nativeServiceComposition(const SceneModel& scene, const 
 		|| composition.physical.jerk_ms3 < 0.0
 		|| composition.physical.length_m < 0.0
 		|| composition.physical.mass_of_traction_unit_kg + composition.physical.mass_of_a_wagon_kg * composition.physical.number_of_wagons <= 0.0)
-		addNativeDiagnostic(diagnostics, "scene.native.train.physical", "Composition physical values are non-finite or have no positive train mass",
+		addNativeDiagnostic(diagnostics, "scene.native.train.physical", "Composition physical values are invalid or the train has no mass",
 			"trains.json", "service", service.id, "services[" + service.id + "].composition", service.composition);
 	for (const auto& band : composition.tractionCurve) {
 		if (!nativeFinite(band[0]) || !nativeFinite(band[1]) || !nativeFinite(band[2])
 			|| !nativeFinite(band[3]) || !nativeFinite(band[4]) || band[1] <= band[0])
-			addNativeDiagnostic(diagnostics, "scene.native.train.traction", "Composition contains an invalid traction band",
+			addNativeDiagnostic(diagnostics, "scene.native.train.traction", "Composition has an invalid traction curve row",
 				"trains.json", "service", service.id, "services[" + service.id + "].composition", service.composition);
 	}
 	return composition;
@@ -476,16 +476,16 @@ double nativeServiceHeadway(const SceneService& service, int occurrences, double
 	if (service.hasRepeat) {
 		headway = service.headwaySeconds;
 		if (!nativeFinite(headway) || headway <= 0.0)
-			addNativeDiagnostic(diagnostics, "scene.native.timetable.repeat", "Repeated services require a positive finite headway",
+			addNativeDiagnostic(diagnostics, "scene.native.timetable.repeat", "Repeat interval must be above 0",
 				"services.json", "service", service.id, "services[" + service.id + "].headway_seconds");
 		else if (service.hasRepeatCount && service.repeatCount <= 0)
 			addNativeDiagnostic(diagnostics, "scene.native.timetable.repeat_count",
-				"Repeated service count must be a positive integer", "services.json", "service", service.id,
+				"Repeat count must be a whole number above 0", "services.json", "service", service.id,
 				"services[" + service.id + "].repeat.count");
 		else if (!service.hasRepeatCount) {
 			const double rawCount = std::ceil(durationSeconds / headway);
 			if (!nativeFinite(rawCount) || rawCount > static_cast<double>(INT_MAX))
-				addNativeDiagnostic(diagnostics, "scene.native.capacity.occurrences", "Service repeat count exceeds the runtime integer capacity",
+				addNativeDiagnostic(diagnostics, "scene.native.capacity.occurrences", "Repeat interval is too short for this duration",
 					"services.json", "service", service.id, "services[" + service.id + "].headway_seconds");
 		}
 	}
@@ -493,7 +493,7 @@ double nativeServiceHeadway(const SceneService& service, int occurrences, double
 		&& !sceneServiceOccurrenceOperatingCode(service, 1).empty()
 		&& sceneServiceOccurrenceOperatingCode(service, occurrences).empty())
 		addNativeDiagnostic(diagnostics, "scene.native.service.operating_code_step",
-			"Operating code progression exceeds the supported integer range",
+			"Code step makes the operating codes of the later occurrences too large",
 			"services.json", "service", service.id,
 			"services[" + service.id + "].repeat.operating_code_step");
 	return headway;
@@ -547,12 +547,12 @@ void nativeDiagnoseUnresolvedStop(const SceneStopResolution& resolution, const S
 		? "scene.native.ref.stop.route"
 		: "scene.native.ref.platform";
 	const char* message = resolution.status == SceneStopResolutionStatus::AmbiguousPlatform
-		? "A stop without a platform resolves to multiple ordered route platforms"
+		? "Stop has no platform and the route reaches more than one here"
 		: resolution.status == SceneStopResolutionStatus::OutOfOrder
-		? "Stop is not reachable after the preceding ordered route visit"
+		? "The route passes this station before the previous stop"
 		: resolution.status == SceneStopResolutionStatus::UnresolvedRoute
-		? "Stop cannot be resolved because the service route has no ordered traversal"
-		: "Explicit stop platform is not present on the ordered service route";
+		? "The route cannot be followed, so the stop cannot be placed"
+		: "The route does not use this platform";
 	addNativeDiagnostic(diagnostics, code, message, "services.json", "service", service.id,
 		"services[" + service.id + "].stops[" + std::to_string(stopIndex) + "]",
 		stop.platformId.empty() ? stop.stationId : stop.platformId);
@@ -563,11 +563,11 @@ void nativeCheckStopTimes(const SceneService& service, std::size_t stopIndex, st
 	if ((stop.hasPlannedArrival && !nativeFinite(stop.plannedArrivalSeconds))
 		|| (stop.hasPlannedDeparture && !nativeFinite(stop.plannedDepartureSeconds))
 		|| !nativeFinite(stop.dwellSeconds) || stop.dwellSeconds < 0.0)
-		addNativeDiagnostic(diagnostics, "scene.native.timetable.stop", "Stop timetable values must be finite and dwell must be non-negative",
+		addNativeDiagnostic(diagnostics, "scene.native.timetable.stop", "Planned times must be numbers and minimum dwell must be 0 or more",
 			"services.json", "service", service.id, "services[" + service.id + "].stops[" + std::to_string(stopIndex) + "]");
 	if (stop.hasPlannedArrival && stop.hasPlannedDeparture
 		&& stop.plannedDepartureSeconds < stop.plannedArrivalSeconds)
-		addNativeDiagnostic(diagnostics, "scene.native.timetable.order", "Planned departure precedes planned arrival",
+		addNativeDiagnostic(diagnostics, "scene.native.timetable.order", "Departure before arrival",
 			"services.json", "service", service.id, "services[" + service.id + "].stops[" + std::to_string(stopIndex) + "]");
 }
 
@@ -629,21 +629,21 @@ bool nativeIncidentFieldsValid(const SceneIncident& incident, bool hasOccurrence
 	bool valid = true;
 	if (!nativeFinite(incident.startSeconds) || incident.startSeconds < 0.0) {
 		addNativeDiagnostic(diagnostics, "scene.native.incident.time",
-			"Incident start must be finite and non-negative", "scenarios.json", "incident",
+			"Incident start must be 0 or more", "scenarios.json", "incident",
 			incident.id, "incidents[" + incident.id + "].start_seconds");
 		valid = false;
 	}
 	if (incident.type == "signal_failure") {
 		if (hasOccurrence || hasReducedSpeed || incident.terminateAtDestination) {
 			addNativeDiagnostic(diagnostics, "scene.native.incident.fields",
-				"Signal failures do not accept breakdown-only fields", "scenarios.json", "incident",
+				"A signal failure cannot have an occurrence, a reduced speed or a stop at the destination", "scenarios.json", "incident",
 				incident.id, "incidents[" + incident.id + "]");
 			valid = false;
 		}
 		if (!hasEnd || !nativeFinite(incident.endSeconds)
 			|| incident.endSeconds <= incident.startSeconds) {
 			addNativeDiagnostic(diagnostics, "scene.native.incident.time",
-				"Signal failure requires end after start", "scenarios.json", "incident", incident.id,
+				"Signal failure needs an end after its start", "scenarios.json", "incident", incident.id,
 				"incidents[" + incident.id + "].end_seconds");
 			valid = false;
 		}
@@ -653,19 +653,19 @@ bool nativeIncidentFieldsValid(const SceneIncident& incident, bool hasOccurrence
 				|| repeatCounts.find(incident.target) == repeatCounts.end()
 				|| incident.occurrence > repeatCounts.at(incident.target))) {
 			addNativeDiagnostic(diagnostics, "scene.native.incident.occurrence",
-				"Breakdown occurrence is outside the configured service pattern", "scenarios.json",
+				"Breakdown refers to an occurrence that the service does not have", "scenarios.json",
 				"incident", incident.id, "incidents[" + incident.id + "].occurrence");
 			valid = false;
 		}
 		if (hasReducedSpeed && (!nativeFinite(incident.reducedSpeedKmh) || incident.reducedSpeedKmh <= 0.0)) {
 			addNativeDiagnostic(diagnostics, "scene.native.incident.speed",
-				"Reduced breakdown speed must be positive and finite", "scenarios.json", "incident",
+				"Reduced speed must be above 0", "scenarios.json", "incident",
 				incident.id, "incidents[" + incident.id + "].reduced_speed_kmh");
 			valid = false;
 		}
 		if (!hasReducedSpeed && !hasEnd) {
 			addNativeDiagnostic(diagnostics, "scene.native.incident.time",
-				"A full-hold breakdown requires end_seconds", "scenarios.json", "incident",
+				"A breakdown without a reduced speed needs an end time", "scenarios.json", "incident",
 				incident.id, "incidents[" + incident.id + "].end_seconds");
 			valid = false;
 		}
@@ -706,7 +706,7 @@ bool nativeSignalFailureSection(SimulationRun& run, const SceneModel& scene, con
 	if (sectionIndex >= 0)
 		sectionIds.push_back(run.infra.sections[sectionIndex].ID);
 	else if (!ambiguousTarget) {
-		addNativeDiagnostic(diagnostics, "scene.native.incident.target", "Signal failure target does not resolve to an exact runtime section",
+		addNativeDiagnostic(diagnostics, "scene.native.incident.target", "Signal failure target matches no built section",
 			"scenarios.json", "incident", incident.id, "incidents[" + incident.id + "].target", incident.target);
 		valid = false;
 	}
@@ -722,20 +722,20 @@ bool nativeEntranceDelayValid(const SceneEntranceDelay& delay, const NativeIndex
 	const auto countIt = repeatCounts.find(delay.serviceId);
 	const SceneServiceOccurrence key{delay.serviceId, delay.occurrence};
 	if (serviceIt == serviceById.end() || countIt == repeatCounts.end() || delay.occurrence < 1) {
-		addNativeDiagnostic(diagnostics, "scene.native.entrance.ref", "Entrance delay service/occurrence is unknown",
+		addNativeDiagnostic(diagnostics, "scene.native.entrance.ref", "Entrance delay refers to an unknown service or occurrence",
 			"scenarios.json", "entrance_delay", delay.serviceId, "entrance_delays", delay.serviceId);
 		return false;
 	}
 	const bool outsidePattern = delay.occurrence > countIt->second;
 	if (outsidePattern) {
 		addNativeDiagnostic(diagnostics, "scene.native.entrance.occurrence",
-			"Entrance delay occurrence is outside the configured service pattern",
+			"Entrance delay refers to an occurrence that the service does not have",
 			"scenarios.json", "entrance_delay", delay.serviceId, "entrance_delays",
 			delay.serviceId + "-" + std::to_string(delay.occurrence));
 		return false;
 	}
 	if (!nativeFinite(delay.delaySeconds) || delay.delaySeconds < 0.0) {
-		addNativeDiagnostic(diagnostics, "scene.native.entrance.value", "Entrance delay must be finite and non-negative",
+		addNativeDiagnostic(diagnostics, "scene.native.entrance.value", "Entrance delay must be 0 or more",
 			"scenarios.json", "entrance_delay", delay.serviceId, "entrance_delays", delay.stationId);
 		return false;
 	}
@@ -746,13 +746,13 @@ bool nativeEntranceDelayValid(const SceneEntranceDelay& delay, const NativeIndex
 		return false;
 	}
 	if (!stop->hasPlannedDeparture) {
-		addNativeDiagnostic(diagnostics, "scene.native.entrance.timetable", "Entrance delay cannot be applied to an absent planned departure",
+		addNativeDiagnostic(diagnostics, "scene.native.entrance.timetable", "Entrance delay needs a planned departure at its stop",
 			"scenarios.json", "entrance_delay", delay.serviceId, "entrance_delays", delay.stationId);
 		return false;
 	}
 	const auto existing = occurrenceDelay.find(key);
 	if (existing != occurrenceDelay.end() && existing->second != delay.delaySeconds) {
-		addNativeDiagnostic(diagnostics, "scene.native.entrance.conflict", "Conflicting entrance delays target one service occurrence",
+		addNativeDiagnostic(diagnostics, "scene.native.entrance.conflict", "Entrance delays of one occurrence differ",
 			"scenarios.json", "entrance_delay", delay.serviceId, "entrance_delays", delay.stationId);
 		return false;
 	}
@@ -799,21 +799,21 @@ void nativeCheckLegService(const ScenePassengerLeg& sourceLeg, const std::string
 			[&sourceLeg](const SceneStop& stop) { return stop.stationId == sourceLeg.destinationStationId; });
 		if (!hasOriginStop)
 			addNativeDiagnostic(diagnostics, "scene.native.passenger.stop",
-				"Passenger leg origin is not a stop of the referenced service",
+				"Passenger leg origin is not a stop of its service",
 				"passengers.json", "leg", sourceLeg.id, legPath + ".origin", sourceLeg.serviceId,
-				"Choose an origin station from the service stop pattern");
+				"Choose a stop of the service as the origin");
 		if (!hasDestinationStop)
 			addNativeDiagnostic(diagnostics, "scene.native.passenger.stop",
-				"Passenger leg destination is not a stop of the referenced service",
+				"Passenger leg destination is not a stop of its service",
 				"passengers.json", "leg", sourceLeg.id, legPath + ".destination", sourceLeg.serviceId,
-				"Choose a destination station from the service stop pattern");
+				"Choose a stop of the service as the destination");
 		if (hasOriginStop && hasDestinationStop) {
 			SceneServiceStopPair stopPair;
 			if (!resolveScenePassengerLegStops(*serviceIt->second, sourceLeg, stopPair))
 				addNativeDiagnostic(diagnostics, "scene.native.passenger.order",
-					"Passenger leg destination must follow its origin in the service stop pattern",
+					"Passenger leg destination must come after its origin in the stops of the service",
 					"passengers.json", "leg", sourceLeg.id, legPath + ".destination", sourceLeg.serviceId,
-					"Choose an ordered origin/destination pair from the service stop pattern",
+					"Choose a destination after the origin",
 					hasLegacyImport ? SceneSeverity::Warning : SceneSeverity::Error);
 		}
 	}
@@ -828,13 +828,13 @@ void nativeCheckPassengers(const SceneModel& scene, const NativeIndex<SceneStati
 		const ScenePassenger& sourcePassenger = scene.passengers[passengerIndex];
 		const std::string passengerPath = "passengers[" + std::to_string(passengerIndex) + "]";
 		if (!passengerIds.insert(sourcePassenger.id).second)
-			addNativeDiagnostic(diagnostics, "scene.native.passenger.id", "Duplicate passenger id",
+			addNativeDiagnostic(diagnostics, "scene.native.passenger.id", "Duplicate passenger ID",
 				"passengers.json", "passenger", sourcePassenger.id, passengerPath + ".id");
 		for (std::size_t journeyIndex = 0; journeyIndex < sourcePassenger.journeys.size(); ++journeyIndex) {
 			const ScenePassengerJourney& sourceJourney = sourcePassenger.journeys[journeyIndex];
 			const std::string journeyPath = passengerPath + ".journeys[" + std::to_string(journeyIndex) + "]";
 			if (!journeyIds.insert(sourceJourney.id).second)
-				addNativeDiagnostic(diagnostics, "scene.native.passenger.id", "Duplicate passenger journey id",
+				addNativeDiagnostic(diagnostics, "scene.native.passenger.id", "Duplicate passenger journey ID",
 					"passengers.json", "journey", sourceJourney.id, journeyPath + ".id");
 			if (nativeStationForId(stationById, sourceJourney.originStationId) == nullptr)
 				addNativeDiagnostic(diagnostics, "scene.native.passenger.station", "Passenger journey origin station is unknown",
@@ -848,21 +848,19 @@ void nativeCheckPassengers(const SceneModel& scene, const NativeIndex<SceneStati
 				|| !nativeFinite(sourceJourney.plannedDepartureEndSeconds)
 				|| sourceJourney.plannedDepartureStartSeconds < 0.0
 				|| sourceJourney.plannedDepartureEndSeconds < sourceJourney.plannedDepartureStartSeconds)
-				addNativeDiagnostic(diagnostics, "scene.native.passenger.window", "Passenger planned departure window is invalid",
-					"passengers.json", "journey", sourceJourney.id, journeyPath + ".planned_departure",
-					{}, "Use finite non-negative bounds with start no later than end");
+				addNativeDiagnostic(diagnostics, "scene.native.passenger.window", "Planned departure window must start at 0 or later and must not end before it starts",
+					"passengers.json", "journey", sourceJourney.id, journeyPath + ".planned_departure");
 			if (!nativeFinite(sourceJourney.plannedArrivalStartSeconds)
 				|| !nativeFinite(sourceJourney.plannedArrivalEndSeconds)
 				|| sourceJourney.plannedArrivalStartSeconds < 0.0
 				|| sourceJourney.plannedArrivalEndSeconds < sourceJourney.plannedArrivalStartSeconds)
-				addNativeDiagnostic(diagnostics, "scene.native.passenger.window", "Passenger planned arrival window is invalid",
-					"passengers.json", "journey", sourceJourney.id, journeyPath + ".planned_arrival",
-					{}, "Use finite non-negative bounds with start no later than end");
+				addNativeDiagnostic(diagnostics, "scene.native.passenger.window", "Planned arrival window must start at 0 or later and must not end before it starts",
+					"passengers.json", "journey", sourceJourney.id, journeyPath + ".planned_arrival");
 			for (std::size_t legIndex = 0; legIndex < sourceJourney.legs.size(); ++legIndex) {
 				const ScenePassengerLeg& sourceLeg = sourceJourney.legs[legIndex];
 				const std::string legPath = journeyPath + ".legs[" + std::to_string(legIndex) + "]";
 				if (!passengerLegIds.insert(sourceLeg.id).second)
-					addNativeDiagnostic(diagnostics, "scene.native.passenger.id", "Duplicate passenger leg id",
+					addNativeDiagnostic(diagnostics, "scene.native.passenger.id", "Duplicate passenger leg ID",
 						"passengers.json", "leg", sourceLeg.id, legPath + ".id");
 				if (nativeStationForId(stationById, sourceLeg.originStationId) == nullptr)
 					addNativeDiagnostic(diagnostics, "scene.native.passenger.station", "Passenger leg origin station is unknown",
@@ -876,7 +874,7 @@ void nativeCheckPassengers(const SceneModel& scene, const NativeIndex<SceneStati
 				if (sourceLeg.occurrence <= 0)
 					addNativeDiagnostic(diagnostics, "scene.native.passenger.occurrence",
 						"Passenger leg occurrence must be positive", "passengers.json", "leg", sourceLeg.id,
-						legPath + ".occurrence", {}, "Use a positive occurrence number");
+						legPath + ".occurrence");
 				if (legIndex == 0 && sourceLeg.originStationId != sourceJourney.originStationId)
 					addNativeDiagnostic(diagnostics, "scene.native.passenger.continuity",
 						"First passenger leg does not start at journey origin", "passengers.json", "journey",
@@ -1011,7 +1009,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 
 	int baseTime = 0;
 	if (!parseNativeBaseTime(scene.baseTime, baseTime))
-		addNativeDiagnostic(diagnostics, "scene.native.time.base", "base_time must be HH:MM:SS",
+		addNativeDiagnostic(diagnostics, "scene.native.time.base", "Base time must be HH:MM:SS",
 			"scene.json", "scene", scene.name, "base_time");
 	const double durationSeconds = nativeSceneDuration(scene, diagnostics);
 	std::unordered_map<std::string, int> repeatCounts;
@@ -1020,7 +1018,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 
 	const SceneScenario* scenario = nativeSelectedScenario(scene, selectedScenarioId);
 	if (scenario == nullptr)
-		addNativeDiagnostic(diagnostics, "scene.native.scenario", "The selected/default scenario does not exist",
+		addNativeDiagnostic(diagnostics, "scene.native.scenario", "The scenario to run does not exist",
 			"scenarios.json", "scenario", selectedScenarioId.empty() ? scene.defaultScenarioId : selectedScenarioId);
 
 	const std::unordered_map<std::string, int> routeById = nativeRuntimeRoutes(run, routes, diagnostics);
@@ -1048,9 +1046,9 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 			? static_cast<std::size_t>(occurrences)
 			: occurrencesToBuild.size();
 		if (selectedCount > Max_N_Reg || trains.size() + selectedCount > Max_N_Reg) {
-			addNativeDiagnostic(diagnostics, "scene.native.capacity.trains", "Expanded service occurrences exceed the runtime train capacity",
+			addNativeDiagnostic(diagnostics, "scene.native.capacity.trains", "The run has more than " + std::to_string(Max_N_Reg) + " trains",
 				"services.json", "service", service.id, "services[" + service.id + "].headway_seconds", {},
-				std::to_string(Max_N_Reg));
+				"Lower the repeat counts or select fewer occurrences, to at most " + std::to_string(Max_N_Reg) + " trains");
 			continue;
 		}
 
@@ -1059,7 +1057,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 		const std::vector<SceneStopResolution> stopResolutions =
 			resolveSceneServiceStops(scene, service, routeTraversal);
 		if (service.hasEntryTime && (!nativeFinite(service.entryTimeSeconds) || service.entryTimeSeconds < 0.0))
-			addNativeDiagnostic(diagnostics, "scene.native.timetable.entry", "Entry time must be finite and non-negative",
+			addNativeDiagnostic(diagnostics, "scene.native.timetable.entry", "Entry time must be 0 or more",
 				"services.json", "service", service.id, "services[" + service.id + "].entry_seconds");
 		std::vector<NativeStopPlan> baseStops;
 		for (std::size_t stopIndex = 0; stopIndex < service.stops.size(); ++stopIndex) {
@@ -1076,7 +1074,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 			if (!stop.platformId.empty()) {
 				explicitPlatform = nativePlatformForStation(*station, stop.platformId);
 				if (explicitPlatform == nullptr || !nativeRuntimePlatformExists(run, stop.platformId, station->id, stationName))
-					addNativeDiagnostic(diagnostics, "scene.native.ref.platform", "Explicit stop platform is unknown or not built in the runtime infrastructure",
+					addNativeDiagnostic(diagnostics, "scene.native.ref.platform", "Stop platform is not on the station or was not built",
 						"services.json", "service", service.id, "services[" + service.id + "].stops[" + std::to_string(stopIndex) + "].platform_id", stop.platformId);
 			}
 			Node selectedNode;
@@ -1088,14 +1086,14 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 				selected = nativeRuntimeNodeForVisit(runtimeRoute, resolution, selectedNode);
 				if (!selected)
 					addNativeDiagnostic(diagnostics, "scene.native.ref.platform",
-						"Resolved stop visit is not present in the built runtime route",
+						"Stop is not on the built route",
 						"services.json", "service", service.id,
 						"services[" + service.id + "].stops[" + std::to_string(stopIndex) + "].platform_id",
 						resolution.nodeId);
 				else if (!nativeRuntimeNodeMatchesStation(selectedNode, *station, stationName)
 					|| (!stop.platformId.empty() && selectedNode.stationPlatformId != stop.platformId)) {
 					addNativeDiagnostic(diagnostics, "scene.native.ref.platform",
-						"Resolved stop visit does not retain its canonical station/platform identity",
+						"Stop does not match its station or platform on the built route",
 						"services.json", "service", service.id,
 						"services[" + service.id + "].stops[" + std::to_string(stopIndex) + "].platform_id",
 						stop.platformId);
@@ -1127,8 +1125,9 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 	}
 
 	if (trains.size() > Max_N_Reg)
-		addNativeDiagnostic(diagnostics, "scene.native.capacity.trains", "Expanded train count exceeds the runtime capacity",
-			"services.json", "scene", scene.name, "services", {}, std::to_string(Max_N_Reg));
+		addNativeDiagnostic(diagnostics, "scene.native.capacity.trains", "The run has more than " + std::to_string(Max_N_Reg) + " trains",
+			"services.json", "scene", scene.name, "services", {},
+			"Lower the repeat counts or select fewer occurrences, to at most " + std::to_string(Max_N_Reg) + " trains");
 
 	std::vector<SimulationIncident> stagedIncidents;
 	std::map<SceneServiceOccurrence, double> occurrenceDelay;
@@ -1160,7 +1159,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 				if (!nativeSignalFailureSection(run, scene, sectionInventory, incident, diagnostics, runtimeIncident.resolvedSectionIDs))
 					valid = false;
 			} else if (serviceById.count(incident.target) == 0) {
-				addNativeDiagnostic(diagnostics, "scene.native.incident.target", "Train breakdown target must be a canonical service ID",
+				addNativeDiagnostic(diagnostics, "scene.native.incident.target", "Train breakdown refers to unknown service",
 					"scenarios.json", "incident", incident.id, "incidents[" + incident.id + "].target", incident.target);
 				valid = false;
 			}
@@ -1179,7 +1178,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 				continue;
 			const auto trainIt = occurrenceIndex.find(key);
 			if (trainIt == occurrenceIndex.end()) {
-				addNativeDiagnostic(diagnostics, "scene.native.entrance.ref", "Entrance delay train occurrence was not built",
+				addNativeDiagnostic(diagnostics, "scene.native.entrance.ref", "No train was built for the occurrence of this entrance delay",
 					"scenarios.json", "entrance_delay", delay.serviceId, "entrance_delays", delay.serviceId);
 				continue;
 			}
@@ -1227,7 +1226,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 				const auto trainIt = occurrenceIndex.find(key);
 				if (trainIt == occurrenceIndex.end() && serviceById.count(sourceLeg.serviceId) != 0) {
 					addNativeDiagnostic(diagnostics, "scene.native.passenger.occurrence",
-						"Passenger leg refers to a service occurrence outside the simulation horizon",
+						"Passenger leg refers to an occurrence that does not enter within the duration; the journey is left out",
 						"passengers.json", "leg", sourceLeg.id,
 						"passengers[" + sourcePassenger.id + "].journeys[" + sourceJourney.id + "].legs",
 						sourceLeg.serviceId + "-" + std::to_string(sourceLeg.occurrence), {}, SceneSeverity::Warning);
@@ -1244,7 +1243,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 				const auto originStop = nativeStopAtSourceIndex(trains[trainIt->second], stopPair.originIndex);
 				const auto destinationStop = nativeStopAtSourceIndex(trains[trainIt->second], stopPair.destinationIndex);
 				if (originStop == nullptr || destinationStop == nullptr) {
-					addNativeDiagnostic(diagnostics, "scene.native.passenger.leg", "Passenger leg does not resolve to one train occurrence and two stops",
+					addNativeDiagnostic(diagnostics, "scene.native.passenger.leg", "Passenger leg origin or destination is not a stop of its train",
 						"passengers.json", "leg", sourceLeg.id, "passengers[" + sourcePassenger.id + "].journeys[" + sourceJourney.id + "].legs", sourceLeg.serviceId);
 					omitJourney = true;
 					break;
