@@ -1,5 +1,6 @@
 var NAVTREEINDEX28 =
 {
+"structtelemetry_1_1_usage_record.html#acbf2a7937e5c73b8414381c09c68aeec":[1,0,14,12,1],
 "structtelemetry_1_1_usage_record.html#acbf2a7937e5c73b8414381c09c68aeec":[2,0,3,12,1],
 "structtelemetry__smoke_1_1_state.html":[1,0,15,0],
 "structtelemetry__smoke_1_1_state.html":[2,0,4,0],

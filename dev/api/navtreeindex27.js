@@ -1,5 +1,6 @@
 var NAVTREEINDEX27 =
 {
+"struct_track_preview_station.html#ae52a2cb4f94442c7fa2ed69ddb9c133b":[2,0,343,4],
 "struct_track_preview_station.html#af4b4711235da8592f21b87d6b8776639":[2,0,343,0],
 "struct_track_state_visual.html":[2,0,344],
 "struct_track_state_visual.html#a423c5557b0f44543037ef4a56b778438":[2,0,344,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX27 =
 "structtelemetry_1_1_usage_record.html":[1,0,14,12],
 "structtelemetry_1_1_usage_record.html":[2,0,3,12],
 "structtelemetry_1_1_usage_record.html#a7dc693ce653501b0de3b93061ba9e9d5":[1,0,14,12,0],
-"structtelemetry_1_1_usage_record.html#a7dc693ce653501b0de3b93061ba9e9d5":[2,0,3,12,0],
-"structtelemetry_1_1_usage_record.html#acbf2a7937e5c73b8414381c09c68aeec":[1,0,14,12,1]
+"structtelemetry_1_1_usage_record.html#a7dc693ce653501b0de3b93061ba9e9d5":[2,0,3,12,0]
 };

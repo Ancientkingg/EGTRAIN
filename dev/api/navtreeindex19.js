@@ -1,5 +1,6 @@
 var NAVTREEINDEX19 =
 {
+"functions_func.html":[2,3,1],
 "functions_func.html":[2,3,1,0],
 "functions_func_b.html":[2,3,1,1],
 "functions_func_c.html":[2,3,1,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX19 =
 "namespace_timetable_stops.html#a760c0eac70de2284909ab143fbfe0146":[1,0,16,0],
 "namespace_timetable_stops.html#a9e5c38c3c31041e3cb9b387be84e871b":[1,0,16,3],
 "namespace_timetable_stops.html#abf31a056f5e6f5ea5dc26e9a23719715":[1,0,16,2],
-"namespace_ui.html":[1,0,17],
-"namespace_windows_staging.html":[1,0,19]
+"namespace_ui.html":[1,0,17]
 };

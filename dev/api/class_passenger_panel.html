@@ -136,6 +136,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a701d6620bf8a34e816329590e96b3250" id="r_a701d6620bf8a34e816329590e96b3250"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a701d6620bf8a34e816329590e96b3250">setImportFolderChooser</a> (std::function&lt; QString()&gt; chooser)</td></tr>
 <tr class="memitem:add7b16e614d373cce568b2e072a0ddd8" id="r_add7b16e614d373cce568b2e072a0ddd8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#add7b16e614d373cce568b2e072a0ddd8">clearImportResult</a> ()</td></tr>
 <tr class="memdesc:add7b16e614d373cce568b2e072a0ddd8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Empties the table with the result of the latest import.  <br /></td></tr>
+<tr class="memitem:a62bea0a87b439efa1017d7556e5a7004" id="r_a62bea0a87b439efa1017d7556e5a7004"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a62bea0a87b439efa1017d7556e5a7004">selectEntity</a> (const QString &amp;kind, const QString &amp;id)</td></tr>
 <tr class="memitem:a7dd5b4121f59a8e269a8864b0d5f9613" id="r_a7dd5b4121f59a8e269a8864b0d5f9613"><td class="memItemLeft">const <a class="el" href="struct_scene_passenger.html">ScenePassenger</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a7dd5b4121f59a8e269a8864b0d5f9613">selectedPassenger</a> () const</td></tr>
 <tr class="memdesc:a7dd5b4121f59a8e269a8864b0d5f9613"><td class="mdescLeft">&#160;</td><td class="mdescRight">The selected passenger, or null when none is selected or no scene is loaded.  <br /></td></tr>
 <tr class="memitem:a0f0769af310666297f070d87ee8b8c9d" id="r_a0f0769af310666297f070d87ee8b8c9d"><td class="memItemLeft">const <a class="el" href="struct_scene_passenger_journey.html">ScenePassengerJourney</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a0f0769af310666297f070d87ee8b8c9d">selectedPassengerJourney</a> () const</td></tr>
@@ -1160,6 +1161,33 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_passenger_panel_a902c69ed2c44751353cd5f12b5bb836a_cgraph.svg" width="915" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a62bea0a87b439efa1017d7556e5a7004" name="a62bea0a87b439efa1017d7556e5a7004"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a62bea0a87b439efa1017d7556e5a7004">&#9670;&#160;</a></span>selectEntity()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool PassengerPanel::selectEntity </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>kind</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>id</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Selects the passenger, journey or leg that has the id, as <span class="tt">kind</span> "passenger", "journey" or "leg" (the itemType of a <a class="el" href="struct_scene_diagnostic.html" title="One finding of loading, validation, saving, import, export or migration. Empty text fields do not app...">SceneDiagnostic</a>) says, and shows the Journeys or Legs page that lists it. Nothing is edited. False, with the selection unchanged, when the kind is another or the scene has no such item. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_passenger_panel_a62bea0a87b439efa1017d7556e5a7004_cgraph.svg" width="666" height="123"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

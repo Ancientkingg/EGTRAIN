@@ -1,5 +1,6 @@
 var NAVTREEINDEX14 =
 {
+"class_scene_editor_panel.html#afdd8ab3fbb9c8886df696fb56cf832c8":[2,0,226,9],
 "class_scene_field_reader.html":[2,0,230],
 "class_scene_field_reader.html#a1001afd3bd09165d2eab058a8d63d147":[2,0,230,8],
 "class_scene_field_reader.html#a140e1b0d5fdb2d21c65bd9c3bd7f1b26":[2,0,230,7],
@@ -248,6 +249,5 @@ var NAVTREEINDEX14 =
 "class_service_panel.html#af95206d6b08f3ffca4b8f4f4dcc4456e":[2,0,301,21],
 "class_service_panel.html#af9781db5f458e0440f10a6fd3a0ea647":[2,0,301,11],
 "class_service_panel.html#afedb2b0383252f1538dc5d4c7ff2be38":[2,0,301,19],
-"class_settings_dialog.html":[2,0,302],
-"class_settings_dialog.html#a82b474f63399b5150af200c4c0ad9955":[2,0,302,1]
+"class_settings_dialog.html":[2,0,302]
 };

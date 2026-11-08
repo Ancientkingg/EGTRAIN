@@ -34,6 +34,7 @@ var class_passenger_panel =
     [ "selectedPassenger", "class_passenger_panel.html#a7dd5b4121f59a8e269a8864b0d5f9613", null ],
     [ "selectedPassengerJourney", "class_passenger_panel.html#a0f0769af310666297f070d87ee8b8c9d", null ],
     [ "selectedPassengerLeg", "class_passenger_panel.html#a902c69ed2c44751353cd5f12b5bb836a", null ],
+    [ "selectEntity", "class_passenger_panel.html#a62bea0a87b439efa1017d7556e5a7004", null ],
     [ "setDiagnostics", "class_passenger_panel.html#af076d21ad511203bd6759ad5cfde5be7", null ],
     [ "setImportFolderChooser", "class_passenger_panel.html#a701d6620bf8a34e816329590e96b3250", null ],
     [ "tabs", "class_passenger_panel.html#a53360d94aed37802c3038e12dd71d369", null ],

@@ -1,5 +1,6 @@
 var NAVTREEINDEX20 =
 {
+"namespace_windows_staging.html":[1,0,19],
 "namespace_windows_staging.html#a04252549267e75771c39d14d9be57670":[1,0,19,0],
 "namespace_windows_staging.html#a796211d1e8ac56931e77c7c7fbf2839a":[1,0,19,1],
 "namespace_windows_staging.html#ad52395e48397c19fdda7b34e1eb00045":[1,0,19,3],
@@ -248,6 +249,5 @@ var NAVTREEINDEX20 =
 "struct_blocking_time_diagram_input.html#a886f6e1bb62a11e76fa51ff2bca49442":[2,0,20,12],
 "struct_blocking_time_diagram_input.html#a91d894e8480c720a48f32acb6ec2f8ae":[2,0,20,14],
 "struct_blocking_time_diagram_input.html#a9decca35a8a8a656a155d97639d42501":[2,0,20,0],
-"struct_blocking_time_diagram_input.html#aa596106c5fda6c98f4294b3e1aff2ae1":[2,0,20,16],
-"struct_blocking_time_diagram_input.html#aa998312469d2a3e3f2a439593d71d03d":[2,0,20,2]
+"struct_blocking_time_diagram_input.html#aa596106c5fda6c98f4294b3e1aff2ae1":[2,0,20,16]
 };
