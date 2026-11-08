@@ -2047,14 +2047,18 @@ void MainWindow::openEntityEditor(const QString& targetType, const QString& targ
 
 // The editor of the item that a row of Case Validation names: the row of an infrastructure item (a track, node, arc,
 // block, connection, station, signal, signalling area or route) selected in Infrastructure, which marks it on the network
-// view, or the row of a unit, composition, service or incident. A kind without an editor row, such as a passenger journey
-// or leg, does nothing.
+// view, or the row of a unit, composition, service or incident, or of a passenger, journey or leg in Passengers. A kind
+// without an editor row does nothing.
 void MainWindow::openDiagnosticItem(const QString& itemType, const QString& itemId) {
 	if (itemType.isEmpty())
 		return;
 	if (InfrastructurePanel* panel = m_editorDocks.infrastructurePanel();
 		panel && panel->selectEntity(itemType, itemId)) {
 		revealEditorDock(m_editorDocks.infrastructureDock());
+		return;
+	}
+	if (PassengerPanel* panel = m_editorDocks.passengerPanel(); panel && panel->selectEntity(itemType, itemId)) {
+		revealEditorDock(m_editorDocks.passengerDock());
 		return;
 	}
 	openEntityEditor(itemType, itemId, captureTelemetryOperation());

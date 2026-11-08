@@ -367,6 +367,47 @@ int PassengerPanel::selectedPassengerRow() const {
 	return current && current->isSelected() ? m_passengerList->currentRow() : -1;
 }
 
+bool PassengerPanel::selectEntity(const QString& kind, const QString& id) {
+	const bool isPassenger = kind == QLatin1String("passenger");
+	const bool isJourney = kind == QLatin1String("journey");
+	const bool isLeg = kind == QLatin1String("leg");
+	if (!hasScene() || !(isPassenger || isJourney || isLeg))
+		return false;
+	const std::string key = id.toStdString();
+	const auto& passengers = m_document->model().passengers;
+	for (std::size_t p = 0; p < passengers.size(); ++p) {
+		const auto& journeys = passengers[p].journeys;
+		int journeyRow = -1;
+		int legRow = -1;
+		if (isJourney) {
+			const auto it = std::find_if(journeys.begin(), journeys.end(), [&key](const ScenePassengerJourney& value) { return value.id == key; });
+			if (it != journeys.end())
+				journeyRow = static_cast<int>(it - journeys.begin());
+		} else if (isLeg) {
+			for (std::size_t j = 0; j < journeys.size() && legRow < 0; ++j) {
+				const auto& legs = journeys[j].legs;
+				const auto it = std::find_if(legs.begin(), legs.end(), [&key](const ScenePassengerLeg& value) { return value.id == key; });
+				if (it != legs.end()) {
+					journeyRow = static_cast<int>(j);
+					legRow = static_cast<int>(it - legs.begin());
+				}
+			}
+		}
+		if (isPassenger ? passengers[p].id != key : journeyRow < 0)
+			continue;
+		commitPendingEditors();
+		m_passengerList->setCurrentRow(static_cast<int>(p), QItemSelectionModel::ClearAndSelect);
+		if (journeyRow >= 0) {
+			m_journeyList->setCurrentRow(journeyRow, QItemSelectionModel::ClearAndSelect);
+			m_tabs->setCurrentIndex(legRow >= 0 ? 1 : 0);
+		}
+		if (legRow >= 0)
+			m_legList->setCurrentRow(legRow, QItemSelectionModel::ClearAndSelect);
+		return true;
+	}
+	return false;
+}
+
 const ScenePassenger* PassengerPanel::selectedPassenger() const {
 	if (!hasScene())
 		return nullptr;

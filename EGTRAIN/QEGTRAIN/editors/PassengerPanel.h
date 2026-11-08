@@ -45,6 +45,11 @@ public:
 	/// Empties the table with the result of the latest import.
 	void clearImportResult();
 
+	/// Selects the passenger, journey or leg that has the id, as `kind` "passenger", "journey" or "leg" (the itemType of a
+	/// SceneDiagnostic) says, and shows the Journeys or Legs page that lists it. Nothing is edited. False, with the
+	/// selection unchanged, when the kind is another or the scene has no such item.
+	bool selectEntity(const QString& kind, const QString& id);
+
 	/// The selected passenger, or null when none is selected or no scene is loaded.
 	const ScenePassenger* selectedPassenger() const;
 	/// The selected journey of the selected passenger, or null.
