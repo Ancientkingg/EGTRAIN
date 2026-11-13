@@ -44,11 +44,21 @@ double Train::train_energy_consumption(int t) {
 	return instant_train_energy_consumption[t];
 }
 
-bool Train::isFirstSectionFailed(const Section& firstSection) const {
+bool Train::isEntrySectionHeld(const Section& section) const {
+	// The authority of a failed section, and of a single-track stretch that the other direction holds, names the section as
+	// the next section, also when it stands at the end of the section before.
 	for (const MovementAuthority& authority : run_->etcsMa)
-		if (authority.type == "SignalFailure" && authority.BSID == firstSection.ID && obeysAuthority(authority)
-			&& std::abs(authority.AbsPosEoA - firstSection.GeoXBegNode) < 0.001)
+		if (authority.type == "SignalFailure" && authority.TrainInfo.NextSectionID == section.ID && obeysAuthority(authority))
 			return true;
+	// A held stretch has its authority before its first section only, so a section further inside is looked up.
+	if (!isValidSignallingLevel(section.SignallingLevel))
+		return false;
+	const int otherDirection = run_->infra.routes[indexOfRoute].reversed_direction ? 1 : -1;
+	for (std::size_t l = 0; l < run_->infra.singleTrackHeld.size(); ++l) {
+		const std::vector<std::string>& zone = singleTrackZone(*run_, l, indexOfRoute).sectionIDs;
+		if (run_->infra.singleTrackHeld[l] == otherDirection && std::find(zone.begin(), zone.end(), section.ID) != zone.end())
+			return true;
+	}
 	return false;
 }
 
@@ -58,19 +68,22 @@ void Train::checkEntrance(int i, Section* BS) {
 	// is cleared at the end of every step, so here it holds only entries of this step. Waiting trains are
 	// visited in the order in which they are due, so the one due first enters first.
 	const bool waiting = !CanEnter;
-	const bool separated = BS[0].SignallingLevel >= levelValue(SignallingLevel::Atb);
-	if (waiting && separated && std::find(run_->blocksOccupied.begin(), run_->blocksOccupied.end(), BS[0].ID) != run_->blocksOccupied.end())
+	const Section& entry = BS[entrySection];
+	const bool separated = entry.SignallingLevel >= levelValue(SignallingLevel::Atb);
+	if (waiting && separated && std::find(run_->blocksOccupied.begin(), run_->blocksOccupied.end(), entry.ID) != run_->blocksOccupied.end())
 		return;
-	if (waiting && isFirstSectionFailed(BS[0])) // enters when the failure has ended, at any signalling level
+	if (waiting && isEntrySectionHeld(entry)) // enters when the failure or the hold has ended, at any signalling level
 		return;
-	if (waiting && separated && i >= departure_time && entryConflictsWithCrossover(i, BS[0]))
+	if (waiting && separated && i >= departure_time && entryConflictsWithCrossover(i, entry))
 		return;
-	if (isMovingBlockLevel(BS[0].SignallingLevel)) { // if the signalling system of the firt block section is ETCS Level 3 or Level 4 (Virtual Coupling)
+	if (isMovingBlockLevel(entry.SignallingLevel)) { // if the signalling system of the entry section is ETCS Level 3 or Level 4 (Virtual Coupling)
 		bool IsRouteStartingPointOccupied = false;	 // this bool is true if start_node of signalling_block_sections[0] is present in the list of Movement Authorities ETCS_MA, i.e. if the beginning of the train route is occupied by another train
 		if (run_->etcsMa.size() > 0) {
 			for (list<MovementAuthority>::iterator it = run_->etcsMa.begin(); it != run_->etcsMa.end(); it++) {
 				// if the list of Movement Autority includes a Movement Autority related to the beginning Node of the Route which belongs to a train different from this, then break the for loop over the list of ETCS_MA and set the boolean IsRouteStartingPointOccupied to true
-				if ((it->BSID == BS[0].ID) && (std::abs(it->AbsPosEoA - BS[0].GeoXBegNode) < 0.001) && (it->TrainInfo.trainDescription != this->trainDescription) && obeysAuthority(*it)) {
+				// A train that starts at its first stop, past the start of the section, waits for every other train to leave the section.
+				const bool atEntry = std::abs(it->AbsPosEoA - entry.GeoXBegNode) < 0.001 || (Start_Node_X > entry.start_node.X && it->type == "TrainEnd");
+				if ((it->BSID == entry.ID) && atEntry && (it->TrainInfo.trainDescription != this->trainDescription) && obeysAuthority(*it)) {
 					IsRouteStartingPointOccupied = true;
 					break;
 				}
@@ -83,14 +96,14 @@ void Train::checkEntrance(int i, Section* BS) {
 		}
 
 	} else { // if instead the signalling system of the first block section is a fixed-block signalling system
-		if ((i >= departure_time) && ((BS[0].code == 270) || (BS[0].code == 180))) {
+		if ((i >= departure_time) && ((entry.code == 270) || (entry.code == 180))) {
 			counter2++;
 			if (counter2 == 1)
 				CanEnter = true;
 		}
 	}
 	if (waiting && separated && CanEnter) // the entering train occupies the first section at once
-		occupyBlockAndConnected(*run_, BS[0], BS[0], Start_Node_X * 1000, Start_Node_X * 1000);
+		occupyBlockAndConnected(*run_, entry, entry, Start_Node_X * 1000, Start_Node_X * 1000);
 }
 
 void Train::checkIfMovementAuthorityStillValid(double speed, double head, const Section& section) {

@@ -196,7 +196,7 @@ A new occurrence is ticked on the tab **Run occurrences**, so the next run inclu
 You need an open case that you have copied, with a composition and a route for the new service, and no active run. [Edit rolling stock](#edit-rolling-stock) adds a composition, and the routes are in **Editors > Infrastructure** under **Routes**.
 
 1. Choose **Editors > Services** and click **Add Service**. The service `new_service` is added at the end of the list and selected. Until it has a composition and a route, **Case Validation** names what is missing, such as `Service new_service has no composition`.
-2. On the tab **Service**, choose the **Composition** and the **Route**. The list **Route** names each route by its first and last station and its ID, such as `Guingamp → Paimpol [route6]`. Without **Entry time (s)**, the train enters at the planned departure of its first stop.
+2. On the tab **Service**, choose the **Composition** and the **Route**. The list **Route** names each route by its first and last station and its ID, such as `Guingamp → Paimpol [route6]`. Without **Entry time (s)**, the train starts at its first stop and leaves it at the planned departure.
 3. Open the tab **Timetable** and click **Add Stop** for each stop, in the order of the route. In the dialog **Add Timetable Stop**, choose the **Station** and the **Compatible platform**, tick **Planned departure** or **Planned arrival**, type the time in seconds after the base time of the case and click **OK**. Give the first stop a departure and the last stop an arrival.
 4. Choose **View > Case Validation** and fix what it lists ([Fix validation errors](#fix-validation-errors)). Then run the case.
 

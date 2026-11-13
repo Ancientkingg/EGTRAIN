@@ -82,7 +82,7 @@ Open **Editors > Compositions** and choose **Add Composition**. The composition 
 
 ## 5. A service with two stops
 
-1. Open **Editors > Services** and choose **Add Service**. The service is `new_service`. On the tab **Service**, set **Composition** to `new_composition` and **Route** to `route`. Leave the other fields as they are. A service without an **Entry time (s)** enters at the planned departure of its first stop.
+1. Open **Editors > Services** and choose **Add Service**. The service is `new_service`. On the tab **Service**, set **Composition** to `new_composition` and **Route** to `route`. Leave the other fields as they are. A service without an **Entry time (s)** starts at its first stop and leaves it at the planned departure.
 2. Open the tab **Timetable** and choose **Add Stop**. In the dialog **Add Timetable Stop**, leave **Insert position** as proposed, and check that **Station** is `station` and **Compatible platform** is `platform`. Tick **Planned departure** and enter `120`. Leave **Planned arrival** unticked and **Minimum dwell (s)** at 0, and choose **OK**. A blank planned time means that there is none, and the first stop has no arrival.
 3. Choose **Add Stop** again. Leave **Insert position** at the proposed place after stop 1, and set **Station** to `station_2` and **Compatible platform** to `platform_2`. Tick **Planned arrival** and enter `250`. Leave the departure unticked, because the train ends its service here, and choose **OK**.
 

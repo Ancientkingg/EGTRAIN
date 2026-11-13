@@ -228,7 +228,9 @@ exporter, and the overlap rule of `SectionInventory` (`sectionReferences`, `nati
 `nativeRuntimeBlockId` gives the runtime id of a block section.
 
 Scheduled entry uses explicit entry time first, otherwise the first finite
-planned departure, otherwise zero, plus the repeat offset. The editor's
+planned departure, otherwise zero, plus the repeat offset. Without an entry time
+the operations builder starts the train at its first stop, its dwell before the
+planned departure, instead of at the start of the route. The editor's
 in-period count includes entries in `[0, effective duration)`. Configured totals
 and selected totals remain separate; this display does not filter runtime
 expansion or include scenario entrance delays in the schedule.

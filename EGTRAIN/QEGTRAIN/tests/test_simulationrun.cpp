@@ -400,6 +400,7 @@ private slots:
 	void runKeepsCopyOfSettings();
 	void secondRunFollowsRunOfProcess();
 	void stepsRunWithoutController();
+	void trainWithoutEntryTimeLeavesFirstStopOnTime();
 
 private:
 	SceneModel m_line;
@@ -767,6 +768,41 @@ void TestSimulationRun::stepsRunWithoutController() {
 	QCOMPARE(stoppedFiles.size(), std::size_t(2));
 	QVERIFY(stoppedFiles.count("EnergyConsumptionPerTrain.txt") == 1);
 	QVERIFY(stoppedFiles.count("TotalEnergyConsumption.txt") == 1);
+}
+
+// The train of a service without an entry time starts at its first stop, here B in the middle of the route with a dwell of 60 s
+// and a planned departure at 660 s. It stands there from 600 s and leaves at 660 s, and the stop has both times in the results.
+void TestSimulationRun::trainWithoutEntryTimeLeavesFirstStopOnTime() {
+	SceneModel scene = m_line;
+	const auto service = std::find_if(scene.services.begin(), scene.services.end(),
+		[](const SceneService& candidate) { return candidate.id == "T1"; });
+	QVERIFY(service != scene.services.end());
+	service->hasEntryTime = false;
+	service->stops.erase(service->stops.begin());
+
+	CoutSilencer silencer;
+	simulation.resetState();
+	const auto run = std::make_unique<SimulationRun>();
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(*run, scene)));
+	QVERIFY(!hasErrors(buildOperationsFromScene(*run, scene, "baseline", {{"T1", 1}})));
+	QCOMPARE(run->numTrains, 1);
+	run->settings = initial_variables;
+	TrainMovementOrder order(*run);
+	for (int t = 0; t < run->settings.times; ++t)
+		runSimulationStep(*run, t, order);
+
+	Regional& train = run->trains[0];
+	const double atStop = 8000.0 - kStopHoldbackM;
+	QCOMPARE_EQ(train.departure_time, 600.0);
+	QCOMPARE(train.instant_spatial_position[600], atStop);
+	QCOMPARE(train.instant_spatial_position[660], atStop);
+	QCOMPARE_GT(train.instant_spatial_position[661], atStop);
+	train.ComputeTimetablingPoints();
+	const TrainEvent* firstStop = train.timetablePointOfStop(0);
+	if (firstStop == nullptr)
+		QFAIL("the first stop has no timetable point");
+	QCOMPARE_EQ(firstStop->Time, 600.0);
+	QCOMPARE_EQ(firstStop->Time2, 660.0);
 }
 
 QTEST_GUILESS_MAIN(TestSimulationRun)
