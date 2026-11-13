@@ -104,7 +104,7 @@ An occurrence is one generated run of a service. Its identity is the pair of the
 
 ### Entry time
 
-The entry time is the second at which an occurrence of a service enters its route, counted as elapsed time. It is the key `entry_time_seconds` and the box **Entry time (s)** (the field works only while the box is ticked). When it is not set, the planned departure of the first stop is used, and zero when that is absent too; a repeated service adds (n - 1) times the headway, where n is the occurrence number. **Entry** on the tab **Run occurrences** shows the result. With an entry time the train enters at the start of its route. Without one it starts at its first stop, where it stands for its minimum dwell and leaves at the planned departure ([units and the reference timetable](delay-analysis.md#units-and-the-reference-timetable)).
+The entry time is the second at which an occurrence of a service enters its route, counted as elapsed time. It is the key `entry_time_seconds` and the box **Entry time (s)** (the field works only while the box is ticked). When it is not set, the planned departure of the first stop is used, and zero when that is absent too; a repeated service adds (n - 1) times the headway, where n is the occurrence number. **Entry** on the tab **Run occurrences** shows the result. With an entry time the train enters at the start of its route. Without one it starts at its first stop, when that stop has a planned departure and is not at the start of the route: it stands there from its minimum dwell before the planned departure and leaves at that time ([units and the reference timetable](delay-analysis.md#units-and-the-reference-timetable)).
 
 ### Headway
 

@@ -1601,6 +1601,7 @@ void TestOperationsBuilder::serviceWithoutEntryTimeStartsAtFirstStop() {
 	QCOMPARE(defaultRun().trains[0].Start_Node_X * 1000, 2000.0 - kStopHoldbackM);
 	QCOMPARE(defaultRun().trains[0].entrySection, 1);
 	QCOMPARE_EQ(defaultRun().trains[0].departure_time, 40.0);
+	QCOMPARE_EQ(defaultRun().trains[0].scheduled_departure_time, 60.0);
 	QCOMPARE_EQ(defaultRun().trains[1].departure_time, 70.0);
 	// A planned arrival before that moment is when the train stands there.
 	service.stops[0].hasPlannedArrival = true;

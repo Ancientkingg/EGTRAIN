@@ -336,7 +336,7 @@ public:
 
 	double EnergyForAuxiliaries = 0.0; ///< Energy for auxiliaries in MJ: 10 % of the traction energy.
 	/// Step from which the train may enter, in seconds from the start of the run. The builder sets it to
-	/// scheduled_departure_time.
+	/// scheduled_departure_time, or earlier for a train that stands at its first stop before it leaves.
 	double departure_time = 0.0;
 	double scheduled_departure_time = 0.0; ///< Entry time of the train in the timetable, in seconds from the start of the run.
 	/// Last accelerating, cruising or following step, from which brakingEffort counts the braking time (temp + 1 is the
@@ -561,9 +561,8 @@ public:
 	/// direction of its route, so only trains of that direction obey it.
 	inline bool obeysAuthority(const MovementAuthority& authority) const;
 
-	/// True while section, where this train enters its route, is failed or lies in a single-track stretch that the other direction
-	/// holds
-	bool isEntrySectionHeld(const Section& section) const;
+	/// True while a signal failure of section, where this train enters its route, holds it at its entry
+	bool isEntrySectionFailed(const Section& section) const;
 
 	/// Position in metres of the authority on the route of this train, for an authority on section.
 	inline double authorityRoutePosition(const MovementAuthority& authority, const Section& section) const;

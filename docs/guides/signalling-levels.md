@@ -192,9 +192,8 @@ train that enters puts the first section in `blocksOccupied` at once, and the
 trains that wait are visited in the order in which they are due. A train waits
 while the first section is failed, at every level (`checkEntrance`). For a train
 that starts at its first stop, the section of that stop takes the place of the
-first section. Such a train also waits while another train is in that section at
-levels 3 and 4, and while the other direction holds a single-track stretch that
-contains the section. Cases:
+first section. Every section that such a train stands on, from its tail to its
+head, also has to show code 270 or 180, at levels 3 and 4 as well. Cases:
 `same-entry-level-*`, `entry-order-level-0`, `-1` and `-2`, and
 `sf-first-level-0`, `-1`, `-2` and `-none`.
 
