@@ -378,9 +378,9 @@ std::unique_ptr<SimulationRun> steppedRun(const SceneModel& scene, const SceneRu
 }
 
 // The train of the run with this description.
-const Regional& trainOf(const SimulationRun& run, const std::string& description) {
+const Regional& trainOf(const SimulationRun& run, const char* description) {
 	return *std::find_if(run.trains.begin(), run.trains.end(),
-		[&description](const Regional& train) { return train.trainDescription == description; });
+		[description](const Regional& train) { return train.trainDescription == description; });
 }
 
 // The run completes in the place of the earlier run and writes the files of the expected run. A failed check ends this
@@ -876,7 +876,8 @@ void TestSimulationRun::trainStartingAtStopWaitsForItsSections() {
 }
 
 // A train that starts at Brelidy-Plouec, a halt inside a single-track stretch of Paimpol, is due while a train of the other
-// direction runs towards it in that stretch. It starts when the stretch is free, and reaches the end of its route.
+// direction runs towards it in that stretch. It starts when that train has passed the halt and reached Pontrieaux_Halte, its
+// next stop, and it reaches the end of its route.
 void TestSimulationRun::trainStartingAtStopWaitsForSingleTrack() {
 	SceneModel scene = m_passengers;
 	SceneService reverse = *std::find_if(scene.services.begin(), scene.services.end(),
@@ -891,8 +892,10 @@ void TestSimulationRun::trainStartingAtStopWaitsForSingleTrack() {
 	if (run == nullptr || run->numTrains != 2)
 		QFAIL("the run is not built");
 	const Regional& train = trainOf(*run, "REV-1");
+	const double otherAtNextStop = trainOf(*run, "Guin-Paim-ALL-STOPS-1-1").StationArrivals[4];
 	QCOMPARE_EQ(train.departure_time, 2570.0);
-	QCOMPARE_GT(train.earliestActiveTrajectoryIndex, 2570);
+	QCOMPARE_GT(otherAtNextStop, 2570.0);
+	QCOMPARE_GT(static_cast<double>(train.earliestActiveTrajectoryIndex), otherAtNextStop);
 	QVERIFY(train.OutOfSimulation);
 }
 
