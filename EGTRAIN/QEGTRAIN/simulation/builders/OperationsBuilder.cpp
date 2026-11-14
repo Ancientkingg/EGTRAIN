@@ -56,6 +56,8 @@ struct NativeTrainPlan {
 	double appliedMaximumSpeedKmh = 0.0;
 	bool destinationTerminationRequested = false;
 	double scheduledDeparture = 0.0;
+	double entry = 0.0;				// when the train enters: scheduledDeparture, or earlier when it stands at its first stop
+	bool startsAtFirstStop = false; // enters at its first stop, not at the start of the route
 	double entranceDelay = 0.0;
 	std::string entranceDelayStationId;
 };
@@ -224,7 +226,15 @@ void nativeCopyTrainPlan(SimulationRun& run, const NativeTrainPlan& plan, Train&
 	train.TrainRouteID = plan.routeId;
 	train.indexOfRoute = plan.routeIndex;
 	train.trainDescription = plan.trainDescription;
-	train.Start_Node_X = run.infra.routes[plan.routeIndex].x_of_start_node;
+	const Route& route = run.infra.routes[plan.routeIndex];
+	train.Start_Node_X = route.x_of_start_node;
+	if (plan.startsAtFirstStop) {
+		train.Start_Node_X = plan.stops.front().node.X - kStopHoldbackM / 1000;
+		for (int section = 0; section < route.N_Block_Sections; ++section)
+			if (train.Start_Node_X >= route.sequence_of_block_sections[section].start_node.X
+				&& train.Start_Node_X < route.sequence_of_block_sections[section].end_node.X)
+				train.entrySection = section;
+	}
 	train.mass_of_traction_unit = plan.physical.mass_of_traction_unit_kg;
 	train.mass_of_a_wagon = plan.physical.mass_of_a_wagon_kg;
 	train.number_of_wagons = plan.physical.number_of_wagons;
@@ -247,7 +257,7 @@ void nativeCopyTrainPlan(SimulationRun& run, const NativeTrainPlan& plan, Train&
 		train.C2[index] = plan.tractionCurve[index][4];
 	}
 	train.scheduled_departure_time = plan.scheduledDeparture;
-	train.departure_time = plan.scheduledDeparture;
+	train.departure_time = plan.entry;
 	train.EntranceDelay = plan.entranceDelay;
 	train.entranceDelayStationId = plan.entranceDelayStationId;
 	train.TotalInputDelays = plan.entranceDelay;
@@ -588,8 +598,9 @@ NativeStopPlan nativeStopPlan(std::size_t stopIndex, const SceneStop& stop, cons
 }
 
 // The train of occurrence of service, whose stops are baseStops shifted by the headway (s) for each earlier occurrence.
+// With startsAtFirstStop it stands at its first stop early enough to leave at the planned departure after its dwell.
 NativeTrainPlan nativeTrainPlan(const SceneService& service, const SceneCompositionRuntime& composition, int routeIndex,
-	int occurrence, double headway, const std::vector<NativeStopPlan>& baseStops) {
+	int occurrence, double headway, const std::vector<NativeStopPlan>& baseStops, bool startsAtFirstStop) {
 	NativeTrainPlan plan;
 	plan.routeId = service.route;
 	plan.trainDescription = service.id + "-" + std::to_string(occurrence);
@@ -613,6 +624,13 @@ NativeTrainPlan nativeTrainPlan(const SceneService& service, const SceneComposit
 	plan.appliedMaximumSpeedKmh = plan.appliedMaximumSpeedMs * 3.6;
 	const double offset = service.hasRepeat ? (occurrence - 1) * headway : 0.0;
 	plan.scheduledDeparture = sceneServiceScheduledEntry(service, occurrence);
+	plan.entry = plan.scheduledDeparture;
+	plan.startsAtFirstStop = startsAtFirstStop;
+	if (startsAtFirstStop) {
+		const NativeStopPlan& first = baseStops.front();
+		const double ready = first.plannedDeparture - first.dwellSeconds;
+		plan.entry = std::max(0.0, (first.hasPlannedArrival ? std::min(ready, first.plannedArrival) : ready) + offset);
+	}
 	plan.stops = baseStops;
 	for (NativeStopPlan& stop : plan.stops) {
 		if (stop.hasPlannedArrival)
@@ -1117,8 +1135,14 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 			baseStops.push_back(nativeStopPlan(stopIndex, stop, stationName, resolvedPlatformId, selectedNode));
 		}
 
+		// A service without an entry time starts at its first stop when that stop has a planned departure and lies past the
+		// start of the route. At the start of the route there is no arc that ends at the stop, so the train cannot stand at it.
+		const bool startsAtFirstStop = !service.hasEntryTime && !baseStops.empty() && baseStops.front().sourceStopIndex == 0
+			&& stopResolutions.front().status == SceneStopResolutionStatus::Resolved && baseStops.front().hasPlannedDeparture
+			&& baseStops.front().node.X > runtimeRoute.x_of_start_node;
 		for (const int occurrence : occurrencesToBuild) {
-			NativeTrainPlan plan = nativeTrainPlan(service, composition, routeIt->second, occurrence, headway, baseStops);
+			NativeTrainPlan plan = nativeTrainPlan(service, composition, routeIt->second, occurrence, headway, baseStops,
+				startsAtFirstStop);
 			occurrenceIndex.emplace(SceneServiceOccurrence{service.id, occurrence}, trains.size());
 			trains.push_back(std::move(plan));
 		}

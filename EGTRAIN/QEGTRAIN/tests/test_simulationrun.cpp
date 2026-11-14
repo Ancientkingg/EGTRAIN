@@ -346,6 +346,43 @@ SceneModel movingBlockLine(const SceneModel& line) {
 	return scene;
 }
 
+// The line with a service X that copies T1 without its entry time and its first stop, so that its train starts at B, in the
+// middle of the route, with a dwell of 30 s and the given planned departure. T1 stands at B from 331 s to 660 s.
+SceneModel lineWithStartAtB(const SceneModel& line, int level, double plannedDeparture) {
+	SceneModel scene = movingBlockLine(line);
+	scene.signallingAreas[0].level = level;
+	SceneService starting = *std::find_if(scene.services.begin(), scene.services.end(),
+		[](const SceneService& candidate) { return candidate.id == "T1"; });
+	starting.id = starting.operatingCode = "X";
+	starting.hasEntryTime = false;
+	starting.stops.erase(starting.stops.begin());
+	starting.stops[0].hasPlannedArrival = false;
+	starting.stops[0].plannedDepartureSeconds = plannedDeparture;
+	starting.stops[0].dwellSeconds = 30.0;
+	scene.services.push_back(starting);
+	return scene;
+}
+
+// The selected occurrences of scene in a run of its own, stepped for the given seconds. Empty when the run cannot be built.
+std::unique_ptr<SimulationRun> steppedRun(const SceneModel& scene, const SceneRunSelection& selection, int seconds) {
+	CoutSilencer silencer;
+	auto run = std::make_unique<SimulationRun>();
+	if (hasErrors(buildInfrastructureAndSignallingFromScene(*run, scene))
+		|| hasErrors(buildOperationsFromScene(*run, scene, "baseline", selection)))
+		return nullptr;
+	run->settings = initial_variables;
+	TrainMovementOrder order(*run);
+	for (int t = 0; t < seconds; ++t)
+		runSimulationStep(*run, t, order);
+	return run;
+}
+
+// The train of the run with this description.
+const Regional& trainOf(const SimulationRun& run, const char* description) {
+	return *std::find_if(run.trains.begin(), run.trains.end(),
+		[description](const Regional& train) { return train.trainDescription == description; });
+}
+
 // The run completes in the place of the earlier run and writes the files of the expected run. A failed check ends this
 // function only, so the caller checks QTest::currentTestFailed() when more checks follow.
 void checkSameFiles(const std::string& label, const Outcome& expected, const Outcome& actual) {
@@ -400,6 +437,10 @@ private slots:
 	void runKeepsCopyOfSettings();
 	void secondRunFollowsRunOfProcess();
 	void stepsRunWithoutController();
+	void trainWithoutEntryTimeLeavesFirstStopOnTime();
+	void trainStartingAtStopWaitsForItsSections_data();
+	void trainStartingAtStopWaitsForItsSections();
+	void trainStartingAtStopWaitsForSingleTrack();
 
 private:
 	SceneModel m_line;
@@ -767,6 +808,95 @@ void TestSimulationRun::stepsRunWithoutController() {
 	QCOMPARE(stoppedFiles.size(), std::size_t(2));
 	QVERIFY(stoppedFiles.count("EnergyConsumptionPerTrain.txt") == 1);
 	QVERIFY(stoppedFiles.count("TotalEnergyConsumption.txt") == 1);
+}
+
+// The train of a service without an entry time starts at its first stop, here B in the middle of the route with a dwell of 60 s
+// and a planned departure at 660 s. It stands there from 600 s and leaves at 660 s, and the stop has both times in the results.
+// Its timetable entry time stays the planned departure, and the section of the stop has a blocking time from 600 s.
+void TestSimulationRun::trainWithoutEntryTimeLeavesFirstStopOnTime() {
+	SceneModel scene = movingBlockLine(m_line);
+	scene.signallingAreas[0].level = 0;
+	const auto service = std::find_if(scene.services.begin(), scene.services.end(),
+		[](const SceneService& candidate) { return candidate.id == "T1"; });
+	QVERIFY(service != scene.services.end());
+	service->hasEntryTime = false;
+	service->stops.erase(service->stops.begin());
+
+	const std::unique_ptr<SimulationRun> run = steppedRun(scene, {{"T1", 1}}, 1500);
+	if (run == nullptr || run->numTrains != 1)
+		QFAIL("the run is not built");
+	Regional& train = run->trains[0];
+	const double atStop = 8000.0 - kStopHoldbackM;
+	QCOMPARE_EQ(train.departure_time, 600.0);
+	QCOMPARE_EQ(train.scheduled_departure_time, 660.0);
+	QCOMPARE(train.instant_spatial_position[600], atStop);
+	QCOMPARE(train.instant_spatial_position[660], atStop);
+	QCOMPARE_GT(train.instant_spatial_position[661], atStop);
+	train.ComputeTimetablingPoints();
+	const TrainEvent* firstStop = train.timetablePointOfStop(0);
+	if (firstStop == nullptr)
+		QFAIL("the first stop has no timetable point");
+	QCOMPARE_EQ(firstStop->Time, 600.0);
+	QCOMPARE_EQ(firstStop->Time2, 660.0);
+
+	train.ComputeBlockingTimesInMixedSignallingAreas(5, 3, 0.5, 0, 0, 0);
+	const BlockingTimes* ofStop = nullptr;
+	for (int index = 0; index < train.N_BlockSections; ++index)
+		if (train.BlockTime[index].BlockID == "@3-B0@")
+			ofStop = &train.BlockTime[index];
+	if (ofStop == nullptr)
+		QFAIL("the section of the stop has no blocking time");
+	QVERIFY(ofStop->IsComplete);
+	QCOMPARE_EQ(ofStop->StartOccTime, 600.0);
+}
+
+void TestSimulationRun::trainStartingAtStopWaitsForItsSections_data() {
+	QTest::addColumn<int>("level");
+	QTest::addColumn<double>("plannedDeparture");
+	QTest::addColumn<double>("trainLength");
+	// T1 stands at B when X is due there. At level 3 no authority of T1 is at the start of the section.
+	QTest::newRow("level 3, a train at the stop") << 3 << 400.0 << 70.0;
+	// T1 is in the section before that of B when X is due. The section of B is free, but the tail of X lies on the one before.
+	QTest::newRow("level 0, a train under the tail") << 0 << 250.0 << 2500.0;
+}
+
+void TestSimulationRun::trainStartingAtStopWaitsForItsSections() {
+	QFETCH(int, level);
+	QFETCH(double, plannedDeparture);
+	QFETCH(double, trainLength);
+	SceneModel scene = lineWithStartAtB(m_line, level, plannedDeparture);
+	for (SceneTrainUnit& unit : scene.trainUnits)
+		unit.physical.length_m = trainLength;
+	const std::unique_ptr<SimulationRun> run = steppedRun(scene, {{"T1", 1}, {"X", 1}}, 1500);
+	if (run == nullptr || run->numTrains != 2)
+		QFAIL("the run is not built");
+	// X starts when T1 has left B, at 660 s, and not when it is due.
+	QCOMPARE_EQ(trainOf(*run, "X-1").departure_time, plannedDeparture - 30.0);
+	QCOMPARE_GT(trainOf(*run, "X-1").earliestActiveTrajectoryIndex, 660);
+}
+
+// A train that starts at Brelidy-Plouec, a halt inside a single-track stretch of Paimpol, is due while a train of the other
+// direction runs towards it in that stretch. It starts when that train has passed the halt and reached Pontrieaux_Halte, its
+// next stop, and it reaches the end of its route.
+void TestSimulationRun::trainStartingAtStopWaitsForSingleTrack() {
+	SceneModel scene = m_passengers;
+	SceneService reverse = *std::find_if(scene.services.begin(), scene.services.end(),
+		[](const SceneService& candidate) { return candidate.id == "Guin-Paim-ALL-STOPS-1"; });
+	reverse.id = reverse.operatingCode = "REV";
+	reverse.route = "route1";
+	reverse.hasEntryTime = false;
+	reverse.stops = {{"Brelidy-Plouec", "Brelidy-Plouec.platform.1", false, true, 0.0, 2600.0, 30.0},
+		{"Guingamp", "Guingamp.platform.1", false, false, 0.0, 0.0, 0.0}};
+	scene.services.push_back(reverse);
+	const std::unique_ptr<SimulationRun> run = steppedRun(scene, {{"Guin-Paim-ALL-STOPS-1", 1}, {"REV", 1}}, 4600);
+	if (run == nullptr || run->numTrains != 2)
+		QFAIL("the run is not built");
+	const Regional& train = trainOf(*run, "REV-1");
+	const double otherAtNextStop = trainOf(*run, "Guin-Paim-ALL-STOPS-1-1").StationArrivals[4];
+	QCOMPARE_EQ(train.departure_time, 2570.0);
+	QCOMPARE_GT(otherAtNextStop, 2570.0);
+	QCOMPARE_GT(static_cast<double>(train.earliestActiveTrajectoryIndex), otherAtNextStop);
+	QVERIFY(train.OutOfSimulation);
 }
 
 QTEST_GUILESS_MAIN(TestSimulationRun)

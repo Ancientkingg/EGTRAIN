@@ -285,7 +285,10 @@ Optional runtime controls are:
   is applied as `min(composition max speed, service cap)` before performance
   scaling. The writer omits it when it is not configured.
 - `entry_time_seconds`: finite non-negative seconds relative to the scene
-  base-time origin. The historical boolean `through` remains readable and
+  base-time origin, at which the train enters at the start of its route.
+  Without it the train starts at its first stop and leaves it at the planned
+  departure ([the rule](delay-analysis.md#units-and-the-reference-timetable)).
+  The historical boolean `through` remains readable and
   writable, but the stop list determines scheduled calls.
 - `repeat`: an object with positive finite `headway_seconds` in seconds. Its
   optional positive integer `count` is the total number of occurrences,

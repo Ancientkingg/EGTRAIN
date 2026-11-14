@@ -158,13 +158,22 @@ void Train::ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, BlockingTim
 		}
 	}
 
+	// A train that starts at its first stop is in the section of that stop, and approaches the section after it, from the step
+	// in which it enters. Its head never passes the start of the section of the stop.
+	if (Start_Node_X > run_->infra.routes[indexOfRoute].sequence_of_block_sections[entrySection].start_node.X) {
+		if (IndexCurrentBS == entrySection)
+			BlockTime[N_BlockSections].StartRunTime = earliestActiveTrajectoryIndex;
+		else if (IndexCurrentBS == entrySection + 1 && method == BlockingTimeMethod::Conventional)
+			BlockTime[N_BlockSections].StartApproachTime = earliestActiveTrajectoryIndex;
+	}
+
 	BlockTime[N_BlockSections].EndApproachTime = BlockTime[N_BlockSections].StartRunTime;
 	BlockTime[N_BlockSections].StartClearTime = BlockTime[N_BlockSections].EndRunTime;
 	BlockTime[N_BlockSections].setupTime = SetupTime;
 	BlockTime[N_BlockSections].sightReacTime = SightReacTime;
 	BlockTime[N_BlockSections].ReleaseTime = ReleaseTime;
 
-	if (IndexCurrentBS == 0) { // for the first block we do not have setup and sightReaction Time nor approach time
+	if (IndexCurrentBS == entrySection) { // for the first block we do not have setup and sightReaction Time nor approach time
 		BlockTime[N_BlockSections].StartApproachTime = BlockTime[N_BlockSections].StartRunTime;
 		BlockTime[N_BlockSections].EndApproachTime = BlockTime[N_BlockSections].StartApproachTime;
 		BlockTime[N_BlockSections].setupTime = 0;

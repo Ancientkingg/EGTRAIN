@@ -30,6 +30,12 @@ void Train::computeArrivalAndDepartureAtLocation(double LocationPosition, TrainE
 	double ArrivalTime = -1, DepartureTime = -1;
 	bool IsArrivalFound = false;
 	bool IsDepartureFound = false;
+	// A train that starts at the location stands there from the step in which it enters.
+	if (earliestActiveTrajectoryIndex >= 0 && !isShortOfBrakingPoint(Start_Node_X * 1000, LocationPosition)
+		&& !isPastStopHoldback(Start_Node_X * 1000, LocationPosition)) {
+		IsArrivalFound = true;
+		ArrivalTime = earliestActiveTrajectoryIndex * timestep;
+	}
 	for (int t = TrainEntryTime; t < run_->settings.times; t++) {
 		if (IsArrivalFound == 0) {
 			if (isShortOfBrakingPoint(instant_spatial_position[t - 1], LocationPosition) && !isShortOfBrakingPoint(instant_spatial_position[t], LocationPosition)) {

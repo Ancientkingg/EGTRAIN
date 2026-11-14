@@ -41,7 +41,11 @@ A train that stands at a stop it has reached does not leave before the planned d
 
 The last stop of a service ends the service when it has no planned departure: the train leaves after its dwell, drives on and is removed from the run when its head passes the end node of its route. A planned departure at the last stop holds the train there until that time, so a planned departure after the end of the run keeps it at the stop to the end of the run. The Netherlands case has no planned time at any stop, so its trains leave the network after their dwell at the last stop unless the run ends first.
 
-A train that begins its route at a stop is not held there: it enters at the entry time of its service (`entry_time_seconds`, or the planned departure of the first stop when the service has no entry time, or 0 when that stop has none), shifted like the other times of a repeated service. In the same fixture a train enters at 60 s although its planned departure at the first stop is 120 s. An entrance delay does not change the entry time; at the first stop it shifts the planned departure that the results show.
+A train of a service with an entry time (`entry_time_seconds`) enters at the start of its route at that time, shifted like the other times of a repeated service. A stop at the start of the route does not hold it: in the same fixture a train enters at 60 s although its planned departure at the first stop is 120 s.
+
+A train of a service without an entry time starts at its first stop, when that stop has a planned departure and lies past the start of the route. It stands there from its dwell time before the planned departure, or from the planned arrival when that is earlier, and not before 0 s. It leaves by the rule for a stop above, so at the planned departure, and the second in which it enters is its arrival at that stop. When the first stop is at the start of the route or has no planned departure, the train enters at the start of the route, at the planned departure of the first stop or at 0 s when there is none.
+
+An entrance delay does not change the entry time. At the first stop it shifts the planned departure, so a train that stands at that stop leaves that much later.
 
 ## Arrival and departure of a call
 
@@ -61,7 +65,7 @@ The line fixture shows the pairs. The test harness treats every sample below 0.0
 
 The file lists one more stop, of train 2 at 5999.998 m, in front of the block that train 1 occupies. The last stations have a dwell of 0 s, so the trains stand for fewer than five samples there and the file lists no stop for them. Their results are arrival 933 and departure 934 for train 1, and arrival 1150 and departure 1151 for train 2.
 
-A train that passes a station node without stopping has an arrival and a departure there as well; it does not have to come to rest. A train that never reaches a point has no arrival there: the event keeps its default time of -10000, which every delay figure treats as unavailable. The same can hold for a stop where the train begins its route: its position is never short of the point, or the route has no timetable point on that node (the first stop of both trains in the fixture has no simulated time). A train that is still at its last point when the run ends has no departure.
+A train that passes a station node without stopping has an arrival and a departure there as well; it does not have to come to rest. A train that never reaches a point has no arrival there: the event keeps its default time of -10000, which every delay figure treats as unavailable. The same can hold for a stop at the start of the route of the train: its position is never short of the point, or the route has no timetable point on that node (the first stop of both trains in the fixture has no simulated time). A train that is still at its last point when the run ends has no departure.
 
 The n-th stop of a train at a station name uses the n-th timetable point of that name along its route. `timetablePointOfStop` counts the earlier stops of the name and `buildTimetableResults` counts the earlier rows of the name; both pair by name and order. The same events feed the timetable results and both statistics files. Only the statistics files have a fallback: a stop that has no timetable point at all uses an arrival recorded while the train moved, the first second in which the head is within 5 m of the station position or the second of standing at it, whichever the run records first. The timetable results show such a stop as unavailable.
 
@@ -88,7 +92,7 @@ The tabs lie at the left and a panel at the right. The panel starts with three f
 
 One row per event. Read a row from the left: the service, occurrence, train and operating code; the station; the journey order (the position of the stop in the journey of the train) and the call (the n-th stop at that station name); the event; the planned and the simulated time; the delay; the class; and the status. The planned and the simulated time are those of the timetable results ([arrival and departure](#arrival-and-departure-of-a-call)), except that the planned departure of a stop that an entrance delay moved is the authored one, so that departure shows the entrance delay.
 
-The delay is simulated minus planned, signed; the tooltip of the header Delay (s) says so. The class is Early, On time (exactly 0) or Late. The status is Available, No plan, Not reached, or No plan, not reached. For any other status the delay is "-" and the class is Not available. A train that begins its route at a stop often has no simulated time there: in the line fixture the first stop of both trains is Not reached for the departure.
+The delay is simulated minus planned, signed; the tooltip of the header Delay (s) says so. The class is Early, On time (exactly 0) or Late. The status is Available, No plan, Not reached, or No plan, not reached. For any other status the delay is "-" and the class is Not available. A train whose first stop is at the start of its route has no simulated time there: in the line fixture the first stop of both trains is Not reached for the departure.
 
 ### Summary
 
