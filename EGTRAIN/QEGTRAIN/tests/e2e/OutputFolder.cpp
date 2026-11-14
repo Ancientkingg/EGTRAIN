@@ -47,7 +47,8 @@ struct OutputFolderRun {
 };
 
 constexpr int kPollMs = 100;
-constexpr int kMaxPolls = 100;
+// A minute for each wait: a run of kDiagramRunSeconds takes several seconds in a sanitizer build on a busy machine.
+constexpr int kMaxPolls = 600;
 // Long enough for a train of Paimpol to enter, so that the run writes a row into TrainServicePathDiagram.txt.
 constexpr double kDiagramRunSeconds = 600.0;
 
