@@ -38,8 +38,8 @@ scripts that build, sign and check the release packages.
   The result check is named `Tidy result`.
 - The documentation workflow (`docs.yml`) builds the [documentation site](testing.md#documentation-site)
   for every pull request, fails a pull request that adds undocumented classes or members to the
-  files it changes, and publishes the site to `gh-pages` and to egtrain.samuelbruin.com: `dev/` from
-  `main`, and `<version>/` and `latest/` after a successful release. Each publish also writes the home
+  files it changes, and publishes the site on egtrain.samuelbruin.com only: `dev/` from `main`, and `<version>/`
+  after a successful release, with `latest/` when no stable release tag has a higher version. Each publish also writes the home
   page, the pages `support/` (Report a problem), `contact/` and `privacy/`, and the stub `source/`,
   which sends a visitor to the home page, at the root with `tools/docs/home_page.py`, from
   `docs/site/` of `main`: the downloads of the newest stable release in the update feed of the
@@ -47,18 +47,20 @@ scripts that build, sign and check the release packages.
   three newest versions, and a train graph and a playback of a run of the bundled case
   Milano_Brescia. Their values are in `docs/site/home-data.json`, which `tools/docs/home_data.py`
   writes from the case and a run of it (its docstring has the commands), so the publish runs no
-  simulation. After the push to
-  `gh-pages`, the step **Publish on egtrain.samuelbruin.com** sends the same folders to the website
+  simulation. The step **Publish on egtrain.samuelbruin.com** sends the folders of the run to the website
   with `tools/release/publish_selfhost.py site` (see
   [Self-hosted publication](#self-hosted-publication)), and then the pages, the home page last. The
-  website gets pages written from its feed alone, not from the copy of `gh-pages`, so that a run of
+  website gets pages written from its feed alone, not from the folders of the run, so that a run of
   `main` and a run of a release that publish at the same time leave the same pages. A version folder
-  that `gh-pages` had before, such as `1.0.5/`, reaches the website only when it is published once by
+  that no run of the workflow published, such as `1.0.5/`, reaches the website only when it is published by
   hand ([Filling a new site](#filling-a-new-site)). `test_ci_workflow`, which the documentation workflow also runs, checks that the
   downloads are the files that `tools/release/build_release_assets.py` names. The page links the names
   of `main` with the files of the newest release, and `home_page.py` stops on a name that the release
   does not have, so a renamed package stops the publish of the site until the next release: merge a
-  rename together with a release.
+  rename together with a release. The earlier address of the documentation, which the Help menu of EGTRAIN 1.0.4 and
+  1.0.5 opens, serves the branch `gh-pages`. The job `redirect` makes that branch hold only `.nojekyll` and
+  `docs/site/redirect.html`, as `index.html` and `404.html`. The page sends each address there to the same path on
+  egtrain.samuelbruin.com with its query and fragment. The job commits only when the branch differs from these files.
 - A pull request to `main` that changes a packaging input also runs the
   package check (`package-check.yml`). The inputs are the workflow files
   `package-check.yml`, `package.yml` and `release.yml`, the setup action `setup-deps`, `tools/release/`, the
@@ -312,7 +314,7 @@ workflow keeps:
   because its two notarization steps may wait an hour each.
 - The permissions at the top of a workflow only read. The permissions of a job are a mapping of scopes, not `write-all`,
   and a job writes exactly the scopes that `WRITE_PERMISSIONS` in the test lists for it with the reason: `contents` in the
-  `publish` job of `docs.yml` and in the `release` job of `release.yml`.
+  `redirect` job of `docs.yml` and in the `release` job of `release.yml`.
 - A workflow that a pull request starts has a concurrency group in which only a newer push to the same pull request
   cancels a run. No two scheduled workflows start at the same time, and none starts on the hour.
 - A credential or an environment reaches only a job or a step of a push to `production` or a `v*` tag. Such a job has
@@ -459,14 +461,13 @@ a Git checkout of the source tree, with `gh` logged in, and with the tokens in `
 
 ```bash
 python3 tools/release/publish_selfhost.py import v1.0.5 --new-feed
-git fetch origin gh-pages
-git worktree add --detach "$TMPDIR/gh-pages" FETCH_HEAD
-python3 tools/release/publish_selfhost.py site "$TMPDIR/gh-pages" dev 1.0.4 1.0.5 latest
-git worktree remove "$TMPDIR/gh-pages"
+python3 tools/release/publish_selfhost.py site PAGES dev 1.0.4 1.0.5 latest
 ```
 
 `import` publishes the release v1.0.5 with its files, notes and page, and starts the feed. `site` publishes the
-documentation folders of the copy of `gh-pages` on the website, and then the pages. Both can be run again. The home page
+documentation folders of `PAGES` on the website, and then the pages. `PAGES` holds a copy of each folder as the website
+served it: the documentation workflow publishes `dev/` again at the next push to `main` and the folders of each later
+release, but no branch or workflow keeps the folders of 1.0.4 and 1.0.5. Both commands can be run again. The home page
 lists `latest/`, `dev/` and the versions of the feed, so `1.0.4/` is listed only when v1.0.4 is imported too, with
 `python3 tools/release/publish_selfhost.py import v1.0.4`.
 

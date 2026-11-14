@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="robots" content="noindex">
+  <meta http-equiv="refresh" content="3; url=https://egtrain.samuelbruin.com/">
+  <title>EGTRAIN documentation</title>
+  <script>
+    // /EGTRAIN/<path> goes to <path> on egtrain.samuelbruin.com with its query and fragment; /EGTRAIN goes to the home page.
+    location.replace("https://egtrain.samuelbruin.com/" + location.pathname.replace(/^\/EGTRAIN(\/|$)/i, "").replace(/^\/+/, "")
+      + location.search + location.hash);
+  </script>
+</head>
+<body>
+  <p>EGTRAIN documentation is at <a href="https://egtrain.samuelbruin.com/">egtrain.samuelbruin.com</a>.</p>
+</body>
+</html>

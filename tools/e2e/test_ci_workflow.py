@@ -3,8 +3,8 @@
 
 The first checks hold for every workflow: the result jobs that main requires, the changed-files filter, time limits,
 permissions, concurrency, credentials, the calls of the reusable package workflow and the files that the workflows name.
-The later ones are the properties of the build, package and release jobs and of the home page of the documentation site
-that docs/development describes. Steps are found by what they run, not by their names.
+The later ones are the properties of the build, package and release jobs and of the publication and the home page of the
+documentation site that docs/development describes. Steps are found by what they run, not by their names.
 """
 import json
 import re
@@ -33,7 +33,7 @@ REQUIRED = {
 
 # The jobs that may write with the token of the run: the scopes of each, and why.
 WRITE_PERMISSIONS = {
-    ("docs.yml", "publish"): ({"contents"}, "pushes the documentation site to gh-pages"),
+    ("docs.yml", "redirect"): ({"contents"}, "keeps the redirect pages on the gh-pages branch"),
     ("release.yml", "release"): ({"contents"}, "creates and publishes the GitHub release"),
 }
 
@@ -298,7 +298,7 @@ def main_only(workflow: dict, job: dict, condition: str) -> bool:
         and events["workflow_run"] == {"workflows": ["Release"], "types": ["completed"]}
         and job.get("if") == condition and needs(job) == ["build"]
         and build.get("if") == "github.event_name != 'workflow_run' || (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success')"
-        and build.get("outputs") == {"version": "${{ steps.version.outputs.version }}"}
+        and build.get("outputs") == {"version": "${{ steps.version.outputs.version }}", "latest": "${{ steps.version.outputs.latest }}"}
         and version.get("if") == "github.event_name == 'workflow_run'"
         and all("ref" not in item.get("with", {}) for item in job.get("steps", []) if item.get("uses", "").startswith("actions/checkout@"))
     )
@@ -1130,18 +1130,63 @@ def check_packages(checks: Checks, package: dict, package_text: str, package_che
     )
 
 
-def check_home_page(checks: Checks, docs: dict, build_release_assets, home_page) -> None:
-    """The pages at the root of gh-pages and of egtrain.samuelbruin.com: the publish job writes them with
-    tools/docs/home_page.py after it has updated the version folders, and then publishes the same folders and pages on the
-    website. The home page offers the packages that the release script names, with the links and sizes of the newest
-    release of the feed, and the script keeps the other files of the root."""
+def check_docs_publication(checks: Checks, docs: dict) -> None:
+    """The documentation site is published on egtrain.samuelbruin.com only. The publish job copies the folders of the run
+    into a folder of its own and publishes them with publish_selfhost.py site, which writes the pages of the root from the
+    feed itself; latest/ follows a release only when no stable release tag sorts higher. The redirect job keeps gh-pages
+    to the redirect page as index.html and 404.html and .nojekyll, and that page sends each address to the same path on
+    egtrain.samuelbruin.com."""
     expect = checks.expect
-    job = docs["jobs"]["publish"]
-    publish = runs(job)
-    positions = [publish.find(command) for command in ("cp -R site pages/latest\n", "python3 tools/docs/home_page.py pages\n", "git -C pages add -A\n")]
-    expect(-1 not in positions and positions == sorted(positions), "docs.yml: the publish job writes the home page after latest/ and before it commits")
-    pushed, published = (step_index(job, marker) for marker in ("git -C pages push", "tools/release/publish_selfhost.py site pages"))
-    expect(0 <= pushed < published, "docs.yml: the publish job publishes on egtrain.samuelbruin.com in a step after the push to gh-pages")
+    build, publish, redirect = (docs["jobs"].get(job, {}) for job in ("build", "publish", "redirect"))
+    version = next((item for item in build.get("steps", []) if item.get("id") == "version"), {}).get("run", "")
+    stable = "grep -xE 'v[0-9]+\\.[0-9]+\\.[0-9]+' | sort -V | tail -n 1 | cut -c 2-"
+    expect(
+        f'version="$(git tag --points-at HEAD | {stable})"' in version and f'newest="$(git tag --list | {stable})"' in version
+        and 'if [ -n "$version" ] && [ "$version" = "$newest" ]; then\n  echo "latest=true" >> "$GITHUB_OUTPUT"\nfi' in version
+        and build.get("outputs", {}).get("latest") == "${{ steps.version.outputs.latest }}",
+        "docs.yml: the build job selects the stable release tag of the commit and says whether no stable tag sorts higher",
+    )
+    select = step(publish, 'cp -R site "pages/$dir"')
+    script = select.get("run", "")
+    expect(
+        select.get("env", {}) == {"VERSION": "${{ needs.build.outputs.version }}", "LATEST": "${{ needs.build.outputs.latest }}"}
+        and 'if [ "$dir" = dev ] && [ "$(git ls-remote origin "$GITHUB_REF" | cut -f1)" != "$GITHUB_SHA" ]; then\n' in script
+        and 'if [ "$dir" != dev ] && [ "$LATEST" = true ]; then\n  cp -R site pages/latest\n' in script
+        and in_order(publish, "actions/download-artifact@", 'cp -R site "pages/$dir"', 'publish_selfhost.py site pages "${dirs[@]}"')
+        and not any(word in flat(publish) for word in ("gh-pages", "git worktree", "git -C", "git push", "home_page.py")),
+        "docs.yml: the publish job copies dev/, or <version>/ and latest/ for the newest release, into a folder of its own and "
+        "publishes it with publish_selfhost.py site, without home_page.py and without copying the site into gh-pages",
+    )
+    write = step(redirect, "git -C pages push origin HEAD:refs/heads/gh-pages")
+    script = write.get("run", "")
+    order = [script.find(command) for command in ("for attempt in 1 2 3; do\n", "git worktree add --no-checkout --detach pages FETCH_HEAD\n",
+                                                  "git -C pages add -A\n", "if git -C pages diff --cached --quiet; then\n",
+                                                  "git -C pages commit", "if git -C pages push", "done\nexit 1")]
+    expect(
+        needs(redirect) == ["build"] and redirect.get("if") == publish.get("if") and -1 not in order and order == sorted(order)
+        and [line.strip() for line in script.splitlines() if re.search(r"\bpages/", line)]
+        == ["cp docs/site/redirect.html pages/index.html", "cp docs/site/redirect.html pages/404.html", "touch pages/.nojekyll"]
+        and 'if [ "$(git ls-remote origin "$GITHUB_REF" | cut -f1)" != "$GITHUB_SHA" ]; then\n' in script
+        and not any(word in flat(redirect) for word in ("download-artifact", "secrets.", "cp -R")),
+        "docs.yml: the redirect job runs when the site is published and writes only the redirect page as index.html and "
+        "404.html and .nojekyll to gh-pages, from the tip of main, commits only a change and starts again after a rejected push",
+    )
+    page = (ROOT / "docs/site/redirect.html").read_text(encoding="utf-8")
+    expect(
+        all(part in page for part in ('location.replace("https://egtrain.samuelbruin.com/" + location.pathname', '.replace(/^\\/EGTRAIN(\\/|$)/i, "")',
+                                      "location.search + location.hash", '<meta http-equiv="refresh" content="3; url=https://egtrain.samuelbruin.com/">',
+                                      '<meta name="robots" content="noindex">', '<a href="https://egtrain.samuelbruin.com/">'))
+        and "github" not in page.lower() and not re.search(r"<script\b[^>]*\bsrc=|<link\b|@import|url\(", page),
+        "docs/site/redirect.html sends each address under /EGTRAIN/ to the same path on https://egtrain.samuelbruin.com/ with "
+        "its query and fragment and to the home page without scripts, is not indexed, loads nothing else and names no code host",
+    )
+
+
+def check_home_page(checks: Checks, build_release_assets, home_page) -> None:
+    """The pages at the root of egtrain.samuelbruin.com, which the site command of tools/release/publish_selfhost.py writes
+    with tools/docs/home_page.py from the feed of the website. The home page offers the packages that the release script
+    names, with the links and sizes of the newest release of the feed, and the script keeps the other files of the root."""
+    expect = checks.expect
     names = [template for _key, template, _directory in build_release_assets.PACKAGES]
     scenes = [scene + build_release_assets.SCENE_SUFFIX for scene in build_release_assets.SCENES]
     # A placeholder that the script did not fill: {name}, {asset:NAME} or {size:NAME}. The scripts of the home page hold
@@ -1343,7 +1388,8 @@ def main() -> None:
     check_format_and_tidy(checks, workflows["format.yml"], workflows["tidy.yml"])
     check_release(checks, workflows["release.yml"], release_text, workflows["package-check.yml"], changed_files.RULES, sources)
     check_packages(checks, workflows["package.yml"], texts["package.yml"], workflows["package-check.yml"], build_release_assets, make_dmg)
-    check_home_page(checks, workflows["docs.yml"], build_release_assets, home_page)
+    check_docs_publication(checks, workflows["docs.yml"])
+    check_home_page(checks, build_release_assets, home_page)
     check_scripts(checks, tests_cmake)
     check_ctest(checks, cmake_lists, tests_cmake)
     checks.finish()

@@ -336,7 +336,7 @@ public:
 
 	double EnergyForAuxiliaries = 0.0; ///< Energy for auxiliaries in MJ: 10 % of the traction energy.
 	/// Step from which the train may enter, in seconds from the start of the run. The builder sets it to
-	/// scheduled_departure_time.
+	/// scheduled_departure_time, or earlier for a train that stands at its first stop before it leaves.
 	double departure_time = 0.0;
 	double scheduled_departure_time = 0.0; ///< Entry time of the train in the timetable, in seconds from the start of the run.
 	/// Last accelerating, cruising or following step, from which brakingEffort counts the braking time (temp + 1 is the
@@ -366,7 +366,8 @@ public:
 	bool destinationTerminationRequested = false; ///< True when a breakdown asks to mark the train terminated at the end of its route.
 	bool destinationTerminated = false;			  ///< True once such a train has reached the end of its route.
 	Section Bs;									  ///< Copy of the section of the head in the current step.
-	double Start_Node_X = 0.0;					  ///< X in kilometres of the start of the route.
+	double Start_Node_X = 0.0;					  ///< X in kilometres where the train enters: the start of its route, or its first stop.
+	int entrySection = 0;						  ///< Index in the route of the section of Start_Node_X.
 	std::string TrainRouteID;					  ///< ID of the route of the train.
 	int indexOfRoute;							  ///< Index of the route in RunInfrastructure::routes, from 0.
 	std::string trainDescription;				  ///< Service ID and occurrence joined by "-", which names the train everywhere.
@@ -543,9 +544,9 @@ public:
 	/// brake for it.
 	bool entryConflictsWithCrossover(int step, const Section& origin) const;
 
-	/// Lets the waiting train enter its route BS in step i (s): CanEnter becomes true once i >= departure_time and the first section
-	/// allows it. Where the first section has a level, the entering train occupies it at once. The rules are under "Route entry" in
-	/// docs/guides/signalling-levels.md.
+	/// Lets the waiting train enter its route BS in step i (s): CanEnter becomes true once i >= departure_time and the section where
+	/// it enters (entrySection) allows it. Where that section has a level, the entering train occupies it at once. The rules are
+	/// under "Route entry" in docs/guides/signalling-levels.md.
 	void checkEntrance(int i, Section* BS);
 
 	/// Passenger-dependent dwell time (s) by the Fernandez et al. (2007) extension of Gibson et al. (1989), with passengers spread over
@@ -560,8 +561,8 @@ public:
 	/// direction of its route, so only trains of that direction obey it.
 	inline bool obeysAuthority(const MovementAuthority& authority) const;
 
-	/// True while a signal failure of the first section of the route holds this train at its entry
-	bool isFirstSectionFailed(const Section& firstSection) const;
+	/// True while a signal failure of section, where this train enters its route, holds it at its entry
+	bool isEntrySectionFailed(const Section& section) const;
 
 	/// Position in metres of the authority on the route of this train, for an authority on section.
 	inline double authorityRoutePosition(const MovementAuthority& authority, const Section& section) const;

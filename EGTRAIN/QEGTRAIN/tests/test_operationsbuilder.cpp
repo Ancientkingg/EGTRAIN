@@ -152,6 +152,7 @@ private slots:
 	void reducedPerformanceLowersTrackSpeed();
 	void reducedPerformanceBrakesBeforeLowerTrackSpeed();
 	void reducedPerformanceKeepsSignalSpeed();
+	void serviceWithoutEntryTimeStartsAtFirstStop();
 	void zeroStopThroughServiceStaysSafe();
 	void stationStatisticsOfSmallPopulations();
 	void passengerRatesAndDwellTerms();
@@ -1583,6 +1584,47 @@ void TestOperationsBuilder::reducedPerformanceKeepsSignalSpeed() {
 		sections[0].arcs_in_signalling_block_section[sections[0].total_arcs - 1].speedInBraking = 10.0;
 	}));
 	QCOMPARE_EQ(speedsBetween(1000.0, 2000.0).highest, 10.0);
+}
+
+void TestOperationsBuilder::serviceWithoutEntryTimeStartsAtFirstStop() {
+	SceneModel scene = trajectoryPerformanceScene(100.0);
+	SceneService& service = scene.services[0];
+	service.hasEntryTime = false;
+	service.repeatCount = 2;
+	service.stops = {{"station.2", "platform.2", false, true, -1.0, 60.0, 20.0}};
+	const auto build = [&scene] {
+		return !hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene))
+			&& !hasErrors(buildOperationsFromScene(defaultRun(), scene, "scenario.base"));
+	};
+	// The train stands at its first stop from its dwell before the planned departure. A later occurrence shifts by the headway.
+	QVERIFY(build());
+	QCOMPARE(defaultRun().trains[0].Start_Node_X * 1000, 2000.0 - kStopHoldbackM);
+	QCOMPARE(defaultRun().trains[0].entrySection, 1);
+	QCOMPARE_EQ(defaultRun().trains[0].departure_time, 40.0);
+	QCOMPARE_EQ(defaultRun().trains[0].scheduled_departure_time, 60.0);
+	QCOMPARE_EQ(defaultRun().trains[1].departure_time, 70.0);
+	// A planned arrival before that moment is when the train stands there.
+	service.stops[0].hasPlannedArrival = true;
+	service.stops[0].plannedArrivalSeconds = 30.0;
+	QVERIFY(build());
+	QCOMPARE_EQ(defaultRun().trains[0].departure_time, 30.0);
+	// The train is not placed before the start of the run.
+	service.stops[0].hasPlannedArrival = false;
+	service.stops[0].dwellSeconds = 100.0;
+	QVERIFY(build());
+	QCOMPARE_EQ(defaultRun().trains[0].departure_time, 0.0);
+	// With an entry time, or with its first stop at the start of the route, the train enters at the start of the route.
+	service.hasEntryTime = true;
+	service.entryTimeSeconds = 10.0;
+	QVERIFY(build());
+	QCOMPARE_EQ(defaultRun().trains[0].Start_Node_X, 0.0);
+	QCOMPARE(defaultRun().trains[0].entrySection, 0);
+	QCOMPARE_EQ(defaultRun().trains[0].departure_time, 10.0);
+	service.hasEntryTime = false;
+	service.stops = {{"station.0", "platform.0", false, true, -1.0, 60.0, 20.0}};
+	QVERIFY(build());
+	QCOMPARE_EQ(defaultRun().trains[0].Start_Node_X, 0.0);
+	QCOMPARE_EQ(defaultRun().trains[0].departure_time, 60.0);
 }
 
 void TestOperationsBuilder::zeroStopThroughServiceStaysSafe() {
