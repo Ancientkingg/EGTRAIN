@@ -443,6 +443,8 @@ private slots:
 	void trainStartingAtStopWaitsForSingleTrack();
 	void trainStartingAtStopBlocksPointsUnderIt_data();
 	void trainStartingAtStopBlocksPointsUnderIt();
+	void entryWaitsForTrainThatCannotStop_data();
+	void entryWaitsForTrainThatCannotStop();
 
 private:
 	SceneModel m_line;
@@ -941,6 +943,82 @@ void TestSimulationRun::trainStartingAtStopBlocksPointsUnderIt() {
 		QCOMPARE_EQ(time.StartOccTime, 540.0);
 	}
 	QCOMPARE_EQ(under, 2);
+}
+
+// The first step in which the two trains overlap, or -1 when they never do.
+int firstOverlap(const Regional& one, const Regional& two, int steps) {
+	for (int t = std::max({one.earliestActiveTrajectoryIndex, two.earliestActiveTrajectoryIndex, 0}); t < steps; ++t) {
+		if (one.earliestActiveTrajectoryIndex < 0 || two.earliestActiveTrajectoryIndex < 0 || (one.OutOfSimulation && t > one.End_Time)
+			|| (two.OutOfSimulation && t > two.End_Time))
+			continue;
+		const double a = one.instant_spatial_position[t], b = two.instant_spatial_position[t];
+		if ((a >= b ? a - one.train_length - b : b - two.train_length - a) < 0)
+			return t;
+	}
+	return -1;
+}
+
+void TestSimulationRun::entryWaitsForTrainThatCannotStop_data() {
+	QTest::addColumn<int>("level");
+	QTest::addColumn<QString>("start");
+	QTest::addColumn<double>("due");
+	QTest::addColumn<bool>("onTime");
+	// T1 runs at 130 km/h and is 800 m before 6 km at 230 s and 440 m at 240 s. X starts at B (8 km) or enters at 6 km where its
+	// route starts, so T1 has to stop before 6 km at the fixed-block levels and behind the tail of X at level 3.
+	QTest::newRow("level 0, at B, T1 can stop") << 0 << "B" << 230.0 << true;
+	QTest::newRow("level 0, at B, T1 cannot stop") << 0 << "B" << 240.0 << false;
+	QTest::newRow("level 5, at B, T1 cannot stop") << 5 << "B" << 240.0 << false;
+	QTest::newRow("level 3, at B, T1 stops behind X") << 3 << "B" << 240.0 << true;
+	QTest::newRow("level 0, route at 6 km, T1 cannot stop") << 0 << "3-B0" << 240.0 << false;
+	QTest::newRow("level 3, route at 6 km, T1 cannot stop") << 3 << "3-B0" << 240.0 << false;
+	// T1 stands at B, at the end of the section before 8 km, from 331 s to 660 s, and leaves it in step 661. A train of a route
+	// that starts at 8 km would stand on it. A train that starts at D, at 10 km, waits for it at level 0, because T1 can leave
+	// B in the step in which that train would enter. At level 3 its tail is far enough ahead of B.
+	QTest::newRow("level 0, route at 8 km, T1 under X") << 0 << "4-B0" << 400.0 << false;
+	QTest::newRow("level 0, at D, T1 stands") << 0 << "D" << 400.0 << false;
+	QTest::newRow("level 0, at D, T1 leaves B") << 0 << "D" << 661.0 << false;
+	QTest::newRow("level 3, at D, T1 leaves B") << 3 << "D" << 661.0 << true;
+}
+
+// X, a copy of T1, starts at a stop (B or D) or enters where its route starts (at the start of a block). It waits while T1 is
+// under it, or runs and is too close to stop in front of it, and enters on time otherwise. The two trains never overlap.
+void TestSimulationRun::entryWaitsForTrainThatCannotStop() {
+	QFETCH(int, level);
+	QFETCH(QString, start);
+	QFETCH(double, due);
+	QFETCH(bool, onTime);
+	SceneModel scene = lineWithStartAtB(m_line, level, due + 300.0);
+	SceneService& entering = scene.services.back();
+	entering.stops[0].dwellSeconds = 300.0;
+	if (start == "D") {
+		SceneStation station;
+		station.id = station.name = "D";
+		station.platforms = {{"D.platform.1", {"B0.node.6"}}};
+		scene.stations.push_back(station);
+		entering.stops[0].stationId = "D";
+		entering.stops[0].platformId = "D.platform.1";
+	} else if (start != "B") {
+		SceneRoute midway;
+		midway.id = "routeMidway";
+		for (int block = start.left(1).toInt(); block < 8; ++block)
+			midway.blocks.push_back(std::to_string(block) + "-B0");
+		scene.routes.push_back(midway);
+		entering.route = midway.id;
+		entering.hasEntryTime = true;
+		entering.entryTimeSeconds = due;
+		entering.stops.erase(entering.stops.begin());
+	}
+	const int steps = 1500;
+	const std::unique_ptr<SimulationRun> run = steppedRun(scene, {{"T1", 1}, {"X", 1}}, steps);
+	if (run == nullptr || run->numTrains != 2)
+		QFAIL("the run is not built");
+	const Regional& train = trainOf(*run, "X-1");
+	QCOMPARE_EQ(train.departure_time, due);
+	if (onTime)
+		QCOMPARE_EQ(train.earliestActiveTrajectoryIndex, static_cast<int>(due));
+	else
+		QCOMPARE_GT(train.earliestActiveTrajectoryIndex, static_cast<int>(due));
+	QCOMPARE_EQ(firstOverlap(train, trainOf(*run, "T1-1"), steps), -1);
 }
 
 QTEST_GUILESS_MAIN(TestSimulationRun)

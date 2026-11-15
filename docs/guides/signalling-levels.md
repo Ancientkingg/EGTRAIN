@@ -193,7 +193,14 @@ trains that wait are visited in the order in which they are due. A train waits
 while the first section is failed, at every level (`checkEntrance`). For a train
 that starts at its first stop, the section of that stop takes the place of the
 first section. Every section that such a train stands on, from its tail to its
-head, also has to show code 270 or 180, at levels 3 and 4 as well. Cases:
+head, also has to show code 270 or 180, at levels 3 and 4 as well. Where the
+section has a level, a train also waits for a train of its own direction that it
+would stand on or cut off: one that is anywhere from its tail to its head, also
+where the tail lies behind the start of its route, or one that can no longer stop
+at the start of the first section under it (levels 0, 1, 2 and 5) or behind its
+tail (levels 3 and 4). A train that stands right at that point counts, because it
+can leave in the same step. A train of the other direction is left to the codes
+and the single-track rules (`entryCutsOffTrain`). Cases:
 `same-entry-level-*`, `entry-order-level-0`, `-1` and `-2`, and
 `sf-first-level-0`, `-1`, `-2` and `-none`.
 
