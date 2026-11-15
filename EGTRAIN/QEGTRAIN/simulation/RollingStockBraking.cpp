@@ -556,6 +556,10 @@ double Train::uncachedBrakDistBlock(double V1, double V2, double X0, Section* BS
 }
 
 bool Train::needsSingleTrackReservation(double head, double speed, double entry, Section* sections, int count) {
+	return mayPassStopPoint(head, speed, entry, sections, count, true);
+}
+
+bool Train::mayPassStopPoint(double head, double speed, double entry, Section* sections, int count, bool approachTargets) {
 	if (head >= entry)
 		return true;
 	if (!std::isfinite(speed) || speed < 0 || total_train_mass <= 0 || massFactor <= 0 || !std::isfinite(max_train_speed))
@@ -595,7 +599,7 @@ bool Train::needsSingleTrackReservation(double head, double speed, double entry,
 	};
 	// Fixed-block locks also constrain the approach blocks. Reserve before those speed targets become too late,
 	// rather than introducing a speed cap on a train already in the block carrying it.
-	for (int b = 0; b < count; ++b)
+	for (int b = 0; approachTargets && b < count; ++b)
 		if (sections[b].start_node.X * 1000 == entry) {
 			if (b > 0 && sections[b - 1].SignallingLevel == levelValue(SignallingLevel::Atb)
 				&& needsBraking(sections[b - 1].start_node.X * 1000, signalCode1))

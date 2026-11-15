@@ -296,6 +296,51 @@ bool Train::entryConflictsWithCrossover(int step, const Section& origin) const {
 	return false;
 }
 
+bool Train::entryCutsOffTrain(int step, const Section* BS) const {
+	if (step <= 0)
+		return false;
+	const double head = Start_Node_X * 1000;
+	const double tail = head - train_length;
+	int under = entrySection; // the first section under this train
+	while (under > 0 && BS[under - 1].end_node.X * 1000 > tail)
+		--under;
+	const bool movingBlock = isMovingBlockLevel(BS[entrySection].SignallingLevel);
+	const bool reversed = run_->infra.routes[indexOfRoute].reversed_direction;
+	for (Train& other : run_->trains) {
+		// A train of the other direction is left to the codes and the single-track rules.
+		if (&other == this || !other.CanEnter || other.OutOfSimulation || step < other.departure_time
+			|| other.indexOfRoute < 0 || other.indexOfRoute >= static_cast<int>(run_->infra.routes.size())
+			|| run_->infra.routes[other.indexOfRoute].reversed_direction != reversed)
+			continue;
+		Route& route = run_->infra.routes[other.indexOfRoute];
+		for (int b = 0; b < route.N_Block_Sections; ++b) {
+			const Section& met = route.sequence_of_block_sections[b];
+			int k = under;
+			while (k <= entrySection && BS[k].ID != met.ID)
+				++k;
+			if (k > entrySection)
+				continue;
+			const double behind = met.start_node.X * 1000 + tail - BS[k].start_node.X * 1000; // the tail on the route of other
+			const int previous = step - 1;
+			if (previous >= static_cast<int>(other.instant_spatial_position.size()) || previous >= static_cast<int>(other.instant_train_speed.size()))
+				return true;
+			const double position = other.instant_spatial_position[previous];
+			const double speed = other.instant_train_speed[previous];
+			if (!std::isfinite(position) || !std::isfinite(speed))
+				return true;
+			if (position > behind && position - other.train_length < behind + train_length)
+				return true;
+			// From standstill too: a train that leaves a stop in this step passes its node at once and may already have moved.
+			const double limit = movingBlock ? behind : met.start_node.X * 1000;
+			if (position < limit
+				&& other.mayPassStopPoint(position, speed, limit, route.sequence_of_block_sections.data(), route.N_Block_Sections))
+				return true;
+			break;
+		}
+	}
+	return false;
+}
+
 // Occupancy keeps its holder. Pending entries reserve the zone before their last braking opportunity, including
 // same-direction followers. Temporary stops do not cancel a reservation; passage, termination or retargeting does.
 void updateSingleTrackLocks(SimulationRun& run, int step) {
