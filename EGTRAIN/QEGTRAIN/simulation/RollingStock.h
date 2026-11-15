@@ -828,6 +828,9 @@ public:
 	/// AbsoluteRTSupplement (s) or PercentageRTSupplement (%) is the running time supplement.
 	void ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, BlockingTimeMethod method, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double AbsoluteRTSupplement, double PercentageRTSupplement);
 
+	/// True when the train starts at its first stop and position (m) lies under it there, between its tail and its head.
+	bool standsOverAtEntry(double position) const;
+
 	/// Function to Compute the Blocking Times in ETCS level 3 (EntryTime is the time the train actually enters the network in the simulation)
 	void ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsoluteRTSupplement, double PercentRTSupplement);
 

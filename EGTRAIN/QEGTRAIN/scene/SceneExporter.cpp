@@ -1429,6 +1429,11 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		trainFiles.push_back(fname);
 
 		const double entryTime = sceneServiceScheduledEntry(svc);
+		if (!svc.hasEntryTime && !svc.stops.empty() && svc.stops.front().hasPlannedDeparture)
+			addDiag(SceneSeverity::Warning, "scene.export.compatibility",
+				"Trains/" + fname + " cannot start a train at its first stop, so the train of service " + svc.id
+					+ " enters at the start of its route at the planned departure of that stop, " + formatNumber(entryTime) + " s",
+				svc.id);
 		const double headway = svc.hasRepeat ? svc.headwaySeconds : kLegacyNoRepeatHeadwaySeconds;
 
 		auto rIt = routeIndices.find(svc.route);

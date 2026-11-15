@@ -219,6 +219,12 @@ void Train::ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, BlockingTim
 	this->N_BlockSections++;
 }
 
+bool Train::standsOverAtEntry(double position) const {
+	const double head = Start_Node_X * 1000;
+	return Start_Node_X > run_->infra.routes[indexOfRoute].sequence_of_block_sections[entrySection].start_node.X
+		&& position > head - train_length && position <= head;
+}
+
 void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsoluteRTSupplement, double PercentRTSupplement) {
 
 	list<BlockingTimes> LocationList, FinalLocationList; // LocationList is a temporary List where we collect all the ETCS Level 3 locations belonging to the current Block Section
@@ -345,6 +351,11 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 				}
 			}
 
+			// A train that starts at its first stop stands over the elements between its tail and its head from the step in which it enters.
+			const bool standsOver = standsOverAtEntry(BlockTime[N_BlockSections].PosStart);
+			if (standsOver)
+				BlockTime[N_BlockSections].StartRunTime = BlockTime[N_BlockSections].EndRunTime = earliestActiveTrajectoryIndex;
+
 			// Adding RunTimeMargins in case we have one. The RunTime Margin wil be added to the EnRunTIme of the train
 			if ((AbsoluteRTSupplement != 0) && (PercentRTSupplement == 0)) {
 				BlockTime[N_BlockSections].RunTimeMargin = AbsoluteRTSupplement / (run_->infra.routes[indexOfRoute].N_Block_Sections);
@@ -391,7 +402,7 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 				BlockTime[N_BlockSections].ReleaseTime = 0;
 			}
 
-			if (N_BlockSections == 0) { // for the first block we do not have setup and sightReaction Time nor approach time
+			if (N_BlockSections == 0 || standsOver) { // for the first block we do not have setup and sightReaction Time nor approach time
 				BlockTime[N_BlockSections].StartApproachTime = BlockTime[N_BlockSections].StartRunTime;
 				BlockTime[N_BlockSections].EndApproachTime = BlockTime[N_BlockSections].StartApproachTime;
 				BlockTime[N_BlockSections].setupTime = 0;
@@ -661,6 +672,11 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 				}
 			}
 
+			// A train that starts at its first stop stands over the elements between its tail and its head from the step in which it enters.
+			const bool standsOver = standsOverAtEntry(BlockTime[N_BlockSections].PosStart);
+			if (standsOver)
+				BlockTime[N_BlockSections].StartRunTime = BlockTime[N_BlockSections].EndRunTime = earliestActiveTrajectoryIndex;
+
 			// Adding RunTimeMargins in case we have one. The RunTime Margin wil be added to the EnRunTIme of the train
 			if ((AbsoluteRTSupplement != 0) && (PercentRTSupplement == 0)) {
 				BlockTime[N_BlockSections].RunTimeMargin = AbsoluteRTSupplement / (run_->infra.routes[indexOfRoute].N_Block_Sections);
@@ -707,7 +723,7 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 				BlockTime[N_BlockSections].ReleaseTime = 0;
 			}
 
-			if (N_BlockSections == 0) { // for the first block we do not have setup and sightReaction Time nor approach time
+			if (N_BlockSections == 0 || standsOver) { // for the first block we do not have setup and sightReaction Time nor approach time
 				BlockTime[N_BlockSections].StartApproachTime = BlockTime[N_BlockSections].StartRunTime;
 				BlockTime[N_BlockSections].EndApproachTime = BlockTime[N_BlockSections].StartApproachTime;
 				BlockTime[N_BlockSections].setupTime = 0;

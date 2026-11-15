@@ -142,4 +142,7 @@ original legacy files prints the information `scene.export.info` that the legacy
 files were generated from the case. The export warns (`scene.export.compatibility`)
 about a station name with a tab or line break, about an empty corridor name or
 one with a comma, tab or line break, and about the tracks that `views.json` draws
-as double switches, because the text files cannot hold them.
+as double switches, because the text files cannot hold them. It also warns
+about a service without an entry time: the legacy files cannot start its train
+at its first stop, so they give it the planned departure of that stop as its
+entry time at the start of its route.
