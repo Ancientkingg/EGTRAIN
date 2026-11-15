@@ -441,6 +441,8 @@ private slots:
 	void trainStartingAtStopWaitsForItsSections_data();
 	void trainStartingAtStopWaitsForItsSections();
 	void trainStartingAtStopWaitsForSingleTrack();
+	void trainStartingAtStopBlocksPointsUnderIt_data();
+	void trainStartingAtStopBlocksPointsUnderIt();
 
 private:
 	SceneModel m_line;
@@ -897,6 +899,48 @@ void TestSimulationRun::trainStartingAtStopWaitsForSingleTrack() {
 	QCOMPARE_GT(otherAtNextStop, 2570.0);
 	QCOMPARE_GT(static_cast<double>(train.earliestActiveTrajectoryIndex), otherAtNextStop);
 	QVERIFY(train.OutOfSimulation);
+}
+
+void TestSimulationRun::trainStartingAtStopBlocksPointsUnderIt_data() {
+	QTest::addColumn<int>("level");
+	QTest::newRow("level 3") << 3;
+	QTest::newRow("level 4") << 4;
+}
+
+// A train of 400 m that starts at Pontrieaux on route0 of Paimpol stands over the points of the loop about 340 m behind the
+// platform. At levels 3 and 4 their blocking times are complete and start in the step in which the train enters.
+void TestSimulationRun::trainStartingAtStopBlocksPointsUnderIt() {
+	QFETCH(int, level);
+	SceneModel scene = m_passengers;
+	for (SceneSignallingArea& area : scene.signallingAreas)
+		area.level = level;
+	SceneService starting = *std::find_if(scene.services.begin(), scene.services.end(),
+		[](const SceneService& candidate) { return candidate.id == "Guin-Paim-ALL-STOPS-1"; });
+	starting.id = starting.operatingCode = "START";
+	starting.route = "route0";
+	starting.hasEntryTime = false;
+	starting.stops = {{"Pontrieaux", "Pontrieaux.platform.2", false, true, 0.0, 600.0, 60.0},
+		{"Paimpol", "", false, false, 0.0, 0.0, 0.0}};
+	scene.services.push_back(starting);
+	for (SceneTrainUnit& unit : scene.trainUnits)
+		unit.physical.length_m = 400.0;
+	const std::unique_ptr<SimulationRun> run = steppedRun(scene, {{"START", 1}}, 2500);
+	if (run == nullptr || run->numTrains != 1)
+		QFAIL("the run is not built");
+	Regional& train = run->trains[0];
+	QCOMPARE_EQ(train.earliestActiveTrajectoryIndex, 540);
+	train.ComputeBlockingTimesInMixedSignallingAreas(5, 3, 0.5, 50, 0, 0);
+	const double head = train.Start_Node_X * 1000;
+	int under = 0;
+	for (int index = 0; index < train.N_BlockSections; ++index) {
+		const BlockingTimes& time = train.BlockTime[index];
+		if (time.PosStart <= head - train.train_length || time.PosStart > head)
+			continue;
+		++under;
+		QVERIFY2(time.IsComplete, time.BlockID.c_str());
+		QCOMPARE_EQ(time.StartOccTime, 540.0);
+	}
+	QCOMPARE_EQ(under, 2);
 }
 
 QTEST_GUILESS_MAIN(TestSimulationRun)
