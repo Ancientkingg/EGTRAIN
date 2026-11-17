@@ -594,8 +594,7 @@ void TestTrackPreview::placesTrackWithoutViewNextToItsConnection() {
 	QVERIFY(trackPreviewPointAtNode(lineOf(withTrack, "B0"), "B0.Gdg", anchor));
 	QVERIFY(trackPreviewPointAtNode(added, "B2.a", start));
 	QVERIFY(trackPreviewPointAtNode(added, "B2.b", end));
-	QCOMPARE_LT(std::hypot(start.x - anchor.x, start.y + added.displayOffset - anchor.y
-		- lineOf(withTrack, "B0").displayOffset), 1e-6);
+	QCOMPARE_LT(std::hypot(start.x - anchor.x, start.y + added.displayOffset - anchor.y - lineOf(withTrack, "B0").displayOffset), 1e-6);
 	QCOMPARE_LT(std::fabs(std::hypot(end.x - start.x, end.y - start.y) - 5000.0), 1e-6);
 	QVERIFY(hasWarning(withTrack, "track B2 has no layout in views.json; drawn next to track B0"));
 }
