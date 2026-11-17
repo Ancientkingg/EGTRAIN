@@ -208,6 +208,9 @@ void fill(SimulationRun& run) {
 	egtrainTime = 1.5;
 	romaTime = 0.5;
 
+	infrastructure.blockSets.resize(1);
+	infrastructure.connections.resize(1);
+	infrastructure.stations.resize(1);
 	infrastructure.blockSets[0].sceneTrackId = "line";
 	infrastructure.blockSets[0].N.resize(2);
 	infrastructure.connections[0].ID = "switch";
@@ -469,10 +472,7 @@ void TestSimulationRun::resetReturnsNewRun() {
 	fill(run);
 	QVERIFY2(membersOfNewRun(run).empty(), "the test fills every member");
 	RunInfrastructure& infra = run.infra;
-	// The arrays of the network have their full number of elements.
-	QCOMPARE(infra.blockSets.size(), static_cast<std::size_t>(kMaxTrackLines));
-	QCOMPARE(infra.connections.size(), static_cast<std::size_t>(kMaxConnections));
-	QCOMPARE(infra.stations.size(), static_cast<std::size_t>(kMaxStations));
+	QCOMPARE(infra.blockSets.size(), std::size_t(1));
 	// The infrastructure shows the values that the test set.
 	QCOMPARE(infra.blockSets[0].sceneTrackId, "line");
 	QCOMPARE(infra.connections[0].ID, "switch");
@@ -494,11 +494,6 @@ void TestSimulationRun::resetReturnsNewRun() {
 	QCOMPARE(run.trains.size(), std::size_t(2));
 	QCOMPARE_EQ(run.signallingDelay, 2.0);
 
-	// The elements of the arrays of the network stay where they are when the infrastructure is reset.
-	const BlockSet* const firstTrack = &infra.blockSets[0];
-	const Connections* const firstConnection = &infra.connections[0];
-	const Stations* const firstStation = &infra.stations[0];
-
 	run.reset();
 	// Reset leaves the infrastructure in place, because the scene builder replaces it.
 	QVERIFY(infrastructureIs(run, false));
@@ -519,10 +514,7 @@ void TestSimulationRun::resetReturnsNewRun() {
 	QVERIFY(infra.routes.empty());
 	QCOMPARE(infra.numRoutes, 0);
 	QVERIFY(infra.detectionSections.empty());
-	// The arrays of the network keep their address when the infrastructure is reset.
-	QVERIFY(firstTrack == &infra.blockSets[0]);
-	QVERIFY(firstConnection == &infra.connections[0]);
-	QVERIFY(firstStation == &infra.stations[0]);
+	QVERIFY(infra.blockSets.empty());
 
 	// The generator of a seeded run starts again from the default seed.
 	run.numberGenerator = NumberGenerator(5);

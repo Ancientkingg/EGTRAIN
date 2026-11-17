@@ -205,7 +205,6 @@ private slots:
 	void refusesStationAtStationNode();
 	void refusesTakenOrBadStationName_data();
 	void refusesTakenOrBadStationName();
-	void refusesStationBeyondLimit();
 	void cancelAddsNoStation();
 	void taskButtonFollowsSelection();
 	void reversesFallingTrack();
@@ -947,31 +946,6 @@ void TestTopologyFacets::refusesTakenOrBadStationName() {
 	QVERIFY(fixture.untouched());
 	QCOMPARE(stationTexts(fixture.model()), before);
 	QCOMPARE(fixture.messages, QStringList({message}));
-}
-
-// A case that has the most stations that a run takes gets no more, and the user is not asked for a name.
-void TestTopologyFacets::refusesStationBeyondLimit() {
-	SceneModel scene = topologyScene();
-	while (scene.stations.size() < static_cast<std::size_t>(RuntimeLimits::kNativeMaxStations)) {
-		SceneStation station;
-		station.id = "extra-" + std::to_string(scene.stations.size());
-		station.name = station.id;
-		station.hasPosition = true;
-		station.positionKm = 50.0;
-		scene.stations.push_back(station);
-	}
-	Fixture fixture(scene);
-	fixture.choose("nodes");
-	fixture.select(2);
-	fixture.prompts.answeredText = QString("Halt");
-
-	fixture.panel.taskButton(0)->click();
-
-	QCOMPARE(fixture.prompts.textCount, 0);
-	QVERIFY(fixture.untouched());
-	QCOMPARE(fixture.model().stations.size(), static_cast<std::size_t>(RuntimeLimits::kNativeMaxStations));
-	QCOMPARE(fixture.messages,
-		QStringList({QString("The case already has %1 stations, the most a run takes.").arg(static_cast<int>(RuntimeLimits::kNativeMaxStations))}));
 }
 
 // Cancel in the name box changes nothing and says nothing.

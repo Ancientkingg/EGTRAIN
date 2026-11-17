@@ -10,9 +10,6 @@ inline constexpr int kMaxExpandedTrains = 700; ///< Train occurrences in one run
 inline constexpr int kMaxTimetableStops = 40;  ///< Stops of one service.
 
 // Capacities of the native runtime arrays.
-inline constexpr std::size_t kNativeMaxTracks = 268;		///< Tracks of a scene.
-inline constexpr std::size_t kNativeMaxConnections = 708;	///< Connections of a scene.
-inline constexpr std::size_t kNativeMaxStations = 95;		///< Stations of a scene.
 inline constexpr std::size_t kNativeMaxRouteBlocks = 600;	///< Section references of one route.
 inline constexpr std::size_t kNativeMaxNodeConnections = 6; ///< Connection ends at one node.
 inline constexpr std::size_t kNativeMaxDependencies = 10;	///< Switch sections and block dependencies of one section.

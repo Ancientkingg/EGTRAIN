@@ -48,7 +48,6 @@
 namespace {
 
 // The tracks of a run and the connections at one of its nodes that the arrays of the run hold.
-constexpr int kMaxTracks = static_cast<int>(RuntimeLimits::kNativeMaxTracks);
 constexpr int kMaxNodeConnections = static_cast<int>(RuntimeLimits::kNativeMaxNodeConnections);
 
 // A node of the run by its id in the scene, or by its number when the node has no id in the scene.
@@ -600,17 +599,17 @@ void InspectorPanel::displayStationNodeInfo(StationNodeItem* stationItem) {
 	m_nodeYText->setText(QString::number(1000 * stationItem->node->Y, 'g', 12)); // km to m
 	setTrackText(m_nodeTrackIDText, *m_presenter, {stationItem->track});
 	m_nodeStationNameText->setText(QString::fromStdString(stationItem->node->stationName));
-	if (stationItem->track >= 0 && stationItem->track < kMaxTracks)
+	if (stationItem->track >= 0 && stationItem->track < m_host.trackCount())
 		m_nodeRegionText->setText(QString::number(m_host.regionOfTrack(stationItem->track)));
 	else
 		m_nodeRegionText->setText("None");
 	std::vector<int> connectedTracks;
-	if (stationItem->track >= 0 && stationItem->track < kMaxTracks)
+	if (stationItem->track >= 0 && stationItem->track < m_host.trackCount())
 		connectedTracks.push_back(stationItem->track);
 	const int connectionCount = std::max(0, std::min(stationItem->node->numConnections, kMaxNodeConnections));
 	for (int i = 0; i < connectionCount; ++i) {
 		const int connectedTrack = stationItem->node->connectIdBlockSet[i];
-		if (connectedTrack >= 0 && connectedTrack < kMaxTracks
+		if (connectedTrack >= 0 && connectedTrack < m_host.trackCount()
 			&& std::find(connectedTracks.begin(), connectedTracks.end(), connectedTrack) == connectedTracks.end())
 			connectedTracks.push_back(connectedTrack);
 	}
