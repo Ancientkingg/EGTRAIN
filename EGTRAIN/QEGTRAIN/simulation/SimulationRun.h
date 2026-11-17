@@ -17,18 +17,18 @@
 /// The infrastructure and the routes that the scene builder makes: the tracks, connections and stations of the network, its block
 /// sections and detection sections, the single-track data and the routes of the trains.
 ///
-/// The arrays of tracks, connections and stations have a fixed number of elements that nothing resizes, so the elements of a built
-/// infrastructure and the buffers that they hold stay where they are until the infrastructure is reset or replaced. A build that fails
+/// The arrays of tracks, connections and stations get their size from the scene when the builder starts a build and nothing resizes
+/// them after that, so the elements of a built infrastructure and the buffers that they hold stay where they are until the infrastructure is reset or replaced. A build that fails
 /// puts the earlier infrastructure back as it was. The canvas keeps Node* and Arc* into the tracks and Connections* into the
 /// connections, a section keeps TDS* into the detection sections, and the station boundaries keep Section* into the sections. These
 /// pointers are valid until the next reset or build, so the window removes its items first.
 struct RunInfrastructure {
-	/// The tracks: kMaxTrackLines elements, of which the first numTrackLines are in use.
-	std::vector<BlockSet> blockSets = std::vector<BlockSet>(kMaxTrackLines);
-	/// The connections between tracks: kMaxConnections elements, of which the first numConnections are in use.
-	std::vector<Connections> connections = std::vector<Connections>(kMaxConnections);
-	/// The stations: kMaxStations elements, of which the first numStations are in use.
-	std::vector<Stations> stations = std::vector<Stations>(kMaxStations);
+	/// The tracks, sized by the builder to the tracks of the scene (numTrackLines).
+	std::vector<BlockSet> blockSets;
+	/// The connections between tracks, sized by the builder to the connections of the scene (numConnections).
+	std::vector<Connections> connections;
+	/// The stations, sized by the builder to the stations of the scene (numStations).
+	std::vector<Stations> stations;
 	int numTrackLines = 0;	///< Number of tracks in use.
 	int numConnections = 0; ///< Number of connections in use.
 	int numStations = 0;	///< Number of stations in use.
@@ -99,8 +99,7 @@ struct RunInfrastructure {
 ///
 /// Besides the run, the simulation uses this process-wide state: initial_variables (the options, which the operations
 /// builder reads and writes and prepareScene copies into settings), the controller simulation, SimulationWorker::active(),
-/// and the constants timestep (1 s), signalCode1 to signalCode3 and the array sizes kMaxTrackLines, kMaxConnections and
-/// kMaxStations of Infrastructure.h.
+/// and the constants timestep (1 s), signalCode1 to signalCode3.
 struct SimulationRun {
 	/// The settings of the run: a copy of initial_variables that DispatchController::prepareScene takes once the scene is built. It holds
 	/// the output folder and the buffer time and running time recovery of the run. A change to initial_variables after that does not

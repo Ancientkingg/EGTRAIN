@@ -55,6 +55,7 @@ public:
 	bool showingTrackPreview() const override { return previewing; }
 	const SceneModel* loadedScene() const override { return hasScene ? &model : nullptr; }
 	quint64 loadedSceneRevision() const override { return revision; }
+	int trackCount() const override { return 1000; }
 	int regionOfTrack(int track) const override { return track + 10; }
 	bool passengerGui() const override { return false; }
 	GuiPassengerState passengerState(const std::string& id) const override {

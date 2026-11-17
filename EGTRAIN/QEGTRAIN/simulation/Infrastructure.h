@@ -175,14 +175,6 @@ public:
 	BlockSet();
 };
 
-/// The number of elements of the arrays of tracks, connections and stations, from RuntimeLimits. The builder rejects a
-/// scene that needs more.
-inline constexpr int kMaxTrackLines = static_cast<int>(RuntimeLimits::kNativeMaxTracks);
-/// See kMaxTrackLines.
-inline constexpr int kMaxConnections = static_cast<int>(RuntimeLimits::kNativeMaxConnections);
-/// See kMaxTrackLines.
-inline constexpr int kMaxStations = static_cast<int>(RuntimeLimits::kNativeMaxStations);
-
 /// A connection between two tracks, such as a switch.
 class Connections {
 public:
