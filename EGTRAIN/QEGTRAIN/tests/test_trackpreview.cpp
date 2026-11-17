@@ -54,6 +54,32 @@ SceneModel twoTrackScene() {
 	}
 	return scene;
 }
+
+// twoTrackScene() with a track B2 from (0, 0) to (3, 4) km that has no view.
+SceneModel sceneWithUnplacedTrack(bool connected) {
+	SceneModel scene = twoTrackScene();
+	scene.tracks.push_back({"B2"});
+	scene.nodes.push_back({"B2.a", "B2", 0.0, 0.0});
+	scene.nodes.push_back({"B2.b", "B2", 3.0, 4.0});
+	scene.arcs.push_back({"B2.arc.1", "B2", "B2.a", "B2.b", 0.0, 0.0, 12.0});
+	scene.blocks.push_back({"B2.block.1", "B2", 5.0});
+	if (connected)
+		scene.connections.push_back({"link", "B0.Gdg", "B2.a", false, 0.0});
+	return scene;
+}
+
+const TrackPreviewLine& lineOf(const TrackPreviewResult& preview, const char* id) {
+	for (const auto& line : preview.lines)
+		if (line.id == id)
+			return line;
+	QTest::qFail("missing line", __FILE__, __LINE__);
+	return preview.lines.front();
+}
+
+bool hasWarning(const TrackPreviewResult& preview, const std::string& text) {
+	return std::any_of(preview.warnings.begin(), preview.warnings.end(),
+		[&text](const std::string& warning) { return warning.find(text) != std::string::npos; });
+}
 }
 
 class TestTrackPreview : public QObject {
@@ -86,6 +112,9 @@ private slots:
 	void skipsConnectionSections();
 	void leavesDoubleSwitchSignalFree();
 	void keepsRawXWithoutStationMetadata();
+	void placesTrackWithoutViewNextToItsConnection();
+	void placesUnconnectedTrackWithoutViewBelowNetwork();
+	void keepsScenesWithoutViewsRaw();
 
 private:
 	SceneModel m_scene;
@@ -358,22 +387,22 @@ void TestTrackPreview::fallsBackToWholeScenePresentationUnits_data() {
 	QTest::addColumn<int>("fallback");
 	QTest::newRow("no track views") << 0;
 	QTest::newRow("no station views") << 1;
-	QTest::newRow("mixed projected and raw") << 2;
 	QTest::newRow("latitude 90") << 3;
 	QTest::newRow("region chainage not a number") << 4;
 	QTest::newRow("infinite x") << 5;
 	QTest::newRow("infinite y") << 6;
 }
 
-// Raw, absent, mixed, invalid or nonfinite projection retains whole-scene presentation units.
+// Raw, absent, invalid or nonfinite projection retains whole-scene presentation units.
 void TestTrackPreview::fallsBackToWholeScenePresentationUnits() {
 	QFETCH(int, fallback);
 	SceneModel candidate = m_schematic;
 	if (fallback == 0) candidate.trackViews.clear();
 	if (fallback == 1) candidate.stationViews.clear();
-	if (fallback == 2) candidate.trackViews.pop_back(); // Mixed projected/raw scene.
 	if (fallback == 3) candidate.stationViews[1].latitude = 90.0;
-	if (fallback == 4) candidate.stationViews[1].regions[0].second = std::numeric_limits<double>::quiet_NaN();
+	if (fallback == 4) // Both regions, so that no line is projected.
+		for (auto& region : candidate.stationViews[1].regions)
+			region.second = std::numeric_limits<double>::quiet_NaN();
 	if (fallback == 5) candidate.nodes[1].xKm = std::numeric_limits<double>::infinity();
 	if (fallback == 6) candidate.nodes[1].yKm = std::numeric_limits<double>::infinity();
 	QCOMPARE_EQ(normalizeTrackPreview(loadTrackPreview(candidate)).presentationScale, 1.0);
@@ -541,6 +570,70 @@ void TestTrackPreview::keepsRawXWithoutStationMetadata() {
 	QCOMPARE(unchanged.lines[0].points.size(), std::size_t(2));
 	QCOMPARE_EQ(unchanged.lines[0].points[0].x, 10.0);
 	QCOMPARE_EQ(unchanged.lines[0].points[1].x, 20.0);
+}
+
+void TestTrackPreview::placesTrackWithoutViewNextToItsConnection() {
+	const TrackPreviewResult withTrack = normalizeTrackPreview(loadTrackPreview(sceneWithUnplacedTrack(true)));
+	// The projected network is drawn as without the new track.
+	QCOMPARE_EQ(withTrack.normalizationScale, m_normalized.normalizationScale);
+	QCOMPARE_EQ(withTrack.presentationScale, m_normalized.presentationScale);
+	for (const char* id : {"B0", "B1"}) {
+		const TrackPreviewLine& before = lineOf(m_normalized, id);
+		const TrackPreviewLine& after = lineOf(withTrack, id);
+		QCOMPARE(after.points.size(), before.points.size());
+		for (std::size_t index = 0; index < before.points.size(); ++index) {
+			QCOMPARE_EQ(after.points[index].x, before.points[index].x);
+			QCOMPARE_EQ(after.points[index].y, before.points[index].y);
+		}
+	}
+	// The new track starts at the node it is connected to and has its true length.
+	const TrackPreviewLine& added = lineOf(withTrack, "B2");
+	TrackPreviewPoint anchor;
+	TrackPreviewPoint start;
+	TrackPreviewPoint end;
+	QVERIFY(trackPreviewPointAtNode(lineOf(withTrack, "B0"), "B0.Gdg", anchor));
+	QVERIFY(trackPreviewPointAtNode(added, "B2.a", start));
+	QVERIFY(trackPreviewPointAtNode(added, "B2.b", end));
+	QCOMPARE_LT(std::hypot(start.x - anchor.x, start.y + added.displayOffset - anchor.y
+		- lineOf(withTrack, "B0").displayOffset), 1e-6);
+	QCOMPARE_LT(std::fabs(std::hypot(end.x - start.x, end.y - start.y) - 5000.0), 1e-6);
+	QVERIFY(hasWarning(withTrack, "track B2 has no layout in views.json; drawn next to track B0"));
+}
+
+void TestTrackPreview::placesUnconnectedTrackWithoutViewBelowNetwork() {
+	const TrackPreviewResult withTrack = normalizeTrackPreview(loadTrackPreview(sceneWithUnplacedTrack(false)));
+	QCOMPARE_EQ(withTrack.presentationScale, m_normalized.presentationScale);
+	double minX = std::numeric_limits<double>::infinity();
+	double minY = std::numeric_limits<double>::infinity();
+	double maxY = -std::numeric_limits<double>::infinity();
+	for (const char* id : {"B0", "B1"}) {
+		const TrackPreviewLine& line = lineOf(withTrack, id);
+		for (const auto& point : line.points) {
+			minX = std::min(minX, point.x);
+			minY = std::min(minY, point.y + line.displayOffset);
+			maxY = std::max(maxY, point.y + line.displayOffset);
+		}
+	}
+	double addedMinX = std::numeric_limits<double>::infinity();
+	double addedMinY = std::numeric_limits<double>::infinity();
+	for (const auto& point : lineOf(withTrack, "B2").points) {
+		addedMinX = std::min(addedMinX, point.x);
+		addedMinY = std::min(addedMinY, point.y);
+	}
+	QCOMPARE_LT(std::fabs(addedMinX - minX), 1e-6);
+	QVERIFY(addedMinY > maxY);
+	QCOMPARE_LT(addedMinY - maxY, maxY - minY);
+	QVERIFY(hasWarning(withTrack, "track B2 has no layout in views.json; drawn below the network"));
+}
+
+void TestTrackPreview::keepsScenesWithoutViewsRaw() {
+	SceneModel noViews = twoTrackScene();
+	noViews.trackViews.clear();
+	noViews.stationViews.clear();
+	const TrackPreviewResult preview = normalizeTrackPreview(loadTrackPreview(noViews));
+	QCOMPARE_EQ(preview.presentationScale, 1.0);
+	QVERIFY(preview.warnings.empty());
+	QCOMPARE_EQ(lineOf(preview, "B0").points[1].x, 28.0 * preview.normalizationScale);
 }
 
 QTEST_APPLESS_MAIN(TestTrackPreview)

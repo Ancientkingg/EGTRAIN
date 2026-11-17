@@ -130,6 +130,81 @@ bool drawnChainages(const TrackPreviewLine& line, double& low, double& high) {
 	return true;
 }
 
+// Moves the lines that no view places, already in normalized units, to the placed network: onto the node of a
+// connection to a placed line, or else below the network. placed marks the lines of the network.
+void placeUnplacedLines(TrackPreviewResult& preview, std::vector<bool> placed) {
+	const auto lineIndex = [&preview](const std::string& trackId) {
+		for (std::size_t index = 0; index < preview.lines.size(); ++index)
+			if (preview.lines[index].id == trackId)
+				return index;
+		return preview.lines.size();
+	};
+	const auto translate = [](TrackPreviewLine& line, double dx, double dy) {
+		for (auto& point : line.points) {
+			point.x += dx;
+			point.y += dy;
+		}
+	};
+	double minX = std::numeric_limits<double>::infinity();
+	double maxY = -std::numeric_limits<double>::infinity();
+	double minY = std::numeric_limits<double>::infinity();
+	for (std::size_t index = 0; index < preview.lines.size(); ++index) {
+		if (!placed[index])
+			continue;
+		for (const auto& point : preview.lines[index].points) {
+			minX = std::min(minX, point.x);
+			minY = std::min(minY, point.y + preview.lines[index].displayOffset);
+			maxY = std::max(maxY, point.y + preview.lines[index].displayOffset);
+		}
+	}
+	for (bool progress = true; progress;) {
+		progress = false;
+		for (const auto& connection : preview.connections) {
+			const std::size_t first = lineIndex(connection.firstTrackId);
+			const std::size_t second = lineIndex(connection.secondTrackId);
+			if (first == preview.lines.size() || second == preview.lines.size() || placed[first] == placed[second])
+				continue;
+			const std::size_t fixed = placed[first] ? first : second;
+			const std::size_t moving = placed[first] ? second : first;
+			const std::string& fixedNode = placed[first] ? connection.firstNodeId : connection.secondNodeId;
+			const std::string& movingNode = placed[first] ? connection.secondNodeId : connection.firstNodeId;
+			TrackPreviewPoint target;
+			TrackPreviewPoint source;
+			if (!trackPreviewPointAtNode(preview.lines[fixed], fixedNode, target)
+				|| !trackPreviewPointAtNode(preview.lines[moving], movingNode, source))
+				continue;
+			translate(preview.lines[moving], target.x - source.x,
+				target.y + preview.lines[fixed].displayOffset - source.y);
+			placed[moving] = true;
+			progress = true;
+			preview.warnings.push_back("track " + preview.lines[moving].id
+				+ " has no layout in views.json; drawn next to track " + preview.lines[fixed].id);
+		}
+	}
+	if (!std::isfinite(minX))
+		return;
+	const double gap = std::max(maxY - minY, 1.0) * 0.05;
+	double top = maxY + gap;
+	for (std::size_t index = 0; index < preview.lines.size(); ++index) {
+		if (placed[index])
+			continue;
+		TrackPreviewLine& line = preview.lines[index];
+		double lineMinX = std::numeric_limits<double>::infinity();
+		double lineMinY = std::numeric_limits<double>::infinity();
+		double lineMaxY = -std::numeric_limits<double>::infinity();
+		for (const auto& point : line.points) {
+			lineMinX = std::min(lineMinX, point.x);
+			lineMinY = std::min(lineMinY, point.y);
+			lineMaxY = std::max(lineMaxY, point.y);
+		}
+		if (!std::isfinite(lineMinX) || !std::isfinite(lineMinY) || !std::isfinite(lineMaxY))
+			continue;
+		translate(line, minX - lineMinX, top - lineMinY);
+		top += lineMaxY - lineMinY + gap;
+		preview.warnings.push_back("track " + line.id + " has no layout in views.json; drawn below the network");
+	}
+}
+
 } // namespace
 
 TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
@@ -433,7 +508,16 @@ TrackPreviewResult normalizeTrackPreview(const TrackPreviewResult& preview) {
 	double maxX = -std::numeric_limits<double>::infinity();
 	double minY = std::numeric_limits<double>::infinity();
 	double maxY = -std::numeric_limits<double>::infinity();
+	// When some lines are projected from the station views and others have no view, the projected lines alone set
+	// the scale and the others are drawn at true length next to them.
+	const auto drawn = [](const TrackPreviewLine& line) { return !line.points.empty(); };
+	const bool mixed = std::any_of(preview.lines.begin(), preview.lines.end(),
+						   [&](const TrackPreviewLine& line) { return drawn(line) && line.authoredStationProjection; })
+		&& std::any_of(preview.lines.begin(), preview.lines.end(),
+			[&](const TrackPreviewLine& line) { return drawn(line) && !line.authoredStationProjection; });
 	for (const auto& line : preview.lines) {
+		if (mixed && !line.authoredStationProjection)
+			continue;
 		if (!line.points.empty() && !line.authoredStationProjection)
 			degreeProjection = false;
 		if (!std::isfinite(line.displayOffset))
@@ -466,18 +550,25 @@ TrackPreviewResult normalizeTrackPreview(const TrackPreviewResult& preview) {
 	if (degreeProjection && std::isfinite(projectedSpan) && projectedSpan > 0.0
 		&& std::isfinite(rawChainageSpan) && rawChainageSpan > 0.0)
 		normalized.presentationScale = scale / kHistoricalDegreeUnits;
+	std::vector<bool> placed;
 	for (auto& line : normalized.lines) {
-		line.displayOffset *= scale;
-		line.levelSpacing *= scale;
+		const bool unplaced = mixed && !line.authoredStationProjection;
+		placed.push_back(!unplaced);
+		// Normalized units are about metres, so the node coordinates in kilometres give the true length.
+		const double lineScale = unplaced ? 1000.0 : scale;
+		line.displayOffset = unplaced ? 0.0 : line.displayOffset * scale;
+		line.levelSpacing = unplaced ? 0.0 : line.levelSpacing * scale;
 		if (!std::isfinite(line.displayOffset))
 			normalized.presentationScale = 1.0;
 		for (auto& point : line.points) {
-			point.x *= scale;
-			point.y *= scale;
+			point.x *= lineScale;
+			point.y *= lineScale;
 			if (!std::isfinite(point.x) || !std::isfinite(point.y + line.displayOffset))
 				normalized.presentationScale = 1.0;
 		}
 	}
+	if (mixed)
+		placeUnplacedLines(normalized, std::move(placed));
 	return normalized;
 }
 
