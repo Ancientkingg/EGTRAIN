@@ -81,13 +81,10 @@ std::vector<std::string> routeComponents(const std::string& token) {
 }
 
 using RuntimeLimits::kNativeCoordinateTolerance;
-using RuntimeLimits::kNativeMaxConnections;
 using RuntimeLimits::kNativeMaxDependencies;
 using RuntimeLimits::kNativeMaxNodeConnections;
 using RuntimeLimits::kNativeMaxRouteBlocks;
 using RuntimeLimits::kNativeMaxSectionArcs;
-using RuntimeLimits::kNativeMaxStations;
-using RuntimeLimits::kNativeMaxTracks;
 
 bool hasId(const std::unordered_set<std::string>& ids, const std::string& id) {
 	return !id.empty() && ids.find(id) != ids.end();
@@ -1821,19 +1818,6 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 
 		if (infrastructureUsableForRuntimeChecks) {
 
-			if (scene.tracks.size() > kNativeMaxTracks)
-				runtimeCapacity("Case has more than " + std::to_string(kNativeMaxTracks) + " tracks",
-					"infrastructure.json", "track", "", "tracks",
-					std::to_string(scene.tracks.size()), "Reduce the number of tracks");
-
-			if (scene.connections.size() > kNativeMaxConnections)
-				runtimeCapacity("Case has more than " + std::to_string(kNativeMaxConnections) + " connections",
-					"infrastructure.json", "connection", "",
-					"connections", std::to_string(scene.connections.size()), "Reduce the number of connections");
-			if (scene.stations.size() > kNativeMaxStations)
-				runtimeCapacity("Case has more than " + std::to_string(kNativeMaxStations) + " stations",
-					"stations.json", "station", "", "stations",
-					std::to_string(scene.stations.size()), "Reduce the number of stations");
 			std::unordered_set<std::string> plannedSectionIds;
 			for (const auto& section : sectionInventory.sections) {
 				if (!plannedSectionIds.insert(section.id).second) {

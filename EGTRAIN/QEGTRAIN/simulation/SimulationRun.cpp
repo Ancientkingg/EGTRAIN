@@ -5,12 +5,9 @@
 using namespace std;
 
 void RunInfrastructure::reset() {
-	for (BlockSet& track : blockSets)
-		track = BlockSet();
-	for (Connections& connection : connections)
-		connection = Connections();
-	for (Stations& station : stations)
-		station = Stations();
+	blockSets.clear();
+	connections.clear();
+	stations.clear();
 	numTrackLines = 0;
 	numConnections = 0;
 	numStations = 0;

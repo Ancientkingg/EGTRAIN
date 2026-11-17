@@ -558,6 +558,7 @@ private:
 	bool showingTrackPreview() const override;
 	const SceneModel* loadedScene() const override;
 	quint64 loadedSceneRevision() const override;
+	int trackCount() const override;
 	int regionOfTrack(int track) const override;
 	bool passengerGui() const override;
 	GuiPassengerState passengerState(const std::string& id) const override;

@@ -307,11 +307,6 @@ private:
 					.arg(nodeText, QString::fromStdString(member->second.name)));
 			return;
 		}
-		if (model.stations.size() >= RuntimeLimits::kNativeMaxStations) {
-			panel.showStatus(QStringLiteral("The case already has %1 stations, the most a run takes.")
-					.arg(static_cast<int>(RuntimeLimits::kNativeMaxStations)));
-			return;
-		}
 		const std::optional<QString> answer = panel.prompts().askText(
 			&panel, QStringLiteral("Add Station"), QStringLiteral("Name of the new station at node %1:").arg(nodeText));
 		if (!answer)
