@@ -647,10 +647,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					hideFirstTrack();
 					w.fitView();
 					undoEdit();
-					const qreal offCentre = QLineF(w.networkView->mapFromScene(w.m_presenter->previewFit().bounds.center()), viewportCentre).length();
-					if (!w.networkView->atFit() || offCentre > 1.0 || w.m_document->isDirty()) {
+					// The view after Undo is the view that Fit gives, to a thousandth of the width of the network.
+					const bool atFit = w.networkView->atFit();
+					const QPointF undoneCentre = w.networkView->mapToScene(viewportCentre);
+					w.fitView();
+					QApplication::processEvents();
+					const qreal offFit = QLineF(undoneCentre, w.networkView->mapToScene(viewportCentre)).length()
+						/ w.m_presenter->previewFit().bounds.width();
+					if (!atFit || offFit > 0.001 || w.m_document->isDirty()) {
 						ok = false;
-						failures << QStringLiteral("scene: Undo of a hidden track left the view %1 px off the fit").arg(offCentre);
+						failures << QStringLiteral("scene: Undo of a hidden track left the view off the fit by %1 of the network width").arg(offFit);
 					}
 				}
 				bool restored = w.openSceneDirectory(scenePath);
