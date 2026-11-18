@@ -89,9 +89,10 @@ public:
 		if (id.empty())
 			return;
 		panel.deleteRow(QString::fromStdString(id), sceneDirectDeleteConsumers(panel.model(), m_key.toStdString(), id),
-			QStringLiteral("Delete %1").arg(m_noun), [this, row](SceneModel& model) {
+			QStringLiteral("Delete %1").arg(m_noun), [this, row, id](SceneModel& model) {
 				std::vector<Item>& list = model.*m_list;
 				list.erase(list.begin() + row);
+				removeReferences(model, id);
 			});
 	}
 
@@ -115,6 +116,9 @@ protected:
 	/// Rewrites what refers to the item that was renamed from the second argument to the third. The default rewrites
 	/// nothing.
 	virtual void rewriteReferences(SceneModel&, const std::string&, const std::string&) const {}
+	/// Removes what only belongs to the item with this id, after it is deleted from the list, such as its view row. The
+	/// default removes nothing.
+	virtual void removeReferences(SceneModel&, const std::string&) const {}
 
 private:
 	QString m_key;

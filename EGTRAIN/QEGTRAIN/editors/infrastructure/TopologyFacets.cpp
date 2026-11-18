@@ -17,6 +17,7 @@
 #include <optional>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -36,7 +37,28 @@ const Item* inRow(const std::vector<Item>& items, int row) {
 
 class TracksFacet final : public ListFacet<SceneTrack> {
 public:
-	TracksFacet() : ListFacet("tracks", "track", &SceneModel::tracks, {"ID"}) {}
+	TracksFacet()
+		: ListFacet("tracks", "track", &SceneModel::tracks, {"ID", "Layout region", "Level", "Shown on map", "Double switch"}) {}
+
+	// The layout cells come after the id. A track without a view row has no region, and its other cells cannot be edited.
+	void fillRows(InfrastructurePanel& panel) override {
+		ListFacet::fillRows(panel);
+		const SceneModel& model = panel.model();
+		QTableWidget& table = *panel.table();
+		const bool hasLayout = !stationsByRegion(model).empty();
+		for (int row = 0; row < static_cast<int>(model.tracks.size()); ++row) {
+			const SceneTrackView* view = viewOf(model, model.tracks[static_cast<std::size_t>(row)].id);
+			setCell(table, row, kRegionColumn, view ? QString::number(view->region) : QString());
+			if (!hasLayout)
+				table.item(row, kRegionColumn)->setToolTip(QStringLiteral("This case has no station layout, so a track cannot be placed on the map."));
+			setCell(table, row, kLevelColumn, view ? QString::number(view->level) : QString(), view != nullptr);
+			setFlagCell(table, row, kShownColumn, view && view->visible);
+			setFlagCell(table, row, kDoubleSwitchColumn, view && view->doubleSwitch);
+			if (!view)
+				for (const int column : {kShownColumn, kDoubleSwitchColumn})
+					table.item(row, column)->setFlags(table.item(row, column)->flags() & ~Qt::ItemIsUserCheckable);
+		}
+	}
 	// Reverse Track turns a track whose arcs run against its X around, so that they run along it.
 	std::vector<TaskAction> taskActions() const override {
 		return {{QStringLiteral("reverseTrackButton"), QStringLiteral("Reverse Track"),
@@ -52,7 +74,117 @@ public:
 			setXFromDistance(panel);
 	}
 
+	// Every region that the station views define, and None for a track without a view row.
+	std::vector<Choice> choices(const InfrastructurePanel& panel, int, int column) const override {
+		std::vector<Choice> result;
+		if (column != kRegionColumn)
+			return result;
+		result.push_back({QStringLiteral("None"), QString()});
+		for (const auto& [region, stations] : stationsByRegion(panel.model())) {
+			constexpr std::size_t kShownStations = 4;
+			QStringList names;
+			for (std::size_t place = 0; place < stations.size() && place < kShownStations; ++place)
+				names << QString::fromStdString(stations[place].second);
+			QString label = QStringLiteral("%1: %2").arg(region).arg(names.join(QStringLiteral(", ")));
+			if (stations.size() > kShownStations)
+				label += QStringLiteral("...");
+			result.push_back({label, QString::number(region)});
+		}
+		return result;
+	}
+	// The region, level, map and double switch cells set or edit the view row of the track, in one edit.
+	void commitCell(InfrastructurePanel& panel, int row, int column) override {
+		const std::vector<SceneTrack>& tracks = panel.model().tracks;
+		if (column == 0 || row >= static_cast<int>(tracks.size())) {
+			ListFacet::commitCell(panel, row, column);
+			return;
+		}
+		const std::string trackId = tracks[static_cast<std::size_t>(row)].id;
+		const QString value = cellValue(*panel.table()->item(row, column));
+		const SceneTrackView* current = viewOf(panel.model(), trackId);
+		if (column == kRegionColumn) {
+			bool parsed = false;
+			const int region = value.toInt(&parsed);
+			if (value.isEmpty() ? current == nullptr : current && parsed && current->region == region)
+				return;
+			if (trackId.empty()) {
+				panel.refuseEdit(QStringLiteral("Give the track an ID first"));
+				return;
+			}
+			if (!value.isEmpty() && !(parsed && stationsByRegion(panel.model()).count(region))) {
+				panel.refuseEdit(QStringLiteral("Layout region must be a region of the station layout, or None."));
+				return;
+			}
+			panel.edit(QStringLiteral("Edit track layout"), [trackId, value, region](SceneModel& model) {
+				std::vector<SceneTrackView>& views = model.trackViews;
+				const auto found = std::find_if(views.begin(), views.end(), [&trackId](const SceneTrackView& view) { return view.trackId == trackId; });
+				if (value.isEmpty()) {
+					if (found != views.end())
+						views.erase(found);
+				} else if (found != views.end()) {
+					found->region = region;
+				} else {
+					SceneTrackView view;
+					view.trackId = trackId;
+					view.region = region;
+					views.push_back(view);
+				}
+			});
+			return;
+		}
+		if (!current)
+			return;
+		SceneTrackView edited = *current;
+		Edit result = Edit::Unchanged;
+		if (column == kLevelColumn) {
+			bool parsed = false;
+			const int level = value.toInt(&parsed);
+			if (!parsed)
+				result = Edit::Refused;
+			else if (level != edited.level) {
+				edited.level = level;
+				result = Edit::Changed;
+			}
+		} else if (column == kShownColumn) {
+			result = setFlag(value, edited.visible);
+		} else if (column == kDoubleSwitchColumn) {
+			result = setFlag(value, edited.doubleSwitch);
+		}
+		if (result == Edit::Changed)
+			panel.edit(QStringLiteral("Edit track layout"), [edited](SceneModel& model) {
+				for (SceneTrackView& view : model.trackViews)
+					if (view.trackId == edited.trackId)
+						view = edited;
+			});
+		else if (result == Edit::Refused)
+			panel.refuseEdit(column == kLevelColumn ? QStringLiteral("Level needs a whole number, such as 0 or -1.")
+													: refusedValueText(*panel.table(), row, column));
+	}
+
 private:
+	static constexpr int kRegionColumn = 1;
+	static constexpr int kLevelColumn = 2;
+	static constexpr int kShownColumn = 3;
+	static constexpr int kDoubleSwitchColumn = 4;
+
+	static const SceneTrackView* viewOf(const SceneModel& model, const std::string& trackId) {
+		const auto found = std::find_if(model.trackViews.begin(), model.trackViews.end(),
+			[&trackId](const SceneTrackView& view) { return view.trackId == trackId; });
+		return found == model.trackViews.end() ? nullptr : &*found;
+	}
+
+	// For each region that the station views define, its stations as (position km, station id) by position.
+	static std::map<int, std::vector<std::pair<double, std::string>>> stationsByRegion(const SceneModel& model) {
+		std::map<int, std::vector<std::pair<double, std::string>>> regions;
+		for (const SceneStationView& view : model.stationViews)
+			for (const auto& [region, positionKm] : view.regions)
+				regions[region].emplace_back(positionKm, view.stationId);
+		for (auto& entry : regions)
+			std::stable_sort(entry.second.begin(), entry.second.end(),
+				[](const auto& left, const auto& right) { return left.first < right.first; });
+		return regions;
+	}
+
 	// Swaps the ends of the arcs of the track, negates their gradients and reverses its blocks within the places that
 	// they hold in scene.blocks, in one edit. Nodes, X, block ids and lengths, and every reference stay as they are, so
 	// the routes over the track are only listed, for the user to check against the new block ends.
@@ -250,6 +382,11 @@ private:
 	SceneTrack newItem(const SceneModel&, const std::string& id) const override { return {id}; }
 	void rewriteReferences(SceneModel& model, const std::string& oldId, const std::string& newId) const override {
 		sceneRewriteTrackReferences(model, oldId, newId);
+	}
+	// A deleted track takes its view row with it.
+	void removeReferences(SceneModel& model, const std::string& id) const override {
+		std::vector<SceneTrackView>& views = model.trackViews;
+		views.erase(std::remove_if(views.begin(), views.end(), [&id](const SceneTrackView& view) { return view.trackId == id; }), views.end());
 	}
 };
 

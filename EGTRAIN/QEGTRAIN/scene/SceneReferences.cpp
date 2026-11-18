@@ -183,6 +183,8 @@ void sceneRewriteTrackReferences(SceneModel& model, const std::string& oldId, co
 		replaceId(block.trackId, oldId, newId);
 	for (auto& area : model.signallingAreas)
 		replaceId(area.trackId, oldId, newId);
+	for (auto& view : model.trackViews)
+		replaceId(view.trackId, oldId, newId);
 }
 
 void sceneRewriteNodeReferences(SceneModel& model, const std::string& oldId, const std::string& newId) {
