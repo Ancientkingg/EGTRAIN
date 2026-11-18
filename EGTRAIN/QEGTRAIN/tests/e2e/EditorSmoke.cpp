@@ -615,6 +615,50 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					ok = false;
 					failures << "scene: explicit track selection was lost or dirtied the scene";
 				}
+				// Undo of a hidden track draws the tracks at another scale. A zoomed view stays on the same place, and Fit
+				// fits the tracks again. Hiding the first track of this case changes the scale.
+				{
+					InfrastructurePanel* panel = infrastructurePanel(w);
+					const auto undoEdit = [&w]() {
+						w.m_undoAction->trigger();
+						QApplication::processEvents();
+					};
+					const auto hideFirstTrack = [&]() {
+						panel->table()->item(0, 3)->setCheckState(Qt::Unchecked);
+						QApplication::processEvents();
+					};
+					hideFirstTrack();
+					const double hiddenScale = w.m_presenter->trackPreview().normalizationScale;
+					w.networkView->zoomBy(16.0 / w.networkView->zoomRatio());
+					const QPoint viewportCentre = w.networkView->viewport()->rect().center();
+					const QPointF centre = w.networkView->mapToScene(viewportCentre);
+					const qreal scale = qAbs(w.networkView->transform().m11());
+					undoEdit();
+					const double factor = w.m_presenter->trackPreview().normalizationScale / hiddenScale;
+					const qreal moved = QLineF(w.networkView->mapFromScene(centre * factor), viewportCentre).length();
+					const qreal zoomed = qAbs(w.networkView->transform().m11()) * factor / scale;
+					if (qAbs(factor - 1.0) < 0.01 || moved > 2.0 || qAbs(zoomed - 1.0) > 0.01) {
+						ok = false;
+						failures << QStringLiteral("scene: Undo of a hidden track moved the zoomed view (scale %1, centre %2 px, zoom %3)")
+										.arg(factor)
+										.arg(moved)
+										.arg(zoomed);
+					}
+					hideFirstTrack();
+					w.fitView();
+					undoEdit();
+					// The view after Undo is the view that Fit gives, to a thousandth of the width of the network.
+					const bool atFit = w.networkView->atFit();
+					const QPointF undoneCentre = w.networkView->mapToScene(viewportCentre);
+					w.fitView();
+					QApplication::processEvents();
+					const qreal offFit = QLineF(undoneCentre, w.networkView->mapToScene(viewportCentre)).length()
+						/ w.m_presenter->previewFit().bounds.width();
+					if (!atFit || offFit > 0.001 || w.m_document->isDirty()) {
+						ok = false;
+						failures << QStringLiteral("scene: Undo of a hidden track left the view off the fit by %1 of the network width").arg(offFit);
+					}
+				}
 				bool restored = w.openSceneDirectory(scenePath);
 				if (!restored || !w.m_document->isLoaded()) {
 					ok = false;

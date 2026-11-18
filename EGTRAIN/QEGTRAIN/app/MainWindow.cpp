@@ -157,6 +157,7 @@
 #include <QFileInfo>
 #include <QSaveFile>
 #include <cfloat>
+#include <cmath>
 #include <QThread>
 #include <QCloseEvent>
 #include <QGraphicsSceneHoverEvent>
@@ -2373,11 +2374,22 @@ void MainWindow::selectInfrastructureRow(QGraphicsItem* item, bool reveal) {
 }
 
 void MainWindow::drawKeepingView(const std::function<void()>& draw) {
-	const qreal zoom = networkView->zoomRatio();
+	// At Fit the view fits the new preview, as after an edit.
+	if (networkView->atFit()) {
+		draw();
+		return;
+	}
+	const qreal scale = qAbs(networkView->transform().m11());
+	const double normalization = m_presenter->trackPreview().normalizationScale;
 	const QPointF centre = networkView->mapToScene(networkView->viewport()->rect().center());
 	draw();
-	networkView->zoomBy(zoom / networkView->zoomRatio());
-	networkView->centerOnExactly(centre);
+	// The preview scales its coordinates to the tracks it draws, so after a track is shown or hidden the same place has
+	// other coordinates.
+	double factor = m_presenter->trackPreview().normalizationScale / normalization;
+	if (!std::isfinite(factor) || factor <= 0.0)
+		factor = 1.0;
+	networkView->zoomBy(scale / factor / qAbs(networkView->transform().m11()));
+	networkView->centerOnExactly(centre * factor);
 }
 
 void MainWindow::updateTrainUnitSourceStatus() {
