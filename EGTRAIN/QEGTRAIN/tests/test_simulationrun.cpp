@@ -208,6 +208,9 @@ void fill(SimulationRun& run) {
 	egtrainTime = 1.5;
 	romaTime = 0.5;
 
+	infrastructure.blockSets.resize(1);
+	infrastructure.connections.resize(1);
+	infrastructure.stations.resize(1);
 	infrastructure.blockSets[0].sceneTrackId = "line";
 	infrastructure.blockSets[0].N.resize(2);
 	infrastructure.connections[0].ID = "switch";
@@ -441,6 +444,10 @@ private slots:
 	void trainStartingAtStopWaitsForItsSections_data();
 	void trainStartingAtStopWaitsForItsSections();
 	void trainStartingAtStopWaitsForSingleTrack();
+	void trainStartingAtStopBlocksPointsUnderIt_data();
+	void trainStartingAtStopBlocksPointsUnderIt();
+	void entryWaitsForTrainThatCannotStop_data();
+	void entryWaitsForTrainThatCannotStop();
 
 private:
 	SceneModel m_line;
@@ -465,10 +472,7 @@ void TestSimulationRun::resetReturnsNewRun() {
 	fill(run);
 	QVERIFY2(membersOfNewRun(run).empty(), "the test fills every member");
 	RunInfrastructure& infra = run.infra;
-	// The arrays of the network have their full number of elements.
-	QCOMPARE(infra.blockSets.size(), static_cast<std::size_t>(kMaxTrackLines));
-	QCOMPARE(infra.connections.size(), static_cast<std::size_t>(kMaxConnections));
-	QCOMPARE(infra.stations.size(), static_cast<std::size_t>(kMaxStations));
+	QCOMPARE(infra.blockSets.size(), std::size_t(1));
 	// The infrastructure shows the values that the test set.
 	QCOMPARE(infra.blockSets[0].sceneTrackId, "line");
 	QCOMPARE(infra.connections[0].ID, "switch");
@@ -490,11 +494,6 @@ void TestSimulationRun::resetReturnsNewRun() {
 	QCOMPARE(run.trains.size(), std::size_t(2));
 	QCOMPARE_EQ(run.signallingDelay, 2.0);
 
-	// The elements of the arrays of the network stay where they are when the infrastructure is reset.
-	const BlockSet* const firstTrack = &infra.blockSets[0];
-	const Connections* const firstConnection = &infra.connections[0];
-	const Stations* const firstStation = &infra.stations[0];
-
 	run.reset();
 	// Reset leaves the infrastructure in place, because the scene builder replaces it.
 	QVERIFY(infrastructureIs(run, false));
@@ -515,10 +514,7 @@ void TestSimulationRun::resetReturnsNewRun() {
 	QVERIFY(infra.routes.empty());
 	QCOMPARE(infra.numRoutes, 0);
 	QVERIFY(infra.detectionSections.empty());
-	// The arrays of the network keep their address when the infrastructure is reset.
-	QVERIFY(firstTrack == &infra.blockSets[0]);
-	QVERIFY(firstConnection == &infra.connections[0]);
-	QVERIFY(firstStation == &infra.stations[0]);
+	QVERIFY(infra.blockSets.empty());
 
 	// The generator of a seeded run starts again from the default seed.
 	run.numberGenerator = NumberGenerator(5);
@@ -897,6 +893,124 @@ void TestSimulationRun::trainStartingAtStopWaitsForSingleTrack() {
 	QCOMPARE_GT(otherAtNextStop, 2570.0);
 	QCOMPARE_GT(static_cast<double>(train.earliestActiveTrajectoryIndex), otherAtNextStop);
 	QVERIFY(train.OutOfSimulation);
+}
+
+void TestSimulationRun::trainStartingAtStopBlocksPointsUnderIt_data() {
+	QTest::addColumn<int>("level");
+	QTest::newRow("level 3") << 3;
+	QTest::newRow("level 4") << 4;
+}
+
+// A train of 400 m that starts at Pontrieaux on route0 of Paimpol stands over the points of the loop about 340 m behind the
+// platform. At levels 3 and 4 their blocking times are complete and start in the step in which the train enters.
+void TestSimulationRun::trainStartingAtStopBlocksPointsUnderIt() {
+	QFETCH(int, level);
+	SceneModel scene = m_passengers;
+	for (SceneSignallingArea& area : scene.signallingAreas)
+		area.level = level;
+	SceneService starting = *std::find_if(scene.services.begin(), scene.services.end(),
+		[](const SceneService& candidate) { return candidate.id == "Guin-Paim-ALL-STOPS-1"; });
+	starting.id = starting.operatingCode = "START";
+	starting.route = "route0";
+	starting.hasEntryTime = false;
+	starting.stops = {{"Pontrieaux", "Pontrieaux.platform.2", false, true, 0.0, 600.0, 60.0},
+		{"Paimpol", "", false, false, 0.0, 0.0, 0.0}};
+	scene.services.push_back(starting);
+	for (SceneTrainUnit& unit : scene.trainUnits)
+		unit.physical.length_m = 400.0;
+	const std::unique_ptr<SimulationRun> run = steppedRun(scene, {{"START", 1}}, 2500);
+	if (run == nullptr || run->numTrains != 1)
+		QFAIL("the run is not built");
+	Regional& train = run->trains[0];
+	QCOMPARE_EQ(train.earliestActiveTrajectoryIndex, 540);
+	train.ComputeBlockingTimesInMixedSignallingAreas(5, 3, 0.5, 50, 0, 0);
+	const double head = train.Start_Node_X * 1000;
+	int under = 0;
+	for (int index = 0; index < train.N_BlockSections; ++index) {
+		const BlockingTimes& time = train.BlockTime[index];
+		if (time.PosStart <= head - train.train_length || time.PosStart > head)
+			continue;
+		++under;
+		QVERIFY2(time.IsComplete, time.BlockID.c_str());
+		QCOMPARE_EQ(time.StartOccTime, 540.0);
+	}
+	QCOMPARE_EQ(under, 2);
+}
+
+// The first step in which the two trains overlap, or -1 when they never do.
+int firstOverlap(const Regional& one, const Regional& two, int steps) {
+	for (int t = std::max({one.earliestActiveTrajectoryIndex, two.earliestActiveTrajectoryIndex, 0}); t < steps; ++t) {
+		if (one.earliestActiveTrajectoryIndex < 0 || two.earliestActiveTrajectoryIndex < 0 || (one.OutOfSimulation && t > one.End_Time)
+			|| (two.OutOfSimulation && t > two.End_Time))
+			continue;
+		const double a = one.instant_spatial_position[t], b = two.instant_spatial_position[t];
+		if ((a >= b ? a - one.train_length - b : b - two.train_length - a) < 0)
+			return t;
+	}
+	return -1;
+}
+
+void TestSimulationRun::entryWaitsForTrainThatCannotStop_data() {
+	QTest::addColumn<int>("level");
+	QTest::addColumn<QString>("start");
+	QTest::addColumn<double>("due");
+	QTest::addColumn<bool>("onTime");
+	// T1 runs at 130 km/h and is 800 m before 6 km at 230 s and 440 m at 240 s. X starts at B (8 km) or enters at 6 km where its
+	// route starts, so T1 has to stop before 6 km at the fixed-block levels and behind the tail of X at level 3.
+	QTest::newRow("level 0, at B, T1 can stop") << 0 << "B" << 230.0 << true;
+	QTest::newRow("level 0, at B, T1 cannot stop") << 0 << "B" << 240.0 << false;
+	QTest::newRow("level 5, at B, T1 cannot stop") << 5 << "B" << 240.0 << false;
+	QTest::newRow("level 3, at B, T1 stops behind X") << 3 << "B" << 240.0 << true;
+	QTest::newRow("level 0, route at 6 km, T1 cannot stop") << 0 << "3-B0" << 240.0 << false;
+	QTest::newRow("level 3, route at 6 km, T1 cannot stop") << 3 << "3-B0" << 240.0 << false;
+	// T1 stands at B, at the end of the section before 8 km, from 331 s to 660 s, and leaves it in step 661. A train of a route
+	// that starts at 8 km would stand on it. A train that starts at D, at 10 km, waits for it at level 0, because T1 can leave
+	// B in the step in which that train would enter. At level 3 its tail is far enough ahead of B.
+	QTest::newRow("level 0, route at 8 km, T1 under X") << 0 << "4-B0" << 400.0 << false;
+	QTest::newRow("level 0, at D, T1 stands") << 0 << "D" << 400.0 << false;
+	QTest::newRow("level 0, at D, T1 leaves B") << 0 << "D" << 661.0 << false;
+	QTest::newRow("level 3, at D, T1 leaves B") << 3 << "D" << 661.0 << true;
+}
+
+// X, a copy of T1, starts at a stop (B or D) or enters where its route starts (at the start of a block). It waits while T1 is
+// under it, or runs and is too close to stop in front of it, and enters on time otherwise. The two trains never overlap.
+void TestSimulationRun::entryWaitsForTrainThatCannotStop() {
+	QFETCH(int, level);
+	QFETCH(QString, start);
+	QFETCH(double, due);
+	QFETCH(bool, onTime);
+	SceneModel scene = lineWithStartAtB(m_line, level, due + 300.0);
+	SceneService& entering = scene.services.back();
+	entering.stops[0].dwellSeconds = 300.0;
+	if (start == "D") {
+		SceneStation station;
+		station.id = station.name = "D";
+		station.platforms = {{"D.platform.1", {"B0.node.6"}}};
+		scene.stations.push_back(station);
+		entering.stops[0].stationId = "D";
+		entering.stops[0].platformId = "D.platform.1";
+	} else if (start != "B") {
+		SceneRoute midway;
+		midway.id = "routeMidway";
+		for (int block = start.left(1).toInt(); block < 8; ++block)
+			midway.blocks.push_back(std::to_string(block) + "-B0");
+		scene.routes.push_back(midway);
+		entering.route = midway.id;
+		entering.hasEntryTime = true;
+		entering.entryTimeSeconds = due;
+		entering.stops.erase(entering.stops.begin());
+	}
+	const int steps = 1500;
+	const std::unique_ptr<SimulationRun> run = steppedRun(scene, {{"T1", 1}, {"X", 1}}, steps);
+	if (run == nullptr || run->numTrains != 2)
+		QFAIL("the run is not built");
+	const Regional& train = trainOf(*run, "X-1");
+	QCOMPARE_EQ(train.departure_time, due);
+	if (onTime)
+		QCOMPARE_EQ(train.earliestActiveTrajectoryIndex, static_cast<int>(due));
+	else
+		QCOMPARE_GT(train.earliestActiveTrajectoryIndex, static_cast<int>(due));
+	QCOMPARE_EQ(firstOverlap(train, trainOf(*run, "T1-1"), steps), -1);
 }
 
 QTEST_GUILESS_MAIN(TestSimulationRun)

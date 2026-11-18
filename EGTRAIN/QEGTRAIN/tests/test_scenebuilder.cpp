@@ -76,6 +76,7 @@ private slots:
 	void areasSurviveExportAndImport();
 	void buildsLongTrack();
 	void buildsManySections();
+	void buildsManyTracksConnectionsAndStations();
 	void routeHoldsExactlyItsSections();
 	void routeOverBlockCapacityThrows();
 	void sectionArcsOverCapacityAreRejected();
@@ -1108,10 +1109,53 @@ void TestSceneBuilder::buildsLongTrack() {
 	// The long track yields one section per block.
 	QCOMPARE(defaultRun().infra.numBlocks, arcCount / arcsPerBlock);
 	resetNativeInfrastructureState(defaultRun());
-	// The runtime reset releases the track buffers.
-	QCOMPARE(defaultRun().infra.blockSets[0].N.capacity(), std::size_t(0));
-	QCOMPARE(defaultRun().infra.blockSets[0].A.capacity(), std::size_t(0));
-	QCOMPARE(defaultRun().infra.blockSets[0].member.capacity(), std::size_t(0));
+	// The runtime reset releases the tracks and their buffers.
+	QVERIFY(defaultRun().infra.blockSets.empty());
+}
+
+// The tracks, connections and stations of the run are sized from the scene, with no limit on their number.
+void TestSceneBuilder::buildsManyTracksConnectionsAndStations() {
+	constexpr int trackCount = 300;
+	constexpr int stationCount = 120;
+	SceneModel scene;
+	scene.name = "many-tracks";
+	for (int index = 0; index < trackCount; ++index) {
+		const std::string track = "track." + std::to_string(index);
+		const std::string first = "node." + std::to_string(index) + ".a";
+		const std::string last = "node." + std::to_string(index) + ".b";
+		scene.tracks.push_back({track});
+		scene.nodes.push_back({first, track, 0.0, static_cast<double>(index)});
+		scene.nodes.push_back({last, track, 1.0, static_cast<double>(index)});
+		scene.arcs.push_back({"arc." + std::to_string(index), track, first, last, 0.0, 0.0, 20.0});
+		scene.blocks.push_back({"block." + std::to_string(index), track, 1.0});
+	}
+	// Each track end joins the starts of the next three tracks: 3 * 300 - 6 connections.
+	for (int index = 0; index < trackCount; ++index)
+		for (int step = 1; step <= 3 && index + step < trackCount; ++step)
+			scene.connections.push_back({"connection." + std::to_string(index) + "." + std::to_string(step),
+				"node." + std::to_string(index) + ".b", "node." + std::to_string(index + step) + ".a", false, 0.0});
+	for (int index = 0; index < stationCount; ++index) {
+		SceneStation station;
+		station.id = "station." + std::to_string(index);
+		station.name = station.id;
+		station.platforms.push_back({"platform", {"node." + std::to_string(index) + ".a"}});
+		scene.stations.push_back(station);
+	}
+	QVERIFY(scene.tracks.size() > 268);
+	QVERIFY(scene.connections.size() > 708);
+	QVERIFY(scene.stations.size() > 95);
+	for (const SceneDiagnostic& diagnostic : validateRunnableScene(scene))
+		QVERIFY2(diagnostic.code != "scene.capacity.runtime", diagnostic.message.c_str());
+	const auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
+	QVERIFY2(!hasErrors(diagnostics), "a case with more than 268 tracks, 708 connections and 95 stations builds");
+	const RunInfrastructure& infra = defaultRun().infra;
+	QCOMPARE(infra.numTrackLines, trackCount);
+	QCOMPARE(infra.numConnections, static_cast<int>(scene.connections.size()));
+	QCOMPARE(infra.numStations, stationCount);
+	QCOMPARE(infra.blockSets.size(), static_cast<std::size_t>(trackCount));
+	QCOMPARE(infra.connections.size(), scene.connections.size());
+	QCOMPARE(infra.stations.size(), static_cast<std::size_t>(stationCount));
+	QCOMPARE(infra.blockSets.back().sceneTrackId, "track.99");
 }
 
 void TestSceneBuilder::buildsManySections() {
@@ -2413,11 +2457,11 @@ static InfrastructureSnapshot takeInfrastructureSnapshot() {
 	snapshot.firstDetectionSection = defaultRun().infra.detectionSections.empty() ? nullptr : &defaultRun().infra.detectionSections.front();
 	for (const StationBoundarySection& boundary : defaultRun().infra.stationBoundaries)
 		snapshot.boundaryEntrances.push_back(boundary.entrance);
-	snapshot.trackStorage = &defaultRun().infra.blockSets[0];
+	snapshot.trackStorage = defaultRun().infra.blockSets.data();
 	snapshot.trackNodes = defaultRun().infra.blockSets[0].N.data();
 	snapshot.trackArcs = defaultRun().infra.blockSets[0].member.data();
-	snapshot.connectionStorage = &defaultRun().infra.connections[0];
-	snapshot.stationStorage = &defaultRun().infra.stations[0];
+	snapshot.connectionStorage = defaultRun().infra.connections.data();
+	snapshot.stationStorage = defaultRun().infra.stations.data();
 	return snapshot;
 }
 

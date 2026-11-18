@@ -263,11 +263,10 @@ The station gets no position. For a station with platforms a position only sets 
 The action changes nothing, and says why in the status bar, when:
 
 - the node already belongs to a station, as the Station column shows it (`previewStationMemberships`): a platform lists it, or a station without platforms has its position at the X of the node;
-- the case already has 95 stations, the most that a run takes (`RuntimeLimits::kNativeMaxStations`, `scene.capacity.runtime`);
 - the name is empty once the spaces around it are removed, or holds a tab or a line break, which the legacy export and the key of a platform row cannot hold;
 - a station already has the name as its id or as its name. The message points to Platforms, where a platform is added to an existing station.
 
-It checks the node and the number of stations before it asks for the name. Cancel changes nothing. Afterwards the node stays selected and the status bar says that Undo removes the station. The new rows raise none of `scene.id.empty`, `scene.id.duplicate`, `scene.station.anchor.missing`, `scene.station.position.invalid`, `scene.platform.nodes.none`, `scene.ref.unresolved`, `scene.platform.node.conflict`, `scene.platform.length.invalid`, `scene.platform.width.invalid`, `scene.platform.capacity.invalid`, `scene.capacity.runtime`, `scene.native.id.duplicate` and `scene.native.binding.missing`, and a case that had no station or no platform loses `scene.stations.none` and `scene.platforms.none`.
+It checks the node before it asks for the name. Cancel changes nothing. Afterwards the node stays selected and the status bar says that Undo removes the station. The new rows raise none of `scene.id.empty`, `scene.id.duplicate`, `scene.station.anchor.missing`, `scene.station.position.invalid`, `scene.platform.nodes.none`, `scene.ref.unresolved`, `scene.platform.node.conflict`, `scene.platform.length.invalid`, `scene.platform.width.invalid`, `scene.platform.capacity.invalid`, `scene.capacity.runtime`, `scene.native.id.duplicate` and `scene.native.binding.missing`, and a case that had no station or no platform loses `scene.stations.none` and `scene.platforms.none`.
 
 ### Reverse track
 

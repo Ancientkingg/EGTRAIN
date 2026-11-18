@@ -48,6 +48,8 @@ public:
 		virtual const SceneModel* loadedScene() const = 0;
 		/// The revision of the scene that the document holds.
 		virtual quint64 loadedSceneRevision() const = 0;
+		/// The number of tracks of the run.
+		virtual int trackCount() const = 0;
 		/// The region of the block set of a track of the run.
 		virtual int regionOfTrack(int track) const = 0;
 		/// True when the run has passengers.

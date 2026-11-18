@@ -203,10 +203,6 @@ std::unordered_map<std::string, const SceneTrack*> nativeIndexTracks(const Scene
 	std::sort(orderedTracks.begin(), orderedTracks.end(), [](const SceneTrack* left, const SceneTrack* right) {
 		return left->id < right->id;
 	});
-	if (orderedTracks.size() > kMaxTrackLines)
-		add(SceneSeverity::Error, "scene.native.capacity", "Case has more than " + std::to_string(kMaxTrackLines) + " tracks",
-			"infrastructure.json", "track", "", "tracks", std::to_string(kMaxTrackLines),
-			"Reduce the number of tracks");
 	return tracksById;
 }
 
@@ -349,12 +345,6 @@ void nativeTrackChain(const SceneModel& scene, const std::unordered_map<std::str
 }
 
 void nativeCheckConnections(const SceneModel& scene, const std::unordered_map<std::string, const SceneNode*>& nodesById, const NativeDiagnosticAdder& add) {
-	if (scene.connections.size() > kMaxConnections)
-		add(SceneSeverity::Error, "scene.native.capacity", "Case has more than " + std::to_string(kMaxConnections) + " connections",
-			"infrastructure.json", "connection", "", "connections", std::to_string(kMaxConnections));
-	if (scene.stations.size() > kMaxStations)
-		add(SceneSeverity::Error, "scene.native.capacity", "Case has more than " + std::to_string(kMaxStations) + " stations",
-			"stations.json", "station", "", "stations", std::to_string(kMaxStations));
 	std::unordered_set<std::string> connectionIds;
 	std::unordered_map<std::string, std::size_t> nodeConnectionCounts;
 	for (const auto& connection : scene.connections) {
@@ -1149,6 +1139,9 @@ void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const Inf
 	// Base sections plus derived switch sections. A successful build creates exactly this many.
 	run.infra.sections = std::vector<Section>(plan.sectionIds.size());
 	run.infra.numTrackLines = static_cast<int>(plan.tracks.size());
+	run.infra.blockSets.resize(plan.tracks.size());
+	run.infra.connections.resize(scene.connections.size());
+	run.infra.stations.resize(scene.stations.size());
 	NativeRuntimeNodes nodes = nativeBuildRuntimeTracks(run, scene, plan);
 	nativeBuildConnections(run, scene, nodes);
 	const std::vector<NativeStationBinding> stationBindings = nativeBindStations(run, scene, nodes, add);

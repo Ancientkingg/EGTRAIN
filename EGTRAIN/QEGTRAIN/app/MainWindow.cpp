@@ -3608,6 +3608,10 @@ quint64 MainWindow::loadedSceneRevision() const {
 	return m_document->revision();
 }
 
+int MainWindow::trackCount() const {
+	return simulation.run().infra.numTrackLines;
+}
+
 int MainWindow::regionOfTrack(int track) const {
 	return makeRuntimeGeometryFromRun(simulation)->regionOfTrack(track);
 }

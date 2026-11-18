@@ -764,6 +764,26 @@ void TestSceneExporter::exportsCanonicalInfrastructure() {
 	// Passenger route-choice compatibility row exported.
 	QCOMPARE(line, "p0,Destination,1,Transfer,svc-code-1,svc-code-1");
 	QVERIFY2(!fs::exists(fs::path(outDir.dir) / "legacy"), "No legacy subtree created");
+
+	// A service without an entry time starts at its first stop. The Trains file cannot hold that, so the export warns and writes
+	// the planned departure of that stop as the entry time.
+	const auto warnsOfStart = [](const std::vector<SceneDiagnostic>& diagnostics) {
+		return std::any_of(diagnostics.begin(), diagnostics.end(), [](const SceneDiagnostic& d) {
+			return d.code == "scene.export.compatibility" && d.message.find("first stop") != std::string::npos;
+		});
+	};
+	QVERIFY(!warnsOfStart(res.diagnostics));
+	std::ofstream(scene / "services.json")
+		<< R"({"services":[{"id":"svc","operating_code":"svc-code","composition":"comp","route":"route0","stops":[{"station":"transfer","planned_departure_seconds":7,"dwell_seconds":0},{"station":"destination","planned_arrival_seconds":9,"dwell_seconds":0}]}]})"
+		<< "\n";
+	TempDir startDir;
+	const auto start = exportLegacyScene(sceneDir.dir, startDir.dir);
+	QVERIFY(start.success());
+	QVERIFY(warnsOfStart(start.diagnostics));
+	std::ifstream trainFile(fs::path(startDir.dir) / "Trains" / "svc.txt");
+	std::getline(trainFile, line);
+	std::getline(trainFile, line);
+	QCOMPARE(line, "7");
 }
 
 // Canonical block and track IDs map consistently across legacy files.

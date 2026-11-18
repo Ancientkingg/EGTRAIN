@@ -72,7 +72,7 @@ void Train::checkEntrance(int i, Section* BS) {
 		return;
 	if (waiting && isEntrySectionFailed(entry)) // enters when the failure has ended, at any signalling level
 		return;
-	if (waiting && separated && i >= departure_time && entryConflictsWithCrossover(i, entry))
+	if (waiting && separated && i >= departure_time && (entryConflictsWithCrossover(i, entry) || entryCutsOffTrain(i, BS)))
 		return;
 	if (isMovingBlockLevel(entry.SignallingLevel)) { // if the signalling system of the entry section is ETCS Level 3 or Level 4 (Virtual Coupling)
 		bool IsRouteStartingPointOccupied = false;	 // this bool is true if start_node of signalling_block_sections[0] is present in the list of Movement Authorities ETCS_MA, i.e. if the beginning of the train route is occupied by another train

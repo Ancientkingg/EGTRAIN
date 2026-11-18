@@ -186,12 +186,38 @@ static QString blocked(const char* kind, const char* id, const QStringList& cons
 		.arg(QString(kind), QString(id), consumers.join("\n\xE2\x80\xA2 "));
 }
 
+// The topology scene with station views: region 0 has five stations, region 2 has two, listed out of order.
+static SceneModel layoutScene() {
+	SceneModel scene = topologyScene();
+	const auto view = [](const char* id, std::vector<std::pair<int, double>> regions) {
+		SceneStationView result;
+		result.stationId = id;
+		result.regions = std::move(regions);
+		return result;
+	};
+	scene.stationViews = {view("Dld", {{0, 4.0}}), view("Ut", {{0, 0.0}, {2, 1.5}}), view("Uto", {{0, 1.0}}),
+		view("Bhv", {{0, 2.0}}), view("Gv", {{0, 9.0}, {2, 0.5}})};
+	return scene;
+}
+
+static const SceneTrackView* viewOf(const SceneModel& model, const char* trackId) {
+	for (const SceneTrackView& view : model.trackViews)
+		if (view.trackId == trackId)
+			return &view;
+	return nullptr;
+}
+
 class TestTopologyFacets : public QObject {
 	Q_OBJECT
 
 private slots:
 	void offersNetworkFacets();
 	void editsTracks();
+	void listsLayoutRegions();
+	void setsAndClearsLayoutRegion();
+	void editsLayoutRow();
+	void renameAndDeleteFollowLayoutRow();
+	void listsOnlyNoneWithoutStationLayout();
 	void editsNodes();
 	void editsArcs();
 	void showsShortestNumbers();
@@ -205,7 +231,6 @@ private slots:
 	void refusesStationAtStationNode();
 	void refusesTakenOrBadStationName_data();
 	void refusesTakenOrBadStationName();
-	void refusesStationBeyondLimit();
 	void cancelAddsNoStation();
 	void taskButtonFollowsSelection();
 	void reversesFallingTrack();
@@ -255,7 +280,7 @@ void TestTopologyFacets::editsTracks() {
 	Fixture f;
 	f.choose("tracks");
 	// Tracks are listed by their id.
-	QCOMPARE(f.headers(), QStringList({"ID"}));
+	QCOMPARE(f.headers(), QStringList({"ID", "Layout region", "Level", "Shown on map", "Double switch"}));
 	QCOMPARE(f.firstColumn(), QStringList({"track-a", "track-b"}));
 	// Listing tracks edits nothing.
 	QVERIFY(f.untouched());
@@ -342,6 +367,141 @@ void TestTopologyFacets::editsTracks() {
 	QVERIFY(f.changedOnce("Delete track"));
 	QCOMPARE(f.panel.selectionId(), "track_2");
 	QCOMPARE(f.table()->currentRow(), 2);
+}
+
+// The region cell offers None and the regions of the station views, each with its stations in order of position.
+void TestTopologyFacets::listsLayoutRegions() {
+	Fixture f(layoutScene());
+	f.choose("tracks");
+	const std::vector<InfrastructureFacet::Choice> choices = f.panel.facet("tracks")->choices(f.panel, 0, 1);
+	QStringList texts;
+	QStringList ids;
+	for (const InfrastructureFacet::Choice& choice : choices) {
+		texts << choice.label;
+		ids << choice.id;
+	}
+	QCOMPARE(texts, QStringList({"None", "0: Ut, Uto, Bhv, Dld...", "2: Gv, Ut"}));
+	QCOMPARE(ids, QStringList({"", "0", "2"}));
+	// Only the region cell has choices.
+	QVERIFY(f.panel.facet("tracks")->choices(f.panel, 0, 2).empty());
+	// A track without a view row shows no region, and its other layout cells cannot be edited.
+	QCOMPARE(f.cell(0, 1), "");
+	QVERIFY(!(f.table()->item(0, 2)->flags() & Qt::ItemIsEditable));
+	QVERIFY(!(f.table()->item(0, 3)->flags() & Qt::ItemIsUserCheckable));
+	QVERIFY(!(f.table()->item(0, 4)->flags() & Qt::ItemIsUserCheckable));
+}
+
+void TestTopologyFacets::setsAndClearsLayoutRegion() {
+	Fixture f(layoutScene());
+	RunSelection selection;
+	EditHistory history(f.document, selection, f.panel);
+	f.choose("tracks");
+
+	f.type(0, 1, "2");
+	// A region creates a row with the defaults, in one step.
+	const SceneTrackView* created = viewOf(f.model(), "track-a");
+	QVERIFY(created != nullptr);
+	QCOMPARE(created->region, 2);
+	QCOMPARE(created->level, 0);
+	QVERIFY(created->visible);
+	QVERIFY(!created->doubleSwitch);
+	QCOMPARE(f.model().trackViews.size(), std::size_t(1));
+	QVERIFY(f.changedOnce("Edit track layout"));
+	QCOMPARE(f.cell(0, 1), "2");
+	QVERIFY(f.table()->item(0, 2)->flags() & Qt::ItemIsEditable);
+	QVERIFY(f.table()->item(0, 3)->flags() & Qt::ItemIsUserCheckable);
+	QCOMPARE(f.table()->item(0, 3)->checkState(), Qt::Checked);
+
+	f.type(0, 1, "0");
+	// Another region keeps the row.
+	QCOMPARE(viewOf(f.model(), "track-a")->region, 0);
+	QCOMPARE(f.model().trackViews.size(), std::size_t(1));
+	QVERIFY(f.changedOnce("Edit track layout"));
+
+	f.type(0, 1, "7");
+	// A region that no station view defines is refused.
+	QVERIFY(f.untouched());
+	QCOMPARE(viewOf(f.model(), "track-a")->region, 0);
+	QCOMPARE(f.messages, QStringList({"Layout region must be a region of the station layout, or None."}));
+
+	f.type(0, 1, "");
+	// Blank removes the row.
+	QVERIFY(viewOf(f.model(), "track-a") == nullptr);
+	QVERIFY(f.changedOnce("Edit track layout"));
+
+	f.type(0, 1, "2");
+	f.log.clear();
+	QVERIFY(history.undo());
+	QVERIFY(viewOf(f.model(), "track-a") == nullptr);
+}
+
+void TestTopologyFacets::editsLayoutRow() {
+	SceneModel scene = layoutScene();
+	scene.trackViews = {{"track-b", 1, 0, true, false}};
+	Fixture f(scene);
+	RunSelection selection;
+	EditHistory history(f.document, selection, f.panel);
+	f.choose("tracks");
+	QCOMPARE(f.cell(1, 2), "1");
+
+	f.type(1, 2, "-2");
+	QCOMPARE(viewOf(f.model(), "track-b")->level, -2);
+	QVERIFY(f.changedOnce("Edit track layout"));
+	f.table()->item(1, 3)->setCheckState(Qt::Unchecked);
+	QVERIFY(!viewOf(f.model(), "track-b")->visible);
+	QVERIFY(f.changedOnce("Edit track layout"));
+	f.table()->item(1, 4)->setCheckState(Qt::Checked);
+	QVERIFY(viewOf(f.model(), "track-b")->doubleSwitch);
+	QVERIFY(f.changedOnce("Edit track layout"));
+	f.type(1, 2, "1.5");
+	// A level that is no whole number is refused.
+	QVERIFY(f.untouched());
+	QCOMPARE(viewOf(f.model(), "track-b")->level, -2);
+	QCOMPARE(f.messages, QStringList({"Level needs a whole number, such as 0 or -1."}));
+
+	// Each change is one Undo step.
+	QVERIFY(history.undo());
+	QVERIFY(!viewOf(f.model(), "track-b")->doubleSwitch);
+	QVERIFY(history.undo());
+	QVERIFY(viewOf(f.model(), "track-b")->visible);
+	QVERIFY(history.undo());
+	QCOMPARE(viewOf(f.model(), "track-b")->level, 1);
+}
+
+void TestTopologyFacets::renameAndDeleteFollowLayoutRow() {
+	SceneModel scene = layoutScene();
+	scene.trackViews = {{"track-b", 1, 0, true, false}};
+	scene.tracks.push_back({"track-c"});
+	scene.trackViews.push_back({"track-c", 0, 2, true, false});
+	Fixture f(scene);
+	f.choose("tracks");
+
+	f.type(1, 0, "track-z");
+	// A renamed track keeps its view row.
+	QVERIFY(viewOf(f.model(), "track-b") == nullptr);
+	QCOMPARE(viewOf(f.model(), "track-z")->level, 1);
+	QVERIFY(f.changedOnce("Rename track"));
+
+	f.select(2);
+	f.panel.deleteButton()->click();
+	// A track that only its view row refers to is deleted, and the row with it.
+	QCOMPARE(f.prompts.errorCount, 0);
+	QCOMPARE(f.model().tracks.size(), std::size_t(2));
+	QVERIFY(viewOf(f.model(), "track-c") == nullptr);
+	QCOMPARE(f.model().trackViews.size(), std::size_t(1));
+	QVERIFY(f.changedOnce("Delete track"));
+}
+
+void TestTopologyFacets::listsOnlyNoneWithoutStationLayout() {
+	Fixture f;
+	f.choose("tracks");
+	const std::vector<InfrastructureFacet::Choice> choices = f.panel.facet("tracks")->choices(f.panel, 0, 1);
+	QCOMPARE(choices.size(), std::size_t(1));
+	QCOMPARE(choices[0].label, "None");
+	QVERIFY(f.table()->item(0, 1)->toolTip().contains("no station layout"));
+	f.type(0, 1, "0");
+	QVERIFY(f.untouched());
+	QVERIFY(f.model().trackViews.empty());
 }
 
 void TestTopologyFacets::editsNodes() {
@@ -947,31 +1107,6 @@ void TestTopologyFacets::refusesTakenOrBadStationName() {
 	QVERIFY(fixture.untouched());
 	QCOMPARE(stationTexts(fixture.model()), before);
 	QCOMPARE(fixture.messages, QStringList({message}));
-}
-
-// A case that has the most stations that a run takes gets no more, and the user is not asked for a name.
-void TestTopologyFacets::refusesStationBeyondLimit() {
-	SceneModel scene = topologyScene();
-	while (scene.stations.size() < static_cast<std::size_t>(RuntimeLimits::kNativeMaxStations)) {
-		SceneStation station;
-		station.id = "extra-" + std::to_string(scene.stations.size());
-		station.name = station.id;
-		station.hasPosition = true;
-		station.positionKm = 50.0;
-		scene.stations.push_back(station);
-	}
-	Fixture fixture(scene);
-	fixture.choose("nodes");
-	fixture.select(2);
-	fixture.prompts.answeredText = QString("Halt");
-
-	fixture.panel.taskButton(0)->click();
-
-	QCOMPARE(fixture.prompts.textCount, 0);
-	QVERIFY(fixture.untouched());
-	QCOMPARE(fixture.model().stations.size(), static_cast<std::size_t>(RuntimeLimits::kNativeMaxStations));
-	QCOMPARE(fixture.messages,
-		QStringList({QString("The case already has %1 stations, the most a run takes.").arg(static_cast<int>(RuntimeLimits::kNativeMaxStations))}));
 }
 
 // Cancel in the name box changes nothing and says nothing.

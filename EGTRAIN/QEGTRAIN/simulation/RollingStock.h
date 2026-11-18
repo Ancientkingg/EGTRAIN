@@ -544,6 +544,11 @@ public:
 	/// brake for it.
 	bool entryConflictsWithCrossover(int step, const Section& origin) const;
 
+	/// True when this train, entering its route BS in this step, would stand on or in front of a train of its own direction: one
+	/// that overlaps it from its tail to its head, or that can no longer stop at the start of the first section under it at a
+	/// fixed-block level, or behind its tail at levels 3 and 4. A train that stands right at that point counts, as it can leave.
+	bool entryCutsOffTrain(int step, const Section* BS) const;
+
 	/// Lets the waiting train enter its route BS in step i (s): CanEnter becomes true once i >= departure_time and the section where
 	/// it enters (entrySection) allows it. Where that section has a level, the entering train occupies it at once. The rules are
 	/// under "Route entry" in docs/guides/signalling-levels.md.
@@ -687,6 +692,11 @@ public:
 	/// movement could pass the last point where it can still brake for the entry.
 	bool needsSingleTrackReservation(double head, double speed, double entry, Section* sections, int count);
 
+	/// True when the train at head (m) and speed (m/s) could pass in its next step the last point where it can still stop at entry
+	/// (m). With approachTargets it must also still meet the lower speed or the stop that fixed-block levels 0 and 5 ask at the
+	/// sections before entry, as needsSingleTrackReservation does.
+	bool mayPassStopPoint(double head, double speed, double entry, Section* sections, int count, bool approachTargets = false);
+
 	/// The index in Sbrak and Vbrak of the next state of the stored braking plan, when the train is exactly at a state of it in
 	/// step previousInstant, the step before, which kept the same target (previousXob and previousVob equal to target m and
 	/// targetSpeed m/s), and that next step is feasible on arc; -1 otherwise.
@@ -827,6 +837,9 @@ public:
 	/// simulation steps (s) found by searching from step EntryTime + 1; setup, release and sight and reaction times are seconds.
 	/// AbsoluteRTSupplement (s) or PercentageRTSupplement (%) is the running time supplement.
 	void ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, BlockingTimeMethod method, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double AbsoluteRTSupplement, double PercentageRTSupplement);
+
+	/// True when the train starts at its first stop and position (m) lies under it there, between its tail and its head.
+	bool standsOverAtEntry(double position) const;
 
 	/// Function to Compute the Blocking Times in ETCS level 3 (EntryTime is the time the train actually enters the network in the simulation)
 	void ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsoluteRTSupplement, double PercentRTSupplement);
