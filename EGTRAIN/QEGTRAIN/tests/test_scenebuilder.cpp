@@ -2457,11 +2457,11 @@ static InfrastructureSnapshot takeInfrastructureSnapshot() {
 	snapshot.firstDetectionSection = defaultRun().infra.detectionSections.empty() ? nullptr : &defaultRun().infra.detectionSections.front();
 	for (const StationBoundarySection& boundary : defaultRun().infra.stationBoundaries)
 		snapshot.boundaryEntrances.push_back(boundary.entrance);
-	snapshot.trackStorage = &defaultRun().infra.blockSets[0];
+	snapshot.trackStorage = defaultRun().infra.blockSets.data();
 	snapshot.trackNodes = defaultRun().infra.blockSets[0].N.data();
 	snapshot.trackArcs = defaultRun().infra.blockSets[0].member.data();
-	snapshot.connectionStorage = &defaultRun().infra.connections[0];
-	snapshot.stationStorage = &defaultRun().infra.stations[0];
+	snapshot.connectionStorage = defaultRun().infra.connections.data();
+	snapshot.stationStorage = defaultRun().infra.stations.data();
 	return snapshot;
 }
 
