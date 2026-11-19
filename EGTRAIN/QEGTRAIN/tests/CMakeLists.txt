@@ -904,6 +904,11 @@ egtrain_add_test(test_scenebuilder SIMULATION_HEADERS
 	LIBS egtrain_sim
 	LABELS scene-v1 unit)
 
+egtrain_add_test(test_passengerrouting SIMULATION_HEADERS
+	SOURCES ${SRC_DIR}/tests/test_passengerrouting.cpp
+	LIBS egtrain_sim
+	LABELS unit)
+
 egtrain_add_test(test_stopdwell SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_stopdwell.cpp
 	LIBS egtrain_sim
