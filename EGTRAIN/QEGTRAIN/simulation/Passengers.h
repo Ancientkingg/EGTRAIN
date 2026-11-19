@@ -129,6 +129,9 @@ public:
 	/// Platform where the passenger left the network. Used by the Passenger GUI to display the passenger icon a few
 	/// seconds after leaving the network
 	std::string PlatformExitedTheNetworkID;
+	/// trainDescription of the last train that was full when the passenger wanted to board it; "None" before that. The
+	/// refusal is logged once per train, not at every step of its stop.
+	std::string TrainThatRefusedBoarding = "None";
 
 	Passenger() {
 		ID = passenger_category = current_location_ID = current_TripID = current_JourneyID = StationExitedTheNetworkID = PlatformExitedTheNetworkID = "None";

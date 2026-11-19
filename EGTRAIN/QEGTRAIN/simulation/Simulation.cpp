@@ -420,10 +420,15 @@ void Simulate_Train_Passenger_Interactions(SimulationRun& run, int t, int Simula
 										p->CurrentStatus = "OnPlatform";
 										p->Current_WaitingStationID = T.CurrentServiceStop;
 										p->current_location_ID = T.CurrentServiceStop;
-										p->Current_WaitingStationPlatformID = T.CurrentServiceStopPlatform;
+										// The passenger waits for the next train on the platform where that train stops, or on the
+										// arrival platform when the next trip has none.
+										p->Current_WaitingStationPlatformID = nexttrip->Dep_Station_Platform_ID != "None"
+											? nexttrip->Dep_Station_Platform_ID
+											: T.CurrentServiceStopPlatform;
 										p->Current_Train_Boarded = "None";
 										p->Current_Train_To_Wait = nexttrip->TrainServiceDescription;
 										p->Current_Arrival_Station = nexttrip->Arr_Station_ID;
+										p->Current_Arrival_Platform = nexttrip->Arr_Station_Platform_ID;
 
 										// check that the waiting station of the trip is the same as the one departure station of teh nexttripID
 										if (p->Current_WaitingStationID != nexttrip->Dep_Station_ID) {
@@ -482,6 +487,9 @@ void Simulate_Train_Passenger_Interactions(SimulationRun& run, int t, int Simula
 				std::optional<PassengerIndex> callPassengers;
 				const PassengerIndex& passengerIndex = indexOf(run.passengerIndex, ALLPAX, callPassengers);
 				for (const pair<string, double>& Pax : waitingList) {
+					// A passenger who still walks from another platform after a transfer is not on this platform yet.
+					if (Pax.second > t + SimulationStartingTime)
+						continue;
 					for (Passenger* p : passengerIndex.find(Pax.first)) {
 						// iterating through the passengers with the ID of the one in the list of passengers on the platform, in the order of the list of all passengers
 						// if the passenger p needs to board the current train then
@@ -510,17 +518,17 @@ void Simulate_Train_Passenger_Interactions(SimulationRun& run, int t, int Simula
 												}
 												currenttrip++; // advance the current trip iterator by one.
 											}
+											break; // the active journey has been found
 										}
-										break; // break the loop over the journey once the active one has been found
 									}
 								}
 
 							}
 
-							else { // if the train is full and the passenger cannot board the train then the Route Choice Function shall be called
-
-								EG_LOG(SimPax, Info) << "Call RouteChoice model as passenger ID: " << p->ID << " could not board train " << T.trainDescription << " as it was full\n";
-								// Call Route Choice Function TO BE ADDED
+							else if (p->TrainThatRefusedBoarding != T.trainDescription) {
+								// The train is full. The passenger keeps waiting for it; the refusal is logged once per train.
+								p->TrainThatRefusedBoarding = T.trainDescription;
+								EG_LOG(SimPax, Info) << "Passenger " << p->ID << " could not board train " << T.trainDescription << " as it was full\n";
 							}
 						}
 					}

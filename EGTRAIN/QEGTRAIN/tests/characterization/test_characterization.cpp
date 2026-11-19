@@ -1151,10 +1151,10 @@ void addPassengerSet(SceneModel& scene, const std::string& set) {
 			scene.passengers.push_back({id, {journey(id + ".1", entriesB[i], 1250, "B", "C", {"Q1"})}});
 		}
 	} else {
-		// x1 transfers to Q2; x2 walks 120 s but stays on the arrival platform and never boards Q3.
+		// x1 transfers to Q2; x2 walks 120 s to Platform_4 and boards Q3 there.
 		scene.passengers.push_back({"x1", {journey("x1.1", 150, 1400, "P", "C", {"Q1", "Q2"})}});
 		scene.passengers.push_back({"x2", {journey("x2.1", 160, 1450, "P", "C", {"Q1", "Q3"})}});
-		// Waiting time is accumulated only for the first journey; y1.2 starts at Platform_4.
+		// Waiting time is accumulated for both journeys; y1.2 starts at Platform_4.
 		scene.passengers.push_back({"y1", {journey("y1.1", 170, 760, "P", "B", {"Q1"}), journey("y1.2", 650, 1450, "B", "C", {"Q3"})}});
 	}
 }
