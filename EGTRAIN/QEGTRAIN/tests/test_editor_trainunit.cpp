@@ -22,6 +22,7 @@
 #include <QPushButton>
 #include <QScopeGuard>
 #include <QScrollArea>
+#include <QSpinBox>
 #include <QScrollBar>
 #include <QSignalSpy>
 #include <QString>
@@ -298,6 +299,15 @@ void TestTrainUnitPanel::showsTractionAndPhysicalPages() {
 	QVERIFY2(panel.findChildren<QScrollArea*>().isEmpty(), "the curve and the fields do not scroll inside a scroll area of the panel");
 	panel.physicalEdits()[8]->setValue(123.0);
 	QVERIFY2(document.model().trainUnits[0].physical.length_m == 123.0, "a field on a page that is not shown can be set");
+	// The passenger capacity is on the Physical page. Default stands for none.
+	QSpinBox* capacity = panel.passengerCapacityEdit();
+	QVERIFY(physical->isAncestorOf(capacity));
+	QCOMPARE(capacity->text(), QString("Default"));
+	capacity->setValue(250);
+	QVERIFY(document.model().trainUnits[0].hasPassengerCapacity);
+	QCOMPARE(document.model().trainUnits[0].passengerCapacity, 250);
+	capacity->setValue(-1);
+	QVERIFY(!document.model().trainUnits[0].hasPassengerCapacity);
 }
 
 // The keys of the traction table: without an open editor the arrow keys move between the cells and change no number, a

@@ -661,6 +661,15 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const Expo
 					out << "\t" << (boundary.direction ? 1 : 0) << "\n";
 				} }, !scene.stationBoundaries.empty());
 
+	if (std::any_of(scene.trainUnits.begin(), scene.trainUnits.end(),
+			[](const SceneTrainUnit& unit) { return unit.hasPassengerCapacity; })) {
+		SceneDiagnostic d;
+		d.severity = SceneSeverity::Warning;
+		d.code = "scene.export.compatibility";
+		d.message = "The legacy input has no passenger capacity for a rolling stock unit, so it was not exported";
+		d.file = "rolling_stock.json";
+		result.diagnostics.push_back(d);
+	}
 	if (scene.passengers.empty())
 		return;
 	const fs::path dasPath = fs::path("Passengers") / "DAS_FrenchCaseStudy.csv";

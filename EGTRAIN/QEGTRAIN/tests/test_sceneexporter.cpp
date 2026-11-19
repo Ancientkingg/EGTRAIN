@@ -114,6 +114,7 @@ class TestSceneExporter : public QObject {
 private slots:
 	void minimalFixtureExportFails();
 	void keepsSlashBlockReference();
+	void warnsAboutUnitPassengerCapacity();
 	void keepsSwitchTransitions();
 	void leavesOutServiceColour();
 	void numbersNonAsciiRouteIds();
@@ -156,6 +157,29 @@ void TestSceneExporter::minimalFixtureExportFails() {
 	auto res = exportLegacyScene(fixture, outDir.dir);
 	QVERIFY2(!res.success(), "Minimal scene export fails");
 	QVERIFY2(hasDiag(res.diagnostics, "scene.export.ref"), "scene.export.ref produced");
+}
+
+// The legacy input has no passenger capacity for a unit: the export leaves it out with a warning and still succeeds.
+void TestSceneExporter::warnsAboutUnitPassengerCapacity() {
+	TempDir sceneDir, outDir;
+	fs::path scene(sceneDir.dir);
+	std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Capacity"})" << "\n";
+	std::ofstream(scene / "infrastructure.json") << R"({"nodes":[],"arcs":[]})" << "\n";
+	std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"Station","platforms":[]}]})" << "\n";
+	std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":["b1"]}]})" << "\n";
+	std::ofstream(scene / "rolling_stock.json")
+		<< R"({"train_units":[{"id":"unit","passenger_capacity":120,"physical":{"mass_of_traction_unit_kg":1,"mass_of_a_wagon_kg":1,"number_of_wagons":0,"max_speed_ms":1,"max_deceleration_ms2":1,"frontal_area_m2":1,"resistance_coefficient":1,"jerk_ms3":1,"length_m":1},"traction_curve":[[0,1,1,0,0]]}],"compositions":[{"id":"comp","units":["unit"]}]})"
+		<< "\n";
+	std::ofstream(scene / "services.json")
+		<< R"({"services":[{"id":"svc","composition":"comp","route":"route0","through":true,"entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})"
+		<< "\n";
+
+	auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+	printErrors(res.diagnostics, "Capacity export");
+	QVERIFY2(res.success(), "a scene with a unit capacity exports");
+	QVERIFY(std::any_of(res.diagnostics.begin(), res.diagnostics.end(), [](const SceneDiagnostic& d) {
+		return d.severity == SceneSeverity::Warning && d.code == "scene.export.compatibility" && d.file == "rolling_stock.json";
+	}));
 }
 
 // Legacy export preserves a slash-containing stored route token as one block reference.

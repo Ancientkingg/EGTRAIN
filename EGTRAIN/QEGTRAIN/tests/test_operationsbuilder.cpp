@@ -1,4 +1,7 @@
+#include "scene/SceneFieldReader.h"
 #include "scene/SceneModel.h"
+#include "scene/SceneValidator.h"
+#include "scene/SceneWriter.h"
 #include "scene/SignallingLevel.h"
 #include "scene/SignallingLevelNames.h"
 #include "simulation/Passengers.h"
@@ -120,6 +123,7 @@ private slots:
 	void negativeBlockingTimeIndexThrows();
 	void diagramFixtureSharesReferenceCoordinates();
 	void buildsCompleteFixture();
+	void unitPassengerCapacitiesAddUp();
 	void directBlockSignalFailureStaysCompatible();
 	void unboundSignalFailureIsRejected();
 	void ambiguousSignalFailureIsRejected();
@@ -571,6 +575,43 @@ static SceneModel throughScene() {
 	SceneModel scene = completeScene();
 	scene.services[0].through = true;
 	return scene;
+}
+
+// A composition carries the sum of the passenger capacities of its units when each unit gives one; otherwise its trains
+// take the default capacity from the number of wagons, 1200 for the three wagons of the fixture.
+void TestOperationsBuilder::unitPassengerCapacitiesAddUp() {
+	const auto capacityOfFirstTrain = [](const SceneModel& scene) {
+		auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
+		if (hasErrors(diagnostics))
+			return -1;
+		diagnostics = buildOperationsFromScene(defaultRun(), scene, "scenario.selected");
+		return hasErrors(diagnostics) || defaultRun().trains.empty() ? -1 : defaultRun().trains[0].MAX_OnBoard_Passengers;
+	};
+	SceneModel scene = throughScene();
+	QCOMPARE(scene.trainUnits.size(), std::size_t{2});
+	QCOMPARE(capacityOfFirstTrain(scene), 1200);
+	scene.trainUnits[0].hasPassengerCapacity = true;
+	scene.trainUnits[0].passengerCapacity = 0;
+	QCOMPARE(capacityOfFirstTrain(scene), 1200);
+	QVERIFY(hasCode(validateScene(scene), "scene.composition.capacity.partial"));
+	scene.trainUnits[1].hasPassengerCapacity = true;
+	scene.trainUnits[1].passengerCapacity = 412;
+	QCOMPARE(capacityOfFirstTrain(scene), 412);
+	scene.trainUnits[0].passengerCapacity = 88;
+	QCOMPARE(capacityOfFirstTrain(scene), 500);
+	QVERIFY(!hasCode(validateScene(scene), "scene.composition.capacity.partial"));
+	// The capacity is written with the unit and read back; a unit without one has no key.
+	std::vector<SceneDiagnostic> readDiagnostics;
+	SceneModel loaded;
+	decodeRollingStock(SceneFieldReader("rolling_stock.json", kSceneFileFieldCodes, readDiagnostics),
+		encodeRollingStock(scene), loaded);
+	QVERIFY(!hasErrors(readDiagnostics));
+	QCOMPARE(loaded.trainUnits[0].passengerCapacity, 88);
+	QVERIFY(loaded.trainUnits[1].hasPassengerCapacity);
+	scene.trainUnits[1].hasPassengerCapacity = false;
+	QVERIFY(!encodeRollingStock(scene)["train_units"][1].contains("passenger_capacity"));
+	scene.trainUnits[0].passengerCapacity = -1;
+	QVERIFY(hasCode(validateScene(scene), "scene.train.capacity"));
 }
 
 void TestOperationsBuilder::buildsCompleteFixture() {

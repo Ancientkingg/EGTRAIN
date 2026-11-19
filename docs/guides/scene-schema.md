@@ -241,6 +241,7 @@ Each train unit has an `id` and may have:
   `max_speed_ms`, `max_deceleration_ms2`, `frontal_area_m2`,
   `resistance_coefficient`, `jerk_ms3`, and `length_m`.
 - `traction_curve`: an array of five-number rows `[v_lower, v_upper, c0, c1, c2]`.
+- `passenger_capacity`: an integer of 0 or more, the passengers the unit carries.
 - `source`: an object whose independent string keys are `data_file` and
   `traction_file`.
 
@@ -248,6 +249,11 @@ The two source paths are explicit relationships. A `data_file` does not imply
 a matching name, prefix, or `T_` file; the same applies in the other direction.
 
 Each composition has `id` and a string-array `units` of train-unit IDs.
+
+A train carries the sum of the passenger capacities of its units when every
+unit has one. Otherwise it carries 300 plus 300 per wagon, and a composition
+whose units only partly have a capacity gets a warning. The legacy export has
+no field for the capacity and leaves it out with a warning.
 
 ## `services.json`
 

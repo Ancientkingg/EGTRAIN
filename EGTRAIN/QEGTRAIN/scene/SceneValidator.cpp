@@ -1213,6 +1213,9 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				"rolling_stock.json", "train_unit", unit.id, path + ".traction_curve", "",
 				"Add at least one traction curve row");
 		}
+		if (unit.hasPassengerCapacity && unit.passengerCapacity < 0)
+			diagnostics.error("scene.train.capacity", "Passenger capacity must be 0 or more", "rolling_stock.json",
+				"train_unit", unit.id, path + ".passenger_capacity");
 		if (runnable && !unit.hasPhysical) {
 			diagnostics.error("scene.train.physical.missing", "Rolling stock unit has no physical values",
 				"rolling_stock.json", "train_unit", unit.id, path + ".physical", "",
@@ -1266,6 +1269,19 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 					"rolling_stock.json", "composition", composition.id,
 					path + ".units[" + std::to_string(unitIndex) + "]", composition.units[unitIndex]);
 		}
+		// A composition takes the sum of the capacities of its units only when each unit gives one.
+		std::size_t withCapacity = 0;
+		for (const std::string& unitId : composition.units) {
+			const auto unit = std::find_if(scene.trainUnits.begin(), scene.trainUnits.end(),
+				[&unitId](const SceneTrainUnit& candidate) { return candidate.id == unitId; });
+			if (unit != scene.trainUnits.end() && unit->hasPassengerCapacity)
+				++withCapacity;
+		}
+		if (withCapacity > 0 && withCapacity < composition.units.size())
+			diagnostics.warning("scene.composition.capacity.partial",
+				"Only some units of the composition have a passenger capacity, so its trains use the default capacity",
+				"rolling_stock.json", "composition", composition.id, path + ".units", "",
+				"Give every unit of the composition a passenger capacity");
 	}
 
 	std::unordered_set<std::string> serviceIds;
