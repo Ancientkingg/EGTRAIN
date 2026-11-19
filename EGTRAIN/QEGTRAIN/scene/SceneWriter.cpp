@@ -524,7 +524,7 @@ ScenarioLoadResult loadScenarioJson(const std::string& filePath) {
 	return result;
 }
 
-json encodePassengers(const std::vector<ScenePassenger>& passengers) {
+json encodePassengers(const std::vector<ScenePassenger>& passengers, const std::vector<ScenePassengerDemandSlice>& demand) {
 	json values = json::array();
 	for (const auto& passenger : passengers) {
 		json value = {{"id", passenger.id}, {"journeys", json::array()}};
@@ -558,7 +558,18 @@ json encodePassengers(const std::vector<ScenePassenger>& passengers) {
 		}
 		values.push_back(value);
 	}
-	return {{"passengers", values}};
+	json root = {{"passengers", values}};
+	if (demand.empty())
+		return root;
+	json slices = json::array();
+	for (const ScenePassengerDemandSlice& slice : demand) {
+		json cells = json::array();
+		for (const ScenePassengerDemandCell& cell : slice.cells)
+			cells.push_back({{"origin", cell.originStationId}, {"destination", cell.destinationStationId}, {"count", cell.count}});
+		slices.push_back({{"id", slice.id}, {"start_seconds", slice.startSeconds}, {"end_seconds", slice.endSeconds}, {"cells", cells}});
+	}
+	root["demand"] = slices;
+	return root;
 }
 
 json encodeInfrastructure(const SceneModel& scene) {
@@ -715,7 +726,7 @@ static json encodeSceneFile(const std::string& name, const SceneModel& scene) {
 	if (name == "views.json")
 		return encodeViews(scene);
 	if (name == "passengers.json")
-		return encodePassengers(scene.passengers);
+		return encodePassengers(scene.passengers, scene.passengerDemand);
 	return json::object();
 }
 

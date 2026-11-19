@@ -467,6 +467,22 @@ passenger leaves the network at the station it is at. A journey that comes from
 a legacy route-choice file without a row for it has an empty `legs` array and
 is reported as a warning.
 
+The optional root key `demand` holds origin-destination demand slices. A slice
+has `id`, numeric `start_seconds` and `end_seconds` (absolute seconds from
+midnight, like the journey windows) and a `cells` array. A cell has `origin`
+and `destination` station IDs and an integer `count` of at least 1. Slices must
+not overlap, a period must end after it starts and by 24:00:00, a cell may not
+join a station to itself, and a slice holds at most one cell per station pair.
+All slices together hold at most 1,000,000 passengers. A scene without slices is
+written without the key, and the legacy export leaves the slices out with a
+warning.
+
+The matrix of one slice can be read from and written to CSV. The first row
+`Time Reference,<seconds>` is optional, the next row lists the destination
+stations after one label cell, and each further row starts with an origin
+station and holds a count per destination; an empty count is 0. Stations are
+matched by ID, then by name.
+
 Random draws and simulation results are not scene input. The explicit legacy
 importer recognizes passenger data only when both exact source files
 `Passengers/DAS_FrenchCaseStudy.csv` and

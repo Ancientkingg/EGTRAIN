@@ -670,6 +670,14 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const Expo
 		d.file = "rolling_stock.json";
 		result.diagnostics.push_back(d);
 	}
+	if (!scene.passengerDemand.empty()) {
+		SceneDiagnostic d;
+		d.severity = SceneSeverity::Warning;
+		d.code = "scene.export.compatibility";
+		d.message = "The legacy input has no passenger demand slices, so they were not exported";
+		d.file = "passengers.json";
+		result.diagnostics.push_back(d);
+	}
 	if (scene.passengers.empty())
 		return;
 	const fs::path dasPath = fs::path("Passengers") / "DAS_FrenchCaseStudy.csv";

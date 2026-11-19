@@ -38,8 +38,10 @@ SceneSaveResult saveScenarioJson(const SceneScenario& scenario, const std::strin
 /// Reads one scenario from a standalone scenario file.
 ScenarioLoadResult loadScenarioJson(const std::string& filePath);
 
-/// The content of passengers.json. A journey without an activity leaves the key out.
-nlohmann::json encodePassengers(const std::vector<ScenePassenger>& passengers);
+/// The content of passengers.json. A journey without an activity leaves the key out, and a scene without demand slices
+/// leaves out the demand key.
+nlohmann::json encodePassengers(const std::vector<ScenePassenger>& passengers,
+	const std::vector<ScenePassengerDemandSlice>& demand = {});
 
 /// The content of infrastructure.json.
 nlohmann::json encodeInfrastructure(const SceneModel& scene);

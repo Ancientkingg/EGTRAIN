@@ -498,7 +498,7 @@ bool sceneFileWritten(const SceneFile& file, const SceneModel& scene) {
 		case SceneFileWrite::WithViews:
 			return !scene.trackViews.empty() || !scene.stationViews.empty();
 		case SceneFileWrite::WithPassengers:
-			return !scene.passengers.empty();
+			return !scene.passengers.empty() || !scene.passengerDemand.empty();
 		case SceneFileWrite::Never:
 			return false;
 	}

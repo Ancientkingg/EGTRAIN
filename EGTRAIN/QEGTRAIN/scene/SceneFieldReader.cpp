@@ -914,4 +914,26 @@ void decodePassengers(const SceneFieldReader& reader, const json& root, SceneMod
 		}
 		scene.passengers.push_back(std::move(passenger));
 	}
+	if (!reader.arraySection(root, "demand", "", false))
+		return;
+	for (std::size_t index = 0; index < root["demand"].size(); ++index) {
+		const std::string path = "demand[" + std::to_string(index) + "]";
+		const json& value = root["demand"][index];
+		ScenePassengerDemandSlice slice;
+		reader.stringField(value, "id", path, slice.id);
+		reader.numberField(value, "start_seconds", path, slice.startSeconds);
+		reader.numberField(value, "end_seconds", path, slice.endSeconds);
+		if (reader.arraySection(value, "cells", path, true)) {
+			for (std::size_t cellIndex = 0; cellIndex < value["cells"].size(); ++cellIndex) {
+				const std::string cellPath = path + ".cells[" + std::to_string(cellIndex) + "]";
+				const json& cellValue = value["cells"][cellIndex];
+				ScenePassengerDemandCell cell;
+				reader.stringField(cellValue, "origin", cellPath, cell.originStationId);
+				reader.stringField(cellValue, "destination", cellPath, cell.destinationStationId);
+				reader.integerField(cellValue, "count", cellPath, cell.count);
+				slice.cells.push_back(std::move(cell));
+			}
+		}
+		scene.passengerDemand.push_back(std::move(slice));
+	}
 }

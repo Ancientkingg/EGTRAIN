@@ -134,6 +134,11 @@ std::vector<std::string> sceneDirectDeleteConsumers(const SceneModel& model, con
 					if (leg.originStationId == id || leg.destinationStationId == id)
 						add("passenger " + quoted(passenger.id) + " leg " + quoted(leg.id));
 			}
+		for (const auto& slice : model.passengerDemand)
+			if (std::any_of(slice.cells.begin(), slice.cells.end(), [&id](const ScenePassengerDemandCell& cell) {
+					return cell.originStationId == id || cell.destinationStationId == id;
+				}))
+				add("demand slice " + quoted(slice.id));
 	} else if (facet == "platforms") {
 		for (const auto& service : model.services)
 			for (const auto& stop : service.stops)
@@ -248,6 +253,11 @@ void sceneRewriteStationReferences(SceneModel& model, const std::string& oldId, 
 				replaceId(leg.originStationId, oldId, newId);
 				replaceId(leg.destinationStationId, oldId, newId);
 			}
+		}
+	for (auto& slice : model.passengerDemand)
+		for (auto& cell : slice.cells) {
+			replaceId(cell.originStationId, oldId, newId);
+			replaceId(cell.destinationStationId, oldId, newId);
 		}
 }
 
