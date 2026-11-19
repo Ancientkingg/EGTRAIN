@@ -2306,7 +2306,8 @@ void TestOperationsBuilder::boardingWithoutPassengerGuiKeepsPlatformList() {
 	train.CurrentServiceStopPlatform = "P1";
 	train.MAX_OnBoard_Passengers = 1;
 	train.Current_OnBoard_Passengers = 0;
-	Simulate_Train_Passenger_Interactions(defaultRun(), 10, 0, train, defaultRun().passengers, stopPlatforms);
+	// Both passengers are on the platform by step 40.
+	Simulate_Train_Passenger_Interactions(defaultRun(), 40, 0, train, defaultRun().passengers, stopPlatforms);
 	std::string boarded;
 	for (const Passenger& passenger : defaultRun().passengers)
 		if (passenger.CurrentStatus == "OnBoard")
@@ -5813,10 +5814,15 @@ void TestOperationsBuilder::rollingStockMessages() {
 	train.MAX_OnBoard_Passengers = 0;
 	train.Current_OnBoard_Passengers = 0;
 	Simulate_Train_Passenger_Interactions(defaultRun(), 10, 0, train, passengers, {platform});
-	defaultRun().settings.PAX_GUI = savedPaxGui;
 	shows(capture.take(),
-		{{Category::SimPax, Level::Info, "Call RouteChoice model as passenger ID: Pax2 could not board train T1 as it was full\n"}},
+		{{Category::SimPax, Level::Info, "Passenger Pax2 could not board train T1 as it was full\n"}},
 		"a passenger who waits for a train that is full");
+	if (QTest::currentTestFailed())
+		return;
+	// The next step of the same stop does not log the refusal again.
+	Simulate_Train_Passenger_Interactions(defaultRun(), 11, 0, train, passengers, {platform});
+	defaultRun().settings.PAX_GUI = savedPaxGui;
+	shows(capture.take(), {}, "a passenger who still waits for the same full train");
 	if (QTest::currentTestFailed())
 		return;
 

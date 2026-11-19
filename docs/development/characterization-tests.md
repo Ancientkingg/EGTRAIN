@@ -292,9 +292,8 @@ one fact: some key words, then `name=value` fields.
 Passenger traces store the first snapshot and print only later changes, in step
 order. Passenger windows have equal ends, so no golden depends on the seed.
 
-Transfers to a platform with another label never complete: the passenger stays
-on the arrival platform. Waiting time is accumulated for the first journey
-only. With `PAX_GUI` off the persistent platform lists stay empty. The snapshot
+At a transfer the passenger waits on the platform where the next train stops
+and can board it once the walking time has passed. With `PAX_GUI` off the persistent platform lists stay empty. The snapshot
 part for passengers who just left never matches when the base time is at or
 above the horizon. A station with platforms on two nodes of one route has one
 timetable point per node; result rows and statistics for a stop at that station

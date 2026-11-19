@@ -144,6 +144,7 @@ void Passenger::checkJourneyStart(int t) {
 								}
 							}
 						}
+						break; // a passenger makes one journey at a time
 					}
 				}
 			}
