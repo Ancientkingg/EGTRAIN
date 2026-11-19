@@ -716,8 +716,16 @@ Decided, not open:
 
 Other limits:
 
-- The characterization cases do not record whether a train of level 4 enters the
-  following mode.
+- `characterization_virtual_coupling` checks level 4 on the line fixture while a
+  slow leader cruises: a faster follower brakes to its speed, couples, follows
+  it and never overlaps it; at level 3 the follower never enters following mode.
+  It does not cover the end of the route. There a follower can still run into a
+  leader that brakes for its last stop, because the front authority of the
+  leader is gone. A leader at 15 m/s or more is followed at about 40 m without
+  coupling, since the follower looks two steps ahead, which is more than the
+  30 m of the coupling window. In following mode the follower takes the
+  acceleration of the leader, not its speed, so a gap can grow until the
+  coupling breaks and is made again.
 - At level 4 a train that is not coupled treats every leader that slows down as
   a leader that stops, also one that only brakes for a speed restriction. A
   train that lost its coupling unintentionally still takes the speed of a

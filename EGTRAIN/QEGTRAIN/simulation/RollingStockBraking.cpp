@@ -639,8 +639,26 @@ Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority
 	// A behind or front end cannot become a forward leader through virtual projection.
 	if (BS[section].SignallingLevel == levelValue(SignallingLevel::VirtualCoupling) && authority.type == "TrainEnd"
 		&& authority.ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction
-		&& (authority.typePart != "Tale" || !(target.position > S)))
-		return target;
+		&& (authority.typePart != "Tale" || !(target.position > S))) {
+		// The tail authority lags behind the leader by the report delay and the safety margin. A train that catches up with the
+		// leader can pass it while the leader is still ahead, which its front authority shows. The leader then still sets the
+		// target, as if its tail were at the head of this train, so that this train brakes to its speed and does not run through it.
+		const bool tail = authority.typePart == "Tale" && authority.TrainInfo.trainDescription != trainDescription;
+		bool leaderAhead = false;
+		if (tail) {
+			for (const MovementAuthority& front : run_->etcsMa) {
+				if (front.type != "TrainEnd" || front.typePart != "Front" || front.ReversedDirection != authority.ReversedDirection
+					|| front.TrainInfo.trainDescription != authority.TrainInfo.trainDescription)
+					continue;
+				for (int index = 0; index < Blocks; ++index)
+					if (BS[index].ID == front.BSID && authorityRoutePosition(front, BS[index]) > S)
+						leaderAhead = true;
+			}
+		}
+		if (!leaderAhead)
+			return target;
+		target.position = S;
+	}
 
 	if (authority.type == "SignalFailure") {
 		// a failed signal or a held single-track section is a stop target at every signalling level
@@ -687,6 +705,13 @@ Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority
 						if (V > target.speed) {
 							target.canCouple = true;											// This is the only case when trains can start linking to be virtually coupled, if they are not coupled already
 							double TimeToBrake = ((V - target.speed) / max_train_decelaration); // +(1 * timestep);  //This is the time needed by the train to reach the speed of the train ahead, plus 1 is needed to cover up for the integration delay of 1 step
+							// The braking curve adds the resistances to the deceleration, so it takes less time than the nominal
+							// deceleration gives. A train that assumes the longer time starts to brake too late and reaches the leader
+							// before it has matched its speed.
+							std::vector<double> curvePositions, curveSpeeds;
+							double curveEnd = S;
+							if (predictBraking(S, V, target.speed, BS, Blocks, curveEnd, &curvePositions, &curveSpeeds) && curvePositions.size() > 1)
+								TimeToBrake = static_cast<double>(curvePositions.size() - 1) * timestep;
 							target.distance = authority.TrainInfo.TrainSpeed * TimeToBrake;
 							// With the statement below trains will always try to couple with a train ahead if that is possible
 							if ((target.position + target.distance) <= run_->infra.routes[this->indexOfRoute].x_of_end_node * 1000) { // if with the predicted distance the Braking Point is still within the limits of train route then
