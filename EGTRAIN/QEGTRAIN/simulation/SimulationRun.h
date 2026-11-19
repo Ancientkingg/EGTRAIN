@@ -4,6 +4,7 @@
 #include "simulation/InitialParameters.h"
 #include "simulation/Infrastructure.h"
 #include "simulation/NumberGenerator.h"
+#include "simulation/PassengerFlow.h"
 #include "simulation/Passengers.h"
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
@@ -136,6 +137,9 @@ struct SimulationRun {
 	PassengerIndex passengerIndex;
 	/// Looks platforms up by ID. The rule of passengerIndex applies.
 	PlatformIndex platformIndex;
+	/// Where the passengers are: the journeys about to start, the passengers on board and those waiting at the platforms. The
+	/// passenger step builds it from the passengers when it first needs it, and reset() and adopt() empty it.
+	PassengerFlow passengerFlow;
 
 	/// Statistics over the trains of the input delay, the entrance delay plus the station disturbances, in seconds.
 	DelayStats totalInputDelays;

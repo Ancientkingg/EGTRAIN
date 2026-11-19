@@ -61,6 +61,7 @@ void SimulationRun::reset() {
 	numPassengers = 0;
 	passengerIndex.clear();
 	platformIndex.clear();
+	passengerFlow.clear();
 	totalInputDelays = DelayStats();
 	entranceInputDelays = DelayStats();
 	disturbanceInput = DelayStats();
@@ -84,6 +85,7 @@ void SimulationRun::adopt(SimulationRun&& staged) {
 	// An index remembers the list it was built for, and the lists are now those of this run.
 	platformIndex.build(platforms);
 	passengerIndex.build(passengers);
+	passengerFlow.clear();
 }
 
 namespace {

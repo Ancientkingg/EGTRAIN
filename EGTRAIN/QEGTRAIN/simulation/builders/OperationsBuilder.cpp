@@ -975,11 +975,15 @@ void nativeSamplePassengerWindows(SimulationRun& run, const SceneModel& scene, s
 	const auto sampleWindow = [&run](double minimum, double maximum) {
 		return run.numberGenerator.getUniformFloat(minimum, maximum);
 	};
+	// The first staged passenger with each ID
+	std::unordered_map<std::string, std::list<Passenger>::iterator> stagedById;
+	for (auto it = passengers.begin(); it != passengers.end(); ++it)
+		stagedById.try_emplace(it->ID, it);
 	for (const ScenePassenger& sourcePassenger : scene.passengers) {
-		const auto stagedPassenger = std::find_if(passengers.begin(), passengers.end(),
-			[&sourcePassenger](const Passenger& candidate) { return candidate.ID == sourcePassenger.id; });
-		if (stagedPassenger == passengers.end())
+		const auto found = stagedById.find(sourcePassenger.id);
+		if (found == stagedById.end())
 			continue;
+		const auto stagedPassenger = found->second;
 		for (const ScenePassengerJourney& sourceJourney : sourcePassenger.journeys) {
 			auto stagedJourney = std::find_if(stagedPassenger->Journeys.begin(), stagedPassenger->Journeys.end(),
 				[&sourceJourney](const Journey& candidate) { return candidate.ID == sourceJourney.id; });

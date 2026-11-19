@@ -95,7 +95,7 @@ Description describeInfrastructure(const RunInfrastructure& infrastructure) {
 
 Description describe(const SimulationRun& run) {
 	const auto& [settings, occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers,
-		numPassengers, passengerIndex, platformIndex, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay,
+		numPassengers, passengerIndex, platformIndex, passengerFlow, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay,
 		egtrainTime, romaTime, infrastructure] = run;
 	const auto statistics = [](const DelayStats& s) {
 		return std::to_string(s.N_Stopped_Trains) + "/" + std::to_string(s.totalArrivalDelay);
@@ -116,6 +116,7 @@ Description describe(const SimulationRun& run) {
 		{"numPassengers", std::to_string(numPassengers)},
 		{"passengerIndex", std::to_string(passengerIndex.covers(passengers))},
 		{"platformIndex", std::to_string(platformIndex.covers(platforms))},
+		{"passengerFlow", std::to_string(passengerFlow.covers(passengers))},
 		{"totalInputDelays", statistics(totalDelays)},
 		{"entranceInputDelays", statistics(entranceDelays)},
 		{"disturbanceInput", statistics(disturbances)},
@@ -164,7 +165,7 @@ bool infrastructureIs(const SimulationRun& run, bool isNew) {
 // platforms, passengers, incidents and seeded generator.
 bool carriesNothingOver(const SimulationRun& run) {
 	const std::set<std::string> builderState = {"settings", "incidents", "platforms", "numPlatforms", "passengers", "numPassengers",
-		"passengerIndex", "platformIndex", "trains", "numTrains", "numberGenerator"};
+		"passengerIndex", "platformIndex", "passengerFlow", "trains", "numTrains", "numberGenerator"};
 	const std::vector<std::string> unchanged = membersOfNewRun(run);
 	for (const auto& [name, text] : describe(run))
 		if (!isInfrastructureMember(name) && builderState.count(name) == 0
@@ -176,7 +177,7 @@ bool carriesNothingOver(const SimulationRun& run) {
 // Gives every member of the run a value that a new run does not have.
 void fill(SimulationRun& run) {
 	auto& [settings, occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers, numPassengers,
-		passengerIndex, platformIndex, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay, egtrainTime, romaTime,
+		passengerIndex, platformIndex, passengerFlow, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay, egtrainTime, romaTime,
 		infrastructure] = run;
 	settings.name = "scene";
 	settings.times = 90;
@@ -197,6 +198,7 @@ void fill(SimulationRun& run) {
 	numPassengers = 1;
 	passengerIndex.build(passengers);
 	platformIndex.build(platforms);
+	passengerFlow.build(passengers, true);
 	for (DelayStats* statistics : {&totalDelays, &entranceDelays, &disturbances, &finalStation}) {
 		statistics->N_Stopped_Trains = 4;
 		statistics->totalArrivalDelay = 30;

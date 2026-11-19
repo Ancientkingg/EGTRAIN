@@ -3,6 +3,7 @@
 
 #include "simulation/RollingStock.h"
 #include "simulation/Passengers.h"
+#include "simulation/PassengerFlow.h"
 #include <functional>
 #include <vector>
 
@@ -64,15 +65,6 @@ void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, std::string
 /// Lets every passenger of SIMUL_PAX whose next journey starts by t + StartingSimulationTime (seconds since midnight) enter the
 /// network (Passenger::checkJourneyStart).
 void checkJourneyStartForAllPassengers(int t, int StartingSimulationTime, std::list<Passenger>& SIMUL_PAX);
-
-/// The passengers waiting at one platform.
-struct WaitingAtPlatform {
-	int count = 0; ///< Number of waiting passengers.
-	/// For each waiting passenger, the passenger ID and the Trip::Actual_Departure_Time of the trip the passenger waits for, which
-	/// is when the passenger started to wait, in seconds since midnight. Sorted by that time, and in the order of the passenger
-	/// list for equal times.
-	std::list<std::pair<std::string, double>> passengers;
-};
 
 /// The passengers waiting at the platform with these IDs. No platform is modified.
 WaitingAtPlatform passengersWaitingAtPlatform(const std::string& stationId, const std::string& platformId, const std::list<Passenger>& ALL_PAX);
