@@ -976,6 +976,40 @@ void nativeListStoppingTrains(std::list<StationPlatform>& platforms, const std::
 // The planned time of a trip that nothing has set, as Trip holds it.
 constexpr int kUnsetTripTime = -9999;
 
+// Adds one passenger for each passenger of each demand slice of the scene, after the passengers of the scene. The passengers
+// of a cell appear evenly spread over the period of their slice and plan their route when they appear: their journey has no
+// legs. A passenger's ID is <slice>:<origin>><destination>#<number>, and its journey has the same ID with ".1".
+void nativeStageDemandPassengers(const SceneModel& scene, const NativeIndex<SceneStation>& stationById, std::list<Passenger>& passengers) {
+	// The name that the run uses for the station, or an empty string for an unknown station (the validator reports it).
+	const auto stationName = [&stationById](const std::string& id) {
+		const auto found = stationById.find(id);
+		if (found == stationById.end())
+			return std::string();
+		return found->second->name.empty() ? found->second->id : found->second->name;
+	};
+	for (const ScenePassengerDemandSlice& slice : scene.passengerDemand) {
+		const double period = slice.endSeconds - slice.startSeconds;
+		for (const ScenePassengerDemandCell& cell : slice.cells) {
+			const std::string prefix = slice.id + ":" + cell.originStationId + ">" + cell.destinationStationId + "#";
+			const std::string origin = stationName(cell.originStationId);
+			const std::string destination = stationName(cell.destinationStationId);
+			if (origin.empty() || destination.empty())
+				continue;
+			for (int number = 0; number < cell.count; ++number) {
+				Journey journey;
+				journey.ID = prefix + std::to_string(number) + ".1";
+				journey.Dep_Station_ID = origin;
+				journey.Arr_Station_ID = destination;
+				journey.Planned_Departure_Time = journey.Actual_Planned_Departure_Time = slice.startSeconds + number * period / cell.count;
+				Passenger passenger;
+				passenger.ID = prefix + std::to_string(number);
+				passenger.Journeys.push_back(std::move(journey));
+				passengers.push_back(std::move(passenger));
+			}
+		}
+	}
+}
+
 // Draws the departure and arrival of every journey of passengers from the windows of the scene, in the order of the scene.
 void nativeSamplePassengerWindows(SimulationRun& run, const SceneModel& scene, std::list<Passenger>& passengers) {
 	const auto sampleWindow = [&run](double minimum, double maximum) {
@@ -1314,6 +1348,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 		return diagnostics;
 
 	nativeSamplePassengerWindows(run, scene, stagedPassengers);
+	nativeStageDemandPassengers(scene, stationById, stagedPassengers);
 
 	// The new trains are built before the old ones are released, so trains that do not fit in the memory that is free leave
 	// the trains of the run and initial_variables as they were.

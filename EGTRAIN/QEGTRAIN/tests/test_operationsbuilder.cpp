@@ -129,6 +129,7 @@ private slots:
 	void ambiguousSignalFailureIsRejected();
 	void reducedBreakdownTargetsOneOccurrence();
 	void buildsPlatformGeometryAndPassengers();
+	void demandSlicesStageLivePassengers();
 	void commandLineBufferAndRecoveryStay();
 	void steppedOperatingCodesReachOccurrences();
 	void serviceCapAndPerformanceApplyPerTrain();
@@ -801,6 +802,34 @@ void TestOperationsBuilder::reducedBreakdownTargetsOneOccurrence() {
 	QCOMPARE(defaultRun().platforms.size(), std::size_t(3));
 	// Platform stopping lists use stable occurrence descriptions.
 	QCOMPARE(defaultRun().platforms.front().List_Trains_Stopping_At_Platform.front(), "service.native-1");
+}
+
+void TestOperationsBuilder::demandSlicesStageLivePassengers() {
+	SceneModel scene = completeScene();
+	ScenePassengerDemandSlice slice;
+	slice.id = "morning";
+	slice.startSeconds = 100.0;
+	slice.endSeconds = 200.0;
+	slice.cells.push_back({"station.0", "station.2", 4});
+	slice.cells.push_back({"station.0", "station.unknown", 2});
+	scene.passengerDemand.push_back(slice);
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene)));
+	QVERIFY(!hasErrors(buildOperationsFromScene(defaultRun(), scene, "scenario.base")));
+	// The passenger of the scene comes first, then one per passenger of each cell; a cell with an unknown station adds none.
+	QCOMPARE(defaultRun().passengers.size(), std::size_t(5));
+	auto passenger = std::next(defaultRun().passengers.begin());
+	for (int number = 0; number < 4; ++number, ++passenger) {
+		QCOMPARE(passenger->ID, "morning:station.0>station.2#" + std::to_string(number));
+		QCOMPARE(passenger->Journeys.size(), std::size_t(1));
+		const Journey& journey = passenger->Journeys.front();
+		QCOMPARE(journey.ID, passenger->ID + ".1");
+		QCOMPARE(journey.Dep_Station_ID, defaultRun().passengers.front().Journeys.front().Dep_Station_ID);
+		QCOMPARE(journey.Arr_Station_ID, defaultRun().passengers.front().Journeys.front().Arr_Station_ID);
+		// Evenly spread over the period, and planned live: no legs.
+		QCOMPARE(journey.Actual_Planned_Departure_Time, 100.0 + 25.0 * number);
+		QVERIFY(journey.Trips.empty());
+	}
+	QVERIFY(defaultRun().passengerIndex.covers(defaultRun().passengers));
 }
 
 void TestOperationsBuilder::buildsPlatformGeometryAndPassengers() {
