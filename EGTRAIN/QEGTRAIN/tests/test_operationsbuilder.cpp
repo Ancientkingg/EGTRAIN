@@ -3616,6 +3616,15 @@ void TestOperationsBuilder::timetablePointOfStopIgnoresLastPlace() {
 	// A timetable point reports the arrival at a last stop and no departure.
 	QCOMPARE_EQ(point.Time, 9.0 * timestep);
 	QCOMPARE_EQ(point.Time2, TrainEvent().Time2);
+	// A point the train does not reach before the end of the run has no times, and its position is in metres like the
+	// position of a point that it reaches.
+	const Route& route = defaultRun().infra.routes[terminating.indexOfRoute];
+	const auto absolute = [&route](double along) { return route.reversed_direction == 1 ? route.OriginalRefReversedRoute - along : along; };
+	QCOMPARE_EQ(point.Position, absolute(stoppingPoint));
+	TrainEvent unreached;
+	terminating.computeArrivalAndDepartureAtLocation(stoppingPoint + 5000.0, unreached);
+	QCOMPARE_EQ(unreached.Time, TrainEvent().Time);
+	QCOMPARE_EQ(unreached.Position, absolute(stoppingPoint + 5000.0));
 }
 
 void TestOperationsBuilder::brakingPhase() {
