@@ -53,8 +53,8 @@ inline auto fields(const GuiSectionState& v) {
 
 /// The fields of a passenger, in declaration order.
 inline auto fields(const GuiPassengerState& v) {
-	const auto& [id, status, waitingPlatform, nextTrain, nextDestination] = v;
-	return std::make_tuple(id, status, waitingPlatform, nextTrain, nextDestination);
+	const auto& [id, status, waitingPlatform, nextTrain, nextDestination, finalDestination] = v;
+	return std::make_tuple(id, status, waitingPlatform, nextTrain, nextDestination, finalDestination);
 }
 
 /// Every field of the two passengers is equal.
@@ -86,7 +86,9 @@ template <class T> bool sameList(const std::vector<T>& a, const std::vector<T>& 
 
 /// Every field of the two snapshots is equal.
 inline bool sameSnapshot(const GuiSimulationSnapshot& a, const GuiSimulationSnapshot& b) {
-	const auto& [step, totalTimesteps, trains, signalStates, sectionStates, platforms, messages] = a;
+	const auto& [step, totalTimesteps, trains, signalStates, sectionStates, platforms, messages, stationCalls] = a;
+	// The calls are those of the step for a live snapshot and of a finished run for a replayed one, so they have their own tests.
+	(void)stationCalls;
 	return step == b.timestep && totalTimesteps == b.totalTimesteps && sameList(trains, b.trains)
 		&& sameList(signalStates, b.signalStates) && sameList(sectionStates, b.sectionStates) && sameList(platforms, b.platforms)
 		&& sameList(messages, b.virtualCouplingMessages);
@@ -103,7 +105,7 @@ inline const std::array<const char*, 20> trainNames{"index", "id", "type", "desc
 inline const std::array<const char*, 5> signalNames{"sectionId", "code", "reversedDirection", "level", "failed"};
 inline const std::array<const char*, 3> sectionNames{"sectionId", "prepared", "blocked"};
 inline const std::array<const char*, 5> platformNames{"stationId", "platformId", "maxVolume", "passengerCount", "passengers"};
-inline const std::array<const char*, 5> passengerNames{"id", "status", "waitingPlatform", "nextTrain", "nextDestination"};
+inline const std::array<const char*, 6> passengerNames{"id", "status", "waitingPlatform", "nextTrain", "nextDestination", "finalDestination"};
 inline const std::array<const char*, 3> messageNames{"timestep", "trainDescription", "message"};
 
 template <class T> std::string show(const T& value) {

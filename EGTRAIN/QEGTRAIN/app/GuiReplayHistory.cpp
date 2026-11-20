@@ -1,4 +1,5 @@
 #include "app/GuiReplayHistory.h"
+#include "simulation/PassengerResults.h"
 #include "simulation/SimulationRun.h"
 
 #include <algorithm>
@@ -10,7 +11,7 @@ namespace {
 constexpr std::int32_t kSectionPrepared = 1;
 constexpr std::int32_t kSectionBlocked = 2;
 // String numbers that a listed passenger takes: id, status, waiting platform, next train, next destination.
-constexpr std::size_t kStringsPerEntry = 5;
+constexpr std::size_t kStringsPerEntry = 6;
 // Entries of the table of handed-out snapshots at which expired ones are removed.
 constexpr std::size_t kHandedOutLimit = 32;
 
@@ -189,11 +190,12 @@ double GuiReplaySeries::at(int sample) const {
 
 std::size_t GuiReplayTrains::ownedBytes() const {
 	std::size_t bytes = sizeof(*this) + arrayBytes(routes) + arrayBytes(trains) + arrayBytes(messageSteps) + arrayBytes(messageTrains)
-		+ arrayBytes(messageTexts);
+		+ arrayBytes(messageTexts) + arrayBytes(stationCalls);
 	for (const Route& route : routes) bytes += arrayBytes(route.startX) + arrayBytes(route.endX) + arrayBytes(route.geoXBeg);
 	for (const Train& train : trains) bytes += seriesBytes(train.position) + seriesBytes(train.speed);
 	for (const std::string& text : messageTrains) bytes += textBytes(text);
 	for (const std::string& text : messageTexts) bytes += textBytes(text);
+	for (const GuiStationCall& call : stationCalls) bytes += textBytes(call.station) + textBytes(call.train);
 	return bytes;
 }
 
@@ -247,6 +249,7 @@ std::shared_ptr<const GuiReplayTrains> makeGuiReplayTrains(const SimulationRun& 
 	source->messageSteps.assign(run.vcMsgTimestep.begin(), run.vcMsgTimestep.begin() + static_cast<std::ptrdiff_t>(messages));
 	source->messageTrains.assign(run.vcMsgTrain.begin(), run.vcMsgTrain.begin() + static_cast<std::ptrdiff_t>(messages));
 	source->messageTexts.assign(run.vcMsgText.begin(), run.vcMsgText.begin() + static_cast<std::ptrdiff_t>(messages));
+	source->stationCalls = stationCalls(run);
 	return source;
 }
 
@@ -343,6 +346,7 @@ void GuiReplayHistory::internEntries(const std::vector<GuiPassengerState>& liste
 		entries.push_back(intern(passenger.waitingPlatform));
 		entries.push_back(intern(passenger.nextTrain));
 		entries.push_back(intern(passenger.nextDestination));
+		entries.push_back(intern(passenger.finalDestination));
 	}
 }
 
@@ -354,7 +358,8 @@ bool GuiReplayHistory::sameEntries(const std::vector<GuiPassengerState>& listed,
 		const GuiPassengerState& passenger = listed[i];
 		const std::uint32_t* at = &entries[i * kStringsPerEntry];
 		if (strings_[at[0]] != passenger.id || strings_[at[1]] != passenger.status || strings_[at[2]] != passenger.waitingPlatform
-			|| strings_[at[3]] != passenger.nextTrain || strings_[at[4]] != passenger.nextDestination)
+			|| strings_[at[3]] != passenger.nextTrain || strings_[at[4]] != passenger.nextDestination
+			|| strings_[at[5]] != passenger.finalDestination)
 			return false;
 	}
 	return true;
@@ -610,7 +615,7 @@ std::shared_ptr<const GuiSimulationSnapshot> GuiReplayHistory::expand(const Inte
 		platform.passengers.reserve((to - from) / kStringsPerEntry);
 		for (std::size_t k = from; k < to; k += kStringsPerEntry) {
 			const std::uint32_t* at = &interval.platformEntries[k];
-			platform.passengers.push_back({strings_[at[0]], strings_[at[1]], strings_[at[2]], strings_[at[3]], strings_[at[4]]});
+			platform.passengers.push_back({strings_[at[0]], strings_[at[1]], strings_[at[2]], strings_[at[3]], strings_[at[4]], strings_[at[5]]});
 		}
 	}
 
@@ -618,6 +623,7 @@ std::shared_ptr<const GuiSimulationSnapshot> GuiReplayHistory::expand(const Inte
 		for (std::size_t i = 0; i < trains_->messageSteps.size(); ++i)
 			if (guiVirtualCouplingMessageShown(trains_->messageSteps[i], time))
 				snapshot->virtualCouplingMessages.push_back({trains_->messageSteps[i], trains_->messageTrains[i], trains_->messageTexts[i]});
+		appendLatestStationCalls(trains_->stationCalls, time, snapshot->stationCalls);
 	}
 	return snapshot;
 }

@@ -26,6 +26,7 @@
 #include "graphics/items/NodeItem.h"
 #include "graphics/items/PassengerItem.h"
 #include "graphics/items/PlatformItem.h"
+#include "graphics/items/StationCalloutItem.h"
 #include "graphics/items/SignalItem.h"
 #include "graphics/items/StationNodeItem.h"
 #include "graphics/items/StationOverlayItem.h"
@@ -124,6 +125,96 @@ const CalloutLook kVirtualCouplingCallout{2.0, 6, 1.25, Qt::white, 4.4};
 
 // The orange of the line and the box of a callout.
 const QColor kCalloutColor(242, 161, 106);
+
+// The text of the platform in a card: "2" for "Guingamp.platform.2", the form in which the import names the platforms of
+// a station, and any other id as it is.
+QString platformShortName(const std::string& platformId) {
+	const std::string separator = ".platform.";
+	const std::size_t at = platformId.rfind(separator);
+	return QString::fromStdString(at == std::string::npos || at + separator.size() == platformId.size()
+			? platformId
+			: platformId.substr(at + separator.size()));
+}
+
+// The most destinations that the card of a station gives a bar.
+constexpr int kCalloutDestinations = 4;
+
+// What the card of a station shows at this snapshot: the passengers waiting at its platforms by their final destination,
+// and the latest calls of trains.
+StationCalloutContent stationCalloutContent(const std::string& station, const GuiSimulationSnapshot& snapshot) {
+	StationCalloutContent content;
+	content.title = StationOverlayItem::displayName(station);
+	int waiting = 0;
+	int listedWaiting = 0;
+	bool sampled = false;
+	QStringList capacities;
+	QStringList platformNames;
+	std::map<std::string, int> byDestination;
+	for (const GuiPlatformState& platform : snapshot.platforms) {
+		if (platform.stationId != station)
+			continue;
+		waiting += platform.passengerCount;
+		if (platform.maxVolume > 0) {
+			capacities << QString::number(platform.maxVolume);
+			platformNames << platformShortName(platform.platformId);
+		}
+		// The platform lists the passengers who wait first and then those who left, so a short list that holds none of the
+		// leavers lacks some of the waiting ones.
+		bool anyLeft = false;
+		for (const GuiPassengerState& passenger : platform.passengers) {
+			if (passenger.status == "None") {
+				anyLeft = true;
+				continue;
+			}
+			++listedWaiting;
+			if (!passenger.finalDestination.empty())
+				++byDestination[passenger.finalDestination];
+		}
+		sampled = sampled || (!anyLeft && static_cast<int>(platform.passengers.size()) < platform.passengerCount);
+	}
+	QString subtitle = QStringLiteral("%1 waiting").arg(waiting);
+	if (capacities.size() == 1)
+		subtitle += QStringLiteral(" · capacity %1 on platform %2").arg(capacities.front(), platformNames.front());
+	else if (capacities.size() > 1)
+		subtitle += QStringLiteral(" · capacity ") + capacities.join(QStringLiteral(" · "));
+	content.subtitle = subtitle;
+
+	content.nobodyWaiting = waiting <= 0;
+	if (!content.nobodyWaiting && !byDestination.empty()) {
+		content.destinationHeader = sampled ? QStringLiteral("Waiting, by destination (%1 of %2 shown)").arg(listedWaiting).arg(waiting)
+											: QStringLiteral("Waiting, by destination");
+		std::vector<std::pair<std::string, int>> ranked(byDestination.begin(), byDestination.end());
+		// the map is in the order of the names, which the stable sort keeps among equal counts
+		std::stable_sort(ranked.begin(), ranked.end(), [](const auto& a, const auto& b) { return a.second > b.second; });
+		for (std::size_t i = 0; i < ranked.size(); ++i) {
+			if (static_cast<int>(i) < kCalloutDestinations)
+				content.destinations.push_back({StationOverlayItem::displayName(ranked[i].first), ranked[i].second});
+			else {
+				++content.moreStations;
+				content.moreCount += ranked[i].second;
+			}
+		}
+	}
+
+	const auto cell = [](const GuiStationCall& call, int value) { return call.counted ? QString::number(value) : QStringLiteral("-"); };
+	for (const GuiStationCall& call : snapshot.stationCalls) {
+		if (call.station != station || content.calls.size() >= kGuiStationCallsListed)
+			continue;
+		StationCalloutContent::Call row;
+		row.time = QStringLiteral("%1:%2:%3")
+					   .arg(call.clock / 3600, 2, 10, QLatin1Char('0'))
+					   .arg(call.clock / 60 % 60, 2, 10, QLatin1Char('0'))
+					   .arg(call.clock % 60, 2, 10, QLatin1Char('0'));
+		row.train = QString::fromStdString(call.train);
+		row.boarded = cell(call, call.boarded);
+		row.alighted = cell(call, call.alighted);
+		row.leftBehind = cell(call, call.leftBehind);
+		row.load = cell(call, call.load);
+		row.anyLeft = call.counted && call.leftBehind > 0;
+		content.calls.push_back(row);
+	}
+	return content;
+}
 
 // The scene y of the top of the part of the scene that the view shows; minus infinity without a view.
 qreal visibleTop(const QGraphicsView* view) {
@@ -536,6 +627,7 @@ void NetworkPresenter::clear() {
 	m_trainsByIndex.clear();
 	m_platformsById.clear();
 	m_stationCounts.clear();
+	m_stationCallouts.clear();
 	m_platformsStale = false;
 	trainPaxInfoItem = nullptr;
 	trainPaxItem = nullptr;
@@ -641,6 +733,8 @@ void NetworkPresenter::setPassengerLayerVisible(bool visible) {
 	applyPlatformVisibility();
 	if (trainPaxInfoItem)
 		trainPaxInfoItem->setVisible(visible);
+	if (!visible)
+		closeStationCallouts();
 }
 
 void NetworkPresenter::updateViewOverlays(const std::function<bool(const StationOverlayItem*)>& selected,
@@ -665,6 +759,7 @@ void NetworkPresenter::updateViewOverlays(const std::function<bool(const Station
 		if (overlay)
 			overlay->applyViewScale(viewScale, nearLook);
 	refreshStationCounts();
+	placeStationCallouts();
 	// The mark follows the bars and the station marks, which the near look shows and hides.
 	if (m_selectionMark) {
 		m_selectionMark->setViewScale(viewScale);
@@ -1634,6 +1729,7 @@ void NetworkPresenter::updateStationCounts() {
 			created.pill->setPen(Qt::NoPen);
 			created.pill->setAcceptedMouseButtons(Qt::NoButton);
 			created.pill->setZValue(3.2);
+			created.pill->setData(PreviewGraphics::CalloutStation, QString::fromStdString(station));
 			created.pill->setVisible(false);
 			created.text = new QGraphicsSimpleTextItem(created.pill);
 			created.text->setBrush(QColor(0x0d, 0x14, 0x1b));
@@ -2189,6 +2285,7 @@ void NetworkPresenter::paintStationPlatform(QPointF before, QPointF coord, QPoin
 		platformItem->stationId = platform->StationID;
 		platformItem->platformId = platform->ID;
 		platformItem->maxVolume = platform->Max_Passenger_Volume;
+		platformItem->setData(PreviewGraphics::CalloutStation, QString::fromStdString(platform->StationID));
 	}
 
 	const int waiting = platform ? platform->Current_N_Passengers : 0;
@@ -3336,6 +3433,7 @@ void NetworkPresenter::apply(const GuiSimulationSnapshot& snapshot, Playback pla
 				"gui/snapshot_delivery/render_frame");
 			updateTrainPaxInfo();
 		}
+		updateStationCallouts(snapshot);
 	}
 }
 
@@ -3569,6 +3667,89 @@ void NetworkPresenter::updatePaxIconInfo(const GuiSimulationSnapshot* snapshot, 
 	}
 	paintPassengerInfoIcon(paxIconItem, passengerStateIn(snapshot, paxIconItem->passengerId), playback == Playback::Replay);
 	paxIconInfoItem->setVisible(paxFiguresVisible());
+}
+
+StationCalloutItem* NetworkPresenter::stationCallout(const QString& stationName) const {
+	const std::string station = stationName.toStdString();
+	for (const StationCallout& callout : m_stationCallouts)
+		if (callout.station == station && callout.item && callout.item->isVisible())
+			return callout.item;
+	return nullptr;
+}
+
+void NetworkPresenter::openStationCallout(const QString& stationName, const GuiSimulationSnapshot* snapshot) {
+	if (!m_scene || !snapshot || !passengerGui() || !m_passengerLayerVisible)
+		return;
+	const std::string station = stationName.toStdString();
+	const bool marked = std::any_of(m_stationOverlays.begin(), m_stationOverlays.end(), [&station](const StationOverlayItem* overlay) {
+		return overlay && overlay->pictureItem() && overlay->stationName().toStdString() == station;
+	});
+	if (!marked)
+		return;
+	auto found = std::find_if(m_stationCallouts.begin(), m_stationCallouts.end(), [&station](const StationCallout& callout) { return callout.station == station; });
+	if (found == m_stationCallouts.end()) {
+		auto* item = new StationCalloutItem;
+		item->onClose = [this, stationName] { closeStationCallout(stationName); };
+		m_scene->addItem(item);
+		m_stationCallouts.push_back({station, item});
+		found = std::prev(m_stationCallouts.end());
+	}
+	found->item->setContent(stationCalloutContent(station, *snapshot));
+	found->item->setVisible(true);
+	placeStationCallouts();
+}
+
+void NetworkPresenter::closeStationCallout(const QString& stationName) {
+	const std::string station = stationName.toStdString();
+	for (StationCallout& callout : m_stationCallouts)
+		if (callout.station == station && callout.item)
+			callout.item->setVisible(false);
+}
+
+void NetworkPresenter::closeStationCallouts() {
+	for (StationCallout& callout : m_stationCallouts)
+		if (callout.item)
+			callout.item->setVisible(false);
+}
+
+void NetworkPresenter::updateStationCallouts(const GuiSimulationSnapshot& snapshot) {
+	bool any = false;
+	for (const StationCallout& callout : m_stationCallouts) {
+		if (!callout.item || !callout.item->isVisible())
+			continue;
+		callout.item->setContent(stationCalloutContent(callout.station, snapshot));
+		any = true;
+	}
+	if (any)
+		placeStationCallouts();
+}
+
+void NetworkPresenter::placeStationCallouts() {
+	for (const StationCallout& callout : m_stationCallouts) {
+		if (!callout.item || !callout.item->isVisible())
+			continue;
+		// the first overlay of the station that has a mark carries the card, as it carries the count
+		const QGraphicsPixmapItem* picture = nullptr;
+		for (const StationOverlayItem* overlay : std::as_const(m_stationOverlays))
+			if (overlay && overlay->pictureItem() && overlay->stationName().toStdString() == callout.station) {
+				picture = overlay->pictureItem();
+				break;
+			}
+		if (!picture)
+			continue;
+		// beside the mark, and in the near look beside the platform bars of the station, which the card must not cover
+		QRectF mark = picture->sceneBoundingRect();
+		const QPointF centre = mark.center();
+		if (m_stationNearLook)
+			for (const PlatformItem* platform : std::as_const(allPlatforms))
+				if (platform && platform->isVisible() && platform->stationId == callout.station)
+					mark = mark.united(platform->sceneBoundingRect());
+		const QPointF top(centre.x(), mark.top());
+		// below the mark where the card would leave the top of the view
+		const bool below = m_view && m_view->mapFromScene(top).y() - callout.item->cardRect().height() - StationCalloutItem::Gap < 0;
+		callout.item->setBelow(below);
+		callout.item->setPos(below ? QPointF(centre.x(), mark.bottom()) : top);
+	}
 }
 
 void NetworkPresenter::removeTrainPaxInfoIcon() {

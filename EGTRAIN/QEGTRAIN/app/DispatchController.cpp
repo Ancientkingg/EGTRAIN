@@ -5,6 +5,7 @@
 #include "scene/SceneValidator.h"
 #include "scene/Utf8Path.h"
 #include "simulation/Simulation.h"
+#include "simulation/PassengerResults.h"
 #include "simulation/SimulationRun.h"
 #include "simulation/SimulationWorker.h"
 #include "util/Log.h"
@@ -225,6 +226,7 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 				[&passenger](const Trip& value) { return value.TripID == passenger.current_TripID; });
 			if (trip != journey->Trips.end())
 				state.nextDestination = trip->Arr_Station_ID;
+			state.finalDestination = journey->Arr_Station_ID;
 		}
 		return state;
 	};
@@ -257,6 +259,9 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 			state.passengers.push_back(listPassenger(*left->second[i]));
 		snapshot.platforms.push_back(std::move(state));
 	}
+
+	if (!run.passengers.empty())
+		snapshot.stationCalls = latestStationCalls(run, timestep);
 
 	const std::size_t messageCount = std::min({run.vcMsgTimestep.size(), run.vcMsgTrain.size(), run.vcMsgText.size()});
 	for (std::size_t i = 0; i < messageCount; ++i) {

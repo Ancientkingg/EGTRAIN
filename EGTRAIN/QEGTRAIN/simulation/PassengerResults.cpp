@@ -4,6 +4,9 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <limits>
+#include <string_view>
+#include <unordered_map>
 #include <map>
 #include <utility>
 
@@ -80,6 +83,45 @@ string stopRow(const SimulationRun& run, int trainIndex, int stop) {
 	return row + "\n";
 }
 
+// The call of a train at a stop, with the counts so far.
+GuiStationCall callOf(const SimulationRun& run, int trainIndex, int stop) {
+	const Train& train = run.trains[static_cast<size_t>(trainIndex)];
+	const StopCallCounts* found = run.stopCalls.find(trainIndex, stop);
+	const StopCallCounts counts = found != nullptr ? *found : StopCallCounts();
+	GuiStationCall call;
+	call.station = train.Stations[static_cast<size_t>(stop)].stationName;
+	call.train = train.operatingCode.empty() ? train.trainDescription : train.operatingCode;
+	call.arrival = static_cast<int>(train.StationStandStarts[stop]);
+	call.departure = train.StationDepartures[stop] >= 0 ? static_cast<int>(train.StationDepartures[stop]) : -1;
+	call.clock = call.arrival + static_cast<int>(run.settings.startingSimulationTime);
+	call.boarded = counts.boarded;
+	call.alighted = counts.alighted;
+	call.leftBehind = counts.leftBehind;
+	call.load = counts.loadAfter;
+	return call;
+}
+
+// The place of a call that began: train index, stop index and the step it began.
+struct CallRef {
+	int train, stop, arrival;
+};
+
+vector<CallRef> beganCalls(const SimulationRun& run, int timestep) {
+	vector<CallRef> refs;
+	const int trains = min(run.numTrains, static_cast<int>(run.trains.size()));
+	for (int n = 0; n < trains; ++n) {
+		const Train& train = run.trains[static_cast<size_t>(n)];
+		for (int stop = 0; stop < train.numStations && stop < Train::kMaxTimetableStations; ++stop) {
+			const double began = train.StationStandStarts[stop];
+			if (train.Stations[static_cast<size_t>(stop)].StepStopped > 0 && began >= 0 && began <= timestep
+				&& !train.Stations[static_cast<size_t>(stop)].stationName.empty())
+				refs.push_back({n, stop, static_cast<int>(began)});
+		}
+	}
+	stable_sort(refs.begin(), refs.end(), [](const CallRef& a, const CallRef& b) { return a.arrival < b.arrival; });
+	return refs;
+}
+
 void writeText(const string& path, const string& text) {
 	ofstream file = openRunOutputFile(path, ios::binary);
 	file << text;
@@ -106,6 +148,25 @@ const StopCallCounts* StopCallLog::find(int train, int stop) const {
 	if (static_cast<size_t>(train) >= calls_.size() || static_cast<size_t>(stop) >= calls_[static_cast<size_t>(train)].size())
 		return nullptr;
 	return &calls_[static_cast<size_t>(train)][static_cast<size_t>(stop)];
+}
+
+vector<GuiStationCall> stationCalls(const SimulationRun& run) {
+	vector<GuiStationCall> calls;
+	for (const CallRef& ref : beganCalls(run, numeric_limits<int>::max()))
+		calls.push_back(callOf(run, ref.train, ref.stop));
+	return calls;
+}
+
+vector<GuiStationCall> latestStationCalls(const SimulationRun& run, int timestep) {
+	const vector<CallRef> refs = beganCalls(run, timestep);
+	vector<GuiStationCall> latest;
+	unordered_map<string_view, int> listed;
+	for (auto ref = refs.rbegin(); ref != refs.rend(); ++ref) {
+		const Train& train = run.trains[static_cast<size_t>(ref->train)];
+		if (listed[train.Stations[static_cast<size_t>(ref->stop)].stationName]++ < kGuiStationCallsListed)
+			latest.push_back(callOf(run, ref->train, ref->stop));
+	}
+	return latest;
 }
 
 double nearestRankPercentile(vector<double> values, int p) {

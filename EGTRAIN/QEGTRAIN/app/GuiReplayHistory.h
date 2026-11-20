@@ -55,11 +55,12 @@ struct GuiReplayTrains {
 		GuiReplaySeries position;	 ///< Head position along the route, in m.
 		GuiReplaySeries speed;		 ///< Speed in m/s.
 	};
-	std::vector<Route> routes;				///< By route index of the run.
-	std::vector<Train> trains;				///< In the order of the run.
-	std::vector<int> messageSteps;			///< The step of each virtual coupling message of the run.
-	std::vector<std::string> messageTrains; ///< The train of each message.
-	std::vector<std::string> messageTexts;	///< The text of each message.
+	std::vector<Route> routes;				  ///< By route index of the run.
+	std::vector<Train> trains;				  ///< In the order of the run.
+	std::vector<int> messageSteps;			  ///< The step of each virtual coupling message of the run.
+	std::vector<std::string> messageTrains;	  ///< The train of each message.
+	std::vector<std::string> messageTexts;	  ///< The text of each message.
+	std::vector<GuiStationCall> stationCalls; ///< Every call of a train at a station, ordered by arrival.
 	/// Accounted bytes of everything except the vectors shared with the completed run.
 	std::size_t ownedBytes() const;
 	/// Capacity bytes of the vectors shared with the completed run.

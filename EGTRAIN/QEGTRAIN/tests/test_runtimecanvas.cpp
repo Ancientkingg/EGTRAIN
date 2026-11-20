@@ -17,6 +17,7 @@
 #include "graphics/items/NodeItem.h"
 #include "graphics/items/PassengerItem.h"
 #include "graphics/items/PlatformItem.h"
+#include "graphics/items/StationCalloutItem.h"
 #include "graphics/items/SignalItem.h"
 #include "graphics/items/StationOverlayItem.h"
 #include "graphics/items/TrackLineItem.h"
@@ -800,6 +801,9 @@ private slots:
 	void platformBarShowsCrowdingGauge();
 	void zoomSwitchesCountAndFigures();
 	void stationShowsWaitingCountInFarLook();
+	void stationCalloutListsDestinationsAndCalls();
+	void stationCalloutOpensFromClicksAndCloses();
+	void stationCalloutPlacesBelowAtTopOfView();
 	void trainGlidesAlongBentLine();
 	void trainRunsOverCrossover();
 	void wagonKeepsWidthOverShortConnection();
@@ -1650,6 +1654,222 @@ void TestRuntimeCanvas::stationShowsWaitingCountInFarLook() {
 	QVERIFY(!pill->isVisible());
 	presenter.clear();
 	QVERIFY(PresenterAccess::stationCounts(presenter).empty());
+}
+
+// The passengers `ids` as the platform lists them, each going to the destination that destinations gives at its place.
+static void listPassengersTo(GuiPlatformState& platform, const std::vector<std::string>& destinations) {
+	platform.passengers.clear();
+	for (std::size_t i = 0; i < destinations.size(); ++i)
+		platform.passengers.push_back({"p" + std::to_string(i), "OnPlatform", "P1", "T1", "next", destinations[i]});
+	platform.passengerCount = static_cast<int>(destinations.size());
+}
+
+static GuiStationCall callOf(const std::string& train, int arrival, int boarded, int alighted, int left, int load, bool counted = true) {
+	GuiStationCall call;
+	call.station = "B";
+	call.train = train;
+	call.arrival = arrival;
+	call.departure = arrival + 60;
+	call.clock = 8 * 3600 + arrival;
+	call.boarded = boarded;
+	call.alighted = alighted;
+	call.leftBehind = left;
+	call.load = load;
+	call.counted = counted;
+	return call;
+}
+
+// The card of a station names the station, the passengers waiting and the capacity, the four largest destinations with a
+// bar each and the rest summed, and the latest three calls, newest first; it follows every step and goes with its close
+// control or with the passenger layer.
+void TestRuntimeCanvas::stationCalloutListsDestinationsAndCalls() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	presenter.showRuntime(f.model);
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 100;
+	GuiPlatformState platform = platformWith("B", "P1", 40, Ids{});
+	// F and E have one passenger each; B and C tie at 3, D has 2 and A leads with 5
+	listPassengersTo(platform, {"A", "A", "A", "A", "A", "B", "B", "B", "C", "C", "C", "D", "D", "F", "E"});
+	snapshot.platforms = {platform};
+	snapshot.stationCalls = {callOf("IC 3", 300, 12, 7, 0, 90), callOf("IC 2", 200, 5, 4, 2, 80), callOf("IC 1", 100, 1, 1, 0, 70),
+		callOf("IC 0", 50, 9, 9, 9, 60)};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QVERIFY(!presenter.stationCallout("B"));
+
+	presenter.openStationCallout("B", &snapshot);
+	StationCalloutItem* const card = presenter.stationCallout("B");
+	QVERIFY(card);
+	QVERIFY(card->isVisible());
+	QVERIFY(card->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations));
+	QCOMPARE(card->zValue(), 5.0);
+	QCOMPARE(card->scene(), &f.scene);
+	const StationCalloutContent& content = card->content();
+	QCOMPARE(content.title, "B");
+	QCOMPARE(content.subtitle, QString("15 waiting · capacity 40 on platform P1"));
+	QVERIFY(!content.nobodyWaiting);
+	QCOMPARE(content.destinationHeader, "Waiting, by destination");
+	// the four largest, ties by name, and the other two stations summed
+	QCOMPARE(content.destinations.size(), qsizetype(4));
+	const QStringList names{"A", "B", "C", "D"};
+	const QList<int> counts{5, 3, 3, 2};
+	for (int i = 0; i < 4; ++i) {
+		QCOMPARE(content.destinations[i].name, names[i]);
+		QCOMPARE(content.destinations[i].count, counts[i]);
+	}
+	QCOMPARE(content.moreStations, 2);
+	QCOMPARE(content.moreCount, 2);
+	// only the latest three calls, newest first, with the time of the clock, and the left behind in red
+	QCOMPARE(content.calls.size(), qsizetype(3));
+	QCOMPARE(content.calls[0].train, "IC 3");
+	QCOMPARE(content.calls[0].time, "08:05:00");
+	QCOMPARE(content.calls[0].boarded, "12");
+	QCOMPARE(content.calls[0].alighted, "7");
+	QCOMPARE(content.calls[0].leftBehind, "0");
+	QCOMPARE(content.calls[0].load, "90");
+	QVERIFY(!content.calls[0].anyLeft);
+	QCOMPARE(content.calls[1].train, "IC 2");
+	QVERIFY(content.calls[1].anyLeft);
+	QCOMPARE(content.calls[2].train, "IC 1");
+
+	// the next step updates the open card
+	listPassengersTo(snapshot.platforms[0], {"A", "B"});
+	snapshot.stationCalls = {callOf("IC 4", 400, 0, 0, 0, 10, false)};
+	snapshot.timestep = 101;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QCOMPARE(card->content().subtitle, QString("2 waiting · capacity 40 on platform P1"));
+	QCOMPARE(card->content().destinations.size(), qsizetype(2));
+	QCOMPARE(card->content().moreStations, 0);
+	QCOMPARE(card->content().calls.size(), qsizetype(1));
+	// a call that a replay shows while the train stands has no counts
+	QCOMPARE(card->content().calls[0].boarded, "-");
+	QVERIFY(!card->content().calls[0].anyLeft);
+
+	// a short list of a crowded platform is a sample, which the heading says
+	snapshot.platforms[0].passengerCount = 30;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QCOMPARE(card->content().destinationHeader, "Waiting, by destination (2 of 30 shown)");
+	// a platform that lists nobody has no destinations to show
+	snapshot.platforms[0].passengers.clear();
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QVERIFY(card->content().destinationHeader.isEmpty());
+	QVERIFY(!card->content().nobodyWaiting);
+
+	// several cards stand at once, and a station with nobody and no calls opens one with its empty sections
+	presenter.openStationCallout("A", &snapshot);
+	StationCalloutItem* const second = presenter.stationCallout("A");
+	QVERIFY(second && second != card);
+	QVERIFY(card->isVisible() && second->isVisible());
+	QVERIFY(second->content().nobodyWaiting);
+	QCOMPARE(second->content().subtitle, "0 waiting");
+	QVERIFY(second->content().calls.isEmpty());
+
+	// the close control closes one card, the passenger layer all of them
+	card->onClose();
+	QVERIFY(!presenter.stationCallout("B"));
+	QVERIFY(second->isVisible());
+	presenter.openStationCallout("B", &snapshot);
+	QVERIFY(presenter.stationCallout("B"));
+	presenter.setPassengerLayerVisible(false);
+	QVERIFY(!presenter.stationCallout("A") && !presenter.stationCallout("B"));
+	// a closed card does not open without the layer, nor without a snapshot
+	presenter.openStationCallout("B", &snapshot);
+	QVERIFY(!presenter.stationCallout("B"));
+	presenter.setPassengerLayerVisible(true);
+	presenter.openStationCallout("B", nullptr);
+	QVERIFY(!presenter.stationCallout("B"));
+	presenter.openStationCallout("Nowhere", &snapshot);
+	QVERIFY(!presenter.stationCallout("Nowhere"));
+	// a new run takes the cards away with the scene
+	presenter.openStationCallout("B", &snapshot);
+	presenter.clear();
+	QVERIFY(!presenter.stationCallout("B"));
+}
+
+// A click on the count of a station, in the far look, or on one of its platform bars, in the near look, announces the
+// station and selects its square; the card closes with a click on empty canvas, which the window wires to the cards.
+void TestRuntimeCanvas::stationCalloutOpensFromClicksAndCloses() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	presenter.showRuntime(f.model);
+	zoomToFigures(f, 4.0);
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1", "p2"})};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QStringList clicked;
+	QObject::connect(&f.scene, &NetworkScene::MousePressedOnStation, [&](const QString& station) { clicked << station; });
+	int squares = 0;
+	QObject::connect(&f.scene, &NetworkScene::MousePressedOnStationNode, [&squares](StationNodeItem*) { ++squares; });
+	const auto press = [&f](const QPointF& scenePos) {
+		QGraphicsSceneMouseEvent event(QEvent::GraphicsSceneMousePress);
+		event.setButton(Qt::LeftButton);
+		event.setButtons(Qt::LeftButton);
+		event.setScenePos(scenePos);
+		event.setWidget(f.view.viewport());
+		f.scene.mousePressEvent(&event);
+	};
+	// the count, a little right of the pin and level with its top
+	const auto& counts = PresenterAccess::stationCounts(presenter);
+	QVERIFY(counts[0].pill->isVisible());
+	press(f.view.mapToScene(f.view.mapFromScene(counts[0].pill->pos()) + QPoint(12, 8)));
+	QCOMPARE(clicked, QStringList{"B"});
+	QCOMPARE(squares, 1);
+	presenter.openStationCallout(clicked.front(), &snapshot);
+	StationCalloutItem* const card = presenter.stationCallout("B");
+	QVERIFY(card);
+	// a click on the card is taken by the card and selects nothing
+	clicked.clear();
+	// (the card ignores the transformation of the view, so its place is found through the view)
+	press(f.view.mapToScene(f.view.mapFromScene(card->pos()) + card->cardRect().center().toPoint()));
+	QVERIFY(clicked.isEmpty());
+	QCOMPARE(f.scene.selectedItem(), card);
+	QVERIFY(card->isVisible());
+
+	// a platform bar, in the near look, with the card out of the way
+	presenter.closeStationCallouts();
+	PresenterAccess::setStationNearLook(presenter, true);
+	const PlatformItem* const bar = PresenterAccess::allPlatforms(presenter).value(0);
+	QVERIFY(bar->isVisible());
+	squares = 0;
+	press(bar->sceneBoundingRect().center());
+	QCOMPARE(clicked, QStringList{"B"});
+	QCOMPARE(squares, 1);
+}
+
+// The card stands above the mark, and below it where it would leave the top of the view.
+void TestRuntimeCanvas::stationCalloutPlacesBelowAtTopOfView() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	presenter.showRuntime(f.model);
+	zoomToFigures(f, 4.0);
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1"})};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	presenter.openStationCallout("B", &snapshot);
+	StationCalloutItem* const card = presenter.stationCallout("B");
+	QVERIFY(card);
+	const auto markNow = [&presenter] { return PresenterAccess::stationCounts(presenter)[0].overlay->pictureItem()->sceneBoundingRect(); };
+	f.view.setSceneRect(-1e6, -1e6, 2e6, 2e6);
+	const auto place = [&](int viewportY) {
+		const qreal scale = std::abs(f.view.transform().m11());
+		const QRectF before = markNow();
+		f.view.centerOn(QPointF(before.center().x(), before.top() + (f.view.viewport()->height() / 2.0 - viewportY) / scale));
+		presenter.updateViewOverlays([](const StationOverlayItem*) { return false; }, nullptr);
+		return f.view.mapFromScene(QPointF(markNow().center().x(), markNow().top())).y();
+	};
+	// well inside the view: above the top of the mark
+	QVERIFY(place(5000) > 1000);
+	QVERIFY(!card->below());
+	QVERIFY(near(card->pos().x(), markNow().center().x()) && near(card->pos().y(), markNow().top()));
+	// at the top edge: below the bottom of the mark
+	QVERIFY(place(20) < 200);
+	QVERIFY(card->below());
+	QVERIFY(near(card->pos().y(), markNow().bottom()));
 }
 
 // A zoom alone, with no step, swaps the count of a platform for the queue of figures and back, and a click on a figure
