@@ -1,5 +1,6 @@
 #include "simulation/Simulation.h"
 #include "diagrams/RunResults.h"
+#include "simulation/PassengerResults.h"
 #include "simulation/RunOutputFile.h"
 #include "simulation/SimulationRun.h"
 #include "util/Log.h"
@@ -423,6 +424,7 @@ bool runSimulationPostprocessing(SimulationRun& run, const std::function<bool()>
 
 	// Print Out Passenger Delays
 	printPassengerTotalJourneyDelay(run.passengers, settings.OutputMainFolder + "/PassengerStatus");
+	printPassengerResultFiles(run, settings.OutputMainFolder + "/PassengerStatus");
 
 	// Calculating positive and negative Train Delays to debug the program
 	calculatePosAndNegArrivalDelayAllTrains(run);

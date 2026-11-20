@@ -6,6 +6,7 @@
 #include "simulation/NumberGenerator.h"
 #include "simulation/PassengerFlow.h"
 #include "simulation/PassengerJourneys.h"
+#include "simulation/PassengerResults.h"
 #include "simulation/Passengers.h"
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
@@ -144,6 +145,9 @@ struct SimulationRun {
 	/// The router of the run and what the passenger step needs to plan journeys on it. Built when the step first needs it, and
 	/// reset() and adopt() empty it with passengerFlow.
 	PassengerJourneys passengerJourneys;
+	/// What the passenger step counted at each call of a train at a stop, for StationStops.txt. reset() and adopt() empty it
+	/// with passengerFlow.
+	StopCallLog stopCalls;
 
 	/// Statistics over the trains of the input delay, the entrance delay plus the station disturbances, in seconds.
 	DelayStats totalInputDelays;

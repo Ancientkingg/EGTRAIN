@@ -845,8 +845,10 @@ void Train::serviceStopStep(int time_seconds, const Arc& As, double head, bool a
 			stoptime = Stations[s].StopTime;
 			dep_time = ScheduledDepartures[s];
 			recordCurrentServiceStopArrival(time_seconds);
-			if (Stations[s].StepStopped == 0)
+			if (Stations[s].StepStopped == 0) {
 				stop = time_seconds;
+				StationStandStarts[s] = time_seconds * timestep;
+			}
 			Stations[s].StepStopped++;
 			if (Stations[s].StepStopped > Stations[s].StopTime)
 				stoptime = 0;
@@ -861,6 +863,7 @@ void Train::serviceStopStep(int time_seconds, const Arc& As, double head, bool a
 		if ((Condition_To_Stop_Train == 0) && ((time_seconds - stop) > stoptime) && (time_seconds > dep_time) && (authorityHold == 0)) {
 			instant_train_speed[time_seconds] = kRestartSpeedMs;
 			instant_spatial_position[time_seconds] = As.endNode.X * 1000 + kRestartOffsetM;
+			recordCurrentServiceStopDeparture(time_seconds);
 			this->StoppedForServiceStop = false; // Stating that the train is no longer stoppoed at a service station
 			this->CurrentServiceStop = "None";	 // This states that the train is no longer stopping at the service station
 		}
@@ -882,6 +885,7 @@ void Train::serviceStopStep(int time_seconds, const Arc& As, double head, bool a
 		} else {
 			instant_train_speed[time_seconds] = kRestartSpeedMs;
 			instant_spatial_position[time_seconds] = As.endNode.X * 1000 + kRestartOffsetM;
+			recordCurrentServiceStopDeparture(time_seconds);
 			this->StoppedForServiceStop = false; // Stating that the train is no longer stoppoed at a service station
 			this->CurrentServiceStop = "None";	 // This states that the train is no longer stopping at the service station
 			this->CurrentServiceStopPlatform = "None";
@@ -902,6 +906,18 @@ void Train::recordCurrentServiceStopArrival(int time_seconds) {
 		if (Stations[s].stationName == CurrentServiceStop && StationArrivals[s] < 0) {
 			StationArrivals[s] = time_seconds * timestep;
 			StationArrivalNames[s] = CurrentServiceStop;
+			break;
+		}
+	}
+}
+
+void Train::recordCurrentServiceStopDeparture(int time_seconds) {
+	if (time_seconds < 0 || CurrentServiceStop == "None")
+		return;
+
+	for (int s = 0; s < numStations; s++) {
+		if (Stations[s].stationName == CurrentServiceStop && Stations[s].StepStopped > 0 && StationDepartures[s] < 0) {
+			StationDepartures[s] = time_seconds * timestep;
 			break;
 		}
 	}

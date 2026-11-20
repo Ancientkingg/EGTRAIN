@@ -1795,7 +1795,7 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 							integerField("delay", trip.totalArrivalDelay)});
 			}
 		}
-		for (const std::string name : {"PassengerStatus.txt", "JourneyDelays.txt"}) {
+		for (const std::string name : {"PassengerStatus.txt", "JourneyDelays.txt", "PassengerJourneys.txt", "StationStops.txt", "ODSummary.txt"}) {
 			std::ifstream in(outputDir + "/PassengerStatus/" + name);
 			if (!in) {
 				outcome.error = "the run wrote no PassengerStatus/" + name + "\n";

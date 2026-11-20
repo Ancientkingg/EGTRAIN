@@ -63,6 +63,7 @@ void SimulationRun::reset() {
 	platformIndex.clear();
 	passengerFlow.clear();
 	passengerJourneys.clear();
+	stopCalls.clear();
 	totalInputDelays = DelayStats();
 	entranceInputDelays = DelayStats();
 	disturbanceInput = DelayStats();
@@ -88,6 +89,7 @@ void SimulationRun::adopt(SimulationRun&& staged) {
 	passengerIndex.build(passengers);
 	passengerFlow.clear();
 	passengerJourneys.clear();
+	stopCalls.clear();
 }
 
 namespace {

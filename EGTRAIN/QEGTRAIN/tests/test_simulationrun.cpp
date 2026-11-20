@@ -95,9 +95,10 @@ Description describeInfrastructure(const RunInfrastructure& infrastructure) {
 
 Description describe(const SimulationRun& run) {
 	const auto& [settings, occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers,
-		numPassengers, passengerIndex, platformIndex, passengerFlow, passengerJourneys, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay,
+		numPassengers, passengerIndex, platformIndex, passengerFlow, passengerJourneys, stopCalls, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay,
 		egtrainTime, romaTime, infrastructure] = run;
 	(void)passengerJourneys; // Planning state only; reset() and adopt() empty it like passengerFlow.
+	(void)stopCalls;		 // The same for the counts of the calls at stops.
 	const auto statistics = [](const DelayStats& s) {
 		return std::to_string(s.N_Stopped_Trains) + "/" + std::to_string(s.totalArrivalDelay);
 	};
@@ -178,9 +179,10 @@ bool carriesNothingOver(const SimulationRun& run) {
 // Gives every member of the run a value that a new run does not have.
 void fill(SimulationRun& run) {
 	auto& [settings, occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers, numPassengers,
-		passengerIndex, platformIndex, passengerFlow, passengerJourneys, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay, egtrainTime, romaTime,
+		passengerIndex, platformIndex, passengerFlow, passengerJourneys, stopCalls, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay, egtrainTime, romaTime,
 		infrastructure] = run;
 	(void)passengerJourneys;
+	stopCalls.at(0, 0).boarded = 1;
 	settings.name = "scene";
 	settings.times = 90;
 	settings.OutputMainFolder = "output";

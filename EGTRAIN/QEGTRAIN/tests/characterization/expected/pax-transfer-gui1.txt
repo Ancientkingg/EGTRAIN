@@ -183,3 +183,20 @@ file JourneyDelays.txt x1 x1.1 -126
 file JourneyDelays.txt x2 x2.1 -216
 file JourneyDelays.txt y1 y1.1 -137
 file JourneyDelays.txt y1 y1.2 -216
+file PassengerJourneys.txt PaxID JourneyID Mode Origin Destination Appeared Trains Wait Walk InVehicle Arrival Delay Replanned Outcome
+file PassengerJourneys.txt x1 x1.1 assigned P C 25350 Q1-1+Q2-1 71 0 1053 26474 -126 0 completed
+file PassengerJourneys.txt x2 x2.1 assigned P C 25360 Q1-1+Q3-1 210 0 864 26434 -216 0 completed
+file PassengerJourneys.txt y1 y1.1 assigned P B 25370 Q1-1 51 0 402 25823 -137 0 completed
+file PassengerJourneys.txt y1 y1.2 assigned B C 25850 Q3-1 122 0 462 26434 -216 0 completed
+file StationStops.txt Train Station Platform Arrival Departure Boarded Alighted LeftBehind LoadAfterDeparture Capacity LoadFactor
+file StationStops.txt Q1-1 P P.platform.1 25421 25661 3 0 0 3 300 0.010
+file StationStops.txt Q1-1 B B.platform.1 25823 26021 0 3 0 0 300 0.000
+file StationStops.txt Q1-1 C C.platform.1 26294 26354 0 0 0 0 300 0.000
+file StationStops.txt Q2-1 B B.platform.1 25492 26201 1 0 0 1 300 0.003
+file StationStops.txt Q2-1 C C.platform.1 26474 26534 0 1 0 0 300 0.000
+file StationStops.txt Q3-1 B Platform_4 25972 26161 2 0 0 2 300 0.007
+file StationStops.txt Q3-1 C C.platform.1 26434 26494 0 2 0 0 300 0.000
+file ODSummary.txt Origin Destination Journeys Completed NoRoute MeanWait P95Wait MeanTravel MeanDelay
+file ODSummary.txt B C 1 1 0 122.000 122 584.000 -216.000
+file ODSummary.txt P B 1 1 0 51.000 51 453.000 -137.000
+file ODSummary.txt P C 2 2 0 140.500 210 1099.000 -171.000

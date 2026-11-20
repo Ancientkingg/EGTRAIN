@@ -402,6 +402,12 @@ public:
 
 	/// Arrival at each stop in seconds from the start of the run; -1 when the train did not arrive there.
 	double StationArrivals[kMaxTimetableStations];
+	/// First step in seconds from the start of the run in which the train stood at each stop for its service stop; -1 when it never
+	/// did. This is later than StationArrivals, which is the passage of the timetable point of the stop.
+	double StationStandStarts[kMaxTimetableStations];
+	/// Last step in seconds from the start of the run in which the train stood at each stop, the one in which it left; -1 when it
+	/// never stood there or had not left by the end of the run.
+	double StationDepartures[kMaxTimetableStations];
 	std::string StationArrivalNames[kMaxTimetableStations]; ///< Preserves served station names for post-run arrival analysis.
 	/// Arrival delay at each stop in seconds: StationArrivals minus ScheduledArrivals; -1 when there is none.
 	/// computeArrivalDelaysAtStations makes a negative delay 0.
@@ -882,6 +888,9 @@ public:
 
 	/// Records time_seconds * timestep as the arrival (s) at the first stop named CurrentServiceStop that has none yet.
 	void recordCurrentServiceStopArrival(int time_seconds);
+	/// Records time_seconds * timestep as the departure (s) from the first stop named CurrentServiceStop where the train has
+	/// stood and not yet left.
+	void recordCurrentServiceStopDeparture(int time_seconds);
 
 	/// True when stop stationIndex lies on the route, on one of allowedBlockIds when that list is not empty.
 	bool stationIsOnRoute(int stationIndex, const std::vector<std::string>& allowedBlockIds = {}) const;
