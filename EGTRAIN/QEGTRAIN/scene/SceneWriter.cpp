@@ -347,6 +347,8 @@ json encodeRollingStock(const SceneModel& scene) {
 		json value = {{"id", unit.id}};
 		if (unit.hasPhysical)
 			value["physical"] = writePhysical(unit.physical);
+		if (unit.hasPassengerCapacity)
+			value["passenger_capacity"] = unit.passengerCapacity;
 		if (!unit.tractionCurve.empty()) {
 			value["traction_curve"] = json::array();
 			for (const auto& row : unit.tractionCurve)

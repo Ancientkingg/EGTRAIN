@@ -191,8 +191,12 @@ struct SceneTrainUnit {
 	/// Rows of [v_lower, v_upper, c0, c1, c2]: the tractive effort in N is c0 + c1 v + c2 v² for a speed v
 	/// from v_lower up to v_upper. The simulation compares the bounds with speeds in m/s.
 	std::vector<std::array<double, 5>> tractionCurve;
-	std::string sourceDataFile;		///< Path of the vehicle data file the editor reads the physical data from; empty when none.
-	std::string sourceTractionFile; ///< Path of the traction file the editor reads the curve from; empty when none.
+	/// Passengers the unit can carry, seats and standing; meaningful only when hasPassengerCapacity is set. A locomotive
+	/// carries 0.
+	int passengerCapacity = 0;
+	bool hasPassengerCapacity = false; ///< True when passenger_capacity is given.
+	std::string sourceDataFile;		   ///< Path of the vehicle data file the editor reads the physical data from; empty when none.
+	std::string sourceTractionFile;	   ///< Path of the traction file the editor reads the curve from; empty when none.
 };
 
 /// A composition: the train units that run together as one train.
@@ -208,6 +212,9 @@ struct SceneCompositionRuntime {
 	std::vector<std::array<double, 5>> tractionCurve; ///< The combined curve, in the form of SceneTrainUnit::tractionCurve.
 	/// The units of the composition in order. They point into the source scene, which owns them.
 	std::vector<const SceneTrainUnit*> units;
+	/// The sum of the passenger capacities of the units when every unit gives one; -1 otherwise, and the simulation then
+	/// takes its default from the number of wagons.
+	int passengerCapacity = -1;
 };
 
 /// A planned call of a service at a station. Times are seconds after the base time of the scene.

@@ -324,6 +324,11 @@ bool buildSceneComposition(const SceneModel& scene, const std::string& compositi
 		result.units.push_back(it->second);
 	}
 
+	result.passengerCapacity = 0;
+	for (const SceneTrainUnit* unit : result.units)
+		result.passengerCapacity = unit->hasPassengerCapacity && result.passengerCapacity >= 0
+			? result.passengerCapacity + unit->passengerCapacity
+			: -1;
 	if (result.units.size() == 1) {
 		result.physical = result.units.front()->physical;
 		result.tractionCurve = result.units.front()->tractionCurve;

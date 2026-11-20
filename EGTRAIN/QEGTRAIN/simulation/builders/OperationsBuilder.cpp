@@ -44,6 +44,7 @@ struct NativeTrainPlan {
 	std::string operatingCode;
 	std::string serviceId;
 	SceneTrainPhysical physical;
+	int passengerCapacity = -1; // SceneCompositionRuntime::passengerCapacity
 	std::vector<std::array<double, 5>> tractionCurve;
 	std::vector<NativeStopPlan> stops;
 	int occurrence = 1;
@@ -238,7 +239,7 @@ void nativeCopyTrainPlan(SimulationRun& run, const NativeTrainPlan& plan, Train&
 	train.mass_of_traction_unit = plan.physical.mass_of_traction_unit_kg;
 	train.mass_of_a_wagon = plan.physical.mass_of_a_wagon_kg;
 	train.number_of_wagons = plan.physical.number_of_wagons;
-	train.MAX_OnBoard_Passengers = trainPassengerCapacity(train.number_of_wagons);
+	train.MAX_OnBoard_Passengers = plan.passengerCapacity >= 0 ? plan.passengerCapacity : trainPassengerCapacity(train.number_of_wagons);
 	train.max_train_speed = plan.appliedMaximumSpeedMs;
 	train.max_train_decelaration = plan.physical.max_deceleration_ms2;
 	train.frontal_wagon_area = plan.physical.frontal_area_m2;
@@ -608,6 +609,7 @@ NativeTrainPlan nativeTrainPlan(const SceneService& service, const SceneComposit
 	plan.operatingCode = sceneServiceOccurrenceOperatingCode(service, occurrence);
 	plan.serviceId = service.id;
 	plan.physical = composition.physical;
+	plan.passengerCapacity = composition.passengerCapacity;
 	plan.tractionCurve = composition.tractionCurve;
 	plan.occurrence = occurrence;
 	plan.routeIndex = routeIndex;

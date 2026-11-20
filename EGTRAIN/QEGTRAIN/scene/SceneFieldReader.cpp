@@ -723,6 +723,7 @@ void decodeRollingStock(const SceneFieldReader& reader, const json& root, SceneM
 							unit.physical.*field.member);
 				}
 			}
+			unit.hasPassengerCapacity = reader.integerField(value, "passenger_capacity", path, unit.passengerCapacity, false);
 			if (value.contains("traction_curve")) {
 				if (!value["traction_curve"].is_array()) {
 					reader.report("scene.field.missing",

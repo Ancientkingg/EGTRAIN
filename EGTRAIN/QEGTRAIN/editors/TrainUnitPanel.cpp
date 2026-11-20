@@ -21,6 +21,7 @@
 #include <QPushButton>
 #include <QScrollBar>
 #include <QSignalBlocker>
+#include <QSpinBox>
 #include <QStringList>
 #include <QStyledItemDelegate>
 #include <QTabWidget>
@@ -253,6 +254,14 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 		m_physicalEdits[static_cast<std::size_t>(i)] = edit;
 		physicalLayout->addRow(physicalLabels[i], edit);
 	}
+	m_passengerCapacityEdit = new QSpinBox(physicalPage);
+	m_passengerCapacityEdit->setObjectName("trainUnitPassengerCapacityEdit");
+	m_passengerCapacityEdit->setRange(-1, 100000);
+	m_passengerCapacityEdit->setSpecialValueText("Default");
+	m_passengerCapacityEdit->setKeyboardTracking(false);
+	m_passengerCapacityEdit->setToolTip(
+		"Passengers the unit carries. With Default on any unit of a composition, its trains carry 300 plus 300 per wagon.");
+	physicalLayout->addRow("Passenger capacity", m_passengerCapacityEdit);
 	physicalPageLayout->addLayout(physicalLayout);
 	QLabel* parameterFileLabel = new QLabel("Parameter file", physicalPage);
 	physicalPageLayout->addWidget(parameterFileLabel);
@@ -282,6 +291,8 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 		connect(m_physicalEdits[static_cast<std::size_t>(i)], QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
 			[this, i](double) { commitPhysical(i); });
 	}
+	connect(m_passengerCapacityEdit, QOverload<int>::of(&QSpinBox::valueChanged), this,
+		[this](int) { commitPassengerCapacity(); });
 	connect(m_addButton, &QPushButton::clicked, this, &TrainUnitPanel::addUnit);
 	connect(m_libraryButton, &QPushButton::clicked, this, &TrainUnitPanel::addFromLibrary);
 	connect(m_duplicateButton, &QPushButton::clicked, this, &TrainUnitPanel::duplicateUnit);
@@ -357,6 +368,11 @@ void TrainUnitPanel::updateDetail() {
 		const QSignalBlocker blocker(m_physicalEdits[index]);
 		m_physicalEdits[index]->setValue(values[index]);
 		m_physicalEdits[index]->setEnabled(hasSelection);
+	}
+	{
+		const QSignalBlocker blocker(m_passengerCapacityEdit);
+		m_passengerCapacityEdit->setValue(unit && unit->hasPassengerCapacity ? unit->passengerCapacity : -1);
+		m_passengerCapacityEdit->setEnabled(hasSelection);
 	}
 	{
 		const QSignalBlocker blocker(m_sourceDataEdit);
@@ -447,6 +463,10 @@ void TrainUnitPanel::commitPendingEditors() {
 			edit->interpretText();
 			commitPhysical(static_cast<int>(index));
 		}
+	}
+	if (hasEditorFocus(m_passengerCapacityEdit)) {
+		m_passengerCapacityEdit->interpretText();
+		commitPassengerCapacity();
 	}
 	// The open editor of the traction table, which is at the current cell, commits as Return commits it.
 	const QModelIndex current = m_tractionTable->currentIndex();
@@ -648,6 +668,24 @@ void TrainUnitPanel::commitPhysical(int fieldIndex) {
 		}))
 		return;
 
+	emit changed();
+}
+
+void TrainUnitPanel::commitPassengerCapacity() {
+	const int row = selectedRow();
+	if (row < 0)
+		return;
+	const SceneTrainUnit& unit = m_document->model().trainUnits[static_cast<std::size_t>(row)];
+	const int value = m_passengerCapacityEdit->value();
+	const bool has = value >= 0;
+	if (has == unit.hasPassengerCapacity && (!has || value == unit.passengerCapacity))
+		return;
+	if (!m_document->edit(SceneDocument::TrainUnits, "Edit rolling stock unit", [row, has, value](SceneModel& model) {
+			SceneTrainUnit& edited = model.trainUnits[static_cast<std::size_t>(row)];
+			edited.hasPassengerCapacity = has;
+			edited.passengerCapacity = has ? value : 0;
+		}))
+		return;
 	emit changed();
 }
 
