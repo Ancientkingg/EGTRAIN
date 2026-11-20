@@ -4,6 +4,7 @@
 #include "editors/EntranceDelayPanel.h"
 #include "editors/IncidentPanel.h"
 #include "editors/InfrastructurePanel.h"
+#include "editors/PassengerDemandPanel.h"
 #include "editors/PassengerPanel.h"
 #include "editors/ScenarioPanel.h"
 #include "editors/SceneDocument.h"
@@ -330,7 +331,14 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	m_passengerDock = new QDockWidget("Passengers", m_window);
 	m_passengerDock->setObjectName("passengerDock");
 	m_passengerPanel = new PassengerPanel(m_passengerDock);
-	m_passengerDock->setWidget(m_passengerPanel);
+	// The origin-destination demand belongs to the case, not to a passenger, so it is a second panel beside the passenger
+	// editor. A tab widget holds both, and the scroll area below wraps the tab widget like any other dock content.
+	m_demandPanel = new PassengerDemandPanel(m_passengerDock);
+	auto* passengerTabs = new QTabWidget(m_passengerDock);
+	passengerTabs->setObjectName("passengerDockTabs");
+	passengerTabs->addTab(m_passengerPanel, "Passengers");
+	passengerTabs->addTab(m_demandPanel, "Demand");
+	m_passengerDock->setWidget(passengerTabs);
 	// A dock's viewport, rather than its form, limits the main window size.
 	// Keep wide tables and enlarged-font controls reachable when space is tight.
 	for (QDockWidget* dock : {m_caseSettingsDock, m_infrastructureDock, m_trainUnitDock,
@@ -378,8 +386,19 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 		return QFileDialog::getExistingDirectory(m_window, "Select Legacy Passenger Folder", startDir);
 	});
 	m_passengerPanel->setDocument(m_document);
+	m_demandPanel->setPrompts(prompts);
+	m_demandPanel->setDiagnostics(&m_session->diagnostics());
+	m_demandPanel->setOccurrenceDuration([this] { return m_host.serviceOccurrenceDuration(); });
+	m_demandPanel->setCsvFileChooser([this](bool save) -> QString {
+		const QString startDir = m_session->sceneDir().isEmpty() ? QDir::homePath() : QFileInfo(m_session->sceneDir()).absolutePath();
+		const QString filter = "CSV files (*.csv);;All files (*)";
+		return save ? QFileDialog::getSaveFileName(m_window, "Export Demand CSV", startDir, filter)
+					: QFileDialog::getOpenFileName(m_window, "Import Demand CSV", startDir, filter);
+	});
+	m_demandPanel->setDocument(m_document);
 	m_passengerDock->widget()->setEnabled(false);
 	QObject::connect(m_passengerPanel, &PassengerPanel::changed, m_window, [this] { m_host.refreshValidationPanel(); });
+	QObject::connect(m_demandPanel, &PassengerDemandPanel::changed, m_window, [this] { m_host.refreshValidationPanel(); });
 
 	m_servicePanel->setPrompts(prompts);
 	m_timetableStopsPanel->setPrompts(prompts);
@@ -400,7 +419,7 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	m_servicePanel->setDocument(m_document);
 	m_timetableStopsPanel->setDocument(m_document);
 	m_serviceDock->widget()->setEnabled(false);
-	m_panels = {m_caseSettingsPanel, m_trainUnitPanel, m_infrastructurePanel, m_passengerPanel, m_compositionPanel,
+	m_panels = {m_caseSettingsPanel, m_trainUnitPanel, m_infrastructurePanel, m_passengerPanel, m_demandPanel, m_compositionPanel,
 		m_servicePanel, m_timetableStopsPanel, m_scenarioPanel, m_incidentPanel, m_entranceDelayPanel};
 	for (SceneEditorPanel* panel : m_panels)
 		QObject::connect(panel, &SceneEditorPanel::statusMessage, m_window,

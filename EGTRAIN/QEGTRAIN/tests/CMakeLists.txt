@@ -639,6 +639,11 @@ egtrain_add_test(test_editor_passenger
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
+egtrain_add_test(test_editor_demand
+	SOURCES ${SRC_DIR}/tests/test_editor_demand.cpp
+	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
+	LABELS unit gui)
+
 egtrain_add_test(test_editor_service
 	SOURCES ${SRC_DIR}/tests/test_editor_service.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets

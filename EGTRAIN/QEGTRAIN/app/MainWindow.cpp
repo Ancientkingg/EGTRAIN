@@ -120,6 +120,7 @@
 #include "editors/EntranceDelayPanel.h"
 #include "editors/IncidentPanel.h"
 #include "editors/InfrastructurePanel.h"
+#include "editors/PassengerDemandPanel.h"
 #include "editors/PassengerPanel.h"
 #include "editors/ScenarioPanel.h"
 #include "editors/SceneDocument.h"
@@ -1231,6 +1232,7 @@ void MainWindow::setupValidationDocks() {
 	connect(m_validation, &ValidationPanel::refreshed, this, [this] {
 		m_editorDocks.scenarioPanel()->refresh();
 		m_editorDocks.passengerPanel()->refresh();
+		m_editorDocks.demandPanel()->refresh();
 		updateSceneActions();
 	});
 	connect(m_validation, &ValidationPanel::targetActivated, this, &MainWindow::openLoadedDataTarget);

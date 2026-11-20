@@ -104,6 +104,16 @@ Rescheduling, and GUI files have their own active/inert/output classifications;
 see the [migration matrix](v1-scene-migration-matrix.md) instead of inferring
 behavior from a filename.
 
+The Demand tab of the Passengers dock edits the origin-destination demand of the
+case. The timeline shows the demand slices over the case horizon: drag over empty
+space to add a slice, drag an edge of the selected slice to change its period, and
+press Delete to remove it. Slices never overlap, and an edit that would overlap is
+cut off at the neighbouring slice. The Start and End fields and the slice list give
+the same control from the keyboard. The matrix below lists origins in rows and
+destinations in columns, with totals; an empty cell or 0 means no passengers.
+Import CSV replaces the matrix of the selected slice from the supervisor's matrix
+format, and Export CSV writes it. Each change is one undo step.
+
 Named-scenario selection, entrance delays, incidents, and passengers execute
 from canonical data. The runtime applies only the selected/default scenario.
 
