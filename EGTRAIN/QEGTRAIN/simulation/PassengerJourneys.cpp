@@ -100,13 +100,17 @@ TrainState liveTrainState(const Train& train, int firstStop, int elapsed) {
 	TrainState state;
 	const int count = stopCount(train);
 	state.firstStop = static_cast<size_t>(max(0, firstStop));
-	for (int stop = min(firstStop, count - 1); stop >= 0; --stop) {
+	bool arrived = false;
+	for (int stop = min(firstStop, count - 1); stop >= 0 && !arrived; --stop) {
 		const size_t at = static_cast<size_t>(stop);
 		if (train.StationArrivals[at] >= 0 && train.ScheduledArrivals[at] >= 0) {
 			state.delay = max(0.0, train.StationArrivals[at] - train.ScheduledArrivals[at]);
-			break;
+			arrived = true;
 		}
 	}
+	// Before its first arrival, a train that entered later than it could is as late as its entry.
+	if (!arrived && train.CanEnter && train.earliestActiveTrajectoryIndex >= 0)
+		state.delay = max(0.0, train.earliestActiveTrajectoryIndex * timestep - train.departure_time);
 	if (firstStop < count && train.StoppedForServiceStop && train.Stations[static_cast<size_t>(firstStop)].StepStopped > 0) {
 		const double planned = train.ScheduledDepartures[static_cast<size_t>(firstStop)];
 		if (planned >= 0 && planned + state.delay < elapsed)
