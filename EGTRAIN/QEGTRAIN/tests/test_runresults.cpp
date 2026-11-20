@@ -123,6 +123,7 @@ private slots:
 	void classifiesTimetableStatus();
 	void classifiesArrivalAndDepartureApart();
 	void carriesEntranceDelay();
+	void reportsPassengerLoad();
 	void capsTimetableRows();
 	void copiesStopLists();
 	void clampsStationCount();
@@ -465,6 +466,27 @@ void TestRunResults::carriesEntranceDelay() {
 	// a copy of a train keeps its entrance delay station
 	QVERIFY(closeTo(copied.EntranceDelay, 120.0));
 	QCOMPARE(copied.entranceDelayStationId, "B");
+}
+
+void TestRunResults::reportsPassengerLoad() {
+	// Three steps with 100, 300 and 200 passengers on board: peak 300, average 200.
+	auto loaded = makeTimetableTrain("loaded", {"A"});
+	for (const int onBoard : {100, 300, 200}) {
+		loaded->Current_OnBoard_Passengers = onBoard;
+		loaded->recordOnBoardPassengers();
+	}
+	// A train that never ran, or ran in a run without passengers, records no step.
+	auto idle = makeTimetableTrain("idle", {"A"});
+	const std::vector<const Train*> trains{loaded.get(), idle.get()};
+	const auto results = buildRunResults(trains, 1.0);
+	QCOMPARE(results.trains.size(), std::size_t(2));
+	QVERIFY(results.trains[0].peakOnBoardPassengers.available);
+	QVERIFY(closeTo(results.trains[0].peakOnBoardPassengers.value, 300.0));
+	QVERIFY(results.trains[0].averageOnBoardPassengers.available);
+	QVERIFY(closeTo(results.trains[0].averageOnBoardPassengers.value, 200.0));
+	// The idle train has no load, which is not 0.
+	QVERIFY(!results.trains[1].peakOnBoardPassengers.available);
+	QVERIFY(!results.trains[1].averageOnBoardPassengers.available);
 }
 
 void TestRunResults::capsTimetableRows() {

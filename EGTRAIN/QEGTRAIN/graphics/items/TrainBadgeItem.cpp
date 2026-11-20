@@ -47,6 +47,18 @@ void TrainBadgeItem::setSpeedText(const QString& value) {
 	updateToolTip();
 	update();
 }
+void TrainBadgeItem::setLoadText(const QString& value) {
+	if (m_loadText == value) return;
+	prepareGeometryChange();
+	m_loadText = value;
+	update();
+}
+void TrainBadgeItem::setLoadVisible(bool visible) {
+	if (m_loadVisible == visible) return;
+	prepareGeometryChange();
+	m_loadVisible = visible;
+	update();
+}
 void TrainBadgeItem::setSpeedVisible(bool visible) {
 	if (m_speedVisible == visible) return;
 	prepareGeometryChange();
@@ -95,25 +107,49 @@ QRectF TrainBadgeItem::speedTextRect() const {
 	return QFontMetricsF(speedFont()).boundingRect(m_speedText).translated(speedBaseline());
 }
 QRectF TrainBadgeItem::speedBackingRect() const {
+	if (!showsSpeed()) return QRectF();
 	return speedTextRect().adjusted(-kBackingPaddingX, -kBackingPaddingY, kBackingPaddingX, kBackingPaddingY);
 }
+// The load goes on the line above the speed, or on the line of the speed when that is not drawn.
+QPointF TrainBadgeItem::loadBaseline() const {
+	QPointF baseline = speedBaseline();
+	if (showsSpeed())
+		baseline.ry() -= QFontMetricsF(speedFont()).height() + 2 * kBackingPaddingY;
+	return baseline;
+}
+QRectF TrainBadgeItem::loadTextRect() const {
+	if (!showsLoad()) return QRectF();
+	return QFontMetricsF(speedFont()).boundingRect(m_loadText).translated(loadBaseline());
+}
+QRectF TrainBadgeItem::loadBackingRect() const {
+	if (!showsLoad()) return QRectF();
+	return loadTextRect().adjusted(-kBackingPaddingX, -kBackingPaddingY, kBackingPaddingX, kBackingPaddingY);
+}
 QRectF TrainBadgeItem::boundingRect() const {
-	if (!showsSpeed()) return QRectF();
-	return speedBackingRect().adjusted(-1.0, -1.0, 1.0, 1.0);
+	if (!showsSpeed() && !showsLoad()) return QRectF();
+	return speedBackingRect().united(loadBackingRect()).adjusted(-1.0, -1.0, 1.0, 1.0);
 }
 QPainterPath TrainBadgeItem::shape() const { return QPainterPath(); }
 
 void TrainBadgeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
 	Q_UNUSED(option);
 	Q_UNUSED(widget);
-	if (!showsSpeed()) return;
-	// The bodies of the train show the train itself, so the badge adds only the speed. The backing keeps the white
-	// text readable over whatever lies under it: tracks, trains, the bar and passenger count of a platform, or a signal.
+	if (!showsSpeed() && !showsLoad()) return;
+	// The bodies of the train show the train itself, so the badge adds only the speed and the load. The backing keeps the
+	// white text readable over whatever lies under it: tracks, trains, the bar and passenger count of a platform, or a signal.
 	painter->setRenderHint(QPainter::Antialiasing);
-	painter->fillRect(speedBackingRect(), canvasColor());
-	QPainterPath text;
-	text.addText(speedBaseline(), speedFont(), m_speedText);
-	painter->fillPath(text, QColor(Qt::white));
+	if (showsSpeed()) {
+		painter->fillRect(speedBackingRect(), canvasColor());
+		QPainterPath text;
+		text.addText(speedBaseline(), speedFont(), m_speedText);
+		painter->fillPath(text, QColor(Qt::white));
+	}
+	if (showsLoad()) {
+		painter->fillRect(loadBackingRect(), canvasColor());
+		QPainterPath text;
+		text.addText(loadBaseline(), speedFont(), m_loadText);
+		painter->fillPath(text, QColor(Qt::white));
+	}
 }
 
 void TrainBadgeItem::updateToolTip() {

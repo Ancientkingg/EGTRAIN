@@ -2691,6 +2691,7 @@ void MainWindow::updateCaseLayersPanel() {
 void MainWindow::updatePassengerSwitch() {
 	const bool hasPassengers = m_document->isLoaded() && !m_document->model().passengers.empty();
 	const QString passengerTip = hasPassengers ? QString() : QStringLiteral("This case has no passengers");
+	m_presenter->setCaseHasPassengers(hasPassengers);
 	m_passengerLayerCheck->setEnabled(hasPassengers);
 	m_passengerLayerCheck->setToolTip(passengerTip);
 	m_showPassengersAction->setEnabled(hasPassengers);

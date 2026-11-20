@@ -718,3 +718,9 @@ void Train::setTrainVectorSizesFromInput(int vec_size, bool detailedTrajectory) 
 	// previously on train class constructor (there won't work because size of vector is zero until user sets length of simulation and constructor is called before that)
 	instant_train_energy_consumption[0] = 0;
 }
+
+void Train::recordOnBoardPassengers() {
+	peakOnBoardPassengers = std::max(peakOnBoardPassengers, Current_OnBoard_Passengers);
+	onBoardPassengerStepSum += Current_OnBoard_Passengers;
+	++onBoardPassengerSteps;
+}
