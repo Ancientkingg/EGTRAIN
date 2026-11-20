@@ -89,6 +89,7 @@ class TestPassengerResults : public QObject {
 private slots:
 	void callCountsBoardedAlightedLeftBehindAndLoad();
 	void secondCallOfAStationHasItsOwnCounts();
+	void leftBehindPassengerIsCountedOncePerCall();
 	void stopRowTakesTimesFromTheTrain();
 	void percentileIsNearestRank();
 	void summaryAveragesCompletedJourneysOnly();
@@ -171,6 +172,53 @@ void TestPassengerResults::secondCallOfAStationHasItsOwnCounts() {
 	const StopCallCounts* second = run.stopCalls.find(0, 2);
 	QVERIFY(second != nullptr);
 	QCOMPARE(second->boarded, 1);
+}
+
+// A passenger who waits for a full train is left behind once at each call of the train, however many steps the call lasts.
+void TestPassengerResults::leftBehindPassengerIsCountedOncePerCall() {
+	eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
+	const auto restoreLog = qScopeGuard([] { eglog::setSink({}); });
+	SimulationRun run;
+	run.settings.PAX_GUI = false;
+	Train train;
+	train.trainDescription = "T1";
+	train.numStations = 3;
+	train.Stations.resize(3);
+	const char* names[] = {"A", "B", "A"};
+	for (int stop = 0; stop < 3; ++stop) {
+		train.Stations[static_cast<std::size_t>(stop)].stationName = names[stop];
+		train.Stations[static_cast<std::size_t>(stop)].stationPlatformId = std::string(names[stop]) + ".platform.1";
+	}
+	train.Stations[0].StepStopped = 2;
+	train.StoppedForServiceStop = true;
+	train.CurrentServiceStop = "A";
+	train.CurrentServiceStopPlatform = "A.platform.1";
+	train.MAX_OnBoard_Passengers = 1;
+	train.Current_OnBoard_Passengers = 1;
+	run.trains.push_back(train);
+	run.numTrains = 1;
+	StationPlatform platform;
+	platform.StationID = "A";
+	platform.ID = "A.platform.1";
+	const std::list<StationPlatform> platforms = {platform};
+	std::list<Passenger> passengers = {riderOfT1("refused", "A", PassengerStatus::OnPlatform)};
+
+	for (int t = 100; t < 103; ++t)
+		Simulate_Train_Passenger_Interactions(run, t, 0, run.trains[0], passengers, platforms);
+	QCOMPARE(run.stopCalls.at(0, 0).leftBehind, 1);
+
+	// The train leaves A, calls at B and comes back to A, still full.
+	Train& later = run.trains[0];
+	later.StationDepartures[0] = 110;
+	later.Stations[0].StepStopped = later.Stations[1].StepStopped = 10;
+	later.StationDepartures[1] = 150;
+	later.Stations[2].StepStopped = 1;
+	for (int t = 200; t < 203; ++t) {
+		Simulate_Train_Passenger_Interactions(run, t, 0, later, passengers, platforms);
+		later.Stations[2].StepStopped++;
+	}
+	QCOMPARE(run.stopCalls.at(0, 0).leftBehind, 1);
+	QCOMPARE(run.stopCalls.at(0, 2).leftBehind, 1);
 }
 
 void TestPassengerResults::stopRowTakesTimesFromTheTrain() {

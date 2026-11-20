@@ -166,8 +166,10 @@ void PassengerFlow::registerState(int position) {
 		registration.kind = Kind::Waiting;
 		registration.first = platformKey(p.Current_WaitingStationID, p.Current_WaitingStationPlatformID);
 		registration.second = idOf(p.Current_Train_To_Wait);
-		registration.refused = p.TrainThatRefusedBoarding == p.Current_Train_To_Wait;
 		PlatformQueues& queue = queues_[static_cast<std::size_t>(registration.first)];
+		const auto known = queue.byTrain.find(registration.second);
+		registration.refused = p.TrainThatRefusedBoarding == p.Current_Train_To_Wait
+			&& p.StopThatRefusedBoarding == (known == queue.byTrain.end() ? -1 : known->second.call);
 		queue.count++;
 		int leg = 0;
 		forEachWaitingTrip(p, [&](double since) {
@@ -273,6 +275,19 @@ void PassengerFlow::refused(int position) {
 	const auto line = queues_[static_cast<std::size_t>(registration.first)].byTrain.find(registration.second);
 	for (const Waiter& waiter : registration.waiters)
 		line->second.notRefused.erase(waiter);
+}
+
+void PassengerFlow::beginCall(int platform, int train, int call) {
+	if (platform < 0 || train < 0)
+		return;
+	const auto line = queues_[static_cast<std::size_t>(platform)].byTrain.find(train);
+	if (line == queues_[static_cast<std::size_t>(platform)].byTrain.end() || line->second.call == call)
+		return;
+	line->second.call = call;
+	for (const Waiter& waiter : line->second.all) {
+		registrations_[static_cast<std::size_t>(waiter.position)].refused = false;
+		line->second.notRefused.insert(waiter);
+	}
 }
 
 std::vector<int> PassengerFlow::waitingFor(int platform, int train) const {
@@ -523,8 +538,8 @@ enum class Boarding { Nothing,
 	Refused };
 
 // Lets the passenger p board the train T when the passenger waits for it and the train has room. N_BoardedPax counts the passengers
-// who boarded at the current service stop.
-Boarding boardPassenger(Passenger* p, Train& T, int t, int SimulationStartingTime, int& N_BoardedPax) {
+// who boarded at the current service stop, the call at stop `call` of T.
+Boarding boardPassenger(Passenger* p, Train& T, int call, int t, int SimulationStartingTime, int& N_BoardedPax) {
 	Boarding result = Boarding::Nothing;
 	if ((p->CurrentStatus == PassengerStatus::OnPlatform) && (p->Current_Train_To_Wait == T.trainDescription) && (p->Current_WaitingStationID == T.CurrentServiceStop)) {
 		// Let the passenger having as train to wait the current train T and Waiting station the currentService Stop board the train
@@ -560,9 +575,10 @@ Boarding boardPassenger(Passenger* p, Train& T, int t, int SimulationStartingTim
 
 		}
 
-		else if (p->TrainThatRefusedBoarding != T.trainDescription) {
-			// The train is full. The passenger keeps waiting for it; the refusal is logged once per train.
+		else if (p->TrainThatRefusedBoarding != T.trainDescription || p->StopThatRefusedBoarding != call) {
+			// The train is full. The passenger keeps waiting for it; the refusal is logged once per call of the train.
 			p->TrainThatRefusedBoarding = T.trainDescription;
+			p->StopThatRefusedBoarding = call;
 			result = Boarding::Refused;
 			EG_LOG(SimPax, Info) << "Passenger " << p->ID << " could not board train " << T.trainDescription << " as it was full\n";
 		}
@@ -618,6 +634,7 @@ int boardPassengers(PassengerFlow& flow, SimulationRun& run, Train& T, int t, in
 	if (PlatformIt == nullptr)
 		return N_BoardedPax;
 	const int now = t + SimulationStartingTime;
+	const int call = T.serviceStopOf(T.CurrentServiceStop);
 	if (run.settings.PAX_GUI) {
 		// With the passenger GUI the count and the list of the waiting passengers of the platform are updated at every time instant,
 		// and the train boards from that list.
@@ -628,7 +645,7 @@ int boardPassengers(PassengerFlow& flow, SimulationRun& run, Train& T, int t, in
 				continue;
 			// the passengers with the ID of the one in the list of passengers on the platform, in the order of the list of all passengers
 			for (const int position : flow.passengersWithId(Pax.first))
-				settleBoarding(flow, run, T, t, journeys, position, boardPassenger(&flow.passenger(position), T, t, SimulationStartingTime, N_BoardedPax), counts);
+				settleBoarding(flow, run, T, t, journeys, position, boardPassenger(&flow.passenger(position), T, call, t, SimulationStartingTime, N_BoardedPax), counts);
 		}
 		return N_BoardedPax;
 	}
@@ -636,6 +653,7 @@ int boardPassengers(PassengerFlow& flow, SimulationRun& run, Train& T, int t, in
 	occupationRate = passengerOccupancyRatio(flow.waitingCount(PlatformIt->StationID, PlatformIt->ID) + N_AlightPax, PlatformIt->Max_Passenger_Volume);
 	const int platform = flow.platformNumber(PlatformIt->StationID, PlatformIt->ID);
 	const int train = flow.trainNumber(T.trainDescription);
+	flow.beginCall(platform, train, call);
 	std::optional<PassengerFlow::Waiter> last;
 	while (true) {
 		// A full train only refuses the passengers who were not refused yet.
@@ -644,7 +662,7 @@ int boardPassengers(PassengerFlow& flow, SimulationRun& run, Train& T, int t, in
 		if (!last || last->since > now)
 			break; // the waiters are in order of time, so the rest still walk
 		for (const int position : flow.samePassengerId(last->position))
-			settleBoarding(flow, run, T, t, journeys, position, boardPassenger(&flow.passenger(position), T, t, SimulationStartingTime, N_BoardedPax), counts);
+			settleBoarding(flow, run, T, t, journeys, position, boardPassenger(&flow.passenger(position), T, call, t, SimulationStartingTime, N_BoardedPax), counts);
 	}
 	return N_BoardedPax;
 }
