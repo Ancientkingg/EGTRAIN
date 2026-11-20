@@ -31,6 +31,7 @@
 #include "simulation/GuiSimulationSnapshot.h"
 #include "graphics/NetworkView.h"
 #include "graphics/items/HighlightEffect.h"
+#include "graphics/items/PassengerItem.h"
 #include "scene/SectionLabels.h"
 #include "scene/TrackPreview.h"
 
@@ -42,6 +43,8 @@ class PassengerItem;
 class PlatformItem;
 class QGraphicsItem;
 class QGraphicsItemGroup;
+class QGraphicsPathItem;
+class QGraphicsSimpleTextItem;
 class QGraphicsPixmapItem;
 class RuntimeGeometrySource;
 class Section;
@@ -232,7 +235,7 @@ public:
 	void stopTrainAnimations();
 
 	/// Whether the platforms show the figures of their passengers and the "+N" chips instead of the counts: the
-	/// passengers on the platforms show (platformPassengersVisible()) and the view is zoomed in to a ratio of at least 3.
+	/// passengers on the platforms show (platformPassengersVisible()) and a figure is at least 12 pixels high on the screen.
 	bool paxFiguresVisible() const;
 
 	/// The line of the preview that the track line with this index in the run is drawn on, or null.
@@ -533,6 +536,22 @@ private:
 	void applyPlatformVisibility();
 	// Shows or hides the gauge, the count, the figures and the chip of one platform as applyPlatformVisibility() does.
 	void applyPlatformPassengerVisibility(PlatformItem* platform);
+	// The count pill of a station, which shows in the far look beside the mark of the station: the passengers waiting
+	// at all its platforms, in the colour of the most crowded of them. The scene owns the items; the entries are made
+	// once for each station name by updateStationCounts() and cleared by clear().
+	struct StationCount {
+		StationOverlayItem* overlay = nullptr;
+		QGraphicsPathItem* pill = nullptr;
+		QGraphicsSimpleTextItem* text = nullptr;
+		std::string station;
+		int waiting = 0;
+		PlatformCrowding crowding = PlatformCrowding::Normal;
+	};
+	std::vector<StationCount> m_stationCounts;
+	// Works out the waiting passengers and the crowding of every station from its platforms and gives them to the pills.
+	void updateStationCounts();
+	// Shows the pills in the far look with the passengers and the stations, and puts them beside their marks.
+	void refreshStationCounts();
 
 	// The virtual coupling message of each train by train index.
 	QMap<int, QGraphicsItemGroup*> m_vcMessageItems;

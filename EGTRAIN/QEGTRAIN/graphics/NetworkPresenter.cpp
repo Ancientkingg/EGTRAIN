@@ -93,8 +93,9 @@ namespace {
 // The value that the station layout of the runtime canvas has always used for pi.
 constexpr double kPi = 3.14159265;
 
-// The zoom of the view from which the labels of the platforms are legible.
-constexpr qreal kDenseDetailZoom = 3.0;
+// The height on the screen, in pixels, from which the figures of the passengers on a platform are legible; below it the
+// platform shows the count of its passengers.
+constexpr qreal kFigureMinPixels = 12.0;
 
 // The diameter of the nodes of a double switch, which keep their item but show no dot. It was once written as a
 // cast of 0.1, which truncates to 0.
@@ -534,6 +535,7 @@ void NetworkPresenter::clear() {
 	m_stationLayouts.clear();
 	m_trainsByIndex.clear();
 	m_platformsById.clear();
+	m_stationCounts.clear();
 	m_platformsStale = false;
 	trainPaxInfoItem = nullptr;
 	trainPaxItem = nullptr;
@@ -662,6 +664,7 @@ void NetworkPresenter::updateViewOverlays(const std::function<bool(const Station
 	for (auto* overlay : std::as_const(m_stationOverlays))
 		if (overlay)
 			overlay->applyViewScale(viewScale, nearLook);
+	refreshStationCounts();
 	// The mark follows the bars and the station marks, which the near look shows and hides.
 	if (m_selectionMark) {
 		m_selectionMark->setViewScale(viewScale);
@@ -1568,9 +1571,97 @@ void NetworkPresenter::applyPlatformVisibility() {
 	for (PlatformItem* platform : std::as_const(allPlatforms))
 		if (platform)
 			applyPlatformPassengerVisibility(platform);
+	refreshStationCounts();
 	// The details of a selected passenger go with its figure.
 	if (paxIconInfoItem)
 		paxIconInfoItem->setVisible(paxFiguresVisible());
+}
+
+void NetworkPresenter::refreshStationCounts() {
+	// The pills show in the far look, where the bars and so the counts of the platforms do not.
+	const bool far = m_passengerLayerVisible && m_stationLayerVisible && !m_stationNearLook;
+	for (StationCount& entry : m_stationCounts) {
+		const QGraphicsPixmapItem* picture = entry.overlay ? entry.overlay->pictureItem() : nullptr;
+		entry.pill->setVisible(far && entry.waiting > 0 && picture != nullptr);
+		if (!picture)
+			continue;
+		// beside the head of the pin: at the top right of the mark, which the view scale has enlarged
+		const QRectF mark = picture->sceneBoundingRect();
+		entry.pill->setPos(mark.right(), mark.top());
+	}
+}
+
+void NetworkPresenter::updateStationCounts() {
+	struct Total {
+		int waiting = 0;
+		qreal worst = -1.0;
+		PlatformCrowding crowding = PlatformCrowding::Normal;
+		QStringList lines;
+	};
+	std::map<std::string, Total> totals;
+	for (const PlatformItem* platform : std::as_const(allPlatforms)) {
+		if (!platform || !platform->textIcon || platform->stationId.empty())
+			continue;
+		Total& total = totals[platform->stationId];
+		total.waiting += platform->waiting();
+		const qreal fraction = platform->capacity() > 0 ? static_cast<qreal>(platform->waiting()) / platform->capacity() : 0.0;
+		if (fraction > total.worst) {
+			total.worst = fraction;
+			total.crowding = platform->crowding();
+		}
+		total.lines << QStringLiteral("Platform %1: %2").arg(QString::fromStdString(platform->platformId), platform->toolTip().section(QLatin1String(": "), -1));
+	}
+	for (const auto& [station, total] : totals) {
+		auto entry = std::find_if(m_stationCounts.begin(), m_stationCounts.end(),
+			[&station](const StationCount& candidate) { return candidate.station == station; });
+		if (entry == m_stationCounts.end()) {
+			// the first overlay of the station carries the pill
+			StationOverlayItem* overlay = nullptr;
+			for (StationOverlayItem* candidate : std::as_const(m_stationOverlays))
+				if (candidate && candidate->stationName().toStdString() == station) {
+					overlay = candidate;
+					break;
+				}
+			if (!overlay)
+				continue;
+			StationCount created;
+			created.overlay = overlay;
+			created.station = station;
+			created.pill = new QGraphicsPathItem;
+			created.pill->setFlag(QGraphicsItem::ItemIgnoresTransformations);
+			created.pill->setPen(Qt::NoPen);
+			created.pill->setAcceptedMouseButtons(Qt::NoButton);
+			created.pill->setZValue(3.2);
+			created.pill->setVisible(false);
+			created.text = new QGraphicsSimpleTextItem(created.pill);
+			created.text->setBrush(QColor(0x0d, 0x14, 0x1b));
+			QFont font;
+			font.setPixelSize(11);
+			font.setBold(true);
+			created.text->setFont(font);
+			m_scene->addItem(created.pill);
+			m_stationCounts.push_back(created);
+			entry = std::prev(m_stationCounts.end());
+		}
+		entry->waiting = total.waiting;
+		entry->crowding = total.crowding;
+		entry->pill->setBrush(PassengerItem::crowdingColour(total.crowding));
+		entry->pill->setToolTip(total.lines.join(QLatin1Char('\n')));
+		const QString label = QString::number(total.waiting);
+		if (entry->text->text() != label) {
+			entry->text->setText(label);
+			constexpr qreal kPadding = 5.0;
+			constexpr qreal kHeight = 16.0;
+			const QRectF text = entry->text->boundingRect();
+			const qreal width = std::max(text.width() + 2 * kPadding, kHeight);
+			QPainterPath shape;
+			// a little right of the pin, with its top at the top of the pin
+			shape.addRoundedRect(QRectF(3.0, 0.0, width, kHeight), kHeight / 2.0, kHeight / 2.0);
+			entry->pill->setPath(shape);
+			entry->text->setPos(3.0 + (width - text.width()) / 2.0, (kHeight - text.height()) / 2.0);
+		}
+	}
+	refreshStationCounts();
 }
 
 void NetworkPresenter::applyPlatformPassengerVisibility(PlatformItem* platform) {
@@ -3209,7 +3300,7 @@ bool NetworkPresenter::passengerGui() const {
 bool NetworkPresenter::paxFiguresVisible() const {
 	if (!platformPassengersVisible() || !m_view)
 		return false;
-	return m_view->zoomRatio() >= kDenseDetailZoom;
+	return PassengerItem::FigureHeight * presentationScale() * std::abs(m_view->transform().m11()) >= kFigureMinPixels;
 }
 
 void NetworkPresenter::apply(const GuiSimulationSnapshot& snapshot, Playback playback) {
@@ -3290,6 +3381,7 @@ void NetworkPresenter::updatePlatforms(const GuiSimulationSnapshot& snapshot) {
 			updatePlatform(platform, state, restack);
 	}
 	stackPassengerIcons(restack);
+	updateStationCounts();
 }
 
 // The "+N" chip after the figures of a platform, which tells how many passengers have no figure. It exists only while

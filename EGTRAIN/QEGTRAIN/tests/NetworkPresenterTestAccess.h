@@ -55,6 +55,8 @@ public:
 	template <typename Presenter>
 	static auto& trackPreview(Presenter& presenter) { return presenter.m_cachedTrackPreview; }
 	template <typename Presenter>
+	static auto& stationCounts(Presenter& presenter) { return presenter.m_stationCounts; }
+	template <typename Presenter>
 	static auto& view(Presenter& presenter) { return presenter.m_view; }
 	template <typename Presenter>
 	static auto& passengerPixmap(Presenter& presenter) { return presenter.m_passengerFigures[0]; }

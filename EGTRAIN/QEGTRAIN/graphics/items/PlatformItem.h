@@ -39,6 +39,8 @@ public:
 	void setCrowding(int waiting, int capacity, double threshold);
 	/// The number of passengers that setCrowding() was given.
 	int waiting() const { return m_waiting; }
+	/// The capacity that setCrowding() was given, 0 or more.
+	int capacity() const { return m_capacity; }
 	/// The fraction of the bar that the fill covers: waiting over capacity up to 1, 0 without a capacity.
 	qreal fillFraction() const;
 	/// How crowded the platform is: Over above its capacity, Busy above its threshold, else Normal; Normal without a
