@@ -119,20 +119,14 @@ signed_stats P Av_Delay=-180.000000 Std_Delay=0.000000 Total_Delay=-180.000000 M
 signed_stats TOTALS Av_Delay=-124.333000 Std_Delay=9.428090 Total_Delay=-626.000000 Max_Tot_Delay=60.000000 Cum_Cons_Delay=-626.000000 Max_Cons_Delay=60.000000 Perc_Delayed=33.333300 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000
 signed_stats Final_Station Av_Delay=-148.667000 Std_Delay=181.814000 Total_Delay=-446.000000 Max_Tot_Delay=60.000000 Cum_Cons_Delay=-446.000000 Max_Cons_Delay=60.000000 Perc_Delayed=33.333300 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=3.000000 N_DelTrains=1.000000
 pax t1 state t=150 in=1 status=OnPlatform journey=t1.1 trip=t1.1.live1 waiting=P/P.platform.1 to_wait=Q1-1 boarded=None arrival=B
-gui_passenger t1 t=150 status=OnPlatform platform=P.platform.1 next_train=Q1-1 next_destination=B
 pax t1 state t=221 in=1 status=OnBoard journey=t1.1 trip=t1.1.live1 waiting=None/None to_wait=None boarded=Q1-1 arrival=B
-gui_passenger t1 t=221 status=OnBoard platform=None next_train=None next_destination=B
 onboard Q1-1 t=221 n=1 max=300
 pax t1 state t=955 in=1 status=OnPlatform journey=t1.1 trip=t1.1.live2 waiting=B/Platform_4 to_wait=Q3-1 boarded=None arrival=C
-gui_passenger t1 t=955 status=OnPlatform platform=Platform_4 next_train=Q3-1 next_destination=C
 onboard Q1-1 t=955 n=0 max=300
 pax t1 state t=961 in=1 status=OnPlatform journey=t1.1 trip=t1.1.live3 waiting=B/Platform_4 to_wait=Q4-1 boarded=None arrival=C
-gui_passenger t1 t=961 status=OnPlatform platform=Platform_4 next_train=Q4-1 next_destination=C
 pax t1 state t=1045 in=1 status=OnBoard journey=t1.1 trip=t1.1.live3 waiting=None/None to_wait=None boarded=Q4-1 arrival=C
-gui_passenger t1 t=1045 status=OnBoard platform=None next_train=None next_destination=C
 onboard Q4-1 t=1045 n=1 max=300
 pax t1 state t=1318 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
-gui_passenger t1 t=1318 status=None platform=None next_train=None next_destination=-
 onboard Q4-1 t=1318 n=0 max=300
 journey t1 t1.1 started=1 completed=1 dep=25350.000000 arr=26518.000000 walking=90.000000 waiting=71.000000 delay=-232 replanned=1
 trip t1 t1.1.live1 started=1 completed=1 dep=25350 arr=26155 delay=195

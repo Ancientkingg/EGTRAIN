@@ -192,8 +192,8 @@ void TestReplayCoverage::coverageOfHistory() {
 
 	GuiReplayHistory tiny(1u << 20);
 	auto large = std::make_shared<GuiSimulationSnapshot>();
-	large->passengers.resize(1);
-	large->passengers.front().id = std::string(2u << 20, 'x');
+	large->platforms.resize(1);
+	large->platforms.front().platformId = std::string(2u << 20, 'x');
 	tiny.record(large);
 	const ReplayCoverage refused = replayCoverageOf(tiny, 3600);
 	// The coverage of a history that refused a frame is read from it.

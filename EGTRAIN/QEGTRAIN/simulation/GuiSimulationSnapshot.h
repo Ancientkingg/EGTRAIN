@@ -197,16 +197,10 @@ struct GuiSectionState {
 	bool blocked = false; ///< A signal_failure incident covers the section in this step.
 };
 
-/// One station platform at one step.
-struct GuiPlatformState {
-	std::string stationId;	///< The ID of the station.
-	std::string platformId; ///< The ID of the platform within the station.
-	int maxVolume = 0;		///< Passengers that the platform holds at most; -1 when the run does not set it.
-	/// The passengers waiting on the platform, then those who left the network there in the last 5 seconds.
-	std::vector<std::string> passengerIds;
-};
+/// The most passengers that a platform state lists. A platform with more passengers lists the first ones and counts all.
+constexpr int kGuiPlatformPassengerIcons = 50;
 
-/// One passenger at one step.
+/// One passenger at one step, as a platform lists it.
 struct GuiPassengerState {
 	std::string id;				 ///< The ID of the passenger.
 	std::string status;			 ///< "None", "OnPlatform" or "OnBoard".
@@ -214,6 +208,18 @@ struct GuiPassengerState {
 	std::string nextTrain;		 ///< The train that the passenger waits for, as the run records it.
 	/// The arrival station of the current trip of the passenger, or empty when the passenger has none.
 	std::string nextDestination;
+};
+
+/// One station platform at one step.
+struct GuiPlatformState {
+	std::string stationId;	///< The ID of the station.
+	std::string platformId; ///< The ID of the platform within the station.
+	int maxVolume = 0;		///< Passengers that the platform holds at most; -1 when the run does not set it.
+	/// The passengers waiting on the platform plus those who left the network there in the last 5 seconds, which is the
+	/// number that the counter of the platform shows. It can exceed the size of `passengers`.
+	int passengerCount = 0;
+	/// The first kGuiPlatformPassengerIcons of those passengers, the waiting ones first, then those who left the network.
+	std::vector<GuiPassengerState> passengers;
 };
 
 /// A message of virtual coupling, which a snapshot shows for 40 seconds after its step.
@@ -240,7 +246,6 @@ struct GuiSimulationSnapshot {
 	std::vector<GuiSignalState> signalStates;					  ///< One entry per section ID and direction.
 	std::vector<GuiSectionState> sectionStates;					  ///< One entry per section ID, ordered by ID.
 	std::vector<GuiPlatformState> platforms;					  ///< Every platform of the run.
-	std::vector<GuiPassengerState> passengers;					  ///< Every passenger of the run.
 	std::vector<GuiVirtualCouplingState> virtualCouplingMessages; ///< The messages of the last 40 seconds.
 };
 

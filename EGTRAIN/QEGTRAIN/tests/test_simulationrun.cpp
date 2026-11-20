@@ -430,7 +430,7 @@ bool sameSnapshot(const GuiSimulationSnapshot& a, const GuiSimulationSnapshot& b
 		&& std::equal(a.trains.begin(), a.trains.end(), b.trains.begin(), b.trains.end(), sameTrain)
 		&& std::equal(a.signalStates.begin(), a.signalStates.end(), b.signalStates.begin(), b.signalStates.end(), sameSignal)
 		&& std::equal(a.sectionStates.begin(), a.sectionStates.end(), b.sectionStates.begin(), b.sectionStates.end(), sameSection)
-		&& a.platforms.size() == b.platforms.size() && a.passengers.size() == b.passengers.size();
+		&& a.platforms.size() == b.platforms.size();
 }
 
 } // namespace
@@ -454,6 +454,7 @@ private slots:
 	void trainStartingAtStopBlocksPointsUnderIt();
 	void entryWaitsForTrainThatCannotStop_data();
 	void entryWaitsForTrainThatCannotStop();
+	void platformListsAtMostFiftyPassengers();
 
 private:
 	SceneModel m_line;
@@ -1022,4 +1023,69 @@ void TestSimulationRun::entryWaitsForTrainThatCannotStop() {
 }
 
 QTEST_GUILESS_MAIN(TestSimulationRun)
+// A platform lists the first kGuiPlatformPassengerIcons of its passengers, the waiting ones first and then those who left the
+// network there in the last 5 seconds, and counts all of them.
+void TestSimulationRun::platformListsAtMostFiftyPassengers() {
+	const auto make = [](int waiting, int exited, int exitedElsewhere) {
+		auto run = std::make_unique<SimulationRun>();
+		run->platforms.resize(2);
+		for (int i = 0; i < 2; ++i) {
+			StationPlatform& platform = *std::next(run->platforms.begin(), i);
+			platform.StationID = "S";
+			platform.ID = i == 0 ? "P0" : "P1";
+		}
+		const int total = waiting + exited + exitedElsewhere;
+		for (int i = 0; i < total; ++i) {
+			Passenger passenger;
+			passenger.ID = "p" + std::to_string(i);
+			if (i < waiting) {
+				passenger.IsIntheNetwork = true;
+				passenger.CurrentStatus = PassengerStatus::OnPlatform;
+				passenger.Current_Train_To_Wait = "T" + std::to_string(i % 3);
+				run->platforms.front().Current_List_Pax_On_Platform.push_back({passenger.ID, 0.0});
+			} else {
+				passenger.TimeExitedTheNetwork = 100;
+				passenger.StationExitedTheNetworkID = "S";
+				passenger.PlatformExitedTheNetworkID = i < waiting + exited ? "P0" : "P1";
+			}
+			run->passengers.push_back(passenger);
+		}
+		run->numPassengers = total;
+		run->passengerIndex.build(run->passengers);
+		return run;
+	};
+	const auto ids = [](const GuiPlatformState& platform) {
+		std::vector<std::string> result;
+		for (const GuiPassengerState& passenger : platform.passengers) result.push_back(passenger.id);
+		return result;
+	};
+	const auto range = [](int from, int to) {
+		std::vector<std::string> result;
+		for (int i = from; i < to; ++i) result.push_back("p" + std::to_string(i));
+		return result;
+	};
+
+	// More waiting passengers than the list holds: the first 50 in order, all counted.
+	auto crowded = make(60, 3, 2);
+	GuiSimulationSnapshot snapshot = buildGuiSimulationSnapshot(*crowded, 102);
+	QCOMPARE(snapshot.platforms.size(), std::size_t(2));
+	QCOMPARE(snapshot.platforms[0].passengerCount, 63);
+	QCOMPARE(ids(snapshot.platforms[0]), range(0, 50));
+	QCOMPARE(snapshot.platforms[0].passengers[7].status, std::string("OnPlatform"));
+	QCOMPARE(snapshot.platforms[0].passengers[7].nextTrain, std::string("T1"));
+	// The other platform has the two who left there.
+	QCOMPARE(snapshot.platforms[1].passengerCount, 2);
+	QCOMPARE(ids(snapshot.platforms[1]), range(63, 65));
+
+	// The ones who left follow the waiting ones in the list, as far as it goes.
+	auto fewer = make(48, 5, 0);
+	snapshot = buildGuiSimulationSnapshot(*fewer, 105);
+	QCOMPARE(snapshot.platforms[0].passengerCount, 53);
+	QCOMPARE(ids(snapshot.platforms[0]), range(0, 50));
+	// Six seconds after they left, they are no longer on the platform.
+	snapshot = buildGuiSimulationSnapshot(*fewer, 106);
+	QCOMPARE(snapshot.platforms[0].passengerCount, 48);
+	QCOMPARE(ids(snapshot.platforms[0]), range(0, 48));
+}
+
 #include "test_simulationrun.moc"

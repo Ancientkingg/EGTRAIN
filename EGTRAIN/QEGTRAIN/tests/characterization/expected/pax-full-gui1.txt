@@ -78,10 +78,6 @@ pax f2 state t=221 in=1 status=OnBoard journey=f2.1 trip=f2.1.leg.1 waiting=None
 pax f3 state t=221 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax f4 state t=221 in=1 status=OnBoard journey=f4.1 trip=f4.1.leg.1 waiting=None/None to_wait=None boarded=Q1-1 arrival=B
 gui_platform P P.platform.1 t=221 ids=-
-gui_passenger f1 t=221 status=OnBoard platform=None next_train=None next_destination=B
-gui_passenger f2 t=221 status=OnBoard platform=None next_train=None next_destination=B
-gui_passenger f3 t=221 status=None platform=None next_train=None next_destination=-
-gui_passenger f4 t=221 status=OnBoard platform=None next_train=None next_destination=B
 onboard Q1-1 t=221 n=3 max=3
 pax f7 state t=560 in=1 status=OnPlatform journey=f7.1 trip=f7.1.leg.1 waiting=B/B.platform.1 to_wait=Q1-1 boarded=None arrival=C
 gui_platform B B.platform.1 t=560 ids=f7
@@ -102,19 +98,9 @@ pax f7 state t=623 in=1 status=OnBoard journey=f7.1 trip=f7.1.leg.1 waiting=None
 pax f8 state t=623 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax f9 state t=623 in=1 status=OnBoard journey=f9.1 trip=f9.1.leg.1 waiting=None/None to_wait=None boarded=Q1-1 arrival=C
 gui_platform B B.platform.1 t=623 ids=-
-gui_passenger f1 t=623 status=None platform=None next_train=None next_destination=-
-gui_passenger f2 t=623 status=None platform=None next_train=None next_destination=-
-gui_passenger f4 t=623 status=None platform=None next_train=None next_destination=-
-gui_passenger f6 t=623 status=OnBoard platform=None next_train=None next_destination=C
-gui_passenger f7 t=623 status=OnBoard platform=None next_train=None next_destination=C
-gui_passenger f8 t=623 status=None platform=None next_train=None next_destination=-
-gui_passenger f9 t=623 status=OnBoard platform=None next_train=None next_destination=C
 pax f6 state t=1094 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax f7 state t=1094 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax f9 state t=1094 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
-gui_passenger f6 t=1094 status=None platform=None next_train=None next_destination=-
-gui_passenger f7 t=1094 status=None platform=None next_train=None next_destination=-
-gui_passenger f9 t=1094 status=None platform=None next_train=None next_destination=-
 onboard Q1-1 t=1094 n=0 max=3
 journey f1 f1.1 started=1 completed=1 dep=25380.000000 arr=25823.000000 walking=0.000000 waiting=41.000000 delay=-137
 trip f1 f1.1.leg.1 started=1 completed=1 dep=25380 arr=25823 delay=-137

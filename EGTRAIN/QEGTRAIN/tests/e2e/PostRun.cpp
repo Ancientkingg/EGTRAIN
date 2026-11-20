@@ -2039,8 +2039,8 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 	const auto unavailableRow = [&w]() -> QString {
 		GuiReplayHistory refused(1u << 20);
 		auto large = std::make_shared<GuiSimulationSnapshot>();
-		large->passengers.resize(1);
-		large->passengers.front().id = std::string(2u << 20, 'x');
+		large->platforms.resize(1);
+		large->platforms.front().platformId = std::string(2u << 20, 'x');
 		refused.record(large);
 		w.m_completedReplay = std::move(refused);
 		w.m_replayBar->hide();

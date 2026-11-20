@@ -602,16 +602,28 @@ public:
 					textField("waiting", p.Current_WaitingStationID + "/" + p.Current_WaitingStationPlatformID),
 					textField("to_wait", p.Current_Train_To_Wait), textField("boarded", p.Current_Train_Boarded),
 					textField("arrival", p.Current_Arrival_Station)}});
+		std::map<std::string, const GuiPassengerState*> listed;
 		for (const GuiPlatformState& platform : snapshot.platforms) {
 			std::string ids;
-			for (const std::string& id : platform.passengerIds)
-				ids += (ids.empty() ? "" : ",") + id;
-			observe({"gui_platform " + platform.stationId + " " + platform.platformId, {textField("ids", ids)}});
+			for (const GuiPassengerState& p : platform.passengers) {
+				ids += (ids.empty() ? "" : ",") + p.id;
+				listed.emplace(p.id, &p);
+			}
+			Line line{"gui_platform " + platform.stationId + " " + platform.platformId, {textField("ids", ids)}};
+			if (platform.passengerCount != static_cast<int>(platform.passengers.size()))
+				line.fields.push_back(integerField("count", platform.passengerCount));
+			observe(std::move(line));
 		}
-		for (const GuiPassengerState& p : snapshot.passengers)
+		// The passengers that a platform lists, in the order of the run.
+		for (const Passenger& run : simulation.run().passengers) {
+			const auto found = listed.find(run.ID);
+			if (found == listed.end())
+				continue;
+			const GuiPassengerState& p = *found->second;
 			observe({"gui_passenger " + p.id,
 				{textField("status", p.status), textField("platform", p.waitingPlatform),
 					textField("next_train", p.nextTrain), textField("next_destination", p.nextDestination)}});
+		}
 		for (const GuiTrainState& train : snapshot.trains)
 			observe({"onboard " + train.description,
 				{integerField("n", train.currentOnboardPassengers), integerField("max", train.maxOnboardPassengers)}});
