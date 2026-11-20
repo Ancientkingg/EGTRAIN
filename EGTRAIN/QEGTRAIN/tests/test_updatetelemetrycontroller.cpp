@@ -152,6 +152,9 @@ void TestUpdateTelemetryController::mapsDiagnosticErrors() {
 	QVERIFY2(error({errorWithCode("scene.version.unsupported")}) == telemetry::Error::UnsupportedFormat,
 		"an unsupported version is an unsupported format");
 	QVERIFY2(error({errorWithCode("scene.json.parse")}) == telemetry::Error::InvalidInput, "a parse error is an invalid input");
+	for (const char* code : {"scene.demand.total", "scene.passenger.dwell.threshold.invalid", "scene.passenger.transfers.invalid",
+			 "scene.passengers.results"})
+		QVERIFY2(error({errorWithCode(code)}) == telemetry::Error::InvalidInput, code);
 	QVERIFY2(error({errorWithCode("scene.bundle.file.read")}) == telemetry::Error::IoFailure,
 		"a file that cannot be read is an input failure");
 	QVERIFY2(error({errorWithCode("scene.bundle.temp"), errorWithCode("scene.json.parse")}) == telemetry::Error::InvalidInput,
