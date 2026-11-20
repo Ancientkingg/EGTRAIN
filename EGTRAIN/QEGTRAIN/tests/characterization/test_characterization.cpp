@@ -597,7 +597,7 @@ public:
 		};
 		for (const Passenger& p : simulation.run().passengers)
 			observe({"pax " + p.ID + " state",
-				{integerField("in", p.IsIntheNetwork), textField("status", p.CurrentStatus),
+				{integerField("in", p.IsIntheNetwork), textField("status", passengerStatusName(p.CurrentStatus)),
 					textField("journey", p.current_JourneyID), textField("trip", p.current_TripID),
 					textField("waiting", p.Current_WaitingStationID + "/" + p.Current_WaitingStationPlatformID),
 					textField("to_wait", p.Current_Train_To_Wait), textField("boarded", p.Current_Train_Boarded),

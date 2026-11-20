@@ -14,7 +14,7 @@ using namespace std;
 
 namespace {
 bool isWaitingOnPlatform(const Passenger& p) {
-	return p.IsIntheNetwork && p.CurrentStatus == "OnPlatform";
+	return p.IsIntheNetwork && p.CurrentStatus == PassengerStatus::OnPlatform;
 }
 
 // Calls emit(departureTime) for each trip that the waiting passenger waits for: the active trip of each journey with the ID of the
@@ -178,7 +178,7 @@ void PassengerFlow::registerState(int position) {
 				line.notRefused.insert(registration.waiters.back());
 		});
 		markDirty(registration.first);
-	} else if (p.CurrentStatus == "OnBoard") {
+	} else if (p.CurrentStatus == PassengerStatus::OnBoard) {
 		registration.kind = Kind::OnBoard;
 		registration.first = idOf(p.Current_Train_Boarded);
 		registration.second = idOf(p.Current_Arrival_Station);
@@ -447,7 +447,7 @@ void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStarti
 							p->TimeExitedTheNetwork = currenttrip->Actual_Arrival_Time;			  // Used by the Passenger GUI when the passenger leaves the network
 							p->StationExitedTheNetworkID = currenttrip->Arr_Station_ID;			  // Used by the Passenger GUI when the passenger leaves the network
 							p->PlatformExitedTheNetworkID = currenttrip->Arr_Station_Platform_ID; // Used by the Passenger GUI when the passenger leaves the network
-							p->CurrentStatus = "None";
+							p->CurrentStatus = PassengerStatus::Outside;
 							p->current_TripID = "None";
 							p->current_JourneyID = "None";
 							p->Current_Train_Boarded = "None";
@@ -463,7 +463,7 @@ void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStarti
 							currenttrip->IsTripCompleted = true;
 
 							p->current_TripID = nexttrip->TripID;
-							p->CurrentStatus = "OnPlatform";
+							p->CurrentStatus = PassengerStatus::OnPlatform;
 							p->Current_WaitingStationID = T.CurrentServiceStop;
 							p->current_location_ID = T.CurrentServiceStop;
 							// The passenger waits for the next train on the platform where that train stops, or on the
@@ -526,14 +526,14 @@ enum class Boarding { Nothing,
 // who boarded at the current service stop.
 Boarding boardPassenger(Passenger* p, Train& T, int t, int SimulationStartingTime, int& N_BoardedPax) {
 	Boarding result = Boarding::Nothing;
-	if ((p->CurrentStatus == "OnPlatform") && (p->Current_Train_To_Wait == T.trainDescription) && (p->Current_WaitingStationID == T.CurrentServiceStop)) {
+	if ((p->CurrentStatus == PassengerStatus::OnPlatform) && (p->Current_Train_To_Wait == T.trainDescription) && (p->Current_WaitingStationID == T.CurrentServiceStop)) {
 		// Let the passenger having as train to wait the current train T and Waiting station the currentService Stop board the train
 		// passengers can board only if the number of onboard passengers is lower than the max capacity
 		if (T.Current_OnBoard_Passengers < T.MAX_OnBoard_Passengers) {
 			N_BoardedPax++;
 			result = Boarding::Boarded;
 			T.Current_OnBoard_Passengers++;
-			p->CurrentStatus = "OnBoard";
+			p->CurrentStatus = PassengerStatus::OnBoard;
 			p->Current_Train_Boarded = T.trainDescription;
 			p->Current_WaitingStationID = "None";
 			p->Current_WaitingStationPlatformID = "None";
