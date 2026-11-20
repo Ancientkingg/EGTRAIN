@@ -205,6 +205,7 @@ add_library(egtrain_sim STATIC
     ${SRC_DIR}/simulation/SimulationRun.cpp
     ${SRC_DIR}/simulation/builders/InfrastructureBuilder.cpp
     ${SRC_DIR}/simulation/PassengerFlow.cpp
+    ${SRC_DIR}/simulation/PassengerResults.cpp
     ${SRC_DIR}/simulation/PassengerJourneys.cpp
     ${SRC_DIR}/simulation/PassengerRouting.cpp)
 target_link_libraries(egtrain_sim

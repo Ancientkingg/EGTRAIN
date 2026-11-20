@@ -60,6 +60,8 @@ public:
 	/// \var Trip::Actual_Arrival_Time
 	/// When the train with the passenger stopped at the arrival station.
 
+	/// When the passenger boarded the train of the leg, in seconds since midnight; -9999 until the passenger boards.
+	int Actual_Boarding_Time;
 	int totalArrivalDelay; ///< Actual_Arrival_Time minus Planned_Arrival_Time in seconds.
 	/// True once the passenger waits for this leg.
 	bool IsTripStarted, IsTripCompleted; ///< True once the passenger has alighted at the arrival station.
@@ -68,6 +70,7 @@ public:
 		this->TripID = Dep_Station_ID = Arr_Station_ID = TrainServiceDescription = "None";
 		this->Dep_Station_Platform_ID = Arr_Station_Platform_ID = "None";
 		this->depPlatformNumber = 0;
+		this->Actual_Boarding_Time = -9999;
 		this->Planned_Arrival_Time = Planned_Departure_Time = Actual_Departure_Time = Actual_Arrival_Time = totalArrivalDelay = -9999;
 		IsTripCompleted = IsTripStarted = false;
 	}

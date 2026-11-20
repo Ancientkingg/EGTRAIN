@@ -73,6 +73,8 @@ Train::Train() {
 	Current_OnBoard_Passengers = 0; // It is considered that the train starts with no passengers onboard
 	for (int i = 0; i < kMaxTimetableStations; i++) {
 		StationArrivals[i] = -1;
+		StationStandStarts[i] = -1;
+		StationDepartures[i] = -1;
 		StationArrivalNames[i] = "None";
 		StationDelay[i] = -1;
 		StationConsecDelay[i] = -1;

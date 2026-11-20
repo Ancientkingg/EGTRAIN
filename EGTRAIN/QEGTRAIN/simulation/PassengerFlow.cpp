@@ -546,6 +546,7 @@ Boarding boardPassenger(Passenger* p, Train& T, int t, int SimulationStartingTim
 						while (currenttrip != j->Trips.end()) {
 							if (currenttrip->TripID == p->current_TripID) {
 
+								currenttrip->Actual_Boarding_Time = t + SimulationStartingTime;
 								int Waiting_Time = t + SimulationStartingTime - currenttrip->Actual_Departure_Time;
 								j->Waitingtime = j->Waitingtime + Waiting_Time;
 								break; // when the waiting time has been set for the correct journey and trip it is possible to break the while loop over the trips in the active journey
@@ -571,10 +572,12 @@ Boarding boardPassenger(Passenger* p, Train& T, int t, int SimulationStartingTim
 
 // Registers what the attempt to board did to the passenger at this place.
 // A passenger who was refused plans again from this station without the train, when the run plans journeys.
-void settleBoarding(PassengerFlow& flow, SimulationRun& run, Train& T, int t, PassengerJourneys* journeys, int position, Boarding result) {
+void settleBoarding(PassengerFlow& flow, SimulationRun& run, Train& T, int t, PassengerJourneys* journeys, int position, Boarding result, StopCallCounts* counts) {
 	if (result == Boarding::Boarded) {
 		flow.placed(position);
 	} else if (result == Boarding::Refused) {
+		if (counts != nullptr)
+			++counts->leftBehind;
 		flow.refused(position);
 		if (journeys != nullptr) {
 			journeys->replanRefused(run, flow.passenger(position), T, t);
@@ -593,10 +596,23 @@ const StationPlatform* platformOfStop(const SimulationRun& run, const Train& T, 
 	return own->find(T.CurrentServiceStop, T.CurrentServiceStopPlatform);
 }
 
+// The counts of the call that train T makes at its current stop, or null when T is not a train of the run or the stop is not found.
+// The stop is the first one of that station where the train has stood and not left.
+StopCallCounts* currentCall(SimulationRun& run, const Train& T) {
+	const Train* first = run.trains.data();
+	if (&T < first || &T >= first + run.trains.size())
+		return nullptr;
+	for (int stop = 0; stop < T.numStations && stop < Train::kMaxTimetableStations; ++stop) {
+		if (T.Stations[static_cast<size_t>(stop)].stationName == T.CurrentServiceStop && T.Stations[static_cast<size_t>(stop)].StepStopped > 0 && T.StationDepartures[stop] < 0)
+			return &run.stopCalls.at(static_cast<int>(&T - first), stop);
+	}
+	return nullptr;
+}
+
 // The boarding procedure follows the order at which passengers arrived at the platform. The platform occupation rate, the pax
 // of the current platform plus those just alighted from the train, is returned in occupationRate.
 int boardPassengers(PassengerFlow& flow, SimulationRun& run, Train& T, int t, int SimulationStartingTime,
-	const list<StationPlatform>& platforms, int N_AlightPax, double& occupationRate, PassengerJourneys* journeys) {
+	const list<StationPlatform>& platforms, int N_AlightPax, double& occupationRate, PassengerJourneys* journeys, StopCallCounts* counts) {
 	int N_BoardedPax = 0;
 	std::optional<PlatformIndex> ownPlatforms;
 	const StationPlatform* PlatformIt = platformOfStop(run, T, platforms, ownPlatforms);
@@ -613,7 +629,7 @@ int boardPassengers(PassengerFlow& flow, SimulationRun& run, Train& T, int t, in
 				continue;
 			// the passengers with the ID of the one in the list of passengers on the platform, in the order of the list of all passengers
 			for (const int position : flow.passengersWithId(Pax.first))
-				settleBoarding(flow, run, T, t, journeys, position, boardPassenger(&flow.passenger(position), T, t, SimulationStartingTime, N_BoardedPax));
+				settleBoarding(flow, run, T, t, journeys, position, boardPassenger(&flow.passenger(position), T, t, SimulationStartingTime, N_BoardedPax), counts);
 		}
 		return N_BoardedPax;
 	}
@@ -629,7 +645,7 @@ int boardPassengers(PassengerFlow& flow, SimulationRun& run, Train& T, int t, in
 		if (!last || last->since > now)
 			break; // the waiters are in order of time, so the rest still walk
 		for (const int position : flow.samePassengerId(last->position))
-			settleBoarding(flow, run, T, t, journeys, position, boardPassenger(&flow.passenger(position), T, t, SimulationStartingTime, N_BoardedPax));
+			settleBoarding(flow, run, T, t, journeys, position, boardPassenger(&flow.passenger(position), T, t, SimulationStartingTime, N_BoardedPax), counts);
 	}
 	return N_BoardedPax;
 }
@@ -659,9 +675,15 @@ void interactAtServiceStop(PassengerFlow& flow, SimulationRun& run, int t, int S
 	const list<StationPlatform>& platforms, PassengerJourneys* journeys) {
 	if (T.StoppedForServiceStop != 1)
 		return;
+	StopCallCounts* counts = currentCall(run, T);
 	const int N_AlightPax = alightPassengers(flow, run, T, t, SimulationStartingTime, journeys);
 	double CurrentPlatformOccupationRate = 0; // Occupation rate of the platform where the train is stopping at
-	const int N_BoardedPax = boardPassengers(flow, run, T, t, SimulationStartingTime, platforms, N_AlightPax, CurrentPlatformOccupationRate, journeys);
+	const int N_BoardedPax = boardPassengers(flow, run, T, t, SimulationStartingTime, platforms, N_AlightPax, CurrentPlatformOccupationRate, journeys, counts);
+	if (counts != nullptr) {
+		counts->alighted += N_AlightPax;
+		counts->boarded += N_BoardedPax;
+		counts->loadAfter = T.Current_OnBoard_Passengers;
+	}
 	applyPassengerDependentDwellTime(T, N_BoardedPax, N_AlightPax, CurrentPlatformOccupationRate);
 }
 
@@ -670,6 +692,7 @@ PassengerFlow& flowOfRun(SimulationRun& run, int now) {
 	if (!run.passengerFlow.covers(run.passengers) || now < run.passengerFlow.lastTime()) {
 		run.passengerFlow.build(run.passengers, true);
 		run.passengerJourneys.clear();
+		run.stopCalls.clear();
 	}
 	return run.passengerFlow;
 }
