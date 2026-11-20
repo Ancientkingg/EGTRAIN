@@ -10,6 +10,7 @@
 class QDoubleSpinBox;
 class QLabel;
 class QLineEdit;
+class QSpinBox;
 
 /// The six scene-level values: name, description, base time (HH:MM:SS), duration and buffer time in seconds and recovery
 /// time in percent. Opening the panel never changes the model, and every edit takes the same path through commit().
@@ -52,6 +53,8 @@ public:
 	QDoubleSpinBox* bufferSecondsEdit() const { return m_bufferSecondsEdit; }
 	/// The field of the recovery time in percent, 0 or more.
 	QDoubleSpinBox* recoveryPercentEdit() const { return m_recoveryPercentEdit; }
+	/// The field of the most transfers that a live passenger journey plans, 0 to 10.
+	QSpinBox* maxTransfersEdit() const { return m_maxTransfersEdit; }
 
 Q_SIGNALS:
 	/// The base time of the model has been set to this text. Emitted before the document is marked changed.
@@ -65,6 +68,7 @@ private:
 	QDoubleSpinBox* m_durationSecondsEdit = nullptr;
 	QDoubleSpinBox* m_bufferSecondsEdit = nullptr;
 	QDoubleSpinBox* m_recoveryPercentEdit = nullptr;
+	QSpinBox* m_maxTransfersEdit = nullptr;
 };
 
 #endif // CASESETTINGSPANEL_H
