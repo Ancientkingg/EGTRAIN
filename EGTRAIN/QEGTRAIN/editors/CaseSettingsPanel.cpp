@@ -7,8 +7,10 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QSignalBlocker>
+#include <QSpinBox>
 #include <QStringList>
 
+#include <algorithm>
 #include <string>
 
 CaseSettingsPanel::CaseSettingsPanel(QWidget* parent) : SceneEditorPanel(parent) {
@@ -35,12 +37,20 @@ CaseSettingsPanel::CaseSettingsPanel(QWidget* parent) : SceneEditorPanel(parent)
 	layout->addRow("Duration (s)", m_durationSecondsEdit);
 	layout->addRow("Buffer (s)", m_bufferSecondsEdit);
 	layout->addRow("Recovery (%)", m_recoveryPercentEdit);
+	m_maxTransfersEdit = new QSpinBox(this);
+	m_maxTransfersEdit->setObjectName("caseMaxTransfersEdit");
+	m_maxTransfersEdit->setRange(0, kMaxPassengerMaxTransfers);
+	m_maxTransfersEdit->setKeyboardTracking(false);
+	m_maxTransfersEdit->setToolTip("The most transfers that a passenger whose journey has no legs, or whose legs cannot be "
+								   "followed, plans");
+	layout->addRow("Passenger transfers", m_maxTransfersEdit);
 
 	connect(m_nameEdit, &QLineEdit::editingFinished, this, &CaseSettingsPanel::commit);
 	connect(m_descriptionEdit, &QLineEdit::editingFinished, this, &CaseSettingsPanel::commit);
 	connect(m_baseTimeEdit, &QLineEdit::editingFinished, this, &CaseSettingsPanel::commit);
 	for (QDoubleSpinBox* edit : {m_durationSecondsEdit, m_bufferSecondsEdit, m_recoveryPercentEdit})
 		connect(edit, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double) { commit(); });
+	connect(m_maxTransfersEdit, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int) { commit(); });
 	CaseSettingsPanel::refresh();
 }
 
@@ -48,7 +58,7 @@ CaseSettingsPanel::~CaseSettingsPanel() {
 	// A panel that is a shown window closes in the QWidget destructor, after this one, and the field with the focus then
 	// reports that editing finished.
 	QObject* const fields[] = {m_nameEdit, m_descriptionEdit, m_baseTimeEdit, m_durationSecondsEdit, m_bufferSecondsEdit,
-		m_recoveryPercentEdit};
+		m_recoveryPercentEdit, m_maxTransfersEdit};
 	for (QObject* field : fields)
 		field->disconnect(this);
 }
@@ -109,6 +119,11 @@ void CaseSettingsPanel::refresh() {
 		m_recoveryPercentEdit->setValue(model.settings.recoveryTimePercent);
 		m_recoveryPercentEdit->setEnabled(loaded);
 	}
+	{
+		const QSignalBlocker blocker(m_maxTransfersEdit);
+		m_maxTransfersEdit->setValue(model.settings.passengerMaxTransfers);
+		m_maxTransfersEdit->setEnabled(loaded);
+	}
 }
 
 void CaseSettingsPanel::commitPendingEditors() {
@@ -117,6 +132,8 @@ void CaseSettingsPanel::commitPendingEditors() {
 		if (hasEditorFocus(edit))
 			edit->interpretText();
 	}
+	if (hasEditorFocus(m_maxTransfersEdit))
+		m_maxTransfersEdit->interpretText();
 	commit();
 }
 
@@ -135,8 +152,10 @@ void CaseSettingsPanel::commit() {
 	const bool durationEdited = shownValue(m_durationSecondsEdit, model.settings.durationSeconds) != durationSeconds;
 	const bool bufferEdited = shownValue(m_bufferSecondsEdit, model.settings.bufferTimeSeconds) != bufferSeconds;
 	const bool recoveryEdited = shownValue(m_recoveryPercentEdit, model.settings.recoveryTimePercent) != recoveryPercent;
+	const int maxTransfers = m_maxTransfersEdit->value();
+	const bool transfersEdited = std::clamp(model.settings.passengerMaxTransfers, 0, kMaxPassengerMaxTransfers) != maxTransfers;
 	if (model.name == name && model.description == description && !baseTimeEdited && !durationEdited
-		&& !bufferEdited && !recoveryEdited)
+		&& !bufferEdited && !recoveryEdited && !transfersEdited)
 		return;
 
 	if (!m_document->edit(SceneDocument::CaseSettings, "Edit case settings", [&](SceneModel& edited) {
@@ -155,6 +174,8 @@ void CaseSettingsPanel::commit() {
 				edited.settings.hasRecoveryTime = true;
 				edited.settings.recoveryTimePercent = recoveryPercent;
 			}
+			if (transfersEdited)
+				edited.settings.passengerMaxTransfers = maxTransfers;
 			if (baseTimeEdited)
 				emit baseTimeChanged(m_baseTimeEdit->text());
 		}))
