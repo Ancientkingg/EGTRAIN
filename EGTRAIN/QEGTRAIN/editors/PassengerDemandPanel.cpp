@@ -721,7 +721,8 @@ void PassengerDemandPanel::fillMatrix(const ScenePassengerDemandSlice* slice) {
 			} else if (row < count && column < count) {
 				item->setText(QString());
 				item->setFlags(Qt::NoItemFlags);
-				item->setBackground(palette().color(QPalette::Midlight));
+				// Hatched, so that it differs from an empty cell in every style and colour scheme.
+				item->setBackground(QBrush(palette().color(QPalette::Mid), Qt::BDiagPattern));
 				item->setToolTip(QStringLiteral("An origin and a destination must differ."));
 				item->setData(Qt::AccessibleDescriptionRole, QStringLiteral("Same station, not used"));
 			} else {
