@@ -603,6 +603,8 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			QObject::connect(panel, &InfrastructurePanel::selectionChanged, &w, [&told] { ++told; });
 		// Where a click hits the item: the middle of a line, or the centre of its bounds.
 		const auto pointOf = [](QGraphicsItem* item) {
+			if (!item)
+				return QPointF();
 			const auto* lineItem = dynamic_cast<const QGraphicsLineItem*>(item);
 			return lineItem ? item->mapToScene(lineItem->line().pointAt(0.5)) : item->sceneBoundingRect().center();
 		};

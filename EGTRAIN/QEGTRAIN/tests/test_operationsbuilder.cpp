@@ -131,6 +131,7 @@ private slots:
 	void buildsPlatformGeometryAndPassengers();
 	void demandSlicesStageLivePassengers();
 	void commandLineBufferAndRecoveryStay();
+	void sceneDwellSettingsReachTheDwellModel();
 	void steppedOperatingCodesReachOccurrences();
 	void serviceCapAndPerformanceApplyPerTrain();
 	void occurrenceSelectionOmitsExcludedJourneys();
@@ -917,6 +918,79 @@ void TestOperationsBuilder::commandLineBufferAndRecoveryStay() {
 	QVERIFY(!hasErrors(overridden));
 	QCOMPARE_EQ(initial_variables.bufferTime, 2.5);
 	QCOMPARE_EQ(initial_variables.recoveryTimePercentage, 3.5);
+}
+
+// The dwell settings of the scene reach the trains and the run settings, and the run settings drive the dwell model.
+void TestOperationsBuilder::sceneDwellSettingsReachTheDwellModel() {
+	const auto restoreSettings = qScopeGuard([] {
+		defaultRun().settings = InitialParameters(0);
+		defaultRun().numberGenerator = NumberGenerator(kDefaultRandomSeed);
+	});
+	const auto dwellOf = [](const Train& train, double platformRate) {
+		const float* beta = train.GibsonDwellTimeParameters;
+		defaultRun().numberGenerator = NumberGenerator(kSeedA);
+		Train formula = train;
+		return formula.computePaxDependentDwellTimeAtStations(800, 800, platformRate, beta[0], beta[1], beta[2], beta[3], beta[4], beta[5],
+			beta[6], beta[7]);
+	};
+	const auto build = [](const SceneModel& scene) {
+		buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
+		return buildOperationsFromScene(defaultRun(), scene, "scenario.selected");
+	};
+
+	QVERIFY(!hasErrors(build(completeScene())));
+	const float defaults[] = {7.0f, 0.32f, 18.23f, 0.564f, 4.838f, 22.24f, 0.04f, 0.562f};
+	for (std::size_t index = 0; index < 8; ++index)
+		QCOMPARE(defaultRun().trains[0].GibsonDwellTimeParameters[index], defaults[index]);
+	QCOMPARE_EQ(initial_variables.passengerPlatformCrowdingThreshold, 0.65);
+	QCOMPARE_EQ(initial_variables.passengerOnboardCrowdingThreshold, 0.7);
+	QCOMPARE(initial_variables.passengerCarBoardingThreshold, 15);
+	Train train = defaultRun().trains[0];
+	train.run_ = &defaultRun();
+	train.number_of_wagons = 3.0;
+	train.MAX_OnBoard_Passengers = trainPassengerCapacity(train.number_of_wagons);
+	defaultRun().settings = initial_variables;
+	const double unset = dwellOf(train, 0.5);
+
+	// Giving the default values gives the same dwell time as giving nothing.
+	SceneModel explicitDefaults = completeScene();
+	explicitDefaults.settings.passengerDwellCoefficients =
+		std::vector<double>(kDefaultPassengerDwellCoefficients.begin(), kDefaultPassengerDwellCoefficients.end());
+	explicitDefaults.settings.passengerPlatformCrowdingThreshold = 0.65;
+	explicitDefaults.settings.passengerOnboardCrowdingThreshold = 0.7;
+	explicitDefaults.settings.passengerCarBoardingThreshold = 15;
+	QVERIFY(!hasErrors(build(explicitDefaults)));
+	Train explicitTrain = train;
+	for (std::size_t index = 0; index < 8; ++index)
+		explicitTrain.GibsonDwellTimeParameters[index] = defaultRun().trains[0].GibsonDwellTimeParameters[index];
+	defaultRun().settings = initial_variables;
+	QCOMPARE_EQ(dwellOf(explicitTrain, 0.5), unset);
+
+	// A changed beta0 changes the dwell time by the same amount.
+	SceneModel changed = completeScene();
+	changed.settings.passengerDwellCoefficients = std::vector<double>{9.0, 0.32, 18.23, 0.564, 4.838, 22.24, 0.04, 0.562};
+	QVERIFY(!hasErrors(build(changed)));
+	QCOMPARE(defaultRun().trains[0].GibsonDwellTimeParameters[0], 9.0f);
+	Train changedTrain = train;
+	for (std::size_t index = 0; index < 8; ++index)
+		changedTrain.GibsonDwellTimeParameters[index] = defaultRun().trains[0].GibsonDwellTimeParameters[index];
+	defaultRun().settings = initial_variables;
+	QVERIFY2(near(dwellOf(changedTrain, 0.5) - unset, 2.0), "beta0 is the fixed time of a stop");
+
+	// The thresholds of the run settings decide when a crowding term applies.
+	defaultRun().settings = InitialParameters(0);
+	QVERIFY2(near(dwellOf(train, 0.7) - dwellOf(train, 0.6), static_cast<double>(0.32f) + 0.564f), "platform crowding applies above 0.65");
+	defaultRun().settings.passengerPlatformCrowdingThreshold = 0.8;
+	QVERIFY2(near(dwellOf(train, 0.7), dwellOf(train, 0.6)), "a platform threshold of 0.8 leaves 0.7 uncrowded");
+	defaultRun().settings = InitialParameters(0);
+	const double crowdedCars = dwellOf(train, 0.5);
+	defaultRun().settings.passengerCarBoardingThreshold = 1000;
+	QVERIFY2(near(crowdedCars - dwellOf(train, 0.5), 4.838f), "a car threshold of 1000 removes beta4");
+	defaultRun().settings = InitialParameters(0);
+	train.Current_OnBoard_Passengers = 960;
+	const double crowdedTrain = dwellOf(train, 0.5);
+	defaultRun().settings.passengerOnboardCrowdingThreshold = 0.9;
+	QVERIFY2(near(crowdedTrain - dwellOf(train, 0.5), 0.562f), "an on-board threshold of 0.9 leaves 80 percent uncrowded");
 }
 
 void TestOperationsBuilder::steppedOperatingCodesReachOccurrences() {

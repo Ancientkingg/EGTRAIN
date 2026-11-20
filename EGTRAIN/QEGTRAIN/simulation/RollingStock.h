@@ -570,7 +570,8 @@ public:
 	void checkEntrance(int i, Section* BS);
 
 	/// Passenger-dependent dwell time (s) by the Fernandez et al. (2007) extension of Gibson et al. (1989), with passengers spread over
-	/// the doors at random; 0 when nobody boards or alights.
+	/// the doors at random; 0 when nobody boards or alights. The three crowding thresholds are those of run_->settings
+	/// (passengerPlatformCrowdingThreshold, passengerOnboardCrowdingThreshold and passengerCarBoardingThreshold).
 	double computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_AlightPax, double PlatformOccupancyRate, float beta0, float beta1, float beta2, float beta3, float beta4, float beta5, float beta6, float beta7);
 
 	/// True when the aspect of the block section is restrictive: red, or red-red at level 5.

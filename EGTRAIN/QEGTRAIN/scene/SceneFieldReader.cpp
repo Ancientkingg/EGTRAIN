@@ -94,6 +94,30 @@ void decodeIncidentArray(const SceneFieldReader& reader, const json& root, const
 	}
 }
 
+// Reads the optional passenger dwell keys of simulation_settings. A key that is absent stays empty. The validator checks the values.
+void decodeDwellSettings(const SceneFieldReader& reader, const json& settings, SceneSimulationSettings& output) {
+	const char* const coefficientsKey = "passenger_dwell_coefficients";
+	if (settings.contains(coefficientsKey)) {
+		const json& values = settings[coefficientsKey];
+		const std::string path = std::string("simulation_settings.") + coefficientsKey;
+		bool valid = values.is_array();
+		for (std::size_t index = 0; valid && index < values.size(); ++index)
+			valid = values[index].is_number();
+		if (valid)
+			output.passengerDwellCoefficients = values.get<std::vector<double>>();
+		else
+			reader.report("scene.field.missing", std::string("Invalid ") + coefficientsKey, path);
+	}
+	double threshold = 0.0;
+	if (reader.numberField(settings, "passenger_platform_crowding_threshold", "simulation_settings", threshold, false))
+		output.passengerPlatformCrowdingThreshold = threshold;
+	if (reader.numberField(settings, "passenger_onboard_crowding_threshold", "simulation_settings", threshold, false))
+		output.passengerOnboardCrowdingThreshold = threshold;
+	int carThreshold = 0;
+	if (reader.integerField(settings, "passenger_car_boarding_threshold", "simulation_settings", carThreshold, false))
+		output.passengerCarBoardingThreshold = carThreshold;
+}
+
 } // namespace
 
 void SceneFieldReader::report(const char* code, const std::string& message, const std::string& path,
@@ -314,6 +338,7 @@ void decodeSceneMetadata(const SceneFieldReader& reader, const json& root, Scene
 			scene.settings.hasRecoveryTime = reader.numberField(settings, "recovery_time_percent",
 				"simulation_settings", scene.settings.recoveryTimePercent, false);
 			reader.integerField(settings, "passenger_max_transfers", "simulation_settings", scene.settings.passengerMaxTransfers, false);
+			decodeDwellSettings(reader, settings, scene.settings);
 		}
 	}
 	if (root.contains("import_report")) {

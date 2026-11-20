@@ -689,6 +689,14 @@ json encodeSceneMetadata(const SceneModel& scene) {
 		settings["recovery_time_percent"] = scene.settings.recoveryTimePercent;
 	if (scene.settings.passengerMaxTransfers != kDefaultPassengerMaxTransfers)
 		settings["passenger_max_transfers"] = scene.settings.passengerMaxTransfers;
+	if (scene.settings.passengerDwellCoefficients)
+		settings["passenger_dwell_coefficients"] = *scene.settings.passengerDwellCoefficients;
+	if (scene.settings.passengerPlatformCrowdingThreshold)
+		settings["passenger_platform_crowding_threshold"] = *scene.settings.passengerPlatformCrowdingThreshold;
+	if (scene.settings.passengerOnboardCrowdingThreshold)
+		settings["passenger_onboard_crowding_threshold"] = *scene.settings.passengerOnboardCrowdingThreshold;
+	if (scene.settings.passengerCarBoardingThreshold)
+		settings["passenger_car_boarding_threshold"] = *scene.settings.passengerCarBoardingThreshold;
 	if (!settings.empty())
 		metadata["simulation_settings"] = settings;
 	if (!scene.importReport.empty()) {

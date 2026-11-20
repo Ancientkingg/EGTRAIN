@@ -1,6 +1,7 @@
 #ifndef SCENEMODEL_H
 #define SCENEMODEL_H
 
+#include "scene/PassengerDwellModel.h"
 #include "scene/SceneDiagnostic.h"
 #include <array>
 #include <cstddef>
@@ -31,6 +32,18 @@ struct SceneSimulationSettings {
 	/// The most transfers that a passenger journey without legs, or with legs that cannot be followed, may plan
 	/// (passenger_max_transfers, 0 to 10). Always counts; the scene file holds it only when it differs from the default.
 	int passengerMaxTransfers = kDefaultPassengerMaxTransfers;
+	/// The coefficients beta0 to beta7 of the passenger dwell model (passenger_dwell_coefficients). Empty uses
+	/// kDefaultPassengerDwellCoefficients. The validator wants exactly kPassengerDwellCoefficientCount values.
+	std::optional<std::vector<double>> passengerDwellCoefficients;
+	/// The platform occupancy rate above which the platform is crowded (passenger_platform_crowding_threshold, 0 to 1). Empty uses
+	/// kDefaultPassengerPlatformCrowdingThreshold.
+	std::optional<double> passengerPlatformCrowdingThreshold;
+	/// The on-board occupancy rate above which the train is crowded (passenger_onboard_crowding_threshold, 0 to 1). Empty uses
+	/// kDefaultPassengerOnboardCrowdingThreshold.
+	std::optional<double> passengerOnboardCrowdingThreshold;
+	/// The boarding passengers of a car above which the car is crowded (passenger_car_boarding_threshold, 0 or more). Empty uses
+	/// kDefaultPassengerCarBoardingThreshold.
+	std::optional<int> passengerCarBoardingThreshold;
 };
 
 /// A track: a chain of nodes joined by arcs, with its own kilometre chainage.
