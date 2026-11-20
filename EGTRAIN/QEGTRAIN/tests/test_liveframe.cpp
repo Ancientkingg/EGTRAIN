@@ -390,6 +390,7 @@ class TestLiveFrame : public QObject {
 private slots:
 	void initTestCase();
 	void stateFrame();
+	void passengerMembers();
 	void signalList();
 	void signalListChanges();
 	void helloFrame();
@@ -480,6 +481,41 @@ void TestLiveFrame::stateFrame() {
 		"the position sentinel does not leave the process");
 	QVERIFY2(isNumber(trains[4].at("route_pos_m"), 1234.5) && trains[4].at("x_km").is_null(), "a head outside every block section has no x");
 	QVERIFY2(trains[5].at("speed_ms").is_null(), "a speed that is not a number is null");
+}
+
+void TestLiveFrame::passengerMembers() {
+	GuiTrainState train = locatedTrain();
+	train.currentOnboardPassengers = 17;
+	train.maxOnboardPassengers = 420;
+	GuiSimulationSnapshot snapshot;
+	snapshot.trains = {train};
+	GuiPlatformState waiting;
+	waiting.stationId = "ST1";
+	waiting.platformId = "P2";
+	waiting.passengerCount = 63;
+	waiting.maxVolume = 120;
+	GuiPlatformState unset;
+	unset.stationId = "ST2";
+	unset.platformId = "P1";
+	unset.maxVolume = -1;
+	snapshot.platforms = {waiting, unset};
+
+	LiveRunInfo run = sampleRun();
+	run.hasPassengers = true;
+	const json frame = makeStateFrame(run, 1, snapshot, false);
+	const std::string problem = frameProblem(frame, "state frame with passengers");
+	QVERIFY2(problem.empty(), problem.c_str());
+	QVERIFY2(frame.at("trains")[0].at("onboard") == 17 && frame.at("trains")[0].at("capacity") == 420, "train load and capacity");
+	const json& platforms = frame.at("platforms");
+	QCOMPARE(platforms.size(), std::size_t(2));
+	QVERIFY2(platforms[0].at("station_id") == "ST1" && platforms[0].at("platform_id") == "P2" && platforms[0].at("waiting") == 63
+			&& platforms[0].at("capacity") == 120,
+		"platform waiting count and capacity");
+	QVERIFY2(platforms[1].at("waiting") == 0 && platforms[1].at("capacity").is_null(), "a platform without a capacity has null");
+
+	// A run without passengers has neither member, whatever the snapshot holds.
+	const json plain = makeStateFrame(sampleRun(), 1, snapshot, false);
+	QVERIFY2(!plain.contains("platforms") && !plain.at("trains")[0].contains("capacity"), "no passenger members without passengers");
 }
 
 void TestLiveFrame::signalList() {

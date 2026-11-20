@@ -99,7 +99,22 @@
               "route_pos_m": { "type": ["number", "null"], "description": "Position of the head on the route axis, in metres. null while the train has no position." },
               "x_km": { "type": ["number", "null"], "description": "Coordinate of the head along the line, in km: the x of the block section that holds the head plus the distance into it, minus it on a reversed route. null while the train has no position or its head lies in no block section of its route." },
               "speed_ms": { "type": ["number", "null"], "description": "Speed in m/s. null while the train has no position." },
-              "onboard": { "type": "integer", "minimum": 0, "description": "Number of passengers on board." }
+              "onboard": { "type": "integer", "minimum": 0, "description": "Number of passengers on board." },
+              "capacity": { "type": "integer", "minimum": 0, "description": "Number of passengers that the train can carry. Only in a run with passengers, with the same value as the maximum of the load label in the window." }
+            }
+          }
+        },
+        "platforms": {
+          "type": "array",
+          "description": "Every platform of the run with its passengers. Only in a run with passengers; a frame of a run without passengers has no platforms member.",
+          "items": {
+            "type": "object",
+            "required": ["station_id", "platform_id", "waiting", "capacity"],
+            "properties": {
+              "station_id": { "type": "string", "description": "Id of the station." },
+              "platform_id": { "type": "string", "description": "Id of the platform within the station." },
+              "waiting": { "type": "integer", "minimum": 0, "description": "Passengers on the platform, as the passenger counter of the platform in the window shows them: those waiting plus those who left the network there in the last 5 seconds." },
+              "capacity": { "type": ["integer", "null"], "description": "Number of passengers that the platform holds at most. null when the run does not set it." }
             }
           }
         },

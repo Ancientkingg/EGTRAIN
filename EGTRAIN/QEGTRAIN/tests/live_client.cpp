@@ -223,6 +223,8 @@ private:
 				violation(where + "the signals of step " + std::to_string(step) + " are no array");
 			++run.signalFrames;
 		}
+		if (frame.contains("platforms") && !frame.at("platforms").is_array())
+			violation(where + "the platforms of step " + std::to_string(step) + " are no array");
 		if (run.firstStep < 0)
 			run.firstStep = step;
 		run.lastStep = step;
@@ -241,6 +243,8 @@ private:
 				return;
 			}
 		}
+		if (train.contains("capacity") && !train.at("capacity").is_number_integer())
+			violation(where + "a capacity is no integer");
 		if (!isNumberOrNull(train.at("route_pos_m")) || !isNumberOrNull(train.at("x_km")) || !isNumberOrNull(train.at("speed_ms")))
 			violation(where + "a position or speed is neither a number nor null");
 		if (train.at("direction") != "forward" && train.at("direction") != "reversed")

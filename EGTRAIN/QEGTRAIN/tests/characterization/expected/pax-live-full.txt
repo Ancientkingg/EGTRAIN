@@ -128,10 +128,12 @@ pax f1 state t=600 in=1 status=OnPlatform journey=f1.1 trip=f1.1.live1 waiting=B
 pax f2 state t=600 in=1 status=OnPlatform journey=f2.1 trip=f2.1.live1 waiting=B/B.platform.1 to_wait=Q1-1 boarded=None arrival=C
 pax f3 state t=600 in=1 status=OnPlatform journey=f3.1 trip=f3.1.live1 waiting=B/B.platform.1 to_wait=Q1-1 boarded=None arrival=C
 pax f4 state t=600 in=1 status=OnPlatform journey=f4.1 trip=f4.1.live1 waiting=B/B.platform.1 to_wait=Q1-1 boarded=None arrival=C
+gui_platform B B.platform.1 t=600 ids=- count=4
 pax f1 state t=623 in=1 status=OnBoard journey=f1.1 trip=f1.1.live1 waiting=None/None to_wait=None boarded=Q1-1 arrival=C
 pax f2 state t=623 in=1 status=OnBoard journey=f2.1 trip=f2.1.live1 waiting=None/None to_wait=None boarded=Q1-1 arrival=C
 pax f3 state t=623 in=1 status=OnBoard journey=f3.1 trip=f3.1.live1 waiting=None/None to_wait=None boarded=Q1-1 arrival=C
 pax f4 state t=623 in=1 status=OnBoard journey=f4.1 trip=f4.1.live2 waiting=None/None to_wait=None boarded=Q2-1 arrival=C
+gui_platform B B.platform.1 t=623 ids=-
 onboard Q1-1 t=623 n=3 max=3
 onboard Q2-1 t=623 n=1 max=3
 pax f1 state t=1094 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None

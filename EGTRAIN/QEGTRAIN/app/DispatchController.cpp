@@ -236,7 +236,11 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 		state.maxVolume = platform.Max_Passenger_Volume;
 		const auto left = exited.find({platform.StationID, platform.ID});
 		const std::size_t leftCount = left == exited.end() ? 0 : left->second.size();
-		const std::size_t total = platform.Current_List_Pax_On_Platform.size() + leftCount;
+		// Without the passenger GUI the run keeps no platform lists, but its passenger flow counts who waits where.
+		const std::size_t waitingCount = !run.settings.PAX_GUI && run.passengerFlow.covers(run.passengers)
+			? static_cast<std::size_t>(run.passengerFlow.waitingCount(platform.StationID, platform.ID))
+			: platform.Current_List_Pax_On_Platform.size();
+		const std::size_t total = waitingCount + leftCount;
 		state.passengerCount = static_cast<int>(total);
 		const std::size_t listed = std::min(total, static_cast<std::size_t>(kGuiPlatformPassengerIcons));
 		state.passengers.reserve(listed);
@@ -312,8 +316,10 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	};
 
 	beginScenePreparation();
-	if (live_)
+	if (live_) {
 		liveSceneName_ = scene.name;
+		liveSceneHasPassengers_ = scene.hasPassengers();
+	}
 	const std::optional<double> effectiveDurationOverride = initial_variables.durationOverride
 		? std::optional<double>(initial_variables.times)
 		: std::nullopt;
@@ -439,8 +445,9 @@ void rejectLiveCommands(DispatchLive& live, const char* reason) {
 }
 
 // Opens the run in the stream: new run id, the time axis of the run and the hello frame with its trains.
-void beginLiveRun(DispatchLive& live, const std::string& sceneName, const SimulationRun& run) {
+void beginLiveRun(DispatchLive& live, const std::string& sceneName, bool hasPassengers, const SimulationRun& run) {
 	live.run.runId = randomHex(2);
+	live.run.hasPassengers = hasPassengers;
 	live.run.sceneName = sceneName;
 	const InitialParameters& settings = run.settings;
 	live.run.baseTimeSeconds = settings.startingSimulationTime;
@@ -601,7 +608,7 @@ void DispatchController::runSimulationStages() {
 	observationTimer.start();
 	emit executionBegan();
 	if (live_)
-		beginLiveRun(*live_, liveSceneName_, run);
+		beginLiveRun(*live_, liveSceneName_, liveSceneHasPassengers_, run);
 
 	// A stopped run reports its cancellation here and skips the remaining stages.
 	const auto stoppedHere = [&] {

@@ -455,6 +455,7 @@ private slots:
 	void entryWaitsForTrainThatCannotStop_data();
 	void entryWaitsForTrainThatCannotStop();
 	void platformListsAtMostFiftyPassengers();
+	void platformCountsWaitingWithoutPassengerGui();
 
 private:
 	SceneModel m_line;
@@ -1086,6 +1087,33 @@ void TestSimulationRun::platformListsAtMostFiftyPassengers() {
 	snapshot = buildGuiSimulationSnapshot(*fewer, 106);
 	QCOMPARE(snapshot.platforms[0].passengerCount, 48);
 	QCOMPARE(ids(snapshot.platforms[0]), range(0, 48));
+}
+
+// Without the passenger GUI the run keeps no platform lists. The count of a platform then comes from the passenger flow,
+// which counts the waiting passengers in every mode, as a headless run with the live stream needs.
+void TestSimulationRun::platformCountsWaitingWithoutPassengerGui() {
+	auto run = std::make_unique<SimulationRun>();
+	run->platforms.resize(1);
+	run->platforms.front().StationID = "S";
+	run->platforms.front().ID = "P0";
+	for (int i = 0; i < 7; ++i) {
+		Passenger passenger;
+		passenger.ID = "p" + std::to_string(i);
+		passenger.IsIntheNetwork = true;
+		passenger.CurrentStatus = PassengerStatus::OnPlatform;
+		passenger.Current_WaitingStationID = "S";
+		passenger.Current_WaitingStationPlatformID = "P0";
+		passenger.Current_Train_To_Wait = "T0";
+		run->passengers.push_back(passenger);
+	}
+	run->numPassengers = 7;
+	run->passengerIndex.build(run->passengers);
+	run->passengerFlow.build(run->passengers, true);
+	QVERIFY(!run->settings.PAX_GUI);
+	QVERIFY(run->platforms.front().Current_List_Pax_On_Platform.empty());
+	const GuiSimulationSnapshot snapshot = buildGuiSimulationSnapshot(*run, 10);
+	QCOMPARE(snapshot.platforms.size(), std::size_t(1));
+	QCOMPARE(snapshot.platforms[0].passengerCount, 7);
 }
 
 #include "test_simulationrun.moc"
