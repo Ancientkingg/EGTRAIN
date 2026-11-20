@@ -731,4 +731,10 @@ void simulateTrainPassengerInteractions(SimulationRun& run, int t) {
 		if (run.settings.PAX_GUI)
 			flow.refreshPlatformLists(run.platforms);
 	}
+	// The load of each train in service after this step, for the peak and average of the run results. It reads the counts
+	// of the passenger step above, which runs in every mode, and it changes nothing of the run.
+	if (!run.passengers.empty())
+		for (int n = 0; n < run.numTrains; n++)
+			if (run.trains[n].CanEnter && !run.trains[n].OutOfSimulation)
+				run.trains[n].recordOnBoardPassengers();
 }

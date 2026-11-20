@@ -749,6 +749,7 @@ private slots:
 	void applyShowsStepsOfRun();
 	void trainOnUndrawnTrackShowsNoPassengers();
 	void passengersOnBoardKeepTheirGroup();
+	void badgeShowsLoadWithPassengerLayer();
 	void headTooltipFollowsAspect();
 	void stepTouchesOnlyWhatItChanges();
 	void trainGlidesAlongBentLine();
@@ -1149,6 +1150,57 @@ void TestRuntimeCanvas::passengersOnBoardKeepTheirGroup() {
 	QCOMPARE(PresenterAccess::trainPaxInfoItem(presenter)->data(0), QVariant(QStringLiteral("kept")));
 	QVERIFY(PresenterAccess::trainPaxInfoItem(presenter)->isVisible());
 	QCOMPARE(calloutText(), QStringLiteral("5 of 40 on board"));
+	presenter.clear();
+}
+
+// The badge of a train shows "n / capacity" in the Detailed presentation, only for a case with passengers and while the
+// passenger layer is on, apart from the speed label.
+void TestRuntimeCanvas::badgeShowsLoadWithPassengerLayer() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	presenter.showRuntime(f.model);
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	snapshot.trains = {trainAt(7.5)};
+	snapshot.trains[0].currentOnboardPassengers = 212;
+	snapshot.trains[0].maxOnboardPassengers = 600;
+	const auto badge = [&]() -> TrainBadgeItem* {
+		presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
+		TrainBadgeItem* item = PresenterAccess::trainBadges(presenter).value(0, nullptr);
+		if (item == nullptr) {
+			QTest::qFail("the step draws no badge", __FILE__, __LINE__);
+			return nullptr;
+		}
+		item->setPresentation(TrainBadgeItem::Presentation::Detailed);
+		return item;
+	};
+	// A case without passengers shows no load.
+	QVERIFY(!badge()->showsLoad());
+	presenter.setCaseHasPassengers(true);
+	TrainBadgeItem* item = badge();
+	QVERIFY(item->showsLoad());
+	QCOMPARE(item->loadText(), QStringLiteral("212 / 600"));
+	QVERIFY(!item->loadTextRect().isEmpty());
+	// The load sits above the speed and the bounds hold both.
+	QCOMPARE_LT(item->loadTextRect().bottom(), item->speedTextRect().top());
+	QVERIFY(item->boundingRect().contains(item->loadTextRect()));
+	QVERIFY(item->boundingRect().contains(item->speedTextRect()));
+	// The speed label layer does not hide the load, and the passenger layer does not hide the speed.
+	presenter.setTrainSpeedLabelsVisible(false);
+	QVERIFY(item->showsLoad());
+	QVERIFY(!item->showsSpeed());
+	presenter.setTrainSpeedLabelsVisible(true);
+	presenter.setPassengerLayerVisible(false);
+	QVERIFY(!item->showsLoad());
+	QVERIFY(item->showsSpeed());
+	QVERIFY(!badge()->showsLoad());
+	presenter.setPassengerLayerVisible(true);
+	QVERIFY(item->showsLoad());
+	// An unknown capacity shows only the passengers on board.
+	snapshot.trains[0].maxOnboardPassengers = 0;
+	QCOMPARE(badge()->loadText(), QStringLiteral("212"));
+	QCOMPARE(NetworkPresenter::trainLoadText(5, -1), QStringLiteral("5"));
 	presenter.clear();
 }
 

@@ -224,6 +224,9 @@ void nativeCopyTrainPlan(SimulationRun& run, const NativeTrainPlan& plan, Train&
 	train.directIncidentIds.clear();
 	train.firstDirectIncidentTime = -1.0;
 	train.firstDirectIncidentLocation = -1.0;
+	train.peakOnBoardPassengers = 0;
+	train.onBoardPassengerStepSum = 0;
+	train.onBoardPassengerSteps = 0;
 	train.TrainRouteID = plan.routeId;
 	train.indexOfRoute = plan.routeIndex;
 	train.trainDescription = plan.trainDescription;

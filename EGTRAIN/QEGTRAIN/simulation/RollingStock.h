@@ -478,6 +478,15 @@ public:
 	float GibsonDwellTimeParameters[8]; ///< The eight parameters of the passenger dwell model (computePaxDependentDwellTimeAtStations); -1 until set.
 	/// Passenger capacity of the train (trainPassengerCapacity).
 	int MAX_OnBoard_Passengers, Current_OnBoard_Passengers; ///< Passengers on board now; the train starts empty.
+	/// Most passengers on board after any step of the run in which the train was in service; 0 until the first such step.
+	int peakOnBoardPassengers = 0;
+	/// Sum, over the steps in which the train was in service, of the passengers on board after the step.
+	long long onBoardPassengerStepSum = 0;
+	/// Number of steps counted in onBoardPassengerStepSum; stays 0 for a run without passengers or a train that never ran.
+	int onBoardPassengerSteps = 0;
+	/// Counts the passengers on board now into peakOnBoardPassengers, onBoardPassengerStepSum and onBoardPassengerSteps. Call it
+	/// once per step, after the passenger step, for a train in service: one that has entered and is not out of the simulation.
+	void recordOnBoardPassengers();
 
 	/// Sets the default values. The vectors stay empty until setTrainVectorSizesFromInput.
 	Train();

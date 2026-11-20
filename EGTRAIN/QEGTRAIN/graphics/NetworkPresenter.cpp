@@ -583,12 +583,28 @@ void NetworkPresenter::setTrainSpeedLabelsVisible(bool visible) {
 			badge->setSpeedVisible(visible);
 }
 
+void NetworkPresenter::setCaseHasPassengers(bool hasPassengers) {
+	if (m_caseHasPassengers == hasPassengers)
+		return;
+	m_caseHasPassengers = hasPassengers;
+	for (auto* badge : std::as_const(m_trainBadges))
+		if (badge)
+			badge->setLoadVisible(m_caseHasPassengers && m_passengerLayerVisible);
+}
+
+QString NetworkPresenter::trainLoadText(int onboard, int capacity) {
+	return capacity > 0 ? QStringLiteral("%1 / %2").arg(onboard).arg(capacity) : QString::number(onboard);
+}
+
 void NetworkPresenter::setSignalLayerVisible(bool visible) {
 	m_signalLayerVisible = visible;
 }
 
 void NetworkPresenter::setPassengerLayerVisible(bool visible) {
 	m_passengerLayerVisible = visible;
+	for (auto* badge : std::as_const(m_trainBadges))
+		if (badge)
+			badge->setLoadVisible(m_caseHasPassengers && m_passengerLayerVisible);
 	applyPlatformVisibility();
 	if (trainPaxInfoItem)
 		trainPaxInfoItem->setVisible(visible);
@@ -2368,6 +2384,8 @@ void NetworkPresenter::paintTrain(const GuiTrainState& train, const SceneModel& 
 		QString::fromStdString(train.operatingCode), QString::fromStdString(train.type));
 	badge->setSpeedText(QString::fromStdString(formatSpeedLabel(train.speedKmh)));
 	badge->setSpeedVisible(m_trainSpeedLabelsVisible);
+	badge->setLoadText(trainLoadText(train.currentOnboardPassengers, train.maxOnboardPassengers));
+	badge->setLoadVisible(m_caseHasPassengers && m_passengerLayerVisible);
 	badge->setTrainVisual(visual);
 	badge->setReversed(train.reversedDirection);
 	badge->setPromoted(promoted);
@@ -3529,6 +3547,8 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 						QString::fromStdString(state.operatingCode), QString::fromStdString(state.type));
 					badge->setSpeedText(QString::fromStdString(formatSpeedLabel(state.speedKmh)));
 					badge->setSpeedVisible(m_trainSpeedLabelsVisible);
+					badge->setLoadText(trainLoadText(state.currentOnboardPassengers, state.maxOnboardPassengers));
+					badge->setLoadVisible(m_caseHasPassengers && m_passengerLayerVisible);
 					badge->setReversed(state.reversedDirection);
 					const bool promoted = m_host->isTrainOverlayPromoted(train);
 					badge->setPromoted(promoted);

@@ -145,7 +145,9 @@ inline std::string buildRunSummaryCsv(const RunResults& results) {
 			joinIncidentIds(t.directIncidentIds),
 			csvValue(t.firstDirectIncidentTime),
 			csvValue(t.firstDirectIncidentLocation),
-			terminationOutcome(t.destinationTerminationRequested, t.destinationTerminated)});
+			terminationOutcome(t.destinationTerminationRequested, t.destinationTerminated),
+			csvValue(t.peakOnBoardPassengers),
+			csvValue(t.averageOnBoardPassengers)});
 	}
 	rows.push_back({"Network total",
 		std::string(csv::kMissingValue),
@@ -161,12 +163,15 @@ inline std::string buildRunSummaryCsv(const RunResults& results) {
 		std::string(csv::kMissingValue),
 		std::string(csv::kMissingValue),
 		std::string(csv::kMissingValue),
+		std::string(csv::kMissingValue),
+		std::string(csv::kMissingValue),
 		std::string(csv::kMissingValue)});
 	if (results.trains.empty())
 		return std::string();
 	return csv::makeDocument(
 		{"Train", "Operating code", "Performance [%]", "Applied maximum speed [km/h]", "Start[s]", "End[s]", "Travel time[s]", "Energy consumed[kWh]",
 			"Energy with regen[kWh]", "Substation[kWh]", "Substation with regen[kWh]", "Incident IDs",
-			"First direct time[s]", "First direct location[m]", "Termination outcome"},
+			"First direct time[s]", "First direct location[m]", "Termination outcome", "Peak passengers on board",
+			"Average passengers on board"},
 		rows);
 }

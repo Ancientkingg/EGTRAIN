@@ -362,6 +362,12 @@ public:
 	bool trainLayerVisible() const { return m_trainLayerVisible; }
 	/// Shows or hides the speed on the badges of the trains.
 	void setTrainSpeedLabelsVisible(bool visible);
+	/// Tells the presenter whether the case has passengers. The badges of the trains show the passengers on board only
+	/// for a case that has passengers, while the passenger layer is on. A new presenter assumes no passengers.
+	void setCaseHasPassengers(bool hasPassengers);
+	/// The load of a train as text: "212 / 600" for 212 passengers on board and a capacity of 600, and "212" for a capacity
+	/// of 0 or less.
+	static QString trainLoadText(int onboard, int capacity);
 	/// Sets whether the signal layer is shown. updateSignalCues() shows or hides the signals.
 	void setSignalLayerVisible(bool visible);
 	/// Shows or hides the passenger layer: the passengers on the platforms and the passenger information of the
@@ -591,6 +597,7 @@ private:
 	bool m_trainLayerVisible = true;
 	// The badges of the trains hold their speed.
 	bool m_trainSpeedLabelsVisible = true;
+	bool m_caseHasPassengers = false; ///< The case has passengers, so the badges can show the load.
 	// The signal layer is shown.
 	bool m_signalLayerVisible = true;
 	// The passenger layer is shown.
