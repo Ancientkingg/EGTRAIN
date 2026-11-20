@@ -1611,7 +1611,9 @@ void NetworkPresenter::updateStationCounts() {
 		}
 		total.lines << QStringLiteral("Platform %1: %2").arg(QString::fromStdString(platform->platformId), platform->toolTip().section(QLatin1String(": "), -1));
 	}
-	for (const auto& [station, total] : totals) {
+	for (const auto& stationTotal : totals) {
+		const std::string& station = stationTotal.first;
+		const Total& total = stationTotal.second;
 		auto entry = std::find_if(m_stationCounts.begin(), m_stationCounts.end(),
 			[&station](const StationCount& candidate) { return candidate.station == station; });
 		if (entry == m_stationCounts.end()) {
