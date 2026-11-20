@@ -70,10 +70,10 @@ inline bool guiTrainPublishesOccupiedArcs(const GuiTrainState& train) {
 	return !train.outOfSimulation;
 }
 
-/// The train has a place to draw at `timestep` (seconds from the start of the run): it is in the simulation, due, and
+/// The train has a place to draw at `step` (seconds from the start of the run): it is in the simulation, due, and
 /// has a head position and vehicle positions.
-inline bool guiReplayTrainHasPosition(const GuiTrainState& train, int timestep) {
-	return !train.outOfSimulation && timestep >= train.departureTime
+inline bool guiReplayTrainHasPosition(const GuiTrainState& train, int step) {
+	return !train.outOfSimulation && step >= train.departureTime
 		&& train.routeAxisPosition != -9999.0
 		&& !train.wagonHeadPositions.empty() && !train.wagonTailPositions.empty();
 }
@@ -252,18 +252,18 @@ struct GuiStationCall {
 	bool counted = true; ///< The counts are those of the step: false for a call that a replay shows while it stands.
 };
 
-/// Appends the latest kGuiStationCallsListed calls of every station that began at or before `timestep`, newest first, from
-/// `ascending`, the calls of a finished run ordered by arrival. A call that has not left by `timestep` is not counted, as
+/// Appends the latest kGuiStationCallsListed calls of every station that began at or before `step`, newest first, from
+/// `ascending`, the calls of a finished run ordered by arrival. A call that has not left by `step` is not counted, as
 /// a finished run knows only the totals of its stand.
-inline void appendLatestStationCalls(const std::vector<GuiStationCall>& ascending, int timestep, std::vector<GuiStationCall>& out) {
+inline void appendLatestStationCalls(const std::vector<GuiStationCall>& ascending, int step, std::vector<GuiStationCall>& out) {
 	std::unordered_map<std::string_view, int> listed;
-	const auto end = std::upper_bound(ascending.begin(), ascending.end(), timestep,
-		[](int step, const GuiStationCall& call) { return step < call.arrival; });
+	const auto end = std::upper_bound(ascending.begin(), ascending.end(), step,
+		[](int at, const GuiStationCall& call) { return at < call.arrival; });
 	for (auto call = std::make_reverse_iterator(end); call != ascending.rend(); ++call) {
 		if (listed[call->station]++ >= kGuiStationCallsListed)
 			continue;
 		out.push_back(*call);
-		out.back().counted = call->departure >= 0 && call->departure <= timestep;
+		out.back().counted = call->departure >= 0 && call->departure <= step;
 	}
 }
 
@@ -277,10 +277,10 @@ struct GuiVirtualCouplingState {
 /// A message of virtual coupling shows in the snapshots of this many seconds after its step.
 constexpr int kGuiVirtualCouplingMessageSeconds = 40;
 
-/// A message of the step `messageStep` is in the snapshot of the step `timestep`: from its own step up to and including
+/// A message of the step `messageStep` is in the snapshot of `step`: from its own step up to and including
 /// kGuiVirtualCouplingMessageSeconds seconds after it.
-inline bool guiVirtualCouplingMessageShown(int messageStep, int timestep) {
-	return timestep >= messageStep && timestep <= messageStep + kGuiVirtualCouplingMessageSeconds;
+inline bool guiVirtualCouplingMessageShown(int messageStep, int step) {
+	return step >= messageStep && step <= messageStep + kGuiVirtualCouplingMessageSeconds;
 }
 
 /// The state of a run at one step: what the canvas, the panels, the replay and the live stream show.

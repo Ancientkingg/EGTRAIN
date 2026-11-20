@@ -35,9 +35,9 @@ private:
 /// Every call that trains made at a station so far, ordered by arrival. The counts are those that the passenger step has made.
 std::vector<GuiStationCall> stationCalls(const SimulationRun& run);
 
-/// The latest kGuiStationCallsListed calls of every station that began at or before `timestep`, newest first, with the counts
+/// The latest kGuiStationCallsListed calls of every station that began at or before `step`, newest first, with the counts
 /// as they are now. It reads the run, so it must run on the thread that steps it.
-std::vector<GuiStationCall> latestStationCalls(const SimulationRun& run, int timestep);
+std::vector<GuiStationCall> latestStationCalls(const SimulationRun& run, int step);
 
 /// The statistics of the completed journeys between one origin and one destination, in seconds. The means and the percentile
 /// are -1 when no journey completed; a mean delay can also be negative for a journey that arrived early.

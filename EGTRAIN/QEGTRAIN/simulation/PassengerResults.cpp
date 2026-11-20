@@ -106,14 +106,14 @@ struct CallRef {
 	int train, stop, arrival;
 };
 
-vector<CallRef> beganCalls(const SimulationRun& run, int timestep) {
+vector<CallRef> beganCalls(const SimulationRun& run, int step) {
 	vector<CallRef> refs;
 	const int trains = min(run.numTrains, static_cast<int>(run.trains.size()));
 	for (int n = 0; n < trains; ++n) {
 		const Train& train = run.trains[static_cast<size_t>(n)];
 		for (int stop = 0; stop < train.numStations && stop < Train::kMaxTimetableStations; ++stop) {
 			const double began = train.StationStandStarts[stop];
-			if (train.Stations[static_cast<size_t>(stop)].StepStopped > 0 && began >= 0 && began <= timestep
+			if (train.Stations[static_cast<size_t>(stop)].StepStopped > 0 && began >= 0 && began <= step
 				&& !train.Stations[static_cast<size_t>(stop)].stationName.empty())
 				refs.push_back({n, stop, static_cast<int>(began)});
 		}
@@ -157,8 +157,8 @@ vector<GuiStationCall> stationCalls(const SimulationRun& run) {
 	return calls;
 }
 
-vector<GuiStationCall> latestStationCalls(const SimulationRun& run, int timestep) {
-	const vector<CallRef> refs = beganCalls(run, timestep);
+vector<GuiStationCall> latestStationCalls(const SimulationRun& run, int step) {
+	const vector<CallRef> refs = beganCalls(run, step);
 	vector<GuiStationCall> latest;
 	unordered_map<string_view, int> listed;
 	for (auto ref = refs.rbegin(); ref != refs.rend(); ++ref) {
