@@ -896,10 +896,14 @@ public:
 	/// Like computeArrivalDelaysAtStations, but an early arrival keeps its negative delay, and TotalInputDelays is not changed.
 	void Compute_Pos_And_Neg_Arrival_Delays_At_Stations();
 
-	/// Records time_seconds * timestep as the arrival (s) at the first stop named CurrentServiceStop that has none yet.
+	/// The index of the call at the station called name that the train halts at now, or -1 when no stop has that name. A halt belongs to
+	/// one call: the stop that the train stands at, or else the first stop of that name after the latest stop it has stood at. When
+	/// the train has stood at every stop of that name, the last one.
+	int serviceStopOf(const std::string& name) const;
+	/// Records time_seconds * timestep as the arrival (s) at the call of CurrentServiceStop (serviceStopOf) when it has none yet.
 	void recordCurrentServiceStopArrival(int time_seconds);
-	/// Records time_seconds * timestep as the departure (s) from the first stop named CurrentServiceStop where the train has
-	/// stood and not yet left.
+	/// Records time_seconds * timestep as the departure (s) from the call of CurrentServiceStop (serviceStopOf) when the train has
+	/// stood there and not yet left.
 	void recordCurrentServiceStopDeparture(int time_seconds);
 
 	/// True when stop stationIndex lies on the route, on one of allowedBlockIds when that list is not empty.

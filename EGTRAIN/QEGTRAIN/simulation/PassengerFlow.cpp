@@ -597,15 +597,14 @@ const StationPlatform* platformOfStop(const SimulationRun& run, const Train& T, 
 }
 
 // The counts of the call that train T makes at its current stop, or null when T is not a train of the run or the stop is not found.
-// The stop is the first one of that station where the train has stood and not left.
+// The stop is the call that the train has stood at and not left (Train::serviceStopOf).
 StopCallCounts* currentCall(SimulationRun& run, const Train& T) {
 	const Train* first = run.trains.data();
 	if (&T < first || &T >= first + run.trains.size())
 		return nullptr;
-	for (int stop = 0; stop < T.numStations && stop < Train::kMaxTimetableStations; ++stop) {
-		if (T.Stations[static_cast<size_t>(stop)].stationName == T.CurrentServiceStop && T.Stations[static_cast<size_t>(stop)].StepStopped > 0 && T.StationDepartures[stop] < 0)
-			return &run.stopCalls.at(static_cast<int>(&T - first), stop);
-	}
+	const int stop = T.serviceStopOf(T.CurrentServiceStop);
+	if (stop >= 0 && stop < Train::kMaxTimetableStations && T.Stations[static_cast<size_t>(stop)].StepStopped > 0 && T.StationDepartures[stop] < 0)
+		return &run.stopCalls.at(static_cast<int>(&T - first), stop);
 	return nullptr;
 }
 

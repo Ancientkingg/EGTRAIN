@@ -72,8 +72,8 @@ void waitForTrip(Passenger& passenger, Trip& trip, int now) {
 }
 } // namespace
 
-// The stops are followed by their index, but a train that visits one station twice marks every stop of that name as stood at when
-// it first halts there (Train::serviceStopStep), which would skip stops here. No committed scene or fixture has such a service.
+// The stops are followed by their index. A halt belongs to one call (Train::serviceStopOf), so a train that visits a station twice
+// marks only the call it stands at as stood at.
 int advanceFirstStop(const Train& train, int from) {
 	const int count = stopCount(train);
 	if (train.OutOfSimulation)
