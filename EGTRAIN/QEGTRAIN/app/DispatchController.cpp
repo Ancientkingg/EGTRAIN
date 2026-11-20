@@ -18,6 +18,8 @@
 #include <chrono>
 #include <memory>
 #include <map>
+#include <string_view>
+#include <utility>
 #include <optional>
 #include <cstdio>
 #include <cstdlib>
@@ -191,24 +193,26 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 	for (auto& entry : sectionStates)
 		snapshot.sectionStates.push_back(std::move(entry.second));
 
-	for (const StationPlatform& platform : run.platforms) {
-		GuiPlatformState state;
-		state.stationId = platform.StationID;
-		state.platformId = platform.ID;
-		state.maxVolume = platform.Max_Passenger_Volume;
-		for (const auto& passenger : platform.Current_List_Pax_On_Platform)
-			state.passengerIds.push_back(passenger.first);
-		for (const Passenger& passenger : run.passengers) {
-			if (!passenger.IsIntheNetwork && passenger.TimeExitedTheNetwork > 0
-				&& timestep >= passenger.TimeExitedTheNetwork && timestep <= passenger.TimeExitedTheNetwork + kExitedPassengerShownSeconds
-				&& platform.StationID == passenger.StationExitedTheNetworkID
-				&& platform.ID == passenger.PlatformExitedTheNetworkID)
-				state.passengerIds.push_back(passenger.ID);
-		}
-		snapshot.platforms.push_back(std::move(state));
+	// The passengers who left the network in the last seconds, by the station and the platform where they left.
+	std::map<std::pair<std::string_view, std::string_view>, std::vector<const Passenger*>> exited;
+	for (const Passenger& passenger : run.passengers) {
+		if (!passenger.IsIntheNetwork && passenger.TimeExitedTheNetwork > 0 && timestep >= passenger.TimeExitedTheNetwork
+			&& timestep <= passenger.TimeExitedTheNetwork + kExitedPassengerShownSeconds)
+			exited[{passenger.StationExitedTheNetworkID, passenger.PlatformExitedTheNetworkID}].push_back(&passenger);
 	}
 
-	for (const Passenger& passenger : run.passengers) {
+	// The passenger of a waiting ID, the first of the list when an ID repeats, or null.
+	const bool indexed = run.passengerIndex.covers(run.passengers);
+	const auto passengerOf = [&run, indexed](const std::string& id) -> const Passenger* {
+		if (indexed) {
+			const std::vector<Passenger*>& found = run.passengerIndex.find(id);
+			return found.empty() ? nullptr : found.front();
+		}
+		const auto found = std::find_if(run.passengers.begin(), run.passengers.end(), [&id](const Passenger& value) { return value.ID == id; });
+		return found == run.passengers.end() ? nullptr : &*found;
+	};
+
+	const auto listPassenger = [](const Passenger& passenger) {
 		GuiPassengerState state;
 		state.id = passenger.ID;
 		state.status = passengerStatusName(passenger.CurrentStatus);
@@ -222,7 +226,32 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 			if (trip != journey->Trips.end())
 				state.nextDestination = trip->Arr_Station_ID;
 		}
-		snapshot.passengers.push_back(std::move(state));
+		return state;
+	};
+
+	for (const StationPlatform& platform : run.platforms) {
+		GuiPlatformState state;
+		state.stationId = platform.StationID;
+		state.platformId = platform.ID;
+		state.maxVolume = platform.Max_Passenger_Volume;
+		const auto left = exited.find({platform.StationID, platform.ID});
+		const std::size_t leftCount = left == exited.end() ? 0 : left->second.size();
+		const std::size_t total = platform.Current_List_Pax_On_Platform.size() + leftCount;
+		state.passengerCount = static_cast<int>(total);
+		const std::size_t listed = std::min(total, static_cast<std::size_t>(kGuiPlatformPassengerIcons));
+		state.passengers.reserve(listed);
+		for (const auto& waiting : platform.Current_List_Pax_On_Platform) {
+			if (state.passengers.size() == listed)
+				break;
+			const Passenger* passenger = passengerOf(waiting.first);
+			if (passenger)
+				state.passengers.push_back(listPassenger(*passenger));
+			else
+				state.passengers.push_back(GuiPassengerState{waiting.first, {}, {}, {}, {}});
+		}
+		for (std::size_t i = 0; i < leftCount && state.passengers.size() < listed; ++i)
+			state.passengers.push_back(listPassenger(*left->second[i]));
+		snapshot.platforms.push_back(std::move(state));
 	}
 
 	const std::size_t messageCount = std::min({run.vcMsgTimestep.size(), run.vcMsgTrain.size(), run.vcMsgText.size()});

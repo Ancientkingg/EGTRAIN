@@ -78,24 +78,14 @@ pax b2 state t=221 in=1 status=OnBoard journey=b2.1 trip=b2.1.leg.1 waiting=None
 pax b3 state t=221 in=1 status=OnBoard journey=b3.1 trip=b3.1.leg.1 waiting=None/None to_wait=None boarded=Q1-1 arrival=B
 pax b4 state t=221 in=1 status=OnBoard journey=b4.1 trip=b4.1.leg.1 waiting=None/None to_wait=None boarded=Q1-1 arrival=B
 gui_platform P P.platform.1 t=221 ids=-
-gui_passenger b1 t=221 status=OnBoard platform=None next_train=None next_destination=B
-gui_passenger b2 t=221 status=OnBoard platform=None next_train=None next_destination=B
-gui_passenger b3 t=221 status=OnBoard platform=None next_train=None next_destination=B
-gui_passenger b4 t=221 status=OnBoard platform=None next_train=None next_destination=B
 onboard Q1-1 t=221 n=4 max=300
 pax b5 state t=300 in=1 status=OnBoard journey=b5.1 trip=b5.1.leg.1 waiting=None/None to_wait=None boarded=Q1-1 arrival=B
-gui_passenger b5 t=300 status=OnBoard platform=None next_train=None next_destination=B
 onboard Q1-1 t=300 n=5 max=300
 pax b1 state t=623 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax b2 state t=623 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax b3 state t=623 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax b4 state t=623 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax b5 state t=623 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
-gui_passenger b1 t=623 status=None platform=None next_train=None next_destination=-
-gui_passenger b2 t=623 status=None platform=None next_train=None next_destination=-
-gui_passenger b3 t=623 status=None platform=None next_train=None next_destination=-
-gui_passenger b4 t=623 status=None platform=None next_train=None next_destination=-
-gui_passenger b5 t=623 status=None platform=None next_train=None next_destination=-
 onboard Q1-1 t=623 n=0 max=300
 journey b1 b1.1 started=1 completed=1 dep=25300.000000 arr=25823.000000 walking=0.000000 waiting=121.000000 delay=-137
 trip b1 b1.1.leg.1 started=1 completed=1 dep=25300 arr=25823 delay=-137

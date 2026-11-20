@@ -39,7 +39,11 @@ public:
 	/// and in the preview.
 	QGraphicsTextItem* textIcon;
 
-	/// The icon of each passenger on the platform, in the order of the snapshot. The scene owns them.
+	/// The "+N" text at the end of the bar for the N passengers on the platform who have no icon, which the scene owns;
+	/// null while every passenger has an icon.
+	QGraphicsTextItem* moreIcon = nullptr;
+
+	/// The icon of each passenger on the platform that the snapshot lists, in its order. The scene owns them.
 	QList<PassengerItem*> passengerIcons;
 
 	enum { Type = UserType + 9 /**< The item type for qgraphicsitem_cast. */ };

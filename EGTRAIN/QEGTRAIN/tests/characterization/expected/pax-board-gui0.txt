@@ -64,34 +64,20 @@ signed_stats TOTALS Av_Delay=-158.333000 Std_Delay=0.000000 Total_Delay=-475.000
 signed_stats Final_Station Av_Delay=-157.000000 Std_Delay=0.000000 Total_Delay=-157.000000 Max_Tot_Delay=-157.000000 Cum_Cons_Delay=-157.000000 Max_Cons_Delay=-157.000000 Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=1.000000 N_DelTrains=0.000000
 pax b1 state t=100 in=1 status=OnPlatform journey=b1.1 trip=b1.1.leg.1 waiting=P/P.platform.1 to_wait=Q1-1 boarded=None arrival=B
 pax b3 state t=100 in=1 status=OnPlatform journey=b3.1 trip=b3.1.leg.1 waiting=P/P.platform.1 to_wait=Q1-1 boarded=None arrival=B
-gui_passenger b1 t=100 status=OnPlatform platform=P.platform.1 next_train=Q1-1 next_destination=B
-gui_passenger b3 t=100 status=OnPlatform platform=P.platform.1 next_train=Q1-1 next_destination=B
 pax b2 state t=150 in=1 status=OnPlatform journey=b2.1 trip=b2.1.leg.1 waiting=P/P.platform.1 to_wait=Q1-1 boarded=None arrival=B
-gui_passenger b2 t=150 status=OnPlatform platform=P.platform.1 next_train=Q1-1 next_destination=B
 pax b4 state t=200 in=1 status=OnPlatform journey=b4.1 trip=b4.1.leg.1 waiting=P/P.platform.1 to_wait=Q1-1 boarded=None arrival=B
-gui_passenger b4 t=200 status=OnPlatform platform=P.platform.1 next_train=Q1-1 next_destination=B
 pax b1 state t=221 in=1 status=OnBoard journey=b1.1 trip=b1.1.leg.1 waiting=None/None to_wait=None boarded=Q1-1 arrival=B
 pax b2 state t=221 in=1 status=OnBoard journey=b2.1 trip=b2.1.leg.1 waiting=None/None to_wait=None boarded=Q1-1 arrival=B
 pax b3 state t=221 in=1 status=OnBoard journey=b3.1 trip=b3.1.leg.1 waiting=None/None to_wait=None boarded=Q1-1 arrival=B
 pax b4 state t=221 in=1 status=OnBoard journey=b4.1 trip=b4.1.leg.1 waiting=None/None to_wait=None boarded=Q1-1 arrival=B
-gui_passenger b1 t=221 status=OnBoard platform=None next_train=None next_destination=B
-gui_passenger b2 t=221 status=OnBoard platform=None next_train=None next_destination=B
-gui_passenger b3 t=221 status=OnBoard platform=None next_train=None next_destination=B
-gui_passenger b4 t=221 status=OnBoard platform=None next_train=None next_destination=B
 onboard Q1-1 t=221 n=4 max=300
 pax b5 state t=300 in=1 status=OnBoard journey=b5.1 trip=b5.1.leg.1 waiting=None/None to_wait=None boarded=Q1-1 arrival=B
-gui_passenger b5 t=300 status=OnBoard platform=None next_train=None next_destination=B
 onboard Q1-1 t=300 n=5 max=300
 pax b1 state t=623 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax b2 state t=623 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax b3 state t=623 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax b4 state t=623 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax b5 state t=623 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
-gui_passenger b1 t=623 status=None platform=None next_train=None next_destination=-
-gui_passenger b2 t=623 status=None platform=None next_train=None next_destination=-
-gui_passenger b3 t=623 status=None platform=None next_train=None next_destination=-
-gui_passenger b4 t=623 status=None platform=None next_train=None next_destination=-
-gui_passenger b5 t=623 status=None platform=None next_train=None next_destination=-
 onboard Q1-1 t=623 n=0 max=300
 journey b1 b1.1 started=1 completed=1 dep=25300.000000 arr=25823.000000 walking=0.000000 waiting=121.000000 delay=-137
 trip b1 b1.1.leg.1 started=1 completed=1 dep=25300 arr=25823 delay=-137

@@ -1541,6 +1541,8 @@ void NetworkPresenter::applyPlatformVisibility() {
 			continue;
 		if (platform->textIcon)
 			platform->textIcon->setVisible(counters);
+		if (platform->moreIcon)
+			platform->moreIcon->setVisible(passengers);
 		for (PassengerItem* icon : std::as_const(platform->passengerIcons))
 			icon->setVisible(passengers);
 	}
@@ -3146,11 +3148,13 @@ void NetworkPresenter::paintVCouplingMsg(TrainItemGroup* trainItem, const std::s
 GuiPassengerState passengerStateIn(const GuiSimulationSnapshot* snapshot, const std::string& id) {
 	GuiPassengerState passenger;
 	passenger.id = id;
-	if (snapshot) {
-		auto passengerIt = std::find_if(snapshot->passengers.begin(), snapshot->passengers.end(),
+	if (!snapshot)
+		return passenger;
+	for (const GuiPlatformState& platform : snapshot->platforms) {
+		const auto found = std::find_if(platform.passengers.begin(), platform.passengers.end(),
 			[&id](const GuiPassengerState& value) { return value.id == id; });
-		if (passengerIt != snapshot->passengers.end())
-			passenger = *passengerIt;
+		if (found != platform.passengers.end())
+			return *found;
 	}
 	return passenger;
 }
@@ -3253,14 +3257,39 @@ void NetworkPresenter::updatePlatforms(const GuiSimulationSnapshot& snapshot) {
 	stackPassengerIcons(restack);
 }
 
+// The "+N" text at the end of the bar of a platform, which tells how many passengers have no icon. It exists only while
+// there are some, and it looks like the counter.
+void NetworkPresenter::updatePlatformMore(PlatformItem* platform, int hidden) {
+	if (hidden <= 0) {
+		delete platform->moreIcon;
+		platform->moreIcon = nullptr;
+		return;
+	}
+	if (!platform->moreIcon) {
+		auto* item = new QGraphicsTextItem;
+		item->setDefaultTextColor(Qt::white);
+		item->setFont(platform->textIcon->font());
+		item->setScale(presentationScale());
+		item->setZValue(platform->textIcon->zValue());
+		m_scene->addItem(item);
+		platform->moreIcon = item;
+	}
+	QGraphicsTextItem* item = platform->moreIcon;
+	item->setPlainText(QStringLiteral("+%1").arg(hidden));
+	// level, right of the bar and centred on it, whatever the direction of the bar
+	const QRectF bar = platform->sceneBoundingRect();
+	item->setPos(QPointF(bar.right(), bar.center().y() - item->boundingRect().height() * presentationScale() / 2));
+	item->setVisible(platformPassengersVisible());
+}
+
 // The counter of a platform, and one icon for each passenger on it. An icon stays for as long as its passenger is on the
 // platform and moves when the passengers share the length of the platform differently. The icons that this adds, or that
 // swap places, are listed in restack.
 void NetworkPresenter::updatePlatform(PlatformItem* platform, const GuiPlatformState& state, std::vector<PassengerItem*>& restack) {
-	const auto& passengerIds = state.passengerIds;
-	const int nPaxIcons = static_cast<int>(passengerIds.size());
+	const auto& listed = state.passengers;
+	const int nPaxIcons = static_cast<int>(listed.size());
 
-	const QString text = platformCounterText(nPaxIcons, state.maxVolume);
+	const QString text = platformCounterText(state.passengerCount, state.maxVolume);
 
 	// update text item
 	if (platform->textIcon->toPlainText() != text) {
@@ -3271,12 +3300,13 @@ void NetworkPresenter::updatePlatform(PlatformItem* platform, const GuiPlatformS
 		platform->textIcon->moveBy(delta.x(), delta.y());
 	}
 	platform->textIcon->setVisible(paxTextVisible());
+	updatePlatformMore(platform, state.passengerCount - nPaxIcons);
 
 	// the icons stay when they belong to the same passengers in the same order
 	QList<PassengerItem*>& icons = platform->passengerIcons;
 	bool sameIcons = icons.size() == nPaxIcons;
 	for (int i = 0; sameIcons && i < nPaxIcons; ++i)
-		sameIcons = icons[i]->passengerId == passengerIds[static_cast<std::size_t>(i)];
+		sameIcons = icons[i]->passengerId == listed[static_cast<std::size_t>(i)].id;
 
 	// the icons of the passengers that are on the platform, with their place in the list
 	std::unordered_multimap<std::string_view, std::pair<PassengerItem*, int>> staying;
@@ -3294,7 +3324,7 @@ void NetworkPresenter::updatePlatform(PlatformItem* platform, const GuiPlatformS
 	int previousPlace = -1;
 	bool swapped = false;
 	for (int i = 0; i < nPaxIcons; ++i, iconX += iconSpacing) {
-		const std::string& paxID = passengerIds[static_cast<std::size_t>(i)];
+		const std::string& paxID = listed[static_cast<std::size_t>(i)].id;
 		const QPointF position = platform->mapToScene(QPointF(iconX, platformRect.center().y())) - QPointF(iconSize / 2, iconSize / 2);
 		if (sameIcons) {
 			icons[i]->setPos(position);

@@ -123,7 +123,6 @@ gui_platform P P.platform.1 t=150 ids=t1
 gui_passenger t1 t=150 status=OnPlatform platform=P.platform.1 next_train=Q1-1 next_destination=B
 pax t1 state t=221 in=1 status=OnBoard journey=t1.1 trip=t1.1.live1 waiting=None/None to_wait=None boarded=Q1-1 arrival=B
 gui_platform P P.platform.1 t=221 ids=-
-gui_passenger t1 t=221 status=OnBoard platform=None next_train=None next_destination=B
 onboard Q1-1 t=221 n=1 max=300
 pax t1 state t=955 in=1 status=OnPlatform journey=t1.1 trip=t1.1.live2 waiting=B/Platform_4 to_wait=Q3-1 boarded=None arrival=C
 gui_platform B Platform_4 t=955 ids=t1
@@ -133,10 +132,8 @@ pax t1 state t=961 in=1 status=OnPlatform journey=t1.1 trip=t1.1.live3 waiting=B
 gui_passenger t1 t=961 status=OnPlatform platform=Platform_4 next_train=Q4-1 next_destination=C
 pax t1 state t=1045 in=1 status=OnBoard journey=t1.1 trip=t1.1.live3 waiting=None/None to_wait=None boarded=Q4-1 arrival=C
 gui_platform B Platform_4 t=1045 ids=-
-gui_passenger t1 t=1045 status=OnBoard platform=None next_train=None next_destination=C
 onboard Q4-1 t=1045 n=1 max=300
 pax t1 state t=1318 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
-gui_passenger t1 t=1318 status=None platform=None next_train=None next_destination=-
 onboard Q4-1 t=1318 n=0 max=300
 journey t1 t1.1 started=1 completed=1 dep=25350.000000 arr=26518.000000 walking=90.000000 waiting=71.000000 delay=-232 replanned=1
 trip t1 t1.1.live1 started=1 completed=1 dep=25350 arr=26155 delay=195

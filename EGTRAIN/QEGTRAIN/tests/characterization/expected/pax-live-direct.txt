@@ -63,24 +63,15 @@ signed_stats P Av_Delay=-180.000000 Std_Delay=0.000000 Total_Delay=-180.000000 M
 signed_stats TOTALS Av_Delay=-158.333000 Std_Delay=0.000000 Total_Delay=-475.000000 Max_Tot_Delay=-138.000000 Cum_Cons_Delay=-475.000000 Max_Cons_Delay=-138.000000 Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000
 signed_stats Final_Station Av_Delay=-157.000000 Std_Delay=0.000000 Total_Delay=-157.000000 Max_Tot_Delay=-157.000000 Cum_Cons_Delay=-157.000000 Max_Cons_Delay=-157.000000 Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=1.000000 N_DelTrains=0.000000
 pax d2 state t=90 in=1 status=OnPlatform journey=d2.1 trip=d2.1.live1 waiting=P/P.platform.1 to_wait=Q1-1 boarded=None arrival=C
-gui_passenger d2 t=90 status=OnPlatform platform=P.platform.1 next_train=Q1-1 next_destination=C
 pax d1 state t=150 in=1 status=OnPlatform journey=d1.1 trip=d1.1.live1 waiting=P/P.platform.1 to_wait=Q1-1 boarded=None arrival=B
-gui_passenger d1 t=150 status=OnPlatform platform=P.platform.1 next_train=Q1-1 next_destination=B
 pax d1 state t=221 in=1 status=OnBoard journey=d1.1 trip=d1.1.live1 waiting=None/None to_wait=None boarded=Q1-1 arrival=B
 pax d2 state t=221 in=1 status=OnBoard journey=d2.1 trip=d2.1.live1 waiting=None/None to_wait=None boarded=Q1-1 arrival=C
-gui_passenger d1 t=221 status=OnBoard platform=None next_train=None next_destination=B
-gui_passenger d2 t=221 status=OnBoard platform=None next_train=None next_destination=C
 onboard Q1-1 t=221 n=2 max=300
 pax d3 state t=600 in=1 status=OnPlatform journey=d3.1 trip=d3.1.live1 waiting=B/B.platform.1 to_wait=Q1-1 boarded=None arrival=C
-gui_passenger d3 t=600 status=OnPlatform platform=B.platform.1 next_train=Q1-1 next_destination=C
 pax d1 state t=623 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax d3 state t=623 in=1 status=OnBoard journey=d3.1 trip=d3.1.live1 waiting=None/None to_wait=None boarded=Q1-1 arrival=C
-gui_passenger d1 t=623 status=None platform=None next_train=None next_destination=-
-gui_passenger d3 t=623 status=OnBoard platform=None next_train=None next_destination=C
 pax d2 state t=1094 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax d3 state t=1094 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
-gui_passenger d2 t=1094 status=None platform=None next_train=None next_destination=-
-gui_passenger d3 t=1094 status=None platform=None next_train=None next_destination=-
 onboard Q1-1 t=1094 n=0 max=300
 journey d1 d1.1 started=1 completed=1 dep=25350.000000 arr=25823.000000 walking=0.000000 waiting=71.000000 delay=-137
 trip d1 d1.1.live1 started=1 completed=1 dep=25350 arr=25823 delay=-137

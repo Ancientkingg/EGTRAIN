@@ -125,40 +125,25 @@ signed_stats P Av_Delay=-180.000000 Std_Delay=0.000000 Total_Delay=-180.000000 M
 signed_stats TOTALS Av_Delay=-173.500000 Std_Delay=22.912900 Total_Delay=-681.000000 Max_Tot_Delay=-127.000000 Cum_Cons_Delay=-681.000000 Max_Cons_Delay=-127.000000 Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000
 signed_stats Final_Station Av_Delay=-167.000000 Std_Delay=45.825800 Total_Delay=-501.000000 Max_Tot_Delay=-127.000000 Cum_Cons_Delay=-501.000000 Max_Cons_Delay=-127.000000 Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=3.000000 N_DelTrains=0.000000
 pax x1 state t=150 in=1 status=OnPlatform journey=x1.1 trip=x1.1.leg.1 waiting=P/P.platform.1 to_wait=Q1-1 boarded=None arrival=B
-gui_passenger x1 t=150 status=OnPlatform platform=P.platform.1 next_train=Q1-1 next_destination=B
 pax x2 state t=160 in=1 status=OnPlatform journey=x2.1 trip=x2.1.leg.1 waiting=P/P.platform.1 to_wait=Q1-1 boarded=None arrival=B
-gui_passenger x2 t=160 status=OnPlatform platform=P.platform.1 next_train=Q1-1 next_destination=B
 pax y1 state t=170 in=1 status=OnPlatform journey=y1.1 trip=y1.1.leg.1 waiting=P/P.platform.1 to_wait=Q1-1 boarded=None arrival=B
-gui_passenger y1 t=170 status=OnPlatform platform=P.platform.1 next_train=Q1-1 next_destination=B
 pax x1 state t=221 in=1 status=OnBoard journey=x1.1 trip=x1.1.leg.1 waiting=None/None to_wait=None boarded=Q1-1 arrival=B
 pax x2 state t=221 in=1 status=OnBoard journey=x2.1 trip=x2.1.leg.1 waiting=None/None to_wait=None boarded=Q1-1 arrival=B
 pax y1 state t=221 in=1 status=OnBoard journey=y1.1 trip=y1.1.leg.1 waiting=None/None to_wait=None boarded=Q1-1 arrival=B
-gui_passenger x1 t=221 status=OnBoard platform=None next_train=None next_destination=B
-gui_passenger x2 t=221 status=OnBoard platform=None next_train=None next_destination=B
-gui_passenger y1 t=221 status=OnBoard platform=None next_train=None next_destination=B
 onboard Q1-1 t=221 n=3 max=300
 pax x1 state t=623 in=1 status=OnBoard journey=x1.1 trip=x1.1.leg.2 waiting=None/None to_wait=None boarded=Q2-1 arrival=C
 pax x2 state t=623 in=1 status=OnPlatform journey=x2.1 trip=x2.1.leg.2 waiting=B/Platform_4 to_wait=Q3-1 boarded=None arrival=C
 pax y1 state t=623 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
-gui_passenger x1 t=623 status=OnBoard platform=None next_train=None next_destination=C
-gui_passenger x2 t=623 status=OnPlatform platform=Platform_4 next_train=Q3-1 next_destination=C
-gui_passenger y1 t=623 status=None platform=None next_train=None next_destination=-
 onboard Q1-1 t=623 n=0 max=300
 onboard Q2-1 t=623 n=1 max=300
 pax y1 state t=650 in=1 status=OnPlatform journey=y1.2 trip=y1.2.leg.1 waiting=B/Platform_4 to_wait=Q3-1 boarded=None arrival=C
-gui_passenger y1 t=650 status=OnPlatform platform=Platform_4 next_train=Q3-1 next_destination=C
 pax x2 state t=772 in=1 status=OnBoard journey=x2.1 trip=x2.1.leg.2 waiting=None/None to_wait=None boarded=Q3-1 arrival=C
 pax y1 state t=772 in=1 status=OnBoard journey=y1.2 trip=y1.2.leg.1 waiting=None/None to_wait=None boarded=Q3-1 arrival=C
-gui_passenger x2 t=772 status=OnBoard platform=None next_train=None next_destination=C
-gui_passenger y1 t=772 status=OnBoard platform=None next_train=None next_destination=C
 onboard Q3-1 t=772 n=2 max=300
 pax x2 state t=1234 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax y1 state t=1234 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
-gui_passenger x2 t=1234 status=None platform=None next_train=None next_destination=-
-gui_passenger y1 t=1234 status=None platform=None next_train=None next_destination=-
 onboard Q3-1 t=1234 n=0 max=300
 pax x1 state t=1274 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
-gui_passenger x1 t=1274 status=None platform=None next_train=None next_destination=-
 onboard Q2-1 t=1274 n=0 max=300
 journey x1 x1.1 started=1 completed=1 dep=25350.000000 arr=26474.000000 walking=0.000000 waiting=71.000000 delay=-126
 trip x1 x1.1.leg.1 started=1 completed=1 dep=25350 arr=25823 delay=0

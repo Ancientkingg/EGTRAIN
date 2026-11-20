@@ -602,6 +602,22 @@ static std::vector<double> canvasFields(const RuntimeGeometrySource& source) {
 
 using Ids = std::vector<std::string>;
 
+// The passengers `ids` as a platform lists them, and the platform counts as many.
+static void listPassengers(GuiPlatformState& platform, const Ids& ids) {
+	platform.passengers.clear();
+	for (const std::string& id : ids) platform.passengers.push_back({id, "waiting", "P1", "T1", "A"});
+	platform.passengerCount = static_cast<int>(ids.size());
+}
+
+static GuiPlatformState platformWith(const std::string& station, const std::string& id, int maxVolume, const Ids& ids) {
+	GuiPlatformState platform;
+	platform.stationId = station;
+	platform.platformId = id;
+	platform.maxVolume = maxVolume;
+	listPassengers(platform, ids);
+	return platform;
+}
+
 // Whether the presenter holds no item and points to none, the way a new presenter does.
 static bool presenterEmpty(const NetworkPresenter& presenter) {
 	return presenter.runTrains().isEmpty() && PresenterAccess::trainBadges(presenter).isEmpty() && !presenter.trainsMoving()
@@ -752,6 +768,7 @@ private slots:
 	void badgeShowsLoadWithPassengerLayer();
 	void headTooltipFollowsAspect();
 	void stepTouchesOnlyWhatItChanges();
+	void platformShowsBoundedIcons();
 	void trainGlidesAlongBentLine();
 	void trainRunsOverCrossover();
 	void wagonKeepsWidthOverShortConnection();
@@ -925,7 +942,7 @@ void TestRuntimeCanvas::applyShowsStepsOfRun() {
 	snapshot.trains = {trainAt(7.5)};
 	snapshot.trains[0].occupiedArcs = {GuiOccupiedArc{0, 0.0}};
 	snapshot.signalStates = {GuiSignalState{"s0", 75, head->reversedDirection, 3, false}};
-	snapshot.platforms = {GuiPlatformState{"B", "P1", 40, {"p1", "p2"}}};
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1", "p2"})};
 
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	// A live step reports the signals, then each train, then the end of the trains to the host.
@@ -993,7 +1010,7 @@ void TestRuntimeCanvas::applyShowsStepsOfRun() {
 	snapshot.timestep = 11;
 	snapshot.trains = {trainAt(8.0)};
 	snapshot.signalStates.clear();
-	snapshot.platforms[0].passengerIds = {"p1"};
+	listPassengers(snapshot.platforms[0], {"p1"});
 	snapshot.virtualCouplingMessages = {GuiVirtualCouplingState{11, "T1", "message"}};
 	host.promoted = true;
 	host.cameraMoves = true;
@@ -1260,7 +1277,7 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	SignalItem* const head = PresenterAccess::signalsByAheadId(presenter)["s0"].front();
 	snapshot.signalStates = {GuiSignalState{"s0", 75, head->reversedDirection, 3, false}};
 	// listed in the opposite order of the platforms on the canvas
-	snapshot.platforms = {GuiPlatformState{"B", "P1", 40, {"p1", "p2", "p3"}}, GuiPlatformState{"B", "P2", 30, {"q1", "q2"}}};
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1", "p2", "p3"}), platformWith("B", "P2", 30, Ids{"q1", "q2"})};
 	PlatformItem* const endPlatform = PresenterAccess::allPlatforms(presenter).value(1);
 	PlatformItem* const middlePlatform = PresenterAccess::allPlatforms(presenter).value(0);
 	// The platforms are in the order of the line.
@@ -1293,7 +1310,7 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	PassengerItem* const lastIcon = endPlatform->passengerIcons[2];
 	PresenterAccess::paxIconItem(presenter) = firstIcon;
 	snapshot.timestep = 11;
-	snapshot.platforms[0].passengerIds = {"p1", "p3"};
+	listPassengers(snapshot.platforms[0], {"p1", "p3"});
 	marked = markItems(scene);
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	itemsNow = itemChanges(scene, marked);
@@ -1314,7 +1331,7 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 
 	// passengers arrive, one of them between the two
 	snapshot.timestep = 12;
-	snapshot.platforms[0].passengerIds = {"p1", "p4", "p3", "p5"};
+	listPassengers(snapshot.platforms[0], {"p1", "p4", "p3", "p5"});
 	marked = markItems(scene);
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	itemsNow = itemChanges(scene, marked);
@@ -1333,7 +1350,7 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 
 	// the passengers swap places
 	snapshot.timestep = 13;
-	snapshot.platforms[0].passengerIds = {"p5", "p3", "p1", "p4"};
+	listPassengers(snapshot.platforms[0], {"p5", "p3", "p1", "p4"});
 	marked = markItems(scene);
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	itemsNow = itemChanges(scene, marked);
@@ -1360,7 +1377,7 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	const QString endText = endPlatform->textIcon->toPlainText();
 	PresenterAccess::passengerLayerVisible(presenter) = false;
 	snapshot.timestep = 15;
-	snapshot.platforms = {GuiPlatformState{"B", "P1", 40, {"p9"}}, GuiPlatformState{"B", "P2", 30, {}}};
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p9"}), platformWith("B", "P2", 30, Ids{})};
 	marked = markItems(scene);
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	itemsNow = itemChanges(scene, marked);
@@ -1392,6 +1409,61 @@ void TestRuntimeCanvas::stepTouchesOnlyWhatItChanges() {
 	QCOMPARE(itemsNow.removed, 0);
 	presenter.clear();
 	QVERIFY2(scene.items().isEmpty(), "clear leaves nothing of the run");
+}
+
+// A platform with more passengers than the snapshot lists shows an icon for each listed one, the number of all of them in
+// its counter, and a "+N" text for the ones without an icon, which goes when the platform lists all of its passengers.
+void TestRuntimeCanvas::platformShowsBoundedIcons() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	presenter.showRuntime(f.model);
+	PresenterAccess::setStationNearLook(presenter, true);
+	PresenterAccess::passengerPixmap(presenter) = QPixmap(10, 10);
+	PlatformItem* const platform = PresenterAccess::allPlatforms(presenter).value(0);
+
+	Ids ids;
+	for (int i = 0; i < kGuiPlatformPassengerIcons; ++i) ids.push_back("p" + std::to_string(i));
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	snapshot.platforms = {platformWith("B", "P1", 400, ids)};
+	snapshot.platforms[0].passengerCount = 60;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	// The platform shows 50 icons, the count of all 60 passengers and the 10 who have no icon.
+	QCOMPARE(platform->passengerIcons.size(), qsizetype(kGuiPlatformPassengerIcons));
+	QCOMPARE(platform->textIcon->toPlainText(), "60 waiting (capacity 400)");
+	QVERIFY(platform->moreIcon);
+	QCOMPARE(platform->moreIcon->toPlainText(), "+10");
+	QVERIFY(platform->moreIcon->isVisible());
+	QCOMPARE(platform->moreIcon->font(), platform->textIcon->font());
+	QCOMPARE(platform->moreIcon->scale(), platform->textIcon->scale());
+	QCOMPARE(passengerStateIn(&snapshot, "p3").id, std::string("p3"));
+	QCOMPARE(passengerStateIn(&snapshot, "p3").status, std::string("waiting"));
+
+	// The text follows the count.
+	snapshot.platforms[0].passengerCount = 75;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QCOMPARE(platform->moreIcon->toPlainText(), "+25");
+
+	// It hides with the icons.
+	PresenterAccess::passengerLayerVisible(presenter) = false;
+	PresenterAccess::applyPlatformVisibility(presenter);
+	QVERIFY(!platform->moreIcon->isVisible());
+	PresenterAccess::passengerLayerVisible(presenter) = true;
+	PresenterAccess::applyPlatformVisibility(presenter);
+	QVERIFY(platform->moreIcon->isVisible());
+
+	// At 50 passengers, and below, the text is gone.
+	const qsizetype itemsWithText = f.scene.items().size();
+	snapshot.platforms[0].passengerCount = 50;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QVERIFY(!platform->moreIcon);
+	QCOMPARE(f.scene.items().size(), itemsWithText - 1);
+	QCOMPARE(platform->textIcon->toPlainText(), "50 waiting (capacity 400)");
+	listPassengers(snapshot.platforms[0], {"p1", "p2"});
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QVERIFY(!platform->moreIcon);
+	QCOMPARE(platform->passengerIcons.size(), qsizetype(2));
 }
 
 // A live train glides along the drawn line of its track from where it is drawn, and every step draws it wagon by wagon
@@ -2529,8 +2601,7 @@ void TestRuntimeCanvas::roundsLeaveNothingBehind() {
 		snapshot.signalStates = {GuiSignalState{"s0", 75, head->reversedDirection, 3, false}};
 		snapshot.sectionStates = {GuiSectionState{"s1", true, true}};
 		if (source->passengers) {
-			snapshot.platforms = {GuiPlatformState{"B", "P1", 40, {"p1", "p2", "p3"}}};
-			snapshot.passengers = {GuiPassengerState{"p1", "waiting", "P1", "T1", "A"}};
+			snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1", "p2", "p3"})};
 		}
 		presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 
@@ -2553,7 +2624,7 @@ void TestRuntimeCanvas::roundsLeaveNothingBehind() {
 			if (step == 1)
 				snapshot.virtualCouplingMessages.push_back({12, "T1", "message"});
 			if (source->passengers)
-				snapshot.platforms[0].passengerIds = step % 2 == 0 ? Ids({"p1", "p3", "p4"}) : Ids({"p1", "p5"});
+				listPassengers(snapshot.platforms[0], step % 2 == 0 ? Ids({"p1", "p3", "p4"}) : Ids({"p1", "p5"}));
 			presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 		}
 		snapshot.trains[0].outOfSimulation = true;
@@ -2566,7 +2637,7 @@ void TestRuntimeCanvas::roundsLeaveNothingBehind() {
 			snapshot.trains = {trainAt(7.5 + (time - 10) * 0.1)};
 			snapshot.trains[0].occupiedArcs = {GuiOccupiedArc{0, 0.0}};
 			if (source->passengers)
-				snapshot.platforms[0].passengerIds = time % 2 == 0 ? Ids({"p1", "p2"}) : Ids({"p2", "p1", "p6"});
+				listPassengers(snapshot.platforms[0], time % 2 == 0 ? Ids({"p1", "p2"}) : Ids({"p2", "p1", "p6"}));
 			presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
 		}
 		// A round holds one train and one badge, whatever the earlier rounds drew.
@@ -2709,7 +2780,7 @@ void TestRuntimeCanvas::platformLiesAlongDiagonalTrack() {
 
 	GuiSimulationSnapshot snapshot;
 	snapshot.timestep = 10;
-	snapshot.platforms = {GuiPlatformState{"B", "P1", 40, {"p1", "p2", "p3"}}, GuiPlatformState{"B", "P2", 30, {"q1", "q2"}}};
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1", "p2", "p3"}), platformWith("B", "P2", 30, Ids{"q1", "q2"})};
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	const qreal iconSize = PresenterAccess::passengerPixmap(presenter).width() * presenter.presentationScale();
 	bool upright = middlePlatform && endPlatform && middlePlatform->passengerIcons.size() == 2

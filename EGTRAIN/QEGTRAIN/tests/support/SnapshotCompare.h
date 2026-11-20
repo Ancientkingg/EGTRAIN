@@ -51,16 +51,21 @@ inline auto fields(const GuiSectionState& v) {
 	return std::make_tuple(sectionId, prepared, blocked);
 }
 
-/// The fields of a platform, in declaration order.
-inline auto fields(const GuiPlatformState& v) {
-	const auto& [stationId, platformId, maxVolume, passengerIds] = v;
-	return std::make_tuple(stationId, platformId, maxVolume, passengerIds);
-}
-
 /// The fields of a passenger, in declaration order.
 inline auto fields(const GuiPassengerState& v) {
 	const auto& [id, status, waitingPlatform, nextTrain, nextDestination] = v;
 	return std::make_tuple(id, status, waitingPlatform, nextTrain, nextDestination);
+}
+
+/// Every field of the two passengers is equal.
+inline bool operator==(const GuiPassengerState& a, const GuiPassengerState& b) {
+	return fields(a) == fields(b);
+}
+
+/// The fields of a platform, in declaration order.
+inline auto fields(const GuiPlatformState& v) {
+	const auto& [stationId, platformId, maxVolume, passengerCount, passengers] = v;
+	return std::make_tuple(stationId, platformId, maxVolume, passengerCount, passengers);
 }
 
 /// The fields of a virtual coupling message, in declaration order.
@@ -81,10 +86,10 @@ template <class T> bool sameList(const std::vector<T>& a, const std::vector<T>& 
 
 /// Every field of the two snapshots is equal.
 inline bool sameSnapshot(const GuiSimulationSnapshot& a, const GuiSimulationSnapshot& b) {
-	const auto& [step, totalTimesteps, trains, signalStates, sectionStates, platforms, passengers, messages] = a;
+	const auto& [step, totalTimesteps, trains, signalStates, sectionStates, platforms, messages] = a;
 	return step == b.timestep && totalTimesteps == b.totalTimesteps && sameList(trains, b.trains)
 		&& sameList(signalStates, b.signalStates) && sameList(sectionStates, b.sectionStates) && sameList(platforms, b.platforms)
-		&& sameList(passengers, b.passengers) && sameList(messages, b.virtualCouplingMessages);
+		&& sameList(messages, b.virtualCouplingMessages);
 }
 
 namespace snapshot_compare_detail {
@@ -97,7 +102,7 @@ inline const std::array<const char*, 20> trainNames{"index", "id", "type", "desc
 	"currentOnboardPassengers", "maxOnboardPassengers", "wagonHeadPositions", "wagonTailPositions", "occupiedArcs"};
 inline const std::array<const char*, 5> signalNames{"sectionId", "code", "reversedDirection", "level", "failed"};
 inline const std::array<const char*, 3> sectionNames{"sectionId", "prepared", "blocked"};
-inline const std::array<const char*, 4> platformNames{"stationId", "platformId", "maxVolume", "passengerIds"};
+inline const std::array<const char*, 5> platformNames{"stationId", "platformId", "maxVolume", "passengerCount", "passengers"};
 inline const std::array<const char*, 5> passengerNames{"id", "status", "waitingPlatform", "nextTrain", "nextDestination"};
 inline const std::array<const char*, 3> messageNames{"timestep", "trainDescription", "message"};
 
@@ -187,7 +192,6 @@ inline std::string firstSnapshotDifference(const GuiSimulationSnapshot& a, const
 	if (differs("timestep", a.timestep, b.timestep, out) || differs("totalTimesteps", a.totalTimesteps, b.totalTimesteps, out)
 		|| differs("trains", a.trains, b.trains, out) || differs("signalStates", a.signalStates, b.signalStates, out)
 		|| differs("sectionStates", a.sectionStates, b.sectionStates, out) || differs("platforms", a.platforms, b.platforms, out)
-		|| differs("passengers", a.passengers, b.passengers, out)
 		|| differs("virtualCouplingMessages", a.virtualCouplingMessages, b.virtualCouplingMessages, out))
 		return out;
 	return "snapshots differ";

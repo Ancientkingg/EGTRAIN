@@ -138,21 +138,13 @@ pax f2 state t=623 in=1 status=OnBoard journey=f2.1 trip=f2.1.live1 waiting=None
 pax f3 state t=623 in=1 status=OnBoard journey=f3.1 trip=f3.1.live1 waiting=None/None to_wait=None boarded=Q1-1 arrival=C
 pax f4 state t=623 in=1 status=OnBoard journey=f4.1 trip=f4.1.live2 waiting=None/None to_wait=None boarded=Q2-1 arrival=C
 gui_platform B B.platform.1 t=623 ids=-
-gui_passenger f1 t=623 status=OnBoard platform=None next_train=None next_destination=C
-gui_passenger f2 t=623 status=OnBoard platform=None next_train=None next_destination=C
-gui_passenger f3 t=623 status=OnBoard platform=None next_train=None next_destination=C
-gui_passenger f4 t=623 status=OnBoard platform=None next_train=None next_destination=C
 onboard Q1-1 t=623 n=3 max=3
 onboard Q2-1 t=623 n=1 max=3
 pax f1 state t=1094 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax f2 state t=1094 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
 pax f3 state t=1094 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
-gui_passenger f1 t=1094 status=None platform=None next_train=None next_destination=-
-gui_passenger f2 t=1094 status=None platform=None next_train=None next_destination=-
-gui_passenger f3 t=1094 status=None platform=None next_train=None next_destination=-
 onboard Q1-1 t=1094 n=0 max=3
 pax f4 state t=1274 in=0 status=None journey=None trip=None waiting=None/None to_wait=None boarded=None arrival=None
-gui_passenger f4 t=1274 status=None platform=None next_train=None next_destination=-
 onboard Q2-1 t=1274 n=0 max=3
 journey f1 f1.1 started=1 completed=1 dep=25800.000000 arr=26294.000000 walking=0.000000 waiting=23.000000 delay=-156
 trip f1 f1.1.live1 started=1 completed=1 dep=25800 arr=26294 delay=-156
