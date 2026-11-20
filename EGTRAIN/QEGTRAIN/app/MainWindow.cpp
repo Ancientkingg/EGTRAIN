@@ -120,6 +120,7 @@
 #include "editors/EntranceDelayPanel.h"
 #include "editors/IncidentPanel.h"
 #include "editors/InfrastructurePanel.h"
+#include "editors/PassengerDemandPanel.h"
 #include "editors/PassengerPanel.h"
 #include "editors/ScenarioPanel.h"
 #include "editors/SceneDocument.h"
@@ -1231,6 +1232,7 @@ void MainWindow::setupValidationDocks() {
 	connect(m_validation, &ValidationPanel::refreshed, this, [this] {
 		m_editorDocks.scenarioPanel()->refresh();
 		m_editorDocks.passengerPanel()->refresh();
+		m_editorDocks.demandPanel()->refresh();
 		updateSceneActions();
 	});
 	connect(m_validation, &ValidationPanel::targetActivated, this, &MainWindow::openLoadedDataTarget);
@@ -2689,7 +2691,7 @@ void MainWindow::updateCaseLayersPanel() {
 }
 
 void MainWindow::updatePassengerSwitch() {
-	const bool hasPassengers = m_document->isLoaded() && !m_document->model().passengers.empty();
+	const bool hasPassengers = m_document->isLoaded() && m_document->model().hasPassengers();
 	const QString passengerTip = hasPassengers ? QString() : QStringLiteral("This case has no passengers");
 	m_presenter->setCaseHasPassengers(hasPassengers);
 	m_passengerLayerCheck->setEnabled(hasPassengers);
@@ -3952,7 +3954,7 @@ void MainWindow::updateNetworkLegend() {
 	content.hasSignals = !preview && !m_presenter->runSignals().isEmpty();
 	if (preview)
 		content.hasSignals = m_presenter->previewHasSignals();
-	content.hasPassengers = !preview && passengerGui() && m_presenter->passengerLayerVisible() && !m_document->model().passengers.empty();
+	content.hasPassengers = !preview && passengerGui() && m_presenter->passengerLayerVisible() && m_document->model().hasPassengers();
 	m_networkLegendWidget->setCaseContent(content);
 }
 

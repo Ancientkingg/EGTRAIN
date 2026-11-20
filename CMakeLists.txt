@@ -281,6 +281,7 @@ add_library(egtrain_editors STATIC
     ${SRC_DIR}/editors/infrastructure/SignalFacets.cpp
     ${SRC_DIR}/editors/infrastructure/StationFacets.cpp
     ${SRC_DIR}/editors/infrastructure/TopologyFacets.cpp
+    ${SRC_DIR}/editors/PassengerDemandPanel.cpp
     ${SRC_DIR}/editors/PassengerPanel.cpp
     ${SRC_DIR}/editors/RollingStockLibraryDialog.cpp
     ${SRC_DIR}/editors/SceneDocument.cpp

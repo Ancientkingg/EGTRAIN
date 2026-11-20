@@ -9,6 +9,7 @@ class CompositionPanel;
 class EntranceDelayPanel;
 class IncidentPanel;
 class InfrastructurePanel;
+class PassengerDemandPanel;
 class PassengerPanel;
 class QDockWidget;
 class QMainWindow;
@@ -31,7 +32,7 @@ class OperationObservation;
 
 /// The editor docks at the right of the main window, in one group of tabs: Case Settings, Infrastructure, Rolling Stock
 /// Units, Compositions, Services with the stops of the selected service, Scenarios with its Incidents and Entrance delays
-/// tabs, and Passengers. It builds the panels and their docks, which the window owns, and connects the panels to each
+/// tabs, and Passengers, whose dock has a Passengers tab and a Demand tab. It builds the panels and their docks, which the window owns, and connects the panels to each
 /// other, to the scene document and, through the Host, to the window.
 class EditorDocks {
 public:
@@ -126,6 +127,8 @@ public:
 	QDockWidget* incidentDock() const { return m_incidentDock; }
 	/// The Passengers panel: the passengers with their journeys and ordered legs.
 	PassengerPanel* passengerPanel() const { return m_passengerPanel; }
+	/// The Demand tab of the Passengers dock: the origin-destination demand slices of the case.
+	PassengerDemandPanel* demandPanel() const { return m_demandPanel; }
 	/// The Passengers dock.
 	QDockWidget* passengerDock() const { return m_passengerDock; }
 	/// The editor panels, in the order in which the window takes their pending edits.
@@ -155,6 +158,7 @@ private:
 	EntranceDelayPanel* m_entranceDelayPanel = nullptr;
 	QDockWidget* m_passengerDock = nullptr;
 	PassengerPanel* m_passengerPanel = nullptr;
+	PassengerDemandPanel* m_demandPanel = nullptr;
 	std::vector<SceneEditorPanel*> m_panels;
 };
 
