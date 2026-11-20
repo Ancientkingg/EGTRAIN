@@ -34,7 +34,6 @@ QFont sectionFont() {
 
 StationCalloutItem::StationCalloutItem(QGraphicsItem* parent)
 	: QGraphicsItem(parent) {
-	setFlag(ItemIgnoresTransformations);
 	setAcceptedMouseButtons(Qt::LeftButton);
 	setZValue(CardZValue);
 	setVisible(false);
@@ -62,6 +61,16 @@ void StationCalloutItem::setContent(const StationCalloutContent& content) {
 	m_content = content;
 	layout();
 	update();
+}
+
+void StationCalloutItem::setPixelScale(qreal scale) {
+	if (scale <= 0.0)
+		scale = 1.0;
+	if (scale == m_pixelScale)
+		return;
+	// the extent in the scene changes with the transform, which Qt tells the index of
+	m_pixelScale = scale;
+	setTransform(QTransform::fromScale(1.0 / scale, 1.0 / scale));
 }
 
 void StationCalloutItem::setShift(qreal shift) {

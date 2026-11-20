@@ -3733,6 +3733,8 @@ void NetworkPresenter::placeStationCallouts() {
 		const QPointF top(centre.x(), mark.top());
 		// below the mark where the card would leave the top of the view
 		const bool below = m_view && m_view->mapFromScene(top).y() - callout.item->cardRect().height() - StationCalloutItem::Gap < 0;
+		// one unit of the card is one pixel of the view
+		callout.item->setPixelScale(m_view ? std::abs(m_view->transform().m11()) : 1.0);
 		callout.item->setBelow(below);
 		callout.item->setPos(below ? QPointF(centre.x(), mark.bottom()) : top);
 		// sideways into the view, the pointer staying at the station

@@ -804,6 +804,7 @@ private slots:
 	void stationCalloutListsDestinationsAndCalls();
 	void stationCalloutOpensFromClicksAndCloses();
 	void stationCalloutPlacesBelowAtTopOfView();
+	void stationCalloutStaysInSceneIndex();
 	void trainGlidesAlongBentLine();
 	void trainRunsOverCrossover();
 	void wagonKeepsWidthOverShortConnection();
@@ -1708,7 +1709,8 @@ void TestRuntimeCanvas::stationCalloutListsDestinationsAndCalls() {
 	StationCalloutItem* const card = presenter.stationCallout("B");
 	QVERIFY(card);
 	QVERIFY(card->isVisible());
-	QVERIFY(card->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations));
+	// not ItemIgnoresTransformations, which the scene index cannot follow for a card this large
+	QVERIFY(!card->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations));
 	QCOMPARE(card->zValue(), 5.0);
 	QCOMPARE(card->scene(), &f.scene);
 	const StationCalloutContent& content = card->content();
@@ -1906,6 +1908,76 @@ void TestRuntimeCanvas::stationCalloutPlacesBelowAtTopOfView() {
 	placeAcross(static_cast<int>(width) - 20);
 	QVERIFY(card->shift() < 0.0);
 	QVERIFY(cardInView().right() <= width);
+}
+
+// The card covers about 340 by 230 pixels of the screen, but at a small zoom those are few scene units. The scene finds an
+// item by its extent in the scene, so the card must have that extent as it is on the screen: with an extent in scene units
+// the repaint of a region that the card covers would not reach it, and a card that moved or changed stayed painted in
+// the old place and was drawn in part in the new one.
+void TestRuntimeCanvas::stationCalloutStaysInSceneIndex() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	presenter.showRuntime(f.model);
+	zoomToFigures(f, 4.0);
+	f.view.setSceneRect(-1e6, -1e6, 2e6, 2e6);
+	QVERIFY(std::abs(f.view.transform().m11()) < 0.5);
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1"})};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	presenter.openStationCallout("B", &snapshot);
+	StationCalloutItem* const card = presenter.stationCallout("B");
+	QVERIFY(card);
+	const auto markNow = [&presenter] { return PresenterAccess::stationCounts(presenter)[0].overlay->pictureItem()->sceneBoundingRect(); };
+	const auto placeAt = [&](int viewportY) {
+		const qreal scale = std::abs(f.view.transform().m11());
+		const QRectF before = markNow();
+		f.view.centerOn(QPointF(before.center().x(), before.top() + (f.view.viewport()->height() / 2.0 - viewportY) / scale));
+		presenter.updateViewOverlays([](const StationOverlayItem*) { return false; }, nullptr);
+	};
+	// The card covers its area on the screen in the scene: its extent mapped to the view holds that area, and the scene
+	// finds the card at points of the area far from its origin.
+	const auto checkIndexed = [&](const char* what) {
+		const QPointF origin = f.view.mapFromScene(card->pos());
+		const QRectF onScreen(origin + card->cardRect().topLeft(), card->cardRect().size());
+		const QRectF extent = f.view.mapFromScene(card->sceneBoundingRect()).boundingRect();
+		QVERIFY2(extent.contains(onScreen.adjusted(2, 2, -2, -2)), what);
+		for (const QPointF& at : {onScreen.center(), onScreen.topLeft() + QPointF(10, 10), onScreen.bottomRight() - QPointF(10, 10),
+				 onScreen.topRight() + QPointF(-10, 10), onScreen.bottomLeft() + QPointF(10, -10)})
+			QVERIFY2(f.scene.items(f.view.mapToScene(at.toPoint())).contains(card), what);
+		// and it is as large on the screen as it is laid out
+		QVERIFY2(std::abs(onScreen.width() - StationCalloutItem::CardWidth) < 1.0, what);
+	};
+	placeAt(350);
+	QVERIFY(!card->below());
+	checkIndexed("above");
+	// a change of content that makes the card shorter
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{})};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	checkIndexed("shorter");
+	// a flip below the station at the top of the view
+	placeAt(20);
+	QVERIFY(card->below());
+	checkIndexed("below");
+	// and back, after a zoom, which changes the scale that the card is given
+	placeAt(350);
+	f.view.zoomBy(1.5);
+	presenter.updateViewOverlays([](const StationOverlayItem*) { return false; }, nullptr);
+	placeAt(350);
+	QVERIFY(!card->below());
+	checkIndexed("zoomed");
+	// the × still closes it and the card still takes a click, through the transform
+	QGraphicsSceneMouseEvent press(QEvent::GraphicsSceneMousePress);
+	press.setButton(Qt::LeftButton);
+	press.setButtons(Qt::LeftButton);
+	const QPointF origin = f.view.mapFromScene(card->pos());
+	press.setScenePos(f.view.mapToScene((origin + card->closeRect().center()).toPoint()));
+	press.setWidget(f.view.viewport());
+	// the scene hands the press to the item under the screen position of the event
+	press.setScreenPos(f.view.viewport()->mapToGlobal((origin + card->closeRect().center()).toPoint()));
+	f.scene.mousePressEvent(&press);
+	QVERIFY(!presenter.stationCallout("B"));
 }
 
 // A zoom alone, with no step, swaps the count of a platform for the queue of figures and back, and a click on a figure

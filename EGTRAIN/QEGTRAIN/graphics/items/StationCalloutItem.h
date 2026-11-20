@@ -37,7 +37,8 @@ struct StationCalloutContent {
 
 /// The card that a click on a station opens on the canvas: a dark box with the passengers waiting at the station by
 /// destination and its latest calls, joined to the station by a short pointer. It keeps its size on the screen whatever
-/// the zoom. The origin of the item is the point of the pointer; the card stands above it, or below it when setBelow()
+/// the zoom: not through ItemIgnoresTransformations, which would leave the scene index with the card at its size in scene
+/// units and so unfound over most of what it covers, but through setPixelScale(), which makes its scene extent the real one. The origin of the item is the point of the pointer; the card stands above it, or below it when setBelow()
 /// says so. The × at the top right closes the card through onClose().
 class StationCalloutItem : public QGraphicsItem {
 public:
@@ -57,6 +58,11 @@ public:
 	void setContent(const StationCalloutContent& content);
 	/// The content shown.
 	const StationCalloutContent& content() const { return m_content; }
+	/// Sets the scale of the view, so that one unit of the item is one pixel on the screen. The scene then holds the card
+	/// at the area it covers on the screen. A scale of 0 or less is taken as 1.
+	void setPixelScale(qreal scale);
+	/// The scale of the view that the card was last given.
+	qreal pixelScale() const { return m_pixelScale; }
 	/// Moves the card sideways by shift pixels, keeping the pointer at the origin, which then meets the card off its centre.
 	/// The shift is limited so that the pointer stays under the card.
 	void setShift(qreal shift);
@@ -95,6 +101,7 @@ private:
 	StationCalloutContent m_content;
 	bool m_below = false;
 	qreal m_shift = 0.0;
+	qreal m_pixelScale = 1.0;
 	qreal m_height = 0.0;
 };
 
