@@ -63,13 +63,15 @@ public:
 		double since; ///< Trip::Actual_Departure_Time of the trip the passenger waits for.
 		int position; ///< Place of the passenger in the list.
 		int leg;	  ///< Order among the entries of one passenger, which only an odd journey list makes more than one.
+		/// Boarding order: by since, then by position, then by leg.
 		bool operator<(const Waiter& other) const;
 	};
 
 	/// The number of passengers waiting at the platform now, 0 for a platform nobody ever waited at.
 	int waitingCount(const std::string& stationId, const std::string& platformId) const;
-	/// The number that the flow gives the platform and the train, or -1 when nobody ever waited there or for it.
+	/// The number that the flow gives the platform, or -1 when nobody ever waited there.
 	int platformNumber(const std::string& stationId, const std::string& platformId) const { return findPlatformKey(stationId, platformId); }
+	/// The number that the flow gives the train, or -1 when nobody ever waited for it.
 	int trainNumber(const std::string& train) const { return findId(train); }
 	/// The first passenger in boarding order after `after` (the first of all when it is empty) who waits at the platform for the
 	/// train, or none. With onlyNotRefused it skips the passengers who were refused because the train was full, who stay in line
@@ -84,6 +86,7 @@ public:
 	const std::vector<int>& samePassengerId(int position);
 	/// The places of the passengers with this ID, in list order.
 	const std::vector<int>& passengersWithId(const std::string& id);
+	/// The passenger at this place in the list.
 	Passenger& passenger(int position) const { return *passengers_[static_cast<std::size_t>(position)]; }
 	/// Registers the passenger at this place by its present state, after the passenger step changed it.
 	void placed(int position);
@@ -91,11 +94,13 @@ public:
 	void alighted(int position);
 
 private:
-	enum class Kind : char { None, Waiting, OnBoard };
+	enum class Kind : char { None,
+		Waiting,
+		OnBoard };
 	struct Registration {
 		Kind kind = Kind::None;
-		int first = -1;				  // waiting: platform; on board: train
-		int second = -1;			  // waiting: train; on board: arrival station
+		int first = -1;				 // waiting: platform; on board: train
+		int second = -1;			 // waiting: train; on board: arrival station
 		std::vector<Waiter> waiters; // waiting only
 		bool refused = false;		 // waiting only: refused boarding the train that the passenger waits for
 	};
@@ -133,7 +138,7 @@ private:
 	std::vector<Passenger*> passengers_;
 	std::vector<Registration> registrations_;
 
-	std::vector<JourneyStart> journeyStarts_; // a heap, the earliest start first
+	std::vector<JourneyStart> journeyStarts_;  // a heap, the earliest start first
 	std::unordered_map<std::string, int> ids_; // train descriptions and station names, numbered
 	std::map<std::pair<std::string, std::string>, int> platformKeys_;
 	std::vector<PlatformQueues> queues_;

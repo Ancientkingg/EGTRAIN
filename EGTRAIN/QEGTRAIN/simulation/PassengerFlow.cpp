@@ -475,7 +475,9 @@ int alightPassengers(PassengerFlow& flow, Train& T, int t, int SimulationStartin
 }
 
 // What happened when a passenger tried to board.
-enum class Boarding { Nothing, Boarded, Refused };
+enum class Boarding { Nothing,
+	Boarded,
+	Refused };
 
 // Lets the passenger p board the train T when the passenger waits for it and the train has room. N_BoardedPax counts the passengers
 // who boarded at the current service stop.
