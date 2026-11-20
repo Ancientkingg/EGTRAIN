@@ -1285,9 +1285,12 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("journey station or metadata controls did not commit"));
 			return;
 		}
-		const std::array<double, 4> windows = {120.0, 420.0, 300.0, 720.0};
+		const std::array<const char*, 4> windows = {"00:02:00", "00:07:00", "00:05:00", "00:12:00"};
 		for (std::size_t index = 0; index < windows.size(); ++index)
-			passengerPanel(w)->journeyWindowEdits()[index]->setValue(windows[index]);
+			if (!editLine(passengerPanel(w)->journeyWindowEdits()[index], QString::fromLatin1(windows[index]))) {
+				fail(QStringLiteral("journey time window did not commit"));
+				return;
+			}
 		process();
 		passengerPanel(w)->tabs()->setCurrentIndex(1);
 		passengerPanel(w)->addLegButton()->click();

@@ -1744,10 +1744,13 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							|| !selectData(journeyOrigin, QString::fromStdString(originStationId))
 							|| !selectData(journeyDestination, QString::fromStdString(destinationStationId)))
 							facetFailure(facetOk, "passenger", "journey fields or typed station references did not commit");
-						const std::array<double, 4> windows = {100.0, 200.0, 300.0, 400.0};
-						for (std::size_t index = 0; index < windows.size(); ++index)
-							if (passengerPanel(w)->journeyWindowEdits()[index])
-								passengerPanel(w)->journeyWindowEdits()[index]->setValue(windows[index]);
+						const std::array<const char*, 4> windows = {"00:01:40", "00:03:20", "00:05:00", "00:06:40"};
+						for (std::size_t index = 0; index < windows.size(); ++index) {
+							QLineEdit* windowEdit = passengerPanel(w)->journeyWindowEdits()[index];
+							windowEdit->setText(QString::fromLatin1(windows[index]));
+							if (!commitLineEdit(windowEdit))
+								facetFailure(facetOk, "passenger", "journey time window did not commit");
+						}
 						passengerTabs->setCurrentIndex(1);
 						legAdd->click();
 						QApplication::processEvents();
@@ -4254,12 +4257,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						|| passengerPanel(w)->selectedPassengerJourney()->activity != pendingActivity)
 						facetFailure(facetOk, "save/reload", "Save did not commit the still-focused passenger activity");
 					if (passengerPanel(w)->journeyWindowEdits()[0]) {
-						QLineEdit* pendingWindow = spinTextEdit(passengerPanel(w)->journeyWindowEdits()[0]);
+						QLineEdit* pendingWindow = passengerPanel(w)->journeyWindowEdits()[0];
 						const double pendingWindowValue = 111.25;
 						if (!pendingWindow) {
 							facetFailure(facetOk, "save/reload", "passenger planned-window editor was unavailable");
 						} else {
-							pendingWindow->setText(QString::number(pendingWindowValue, 'g', 16));
+							pendingWindow->setText(QStringLiteral("00:01:51.25"));
 							pendingWindow->setFocus();
 							if (!triggerPendingSave() || !passengerPanel(w)->selectedPassengerJourney()
 								|| passengerPanel(w)->selectedPassengerJourney()->plannedDepartureStartSeconds != pendingWindowValue)
