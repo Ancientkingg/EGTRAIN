@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <iterator>
 #include <limits>
+#include <optional>
 #include <regex>
 #include <set>
 #include <sstream>
@@ -1754,11 +1755,21 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				diagnostics.error("scene.passenger.window", "Planned arrival window must start at 0 or later and must not end before it starts",
 					"passengers.json",
 					"journey", journey.id, journeyPath + ".planned_arrival");
+			else if (std::isfinite(journey.plannedDepartureStartSeconds)
+				&& journey.plannedArrivalEndSeconds < journey.plannedDepartureStartSeconds)
+				diagnostics.warning("scene.passenger.window.order",
+					"Planned arrival window ends before the planned departure window starts", "passengers.json", "journey",
+					journey.id, journeyPath + ".planned_arrival");
 			if (journey.legs.empty())
 				diagnostics.warning("scene.passenger.legs.empty", "Journey has no route-choice legs", "passengers.json",
 					"journey", journey.id, journeyPath + ".legs");
+			// The planned arrival of the previous leg, in seconds after the base time, when its service plans it.
+			std::optional<double> previousArrival;
 			for (std::size_t legIndex = 0; legIndex < journey.legs.size(); ++legIndex) {
 				const ScenePassengerLeg& leg = journey.legs[legIndex];
+				// The planned departure and arrival of this leg, when the stops of its service plan them.
+				std::optional<double> legDeparture;
+				std::optional<double> legArrival;
 				const std::string legPath = journeyPath + ".legs[" + std::to_string(legIndex) + "]";
 				if (!passengerLegIds.insert(leg.id).second)
 					diagnostics.error("scene.id.duplicate", "Duplicate passenger leg ID", "passengers.json",
@@ -1798,6 +1809,16 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 								"Passenger leg destination must come after its origin in the stops of the service",
 								"passengers.json", "leg", leg.id, legPath + ".destination", leg.serviceId,
 								"Choose a destination after the origin");
+						} else if (leg.occurrence > 0) {
+							// A later occurrence runs the same timetable, shifted by its headways.
+							const SceneService& legService = *service->second;
+							const double shift = sceneServiceScheduledEntry(legService, leg.occurrence) - sceneServiceScheduledEntry(legService, 1);
+							const SceneStop& boarding = legService.stops[stopPair.originIndex];
+							const SceneStop& alighting = legService.stops[stopPair.destinationIndex];
+							if (boarding.hasPlannedDeparture)
+								legDeparture = boarding.plannedDepartureSeconds + shift;
+							if (alighting.hasPlannedArrival)
+								legArrival = alighting.plannedArrivalSeconds + shift;
 						}
 					}
 				}
@@ -1816,6 +1837,11 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				if (legIndex > 0 && leg.originStationId != journey.legs[legIndex - 1].destinationStationId)
 					diagnostics.error("scene.passenger.continuity", "Passenger legs are not continuous",
 						"passengers.json", "journey", journey.id, legPath + ".origin", leg.originStationId);
+				if (legIndex > 0 && previousArrival && legDeparture && *legDeparture < *previousArrival)
+					diagnostics.warning("scene.passenger.leg.timing", "Passenger leg leaves before the previous leg arrives",
+						"passengers.json", "leg", leg.id, legPath + ".occurrence",
+						leg.serviceId + "-" + std::to_string(leg.occurrence));
+				previousArrival = legArrival;
 				if (legIndex + 1 == journey.legs.size()
 					&& leg.destinationStationId != journey.destinationStationId)
 					diagnostics.error("scene.passenger.continuity",

@@ -1003,6 +1003,12 @@ service's ordered stop pattern. Repeated stations are resolved as the first
 ordered pair that satisfies that rule. Legacy-import scenes retain an invalid
 historical leg as a warning, but native staging omits that whole journey.
 
+The validator also warns, without blocking a run, when a planned arrival window
+ends before the planned departure window starts, and when a leg's service
+leaves its origin before the previous leg's service arrives there. That check
+uses the planned times of the stops, shifted by the headways of a later
+occurrence, and skips a leg whose stops have no planned time.
+
 Journey and leg IDs are scene-wide stable IDs. An empty `legs` array preserves
 a DAS journey for which the legacy route-choice input has no matching row; the
 validator warns instead of guessing a route.
