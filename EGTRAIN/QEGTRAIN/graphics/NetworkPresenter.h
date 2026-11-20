@@ -235,7 +235,7 @@ public:
 	void stopTrainAnimations();
 
 	/// Whether the platforms show the figures of their passengers and the "+N" chips instead of the counts: the
-	/// passengers on the platforms show (platformPassengersVisible()) and a figure is at least 12 pixels high on the screen.
+	/// passengers on the platforms show (platformPassengersVisible()) and a figure is at least 18 pixels high on the screen.
 	bool paxFiguresVisible() const;
 
 	/// The line of the preview that the track line with this index in the run is drawn on, or null.

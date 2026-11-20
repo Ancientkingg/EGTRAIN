@@ -95,7 +95,7 @@ constexpr double kPi = 3.14159265;
 
 // The height on the screen, in pixels, from which the figures of the passengers on a platform are legible; below it the
 // platform shows the count of its passengers.
-constexpr qreal kFigureMinPixels = 12.0;
+constexpr qreal kFigureMinPixels = 18.0;
 
 // The diameter of the nodes of a double switch, which keep their item but show no dot. It was once written as a
 // cast of 0.1, which truncates to 0.

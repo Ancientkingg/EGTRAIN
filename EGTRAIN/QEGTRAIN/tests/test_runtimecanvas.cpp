@@ -464,7 +464,7 @@ static void zoomToFigures(Fixture& f, qreal pixels) {
 		f.view.setScene(&f.scene);
 		f.view.resize(20000, 15000);
 		const QPointF centre = f.scene.itemsBoundingRect().center();
-		f.view.fitToBounds(QRectF(centre.x() - 5e5, centre.y() - 3.75e5, 1e6, 7.5e5));
+		f.view.fitToBounds(QRectF(centre.x() - 5e4, centre.y() - 3.75e4, 1e5, 7.5e4));
 		PresenterAccess::view(f.presenter) = &f.view;
 	}
 	const qreal wanted = pixels / (PassengerItem::FigureHeight * f.presenter.presentationScale());
@@ -1682,11 +1682,11 @@ void TestRuntimeCanvas::zoomSwitchesCountAndFigures() {
 	zoomToFigures(f, 4.0);
 	QVERIFY(platform->textIcon->isVisible());
 	QVERIFY(!figuresShown());
-	// The switch is at a figure height of 12 pixels on the screen, not at a zoom ratio.
-	zoomToFigures(f, 11.0);
+	// The switch is at a figure height of 18 pixels on the screen, not at a zoom ratio.
+	zoomToFigures(f, 17.0);
 	QVERIFY(platform->textIcon->isVisible());
 	QVERIFY(!figuresShown());
-	zoomToFigures(f, 13.0);
+	zoomToFigures(f, 19.0);
 	QVERIFY(!platform->textIcon->isVisible());
 	QVERIFY(figuresShown());
 	zoomToFigures(f, 4.0);
