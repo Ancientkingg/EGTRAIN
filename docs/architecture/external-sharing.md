@@ -197,7 +197,7 @@ A train is named by `service_id` and `occurrence` together, for the whole run.
 ### Compatibility
 
 - The server speaks one version. It sets `v` to 1 in every frame, reply and in the endpoint file, and it rejects a request with another `v` as `bad_version`.
-- Within version 1 a frame, a reply or the endpoint file can get new members, an `event` can get new kinds, and a request can get new commands. A consumer ignores a member and an event kind that it does not know.
+- Within version 1 a frame, a reply or the endpoint file can get new members, an `event` can get new kinds, and a request can get new commands. A consumer ignores a member and an event kind that it does not know. In a run with passengers each train entry of a `state` frame also has `capacity` (next to `onboard`, the load) and the frame has a `platforms` array with `station_id`, `platform_id`, `waiting` and `capacity` per platform; a run without passengers has none of them.
 - A change that removes a member, changes a unit or the meaning of a member, or changes the rules of ordering or sampling raises `v`. A consumer stops when it sees a `v` that it does not know.
 - `docs/live/frame-v1.schema.json` names every member of every frame. `test_liveframe` checks the frames of the code against it and fails for a member that the schema does not name.
 

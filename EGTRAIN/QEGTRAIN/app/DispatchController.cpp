@@ -312,8 +312,10 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	};
 
 	beginScenePreparation();
-	if (live_)
+	if (live_) {
 		liveSceneName_ = scene.name;
+		liveSceneHasPassengers_ = scene.hasPassengers();
+	}
 	const std::optional<double> effectiveDurationOverride = initial_variables.durationOverride
 		? std::optional<double>(initial_variables.times)
 		: std::nullopt;
@@ -439,8 +441,9 @@ void rejectLiveCommands(DispatchLive& live, const char* reason) {
 }
 
 // Opens the run in the stream: new run id, the time axis of the run and the hello frame with its trains.
-void beginLiveRun(DispatchLive& live, const std::string& sceneName, const SimulationRun& run) {
+void beginLiveRun(DispatchLive& live, const std::string& sceneName, bool hasPassengers, const SimulationRun& run) {
 	live.run.runId = randomHex(2);
+	live.run.hasPassengers = hasPassengers;
 	live.run.sceneName = sceneName;
 	const InitialParameters& settings = run.settings;
 	live.run.baseTimeSeconds = settings.startingSimulationTime;
@@ -601,7 +604,7 @@ void DispatchController::runSimulationStages() {
 	observationTimer.start();
 	emit executionBegan();
 	if (live_)
-		beginLiveRun(*live_, liveSceneName_, run);
+		beginLiveRun(*live_, liveSceneName_, liveSceneHasPassengers_, run);
 
 	// A stopped run reports its cancellation here and skips the remaining stages.
 	const auto stoppedHere = [&] {
