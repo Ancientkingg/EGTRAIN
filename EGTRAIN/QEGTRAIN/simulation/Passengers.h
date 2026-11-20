@@ -10,13 +10,36 @@
 #include <vector>
 
 
+/// Where a passenger is.
+enum class PassengerStatus {
+	Outside,	///< Outside the network: not entered yet, or arrived.
+	OnPlatform, ///< Waiting on a platform for a train.
+	OnBoard		///< On a train.
+};
+
+/// The name of a status as the output files, traces and the GUI write it: "None", "OnPlatform" or "OnBoard".
+const char* passengerStatusName(PassengerStatus status);
+
+/// What a passenger does at the destination of a journey, as the scene describes it.
+enum class PassengerActivity {
+	None,	 ///< The scene gives no activity.
+	Home,	 ///< The activity text is "home" in any letter case.
+	Work,	 ///< The activity text is "work" in any letter case.
+	Leisure, ///< The activity text is "leisure" in any letter case.
+	Other	 ///< Any other activity text.
+};
+
+/// The activity that a scene's free-text activity stands for: None for empty text, Home, Work or Leisure for those words in any
+/// letter case, and Other for anything else.
+PassengerActivity passengerActivityFromText(const std::string& text);
+
 /// One leg of a journey: a ride on one train from one stop to another, without a transfer. Times are seconds since
 /// midnight. Station "IDs" hold the station name, or the ID of a station without a name. Strings are "None" and numbers
 /// -9999 until set.
 class Trip {
 public:
 	/// ID of the leg in the scene.
-	std::string TripID, Dep_Station_ID, Arr_Station_ID, Trip_Activity_Type; ///< Activity of the journey, such as work or leisure.
+	std::string TripID, Dep_Station_ID, Arr_Station_ID;
 	/// \var Trip::Dep_Station_ID
 	/// Station where the passenger boards.
 	/// \var Trip::Arr_Station_ID
@@ -42,7 +65,7 @@ public:
 	bool IsTripStarted, IsTripCompleted; ///< True once the passenger has alighted at the arrival station.
 
 	Trip() {
-		this->TripID = Dep_Station_ID = Arr_Station_ID = Trip_Activity_Type = TrainServiceDescription = "None";
+		this->TripID = Dep_Station_ID = Arr_Station_ID = TrainServiceDescription = "None";
 		this->Dep_Station_Platform_ID = Arr_Station_Platform_ID = "None";
 		this->depPlatformNumber = 0;
 		this->Planned_Arrival_Time = Planned_Departure_Time = Actual_Departure_Time = Actual_Arrival_Time = totalArrivalDelay = -9999;
@@ -60,6 +83,12 @@ enum class JourneyOutcome {
 /// The name of an outcome as the observations and logs write it: "in_progress", "completed" or "no_route".
 const char* journeyOutcomeName(JourneyOutcome outcome);
 
+/// How the legs of a journey come about.
+enum class JourneyMode {
+	Assigned, ///< The scene gives the legs. They are followed until one cannot be taken, and then planned like a live journey.
+	Live	  ///< The scene gives no legs: the passenger step plans them when the passenger appears.
+};
+
 /// A journey of a passenger from an origin to a destination: a list of legs (trips) with transfers between them. Times
 /// and station IDs as in Trip; durations are seconds. Strings are "None" and times -9999 until set.
 ///
@@ -69,11 +98,14 @@ const char* journeyOutcomeName(JourneyOutcome outcome);
 class Journey {
 public:
 	/// ID of the journey in the scene.
-	std::string ID, Dep_Station_ID, Arr_Station_ID, Journey_Activity_Type; ///< Activity of the journey, such as work or leisure.
+	std::string ID, Dep_Station_ID, Arr_Station_ID;
 	/// \var Journey::Dep_Station_ID
 	/// Origin station.
 	/// \var Journey::Arr_Station_ID
 	/// Destination station.
+
+	PassengerActivity Activity = PassengerActivity::None; ///< Activity of the journey, such as work or leisure.
+	JourneyMode Mode = JourneyMode::Assigned;			  ///< Whether the scene gives the legs or the run plans them.
 
 	/// Not set by the operations builder, so "None".
 	std::string Dep_Station_Platform_ID, Arr_Station_Platform_ID; ///< Not set by the operations builder, so "None".
@@ -108,7 +140,7 @@ public:
 	bool isFinished() const { return IsJourneyCompleted || Outcome == JourneyOutcome::NoRoute; }
 
 	Journey() {
-		ID = Dep_Station_ID = Arr_Station_ID = Journey_Activity_Type = "None";
+		ID = Dep_Station_ID = Arr_Station_ID = "None";
 		Dep_Station_Platform_ID = Arr_Station_Platform_ID = "None";
 		Planned_Departure_Time = Planned_Arrival_Time = Actual_Planned_Departure_Time = Actual_Planned_Arrival_Time = -9999;
 		Actual_Departure_Time = Actual_Arrival_Time = -9999;
@@ -124,16 +156,15 @@ public:
 class Passenger {
 public:
 	/// ID of the passenger in the scene.
-	std::string ID, passenger_category; ///< Not set by the operations builder, so "None".
+	std::string ID;
 	/// Station where the passenger is or was last.
 	std::string current_location_ID, current_TripID, current_JourneyID; ///< ID of the journey in progress.
 	/// \var Passenger::current_TripID
 	/// ID of the leg in progress.
 
 	std::list<Journey> Journeys; ///< The journeys of the passenger in the scene.
-	/// Where the passenger is: "None" outside the network (not entered yet, or arrived), "OnPlatform" while waiting on a
-	/// platform, "OnBoard" on a train.
-	std::string CurrentStatus;
+	/// Where the passenger is.
+	PassengerStatus CurrentStatus = PassengerStatus::Outside;
 
 	/// trainDescription of the train the passenger waits for while "OnPlatform".
 	std::string Current_Train_To_Wait, Current_Train_Boarded, Current_Arrival_Station, Current_Arrival_Platform;
@@ -162,8 +193,7 @@ public:
 	std::string TrainThatRefusedBoarding = "None";
 
 	Passenger() {
-		ID = passenger_category = current_location_ID = current_TripID = current_JourneyID = StationExitedTheNetworkID = PlatformExitedTheNetworkID = "None";
-		CurrentStatus = "None";
+		ID = current_location_ID = current_TripID = current_JourneyID = StationExitedTheNetworkID = PlatformExitedTheNetworkID = "None";
 		Current_Train_To_Wait = Current_Train_Boarded = Current_Arrival_Station = Current_Arrival_Platform = "None";
 		Current_WaitingStationPlatformID = Current_WaitingStationID = "None";
 		IsIntheNetwork = false;

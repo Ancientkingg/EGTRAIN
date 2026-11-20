@@ -997,6 +997,7 @@ void nativeStageDemandPassengers(const SceneModel& scene, const NativeIndex<Scen
 				continue;
 			for (int number = 0; number < cell.count; ++number) {
 				Journey journey;
+				journey.Mode = JourneyMode::Live;
 				journey.ID = prefix + std::to_string(number) + ".1";
 				journey.Dep_Station_ID = origin;
 				journey.Arr_Station_ID = destination;
@@ -1281,7 +1282,8 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 		for (const ScenePassengerJourney& sourceJourney : sourcePassenger.journeys) {
 			Journey journey;
 			journey.ID = sourceJourney.id;
-			journey.Journey_Activity_Type = sourceJourney.activity;
+			journey.Activity = passengerActivityFromText(sourceJourney.activity);
+			journey.Mode = sourceJourney.legs.empty() ? JourneyMode::Live : JourneyMode::Assigned;
 			const SceneStation* origin = stationById.at(sourceJourney.originStationId);
 			const SceneStation* destination = stationById.at(sourceJourney.destinationStationId);
 			journey.Dep_Station_ID = origin->name.empty() ? origin->id : origin->name;
@@ -1323,7 +1325,6 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 				Trip trip;
 				trip.TripID = sourceLeg.id;
 				trip.JourneyID = journey.ID;
-				trip.Trip_Activity_Type = journey.Journey_Activity_Type;
 				trip.Dep_Station_ID = originStop->stationName;
 				trip.Arr_Station_ID = destinationStop->stationName;
 				trip.Dep_Station_Platform_ID = originStop->platformId;

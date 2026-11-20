@@ -1,6 +1,7 @@
 #include "simulation/Passengers.h"
 #include "simulation/RunOutputFile.h"
 #include <algorithm>
+#include <cctype>
 #include <limits>
 
 using namespace std;
@@ -66,7 +67,7 @@ void printCurrentPassengerStatus(int t, int StartSimulationTime, const list<Pass
 	if (ALLPAX.empty() != 1) {
 		for (list<Passenger>::const_iterator p = ALLPAX.begin(); p != ALLPAX.end(); p++) {
 			if (p->IsIntheNetwork == 1) {
-				OutputFile << (t + StartSimulationTime) << " " << p->ID << " " << p->IsIntheNetwork << " " << p->current_JourneyID << " " << p->current_TripID << " " << p->CurrentStatus << " " << p->Current_WaitingStationID << " " << p->Current_WaitingStationPlatformID << " " << p->Current_Train_To_Wait << " " << p->Current_Train_Boarded << " " << p->Current_Arrival_Station << "\n";
+				OutputFile << (t + StartSimulationTime) << " " << p->ID << " " << p->IsIntheNetwork << " " << p->current_JourneyID << " " << p->current_TripID << " " << passengerStatusName(p->CurrentStatus) << " " << p->Current_WaitingStationID << " " << p->Current_WaitingStationPlatformID << " " << p->Current_Train_To_Wait << " " << p->Current_Train_Boarded << " " << p->Current_Arrival_Station << "\n";
 			}
 		}
 	}
@@ -109,6 +110,32 @@ const char* journeyOutcomeName(JourneyOutcome outcome) {
 	return "in_progress";
 }
 
+const char* passengerStatusName(PassengerStatus status) {
+	switch (status) {
+		case PassengerStatus::OnPlatform:
+			return "OnPlatform";
+		case PassengerStatus::OnBoard:
+			return "OnBoard";
+		case PassengerStatus::Outside:
+			break;
+	}
+	return "None";
+}
+
+PassengerActivity passengerActivityFromText(const std::string& text) {
+	if (text.empty())
+		return PassengerActivity::None;
+	std::string lower = text;
+	std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+	if (lower == "home")
+		return PassengerActivity::Home;
+	if (lower == "work")
+		return PassengerActivity::Work;
+	if (lower == "leisure")
+		return PassengerActivity::Leisure;
+	return PassengerActivity::Other;
+}
+
 int platformNumber(const string& platformId) {
 	const string prefix = "Platform_";
 	string number = platformId;
@@ -135,7 +162,7 @@ void Passenger::checkJourneyStart(int t) {
 						IsIntheNetwork = true;		  // let the passenger enter the network to start its journey
 						// Assign all the details of the journey to the passenger and assign the passenger to the departure platform of the the first trip
 						j->IsJourneyStarted = true; // if the time of the simulation is larger than the actual start time of the journey it is considered started
-						this->CurrentStatus = "OnPlatform";
+						this->CurrentStatus = PassengerStatus::OnPlatform;
 						this->current_location_ID = j->Dep_Station_ID;
 						this->Current_WaitingStationID = j->Dep_Station_ID;
 

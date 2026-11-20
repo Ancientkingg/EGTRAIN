@@ -52,7 +52,7 @@ std::list<Passenger> waitingFor(const Train& train, int count) {
 	for (int index = 0; index < count; ++index) {
 		Passenger passenger;
 		passenger.ID = "P" + std::to_string(index);
-		passenger.CurrentStatus = "OnPlatform";
+		passenger.CurrentStatus = PassengerStatus::OnPlatform;
 		passenger.Current_Train_To_Wait = train.trainDescription;
 		passenger.Current_WaitingStationID = train.Stations[train.numStations - 1].stationName;
 		passengers.push_back(passenger);

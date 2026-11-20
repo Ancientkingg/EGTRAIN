@@ -828,6 +828,7 @@ void TestOperationsBuilder::demandSlicesStageLivePassengers() {
 		// Evenly spread over the period, and planned live: no legs.
 		QCOMPARE(journey.Actual_Planned_Departure_Time, 100.0 + 25.0 * number);
 		QVERIFY(journey.Trips.empty());
+		QVERIFY(journey.Mode == JourneyMode::Live);
 	}
 	QVERIFY(defaultRun().passengerIndex.covers(defaultRun().passengers));
 }
@@ -2131,7 +2132,7 @@ void TestOperationsBuilder::boardingLooksUpMatchingIndex() {
 	const auto waiting = [](const std::string& id) {
 		Passenger passenger;
 		passenger.ID = id;
-		passenger.CurrentStatus = "OnPlatform";
+		passenger.CurrentStatus = PassengerStatus::OnPlatform;
 		passenger.Current_Train_To_Wait = "T1";
 		passenger.Current_WaitingStationID = "S1";
 		return passenger;
@@ -2139,7 +2140,7 @@ void TestOperationsBuilder::boardingLooksUpMatchingIndex() {
 	const auto boardedIds = [](const std::list<Passenger>& everyone) {
 		std::string boarded;
 		for (const Passenger& passenger : everyone)
-			if (passenger.CurrentStatus == "OnBoard")
+			if (passenger.CurrentStatus == PassengerStatus::OnBoard)
 				boarded += passenger.ID + " ";
 		return boarded;
 	};
@@ -2214,7 +2215,7 @@ static Passenger passengerWaitingAt(const std::string& id, const std::string& st
 	Passenger passenger;
 	passenger.ID = id;
 	passenger.IsIntheNetwork = true;
-	passenger.CurrentStatus = "OnPlatform";
+	passenger.CurrentStatus = PassengerStatus::OnPlatform;
 	passenger.Current_WaitingStationID = station;
 	passenger.Current_WaitingStationPlatformID = platform;
 	passenger.Current_Train_To_Wait = "T1";
@@ -2238,7 +2239,7 @@ static void scanWaitingList(StationPlatform& platform, const std::list<Passenger
 	platform.Current_N_Passengers = 0;
 	platform.Current_List_Pax_On_Platform.clear();
 	for (const Passenger& passenger : everyone) {
-		if (!passenger.IsIntheNetwork || passenger.CurrentStatus != "OnPlatform" || passenger.Current_WaitingStationID != platform.StationID
+		if (!passenger.IsIntheNetwork || passenger.CurrentStatus != PassengerStatus::OnPlatform || passenger.Current_WaitingStationID != platform.StationID
 			|| passenger.Current_WaitingStationPlatformID != platform.ID)
 			continue;
 		platform.Current_N_Passengers++;
@@ -2277,7 +2278,7 @@ void TestOperationsBuilder::waitingPassengersAreListedByDeparture() {
 	outside.IsIntheNetwork = false;
 	passengers.push_back(outside);
 	Passenger onBoard = passengerWaitingAt("d2", "S1", "P1", 1);
-	onBoard.CurrentStatus = "OnBoard";
+	onBoard.CurrentStatus = PassengerStatus::OnBoard;
 	passengers.push_back(onBoard);
 	Passenger withoutJourney = passengerWaitingAt("e1", "S1", "P1", 1);
 	withoutJourney.Journeys.clear();
@@ -2360,7 +2361,7 @@ void TestOperationsBuilder::waitingPassengersAreListedByDeparture() {
 	QVERIFY2(samePlatformLists(followed, platforms), "the flow lists the waiting passengers as the scan does");
 	QCOMPARE(waitingIds(flow.waitingAt("S1", "P1").passengers), "a2 a3 f1 f1 a1 ");
 	Passenger& boarding = *std::next(passengers.begin());
-	boarding.CurrentStatus = "OnBoard";
+	boarding.CurrentStatus = PassengerStatus::OnBoard;
 	boarding.Current_Train_Boarded = "T1";
 	boarding.Current_Arrival_Station = "S2";
 	boarding.Current_WaitingStationID = "None";
@@ -2408,7 +2409,7 @@ void TestOperationsBuilder::boardingWithoutPassengerGuiKeepsPlatformList() {
 	Simulate_Train_Passenger_Interactions(defaultRun(), 40, 0, train, defaultRun().passengers, stopPlatforms);
 	std::string boarded;
 	for (const Passenger& passenger : defaultRun().passengers)
-		if (passenger.CurrentStatus == "OnBoard")
+		if (passenger.CurrentStatus == PassengerStatus::OnBoard)
 			boarded += passenger.ID + " ";
 	// Without the passenger GUI passengers board in the order of departure times.
 	QCOMPARE(boarded, "Pb ");
@@ -4085,7 +4086,7 @@ void TestOperationsBuilder::brakingPhase() {
 		// One passenger boards, so the passenger phase sets a dwell.
 		Passenger boarding;
 		boarding.ID = "boarding";
-		boarding.CurrentStatus = "OnPlatform";
+		boarding.CurrentStatus = PassengerStatus::OnPlatform;
 		boarding.Current_Train_To_Wait = service.trainDescription;
 		boarding.Current_WaitingStationID = service.Stations[station].stationName;
 		std::list<Passenger> passengers{boarding};
@@ -5872,7 +5873,7 @@ void TestOperationsBuilder::rollingStockMessages() {
 	train.CurrentServiceStopPlatform = "P1";
 	Passenger alighting;
 	alighting.ID = "Pax1";
-	alighting.CurrentStatus = "OnBoard";
+	alighting.CurrentStatus = PassengerStatus::OnBoard;
 	alighting.Current_Train_Boarded = "T1";
 	alighting.Current_Arrival_Station = "S1";
 	alighting.current_TripID = "A1";
@@ -5905,7 +5906,7 @@ void TestOperationsBuilder::rollingStockMessages() {
 	platform.Current_List_Pax_On_Platform.push_back({"Pax2", 0.0});
 	Passenger waiting;
 	waiting.ID = "Pax2";
-	waiting.CurrentStatus = "OnPlatform";
+	waiting.CurrentStatus = PassengerStatus::OnPlatform;
 	waiting.Current_Train_To_Wait = "T1";
 	waiting.Current_WaitingStationID = "S1";
 	passengers = {waiting};
@@ -5929,7 +5930,7 @@ void TestOperationsBuilder::rollingStockMessages() {
 	train.MAX_OnBoard_Passengers = 1;
 	Simulate_Train_Passenger_Interactions(defaultRun(), 12, 0, train, passengers, {platform});
 	defaultRun().settings.PAX_GUI = savedPaxGui;
-	QCOMPARE(passengers.front().CurrentStatus, std::string("OnBoard"));
+	QCOMPARE(passengers.front().CurrentStatus, PassengerStatus::OnBoard);
 	QCOMPARE(train.Current_OnBoard_Passengers, 1);
 	capture.take();
 

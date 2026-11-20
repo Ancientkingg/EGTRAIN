@@ -92,7 +92,7 @@ struct EndedTrainRun {
 		passenger.ID = "p";
 		passenger.Journeys.push_back(journey);
 		passenger.IsIntheNetwork = true;
-		passenger.CurrentStatus = "OnBoard";
+		passenger.CurrentStatus = PassengerStatus::OnBoard;
 		passenger.current_JourneyID = "j";
 		passenger.current_TripID = "j.1";
 		passenger.Current_Train_Boarded = "T1";
@@ -121,6 +121,8 @@ private slots:
 	void trainDoesNotHaltAtTheStopWhereItEnters();
 	void trainThatEndsEarlySetsDownPassengerWhoFindsNoRoute();
 	void trainThatEndsEarlySetsDownPassengerWhoContinuesOnAnother();
+	void activityTextIsParsedCaseInsensitively();
+	void statusNamesAreTheLegacyText();
 };
 
 void TestPassengerJourneys::trainBeforeItsFirstStopCanBeBoardedThere() {
@@ -238,10 +240,24 @@ void TestPassengerJourneys::trainThatEndsEarlySetsDownPassengerWhoContinuesOnAno
 	QCOMPARE(next.Planned_Departure_Time, 210);
 	QVERIFY(journey.IsReplanned);
 	QVERIFY(passenger.IsIntheNetwork);
-	QCOMPARE(passenger.CurrentStatus, std::string("OnPlatform"));
+	QCOMPARE(passenger.CurrentStatus, PassengerStatus::OnPlatform);
 	QCOMPARE(passenger.Current_Train_To_Wait, std::string("T2"));
 	QCOMPARE(passenger.Current_WaitingStationID, std::string("B"));
 	QCOMPARE(ended.flow.waitingCount("B", "B.platform.1"), 1);
+}
+
+void TestPassengerJourneys::activityTextIsParsedCaseInsensitively() {
+	QVERIFY(passengerActivityFromText("") == PassengerActivity::None);
+	QVERIFY(passengerActivityFromText("Home") == PassengerActivity::Home);
+	QVERIFY(passengerActivityFromText("WORK") == PassengerActivity::Work);
+	QVERIFY(passengerActivityFromText("leisure") == PassengerActivity::Leisure);
+	QVERIFY(passengerActivityFromText("shopping") == PassengerActivity::Other);
+}
+
+void TestPassengerJourneys::statusNamesAreTheLegacyText() {
+	QCOMPARE(std::string(passengerStatusName(PassengerStatus::Outside)), std::string("None"));
+	QCOMPARE(std::string(passengerStatusName(PassengerStatus::OnPlatform)), std::string("OnPlatform"));
+	QCOMPARE(std::string(passengerStatusName(PassengerStatus::OnBoard)), std::string("OnBoard"));
 }
 
 QTEST_APPLESS_MAIN(TestPassengerJourneys)

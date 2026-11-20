@@ -211,7 +211,7 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 	for (const Passenger& passenger : run.passengers) {
 		GuiPassengerState state;
 		state.id = passenger.ID;
-		state.status = passenger.CurrentStatus;
+		state.status = passengerStatusName(passenger.CurrentStatus);
 		state.waitingPlatform = passenger.Current_WaitingStationPlatformID;
 		state.nextTrain = passenger.Current_Train_To_Wait;
 		const auto journey = std::find_if(passenger.Journeys.begin(), passenger.Journeys.end(),
