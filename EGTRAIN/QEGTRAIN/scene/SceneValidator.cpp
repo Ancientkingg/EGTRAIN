@@ -12,6 +12,7 @@
 #include <iterator>
 #include <limits>
 #include <regex>
+#include <set>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
@@ -473,6 +474,73 @@ void warnImplausibleTrainValue(DiagnosticBuilder& diagnostics, const SceneTrainU
 		std::string(name) + " is " + valueText(value) + ", outside the plausible range " + valueText(range.plausibleMin)
 			+ " to " + valueText(range.plausibleMax),
 		"rolling_stock.json", "train_unit", unit.id, path, "", "Check the value and its unit");
+}
+
+// Checks the demand slices of passengers.json: unique ids, a period inside the day that ends after it starts, no two
+// slices that overlap, known and different stations, one cell per pair, a positive count, and a total that staging
+// can hold.
+void validatePassengerDemand(const SceneModel& scene, const std::unordered_set<std::string>& stationIds,
+	DiagnosticBuilder& diagnostics) {
+	constexpr double kDaySeconds = 24.0 * 3600.0;
+	std::unordered_set<std::string> sliceIds;
+	std::vector<std::size_t> validPeriods;
+	long long total = 0;
+	for (std::size_t sliceIndex = 0; sliceIndex < scene.passengerDemand.size(); ++sliceIndex) {
+		const ScenePassengerDemandSlice& slice = scene.passengerDemand[sliceIndex];
+		const std::string slicePath = "demand[" + std::to_string(sliceIndex) + "]";
+		if (!sliceIds.insert(slice.id).second)
+			diagnostics.error("scene.id.duplicate", "Duplicate demand slice ID", "passengers.json", "demand_slice",
+				slice.id, slicePath + ".id", slice.id);
+		if (!std::isfinite(slice.startSeconds) || !std::isfinite(slice.endSeconds) || slice.startSeconds < 0.0
+			|| slice.endSeconds > kDaySeconds || slice.endSeconds <= slice.startSeconds)
+			diagnostics.error("scene.demand.period",
+				"Demand slice must start at 0 or later, end by 24:00:00 and end after it starts", "passengers.json",
+				"demand_slice", slice.id, slicePath + ".start_seconds");
+		else
+			validPeriods.push_back(sliceIndex);
+		std::set<std::pair<std::string, std::string>> pairs;
+		for (std::size_t cellIndex = 0; cellIndex < slice.cells.size(); ++cellIndex) {
+			const ScenePassengerDemandCell& cell = slice.cells[cellIndex];
+			const std::string cellPath = slicePath + ".cells[" + std::to_string(cellIndex) + "]";
+			const std::string entry = "Demand slice " + slice.id;
+			if (!hasId(stationIds, cell.originStationId))
+				diagnostics.unresolved(cell.originStationId, entry, "origin station",
+					"Demand cell refers to unknown origin station", "passengers.json", "demand_slice", slice.id,
+					cellPath + ".origin");
+			if (!hasId(stationIds, cell.destinationStationId))
+				diagnostics.unresolved(cell.destinationStationId, entry, "destination station",
+					"Demand cell refers to unknown destination station", "passengers.json", "demand_slice", slice.id,
+					cellPath + ".destination");
+			if (!cell.originStationId.empty() && cell.originStationId == cell.destinationStationId)
+				diagnostics.error("scene.demand.same_station", "Demand cell has the same origin and destination",
+					"passengers.json", "demand_slice", slice.id, cellPath + ".destination", cell.destinationStationId);
+			if (!pairs.emplace(cell.originStationId, cell.destinationStationId).second)
+				diagnostics.error("scene.demand.duplicate_cell",
+					"Demand slice has two cells for " + cell.originStationId + " to " + cell.destinationStationId,
+					"passengers.json", "demand_slice", slice.id, cellPath, "", "Merge the two cells into one");
+			if (cell.count < 1)
+				diagnostics.error("scene.demand.count", "Demand cell count must be 1 or more", "passengers.json",
+					"demand_slice", slice.id, cellPath + ".count");
+			else
+				total += cell.count;
+		}
+	}
+	std::sort(validPeriods.begin(), validPeriods.end(), [&scene](std::size_t a, std::size_t b) {
+		return scene.passengerDemand[a].startSeconds < scene.passengerDemand[b].startSeconds;
+	});
+	for (std::size_t i = 1; i < validPeriods.size(); ++i) {
+		const ScenePassengerDemandSlice& earlier = scene.passengerDemand[validPeriods[i - 1]];
+		const ScenePassengerDemandSlice& later = scene.passengerDemand[validPeriods[i]];
+		if (later.startSeconds < earlier.endSeconds)
+			diagnostics.error("scene.demand.overlap", "Demand slices " + earlier.id + " and " + later.id + " overlap",
+				"passengers.json", "demand_slice", later.id, "demand[" + std::to_string(validPeriods[i]) + "].start_seconds",
+				earlier.id, "Let each slice start at or after the end of the one before");
+	}
+	if (total > kMaxScenePassengerDemand)
+		diagnostics.error("scene.demand.total",
+			"Demand slices hold " + std::to_string(total) + " passengers, more than the limit of "
+				+ std::to_string(kMaxScenePassengerDemand),
+			"passengers.json", "demand_slice", "", "demand");
 }
 
 // Warns once per route and composition that a service uses when an arc of the
@@ -1731,6 +1799,8 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			}
 		}
 	}
+
+	validatePassengerDemand(scene, stationIds, diagnostics);
 
 	if (infrastructureUsableForRuntimeChecks)
 		reportSteepRouteGradients(scene, sectionInventory, diagnostics);

@@ -124,6 +124,6 @@ void decodeScenarios(const SceneFieldReader& reader, const nlohmann::json& root,
 /// Reads incidents.json, the historical incidents file of a case without scenarios.json, into the default scenario of
 /// scene.
 void decodeHistoricalIncidents(const SceneFieldReader& reader, const nlohmann::json& root, SceneModel& scene);
-/// Reads passengers.json. A journey needs both planned windows, a leg without an occurrence has occurrence 1, and a
-/// simulation result in the input is an error.
+/// Reads passengers.json: the passengers and the optional demand slices. A journey needs both planned windows, a leg
+/// without an occurrence has occurrence 1, and a simulation result in the input is an error.
 void decodePassengers(const SceneFieldReader& reader, const nlohmann::json& root, SceneModel& scene);

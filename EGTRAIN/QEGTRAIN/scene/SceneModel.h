@@ -352,6 +352,25 @@ struct ScenePassenger {
 	std::vector<ScenePassengerJourney> journeys; ///< The journeys.
 };
 
+/// The passengers who travel from one station to another during a demand slice.
+struct ScenePassengerDemandCell {
+	std::string originStationId;	  ///< Station where the passengers appear.
+	std::string destinationStationId; ///< Station they travel to.
+	int count = 0;					  ///< Number of passengers; at least 1.
+};
+
+/// The most passengers that the demand slices of a scene may hold together; staging makes one passenger each.
+inline constexpr long long kMaxScenePassengerDemand = 1000000;
+
+/// Origin-destination demand during one period of the day. Its passengers appear evenly spread over the period and
+/// travel on the earliest connection. Slices of a scene do not overlap.
+struct ScenePassengerDemandSlice {
+	std::string id;								 ///< Unique id of the slice.
+	double startSeconds = 0.0;					 ///< Start of the period, in seconds since midnight.
+	double endSeconds = 0.0;					 ///< End of the period, in seconds since midnight; after the start.
+	std::vector<ScenePassengerDemandCell> cells; ///< One cell per origin and destination pair with passengers.
+};
+
 /// The stops of a service where a passenger leg boards and alights.
 struct SceneServiceStopPair {
 	std::size_t originIndex = 0;	  ///< Index into SceneService::stops of the boarding stop.
@@ -401,6 +420,7 @@ struct SceneModel {
 	std::string defaultScenarioId;									  ///< Id of the scenario a run uses.
 	std::vector<SceneScenario> scenarios;							  ///< scenarios.json scenarios.
 	std::vector<ScenePassenger> passengers;							  ///< passengers.json passengers.
+	std::vector<ScenePassengerDemandSlice> passengerDemand;			  ///< passengers.json demand slices.
 };
 
 /// A new scene: current schema, base time 08:00:00, a duration of 3600 s, zero buffer and recovery
@@ -478,7 +498,7 @@ const std::vector<SceneSignal>& sceneSignals(const SceneModel& scene);
 enum class SceneFileWrite {
 	Always,			///< On every save.
 	WithViews,		///< When the scene has track or station views.
-	WithPassengers, ///< When the scene has passengers.
+	WithPassengers, ///< When the scene has passengers or passenger demand.
 	Never,			///< Never; the loader still reads it from an older scene.
 };
 
