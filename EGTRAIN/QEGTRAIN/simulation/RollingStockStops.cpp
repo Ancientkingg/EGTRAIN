@@ -58,12 +58,13 @@ void Train::computeArrivalAndDepartureAtLocation(double LocationPosition, TrainE
 		PassingPoint.Time = ArrivalTime;
 		if (IsDepartureFound == 1)
 			PassingPoint.Time2 = DepartureTime;
-		// The position of the PassingPoint must be the absolute geographical position, so we must use a conversion if we are using a route that is reversed
-		if (run_->infra.routes[indexOfRoute].reversed_direction == 1) {
-			PassingPoint.Position = run_->infra.routes[indexOfRoute].OriginalRefReversedRoute - LocationPosition;
-		} else {
-			PassingPoint.Position = LocationPosition;
-		}
+	}
+	// The position is the absolute position in metres, also for a location the train does not reach, so a reversed route
+	// needs a conversion.
+	if (run_->infra.routes[indexOfRoute].reversed_direction == 1) {
+		PassingPoint.Position = run_->infra.routes[indexOfRoute].OriginalRefReversedRoute - LocationPosition;
+	} else {
+		PassingPoint.Position = LocationPosition;
 	}
 }
 
@@ -74,9 +75,8 @@ void Train::ComputeTimetablingPoints() {
 				if (run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.stationName.empty() != 1) { // if the Node on the route is a station or junction area
 					TrainEvent TTPoint;
 					TTPoint.SuccessorID = run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.stationName; // this is the name of the location of the timetable point
-					TTPoint.Position = run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.X;
-					TTPoint.trainDescription = this->trainDescription; // Assigning the trainDescription to the Train Event
-																	   // In this case we compute the arrival and departure of the train from the location and we assign these to the TrainEvent
+					TTPoint.trainDescription = this->trainDescription;																							  // Assigning the trainDescription to the Train Event
+																																								  // In this case we compute the arrival and departure of the train from the location and we assign these to the TrainEvent
 					computeArrivalAndDepartureAtLocation(run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.X * 1000, TTPoint);
 					// Compute the arrival and departure times of the train from the location and push it back into the TimeTablePoints List
 					this->TimetablePoints.push_back(TTPoint);
