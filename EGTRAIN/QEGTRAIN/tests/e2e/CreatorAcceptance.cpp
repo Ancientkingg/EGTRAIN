@@ -3053,7 +3053,6 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 			if (auto* platform = qgraphicsitem_cast<PlatformItem*>(item)) {
 				if (!closeTo(platform->rect().width(), 5 * w.m_presenter->station_node_size * expectedScale)
 					|| !closeTo(platform->rect().height(), 0.9 * w.m_presenter->station_node_size * expectedScale)) return false;
-				if (platform->textIcon && !closeTo(platform->textIcon->scale(), expectedScale)) return false;
 				++platforms;
 			}
 			if (auto* track = qgraphicsitem_cast<TrackLineItem*>(item))

@@ -145,6 +145,9 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 	const qreal spacing = PresenterAccess::stationTrackSpacing(*w.m_presenter) * std::abs(w.networkView->transform().m11());
 	if (spacing > 0.0)
 		w.networkView->zoomBy(1.05 * StationOverlayItem::NearTrackSpacingPixels / spacing);
+	// and on to the zoom from which the platforms show the figures of their passengers
+	if (w.networkView->zoomRatio() < 3.05)
+		w.networkView->zoomBy(3.05 / w.networkView->zoomRatio());
 	w.updateViewportOverlays();
 	const bool nearShown = barsShown(true) && iconsShown();
 	w.m_stationLayerCheck->setChecked(false);

@@ -68,10 +68,13 @@
 #include <QFont>
 #include <QGraphicsItemGroup>
 #include <QGraphicsLineItem>
+#include <QGraphicsPathItem>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsRectItem>
 #include <QGraphicsScene>
+#include <QGraphicsSimpleTextItem>
 #include <QGraphicsTextItem>
+#include <QTextDocument>
 #include <QPainterPath>
 #include <QtMath>
 
@@ -215,6 +218,36 @@ bool hasPlatformBar(const std::string& stationName, const std::string& platformI
 // The counter of a platform: how many passengers wait on it and how many it holds, such as "3 waiting (capacity 99)".
 QString platformCounterText(int waiting, int capacity) {
 	return QStringLiteral("%1 waiting (capacity %2)").arg(waiting).arg(capacity);
+}
+
+// The font of the count of the passengers on a platform, which the view shows at this size whatever the zoom.
+QFont platformCountFont() {
+	QFont font;
+	font.setPixelSize(12);
+	font.setBold(true);
+	return font;
+}
+
+// Puts the count, whose item ignores the transformations of the view, level and centred above its position.
+void centreCountAboveAnchor(QGraphicsTextItem* count) {
+	constexpr qreal kGapAboveBar = 2.0;
+	const QRectF box = count->boundingRect();
+	count->setTransform(QTransform::fromTranslate(-box.width() / 2.0, -box.height() - kGapAboveBar));
+}
+
+// How many figures a bar of this length holds at this spacing.
+int figuresThatFit(qreal barLength, qreal spacing) {
+	return spacing > 0.0 ? static_cast<int>(std::floor(barLength / spacing + 1e-9)) : 0;
+}
+
+// Where a figure at x along the bar, in the coordinates of the bar, stands: the bottom centre of the figure, level above
+// the edge of the bar that is higher on the scene, a gap clear of it.
+QPointF figureStandPoint(const PlatformItem& platform, qreal x, qreal gap) {
+	const QRectF bar = platform.rect();
+	const QPointF axis = platform.mapToScene(QPointF(x, bar.center().y()));
+	const QPointF towardsTop = platform.mapToScene(QPointF(x, bar.top())) - axis;
+	const QPointF higher = towardsTop.y() <= -towardsTop.y() ? towardsTop : -towardsTop;
+	return axis + higher - QPointF(0.0, gap);
 }
 
 // The glide of a train between two live updates lasts this many times the longest of the last update intervals but
@@ -454,10 +487,8 @@ NetworkPresenter::NetworkPresenter(QGraphicsScene* scene, NetworkView* view)
 		flushSceneUpdates();
 #endif
 	});
-	// The icon is a resource of the application, which a caller such as a test can lack.
-	const QPixmap passenger(QStringLiteral(":/icons/pax_icon.png"));
-	if (!passenger.isNull())
-		pax_pixmap_scaled = passenger.scaled(QSize(station_size / 10, station_size / 10), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+	for (const PlatformCrowding crowding : {PlatformCrowding::Normal, PlatformCrowding::Busy, PlatformCrowding::Over})
+		m_passengerFigures[static_cast<std::size_t>(crowding)] = PassengerItem::figure(crowding);
 }
 
 NetworkPresenter::~NetworkPresenter() {
@@ -1534,21 +1565,26 @@ void NetworkPresenter::applyPlatformVisibility() {
 	for (QGraphicsItem* item : std::as_const(m_stationDecorations))
 		if (qgraphicsitem_cast<PlatformItem*>(item))
 			item->setVisible(platformBarsVisible());
-	const bool passengers = platformPassengersVisible();
-	const bool counters = paxTextVisible();
-	for (PlatformItem* platform : std::as_const(allPlatforms)) {
-		if (!platform)
-			continue;
-		if (platform->textIcon)
-			platform->textIcon->setVisible(counters);
-		if (platform->moreIcon)
-			platform->moreIcon->setVisible(passengers);
-		for (PassengerItem* icon : std::as_const(platform->passengerIcons))
-			icon->setVisible(passengers);
-	}
-	// The details of a selected passenger go with its icon.
+	for (PlatformItem* platform : std::as_const(allPlatforms))
+		if (platform)
+			applyPlatformPassengerVisibility(platform);
+	// The details of a selected passenger go with its figure.
 	if (paxIconInfoItem)
-		paxIconInfoItem->setVisible(passengers);
+		paxIconInfoItem->setVisible(paxFiguresVisible());
+}
+
+void NetworkPresenter::applyPlatformPassengerVisibility(PlatformItem* platform) {
+	// A platform without a count belongs to the preview or to a run without passengers.
+	if (!platform->textIcon)
+		return;
+	const bool passengers = platformPassengersVisible();
+	const bool figures = paxFiguresVisible();
+	platform->setGauge(passengers);
+	platform->textIcon->setVisible(passengers && !figures && platform->waiting() > 0);
+	if (platform->moreIcon)
+		platform->moreIcon->setVisible(figures);
+	for (PassengerItem* icon : std::as_const(platform->passengerIcons))
+		icon->setVisible(figures);
 }
 
 void NetworkPresenter::measureStationTrackSpacing() {
@@ -2062,19 +2098,22 @@ void NetworkPresenter::paintStationPlatform(QPointF before, QPointF coord, QPoin
 		platformItem->maxVolume = platform->Max_Passenger_Volume;
 	}
 
-	const QString text = platformCounterText(platform ? platform->Current_N_Passengers : 0, platformItem->maxVolume);
+	const int waiting = platform ? platform->Current_N_Passengers : 0;
+	platformItem->setCrowding(waiting, platformItem->maxVolume, m_source->platformCrowdingThreshold());
+	platformItem->setToolTip(platformCounterText(waiting, platformItem->maxVolume));
+	platformItem->setGauge(m_passengerLayerVisible);
 
-	// set text size
-	QFont font = QFont();
-	font.setPixelSize((int)station_size / 15);
-
-	auto* textItem = new QGraphicsTextItem(text);
+	// The count is level and centred above the bar, whatever the direction of the bar, at one size on the screen.
+	auto* textItem = new QGraphicsTextItem(QString::number(waiting));
 	textItem->setDefaultTextColor(Qt::white);
-	textItem->setFont(font);
-	textItem->setScale(presentationScale());
-	// the label is level and centred above the bar, whatever the direction of the bar
-	textItem->setPos(QPointF(platformItem->sceneBoundingRect().center().x() - textItem->boundingRect().width() * presentationScale() / 2,
-		platformItem->sceneBoundingRect().top() - textItem->boundingRect().height() * presentationScale()));
+	textItem->setFont(platformCountFont());
+	textItem->document()->setDocumentMargin(1.0);
+	textItem->setFlag(QGraphicsItem::ItemIgnoresTransformations);
+	textItem->setAcceptedMouseButtons(Qt::NoButton);
+	textItem->setToolTip(platformItem->toolTip());
+	const QRectF bar = platformItem->mapToScene(platformItem->rect()).boundingRect();
+	textItem->setPos(QPointF(bar.center().x(), bar.top()));
+	centreCountAboveAnchor(textItem);
 	textItem->setZValue(3); // draw on top of every item
 
 	// add textItem pointer to rect item
@@ -3159,11 +3198,15 @@ GuiPassengerState passengerStateIn(const GuiSimulationSnapshot* snapshot, const 
 	return passenger;
 }
 
+double NetworkPresenter::platformCrowdingThreshold() const {
+	return m_source ? m_source->platformCrowdingThreshold() : kDefaultPassengerPlatformCrowdingThreshold;
+}
+
 bool NetworkPresenter::passengerGui() const {
 	return m_source && m_source->passengerGui();
 }
 
-bool NetworkPresenter::paxTextVisible() const {
+bool NetworkPresenter::paxFiguresVisible() const {
 	if (!platformPassengersVisible() || !m_view)
 		return false;
 	return m_view->zoomRatio() >= kDenseDetailZoom;
@@ -3233,14 +3276,6 @@ void NetworkPresenter::updateSignalAspect(const GuiSignalState& state, std::set<
 
 // update the passenger counter and the passenger icons at the platforms
 void NetworkPresenter::updatePlatforms(const GuiSimulationSnapshot& snapshot) {
-	// show text items from the beginning of the simulation
-	if (snapshot.timestep == 0) {
-		for (auto* platformIcon : allPlatforms) {
-			if (platformIcon->textIcon)
-				platformIcon->textIcon->setVisible(paxTextVisible());
-		}
-	}
-
 	// A hidden layer shows none of this. The platforms are brought up to date when the layer is shown.
 	m_platformsStale = !m_passengerLayerVisible;
 	if (m_platformsStale)
@@ -3257,77 +3292,103 @@ void NetworkPresenter::updatePlatforms(const GuiSimulationSnapshot& snapshot) {
 	stackPassengerIcons(restack);
 }
 
-// The "+N" text at the end of the bar of a platform, which tells how many passengers have no icon. It exists only while
-// there are some, and it looks like the counter.
-void NetworkPresenter::updatePlatformMore(PlatformItem* platform, int hidden) {
+// The "+N" chip after the figures of a platform, which tells how many passengers have no figure. It exists only while
+// there are some. It stands in the place after the shown figures, level and bottom aligned with them.
+void NetworkPresenter::updatePlatformMore(PlatformItem* platform, int hidden, int shown, qreal spacing) {
 	if (hidden <= 0) {
 		delete platform->moreIcon;
 		platform->moreIcon = nullptr;
+		platform->moreLabel = nullptr;
 		return;
 	}
+	constexpr qreal kChipHeight = 22.0;
+	constexpr qreal kChipPadding = 7.0;
 	if (!platform->moreIcon) {
-		auto* item = new QGraphicsTextItem;
-		item->setDefaultTextColor(Qt::white);
-		item->setFont(platform->textIcon->font());
-		item->setScale(presentationScale());
-		item->setZValue(platform->textIcon->zValue());
-		m_scene->addItem(item);
-		platform->moreIcon = item;
+		auto* chip = new QGraphicsPathItem;
+		chip->setPen(QPen(QColor(0x5c, 0x6a, 0x78), 1.0));
+		chip->setBrush(QColor(0x0d, 0x14, 0x1b));
+		chip->setZValue(3);
+		chip->setAcceptedMouseButtons(Qt::NoButton);
+		auto* label = new QGraphicsSimpleTextItem(chip);
+		label->setBrush(Qt::white);
+		QFont font;
+		font.setPixelSize(14);
+		font.setBold(true);
+		label->setFont(font);
+		m_scene->addItem(chip);
+		platform->moreIcon = chip;
+		platform->moreLabel = label;
 	}
-	QGraphicsTextItem* item = platform->moreIcon;
-	item->setPlainText(QStringLiteral("+%1").arg(hidden));
-	// level, right of the bar and centred on it, whatever the direction of the bar
-	const QRectF bar = platform->sceneBoundingRect();
-	item->setPos(QPointF(bar.right(), bar.center().y() - item->boundingRect().height() * presentationScale() / 2));
-	item->setVisible(platformPassengersVisible());
+	QGraphicsPathItem* chip = platform->moreIcon;
+	QGraphicsSimpleTextItem* label = platform->moreLabel;
+	label->setText(QStringLiteral("+%1").arg(hidden));
+	const QRectF text = label->boundingRect();
+	const qreal width = std::max(text.width() + 2 * kChipPadding, PassengerItem::FigureWidth);
+	QPainterPath shape;
+	shape.addRoundedRect(QRectF(0.0, 0.0, width, kChipHeight), 6.0, 6.0);
+	chip->setPath(shape);
+	label->setPos((width - text.width()) / 2.0, (kChipHeight - text.height()) / 2.0);
+	chip->setScale(presentationScale());
+	const qreal x = platform->rect().left() + spacing * (shown + 0.5);
+	const QPointF stand = figureStandPoint(*platform, x, 4.0 * presentationScale());
+	chip->setPos(stand - QPointF(width * presentationScale() / 2.0, kChipHeight * presentationScale()));
+	chip->setVisible(paxFiguresVisible());
 }
 
-// The counter of a platform, and one icon for each passenger on it. An icon stays for as long as its passenger is on the
-// platform and moves when the passengers share the length of the platform differently. The icons that this adds, or that
-// swap places, are listed in restack.
+// The count of a platform, the crowding that its gauge and its figures show, and one figure for each passenger on it that
+// the snapshot lists and that fits along the bar. A figure stays for as long as its passenger is on the platform and
+// moves when the passengers stand differently. The figures that this adds, or that swap places, are listed in restack.
 void NetworkPresenter::updatePlatform(PlatformItem* platform, const GuiPlatformState& state, std::vector<PassengerItem*>& restack) {
 	const auto& listed = state.passengers;
-	const int nPaxIcons = static_cast<int>(listed.size());
 
-	const QString text = platformCounterText(state.passengerCount, state.maxVolume);
-
-	// update text item
-	if (platform->textIcon->toPlainText() != text) {
-		auto originalCenter = platform->textIcon->boundingRect().center();
-		platform->textIcon->setPlainText(text);
-		auto newCenter = platform->textIcon->boundingRect().center();
-		auto delta = (originalCenter - newCenter) * presentationScale();
-		platform->textIcon->moveBy(delta.x(), delta.y());
+	platform->setCrowding(state.passengerCount, state.maxVolume, platformCrowdingThreshold());
+	const QString tooltip = platformCounterText(state.passengerCount, state.maxVolume);
+	platform->setToolTip(tooltip);
+	const QString count = QString::number(state.passengerCount);
+	if (platform->textIcon->toPlainText() != count) {
+		platform->textIcon->setPlainText(count);
+		centreCountAboveAnchor(platform->textIcon);
 	}
-	platform->textIcon->setVisible(paxTextVisible());
-	updatePlatformMore(platform, state.passengerCount - nPaxIcons);
+	platform->textIcon->setToolTip(tooltip);
 
-	// the icons stay when they belong to the same passengers in the same order
+	// the figures stand level in a row along the long axis of the bar, from its start, as many as fit; a chip takes the
+	// place after them when some passengers have no figure
+	const QRectF platformRect = platform->rect();
+	const qreal spacing = (PassengerItem::FigureWidth + 3.0) * presentationScale();
+	const int fit = figuresThatFit(platformRect.width(), spacing);
+	const int nListed = static_cast<int>(listed.size());
+	const bool chip = state.passengerCount > nListed || nListed > fit;
+	const int nPaxIcons = chip ? std::min(nListed, std::max(fit - 1, 0)) : nListed;
+	const QPixmap& figure = m_passengerFigures[static_cast<std::size_t>(platform->crowding())];
+	const QSizeF figureSize = figure.deviceIndependentSize() * presentationScale();
+	updatePlatformMore(platform, chip ? std::max(state.passengerCount - nPaxIcons, 1) : 0, nPaxIcons, spacing);
+	applyPlatformPassengerVisibility(platform);
+
+	// the figures stay when they belong to the same passengers in the same order
 	QList<PassengerItem*>& icons = platform->passengerIcons;
 	bool sameIcons = icons.size() == nPaxIcons;
 	for (int i = 0; sameIcons && i < nPaxIcons; ++i)
 		sameIcons = icons[i]->passengerId == listed[static_cast<std::size_t>(i)].id;
 
-	// the icons of the passengers that are on the platform, with their place in the list
+	// the figures of the passengers that are on the platform, with their place in the list
 	std::unordered_multimap<std::string_view, std::pair<PassengerItem*, int>> staying;
 	if (!sameIcons)
 		for (int i = 0; i < icons.size(); ++i)
 			staying.emplace(icons[i]->passengerId, std::make_pair(icons[i], i));
 
-	// the icons stand level, spread along the long axis of the bar
-	const QRectF platformRect = platform->rect();
-	const qreal iconSize = pax_pixmap_scaled.width() * presentationScale();
-	const qreal iconSpacing = nPaxIcons > 0 ? platformRect.width() / nPaxIcons : 0.0;
-	qreal iconX = platformRect.left() + iconSpacing / 2;
 	QList<PassengerItem*> shown;
 	shown.reserve(nPaxIcons);
 	int previousPlace = -1;
 	bool swapped = false;
-	for (int i = 0; i < nPaxIcons; ++i, iconX += iconSpacing) {
+	const bool visible = paxFiguresVisible();
+	for (int i = 0; i < nPaxIcons; ++i) {
 		const std::string& paxID = listed[static_cast<std::size_t>(i)].id;
-		const QPointF position = platform->mapToScene(QPointF(iconX, platformRect.center().y())) - QPointF(iconSize / 2, iconSize / 2);
+		const QPointF stand = figureStandPoint(*platform, platformRect.left() + spacing * (i + 0.5), 4.0 * presentationScale());
+		const QPointF position = stand - QPointF(figureSize.width() / 2.0, figureSize.height());
 		if (sameIcons) {
 			icons[i]->setPos(position);
+			if (icons[i]->pixmap().cacheKey() != figure.cacheKey())
+				icons[i]->setPixmap(figure);
 			continue;
 		}
 
@@ -3338,16 +3399,18 @@ void NetworkPresenter::updatePlatform(PlatformItem* platform, const GuiPlatformS
 			previousPlace = stays->second.second;
 			staying.erase(stays);
 			icon->setPos(position);
+			if (icon->pixmap().cacheKey() != figure.cacheKey())
+				icon->setPixmap(figure);
 			shown.push_back(icon);
 			continue;
 		}
 
-		auto* item = new PassengerItem(pax_pixmap_scaled);
+		auto* item = new PassengerItem(figure);
 		item->setScale(presentationScale());
 		item->setPos(position);
 		item->setTransformationMode(Qt::SmoothTransformation);
 		item->passengerId = paxID;
-		item->setVisible(platformPassengersVisible());
+		item->setVisible(visible);
 		m_scene->addItem(item);
 		shown.push_back(item);
 		restack.push_back(item);
@@ -3355,7 +3418,7 @@ void NetworkPresenter::updatePlatform(PlatformItem* platform, const GuiPlatformS
 	if (sameIcons)
 		return;
 
-	// the passengers that left take their icons with them, and with them the selection of the icon
+	// the passengers that left take their figures with them, and with them the selection of the figure
 	for (const auto& departed : staying) {
 		if (departed.second.first == paxIconItem)
 			paxIconItem = nullptr;
@@ -3411,7 +3474,7 @@ void NetworkPresenter::updatePaxIconInfo(const GuiSimulationSnapshot* snapshot, 
 		return;
 	}
 	paintPassengerInfoIcon(paxIconItem, passengerStateIn(snapshot, paxIconItem->passengerId), playback == Playback::Replay);
-	paxIconInfoItem->setVisible(platformPassengersVisible());
+	paxIconInfoItem->setVisible(paxFiguresVisible());
 }
 
 void NetworkPresenter::removeTrainPaxInfoIcon() {

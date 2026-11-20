@@ -163,7 +163,7 @@ void TestNetworkLegend::listsCaseEntries() {
 	QCOMPARE(entries.at(8).label, "Proceed signal");
 	QCOMPARE(entries.at(9).label, "Unavailable signal");
 	QCOMPARE(entries.at(10).label, "Failed signal");
-	QCOMPARE(entries.at(11).label, "Passenger count");
+	QCOMPARE(entries.at(11).label, "Waiting passengers");
 }
 
 void TestNetworkLegend::drawsSwatches() {
@@ -244,8 +244,8 @@ void TestNetworkLegend::removesDuplicateEntries() {
 		}
 		if (entry.kind == NetworkLegendEntryKind::Passenger) {
 			passengerFound = true;
-			// The passenger entry uses the renderer icon.
-			QCOMPARE(entry.iconResource, ":/icons/pax_icon.png");
+			// The passenger entry explains the gauge in its tooltip.
+			QVERIFY(entry.toolTip.contains("capacity"));
 		}
 	}
 	// Duplicate train colours are removed.

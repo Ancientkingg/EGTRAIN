@@ -1,6 +1,7 @@
 #include "widgets/NetworkLegendWidget.h"
 
 #include "graphics/items/NetworkMarkItem.h"
+#include "graphics/items/PassengerItem.h"
 
 #include <QEvent>
 #include <QHBoxLayout>
@@ -112,6 +113,19 @@ protected:
 				painter.setBrush(QColor(30, 30, 30));
 				painter.drawEllipse(c, 0.2 * r, 0.2 * r);
 			}
+			return;
+		}
+
+		if (m_entry.kind == NetworkLegendEntryKind::Passenger) {
+			// A figure and the gauge of a platform with some of its length filled, as on the canvas.
+			painter.drawPixmap(QRectF(8.0, 1.0, 11.0, 16.5), PassengerItem::figure(PlatformCrowding::Normal), QRectF());
+			const QRectF trough(23.0, 6.0, 16.0, 6.0);
+			painter.setPen(QPen(QColor(0x5c, 0x6a, 0x78), 1.0));
+			painter.setBrush(QColor(0x2c, 0x38, 0x46));
+			painter.drawRect(trough);
+			painter.setPen(Qt::NoPen);
+			painter.setBrush(PassengerItem::crowdingColour(PlatformCrowding::Normal));
+			painter.drawRect(QRectF(trough.left(), trough.top(), trough.width() * 0.6, trough.height()));
 			return;
 		}
 
@@ -354,8 +368,10 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 	if (content.hasPassengers) {
 		NetworkLegendEntry entry;
 		entry.kind = NetworkLegendEntryKind::Passenger;
-		entry.label = "Passenger count";
-		entry.iconResource = ":/icons/pax_icon.png";
+		entry.label = "Waiting passengers";
+		entry.toolTip = "The bar of a platform fills with the passengers waiting on it, up to its capacity: teal up to the "
+						"crowding threshold, amber above it, red over the capacity with an end cap. Zoomed in, a figure "
+						"stands for each passenger.";
 		m_entries << entry;
 	}
 	rebuildRows();
