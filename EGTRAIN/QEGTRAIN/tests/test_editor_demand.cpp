@@ -121,6 +121,7 @@ class TestDemandPanel : public QObject {
 
 private slots:
 	void rangeRules();
+	void demandCountsAsPassengers();
 	void isDisabledWithoutSceneOrStations();
 	void showsSlicesAndMatrix();
 	void addsSlicesAndUndoes();
@@ -139,6 +140,17 @@ private slots:
 	void takesPendingEditors();
 	void grabsPaimpol();
 };
+
+// A case with only demand slices has passengers in a run, so the passenger layer and the map key show them.
+void TestDemandPanel::demandCountsAsPassengers() {
+	SceneModel scene;
+	QVERIFY(!scene.hasPassengers());
+	scene.passengerDemand.push_back({"slice-1", 3600.0, 7200.0, {{"A", "B", 5}}});
+	QVERIFY(scene.hasPassengers());
+	scene.passengerDemand.clear();
+	scene.passengers.push_back({"p1", {}});
+	QVERIFY(scene.hasPassengers());
+}
 
 void TestDemandPanel::rangeRules() {
 	using namespace DemandRanges;

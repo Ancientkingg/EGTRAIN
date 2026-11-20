@@ -421,6 +421,9 @@ struct SceneModel {
 	std::vector<SceneScenario> scenarios;							  ///< scenarios.json scenarios.
 	std::vector<ScenePassenger> passengers;							  ///< passengers.json passengers.
 	std::vector<ScenePassengerDemandSlice> passengerDemand;			  ///< passengers.json demand slices.
+
+	/// True when a run of the scene has passengers: listed passengers, or demand slices that become passengers.
+	bool hasPassengers() const { return !passengers.empty() || !passengerDemand.empty(); }
 };
 
 /// A new scene: current schema, base time 08:00:00, a duration of 3600 s, zero buffer and recovery
