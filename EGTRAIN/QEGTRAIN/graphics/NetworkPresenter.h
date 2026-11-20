@@ -49,6 +49,7 @@ class QGraphicsPixmapItem;
 class RuntimeGeometrySource;
 class Section;
 class SignalItem;
+class StationCalloutItem;
 class StationOverlayItem;
 class TrackLineItem;
 class TrainBadgeItem;
@@ -412,6 +413,17 @@ public:
 	/// Forgets the selected passenger icon. Its information stays until removePaxInfoIcon().
 	void clearSelectedPassengerIcon();
 
+	/// Opens the card of the station with this name, filled from snapshot, beside the mark of the station. It does nothing
+	/// without a snapshot, without passengers, while the passenger layer is off, or for a name that has no mark. A card that
+	/// is open stays open, so that several stations can show theirs at once. apply() keeps the open cards up to date.
+	void openStationCallout(const QString& stationName, const GuiSimulationSnapshot* snapshot);
+	/// Closes the card of the station, if it is open.
+	void closeStationCallout(const QString& stationName);
+	/// Closes every card of a station.
+	void closeStationCallouts();
+	/// The card of the station while it is open, else null.
+	StationCalloutItem* stationCallout(const QString& stationName) const;
+
 
 	/// An item that Find offers.
 	struct FindTarget {
@@ -548,6 +560,18 @@ private:
 		PlatformCrowding crowding = PlatformCrowding::Normal;
 	};
 	std::vector<StationCount> m_stationCounts;
+
+	// The card of a station that was opened. The item is made when the station is first opened, belongs to the scene, and
+	// stays in the list, hidden, while the card is closed; clear() empties the list.
+	struct StationCallout {
+		std::string station;
+		StationCalloutItem* item = nullptr;
+	};
+	std::vector<StationCallout> m_stationCallouts;
+	// Fills the open cards from the snapshot and places them.
+	void updateStationCallouts(const GuiSimulationSnapshot& snapshot);
+	// Puts every open card at the mark of its station, above it or, where it would leave the view, below it.
+	void placeStationCallouts();
 	// Works out the waiting passengers and the crowding of every station from its platforms and gives them to the pills.
 	void updateStationCounts();
 	// Shows the pills in the far look with the passengers and the stations, and puts them beside their marks.

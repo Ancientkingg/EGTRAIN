@@ -70,10 +70,10 @@ inline bool guiTrainPublishesOccupiedArcs(const GuiTrainState& train) {
 	return !train.outOfSimulation;
 }
 
-/// The train has a place to draw at `timestep` (seconds from the start of the run): it is in the simulation, due, and
+/// The train has a place to draw at `step` (seconds from the start of the run): it is in the simulation, due, and
 /// has a head position and vehicle positions.
-inline bool guiReplayTrainHasPosition(const GuiTrainState& train, int timestep) {
-	return !train.outOfSimulation && timestep >= train.departureTime
+inline bool guiReplayTrainHasPosition(const GuiTrainState& train, int step) {
+	return !train.outOfSimulation && step >= train.departureTime
 		&& train.routeAxisPosition != -9999.0
 		&& !train.wagonHeadPositions.empty() && !train.wagonTailPositions.empty();
 }
@@ -208,6 +208,15 @@ struct GuiPassengerState {
 	std::string nextTrain;		 ///< The train that the passenger waits for, as the run records it.
 	/// The arrival station of the current trip of the passenger, or empty when the passenger has none.
 	std::string nextDestination;
+	/// The arrival station of the current journey of the passenger, which is where the passenger is going in the end, or
+	/// empty when the passenger has none.
+	std::string finalDestination = {};
+};
+
+/// How many passengers wait for one destination.
+struct GuiDestinationCount {
+	std::string destination; ///< The final destination of the passengers, as the run names it.
+	int count = 0;			 ///< The passengers on the platform who are going there.
 };
 
 /// One station platform at one step.
@@ -220,7 +229,43 @@ struct GuiPlatformState {
 	int passengerCount = 0;
 	/// The first kGuiPlatformPassengerIcons of those passengers, the waiting ones first, then those who left the network.
 	std::vector<GuiPassengerState> passengers;
+	/// The passengers waiting on the platform by their final destination, all of them and not only those listed, the most
+	/// first and the destinations of a count in the order of their names. Empty without passenger lists, and when nobody
+	/// waits.
+	std::vector<GuiDestinationCount> destinations;
 };
+
+/// The most calls of one station that a snapshot lists.
+constexpr int kGuiStationCallsListed = 3;
+
+/// One call of a train at a station: the counts of the passenger step during its stand.
+struct GuiStationCall {
+	std::string station; ///< The name of the station.
+	std::string train;	 ///< The operating code of the train, or its description when it has none.
+	int arrival = 0;	 ///< The step at which the train began to stand, in seconds from the start of the run.
+	int departure = -1;	 ///< The step at which the train left, or -1 while it stands.
+	int clock = 0;		 ///< The time of the arrival, in seconds since midnight.
+	int boarded = 0;	 ///< Passengers who boarded.
+	int alighted = 0;	 ///< Passengers who alighted.
+	int leftBehind = 0;	 ///< Passengers refused because the train was full.
+	int load = 0;		 ///< Passengers on board after the latest step of the call.
+	bool counted = true; ///< The counts are those of the step: false for a call that a replay shows while it stands.
+};
+
+/// Appends the latest kGuiStationCallsListed calls of every station that began at or before `step`, newest first, from
+/// `ascending`, the calls of a finished run ordered by arrival. A call that has not left by `step` is not counted, as
+/// a finished run knows only the totals of its stand.
+inline void appendLatestStationCalls(const std::vector<GuiStationCall>& ascending, int step, std::vector<GuiStationCall>& out) {
+	std::unordered_map<std::string_view, int> listed;
+	const auto end = std::upper_bound(ascending.begin(), ascending.end(), step,
+		[](int at, const GuiStationCall& call) { return at < call.arrival; });
+	for (auto call = std::make_reverse_iterator(end); call != ascending.rend(); ++call) {
+		if (listed[call->station]++ >= kGuiStationCallsListed)
+			continue;
+		out.push_back(*call);
+		out.back().counted = call->departure >= 0 && call->departure <= step;
+	}
+}
 
 /// A message of virtual coupling, which a snapshot shows for 40 seconds after its step.
 struct GuiVirtualCouplingState {
@@ -232,10 +277,10 @@ struct GuiVirtualCouplingState {
 /// A message of virtual coupling shows in the snapshots of this many seconds after its step.
 constexpr int kGuiVirtualCouplingMessageSeconds = 40;
 
-/// A message of the step `messageStep` is in the snapshot of the step `timestep`: from its own step up to and including
+/// A message of the step `messageStep` is in the snapshot of `step`: from its own step up to and including
 /// kGuiVirtualCouplingMessageSeconds seconds after it.
-inline bool guiVirtualCouplingMessageShown(int messageStep, int timestep) {
-	return timestep >= messageStep && timestep <= messageStep + kGuiVirtualCouplingMessageSeconds;
+inline bool guiVirtualCouplingMessageShown(int messageStep, int step) {
+	return step >= messageStep && step <= messageStep + kGuiVirtualCouplingMessageSeconds;
 }
 
 /// The state of a run at one step: what the canvas, the panels, the replay and the live stream show.
@@ -247,6 +292,8 @@ struct GuiSimulationSnapshot {
 	std::vector<GuiSectionState> sectionStates;					  ///< One entry per section ID, ordered by ID.
 	std::vector<GuiPlatformState> platforms;					  ///< Every platform of the run.
 	std::vector<GuiVirtualCouplingState> virtualCouplingMessages; ///< The messages of the last 40 seconds.
+	/// The latest calls of trains at every station, newest first (appendLatestStationCalls()). Empty without passengers.
+	std::vector<GuiStationCall> stationCalls;
 };
 
 /// Hands the latest snapshot from the thread that steps the run to the window. It holds one snapshot: a newer one

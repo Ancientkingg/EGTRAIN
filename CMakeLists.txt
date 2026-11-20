@@ -243,6 +243,7 @@ add_library(egtrain_graphics STATIC
     ${SRC_DIR}/graphics/items/PlatformItem.cpp
     ${SRC_DIR}/graphics/items/SelectionCueItem.cpp
     ${SRC_DIR}/graphics/items/SignalItem.cpp
+    ${SRC_DIR}/graphics/items/StationCalloutItem.cpp
     ${SRC_DIR}/graphics/items/StationNodeItem.cpp
     ${SRC_DIR}/graphics/items/StationOverlayItem.cpp
     ${SRC_DIR}/graphics/items/TrackLineItem.cpp

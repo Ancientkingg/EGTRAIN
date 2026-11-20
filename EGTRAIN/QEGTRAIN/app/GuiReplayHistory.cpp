@@ -1,4 +1,5 @@
 #include "app/GuiReplayHistory.h"
+#include "simulation/PassengerResults.h"
 #include "simulation/SimulationRun.h"
 
 #include <algorithm>
@@ -10,7 +11,7 @@ namespace {
 constexpr std::int32_t kSectionPrepared = 1;
 constexpr std::int32_t kSectionBlocked = 2;
 // String numbers that a listed passenger takes: id, status, waiting platform, next train, next destination.
-constexpr std::size_t kStringsPerEntry = 5;
+constexpr std::size_t kStringsPerEntry = 6;
 // Entries of the table of handed-out snapshots at which expired ones are removed.
 constexpr std::size_t kHandedOutLimit = 32;
 
@@ -40,7 +41,7 @@ bool sameStatic(const GuiSectionState& a, const GuiSectionState& b) {
 }
 
 bool sameStatic(const GuiPlatformState& a, const GuiPlatformState& b) {
-	[[maybe_unused]] const auto& [stationId, platformId, maxVolume, passengerCount, passengers] = a;
+	[[maybe_unused]] const auto& [stationId, platformId, maxVolume, passengerCount, passengers, destinations] = a;
 	return stationId == b.stationId && platformId == b.platformId && maxVolume == b.maxVolume;
 }
 
@@ -81,6 +82,7 @@ void resetChanging(GuiSectionState& section) {
 void resetChanging(GuiPlatformState& platform) {
 	platform.passengerCount = 0;
 	release(platform.passengers);
+	release(platform.destinations);
 }
 
 template <class T> std::vector<T> prototypes(const std::vector<T>& states) {
@@ -189,11 +191,12 @@ double GuiReplaySeries::at(int sample) const {
 
 std::size_t GuiReplayTrains::ownedBytes() const {
 	std::size_t bytes = sizeof(*this) + arrayBytes(routes) + arrayBytes(trains) + arrayBytes(messageSteps) + arrayBytes(messageTrains)
-		+ arrayBytes(messageTexts);
+		+ arrayBytes(messageTexts) + arrayBytes(stationCalls);
 	for (const Route& route : routes) bytes += arrayBytes(route.startX) + arrayBytes(route.endX) + arrayBytes(route.geoXBeg);
 	for (const Train& train : trains) bytes += seriesBytes(train.position) + seriesBytes(train.speed);
 	for (const std::string& text : messageTrains) bytes += textBytes(text);
 	for (const std::string& text : messageTexts) bytes += textBytes(text);
+	for (const GuiStationCall& call : stationCalls) bytes += textBytes(call.station) + textBytes(call.train);
 	return bytes;
 }
 
@@ -247,6 +250,7 @@ std::shared_ptr<const GuiReplayTrains> makeGuiReplayTrains(const SimulationRun& 
 	source->messageSteps.assign(run.vcMsgTimestep.begin(), run.vcMsgTimestep.begin() + static_cast<std::ptrdiff_t>(messages));
 	source->messageTrains.assign(run.vcMsgTrain.begin(), run.vcMsgTrain.begin() + static_cast<std::ptrdiff_t>(messages));
 	source->messageTexts.assign(run.vcMsgText.begin(), run.vcMsgText.begin() + static_cast<std::ptrdiff_t>(messages));
+	source->stationCalls = stationCalls(run);
 	return source;
 }
 
@@ -266,6 +270,7 @@ void GuiReplayHistory::resetRecording() {
 	release(current_);
 	release(currentArcs_);
 	release(currentPlatforms_);
+	release(currentDestinations_);
 	stringNumbers_.clear();
 	strings_.clear();
 	layoutBytes_ = 0;
@@ -312,13 +317,15 @@ std::size_t GuiReplayHistory::layoutPayload(const Layout& layout) {
 
 std::size_t GuiReplayHistory::intervalPayload(const Interval& interval) {
 	return sizeof(interval) + arrayBytes(interval.keyframe) + arrayBytes(interval.changes) + arrayBytes(interval.secondEnds)
-		+ arrayBytes(interval.arcs) + arrayBytes(interval.arcEnds) + arrayBytes(interval.platformEntries) + arrayBytes(interval.platformEnds);
+		+ arrayBytes(interval.arcs) + arrayBytes(interval.arcEnds) + arrayBytes(interval.platformEntries) + arrayBytes(interval.platformEnds)
+		+ arrayBytes(interval.destinationEntries) + arrayBytes(interval.destinationEnds);
 }
 
 std::size_t GuiReplayHistory::statePayload() const {
-	std::size_t bytes = arrayBytes(current_) + arrayBytes(currentArcs_) + arrayBytes(currentPlatforms_);
+	std::size_t bytes = arrayBytes(current_) + arrayBytes(currentArcs_) + arrayBytes(currentPlatforms_) + arrayBytes(currentDestinations_);
 	for (const auto& arcs : currentArcs_) bytes += arrayBytes(arcs);
 	for (const auto& ids : currentPlatforms_) bytes += arrayBytes(ids);
+	for (const auto& counts : currentDestinations_) bytes += arrayBytes(counts);
 	return bytes;
 }
 
@@ -343,7 +350,28 @@ void GuiReplayHistory::internEntries(const std::vector<GuiPassengerState>& liste
 		entries.push_back(intern(passenger.waitingPlatform));
 		entries.push_back(intern(passenger.nextTrain));
 		entries.push_back(intern(passenger.nextDestination));
+		entries.push_back(intern(passenger.finalDestination));
 	}
+}
+
+// The string number and the count of each destination that a platform lists, two values for each.
+void GuiReplayHistory::internDestinations(const std::vector<GuiDestinationCount>& listed, std::vector<std::uint32_t>& entries) {
+	entries.clear();
+	entries.reserve(listed.size() * 2);
+	for (const GuiDestinationCount& destination : listed) {
+		entries.push_back(intern(destination.destination));
+		entries.push_back(static_cast<std::uint32_t>(destination.count));
+	}
+}
+
+// Whether the values `entries` stand for the destinations `listed`.
+bool GuiReplayHistory::sameDestinations(const std::vector<GuiDestinationCount>& listed, const std::vector<std::uint32_t>& entries) const {
+	if (entries.size() != listed.size() * 2)
+		return false;
+	for (std::size_t i = 0; i < listed.size(); ++i)
+		if (strings_[entries[2 * i]] != listed[i].destination || entries[2 * i + 1] != static_cast<std::uint32_t>(listed[i].count))
+			return false;
+	return true;
 }
 
 // Whether the string numbers `entries` stand for the passengers `listed`.
@@ -354,7 +382,8 @@ bool GuiReplayHistory::sameEntries(const std::vector<GuiPassengerState>& listed,
 		const GuiPassengerState& passenger = listed[i];
 		const std::uint32_t* at = &entries[i * kStringsPerEntry];
 		if (strings_[at[0]] != passenger.id || strings_[at[1]] != passenger.status || strings_[at[2]] != passenger.waitingPlatform
-			|| strings_[at[3]] != passenger.nextTrain || strings_[at[4]] != passenger.nextDestination)
+			|| strings_[at[3]] != passenger.nextTrain || strings_[at[4]] != passenger.nextDestination
+			|| strings_[at[5]] != passenger.finalDestination)
 			return false;
 	}
 	return true;
@@ -378,7 +407,8 @@ void GuiReplayHistory::makeLayout(const GuiSimulationSnapshot& snapshot) {
 	slots_.trainArcs = slots_.trainOnboard + trains;
 	slots_.platformList = slots_.trainArcs + trains;
 	slots_.platformCount = slots_.platformList + layout_.platforms.size();
-	slots_.total = slots_.platformCount + layout_.platforms.size();
+	slots_.platformDestinations = slots_.platformCount + layout_.platforms.size();
+	slots_.total = slots_.platformDestinations + layout_.platforms.size();
 }
 
 std::int32_t GuiReplayHistory::addArcList(Interval& interval, const std::vector<GuiOccupiedArc>& arcs) {
@@ -393,6 +423,12 @@ std::int32_t GuiReplayHistory::addPlatformList(Interval& interval, const std::ve
 	return static_cast<std::int32_t>(interval.platformEnds.size() - 1);
 }
 
+std::int32_t GuiReplayHistory::addDestinationList(Interval& interval, const std::vector<std::uint32_t>& entries) {
+	interval.destinationEntries.insert(interval.destinationEntries.end(), entries.begin(), entries.end());
+	interval.destinationEnds.push_back(static_cast<std::uint32_t>(interval.destinationEntries.size()));
+	return static_cast<std::int32_t>(interval.destinationEnds.size() - 1);
+}
+
 // Starts an interval at the second of `snapshot`: its values become the state, the keyframe, and the lists that they
 // refer to are added to the new interval, so that an interval never refers to another one.
 void GuiReplayHistory::startInterval(const GuiSimulationSnapshot& snapshot) {
@@ -405,6 +441,8 @@ void GuiReplayHistory::startInterval(const GuiSimulationSnapshot& snapshot) {
 		done.arcEnds.shrink_to_fit();
 		done.platformEntries.shrink_to_fit();
 		done.platformEnds.shrink_to_fit();
+		done.destinationEntries.shrink_to_fit();
+		done.destinationEnds.shrink_to_fit();
 		refreshBytes();
 	}
 	Interval interval;
@@ -429,7 +467,10 @@ void GuiReplayHistory::startInterval(const GuiSimulationSnapshot& snapshot) {
 		current_[slots_.trainArcs + i] = addArcList(interval, currentArcs_[i]);
 	}
 	currentPlatforms_.assign(snapshot.platforms.size(), {});
+	currentDestinations_.assign(snapshot.platforms.size(), {});
 	for (std::size_t i = 0; i < snapshot.platforms.size(); ++i) {
+		internDestinations(snapshot.platforms[i].destinations, currentDestinations_[i]);
+		current_[slots_.platformDestinations + i] = addDestinationList(interval, currentDestinations_[i]);
 		internEntries(snapshot.platforms[i].passengers, currentPlatforms_[i]);
 		current_[slots_.platformList + i] = addPlatformList(interval, currentPlatforms_[i]);
 		current_[slots_.platformCount + i] = snapshot.platforms[i].passengerCount;
@@ -478,6 +519,11 @@ void GuiReplayHistory::addChanges(const GuiSimulationSnapshot& snapshot) {
 			putValue(slots_.platformList + i, addPlatformList(interval, known));
 		}
 		putValue(slots_.platformCount + i, snapshot.platforms[i].passengerCount);
+		std::vector<std::uint32_t>& counts = currentDestinations_[i];
+		if (!sameDestinations(snapshot.platforms[i].destinations, counts)) {
+			internDestinations(snapshot.platforms[i].destinations, counts);
+			putValue(slots_.platformDestinations + i, addDestinationList(interval, counts));
+		}
 	}
 	interval.secondEnds.push_back(static_cast<std::uint32_t>(interval.changes.size()));
 	refreshBytes();
@@ -606,11 +652,15 @@ std::shared_ptr<const GuiSimulationSnapshot> GuiReplayHistory::expand(const Inte
 		const std::size_t from = list == 0 ? 0 : interval.platformEnds[list - 1];
 		GuiPlatformState& platform = snapshot->platforms[i];
 		platform.passengerCount = values[slots_.platformCount + i];
+		const auto counts = static_cast<std::size_t>(values[slots_.platformDestinations + i]);
+		const std::size_t countsFrom = counts == 0 ? 0 : interval.destinationEnds[counts - 1];
+		for (std::size_t k = countsFrom; k < interval.destinationEnds[counts]; k += 2)
+			platform.destinations.push_back({strings_[interval.destinationEntries[k]], static_cast<int>(interval.destinationEntries[k + 1])});
 		const std::size_t to = interval.platformEnds[list];
 		platform.passengers.reserve((to - from) / kStringsPerEntry);
 		for (std::size_t k = from; k < to; k += kStringsPerEntry) {
 			const std::uint32_t* at = &interval.platformEntries[k];
-			platform.passengers.push_back({strings_[at[0]], strings_[at[1]], strings_[at[2]], strings_[at[3]], strings_[at[4]]});
+			platform.passengers.push_back({strings_[at[0]], strings_[at[1]], strings_[at[2]], strings_[at[3]], strings_[at[4]], strings_[at[5]]});
 		}
 	}
 
@@ -618,6 +668,7 @@ std::shared_ptr<const GuiSimulationSnapshot> GuiReplayHistory::expand(const Inte
 		for (std::size_t i = 0; i < trains_->messageSteps.size(); ++i)
 			if (guiVirtualCouplingMessageShown(trains_->messageSteps[i], time))
 				snapshot->virtualCouplingMessages.push_back({trains_->messageSteps[i], trains_->messageTrains[i], trains_->messageTexts[i]});
+		appendLatestStationCalls(trains_->stationCalls, time, snapshot->stationCalls);
 	}
 	return snapshot;
 }

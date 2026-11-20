@@ -91,6 +91,7 @@ private slots:
 	void secondCallOfAStationHasItsOwnCounts();
 	void leftBehindPassengerIsCountedOncePerCall();
 	void stopRowTakesTimesFromTheTrain();
+	void latestCallsOfAStationAreNewestFirstAndBounded();
 	void percentileIsNearestRank();
 	void summaryAveragesCompletedJourneysOnly();
 	void journeyRowListsRiddenLegs();
@@ -252,6 +253,71 @@ void TestPassengerResults::stopRowTakesTimesFromTheTrain() {
 	QCOMPARE(lines[0], std::string("Train\tStation\tPlatform\tArrival\tDeparture\tBoarded\tAlighted\tLeftBehind\tLoadAfterDeparture\tCapacity\tLoadFactor"));
 	QCOMPARE(lines[1], std::string("T1\tA\tP\t1050\t1080\t3\t1\t2\t3\t4\t0.750"));
 	QCOMPARE(lines[2], std::string("T1\tB\tP\t1200\t-1\t0\t0\t0\t0\t4\t0.000"));
+}
+
+void TestPassengerResults::latestCallsOfAStationAreNewestFirstAndBounded() {
+	SimulationRun run;
+	run.settings.startingSimulationTime = 1000;
+	// Two trains call at A five times in all and at B once; the second train has an operating code.
+	for (int n = 0; n < 2; ++n) {
+		Train train;
+		train.trainDescription = n == 0 ? "T1" : "T2";
+		train.operatingCode = n == 0 ? "" : "OC2";
+		train.numStations = 3;
+		train.Stations.resize(3);
+		for (int stop = 0; stop < 3; ++stop) {
+			train.Stations[static_cast<std::size_t>(stop)].stationName = stop == 1 ? "B" : "A";
+			train.Stations[static_cast<std::size_t>(stop)].StepStopped = 5;
+		}
+		const double starts[2][3] = {{100, 400, 700}, {250, 550, -1}};
+		for (int stop = 0; stop < 3; ++stop) {
+			train.StationStandStarts[stop] = starts[n][stop];
+			train.StationDepartures[stop] = starts[n][stop] >= 0 ? starts[n][stop] + 30 : -1;
+		}
+		run.trains.push_back(train);
+	}
+	run.numTrains = 2;
+	run.stopCalls.at(0, 2).boarded = 4; // the latest call of A is the third stop of the first train
+	run.stopCalls.at(0, 2).leftBehind = 1;
+	run.stopCalls.at(0, 2).loadAfter = 9;
+
+	// every call, by arrival
+	const std::vector<GuiStationCall> all = stationCalls(run);
+	QCOMPARE(all.size(), std::size_t(5));
+	for (std::size_t i = 1; i < all.size(); ++i)
+		QVERIFY(all[i - 1].arrival <= all[i].arrival);
+	QCOMPARE(all[1].train, std::string("OC2"));
+	QCOMPARE(all[0].clock, 1100);
+
+	// live: the latest three of A, newest first, and the one of B
+	std::vector<GuiStationCall> latest = latestStationCalls(run, 800);
+	const auto ofStation = [](const std::vector<GuiStationCall>& calls, const std::string& station) {
+		std::vector<GuiStationCall> found;
+		for (const GuiStationCall& call : calls)
+			if (call.station == station)
+				found.push_back(call);
+		return found;
+	};
+	std::vector<GuiStationCall> a = ofStation(latest, "A");
+	QCOMPARE(a.size(), std::size_t(3));
+	QCOMPARE(a[0].arrival, 700);
+	QCOMPARE(a[0].boarded, 4);
+	QCOMPARE(a[0].leftBehind, 1);
+	QCOMPARE(a[0].load, 9);
+	QCOMPARE(a[1].arrival, 250);
+	QCOMPARE(a[2].arrival, 100);
+	QCOMPARE(ofStation(latest, "B").size(), std::size_t(2));
+	// a call that has not begun by the step is not listed
+	QCOMPARE(ofStation(latestStationCalls(run, 300), "A").size(), std::size_t(2));
+
+	// replay, from the finished run: the same calls, and the one standing at the step has no counts
+	std::vector<GuiStationCall> replayed;
+	appendLatestStationCalls(all, 710, replayed);
+	a = ofStation(replayed, "A");
+	QCOMPARE(a.size(), std::size_t(3));
+	QCOMPARE(a[0].arrival, 700);
+	QVERIFY(!a[0].counted);
+	QVERIFY(a[1].counted);
 }
 
 void TestPassengerResults::percentileIsNearestRank() {

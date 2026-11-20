@@ -818,6 +818,10 @@ void MainWindow::connectSceneToInspector() {
 	connect(scene, &NetworkScene::MousePressedOnSignal, m_inspector, &InspectorPanel::displaySignallingInfo);
 	connect(scene, &NetworkScene::MousePressedOnTrain, m_inspector, &InspectorPanel::displayTrainInfo);
 	connect(scene, &NetworkScene::MousePressedOnPassenger, m_inspector, &InspectorPanel::displayPassengerInfo);
+	// A click on the mark, a platform bar or the count of a station opens its card; a click on empty canvas closes the cards.
+	connect(scene, &NetworkScene::MousePressedOnStation, this,
+		[this](const QString& station) { m_presenter->openStationCallout(station, m_snapshot.get()); });
+	connect(scene, &NetworkScene::DisableHighlight, this, [this] { m_presenter->closeStationCallouts(); });
 	connect(scene, &NetworkScene::ContextMenuRequested, this, &MainWindow::showSceneContextMenu);
 	// Mac keyboards have no Menu key, so Shift+F10 asks for the menu of the selected item there and everywhere.
 	for (const QKeySequence& keys : {QKeySequence(Qt::SHIFT | Qt::Key_F10), QKeySequence(Qt::Key_Menu)}) {

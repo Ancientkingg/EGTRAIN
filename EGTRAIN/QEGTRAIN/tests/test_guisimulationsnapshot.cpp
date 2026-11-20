@@ -140,8 +140,12 @@ GuiSimulationSnapshot sampleSnapshot(int t, std::size_t trainCount = 3, int tota
 		for (int k = 0; k < (step + p) % 4; ++k) {
 			const int id = (step + k) % 7;
 			platform.passengers.push_back({"pax " + std::to_string(id), statuses[(step + k) % 3], "platform " + std::to_string(k % 2),
-				k == 1 ? std::string() : "train " + std::to_string(k), "station " + std::to_string((step + k) % 2)});
+				k == 1 ? std::string() : "train " + std::to_string(k), "station " + std::to_string((step + k) % 2),
+				k == 2 ? std::string() : "final " + std::to_string((step + k) % 3)});
 		}
+		// the destinations change at some steps only, as they do in a run
+		for (int d = 0; d < (step / 5 + p) % 3; ++d)
+			platform.destinations.push_back({"final " + std::to_string(d), 9 - d});
 		// Some of the passengers have no entry in the list.
 		platform.passengerCount = static_cast<int>(platform.passengers.size()) + (step % 3 == 0 ? 2 : 0);
 		snapshot.platforms.push_back(std::move(platform));
@@ -273,6 +277,7 @@ private slots:
 	void trainsDerivedFromSource();
 	void virtualCouplingFromSource();
 	void virtualCouplingFromRun();
+	void stationCallsFromSource();
 	void keepsSecondHandedOutLast();
 	void sameSecondSameObject();
 	void accountedBytes();
@@ -960,6 +965,36 @@ void TestGuiSimulationSnapshot::virtualCouplingFromSource() {
 	QVERIFY(guiVirtualCouplingMessageShown(100, 140));
 	QVERIFY(!guiVirtualCouplingMessageShown(100, 141));
 	QVERIFY(!guiVirtualCouplingMessageShown(100, 99));
+}
+
+// The calls of the source show from the step they began, the latest three of a station, newest first, and a call that has
+// not left by the step has no counts.
+void TestGuiSimulationSnapshot::stationCallsFromSource() {
+	GuiReplayHistory history;
+	for (int t = 0; t < 150; ++t) history.record(shared(sampleSnapshot(t, 3, 150)));
+	auto source = std::make_shared<GuiReplayTrains>();
+	for (int arrival : {10, 40, 70, 100}) {
+		GuiStationCall call;
+		call.station = "A";
+		call.train = "T" + std::to_string(arrival);
+		call.arrival = arrival;
+		call.departure = arrival + 20;
+		call.boarded = arrival;
+		source->stationCalls.push_back(call);
+	}
+	history.setTrains(source);
+	QVERIFY(history.at(9)->stationCalls.empty());
+	const auto at80 = history.at(80)->stationCalls;
+	QCOMPARE(at80.size(), std::size_t(3));
+	QCOMPARE(at80[0].train, std::string("T70"));
+	QVERIFY(!at80[0].counted);
+	QVERIFY(at80[1].counted);
+	QCOMPARE(at80[2].train, std::string("T10"));
+	const auto at149 = history.at(149)->stationCalls;
+	QCOMPARE(at149.size(), std::size_t(3));
+	QCOMPARE(at149[0].train, std::string("T100"));
+	QCOMPARE(at149[2].train, std::string("T40"));
+	QVERIFY(at149[0].counted);
 }
 
 // The messages that a run holds, pushed in the steps that the simulation pushes them in, reach the replay through

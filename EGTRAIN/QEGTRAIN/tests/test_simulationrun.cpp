@@ -1043,6 +1043,11 @@ void TestSimulationRun::platformListsAtMostFiftyPassengers() {
 				passenger.IsIntheNetwork = true;
 				passenger.CurrentStatus = PassengerStatus::OnPlatform;
 				passenger.Current_Train_To_Wait = "T" + std::to_string(i % 3);
+				Journey journey;
+				journey.ID = "J1";
+				journey.Arr_Station_ID = i % 4 == 0 ? "North" : "South";
+				passenger.Journeys.push_back(journey);
+				passenger.current_JourneyID = journey.ID;
 				run->platforms.front().Current_List_Pax_On_Platform.push_back({passenger.ID, 0.0});
 			} else {
 				passenger.TimeExitedTheNetwork = 100;
@@ -1074,6 +1079,13 @@ void TestSimulationRun::platformListsAtMostFiftyPassengers() {
 	QCOMPARE(ids(snapshot.platforms[0]), range(0, 50));
 	QCOMPARE(snapshot.platforms[0].passengers[7].status, std::string("OnPlatform"));
 	QCOMPARE(snapshot.platforms[0].passengers[7].nextTrain, std::string("T1"));
+	// The destinations count all 60 who wait, not only the 50 listed: 15 go north, 45 south.
+	QCOMPARE(snapshot.platforms[0].destinations.size(), std::size_t(2));
+	QCOMPARE(snapshot.platforms[0].destinations[0].destination, std::string("South"));
+	QCOMPARE(snapshot.platforms[0].destinations[0].count, 45);
+	QCOMPARE(snapshot.platforms[0].destinations[1].destination, std::string("North"));
+	QCOMPARE(snapshot.platforms[0].destinations[1].count, 15);
+	QVERIFY(snapshot.platforms[1].destinations.empty());
 	// The other platform has the two who left there.
 	QCOMPARE(snapshot.platforms[1].passengerCount, 2);
 	QCOMPARE(ids(snapshot.platforms[1]), range(63, 65));
