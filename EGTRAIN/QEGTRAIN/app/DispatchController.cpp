@@ -236,7 +236,11 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 		state.maxVolume = platform.Max_Passenger_Volume;
 		const auto left = exited.find({platform.StationID, platform.ID});
 		const std::size_t leftCount = left == exited.end() ? 0 : left->second.size();
-		const std::size_t total = platform.Current_List_Pax_On_Platform.size() + leftCount;
+		// Without the passenger GUI the run keeps no platform lists, but its passenger flow counts who waits where.
+		const std::size_t waitingCount = !run.settings.PAX_GUI && run.passengerFlow.covers(run.passengers)
+			? static_cast<std::size_t>(run.passengerFlow.waitingCount(platform.StationID, platform.ID))
+			: platform.Current_List_Pax_On_Platform.size();
+		const std::size_t total = waitingCount + leftCount;
 		state.passengerCount = static_cast<int>(total);
 		const std::size_t listed = std::min(total, static_cast<std::size_t>(kGuiPlatformPassengerIcons));
 		state.passengers.reserve(listed);
