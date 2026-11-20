@@ -363,6 +363,7 @@ void TestPassengerPanel::windowsSayTheirZeroPoint() {
 	for (const QLineEdit* edit : f.panel.journeyWindowEdits()) {
 		QCOMPARE(edit->toolTip(), "Time of day, HH:MM:SS. Write +1d before it for the next day.");
 		QCOMPARE(edit->placeholderText(), "HH:MM:SS");
+		QVERIFY(edit->minimumWidth() > edit->fontMetrics().horizontalAdvance("+1d 00:00:00"));
 	}
 }
 

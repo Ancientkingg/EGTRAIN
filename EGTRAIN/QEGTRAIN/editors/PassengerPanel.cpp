@@ -16,6 +16,7 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QFontMetrics>
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -113,6 +114,9 @@ constexpr int MaxDiagnosticLines = 5;
 
 // The rows of the import results that the table shows without scrolling.
 constexpr int MinImportResultRows = 8;
+
+// The widest usual text of a journey window field: a time on the next day.
+const QString kNextDayTimeSample = QStringLiteral("+1d 00:00:00");
 
 QString cappedLines(const QStringList& lines) {
 	if (lines.size() <= MaxDiagnosticLines)
@@ -232,6 +236,9 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 		edit->setPlaceholderText(QStringLiteral("HH:MM:SS"));
 		edit->setToolTip(QStringLiteral("Time of day, HH:MM:SS. Write +1d before it for the next day."));
 		edit->setAccessibleName(QString::fromUtf8(windowFields[index].first));
+		// Wide enough for a time on the next day, so that its "+1d" never scrolls out of view.
+		const QFontMetrics metrics = edit->fontMetrics();
+		edit->setMinimumWidth(metrics.horizontalAdvance(kNextDayTimeSample) + 4 * metrics.averageCharWidth());
 		m_journeyWindowEdits[index] = edit;
 		journeyForm->addRow(windowFields[index].first, edit);
 	}
