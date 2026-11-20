@@ -16,6 +16,7 @@
 #include <QStringList>
 #include <QTimer>
 
+#include <array>
 #include <functional>
 #include <limits>
 #include <map>
@@ -30,6 +31,7 @@
 #include "simulation/GuiSimulationSnapshot.h"
 #include "graphics/NetworkView.h"
 #include "graphics/items/HighlightEffect.h"
+#include "graphics/items/PassengerItem.h"
 #include "scene/SectionLabels.h"
 #include "scene/TrackPreview.h"
 
@@ -41,6 +43,8 @@ class PassengerItem;
 class PlatformItem;
 class QGraphicsItem;
 class QGraphicsItemGroup;
+class QGraphicsPathItem;
+class QGraphicsSimpleTextItem;
 class QGraphicsPixmapItem;
 class RuntimeGeometrySource;
 class Section;
@@ -230,9 +234,9 @@ public:
 	/// Stops the motion of every train as stopTrainAnimation() does.
 	void stopTrainAnimations();
 
-	/// Whether the labels of the platforms show: the passengers on the platforms show (platformPassengersVisible()) and
-	/// the view is zoomed in far enough to read them, to a zoom ratio of at least 3.
-	bool paxTextVisible() const;
+	/// Whether the platforms show the figures of their passengers and the "+N" chips instead of the counts: the
+	/// passengers on the platforms show (platformPassengersVisible()) and a figure is at least 18 pixels high on the screen.
+	bool paxFiguresVisible() const;
 
 	/// The line of the preview that the track line with this index in the run is drawn on, or null.
 	const TrackPreviewLine* cachedTrackLine(int track) const;
@@ -526,9 +530,28 @@ private:
 	bool m_stationNearLook = false;
 	// Sets m_stationNearLook and shows or hides the platform bars and the passengers on them (applyPlatformVisibility()).
 	void setStationNearLook(bool nearLook);
-	// Shows or hides the platform bars by platformBarsVisible(), the icons of the passengers on them by
-	// platformPassengersVisible() and their counters by paxTextVisible(). Call it after a change of a layer.
+	// Shows or hides the platform bars by platformBarsVisible(), and on each platform the gauge by
+	// platformPassengersVisible(), the figures and the chip by paxFiguresVisible() and the count in their place. Call it
+	// after a change of a layer or of the zoom; updateViewOverlays() does so at every change of the view.
 	void applyPlatformVisibility();
+	// Shows or hides the gauge, the count, the figures and the chip of one platform as applyPlatformVisibility() does.
+	void applyPlatformPassengerVisibility(PlatformItem* platform);
+	// The count pill of a station, which shows in the far look beside the mark of the station: the passengers waiting
+	// at all its platforms, in the colour of the most crowded of them. The scene owns the items; the entries are made
+	// once for each station name by updateStationCounts() and cleared by clear().
+	struct StationCount {
+		StationOverlayItem* overlay = nullptr;
+		QGraphicsPathItem* pill = nullptr;
+		QGraphicsSimpleTextItem* text = nullptr;
+		std::string station;
+		int waiting = 0;
+		PlatformCrowding crowding = PlatformCrowding::Normal;
+	};
+	std::vector<StationCount> m_stationCounts;
+	// Works out the waiting passengers and the crowding of every station from its platforms and gives them to the pills.
+	void updateStationCounts();
+	// Shows the pills in the far look with the passengers and the stations, and puts them beside their marks.
+	void refreshStationCounts();
 
 	// The virtual coupling message of each train by train index.
 	QMap<int, QGraphicsItemGroup*> m_vcMessageItems;
@@ -585,9 +608,8 @@ private:
 	// m_previewHasSelectedTrack.
 	void placeSelectionMark(const SceneModel& sceneModel, const PreviewOptions& options);
 
-	// The icon of a passenger on a platform, a tenth of station_size in pixels on each side. It is null when the
-	// application resource is missing.
-	QPixmap pax_pixmap_scaled;
+	// The figure of a passenger on a platform for each PlatformCrowding, in the order of the enumerators.
+	std::array<QPixmap, 3> m_passengerFigures;
 
 	// The station layer is shown.
 	bool m_stationLayerVisible = true;
@@ -758,11 +780,12 @@ private:
 	void buildSignalIndex();
 	void buildTrackIndexes();
 	bool passengerGui() const;
+	double platformCrowdingThreshold() const;
 	void updateSignalling(const GuiSimulationSnapshot& snapshot);
 	void updateSignalAspect(const GuiSignalState& state, std::set<const SignalItem*>& updated);
 	void updatePlatforms(const GuiSimulationSnapshot& snapshot);
 	void updatePlatform(PlatformItem* platform, const GuiPlatformState& state, std::vector<PassengerItem*>& restack);
-	void updatePlatformMore(PlatformItem* platform, int hidden);
+	void updatePlatformMore(PlatformItem* platform, int hidden, int shown, qreal spacing);
 	void stackPassengerIcons(const std::vector<PassengerItem*>& restack);
 	void showTrackStates(const GuiSimulationSnapshot& snapshot, int t, bool replay);
 	void checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainState& train, const GuiSimulationSnapshot& snapshot, int t);

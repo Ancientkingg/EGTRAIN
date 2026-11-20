@@ -1228,9 +1228,9 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		? w.m_networkLegendWidget->entryLabels()
 		: QStringList();
 	// The run shows passengers, but a case without passengers has no passenger row in the map key.
-	if (w.m_document->model().passengers.empty() && mapKeyEntries.contains(QStringLiteral("Passenger count"))) {
+	if (w.m_document->model().passengers.empty() && mapKeyEntries.contains(QStringLiteral("Waiting passengers"))) {
 		ok = false;
-		failures << "the map key lists Passenger count for a case without passengers";
+		failures << "the map key lists Waiting passengers for a case without passengers";
 	}
 	if (!stationLayer || !stationNames || !trainLayer || !trainSpeedLabels
 		|| !signalLayer || !passengerLayer) {
@@ -1369,16 +1369,15 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				continue;
 			PassengerItem* icon = platform->passengerIcons.first();
 			const QRectF sceneBounds = icon->sceneBoundingRect();
-			// The first icon stands on the long axis of the bar, whatever the direction of the bar.
+			// The first figure stands level above the start of the bar, whatever the direction of the bar.
 			const QRectF bar = platform->rect();
-			const QPointF onAxis = platform->mapToScene(
-				QPointF(bar.left() + bar.width() / platform->passengerIcons.size() / 2, bar.center().y()));
+			const qreal spacing = (PassengerItem::FigureWidth + 3.0) * w.m_presenter->presentationScale();
+			const QPointF onAxis = platform->mapToScene(QPointF(bar.left() + spacing / 2, bar.center().y()));
 			const qreal firstWidth = icon->deviceTransform(w.networkView->viewportTransform())
 										 .mapRect(icon->boundingRect())
 										 .width();
 			if (icon->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations)
-				|| !qFuzzyCompare(sceneBounds.center().x() + 1.0, onAxis.x() + 1.0)
-				|| !qFuzzyCompare(sceneBounds.center().y() + 1.0, onAxis.y() + 1.0)) {
+				|| qAbs(sceneBounds.center().x() - onAxis.x()) > bar.height() || sceneBounds.bottom() > onAxis.y() + 1e-6) {
 				ok = false;
 				failures << "passenger glyph lost scene-scale centering";
 			}
