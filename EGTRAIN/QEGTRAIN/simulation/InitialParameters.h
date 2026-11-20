@@ -35,6 +35,8 @@ public:
 	double bufferTime;
 	/// The running time recovery in percent: the value of -c, or else the recovery time of the scene rounded to a whole number, or 0.
 	double recoveryTimePercentage;
+	/// The most transfers a plan of a live passenger journey may use (simulation_settings.passenger_max_transfers, 0 to 10).
+	int passengerMaxTransfers = 2;
 	/// A folder of legacy input files. main clears it before a run, and nothing in the program reads it.
 	std::string InputMainFolder;
 	/// Folder that a run writes its output files to. prepareScene sets it to the folder chosen in the window, if any, and to

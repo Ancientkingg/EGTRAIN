@@ -161,11 +161,11 @@ pax x1 state t=1274 in=0 status=None journey=None trip=None waiting=None/None to
 gui_passenger x1 t=1274 status=None platform=None next_train=None next_destination=-
 onboard Q2-1 t=1274 n=0 max=300
 journey x1 x1.1 started=1 completed=1 dep=25350.000000 arr=26474.000000 walking=0.000000 waiting=71.000000 delay=-126
-trip x1 x1.1.leg.1 started=1 completed=1 dep=25350 arr=25823 delay=35822
+trip x1 x1.1.leg.1 started=1 completed=1 dep=25350 arr=25823 delay=0
 trip x1 x1.1.leg.2 started=1 completed=1 dep=25823 arr=26474 delay=-126
-journey x2 x2.1 started=1 completed=1 dep=25360.000000 arr=26434.000000 walking=120.000000 waiting=90.000000 delay=-216
-trip x2 x2.1.leg.1 started=1 completed=1 dep=25360 arr=25823 delay=35822
-trip x2 x2.1.leg.2 started=1 completed=1 dep=25943 arr=26434 delay=-216
+journey x2 x2.1 started=1 completed=1 dep=25360.000000 arr=26434.000000 walking=0.000000 waiting=210.000000 delay=-216
+trip x2 x2.1.leg.1 started=1 completed=1 dep=25360 arr=25823 delay=0
+trip x2 x2.1.leg.2 started=1 completed=1 dep=25823 arr=26434 delay=-216
 journey y1 y1.1 started=1 completed=1 dep=25370.000000 arr=25823.000000 walking=0.000000 waiting=51.000000 delay=-137
 trip y1 y1.1.leg.1 started=1 completed=1 dep=25370 arr=25823 delay=-137
 journey y1 y1.2 started=1 completed=1 dep=25850.000000 arr=26434.000000 walking=0.000000 waiting=122.000000 delay=-216

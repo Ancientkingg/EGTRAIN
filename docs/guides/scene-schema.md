@@ -44,7 +44,9 @@ Optional keys:
   `speed: "m/s"` when present.
 - `simulation_settings`: object with optional numeric
   `duration_seconds`, `buffer_time_seconds`, and
-  `recovery_time_percent`.
+  `recovery_time_percent`, and an optional integer `passenger_max_transfers`
+  from 0 to 10 (default 2) that limits the transfers of a planned passenger
+  journey. The writer leaves it out while it has the default.
 - `import_report`: array of conversion rows.
 
 Inside a case file, `format` is the required string `"egscene"` and
@@ -454,9 +456,16 @@ it never constructs a partial journey. Legacy-import provenance downgrades a
 historical reverse leg to an actionable warning and native staging omits the
 whole affected journey.
 
-Journey and leg IDs are stable across the scene. A journey may have an empty
-`legs` array when the active legacy route-choice file has no row for it; this
-is reported as a warning rather than inventing a route.
+Journey and leg IDs are stable across the scene. A journey with an empty `legs`
+array is live: when the passenger appears on the platform, the run plans the
+earliest arrival at the destination on the timetable of the moment, with at
+most `simulation_settings.passenger_max_transfers` transfers, and plans again
+when the passenger misses a train or finds it full. A journey with legs follows
+them until one cannot be taken and is then planned the same way. A journey for
+which no train reaches the destination ends with the outcome `no_route`, and the
+passenger leaves the network at the station it is at. A journey that comes from
+a legacy route-choice file without a row for it has an empty `legs` array and
+is reported as a warning.
 
 Random draws and simulation results are not scene input. The explicit legacy
 importer recognizes passenger data only when both exact source files

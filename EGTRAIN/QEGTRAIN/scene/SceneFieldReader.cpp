@@ -313,6 +313,7 @@ void decodeSceneMetadata(const SceneFieldReader& reader, const json& root, Scene
 				"simulation_settings", scene.settings.bufferTimeSeconds, false);
 			scene.settings.hasRecoveryTime = reader.numberField(settings, "recovery_time_percent",
 				"simulation_settings", scene.settings.recoveryTimePercent, false);
+			reader.integerField(settings, "passenger_max_transfers", "simulation_settings", scene.settings.passengerMaxTransfers, false);
 		}
 	}
 	if (root.contains("import_report")) {

@@ -643,6 +643,11 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			"scene", "", "simulation_settings.recovery_time_percent", "",
 			"Use a recovery value of 0 or more");
 	}
+	if (scene.settings.passengerMaxTransfers < 0 || scene.settings.passengerMaxTransfers > kMaxPassengerMaxTransfers) {
+		diagnostics.error("scene.passenger.transfers.invalid", "The passenger transfer limit must be from 0 to 10", "scene.json",
+			"scene", "", "simulation_settings.passenger_max_transfers", "",
+			"Use a whole number from 0 to 10");
+	}
 
 	const auto errorCount = [&result]() {
 		return std::count_if(result.begin(), result.end(), [](const SceneDiagnostic& diagnostic) {

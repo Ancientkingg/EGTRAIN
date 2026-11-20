@@ -572,6 +572,7 @@ private slots:
 	void platformHoldsAtLeastOnePassenger();
 	void defaultPlatformHoldsAbout99Passengers();
 	void rejectsNonFinitePassengerWindow();
+	void limitsPassengerTransfers();
 	void legDestinationIsStopOfService();
 	void rejectsReversePassengerLeg();
 	void resolvesRepeatedServiceStations();
@@ -1095,6 +1096,21 @@ void TestSceneValidator::rejectsNonFinitePassengerWindow() {
 	QVERIFY2(hasCodeAndPath(validateScene(nonFinitePassengerWindow), "scene.passenger.window",
 				 "passengers[0].journeys[0].planned_arrival"),
 		"non-finite passenger windows are rejected");
+}
+
+void TestSceneValidator::limitsPassengerTransfers() {
+	for (const int allowed : {0, 2, 10}) {
+		SceneModel scene = completeScene();
+		scene.settings.passengerMaxTransfers = allowed;
+		QVERIFY2(!hasCodeAndPath(validateScene(scene), "scene.passenger.transfers.invalid", "simulation_settings.passenger_max_transfers"),
+			"0 to 10 transfers are allowed");
+	}
+	for (const int refused : {-1, 11}) {
+		SceneModel scene = completeScene();
+		scene.settings.passengerMaxTransfers = refused;
+		QVERIFY2(hasCodeAndPath(validateScene(scene), "scene.passenger.transfers.invalid", "simulation_settings.passenger_max_transfers"),
+			"other transfer limits are rejected");
+	}
 }
 
 void TestSceneValidator::legDestinationIsStopOfService() {

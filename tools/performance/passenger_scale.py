@@ -2,13 +2,14 @@
 """Time headless runs of a scene with a growing number of synthetic passengers.
 
 Each run copies the scene to a temporary folder, replaces passengers.json with N passengers who all board one
-service occurrence at one station, and runs EGTRAIN without a window. The passenger log is switched off, so the
+service occurrence at one station, and runs EGTRAIN without a window. With --live the journeys have no legs, so that
+the run plans each of them on the timetable when the passenger appears. The passenger log is switched off, so the
 numbers measure the simulation and not the log output.
 
 Example, from the repository root:
 
     python3 tools/performance/passenger_scale.py --app build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN \\
-        --counts 500 5000 50000
+        --counts 500 5000 50000 [--live]
 """
 
 import argparse
@@ -35,7 +36,7 @@ DEFAULT_SERVICE = "Guin-Paim-ALL-STOPS-1"
 DEFAULT_WINDOW = (26000.0, 27300.0)
 
 
-def write_passengers(scene_dir, count, origin, destinations, service, window, seed):
+def write_passengers(scene_dir, count, origin, destinations, service, window, seed, live=False):
     rng = random.Random(seed)
     passengers = []
     for i in range(count):
@@ -47,8 +48,8 @@ def write_passengers(scene_dir, count, origin, destinations, service, window, se
                 "id": journey_id,
                 "origin": origin,
                 "destination": destination,
-                "legs": [{"id": f"{journey_id}.leg.1", "origin": origin, "destination": destination,
-                          "service": service, "occurrence": 1}],
+                "legs": [] if live else [{"id": f"{journey_id}.leg.1", "origin": origin, "destination": destination,
+                                          "service": service, "occurrence": 1}],
                 "planned_departure": {"start_seconds": window[0], "end_seconds": window[1]},
                 "planned_arrival": {"start_seconds": window[1], "end_seconds": window[1] + 3600.0},
             }],
@@ -98,6 +99,7 @@ def main():
     parser.add_argument("--service", default=DEFAULT_SERVICE)
     parser.add_argument("--horizon", type=int, default=0, help="seconds; 0 keeps the duration of the case")
     parser.add_argument("--seed", type=int, default=1)
+    parser.add_argument("--live", action="store_true", help="write the journeys without legs, so that the run plans them")
     args = parser.parse_args()
 
     app = args.app.resolve()
@@ -110,7 +112,7 @@ def main():
             shutil.copytree(args.scene, scene_dir)
             output_dir.mkdir()
             write_passengers(scene_dir, count, args.origin, args.destinations, args.service, DEFAULT_WINDOW,
-                             args.seed)
+                             args.seed, args.live)
             elapsed = run_once(app, scene_dir, output_dir, args.horizon)
             done, total = completed_journeys(output_dir, scene_name)
             print(f"{count} {elapsed:.2f} {peak_rss_mib():.0f} {done} {total}", flush=True)

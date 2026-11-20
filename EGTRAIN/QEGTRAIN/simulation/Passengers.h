@@ -3,7 +3,10 @@
 
 #include "simulation/Infrastructure.h"
 #include "simulation/RollingStock.h"
+#include <list>
+#include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 
@@ -47,8 +50,22 @@ public:
 	}
 };
 
+/// How a journey ended, or "InProgress" while it has not.
+enum class JourneyOutcome {
+	InProgress, ///< Not started, or on its way.
+	Completed,	///< The passenger reached the destination.
+	NoRoute		///< No train could take the passenger to the destination, so the passenger left the network where it was.
+};
+
+/// The name of an outcome as the observations and logs write it: "in_progress", "completed" or "no_route".
+const char* journeyOutcomeName(JourneyOutcome outcome);
+
 /// A journey of a passenger from an origin to a destination: a list of legs (trips) with transfers between them. Times
 /// and station IDs as in Trip; durations are seconds. Strings are "None" and times -9999 until set.
+///
+/// A journey without legs in the scene is live: when the passenger appears on the platform, the passenger step plans the
+/// legs on the timetable of the moment (PassengerJourneys.h), and again whenever the passenger misses a train. A journey with
+/// legs follows them until one cannot be taken and is then planned like a live journey from the station where the passenger is.
 class Journey {
 public:
 	/// ID of the journey in the scene.
@@ -75,9 +92,20 @@ public:
 	std::list<Trip> Trips;							   ///< The legs in travel order.
 	/// True once the passenger has entered the network for this journey.
 	bool IsJourneyStarted, IsJourneyCompleted; ///< True once the passenger has reached the destination.
-	double Walkingtime;						   ///< Total walking time between platforms at transfers in seconds.
-	double Waitingtime;						   ///< Total waiting time on platforms in seconds.
-	int totalJourneyArrivalDelay;			   ///< Arrival delay of the last leg in seconds; 0 until the journey is completed.
+	/// True once the legs after the first plan of the journey were replaced: the passenger missed a train, was refused by a
+	/// full one, or was set down early by a train that ended its service.
+	bool IsReplanned = false;
+	JourneyOutcome Outcome = JourneyOutcome::InProgress; ///< Set when the journey completes or finds no route.
+	int LiveTripCount = 0;								 ///< Number of legs the passenger step planned for this journey; the IDs of its legs count it.
+	/// The trains that refused the passenger because they were full, as trainDescription and station. A later plan from that
+	/// station leaves out the train while it stands there.
+	std::vector<std::pair<std::string, std::string>> RefusedBy;
+	double Walkingtime;			  ///< Total walking time between platforms at transfers in seconds.
+	double Waitingtime;			  ///< Total waiting time on platforms in seconds.
+	int totalJourneyArrivalDelay; ///< Arrival delay of the last leg in seconds; 0 until the journey is completed.
+
+	/// True when the journey is over, because the passenger arrived or no route was found.
+	bool isFinished() const { return IsJourneyCompleted || Outcome == JourneyOutcome::NoRoute; }
 
 	Journey() {
 		ID = Dep_Station_ID = Arr_Station_ID = Journey_Activity_Type = "None";
