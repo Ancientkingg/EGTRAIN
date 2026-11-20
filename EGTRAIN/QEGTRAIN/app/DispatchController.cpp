@@ -257,6 +257,22 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 		}
 		for (std::size_t i = 0; i < leftCount && state.passengers.size() < listed; ++i)
 			state.passengers.push_back(listPassenger(*left->second[i]));
+		// every passenger who waits, by the destination of the journey, for the card of the station
+		std::map<std::string_view, int> byDestination;
+		for (const auto& waiting : platform.Current_List_Pax_On_Platform) {
+			const Passenger* passenger = passengerOf(waiting.first);
+			if (!passenger)
+				continue;
+			const auto journey = std::find_if(passenger->Journeys.begin(), passenger->Journeys.end(),
+				[passenger](const Journey& value) { return value.ID == passenger->current_JourneyID; });
+			if (journey != passenger->Journeys.end() && !journey->Arr_Station_ID.empty())
+				++byDestination[journey->Arr_Station_ID];
+		}
+		state.destinations.reserve(byDestination.size());
+		for (const auto& entry : byDestination)
+			state.destinations.push_back({std::string(entry.first), entry.second});
+		std::stable_sort(state.destinations.begin(), state.destinations.end(),
+			[](const GuiDestinationCount& x, const GuiDestinationCount& y) { return x.count > y.count; });
 		snapshot.platforms.push_back(std::move(state));
 	}
 

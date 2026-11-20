@@ -62,10 +62,21 @@ inline bool operator==(const GuiPassengerState& a, const GuiPassengerState& b) {
 	return fields(a) == fields(b);
 }
 
+/// The fields of a destination count, in declaration order.
+inline auto fields(const GuiDestinationCount& v) {
+	const auto& [destination, count] = v;
+	return std::make_tuple(destination, count);
+}
+
+/// Every field of the two destination counts is equal.
+inline bool operator==(const GuiDestinationCount& a, const GuiDestinationCount& b) {
+	return fields(a) == fields(b);
+}
+
 /// The fields of a platform, in declaration order.
 inline auto fields(const GuiPlatformState& v) {
-	const auto& [stationId, platformId, maxVolume, passengerCount, passengers] = v;
-	return std::make_tuple(stationId, platformId, maxVolume, passengerCount, passengers);
+	const auto& [stationId, platformId, maxVolume, passengerCount, passengers, destinations] = v;
+	return std::make_tuple(stationId, platformId, maxVolume, passengerCount, passengers, destinations);
 }
 
 /// The fields of a virtual coupling message, in declaration order.
@@ -104,7 +115,8 @@ inline const std::array<const char*, 20> trainNames{"index", "id", "type", "desc
 	"currentOnboardPassengers", "maxOnboardPassengers", "wagonHeadPositions", "wagonTailPositions", "occupiedArcs"};
 inline const std::array<const char*, 5> signalNames{"sectionId", "code", "reversedDirection", "level", "failed"};
 inline const std::array<const char*, 3> sectionNames{"sectionId", "prepared", "blocked"};
-inline const std::array<const char*, 5> platformNames{"stationId", "platformId", "maxVolume", "passengerCount", "passengers"};
+inline const std::array<const char*, 6> platformNames{"stationId", "platformId", "maxVolume", "passengerCount", "passengers", "destinations"};
+inline const std::array<const char*, 2> destinationNames{"destination", "count"};
 inline const std::array<const char*, 6> passengerNames{"id", "status", "waitingPlatform", "nextTrain", "nextDestination", "finalDestination"};
 inline const std::array<const char*, 3> messageNames{"timestep", "trainDescription", "message"};
 
@@ -127,6 +139,7 @@ inline bool differs(const std::string& path, const GuiSignalState& a, const GuiS
 inline bool differs(const std::string& path, const GuiSectionState& a, const GuiSectionState& b, std::string& out);
 inline bool differs(const std::string& path, const GuiPlatformState& a, const GuiPlatformState& b, std::string& out);
 inline bool differs(const std::string& path, const GuiPassengerState& a, const GuiPassengerState& b, std::string& out);
+inline bool differs(const std::string& path, const GuiDestinationCount& a, const GuiDestinationCount& b, std::string& out);
 inline bool differs(const std::string& path, const GuiVirtualCouplingState& a, const GuiVirtualCouplingState& b, std::string& out);
 
 template <class T> bool differs(const std::string& path, const T& a, const T& b, std::string& out) {
@@ -170,6 +183,9 @@ inline bool differs(const std::string& path, const GuiSignalState& a, const GuiS
 }
 inline bool differs(const std::string& path, const GuiSectionState& a, const GuiSectionState& b, std::string& out) {
 	return differsFields(path, sectionNames, fields(a), fields(b), out);
+}
+inline bool differs(const std::string& path, const GuiDestinationCount& a, const GuiDestinationCount& b, std::string& out) {
+	return differsFields(path, destinationNames, fields(a), fields(b), out);
 }
 inline bool differs(const std::string& path, const GuiPlatformState& a, const GuiPlatformState& b, std::string& out) {
 	return differsFields(path, platformNames, fields(a), fields(b), out);

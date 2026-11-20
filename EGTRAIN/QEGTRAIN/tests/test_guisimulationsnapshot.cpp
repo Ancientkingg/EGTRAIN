@@ -143,6 +143,9 @@ GuiSimulationSnapshot sampleSnapshot(int t, std::size_t trainCount = 3, int tota
 				k == 1 ? std::string() : "train " + std::to_string(k), "station " + std::to_string((step + k) % 2),
 				k == 2 ? std::string() : "final " + std::to_string((step + k) % 3)});
 		}
+		// the destinations change at some steps only, as they do in a run
+		for (int d = 0; d < (step / 5 + p) % 3; ++d)
+			platform.destinations.push_back({"final " + std::to_string(d), 9 - d});
 		// Some of the passengers have no entry in the list.
 		platform.passengerCount = static_cast<int>(platform.passengers.size()) + (step % 3 == 0 ? 2 : 0);
 		snapshot.platforms.push_back(std::move(platform));

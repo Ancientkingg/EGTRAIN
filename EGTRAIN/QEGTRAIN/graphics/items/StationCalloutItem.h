@@ -12,27 +12,27 @@
 struct StationCalloutContent {
 	/// One destination of the waiting passengers and how many of them go there.
 	struct Destination {
-		QString name; ///< The station, as it is shown.
+		QString name;  ///< The station, as it is shown.
 		int count = 0; ///< The passengers waiting for it.
 	};
 	/// One call of a train, as the cells of a table row.
 	struct Call {
-		QString time;		///< The arrival, hh:mm:ss.
-		QString train;		///< The operating code of the train.
-		QString boarded;	///< Passengers who boarded, or a dash.
-		QString alighted;	///< Passengers who alighted, or a dash.
-		QString leftBehind; ///< Passengers left behind, or a dash.
-		QString load;		///< The load at departure, or a dash.
+		QString time;		  ///< The arrival, hh:mm:ss.
+		QString train;		  ///< The operating code of the train.
+		QString boarded;	  ///< Passengers who boarded, or a dash.
+		QString alighted;	  ///< Passengers who alighted, or a dash.
+		QString leftBehind;	  ///< Passengers left behind, or a dash.
+		QString load;		  ///< The load at departure, or a dash.
 		bool anyLeft = false; ///< Some passengers were left behind, which the card draws in red.
 	};
-	QString title;							  ///< The name of the station.
-	QString subtitle;						  ///< The passengers waiting and the capacity of the platforms.
-	bool nobodyWaiting = false;				  ///< No passenger waits: the card says so instead of listing destinations.
-	QString destinationHeader;				  ///< The heading of the destinations; empty when there is no section.
-	QList<Destination> destinations;		  ///< The destinations that get a bar, the largest first.
-	int moreStations = 0;					  ///< The number of further destinations, which one line sums up.
-	int moreCount = 0;						  ///< The passengers waiting for those.
-	QList<Call> calls;						  ///< The latest calls, newest first.
+	QString title;					 ///< The name of the station.
+	QString subtitle;				 ///< The passengers waiting and the capacity of the platforms.
+	bool nobodyWaiting = false;		 ///< No passenger waits: the card says so instead of listing destinations.
+	QString destinationHeader;		 ///< The heading of the destinations; empty when there is no section.
+	QList<Destination> destinations; ///< The destinations that get a bar, the largest first.
+	int moreStations = 0;			 ///< The number of further destinations, which one line sums up.
+	int moreCount = 0;				 ///< The passengers waiting for those.
+	QList<Call> calls;				 ///< The latest calls, newest first.
 };
 
 /// The card that a click on a station opens on the canvas: a dark box with the passengers waiting at the station by
@@ -57,6 +57,11 @@ public:
 	void setContent(const StationCalloutContent& content);
 	/// The content shown.
 	const StationCalloutContent& content() const { return m_content; }
+	/// Moves the card sideways by shift pixels, keeping the pointer at the origin, which then meets the card off its centre.
+	/// The shift is limited so that the pointer stays under the card.
+	void setShift(qreal shift);
+	/// The sideways move of the card in pixels.
+	qreal shift() const { return m_shift; }
 	/// Puts the card below the origin instead of above it.
 	void setBelow(bool below);
 	/// Whether the card stands below the origin.
@@ -71,7 +76,7 @@ public:
 	/// The distance in pixels between the origin and the edge of the card.
 	static constexpr qreal Gap = 8.0;
 	/// The width of the card in pixels.
-	static constexpr qreal CardWidth = 300.0;
+	static constexpr qreal CardWidth = 340.0;
 	/// The z value of the card: over the names of the stations (z 4.5), like the callouts of a click.
 	static constexpr qreal CardZValue = 5.0;
 	/// The colour of the card.
@@ -89,6 +94,7 @@ private:
 	void layout();
 	StationCalloutContent m_content;
 	bool m_below = false;
+	qreal m_shift = 0.0;
 	qreal m_height = 0.0;
 };
 

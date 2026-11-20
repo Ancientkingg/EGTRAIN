@@ -12,7 +12,7 @@ constexpr qreal kPadding = 12.0;
 constexpr qreal kRowHeight = 17.0;
 constexpr qreal kBarHeight = 7.0;
 constexpr qreal kNameWidth = 108.0;
-constexpr qreal kBarWidth = 130.0;
+constexpr qreal kBarWidth = 150.0;
 
 const QColor kText(0xd7, 0xdd, 0xe4);
 const QColor kMuted(0x8b, 0x96, 0xa3);
@@ -64,6 +64,16 @@ void StationCalloutItem::setContent(const StationCalloutContent& content) {
 	update();
 }
 
+void StationCalloutItem::setShift(qreal shift) {
+	const qreal limit = CardWidth / 2.0 - 16.0;
+	shift = std::clamp(shift, -limit, limit);
+	if (shift == m_shift)
+		return;
+	prepareGeometryChange();
+	m_shift = shift;
+	update();
+}
+
 void StationCalloutItem::setBelow(bool below) {
 	if (below == m_below)
 		return;
@@ -83,7 +93,7 @@ void StationCalloutItem::layout() {
 }
 
 QRectF StationCalloutItem::cardRect() const {
-	return QRectF(-CardWidth / 2.0, m_below ? Gap : -(Gap + m_height), CardWidth, m_height);
+	return QRectF(-CardWidth / 2.0 + m_shift, m_below ? Gap : -(Gap + m_height), CardWidth, m_height);
 }
 
 QRectF StationCalloutItem::closeRect() const {
@@ -187,9 +197,9 @@ void StationCalloutItem::paint(QPainter* painter, const QStyleOptionGraphicsItem
 	}
 	// Time and Train are left aligned from their columns; the counts are right aligned to theirs.
 	const qreal trainLeft = left + 62.0;
-	const qreal onRight = left + 168.0;
-	const qreal offRight = left + 204.0;
-	const qreal leftRight = left + 240.0;
+	const qreal onRight = left + 212.0;
+	const qreal offRight = left + 244.0;
+	const qreal leftRight = left + 276.0;
 	const auto cell = [&painter](qreal x, qreal width, qreal top, const QString& text, Qt::Alignment align) {
 		painter->drawText(QRectF(x, top, width, kRowHeight), Qt::AlignVCenter | align, text);
 	};
@@ -207,7 +217,8 @@ void StationCalloutItem::paint(QPainter* painter, const QStyleOptionGraphicsItem
 	for (const auto& call : m_content.calls) {
 		painter->setPen(kText);
 		cell(left, 60.0, y, call.time, Qt::AlignLeft);
-		cell(trainLeft, onRight - 30.0 - trainLeft - 4.0, y, metrics.elidedText(call.train, Qt::ElideRight, onRight - 30.0 - trainLeft - 4.0), Qt::AlignLeft);
+		// the middle of a long name goes, as the ends tell the trains of a line apart
+		cell(trainLeft, onRight - 30.0 - trainLeft - 4.0, y, metrics.elidedText(call.train, Qt::ElideMiddle, onRight - 30.0 - trainLeft - 4.0), Qt::AlignLeft);
 		cell(onRight - 30.0, 30.0, y, call.boarded, Qt::AlignRight);
 		cell(offRight - 30.0, 30.0, y, call.alighted, Qt::AlignRight);
 		painter->setPen(call.anyLeft ? leftBehindColour() : kText);

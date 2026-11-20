@@ -1662,6 +1662,12 @@ static void listPassengersTo(GuiPlatformState& platform, const std::vector<std::
 	for (std::size_t i = 0; i < destinations.size(); ++i)
 		platform.passengers.push_back({"p" + std::to_string(i), "OnPlatform", "P1", "T1", "next", destinations[i]});
 	platform.passengerCount = static_cast<int>(destinations.size());
+	std::map<std::string, int> counted;
+	for (const std::string& destination : destinations) ++counted[destination];
+	platform.destinations.clear();
+	for (const auto& [destination, count] : counted) platform.destinations.push_back({destination, count});
+	std::stable_sort(platform.destinations.begin(), platform.destinations.end(),
+		[](const GuiDestinationCount& a, const GuiDestinationCount& b) { return a.count > b.count; });
 }
 
 static GuiStationCall callOf(const std::string& train, int arrival, int boarded, int alighted, int left, int load, bool counted = true) {
@@ -1746,11 +1752,18 @@ void TestRuntimeCanvas::stationCalloutListsDestinationsAndCalls() {
 	QCOMPARE(card->content().calls[0].boarded, "-");
 	QVERIFY(!card->content().calls[0].anyLeft);
 
-	// a short list of a crowded platform is a sample, which the heading says
-	snapshot.platforms[0].passengerCount = 30;
+	// more wait than the platform lists: the card shows the counts of all of them, not of the listed
+	snapshot.platforms[0].passengerCount = 269;
+	snapshot.platforms[0].destinations = {{"A", 200}, {"B", 60}, {"C", 9}};
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
-	QCOMPARE(card->content().destinationHeader, "Waiting, by destination (2 of 30 shown)");
-	// a platform that lists nobody has no destinations to show
+	QCOMPARE(card->content().subtitle, QString("269 waiting \u00b7 capacity 40 on platform P1"));
+	QCOMPARE(card->content().destinationHeader, "Waiting, by destination");
+	QCOMPARE(card->content().destinations.size(), qsizetype(3));
+	QCOMPARE(card->content().destinations[0].count, 200);
+	QCOMPARE(card->content().destinations[1].count, 60);
+	QCOMPARE(card->content().destinations[2].count, 9);
+	// a platform without counts has no destinations to show
+	snapshot.platforms[0].destinations.clear();
 	snapshot.platforms[0].passengers.clear();
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	QVERIFY(card->content().destinationHeader.isEmpty());
@@ -1870,6 +1883,29 @@ void TestRuntimeCanvas::stationCalloutPlacesBelowAtTopOfView() {
 	QVERIFY(place(20) < 200);
 	QVERIFY(card->below());
 	QVERIFY(near(card->pos().y(), markNow().bottom()));
+
+	// the card stays inside the view sideways, with the pointer still at the station
+	const auto placeAcross = [&](int viewportX) {
+		const qreal scale = std::abs(f.view.transform().m11());
+		const QRectF before = markNow();
+		f.view.centerOn(QPointF(before.center().x() + (f.view.viewport()->width() / 2.0 - viewportX) / scale, before.top()));
+		presenter.updateViewOverlays([](const StationOverlayItem*) { return false; }, nullptr);
+	};
+	const auto cardInView = [&]() {
+		const QPointF origin = f.view.mapFromScene(card->pos());
+		return QRectF(origin.x() + card->cardRect().left(), 0, card->cardRect().width(), 1);
+	};
+	const qreal width = f.view.viewport()->width();
+	QVERIFY(width > StationCalloutItem::CardWidth + 40);
+	placeAcross(static_cast<int>(width / 2));
+	QCOMPARE(card->shift(), 0.0);
+	placeAcross(20);
+	QVERIFY(card->shift() > 0.0);
+	QVERIFY(cardInView().left() >= 0.0);
+	QVERIFY(std::abs(f.view.mapFromScene(card->pos()).x() - 20.0) < 2.0);
+	placeAcross(static_cast<int>(width) - 20);
+	QVERIFY(card->shift() < 0.0);
+	QVERIFY(cardInView().right() <= width);
 }
 
 // A zoom alone, with no step, swaps the count of a platform for the queue of figures and back, and a click on a figure

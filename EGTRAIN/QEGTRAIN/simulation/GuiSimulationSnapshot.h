@@ -213,6 +213,12 @@ struct GuiPassengerState {
 	std::string finalDestination = {};
 };
 
+/// How many passengers wait for one destination.
+struct GuiDestinationCount {
+	std::string destination; ///< The final destination of the passengers, as the run names it.
+	int count = 0;			 ///< The passengers on the platform who are going there.
+};
+
 /// One station platform at one step.
 struct GuiPlatformState {
 	std::string stationId;	///< The ID of the station.
@@ -223,6 +229,10 @@ struct GuiPlatformState {
 	int passengerCount = 0;
 	/// The first kGuiPlatformPassengerIcons of those passengers, the waiting ones first, then those who left the network.
 	std::vector<GuiPassengerState> passengers;
+	/// The passengers waiting on the platform by their final destination, all of them and not only those listed, the most
+	/// first and the destinations of a count in the order of their names. Empty without passenger lists, and when nobody
+	/// waits.
+	std::vector<GuiDestinationCount> destinations;
 };
 
 /// The most calls of one station that a snapshot lists.

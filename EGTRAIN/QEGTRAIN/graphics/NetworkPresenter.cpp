@@ -145,8 +145,6 @@ StationCalloutContent stationCalloutContent(const std::string& station, const Gu
 	StationCalloutContent content;
 	content.title = StationOverlayItem::displayName(station);
 	int waiting = 0;
-	int listedWaiting = 0;
-	bool sampled = false;
 	QStringList capacities;
 	QStringList platformNames;
 	std::map<std::string, int> byDestination;
@@ -158,19 +156,8 @@ StationCalloutContent stationCalloutContent(const std::string& station, const Gu
 			capacities << QString::number(platform.maxVolume);
 			platformNames << platformShortName(platform.platformId);
 		}
-		// The platform lists the passengers who wait first and then those who left, so a short list that holds none of the
-		// leavers lacks some of the waiting ones.
-		bool anyLeft = false;
-		for (const GuiPassengerState& passenger : platform.passengers) {
-			if (passenger.status == "None") {
-				anyLeft = true;
-				continue;
-			}
-			++listedWaiting;
-			if (!passenger.finalDestination.empty())
-				++byDestination[passenger.finalDestination];
-		}
-		sampled = sampled || (!anyLeft && static_cast<int>(platform.passengers.size()) < platform.passengerCount);
+		for (const GuiDestinationCount& destination : platform.destinations)
+			byDestination[destination.destination] += destination.count;
 	}
 	QString subtitle = QStringLiteral("%1 waiting").arg(waiting);
 	if (capacities.size() == 1)
@@ -181,8 +168,7 @@ StationCalloutContent stationCalloutContent(const std::string& station, const Gu
 
 	content.nobodyWaiting = waiting <= 0;
 	if (!content.nobodyWaiting && !byDestination.empty()) {
-		content.destinationHeader = sampled ? QStringLiteral("Waiting, by destination (%1 of %2 shown)").arg(listedWaiting).arg(waiting)
-											: QStringLiteral("Waiting, by destination");
+		content.destinationHeader = QStringLiteral("Waiting, by destination");
 		std::vector<std::pair<std::string, int>> ranked(byDestination.begin(), byDestination.end());
 		// the map is in the order of the names, which the stable sort keeps among equal counts
 		std::stable_sort(ranked.begin(), ranked.end(), [](const auto& a, const auto& b) { return a.second > b.second; });
@@ -3749,6 +3735,15 @@ void NetworkPresenter::placeStationCallouts() {
 		const bool below = m_view && m_view->mapFromScene(top).y() - callout.item->cardRect().height() - StationCalloutItem::Gap < 0;
 		callout.item->setBelow(below);
 		callout.item->setPos(below ? QPointF(centre.x(), mark.bottom()) : top);
+		// sideways into the view, the pointer staying at the station
+		if (m_view) {
+			constexpr qreal kMargin = 8.0;
+			const qreal half = StationCalloutItem::CardWidth / 2.0;
+			const qreal at = m_view->mapFromScene(centre).x();
+			const qreal low = kMargin + half - at;
+			const qreal high = m_view->viewport()->width() - kMargin - half - at;
+			callout.item->setShift(low > high ? low : std::clamp(0.0, low, high));
+		}
 	}
 }
 

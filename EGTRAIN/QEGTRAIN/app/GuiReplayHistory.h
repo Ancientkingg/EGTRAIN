@@ -182,19 +182,26 @@ private:
 		// destination. List number k holds the entries [ends[k - 1], ends[k]) of the values, counted in values.
 		std::vector<std::uint32_t> platformEntries;
 		std::vector<std::uint32_t> platformEnds;
+		// The destinations that the platforms list, two values each: string number and count. List number k holds the values
+		// [ends[k - 1], ends[k]).
+		std::vector<std::uint32_t> destinationEntries;
+		std::vector<std::uint32_t> destinationEnds;
 		std::size_t bytes = 0;
 	};
 
 	// First slot of each group of values, in the order of the layout.
 	struct Slots {
 		std::size_t signalCode = 0, signalLevel = 0, signalFailed = 0, sectionFlags = 0, trainOut = 0, trainOnboard = 0, trainArcs = 0,
-					platformList = 0, platformCount = 0, total = 0;
+					platformList = 0, platformCount = 0, platformDestinations = 0, total = 0;
 	};
 
 	static bool sameCounts(const Layout& layout, const GuiSimulationSnapshot& snapshot);
 	static bool sameStatic(const Layout& layout, const GuiSimulationSnapshot& snapshot);
 	static std::size_t layoutPayload(const Layout& layout);
 	static std::size_t intervalPayload(const Interval& interval);
+	void internDestinations(const std::vector<GuiDestinationCount>& listed, std::vector<std::uint32_t>& entries);
+	bool sameDestinations(const std::vector<GuiDestinationCount>& listed, const std::vector<std::uint32_t>& entries) const;
+	std::int32_t addDestinationList(Interval& interval, const std::vector<std::uint32_t>& entries);
 	void internEntries(const std::vector<GuiPassengerState>& listed, std::vector<std::uint32_t>& entries);
 	bool sameEntries(const std::vector<GuiPassengerState>& listed, const std::vector<std::uint32_t>& entries) const;
 	void makeLayout(const GuiSimulationSnapshot& snapshot);
@@ -221,6 +228,7 @@ private:
 	std::vector<std::int32_t> current_;
 	std::vector<std::vector<GuiOccupiedArc>> currentArcs_;
 	std::vector<std::vector<std::uint32_t>> currentPlatforms_;
+	std::vector<std::vector<std::uint32_t>> currentDestinations_;
 	std::deque<std::string> strings_;
 	std::unordered_map<std::string_view, std::uint32_t> stringNumbers_;
 	std::size_t layoutBytes_ = 0;
