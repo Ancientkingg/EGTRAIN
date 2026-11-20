@@ -576,6 +576,8 @@ private slots:
 	void checksPassengerDwellSettings();
 	void legDestinationIsStopOfService();
 	void rejectsReversePassengerLeg();
+	void warnsAboutArrivalWindowBeforeDeparture();
+	void warnsAboutLegLeavingBeforePreviousArrives();
 	void resolvesRepeatedServiceStations();
 	void derivesSectionInventory();
 	void doesNotResolveDuplicateBaseIds();
@@ -1171,6 +1173,58 @@ void TestSceneValidator::rejectsReversePassengerLeg() {
 	QVERIFY(hasCodeAndSeverity(legacyReverseDiagnostics, "scene.passenger.leg.order", SceneSeverity::Warning));
 	QVERIFY(!hasCodeAndPath(legacyReverseDiagnostics, "scene.passenger.leg.order",
 		"passengers[0].journeys[0].legs[0].destination"));
+}
+
+void TestSceneValidator::warnsAboutArrivalWindowBeforeDeparture() {
+	SceneModel scene = completeScene();
+	QVERIFY(!hasCode(validateScene(scene), "scene.passenger.window.order"));
+	ScenePassengerJourney& journey = scene.passengers[0].journeys[0];
+	journey.plannedArrivalStartSeconds = 0.0;
+	journey.plannedArrivalEndSeconds = 50.0;
+	journey.plannedDepartureStartSeconds = 60.0;
+	const auto diagnostics = validateScene(scene);
+	const SceneDiagnostic* order = findCode(diagnostics, "scene.passenger.window.order");
+	QVERIFY2(order, "an arrival window that ends before the departure window starts is reported");
+	QCOMPARE(order->severity, SceneSeverity::Warning);
+	QCOMPARE(order->path, std::string("passengers[0].journeys[0].planned_arrival"));
+}
+
+void TestSceneValidator::warnsAboutLegLeavingBeforePreviousArrives() {
+	// Out on service-1 (arrives at station-2 at 200) and back on service-2.
+	SceneModel scene = completeScene();
+	SceneService back = scene.services[0];
+	back.id = "service-2";
+	back.stops[0].stationId = "station-2";
+	back.stops[0].platformId = "platform-2";
+	back.stops[0].plannedDepartureSeconds = 150.0;
+	back.stops[1].stationId = "station-1";
+	back.stops[1].platformId = "platform-1";
+	back.stops[1].plannedArrivalSeconds = 260.0;
+	scene.services.push_back(back);
+	ScenePassengerJourney& journey = scene.passengers[0].journeys[0];
+	journey.destinationStationId = "station-1";
+	journey.legs.push_back({"leg-2", "station-2", "station-1", "service-2", 1});
+	const auto early = validateScene(scene);
+	const SceneDiagnostic* timing = findCode(early, "scene.passenger.leg.timing");
+	QVERIFY2(timing, "a leg that leaves before the previous leg arrives is reported");
+	QCOMPARE(timing->severity, SceneSeverity::Warning);
+	QCOMPARE(timing->path, std::string("passengers[0].journeys[0].legs[1].occurrence"));
+	scene.services[1].stops[0].plannedDepartureSeconds = 250.0;
+	scene.services[1].stops[1].plannedArrivalSeconds = 360.0;
+	QVERIFY2(!hasCode(validateScene(scene), "scene.passenger.leg.timing"), "a leg that leaves after the previous leg arrives is fine");
+	// The second occurrence of a repeating service leaves one headway later.
+	scene.services[1].stops[0].plannedDepartureSeconds = 150.0;
+	scene.services[1].stops[1].plannedArrivalSeconds = 260.0;
+	scene.services[1].hasRepeat = true;
+	scene.services[1].headwaySeconds = 100.0;
+	scene.services[1].hasRepeatCount = true;
+	scene.services[1].repeatCount = 2;
+	scene.passengers[0].journeys[0].legs[1].occurrence = 2;
+	QVERIFY2(!hasCode(validateScene(scene), "scene.passenger.leg.timing"), "a later occurrence leaves after the previous leg arrives");
+	// Without a planned arrival of the previous leg there is nothing to compare.
+	scene.passengers[0].journeys[0].legs[1].occurrence = 1;
+	scene.services[0].stops[1].hasPlannedArrival = false;
+	QVERIFY2(!hasCode(validateScene(scene), "scene.passenger.leg.timing"), "a leg without planned times is not checked");
 }
 
 void TestSceneValidator::resolvesRepeatedServiceStations() {
