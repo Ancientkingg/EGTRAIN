@@ -2272,6 +2272,34 @@ void TestOperationsBuilder::waitingPassengersAreListedByDeparture() {
 	std::list<StationPlatform> noPlatforms;
 	Update_List_Passengers_Waiting_At_ALL_Platforms(noPlatforms, passengers);
 	QVERIFY2(noPlatforms.empty(), "no platforms are made for the waiting passengers");
+
+	// The flow that follows the passengers gives the platforms the same counts and lists as the scans, also after a passenger moves on.
+	PassengerFlow flow;
+	flow.build(passengers, true);
+	std::list<StationPlatform> followed(platforms);
+	for (StationPlatform& platform : followed) {
+		platform.Current_N_Passengers = 7;
+		platform.Current_List_Pax_On_Platform = {{"old", 1.0}};
+	}
+	const auto samePlatformLists = [](const std::list<StationPlatform>& left, const std::list<StationPlatform>& right) {
+		return std::equal(left.begin(), left.end(), right.begin(), [](const StationPlatform& a, const StationPlatform& b) {
+			return a.Current_N_Passengers == b.Current_N_Passengers && a.Current_List_Pax_On_Platform == b.Current_List_Pax_On_Platform;
+		});
+	};
+	flow.refreshPlatformLists(followed);
+	QVERIFY2(samePlatformLists(followed, platforms), "the flow lists the waiting passengers as the scan does");
+	QCOMPARE(waitingIds(flow.waitingAt("S1", "P1").passengers), "a2 a3 f1 f1 a1 ");
+	Passenger& boarding = *std::next(passengers.begin());
+	boarding.CurrentStatus = "OnBoard";
+	boarding.Current_Train_Boarded = "T1";
+	boarding.Current_Arrival_Station = "S2";
+	boarding.Current_WaitingStationID = "None";
+	boarding.Current_WaitingStationPlatformID = "None";
+	flow.placed(1);
+	flow.refreshPlatformLists(followed);
+	Update_List_Passengers_Waiting_At_ALL_Platforms(platforms, passengers);
+	QVERIFY2(samePlatformLists(followed, platforms), "the flow follows a passenger who boards");
+	QCOMPARE(waitingIds(followed.front().Current_List_Pax_On_Platform), "a3 f1 f1 a1 ");
 }
 
 // Without the passenger GUI a boarding train works from the list of its own platform.
@@ -5821,10 +5849,19 @@ void TestOperationsBuilder::rollingStockMessages() {
 		return;
 	// The next step of the same stop does not log the refusal again.
 	Simulate_Train_Passenger_Interactions(defaultRun(), 11, 0, train, passengers, {platform});
-	defaultRun().settings.PAX_GUI = savedPaxGui;
 	shows(capture.take(), {}, "a passenger who still waits for the same full train");
-	if (QTest::currentTestFailed())
+	if (QTest::currentTestFailed()) {
+		defaultRun().settings.PAX_GUI = savedPaxGui;
 		return;
+	}
+	// A listed passenger in the network without a journey for the train still boards it when there is room.
+	passengers.front().IsIntheNetwork = true;
+	train.MAX_OnBoard_Passengers = 1;
+	Simulate_Train_Passenger_Interactions(defaultRun(), 12, 0, train, passengers, {platform});
+	defaultRun().settings.PAX_GUI = savedPaxGui;
+	QCOMPARE(passengers.front().CurrentStatus, std::string("OnBoard"));
+	QCOMPARE(train.Current_OnBoard_Passengers, 1);
+	capture.take();
 
 	// A route of one section from 0 to 10 km.
 	std::vector<Route> savedRoutes;
