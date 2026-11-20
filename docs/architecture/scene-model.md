@@ -163,7 +163,8 @@ preserve it; legacy export omits it. A non-empty value in any other form
 gives the warning `scene.service.color.invalid`, which does not block Run, and
 the default train colour is used for that service.
 
-Passenger journey windows use absolute seconds from midnight. They are not
+Passenger journey windows use absolute seconds from midnight, which the Passengers
+dock shows and accepts as a time of day, `HH:MM:SS`. They are not
 random passenger draws or simulation results. DAS and RouteChoice CSV files
 are read only by explicit legacy import and written only by explicit legacy
 export.

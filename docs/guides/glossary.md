@@ -136,7 +136,7 @@ A rolling stock unit (`train_units[]`; the files and the schema call it a train 
 
 ### Passenger
 
-A passenger record is optional input in `passengers.json`: passengers with journeys, where a journey has an origin station and a destination station, a planned departure window and a planned arrival window, and legs. A leg rides one occurrence of a service from one station to a later one. The windows are absolute seconds from midnight, not from the base time. You meet them in the dock **Passengers** (**Editors > Passengers**; lists **Passengers**, **Journeys** and **Legs**) and in the option `-pax` ([passengers.json](scene-schema.md#passengersjson), [options](command-line.md#options)).
+A passenger record is optional input in `passengers.json`: passengers with journeys, where a journey has an origin station and a destination station, a planned departure window and a planned arrival window, and legs. A leg rides one occurrence of a service from one station to a later one. The windows are absolute times of day, not times from the base time; the dock shows and accepts them as `HH:MM:SS`, with `+1d` before the time for the next day, and `passengers.json` stores them as seconds from midnight. You meet them in the dock **Passengers** (**Editors > Passengers**; lists **Passengers**, **Journeys** and **Legs**) and in the option `-pax` ([passengers.json](scene-schema.md#passengersjson), [options](command-line.md#options)).
 
 ## Network and signalling
 
