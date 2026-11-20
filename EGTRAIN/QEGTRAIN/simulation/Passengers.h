@@ -192,8 +192,11 @@ public:
 	/// seconds after leaving the network
 	std::string PlatformExitedTheNetworkID;
 	/// trainDescription of the last train that was full when the passenger wanted to board it; "None" before that. The
-	/// refusal is logged once per train, not at every step of its stop.
+	/// refusal is logged once per call of that train, not at every step of its stop.
 	std::string TrainThatRefusedBoarding = "None";
+	/// Index of the stop of that train (Train::Stations) at which the refusal happened; -1 before that. A later call of the
+	/// same train refuses the passenger again.
+	int StopThatRefusedBoarding = -1;
 
 	Passenger() {
 		ID = current_location_ID = current_TripID = current_JourneyID = StationExitedTheNetworkID = PlatformExitedTheNetworkID = "None";

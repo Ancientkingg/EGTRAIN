@@ -72,8 +72,8 @@ void waitForTrip(Passenger& passenger, Trip& trip, int now) {
 }
 } // namespace
 
-// The stops are followed by their index, but a train that visits one station twice marks every stop of that name as stood at when
-// it first halts there (Train::serviceStopStep), which would skip stops here. No committed scene or fixture has such a service.
+// The stops are followed by their index. A halt belongs to one call (Train::serviceStopOf), so a train that visits a station twice
+// marks only the call it stands at as stood at.
 int advanceFirstStop(const Train& train, int from) {
 	const int count = stopCount(train);
 	if (train.OutOfSimulation)
@@ -100,13 +100,17 @@ TrainState liveTrainState(const Train& train, int firstStop, int elapsed) {
 	TrainState state;
 	const int count = stopCount(train);
 	state.firstStop = static_cast<size_t>(max(0, firstStop));
-	for (int stop = min(firstStop, count - 1); stop >= 0; --stop) {
+	bool arrived = false;
+	for (int stop = min(firstStop, count - 1); stop >= 0 && !arrived; --stop) {
 		const size_t at = static_cast<size_t>(stop);
 		if (train.StationArrivals[at] >= 0 && train.ScheduledArrivals[at] >= 0) {
 			state.delay = max(0.0, train.StationArrivals[at] - train.ScheduledArrivals[at]);
-			break;
+			arrived = true;
 		}
 	}
+	// Before its first arrival, a train that entered later than it could is as late as its entry.
+	if (!arrived && train.CanEnter && train.earliestActiveTrajectoryIndex >= 0)
+		state.delay = max(0.0, train.earliestActiveTrajectoryIndex * timestep - train.departure_time);
 	if (firstStop < count && train.StoppedForServiceStop && train.Stations[static_cast<size_t>(firstStop)].StepStopped > 0) {
 		const double planned = train.ScheduledDepartures[static_cast<size_t>(firstStop)];
 		if (planned >= 0 && planned + state.delay < elapsed)

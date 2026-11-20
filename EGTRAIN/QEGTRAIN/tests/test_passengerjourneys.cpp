@@ -117,6 +117,7 @@ private slots:
 	void trainThatLeftItsRouteHasNoStopLeft();
 	void delayIsThatOfTheLatestArrival();
 	void delayIsNeverNegative();
+	void trainThatEnteredLateIsLateBeforeItsFirstArrival();
 	void trainThatStandsPastItsDepartureIsAsLateAsItStands();
 	void trainDoesNotHaltAtTheStopWhereItEnters();
 	void trainThatEndsEarlySetsDownPassengerWhoFindsNoRoute();
@@ -182,6 +183,22 @@ void TestPassengerJourneys::delayIsNeverNegative() {
 	Train train = threeStops();
 	train.StationArrivals[0] = 70.0; // 30 s early
 	QCOMPARE(liveTrainState(train, 1, 80).delay, 0.0);
+}
+
+// Before the first recorded arrival, a train that entered later than it may enter is as late as its entry. A train that has not
+// entered keeps its planned times, and an early entry is no negative delay. Once it arrived, the delay is that of the arrival.
+void TestPassengerJourneys::trainThatEnteredLateIsLateBeforeItsFirstArrival() {
+	Train train = threeStops();
+	train.departure_time = 50.0;
+	QCOMPARE(liveTrainState(train, 0, 100).delay, 0.0); // not entered
+	train.CanEnter = true;
+	train.earliestActiveTrajectoryIndex = 350;
+	QCOMPARE(liveTrainState(train, 0, 400).delay, 300.0 * timestep);
+	train.earliestActiveTrajectoryIndex = 40;
+	QCOMPARE(liveTrainState(train, 0, 400).delay, 0.0);
+	train.earliestActiveTrajectoryIndex = 350;
+	train.StationArrivals[0] = 160.0;
+	QCOMPARE(liveTrainState(train, 1, 400).delay, 60.0);
 }
 
 void TestPassengerJourneys::trainThatStandsPastItsDepartureIsAsLateAsItStands() {

@@ -82,6 +82,9 @@ public:
 	std::optional<Waiter> nextWaiter(int platform, int train, const std::optional<Waiter>& after, bool onlyNotRefused) const;
 	/// Notes that the passenger at this place was refused boarding because the train was full.
 	void refused(int position);
+	/// Notes that the train makes its call at stop `call` (an index of Train::Stations) at the platform. The passengers who were
+	/// refused at an earlier call count as not refused again, so that this call refuses them in turn.
+	void beginCall(int platform, int train, int call);
 	/// The places of the passengers who wait at the platform for the train, in boarding order, one for each passenger.
 	std::vector<int> waitingFor(int platform, int train) const;
 	/// Removes every passenger on board of the train from the flow and returns their places in list order, like
@@ -115,6 +118,7 @@ private:
 	struct TrainQueue {
 		std::set<Waiter> all;
 		std::set<Waiter> notRefused;
+		int call = -1; // the stop of the train that the refusals of the passengers belong to; -1 before the first call
 	};
 	struct PlatformQueues {
 		int count = 0;

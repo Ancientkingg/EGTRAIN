@@ -25,9 +25,10 @@ int advanceFirstStop(const Train& train, int from);
 bool haltsAtStop(const Train& train, int stop);
 
 /// What the routing knows about the train at `elapsed` seconds from the start of the run, with firstStop from advanceFirstStop.
-/// The delay is the arrival delay at the latest stop where the train arrived, and never negative; it is 0 before the train
-/// arrived anywhere. A train that still stands at its stop after the planned departure plus that delay is at least as late as
-/// the time it has stood there, so that a passenger who comes to the platform now can still board it.
+/// The delay is the arrival delay at the latest stop where the train arrived, and never negative. Before the train arrived anywhere
+/// it is the lateness of its entry (the step of entering minus Train::departure_time) when it has entered, and 0 when it has not.
+/// A train that still stands at its stop after the planned departure plus that delay is at least as late as the time it has stood
+/// there, so that a passenger who comes to the platform now can still board it.
 passenger_routing::TrainState liveTrainState(const Train& train, int firstStop, int elapsed);
 
 /// The journeys of the passengers that the timetable of the run plans: journeys without legs, and journeys whose legs can no

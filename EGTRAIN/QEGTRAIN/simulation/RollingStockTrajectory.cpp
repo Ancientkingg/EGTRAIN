@@ -833,26 +833,23 @@ void Train::serviceStopStep(int time_seconds, const Arc& As, double head, bool a
 	double stoptime = 0;
 	double dep_time = 0;
 	counter = 0;
-	for (int s = 0; s < numStations; s++) {
-		if (Stations[s].stationName == As.endNode.stationName) {
-			this->CurrentServiceStop = Stations[s].stationName; // Setting the name of the station the train is currently stopping at
-			this->CurrentServiceStopPlatform = Stations[s].stationPlatformId;
-			this->currentServiceStopPlatformNumber = stationPlatformNumber[s];
-			recordCurrentServiceStopArrival(time_seconds);
+	if (const int s = serviceStopOf(As.endNode.stationName); s >= 0) {
+		this->CurrentServiceStop = Stations[s].stationName; // Setting the name of the station the train is currently stopping at
+		this->CurrentServiceStopPlatform = Stations[s].stationPlatformId;
+		this->currentServiceStopPlatformNumber = stationPlatformNumber[s];
+		recordCurrentServiceStopArrival(time_seconds);
 
-			EG_LOG(SimStep, Debug) << "At time " << time_seconds << " Train" << this->trainDescription << " is stopping at " << this->CurrentServiceStop << " at " << this->CurrentServiceStopPlatform << "\n";
+		EG_LOG(SimStep, Debug) << "At time " << time_seconds << " Train" << this->trainDescription << " is stopping at " << this->CurrentServiceStop << " at " << this->CurrentServiceStopPlatform << "\n";
 
-			stoptime = Stations[s].StopTime;
-			dep_time = ScheduledDepartures[s];
-			recordCurrentServiceStopArrival(time_seconds);
-			if (Stations[s].StepStopped == 0) {
-				stop = time_seconds;
-				StationStandStarts[s] = time_seconds * timestep;
-			}
-			Stations[s].StepStopped++;
-			if (Stations[s].StepStopped > Stations[s].StopTime)
-				stoptime = 0;
+		stoptime = Stations[s].StopTime;
+		dep_time = ScheduledDepartures[s];
+		if (Stations[s].StepStopped == 0) {
+			stop = time_seconds;
+			StationStandStarts[s] = time_seconds * timestep;
 		}
+		Stations[s].StepStopped++;
+		if (Stations[s].StepStopped > Stations[s].StopTime)
+			stoptime = 0;
 	}
 
 
@@ -898,16 +895,32 @@ void Train::serviceStopStep(int time_seconds, const Arc& As, double head, bool a
 	train_energy_consumption(time_seconds);
 }
 
+int Train::serviceStopOf(const std::string& name) const {
+	int latest = -1;
+	for (int s = 0; s < numStations; s++)
+		if (Stations[s].StepStopped > 0)
+			latest = s;
+	if (latest >= 0 && Stations[latest].stationName == name && StationDepartures[latest] < 0)
+		return latest;
+	int last = -1;
+	for (int s = 0; s < numStations; s++) {
+		if (Stations[s].stationName != name)
+			continue;
+		if (s > latest)
+			return s;
+		last = s;
+	}
+	return last;
+}
+
 void Train::recordCurrentServiceStopArrival(int time_seconds) {
 	if (time_seconds < 0 || CurrentServiceStop == "None")
 		return;
 
-	for (int s = 0; s < numStations; s++) {
-		if (Stations[s].stationName == CurrentServiceStop && StationArrivals[s] < 0) {
-			StationArrivals[s] = time_seconds * timestep;
-			StationArrivalNames[s] = CurrentServiceStop;
-			break;
-		}
+	const int s = serviceStopOf(CurrentServiceStop);
+	if (s >= 0 && StationArrivals[s] < 0) {
+		StationArrivals[s] = time_seconds * timestep;
+		StationArrivalNames[s] = CurrentServiceStop;
 	}
 }
 
@@ -915,10 +928,7 @@ void Train::recordCurrentServiceStopDeparture(int time_seconds) {
 	if (time_seconds < 0 || CurrentServiceStop == "None")
 		return;
 
-	for (int s = 0; s < numStations; s++) {
-		if (Stations[s].stationName == CurrentServiceStop && Stations[s].StepStopped > 0 && StationDepartures[s] < 0) {
-			StationDepartures[s] = time_seconds * timestep;
-			break;
-		}
-	}
+	const int s = serviceStopOf(CurrentServiceStop);
+	if (s >= 0 && Stations[s].StepStopped > 0 && StationDepartures[s] < 0)
+		StationDepartures[s] = time_seconds * timestep;
 }

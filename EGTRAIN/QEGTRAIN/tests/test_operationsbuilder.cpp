@@ -146,6 +146,7 @@ private slots:
 	void reversedRouteResolvesStopNodes();
 	void resolvesPlatformsInRouteOrder();
 	void stopsKeepPlatformNumbers();
+	void repeatedStationHasHaltPerCall();
 	void routeExternalRowsKeepPlannedTimes();
 	void shortHorizonOmitsLateJourneys();
 	void durationOverrideSizesRuntimeVectors();
@@ -1375,6 +1376,45 @@ void TestOperationsBuilder::stopsKeepPlatformNumbers() {
 	arrival.endNode = train.Stations[0];
 	train.serviceStopStep(1, arrival, 0, false);
 	QCOMPARE(train.currentServiceStopPlatformNumber, 5);
+}
+
+// A service that calls at a station twice halts once per call: each call has its own arrival, dwell, and departure.
+void TestOperationsBuilder::repeatedStationHasHaltPerCall() {
+	SceneModel scene = completeScene();
+	scene.passengers.clear();
+	scene.stations[0].platforms[0].nodeIds = {"node.3"};
+	scene.stations[1].platforms[0].id = "Platform_4";
+	scene.stations[2].platforms = {{"Platform_3", {"node.0"}}, {"Platform_5", {"node.2"}}};
+	scene.services[0].stops = {
+		{"station.2", "Platform_3", true, true, 100.0, 110.0, 0.0},
+		{"station.1", "Platform_4", true, true, 120.0, 130.0, 0.0},
+		{"station.2", "Platform_5", true, true, 140.0, 150.0, 0.0}};
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene)));
+	QVERIFY(!hasErrors(buildOperationsFromScene(defaultRun(), scene, "scenario.base")));
+	Train train = defaultRun().trains[0];
+	for (int s = 0; s < 3; ++s) {
+		train.Stations[s].StopTime = 3;
+		train.Stations[s].StepStopped = 0;
+		train.ScheduledDepartures[s] = 8 + 4 * s;
+		train.StationArrivals[s] = train.StationDepartures[s] = -1;
+	}
+	// Call s is stood at from time first[s] on, and left at time left[s].
+	const int first[3] = {1, 10, 14};
+	const int left[3] = {9, 13, 17};
+	const int stops[3] = {0, 1, 2};
+	int time = 1;
+	for (int call = 0; call < 3; ++call) {
+		Arc arrival;
+		arrival.endNode = train.Stations[stops[call]];
+		for (; time <= left[call]; ++time)
+			train.serviceStopStep(time, arrival, 0, false);
+		QVERIFY2(!train.StoppedForServiceStop, "the train has left");
+		QCOMPARE_EQ(train.StationStandStarts[call], first[call] * timestep);
+		QCOMPARE_EQ(train.StationDepartures[call], left[call] * timestep);
+		QCOMPARE(train.Stations[call].StepStopped, left[call] - first[call] + 1);
+	}
+	QCOMPARE(train.StationArrivals[0], first[0] * timestep);
+	QCOMPARE(train.StationArrivals[2], first[2] * timestep);
 }
 
 void TestOperationsBuilder::routeExternalRowsKeepPlannedTimes() {
