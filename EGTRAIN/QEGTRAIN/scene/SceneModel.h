@@ -195,8 +195,8 @@ struct SceneTrainUnit {
 	/// carries 0.
 	int passengerCapacity = 0;
 	bool hasPassengerCapacity = false; ///< True when passenger_capacity is given.
-	std::string sourceDataFile;		///< Path of the vehicle data file the editor reads the physical data from; empty when none.
-	std::string sourceTractionFile; ///< Path of the traction file the editor reads the curve from; empty when none.
+	std::string sourceDataFile;		   ///< Path of the vehicle data file the editor reads the physical data from; empty when none.
+	std::string sourceTractionFile;	   ///< Path of the traction file the editor reads the curve from; empty when none.
 };
 
 /// A composition: the train units that run together as one train.
