@@ -448,6 +448,14 @@ public:
 		editor->setAccessibleName("Passengers");
 		return editor;
 	}
+
+	// The macOS style ignores the background of an item once the style sheet styles view items, so paint it here.
+	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
+		const QVariant background = index.data(Qt::BackgroundRole);
+		if (background.canConvert<QBrush>() && background.value<QBrush>().style() != Qt::NoBrush)
+			painter->fillRect(option.rect, background.value<QBrush>());
+		QStyledItemDelegate::paint(painter, option, index);
+	}
 };
 
 } // namespace
