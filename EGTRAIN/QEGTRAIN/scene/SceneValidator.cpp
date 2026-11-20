@@ -1760,9 +1760,6 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				diagnostics.warning("scene.passenger.window.order",
 					"Planned arrival window ends before the planned departure window starts", "passengers.json", "journey",
 					journey.id, journeyPath + ".planned_arrival");
-			if (journey.legs.empty())
-				diagnostics.warning("scene.passenger.legs.empty", "Journey has no route-choice legs", "passengers.json",
-					"journey", journey.id, journeyPath + ".legs");
 			// The planned arrival of the previous leg, in seconds after the base time, when its service plans it.
 			std::optional<double> previousArrival;
 			for (std::size_t legIndex = 0; legIndex < journey.legs.size(); ++legIndex) {
