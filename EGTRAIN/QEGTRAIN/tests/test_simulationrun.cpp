@@ -880,6 +880,8 @@ void TestSimulationRun::trainStartingAtStopWaitsForItsSections() {
 // next stop, and it reaches the end of its route.
 void TestSimulationRun::trainStartingAtStopWaitsForSingleTrack() {
 	SceneModel scene = m_passengers;
+	// The demand of Paimpol lengthens the dwell of the other train at Guingamp; this test is about the single track.
+	scene.passengerDemand.clear();
 	SceneService reverse = *std::find_if(scene.services.begin(), scene.services.end(),
 		[](const SceneService& candidate) { return candidate.id == "Guin-Paim-ALL-STOPS-1"; });
 	reverse.id = reverse.operatingCode = "REV";
