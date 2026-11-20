@@ -1,6 +1,9 @@
 #ifndef INITIALPARAMETERS_H
 #define INITIALPARAMETERS_H
 
+#include "scene/PassengerDwellModel.h"
+
+#include <array>
 #include <string>
 
 /// The default seed of the run generator.
@@ -37,6 +40,17 @@ public:
 	double recoveryTimePercentage;
 	/// The most transfers a plan of a live passenger journey may use (simulation_settings.passenger_max_transfers, 0 to 10).
 	int passengerMaxTransfers = 2;
+	/// The coefficients beta0 to beta7 of the passenger dwell model of every train (simulation_settings.passenger_dwell_coefficients).
+	std::array<double, kPassengerDwellCoefficientCount> passengerDwellCoefficients = kDefaultPassengerDwellCoefficients;
+	/// The platform occupancy rate above which the dwell model counts the platform as crowded
+	/// (simulation_settings.passenger_platform_crowding_threshold).
+	double passengerPlatformCrowdingThreshold = kDefaultPassengerPlatformCrowdingThreshold;
+	/// The on-board occupancy rate above which the dwell model counts the train as crowded
+	/// (simulation_settings.passenger_onboard_crowding_threshold).
+	double passengerOnboardCrowdingThreshold = kDefaultPassengerOnboardCrowdingThreshold;
+	/// The boarding passengers of a car above which the dwell model counts the car as crowded
+	/// (simulation_settings.passenger_car_boarding_threshold).
+	int passengerCarBoardingThreshold = kDefaultPassengerCarBoardingThreshold;
 	/// A folder of legacy input files. main clears it before a run, and nothing in the program reads it.
 	std::string InputMainFolder;
 	/// Folder that a run writes its output files to. prepareScene sets it to the folder chosen in the window, if any, and to

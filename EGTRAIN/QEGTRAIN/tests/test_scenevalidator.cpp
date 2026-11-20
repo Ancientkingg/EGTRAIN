@@ -573,6 +573,7 @@ private slots:
 	void defaultPlatformHoldsAbout99Passengers();
 	void rejectsNonFinitePassengerWindow();
 	void limitsPassengerTransfers();
+	void checksPassengerDwellSettings();
 	void legDestinationIsStopOfService();
 	void rejectsReversePassengerLeg();
 	void resolvesRepeatedServiceStations();
@@ -1111,6 +1112,38 @@ void TestSceneValidator::limitsPassengerTransfers() {
 		QVERIFY2(hasCodeAndPath(validateScene(scene), "scene.passenger.transfers.invalid", "simulation_settings.passenger_max_transfers"),
 			"other transfer limits are rejected");
 	}
+}
+
+void TestSceneValidator::checksPassengerDwellSettings() {
+	const char* const coefficientsPath = "simulation_settings.passenger_dwell_coefficients";
+	const char* const thresholdCode = "scene.passenger.dwell.threshold.invalid";
+	SceneModel valid = completeScene();
+	valid.settings.passengerDwellCoefficients = std::vector<double>(8, 1.0);
+	valid.settings.passengerPlatformCrowdingThreshold = 0.0;
+	valid.settings.passengerOnboardCrowdingThreshold = 1.0;
+	valid.settings.passengerCarBoardingThreshold = 0;
+	const auto validDiagnostics = validateScene(valid);
+	QVERIFY2(!hasCodeAndPath(validDiagnostics, "scene.passenger.dwell.coefficients.invalid", coefficientsPath), "8 coefficients are allowed");
+	QVERIFY2(!hasCodeAndPath(validDiagnostics, thresholdCode, "simulation_settings.passenger_platform_crowding_threshold"), "0 is allowed");
+	QVERIFY2(!hasCodeAndPath(validDiagnostics, thresholdCode, "simulation_settings.passenger_onboard_crowding_threshold"), "1 is allowed");
+	QVERIFY2(!hasCodeAndPath(validDiagnostics, thresholdCode, "simulation_settings.passenger_car_boarding_threshold"), "0 cars is allowed");
+
+	SceneModel seven = completeScene();
+	seven.settings.passengerDwellCoefficients = std::vector<double>(7, 1.0);
+	QVERIFY2(hasCodeAndPath(validateScene(seven), "scene.passenger.dwell.coefficients.invalid", coefficientsPath),
+		"7 coefficients are rejected");
+	SceneModel negative = completeScene();
+	negative.settings.passengerDwellCoefficients = std::vector<double>{7.0, -0.32, 18.23, 0.564, 4.838, 22.24, 0.04, 0.562};
+	QVERIFY2(hasCodeAndPath(validateScene(negative), "scene.passenger.dwell.coefficients.invalid", coefficientsPath),
+		"a negative coefficient is rejected");
+	SceneModel tooHigh = completeScene();
+	tooHigh.settings.passengerPlatformCrowdingThreshold = 1.5;
+	QVERIFY2(hasCodeAndPath(validateScene(tooHigh), thresholdCode, "simulation_settings.passenger_platform_crowding_threshold"),
+		"a threshold of 1.5 is rejected");
+	SceneModel negativeCar = completeScene();
+	negativeCar.settings.passengerCarBoardingThreshold = -1;
+	QVERIFY2(hasCodeAndPath(validateScene(negativeCar), thresholdCode, "simulation_settings.passenger_car_boarding_threshold"),
+		"a negative car threshold is rejected");
 }
 
 void TestSceneValidator::legDestinationIsStopOfService() {

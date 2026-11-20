@@ -104,16 +104,18 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 	if (N_BoardPax <= 0 && N_AlightPax <= 0)
 		return 0.0;
 
+	const InitialParameters& settings = run_->settings;
+
 	// define parameters delta 1, delta 2 and delta 3
 	double delta1 = 0, delta2 = 0, delta3 = 0;
-	// delta1 measures the congestion at the platform if the platform occupancy rate is higher than 0.65 than delta1=1
-	if (PlatformOccupancyRate > 0.65)
+	// delta1 measures the congestion at the platform if the platform occupancy rate is higher than the platform crowding threshold (0.65 by default) than delta1=1
+	if (PlatformOccupancyRate > settings.passengerPlatformCrowdingThreshold)
 		delta1 = 1;
 
-	// delta 3 measures the degree of congestion on board of the train. It becomes 1 if the onboard occupancy rate is larger than 0.7
+	// delta 3 measures the degree of congestion on board of the train. It becomes 1 if the onboard occupancy rate is larger than the on-board crowding threshold (0.7 by default)
 	double OnboardOccupancyrate = passengerOccupancyRatio(this->Current_OnBoard_Passengers, this->MAX_OnBoard_Passengers);
 
-	if (OnboardOccupancyrate > 0.7)
+	if (OnboardOccupancyrate > settings.passengerOnboardCrowdingThreshold)
 		delta3 = 1;
 
 	// Split the boarding and alighting passengers equally among the coaches / wagons
@@ -196,8 +198,8 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 
 		// Computing the board process time
 		int delta2 = 0;
-		if (*B_Pax_Car > 15)
-			delta2 = 1; // set delta2 to 1 if the number of passenger boarding from the car is larger than 15
+		if (*B_Pax_Car > settings.passengerCarBoardingThreshold)
+			delta2 = 1; // set delta2 to 1 if the number of passenger boarding from the car is larger than the car boarding threshold (15 by default)
 
 		// beta2 and beta5 are the times of one boarding and one alighting passenger. A door that nobody uses takes no time.
 		if (*B_Pax_Door > 0)

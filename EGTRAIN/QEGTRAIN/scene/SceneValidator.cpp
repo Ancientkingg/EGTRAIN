@@ -716,6 +716,31 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			"scene", "", "simulation_settings.passenger_max_transfers", "",
 			"Use a whole number from 0 to 10");
 	}
+	if (scene.settings.passengerDwellCoefficients) {
+		const std::vector<double>& coefficients = *scene.settings.passengerDwellCoefficients;
+		const bool valid = coefficients.size() == kPassengerDwellCoefficientCount
+			&& std::all_of(coefficients.begin(), coefficients.end(), [](double value) { return std::isfinite(value) && value >= 0.0; });
+		if (!valid) {
+			diagnostics.error("scene.passenger.dwell.coefficients.invalid",
+				"The passenger dwell coefficients must be 8 finite numbers of 0 or more", "scene.json",
+				"scene", "", "simulation_settings.passenger_dwell_coefficients", "",
+				"Give the 8 coefficients beta0 to beta7, none of them negative");
+		}
+	}
+	const auto checkThreshold = [&](const std::optional<double>& value, const char* key) {
+		if (value && !(std::isfinite(*value) && *value >= 0.0 && *value <= 1.0)) {
+			diagnostics.error("scene.passenger.dwell.threshold.invalid", std::string("The value of ") + key + " must be from 0 to 1",
+				"scene.json", "scene", "", std::string("simulation_settings.") + key, "",
+				"Use an occupancy rate from 0 to 1");
+		}
+	};
+	checkThreshold(scene.settings.passengerPlatformCrowdingThreshold, "passenger_platform_crowding_threshold");
+	checkThreshold(scene.settings.passengerOnboardCrowdingThreshold, "passenger_onboard_crowding_threshold");
+	if (scene.settings.passengerCarBoardingThreshold && *scene.settings.passengerCarBoardingThreshold < 0) {
+		diagnostics.error("scene.passenger.dwell.threshold.invalid", "The value of passenger_car_boarding_threshold cannot be negative",
+			"scene.json", "scene", "", "simulation_settings.passenger_car_boarding_threshold", "",
+			"Use a whole number of 0 or more");
+	}
 
 	const auto errorCount = [&result]() {
 		return std::count_if(result.begin(), result.end(), [](const SceneDiagnostic& diagnostic) {

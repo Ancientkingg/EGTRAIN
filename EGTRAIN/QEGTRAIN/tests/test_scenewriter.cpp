@@ -721,6 +721,7 @@ private slots:
 	void writesSignallingAreas();
 	void omitsAbsentSignallingAreas();
 	void writesPassengerTransferLimitOnlyWhenNotDefault();
+	void writesPassengerDwellSettingsOnlyWhenSet();
 	void keepsUnchosenSignallingLevel();
 	void writesServiceFields();
 	void writesScenarios();
@@ -943,6 +944,42 @@ void TestSceneWriter::writesPassengerTransferLimitOnlyWhenNotDefault() {
 	QVERIFY2(saveScene(scene, zeroPath.string()).success(), "scene with no transfers saves");
 	QVERIFY(loadHasNoErrors(zeroPath, reloaded));
 	QCOMPARE(reloaded.settings.passengerMaxTransfers, 0);
+}
+
+// The dwell settings are written when the scene sets them and left out otherwise, so that existing files stay as they are.
+void TestSceneWriter::writesPassengerDwellSettingsOnlyWhenSet() {
+	TempDir temp;
+	SceneModel scene = completeScene();
+	const fs::path absentPath = temp.path / "dwell-absent";
+	QVERIFY2(saveScene(scene, absentPath.string()).success(), "scene without dwell settings saves");
+	json written;
+	{
+		std::ifstream input(absentPath / "scene.json");
+		input >> written;
+	}
+	for (const char* key : {"passenger_dwell_coefficients", "passenger_platform_crowding_threshold",
+			 "passenger_onboard_crowding_threshold", "passenger_car_boarding_threshold"}) {
+		const bool hasKey = written.contains("simulation_settings") && written["simulation_settings"].contains(key);
+		QVERIFY2(!hasKey, key);
+	}
+	SceneModel reloaded;
+	QVERIFY(loadHasNoErrors(absentPath, reloaded));
+	QVERIFY(!reloaded.settings.passengerDwellCoefficients);
+	QVERIFY(!reloaded.settings.passengerPlatformCrowdingThreshold);
+	QVERIFY(!reloaded.settings.passengerOnboardCrowdingThreshold);
+	QVERIFY(!reloaded.settings.passengerCarBoardingThreshold);
+
+	scene.settings.passengerDwellCoefficients = std::vector<double>{6.0, 0.5, 17.5, 0.5, 4.5, 21.0, 0.05, 0.5};
+	scene.settings.passengerPlatformCrowdingThreshold = 0.5;
+	scene.settings.passengerOnboardCrowdingThreshold = 0.75;
+	scene.settings.passengerCarBoardingThreshold = 12;
+	const fs::path setPath = temp.path / "dwell-set";
+	QVERIFY2(saveScene(scene, setPath.string()).success(), "scene with dwell settings saves");
+	QVERIFY(loadHasNoErrors(setPath, reloaded));
+	QCOMPARE(reloaded.settings.passengerDwellCoefficients, scene.settings.passengerDwellCoefficients);
+	QCOMPARE(reloaded.settings.passengerPlatformCrowdingThreshold, std::optional<double>(0.5));
+	QCOMPARE(reloaded.settings.passengerOnboardCrowdingThreshold, std::optional<double>(0.75));
+	QCOMPARE(reloaded.settings.passengerCarBoardingThreshold, std::optional<int>(12));
 }
 
 // An area whose signalling system is not chosen keeps that level through save and load.

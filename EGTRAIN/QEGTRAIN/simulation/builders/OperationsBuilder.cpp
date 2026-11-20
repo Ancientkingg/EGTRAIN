@@ -205,7 +205,7 @@ int nativeResolveRuntimeSection(SimulationRun& run, const std::string& runtimeSe
 	return -1;
 }
 
-void nativeCopyTrainPlan(SimulationRun& run, const NativeTrainPlan& plan, Train& train, int vectorSize) {
+void nativeCopyTrainPlan(SimulationRun& run, const NativeTrainPlan& plan, const InitialParameters& parameters, Train& train, int vectorSize) {
 	train.run_ = &run;
 	train.g = kSceneGravityMs2;
 	train.ID = plan.occurrence;
@@ -265,7 +265,10 @@ void nativeCopyTrainPlan(SimulationRun& run, const NativeTrainPlan& plan, Train&
 	train.EntranceDelay = plan.entranceDelay;
 	train.entranceDelayStationId = plan.entranceDelayStationId;
 	train.TotalInputDelays = plan.entranceDelay;
-	train.Initialise_Gibson_Dwell_Time_Parameters(7, 0.32, 18.23, 0.564, 4.838, 22.24, 0.04, 0.562);
+	const auto& beta = parameters.passengerDwellCoefficients;
+	train.Initialise_Gibson_Dwell_Time_Parameters(static_cast<float>(beta[0]), static_cast<float>(beta[1]), static_cast<float>(beta[2]),
+		static_cast<float>(beta[3]), static_cast<float>(beta[4]), static_cast<float>(beta[5]), static_cast<float>(beta[6]),
+		static_cast<float>(beta[7]));
 	train.numStations = static_cast<int>(plan.stops.size());
 	train.Stations.resize(plan.stops.size());
 	for (int index = 0; index < train.numStations; ++index) {
@@ -932,6 +935,16 @@ InitialParameters nativeStagedParameters(const SceneModel& scene, int baseTime, 
 			? static_cast<double>(std::llround(scene.settings.recoveryTimePercent))
 			: 0.0;
 	stagedParameters.passengerMaxTransfers = std::clamp(scene.settings.passengerMaxTransfers, 0, kMaxPassengerMaxTransfers);
+	stagedParameters.passengerDwellCoefficients = kDefaultPassengerDwellCoefficients;
+	if (scene.settings.passengerDwellCoefficients && scene.settings.passengerDwellCoefficients->size() == kPassengerDwellCoefficientCount)
+		std::copy_n(scene.settings.passengerDwellCoefficients->begin(), kPassengerDwellCoefficientCount,
+			stagedParameters.passengerDwellCoefficients.begin());
+	stagedParameters.passengerPlatformCrowdingThreshold =
+		scene.settings.passengerPlatformCrowdingThreshold.value_or(kDefaultPassengerPlatformCrowdingThreshold);
+	stagedParameters.passengerOnboardCrowdingThreshold =
+		scene.settings.passengerOnboardCrowdingThreshold.value_or(kDefaultPassengerOnboardCrowdingThreshold);
+	stagedParameters.passengerCarBoardingThreshold =
+		scene.settings.passengerCarBoardingThreshold.value_or(kDefaultPassengerCarBoardingThreshold);
 	stagedParameters.numTrackLines = static_cast<int>(scene.tracks.size());
 	stagedParameters.N_Routes = static_cast<int>(scene.routes.size());
 	stagedParameters.num_OrderLists = 0;
@@ -1360,7 +1373,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 	try {
 		storage = std::vector<Train>(trains.size());
 		for (std::size_t index = 0; index < trains.size(); ++index)
-			nativeCopyTrainPlan(run, trains[index], storage[index], vectorSize);
+			nativeCopyTrainPlan(run, trains[index], stagedParameters, storage[index], vectorSize);
 	} catch (const std::bad_alloc&) {
 		// Frees the trains built so far before the message is made.
 		storage = std::vector<Train>();

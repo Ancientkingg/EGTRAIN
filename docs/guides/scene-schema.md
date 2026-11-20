@@ -46,7 +46,21 @@ Optional keys:
   `duration_seconds`, `buffer_time_seconds`, and
   `recovery_time_percent`, and an optional integer `passenger_max_transfers`
   from 0 to 10 (default 2) that limits the transfers of a planned passenger
-  journey. The writer leaves it out while it has the default.
+  journey. The writer leaves it out while it has the default. Four optional
+  keys set the passenger-dependent dwell model; a key that is absent keeps the
+  value below, and the writer leaves a key out while it is absent:
+  `passenger_dwell_coefficients` is an array of exactly 8 non-negative numbers,
+  the coefficients beta0 to beta7 in model order (default
+  `[7, 0.32, 18.23, 0.564, 4.838, 22.24, 0.04, 0.562]`). beta0 is the fixed time
+  of a stop, beta1 is added when the platform is crowded, beta2 is the time per
+  boarding passenger at a door, beta3 and beta4 are added to the boarding time
+  of a door when the platform or the car is crowded, beta5 and beta6 give the
+  time per alighting passenger at a door, and beta7 is added to the alighting
+  time of a door when the train is crowded. `passenger_platform_crowding_threshold`
+  (default 0.65) and `passenger_onboard_crowding_threshold` (default 0.7) are
+  occupancy rates from 0 to 1, and `passenger_car_boarding_threshold` (default
+  15) is a whole number of boarding passengers per car, 0 or more. Each
+  crowding flag applies when the value is above its threshold.
 - `import_report`: array of conversion rows.
 
 Inside a case file, `format` is the required string `"egscene"` and
