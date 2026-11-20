@@ -4,6 +4,7 @@
 #include "simulation/Infrastructure.h"
 #include "simulation/Passengers.h"
 #include <cstdint>
+#include <functional>
 #include <list>
 #include <map>
 #include <optional>
@@ -48,8 +49,10 @@ public:
 	int lastTime() const { return lastTime_; }
 
 	/// Starts the journey of every scheduled passenger whose start time is at or before now (seconds since midnight) and puts
-	/// the passenger on the platform of the first leg.
-	void startDueJourneys(int now);
+	/// the passenger on the platform of the first leg. onStarted, when given, is called with the place of each passenger
+	/// after the journey started and before the flow registers the passenger, so that it can plan the legs of a live journey.
+	/// It changes the passenger only, not the flow.
+	void startDueJourneys(int now, const std::function<void(int position)>& onStarted = {});
 
 	/// Sets the number and the list of the waiting passengers of every platform that changed since the last call, and of every
 	/// platform at the first call for this platform list.
@@ -63,7 +66,7 @@ public:
 		double since; ///< Trip::Actual_Departure_Time of the trip the passenger waits for.
 		int position; ///< Place of the passenger in the list.
 		int leg;	  ///< Order among the entries of one passenger, which only an odd journey list makes more than one.
-		/// Boarding order: by since, then by position, then by leg.
+		/// Boarding order: by the time from which the passenger waits, then place in the list, then leg.
 		bool operator<(const Waiter& other) const;
 	};
 
@@ -71,7 +74,7 @@ public:
 	int waitingCount(const std::string& stationId, const std::string& platformId) const;
 	/// The number that the flow gives the platform, or -1 when nobody ever waited there.
 	int platformNumber(const std::string& stationId, const std::string& platformId) const { return findPlatformKey(stationId, platformId); }
-	/// The number that the flow gives the train, or -1 when nobody ever waited for it.
+	/// The number that the flow gives the train, or -1 when nobody ever waited for it or was on it.
 	int trainNumber(const std::string& train) const { return findId(train); }
 	/// The first passenger in boarding order after `after` (the first of all when it is empty) who waits at the platform for the
 	/// train, or none. With onlyNotRefused it skips the passengers who were refused because the train was full, who stay in line
@@ -79,6 +82,11 @@ public:
 	std::optional<Waiter> nextWaiter(int platform, int train, const std::optional<Waiter>& after, bool onlyNotRefused) const;
 	/// Notes that the passenger at this place was refused boarding because the train was full.
 	void refused(int position);
+	/// The places of the passengers who wait at the platform for the train, in boarding order, one for each passenger.
+	std::vector<int> waitingFor(int platform, int train) const;
+	/// Removes every passenger on board of the train from the flow and returns their places in list order, like
+	/// takeOnBoardArrivingAt for all stations.
+	std::vector<int> takeAllOnBoard(const std::string& train);
 	/// Removes the passengers on board of the train who arrive at the station, in list order, from the flow and returns their
 	/// places. The caller changes them and gives each back with placed().
 	std::vector<int> takeOnBoardArrivingAt(const std::string& train, const std::string& station);

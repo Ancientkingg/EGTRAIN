@@ -81,6 +81,7 @@
 #include <sstream>
 #include <string>
 #include <system_error>
+#include <tuple>
 #include <vector>
 
 namespace {
@@ -407,6 +408,31 @@ std::vector<CaseSpec> buildCaseTable() {
 			spec.passengers = set;
 			spec.paxGui = gui;
 			spec.capacity = set == "full" ? 3 : 0;
+			cases.push_back(spec);
+		}
+	}
+	// Journeys without legs are planned on the timetable when the passenger appears, and again when a train is missed or full.
+	const struct {
+		const char* set;
+		std::vector<std::string> services;
+		int capacity;
+	} livePassengers[] = {
+		{"live-direct", {"Q1"}, 0},
+		{"live-transfer", {"Q1", "Q2", "Q3"}, 0},
+		{"live-full", {"Q1", "Q2", "Q3"}, 3},
+		{"fixed-missed", {"Q1", "Q2", "Q3"}, 0},
+		{"live-noroute", {"Q1"}, 0},
+		{"live-missed", {"Q1", "Q3", "Q4"}, 0},
+	};
+	for (const auto& live : livePassengers) {
+		CaseSpec spec{std::string("pax-") + live.set, "baseline", live.services, kNoSignallingArea, ""};
+		spec.passengers = live.set;
+		spec.capacity = live.capacity;
+		cases.push_back(spec);
+		// The passenger GUI boards from platform lists: replanned passengers must board in the same step there too.
+		if (spec.name == "pax-live-full" || spec.name == "pax-live-missed") {
+			spec.name += "-gui1";
+			spec.paxGui = true;
 			cases.push_back(spec);
 		}
 	}
@@ -1088,14 +1114,24 @@ void addPassengerSet(SceneModel& scene, const std::string& set) {
 	station.positionKm = 4.0;
 	station.platforms = {{"P.platform.1", {"B0.node.3"}}};
 	scene.stations.push_back(station);
-	const bool transfer = set == "transfer";
+	const bool transfer = set == "transfer" || set == "live-transfer" || set == "live-full" || set == "fixed-missed" || set == "live-missed";
+	// Q1 ends at B, so that a passenger from P reaches C only by changing to Q2 or Q3.
+	const bool shortQ1 = set == "live-transfer" || set == "live-missed";
+	// B.platform.1 has no platform number, so a change from or to it needs no walk. Platform_4 has its own node, which adds a second
+	// timetable point at B. live-missed also moves Q1 to Platform_1 on another node, so that the change to Platform_4 is a walk of
+	// 120 s that the plan and the run both use.
+	const bool numberedPlatforms = set == "live-missed";
+	const std::string platformB1 = numberedPlatforms ? "Platform_1" : "B.platform.1";
+	const std::string platformB2 = "Platform_4";
 	if (transfer) {
-		// The numeric label reaches walking time; its own node adds a second timetable point at B.
 		for (SceneStation& b : scene.stations)
-			if (b.id == "B")
-				b.platforms.push_back({"Platform_4", {"B0.node.4"}});
+			if (b.id == "B") {
+				if (numberedPlatforms)
+					b.platforms.push_back({platformB1, {"B0.node.6"}});
+				b.platforms.push_back({platformB2, {"B0.node.4"}});
+			}
 	}
-	const auto service = [](const std::string& id, double entry, double departureB, double arrivalC,
+	const auto service = [shortQ1](const std::string& id, double entry, double departureB, double arrivalC,
 							 bool stopP, const std::string& platformB, double arrivalB, bool omitArrivalB) {
 		SceneService train;
 		train.id = train.operatingCode = id;
@@ -1107,14 +1143,19 @@ void addPassengerSet(SceneModel& scene, const std::string& set) {
 		if (stopP)
 			train.stops.push_back({"P", "P.platform.1", true, true, 400, 460, 60});
 		// Only transfer cases omit B's arrival: results use its first node, before the standing stop.
-		train.stops.push_back({"B", platformB, !omitArrivalB, true, arrivalB, departureB, 60});
-		train.stops.push_back({"C", "C.platform.1", true, false, arrivalC, 0, 60});
+		const bool endsAtB = shortQ1 && id == "Q1";
+		train.stops.push_back({"B", platformB, !omitArrivalB, !endsAtB, arrivalB, endsAtB ? 0 : departureB, 60});
+		if (!endsAtB)
+			train.stops.push_back({"C", "C.platform.1", true, false, arrivalC, 0, 60});
 		return train;
 	};
-	scene.services.push_back(service("Q1", 60, 820, 1250, true, "B.platform.1", 760, transfer));
+	scene.services.push_back(service("Q1", 60, 820, 1250, true, platformB1, 760, transfer && !shortQ1));
 	if (transfer) {
-		scene.services.push_back(service("Q2", 20, 1000, 1400, false, "B.platform.1", 760, true));
-		scene.services.push_back(service("Q3", 500, 960, 1450, false, "Platform_4", 900, true));
+		scene.services.push_back(service("Q2", 20, 1000, 1400, false, platformB1, 760, true));
+		scene.services.push_back(service("Q3", 500, 960, 1450, false, platformB2, 900, true));
+		// A train behind Q3 on the same platform: the passenger of live-missed plans it after missing Q3.
+		if (set == "live-missed")
+			scene.services.push_back(service("Q4", 540, 1100, 1550, false, platformB2, 920, true));
 	}
 	const auto journey = [](const std::string& id, int entry, int arrival, const std::string& from,
 							 const std::string& to, const std::vector<std::string>& services) {
@@ -1150,8 +1191,37 @@ void addPassengerSet(SceneModel& scene, const std::string& set) {
 			const std::string id = "f" + std::to_string(i + 6);
 			scene.passengers.push_back({id, {journey(id + ".1", entriesB[i], 1250, "B", "C", {"Q1"})}});
 		}
+	} else if (set == "live-direct") {
+		// Journeys without legs: the passengers plan Q1 when they appear. d1 and d2 wait at P and d3 at B for Q1.
+		for (const auto& d : {std::make_tuple("d1", 150, "P", "B"), std::make_tuple("d2", 90, "P", "C"),
+				 std::make_tuple("d3", 600, "B", "C")}) {
+			const std::string id = std::get<0>(d);
+			scene.passengers.push_back({id, {journey(id + ".1", std::get<1>(d), 1250, std::get<2>(d), std::get<3>(d), {})}});
+		}
+	} else if (set == "live-missed") {
+		// As t1 of live-transfer, but Q1 is held at P (see the incident of the case) and there is no Q2, so t1 plans the change to Q3 on Platform_4. Q1 reaches B so late
+		// that the walk of 90 s ends after Q3 has left: the change is missed and t1 plans Q4, behind Q3 on the same platform.
+		scene.passengers.push_back({"t1", {journey("t1.1", 150, 1400, "P", "C", {})}});
+	} else if (set == "live-transfer") {
+		// P to C is only possible by changing at B: Q1 to B, then Q2 on the same platform. t2 starts at B and takes Q2 direct.
+		scene.passengers.push_back({"t1", {journey("t1.1", 150, 1400, "P", "C", {})}});
+		scene.passengers.push_back({"t2", {journey("t2.1", 600, 1400, "B", "C", {})}});
+	} else if (set == "live-full") {
+		// Three seats on every train: the fourth passenger at B is refused by Q1 and plans Q2.
+		for (int i = 1; i <= 4; ++i) {
+			const std::string id = "f" + std::to_string(i);
+			scene.passengers.push_back({id, {journey(id + ".1", 600, 1400, "B", "C", {})}});
+		}
+	} else if (set == "fixed-missed") {
+		// m1 is told to take Q1 from B but appears after it left: it plans Q2 from B. m2 follows its legs.
+		scene.passengers.push_back({"m1", {journey("m1.1", 900, 1250, "B", "C", {"Q1"})}});
+		scene.passengers.push_back({"m2", {journey("m2.1", 150, 1400, "P", "C", {"Q1", "Q2"})}});
+	} else if (set == "live-noroute") {
+		// No train runs from C to A, and Q1 left P before n2 appears.
+		scene.passengers.push_back({"n1", {journey("n1.1", 100, 1250, "C", "A", {})}});
+		scene.passengers.push_back({"n2", {journey("n2.1", 480, 1250, "P", "B", {})}});
 	} else {
-		// x1 transfers to Q2; x2 walks 120 s to Platform_4 and boards Q3 there.
+		// x1 transfers to Q2; x2 boards Q3 on Platform_4; the change from B.platform.1 has no walk, as that platform has no number.
 		scene.passengers.push_back({"x1", {journey("x1.1", 150, 1400, "P", "C", {"Q1", "Q2"})}});
 		scene.passengers.push_back({"x2", {journey("x2.1", 160, 1450, "P", "C", {"Q1", "Q3"})}});
 		// Waiting time is accumulated for both journeys; y1.2 starts at Platform_4.
@@ -1440,6 +1510,8 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 					stop.plannedDepartureSeconds += offset;
 			}
 		}
+	if (spec.passengers == "live-missed")
+		loaded.scene.scenarios[0].incidents.push_back({"hold-q1", "train_breakdown", "Q1", 250.0, 738.0});
 	if (spec.name.find("stub-breakdown-") == 0)
 		loaded.scene.scenarios[0].incidents.push_back({"hold-owner", "train_breakdown", "U1", 60.0, 120.0});
 	if (spec.singleTrack)
@@ -1706,11 +1778,16 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		obs.insert(obs.end(), passengers.lines().begin(), passengers.lines().end());
 		for (const Passenger& p : simulation.run().passengers) {
 			for (const Journey& j : p.Journeys) {
-				add("journey " + p.ID + " " + j.ID,
-					{integerField("started", j.IsJourneyStarted), integerField("completed", j.IsJourneyCompleted),
-						realField("dep", j.Actual_Departure_Time), realField("arr", j.Actual_Arrival_Time),
-						realField("walking", j.Walkingtime), realField("waiting", j.Waitingtime),
-						integerField("delay", j.totalJourneyArrivalDelay)});
+				std::vector<Field> journeyFields = {integerField("started", j.IsJourneyStarted),
+					integerField("completed", j.IsJourneyCompleted), realField("dep", j.Actual_Departure_Time),
+					realField("arr", j.Actual_Arrival_Time), realField("walking", j.Walkingtime),
+					realField("waiting", j.Waitingtime), integerField("delay", j.totalJourneyArrivalDelay)};
+				// How the journey was planned again or ended, only when it was, so that other cases read as before.
+				if (j.IsReplanned)
+					journeyFields.push_back(integerField("replanned", 1));
+				if (j.Outcome == JourneyOutcome::NoRoute)
+					journeyFields.push_back(textField("outcome", journeyOutcomeName(j.Outcome)));
+				add("journey " + p.ID + " " + j.ID, std::move(journeyFields));
 				for (const Trip& trip : j.Trips)
 					add("trip " + p.ID + " " + trip.TripID,
 						{integerField("started", trip.IsTripStarted), integerField("completed", trip.IsTripCompleted),

@@ -99,7 +99,8 @@ one row containing `category`, optional `source_file`, `source_count`,
 The scene-level simulation settings are deliberately small: `base_time`,
 `simulation_settings.duration_seconds`,
 `simulation_settings.buffer_time_seconds`, and
-`simulation_settings.recovery_time_percent`. Legacy case counts, GUI flags,
+`simulation_settings.recovery_time_percent`, and the optional
+`simulation_settings.passenger_max_transfers`. Legacy case counts, GUI flags,
 output paths, and network feature flags are not scene-model settings.
 
 Services keep physical and traction provenance explicit. A train unit's

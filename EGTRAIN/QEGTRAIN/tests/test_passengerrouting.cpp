@@ -147,6 +147,8 @@ void TestPassengerRouting::transferNeedsWalkingTime() {
 	QCOMPARE(plan.legs[1].train, std::size_t{2});
 	// A passenger who starts at B needs no walking and takes T1.
 	QCOMPARE(router.search(B, 0, 2, states).arrival(C), 300.0);
+	// One who stands on platform 1 at B at 100 walks 120 s to platform 5 as well, and misses T1.
+	QCOMPARE(router.search(B, 100, 2, states, 1).arrival(C), 350.0);
 }
 
 void TestPassengerRouting::trainStateLimitsBoardingAndShiftsTimes() {

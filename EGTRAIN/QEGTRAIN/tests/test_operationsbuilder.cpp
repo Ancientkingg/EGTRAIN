@@ -849,11 +849,11 @@ void TestOperationsBuilder::buildsPlatformGeometryAndPassengers() {
 			QCOMPARE(first.TrainServiceDescription, "service.native-2");
 			QCOMPARE(first.Dep_Station_Platform_ID, "platform.0");
 			QCOMPARE(last.Arr_Station_Platform_ID, "platform.2");
-			// Multi-leg planned times retain the existing endpoint-only semantics.
-			QVERIFY(first.Planned_Departure_Time >= 100);
-			QCOMPARE(first.Planned_Arrival_Time, -9999);
-			QCOMPARE(last.Planned_Departure_Time, -9999);
-			QVERIFY(last.Planned_Arrival_Time >= 130);
+			// Every leg takes its planned times from the stops of its train, in seconds since midnight (the base time is 23400).
+			QVERIFY(first.Planned_Departure_Time >= 23400 + 100);
+			QCOMPARE(first.Planned_Arrival_Time, 23550);
+			QVERIFY(last.Planned_Departure_Time >= 23400);
+			QVERIFY(last.Planned_Arrival_Time >= 23400 + 130);
 		}
 		auto unrouted = defaultRun().passengers.front().Journeys.begin();
 		++unrouted;

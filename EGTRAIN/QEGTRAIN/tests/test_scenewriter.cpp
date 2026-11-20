@@ -124,6 +124,7 @@ static SceneModel completeScene() {
 	scene.settings.bufferTimeSeconds = 120.0;
 	scene.settings.hasRecoveryTime = true;
 	scene.settings.recoveryTimePercent = 5.0;
+	scene.settings.passengerMaxTransfers = 4;
 
 	scene.tracks.push_back({"track-1"});
 	scene.nodes.push_back({"node-1", "track-1", 0.0, 0.0});
@@ -476,6 +477,7 @@ static const std::vector<WrittenValue>& populatedSceneTable() {
 		{"scene.json", "/simulation_settings/duration_seconds", 3600.0},
 		{"scene.json", "/simulation_settings/buffer_time_seconds", 120.0},
 		{"scene.json", "/simulation_settings/recovery_time_percent", 5.0},
+		{"scene.json", "/simulation_settings/passenger_max_transfers", 4},
 		{"scene.json", "/import_report/0/category", "stations"},
 		{"scene.json", "/import_report/0/source_file", "legacy/stations.txt"},
 		{"scene.json", "/import_report/0/source_count", 11},
@@ -718,6 +720,7 @@ private slots:
 	void writesPlatformGeometry();
 	void writesSignallingAreas();
 	void omitsAbsentSignallingAreas();
+	void writesPassengerTransferLimitOnlyWhenNotDefault();
 	void keepsUnchosenSignallingLevel();
 	void writesServiceFields();
 	void writesScenarios();
@@ -916,6 +919,30 @@ void TestSceneWriter::omitsAbsentSignallingAreas() {
 	// ID-only signal input round-trips without inventing a binding.
 	QCOMPARE(sceneSignals(absentAreasReloaded).size(), std::size_t(1));
 	QVERIFY(sceneSignals(absentAreasReloaded)[0].protectedSection.empty());
+}
+
+// The transfer limit of passenger journeys is written only when it is not the default, so that existing files stay as they are.
+void TestSceneWriter::writesPassengerTransferLimitOnlyWhenNotDefault() {
+	TempDir temp;
+	SceneModel scene = completeScene();
+	scene.settings.passengerMaxTransfers = kDefaultPassengerMaxTransfers;
+	const fs::path defaultPath = temp.path / "default-transfers";
+	QVERIFY2(saveScene(scene, defaultPath.string()).success(), "scene with the default limit saves");
+	json written;
+	{
+		std::ifstream input(defaultPath / "scene.json");
+		input >> written;
+	}
+	QVERIFY2(!written["simulation_settings"].contains("passenger_max_transfers"), "the default limit is not written");
+	SceneModel reloaded;
+	QVERIFY(loadHasNoErrors(defaultPath, reloaded));
+	QCOMPARE(reloaded.settings.passengerMaxTransfers, kDefaultPassengerMaxTransfers);
+
+	scene.settings.passengerMaxTransfers = 0;
+	const fs::path zeroPath = temp.path / "zero-transfers";
+	QVERIFY2(saveScene(scene, zeroPath.string()).success(), "scene with no transfers saves");
+	QVERIFY(loadHasNoErrors(zeroPath, reloaded));
+	QCOMPARE(reloaded.settings.passengerMaxTransfers, 0);
 }
 
 // An area whose signalling system is not chosen keeps that level through save and load.

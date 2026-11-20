@@ -15,6 +15,11 @@ inline constexpr int kCurrentSceneSchemaVersion = 1;
 /// The bundle_version of an .egscene bundle that this application reads and writes.
 inline constexpr int kCurrentSceneBundleVersion = 1;
 
+/// The most transfers a plan of a live passenger journey may use when the scene gives no value.
+inline constexpr int kDefaultPassengerMaxTransfers = 2;
+/// The largest value of simulation_settings.passenger_max_transfers.
+inline constexpr int kMaxPassengerMaxTransfers = 10;
+
 /// The simulation_settings of scene.json. Each value counts only when its has* flag is set.
 struct SceneSimulationSettings {
 	bool hasDuration = false;		  ///< True when duration_seconds is given.
@@ -23,6 +28,9 @@ struct SceneSimulationSettings {
 	double bufferTimeSeconds = 0.0;	  ///< Buffer time in seconds, rounded to whole seconds for the blocking times.
 	bool hasRecoveryTime = false;	  ///< True when recovery_time_percent is given.
 	double recoveryTimePercent = 0.0; ///< Recovery time in percent, rounded to a whole percent for the blocking times.
+	/// The most transfers that a passenger journey without legs, or with legs that cannot be followed, may plan
+	/// (passenger_max_transfers, 0 to 10). Always counts; the scene file holds it only when it differs from the default.
+	int passengerMaxTransfers = kDefaultPassengerMaxTransfers;
 };
 
 /// A track: a chain of nodes joined by arcs, with its own kilometre chainage.

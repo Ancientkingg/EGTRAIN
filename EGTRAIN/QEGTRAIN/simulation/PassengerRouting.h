@@ -28,15 +28,15 @@ double walkingSeconds(int fromPlatformNumber, int toPlatformNumber);
 /// One stop of a train: where it stops and its planned times. A time below 0 is missing: a train cannot be boarded at a
 /// stop without a departure, nor left at a stop without an arrival.
 struct Stop {
-	int station = -1;
-	int platformNumber = 0; ///< platformNumber of the platform of the stop; 0 when unknown.
-	double arrival = -1.0;
-	double departure = -1.0;
+	int station = -1;		 ///< Index of the station; below 0 for a stop at no station of the router.
+	int platformNumber = 0;	 ///< platformNumber of the platform of the stop; 0 when unknown.
+	double arrival = -1.0;	 ///< Planned arrival; below 0 when the stop has none.
+	double departure = -1.0; ///< Planned departure; below 0 when the stop has none.
 };
 
 /// The stops of one train in service order.
 struct TrainTimetable {
-	std::vector<Stop> stops;
+	std::vector<Stop> stops; ///< The stops in service order.
 };
 
 /// What a search knows about a train now.
@@ -50,9 +50,9 @@ struct TrainState {
 
 /// One ride of a plan: a train from the stop where the passenger boards to the stop where the passenger leaves it.
 struct Leg {
-	std::size_t train = 0;
-	std::size_t boardStop = 0;
-	std::size_t alightStop = 0;
+	std::size_t train = 0;		   ///< Index of the train.
+	std::size_t boardStop = 0;	   ///< Index in the stops of the train of the stop where the passenger boards.
+	std::size_t alightStop = 0;	   ///< Index in the stops of the train of the stop where the passenger leaves.
 	double departure = kUnreached; ///< At boardStop, with the delay of the train.
 	double arrival = kUnreached;   ///< At alightStop, with the delay of the train.
 };
@@ -60,8 +60,9 @@ struct Leg {
 /// The rides from the origin to one destination, in travel order; empty when the destination is not reached or is the
 /// origin.
 struct Plan {
-	std::vector<Leg> legs;
-	double arrival = kUnreached;
+	std::vector<Leg> legs;		 ///< The rides in travel order.
+	double arrival = kUnreached; ///< The arrival at the destination; kUnreached when it is not reached.
+	/// True when the destination is reached, also when it is the origin and the plan has no legs.
 	bool reached() const { return arrival != kUnreached; }
 };
 
@@ -94,14 +95,19 @@ public:
 	/// Keeps the timetables. A stop with a station outside stationCount is ignored.
 	Router(std::vector<TrainTimetable> trains, std::size_t stationCount);
 
+	/// The number of trains.
 	std::size_t trainCount() const { return trains_.size(); }
+	/// The number of stations.
 	std::size_t stationCount() const { return stationCount_; }
+	/// The timetables of the trains, in the order they were given.
 	const std::vector<TrainTimetable>& trains() const { return trains_; }
 
 	/// Searches from origin, where the passenger is ready at readyTime, with at most maxTransfers transfers. states holds
 	/// one TrainState per train and must outlive the result, like the router. A transfer needs walkingSeconds between the
-	/// platform of the arrival and that of the departure; the first boarding needs none.
-	Search search(std::size_t origin, double readyTime, int maxTransfers, const std::vector<TrainState>& states) const;
+	/// platform of the arrival and that of the departure. The first boarding needs walkingSeconds from originPlatformNumber,
+	/// the platform where the passenger stands; 0, the default, for a passenger who just entered the station.
+	Search search(std::size_t origin, double readyTime, int maxTransfers, const std::vector<TrainState>& states,
+		int originPlatformNumber = 0) const;
 
 private:
 	std::vector<TrainTimetable> trains_;

@@ -1,4 +1,6 @@
 #include "simulation/PassengerFlow.h"
+#include "simulation/PassengerJourneys.h"
+#include "simulation/PassengerRouting.h"
 #include "simulation/Simulation.h"
 #include "simulation/SimulationRun.h"
 #include "util/Log.h"
@@ -29,6 +31,12 @@ void forEachWaitingTrip(const Passenger& p, Emit&& emit) {
 	}
 }
 
+// The arrival delay of a trip that ended: its arrival less its planned arrival, or 0 when the timetable has no planned arrival at the
+// stop where it ended.
+int tripArrivalDelay(const Trip& trip) {
+	return trip.Planned_Arrival_Time == -9999 ? 0 : trip.Actual_Arrival_Time - trip.Planned_Arrival_Time;
+}
+
 // Counts a passenger who waits on a platform and adds the pair of the passenger ID and the actual departure time of the trip
 // to wait for to the list of the platform
 void addWaitingPassenger(const Passenger& p, WaitingAtPlatform& waiting) {
@@ -41,7 +49,7 @@ void addWaitingPassenger(const Passenger& p, WaitingAtPlatform& waiting) {
 std::optional<double> nextJourneyStart(const Passenger& p) {
 	std::optional<double> earliest;
 	for (const Journey& journey : p.Journeys) {
-		if (journey.IsJourneyCompleted == 0 && (!earliest || journey.Actual_Planned_Departure_Time < *earliest))
+		if (!journey.isFinished() && (!earliest || journey.Actual_Planned_Departure_Time < *earliest))
 			earliest = journey.Actual_Planned_Departure_Time;
 	}
 	return earliest;
@@ -223,14 +231,20 @@ void PassengerFlow::alighted(int position) {
 	scheduleJourneyStart(position);
 }
 
-void PassengerFlow::startDueJourneys(int now) {
+void PassengerFlow::startDueJourneys(int now, const std::function<void(int position)>& onStarted) {
 	lastTime_ = now;
 	while (!journeyStarts_.empty() && journeyStarts_.front().due <= now) {
 		const int position = journeyStarts_.front().position;
 		std::pop_heap(journeyStarts_.begin(), journeyStarts_.end(), std::greater<JourneyStart>());
 		journeyStarts_.pop_back();
-		passengers_[static_cast<std::size_t>(position)]->checkJourneyStart(now);
+		Passenger& passenger = *passengers_[static_cast<std::size_t>(position)];
+		passenger.checkJourneyStart(now);
+		if (onStarted && passenger.IsIntheNetwork)
+			onStarted(position);
 		placed(position);
+		// A passenger whose journey found no route is outside the network again, with the next journey to start.
+		if (!passenger.IsIntheNetwork)
+			scheduleJourneyStart(position);
 	}
 }
 
@@ -259,6 +273,40 @@ void PassengerFlow::refused(int position) {
 	const auto line = queues_[static_cast<std::size_t>(registration.first)].byTrain.find(registration.second);
 	for (const Waiter& waiter : registration.waiters)
 		line->second.notRefused.erase(waiter);
+}
+
+std::vector<int> PassengerFlow::waitingFor(int platform, int train) const {
+	std::vector<int> positions;
+	if (platform < 0 || train < 0)
+		return positions;
+	const PlatformQueues& queue = queues_[static_cast<std::size_t>(platform)];
+	const auto line = queue.byTrain.find(train);
+	if (line == queue.byTrain.end())
+		return positions;
+	std::set<int> seen;
+	for (const Waiter& waiter : line->second.all)
+		if (seen.insert(waiter.position).second)
+			positions.push_back(waiter.position);
+	return positions;
+}
+
+std::vector<int> PassengerFlow::takeAllOnBoard(const string& train) {
+	std::vector<int> positions;
+	const int trainId = findId(train);
+	if (trainId < 0)
+		return positions;
+	for (auto bucket = onBoard_.begin(); bucket != onBoard_.end();) {
+		if (static_cast<std::uint32_t>(bucket->first >> 32) != static_cast<std::uint32_t>(trainId)) {
+			++bucket;
+			continue;
+		}
+		positions.insert(positions.end(), bucket->second.begin(), bucket->second.end());
+		bucket = onBoard_.erase(bucket);
+	}
+	for (const int position : positions)
+		registrations_[static_cast<std::size_t>(position)] = Registration();
+	std::sort(positions.begin(), positions.end());
+	return positions;
 }
 
 std::vector<int> PassengerFlow::takeOnBoardArrivingAt(const string& train, const string& station) {
@@ -383,7 +431,7 @@ void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStarti
 						// then set the trip as complete and let the passenger get on the platform
 						p->current_location_ID = T.CurrentServiceStop;
 						currenttrip->Actual_Arrival_Time = t + SimulationStartingTime;
-						currenttrip->totalArrivalDelay = currenttrip->Actual_Arrival_Time - currenttrip->Planned_Arrival_Time;
+						currenttrip->totalArrivalDelay = tripArrivalDelay(*currenttrip);
 						currenttrip->IsTripCompleted = true;
 
 						// if the selected trip is the last trip of the active journey then set that journey j will be completed
@@ -393,6 +441,7 @@ void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStarti
 							// however it might be that in the rescheduling process the Planned arrival time of the last trip of the journey is changed based on rerouting or replanning of the train service.
 
 							j->IsJourneyCompleted = true;
+							j->Outcome = JourneyOutcome::Completed;
 							p->current_location_ID = T.CurrentServiceStop;
 							p->IsIntheNetwork = false;											  // The passenger is selected and sent out of the simulation as the journey is ended
 							p->TimeExitedTheNetwork = currenttrip->Actual_Arrival_Time;			  // Used by the Passenger GUI when the passenger leaves the network
@@ -410,7 +459,7 @@ void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStarti
 						else { // else if the selected trip is not the last trip of the journey then it means that the passenger will need to transfer and take another trip to complete its journey
 							// computing the actual and planned arrival times of the current trip as well as its Total arrival delay
 							currenttrip->Actual_Arrival_Time = t + SimulationStartingTime;
-							currenttrip->totalArrivalDelay = currenttrip->Actual_Arrival_Time - currenttrip->Planned_Arrival_Time;
+							currenttrip->totalArrivalDelay = tripArrivalDelay(*currenttrip);
 							currenttrip->IsTripCompleted = true;
 
 							p->current_TripID = nexttrip->TripID;
@@ -434,19 +483,10 @@ void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStarti
 								// if the arrival station of teh previous trip is the same as the departure station of the next trip then check whether the passenger is waiting at the scheduled platform
 								// Set first of all that the next trip has started
 								nexttrip->IsTripStarted = true;
-								// Then check the difference in number of platforms between the one where the passenger got off and the one where theu will need to board the train
-								const int N_Platform_Difference = abs(T.currentServiceStopPlatformNumber - nexttrip->depPlatformNumber);
-								double Walkingtime = 0; // this variable is the walking time for the passenger to walk between platforms at a transfer station
-								if (N_Platform_Difference <= 1) {
-									nexttrip->Actual_Departure_Time = t + SimulationStartingTime; // probably needs also to be added the overall simulation starting time
-									j->Walkingtime = j->Walkingtime + 0;						  // No walking time is added is the passenger needs to wait at the same platform they arrived at
-
-								} else {
-									// if instead they need to walk to reach the waiting platform then add 30 seconds for each platform difference between the arrival and departing platforms
-									Walkingtime = 30 * N_Platform_Difference; // if for instance N_Platform Difference is 5 then the it will be 30 * 5 = 150 seconds meaning 2.5 min and  minutes walking for crossing 5 patforms
-									nexttrip->Actual_Departure_Time = t + SimulationStartingTime + Walkingtime;
-									j->Walkingtime = j->Walkingtime + Walkingtime;
-								}
+								// The walk between the platforms is the one the routing plans (an unknown platform number needs none).
+								const double Walkingtime = passenger_routing::walkingSeconds(T.currentServiceStopPlatformNumber, nexttrip->depPlatformNumber);
+								nexttrip->Actual_Departure_Time = t + SimulationStartingTime + Walkingtime;
+								j->Walkingtime = j->Walkingtime + Walkingtime;
 							}
 						}
 						break; // break the while loop on trips
@@ -464,11 +504,14 @@ void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStarti
 }
 
 // Lets the passengers on board of T whose trip ends at its service stop alight, in the order of the passenger list. Returns their number.
-int alightPassengers(PassengerFlow& flow, Train& T, int t, int SimulationStartingTime) {
+int alightPassengers(PassengerFlow& flow, SimulationRun& run, Train& T, int t, int SimulationStartingTime, PassengerJourneys* journeys) {
 	const std::vector<int> alighting = flow.takeOnBoardArrivingAt(T.trainDescription, T.CurrentServiceStop);
 	for (const int position : alighting) {
 		T.Current_OnBoard_Passengers--; // the passenger leaves the train
 		alightPassenger(flow.passenger(position), T, t, SimulationStartingTime);
+		// A passenger who transfers plans again when the train of the next trip is already gone.
+		if (journeys != nullptr)
+			journeys->checkWaiting(run, flow.passenger(position), t);
 		flow.alighted(position);
 	}
 	return static_cast<int>(alighting.size());
@@ -527,11 +570,17 @@ Boarding boardPassenger(Passenger* p, Train& T, int t, int SimulationStartingTim
 }
 
 // Registers what the attempt to board did to the passenger at this place.
-void settleBoarding(PassengerFlow& flow, int position, Boarding result) {
-	if (result == Boarding::Boarded)
+// A passenger who was refused plans again from this station without the train, when the run plans journeys.
+void settleBoarding(PassengerFlow& flow, SimulationRun& run, Train& T, int t, PassengerJourneys* journeys, int position, Boarding result) {
+	if (result == Boarding::Boarded) {
 		flow.placed(position);
-	else if (result == Boarding::Refused)
+	} else if (result == Boarding::Refused) {
 		flow.refused(position);
+		if (journeys != nullptr) {
+			journeys->replanRefused(run, flow.passenger(position), T, t);
+			flow.alighted(position);
+		}
+	}
 }
 
 // The platform where the train stops, or null.
@@ -547,7 +596,7 @@ const StationPlatform* platformOfStop(const SimulationRun& run, const Train& T, 
 // The boarding procedure follows the order at which passengers arrived at the platform. The platform occupation rate, the pax
 // of the current platform plus those just alighted from the train, is returned in occupationRate.
 int boardPassengers(PassengerFlow& flow, SimulationRun& run, Train& T, int t, int SimulationStartingTime,
-	const list<StationPlatform>& platforms, int N_AlightPax, double& occupationRate) {
+	const list<StationPlatform>& platforms, int N_AlightPax, double& occupationRate, PassengerJourneys* journeys) {
 	int N_BoardedPax = 0;
 	std::optional<PlatformIndex> ownPlatforms;
 	const StationPlatform* PlatformIt = platformOfStop(run, T, platforms, ownPlatforms);
@@ -564,7 +613,7 @@ int boardPassengers(PassengerFlow& flow, SimulationRun& run, Train& T, int t, in
 				continue;
 			// the passengers with the ID of the one in the list of passengers on the platform, in the order of the list of all passengers
 			for (const int position : flow.passengersWithId(Pax.first))
-				settleBoarding(flow, position, boardPassenger(&flow.passenger(position), T, t, SimulationStartingTime, N_BoardedPax));
+				settleBoarding(flow, run, T, t, journeys, position, boardPassenger(&flow.passenger(position), T, t, SimulationStartingTime, N_BoardedPax));
 		}
 		return N_BoardedPax;
 	}
@@ -580,7 +629,7 @@ int boardPassengers(PassengerFlow& flow, SimulationRun& run, Train& T, int t, in
 		if (!last || last->since > now)
 			break; // the waiters are in order of time, so the rest still walk
 		for (const int position : flow.samePassengerId(last->position))
-			settleBoarding(flow, position, boardPassenger(&flow.passenger(position), T, t, SimulationStartingTime, N_BoardedPax));
+			settleBoarding(flow, run, T, t, journeys, position, boardPassenger(&flow.passenger(position), T, t, SimulationStartingTime, N_BoardedPax));
 	}
 	return N_BoardedPax;
 }
@@ -607,19 +656,21 @@ void applyPassengerDependentDwellTime(Train& T, int N_BoardedPax, int N_AlightPa
 
 // The passenger step of train T in step t, for the passengers that the flow describes.
 void interactAtServiceStop(PassengerFlow& flow, SimulationRun& run, int t, int SimulationStartingTime, Train& T,
-	const list<StationPlatform>& platforms) {
+	const list<StationPlatform>& platforms, PassengerJourneys* journeys) {
 	if (T.StoppedForServiceStop != 1)
 		return;
-	const int N_AlightPax = alightPassengers(flow, T, t, SimulationStartingTime);
+	const int N_AlightPax = alightPassengers(flow, run, T, t, SimulationStartingTime, journeys);
 	double CurrentPlatformOccupationRate = 0; // Occupation rate of the platform where the train is stopping at
-	const int N_BoardedPax = boardPassengers(flow, run, T, t, SimulationStartingTime, platforms, N_AlightPax, CurrentPlatformOccupationRate);
+	const int N_BoardedPax = boardPassengers(flow, run, T, t, SimulationStartingTime, platforms, N_AlightPax, CurrentPlatformOccupationRate, journeys);
 	applyPassengerDependentDwellTime(T, N_BoardedPax, N_AlightPax, CurrentPlatformOccupationRate);
 }
 
 // The flow of the run, built again when it does not describe the passengers of the run or the time went back.
 PassengerFlow& flowOfRun(SimulationRun& run, int now) {
-	if (!run.passengerFlow.covers(run.passengers) || now < run.passengerFlow.lastTime())
+	if (!run.passengerFlow.covers(run.passengers) || now < run.passengerFlow.lastTime()) {
 		run.passengerFlow.build(run.passengers, true);
+		run.passengerJourneys.clear();
+	}
 	return run.passengerFlow;
 }
 } // namespace
@@ -631,13 +682,15 @@ void Simulate_Train_Passenger_Interactions(SimulationRun& run, int t, int Simula
 	// The passengers and platforms may not be those of the run, or may have been changed by hand, so this call looks at them as they are.
 	PassengerFlow flow;
 	flow.build(ALLPAX, false);
-	interactAtServiceStop(flow, run, t, SimulationStartingTime, T, ALLPLATFORMS);
+	interactAtServiceStop(flow, run, t, SimulationStartingTime, T, ALLPLATFORMS, nullptr);
 }
 
 void enterPassengersAndRefreshPlatforms(SimulationRun& run, int t) {
 	PassengerFlow& flow = flowOfRun(run, t + run.settings.startingSimulationTime);
 	// Simulate entrance process of passengers on the railway network according to route choice
-	flow.startDueJourneys(t + run.settings.startingSimulationTime);
+	run.passengerJourneys.beginPhase();
+	flow.startDueJourneys(t + run.settings.startingSimulationTime,
+		[&run, &flow, t](int position) { run.passengerJourneys.startJourney(run, flow.passenger(position), t); });
 	// With the passenger GUI the waiting lists of all platforms of the network are updated at every instant
 	if (run.settings.PAX_GUI)
 		flow.refreshPlatformLists(run.platforms);
@@ -645,6 +698,14 @@ void enterPassengersAndRefreshPlatforms(SimulationRun& run, int t) {
 
 void simulateTrainPassengerInteractions(SimulationRun& run, int t) {
 	PassengerFlow& flow = flowOfRun(run, t + run.settings.startingSimulationTime);
-	for (int n = 0; n < run.numTrains; n++)
-		interactAtServiceStop(flow, run, t, run.settings.startingSimulationTime, run.trains[n], run.platforms);
+	run.passengerJourneys.settleTrains(run, flow, t);
+	// With the passenger GUI, trains board from the platform lists: refresh the platforms that replans or alightings
+	// changed, so that a passenger boards in the same step as without the GUI.
+	if (run.settings.PAX_GUI)
+		flow.refreshPlatformLists(run.platforms);
+	for (int n = 0; n < run.numTrains; n++) {
+		interactAtServiceStop(flow, run, t, run.settings.startingSimulationTime, run.trains[n], run.platforms, &run.passengerJourneys);
+		if (run.settings.PAX_GUI)
+			flow.refreshPlatformLists(run.platforms);
+	}
 }

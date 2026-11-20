@@ -52,7 +52,8 @@ Router::Router(std::vector<TrainTimetable> trains, std::size_t stationCount)
 	}
 }
 
-Search Router::search(std::size_t origin, double readyTime, int maxTransfers, const std::vector<TrainState>& states) const {
+Search Router::search(std::size_t origin, double readyTime, int maxTransfers, const std::vector<TrainState>& states,
+	int originPlatformNumber) const {
 	Search result;
 	result.trains_ = &trains_;
 	result.states_ = &states;
@@ -62,6 +63,7 @@ Search Router::search(std::size_t origin, double readyTime, int maxTransfers, co
 
 	result.rounds_.emplace_back(stationCount_);
 	result.rounds_[0][origin].arrival = readyTime;
+	result.rounds_[0][origin].platformNumber = originPlatformNumber;
 	result.best_[origin] = readyTime;
 	std::vector<std::size_t> marked{origin};
 	// The earliest stop where each train can be boarded in the current round; npos when it cannot.
@@ -82,7 +84,7 @@ Search Router::search(std::size_t origin, double readyTime, int maxTransfers, co
 				if (stop < state.firstStop)
 					continue;
 				const Stop& departure = trains_[train].stops[stop];
-				const double walking = round == 1 ? 0.0 : walkingSeconds(reached.platformNumber, departure.platformNumber);
+				const double walking = walkingSeconds(reached.platformNumber, departure.platformNumber);
 				if (reached.arrival + walking > departure.departure + state.delay)
 					continue;
 				if (boardAt[train] == npos)

@@ -97,6 +97,18 @@ void printPassengerTotalJourneyDelay(const list<Passenger>& ALLPAX, string MainF
 	closeRunOutputFile(OutputFile, FileName);
 }
 
+const char* journeyOutcomeName(JourneyOutcome outcome) {
+	switch (outcome) {
+		case JourneyOutcome::Completed:
+			return "completed";
+		case JourneyOutcome::NoRoute:
+			return "no_route";
+		case JourneyOutcome::InProgress:
+			break;
+	}
+	return "in_progress";
+}
+
 int platformNumber(const string& platformId) {
 	const string prefix = "Platform_";
 	string number = platformId;
@@ -115,7 +127,7 @@ void Passenger::checkJourneyStart(int t) {
 	if (this->IsIntheNetwork == 0) { // if the passenger is out of the network check whether the one of its journeys is about to start
 		if (Journeys.empty() != 1) {
 			for (list<Journey>::iterator j = this->Journeys.begin(); j != Journeys.end(); j++) {
-				if (j->IsJourneyCompleted == 0) {
+				if (!j->isFinished()) {
 					// Set the condition for the passenger to enter the network to start a journey
 					if (t >= j->Actual_Planned_Departure_Time) {
 

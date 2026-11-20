@@ -5,6 +5,7 @@
 #include "simulation/Infrastructure.h"
 #include "simulation/NumberGenerator.h"
 #include "simulation/PassengerFlow.h"
+#include "simulation/PassengerJourneys.h"
 #include "simulation/Passengers.h"
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
@@ -140,6 +141,9 @@ struct SimulationRun {
 	/// Where the passengers are: the journeys about to start, the passengers on board and those waiting at the platforms. The
 	/// passenger step builds it from the passengers when it first needs it, and reset() and adopt() empty it.
 	PassengerFlow passengerFlow;
+	/// The router of the run and what the passenger step needs to plan journeys on it. Built when the step first needs it, and
+	/// reset() and adopt() empty it with passengerFlow.
+	PassengerJourneys passengerJourneys;
 
 	/// Statistics over the trains of the input delay, the entrance delay plus the station disturbances, in seconds.
 	DelayStats totalInputDelays;

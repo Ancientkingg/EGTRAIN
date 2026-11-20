@@ -928,6 +928,7 @@ InitialParameters nativeStagedParameters(const SceneModel& scene, int baseTime, 
 		stagedParameters.recoveryTimePercentage = scene.settings.hasRecoveryTime
 			? static_cast<double>(std::llround(scene.settings.recoveryTimePercent))
 			: 0.0;
+	stagedParameters.passengerMaxTransfers = std::clamp(scene.settings.passengerMaxTransfers, 0, kMaxPassengerMaxTransfers);
 	stagedParameters.numTrackLines = static_cast<int>(scene.tracks.size());
 	stagedParameters.N_Routes = static_cast<int>(scene.routes.size());
 	stagedParameters.num_OrderLists = 0;
@@ -972,6 +973,9 @@ void nativeListStoppingTrains(std::list<StationPlatform>& platforms, const std::
 	}
 }
 
+// The planned time of a trip that nothing has set, as Trip holds it.
+constexpr int kUnsetTripTime = -9999;
+
 // Draws the departure and arrival of every journey of passengers from the windows of the scene, in the order of the scene.
 void nativeSamplePassengerWindows(SimulationRun& run, const SceneModel& scene, std::list<Passenger>& passengers) {
 	const auto sampleWindow = [&run](double minimum, double maximum) {
@@ -995,11 +999,15 @@ void nativeSamplePassengerWindows(SimulationRun& run, const SceneModel& scene, s
 				sourceJourney.plannedDepartureStartSeconds, sourceJourney.plannedDepartureEndSeconds);
 			stagedJourney->Actual_Planned_Arrival_Time = sampleWindow(
 				sourceJourney.plannedArrivalStartSeconds, sourceJourney.plannedArrivalEndSeconds);
+			// A trip takes its planned times from the timetable of its train (see the staging of the trips). Only a trip whose
+			// train has no planned time at its stop keeps the window of the journey, at the ends of the journey.
 			if (!stagedJourney->Trips.empty()) {
-				stagedJourney->Trips.front().Planned_Departure_Time =
-					static_cast<int>(stagedJourney->Actual_Planned_Departure_Time);
-				stagedJourney->Trips.back().Planned_Arrival_Time =
-					static_cast<int>(stagedJourney->Actual_Planned_Arrival_Time);
+				Trip& first = stagedJourney->Trips.front();
+				Trip& last = stagedJourney->Trips.back();
+				if (first.Planned_Departure_Time == kUnsetTripTime)
+					first.Planned_Departure_Time = static_cast<int>(stagedJourney->Actual_Planned_Departure_Time);
+				if (last.Planned_Arrival_Time == kUnsetTripTime)
+					last.Planned_Arrival_Time = static_cast<int>(stagedJourney->Actual_Planned_Arrival_Time);
 			}
 		}
 	}
@@ -1288,6 +1296,11 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 				trip.depPlatformNumber = platformNumber(originStop->platformId);
 				trip.Arr_Station_Platform_ID = destinationStop->platformId;
 				trip.TrainServiceDescription = trains[trainIt->second].trainDescription;
+				// The planned times of the stops of the train, in seconds since midnight like the other times of a passenger.
+				if (originStop->hasPlannedDeparture)
+					trip.Planned_Departure_Time = static_cast<int>(std::lround(originStop->plannedDeparture + baseTime));
+				if (destinationStop->hasPlannedArrival)
+					trip.Planned_Arrival_Time = static_cast<int>(std::lround(destinationStop->plannedArrival + baseTime));
 				journey.Trips.push_back(std::move(trip));
 			}
 			if (omitJourney)

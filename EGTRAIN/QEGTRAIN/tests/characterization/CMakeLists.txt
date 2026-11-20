@@ -135,6 +135,14 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	pax-full-gui1
 	pax-transfer-gui0
 	pax-transfer-gui1
+	pax-live-direct
+	pax-live-transfer
+	pax-live-full
+	pax-fixed-missed
+	pax-live-noroute
+	pax-live-missed
+	pax-live-full-gui1
+	pax-live-missed-gui1
 	entrance-delay-f2-level-0
 	breakdown-f1-level-0)
 

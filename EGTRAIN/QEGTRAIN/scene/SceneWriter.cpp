@@ -676,6 +676,8 @@ json encodeSceneMetadata(const SceneModel& scene) {
 		settings["buffer_time_seconds"] = scene.settings.bufferTimeSeconds;
 	if (scene.settings.hasRecoveryTime)
 		settings["recovery_time_percent"] = scene.settings.recoveryTimePercent;
+	if (scene.settings.passengerMaxTransfers != kDefaultPassengerMaxTransfers)
+		settings["passenger_max_transfers"] = scene.settings.passengerMaxTransfers;
 	if (!settings.empty())
 		metadata["simulation_settings"] = settings;
 	if (!scene.importReport.empty()) {
