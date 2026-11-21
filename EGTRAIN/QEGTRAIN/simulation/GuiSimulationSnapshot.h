@@ -2,6 +2,7 @@
 #define GUISIMULATIONSNAPSHOT_H
 
 #include "scene/SignallingLevel.h"
+#include "simulation/NoneId.h"
 
 #include <algorithm>
 #include <array>
@@ -62,7 +63,7 @@ inline const std::string& guiTrainDisplayIdentifier(const GuiTrainState& train) 
 /// The name that the train list and the Follow status give a train: its description, or its place in the list
 /// (counted from 1) when it has none or it is "None". `trainIndex` counts from 0.
 inline std::string followTrainName(const std::string& description, int trainIndex) {
-	return description.empty() || description == "None" ? "Train " + std::to_string(trainIndex + 1) : description;
+	return description.empty() || isNoneId(description) ? "Train " + std::to_string(trainIndex + 1) : description;
 }
 
 /// A train in the simulation reports the arcs that it occupies; one that has left does not.

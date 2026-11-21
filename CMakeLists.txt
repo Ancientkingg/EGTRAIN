@@ -487,6 +487,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/widgets/EditorLayout.h
     ${SRC_DIR}/widgets/UserPrompts.h
     ${SRC_DIR}/simulation/Infrastructure.h
+    ${SRC_DIR}/simulation/NoneId.h
     ${SRC_DIR}/simulation/InitialParameters.h
     ${SRC_DIR}/app/CrashNote.h
     ${SRC_DIR}/app/GuardedApplication.h

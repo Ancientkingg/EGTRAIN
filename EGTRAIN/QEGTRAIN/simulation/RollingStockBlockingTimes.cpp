@@ -21,7 +21,7 @@ void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds(const st
 
 	if (this->LocationWithSwitch == 1) {
 		NameOfInfraElement = this->SwitchName;					   // The name of the location is the Switch Name if the infrastructure element is a Switch
-		if (this->ConnectedBlockingTimeID != "None") {			   // if the BlockTime has a connected block time then it means that it is a switch in a diverging position
+		if (!isNoneId(this->ConnectedBlockingTimeID)) {			   // if the BlockTime has a connected block time then it means that it is a switch in a diverging position
 			if (this->PosStart < this->PosConnectedBlockingTime) { // if this element is the starting edge of a diverging switch where the point machine is, then it needs to be diverging
 				NeededInfraElementPosition = SwitchPosition::Diverging;
 			} else {													 // if instead this element is the ending edge of diverging switch beam
@@ -66,8 +66,8 @@ void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds(const st
 						if (t->trainDescription == TrainName) {
 							if (t == i->RecordedEvent.begin()) { // In case TrainName is the first train of the recorded list
 								this->SpeedPreviousTrain = -1;
-								this->NamePreviousTrain = "None";
-								this->NextBlockIDPreviousTrain = "None";
+								this->NamePreviousTrain = kNoneId;
+								this->NextBlockIDPreviousTrain = kNoneId;
 
 								if (this->LocationWithSwitch == 1) { // If this is a switch this will be in the straight position at start
 									LastInfraElementPosition = SwitchPosition::Straight;
@@ -253,7 +253,7 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 				if (k->IsSwitch == 1) {
 					TEMPLoc.LocationWithSwitch = true;
 					TEMPLoc.SwitchName = k->SwitchName;
-					if (k->ConnectedPoint != "None") {														   // if this is a diverging switch then it is connected to another point
+					if (!isNoneId(k->ConnectedPoint)) {														   // if this is a diverging switch then it is connected to another point
 						TEMPLoc.ConnectedBlockingTimeID = k->ConnectedPoint;								   // Connected BlockingTimeID has the ID of the connected point of the switch
 						TEMPLoc.PosConnectedBlockingTime = k->XConnectedPoint;								   // Position of the connected point
 						TEMPLoc.IsEndOfDivSwitchBeingStartOfADivSwitch = k->isEndOfDivSwitchStartOfADivSwitch; // Is the end of the switch also the start of another diverging switch?
@@ -288,7 +288,7 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 			bool IsAlreadyInBlockTime = false;
 			if (this->N_BlockSections > 0) {
 				for (int h = 0; h < N_BlockSections; h++) {
-					if ((y->LocationWithSwitch == 1) && (y->ConnectedBlockingTimeID != "None")) { // if the block time refers to a diverging switch
+					if ((y->LocationWithSwitch == 1) && (!isNoneId(y->ConnectedBlockingTimeID))) { // if the block time refers to a diverging switch
 						if ((y->BlockID == BlockTime[h].BlockID) && (y->ConnectedBlockingTimeID == BlockTime[h].ConnectedBlockingTimeID) && (y->GeoPosStart == BlockTime[h].GeoPosStart)) {
 							IsAlreadyInBlockTime = true;
 							break;
@@ -453,9 +453,9 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 								   // Identifying the InfraElement on the route after K
 			list<InfraElement>::iterator LastInfraElementOnRoute = run_->infra.routes[this->indexOfRoute].InfrastructureElements.end();
 			LastInfraElementOnRoute--; // this points at the last infraelement on the route
-			string SuccessorInfraElement = "None";
+			string SuccessorInfraElement = kNoneId;
 			if (k == LastInfraElementOnRoute) { // if k is the last element of the route then its successor is None
-				SuccessorInfraElement = "None";
+				SuccessorInfraElement = kNoneId;
 			} else { // Otherwise it is the element after k
 				list<InfraElement>::iterator successor = k;
 				successor++; // this iterator points at the infrastructure element after k
@@ -468,7 +468,7 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 				}
 				// if successor is a VirtualTDSB and it is the last infra element of the route also, then SuccessorInfraElement is "None"
 				else if ((successor->ID == virtualTdsbId) && (successor == LastInfraElementOnRoute)) {
-					SuccessorInfraElement = "None";
+					SuccessorInfraElement = kNoneId;
 				}
 			}
 
@@ -490,7 +490,7 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 				if (k->IsSwitch == 1) {
 					TEMPLoc.LocationWithSwitch = true;
 					TEMPLoc.SwitchName = k->SwitchName;
-					if (k->ConnectedPoint != "None") {														   // if this is a diverging switch then it is connected to another point
+					if (!isNoneId(k->ConnectedPoint)) {														   // if this is a diverging switch then it is connected to another point
 						TEMPLoc.ConnectedBlockingTimeID = k->ConnectedPoint;								   // Connected BlockingTimeID has the ID of the connected point of the switch
 						TEMPLoc.PosConnectedBlockingTime = k->XConnectedPoint;								   // Position of the connected point
 						TEMPLoc.IsEndOfDivSwitchBeingStartOfADivSwitch = k->isEndOfDivSwitchStartOfADivSwitch; // Is the end of the switch also the start of another diverging switch?
@@ -525,7 +525,7 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 			bool IsAlreadyInBlockTime = false;
 			if (this->N_BlockSections > 0) {
 				for (int h = 0; h < N_BlockSections; h++) {
-					if ((y->LocationWithSwitch == 1) && (y->ConnectedBlockingTimeID != "None")) { // if the block time refers to a diverging switch
+					if ((y->LocationWithSwitch == 1) && (!isNoneId(y->ConnectedBlockingTimeID))) { // if the block time refers to a diverging switch
 						if ((y->BlockID == BlockTime[h].BlockID) && (y->ConnectedBlockingTimeID == BlockTime[h].ConnectedBlockingTimeID) && (y->GeoPosStart == BlockTime[h].GeoPosStart)) {
 							IsAlreadyInBlockTime = true;
 							break;
@@ -614,7 +614,7 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 						double ApproachingTimeInFollowingMode = 0;
 						// The if condition below means that an absolute braking distance is used if teh trains is the first train of a platoon or at junctions where the route diverges or converge with the route of the train ahead.
 						// This means that at switches that the train and the train ahead take in the same position a relative braking distance is used to compute the approaching time
-						if ((BlockTime[N_BlockSections].NamePreviousTrain == "None") || ((BlockTime[N_BlockSections].LocationWithSwitch == 1) && (BlockTime[N_BlockSections].InfraElementInPositionForTrain == 0))) {																												   // if the train is the first train to run over the section, that means that it is the leader and will travel under ETCS Level 3 with an absolute braking distance. It will also travel with an absolute braking distance over switches that are not in the right position for the train, because the previous train was using a different route.
+						if ((isNoneId(BlockTime[N_BlockSections].NamePreviousTrain)) || ((BlockTime[N_BlockSections].LocationWithSwitch == 1) && (BlockTime[N_BlockSections].InfraElementInPositionForTrain == 0))) {																												   // if the train is the first train to run over the section, that means that it is the leader and will travel under ETCS Level 3 with an absolute braking distance. It will also travel with an absolute braking distance over switches that are not in the right position for the train, because the previous train was using a different route.
 							ApproachingDistance = this->BrakingDistanceFastComputation(instant_train_speed[p], 0, instant_spatial_position[p], BlockTime[N_BlockSections].PosStart, run_->infra.routes[this->indexOfRoute].sequence_of_block_sections.data(), run_->infra.routes[this->indexOfRoute].N_Block_Sections) + SafetyMargin; // Computing the braking curve from the speed instant_train_speed[p]
 						}
 
@@ -765,7 +765,7 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 void Train::ConnectBlockTimesOfSwitchesForTrainCentricSignalling() {
 	if (this->N_BlockTimeComplete > 0) {
 		for (int i = 0; i < this->N_BlockTimeComplete; i++) {
-			if ((BlockTime[i].SignallingLevel >= levelValue(SignallingLevel::EtcsLevel3)) && (BlockTime[i].IsComplete == 1) && (BlockTime[i].LocationWithSwitch == 1) && (BlockTime[i].ConnectedBlockingTimeID != "None")) { // if the blocktime has a signalling level higher then 3, it is complete, it is a switch and it has a connected point (so it is a diverging switch)
+			if ((BlockTime[i].SignallingLevel >= levelValue(SignallingLevel::EtcsLevel3)) && (BlockTime[i].IsComplete == 1) && (BlockTime[i].LocationWithSwitch == 1) && (!isNoneId(BlockTime[i].ConnectedBlockingTimeID))) { // if the blocktime has a signalling level higher then 3, it is complete, it is a switch and it has a connected point (so it is a diverging switch)
 				bool ConnectedBlockingTimeFound = false;
 
 				if (BlockTime[i].IsAlreadyUniformedToConnectedSwitch == 0) { // if this blocking time has not already been uniformed to the one of the connected diverging switch edge

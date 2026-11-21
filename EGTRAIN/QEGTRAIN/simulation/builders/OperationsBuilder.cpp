@@ -158,7 +158,7 @@ const SceneStation* nativeStationForId(
 bool nativeRuntimeNodeMatchesStation(const Node& node, const SceneStation& station,
 	const std::string& stationName) {
 	return (station.platforms.empty() ? node.station
-									  : !node.stationPlatformId.empty() && node.stationPlatformId != "None")
+									  : !node.stationPlatformId.empty() && !isNoneId(node.stationPlatformId))
 		&& (node.stationName == stationName || node.stationName == station.id
 			|| (node.station && node.stationName.empty()));
 }
@@ -538,7 +538,7 @@ Node nativeOffRouteStopNode(const SimulationRun& run, const SceneStation& statio
 	Node node;
 	node.station = true;
 	node.stationName = stationName;
-	node.stationPlatformId = "None";
+	node.stationPlatformId = kNoneId;
 	if (station.hasPosition)
 		node.X = station.positionKm;
 	else if (!station.platforms.empty()) {

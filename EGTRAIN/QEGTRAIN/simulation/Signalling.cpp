@@ -77,8 +77,8 @@ bool resolveDoubleSwitchSections(SimulationRun& run, const Section& current, con
 
 TrainEvent::TrainEvent() {
 	Time = Time2 = Position = Acceleration = -10000;
-	trainDescription = "None";
-	SuccessorID = CurrentSectionID = NextSectionID = "None";
+	trainDescription = kNoneId;
+	SuccessorID = CurrentSectionID = NextSectionID = kNoneId;
 	TrainSpeed = -1;
 	InfraElemStatus = SwitchPosition::NotASwitch;
 }
@@ -97,7 +97,7 @@ void orderListOfTrainEvents(list<TrainEvent>& OutputList) {
 
 InfraEvent::InfraEvent() {
 	ElementInfo.GeoXCoord = ElementInfo.GeoYCoord = ElementInfo.XCoordinate = ElementInfo.YCoordinate = -1;
-	ElementInfo.ID = ElementInfo.SectionID = ElementInfo.stationName = "None";
+	ElementInfo.ID = ElementInfo.SectionID = ElementInfo.stationName = kNoneId;
 	ElementInfo.IsSignal = ElementInfo.isStation = ElementInfo.IsSwitch = ElementInfo.IsTrackDetSecBorder = false;
 	// The list of Recorded event is empty by default
 }
@@ -121,7 +121,7 @@ void UpdateInfrastructureElementStatus(SimulationRun& run, const list<InfraEleme
 				if (i->XCoordinate > PositionLastRouteInfraElement) {	  // With this condition we avoid recording events for two infraelement having the same exact coordinate as it happens when we have ending edges of diverging switches coinciding with starting edges of another diverging switch. With this condition we avoid recording events for the same infraelement at the same time
 
 					if ((i->IsSwitch == 1) && (i->withSwitchDiv == 1)) {
-						if (i->SwitchName == "None") { // throw a warning if it does not have Switch Name
+						if (isNoneId(i->SwitchName)) { // throw a warning if it does not have Switch Name
 							EG_LOG(SimSetup, Warning) << "Warning: Diverging Switch: " << i->ID << "at position " << i->XCoordinate << " on Route of Train " << TrainName << " has no SwitchName. Please investigate on it\n";
 						} else { // in the case it has a SwitchName, then the Switchname will be the ID of the InfraElement
 							InfraElementID = i->SwitchName;
@@ -130,7 +130,7 @@ void UpdateInfrastructureElementStatus(SimulationRun& run, const list<InfraEleme
 					}
 
 					else {					   // for all the other cases just consider the ID of the element
-						if (i->ID == "None") { // throw a warning in case the infra element does not have a name
+						if (isNoneId(i->ID)) { // throw a warning in case the infra element does not have a name
 							EG_LOG(SimSetup, Warning) << "Warning: Infrastructure Element at position " << i->XCoordinate << " on Route of Train " << TrainName << " has no ID. Please investigate on it\n";
 						} else { // in the case it has a regular name then InfraElement ID is the ID of the element itself
 							InfraElementID = i->ID;
@@ -140,10 +140,10 @@ void UpdateInfrastructureElementStatus(SimulationRun& run, const list<InfraEleme
 					list<InfraElement>::const_iterator LastRouteInfraElementOnRoute = RouteInfrastructureElements.end();
 					LastRouteInfraElementOnRoute--; // this one is the last infra element on the route
 					// ID of the successor InfraElement after i on the RouteInfrastructureElements List
-					string SuccessorInfraElement = "None";
+					string SuccessorInfraElement = kNoneId;
 					// SuccessorInfraElement shall not be a VirtualTDSB since VirtualTDSB are not considered in the blocking times of trains
 					if (i == LastRouteInfraElementOnRoute) { // if i is the last element of Route Infra then put SuccessorInfraElement as None
-						SuccessorInfraElement = "None";
+						SuccessorInfraElement = kNoneId;
 					} else { // if i is not the last infra element of the route then put the ID of the successor as SuccessorInfraElement
 						list<InfraElement>::const_iterator successor = i;
 						successor++; // taking the infrastructure element of the route coming after element i
@@ -153,7 +153,7 @@ void UpdateInfrastructureElementStatus(SimulationRun& run, const list<InfraEleme
 							secondsuccessor++;
 							SuccessorInfraElement = secondsuccessor->ID;
 						} else if ((successor->ID == virtualTdsbId) && (successor == LastRouteInfraElementOnRoute)) { // in case the successor is a VirtualTDSB and it is also the last element of the route then put SuccessorInfraElement as "None"
-							SuccessorInfraElement = "None";
+							SuccessorInfraElement = kNoneId;
 						}
 					}
 
@@ -1282,7 +1282,7 @@ void setGeoCoordinates(Section* BS, int N_BS) {
 
 
 Route::Route() {
-	ID = "None";
+	ID = kNoneId;
 	N_Block_Sections = 0;
 	x_of_start_node = 0;
 	x_of_end_node = 0;
@@ -1510,7 +1510,7 @@ void Route::identifyEndingEdgeOfDivSwitchesWhichAreStartingOfADivSwitch(list<Inf
 
 void Route::createRouteFromBlockIds(SimulationRun& run, const std::vector<std::string>& blockIds, int direction) {
 	// Reset scalar/list state in place.
-	ID = "None";
+	ID = kNoneId;
 	N_Block_Sections = 0;
 	sequence_of_block_sections.clear();
 	x_of_start_node = 0;
@@ -1712,7 +1712,7 @@ const char* authorityTrainEndName(AuthorityTrainEnd end) {
 
 // Class constructor
 MovementAuthority::MovementAuthority() {
-	BSID = "None";
+	BSID = kNoneId;
 	ReversedDirection = false;
 	AbsPosEoA = RelativePosEoA = EoA_Dist_From_BSID_Beg = -1;
 }
@@ -2337,7 +2337,7 @@ void elaborateMaOnBlockSectionsWithSwitchDiv(SimulationRun& run, double S_i, dou
 	for (int b = 0; b < TrainRoute.N_Block_Sections; b++) {
 		if (TrainRoute.sequence_of_block_sections[b].ID == BS.ID) {
 			if (b == TrainRoute.N_Block_Sections - 1) {
-				NextSectionID = "None";
+				NextSectionID = kNoneId;
 			} else {
 				NextSectionID = TrainRoute.sequence_of_block_sections[b + 1].ID;
 			}
@@ -2401,7 +2401,7 @@ void lockSwitchesWhileTrainTraverses(SimulationRun& run, double FrontEndPos, dou
 	for (int b = 0; b < TrainRoute.N_Block_Sections; b++) {
 		if (TrainRoute.sequence_of_block_sections[b].ID == BLS.ID) {
 			if (b == TrainRoute.N_Block_Sections - 1) {
-				NextSectionID = "None";
+				NextSectionID = kNoneId;
 			} else {
 				NextSectionID = TrainRoute.sequence_of_block_sections[b + 1].ID;
 			}

@@ -16,6 +16,7 @@
 #include <algorithm>
 #include "scene/RuntimeLimits.h"
 #include "simulation/NumberGenerator.h"
+#include "simulation/NoneId.h"
 #include <vector>
 #include "util/portability.h"
 #include "simulation/InitialParameters.h"
@@ -220,7 +221,7 @@ public:
 
 	/// Sets the IDs to "None" and the numbers to -1.
 	StationPlatform() {
-		ID = StationID = BlockSectionID = "None";
+		ID = StationID = BlockSectionID = kNoneId;
 		X = Y = length = width = -1;
 		Max_Passenger_Volume = Current_N_Passengers = -1;
 	}

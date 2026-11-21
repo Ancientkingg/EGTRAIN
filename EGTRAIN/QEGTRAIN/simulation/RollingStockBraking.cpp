@@ -669,7 +669,7 @@ Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority
 	} else if (BS[section].SignallingLevel == levelValue(SignallingLevel::VirtualCoupling)) {
 		string NextBlockID;
 		if (section == run_->infra.routes[this->indexOfRoute].N_Block_Sections - 1) { // if the block is the last of the train route then the ID of the Next Block is None
-			NextBlockID = "None";
+			NextBlockID = kNoneId;
 		} else {
 			NextBlockID = BS[section + 1].ID;
 		}
@@ -685,7 +685,7 @@ Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority
 			}
 			// Otherwise
 			else {
-				if ((authority.TrainInfo.NextSectionID == NextBlockID) || (authority.TrainInfo.NextSectionID == "None")) { // when the trains have the same next block section or the leading train is approahing the end of its route
+				if ((authority.TrainInfo.NextSectionID == NextBlockID) || (isNoneId(authority.TrainInfo.NextSectionID))) { // when the trains have the same next block section or the leading train is approahing the end of its route
 					target.speed = authority.TrainInfo.TrainSpeed;														   // the speed is the one of the train ahead if the trains are following the same direction and ahve at least one more block section in common
 
 					if ((this->IsTrainInFollowingMode == 0) && (authority.TrainInfo.Acceleration < 0)) {
@@ -743,7 +743,7 @@ void Train::closestEndOfAuthority(double S, double V, Section* BS, int Blocks, i
 		if (!isMovingBlockLevel(BS[section].SignallingLevel) && !hasSignalFailureMa)
 			continue;
 		// Identifying Braking Points computed by the EVC if the train is virtually coupled to a train ahead
-		if (IsTrainInFollowingMode == 1 && (Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription != "None")
+		if (IsTrainInFollowingMode == 1 && (!isNoneId(Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription))
 			&& (Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription == LeadingTrainInFollowingMode) && BS[section].ID == Predicted_MA_To_DecoupleAt.BSID) {
 			Node DecouplingBrakingPoint;
 			DecouplingBrakingPoint.X = Predicted_MA_To_DecoupleAt.RelativePosEoA;

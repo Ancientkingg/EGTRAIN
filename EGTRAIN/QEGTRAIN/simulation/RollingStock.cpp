@@ -25,21 +25,21 @@ BlockingTimes::BlockingTimes() {
 	PosStart = -1;
 	PosEnd = -1;
 	IsComplete = true;
-	NextBlockID = "None";
-	ConnectedBlockingTimeID = "None";
-	stationName = "None";
-	trainDescription = "None";
+	NextBlockID = kNoneId;
+	ConnectedBlockingTimeID = kNoneId;
+	stationName = kNoneId;
+	trainDescription = kNoneId;
 	GeoPosStart = GeoPosEnd = -1;
 	PosConnectedBlockingTime = -1;
 	SpeedPreviousTrain = -1;
 	SignallingLevel = kSignallingLevelUnset;
 	LocationWithSwitch = false;
-	SwitchName = "None";
+	SwitchName = kNoneId;
 	InfraElementInPositionForTrain = true;
 	IsAlreadyUniformedToConnectedSwitch = false;
 	IsEndOfDivSwitchBeingStartOfADivSwitch = false;
-	NamePreviousTrain = "None";
-	NextBlockIDPreviousTrain = "None";
+	NamePreviousTrain = kNoneId;
+	NextBlockIDPreviousTrain = kNoneId;
 }
 
 Train::Train() {
@@ -56,14 +56,14 @@ Train::Train() {
 	OutOfSimulation = false;
 	GradientExceptionInBraking = false;
 	IsTrainStoppedForEoA = false;
-	type = "None";
+	type = kNoneId;
 	Start_Node_X = -10000;
 	EntranceDelay = 0;
 	N_BlockSections = 0;
 	N_BlockTimeComplete = 0;
 	IsTrainInFollowingMode = IsTrainDecoupling = IsInUnintentionalDecoupling = false;
-	LeadingTrainInFollowingMode = "None";
-	CurrentServiceStopPlatform = "None";
+	LeadingTrainInFollowingMode = kNoneId;
+	CurrentServiceStopPlatform = kNoneId;
 	TotalEnergyConsumed = 0;
 	TotalEnergySubstationRequest = 0;
 	TotalEnergyConsWithRegBrak = 0;
@@ -75,7 +75,7 @@ Train::Train() {
 		StationArrivals[i] = -1;
 		StationStandStarts[i] = -1;
 		StationDepartures[i] = -1;
-		StationArrivalNames[i] = "None";
+		StationArrivalNames[i] = kNoneId;
 		StationDelay[i] = -1;
 		StationConsecDelay[i] = -1;
 		StationDisturbance[i] = 0;
