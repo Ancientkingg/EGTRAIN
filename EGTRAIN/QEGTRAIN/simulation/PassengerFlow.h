@@ -33,9 +33,8 @@ struct WaitingAtPlatform {
 /// - the passengers waiting at each platform, by train, in the order in which they board: by the time from which they wait and
 ///   then by their place in the passenger list.
 /// Passengers are named by their place in the list. The flow reads the state of the passengers when it is built and follows the
-/// changes that the passenger step makes. A change made by other code needs build() again. Passenger IDs are unique, as the
-/// scene validator demands; with PAX_GUI off a train only meets the passengers who wait for it, so two passengers with one ID no
-/// longer board through each other's place in the queue.
+/// changes that the passenger step makes. A change made by other code needs build() again. A train only meets the passengers
+/// who wait for it, each at its own place in the queue.
 class PassengerFlow {
 public:
 	/// Registers the passengers of the list by their current state, and schedules the passengers who are outside the network and
@@ -93,10 +92,6 @@ public:
 	/// Removes the passengers on board of the train who arrive at the station, in list order, from the flow and returns their
 	/// places. The caller changes them and gives each back with placed().
 	std::vector<int> takeOnBoardArrivingAt(const std::string& train, const std::string& station);
-	/// The places of the passengers with the ID of the passenger at this place, in list order.
-	const std::vector<int>& samePassengerId(int position);
-	/// The places of the passengers with this ID, in list order.
-	const std::vector<int>& passengersWithId(const std::string& id);
 	/// The passenger at this place in the list.
 	Passenger& passenger(int position) const { return *passengers_[static_cast<std::size_t>(position)]; }
 	/// Registers the passenger at this place by its present state, after the passenger step changed it.
@@ -141,7 +136,6 @@ private:
 	void scheduleJourneyStart(int position);
 	WaitingAtPlatform listFor(int platform) const;
 	void attachPlatforms(std::list<StationPlatform>& platforms);
-	void ensureIdPositions();
 
 	std::list<Passenger>* source_ = nullptr;
 	std::size_t count_ = 0;
@@ -155,9 +149,6 @@ private:
 	std::vector<PlatformQueues> queues_;
 	std::unordered_map<std::uint64_t, std::vector<int>> onBoard_;
 	std::vector<int> dirtyPlatforms_;
-
-	std::unordered_map<std::string, std::vector<int>> byId_;
-	std::vector<const std::vector<int>*> sameId_;
 
 	const std::list<StationPlatform>* platformsSource_ = nullptr;
 	std::size_t platformsCount_ = 0;
