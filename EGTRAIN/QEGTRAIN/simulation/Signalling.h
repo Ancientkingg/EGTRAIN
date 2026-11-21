@@ -330,17 +330,37 @@ void setUpRoutesFromScene(SimulationRun& run, const SceneModel& scene, const std
 /// borders. A diverging switch edge is listed under its switch name.
 void setListAllInfrastructureElementsFromRoutes(SimulationRun& run);
 
+/// What a movement authority stands for.
+enum class AuthorityKind {
+	None,					 ///< No authority; the default.
+	TrainEnd,				 ///< An end of a train.
+	DivergingSwitchOccupied, ///< A diverging switch a train is on.
+	SignalFailure,			 ///< A failed signal or a held single-track section.
+	TrainUncoupled			 ///< A leader has uncoupled from a follower. Nothing sets it yet.
+};
+
+/// Which end of a train a movement authority belongs to.
+enum class AuthorityTrainEnd {
+	None,  ///< No train end; the default.
+	Front, ///< The head of the train.
+	Tale   ///< The rear of the train (the code spells it this way).
+};
+
+/// The name of a kind as the traces and test records write it: "None", "TrainEnd", "DivergingSwitchOccupied", "SignalFailure"
+/// or "TrainUncoupled".
+const char* authorityKindName(AuthorityKind kind);
+
+/// The name of a train end as the traces and test records write it: "None", "Front" or "Tale".
+const char* authorityTrainEndName(AuthorityTrainEnd end);
+
 /// An end of authority for levels 3 and 4, and for a failed signal at every level. SimulationRun::etcsMa holds the
 /// authorities of the current step. Positions are metres.
 class MovementAuthority {
 public:
-	std::string BSID; ///< ID of the block section of the end of authority; "None" by default.
-	/// What the authority stands for: "TrainEnd" (an end of a train), "DivergingSwitchOccupied" (a diverging switch a train
-	/// is on) or "SignalFailure" (a failed signal or a held single-track section). "None" by default.
-	std::string type;
-	/// Which end of the train it is: "Front" or "Tale" (the code spells the rear end this way). A signal failure has
-	/// "Front". "None" by default.
-	std::string typePart;
+	std::string BSID;						  ///< ID of the block section of the end of authority; "None" by default.
+	AuthorityKind type = AuthorityKind::None; ///< What the authority stands for.
+	/// Which end of the train it is. A signal failure has Front.
+	AuthorityTrainEnd typePart = AuthorityTrainEnd::None;
 	bool ReversedDirection; ///< True when the route of the train that made it runs against the direction of the sections.
 	/// Position of the end of authority in scene coordinates, which do not depend on the direction of the route; -1 by default.
 	double AbsPosEoA;
@@ -351,7 +371,7 @@ public:
 	double EoA_Dist_From_BSID_Beg;
 	TrainEvent TrainInfo; ///< Train info for this EoA: position, speed, description
 
-	/// Sets BSID, type and typePart to "None" and the positions to -1.
+	/// Sets BSID to "None" and the positions to -1.
 	MovementAuthority();
 };
 
@@ -396,16 +416,16 @@ void lockSwitchesOnAllConnectedSections(SimulationRun& run, double FrontEndPos, 
 /// Adds to run.etcsMa an end of authority of the given type and typePart for the train at route position S_i (m) on BLS, with its
 /// speed V_i (m/s) and acceleration Acc_i (m/s2), unless the train has one on the same section within 1 mm. A position before the
 /// route is moved to the start of its first section; on a reversed route AbsPosEoA is in the coordinates of the original direction.
-void elaborateRbcMas(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BLS, const std::string& CurrentSectionID, const std::string& NextSectionID, const std::string& trainDescription, const Route& TrainRoute, bool IsRouteReversed, const std::string& type, const std::string& typePart);
+void elaborateRbcMas(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BLS, const std::string& CurrentSectionID, const std::string& NextSectionID, const std::string& trainDescription, const Route& TrainRoute, bool IsRouteReversed, AuthorityKind type, AuthorityTrainEnd typePart);
 
 /// The form of elaborateRbcMas for the section BS with a diverging switch: adds "TrainEnd" ends of authority at S_i (m) on BS and on
 /// the block sections named in its ID that S_i covers, the first before the switch, both on it and the second after it.
-void elaborateMaOnBlockSectionsWithSwitchDiv(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BS, const std::string& trainDescription, const Route& TrainRoute, const std::string& typePart);
+void elaborateMaOnBlockSectionsWithSwitchDiv(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BS, const std::string& trainDescription, const Route& TrainRoute, AuthorityTrainEnd typePart);
 
 /// While the train spans the diverging switch of BLS (FrontEndPos at or past its start and BackEndPos at or before its end, m), adds
 /// "DivergingSwitchOccupied" ends of authority at both switch edges, on BLS and on the two block sections named in its ID, and locks
 /// the switches that connect to those (lockSwitchesOnAllConnectedSections, 10 m on either side of each edge).
-void lockSwitchesWhileTrainTraverses(SimulationRun& run, double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BLS, const std::string& trainDescription, const Route& TrainRoute, const std::string& typePart);
+void lockSwitchesWhileTrainTraverses(SimulationRun& run, double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BLS, const std::string& trainDescription, const Route& TrainRoute, AuthorityTrainEnd typePart);
 
 // --- Mixed Signalling: multi-system signalling areas ---
 /// Sets speedInBraking of every arc of the Blocks route sections BS to the speed limit of the next arc (m/s). The last arc of the

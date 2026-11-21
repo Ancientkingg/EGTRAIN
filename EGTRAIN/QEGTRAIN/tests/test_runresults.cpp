@@ -228,7 +228,7 @@ void TestRunResults::reportsPositionWithinRoute() {
 	bool foundEntranceAuthority = false;
 	double entrancePosition = std::numeric_limits<double>::quiet_NaN();
 	for (const auto& authority : defaultRun().etcsMa) {
-		if (authority.BSID == sections[0].ID && authority.type == "TrainEnd" && authority.typePart == "Tale") {
+		if (authority.BSID == sections[0].ID && authority.type == AuthorityKind::TrainEnd && authority.typePart == AuthorityTrainEnd::Tale) {
 			foundEntranceAuthority = true;
 			entrancePosition = authority.AbsPosEoA;
 			break;

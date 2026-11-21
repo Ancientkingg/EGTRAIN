@@ -697,10 +697,10 @@ public:
 			Boundary boundary;
 			boundary.step = step;
 			for (const MovementAuthority& authority : simulation.run().etcsMa) {
-				if (authority.type != "SignalFailure")
+				if (authority.type != AuthorityKind::SignalFailure)
 					continue;
 				boundary.authorities.push_back(
-					{authority.typePart, authority.BSID, authority.AbsPosEoA, authority.ReversedDirection});
+					{authorityTrainEndName(authority.typePart), authority.BSID, authority.AbsPosEoA, authority.ReversedDirection});
 			}
 			for (const GuiSectionState& section : snapshot->sectionStates)
 				if (section.blocked)

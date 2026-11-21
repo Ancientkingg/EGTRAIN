@@ -637,17 +637,17 @@ Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority
 	AuthorityTarget target;
 	target.position = authorityRoutePosition(authority, BS[section]);
 	// A behind or front end cannot become a forward leader through virtual projection.
-	if (BS[section].SignallingLevel == levelValue(SignallingLevel::VirtualCoupling) && authority.type == "TrainEnd"
+	if (BS[section].SignallingLevel == levelValue(SignallingLevel::VirtualCoupling) && authority.type == AuthorityKind::TrainEnd
 		&& authority.ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction
-		&& (authority.typePart != "Tale" || !(target.position > S))) {
+		&& (authority.typePart != AuthorityTrainEnd::Tale || !(target.position > S))) {
 		// The tail authority lags behind the leader by the report delay and the safety margin. A train that catches up with the
 		// leader can pass it while the leader is still ahead, which its front authority shows. The leader then still sets the
 		// target, as if its tail were at the head of this train, so that this train brakes to its speed and does not run through it.
-		const bool tail = authority.typePart == "Tale" && authority.TrainInfo.trainDescription != trainDescription;
+		const bool tail = authority.typePart == AuthorityTrainEnd::Tale && authority.TrainInfo.trainDescription != trainDescription;
 		bool leaderAhead = false;
 		if (tail) {
 			for (const MovementAuthority& front : run_->etcsMa) {
-				if (front.type != "TrainEnd" || front.typePart != "Front" || front.ReversedDirection != authority.ReversedDirection
+				if (front.type != AuthorityKind::TrainEnd || front.typePart != AuthorityTrainEnd::Front || front.ReversedDirection != authority.ReversedDirection
 					|| front.TrainInfo.trainDescription != authority.TrainInfo.trainDescription)
 					continue;
 				for (int index = 0; index < Blocks; ++index)
@@ -660,7 +660,7 @@ Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority
 		target.position = S;
 	}
 
-	if (authority.type == "SignalFailure") {
+	if (authority.type == AuthorityKind::SignalFailure) {
 		// a failed signal or a held single-track section is a stop target at every signalling level
 		target.speed = 0;
 	} else if (BS[section].SignallingLevel == levelValue(SignallingLevel::EtcsLevel3)) {
@@ -673,11 +673,11 @@ Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority
 		} else {
 			NextBlockID = BS[section + 1].ID;
 		}
-		if (authority.type == "DivergingSwitchOccupied") {
+		if (authority.type == AuthorityKind::DivergingSwitchOccupied) {
 			if ((authority.TrainInfo.NextSectionID != NextBlockID) || ((authority.TrainInfo.CurrentSectionID != BS[section].ID) && (authority.TrainInfo.NextSectionID == NextBlockID))) {
 				target.speed = 0;
 			}
-		} else if (authority.type == "TrainEnd") {
+		} else if (authority.type == AuthorityKind::TrainEnd) {
 			// In case the MA is a Train End the Speed shall be 0 if the train ahead is going in the opposite direction
 			if (authority.ReversedDirection != run_->infra.routes[this->indexOfRoute].reversed_direction) {
 				target.speed = 0;
@@ -735,7 +735,7 @@ void Train::closestEndOfAuthority(double S, double V, Section* BS, int Blocks, i
 		// A SignalFailure EoA applies at every signalling level, so scan the MA list on any section carrying one
 		bool hasSignalFailureMa = false;
 		for (const MovementAuthority& authority : run_->etcsMa) {
-			if ((authority.type == "SignalFailure") && (authority.BSID == BS[section].ID) && obeysAuthority(authority)) {
+			if ((authority.type == AuthorityKind::SignalFailure) && (authority.BSID == BS[section].ID) && obeysAuthority(authority)) {
 				hasSignalFailureMa = true;
 				break;
 			}

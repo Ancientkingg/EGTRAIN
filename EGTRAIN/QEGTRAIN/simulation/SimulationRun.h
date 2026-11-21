@@ -199,7 +199,7 @@ double trainXPositionOf(const Train& train, int t, int wagon = 0);
 
 // These two read the route of the train, so they are defined here and not in RollingStock.h.
 inline bool Train::obeysAuthority(const MovementAuthority& authority) const {
-	return authority.type != "SignalFailure" || authority.ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction;
+	return authority.type != AuthorityKind::SignalFailure || authority.ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction;
 }
 
 inline double Train::authorityRoutePosition(const MovementAuthority& authority, const Section& section) const {
