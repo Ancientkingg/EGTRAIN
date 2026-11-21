@@ -346,11 +346,7 @@ enum class AuthorityTrainEnd {
 	Tale   ///< The rear of the train (the code spells it this way).
 };
 
-/// The name of a kind as the traces and test records write it: "None", "TrainEnd", "DivergingSwitchOccupied", "SignalFailure"
-/// or "TrainUncoupled".
-const char* authorityKindName(AuthorityKind kind);
-
-/// The name of a train end as the traces and test records write it: "None", "Front" or "Tale".
+/// The name of a train end as the test records write it: "None", "Front" or "Tale".
 const char* authorityTrainEndName(AuthorityTrainEnd end);
 
 /// An end of authority for levels 3 and 4, and for a failed signal at every level. SimulationRun::etcsMa holds the

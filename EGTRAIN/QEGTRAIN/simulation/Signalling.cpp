@@ -1698,22 +1698,6 @@ void setListAllInfrastructureElementsFromRoutes(SimulationRun& run) {
 	}
 }
 
-const char* authorityKindName(AuthorityKind kind) {
-	switch (kind) {
-		case AuthorityKind::TrainEnd:
-			return "TrainEnd";
-		case AuthorityKind::DivergingSwitchOccupied:
-			return "DivergingSwitchOccupied";
-		case AuthorityKind::SignalFailure:
-			return "SignalFailure";
-		case AuthorityKind::TrainUncoupled:
-			return "TrainUncoupled";
-		case AuthorityKind::None:
-			break;
-	}
-	return "None";
-}
-
 const char* authorityTrainEndName(AuthorityTrainEnd end) {
 	switch (end) {
 		case AuthorityTrainEnd::Front:
