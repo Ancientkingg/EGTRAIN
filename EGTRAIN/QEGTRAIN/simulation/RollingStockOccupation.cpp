@@ -126,11 +126,11 @@ void Train::ReportPositionToRBC(int i, Section* BS, int N_BS, double ETCS3Safety
 						}
 
 						if (BS[h].withSwitchDiv == 0) {
-							elaborateRbcMas(*run_, (instant_spatial_position[delayedIndex] - train_length - ETCS3SafetyMargin), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], CurrentSectionID, NextSectionID, trainDescription, run_->infra.routes[this->indexOfRoute], run_->infra.routes[this->indexOfRoute].reversed_direction, "TrainEnd", "Tale");
+							elaborateRbcMas(*run_, (instant_spatial_position[delayedIndex] - train_length - ETCS3SafetyMargin), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], CurrentSectionID, NextSectionID, trainDescription, run_->infra.routes[this->indexOfRoute], run_->infra.routes[this->indexOfRoute].reversed_direction, AuthorityKind::TrainEnd, AuthorityTrainEnd::Tale);
 							lockSwitchesOnAllConnectedSections(*run_, (instant_spatial_position[delayedIndex] + ETCS3SafetyMargin), (instant_spatial_position[delayedIndex] - train_length - ETCS3SafetyMargin), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], CurrentSectionID, NextSectionID, trainDescription, run_->infra.routes[this->indexOfRoute].reversed_direction, "None");
 						} else { // if instead the block section has a diverging switch
-							elaborateMaOnBlockSectionsWithSwitchDiv(*run_, (instant_spatial_position[delayedIndex] - train_length - ETCS3SafetyMargin), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], trainDescription, run_->infra.routes[indexOfRoute], "Tale");
-							lockSwitchesWhileTrainTraverses(*run_, (instant_spatial_position[delayedIndex] + ETCS3SafetyMargin), (instant_spatial_position[delayedIndex] - train_length - ETCS3SafetyMargin), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], trainDescription, run_->infra.routes[indexOfRoute], "Tale");
+							elaborateMaOnBlockSectionsWithSwitchDiv(*run_, (instant_spatial_position[delayedIndex] - train_length - ETCS3SafetyMargin), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], trainDescription, run_->infra.routes[indexOfRoute], AuthorityTrainEnd::Tale);
+							lockSwitchesWhileTrainTraverses(*run_, (instant_spatial_position[delayedIndex] + ETCS3SafetyMargin), (instant_spatial_position[delayedIndex] - train_length - ETCS3SafetyMargin), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], trainDescription, run_->infra.routes[indexOfRoute], AuthorityTrainEnd::Tale);
 						}
 					}
 
@@ -153,18 +153,18 @@ void Train::ReportPositionToRBC(int i, Section* BS, int N_BS, double ETCS3Safety
 						}
 
 						if (BS[h].withSwitchDiv == 0) {
-							elaborateRbcMas(*run_, (BS[h].start_node.X * 1000), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], CurrentSectionID, NextSectionID, trainDescription, run_->infra.routes[this->indexOfRoute], run_->infra.routes[this->indexOfRoute].reversed_direction, "TrainEnd", "Tale");
+							elaborateRbcMas(*run_, (BS[h].start_node.X * 1000), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], CurrentSectionID, NextSectionID, trainDescription, run_->infra.routes[this->indexOfRoute], run_->infra.routes[this->indexOfRoute].reversed_direction, AuthorityKind::TrainEnd, AuthorityTrainEnd::Tale);
 							lockSwitchesOnAllConnectedSections(*run_, (instant_spatial_position[delayedIndex] + ETCS3SafetyMargin), (BS[h].start_node.X * 1000), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], CurrentSectionID, NextSectionID, trainDescription, run_->infra.routes[this->indexOfRoute].reversed_direction, "None");
 						} else { // if instead the block section has a diverging switch
-							elaborateMaOnBlockSectionsWithSwitchDiv(*run_, (BS[h].start_node.X * 1000), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], trainDescription, run_->infra.routes[indexOfRoute], "Tale");
-							lockSwitchesWhileTrainTraverses(*run_, (instant_spatial_position[delayedIndex] + ETCS3SafetyMargin), (BS[h].start_node.X * 1000), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], trainDescription, run_->infra.routes[indexOfRoute], "Tale");
+							elaborateMaOnBlockSectionsWithSwitchDiv(*run_, (BS[h].start_node.X * 1000), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], trainDescription, run_->infra.routes[indexOfRoute], AuthorityTrainEnd::Tale);
+							lockSwitchesWhileTrainTraverses(*run_, (instant_spatial_position[delayedIndex] + ETCS3SafetyMargin), (BS[h].start_node.X * 1000), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], trainDescription, run_->infra.routes[indexOfRoute], AuthorityTrainEnd::Tale);
 						}
 					}
 
 					// if the train is in the simulation but its tale is still outside of the network (so the position of the tale is lower than the beginning of the first block section) then the MA should refer to the beginning Node of the first block section of the route
 					if ((instant_spatial_position[delayedIndex] - train_length - ETCS3SafetyMargin) < BS[0].start_node.X * 1000) {
 
-						elaborateRbcMas(*run_, (instant_spatial_position[delayedIndex] - train_length - ETCS3SafetyMargin), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[0], BS[0].ID, N_BS > 1 ? BS[1].ID : "None", trainDescription, run_->infra.routes[this->indexOfRoute], run_->infra.routes[this->indexOfRoute].reversed_direction, "TrainEnd", "Tale");
+						elaborateRbcMas(*run_, (instant_spatial_position[delayedIndex] - train_length - ETCS3SafetyMargin), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[0], BS[0].ID, N_BS > 1 ? BS[1].ID : "None", trainDescription, run_->infra.routes[this->indexOfRoute], run_->infra.routes[this->indexOfRoute].reversed_direction, AuthorityKind::TrainEnd, AuthorityTrainEnd::Tale);
 					}
 
 					// Detecting the MA related to the front of the train
@@ -186,11 +186,11 @@ void Train::ReportPositionToRBC(int i, Section* BS, int N_BS, double ETCS3Safety
 						}
 
 						if (BS[h].withSwitchDiv == 0) {
-							elaborateRbcMas(*run_, (instant_spatial_position[delayedIndex] + ETCS3SafetyMargin), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], CurrentSectionID, NextSectionID, trainDescription, run_->infra.routes[this->indexOfRoute], run_->infra.routes[this->indexOfRoute].reversed_direction, "TrainEnd", "Front");
+							elaborateRbcMas(*run_, (instant_spatial_position[delayedIndex] + ETCS3SafetyMargin), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], CurrentSectionID, NextSectionID, trainDescription, run_->infra.routes[this->indexOfRoute], run_->infra.routes[this->indexOfRoute].reversed_direction, AuthorityKind::TrainEnd, AuthorityTrainEnd::Front);
 							lockSwitchesOnAllConnectedSections(*run_, (instant_spatial_position[delayedIndex] + ETCS3SafetyMargin), (instant_spatial_position[delayedIndex] - train_length - ETCS3SafetyMargin), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], CurrentSectionID, NextSectionID, trainDescription, run_->infra.routes[this->indexOfRoute].reversed_direction, "None");
 						} else { // if instead the block section has a diverging switch
-							elaborateMaOnBlockSectionsWithSwitchDiv(*run_, (instant_spatial_position[delayedIndex] + ETCS3SafetyMargin), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], trainDescription, run_->infra.routes[indexOfRoute], "Front");
-							lockSwitchesWhileTrainTraverses(*run_, (instant_spatial_position[delayedIndex] + ETCS3SafetyMargin), (instant_spatial_position[delayedIndex] - train_length - ETCS3SafetyMargin), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], trainDescription, run_->infra.routes[indexOfRoute], "Front");
+							elaborateMaOnBlockSectionsWithSwitchDiv(*run_, (instant_spatial_position[delayedIndex] + ETCS3SafetyMargin), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], trainDescription, run_->infra.routes[indexOfRoute], AuthorityTrainEnd::Front);
+							lockSwitchesWhileTrainTraverses(*run_, (instant_spatial_position[delayedIndex] + ETCS3SafetyMargin), (instant_spatial_position[delayedIndex] - train_length - ETCS3SafetyMargin), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], trainDescription, run_->infra.routes[indexOfRoute], AuthorityTrainEnd::Front);
 						}
 						break;
 					}

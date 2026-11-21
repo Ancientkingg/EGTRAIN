@@ -1698,12 +1698,23 @@ void setListAllInfrastructureElementsFromRoutes(SimulationRun& run) {
 	}
 }
 
+const char* authorityTrainEndName(AuthorityTrainEnd end) {
+	switch (end) {
+		case AuthorityTrainEnd::Front:
+			return "Front";
+		case AuthorityTrainEnd::Tale:
+			return "Tale";
+		case AuthorityTrainEnd::None:
+			break;
+	}
+	return "None";
+}
+
 // Class constructor
 MovementAuthority::MovementAuthority() {
 	BSID = "None";
 	ReversedDirection = false;
 	AbsPosEoA = RelativePosEoA = EoA_Dist_From_BSID_Beg = -1;
-	type = typePart = "None";
 }
 
 // Function to Occupy a Block Section and all the Block sections connected with it
@@ -2197,7 +2208,7 @@ void lockSwitchesOnAllConnectedSections(SimulationRun& run, double FrontEndPos, 
 				MA1.TrainInfo.TrainSpeed = V_i;
 				MA1.TrainInfo.CurrentSectionID = CurrentSectionID;
 				MA1.TrainInfo.NextSectionID = NextSectionID;
-				MA1.type = "DivergingSwitchOccupied";
+				MA1.type = AuthorityKind::DivergingSwitchOccupied;
 				MA1.TrainInfo.Acceleration = Acc_i;
 				// Defining MA3 on Connected Block With Switch Div
 				MA2.BSID = *h;
@@ -2207,7 +2218,7 @@ void lockSwitchesOnAllConnectedSections(SimulationRun& run, double FrontEndPos, 
 				MA2.TrainInfo.TrainSpeed = V_i;
 				MA2.TrainInfo.CurrentSectionID = CurrentSectionID;
 				MA2.TrainInfo.NextSectionID = NextSectionID;
-				MA2.type = "DivergingSwitchOccupied";
+				MA2.type = AuthorityKind::DivergingSwitchOccupied;
 				MA2.TrainInfo.Acceleration = Acc_i;
 				// Defining MA4 on Connected Block With Switch Div
 				MA3.BSID = *h;
@@ -2217,7 +2228,7 @@ void lockSwitchesOnAllConnectedSections(SimulationRun& run, double FrontEndPos, 
 				MA3.TrainInfo.TrainSpeed = V_i;
 				MA3.TrainInfo.CurrentSectionID = CurrentSectionID;
 				MA3.TrainInfo.NextSectionID = NextSectionID;
-				MA3.type = "DivergingSwitchOccupied";
+				MA3.type = AuthorityKind::DivergingSwitchOccupied;
 				MA3.TrainInfo.Acceleration = Acc_i;
 				// Send these MAs to the ETCS List of MAs
 				list<MovementAuthority> ListofMA;
@@ -2248,7 +2259,7 @@ void lockSwitchesOnAllConnectedSections(SimulationRun& run, double FrontEndPos, 
 }
 
 // Function to Process Train Position and compute Movement Authorities
-void elaborateRbcMas(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BLS, const string& CurrentSectionID, const string& NextSectionID, const string& trainDescription, const Route& TrainRoute, bool IsRouteReversed, const string& type, const string& typePart) {
+void elaborateRbcMas(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BLS, const string& CurrentSectionID, const string& NextSectionID, const string& trainDescription, const Route& TrainRoute, bool IsRouteReversed, AuthorityKind type, AuthorityTrainEnd typePart) {
 	MovementAuthority MA;
 	if (IsRouteReversed == 0) { // if the train route is not reversed
 		MA.ReversedDirection = false;
@@ -2313,7 +2324,7 @@ void elaborateRbcMas(SimulationRun& run, double S_i, double V_i, double Acc_i, c
 }
 
 // Function to Elaborate the MA on block sections with switches in diverging position
-void elaborateMaOnBlockSectionsWithSwitchDiv(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BS, const string& trainDescription, const Route& TrainRoute, const string& typePart) {
+void elaborateMaOnBlockSectionsWithSwitchDiv(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BS, const string& trainDescription, const Route& TrainRoute, AuthorityTrainEnd typePart) {
 	// the string of the next block section ID
 	string NextSectionID;
 	ConnectedSectionIdentity identity;
@@ -2347,8 +2358,8 @@ void elaborateMaOnBlockSectionsWithSwitchDiv(SimulationRun& run, double S_i, dou
 		Section Block1;
 		Block1 = BS;
 		Block1.ID = BlockID1;
-		elaborateRbcMas(run, S_i, V_i, Acc_i, Block1, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the first block section
-		elaborateRbcMas(run, S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart);		// Occupying the block section with the diverging switch
+		elaborateRbcMas(run, S_i, V_i, Acc_i, Block1, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, AuthorityKind::TrainEnd, typePart); // Occupying the first block section
+		elaborateRbcMas(run, S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, AuthorityKind::TrainEnd, typePart);	 // Occupying the block section with the diverging switch
 	}
 	// if the abscissa S_i is on the diverging switch then occupy all of the three block sections
 	else if ((S_i >= BS.XStartSwitch * 1000) && (S_i < BS.XEndSwitch * 1000)) {
@@ -2361,9 +2372,9 @@ void elaborateMaOnBlockSectionsWithSwitchDiv(SimulationRun& run, double S_i, dou
 		Block2 = BS;
 		Block2.ID = BlockID2;
 
-		elaborateRbcMas(run, S_i, V_i, Acc_i, Block1, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the first block section
-		elaborateRbcMas(run, S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart);		// Occupying the block section with the diverging switch
-		elaborateRbcMas(run, S_i, V_i, Acc_i, Block2, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the second block section
+		elaborateRbcMas(run, S_i, V_i, Acc_i, Block1, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, AuthorityKind::TrainEnd, typePart); // Occupying the first block section
+		elaborateRbcMas(run, S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, AuthorityKind::TrainEnd, typePart);	 // Occupying the block section with the diverging switch
+		elaborateRbcMas(run, S_i, V_i, Acc_i, Block2, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, AuthorityKind::TrainEnd, typePart); // Occupying the second block section
 
 	}
 	// else if the abscissa S is after the XEnd of the switch occupy the section with the diverging switch and the second block section
@@ -2371,13 +2382,13 @@ void elaborateMaOnBlockSectionsWithSwitchDiv(SimulationRun& run, double S_i, dou
 		Section Block2;
 		Block2 = BS;
 		Block2.ID = BlockID2;
-		elaborateRbcMas(run, S_i, V_i, Acc_i, Block2, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the Second block section
-		elaborateRbcMas(run, S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart);		// Occupying the block section with the diverging switch
+		elaborateRbcMas(run, S_i, V_i, Acc_i, Block2, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, AuthorityKind::TrainEnd, typePart); // Occupying the Second block section
+		elaborateRbcMas(run, S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, AuthorityKind::TrainEnd, typePart);	 // Occupying the block section with the diverging switch
 	}
 }
 
 // Function to Block Switches when trains traverse them in the diverging position
-void lockSwitchesWhileTrainTraverses(SimulationRun& run, double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BLS, const string& trainDescription, const Route& TrainRoute, const string& typePart) {
+void lockSwitchesWhileTrainTraverses(SimulationRun& run, double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BLS, const string& trainDescription, const Route& TrainRoute, AuthorityTrainEnd typePart) {
 	// Defining the next block section ID on the route of the train after BLS
 	string NextSectionID;
 	ConnectedSectionIdentity identity;
@@ -2441,13 +2452,13 @@ void lockSwitchesWhileTrainTraverses(SimulationRun& run, double FrontEndPos, dou
 		}
 
 		// locking start and end of the switch on the signalling_block_sections with SwitchDiv
-		elaborateRbcMas(run, BLS.XStartSwitch * 1000, V_i, Acc_i, BLS, BLS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "DivergingSwitchOccupied", typePart);
-		elaborateRbcMas(run, BLS.XEndSwitch * 1000, V_i, Acc_i, BLS, BLS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "DivergingSwitchOccupied", typePart);
+		elaborateRbcMas(run, BLS.XStartSwitch * 1000, V_i, Acc_i, BLS, BLS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, AuthorityKind::DivergingSwitchOccupied, typePart);
+		elaborateRbcMas(run, BLS.XEndSwitch * 1000, V_i, Acc_i, BLS, BLS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, AuthorityKind::DivergingSwitchOccupied, typePart);
 		// Blocking the access to the beginning of the switch on Block 1 and connected to Block 1 apart from the BLS itself which has already been considered. We use the convention that the FrontEnd is 10m after and the BackEnd is 10m before the Switching Node
-		elaborateRbcMas(run, AbsStartSwitchPos, V_i, Acc_i, Block1, BLS.ID, NextSectionID, trainDescription, TrainRoute, 0, "DivergingSwitchOccupied", typePart);			 // IsRouteReversed=0: blocks from AllBlocks list are not reversed
-		lockSwitchesOnAllConnectedSections(run, (AbsStartSwitchPos + 10), (AbsStartSwitchPos - 10), V_i, Acc_i, Block1, BLS.ID, NextSectionID, trainDescription, 0, BLS.ID); // The 0 here for IsRouteReversed means that Block1 is not reversed since we are taking it directly from the AllBlockSections
+		elaborateRbcMas(run, AbsStartSwitchPos, V_i, Acc_i, Block1, BLS.ID, NextSectionID, trainDescription, TrainRoute, 0, AuthorityKind::DivergingSwitchOccupied, typePart); // IsRouteReversed=0: blocks from AllBlocks list are not reversed
+		lockSwitchesOnAllConnectedSections(run, (AbsStartSwitchPos + 10), (AbsStartSwitchPos - 10), V_i, Acc_i, Block1, BLS.ID, NextSectionID, trainDescription, 0, BLS.ID);   // The 0 here for IsRouteReversed means that Block1 is not reversed since we are taking it directly from the AllBlockSections
 		// Blocking the access to the beginning of the switch on Block 2 and connected to Block 2 apart from the BLS itself which has already been considered. We use the convention that the FrontEnd is 10m after and the BackEnd is 10m before the Switching Node
-		elaborateRbcMas(run, AbsEndSwitchPos, V_i, Acc_i, Block2, BLS.ID, NextSectionID, trainDescription, TrainRoute, 0, "DivergingSwitchOccupied", typePart);
+		elaborateRbcMas(run, AbsEndSwitchPos, V_i, Acc_i, Block2, BLS.ID, NextSectionID, trainDescription, TrainRoute, 0, AuthorityKind::DivergingSwitchOccupied, typePart);
 		lockSwitchesOnAllConnectedSections(run, (AbsEndSwitchPos + 10), (AbsEndSwitchPos - 10), V_i, Acc_i, Block2, BLS.ID, NextSectionID, trainDescription, 0, BLS.ID); // The 0 here for IsRouteReversed means that Block2 is not reversed since we are taking it directly from the AllBlockSections
 	}
 }
@@ -3109,8 +3120,8 @@ static void addEndOfAuthorityBeforeSection(SimulationRun& run, const Route& rout
 		: 0;
 	MovementAuthority MA;
 	MA.BSID = anchor.ID;
-	MA.type = "SignalFailure";
-	MA.typePart = "Front";
+	MA.type = AuthorityKind::SignalFailure;
+	MA.typePart = AuthorityTrainEnd::Front;
 	MA.ReversedDirection = route.reversed_direction;
 	MA.EoA_Dist_From_BSID_Beg = anchorDist;
 	// The EVC maps a reversed-route EoA back through GeoXBegNode,

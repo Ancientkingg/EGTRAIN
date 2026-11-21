@@ -4441,8 +4441,8 @@ void TestOperationsBuilder::level4Transitions() {
 	auto authority = [&](double head, const std::string& leader) {
 		MovementAuthority ma;
 		ma.BSID = section.ID;
-		ma.type = "TrainEnd";
-		ma.typePart = "Tale";
+		ma.type = AuthorityKind::TrainEnd;
+		ma.typePart = AuthorityTrainEnd::Tale;
 		ma.ReversedDirection = reversed;
 		ma.RelativePosEoA = head;
 		ma.AbsPosEoA = reversed ? 10000 - head : head;
@@ -4498,7 +4498,7 @@ void TestOperationsBuilder::level4Transitions() {
 	{
 		Train live = actual(1000, 10);
 		auto front = authority(1020, "FRONT");
-		front.typePart = "Front";
+		front.typePart = AuthorityTrainEnd::Front;
 		front.TrainInfo.TrainSpeed = 10.01;
 		defaultRun().etcsMa = {front};
 		live.IsTrainCoupling = true;
@@ -4578,14 +4578,14 @@ void TestOperationsBuilder::level4Transitions() {
 		live.Last_MA_StoppedAt = live.Last_Received_MA = saved;
 		live.IsTrainStoppedForEoA = live.BrakingForEoA = true;
 		auto failure = authority(1000.001, "signal_failure:test");
-		failure.type = "SignalFailure"; // A synthetic competing snapshot, not a canonical incident position.
+		failure.type = AuthorityKind::SignalFailure; // A synthetic competing snapshot, not a canonical incident position.
 		defaultRun().etcsMa = {saved, failure};
 		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 		// Saved Tale holds actual state, not the newly selected failure position.
 		QVERIFY(live.IsTrainStoppedForEoA);
 		QCOMPARE_EQ(live.instant_spatial_position[2], 1000.0);
 		QCOMPARE_EQ(live.instant_train_speed[2], 0.0);
-		QCOMPARE(live.Last_Received_MA.type, "SignalFailure");
+		QCOMPARE(live.Last_Received_MA.type, AuthorityKind::SignalFailure);
 	}
 	for (bool replacement : {false, true}) {
 		Train live = actual(1000, 0);
@@ -4616,8 +4616,8 @@ void TestOperationsBuilder::level4Transitions() {
 		live.Last_MA_StoppedAt = saved;
 		live.IsTrainStoppedForEoA = live.BrakingForEoA = true;
 		auto changed = saved;
-		if (mismatch == 0) changed.type = "SignalFailure";
-		if (mismatch == 1) changed.typePart = "Front";
+		if (mismatch == 0) changed.type = AuthorityKind::SignalFailure;
+		if (mismatch == 1) changed.typePart = AuthorityTrainEnd::Front;
 		if (mismatch == 2) changed.ReversedDirection = !reversed;
 		if (mismatch == 3) changed.AbsPosEoA += 1;
 		if (mismatch == 4) live.Last_MA_StoppedAt.RelativePosEoA = 999;
@@ -4663,7 +4663,7 @@ void TestOperationsBuilder::level4Transitions() {
 	{
 		Train control = actual(1000, 10);
 		auto front = authority(1020, "FRONT_ONLY");
-		front.typePart = "Front";
+		front.typePart = AuthorityTrainEnd::Front;
 		front.TrainInfo.TrainSpeed = 10;
 		defaultRun().etcsMa = {front};
 		arc.signalSpeedLimit = 10;
@@ -4794,8 +4794,8 @@ void TestOperationsBuilder::signalFailureEvidence() {
 	auto failure = [&](const std::string& description) {
 		MovementAuthority ma;
 		ma.BSID = "evidence.1";
-		ma.type = "SignalFailure";
-		ma.typePart = "Front";
+		ma.type = AuthorityKind::SignalFailure;
+		ma.typePart = AuthorityTrainEnd::Front;
 		ma.ReversedDirection = reversed;
 		ma.EoA_Dist_From_BSID_Beg = 1000;
 		ma.AbsPosEoA = reversed ? 9000 : 2000;
@@ -5532,7 +5532,7 @@ void TestOperationsBuilder::singleTrackLocks() {
 	QCOMPARE(defaultRun().etcsMa.size(), std::size_t(1));
 	QCOMPARE(defaultRun().etcsMa.front().BSID, "lock.5");
 	QVERIFY(defaultRun().etcsMa.front().ReversedDirection);
-	QCOMPARE(defaultRun().etcsMa.front().type, "SignalFailure");
+	QCOMPARE(defaultRun().etcsMa.front().type, AuthorityKind::SignalFailure);
 	QCOMPARE(defaultRun().etcsMa.front().TrainInfo.trainDescription, "single_track:lock.2");
 	setLevel(2);
 	defaultRun().etcsMa.clear();

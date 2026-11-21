@@ -47,7 +47,7 @@ double Train::train_energy_consumption(int t) {
 bool Train::isEntrySectionFailed(const Section& section) const {
 	// The authority of a failed section names it as the next section, also when it stands at the end of the section before.
 	for (const MovementAuthority& authority : run_->etcsMa)
-		if (authority.type == "SignalFailure" && authority.TrainInfo.NextSectionID == section.ID && obeysAuthority(authority))
+		if (authority.type == AuthorityKind::SignalFailure && authority.TrainInfo.NextSectionID == section.ID && obeysAuthority(authority))
 			return true;
 	return false;
 }
@@ -107,7 +107,7 @@ void Train::checkIfMovementAuthorityStillValid(double speed, double head, const 
 		return;
 	const MovementAuthority& saved = Last_MA_StoppedAt;
 	const double distance = saved.RelativePosEoA - head;
-	const bool applicable = obeysAuthority(saved) && (saved.type != "TrainEnd" || (saved.typePart == "Tale" && saved.ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction) || (saved.typePart == "Front" && saved.ReversedDirection != run_->infra.routes[indexOfRoute].reversed_direction));
+	const bool applicable = obeysAuthority(saved) && (saved.type != AuthorityKind::TrainEnd || (saved.typePart == AuthorityTrainEnd::Tale && saved.ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction) || (saved.typePart == AuthorityTrainEnd::Front && saved.ReversedDirection != run_->infra.routes[indexOfRoute].reversed_direction));
 	bool valid = false;
 	if (speed == 0 && distance >= 0 && distance < kAtPointM && section.ID == saved.BSID && applicable)
 		for (const MovementAuthority& authority : run_->etcsMa)
@@ -277,7 +277,7 @@ void Train::recordDirectIncident(const SimulationIncident& incident, double time
 }
 
 void Train::recordDirectSignalFailure(const MovementAuthority& authority, double timeSeconds) {
-	if (authority.type != "SignalFailure")
+	if (authority.type != AuthorityKind::SignalFailure)
 		return;
 	const std::string prefix = "signal_failure:";
 	const std::string& encoded = authority.TrainInfo.trainDescription;
@@ -295,7 +295,7 @@ void recordSignalFailuresAtRedAspect(Train& train, double head, double timeSecon
 		return;
 	const Route& route = train.run_->infra.routes[train.indexOfRoute];
 	for (const MovementAuthority& authority : train.run_->etcsMa) {
-		if (authority.type != "SignalFailure" || authority.BSID != train.Bs.ID || !train.obeysAuthority(authority))
+		if (authority.type != AuthorityKind::SignalFailure || authority.BSID != train.Bs.ID || !train.obeysAuthority(authority))
 			continue;
 		const double distance = train.authorityRoutePosition(authority, train.Bs) - head;
 		if (distance < 0 || distance >= kAtPointM)
@@ -336,7 +336,7 @@ const MovementAuthority* Train::currentFollowingAuthority(double head, double& l
 		if (section.SignallingLevel != levelValue(SignallingLevel::VirtualCoupling) || section.ID != Last_Received_MA.BSID)
 			continue;
 		for (const MovementAuthority& authority : run_->etcsMa)
-			if (authority.BSID == section.ID && authority.type == "TrainEnd" && authority.typePart == "Tale"
+			if (authority.BSID == section.ID && authority.type == AuthorityKind::TrainEnd && authority.typePart == AuthorityTrainEnd::Tale
 				&& authority.ReversedDirection == route.reversed_direction
 				&& authority.TrainInfo.trainDescription != trainDescription
 				&& authority.TrainInfo.trainDescription == Last_Received_MA.TrainInfo.trainDescription
@@ -705,10 +705,10 @@ bool Train::updateVirtualCoupling(int time_seconds, const MovementAuthority* liv
 
 	// Determination of Train Uncoupling from the leader when it is in following mode and the route diverges from the leader's
 	if ((IsTrainInFollowingMode == 1) && (IsTrainDecoupling == 1)) {
-		// When the train is decoupling it can be considered totally uncoupled and not anymore in following mode when the tale of the leading train has fully crossed the splitting infrastructure element and the corresponding MA is communicated with type="TrainUncoupled"
+		// When the train is decoupling it can be considered totally uncoupled and not anymore in following mode when the tale of the leading train has fully crossed the splitting infrastructure element and the corresponding MA is communicated with type=AuthorityKind::TrainUncoupled
 		if ((Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription != "None")
 			&& (Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription == LeadingTrainInFollowingMode)
-			&& (Predicted_MA_To_DecoupleAt.type == "TrainUncoupled")) {
+			&& (Predicted_MA_To_DecoupleAt.type == AuthorityKind::TrainUncoupled)) {
 
 			EG_LOG(SimEvents, Info) << "At time instant " << time_seconds << " train " << trainDescription << " intentionally decoupled from train " << LeadingTrainInFollowingMode << " because of diverging routes\n";
 
