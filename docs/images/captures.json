@@ -82,6 +82,14 @@
     },
     {
       "case": "Paimpol",
+      "file": "how-to-passengers.png",
+      "height": 750,
+      "state": "replay at 07:36:40 with Passengers on, zoomed in on Guingamp, its station card open",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Paimpol",
       "file": "how-to-replay-menu.png",
       "height": 750,
       "state": "replay at 3500 s, context menu of the stopping train open",

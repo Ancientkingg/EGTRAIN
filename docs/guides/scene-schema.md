@@ -17,7 +17,7 @@ for compatibility and are listed in [Historical compatibility aliases](#historic
 | `rolling_stock.json` | yes | train units and compositions |
 | `services.json` | yes | services and planned timetables |
 | `scenarios.json` | no | `default_scenario_id` and named scenarios; `SceneWriter` always writes it |
-| `passengers.json` | no | passenger journeys and legs |
+| `passengers.json` | no | passenger journeys, legs and demand slices |
 | `views.json` | no | display preferences; not simulation input |
 
 `legacy/` is not part of the runnable V1 contract. The importer may read a
@@ -450,7 +450,8 @@ difference and the recorded direct incident evidence, and never states a cause.
 The checks, formulas and limits are in
 [How delays are calculated](delay-analysis.md#delay-comparison-against-a-baseline).
 The incident IDs, first direct time and location, and termination outcome of
-each train are in `run_summary.csv`.
+each train are in `run_summary.csv`, and so are the most passengers on board and
+their average, for a run with passengers.
 
 ## `passengers.json`
 
@@ -479,7 +480,7 @@ them until one cannot be taken and is then planned the same way. A journey for
 which no train reaches the destination ends with the outcome `no_route`, and the
 passenger leaves the network at the station it is at. A journey that comes from
 a legacy route-choice file without a row for it has an empty `legs` array and
-is reported as a warning.
+is a live journey like any other.
 
 The optional root key `demand` holds origin-destination demand slices. A slice
 has `id`, numeric `start_seconds` and `end_seconds` (absolute seconds from
@@ -621,7 +622,7 @@ scenario, and passengers are built directly from `SceneModel` in memory.
 | `rolling_stock.json` | required | physical/traction rolling stock units and compositions |
 | `services.json` | required | route/composition links and planned timetable stops |
 | `scenarios.json` | optional on load; always written | default scenario, named scenarios, incidents, entrance delays |
-| `passengers.json` | optional | journeys, absolute midnight-second windows, and legs |
+| `passengers.json` | optional | journeys, absolute midnight-second windows, legs, and demand slices |
 | `views.json` | optional display metadata | authored track levels/regions, double switch drawing and station display geometry; preserved in case folders and case files |
 
 Signalling areas in `signalling.json` give runtime sections their signalling
@@ -1009,9 +1010,10 @@ leaves its origin before the previous leg's service arrives there. That check
 uses the planned times of the stops, shifted by the headways of a later
 occurrence, and skips a leg whose stops have no planned time.
 
-Journey and leg IDs are scene-wide stable IDs. An empty `legs` array preserves
-a DAS journey for which the legacy route-choice input has no matching row; the
-validator warns instead of guessing a route.
+Journey and leg IDs are scene-wide stable IDs. An empty `legs` array is a live
+journey: it preserves a DAS journey for which the legacy route-choice input has
+no matching row, and the run plans its route when the passenger appears. The
+validator reports nothing for it.
 
 Passenger JSON is native runtime input. The explicit legacy importer recognizes
 DAS and RouteChoice only when both exact files exist:

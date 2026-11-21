@@ -36,6 +36,10 @@ If EGTRAIN closes before you save, the next start offers your edits in **Recover
 
 While a run uses the case, the contents of the editors **Services**, **Passengers**, **Infrastructure** and **Scenarios** are disabled, and so are **Edit > Undo** and **Edit > Redo**. The menu **Editors** still opens the docks. Click **Stop**, or wait until the run ends, and they are enabled again. **Case Settings**, **Rolling Stock Units** and **Compositions** stay usable during a run, but an edit there discards the results of that run ([Why a command is disabled](how-to.md#why-a-command-is-disabled)).
 
+## Why does the network view show no passengers?
+
+Switch **Passengers** on in the dock **Case and Layers** (or **View > Passengers**) before you click **Run**. A run that started with it off draws no passengers, and the status bar says `Passengers show from the next run` when you turn it on later. The switch is disabled in a case without passenger records and demand slices. [Read the passengers on the network](how-to.md#read-the-passengers-on-the-network) describes the gauges, counts and station cards.
+
 ## Can I draw tracks on the network view?
 
 No. The network view has no drawing tools. You add and change tracks, nodes, arcs, stations and platforms in the tables of the dock **Infrastructure** (**Editors > Infrastructure**). When the view shows no run, a click on an item of the view selects its row in that dock, and **Edit in Infrastructure** in the context menu of the item also brings the dock to the front.
