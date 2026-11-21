@@ -801,6 +801,7 @@ private slots:
 	void platformBarShowsCrowdingGauge();
 	void zoomSwitchesCountAndFigures();
 	void stationShowsWaitingCountInFarLook();
+	void stationPillCountsPlatformWithTwoNodesOnce();
 	void stationCalloutListsDestinationsAndCalls();
 	void stationCalloutOpensFromClicksAndCloses();
 	void stationCalloutPlacesBelowAtTopOfView();
@@ -1655,6 +1656,28 @@ void TestRuntimeCanvas::stationShowsWaitingCountInFarLook() {
 	QVERIFY(!pill->isVisible());
 	presenter.clear();
 	QVERIFY(PresenterAccess::stationCounts(presenter).empty());
+}
+
+// A platform with two stop nodes is drawn as two bars but is one platform: the pill counts its waiting passengers once
+// and its tooltip names it once.
+void TestRuntimeCanvas::stationPillCountsPlatformWithTwoNodesOnce() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	// the platform P1 also stops at the middle of the line
+	f.source->track(0).member[0].endNode.stationName = "B";
+	f.source->track(0).member[0].endNode.stationPlatformId = "P1";
+	presenter.showRuntime(f.model);
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{})};
+	snapshot.platforms[0].passengerCount = 30;
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	const auto& counts = PresenterAccess::stationCounts(presenter);
+	QCOMPARE(counts.size(), std::size_t(1));
+	QCOMPARE(counts[0].waiting, 30);
+	QCOMPARE(counts[0].text->text(), "30");
+	QCOMPARE(counts[0].pill->toolTip(), "Platform P1: 30 waiting (capacity 40)");
 }
 
 // The passengers `ids` as the platform lists them, each going to the destination that destinations gives at its place.

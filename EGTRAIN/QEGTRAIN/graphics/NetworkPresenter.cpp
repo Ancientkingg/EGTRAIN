@@ -1683,6 +1683,10 @@ void NetworkPresenter::updateStationCounts() {
 	for (const PlatformItem* platform : std::as_const(allPlatforms)) {
 		if (!platform || !platform->textIcon || platform->stationId.empty())
 			continue;
+		// The bars of one platform share its state, so the first bar stands for the platform and the others are left out.
+		const auto bars = m_platformsById.find({platform->stationId, platform->platformId});
+		if (bars == m_platformsById.end() || bars->second.front() != platform)
+			continue;
 		Total& total = totals[platform->stationId];
 		total.waiting += platform->waiting();
 		const qreal fraction = platform->capacity() > 0 ? static_cast<qreal>(platform->waiting()) / platform->capacity() : 0.0;
