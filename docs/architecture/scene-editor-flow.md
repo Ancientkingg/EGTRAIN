@@ -253,8 +253,8 @@ The tables stay for everything the actions do not cover. A drawing editor is not
 
 `Add Station...` is a task action of the Nodes table. It works on the selected node, which a click on the node in the network view also selects. It asks for the name of the station and then adds, in one edit and so in one Undo step:
 
-- a station whose id and name are the name, without a position;
-- one platform of that station, with the id `<name>.platform.1`, the node as its only node, and no length or width, so that the defaults of the model, 100 m and 2.5 m, apply as they do to a platform that Add creates under Platforms.
+- a station with the name as typed and, as its id, the name with each run of spaces replaced by one `_` (the legacy export refuses a station id with a space), without a position;
+- one platform of that station, with the id `<id>.platform.1`, the node as its only node, and no length or width, so that the defaults of the model, 100 m and 2.5 m, apply as they do to a platform that Add creates under Platforms.
 
 These are all the rows that a valid station needs. A station needs a position or a platform (`scene.station.anchor.missing`), and a platform needs a node (`scene.platform.nodes.none`) that the case has (`scene.ref.unresolved`) and that no other platform has (`scene.platform.node.conflict`). Nothing else has to refer to a station: a station view, timetable stops, passenger journeys and station boundaries are optional, so the action adds none of them.
 

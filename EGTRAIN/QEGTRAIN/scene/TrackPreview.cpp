@@ -38,6 +38,58 @@ bool mapPreviewX(double rawX, const std::vector<std::pair<double, double>>& anch
 	return std::isfinite(displayX);
 }
 
+// The anchors that the station views of the region give: the chainage of each station on the tracks of the region with
+// its longitude (x) and its projected latitude (y), sorted and with one anchor for each chainage. False when a station
+// view of the region has no usable position, or when two of them put different places at one chainage.
+bool regionAnchors(const SceneModel& scene, int region, std::vector<std::pair<double, double>>& uniqueXAnchors,
+	std::vector<std::pair<double, double>>& uniqueYAnchors) {
+	std::vector<std::pair<double, double>> xAnchors;
+	std::vector<std::pair<double, double>> yAnchors;
+	bool valid = true;
+	for (const auto& station : scene.stationViews) {
+		for (const auto& stationRegion : station.regions) {
+			if (stationRegion.first != region)
+				continue;
+			if (!std::isfinite(station.latitude) || station.latitude <= -90.0
+				|| station.latitude >= 90.0 || !std::isfinite(station.longitude)
+				|| !std::isfinite(stationRegion.second)) {
+				valid = false;
+				break;
+			}
+			const double displayY = -std::log(std::tan(kPi / 4.0
+										+ station.latitude * kPi / 360.0))
+				* 180.0 / kPi;
+			if (!std::isfinite(displayY)) {
+				valid = false;
+				break;
+			}
+			xAnchors.emplace_back(stationRegion.second, station.longitude);
+			yAnchors.emplace_back(stationRegion.second, displayY);
+		}
+		if (!valid)
+			break;
+	}
+	std::sort(xAnchors.begin(), xAnchors.end());
+	std::sort(yAnchors.begin(), yAnchors.end());
+	for (const auto& anchor : xAnchors) {
+		if (!uniqueXAnchors.empty() && anchor.first == uniqueXAnchors.back().first) {
+			if (anchor.second != uniqueXAnchors.back().second)
+				valid = false;
+			continue;
+		}
+		uniqueXAnchors.push_back(anchor);
+	}
+	for (const auto& anchor : yAnchors) {
+		if (!uniqueYAnchors.empty() && anchor.first == uniqueYAnchors.back().first) {
+			if (anchor.second != uniqueYAnchors.back().second)
+				valid = false;
+			continue;
+		}
+		uniqueYAnchors.push_back(anchor);
+	}
+	return valid;
+}
+
 void addTrackLine(const SceneModel& scene, const SceneTrack& source,
 	const std::unordered_map<std::string, const SceneNode*>& nodesById,
 	TrackPreviewResult& result) {
@@ -207,6 +259,12 @@ void placeUnplacedLines(TrackPreviewResult& preview, std::vector<bool> placed) {
 
 } // namespace
 
+bool regionCanPlaceTracks(const SceneModel& scene, int region) {
+	std::vector<std::pair<double, double>> xAnchors;
+	std::vector<std::pair<double, double>> yAnchors;
+	return regionAnchors(scene, region, xAnchors, yAnchors) && xAnchors.size() >= 2 && yAnchors.size() >= 2;
+}
+
 TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 	TrackPreviewResult result;
 	std::unordered_map<std::string, const SceneNode*> nodesById;
@@ -251,52 +309,9 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 			line.levelSpacing = 0.015;
 			line.displayOffset = -static_cast<double>(view->level) * line.levelSpacing;
 
-			std::vector<std::pair<double, double>> xAnchors;
-			std::vector<std::pair<double, double>> yAnchors;
-			bool valid = true;
-			for (const auto& station : scene.stationViews) {
-				for (const auto& region : station.regions) {
-					if (region.first != view->region)
-						continue;
-					if (!std::isfinite(station.latitude) || station.latitude <= -90.0
-						|| station.latitude >= 90.0 || !std::isfinite(station.longitude)
-						|| !std::isfinite(region.second)) {
-						valid = false;
-						break;
-					}
-					const double displayY = -std::log(std::tan(kPi / 4.0
-												+ station.latitude * kPi / 360.0))
-						* 180.0 / kPi;
-					if (!std::isfinite(displayY)) {
-						valid = false;
-						break;
-					}
-					xAnchors.emplace_back(region.second, station.longitude);
-					yAnchors.emplace_back(region.second, displayY);
-				}
-				if (!valid)
-					break;
-			}
-			std::sort(xAnchors.begin(), xAnchors.end());
-			std::sort(yAnchors.begin(), yAnchors.end());
 			std::vector<std::pair<double, double>> uniqueXAnchors;
-			for (const auto& anchor : xAnchors) {
-				if (!uniqueXAnchors.empty() && anchor.first == uniqueXAnchors.back().first) {
-					if (anchor.second != uniqueXAnchors.back().second)
-						valid = false;
-					continue;
-				}
-				uniqueXAnchors.push_back(anchor);
-			}
 			std::vector<std::pair<double, double>> uniqueYAnchors;
-			for (const auto& anchor : yAnchors) {
-				if (!uniqueYAnchors.empty() && anchor.first == uniqueYAnchors.back().first) {
-					if (anchor.second != uniqueYAnchors.back().second)
-						valid = false;
-					continue;
-				}
-				uniqueYAnchors.push_back(anchor);
-			}
+			bool valid = regionAnchors(scene, view->region, uniqueXAnchors, uniqueYAnchors);
 			const bool schematicLayout = valid && uniqueYAnchors.size() >= 2
 				&& std::all_of(uniqueYAnchors.begin() + 1, uniqueYAnchors.end(),
 					[&uniqueYAnchors](const auto& anchor) {

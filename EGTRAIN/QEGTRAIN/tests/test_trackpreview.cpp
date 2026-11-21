@@ -88,6 +88,7 @@ class TestTrackPreview : public QObject {
 private slots:
 	void initTestCase();
 	void keepsConnectionIds();
+	void regionNeedsTwoPlacesToPlaceTracks();
 	void signalNormals();
 	void bendUsesOutgoingInterval_data();
 	void bendUsesOutgoingInterval();
@@ -137,6 +138,31 @@ void TestTrackPreview::initTestCase() {
 		node.yKm = 0.0;
 	m_schematicResult = loadTrackPreview(m_schematic);
 	m_normalizedSchematic = normalizeTrackPreview(m_schematicResult);
+}
+
+// A region places tracks when its station views give two chainages with usable positions; the preview draws a track of any
+// other region without a layout.
+void TestTrackPreview::regionNeedsTwoPlacesToPlaceTracks() {
+	SceneModel scene = twoTrackScene();
+	QVERIFY(regionCanPlaceTracks(scene, 0));
+	QVERIFY(regionCanPlaceTracks(scene, 1));
+	QVERIFY(!regionCanPlaceTracks(scene, 7));
+	// one station view in the region
+	scene.stationViews.push_back({"Lone", 52.0, 0.0, {{3, 10.0}}, {}});
+	QVERIFY(!regionCanPlaceTracks(scene, 3));
+	// two stations at one chainage and one place
+	scene.stationViews.push_back({"Twin", 52.0, 0.0, {{3, 10.0}}, {}});
+	QVERIFY(!regionCanPlaceTracks(scene, 3));
+	// two stations at one chainage and two places
+	scene.stationViews.back().longitude = 0.5;
+	QVERIFY(!regionCanPlaceTracks(scene, 3));
+	// a second chainage with a usable position
+	scene.stationViews.back().longitude = 0.0;
+	scene.stationViews.back().regions = {{3, 20.0}};
+	QVERIFY(regionCanPlaceTracks(scene, 3));
+	// a position that is no latitude
+	scene.stationViews.back().latitude = 95.0;
+	QVERIFY(!regionCanPlaceTracks(scene, 3));
 }
 
 void TestTrackPreview::keepsConnectionIds() {

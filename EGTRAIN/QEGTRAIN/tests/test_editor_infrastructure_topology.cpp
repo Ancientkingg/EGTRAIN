@@ -215,6 +215,8 @@ private slots:
 	void editsTracks();
 	void listsLayoutRegions();
 	void setsAndClearsLayoutRegion();
+	void refusesNoneOnHiddenOrDoubleSwitchTrack();
+	void offersOnlyRegionsThatPlaceTracks();
 	void editsLayoutRow();
 	void renameAndDeleteFollowLayoutRow();
 	void listsOnlyNoneWithoutStationLayout();
@@ -227,6 +229,7 @@ private slots:
 	void editsReferencesInCombos();
 	void leavesComboWithArrowKeys();
 	void addsStationAtNode();
+	void addsStationWithSpacesInItsName();
 	void undoRemovesAddedStation();
 	void refusesStationAtStationNode();
 	void refusesTakenOrBadStationName_data();
@@ -436,6 +439,77 @@ void TestTopologyFacets::setsAndClearsLayoutRegion() {
 	f.log.clear();
 	QVERIFY(history.undo());
 	QVERIFY(viewOf(f.model(), "track-a") == nullptr);
+}
+
+// None erases the view row, which also holds Shown on map and Double switch: a hidden track would come back on the map
+// and a double switch track would be drawn whole. So None is refused for them and works for a row with only a level.
+void TestTopologyFacets::refusesNoneOnHiddenOrDoubleSwitchTrack() {
+	SceneModel scene = layoutScene();
+	scene.tracks.push_back({"track-c"});
+	scene.trackViews = {{"track-a", 0, 0, false, false}, {"track-b", 0, 0, true, true}, {"track-c", 1, 2, true, false}};
+	Fixture f(scene);
+	f.choose("tracks");
+	const QString refusal = "A hidden or double switch track needs its layout region. Tick Shown on map and clear Double switch first, "
+							"then set the region to None.";
+
+	f.type(0, 1, "");
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().trackViews.size(), std::size_t(3));
+	QVERIFY(!viewOf(f.model(), "track-a")->visible);
+	QCOMPARE(f.messages, QStringList({refusal}));
+
+	f.messages.clear();
+	f.type(1, 1, "");
+	QVERIFY(f.untouched());
+	QVERIFY(viewOf(f.model(), "track-b")->doubleSwitch);
+	QCOMPARE(f.messages, QStringList({refusal}));
+
+	// A row with only a level goes.
+	f.type(2, 1, "");
+	QVERIFY(viewOf(f.model(), "track-c") == nullptr);
+	QVERIFY(f.changedOnce("Edit track layout"));
+
+	// Once the track is shown, None works for it as well.
+	f.table()->item(0, 3)->setCheckState(Qt::Checked);
+	QVERIFY(f.changedOnce("Edit track layout"));
+	f.type(0, 1, "");
+	QVERIFY(viewOf(f.model(), "track-a") == nullptr);
+	QVERIFY(f.changedOnce("Edit track layout"));
+}
+
+// A region of one station view cannot place a track, so the cell does not offer it and refuses it; a track that
+// already has such a region keeps it and still lists it.
+void TestTopologyFacets::offersOnlyRegionsThatPlaceTracks() {
+	SceneModel scene = layoutScene();
+	SceneStationView lone;
+	lone.stationId = "Lone";
+	lone.regions = {{5, 3.0}};
+	scene.stationViews.push_back(lone);
+	scene.trackViews = {{"track-b", 0, 5, true, false}};
+	Fixture f(scene);
+	f.choose("tracks");
+	const auto idsOf = [&f](int row) {
+		QStringList ids;
+		for (const InfrastructureFacet::Choice& choice : f.panel.facet("tracks")->choices(f.panel, row, 1))
+			ids << choice.id;
+		return ids;
+	};
+	// track-a has no region; track-b has region 5, which stays in its list.
+	QCOMPARE(idsOf(0), QStringList({"", "0", "2"}));
+	QCOMPARE(idsOf(1), QStringList({"", "0", "2", "5"}));
+
+	f.type(0, 1, "5");
+	QVERIFY(f.untouched());
+	QVERIFY(viewOf(f.model(), "track-a") == nullptr);
+	QCOMPARE(f.messages,
+		QStringList({"Region 5 has one station on the layout. A track needs two stations in its region to be placed."}));
+
+	// Keeping the region a track has is no edit and is not refused.
+	f.messages.clear();
+	f.type(1, 1, "5");
+	QVERIFY(f.untouched());
+	QVERIFY(f.messages.isEmpty());
+	QCOMPARE(viewOf(f.model(), "track-b")->region, 5);
 }
 
 void TestTopologyFacets::editsLayoutRow() {
@@ -1040,6 +1114,33 @@ void TestTopologyFacets::addsStationAtNode() {
 	QCOMPARE(fixture.panel.selectionId(), QString("node-a2"));
 	QCOMPARE(fixture.table()->currentRow(), 2);
 	QCOMPARE(fixture.messages, QStringList({"Added station 'Halt' at node 'node-a2'. Undo removes it."}));
+}
+
+// A name with spaces gives an id with one underscore for each run of spaces, and the platform id follows the id; the name
+// stays as typed. A name whose id another station has is refused.
+void TestTopologyFacets::addsStationWithSpacesInItsName() {
+	Fixture fixture;
+	fixture.choose("nodes");
+	fixture.select(2);
+	fixture.prompts.answeredText = QString(" Den  Haag Centraal ");
+
+	fixture.panel.taskButton(0)->click();
+
+	QVERIFY(fixture.changedOnce("Add station"));
+	const SceneStation& station = fixture.model().stations.back();
+	QCOMPARE(station.id, std::string("Den_Haag_Centraal"));
+	QCOMPARE(station.name, std::string("Den  Haag Centraal"));
+	QCOMPARE(station.platforms.front().id, std::string("Den_Haag_Centraal.platform.1"));
+	QCOMPARE(fixture.messages, QStringList({"Added station 'Den  Haag Centraal' at node 'node-a2'. Undo removes it."}));
+
+	// "Den Haag Centraal" makes the id that the station has now.
+	fixture.messages.clear();
+	fixture.select(3);
+	fixture.prompts.answeredText = QString("Den Haag Centraal");
+	fixture.panel.taskButton(0)->click();
+	QVERIFY(fixture.untouched());
+	QCOMPARE(fixture.model().stations.size(), std::size_t(2));
+	QCOMPARE(fixture.messages, QStringList({"Station 'Den Haag Centraal' already exists. Add a platform to it under Platforms."}));
 }
 
 // One Undo takes the station and its platform away together.
