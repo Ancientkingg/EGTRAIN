@@ -132,7 +132,7 @@ void Train::leaveFollowingModeWhenLeaderIsGone(int time_seconds) {
 			for (int block = 0; block < route.N_Block_Sections; ++block)
 				if (route.sequence_of_block_sections[block].ID == authority.BSID)
 					return;
-	EG_LOG(SimEvents, Info) << "At time instant " << time_seconds << " train " << trainDescription << " is decoupled from train " << LeadingTrainInFollowingMode << ", which reports no position any more\n";
+	EG_LOG(SimEvents, Info) << "At time instant " << time_seconds << " train " << trainDescription << " is decoupled from train " << LeadingTrainInFollowingMode << ", which reports no position on this route any more\n";
 	run_->vcMsgTimestep.push_back(time_seconds);
 	run_->vcMsgTrain.push_back(trainDescription);
 	run_->vcMsgText.push_back("Decoupled");

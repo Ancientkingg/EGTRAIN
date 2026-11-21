@@ -5942,7 +5942,7 @@ void TestOperationsBuilder::rollingStockMessages() {
 		follow();
 		train.leaveFollowingModeWhenLeaderIsGone(7);
 		shows(capture.take(),
-			{{Category::SimEvents, Level::Info, "At time instant 7 train T1 is decoupled from train L1, which reports no position any more\n"}},
+			{{Category::SimEvents, Level::Info, "At time instant 7 train T1 is decoupled from train L1, which reports no position on this route any more\n"}},
 			"a train whose leader reports no position any more");
 		if (QTest::currentTestFailed())
 			return;

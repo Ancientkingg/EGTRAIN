@@ -433,15 +433,16 @@ failures. It adds a following mode.
   The authority that a leader reports is its tail minus 50 m, delayed by one
   step, so it lies about the speed of the leader times 1 s ahead of a follower
   that has matched that speed. On the `line` fixture the follower couples while
-  both run with the leader at 54, 72 and 90 km/h. With the leader at 108 km/h
-  (30 m/s) or faster the authority is 30.002 m ahead, just outside the window,
-  and the follower stays 80 m behind the leader and couples only once the leader
-  stands.
+  both run with the leader at 54, 72, 90 and 104 km/h. At 108 km/h (30 m/s)
+  that lead reaches the 30 m of the window, so with the leader at 108 km/h or
+  faster the follower stays about 80 m behind it and couples only once the
+  leader stands.
   `follow-level-4`: `F2` stops 50 m behind the tail of `F1`, which stands at
   8000 m.
 - **Following mode.** Coupling requires a currently reported same-direction tail
   authority ahead of the train, before any virtual projection. A coupled train
-  uses the selected live leader's speed plus one step of its acceleration as a proposal, so it holds the speed of the leader and not only its acceleration. After
+  uses the selected live leader's speed plus one step of its acceleration as a
+  proposal, so it holds the speed of the leader, not only its acceleration. After
   the first coupling step it can publish that proposal only within its own
   actual-start force bounds and the already approved non-braking position and
   speed envelope, strictly before the selected braking point. Native braking,
