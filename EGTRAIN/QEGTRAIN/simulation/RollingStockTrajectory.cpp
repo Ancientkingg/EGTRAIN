@@ -187,76 +187,6 @@ const std::string& Train::blockSectionIdAt(int t) const {
 	return run_->infra.routes[static_cast<std::size_t>(indexOfRoute)].sequence_of_block_sections[static_cast<std::size_t>(index)].ID;
 }
 
-string Train::DetermineOccupiedTDS(int timeinstant, bool IsRouteReversed) {
-	string Occupied_TDS_ID = "";
-	double BeginningNode = -1, FinalNode = -1; // This are the Beginning and End Node of the TDS
-	// if the route of the train is not reversed
-	if (IsRouteReversed == 0) {
-		if (Bs.TDS_in_block.size() > 0) {
-			for (auto i = Bs.TDS_in_block.begin(); i != Bs.TDS_in_block.end(); i++) {
-				// if the TDS is straight and not on a diverging switch
-				if ((*i)->node_on_switch.X == -1) {
-					BeginningNode = (*i)->start_node.X * 1000;
-					FinalNode = (*i)->end_node.X * 1000;
-				}
-				// if instead the TDS is on a diverging switch
-				else {
-					// Determine Beginning and final nodes
-					if ((*i)->node_on_switch.X >= (*i)->connection_node.X) {
-						BeginningNode = (*i)->start_node.X * 1000;
-						FinalNode = (*i)->node_on_switch.X * 1000;
-					}
-					// Otherwise it is valid the following condition
-					else {
-						BeginningNode = (*i)->node_on_switch.X * 1000;
-						FinalNode = (*i)->end_node.X * 1000;
-					}
-				}
-
-				if ((instant_spatial_position[timeinstant] >= BeginningNode) && (instant_spatial_position[timeinstant] < FinalNode)) {
-					Occupied_TDS_ID = (*i)->ID;
-					break; // break the for loop over the TDS in the block section
-				}
-			}
-		}
-	}
-	// if instead the route of the train is reversed
-	else {
-		// the the TDS nodes should be reversed as well
-		if (Bs.TDS_in_block.size() > 0) {
-			for (auto i = Bs.TDS_in_block.begin(); i != Bs.TDS_in_block.end(); i++) {
-				// if the TDS is straight and not on a diverging switch
-				if ((*i)->node_on_switch.X == -1) {
-					// Beginning Node is the absolute distance between the end Node of the TDS ( as it is reversed) and the absolute position of the Beginning Node of the reversed block + the relative start Node position of the reversed block
-					BeginningNode = (Bs.GeoXBegNode - (*i)->end_node.tdsbGeoCoordX) + Bs.start_node.X * 1000;
-					FinalNode = (Bs.GeoXBegNode - (*i)->start_node.tdsbGeoCoordX) + Bs.start_node.X * 1000;
-				}
-
-				// if instead the TDS is on a diverging switch
-				else {
-					// Determine Beginning and final nodes
-					if ((*i)->node_on_switch.X >= (*i)->connection_node.X) {
-						BeginningNode = (Bs.GeoXBegNode - (*i)->node_on_switch.tdsbGeoCoordX) + Bs.start_node.X * 1000;
-						FinalNode = (Bs.GeoXBegNode - (*i)->start_node.tdsbGeoCoordX) + Bs.start_node.X * 1000;
-					}
-					// Otherwise it is valid the following condition
-					else {
-						BeginningNode = (Bs.GeoXBegNode - (*i)->end_node.tdsbGeoCoordX) + Bs.start_node.X * 1000;
-						FinalNode = (Bs.GeoXBegNode - (*i)->node_on_switch.tdsbGeoCoordX) + Bs.start_node.X * 1000;
-					}
-				}
-
-				if ((instant_spatial_position[timeinstant] >= BeginningNode) && (instant_spatial_position[timeinstant] < FinalNode)) {
-					Occupied_TDS_ID = (*i)->ID;
-					break; // break the for loop over the TDS in the block section
-				}
-			}
-		}
-	}
-	// finally return the ID of teh occupied TDS
-	return Occupied_TDS_ID;
-}
-
 void Train::recordDirectIncidentId(const std::string& incidentId, double timeSeconds,
 	double locationMeters) {
 	if (incidentId.empty())
@@ -354,7 +284,7 @@ const MovementAuthority* Train::currentFollowingAuthority(double head, double& l
 	return nullptr;
 }
 
-void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double signalCode1, double signalCode2, double signalCode3) {
+void Train::trajectoryComputationIncludingMovingBlock(int time_seconds) {
 	// The target that the step before kept, and no target or branch yet of this step
 	previousXob = currentXob;
 	previousVob = currentVob;
@@ -390,8 +320,6 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 		checkEntrance(time_seconds, run_->infra.routes[indexOfRoute].sequence_of_block_sections.data());
 		if ((time_seconds >= departure_time) && (CanEnter == 1)) {
 			double V_lim;
-			int U;
-			U = time_seconds;
 			Arc As; // use local variable instead of Train class member (faster simulation)
 			// Indices of Bs on the route and of As in Bs; -1 when they are not found in this step
 			int BsIndex = -1, AsIndex = -1;
@@ -618,9 +546,6 @@ void Train::locateHead(int time_seconds, Arc& As, int& BsIndex, int& AsIndex) {
 				break;
 		}
 	}
-
-	// Determine the TDS which is currently occupied in the Block section Bs by the nose of the train
-	string Occupied_TDS = DetermineOccupiedTDS((time_seconds - 1), run_->infra.routes[indexOfRoute].reversed_direction);
 
 	// Determination of the right running Arc
 	for (int j = 0; j < Bs.total_arcs; j++) {

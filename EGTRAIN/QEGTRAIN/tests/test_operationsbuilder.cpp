@@ -1706,7 +1706,7 @@ void TestOperationsBuilder::reducedPerformanceDelaysCompletion() {
 	// Runs the first train through the live movement step that the dispatch loop uses.
 	const auto simulateFirstTrainMovement = [&]() {
 		for (int t = 0; t < initial_variables.times; t++) {
-			defaultRun().trains[0].trajectoryComputationIncludingMovingBlock(t, signalCode1, signalCode2, signalCode3);
+			defaultRun().trains[0].trajectoryComputationIncludingMovingBlock(t);
 			defaultRun().trains[0].recordEarliestActiveTrajectoryIndex(t);
 		}
 	};
@@ -1740,7 +1740,7 @@ static bool runOneTrain(const SceneModel& scene, const std::function<void(Simula
 	if (beforeRun)
 		beforeRun(defaultRun());
 	for (int t = 0; t < initial_variables.times; t++) {
-		defaultRun().trains[0].trajectoryComputationIncludingMovingBlock(t, signalCode1, signalCode2, signalCode3);
+		defaultRun().trains[0].trajectoryComputationIncludingMovingBlock(t);
 		defaultRun().trains[0].recordEarliestActiveTrajectoryIndex(t);
 	}
 	return true;
@@ -1882,7 +1882,7 @@ void TestOperationsBuilder::zeroStopThroughServiceStaysSafe() {
 	QCOMPARE_EQ(finalProbe.Max_TotalDelay, -1.0);
 	QCOMPARE_EQ(finalProbe.Max_Cons_Delay, -1.0);
 
-	through.trajectoryComputationIncludingMovingBlock(0, signalCode1, signalCode2, signalCode3);
+	through.trajectoryComputationIncludingMovingBlock(0);
 	// Time zero initializes the live trajectory without entering or advancing.
 	QVERIFY(!through.CanEnter);
 	QCOMPARE_EQ(through.instant_train_speed[0], 0.0);
@@ -3651,7 +3651,7 @@ void TestOperationsBuilder::brakingPhase() {
 	train.instant_train_speed[0] = train.instant_train_speed[1] = 10;
 	train.currentXob = 1000;
 	train.currentVob = 10;
-	train.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+	train.trajectoryComputationIncludingMovingBlock(2);
 	// Reached speed target is retained until its actual boundary.
 	QCOMPARE_EQ(train.instant_train_speed[2], 10.0);
 	QCOMPARE_EQ(train.instant_spatial_position[2], 710.0);
@@ -3669,7 +3669,7 @@ void TestOperationsBuilder::brakingPhase() {
 	train.currentVob = 10;
 	const Arc& phaseArc = phaseRoute.sequence_of_block_sections[0].arcs_in_signalling_block_section[0];
 	const double minimumSpeed = std::max(0.0, 10 - (train.max_train_decelaration + train.total_train_resistances(10, phaseArc.gradient, phaseArc.curvature) / (train.total_train_mass * train.massFactor)) * timestep);
-	train.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+	train.trajectoryComputationIncludingMovingBlock(2);
 	// Late current speed limit uses the model's full-braking step, not a cap or Eq12 history rewrite.
 	QCOMPARE_EQ(train.instant_train_speed[1], 10.0);
 	QVERIFY(near(train.instant_train_speed[2], minimumSpeed));
@@ -3727,7 +3727,7 @@ void TestOperationsBuilder::brakingPhase() {
 				QVERIFY(head < satisfied);
 				QVERIFY(satisfied < point);
 				QVERIFY(head + speed * timestep > point);
-				live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+				live.trajectoryComputationIncludingMovingBlock(2);
 				// Equal/below-ceiling demand selects restrictive stop rather than satisfied target.
 				QCOMPARE_EQ(live.currentXob, 5000.0);
 				QCOMPARE_EQ(live.currentVob, 0.0);
@@ -3735,7 +3735,7 @@ void TestOperationsBuilder::brakingPhase() {
 				bool stopped = false;
 				for (int time = 2; time < 100; ++time) {
 					if (time > 2)
-						live.trajectoryComputationIncludingMovingBlock(time, signalCode1, signalCode2, signalCode3);
+						live.trajectoryComputationIncludingMovingBlock(time);
 					// Satisfied-target stop keeps previously published samples immutable.
 					QCOMPARE_EQ(live.instant_spatial_position[0], head - speed * timestep);
 					QCOMPARE_EQ(live.instant_spatial_position[1], head);
@@ -3790,7 +3790,7 @@ void TestOperationsBuilder::brakingPhase() {
 				// Retained hold/capped acceleration is below the actual-start full-braking bound.
 				QVERIFY(minimum > 15);
 				QVERIFY(resistance < fullEffort);
-				live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+				live.trajectoryComputationIncludingMovingBlock(2);
 				// Infeasible retained hold/cap uses force-feasible full-model mean-displacement fallback.
 				QCOMPARE(live.stepBranch, 54);
 				QCOMPARE(live.counter, 0);
@@ -3818,7 +3818,7 @@ void TestOperationsBuilder::brakingPhase() {
 				bool below = false, recovered = false, reached = false;
 				for (int time = 2; time < 100; ++time) {
 					const double oldHead = live.instant_spatial_position[time - 1], oldSpeed = live.instant_train_speed[time - 1];
-					live.trajectoryComputationIncludingMovingBlock(time, signalCode1, signalCode2, signalCode3);
+					live.trajectoryComputationIncludingMovingBlock(time);
 					const double nextHead = live.instant_spatial_position[time], nextSpeed = live.instant_train_speed[time];
 					std::ostringstream context;
 					context.precision(17);
@@ -3899,7 +3899,7 @@ void TestOperationsBuilder::brakingPhase() {
 				live.instant_train_speed[0] = live.instant_train_speed[1] = speed;
 				live.currentXob = 2000;
 				live.currentVob = 0;
-				live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+				live.trajectoryComputationIncludingMovingBlock(2);
 				const bool shortOfPoint = isShortOfBrakingPoint(head, point);
 				// Boundary dispatch uses the chosen BX and retains published history.
 				QCOMPARE_EQ(live.instant_spatial_position[1], head);
@@ -4029,7 +4029,7 @@ void TestOperationsBuilder::brakingPhase() {
 		native.instant_spatial_position[1] = head;
 		native.instant_train_speed[0] = native.instant_train_speed[1] = speed;
 		native.currentXob = native.currentVob = 0;
-		native.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		native.trajectoryComputationIncludingMovingBlock(2);
 		// Accelerating/cruising crossing enters the forward curve before the old braking point.
 		QCOMPARE(native.stepBranch, 55);
 		QCOMPARE_EQ(native.instant_spatial_position[1], head);
@@ -4113,7 +4113,7 @@ void TestOperationsBuilder::brakingPhase() {
 		bool braked = false, stopped = false;
 		for (int time = 2; time < 100; ++time) {
 			const double oldHead = native.instant_spatial_position[time - 1], oldSpeed = native.instant_train_speed[time - 1];
-			native.trajectoryComputationIncludingMovingBlock(time, signalCode1, signalCode2, signalCode3);
+			native.trajectoryComputationIncludingMovingBlock(time);
 			const double nextHead = native.instant_spatial_position[time], nextSpeed = native.instant_train_speed[time];
 			if (native.stepBranch == 55 || native.stepBranch == 53 || native.stepBranch == 52) {
 				const Arc* running = native.brakingArc(oldHead, nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections);
@@ -4158,7 +4158,7 @@ void TestOperationsBuilder::brakingPhase() {
 		service.stop = 1;
 		service.instant_spatial_position[1] = service.stationRoutePositionMeters(station) - 0.002;
 		service.instant_train_speed[1] = 0;
-		service.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		service.trajectoryComputationIncludingMovingBlock(2);
 		// Zero-authored dwell retains first service entry for the post-movement passenger initializer.
 		QCOMPARE(service.stepBranch, 5);
 		QVERIFY(service.StoppedForServiceStop);
@@ -4206,7 +4206,7 @@ void TestOperationsBuilder::brakingPhase() {
 			service = defaultRun().trains[0];
 		}
 		QVERIFY2(service.Stations[station].StopTime > 0, "existing passenger formula initializes dwell on the first active service step");
-		service.trajectoryComputationIncludingMovingBlock(3, signalCode1, signalCode2, signalCode3);
+		service.trajectoryComputationIncludingMovingBlock(3);
 		// Initialized service dwell retains its entry clock and stationary state.
 		QVERIFY(service.StoppedForServiceStop);
 		QCOMPARE_EQ(service.instant_train_speed[3], 0.0);
@@ -4249,7 +4249,7 @@ void TestOperationsBuilder::brakingPhase() {
 				live.Vbrak[1] = speed + 100; // Outside the actual-speed traction bound.
 				live.Sbrak[1] = head + live.Vbrak[1] * timestep;
 			}
-			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+			live.trajectoryComputationIncludingMovingBlock(2);
 			// Cleared/changed incumbent or mismatched/force-invalid cache cannot retain stale braking.
 			if (change < 2) {
 				QCOMPARE(live.stepBranch, 1);
@@ -4278,7 +4278,7 @@ void TestOperationsBuilder::brakingPhase() {
 			competing.arcs_in_signalling_block_section[0].speedInBraking = ceiling;
 			competing.arcs_in_signalling_block_section[1].speedInBraking = 0;
 			Train live = cached;
-			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+			live.trajectoryComputationIncludingMovingBlock(2);
 			// New stricter stop/positive target interrupts cached proposal from immutable previous actual state.
 			QCOMPARE_EQ(live.currentXob, competing.arcs_in_signalling_block_section[0].endNode.X * 1000);
 			QCOMPARE_EQ(live.currentVob, ceiling);
@@ -4300,7 +4300,7 @@ void TestOperationsBuilder::brakingPhase() {
 		Train live = cached;
 		// Farther positive inverse is unavailable beyond the feasible cached stop.
 		QCOMPARE_EQ(live.BrakDist_Block(live.Vbrak[1], 8, 10000, nativeRoute.sequence_of_block_sections.data(), 1), -1.0);
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// Unavailable farther target does not discard a cached plan ending at an earlier stop.
 		QCOMPARE_EQ(live.currentXob, 5000.0);
 		QCOMPARE_EQ(live.currentVob, 0.0);
@@ -4359,7 +4359,7 @@ void TestOperationsBuilder::brakingPhase() {
 		bool stopped = false;
 		for (int time = 2; time < 100; ++time) {
 			const double oldHead = live.instant_spatial_position[time - 1], oldSpeed = live.instant_train_speed[time - 1];
-			live.trajectoryComputationIncludingMovingBlock(time, signalCode1, signalCode2, signalCode3);
+			live.trajectoryComputationIncludingMovingBlock(time);
 			if (time <= 3) {
 				std::cout.precision(17);
 				std::cout << "Copenhagen arbitration t=" << time << " target=" << live.currentXob << "/" << live.currentVob
@@ -4459,7 +4459,7 @@ void TestOperationsBuilder::level4Transitions() {
 		behind.TrainInfo.Acceleration = -0.5;
 		defaultRun().etcsMa = {behind};
 		arc.speedInBraking = 0;
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// A behind braking Tale cannot project into a forward authority in either direction.
 		QCOMPARE_EQ(live.currentXob, 10000.0);
 		QVERIFY(!live.BrakingForEoA);
@@ -4474,12 +4474,12 @@ void TestOperationsBuilder::level4Transitions() {
 		live.IsTrainCoupling = true;
 		live.Predicted_MA_To_CoupleAt = front;
 		arc.signalSpeedLimit = 10;
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		QVERIFY2(!live.IsTrainInFollowingMode, "same-direction Front cannot activate stale coupling");
 		front.ReversedDirection = !reversed;
 		defaultRun().etcsMa = {front};
 		live = actual(1000, 10);
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// Opposing Front remains a stopping authority in either route direction.
 		QVERIFY(near(live.currentXob, 1020));
 		QCOMPARE_EQ(live.currentVob, 0.0);
@@ -4497,7 +4497,7 @@ void TestOperationsBuilder::level4Transitions() {
 		// A one-step native stop has no right-endpoint displacement at either leader speed.
 		QVERIFY(live.predictBraking(raw, leaderSpeed, 0, &section, 1, end));
 		QCOMPARE_EQ(end, raw);
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// Projected stop excludes the inverse anchor holdback and stays fixed when the leader reaches zero.
 		QCOMPARE_EQ(live.currentXob, raw);
 		QCOMPARE_EQ(live.currentVob, 0.0);
@@ -4523,7 +4523,7 @@ void TestOperationsBuilder::level4Transitions() {
 			live.Last_MA_StoppedAt = live.Last_Received_MA = authority(1000.002, "OLD");
 			live.IsTrainStoppedForEoA = live.BrakingForEoA = true;
 			defaultRun().etcsMa = {authority(1000.005, "NEW")};
-			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+			live.trajectoryComputationIncludingMovingBlock(2);
 			// Station hold and departure cannot cross a replacement authority within the station window.
 			QCOMPARE_EQ(live.instant_spatial_position[2], 1000.0);
 			QCOMPARE_EQ(live.instant_train_speed[2], 0.0);
@@ -4532,7 +4532,7 @@ void TestOperationsBuilder::level4Transitions() {
 			QVERIFY(near(live.currentXob, 1000.005));
 			if (dwellComplete) {
 				defaultRun().etcsMa.clear();
-				live.trajectoryComputationIncludingMovingBlock(3, signalCode1, signalCode2, signalCode3);
+				live.trajectoryComputationIncludingMovingBlock(3);
 				// Completed station service can depart once the replacement authority clears.
 				QVERIFY(!live.StoppedForServiceStop);
 				QVERIFY(live.instant_train_speed[3] > 0);
@@ -4550,7 +4550,7 @@ void TestOperationsBuilder::level4Transitions() {
 		auto failure = authority(1000.001, "signal_failure:test");
 		failure.type = AuthorityKind::SignalFailure; // A synthetic competing snapshot, not a canonical incident position.
 		defaultRun().etcsMa = {saved, failure};
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// Saved Tale holds actual state, not the newly selected failure position.
 		QVERIFY(live.IsTrainStoppedForEoA);
 		QCOMPARE_EQ(live.instant_spatial_position[2], 1000.0);
@@ -4565,7 +4565,7 @@ void TestOperationsBuilder::level4Transitions() {
 		defaultRun().etcsMa.clear();
 		if (replacement)
 			defaultRun().etcsMa.push_back(authority(1000.003, "NEW"));
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// Removed saved Tale releases to the actual-state successor, retaining new near Tale or open acceleration.
 		QVERIFY(!live.IsTrainStoppedForEoA);
 		if (replacement) {
@@ -4604,7 +4604,7 @@ void TestOperationsBuilder::level4Transitions() {
 		live.Last_Received_MA = behind;
 		live.BrakingForEoA = true;
 		defaultRun().etcsMa = {behind};
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// A behind authority cannot be captured as a stationary hold.
 		QVERIFY(!live.IsTrainStoppedForEoA);
 		QVERIFY(live.instant_spatial_position[2] > 1000);
@@ -4624,7 +4624,7 @@ void TestOperationsBuilder::level4Transitions() {
 		live.currentXob = target;
 		live.currentVob = 0;
 		defaultRun().etcsMa = {saved};
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// Active following cannot replace a native anchored zero-speed terminal.
 		QCOMPARE(live.stepBranch, 52);
 		QCOMPARE_EQ(live.instant_spatial_position[2], terminal);
@@ -4641,8 +4641,8 @@ void TestOperationsBuilder::level4Transitions() {
 		live.IsTrainInFollowingMode = true;
 		live.LeadingTrainInFollowingMode = "FRONT_ONLY";
 		live.CounterFollowingMode = 1;
-		control.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		control.trajectoryComputationIncludingMovingBlock(2);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// An ineligible live Front produces no following proposal and preserves the complete normal result.
 		QCOMPARE(live.stepBranch, control.stepBranch);
 		QCOMPARE_EQ(live.instant_spatial_position[2], control.instant_spatial_position[2]);
@@ -4665,7 +4665,7 @@ void TestOperationsBuilder::level4Transitions() {
 		live.CounterFollowingMode = 1;
 		arc.signalSpeedLimit = 10;
 		const double minimum = live.brakingCurveSpeed(10, arc);
-		live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		live.trajectoryComputationIncludingMovingBlock(2);
 		// Force-invalid leader-relative intent preserves braking; admissible nonbraking following still runs.
 		QVERIFY(live.instant_train_speed[2] >= minimum);
 		QVERIFY(live.instant_train_speed[2] <= 10);
@@ -4706,7 +4706,7 @@ void TestOperationsBuilder::stationaryBrakingCompletesDwell() {
 	service.instant_spatial_position[1] = head;
 	service.instant_train_speed[1] = 0;
 	for (int time = 2; time <= 8; ++time) {
-		service.trajectoryComputationIncludingMovingBlock(time, signalCode1, signalCode2, signalCode3);
+		service.trajectoryComputationIncludingMovingBlock(time);
 		// Zero-speed braking fallback preserves the first service entry clock throughout dwell.
 		QCOMPARE(service.stop, 2);
 		QCOMPARE_EQ(service.currentXob, service.stationRoutePositionMeters(station));
@@ -4790,7 +4790,7 @@ void TestOperationsBuilder::signalFailureEvidence() {
 		live.currentXob = live.currentVob = 0;
 		return live;
 	};
-	const auto runStep = [](Train& train) { train.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3); };
+	const auto runStep = [](Train& train) { train.trajectoryComputationIncludingMovingBlock(2); };
 	defaultRun().etcsMa = {failure("signal_failure:incident.test")};
 	Train leader = standing(1999.9999);
 	Train follower = standing(999.9999);
@@ -5601,12 +5601,12 @@ void TestOperationsBuilder::singleTrackLocks() {
 		const double previousSpeed = holder.instant_train_speed[step - 1];
 		const double deceleration = holder.max_train_decelaration
 			+ holder.total_train_resistances(previousSpeed, 0.0, 0.0) / (holder.total_train_mass * holder.massFactor);
-		holder.trajectoryComputationIncludingMovingBlock(step, signalCode1, signalCode2, signalCode3);
+		holder.trajectoryComputationIncludingMovingBlock(step);
 		largestSpeedDrop = std::max(largestSpeedDrop, previousSpeed - holder.instant_train_speed[step]);
 		safeApproach &= holder.instant_train_speed[step - 1] == previousSpeed
 			&& previousSpeed - holder.instant_train_speed[step] <= deceleration * timestep + 1e-9
 			&& holder.instant_spatial_position[step] >= previousHead;
-		defaultRun().trains[1].trajectoryComputationIncludingMovingBlock(step, signalCode1, signalCode2, signalCode3);
+		defaultRun().trains[1].trajectoryComputationIncludingMovingBlock(step);
 		waiterHeld &= !defaultRun().trains[1].CanEnter;
 		signalStep(step);
 		const double head = holder.instant_spatial_position[step];

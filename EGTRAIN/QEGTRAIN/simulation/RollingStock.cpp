@@ -107,7 +107,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 	const InitialParameters& settings = run_->settings;
 
 	// define parameters delta 1, delta 2 and delta 3
-	double delta1 = 0, delta2 = 0, delta3 = 0;
+	double delta1 = 0, delta3 = 0;
 	// delta1 measures the congestion at the platform if the platform occupancy rate is higher than the platform crowding threshold (0.65 by default) than delta1=1
 	if (PlatformOccupancyRate > settings.passengerPlatformCrowdingThreshold)
 		delta1 = 1;
@@ -428,7 +428,7 @@ void updateSingleTrackLocks(SimulationRun& run, int step) {
 }
 
 // Function to Print out the blocking times of all the Trains
-void PrintTimetablePoints(SimulationRun& run, string MainFolder) {
+void PrintTimetablePoints(SimulationRun& run, const string& MainFolder) {
 	string FileName;
 	FileName = FileName + MainFolder + "/TimetablePoints.txt";
 	ofstream OutputFile = openRunOutputFile(FileName, ios::binary);
@@ -477,7 +477,7 @@ void PrintTimetablePoints(SimulationRun& run, string MainFolder) {
 }
 
 // Function to Print out the blocking times of all the Trains
-void PrintTrainBlockingTimes(SimulationRun& run, string MainFolder) {
+void PrintTrainBlockingTimes(SimulationRun& run, const string& MainFolder) {
 	string FileName;
 	FileName = FileName + MainFolder + "/BlockingTimes.txt";
 	ofstream OutputFile = openRunOutputFile(FileName, ios::binary);
@@ -564,7 +564,7 @@ void Train::checkTrainArrDep(int t) {
 }
 
 // print train service path diagram (append to file)
-void Train::printTrainServicePathDiagram(std::string FolderName, int nextServiceRouteID) {
+void Train::printTrainServicePathDiagram(const std::string& FolderName, int nextServiceRouteID) {
 	std::string FileName = FolderName + "/TrainServicePathDiagram.txt";
 
 	// avoid different corridor for initial service (entering station for the first time)

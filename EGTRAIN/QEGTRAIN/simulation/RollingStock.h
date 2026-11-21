@@ -783,9 +783,6 @@ public:
 	/// Does nothing.
 	virtual ~Train() {}
 
-	/// ID of the track detection section of Bs under the head at step timeinstant; empty when there is none.
-	std::string DetermineOccupiedTDS(int timeinstant, bool IsRouteReversed);
-
 	/// Adds incidentId to directIncidentIds, and records time in seconds and location in metres when it is the first.
 	void recordDirectIncidentId(const std::string& incidentId, double timeSeconds,
 		double locationMeters);
@@ -801,10 +798,9 @@ public:
 	/// is recorded as a direct incident.
 	double effectiveIncidentSpeedLimit(double candidate, int timestepIndex);
 
-	/// Computes step time_seconds of the train from step time_seconds - 1; stepBranch labels the branch taken. signalCode1,
-	/// signalCode2 and signalCode3 are not read. It first moves the target that the call before kept (currentXob and currentVob) to
+	/// Computes step time_seconds of the train from step time_seconds - 1; stepBranch labels the branch taken. It first moves the target that the call before kept (currentXob and currentVob) to
 	/// previousXob and previousVob, so each call is for the step after that of the call before.
-	void trajectoryComputationIncludingMovingBlock(int time_seconds, double signalCode1, double signalCode2, double signalCode3);
+	void trajectoryComputationIncludingMovingBlock(int time_seconds);
 
 	/// Finds where the head of the train was at the end of step time_seconds - 1: Bs and its index BsIndex on the route, and As and
 	/// its index AsIndex in Bs, which keep their values when nothing is found. Sets instant_block_section_occupied[time_seconds] to
@@ -938,7 +934,7 @@ public:
 	/// direction, corridor and its head position (m, original coordinates) in every step, empty where it does not run.
 	/// nextServiceRouteID is a route index or -1. Throws std::runtime_error when the file cannot be written
 	/// (simulation/RunOutputFile.h).
-	void printTrainServicePathDiagram(std::string FolderName, int nextServiceRouteID);
+	void printTrainServicePathDiagram(const std::string& FolderName, int nextServiceRouteID);
 
 	/// The geographic position (km) in step t of the head, or of the point wagon * train_length / (number_of_wagons + 1) behind it;
 	/// -1 when it is on no section of the route. Works on routes that cross regions.
@@ -987,12 +983,12 @@ void ReportAllTrainPositionsToRBC(SimulationRun& run, int i, double ETCS3SafetyM
 
 /// Writes MainFolder/BlockingTimes.txt: per train, its description and its first N_BlockTimeComplete blocking times (positions m,
 /// times s). Throws std::runtime_error when the file cannot be written (simulation/RunOutputFile.h).
-void PrintTrainBlockingTimes(SimulationRun& run, std::string MainFolder);
+void PrintTrainBlockingTimes(SimulationRun& run, const std::string& MainFolder);
 
 /// Writes MainFolder/TimetablePoints.txt: for each train its description and type, then rows of the location names, the positions
 /// (twice), the arrival times and the departure times of its timetable points. Throws std::runtime_error when the file cannot
 /// be written (simulation/RunOutputFile.h).
-void PrintTimetablePoints(SimulationRun& run, std::string MainFolder);
+void PrintTimetablePoints(SimulationRun& run, const std::string& MainFolder);
 
 /// Computes the blocking times of every train (Train::ComputeBlockingTimesInMixedSignallingAreas, same arguments) and writes
 /// BlockingTimes.txt to OutputFolder.

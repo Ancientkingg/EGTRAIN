@@ -229,7 +229,7 @@ bool Train::standsOverAtEntry(double position) const {
 void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsoluteRTSupplement, double PercentRTSupplement) {
 
 	list<BlockingTimes> LocationList, FinalLocationList; // LocationList is a temporary List where we collect all the ETCS Level 3 locations belonging to the current Block Section
-	int N_LocationList = 0, N_FinalLocationList = 0;	 // Final LocationList instead collects all those locations of LocationList that are not present in the BlockTime of this train (that is why those locations that actually need to be added)
+	int N_LocationList = 0;								 // Final LocationList instead collects all those locations of LocationList that are not present in the BlockTime of this train (that is why those locations that actually need to be added)
 
 	if (run_->infra.routes[this->indexOfRoute].InfrastructureElements.size() > 0) {
 
@@ -306,7 +306,6 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 			// Only if the element y is not already in the BlockTime List of this train then add it to the FinalLocationList
 			if (IsAlreadyInBlockTime == 0) {
 				FinalLocationList.push_back(*y);
-				N_FinalLocationList++;
 			}
 		}
 
@@ -444,7 +443,7 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int IndexCurrentBS, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsoluteRTSupplement, double PercentRTSupplement) {
 
 	list<BlockingTimes> LocationList, FinalLocationList; // LocationList is a temporary List where we collect all the ETCS Level 3 locations belonging to the current Block Section
-	int N_LocationList = 0, N_FinalLocationList = 0;	 // Final LocationList instead collects all those locations of LocationList that are not present in the BlockTime of this train (that is why those locations that actually need to be added)
+	int N_LocationList = 0;								 // Final LocationList instead collects all those locations of LocationList that are not present in the BlockTime of this train (that is why those locations that actually need to be added)
 
 	if (run_->infra.routes[this->indexOfRoute].InfrastructureElements.size() > 0) {
 
@@ -543,7 +542,6 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 			// Only if the element y is not already in the BlockTime List of this train then add it to the FinalLocationList
 			if (IsAlreadyInBlockTime == 0) {
 				FinalLocationList.push_back(*y);
-				N_FinalLocationList++;
 			}
 		}
 

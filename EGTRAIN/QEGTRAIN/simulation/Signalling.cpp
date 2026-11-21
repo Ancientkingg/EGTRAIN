@@ -747,7 +747,7 @@ void setAllConnections(SimulationRun& run) {
 }
 
 // This function create a list of section which have the string "input" in their ID
-void setList(SimulationRun& run, string input, list<Section>& BSConnected) {
+void setList(SimulationRun& run, const string& input, list<Section>& BSConnected) {
 	for (int i = 0; i < run.infra.numBlocks; i++) {
 		if (run.infra.sections[i].ID.find(input, 0) != -1) {
 			BSConnected.push_back(run.infra.sections[i]);
@@ -1471,7 +1471,7 @@ void Route::setListInfrastructureElementsForRoute(const Section& BS) {
 			for (list<InfraElement>::iterator h = this->InfrastructureElements.begin(); h != this->InfrastructureElements.end(); h++) {
 				if ((y->IsSwitch == 1) && (y->withSwitchDiv == 1)) { // if y in the list of TEMP Elem is a diverging switch
 																	 // IsAlready There becomes true only if two switches have the same ID, switch name, geopositionX and if they are connected to the same switch edge. In case even one of this conditions is not true then the Node shall be included
-					if ((y->ID == h->ID) && (y->SwitchName == h->SwitchName) && (y->ConnectedPoint == h->ConnectedPoint) && (y->GeoXCoord == y->GeoXCoord)) {
+					if ((y->ID == h->ID) && (y->SwitchName == h->SwitchName) && (y->ConnectedPoint == h->ConnectedPoint) && (y->GeoXCoord == h->GeoXCoord)) {
 						IsAlreadyInRouteInfaElem = true;
 						break;
 					}
@@ -1785,8 +1785,6 @@ void occupyDoubleSwitch(SimulationRun& run, const Section& BLS, const Section& B
 			int NumBlocksToFind = BLS.N_ConnectedBS + 1;
 			// The section and the sections connected to it, to add to BlocksOccupied
 			std::vector<string> IDToAdd(NumBlocksToFind);
-			string IDToFree[20];
-			bool IsInBlocksConnected[20]; // These variables are relative to the signalling_block_sections connected to the BLSPrev that have to be freed
 			IDToAdd[0] = BLS.ID;
 			for (int i = 1; i < NumBlocksToFind; i++) {
 				IDToAdd[i] = BLS.IDConnectedBS[i - 1];
@@ -1848,8 +1846,6 @@ void occupyDoubleSwitch(SimulationRun& run, const Section& BLS, const Section& B
 				int NumBlocksToFind = BLS.N_ConnectedBS + 1;
 				// The section and the sections connected to it, to add to BlocksOccupied
 				std::vector<string> IDToAdd(NumBlocksToFind);
-				string IDToFree[20];
-				bool IsInBlocksConnected[20]; // These variables are relative to the signalling_block_sections connected to the BLSPrev that have to be freed
 				IDToAdd[0] = BLS.ID;
 				for (int i = 1; i < NumBlocksToFind; i++) {
 					IDToAdd[i] = BLS.IDConnectedBS[i - 1];
@@ -2036,7 +2032,7 @@ void activateBlocksWithSwitchesDiv(SimulationRun& run, const Section& BS, int Tr
 }
 
 // Function to Activate blocks connected with block sections having switches in diverging position
-void activateBlocksWithSwitchesDivFixedBlock(SimulationRun& run, const Section& BS, int TrackLineIDPrevBS, double S) {
+void activateBlocksWithSwitchesDivFixedBlock(SimulationRun& run, const Section& BS, int TrackLineIDPrevBS) {
 	ConnectedSectionIdentity identity;
 	if (!parseConnectedSectionIdentity(BS.ID, identity))
 		return;
@@ -2820,7 +2816,7 @@ void releaseMixedSignallingSystem(SimulationRun& run) {
 }
 
 // Function to Release the last block section in mixed signalling
-void relLastSectionMixedSignalling(SimulationRun& run, string blockID) {
+void relLastSectionMixedSignalling(SimulationRun& run, const string& blockID) {
 	// check all routes
 	for (int r = 0; r < run.infra.numRoutes; r++) {
 		for (int b = 0; b < run.infra.routes[r].N_Block_Sections; b++) {

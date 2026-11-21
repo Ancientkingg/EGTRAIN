@@ -371,7 +371,7 @@ void TestSceneBuilder::derivesSwitchSectionFromStableIds() {
 	creatorNamedSwitch.SecondConnectedTrackLineID = 1;
 	defaultRun().blocksOccupied.clear();
 	defaultRun().blocksConnected.clear();
-	activateBlocksWithSwitchesDivFixedBlock(defaultRun(), creatorNamedSwitch, 0, -1.0);
+	activateBlocksWithSwitchesDivFixedBlock(defaultRun(), creatorNamedSwitch, 0);
 	// Switch occupation preserves creator section IDs containing hyphens and wrapper characters.
 	QCOMPARE(creatorNamedSwitch.ID, "@creator@main-block@-1.000000/@creator-yard@block@-2.000000");
 	QVERIFY(std::find(defaultRun().blocksOccupied.begin(), defaultRun().blocksOccupied.end(), "@creator@main-block@")
