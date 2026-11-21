@@ -115,6 +115,7 @@ private slots:
 	void minimalFixtureExportFails();
 	void keepsSlashBlockReference();
 	void warnsAboutUnitPassengerCapacity();
+	void warnsAboutPassengerDwellSettings();
 	void keepsSwitchTransitions();
 	void leavesOutServiceColour();
 	void numbersNonAsciiRouteIds();
@@ -180,6 +181,40 @@ void TestSceneExporter::warnsAboutUnitPassengerCapacity() {
 	QVERIFY(std::any_of(res.diagnostics.begin(), res.diagnostics.end(), [](const SceneDiagnostic& d) {
 		return d.severity == SceneSeverity::Warning && d.code == "scene.export.compatibility" && d.file == "rolling_stock.json";
 	}));
+}
+
+// The legacy input cannot hold the passenger settings of scene.json: the export leaves them out with one warning on
+// scene.json and still succeeds.
+void TestSceneExporter::warnsAboutPassengerDwellSettings() {
+	// Exports a scene with `settings` as its simulation_settings and counts the compatibility warnings on scene.json.
+	const auto warningCount = [](const std::string& settings) {
+		TempDir sceneDir, outDir;
+		fs::path scene(sceneDir.dir);
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Settings","simulation_settings":)" << settings << "}\n";
+		std::ofstream(scene / "infrastructure.json") << R"({"nodes":[],"arcs":[]})" << "\n";
+		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"Station","platforms":[]}]})" << "\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":["b1"]}]})" << "\n";
+		std::ofstream(scene / "rolling_stock.json")
+			<< R"({"train_units":[{"id":"unit","physical":{"mass_of_traction_unit_kg":1,"mass_of_a_wagon_kg":1,"number_of_wagons":0,"max_speed_ms":1,"max_deceleration_ms2":1,"frontal_area_m2":1,"resistance_coefficient":1,"jerk_ms3":1,"length_m":1},"traction_curve":[[0,1,1,0,0]]}],"compositions":[{"id":"comp","units":["unit"]}]})"
+			<< "\n";
+		std::ofstream(scene / "services.json")
+			<< R"({"services":[{"id":"svc","composition":"comp","route":"route0","through":true,"entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})"
+			<< "\n";
+		const SceneExportResult res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		return res.success() ? std::count_if(res.diagnostics.begin(), res.diagnostics.end(), [](const SceneDiagnostic& d) {
+			return d.severity == SceneSeverity::Warning && d.code == "scene.export.compatibility" && d.file == "scene.json";
+		})
+							 : -1;
+	};
+	QCOMPARE(warningCount("{}"), 0);
+	QCOMPARE(warningCount(R"({"passenger_max_transfers":2})"), 0);
+	QCOMPARE(warningCount(R"({"passenger_max_transfers":3})"), 1);
+	QCOMPARE(warningCount(R"({"passenger_dwell_coefficients":[7,0.32,18.23,0.564,4.838,22.24,0.04,0.562]})"), 1);
+	QCOMPARE(warningCount(R"({"passenger_platform_crowding_threshold":0.5})"), 1);
+	QCOMPARE(warningCount(R"({"passenger_onboard_crowding_threshold":0.5})"), 1);
+	QCOMPARE(warningCount(R"({"passenger_car_boarding_threshold":10})"), 1);
+	// Several settings still give one warning.
+	QCOMPARE(warningCount(R"({"passenger_max_transfers":3,"passenger_car_boarding_threshold":10})"), 1);
 }
 
 // Legacy export preserves a slash-containing stored route token as one block reference.

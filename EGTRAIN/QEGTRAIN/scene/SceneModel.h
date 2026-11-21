@@ -384,6 +384,14 @@ struct ScenePassengerDemandCell {
 	int count = 0;					  ///< Number of passengers; at least 1.
 };
 
+/// The seconds since midnight of a base time written as HH:MM:SS, from 00:00:00 to 23:59:59, or nothing for any other
+/// text.
+std::optional<int> sceneBaseTimeSeconds(const std::string& text);
+
+/// The largest value of a train unit's passenger_capacity, the limit of the editor field. It keeps the capacity of a
+/// composition inside an int.
+inline constexpr int kMaxPassengerCapacity = 100000;
+
 /// The most passengers that the demand slices of a scene may hold together; staging makes one passenger each.
 inline constexpr long long kMaxScenePassengerDemand = 1000000;
 

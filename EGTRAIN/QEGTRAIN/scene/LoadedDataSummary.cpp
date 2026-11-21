@@ -1,5 +1,7 @@
 #include "scene/LoadedDataSummary.h"
 
+#include <algorithm>
+#include <limits>
 #include <utility>
 
 namespace {
@@ -235,6 +237,15 @@ std::vector<SceneLoadedData> buildLoadedDataSummary(const SceneModel& scene, con
 	addChild("entrance_delays", scenarioSource, entranceDelayCount, scenariosStatus);
 
 	add("passengers", "passengers.json", static_cast<int>(scene.passengers.size()), true);
+	const SceneLoadedStatus passengersStatus = rows.back().status;
+	long long demandPassengers = 0;
+	for (const auto& slice : scene.passengerDemand) {
+		for (const auto& cell : slice.cells)
+			demandPassengers += std::max(cell.count, 0);
+	}
+	addChild("demand_slices", "passengers.json", static_cast<int>(scene.passengerDemand.size()), passengersStatus);
+	addChild("demand_passengers", "passengers.json",
+		static_cast<int>(std::min<long long>(demandPassengers, std::numeric_limits<int>::max())), passengersStatus);
 
 	addValidationRows(rows, diagnostics);
 	return rows;

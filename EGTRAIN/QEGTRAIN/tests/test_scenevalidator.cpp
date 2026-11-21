@@ -3,6 +3,7 @@
 #include "scene/SceneValidator.h"
 #include "scene/SignallingLevel.h"
 #include "scene/RuntimeLimits.h"
+#include "scene/PassengerDwellModel.h"
 #include "scene/SceneFields.h"
 #include "scene/SceneWriter.h"
 
@@ -574,6 +575,7 @@ private slots:
 	void rejectsNonFinitePassengerWindow();
 	void limitsPassengerTransfers();
 	void checksPassengerDwellSettings();
+	void limitsPassengerCapacity();
 	void legDestinationIsStopOfService();
 	void rejectsReversePassengerLeg();
 	void acceptsJourneyWithoutLegs();
@@ -1139,6 +1141,15 @@ void TestSceneValidator::checksPassengerDwellSettings() {
 	negative.settings.passengerDwellCoefficients = std::vector<double>{7.0, -0.32, 18.23, 0.564, 4.838, 22.24, 0.04, 0.562};
 	QVERIFY2(hasCodeAndPath(validateScene(negative), "scene.passenger.dwell.coefficients.invalid", coefficientsPath),
 		"a negative coefficient is rejected");
+	SceneModel atLimit = completeScene();
+	atLimit.settings.passengerDwellCoefficients = std::vector<double>(8, kMaxPassengerDwellCoefficient);
+	QVERIFY2(!hasCodeAndPath(validateScene(atLimit), "scene.passenger.dwell.coefficients.invalid", coefficientsPath),
+		"a coefficient at the limit is allowed");
+	SceneModel overLimit = completeScene();
+	overLimit.settings.passengerDwellCoefficients = std::vector<double>(8, 1.0);
+	(*overLimit.settings.passengerDwellCoefficients)[3] = std::nextafter(kMaxPassengerDwellCoefficient, 1e300);
+	QVERIFY2(hasCodeAndPath(validateScene(overLimit), "scene.passenger.dwell.coefficients.invalid", coefficientsPath),
+		"a coefficient above the limit is rejected");
 	SceneModel tooHigh = completeScene();
 	tooHigh.settings.passengerPlatformCrowdingThreshold = 1.5;
 	QVERIFY2(hasCodeAndPath(validateScene(tooHigh), thresholdCode, "simulation_settings.passenger_platform_crowding_threshold"),
@@ -1147,6 +1158,20 @@ void TestSceneValidator::checksPassengerDwellSettings() {
 	negativeCar.settings.passengerCarBoardingThreshold = -1;
 	QVERIFY2(hasCodeAndPath(validateScene(negativeCar), thresholdCode, "simulation_settings.passenger_car_boarding_threshold"),
 		"a negative car threshold is rejected");
+}
+
+void TestSceneValidator::limitsPassengerCapacity() {
+	const auto capacityErrors = [](int capacity) {
+		SceneModel scene = completeScene();
+		scene.trainUnits[0].hasPassengerCapacity = true;
+		scene.trainUnits[0].passengerCapacity = capacity;
+		return hasCodeAndPath(validateScene(scene), "scene.train.capacity", "train_units[0].passenger_capacity");
+	};
+	QVERIFY2(!capacityErrors(0), "a capacity of 0 is allowed");
+	QVERIFY2(!capacityErrors(kMaxPassengerCapacity), "the largest capacity is allowed");
+	QVERIFY2(capacityErrors(-1), "a negative capacity is rejected");
+	QVERIFY2(capacityErrors(kMaxPassengerCapacity + 1), "a capacity above the limit is rejected");
+	QVERIFY2(capacityErrors(std::numeric_limits<int>::max()), "the largest int is rejected");
 }
 
 void TestSceneValidator::legDestinationIsStopOfService() {

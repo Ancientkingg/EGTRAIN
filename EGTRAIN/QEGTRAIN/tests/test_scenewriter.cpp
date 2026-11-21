@@ -743,6 +743,7 @@ private slots:
 	void missingAppVersionIsValid();
 	void summarisesLoadedData();
 	void summarisesLoadedDataStatuses();
+	void summarisesPassengerDemand();
 	void savesBaselineScenarioWithoutScenarios();
 	void readsHistoricalAliases();
 	void insertsStopIntoCommittedService();
@@ -1599,6 +1600,31 @@ void TestSceneWriter::summarisesLoadedData() {
 	QCOMPARE(rolling->status, SceneLoadedStatus::Warning);
 	QVERIFY(!rolling->children.empty());
 	QCOMPARE(rolling->children.back().status, SceneLoadedStatus::Warning);
+}
+
+// A scene with demand slices and no passengers shows the slices and the passengers that they hold.
+void TestSceneWriter::summarisesPassengerDemand() {
+	SceneModel scene;
+	scene.schemaVersion = 1;
+	scene.sourceFiles = {"scene.json", "passengers.json"};
+	scene.passengerDemand = {{"morning", 28800.0, 32400.0, {{"a", "b", 75}, {"b", "a", 37}}}, {"evening", 61200.0, 64800.0, {{"a", "b", 3}}}};
+	const std::vector<SceneLoadedData> summary = buildLoadedDataSummary(scene, scene.sourceFiles, {});
+	const auto passengers = std::find_if(summary.begin(), summary.end(), [](const SceneLoadedData& row) { return row.category == "passengers"; });
+	QVERIFY(passengers != summary.end());
+	QCOMPARE(passengers->parsedCount, 0);
+	const auto child = [passengers](const std::string& category) -> const SceneLoadedData* {
+		for (const SceneLoadedData& item : passengers->children)
+			if (item.category == category)
+				return &item;
+		return nullptr;
+	};
+	const SceneLoadedData* slices = child("demand_slices");
+	const SceneLoadedData* counted = child("demand_passengers");
+	QVERIFY(slices != nullptr && counted != nullptr);
+	QCOMPARE(slices->parsedCount, 2);
+	QCOMPARE(slices->sourceFile, std::string("passengers.json"));
+	QCOMPARE(slices->status, SceneLoadedStatus::Parsed);
+	QCOMPARE(counted->parsedCount, 115);
 }
 
 // The Loaded Data summary of a small scene without passengers.json and with one warning gives each row its status.
