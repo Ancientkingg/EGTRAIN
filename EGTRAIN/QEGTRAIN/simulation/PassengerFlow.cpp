@@ -547,20 +547,15 @@ StopCallCounts* currentCall(SimulationRun& run, int train) {
 	return nullptr;
 }
 
-// The boarding procedure follows the order at which passengers arrived at the platform. The platform occupation rate, the pax
-// of the current platform plus those just alighted from the train, is returned in occupationRate.
-int boardPassengers(PassengerFlow& flow, SimulationRun& run, Train& T, int t, int SimulationStartingTime,
-	int N_AlightPax, double& occupationRate, StopCallCounts* counts) {
+// The boarding procedure follows the order at which passengers arrived at the platform where the train stops.
+int boardPassengers(PassengerFlow& flow, SimulationRun& run, Train& T, const StationPlatform& stop, int t, int SimulationStartingTime,
+	StopCallCounts* counts) {
 	int N_BoardedPax = 0;
-	const StationPlatform* PlatformIt = platformOfStop(run, T);
-	if (PlatformIt == nullptr)
-		return N_BoardedPax;
 	const int now = t + SimulationStartingTime;
 	const int call = T.serviceStopOf(T.CurrentServiceStop);
 	// The passengers waiting for this train are taken from the flow, with or without the passenger GUI, and the platform is
 	// not modified.
-	occupationRate = passengerOccupancyRatio(flow.waitingCount(PlatformIt->StationID, PlatformIt->ID) + N_AlightPax, PlatformIt->Max_Passenger_Volume);
-	const int platform = flow.platformNumber(PlatformIt->StationID, PlatformIt->ID);
+	const int platform = flow.platformNumber(stop.StationID, stop.ID);
 	const int train = flow.trainNumber(T.trainDescription);
 	flow.beginCall(platform, train, call);
 	std::optional<PassengerFlow::Waiter> last;
@@ -602,9 +597,13 @@ void interactAtServiceStop(PassengerFlow& flow, SimulationRun& run, int t, int S
 	if (T.StoppedForServiceStop != 1)
 		return;
 	StopCallCounts* counts = currentCall(run, train);
+	const StationPlatform* stop = platformOfStop(run, T);
+	// The occupation rate of the platform counts the passengers who waited there before the train let anyone off and those who
+	// alight. A passenger who alights and waits there for another train is among the second and not among the first.
+	const int waitingBefore = stop != nullptr ? flow.waitingCount(stop->StationID, stop->ID) : 0;
 	const int N_AlightPax = alightPassengers(flow, run, T, t, SimulationStartingTime);
-	double CurrentPlatformOccupationRate = 0; // Occupation rate of the platform where the train is stopping at
-	const int N_BoardedPax = boardPassengers(flow, run, T, t, SimulationStartingTime, N_AlightPax, CurrentPlatformOccupationRate, counts);
+	const double CurrentPlatformOccupationRate = stop != nullptr ? passengerOccupancyRatio(waitingBefore + N_AlightPax, stop->Max_Passenger_Volume) : 0.0;
+	const int N_BoardedPax = stop != nullptr ? boardPassengers(flow, run, T, *stop, t, SimulationStartingTime, counts) : 0;
 	if (counts != nullptr) {
 		counts->alighted += N_AlightPax;
 		counts->boarded += N_BoardedPax;

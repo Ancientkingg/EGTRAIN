@@ -60,7 +60,10 @@ Optional keys:
   (default 0.65) and `passenger_onboard_crowding_threshold` (default 0.7) are
   occupancy rates from 0 to 1, and `passenger_car_boarding_threshold` (default
   15) is a whole number of boarding passengers per car, 0 or more. Each
-  crowding flag applies when the value is above its threshold. The legacy
+  crowding flag applies when the value is above its threshold. The occupancy
+  rate of a platform counts the passengers who waited there before the train
+  let anyone off and those who alight, each once, against the capacity of the
+  platform. The legacy
   export cannot hold `passenger_max_transfers` or the four dwell keys, so it
   leaves them out with a warning and a legacy run uses the built-in values.
 - `import_report`: array of conversion rows.
