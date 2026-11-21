@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Runs clang-tidy on the EGTRAIN C++ sources outside simulation/ and lists the findings.
+"""Runs clang-tidy on the EGTRAIN C++ sources and lists the findings.
 
   python3 tools/tidy.py                        analyse every source of the modules
   python3 tools/tidy.py --changed-from REV     analyse the sources changed since REV, and the sources that include a changed header
@@ -26,8 +26,8 @@ from pathlib import Path
 CLANG_TIDY_VERSION = "23.1"
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_ROOT = "EGTRAIN/QEGTRAIN"
-# The modules that are analysed. simulation/ is legacy code and waits for its own cleanup, and io/third_party is vendored.
-MODULES = ("app", "diagrams", "editors", "graphics", "io", "recovery", "scene", "telemetry", "tests", "update", "util", "widgets")
+# The modules that are analysed. io/third_party is vendored.
+MODULES = ("app", "diagrams", "editors", "graphics", "io", "recovery", "scene", "simulation", "telemetry", "tests", "update", "util", "widgets")
 VENDORED = SOURCE_ROOT + "/io/third_party/"
 HEADER_SUFFIXES = (".h", ".hpp")
 # A change to one of these files can change the findings of any source. So can a change to a form or resource file, which
@@ -151,7 +151,7 @@ def analyse(clang_tidy: str, build_dir: Path, name: str, extra: list) -> tuple:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run clang-tidy on the C++ sources outside simulation/.")
+    parser = argparse.ArgumentParser(description="Run clang-tidy on the C++ sources.")
     parser.add_argument("files", nargs="*", help="analyse these sources only")
     parser.add_argument("--changed-from", metavar="REV", help="analyse the sources changed since REV")
     parser.add_argument("--build-dir", default="build_tidy", help="build directory (default: build_tidy)")

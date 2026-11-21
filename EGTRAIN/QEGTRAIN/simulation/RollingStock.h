@@ -273,7 +273,7 @@ constexpr double kEndOfAuthorityMarginMetres = 50;
 /// The vectors such as instant_train_speed hold one sample per step and are indexed by the step t, which is seconds from
 /// the start of the run (see timestep). Positions on the route are metres, speeds m/s, forces N, power W and energy MJ.
 /// Arrays indexed by stop hold kMaxTimetableStations entries.
-class Train {
+class Train { // NOLINT(clang-analyzer-optin.performance.Padding): reordering the members is out of scope
 public:
 	/// The run that the train is part of, which the operations builder sets. The train does not own it.
 	SimulationRun* run_ = nullptr;
@@ -992,7 +992,7 @@ void PrintTimetablePoints(SimulationRun& run, const std::string& MainFolder);
 
 /// Computes the blocking times of every train (Train::ComputeBlockingTimesInMixedSignallingAreas, same arguments) and writes
 /// BlockingTimes.txt to OutputFolder.
-void ComputeBlockingTimesInMixedSignallingForAllTrains(SimulationRun& run, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, std::string OutputFolder, double AbsRTSupplement, double PercRTSupplement);
+void ComputeBlockingTimesInMixedSignallingForAllTrains(SimulationRun& run, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, const std::string& OutputFolder, double AbsRTSupplement, double PercRTSupplement);
 
 /// Lets every running train protect the station area ahead in step i: when the entrance of a station boundary is one or two sections
 /// ahead of its head, StationBoundarySection::protectEntrance runs for it. It does not run when the entrance is two sections ahead

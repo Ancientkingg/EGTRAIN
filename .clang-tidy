@@ -7,8 +7,8 @@
 #
 # Run `python3 tools/tidy.py`. It configures a build, runs clang-tidy 23.1 on the
 # sources of the modules listed in MODULES in that script, and fails on any finding.
-# The pull request checks run the same script on the changed sources. simulation/
-# is not analysed yet; the header filter below leaves its headers out too.
+# The pull request checks run the same script on the changed sources.
+# simulation/.clang-tidy switches off the checks that its legacy style cannot meet.
 #
 # The checks below apply to every analysed module. tests/.clang-tidy inherits them
 # and relaxes a few for the tests. Vendored code under EGTRAIN/QEGTRAIN/io/third_party/
@@ -62,7 +62,7 @@ Checks: >
 
 WarningsAsErrors: ''
 
-HeaderFilterRegex: 'EGTRAIN/QEGTRAIN/(app|diagrams|editors|graphics|graphics/items|io|recovery|scene|telemetry|tests/e2e|update|util|widgets)/[^/]+\.(h|hpp)$'
+HeaderFilterRegex: 'EGTRAIN/QEGTRAIN/(app|diagrams|editors|graphics|graphics/items|io|recovery|scene|simulation|telemetry|tests/e2e|update|util|widgets)/[^/]+\.(h|hpp)$'
 
 FormatStyle: file
 

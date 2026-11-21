@@ -165,7 +165,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 		for (list<int>::iterator BoardInCar = BoardingPassengersInACar.begin(); BoardInCar != BoardingPassengersInACar.end(); BoardInCar++) {
 			NumberGenerator& N = run_->numberGenerator;
 			// The number of people boarding from the first door is drawn according to a Gaussian with mean equal to the total number of passenger boarding from that car/2 and standard deviation being 20% of the mean.
-			int Nboarding_FirstDoorInACar = (int)N.getGaussianFloat((*BoardInCar / 2), (*BoardInCar / 2 * 0.20));
+			int Nboarding_FirstDoorInACar = (int)N.getGaussianFloat((*BoardInCar / 2), (*BoardInCar / 2 * 0.20)); // NOLINT(bugprone-integer-division): the door split divides as ints
 			int Nboarding_SecondDoorInACar = *BoardInCar - Nboarding_FirstDoorInACar;
 
 			BoardPaxFromDoor.push_back(Nboarding_FirstDoorInACar);
@@ -176,7 +176,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 		for (list<int>::iterator AlightFromCar = AlightingPassengersInACar.begin(); AlightFromCar != AlightingPassengersInACar.end(); AlightFromCar++) {
 			NumberGenerator& N = run_->numberGenerator;
 			// The number of people alighting from the first door is drawn according to a Gaussian with mean equal to the total number of passenger aligthing from that car/2 and standard deviation being 20% of the mean.
-			int NAlight_FirstDoorInACar = (int)N.getGaussianFloat((*AlightFromCar / 2), (*AlightFromCar / 2 * 0.20));
+			int NAlight_FirstDoorInACar = (int)N.getGaussianFloat((*AlightFromCar / 2), (*AlightFromCar / 2 * 0.20)); // NOLINT(bugprone-integer-division): the door split divides as ints
 			int NAlight_SecondDoorInACar = *AlightFromCar - NAlight_FirstDoorInACar;
 
 			AlightPaxFromDoor.push_back(NAlight_FirstDoorInACar);
@@ -237,7 +237,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 }
 
 // Function to compute Blocking Times of trains in mixed signalling areas
-void ComputeBlockingTimesInMixedSignallingForAllTrains(SimulationRun& run, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, string OutputFolder, double AbsRTSupplement, double PercRTSupplement) {
+void ComputeBlockingTimesInMixedSignallingForAllTrains(SimulationRun& run, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, const string& OutputFolder, double AbsRTSupplement, double PercRTSupplement) {
 	for (int i = 0; i < run.numTrains; i++) {
 
 		run.trains[i].ComputeBlockingTimesInMixedSignallingAreas(SetupTime, ReleaseTime, SightReacTime, SafetyMargin, AbsRTSupplement, PercRTSupplement);
@@ -401,7 +401,7 @@ void updateSingleTrackLocks(SimulationRun& run, int step) {
 	for (std::size_t l = 0; l < run.infra.singleTrackLimits.size(); ++l) {
 		int held = 0;
 		if (run.infra.singleTrackHeld[l] < 0 && backward[l] > 0)
-			held = -1;
+			held = -1; // NOLINT(bugprone-branch-clone): the branch order decides which direction wins
 		else if (forward[l] > 0)
 			held = 1;
 		else if (backward[l] > 0)
@@ -663,7 +663,7 @@ void protectStationAreas(SimulationRun& run, int i) {
 					continue;
 
 				// occupy station interlocking area
-				for (int s = 0; s < run.infra.stationBoundaries.size(); s++) {
+				for (int s = 0; s < static_cast<int>(run.infra.stationBoundaries.size()); s++) {
 					if (!run.infra.stationBoundaries[s].entrance)
 						continue;
 					bool stationAreaHandled = false;

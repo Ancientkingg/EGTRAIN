@@ -749,7 +749,7 @@ void setAllConnections(SimulationRun& run) {
 // This function create a list of section which have the string "input" in their ID
 void setList(SimulationRun& run, const string& input, list<Section>& BSConnected) {
 	for (int i = 0; i < run.infra.numBlocks; i++) {
-		if (run.infra.sections[i].ID.find(input, 0) != -1) {
+		if (run.infra.sections[i].ID.find(input, 0) != string::npos) {
 			BSConnected.push_back(run.infra.sections[i]);
 		}
 	}
@@ -759,7 +759,7 @@ void setList(SimulationRun& run, const string& input, list<Section>& BSConnected
 void setDependenciesBetweenBlocks(SimulationRun& run) {
 	for (int i = 0; i < run.infra.numBlocks; i++) {
 		auto& section = run.infra.sections[i];
-		const auto maxConnectedBlocks = std::size(section.IDConnectedBS);
+		const auto maxConnectedBlocks = static_cast<int>(std::size(section.IDConnectedBS));
 		auto addConnection = [&](const string& id) {
 			if (section.N_ConnectedBS >= maxConnectedBlocks) {
 				EG_LOG(SimSetup, Error) << "ERROR: Block section " << section.ID << " has more than "
@@ -2176,7 +2176,7 @@ void lockSwitchesOnAllConnectedSections(SimulationRun& run, double FrontEndPos, 
 		if (ListBlocksConnected.size() > 0) {
 			for (list<string>::iterator h = ListBlocksConnected.begin(); h != ListBlocksConnected.end(); h++) {
 				MovementAuthority MA1, MA2, MA3;
-				string ConnectedBlockName = *h;
+				const string& ConnectedBlockName = *h;
 				ConnectedSectionIdentity identity;
 				if (!parseConnectedSectionIdentity(ConnectedBlockName, identity))
 					continue;
@@ -3017,7 +3017,7 @@ void StationBoundarySection::protectEntrance(SimulationRun& run, int sectionInde
 		}
 
 		// block entrance if any signalling_block_sections ahead is occupied
-		for (int i = 0; i < sectionsAhead.size(); i++) {
+		for (int i = 0; i < static_cast<int>(sectionsAhead.size()); i++) {
 			for (auto occ = run.blocksOccupied.begin(); occ != run.blocksOccupied.end(); ++occ) {
 				if (sectionsAhead[i] == *occ) {
 					needToBlock = true;

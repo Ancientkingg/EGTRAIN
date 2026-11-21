@@ -35,7 +35,7 @@ double NumberGenerator::getUniformFloat(double inFirst,
 	int j = (int)iy / kNdiv;
 	iy = iv[j];
 	iv[j] = idum;
-	if ((lTmp = kAm * iy) > kRnmx)
+	if ((lTmp = kAm * iy) > kRnmx) // NOLINT(bugprone-assignment-in-if-condition): the generator keeps the product
 		lNumber = kRnmx;
 	else
 		lNumber = lTmp;

@@ -918,9 +918,7 @@ void nativeBuildBlockSections(SimulationRun& run, const InfrastructurePlan& plan
 			piece.endNode = nativeNodeAtArcCoordinate(sourceArc, endX);
 			piece.length = piece.endNode.X - piece.startNode.X;
 			piece.fs = piece.endNode.X * 1000.0;
-			if (nodes.empty())
-				nodes.push_back(piece.startNode);
-			else if (nodes.back().ID != piece.startNode.ID)
+			if (nodes.empty() || nodes.back().ID != piece.startNode.ID)
 				nodes.push_back(piece.startNode);
 			arcs.push_back(piece);
 			nodes.push_back(piece.endNode);
