@@ -5,6 +5,7 @@
 #include "simulation/PassengerRouting.h"
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <tuple>
 #include <unordered_map>
@@ -59,8 +60,10 @@ public:
 	void startJourney(SimulationRun& run, Passenger& passenger, int t);
 
 	/// After a passenger came to wait for a trip, such as after a transfer: plans again when the train of the trip cannot be
-	/// boarded any more. The caller registers the passenger with the flow afterwards.
-	void checkWaiting(SimulationRun& run, Passenger& passenger, int t);
+	/// boarded any more. For a passenger who has just alighted, alightedAtPlatform is the number of the platform of the
+	/// train that the passenger left (0 for a platform without a number), and the new plan starts there. The caller registers
+	/// the passenger with the flow afterwards.
+	void checkWaiting(SimulationRun& run, Passenger& passenger, int t, std::optional<int> alightedAtPlatform = std::nullopt);
 
 	/// The train was full: the passenger plans again from this station without the train. The caller registers the passenger
 	/// with the flow afterwards.
@@ -85,7 +88,7 @@ private:
 	bool callsAt(const SimulationRun& run, int train, const std::string& station, const std::string& platformId) const;
 	passenger_routing::Plan planFrom(const SimulationRun& run, const Journey& journey, const std::string& origin, int t, int readyAt, int platformNumber);
 	void planInto(SimulationRun& run, Passenger& passenger, Journey& journey, std::size_t keptTrips, int t, int readyAt, int platformNumber, bool isReplan);
-	void replanWaiting(SimulationRun& run, Passenger& passenger, int t);
+	void replanWaiting(SimulationRun& run, Passenger& passenger, int t, std::optional<int> alightedAtPlatform = std::nullopt);
 	void flushLeftStops(SimulationRun& run, PassengerFlow& flow, int train, int t);
 	void setDownEndedTrain(SimulationRun& run, PassengerFlow& flow, int train, int t);
 	void setDownEarly(SimulationRun& run, Passenger& passenger, const Train& train, int stop, int t);

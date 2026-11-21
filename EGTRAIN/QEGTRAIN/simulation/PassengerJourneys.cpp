@@ -274,23 +274,30 @@ void PassengerJourneys::planInto(SimulationRun& run, Passenger& passenger, Journ
 	waitForTrip(passenger, first, readyAt + walking);
 }
 
-void PassengerJourneys::replanWaiting(SimulationRun& run, Passenger& passenger, int t) {
+void PassengerJourneys::replanWaiting(SimulationRun& run, Passenger& passenger, int t, optional<int> alightedAtPlatform) {
 	Journey* journey = activeJourney(passenger);
 	if (journey == nullptr)
 		return;
 	const int now = t + run.settings.startingSimulationTime;
 	const size_t kept = tripsBefore(*journey, passenger.current_TripID);
 	int readyAt = now;
-	int platformNumber = 0;
+	int platformNumber = alightedAtPlatform.value_or(0);
 	if (kept < journey->Trips.size()) {
 		const Trip& given = *next(journey->Trips.begin(), static_cast<ptrdiff_t>(kept));
-		if (given.IsTripStarted && given.Actual_Departure_Time > 0) {
-			// The time spent waiting for the train that is given up still counts as waiting.
-			if (now > given.Actual_Departure_Time)
-				journey->Waitingtime += now - given.Actual_Departure_Time;
-			// A passenger still walking to the platform cannot leave before getting there.
-			readyAt = max(now, given.Actual_Departure_Time);
-			platformNumber = given.depPlatformNumber;
+		// Second 0 of the day is a time; a trip that nothing has started has -9999.
+		if (given.IsTripStarted && given.Actual_Departure_Time >= 0) {
+			if (alightedAtPlatform) {
+				// The passenger has just alighted and has not set off for the platform of the train that is given up, so the
+				// walk there that the transfer counted is not made: the plan starts now, on the platform of the arrival.
+				journey->Walkingtime -= max(0, given.Actual_Departure_Time - now);
+			} else {
+				// The time spent waiting for the train that is given up still counts as waiting.
+				if (now > given.Actual_Departure_Time)
+					journey->Waitingtime += now - given.Actual_Departure_Time;
+				// A passenger still walking to the platform cannot leave before getting there.
+				readyAt = max(now, given.Actual_Departure_Time);
+				platformNumber = given.depPlatformNumber;
+			}
 		}
 	}
 	planInto(run, passenger, *journey, kept, t, readyAt, platformNumber, true);
@@ -311,7 +318,7 @@ void PassengerJourneys::startJourney(SimulationRun& run, Passenger& passenger, i
 	}
 }
 
-void PassengerJourneys::checkWaiting(SimulationRun& run, Passenger& passenger, int t) {
+void PassengerJourneys::checkWaiting(SimulationRun& run, Passenger& passenger, int t, optional<int> alightedAtPlatform) {
 	if (!ensureBuilt(run) || !passenger.IsIntheNetwork || passenger.CurrentStatus != PassengerStatus::OnPlatform)
 		return;
 	const Journey* journey = activeJourney(passenger);
@@ -326,7 +333,7 @@ void PassengerJourneys::checkWaiting(SimulationRun& run, Passenger& passenger, i
 		return;
 	ensureStates(run, t);
 	if (!callsAt(run, train, passenger.Current_WaitingStationID, passenger.Current_WaitingStationPlatformID))
-		replanWaiting(run, passenger, t);
+		replanWaiting(run, passenger, t, alightedAtPlatform);
 }
 
 void PassengerJourneys::replanRefused(SimulationRun& run, Passenger& passenger, const Train& full, int t) {

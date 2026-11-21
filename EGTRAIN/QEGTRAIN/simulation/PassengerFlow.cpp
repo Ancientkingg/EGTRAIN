@@ -524,9 +524,9 @@ int alightPassengers(PassengerFlow& flow, SimulationRun& run, Train& T, int t, i
 	for (const int position : alighting) {
 		T.Current_OnBoard_Passengers--; // the passenger leaves the train
 		alightPassenger(flow.passenger(position), T, t, SimulationStartingTime);
-		// A passenger who transfers plans again when the train of the next trip is already gone.
+		// A passenger who transfers plans again when the train of the next trip is already gone, from the platform of this train.
 		if (journeys != nullptr)
-			journeys->checkWaiting(run, flow.passenger(position), t);
+			journeys->checkWaiting(run, flow.passenger(position), t, T.currentServiceStopPlatformNumber);
 		flow.alighted(position);
 	}
 	return static_cast<int>(alighting.size());
