@@ -1087,7 +1087,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		bool targeted = false;
 		for (const auto& scenario : scene.scenarios)
 			for (const auto& incident : scenario.incidents)
-				if (incident.type == "signal_failure" && incident.target == signal.id)
+				if (incident.type == IncidentType::SignalFailure && incident.target == signal.id)
 					targeted = true;
 		if (signal.protectedSection.empty()) {
 			if (targeted)
@@ -1582,7 +1582,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			if (!incidentIds.insert(incident.id).second)
 				diagnostics.error("scene.id.duplicate", "Duplicate incident ID", "scenarios.json", "incident",
 					incident.id, path + ".id", incident.id);
-			if (incident.type == "signal_failure") {
+			if (incident.type == IncidentType::SignalFailure) {
 				const bool signalTarget = hasId(signalIds, incident.target);
 				const SceneSectionDescriptor* directSection = sectionInventory.resolve(incident.target);
 				if (signalTarget && directSection != nullptr) {
@@ -1604,7 +1604,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 						"Signal failure refers to unknown signal or block", "scenarios.json", "incident", incident.id,
 						path + ".target");
 				}
-			} else if (incident.type == "train_breakdown") {
+			} else if (incident.type == IncidentType::TrainBreakdown) {
 				if (!hasId(serviceIds, incident.target))
 					diagnostics.unresolved(incident.target, "Incident " + incident.id, "target",
 						"Train breakdown refers to unknown service", "scenarios.json", "incident", incident.id,
@@ -1626,15 +1626,11 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				if (!hasReducedSpeed && !hasEnd)
 					diagnostics.error("scene.incident.window", "A breakdown without a reduced speed needs an end time",
 						"scenarios.json", "incident", incident.id, path + ".end_seconds");
-			} else {
-				diagnostics.error("scene.incident.type", "Unknown incident type", "scenarios.json", "incident",
-					incident.id, path + ".type", incident.type,
-					"Use signal_failure or train_breakdown");
 			}
 			if (!std::isfinite(incident.startSeconds) || incident.startSeconds < 0.0)
 				diagnostics.error("scene.incident.window", "Incident start must be 0 or more",
 					"scenarios.json", "incident", incident.id, path + ".start_seconds");
-			if (incident.type == "signal_failure") {
+			if (incident.type == IncidentType::SignalFailure) {
 				if (hasOccurrence || hasReducedSpeed || incident.terminateAtDestination)
 					diagnostics.error("scene.incident.fields", "A signal failure cannot have an occurrence, a reduced speed or a stop at the destination",
 						"scenarios.json", "incident", incident.id, path);

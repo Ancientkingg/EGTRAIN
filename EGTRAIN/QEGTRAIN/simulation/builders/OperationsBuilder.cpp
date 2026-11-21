@@ -659,7 +659,7 @@ bool nativeIncidentFieldsValid(const SceneIncident& incident, bool hasOccurrence
 			incident.id, "incidents[" + incident.id + "].start_seconds");
 		valid = false;
 	}
-	if (incident.type == "signal_failure") {
+	if (incident.type == IncidentType::SignalFailure) {
 		if (hasOccurrence || hasReducedSpeed || incident.terminateAtDestination) {
 			addNativeDiagnostic(diagnostics, "scene.native.incident.fields",
 				"A signal failure cannot have an occurrence, a reduced speed or a stop at the destination", "scenarios.json", "incident",
@@ -800,7 +800,7 @@ void nativeApplyEntranceDelay(NativeTrainPlan& train, const SceneEntranceDelay& 
 void nativeMarkDestinationTermination(std::vector<NativeTrainPlan>& trains, const std::vector<SimulationIncident>& incidents) {
 	for (NativeTrainPlan& train : trains) {
 		for (const SimulationIncident& incident : incidents) {
-			if (incident.type == "train_breakdown" && incident.terminateAtDestination
+			if (incident.type == IncidentType::TrainBreakdown && incident.terminateAtDestination
 				&& incident.target == train.serviceId
 				&& (!incident.hasOccurrence || incident.occurrence == train.occurrence)) {
 				train.destinationTerminationRequested = true;
@@ -1223,11 +1223,6 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 	std::set<std::pair<SceneServiceOccurrence, std::string>> appliedDelayStations;
 	if (scenario != nullptr) {
 		for (const SceneIncident& incident : scenario->incidents) {
-			if (incident.type != "signal_failure" && incident.type != "train_breakdown") {
-				addNativeDiagnostic(diagnostics, "scene.native.incident.type", "Unknown incident type",
-					"scenarios.json", "incident", incident.id, "incidents[" + incident.id + "].type");
-				continue;
-			}
 			const bool hasOccurrence = incident.hasOccurrence || incident.occurrence != 1;
 			const bool hasReducedSpeed = incident.hasReducedSpeed || incident.reducedSpeedKmh != 0.0;
 			const bool hasEnd = incident.hasEndSeconds || incident.endSeconds != 0.0;
@@ -1244,7 +1239,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 			runtimeIncident.hasEndSeconds = hasEnd;
 			runtimeIncident.startSeconds = incident.startSeconds;
 			runtimeIncident.endSeconds = incident.endSeconds;
-			if (incident.type == "signal_failure") {
+			if (incident.type == IncidentType::SignalFailure) {
 				if (!nativeSignalFailureSection(run, scene, sectionInventory, incident, diagnostics, runtimeIncident.resolvedSectionIDs))
 					valid = false;
 			} else if (serviceById.count(incident.target) == 0) {

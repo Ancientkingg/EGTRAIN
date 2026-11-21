@@ -73,12 +73,12 @@ static SceneModel serviceScene() {
 	scenario.id = "base";
 	SceneIncident breakdown;
 	breakdown.id = "i1";
-	breakdown.type = "train_breakdown";
+	breakdown.type = IncidentType::TrainBreakdown;
 	breakdown.target = "s1";
 	scenario.incidents.push_back(breakdown);
 	SceneIncident signalFailure;
 	signalFailure.id = "i2";
-	signalFailure.type = "signal_failure";
+	signalFailure.type = IncidentType::SignalFailure;
 	signalFailure.target = "s1";
 	scenario.incidents.push_back(signalFailure);
 	SceneEntranceDelay delay;

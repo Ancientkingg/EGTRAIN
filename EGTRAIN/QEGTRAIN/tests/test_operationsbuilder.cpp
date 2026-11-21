@@ -299,8 +299,8 @@ static SceneModel completeScene() {
 	scene.scenarios.push_back(baseline);
 	SceneScenario selected;
 	selected.id = "scenario.selected";
-	selected.incidents = {{"incident.signal", "signal_failure", "signal.0", 20.0, 40.0},
-		{"incident.breakdown", "train_breakdown", "service.native", 50.0, 70.0}};
+	selected.incidents = {{"incident.signal", IncidentType::SignalFailure, "signal.0", 20.0, 40.0},
+		{"incident.breakdown", IncidentType::TrainBreakdown, "service.native", 50.0, 70.0}};
 	selected.entranceDelays = {{"service.native", 2, "station.0", 5.0},
 		{"service.native", 2, "station.1", 5.0}};
 	scene.scenarios.push_back(selected);

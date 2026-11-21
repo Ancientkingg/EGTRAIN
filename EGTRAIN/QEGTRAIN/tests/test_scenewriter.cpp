@@ -202,13 +202,13 @@ static SceneModel completeScene() {
 	baseline.id = "baseline";
 	baseline.name = "Baseline";
 	baseline.description = "No disruption";
-	baseline.incidents.push_back({"incident-1", "signal_failure", "signal-1", 300.0, 600.0});
+	baseline.incidents.push_back({"incident-1", IncidentType::SignalFailure, "signal-1", 300.0, 600.0});
 	baseline.entranceDelays.push_back({"service-1", 1, "station-1", 30.0});
 	scene.scenarios.push_back(baseline);
 	SceneScenario alternate;
 	alternate.id = "alternate";
 	alternate.name = "Alternate";
-	SceneIncident enhancedBreakdown{"breakdown-2", "train_breakdown", "service-1", 900.0, 0.0};
+	SceneIncident enhancedBreakdown{"breakdown-2", IncidentType::TrainBreakdown, "service-1", 900.0, 0.0};
 	enhancedBreakdown.hasOccurrence = true;
 	enhancedBreakdown.occurrence = 2;
 	enhancedBreakdown.hasReducedSpeed = true;
@@ -2310,7 +2310,7 @@ static SceneModel incompleteScene() {
 	scene.services.push_back(service);
 	SceneIncident incident;
 	incident.id = "new_incident";
-	incident.type = "signal_failure";
+	incident.type = IncidentType::SignalFailure;
 	incident.hasEndSeconds = true;
 	scene.scenarios[0].incidents.push_back(incident);
 	scene.blockDependencies.push_back({});

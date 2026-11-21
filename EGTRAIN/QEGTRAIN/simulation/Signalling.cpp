@@ -3081,7 +3081,7 @@ bool breakdownMatchesTrain(const SimulationIncident& incident, const std::string
 
 bool breakdownActive(const SimulationIncident& incident, const std::string& trainDesc,
 	int timestepIndex) {
-	if (incident.type != "train_breakdown" || !breakdownMatchesTrain(incident, trainDesc)
+	if (incident.type != IncidentType::TrainBreakdown || !breakdownMatchesTrain(incident, trainDesc)
 		|| timestepIndex < incident.startSeconds)
 		return false;
 	return !runtimeIncidentHasEnd(incident) || timestepIndex < incident.endSeconds;
@@ -3148,7 +3148,7 @@ static void addEndOfAuthorityBeforeSection(SimulationRun& run, const Route& rout
 // for it; occupancy alone never reaches the EVC of ETCS level 3 and 4 trains.
 void Apply_Signal_Failures_Mixed_Signalling(SimulationRun& run, int timestepIndex) {
 	for (const auto& inc : run.incidents) {
-		if (inc.type != "signal_failure" || timestepIndex < inc.startSeconds)
+		if (inc.type != IncidentType::SignalFailure || timestepIndex < inc.startSeconds)
 			continue;
 		if (runtimeIncidentHasEnd(inc) && timestepIndex > inc.endSeconds) {
 			// The aspects a failure set are only cleared for sections in BlocksConnected,

@@ -676,7 +676,7 @@ void TestSceneExporter::refusesUnchosenReferences() {
 	QVERIFY(!hasErrors(loaded.diagnostics));
 	SceneIncident incident;
 	incident.id = "new_incident";
-	incident.type = "signal_failure";
+	incident.type = IncidentType::SignalFailure;
 	incident.hasEndSeconds = true;
 	defaultScenario(loaded.scene)->incidents.push_back(incident);
 	loaded.scene.singleTrackRestrictions.emplace_back();

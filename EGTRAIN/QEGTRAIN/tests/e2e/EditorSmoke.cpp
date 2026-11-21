@@ -2946,7 +2946,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				}
 				SceneIncident incident;
 				incident.id = sceneUniqueIncidentId(w.m_document->mutableModel(), "e2e_service_rename_incident");
-				incident.type = "train_breakdown";
+				incident.type = IncidentType::TrainBreakdown;
 				incident.target = oldServiceId;
 				incident.endSeconds = 1.0;
 				referenceScenario.incidents.push_back(incident);
@@ -3828,7 +3828,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				break;
 			}
 		}
-		if (editedRow < 0 || incidents[editedRow].type != "train_breakdown"
+		if (editedRow < 0 || incidents[editedRow].type != IncidentType::TrainBreakdown
 			|| incidents[editedRow].target != editedServiceId
 			|| incidents[editedRow].startSeconds != 100.0
 			|| incidents[editedRow].endSeconds != 0.0
@@ -3962,7 +3962,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			incidentPanel(w)->addButton()->click();
 			QApplication::processEvents();
 			const SceneIncident* added = incidentPanel(w)->listWidget()->count() == countBefore + 1 ? incidentPanel(w)->selectedIncident() : nullptr;
-			if (!added || added->type != "signal_failure" || QString::fromStdString(added->target) != blockId)
+			if (!added || added->type != IncidentType::SignalFailure || QString::fromStdString(added->target) != blockId)
 				facetFailure(facetOk, "incident",
 					QString("Add Incident with the signal head of section %1 selected gave the target '%2', not the block %3 (offered: %4)")
 						.arg(headId, added ? QString::fromStdString(added->target) : QString(), blockId,
@@ -3990,7 +3990,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				w.scene->select(currentHead());
 				QApplication::processEvents();
 				const SceneIncident* picked = incidentPanel(w)->selectedIncident();
-				const bool applied = picked && picked->type == "signal_failure" && QString::fromStdString(picked->target) == blockId
+				const bool applied = picked && picked->type == IncidentType::SignalFailure && QString::fromStdString(picked->target) == blockId
 					&& !pick->isChecked() && !endTargetPickShortcut(w)->isEnabled()
 					&& w.networkView->viewport()->cursor().shape() == Qt::OpenHandCursor;
 				pick->click();
@@ -4055,7 +4055,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				const std::vector<SceneIncident>& incidents = w.selectedScenarioIncidents();
 				const SceneIncident* addedIncident = incidents.size() == before.size() + 1 ? incidentPanel(w)->selectedIncident() : nullptr;
 				const QString message = w.statusBar()->currentMessage();
-				const bool shown = addedIncident && addedIncident == &incidents.back() && addedIncident->type == "signal_failure"
+				const bool shown = addedIncident && addedIncident == &incidents.back() && addedIncident->type == IncidentType::SignalFailure
 					&& QString::fromStdString(addedIncident->target) == blockId && incidentDock(w)->isVisible() && scenarioTabs
 					&& scenarioTabs->currentWidget() == incidentPanel(w) && QApplication::focusWidget() == incidentPanel(w)->startSecondsEdit()
 					&& message == QString("Added a signal failure of %1.").arg(blockId)
@@ -4105,7 +4105,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					? incidentPanel(w)->selectedIncident()
 					: nullptr;
 				const bool buttonAdded = fromButton && fromButton == &w.selectedScenarioIncidents().back()
-					&& fromButton->type == "signal_failure" && QString::fromStdString(fromButton->target) == blockId
+					&& fromButton->type == IncidentType::SignalFailure && QString::fromStdString(fromButton->target) == blockId
 					&& incidentDock(w)->isVisible() && scenarioTabs && scenarioTabs->currentWidget() == incidentPanel(w)
 					&& QApplication::focusWidget() == incidentPanel(w)->startSecondsEdit()
 					&& w.statusBar()->currentMessage() == QString("Added a signal failure of %1.").arg(blockId)
@@ -6241,7 +6241,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 			return finish();
 		const SceneIncident* added = incidentPanel(w)->selectedIncident();
 		const QString message = w.statusBar()->currentMessage();
-		expect(added && added == &w.selectedScenarioIncidents().back() && added->type == "train_breakdown"
+		expect(added && added == &w.selectedScenarioIncidents().back() && added->type == IncidentType::TrainBreakdown
 				&& added->target == trainState.serviceId && added->hasOccurrence && added->occurrence == trainState.occurrence,
 			"the menu of a train did not add a breakdown of its occurrence");
 		const QString occurrence = QString("%1 #%2").arg(QString::fromStdString(trainState.serviceId)).arg(trainState.occurrence);

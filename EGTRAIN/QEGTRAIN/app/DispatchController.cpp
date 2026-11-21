@@ -80,7 +80,7 @@ std::optional<SceneDiagnostic> prepareRunOutput(const string& outputFolder) {
 // Apply_Signal_Failures_Mixed_Signalling): from the start, and to the end when
 // the incident has one.
 bool signalFailureActive(const SimulationIncident& incident, int timestep) {
-	if (incident.type != "signal_failure" || timestep < incident.startSeconds)
+	if (incident.type != IncidentType::SignalFailure || timestep < incident.startSeconds)
 		return false;
 	const bool hasEnd = incident.hasEndSeconds || incident.endSeconds != 0.0;
 	return !hasEnd || timestep <= incident.endSeconds;

@@ -6,6 +6,7 @@
 #include <QString>
 
 #include <functional>
+#include <optional>
 #include <vector>
 
 class QCheckBox;
@@ -20,9 +21,9 @@ class QToolButton;
 
 /// A target that an incident gets from outside the panel, such as from the selection on the network view.
 struct IncidentTarget {
-	QString type;		///< "signal_failure" or "train_breakdown"; empty for no target.
-	QString id;			///< The signal or block of a signal failure, or the service of a breakdown.
-	int occurrence = 0; ///< The occurrence of the service of a breakdown, counted from 1; 0 for a signal failure.
+	std::optional<IncidentType> type; ///< The kind of incident; empty for no target.
+	QString id;						  ///< The signal or block of a signal failure, or the service of a breakdown.
+	int occurrence = 0;				  ///< The occurrence of the service of a breakdown, counted from 1; 0 for a signal failure.
 };
 
 /// The incidents of the selected scenario: a list to pick one, and the fields of the selected incident. An incident is a
@@ -64,9 +65,9 @@ public:
 	void deleteIncident();
 	/// Takes the id from the field. An empty or used id is dropped and the field shows the old id again.
 	void commitIdEdit();
-	/// Sets the type, "signal_failure" or "train_breakdown". Another type keeps only the target that is valid for it, and
-	/// a signal failure loses what only a breakdown has.
-	void commitType(const QString& type);
+	/// Sets the type. Another type keeps only the target that is valid for it, and a signal failure loses what only a
+	/// breakdown has.
+	void commitType(IncidentType type);
 	/// Takes the target from its combo: a signal or block, or a service with one occurrence or, for an older incident,
 	/// all of them.
 	void commitTarget();
@@ -149,7 +150,7 @@ protected:
 private:
 	// Gives the incident another type: a signal failure loses what only a breakdown has, and a target that is not valid for
 	// the type is dropped.
-	void changeType(SceneIncident& incident, const std::string& type) const;
+	void changeType(SceneIncident& incident, IncidentType type) const;
 	// The incidents of the selected scenario.
 	const std::vector<SceneIncident>& scenarioIncidents() const;
 	// The incident in the selected row of the list, or null.

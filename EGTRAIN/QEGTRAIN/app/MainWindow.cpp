@@ -2507,7 +2507,7 @@ QString viewIncidentText(const QString& what) {
 IncidentTarget signalFailureOf(const SceneModel& model, const std::string& section, QString* why) {
 	const std::string target = sceneSignalFailureTarget(model, buildSceneSectionInventory(model), section);
 	if (!target.empty())
-		return {"signal_failure", QString::fromStdString(target), 0};
+		return {IncidentType::SignalFailure, QString::fromStdString(target), 0};
 	if (why)
 		*why = QStringLiteral("No block or signal to fail here");
 	return {};
@@ -2567,13 +2567,13 @@ IncidentTarget MainWindow::trainIncidentTarget(int trainIndex, QString* why) con
 			*why = QStringLiteral("This train runs no service");
 		return {};
 	}
-	return {"train_breakdown", QString::fromStdString(train->serviceId), train->occurrence};
+	return {IncidentType::TrainBreakdown, QString::fromStdString(train->serviceId), train->occurrence};
 }
 
 QString MainWindow::viewIncidentBlocked(const IncidentTarget& target, const QString& what, const QString& why) const {
 	if (m_runController->running())
 		return QStringLiteral("Not available while the case runs");
-	if (target.type.isEmpty())
+	if (!target.type)
 		return why;
 	if (!m_editorDocks.incidentPanel()->offersTarget(target))
 		return QStringLiteral("This %1 cannot be the target of an incident").arg(what);
@@ -2603,7 +2603,7 @@ void MainWindow::addIncidentFromView(const IncidentTarget& target) {
 		if (!m_editorDocks.incidentPanel()->addIncident(target)) {
 			// The target can have gone since the menu or the button was shown.
 			const QString blocked = viewIncidentBlocked(target,
-				target.type == "train_breakdown" ? QStringLiteral("train") : QStringLiteral("signal"), QString());
+				target.type == IncidentType::TrainBreakdown ? QStringLiteral("train") : QStringLiteral("signal"), QString());
 			statusBar()->showMessage(blocked.isEmpty() ? QStringLiteral("No incident added.") : blocked + QLatin1Char('.'), 8000);
 			return;
 		}
@@ -2613,7 +2613,7 @@ void MainWindow::addIncidentFromView(const IncidentTarget& target) {
 		m_editorDocks.incidentPanel()->startSecondsEdit()->setFocus(Qt::OtherFocusReason);
 		m_editorDocks.incidentPanel()->startSecondsEdit()->selectAll();
 		// As short as the hint of a pick.
-		const QString added = target.type == "train_breakdown"
+		const QString added = target.type == IncidentType::TrainBreakdown
 			? QStringLiteral("Added a breakdown of %1 #%2").arg(target.id).arg(target.occurrence)
 			: QStringLiteral("Added a signal failure of %1").arg(target.id);
 		statusBar()->showMessage(added + (discardsResults ? QStringLiteral(". Run results discarded.") : QStringLiteral(".")), 8000);

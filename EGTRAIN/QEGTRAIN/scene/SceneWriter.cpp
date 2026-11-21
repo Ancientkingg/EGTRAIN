@@ -437,7 +437,7 @@ static json writeScenarioValue(const SceneScenario& scenario) {
 		const bool hasReducedSpeed = incident.hasReducedSpeed || incident.reducedSpeedKmh != 0.0;
 		json incidentValue = {
 			{"id", incident.id},
-			{"type", incident.type},
+			{"type", incidentTypeName(incident.type)},
 			{"target", incident.target},
 			{"start_seconds", incident.startSeconds},
 		};

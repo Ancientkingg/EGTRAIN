@@ -657,3 +657,17 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 	result.inputSnapshot = buildSceneDirectorySnapshot(inputFiles);
 	return result;
 }
+
+const char* incidentTypeName(IncidentType type) {
+	return type == IncidentType::TrainBreakdown ? "train_breakdown" : "signal_failure";
+}
+
+bool incidentTypeFromName(const std::string& name, IncidentType& type) {
+	if (name == "signal_failure")
+		type = IncidentType::SignalFailure;
+	else if (name == "train_breakdown")
+		type = IncidentType::TrainBreakdown;
+	else
+		return false;
+	return true;
+}
