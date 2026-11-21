@@ -250,7 +250,9 @@ std::shared_ptr<const GuiReplayTrains> makeGuiReplayTrains(const SimulationRun& 
 	source->messageSteps.assign(run.vcMsgTimestep.begin(), run.vcMsgTimestep.begin() + static_cast<std::ptrdiff_t>(messages));
 	source->messageTrains.assign(run.vcMsgTrain.begin(), run.vcMsgTrain.begin() + static_cast<std::ptrdiff_t>(messages));
 	source->messageTexts.assign(run.vcMsgText.begin(), run.vcMsgText.begin() + static_cast<std::ptrdiff_t>(messages));
-	source->stationCalls = stationCalls(run);
+	// As in the snapshots of the run, the calls are listed only when the run has passengers.
+	if (!run.passengers.empty())
+		source->stationCalls = stationCalls(run);
 	return source;
 }
 

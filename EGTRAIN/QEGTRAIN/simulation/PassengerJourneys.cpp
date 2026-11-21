@@ -394,11 +394,15 @@ void PassengerJourneys::setDownEndedTrain(SimulationRun& run, PassengerFlow& flo
 		--stop;
 	if (stop < 0)
 		return;
+	// They alight at that stop, so the counts of its call have them.
+	StopCallCounts& call = run.stopCalls.at(train, stop);
 	for (const int position : onBoard) {
 		--T.Current_OnBoard_Passengers;
+		++call.alighted;
 		setDownEarly(run, flow.passenger(position), T, stop, t);
 		flow.alighted(position);
 	}
+	call.loadAfter = T.Current_OnBoard_Passengers;
 }
 
 void PassengerJourneys::settleTrains(SimulationRun& run, PassengerFlow& flow, int t) {

@@ -255,6 +255,7 @@ private slots:
 	void trainDoesNotHaltAtTheStopWhereItEnters();
 	void trainThatEndsEarlySetsDownPassengerWhoFindsNoRoute();
 	void trainThatEndsEarlySetsDownPassengerWhoContinuesOnAnother();
+	void trainThatEndsEarlyCountsThePassengersItSetsDown();
 	void passengerWhoAlightsAfterTheChangeLeftPlansFromTheArrivalPlatform();
 	void passengerWhoWaitedSinceMidnightKeepsTheWaitAndThePlatform();
 	void activityTextIsParsedCaseInsensitively();
@@ -396,6 +397,19 @@ void TestPassengerJourneys::trainThatEndsEarlySetsDownPassengerWhoContinuesOnAno
 	QCOMPARE(passenger.Current_Train_To_Wait, std::string("T2"));
 	QCOMPARE(passenger.Current_WaitingStationID, std::string("B"));
 	QCOMPARE(ended.flow.waitingCount("B", "B.platform.1"), 1);
+}
+
+// The passengers whom an ended train sets down alight at its last stop: the counts of that call say so, and the train
+// leaves it empty.
+void TestPassengerJourneys::trainThatEndsEarlyCountsThePassengersItSetsDown() {
+	EndedTrainRun ended(false);
+	ended.run.stopCalls.at(0, 1).loadAfter = 1;
+	ended.run.passengerJourneys.settleTrains(ended.run, ended.flow, 150);
+	const StopCallCounts* call = ended.run.stopCalls.find(0, 1);
+	if (call == nullptr)
+		QFAIL("the call at B has no counts");
+	QCOMPARE(call->alighted, 1);
+	QCOMPARE(call->loadAfter, 0);
 }
 
 // The train to change to has left before the passenger alights. The passenger has not set off for its platform, so the new
