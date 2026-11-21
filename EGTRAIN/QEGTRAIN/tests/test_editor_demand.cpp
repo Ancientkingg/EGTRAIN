@@ -14,6 +14,7 @@
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTemporaryDir>
+#include <QScopeGuard>
 #include <QTest>
 
 #include <memory>
@@ -131,13 +132,21 @@ private slots:
 	void editsPeriodThroughFields();
 	void editsCells();
 	void showsTotals();
+	void lowersAboveLimit();
+	void importsBelowLimitWhenSmaller();
+	void mergesDuplicateCells();
+	void resetsBoldAfterNewStation();
+	void typedPeriodKeepsMinimumLength();
 	void importsCsv();
+	void namesCsvPeriodMismatch();
 	void showsCsvErrors();
 	void exportsCsvRoundTrip();
 	void deletesSlices();
 	void showsSlicesOutsideHorizon();
 	void showsValidationMessages();
 	void takesPendingEditors();
+	void clearsCellWithReturn();
+	void commitsCellWithReturn();
 	void grabsPaimpol();
 };
 
@@ -358,7 +367,7 @@ void TestDemandPanel::editsPeriodThroughFields() {
 	QCOMPARE(role(fixture.panel.diagnosticLabel()), std::string("error"));
 	QCOMPARE(fixture.panel.startEdit()->text(), QString("06:30:15"));
 	typeAndLeave(fixture.panel.endEdit(), "05:00:00");
-	QCOMPARE(fixture.slices()[0].endSeconds, 6 * hour + 1816.0);
+	QCOMPARE(fixture.slices()[0].endSeconds, 6 * hour + 1815.0 + DemandRanges::SnapSeconds);
 	// One undo step for the edit.
 	fixture.undo();
 	QCOMPARE(fixture.slices()[0].endSeconds, 10 * hour);
@@ -426,6 +435,94 @@ void TestDemandPanel::showsTotals() {
 	QCOMPARE(table->rowCount(), 4);
 }
 
+// A file with more demand than the limit allows loads, and an edit that does not raise the total is still applied.
+void TestDemandPanel::lowersAboveLimit() {
+	DemandFixture fixture;
+	SceneModel scene = demandScene();
+	scene.passengerDemand[0].cells = {{"A", "B", 600000}, {"B", "C", 600000}, {"C", "A", 100}};
+	fixture.document.replace(scene, false);
+	QCOMPARE(fixture.panel.totalLabel()->text(), QString("Slice total: 1200100 passengers"));
+	// A cell that is raised is refused.
+	fixture.setCell(0, 1, "600001");
+	QCOMPARE(fixture.slices()[0].cells[0].count, 600000);
+	QVERIFY(fixture.panel.diagnosticLabel()->text().contains("together"));
+	// A cell that is lowered or cleared is applied.
+	fixture.setCell(0, 1, "500000");
+	QCOMPARE(fixture.slices()[0].cells[0].count, 500000);
+	fixture.setCell(2, 0, "");
+	QCOMPARE(fixture.slices()[0].cells.size(), std::size_t(2));
+}
+
+// An import into a slice of a scene above the limit is refused only when it makes the slice larger.
+void TestDemandPanel::importsBelowLimitWhenSmaller() {
+	DemandFixture fixture;
+	SceneModel scene = demandScene();
+	scene.passengerDemand[0].cells = {{"A", "B", 600000}, {"B", "C", 500000}};
+	fixture.document.replace(scene, false);
+	const std::size_t edits = fixture.labels.size();
+	QVERIFY(!fixture.panel.importCsvText("O/D,A,B,C\nA,0,600000,0\nB,0,0,500001\nC,0,0,0\n"));
+	QCOMPARE(fixture.labels.size(), edits);
+	QVERIFY(fixture.panel.importCsvText("O/D,A,B,C\nA,0,600000,0\nB,0,0,450000\nC,0,0,0\n"));
+	QCOMPARE(fixture.panel.totalLabel()->text(), QString("Slice total: 1050000 passengers"));
+}
+
+// The matrix shows the sum of the cells of a pair, and an edit replaces all of them with one cell.
+void TestDemandPanel::mergesDuplicateCells() {
+	DemandFixture fixture;
+	SceneModel scene = demandScene();
+	scene.passengerDemand[0].cells = {{"A", "B", 3}, {"B", "C", 5}, {"A", "B", 4}};
+	fixture.document.replace(scene, false);
+	QCOMPARE(fixture.cell(0, 1)->text(), QString("7"));
+	fixture.setCell(0, 1, "5");
+	QCOMPARE(fixture.slices()[0].cells.size(), std::size_t(2));
+	QCOMPARE(fixture.slices()[0].cells[0].originStationId, std::string("A"));
+	QCOMPARE(fixture.slices()[0].cells[0].count, 5);
+	QCOMPARE(fixture.cell(0, 1)->text(), QString("5"));
+	// The shown sum also merges the cells. Text that only reads as the same number is needed to reach the edit.
+	fixture.document.replace(scene, false);
+	fixture.setCell(0, 1, "07");
+	QCOMPARE(fixture.slices()[0].cells.size(), std::size_t(2));
+	QCOMPARE(fixture.slices()[0].cells[0].count, 7);
+	// Clearing removes all of them.
+	fixture.document.replace(scene, false);
+	fixture.setCell(0, 1, "0");
+	QCOMPARE(fixture.slices()[0].cells.size(), std::size_t(1));
+	QCOMPARE(fixture.slices()[0].cells[0].originStationId, std::string("B"));
+}
+
+// A station that is added turns the totals row and column into station rows, which are not bold.
+void TestDemandPanel::resetsBoldAfterNewStation() {
+	DemandFixture fixture;
+	QVERIFY(fixture.cell(3, 0)->font().bold());
+	QVERIFY(!fixture.cell(0, 1)->font().bold());
+	SceneModel scene = demandScene();
+	SceneStation station;
+	station.id = "D";
+	station.name = "Station D";
+	scene.stations.push_back(station);
+	fixture.document.replace(scene, false);
+	fixture.panel.refresh();
+	QCOMPARE(fixture.panel.matrixTable()->rowCount(), 5);
+	QVERIFY(!fixture.cell(3, 0)->font().bold());
+	QVERIFY(!fixture.cell(0, 3)->font().bold());
+	QVERIFY(!fixture.cell(3, 3)->font().bold());
+	QVERIFY(fixture.cell(4, 0)->font().bold());
+	QVERIFY(fixture.cell(0, 4)->font().bold());
+	QVERIFY(fixture.cell(4, 4)->font().bold());
+}
+
+// A start or end that is typed leaves a slice of the shortest length that the timeline allows.
+void TestDemandPanel::typedPeriodKeepsMinimumLength() {
+	DemandFixture fixture;
+	typeAndLeave(fixture.panel.startEdit(), "09:00:00");
+	QCOMPARE(fixture.slices()[0].startSeconds, 8 * hour - DemandRanges::SnapSeconds);
+	QCOMPARE(fixture.slices()[0].endSeconds, 8 * hour);
+	fixture.document.replace(demandScene(), false);
+	typeAndLeave(fixture.panel.endEdit(), "05:00:00");
+	QCOMPARE(fixture.slices()[0].startSeconds, 7 * hour);
+	QCOMPARE(fixture.slices()[0].endSeconds, 7 * hour + DemandRanges::SnapSeconds);
+}
+
 void TestDemandPanel::importsCsv() {
 	DemandFixture fixture;
 	QVERIFY(fixture.panel.addSlice(8 * hour, 9 * hour));
@@ -469,6 +566,26 @@ void TestDemandPanel::importsCsv() {
 	QCOMPARE(fixture.slices().back().cells[0].destinationStationId, std::string("C"));
 	QVERIFY(!fixture.panel.importCsvFile(directory.filePath("missing.csv")));
 	QCOMPARE(role(fixture.panel.diagnosticLabel()), std::string("error"));
+}
+
+// The period that a CSV file names is not used to scale the counts, and the message says so when it differs.
+void TestDemandPanel::namesCsvPeriodMismatch() {
+	DemandFixture fixture;
+	QVERIFY(fixture.panel.addSlice(8 * hour, 8.25 * hour));
+	fixture.status.clear();
+	QVERIFY(fixture.panel.importCsvText("Time Reference,900\nO/D,A,B,C\nA,0,3,0\nB,0,0,0\nC,0,0,0\n"));
+	QCOMPARE(fixture.status, std::vector<std::string>({"Imported 3 passengers into the demand slice."}));
+	fixture.status.clear();
+	QVERIFY(fixture.panel.importCsvText("Time Reference,3600\nO/D,A,B,C\nA,0,4,0\nB,0,0,0\nC,0,0,0\n"));
+	QCOMPARE(fixture.status.size(), std::size_t(1));
+	const QString message = QString::fromStdString(fixture.status[0]);
+	QVERIFY2(message.startsWith("Imported 4 passengers into the demand slice."), qPrintable(message));
+	QVERIFY2(message.contains("01:00:00") && message.contains("00:15:00") && message.contains("not scaled"), qPrintable(message));
+	QCOMPARE(fixture.slices().back().cells[0].count, 4);
+	// A file without a period gives the plain message.
+	fixture.status.clear();
+	QVERIFY(fixture.panel.importCsvText("O/D,A,B,C\nA,0,2,0\nB,0,0,0\nC,0,0,0\n"));
+	QCOMPARE(fixture.status, std::vector<std::string>({"Imported 2 passengers into the demand slice."}));
 }
 
 void TestDemandPanel::showsCsvErrors() {
@@ -603,6 +720,40 @@ void TestDemandPanel::takesPendingEditors() {
 	fixture.panel.commitPendingEditors();
 	QCOMPARE(fixture.slices()[0].cells.back().count, 8);
 	QCOMPARE(fixture.slices()[0].cells.back().originStationId, std::string("C"));
+}
+
+// A cell that is emptied in its editor and committed with Return holds no passengers.
+void TestDemandPanel::clearsCellWithReturn() {
+	DemandFixture fixture;
+	fixture.panel.show();
+	const auto hide = qScopeGuard([&fixture] { fixture.panel.hide(); });
+	QTableWidget* table = fixture.panel.matrixTable();
+	table->setCurrentCell(0, 1);
+	table->edit(table->model()->index(0, 1));
+	QLineEdit* editor = table->viewport()->findChild<QLineEdit*>();
+	QVERIFY(editor);
+	QTest::keyClick(editor, Qt::Key_A, Qt::ControlModifier);
+	QTest::keyClick(editor, Qt::Key_Backspace);
+	QVERIFY(editor->text().isEmpty());
+	QTest::keyClick(editor, Qt::Key_Return);
+	QTRY_COMPARE(fixture.slices()[0].cells.size(), std::size_t(1));
+	QCOMPARE(fixture.cell(0, 1)->text(), QString());
+}
+
+// The same path with a number, which shows that the key reaches the editor and the commit is waited for.
+void TestDemandPanel::commitsCellWithReturn() {
+	DemandFixture fixture;
+	fixture.panel.show();
+	const auto hide = qScopeGuard([&fixture] { fixture.panel.hide(); });
+	QTableWidget* table = fixture.panel.matrixTable();
+	table->setCurrentCell(0, 1);
+	table->edit(table->model()->index(0, 1));
+	QLineEdit* editor = table->viewport()->findChild<QLineEdit*>();
+	QVERIFY(editor);
+	QTest::keyClick(editor, Qt::Key_A, Qt::ControlModifier);
+	QTest::keyClicks(editor, "12");
+	QTest::keyClick(editor, Qt::Key_Return);
+	QTRY_COMPARE(fixture.slices()[0].cells[0].count, 12);
 }
 
 void TestDemandPanel::grabsPaimpol() {
