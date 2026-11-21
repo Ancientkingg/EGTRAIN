@@ -6,10 +6,14 @@ service occurrence at one station, and runs EGTRAIN without a window. With --liv
 the run plans each of them on the timetable when the passenger appears. The passenger log is switched off, so the
 numbers measure the simulation and not the log output.
 
+The passengers appear in a time window, by default the one that suits Paimpol. With another scene or service, give the
+window with --window: passengers who appear after the service has left their station never travel, and the script
+stops with an error when no journey completes.
+
 Example, from the repository root:
 
     python3 tools/performance/passenger_scale.py --app build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN \\
-        --counts 500 5000 50000 [--live]
+        --counts 500 5000 50000 [--live] [--window START END]
 """
 
 import argparse
@@ -97,10 +101,14 @@ def main():
     parser.add_argument("--origin", default=DEFAULT_ORIGIN)
     parser.add_argument("--destinations", nargs="+", default=DEFAULT_DESTINATIONS)
     parser.add_argument("--service", default=DEFAULT_SERVICE)
+    parser.add_argument("--window", type=float, nargs=2, metavar=("START", "END"), default=DEFAULT_WINDOW,
+                        help="seconds since midnight in which the passengers appear; the default suits the Paimpol scene")
     parser.add_argument("--horizon", type=int, default=0, help="seconds; 0 keeps the duration of the case")
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--live", action="store_true", help="write the journeys without legs, so that the run plans them")
     args = parser.parse_args()
+    if not 0 <= args.window[0] < args.window[1]:
+        parser.error("--window needs START below END, both from 0")
 
     app = args.app.resolve()
     scene_name = json.loads((args.scene / "scene.json").read_text(encoding="utf-8")).get("name", args.scene.name)
@@ -111,10 +119,15 @@ def main():
             output_dir = Path(temp) / "output"
             shutil.copytree(args.scene, scene_dir)
             output_dir.mkdir()
-            write_passengers(scene_dir, count, args.origin, args.destinations, args.service, DEFAULT_WINDOW,
+            write_passengers(scene_dir, count, args.origin, args.destinations, args.service, args.window,
                              args.seed, args.live)
             elapsed = run_once(app, scene_dir, output_dir, args.horizon)
             done, total = completed_journeys(output_dir, scene_name)
+            if done == 0:
+                raise SystemExit(f"no journey completed out of {total} with {count} passengers: the service does not run in "
+                                 f"the window {args.window[0]:g} to {args.window[1]:g} seconds, or does not call at the "
+                                 "origin and destinations. Choose a window before the service leaves the origin with "
+                                 "--window START END.")
             print(f"{count} {elapsed:.2f} {peak_rss_mib():.0f} {done} {total}", flush=True)
 
 

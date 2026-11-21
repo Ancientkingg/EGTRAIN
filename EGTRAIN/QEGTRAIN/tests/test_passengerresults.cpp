@@ -8,9 +8,14 @@
 #include "support/PassengerStep.h"
 #include "util/Log.h"
 
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QTemporaryDir>
 #include <QTest>
 
 #include <sstream>
+#include <stdexcept>
 
 namespace {
 
@@ -126,6 +131,9 @@ private slots:
 	void percentileIsNearestRank();
 	void summaryAveragesCompletedJourneysOnly();
 	void journeyRowListsRiddenLegs();
+	void runWithoutPassengersWritesOnlyHeaders();
+	void stopOfTrainWithoutCapacityHasNoLoadFactor();
+	void unwritableFolderThrowsWithThePath();
 };
 
 void TestPassengerResults::callCountsBoardedAlightedLeftBehindAndLoad() {
@@ -371,6 +379,75 @@ void TestPassengerResults::journeyRowListsRiddenLegs() {
 	QCOMPARE(lines.size(), std::size_t(3));
 	QCOMPARE(lines[1], std::string("p1\tj\tlive\tA\tC\t100\tT1+T2\t30\t45\t350\t700\t12\t1\tcompleted"));
 	QCOMPARE(lines[2], std::string("p2\tk\tassigned\tA\tC\t-1\t-\t0\t0\t0\t-\t-\t0\tin_progress"));
+}
+
+// A run without passengers and trains has a header line and nothing else in each of the three files.
+void TestPassengerResults::runWithoutPassengersWritesOnlyHeaders() {
+	SimulationRun run;
+	PassengerStepScope scope(run);
+	const std::string journeysHeader = "PaxID\tJourneyID\tMode\tOrigin\tDestination\tAppeared\tTrains\tWait\tWalk\tInVehicle\tArrival\tDelay\tReplanned\tOutcome\n";
+	const std::string stopsHeader = "Train\tStation\tPlatform\tArrival\tDeparture\tBoarded\tAlighted\tLeftBehind\tLoadAfterDeparture\tCapacity\tLoadFactor\n";
+	const std::string summaryHeader = "Origin\tDestination\tJourneys\tCompleted\tNoRoute\tMeanWait\tP95Wait\tMeanTravel\tMeanDelay\n";
+	QCOMPARE(passengerJourneysText(run.passengers), journeysHeader);
+	QCOMPARE(stationStopsText(run), stopsHeader);
+	QCOMPARE(originDestinationSummaryText(run.passengers), summaryHeader);
+
+	QTemporaryDir folder;
+	QVERIFY(folder.isValid());
+	printPassengerResultFiles(run, folder.path().toStdString());
+	const auto contentOf = [&folder](const char* name) {
+		QFile file(QDir(folder.path()).filePath(QString::fromLatin1(name)));
+		return file.open(QIODevice::ReadOnly) ? file.readAll().toStdString() : std::string("<missing>");
+	};
+	QCOMPARE(contentOf("PassengerJourneys.txt"), journeysHeader);
+	QCOMPARE(contentOf("StationStops.txt"), stopsHeader);
+	QCOMPARE(contentOf("ODSummary.txt"), summaryHeader);
+}
+
+// A train without seats has a stop row with the capacity 0 and a dash for the load factor, not a division by zero.
+void TestPassengerResults::stopOfTrainWithoutCapacityHasNoLoadFactor() {
+	SimulationRun run;
+	run.settings.startingSimulationTime = 0;
+	Train train = trainCalling("T1", {"A"});
+	train.MAX_OnBoard_Passengers = 0;
+	train.Stations[0].StepStopped = 5;
+	train.StationStandStarts[0] = 40;
+	train.StationDepartures[0] = 60;
+	PassengerStepScope scope(run);
+	scope.set({train}, {}, {});
+	run.stopCalls.at(0, 0).loadAfter = 2;
+
+	const std::vector<std::string> lines = linesOf(stationStopsText(run));
+	QCOMPARE(lines.size(), std::size_t(2));
+	QCOMPARE(lines[1], std::string("T1\tA\tA.platform.1\t40\t60\t0\t0\t0\t2\t0\t-"));
+}
+
+// A folder that does not exist, and a path below a file, end the write with the error that names the file.
+void TestPassengerResults::unwritableFolderThrowsWithThePath() {
+	SimulationRun run;
+	PassengerStepScope scope(run);
+	QTemporaryDir folder;
+	QVERIFY(folder.isValid());
+	const std::string missing = folder.filePath("missing").toStdString();
+	try {
+		printPassengerResultFiles(run, missing);
+		QFAIL("a missing folder must stop the write");
+	} catch (const std::runtime_error& error) {
+		const std::string message = error.what();
+		QVERIFY2(message.rfind("Cannot write " + missing + "/PassengerJourneys.txt: ", 0) == 0, message.c_str());
+	}
+	QVERIFY(!QFileInfo::exists(QString::fromStdString(missing)));
+
+	QFile blocker(folder.filePath("blocker"));
+	QVERIFY(blocker.open(QIODevice::WriteOnly));
+	blocker.close();
+	const std::string underFile = folder.filePath("blocker").toStdString();
+	try {
+		printPassengerResultFiles(run, underFile);
+		QFAIL("a path below a file must stop the write");
+	} catch (const std::runtime_error& error) {
+		QVERIFY2(std::string(error.what()).rfind("Cannot write " + underFile + "/PassengerJourneys.txt: ", 0) == 0, error.what());
+	}
 }
 
 QTEST_APPLESS_MAIN(TestPassengerResults)
