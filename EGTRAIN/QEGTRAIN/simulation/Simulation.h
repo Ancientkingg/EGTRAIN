@@ -62,21 +62,6 @@ void ComputeEnergyConsumptionForAllTrains(Train* Trains, int numTrains);
 /// trains, converted from MJ to kWh. Throws std::runtime_error when a file cannot be written (simulation/RunOutputFile.h).
 void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, std::string OutputFolder);
 
-/// Lets every passenger of SIMUL_PAX whose next journey starts by t + StartingSimulationTime (seconds since midnight) enter the
-/// network (Passenger::checkJourneyStart).
-void checkJourneyStartForAllPassengers(int t, int StartingSimulationTime, std::list<Passenger>& SIMUL_PAX);
-
-/// The passengers waiting at the platform with these IDs. No platform is modified.
-WaitingAtPlatform passengersWaitingAtPlatform(const std::string& stationId, const std::string& platformId, const std::list<Passenger>& ALL_PAX);
-
-/// Sets the number and the list of the waiting passengers of every platform, in one pass over the passengers.
-void Update_List_Passengers_Waiting_At_ALL_Platforms(std::list<StationPlatform>& ALL_PLAT, const std::list<Passenger>& ALL_PAX);
-
-/// At a service stop of train T in step t: the passengers whose trip ends there alight and transfer or leave the network, then the
-/// passengers waiting for T board in the order of the platform while T has room. In the first step of the stop, the
-/// passenger-dependent dwell replaces the stop time when it is longer. Passenger times are t + SimulationStartingTime (s since midnight).
-void Simulate_Train_Passenger_Interactions(SimulationRun& run, int t, int SimulationStartingTime, Train& T, std::list<Passenger>& ALLPAX, const std::list<StationPlatform>& ALLPLATFORMS);
-
 /// The order in which the trains of a run move in its steps. The loop that steps a run makes one before the first step and passes
 /// it to every step.
 struct TrainMovementOrder {

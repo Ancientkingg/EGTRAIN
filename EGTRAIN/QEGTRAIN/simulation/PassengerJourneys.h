@@ -81,7 +81,7 @@ private:
 		int handled = 0;   ///< The stops before this one have had their waiting passengers planned again.
 		bool ended = false;
 	};
-	bool ensureBuilt(const SimulationRun& run);
+	void ensureBuilt(const SimulationRun& run);
 	void ensureStates(const SimulationRun& run, int t);
 	int stationIndex(const std::string& name) const;
 	int trainIndex(const std::string& description) const;

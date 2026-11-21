@@ -11,8 +11,10 @@
 #include "simulation/Passengers.h"
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
+#include "simulation/PassengerFlow.h"
 #include "simulation/Simulation.h"
 #include "simulation/SimulationRun.h"
+#include "support/PassengerStep.h"
 #include "util/Log.h"
 
 #include <QTest>
@@ -47,36 +49,62 @@ Train trainAtLastStop(const Train& native, double plannedDwell) {
 	return service;
 }
 
+// Passengers who wait at the last stop of the train for it, with a journey from there to the stop before it.
 std::list<Passenger> waitingFor(const Train& train, int count) {
 	std::list<Passenger> passengers;
+	const Node& stop = train.Stations[train.numStations - 1];
 	for (int index = 0; index < count; ++index) {
 		Passenger passenger;
 		passenger.ID = "P" + std::to_string(index);
+		passenger.IsIntheNetwork = true;
 		passenger.CurrentStatus = PassengerStatus::OnPlatform;
 		passenger.Current_Train_To_Wait = train.trainDescription;
-		passenger.Current_WaitingStationID = train.Stations[train.numStations - 1].stationName;
+		passenger.Current_WaitingStationID = stop.stationName;
+		passenger.Current_WaitingStationPlatformID = stop.stationPlatformId;
+		Journey journey;
+		journey.ID = passenger.ID + ".j";
+		journey.Dep_Station_ID = stop.stationName;
+		journey.Arr_Station_ID = train.Stations[0].stationName;
+		journey.N_Trips = 1;
+		journey.IsJourneyStarted = true;
+		Trip trip;
+		trip.TripID = passenger.ID + ".t";
+		trip.JourneyID = journey.ID;
+		trip.Dep_Station_ID = stop.stationName;
+		trip.Arr_Station_ID = journey.Arr_Station_ID;
+		trip.Dep_Station_Platform_ID = stop.stationPlatformId;
+		trip.TrainServiceDescription = train.trainDescription;
+		trip.IsTripStarted = true;
+		trip.Actual_Departure_Time = 0;
+		journey.Trips.push_back(trip);
+		passenger.Journeys.push_back(journey);
+		passenger.current_JourneyID = journey.ID;
+		passenger.current_TripID = trip.TripID;
+		passenger.Current_Arrival_Station = journey.Arr_Station_ID;
 		passengers.push_back(passenger);
 	}
 	return passengers;
 }
 
-// The number of steps at which the train stands at the stop, or -1 when it does not leave.
+// The number of steps at which the train stands at the stop, or -1 when it does not leave. The train is the only train of the run.
 int lengthOfStop(const Train& native, double plannedDwell, int waiting) {
 	Train service = trainAtLastStop(native, plannedDwell);
 	const Node& stop = service.Stations[service.numStations - 1];
-	std::list<Passenger> passengers = waitingFor(service, waiting);
-	std::list<StationPlatform> platforms;
 	StationPlatform platform;
 	platform.StationID = stop.stationName;
 	platform.ID = stop.stationPlatformId;
+	std::list<Passenger> passengers = waitingFor(service, waiting);
 	for (const Passenger& passenger : passengers)
 		platform.Current_List_Pax_On_Platform.emplace_back(passenger.ID, 0.0);
-	platforms.push_back(platform);
+	PassengerStepScope scope(defaultRun());
+	scope.set({service}, std::move(passengers), {platform});
+	defaultRun().settings.startingSimulationTime = 0;
+	Train& moving = defaultRun().trains[0];
 
 	for (int step = kFirstStep; step < kLastStep; ++step) {
-		service.trajectoryComputationIncludingMovingBlock(step, signalCode1, signalCode2, signalCode3);
-		Simulate_Train_Passenger_Interactions(defaultRun(), step, 0, service, passengers, platforms);
-		if (!service.StoppedForServiceStop)
+		moving.trajectoryComputationIncludingMovingBlock(step, signalCode1, signalCode2, signalCode3);
+		simulateTrainPassengerInteractions(defaultRun(), step);
+		if (!moving.StoppedForServiceStop)
 			return step - kFirstStep;
 	}
 	return -1;

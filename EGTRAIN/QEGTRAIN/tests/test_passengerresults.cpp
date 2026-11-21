@@ -4,8 +4,8 @@
 #include "simulation/PassengerFlow.h"
 #include "simulation/PassengerResults.h"
 #include "simulation/RollingStock.h"
-#include "simulation/Simulation.h"
 #include "simulation/SimulationRun.h"
+#include "support/PassengerStep.h"
 #include "util/Log.h"
 
 #include <QTest>
@@ -60,6 +60,8 @@ Passenger riderOfT1(const std::string& id, const std::string& station, Passenger
 	trip.JourneyID = journey.ID;
 	trip.Dep_Station_ID = journey.Dep_Station_ID;
 	trip.Arr_Station_ID = journey.Arr_Station_ID;
+	if (status == PassengerStatus::OnPlatform)
+		trip.Dep_Station_Platform_ID = station + ".platform.1";
 	trip.TrainServiceDescription = "T1";
 	trip.IsTripStarted = true;
 	trip.Actual_Departure_Time = 0;
@@ -80,6 +82,35 @@ Passenger riderOfT1(const std::string& id, const std::string& station, Passenger
 		passenger.Current_Arrival_Station = "B";
 	}
 	return passenger;
+}
+// The platform of the station.
+StationPlatform platformAt(const std::string& station) {
+	StationPlatform platform;
+	platform.StationID = station;
+	platform.ID = station + ".platform.1";
+	return platform;
+}
+
+// A passenger outside the network whose journey, from A to B on train T1, starts at this time.
+Passenger passengerStartingAt(int start) {
+	Passenger passenger = riderOfT1("late", "A", PassengerStatus::OnPlatform);
+	Journey& journey = passenger.Journeys.front();
+	Trip& trip = journey.Trips.front();
+	trip.IsTripStarted = false;
+	trip.Actual_Departure_Time = -9999;
+	journey.IsJourneyStarted = false;
+	journey.Actual_Planned_Departure_Time = start;
+	passenger.IsIntheNetwork = false;
+	passenger.CurrentStatus = PassengerStatus::Outside;
+	passenger.current_JourneyID = passenger.current_TripID = passenger.Current_Train_To_Wait = kNoneId;
+	passenger.Current_WaitingStationID = passenger.Current_WaitingStationPlatformID = passenger.Current_Arrival_Station = kNoneId;
+	return passenger;
+}
+
+// The passenger step of step t as a run makes it: the passengers whose journey starts enter, then the trains alight and board.
+void runStep(SimulationRun& run, int t) {
+	enterPassengersAndRefreshPlatforms(run, t);
+	simulateTrainPassengerInteractions(run, t);
 }
 } // namespace
 
@@ -102,29 +133,19 @@ void TestPassengerResults::callCountsBoardedAlightedLeftBehindAndLoad() {
 	const auto restoreLog = qScopeGuard([] { eglog::setSink({}); });
 	SimulationRun run;
 	run.settings.PAX_GUI = false;
-	Train train;
-	train.trainDescription = "T1";
-	train.numStations = 1;
-	train.Stations.resize(1);
-	train.Stations[0].stationName = "A";
-	train.Stations[0].stationPlatformId = "A.platform.1";
-	train.Stations[0].StepStopped = 2; // not the first step of the stand, which would apply the dwell model
-	train.StoppedForServiceStop = true;
-	train.CurrentServiceStop = "A";
-	train.CurrentServiceStopPlatform = "A.platform.1";
+	run.settings.startingSimulationTime = 0;
+	Train train = trainCalling("T1", {"A", "B"});
+	standAtStop(train, 0, 2); // not the first step of the stand, which would apply the dwell model
 	train.MAX_OnBoard_Passengers = 1;
 	train.Current_OnBoard_Passengers = 1;
-	run.trains.push_back(train);
-	run.numTrains = 1;
-	StationPlatform platform;
-	platform.StationID = "A";
-	platform.ID = "A.platform.1";
-	const std::list<StationPlatform> platforms = {platform};
 	// One passenger on board leaves at A; of the two who wait, one finds room and the other is left behind.
-	std::list<Passenger> passengers = {riderOfT1("alights", "A", PassengerStatus::OnBoard), riderOfT1("boards", "A", PassengerStatus::OnPlatform),
-		riderOfT1("refused", "A", PassengerStatus::OnPlatform)};
+	PassengerStepScope scope(run);
+	scope.set({train},
+		{riderOfT1("alights", "A", PassengerStatus::OnBoard), riderOfT1("boards", "A", PassengerStatus::OnPlatform),
+			riderOfT1("refused", "A", PassengerStatus::OnPlatform)},
+		{platformAt("A")});
 
-	Simulate_Train_Passenger_Interactions(run, 100, 0, run.trains[0], passengers, platforms);
+	runStep(run, 100);
 
 	const StopCallCounts* counts = run.stopCalls.find(0, 0);
 	QVERIFY(counts != nullptr);
@@ -143,31 +164,18 @@ void TestPassengerResults::secondCallOfAStationHasItsOwnCounts() {
 	const auto restoreLog = qScopeGuard([] { eglog::setSink({}); });
 	SimulationRun run;
 	run.settings.PAX_GUI = false;
-	Train train;
-	train.trainDescription = "T1";
-	train.numStations = 3;
-	train.Stations.resize(3);
-	const char* names[] = {"A", "B", "A"};
-	for (int stop = 0; stop < 3; ++stop) {
-		train.Stations[static_cast<std::size_t>(stop)].stationName = names[stop];
-		train.Stations[static_cast<std::size_t>(stop)].stationPlatformId = std::string(names[stop]) + ".platform.1";
-		train.Stations[static_cast<std::size_t>(stop)].StepStopped = stop < 2 ? 10 : 2;
-	}
-	train.StationDepartures[0] = 50;
-	train.StationDepartures[1] = 100;
-	train.StoppedForServiceStop = true;
-	train.CurrentServiceStop = "A";
-	train.CurrentServiceStopPlatform = "A.platform.1";
+	run.settings.startingSimulationTime = 0;
+	Train train = trainCalling("T1", {"A", "B", "A"});
+	standAtStop(train, 2, 0); // the calls at A and B are over
+	train.StoppedForServiceStop = false;
 	train.MAX_OnBoard_Passengers = 4;
-	run.trains.push_back(train);
-	run.numTrains = 1;
-	StationPlatform platform;
-	platform.StationID = "A";
-	platform.ID = "A.platform.1";
-	const std::list<StationPlatform> platforms = {platform};
-	std::list<Passenger> passengers = {riderOfT1("boards", "A", PassengerStatus::OnPlatform)};
+	PassengerStepScope scope(run);
+	scope.set({train}, {passengerStartingAt(190)}, {platformAt("A")});
 
-	Simulate_Train_Passenger_Interactions(run, 200, 0, run.trains[0], passengers, platforms);
+	// The train is on its way back to A, and the passenger has not started yet.
+	runStep(run, 160);
+	standAtStop(run.trains[0], 2, 2);
+	runStep(run, 200);
 
 	QCOMPARE(run.stopCalls.at(0, 0).boarded, 0);
 	const StopCallCounts* second = run.stopCalls.find(0, 2);
@@ -175,47 +183,37 @@ void TestPassengerResults::secondCallOfAStationHasItsOwnCounts() {
 	QCOMPARE(second->boarded, 1);
 }
 
-// A passenger who waits for a full train is left behind once at each call of the train, however many steps the call lasts.
+// A full train leaves behind the passengers who wait for it at each of its calls, and counts each of them once at that call.
 void TestPassengerResults::leftBehindPassengerIsCountedOncePerCall() {
 	eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
 	const auto restoreLog = qScopeGuard([] { eglog::setSink({}); });
 	SimulationRun run;
 	run.settings.PAX_GUI = false;
-	Train train;
-	train.trainDescription = "T1";
-	train.numStations = 3;
-	train.Stations.resize(3);
-	const char* names[] = {"A", "B", "A"};
-	for (int stop = 0; stop < 3; ++stop) {
-		train.Stations[static_cast<std::size_t>(stop)].stationName = names[stop];
-		train.Stations[static_cast<std::size_t>(stop)].stationPlatformId = std::string(names[stop]) + ".platform.1";
-	}
-	train.Stations[0].StepStopped = 2;
-	train.StoppedForServiceStop = true;
-	train.CurrentServiceStop = "A";
-	train.CurrentServiceStopPlatform = "A.platform.1";
+	run.settings.startingSimulationTime = 0;
+	Train train = trainCalling("T1", {"A", "B", "A"});
+	standAtStop(train, 0, 2);
 	train.MAX_OnBoard_Passengers = 1;
 	train.Current_OnBoard_Passengers = 1;
-	run.trains.push_back(train);
-	run.numTrains = 1;
-	StationPlatform platform;
-	platform.StationID = "A";
-	platform.ID = "A.platform.1";
-	const std::list<StationPlatform> platforms = {platform};
-	std::list<Passenger> passengers = {riderOfT1("refused", "A", PassengerStatus::OnPlatform)};
+	PassengerStepScope scope(run);
+	scope.set({train}, {riderOfT1("refused", "A", PassengerStatus::OnPlatform), passengerStartingAt(190)}, {platformAt("A")});
 
 	for (int t = 100; t < 103; ++t)
-		Simulate_Train_Passenger_Interactions(run, t, 0, run.trains[0], passengers, platforms);
+		runStep(run, t);
 	QCOMPARE(run.stopCalls.at(0, 0).leftBehind, 1);
+	// Without another train the passenger who was left behind finds no route and leaves.
+	QCOMPARE(run.passengers.front().Journeys.front().Outcome, JourneyOutcome::NoRoute);
 
-	// The train leaves A, calls at B and comes back to A, still full.
+	// The train leaves A, calls at B and comes back to A, still full. The passenger who starts now waits for it and is left behind.
 	Train& later = run.trains[0];
-	later.StationDepartures[0] = 110;
 	later.Stations[0].StepStopped = later.Stations[1].StepStopped = 10;
+	later.StationDepartures[0] = 110;
 	later.StationDepartures[1] = 150;
-	later.Stations[2].StepStopped = 1;
+	later.Stations[2].StepStopped = 0;
+	later.StoppedForServiceStop = false;
+	runStep(run, 160);
+	standAtStop(later, 2, 1);
 	for (int t = 200; t < 203; ++t) {
-		Simulate_Train_Passenger_Interactions(run, t, 0, later, passengers, platforms);
+		runStep(run, t);
 		later.Stations[2].StepStopped++;
 	}
 	QCOMPARE(run.stopCalls.at(0, 0).leftBehind, 1);

@@ -202,7 +202,7 @@ void fill(SimulationRun& run) {
 	numPassengers = 1;
 	passengerIndex.build(passengers);
 	platformIndex.build(platforms);
-	passengerFlow.build(passengers, true);
+	passengerFlow.build(passengers);
 	for (DelayStats* statistics : {&totalDelays, &entranceDelays, &disturbances, &finalStation}) {
 		statistics->N_Stopped_Trains = 4;
 		statistics->totalArrivalDelay = 30;
@@ -1126,7 +1126,7 @@ void TestSimulationRun::platformCountsWaitingWithoutPassengerGui() {
 	}
 	run->numPassengers = 7;
 	run->passengerIndex.build(run->passengers);
-	run->passengerFlow.build(run->passengers, true);
+	run->passengerFlow.build(run->passengers);
 	QVERIFY(!run->settings.PAX_GUI);
 	QVERIFY(run->platforms.front().Current_List_Pax_On_Platform.empty());
 	const GuiSimulationSnapshot snapshot = buildGuiSimulationSnapshot(*run, 10);
