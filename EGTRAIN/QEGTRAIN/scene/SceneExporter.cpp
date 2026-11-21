@@ -678,6 +678,18 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const Expo
 		d.file = "passengers.json";
 		result.diagnostics.push_back(d);
 	}
+	const SceneSimulationSettings& settings = scene.settings;
+	if (settings.passengerDwellCoefficients || settings.passengerPlatformCrowdingThreshold
+		|| settings.passengerOnboardCrowdingThreshold || settings.passengerCarBoardingThreshold
+		|| settings.passengerMaxTransfers != kDefaultPassengerMaxTransfers) {
+		SceneDiagnostic d;
+		d.severity = SceneSeverity::Warning;
+		d.code = "scene.export.compatibility";
+		d.message = "The legacy input has no passenger transfer limit or dwell model settings, so they were not exported "
+					"and a legacy run uses the built-in values";
+		d.file = "scene.json";
+		result.diagnostics.push_back(d);
+	}
 	if (scene.passengers.empty())
 		return;
 	const fs::path dasPath = fs::path("Passengers") / "DAS_FrenchCaseStudy.csv";

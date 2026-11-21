@@ -85,20 +85,10 @@ void addNativeDiagnostic(std::vector<SceneDiagnostic>& diagnostics, const std::s
 }
 
 bool parseNativeBaseTime(const std::string& value, int& seconds) {
-	if (value.size() != 8 || value[2] != ':' || value[5] != ':')
+	const std::optional<int> parsed = sceneBaseTimeSeconds(value);
+	if (!parsed)
 		return false;
-	for (std::size_t i = 0; i < value.size(); ++i) {
-		if (i == 2 || i == 5)
-			continue;
-		if (value[i] < '0' || value[i] > '9')
-			return false;
-	}
-	const int hours = (value[0] - '0') * 10 + value[1] - '0';
-	const int minutes = (value[3] - '0') * 10 + value[4] - '0';
-	const int partSeconds = (value[6] - '0') * 10 + value[7] - '0';
-	if (hours > 23 || minutes > 59 || partSeconds > 59)
-		return false;
-	seconds = hours * 3600 + minutes * 60 + partSeconds;
+	seconds = *parsed;
 	return true;
 }
 

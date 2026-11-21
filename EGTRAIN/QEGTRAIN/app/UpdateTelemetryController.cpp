@@ -56,6 +56,7 @@ std::optional<telemetry::Error> telemetryDiagnosticError(const std::vector<Scene
 		"scene.delay.invalid",
 		"scene.demand.count",
 		"scene.demand.duplicate_cell",
+		"scene.demand.id.conflict",
 		"scene.demand.overlap",
 		"scene.demand.period",
 		"scene.demand.same_station",

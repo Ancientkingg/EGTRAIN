@@ -49,8 +49,8 @@ Optional keys:
   journey. The writer leaves it out while it has the default. Four optional
   keys set the passenger-dependent dwell model; a key that is absent keeps the
   value below, and the writer leaves a key out while it is absent:
-  `passenger_dwell_coefficients` is an array of exactly 8 non-negative numbers,
-  the coefficients beta0 to beta7 in model order (default
+  `passenger_dwell_coefficients` is an array of exactly 8 numbers from 0 to
+  1,000,000, the coefficients beta0 to beta7 in model order (default
   `[7, 0.32, 18.23, 0.564, 4.838, 22.24, 0.04, 0.562]`). beta0 is the fixed time
   of a stop, beta1 is added when the platform is crowded, beta2 is the time per
   boarding passenger at a door, beta3 and beta4 are added to the boarding time
@@ -60,7 +60,9 @@ Optional keys:
   (default 0.65) and `passenger_onboard_crowding_threshold` (default 0.7) are
   occupancy rates from 0 to 1, and `passenger_car_boarding_threshold` (default
   15) is a whole number of boarding passengers per car, 0 or more. Each
-  crowding flag applies when the value is above its threshold.
+  crowding flag applies when the value is above its threshold. The legacy
+  export cannot hold `passenger_max_transfers` or the four dwell keys, so it
+  leaves them out with a warning and a legacy run uses the built-in values.
 - `import_report`: array of conversion rows.
 
 Inside a case file, `format` is the required string `"egscene"` and
@@ -257,7 +259,7 @@ Each train unit has an `id` and may have:
   `max_speed_ms`, `max_deceleration_ms2`, `frontal_area_m2`,
   `resistance_coefficient`, `jerk_ms3`, and `length_m`.
 - `traction_curve`: an array of five-number rows `[v_lower, v_upper, c0, c1, c2]`.
-- `passenger_capacity`: an integer of 0 or more, the passengers the unit carries.
+- `passenger_capacity`: an integer from 0 to 100,000, the passengers the unit carries.
 - `source`: an object whose independent string keys are `data_file` and
   `traction_file`.
 
@@ -488,9 +490,13 @@ midnight, like the journey windows) and a `cells` array. A cell has `origin`
 and `destination` station IDs and an integer `count` of at least 1. Slices must
 not overlap, a period must end after it starts and by 24:00:00, a cell may not
 join a station to itself, and a slice holds at most one cell per station pair.
-All slices together hold at most 1,000,000 passengers. A scene without slices is
-written without the key, and the legacy export leaves the slices out with a
-warning.
+All slices together hold at most 1,000,000 passengers. The ID that a cell gives
+its passengers (below) must be the ID of no other cell and of no passenger of
+`passengers`. A slice that starts before the base time or ends after the end of
+the run (the base time plus the duration) gets a warning: its passengers before
+the base time all appear in the first step, and those after the end never appear.
+A scene without slices is written without the key, and the legacy export leaves
+the slices out with a warning.
 
 A run adds one passenger per counted passenger after the passengers of the
 scene. The passengers of a cell with count n appear at start + i * (end -

@@ -15,6 +15,7 @@
 #include <regex>
 #include <set>
 #include <sstream>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -477,14 +478,38 @@ void warnImplausibleTrainValue(DiagnosticBuilder& diagnostics, const SceneTrainU
 		"rolling_stock.json", "train_unit", unit.id, path, "", "Check the value and its unit");
 }
 
+// The number after the last '#' of a passenger ID when it is a whole number as std::to_string writes it, else -1. The
+// digits of `suffix` are the text after the '#'.
+long long generatedNumber(std::string_view suffix) {
+	if (suffix.empty() || suffix.size() > 9 || (suffix.size() > 1 && suffix.front() == '0'))
+		return -1;
+	long long number = 0;
+	for (const char character : suffix) {
+		if (character < '0' || character > '9')
+			return -1;
+		number = number * 10 + (character - '0');
+	}
+	return number;
+}
+
 // Checks the demand slices of passengers.json: unique ids, a period inside the day that ends after it starts, no two
-// slices that overlap, known and different stations, one cell per pair, a positive count, and a total that staging
-// can hold.
+// slices that overlap, known and different stations, one cell per pair, a positive count, a total that staging can hold,
+// and passenger IDs that staging makes only once. A valid period that does not lie inside the run is a warning.
+// `effectiveDurationSeconds` is the length of the run.
 void validatePassengerDemand(const SceneModel& scene, const std::unordered_set<std::string>& stationIds,
-	DiagnosticBuilder& diagnostics) {
+	double effectiveDurationSeconds, DiagnosticBuilder& diagnostics) {
 	constexpr double kDaySeconds = 24.0 * 3600.0;
+	// The run lasts from the base time for the duration; without both, a slice has no run to lie in.
+	const std::optional<int> runStart = sceneBaseTimeSeconds(scene.baseTime);
+	const bool hasRun = runStart && std::isfinite(effectiveDurationSeconds) && effectiveDurationSeconds > 0.0;
 	std::unordered_set<std::string> sliceIds;
 	std::vector<std::size_t> validPeriods;
+	// The cell that makes each ID prefix <slice>:<origin>><destination># of staging, and the count of that cell.
+	struct GeneratedCell {
+		const ScenePassengerDemandSlice* slice;
+		const ScenePassengerDemandCell* cell;
+	};
+	std::unordered_map<std::string, GeneratedCell> generated;
 	long long total = 0;
 	for (std::size_t sliceIndex = 0; sliceIndex < scene.passengerDemand.size(); ++sliceIndex) {
 		const ScenePassengerDemandSlice& slice = scene.passengerDemand[sliceIndex];
@@ -493,38 +518,84 @@ void validatePassengerDemand(const SceneModel& scene, const std::unordered_set<s
 			diagnostics.error("scene.id.duplicate", "Duplicate demand slice ID", "passengers.json", "demand_slice",
 				slice.id, slicePath + ".id", slice.id);
 		if (!std::isfinite(slice.startSeconds) || !std::isfinite(slice.endSeconds) || slice.startSeconds < 0.0
-			|| slice.endSeconds > kDaySeconds || slice.endSeconds <= slice.startSeconds)
+			|| slice.endSeconds > kDaySeconds || slice.endSeconds <= slice.startSeconds) {
 			diagnostics.error("scene.demand.period",
 				"Demand slice must start at 0 or later, end by 24:00:00 and end after it starts", "passengers.json",
 				"demand_slice", slice.id, slicePath + ".start_seconds");
-		else
+		} else {
 			validPeriods.push_back(sliceIndex);
-		std::set<std::pair<std::string, std::string>> pairs;
+			if (hasRun && (slice.startSeconds < *runStart || slice.endSeconds > *runStart + effectiveDurationSeconds))
+				diagnostics.warning("scene.demand.period.outside_run",
+					"Demand slice " + slice.id
+						+ " is not inside the run: its passengers before the base time all appear at the start, and those after the end of the run never appear",
+					"passengers.json", "demand_slice", slice.id, slicePath + ".start_seconds", "",
+					"Move the slice inside the run, or change the base time or the duration");
+		}
+		std::set<std::pair<std::string_view, std::string_view>> pairs;
 		for (std::size_t cellIndex = 0; cellIndex < slice.cells.size(); ++cellIndex) {
 			const ScenePassengerDemandCell& cell = slice.cells[cellIndex];
-			const std::string cellPath = slicePath + ".cells[" + std::to_string(cellIndex) + "]";
-			const std::string entry = "Demand slice " + slice.id;
-			if (!hasId(stationIds, cell.originStationId))
-				diagnostics.unresolved(cell.originStationId, entry, "origin station",
+			// The strings are only needed for a diagnostic.
+			const auto cellPath = [&] { return slicePath + ".cells[" + std::to_string(cellIndex) + "]"; };
+			const auto entry = [&] { return "Demand slice " + slice.id; };
+			bool valid = true;
+			if (!hasId(stationIds, cell.originStationId)) {
+				valid = false;
+				diagnostics.unresolved(cell.originStationId, entry(), "origin station",
 					"Demand cell refers to unknown origin station", "passengers.json", "demand_slice", slice.id,
-					cellPath + ".origin");
-			if (!hasId(stationIds, cell.destinationStationId))
-				diagnostics.unresolved(cell.destinationStationId, entry, "destination station",
+					cellPath() + ".origin");
+			}
+			if (!hasId(stationIds, cell.destinationStationId)) {
+				valid = false;
+				diagnostics.unresolved(cell.destinationStationId, entry(), "destination station",
 					"Demand cell refers to unknown destination station", "passengers.json", "demand_slice", slice.id,
-					cellPath + ".destination");
-			if (!cell.originStationId.empty() && cell.originStationId == cell.destinationStationId)
+					cellPath() + ".destination");
+			}
+			if (!cell.originStationId.empty() && cell.originStationId == cell.destinationStationId) {
+				valid = false;
 				diagnostics.error("scene.demand.same_station", "Demand cell has the same origin and destination",
-					"passengers.json", "demand_slice", slice.id, cellPath + ".destination", cell.destinationStationId);
+					"passengers.json", "demand_slice", slice.id, cellPath() + ".destination", cell.destinationStationId);
+			}
 			if (!pairs.emplace(cell.originStationId, cell.destinationStationId).second)
 				diagnostics.error("scene.demand.duplicate_cell",
 					"Demand slice has two cells for " + cell.originStationId + " to " + cell.destinationStationId,
-					"passengers.json", "demand_slice", slice.id, cellPath, "", "Merge the two cells into one");
-			if (cell.count < 1)
+					"passengers.json", "demand_slice", slice.id, cellPath(), "", "Merge the two cells into one");
+			if (cell.count < 1) {
+				valid = false;
 				diagnostics.error("scene.demand.count", "Demand cell count must be 1 or more", "passengers.json",
-					"demand_slice", slice.id, cellPath + ".count");
-			else
+					"demand_slice", slice.id, cellPath() + ".count");
+			} else
 				total += cell.count;
+			if (!valid)
+				continue;
+			const auto made = generated.emplace(
+				slice.id + ":" + cell.originStationId + ">" + cell.destinationStationId + "#", GeneratedCell{&slice, &cell});
+			if (made.second)
+				continue;
+			// The same slice and stations twice have their own error.
+			const GeneratedCell& first = made.first->second;
+			if (first.slice->id != slice.id || first.cell->originStationId != cell.originStationId
+				|| first.cell->destinationStationId != cell.destinationStationId)
+				diagnostics.error("scene.demand.id.conflict",
+					"Demand slices " + first.slice->id + " and " + slice.id + " make passengers with the same ID",
+					"passengers.json", "demand_slice", slice.id, cellPath(), first.slice->id,
+					"Rename a slice or a station so that <slice>:<origin>><destination> differs");
 		}
+	}
+	// A passenger of the scene whose ID is one that a cell makes.
+	for (std::size_t passengerIndex = 0; passengerIndex < scene.passengers.size() && !generated.empty(); ++passengerIndex) {
+		const std::string& id = scene.passengers[passengerIndex].id;
+		const std::size_t hash = id.rfind('#');
+		if (hash == std::string::npos)
+			continue;
+		const auto cell = generated.find(id.substr(0, hash + 1));
+		if (cell == generated.end())
+			continue;
+		const long long number = generatedNumber(std::string_view(id).substr(hash + 1));
+		if (number >= 0 && number < cell->second.cell->count)
+			diagnostics.error("scene.demand.id.conflict",
+				"Passenger ID " + id + " is also the ID of a passenger that demand slice " + cell->second.slice->id + " makes",
+				"passengers.json", "passenger", id, "passengers[" + std::to_string(passengerIndex) + "].id",
+				cell->second.slice->id, "Rename the passenger");
 	}
 	std::sort(validPeriods.begin(), validPeriods.end(), [&scene](std::size_t a, std::size_t b) {
 		return scene.passengerDemand[a].startSeconds < scene.passengerDemand[b].startSeconds;
@@ -720,12 +791,13 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 	if (scene.settings.passengerDwellCoefficients) {
 		const std::vector<double>& coefficients = *scene.settings.passengerDwellCoefficients;
 		const bool valid = coefficients.size() == kPassengerDwellCoefficientCount
-			&& std::all_of(coefficients.begin(), coefficients.end(), [](double value) { return std::isfinite(value) && value >= 0.0; });
+			&& std::all_of(coefficients.begin(), coefficients.end(),
+				[](double value) { return std::isfinite(value) && value >= 0.0 && value <= kMaxPassengerDwellCoefficient; });
 		if (!valid) {
 			diagnostics.error("scene.passenger.dwell.coefficients.invalid",
-				"The passenger dwell coefficients must be 8 finite numbers of 0 or more", "scene.json",
+				"The passenger dwell coefficients must be 8 numbers from 0 to 1000000", "scene.json",
 				"scene", "", "simulation_settings.passenger_dwell_coefficients", "",
-				"Give the 8 coefficients beta0 to beta7, none of them negative");
+				"Give the 8 coefficients beta0 to beta7, each from 0 to 1000000");
 		}
 	}
 	const auto checkThreshold = [&](const std::optional<double>& value, const char* key) {
@@ -1312,8 +1384,9 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				"rolling_stock.json", "train_unit", unit.id, path + ".traction_curve", "",
 				"Add at least one traction curve row");
 		}
-		if (unit.hasPassengerCapacity && unit.passengerCapacity < 0)
-			diagnostics.error("scene.train.capacity", "Passenger capacity must be 0 or more", "rolling_stock.json",
+		if (unit.hasPassengerCapacity && (unit.passengerCapacity < 0 || unit.passengerCapacity > kMaxPassengerCapacity))
+			diagnostics.error("scene.train.capacity",
+				"Passenger capacity must be from 0 to " + std::to_string(kMaxPassengerCapacity), "rolling_stock.json",
 				"train_unit", unit.id, path + ".passenger_capacity");
 		if (runnable && !unit.hasPhysical) {
 			diagnostics.error("scene.train.physical.missing", "Rolling stock unit has no physical values",
@@ -1844,7 +1917,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		}
 	}
 
-	validatePassengerDemand(scene, stationIds, diagnostics);
+	validatePassengerDemand(scene, stationIds, effectiveDurationSeconds, diagnostics);
 
 	if (infrastructureUsableForRuntimeChecks)
 		reportSteepRouteGradients(scene, sectionInventory, diagnostics);

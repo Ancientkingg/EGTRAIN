@@ -7,6 +7,9 @@
 /// The number of coefficients (beta0 to beta7) of the passenger-dependent dwell model of Train::computePaxDependentDwellTimeAtStations.
 inline constexpr std::size_t kPassengerDwellCoefficientCount = 8;
 
+/// The largest value of a coefficient in passenger_dwell_coefficients. The run holds the values as floats.
+inline constexpr double kMaxPassengerDwellCoefficient = 1000000.0;
+
 /// The coefficients of the dwell model in model order, the values of Fernandez et al. (2007) that a scene without
 /// passenger_dwell_coefficients uses:
 ///  beta0 fixed time of a stop in s,
