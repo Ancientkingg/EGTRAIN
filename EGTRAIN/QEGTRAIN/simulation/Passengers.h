@@ -67,8 +67,8 @@ public:
 	bool IsTripStarted, IsTripCompleted; ///< True once the passenger has alighted at the arrival station.
 
 	Trip() {
-		this->TripID = Dep_Station_ID = Arr_Station_ID = TrainServiceDescription = "None";
-		this->Dep_Station_Platform_ID = Arr_Station_Platform_ID = "None";
+		this->TripID = Dep_Station_ID = Arr_Station_ID = TrainServiceDescription = kNoneId;
+		this->Dep_Station_Platform_ID = Arr_Station_Platform_ID = kNoneId;
 		this->depPlatformNumber = 0;
 		this->Actual_Boarding_Time = -9999;
 		this->Planned_Arrival_Time = Planned_Departure_Time = Actual_Departure_Time = Actual_Arrival_Time = totalArrivalDelay = -9999;
@@ -143,8 +143,8 @@ public:
 	bool isFinished() const { return IsJourneyCompleted || Outcome == JourneyOutcome::NoRoute; }
 
 	Journey() {
-		ID = Dep_Station_ID = Arr_Station_ID = "None";
-		Dep_Station_Platform_ID = Arr_Station_Platform_ID = "None";
+		ID = Dep_Station_ID = Arr_Station_ID = kNoneId;
+		Dep_Station_Platform_ID = Arr_Station_Platform_ID = kNoneId;
 		Planned_Departure_Time = Planned_Arrival_Time = Actual_Planned_Departure_Time = Actual_Planned_Arrival_Time = -9999;
 		Actual_Departure_Time = Actual_Arrival_Time = -9999;
 
@@ -193,15 +193,15 @@ public:
 	std::string PlatformExitedTheNetworkID;
 	/// trainDescription of the last train that was full when the passenger wanted to board it; "None" before that. The
 	/// refusal is logged once per call of that train, not at every step of its stop.
-	std::string TrainThatRefusedBoarding = "None";
+	std::string TrainThatRefusedBoarding = kNoneId;
 	/// Index of the stop of that train (Train::Stations) at which the refusal happened; -1 before that. A later call of the
 	/// same train refuses the passenger again.
 	int StopThatRefusedBoarding = -1;
 
 	Passenger() {
-		ID = current_location_ID = current_TripID = current_JourneyID = StationExitedTheNetworkID = PlatformExitedTheNetworkID = "None";
-		Current_Train_To_Wait = Current_Train_Boarded = Current_Arrival_Station = Current_Arrival_Platform = "None";
-		Current_WaitingStationPlatformID = Current_WaitingStationID = "None";
+		ID = current_location_ID = current_TripID = current_JourneyID = StationExitedTheNetworkID = PlatformExitedTheNetworkID = kNoneId;
+		Current_Train_To_Wait = Current_Train_Boarded = Current_Arrival_Station = Current_Arrival_Platform = kNoneId;
+		Current_WaitingStationPlatformID = Current_WaitingStationID = kNoneId;
 		IsIntheNetwork = false;
 		TimeExitedTheNetwork = -9999;
 	}

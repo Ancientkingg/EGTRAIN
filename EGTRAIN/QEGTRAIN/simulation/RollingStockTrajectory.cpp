@@ -135,7 +135,7 @@ void Train::leaveFollowingModeWhenLeaderIsGone(int time_seconds) {
 	run_->vcMsgText.push_back("Decoupled");
 	MovementAuthority ResetPredictedMAToDecoupleAt;
 	IsTrainInFollowingMode = false;
-	LeadingTrainInFollowingMode = "None";
+	LeadingTrainInFollowingMode = kNoneId;
 	IsTrainDecoupling = false;
 	Predicted_MA_To_DecoupleAt = ResetPredictedMAToDecoupleAt;
 	IsInUnintentionalDecoupling = false;
@@ -343,7 +343,7 @@ const MovementAuthority* Train::currentFollowingAuthority(double head, double& l
 				&& Last_Received_MA.type == authority.type && Last_Received_MA.typePart == authority.typePart
 				&& Last_Received_MA.ReversedDirection == authority.ReversedDirection
 				&& std::abs(authority.AbsPosEoA - Last_Received_MA.AbsPosEoA) < 0.001
-				&& (authority.TrainInfo.NextSectionID == "None"
+				&& (isNoneId(authority.TrainInfo.NextSectionID)
 					|| (block + 1 < route.N_Block_Sections && authority.TrainInfo.NextSectionID == route.sequence_of_block_sections[block + 1].ID))) {
 				leaderHead = authorityRoutePosition(authority, section);
 				if (leaderHead > head)
@@ -706,7 +706,7 @@ bool Train::updateVirtualCoupling(int time_seconds, const MovementAuthority* liv
 	// Determination of Train Uncoupling from the leader when it is in following mode and the route diverges from the leader's
 	if ((IsTrainInFollowingMode == 1) && (IsTrainDecoupling == 1)) {
 		// When the train is decoupling it can be considered totally uncoupled and not anymore in following mode when the tale of the leading train has fully crossed the splitting infrastructure element and the corresponding MA is communicated with type=AuthorityKind::TrainUncoupled
-		if ((Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription != "None")
+		if ((!isNoneId(Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription))
 			&& (Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription == LeadingTrainInFollowingMode)
 			&& (Predicted_MA_To_DecoupleAt.type == AuthorityKind::TrainUncoupled)) {
 
@@ -721,7 +721,7 @@ bool Train::updateVirtualCoupling(int time_seconds, const MovementAuthority* liv
 
 			MovementAuthority ResetPredictedMAToDecoupleAt;
 			IsTrainInFollowingMode = false;
-			LeadingTrainInFollowingMode = "None";
+			LeadingTrainInFollowingMode = kNoneId;
 			IsTrainDecoupling = false;
 			Predicted_MA_To_DecoupleAt = ResetPredictedMAToDecoupleAt;
 			IsInUnintentionalDecoupling = false;
@@ -862,7 +862,7 @@ void Train::serviceStopStep(int time_seconds, const Arc& As, double head, bool a
 			instant_spatial_position[time_seconds] = As.endNode.X * 1000 + kRestartOffsetM;
 			recordCurrentServiceStopDeparture(time_seconds);
 			this->StoppedForServiceStop = false; // Stating that the train is no longer stoppoed at a service station
-			this->CurrentServiceStop = "None";	 // This states that the train is no longer stopping at the service station
+			this->CurrentServiceStop = kNoneId;	 // This states that the train is no longer stopping at the service station
 		}
 		// Otherwise the train has to remain stopped at the station
 		else {
@@ -884,8 +884,8 @@ void Train::serviceStopStep(int time_seconds, const Arc& As, double head, bool a
 			instant_spatial_position[time_seconds] = As.endNode.X * 1000 + kRestartOffsetM;
 			recordCurrentServiceStopDeparture(time_seconds);
 			this->StoppedForServiceStop = false; // Stating that the train is no longer stoppoed at a service station
-			this->CurrentServiceStop = "None";	 // This states that the train is no longer stopping at the service station
-			this->CurrentServiceStopPlatform = "None";
+			this->CurrentServiceStop = kNoneId;	 // This states that the train is no longer stopping at the service station
+			this->CurrentServiceStopPlatform = kNoneId;
 			this->currentServiceStopPlatformNumber = 0;
 			BrakingForEoA = false; // setting the variable Braking for EoA to false since the train is starting to move again
 		}
@@ -914,7 +914,7 @@ int Train::serviceStopOf(const std::string& name) const {
 }
 
 void Train::recordCurrentServiceStopArrival(int time_seconds) {
-	if (time_seconds < 0 || CurrentServiceStop == "None")
+	if (time_seconds < 0 || isNoneId(CurrentServiceStop))
 		return;
 
 	const int s = serviceStopOf(CurrentServiceStop);
@@ -925,7 +925,7 @@ void Train::recordCurrentServiceStopArrival(int time_seconds) {
 }
 
 void Train::recordCurrentServiceStopDeparture(int time_seconds) {
-	if (time_seconds < 0 || CurrentServiceStop == "None")
+	if (time_seconds < 0 || isNoneId(CurrentServiceStop))
 		return;
 
 	const int s = serviceStopOf(CurrentServiceStop);

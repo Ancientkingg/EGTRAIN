@@ -147,7 +147,7 @@ CompletedTrajectory captureTrajectory(const Train& train, BlockNameTable& blocks
 // The ids of the sections of a route that hold a station node, found as Train::stationIsOnRoute finds them.
 std::vector<std::string> sectionsWithStation(const Route& route, const std::string& stationName) {
 	std::vector<std::string> ids;
-	if (stationName.empty() || stationName == "None")
+	if (stationName.empty() || isNoneId(stationName))
 		return ids;
 	const auto matches = [&stationName](const Node& node) {
 		return node.station && node.stationName == stationName;

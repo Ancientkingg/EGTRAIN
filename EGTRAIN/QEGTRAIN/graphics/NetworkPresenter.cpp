@@ -274,7 +274,7 @@ QGraphicsItemGroup* drawCallout(QGraphicsScene* scene, QGraphicsItemGroup* group
 
 // A station node stands for a platform: its platform id is neither empty nor "None".
 bool hasPlatformId(const std::string& platformId) {
-	return !platformId.empty() && platformId != "None";
+	return !platformId.empty() && !isNoneId(platformId);
 }
 
 // A platform in words: "Guingamp, platform 2" for "Guingamp.platform.2", the form in which the import names the
@@ -2323,7 +2323,7 @@ void NetworkPresenter::paintTrainPassengerInfo(TrainItemGroup* trainItem) {
 // paint passenger info on top of passenger icon
 void NetworkPresenter::paintPassengerInfoIcon(PassengerItem* paxItem, const GuiPassengerState& passenger, bool replayActive) {
 	// The run writes "None" for what it does not have.
-	const auto known = [](const std::string& value) { return !value.empty() && value != "None"; };
+	const auto known = [](const std::string& value) { return !value.empty() && !isNoneId(value); };
 	std::string text = "Passenger " + passenger.id;
 	if (passenger.status == "OnPlatform")
 		text += known(passenger.waitingPlatform) ? "\nWaiting at " + platformWords(passenger.waitingPlatform) : "\nWaiting";

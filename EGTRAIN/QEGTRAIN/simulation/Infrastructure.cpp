@@ -11,7 +11,7 @@ InitialParameters initial_variables(0);
 
 // Class constructor function
 InfraElement::InfraElement() {
-	ID = SectionID = SwitchName = stationName = ConnectedPoint = "None";
+	ID = SectionID = SwitchName = stationName = ConnectedPoint = kNoneId;
 	isStation = IsSwitch = IsSignal = IsTrackDetSecBorder = withSwitchDiv = false;
 	XCoordinate = YCoordinate = GeoXCoord = GeoYCoord = -1;
 	isEndOfDivSwitchStartOfADivSwitch = false;
@@ -34,7 +34,7 @@ Node::Node() {
 	arcSpeedLimit = 0;
 	latitude = longitude = 0;
 	virtualSignal = false;
-	stationPlatformId = "None";
+	stationPlatformId = kNoneId;
 	for (std::size_t i = 0; i < RuntimeLimits::kNativeMaxNodeConnections; i++) {
 		connectIdBlockSet[i] = 0;
 		connectXNode[i] = 0;

@@ -16,7 +16,7 @@ int stopCount(const Train& train) {
 }
 
 bool isStationName(const string& name) {
-	return !name.empty() && name != "None";
+	return !name.empty() && !isNoneId(name);
 }
 
 int roundedSeconds(double seconds) {
@@ -50,10 +50,10 @@ void leaveNetwork(Passenger& passenger, const string& station, const string& pla
 	passenger.PlatformExitedTheNetworkID = platformId;
 	passenger.current_location_ID = station;
 	passenger.CurrentStatus = PassengerStatus::Outside;
-	passenger.current_TripID = passenger.current_JourneyID = "None";
-	passenger.Current_Train_Boarded = passenger.Current_Train_To_Wait = "None";
-	passenger.Current_Arrival_Station = passenger.Current_Arrival_Platform = "None";
-	passenger.Current_WaitingStationID = passenger.Current_WaitingStationPlatformID = "None";
+	passenger.current_TripID = passenger.current_JourneyID = kNoneId;
+	passenger.Current_Train_Boarded = passenger.Current_Train_To_Wait = kNoneId;
+	passenger.Current_Arrival_Station = passenger.Current_Arrival_Platform = kNoneId;
+	passenger.Current_WaitingStationID = passenger.Current_WaitingStationPlatformID = kNoneId;
 }
 
 // The passenger waits on the platform for the trip, which starts now.
@@ -66,7 +66,7 @@ void waitForTrip(Passenger& passenger, Trip& trip, int now) {
 	passenger.Current_WaitingStationPlatformID = trip.Dep_Station_Platform_ID;
 	passenger.current_TripID = trip.TripID;
 	passenger.Current_Train_To_Wait = trip.TrainServiceDescription;
-	passenger.Current_Train_Boarded = "None";
+	passenger.Current_Train_Boarded = kNoneId;
 	passenger.Current_Arrival_Station = trip.Arr_Station_ID;
 	passenger.Current_Arrival_Platform = trip.Arr_Station_Platform_ID;
 }
@@ -304,7 +304,7 @@ void PassengerJourneys::startJourney(SimulationRun& run, Passenger& passenger, i
 		return;
 	if (journey->Mode == JourneyMode::Live) {
 		passenger.Current_WaitingStationID = journey->Dep_Station_ID;
-		passenger.Current_WaitingStationPlatformID = "None";
+		passenger.Current_WaitingStationPlatformID = kNoneId;
 		planInto(run, passenger, *journey, 0, t, t + run.settings.startingSimulationTime, 0, false);
 	} else {
 		checkWaiting(run, passenger, t);
@@ -371,7 +371,7 @@ void PassengerJourneys::setDownEarly(SimulationRun& run, Passenger& passenger, c
 	passenger.CurrentStatus = PassengerStatus::OnPlatform;
 	passenger.current_location_ID = passenger.Current_WaitingStationID = node.stationName;
 	passenger.Current_WaitingStationPlatformID = node.stationPlatformId;
-	passenger.Current_Train_Boarded = passenger.Current_Train_To_Wait = "None";
+	passenger.Current_Train_Boarded = passenger.Current_Train_To_Wait = kNoneId;
 	planInto(run, passenger, *journey, static_cast<size_t>(distance(journey->Trips.begin(), trip)) + 1, t, now,
 		train.stationPlatformNumber[static_cast<size_t>(stop)], true);
 }

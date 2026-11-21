@@ -463,11 +463,11 @@ void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStarti
 							p->StationExitedTheNetworkID = currenttrip->Arr_Station_ID;			  // Used by the Passenger GUI when the passenger leaves the network
 							p->PlatformExitedTheNetworkID = currenttrip->Arr_Station_Platform_ID; // Used by the Passenger GUI when the passenger leaves the network
 							p->CurrentStatus = PassengerStatus::Outside;
-							p->current_TripID = "None";
-							p->current_JourneyID = "None";
-							p->Current_Train_Boarded = "None";
-							p->Current_Arrival_Station = "None";
-							p->Current_Arrival_Platform = "None";
+							p->current_TripID = kNoneId;
+							p->current_JourneyID = kNoneId;
+							p->Current_Train_Boarded = kNoneId;
+							p->Current_Arrival_Station = kNoneId;
+							p->Current_Arrival_Platform = kNoneId;
 
 						}
 
@@ -483,10 +483,10 @@ void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStarti
 							p->current_location_ID = T.CurrentServiceStop;
 							// The passenger waits for the next train on the platform where that train stops, or on the
 							// arrival platform when the next trip has none.
-							p->Current_WaitingStationPlatformID = nexttrip->Dep_Station_Platform_ID != "None"
+							p->Current_WaitingStationPlatformID = !isNoneId(nexttrip->Dep_Station_Platform_ID)
 								? nexttrip->Dep_Station_Platform_ID
 								: T.CurrentServiceStopPlatform;
-							p->Current_Train_Boarded = "None";
+							p->Current_Train_Boarded = kNoneId;
 							p->Current_Train_To_Wait = nexttrip->TrainServiceDescription;
 							p->Current_Arrival_Station = nexttrip->Arr_Station_ID;
 							p->Current_Arrival_Platform = nexttrip->Arr_Station_Platform_ID;
@@ -550,9 +550,9 @@ Boarding boardPassenger(Passenger* p, Train& T, int call, int t, int SimulationS
 			T.Current_OnBoard_Passengers++;
 			p->CurrentStatus = PassengerStatus::OnBoard;
 			p->Current_Train_Boarded = T.trainDescription;
-			p->Current_WaitingStationID = "None";
-			p->Current_WaitingStationPlatformID = "None";
-			p->Current_Train_To_Wait = "None";
+			p->Current_WaitingStationID = kNoneId;
+			p->Current_WaitingStationPlatformID = kNoneId;
+			p->Current_Train_To_Wait = kNoneId;
 
 			if (p->Journeys.empty() != 1) {
 				for (list<Journey>::iterator j = p->Journeys.begin(); j != p->Journeys.end(); j++) {

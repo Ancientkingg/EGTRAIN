@@ -98,8 +98,8 @@ double Train::Det_Run_Start_Time() {
 
 string Train::stationNameForArrivalStats(int stationIndex) const {
 	if (stationIndex < 0 || stationIndex >= numStations)
-		return "None";
-	if (StationArrivalNames[stationIndex] != "None")
+		return kNoneId;
+	if (!isNoneId(StationArrivalNames[stationIndex]))
 		return StationArrivalNames[stationIndex];
 	return Stations[stationIndex].stationName;
 }
@@ -148,7 +148,7 @@ void Train::Determine_Actual_Station_Arrivals() {
 			const double high = std::max(previous, current) + toleranceMeters;
 			if (stationMeters >= low && stationMeters <= high) {
 				StationArrivals[s] = t * timestep;
-				if (StationArrivalNames[s] == "None")
+				if (isNoneId(StationArrivalNames[s]))
 					StationArrivalNames[s] = Stations[s].stationName;
 				break;
 			}
@@ -200,7 +200,7 @@ bool Train::stationIsOnRoute(int stationIndex, const vector<string>& allowedBloc
 	if (Stations.empty() || stationIndex < 0 || stationIndex >= numStations || indexOfRoute < 0 || indexOfRoute >= static_cast<int>(run_->infra.routes.size()))
 		return false;
 	const string& stationName = Stations[stationIndex].stationName;
-	if (stationName.empty() || stationName == "None")
+	if (stationName.empty() || isNoneId(stationName))
 		return false;
 	const auto matches = [&stationName](const Node& node) {
 		return node.station && node.stationName == stationName;
@@ -302,7 +302,7 @@ void Train::recordStationPassagesAtTime(int time_seconds) {
 			continue;
 		if (stationMeters >= low && stationMeters <= high) {
 			StationArrivals[s] = time_seconds * timestep;
-			if (StationArrivalNames[s] == "None")
+			if (isNoneId(StationArrivalNames[s]))
 				StationArrivalNames[s] = Stations[s].stationName;
 		}
 	}
