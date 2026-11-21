@@ -61,7 +61,7 @@ Train::Train() {
 	EntranceDelay = 0;
 	N_BlockSections = 0;
 	N_BlockTimeComplete = 0;
-	IsTrainInFollowingMode = IsTrainDecoupling = IsInUnintentionalDecoupling = false;
+	IsTrainInFollowingMode = IsInUnintentionalDecoupling = false;
 	LeadingTrainInFollowingMode = kNoneId;
 	CurrentServiceStopPlatform = kNoneId;
 	TotalEnergyConsumed = 0;

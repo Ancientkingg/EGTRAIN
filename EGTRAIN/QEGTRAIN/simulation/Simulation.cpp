@@ -284,8 +284,6 @@ void Print_Computing_Times(const SimulationRun& run, string FolderName) {
 namespace {
 // A step reports the progress of the run once in this many steps.
 constexpr int kProgressEverySteps = 100;
-// The margin of the ends of authority that the trains report at levels 3 and 4, in metres.
-constexpr double kEndOfAuthorityMarginMetres = 50;
 } // namespace
 
 TrainMovementOrder::TrainMovementOrder(const SimulationRun& run) : dueOrder(run.numTrains) {

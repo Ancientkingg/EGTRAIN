@@ -126,18 +126,18 @@ void Train::checkIfMovementAuthorityStillValid(double speed, double head, const 
 void Train::leaveFollowingModeWhenLeaderIsGone(int time_seconds) {
 	if (IsTrainInFollowingMode == 0)
 		return;
+	const Route& route = run_->infra.routes[indexOfRoute];
 	for (const MovementAuthority& authority : run_->etcsMa)
 		if (authority.TrainInfo.trainDescription == LeadingTrainInFollowingMode)
-			return;
+			for (int block = 0; block < route.N_Block_Sections; ++block)
+				if (route.sequence_of_block_sections[block].ID == authority.BSID)
+					return;
 	EG_LOG(SimEvents, Info) << "At time instant " << time_seconds << " train " << trainDescription << " is decoupled from train " << LeadingTrainInFollowingMode << ", which reports no position any more\n";
 	run_->vcMsgTimestep.push_back(time_seconds);
 	run_->vcMsgTrain.push_back(trainDescription);
 	run_->vcMsgText.push_back("Decoupled");
-	MovementAuthority ResetPredictedMAToDecoupleAt;
 	IsTrainInFollowingMode = false;
 	LeadingTrainInFollowingMode = kNoneId;
-	IsTrainDecoupling = false;
-	Predicted_MA_To_DecoupleAt = ResetPredictedMAToDecoupleAt;
 	IsInUnintentionalDecoupling = false;
 	CounterFollowingMode = 0;
 }
@@ -320,7 +320,14 @@ double Train::effectiveIncidentSpeedLimit(double candidate, int timestepIndex) {
 	return candidate;
 }
 
+bool Train::leaderTailAhead(double authorityPosition, double head) {
+	return head < authorityPosition + kEndOfAuthorityMarginMetres;
+}
+
 const MovementAuthority* Train::currentFollowingAuthority(double head, double& leaderHead) const {
+	const std::string& leader = IsTrainInFollowingMode ? LeadingTrainInFollowingMode : Predicted_MA_To_CoupleAt.TrainInfo.trainDescription;
+	if (isNoneId(leader))
+		return nullptr;
 	const Route& route = run_->infra.routes[indexOfRoute];
 	int current = -1;
 	for (int block = 0; block < route.N_Block_Sections; ++block)
@@ -333,20 +340,14 @@ const MovementAuthority* Train::currentFollowingAuthority(double head, double& l
 		return nullptr;
 	for (int block = current; block < route.N_Block_Sections && block <= current + 8; ++block) {
 		const Section& section = route.sequence_of_block_sections[block];
-		if (section.SignallingLevel != levelValue(SignallingLevel::VirtualCoupling) || section.ID != Last_Received_MA.BSID)
+		if (section.SignallingLevel != levelValue(SignallingLevel::VirtualCoupling))
 			continue;
 		for (const MovementAuthority& authority : run_->etcsMa)
 			if (authority.BSID == section.ID && authority.type == AuthorityKind::TrainEnd && authority.typePart == AuthorityTrainEnd::Tale
 				&& authority.ReversedDirection == route.reversed_direction
-				&& authority.TrainInfo.trainDescription != trainDescription
-				&& authority.TrainInfo.trainDescription == Last_Received_MA.TrainInfo.trainDescription
-				&& Last_Received_MA.type == authority.type && Last_Received_MA.typePart == authority.typePart
-				&& Last_Received_MA.ReversedDirection == authority.ReversedDirection
-				&& std::abs(authority.AbsPosEoA - Last_Received_MA.AbsPosEoA) < 0.001
-				&& (isNoneId(authority.TrainInfo.NextSectionID)
-					|| (block + 1 < route.N_Block_Sections && authority.TrainInfo.NextSectionID == route.sequence_of_block_sections[block + 1].ID))) {
+				&& authority.TrainInfo.trainDescription == leader) {
 				leaderHead = authorityRoutePosition(authority, section);
-				if (leaderHead > head)
+				if (leaderTailAhead(leaderHead, head))
 					return &authority;
 			}
 	}
@@ -546,11 +547,8 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 					const double resistance = total_train_resistances(speed, As.gradient, As.curvature);
 					const double minimum = brakingCurveSpeed(speed, As);
 					const double maximum = std::max(0.0, speed + (tractiveEffort(speed) - resistance) / mass * timestep);
-					const double acceleration = std::max((minimum - speed) / timestep,
-						std::min((maximum - speed) / timestep, liveLeader->TrainInfo.Acceleration));
-					double proposedSpeed = (acceleration < 0 ? liveLeader->TrainInfo.TrainSpeed : speed) + acceleration * timestep;
-					if (acceleration == 0 && liveLeader->TrainInfo.TrainSpeed == 0)
-						proposedSpeed = 0;
+					// Hold the speed of the leader plus the step of its acceleration, within the force bounds of this train.
+					double proposedSpeed = liveLeader->TrainInfo.TrainSpeed + liveLeader->TrainInfo.Acceleration * timestep;
 					// Bound the final leader-relative intent by this train's own actual-start force interval.
 					proposedSpeed = std::min(V_lim, std::max(minimum, std::min(maximum, std::max(0.0, proposedSpeed))));
 					const double proposedHead = head + speed * timestep;
@@ -703,34 +701,9 @@ bool Train::updateVirtualCoupling(int time_seconds, const MovementAuthority* liv
 		//-------------------------------
 	}
 
-	// Determination of Train Uncoupling from the leader when it is in following mode and the route diverges from the leader's
-	if ((IsTrainInFollowingMode == 1) && (IsTrainDecoupling == 1)) {
-		// When the train is decoupling it can be considered totally uncoupled and not anymore in following mode when the tale of the leading train has fully crossed the splitting infrastructure element and the corresponding MA is communicated with type=AuthorityKind::TrainUncoupled
-		if ((!isNoneId(Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription))
-			&& (Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription == LeadingTrainInFollowingMode)
-			&& (Predicted_MA_To_DecoupleAt.type == AuthorityKind::TrainUncoupled)) {
-
-			EG_LOG(SimEvents, Info) << "At time instant " << time_seconds << " train " << trainDescription << " intentionally decoupled from train " << LeadingTrainInFollowingMode << " because of diverging routes\n";
-
-			//-------------------------------
-			// GUI notification
-			run_->vcMsgTimestep.push_back(time_seconds);
-			run_->vcMsgTrain.push_back(trainDescription);
-			run_->vcMsgText.push_back("Decoupled");
-			//-------------------------------
-
-			MovementAuthority ResetPredictedMAToDecoupleAt;
-			IsTrainInFollowingMode = false;
-			LeadingTrainInFollowingMode = kNoneId;
-			IsTrainDecoupling = false;
-			Predicted_MA_To_DecoupleAt = ResetPredictedMAToDecoupleAt;
-			IsInUnintentionalDecoupling = false;
-		}
-	}
-
 	/*******************  Virtual Coupling Following mode equations  ***************************************************************************************************************************/
 
-	if ((IsTrainInFollowingMode == 1) && (IsTrainDecoupling == 0) && (IsInUnintentionalDecoupling == 0)) {
+	if ((IsTrainInFollowingMode == 1) && (IsInUnintentionalDecoupling == 0)) {
 		CounterFollowingMode++; // This sets the number of time steps that the train is in following mode
 		// if the train has outdistanced for more than 30 meters from the EoA of the train ahead, then interrupt the following mode and let the train to go free
 		if (liveLeader && liveLeader->TrainInfo.trainDescription == LeadingTrainInFollowingMode

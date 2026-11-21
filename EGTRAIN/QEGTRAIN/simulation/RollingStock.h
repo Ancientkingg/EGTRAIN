@@ -266,6 +266,9 @@ private:
 	bool m_inStep = false, m_hasStep = false;
 };
 
+/// The margin (m) of the ends of authority that the trains report at levels 3 and 4.
+constexpr double kEndOfAuthorityMarginMetres = 50;
+
 /// A train: one occurrence of a service, with its rolling stock, its timetable, and its state and results during the run.
 /// The vectors such as instant_train_speed hold one sample per step and are indexed by the step t, which is seconds from
 /// the start of the run (see timestep). Positions on the route are metres, speeds m/s, forces N, power W and energy MJ.
@@ -433,7 +436,6 @@ public:
 	/// True when a train in following mode falls behind its leader because of speed limits, gradient or curvature, not
 	/// because their routes split.
 	bool IsInUnintentionalDecoupling;
-	bool IsTrainDecoupling;					 ///< This boolean is true when the train is Decoupling from the VC mode
 	int CounterFollowingMode;				 ///< Number of steps the train has been in following mode.
 	std::string LeadingTrainInFollowingMode; ///< trainDescription of the leader in following mode; "None" otherwise.
 	/// Route position in metres of the current braking target.
@@ -453,11 +455,10 @@ public:
 
 	/// Index of the last entry of the stored braking plan; -1 when there is none.
 	int BrakStep;
-	bool BrakingForEoA = false;					  ///< True while the train brakes for an ETCS end of authority on the route.
-	MovementAuthority Predicted_MA_To_CoupleAt;	  ///< Authority where the train is predicted to couple virtually to the train ahead.
-	MovementAuthority Last_Received_MA;			  ///< Last movement authority applied to the train.
-	MovementAuthority Last_MA_StoppedAt;		  ///< Last movement authority the train has stopped at.
-	MovementAuthority Predicted_MA_To_DecoupleAt; ///< Authority where the train is predicted to decouple from the train ahead.
+	bool BrakingForEoA = false;					///< True while the train brakes for an ETCS end of authority on the route.
+	MovementAuthority Predicted_MA_To_CoupleAt; ///< Authority where the train is predicted to couple virtually to the train ahead.
+	MovementAuthority Last_Received_MA;			///< Last movement authority applied to the train.
+	MovementAuthority Last_MA_StoppedAt;		///< Last movement authority the train has stopped at.
 	/// The branch that the current step took, as the number of its TrajectoryBranch; 0 (TrajectoryBranch::None) until it takes one.
 	/// Each step starts at 0.
 	int stepBranch = 0;
@@ -588,8 +589,13 @@ public:
 	/// Position in metres of the authority on the route of this train, for an authority on section.
 	inline double authorityRoutePosition(const MovementAuthority& authority, const Section& section) const;
 
-	/// The "TrainEnd" "Tale" authority of this step that matches Last_Received_MA, on a level 4 section from the one at head (m) to
-	/// eight sections further, and lies ahead of head; nullptr when there is none. leaderHead receives its route position (m).
+	/// True when the tail of a train ahead is still ahead of head (m), given the route position of the "Tale" authority it reported.
+	/// This holds while head is less than kEndOfAuthorityMarginMetres past the authority: the reported tail lags the real tail by at
+	/// least the margin plus the reporting delay, so the real tail is still ahead of a train that has come inside the margin.
+	static bool leaderTailAhead(double authorityPosition, double head);
+
+	/// The "TrainEnd" "Tale" authority of this step of the train ahead (the leader in following mode, else the train to couple at), on a level 4 section from the one at head (m) to
+	/// eight sections further, and lies ahead of head by leaderTailAhead; nullptr when there is none. leaderHead receives its route position (m).
 	const MovementAuthority* currentFollowingAuthority(double head, double& leaderHead) const;
 
 	/// When IsTrainStoppedForEoA is set, keeps it only while the train stands (speed 0) on section, the section of the authority it
@@ -598,8 +604,9 @@ public:
 	/// target is chosen, so that an old hold cannot clear the new one.
 	void checkIfMovementAuthorityStillValid(double speed, double head, const Section& section);
 
-	/// A leader that reports no movement authority any more cannot be followed. Its last one would keep
-	/// this train in following mode, with the leader's last speed and acceleration as its target.
+	/// A leader that cannot be followed any more ends following mode: one that reports no movement authority, and one that reports
+	/// none on a section of this train's route, because the routes have split and its tail has passed the split. Its last
+	/// authority would keep this train in following mode, with the leader's last speed and acceleration as its target.
 	void leaveFollowingModeWhenLeaderIsGone(int time_seconds);
 
 	/// Braking distance (m) from V1 to V2 (m/s) by the closed formula, on the mean gradient and curvature of the arcs of BS that end in
@@ -744,9 +751,8 @@ public:
 	/// Finds, on the sections BS[first] to BS[last] of the Blocks sections of the route, the end of authority where the train at S
 	/// (m) and V (m/s) has to start braking the earliest. closest receives it as a signalled braking target and closestSpeed its
 	/// speed (m/s); both keep their values when there is none. Sets Last_Received_MA and, for a target where the train can couple,
-	/// Predicted_MA_To_CoupleAt. In following mode, decouplingPoints receives the points where the train decouples from its leader.
-	void closestEndOfAuthority(double S, double V, Section* BS, int Blocks, int first, int last, Node& closest, double& closestSpeed,
-		std::list<Node>& decouplingPoints);
+	/// Predicted_MA_To_CoupleAt.
+	void closestEndOfAuthority(double S, double V, Section* BS, int Blocks, int first, int last, Node& closest, double& closestSpeed);
 
 	/// Stores in Sbrak, Vbrak and BrakStep the full braking curve from V1 down to V2 (m/s) that ends 0.002 m before X0 (m), built
 	/// backwards with inverseBrakingStep. False, with BrakStep -1, when V1 is not above V2 or no curve is found in 2000 steps.
@@ -815,10 +821,10 @@ public:
 
 	/// The virtual coupling of step time_seconds, once the speed and position of the step are set. The train couples to liveLeader,
 	/// the leader that currentFollowingAuthority found, when it is within 30 m of the predicted coupling point at nearly the speed
-	/// of the leader; a decoupling at diverging routes ends once its authority has come; and in following mode the step is counted,
-	/// and an unintentional decoupling starts (IsInUnintentionalDecoupling) when the leader at leaderHead (m) is more than 30 m
-	/// ahead of head (m). Returns true when the train was in following mode with no decoupling under way at the start of the
-	/// call, the case in which the step may follow the leader; that holds for the step in which the decoupling starts too.
+	/// of the leader; and in following mode the step is counted, and an unintentional decoupling starts (IsInUnintentionalDecoupling)
+	/// when the leader at leaderHead (m) is more than 30 m ahead of head (m). Returns true when the train was in following mode
+	/// with no unintentional decoupling under way, the case in which the step may follow the leader; that holds for the step in
+	/// which the unintentional decoupling starts too.
 	bool updateVirtualCoupling(int time_seconds, const MovementAuthority* liveLeader, double leaderHead, double head);
 
 	/// Step time_seconds of a train that stood still in the step before, with its head at head (m) on arc As. It stays at, or
