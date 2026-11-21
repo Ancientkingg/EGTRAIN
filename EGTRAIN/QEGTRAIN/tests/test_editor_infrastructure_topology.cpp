@@ -389,6 +389,9 @@ void TestTopologyFacets::listsLayoutRegions() {
 	QVERIFY(!(f.table()->item(0, 2)->flags() & Qt::ItemIsEditable));
 	QVERIFY(!(f.table()->item(0, 3)->flags() & Qt::ItemIsUserCheckable));
 	QVERIFY(!(f.table()->item(0, 4)->flags() & Qt::ItemIsUserCheckable));
+	// The map draws such a track next to the network, so it is shown.
+	QCOMPARE(f.table()->item(0, 3)->checkState(), Qt::Checked);
+	QCOMPARE(f.table()->item(0, 4)->checkState(), Qt::Unchecked);
 }
 
 void TestTopologyFacets::setsAndClearsLayoutRegion() {

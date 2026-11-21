@@ -41,6 +41,7 @@ public:
 		: ListFacet("tracks", "track", &SceneModel::tracks, {"ID", "Layout region", "Level", "Shown on map", "Double switch"}) {}
 
 	// The layout cells come after the id. A track without a view row has no region, and its other cells cannot be edited.
+	// The map draws it next to the network, so it counts as shown.
 	void fillRows(InfrastructurePanel& panel) override {
 		ListFacet::fillRows(panel);
 		const SceneModel& model = panel.model();
@@ -52,7 +53,7 @@ public:
 			if (!hasLayout)
 				table.item(row, kRegionColumn)->setToolTip(QStringLiteral("This case has no station layout, so a track cannot be placed on the map."));
 			setCell(table, row, kLevelColumn, view ? QString::number(view->level) : QString(), view != nullptr);
-			setFlagCell(table, row, kShownColumn, view && view->visible);
+			setFlagCell(table, row, kShownColumn, !view || view->visible);
 			setFlagCell(table, row, kDoubleSwitchColumn, view && view->doubleSwitch);
 			if (!view)
 				for (const int column : {kShownColumn, kDoubleSwitchColumn})
