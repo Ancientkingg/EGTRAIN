@@ -76,6 +76,8 @@ public:
 	QRectF cardRect() const;
 	/// The area of the × in item coordinates, which closes the card.
 	QRectF closeRect() const;
+	/// The subtitle as the card draws it: whole when it fits in the width of the card, and else shortened with an ellipsis.
+	QString shownSubtitle() const;
 	/// The call that a click on the × makes.
 	std::function<void()> onClose;
 

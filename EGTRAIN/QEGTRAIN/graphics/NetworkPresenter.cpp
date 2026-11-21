@@ -659,6 +659,9 @@ void NetworkPresenter::setStationLayerVisible(bool visible) {
 	for (auto* label : std::as_const(m_stationLabels))
 		if (label)
 			label->setVisible(visible && m_stationNamesVisible);
+	// A card stands on the mark of its station, which is hidden now.
+	if (!visible)
+		closeStationCallouts();
 	if (m_selectionMark)
 		m_selectionMark->sync();
 }

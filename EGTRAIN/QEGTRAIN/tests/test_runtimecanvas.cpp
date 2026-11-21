@@ -32,8 +32,10 @@
 #include <QDialog>
 #include <QElapsedTimer>
 #include <QEventLoop>
+#include <QFontMetricsF>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
+#include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsTextItem>
 #include <QImage>
@@ -804,6 +806,9 @@ private slots:
 	void stationPillCountsPlatformWithTwoNodesOnce();
 	void stationCalloutListsDestinationsAndCalls();
 	void stationCalloutOpensFromClicksAndCloses();
+	void stationCountAndBarOpenTheMenuOfTheirStation();
+	void stationCalloutClosesWithTheStationLayer();
+	void stationCalloutShortensSubtitleThatIsTooWide();
 	void stationCalloutPlacesBelowAtTopOfView();
 	void stationCalloutStaysInSceneIndex();
 	void trainGlidesAlongBentLine();
@@ -1875,6 +1880,88 @@ void TestRuntimeCanvas::stationCalloutOpensFromClicksAndCloses() {
 	press(bar->sceneBoundingRect().center());
 	QCOMPARE(clicked, QStringList{"B"});
 	QCOMPARE(squares, 1);
+}
+
+// A right-click on the count of a station or on a platform bar asks for the menu of the square of that station, the item
+// that a left click there selects.
+void TestRuntimeCanvas::stationCountAndBarOpenTheMenuOfTheirStation() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	presenter.showRuntime(f.model);
+	zoomToFigures(f, 4.0);
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1", "p2"})};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	QList<QGraphicsItem*> asked;
+	QObject::connect(&f.scene, &NetworkScene::ContextMenuRequested,
+		[&asked](QGraphicsItem* item, const QPointF&, const QPoint&, bool) { asked << item; });
+	const auto rightClick = [&f](const QPointF& scenePos) {
+		QGraphicsSceneContextMenuEvent event(QEvent::GraphicsSceneContextMenu);
+		event.setReason(QGraphicsSceneContextMenuEvent::Mouse);
+		event.setScenePos(scenePos);
+		event.setWidget(f.view.viewport());
+		f.scene.contextMenuEvent(&event);
+	};
+	const auto stationOf = [](QGraphicsItem* item) {
+		const auto* square = qgraphicsitem_cast<StationNodeItem*>(item);
+		return square && square->node ? QString::fromStdString(square->node->stationName) : QString();
+	};
+	const auto& counts = PresenterAccess::stationCounts(presenter);
+	QVERIFY(counts[0].pill->isVisible());
+	rightClick(f.view.mapToScene(f.view.mapFromScene(counts[0].pill->pos()) + QPoint(12, 8)));
+	QCOMPARE(asked.size(), 1);
+	QCOMPARE(stationOf(asked.front()), "B");
+
+	PresenterAccess::setStationNearLook(presenter, true);
+	const PlatformItem* const bar = PresenterAccess::allPlatforms(presenter).value(0);
+	QVERIFY(bar->isVisible());
+	rightClick(bar->sceneBoundingRect().center());
+	QCOMPARE(asked.size(), 2);
+	const auto* square = qgraphicsitem_cast<StationNodeItem*>(asked.back());
+	QVERIFY(square);
+	QCOMPARE(square->node, bar->node);
+}
+
+// A card stands on the mark of its station, so it closes when the station layer is switched off.
+void TestRuntimeCanvas::stationCalloutClosesWithTheStationLayer() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	f.source->passengers = true;
+	presenter.showRuntime(f.model);
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	snapshot.platforms = {platformWith("B", "P1", 40, Ids{"p1"})};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	presenter.openStationCallout("B", &snapshot);
+	QVERIFY(presenter.stationCallout("B"));
+	// switching the layer on again changes nothing for an open card
+	presenter.setStationLayerVisible(true);
+	QVERIFY(presenter.stationCallout("B"));
+	presenter.setStationLayerVisible(false);
+	QVERIFY(!presenter.stationCallout("B"));
+}
+
+// The subtitle lists one capacity for each platform. One that is wider than the card ends in an ellipsis inside the card,
+// and one that fits is drawn whole.
+void TestRuntimeCanvas::stationCalloutShortensSubtitleThatIsTooWide() {
+	StationCalloutItem card;
+	StationCalloutContent content;
+	content.title = "B";
+	content.subtitle = QString("15 waiting · capacity 40 on platform P1");
+	card.setContent(content);
+	QCOMPARE(card.shownSubtitle(), content.subtitle);
+
+	content.subtitle = QString("1500 waiting · capacity 1200 · 1200 · 1200 · 1200 · 1200 · 1200 · 1200 · 1200 · 1200 · 1200");
+	card.setContent(content);
+	const QString shown = card.shownSubtitle();
+	QVERIFY2(shown != content.subtitle && shown.endsWith(QChar(0x2026)), qPrintable(shown));
+	QVERIFY(shown.startsWith("1500 waiting"));
+	QFont font;
+	font.setPixelSize(11);
+	// the card less its padding of 12 px on each side
+	QVERIFY2(QFontMetricsF(font).horizontalAdvance(shown) <= StationCalloutItem::CardWidth - 24.0, qPrintable(shown));
 }
 
 // The card stands above the mark, and below it where it would leave the top of the view.

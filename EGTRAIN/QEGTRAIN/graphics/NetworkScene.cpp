@@ -133,6 +133,19 @@ void NetworkScene::select(QGraphicsItem* item) {
 		emit MousePressedOnPassenger(passenger);
 }
 
+QGraphicsItem* NetworkScene::stationSquareOf(QGraphicsItem* item) const {
+	if (!item || !item->data(PreviewGraphics::CalloutStation).isValid())
+		return item;
+	const QString station = item->data(PreviewGraphics::CalloutStation).toString();
+	const auto* bar = dynamic_cast<const PlatformItem*>(item);
+	for (QGraphicsItem* candidate : items()) {
+		auto* square = qgraphicsitem_cast<StationNodeItem*>(candidate);
+		if (square && square->node && (bar ? square->node == bar->node : QString::fromStdString(square->node->stationName) == station))
+			return square;
+	}
+	return item;
+}
+
 // handles the click on graphical items
 void NetworkScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 	QGraphicsItem* item = nullptr;
@@ -148,14 +161,7 @@ void NetworkScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 		QString station;
 		if (item && item->data(PreviewGraphics::CalloutStation).isValid()) {
 			station = item->data(PreviewGraphics::CalloutStation).toString();
-			const auto* bar = dynamic_cast<const PlatformItem*>(item);
-			for (QGraphicsItem* candidate : items()) {
-				auto* square = qgraphicsitem_cast<StationNodeItem*>(candidate);
-				if (square && square->node && (bar ? square->node == bar->node : QString::fromStdString(square->node->stationName) == station)) {
-					item = square;
-					break;
-				}
-			}
+			item = stationSquareOf(item);
 		} else if (const auto* square = qgraphicsitem_cast<StationNodeItem*>(item); square && square->node)
 			station = QString::fromStdString(square->node->stationName);
 		select(item);
@@ -200,7 +206,8 @@ void NetworkScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
 		event->accept();
 		return;
 	}
-	QGraphicsItem* item = semanticItemAt(event->scenePos(), event->widget());
+	// A bar or a count of a station opens the menu of its station, as a click on it selects the station.
+	QGraphicsItem* item = stationSquareOf(semanticItemAt(event->scenePos(), event->widget()));
 	emit ContextMenuRequested(item, event->scenePos(), event->screenPos(),
 		event->reason() == QGraphicsSceneContextMenuEvent::Keyboard);
 	event->accept();
