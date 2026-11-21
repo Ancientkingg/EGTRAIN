@@ -278,6 +278,7 @@ private slots:
 	void virtualCouplingFromSource();
 	void virtualCouplingFromRun();
 	void stationCallsFromSource();
+	void replayListsStationCallsOnlyOfARunWithPassengers();
 	void keepsSecondHandedOutLast();
 	void sameSecondSameObject();
 	void accountedBytes();
@@ -969,6 +970,27 @@ void TestGuiSimulationSnapshot::virtualCouplingFromSource() {
 
 // The calls of the source show from the step they began, the latest three of a station, newest first, and a call that has
 // not left by the step has no counts.
+// The window lists the calls of a station only in a run with passengers, and so does the replay of that run: a run without
+// passengers gives the replay no calls, although its trains stop at stations too.
+void TestGuiSimulationSnapshot::replayListsStationCallsOnlyOfARunWithPassengers() {
+	SimulationRun run;
+	Train train;
+	train.trainDescription = "IC 1";
+	train.numStations = 1;
+	train.Stations.resize(1);
+	train.Stations[0].stationName = "A";
+	train.Stations[0].StepStopped = 5;
+	train.StationStandStarts[0] = 10;
+	run.trains.push_back(train);
+	run.numTrains = 1;
+	QVERIFY(makeGuiReplayTrains(run, {})->stationCalls.empty());
+
+	run.passengers.emplace_back();
+	const std::shared_ptr<const GuiReplayTrains> withPassengers = makeGuiReplayTrains(run, {});
+	QCOMPARE(withPassengers->stationCalls.size(), std::size_t(1));
+	QCOMPARE(withPassengers->stationCalls[0].station, std::string("A"));
+}
+
 void TestGuiSimulationSnapshot::stationCallsFromSource() {
 	GuiReplayHistory history;
 	for (int t = 0; t < 150; ++t) history.record(shared(sampleSnapshot(t, 3, 150)));
