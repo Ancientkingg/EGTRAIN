@@ -53,6 +53,13 @@ void Apply_Signal_Failures_Mixed_Signalling(SimulationRun& run, int timestepInde
 /// that route, at levels 0 to 5. The authorities last for the current step.
 void Apply_Single_Track_Authorities_Mixed_Signalling(SimulationRun& run);
 
+/// The position of a switch when a train passes it.
+enum class SwitchPosition {
+	NotASwitch, ///< The element is not a switch, so it has no position.
+	Straight,	///< The switch is set to the straight track.
+	Diverging	///< The switch is set to the diverging track.
+};
+
 /// A record of a train at a place and time. It serves as the passage of a train at an infrastructure element
 /// (InfraEvent), as a timetable point of a train (Train::TimetablePoints) and as the train data of a movement authority.
 /// Times are seconds from the start of the run, positions metres and speeds m/s. Numbers are -10000 and strings "None"
@@ -67,14 +74,14 @@ public:
 	/// Position in metres: the route position of a passage, the scene position of an authority or a timetable point. A
 	/// timetable point the train never reached keeps the X of its node in kilometres.
 	double Position;
-	std::string SuccessorID;	  ///< ID of the next infrastructure element of the route; for a timetable point the name of its station.
-	std::string CurrentSectionID; ///< Section of the train when it made a movement authority.
-	std::string NextSectionID;	  ///< Next section on the route of the train; "None" at the end of the route.
-	double TrainSpeed;			  ///< Train speed at the position given by Position
-	double Acceleration;		  ///< Acceleration of the train in m/s2 when it made a movement authority.
-	std::string InfraElemStatus;  ///< Position of a switch at the passage: "Straight" or "Diverging"; "None" for other elements.
+	std::string SuccessorID;		///< ID of the next infrastructure element of the route; for a timetable point the name of its station.
+	std::string CurrentSectionID;	///< Section of the train when it made a movement authority.
+	std::string NextSectionID;		///< Next section on the route of the train; "None" at the end of the route.
+	double TrainSpeed;				///< Train speed at the position given by Position
+	double Acceleration;			///< Acceleration of the train in m/s2 when it made a movement authority.
+	SwitchPosition InfraElemStatus; ///< Position of a switch at the passage; NotASwitch for other elements.
 
-	/// Sets the times, the position and the acceleration to -10000, the speed to -1 and the IDs and the status to "None".
+	/// Sets the times, the position and the acceleration to -10000, the speed to -1 and the IDs to "None" and the status to NotASwitch.
 	TrainEvent();
 };
 
@@ -95,7 +102,7 @@ public:
 
 /// Records in run.infra.infraEvents a passage of the train TrainName over each element of RouteInfrastructureElements that its head
 /// passed in step t, from route position Xt_1 to Xt (m). The event has the time t - 1 (s), the speed Vt_1 (m/s), the next element of
-/// the route, and for a switch the position "Straight" or "Diverging".
+/// the route, and for a switch its position.
 void UpdateInfrastructureElementStatus(SimulationRun& run, const std::list<InfraElement>& RouteInfrastructureElements, int t, double Xt_1, double Xt, double Vt_1, const std::string& TrainName);
 
 /// Sorts the recorded events of every element with orderListOfTrainEvents.
