@@ -115,8 +115,6 @@ TrainVisual resolveTrainVisual(const std::string& type, const std::string& descr
 	const QColor& serviceColor = QColor());
 /// The badge shape of a kind: a capsule for an intercity, square for freight, rounded for the others.
 TrainBadgeShape classifyTrainBadgeShape(TrainVisualKind kind);
-/// The corner radius of a badge shape in pixels.
-int trainBadgeCornerRadius(TrainBadgeShape shape);
 /// The lamp colour, state and icon of a signal head for an aspect code: red, yellow or green by SignalCueKind,
 /// grey RGB (128, 128, 128) otherwise.
 SignalVisual classifySignalAspect(int code);

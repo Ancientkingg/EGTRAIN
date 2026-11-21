@@ -257,18 +257,6 @@ TrainBadgeShape classifyTrainBadgeShape(TrainVisualKind kind) {
 	}
 }
 
-int trainBadgeCornerRadius(TrainBadgeShape shape) {
-	switch (shape) {
-		case TrainBadgeShape::Capsule:
-			return 8;
-		case TrainBadgeShape::Rounded:
-			return 3;
-		case TrainBadgeShape::Square:
-		default:
-			return 0;
-	}
-}
-
 int trackStatePriority(TrackOperationalState state) {
 	switch (state) {
 		case TrackOperationalState::Prepared:

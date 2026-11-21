@@ -1728,7 +1728,6 @@ void NetworkPresenter::updateStationCounts() {
 			entry = std::prev(m_stationCounts.end());
 		}
 		entry->waiting = total.waiting;
-		entry->crowding = total.crowding;
 		entry->pill->setBrush(PassengerItem::crowdingColour(total.crowding));
 		entry->pill->setToolTip(total.lines.join(QLatin1Char('\n')));
 		const QString label = QString::number(total.waiting);
@@ -2270,13 +2269,13 @@ void NetworkPresenter::paintStationPlatform(QPointF before, QPointF coord, QPoin
 	if (platform) {
 		platformItem->stationId = platform->StationID;
 		platformItem->platformId = platform->ID;
-		platformItem->maxVolume = platform->Max_Passenger_Volume;
 		platformItem->setData(PreviewGraphics::CalloutStation, QString::fromStdString(platform->StationID));
 	}
 
 	const int waiting = platform ? platform->Current_N_Passengers : 0;
-	platformItem->setCrowding(waiting, platformItem->maxVolume, m_source->platformCrowdingThreshold());
-	platformItem->setToolTip(platformCounterText(waiting, platformItem->maxVolume));
+	const int capacity = platform ? platform->Max_Passenger_Volume : 0;
+	platformItem->setCrowding(waiting, capacity, m_source->platformCrowdingThreshold());
+	platformItem->setToolTip(platformCounterText(waiting, capacity));
 	platformItem->setGauge(m_passengerLayerVisible);
 
 	// The count is level and centred above the bar, whatever the direction of the bar, at one size on the screen.

@@ -557,7 +557,6 @@ private:
 		QGraphicsSimpleTextItem* text = nullptr;
 		std::string station;
 		int waiting = 0;
-		PlatformCrowding crowding = PlatformCrowding::Normal;
 	};
 	std::vector<StationCount> m_stationCounts;
 

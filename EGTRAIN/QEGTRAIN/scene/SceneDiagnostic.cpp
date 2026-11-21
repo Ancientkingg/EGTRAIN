@@ -53,20 +53,6 @@ SceneDiagnostic jsonParseDiagnostic(const std::string& code, const std::string& 
 	return diagnostic;
 }
 
-nlohmann::json toJson(const SceneDiagnostic& d) {
-	nlohmann::json j;
-	j["severity"] = severityLabel(d.severity);
-	j["code"] = d.code;
-	j["message"] = d.message;
-	j["file"] = d.file;
-	j["itemType"] = d.itemType;
-	j["itemId"] = d.itemId;
-	j["path"] = d.path;
-	j["relatedId"] = d.relatedId;
-	j["suggestedFix"] = d.suggestedFix;
-	return j;
-}
-
 bool hasErrors(const std::vector<SceneDiagnostic>& ds) {
 	for (const auto& d : ds) {
 		if (d.severity == SceneSeverity::Error) {
