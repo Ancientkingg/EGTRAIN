@@ -80,6 +80,7 @@ struct Outcome {
 struct Variant {
 	bool leaderStopsAtB = false; // The leader keeps its stop at B, 8 km from the start; the follower never stops there.
 	bool split = false;			 // The follower runs on a route that leaves the route of the leader at B.
+	double leaderLengthM = 0.0;	 // When above 0, the length of the leader in m; the unit of the fixture otherwise.
 };
 
 // Position of the split in m: the end of the last section that the two routes share.
@@ -119,9 +120,18 @@ Outcome runScenario(const std::string& fixture, int level, double leaderLimitKmh
 			outcome.problems.push_back(toDisplayText(diagnostic));
 		return outcome;
 	}
+	if (variant.leaderLengthM > 0.0) {
+		SceneTrainUnit shortUnit = loaded.scene.trainUnits.front();
+		shortUnit.id = "shortUnit";
+		shortUnit.physical.length_m = variant.leaderLengthM;
+		loaded.scene.trainUnits.push_back(shortUnit);
+		loaded.scene.compositions.push_back({"shortComposition", {"shortUnit"}});
+	}
 	for (SceneService& service : loaded.scene.services) {
 		if (service.id != "F1" && service.id != "F2")
 			continue;
+		if (variant.leaderLengthM > 0.0 && service.id == "F1")
+			service.composition = "shortComposition";
 		const bool keepB = variant.leaderStopsAtB && service.id == "F1";
 		const bool dropC = variant.split && service.id == "F2";
 		service.stops.erase(std::remove_if(service.stops.begin(), service.stops.end(), [&](const SceneStop& stop) {
@@ -263,6 +273,15 @@ int firstCruiseStep(const Outcome& outcome) {
 // The first step in which the follower and the leader are both in the network and the leader cruises, to the last cruising step.
 void checkNoOverlap(const std::string& assertion, const Outcome& outcome, std::vector<std::string>& failures) {
 	for (int t = firstCruiseStep(outcome); t <= outcome.cruiseLast; ++t)
+		if (gapAt(outcome, t) < 0.0) {
+			failures.push_back(assertion + ": the follower overlaps the leader at step " + std::to_string(t) + ", gap " + number(gapAt(outcome, t)) + " m");
+			return;
+		}
+}
+
+// The follower never overlaps the leader in a step in which both run.
+void checkNoOverlapUntilEnd(const std::string& assertion, const Outcome& outcome, std::vector<std::string>& failures) {
+	for (int t = firstCruiseStep(outcome); t <= outcome.bothLast; ++t)
 		if (gapAt(outcome, t) < 0.0) {
 			failures.push_back(assertion + ": the follower overlaps the leader at step " + std::to_string(t) + ", gap " + number(gapAt(outcome, t)) + " m");
 			return;
@@ -496,6 +515,15 @@ void checkSplitRoutes(const std::string& fixture, std::vector<std::string>& fail
 	if (tail < kSplitPosition - left.leaderSpeed)
 		failures.push_back(assertion + ": the follower leaves following mode while the tail of the leader is at " + number(tail) + " m, before the split at "
 			+ number(kSplitPosition) + " m");
+	// And not long after: once the tail of the leader has cleared the split, the leader holds nothing on the route of the follower.
+	constexpr int kReportSteps = 3;
+	int cleared = -1;
+	for (int t = firstCruiseStep(outcome); t <= outcome.bothLast && cleared < 0; ++t)
+		if (outcome.steps[static_cast<std::size_t>(t)].leaderPosition - outcome.leaderLength > kSplitPosition)
+			cleared = t;
+	if (cleared < 0 || uncoupled > cleared + kReportSteps)
+		failures.push_back(assertion + ": the follower is still in following mode at step " + std::to_string(uncoupled - 1) + ", and the tail of the leader cleared the split at step "
+			+ std::to_string(cleared));
 	// After the split the leader is no reason to stop: the follower keeps the speed it had and then runs faster than the leader.
 	double lowestSpeed = 1e9;
 	double highestSpeed = 0.0;
@@ -510,6 +538,37 @@ void checkSplitRoutes(const std::string& fixture, std::vector<std::string>& fail
 		failures.push_back(assertion + ": the follower does not run on faster than the leader after the split; its highest speed is " + number(highestSpeed) + " m/s");
 	std::cout << assertion << ": coupled at step " << coupled << ", leaves following mode at step " << uncoupled << " at "
 			  << number(outcome.steps[static_cast<std::size_t>(uncoupled)].position) << " m, speed " << number(lowestSpeed) << " to " << number(highestSpeed) << " m/s afterwards\n";
+}
+
+// A leader shorter than the 50 m margin of a front authority runs with the follower coupled close behind it. The follower is
+// no leader for it: the leader keeps cruising at its limit until it is near the end of the route, and the follower never overlaps it.
+void checkShortLeaderCruises(const std::string& fixture, std::vector<std::string>& failures) {
+	constexpr double kLeaderKmh = 54.0;
+	constexpr double kShortLeaderLength = 15.0;
+	constexpr double kBrakingForEndOfRoute = 15000.0; // The route is 16 km; the leader brakes for its end after this position.
+	const std::string assertion = "level 4, leader of " + number(kShortLeaderLength) + " m at " + number(kLeaderKmh) + " km/h";
+	Variant variant;
+	variant.leaderLengthM = kShortLeaderLength;
+	const Outcome outcome = runScenario(fixture, 4, kLeaderKmh, variant);
+	for (const std::string& problem : outcome.problems)
+		failures.push_back(assertion + ": " + problem);
+	if (!outcome.problems.empty())
+		return;
+	int slowedAt = -1;
+	int following = 0;
+	for (int t = firstCruiseStep(outcome); t <= outcome.bothLast; ++t) {
+		const Step& step = outcome.steps[static_cast<std::size_t>(t)];
+		following += step.following ? 1 : 0;
+		if (slowedAt < 0 && step.leaderPosition < kBrakingForEndOfRoute && step.leaderSpeed < kLeaderBrakingShare * outcome.leaderCruise)
+			slowedAt = t;
+	}
+	if (slowedAt >= 0)
+		failures.push_back(assertion + ": the leader slows to " + number(outcome.steps[static_cast<std::size_t>(slowedAt)].leaderSpeed) + " m/s at step "
+			+ std::to_string(slowedAt) + " although the line ahead of it is free");
+	if (following == 0)
+		failures.push_back(assertion + ": the follower never couples");
+	checkNoOverlapUntilEnd(assertion, outcome, failures);
+	std::cout << assertion << ": " << following << " steps coupled, leader slows at step " << slowedAt << "\n";
 }
 
 } // namespace
@@ -534,6 +593,8 @@ int main(int argc, char** argv) {
 			variant.leaderStopsAtB = true;
 		else if (arg == "--split")
 			variant.split = true;
+		else if (arg == "--leader-length" && i + 1 < argc)
+			variant.leaderLengthM = std::atof(argv[++i]);
 		else if (arg == "--trace")
 			trace = true;
 		else {
@@ -561,6 +622,7 @@ int main(int argc, char** argv) {
 		checkNeverOverlaps(fixture, kmh, braking, ", stopping at B", failures);
 	}
 	checkSplitRoutes(fixture, failures);
+	checkShortLeaderCruises(fixture, failures);
 	checkBlockLevel(fixture, 3, failures);
 	for (const std::string& failure : failures)
 		std::cerr << "FAIL virtual coupling " << failure << "\n";

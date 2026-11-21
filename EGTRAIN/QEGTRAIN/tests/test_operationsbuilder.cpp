@@ -4466,6 +4466,21 @@ void TestOperationsBuilder::level4Transitions() {
 		arc.speedInBraking = stock.max_train_speed;
 	}
 	{
+		// A coupled train keeps its own leader as a target even where the leader goes on to another section, but a third train that
+		// goes elsewhere is a stop target for it.
+		Train live = actual(1000, 20);
+		live.IsTrainInFollowingMode = true;
+		live.LeadingTrainInFollowingMode = "LEADER";
+		auto diverging = authority(1200, "OTHER");
+		diverging.TrainInfo.NextSectionID = "elsewhere";
+		diverging.TrainInfo.TrainSpeed = 15;
+		const auto other = live.authorityTarget(diverging, route.sequence_of_block_sections.data(), 1, 0, 1000, 20);
+		QCOMPARE_EQ(other.speed, 0.0);
+		diverging.TrainInfo.trainDescription = "LEADER";
+		const auto own = live.authorityTarget(diverging, route.sequence_of_block_sections.data(), 1, 0, 1000, 20);
+		QCOMPARE_EQ(own.speed, 15.0);
+	}
+	{
 		Train live = actual(1000, 10);
 		auto front = authority(1020, "FRONT");
 		front.typePart = AuthorityTrainEnd::Front;
