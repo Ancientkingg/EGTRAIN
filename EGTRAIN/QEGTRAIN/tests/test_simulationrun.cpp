@@ -1024,11 +1024,12 @@ void TestSimulationRun::entryWaitsForTrainThatCannotStop() {
 }
 
 QTEST_GUILESS_MAIN(TestSimulationRun)
-// A platform lists the first kGuiPlatformPassengerIcons of its passengers, the waiting ones first and then those who left the
-// network there in the last 5 seconds, and counts all of them.
+// A platform counts the passengers who wait on it and lists the first kGuiPlatformPassengerIcons of them. A passenger who
+// has left the network there is no longer on the platform, at whatever time the run starts.
 void TestSimulationRun::platformListsAtMostFiftyPassengers() {
-	const auto make = [](int waiting, int exited, int exitedElsewhere) {
+	const auto make = [](int waiting, int exited, int exitedElsewhere, int start = 0) {
 		auto run = std::make_unique<SimulationRun>();
+		run->settings.startingSimulationTime = start;
 		run->platforms.resize(2);
 		for (int i = 0; i < 2; ++i) {
 			StationPlatform& platform = *std::next(run->platforms.begin(), i);
@@ -1050,7 +1051,7 @@ void TestSimulationRun::platformListsAtMostFiftyPassengers() {
 				passenger.current_JourneyID = journey.ID;
 				run->platforms.front().Current_List_Pax_On_Platform.push_back({passenger.ID, 0.0});
 			} else {
-				passenger.TimeExitedTheNetwork = 100;
+				passenger.TimeExitedTheNetwork = start + 100;
 				passenger.StationExitedTheNetworkID = "S";
 				passenger.PlatformExitedTheNetworkID = i < waiting + exited ? "P0" : "P1";
 			}
@@ -1075,7 +1076,7 @@ void TestSimulationRun::platformListsAtMostFiftyPassengers() {
 	auto crowded = make(60, 3, 2);
 	GuiSimulationSnapshot snapshot = buildGuiSimulationSnapshot(*crowded, 102);
 	QCOMPARE(snapshot.platforms.size(), std::size_t(2));
-	QCOMPARE(snapshot.platforms[0].passengerCount, 63);
+	QCOMPARE(snapshot.platforms[0].passengerCount, 60);
 	QCOMPARE(ids(snapshot.platforms[0]), range(0, 50));
 	QCOMPARE(snapshot.platforms[0].passengers[7].status, std::string("OnPlatform"));
 	QCOMPARE(snapshot.platforms[0].passengers[7].nextTrain, std::string("T1"));
@@ -1086,19 +1087,24 @@ void TestSimulationRun::platformListsAtMostFiftyPassengers() {
 	QCOMPARE(snapshot.platforms[0].destinations[1].destination, std::string("North"));
 	QCOMPARE(snapshot.platforms[0].destinations[1].count, 15);
 	QVERIFY(snapshot.platforms[1].destinations.empty());
-	// The other platform has the two who left there.
-	QCOMPARE(snapshot.platforms[1].passengerCount, 2);
-	QCOMPARE(ids(snapshot.platforms[1]), range(63, 65));
+	// Nobody waits on the other platform: the two who left the network there two seconds ago are gone.
+	QCOMPARE(snapshot.platforms[1].passengerCount, 0);
+	QVERIFY(snapshot.platforms[1].passengers.empty());
 
-	// The ones who left follow the waiting ones in the list, as far as it goes.
+	// Fewer than the list holds: all of them, without the five who left there.
 	auto fewer = make(48, 5, 0);
-	snapshot = buildGuiSimulationSnapshot(*fewer, 105);
-	QCOMPARE(snapshot.platforms[0].passengerCount, 53);
-	QCOMPARE(ids(snapshot.platforms[0]), range(0, 50));
-	// Six seconds after they left, they are no longer on the platform.
-	snapshot = buildGuiSimulationSnapshot(*fewer, 106);
+	snapshot = buildGuiSimulationSnapshot(*fewer, 100);
 	QCOMPARE(snapshot.platforms[0].passengerCount, 48);
 	QCOMPARE(ids(snapshot.platforms[0]), range(0, 48));
+
+	// The same in a run that starts at 07:00, at the step in which they left and at the step with the number of that time.
+	constexpr int kStart = 7 * 3600;
+	auto morning = make(48, 5, 0, kStart);
+	for (const int step : {100, 102, kStart + 100, kStart + 102}) {
+		snapshot = buildGuiSimulationSnapshot(*morning, step);
+		QCOMPARE(snapshot.platforms[0].passengerCount, 48);
+		QCOMPARE(ids(snapshot.platforms[0]), range(0, 48));
+	}
 }
 
 // Without the passenger GUI the run keeps no platform lists. The count of a platform then comes from the passenger flow,

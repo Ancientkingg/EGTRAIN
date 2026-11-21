@@ -182,14 +182,11 @@ public:
 	std::string Current_WaitingStationPlatformID, Current_WaitingStationID; ///< Station the passenger waits at while "OnPlatform".
 	/// True from the start of a journey until the passenger reaches its destination; false before and after.
 	bool IsIntheNetwork;
-	/// Actual time the passenger left the network; -9999 before that. Used by the Passenger GUI to display the
-	/// passenger icon a few seconds after leaving the network
+	/// Actual time the passenger left the network; -9999 before that.
 	double TimeExitedTheNetwork;
-	/// Station where the passenger left the network. Used by the Passenger GUI to display the passenger icon a few
-	/// seconds after leaving the network
+	/// Station where the passenger left the network.
 	std::string StationExitedTheNetworkID;
-	/// Platform where the passenger left the network. Used by the Passenger GUI to display the passenger icon a few
-	/// seconds after leaving the network
+	/// Platform where the passenger left the network.
 	std::string PlatformExitedTheNetworkID;
 	/// trainDescription of the last train that was full when the passenger wanted to board it; "None" before that. The
 	/// refusal is logged once per call of that train, not at every step of its stop.

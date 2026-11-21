@@ -113,7 +113,7 @@
             "properties": {
               "station_id": { "type": "string", "description": "Id of the station." },
               "platform_id": { "type": "string", "description": "Id of the platform within the station." },
-              "waiting": { "type": "integer", "minimum": 0, "description": "Passengers on the platform, as the passenger counter of the platform in the window shows them: those waiting plus those who left the network there in the last 5 seconds." },
+              "waiting": { "type": "integer", "minimum": 0, "description": "Passengers waiting on the platform, as the passenger counter of the platform in the window shows them." },
               "capacity": { "type": ["integer", "null"], "description": "Number of passengers that the platform holds at most. null when the run does not set it." }
             }
           }
