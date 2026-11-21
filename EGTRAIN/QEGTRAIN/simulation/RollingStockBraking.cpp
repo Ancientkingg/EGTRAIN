@@ -792,7 +792,6 @@ double Train::arcEndTargetSpeed(const Section* BS, int Blocks, int section, int 
 double Train::europeanVitalComputerWithListsImproved(double S, double V, int PreviousInstant, Section* BS, int Blocks, bool& continueCached) {
 	continueCached = false;
 	IsTrainCoupling = false;
-	int N_BrakP;
 	int ArcPos = 0;
 	int BlockPos = 0;
 	double MinBX = 99999999999; // Number of Braking points in the Block Section occupied by the train, Index of the Arc of the signalling_block_sections occupied by the train, Index of the signalling_block_sections occupied by the train, Matrix of all Brak Distance of the Braking point of the Block Section occupied by the train, Minimum Braking Abscissa, Braking Abscissa of the block section arcs which follows the signalling_block_sections occupied by the train
@@ -820,7 +819,6 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 			break;
 		}
 	}
-	N_BrakP = BS[BlockPos].total_arcs - ArcPos; // Initializing dimensions of Braking points vectors
 
 	// A stop of this train that is not behind it is a target of speed 0. Only the braking point gets the 0, because the
 	// trains of a route share its sections.

@@ -205,7 +205,7 @@ void ComputeEnergyConsumptionForAllTrains(Train* Trains, int numTrains) {
 }
 
 // Function to Compute the Energy Consumption for the Timetable
-void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, string OutputFolder) {
+void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, const string& OutputFolder) {
 	double TotalEnergyConsumed = 0, TotalEnergyConsWithRegBraking = 0, TotalEnergySubstationRequest = 0, TotalEnergySubstRequestWithRegBraking = 0;
 
 	string OutputPerTrainFileName;
@@ -242,7 +242,7 @@ void Compute_TimetablingPoints_For_All_Trains(Train* Trains, int numTrains) {
 }
 
 // Function to Print all the trajectories
-void PrintTrainPathDiagram(const SimulationRun& run, Train* S, int N_S, string FolderName) {
+void PrintTrainPathDiagram(const SimulationRun& run, Train* S, int N_S, const string& FolderName) {
 	string FileName;
 	FileName = FolderName + "/TrainPathDiagram.txt";
 	ofstream FileOutput = openRunOutputFile(FileName, ios::binary);
@@ -272,7 +272,7 @@ void PrintTrainPathDiagram(const SimulationRun& run, Train* S, int N_S, string F
 }
 
 // Function to print the files with the computing time of ROMA and EGTRAIN for each combination RI-PH
-void Print_Computing_Times(const SimulationRun& run, string FolderName) {
+void Print_Computing_Times(const SimulationRun& run, const string& FolderName) {
 	string FileName;
 	FileName = FileName + FolderName + "/Computing_Times.txt";
 	ofstream Comp_Times = openRunOutputFile(FileName);
@@ -294,7 +294,6 @@ TrainMovementOrder::TrainMovementOrder(const SimulationRun& run) : dueOrder(run.
 }
 
 void runSimulationStep(SimulationRun& run, int t, TrainMovementOrder& order) {
-	const InitialParameters& settings = run.settings;
 	QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute", "worker", "");
 	clock_t startEGTRAIN = clock(); // EGTRAIN start time
 	if (t % kProgressEverySteps == 0) {
@@ -331,7 +330,7 @@ void runSimulationStep(SimulationRun& run, int t, TrainMovementOrder& order) {
 			place = *nextDue++;
 		}
 		for (const int j : movementOrder) {
-			run.trains[j].trajectoryComputationIncludingMovingBlock(t, signalCode1, signalCode2, signalCode3);
+			run.trains[j].trajectoryComputationIncludingMovingBlock(t);
 			run.trains[j].recordEarliestActiveTrajectoryIndex(t);
 			run.trains[j].recordStationPassagesAtTime(t);
 

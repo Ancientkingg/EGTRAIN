@@ -73,7 +73,7 @@ void Train::Det_Section_Occupied_By_Train(int i, Section* BS, int Blocks) {
 					if (isMovingBlockLevel(BS[h].SignallingLevel)) {
 						activateBlocksWithSwitchesDiv(*run_, BS[h], BS[Prev_Block].trackLineId, (instant_spatial_position[i - (int)(run_->signallingDelay / timestep)] - train_length));
 					} else {
-						activateBlocksWithSwitchesDivFixedBlock(*run_, BS[h], BS[Prev_Block].trackLineId, (instant_spatial_position[i - (int)(run_->signallingDelay / timestep)] - train_length));
+						activateBlocksWithSwitchesDivFixedBlock(*run_, BS[h], BS[Prev_Block].trackLineId);
 					}
 				}
 			}
@@ -112,16 +112,9 @@ void Train::ReportPositionToRBC(int i, Section* BS, int N_BS, double ETCS3Safety
 						// Defining veriables for the ID of the previous, Current and Next Section of the edge of the train
 						string CurrentSectionID, NextSectionID;
 						CurrentSectionID = BS[h].ID;
-						int Prev_Block = h - 1;
-						if (h == 0)
-							Prev_Block = 0;
-						int Next_Block = -1;
-
 						if (h == N_BS - 1) { // this is the pointer to the next block section of the MA
-							Next_Block = h;
 							NextSectionID = kNoneId;
 						} else {
-							Next_Block = h + 1;
 							NextSectionID = BS[h + 1].ID;
 						}
 
@@ -139,16 +132,9 @@ void Train::ReportPositionToRBC(int i, Section* BS, int N_BS, double ETCS3Safety
 						// Defining veriables for the ID of the previous, Current and Next Section of the edge of the train
 						string CurrentSectionID, NextSectionID;
 						CurrentSectionID = BS[h].ID;
-						int Prev_Block = h - 1;
-						if (h == 0)
-							Prev_Block = 0;
-						int Next_Block = -1;
-
 						if (h == N_BS - 1) { // this is the pointer to the next block section of the MA
-							Next_Block = h;
 							NextSectionID = kNoneId;
 						} else {
-							Next_Block = h + 1;
 							NextSectionID = BS[h + 1].ID;
 						}
 
@@ -172,16 +158,9 @@ void Train::ReportPositionToRBC(int i, Section* BS, int N_BS, double ETCS3Safety
 						// Defining veriables for the ID of the previous, Current and Next Section of the edge of the train
 						string CurrentSectionID, NextSectionID;
 						CurrentSectionID = BS[h].ID;
-						int Prev_Block = h - 1;
-						if (h == 0)
-							Prev_Block = 0;
-						int Next_Block = -1;
-
 						if (h == N_BS - 1) { // this is the pointer to the next block section of the MA
-							Next_Block = h;
 							NextSectionID = kNoneId;
 						} else {
-							Next_Block = h + 1;
 							NextSectionID = BS[h + 1].ID;
 						}
 

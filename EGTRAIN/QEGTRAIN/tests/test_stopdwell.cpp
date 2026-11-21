@@ -102,7 +102,7 @@ int lengthOfStop(const Train& native, double plannedDwell, int waiting) {
 	Train& moving = defaultRun().trains[0];
 
 	for (int step = kFirstStep; step < kLastStep; ++step) {
-		moving.trajectoryComputationIncludingMovingBlock(step, signalCode1, signalCode2, signalCode3);
+		moving.trajectoryComputationIncludingMovingBlock(step);
 		simulateTrainPassengerInteractions(defaultRun(), step);
 		if (!moving.StoppedForServiceStop)
 			return step - kFirstStep;

@@ -268,7 +268,7 @@ void createBlockConn(SimulationRun& run, const Node& Nb, const Section& BS1, int
 void setAllConnections(SimulationRun& run);
 
 /// Appends to BSConnected a copy of every section of run.infra.sections whose ID contains input.
-void setList(SimulationRun& run, std::string input, std::list<Section>& BSConnected);
+void setList(SimulationRun& run, const std::string& input, std::list<Section>& BSConnected);
 
 /// Gives every section the IDs of the other sections whose ID contains its own (IDConnectedBS, at most
 /// RuntimeLimits::kNativeMaxDependencies).
@@ -410,8 +410,8 @@ void unlockDoubleSwitches(SimulationRun& run);
 void activateBlocksWithSwitchesDiv(SimulationRun& run, const Section& BS, int TrackLineIDPrevBS, double S);
 
 /// The fixed-block form of activateBlocksWithSwitchesDiv: both block sections named in the ID of BS go to run.blocksOccupied and
-/// run.blocksConnected. S is not read.
-void activateBlocksWithSwitchesDivFixedBlock(SimulationRun& run, const Section& BS, int TrackLineIDPrevBS, double S);
+/// run.blocksConnected.
+void activateBlocksWithSwitchesDivFixedBlock(SimulationRun& run, const Section& BS, int TrackLineIDPrevBS);
 
 /// Puts BLS, its connected sections and, for a section with a diverging switch, the two block sections named in its ID in
 /// run.blocksConnected, so that releaseMixedSignallingSystem clears them.
@@ -472,7 +472,7 @@ void releaseMixedSignallingSystem(SimulationRun& run);
 
 /// Releases section blockID when a train leaves its route there; see "Codes and what they do to a following train" in
 /// docs/guides/signalling-levels.md.
-void relLastSectionMixedSignalling(SimulationRun& run, std::string blockID);
+void relLastSectionMixedSignalling(SimulationRun& run, const std::string& blockID);
 
 
 /// Marks the middle of each double switch as a virtual signal: in a track line of three arcs that is 30 m long, the section that

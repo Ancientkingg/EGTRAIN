@@ -46,13 +46,13 @@ void calculatePosAndNegDelayStatsForAllStations(SimulationRun& run);
 /// Writes FolderName/Computing_Times.txt with run.compTimeEgtrain (processor time of the steps, s), run.compTimeRoma and their sum.
 /// Nothing outside the tests sets compTimeRoma, so its column is 0. Throws std::runtime_error when the file cannot be written
 /// (simulation/RunOutputFile.h).
-void Print_Computing_Times(const SimulationRun& run, std::string FolderName);
+void Print_Computing_Times(const SimulationRun& run, const std::string& FolderName);
 
 
 /// Writes FolderName/TrainPathDiagram.txt: a row of the step times (s), then for each of the N_S trains of S a row of its head
 /// position (m, original coordinates) in every step, -9999 where it does not run. Throws std::runtime_error when the file cannot
 /// be written (simulation/RunOutputFile.h).
-void PrintTrainPathDiagram(const SimulationRun& run, Train* S, int N_S, std::string FolderName);
+void PrintTrainPathDiagram(const SimulationRun& run, Train* S, int N_S, const std::string& FolderName);
 
 /// Sets the energy totals (MJ) of each of the numTrains trains whose energy samples are complete, with a substation efficiency of 0.8
 /// and a regeneration factor of 0.7 (Train::TotalEnergyConsumptionWithAndWithoutRegBraking). The totals of the other trains are 0.
@@ -60,7 +60,7 @@ void ComputeEnergyConsumptionForAllTrains(Train* Trains, int numTrains);
 
 /// Writes EnergyConsumptionPerTrain.txt and TotalEnergyConsumption.txt to OutputFolder: the energy totals of each train and of all
 /// trains, converted from MJ to kWh. Throws std::runtime_error when a file cannot be written (simulation/RunOutputFile.h).
-void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, std::string OutputFolder);
+void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, const std::string& OutputFolder);
 
 /// The order in which the trains of a run move in its steps. The loop that steps a run makes one before the first step and passes
 /// it to every step.
