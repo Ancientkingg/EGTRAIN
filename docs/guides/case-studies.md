@@ -5,7 +5,7 @@ The application packages contain six bundled cases, and the release pages of the
 | Case | Release file | Tracks | Stations | Services | Note |
 | --- | --- | ---: | ---: | ---: | --- |
 | Netherlands | `Netherlands.egscene` | 268 | 41 | 8 | Every service ends at its last stop: the train leaves the network after its dwell. |
-| Paimpol | `Paimpol.egscene` | 6 | 10 | 2 | Paimpol, France. Includes passenger data. |
+| Paimpol | `Paimpol.egscene` | 6 | 10 | 2 | Paimpol, France. Includes passenger data: 188 passenger records and one hour of demand from 07:10:40, 4,674 passengers over 89 station pairs. |
 | Copenhagen | `Copenhagen.egscene` | 168 | 94 | 24 | Copenhagen, Denmark. |
 | Milano_Brescia | `Milano_Brescia.egscene` | 38 | 29 | 62 | Milan to Brescia, Italy. The gradients are stored as rise per length; the dataset readme gives them in per mille. |
 | Assignment Gvc-Gdg-Ut | `Assignment_Gvc_Gdg_Ut.egscene` | 2 | 3 | 4 | Synthetic two-track fixture. Sources and terms in [Data of the bundled cases](case-data.md). |

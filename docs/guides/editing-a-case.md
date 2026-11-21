@@ -104,15 +104,51 @@ Rescheduling, and GUI files have their own active/inert/output classifications;
 see the [migration matrix](v1-scene-migration-matrix.md) instead of inferring
 behavior from a filename.
 
-The Demand tab of the Passengers dock edits the origin-destination demand of the
-case. The timeline shows the demand slices over the case horizon: drag over empty
-space to add a slice, drag an edge of the selected slice to change its period, and
-press Delete to remove it. Slices never overlap, and an edit that would overlap is
-cut off at the neighbouring slice. The Start and End fields and the slice list give
-the same control from the keyboard. The matrix below lists origins in rows and
-destinations in columns, with totals; an empty cell or 0 means no passengers.
-Import CSV replaces the matrix of the selected slice from the supervisor's matrix
-format, and Export CSV writes it. Each change is one undo step.
+The dock **Passengers** has two tabs, **Passengers** and **Demand**. On the tab
+**Passengers**, the four window fields of a journey, **Departure start**,
+**Departure end**, **Arrival start** and **Arrival end**, show and accept a time of day. Type
+`07:38:00`, or `+1d 00:00:30` for a time on the next day. `passengers.json` still
+stores seconds from midnight, and a fraction of a second that it holds shows as
+written. Text that is not a time restores the field and shows an error. A journey
+without legs is live: when the passenger appears on the platform, the run plans
+the earliest route on the timetable of the moment, with at most the number of
+transfers of **Passenger transfers** in **Case Settings**. It plans again when the
+passenger misses a train or finds it full. A journey with legs follows them until
+one cannot be taken, and is then planned in the same way. A journey for which no
+train reaches the destination ends with the outcome `no_route`
+([run output](run-output.md)). Case Validation reports nothing for a journey
+without legs.
+
+**Passenger transfers** in the dock **Case Settings** is the most transfers that
+such a passenger plans. It takes 0 to 10 and shows 2 for a case that does not set
+it; in `scene.json` it is `passenger_max_transfers` under `simulation_settings`.
+A change is one step of **Edit > Undo**. The model of the passenger-dependent dwell
+time has no field: its coefficients and the three crowding thresholds are optional
+keys of `simulation_settings`, listed in the
+[scene schema](scene-schema.md#scenejson), and a case that does not set them uses
+the defaults.
+
+The tab **Physical** of the dock **Rolling Stock Units** has **Passenger capacity**,
+the number of passengers that the unit carries, 0 for a locomotive. Its lowest value
+reads **Default**, which means the unit sets none. The trains of a composition carry
+the sum of the capacities of its units when every unit sets one. Otherwise they
+carry 300 plus 300 for each wagon, and Case Validation warns when only some of the
+units set a capacity. The legacy export has no field for it and leaves it out with a
+warning.
+
+The tab **Demand** edits the origin-destination demand of the case. A run turns each
+counted passenger of a demand slice into a passenger with a live journey, so a case
+with demand slices has passengers even when it lists none. The timeline shows the
+slices over the case horizon: drag over empty space to add a slice, drag an edge of
+the selected slice to change its period, and press Delete to remove it. A slice lasts
+a minute or more, and slices never overlap: an edit that would overlap is cut off at
+the neighbouring slice. The fields **Start** and **End** (`HH:MM:SS`), the buttons
+**Add slice** and **Delete**, and the list of slices give the same control from the
+keyboard. The matrix below lists origins in rows and destinations in columns, with
+totals; an empty cell or 0 means no passengers, and a cell that joins a station to itself
+is hatched and cannot be edited. **Import CSV...** replaces the matrix of the selected
+slice from the supervisor's matrix format, and **Export CSV...** writes it; both dialogs
+start in the folder of the case. Each change is one undo step.
 
 Named-scenario selection, entrance delays, incidents, and passengers execute
 from canonical data. The runtime applies only the selected/default scenario.
