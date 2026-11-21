@@ -20,7 +20,7 @@ constexpr double kBrakingCurveEndMarginM = 0.002;
 
 // True when the two values have the same bits, so that 0.0 and -0.0 differ and a NaN matches itself.
 bool sameBits(double a, double b) {
-	return std::memcmp(&a, &b, sizeof(double)) == 0;
+	return std::memcmp(&a, &b, sizeof(double)) == 0; // NOLINT(bugprone-suspicious-memory-comparison): the bits are compared on purpose
 }
 
 bool sameQuery(const TrainStepCache::BrakingQuery& a, const TrainStepCache::BrakingQuery& b) {
@@ -391,10 +391,7 @@ bool Train::planPositiveBraking(double head, double speed, const Arc& arc, Secti
 		if (!std::isfinite(low) || !std::isfinite(high) || low > high || !predictBrakingPrefix(head + low * timestep, low, length - 2, sections, count, end, endSpeed)
 			|| !brakingTerminalUpper(end, endSpeed, Vobmin, sections, count, upper) || upper > anchor + roundoff) continue;
 		const bool completeUpper = predictBrakingPrefix(head + high * timestep, high, length - 2, sections, count, end, endSpeed);
-		if (!completeUpper) {
-			if (!(end > anchor)) continue;
-			upper = end;
-		} else if (!brakingTerminalUpper(end, endSpeed, Vobmin, sections, count, upper)) {
+		if (!completeUpper || !brakingTerminalUpper(end, endSpeed, Vobmin, sections, count, upper)) {
 			if (!(end > anchor)) continue;
 			upper = end;
 		}
@@ -661,7 +658,7 @@ Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority
 		target.position = S;
 	}
 
-	if (authority.type == AuthorityKind::SignalFailure) {
+	if (authority.type == AuthorityKind::SignalFailure) { // NOLINT(bugprone-branch-clone): one case per kind of stop target
 		// a failed signal or a held single-track section is a stop target at every signalling level
 		target.speed = 0;
 	} else if (BS[section].SignallingLevel == levelValue(SignallingLevel::EtcsLevel3)) {

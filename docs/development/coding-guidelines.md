@@ -26,7 +26,7 @@ line, so wrap it at one of those places.
 
 ## Static checks
 
-`python3 tools/tidy.py` runs clang-tidy on the sources of the modules outside `simulation/`
+`python3 tools/tidy.py` runs clang-tidy on the sources of the modules
 and lists the findings; it exits with 1 on any finding. The pull request checks run the
 same script. It configures a Ninja build in `build_tidy/` (`--build-dir` changes it), builds
 the files that Qt generates (moc, uic and resources), and analyses the sources of the build
@@ -48,11 +48,11 @@ script adds the macOS SDK path itself.
 - `-j N` sets the number of parallel clang-tidy processes (default: the number of CPUs).
 
 The checks are selected in `.clang-tidy`, and they apply to every analysed module:
-`app/`, `diagrams/`, `editors/`, `graphics/`, `io/`, `recovery/`, `scene/`, `telemetry/`,
-`update/`, `util/`, `widgets/` and `tests/`. Two places differ. `tests/.clang-tidy`
+`app/`, `diagrams/`, `editors/`, `graphics/`, `io/`, `recovery/`, `scene/`, `simulation/`, `telemetry/`,
+`update/`, `util/`, `widgets/` and `tests/`. Three places differ. `tests/.clang-tidy`
 inherits them and switches off the performance checks and a few others for the tests, with
-the reason of each next to it. `simulation/` is not analysed yet, and its headers are not
-in the header filter, so a finding in one of them does not fail a source that includes it.
+the reason of each next to it. `simulation/.clang-tidy` also inherits them and switches off three checks that the legacy code cannot meet, with
+the reason of each next to it.
 `io/third_party/` has its own `.clang-tidy` that switches the analysis off.
 
 A finding is fixed in the code. When the check is wrong for one place, the line carries
@@ -99,8 +99,9 @@ target that links a library does not get them.
   warning fails the build.
 - `egtrain_dispatch` has the flags only. Its own sources are clean, and the warnings in its
   build log come from the simulation headers.
-- These have no flags: the vendored `egtrain_miniz`, the legacy
-  `egtrain_sim` and `QEGTRAIN`. A comment next to the calls gives the number of warnings.
+- `egtrain_sim` has the flags only. It builds without a warning on Clang and GCC, and it is not strict until the MSVC
+  warnings are fixed.
+- These have no flags: the vendored `egtrain_miniz` and `QEGTRAIN`. A comment next to the calls gives the number of warnings.
 - A test that includes the simulation headers passes `SIMULATION_HEADERS` to `egtrain_add_test`.
   The headers below `SRC_DIR` are then system headers for that test, so the warnings of the
   simulation headers do not count, and the test file itself still builds without a warning.

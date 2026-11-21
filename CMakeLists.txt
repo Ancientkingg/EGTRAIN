@@ -441,12 +441,12 @@ foreach(egtrain_lib egtrain_util egtrain_scene egtrain_runselection egtrain_live
         egtrain_graphics egtrain_widgets egtrain_editors ${EGTRAIN_TELEMETRY_LIBS})
     egtrain_target_warnings(${egtrain_lib} STRICT)
 endforeach()
-# Flags only: egtrain_dispatch has no warning of its own. The 57 warning lines of its build come
-# from the simulation headers.
+# Flags only: egtrain_dispatch has no warning of its own, and the simulation headers it includes have none on Clang and GCC.
 egtrain_target_warnings(egtrain_dispatch)
+# Flags only: egtrain_sim has no warning on Clang and GCC. It is not STRICT until the MSVC warnings are fixed.
+egtrain_target_warnings(egtrain_sim)
 # No flags:
 #   egtrain_miniz                   vendored code
-#   egtrain_sim                     legacy code with 104 warning lines, see #453, #454 and #482
 #   QEGTRAIN                        98 warning lines, 41 of them in app/MainWindow.cpp and the rest
 #                                   from the simulation headers, until the window is split up;
 #                                   app/main.cpp, app/GuardedApplication.cpp, app/SceneSession.cpp,

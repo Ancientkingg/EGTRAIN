@@ -1,0 +1,9 @@
+# The simulation inherits the checks of the root .clang-tidy, without these:
+#   bugprone-pointer-arithmetic-on-polymorphic-object  Train has virtual functions, and no derived class is stored in the arrays that are indexed
+#   bugprone-reserved-identifier                       legacy names with a double underscore or a leading underscore and a capital
+#   clang-analyzer-optin.performance.Padding           reordering the members of Train and TDS is out of scope
+InheritParentConfig: true
+Checks: >
+  -bugprone-pointer-arithmetic-on-polymorphic-object,
+  -bugprone-reserved-identifier,
+  -clang-analyzer-optin.performance.Padding,

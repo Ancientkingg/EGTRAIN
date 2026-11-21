@@ -268,6 +268,6 @@ public:
 /// Writes the delay statistics of the stations to Name_StationDelay/Stats_Stations.txt for kindofdelay "pos" and to
 /// Name_StationDelay/Pos&Neg_Stats_Stations.txt for "pos&neg". Throws std::runtime_error when the file cannot be written
 /// (simulation/RunOutputFile.h).
-void Print_Station_Delay_Stats(const SimulationRun& run, std::string Name_StationDelay, std::string kindofdelay);
+void Print_Station_Delay_Stats(const SimulationRun& run, const std::string& Name_StationDelay, const std::string& kindofdelay);
 
 #endif

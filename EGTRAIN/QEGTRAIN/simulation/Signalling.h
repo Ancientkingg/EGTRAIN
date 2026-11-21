@@ -1,6 +1,6 @@
 #ifndef Signalling_hpp
 #define Signalling_hpp
-#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS // NOLINT(bugprone-reserved-identifier): the MSVC macro
 
 #include <tuple>
 #include <map>
@@ -186,6 +186,9 @@ public:
 
 	/// An empty section with code 270, state Green and no signalling level (kSignallingLevelUnset). The track line IDs are -1.
 	Section();
+
+	/// Copies every member, including every entry of IDConnectedBS.
+	Section(const Section&) = default;
 
 	/// Copies the members, but IDConnectedBS only up to N_ConnectedBS: the entries after that keep their values. The copy
 	/// constructor copies every entry. The node list stays shared.

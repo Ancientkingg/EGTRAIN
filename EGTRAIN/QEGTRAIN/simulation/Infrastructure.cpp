@@ -83,7 +83,7 @@ bool orderPassengerListOnPlatform(pair<string, double>& A, pair<string, double>&
 }
 
 
-void Print_Station_Delay_Stats(const SimulationRun& run, string Name_StationDelay, string kindofdelay) {
+void Print_Station_Delay_Stats(const SimulationRun& run, const string& Name_StationDelay, const string& kindofdelay) {
 	string FileOutName;
 	if (kindofdelay == "pos")
 		FileOutName = FileOutName + Name_StationDelay + "/Stats_Stations.txt";

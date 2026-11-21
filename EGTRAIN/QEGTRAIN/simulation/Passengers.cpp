@@ -56,7 +56,7 @@ const StationPlatform* PlatformIndex::find(const string& stationId, const string
 	return platform == station->second.end() ? nullptr : platform->second;
 }
 
-void printCurrentPassengerStatus(int t, int StartSimulationTime, const list<Passenger>& ALLPAX, string MainFolder) {
+void printCurrentPassengerStatus(int t, int StartSimulationTime, const list<Passenger>& ALLPAX, const string& MainFolder) {
 	string FileName;
 
 	FileName = FileName + MainFolder + "/PassengerStatus.txt";
@@ -75,7 +75,7 @@ void printCurrentPassengerStatus(int t, int StartSimulationTime, const list<Pass
 }
 
 // Function to print the delay of all completed journeys for all passengers.
-void printPassengerTotalJourneyDelay(const list<Passenger>& ALLPAX, string MainFolder) {
+void printPassengerTotalJourneyDelay(const list<Passenger>& ALLPAX, const string& MainFolder) {
 	string FileName;
 
 	FileName = FileName + MainFolder + "/JourneyDelays.txt";
