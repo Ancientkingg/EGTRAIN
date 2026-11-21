@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <iomanip>
+#include <limits>
 #include <list>
 #include <map>
 #include <new>
@@ -992,7 +993,9 @@ void nativeListStoppingTrains(std::list<StationPlatform>& platforms, const std::
 // The planned time of a trip that nothing has set, as Trip holds it.
 constexpr int kUnsetTripTime = -9999;
 
-// Adds one passenger for each passenger of each demand slice of the scene, after the passengers of the scene. The passengers
+// Adds one passenger for each passenger of each demand slice of the scene, after the passengers of the scene. The slices come in
+// the order of their start (a tie by ID) and the cells of a slice by the place of the origin station in the scene, then of the
+// destination station, so that the order of the passengers does not depend on the order in the file. The passengers
 // of a cell appear evenly spread over the period of their slice and plan their route when they appear: their journey has no
 // legs. A passenger's ID is <slice>:<origin>><destination>#<number>, and its journey has the same ID with ".1".
 void nativeStageDemandPassengers(const SceneModel& scene, const NativeIndex<SceneStation>& stationById, std::list<Passenger>& passengers) {
@@ -1003,9 +1006,37 @@ void nativeStageDemandPassengers(const SceneModel& scene, const NativeIndex<Scen
 			return std::string();
 		return found->second->name.empty() ? found->second->id : found->second->name;
 	};
-	for (const ScenePassengerDemandSlice& slice : scene.passengerDemand) {
+	std::unordered_map<std::string, std::size_t> stationPlace;
+	for (std::size_t place = 0; place < scene.stations.size(); ++place)
+		stationPlace.try_emplace(scene.stations[place].id, place);
+	// The place of a station; a station that the scene does not have comes last (its cell adds no passenger).
+	const auto placeOf = [&stationPlace](const std::string& id) {
+		const auto found = stationPlace.find(id);
+		return found == stationPlace.end() ? std::numeric_limits<std::size_t>::max() : found->second;
+	};
+	std::vector<const ScenePassengerDemandSlice*> slices;
+	for (const ScenePassengerDemandSlice& slice : scene.passengerDemand)
+		slices.push_back(&slice);
+	// A start that is not a number (the validator reports it) sorts last, which keeps the order total.
+	const auto start = [](const ScenePassengerDemandSlice* slice) {
+		return std::isnan(slice->startSeconds) ? std::numeric_limits<double>::infinity() : slice->startSeconds;
+	};
+	std::stable_sort(slices.begin(), slices.end(), [&start](const ScenePassengerDemandSlice* a, const ScenePassengerDemandSlice* b) {
+		return start(a) != start(b) ? start(a) < start(b) : a->id < b->id;
+	});
+	for (const ScenePassengerDemandSlice* const slicePointer : slices) {
+		const ScenePassengerDemandSlice& slice = *slicePointer;
 		const double period = slice.endSeconds - slice.startSeconds;
-		for (const ScenePassengerDemandCell& cell : slice.cells) {
+		std::vector<const ScenePassengerDemandCell*> cells;
+		for (const ScenePassengerDemandCell& cell : slice.cells)
+			cells.push_back(&cell);
+		std::stable_sort(cells.begin(), cells.end(), [&placeOf](const ScenePassengerDemandCell* a, const ScenePassengerDemandCell* b) {
+			const std::size_t aOrigin = placeOf(a->originStationId);
+			const std::size_t bOrigin = placeOf(b->originStationId);
+			return aOrigin != bOrigin ? aOrigin < bOrigin : placeOf(a->destinationStationId) < placeOf(b->destinationStationId);
+		});
+		for (const ScenePassengerDemandCell* const cellPointer : cells) {
+			const ScenePassengerDemandCell& cell = *cellPointer;
 			const std::string prefix = slice.id + ":" + cell.originStationId + ">" + cell.destinationStationId + "#";
 			const std::string origin = stationName(cell.originStationId);
 			const std::string destination = stationName(cell.destinationStationId);
