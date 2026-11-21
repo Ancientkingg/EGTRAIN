@@ -673,6 +673,18 @@ has a registered migration, and none exists today; when one is offered, the
 original directory or ZIP remains unchanged. Newer `schema_version` or `bundle_version` values
 require a newer app.
 
+The passenger keys that came after release 1.0.9 are part of schema version 1:
+`demand` in `passengers.json`, `passenger_capacity` of a train unit, and
+`passenger_max_transfers`, `passenger_dwell_coefficients` and the three passenger
+thresholds in `simulation_settings`. Release 1.0.9 and older releases read
+version 1 and skip a key they do not know, so they open a case that has these
+keys without a message. They run it without the demand passengers and with the
+built-in capacity and dwell values, and they leave the keys out when they save
+the case. A case with demand and no listed passenger is then saved without
+`passengers.json`. Those releases also report a journey without legs, which the
+run now plans by itself, with the warning `scene.passenger.legs.empty`. Keep a
+copy of a case with these keys before you save it with an older release.
+
 ## Case files
 
 An `.egscene` file packages the canonical JSON files of a scene in a deterministic ZIP archive.
