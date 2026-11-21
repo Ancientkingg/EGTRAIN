@@ -9,6 +9,7 @@
 #include <new>
 #include <list>
 #include <string>
+#include <string_view>
 #include <ctime>
 #include <sstream>
 #include <map>
@@ -28,11 +29,14 @@ inline constexpr double timestep = 1;
 /// red section of level 5, signalCode3 is passed to the routines as V_0, which they do not use
 inline constexpr double signalCode1 = 11.111, signalCode2 = 0, signalCode3 = 0;
 
+/// The tdsbId of the node at a cut end of a section: the element after a cut is not a real one, so the blocking times skip it.
+inline constexpr std::string_view virtualTdsbId = "VirtualTDSB";
+
 /// A point element on the route of a train: a signal, a switch edge, a station stop or a border of a track detection
 /// section. Route::setListInfrastructureElementsForRoute makes one per node that has a tdsbId.
 class InfraElement {
 public:
-	/// ID of the element, the tdsbId of its node; "VirtualTDSB" at the cut end of a section; "None" when not set.
+	/// ID of the element, the tdsbId of its node; virtualTdsbId at the cut end of a section; "None" when not set.
 	std::string ID;
 	std::string SectionID;		///< ID of the block section the element belongs to.
 	std::string stationName;	///< Name of the station at this element; "None" when it is not a station.
