@@ -7,7 +7,9 @@
 #include <QApplication>
 #include <QComboBox>
 #include <QDir>
+#include <QElapsedTimer>
 #include <QFile>
+#include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
@@ -148,6 +150,12 @@ private slots:
 	void clearsCellWithReturn();
 	void commitsCellWithReturn();
 	void grabsPaimpol();
+	void refreshesStructureWithStations();
+	void showsOtherSliceWithoutStaleText();
+	void restoresCellTextAndFlags();
+	void showsChangesMadeWhileHidden();
+	void fillsShownMatrixOfManyStationsQuickly();
+	void sizesColumnsOfShownMatrixAfterFill();
 };
 
 // A case with only demand slices has passengers in a run, so the passenger layer and the map key show them.
@@ -772,6 +780,172 @@ void TestDemandPanel::grabsPaimpol() {
 	tabs.show();
 	QVERIFY(QTest::qWaitForWindowExposed(&tabs));
 	QVERIFY(tabs.grab().save(QString::fromLocal8Bit(target)));
+}
+
+// A station that is renamed or added changes the headers, the tooltips of the cells and the place of the hatched diagonal.
+void TestDemandPanel::refreshesStructureWithStations() {
+	DemandFixture fixture;
+	QTableWidget* table = fixture.panel.matrixTable();
+	QCOMPARE(table->verticalHeaderItem(1)->text(), QString("Station B"));
+	QCOMPARE(fixture.cell(0, 1)->toolTip(), QString("Station A to Station B"));
+	SceneModel scene = demandScene();
+	scene.stations[1].name = "Harbour";
+	fixture.document.replace(scene, false);
+	fixture.panel.refresh();
+	QCOMPARE(table->verticalHeaderItem(1)->text(), QString("Harbour"));
+	QCOMPARE(table->horizontalHeaderItem(1)->text(), QString("Harbour"));
+	QCOMPARE(fixture.cell(0, 1)->toolTip(), QString("Station A to Harbour"));
+	QCOMPARE(fixture.cell(1, 2)->data(Qt::AccessibleDescriptionRole).toString(), QString("Harbour to Station C"));
+	QCOMPARE(fixture.cell(3, 1)->toolTip(), QString("Total to Harbour"));
+	QCOMPARE(fixture.cell(0, 1)->text(), QString("10"));
+	SceneStation station;
+	station.id = "D";
+	station.name = "Station D";
+	scene.stations.insert(scene.stations.begin(), station);
+	fixture.document.replace(scene, false);
+	fixture.panel.refresh();
+	QCOMPARE(table->rowCount(), 5);
+	QCOMPARE(table->verticalHeaderItem(0)->text(), QString("Station D"));
+	// The old cells moved one place on, and the diagonal and the totals stand where they belong.
+	QCOMPARE(fixture.cell(1, 2)->text(), QString("10"));
+	QCOMPARE(fixture.cell(2, 3)->text(), QString("5"));
+	QCOMPARE(fixture.cell(0, 1)->text(), QString());
+	QCOMPARE(fixture.cell(1, 1)->flags(), Qt::ItemFlags());
+	QCOMPARE(fixture.cell(1, 1)->background().style(), Qt::BDiagPattern);
+	QCOMPARE(fixture.cell(1, 2)->background().style(), Qt::NoBrush);
+	QVERIFY(fixture.cell(1, 2)->flags().testFlag(Qt::ItemIsEditable));
+	QCOMPARE(fixture.cell(1, 4)->text(), QString("10"));
+	QCOMPARE(fixture.cell(4, 4)->text(), QString("15"));
+	QVERIFY(fixture.cell(4, 4)->font().bold());
+}
+
+// Another slice shows its own texts and totals, and a cell that the slice does not have is empty.
+void TestDemandPanel::showsOtherSliceWithoutStaleText() {
+	DemandFixture fixture;
+	SceneModel scene = demandScene();
+	scene.passengerDemand.push_back(slice("evening", 17 * hour, 18 * hour, {{"C", "A", 3}}));
+	fixture.document.replace(scene, false);
+	fixture.panel.refresh();
+	QCOMPARE(fixture.cell(0, 1)->text(), QString("10"));
+	QCOMPARE(fixture.cell(3, 3)->text(), QString("15"));
+	QVERIFY(fixture.panel.selectSlice("evening"));
+	QCOMPARE(fixture.cell(0, 1)->text(), QString());
+	QCOMPARE(fixture.cell(1, 2)->text(), QString());
+	QCOMPARE(fixture.cell(2, 0)->text(), QString("3"));
+	QCOMPARE(fixture.cell(2, 3)->text(), QString("3"));
+	QCOMPARE(fixture.cell(3, 0)->text(), QString("3"));
+	QCOMPARE(fixture.cell(3, 1)->text(), QString("0"));
+	QCOMPARE(fixture.cell(3, 3)->text(), QString("3"));
+	QVERIFY(fixture.panel.totalLabel()->text().contains("3 passengers"));
+	QVERIFY(fixture.cell(2, 0)->flags().testFlag(Qt::ItemIsEditable));
+	QVERIFY(fixture.panel.selectSlice("morning"));
+	QCOMPARE(fixture.cell(2, 0)->text(), QString());
+	QCOMPARE(fixture.cell(0, 1)->text(), QString("10"));
+	QCOMPARE(fixture.cell(3, 3)->text(), QString("15"));
+}
+
+// A cell that the user typed into shows the stored value again when the edit is refused or changes nothing, and the
+// cells lose their flags when the document is no longer editable.
+void TestDemandPanel::restoresCellTextAndFlags() {
+	DemandFixture fixture;
+	fixture.setCell(0, 1, "abc");
+	QCOMPARE(fixture.cell(0, 1)->text(), QString("10"));
+	QCOMPARE(fixture.slices()[0].cells[0].count, 10);
+	fixture.setCell(0, 1, "010");
+	QCOMPARE(fixture.cell(0, 1)->text(), QString("10"));
+	QCOMPARE(fixture.slices()[0].cells[0].count, 10);
+	QVERIFY(fixture.cell(0, 1)->flags().testFlag(Qt::ItemIsEditable));
+	fixture.document.setEditable(false);
+	fixture.panel.refresh();
+	QCOMPARE(fixture.cell(0, 1)->flags(), Qt::ItemFlags());
+	QCOMPARE(fixture.cell(0, 1)->text(), QString("10"));
+	fixture.document.setEditable(true);
+	fixture.panel.refresh();
+	QVERIFY(fixture.cell(0, 1)->flags().testFlag(Qt::ItemIsEditable));
+}
+
+// A change that is made while the panel is hidden shows when the panel is shown.
+void TestDemandPanel::showsChangesMadeWhileHidden() {
+	DemandFixture fixture;
+	QVERIFY(!fixture.panel.isVisible());
+	SceneModel scene = demandScene();
+	scene.stations[2].name = "Terminus";
+	scene.passengerDemand[0].cells.push_back({"C", "A", 4});
+	fixture.document.replace(scene, false);
+	fixture.panel.show();
+	const auto hide = qScopeGuard([&fixture] { fixture.panel.hide(); });
+	QTableWidget* table = fixture.panel.matrixTable();
+	QCOMPARE(table->horizontalHeaderItem(2)->text(), QString("Terminus"));
+	QCOMPARE(fixture.cell(2, 0)->text(), QString("4"));
+	QCOMPARE(fixture.cell(3, 3)->text(), QString("19"));
+}
+
+// While the table is on show, a header that sizes its sections to the contents measures every section again at each
+// change of an item. A fill holds the header sizes and measures once, so a matrix of 40 stations is filled in
+// milliseconds when the editing state changes or another slice is shown. Measuring per item takes seconds for each.
+void TestDemandPanel::fillsShownMatrixOfManyStationsQuickly() {
+	constexpr int kStations = 40;
+	DemandFixture fixture;
+	SceneModel scene = demandScene();
+	scene.stations.clear();
+	for (int index = 0; index < kStations; ++index) {
+		SceneStation station;
+		station.id = "S" + std::to_string(100 + index);
+		station.name = "Station number " + std::to_string(100 + index);
+		scene.stations.push_back(station);
+	}
+	const auto cellsOf = [&scene](int step, int count) {
+		std::vector<ScenePassengerDemandCell> cells;
+		for (int index = 0; index < kStations * 10; ++index) {
+			const int origin = index % kStations;
+			const int destination = (index * step + 3) % kStations;
+			if (origin != destination)
+				cells.push_back({scene.stations[static_cast<std::size_t>(origin)].id, scene.stations[static_cast<std::size_t>(destination)].id, count});
+		}
+		return cells;
+	};
+	scene.passengerDemand = {slice("morning", 7 * hour, 8 * hour, cellsOf(7, 5)), slice("evening", 8 * hour, 9 * hour, cellsOf(11, 120))};
+	fixture.document.replace(scene, false);
+	fixture.panel.show();
+	const auto hide = qScopeGuard([&fixture] { fixture.panel.hide(); });
+	QVERIFY(QTest::qWaitForWindowExposed(&fixture.panel));
+	QCoreApplication::processEvents();
+
+	QElapsedTimer timer;
+	timer.start();
+	fixture.document.setEditable(false);
+	fixture.panel.refresh();
+	QCoreApplication::processEvents();
+	QCOMPARE(fixture.cell(0, 1)->flags(), Qt::ItemFlags());
+	fixture.document.setEditable(true);
+	fixture.panel.refresh();
+	QCoreApplication::processEvents();
+	QVERIFY(fixture.cell(0, 1)->flags().testFlag(Qt::ItemIsEditable));
+	QVERIFY(fixture.panel.selectSlice("evening"));
+	QCoreApplication::processEvents();
+	const qint64 elapsed = timer.elapsed();
+	QVERIFY2(elapsed < 2000, qPrintable(QString("three fills of the shown matrix took %1 ms").arg(elapsed)));
+	QCOMPARE(fixture.panel.matrixTable()->horizontalHeader()->sectionResizeMode(0), QHeaderView::ResizeToContents);
+}
+
+// The headers size the sections to the contents again after a fill: a column gets wider for a longer count.
+void TestDemandPanel::sizesColumnsOfShownMatrixAfterFill() {
+	DemandFixture fixture;
+	SceneModel scene = demandScene();
+	for (SceneStation& station : scene.stations)
+		station.name = station.id;
+	fixture.document.replace(scene, false);
+	fixture.panel.show();
+	const auto hide = qScopeGuard([&fixture] { fixture.panel.hide(); });
+	QVERIFY(QTest::qWaitForWindowExposed(&fixture.panel));
+	QCoreApplication::processEvents();
+	QTableWidget* table = fixture.panel.matrixTable();
+	const int before = table->columnWidth(1);
+	fixture.setCell(0, 1, "123456");
+	QCoreApplication::processEvents();
+	QCOMPARE(fixture.cell(0, 1)->text(), QString("123456"));
+	QCOMPARE(table->horizontalHeader()->sectionResizeMode(1), QHeaderView::ResizeToContents);
+	QCOMPARE_GT(table->columnWidth(1), before);
 }
 
 QTEST_MAIN(TestDemandPanel)

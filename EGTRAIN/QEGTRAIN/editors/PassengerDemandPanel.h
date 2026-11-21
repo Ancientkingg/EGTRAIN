@@ -3,10 +3,12 @@
 
 #include "editors/SceneEditorPanel.h"
 
+#include <QColor>
 #include <QPoint>
 #include <QRect>
 #include <QSize>
 #include <QString>
+#include <QStringList>
 
 #include <functional>
 #include <optional>
@@ -258,6 +260,16 @@ private:
 	QString m_selectedId;
 	QString m_notice;
 	bool m_refreshing = false;
+	/// True once fillMatrix() has described the table below, so that the next fill can leave the structure alone.
+	bool m_filledLayoutValid = false;
+	/// The header labels of the last fill, in order, with "Total" at the end.
+	QStringList m_filledLabels;
+	/// Whether the cells were editable at the last fill.
+	bool m_filledEditable = false;
+	/// The colour of the hatched diagonal at the last fill.
+	QRgb m_filledHatchColor = 0;
+	/// The colour of the totals at the last fill.
+	QRgb m_filledTotalColor = 0;
 
 	QWidget* m_body = nullptr;
 	DemandTimeline* m_timeline = nullptr;

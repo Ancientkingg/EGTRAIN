@@ -31,6 +31,8 @@
 #include <cmath>
 #include <set>
 #include <string>
+#include <string_view>
+#include <unordered_map>
 
 namespace DemandRanges {
 
@@ -679,47 +681,78 @@ void PassengerDemandPanel::fillMatrix(const ScenePassengerDemandSlice* slice) {
 	const std::vector<SceneStation> noStations;
 	const std::vector<SceneStation>& stations = hasScene() ? m_document->model().stations : noStations;
 	const int count = static_cast<int>(stations.size());
-	m_matrix->setRowCount(count + 1);
-	m_matrix->setColumnCount(count + 1);
+	const bool editable = slice && canEditDemand();
 	QStringList labels;
 	for (const SceneStation& station : stations)
 		labels << stationLabel(station);
 	labels << "Total";
-	m_matrix->setHorizontalHeaderLabels(labels);
-	m_matrix->setVerticalHeaderLabels(labels);
+	const QRgb hatchColor = palette().color(QPalette::Mid).rgba();
+	const QRgb totalColor = palette().color(QPalette::AlternateBase).rgba();
+	// What decides the structure of the table. While it is the same as at the last fill, only texts can differ.
+	const bool sameLayout = m_filledLayoutValid && m_filledLabels == labels && m_filledEditable == editable
+		&& m_filledHatchColor == hatchColor && m_filledTotalColor == totalColor && m_matrix->rowCount() == count + 1
+		&& m_matrix->columnCount() == count + 1;
+	// A header that sizes its sections to the contents measures all of them again at each change of an item while the
+	// table is on show. The headers therefore keep their sizes from the first change of a fill and measure once at its end.
+	bool headersHeld = false;
+	const auto holdHeaders = [this, &headersHeld] {
+		if (headersHeld)
+			return;
+		headersHeld = true;
+		m_matrix->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+		m_matrix->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+	};
+	if (!sameLayout) {
+		holdHeaders();
+		m_matrix->setRowCount(count + 1);
+		m_matrix->setColumnCount(count + 1);
+		m_matrix->setHorizontalHeaderLabels(labels);
+		m_matrix->setVerticalHeaderLabels(labels);
+	}
 
 	std::vector<long long> counts(static_cast<std::size_t>(count) * static_cast<std::size_t>(count), 0);
 	if (slice) {
+		// The last station with an id wins, as when the stations are searched in order.
+		std::unordered_map<std::string_view, int> indexOfStation;
+		indexOfStation.reserve(stations.size());
+		for (int index = 0; index < count; ++index)
+			indexOfStation[stations[static_cast<std::size_t>(index)].id] = index;
+		const auto indexOf = [&indexOfStation](const std::string& id) {
+			const auto found = indexOfStation.find(id);
+			return found == indexOfStation.end() ? -1 : found->second;
+		};
 		for (const ScenePassengerDemandCell& cell : slice->cells) {
-			int row = -1;
-			int column = -1;
-			for (int index = 0; index < count; ++index) {
-				if (stations[static_cast<std::size_t>(index)].id == cell.originStationId)
-					row = index;
-				if (stations[static_cast<std::size_t>(index)].id == cell.destinationStationId)
-					column = index;
-			}
+			const int row = indexOf(cell.originStationId);
+			const int column = indexOf(cell.destinationStationId);
 			if (row >= 0 && column >= 0 && row != column)
 				counts[static_cast<std::size_t>(row * count + column)] += cell.count;
 		}
 	}
-	const bool editable = slice && canEditDemand();
 	std::vector<long long> columnTotals(static_cast<std::size_t>(count), 0);
 	long long grandTotal = 0;
 	for (int row = 0; row <= count; ++row) {
 		long long rowTotal = 0;
 		for (int column = 0; column <= count; ++column) {
 			QTableWidgetItem* item = m_matrix->item(row, column);
+			// A new item has none of the attributes yet, so it is set up in full like every item of a changed layout.
+			const bool setUp = !sameLayout || !item;
 			if (!item) {
 				item = new QTableWidgetItem();
 				m_matrix->setItem(row, column, item);
 			}
-			item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+			if (setUp)
+				item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 			if (row < count && column < count && row != column) {
 				const long long value = counts[static_cast<std::size_t>(row * count + column)];
 				rowTotal += value;
 				columnTotals[static_cast<std::size_t>(column)] += value;
-				item->setText(value > 0 ? QString::number(value) : QString());
+				const QString text = value > 0 ? QString::number(value) : QString();
+				if (item->text() != text) {
+					holdHeaders();
+					item->setText(text);
+				}
+				if (!setUp)
+					continue;
 				item->setFlags(editable ? (Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable) : Qt::NoItemFlags);
 				item->setBackground(QBrush());
 				item->setData(Qt::FontRole, QVariant());
@@ -729,6 +762,8 @@ void PassengerDemandPanel::fillMatrix(const ScenePassengerDemandSlice* slice) {
 				item->setToolTip(description);
 				item->setData(Qt::AccessibleDescriptionRole, description);
 			} else if (row < count && column < count) {
+				if (!setUp)
+					continue;
 				item->setText(QString());
 				item->setFlags(Qt::NoItemFlags);
 				item->setData(Qt::FontRole, QVariant());
@@ -738,19 +773,28 @@ void PassengerDemandPanel::fillMatrix(const ScenePassengerDemandSlice* slice) {
 				item->setData(Qt::AccessibleDescriptionRole, QStringLiteral("Same station, not used"));
 			} else {
 				long long value = 0;
-				QString description;
 				if (column == count && row < count) {
 					value = rowTotal;
 					grandTotal += rowTotal;
-					description = QStringLiteral("Total from %1").arg(stationLabel(stations[static_cast<std::size_t>(row)]));
 				} else if (row == count && column < count) {
 					value = columnTotals[static_cast<std::size_t>(column)];
-					description = QStringLiteral("Total to %1").arg(stationLabel(stations[static_cast<std::size_t>(column)]));
 				} else {
 					value = grandTotal;
-					description = QStringLiteral("Slice total");
 				}
-				item->setText(QString::number(value));
+				const QString text = QString::number(value);
+				if (item->text() != text) {
+					holdHeaders();
+					item->setText(text);
+				}
+				if (!setUp)
+					continue;
+				QString description;
+				if (column == count && row < count)
+					description = QStringLiteral("Total from %1").arg(stationLabel(stations[static_cast<std::size_t>(row)]));
+				else if (row == count && column < count)
+					description = QStringLiteral("Total to %1").arg(stationLabel(stations[static_cast<std::size_t>(column)]));
+				else
+					description = QStringLiteral("Slice total");
 				item->setFlags(Qt::ItemIsEnabled);
 				item->setBackground(palette().color(QPalette::AlternateBase));
 				QFont font = item->font();
@@ -761,6 +805,15 @@ void PassengerDemandPanel::fillMatrix(const ScenePassengerDemandSlice* slice) {
 			}
 		}
 	}
+	if (headersHeld) {
+		m_matrix->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+		m_matrix->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+	}
+	m_filledLayoutValid = true;
+	m_filledLabels = labels;
+	m_filledEditable = editable;
+	m_filledHatchColor = hatchColor;
+	m_filledTotalColor = totalColor;
 	m_totalLabel->setText(slice ? QStringLiteral("Slice total: %1 passengers").arg(grandTotal) : QStringLiteral("No slice selected"));
 }
 
