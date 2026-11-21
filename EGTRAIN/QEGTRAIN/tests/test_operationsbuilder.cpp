@@ -4,6 +4,7 @@
 #include "scene/SceneWriter.h"
 #include "scene/SignallingLevel.h"
 #include "scene/SignallingLevelNames.h"
+#include "simulation/PassengerFlow.h"
 #include "simulation/Passengers.h"
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
@@ -11,6 +12,7 @@
 #include "simulation/SimulationRun.h"
 #include "diagrams/CompletedRunData.h"
 #include "diagrams/RouteDiagramCoordinates.h"
+#include "support/PassengerStep.h"
 #include "util/Log.h"
 #include "util/timeutil.hpp"
 
@@ -165,7 +167,7 @@ private slots:
 	void stationStatisticsOfSmallPopulations();
 	void passengerRatesAndDwellTerms();
 	void indexesFindPassengersAndPlatforms();
-	void boardingLooksUpMatchingIndex();
+	void boardingUsesWaitingListOfPlatform();
 	void waitingPassengersAreListedByDeparture();
 	void boardingWithoutPassengerGuiKeepsPlatformList();
 	void brakingPointSearch();
@@ -2257,36 +2259,53 @@ void TestOperationsBuilder::indexesFindPassengersAndPlatforms() {
 	QVERIFY(platformIndex.find("S1", "P1") == nullptr);
 }
 
-// Boarding takes passengers and platforms from the shared indexes for the lists those describe and from an index of its
-// own for any other list.
-void TestOperationsBuilder::boardingLooksUpMatchingIndex() {
-	// Boarding at platform S1 P1 of the lists of the run, where the waiting list names Pb before Pa.
-	std::list<Passenger> savedPassengers;
-	savedPassengers.swap(defaultRun().passengers);
-	std::list<StationPlatform> savedPlatforms;
-	savedPlatforms.swap(defaultRun().platforms);
-	const PassengerIndex savedPassengerIndex = defaultRun().passengerIndex;
-	const PlatformIndex savedPlatformIndex = defaultRun().platformIndex;
-	const bool savedPaxGui = defaultRun().settings.PAX_GUI;
-	const auto restore = qScopeGuard([&] {
-		eglog::setSink({});
-		defaultRun().settings.PAX_GUI = savedPaxGui;
-		defaultRun().passengers.swap(savedPassengers);
-		defaultRun().platforms.swap(savedPlatforms);
-		defaultRun().passengerIndex = savedPassengerIndex;
-		defaultRun().platformIndex = savedPlatformIndex;
-	});
-	defaultRun().settings.PAX_GUI = true;
-	eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
+// A passenger who waits at platform S1.platform.1 for train T1 to S2 from this time.
+static Passenger passengerForT1(const std::string& id, int since) {
+	Passenger passenger;
+	passenger.ID = id;
+	passenger.IsIntheNetwork = true;
+	passenger.CurrentStatus = PassengerStatus::OnPlatform;
+	passenger.Current_Train_To_Wait = "T1";
+	passenger.Current_WaitingStationID = "S1";
+	passenger.Current_WaitingStationPlatformID = "S1.platform.1";
+	passenger.Current_Arrival_Station = "S2";
+	Journey journey;
+	journey.ID = id + ".j";
+	journey.Dep_Station_ID = "S1";
+	journey.Arr_Station_ID = "S2";
+	journey.N_Trips = 1;
+	journey.IsJourneyStarted = true;
+	Trip trip;
+	trip.TripID = id + ".t";
+	trip.JourneyID = journey.ID;
+	trip.Dep_Station_ID = "S1";
+	trip.Arr_Station_ID = "S2";
+	trip.Dep_Station_Platform_ID = "S1.platform.1";
+	trip.TrainServiceDescription = "T1";
+	trip.IsTripStarted = true;
+	trip.Actual_Departure_Time = since;
+	journey.Trips.push_back(trip);
+	passenger.Journeys.push_back(journey);
+	passenger.current_JourneyID = journey.ID;
+	passenger.current_TripID = trip.TripID;
+	return passenger;
+}
 
-	const auto waiting = [](const std::string& id) {
-		Passenger passenger;
-		passenger.ID = id;
-		passenger.CurrentStatus = PassengerStatus::OnPlatform;
-		passenger.Current_Train_To_Wait = "T1";
-		passenger.Current_WaitingStationID = "S1";
-		return passenger;
-	};
+// The passenger step of step t as a run makes it: the passengers whose journey starts enter, then the trains alight and board.
+static void passengerStep(SimulationRun& run, int t) {
+	enterPassengersAndRefreshPlatforms(run, t);
+	simulateTrainPassengerInteractions(run, t);
+}
+
+// Boarding follows the waiting list of the platform where the train stands, which the run keeps up to date, and a train at a
+// platform that the run does not have boards nobody.
+void TestOperationsBuilder::boardingUsesWaitingListOfPlatform() {
+	eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
+	const auto restoreLog = qScopeGuard([] { eglog::setSink({}); });
+	PassengerStepScope scope(defaultRun());
+	defaultRun().settings.PAX_GUI = true;
+	defaultRun().settings.startingSimulationTime = 0;
+
 	const auto boardedIds = [](const std::list<Passenger>& everyone) {
 		std::string boarded;
 		for (const Passenger& passenger : everyone)
@@ -2294,70 +2313,30 @@ void TestOperationsBuilder::boardingLooksUpMatchingIndex() {
 				boarded += passenger.ID + " ";
 		return boarded;
 	};
-	Train train;
-	train.run_ = &defaultRun();
-	train.StoppedForServiceStop = true;
-	train.trainDescription = "T1";
-	train.CurrentServiceStop = "S1";
-	train.CurrentServiceStopPlatform = "P1";
-	const auto board = [&train](int capacity, std::list<Passenger>& everyone, const std::list<StationPlatform>& everyPlatform) {
-		train.MAX_OnBoard_Passengers = capacity;
-		train.Current_OnBoard_Passengers = 0;
-		Simulate_Train_Passenger_Interactions(defaultRun(), 10, 0, train, everyone, everyPlatform);
-	};
 	StationPlatform stop;
 	stop.StationID = "S1";
-	stop.ID = "P1";
-	stop.Current_List_Pax_On_Platform = {{"Pb", 0.0}, {"Pa", 0.0}};
-	defaultRun().platforms.push_back(stop);
-	defaultRun().platformIndex.build(defaultRun().platforms);
+	stop.ID = "S1.platform.1";
+	// T1 stands at S1 with this room and the passengers wait for it.
+	const auto board = [&](int capacity, std::list<Passenger> everyone, const std::string& platformId) {
+		Train train = trainCalling("T1", {"S1", "S2"});
+		standAtStop(train, 0, 2);
+		train.run_ = &defaultRun();
+		train.CurrentServiceStopPlatform = platformId;
+		train.MAX_OnBoard_Passengers = capacity;
+		train.Current_OnBoard_Passengers = 0;
+		scope.set({train}, std::move(everyone), {stop});
+		passengerStep(defaultRun(), 10);
+		return boardedIds(defaultRun().passengers);
+	};
 
-	defaultRun().passengers = {waiting("Pa"), waiting("Pb"), waiting("Pa")};
-	defaultRun().passengerIndex.build(defaultRun().passengers);
-	board(1, defaultRun().passengers, defaultRun().platforms);
-	// Passengers board in the order of the waiting list.
-	QCOMPARE(boardedIds(defaultRun().passengers), "Pb ");
-	defaultRun().passengers = {waiting("Pa"), waiting("Pb"), waiting("Pa")};
-	defaultRun().passengerIndex.build(defaultRun().passengers);
-	board(2, defaultRun().passengers, defaultRun().platforms);
+	// Pb has waited longest. The passengers board in the order of the waiting list.
+	QCOMPARE(board(1, {passengerForT1("Pa", 5), passengerForT1("Pb", 0), passengerForT1("Pa", 5)}, "S1.platform.1"), "Pb ");
+	QCOMPARE(defaultRun().trains[0].Current_OnBoard_Passengers, 1);
 	// Of two passengers with one ID the first in the list boards.
-	QCOMPARE(boardedIds(defaultRun().passengers), "Pa Pb ");
-
-	// A passenger added after the index was built still boards: the shared index no longer describes the list.
-	defaultRun().passengers = {waiting("Pa"), waiting("Pb")};
-	defaultRun().passengerIndex.build(defaultRun().passengers);
-	defaultRun().passengers.push_back(waiting("Pc"));
-	defaultRun().platforms.front().Current_List_Pax_On_Platform = {{"Pc", 0.0}};
-	board(2, defaultRun().passengers, defaultRun().platforms);
-	// A passenger added after the index was built boards.
-	QCOMPARE(boardedIds(defaultRun().passengers), "Pc ");
-
-	// Another list of the same size as the one of the run is not looked up in the index of the run.
-	defaultRun().passengers = {waiting("Pa"), waiting("Pb")};
-	defaultRun().passengerIndex.build(defaultRun().passengers);
-	defaultRun().platforms.front().Current_List_Pax_On_Platform = {{"Pb", 0.0}};
-	std::list<Passenger> others = {waiting("Pb"), waiting("Pa")};
-	board(2, others, defaultRun().platforms);
-	// A passenger list that is not the one of the run is looked up in its own index.
-	QCOMPARE(boardedIds(others), "Pb ");
-	QVERIFY(boardedIds(defaultRun().passengers).empty());
-
-	// The same holds for a platform list.
-	StationPlatform otherStop = stop;
-	otherStop.Current_List_Pax_On_Platform = {{"Pa", 0.0}};
-	const std::list<StationPlatform> otherPlatforms = {otherStop};
-	others = {waiting("Pb"), waiting("Pa")};
-	board(2, others, otherPlatforms);
-	// A platform list that is not the one of the run is looked up in its own index.
-	QCOMPARE(boardedIds(others), "Pa ");
-
-	// A train at a platform that does not exist boards nobody.
-	others = {waiting("Pb"), waiting("Pa")};
-	train.CurrentServiceStopPlatform = "P9";
-	board(2, others, defaultRun().platforms);
+	QCOMPARE(board(2, {passengerForT1("Pa", 5), passengerForT1("Pb", 0), passengerForT1("Pa", 5)}, "S1.platform.1"), "Pa Pb ");
 	// A train at an unknown platform boards nobody.
-	QVERIFY(boardedIds(others).empty());
-	QCOMPARE(train.Current_OnBoard_Passengers, 0);
+	QVERIFY(board(2, {passengerForT1("Pa", 5), passengerForT1("Pb", 0)}, "P9").empty());
+	QCOMPARE(defaultRun().trains[0].Current_OnBoard_Passengers, 0);
 }
 
 // A passenger who waits at a platform for the second trip of a journey, which leaves at this time.
@@ -2384,29 +2363,6 @@ static Passenger passengerWaitingAt(const std::string& id, const std::string& st
 	return passenger;
 }
 
-// The waiting count and list of one platform worked out with a scan of all passengers for that platform.
-static void scanWaitingList(StationPlatform& platform, const std::list<Passenger>& everyone) {
-	platform.Current_N_Passengers = 0;
-	platform.Current_List_Pax_On_Platform.clear();
-	for (const Passenger& passenger : everyone) {
-		if (!passenger.IsIntheNetwork || passenger.CurrentStatus != PassengerStatus::OnPlatform || passenger.Current_WaitingStationID != platform.StationID
-			|| passenger.Current_WaitingStationPlatformID != platform.ID)
-			continue;
-		platform.Current_N_Passengers++;
-		for (const Journey& journey : passenger.Journeys) {
-			if (journey.ID != passenger.current_JourneyID)
-				continue;
-			for (const Trip& trip : journey.Trips) {
-				if (trip.TripID == passenger.current_TripID) {
-					platform.Current_List_Pax_On_Platform.push_back(std::make_pair(passenger.ID, trip.Actual_Departure_Time));
-					break;
-				}
-			}
-		}
-	}
-	platform.Current_List_Pax_On_Platform.sort(orderPassengerListOnPlatform);
-}
-
 static std::string waitingIds(const std::list<std::pair<std::string, double>>& waiting) {
 	std::string ids;
 	for (const auto& entry : waiting)
@@ -2414,8 +2370,8 @@ static std::string waitingIds(const std::list<std::pair<std::string, double>>& w
 	return ids;
 }
 
-// The passengers waiting at a platform are counted and listed in the order of their departure times, for one platform and for all
-// platforms in one pass over the passengers.
+// The passenger flow counts and lists the passengers waiting at a platform in the order of their departure times, for one platform and
+// for the platforms of the run, and follows a passenger who moves on.
 void TestOperationsBuilder::waitingPassengersAreListedByDeparture() {
 	std::list<Passenger> passengers;
 	passengers.push_back(passengerWaitingAt("a1", "S1", "P1", 30));
@@ -2454,28 +2410,18 @@ void TestOperationsBuilder::waitingPassengersAreListedByDeparture() {
 		}
 	}
 
-	const WaitingAtPlatform first = passengersWaitingAtPlatform("S1", "P1", passengers);
+	PassengerFlow flow;
+	flow.build(passengers);
+	const WaitingAtPlatform first = flow.waitingAt("S1", "P1");
 	// The waiting passengers of a platform are counted and listed by departure time, in list order for equal times.
 	QCOMPARE(first.count, 6);
 	QCOMPARE(waitingIds(first.passengers), "a2 a3 f1 f1 a1 ");
-	const WaitingAtPlatform nobody = passengersWaitingAtPlatform("S3", "P1", passengers);
+	const WaitingAtPlatform nobody = flow.waitingAt("S3", "P1");
 	// A platform where nobody waits has no waiting passengers.
 	QCOMPARE(nobody.count, 0);
 	QVERIFY(nobody.passengers.empty());
-	const bool unchanged = std::all_of(platforms.begin(), platforms.end(), [](const StationPlatform& platform) {
-		return platform.Current_N_Passengers == 7 && waitingIds(platform.Current_List_Pax_On_Platform) == "old ";
-	});
-	QVERIFY2(unchanged, "working out the waiting passengers of a platform does not modify a platform");
 
-	Update_List_Passengers_Waiting_At_ALL_Platforms(platforms, passengers);
-	bool sameAsScan = true;
-	for (const StationPlatform& platform : platforms) {
-		StationPlatform scanned = platform;
-		scanWaitingList(scanned, passengers);
-		sameAsScan &= platform.Current_N_Passengers == scanned.Current_N_Passengers
-			&& platform.Current_List_Pax_On_Platform == scanned.Current_List_Pax_On_Platform;
-	}
-	QVERIFY2(sameAsScan, "one pass over the passengers gives every platform the count and list of a scan for that platform");
+	flow.refreshPlatformLists(platforms);
 	const std::vector<StationPlatform> updated(platforms.begin(), platforms.end());
 	// Platforms get the waiting passengers of their station and platform.
 	QCOMPARE(updated[0].Current_N_Passengers, 6);
@@ -2490,26 +2436,13 @@ void TestOperationsBuilder::waitingPassengersAreListedByDeparture() {
 	// Platforms with the same IDs get the same waiting passengers.
 	QCOMPARE(updated[4].Current_N_Passengers, updated[0].Current_N_Passengers);
 	QVERIFY(updated[4].Current_List_Pax_On_Platform == updated[0].Current_List_Pax_On_Platform);
+	PassengerFlow other;
+	other.build(passengers);
 	std::list<StationPlatform> noPlatforms;
-	Update_List_Passengers_Waiting_At_ALL_Platforms(noPlatforms, passengers);
+	other.refreshPlatformLists(noPlatforms);
 	QVERIFY2(noPlatforms.empty(), "no platforms are made for the waiting passengers");
 
-	// The flow that follows the passengers gives the platforms the same counts and lists as the scans, also after a passenger moves on.
-	PassengerFlow flow;
-	flow.build(passengers, true);
-	std::list<StationPlatform> followed(platforms);
-	for (StationPlatform& platform : followed) {
-		platform.Current_N_Passengers = 7;
-		platform.Current_List_Pax_On_Platform = {{"old", 1.0}};
-	}
-	const auto samePlatformLists = [](const std::list<StationPlatform>& left, const std::list<StationPlatform>& right) {
-		return std::equal(left.begin(), left.end(), right.begin(), [](const StationPlatform& a, const StationPlatform& b) {
-			return a.Current_N_Passengers == b.Current_N_Passengers && a.Current_List_Pax_On_Platform == b.Current_List_Pax_On_Platform;
-		});
-	};
-	flow.refreshPlatformLists(followed);
-	QVERIFY2(samePlatformLists(followed, platforms), "the flow lists the waiting passengers as the scan does");
-	QCOMPARE(waitingIds(flow.waitingAt("S1", "P1").passengers), "a2 a3 f1 f1 a1 ");
+	// The flow follows a passenger who moves on.
 	Passenger& boarding = *std::next(passengers.begin());
 	boarding.CurrentStatus = PassengerStatus::OnBoard;
 	boarding.Current_Train_Boarded = "T1";
@@ -2517,46 +2450,36 @@ void TestOperationsBuilder::waitingPassengersAreListedByDeparture() {
 	boarding.Current_WaitingStationID = "None";
 	boarding.Current_WaitingStationPlatformID = "None";
 	flow.placed(1);
-	flow.refreshPlatformLists(followed);
-	Update_List_Passengers_Waiting_At_ALL_Platforms(platforms, passengers);
-	QVERIFY2(samePlatformLists(followed, platforms), "the flow follows a passenger who boards");
-	QCOMPARE(waitingIds(followed.front().Current_List_Pax_On_Platform), "a3 f1 f1 a1 ");
+	flow.refreshPlatformLists(platforms);
+	QCOMPARE(platforms.front().Current_N_Passengers, 5);
+	QCOMPARE(waitingIds(platforms.front().Current_List_Pax_On_Platform), "a3 f1 f1 a1 ");
+	QCOMPARE(waitingIds(flow.waitingAt("S1", "P1").passengers), "a3 f1 f1 a1 ");
+	QCOMPARE(platforms.back().Current_N_Passengers, 5);
+	QCOMPARE(waitingIds(std::next(platforms.begin())->Current_List_Pax_On_Platform), "b1 ");
 }
 
 // Without the passenger GUI a boarding train works from the list of its own platform.
 void TestOperationsBuilder::boardingWithoutPassengerGuiKeepsPlatformList() {
-	// Without the passenger GUI the shared platform keeps the list it had: the train boards from the list worked out for the platform.
-	std::list<Passenger> savedPassengers;
-	savedPassengers.swap(defaultRun().passengers);
-	const PassengerIndex savedPassengerIndex = defaultRun().passengerIndex;
-	defaultRun().passengerIndex.clear();
-	const bool savedPaxGui = defaultRun().settings.PAX_GUI;
-	const auto restore = qScopeGuard([&] {
-		eglog::setSink({});
-		defaultRun().settings.PAX_GUI = savedPaxGui;
-		defaultRun().passengers.swap(savedPassengers);
-		defaultRun().passengerIndex = savedPassengerIndex;
-	});
-	defaultRun().settings.PAX_GUI = false;
+	// Without the passenger GUI the shared platform keeps the list it had: the train boards from the passengers waiting for it.
 	eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
+	const auto restoreLog = qScopeGuard([] { eglog::setSink({}); });
+	PassengerStepScope scope(defaultRun());
+	defaultRun().settings.PAX_GUI = false;
+	defaultRun().settings.startingSimulationTime = 0;
 
-	defaultRun().passengers = {passengerWaitingAt("Pa", "S1", "P1", 30), passengerWaitingAt("Pb", "S1", "P1", 20)};
 	StationPlatform stop;
 	stop.StationID = "S1";
-	stop.ID = "P1";
+	stop.ID = "S1.platform.1";
 	stop.Current_N_Passengers = 5;
 	stop.Current_List_Pax_On_Platform = {{"Pa", 0.0}, {"Pb", 0.0}};
-	const std::list<StationPlatform> stopPlatforms = {stop};
-	Train train;
+	Train train = trainCalling("T1", {"S1", "S2"});
+	standAtStop(train, 0, 2);
 	train.run_ = &defaultRun();
-	train.StoppedForServiceStop = true;
-	train.trainDescription = "T1";
-	train.CurrentServiceStop = "S1";
-	train.CurrentServiceStopPlatform = "P1";
 	train.MAX_OnBoard_Passengers = 1;
 	train.Current_OnBoard_Passengers = 0;
+	scope.set({train}, {passengerForT1("Pa", 30), passengerForT1("Pb", 20)}, {stop});
 	// Both passengers are on the platform by step 40.
-	Simulate_Train_Passenger_Interactions(defaultRun(), 40, 0, train, defaultRun().passengers, stopPlatforms);
+	passengerStep(defaultRun(), 40);
 	std::string boarded;
 	for (const Passenger& passenger : defaultRun().passengers)
 		if (passenger.CurrentStatus == PassengerStatus::OnBoard)
@@ -2564,8 +2487,8 @@ void TestOperationsBuilder::boardingWithoutPassengerGuiKeepsPlatformList() {
 	// Without the passenger GUI passengers board in the order of departure times.
 	QCOMPARE(boarded, "Pb ");
 	// Without the passenger GUI the shared platform is not given the waiting passengers.
-	QCOMPARE(stopPlatforms.front().Current_N_Passengers, 5);
-	QCOMPARE(waitingIds(stopPlatforms.front().Current_List_Pax_On_Platform), "Pa Pb ");
+	QCOMPARE(defaultRun().platforms.front().Current_N_Passengers, 5);
+	QCOMPARE(waitingIds(defaultRun().platforms.front().Current_List_Pax_On_Platform), "Pa Pb ");
 }
 
 // Braking-point search. A route of one section with one arc, from startKm to endKm.
@@ -4243,21 +4166,45 @@ void TestOperationsBuilder::brakingPhase() {
 		QCOMPARE(service.stop, 2);
 		QCOMPARE_EQ(service.instant_train_speed[2], 0.0);
 		// One passenger boards, so the passenger phase sets a dwell.
+		const Node& stop = service.Stations[station];
 		Passenger boarding;
 		boarding.ID = "boarding";
+		boarding.IsIntheNetwork = true;
 		boarding.CurrentStatus = PassengerStatus::OnPlatform;
 		boarding.Current_Train_To_Wait = service.trainDescription;
-		boarding.Current_WaitingStationID = service.Stations[station].stationName;
-		std::list<Passenger> passengers{boarding};
+		boarding.Current_WaitingStationID = stop.stationName;
+		boarding.Current_WaitingStationPlatformID = stop.stationPlatformId;
+		boarding.Current_Arrival_Station = service.Stations[0].stationName;
+		Journey boardingJourney;
+		boardingJourney.ID = "boarding.j";
+		boardingJourney.Dep_Station_ID = stop.stationName;
+		boardingJourney.Arr_Station_ID = service.Stations[0].stationName;
+		boardingJourney.N_Trips = 1;
+		boardingJourney.IsJourneyStarted = true;
+		Trip boardingTrip;
+		boardingTrip.TripID = "boarding.t";
+		boardingTrip.JourneyID = boardingJourney.ID;
+		boardingTrip.Dep_Station_ID = stop.stationName;
+		boardingTrip.Arr_Station_ID = boardingJourney.Arr_Station_ID;
+		boardingTrip.Dep_Station_Platform_ID = stop.stationPlatformId;
+		boardingTrip.TrainServiceDescription = service.trainDescription;
+		boardingTrip.IsTripStarted = true;
+		boardingTrip.Actual_Departure_Time = 0;
+		boardingJourney.Trips.push_back(boardingTrip);
+		boarding.Journeys.push_back(boardingJourney);
+		boarding.current_JourneyID = boardingJourney.ID;
+		boarding.current_TripID = boardingTrip.TripID;
 		StationPlatform platform;
-		platform.StationID = service.Stations[station].stationName;
-		platform.ID = service.Stations[station].stationPlatformId;
-		platform.Current_List_Pax_On_Platform = {{boarding.ID, 0.0}};
-		std::list<StationPlatform> platforms{platform};
-		const bool savedPaxGui = defaultRun().settings.PAX_GUI;
-		defaultRun().settings.PAX_GUI = true;
-		Simulate_Train_Passenger_Interactions(defaultRun(), 2, initial_variables.startingSimulationTime, service, passengers, platforms);
-		defaultRun().settings.PAX_GUI = savedPaxGui;
+		platform.StationID = stop.stationName;
+		platform.ID = stop.stationPlatformId;
+		{
+			PassengerStepScope scope(defaultRun());
+			scope.set({service}, {boarding}, {platform});
+			defaultRun().settings.PAX_GUI = true;
+			defaultRun().settings.startingSimulationTime = initial_variables.startingSimulationTime;
+			simulateTrainPassengerInteractions(defaultRun(), 2);
+			service = defaultRun().trains[0];
+		}
 		QVERIFY2(service.Stations[station].StopTime > 0, "existing passenger formula initializes dwell on the first active service step");
 		service.trajectoryComputationIncludingMovingBlock(3, signalCode1, signalCode2, signalCode3);
 		// Initialized service dwell retains its entry clock and stationary state.
@@ -6034,8 +5981,12 @@ void TestOperationsBuilder::rollingStockMessages() {
 	nextTrip.Dep_Station_ID = "S2";
 	journey.Trips = {firstTrip, nextTrip};
 	alighting.Journeys.push_back(journey);
-	std::list<Passenger> passengers{alighting};
-	Simulate_Train_Passenger_Interactions(defaultRun(), 10, 0, train, passengers, {});
+	{
+		PassengerStepScope scope(defaultRun());
+		scope.set({train}, {alighting}, {});
+		defaultRun().settings.startingSimulationTime = 0;
+		simulateTrainPassengerInteractions(defaultRun(), 10);
+	}
 	shows(capture.take(),
 		{{Category::SimPax, Level::Warning,
 			"Warning: Passenger Pax1will depart from a station different than the one planned for active trip A2 in journey J1\n"}},
@@ -6043,42 +5994,37 @@ void TestOperationsBuilder::rollingStockMessages() {
 	if (QTest::currentTestFailed())
 		return;
 
-	// A passenger who waits for a train that is full. The waiting list of the platform is the one given when PAX_GUI is set.
-	const bool savedPaxGui = defaultRun().settings.PAX_GUI;
-	defaultRun().settings.PAX_GUI = true;
-	StationPlatform platform;
-	platform.ID = "P1";
-	platform.StationID = "S1";
-	platform.Current_List_Pax_On_Platform.push_back({"Pax2", 0.0});
-	Passenger waiting;
-	waiting.ID = "Pax2";
-	waiting.CurrentStatus = PassengerStatus::OnPlatform;
-	waiting.Current_Train_To_Wait = "T1";
-	waiting.Current_WaitingStationID = "S1";
-	passengers = {waiting};
-	train.MAX_OnBoard_Passengers = 0;
-	train.Current_OnBoard_Passengers = 0;
-	Simulate_Train_Passenger_Interactions(defaultRun(), 10, 0, train, passengers, {platform});
-	shows(capture.take(),
-		{{Category::SimPax, Level::Info, "Passenger Pax2 could not board train T1 as it was full\n"}},
-		"a passenger who waits for a train that is full");
-	if (QTest::currentTestFailed())
-		return;
-	// The next step of the same stop does not log the refusal again.
-	Simulate_Train_Passenger_Interactions(defaultRun(), 11, 0, train, passengers, {platform});
-	shows(capture.take(), {}, "a passenger who still waits for the same full train");
-	if (QTest::currentTestFailed()) {
-		defaultRun().settings.PAX_GUI = savedPaxGui;
-		return;
+	// A passenger who waits for a train that is full. The waiting list of the platform is the one that the run makes when PAX_GUI is set.
+	{
+		StationPlatform platform;
+		platform.ID = "P1";
+		platform.StationID = "S1";
+		Passenger waiting = passengerForT1("Pax2", 0);
+		waiting.Current_WaitingStationPlatformID = "P1";
+		waiting.Journeys.front().Trips.front().Dep_Station_Platform_ID = "P1";
+		Train fullTrain = trainCalling("T1", {"S1", "S2"});
+		standAtStop(fullTrain, 0, 2);
+		fullTrain.Stations[0].stationPlatformId = fullTrain.CurrentServiceStopPlatform = "P1";
+		fullTrain.MAX_OnBoard_Passengers = 0;
+		fullTrain.Current_OnBoard_Passengers = 0;
+		PassengerStepScope scope(defaultRun());
+		scope.set({fullTrain}, {waiting}, {platform});
+		defaultRun().settings.PAX_GUI = true;
+		defaultRun().settings.startingSimulationTime = 0;
+		passengerStep(defaultRun(), 10);
+		// There is no other train, so the passenger who was refused finds no route.
+		shows(capture.take(),
+			{{Category::SimPax, Level::Info, "Passenger Pax2 could not board train T1 as it was full\n"},
+				{Category::SimPax, Level::Info, "Passenger Pax2 found no route from S1 to S2 for journey Pax2.j\n"}},
+			"a passenger who waits for a train that is full");
+		if (QTest::currentTestFailed())
+			return;
+		// The next step of the same stop does not log the refusal again.
+		passengerStep(defaultRun(), 11);
+		shows(capture.take(), {}, "a passenger who was refused by a train that stays full");
+		if (QTest::currentTestFailed())
+			return;
 	}
-	// A listed passenger in the network without a journey for the train still boards it when there is room.
-	passengers.front().IsIntheNetwork = true;
-	train.MAX_OnBoard_Passengers = 1;
-	Simulate_Train_Passenger_Interactions(defaultRun(), 12, 0, train, passengers, {platform});
-	defaultRun().settings.PAX_GUI = savedPaxGui;
-	QCOMPARE(passengers.front().CurrentStatus, PassengerStatus::OnBoard);
-	QCOMPARE(train.Current_OnBoard_Passengers, 1);
-	capture.take();
 
 	// A route of one section from 0 to 10 km.
 	std::vector<Route> savedRoutes;

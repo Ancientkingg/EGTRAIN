@@ -128,9 +128,9 @@ void PassengerJourneys::beginPhase() {
 	searches_.clear();
 }
 
-bool PassengerJourneys::ensureBuilt(const SimulationRun& run) {
+void PassengerJourneys::ensureBuilt(const SimulationRun& run) {
 	if (router_)
-		return true;
+		return;
 	vector<passenger_routing::TrainTimetable> timetables;
 	const double start = run.settings.startingSimulationTime;
 	for (int n = 0; n < run.numTrains; ++n) {
@@ -152,7 +152,6 @@ bool PassengerJourneys::ensureBuilt(const SimulationRun& run) {
 	}
 	router_ = make_unique<passenger_routing::Router>(std::move(timetables), stationIndices_.size());
 	watches_.assign(static_cast<size_t>(run.numTrains), Watch());
-	return true;
 }
 
 void PassengerJourneys::ensureStates(const SimulationRun& run, int t) {
@@ -304,8 +303,7 @@ void PassengerJourneys::replanWaiting(SimulationRun& run, Passenger& passenger, 
 }
 
 void PassengerJourneys::startJourney(SimulationRun& run, Passenger& passenger, int t) {
-	if (!ensureBuilt(run))
-		return;
+	ensureBuilt(run);
 	Journey* journey = activeJourney(passenger);
 	if (journey == nullptr)
 		return;
@@ -319,7 +317,8 @@ void PassengerJourneys::startJourney(SimulationRun& run, Passenger& passenger, i
 }
 
 void PassengerJourneys::checkWaiting(SimulationRun& run, Passenger& passenger, int t, optional<int> alightedAtPlatform) {
-	if (!ensureBuilt(run) || !passenger.IsIntheNetwork || passenger.CurrentStatus != PassengerStatus::OnPlatform)
+	ensureBuilt(run);
+	if (!passenger.IsIntheNetwork || passenger.CurrentStatus != PassengerStatus::OnPlatform)
 		return;
 	const Journey* journey = activeJourney(passenger);
 	if (journey == nullptr)
@@ -337,8 +336,7 @@ void PassengerJourneys::checkWaiting(SimulationRun& run, Passenger& passenger, i
 }
 
 void PassengerJourneys::replanRefused(SimulationRun& run, Passenger& passenger, const Train& full, int t) {
-	if (!ensureBuilt(run))
-		return;
+	ensureBuilt(run);
 	if (Journey* journey = activeJourney(passenger))
 		journey->RefusedBy.emplace_back(full.trainDescription, passenger.Current_WaitingStationID);
 	replanWaiting(run, passenger, t);
@@ -407,8 +405,9 @@ void PassengerJourneys::setDownEndedTrain(SimulationRun& run, PassengerFlow& flo
 
 void PassengerJourneys::settleTrains(SimulationRun& run, PassengerFlow& flow, int t) {
 	beginPhase();
-	if (run.passengers.empty() || !ensureBuilt(run))
+	if (run.passengers.empty())
 		return;
+	ensureBuilt(run);
 	// Every train is brought up to date before the first passenger plans, so that the plans see all of them as they are.
 	for (int n = 0; n < run.numTrains; ++n) {
 		Watch& watch = watches_[static_cast<size_t>(n)];

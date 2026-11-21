@@ -106,9 +106,9 @@ The folder is `simulation/`. Existing pages that explain a part: [Signalling lev
 `DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers` (`app/DispatchController.cpp:663`) runs `for t = 0 while t < settings.times` (line 682). `timestep` is 1 second (`simulation/Infrastructure.h:25`). One step does this, in this order:
 
 1. `RunControl::beginStep` applies queued pause, stop and delay commands (line 684).
-2. Passengers whose journey starts at `t + startingSimulationTime` enter the network (`checkJourneyStartForAllPassengers`, line 698). With the passenger view on, every platform's waiting list is refreshed (line 704).
+2. Passengers whose journey starts at `t + startingSimulationTime` enter the network, and with the passenger view on every platform's waiting list is refreshed (`enterPassengersAndRefreshPlatforms`, `simulation/Simulation.cpp:311`).
 3. Every train moves, in the order of the run except that trains that are due and still waiting take the places of the others in order of due time (lines 715 to 725). Each calls `trajectoryComputationIncludingMovingBlock(t, ...)`, then records its station passages and its arrival or departure at the ends of its route (lines 726 to 733).
-4. For every train, `Simulate_Train_Passenger_Interactions` lets passengers alight and board and may lengthen the stop (line 744).
+4. For every train, `simulateTrainPassengerInteractions` lets passengers alight and board and may lengthen the stop (`simulation/Simulation.cpp:347`).
 5. The signalling for the next step: `etcsMa` is cleared, then `Occupy_Block_Sections_Of_Route`, `Apply_Signal_Failures_Mixed_Signalling`, `Apply_Single_Track_Authorities_Mixed_Signalling`, `ReportAllTrainPositionsToRBC` (margin 50 m), `protectStationAreas`, `releaseMixedSignallingSystem`, `activateMixedSignallingSystem` and `unlockDoubleSwitches` run, and the occupied and connected lists are cleared (lines 792 to 816). [Signalling levels](../../guides/signalling-levels.md#what-happens-in-a-step) explains each.
 6. `publishSimulationSnapshot(t)` hands the step to the window (line 823).
 

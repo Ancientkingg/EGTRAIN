@@ -38,9 +38,9 @@ struct WaitingAtPlatform {
 /// longer board through each other's place in the queue.
 class PassengerFlow {
 public:
-	/// Registers the passengers of the list by their current state. With trackJourneyStarts it also schedules the passengers who are
-	/// outside the network and have a journey left; the passenger step needs that, a single stop does not.
-	void build(std::list<Passenger>& passengers, bool trackJourneyStarts);
+	/// Registers the passengers of the list by their current state, and schedules the passengers who are outside the network and
+	/// have a journey left.
+	void build(std::list<Passenger>& passengers);
 	/// Empties the flow.
 	void clear();
 	/// True when the flow was built for this list and the list has the size it had then.
@@ -145,7 +145,6 @@ private:
 
 	std::list<Passenger>* source_ = nullptr;
 	std::size_t count_ = 0;
-	bool trackJourneyStarts_ = false;
 	int lastTime_ = INT32_MIN;
 	std::vector<Passenger*> passengers_;
 	std::vector<Registration> registrations_;

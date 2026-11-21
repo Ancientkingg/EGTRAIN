@@ -99,7 +99,7 @@ struct EndedTrainRun {
 		passenger.Current_Train_Boarded = "T1";
 		passenger.Current_Arrival_Station = "C";
 		run.passengers.push_back(passenger);
-		flow.build(run.passengers, true);
+		flow.build(run.passengers);
 	}
 
 	const Passenger& passenger() const { return run.passengers.front(); }
