@@ -80,7 +80,7 @@ TrainEvent::TrainEvent() {
 	trainDescription = "None";
 	SuccessorID = CurrentSectionID = NextSectionID = "None";
 	TrainSpeed = -1;
-	InfraElemStatus = "None";
+	InfraElemStatus = SwitchPosition::NotASwitch;
 }
 
 // Function to order Trains in a list where time events are also equal
@@ -172,28 +172,28 @@ void UpdateInfrastructureElementStatus(SimulationRun& run, const list<InfraEleme
 								if (i->XCoordinate < i->XConnectedPoint) {
 									// Then activate the switch only at the starting point of the beam, since at the toe (i.e. the starting point) of the beam there is the point machine while the outer edge remain fixed in straight position
 
-									P.InfraElemStatus = "Diverging";
+									P.InfraElemStatus = SwitchPosition::Diverging;
 								}
 
 								else { // if the infra element is the outer edge of the beam ( i.e. i->XCoordinate> PositionConnectedPoint, so if infra element i is the second point coming in the moving direction of the train) then
 									   // if the end of the beam does not concide with any starting edge of diverging beam it is in the straight position since only the starting edge of the beam is moved
-									P.InfraElemStatus = "Straight";
+									P.InfraElemStatus = SwitchPosition::Straight;
 
 									if (i->isEndOfDivSwitchStartOfADivSwitch == 1) {
 										// if the ending edge of the beam coincides with the starting edge of another diverging switch, then of course the position of the infra element is diverging
-										P.InfraElemStatus = "Diverging";
+										P.InfraElemStatus = SwitchPosition::Diverging;
 									}
 								}
 							} else {
 								EG_LOG(SimSetup, Warning) << "Warning: Position not found for connected Point of Switch: " << i->ID << " on Route of Train" << TrainName << "\n";
 							}
 						} else {
-							P.InfraElemStatus = "Straight";
+							P.InfraElemStatus = SwitchPosition::Straight;
 						}
 					}
 
 					else {
-						// If the InfraElement is not a Switch then its status must always be set to "None" that is the default value of the variable InfraElemStatus
+						// If the InfraElement is not a Switch then its status must always be set to NotASwitch that is the default value of the variable InfraElemStatus
 					}
 
 					for (list<InfraEvent>::iterator e = run.infra.infraEvents.begin(); e != run.infra.infraEvents.end(); e++) {

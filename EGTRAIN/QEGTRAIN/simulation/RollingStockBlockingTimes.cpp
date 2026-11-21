@@ -6,6 +6,7 @@
 #include <cmath>
 #include <iterator>
 #include <list>
+#include <optional>
 #include <string>
 
 using namespace std;
@@ -13,8 +14,8 @@ using namespace std;
 void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds(const string& TrainName, const list<InfraEvent>& ListAllInfraEvents) {
 	bool IsStatusInfraElementFound = false; // this variable becomes true only when we have found the status of the infrastructure element we are computing the blocking times for, given a train
 	string NameOfInfraElement;
-	string NeededInfraElementPosition;
-	string LastInfraElementPosition;
+	SwitchPosition NeededInfraElementPosition = SwitchPosition::NotASwitch;
+	optional<SwitchPosition> LastInfraElementPosition; // stays empty when no passage of the train is found, which never matches the needed position
 
 	// Determine the needed status of infrastructure for the train
 
@@ -22,22 +23,22 @@ void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds(const st
 		NameOfInfraElement = this->SwitchName;					   // The name of the location is the Switch Name if the infrastructure element is a Switch
 		if (this->ConnectedBlockingTimeID != "None") {			   // if the BlockTime has a connected block time then it means that it is a switch in a diverging position
 			if (this->PosStart < this->PosConnectedBlockingTime) { // if this element is the starting edge of a diverging switch where the point machine is, then it needs to be diverging
-				NeededInfraElementPosition = "Diverging";
+				NeededInfraElementPosition = SwitchPosition::Diverging;
 			} else {													 // if instead this element is the ending edge of diverging switch beam
 				if (this->IsEndOfDivSwitchBeingStartOfADivSwitch == 1) { // if this ending edge coincides with the starting edge of another diverging switch so it is needed a diverging position
-					NeededInfraElementPosition = "Diverging";
+					NeededInfraElementPosition = SwitchPosition::Diverging;
 				} else { // otherwise we need a straight position
-					NeededInfraElementPosition = "Straight";
+					NeededInfraElementPosition = SwitchPosition::Straight;
 				}
 			}
 		} else {
-			NeededInfraElementPosition = "Straight";
+			NeededInfraElementPosition = SwitchPosition::Straight;
 		}
 	} else {
 		NameOfInfraElement = this->BlockID;
 		// Infra elements other than switches are always in position for the train so InfraElementInPositionForTrain shall always be equal to its default values
-		NeededInfraElementPosition = "None"; // there is no needed InfraElementPosition to ask for so we put it to None, the LastInfraStatus of infra elements which are not switches are always put to None.
-											 // so that will always give a true InfraElementInPositionForTrain
+		NeededInfraElementPosition = SwitchPosition::NotASwitch; // there is no needed InfraElementPosition to ask for so we put it to None, the LastInfraStatus of infra elements which are not switches are always put to None.
+																 // so that will always give a true InfraElementInPositionForTrain
 	}
 	// In case no name has been assigned to the infrastructure element then throw an error
 	if (NameOfInfraElement.empty() == 1) {
@@ -68,12 +69,12 @@ void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds(const st
 								this->NamePreviousTrain = "None";
 								this->NextBlockIDPreviousTrain = "None";
 
-								if (this->LocationWithSwitch == 1) { // If this is a switch this will be in the Straight position at start
-									LastInfraElementPosition = "Straight";
+								if (this->LocationWithSwitch == 1) { // If this is a switch this will be in the straight position at start
+									LastInfraElementPosition = SwitchPosition::Straight;
 								}
 
-								else { // for all the other elements instead it will be None
-									LastInfraElementPosition = "None";
+								else { // for all the other elements instead it will be NotASwitch
+									LastInfraElementPosition = SwitchPosition::NotASwitch;
 								}
 							} else { // if TrainName is not the first train to cross the infrastructure element
 								list<TrainEvent>::const_iterator u = t;
@@ -87,7 +88,7 @@ void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds(const st
 								}
 
 								else {
-									LastInfraElementPosition = "None"; // if that is not a switch its position will be None
+									LastInfraElementPosition = SwitchPosition::NotASwitch; // if that is not a switch its position will be NotASwitch
 								}
 							}
 							IsStatusInfraElementFound = true; // the status of the infra element has been found so this variable turns to true
