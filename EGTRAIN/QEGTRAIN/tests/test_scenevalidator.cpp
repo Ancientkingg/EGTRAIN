@@ -576,6 +576,7 @@ private slots:
 	void checksPassengerDwellSettings();
 	void legDestinationIsStopOfService();
 	void rejectsReversePassengerLeg();
+	void acceptsJourneyWithoutLegs();
 	void warnsAboutArrivalWindowBeforeDeparture();
 	void warnsAboutLegLeavingBeforePreviousArrives();
 	void resolvesRepeatedServiceStations();
@@ -1173,6 +1174,14 @@ void TestSceneValidator::rejectsReversePassengerLeg() {
 	QVERIFY(hasCodeAndSeverity(legacyReverseDiagnostics, "scene.passenger.leg.order", SceneSeverity::Warning));
 	QVERIFY(!hasCodeAndPath(legacyReverseDiagnostics, "scene.passenger.leg.order",
 		"passengers[0].journeys[0].legs[0].destination"));
+}
+
+// A journey without legs is planned on the timetable when the passenger appears, so it is complete as it is.
+void TestSceneValidator::acceptsJourneyWithoutLegs() {
+	SceneModel scene = completeScene();
+	scene.passengers[0].journeys[0].legs.clear();
+	for (const SceneDiagnostic& diagnostic : validateScene(scene))
+		QVERIFY2(diagnostic.path.rfind("passengers[0].journeys[0]", 0) != 0, diagnostic.code.c_str());
 }
 
 void TestSceneValidator::warnsAboutArrivalWindowBeforeDeparture() {

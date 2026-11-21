@@ -87,7 +87,6 @@ std::optional<telemetry::Error> telemetryDiagnosticError(const std::vector<Scene
 		"scene.passenger.dwell.threshold.invalid",
 		"scene.passenger.leg.order",
 		"scene.passenger.leg.stop",
-		"scene.passenger.legs.empty",
 		"scene.passenger.occurrence.out_of_horizon",
 		"scene.passenger.transfers.invalid",
 		"scene.passenger.window",

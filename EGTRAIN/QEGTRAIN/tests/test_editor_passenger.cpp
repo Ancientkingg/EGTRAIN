@@ -1136,8 +1136,8 @@ void TestPassengerPanel::calloutsShowSelectedPassenger() {
 	diagnostics.push_back(diagnostic(SceneSeverity::Error, "Scene has no duration", "scene", "", ""));
 	diagnostics.push_back(diagnostic(SceneSeverity::Warning, "Scene note", "", "", "settings"));
 	for (int index = 0; index < 8; ++index) {
-		diagnostics.push_back(diagnostic(SceneSeverity::Warning, "Journey has no route-choice legs", "journey",
-			("XJ" + std::to_string(index)).c_str(), "passengers[0].journeys[" + std::to_string(index) + "].legs"));
+		diagnostics.push_back(diagnostic(SceneSeverity::Warning, "Planned arrival window ends before the planned departure window starts", "journey",
+			("XJ" + std::to_string(index)).c_str(), "passengers[0].journeys[" + std::to_string(index) + "].planned_arrival"));
 	}
 	for (int index = 0; index < 7; ++index)
 		diagnostics.push_back(diagnostic(SceneSeverity::Error, "Journey window is wrong", "", "", "passengers[0].journeys[0].window"));
@@ -1163,8 +1163,8 @@ void TestPassengerPanel::calloutsShowSelectedPassenger() {
 	// The warnings are those of the passenger, five lines and the count of the rest. Each names its journey, so the
 	// warnings of the journeys can be told apart.
 	QCOMPARE(noteLines.size(), qsizetype(6));
-	QCOMPARE(noteLines.front(), "Warning: Journey has no route-choice legs (journey XJ0)");
-	QCOMPARE(noteLines.at(1), "Warning: Journey has no route-choice legs (journey XJ1)");
+	QCOMPARE(noteLines.front(), "Warning: Planned arrival window ends before the planned departure window starts (journey XJ0)");
+	QCOMPARE(noteLines.at(1), "Warning: Planned arrival window ends before the planned departure window starts (journey XJ1)");
 	QCOMPARE(noteLines.back(), "and 3 more");
 	QVERIFY(!panel.warningLabel()->text().contains("Scene"));
 	QVERIFY(!panel.warningLabel()->text().contains("Other"));

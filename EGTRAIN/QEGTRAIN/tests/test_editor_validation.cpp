@@ -641,6 +641,10 @@ void TestValidationPanel::namesItemOfEachRow() {
 		journey.id = id;
 		journey.originStationId = "station";
 		journey.destinationStationId = "station";
+		// The arrival window ends before the departure window starts, which is a warning about the journey.
+		journey.plannedDepartureStartSeconds = 60.0;
+		journey.plannedDepartureEndSeconds = 60.0;
+		journey.plannedArrivalEndSeconds = 50.0;
 		passenger.journeys.push_back(journey);
 	}
 	scene.passengers.push_back(passenger);
@@ -657,12 +661,12 @@ void TestValidationPanel::namesItemOfEachRow() {
 	int baseTimeRow = -1;
 	for (int row = 0; row < table->rowCount(); ++row) {
 		const QString code = table->item(row, 1)->text();
-		if (code == "scene.passenger.legs.empty")
+		if (code == "scene.passenger.window.order")
 			journeyItems << table->item(row, itemColumn)->text();
 		else if (code == "scene.basetime.missing")
 			baseTimeRow = row;
 	}
-	// Each journey without legs has a row that names it.
+	// Each journey with a warning has a row that names it.
 	QCOMPARE(journeyItems, QStringList({"journey 0:1", "journey 0:2"}));
 	// The base time belongs to no item, so its row leaves the Item column empty.
 	QCOMPARE_GE(baseTimeRow, 0);
