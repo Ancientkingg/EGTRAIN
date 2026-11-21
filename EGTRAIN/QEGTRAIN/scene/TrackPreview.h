@@ -76,6 +76,11 @@ struct TrackPreviewResult {
 struct SceneModel;
 struct SceneSectionDescriptor;
 
+/// True when the station views of the region can place a track: each has a usable position, and they give at least two
+/// different chainages of the region, without two places at one chainage. A track in another region is drawn without a
+/// layout.
+bool regionCanPlaceTracks(const SceneModel& scene, int region);
+
 /// The preview of the visible tracks of the scene, before normalization.
 TrackPreviewResult loadTrackPreview(const SceneModel& scene);
 
