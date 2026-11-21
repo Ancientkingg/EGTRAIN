@@ -678,7 +678,11 @@ void TrainUnitPanel::commitPassengerCapacity() {
 	const SceneTrainUnit& unit = m_document->model().trainUnits[static_cast<std::size_t>(row)];
 	const int value = m_passengerCapacityEdit->value();
 	const bool has = value >= 0;
-	if (has == unit.hasPassengerCapacity && (!has || value == unit.passengerCapacity))
+	// The field shows a stored value outside its range at the nearest limit, which is not an edit.
+	const int shown = unit.hasPassengerCapacity
+		? std::clamp(unit.passengerCapacity, m_passengerCapacityEdit->minimum(), m_passengerCapacityEdit->maximum())
+		: -1;
+	if (value == shown)
 		return;
 	if (!m_document->edit(SceneDocument::TrainUnits, "Edit rolling stock unit", [row, has, value](SceneModel& model) {
 			SceneTrainUnit& edited = model.trainUnits[static_cast<std::size_t>(row)];

@@ -11,7 +11,6 @@
 #include <QFontMetrics>
 #include <QHBoxLayout>
 #include <QHeaderView>
-#include <QIntValidator>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
@@ -21,6 +20,7 @@
 #include <QPen>
 #include <QPushButton>
 #include <QRegularExpression>
+#include <QRegularExpressionValidator>
 #include <QSaveFile>
 #include <QSignalBlocker>
 #include <QStyledItemDelegate>
@@ -436,14 +436,15 @@ long long totalOf(const ScenePassengerDemandSlice& slice) {
 	return total;
 }
 
-// The editor of a count: a whole number of 0 or more that the demand limit allows.
+// The editor of a count: a whole number of 0 or more, or nothing.
 class CountDelegate : public QStyledItemDelegate {
 public:
 	using QStyledItemDelegate::QStyledItemDelegate;
 
 	QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex&) const override {
 		auto* editor = new QLineEdit(parent);
-		editor->setValidator(new QIntValidator(0, static_cast<int>(kMaxScenePassengerDemand), editor));
+		// Empty text is acceptable, so that an emptied cell can be committed; the count is checked when it is committed.
+		editor->setValidator(new QRegularExpressionValidator(QRegularExpression(QStringLiteral("[0-9]{0,7}")), editor));
 		editor->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 		editor->setAccessibleName("Passengers");
 		return editor;
@@ -721,6 +722,7 @@ void PassengerDemandPanel::fillMatrix(const ScenePassengerDemandSlice* slice) {
 				item->setText(value > 0 ? QString::number(value) : QString());
 				item->setFlags(editable ? (Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable) : Qt::NoItemFlags);
 				item->setBackground(QBrush());
+				item->setData(Qt::FontRole, QVariant());
 				const QString description = QStringLiteral("%1 to %2")
 												.arg(stationLabel(stations[static_cast<std::size_t>(row)]),
 													stationLabel(stations[static_cast<std::size_t>(column)]));
@@ -729,6 +731,7 @@ void PassengerDemandPanel::fillMatrix(const ScenePassengerDemandSlice* slice) {
 			} else if (row < count && column < count) {
 				item->setText(QString());
 				item->setFlags(Qt::NoItemFlags);
+				item->setData(Qt::FontRole, QVariant());
 				// Hatched, so that it differs from an empty cell in every style and colour scheme.
 				item->setBackground(QBrush(palette().color(QPalette::Mid), Qt::BDiagPattern));
 				item->setToolTip(QStringLiteral("An origin and a destination must differ."));
@@ -938,7 +941,7 @@ void PassengerDemandPanel::commitTime(bool startEdge) {
 		showNotice(QStringLiteral("Enter the time as HH:MM:SS, from 00:00:00 to 24:00:00."));
 		return;
 	}
-	moveEdge(startEdge, *seconds, 1.0);
+	moveEdge(startEdge, *seconds, DemandRanges::SnapSeconds);
 }
 
 void PassengerDemandPanel::commitCell(QTableWidgetItem* item) {
@@ -960,38 +963,39 @@ void PassengerDemandPanel::commitCell(QTableWidgetItem* item) {
 	}
 	const std::string origin = stations[static_cast<std::size_t>(row)].id;
 	const std::string destination = stations[static_cast<std::size_t>(column)].id;
+	// The matrix shows the sum of the cells of a pair, so that sum is the count that is being replaced.
 	long long previous = 0;
+	int matching = 0;
 	for (const ScenePassengerDemandCell& cell : slice->cells) {
 		if (cell.originStationId == origin && cell.destinationStationId == destination) {
-			previous = cell.count;
-			break;
+			previous += cell.count;
+			++matching;
 		}
 	}
-	if (value == previous) {
+	if (value == previous && matching <= 1) {
 		refresh();
 		return;
 	}
 	long long all = 0;
 	for (const ScenePassengerDemandSlice& other : m_document->model().passengerDemand)
 		all += totalOf(other);
-	if (all - previous + value > kMaxScenePassengerDemand) {
+	// A scene that is already above the limit can still be edited downwards.
+	if (value > kMaxScenePassengerDemand || (value > previous && all - previous + value > kMaxScenePassengerDemand)) {
 		showNotice(QStringLiteral("The slices may hold %1 passengers together.").arg(kMaxScenePassengerDemand));
 		return;
 	}
 	const int newCount = static_cast<int>(value);
 	const bool edited = editSelected("Edit demand", [&origin, &destination, newCount](ScenePassengerDemandSlice& target) {
 		auto& cells = target.cells;
-		const auto found = std::find_if(cells.begin(), cells.end(), [&](const ScenePassengerDemandCell& cell) {
+		const auto isPair = [&](const ScenePassengerDemandCell& cell) {
 			return cell.originStationId == origin && cell.destinationStationId == destination;
-		});
-		if (newCount == 0) {
-			if (found != cells.end())
-				cells.erase(found);
-		} else if (found != cells.end()) {
-			found->count = newCount;
-		} else {
-			cells.push_back({origin, destination, newCount});
-		}
+		};
+		const auto found = std::find_if(cells.begin(), cells.end(), isPair);
+		// One cell with the new count stands where the first cell of the pair was, and the others are removed.
+		const auto position = found - cells.begin();
+		cells.erase(std::remove_if(cells.begin(), cells.end(), isPair), cells.end());
+		if (newCount > 0)
+			cells.insert(cells.begin() + position, ScenePassengerDemandCell{origin, destination, newCount});
 	});
 	if (!edited)
 		refresh();
@@ -1027,7 +1031,7 @@ bool PassengerDemandPanel::importCsvText(const QString& text) {
 	long long imported = 0;
 	for (const ScenePassengerDemandCell& cell : csv.cells)
 		imported += cell.count;
-	if (all - totalOf(*slice) + imported > kMaxScenePassengerDemand) {
+	if (imported > totalOf(*slice) && all - totalOf(*slice) + imported > kMaxScenePassengerDemand) {
 		showNotice(QStringLiteral("The CSV was not imported: the slices may hold %1 passengers together.")
 				.arg(kMaxScenePassengerDemand));
 		return false;
@@ -1035,7 +1039,12 @@ bool PassengerDemandPanel::importCsvText(const QString& text) {
 	const std::vector<ScenePassengerDemandCell> cells = csv.cells;
 	if (!editSelected("Import demand CSV", [&cells](ScenePassengerDemandSlice& target) { target.cells = cells; }))
 		return false;
-	Q_EMIT statusMessage(QStringLiteral("Imported %1 passengers into the demand slice.").arg(imported), 6000);
+	QString message = QStringLiteral("Imported %1 passengers into the demand slice.").arg(imported);
+	const double sliceSeconds = slice->endSeconds - slice->startSeconds;
+	if (csv.periodSeconds > 0.0 && std::abs(csv.periodSeconds - sliceSeconds) > 0.5)
+		message += QStringLiteral(" The file is for a period of %1 and the slice lasts %2; the counts were not scaled.")
+					   .arg(DemandRanges::clockText(csv.periodSeconds), DemandRanges::clockText(sliceSeconds));
+	Q_EMIT statusMessage(message, 6000);
 	return true;
 }
 

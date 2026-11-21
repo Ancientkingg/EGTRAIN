@@ -199,6 +199,7 @@ private slots:
 	void dockOpensWideEnoughForTractionColumns();
 	void focusDecidesPendingEdits();
 	void numberFieldsStopAtRanges();
+	void keepsCapacityBeyondRange();
 	void accessibilityStepsBySingleStep();
 	void keepsSelectionOfReorderedScene();
 	void forgetsDeletedDocument();
@@ -987,6 +988,38 @@ void TestTrainUnitPanel::numberFieldsStopAtRanges() {
 	// A cell shows a number as its editor rounds it, and an editor that closes unchanged keeps the stored number.
 	QCOMPARE_EQ(cellValue(panel, 0, 3), 0.0);
 	QCOMPARE_EQ(document.model().trainUnits[0].tractionCurve[0][3], 1e-20);
+}
+
+// A passenger capacity beyond the range of the field is shown at the nearest limit but kept until the user types one.
+void TestTrainUnitPanel::keepsCapacityBeyondRange() {
+	for (const int stored : {150000, -5}) {
+		SceneModel scene = unitScene();
+		scene.trainUnits[0].hasPassengerCapacity = true;
+		scene.trainUnits[0].passengerCapacity = stored;
+		SceneDocument document;
+		TrainUnitPanel panel;
+		panel.setDocument(&document);
+		document.replace(scene, false);
+		panel.show();
+		// The panel is hidden before it is destroyed, also when a check fails.
+		const auto hide = qScopeGuard([&panel] { panel.hide(); });
+		panel.activateWindow();
+		QApplication::processEvents();
+		QSpinBox* capacity = panel.passengerCapacityEdit();
+		panel.tabs()->setCurrentIndex(1);
+		capacity->setFocus();
+		QApplication::processEvents();
+		QVERIFY2(capacity->hasFocus(), "the capacity field could not be given focus");
+		const quint64 revision = document.revision();
+		panel.commitPendingEditors();
+		QVERIFY(document.model().trainUnits[0].hasPassengerCapacity);
+		QCOMPARE(document.model().trainUnits[0].passengerCapacity, stored);
+		QCOMPARE(document.revision(), revision);
+		capacity->findChild<QLineEdit*>()->setText("250");
+		panel.commitPendingEditors();
+		QCOMPARE(document.model().trainUnits[0].passengerCapacity, 250);
+		QCOMPARE(document.revision(), revision + 1);
+	}
 }
 
 // Qt's accessibility performs an Increment, such as VO+Up of VoiceOver, by adding the step that a number field reports
