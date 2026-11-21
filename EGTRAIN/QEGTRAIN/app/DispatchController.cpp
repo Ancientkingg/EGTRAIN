@@ -30,9 +30,6 @@
 using namespace std;
 
 namespace {
-// A passenger who has left the network stays in the list of the platform of the exit for this many seconds.
-constexpr int kExitedPassengerShownSeconds = 5;
-
 // Makes the folder at the UTF-8 path and the folders above it. Returns the reason when that fails.
 std::error_code ensureDirectory(const string& path) {
 	std::error_code error;
@@ -194,14 +191,6 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 	for (auto& entry : sectionStates)
 		snapshot.sectionStates.push_back(std::move(entry.second));
 
-	// The passengers who left the network in the last seconds, by the station and the platform where they left.
-	std::map<std::pair<std::string_view, std::string_view>, std::vector<const Passenger*>> exited;
-	for (const Passenger& passenger : run.passengers) {
-		if (!passenger.IsIntheNetwork && passenger.TimeExitedTheNetwork > 0 && timestep >= passenger.TimeExitedTheNetwork
-			&& timestep <= passenger.TimeExitedTheNetwork + kExitedPassengerShownSeconds)
-			exited[{passenger.StationExitedTheNetworkID, passenger.PlatformExitedTheNetworkID}].push_back(&passenger);
-	}
-
 	// The passenger of a waiting ID, the first of the list when an ID repeats, or null.
 	const bool indexed = run.passengerIndex.covers(run.passengers);
 	const auto passengerOf = [&run, indexed](const std::string& id) -> const Passenger* {
@@ -236,15 +225,12 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 		state.stationId = platform.StationID;
 		state.platformId = platform.ID;
 		state.maxVolume = platform.Max_Passenger_Volume;
-		const auto left = exited.find({platform.StationID, platform.ID});
-		const std::size_t leftCount = left == exited.end() ? 0 : left->second.size();
 		// Without the passenger GUI the run keeps no platform lists, but its passenger flow counts who waits where.
 		const std::size_t waitingCount = !run.settings.PAX_GUI && run.passengerFlow.covers(run.passengers)
 			? static_cast<std::size_t>(run.passengerFlow.waitingCount(platform.StationID, platform.ID))
 			: platform.Current_List_Pax_On_Platform.size();
-		const std::size_t total = waitingCount + leftCount;
-		state.passengerCount = static_cast<int>(total);
-		const std::size_t listed = std::min(total, static_cast<std::size_t>(kGuiPlatformPassengerIcons));
+		state.passengerCount = static_cast<int>(waitingCount);
+		const std::size_t listed = std::min(waitingCount, static_cast<std::size_t>(kGuiPlatformPassengerIcons));
 		state.passengers.reserve(listed);
 		for (const auto& waiting : platform.Current_List_Pax_On_Platform) {
 			if (state.passengers.size() == listed)
@@ -255,8 +241,6 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 			else
 				state.passengers.push_back(GuiPassengerState{waiting.first, {}, {}, {}, {}});
 		}
-		for (std::size_t i = 0; i < leftCount && state.passengers.size() < listed; ++i)
-			state.passengers.push_back(listPassenger(*left->second[i]));
 		// every passenger who waits, by the destination of the journey, for the card of the station
 		std::map<std::string_view, int> byDestination;
 		for (const auto& waiting : platform.Current_List_Pax_On_Platform) {

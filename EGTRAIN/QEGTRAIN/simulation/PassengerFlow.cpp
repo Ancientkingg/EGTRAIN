@@ -458,10 +458,10 @@ void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStarti
 							j->IsJourneyCompleted = true;
 							j->Outcome = JourneyOutcome::Completed;
 							p->current_location_ID = T.CurrentServiceStop;
-							p->IsIntheNetwork = false;											  // The passenger is selected and sent out of the simulation as the journey is ended
-							p->TimeExitedTheNetwork = currenttrip->Actual_Arrival_Time;			  // Used by the Passenger GUI when the passenger leaves the network
-							p->StationExitedTheNetworkID = currenttrip->Arr_Station_ID;			  // Used by the Passenger GUI when the passenger leaves the network
-							p->PlatformExitedTheNetworkID = currenttrip->Arr_Station_Platform_ID; // Used by the Passenger GUI when the passenger leaves the network
+							p->IsIntheNetwork = false; // The passenger is selected and sent out of the simulation as the journey is ended
+							p->TimeExitedTheNetwork = currenttrip->Actual_Arrival_Time;
+							p->StationExitedTheNetworkID = currenttrip->Arr_Station_ID;
+							p->PlatformExitedTheNetworkID = currenttrip->Arr_Station_Platform_ID;
 							p->CurrentStatus = PassengerStatus::Outside;
 							p->current_TripID = kNoneId;
 							p->current_JourneyID = kNoneId;

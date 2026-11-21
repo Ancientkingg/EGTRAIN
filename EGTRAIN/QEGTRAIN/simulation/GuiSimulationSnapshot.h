@@ -225,10 +225,10 @@ struct GuiPlatformState {
 	std::string stationId;	///< The ID of the station.
 	std::string platformId; ///< The ID of the platform within the station.
 	int maxVolume = 0;		///< Passengers that the platform holds at most; -1 when the run does not set it.
-	/// The passengers waiting on the platform plus those who left the network there in the last 5 seconds, which is the
-	/// number that the counter of the platform shows. It can exceed the size of `passengers`.
+	/// The passengers waiting on the platform, which is the number that the counter of the platform shows. It can exceed
+	/// the size of `passengers`.
 	int passengerCount = 0;
-	/// The first kGuiPlatformPassengerIcons of those passengers, the waiting ones first, then those who left the network.
+	/// The first kGuiPlatformPassengerIcons of those passengers, in the order in which they board.
 	std::vector<GuiPassengerState> passengers;
 	/// The passengers waiting on the platform by their final destination, all of them and not only those listed, the most
 	/// first and the destinations of a count in the order of their names. Empty without passenger lists, and when nobody
