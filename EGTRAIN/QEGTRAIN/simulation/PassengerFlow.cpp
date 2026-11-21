@@ -295,28 +295,6 @@ std::vector<int> PassengerFlow::takeOnBoardArrivingAt(const string& train, const
 	return positions;
 }
 
-void PassengerFlow::ensureIdPositions() {
-	if (!sameId_.empty() || passengers_.empty())
-		return;
-	for (int position = 0; position < static_cast<int>(passengers_.size()); ++position)
-		byId_[passengers_[static_cast<std::size_t>(position)]->ID].push_back(position);
-	sameId_.reserve(passengers_.size());
-	for (const Passenger* p : passengers_)
-		sameId_.push_back(&byId_[p->ID]);
-}
-
-const std::vector<int>& PassengerFlow::samePassengerId(int position) {
-	ensureIdPositions();
-	return *sameId_[static_cast<std::size_t>(position)];
-}
-
-const std::vector<int>& PassengerFlow::passengersWithId(const string& id) {
-	static const std::vector<int> none;
-	ensureIdPositions();
-	const auto found = byId_.find(id);
-	return found == byId_.end() ? none : found->second;
-}
-
 WaitingAtPlatform PassengerFlow::listFor(int platform) const {
 	const PlatformQueues& queue = queues_[static_cast<std::size_t>(platform)];
 	WaitingAtPlatform waiting;
@@ -354,9 +332,9 @@ void PassengerFlow::refreshPlatformLists(list<StationPlatform>& platforms) {
 	if (platformsSource_ != &platforms || platformsCount_ != platforms.size())
 		attachPlatforms(platforms);
 	const auto assign = [this](StationPlatform& platform, int key) {
-		const WaitingAtPlatform waiting = listFor(key);
+		WaitingAtPlatform waiting = listFor(key);
 		platform.Current_N_Passengers = waiting.count;
-		platform.Current_List_Pax_On_Platform = waiting.passengers;
+		platform.Current_List_Pax_On_Platform = std::move(waiting.passengers);
 	};
 	if (allPlatformsStale_) {
 		for (StationPlatform* platform : allPlatforms_)
@@ -579,21 +557,8 @@ int boardPassengers(PassengerFlow& flow, SimulationRun& run, Train& T, int t, in
 		return N_BoardedPax;
 	const int now = t + SimulationStartingTime;
 	const int call = T.serviceStopOf(T.CurrentServiceStop);
-	if (run.settings.PAX_GUI) {
-		// With the passenger GUI the count and the list of the waiting passengers of the platform are updated at every time instant,
-		// and the train boards from that list.
-		occupationRate = passengerOccupancyRatio(PlatformIt->Current_N_Passengers + N_AlightPax, PlatformIt->Max_Passenger_Volume);
-		for (const pair<string, double>& Pax : PlatformIt->Current_List_Pax_On_Platform) {
-			// A passenger who still walks from another platform after a transfer is not on this platform yet.
-			if (Pax.second > now)
-				continue;
-			// the passengers with the ID of the one in the list of passengers on the platform, in the order of the list of all passengers
-			for (const int position : flow.passengersWithId(Pax.first))
-				settleBoarding(flow, run, T, t, position, boardPassenger(&flow.passenger(position), T, call, t, SimulationStartingTime, N_BoardedPax), counts);
-		}
-		return N_BoardedPax;
-	}
-	// Without it the passengers waiting for this train are taken from the flow, and the platform is not modified.
+	// The passengers waiting for this train are taken from the flow, with or without the passenger GUI, and the platform is
+	// not modified.
 	occupationRate = passengerOccupancyRatio(flow.waitingCount(PlatformIt->StationID, PlatformIt->ID) + N_AlightPax, PlatformIt->Max_Passenger_Volume);
 	const int platform = flow.platformNumber(PlatformIt->StationID, PlatformIt->ID);
 	const int train = flow.trainNumber(T.trainDescription);
@@ -605,8 +570,8 @@ int boardPassengers(PassengerFlow& flow, SimulationRun& run, Train& T, int t, in
 		last = flow.nextWaiter(platform, train, last, full);
 		if (!last || last->since > now)
 			break; // the waiters are in order of time, so the rest still walk
-		for (const int position : flow.samePassengerId(last->position))
-			settleBoarding(flow, run, T, t, position, boardPassenger(&flow.passenger(position), T, call, t, SimulationStartingTime, N_BoardedPax), counts);
+		settleBoarding(flow, run, T, t, last->position,
+			boardPassenger(&flow.passenger(last->position), T, call, t, SimulationStartingTime, N_BoardedPax), counts);
 	}
 	return N_BoardedPax;
 }
@@ -673,15 +638,12 @@ void enterPassengersAndRefreshPlatforms(SimulationRun& run, int t) {
 void simulateTrainPassengerInteractions(SimulationRun& run, int t) {
 	PassengerFlow& flow = flowOfRun(run, t + run.settings.startingSimulationTime);
 	run.passengerJourneys.settleTrains(run, flow, t);
-	// With the passenger GUI, trains board from the platform lists: refresh the platforms that replans or alightings
-	// changed, so that a passenger boards in the same step as without the GUI.
+	for (int n = 0; n < run.numTrains; n++)
+		interactAtServiceStop(flow, run, t, run.settings.startingSimulationTime, n);
+	// With the passenger GUI the waiting lists of the platforms that this step changed are brought up to date for the window.
+	// The trains do not read them.
 	if (run.settings.PAX_GUI)
 		flow.refreshPlatformLists(run.platforms);
-	for (int n = 0; n < run.numTrains; n++) {
-		interactAtServiceStop(flow, run, t, run.settings.startingSimulationTime, n);
-		if (run.settings.PAX_GUI)
-			flow.refreshPlatformLists(run.platforms);
-	}
 	// The load of each train in service after this step, for the peak and average of the run results. It reads the counts
 	// of the passenger step above, which runs in every mode, and it changes nothing of the run.
 	if (!run.passengers.empty())
