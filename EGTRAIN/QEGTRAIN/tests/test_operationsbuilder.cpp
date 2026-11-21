@@ -4458,7 +4458,7 @@ void TestOperationsBuilder::level4Transitions() {
 		live.OutOfSimulation = false;
 		live.departure_time = 0;
 		live.counter = live.CounterFollowingMode = 0;
-		live.IsTrainInFollowingMode = live.IsTrainCoupling = live.IsTrainDecoupling = false;
+		live.IsTrainInFollowingMode = live.IsTrainCoupling = false;
 		live.IsInUnintentionalDecoupling = live.IsTrainStoppedForEoA = live.BrakingForEoA = false;
 		live.StoppedForServiceStop = false;
 		live.instant_spatial_position[0] = live.instant_spatial_position[1] = head;
@@ -4470,7 +4470,8 @@ void TestOperationsBuilder::level4Transitions() {
 	};
 	{
 		Train live = actual(1000, 20);
-		auto behind = authority(990, "BEHIND");
+		// The tail of a train behind lies at least both train lengths and the margin behind the head of this one.
+		auto behind = authority(600, "BEHIND");
 		behind.TrainInfo.TrainSpeed = 35;
 		behind.TrainInfo.Acceleration = -0.5;
 		defaultRun().etcsMa = {behind};
@@ -4480,20 +4481,6 @@ void TestOperationsBuilder::level4Transitions() {
 		QCOMPARE_EQ(live.currentXob, 10000.0);
 		QVERIFY(!live.BrakingForEoA);
 		arc.speedInBraking = stock.max_train_speed;
-	}
-	{
-		Train live = actual(1000, 20);
-		defaultRun().etcsMa.clear();
-		live.IsTrainInFollowingMode = true;
-		live.LeadingTrainInFollowingMode = "FRONT";
-		live.Predicted_MA_To_DecoupleAt = authority(1500, "FRONT");
-		bool continueCached = false;
-		live.europeanVitalComputerWithListsImproved(1000, 20, 1, route.sequence_of_block_sections.data(), 1, continueCached);
-		// A stored decoupling authority is a stop target, and the train in following mode that brakes for it is decoupling.
-		QCOMPARE_EQ(live.Xobmin, 1500.0);
-		QCOMPARE_EQ(live.Vobmin, 0.0);
-		QVERIFY(live.BrakingForEoA);
-		QVERIFY(live.IsTrainDecoupling);
 	}
 	{
 		Train live = actual(1000, 10);
@@ -4810,7 +4797,7 @@ void TestOperationsBuilder::signalFailureEvidence() {
 		live.OutOfSimulation = false;
 		live.departure_time = 0;
 		live.counter = live.CounterFollowingMode = 0;
-		live.IsTrainInFollowingMode = live.IsTrainCoupling = live.IsTrainDecoupling = false;
+		live.IsTrainInFollowingMode = live.IsTrainCoupling = false;
 		live.IsInUnintentionalDecoupling = live.IsTrainStoppedForEoA = live.BrakingForEoA = false;
 		live.StoppedForServiceStop = false;
 		live.directIncidentIds.clear();
@@ -5955,7 +5942,7 @@ void TestOperationsBuilder::rollingStockMessages() {
 		follow();
 		train.leaveFollowingModeWhenLeaderIsGone(7);
 		shows(capture.take(),
-			{{Category::SimEvents, Level::Info, "At time instant 7 train T1 is decoupled from train L1, which reports no position any more\n"}},
+			{{Category::SimEvents, Level::Info, "At time instant 7 train T1 is decoupled from train L1, which reports no position on this route any more\n"}},
 			"a train whose leader reports no position any more");
 		if (QTest::currentTestFailed())
 			return;

@@ -349,8 +349,7 @@ enum class AuthorityKind {
 	None,					 ///< No authority; the default.
 	TrainEnd,				 ///< An end of a train.
 	DivergingSwitchOccupied, ///< A diverging switch a train is on.
-	SignalFailure,			 ///< A failed signal or a held single-track section.
-	TrainUncoupled			 ///< A leader has uncoupled from a follower. Nothing sets it yet.
+	SignalFailure			 ///< A failed signal or a held single-track section.
 };
 
 /// Which end of a train a movement authority belongs to.

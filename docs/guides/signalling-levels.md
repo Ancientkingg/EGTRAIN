@@ -425,23 +425,39 @@ failures. It adds a following mode.
 - **Separation.** The end of authority of a train that goes the same way and
   has the same next section, or is at the end of its route, has the speed of
   that train as its target, not 0. For a train end authority that does not meet
-  these conditions the target is 0, as at level 3. The authority of an occupied
+  these conditions the target is 0, as at level 3, except for a coupled train,
+  which keeps following its leader until the routes split. The authority of an occupied
   diverging switch is not described here. A train that is faster than the train
   ahead moves its braking point and can couple. It couples when its speed differs by less than
   0.278 m/s from that of the train ahead and it is within 30 m of the authority.
+  The authority that a leader reports is its tail minus 50 m, delayed by one
+  step, so it lies about the speed of the leader times 1 s ahead of a follower
+  that has matched that speed. On the `line` fixture the follower couples while
+  both run with the leader at 54, 72, 90 and 104 km/h. At 108 km/h (30 m/s)
+  that lead reaches the 30 m of the window, so with the leader at 108 km/h or
+  faster the follower stays about 80 m behind it and couples only once the
+  leader stands.
   `follow-level-4`: `F2` stops 50 m behind the tail of `F1`, which stands at
   8000 m.
 - **Following mode.** Coupling requires a currently reported same-direction tail
   authority ahead of the train, before any virtual projection. A coupled train
-  uses the selected live leader's speed and acceleration as a proposal. After
+  uses the selected live leader's speed plus one step of its acceleration as a
+  proposal, so it holds the speed of the leader, not only its acceleration. After
   the first coupling step it can publish that proposal only within its own
   actual-start force bounds and the already approved non-braking position and
   speed envelope, strictly before the selected braking point. Native braking,
   full-braking fallback, terminal stops and service holds take precedence.
   Accepted following effort includes actual-start resistance.
   It stops following the leader (unintentional decoupling) when it falls
-  more than 30 m behind the authority, and it can couple again. It leaves the
-  mode when the routes diverge, or when the leader reports no authority any more.
+  more than 30 m behind the authority, and it can couple again; when the
+  leader's tail moves into the next section its authority moves to the start of
+  that section, up to 50 m ahead, which can start this for a few steps. A train
+  that has come inside the 50 m margin of the reported tail still follows the
+  leader as long as its head is less than 50 m past the reported tail. When the
+  routes split it keeps its gap until the tail of the leader has cleared the
+  split; the leader then reports no authority on the route of this train, and
+  the train leaves the mode and drives on without braking for the leader. It
+  also leaves the mode when the leader reports no authority any more.
   The characterization cases do not record whether a train enters the following
   mode.
 - **Blocking times.** Computed per infrastructure element, as at level 3
@@ -716,16 +732,14 @@ Decided, not open:
 
 Other limits:
 
-- `characterization_virtual_coupling` checks level 4 on the line fixture while a
-  slow leader cruises: a faster follower brakes to its speed, couples, follows
-  it and never overlaps it; at level 3 the follower never enters following mode.
-  It does not cover the end of the route. There a follower can still run into a
-  leader that brakes for its last stop, because the front authority of the
-  leader is gone. A leader at 15 m/s or more is followed at about 40 m without
-  coupling, since the follower looks two steps ahead, which is more than the
-  30 m of the coupling window. In following mode the follower takes the
-  acceleration of the leader, not its speed, so a gap can grow until the
-  coupling breaks and is made again.
+- `characterization_virtual_coupling` checks level 4 on the line fixture: a
+  faster follower brakes to the speed of the leader, couples while both run (the
+  leader at 43.2, 54, 72 and 90 km/h), follows it at its speed and never
+  overlaps it, also while the leader brakes for its last stop or for a stop at B.
+  A follower on a route that splits from the route of the leader leaves following
+  mode once the tail of the leader has cleared the split and drives on. At level 3
+  the follower never enters following mode. A leader at 108 km/h or faster is not
+  coupled to while it cruises (see Separation).
 - At level 4 a train that is not coupled treats every leader that slows down as
   a leader that stops, also one that only brakes for a speed restriction. A
   train that lost its coupling unintentionally still takes the speed of a

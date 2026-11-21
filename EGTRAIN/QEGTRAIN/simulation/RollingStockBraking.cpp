@@ -644,8 +644,8 @@ Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority
 		// leader can pass it while the leader is still ahead, which its front authority shows. The leader then still sets the
 		// target, as if its tail were at the head of this train, so that this train brakes to its speed and does not run through it.
 		const bool tail = authority.typePart == AuthorityTrainEnd::Tale && authority.TrainInfo.trainDescription != trainDescription;
-		bool leaderAhead = false;
-		if (tail) {
+		bool leaderAhead = tail && leaderTailAhead(target.position, S);
+		if (tail && !leaderAhead) {
 			for (const MovementAuthority& front : run_->etcsMa) {
 				if (front.type != AuthorityKind::TrainEnd || front.typePart != AuthorityTrainEnd::Front || front.ReversedDirection != authority.ReversedDirection
 					|| front.TrainInfo.trainDescription != authority.TrainInfo.trainDescription)
@@ -685,8 +685,8 @@ Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority
 			}
 			// Otherwise
 			else {
-				if ((authority.TrainInfo.NextSectionID == NextBlockID) || (isNoneId(authority.TrainInfo.NextSectionID))) { // when the trains have the same next block section or the leading train is approahing the end of its route
-					target.speed = authority.TrainInfo.TrainSpeed;														   // the speed is the one of the train ahead if the trains are following the same direction and ahve at least one more block section in common
+				if ((authority.TrainInfo.NextSectionID == NextBlockID) || (isNoneId(authority.TrainInfo.NextSectionID)) || IsTrainInFollowingMode) { // when the trains have the same next block section, the leading train is approaching the end of its route, or this train is coupled to it and keeps its gap until the routes split
+					target.speed = authority.TrainInfo.TrainSpeed;																					 // the speed is the one of the train ahead if the trains are following the same direction and ahve at least one more block section in common
 
 					if ((this->IsTrainInFollowingMode == 0) && (authority.TrainInfo.Acceleration < 0)) {
 						// A leader that brakes stops where this train would stop from the speed of the leader. A train that is not coupled yet
@@ -729,7 +729,7 @@ Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority
 	return target;
 }
 
-void Train::closestEndOfAuthority(double S, double V, Section* BS, int Blocks, int first, int last, Node& closest, double& closestSpeed, std::list<Node>& decouplingPoints) {
+void Train::closestEndOfAuthority(double S, double V, Section* BS, int Blocks, int first, int last, Node& closest, double& closestSpeed) {
 	double ClosestPointToBrakeForETCS = 9999999999; // This is the value of the closese Point to Brake For ETCS
 	for (int section = first; section <= last; section++) {
 		// A SignalFailure EoA applies at every signalling level, so scan the MA list on any section carrying one
@@ -742,14 +742,6 @@ void Train::closestEndOfAuthority(double S, double V, Section* BS, int Blocks, i
 		}
 		if (!isMovingBlockLevel(BS[section].SignallingLevel) && !hasSignalFailureMa)
 			continue;
-		// Identifying Braking Points computed by the EVC if the train is virtually coupled to a train ahead
-		if (IsTrainInFollowingMode == 1 && (!isNoneId(Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription))
-			&& (Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription == LeadingTrainInFollowingMode) && BS[section].ID == Predicted_MA_To_DecoupleAt.BSID) {
-			Node DecouplingBrakingPoint;
-			DecouplingBrakingPoint.X = Predicted_MA_To_DecoupleAt.RelativePosEoA;
-			DecouplingBrakingPoint.isSignalled = true;
-			decouplingPoints.push_back(DecouplingBrakingPoint);
-		}
 		// Now identifying braking points due to ETCS MA
 		for (const MovementAuthority& authority : run_->etcsMa) {
 			if ((authority.BSID != BS[section].ID) || (authority.TrainInfo.trainDescription == trainDescription) || !obeysAuthority(authority))
@@ -778,7 +770,8 @@ void Train::closestEndOfAuthority(double S, double V, Section* BS, int Blocks, i
 					if (closest.virtualCouplingNode == 1) { // In case the train is not in following mode and can couple at a train ahead
 						// Assigning the Predicted MA to link at
 						this->Predicted_MA_To_CoupleAt = authority;
-						Predicted_MA_To_CoupleAt.RelativePosEoA = target.position;
+						// The coupling window is measured to the reported authority, not to the point moved ahead of it.
+						Predicted_MA_To_CoupleAt.RelativePosEoA = Last_Received_MA.RelativePosEoA;
 					}
 				}
 			}
@@ -807,15 +800,13 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 	ClosestETCSBrakingPoint.X = 9999999999; // This is the closest ETCS braking point. In this case the closestpoint is not the MA having teh closest abscissa to the current position of the train but it is the MA which requirest the train to brake the earliest to be met
 	double TargetSpeedForMA = -1;			// This is the Speed the train needs to target to meet the most restrictive MA
 
-	// The braking points: end nodes of the arcs of the route, decoupling points and the closest end of authority. The list
-	// points to them instead of copying them; stop marks a stop of this train and decoupling a decoupling point.
+	// The braking points: end nodes of the arcs of the route and the closest end of authority. The list points to them
+	// instead of copying them; stop marks a stop of this train.
 	struct BrakingPoint {
 		const Node* node;
 		bool stop;
-		bool decoupling;
 	};
 	std::vector<BrakingPoint> BrakingPoints;
-	std::list<Node> DecouplingBrakingPoints; // The decoupling points of BrakingPoints; a list keeps their addresses
 
 	for (int h = 0; h < Blocks; h++) {
 		if ((S < BS[h].end_node.X * 1000) && (S >= BS[h].start_node.X * 1000)) {
@@ -842,7 +833,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 	for (int p = ArcPos; p < BS[BlockPos].total_arcs; p++) {
 		// Setting the target speed at the end of the current Arc to its final Node
 		BS[BlockPos].arcs_in_signalling_block_section[p].endNode.arcSpeedLimit = arcEndTargetSpeed(BS, Blocks, BlockPos, p);
-		BrakingPoints.push_back({&BS[BlockPos].arcs_in_signalling_block_section[p].endNode, false, false});
+		BrakingPoints.push_back({&BS[BlockPos].arcs_in_signalling_block_section[p].endNode, false});
 		targetStop(BlockPos, p);
 	}
 
@@ -856,36 +847,32 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 	for (int z = 0; z < Cons_Block; z++) {
 		for (int p = 0; p < BS[z + BlockPos + 1].total_arcs; p++) {
 			BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].endNode.arcSpeedLimit = arcEndTargetSpeed(BS, Blocks, z + BlockPos + 1, p);
-			BrakingPoints.push_back({&BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].endNode, false, false});
+			BrakingPoints.push_back({&BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].endNode, false});
 			targetStop(z + BlockPos + 1, p);
 		}
 	}
 
 	// Identification of the closest EoA where the train needs to brake at (i.e. the EoA for which the train needs to brake the earliest to meet it)
-	closestEndOfAuthority(S, V, BS, Blocks, BlockPos, BlockPos + Cons_Block, ClosestETCSBrakingPoint, TargetSpeedForMA, DecouplingBrakingPoints);
-	for (const Node& point : DecouplingBrakingPoints)
-		BrakingPoints.push_back({&point, false, true});
+	closestEndOfAuthority(S, V, BS, Blocks, BlockPos, BlockPos + Cons_Block, ClosestETCSBrakingPoint, TargetSpeedForMA);
 	// if there is a Closest ETCS Braking point that has been assigned, then add it to the list of braking points
 	if (ClosestETCSBrakingPoint.X != 9999999999) {
-		BrakingPoints.push_back({&ClosestETCSBrakingPoint, false, false});
+		BrakingPoints.push_back({&ClosestETCSBrakingPoint, false});
 	}
 
 	// Resolve each collected target once, before deciding whether the incumbent is still live.
 	struct Target {
 		const Node* node;
 		double position, speed;
-		bool decoupling;
 	};
 	std::vector<Target> targets;
 	int incumbent = -1;
 	for (const BrakingPoint& point : BrakingPoints) {
 		const Node& node = *point.node;
 		const double position = node.isSignalled ? node.X : node.X * 1000;
-		const double speed = point.decoupling ? 0
-			: node.isSignalled				  ? TargetSpeedForMA
+		const double speed = node.isSignalled ? TargetSpeedForMA
 			: point.stop					  ? 0
 											  : node.arcSpeedLimit;
-		targets.push_back({&node, position, speed, point.decoupling});
+		targets.push_back({&node, position, speed});
 		if (position > S && position == previousXob && speed == previousVob)
 			incumbent = static_cast<int>(targets.size()) - 1;
 	}
@@ -943,8 +930,6 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 		Vobmin = target.speed;
 		BrakingForEoA = target.node->isSignalled;
 		IsTrainCoupling = target.node->virtualCouplingNode;
-		if (IsTrainInFollowingMode == 1)
-			IsTrainDecoupling = target.decoupling;
 	}
 	return MinBX;
 }

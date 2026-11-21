@@ -45,15 +45,15 @@ train F2-1 sample t=780 x=8497.344569 v=24.036178
 train F2-1 sample t=840 x=9862.873272 v=5.619599
 train F2-1 sample t=900 x=9879.996000 v=0.000000
 train F2-1 sample t=960 x=9879.996000 v=0.000000
-train F2-1 sample t=1020 x=10037.232927 v=17.030216
-train F2-1 sample t=1080 x=11682.338726 v=35.002108
-train F2-1 sample t=1140 x=13846.508453 v=36.111111
-train F2-1 sample t=1200 x=15741.300921 v=14.741613
+train F2-1 sample t=1020 x=10037.233022 v=17.030225
+train F2-1 sample t=1080 x=11682.339109 v=35.002112
+train F2-1 sample t=1140 x=13846.508854 v=36.111111
+train F2-1 sample t=1200 x=15741.301322 v=14.741613
 train F2-1 sample t=1246 x=16000.000100 v=0.000100
 train F2-1 stop t_first=387 t_last=662 x=7879.997900 dwell=275
 train F2-1 braking t=343 x=7114.082727 v=36.111111 stop_t=387
 train F2-1 stop t_first=686 t_last=747 x=7999.998000 dwell=61
-train F2-1 braking t=671 x=7924.185494 v=10.843735 stop_t=686
+train F2-1 braking t=671 x=7924.185498 v=10.843743 stop_t=686
 train F2-1 stop t_first=848 t_last=1003 x=9879.996000 dwell=155
 train F2-1 braking t=809 x=9309.608609 v=31.339714 stop_t=848
 separation F1-1>F2-1 min_gap_t=386 min_gap=50.002000
