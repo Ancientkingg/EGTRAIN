@@ -452,6 +452,8 @@ private slots:
 	void trainStartingAtStopWaitsForSingleTrack();
 	void trainStartingAtStopBlocksPointsUnderIt_data();
 	void trainStartingAtStopBlocksPointsUnderIt();
+	void trainStartingAtStopBlocksSectionsUnderIt_data();
+	void trainStartingAtStopBlocksSectionsUnderIt();
 	void entryWaitsForTrainThatCannotStop_data();
 	void entryWaitsForTrainThatCannotStop();
 	void platformListsAtMostFiftyPassengers();
@@ -945,6 +947,51 @@ void TestSimulationRun::trainStartingAtStopBlocksPointsUnderIt() {
 		QCOMPARE_EQ(time.StartOccTime, 540.0);
 	}
 	QCOMPARE_EQ(under, 2);
+}
+
+void TestSimulationRun::trainStartingAtStopBlocksSectionsUnderIt_data() {
+	QTest::addColumn<int>("level");
+	QTest::addColumn<double>("trainLength");
+	QTest::addColumn<int>("sectionsUnder");
+	QTest::newRow("level 0, tail one section behind") << 0 << 2500.0 << 1;
+	QTest::newRow("level 2, tail one section behind") << 2 << 2500.0 << 1;
+	QTest::newRow("level 0, tail in the section of the stop") << 0 << 1500.0 << 0;
+}
+
+// The line has sections of 2 km and B ends the section 3-B0. A train of 2500 m that starts at B has its tail in the section
+// 2-B0 behind that of the stop, which it occupies from the step of entry until the tail has left it. A train of 1500 m
+// has nothing behind the section of the stop. The sections that the train never touches stay incomplete.
+void TestSimulationRun::trainStartingAtStopBlocksSectionsUnderIt() {
+	QFETCH(int, level);
+	QFETCH(double, trainLength);
+	QFETCH(int, sectionsUnder);
+	SceneModel scene = lineWithStartAtB(m_line, level, 400.0);
+	for (SceneTrainUnit& unit : scene.trainUnits)
+		unit.physical.length_m = trainLength;
+	const std::unique_ptr<SimulationRun> run = steppedRun(scene, {{"X", 1}}, 2500);
+	if (run == nullptr || run->numTrains != 1)
+		QFAIL("the run is not built");
+	Regional& train = run->trains[0];
+	QCOMPARE_EQ(train.earliestActiveTrajectoryIndex, 370);
+	train.ComputeBlockingTimesInMixedSignallingAreas(5, 3, 0.5, 50, 0, 0);
+	const double head = train.Start_Node_X * 1000;
+	int under = 0;
+	for (int index = 0; index < train.N_BlockSections; ++index) {
+		const BlockingTimes& time = train.BlockTime[index];
+		if (time.PosEnd > head || time.PosEnd <= head - train.train_length || time.PosStart > head)
+			continue;
+		if (time.BlockID == "@3-B0@")
+			continue;
+		++under;
+		QVERIFY2(time.IsComplete, time.BlockID.c_str());
+		QCOMPARE_EQ(time.StartOccTime, 370.0);
+		QCOMPARE_EQ(time.StartRunTime, 370);
+		QCOMPARE_EQ(time.EndRunTime, 370);
+		QCOMPARE_GT(time.EndOccTime, time.EndClearTime);
+		QCOMPARE_GT(time.EndClearTime, 370);
+	}
+	QCOMPARE_EQ(under, sectionsUnder);
+	QVERIFY(train.N_BlockTimeComplete == 5 + sectionsUnder);
 }
 
 // The first step in which the two trains overlap, or -1 when they never do.

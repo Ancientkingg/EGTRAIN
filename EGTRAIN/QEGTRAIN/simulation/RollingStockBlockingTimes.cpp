@@ -160,10 +160,17 @@ void Train::ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, BlockingTim
 	}
 
 	// A train that starts at its first stop is in the section of that stop, and approaches the section after it, from the step
-	// in which it enters. Its head never passes the start of the section of the stop.
+	// in which it enters. Its head never passes the start of the section of the stop. The sections before it that lie under
+	// the train are occupied from the same step: their head and run times are that step, and they are cleared by the tail.
+	bool startsInSection = false;
 	if (Start_Node_X > run_->infra.routes[indexOfRoute].sequence_of_block_sections[entrySection].start_node.X) {
-		if (IndexCurrentBS == entrySection)
+		const bool underTrain = IndexCurrentBS < entrySection
+			&& run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].end_node.X * 1000 > Start_Node_X * 1000 - train_length;
+		startsInSection = IndexCurrentBS == entrySection || underTrain;
+		if (startsInSection)
 			BlockTime[N_BlockSections].StartRunTime = earliestActiveTrajectoryIndex;
+		if (underTrain)
+			BlockTime[N_BlockSections].EndRunTime = earliestActiveTrajectoryIndex;
 		else if (IndexCurrentBS == entrySection + 1 && method == BlockingTimeMethod::Conventional)
 			BlockTime[N_BlockSections].StartApproachTime = earliestActiveTrajectoryIndex;
 	}
@@ -174,7 +181,7 @@ void Train::ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, BlockingTim
 	BlockTime[N_BlockSections].sightReacTime = SightReacTime;
 	BlockTime[N_BlockSections].ReleaseTime = ReleaseTime;
 
-	if (IndexCurrentBS == entrySection) { // for the first block we do not have setup and sightReaction Time nor approach time
+	if (IndexCurrentBS == entrySection || startsInSection) { // for the first block we do not have setup and sightReaction Time nor approach time
 		BlockTime[N_BlockSections].StartApproachTime = BlockTime[N_BlockSections].StartRunTime;
 		BlockTime[N_BlockSections].EndApproachTime = BlockTime[N_BlockSections].StartApproachTime;
 		BlockTime[N_BlockSections].setupTime = 0;
