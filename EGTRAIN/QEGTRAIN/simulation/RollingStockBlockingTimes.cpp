@@ -236,7 +236,7 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 		for (list<InfraElement>::iterator k = run_->infra.routes[this->indexOfRoute].InfrastructureElements.begin(); k != run_->infra.routes[this->indexOfRoute].InfrastructureElements.end(); k++) {
 			BlockingTimes TEMPLoc; // defining temporary Blocking Time variable
 
-			if ((k->SectionID == run_->infra.routes[this->indexOfRoute].sequence_of_block_sections[IndexCurrentBS].ID) && (k->ID != "VirtualTDSB")) { // if the Infrastructure Element belongs to the block section and it is not a VirtualTDSB
+			if ((k->SectionID == run_->infra.routes[this->indexOfRoute].sequence_of_block_sections[IndexCurrentBS].ID) && (k->ID != virtualTdsbId)) { // if the Infrastructure Element belongs to the block section and it is not a VirtualTDSB
 				TEMPLoc.BlockID = k->ID;
 				TEMPLoc.length = 0;
 				TEMPLoc.trainDescription = this->trainDescription;
@@ -461,18 +461,18 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 				successor++; // this iterator points at the infrastructure element after k
 				SuccessorInfraElement = successor->ID;
 				// In case the InfraElement after k is a VirtualTDSB then take the element after successor as SuccessorInfraElement
-				if ((successor->ID == "VirtualTDSB") && (successor != LastInfraElementOnRoute)) {
+				if ((successor->ID == virtualTdsbId) && (successor != LastInfraElementOnRoute)) {
 					list<InfraElement>::iterator secondsuccessor = successor;
 					secondsuccessor++; // this element points at the infraElement on the route coming after successor
 					SuccessorInfraElement = secondsuccessor->ID;
 				}
 				// if successor is a VirtualTDSB and it is the last infra element of the route also, then SuccessorInfraElement is "None"
-				else if ((successor->ID == "VirtualTDSB") && (successor == LastInfraElementOnRoute)) {
+				else if ((successor->ID == virtualTdsbId) && (successor == LastInfraElementOnRoute)) {
 					SuccessorInfraElement = "None";
 				}
 			}
 
-			if ((k->SectionID == run_->infra.routes[this->indexOfRoute].sequence_of_block_sections[IndexCurrentBS].ID) && (k->ID != "VirtualTDSB")) { // if the Infrastructure Element belongs to the block section and it is not a VirtualTDSB
+			if ((k->SectionID == run_->infra.routes[this->indexOfRoute].sequence_of_block_sections[IndexCurrentBS].ID) && (k->ID != virtualTdsbId)) { // if the Infrastructure Element belongs to the block section and it is not a VirtualTDSB
 				TEMPLoc.BlockID = k->ID;
 				TEMPLoc.NextBlockID = SuccessorInfraElement;
 				TEMPLoc.length = 0;

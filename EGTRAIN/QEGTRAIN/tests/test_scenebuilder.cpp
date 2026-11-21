@@ -37,6 +37,8 @@
 #include <utility>
 #include <vector>
 
+Q_DECLARE_METATYPE(CutPart)
+
 // The builders write the run of the process. The slots run in the order of their declaration, as the groups of checks did
 // before them, and a slot that reads what a build left starts with that build.
 class TestSceneBuilder : public QObject {
@@ -1749,7 +1751,7 @@ static std::string loggedProblem(const std::vector<Logged>& found, const std::ve
 
 // The messages of a cut of a section of length 10 with a diverging switch. The failed cut replaces the section by a default one, so
 // the id is a constant.
-static std::vector<Logged> cutMessages(Capture& capture, const std::string& part, double abscissa, double xStartSwitch, double xEndSwitch) {
+static std::vector<Logged> cutMessages(Capture& capture, CutPart part, double abscissa, double xStartSwitch, double xEndSwitch) {
 	Section section;
 	section.ID = "@Cut@";
 	section.withSwitchDiv = true;
@@ -1779,12 +1781,12 @@ void TestSceneBuilder::logsRouteSetup() {
 // A cut abscissa outside the section is an error.
 void TestSceneBuilder::logsCutOutsideSection() {
 	Capture capture;
-	std::string problem = loggedProblem(cutMessages(capture, "CutEnd", 12.5, 2.0, 4.0),
+	std::string problem = loggedProblem(cutMessages(capture, CutPart::End, 12.5, 2.0, 4.0),
 		{{errorLevel, "ERROR: The Block Section @Cut@ cannot be cut in the inserted abscissa 12.5\n\n"}},
 		"a cut outside the section");
 	QVERIFY2(problem.empty(), problem.c_str());
 	QVERIFY2(eglog::configure("sim.setup=false"), "the rule that switches sim.setup off is well formed");
-	problem = loggedProblem(cutMessages(capture, "CutEnd", 12.5, 2.0, 4.0), {}, "a cut outside the section with sim.setup off");
+	problem = loggedProblem(cutMessages(capture, CutPart::End, 12.5, 2.0, 4.0), {}, "a cut outside the section with sim.setup off");
 	QVERIFY2(problem.empty(), problem.c_str());
 }
 
@@ -1797,24 +1799,24 @@ void TestSceneBuilder::logsCutsAtSwitchEdges() {
 	const std::string startEdgeCut = " has a diverging switch and it is being cut at a progressive which cuts out the XStartSwitch edge of the switch, "
 									 "please consider repositioning the starting edge of this switch or the final edge of the switch "
 									 "of the previous block section in the route\n";
-	std::string problem = loggedProblem(cutMessages(capture, "CutEnd", 4.0, 2.0, 4.0),
+	std::string problem = loggedProblem(cutMessages(capture, CutPart::End, 4.0, 2.0, 4.0),
 		{{infoLevel, "Cutting Block Section: @Cut@ at the ending edge of its diverging switch\n\n"}},
 		"a cut at the end of the switch");
 	QVERIFY2(problem.empty(), problem.c_str());
-	problem = loggedProblem(cutMessages(capture, "CutEnd", 3.0, 2.0, 4.0), {{warningLevel, "Warning: Block Section: @Cut@" + endEdgeCut}},
+	problem = loggedProblem(cutMessages(capture, CutPart::End, 3.0, 2.0, 4.0), {{warningLevel, "Warning: Block Section: @Cut@" + endEdgeCut}},
 		"a cut inside the switch");
 	QVERIFY2(problem.empty(), problem.c_str());
-	problem = loggedProblem(cutMessages(capture, "CutEnd", 1.0, 2.0, 4.0), {{warningLevel, "Warning: Block Section: @Cut@" + endEdgeCut}},
+	problem = loggedProblem(cutMessages(capture, CutPart::End, 1.0, 2.0, 4.0), {{warningLevel, "Warning: Block Section: @Cut@" + endEdgeCut}},
 		"a cut before the switch");
 	QVERIFY2(problem.empty(), problem.c_str());
-	problem = loggedProblem(cutMessages(capture, "CutBegin", 2.0, 2.0, 4.0),
+	problem = loggedProblem(cutMessages(capture, CutPart::Begin, 2.0, 2.0, 4.0),
 		{{infoLevel, "Cutting Block Section: @Cut@at the starting edge of its diverging switch\n\n"}},
 		"a cut at the start of the switch");
 	QVERIFY2(problem.empty(), problem.c_str());
-	problem = loggedProblem(cutMessages(capture, "CutBegin", 3.0, 2.0, 4.0), {{warningLevel, "Warning: Block Section : @Cut@" + startEdgeCut}},
+	problem = loggedProblem(cutMessages(capture, CutPart::Begin, 3.0, 2.0, 4.0), {{warningLevel, "Warning: Block Section : @Cut@" + startEdgeCut}},
 		"a cut inside the switch from the start");
 	QVERIFY2(problem.empty(), problem.c_str());
-	problem = loggedProblem(cutMessages(capture, "CutBegin", 3.0, 4.0, 2.0),
+	problem = loggedProblem(cutMessages(capture, CutPart::Begin, 3.0, 4.0, 2.0),
 		{{errorLevel, "ERROR: Block Section: @Cut@ has Ending Edge of diverging switch with a progressive inferior to its Starting Egde. "
 					  "Problems in cutting the block section. PLease correct Switch on the infrastructure\n\n"}},
 		"a cut of a switch that ends before it starts");
@@ -2302,14 +2304,14 @@ void TestSceneBuilder::cutSectionListsNodesToCut() {
 	describeCuttableSection(source);
 	{
 		Section cut(source);
-		cut.CutBlockSection("CutEnd", 6.0);
+		cut.CutBlockSection(CutPart::End, 6.0);
 		// A section cut at its end lists the nodes up to the cut.
 		QCOMPARE(cut.total_nodes, 3);
 		QCOMPARE(listedAbscissas(cut), std::vector<double>({0.0, 4.0, 6.0}));
 	}
 	{
 		Section cut(source);
-		cut.CutBlockSection("CutBegin", 6.0);
+		cut.CutBlockSection(CutPart::Begin, 6.0);
 		// A section cut at its start lists the nodes from the cut.
 		QCOMPARE(cut.total_nodes, 2);
 		QCOMPARE(listedAbscissas(cut), std::vector<double>({6.0, 10.0}));
@@ -2344,18 +2346,18 @@ void TestSceneBuilder::copiesShareNodeList() {
 }
 
 void TestSceneBuilder::cutSectionOwnsItsList_data() {
-	QTest::addColumn<QString>("part");
-	QTest::newRow("CutEnd") << QStringLiteral("CutEnd");
-	QTest::newRow("CutBegin") << QStringLiteral("CutBegin");
+	QTest::addColumn<CutPart>("part");
+	QTest::newRow("CutEnd") << CutPart::End;
+	QTest::newRow("CutBegin") << CutPart::Begin;
 }
 
 // A cut section is the only owner of the list that the cut made, and frees it with the section.
 void TestSceneBuilder::cutSectionOwnsItsList() {
-	QFETCH(QString, part);
+	QFETCH(CutPart, part);
 	Section source;
 	describeCuttableSection(source);
 	Section cut(source);
-	cut.CutBlockSection(part.toStdString(), 6.0);
+	cut.CutBlockSection(part, 6.0);
 	const WeakList cutList = cut.nodelist_of_nodes_in_signalling_section;
 	// The cut section is the only owner of its list.
 	QCOMPARE(cut.nodelist_of_nodes_in_signalling_section.use_count(), 1L);

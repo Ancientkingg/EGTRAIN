@@ -148,11 +148,11 @@ void UpdateInfrastructureElementStatus(SimulationRun& run, const list<InfraEleme
 						list<InfraElement>::const_iterator successor = i;
 						successor++; // taking the infrastructure element of the route coming after element i
 						SuccessorInfraElement = successor->ID;
-						if ((successor->ID == "VirtualTDSB") && (successor != LastRouteInfraElementOnRoute)) { // in case the successor of i is a VirtualTDSB then put the element after successor as SuccessorInfraElement
+						if ((successor->ID == virtualTdsbId) && (successor != LastRouteInfraElementOnRoute)) { // in case the successor of i is a VirtualTDSB then put the element after successor as SuccessorInfraElement
 							list<InfraElement>::const_iterator secondsuccessor = successor;
 							secondsuccessor++;
 							SuccessorInfraElement = secondsuccessor->ID;
-						} else if ((successor->ID == "VirtualTDSB") && (successor == LastRouteInfraElementOnRoute)) { // in case the successor is a VirtualTDSB and it is also the last element of the route then put SuccessorInfraElement as "None"
+						} else if ((successor->ID == virtualTdsbId) && (successor == LastRouteInfraElementOnRoute)) { // in case the successor is a VirtualTDSB and it is also the last element of the route then put SuccessorInfraElement as "None"
 							SuccessorInfraElement = "None";
 						}
 					}
@@ -249,8 +249,8 @@ Section::Section() {
 }
 
 // Function to cut the block section
-//  the variable CutPart can be "CutEnd" to eliminate the part from CuttingAbscissa to the End Node or "CutBegin" to eliminate the part from the Start Node to the CuttingAbscissa
-void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
+//  the variable part can be CutPart::End to eliminate the part from CuttingAbscissa to the End Node or CutPart::Begin to eliminate the part from the Start Node to the CuttingAbscissa
+void Section::CutBlockSection(CutPart part, double CuttingAbscissa) {
 	list<Arc> listarcs;
 	list<Node> listnode;
 	Section CutSection;
@@ -262,7 +262,7 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 		EG_LOG(SimSetup, Error) << "ERROR: The Block Section " << this->ID << " cannot be cut in the inserted abscissa " << CuttingAbscissa << "\n\n";
 	}
 	if (IsCutValid == 1) {
-		if (CutPart == "CutEnd") {
+		if (part == CutPart::End) {
 			// Setting the beginning and end nodes and all the main attributes
 
 			CutSection.ID = this->ID;
@@ -309,7 +309,7 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 					Node CutEndingNode;
 					CutEndingNode.X = CuttingAbscissa;
 					CutEndingNode.Y = arcs_in_signalling_block_section[i].endNode.Y;
-					CutEndingNode.tdsbId = "VirtualTDSB";
+					CutEndingNode.tdsbId = virtualTdsbId;
 					modArc.endNode = CutEndingNode;
 					modArc.length = modArc.endNode.X - modArc.startNode.X;
 					listarcs.push_back(modArc);
@@ -346,7 +346,7 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 
 		}
 
-		else if (CutPart == "CutBegin") {
+		else if (part == CutPart::Begin) {
 			// Setting all the main attributes
 			CutSection.ID = this->ID;
 			CutSection.trackLineId = this->trackLineId;
@@ -397,7 +397,7 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 					Node CutStartingNode;
 					CutStartingNode.X = CuttingAbscissa;
 					CutStartingNode.Y = arcs_in_signalling_block_section[i].startNode.Y;
-					CutStartingNode.tdsbId = "VirtualTDSB";
+					CutStartingNode.tdsbId = virtualTdsbId;
 					modArc.startNode = CutStartingNode;
 					modArc.length = modArc.endNode.X - modArc.startNode.X;
 					listarcs.push_back(modArc);
@@ -1566,8 +1566,8 @@ void Route::createRouteFromBlockIds(SimulationRun& run, const std::vector<std::s
 					if ((AreBlocksOverlapped == 1) && (it->withSwitchDiv == 1) && (p->withSwitchDiv == 1)) {
 						double CuttingPosition = 0;
 						CuttingPosition = (p->XStartSwitch - it->XEndSwitch) / 2 + it->XEndSwitch;
-						it->CutBlockSection("CutEnd", CuttingPosition);
-						p->CutBlockSection("CutBegin", CuttingPosition);
+						it->CutBlockSection(CutPart::End, CuttingPosition);
+						p->CutBlockSection(CutPart::Begin, CuttingPosition);
 					}
 				}
 				sequence_of_block_sections[i] = *it;
@@ -1593,8 +1593,8 @@ void Route::createRouteFromBlockIds(SimulationRun& run, const std::vector<std::s
 				if ((AreBlocksOverlapped == 1) && (q->withSwitchDiv == 1) && (p->withSwitchDiv == 1)) {
 					double CuttingPosition = 0;
 					CuttingPosition = (q->XStartSwitch - p->XEndSwitch) / 2 + p->XEndSwitch;
-					q->CutBlockSection("CutBegin", CuttingPosition);
-					p->CutBlockSection("CutEnd", CuttingPosition);
+					q->CutBlockSection(CutPart::Begin, CuttingPosition);
+					p->CutBlockSection(CutPart::End, CuttingPosition);
 				}
 			}
 
@@ -1666,7 +1666,7 @@ void setListAllInfrastructureElementsFromRoutes(SimulationRun& run) {
 			if (run.infra.routes[i].InfrastructureElements.size() > 0) {
 				for (list<InfraElement>::iterator b = run.infra.routes[i].InfrastructureElements.begin();
 					b != run.infra.routes[i].InfrastructureElements.end(); b++) {
-					if (b->ID != "VirtualTDSB") { // The element can be inserted only if it is not a Virtual TDSB (which has been created to separate two adjacent diverging switches) but a real infrastructure element
+					if (b->ID != virtualTdsbId) { // The element can be inserted only if it is not a Virtual TDSB (which has been created to separate two adjacent diverging switches) but a real infrastructure element
 						InfraEvent TEMP_InfraEvent;
 						TEMP_InfraEvent.ElementInfo = *b;
 						// Changing the ID of the of TEMP_InfraEvent with the SwitchName of b in case b is a Diverging Switch

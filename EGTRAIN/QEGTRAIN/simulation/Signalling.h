@@ -135,6 +135,12 @@ enum class SignalState : unsigned char {
 	RedRed	///< Code 751, level 5 only.
 };
 
+/// The part of a block section that a cut removes.
+enum class CutPart : unsigned char {
+	End,  ///< From the cutting abscissa to the end node.
+	Begin ///< From the start node to the cutting abscissa.
+};
+
 /// A block section. RunInfrastructure::sections holds the sections of the scene and the sections derived at switches, and
 /// a Route holds copies of them, reversed for a reversed route. X values are kilometres.
 ///
@@ -240,9 +246,9 @@ public:
 			return false;
 	}
 
-	/// Cut block section: CutPart="CutEnd" removes from CuttingAbscissa to end;
-	/// "CutBegin" removes from start to CuttingAbscissa. CuttingAbscissa is an X in kilometres.
-	void CutBlockSection(std::string CutPart, double CuttingAbscissa);
+	/// Cut block section: CutPart::End removes from CuttingAbscissa to end;
+	/// CutPart::Begin removes from start to CuttingAbscissa. CuttingAbscissa is an X in kilometres.
+	void CutBlockSection(CutPart part, double CuttingAbscissa);
 
 	/// Makes this section the reverse of the section passed as blockSets, with X measured back from RouteLength in kilometres.
 	void reverseBlockSection(const Section& blockSets, double RouteLength);
