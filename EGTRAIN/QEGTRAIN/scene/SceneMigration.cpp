@@ -181,22 +181,6 @@ bool sceneMigrationPathAvailable(const SceneMigrationRegistry& registry,
 	return fromVersion < toVersion && !findPath(registry, kind, fromVersion, toVersion).empty();
 }
 
-bool sceneMigrationAvailable(const SceneMigrationRegistry& registry,
-	const SceneCompatibilityProbeResult& probe) {
-	if (probe.classification == SceneCompatibilityClass::Newer
-		|| probe.classification == SceneCompatibilityClass::Malformed
-		|| probe.classification == SceneCompatibilityClass::Current)
-		return false;
-	const bool schemaOk = probe.schemaVersion >= kCurrentSceneSchemaVersion
-		|| sceneMigrationPathAvailable(registry, SceneMigrationStepKind::Schema,
-			probe.schemaVersion, kCurrentSceneSchemaVersion);
-	const bool bundleOk = probe.sourceKind != SceneSourceKind::Bundle || !probe.bundleVersion
-		|| *probe.bundleVersion >= kCurrentSceneBundleVersion
-		|| sceneMigrationPathAvailable(registry, SceneMigrationStepKind::Bundle,
-			*probe.bundleVersion, kCurrentSceneBundleVersion);
-	return schemaOk && bundleOk;
-}
-
 bool SceneMigrationResult::success() const {
 	return migrated && !hasErrors(diagnostics);
 }

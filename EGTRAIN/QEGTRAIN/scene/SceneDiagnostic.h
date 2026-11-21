@@ -68,8 +68,6 @@ std::string toDialogText(const SceneDiagnostic& d);
 /// as its "File:" line when the message does not contain it.
 SceneDiagnostic jsonParseDiagnostic(const std::string& code, const std::string& name, const std::string& file,
 	const std::string& content, const nlohmann::json::parse_error& error);
-/// An object with every field of the diagnostic, the severity as its label, for tools and tests.
-nlohmann::json toJson(const SceneDiagnostic& d);
 /// True when a diagnostic has severity Error.
 bool hasErrors(const std::vector<SceneDiagnostic>& ds);
 /// The number of diagnostics of each severity.

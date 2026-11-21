@@ -54,10 +54,6 @@ public:
 	std::string stationId;
 	/// The id of the platform; empty when the run has no such platform or no passengers, and in the preview.
 	std::string platformId;
-	/// The passenger capacity of the platform, computed from its area; 0 when the run has no such platform or no
-	/// passengers, and in the preview.
-	int maxVolume;
-
 	/// The label with the number of passengers on the platform, shown at a fixed size on the screen while the view is
 	/// not zoomed in far enough for the figures; the scene owns it. Null in a run without passengers and in the preview.
 	QGraphicsTextItem* textIcon;

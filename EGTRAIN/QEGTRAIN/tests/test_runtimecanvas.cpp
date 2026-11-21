@@ -880,7 +880,7 @@ void TestRuntimeCanvas::drawsGeometryOfSource() {
 		if (source->passengers) {
 			QCOMPARE(platform->stationId, "B");
 			QCOMPARE(platform->platformId, "P1");
-			QCOMPARE(platform->maxVolume, 40);
+			QCOMPARE(platform->capacity(), 40);
 			if (platform->textIcon == nullptr)
 				QFAIL("the run with passengers draws no counter");
 			// The count says how many passengers wait on the platform, and its tooltip also how many it holds.
@@ -889,7 +889,7 @@ void TestRuntimeCanvas::drawsGeometryOfSource() {
 			QVERIFY(platform->gauge());
 		} else {
 			QVERIFY(platform->stationId.empty());
-			QCOMPARE(platform->maxVolume, 0);
+			QCOMPARE(platform->capacity(), 0);
 			QVERIFY(!platform->textIcon);
 			QVERIFY(!platform->gauge());
 		}
