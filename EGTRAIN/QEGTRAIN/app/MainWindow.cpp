@@ -2072,8 +2072,8 @@ void MainWindow::openEntityEditor(const QString& targetType, const QString& targ
 
 // The editor of the item that a row of Case Validation names: the row of an infrastructure item (a track, node, arc,
 // block, connection, station, signal, signalling area or route) selected in Infrastructure, which marks it on the network
-// view, or the row of a unit, composition, service or incident, or of a passenger, journey or leg in Passengers. A kind
-// without an editor row does nothing.
+// view, or the row of a unit, composition, service or incident, or of a passenger, journey or leg on the tab Passengers,
+// or a demand slice on the tab Demand. A kind without an editor row does nothing.
 void MainWindow::openDiagnosticItem(const QString& itemType, const QString& itemId) {
 	if (itemType.isEmpty())
 		return;
@@ -2082,8 +2082,19 @@ void MainWindow::openDiagnosticItem(const QString& itemType, const QString& item
 		revealEditorDock(m_editorDocks.infrastructureDock());
 		return;
 	}
-	if (PassengerPanel* panel = m_editorDocks.passengerPanel(); panel && panel->selectEntity(itemType, itemId)) {
+	// The two passenger editors share a dock: the tab of the editor that has the item comes to the front.
+	const auto showPassengerTab = [this](QWidget* tab) {
+		if (auto* tabs = m_editorDocks.passengerDock()->findChild<QTabWidget*>("passengerDockTabs"))
+			tabs->setCurrentWidget(tab);
 		revealEditorDock(m_editorDocks.passengerDock());
+	};
+	if (PassengerPanel* panel = m_editorDocks.passengerPanel(); panel && panel->selectEntity(itemType, itemId)) {
+		showPassengerTab(panel);
+		return;
+	}
+	if (PassengerDemandPanel* panel = m_editorDocks.demandPanel();
+		panel && itemType == QLatin1String("demand_slice") && panel->selectSlice(itemId)) {
+		showPassengerTab(panel);
 		return;
 	}
 	openEntityEditor(itemType, itemId, captureTelemetryOperation());

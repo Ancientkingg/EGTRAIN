@@ -105,6 +105,10 @@ QRectF StationCalloutItem::cardRect() const {
 	return QRectF(-CardWidth / 2.0 + m_shift, m_below ? Gap : -(Gap + m_height), CardWidth, m_height);
 }
 
+QString StationCalloutItem::shownSubtitle() const {
+	return QFontMetricsF(pixelFont(11)).elidedText(m_content.subtitle, Qt::ElideRight, CardWidth - 2.0 * kPadding);
+}
+
 QRectF StationCalloutItem::closeRect() const {
 	const QRectF card = cardRect();
 	return QRectF(card.right() - 28.0, card.top() + 4.0, 24.0, 24.0);
@@ -153,7 +157,7 @@ void StationCalloutItem::paint(QPainter* painter, const QStyleOptionGraphicsItem
 	painter->drawText(closeRect(), Qt::AlignCenter, QString(QChar(0x00d7)));
 	y += 18.0;
 	painter->setFont(pixelFont(11));
-	painter->drawText(QRectF(left, y, right - left, 16.0), Qt::AlignVCenter | Qt::AlignLeft, m_content.subtitle);
+	painter->drawText(QRectF(left, y, right - left, 16.0), Qt::AlignVCenter | Qt::AlignLeft, shownSubtitle());
 	y += 16.0 + 6.0;
 
 	painter->setFont(sectionFont());

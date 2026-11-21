@@ -144,6 +144,7 @@ private slots:
 	void fitsColumnsShownByAdvancedDetails();
 	void namesItemOfEachRow();
 	void activatesRowsWithItem();
+	void activatesRowOfDemandSlice();
 	void reusesValidationWithoutChange();
 	void validatesAgainAfterEdit();
 	void validatesAgainAfterUndo();
@@ -705,6 +706,34 @@ void TestValidationPanel::activatesRowsWithItem() {
 	QVERIFY2(activated.empty(), "a row without an item opens nothing");
 	emit table->cellActivated(arcRow, 2);
 	QCOMPARE(activated, std::vector<QString>({"arc:arc"}));
+}
+
+// A diagnostic of a demand slice names the slice as its item, with the kind that the window opens on the tab Demand.
+void TestValidationPanel::activatesRowOfDemandSlice() {
+	QWidget host;
+	ValidationPanel panel(&host);
+	SceneDocument document;
+	panel.setDocument(&document);
+	SceneModel scene = runnableScene();
+	ScenePassengerDemandSlice slice;
+	slice.id = "morning";
+	// The period ends before it starts.
+	slice.startSeconds = 7200.0;
+	slice.endSeconds = 3600.0;
+	scene.passengerDemand.push_back(slice);
+	document.replace(scene, false);
+	panel.refresh();
+	std::vector<QString> activated;
+	QObject::connect(&panel, &ValidationPanel::itemActivated, &panel,
+		[&activated](const QString& type, const QString& id) { activated.push_back(type + ":" + id); });
+	QTableWidget* table = panel.table();
+	int sliceRow = -1;
+	for (int row = 0; row < table->rowCount(); ++row)
+		if (table->item(row, 1)->text() == "scene.demand.period")
+			sliceRow = row;
+	QCOMPARE_GE(sliceRow, 0);
+	emit table->cellActivated(sliceRow, 0);
+	QCOMPARE(activated, std::vector<QString>({"demand_slice:morning"}));
 }
 
 // A refresh that finds the scene and the duration override as they were validated shows that validation again: the

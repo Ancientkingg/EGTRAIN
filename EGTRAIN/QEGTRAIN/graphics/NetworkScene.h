@@ -110,6 +110,9 @@ signals:
 private:
 	QTransform viewTransformFor(QWidget* widget) const;
 	QGraphicsItem* semanticItemAt(const QPointF& scenePos, QWidget* widget) const;
+	/// The square of the station that a platform bar or a station count stands for: the square at the node of the bar, or
+	/// the first square of the station of the count. Any other item, and one whose station has no square, is returned as it is.
+	QGraphicsItem* stationSquareOf(QGraphicsItem* item) const;
 
 	bool m_pressedOnEmptyCanvas = false;
 	// The item that select() chose last. Items leave the scene without notice, so selectedItem() checks it.
