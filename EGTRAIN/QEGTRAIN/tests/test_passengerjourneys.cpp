@@ -1,6 +1,7 @@
 // The train state that passenger journeys are planned on (simulation/PassengerJourneys.h): how far a train has come in its stops, and
 // the delay it is known to have.
 
+#include "simulation/PassengerFlow.h"
 #include "simulation/PassengerJourneys.h"
 #include "simulation/RollingStock.h"
 #include "simulation/SimulationRun.h"
@@ -104,6 +105,138 @@ struct EndedTrainRun {
 	const Passenger& passenger() const { return run.passengers.front(); }
 };
 
+// A train that stops at B and then at C. At B it uses the platform with this number, is planned to arrive at `arrival` and to
+// leave 20 s later; it is planned at C 140 s after that.
+Train trainFromB(const std::string& description, int platformNumber, double arrival) {
+	Train train = threeStops();
+	train.trainDescription = description;
+	train.numStations = 2;
+	train.Stations.resize(2);
+	const char* names[] = {"B", "C"};
+	for (int stop = 0; stop < 2; ++stop) {
+		Node& node = train.Stations[static_cast<std::size_t>(stop)];
+		node.stationName = names[stop];
+		node.stationPlatformId = stop == 0 ? "B.platform." + std::to_string(platformNumber) : std::string("C.platform.1");
+		node.X = 2.0 + stop;
+		train.stationPlatformNumber[stop] = stop == 0 ? platformNumber : 1;
+		train.StationDepartures[stop] = -1;
+	}
+	train.ScheduledArrivals[0] = arrival;
+	train.ScheduledDepartures[0] = arrival + 20;
+	train.ScheduledArrivals[1] = arrival + 160;
+	train.ScheduledDepartures[1] = -1;
+	train.Start_Node_X = 0.0;
+	return train;
+}
+
+// A run at step 500 of a day that starts at 00:00:00, at station B:
+// - T1 from A stands at platform 2, with passenger `rider` on board who changes there to T2 for C;
+// - T2 called at platform 8 and has left, and passenger `waiter` has stood on platform 8 for it since 00:00:00;
+// - T3 is planned to leave platform 2 at 560 s and T4 at 920 s, both for C.
+// Platforms 2 and 8 are a walk of 180 s apart.
+struct MissedChangeRun {
+	SimulationRun run;
+	static constexpr int kStep = 500;
+
+	MissedChangeRun() {
+		run.settings.startingSimulationTime = 0;
+		Train arriving = namedTrain("T1", 400);
+		arriving.numStations = 2;
+		arriving.Stations.resize(2);
+		arriving.Stations[1].stationPlatformId = "B.platform.2";
+		arriving.stationPlatformNumber[1] = 2;
+		arriving.Stations[0].StepStopped = 10;
+		arriving.Stations[1].StepStopped = 2;
+		arriving.StationArrivals[0] = 5;
+		arriving.StationDepartures[0] = 310;
+		arriving.StationArrivals[1] = 499;
+		arriving.StationDepartures[1] = -1;
+		arriving.StoppedForServiceStop = true;
+		arriving.CurrentServiceStop = "B";
+		arriving.CurrentServiceStopPlatform = "B.platform.2";
+		arriving.currentServiceStopPlatformNumber = 2;
+		arriving.MAX_OnBoard_Passengers = 100;
+		arriving.Current_OnBoard_Passengers = 1;
+		run.trains.push_back(arriving);
+		Train gone = trainFromB("T2", 8, 380);
+		gone.Stations[0].StepStopped = 10;
+		gone.StationArrivals[0] = 380;
+		gone.StationDepartures[0] = 400;
+		run.trains.push_back(gone);
+		run.trains.push_back(trainFromB("T3", 2, 540));
+		run.trains.push_back(trainFromB("T4", 2, 900));
+		run.numTrains = static_cast<int>(run.trains.size());
+
+		const auto trip = [](const std::string& id, const std::string& journey, const std::string& from, const std::string& to,
+							  const std::string& train) {
+			Trip leg;
+			leg.TripID = id;
+			leg.JourneyID = journey;
+			leg.Dep_Station_ID = from;
+			leg.Arr_Station_ID = to;
+			leg.TrainServiceDescription = train;
+			return leg;
+		};
+		Trip toB = trip("r.1", "r", "A", "B", "T1");
+		toB.Arr_Station_Platform_ID = "B.platform.2";
+		toB.IsTripStarted = true;
+		toB.Actual_Departure_Time = 250;
+		toB.Actual_Boarding_Time = 300;
+		Trip onward = trip("r.2", "r", "B", "C", "T2");
+		onward.Dep_Station_Platform_ID = "B.platform.8";
+		onward.depPlatformNumber = 8;
+		Journey riding;
+		riding.ID = "r";
+		riding.Dep_Station_ID = "A";
+		riding.Arr_Station_ID = "C";
+		riding.Trips = {toB, onward};
+		riding.N_Trips = 2;
+		riding.IsJourneyStarted = true;
+		Passenger rider;
+		rider.ID = "rider";
+		rider.Journeys.push_back(riding);
+		rider.IsIntheNetwork = true;
+		rider.CurrentStatus = PassengerStatus::OnBoard;
+		rider.current_JourneyID = "r";
+		rider.current_TripID = "r.1";
+		rider.Current_Train_Boarded = "T1";
+		rider.Current_Arrival_Station = "B";
+		run.passengers.push_back(rider);
+
+		Trip missed = trip("w.1", "w", "B", "C", "T2");
+		missed.Dep_Station_Platform_ID = "B.platform.8";
+		missed.depPlatformNumber = 8;
+		missed.IsTripStarted = true;
+		missed.Actual_Departure_Time = 0;
+		Journey waiting;
+		waiting.ID = "w";
+		waiting.Dep_Station_ID = "B";
+		waiting.Arr_Station_ID = "C";
+		waiting.Trips = {missed};
+		waiting.N_Trips = 1;
+		waiting.IsJourneyStarted = true;
+		Passenger waiter;
+		waiter.ID = "waiter";
+		waiter.Journeys.push_back(waiting);
+		waiter.IsIntheNetwork = true;
+		waiter.CurrentStatus = PassengerStatus::OnPlatform;
+		waiter.current_JourneyID = "w";
+		waiter.current_TripID = "w.1";
+		waiter.current_location_ID = waiter.Current_WaitingStationID = "B";
+		waiter.Current_WaitingStationPlatformID = "B.platform.8";
+		waiter.Current_Train_To_Wait = "T2";
+		waiter.Current_Arrival_Station = "C";
+		run.passengers.push_back(waiter);
+		run.numPassengers = 2;
+
+		simulateTrainPassengerInteractions(run, kStep);
+	}
+
+	const Passenger& passenger(const char* id) const {
+		return id == std::string("rider") ? run.passengers.front() : run.passengers.back();
+	}
+};
+
 } // namespace
 
 class TestPassengerJourneys : public QObject {
@@ -122,6 +255,8 @@ private slots:
 	void trainDoesNotHaltAtTheStopWhereItEnters();
 	void trainThatEndsEarlySetsDownPassengerWhoFindsNoRoute();
 	void trainThatEndsEarlySetsDownPassengerWhoContinuesOnAnother();
+	void passengerWhoAlightsAfterTheChangeLeftPlansFromTheArrivalPlatform();
+	void passengerWhoWaitedSinceMidnightKeepsTheWaitAndThePlatform();
 	void activityTextIsParsedCaseInsensitively();
 	void statusNamesAreTheLegacyText();
 };
@@ -261,6 +396,43 @@ void TestPassengerJourneys::trainThatEndsEarlySetsDownPassengerWhoContinuesOnAno
 	QCOMPARE(passenger.Current_Train_To_Wait, std::string("T2"));
 	QCOMPARE(passenger.Current_WaitingStationID, std::string("B"));
 	QCOMPARE(ended.flow.waitingCount("B", "B.platform.1"), 1);
+}
+
+// The train to change to has left before the passenger alights. The passenger has not set off for its platform, so the new
+// plan starts on the arrival platform at the moment of alighting: T3 leaves from that platform a minute later.
+void TestPassengerJourneys::passengerWhoAlightsAfterTheChangeLeftPlansFromTheArrivalPlatform() {
+	const MissedChangeRun missed;
+	const Passenger& rider = missed.passenger("rider");
+	const Journey& journey = rider.Journeys.front();
+	QCOMPARE(journey.Trips.size(), std::size_t(2));
+	QVERIFY(journey.Trips.front().IsTripCompleted);
+	QCOMPARE(journey.Trips.front().Actual_Arrival_Time, 500);
+	const Trip& next = journey.Trips.back();
+	QCOMPARE(next.TrainServiceDescription, std::string("T3"));
+	QCOMPARE(next.Dep_Station_Platform_ID, std::string("B.platform.2"));
+	// No walk to platform 8 and back, and the wait for T3 starts on arrival.
+	QCOMPARE(journey.Walkingtime, 0.0);
+	QCOMPARE(next.Actual_Departure_Time, 500);
+	QVERIFY(journey.IsReplanned);
+	QCOMPARE(rider.CurrentStatus, PassengerStatus::OnPlatform);
+	QCOMPARE(rider.Current_Train_To_Wait, std::string("T3"));
+	QCOMPARE(rider.Current_WaitingStationPlatformID, std::string("B.platform.2"));
+}
+
+// A passenger who has waited since 00:00:00 has waited from second 0, which is a time like any other: the wait for the
+// train that left counts, and the new plan starts on the platform where the passenger stands. T3 leaves platform 2 before
+// the walk of 180 s ends, so the passenger takes T4.
+void TestPassengerJourneys::passengerWhoWaitedSinceMidnightKeepsTheWaitAndThePlatform() {
+	const MissedChangeRun missed;
+	const Passenger& waiter = missed.passenger("waiter");
+	const Journey& journey = waiter.Journeys.front();
+	QCOMPARE(journey.Trips.size(), std::size_t(1));
+	const Trip& next = journey.Trips.back();
+	QCOMPARE(next.TrainServiceDescription, std::string("T4"));
+	QCOMPARE(journey.Waitingtime, 500.0);
+	QCOMPARE(journey.Walkingtime, 180.0);
+	QCOMPARE(next.Actual_Departure_Time, 680);
+	QCOMPARE(waiter.Current_Train_To_Wait, std::string("T4"));
 }
 
 void TestPassengerJourneys::activityTextIsParsedCaseInsensitively() {
