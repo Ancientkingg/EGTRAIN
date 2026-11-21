@@ -643,6 +643,7 @@ Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority
 		// The tail authority lags behind the leader by the report delay and the safety margin. A train that catches up with the
 		// leader can pass it while the leader is still ahead, which its front authority shows. The leader then still sets the
 		// target, as if its tail were at the head of this train, so that this train brakes to its speed and does not run through it.
+		// The front authority lies the safety margin ahead of the head of that train, so the head is the position without the margin.
 		const bool tail = authority.typePart == AuthorityTrainEnd::Tale && authority.TrainInfo.trainDescription != trainDescription;
 		bool leaderAhead = tail && leaderTailAhead(target.position, S);
 		if (tail && !leaderAhead) {
@@ -651,7 +652,7 @@ Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority
 					|| front.TrainInfo.trainDescription != authority.TrainInfo.trainDescription)
 					continue;
 				for (int index = 0; index < Blocks; ++index)
-					if (BS[index].ID == front.BSID && authorityRoutePosition(front, BS[index]) > S)
+					if (BS[index].ID == front.BSID && authorityRoutePosition(front, BS[index]) - kEndOfAuthorityMarginMetres > S)
 						leaderAhead = true;
 			}
 		}
@@ -685,8 +686,8 @@ Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority
 			}
 			// Otherwise
 			else {
-				if ((authority.TrainInfo.NextSectionID == NextBlockID) || (isNoneId(authority.TrainInfo.NextSectionID)) || IsTrainInFollowingMode) { // when the trains have the same next block section, the leading train is approaching the end of its route, or this train is coupled to it and keeps its gap until the routes split
-					target.speed = authority.TrainInfo.TrainSpeed;																					 // the speed is the one of the train ahead if the trains are following the same direction and ahve at least one more block section in common
+				if ((authority.TrainInfo.NextSectionID == NextBlockID) || (isNoneId(authority.TrainInfo.NextSectionID)) || (IsTrainInFollowingMode && authority.TrainInfo.trainDescription == LeadingTrainInFollowingMode)) { // when the trains have the same next block section, the leading train is approaching the end of its route, or this train is coupled to it and keeps its gap until the routes split
+					target.speed = authority.TrainInfo.TrainSpeed;																																							  // the speed is the one of the train ahead if the trains are following the same direction and ahve at least one more block section in common
 
 					if ((this->IsTrainInFollowingMode == 0) && (authority.TrainInfo.Acceleration < 0)) {
 						// A leader that brakes stops where this train would stop from the speed of the leader. A train that is not coupled yet
