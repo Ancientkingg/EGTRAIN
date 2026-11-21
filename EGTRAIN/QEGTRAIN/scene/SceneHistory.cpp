@@ -68,7 +68,7 @@ struct SceneBytes {
 	static std::size_t heap(const SceneService& value) {
 		return texts(value.id, value.operatingCode, value.composition, value.route, value.category, value.visualizationColor) + block(value.stops);
 	}
-	static std::size_t heap(const SceneIncident& value) { return texts(value.id, value.type, value.target); }
+	static std::size_t heap(const SceneIncident& value) { return texts(value.id, value.target); }
 	static std::size_t heap(const SceneEntranceDelay& value) { return texts(value.serviceId, value.stationId); }
 	static std::size_t heap(const SceneScenario& value) {
 		return texts(value.id, value.name, value.description) + block(value.incidents) + block(value.entranceDelays);

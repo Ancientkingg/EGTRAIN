@@ -50,7 +50,7 @@ static SceneStop stop(const std::string& stationId, const std::string& platformI
 	return result;
 }
 
-static SceneIncident incident(const std::string& id, const std::string& type, const std::string& target) {
+static SceneIncident incident(const std::string& id, IncidentType type, const std::string& target) {
 	SceneIncident result;
 	result.id = id;
 	result.type = type;
@@ -169,12 +169,12 @@ static SceneModel referenceScene() {
 
 	SceneScenario base;
 	base.id = "scenario-1";
-	base.incidents = {incident("incident-1", "signal_failure", "signal-1"),
-		incident("incident-2", "train_breakdown", "service-1")};
+	base.incidents = {incident("incident-1", IncidentType::SignalFailure, "signal-1"),
+		incident("incident-2", IncidentType::TrainBreakdown, "service-1")};
 	base.entranceDelays = {delay("service-1", "station-1")};
 	SceneScenario other;
 	other.id = "scenario-2";
-	other.incidents = {incident("incident-3", "signal_failure", "block-a2")};
+	other.incidents = {incident("incident-3", IncidentType::SignalFailure, "block-a2")};
 	scene.scenarios = {base, other};
 	scene.defaultScenarioId = "scenario-1";
 

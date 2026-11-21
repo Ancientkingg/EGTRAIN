@@ -492,15 +492,14 @@ void TestRecoveryStore::keepsCopyWhenWriteFails() {
 	QVERIFY(refused.bundlePath.isEmpty());
 	QVERIFY2(!refused.error.contains("scene."), "failed write: the error holds no diagnostic code");
 
-	// An incident without a type cannot be written: the error says which entry, in words and without the code.
+	// An incident without an id cannot be written: the error says which entry, in words and without the code.
 	SceneModel incomplete = makeScene("incomplete");
 	SceneIncident incident;
 	incident.id = "first";
-	incident.type = "signal_failure";
+	incident.type = IncidentType::SignalFailure;
 	incident.target = "sig.a";
 	defaultScenarioIncidents(incomplete).push_back(incident);
-	incident.id = "second";
-	incident.type.clear();
+	incident.id.clear();
 	defaultScenarioIncidents(incomplete).push_back(incident);
 	const RecoveryResult unfinished = store.write(incomplete, source);
 	// An incomplete incident is named in the error.
@@ -583,7 +582,7 @@ void TestRecoveryStore::keepsIncompleteEntries() {
 	scene.services.push_back(service);
 	SceneIncident incident;
 	incident.id = "new_incident";
-	incident.type = "signal_failure";
+	incident.type = IncidentType::SignalFailure;
 	incident.hasEndSeconds = true;
 	defaultScenarioIncidents(scene).push_back(incident);
 	const RecoveryResult written = store.write(scene, source);

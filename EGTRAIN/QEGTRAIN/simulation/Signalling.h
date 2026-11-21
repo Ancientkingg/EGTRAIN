@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "scene/SceneDiagnostic.h"
+#include "scene/SceneModel.h"
 
 #include "simulation/Infrastructure.h"
 
@@ -25,18 +26,18 @@ void resetNativeInfrastructureState(SimulationRun& run);
 /// An incident of the selected scenario, as the scene gives it. Times are seconds from the start of the run, compared
 /// with the step index.
 struct SimulationIncident {
-	std::string type;							 ///< "signal_failure" or "train_breakdown".
-	std::string target;							 ///< Signal or section ID of a signal failure; service ID of a breakdown.
-	double startSeconds = 0.0;					 ///< Start of the incident.
-	double endSeconds = 0.0;					 ///< End of the incident; meaningful when hasEndSeconds is true.
-	std::vector<std::string> resolvedSectionIDs; ///< Runtime section IDs that a signal failure affects.
-	std::string id;								 ///< ID of the incident.
-	bool hasOccurrence = false;					 ///< True when the breakdown applies to one occurrence of the service only.
-	int occurrence = 1;							 ///< 1-based occurrence of the service when hasOccurrence is true.
-	bool hasReducedSpeed = false;				 ///< True when the breakdown caps the speed instead of holding the train.
-	double reducedSpeedKmh = 0.0;				 ///< Speed cap of the breakdown in km/h.
-	bool terminateAtDestination = false;		 ///< True when the broken-down train is marked as terminated at the end of its route.
-	bool hasEndSeconds = false;					 ///< True when the incident has an end; without one a speed cap lasts to the end of the route.
+	IncidentType type = IncidentType::SignalFailure; ///< The kind of incident.
+	std::string target;								 ///< Signal or section ID of a signal failure; service ID of a breakdown.
+	double startSeconds = 0.0;						 ///< Start of the incident.
+	double endSeconds = 0.0;						 ///< End of the incident; meaningful when hasEndSeconds is true.
+	std::vector<std::string> resolvedSectionIDs;	 ///< Runtime section IDs that a signal failure affects.
+	std::string id;									 ///< ID of the incident.
+	bool hasOccurrence = false;						 ///< True when the breakdown applies to one occurrence of the service only.
+	int occurrence = 1;								 ///< 1-based occurrence of the service when hasOccurrence is true.
+	bool hasReducedSpeed = false;					 ///< True when the breakdown caps the speed instead of holding the train.
+	double reducedSpeedKmh = 0.0;					 ///< Speed cap of the breakdown in km/h.
+	bool terminateAtDestination = false;			 ///< True when the broken-down train is marked as terminated at the end of its route.
+	bool hasEndSeconds = false;						 ///< True when the incident has an end; without one a speed cap lasts to the end of the route.
 };
 
 /// True while a train_breakdown incident without a reduced speed holds the train trainDesc ("<service>-<occurrence>") in step

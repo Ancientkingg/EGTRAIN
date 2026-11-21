@@ -25,7 +25,7 @@
 static SceneIncident breakdown(const char* id, const char* target) {
 	SceneIncident incident;
 	incident.id = id;
-	incident.type = "train_breakdown";
+	incident.type = IncidentType::TrainBreakdown;
 	incident.target = target;
 	incident.startSeconds = 10.0;
 	incident.endSeconds = 20.0;
@@ -529,8 +529,15 @@ void TestScenarioPanel::addsDeletesImportsAndExportsScenarios() {
 	QVERIFY(events.log.empty());
 	QCOMPARE(selection.scenarioId(), "imported_2");
 	unusable.incidents[0] = breakdown("i10", "s1");
-	unusable.incidents[0].type = "meteor";
-	QVERIFY2(writeScenario(dir + "/meteor.json", unusable), "the scenario file with an unknown incident type is written");
+	QVERIFY2(writeScenario(dir + "/meteor.json", unusable), "the scenario file is written");
+	QFile meteor(dir + "/meteor.json");
+	QVERIFY(meteor.open(QIODevice::ReadWrite));
+	QByteArray meteorText = meteor.readAll();
+	QVERIFY(meteorText.contains("\"train_breakdown\""));
+	meteorText.replace("\"train_breakdown\"", "\"meteor\"");
+	QVERIFY(meteor.resize(0));
+	QVERIFY(meteor.write(meteorText) > 0);
+	meteor.close();
 	chosen = dir + "/meteor.json";
 	prompts.errorCount = 0;
 	panel.importScenario();

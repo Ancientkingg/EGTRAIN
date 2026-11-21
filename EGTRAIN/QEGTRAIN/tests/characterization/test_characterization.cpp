@@ -507,7 +507,7 @@ public:
 		std::set<std::string> failedIds;
 		for (const SimulationIncident& incident : simulation.run().incidents) {
 			const bool hasEnd = incident.hasEndSeconds || incident.endSeconds != 0.0;
-			if (incident.type == "signal_failure" && snapshot.timestep >= incident.startSeconds
+			if (incident.type == IncidentType::SignalFailure && snapshot.timestep >= incident.startSeconds
 				&& (!hasEnd || snapshot.timestep <= incident.endSeconds))
 				failedIds.insert(incident.resolvedSectionIDs.begin(), incident.resolvedSectionIDs.end());
 		}
@@ -1523,9 +1523,9 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 			}
 		}
 	if (spec.passengers == "live-missed")
-		loaded.scene.scenarios[0].incidents.push_back({"hold-q1", "train_breakdown", "Q1", 250.0, 738.0});
+		loaded.scene.scenarios[0].incidents.push_back({"hold-q1", IncidentType::TrainBreakdown, "Q1", 250.0, 738.0});
 	if (spec.name.find("stub-breakdown-") == 0)
-		loaded.scene.scenarios[0].incidents.push_back({"hold-owner", "train_breakdown", "U1", 60.0, 120.0});
+		loaded.scene.scenarios[0].incidents.push_back({"hold-owner", IncidentType::TrainBreakdown, "U1", 60.0, 120.0});
 	if (spec.singleTrack)
 		loaded.scene.singleTrackRestrictions = {{spec.restriction[0], spec.restriction[1], spec.restriction[2], spec.restriction[3]}};
 	if (!spec.passengers.empty())
@@ -1764,7 +1764,7 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 
 	for (const SimulationIncident& incident : simulation.run().incidents)
 		add("incident " + incident.id,
-			{textField("type", incident.type), textField("target", incident.target),
+			{textField("type", incidentTypeName(incident.type)), textField("target", incident.target),
 				realField("start", incident.startSeconds), integerField("has_end", incident.hasEndSeconds ? 1 : 0),
 				realField("end", incident.endSeconds), textField("sections", joinSet(incident.resolvedSectionIDs))});
 	for (const StepRecorder::Boundary& boundary : recorder.boundaries()) {

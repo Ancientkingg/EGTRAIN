@@ -56,7 +56,7 @@ static SceneService service(const char* id) {
 static SceneIncident signalFailure(const char* id, const char* target) {
 	SceneIncident incident;
 	incident.id = id;
-	incident.type = "signal_failure";
+	incident.type = IncidentType::SignalFailure;
 	incident.target = target;
 	incident.startSeconds = 10.0;
 	incident.endSeconds = 20.0;
@@ -67,7 +67,7 @@ static SceneIncident signalFailure(const char* id, const char* target) {
 static SceneIncident breakdown(const char* id, const char* target) {
 	SceneIncident incident;
 	incident.id = id;
-	incident.type = "train_breakdown";
+	incident.type = IncidentType::TrainBreakdown;
 	incident.target = target;
 	incident.startSeconds = 100.0;
 	incident.endSeconds = 200.0;
@@ -280,15 +280,15 @@ void TestIncidentPanel::addsIncidentWithTarget() {
 	int defaultAsked = 0;
 	panel.setDefaultTarget([&defaultAsked] {
 		++defaultAsked;
-		return IncidentTarget{"signal_failure", "sig1", 0};
+		return IncidentTarget{IncidentType::SignalFailure, "sig1", 0};
 	});
 	const std::vector<SceneIncident>& incidents = document.model().scenarios[0].incidents;
 	const std::size_t countBefore = incidents.size();
 	// An incident added with a target has that target and its type in one edit, and its row is selected.
-	QVERIFY(panel.addIncident(IncidentTarget{"train_breakdown", "s1", 2}));
+	QVERIFY(panel.addIncident(IncidentTarget{IncidentType::TrainBreakdown, "s1", 2}));
 	QCOMPARE(incidents.size(), countBefore + 1);
 	QCOMPARE(incidents.back().id, "new_incident");
-	QCOMPARE(incidents.back().type, "train_breakdown");
+	QCOMPARE(incidents.back().type, IncidentType::TrainBreakdown);
 	QCOMPARE(incidents.back().target, "s1");
 	QVERIFY(incidents.back().hasOccurrence);
 	QCOMPARE(incidents.back().occurrence, 2);
@@ -302,8 +302,8 @@ void TestIncidentPanel::addsIncidentWithTarget() {
 	QCOMPARE(panel.targetCombo()->currentIndex(), choice(panel.targetCombo(), "s1", 2));
 	events.log.clear();
 	// An incident added with a block is a signal failure of it.
-	QVERIFY(panel.addIncident(IncidentTarget{"signal_failure", "blk1", 0}));
-	QCOMPARE(incidents.back().type, "signal_failure");
+	QVERIFY(panel.addIncident(IncidentTarget{IncidentType::SignalFailure, "blk1", 0}));
+	QCOMPARE(incidents.back().type, IncidentType::SignalFailure);
 	QCOMPARE(incidents.back().target, "blk1");
 	QVERIFY(!incidents.back().hasOccurrence);
 	QCOMPARE(events.log, edit);
@@ -311,14 +311,14 @@ void TestIncidentPanel::addsIncidentWithTarget() {
 	QCOMPARE(panel.listWidget()->currentRow(), static_cast<int>(countBefore) + 1);
 	events.log.clear();
 	// A target that the combo does not offer adds nothing.
-	QVERIFY(!panel.addIncident(IncidentTarget{"signal_failure", "missing", 0}));
-	QVERIFY(!panel.addIncident(IncidentTarget{"train_breakdown", "s1", 4}));
+	QVERIFY(!panel.addIncident(IncidentTarget{IncidentType::SignalFailure, "missing", 0}));
+	QVERIFY(!panel.addIncident(IncidentTarget{IncidentType::TrainBreakdown, "s1", 4}));
 	QVERIFY(!panel.addIncident(IncidentTarget()));
 	QCOMPARE(incidents.size(), countBefore + 2);
 	QVERIFY(events.log.empty());
 	document.setEditable(false);
 	// Nothing is added while a run uses the scene.
-	QVERIFY(!panel.addIncident(IncidentTarget{"signal_failure", "sig1", 0}));
+	QVERIFY(!panel.addIncident(IncidentTarget{IncidentType::SignalFailure, "sig1", 0}));
 	QCOMPARE(incidents.size(), countBefore + 2);
 	QVERIFY(events.log.empty());
 }
@@ -339,14 +339,14 @@ void TestIncidentPanel::namesTypes() {
 	type->setCurrentIndex(type->findText("Train breakdown"));
 	const nlohmann::json changed = encodeScenarios(document.model());
 	// Choosing a type by its name stores the type of the file.
-	QCOMPARE(document.model().scenarios[0].incidents[0].type, "train_breakdown");
+	QCOMPARE(document.model().scenarios[0].incidents[0].type, IncidentType::TrainBreakdown);
 	QVERIFY(changed["scenarios"][0]["incidents"][0]["type"] == "train_breakdown");
 	QCOMPARE(f.events.log, edit);
 	f.events.log.clear();
 	type->setCurrentIndex(type->findText("Signal failure"));
 	panel.targetCombo()->setCurrentIndex(panel.targetCombo()->findData("sig1"));
 	// Choosing the first type and target again writes the file as before.
-	QCOMPARE(document.model().scenarios[0].incidents[0].type, "signal_failure");
+	QCOMPARE(document.model().scenarios[0].incidents[0].type, IncidentType::SignalFailure);
 	QVERIFY(encodeScenarios(document.model()) == before);
 	panel.listWidget()->setCurrentRow(1);
 	// A breakdown shows the name of its type.
@@ -557,7 +557,7 @@ void TestIncidentPanel::typeDecidesTargets() {
 	panel.listWidget()->setCurrentRow(0);
 	panel.typeCombo()->setCurrentIndex(panel.typeCombo()->findData("train_breakdown"));
 	// A breakdown has no signal as its target, and the targets are the services.
-	QCOMPARE(incident.type, "train_breakdown");
+	QCOMPARE(incident.type, IncidentType::TrainBreakdown);
 	QVERIFY(incident.target.empty());
 	QCOMPARE(panel.targetCombo()->currentIndex(), 0);
 	QVERIFY(panel.hasReducedSpeedCheck()->isEnabled());
@@ -577,7 +577,7 @@ void TestIncidentPanel::typeDecidesTargets() {
 	panel.targetCombo()->setCurrentIndex(choice(panel.targetCombo(), "s2", 1));
 	panel.typeCombo()->setCurrentIndex(panel.typeCombo()->findData("signal_failure"));
 	// A target that is valid for both types stays, and a signal failure has no occurrence.
-	QCOMPARE(incident.type, "signal_failure");
+	QCOMPARE(incident.type, IncidentType::SignalFailure);
 	QCOMPARE(incident.target, "s2");
 	QVERIFY(!incident.hasOccurrence);
 	QCOMPARE(incident.occurrence, 1);
@@ -613,7 +613,7 @@ void TestIncidentPanel::editsAddsAndDeletesIncidents() {
 	panel.typeCombo()->setCurrentIndex(panel.typeCombo()->findData("signal_failure"));
 	const SceneIncident& converted = document.model().scenarios[0].incidents[1];
 	// A signal failure has none of the fields of a breakdown.
-	QCOMPARE(converted.type, "signal_failure");
+	QCOMPARE(converted.type, IncidentType::SignalFailure);
 	QVERIFY(!converted.hasReducedSpeed);
 	QCOMPARE_EQ(converted.reducedSpeedKmh, 0.0);
 	QVERIFY(!converted.hasOccurrence);
@@ -743,7 +743,7 @@ void TestIncidentPanel::editsAddsAndDeletesIncidents() {
 	// An incident is added to the selected scenario, selected and shown.
 	QCOMPARE(document.model().scenarios[0].incidents.size(), std::size_t(3));
 	QCOMPARE(added.id, "new_incident");
-	QCOMPARE(added.type, "signal_failure");
+	QCOMPARE(added.type, IncidentType::SignalFailure);
 	QVERIFY(added.hasEndSeconds);
 	QCOMPARE(panel.listWidget()->count(), 3);
 	QCOMPARE(panel.listWidget()->currentRow(), 2);
@@ -1219,7 +1219,7 @@ void TestIncidentPanel::picksTargetOnNetworkView() {
 	QVERIFY(!pick->isEnabled());
 	QVERIFY(!panel.targetCombo()->isEnabled());
 	// No target is taken while a run uses the scene.
-	QVERIFY(!panel.applyTarget({"signal_failure", "sig1", 0}));
+	QVERIFY(!panel.applyTarget({IncidentType::SignalFailure, "sig1", 0}));
 	QVERIFY(f.events.log.empty());
 	f.document.setEditable(true);
 	panel.refresh();
@@ -1236,7 +1236,7 @@ void TestIncidentPanel::takesPickedTarget() {
 	panel.listWidget()->setCurrentRow(0);
 	events.log.clear();
 	// A block is taken as the target of a signal failure.
-	QVERIFY(panel.applyTarget({"signal_failure", "blk1", 0}));
+	QVERIFY(panel.applyTarget({IncidentType::SignalFailure, "blk1", 0}));
 	QCOMPARE(shown().target, "blk1");
 	QVERIFY(!shown().hasOccurrence);
 	QCOMPARE(events.log, edit);
@@ -1244,24 +1244,23 @@ void TestIncidentPanel::takesPickedTarget() {
 	QCOMPARE(panel.targetCombo()->currentText(), "blk1");
 	events.log.clear();
 	// The target that the incident has changes nothing.
-	QVERIFY(panel.applyTarget({"signal_failure", "blk1", 0}));
+	QVERIFY(panel.applyTarget({IncidentType::SignalFailure, "blk1", 0}));
 	QVERIFY(events.log.empty());
 	// A target that the combo does not offer for its type is refused and changes nothing.
-	QVERIFY(!panel.applyTarget({"signal_failure", "@blk1@", 0}));
-	QVERIFY(!panel.applyTarget({"signal_failure", "nope", 0}));
-	QVERIFY(!panel.applyTarget({"signal_failure", "", 0}));
-	QVERIFY(!panel.applyTarget({"train_breakdown", "sig1", 1}));
-	QVERIFY(!panel.applyTarget({"train_breakdown", "s2", 2}));
-	QVERIFY(!panel.applyTarget({"train_breakdown", "s1", 0}));
-	QVERIFY(!panel.applyTarget({"train_breakdown", "s1", 4}));
-	QVERIFY(!panel.applyTarget({"other", "s1", 1}));
+	QVERIFY(!panel.applyTarget({IncidentType::SignalFailure, "@blk1@", 0}));
+	QVERIFY(!panel.applyTarget({IncidentType::SignalFailure, "nope", 0}));
+	QVERIFY(!panel.applyTarget({IncidentType::SignalFailure, "", 0}));
+	QVERIFY(!panel.applyTarget({IncidentType::TrainBreakdown, "sig1", 1}));
+	QVERIFY(!panel.applyTarget({IncidentType::TrainBreakdown, "s2", 2}));
+	QVERIFY(!panel.applyTarget({IncidentType::TrainBreakdown, "s1", 0}));
+	QVERIFY(!panel.applyTarget({IncidentType::TrainBreakdown, "s1", 4}));
 	QVERIFY(!panel.applyTarget({}));
 	QVERIFY(events.log.empty());
-	QCOMPARE(shown().type, "signal_failure");
+	QCOMPARE(shown().type, IncidentType::SignalFailure);
 	QCOMPARE(shown().target, "blk1");
 	// An occurrence of a service makes a signal failure a breakdown of it, in one edit.
-	QVERIFY(panel.applyTarget({"train_breakdown", "s1", 3}));
-	QCOMPARE(shown().type, "train_breakdown");
+	QVERIFY(panel.applyTarget({IncidentType::TrainBreakdown, "s1", 3}));
+	QCOMPARE(shown().type, IncidentType::TrainBreakdown);
 	QCOMPARE(shown().target, "s1");
 	QVERIFY(shown().hasOccurrence);
 	QCOMPARE(shown().occurrence, 3);
@@ -1275,8 +1274,8 @@ void TestIncidentPanel::takesPickedTarget() {
 	panel.terminateAtDestinationCheck()->setChecked(true);
 	events.log.clear();
 	// A signal makes a breakdown a signal failure, which loses what only a breakdown has, in one edit.
-	QVERIFY(panel.applyTarget({"signal_failure", "sig1", 0}));
-	QCOMPARE(shown().type, "signal_failure");
+	QVERIFY(panel.applyTarget({IncidentType::SignalFailure, "sig1", 0}));
+	QCOMPARE(shown().type, IncidentType::SignalFailure);
 	QCOMPARE(shown().target, "sig1");
 	QVERIFY(!shown().hasOccurrence);
 	QCOMPARE(shown().occurrence, 1);
@@ -1299,7 +1298,7 @@ void TestIncidentPanel::givesNewIncidentTarget() {
 	std::size_t countAtCall = 0;
 	panel.setDefaultTarget([&document, &countAtCall] {
 		countAtCall = document.model().scenarios[0].incidents.size();
-		return IncidentTarget{"train_breakdown", "s1", 2};
+		return IncidentTarget{IncidentType::TrainBreakdown, "s1", 2};
 	});
 	events.log.clear();
 	panel.addIncident();
@@ -1307,7 +1306,7 @@ void TestIncidentPanel::givesNewIncidentTarget() {
 	// A new incident gets the target that the window gives before the edit, in the same edit.
 	QCOMPARE(countAtCall, countBefore);
 	QCOMPARE(added.id, "new_incident");
-	QCOMPARE(added.type, "train_breakdown");
+	QCOMPARE(added.type, IncidentType::TrainBreakdown);
 	QCOMPARE(added.target, "s1");
 	QVERIFY(added.hasOccurrence);
 	QCOMPARE(added.occurrence, 2);
@@ -1317,20 +1316,20 @@ void TestIncidentPanel::givesNewIncidentTarget() {
 	QCOMPARE(panel.typeCombo()->currentData().toString(), "train_breakdown");
 	QCOMPARE(panel.targetCombo()->currentIndex(), choice(panel.targetCombo(), "s1", 2));
 	QCOMPARE(panel.listWidget()->currentItem()->text(), "new_incident: Train breakdown #2");
-	panel.setDefaultTarget([] { return IncidentTarget{"signal_failure", "sig1", 0}; });
+	panel.setDefaultTarget([] { return IncidentTarget{IncidentType::SignalFailure, "sig1", 0}; });
 	panel.addIncident();
 	// A new incident can be a signal failure of the signal that the window gives.
-	QCOMPARE(document.model().scenarios[0].incidents.back().type, "signal_failure");
+	QCOMPARE(document.model().scenarios[0].incidents.back().type, IncidentType::SignalFailure);
 	QCOMPARE(document.model().scenarios[0].incidents.back().target, "sig1");
-	panel.setDefaultTarget([] { return IncidentTarget{"signal_failure", "missing", 0}; });
+	panel.setDefaultTarget([] { return IncidentTarget{IncidentType::SignalFailure, "missing", 0}; });
 	panel.addIncident();
 	// A target that the combo does not offer leaves the new incident without a target.
-	QCOMPARE(document.model().scenarios[0].incidents.back().type, "signal_failure");
+	QCOMPARE(document.model().scenarios[0].incidents.back().type, IncidentType::SignalFailure);
 	QVERIFY(document.model().scenarios[0].incidents.back().target.empty());
 	panel.setDefaultTarget([] { return IncidentTarget(); });
 	panel.addIncident();
 	// Without a target from the window a new incident is a signal failure without a target.
-	QCOMPARE(document.model().scenarios[0].incidents.back().type, "signal_failure");
+	QCOMPARE(document.model().scenarios[0].incidents.back().type, IncidentType::SignalFailure);
 	QVERIFY(document.model().scenarios[0].incidents.back().target.empty());
 	panel.setDefaultTarget({});
 	panel.addIncident();
@@ -1353,7 +1352,7 @@ void TestIncidentPanel::takesOccurrenceThatComboDoesNotList() {
 	const int last = many.repeatCount;
 	QVERIFY2(choice(panel.targetCombo(), "many", last) < 0, "the combo does not list the last occurrence of a service over the limit");
 	// An occurrence that the combo does not list is taken and becomes its current choice.
-	QVERIFY(panel.applyTarget({"train_breakdown", "many", last}));
+	QVERIFY(panel.applyTarget({IncidentType::TrainBreakdown, "many", last}));
 	QCOMPARE(f.document.model().scenarios[0].incidents[1].target, "many");
 	QCOMPARE(f.document.model().scenarios[0].incidents[1].occurrence, last);
 	QCOMPARE(panel.targetCombo()->currentIndex(), choice(panel.targetCombo(), "many", last));

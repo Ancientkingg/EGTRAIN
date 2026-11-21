@@ -299,10 +299,22 @@ struct SceneServiceOccurrence {
 /// The occurrences chosen for a run. An empty set means every occurrence.
 using SceneRunSelection = std::set<SceneServiceOccurrence>;
 
+/// The kind of an incident.
+enum class IncidentType {
+	SignalFailure,	///< A signal or section fails; the scene file and the legacy file spell it "signal_failure".
+	TrainBreakdown, ///< A train breaks down; the scene file and the legacy file spell it "train_breakdown".
+};
+
+/// The spelling of an incident type in scene files and legacy rows: "signal_failure" or "train_breakdown".
+const char* incidentTypeName(IncidentType type);
+
+/// Reads the spelling of an incident type into type. False, with type unchanged, for any other text.
+bool incidentTypeFromName(const std::string& name, IncidentType& type);
+
 /// An incident of a scenario. Times are seconds after the base time of the scene.
 struct SceneIncident {
-	std::string id;	  ///< Unique id of the incident.
-	std::string type; ///< "signal_failure" or "train_breakdown".
+	std::string id;									 ///< Unique id of the incident.
+	IncidentType type = IncidentType::SignalFailure; ///< The kind of incident.
 	/// A signal id or section reference for a signal failure, a service id for a breakdown.
 	std::string target;
 	double startSeconds = 0.0; ///< Start in seconds after the base time.

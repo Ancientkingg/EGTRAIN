@@ -90,7 +90,8 @@ void decodeIncidentArray(const SceneFieldReader& reader, const json& root, const
 		const std::string incidentPath = path.empty()
 			? "incidents[" + std::to_string(index) + "]"
 			: path + ".incidents[" + std::to_string(index) + "]";
-		output.push_back(decodeIncident(reader, root["incidents"][index], incidentPath));
+		if (auto incident = decodeIncident(reader, root["incidents"][index], incidentPath))
+			output.push_back(std::move(*incident));
 	}
 }
 
@@ -121,13 +122,14 @@ void decodeDwellSettings(const SceneFieldReader& reader, const json& settings, S
 } // namespace
 
 void SceneFieldReader::report(const char* code, const std::string& message, const std::string& path,
-	SceneSeverity severity) const {
+	SceneSeverity severity, const std::string& suggestedFix) const {
 	SceneDiagnostic diagnostic;
 	diagnostic.severity = severity;
 	diagnostic.code = code;
 	diagnostic.file = std::string(file_);
 	diagnostic.message = message;
 	diagnostic.path = path;
+	diagnostic.suggestedFix = suggestedFix;
 	sink_.push_back(std::move(diagnostic));
 }
 
@@ -225,16 +227,22 @@ bool SceneFieldReader::boolField(const json& object, const char* key, const std:
 	return true;
 }
 
-SceneIncident decodeIncident(const SceneFieldReader& reader, const json& value, const std::string& path) {
+std::optional<SceneIncident> decodeIncident(const SceneFieldReader& reader, const json& value, const std::string& path) {
 	SceneIncident incident;
 	reader.stringField(value, "id", path, incident.id);
-	reader.stringField(value, "type", path, incident.type);
+	std::string typeName;
+	const bool unknownType = reader.stringField(value, "type", path, typeName) && !incidentTypeFromName(typeName, incident.type);
+	if (unknownType)
+		reader.report("scene.incident.type", "Unknown incident type", joinPath(path, "type"), SceneSeverity::Error,
+			"Use signal_failure or train_breakdown");
 	reader.stringField(value, "target", path, incident.target, true, kUnchosen);
 	reader.numberField(value, "start_seconds", path, incident.startSeconds);
 	incident.hasEndSeconds = reader.numberField(value, "end_seconds", path, incident.endSeconds, false);
 	incident.hasOccurrence = reader.integerField(value, "occurrence", path, incident.occurrence, false);
 	incident.hasReducedSpeed = reader.numberField(value, "reduced_speed_kmh", path, incident.reducedSpeedKmh, false);
 	reader.boolField(value, "terminate_at_destination", path, incident.terminateAtDestination);
+	if (unknownType)
+		return std::nullopt;
 	return incident;
 }
 
@@ -263,8 +271,10 @@ SceneScenario decodeScenarioFile(const SceneFieldReader& reader, const json& roo
 		for (std::size_t index = 0; index < root["incidents"].size(); ++index) {
 			const json& item = root["incidents"][index];
 			const std::string path = "incidents[" + std::to_string(index) + "]";
-			if (reader.objectItem(item, path, "Incident must be an object"))
-				scenario.incidents.push_back(decodeIncident(reader, item, path));
+			if (!reader.objectItem(item, path, "Incident must be an object"))
+				continue;
+			if (auto incident = decodeIncident(reader, item, path))
+				scenario.incidents.push_back(std::move(*incident));
 		}
 	}
 	if (reader.arraySection(root, "entrance_delays", "", false)) {

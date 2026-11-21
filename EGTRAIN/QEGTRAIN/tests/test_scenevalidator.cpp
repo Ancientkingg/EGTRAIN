@@ -154,7 +154,7 @@ static SceneModel completeScene() {
 	SceneScenario scenario;
 	scenario.id = "baseline";
 	scenario.name = "Baseline";
-	scenario.incidents.push_back({"incident-1", "signal_failure", "signal-1", 300.0, 600.0});
+	scenario.incidents.push_back({"incident-1", IncidentType::SignalFailure, "signal-1", 300.0, 600.0});
 	scenario.entranceDelays.push_back({"service-1", 1, "station-1", 10.0});
 	scene.scenarios.push_back(scenario);
 	scene.defaultScenarioId = "baseline";
@@ -292,7 +292,7 @@ static bool listed(const std::vector<std::string>& ids, const char* id) {
 static SceneModel reducedBreakdownScene() {
 	SceneModel reducedBreakdown = completeScene();
 	SceneIncident& reducedIncident = reducedBreakdown.scenarios[0].incidents[0];
-	reducedIncident.type = "train_breakdown";
+	reducedIncident.type = IncidentType::TrainBreakdown;
 	reducedIncident.target = "service-1";
 	reducedIncident.startSeconds = 300.0;
 	reducedIncident.endSeconds = 0.0;
@@ -2774,7 +2774,7 @@ void TestSceneValidator::breakdownEndMustFollowStart() {
 void TestSceneValidator::signalFailureRejectsBreakdownFields() {
 	SceneModel invalidBreakdown = reducedBreakdownScene();
 	invalidBreakdown.scenarios[0].incidents[0].terminateAtDestination = true;
-	invalidBreakdown.scenarios[0].incidents[0].type = "signal_failure";
+	invalidBreakdown.scenarios[0].incidents[0].type = IncidentType::SignalFailure;
 	invalidBreakdown.scenarios[0].incidents[0].target = "signal-1";
 	QVERIFY2(hasCode(validateRunnableScene(invalidBreakdown), "scene.incident.fields"),
 		"signal failures reject breakdown-only fields");
@@ -2978,7 +2978,7 @@ void TestSceneValidator::namesIncompleteEntries() {
 	scene.services.push_back(service);
 	SceneIncident incident;
 	incident.id = "new_incident";
-	incident.type = "signal_failure";
+	incident.type = IncidentType::SignalFailure;
 	incident.hasEndSeconds = true;
 	scene.scenarios[0].incidents.push_back(incident);
 	scene.blockDependencies.push_back({});

@@ -221,9 +221,8 @@ namespace {
 // One line of the run details for an incident, such as "Incident i1: train breakdown of svc.a #2, from 100 s, no end,
 // reduced speed 40 km/h".
 QString incidentLine(const SceneIncident& incident) {
-	const QString type = incident.type == "signal_failure" ? QStringLiteral("signal failure")
-		: incident.type == "train_breakdown"			   ? QStringLiteral("train breakdown")
-														   : QString::fromStdString(incident.type);
+	const QString type = incident.type == IncidentType::SignalFailure ? QStringLiteral("signal failure")
+																	  : QStringLiteral("train breakdown");
 	QString target = incident.target.empty() ? QStringLiteral("no target") : QString::fromStdString(incident.target);
 	if (incident.hasOccurrence || incident.occurrence != 1)
 		target += QStringLiteral(" #%1").arg(incident.occurrence);

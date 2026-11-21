@@ -102,7 +102,7 @@ IncidentTargetChoices incidentTargetChoices(const SceneModel& model, const Scene
 	};
 	add(QStringLiteral("Choose target"), QString());
 	int current = 0;
-	const bool signalFailure = incident && incident->type == "signal_failure";
+	const bool signalFailure = incident && incident->type == IncidentType::SignalFailure;
 	if (incident) {
 		const QString target = QString::fromStdString(incident->target);
 		bool found = false;
