@@ -499,8 +499,11 @@ A scene without slices is written without the key, and the legacy export leaves
 the slices out with a warning.
 
 A run adds one passenger per counted passenger after the passengers of the
-scene. The passengers of a cell with count n appear at start + i * (end -
-start) / n for i = 0 to n - 1, each with one live journey. A passenger's ID is
+scene. It adds them slice by slice in the order of their start (a tie by ID) and,
+within a slice, cell by cell in the order of the origin station and then of the
+destination station in `stations.json`, whatever the order in the file. The
+passengers of a cell with count n appear at start + i * (end - start) / n for
+i = 0 to n - 1, each with one live journey. A passenger's ID is
 `<slice>:<origin>><destination>#<i>`, and its journey ID adds `.1`.
 
 The matrix of one slice can be read from and written to CSV. The first row

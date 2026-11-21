@@ -130,6 +130,7 @@ private slots:
 	void reducedBreakdownTargetsOneOccurrence();
 	void buildsPlatformGeometryAndPassengers();
 	void demandSlicesStageLivePassengers();
+	void demandStagingIgnoresTheOrderOfTheFile();
 	void commandLineBufferAndRecoveryStay();
 	void sceneDwellSettingsReachTheDwellModel();
 	void steppedOperatingCodesReachOccurrences();
@@ -833,6 +834,41 @@ void TestOperationsBuilder::demandSlicesStageLivePassengers() {
 		QVERIFY(journey.Mode == JourneyMode::Live);
 	}
 	QVERIFY(defaultRun().passengerIndex.covers(defaultRun().passengers));
+}
+
+void TestOperationsBuilder::demandStagingIgnoresTheOrderOfTheFile() {
+	const ScenePassengerDemandSlice morning{"morning", 100.0, 200.0, {{"station.0", "station.2", 2}, {"station.1", "station.0", 1}, {"station.1", "station.2", 1}}};
+	const ScenePassengerDemandSlice evening{"evening", 300.0, 400.0, {{"station.2", "station.0", 1}, {"station.0", "station.1", 2}}};
+	// The passengers that a scene with these slices stages for demand, in list order.
+	const auto stagedIds = [](const std::vector<ScenePassengerDemandSlice>& slices, const std::vector<std::size_t>& cellOrder) {
+		SceneModel scene = completeScene();
+		scene.passengerDemand = slices;
+		// Reorders the cells of each slice: cellOrder[i] is the position in the file of the cell that comes i-th.
+		for (ScenePassengerDemandSlice& slice : scene.passengerDemand) {
+			std::vector<ScenePassengerDemandCell> reordered;
+			for (const std::size_t position : cellOrder)
+				if (position < slice.cells.size())
+					reordered.push_back(slice.cells[position]);
+			slice.cells = reordered;
+		}
+		std::vector<std::string> ids;
+		if (hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene))
+			|| hasErrors(buildOperationsFromScene(defaultRun(), scene, "scenario.base")))
+			return ids;
+		for (auto passenger = std::next(defaultRun().passengers.begin()); passenger != defaultRun().passengers.end(); ++passenger)
+			ids.push_back(passenger->ID);
+		return ids;
+	};
+	const std::vector<std::string> sorted = stagedIds({morning, evening}, {0, 1, 2});
+	// Slices by start, cells by origin and then destination in the order of the stations, then the passengers of a cell.
+	const std::vector<std::string> expected{"morning:station.0>station.2#0", "morning:station.0>station.2#1",
+		"morning:station.1>station.0#0", "morning:station.1>station.2#0", "evening:station.0>station.1#0",
+		"evening:station.0>station.1#1", "evening:station.2>station.0#0"};
+	QCOMPARE(sorted, expected);
+	// The same slices and cells in another order stage the same passengers in the same order.
+	QCOMPARE(stagedIds({evening, morning}, {0, 1, 2}), expected);
+	QCOMPARE(stagedIds({morning, evening}, {2, 1, 0}), expected);
+	QCOMPARE(stagedIds({evening, morning}, {1, 2, 0}), expected);
 }
 
 void TestOperationsBuilder::buildsPlatformGeometryAndPassengers() {
