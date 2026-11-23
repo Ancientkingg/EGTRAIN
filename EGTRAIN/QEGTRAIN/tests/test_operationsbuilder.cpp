@@ -4,6 +4,7 @@
 #include "scene/SceneWriter.h"
 #include "scene/SignallingLevel.h"
 #include "scene/SignallingLevelNames.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "simulation/PassengerFlow.h"
 #include "simulation/Passengers.h"
 #include "simulation/RollingStock.h"
@@ -183,6 +184,7 @@ private slots:
 	void indexesFindPassengersAndPlatforms();
 	void boardingUsesWaitingListOfPlatform();
 	void waitingPassengersAreListedByDeparture();
+	void platformListKeepsTheFirstPassengersAndDestinationsCountAll();
 	void boardingWithoutPassengerGuiKeepsPlatformList();
 	void brakingPointSearch();
 	void brakingStartCacheMatchesComputation();
@@ -2470,6 +2472,60 @@ void TestOperationsBuilder::waitingPassengersAreListedByDeparture() {
 	QCOMPARE(waitingIds(flow.waitingAt("S1", "P1").passengers), "a3 f1 f1 a1 ");
 	QCOMPARE(platforms.back().Current_N_Passengers, 5);
 	QCOMPARE(waitingIds(std::next(platforms.begin())->Current_List_Pax_On_Platform), "b1 ");
+}
+
+// A platform lists only the first kGuiPlatformPassengerIcons waiting passengers but counts all of them, and the flow counts the waiting
+// passengers by destination as they come and go.
+void TestOperationsBuilder::platformListKeepsTheFirstPassengersAndDestinationsCountAll() {
+	std::list<Passenger> passengers;
+	for (int i = 0; i < 60; ++i) {
+		Passenger passenger = passengerWaitingAt("p" + std::to_string(100 - i), "S1", "P1", 100 - i);
+		passenger.Journeys.front().Arr_Station_ID = i % 3 == 0 ? "Z" : "A";
+		passengers.push_back(passenger);
+	}
+	std::list<StationPlatform> platforms(1);
+	platforms.front().StationID = "S1";
+	platforms.front().ID = "P1";
+	PassengerFlow flow;
+	flow.build(passengers);
+	flow.refreshPlatformLists(platforms);
+	const WaitingAtPlatform all = flow.waitingAt("S1", "P1");
+	QCOMPARE(platforms.front().Current_N_Passengers, 60);
+	QCOMPARE(all.passengers.size(), std::size_t(60));
+	QCOMPARE(platforms.front().Current_List_Pax_On_Platform.size(), std::size_t(kGuiPlatformPassengerIcons));
+	QVERIFY(std::equal(platforms.front().Current_List_Pax_On_Platform.begin(), platforms.front().Current_List_Pax_On_Platform.end(), all.passengers.begin()));
+	using Counts = std::vector<std::pair<std::string, int>>;
+	QCOMPARE(flow.destinationCounts("S1", "P1"), (Counts{{"A", 40}, {"Z", 20}}));
+	QVERIFY(flow.destinationCounts("S1", "P9").empty());
+
+	// A passenger who boards leaves the counts, and one who waits for another destination moves.
+	Passenger& boarding = passengers.front(); // destination Z
+	boarding.CurrentStatus = PassengerStatus::OnBoard;
+	boarding.Current_Train_Boarded = "T1";
+	boarding.Current_Arrival_Station = "Z";
+	flow.placed(0);
+	Passenger& changed = *std::next(passengers.begin()); // destination A
+	changed.Journeys.front().Arr_Station_ID = "Z";
+	flow.placed(1);
+	QCOMPARE(flow.destinationCounts("S1", "P1"), (Counts{{"A", 39}, {"Z", 20}}));
+	for (auto it = std::next(passengers.begin(), 2); it != passengers.end(); ++it)
+		if (it->Journeys.front().Arr_Station_ID == "A") {
+			it->CurrentStatus = PassengerStatus::OnBoard;
+			it->Current_Train_Boarded = "T1";
+			it->Current_Arrival_Station = "A";
+			flow.placed(static_cast<int>(std::distance(passengers.begin(), it)));
+		}
+	QCOMPARE(flow.destinationCounts("S1", "P1"), (Counts{{"Z", 20}}));
+
+	// A transfer: the passenger who boarded alights at another station and waits there for the next trip.
+	boarding.CurrentStatus = PassengerStatus::OnPlatform;
+	boarding.Current_WaitingStationID = "S2";
+	boarding.Current_WaitingStationPlatformID = "P1";
+	boarding.Current_Train_Boarded = "None";
+	flow.alighted(0);
+	QCOMPARE(flow.destinationCounts("S2", "P1"), (Counts{{"Z", 1}}));
+	QCOMPARE(flow.destinationCounts("S1", "P1"), (Counts{{"Z", 20}}));
+	QCOMPARE(flow.waitingCount("S2", "P1"), 1);
 }
 
 // Without the passenger GUI a boarding train works from the list of its own platform.

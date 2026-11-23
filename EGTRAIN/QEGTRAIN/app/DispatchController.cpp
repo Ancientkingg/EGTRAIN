@@ -224,7 +224,9 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 		state.platformId = platform.ID;
 		state.maxVolume = platform.Max_Passenger_Volume;
 		// Without the passenger GUI the run keeps no platform lists, but its passenger flow counts who waits where.
-		const std::size_t waitingCount = !run.settings.PAX_GUI && run.passengerFlow.covers(run.passengers)
+		// With it the lists hold only the first passengers, so the flow counts the rest too.
+		const bool flowCounts = run.passengerFlow.covers(run.passengers);
+		const std::size_t waitingCount = flowCounts
 			? static_cast<std::size_t>(run.passengerFlow.waitingCount(platform.StationID, platform.ID))
 			: platform.Current_List_Pax_On_Platform.size();
 		state.passengerCount = static_cast<int>(waitingCount);
@@ -240,19 +242,24 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 				state.passengers.push_back(GuiPassengerState{waiting.first, {}, {}, {}, {}});
 		}
 		// every passenger who waits, by the destination of the journey, for the card of the station
-		std::map<std::string_view, int> byDestination;
-		for (const auto& waiting : platform.Current_List_Pax_On_Platform) {
-			const Passenger* passenger = passengerOf(waiting.first);
-			if (!passenger)
-				continue;
-			const auto journey = std::find_if(passenger->Journeys.begin(), passenger->Journeys.end(),
-				[passenger](const Journey& value) { return value.ID == passenger->current_JourneyID; });
-			if (journey != passenger->Journeys.end() && !journey->Arr_Station_ID.empty())
-				++byDestination[journey->Arr_Station_ID];
+		if (run.settings.PAX_GUI && flowCounts) {
+			for (auto& entry : run.passengerFlow.destinationCounts(platform.StationID, platform.ID))
+				state.destinations.push_back({std::move(entry.first), entry.second});
+		} else {
+			std::map<std::string_view, int> byDestination;
+			for (const auto& waiting : platform.Current_List_Pax_On_Platform) {
+				const Passenger* passenger = passengerOf(waiting.first);
+				if (!passenger)
+					continue;
+				const auto journey = std::find_if(passenger->Journeys.begin(), passenger->Journeys.end(),
+					[passenger](const Journey& value) { return value.ID == passenger->current_JourneyID; });
+				if (journey != passenger->Journeys.end() && !journey->Arr_Station_ID.empty())
+					++byDestination[journey->Arr_Station_ID];
+			}
+			state.destinations.reserve(byDestination.size());
+			for (const auto& entry : byDestination)
+				state.destinations.push_back({std::string(entry.first), entry.second});
 		}
-		state.destinations.reserve(byDestination.size());
-		for (const auto& entry : byDestination)
-			state.destinations.push_back({std::string(entry.first), entry.second});
 		std::stable_sort(state.destinations.begin(), state.destinations.end(),
 			[](const GuiDestinationCount& x, const GuiDestinationCount& y) { return x.count > y.count; });
 		snapshot.platforms.push_back(std::move(state));

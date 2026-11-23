@@ -3,6 +3,7 @@
 
 #include "simulation/Infrastructure.h"
 #include "simulation/Passengers.h"
+#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <list>
@@ -54,11 +55,17 @@ public:
 	void startDueJourneys(int now, const std::function<void(int position)>& onStarted = {});
 
 	/// Sets the number and the list of the waiting passengers of every platform that changed since the last call, and of every
-	/// platform at the first call for this platform list.
+	/// platform at the first call for this platform list. The list holds the first kGuiPlatformPassengerIcons waiting
+	/// passengers in boarding order; the number counts all of them.
 	void refreshPlatformLists(std::list<StationPlatform>& platforms);
 
 	/// The passengers waiting at the platform with these IDs, in boarding order.
 	WaitingAtPlatform waitingAt(const std::string& stationId, const std::string& platformId) const;
+	/// The waiting passengers of the platform by the arrival station of their journey, in the order of the station names.
+	/// A passenger is counted once for each entry that waitingAt() lists for the passenger, and a journey without arrival
+	/// station is not counted. The counts follow the passengers as they move, so reading them costs the number of
+	/// destinations, not the number of passengers.
+	std::vector<std::pair<std::string, int>> destinationCounts(const std::string& stationId, const std::string& platformId) const;
 
 	/// A passenger who waits for a train: from when, and who.
 	struct Waiter {
@@ -111,6 +118,7 @@ private:
 		int second = -1;			 // waiting: train; on board: arrival station
 		std::vector<Waiter> waiters; // waiting only
 		bool refused = false;		 // waiting only: refused boarding the train that the passenger waits for
+		int destination = -1;		 // waiting only: number of the arrival station of the journey, -1 for none
 	};
 	struct TrainQueue {
 		std::set<Waiter> all;
@@ -119,6 +127,7 @@ private:
 	};
 	struct PlatformQueues {
 		int count = 0;
+		std::map<int, int> byDestination; // station number to the entries of the waiting passengers going there
 		bool dirty = false;
 		std::unordered_map<int, TrainQueue> byTrain;
 	};
@@ -132,11 +141,12 @@ private:
 	int findPlatformKey(const std::string& stationId, const std::string& platformId) const;
 	int idOf(const std::string& name);
 	int findId(const std::string& name) const;
+	int destinationOf(const Passenger& passenger);
 	void unregister(int position);
 	void registerState(int position);
 	void markDirty(int platform);
 	void scheduleJourneyStart(int position);
-	WaitingAtPlatform listFor(int platform) const;
+	WaitingAtPlatform listFor(int platform, std::size_t limit = SIZE_MAX) const;
 	void attachPlatforms(std::list<StationPlatform>& platforms);
 
 	std::list<Passenger>* source_ = nullptr;
@@ -147,6 +157,7 @@ private:
 
 	std::vector<JourneyStart> journeyStarts_;  // a heap, the earliest start first
 	std::unordered_map<std::string, int> ids_; // train descriptions and station names, numbered
+	std::vector<std::string> idNames_;		   // the name of each number
 	std::map<std::pair<std::string, std::string>, int> platformKeys_;
 	std::vector<PlatformQueues> queues_;
 	std::unordered_map<std::uint64_t, std::vector<int>> onBoard_;
