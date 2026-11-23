@@ -10,7 +10,6 @@
 #include <QComboBox>
 #include <QDir>
 #include <QFile>
-#include <QFileDialog>
 #include <QFontMetrics>
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -564,7 +563,7 @@ void PassengerDemandPanel::setDiagnostics(const std::vector<SceneDiagnostic>* di
 	m_diagnostics = diagnostics;
 }
 
-void PassengerDemandPanel::setCsvFileChooser(std::function<QString(bool)> chooser) {
+void PassengerDemandPanel::setCsvFileChooser(std::function<QString(bool, const QString&)> chooser) {
 	m_csvFileChooser = std::move(chooser);
 }
 
@@ -1112,11 +1111,9 @@ bool PassengerDemandPanel::exportCsvFile(const QString& path) {
 }
 
 QString PassengerDemandPanel::chooseCsvFile(bool save) {
-	if (m_csvFileChooser)
-		return m_csvFileChooser(save);
-	const QString filter = QStringLiteral("CSV files (*.csv);;All files (*)");
-	return save ? QFileDialog::getSaveFileName(this, "Export Demand CSV", QDir::homePath() + "/" + m_selectedId + ".csv", filter)
-				: QFileDialog::getOpenFileName(this, "Import Demand CSV", QDir::homePath(), filter);
+	if (!m_csvFileChooser)
+		return {};
+	return m_csvFileChooser(save, save ? m_selectedId + QStringLiteral(".csv") : QString());
 }
 
 void PassengerDemandPanel::importCsv() {

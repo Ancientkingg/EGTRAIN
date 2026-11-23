@@ -560,7 +560,7 @@ void TestDemandPanel::importsCsv() {
 	file.close();
 	bool saveRequested = true;
 	QString answer;
-	fixture.panel.setCsvFileChooser([&](bool save) {
+	fixture.panel.setCsvFileChooser([&](bool save, const QString&) {
 		saveRequested = save;
 		return answer;
 	});
@@ -620,12 +620,15 @@ void TestDemandPanel::exportsCsvRoundTrip() {
 	QVERIFY(directory.isValid());
 	const QString path = directory.filePath("out.csv");
 	bool saveRequested = false;
-	fixture.panel.setCsvFileChooser([&](bool save) {
+	QString proposed;
+	fixture.panel.setCsvFileChooser([&](bool save, const QString& suggestedName) {
 		saveRequested = save;
+		proposed = suggestedName;
 		return path;
 	});
 	QTest::mouseClick(fixture.panel.exportButton(), Qt::LeftButton);
 	QVERIFY(saveRequested);
+	QVERIFY(proposed.endsWith(".csv") && proposed.size() > 4);
 	QFile file(path);
 	QVERIFY(file.open(QIODevice::ReadOnly));
 	QCOMPARE(QString::fromUtf8(file.readAll()), text);
