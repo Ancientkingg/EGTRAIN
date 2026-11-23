@@ -1,5 +1,6 @@
 #include "editors/StopEditorDialog.h"
 
+#include "scene/SceneModel.h"
 #include "scene/StopInsertion.h"
 #include "util/CsvWriter.h"
 #include "util/TimeFormat.h"
@@ -106,15 +107,7 @@ QString plannedTimeProblem(bool clockMode, const QString& field) {
 namespace TimetableStops {
 
 long long baseTimeToSeconds(const std::string& hhmmss) {
-	if (hhmmss.empty())
-		return 0;
-	int h = 0, m = 0, s = 0;
-	char extra = 0;
-	if (std::sscanf(hhmmss.c_str(), "%d:%d:%d%c", &h, &m, &s, &extra) != 3)
-		return 0;
-	if (h < 0 || h > 23 || m < 0 || m > 59 || s < 0 || s > 59)
-		return 0;
-	return h * 3600 + m * 60 + s;
+	return sceneBaseTimeSeconds(hhmmss).value_or(0);
 }
 
 QString stationDisplayName(const SceneModel& model, const std::string& stationId) {

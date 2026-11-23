@@ -2,6 +2,7 @@
 
 #include "scene/PassengerDemandCsv.h"
 #include "scene/SceneDiagnostic.h"
+#include "scene/SceneModel.h"
 #include "widgets/DialogLayout.h"
 
 #include <QComboBox>
@@ -620,7 +621,7 @@ std::vector<DemandRanges::Bar> PassengerDemandPanel::modelBars() const {
 std::pair<double, double> PassengerDemandPanel::horizon() const {
 	if (!hasScene())
 		return {0.0, DemandRanges::DayEnd};
-	const double start = DemandRanges::parseClock(QString::fromStdString(m_document->model().baseTime)).value_or(0.0);
+	const double start = sceneBaseTimeSeconds(m_document->model().baseTime).value_or(0);
 	const double duration = occurrenceDuration();
 	const double end = std::min(DemandRanges::DayEnd, start + duration);
 	if (duration <= 0.0 || end <= start)

@@ -12,7 +12,6 @@
 #include <iterator>
 #include <limits>
 #include <optional>
-#include <regex>
 #include <set>
 #include <sstream>
 #include <string_view>
@@ -761,8 +760,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		scene.settings.hasDuration ? scene.settings.durationSeconds : 0.0);
 
 	if (!scene.baseTime.empty()) {
-		static const std::regex timePattern("^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$");
-		if (!std::regex_match(scene.baseTime, timePattern)) {
+		if (!sceneBaseTimeSeconds(scene.baseTime)) {
 			diagnostics.error("scene.basetime.invalid", "Base time must be HH:MM:SS",
 				"scene.json", "scene", "", "base_time", "",
 				"Write the base time as HH:MM:SS, for example 08:00:00");

@@ -6,6 +6,7 @@
 #include "graphics/NetworkView.h"
 #include "graphics/VisualPolish.h"
 #include "graphics/items/SignalItem.h"
+#include "scene/SceneModel.h"
 #include "scene/TrackPreview.h"
 #include "util/CsvWriter.h"
 #include "widgets/SettingsDialog.h"
@@ -31,17 +32,10 @@ constexpr int kFollowNameRole = Qt::UserRole + 1;
 /// and its scheduled time, and leaves the rest of a 1024 px status bar to the message on the left. Longer text is elided.
 constexpr int kFollowStatusMaxWidth = 400;
 
-/// Seconds since midnight of an "hh:mm:ss" base time; 0 when the text is empty or not a time of day.
+/// Seconds since midnight of an "hh:mm:ss" base time; 0 when the text is empty or not a time of day, as
+/// `sceneBaseTimeSeconds` reads it.
 inline int baseTimeToSeconds(const std::string& hhmmss) {
-	if (hhmmss.empty())
-		return 0;
-	int h = 0, m = 0, s = 0;
-	char extra = 0;
-	if (std::sscanf(hhmmss.c_str(), "%d:%d:%d%c", &h, &m, &s, &extra) != 3)
-		return 0;
-	if (h < 0 || h > 23 || m < 0 || m > 59 || s < 0 || s > 59)
-		return 0;
-	return h * 3600 + m * 60 + s;
+	return sceneBaseTimeSeconds(hhmmss).value_or(0);
 }
 
 /// The longest delay between two steps of a run, in milliseconds: the delay at the slow end of the speed slider, whose
