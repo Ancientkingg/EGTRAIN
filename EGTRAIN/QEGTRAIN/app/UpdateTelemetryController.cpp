@@ -91,6 +91,7 @@ std::optional<telemetry::Error> telemetryDiagnosticError(const std::vector<Scene
 		"scene.passenger.leg.stop",
 		"scene.passenger.occurrence.out_of_horizon",
 		"scene.passenger.transfers.invalid",
+		"scene.passenger.walking.invalid",
 		"scene.passenger.window",
 		"scene.passengers.results",
 		"scene.performance.invalid",

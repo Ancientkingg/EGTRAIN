@@ -177,8 +177,7 @@ void TestUpdateTelemetryController::mapsEveryErrorCodeOrNamesItAsUnmapped() {
 	// and the checks of the legacy import and of the native builder, whose input the telemetry does not classify.
 	const QStringList unmappedPrefixes{"scene.export.", "scene.import.", "scene.native."};
 	// Codes that no rule maps today. Mapping one changes what the telemetry records, so it is a decision of its own.
-	const QSet<QString> unmapped{"scene.passenger.walking.invalid", "scene.scenario.file.missing", "scene.scenario.root.type",
-		"scene.train.capacity"};
+	const QSet<QString> unmapped{"scene.scenario.file.missing", "scene.scenario.root.type", "scene.train.capacity"};
 	const QRegularExpression report(QStringLiteral("\\berror\\(\\s*\"(scene\\.[a-z0-9_.]+)\"|SceneSeverity::Error,\\s*\"(scene\\.[a-z0-9_.]+)\""));
 	QSet<QString> codes;
 	const QString root = QDir(QStringLiteral(EGTRAIN_TEST_SOURCE_DIR)).filePath("..");
