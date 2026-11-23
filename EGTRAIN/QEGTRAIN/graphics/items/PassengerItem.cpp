@@ -24,6 +24,18 @@ QColor PassengerItem::crowdingColour(PlatformCrowding crowding) {
 	return QColor(0x4f, 0xb3, 0xbf);
 }
 
+QColor PassengerItem::troughFill() {
+	return QColor(0x2c, 0x38, 0x46);
+}
+
+QColor PassengerItem::troughOutline() {
+	return QColor(0x5c, 0x6a, 0x78);
+}
+
+QColor PassengerItem::ink() {
+	return QColor(0x0d, 0x14, 0x1b);
+}
+
 QPixmap PassengerItem::figure(PlatformCrowding crowding) {
 	constexpr qreal ratio = 4.0;
 	QPixmap pixmap(QSize(qRound(FigureWidth * ratio), qRound(FigureHeight * ratio)));
@@ -32,7 +44,7 @@ QPixmap PassengerItem::figure(PlatformCrowding crowding) {
 	QPainter painter(&pixmap);
 	painter.setRenderHint(QPainter::Antialiasing);
 	const QColor fill = crowdingColour(crowding);
-	painter.setPen(QPen(QColor(0x0d, 0x14, 0x1b), 1.2));
+	painter.setPen(QPen(ink(), 1.2));
 	painter.setBrush(fill);
 	// a head over a rounded body
 	painter.drawRoundedRect(QRectF(3.0, 16.0, FigureWidth - 6.0, FigureHeight - 17.0), 7.0, 7.0);

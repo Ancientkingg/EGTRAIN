@@ -1736,7 +1736,7 @@ void NetworkPresenter::updateStationCounts() {
 			created.pill->setData(PreviewGraphics::CalloutStation, QString::fromStdString(station));
 			created.pill->setVisible(false);
 			created.text = new QGraphicsSimpleTextItem(created.pill);
-			created.text->setBrush(QColor(0x0d, 0x14, 0x1b));
+			created.text->setBrush(PassengerItem::ink());
 			QFont font;
 			font.setPixelSize(11);
 			font.setBold(true);
@@ -3500,8 +3500,8 @@ void NetworkPresenter::updatePlatformMore(PlatformItem* platform, int hidden, in
 	constexpr qreal kChipPadding = 7.0;
 	if (!platform->moreIcon) {
 		auto* chip = new QGraphicsPathItem;
-		chip->setPen(QPen(QColor(0x5c, 0x6a, 0x78), 1.0));
-		chip->setBrush(QColor(0x0d, 0x14, 0x1b));
+		chip->setPen(QPen(PassengerItem::troughOutline(), 1.0));
+		chip->setBrush(PassengerItem::ink());
 		chip->setZValue(3);
 		chip->setAcceptedMouseButtons(Qt::NoButton);
 		auto* label = new QGraphicsSimpleTextItem(chip);

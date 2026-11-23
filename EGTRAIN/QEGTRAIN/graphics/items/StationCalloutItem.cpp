@@ -1,5 +1,6 @@
 #include "graphics/items/StationCalloutItem.h"
 
+#include "graphics/items/PassengerItem.h"
 #include <QFont>
 #include <QFontMetricsF>
 #include <QGraphicsSceneMouseEvent>
@@ -16,7 +17,6 @@ constexpr qreal kBarWidth = 150.0;
 
 const QColor kText(0xd7, 0xdd, 0xe4);
 const QColor kMuted(0x8b, 0x96, 0xa3);
-const QColor kBar(0x4f, 0xb3, 0xbf);
 
 QFont pixelFont(int pixels, bool bold = false) {
 	QFont font;
@@ -183,7 +183,7 @@ void StationCalloutItem::paint(QPainter* painter, const QStyleOptionGraphicsItem
 				metrics.elidedText(destination.name, Qt::ElideRight, kNameWidth - 4.0));
 			const qreal width = std::max(3.0, kBarWidth * destination.count / largest);
 			painter->setPen(Qt::NoPen);
-			painter->setBrush(kBar);
+			painter->setBrush(PassengerItem::crowdingColour(PlatformCrowding::Normal));
 			painter->drawRoundedRect(QRectF(left + kNameWidth, y + (kRowHeight - kBarHeight) / 2.0, width, kBarHeight), 3.5, 3.5);
 			painter->setPen(kText);
 			painter->drawText(QRectF(left, y, right - left, kRowHeight), Qt::AlignVCenter | Qt::AlignRight, QString::number(destination.count));

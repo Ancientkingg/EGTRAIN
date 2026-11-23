@@ -3,9 +3,6 @@
 #include <algorithm>
 
 namespace {
-// The colours of the trough of a gauge.
-const QColor kTroughFill(0x2c, 0x38, 0x46);
-const QColor kTroughOutline(0x5c, 0x6a, 0x78);
 // The end cap of a platform over its capacity is this many times the thickness of the bar high and this many wide.
 constexpr qreal kCapHeight = 1.6;
 constexpr qreal kCapWidth = 0.22;
@@ -71,11 +68,11 @@ void PlatformItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* opti
 		painter->drawRect(bar);
 		return;
 	}
-	QPen outline(kTroughOutline);
+	QPen outline(PassengerItem::troughOutline());
 	outline.setCosmetic(true);
 	outline.setWidth(0);
 	painter->setPen(outline);
-	painter->setBrush(kTroughFill);
+	painter->setBrush(PassengerItem::troughFill());
 	painter->drawRect(bar);
 	const qreal fraction = fillFraction();
 	if (fraction > 0.0) {

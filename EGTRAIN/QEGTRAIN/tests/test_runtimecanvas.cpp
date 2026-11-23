@@ -1574,7 +1574,7 @@ void TestRuntimeCanvas::platformBarShowsCrowdingGauge() {
 		painter.end();
 		return image.pixelColor(qRound(bar.width() * (0.1 + along) * scale), qRound(bar.height() * (1.0 + across) * scale));
 	};
-	const QColor trough(0x2c, 0x38, 0x46);
+	const QColor trough = PassengerItem::troughFill();
 	snapshot.platforms = {platformWith("B", "P1", 40, Ids{})};
 	snapshot.platforms[0].passengerCount = 30;
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);

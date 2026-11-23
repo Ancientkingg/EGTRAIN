@@ -27,6 +27,12 @@ public:
 
 	/// The colour of the gauge and the figures of a platform that is as crowded as crowding says.
 	static QColor crowdingColour(PlatformCrowding crowding);
+	/// The fill of the trough of a platform gauge, behind the bar of its passengers.
+	static QColor troughFill();
+	/// The outline of the trough of a platform gauge.
+	static QColor troughOutline();
+	/// The dark ink of the outline of a figure and of the text on a pill or chip in the colour of a gauge.
+	static QColor ink();
 	/// The figure of a passenger in the colour of crowding, FigureWidth by FigureHeight scene units drawn at four times
 	/// that many pixels.
 	static QPixmap figure(PlatformCrowding crowding);
