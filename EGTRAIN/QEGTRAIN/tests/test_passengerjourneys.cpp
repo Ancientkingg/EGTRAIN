@@ -392,6 +392,10 @@ void TestPassengerJourneys::trainThatEndsEarlySetsDownPassengerWhoContinuesOnAno
 	QCOMPARE(next.Arr_Station_ID, std::string("C"));
 	QCOMPARE(next.Planned_Departure_Time, 210);
 	QVERIFY(journey.IsReplanned);
+	// The delay is measured against the first plan (arrival 200), not against the planned arrival of T2.
+	QCOMPARE(journey.FirstPlanArrival, 200);
+	QVERIFY(next.Planned_Arrival_Time != 200);
+	QCOMPARE(journey.arrivalDelay(230, -5), 30);
 	QVERIFY(passenger.IsIntheNetwork);
 	QCOMPARE(passenger.CurrentStatus, PassengerStatus::OnPlatform);
 	QCOMPARE(passenger.Current_Train_To_Wait, std::string("T2"));

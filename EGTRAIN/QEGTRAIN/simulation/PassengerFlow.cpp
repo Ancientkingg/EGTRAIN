@@ -385,8 +385,9 @@ void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStarti
 						// if the selected trip is the last trip of the active journey then set that journey j will be completed
 						if ((currenttrip->TripID == LasttripOfJourney->TripID) && (currenttrip->Arr_Station_ID == j->Arr_Station_ID)) {
 							j->Actual_Arrival_Time = currenttrip->Actual_Arrival_Time;
-							j->totalJourneyArrivalDelay = currenttrip->totalArrivalDelay; // Could also be computed as Actual_Arrival_Time - Actual_Planned_Arrival_Time
-							// however it might be that in the rescheduling process the Planned arrival time of the last trip of the journey is changed based on rerouting or replanning of the train service.
+							// The delay of the last leg, unless the journey was planned again: then it is measured against the arrival
+							// of its first plan, because the planned arrival of the last leg is that of the replacement train.
+							j->totalJourneyArrivalDelay = j->arrivalDelay(currenttrip->Actual_Arrival_Time, currenttrip->totalArrivalDelay);
 
 							j->IsJourneyCompleted = true;
 							j->Outcome = JourneyOutcome::Completed;

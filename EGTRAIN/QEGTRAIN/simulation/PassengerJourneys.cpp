@@ -222,13 +222,16 @@ void PassengerJourneys::planInto(SimulationRun& run, Passenger& passenger, Journ
 	const int now = t + run.settings.startingSimulationTime;
 	const string station = passenger.Current_WaitingStationID;
 	const string platformId = passenger.Current_WaitingStationPlatformID;
+	// The first plan of a journey with given legs is the last of them.
+	if (journey.FirstPlanArrival == -9999 && !journey.Trips.empty())
+		journey.FirstPlanArrival = journey.Trips.back().Planned_Arrival_Time;
 	journey.Trips.erase(next(journey.Trips.begin(), static_cast<ptrdiff_t>(min(keptTrips, journey.Trips.size()))), journey.Trips.end());
 	if (isReplan)
 		journey.IsReplanned = true;
 	if (station == journey.Arr_Station_ID) {
 		// The passenger is at the destination already.
 		journey.Actual_Arrival_Time = now;
-		journey.totalJourneyArrivalDelay = journey.Trips.empty() ? 0 : journey.Trips.back().totalArrivalDelay;
+		journey.totalJourneyArrivalDelay = journey.arrivalDelay(now, journey.Trips.empty() ? 0 : journey.Trips.back().totalArrivalDelay);
 		journey.IsJourneyCompleted = true;
 		journey.Outcome = JourneyOutcome::Completed;
 		journey.N_Trips = static_cast<int>(journey.Trips.size());
@@ -266,6 +269,8 @@ void PassengerJourneys::planInto(SimulationRun& run, Passenger& passenger, Journ
 		journey.Trips.push_back(std::move(trip));
 	}
 	journey.N_Trips = static_cast<int>(journey.Trips.size());
+	if (journey.FirstPlanArrival == -9999)
+		journey.FirstPlanArrival = journey.Trips.back().Planned_Arrival_Time;
 	Trip& first = *next(journey.Trips.begin(), static_cast<ptrdiff_t>(keptTrips));
 	// A passenger who stands on another platform walks to the platform of the first train, as at a transfer.
 	const int walking = static_cast<int>(passenger_routing::walkingSeconds(platformNumber, first.depPlatformNumber));
@@ -365,6 +370,9 @@ void PassengerJourneys::setDownEarly(SimulationRun& run, Passenger& passenger, c
 		return;
 	const int now = t + run.settings.startingSimulationTime;
 	const Node& node = train.Stations[static_cast<size_t>(stop)];
+	// The trip is cut short below, so keep the planned arrival of the first plan while it is still there.
+	if (journey->FirstPlanArrival == -9999)
+		journey->FirstPlanArrival = journey->Trips.back().Planned_Arrival_Time;
 	trip->Arr_Station_ID = node.stationName;
 	trip->Arr_Station_Platform_ID = node.stationPlatformId;
 	trip->Actual_Arrival_Time = now;
