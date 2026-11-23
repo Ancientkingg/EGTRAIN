@@ -40,6 +40,9 @@ public:
 	double recoveryTimePercentage;
 	/// The most transfers a plan of a live passenger journey may use (simulation_settings.passenger_max_transfers, 0 to 10).
 	int passengerMaxTransfers = 2;
+	/// Walking time in seconds per platform number of difference between two platforms of a station
+	/// (simulation_settings.passenger_walking_seconds_per_platform, 0 to 600).
+	int passengerWalkingSecondsPerPlatform = 30;
 	/// The coefficients beta0 to beta7 of the passenger dwell model of every train (simulation_settings.passenger_dwell_coefficients).
 	std::array<double, kPassengerDwellCoefficientCount> passengerDwellCoefficients = kDefaultPassengerDwellCoefficients;
 	/// The platform occupancy rate above which the dwell model counts the platform as crowded

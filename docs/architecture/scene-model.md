@@ -100,7 +100,8 @@ The scene-level simulation settings are deliberately small: `base_time`,
 `simulation_settings.duration_seconds`,
 `simulation_settings.buffer_time_seconds`, and
 `simulation_settings.recovery_time_percent`, the optional
-`simulation_settings.passenger_max_transfers`, and the optional passenger dwell
+`simulation_settings.passenger_max_transfers`, the optional
+`simulation_settings.passenger_walking_seconds_per_platform`, and the optional passenger dwell
 keys (`passenger_dwell_coefficients` and the three crowding thresholds), which
 the writer leaves out while they are absent. Legacy case counts, GUI flags,
 output paths, and network feature flags are not scene-model settings.

@@ -86,6 +86,8 @@ public:
 	void beginCall(int platform, int train, int call);
 	/// The places of the passengers who wait at the platform for the train, in boarding order, one for each passenger.
 	std::vector<int> waitingFor(int platform, int train) const;
+	/// The places of the passengers who wait at the platform for any train, one for each passenger, in the order of the waiting lines.
+	std::vector<int> waitingAt(int platform) const;
 	/// Removes every passenger on board of the train from the flow and returns their places in list order, like
 	/// takeOnBoardArrivingAt for all stations.
 	std::vector<int> takeAllOnBoard(const std::string& train);

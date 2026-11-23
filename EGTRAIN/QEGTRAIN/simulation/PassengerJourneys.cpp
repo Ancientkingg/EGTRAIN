@@ -150,7 +150,7 @@ void PassengerJourneys::ensureBuilt(const SimulationRun& run) {
 		}
 		timetables.push_back(std::move(timetable));
 	}
-	router_ = make_unique<passenger_routing::Router>(std::move(timetables), stationIndices_.size());
+	router_ = make_unique<passenger_routing::Router>(std::move(timetables), stationIndices_.size(), run.settings.passengerWalkingSecondsPerPlatform);
 	watches_.assign(static_cast<size_t>(run.numTrains), Watch());
 }
 
@@ -218,7 +218,8 @@ Plan PassengerJourneys::planFrom(const SimulationRun& run, const Journey& journe
 	return found->second.plan(static_cast<size_t>(to));
 }
 
-void PassengerJourneys::planInto(SimulationRun& run, Passenger& passenger, Journey& journey, size_t keptTrips, int t, int readyAt, int platformNumber, bool isReplan) {
+void PassengerJourneys::planInto(SimulationRun& run, Passenger& passenger, Journey& journey, size_t keptTrips, int t, int readyAt, int platformNumber, bool isReplan,
+	const Plan* given) {
 	const int now = t + run.settings.startingSimulationTime;
 	const string station = passenger.Current_WaitingStationID;
 	const string platformId = passenger.Current_WaitingStationPlatformID;
@@ -238,7 +239,7 @@ void PassengerJourneys::planInto(SimulationRun& run, Passenger& passenger, Journ
 		leaveNetwork(passenger, station, platformId, now);
 		return;
 	}
-	const Plan plan = planFrom(run, journey, station, t, readyAt, platformNumber);
+	const Plan plan = given != nullptr ? *given : planFrom(run, journey, station, t, readyAt, platformNumber);
 	journey.N_Trips = static_cast<int>(journey.Trips.size());
 	if (!plan.reached() || plan.legs.empty()) {
 		journey.Outcome = JourneyOutcome::NoRoute;
@@ -273,12 +274,12 @@ void PassengerJourneys::planInto(SimulationRun& run, Passenger& passenger, Journ
 		journey.FirstPlanArrival = journey.Trips.back().Planned_Arrival_Time;
 	Trip& first = *next(journey.Trips.begin(), static_cast<ptrdiff_t>(keptTrips));
 	// A passenger who stands on another platform walks to the platform of the first train, as at a transfer.
-	const int walking = static_cast<int>(passenger_routing::walkingSeconds(platformNumber, first.depPlatformNumber));
+	const int walking = static_cast<int>(passenger_routing::walkingSeconds(platformNumber, first.depPlatformNumber, run.settings.passengerWalkingSecondsPerPlatform));
 	journey.Walkingtime += walking;
 	waitForTrip(passenger, first, readyAt + walking);
 }
 
-void PassengerJourneys::replanWaiting(SimulationRun& run, Passenger& passenger, int t, optional<int> alightedAtPlatform) {
+void PassengerJourneys::replanWaiting(SimulationRun& run, Passenger& passenger, int t, optional<int> alightedAtPlatform, const Plan* given) {
 	Journey* journey = activeJourney(passenger);
 	if (journey == nullptr)
 		return;
@@ -304,7 +305,62 @@ void PassengerJourneys::replanWaiting(SimulationRun& run, Passenger& passenger, 
 			}
 		}
 	}
-	planInto(run, passenger, *journey, kept, t, readyAt, platformNumber, true);
+	planInto(run, passenger, *journey, kept, t, readyAt, platformNumber, true, given);
+}
+
+optional<Plan> PassengerJourneys::standingDirectPlan(const SimulationRun& run, const Passenger& passenger, const Journey& journey,
+	const Trip& current, int t, optional<int> alightedAtPlatform, int onlyTrain) const {
+	const string& station = passenger.Current_WaitingStationID;
+	const string& platformId = passenger.Current_WaitingStationPlatformID;
+	const int currentTrain = trainIndex(current.TrainServiceDescription);
+	// The train that the passenger has just left is not another train.
+	const auto self = find_if(journey.Trips.begin(), journey.Trips.end(), [&current](const Trip& trip) { return trip.TripID == current.TripID; });
+	const int leftTrain = self != journey.Trips.begin() ? trainIndex(prev(self)->TrainServiceDescription) : -1;
+	const int lastTrain = trainIndex(journey.Trips.back().TrainServiceDescription);
+	if (lastTrain < 0)
+		return nullopt;
+	const double start = run.settings.startingSimulationTime;
+	// When the plan reaches the destination: the planned arrival of its last train and the delay that train has now.
+	const Train& last = run.trains[static_cast<size_t>(lastTrain)];
+	double planArrival = passenger_routing::kUnreached;
+	for (size_t s = states_[static_cast<size_t>(lastTrain)].firstStop; s < static_cast<size_t>(stopCount(last)); ++s)
+		if (last.Stations[s].stationName == journey.Arr_Station_ID && last.ScheduledArrivals[s] >= 0) {
+			planArrival = last.ScheduledArrivals[s] + start + states_[static_cast<size_t>(lastTrain)].delay;
+			break;
+		}
+	if (planArrival == passenger_routing::kUnreached)
+		return nullopt;
+	optional<Plan> best;
+	for (int n = 0; n < run.numTrains; ++n) {
+		const Train& T = run.trains[static_cast<size_t>(n)];
+		// Only a train that stands at the platform now.
+		if ((onlyTrain >= 0 && n != onlyTrain) || n == currentTrain || n == leftTrain || T.Current_OnBoard_Passengers >= T.MAX_OnBoard_Passengers
+			|| !T.StoppedForServiceStop || T.OutOfSimulation || T.CurrentServiceStop != station
+			|| T.CurrentServiceStopPlatform != platformId)
+			continue;
+		const TrainState& state = states_[static_cast<size_t>(n)];
+		const size_t board = state.firstStop;
+		if (board >= static_cast<size_t>(stopCount(T)) || T.Stations[board].stationName != station
+			|| T.Stations[board].stationPlatformId != platformId || T.ScheduledDepartures[board] < 0 || !haltsAtStop(T, static_cast<int>(board)))
+			continue;
+		const double departure = T.ScheduledDepartures[board] + start + state.delay;
+		// A passenger who alighted walks from the arrival platform; one who waits is ready when the walk to the platform ends.
+		const double now = t + start;
+		const double ready = alightedAtPlatform
+			? now + passenger_routing::walkingSeconds(*alightedAtPlatform, T.stationPlatformNumber[board], run.settings.passengerWalkingSecondsPerPlatform)
+			: (current.IsTripStarted && current.Actual_Departure_Time >= 0 ? max(now, static_cast<double>(current.Actual_Departure_Time)) : now);
+		if (ready > departure)
+			continue;
+		for (size_t s = board + 1; s < static_cast<size_t>(stopCount(T)); ++s) {
+			if (T.Stations[s].stationName != journey.Arr_Station_ID || T.ScheduledArrivals[s] < 0)
+				continue;
+			const double arrival = T.ScheduledArrivals[s] + start + state.delay;
+			if (arrival <= planArrival && (!best || arrival < best->arrival))
+				best = Plan{{Leg{static_cast<size_t>(n), board, s, departure, arrival}}, arrival};
+			break;
+		}
+	}
+	return best;
 }
 
 void PassengerJourneys::startJourney(SimulationRun& run, Passenger& passenger, int t) {
@@ -336,8 +392,36 @@ void PassengerJourneys::checkWaiting(SimulationRun& run, Passenger& passenger, i
 	if (train < 0)
 		return;
 	ensureStates(run, t);
-	if (!callsAt(run, train, passenger.Current_WaitingStationID, passenger.Current_WaitingStationPlatformID))
+	if (!callsAt(run, train, passenger.Current_WaitingStationID, passenger.Current_WaitingStationPlatformID)) {
 		replanWaiting(run, passenger, t, alightedAtPlatform);
+	} else if (const optional<Plan> direct = standingDirectPlan(run, passenger, *journey, *trip, t, alightedAtPlatform)) {
+		// A train that stands here and goes direct to the destination in time is taken instead of the plan.
+		replanWaiting(run, passenger, t, alightedAtPlatform, &*direct);
+	}
+}
+
+void PassengerJourneys::offerStandingTrain(SimulationRun& run, PassengerFlow& flow, int train, int t) {
+	ensureBuilt(run);
+	const Train& T = run.trains[static_cast<size_t>(train)];
+	ensureStates(run, t);
+	const int stop = T.serviceStopOf(T.CurrentServiceStop);
+	if (stop < 0 || static_cast<size_t>(stop) != states_[static_cast<size_t>(train)].firstStop)
+		return;
+	const Node& node = T.Stations[static_cast<size_t>(stop)];
+	for (const int position : flow.waitingAt(flow.platformNumber(node.stationName, node.stationPlatformId))) {
+		Passenger& passenger = flow.passenger(position);
+		const Journey* journey = activeJourney(passenger);
+		if (journey == nullptr || passenger.Current_Train_To_Wait == T.trainDescription)
+			continue;
+		const auto trip = find_if(journey->Trips.begin(), journey->Trips.end(),
+			[&passenger](const Trip& candidate) { return candidate.TripID == passenger.current_TripID; });
+		if (trip == journey->Trips.end())
+			continue;
+		if (const optional<Plan> direct = standingDirectPlan(run, passenger, *journey, *trip, t, nullopt, train)) {
+			replanWaiting(run, passenger, t, nullopt, &*direct);
+			flow.alighted(position);
+		}
+	}
 }
 
 void PassengerJourneys::replanRefused(SimulationRun& run, Passenger& passenger, const Train& full, int t) {

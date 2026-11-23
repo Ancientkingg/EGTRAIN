@@ -9,7 +9,8 @@
 ///
 /// Stations and trains are indices; the caller maps them to the IDs of the run. Times are seconds on one clock of the
 /// caller's choice. A search starts at an origin station at a time and finds, for every station, the earliest arrival
-/// with at most a given number of transfers, and among the earliest arrivals the one with the fewest trains. It works in
+/// with at most a given number of transfers, and among the earliest arrivals the one with the fewest trains, and then the one
+/// whose last train leaves earlier. It works in
 /// rounds: round k holds the best arrivals that use k trains (round-based public transit routing, without the grouping of
 /// trains into routes).
 namespace passenger_routing {
@@ -17,13 +18,12 @@ namespace passenger_routing {
 /// A time that is not reached.
 inline constexpr double kUnreached = std::numeric_limits<double>::infinity();
 
-/// Walking time in seconds per platform of difference between two platform numbers at a transfer.
-inline constexpr double kWalkingSecondsPerPlatform = 30.0;
+/// Walking time in seconds per platform number of difference between two platforms of a station when the case gives no value.
+inline constexpr double kDefaultWalkingSecondsPerPlatform = 30.0;
 
-/// Walking time in seconds between two platforms of a station, from their platform numbers: none for the same or a
-/// neighbouring platform, otherwise kWalkingSecondsPerPlatform per platform of difference. A number of 0 is an unknown
-/// platform and needs no walking.
-double walkingSeconds(int fromPlatformNumber, int toPlatformNumber);
+/// Walking time in seconds between two platforms of a station, from their platform numbers: secondsPerPlatform for each
+/// platform number of difference, so none on the same platform. A number of 0 is an unknown platform and needs no walking.
+double walkingSeconds(int fromPlatformNumber, int toPlatformNumber, double secondsPerPlatform = kDefaultWalkingSecondsPerPlatform);
 
 /// One stop of a train: where it stops and its planned times. A time below 0 is missing: a train cannot be boarded at a
 /// stop without a departure, nor left at a stop without an arrival.
@@ -92,8 +92,9 @@ private:
 /// The trains of a run, with an index from stations to the trains that stop there.
 class Router {
 public:
-	/// Keeps the timetables. A stop with a station outside stationCount is ignored.
-	Router(std::vector<TrainTimetable> trains, std::size_t stationCount);
+	/// Keeps the timetables. A stop with a station outside stationCount is ignored. A transfer walks secondsPerPlatform per
+	/// platform number of difference (see walkingSeconds).
+	Router(std::vector<TrainTimetable> trains, std::size_t stationCount, double walkingSecondsPerPlatform = kDefaultWalkingSecondsPerPlatform);
 
 	/// The number of trains.
 	std::size_t trainCount() const { return trains_.size(); }
@@ -112,6 +113,7 @@ public:
 private:
 	std::vector<TrainTimetable> trains_;
 	std::size_t stationCount_;
+	double walkingSecondsPerPlatform_;
 	/// For each station, the pairs of train and stop index where a train departs from it.
 	std::vector<std::vector<std::pair<std::size_t, std::size_t>>> departures_;
 };

@@ -260,6 +260,18 @@ std::vector<int> PassengerFlow::waitingFor(int platform, int train) const {
 	return positions;
 }
 
+std::vector<int> PassengerFlow::waitingAt(int platform) const {
+	std::vector<int> positions;
+	if (platform < 0 || static_cast<std::size_t>(platform) >= queues_.size())
+		return positions;
+	std::set<int> seen;
+	for (const auto& [train, line] : queues_[static_cast<std::size_t>(platform)].byTrain)
+		for (const Waiter& waiter : line.all)
+			if (seen.insert(waiter.position).second)
+				positions.push_back(waiter.position);
+	return positions;
+}
+
 std::vector<int> PassengerFlow::takeAllOnBoard(const string& train) {
 	std::vector<int> positions;
 	const int trainId = findId(train);
@@ -355,7 +367,7 @@ void PassengerFlow::refreshPlatformLists(list<StationPlatform>& platforms) {
 namespace {
 // The passenger p, who is on board of train T, alights at the service stop of T: the trip ends, and the passenger leaves the
 // network or waits for the next trip.
-void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStartingTime) {
+void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStartingTime, double walkingSecondsPerPlatform) {
 	Passenger* p = &passenger;
 
 	// Update travel information of the alighted passenger
@@ -433,7 +445,7 @@ void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStarti
 								// Set first of all that the next trip has started
 								nexttrip->IsTripStarted = true;
 								// The walk between the platforms is the one the routing plans (an unknown platform number needs none).
-								const double Walkingtime = passenger_routing::walkingSeconds(T.currentServiceStopPlatformNumber, nexttrip->depPlatformNumber);
+								const double Walkingtime = passenger_routing::walkingSeconds(T.currentServiceStopPlatformNumber, nexttrip->depPlatformNumber, walkingSecondsPerPlatform);
 								nexttrip->Actual_Departure_Time = t + SimulationStartingTime + Walkingtime;
 								j->Walkingtime = j->Walkingtime + Walkingtime;
 							}
@@ -457,7 +469,7 @@ int alightPassengers(PassengerFlow& flow, SimulationRun& run, Train& T, int t, i
 	const std::vector<int> alighting = flow.takeOnBoardArrivingAt(T.trainDescription, T.CurrentServiceStop);
 	for (const int position : alighting) {
 		T.Current_OnBoard_Passengers--; // the passenger leaves the train
-		alightPassenger(flow.passenger(position), T, t, SimulationStartingTime);
+		alightPassenger(flow.passenger(position), T, t, SimulationStartingTime, run.settings.passengerWalkingSecondsPerPlatform);
 		// A passenger who transfers plans again when the train of the next trip is already gone, from the platform of this train.
 		run.passengerJourneys.checkWaiting(run, flow.passenger(position), t, T.currentServiceStopPlatformNumber);
 		flow.alighted(position);
@@ -599,6 +611,10 @@ void interactAtServiceStop(PassengerFlow& flow, SimulationRun& run, int t, int S
 		return;
 	StopCallCounts* counts = currentCall(run, train);
 	const StationPlatform* stop = platformOfStop(run, T);
+	// A train that has just arrived is offered to the passengers who wait on its platform for another train.
+	const int call = T.serviceStopOf(T.CurrentServiceStop);
+	if (call >= 0 && T.Stations[static_cast<size_t>(call)].StepStopped == 1)
+		run.passengerJourneys.offerStandingTrain(run, flow, train, t);
 	// The occupation rate of the platform counts the passengers who waited there before the train let anyone off and those who
 	// alight. A passenger who alights and waits there for another train is among the second and not among the first.
 	const int waitingBefore = stop != nullptr ? flow.waitingCount(stop->StationID, stop->ID) : 0;

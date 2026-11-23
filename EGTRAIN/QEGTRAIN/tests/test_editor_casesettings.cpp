@@ -108,6 +108,7 @@ private slots:
 	void accessibilityStepsBySingleStep();
 	void namesCommandLineOverrides();
 	void editsPassengerTransfers();
+	void editsPassengerWalkingTime();
 };
 
 // Save, Undo and validation commit the field that is being edited. A stored number that a field shows at a limit of its
@@ -205,6 +206,20 @@ void TestCaseSettingsPanel::editsPassengerTransfers() {
 	g.panel.commitPendingEditors();
 	typeAndLeave(g.panel.nameEdit(), "Renamed");
 	QCOMPARE(g.document.model().settings.passengerMaxTransfers, 12);
+}
+
+// The walking time per platform is shown with its default, edited as one Undo step and kept when another field is edited.
+void TestCaseSettingsPanel::editsPassengerWalkingTime() {
+	SceneModel scene = caseScene("Case W", "08:00:00");
+	CaseFixture f(scene);
+	QCOMPARE(f.panel.walkingSecondsEdit()->value(), kDefaultPassengerWalkingSeconds);
+	QCOMPARE(f.panel.walkingSecondsEdit()->maximum(), kMaxPassengerWalkingSeconds);
+	const quint64 revision = f.document.revision();
+	f.panel.walkingSecondsEdit()->setValue(45);
+	QCOMPARE(f.document.model().settings.passengerWalkingSecondsPerPlatform, 45);
+	QCOMPARE(f.document.revision(), revision + 1);
+	typeAndLeave(f.panel.nameEdit(), "Renamed");
+	QCOMPARE(f.document.model().settings.passengerWalkingSecondsPerPlatform, 45);
 }
 
 void TestCaseSettingsPanel::namesFields() {
