@@ -46,6 +46,7 @@ STYLE = SITE / "site.css"
 PAGE = SITE / "index.html"
 DATA = SITE / "home-data.json"
 ASSETS = (SITE / "fonts/archivo-latin-wdth-wght.woff2", SITE / "fonts/Archivo-OFL.txt", ROOT / "docs/images/readme-main-window.png",
+          ROOT / "docs/images/how-to-passengers.png",
           SITE / "legacy/site.css")
 DESCRIPTION = ("EGTRAIN is a desktop application for microscopic railway simulation. Download it for macOS, Windows or Linux, "
                "and read the documentation of every version.")
