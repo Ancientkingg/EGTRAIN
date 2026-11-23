@@ -142,6 +142,10 @@ public:
 	/// Fits the canvas to the network, or to the preview bounds while a preview shows.
 	void fitView();
 
+	/// Asks for a PNG or SVG file and saves the whole network as the view shows it at Fit, with the layers that are on
+	/// and the trains and states of the view. The window keeps its zoom and scroll.
+	void exportNetworkImage();
+
 	/// Creates the result views and the Run Results dock.
 	void setupRunResultsDock();
 	/// Writes the Run Results table of the completed run and shows the dock.
@@ -286,6 +290,7 @@ private:
 	bool m_committingPendingEditorValues = false;
 	QAction* m_saveSceneAction = nullptr;
 	QAction* m_saveSceneAsAction = nullptr;
+	QAction* m_exportNetworkImageAction = nullptr;
 	QAction* m_advancedDetailsAction = nullptr;
 	QAction* m_outputFolderAction = nullptr;
 	// The validation table, the loaded data tree and the validation status of the status bar belong to m_validation.

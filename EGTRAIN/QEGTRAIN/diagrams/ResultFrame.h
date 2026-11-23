@@ -188,6 +188,14 @@ QString saveExportInteractive(QWidget* parent, UserPrompts& prompts, telemetry::
 	const QString& suggestedName, const telemetry::OperationObservation& operation,
 	const std::function<std::optional<std::string>()>& bytes, const ExportWriter& write = {});
 
+/// Exports an image through the save dialog of `parent`, titled `title`, starting at `suggestedName` as
+/// saveExportInteractive does, with the filters "PNG Image" and "SVG Image". A typed suffix of ".png" or ".svg" decides
+/// the format, else the chosen filter, and a path without the suffix gets it. `bytes` gives the content for "png" or
+/// "svg" as saveExportInteractive's does. A PNG is recorded as a PNG export of `operation`; an SVG is not, because the
+/// telemetry schema has no kind for it. Failures are shown and the return value is as for saveExportInteractive.
+QString saveImageInteractive(QWidget* parent, UserPrompts& prompts, const QString& title, const QString& suggestedName,
+	const telemetry::OperationObservation& operation, const std::function<std::optional<std::string>(const QString& suffix)>& bytes);
+
 /// The content of a PNG export of `image`, for saveExportInteractive; nothing when the image cannot be encoded.
 std::optional<std::string> pngBytes(const QImage& image);
 
