@@ -1417,8 +1417,7 @@ void Route::setListInfrastructureElementsForRoute(const Section& BS) {
 				}
 
 				if ((arc.endNode.numConnections > 0) && !setSwitchOfInfraElement(BS, arc.endNode, TEMP_Elem)) {
-					EG_LOG(SimSetup, Warning) << "Warning: Switch at end of one of the arcs: " << arc.endNode.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
-																																																										  " is a diverging switch with less than 4 characters in its name. Please check why...\n";
+					EG_LOG(SimSetup, Warning) << "Warning: Switch at end of one of the arcs: " << arc.endNode.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n";
 				}
 
 				// Increase the locations of 1 element if it is not already in the list
@@ -1437,8 +1436,7 @@ void Route::setListInfrastructureElementsForRoute(const Section& BS) {
 				}
 
 				if ((arc.startNode.numConnections > 0) && !setSwitchOfInfraElement(BS, arc.startNode, TEMP_Elem)) {
-					EG_LOG(SimSetup, Warning) << "Warning: Switch at one of the beginning nodes: " << arc.startNode.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
-																																																												" is a diverging switch with less than 4 characters in its name. Please check why...\n";
+					EG_LOG(SimSetup, Warning) << "Warning: Switch at one of the beginning nodes: " << arc.startNode.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n";
 				}
 
 				// Increase the locations of 1 element if it is not already in the list
@@ -1452,8 +1450,7 @@ void Route::setListInfrastructureElementsForRoute(const Section& BS) {
 		InfraElement TEMP_Elem = infraElementAtNode(BS, BS.end_node);
 		TEMP_Elem.IsTrackDetSecBorder = true;
 		if ((BS.end_node.numConnections > 0) && !setSwitchOfInfraElement(BS, BS.end_node, TEMP_Elem)) {
-			EG_LOG(SimSetup, Warning) << "Warning: Switch at ending Node: " << BS.end_node.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
-																																																					   " is a diverging switch with less than 4 characters in its name. Please check why...\n";
+			EG_LOG(SimSetup, Warning) << "Warning: Switch at ending Node: " << BS.end_node.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n";
 		}
 
 		// Increase the locations of 1 element if it is not already in the list

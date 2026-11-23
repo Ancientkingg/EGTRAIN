@@ -27,8 +27,8 @@ struct SimulationRun;
 /// The length of a simulation step in seconds. A step index t is the time in seconds from the start of the run.
 inline constexpr double timestep = 1;
 /// Signalling speed limits in m/s: signalCode1 caps the section with code 75 at levels 0 and 5, signalCode2 the double
-/// red section of level 5, signalCode3 is passed to the routines as V_0, which they do not use
-inline constexpr double signalCode1 = 11.111, signalCode2 = 0, signalCode3 = 0;
+/// red section of level 5
+inline constexpr double signalCode1 = 11.111, signalCode2 = 0;
 
 /// The tdsbId of the node at a cut end of a section: the element after a cut is not a real one, so the blocking times skip it.
 inline constexpr std::string_view virtualTdsbId = "VirtualTDSB";
@@ -226,8 +226,6 @@ public:
 		Max_Passenger_Volume = Current_N_Passengers = -1;
 	}
 };
-
-bool orderPassengerListOnPlatform(std::pair<std::string, double>& A, std::pair<std::string, double>& blockSets);
 
 /// The name that the station statistics files give to the statistics at the last stop of every train, SimulationRun::finalStation.
 inline constexpr char kFinalStationName[] = "Final_Station";

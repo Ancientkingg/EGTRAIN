@@ -74,15 +74,6 @@ Connections::Connections() {
 	speedlimit = 16.667; // by default the speedlimit on a switch is set to 16.667 m /s; i.e. 60 km/h
 }
 
-// Function to order pairs of elements
-bool orderPassengerListOnPlatform(pair<string, double>& A, pair<string, double>& blockSets) {
-	if (A.second < blockSets.second)
-		return true;
-	else
-		return false;
-}
-
-
 void Print_Station_Delay_Stats(const SimulationRun& run, const string& Name_StationDelay, const string& kindofdelay) {
 	string FileOutName;
 	if (kindofdelay == "pos")

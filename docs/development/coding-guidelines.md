@@ -233,8 +233,8 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   takes once the scene is built. `DispatchController` and the routines of `simulation/` read the
   buffer time, the recovery time, the output folder and the other settings of a run from the copy,
   so a change to `initial_variables` afterwards does not reach the run. The builders and `prepareScene`
-  read `initial_variables` because they make the copy. `timestep` and `signalCode1` to
-  `signalCode3` are `constexpr` values in `simulation/Infrastructure.h`.
+  read `initial_variables` because they make the copy. `timestep`, `signalCode1` and
+  `signalCode2` are `constexpr` values in `simulation/Infrastructure.h`.
   `DispatchController::prepareScene` builds the scene into a staged `SimulationRun` and puts it in the
   place of the run of the controller with `SimulationRun::adopt()`, which points the trains at the
   run and builds the indexes again; a member that points at another member of the run needs a line

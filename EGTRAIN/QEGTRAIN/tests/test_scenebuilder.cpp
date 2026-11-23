@@ -1952,7 +1952,7 @@ void TestSceneBuilder::logsDetectionBorderWarnings() {
 	QVERIFY2(problem.empty(), problem.c_str());
 }
 
-// A switch edge with a one-token name cannot be read as a diverging switch. Three of the four messages write the tail twice.
+// A switch edge with a one-token name cannot be read as a diverging switch.
 void TestSceneBuilder::logsShortSwitchNames() {
 	Capture capture;
 	const auto edge = [] {
@@ -1983,7 +1983,7 @@ void TestSceneBuilder::logsShortSwitchNames() {
 	arcEdge.arcs_in_signalling_block_section[0].endNode.tdsbGeoCoordX = 0.0;
 	arcEdge.arcs_in_signalling_block_section[0].endNode.numConnections = 1;
 	problem = loggedProblem(switchName(false, arcEdge),
-		{{warningLevel, "Warning: Switch at end of one of the arcs: AB on Block Section @S1@for RouteR1that has reversed = 0" + tail + tail}},
+		{{warningLevel, "Warning: Switch at end of one of the arcs: AB on Block Section @S1@for RouteR1that has reversed = 0" + tail}},
 		"a switch at the end of an arc");
 	QVERIFY2(problem.empty(), problem.c_str());
 	Section reversedEdge = edge();
@@ -1993,14 +1993,14 @@ void TestSceneBuilder::logsShortSwitchNames() {
 	reversedEdge.arcs_in_signalling_block_section[0].startNode.tdsbGeoCoordX = 0.0;
 	reversedEdge.arcs_in_signalling_block_section[0].startNode.numConnections = 1;
 	problem = loggedProblem(switchName(true, reversedEdge),
-		{{warningLevel, "Warning: Switch at one of the beginning nodes: AB on Block Section @S1@for RouteR1that has reversed = 1" + tail + tail}},
+		{{warningLevel, "Warning: Switch at one of the beginning nodes: AB on Block Section @S1@for RouteR1that has reversed = 1" + tail}},
 		"a switch at the start of an arc of a reversed route");
 	QVERIFY2(problem.empty(), problem.c_str());
 	Section endEdge = edge();
 	endEdge.end_node.tdsbId = "AB";
 	endEdge.end_node.numConnections = 1;
 	problem = loggedProblem(switchName(false, endEdge),
-		{{warningLevel, "Warning: Switch at ending Node: AB on Block Section @S1@for RouteR1that has reversed = 0" + tail + tail}},
+		{{warningLevel, "Warning: Switch at ending Node: AB on Block Section @S1@for RouteR1that has reversed = 0" + tail}},
 		"a switch at the end of a section");
 	QVERIFY2(problem.empty(), problem.c_str());
 }
