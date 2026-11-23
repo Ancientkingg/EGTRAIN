@@ -483,7 +483,7 @@ void alightPassenger(Passenger& passenger, Train& T, int t, int SimulationStarti
 								nexttrip->IsTripStarted = true;
 								// The walk between the platforms is the one the routing plans (an unknown platform number needs none).
 								const double Walkingtime = passenger_routing::walkingSeconds(T.currentServiceStopPlatformNumber, nexttrip->depPlatformNumber, walkingSecondsPerPlatform);
-								nexttrip->Actual_Departure_Time = t + SimulationStartingTime + Walkingtime;
+								nexttrip->Actual_Departure_Time = static_cast<int>(t + SimulationStartingTime + Walkingtime);
 								j->Walkingtime = j->Walkingtime + Walkingtime;
 							}
 						}

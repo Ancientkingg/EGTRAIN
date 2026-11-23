@@ -119,7 +119,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 		delta3 = 1;
 
 	// Split the boarding and alighting passengers equally among the coaches / wagons
-	int N_cars = number_of_wagons + 1; // the one represents the power unit
+	int N_cars = static_cast<int>(number_of_wagons) + 1; // the one represents the power unit
 	list<int> BoardingPassengersInACar;
 	list<int> AlightingPassengersInACar;
 

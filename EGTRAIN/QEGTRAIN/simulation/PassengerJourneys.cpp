@@ -288,20 +288,20 @@ void PassengerJourneys::replanWaiting(SimulationRun& run, Passenger& passenger, 
 	int readyAt = now;
 	int platformNumber = alightedAtPlatform.value_or(0);
 	if (kept < journey->Trips.size()) {
-		const Trip& given = *next(journey->Trips.begin(), static_cast<ptrdiff_t>(kept));
+		const Trip& givenUp = *next(journey->Trips.begin(), static_cast<ptrdiff_t>(kept));
 		// Second 0 of the day is a time; a trip that nothing has started has -9999.
-		if (given.IsTripStarted && given.Actual_Departure_Time >= 0) {
+		if (givenUp.IsTripStarted && givenUp.Actual_Departure_Time >= 0) {
 			if (alightedAtPlatform) {
 				// The passenger has just alighted and has not set off for the platform of the train that is given up, so the
 				// walk there that the transfer counted is not made: the plan starts now, on the platform of the arrival.
-				journey->Walkingtime -= max(0, given.Actual_Departure_Time - now);
+				journey->Walkingtime -= max(0, givenUp.Actual_Departure_Time - now);
 			} else {
 				// The time spent waiting for the train that is given up still counts as waiting.
-				if (now > given.Actual_Departure_Time)
-					journey->Waitingtime += now - given.Actual_Departure_Time;
+				if (now > givenUp.Actual_Departure_Time)
+					journey->Waitingtime += now - givenUp.Actual_Departure_Time;
 				// A passenger still walking to the platform cannot leave before getting there.
-				readyAt = max(now, given.Actual_Departure_Time);
-				platformNumber = given.depPlatformNumber;
+				readyAt = max(now, givenUp.Actual_Departure_Time);
+				platformNumber = givenUp.depPlatformNumber;
 			}
 		}
 	}
