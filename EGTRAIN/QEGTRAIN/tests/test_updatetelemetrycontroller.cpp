@@ -13,12 +13,16 @@
 #include <QApplication>
 #include <QCloseEvent>
 #include <QCoreApplication>
+#include <QDirIterator>
+#include <QFile>
 #include <QEventLoop>
 #include <QMenu>
 #include <QMessageBox>
 #include <QProcessEnvironment>
+#include <QRegularExpression>
 #include <QPushButton>
 #include <QScopeGuard>
+#include <QSet>
 #include <QSettings>
 #include <QStringList>
 #include <QTemporaryDir>
@@ -26,6 +30,7 @@
 #include <QTimer>
 #include <QWidget>
 
+#include <algorithm>
 #include <optional>
 #include <vector>
 
@@ -111,6 +116,7 @@ private slots:
 	void initTestCase();
 	void cleanup();
 	void mapsDiagnosticErrors();
+	void mapsEveryErrorCodeOrNamesItAsUnmapped();
 	void updateActionsAndFirstStartPrompt();
 	void refusedStartLeavesTelemetryOff();
 	void promptNamesItsDefault();
@@ -162,6 +168,40 @@ void TestUpdateTelemetryController::mapsDiagnosticErrors() {
 	QVERIFY2(error({errorWithCode("scene.json.parse"), errorWithCode("scene.units.unsupported"), errorWithCode("scene.bundle.temp")})
 			== telemetry::Error::UnsupportedFormat,
 		"an unsupported format outranks the other errors");
+}
+
+// The codes of the errors that the sources report are each either mapped by telemetryDiagnosticError() or named here. A
+// new code that is in neither fails, so that whoever adds it decides whether it is invalid input.
+void TestUpdateTelemetryController::mapsEveryErrorCodeOrNamesItAsUnmapped() {
+	// Codes under these prefixes are not invalid input: the failures of an export, which writes what the scene holds,
+	// and the checks of the legacy import and of the native builder, whose input the telemetry does not classify.
+	const QStringList unmappedPrefixes{"scene.export.", "scene.import.", "scene.native."};
+	// Codes that no rule maps today. Mapping one changes what the telemetry records, so it is a decision of its own.
+	const QSet<QString> unmapped{"scene.passenger.walking.invalid", "scene.scenario.file.missing", "scene.scenario.root.type",
+		"scene.train.capacity"};
+	const QRegularExpression report(QStringLiteral("\\berror\\(\\s*\"(scene\\.[a-z0-9_.]+)\"|SceneSeverity::Error,\\s*\"(scene\\.[a-z0-9_.]+)\""));
+	QSet<QString> codes;
+	const QString root = QDir(QStringLiteral(EGTRAIN_TEST_SOURCE_DIR)).filePath("..");
+	for (const char* folder : {"scene", "simulation", "app"}) {
+		QDirIterator files(QDir(root).filePath(folder), {"*.cpp"}, QDir::Files, QDirIterator::Subdirectories);
+		while (files.hasNext()) {
+			QFile file(files.next());
+			QVERIFY2(file.open(QIODevice::ReadOnly), qPrintable(file.fileName()));
+			const QString text = QString::fromUtf8(file.readAll());
+			for (auto match = report.globalMatch(text); match.hasNext();) {
+				const QRegularExpressionMatch found = match.next();
+				codes.insert(found.captured(found.capturedStart(1) >= 0 ? 1 : 2));
+			}
+		}
+	}
+	QVERIFY2(codes.size() > 100, "the error codes were not found in the sources");
+	for (const QString& code : codes) {
+		if (unmapped.contains(code) || std::any_of(unmappedPrefixes.begin(), unmappedPrefixes.end(), [&code](const QString& prefix) { return code.startsWith(prefix); }))
+			continue;
+		const std::vector<SceneDiagnostic> diagnostics{errorWithCode(code.toUtf8().constData())};
+		QVERIFY2(telemetryDiagnosticError(diagnostics).has_value(),
+			qPrintable(code + " is not in the invalid input codes of telemetryDiagnosticError()"));
+	}
 }
 
 void TestUpdateTelemetryController::updateActionsAndFirstStartPrompt() {
