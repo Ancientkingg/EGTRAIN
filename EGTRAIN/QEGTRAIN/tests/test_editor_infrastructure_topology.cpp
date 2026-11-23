@@ -1343,7 +1343,7 @@ void TestTopologyFacets::reversesFallingTrack() {
 	QCOMPARE(fixture.prompts.infoCount, 1);
 	QCOMPARE(fixture.prompts.infoTitle, QString("Track Reversed"));
 	QCOMPARE(fixture.prompts.infoMessage,
-		QString("Track 'track-c' is reversed. Check these routes, which run over it:\n\xE2\x80\xA2 route-c"));
+		QString("Track 'track-c' is reversed.\n\nCheck these routes, which run over it:\n\xE2\x80\xA2 route-c"));
 	QCOMPARE(fixture.messages, QStringList({"Reversed track 'track-c'. Undo restores it."}));
 }
 

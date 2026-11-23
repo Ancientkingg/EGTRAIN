@@ -14,6 +14,9 @@ class QPushButton;
 /// else the cleaned absolute path, and case-folded on Windows.
 QString sceneListKey(const QString& path);
 
+/// Whether `path` is a case that can be opened: a folder that holds a scene.json, or an .egscene file.
+bool isCasePath(const QString& path);
+
 /// The name of a scene in a list of cases: the name in the manifest of a scene folder, else the file name without
 /// .egscene, with underscores as spaces. A scene that is no longer on disk keeps the underscores of its file name.
 QString sceneDisplayName(const QString& path);
