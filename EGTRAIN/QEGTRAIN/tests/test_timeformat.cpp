@@ -29,6 +29,7 @@ private slots:
 	void negativeMidnightHasNoSignedZero();
 	void nonFiniteValueFailsUnchangedText();
 	void formatsDateTimeWithSingleDigits();
+	void formatsClockAndDurationWithoutWrapping();
 };
 
 void TestTimeFormat::formatsSimTime_data() {
@@ -156,6 +157,15 @@ void TestTimeFormat::formatsDateTimeWithSingleDigits() {
 	timestamp.tm_wday = 2;
 	QCOMPARE(formatDateTime(timestamp), "Tue 02.04.2024 4:05:06");
 	QCOMPARE(formatDateTimeFilename(timestamp), "2024_04_02_4_05_06");
+}
+
+void TestTimeFormat::formatsClockAndDurationWithoutWrapping() {
+	QCOMPARE(QString::fromStdString(formatClockSeconds(0)), QString("00:00:00"));
+	QCOMPARE(QString::fromStdString(formatClockSeconds(86400)), QString("24:00:00"));
+	QCOMPARE(QString::fromStdString(formatClockSeconds(-3)), QString("00:00:00"));
+	QCOMPARE(QString::fromStdString(formatDurationSeconds(61)), QString("0:01:01"));
+	QCOMPARE(QString::fromStdString(formatDurationSeconds(36000 + 3661)), QString("11:01:01"));
+	QCOMPARE(QString::fromStdString(formatDurationSeconds(-1)), QString("0:00:00"));
 }
 
 QTEST_APPLESS_MAIN(TestTimeFormat)

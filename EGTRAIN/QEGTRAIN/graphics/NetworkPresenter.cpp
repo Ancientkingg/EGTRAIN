@@ -38,6 +38,7 @@
 #include "scene/SceneReferences.h"
 #include "util/PlaybackProfiler.h"
 #include "util/SpeedFormat.h"
+#include "util/TimeFormat.h"
 
 // The simulation headers still give warnings (#453, #454, #482), so this strict target includes
 // Signalling.h with them switched off, as diagrams/SimulationHeaders.h does.
@@ -208,10 +209,7 @@ StationCalloutContent stationCalloutContent(const std::string& station, const Gu
 		if (call.station != station || content.calls.size() >= kGuiStationCallsListed)
 			continue;
 		StationCalloutContent::Call row;
-		row.time = QStringLiteral("%1:%2:%3")
-					   .arg(call.clock / 3600, 2, 10, QLatin1Char('0'))
-					   .arg(call.clock / 60 % 60, 2, 10, QLatin1Char('0'))
-					   .arg(call.clock % 60, 2, 10, QLatin1Char('0'));
+		row.time = QString::fromStdString(formatClockSeconds(call.clock));
 		row.train = QString::fromStdString(call.train);
 		row.boarded = cell(call, call.boarded);
 		row.alighted = cell(call, call.alighted);

@@ -1,4 +1,5 @@
 #include "util/TimeFormat.h"
+#include <algorithm>
 #include <cstdio>
 #include <cmath>
 #include <iomanip>
@@ -16,6 +17,20 @@ std::string formatSimTime(long long simSeconds, long long baseOffsetSeconds) {
 	long long s = total % 60;
 	char buf[16];
 	std::snprintf(buf, sizeof(buf), "%02lld:%02lld:%02lld", h, m, s);
+	return std::string(buf);
+}
+
+std::string formatClockSeconds(long long seconds) {
+	seconds = std::max(seconds, 0LL);
+	char buf[32];
+	std::snprintf(buf, sizeof(buf), "%02lld:%02lld:%02lld", seconds / 3600, seconds / 60 % 60, seconds % 60);
+	return std::string(buf);
+}
+
+std::string formatDurationSeconds(long long seconds) {
+	seconds = std::max(seconds, 0LL);
+	char buf[32];
+	std::snprintf(buf, sizeof(buf), "%lld:%02lld:%02lld", seconds / 3600, seconds / 60 % 60, seconds % 60);
 	return std::string(buf);
 }
 

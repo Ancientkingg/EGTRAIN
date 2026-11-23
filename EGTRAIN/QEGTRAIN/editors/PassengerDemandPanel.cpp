@@ -3,7 +3,9 @@
 #include "scene/PassengerDemandCsv.h"
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneModel.h"
+#include "util/TimeFormat.h"
 #include "widgets/DialogLayout.h"
+#include "widgets/DiagnosticLines.h"
 
 #include <QComboBox>
 #include <QDir>
@@ -119,11 +121,7 @@ std::pair<double, double> movedEdge(
 }
 
 QString clockText(double seconds) {
-	const int whole = static_cast<int>(std::lround(seconds));
-	return QStringLiteral("%1:%2:%3")
-		.arg(whole / 3600, 2, 10, QLatin1Char('0'))
-		.arg(whole / 60 % 60, 2, 10, QLatin1Char('0'))
-		.arg(whole % 60, 2, 10, QLatin1Char('0'));
+	return QString::fromStdString(formatClockSeconds(std::lround(seconds)));
 }
 
 QString shortClockText(double seconds) {
@@ -416,16 +414,6 @@ void DemandTimeline::keyPressEvent(QKeyEvent* event) {
 // ---- PassengerDemandPanel ----
 
 namespace {
-
-// The most lines of import errors that the diagnostic label shows. The rest is counted.
-constexpr int MaxDiagnosticLines = 5;
-
-QString cappedLines(const QStringList& lines) {
-	if (lines.size() <= MaxDiagnosticLines)
-		return lines.join(QLatin1Char('\n'));
-	return lines.mid(0, MaxDiagnosticLines).join(QLatin1Char('\n'))
-		+ QStringLiteral("\nand %1 more").arg(lines.size() - MaxDiagnosticLines);
-}
 
 // The name of a station as the matrix shows it.
 QString stationLabel(const SceneStation& station) {
@@ -833,37 +821,28 @@ void PassengerDemandPanel::updateDiagnostics(const ScenePassengerDemandSlice* sl
 		DialogLayout::setHelp(m_diagnosticLabel, QStringLiteral("This case has no stations, so it has no passenger demand to edit."));
 		return;
 	}
-	QStringList errors;
-	QStringList notes;
-	bool hasWarning = false;
+	DiagnosticLines lines;
 	if (m_diagnostics) {
 		for (const SceneDiagnostic& diagnostic : *m_diagnostics) {
 			const bool ofSlice = diagnostic.itemType == "demand_slice"
 				&& (diagnostic.itemId.empty() || (slice && diagnostic.itemId == slice->id));
 			if (!ofSlice)
 				continue;
-			const QString message = QString::fromStdString(diagnostic.message);
-			if (diagnostic.severity == SceneSeverity::Error) {
-				errors << message;
-			} else {
-				const bool warning = diagnostic.severity == SceneSeverity::Warning;
-				notes << (warning ? QStringLiteral("Warning: ") : QStringLiteral("Note: ")) + message;
-				hasWarning = hasWarning || warning;
-			}
+			lines.add(diagnostic.severity, QString::fromStdString(diagnostic.message));
 		}
 	}
-	if (errors.isEmpty() && notes.isEmpty()) {
+	if (lines.isEmpty()) {
 		DialogLayout::setHelp(m_diagnosticLabel,
 			slice ? QStringLiteral("An empty cell or 0 means no passengers.")
 				  : QStringLiteral("Drag on the timeline or use Add slice to add a demand slice."));
 		m_diagnosticLabel->setToolTip(QString());
-	} else if (!errors.isEmpty()) {
-		DialogLayout::setStatus(m_diagnosticLabel, DialogLayout::Severity::Error, cappedLines(errors));
-		m_diagnosticLabel->setToolTip(errors.join(QLatin1Char('\n')));
+	} else if (!lines.errors.isEmpty()) {
+		DialogLayout::setStatus(m_diagnosticLabel, DialogLayout::Severity::Error, DiagnosticLines::capped(lines.errors));
+		m_diagnosticLabel->setToolTip(lines.errors.join(QLatin1Char('\n')));
 	} else {
 		DialogLayout::setStatus(m_diagnosticLabel,
-			hasWarning ? DialogLayout::Severity::Warning : DialogLayout::Severity::Neutral, cappedLines(notes));
-		m_diagnosticLabel->setToolTip(notes.join(QLatin1Char('\n')));
+			lines.hasWarning ? DialogLayout::Severity::Warning : DialogLayout::Severity::Neutral, DiagnosticLines::capped(lines.notes));
+		m_diagnosticLabel->setToolTip(lines.notes.join(QLatin1Char('\n')));
 	}
 }
 
@@ -1076,7 +1055,7 @@ bool PassengerDemandPanel::importCsvText(const QString& text) {
 		QStringList lines;
 		for (const std::string& error : csv.errors)
 			lines << QString::fromStdString(error);
-		showNotice(QStringLiteral("The CSV was not imported.\n") + cappedLines(lines));
+		showNotice(QStringLiteral("The CSV was not imported.\n") + DiagnosticLines::capped(lines));
 		return false;
 	}
 	long long all = 0;
