@@ -1382,18 +1382,18 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 		return diagnostics;
 
 	nativeSamplePassengerWindows(run, scene, stagedPassengers);
-	nativeStageDemandPassengers(scene, stationById, stagedPassengers);
-
-	// The new trains are built before the old ones are released, so trains that do not fit in the memory that is free leave
-	// the trains of the run and initial_variables as they were.
+	// The demand passengers and the new trains are built before the old ones are released, so passengers or trains that do not
+	// fit in the memory that is free leave the trains of the run and initial_variables as they were.
 	std::vector<Train> storage;
 	try {
+		nativeStageDemandPassengers(scene, stationById, stagedPassengers);
 		storage = std::vector<Train>(trains.size());
 		for (std::size_t index = 0; index < trains.size(); ++index)
 			nativeCopyTrainPlan(run, trains[index], stagedParameters, storage[index], vectorSize);
 	} catch (const std::bad_alloc&) {
-		// Frees the trains built so far before the message is made.
+		// Frees the passengers and trains built so far before the message is made.
 		storage = std::vector<Train>();
+		stagedPassengers.clear();
 		addNativeMemoryDiagnostic(diagnostics, scene, "scene.native.memory.free",
 			"The run needs more memory than is free for " + nativeRunSizeText(trains.size(), durationSeconds)
 				+ ". Shorten the duration, run fewer trains or close other programs.");
