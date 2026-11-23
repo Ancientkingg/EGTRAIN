@@ -15,6 +15,7 @@
 #include "simulation/GuiSimulationSnapshot.h"
 #include "simulation/InitialParameters.h"
 #include "simulation/Simulation.h"
+#include "simulation/PassengerResults.h"
 #include "simulation/SimulationRun.h"
 #include "support/SnapshotCompare.h"
 #ifdef signals
@@ -64,6 +65,8 @@ struct Case {
 	SceneRunSelection selection;
 	bool signalArea = false;
 	bool passengers = false;
+	// Called with every snapshot that the run publishes, while the run stands at that step.
+	std::function<void(const GuiSimulationSnapshot&)> onSnapshot;
 };
 
 // The seconds that a case keeps: spread over the run, and on both sides of every keyframe (every 300 seconds, from 0).
@@ -131,10 +134,13 @@ void runCase(const Case& c, const QString& outputDir, CaseRun& run) {
 		simulation.resetReplayCandidate();
 
 		QObject receiver;
-		const auto keepSnapshot = [&run]() {
-			if (auto snapshot = simulation.takeSimulationSnapshot())
+		const auto keepSnapshot = [&run, &c]() {
+			if (auto snapshot = simulation.takeSimulationSnapshot()) {
+				if (c.onSnapshot)
+					c.onSnapshot(*snapshot);
 				if (sampled(*snapshot))
 					run.kept[snapshot->timestep] = std::move(snapshot);
+			}
 		};
 		QObject::connect(&simulation, &DispatchController::snapshotAvailable, &receiver, keepSnapshot, Qt::DirectConnection);
 		simulation.runSimulation();
@@ -214,6 +220,7 @@ class TestReplayLive : public QObject {
 private slots:
 	void lineFixture();
 	void paimpolWithPassengers();
+	void destinationCountsEqualAFullWalk();
 	void milanoBrescia();
 	void secondRunReplacesFirst();
 };
@@ -256,6 +263,59 @@ void TestReplayLive::paimpolWithPassengers() {
 				 }),
 		"no train changes its onboard passengers between two kept seconds");
 	compareWithLive("Paimpol", run);
+}
+
+// The destination counts of the platform cards, which the passenger flow keeps while the passengers move, equal a walk of all
+// passengers in the run that the snapshot is taken from, through the transfers, refusals and replans of the run.
+void TestReplayLive::destinationCountsEqualAFullWalk() {
+	QTemporaryDir output;
+	QVERIFY(output.isValid());
+	int compared = 0, withDestinations = 0;
+	std::string firstDifference;
+	CaseRun run;
+	Case c = sceneCase("Paimpol", true);
+	c.onSnapshot = [&](const GuiSimulationSnapshot& snapshot) {
+		if (snapshot.timestep % 3 != 0 || !firstDifference.empty())
+			return;
+		const SimulationRun& state = simulation.run();
+		for (const GuiPlatformState& platform : snapshot.platforms) {
+			std::map<std::string, int> expected;
+			int waiting = 0;
+			for (const Passenger& passenger : state.passengers) {
+				if (!passenger.IsIntheNetwork || passenger.CurrentStatus != PassengerStatus::OnPlatform
+					|| passenger.Current_WaitingStationID != platform.stationId || passenger.Current_WaitingStationPlatformID != platform.platformId)
+					continue;
+				++waiting;
+				const auto journey = std::find_if(passenger.Journeys.begin(), passenger.Journeys.end(),
+					[&passenger](const Journey& value) { return value.ID == passenger.current_JourneyID; });
+				if (journey != passenger.Journeys.end() && !journey->Arr_Station_ID.empty())
+					++expected[journey->Arr_Station_ID];
+			}
+			std::map<std::string, int> actual;
+			for (const GuiDestinationCount& entry : platform.destinations)
+				actual[entry.destination] += entry.count;
+			if (actual != expected || waiting != platform.passengerCount)
+				firstDifference = "second " + std::to_string(snapshot.timestep) + " platform " + platform.stationId + "/" + platform.platformId;
+			++compared;
+			withDestinations += expected.empty() ? 0 : 1;
+		}
+	};
+	runCase(c, output.path(), run);
+	QVERIFY(!QTest::currentTestFailed());
+	QVERIFY2(firstDifference.empty(), firstDifference.c_str());
+	QVERIFY2(compared > 0 && withDestinations > 0, "no platform with waiting passengers was compared");
+	// The run has transfers (a passenger who alights and waits again), refusals and replanned journeys.
+	int replanned = 0, leftBehind = 0, transfers = 0;
+	for (const Passenger& passenger : simulation.run().passengers)
+		for (const Journey& journey : passenger.Journeys) {
+			replanned += journey.IsReplanned ? 1 : 0;
+			transfers += journey.Trips.size() > 1 && journey.IsJourneyCompleted ? 1 : 0;
+		}
+	for (int train = 0; train < simulation.run().numTrains; ++train)
+		for (int stop = 0; stop < Train::kMaxTimetableStations; ++stop)
+			if (const StopCallCounts* call = simulation.run().stopCalls.find(train, stop))
+				leftBehind += call->leftBehind;
+	qInfo() << "compared" << compared << "platform states; replanned journeys" << replanned << "left behind" << leftBehind << "transfers" << transfers;
 }
 
 void TestReplayLive::milanoBrescia() {
