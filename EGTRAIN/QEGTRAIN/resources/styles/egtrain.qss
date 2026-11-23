@@ -83,23 +83,23 @@ QToolButton:disabled {
     color: #64717a;
 }
 
-/* Toolbar buttons, the map key toggle, the button that picks the target of an incident and the train, occurrence and
+/* Toolbar buttons, the button that picks the target of an incident and the train, occurrence and
    station buttons of a result window have the corners, border and states of a push button: a white face, the control
    border, a darker border under the pointer, the band face while pressed and a 2 px action border with keyboard focus. The
    padding gives up the extra pixel of the focus border, so the text and the icon do not move. */
-QToolBar QToolButton, QToolButton#mapKeyToggle, QDialog TrainFilterButton, QToolButton#incidentPickTargetButton {
+QToolBar QToolButton, QDialog TrainFilterButton, QToolButton#incidentPickTargetButton {
     background: #ffffff;
     border-color: #7b8b96;
     border-radius: 6px;
 }
 
-QToolBar QToolButton:hover, QToolButton#mapKeyToggle:hover, QDialog TrainFilterButton:hover,
+QToolBar QToolButton:hover, QDialog TrainFilterButton:hover,
 QToolButton#incidentPickTargetButton:hover {
     background: #ffffff;
     border-color: #5b6871;
 }
 
-QToolBar QToolButton:focus, QToolButton#mapKeyToggle:focus, QDialog TrainFilterButton:focus,
+QToolBar QToolButton:focus, QDialog TrainFilterButton:focus,
 QToolButton#incidentPickTargetButton:focus {
     background: #ffffff;
     border: 2px solid #2e7491;
@@ -111,7 +111,7 @@ QToolButton#incidentPickTargetButton:focus {
     padding: 2px;
 }
 
-QToolBar QToolButton:pressed, QToolButton#mapKeyToggle:pressed, QDialog TrainFilterButton:pressed,
+QToolBar QToolButton:pressed, QDialog TrainFilterButton:pressed,
 QToolButton#incidentPickTargetButton:pressed {
     background: #e3eaee;
 }
@@ -267,17 +267,26 @@ QPushButton:focus {
     outline: none;
 }
 
-/* The map key toggle has small grey text; checked, it keeps its face. */
+/* The map key toggle has the heading of the Layers section, with a small arrow and no face. Keyboard focus shows as a 2 px
+   action border under it. */
 QToolButton#mapKeyToggle {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
     color: #5b6871;
     font-size: 11px;
     font-weight: 600;
-    padding: 5px 2px;
+    letter-spacing: 0.4px;
+    padding: 0px;
     text-align: left;
 }
 
+QToolButton#mapKeyToggle:hover {
+    color: #3f4d56;
+}
+
 QToolButton#mapKeyToggle:focus {
-    padding: 4px 1px;
+    border-bottom: 2px solid #2e7491;
 }
 
 QWidget#mapKeyBody QLabel {

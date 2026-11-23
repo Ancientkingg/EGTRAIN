@@ -789,7 +789,7 @@ void MainWindowTestAccess::runSettled(MainWindow& w) {
 			&& w.m_completedReplay.empty() && !w.m_replayBar->isVisible()
 			&& w.m_showingTrackPreview && !w.m_runController->m_worker && !w.m_runController->resultsAvailable()
 			&& labels.contains(QStringLiteral("Local track"))
-			&& labels.contains(QStringLiteral("High speed track (200+ km/h)"))
+			&& labels.contains(QStringLiteral("Track 200+ km/h"))
 			&& !labels.contains(QStringLiteral("Permissive signalling"))
 			&& !labels.contains(QStringLiteral("Occupied section"));
 		std::fprintf(preview ? stdout : stderr, preview ? "E2E_OPERATIONAL_DISCARD_OK\n" : "E2E_OPERATIONAL_DISCARD_FAIL: preview legend\n");

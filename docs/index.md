@@ -88,6 +88,7 @@ development/release-rehearsal-template
 development/code-signing
 development/windows-installer
 releases/1.1.0
+releases/1.1.1
 ```
 
 Each of these pages records one conversion, comparison, rehearsal, check or study. They are not guides for the current release.
