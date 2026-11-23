@@ -6,8 +6,6 @@
 #include <cstdio>
 #include <fstream>
 #include <limits>
-#include <string_view>
-#include <unordered_map>
 #include <map>
 #include <utility>
 
@@ -161,12 +159,12 @@ vector<GuiStationCall> stationCalls(const SimulationRun& run) {
 vector<GuiStationCall> latestStationCalls(const SimulationRun& run, int step) {
 	const vector<CallRef> refs = beganCalls(run, step);
 	vector<GuiStationCall> latest;
-	unordered_map<string_view, int> listed;
-	for (auto ref = refs.rbegin(); ref != refs.rend(); ++ref) {
-		const Train& train = run.trains[static_cast<size_t>(ref->train)];
-		if (listed[train.Stations[static_cast<size_t>(ref->stop)].stationName]++ < kGuiStationCallsListed)
-			latest.push_back(callOf(run, ref->train, ref->stop));
-	}
+	forLatestStationCalls(
+		refs.rbegin(), refs.rend(),
+		[&run](const CallRef& ref) -> const string& {
+			return run.trains[static_cast<size_t>(ref.train)].Stations[static_cast<size_t>(ref.stop)].stationName;
+		},
+		[&](const CallRef& ref) { latest.push_back(callOf(run, ref.train, ref.stop)); });
 	return latest;
 }
 
