@@ -190,7 +190,7 @@ StationCalloutContent stationCalloutContent(const std::string& station, const Gu
 
 	content.nobodyWaiting = waiting <= 0;
 	if (!content.nobodyWaiting && !byDestination.empty()) {
-		content.destinationHeader = QStringLiteral("Waiting, by destination");
+		content.destinationHeader = true;
 		std::vector<std::pair<std::string, int>> ranked(byDestination.begin(), byDestination.end());
 		// the map is in the order of the names, which the stable sort keeps among equal counts
 		std::stable_sort(ranked.begin(), ranked.end(), [](const auto& a, const auto& b) { return a.second > b.second; });

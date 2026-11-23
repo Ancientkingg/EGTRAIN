@@ -41,22 +41,8 @@ StationCalloutItem::StationCalloutItem(QGraphicsItem* parent)
 }
 
 void StationCalloutItem::setContent(const StationCalloutContent& content) {
-	if (content.title == m_content.title && content.subtitle == m_content.subtitle && content.nobodyWaiting == m_content.nobodyWaiting
-		&& content.destinationHeader == m_content.destinationHeader && content.moreStations == m_content.moreStations
-		&& content.moreCount == m_content.moreCount && content.destinations.size() == m_content.destinations.size()
-		&& content.calls.size() == m_content.calls.size()) {
-		bool same = true;
-		for (qsizetype i = 0; same && i < content.destinations.size(); ++i)
-			same = content.destinations[i].name == m_content.destinations[i].name && content.destinations[i].count == m_content.destinations[i].count;
-		for (qsizetype i = 0; same && i < content.calls.size(); ++i) {
-			const auto& a = content.calls[i];
-			const auto& b = m_content.calls[i];
-			same = a.time == b.time && a.train == b.train && a.boarded == b.boarded && a.alighted == b.alighted && a.leftBehind == b.leftBehind
-				&& a.load == b.load && a.anyLeft == b.anyLeft;
-		}
-		if (same)
-			return;
-	}
+	if (content == m_content)
+		return;
 	prepareGeometryChange();
 	m_content = content;
 	layout();
@@ -94,7 +80,7 @@ void StationCalloutItem::setBelow(bool below) {
 // The height of the card: the title and the subtitle, the waiting section and the calls section.
 void StationCalloutItem::layout() {
 	qreal height = 10.0 + 18.0 + 16.0 + 6.0;
-	if (m_content.nobodyWaiting || !m_content.destinationHeader.isEmpty())
+	if (m_content.nobodyWaiting || m_content.destinationHeader)
 		height += 18.0 + kRowHeight * (m_content.nobodyWaiting ? 1 : static_cast<qreal>(m_content.destinations.size()) + (m_content.moreStations > 0 ? 1 : 0));
 	height += 8.0 + 18.0; // the heading of the calls
 	height += m_content.calls.isEmpty() ? kRowHeight : kRowHeight * (1 + static_cast<qreal>(m_content.calls.size()));
@@ -162,9 +148,9 @@ void StationCalloutItem::paint(QPainter* painter, const QStyleOptionGraphicsItem
 
 	painter->setFont(sectionFont());
 	painter->setPen(kMuted);
-	if (m_content.nobodyWaiting || !m_content.destinationHeader.isEmpty()) {
+	if (m_content.nobodyWaiting || m_content.destinationHeader) {
 		painter->drawText(QRectF(left, y, right - left, 18.0), Qt::AlignVCenter | Qt::AlignLeft,
-			(m_content.destinationHeader.isEmpty() ? QStringLiteral("Waiting, by destination") : m_content.destinationHeader).toUpper());
+			QStringLiteral("Waiting, by destination").toUpper());
 		y += 18.0;
 	}
 	painter->setFont(pixelFont(12));
@@ -172,7 +158,7 @@ void StationCalloutItem::paint(QPainter* painter, const QStyleOptionGraphicsItem
 		painter->setPen(kMuted);
 		painter->drawText(QRectF(left, y, right - left, kRowHeight), Qt::AlignVCenter | Qt::AlignLeft, QStringLiteral("Nobody waiting"));
 		y += kRowHeight;
-	} else if (!m_content.destinationHeader.isEmpty()) {
+	} else if (m_content.destinationHeader) {
 		int largest = 1;
 		for (const auto& destination : m_content.destinations)
 			largest = std::max(largest, destination.count);

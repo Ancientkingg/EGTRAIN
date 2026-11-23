@@ -1749,7 +1749,7 @@ void TestRuntimeCanvas::stationCalloutListsDestinationsAndCalls() {
 	QCOMPARE(content.title, "B");
 	QCOMPARE(content.subtitle, QString("15 waiting · capacity 40 on platform P1"));
 	QVERIFY(!content.nobodyWaiting);
-	QCOMPARE(content.destinationHeader, "Waiting, by destination");
+	QVERIFY(content.destinationHeader);
 	// the four largest, ties by name, and the other two stations summed
 	QCOMPARE(content.destinations.size(), qsizetype(4));
 	const QStringList names{"A", "B", "C", "D"};
@@ -1791,7 +1791,7 @@ void TestRuntimeCanvas::stationCalloutListsDestinationsAndCalls() {
 	snapshot.platforms[0].destinations = {{"A", 200}, {"B", 60}, {"C", 9}};
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	QCOMPARE(card->content().subtitle, QString("269 waiting \u00b7 capacity 40 on platform P1"));
-	QCOMPARE(card->content().destinationHeader, "Waiting, by destination");
+	QVERIFY(card->content().destinationHeader);
 	QCOMPARE(card->content().destinations.size(), qsizetype(3));
 	QCOMPARE(card->content().destinations[0].count, 200);
 	QCOMPARE(card->content().destinations[1].count, 60);
@@ -1800,7 +1800,7 @@ void TestRuntimeCanvas::stationCalloutListsDestinationsAndCalls() {
 	snapshot.platforms[0].destinations.clear();
 	snapshot.platforms[0].passengers.clear();
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
-	QVERIFY(card->content().destinationHeader.isEmpty());
+	QVERIFY(!card->content().destinationHeader);
 	QVERIFY(!card->content().nobodyWaiting);
 
 	// several cards stand at once, and a station with nobody and no calls opens one with its empty sections
